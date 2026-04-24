@@ -30,7 +30,8 @@ Canonical handoff contract lives in `THREAD_PACKET.md`.
   - `persist`
   - `export-handoff`
 - Roadmap / vision alignment:
-  - `ROADMAP.md` Milestone 3 (`Product Readiness`) scope item `Define and lock user-facing output contracts`: hardens deterministic CLI contract validation and migration-safe command entrypoints for `project-open`
+  - `ROADMAP.md` Milestone 1 (`Bootstrap Flow Stabilization`) scope item `Command and diff-preview behavior hardening`: hardens the deterministic `project-open` CLI contract used for the `open project/document` smoke route
+  - `ROADMAP.md` Milestone 2 (`Test Hardening`) scope item `Add focused unit coverage for core behaviors`: locks parser-edge and command-probe coverage around catalog drift rejection and stable demo-path flow-step metadata
   - `ROADMAP.md` active MVP emphasis `feat-commands`: keeps deterministic CLI contract validation in the lane-owned command catalog without broadening into engine workflow behavior claims
   - `PRODUCT_VISION.md` capability 4 (`Operator-first control surface`): preserves the required CLI compatibility for `open project/document` and the rest of the MVP loop while Textual remains disabled and CLI remains the first-class operator surface
 - Scope / risk note:

@@ -4,7 +4,7 @@
 
 - Branch: `codex/feat-commands`
 - Lane/owned paths: `src/qual/commands/**`
-- Scope goal: keep the Milestone 3 `feat-commands` operator surface deterministic at the `open project/document` step by preserving stable command-contract metadata and migration-safe command entrypoints while the Textual surface stays disabled.
+- Scope goal: keep the active `feat-commands` operator surface deterministic at the `open project/document` step by preserving stable command-contract metadata and migration-safe command entrypoints while the Textual surface stays disabled.
 - Risk reason: reviewed implementation includes one approved shared regression file, `tests/unit/test_commands_catalog.py`.
 
 ### Budget
@@ -91,7 +91,8 @@
 - Explicit handoff statement for AGENTS.md:
   - This work makes the canonical `open project/document` step more real by hardening the CLI-first operator surface around the migration-safe `project-open` entrypoint while Textual remains disabled.
 - Concrete Milestone / vision claim this supports:
-  - `ROADMAP.md` Milestone 3 (`Product Readiness`) scope item `Define and lock user-facing output contracts`: this slice hardens deterministic CLI contract validation and migration-safe command entrypoints for the `project-open` operator token
+  - `ROADMAP.md` Milestone 1 (`Bootstrap Flow Stabilization`) scope item `Command and diff-preview behavior hardening`: this slice hardens the deterministic `project-open` CLI contract used for the `open project/document` smoke route
+  - `ROADMAP.md` Milestone 2 (`Test Hardening`) scope item `Add focused unit coverage for core behaviors`: this slice locks parser-edge and command-probe coverage around catalog drift rejection and stable demo-path flow-step metadata
   - `PRODUCT_VISION.md` capability 4 (`Operator-first control surface`): CLI remains a first-class surface for development and reliability, so the `project-open` contract cannot be allowed to drift silently
 - Concrete blocker removed:
   - This prevents parser/catalog drift from silently changing the CLI contract for the migration-safe `project-open` entrypoint used for `open project/document`.
@@ -140,7 +141,8 @@
 
 ### Roadmap item(s) affected
 
-- `ROADMAP.md` Milestone 3 (`Product Readiness`) scope item `Define and lock user-facing output contracts`: this handoff keeps the `project-open` CLI contract deterministic and migration-safe.
+- `ROADMAP.md` Milestone 1 (`Bootstrap Flow Stabilization`) scope item `Command and diff-preview behavior hardening`: this handoff keeps the `project-open` CLI contract deterministic and migration-safe for the active CLI smoke route.
+- `ROADMAP.md` Milestone 2 (`Test Hardening`) scope item `Add focused unit coverage for core behaviors`: this handoff keeps targeted parser-edge and command-probe coverage in place for drift rejection and stable demo-path flow-step metadata.
 - `ROADMAP.md` active MVP emphasis `feat-commands`: keeps deterministic CLI contract validation in the lane-owned command catalog without broadening into engine workflow behavior claims.
 - Canonical demo-path step advanced: `open project/document` via the `project-open` operator token.
 - Explicit statement of what this work makes more real: it hardens the CLI-first operator surface for `open project/document` by keeping the `project-open` contract deterministic and migration-safe while Textual remains disabled.
