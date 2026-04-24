@@ -5,7 +5,7 @@
   - `8e747334f4da2d5486e15088979a36184c8c9116` (`feat(commands): validate full CLI token projection`)
 - Approval basis pin:
   - Re-review remains pinned to implementation commit `8e747334f4da2d5486e15088979a36184c8c9116` and the two implementation files only: `src/qual/commands/catalog.py` and `tests/unit/test_commands_catalog.py`.
-  - Later `docs(commands)` commits are metadata-only packet refreshes and are not part of the implementation approval basis.
+  - The current packet-refresh commit is metadata-only and is not part of the implementation approval basis.
 - Scope completed: hardened `command_cli_contract()` for the current engine-first CLI smoke path by protecting the `project-open` / `retrieval` / `patch-review` command surface so the live parser entrypoints stay locked to the declared command catalog and fail fast on parser-surface drift.
 - Canonical demo-path step(s) advanced: `open project/document`, `retrieve`, `preview and apply or reject a patch`
 - Explicit CLI fallback statement: this specifically hardens the current CLI "continue working" operator surface while Textual remains disabled.
@@ -19,7 +19,7 @@
 - Plan-alignment statement: this is one CLI smoke-path contract-hardening slice inside the active engine-first MVP path. Deterministic CLI contract validation preserves the operator-facing bootstrap, context-basket, and diff-preview command surface for the current `project-open` / `retrieval` / `patch-review` smoke path while Textual remains disabled and interactive clients stay secondary. It does not claim new retrieval internals, patch application, persistence, export, audit-path, or broader workflow behavior.
 - `AGENTS.md` compliance statement: this packet stays within the high-risk 4-task cap, records the shared-test exception, and includes the required handoff fields from `INTEGRATION.md`.
 - Current roadmap alignment statement: this slice stays aligned to the current canonical roadmap by narrowing its claim to the active `feat-commands` implementation emphasis, Milestone 1 command and diff-preview hardening, and Milestone 2 parser-edge follow-up from review. Deterministic command-contract validation hardens the `project-open` / `retrieval` / `patch-review` boundary while `feat-console` stays deferred. `terminal` and `export-handoff` remain outside the review basis for this packet and appear here only as incidental aliases inside the shared catalog contract. It does not claim retrieval internals, persistence, export, audit-path, or broader workflow behavior.
-- Packet refresh traceability: later `docs(commands)` commits are metadata-only and update only `handoff_packets/feat-commands.md`, `THREAD_PACKET.md`, and `THREAD.md`.
+- Packet refresh traceability: the current packet-refresh commit is metadata-only and updates only `handoff_packets/feat-commands.md`, `THREAD_PACKET.md`, and `THREAD.md`.
 - Parser-surface evidence statement: `command_cli_contract()` now validates the full authoritative parser projection and derives `tokens` plus `lookup_table` from that same projection, so the implementation claim is full parser-surface drift detection rather than canonical-name ordering alone.
 - High-risk kickoff context:
   - lane/owned paths: `src/qual/commands/**`
@@ -60,7 +60,7 @@
 - `./quality-test.sh` -> passed
 - `./typecheck-test.sh` -> passed
 - `make ci` -> passed
-- Verification rerun timestamp: `2026-04-24T10:31:01Z UTC`
+- Verification rerun timestamp: `2026-04-24T10:34:02Z UTC`
 
 ## Risks / Blockers
 - Risks: future command-surface changes now need to keep the CLI lookup-table behavior and the shared regression suite aligned so the canonical command contract stays catalog-locked.

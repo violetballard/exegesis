@@ -11,11 +11,11 @@ Canonical handoff contract lives in `THREAD_PACKET.md`.
   - `8e747334f4da2d5486e15088979a36184c8c9116` (`feat(commands): validate full CLI token projection`)
 - Approval basis pin for re-review:
   - Only `8e747334f4da2d5486e15088979a36184c8c9116`, `src/qual/commands/catalog.py`, and `tests/unit/test_commands_catalog.py` are part of the implementation approval basis.
-  - Later `docs(commands)` commits are metadata-only packet refreshes.
+  - The packet-refresh commit is metadata-only and must not be treated as widening the implementation scope.
 - Current packet refresh traceability:
-  - later `docs(commands)` commits update only `THREAD.md`, `THREAD_PACKET.md`, and `handoff_packets/feat-commands.md`
+  - the packet-refresh commit updates only `THREAD.md`, `THREAD_PACKET.md`, and `handoff_packets/feat-commands.md`
 - Post-fixer verification note:
-- `2026-04-24T10:31:01Z UTC` gate rerun confirmed this packet correction matches the current branch state while the reviewed implementation basis remains pinned to `8e747334f4da2d5486e15088979a36184c8c9116`
+- `2026-04-24T10:34:02Z UTC` gate rerun confirmed this packet correction matches the current branch state while the reviewed implementation basis remains pinned to `8e747334f4da2d5486e15088979a36184c8c9116`
 - High-risk kickoff context:
   - scope goal: make the canonical `preview and apply or reject a patch` step more real by keeping the operator-visible command contract locked to the parser/catalog boundary so the CLI fallback stays deterministic while interactive clients stay secondary
   - risk reason: the reviewed slice touches the command contract in `src/qual/commands/catalog.py` and a shared-by-approval regression test file
@@ -53,7 +53,7 @@ Canonical handoff contract lives in `THREAD_PACKET.md`.
   - the CLI-first MVP loop claim is intentionally narrowed to the tested `project-open` / `retrieval` / `patch-review` route coverage in `tests/unit/test_commands_catalog.py`, not to a broader workflow-loop completion claim
   - `terminal` and `export-handoff` are outside the approval basis for this packet
 - Concrete blocker removed:
-  - the active CLI fallback no longer allows the parser-derived command surface to diverge from the declared command catalog, including token-level reorderings, dropped canonical entrypoints, or extra accepted aliases, without an immediate contract failure on the `project-open` / `retrieval` / `patch-review` smoke path
+  - the active CLI fallback no longer allows the parser-derived command surface to diverge from the declared `(token, canonical_name)` command catalog projection, including token-level reorderings, dropped canonical entrypoints, extra accepted aliases, or lookup-table substitutions, without an immediate contract failure on the `project-open` / `retrieval` / `patch-review` smoke path
 - Roadmap / vision alignment for this reviewed slice:
   - `ROADMAP.md` active lane keeps `feat-commands` in the current implementation push
   - `ROADMAP.md` Milestone 1 narrows this slice to `Command and diff-preview behavior hardening`

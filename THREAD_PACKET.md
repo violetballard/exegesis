@@ -5,7 +5,7 @@
 - Commit: `8e747334f4da2d5486e15088979a36184c8c9116`
 - Packet refresh role: `fixer reviewer packet correction`
 - Packet refresh basis: `realigned the handoff to the actual reviewed implementation slice after the reviewer flagged missing canonical demo-path wording, scope overclaiming beyond the parser-surface guard, and missing evidence for full parser-surface drift detection`
-- Post-fixer verification: `2026-04-24T10:31:01Z UTC gate rerun confirmed this packet correction matches the current branch state; the current refresh is metadata-only and keeps the reviewed implementation scope pinned to 8e747334f4da2d5486e15088979a36184c8c9116`
+- Post-fixer verification: `2026-04-24T10:34:02Z UTC gate rerun confirmed this packet correction matches the current branch state; the current refresh is metadata-only and keeps the reviewed implementation scope pinned to 8e747334f4da2d5486e15088979a36184c8c9116`
 - Packet-only refresh files:
   - `THREAD.md`
   - `THREAD_PACKET.md`
@@ -63,8 +63,8 @@
   - `8e747334f4da2d5486e15088979a36184c8c9116` (`feat(commands): validate full CLI token projection`)
 - Approval basis pin for re-review:
   - Only `8e747334f4da2d5486e15088979a36184c8c9116`, `src/qual/commands/catalog.py`, and `tests/unit/test_commands_catalog.py` are part of the implementation approval basis.
-  - Later `docs(commands)` commits are packet-refresh metadata only and must not be treated as widening the reviewed implementation scope.
-- Current packet refresh traceability: later `docs(commands)` commits are metadata-only and update only `THREAD.md`, `THREAD_PACKET.md`, and `handoff_packets/feat-commands.md`.
+  - The current packet-refresh commit is metadata-only and must not be treated as widening the reviewed implementation scope.
+- Current packet refresh traceability: the current packet-refresh commit is metadata-only and updates only `THREAD.md`, `THREAD_PACKET.md`, and `handoff_packets/feat-commands.md`.
 - Reviewed implementation files:
   - `src/qual/commands/catalog.py`
   - `tests/unit/test_commands_catalog.py`
@@ -133,7 +133,7 @@
 - `./quality-test.sh`: `PASSED`
 - `./typecheck-test.sh`: `PASSED`
 - `make ci`: `PASSED`
-- Gate attribution note: these gates were rerun at `2026-04-24T10:31:01Z UTC` against the current branch state while the reviewed implementation scope remains pinned to `8e747334f4da2d5486e15088979a36184c8c9116`; the current packet refresh itself is metadata-only.
+- Gate attribution note: these gates were rerun at `2026-04-24T10:34:02Z UTC` against the current branch state while the reviewed implementation scope remains pinned to `8e747334f4da2d5486e15088979a36184c8c9116`; the current packet refresh itself is metadata-only.
 
 ### Risks / Blockers
 
@@ -150,7 +150,7 @@
 - `retrieve`
 - `preview and apply or reject a patch`
 - This change makes those steps more real by keeping the command contract catalog-locked instead of letting parser-surface drift pass silently in the current engine-first CLI fallback path from `project-open` through `retrieval` to `patch-review`.
-- Concrete blocker removal: downstream CLI fallback consumers can no longer silently accept a contract where the parser-derived command surface diverges from the declared command catalog, including extra accepted aliases, dropped canonical tokens, lookup-table substitutions, or token reorderings, which keeps the `project-open` / `retrieval` / `patch-review` smoke path deterministic.
+- Concrete blocker removal: downstream CLI fallback consumers can no longer silently accept a contract where the parser-derived command surface diverges from the declared `(token, canonical_name)` command catalog projection, including extra accepted aliases, dropped canonical tokens, lookup-table substitutions, or token reorderings, which keeps the `project-open` / `retrieval` / `patch-review` smoke path deterministic.
 - Smoke-test evidence for these steps is explicit in `tests/unit/test_commands_catalog.py`: the command contract now matches the declared parser surface and raises immediately when parser-surface drift is introduced.
 
 ### Roadmap item(s) affected
