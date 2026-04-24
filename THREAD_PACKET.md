@@ -36,6 +36,7 @@
 ## Review Basis
 
 - The reviewed implementation basis is `f8d860ed9f6299f0169c4f21321ac5f37c949fd3` (`feat(commands): lock CLI contract to command catalog`).
+- Re-review approval basis is pinned to commit `f8d860ed9f6299f0169c4f21321ac5f37c949fd3` and only these two reviewed implementation files: `src/qual/commands/catalog.py` and `tests/unit/test_commands_catalog.py`.
 - Later packet-refresh commits are metadata-only and do not expand the reviewed implementation scope.
 - Reviewed implementation files:
   - `src/qual/commands/catalog.py`
@@ -53,9 +54,10 @@
 ## Canonical Demo-Path Mapping
 
 - Canonical demo-path step advanced: `patch-review` in the current CLI-first MVP path (`project-open -> retrieval -> patch-review -> apply-patch/reject-patch -> persist -> export-handoff`).
-- Explicit statement of what this work makes more real: deterministic command-catalog validation removes a concrete blocker for `patch-review` by failing fast when parser tokens drift away from the canonical catalog, so the CLI cannot silently stop exposing the reviewed-patch entrypoint operators need before they can `apply-patch`, `reject-patch`, `persist`, and `export-handoff` the result.
-- CLI-first Milestone 3 loop tie-in: this is the `patch` segment of the roadmap MVP flow (`vault -> context -> run -> patch -> export`), and the contract check keeps that exact segment backward-compatible by policy instead of relying on best-effort CLI compatibility.
-- Scope guard: this remains `feat-commands` contract hardening for the engine-first MVP loop; it does not claim broader workflow, UI, or A2UI progress.
+- Direct plan-alignment statement: this slice makes the canonical `patch-review` step more real by stabilizing the CLI/operator surface the Milestone 3 engine-first loop relies on while Textual remains disabled.
+- Concrete unblocker removed: deterministic command-catalog validation now fails fast if parser tokens drift away from the canonical catalog, so operators do not lose the reviewed-patch CLI entrypoint that must remain available before `apply-patch`, `reject-patch`, `persist`, and `export-handoff`.
+- CLI-first Milestone 3 loop tie-in: this is the `patch` segment of the roadmap MVP flow (`vault -> context -> run -> patch -> export`), and the contract check keeps that exact engine-first loop segment backward-compatible by policy instead of treating CLI compatibility as general polish.
+- Scope guard: this remains narrow `feat-commands` contract hardening for the engine-first CLI/operator path; it does not claim broader workflow, UI, Textual, or A2UI progress.
 
 ## Approved Exception Note
 
