@@ -6,13 +6,14 @@ Canonical handoff contract lives in `THREAD_PACKET.md`.
 
 ## Current Review Focus
 
-- Packet refresh status: reviewer-fix final verification refresh regenerated at 2026-04-24T07:14:46Z for the exact reviewed implementation slice, with the canonical `patch-review` mapping preserved and the required gates rerun against the unchanged CLI-first contract surface in `ROADMAP.md` Milestone 3 and `PRODUCT_VISION.md` capability 3.
-- Reviewed implementation commit: `bd118a6cbb417005bb793b3d784372ba6c1452a1` (`test(commands): cover cached parser surface drift`).
+- Packet refresh status: reviewer-fix final verification refresh regenerated at 2026-04-24T07:23:53Z for the exact reviewed implementation slice, with the canonical review/apply-or-reject mapping preserved and the required gates rerun against the unchanged CLI-first contract surface in `ROADMAP.md` Milestone 3 and `PRODUCT_VISION.md` capability 3.
+- Reviewed implementation commit: `3e1e7d7f9ebce3001ebe941133b00e145e79cb7b` (`Add command demo branch contract helpers`), carrying forward the warmed-cache parser-surface regression coverage from `bd118a6cbb417005bb793b3d784372ba6c1452a1`.
 - Packet refresh traceability:
-  - the pre-refresh branch tip for this re-review pass was `f84c26610ffc33937ed5e1477b9b63ebaaddab2c`, a packet-only refresh above `bd118a6cbb417005bb793b3d784372ba6c1452a1`; no implementation files beyond the reviewed slice changed in this refresh
+  - the pre-refresh branch tip for this re-review pass was `3e1e7d7f9ebce3001ebe941133b00e145e79cb7b`; this refresh updates only `THREAD.md`, `THREAD_PACKET.md`, and `handoff_packets/feat-commands.md`
 - Post-fixer verification note:
-- 2026-04-24T07:14:46Z UTC gate rerun confirmed the packet still matches the branch state during this final verification refresh; no implementation files changed in this packet-only refresh
+- 2026-04-24T07:23:53Z UTC gate rerun confirmed the packet still matches the branch state during this final verification refresh; no implementation files changed in this packet-only refresh
 - Reviewed implementation files:
+  - `src/qual/commands/__init__.py`
   - `tests/unit/test_commands_catalog.py`
   - implementation basis retained on branch: `src/qual/commands/catalog.py`
 - Packet-only refresh files:
@@ -22,27 +23,27 @@ Canonical handoff contract lives in `THREAD_PACKET.md`.
   - fail fast when the live default parser entrypoints drift from the command catalog by locking the parser surface to `_CLI_ENTRYPOINTS` and proving real drift cases against that source of truth
   - explicitly reject the token-level drift where `diff-preview` disappears from the parser surface while `diff` still resolves to the same canonical command, including after `command_cli_tokens()` has already warmed its cache
 - Primary canonical demo-path step advanced now:
-  - `patch-review` (`diff-preview` on the public CLI surface)
+  - `preview and apply or reject a patch` (`patch-review` / `diff-preview` on the public CLI surface)
 - Required handoff field now called out explicitly:
-  - `Canonical demo-path step advanced: patch-review (diff-preview on the public CLI surface)`
+  - `Canonical demo-path step advanced: preview and apply or reject a patch (patch-review / diff-preview on the public CLI surface)`
 - Explicit re-review statement:
-  - this slice advances the canonical `patch-review` step by keeping the public `diff-preview` parser token catalog-locked and failing fast when it drifts to alias-only, reordered, missing-token, or extra-token shapes
+  - this slice advances the canonical `preview and apply or reject a patch` step by keeping the public `patch-review` / `diff-preview` parser token catalog-locked and failing fast when it drifts to alias-only, reordered, missing-token, or extra-token shapes
 - Primary-step scope note:
-  - this packet advances `patch-review` specifically; it does not claim new retrieval, patch-apply, persistence, export, or broader CLI-surface behavior
+  - this packet advances the canonical review/apply-or-reject step specifically; it does not claim new retrieval, patch-apply, persistence, export, or broader CLI-surface behavior
 - Current engine-first MVP path statement:
   - the current CLI-first smoke route stays `project-open -> retrieval -> patch-review -> apply-patch/reject-patch -> persist -> export-handoff`, with `bootstrap --project demo` as the parser-ready entry for the `project-open` step
 - One-line plan alignment:
-  - this change makes `patch-review` more real by ensuring the public `diff-preview` command surface cannot silently drift to alias-only entrypoints while still resolving through lookup
+  - this change makes `preview and apply or reject a patch` more real by ensuring the public `patch-review` / `diff-preview` command surface cannot silently drift to alias-only entrypoints while still resolving through lookup
 - Concrete reviewer-example coverage:
   - the shared regression suite now includes the exact parser drift shape where the public `diff-preview` token is removed, `diff` still resolves to `diff-preview`, canonical ordering still matches, and `command_cli_contract()` still fails fast
 - Active MVP operator path strengthened:
   - the existing CLI smoke route `project-open -> retrieval -> patch-review -> apply-patch/reject-patch -> persist -> export-handoff` by keeping the public review-step parser verb contract catalog-locked
 - Direct plan-alignment statement:
-  - this change makes `patch-review` more real by preventing silent parser-surface drift at the `diff-preview` entrypoint and by failing fast before the operator reaches the review step with the wrong public verb set
+  - this change makes `preview and apply or reject a patch` more real by preventing silent parser-surface drift at the `patch-review` / `diff-preview` entrypoint and by failing fast before the operator reaches the review step with the wrong public verb set
 - Concrete smoke-test evidence:
   - `tests/unit/test_commands_catalog.py` now proves the live parser surface stays `("diff-preview", "diff")` for the `patch-review` step and fails fast when `diff-preview` disappears while `diff` still resolves to the same canonical command, even after the CLI token helpers have been warmed
 - Traceability note:
-  - `bd118a6cbb417005bb793b3d784372ba6c1452a1` is the reviewed implementation tip for the parser-surface fix set, carrying the warmed-cache regression coverage on top of the earlier `6890b8c6ea9b6dcd9cd58eb7cdbd9f68356f47ac` drift fix; this packet refresh commit records the updated re-review mapping and gate results on top of packet-refresh tip `f84c26610ffc33937ed5e1477b9b63ebaaddab2c`
+  - `3e1e7d7f9ebce3001ebe941133b00e145e79cb7b` is the current reviewed implementation tip for this lane slice, carrying forward the warmed-cache regression coverage from `bd118a6cbb417005bb793b3d784372ba6c1452a1` on top of the earlier `6890b8c6ea9b6dcd9cd58eb7cdbd9f68356f47ac` drift fix; this packet refresh commit records the updated re-review mapping and gate results on top of pre-refresh tip `3e1e7d7f9ebce3001ebe941133b00e145e79cb7b`
 - Concrete blocker removed for the current CLI smoke route:
   - the active CLI smoke route no longer allows the public `diff-preview` parser token for `patch-review` to disappear and leave only the still-resolvable alias `diff` without an immediate contract failure
 - Scope-tightening note:
@@ -70,4 +71,4 @@ Canonical handoff contract lives in `THREAD_PACKET.md`.
   - `./typecheck-test.sh`
   - `make ci`
 - Gate attribution note:
-- these gates were rerun at 2026-04-24T07:14:46Z against the packet-refresh workspace state at `f84c26610ffc33937ed5e1477b9b63ebaaddab2c`; this refresh updates only `THREAD.md`, `THREAD_PACKET.md`, and `handoff_packets/feat-commands.md`
+- these gates were rerun at 2026-04-24T07:23:53Z against the packet-refresh workspace state at `3e1e7d7f9ebce3001ebe941133b00e145e79cb7b`; this refresh updates only `THREAD.md`, `THREAD_PACKET.md`, and `handoff_packets/feat-commands.md`
