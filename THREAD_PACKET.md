@@ -5,11 +5,11 @@
 - Commit: `f8d860ed9f6299f0169c4f21321ac5f37c949fd3`
 - Packet refresh role: `reviewer-fix final gate rerun`
 - Review scope: narrow command-contract hardening in `src/qual/commands/catalog.py`, plus focused regression coverage in `tests/unit/test_commands_catalog.py`.
-- Canonical demo-path step advanced: the already-modeled `open project/document` CLI entry step, by making its existing parser/catalog contract deterministic rather than expanding loop reachability
+- Canonical demo-path step advanced: the already-modeled `open project/document` CLI entry step in the Milestone 3 CLI-first MVP loop, by making its existing parser/catalog contract deterministic while Textual remains disabled rather than expanding loop reachability
 - Canonical MVP flow context: `open project/document -> retrieve relevant material -> preview and apply or reject a patch` remains the same manual CLI smoke flow, and this slice only hardens the existing parser-backed command surface that starts that path
 - AGENTS.md alignment note: this packet explicitly names the exact canonical demo-path step protected by the reviewed slice and ties the claim to the current AGENTS handoff packet and checkpoint requirements.
-- Required mapping statement: this `feat-commands` slice is not claiming new workflow reachability; it is migration-safe compatibility hardening for the existing command catalog because `command_cli_contract()` now fails fast when parser/catalog drift would otherwise silently change the operator-facing CLI contract for the existing `open project/document` entry surface.
-- Demo-path sentence: this change makes the existing CLI-first MVP path safer to rely on because the concrete parser-backed command entrypoints an operator already uses to open project or document state can no longer silently drift away from the canonical catalog.
+- Required mapping statement: this `feat-commands` slice is not claiming new workflow reachability; it is migration-safe compatibility hardening for the existing command catalog because `command_cli_contract()` now fails fast when parser/catalog drift would otherwise silently change the operator-facing CLI contract for the existing `open project/document` entry surface required by Milestone 3's exit criterion that `CLI can still execute the MVP loop while Textual remains disabled`.
+- Demo-path sentence: this change makes the existing CLI-first MVP path safer to rely on because the concrete parser-backed command entrypoints an operator already uses to open project or document state can no longer silently drift away from the canonical catalog, tightening the CLI operator surface that keeps the MVP loop runnable while Textual remains disabled.
 - Concrete blocker removed: before this slice, parser drift could change the accepted CLI surface without a hard failure, so an operator could begin the manual MVP flow through an `open project/document` surface that no longer matched the canonical command catalog.
 - Review basis scope: keep implementation and approval claims pinned to reviewed commit `f8d860ed9f6299f0169c4f21321ac5f37c949fd3` and its two implementation files only: `src/qual/commands/catalog.py` and `tests/unit/test_commands_catalog.py`.
 - Final fixer note: this packet refresh exists only to record the green rerun of the required gates after the reviewer-requested demo-path mapping was added; the reviewed implementation commit remains `f8d860ed9f6299f0169c4f21321ac5f37c949fd3`.
@@ -81,6 +81,6 @@
 
 ## Roadmap and Vision Mapping
 
-- `ROADMAP.md` Milestone 1 scope item `Command and diff-preview behavior hardening`: this slice hardens the existing command catalog contract without adding new CLI workflow coverage.
-- `ROADMAP.md` Milestone 2 scope item `Keep command-level probes for integration confidence`: the added tests and fail-fast contract check keep parser/catalog drift visible at the command-contract layer for the current command surface.
-- `PRODUCT_VISION.md` capability 4 `Operator-first control surface`: the active CLI surface now rejects parser/catalog drift before it can silently change the deterministic command contract the operator relies on.
+- `ROADMAP.md` Milestone 3 lane mapping `feat-commands: CLI compatibility and migration-safe entrypoints`: this slice hardens the existing command catalog contract without adding new CLI workflow reachability.
+- `ROADMAP.md` Milestone 3 exit criterion `CLI can still execute the MVP loop while Textual remains disabled`: deterministic parser/catalog alignment keeps the operator-facing `open project/document` entry surface stable for the CLI-first loop.
+- `PRODUCT_VISION.md` capability 3 `Canonical engine contract` plus `CLI compatibility is required while Textual remains disabled`: the active CLI surface now rejects parser/catalog drift before it can silently change the deterministic command contract the operator relies on.
