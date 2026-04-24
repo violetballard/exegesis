@@ -74,6 +74,10 @@
   - blockers: none
 - roadmap item(s) affected:
   - `ROADMAP.md` Milestone 3 CLI compatibility while Textual remains disabled: this slice hardens the current manual CLI-first loop specifically at the `preview and apply or reject a patch` step by proving the existing `parse_args()` review/apply entry path is deterministic and migration-safe from the real operator dispatch path while `feat-console` stays disabled and the MVP continues to rely on the CLI fallback surface
+- why this is in-bounds under `AGENTS.md`:
+  - this is not second-order contract work because the active MVP note explicitly targets `A2UI contracts with CLI fallback`, `feat-console` stays disabled, and the current operator loop still depends on the CLI review/apply surface; hardening that exact fallback step is direct MVP blocker-removal
+- reviewer-fix satisfaction note:
+  - this reissued handoff now states the exact canonical demo-path step it advances and narrows the vision mapping to the operator-first CLI compatibility surface only; it does not claim `Auditable state and workflow`
 - reviewer-required canonical demo-path handoff field: this handoff explicitly advances the canonical `preview and apply or reject a patch` step by proving the active CLI fallback rejects parser/catalog drift before an operator reaches the `preview`, `apply`, or `reject` entrypoints in the current engine-first MVP loop
 - canonical demo-path step advanced: `preview and apply or reject a patch` on the active MVP engine-first path (`Engine stability`, `FTS-first retrieval`, `A2UI contracts with CLI fallback`)
 - Milestone 3 exit-criterion mapping: this slice keeps the CLI/operator fallback able to execute the current MVP review/apply loop while Textual remains disabled by proving the active `preview`, `apply`, and `reject` `parse_args()` surface is deterministic and drift-checked from `src/main.py::_dispatch()`
