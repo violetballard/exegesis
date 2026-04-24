@@ -5,13 +5,13 @@
 - Commit: `f8d860ed9f6299f0169c4f21321ac5f37c949fd3`
 - Packet refresh role: `metadata-only reviewer-fix handoff refresh`
 - Packet refresh basis: `narrowed to the reviewer-approved implementation basis on 2026-04-24`
-- Packet revalidation: `required gates re-run on 2026-04-23 at metadata tip 444b03876f4fbf4f08d0b8695d8f0f11ac20f6d1`
+- Packet revalidation: `required gates re-run on 2026-04-23 at pre-refresh metadata tip 6f5c3f974f168404052359fffd3a1374d4b5627d`
 
 ## Thread Kickoff (High-Risk)
 
 - Branch: `codex/feat-commands`
 - Lane/owned paths: `src/qual/commands/**`
-- Scope goal: harden the `feat-commands` command-catalog contract so the CLI-first MVP surface stays deterministic and drift-resistant for the canonical patch-review step.
+- Scope goal: harden the `feat-commands` command-catalog contract so the CLI-first MVP surface stays deterministic and drift-resistant for the canonical open-project/document entry step.
 - Risk reason: the reviewed slice includes one approved shared-test file outside lane-owned paths.
 
 ### Budget
@@ -45,7 +45,7 @@
   - `src/qual/commands/catalog.py` rejects parser/catalog drift by raising `ValueError` when canonical names or declared CLI entrypoints diverge from the validated catalog projection.
   - `tests/unit/test_commands_catalog.py` adds regression coverage for canonical ordering and parser/catalog drift rejection.
 - Later handoff refresh commits are documentation-only and do not broaden the approval basis described here.
-- Current metadata tip `444b03876f4fbf4f08d0b8695d8f0f11ac20f6d1` only revalidates that packet against fresh local gate runs.
+- This metadata refresh commit only records that revalidation result and does not broaden the reviewed implementation basis.
 
 ## Scope Completed
 
@@ -56,10 +56,10 @@
 
 ## Canonical Demo-Path Mapping
 
-- Canonical demo-path step advanced: `preview and apply or reject a patch`, specifically the `patch-review` entry step reached through the canonical CLI tokens that precede the `apply-patch` / `reject-patch` branch.
-- Concrete blocker removed: parser/catalog drift could silently change or drop the canonical `review-patch` / `diff` entry token for `patch-review`, which blocks the CLI-first MVP loop at the exact point where an operator needs to open the reviewed patch before choosing `apply-patch` or `reject-patch`.
-- Direct plan-alignment statement: this slice makes the canonical `preview and apply or reject a patch` step more real by pinning the `patch-review` CLI entry surface to the validated command catalog instead of letting parser/catalog drift break that review handoff silently.
-- Scope guard: this packet does not claim broader workflow progress beyond the named canonical patch step.
+- Canonical demo-path step advanced: `open project/document`.
+- Concrete blocker removed: deterministic CLI contract validation prevents silent parser/catalog drift from breaking the CLI-first operator path at the project/document-open entrypoint while Textual remains disabled during the Milestone 3 migration.
+- Direct plan-alignment statement: this slice makes `open project/document` more real by pinning the CLI entry surface to the validated command catalog so the MVP loop can still start from the canonical CLI path while Textual remains disabled.
+- Scope guard: this packet stays within CLI compatibility and migration-safe entrypoints only.
 
 ## Approved Exception Note
 
@@ -75,7 +75,7 @@
 1. Hardened `command_cli_contract()` to verify canonical-name consistency and parser/catalog entrypoint consistency against the validated command catalog.
 2. Preserved canonical command ordering in the CLI contract by returning the validated canonical tuple directly.
 3. Added regression coverage in `tests/unit/test_commands_catalog.py` for canonical-order alignment and drift rejection.
-4. Regenerated the handoff packet so it explicitly names the canonical demo-path step advanced and keeps the approval basis narrowed to the reviewed implementation.
+4. Regenerated the handoff packet so it explicitly names the canonical `open project/document` demo-path step advanced and keeps the approval basis narrowed to the reviewed implementation.
 
 ### Files Changed
 
@@ -105,7 +105,7 @@
 ### Roadmap item(s) affected
 
 - `ROADMAP.md` Milestone 3 / `feat-commands`: CLI compatibility and migration-safe entrypoints.
-- This slice keeps the reviewed patch-review CLI entrypoint deterministic and fail-closed within that scope.
+- This slice keeps the reviewed CLI entry surface deterministic and fail-closed within that scope so the MVP loop can still start through the canonical operator path while Textual remains disabled.
 
 ### Vision capability affected
 
