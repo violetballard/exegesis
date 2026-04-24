@@ -2,7 +2,7 @@
 
 - Lane: `feat-commands`
 - Branch: `codex/feat-commands`
-- Commit: `aef67223fb2ea280860de95d2a860880630a84dd`
+- Commit: `dbb8e0155a647bd0eb7f442a1799136ee4d591f4`
 - Packet refresh role: `reviewer-fix packet refresh`
 - Packet refresh basis: `regenerated on 2026-04-24 for re-review against the fixer delta that locks the live parser surface to the command catalog, proves the reviewer-called-out diff-preview-to-diff token drift now fails fast, states the canonical demo-path step explicitly, and narrows roadmap/vision mapping to the engine-first CLI operator surface while feat-console remains inactive`
 - Packet-only refresh files:
@@ -39,7 +39,7 @@
 
 ## Review Basis
 
-- Reviewed implementation commit: `aef67223fb2ea280860de95d2a860880630a84dd` (`fix(commands): lock parser surface contract`).
+- Reviewed implementation commit: `dbb8e0155a647bd0eb7f442a1799136ee4d591f4` (`fix(commands): harden parser surface drift checks`).
 - Reviewed implementation files:
   - `src/qual/commands/catalog.py`
   - `tests/unit/test_commands_catalog.py`
@@ -68,7 +68,7 @@
 - Direct plan-alignment statement: this change makes the `project-open` bootstrap step more real by failing closed when the parser-facing entrypoint contract no longer matches the cataloged command surface.
 - Concrete smoke-test evidence already in the reviewed slice: `tests/unit/test_commands_catalog.py` proves the canonical smoke contract keeps `project-open` on `("bootstrap", "--project", "demo")` and that the trusted MVP workflow tables still start from the same parser-ready bootstrap argv for both apply and reject branches.
 - Scope-tightening note: this handoff claims only parser-surface drift detection plus focused regression coverage for the primary `project-open` entrypoint contract; it does not claim new retrieval quality, patch semantics, persistence behavior, or export behavior.
-- Traceability note: `aef67223fb2ea280860de95d2a860880630a84dd` is the implementation tip for this reviewed slice. `THREAD.md` and `THREAD_PACKET.md` are packet refresh companions that capture the updated reviewer-fix mapping and gate results.
+- Traceability note: `dbb8e0155a647bd0eb7f442a1799136ee4d591f4` is the implementation tip for this reviewed slice. `THREAD.md` and `THREAD_PACKET.md` are packet refresh companions that capture the updated reviewer-fix mapping and gate results.
 - Why this is milestone-worthy now instead of second-order cleanup: Milestone 3 is where user-facing contracts are locked and documented intentionally. This guard removes a concrete operator-surface contract risk at the `project-open` entrypoint before the engine-first CLI loop even starts.
 
 ## Approved Exception Note
