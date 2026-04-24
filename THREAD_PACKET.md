@@ -5,7 +5,7 @@
 - Commit: `8e747334f4da2d5486e15088979a36184c8c9116`
 - Packet refresh role: `fixer reviewer packet verification refresh`
 - Packet refresh basis: `preserved the narrowed reviewer-fix packet wording, then reran the full required gate set and refreshed the metadata-only handoff timestamps without widening the reviewed implementation scope`
-- Post-fixer verification: `2026-04-24T11:07:42Z UTC full required gate rerun confirmed this packet correction still matches the current branch state; the current refresh is metadata-only and keeps the reviewed implementation scope pinned to 8e747334f4da2d5486e15088979a36184c8c9116`
+- Post-fixer verification: `2026-04-24T11:08:30Z UTC full required gate rerun confirmed this packet correction still matches the current branch state; the current refresh is metadata-only and keeps the reviewed implementation scope pinned to 8e747334f4da2d5486e15088979a36184c8c9116`
 - Packet-only refresh files:
   - `THREAD.md`
   - `THREAD_PACKET.md`
@@ -134,7 +134,7 @@
 - `./quality-test.sh`: `PASSED`
 - `./typecheck-test.sh`: `PASSED`
 - `make ci`: `PASSED`
-- Gate attribution note: these gates were rerun at `2026-04-24T11:07:42Z UTC` against the current branch state while the reviewed implementation scope remains pinned to `8e747334f4da2d5486e15088979a36184c8c9116`; the current packet refresh itself is metadata-only.
+- Gate attribution note: these gates were rerun at `2026-04-24T11:08:30Z UTC` against the current branch state while the reviewed implementation scope remains pinned to `8e747334f4da2d5486e15088979a36184c8c9116`; the current packet refresh itself is metadata-only.
 
 ### Risks / Blockers
 
