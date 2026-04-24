@@ -307,9 +307,13 @@ class FTSStrategy:
         return True
 
     @staticmethod
-    def _normalize_list_like(value: object) -> list[str]:
+    def _normalize_list_like(value: object, *, field_name: str) -> list[str]:
         if value is None:
             return []
+        if isinstance(value, (bytes, bytearray)):
+            raise TypeError(f"{field_name} must be an iterable of text values, not bytes")
+        if isinstance(value, Mapping):
+            raise TypeError(f"{field_name} must be an iterable of values, not a mapping")
         if isinstance(value, str):
             items = [value]
         else:
@@ -324,7 +328,7 @@ class FTSStrategy:
 
     @staticmethod
     def _normalize_doc_types(value: object) -> list[str]:
-        return FTSStrategy._normalize_list_like(value)
+        return FTSStrategy._normalize_list_like(value, field_name="doc_types")
 
     @staticmethod
     def _normalize_query_hint(value: object) -> str | None:
@@ -334,12 +338,16 @@ class FTSStrategy:
     def _normalize_optional_list_like(value: object) -> list[str] | None:
         if value is None:
             return None
-        return FTSStrategy._normalize_list_like(value)
+        return FTSStrategy._normalize_list_like(value, field_name="values")
 
     @staticmethod
-    def _normalize_ordered_text_items(value: object) -> list[str] | None:
+    def _normalize_ordered_text_items(value: object, *, field_name: str) -> list[str] | None:
         if value is None:
             return None
+        if isinstance(value, (bytes, bytearray)):
+            raise TypeError(f"{field_name} must be an iterable of text values, not bytes")
+        if isinstance(value, Mapping):
+            raise TypeError(f"{field_name} must be an iterable of values, not a mapping")
         if isinstance(value, str):
             items = [value]
         else:
@@ -357,7 +365,7 @@ class FTSStrategy:
 
     @staticmethod
     def _normalize_date_range(value: object) -> list[str] | None:
-        normalized = FTSStrategy._normalize_ordered_text_items(value)
+        normalized = FTSStrategy._normalize_ordered_text_items(value, field_name="date_range")
         if normalized is None:
             return None
         if len(normalized) != 2:
