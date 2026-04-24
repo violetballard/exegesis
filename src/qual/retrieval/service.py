@@ -48,6 +48,7 @@ _EXCERPT_QUERY_MIRROR_FIELDS = (
     "query_max_results",
     "query_doc_types",
     "query_require_citations",
+    "query_section_hint",
     "query_prefer_exact_matches",
 )
 
@@ -578,6 +579,9 @@ def _mirror_query_constraint_fields(
     query_require_citations = _optional_bool(provenance.get("query_require_citations"))
     if query_require_citations is not None:
         payload["query_require_citations"] = query_require_citations
+    query_section_hint = _normalized_query_hint_text(provenance.get("query_section_hint"))
+    if query_section_hint is not None:
+        payload["query_section_hint"] = query_section_hint
     query_prefer_exact_matches = _optional_bool(provenance.get("query_prefer_exact_matches"))
     if query_prefer_exact_matches is not None:
         payload["query_prefer_exact_matches"] = query_prefer_exact_matches
@@ -1492,6 +1496,7 @@ class RetrievalResult:
             "query_max_results": self.query.constraints.max_results,
             "query_doc_types": list(self.query.constraints.doc_types),
             "query_require_citations": self.query.constraints.require_citations,
+            "query_section_hint": self.query.constraints.section_hint,
             "query_prefer_exact_matches": self.query.constraints.prefer_exact_matches,
             "query_date_range": copy.deepcopy(self.diagnostics["date_range"]),
             "candidate_doc_count": self.diagnostics["candidate_doc_count"],
@@ -1984,6 +1989,7 @@ class RetrievalService:
                 "query_max_results": excerpt.get("query_max_results"),
                 "query_doc_types": copy.deepcopy(excerpt.get("query_doc_types")),
                 "query_require_citations": excerpt.get("query_require_citations"),
+                "query_section_hint": excerpt.get("query_section_hint"),
                 "query_prefer_exact_matches": excerpt.get("query_prefer_exact_matches"),
                 "query_date_range": copy.deepcopy(excerpt.get("query_date_range")),
                 "candidate_doc_count": excerpt.get("candidate_doc_count"),
@@ -2086,6 +2092,7 @@ class RetrievalService:
                 "query_max_results": None,
                 "query_doc_types": [],
                 "query_require_citations": None,
+                "query_section_hint": None,
                 "query_prefer_exact_matches": None,
                 "query_date_range": None,
                 "promotion_fingerprint": None,
@@ -2521,6 +2528,7 @@ class RetrievalService:
                         "query_max_results": query.constraints.max_results,
                         "query_doc_types": list(query.constraints.doc_types),
                         "query_require_citations": query.constraints.require_citations,
+                        "query_section_hint": query.constraints.section_hint,
                         "query_prefer_exact_matches": query.constraints.prefer_exact_matches,
                         "query_date_range": list(query.constraints.date_range) if query.constraints.date_range is not None else None,
                         "candidate_doc_count": candidate_doc_count,
@@ -3056,6 +3064,7 @@ class RetrievalService:
                     "query_max_results",
                     "query_doc_types",
                     "query_require_citations",
+                    "query_section_hint",
                     "query_prefer_exact_matches",
                     "candidate_doc_count",
                     "fts_shortlist_doc_ids",
@@ -3127,6 +3136,7 @@ class RetrievalService:
                 "query_max_results": query.constraints.max_results,
                 "query_doc_types": list(query.constraints.doc_types),
                 "query_require_citations": query.constraints.require_citations,
+                "query_section_hint": query.constraints.section_hint,
                 "query_prefer_exact_matches": query.constraints.prefer_exact_matches,
                 "candidate_doc_count": candidate_doc_count,
                 "source_hash": hit.provenance.get("source_hash") or self._doc_source_hash(hit.doc_id),
@@ -3263,6 +3273,8 @@ class RetrievalService:
             provenance["query_doc_types"] = list(query_doc_types)
         if query_require_citations is not None:
             provenance["query_require_citations"] = query_require_citations
+        if section_hint is not None:
+            provenance["query_section_hint"] = section_hint
         if query_prefer_exact_matches is not None:
             provenance["query_prefer_exact_matches"] = query_prefer_exact_matches
         if query_fingerprint is not None:
@@ -3735,6 +3747,13 @@ class RetrievalService:
             else:
                 normalized.pop("query_require_citations", None)
                 normalized_provenance.pop("query_require_citations", None)
+            query_section_hint = _normalized_query_hint_text(query_constraints.get("section_hint"))
+            if query_section_hint is not None:
+                normalized["query_section_hint"] = query_section_hint
+                normalized_provenance["query_section_hint"] = query_section_hint
+            else:
+                normalized.pop("query_section_hint", None)
+                normalized_provenance.pop("query_section_hint", None)
             query_prefer_exact_matches = _optional_bool(query_constraints.get("prefer_exact_matches"))
             if query_prefer_exact_matches is not None:
                 normalized["query_prefer_exact_matches"] = query_prefer_exact_matches
@@ -4165,6 +4184,7 @@ class RetrievalService:
             "query_max_results": _optional_int(query_constraints.get("max_results")),
             "query_doc_types": _normalize_query_doc_types_payload(query_constraints.get("doc_types")),
             "query_require_citations": _optional_bool(query_constraints.get("require_citations")),
+            "query_section_hint": _normalized_query_hint_text(query_constraints.get("section_hint")),
             "query_prefer_exact_matches": _optional_bool(query_constraints.get("prefer_exact_matches")),
             "lookup_resolution": _normalize_lookup_resolution_payload(
                 excerpt.get("lookup_resolution") or provenance.get("lookup_resolution")

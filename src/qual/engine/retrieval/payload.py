@@ -1806,6 +1806,18 @@ def _normalize_basket_promotion_snapshot(snapshot: object) -> dict[str, object]:
         normalized["query_require_citations"] = query_require_citations
     elif "query_require_citations" in normalized:
         normalized["query_require_citations"] = None
+    query_section_hint = _normalize_query_hint(
+        normalized.get(
+            "query_section_hint",
+            normalized.get("query_constraints", {}).get("section_hint")
+            if isinstance(normalized.get("query_constraints"), dict)
+            else None,
+        )
+    )
+    if query_section_hint is not None:
+        normalized["query_section_hint"] = query_section_hint
+    elif "query_section_hint" in normalized:
+        normalized["query_section_hint"] = None
     query_prefer_exact_matches = _normalize_optional_bool(normalized.get("query_prefer_exact_matches"))
     if query_prefer_exact_matches is not None:
         normalized["query_prefer_exact_matches"] = query_prefer_exact_matches
@@ -2028,6 +2040,14 @@ def _build_basket_promotion_from_payload(payload: dict[str, object]) -> dict[str
                 retrieval_provenance.get("query_require_citations"),
                 retrieval_source_bundle.get("query_require_citations"),
                 query_constraints.get("require_citations"),
+            )
+        ),
+        "query_section_hint": _normalize_query_hint(
+            _first_text_value(
+                payload.get("query_section_hint"),
+                retrieval_provenance.get("query_section_hint"),
+                retrieval_source_bundle.get("query_section_hint"),
+                query_constraints.get("section_hint"),
             )
         ),
         "query_prefer_exact_matches": _normalize_optional_bool(
