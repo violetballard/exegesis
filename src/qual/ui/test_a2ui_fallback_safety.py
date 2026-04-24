@@ -8096,6 +8096,14 @@ class A2UIFallbackSafetyTests(unittest.TestCase):
                 "trace_id": "drop-me",
             },
         }
+        minimal_raw_leaf_envelope = build_terminal_artifact_envelope(
+            {
+                "id": "export_document",
+                "label": "Export",
+                "payload": {"format": "md"},
+            },
+            kind="card",
+        )
 
         for case_name, artifact in (
             ("action envelope", action_envelope),
@@ -8116,6 +8124,17 @@ class A2UIFallbackSafetyTests(unittest.TestCase):
         self.assertNotIn("[UnknownCard] <invalid card>", raw_leaf_text)
         self.assertNotIn("[ActionRef]", raw_leaf_text)
         self.assertNotIn("[SelectionRef]", raw_leaf_text)
+
+        minimal_raw_leaf_text = render_terminal_cli_fallback(minimal_raw_leaf_envelope)
+        self.assertEqual(minimal_raw_leaf_text, render_terminal_artifact(minimal_raw_leaf_envelope))
+        self.assertEqual(shell.render_artifact(minimal_raw_leaf_envelope), minimal_raw_leaf_text)
+        self.assertEqual(
+            resolve_terminal_artifact_cli_fallback_target(minimal_raw_leaf_envelope),
+            (minimal_raw_leaf_envelope["artifact"], "card"),
+        )
+        self.assertIn("[<missing>] <untitled>", minimal_raw_leaf_text)
+        self.assertNotIn("[ActionRef]", minimal_raw_leaf_text)
+        self.assertNotIn("[SelectionRef]", minimal_raw_leaf_text)
 
     def test_shell_ui_prefers_typed_payload_kind_over_conflicting_hint_for_non_envelope_payloads(self) -> None:
         shell = ShellUI()

@@ -5157,11 +5157,13 @@ def resolve_terminal_artifact_cli_fallback_target(
     if requested_kind is None and isinstance(artifact, Mapping):
         artifact_type = artifact.get("type")
         if isinstance(artifact_type, str) and artifact_type.strip() == _TERMINAL_ARTIFACT_ENVELOPE_TYPE:
-            if _normalize_terminal_artifact_envelope_kind(artifact.get("kind")) is None:
+            envelope_kind = _normalize_terminal_artifact_envelope_kind(artifact.get("kind"))
+            if envelope_kind in {None, "card"}:
                 payload = artifact.get("artifact")
                 if _should_preserve_raw_leaf_card_default(payload):
-                    # The explicit CLI fallback path should keep ambiguous raw
-                    # leaves on the card default when the envelope kind is unusable.
+                    # Keep valid card envelopes and malformed envelopes with
+                    # ambiguous raw leaves on the card default when no
+                    # explicit kind hint was supplied.
                     return payload, "card"
 
     try:
