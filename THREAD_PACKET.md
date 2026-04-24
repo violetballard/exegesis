@@ -100,7 +100,6 @@
 ### Vision capability affected
 
 - Canonical engine contract - CLI compatibility remains stable while the command-catalog surface rejects parser drift before it can silently change the operator contract.
-- Auditable state and workflow - the command surface now fails loudly on catalog/parser drift, making the operator-facing contract explicit and traceable.
 
 ### Routing / Provider Impact Note
 
