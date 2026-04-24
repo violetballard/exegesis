@@ -2,24 +2,25 @@ Gate Results Summary (as of 2026-04-24)
 -------------------------------------
 
 Feature lane: `codex/feat-retrieval-fts`
-Packet role: `reviewer-fix demo-path alignment`
-Reviewed implementation head: `adfa8cdadd43747ffbcb612e4151e262b13e52ca`
-Reviewed implementation scope: `FTS-first excerpt lookup hardening in the accepted retrieval slice`
+Packet role: `branch-tip cumulative retrieval handoff`
+Reviewed implementation head: `e5d20f4012eed3c1e12e9acea2737e1e03dad50b`
+Reviewed implementation range: `d7fd5d200358287fa42a18d39e2b277463b9b69f..e5d20f4012eed3c1e12e9acea2737e1e03dad50b`
 Canonical demo-path step advanced: `retrieve relevant material`
-Plan-alignment statement: This change makes `retrieve relevant material` more real by ensuring excerpt lookup resolves only through the canonical SQLite FTS path, so downstream basket/workflow consumers cannot silently fall back to PageIndex-only IDs.
-Reviewer-fix reconciliation: the handoff is intentionally narrowed to the accepted `adfa8cdadd43747ffbcb612e4151e262b13e52ca` slice, keeps retrieval FTS-first for the MVP, and carries the required canonical demo-path statement in the packet itself.
+Plan-alignment statement: This cumulative branch makes `retrieve relevant material` more real by keeping retrieval FTS-first, preserving deterministic payload and provenance fields, and ensuring excerpt/query metadata stays auditable and structured for downstream basket promotion and workflow use.
+Reviewer-fix reconciliation: the handoff packet is regenerated against the real cumulative branch-tip range, treats `e5d20f4` as code-bearing retrieval scope instead of metadata-only churn, and restamps the tracked packet mirrors so they agree on the actual reviewed head.
 
 Reviewed implementation scope:
 
-* The accepted retrieval slice keeps excerpt lookup on the canonical SQLite FTS path for downstream engine and basket consumers.
-* The accepted slice includes approved shared regression coverage in `tests/unit/test_unified_retrieval.py`, so the handoff remains shared/high-risk under `AGENTS.md`.
+* SQLite FTS remains authoritative, and excerpt lookup stays fail-closed on the canonical FTS path instead of promoting PageIndex or embeddings to required runtime paths.
+* Retrieval payloads, lookup snapshots, sparse bundles, provenance mirrors, and query-context fields are normalized deterministically for downstream engine and basket consumers.
+* The cumulative branch includes shared packet-plumbing updates in `codex_packet_handoff/tools/**` plus `tests/unit/test_packet_planner.py` so planner-emitted review packets can carry the required canonical demo-path field.
 
 AGENTS checkpoint evidence:
 
-* `plan complete` - the handoff was narrowed to the accepted `adfa8cdadd43747ffbcb612e4151e262b13e52ca` slice and the explicit demo-path mapping was added to the packet.
-* `before risky/shared file edit` - the shared/high-risk boundary was restated because the accepted slice includes approved shared regression coverage in `tests/unit/test_unified_retrieval.py`.
-* `first green tests` - all required gates passed after the packet refresh.
-* `ready for handoff` - the writable handoff artifacts explicitly name `retrieve relevant material` and explain the FTS-only excerpt lookup impact in the handoff itself.
+* `plan complete` - traced the actual post-`adfa8c` branch history and regenerated the packet against the real cumulative branch-tip range.
+* `before risky/shared file edit` - the packet now explicitly acknowledges approved shared regression coverage and shared packet-plumbing edits already present in the reviewed range.
+* `first green tests` - all required gates passed after the branch-tip packet restamp.
+* `ready for handoff` - the writable handoff artifacts explicitly map the cumulative branch to `retrieve relevant material` and list the real reviewed files.
 
 Verification:
 

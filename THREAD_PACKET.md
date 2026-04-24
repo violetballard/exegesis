@@ -111,6 +111,7 @@
 - Blockers: none
 - The reviewed branch range is cumulative and includes shared handoff-plumbing files plus approved shared regression coverage, so integration should review the cumulative file list rather than the earlier narrowed `adfa8c` slice.
 - This fixer pass itself is metadata-only; the code-bearing reviewed head remains `e5d20f4012eed3c1e12e9acea2737e1e03dad50b`.
+- Filesystem blocker: the sandbox allows updating tracked repo files like `THREAD_PACKET.md` and `docs/gate_passed.txt`, but rejects writes to the hidden `.codex/kickoff_packets/feat-retrieval-fts.md` and `.codex/lane_meta/feat-retrieval-fts.json` mirrors in this worktree.
 
 ## Required Handoff Fields
 
