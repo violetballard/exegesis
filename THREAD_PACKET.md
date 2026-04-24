@@ -55,6 +55,9 @@
 
 ### Reviewed implementation files
 
+- `.codex/kickoff_packets/feat-retrieval-fts.md`
+- `.codex/lane_meta/feat-retrieval-fts.json`
+- `codex_packet_handoff/tools/planner.py`
 - `src/qual/engine/retrieval/__init__.py`
 - `src/qual/engine/retrieval/embeddings_strategy.py`
 - `src/qual/engine/retrieval/fts_strategy.py`
@@ -62,14 +65,15 @@
 - `src/qual/engine/retrieval/payload.py`
 - `src/qual/retrieval/__init__.py`
 - `src/qual/retrieval/service.py`
+- `tests/unit/test_packet_planner.py`
 - `tests/unit/test_unified_retrieval.py` (approved shared regression coverage)
 
 ### Current metadata-only packet refresh files
 
 - `THREAD_PACKET.md`
 - `docs/gate_passed.txt`
-- `.codex/kickoff_packets/feat-retrieval-fts.md` (existing mirror remains unchanged here because this worktree cannot write that path)
-- `.codex/lane_meta/feat-retrieval-fts.json` (existing mirror remains unchanged here because this worktree cannot write that path)
+- `.codex/kickoff_packets/feat-retrieval-fts.md` (stale mirror remains unchanged here because this worktree cannot write that path)
+- `.codex/lane_meta/feat-retrieval-fts.json` (stale mirror remains unchanged here because this worktree cannot write that path)
 
 ## Commands Run With Results
 
@@ -85,12 +89,12 @@
 1. `Scope completed` and `Tasks completed` now describe the full reviewed implementation range anchored at `adfa8cda`, not just the final `fetch_excerpt` fail-closed behavior.
 2. The handoff explicitly includes the added retrieval contract, provenance snapshot, and helper-surface changes in scope and plan mapping rather than implying a narrower implementation than the reviewed range.
 3. The handoff explicitly states that this work advances the canonical demo-path step `retrieve relevant material` using engine-first wording.
-4. This fixer pass records the `.codex` mirror permission lock explicitly so re-review can use the writable packet surfaces as the authoritative reviewer-facing update from this worktree.
+4. This fixer pass refreshes the writable reviewer-facing packet surfaces and records the `.codex` mirror lock so re-review uses the updated packet text from this worktree.
 
 ## Risks / Blockers
 
 - Risk: `HIGH`
-- Blockers: `.codex/kickoff_packets/feat-retrieval-fts.md` and `.codex/lane_meta/feat-retrieval-fts.json` are not writable from this worktree (`operation not permitted`), so the reviewer-facing corrections are recorded in `THREAD_PACKET.md` and `docs/gate_passed.txt`.
+- Blockers: `.codex/kickoff_packets/feat-retrieval-fts.md` and `.codex/lane_meta/feat-retrieval-fts.json` are not writable from this worktree (`operation not permitted`); the updated reviewer-facing packet surfaces are `THREAD_PACKET.md` and `docs/gate_passed.txt`.
 
 ## Required Handoff Fields
 
