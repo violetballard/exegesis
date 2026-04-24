@@ -30,7 +30,7 @@ Canonical handoff contract lives in `THREAD_PACKET.md`.
   - `persist`
   - `export-handoff`
 - Roadmap / vision alignment:
-  - `ROADMAP.md` Milestone 5 (`A2UI Presentation Layer`) exit criterion: supports `CLI can execute the MVP flow (vault -> context -> run -> patch -> export) against the same engine PolicyGate` by keeping the CLI-first `project-open` contract deterministic while Textual remains disabled
+  - `ROADMAP.md` Milestone 5 (`A2UI Presentation Layer`) exit criterion: supports `CLI can still execute the MVP flow (vault -> context -> run -> patch -> export) against the same engine PolicyGate` by keeping the CLI-first `project-open` contract deterministic while Textual remains disabled
   - `ROADMAP.md` active MVP emphasis `feat-commands`: keeps the demo-path command surface deterministic for the engine-first MVP while Textual remains disabled
   - `PRODUCT_VISION.md` capability 4 (`Operator-first control surface`): preserves the required CLI compatibility for `open project/document` and the rest of the MVP loop while Textual remains disabled and CLI remains the first-class operator surface
 - Scope / risk note:
@@ -38,7 +38,7 @@ Canonical handoff contract lives in `THREAD_PACKET.md`.
   - approved shared regression file: `tests/unit/test_commands_catalog.py`
   - integrator-locked files touched: none
   - canonical demo-path step advanced: `open project/document` via the `project-open` operator token
-  - concrete blocker removed on that step: this prevents parser/catalog drift from silently changing the operator command surface for the CLI-first MVP loop, including the `project-open` command used for `open project/document`
-  - broader CLI MVP loop context preserved: shim-backed workflow metadata for `apply-patch`, `reject-patch`, `persist`, and `export-handoff` remains explicit while Textual stays disabled
+  - concrete blocker removed on that step: this prevents parser/catalog drift from silently changing the migration-safe `project-open` entrypoint used for `open project/document` in the CLI-first MVP surface while Textual stays disabled
+  - scope guard: this handoff is limited to deterministic CLI contract validation and migration-safe command entrypoints; it does not claim engine workflow behavior changes
   - required gates passed: `make scope-check`, `./quality-format.sh --check`, `./quality-lint.sh`, `./quality-test.sh`, `./typecheck-test.sh`, `make ci`
   - metadata refreshed for this handoff: `THREAD.md`, `THREAD_PACKET.md`

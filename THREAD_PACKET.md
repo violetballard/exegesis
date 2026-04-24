@@ -4,7 +4,7 @@
 
 - Branch: `codex/feat-commands`
 - Lane/owned paths: `src/qual/commands/**`
-- Scope goal: keep the active CLI-first MVP operator surface deterministic at the `open project/document` step, and across the broader CLI MVP loop, by preserving stable command-contract metadata while the Textual surface stays disabled.
+- Scope goal: keep the active CLI-first MVP operator surface deterministic at the `open project/document` step by preserving stable command-contract metadata and migration-safe command entrypoints while the Textual surface stays disabled.
 - Risk reason: reviewed implementation includes one approved shared regression file, `tests/unit/test_commands_catalog.py`.
 
 ### Budget
@@ -88,14 +88,12 @@
 - Canonical demo-path step advanced:
   - `open project/document` via the `project-open` operator token
 - Concrete Milestone / vision claim this supports:
-  - `ROADMAP.md` Milestone 5 exit criterion: CLI can execute the MVP flow against the same engine `PolicyGate`, and this slice keeps that CLI-first loop safe by locking the `project-open` command contract while Textual remains disabled
+  - `ROADMAP.md` Milestone 5 exit criterion: CLI can still execute the MVP flow against the same engine `PolicyGate`, and this slice keeps that CLI-first loop safe by locking the `project-open` command contract while Textual remains disabled
   - `PRODUCT_VISION.md` capability 4 (`Operator-first control surface`): CLI remains a first-class surface for development and reliability, so the `project-open` contract cannot be allowed to drift silently
-- Broader CLI operator surface kept stable:
-  - `project-open -> retrieval -> patch-review -> apply-patch/reject-patch -> persist -> export-handoff`
 - Concrete blocker removed:
-  - This prevents parser/catalog drift from silently changing the operator command surface for the CLI-first MVP loop, including the `project-open` command used for `open project/document`.
-- Broader workflow context:
-  - the same reviewed implementation also keeps shim-backed workflow metadata explicit for `apply-patch`, `reject-patch`, `persist`, and `export-handoff` while Textual stays disabled, but that is supporting context rather than the named demo-path step advanced for this handoff.
+  - This prevents parser/catalog drift from silently changing the migration-safe `project-open` entrypoint used for `open project/document` in the CLI-first MVP surface while Textual stays disabled.
+- Scope guard:
+  - this handoff is limited to deterministic CLI contract validation and migration-safe command entrypoints; it does not claim engine workflow behavior changes.
 - Why this is not second-order work under the current narrowing rules:
   - the active operator surface is still the CLI while Textual stays disabled, so failing fast on parser/catalog drift and keeping the patch-review to apply/reject workflow tokens stable directly protects the live MVP command contract instead of adding optional catalog hygiene.
 
@@ -139,11 +137,11 @@
 
 ### Roadmap item(s) affected
 
-- `ROADMAP.md` Milestone 5 (`A2UI Presentation Layer`) exit criterion: supports `CLI can execute the MVP flow (vault -> context -> run -> patch -> export) against the same engine PolicyGate` by keeping the CLI-first `project-open` contract deterministic while the interactive Textual client remains disabled.
+- `ROADMAP.md` Milestone 5 (`A2UI Presentation Layer`) exit criterion: supports `CLI can still execute the MVP flow (vault -> context -> run -> patch -> export) against the same engine PolicyGate` by keeping the CLI-first `project-open` contract deterministic while Textual remains disabled.
 - `ROADMAP.md` active MVP emphasis `feat-commands`: keeps the CLI-first command surface stable for the engine-first MVP loop while Textual remains disabled.
 - Canonical demo-path step advanced: `open project/document` via the `project-open` operator token.
-- Canonical smoke-route coverage kept explicit: `project-open -> retrieval -> patch-review -> apply-patch/reject-patch -> persist -> export-handoff`.
-- Concrete blocker removed on that step: this prevents parser/catalog drift from silently changing the operator command surface for the CLI-first MVP loop, including the `project-open` command used for `open project/document`.
+- Concrete blocker removed on that step: this prevents parser/catalog drift from silently changing the migration-safe `project-open` entrypoint used for `open project/document` in the CLI-first MVP surface while Textual remains disabled.
+- Scope guard: this handoff is limited to deterministic CLI contract validation and migration-safe command entrypoints; it does not claim engine workflow behavior changes.
 
 ### Vision capability affected
 
