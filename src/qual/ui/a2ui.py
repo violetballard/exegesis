@@ -2587,6 +2587,8 @@ def _build_terminal_artifact_cli_fallback_entrypoint_contract_manifest() -> dict
         ),
         "renderer_entrypoints": _snapshot_contract_section(renderer_entrypoints_contract["renderer_entrypoints"]),
         "renderer_entrypoints_contract": _snapshot_contract_section(renderer_entrypoints_contract),
+        "renderer_entrypoints_contract_manifest": _snapshot_contract_section(renderer_entrypoints_contract),
+        "renderer_entrypoints_contract_manifest_fingerprint": renderer_entrypoints_contract["contract_fingerprint"],
         "renderer_entrypoints_contract_fingerprint": renderer_entrypoints_contract["contract_fingerprint"],
         "terminal_artifact_renderer_entrypoints_contract_manifest": _snapshot_contract_section(
             renderer_entrypoints_contract
@@ -2671,6 +2673,7 @@ def _build_terminal_artifact_cli_fallback_entrypoint_contract_fingerprints(
             "render_terminal_cli_fallback"
         ),
         "renderer_entrypoints": renderer_entrypoints_contract_fingerprint_value,
+        "renderer_entrypoints_contract_manifest": renderer_entrypoints_contract_fingerprint_value,
         "shell_refinement_policy": shell_refinement_policy_contract_fingerprint_value,
         "resolver_failure_policy": resolver_failure_policy_contract_fingerprint_value,
         "card_hint_recovery_policy": card_hint_recovery_policy_contract_fingerprint_value,
