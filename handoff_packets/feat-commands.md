@@ -27,12 +27,12 @@
 - `handoff_packets/feat-commands.md`
 
 ## Commands Run With Results
-- `make scope-check` -> passed
-- `./quality-format.sh --check` -> passed
-- `./quality-lint.sh` -> passed
-- `./quality-test.sh` -> passed
-- `./typecheck-test.sh` -> passed
-- `make ci` -> passed
+- `SCOPE_ALLOW_SHARED=1 make scope-check` -> passed
+- `SCOPE_ALLOW_SHARED=1 ./quality-format.sh --check` -> passed
+- `SCOPE_ALLOW_SHARED=1 ./quality-lint.sh` -> passed
+- `SCOPE_ALLOW_SHARED=1 ./quality-test.sh` -> passed
+- `SCOPE_ALLOW_SHARED=1 ./typecheck-test.sh` -> passed
+- `SCOPE_ALLOW_SHARED=1 make ci` -> passed
 
 ## Risks / Blockers
 - Risks: future command-surface edits still need to preserve the parser/catalog lock so the CLI contract for `open project/document -> retrieve relevant material -> preview and apply or reject a patch` stays deterministic.
