@@ -19,7 +19,7 @@
 3. Added focused regression coverage in `tests/unit/test_commands_catalog.py` for parser/catalog drift rejection, including alias-level drift that preserves canonical command names.
 
 ## Packet Refresh Notes
-- This handoff now names the exact canonical demo-path step advanced, locks the CLI/Textual wording to the reviewer-requested phrasing, states why the work is migration-safe compatibility hardening for the existing catalog instead of second-order cleanup, and keeps the approval basis pinned to reviewed commit `f8d860ed9f6299f0169c4f21321ac5f37c949fd3` plus its two implementation files only.
+- This handoff now names the exact canonical demo-path step advanced, locks the CLI/Textual wording to the reviewer-requested phrasing, states why the work is migration-safe compatibility hardening for the existing catalog instead of second-order cleanup, makes the alias-level parser-surface-drift scope explicit even when canonical names stay stable, and keeps the approval basis pinned to reviewed commit `f8d860ed9f6299f0169c4f21321ac5f37c949fd3` plus its two implementation files only.
 
 ## Files Changed
 - `src/qual/commands/catalog.py`

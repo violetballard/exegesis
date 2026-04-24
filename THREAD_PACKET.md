@@ -34,7 +34,7 @@
 
 1. Harden `command_cli_contract()` so the full grouped parser-surface projection is validated against the canonical catalog instead of trusting derived canonical-name order alone.
 2. Add regression coverage proving live parser/catalog drift raises a hard failure, including alias-level drift that preserves canonical command names.
-3. Refresh the handoff packet so it names the exact canonical demo-path step protected by this contract and explains why the work is migration-safe compatibility hardening rather than second-order cleanup.
+3. Refresh the handoff packet so it names the exact canonical demo-path step protected by this contract, explains why the work is migration-safe compatibility hardening rather than second-order cleanup, and makes the alias-level parser-surface-drift scope explicit even when canonical names stay stable.
 4. Re-run the required gates and record the results.
 
 ### Early Review Triggers
