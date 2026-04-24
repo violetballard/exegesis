@@ -7,7 +7,7 @@
 - Scope goal: keep retrieval FTS-first by narrowing `fetch_excerpt()` to canonical FTS-only excerpt resolution, localize the canonical retrieval query builder in the lane-owned facade, and preserve regression coverage proving PageIndex-only excerpt IDs fail closed on the public excerpt lookup path.
 - Canonical demo-path step advanced: `retrieve relevant material`
 - Plan-alignment statement: this slice advances `retrieve relevant material` by making the public `fetch_excerpt` surface resolve only through the canonical SQLite FTS path, so PageIndex-only excerpt IDs fail closed on the retrieval step itself.
-- Direct handoff statement: this handoff advances the canonical demo-path step `retrieve relevant material` by narrowing public excerpt resolution to the canonical FTS-only lookup path and by adding approved shared regression coverage proving PageIndex-only excerpt IDs raise `KeyError`. It does not claim basket promotion, plan/revise behavior, or broader workflow progress.
+- Direct handoff statement: this handoff advances the canonical demo-path step `retrieve relevant material` by narrowing public excerpt resolution to the canonical FTS-only lookup path and by adding approved shared regression coverage proving PageIndex-only excerpt IDs raise `KeyError`. It does not promote PageIndex or embeddings to required runtime paths, and it does not claim basket promotion, plan/revise behavior, or broader workflow progress.
 - Approved exception surface: approved shared regression coverage in `tests/unit/test_unified_retrieval.py` only; no other shared-by-approval or integrator-locked files are part of the reviewed implementation range, and `src/qual/retrieval/__init__.py` is included as lane-owned implementation in that range.
 
 ## Scope Completed
