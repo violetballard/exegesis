@@ -2,39 +2,36 @@ Gate Results Summary (as of 2026-04-24)
 -------------------------------------
 
 Feature lane: `codex/feat-retrieval-fts`
-Packet role: `metadata-only reviewer-fix finalization`
-Packet refresh trace anchor before this fixer attempt: `864d87926c820122269090f48052d7af7e4e8729`
-Reviewer packet refresh commit preserved for traceability: `8a545525c6fbaa908a82d249d07c3cbb85cb7add`
-Reviewed implementation head: `adfa8cdadd43747ffbcb612e4151e262b13e52ca`
-Reviewed implementation range: `378cf9a74a3658058079a32f186fcd254c4a4034..adfa8cdadd43747ffbcb612e4151e262b13e52ca`
+Packet role: `branch-tip handoff refresh`
+Packet refresh trace anchor before this fixer attempt: `2e052094c4cc2d4c3693c4dcb0f6e8f0c7764909`
+Reviewed implementation head: `bca26c21e58161f0e3da8fdaf8049ef84771d934`
+Reviewed implementation range: `378cf9a74a3658058079a32f186fcd254c4a4034..bca26c21e58161f0e3da8fdaf8049ef84771d934`
+Branch-tip handoff range before this fixer refresh: `378cf9a74a3658058079a32f186fcd254c4a4034..2e052094c4cc2d4c3693c4dcb0f6e8f0c7764909`
 Canonical demo-path step advanced: `retrieve relevant material`
-Plan-alignment statement: this reviewed slice strengthens `retrieve relevant material` by making excerpt lookup resolve only through the authoritative FTS path, which keeps downstream basket and workflow provenance deterministic.
-Explicit Milestone 3 mapping: this slice advances `Milestone 3: Real workflow loop` by keeping retrieval/search FTS-first and structured enough for basket promotion.
+Plan-alignment statement: this reviewed slice strengthens `retrieve relevant material` by keeping retrieval/search FTS-first, forcing excerpt lookup to stay on the authoritative FTS path, and surfacing ranked retrieval ids for downstream promotion and context assembly.
+Explicit Milestone 3 mapping: this slice advances `Milestone 3: Real workflow loop` by keeping retrieval/search FTS-first and structured enough for downstream workflow consumers.
+FTS-first confirmation: the actual reviewed branch tip remains FTS-first for the MVP; SQLite FTS is authoritative, while PageIndex and embeddings remain compatibility-only fallback shims that fail closed when the canonical FTS path is not available.
 
 Reviewed implementation scope:
 
 * SQLite FTS remains authoritative for the reviewed slice.
 * `fetch_excerpt` stays on the canonical FTS-only path in `src/qual/retrieval/service.py`.
-* Direct `retrieval_doc_bundle()` and `retrieval_excerpt_bundle()` snapshots now surface the authoritative ranked `retrieved_doc_ids` and `retrieved_excerpt_ids` lists for downstream basket/context promotion flows.
-* Approved shared regression coverage proves that PageIndex-only excerpt IDs fail closed with `KeyError`.
-* PageIndex and embeddings remain compatibility-only paths and are not required MVP runtime paths in this slice.
-
-Packet classification:
-
-* Shared/high-risk because `tests/unit/test_unified_retrieval.py` is a shared-by-approval file for this lane.
-* The packet is reissued on the AGENTS high-risk 4-task basis.
-* The writable packet mirrors now carry the required `Risk reason`, `Planned Tasks`, explicit ownership note, and current gate outcomes for re-review.
+* Direct retrieval bundle payloads now surface authoritative ranked `retrieved_doc_ids` and `retrieved_excerpt_ids` for downstream basket/context promotion flows.
+* `src/qual/engine/retrieval/__init__.py` lazy-binds retrieval runtime types while preserving delegation to the canonical retrieval facade.
+* Approved shared regression coverage proves that PageIndex-only excerpt ids fail closed with `KeyError`.
 
 Current handoff files:
 
-* `src/qual/retrieval/service.py`
+* `.codex/kickoff_packets/feat-retrieval-fts.md`
+* `.codex/lane_meta/feat-retrieval-fts.json`
 * `THREAD_PACKET.md`
 * `docs/gate_passed.txt`
+* `src/qual/engine/retrieval/__init__.py`
+* `src/qual/retrieval/service.py`
+* `tests/unit/test_unified_retrieval.py`
 
 Verification:
 
-* `python -m unittest tests.unit.test_unified_retrieval` - passed
-* direct retrieval bundle shell probe (`python - <<'PY' ...`) - passed
 * `make scope-check` - passed
 * `./quality-format.sh --check` - passed
 * `./quality-lint.sh` - passed
@@ -46,7 +43,6 @@ Roadmap items affected:
 
 * `Milestone 3: Real workflow loop`
 * `feat-retrieval-fts`: retrieval/search
-* `retrieval returns structured results suitable for basket promotion`
 
 Vision capabilities affected:
 
@@ -56,3 +52,7 @@ Vision capabilities affected:
 Routing/provider impact:
 
 * none
+
+Environment note:
+
+* `.codex` packet mirrors are visible in this worktree, but this environment rejects writing them via the project write boundary. The refreshed handoff details are recorded in the writable packet artifacts for this fixer pass.
