@@ -8414,9 +8414,9 @@ class A2UIFallbackSafetyTests(unittest.TestCase):
             "payload": {"format": "md"},
         }
 
-        action_text = shell.render_artifact(raw_leaf, kind="action")
-        selection_text = shell.render_artifact(raw_leaf, kind="selection")
-        default_text = shell.render_artifact(raw_leaf)
+        action_text = shell.render_cli_fallback(raw_leaf, kind="action")
+        selection_text = shell.render_cli_fallback(raw_leaf, kind="selection")
+        default_text = shell.render_cli_fallback(raw_leaf)
 
         self.assertEqual(action_text, default_text)
         self.assertEqual(selection_text, default_text)

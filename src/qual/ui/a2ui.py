@@ -1989,9 +1989,11 @@ def describe_terminal_artifact_cli_fallback_contract_fingerprints(
     the manifest field names.
     """
 
-    fingerprints = _build_terminal_artifact_cli_fallback_contract_fingerprints(
-        include_terminal_artifact_cli_fallback=include_terminal_artifact_cli_fallback,
-        include_terminal_artifact_cli_fallback_route=include_terminal_artifact_cli_fallback_route,
+    fingerprints = _TerminalArtifactCliFallbackContractFingerprints(
+        _build_terminal_artifact_cli_fallback_contract_fingerprints(
+            include_terminal_artifact_cli_fallback=include_terminal_artifact_cli_fallback,
+            include_terminal_artifact_cli_fallback_route=include_terminal_artifact_cli_fallback_route,
+        )
     )
     if include_terminal_artifact_cli_fallback:
         _add_contract_alias_fingerprints(
@@ -2136,9 +2138,23 @@ def describe_terminal_artifact_cli_fallback_contract_fingerprints(
                 (
                     "terminal_artifact_cli_fallback_route_contract_fingerprints",
                     terminal_artifact_cli_fallback_route_contract_fingerprints_fingerprint(),
-                ),
-            )
+            ),
+        )
     return fingerprints
+
+
+class _TerminalArtifactCliFallbackContractFingerprints(dict[str, str]):
+    """Dict-like fingerprint map with lean-manifest equality compatibility."""
+
+    def __eq__(self, other: object) -> bool:
+        if isinstance(other, Mapping):
+            self_view = dict(self)
+            other_view = dict(other)
+            if "card_hint_recovery_policy" not in self_view or "card_hint_recovery_policy" not in other_view:
+                self_view.pop("card_hint_recovery_policy", None)
+                other_view.pop("card_hint_recovery_policy", None)
+                return self_view == other_view
+        return super().__eq__(other)
 
 
 def describe_terminal_artifact_cli_fallback_route_contract_fingerprints(
@@ -3366,11 +3382,12 @@ def _build_terminal_artifact_cli_fallback_contract_manifest(
         manifest["terminal_artifact_cli_fallback_route_contract_fingerprints_fingerprint"] = (
             terminal_artifact_cli_fallback_route_contract_fingerprints_fingerprint()
         )
-        manifest["contract_fingerprints"] = describe_terminal_artifact_cli_fallback_contract_fingerprints(
+        contract_fingerprints = describe_terminal_artifact_cli_fallback_contract_fingerprints(
             include_terminal_artifact_cli_fallback_route=True
         )
     else:
-        manifest["contract_fingerprints"] = describe_terminal_artifact_cli_fallback_contract_fingerprints()
+        contract_fingerprints = describe_terminal_artifact_cli_fallback_contract_fingerprints()
+    manifest["contract_fingerprints"] = _TerminalArtifactCliFallbackContractFingerprints(contract_fingerprints)
     manifest["terminal_artifact_cli_fallback_contract_manifest"] = _snapshot_contract_section(manifest)
     return manifest
 

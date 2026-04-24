@@ -96,6 +96,26 @@ class ShellUI:
                     payload_kind = _recover_terminal_artifact_leaf_kind(payload)
                 if payload_kind in {"action", "selection"}:
                     return _render_invalid_terminal_card(artifact)
+        if normalized_kind in {"action", "selection"} and _should_preserve_raw_leaf_card_default(artifact):
+            try:
+                resolve_terminal_artifact_cli_fallback_target(artifact, kind=kind)
+            except Exception:
+                fallback_artifact = artifact
+                fallback_kind = "card"
+            else:
+                fallback_artifact = artifact
+                fallback_kind = normalized_kind
+            fallback_hint_token = _TERMINAL_ARTIFACT_CLI_FALLBACK_TARGET_HINT.set(
+                (fallback_artifact, fallback_kind),
+            )
+            try:
+                return self._render_cli_fallback_with_recovery(
+                    fallback_artifact,
+                    fallback_kind,
+                )
+            finally:
+                if fallback_hint_token is not None:
+                    _TERMINAL_ARTIFACT_CLI_FALLBACK_TARGET_HINT.reset(fallback_hint_token)
         resolved_fallback: tuple[Any, str | None] | None = None
         if normalized_kind == "card":
             try:
@@ -142,7 +162,10 @@ class ShellUI:
             (fallback_artifact, fallback_kind),
         )
         try:
-            return self._render_cli_fallback_with_recovery(fallback_artifact, fallback_kind)
+            return self._render_cli_fallback_with_recovery(
+                fallback_artifact,
+                fallback_kind,
+            )
         finally:
             if fallback_hint_token is not None:
                 _TERMINAL_ARTIFACT_CLI_FALLBACK_TARGET_HINT.reset(fallback_hint_token)
@@ -170,7 +193,11 @@ class ShellUI:
             if fallback_hint_token is not None:
                 _TERMINAL_ARTIFACT_CLI_FALLBACK_TARGET_HINT.reset(fallback_hint_token)
 
-    def _render_cli_fallback_with_recovery(self, artifact: Any, kind: str | None) -> str:
+    def _render_cli_fallback_with_recovery(
+        self,
+        artifact: Any,
+        kind: str | None,
+    ) -> str:
         """Render through the shared CLI fallback path and recover on failure.
 
         The explicit CLI fallback entrypoint should stay usable even if the
@@ -179,7 +206,7 @@ class ShellUI:
 
         leaf_specific_fallback = kind in {"action", "selection"}
         card_hint_leaf_kind: str | None = None
-        if kind == "card":
+        if kind == "card" and not _should_preserve_raw_leaf_card_default(artifact):
             inferred_leaf_kind = _infer_terminal_artifact_explicit_kind(artifact)
             if inferred_leaf_kind not in {"action", "selection"} and isinstance(artifact, Mapping):
                 artifact_type = artifact.get("type")
@@ -204,7 +231,8 @@ class ShellUI:
                     if _has_expected_card_renderer_prefix(rendered_cli_fallback):
                         return rendered_cli_fallback
                     if (
-                        card_hint_leaf_kind in {"action", "selection"}
+                        not _should_preserve_raw_leaf_card_default(artifact)
+                        and card_hint_leaf_kind in {"action", "selection"}
                         and self._has_expected_leaf_renderer_prefix(
                             rendered_cli_fallback,
                             card_hint_leaf_kind,
