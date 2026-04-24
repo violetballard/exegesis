@@ -8,9 +8,9 @@
 - Required packet statement: this change makes `preview and apply or reject a patch` more real by forcing the public command surface to stay catalog-locked and fail closed before the operator reaches the wrong CLI verb set.
 - Concrete blocker removed: parser or catalog drift can no longer silently change the canonical command contract, which keeps the CLI fallback deterministic at the patch-review step of the canonical demo path.
 - Route-coverage evidence anchor: `tests/unit/test_commands_catalog.py` keeps the CLI-first claim pinned to the tested patch-review route entry `("patch-review", "diff-preview", ("diff-preview", "diff"))` in the smoke-route summary and route-contract assertions.
-- Plan-alignment statement: this is one patch-review contract-hardening slice inside the active CLI-first MVP path. Deterministic CLI contract validation preserves the operator-facing command surface while interactive clients stay secondary. It does not claim new retrieval, persistence, export, audit-path, or broader workflow behavior.
+- Plan-alignment statement: this is one patch-review contract-hardening slice inside the active CLI-first MVP path. Deterministic CLI contract validation preserves the operator-facing command surface for the current patch-review step while Textual remains disabled and interactive clients stay secondary. It does not claim new retrieval, persistence, export, audit-path, or broader workflow behavior.
 - `AGENTS.md` compliance statement: every active lane task in this packet is tied to the canonical `preview and apply or reject a patch` step, and the packet now states the concrete blocker removed at that step.
-- Current roadmap alignment statement: this slice stays aligned to the current canonical roadmap by narrowing its claim to command and diff-preview hardening under Milestone 1 and CLI fallback reliability under the MVP-flow exit criteria in Milestone 5. It does not claim retrieval, persistence, export, audit-path, or broader workflow behavior.
+- Current roadmap alignment statement: this slice stays aligned to the current canonical roadmap by narrowing its claim to command and diff-preview hardening under Milestone 1 and CLI fallback reliability at the patch-review contract boundary while Textual remains disabled. `terminal` and `export-handoff` remain outside the review basis for this packet and appear here only as incidental aliases inside the shared catalog contract. It does not claim retrieval, persistence, export, audit-path, or broader workflow behavior.
 - Packet refresh traceability: later `docs(commands)` commits are metadata-only and update only `handoff_packets/feat-commands.md`, `THREAD_PACKET.md`, and `THREAD.md`.
 - High-risk kickoff context:
   - lane/owned paths: `src/qual/commands/**`
@@ -22,7 +22,7 @@
 - Roadmap item(s) affected:
   - `ROADMAP.md` active lane: `feat-commands`
   - `ROADMAP.md` Milestone 1 scope: `Command and diff-preview behavior hardening`
-  - `ROADMAP.md` Milestone 5 exit criterion: `CLI can execute the MVP flow (vault -> context -> run -> patch -> export) against the same engine PolicyGate`
+  - roadmap relevance is limited to the patch segment of the CLI-first MVP loop; `terminal` and `export-handoff` are not part of this packet's approval basis
 - Vision capability affected:
   - `PRODUCT_VISION.md` capability 4 `Operator-first control surface`
   - `PRODUCT_VISION.md` capability 5 `Agent-to-UI protocol (A2UI)`
@@ -53,10 +53,11 @@
 - `./quality-test.sh` -> passed
 - `./typecheck-test.sh` -> passed
 - `make ci` -> passed
-- Verification rerun timestamp: `2026-04-24T09:37:24Z UTC`
+- Verification rerun timestamp: `2026-04-24T09:40:00Z UTC`
 
 ## Risks / Blockers
 - Risks: future command-surface changes now need to keep the CLI lookup-table behavior and the shared regression suite aligned so the canonical command contract stays catalog-locked.
+- Residual scope risk: because `command_cli_contract()` validates the shared catalog, a later `terminal` or `export-handoff` alias edit can still trip the guard even though those runtime semantics are intentionally excluded from this handoff's approval basis.
 - Blockers: none.
 
 ## Scope-Check / Ownership Note

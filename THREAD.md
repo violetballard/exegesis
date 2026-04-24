@@ -12,7 +12,7 @@ Canonical handoff contract lives in `THREAD_PACKET.md`.
 - Current packet refresh traceability:
   - later `docs(commands)` commits update only `THREAD.md`, `THREAD_PACKET.md`, and `handoff_packets/feat-commands.md`
 - Post-fixer verification note:
-- `2026-04-24T09:37:24Z UTC` gate rerun confirmed this packet correction matches the current branch state while the reviewed implementation basis remains pinned to `f8d860ed9f6299f0169c4f21321ac5f37c949fd3`
+- `2026-04-24T09:40:00Z UTC` gate rerun confirmed this packet correction matches the current branch state while the reviewed implementation basis remains pinned to `f8d860ed9f6299f0169c4f21321ac5f37c949fd3`
 - High-risk kickoff context:
   - scope goal: make the canonical `preview and apply or reject a patch` step more real by keeping the operator-visible command contract locked to the parser/catalog boundary so the CLI fallback stays deterministic while interactive clients stay secondary
   - risk reason: the reviewed slice touches the command contract in `src/qual/commands/catalog.py` and a shared-by-approval regression test file
@@ -31,7 +31,7 @@ Canonical handoff contract lives in `THREAD_PACKET.md`.
 - Required handoff field now called out explicitly:
   - `Explicit patch-step mapping: preview and apply or reject a patch`
 - Explicit re-review statement:
-  - this slice advances the canonical `preview and apply or reject a patch` step by keeping the CLI patch-review command contract catalog-locked, so deterministic contract validation protects the operator path that the current CLI fallback uses to carry the demo flow
+  - this slice advances the canonical `preview and apply or reject a patch` step by keeping the CLI patch-review command contract catalog-locked, so deterministic contract validation protects the operator path that the current CLI fallback uses at that step
 - AGENTS compliance note:
   - every active lane task in this packet now names the exact canonical demo-path step it advances, and the handoff states the concrete blocker removed at that step
 - Per-task canonical demo-path mapping for re-review:
@@ -40,16 +40,14 @@ Canonical handoff contract lives in `THREAD_PACKET.md`.
   - task 3 `preview and apply or reject a patch`: regenerate the handoff packet so the re-review basis, roadmap/vision scope, and explicit demo-path mapping stay aligned to the reviewed implementation slice
   - task 4 `preview and apply or reject a patch`: rerun the required gates and record the outcomes against the same reviewed implementation scope
 - Scope note:
-  - this packet advances the patch-review command contract only; deterministic CLI contract validation preserves the CLI operator-facing command surface needed for `preview and apply or reject a patch`, and it does not claim new retrieval, patch application, persistence, export, audit-path, or broader UI behavior
+  - this packet advances the patch-review command contract only; deterministic CLI contract validation preserves the CLI operator-facing command surface needed for `preview and apply or reject a patch` while Textual remains disabled, and it does not claim new retrieval, patch application, persistence, export, audit-path, or broader UI behavior
   - the CLI-first MVP loop claim is intentionally narrowed to the tested patch-review route coverage in `tests/unit/test_commands_catalog.py`, not to a broader workflow-loop completion claim
-- Current engine-first MVP path statement:
-  - the current CLI smoke route stays `open project/document -> retrieve relevant material -> promote or gather context into the basket -> produce a plan or revision -> preview and apply or reject a patch -> persist the updated document/session state -> continue working`
+  - `terminal` and `export-handoff` are outside the approval basis for this packet
 - Concrete blocker removed:
   - the active CLI fallback no longer allows the parser-derived canonical command order to diverge from the declared command catalog without an immediate contract failure at the patch-review step
 - Roadmap / vision alignment for this reviewed slice:
   - `ROADMAP.md` active lane keeps `feat-commands` in the current implementation push
   - `ROADMAP.md` Milestone 1 still includes `Command and diff-preview behavior hardening`
-  - `ROADMAP.md` Milestone 5 still requires the CLI fallback to execute the MVP flow against the same engine-facing contract surface
   - `AGENTS.md` operational narrowing rules require each active lane task to name which canonical demo-path step it advances and to state that step explicitly before handoff
   - `PRODUCT_VISION.md` capability 4 `Operator-first control surface` and capability 5 `Agent-to-UI protocol (A2UI)` are the only capabilities claimed here, specifically `CLI remains a first-class surface for development and reliability` and `CLI remains able to render a text fallback of the same underlying artifacts`
   - this packet does not claim persistence, audit hooks, retrieval progress, or broader workflow trace records
