@@ -55,7 +55,7 @@
 - `./quality-test.sh`: `PASS` (`216 tests`)
 - `./typecheck-test.sh`: `PASS`
 - `make ci`: `PASS`
-- Current fixer pass note: reran the full required gate set on packet-refresh head `cfc97cf83cbe90bfabc4a0a182ce04538707a662` before the verification commit below.
+- Current fixer pass note: reran the full required gate set after regenerating this packet on the packet-refresh head descended from `12dac04e4d4304ebb1bc8548474811991900cfd0`; the final fixer commit reports the resulting branch tip SHA.
 
 ## Risks / Blockers
 
