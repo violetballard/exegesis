@@ -14,6 +14,7 @@ from .a2ui import (
     ActionRef,
     A2UI_CONTRACT_VERSION,
     A2UI_VERSION,
+    card_contract_fingerprint,
     SelectionRef,
     _add_contract_alias_fingerprints,
     normalize_action_ref,
@@ -24,6 +25,7 @@ from .a2ui import (
     describe_terminal_artifact_cli_fallback_target_contract,
     describe_terminal_artifact_cli_fallback_route_contract,
     describe_terminal_artifact_renderer_entrypoints_contract,
+    terminal_fallback_contract_fingerprint,
     terminal_artifact_cli_fallback_contract_fingerprint,
     terminal_artifact_cli_fallback_entrypoint_contract_fingerprint,
     terminal_artifact_cli_fallback_entrypoint_contract_fingerprints_fingerprint,
@@ -990,6 +992,14 @@ def describe_shell_ui_contract_fingerprints(
         (
             "terminal_artifact_renderer_entrypoints_contract_manifest",
             terminal_artifact_renderer_entrypoints_contract_fingerprint_value,
+        ),
+        (
+            "card_contract_manifest",
+            card_contract_fingerprint(),
+        ),
+        (
+            "terminal_fallback_contract_manifest",
+            terminal_fallback_contract_fingerprint(),
         ),
     )
     if include_contract_aliases:
