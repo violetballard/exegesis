@@ -10,7 +10,7 @@
 
 ## Scope Goal
 
-- Regenerate the handoff packet against the reviewer-approved narrowed implementation slice, keep the current branch-tip metadata refresh explicit, state the canonical demo-path step directly, and rerun the required gates for the exact handoff content.
+- Keep this handoff explicitly limited to Milestone 3's `retrieve relevant material` step by documenting the FTS-only excerpt fail-closed contract, preserving the current branch-tip metadata refresh, and rerunning the required gates for the exact handoff content.
 
 ## Thread Kickoff (High-Risk)
 
@@ -29,8 +29,8 @@
 ### Planned Tasks (max 4)
 
 1. Re-anchor the packet to the reviewer-approved narrowed implementation range `d7fd5d20..adfa8cda`.
-2. State explicitly that this work advances `retrieve relevant material`.
-3. Keep the roadmap and vision mapping tied to Milestone 3 FTS-first retrieval and retrieval-first context handling.
+2. State explicitly that this work advances `retrieve relevant material` by forcing excerpt lookup through the canonical SQLite FTS path and rejecting PageIndex-only excerpt IDs.
+3. Keep the scope and roadmap mapping tied only to Milestone 3 FTS-first retrieval and retrieval-first context handling.
 4. Rerun and report `make scope-check`, `./quality-format.sh --check`, `./quality-lint.sh`, `./quality-test.sh`, `./typecheck-test.sh`, and `make ci` for the exact handoff content.
 
 ### Checkpoint Status
@@ -94,8 +94,9 @@
 
 1. The packet explicitly states which canonical demo-path step this work advances: `retrieve relevant material`.
 2. The packet keeps the reviewed implementation range narrowed to `d7fd5d200358287fa42a18d39e2b277463b9b69f..adfa8cdadd43747ffbcb612e4151e262b13e52ca`.
-3. The roadmap and vision mapping stay tied to Milestone 3 FTS-first retrieval and retrieval-first context handling.
+3. The scope and roadmap mapping stay tied only to Milestone 3 FTS-first retrieval and retrieval-first context handling.
 4. The current refresh commit is metadata-only because its diff is limited to packet files.
+5. This fixer pass revalidated the reviewer-approved narrowed slice `d7fd5d20..adfa8cda` after the reviewer requested an explicit canonical demo-path statement and scope tightening.
 
 ## Risks / Blockers
 

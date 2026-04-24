@@ -18,10 +18,11 @@ Gate status:
 * `make ci` - passed
 
 Canonical demo-path step advanced: `retrieve relevant material`.
-Plan-alignment statement: this branch makes `retrieve relevant material` more real by forcing excerpt lookup through the canonical SQLite FTS path and rejecting PageIndex-only excerpt IDs so downstream basket-promotion inputs stay deterministic and auditable.
-Scope-tightening statement: the reviewed runtime slice stays inside the current FTS-first retrieval MVP path because it removes the PageIndex fallback from excerpt lookup without restoring PageIndex or embeddings as required retrieval paths.
+Plan-alignment statement: this branch makes Milestone 3's `retrieve relevant material` step more real by forcing excerpt lookup through the canonical SQLite FTS path and rejecting PageIndex-only excerpt IDs so downstream basket-promotion inputs stay deterministic and auditable.
+Scope-tightening statement: the reviewed runtime slice stays inside the current Milestone 3 FTS-first retrieval MVP path because it removes the PageIndex fallback from excerpt lookup without restoring PageIndex or embeddings as required retrieval paths.
 Metadata-only commits after the reviewed implementation head and before this fixer refresh: `31b91107`, `94a1fb6b`, `e1530c68`, and `422d1fda`.
 Metadata mirror note: `.codex/kickoff_packets/feat-retrieval-fts.md` and `.codex/lane_meta/feat-retrieval-fts.json` remain stale in this worktree because writes there fail with `Operation not permitted`; `THREAD_PACKET.md` and this file are the reviewer-facing source of truth for this refresh.
+Reviewer-fix note: this pass revalidated the narrowed `adfa8cda` implementation slice after the reviewer asked for an explicit `retrieve relevant material` handoff statement and tighter retrieval-only scope wording.
 
 Reviewed implementation files:
 
