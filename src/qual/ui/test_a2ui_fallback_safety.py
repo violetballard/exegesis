@@ -938,6 +938,7 @@ class A2UIFallbackSafetyTests(unittest.TestCase):
         self.assertEqual(
             manifest["card_hint_recovery_policy"],
             {
+                "recover_typed_leaf_mappings": True,
                 "recover_typed_leaf_payloads": True,
                 "explicit_leaf_instances_rejected_under_card_hints": True,
                 "preserve_raw_leaf_card_default": True,
@@ -1093,6 +1094,7 @@ class A2UIFallbackSafetyTests(unittest.TestCase):
             fingerprints["card_hint_recovery_policy"],
             _fingerprint_manifest_section(
                 {
+                    "recover_typed_leaf_mappings": True,
                     "recover_typed_leaf_payloads": True,
                     "explicit_leaf_instances_rejected_under_card_hints": True,
                     "preserve_raw_leaf_card_default": True,

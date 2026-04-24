@@ -2272,7 +2272,12 @@ def _build_terminal_artifact_cli_fallback_resolver_failure_policy_manifest() -> 
 
 
 def _build_terminal_artifact_cli_fallback_card_hint_recovery_policy_manifest() -> dict[str, Any]:
+    # Keep the legacy broad field for compatibility, but also expose the more
+    # precise mapping-specific name so the manifest matches the actual
+    # recovery behavior: typed mapping payloads may recover, while explicit
+    # leaf instances stay on the invalid-card path under card hints.
     return {
+        "recover_typed_leaf_mappings": True,
         "recover_typed_leaf_payloads": True,
         "explicit_leaf_instances_rejected_under_card_hints": True,
         "preserve_raw_leaf_card_default": True,
