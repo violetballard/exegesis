@@ -19,9 +19,12 @@ Reviewed implementation files:
 Metadata-only packet artifacts refreshed in this fixer pass:
 
 * `THREAD_PACKET.md`
+* `docs/gate_passed.txt`
+
+Metadata-only packet artifacts blocked by filesystem policy in this fixer pass:
+
 * `.codex/kickoff_packets/feat-retrieval-fts.md`
 * `.codex/lane_meta/feat-retrieval-fts.json`
-* `docs/gate_passed.txt`
 
 Plan-alignment note:
 
@@ -36,12 +39,12 @@ Budget classification:
 
 Verification:
 
-* `make scope-check` - pending rerun
-* `./quality-format.sh --check` - pending rerun
-* `./quality-lint.sh` - pending rerun
-* `./quality-test.sh` - pending rerun
-* `./typecheck-test.sh` - pending rerun
-* `make ci` - pending rerun
+* `make scope-check` - passed
+* `./quality-format.sh --check` - passed
+* `./quality-lint.sh` - passed
+* `./quality-test.sh` - passed
+* `./typecheck-test.sh` - passed
+* `make ci` - passed
 
 Roadmap items affected:
 
@@ -59,4 +62,4 @@ Routing/provider impact:
 
 Remaining blocker:
 
-* none
+* `.codex/kickoff_packets/feat-retrieval-fts.md` and `.codex/lane_meta/feat-retrieval-fts.json` remain unwritable from this worktree (`operation not permitted`).

@@ -82,25 +82,28 @@ The reviewed implementation range extends the prior FTS-first excerpt slice to t
 ### Metadata-only packet artifacts refreshed in this fixer pass
 
 - `THREAD_PACKET.md`
+- `docs/gate_passed.txt`
+
+### Metadata-only packet artifacts blocked by filesystem policy in this fixer pass
+
 - `.codex/kickoff_packets/feat-retrieval-fts.md`
 - `.codex/lane_meta/feat-retrieval-fts.json`
-- `docs/gate_passed.txt`
 
 ## Commands Run With Results
 
-- `make scope-check`: `PENDING`
-- `./quality-format.sh --check`: `PENDING`
-- `./quality-lint.sh`: `PENDING`
-- `./quality-test.sh`: `PENDING`
-- `./typecheck-test.sh`: `PENDING`
-- `make ci`: `PENDING`
+- `make scope-check`: `PASS`
+- `./quality-format.sh --check`: `PASS`
+- `./quality-lint.sh`: `PASS`
+- `./quality-test.sh`: `PASS`
+- `./typecheck-test.sh`: `PASS`
+- `make ci`: `PASS`
 
 ## Risks / Blockers
 
 - Risk: `HIGH`
-- Blockers: none
+- Blocker: `.codex/kickoff_packets/feat-retrieval-fts.md` and `.codex/lane_meta/feat-retrieval-fts.json` remain unwritable from this worktree (`operation not permitted`).
 - Budget classification: shared/high-risk because `tests/unit/test_unified_retrieval.py` is the approved shared regression surface for this lane.
-- Traceability note: the final fixer commit will be metadata-only, but the reviewed retrieval implementation head for re-review is `9bd108298e82f2ba9cc1a6ab97d2f20f7dc622fe`.
+- Traceability note: the final fixer commit is metadata-only, but the reviewed retrieval implementation head for re-review is `9bd108298e82f2ba9cc1a6ab97d2f20f7dc622fe`.
 
 ## Required Handoff Fields
 
