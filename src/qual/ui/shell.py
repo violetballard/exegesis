@@ -150,22 +150,14 @@ class ShellUI:
         normalized_kind = self._normalize_fallback_kind(kind)
         fallback_hint_token = None
         fallback_target: tuple[Any, str] | None = None
-        try:
-            if normalized_kind == "card" and _is_malformed_terminal_artifact_envelope(artifact):
-                # Keep malformed card envelopes on the safe invalid-card path.
-                # Clean card hints still flow through the shared resolver below
-                # so the shell and CLI entrypoints negotiate the same target
-                # selection contract.
-                fallback_target = (artifact, "card")
-            else:
-                fallback_target = resolve_terminal_artifact_cli_fallback_target(artifact, kind=kind)
-        except Exception:
-            # Keep the explicit CLI fallback path aligned with the shell's own
-            # recovery classifier when the shared resolver breaks.
-            if normalized_kind == "card" and _is_malformed_terminal_artifact_envelope(artifact):
-                fallback_target = (artifact, "card")
-            else:
-                fallback_target = self._resolve_fallback_artifact(artifact, kind=kind)
+        if normalized_kind == "card" and _is_malformed_terminal_artifact_envelope(artifact):
+            # Keep malformed card envelopes on the safe invalid-card path.
+            # Everything else flows through the shell's canonical fallback
+            # classifier so the shell and CLI entrypoints stay on the same
+            # target-selection policy.
+            fallback_target = (artifact, "card")
+        else:
+            fallback_target = self._resolve_fallback_artifact(artifact, kind=kind)
         fallback_hint_token = _TERMINAL_ARTIFACT_CLI_FALLBACK_TARGET_HINT.set(fallback_target)
         try:
             if fallback_target is not None:
