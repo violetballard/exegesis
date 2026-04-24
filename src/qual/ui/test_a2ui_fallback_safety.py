@@ -2863,6 +2863,35 @@ class A2UIFallbackSafetyTests(unittest.TestCase):
             terminal_artifact_contract_fingerprint(include_terminal_artifact_cli_fallback_route=True),
         )
 
+    def test_a2ui_contract_can_opt_into_contract_aliases(self) -> None:
+        manifest = describe_a2ui_contract(include_contract_aliases=True)
+        engine_manifest = describe_a2ui_engine_contract(include_contract_aliases=True)
+        fingerprints = describe_a2ui_contract_fingerprints(include_contract_aliases=True)
+
+        self.assertIn("card_contract_manifest", manifest["contract_fingerprints"])
+        self.assertIn("terminal_fallback_contract_manifest", manifest["contract_fingerprints"])
+        self.assertEqual(
+            manifest["contract_fingerprints_fingerprint"],
+            _fingerprint_manifest_section(manifest["contract_fingerprints"]),
+        )
+        self.assertEqual(fingerprints["card_contract_manifest"], card_contract_fingerprint())
+        self.assertEqual(
+            fingerprints["terminal_fallback_contract_manifest"],
+            terminal_fallback_contract_fingerprint(),
+        )
+        self.assertEqual(
+            manifest["contract_fingerprints"]["card_contract_manifest"],
+            card_contract_fingerprint(),
+        )
+        self.assertEqual(
+            manifest["contract_fingerprints"]["terminal_fallback_contract_manifest"],
+            terminal_fallback_contract_fingerprint(),
+        )
+        self.assertEqual(
+            engine_manifest["contract_fingerprints"]["card_contract_manifest"],
+            card_contract_fingerprint(),
+        )
+
     def test_a2ui_contract_can_opt_in_to_shell_ui_contract_snapshot(self) -> None:
         default_manifest = describe_a2ui_contract()
         default_fingerprints = describe_a2ui_contract_fingerprints()

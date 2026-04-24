@@ -225,6 +225,7 @@ def describe_a2ui_contract(
     include_terminal_artifact_cli_fallback_entrypoint: bool = False,
     include_terminal_artifact_cli_fallback_card_hint_recovery_policy: bool = False,
     include_shell_ui_contract: bool = False,
+    include_contract_aliases: bool = False,
 ) -> dict[str, Any]:
     """Return the stable, versioned A2UI contract manifest.
 
@@ -479,6 +480,7 @@ def describe_a2ui_contract(
         include_terminal_artifact_cli_fallback_entrypoint=include_terminal_artifact_cli_fallback_entrypoint,
         include_terminal_artifact_cli_fallback_card_hint_recovery_policy=include_terminal_artifact_cli_fallback_card_hint_recovery_policy,
         include_shell_ui_contract=include_shell_ui_contract,
+        include_contract_aliases=include_contract_aliases,
     )
     manifest["contract_fingerprints_fingerprint"] = _fingerprint_manifest_section(
         manifest["contract_fingerprints"]
@@ -631,6 +633,8 @@ def describe_a2ui_contract_fingerprints(
             ("action_contract_manifest", action_contract_fingerprint()),
             ("selection_contract", selection_contract_fingerprint()),
             ("selection_contract_manifest", selection_contract_fingerprint()),
+            ("card_contract_manifest", card_contract_fingerprint()),
+            ("terminal_fallback_contract_manifest", terminal_fallback_contract_fingerprint()),
             (
                 "terminal_artifact_renderer_entrypoints_contract",
                 terminal_artifact_renderer_entrypoints_contract_fingerprint(),
@@ -1078,6 +1082,7 @@ def _build_a2ui_contract_fingerprint_summary(
     include_terminal_artifact_cli_fallback_entrypoint: bool = False,
     include_terminal_artifact_cli_fallback_card_hint_recovery_policy: bool = False,
     include_shell_ui_contract: bool = False,
+    include_contract_aliases: bool = False,
 ) -> dict[str, str]:
     return describe_a2ui_contract_fingerprints(
         include_terminal_artifact=True,
@@ -1090,6 +1095,7 @@ def _build_a2ui_contract_fingerprint_summary(
         include_terminal_artifact_cli_fallback_entrypoint=include_terminal_artifact_cli_fallback_entrypoint,
         include_terminal_artifact_cli_fallback_card_hint_recovery_policy=include_terminal_artifact_cli_fallback_card_hint_recovery_policy,
         include_shell_ui_contract=include_shell_ui_contract,
+        include_contract_aliases=include_contract_aliases,
     )
 
 
@@ -4197,6 +4203,7 @@ def describe_a2ui_engine_contract(
     *,
     include_terminal_artifact_cli_fallback_card_hint_recovery_policy: bool = False,
     include_shell_ui_contract: bool = False,
+    include_contract_aliases: bool = False,
 ) -> dict[str, Any]:
     """Return the engine-facing A2UI contract snapshot.
 
@@ -4210,6 +4217,7 @@ def describe_a2ui_engine_contract(
         include_terminal_artifact_cli_fallback_entrypoint=True,
         include_terminal_artifact_cli_fallback_card_hint_recovery_policy=include_terminal_artifact_cli_fallback_card_hint_recovery_policy,
         include_shell_ui_contract=include_shell_ui_contract,
+        include_contract_aliases=include_contract_aliases,
     )
 
 
