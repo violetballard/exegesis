@@ -38,6 +38,7 @@ Canonical handoff contract lives in `THREAD_PACKET.md`.
   - approved shared regression file: `tests/unit/test_commands_catalog.py`
   - integrator-locked files touched: none
   - canonical demo-path step advanced: `open project/document` via the `project-open` operator token
+  - explicit statement of what this work makes more real: it hardens the CLI-first operator surface for `open project/document` by keeping the `project-open` contract deterministic and migration-safe while Textual remains disabled
   - concrete blocker removed on that step: this prevents parser/catalog drift from silently changing the CLI contract for the migration-safe `project-open` entrypoint used for `open project/document`
   - scope guard: this handoff is limited to deterministic CLI contract validation and migration-safe command entrypoints; it does not claim engine workflow behavior changes
   - required gates passed: `make scope-check`, `./quality-format.sh --check`, `./quality-lint.sh`, `./quality-test.sh`, `./typecheck-test.sh`, `make ci`

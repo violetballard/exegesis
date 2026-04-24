@@ -87,6 +87,8 @@
   - `export-handoff`
 - Canonical demo-path step advanced:
   - `open project/document` via the `project-open` operator token
+- Explicit handoff statement for AGENTS.md:
+  - This work makes the canonical `open project/document` step more real by hardening the CLI-first operator surface around the migration-safe `project-open` entrypoint while Textual remains disabled.
 - Concrete Milestone / vision claim this supports:
   - `ROADMAP.md` Milestone 3 (`Product Readiness`) scope item `Define and lock user-facing output contracts`: this slice hardens deterministic CLI contract validation and migration-safe command entrypoints for the `project-open` operator token
   - `PRODUCT_VISION.md` capability 4 (`Operator-first control surface`): CLI remains a first-class surface for development and reliability, so the `project-open` contract cannot be allowed to drift silently
@@ -140,6 +142,7 @@
 - `ROADMAP.md` Milestone 3 (`Product Readiness`) scope item `Define and lock user-facing output contracts`: this handoff keeps the `project-open` CLI contract deterministic and migration-safe.
 - `ROADMAP.md` active MVP emphasis `feat-commands`: keeps deterministic CLI contract validation in the lane-owned command catalog without broadening into engine workflow behavior claims.
 - Canonical demo-path step advanced: `open project/document` via the `project-open` operator token.
+- Explicit statement of what this work makes more real: it hardens the CLI-first operator surface for `open project/document` by keeping the `project-open` contract deterministic and migration-safe while Textual remains disabled.
 - Concrete blocker removed on that step: this prevents parser/catalog drift from silently changing the CLI contract for the migration-safe `project-open` entrypoint used for `open project/document`.
 - Scope guard: this handoff is limited to deterministic CLI contract validation and migration-safe command entrypoints; it does not claim engine workflow behavior changes.
 
