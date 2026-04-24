@@ -87,6 +87,7 @@
   - `retrieve relevant material` corresponds to the current MVP loop's `context` and `run` handoff boundary via `retrieval`.
   - `preview and apply or reject a patch` corresponds to the current MVP loop's `patch` boundary via `patch-review`.
 - Required packet statement: this change makes `continue working without losing context` more real by forcing the operator-visible `project-open` / `retrieval` / `patch-review` command surface to stay catalog-locked and fail closed instead of silently drifting while Textual remains disabled.
+- Reviewer wording trace: this work makes `open project/document` and the broader CLI operator path more real by preventing silent command-surface drift while Textual remains disabled.
 - Concrete blocker removed: parser-surface drift between the live parser entrypoints and the declared catalog can no longer pass silently. That removes the concrete blocker on `continue working without losing context`: a CLI fallback session can no longer quietly switch to the wrong bootstrap, retrieval, or patch-review verb set because of extra accepted aliases, dropped canonical tokens, lookup-table substitutions, or token reorderings.
 - `AGENTS.md` compliance note: every active lane task in this packet now names the exact canonical demo-path step it advances, and this handoff states the concrete blocker removed at that step.
 - Scope-tightening statement: this slice claims command-contract hardening for the current engine-first `project-open` / `retrieval` / `patch-review` smoke path only. That is the supporting evidence for `continue working without losing context` on the CLI fallback path while Textual remains disabled, and it does not claim new retrieval internals, patch application, persistence, audit-path, export, or broader workflow behavior.
@@ -99,10 +100,10 @@
 ## Approved Exception Note
 
 - Approved shared-by-approval exception: `tests/unit/test_commands_catalog.py`
-- Approval owner: the integrator-managed branch policy for `codex/feat-commands`
+- Approval owner: the repo branch policy for `codex/feat-commands*`
 - Approval mechanism: `scripts/scope-check.sh` `is_approved_shared_test()` branch allowlist for `codex/feat-commands*`
 - Approval source: `THREAD_OWNERSHIP.md` keeps lane ownership on `src/qual/commands/**`; the non-owned test edit is a shared-by-approval exception with the explicit branch allowlist approval above, not an integrator-locked edit
-- Approval basis: shared regression coverage is required to prove the same `continue working without losing context` mapping claimed by this packet, specifically that the supporting `project-open` / `retrieval` / `patch-review` smoke path stays catalog-locked on the CLI fallback route while Textual remains disabled
+- Approval basis: shared regression coverage is required to prove the same `continue working without losing context` mapping claimed by this packet, specifically that the supporting `project-open` / `retrieval` / `patch-review` smoke path stays catalog-locked on the CLI fallback route while Textual remains disabled. The branch allowlist above is the explicit approved mechanism covering this shared-path edit; no separate ad hoc exception was used.
 - Scope-check allowance used: `not required`
 - Integrator-locked edits in this slice: `none`
 

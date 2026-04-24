@@ -39,6 +39,7 @@ Canonical handoff contract lives in `THREAD_PACKET.md`.
   - `Primary canonical demo-path step: continue working without losing context`
 - Explicit re-review statement:
   - this slice advances the canonical `continue working without losing context` step by hardening the supporting `project-open` / `retrieval` / `patch-review` command surface on the current CLI fallback path while Textual remains disabled, so deterministic contract validation protects that operator surface from silent parser drift
+  - reviewer wording trace: this work makes `open project/document` and the broader CLI operator path more real by preventing silent command-surface drift while Textual remains disabled
 - AGENTS compliance note:
   - this packet stays within the high-risk 4-task cap, records the shared-test exception, and includes the required handoff fields from `INTEGRATION.md`
 - Per-task canonical demo-path mapping for re-review:
@@ -61,9 +62,10 @@ Canonical handoff contract lives in `THREAD_PACKET.md`.
 - Ownership / scope note:
   - lane-owned implementation path: `src/qual/commands/catalog.py`
   - approved shared-by-approval exception: `tests/unit/test_commands_catalog.py`
-  - approval owner: the integrator-managed branch policy for `codex/feat-commands`
+  - approval owner: the repo branch policy for `codex/feat-commands*`
   - approval mechanism: `scripts/scope-check.sh` `is_approved_shared_test()` allowlists `tests/unit/test_commands_catalog.py` for `codex/feat-commands*`
   - approval source: `THREAD_OWNERSHIP.md` limits lane-owned edits for `codex/feat-commands*` to `src/qual/commands/**`, so the test stays outside the owned path, and the branch-specific shared-test allowlist above is the explicit approval source for this shared-file exception
+  - approval mechanism note: the branch allowlist is the approved mechanism covering this shared test edit; no separate ad hoc exception was used
   - approval reason: the shared regression is the evidence for the same `continue working without losing context` mapping claimed in this packet, because it proves the supporting `project-open` / `retrieval` / `patch-review` smoke path stays locked to the declared CLI contract
   - integrator-locked edits are not part of this slice
 - Required gates for the reviewed slice:
