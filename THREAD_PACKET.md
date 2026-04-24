@@ -6,6 +6,7 @@
 - Reviewed implementation range: `adfa8cdadd43747ffbcb612e4151e262b13e52ca..d08431dd4fe27a23b0c166f074eaf2ff5a0aeb9d`
 - Scope goal: keep the post-`adfa8cda` retrieval follow-up slice FTS-first, deterministic, and auditable on the canonical engine surface.
 - Canonical demo-path step advanced: `retrieve relevant material`
+- Reviewer fix confirmation: this packet explicitly states that the lane advances `retrieve relevant material` by forcing excerpt lookup and provenance to stay on the canonical FTS-only path, with PageIndex-only excerpt IDs failing closed.
 - Plan-alignment statement: this slice advances `retrieve relevant material` by keeping excerpt lookup, canonical query handling, query-constraint normalization, and downstream provenance payloads on the authoritative SQLite FTS path so later basket-promotion and workflow consumers receive deterministic retrieval state instead of PageIndex-backed fallback state.
 - Direct handoff statement: this packet now matches the actual retrieval code that would merge after `adfa8cda`. The post-`adfa8cda` planner and packet-planner drift has been cleared from the branch tree, so the reviewed slice below is retrieval-only plus the approved shared regression file.
 - Approved exception surface: one approved shared test edit in `tests/unit/test_unified_retrieval.py` only. No integrator-locked files and no other shared-by-approval files are part of the reviewed implementation slice.
