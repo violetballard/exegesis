@@ -2,10 +2,10 @@
 
 - Lane: `feat-commands`
 - Branch: `codex/feat-commands`
-- Commit: `1efa1c47e775e47b2aa4cb7619ea5cc499687448`
-- Packet refresh role: `reviewer-fix final verification refresh`
-- Packet refresh basis: `regenerated on 2026-04-24T07:33:10Z after rerunning the required gates on the pre-refresh branch tip 1efa1c47e775e47b2aa4cb7619ea5cc499687448 to satisfy the reviewer's numbered handoff fixes for explicit canonical demo-path mapping, concrete blocker removal, narrowed roadmap and vision mapping, and current branch-tip traceability`
-- Post-fixer verification: `2026-04-24T07:33:10Z UTC gate rerun confirmed the packet still matches the branch state during this final verification refresh; no implementation files changed in this packet-only refresh`
+- Commit: `f49cae6e16b70f71397d74480e83e6a1742a0379`
+- Packet refresh role: `reviewer-fix metadata refresh`
+- Packet refresh basis: `regenerated on 2026-04-24T07:36:51Z after rerunning the required gates on the pre-refresh branch tip f49cae6e16b70f71397d74480e83e6a1742a0379 to keep the packet aligned with current branch-tip traceability while preserving the reviewer's required canonical demo-path mapping, concrete blocker removal, narrowed roadmap and vision wording, and explicit shared-test approval note`
+- Post-fixer verification: `2026-04-24T07:36:51Z UTC gate rerun confirmed the packet still matches the branch state during this metadata-only refresh; no implementation files changed in this packet-only refresh`
 - Packet-only refresh files:
   - `THREAD.md`
   - `THREAD_PACKET.md`
@@ -41,8 +41,8 @@
 
 ## Review Basis
 
-- Reviewed implementation commit: `1efa1c47e775e47b2aa4cb7619ea5cc499687448` (`docs(commands): finalize reviewer handoff packet`), carrying forward the command helper implementation from `3e1e7d7f9ebce3001ebe941133b00e145e79cb7b` (`Add command demo branch contract helpers`) and the parser-surface regression coverage from `bd118a6cbb417005bb793b3d784372ba6c1452a1` (`test(commands): cover cached parser surface drift`).
-- Packet refresh traceability: the pre-refresh branch tip for this final verification pass was `1efa1c47e775e47b2aa4cb7619ea5cc499687448`; this refresh updates only `THREAD.md`, `THREAD_PACKET.md`, and `handoff_packets/feat-commands.md`.
+- Reviewed implementation commit: `f49cae6e16b70f71397d74480e83e6a1742a0379` (`docs(commands): refresh fixer handoff evidence`), carrying forward the command helper implementation from `3e1e7d7f9ebce3001ebe941133b00e145e79cb7b` (`Add command demo branch contract helpers`) and the parser-surface regression coverage from `bd118a6cbb417005bb793b3d784372ba6c1452a1` (`test(commands): cover cached parser surface drift`).
+- Packet refresh traceability: the pre-refresh branch tip for this metadata refresh was `f49cae6e16b70f71397d74480e83e6a1742a0379`; this refresh updates only `THREAD.md`, `THREAD_PACKET.md`, and `handoff_packets/feat-commands.md`.
 - Reviewed implementation files:
   - `src/qual/commands/__init__.py`
   - `tests/unit/test_commands_catalog.py`
@@ -107,7 +107,7 @@
 - `./quality-test.sh`: `PASSED`
 - `./typecheck-test.sh`: `PASSED`
 - `make ci`: `PASSED`
-- Gate attribution note: these gates were rerun at 2026-04-24T07:33:10Z against the reviewer-fix packet-refresh workspace state at `1efa1c47e775e47b2aa4cb7619ea5cc499687448`; this refresh updates only `THREAD.md`, `THREAD_PACKET.md`, and `handoff_packets/feat-commands.md`.
+- Gate attribution note: these gates were rerun at 2026-04-24T07:36:51Z against the metadata-refresh workspace state at `f49cae6e16b70f71397d74480e83e6a1742a0379`; this refresh updates only `THREAD.md`, `THREAD_PACKET.md`, and `handoff_packets/feat-commands.md`.
 
 ### Risks / Blockers
 
