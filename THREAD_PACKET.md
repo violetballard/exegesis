@@ -5,14 +5,14 @@
 - Reviewed implementation commit: `972a3cfa`
 - Packet refresh role: `reviewer-fix resubmission refresh 6`
 - Review scope: narrow command-contract hardening in `src/qual/commands/catalog.py`, plus focused regression coverage in `tests/unit/test_commands_catalog.py`, with the guardrail explicitly enforcing full parser-surface projection consistency rather than only canonical-name/order consistency.
-- Canonical demo-path step advanced: primarily `open project/document` in the active AGENTS demo path, with direct protection for the downstream CLI handoff into `retrieve relevant material`, `preview and apply or reject a patch`, and export-oriented command surfaces because the same contract lock covers `project-open`, `retrieval`, `patch-review`, and `export-handoff` while Textual remains disabled.
-- Concrete canonical mapping sentence: this slice makes the existing CLI path `open project/document` -> `retrieve relevant material` -> `preview and apply or reject a patch` more reliable by forcing the parser-backed `project-open` gateway and the downstream grouped entrypoints it feeds to stay aligned with the canonical catalog before the operator starts that loop.
-- Non-claim boundary: this resubmission does not claim progress on persistence, A2UI, Textual activation, or any new command reachability; it is limited to command-surface determinism and parser-drift rejection.
+- Canonical demo-path step advanced: `open project/document` in the active AGENTS demo path.
+- Concrete canonical mapping sentence: this slice makes the existing `open project/document` CLI gateway more real by forcing the parser-backed `project-open` entrypoints to stay aligned with the canonical catalog before the operator starts the loop, with downstream protection for later CLI-only steps if that gateway would otherwise drift.
+- Non-claim boundary: this resubmission does not claim progress on persistence, A2UI, Textual activation, or any new command reachability; it is limited to deterministic CLI compatibility and parser-drift rejection for the existing command surface while Textual remains disabled.
 - Canonical demo-path context: `AGENTS.md` currently defines the engine-side path as `open project/document` -> `retrieve relevant material` -> `promote or gather context into the basket` -> `produce a plan or revision` -> `preview and apply or reject a patch` -> `persist the updated document/session state` -> `continue working without losing context`.
-- Causal link: the Milestone 3 CLI loop cannot begin unless `open project/document` still resolves through the canonical command surface, and the same deterministic catalog contract must remain stable for the later `retrieval`, `patch-review`, and `export-handoff` CLI steps that the operator uses in the same loop while Textual remains disabled.
-- Downstream CLI preservation sentence: because Textual remains disabled, the existing CLI-only path from `project-open` into `retrieval`, `patch-review`, and `export-handoff` depends on the `open project/document` gateway staying deterministic; this slice removes the silent parser-drift failure mode that could otherwise break that loop before the operator reaches those later steps.
+- Causal link: the Milestone 3 CLI-first loop cannot begin unless `open project/document` still resolves through the canonical command surface while Textual remains disabled.
+- Downstream CLI preservation sentence: because Textual remains disabled, preserving deterministic compatibility at the `open project/document` gateway also protects later CLI-only steps from inheriting parser drift that starts at the gateway.
 - AGENTS.md alignment note: this packet explicitly names the exact canonical demo-path step protected by the reviewed slice and ties the claim to the current AGENTS handoff packet and checkpoint requirements.
-- Required mapping statement: this `feat-commands` slice is not claiming new workflow reachability; it is migration-safe compatibility hardening for the existing command catalog because `command_cli_contract()` now fails fast when parser/catalog drift would otherwise silently change the operator-facing CLI contract through alias substitution, missing canonical entrypoints, reordered grouped entrypoints, or extra parser-only aliases across the CLI-first MVP loop surfaces for `project-open`, `retrieval`, `patch-review`, and `export-handoff`, preserving the Milestone 3 CLI compatibility requirement while Textual remains disabled.
+- Required mapping statement: this `feat-commands` slice is not claiming new workflow reachability; it is migration-safe compatibility hardening for the existing command catalog because `command_cli_contract()` now fails fast when parser/catalog drift would otherwise silently change the operator-facing CLI contract through alias substitution, missing canonical entrypoints, reordered grouped entrypoints, or extra parser-only aliases at the existing `project-open` gateway, preserving the Milestone 3 CLI compatibility requirement while Textual remains disabled.
 - Step-1 strengthening sentence: deterministic CLI contract validation makes the `open project/document` step more real because the exact parser-backed entrypoints the operator uses to start project or document state are now forced to match the canonical catalog before the CLI loop begins.
 - Demo-path sentence: this change makes the existing CLI path safer to rely on because the concrete parser-backed command entrypoints an operator already uses to open project or document state can no longer silently drift away from the canonical catalog through alias-level or ordering changes.
 - Concrete blocker removed: before this slice, parser drift could change the accepted CLI surface without a hard failure, so an operator or smoke check could invoke `project-open`, `retrieval`, `patch-review`, or `export-handoff` through parser-backed aliases or grouped entrypoints that no longer matched the canonical command catalog even though canonical command names still looked correct.
@@ -70,6 +70,7 @@
 - Implementation files:
   - `src/qual/commands/catalog.py`
   - `tests/unit/test_commands_catalog.py`
+- Approval basis note: implementation approval is pinned to those two reviewed files only; `THREAD.md`, this packet, and `handoff_packets/feat-commands.md` are metadata-only refreshes.
 
 ## Commands Run and Outcomes
 
@@ -91,7 +92,7 @@
 - Shared-test approval scope: the exception is limited to focused regression coverage in `tests/unit/test_commands_catalog.py`; no other shared or integrator-locked implementation paths are claimed in this slice.
 - Integrator-locked edits: `none`
 - Scope note: the implementation under review is limited to `src/qual/commands/catalog.py` and `tests/unit/test_commands_catalog.py`; `THREAD.md`, `THREAD_PACKET.md`, and `handoff_packets/feat-commands.md` are metadata only.
-- Scope clarification: this is command-contract hardening only; it does not add new commands, new engine behavior, new persistence or auditability mechanisms, or a new workflow capability.
+- Scope clarification: this is migration-safe compatibility hardening for the existing CLI-first loop while Textual remains disabled; it does not add new commands, new engine behavior, new persistence or auditability mechanisms, or a new workflow capability.
 
 ## Roadmap and Vision Mapping
 
