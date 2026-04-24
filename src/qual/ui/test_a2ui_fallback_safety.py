@@ -25,12 +25,14 @@ from src.qual.ui.a2ui import (
     action_contract_fingerprint,
     a2ui_capabilities_contract_fingerprint,
     a2ui_contract_fingerprint,
+    a2ui_engine_contract_fingerprint,
     a2ui_leaf_contracts_fingerprint,
     build_unknown_card,
     describe_a2ui_contract,
     describe_a2ui_contract_fingerprints,
     describe_a2ui_dispatch_contract_fingerprints,
     describe_a2ui_capabilities_contract,
+    describe_a2ui_engine_contract,
     describe_a2ui_leaf_contracts,
     describe_action_contract,
     describe_card_contract,
@@ -210,6 +212,8 @@ class A2UIFallbackSafetyTests(unittest.TestCase):
         self.assertIs(public_ui.ALLOWED_ACTION_IDS, ALLOWED_ACTION_IDS)
         self.assertIs(public_ui.REQUIRED_PRIMITIVE_BLOCKS, REQUIRED_PRIMITIVE_BLOCKS)
         self.assertIs(public_ui.PolicyGate, PolicyGate)
+        self.assertIs(public_ui.describe_a2ui_engine_contract, describe_a2ui_engine_contract)
+        self.assertIs(public_ui.a2ui_engine_contract_fingerprint, a2ui_engine_contract_fingerprint)
         self.assertEqual(
             public_ui.TERMINAL_ARTIFACT_RENDERER_ENTRYPOINTS_SCHEMA_VERSION,
             TERMINAL_ARTIFACT_RENDERER_ENTRYPOINTS_SCHEMA_VERSION,
@@ -419,6 +423,48 @@ class A2UIFallbackSafetyTests(unittest.TestCase):
         self.assertEqual(
             aliased_fingerprints["leaf_contracts_contract_manifest_fingerprint"],
             leaf_fingerprint,
+        )
+
+    def test_a2ui_engine_contract_aliases_the_engine_facing_slice(self) -> None:
+        default_fingerprints = describe_a2ui_contract_fingerprints(include_contract_aliases=True)
+        shell_fingerprints = describe_a2ui_contract_fingerprints(
+            include_shell_ui_contract=True,
+            include_contract_aliases=True,
+        )
+        default_engine_fingerprint = a2ui_engine_contract_fingerprint()
+        shell_engine_fingerprint = a2ui_engine_contract_fingerprint(include_shell_ui_contract=True)
+
+        self.assertEqual(
+            default_fingerprints["a2ui_engine_contract"],
+            default_engine_fingerprint,
+        )
+        self.assertEqual(
+            default_fingerprints["a2ui_engine_contract_fingerprint"],
+            default_engine_fingerprint,
+        )
+        self.assertEqual(
+            default_fingerprints["a2ui_engine_contract_manifest"],
+            default_engine_fingerprint,
+        )
+        self.assertEqual(
+            default_fingerprints["a2ui_engine_contract_manifest_fingerprint"],
+            default_engine_fingerprint,
+        )
+        self.assertEqual(
+            shell_fingerprints["a2ui_engine_contract"],
+            shell_engine_fingerprint,
+        )
+        self.assertEqual(
+            shell_fingerprints["a2ui_engine_contract_fingerprint"],
+            shell_engine_fingerprint,
+        )
+        self.assertEqual(
+            shell_fingerprints["a2ui_engine_contract_manifest"],
+            shell_engine_fingerprint,
+        )
+        self.assertEqual(
+            shell_fingerprints["a2ui_engine_contract_manifest_fingerprint"],
+            shell_engine_fingerprint,
         )
 
     def test_standalone_contract_manifests_expose_contract_fingerprint_aliases(self) -> None:

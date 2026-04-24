@@ -867,9 +867,14 @@ def describe_a2ui_contract_fingerprints(
             ),
         )
     if include_contract_aliases:
+        engine_contract_fingerprint_value = a2ui_engine_contract_fingerprint(
+            include_shell_ui_contract=include_shell_ui_contract,
+        )
         _add_contract_alias_fingerprints(
             fingerprints,
             ("a2ui_contract", _fingerprint_manifest_section(manifest)),
+            ("a2ui_engine_contract", engine_contract_fingerprint_value),
+            ("a2ui_engine_contract_manifest", engine_contract_fingerprint_value),
             ("contract_fingerprint", _fingerprint_manifest_section(manifest)),
             ("capabilities_contract", a2ui_capabilities_contract_fingerprint()),
             ("card_fingerprint", card_contract_fingerprint()),
