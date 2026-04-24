@@ -2775,7 +2775,9 @@ def _build_retrieval_diagnostics_from_source_bundle(source_bundle: dict[str, obj
         else max(fts_shortlist_limit, fts_shortlist_limit * 4, 100)
     )
     fts_shortlist_doc_ids = _normalize_list_like(citation_bundle.get("fts_shortlist_doc_ids", []))
-    strategies_used = list(active_strategy_ids)
+    strategies_used = _normalize_text_list_like(
+        citation_bundle.get("strategies_used", normalized.get("strategies_used", active_strategy_ids))
+    )
 
     return {
         "retrieval_policy": copy.deepcopy(retrieval_policy),
@@ -2787,7 +2789,7 @@ def _build_retrieval_diagnostics_from_source_bundle(source_bundle: dict[str, obj
             "retrieval_mode",
             normalized.get("retrieval_mode"),
         ),
-        "active_strategy_ids": strategies_used,
+        "active_strategy_ids": active_strategy_ids,
         "deferred_strategy_ids": deferred_strategy_ids,
         "query_fingerprint": citation_bundle.get(
             "query_fingerprint",

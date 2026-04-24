@@ -2043,8 +2043,16 @@ class RetrievalService:
         effective_candidate_doc_count = self._effective_candidate_doc_count(query.scope, candidate_doc_ids)
         if candidate_doc_ids or date_range is None:
             fts_run = self._fts.retrieve(query, candidate_doc_ids=candidate_doc_ids)
+            strategies_used = [fts_run.strategy_id]
+            elapsed_ms_by_strategy = {fts_run.strategy_id: fts_run.elapsed_ms}
+            caches_used = {fts_run.strategy_id: False}
+            audit_caches_used = {fts_run.strategy_id: fts_run.cache_used}
         else:
             fts_run = StrategyRun(strategy_id=self._fts.id, hits=[], elapsed_ms=0, cache_used=False)
+            strategies_used = []
+            elapsed_ms_by_strategy = {}
+            caches_used = {}
+            audit_caches_used = {}
         merged_hits = self._merge_hits([fts_run], max_results=query.constraints.max_results)
         doc_hits = self._build_doc_hits(
             query,
@@ -2058,7 +2066,6 @@ class RetrievalService:
         retrieved_excerpt_ids = [hit.excerpt_id for hit in merged_hits if hit.excerpt_id is not None]
         active_strategy_ids = list(cast(list[str], retrieval_policy["active_strategy_ids"]))
         deferred_strategy_ids = list(cast(list[str], retrieval_policy["deferred_strategy_ids"]))
-        strategies_used = list(active_strategy_ids)
         for hit in merged_hits:
             hit.provenance["active_strategy_ids"] = list(active_strategy_ids)
             hit.provenance["deferred_strategy_ids"] = list(deferred_strategy_ids)
@@ -2117,11 +2124,11 @@ class RetrievalService:
             "candidate_doc_count": effective_candidate_doc_count,
             "fts_shortlist_count": len(shortlist_doc_ids),
             "fts_shortlist_doc_ids": list(shortlist_doc_ids),
-            "strategies_used": list(retrieval_policy["active_strategy_ids"]),
-            "elapsed_ms_by_strategy": {fts_run.strategy_id: fts_run.elapsed_ms},
+            "strategies_used": list(strategies_used),
+            "elapsed_ms_by_strategy": elapsed_ms_by_strategy,
             # Cache use is an internal optimization detail; keep the public
             # diagnostics deterministic across equivalent retrieval calls.
-            "caches_used": {fts_run.strategy_id: False},
+            "caches_used": caches_used,
             "elapsed_ms_total": elapsed_ms_total,
             "doc_hits_count": len(doc_hits),
             "excerpt_hits_count": len(merged_hits),
@@ -2150,7 +2157,7 @@ class RetrievalService:
                 "strategies_used": diagnostics["strategies_used"],
                 # Keep runtime cache behavior in audit metadata even though the
                 # downstream contract masks it for deterministic payloads.
-                "caches_used": {fts_run.strategy_id: fts_run.cache_used},
+                "caches_used": audit_caches_used,
                 "elapsed_ms_by_strategy": diagnostics["elapsed_ms_by_strategy"],
                 "doc_ids_count": len({hit.doc_id for hit in merged_hits}),
                 "hits_count": len(merged_hits),

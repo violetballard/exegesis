@@ -540,6 +540,46 @@ class UnifiedRetrievalTests(unittest.TestCase):
         self.assertEqual(payload["retrieval_provenance"]["candidate_doc_count"], 0)
         self.assertEqual(payload["retrieval_evidence"]["candidate_doc_count"], 0)
 
+    def test_date_filtered_empty_result_leaves_strategies_used_empty(self) -> None:
+        meta = self.service._load_doc_meta()
+        for payload in meta.values():
+            payload["updated_at"] = "2026-01-01T12:00:00+00:00"
+        self.service._write_encrypted_json(self.service._root / "doc_meta_v1.enc.json", meta)
+
+        result = self.service.retrieve_auto(
+            RetrievalQuery(
+                query_text="coding comparison",
+                scope="vault",
+                intent="lookup",
+                constraints=RetrievalConstraints(
+                    max_results=4,
+                    date_range=("2026-02-15", "2026-02-15"),
+                ),
+                confidentiality_profile="confidential",
+            )
+        )
+
+        self.assertEqual(result.doc_hits, [])
+        self.assertEqual(result.hits, [])
+        self.assertEqual(result.diagnostics["candidate_doc_count"], 0)
+        self.assertEqual(result.diagnostics["active_strategy_ids"], ["fts"])
+        self.assertEqual(result.diagnostics["strategies_used"], [])
+        self.assertEqual(result.diagnostics["elapsed_ms_by_strategy"], {})
+        self.assertEqual(result.diagnostics["caches_used"], {})
+
+        payload = result.to_downstream_payload()
+        self.assertEqual(payload["retrieval_diagnostics"]["active_strategy_ids"], ["fts"])
+        self.assertEqual(payload["retrieval_diagnostics"]["strategies_used"], [])
+        self.assertEqual(payload["retrieval_diagnostics"]["elapsed_ms_by_strategy"], {})
+        self.assertEqual(payload["retrieval_diagnostics"]["caches_used"], {})
+
+        lines = [json.loads(line) for line in (self.root / "audit_events.jsonl").read_text(encoding="utf-8").splitlines()]
+        event = next(item for item in reversed(lines) if item["name"] == "retrieval_executed")
+        self.assertEqual(event["metadata"]["active_strategy_ids"], ["fts"])
+        self.assertEqual(event["metadata"]["strategies_used"], [])
+        self.assertEqual(event["metadata"]["elapsed_ms_by_strategy"], {})
+        self.assertEqual(event["metadata"]["caches_used"], {})
+
     def test_section_scope_is_rejected_until_pageindex_can_resolve_it(self) -> None:
         with self.assertRaisesRegex(ValueError, "section scope is unsupported"):
             self.service.retrieve_auto(
@@ -2396,6 +2436,47 @@ class UnifiedRetrievalTests(unittest.TestCase):
         )
         self.assertEqual(provenance["query_date_range"], ["2026-01-01", "2026-01-31"])
         self.assertEqual(diagnostics["date_range"], ["2026-01-01", "2026-01-31"])
+
+    def test_retrieval_payload_diagnostics_preserve_empty_strategies_used(self) -> None:
+        diagnostics = _build_retrieval_diagnostics_from_source_bundle(
+            {
+                "query": {
+                    "query_text": "memo comparison",
+                    "scope": "vault",
+                    "intent": "compare",
+                    "confidentiality_profile": "confidential",
+                    "constraints": {
+                        "max_results": 4,
+                        "date_range": ["2026-02-15", "2026-02-15"],
+                    },
+                },
+                "retrieval_summary": {
+                    "retrieval_backend": "sqlite_fts",
+                    "retrieval_mode": "fts_first",
+                    "active_strategy_ids": ["fts"],
+                    "deferred_strategy_ids": ["pageindex", "embeddings"],
+                    "strategies_used": [],
+                    "candidate_doc_count": 0,
+                    "fts_shortlist_doc_ids": [],
+                    "doc_count": 0,
+                    "excerpt_count": 0,
+                },
+                "retrieval_citation_bundle": {
+                    "active_strategy_ids": ["fts"],
+                    "deferred_strategy_ids": ["pageindex", "embeddings"],
+                    "strategies_used": [],
+                    "candidate_doc_count": 0,
+                    "fts_shortlist_doc_ids": [],
+                    "doc_count": 0,
+                    "excerpt_count": 0,
+                },
+            }
+        )
+
+        self.assertEqual(diagnostics["active_strategy_ids"], ["fts"])
+        self.assertEqual(diagnostics["strategies_used"], [])
+        self.assertEqual(diagnostics["elapsed_ms_by_strategy"], {})
+        self.assertEqual(diagnostics["caches_used"], {})
 
     def test_retrieval_payload_normalizers_canonicalize_unordered_iterables(self) -> None:
         source_bundle = _build_retrieval_source_bundle_from_payload(
