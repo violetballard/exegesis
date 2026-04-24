@@ -2,7 +2,7 @@
 
 - Lane: `feat-commands`
 - Branch: `codex/feat-commands`
-- Commit: `f8d860ed9f6299f0169c4f21321ac5f37c949fd3`
+- Commit: `2446deb4`
 - Packet refresh role: `reviewer-fix final verification rerun refresh 2`
 - Review scope: narrow command-contract hardening in `src/qual/commands/catalog.py`, plus focused regression coverage in `tests/unit/test_commands_catalog.py`, with the guardrail explicitly enforcing full parser-surface projection consistency rather than only canonical-name/order consistency.
 - Canonical demo-path step advanced: primarily `open project/document` in the active AGENTS demo path, with direct protection for the downstream CLI handoff into `retrieve relevant material`, `preview and apply or reject a patch`, and export-oriented command surfaces because the same contract lock covers `project-open`, `retrieval`, `patch-review`, and `export-handoff` while Textual remains disabled.
@@ -14,12 +14,12 @@
 - Step-1 strengthening sentence: deterministic CLI contract validation makes the `open project/document` step more real because the exact parser-backed entrypoints the operator uses to start project or document state are now forced to match the canonical catalog before the CLI loop begins.
 - Demo-path sentence: this change makes the existing CLI path safer to rely on because the concrete parser-backed command entrypoints an operator already uses to open project or document state can no longer silently drift away from the canonical catalog through alias-level or ordering changes.
 - Concrete blocker removed: before this slice, parser drift could change the accepted CLI surface without a hard failure, so an operator or smoke check could invoke `project-open`, `retrieval`, `patch-review`, or `export-handoff` through parser-backed aliases or grouped entrypoints that no longer matched the canonical command catalog even though canonical command names still looked correct.
-- Review basis scope: keep implementation and approval claims pinned to reviewed commit `f8d860ed9f6299f0169c4f21321ac5f37c949fd3` and its two implementation files only: `src/qual/commands/catalog.py` and `tests/unit/test_commands_catalog.py`.
-- Final fixer note: this packet refresh aligns the handoff scope language with the already-landed full parser-surface guardrail, adds direct regression coverage against the live CLI parser entrypoint constant, and records the green rerun of the required gates from this fixer pass.
-- Final verification note: this fixer rerun revalidated the corrected handoff packet, added direct live-parser drift coverage, and reran the full required gate set without widening implementation scope.
-- Latest fixer rerun note: after reloading the reviewer packet against the live worktree on `2026-04-24`, the parser-surface guardrail remained present on `codex/feat-commands` and the new work tightened the regression proof by mutating `src.qual.cli._CLI_PARSER_ENTRYPOINTS` directly.
-- Current fixer pass note: this follow-up pass rechecked the live `src/qual/commands/catalog.py` and `tests/unit/test_commands_catalog.py` state, confirmed the reviewer-requested parser-surface guardrail was already committed, added the direct live-parser alias-drift regression, and then reran the required gates.
-- Gate rerun confirmation: `make scope-check`, `./quality-format.sh --check`, `./quality-lint.sh`, `./quality-test.sh`, `./typecheck-test.sh`, and `make ci` were rerun in this fixer pass after adding the direct live-parser drift regression.
+- Review basis scope: keep implementation and approval claims pinned to the live review basis on `codex/feat-commands`, limited to `src/qual/commands/catalog.py` and `tests/unit/test_commands_catalog.py`, with the latest implementation evidence coming from the broader parser-surface hardening and direct live-parser regression commits already on this branch.
+- Final fixer note: this packet refresh aligns the handoff scope language with the already-landed full parser-surface guardrail, confirms the direct regression coverage against the live CLI parser entrypoint constant remains part of the review basis, and records the green rerun of the required gates from this pass.
+- Final verification note: this packet refresh revalidated the corrected handoff packet, confirmed the shipped broader parser-surface validation still matches the stated scope, and reran the full required gate set without widening implementation scope.
+- Latest implementation evidence note: after reloading the reviewer packet against the live worktree on `2026-04-24`, the parser-surface guardrail remained present on `codex/feat-commands`, including the direct `_CLI_PARSER_ENTRYPOINTS` regression that exercises live parser drift.
+- Current fixer pass note: this follow-up pass is metadata-only; it rechecked the live `src/qual/commands/catalog.py` and `tests/unit/test_commands_catalog.py` state, confirmed the reviewer-requested parser-surface guardrail and tests were already committed, and refreshed the handoff wording to match that shipped scope exactly before another required-gates rerun.
+- Gate rerun confirmation: `make scope-check`, `./quality-format.sh --check`, `./quality-lint.sh`, `./quality-test.sh`, `./typecheck-test.sh`, and `make ci` were rerun in this packet-refresh pass.
 
 ## Thread Kickoff (High-Risk)
 
@@ -58,7 +58,7 @@
 
 - Plan complete: scope stayed pinned to the reviewed implementation slice in `src/qual/commands/catalog.py` and `tests/unit/test_commands_catalog.py`, with no expansion beyond deterministic CLI-contract hardening for the existing command surface.
 - First green tests: `make scope-check`, `./quality-format.sh --check`, `./quality-lint.sh`, `./quality-test.sh`, `./typecheck-test.sh`, and `make ci` all passed for this handoff slice.
-- Before risky/shared file edit: scope was rechecked against reviewed commit `f8d860ed9f6299f0169c4f21321ac5f37c949fd3` so the refreshed handoff only describes `src/qual/commands/catalog.py` and `tests/unit/test_commands_catalog.py`.
+- Before risky/shared file edit: scope was rechecked against the live review basis on `codex/feat-commands` so the refreshed handoff only describes `src/qual/commands/catalog.py` and `tests/unit/test_commands_catalog.py`.
 - Ready for handoff: this packet now carries the reviewer-requested exact demo-path mapping using the current Milestone 3 and AGENTS wording, names both the primary `open project/document` step and the downstream CLI loop surfaces it protects, and records the migration-safe compatibility justification without implying any broader lane scope.
 
 ## Review Basis
@@ -80,7 +80,7 @@
 
 - Lane-owned implementation path: `src/qual/commands/catalog.py`
 - Focused regression path: `tests/unit/test_commands_catalog.py`
-- Approval/source note: the reviewed implementation claim is pinned to commit `f8d860ed9f6299f0169c4f21321ac5f37c949fd3` and only the two implementation files it touched.
+- Approval/source note: the reviewed implementation claim is pinned to the live branch review basis and only the two implementation files it touched.
 - Shared-test approval owner: the integrator-managed branch policy for `codex/feat-commands`.
 - Shared-test approved by: the integrator/release ownership gate for `codex/feat-commands`.
 - Shared-test approval record: `scripts/scope-check.sh` lists `tests/unit/test_commands_catalog.py` under `is_approved_shared_test()` for branch `codex/feat-commands*`, which is the auditable local approval source for this handoff's only non-owned implementation path.
