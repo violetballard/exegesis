@@ -5,7 +5,7 @@
 - Commit: `4cd1d6b4857ce3da125bb32ae2c76d4b9c41defa`
 - Packet refresh role: `fixer re-review packet refresh`
 - Packet refresh basis: `regenerated after the reviewer requested parser-surface validation for the public diff-preview entrypoint, matching shared regressions, and a packet scope statement that matches the actual implementation now on this branch`
-- Post-fixer verification: `2026-04-24T08:43:26Z UTC gate rerun confirmed this packet refresh matches the current branch state; later docs-only packet refresh commits remain metadata-only`
+- Post-fixer verification: `2026-04-24T08:43:50Z UTC gate rerun confirmed this packet refresh matches the current branch state; later docs-only packet refresh commits remain metadata-only`
 - Packet-only refresh files:
   - `THREAD.md`
   - `THREAD_PACKET.md`
@@ -113,7 +113,7 @@
 - `./quality-test.sh`: `PASSED`
 - `./typecheck-test.sh`: `PASSED`
 - `make ci`: `PASSED`
-- Gate attribution note: these gates were rerun at `2026-04-24T08:43:26Z UTC` against the current branch state while the reviewed implementation scope is pinned to `4cd1d6b4857ce3da125bb32ae2c76d4b9c41defa`; the current packet refresh itself is metadata-only.
+- Gate attribution note: these gates were rerun at `2026-04-24T08:43:50Z UTC` against the current branch state while the reviewed implementation scope is pinned to `4cd1d6b4857ce3da125bb32ae2c76d4b9c41defa`; the current packet refresh itself is metadata-only.
 
 ### Risks / Blockers
 
