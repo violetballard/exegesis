@@ -32,6 +32,25 @@
 3. Refresh the handoff packet so it names the exact canonical demo-path step protected by this contract and cites the shared-test approval source.
 4. Re-run the required gates and record the results.
 
+### Early Review Triggers
+
+- Before first edit to any shared or integrator-locked file.
+- Before changing public interfaces or command contracts.
+- Before touching provider routing or config behavior.
+
+### Stop Triggers
+
+- Unresolved test, lint, or typecheck failure after `2` focused fix attempts.
+- Unresolved `make scope-check`.
+- Budget, size, or time limit hit.
+
+### Checkpoint Cadence (Short Updates)
+
+- Plan complete: scope stayed pinned to the reviewed implementation slice in `src/qual/commands/catalog.py` and `tests/unit/test_commands_catalog.py`, with no expansion beyond Milestone 3 CLI-contract hardening.
+- First green tests: `make scope-check`, `./quality-format.sh --check`, `./quality-lint.sh`, `./quality-test.sh`, `./typecheck-test.sh`, and `make ci` all passed for this handoff slice.
+- Before risky/shared file edit: `tests/unit/test_commands_catalog.py` was confirmed as the approved shared regression path for `codex/feat-commands*` via `scripts/scope-check.sh`, and this fixer records that approval basis before refreshing shared handoff metadata.
+- Ready for handoff: this packet now carries the reviewer-requested canonical demo-path mapping plus explicit approval and checkpoint provenance for the shared regression path.
+
 ## Review Basis
 
 - Implementation files:
@@ -55,7 +74,8 @@
 
 - Lane-owned implementation path: `src/qual/commands/catalog.py`
 - Shared-by-approval regression path: `tests/unit/test_commands_catalog.py`
-- Approval source: `scripts/scope-check.sh` allowlist entry for branch pattern `codex/feat-commands*`, which explicitly allows `tests/unit/test_commands_catalog.py`
+- Approval source: `THREAD_OWNERSHIP.md` marks `tests/unit/test_commands_catalog.py` as shared-by-approval for `codex/feat-commands*`, and `scripts/scope-check.sh` codifies that approval with the branch-specific allowlist entry that explicitly permits the file
+- Checkpoint provenance: the high-risk `before risky/shared file edit` checkpoint above records that the shared regression path was verified against the branch allowlist before this fixer refreshed shared handoff metadata
 - Integrator-locked edits: `none`
 - Scope note: the implementation under review is limited to `src/qual/commands/catalog.py` and `tests/unit/test_commands_catalog.py`; `THREAD.md`, `THREAD_PACKET.md`, and `handoff_packets/feat-commands.md` are metadata only.
 

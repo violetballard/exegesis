@@ -12,6 +12,7 @@ Canonical handoff contract lives in `THREAD_PACKET.md`.
 - Concrete blocker removed: before this change, parser drift could silently desynchronize the CLI contract from the canonical catalog, so the operator could reach `continue working without losing context` with a command surface that no longer matched the expected CLI contract for that step.
 - Reviewed implementation commit: `f8d860ed9f6299f0169c4f21321ac5f37c949fd3`
 - Shared-test approval reference: `scripts/scope-check.sh` explicitly allowlists `tests/unit/test_commands_catalog.py` for `codex/feat-commands*`.
+- Shared-edit checkpoint reference: `THREAD_PACKET.md` now preserves the high-risk `before risky/shared file edit` checkpoint stating that the shared regression path was verified against the branch allowlist before shared handoff metadata was refreshed.
 
 ## Reviewed Files
 

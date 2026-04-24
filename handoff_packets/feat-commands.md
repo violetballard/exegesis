@@ -46,6 +46,7 @@
 ## Scope / Ownership Note
 - Lane-owned implementation path: `src/qual/commands/catalog.py`
 - Shared-by-approval regression path: `tests/unit/test_commands_catalog.py`
-- Approval source: `scripts/scope-check.sh` branch allowlist for `codex/feat-commands*`, which explicitly permits `tests/unit/test_commands_catalog.py`
+- Approval source: `THREAD_OWNERSHIP.md` marks `tests/unit/test_commands_catalog.py` as shared-by-approval for `codex/feat-commands*`, and `scripts/scope-check.sh` codifies that approval with the branch-specific allowlist entry that explicitly permits the file
+- Checkpoint provenance: `THREAD_PACKET.md` preserves the high-risk `before risky/shared file edit` checkpoint showing that the shared regression path was verified against the branch allowlist before shared handoff metadata was refreshed
 - Integrator-locked edits: none
 - Branch-tip scope note: the implementation under review is limited to `src/qual/commands/catalog.py` and `tests/unit/test_commands_catalog.py`; `THREAD.md`, `THREAD_PACKET.md`, and this handoff file are metadata only.
