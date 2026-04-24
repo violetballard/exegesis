@@ -4434,6 +4434,16 @@ def render_terminal_cli_fallback(artifact: Any, *, kind: str | None = None) -> s
         and (not malformed_envelope or envelope_kind == "card")
     ):
         return _render_invalid_terminal_card(artifact)
+    if requested_kind == "card" and malformed_envelope and isinstance(artifact, Mapping):
+        kind_value = artifact.get("kind")
+        if not isinstance(kind_value, str) or not kind_value.strip():
+            payload = artifact.get("artifact")
+            if not _should_preserve_raw_leaf_card_default(payload):
+                payload_kind = _infer_terminal_artifact_explicit_kind(payload)
+                if payload_kind not in _TERMINAL_ARTIFACT_NON_CARD_KIND_SET:
+                    payload_kind = _recover_terminal_artifact_leaf_kind(payload)
+                if payload_kind in _TERMINAL_ARTIFACT_NON_CARD_KIND_SET:
+                    return _render_invalid_terminal_card(artifact)
     fallback_target = _TERMINAL_ARTIFACT_CLI_FALLBACK_TARGET_HINT.get()
     if not _is_current_terminal_artifact_cli_fallback_hint(artifact, fallback_target):
         fallback_target = None
@@ -4581,6 +4591,23 @@ def resolve_terminal_artifact_cli_fallback_target(
         # fallback can surface the safe invalid-card renderer instead of
         # reinterpreting typed leaf JSON as a leaf selection.
         return artifact, "card"
+    if requested_kind == "card" and isinstance(artifact, Mapping):
+        artifact_type = artifact.get("type")
+        if isinstance(artifact_type, str) and artifact_type.strip() == _TERMINAL_ARTIFACT_ENVELOPE_TYPE:
+            # Malformed envelopes with no usable kind metadata should remain
+            # on the safe card path when the caller explicitly asked for a
+            # card render. Invalid string kinds still get a chance to recover
+            # structured leaves below, which keeps the demo-loop fallback
+            # permissive for the existing dialog-style recovery cases.
+            envelope_kind = artifact.get("kind")
+            if not isinstance(envelope_kind, str) or not envelope_kind.strip():
+                payload = artifact.get("artifact")
+                if not _should_preserve_raw_leaf_card_default(payload):
+                    payload_kind = _infer_terminal_artifact_explicit_kind(payload)
+                    if payload_kind not in _TERMINAL_ARTIFACT_NON_CARD_KIND_SET:
+                        payload_kind = _recover_terminal_artifact_leaf_kind(payload)
+                    if payload_kind in _TERMINAL_ARTIFACT_NON_CARD_KIND_SET:
+                        return payload, "card"
     if requested_kind is None and isinstance(artifact, Mapping):
         artifact_type = artifact.get("type")
         if isinstance(artifact_type, str) and artifact_type.strip() == _TERMINAL_ARTIFACT_ENVELOPE_TYPE:

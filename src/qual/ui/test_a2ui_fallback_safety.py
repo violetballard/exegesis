@@ -4008,6 +4008,31 @@ class A2UIFallbackSafetyTests(unittest.TestCase):
         self.assertNotIn("[ActionRef]", text)
         self.assertNotIn("[SelectionRef]", text)
 
+    def test_terminal_artifact_cli_fallback_entrypoint_preserves_invalid_card_hints_for_envelopes_without_kind_metadata(
+        self,
+    ) -> None:
+        envelope = {
+            "type": "TerminalArtifact",
+            "artifact": {
+                "type": "ActionRef",
+                "id": "export_document",
+                "label": "Export",
+                "payload": {"format": "md"},
+            },
+        }
+        shell = ShellUI()
+
+        direct_text = render_terminal_artifact(envelope, kind="card")
+        cli_text = render_terminal_cli_fallback(envelope, kind="card")
+        shell_text = shell.render_artifact(envelope, kind="card")
+
+        self.assertEqual(direct_text, cli_text)
+        self.assertEqual(cli_text, shell_text)
+        self.assertIn("[UnknownCard] <invalid card>", cli_text)
+        self.assertIn("Fallback: unknown card", cli_text)
+        self.assertNotIn("[ActionRef]", cli_text)
+        self.assertNotIn("[SelectionRef]", cli_text)
+
     def test_terminal_artifact_cli_fallback_entrypoint_recovers_typed_leaf_mappings_from_malformed_envelopes(
         self,
     ) -> None:
