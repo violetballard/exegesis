@@ -201,10 +201,12 @@ from src.qual.commands import (
     command_mvp_workflow_trusted_contract,
     command_mvp_workflow_tokens,
     command_workflow_next_action_contract,
+    command_workflow_next_action_catalog,
     command_workflow_next_action_compatibility_invocation_table,
     command_workflow_next_action_compatibility_lookup_table,
     command_workflow_next_action_invocation_table,
     command_workflow_next_action_lookup_table,
+    command_workflow_next_action_surface,
     command_workflow_next_action_surface_invocation_table,
     command_workflow_next_action_tokens,
     command_workflow_lookup_table,
@@ -5891,6 +5893,10 @@ class CommandCatalogTests(unittest.TestCase):
             command_workflow_next_action_contract("review"),
             command_mvp_next_action_contract("review"),
         )
+        self.assertEqual(
+            command_workflow_next_action_catalog("review"),
+            command_mvp_next_action_catalog("review"),
+        )
         self.assertEqual(command_workflow_next_action_tokens("review"), ("apply-patch", "reject-patch"))
         self.assertEqual(
             command_workflow_next_action_lookup_table("review"),
@@ -5911,6 +5917,10 @@ class CommandCatalogTests(unittest.TestCase):
         self.assertEqual(
             command_workflow_next_action_surface_invocation_table("review"),
             command_mvp_next_action_preferred_invocation_table("review"),
+        )
+        self.assertEqual(
+            command_workflow_next_action_surface("review"),
+            command_mvp_next_action_catalog("review"),
         )
 
     def test_command_manifest_keeps_catalog_order(self) -> None:

@@ -3,6 +3,7 @@
 from __future__ import annotations
 
 from src.qual.commands.catalog import (
+    CommandDemoNextActionEntry,
     CommandDemoWorkflowContract,
     CommandDemoWorkflowEntry,
     CommandDemoLoopContract,
@@ -32,6 +33,7 @@ from src.qual.commands.catalog import (
     command_mvp_loop_invocation_plan,
     command_mvp_loop_tokens,
     command_mvp_next_action_contract,
+    command_mvp_next_action_catalog,
     command_mvp_next_action_lookup_table,
     command_mvp_next_action_invocation_table,
     command_mvp_next_action_compatibility_lookup_table,
@@ -269,6 +271,13 @@ def command_workflow_next_action_tokens(source_token: str) -> tuple[str, ...]:
     return tuple(entry.target_token for entry in command_workflow_next_action_contract(source_token).entries)
 
 
+def command_workflow_next_action_catalog(
+    source_token: str,
+) -> tuple[CommandDemoNextActionEntry, ...]:
+    """Return structured current-MVP follow-up actions for one workflow step."""
+    return command_mvp_next_action_catalog(source_token)
+
+
 def command_workflow_next_action_invocation_table(
     source_token: str,
 ) -> tuple[tuple[str, tuple[str, ...]], ...]:
@@ -302,6 +311,13 @@ def command_workflow_next_action_surface_invocation_table(
 ) -> tuple[tuple[str, tuple[str, ...]], ...]:
     """Return the trusted current-MVP follow-up action invocation table."""
     return command_mvp_next_action_preferred_invocation_table(source_token)
+
+
+def command_workflow_next_action_surface(
+    source_token: str,
+) -> tuple[CommandDemoNextActionEntry, ...]:
+    """Return current-MVP follow-up actions with preferred surface tokens attached."""
+    return command_workflow_next_action_catalog(source_token)
 
 
 __all__ = [
@@ -342,9 +358,11 @@ __all__ = [
     "command_workflow_trusted_invocation_table",
     "command_workflow_next_action_contract",
     "command_workflow_next_action_tokens",
+    "command_workflow_next_action_catalog",
     "command_workflow_next_action_lookup_table",
     "command_workflow_next_action_invocation_table",
     "command_workflow_next_action_compatibility_lookup_table",
     "command_workflow_next_action_compatibility_invocation_table",
     "command_workflow_next_action_surface_invocation_table",
+    "command_workflow_next_action_surface",
 ]
