@@ -52,9 +52,16 @@
 
 ## Canonical Demo-Path Mapping
 
-- Canonical demo-path step advanced: `patch-review` in the current CLI-first MVP path (`project-open -> retrieval -> patch-review -> apply/reject -> persist -> export-handoff`).
-- Explicit statement of what this work makes more real: deterministic command-catalog validation removes a concrete blocker for `patch-review` by failing fast when parser tokens drift away from the canonical catalog, so the CLI cannot silently stop exposing the reviewed-patch entrypoint operators need before they can apply, reject, persist, and hand off the result.
+- Canonical demo-path step advanced: `patch-review` in the current CLI-first MVP path (`project-open -> retrieval -> patch-review -> apply-patch/reject-patch -> persist -> export-handoff`).
+- Explicit statement of what this work makes more real: deterministic command-catalog validation removes a concrete blocker for `patch-review` by failing fast when parser tokens drift away from the canonical catalog, so the CLI cannot silently stop exposing the reviewed-patch entrypoint operators need before they can `apply-patch`, `reject-patch`, `persist`, and `export-handoff` the result.
+- CLI-first Milestone 3 loop tie-in: this is the `patch` segment of the roadmap MVP flow (`vault -> context -> run -> patch -> export`), and the contract check keeps that exact segment backward-compatible by policy instead of relying on best-effort CLI compatibility.
 - Scope guard: this remains `feat-commands` contract hardening for the engine-first MVP loop; it does not claim broader workflow, UI, or A2UI progress.
+
+## Approved Exception Note
+
+- Approved shared-test exception: `tests/unit/test_commands_catalog.py`
+- Approval source: prior reviewer approval packet at `.codex/packet_router/local_jobs/reviewer/20260416T185314Z__feat-commands__F__codex-feat-commands__f3e88eb90a1116054bac208067568d3c7fbed927__20260416T185054Z.md.spec.json`, which approved this same narrowed `feat-commands` handoff with `tests/unit/test_commands_catalog.py` as the only non-owned implementation path.
+- Approval scope limit: this exception applies only to the focused regression coverage needed to prove canonical-order alignment and parser/catalog drift rejection for the `f8d860ed9f6299f0169c4f21321ac5f37c949fd3` command-catalog slice.
 
 ## Handoff Packet
 
@@ -93,14 +100,14 @@
 
 ### Roadmap item(s) affected
 
-- Milestone 3: `Product Readiness` requires user-facing output contracts to be defined and locked and end-to-end verification scenarios to expand; this change makes that concrete for the CLI-first MVP loop by locking the command-catalog contract that drives `patch-review` before `apply/reject`, `persist`, and `export-handoff`.
-- `ROADMAP.md` CLI-first loop requirement: `CLI can execute the MVP flow (vault -> context -> run -> patch -> export) against the same engine PolicyGate`; this change removes parser/catalog drift as a blocker on the `patch` segment of that loop.
+- Milestone 3: `Product Readiness` requires user-facing output contracts to be defined and locked and end-to-end verification scenarios to expand; this change makes that concrete for the CLI-first MVP loop by locking the command-catalog contract that drives `patch-review` before `apply-patch`/`reject-patch`, `persist`, and `export-handoff`.
+- `ROADMAP.md` CLI-first Milestone 3 loop requirement: `CLI can execute the MVP flow (vault -> context -> run -> patch -> export) against the same engine PolicyGate`; this change removes parser/catalog drift as a blocker on the `patch` segment of that exact loop and helps keep the output contract test-covered and backward-compatible by policy.
 - `feat-commands`: keep migration-safe command entrypoints deterministic so the active Milestone 3 lane can still exercise the reviewed patch/export path through CLI while Textual remains disabled.
 
 ### Vision capability affected
 
-- `PRODUCT_VISION.md` operator-first control surface: CLI remains a first-class reliability surface, so the reviewed patch command path must stay canonical and deterministic.
-- `PRODUCT_VISION.md` A2UI CLI fallback: artifacts must be consumable by CLI first, with CLI text fallback preserved, so silent parser drift cannot be allowed to break the CLI command path that reaches patch review and the downstream export handoff.
+- `PRODUCT_VISION.md` operator-first control surface: CLI remains a first-class development and reliability surface, so the reviewed patch command path must stay canonical and deterministic instead of depending on parser alias drift.
+- `PRODUCT_VISION.md` CLI-first artifact consumption requirement: artifacts must be consumable by CLI first, with CLI text fallback preserved, so silent parser drift cannot be allowed to break the CLI command path that reaches `patch-review` and the downstream `export-handoff`.
 
 ### Routing / Provider Impact Note
 
@@ -110,3 +117,4 @@
 
 - Shared/integrator-locked edits: `YES`
 - Approved shared-test exception: `tests/unit/test_commands_catalog.py`
+- Approval source: `.codex/packet_router/local_jobs/reviewer/20260416T185314Z__feat-commands__F__codex-feat-commands__f3e88eb90a1116054bac208067568d3c7fbed927__20260416T185054Z.md.spec.json`
