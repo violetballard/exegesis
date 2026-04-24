@@ -74,15 +74,15 @@
   - `./quality-test.sh` -> passed
   - `./typecheck-test.sh` -> passed
   - `make ci` -> passed
-  - revalidation note: all required gates were rerun on `2026-04-24` in the final fixer pass at pre-commit HEAD `f7ac2e02f`, and the top-level operator-path regression plus the concrete reviewer examples for dropping `diff`, adding `context`, and reordering or altering the explicit CLI entrypoint list still raise the expected `ValueError`, confirming the packet stays narrowed to catalog/parser determinism for the reviewed CLI drift concern
+  - revalidation note: all required gates were rerun on `2026-04-24` in the final fixer pass at pre-commit HEAD `ab52aaa2b`, and the top-level operator-path regression plus the concrete reviewer examples for dropping `diff`, adding `context`, and reordering or altering the explicit CLI entrypoint list still raise the expected `ValueError`, confirming the packet stays narrowed to catalog/parser determinism for the reviewed CLI drift concern
 - traceability:
   - reviewed implementation slice: `src/main.py`, `src/qual/cli.py`, `src/qual/commands/catalog.py`, and `tests/unit/test_commands_catalog.py`
   - implementation commit note for this fixer pass: the operator-path proof landed in `426f2fe5e`, and this final handoff refresh records a clean gate rerun in the final fixer commit before reporting the final HEAD SHA
   - current packet refresh files: `THREAD.md`, `THREAD_PACKET.md`, and `handoff_packets/feat-commands.md`
   - packet reissue purpose: this final fixer refresh keeps the written handoff aligned with the landed operator-path proof, the explicit canonical demo-path step statement, and the narrowed CLI-compatibility mapping required in review
-  - gate rerun verification for this handoff pass was repeated at pre-commit HEAD `f7ac2e02f` during the final fixer refresh after adding the explicit `context` alias drift regression
-  - final revalidation scope note: this fixer refresh added one focused parser-surface regression in `tests/unit/test_commands_catalog.py` for the reviewer-called `context` alias drift case, then reran all required gates at pre-commit HEAD `f7ac2e02f`
-  - current fixer rerun status: the required gate sequence passed again on `2026-04-24` at pre-commit HEAD `f7ac2e02f`, and this metadata-only refresh binds that clean rerun to the new final fixer HEAD without broadening the reviewed implementation claim
+  - gate rerun verification for this handoff pass was repeated at pre-commit HEAD `ab52aaa2b` during the final fixer refresh after adding the explicit `context` alias drift regression
+  - final revalidation scope note: this fixer refresh added one focused parser-surface regression in `tests/unit/test_commands_catalog.py` for the reviewer-called `context` alias drift case, then reran all required gates at pre-commit HEAD `ab52aaa2b`
+  - current fixer rerun status: the required gate sequence passed again on `2026-04-24` at pre-commit HEAD `ab52aaa2b`, and this metadata-only refresh binds that clean rerun to the new final fixer HEAD without broadening the reviewed implementation claim
 - risks/blockers:
   - risk: future command-surface edits still need to preserve deterministic ordering and fast-fail parser/catalog drift detection so the patch-review CLI contract stays stable throughout the current manual operator flow
   - blockers: none
@@ -99,7 +99,7 @@
 - concrete canonical-path blocker removed: before this change, the handoff lacked proof that alias or ordering drift would be rejected from the real operator path before the operator reached the `preview`, `apply`, or `reject` entrypoints even though canonical command names still looked stable; this slice removes that direct blocker on `preview and apply or reject a patch` by proving the active CLI fallback path fails fast on catalog/parser drift.
 - non-claim boundary: this handoff does not claim broader CLI polish, new workflow branches, persistence progress, auditable-state/workflow progress, A2UI contract work, provider routing work, public workflow-wrapper exposure, or any new engine behavior
 - vision capability affected:
-  - `PRODUCT_VISION.md` capability 4 `Operator-first control surface`: this slice is limited to CLI compatibility for the existing `preview`, `apply`, and `reject` contract from the real operator path, keeping the command surface deterministic and drift-checked without claiming persistence, workflow, or audit progress
+  - `PRODUCT_VISION.md` capability 3 `Canonical engine contract`: this slice is limited to CLI compatibility for the existing `preview`, `apply`, and `reject` contract from the real operator path, keeping the command surface deterministic and drift-checked without claiming persistence, workflow, or audit progress
 - routing/provider impact note:
   - none; this change does not touch routing or provider configuration
 - traceability note:
