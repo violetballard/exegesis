@@ -1312,6 +1312,12 @@ def describe_terminal_artifact_cli_fallback_entrypoint_contract() -> dict[str, A
     return manifest
 
 
+def describe_terminal_artifact_cli_fallback_entrypoint_contract_manifest() -> dict[str, Any]:
+    """Return the explicit CLI fallback entrypoint contract under a manifest-specific name."""
+
+    return describe_terminal_artifact_cli_fallback_entrypoint_contract()
+
+
 def describe_terminal_artifact_cli_fallback_shell_refinement_policy_contract() -> dict[str, Any]:
     """Return the stable shell refinement policy used by the CLI fallback path."""
 
