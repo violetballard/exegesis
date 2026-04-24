@@ -3,7 +3,7 @@ Gate Results Summary (as of 2026-04-24)
 
 Required automated gates reran for the corrected retrieval handoff:
 
-* current branch tip before this metadata-only fixer commit `97741987bea3d91d57c3acf96d0670748e740852`
+* current branch tip before this metadata-only fixer commit `0b93738de77d77c557989af57a53e90dc5705a14`
 * reviewed implementation head `adfa8cdadd43747ffbcb612e4151e262b13e52ca`
 * reviewed implementation range `378cf9a74a3658058079a32f186fcd254c4a4034..adfa8cdadd43747ffbcb612e4151e262b13e52ca`
 * reviewed implementation files `src/qual/retrieval/service.py` and `tests/unit/test_unified_retrieval.py`
@@ -32,4 +32,4 @@ Validation refresh:
 
 * reran the full required gate suite on 2026-04-24 after the reviewer-required packet alignment refresh
 * confirmed the packet remains metadata-only and the reviewed implementation range stays `378cf9a74a3658058079a32f186fcd254c4a4034..adfa8cdadd43747ffbcb612e4151e262b13e52ca`
-* latest verification refresh for this metadata-only fixer handoff completed at `2026-04-24T01:49:04 PDT`
+* latest verification refresh for this metadata-only fixer handoff completed at `2026-04-24T01:56:34 PDT`

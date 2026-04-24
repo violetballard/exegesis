@@ -2,10 +2,10 @@
 
 - Branch name: `codex/feat-retrieval-fts`
 - Packet role: `metadata-only reviewer-fix finalization`
-- Current branch tip before this packet refresh commit: `97741987bea3d91d57c3acf96d0670748e740852`
+- Current branch tip before this packet refresh commit: `0b93738de77d77c557989af57a53e90dc5705a14`
 - Reviewed implementation head: `adfa8cdadd43747ffbcb612e4151e262b13e52ca`
 - Reviewed implementation range: `378cf9a74a3658058079a32f186fcd254c4a4034..adfa8cdadd43747ffbcb612e4151e262b13e52ca`
-- Packet traceability note: re-review this lane against the narrowed implementation range above. Later branch commits after `adfa8cdadd43747ffbcb612e4151e262b13e52ca`, including the substantive retrieval commit `4387c7277d8d983012d970312a6bcc14f6fb571d fix(retrieval): canonicalize hit provenance strategy metadata` and later metadata-only packet refreshes through `97741987bea3d91d57c3acf96d0670748e740852`, remain outside this reviewed implementation range unless the handoff is explicitly regenerated to widen scope.
+- Packet traceability note: re-review this lane against the narrowed implementation range above. Later branch commits after `adfa8cdadd43747ffbcb612e4151e262b13e52ca`, including the substantive retrieval commit `4387c7277d8d983012d970312a6bcc14f6fb571d fix(retrieval): canonicalize hit provenance strategy metadata` and later metadata-only packet refreshes through `0b93738de77d77c557989af57a53e90dc5705a14`, remain outside this reviewed implementation range unless the handoff is explicitly regenerated to widen scope.
 - Canonical demo-path step advanced: `retrieve relevant material`
 - Reviewer-required plan-alignment statement: This change makes the canonical demo-path step `retrieve relevant material` more real because the public engine-facing `fetch_excerpt` surface now rehydrates shortlisted excerpt IDs only through the authoritative SQLite FTS path, so the engine loop cannot promote or reuse a PageIndex-only excerpt that lacks canonical retrieval evidence before downstream context gathering moves it into the basket. The concrete blocker removed is acceptance of PageIndex-only excerpt IDs on the canonical retrieval path.
 - Canonical excerpt lookup contract note: `fetch_excerpt` is the canonical engine-facing excerpt lookup surface consumed downstream through the retrieval facade and engine excerpt tool wrapper, not just an internal consistency hardening point.
@@ -83,7 +83,7 @@
 
 - Re-ran the full required gate suite on `2026-04-24` after the reviewer-required packet alignment refresh.
 - This packet remains metadata-only and keeps the reviewed implementation range anchored to `378cf9a74a3658058079a32f186fcd254c4a4034..adfa8cdadd43747ffbcb612e4151e262b13e52ca`.
-- Latest verification refresh for this metadata-only fixer handoff completed during this fixer pass.
+- Latest verification refresh for this metadata-only fixer handoff completed at `2026-04-24T01:56:34 PDT`.
 
 ## Reviewer Fix Closure
 
