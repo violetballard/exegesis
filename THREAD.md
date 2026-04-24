@@ -25,23 +25,24 @@ Canonical handoff contract lives in `THREAD_PACKET.md`.
 - Primary-step scope note:
   - this packet advances `project-open` first while hardening the shared parser contract used across the rest of the loop
 - Current engine-first MVP path statement:
-  - while Textual remains disabled, the active operator path stays `vault -> context -> run -> patch -> export` through the CLI fallback against the same engine PolicyGate
+  - the current CLI-first smoke route stays `project-open -> retrieval -> patch-review -> apply-patch/reject-patch -> persist -> export-handoff`, with `bootstrap --project demo` as the parser-ready entry for the `project-open` step
 - One-line plan alignment:
   - this change makes `project-open` more real by ensuring the bootstrap command surface cannot silently drift to alias-only entrypoints while still resolving through lookup
 - Active MVP operator path strengthened:
-  - the existing CLI smoke route entrypoint into `project-open -> retrieval -> patch -> export` by keeping the default parser verb contract catalog-locked
+  - the existing CLI smoke route entrypoint into `project-open -> retrieval -> patch-review -> apply-patch/reject-patch -> persist -> export-handoff` by keeping the default parser verb contract catalog-locked
 - Direct plan-alignment statement:
   - this change makes `project-open` more real by preventing silent parser-surface drift at the bootstrap entrypoint and by failing fast before the operator starts the loop with the wrong public verb set
 - Traceability note:
   - `aef67223fb2ea280860de95d2a860880630a84dd` is the reviewed implementation tip for the parser-surface fix set; this packet refresh commit records the updated re-review mapping and gate results on top of it
-- Concrete blocker removed for Milestone 3:
-  - the active CLI smoke route no longer allows `bootstrap` or other canonical parser entrypoints to be swapped for still-resolvable aliases without an immediate contract failure, which removes silent drift at the entrypoint to the engine-first loop
+- Concrete blocker removed for the current CLI smoke route:
+  - the active CLI smoke route no longer allows `bootstrap` or other canonical parser entrypoints to be swapped for still-resolvable aliases without an immediate contract failure, which removes silent drift at the entrypoint to the operator-visible loop
 - Scope-tightening note:
   - this reviewed slice hardens only parser-surface drift detection for the command catalog plus focused regression coverage; it does not claim new retrieval, patch application, persistence, or export behavior
 - Why this is milestone-worthy now:
-  - the roadmap requires the CLI to execute the MVP `vault -> context -> run -> patch -> export` loop while Textual remains disabled, so preventing silent drift in the bootstrap-facing parser surface is direct operator-surface hardening rather than second-order cleanup
+  - the roadmap's active A2UI-with-CLI-fallback work requires stable output contracts and a CLI-executable MVP loop, so preventing silent drift in the bootstrap-facing parser surface is direct operator-surface hardening rather than second-order cleanup
 - Roadmap / vision alignment for this reviewed slice:
-  - `ROADMAP.md` Milestone 3 exit criterion: `CLI can execute the MVP flow (vault -> context -> run -> patch -> export) against the same engine PolicyGate`, applied here to the `project-open` entrypoint and its shared parser contract
+  - `ROADMAP.md` Milestone 5 scope: `Provide CLI rendering fallback for the same structured payloads`
+  - `ROADMAP.md` Milestone 5 exit criteria: `Output contracts are test-covered and backward-compatible by policy` and `CLI can execute the MVP flow (vault -> context -> run -> patch -> export) against the same engine PolicyGate`, applied here only to the parser contract for the `project-open` smoke-route entrypoint
   - `PRODUCT_VISION.md` capability 4 `Operator-first control surface`: keep the CLI bootstrap surface deterministic
   - `PRODUCT_VISION.md` capability 5 `Agent-to-UI protocol (A2UI)`: keep the parser-ready command contract stable for CLI-first artifact consumption
 - Ownership / scope note:

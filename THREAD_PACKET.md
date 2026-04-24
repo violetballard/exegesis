@@ -60,14 +60,14 @@
 - Primary canonical demo-path step advanced now: `project-open` (`bootstrap` the session).
 - Explicit canonical demo-path statement required for re-review: this slice advances the canonical `project-open` bootstrap step first, and no other demo-path step is claimed as newly implemented here.
 - Primary-step scope note: this packet advances `project-open` first while hardening the parser contract reused by later loop steps.
-- Current engine-first MVP path statement: while Textual remains disabled, the active operator path stays `vault -> context -> run -> patch -> export` through the CLI fallback against the same engine PolicyGate.
-- One-line plan alignment: this change makes `project-open` more real by ensuring the operator-facing bootstrap verb cannot silently drift to alias-only entrypoints while still resolving through lookup.
-- Active MVP operator path strengthened: the existing CLI smoke route entrypoint into `project-open -> retrieval -> patch -> export` while Textual remains disabled.
-- Concrete blocker removed: before this guard, the live parser surface for the current CLI smoke route could drift from `bootstrap` to an alias such as `open` and still resolve through lookup, leaving automation and operator runbooks pointed at a changed public surface without any fail-fast signal.
+- Current CLI smoke route statement: the current operator-visible route is `project-open -> retrieval -> patch-review -> apply-patch/reject-patch -> persist -> export-handoff`, entered through parser-ready `bootstrap --project demo`.
+- One-line plan alignment: this change makes `project-open` more real by ensuring the operator-facing bootstrap verb for that smoke route cannot silently drift to alias-only entrypoints while still resolving through lookup.
+- Active MVP operator path strengthened: the existing CLI smoke route entrypoint into `project-open -> retrieval -> patch-review -> apply-patch/reject-patch -> persist -> export-handoff`.
+- Concrete blocker removed: before this guard, the live parser surface for the current CLI smoke route could drift from `bootstrap` to an alias such as `open` and still resolve through lookup, leaving automation, operator runbooks, and CLI fallback consumers pointed at a changed public surface without any fail-fast signal.
 - Direct plan-alignment statement: this change makes the `project-open` bootstrap step more real by failing closed when the parser-facing entrypoint contract no longer matches the cataloged command surface.
 - Scope-tightening note: this handoff claims only parser-surface drift detection plus focused regression coverage for the primary `project-open` entrypoint contract; it does not claim new retrieval quality, patch semantics, persistence behavior, or export behavior.
 - Traceability note: `aef67223fb2ea280860de95d2a860880630a84dd` is the implementation tip for this reviewed slice. `THREAD.md` and `THREAD_PACKET.md` are packet refresh companions that capture the updated reviewer-fix mapping and gate results.
-- Why this is milestone-worthy now instead of second-order cleanup: the roadmap requires the CLI to execute the MVP `vault -> context -> run -> patch -> export` loop while Textual remains disabled. This guard removes a concrete reliability blocker at the loop entrypoint by preventing silent parser-surface drift before the operator even starts the bootstrap step.
+- Why this is milestone-worthy now instead of second-order cleanup: the roadmap's active A2UI-with-CLI-fallback work requires stable output contracts and a CLI-executable MVP loop. This guard removes a concrete reliability blocker at the loop entrypoint by preventing silent parser-surface drift before the operator even starts the bootstrap step.
 
 ## Approved Exception Note
 
@@ -118,14 +118,15 @@
 ### Canonical demo-path step advanced
 
 - `project-open` (`bootstrap` the session)
-- This change makes `project-open` more real by keeping the operator-facing bootstrap command surface catalog-locked instead of allowing alias-only parser drift to pass silently.
-- Concrete blocker removal: the contract now fails fast if the live parser entrypoint for bootstrap or its peers drifts to a different accepted token set while still resolving through lookup.
+- This change makes `project-open` more real by keeping the operator-facing bootstrap command surface for the current CLI smoke route catalog-locked instead of allowing alias-only parser drift to pass silently.
+- Concrete blocker removal: the contract now fails fast if the live parser entrypoint for bootstrap drifts to a different accepted token set while still resolving through lookup, preventing the current CLI smoke route from silently changing at its first operator-visible step.
 
 ### Roadmap item(s) affected
 
-- `ROADMAP.md` Milestone 3 exit criterion: `CLI can execute the MVP flow (vault -> context -> run -> patch -> export) against the same engine PolicyGate`.
-- This diff contributes the `project-open` entrypoint of that exact loop by hardening the public parser surface before the operator proceeds into retrieval, patch, and export.
-- `feat-commands`: keep migration-safe command entrypoints deterministic so the active Milestone 3 lane can still exercise the reviewed CLI loop through its cataloged bootstrap surface while Textual remains disabled.
+- `ROADMAP.md` Milestone 5 scope: `Provide CLI rendering fallback for the same structured payloads`.
+- `ROADMAP.md` Milestone 5 exit criteria: `Output contracts are test-covered and backward-compatible by policy` and `CLI can execute the MVP flow (vault -> context -> run -> patch -> export) against the same engine PolicyGate`.
+- This diff contributes only the `project-open` entrypoint of that current CLI smoke route by hardening the public parser surface before the operator proceeds into retrieval, patch-review, persist, and export-handoff.
+- `feat-commands`: keep migration-safe command entrypoints deterministic so the active CLI smoke route and CLI fallback contract remain trustworthy while Textual remains disabled.
 
 ### Vision capability affected
 
