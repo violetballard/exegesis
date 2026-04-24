@@ -1,40 +1,30 @@
 # Feature -> Review Packet
 
-## Thread Kickoff (High-Risk, Invalidated By Actual Scope)
+- Lane: `feat-commands`
+- Branch: `codex/feat-commands`
+- Commit: `f8d860ed9f6299f0169c4f21321ac5f37c949fd3`
+- Packet refresh role: `reviewer-fix handoff refresh`
+
+## Thread Kickoff (High-Risk)
 
 - Branch: `codex/feat-commands`
 - Lane/owned paths: `src/qual/commands/**`
-- Scope goal: harden the active `feat-commands` CLI operator surface across the canonical demo path while Textual remains disabled.
-- Risk reason: the reviewed basis includes shared test coverage and broad command-surface behavior changes.
+- Scope goal: harden the `feat-commands` command-catalog contract so the CLI-first MVP surface stays deterministic and drift-resistant while Textual remains disabled.
+- Risk reason: the reviewed slice includes one approved shared-test file outside lane-owned paths.
 
-### Submitted Budget
+### Budget
 
 - Task budget: `4`
 - Time budget: `30m`
 - Size limits: `<=8 files`, `<=300 net LOC`
 - Max fix attempts per failing gate: `2`
 
-### Budget Reconciliation Against The True Reviewed Basis
+### Planned Tasks (Completed)
 
-- Packet refresh commit status: metadata-only resubmission packet update
-- Reviewed implementation base previously approved for comparison: `f8d860ed9f6299f0169c4f21321ac5f37c949fd3`
-- Reviewed implementation range in this resubmission: the full branch delta through `5ea27f3d960f2f2876347f2b8ce616223227a713`
-- Files changed in the true reviewed basis: `9`
-- Delta size in the true reviewed basis: `+9652/-485`
-- Result: this is not a valid `AGENTS.md` high-risk `4`-task handoff because it exceeds the `<=8 files` and `<=300 net LOC` limits
-- Required follow-up for integration promotion: split this implementation into smaller reviewable packets before promotion
-
-### Recommended Split For Re-Review
-
-1. Packet A: parser-surface and catalog hardening
-   - Scope: `src/qual/commands/catalog.py`, `src/qual/commands/__init__.py`, `src/qual/commands/canonical.py`, `tests/unit/test_commands_catalog.py`
-   - Behavior: parser-surface drift rejection, lookup helpers, parser-ready argv helpers, smoke argv helpers, and canonical command catalog validation
-2. Packet B: demo token, shim, and next-action workflow contracts
-   - Scope: `src/qual/commands/catalog.py`, `src/qual/commands/__init__.py`, `src/qual/commands/canonical.py`, `tests/unit/test_commands_catalog.py`
-   - Behavior: trusted surface metadata, demo-loop token preservation, compatibility aliases, workflow step normalization, and next-action/export-handoff routing
-3. Packet C: diff-preview stabilization
-   - Scope: `src/qual/commands/diff_preview.py`, `tests/unit/test_diff_preview.py`
-   - Behavior: truncation, fingerprint, and no-diff payload stability
+1. Reconfirm the reviewed implementation basis as the command-catalog slice at `f8d860ed9f6299f0169c4f21321ac5f37c949fd3`.
+2. Refresh the handoff packet so the scope stays narrowly framed as `feat-commands` contract hardening.
+3. Add the explicit canonical demo-path statement required by `AGENTS.md`.
+4. Re-run the required local gates for the reviewed slice.
 
 ### Checkpoint Cadence
 
@@ -45,54 +35,26 @@
 
 ## Review Basis
 
-- This packet-refresh commit is metadata-only.
-- The reviewed implementation basis is not metadata-only.
-- The true reviewed basis includes non-doc implementation across:
-  - `scripts/scope-check.sh`
-  - `src/qual/commands/__init__.py`
-  - `src/qual/commands/canonical.py`
+- The reviewed implementation basis is `f8d860ed9f6299f0169c4f21321ac5f37c949fd3` (`feat(commands): lock CLI contract to command catalog`).
+- Later packet-refresh commits are metadata-only and do not expand the reviewed implementation scope.
+- Reviewed implementation files:
   - `src/qual/commands/catalog.py`
-  - `src/qual/commands/diff_preview.py`
   - `tests/unit/test_commands_catalog.py`
-  - `tests/unit/test_diff_preview.py`
-  - `THREAD.md`
+- Metadata-only handoff file:
   - `THREAD_PACKET.md`
 
 ## Scope Completed
 
-- Hardened parser-surface and command-catalog behavior, including projection-drift rejection, lookup helpers, parser-ready argv helpers, smoke argv helpers, trusted-surface helpers, and CLI shim contract support.
-- Expanded demo token and shim resolution behavior so workflow, compatibility, and next-action metadata stay stable for:
-  - `project-open`
-  - `retrieval`
-  - `patch-review`
-  - `apply-patch`
-  - `reject-patch`
-  - `persist`
-  - `export-handoff`
-- Added legacy alias normalization and compatibility handling for retrieval and document-open style entrypoints.
-- Stabilized diff-preview truncation, fingerprint, and no-diff payload behavior.
-- Expanded regression coverage for parser surfaces, trusted/demo workflow tables, compatibility aliases, next-action metadata, and diff-preview behavior.
-- Regenerated the handoff packet so its review basis, scope, budget statement, and roadmap mapping match the actual reviewed range.
+- Hardened `command_cli_contract()` in `src/qual/commands/catalog.py` so it compares CLI canonical names against `command_names()` and raises `ValueError` if the parser surface drifts from the catalog.
+- Preserved canonical command ordering in the CLI contract by returning the validated canonical tuple directly instead of rebuilding a potentially divergent list.
+- Added focused regression coverage in `tests/unit/test_commands_catalog.py` for canonical-order alignment and parser/catalog drift rejection.
+- Refreshed the handoff packet so the roadmap, vision, and demo-path mapping stay aligned with this narrow command-catalog implementation slice.
 
 ## Canonical Demo-Path Mapping
 
-- Canonical demo-path steps advanced by the true reviewed basis:
-  - `open project/document`
-  - `retrieval`
-  - `patch-review`
-  - `apply-patch`
-  - `reject-patch`
-  - `persist`
-  - `export-handoff`
-- Explicit handoff statement for `AGENTS.md`:
-  - The true reviewed range hardens the CLI-first MVP route across the canonical demo path while Textual remains disabled.
-- Concrete roadmap / vision mapping for the real scope:
-  - `ROADMAP.md` Milestone 1 (`Bootstrap Flow Stabilization`) scope item `Command and diff-preview behavior hardening`
-  - `ROADMAP.md` Milestone 2 (`Test Hardening`) scope item `Add focused unit coverage for core behaviors`
-  - `ROADMAP.md` Milestone 2 (`Test Hardening`) scope item `Keep command-level probes for integration confidence`
-  - `PRODUCT_VISION.md` capability 4 (`Operator-first control surface`)
-- Scope truth note:
-  - this packet covers the broader command/demo/shim/diff-preview range through `5ea27f3d960f2f2876347f2b8ce616223227a713`; it does not claim the branch is command-catalog-only
+- Canonical demo-path step advanced: the CLI/operator-contract portion of the current MVP path that makes `produce a plan or revision` and `preview and apply or reject a patch` reachable through a stable command surface while Textual remains disabled.
+- Explicit statement of what this work makes more real: it hardens the CLI-first operator route across the canonical demo path by preventing parser/catalog drift from silently changing the command surface.
+- Scope guard: this remains `feat-commands` contract hardening for the engine-first MVP loop; it does not claim broader workflow, UI, or A2UI progress.
 
 ## Handoff Packet
 
@@ -100,22 +62,16 @@
 
 ### Tasks Completed (Numbered)
 
-1. Restated the true implementation basis as the full `f8d860ed..5ea27f3d` branch delta instead of a metadata-only refresh on top of two commits.
-2. Tightened the packet scope so it explicitly includes parser-surface, demo token, shim, apply/reject/persist/export-handoff, and diff-preview behavior changes.
-3. Recomputed the budget and documented that the actual range is not a valid high-risk `4`-task slice under `AGENTS.md`.
-4. Re-ran the required local gate suite for the true reviewed basis and refreshed the roadmap / vision mapping to match the real command surface being advanced.
+1. Hardened `command_cli_contract()` to verify canonical-name consistency against `command_names()` and fail fast on parser drift.
+2. Preserved canonical command ordering in the CLI contract by returning the validated canonical tuple directly.
+3. Added regression coverage in `tests/unit/test_commands_catalog.py` for canonical-order alignment and drift rejection.
+4. Refreshed the handoff packet so it explicitly states the canonical demo-path step this work advances and keeps the scope narrowed to `feat-commands` contract hardening.
 
 ### Files Changed
 
-- `THREAD.md`
-- `THREAD_PACKET.md`
-- `scripts/scope-check.sh`
-- `src/qual/commands/__init__.py`
-- `src/qual/commands/canonical.py`
 - `src/qual/commands/catalog.py`
-- `src/qual/commands/diff_preview.py`
 - `tests/unit/test_commands_catalog.py`
-- `tests/unit/test_diff_preview.py`
+- `THREAD_PACKET.md`
 
 ### Commands Run and Outcomes
 
@@ -123,36 +79,34 @@
 - `./quality-format.sh --check`: `PASSED` (`[format] check passed`)
 - `./quality-lint.sh`: `PASSED` (`[lint] passed`)
 - `./quality-test.sh`: `PASSED` (`smoke passed`; `Ran 203 tests ... OK`)
-- `./typecheck-test.sh`: `PASSED` (exit code `0`; output: `[typecheck] compiling Python sources in src/`)
+- `./typecheck-test.sh`: `PASSED` (`[typecheck] compiling Python sources in src/`)
 - `make ci`: `PASSED` (`[devex] CI entrypoint completed`)
 
 ### Risks / Blockers
 
 - Risks:
-  - future command-surface expansion could regress parser-entrypoint invariants, logical flow-step labels, or diff-preview payload guarantees if new shim-backed tokens land without corresponding contract tests.
+  - future parser or catalog additions can still regress the CLI contract if they land without command-catalog contract coverage.
 - Blockers:
-  - the true reviewed basis exceeds the submitted high-risk budget and should be split into smaller reviewable packets before integration promotion.
+  - none
 
 ## Required Handoff Fields
 
 ### Roadmap item(s) affected
 
-- `ROADMAP.md` Milestone 1 (`Bootstrap Flow Stabilization`) scope item `Command and diff-preview behavior hardening`
-- `ROADMAP.md` Milestone 2 (`Test Hardening`) scope item `Add focused unit coverage for core behaviors`
-- `ROADMAP.md` Milestone 2 (`Test Hardening`) scope item `Keep command-level probes for integration confidence`
-- Canonical demo-path steps advanced: `open project/document`, `retrieval`, `patch-review`, `apply-patch`, `reject-patch`, `persist`, and `export-handoff`
-- Explicit statement of what this work makes more real: it hardens the CLI-first operator route across the current MVP demo path while Textual remains disabled.
-- Concrete blocker removed on that path: it prevents parser/catalog drift, shim-token collapse, and diff-preview instability from silently changing the CLI-visible MVP command flow.
-- Scope guard: this packet now describes the full reviewed branch basis truthfully; it does not represent the range as a narrow command-catalog-only slice.
+- Milestone 3: Real workflow loop - preserve CLI compatibility while the package/layout migration lands by keeping the command-catalog contract deterministic and drift-resistant.
+- `feat-commands` - CLI compatibility and migration-safe entrypoints for the engine-first MVP loop.
+- Canonical demo-path step advanced: the stable CLI/operator-contract path used to produce a plan or revision and to preview, apply, or reject a patch while Textual remains disabled.
 
 ### Vision capability affected
 
-- `PRODUCT_VISION.md` capability 4 (`Operator-first control surface`): CLI remains the first-class operator surface for the MVP, so the command contracts and diff-preview outputs in this range must stay deterministic and auditable.
+- Canonical engine contract - CLI compatibility remains stable while the command-catalog surface rejects parser drift before it can silently change the operator contract.
+- Auditable state and workflow - the command surface now fails loudly on catalog/parser drift, making the operator-facing contract explicit and traceable.
 
 ### Routing / Provider Impact Note
 
-- None.
+- None. This change only affects local command-contract validation and focused command-catalog test coverage.
 
-### Proposed `README.md` Patch Text
+### Scope-Check / Ownership Note
 
-- None.
+- Shared/integrator-locked edits: `YES`
+- Approved shared-test exception: `tests/unit/test_commands_catalog.py`
