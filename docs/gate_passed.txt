@@ -5,8 +5,8 @@ Feature lane: `codex/feat-retrieval-fts`
 Reviewed implementation head: `adfa8cdadd43747ffbcb612e4151e262b13e52ca`
 Reviewed implementation range: `378cf9a74a3658058079a32f186fcd254c4a4034..adfa8cdadd43747ffbcb612e4151e262b13e52ca`
 Canonical demo-path step advanced: `retrieve relevant material`
-Scope: complete the FTS-first retrieval MVP for engine flows with deterministic excerpt and provenance output while preserving the same reviewed implementation range.
-Current branch tip before this handoff refresh commit: `307c6576ecf36031ce7bee82f076580772e5ca77`
+Scope: harden the Milestone 3 retrieval contract by keeping the canonical FTS-first retrieval surface deterministic and by rejecting PageIndex-only excerpt IDs on that public excerpt lookup path, while preserving the same reviewed implementation range.
+Current branch tip before this handoff refresh commit: `f2c2cbd90bc3b5b5d062911296cb9b8d13a9c6d6`
 
 Reviewed implementation files:
 
@@ -18,10 +18,11 @@ Metadata-only packet refresh commits:
 * `8f6fbb02309502159aac91a30d1fd6f0dcea114c`: `THREAD_PACKET.md`
 * `f360f73552fb5536abf9e4b74d1a8348fd54eec6`: `THREAD_PACKET.md`, `docs/gate_passed.txt`
 * `307c6576ecf36031ce7bee82f076580772e5ca77`: `THREAD_PACKET.md`, `docs/gate_passed.txt`
+* `f2c2cbd90bc3b5b5d062911296cb9b8d13a9c6d6`: `THREAD_PACKET.md`, `docs/gate_passed.txt`
 
 Plan-alignment note:
 
-* This lane advances `retrieve relevant material` by keeping the canonical SQLite FTS retrieval path, excerpt lookup, and structured provenance output deterministic enough for downstream basket promotion and workflow cards.
+* This lane advances `retrieve relevant material` by hardening the Milestone 3 retrieval contract around the canonical SQLite FTS retrieval surface: PageIndex-only excerpt IDs are rejected on the public excerpt lookup path, and the structured provenance output stays deterministic enough for downstream basket promotion and workflow cards.
 
 Budget classification:
 
