@@ -3611,6 +3611,44 @@ def _build_retrieval_provenance_from_payload(payload: dict[str, object]) -> dict
         query_constraints_snapshot["date_range"] = normalized.get("query_date_range")
     query_snapshot["constraints"] = query_constraints_snapshot
     normalized["query"] = _normalize_query_snapshot(query_snapshot)
+    normalized_query_constraints = _normalize_basket_promotion_query_constraints(
+        _first_non_none_value(
+            normalized.get("query_constraints"),
+            query_snapshot.get("constraints"),
+            query_constraints,
+        )
+    )
+    normalized["query_constraints"] = normalized_query_constraints
+    normalized["query_max_results"] = _normalize_optional_int(
+        _first_non_none_value(
+            normalized.get("query_max_results"),
+            normalized_query_constraints.get("max_results"),
+        )
+    )
+    normalized["query_doc_types"] = _normalize_query_doc_types(
+        _first_non_none_value(
+            normalized.get("query_doc_types"),
+            normalized_query_constraints.get("doc_types"),
+        )
+    )
+    normalized["query_require_citations"] = _normalize_optional_bool(
+        _first_non_none_value(
+            normalized.get("query_require_citations"),
+            normalized_query_constraints.get("require_citations"),
+        )
+    )
+    normalized["query_section_hint"] = _normalize_query_hint(
+        _first_non_none_value(
+            normalized.get("query_section_hint"),
+            normalized_query_constraints.get("section_hint"),
+        )
+    )
+    normalized["query_prefer_exact_matches"] = _normalize_optional_bool(
+        _first_non_none_value(
+            normalized.get("query_prefer_exact_matches"),
+            normalized_query_constraints.get("prefer_exact_matches"),
+        )
+    )
     if _is_missing_snapshot_value(normalized.get("result_fingerprint")):
         normalized["result_fingerprint"] = summary.get("result_fingerprint", diagnostics.get("result_fingerprint"))
     else:

@@ -4082,6 +4082,62 @@ class UnifiedRetrievalTests(unittest.TestCase):
             result.retrieval_provenance_bundle()["primary_excerpt_text_hash"],
         )
 
+    def test_retrieval_provenance_helper_backfills_query_constraint_mirrors(self) -> None:
+        result = self.service.retrieve_auto(
+            RetrievalQuery(
+                query_text="discussion theory",
+                scope="doc:doc-pdf-1",
+                intent="outline_support",
+                constraints=RetrievalConstraints(
+                    max_results=6,
+                    doc_types=(" pdf ", "pdf"),
+                    require_citations=True,
+                    section_hint="  discussion  ",
+                    prefer_exact_matches=True,
+                ),
+                confidentiality_profile="standard",
+            )
+        )
+
+        expected = result.retrieval_provenance_bundle()
+
+        class _DictOnlySource:
+            def __init__(self, payload: dict[str, object]) -> None:
+                self._payload = payload
+
+            def as_dict(self) -> dict[str, object]:
+                return self._payload
+
+        sparse_payload = json.loads(json.dumps(result.to_downstream_payload()))
+        retrieval_provenance = sparse_payload.setdefault("retrieval_provenance", {})
+        self.assertIsInstance(retrieval_provenance, dict)
+        retrieval_provenance["query_constraints"] = {}
+        retrieval_provenance["query_max_results"] = None
+        retrieval_provenance["query_doc_types"] = []
+        retrieval_provenance["query_require_citations"] = None
+        retrieval_provenance["query_section_hint"] = None
+        retrieval_provenance["query_prefer_exact_matches"] = None
+
+        provenance = build_retrieval_provenance_from_result(_DictOnlySource(sparse_payload))
+
+        self.assertEqual(provenance["query_constraints"], expected["query_constraints"])
+        self.assertEqual(provenance["query_max_results"], 6)
+        self.assertEqual(provenance["query_max_results"], expected["query_max_results"])
+        self.assertEqual(provenance["query_doc_types"], ["pdf"])
+        self.assertEqual(provenance["query_doc_types"], expected["query_doc_types"])
+        self.assertTrue(provenance["query_require_citations"])
+        self.assertEqual(
+            provenance["query_require_citations"],
+            expected["query_require_citations"],
+        )
+        self.assertEqual(provenance["query_section_hint"], "discussion")
+        self.assertEqual(provenance["query_section_hint"], expected["query_section_hint"])
+        self.assertTrue(provenance["query_prefer_exact_matches"])
+        self.assertEqual(
+            provenance["query_prefer_exact_matches"],
+            expected["query_prefer_exact_matches"],
+        )
+
     def test_retrieval_provenance_surfaces_primary_citations(self) -> None:
         result = self.service.retrieve_auto(
             RetrievalQuery(

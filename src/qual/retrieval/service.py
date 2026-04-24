@@ -1370,6 +1370,12 @@ class RetrievalResult:
             "query_scope": self.query.scope,
             "query_intent": self.query.intent,
             "query_confidentiality_profile": self.query.confidentiality_profile,
+            "query_constraints": _basket_promotion_query_constraint_snapshot(self.query),
+            "query_max_results": self.query.constraints.max_results,
+            "query_doc_types": list(self.query.constraints.doc_types),
+            "query_require_citations": self.query.constraints.require_citations,
+            "query_section_hint": self.query.constraints.section_hint,
+            "query_prefer_exact_matches": self.query.constraints.prefer_exact_matches,
             "query_date_range": (
                 list(self.query.constraints.date_range)
                 if self.query.constraints.date_range is not None
