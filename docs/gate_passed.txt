@@ -2,11 +2,11 @@ Gate Results Summary (as of 2026-04-24)
 -------------------------------------
 
 Feature lane: `codex/feat-retrieval-fts`
-Reviewed implementation head: `8f6fbb02309502159aac91a30d1fd6f0dcea114c`
-Reviewed implementation range: `378cf9a74a3658058079a32f186fcd254c4a4034..8f6fbb02309502159aac91a30d1fd6f0dcea114c`
+Reviewed implementation head: `f360f73552fb5536abf9e4b74d1a8348fd54eec6`
+Reviewed implementation range: `378cf9a74a3658058079a32f186fcd254c4a4034..f360f73552fb5536abf9e4b74d1a8348fd54eec6`
 Canonical demo-path step advanced: `retrieve relevant material`
-Scope: keep the retrieval lane FTS-first for the MVP by handing off the cumulative retrieval-contract work on the live branch tip, including deterministic excerpt resolution, canonical query/provenance payload normalization, and the engine-side fail-closed FTS query guard.
-Current branch tip before this handoff refresh commit: `8f6fbb02309502159aac91a30d1fd6f0dcea114c`
+Scope: keep the retrieval lane FTS-first for the MVP by handing off the cumulative retrieval-contract work on the live branch tip, including deterministic excerpt resolution, canonical query/provenance payload normalization, and fail-closed handling for noncanonical FTS queries.
+Current branch tip before this handoff refresh commit: `f360f73552fb5536abf9e4b74d1a8348fd54eec6`
 
 Files changed in the reviewed implementation range:
 
@@ -33,12 +33,12 @@ Files updated in this fixer pass:
 
 Plan-alignment note:
 
-* This lane advances `retrieve relevant material` by making the canonical SQLite FTS retrieval path and excerpt resolution deterministic for downstream basket and workflow use, including provenance-bundle query data and engine-side support checks that fail closed when the request is not a canonical FTS retrieval.
+* This lane advances `retrieve relevant material` by making the canonical SQLite FTS retrieval path and excerpt resolution deterministic for downstream basket and workflow use, including provenance-bundle query data and fail-closed handling when the request is not a canonical FTS retrieval.
 
 Budget classification:
 
 * Shared/high-risk because `tests/unit/test_unified_retrieval.py` is a shared-by-approval file for this lane.
-* Actual reviewed tip size: `15 files`, `10869 insertions`, `1087 deletions` relative to `378cf9a7`.
+* Actual reviewed tip size: `15 files`, `10899 insertions`, `1085 deletions` relative to `378cf9a7`.
 * This exceeds the narrow high-risk slice limits, so this handoff now describes the cumulative branch tip instead of a two-file or metadata-only subset.
 
 Verification:
