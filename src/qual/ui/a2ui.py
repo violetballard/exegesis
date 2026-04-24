@@ -653,6 +653,16 @@ def describe_a2ui_contract_fingerprints(
         fingerprints["terminal_artifact_renderer_entrypoints_contract_manifest_fingerprint"] = (
             terminal_artifact_renderer_entrypoints_contract_fingerprint_value
         )
+        # Surface the target-selection manifest alongside the shell snapshot so
+        # engine consumers can fingerprint the exact CLI fallback policy without
+        # reaching back through shell internals.
+        _add_contract_alias_fingerprints(
+            fingerprints,
+            (
+                "terminal_artifact_cli_fallback_target_contract_manifest",
+                shell_ui_contract["terminal_artifact_cli_fallback_target_contract_fingerprint"],
+            ),
+        )
         fingerprints["terminal_artifact_cli_fallback_entrypoint"] = shell_ui_contract[
             "terminal_artifact_cli_fallback_entrypoint_fingerprint"
         ]
