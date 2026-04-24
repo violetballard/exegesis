@@ -1,24 +1,22 @@
 # Thread Handoff Packet
 
 - Branch name: `codex/feat-retrieval-fts`
-- Packet role: `metadata-only reviewer-fix refresh`
-- Current branch tip before this packet refresh commit: `9bf6354eb5be984115d621aee698b172c9d498bd`
-- Reviewed implementation head: `e8a8717b138f7d3551cd89bc3dc68071d5dad5f3`
-- Reviewed implementation range: `d7fd5d200358287fa42a18d39e2b277463b9b69f..e8a8717b138f7d3551cd89bc3dc68071d5dad5f3`
-- Shared-file approval basis: `tests/unit/test_unified_retrieval.py` is the only non-owned regression surface cited for this lane and remains the approved shared-by-approval exception under `THREAD_OWNERSHIP.md`.
+- Packet role: `reviewer-fix canonical retrieval contract`
+- Current branch tip before this fixer commit: `791668c7935f920034a09bc83827e3e2d4df1d0d`
 - Canonical demo-path step advanced: `retrieve relevant material`
-- Canonical demo-path statement: This branch advances `retrieve relevant material` by requiring excerpt lookup to resolve through the canonical SQLite FTS path and by keeping failed excerpt lookup audit payloads aligned with that FTS-only contract. This hardens the Milestone 3 retrieval surface used immediately before basket promotion and later workflow steps; it does not claim new basket-promotion wiring in this reviewed slice.
+- Canonical demo-path statement: This fixer pass makes `retrieve relevant material` more real on the engine-facing MVP path by fail-closing non-FTS retrieval metadata on the canonical source-bundle/context-bundle reconstruction helpers that feed structured results and basket/workflow promotion. It does not claim new retrieval wiring; it hardens the existing canonical contract so stale PageIndex-style metadata cannot leak back into downstream payloads.
+- Shared-file approval basis: `tests/unit/test_unified_retrieval.py` remains the only approved shared-by-approval regression surface for this lane under `THREAD_OWNERSHIP.md`.
 
 ## Scope Goal
 
-- Keep this handoff limited to Milestone 3's `retrieve relevant material` step by documenting the FTS-only excerpt fail-closed contract, the follow-up audit-shape fixes that preserve that contract, and the required gate rerun for the current metadata refresh.
+- Keep this fix on the canonical engine-first retrieval surface by tightening `src/qual/engine/retrieval/payload.py` and proving the behavior with shared retrieval regressions in `tests/unit/test_unified_retrieval.py`.
 
 ## Thread Kickoff (High-Risk)
 
 - Branch: `codex/feat-retrieval-fts`
 - Lane/owned paths: `src/qual/retrieval/**`, `src/qual/engine/retrieval/**`, `engine/src/exegesis_engine/retrieval/**`
-- Scope goal: hand off the truthful cumulative retrieval implementation through `e8a8717b` and keep this refresh limited to metadata artifacts.
-- Risk reason: the branch includes approved shared regression coverage in `tests/unit/test_unified_retrieval.py`, so the handoff is summarized under the 4-task high-risk cap.
+- Scope goal: harden canonical retrieval source/context bundle reconstruction so downstream structured payloads stay FTS-first and auditable.
+- Risk reason: the fix uses approved shared regression coverage in `tests/unit/test_unified_retrieval.py`.
 
 ### Budget
 
@@ -29,63 +27,48 @@
 
 ### Planned Tasks (max 4)
 
-1. Re-anchor the packet set to the actual current pre-refresh branch tip `9bf6354e` and the latest runtime commit `e8a8717b`.
-2. State explicitly that this work advances `retrieve relevant material` by hardening the canonical FTS excerpt contract and its failed-lookup audit shape before basket promotion.
-3. Tighten scope language so the packet claims preserved contract alignment, not new downstream workflow integration.
-4. Rerun and report `make scope-check`, `./quality-format.sh --check`, `./quality-lint.sh`, `./quality-test.sh`, `./typecheck-test.sh`, and `make ci` for this metadata refresh.
+1. Tighten the canonical payload normalizers so non-FTS retrieval metadata fails closed instead of surviving source-bundle reconstruction.
+2. Rebuild context-bundle downstream payloads from the canonical source bundle when both are present so stale top-level metadata cannot override FTS-first state.
+3. Add shared regression coverage proving the structured result and basket/workflow payloads stay canonical when sparse inputs inject PageIndex-style metadata.
+4. Rerun the required gate stack and refresh the handoff packet so it states explicitly that this advances `retrieve relevant material`.
 
 ### Checkpoint Status
 
-- `plan complete`: the packet set is re-anchored to `9bf6354e` and `e8a8717b`.
-- `first green tests`: recorded after rerunning the required gate stack for this refresh.
-- `before risky/shared file edit`: the branch still relies on approved shared regression coverage in `tests/unit/test_unified_retrieval.py`.
-- `ready for handoff`: the writable reviewer-facing packet files in this worktree agree on the same branch tip, reviewed implementation head, reviewed implementation range, and canonical demo-path statement.
+- `plan complete`: the reviewer gap was confirmed on `src/qual/engine/retrieval/payload.py`, not on the compatibility `fetch_excerpt()` surface.
+- `first green tests`: targeted unified-retrieval regressions and the full `tests.unit.test_unified_retrieval` suite passed after the payload/context-bundle fixes.
+- `before risky/shared file edit`: shared edits remained limited to approved regression coverage in `tests/unit/test_unified_retrieval.py`.
+- `ready for handoff`: the runtime changes, shared regression proof, and required gate results all agree on the same canonical retrieval-contract story.
 
 ## Scope Completed
 
-- Kept SQLite FTS authoritative for excerpt lookup by removing the PageIndex fallback from `fetch_excerpt`, so PageIndex-only excerpt IDs fail closed instead of resolving through a non-canonical path.
-- Preserved the same FTS-first contract in the failed excerpt lookup audit payload by enriching and aligning the audit shape in `src/qual/retrieval/service.py`.
-- Kept roadmap and vision mapping limited to Milestone 3 FTS-first retrieval and retrieval-first context handling. This reviewed slice hardens the retrieval surface used before basket promotion; it does not itself add new basket-promotion or later workflow wiring.
-
-## Reviewed Scope Boundary
-
-- Reviewed implementation range: `d7fd5d200358287fa42a18d39e2b277463b9b69f..e8a8717b138f7d3551cd89bc3dc68071d5dad5f3`
-- Runtime files touched in the latest reviewed implementation commits:
-- `src/qual/engine/retrieval/payload.py`
-- `src/qual/retrieval/service.py`
-- `tests/unit/test_unified_retrieval.py`
-- Metadata-only commit after the reviewed implementation head and before this fixer refresh:
-- `9bf6354e` -> `THREAD_PACKET.md`, `docs/gate_passed.txt`
-- Metadata-only refresh files in this fixer slice:
-- `THREAD_PACKET.md`
-- `docs/gate_passed.txt`
+- Fail-closed canonical retrieval metadata in [src/qual/engine/retrieval/payload.py](/Users/doctor-violet/.codex/worktrees/rfts/qual/src/qual/engine/retrieval/payload.py) so source-bundle, hit, provenance, citation, and basket-promotion reconstruction paths keep `source_strategy=fts`, `retrieval_backend=sqlite_fts`, and `retrieval_mode=fts_first` instead of preserving stale non-FTS values.
+- Changed context-bundle reconstruction to rebuild `retrieval_downstream_payload` from the canonical source bundle when available, so the engine-facing structured-result path used before basket/workflow promotion no longer trusts stale top-level metadata.
+- Added shared regression coverage in [tests/unit/test_unified_retrieval.py](/Users/doctor-violet/.codex/worktrees/rfts/qual/tests/unit/test_unified_retrieval.py) proving source-bundle and context-bundle helpers fail closed when `pageindex`-style metadata is injected into sparse inputs.
 
 ## Tasks Completed
 
-1. Kept the `retrieve relevant material` entrypoint FTS-first and fail-closed by removing the PageIndex fallback from `fetch_excerpt`.
-2. Added approved shared regression coverage proving PageIndex-only excerpt IDs raise `KeyError`.
-3. Mirrored the canonical source-strategy signal into retrieval payloads so downstream consumers see the same FTS-first provenance contract.
-4. Enriched and aligned failed excerpt lookup audit payloads so the audit surface stays consistent with the FTS-only excerpt contract.
+1. Restricted canonical payload normalization to the FTS-first MVP contract in `src/qual/engine/retrieval/payload.py`.
+2. Rebuilt context-bundle downstream payloads from canonical source bundles so structured retrieval results prefer canonical engine data over stale top-level snapshots.
+3. Added regressions proving the basket/workflow-facing payload helper and context-bundle helper reject non-canonical metadata drift.
+4. Reran `make scope-check`, `./quality-format.sh --check`, `./quality-lint.sh`, `./quality-test.sh`, `./typecheck-test.sh`, and `make ci`.
 
 ## Canonical Step Task Mapping
 
-- Task 1 advances `retrieve relevant material` by keeping excerpt lookup on the canonical SQLite FTS path before basket promotion can consume the result.
-- Task 2 advances `retrieve relevant material` by proving PageIndex-only excerpt IDs fail closed, so the retrieval surface stays auditable.
-- Task 3 advances `retrieve relevant material` by preserving the FTS-first provenance signal in retrieval payloads without broadening scope to later workflow steps.
-- Task 4 advances `retrieve relevant material` by keeping failed lookup audit payloads aligned with the same canonical excerpt contract.
+- Task 1 advances `retrieve relevant material` by ensuring the structured retrieval contract remains SQLite FTS-first even when sparse payloads carry stale metadata.
+- Task 2 advances `retrieve relevant material` by keeping the engine-facing context/source bundle path authoritative before basket promotion consumes it.
+- Task 3 advances `retrieve relevant material` by proving the canonical structured results and basket/workflow payloads fail closed instead of regressing toward PageIndex-style routing.
+- Task 4 advances `retrieve relevant material` by documenting and rerunning the exact gates on the strengthened canonical path.
 
 ## Files Changed
 
-- Reviewed implementation files in `d7fd5d200358287fa42a18d39e2b277463b9b69f..e8a8717b138f7d3551cd89bc3dc68071d5dad5f3` include:
 - `src/qual/engine/retrieval/payload.py`
-- `src/qual/retrieval/service.py`
 - `tests/unit/test_unified_retrieval.py`
-- Metadata-only refresh files in this fixer slice:
-- `THREAD_PACKET.md`
-- `docs/gate_passed.txt`
 
 ## Commands Run With Results
 
+- `python3 -m unittest tests.unit.test_unified_retrieval.UnifiedRetrievalTests.test_retrieval_downstream_payload_helper_fail_closes_noncanonical_basket_metadata tests.unit.test_unified_retrieval.UnifiedRetrievalTests.test_retrieval_context_bundle_helper_fail_closes_noncanonical_hit_metadata tests.unit.test_unified_retrieval.UnifiedRetrievalTests.test_retrieval_downstream_payload_helper_normalizes_nested_citation_fields`: `PASS`
+- `python3 -m unittest tests.unit.test_unified_retrieval.UnifiedRetrievalTests.test_fetch_excerpt_requires_an_fts_lookup_hit tests.unit.test_unified_retrieval.UnifiedRetrievalTests.test_retrieve_fts_source_bundle_matches_result_snapshot tests.unit.test_unified_retrieval.UnifiedRetrievalTests.test_retrieval_context_bundle_helper_packages_payload_and_bundles`: `PASS`
+- `python3 -m unittest tests.unit.test_unified_retrieval`: `PASS` (`214 tests`)
 - `make scope-check`: `PASS` (`no policy for branch 'codex/feat-retrieval-fts'; skipping`)
 - `./quality-format.sh --check`: `PASS`
 - `./quality-lint.sh`: `PASS`
@@ -95,32 +78,31 @@
 
 ## Reviewer Fix Closure
 
-1. The packet now states explicitly that this slice advances the canonical demo-path step `retrieve relevant material`.
-2. That statement is tied to the actual runtime work: FTS-only excerpt lookup, shared `KeyError` regression coverage, source-strategy mirroring, and failed lookup audit-shape alignment.
-3. The scope language is tightened to preserved contract alignment before basket promotion, rather than claiming new downstream workflow integration.
-4. The authoritative writable handoff artifacts are re-anchored to the actual current metadata-only branch tip `9bf6354e` and the latest runtime commit `e8a8717b`.
+1. The packet now states explicitly that this work advances the canonical demo-path step `retrieve relevant material`.
+2. The fail-closed behavior and proof now live on the actual canonical engine-facing retrieval reconstruction surface in `src/qual/engine/retrieval/payload.py`, not only on the compatibility `fetch_excerpt()` path.
+3. The shared regressions now demonstrate stronger behavior on the structured-result, source-bundle, context-bundle, and basket/workflow-facing helpers instead of only on PageIndex-only excerpt lookups.
 
 ## Risks / Blockers
 
-- Remaining risks: the `.codex` packet mirrors are read-only in this worktree and could not be refreshed, so they remain stale relative to `THREAD_PACKET.md`; later metadata-only refresh commits can also reintroduce drift if only one writable artifact is updated.
+- Remaining risks: none identified beyond the approved shared-test surface already called out above.
 - Blockers: none
 
 ## Required Handoff Fields
 
 ### Roadmap item(s) affected
 
-- `Milestone 3: Real workflow loop`
+- `Milestone 3: Product Readiness`
 - `feat-retrieval-fts`
 
 ### Canonical demo-path step advanced
 
 - `retrieve relevant material`
-- The reviewed runtime slice preserves deterministic FTS excerpt lookup and audit behavior on the retrieval surface used before basket promotion.
+- This fix keeps the canonical engine-facing retrieval payload deterministic and FTS-first before basket/workflow promotion consumes the result.
 
 ### Vision capability affected
 
 - `2. Retrieval-first context handling`
-- `6. Auditable state and workflow`
+- `3. Auditable generation`
 
 ### Routing/provider impact note
 
@@ -133,5 +115,5 @@
 ## Scope-Check / Ownership Note
 
 - Shared or integrator-locked edits: `YES`
-- Shared-file approval basis remains limited to `tests/unit/test_unified_retrieval.py` under the `THREAD_OWNERSHIP.md` shared-file exception mechanism.
-- No provider or routing surfaces are part of the reviewed runtime changes in this latest slice.
+- Shared-file approval basis remains limited to `tests/unit/test_unified_retrieval.py`.
+- No provider or routing surfaces were changed.

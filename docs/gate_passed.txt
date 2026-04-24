@@ -1,12 +1,11 @@
 Gate Results Summary (as of 2026-04-23)
 -------------------------------------
 
-Required automated gates reran against the current handoff refresh worktree content for:
+Required automated gates reran against the canonical retrieval-contract fixer worktree content for:
 
-* current branch tip before this fixer refresh `9bf6354eb5be984115d621aee698b172c9d498bd`
-* reviewed implementation head `e8a8717b138f7d3551cd89bc3dc68071d5dad5f3`
-* reviewed implementation range `d7fd5d200358287fa42a18d39e2b277463b9b69f..e8a8717b138f7d3551cd89bc3dc68071d5dad5f3`
-* metadata-only packet refresh files `THREAD_PACKET.md` and `docs/gate_passed.txt`
+* current branch tip before this fixer commit `791668c7935f920034a09bc83827e3e2d4df1d0d`
+* runtime files changed in this fixer pass `src/qual/engine/retrieval/payload.py` and `tests/unit/test_unified_retrieval.py`
+* shared regression approval basis `tests/unit/test_unified_retrieval.py`
 
 Gate status:
 
@@ -17,23 +16,15 @@ Gate status:
 * `./typecheck-test.sh` - passed
 * `make ci` - passed
 
+Focused retrieval proof:
+
+* `python3 -m unittest tests.unit.test_unified_retrieval.UnifiedRetrievalTests.test_retrieval_downstream_payload_helper_fail_closes_noncanonical_basket_metadata tests.unit.test_unified_retrieval.UnifiedRetrievalTests.test_retrieval_context_bundle_helper_fail_closes_noncanonical_hit_metadata tests.unit.test_unified_retrieval.UnifiedRetrievalTests.test_retrieval_downstream_payload_helper_normalizes_nested_citation_fields` - passed
+* `python3 -m unittest tests.unit.test_unified_retrieval.UnifiedRetrievalTests.test_fetch_excerpt_requires_an_fts_lookup_hit tests.unit.test_unified_retrieval.UnifiedRetrievalTests.test_retrieve_fts_source_bundle_matches_result_snapshot tests.unit.test_unified_retrieval.UnifiedRetrievalTests.test_retrieval_context_bundle_helper_packages_payload_and_bundles` - passed
+* `python3 -m unittest tests.unit.test_unified_retrieval` - passed (`214 tests`)
+
 Canonical demo-path step advanced: `retrieve relevant material`.
-Plan-alignment statement: this reviewed slice makes Milestone 3's `retrieve relevant material` step more real by requiring canonical SQLite FTS excerpt lookup and by keeping failed excerpt lookup audit payloads aligned with that FTS-only contract.
-Scope-tightening statement: this slice hardens the retrieval surface used before basket promotion and later workflow steps; it does not claim new basket-promotion wiring or later workflow integration.
+Plan-alignment statement: this fixer pass strengthens the canonical engine-facing source-bundle/context-bundle retrieval contract used before basket/workflow promotion by fail-closing stale non-FTS metadata and rebuilding structured payloads from the canonical FTS source bundle.
+Scope-tightening statement: this slice proves the canonical structured retrieval path stays FTS-first and auditable; it does not claim new basket/workflow wiring.
 Shared-file approval basis: `tests/unit/test_unified_retrieval.py` remains the approved shared-by-approval regression exception for this lane.
-
-Metadata-only commit/file accounting after the reviewed implementation head and before this fixer refresh:
-* `9bf6354e` -> `THREAD_PACKET.md`, `docs/gate_passed.txt`
-
-Reviewed implementation files:
-
-* `src/qual/engine/retrieval/payload.py`
-* `src/qual/retrieval/service.py`
-* `tests/unit/test_unified_retrieval.py`
-
-Metadata-only refresh files in this fixer slice:
-
-* `THREAD_PACKET.md`
-* `docs/gate_passed.txt`
 
 The authoritative handoff packet remains `THREAD_PACKET.md`.
