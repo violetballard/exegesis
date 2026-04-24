@@ -514,18 +514,6 @@ def _declared_cli_entrypoint_projection(
     )
 
 
-def _authoritative_cli_entrypoint_projection(
-    specs: tuple[CommandSpec, ...],
-) -> tuple[tuple[str, tuple[str, ...]], ...]:
-    return tuple(
-        (
-            spec_name,
-            tuple(_normalize_token(entrypoint) for entrypoint in entrypoints),
-        )
-        for spec_name, entrypoints in _parser_cli_entrypoints_for(specs)
-    )
-
-
 def _parser_cli_entrypoints_for(
     specs: tuple[CommandSpec, ...],
 ) -> tuple[tuple[str, tuple[str, ...]], ...]:
@@ -557,20 +545,16 @@ def _validate_command_cli_contract(
     actual_entrypoints: tuple[tuple[str, tuple[str, ...]], ...] | None = None,
 ) -> None:
     validate_command_catalog(specs)
-    authoritative_entrypoints = _authoritative_cli_entrypoint_projection(specs)
-    expected_parser_surface = _declared_cli_entrypoint_projection(specs)
-    if authoritative_entrypoints != expected_parser_surface:
-        raise ValueError("Command CLI catalog entrypoint projection is inconsistent")
-
+    expected_entrypoints = _declared_cli_entrypoint_projection(specs)
     live_entrypoints = actual_entrypoints or _actual_cli_entrypoint_projection(specs)
-    if live_entrypoints != authoritative_entrypoints:
+    if live_entrypoints != expected_entrypoints:
         raise ValueError("Command CLI catalog entrypoint projection is inconsistent")
 
-    expected_canonical_names = tuple(name for name, _ in authoritative_entrypoints)
+    expected_canonical_names = tuple(name for name, _ in expected_entrypoints)
     if contract.canonical_names != expected_canonical_names:
         raise ValueError("Command CLI canonical names are inconsistent")
 
-    expected_lookup_table = _cli_lookup_projection_from_entrypoints(authoritative_entrypoints)
+    expected_lookup_table = _cli_lookup_projection_from_entrypoints(expected_entrypoints)
     expected_tokens = tuple(token for token, _ in expected_lookup_table)
     if contract.tokens != expected_tokens:
         raise ValueError("Command CLI tokens are inconsistent")
@@ -581,11 +565,12 @@ def _validate_command_cli_contract(
 
 def _command_cli_contract_for(specs: tuple[CommandSpec, ...]) -> CommandCliContract:
     actual_entrypoints = _actual_cli_entrypoint_projection(specs)
+    expected_entrypoints = _declared_cli_entrypoint_projection(specs)
     tokens: list[str] = []
     lookup_table: list[tuple[str, str]] = []
     seen_canonical_names: set[str] = set()
     canonical_names: list[str] = []
-    for spec_name, entrypoints in actual_entrypoints:
+    for spec_name, entrypoints in expected_entrypoints:
         for normalized_entrypoint in entrypoints:
             tokens.append(normalized_entrypoint)
             lookup_table.append((normalized_entrypoint, spec_name))

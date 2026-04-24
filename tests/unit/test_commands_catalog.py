@@ -1697,6 +1697,29 @@ class CommandCatalogTests(unittest.TestCase):
             with self.assertRaisesRegex(ValueError, "Command CLI catalog entrypoint projection is inconsistent"):
                 command_catalog.command_cli_contract()
 
+    def test_command_cli_contract_rejects_alias_substitution_when_parser_projection_keeps_same_name_order(
+        self,
+    ) -> None:
+        parser_surface_with_alias_substitution = (
+            ("bootstrap", ("open",)),
+            ("diff-preview", ("diff-preview", "diff")),
+            ("context-basket", ("context-basket",)),
+            ("terminal", ("terminal",)),
+        )
+
+        command_catalog.command_cli_contract.cache_clear()
+        with patch.object(command_catalog, "_CLI_ENTRYPOINTS", parser_surface_with_alias_substitution):
+            self.assertEqual(
+                tuple(name for name, _ in parser_surface_with_alias_substitution),
+                command_names(),
+            )
+            self.assertEqual(
+                tuple(token for _, entrypoints in parser_surface_with_alias_substitution for token in entrypoints),
+                ("open", "diff-preview", "diff", "context-basket", "terminal"),
+            )
+            with self.assertRaisesRegex(ValueError, "Command CLI catalog entrypoint projection is inconsistent"):
+                command_catalog.command_cli_contract()
+
     def test_command_cli_contract_rejects_alias_substitution_in_live_parser_entrypoints(self) -> None:
         command_catalog.command_cli_contract.cache_clear()
         with patch.object(
@@ -1720,6 +1743,29 @@ class CommandCatalogTests(unittest.TestCase):
             self.assertEqual(
                 tuple(name for name, _ in command_catalog._CLI_ENTRYPOINTS),
                 command_names(),
+            )
+            with self.assertRaisesRegex(ValueError, "Command CLI catalog entrypoint projection is inconsistent"):
+                command_catalog.command_cli_contract()
+
+    def test_command_cli_contract_rejects_reordered_parser_projection_when_tokens_change_but_names_do_not(
+        self,
+    ) -> None:
+        reordered_parser_surface = (
+            ("bootstrap", ("bootstrap",)),
+            ("diff-preview", ("diff", "diff-preview")),
+            ("context-basket", ("context-basket",)),
+            ("terminal", ("terminal",)),
+        )
+
+        command_catalog.command_cli_contract.cache_clear()
+        with patch.object(command_catalog, "_CLI_ENTRYPOINTS", reordered_parser_surface):
+            self.assertEqual(
+                tuple(name for name, _ in reordered_parser_surface),
+                command_names(),
+            )
+            self.assertEqual(
+                tuple(token for _, entrypoints in reordered_parser_surface for token in entrypoints),
+                ("bootstrap", "diff", "diff-preview", "context-basket", "terminal"),
             )
             with self.assertRaisesRegex(ValueError, "Command CLI catalog entrypoint projection is inconsistent"):
                 command_catalog.command_cli_contract()
