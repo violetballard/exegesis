@@ -71,7 +71,7 @@
   - metadata-only handoff refresh: `handoff_packets/feat-commands.md`
 - commands run + outcomes:
   - reviewed implementation basis SHA `0777640324e7d3a54dba191135bd2d867c32d399` on `2026-04-24`
-  - rerun on current tip `c6865320004f8b4fe5e3ca63faf3769fed16e591` on `2026-04-24`; this tip is metadata-only and does not change the reviewed implementation scope
+  - fixer refresh reran the required gates on `2026-04-24` after aligning the handoff packet to the reviewer-requested high-risk fields and canonical demo-path mapping; this refresh remains metadata-only and does not change the reviewed implementation scope
   - `make scope-check` -> passed
   - `./quality-format.sh --check` -> passed
   - `./quality-lint.sh` -> passed
