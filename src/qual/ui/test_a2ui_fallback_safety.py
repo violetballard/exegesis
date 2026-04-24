@@ -425,6 +425,49 @@ class A2UIFallbackSafetyTests(unittest.TestCase):
             leaf_fingerprint,
         )
 
+    def test_a2ui_contract_exposes_leaf_contract_manifest_aliases(self) -> None:
+        manifest = describe_a2ui_contract()
+        fingerprints = describe_a2ui_contract_fingerprints(include_contract_aliases=True)
+        action_contract = describe_action_contract()
+        selection_contract = describe_selection_contract()
+
+        self.assertEqual(manifest["action_contract_manifest"], action_contract)
+        self.assertEqual(
+            manifest["action_contract_manifest_fingerprint"],
+            action_contract["contract_fingerprint"],
+        )
+        self.assertEqual(manifest["selection_contract_manifest"], selection_contract)
+        self.assertEqual(
+            manifest["selection_contract_manifest_fingerprint"],
+            selection_contract["contract_fingerprint"],
+        )
+        self.assertEqual(fingerprints["action_contract"], action_contract["contract_fingerprint"])
+        self.assertEqual(
+            fingerprints["action_contract_fingerprint"],
+            action_contract["contract_fingerprint"],
+        )
+        self.assertEqual(
+            fingerprints["action_contract_manifest"],
+            action_contract["contract_fingerprint"],
+        )
+        self.assertEqual(
+            fingerprints["action_contract_manifest_fingerprint"],
+            action_contract["contract_fingerprint"],
+        )
+        self.assertEqual(fingerprints["selection_contract"], selection_contract["contract_fingerprint"])
+        self.assertEqual(
+            fingerprints["selection_contract_fingerprint"],
+            selection_contract["contract_fingerprint"],
+        )
+        self.assertEqual(
+            fingerprints["selection_contract_manifest"],
+            selection_contract["contract_fingerprint"],
+        )
+        self.assertEqual(
+            fingerprints["selection_contract_manifest_fingerprint"],
+            selection_contract["contract_fingerprint"],
+        )
+
     def test_a2ui_engine_contract_aliases_the_engine_facing_slice(self) -> None:
         default_fingerprints = describe_a2ui_contract_fingerprints(include_contract_aliases=True)
         shell_fingerprints = describe_a2ui_contract_fingerprints(

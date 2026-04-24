@@ -275,11 +275,15 @@ def describe_a2ui_contract(
     manifest["action_fingerprint"] = action_contract["contract_fingerprint"]
     manifest["action_contract"] = _snapshot_contract_section(action_contract)
     manifest["action_contract_fingerprint"] = manifest["action_fingerprint"]
+    manifest["action_contract_manifest"] = _snapshot_contract_section(action_contract)
+    manifest["action_contract_manifest_fingerprint"] = manifest["action_fingerprint"]
     selection_contract = _snapshot_contract_section(manifest["schemas"]["selection"])
     manifest["selection"] = selection_contract
     manifest["selection_fingerprint"] = selection_contract["contract_fingerprint"]
     manifest["selection_contract"] = _snapshot_contract_section(selection_contract)
     manifest["selection_contract_fingerprint"] = manifest["selection_fingerprint"]
+    manifest["selection_contract_manifest"] = _snapshot_contract_section(selection_contract)
+    manifest["selection_contract_manifest_fingerprint"] = manifest["selection_fingerprint"]
     leaf_contracts = _snapshot_contract_section(manifest["schemas"]["leaf_contracts"])
     manifest["leaf_contracts"] = leaf_contracts
     manifest["leaf_contracts_fingerprint"] = leaf_contracts["contract_fingerprint"]
@@ -611,6 +615,14 @@ def describe_a2ui_contract_fingerprints(
                 "card_hint_recovery_policy_contract_manifest",
                 card_hint_recovery_policy_contract_fingerprint_value,
             ),
+        )
+    if include_contract_aliases:
+        _add_contract_alias_fingerprints(
+            fingerprints,
+            ("action_contract", action_contract_fingerprint()),
+            ("action_contract_manifest", action_contract_fingerprint()),
+            ("selection_contract", selection_contract_fingerprint()),
+            ("selection_contract_manifest", selection_contract_fingerprint()),
         )
     if include_terminal_artifact_cli_fallback_target:
         fingerprints["terminal_artifact_cli_fallback_target"] = (
