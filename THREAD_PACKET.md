@@ -2,27 +2,27 @@
 
 - Branch name: `codex/feat-retrieval-fts`
 - Packet role: `metadata-only reviewer-fix handoff refresh`
-- Reviewed implementation head: `adfa8cdadd43747ffbcb612e4151e262b13e52ca`
-- Reviewed implementation range: `378cf9a74a3658058079a32f186fcd254c4a4034..adfa8cdadd43747ffbcb612e4151e262b13e52ca`
-- Scope goal: keep retrieval FTS-first by narrowing `fetch_excerpt()` to canonical FTS-only excerpt resolution and preserving approved shared regression coverage proving PageIndex-only excerpt IDs fail closed on the public excerpt lookup path.
+- Reviewed implementation head: `d08431dd4fe27a23b0c166f074eaf2ff5a0aeb9d`
+- Reviewed implementation range: `adfa8cdadd43747ffbcb612e4151e262b13e52ca..d08431dd4fe27a23b0c166f074eaf2ff5a0aeb9d`
+- Scope goal: keep the post-`adfa8cda` retrieval follow-up slice FTS-first, deterministic, and auditable on the canonical engine surface.
 - Canonical demo-path step advanced: `retrieve relevant material`
-- Plan-alignment statement: this slice advances `retrieve relevant material` by making the public `fetch_excerpt` surface resolve only through the canonical SQLite FTS path, so PageIndex-only excerpt IDs fail closed on the retrieval step itself and downstream basket promotion or later workflow consumers only see canonical FTS-backed excerpt IDs.
-- Direct handoff statement: this handoff advances the canonical demo-path step `retrieve relevant material` by narrowing public excerpt resolution to the canonical FTS-only lookup path and by keeping approved shared regression coverage proving PageIndex-only excerpt IDs raise `KeyError`. That FTS-only `fetch_excerpt` contract makes downstream basket promotion and workflow consumers more reliable because excerpt lookup now fails closed before non-canonical PageIndex-only IDs can leak past retrieval. It does not promote PageIndex or embeddings to required runtime paths, and it does not claim basket promotion, plan/revise behavior, or broader workflow progress.
-- Approved exception surface: one approved shared test edit in `tests/unit/test_unified_retrieval.py` only; no integrator-locked files and no other shared-by-approval files are part of the reviewed implementation slice. This `THREAD_PACKET.md` refresh is the canonical reissued handoff packet in this worktree because the mirrored `.codex` packet paths are present but not writable here.
+- Plan-alignment statement: this slice advances `retrieve relevant material` by keeping excerpt lookup, canonical query handling, query-constraint normalization, and downstream provenance payloads on the authoritative SQLite FTS path so later basket-promotion and workflow consumers receive deterministic retrieval state instead of PageIndex-backed fallback state.
+- Direct handoff statement: this packet now matches the actual retrieval code that would merge after `adfa8cda`. The post-`adfa8cda` planner and packet-planner drift has been cleared from the branch tree, so the reviewed slice below is retrieval-only plus the approved shared regression file.
+- Approved exception surface: one approved shared test edit in `tests/unit/test_unified_retrieval.py` only. No integrator-locked files and no other shared-by-approval files are part of the reviewed implementation slice.
 
 ## Scope Completed
 
-- `src/qual/retrieval/service.py::fetch_excerpt()` now resolves only through the canonical SQLite FTS lookup path in the reviewed implementation range.
-- `tests/unit/test_unified_retrieval.py` proves PageIndex-only excerpt identifiers fail closed with `KeyError` on `fetch_excerpt()`.
-- This is a narrow Milestone 3 retrieval-contract slice for `retrieve relevant material`; it does not claim basket promotion, plan/revise behavior, or full-lane completion.
-- The reviewed implementation slice remains fixed at `378cf9a74a3658058079a32f186fcd254c4a4034..adfa8cdadd43747ffbcb612e4151e262b13e52ca`.
+- Kept SQLite FTS authoritative through the engine retrieval facade while restoring the fail-closed excerpt contract on canonical FTS-backed IDs.
+- Stabilized deterministic payload, provenance, query-constraint, section-hint, and audit snapshots for sparse source/context bundle reconstruction and downstream basket-promotion use.
+- Preserved basket-promotion-ready retrieval metadata, ranked IDs, policy aliases, and citation/provenance context without promoting PageIndex or embeddings to required runtime paths.
+- Cleared the post-`adfa8cda` planner/test packet drift that the reviewer flagged, so this reviewed slice is now retrieval-only plus the approved shared regression coverage.
 
 ## Thread Kickoff (High-Risk)
 
 - Branch: `codex/feat-retrieval-fts`
 - Lane/owned paths: `src/qual/retrieval/**`, `src/qual/engine/retrieval/**`, `engine/src/exegesis_engine/retrieval/**`
-- Scope goal: re-emit the retrieval handoff metadata so it truthfully classifies the reviewed slice as shared/high-risk work, cites the approved shared exception up front, and preserves the narrowed reviewed implementation range above.
-- Risk reason: the reviewed slice includes the approved shared regression edit in `tests/unit/test_unified_retrieval.py`, so the packet must follow the high-risk/shared budget class.
+- Scope goal: regenerate the retrieval handoff against the actual post-`adfa8cda` branch state and remove the unrelated planner packet drift from that same branch tip.
+- Risk reason: the reviewed slice still includes approved shared regression coverage in `tests/unit/test_unified_retrieval.py`, so the handoff remains shared/high-risk work.
 
 ### Budget
 
@@ -33,35 +33,51 @@
 
 ### Tasks Completed
 
-1. Classified the reviewed slice as shared/high-risk work with `tests/unit/test_unified_retrieval.py` as the sole approved shared exception surface.
-2. Restated the narrowed reviewed implementation range as `378cf9a74a3658058079a32f186fcd254c4a4034..adfa8cdadd43747ffbcb612e4151e262b13e52ca`.
-3. Updated the visible handoff artifacts so the budget note, approved exception note, and scope summary match the reviewer-requested framing.
+1. Kept the engine-facing retrieval facade FTS-first by tightening canonical query and excerpt lookup behavior after `adfa8cda`.
+2. Hardened deterministic payload, provenance, audit, and sparse bundle reconstruction behavior needed by downstream retrieval consumers and basket promotion.
+3. Preserved the approved shared regression coverage in `tests/unit/test_unified_retrieval.py` for the canonical retrieval contract.
+4. Removed the reviewer-flagged post-`adfa8cda` planner drift so the branch tree now matches the reviewed retrieval-only scope.
 
 ## Files Changed
 
+### Reviewed implementation files
+
+- `src/qual/engine/retrieval/__init__.py`
+- `src/qual/engine/retrieval/embeddings_strategy.py`
+- `src/qual/engine/retrieval/fts_strategy.py`
+- `src/qual/engine/retrieval/interface.py`
+- `src/qual/engine/retrieval/pageindex_strategy.py`
+- `src/qual/engine/retrieval/payload.py`
+- `src/qual/retrieval/__init__.py`
+- `src/qual/retrieval/service.py`
+- `tests/unit/test_unified_retrieval.py`
+
+### Metadata-only handoff files
+
+- `.codex/kickoff_packets/feat-retrieval-fts.md`
+- `.codex/lane_meta/feat-retrieval-fts.json`
 - `THREAD_PACKET.md`
 
 ## Commands Run With Results
 
-- `make scope-check`: `PASS` (`[devex] scope-check: passed for branch 'codex/feat-retrieval-fts'`)
+- `make scope-check`: `PASS`
 - `./quality-format.sh --check`: `PASS`
 - `./quality-lint.sh`: `PASS`
-- `./quality-test.sh`: `PASS` (`216 tests`)
+- `./quality-test.sh`: `PASS`
 - `./typecheck-test.sh`: `PASS`
 - `make ci`: `PASS`
 
 ## Risks / Blockers
 
 - Risk: `HIGH`
-- Residual risk: later branch commits after `adfa8cdadd43747ffbcb612e4151e262b13e52ca` remain outside this reviewed slice unless a new packet explicitly regenerates the reviewed implementation range.
-- Blocker: `.codex/kickoff_packets/feat-retrieval-fts.md` and `.codex/lane_meta/feat-retrieval-fts.json` are present but OS denies writes to those mirrored packet files in this worktree, so `THREAD_PACKET.md` is the canonical reissued packet for re-review.
-- Budget note: this handoff includes approved shared regression coverage in `tests/unit/test_unified_retrieval.py`, so it remains shared/high-risk work under the `4`-task cap and outside the low-risk owned-path-only budget class.
+- Residual risk: this is a large retrieval follow-up slice after `adfa8cda`, so re-review should use the exact reviewed implementation range above rather than the older narrowed packet.
+- Blockers: none
 
 ## Required Handoff Fields
 
-- Roadmap item(s) affected: `Milestone 3: Real workflow loop`, `feat-retrieval-fts` as a narrow retrieval-contract slice rather than as lane completion
+- Roadmap item(s) affected: `Milestone 3: Real workflow loop`, `feat-retrieval-fts` as the authoritative retrieval path feeding engine workflow state
 - Vision capability affected: `2. Retrieval-first context handling`, `6. Auditable state and workflow`
 - Routing/provider impact note: `None`
-- Canonical demo-path step advanced: `retrieve relevant material`; narrowing public excerpt resolution to the authoritative FTS-first path strengthens deterministic excerpt retrieval on that step without claiming broader workflow progress.
-- Ownership/risk classification: `shared-by-approval only`; the reviewed slice includes one approved shared test edit in `tests/unit/test_unified_retrieval.py` and includes no integrator-locked edits.
+- Canonical demo-path step advanced: `retrieve relevant material`; this slice makes that step more real by keeping excerpt lookup, query normalization, and audit/provenance payloads on the canonical FTS path.
+- Ownership/risk classification: `shared-by-approval only`; the reviewed slice includes one approved shared test edit in `tests/unit/test_unified_retrieval.py` and no integrator-locked edits.
 - Proposed README.md patch text: `None`
