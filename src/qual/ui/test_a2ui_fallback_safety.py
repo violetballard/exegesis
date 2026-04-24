@@ -2763,6 +2763,18 @@ class A2UIFallbackSafetyTests(unittest.TestCase):
             a2ui_contract_fingerprint(include_shell_ui_contract=True),
         )
 
+    def test_a2ui_contract_fingerprint_can_opt_into_terminal_artifact_cli_fallback_entrypoint_slice(self) -> None:
+        manifest = describe_a2ui_contract(include_terminal_artifact_cli_fallback_entrypoint=True)
+
+        self.assertEqual(
+            a2ui_contract_fingerprint(include_terminal_artifact_cli_fallback_entrypoint=True),
+            manifest["contract_fingerprint"],
+        )
+        self.assertEqual(
+            manifest["terminal_artifact_cli_fallback_entrypoint_contract_manifest_fingerprint"],
+            terminal_artifact_cli_fallback_entrypoint_contract_fingerprint(),
+        )
+
     def test_a2ui_dispatch_contract_fingerprints_can_opt_into_shell_ui_contract_snapshot(self) -> None:
         shell_manifest = describe_shell_ui_contract(include_terminal_artifact_cli_fallback_route=True)
         manifest = describe_a2ui_contract(

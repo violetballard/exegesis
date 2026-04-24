@@ -3724,12 +3724,14 @@ def _canonicalize_supported_sequence(
 def a2ui_contract_fingerprint(
     *,
     include_terminal_artifact_cli_fallback_route: bool = False,
+    include_terminal_artifact_cli_fallback_entrypoint: bool = False,
     include_shell_ui_contract: bool = False,
 ) -> str:
     """Return a stable fingerprint for the current contract manifest."""
 
     manifest = _build_a2ui_contract_manifest(
         include_terminal_artifact_cli_fallback_route=include_terminal_artifact_cli_fallback_route,
+        include_terminal_artifact_cli_fallback_entrypoint=include_terminal_artifact_cli_fallback_entrypoint,
         include_shell_ui_contract=include_shell_ui_contract,
     )
     return _fingerprint_manifest_section(manifest)
