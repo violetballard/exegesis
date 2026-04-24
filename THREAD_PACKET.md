@@ -64,8 +64,8 @@
 - traceability:
   - reviewed implementation slice: `src/qual/commands/catalog.py` and `tests/unit/test_commands_catalog.py`
   - implementation commit pinned by the reviewer packet: `f8d860ed9f6299f0169c4f21321ac5f37c949fd3`
-  - packet refresh commit called out in the reviewer packet as metadata-only: `3cb7da7865dd9c926f6387cc75ad556d7b833441`
   - current packet refresh files: `THREAD_PACKET.md` and `handoff_packets/feat-commands.md`
+  - packet reissue purpose: this fixer refresh is metadata-only and exists to satisfy the review request for an explicit canonical demo-path step statement plus a narrowed `Canonical engine contract` / CLI-compatibility mapping
   - gate rerun verification for this handoff pass was repeated before the metadata refresh commit in this turn
 - risks/blockers:
   - risk: future command-surface edits still need to preserve deterministic ordering and fast-fail parser/catalog drift detection so the patch-review CLI contract stays stable throughout the current manual operator flow
@@ -84,7 +84,7 @@
 - traceability note:
   - reviewed implementation approval stays pinned to `src/qual/commands/catalog.py` and `tests/unit/test_commands_catalog.py`
   - implementation commit `f8d860ed9f6299f0169c4f21321ac5f37c949fd3` is the reviewed command-catalog slice
-  - packet refresh commit `3cb7da7865dd9c926f6387cc75ad556d7b833441` is metadata-only per the reviewer packet
+  - this fixer-turn packet refresh is metadata-only and exists only to reissue the narrowed handoff packet requested in review
   - packet metadata files `THREAD_PACKET.md` and `handoff_packets/feat-commands.md` were refreshed in earlier docs-only commits on this branch and are regenerated here to keep the written handoff aligned with that history
 - scope/ownership note:
   - lane-owned implementation path: `src/qual/commands/catalog.py`
