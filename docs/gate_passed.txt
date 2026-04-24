@@ -28,6 +28,10 @@ Read-only packet artifacts blocked in this sandbox:
 * `.codex/kickoff_packets/feat-retrieval-fts.md`
 * `.codex/lane_meta/feat-retrieval-fts.json`
 
+Re-review authority note:
+
+* Use `THREAD_PACKET.md` and this gate summary as the reviewer-facing source of truth for the narrowed range, canonical demo-path mapping, and checkpoint evidence in this sandbox.
+
 AGENTS checkpoint evidence:
 
 * `plan complete` - the high-risk kickoff was locked to the narrowed reviewed implementation range `378cf9a74a3658058079a32f186fcd254c4a4034..adfa8cdadd43747ffbcb612e4151e262b13e52ca` and the canonical demo-path step `retrieve relevant material`.

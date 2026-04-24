@@ -7,6 +7,7 @@
 - Reviewed implementation range: `378cf9a74a3658058079a32f186fcd254c4a4034..adfa8cdadd43747ffbcb612e4151e262b13e52ca`
 - Reviewed implementation files: `src/qual/retrieval/service.py`, `tests/unit/test_unified_retrieval.py`
 - Packet/supporting files refreshed in this fixer pass: `THREAD_PACKET.md`, `docs/gate_passed.txt`
+- Re-review authority note: in this sandbox, use `THREAD_PACKET.md` and `docs/gate_passed.txt` as the reviewer-facing source of truth because the mirrored `.codex` packet artifacts are read-only.
 - Canonical demo-path step advanced: `retrieve relevant material`
 - Demo-path sentence: this reviewed slice makes `retrieve relevant material` more real by keeping retrieval/search FTS-first and forcing public excerpt lookup through the authoritative FTS-backed path.
 - Milestone mapping: `Milestone 3: Real workflow loop`
