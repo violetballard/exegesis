@@ -14,13 +14,14 @@
 - Final verification note: this metadata-only fixer pass on `2026-04-24` revalidated the reviewer-requested demo-path mapping, aligned the packet wording to the already-landed full parser-surface guardrail, and reran the full required gate set from the current branch tip without changing the reviewed implementation files.
 - Gate rerun confirmation: `make scope-check`, `./quality-format.sh --check`, `./quality-lint.sh`, `./quality-test.sh`, `./typecheck-test.sh`, and `make ci` all passed again from the current branch tip in this metadata-only fixer handoff.
 
-## Tasks Completed
+## Tasks completed (numbered)
 1. Hardened `command_cli_contract()` so it validates the full grouped parser-surface projection against the canonical catalog instead of trusting derived canonical-name order alone.
 2. Preserved deterministic CLI contract ordering by rebuilding grouped entrypoints from the public contract and rejecting alias-level or ordering drift that would otherwise keep canonical names stable.
 3. Added focused regression coverage in `tests/unit/test_commands_catalog.py` for parser/catalog drift rejection, including alias-level drift that preserves canonical command names.
 
 ## Packet Refresh Notes
 - This handoff now names the exact canonical demo-path step advanced, locks the CLI/Textual wording to the reviewer-requested phrasing, states why the work is migration-safe compatibility hardening for the existing catalog instead of second-order cleanup, makes the alias-level parser-surface-drift scope explicit even when canonical names stay stable, and keeps the approval basis pinned to reviewed commit `f8d860ed9f6299f0169c4f21321ac5f37c949fd3` plus its two implementation files only.
+- Packet regeneration and metadata refresh remain here for traceability and are intentionally excluded from the numbered implementation task list above.
 
 ## Files Changed
 - `src/qual/commands/catalog.py`
