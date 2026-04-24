@@ -124,6 +124,26 @@ class UnifiedRetrievalTests(unittest.TestCase):
         self.assertEqual(direct.diagnostics["retrieval_backend"], "sqlite_fts")
         self.assertEqual(direct.diagnostics["retrieval_mode"], "fts_first")
 
+    def test_retrieval_hits_mirror_normalized_query_text_for_auditability(self) -> None:
+        result = self.service.retrieve_auto(
+            RetrievalQuery(
+                query_text="  Memo   Coding Comparison  ",
+                scope="vault",
+                intent="compare",
+                constraints=RetrievalConstraints(max_results=5, section_hint="coding"),
+                confidentiality_profile="confidential",
+            )
+        )
+
+        payload = result.to_downstream_payload()
+        excerpt_hit = payload["excerpt_hits"][0]
+        doc_hit = payload["doc_hits"][0]
+
+        self.assertEqual(excerpt_hit["query_text"], "memo coding comparison")
+        self.assertEqual(excerpt_hit["provenance"]["query_text"], "memo coding comparison")
+        self.assertEqual(doc_hit["query_text"], "memo coding comparison")
+        self.assertEqual(doc_hit["provenance"]["query_text"], "memo coding comparison")
+
     def test_retrieve_auto_emits_stable_query_fingerprint(self) -> None:
         query = RetrievalQuery(
             query_text="discussion theory",
@@ -4212,6 +4232,39 @@ class UnifiedRetrievalTests(unittest.TestCase):
         )
 
         self.assertEqual(payload["basket_promotion"], result.to_downstream_payload()["basket_promotion"])
+
+    def test_retrieval_downstream_payload_helper_backfills_hit_query_text_from_provenance(self) -> None:
+        result = self.service.retrieve_auto(
+            RetrievalQuery(
+                query_text="  Memo   Coding Comparison  ",
+                scope="vault",
+                intent="compare",
+                constraints=RetrievalConstraints(max_results=5, section_hint="coding"),
+                confidentiality_profile="confidential",
+            )
+        )
+
+        sparse_source_bundle = result.source_bundle()
+        excerpt_hit = sparse_source_bundle["excerpt_hits"][0]
+        doc_hit = sparse_source_bundle["doc_hits"][0]
+        excerpt_hit.pop("query_text", None)
+        doc_hit.pop("query_text", None)
+
+        class _SourceBundleOnlySource:
+            def __init__(self, payload: dict[str, object]) -> None:
+                self._payload = payload
+
+            def source_bundle(self) -> dict[str, object]:
+                return self._payload
+
+        payload = build_retrieval_downstream_payload_from_result(
+            _SourceBundleOnlySource(sparse_source_bundle)
+        )
+
+        self.assertEqual(payload["excerpt_hits"][0]["query_text"], "memo coding comparison")
+        self.assertEqual(payload["excerpt_hits"][0]["provenance"]["query_text"], "memo coding comparison")
+        self.assertEqual(payload["doc_hits"][0]["query_text"], "memo coding comparison")
+        self.assertEqual(payload["doc_hits"][0]["provenance"]["query_text"], "memo coding comparison")
 
     def test_basket_promotion_snapshot_carries_query_context_for_promotion(self) -> None:
         result = self.service.retrieve_auto(

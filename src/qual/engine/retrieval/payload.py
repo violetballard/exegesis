@@ -581,6 +581,11 @@ def _normalize_hit_shared_provenance_snapshot(provenance: object) -> dict[str, o
         return {}
     normalized = copy.deepcopy(provenance)
     query_snapshot = _normalize_query_snapshot(normalized.get("query", {}))
+    query_text = _normalize_query_text(normalized.get("query_text"))
+    if query_text is None:
+        query_text = _normalize_query_text(query_snapshot.get("query_text"))
+    if query_text is not None:
+        normalized["query_text"] = query_text
     query_fingerprint = _normalize_optional_text(normalized.get("query_fingerprint"))
     if query_fingerprint is None:
         query_fingerprint = _query_fingerprint_from_snapshot(query_snapshot)
@@ -828,6 +833,9 @@ def _normalize_excerpt_hit_snapshot(hit: object) -> dict[str, object] | None:
     if not isinstance(hit, dict):
         return None
     normalized = copy.deepcopy(hit)
+    query_text = _normalize_query_text(normalized.get("query_text"))
+    if query_text is not None:
+        normalized["query_text"] = query_text
     for field_name in (
         "doc_id",
         "excerpt_id",
@@ -931,6 +939,7 @@ def _normalize_excerpt_hit_snapshot(hit: object) -> dict[str, object] | None:
     normalized_provenance = _normalize_excerpt_hit_provenance_snapshot(provenance) if isinstance(provenance, dict) else {}
     fallback_provenance = _normalize_excerpt_hit_provenance_snapshot(
         {
+            "query_text": normalized.get("query_text"),
             "query_fingerprint": normalized.get("query_fingerprint"),
             "query_scope": normalized.get("query_scope"),
             "query_intent": normalized.get("query_intent"),
@@ -987,6 +996,9 @@ def _normalize_doc_hit_snapshot(hit: object) -> dict[str, object] | None:
     if not isinstance(hit, dict):
         return None
     normalized = copy.deepcopy(hit)
+    query_text = _normalize_query_text(normalized.get("query_text"))
+    if query_text is not None:
+        normalized["query_text"] = query_text
     for field_name in (
         "doc_id",
         "title_hint",
@@ -1104,6 +1116,7 @@ def _normalize_doc_hit_snapshot(hit: object) -> dict[str, object] | None:
     normalized_provenance = _normalize_doc_hit_provenance_snapshot(provenance) if isinstance(provenance, dict) else {}
     fallback_provenance = _normalize_doc_hit_provenance_snapshot(
         {
+            "query_text": normalized.get("query_text"),
             "query_fingerprint": normalized.get("query_fingerprint"),
             "query_scope": normalized.get("query_scope"),
             "query_intent": normalized.get("query_intent"),

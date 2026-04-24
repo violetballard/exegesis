@@ -696,6 +696,9 @@ class RetrievalHit:
             "node_path": copy.deepcopy(self.node_path),
             "provenance": copy.deepcopy(self.provenance),
         }
+        query_text = _normalize_query_text_payload(self.provenance.get("query_text"))
+        if query_text is not None:
+            payload["query_text"] = query_text
         query_fingerprint = self.provenance.get("query_fingerprint")
         if isinstance(query_fingerprint, str) and query_fingerprint:
             payload["query_fingerprint"] = query_fingerprint
@@ -822,6 +825,9 @@ class RetrievalDocHit:
             "excerpt_count": self.excerpt_count,
             "provenance": copy.deepcopy(self.provenance),
         }
+        query_text = _normalize_query_text_payload(self.provenance.get("query_text"))
+        if query_text is not None:
+            payload["query_text"] = query_text
         query_fingerprint = self.provenance.get("query_fingerprint")
         if isinstance(query_fingerprint, str) and query_fingerprint:
             payload["query_fingerprint"] = query_fingerprint
@@ -2373,6 +2379,7 @@ class RetrievalService:
                 rank=rank,
                 fts_rank=float(row["fts_rank"]),
                 section_hint=query.constraints.section_hint,
+                query_text=query.query_text,
                 section_hint_rank=int(row["section_hint_rank"]) if section_hint is not None else None,
                 query_scope=query.scope,
                 query_intent=query.intent,
@@ -2531,6 +2538,7 @@ class RetrievalService:
                         "excerpt_count": len(doc_hit_list),
                         "source_strategy": primary_strategy_id(),
                         "retrieval_mode": cast(str, retrieval_policy["retrieval_mode"]),
+                        "query_text": RetrievalService._normalized_query_text(query.query_text),
                         "query_scope": query.scope,
                         "query_intent": query.intent,
                         "query_confidentiality_profile": query.confidentiality_profile,
@@ -3229,6 +3237,7 @@ class RetrievalService:
         rank: int | None = None,
         fts_rank: float | None = None,
         section_hint: str | None = None,
+        query_text: str | None = None,
         section_hint_rank: int | None = None,
         query_scope: str | None = None,
         query_intent: str | None = None,
@@ -3270,6 +3279,8 @@ class RetrievalService:
             "retrieval_policy": self._retrieval_policy.as_snapshot(),
             "doc_identity_fingerprint": doc_identity_fingerprint,
         }
+        if query_text is not None:
+            provenance["query_text"] = RetrievalService._normalized_query_text(query_text)
         if query_scope is not None:
             provenance["query_scope"] = query_scope
         if query_intent is not None:
