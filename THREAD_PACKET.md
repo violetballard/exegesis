@@ -3,11 +3,10 @@
 - Lane: `feat-commands`
 - Branch: `codex/feat-commands`
 - Commit: `bd118a6c34ac5c2f42c8df62f364895474f9f7a7`
-- Packet refresh role: `reviewer-fix final verification refresh`
-- Packet refresh basis: `regenerated on 2026-04-24 for final re-review verification after rerunning the required gates on the existing parser-surface fix, keeping the explicit canonical demo-path mapping for patch-review, and leaving the reviewed implementation scope unchanged`
-- Post-fixer verification: `2026-04-24 UTC gate rerun confirmed the packet still matches the branch state during this final verification refresh; no implementation files changed in this packet-only refresh`
+- Packet refresh role: `final fixer verification refresh`
+- Packet refresh basis: `regenerated on 2026-04-23 after rerunning the required gates on the current branch tip to confirm the existing parser-surface fix and explicit patch-review demo-path mapping still match the auditable branch state`
+- Post-fixer verification: `2026-04-23 local gate rerun confirmed the packet still matches the branch state during this final verification refresh; no implementation files changed in this packet-only refresh`
 - Packet-only refresh files:
-  - `THREAD.md`
   - `THREAD_PACKET.md`
 
 ## Thread Kickoff (High-Risk)
@@ -109,7 +108,7 @@
 - `./quality-test.sh`: `PASSED`
 - `./typecheck-test.sh`: `PASSED`
 - `make ci`: `PASSED`
-- Gate attribution note: these gates were rerun on 2026-04-24 against the packet-refresh workspace state whose only changed files above `bd118a6c34ac5c2f42c8df62f364895474f9f7a7` are `THREAD.md` and `THREAD_PACKET.md`.
+- Gate attribution note: these gates were rerun on 2026-04-23 against the packet-refresh workspace state whose only changed file above `bd118a6c34ac5c2f42c8df62f364895474f9f7a7` is `THREAD_PACKET.md`.
 
 ### Risks / Blockers
 
