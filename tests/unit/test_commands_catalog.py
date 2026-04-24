@@ -610,6 +610,31 @@ class CommandCatalogTests(unittest.TestCase):
             with self.assertRaisesRegex(ValueError, "Command CLI catalog entrypoint projection is inconsistent"):
                 command_catalog.command_cli_contract()
 
+    def test_command_cli_tokens_rejects_parser_surface_drift_after_cache_warm(self) -> None:
+        baseline_tokens = command_catalog.command_cli_contract().tokens
+        parser_surface_without_diff = (
+            ("bootstrap", ("bootstrap",)),
+            ("diff-preview", ("diff-preview",)),
+            ("context-basket", ("context-basket",)),
+            ("terminal", ("terminal",)),
+        )
+
+        command_catalog.command_cli_tokens.cache_clear()
+        command_catalog.command_cli_contract.cache_clear()
+        with patch.object(
+            command_catalog,
+            "_CLI_ENTRYPOINTS",
+            parser_surface_without_diff,
+        ):
+            parser_tokens = tuple(
+                token
+                for _, entrypoints in command_catalog._CLI_ENTRYPOINTS
+                for token in entrypoints
+            )
+            self.assertNotEqual(parser_tokens, baseline_tokens)
+            with self.assertRaisesRegex(ValueError, "Command CLI catalog entrypoint projection is inconsistent"):
+                command_cli_tokens()
+
     def test_command_cli_contract_rejects_normalized_alias_substitution_drift(self) -> None:
         command_catalog.command_cli_contract.cache_clear()
         with patch.object(
