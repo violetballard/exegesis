@@ -3188,8 +3188,8 @@ def _validate_terminal_artifact_payload_kind(artifact: Any, kind: str) -> None:
 
 
 def _validate_terminal_artifact_card_payload(artifact: Any) -> None:
-    if _is_explicit_terminal_artifact_leaf(artifact):
-        return
+    if _is_explicit_terminal_artifact_leaf_mapping(artifact):
+        raise ValueError("TerminalArtifact card artifact must not use action or selection payload shape")
     inferred_kind = _normalize_terminal_artifact_kind(artifact, kind=None)
     if inferred_kind in {"action", "selection"}:
         raise ValueError("TerminalArtifact card artifact must not use action or selection payload shape")

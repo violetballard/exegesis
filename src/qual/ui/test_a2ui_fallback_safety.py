@@ -7588,6 +7588,31 @@ class A2UIFallbackSafetyTests(unittest.TestCase):
         self.assertNotIn("[TerminalArtifact] <invalid artifact>", rendered_text)
         self.assertEqual(cli_fallback_text, rendered_text)
 
+    def test_terminal_artifact_payload_normalizer_rejects_typed_leaf_mappings_when_card_kind_is_explicit(
+        self,
+    ) -> None:
+        with self.assertRaises(ValueError):
+            normalize_terminal_artifact_payload(
+                {
+                    "type": "ActionRef",
+                    "id": " export_document ",
+                    "label": " Export ",
+                    "payload": {"format": "md"},
+                },
+                kind="card",
+            )
+
+        with self.assertRaises(ValueError):
+            normalize_terminal_artifact_payload(
+                {
+                    "type": "SelectionRef",
+                    "id": " choice-1 ",
+                    "label": " Choice ",
+                    "payload": {"nested": {"items": [1, 2]}},
+                },
+                kind="card",
+            )
+
     def test_terminal_artifact_payload_normalizer_rejects_action_or_selection_payloads_when_card_kind_is_explicit(self) -> None:
         with self.assertRaises(ValueError):
             normalize_terminal_artifact_payload(
