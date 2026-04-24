@@ -42,7 +42,7 @@
 ### Handoff Packet
 
 - branch name: `codex/feat-commands`
-- tasks completed (numbered):
+- tasks completed (numbered implementation work only; metadata-only packet refreshes excluded):
   1. Hardened `command_cli_contract()` so it validates the full grouped parser-surface projection against the canonical catalog instead of trusting derived canonical-name order alone.
   2. Preserved deterministic patch-review CLI entrypoint ordering by rebuilding grouped entrypoints from the public contract and rejecting alias-level or ordering drift that would otherwise keep canonical names stable.
   3. Added focused regression coverage in `tests/unit/test_commands_catalog.py` for parser/catalog drift rejection, including alias-level drift that preserves canonical command names and direct mutation of the live CLI parser entrypoint constant.
