@@ -340,6 +340,18 @@ def _normalize_query_doc_types_payload(value: object) -> list[str] | None:
     return sorted(normalized)
 
 
+def _query_constraint_value_present(value: object) -> bool:
+    if value is None:
+        return False
+    if isinstance(value, str):
+        return bool(value.strip())
+    if isinstance(value, dict):
+        return bool(value)
+    if isinstance(value, (list, tuple, set, frozenset)):
+        return bool(value)
+    return True
+
+
 def _basket_promotion_query_constraint_snapshot(query: RetrievalQuery) -> dict[str, object]:
     """Return the normalized retrieval constraints carried with basket promotion."""
 
@@ -3747,7 +3759,10 @@ class RetrievalService:
             merged_query_constraints_payload = copy.deepcopy(query_constraints_payload)
             for candidate in top_level_query_constraint_payloads:
                 for key, value in candidate.items():
-                    if key not in merged_query_constraints_payload:
+                    if (
+                        key not in merged_query_constraints_payload
+                        or not _query_constraint_value_present(merged_query_constraints_payload.get(key))
+                    ):
                         merged_query_constraints_payload[key] = copy.deepcopy(value)
             query_text_raw = _first_query_value(
                 query_payload.get("query_text"),
