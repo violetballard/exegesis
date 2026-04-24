@@ -12,19 +12,20 @@
 
 ## Scope Goal
 
-- Regenerate the reviewer-facing handoff metadata so the branch-tip lineage, metadata-only refresh files, and Milestone 3 demo-path mapping are truthful.
+- Regenerate the writable reviewer-facing handoff metadata so the branch-tip lineage, metadata-only refresh files, and Milestone 3 demo-path mapping are truthful, while recording the blocked `.codex` packet mirrors.
 
 ## Scope Completed
 
 - The reviewed implementation keeps SQLite FTS authoritative for MVP retrieval while `fetch_excerpt` stays on the canonical FTS-only path in `src/qual/retrieval/service.py`.
 - Approved shared regression coverage in `tests/unit/test_unified_retrieval.py` proves that PageIndex-only excerpt IDs fail closed with `KeyError`.
 - The packet now truthfully absorbs the runtime-bearing `0a222d08310c907b67e6ce9d1585d55cd00d88aa` service change into the reviewed implementation head and leaves only metadata-only packet refreshes after that point.
+- The `.codex` kickoff and lane-metadata mirrors remain stale only because writes to those paths fail in this sandbox with `PermissionError: [Errno 1] Operation not permitted`.
 
 ## Thread Kickoff (High-Risk)
 
 - Branch: `codex/feat-retrieval-fts`
 - Lane/owned paths: `src/qual/retrieval/**`, `src/qual/engine/retrieval/**`, `engine/src/exegesis_engine/retrieval/**`
-- Scope goal: correct the reviewer-facing metadata so it truthfully describes the reviewed retrieval implementation slice, the packet-refresh lineage, and the Milestone 3 retrieval-step mapping.
+- Scope goal: correct the writable reviewer-facing metadata so it truthfully describes the reviewed retrieval implementation slice, the packet-refresh lineage, and the Milestone 3 retrieval-step mapping, and explicitly note the blocked `.codex` mirrors.
 - Risk reason: this lane includes approved shared regression coverage in `tests/unit/test_unified_retrieval.py`, so the handoff stays on the AGENTS high-risk/shared 4-task basis.
 
 ### Budget
@@ -37,7 +38,7 @@
 ### Planned Tasks (max 4)
 
 1. Re-anchor the reviewed implementation head so every runtime-bearing commit after `adfa8cd...` is either absorbed into the reviewed range or excluded as metadata-only.
-2. Restamp every reviewer-facing packet surface with the same packet trace anchor, metadata-only file list, and shared/high-risk budget basis.
+2. Restamp every writable reviewer-facing packet surface with the same packet trace anchor, metadata-only file list, and shared/high-risk budget basis, and record any blocked mirrors.
 3. State explicitly that this work advances the canonical demo-path step `retrieve relevant material` in Milestone 3.
 4. Re-run the required local gates and record the refreshed metadata-only verification state.
 
@@ -72,7 +73,7 @@
 ## Tasks Completed
 
 1. Moved the reviewed implementation head forward to `0a222d08310c907b67e6ce9d1585d55cd00d88aa` so the branch-tip lineage is truthful about the last runtime retrieval change.
-2. Restamped the writable packet surfaces with one consistent metadata-only refresh anchor `67cf9ec372b66c7e332efa310f8820f8f2824e61` and one consistent writable file set for this fixer pass.
+2. Restamped the writable packet surfaces with one consistent metadata-only refresh anchor `67cf9ec372b66c7e332efa310f8820f8f2824e61`, one consistent metadata-only file set for this fixer pass, and an explicit note that the `.codex` mirrors are blocked.
 3. Added the explicit canonical demo-path mapping for `retrieve relevant material`, tied to deterministic FTS-only excerpt provenance and the Milestone 3 provenance-contract step.
 4. Re-ran the required local gates on the metadata-only packet refresh state.
 
@@ -99,10 +100,10 @@
 - `THREAD_PACKET.md`
 - `docs/gate_passed.txt`
 
-### Blocked metadata-only packet refresh files
+### Blocked packet mirrors
 
-- `.codex/kickoff_packets/feat-retrieval-fts.md`
-- `.codex/lane_meta/feat-retrieval-fts.json`
+- `.codex/kickoff_packets/feat-retrieval-fts.md` (write blocked by `PermissionError: [Errno 1] Operation not permitted`)
+- `.codex/lane_meta/feat-retrieval-fts.json` (write blocked by `PermissionError: [Errno 1] Operation not permitted`)
 
 ### Prior metadata-only refresh before this fixer commit
 
@@ -121,18 +122,18 @@
 ## Reviewer Fix Closure
 
 1. The packet now tells a truthful branch-tip lineage: the last runtime retrieval change is included in the reviewed implementation head `0a222d08310c907b67e6ce9d1585d55cd00d88aa`, and later commits are metadata-only packet refreshes.
-2. The writable packet traceability fields now match reality for both packet refresh commits and file lists.
+2. The packet traceability fields now match reality for the writable packet refresh commits and file lists, and they explicitly call out the blocked `.codex` mirrors instead of implying those files were refreshed.
 3. The handoff now includes the explicit canonical demo-path statement naming `retrieve relevant material` and tying it to deterministic FTS-only excerpt provenance.
-4. The remaining `.codex` packet refresh is blocked by `Operation not permitted`, so the authoritative kickoff/lane-meta files still need the same restamp once those paths are writable.
+4. The visible thread packet and gate summary now point at the same reviewed implementation head and metadata-only packet-refresh lineage, while the stale `.codex` mirrors are called out as blocked.
 
 ## Risks / Blockers
 
 - Risk: `HIGH`
-- Blockers: cannot write `.codex/kickoff_packets/feat-retrieval-fts.md` or `.codex/lane_meta/feat-retrieval-fts.json` because the filesystem rejects writes there with `Operation not permitted`.
+- Blockers: cannot write `.codex/kickoff_packets/feat-retrieval-fts.md` or `.codex/lane_meta/feat-retrieval-fts.json` because writes under `.codex/` fail with `PermissionError: [Errno 1] Operation not permitted`.
 
 ## Ready For Handoff
 
-- Status: not ready for re-review until the blocked `.codex` packet files are restamped to the same reviewed implementation head and packet trace anchor.
+- Status: packet-ready on the writable handoff surfaces; `.codex` mirror refresh remains blocked by sandbox permissions
 
 ## Required Handoff Fields
 
