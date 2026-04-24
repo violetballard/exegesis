@@ -33,3 +33,8 @@ Traceability statement: this fixer commit is metadata-only; re-review should val
 Packet artifact note: the authoritative re-review artifacts are `THREAD_PACKET.md` and this gate summary. The tracked `.codex/*` packet mirrors remain stale because this worktree rejects writes to those paths with `operation not permitted`.
 
 The authoritative handoff packet remains `THREAD_PACKET.md`.
+
+Validation refresh:
+
+* reran the full required gate suite on 2026-04-24 after the reviewer-required canonical demo-path alignment check
+* confirmed the packet remains metadata-only and the reviewed implementation range stays `378cf9a74a3658058079a32f186fcd254c4a4034..416d3293d064b6e7fb05a7e8997d91bddbef443f`

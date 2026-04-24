@@ -105,6 +105,11 @@
 - `./typecheck-test.sh`: `PASS`
 - `make ci`: `PASS`
 
+## Validation Refresh Note
+
+- Re-ran the full required gate suite on `2026-04-24` after the reviewer-requested demo-path alignment check.
+- Confirmed this packet remains metadata-only and keeps the reviewed implementation range anchored to `378cf9a74a3658058079a32f186fcd254c4a4034..416d3293d064b6e7fb05a7e8997d91bddbef443f`.
+
 ## Reviewer Fix Closure
 
 1. The packet now includes the real substantive history after `adfa8cda`, including `2a136e56`, `18f0ab09`, `7fb9b3cb`, and `416d3293`.
