@@ -2,7 +2,7 @@
 
 - Branch name: `codex/feat-retrieval-fts`
 - Packet role: `actual-branch-tip handoff with metadata-only refresh`
-- Current branch tip before this packet refresh commit: `c8df93427a6974883518f7857b015fb7424795ce`
+- Current branch tip before this packet refresh commit: `94a1fb6bd179b275992e02fd7be8938f4ff8fa1b`
 - Reviewed implementation head: `c8df93427a6974883518f7857b015fb7424795ce`
 - Reviewed implementation range: `d7fd5d200358287fa42a18d39e2b277463b9b69f..c8df93427a6974883518f7857b015fb7424795ce`
 - Canonical demo-path step advanced: `retrieve relevant material`
@@ -10,7 +10,7 @@
 
 ## Scope Goal
 
-- Regenerate the handoff packet against the actual branch-tip implementation, include the post-`adfa8cda` retrieval changes in scope, and rerun the required gates for the exact handoff content.
+- Regenerate the handoff packet against the actual reviewed implementation, keep the current branch-tip metadata refresh explicit, include the post-`adfa8cda` retrieval changes in scope, and rerun the required gates for the exact handoff content.
 
 ## Thread Kickoff (High-Risk)
 
