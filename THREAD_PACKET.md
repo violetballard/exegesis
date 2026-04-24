@@ -61,7 +61,7 @@
 ## Canonical demo-path step advanced
 
 - `retrieve relevant material`
-- This change makes excerpt lookup deterministic on the FTS-first retrieval path by failing closed on non-FTS excerpt IDs.
+- This work makes the `retrieve relevant material` step more real by forcing excerpt resolution through the canonical FTS path and failing closed on PageIndex-only excerpt IDs.
 - Basket-promotion readiness is downstream support only here, not new implemented behavior proven by this reviewed slice.
 
 ## Kickoff budget/limits compliance
@@ -121,7 +121,7 @@
 ### Canonical demo-path step advanced
 
 - `retrieve relevant material`
-- This change makes excerpt lookup deterministic on the FTS-first retrieval path by failing closed on non-FTS excerpt IDs.
+- This work makes the `retrieve relevant material` step more real by forcing excerpt resolution through the canonical FTS path and failing closed on PageIndex-only excerpt IDs.
 
 ### Routing/provider impact note
 
