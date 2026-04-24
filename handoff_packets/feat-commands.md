@@ -58,7 +58,7 @@
 - `ROADMAP.md` lane mapping for `feat-commands`: this slice hardens migration-safe CLI entrypoints only and does not claim broader workflow reachability.
 
 ## Vision Capability Affected
-- `PRODUCT_VISION.md` capability 4 `Operator-first control surface` because the existing CLI surface now rejects parser/catalog drift before it can silently change the command contract the operator relies on while Textual remains disabled.
+- `PRODUCT_VISION.md` capability 3 `Canonical engine contract` because the existing CLI surface now rejects parser/catalog drift before it can silently change the engine-facing command contract that must remain stable while Textual remains disabled.
 
 ## Routing / Provider Impact Note
 - None. This change does not touch routing or provider configuration.
