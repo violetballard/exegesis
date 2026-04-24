@@ -18,6 +18,7 @@
 - Latest implementation evidence note: after the reviewer-fixer prompt was reloaded against the live worktree on `2026-04-24`, the packet was checked again and the same demo-path mapping plus explicit high-risk rationale remained intact while the live parser-constant regression remained part of the evidence set.
 - Current fixer pass note: this follow-up pass is metadata-only; it rechecked the live `src/qual/commands/catalog.py` and `tests/unit/test_commands_catalog.py` state, verified that the reviewer-requested parser-surface guardrail was already present, and refreshed the packet language to match that shipped scope exactly before another required-gates rerun.
 - Gate rerun confirmation: `make scope-check`, `./quality-format.sh --check`, `./quality-lint.sh`, `./quality-test.sh`, `./typecheck-test.sh`, and `make ci` were rerun in this packet-refresh pass.
+- Current resubmission note: this pass is metadata-only; it regenerates the handoff packet on top of the already-landed parser-surface implementation so re-review is anchored to refreshed branch metadata and another full gate rerun rather than to the earlier reviewer snapshot.
 
 ## Tasks completed (numbered)
 1. Hardened `command_cli_contract()` so it validates the full grouped parser-surface projection against the canonical catalog instead of trusting derived canonical-name order alone.
@@ -29,6 +30,7 @@
 - Packet regeneration and metadata refresh remain here for traceability and are intentionally excluded from the numbered implementation task list above.
 - This revalidation pass confirmed the packet still satisfies the reviewer-requested demo-path mapping, explicit high-risk rationale, and AGENTS-compliant task framing after a fresh green rerun of the required gates from the current branch tip.
 - This fixer execution re-checked the live worktree, confirmed the parser-surface guardrail plus direct live-parser regression were already present on the branch, and kept this packet aligned to that shipped implementation without widening scope.
+- This resubmission pass keeps the implementation scope unchanged and only refreshes the packet wording so the branch can be re-reviewed against the shipped parser-surface invariant and explicit Milestone 3 demo-path mapping.
 
 ## Files Changed
 - `src/qual/commands/catalog.py`
