@@ -122,6 +122,7 @@ def apply_meta_defaults(meta: Json, missing: List[str]) -> Json:
     if "routing_provider_impact" in missing:
         out["routing_provider_impact"] = "None"
     return out
+
 def resolve_reviewed_head_sha(meta: Json, fallback_sha: str) -> str:
     final_head_sha = str(meta.get("final_head_sha", "")).strip()
     if final_head_sha:
