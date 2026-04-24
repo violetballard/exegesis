@@ -768,6 +768,50 @@ class A2UIFallbackSafetyTests(unittest.TestCase):
         self.assertEqual(manifest["contract_fingerprint"], fingerprint)
         self.assertEqual(len(manifest["contract_fingerprint"]), 64)
 
+    def test_terminal_artifact_cli_fallback_entrypoint_contract_fingerprints_include_self_describing_aliases(
+        self,
+    ) -> None:
+        fingerprints = describe_terminal_artifact_cli_fallback_entrypoint_contract_fingerprints(
+            include_contract_aliases=True,
+        )
+        entrypoint_fingerprint = terminal_artifact_cli_fallback_entrypoint_contract_fingerprint()
+        renderer_entrypoints_fingerprint = terminal_artifact_renderer_entrypoints_contract_fingerprint()
+
+        self.assertEqual(
+            fingerprints["terminal_artifact_cli_fallback_entrypoint"],
+            _fingerprint_manifest_section("render_terminal_cli_fallback"),
+        )
+        self.assertEqual(
+            fingerprints["terminal_artifact_cli_fallback_entrypoint_contract"],
+            entrypoint_fingerprint,
+        )
+        self.assertEqual(
+            fingerprints["terminal_artifact_cli_fallback_entrypoint_contract_fingerprint"],
+            entrypoint_fingerprint,
+        )
+        self.assertEqual(
+            fingerprints["terminal_artifact_cli_fallback_entrypoint_contract_manifest"],
+            entrypoint_fingerprint,
+        )
+        self.assertEqual(
+            fingerprints["terminal_artifact_cli_fallback_entrypoint_contract_manifest_fingerprint"],
+            entrypoint_fingerprint,
+        )
+        self.assertEqual(
+            fingerprints["terminal_artifact_renderer_entrypoints_contract_manifest"],
+            renderer_entrypoints_fingerprint,
+        )
+        self.assertEqual(
+            fingerprints["terminal_artifact_renderer_entrypoints_contract_manifest_fingerprint"],
+            renderer_entrypoints_fingerprint,
+        )
+        self.assertEqual(
+            terminal_artifact_cli_fallback_entrypoint_contract_fingerprints_fingerprint(
+                include_contract_aliases=True,
+            ),
+            _fingerprint_manifest_section(fingerprints),
+        )
+
     def test_a2ui_contract_can_opt_into_terminal_artifact_cli_fallback_entrypoint_contract_slice(self) -> None:
         default_manifest = describe_a2ui_contract()
         default_fingerprints = describe_a2ui_contract_fingerprints()
