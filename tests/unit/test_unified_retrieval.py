@@ -3196,6 +3196,18 @@ class UnifiedRetrievalTests(unittest.TestCase):
         self.assertEqual(replayed.hits, ["fresh-hit"])
         self.assertEqual(runner_hits, [])
 
+    def test_fts_strategy_rejects_text_candidate_doc_ids(self) -> None:
+        strategy = engine_retrieval.FTSStrategy(lambda query, candidate_doc_ids: ["unexpected-hit"])
+
+        with self.assertRaisesRegex(TypeError, "candidate_doc_ids must be an iterable of document IDs, not text"):
+            strategy.retrieve("discussion theory", candidate_doc_ids="doc-a")
+
+    def test_fts_strategy_rejects_mapping_candidate_doc_ids(self) -> None:
+        strategy = engine_retrieval.FTSStrategy(lambda query, candidate_doc_ids: ["unexpected-hit"])
+
+        with self.assertRaisesRegex(TypeError, "candidate_doc_ids must be an iterable of document IDs, not a mapping"):
+            strategy.retrieve("discussion theory", candidate_doc_ids={"doc-a": True})
+
     def test_fts_strategy_normalizes_string_boolean_constraints_in_mapping_queries(self) -> None:
         runner_hits = [["fresh-hit"]]
         strategy = engine_retrieval.FTSStrategy(lambda query, candidate_doc_ids: list(runner_hits.pop(0)))

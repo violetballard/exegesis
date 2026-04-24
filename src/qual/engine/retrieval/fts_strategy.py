@@ -127,6 +127,10 @@ class FTSStrategy:
 
     @staticmethod
     def _normalize_candidate_doc_ids(candidate_doc_ids: tuple[str, ...]) -> tuple[str, ...]:
+        if isinstance(candidate_doc_ids, (str, bytes, bytearray)):
+            raise TypeError("candidate_doc_ids must be an iterable of document IDs, not text")
+        if isinstance(candidate_doc_ids, Mapping):
+            raise TypeError("candidate_doc_ids must be an iterable of document IDs, not a mapping")
         normalized: set[str] = set()
         for doc_id in candidate_doc_ids:
             text = str(doc_id).strip()
