@@ -5,7 +5,7 @@
 - Commit: `f8d860ed9f6299f0169c4f21321ac5f37c949fd3`
 - Packet refresh role: `fixer reviewer packet correction`
 - Packet refresh basis: `realigned the handoff to the actual reviewed implementation slice after the reviewer flagged inconsistent traceability, stale roadmap or vision mapping, and a missing explicit patch-step mapping`
-- Post-fixer verification: `2026-04-24T09:34:20Z UTC gate rerun confirmed this packet correction matches the current branch state; the current refresh is metadata-only and keeps the reviewed implementation scope pinned to f8d860ed9f6299f0169c4f21321ac5f37c949fd3`
+- Post-fixer verification: `2026-04-24T09:37:24Z UTC gate rerun confirmed this packet correction matches the current branch state; the current refresh is metadata-only and keeps the reviewed implementation scope pinned to f8d860ed9f6299f0169c4f21321ac5f37c949fd3`
 - Packet-only refresh files:
   - `THREAD.md`
   - `THREAD_PACKET.md`
@@ -15,7 +15,7 @@
 
 - Branch: `codex/feat-commands`
 - Lane/owned paths: `src/qual/commands/**`
-- Scope goal: make the canonical `preview and apply or reject a patch` step more real by keeping the operator-visible command contract locked to the parser/catalog boundary, so deterministic CLI contract validation protects the current CLI fallback that carries the demo flow while Textual remains disabled.
+- Scope goal: make the canonical `preview and apply or reject a patch` step more real by keeping the operator-visible command contract locked to the parser/catalog boundary, so deterministic CLI contract validation protects the current CLI fallback that carries the demo flow while interactive clients stay secondary.
 - Risk reason: the reviewed slice touches the command contract in `src/qual/commands/catalog.py` and a shared-by-approval regression test file.
 
 ### Budget
@@ -80,12 +80,13 @@
 - Canonical demo-path step advanced: `preview and apply or reject a patch`.
 - Required packet statement: this change makes `preview and apply or reject a patch` more real by forcing the command contract to stay catalog-locked and fail closed before the operator reaches the wrong CLI verb set.
 - Concrete blocker removed: canonical command-name drift between the parser lookup table and the declared catalog can no longer pass silently. That removes a concrete CLI-fallback blocker at the operator-visible patch-review step.
+- `AGENTS.md` compliance note: every active lane task in this packet now names the exact canonical demo-path step it advances, and this handoff states the concrete blocker removed at that step.
 - Scope-tightening statement: this slice claims only command-contract hardening for `preview and apply or reject a patch`. Deterministic CLI contract validation preserves the operator-facing command surface needed by the current CLI fallback, and it does not claim new retrieval, persistence, audit-path, export, or broader workflow behavior.
 - Current CLI smoke route context: `open project/document -> retrieve relevant material -> promote or gather context into the basket -> produce a plan or revision -> preview and apply or reject a patch -> persist the updated document/session state -> continue working`.
 - Smoke-test evidence:
   - `tests/unit/test_commands_catalog.py` proves `command_cli_contract()` returns the canonical command order from `command_names()` and fails fast when canonical-name drift is introduced.
   - `tests/unit/test_commands_catalog.py` also proves the command route coverage stays pinned to the smoke route entry for patch review: `("patch-review", "diff-preview", ("diff-preview", "diff"))` in `test_command_cli_route_summary_tracks_the_smoke_route()` and `test_command_cli_route_contract_tracks_the_smoke_surface()`.
-- Plan-alignment note: this slice keeps the explicit patch-step mapping requested by review, while staying aligned to the current roadmap and vision truth sources. `ROADMAP.md` keeps `feat-commands` in the active implementation emphasis, Milestone 1 still includes command and diff-preview hardening, and Milestone 5 requires the CLI fallback to execute the MVP flow against the same engine-facing contracts while UI work stays secondary. This guard removes a concrete blocker by failing fast if patch-review command drift would send the operator through the wrong verb set.
+- Plan-alignment note: this slice keeps the explicit patch-step mapping requested by review, while staying aligned to the current roadmap and vision truth sources. `AGENTS.md` operational narrowing rules require each active lane task to name the canonical demo-path step it advances, `ROADMAP.md` keeps `feat-commands` in the active implementation emphasis, Milestone 1 still includes command and diff-preview hardening, and Milestone 5 requires the CLI fallback to execute the MVP flow against the same engine-facing contracts. This guard removes a concrete blocker by failing fast if patch-review command drift would send the operator through the wrong verb set.
 
 ## Approved Exception Note
 
@@ -124,7 +125,7 @@
 - `./quality-test.sh`: `PASSED`
 - `./typecheck-test.sh`: `PASSED`
 - `make ci`: `PASSED`
-- Gate attribution note: these gates were rerun at `2026-04-24T09:34:20Z UTC` against the current branch state while the reviewed implementation scope remains pinned to `f8d860ed9f6299f0169c4f21321ac5f37c949fd3`; the current packet refresh itself is metadata-only.
+- Gate attribution note: these gates were rerun at `2026-04-24T09:37:24Z UTC` against the current branch state while the reviewed implementation scope remains pinned to `f8d860ed9f6299f0169c4f21321ac5f37c949fd3`; the current packet refresh itself is metadata-only.
 
 ### Risks / Blockers
 
