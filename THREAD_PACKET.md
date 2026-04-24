@@ -5,7 +5,7 @@
 - Commit: `f8d860ed9f6299f0169c4f21321ac5f37c949fd3`
 - Packet refresh role: `fixer reviewer packet correction`
 - Packet refresh basis: `realigned the handoff to the actual reviewed implementation slice after the reviewer flagged inconsistent traceability, overbroad roadmap or vision mapping, and a missing explicit canonical demo-path statement`
-- Post-fixer verification: `2026-04-24T09:05:47Z UTC gate rerun confirmed this packet correction matches the current branch state; the current refresh is metadata-only and keeps the reviewed implementation scope pinned to f8d860ed9f6299f0169c4f21321ac5f37c949fd3`
+- Post-fixer verification: `2026-04-24T09:08:29Z UTC gate rerun confirmed this packet correction matches the current branch state; the current refresh is metadata-only and keeps the reviewed implementation scope pinned to f8d860ed9f6299f0169c4f21321ac5f37c949fd3`
 - Packet-only refresh files:
   - `THREAD.md`
   - `THREAD_PACKET.md`
@@ -90,10 +90,10 @@
 
 ### Tasks Completed (Numbered)
 
-1. Locked the live CLI command contract to the command catalog so canonical-name drift fails closed.
-2. Added focused regression coverage for canonical-order alignment and command-catalog drift rejection in `tests/unit/test_commands_catalog.py`.
-3. Regenerated the handoff packet so the re-review basis points to commit `f8d860ed9f6299f0169c4f21321ac5f37c949fd3`, the roadmap or vision mapping stays narrow, and the canonical demo-path step is stated explicitly.
-4. Re-ran the required gates and recorded the outcomes against the current reviewed implementation scope.
+1. `preview and apply or reject a patch`: locked the live CLI command contract to the command catalog so canonical-name drift fails closed before the operator reaches the patch-review verb set.
+2. `preview and apply or reject a patch`: added focused regression coverage for canonical-order alignment and command-catalog drift rejection in `tests/unit/test_commands_catalog.py` so the patch-review CLI surface stays smoke-testable.
+3. `preview and apply or reject a patch`: regenerated the handoff packet so the re-review basis points to commit `f8d860ed9f6299f0169c4f21321ac5f37c949fd3`, the roadmap or vision mapping stays narrow, and the canonical demo-path step is stated explicitly per reviewer request.
+4. `preview and apply or reject a patch`: re-ran the required gates and recorded the outcomes against the current reviewed implementation scope so the packet stays tied to a verified command-contract slice.
 
 ### Files Changed
 
@@ -111,7 +111,7 @@
 - `./quality-test.sh`: `PASSED`
 - `./typecheck-test.sh`: `PASSED`
 - `make ci`: `PASSED`
-- Gate attribution note: these gates were rerun at `2026-04-24T09:05:47Z UTC` against the current branch state while the reviewed implementation scope remains pinned to `f8d860ed9f6299f0169c4f21321ac5f37c949fd3`; the current packet refresh itself is metadata-only.
+- Gate attribution note: these gates were rerun at `2026-04-24T09:08:29Z UTC` against the current branch state while the reviewed implementation scope remains pinned to `f8d860ed9f6299f0169c4f21321ac5f37c949fd3`; the current packet refresh itself is metadata-only.
 
 ### Risks / Blockers
 

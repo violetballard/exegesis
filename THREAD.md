@@ -12,7 +12,7 @@ Canonical handoff contract lives in `THREAD_PACKET.md`.
 - Current packet refresh traceability:
   - later `docs(commands)` commits update only `THREAD.md`, `THREAD_PACKET.md`, and `handoff_packets/feat-commands.md`
 - Post-fixer verification note:
-- `2026-04-24T09:05:47Z UTC` gate rerun confirmed this packet correction matches the current branch state while the reviewed implementation basis remains pinned to `f8d860ed9f6299f0169c4f21321ac5f37c949fd3`
+- `2026-04-24T09:08:29Z UTC` gate rerun confirmed this packet correction matches the current branch state while the reviewed implementation basis remains pinned to `f8d860ed9f6299f0169c4f21321ac5f37c949fd3`
 - High-risk kickoff context:
   - scope goal: make the canonical `preview and apply or reject a patch` step more real by keeping the operator-visible command contract locked to the parser/catalog boundary during the current engine-first CLI loop while Textual remains disabled
   - risk reason: the reviewed slice touches the command contract in `src/qual/commands/catalog.py` and a shared-by-approval regression test file
@@ -29,6 +29,11 @@ Canonical handoff contract lives in `THREAD_PACKET.md`.
   - `Canonical demo-path step advanced: preview and apply or reject a patch`
 - Explicit re-review statement:
   - this slice advances the canonical `preview and apply or reject a patch` step by keeping the command contract catalog-locked inside the current engine-first Milestone 3 loop so deterministic CLI contract validation preserves the operator-facing command surface while the package/layout migration is in flight
+- Per-task canonical demo-path mapping for re-review:
+  - task 1 `preview and apply or reject a patch`: lock the live CLI command contract to the command catalog so canonical-name drift fails closed before the operator reaches the patch-review verb set
+  - task 2 `preview and apply or reject a patch`: add focused regression coverage proving canonical-order alignment and command-catalog drift rejection for the patch-review CLI surface
+  - task 3 `preview and apply or reject a patch`: regenerate the handoff packet so the re-review basis, roadmap/vision scope, and explicit demo-path mapping stay aligned to the reviewed implementation slice
+  - task 4 `preview and apply or reject a patch`: rerun the required gates and record the outcomes against the same reviewed implementation scope
 - Scope note:
   - this packet advances the patch-review command contract only; deterministic CLI contract validation preserves the operator-facing command surface required by Milestone 3 while the package/layout migration is in flight, and it does not claim new retrieval, patch application, persistence, export, audit-path, or broader UI behavior
 - Current engine-first MVP path statement:
