@@ -7,7 +7,7 @@ Canonical handoff contract lives in `THREAD_PACKET.md`.
 - Lane: `feat-commands`
 - Branch: `codex/feat-commands`
 - Review scope: narrow `feat-commands` CLI-contract hardening in `src/qual/commands/catalog.py`, plus focused regressions in `tests/unit/test_commands_catalog.py`.
-- Canonical demo-path step advanced: Milestone 3 CLI/operator-contract compatibility for the engine-first loop while Textual remains disabled.
+- Canonical demo-path step advanced: the Milestone 3 CLI/operator-contract bridge that keeps the engine-first loop reachable through deterministic, migration-safe entrypoints while Textual remains disabled, specifically `produce a plan or revision` -> `preview and apply or reject a patch`.
 - Concrete canonical mapping: this slice makes the Milestone 3 contract-locking step more real by keeping `project-open/bootstrap -> retrieval -> plan-or-revise -> apply-or-reject -> export-handoff` reachable through deterministic, migration-safe CLI entrypoints, so the engine-first loop does not silently drift before `Exegesis Console` replaces the current operator path.
 - Current MVP loop note: by hard-failing parser/catalog drift inside the existing command catalog, this change preserves the current CLI compatibility surface that operators use to run the engine-first loop end to end while Textual remains disabled.
 - Concrete canonical-path blocker removed: parser/catalog drift can no longer silently change the migration-safe CLI entrypoints that bridge the current operator flow to future console consumption, removing a Milestone 3 contract-risk at the existing review/apply boundary.
