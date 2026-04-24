@@ -2,21 +2,21 @@
 
 - Branch name: `codex/feat-retrieval-fts`
 - Packet role: `feature lane handoff`
-- Current branch tip before handoff commit: `6ed15b42efa484dc7d0db8e3f2c37fdb8a34eb35`
-- Scope goal: keep failed direct excerpt lookup audits schema-aligned with the canonical FTS-first retrieval contract so audit consumers can treat success and failure paths uniformly.
+- Current branch tip before handoff commit: `7372c97fcee7f8a0ab1aea22b25d58bbff0e7eb9`
+- Scope goal: keep the public excerpt lookup surface on the canonical FTS-only path so non-FTS excerpt IDs fail closed and excerpt provenance stays deterministic.
 
 ## Scope Completed
 
-- Kept the retrieval lane FTS-first by hardening `src/qual/retrieval/service.py` only.
-- Expanded failed direct excerpt lookup audits to emit the same top-level metadata shape used by successful excerpt lookup audits, with explicit null or empty placeholders for unavailable fields.
-- Preserved the canonical FTS lookup fingerprint and `strategies_used=["fts"]` semantics while removing schema drift for audit consumers that inspect lookup provenance and basket-promotion-adjacent fields.
-- Verified the change with a targeted Python probe plus the full required local gate suite.
+- Kept the retrieval lane FTS-first by hardening the public `fetch_excerpt` path to resolve through the canonical FTS lookup only.
+- Removed the PageIndex fallback from excerpt lookup so PageIndex-only excerpt IDs now fail closed with `KeyError`.
+- Preserved deterministic excerpt provenance for canonical FTS lookup hits and kept the shared regression surface limited to `tests/unit/test_unified_retrieval.py`.
+- Verified the narrowed fix with the required local gate suite.
 
 ## Thread Kickoff
 
 - Branch: `codex/feat-retrieval-fts`
 - Lane/owned paths: `src/qual/retrieval/**`, `src/qual/engine/retrieval/**`
-- Scope goal: tighten failed excerpt lookup audit metadata without widening retrieval scope beyond the canonical FTS-first lane.
+- Scope goal: remove the non-canonical PageIndex excerpt fallback without widening retrieval scope beyond the canonical FTS-first lane.
 
 ### Budget
 
@@ -28,27 +28,26 @@
 ### Planned Tasks
 
 1. Confirm the current retrieval lane state and run a green baseline test pass.
-2. Identify a retrieval-owned determinism or auditability gap in the direct excerpt lookup path.
-3. Patch the canonical retrieval service inside lane-owned code only.
+2. Confirm the reviewed implementation range and isolate the non-canonical `fetch_excerpt` fallback behavior.
+3. Patch the canonical retrieval service and approved shared regression coverage for the FTS-only excerpt contract.
 4. Re-run the required gates and refresh the writable handoff artifact.
 
 ## Tasks Completed
 
 1. Read the required repo control documents, confirmed the lane stayed in owned retrieval paths, and re-ran the focused retrieval unit baseline.
-2. Confirmed the current head already recorded failed excerpt lookups as FTS attempts, then identified remaining schema drift between success and failure audit payloads in the same lookup path.
-3. Updated `src/qual/retrieval/service.py` so `excerpt_lookup_failed` emits the full aligned top-level audit shape with explicit null or empty placeholders for unavailable lookup context.
-4. Re-ran `./quality-format.sh --check`, `./quality-lint.sh`, `./quality-test.sh`, `./typecheck-test.sh`, and `make ci`, all passing.
+2. Confirmed the reviewed implementation range `378cf9a74a3658058079a32f186fcd254c4a4034..adfa8cdadd43747ffbcb612e4151e262b13e52ca` and isolated the non-canonical PageIndex fallback in `fetch_excerpt`.
+3. Updated `src/qual/retrieval/service.py` and the approved shared regression surface `tests/unit/test_unified_retrieval.py` so excerpt lookup now stays on the canonical FTS-only path and PageIndex-only excerpt IDs fail closed.
+4. Re-ran `make scope-check`, `./quality-format.sh --check`, `./quality-lint.sh`, `./quality-test.sh`, `./typecheck-test.sh`, and `make ci`, all passing.
 
 ## Files Changed
 
 - `src/qual/retrieval/service.py`
+- `tests/unit/test_unified_retrieval.py`
 - `THREAD_PACKET.md`
-- `docs/gate_passed.txt`
 
 ## Commands Run With Results
 
-- `python -m unittest tests.unit.test_unified_retrieval`: `PASS`
-- `python3 - <<'PY' ... service.retrieve_fts_excerpt("missing-excerpt") ... PY`: `PASS`; the recorded `excerpt_lookup_failed` audit event now includes aligned null or empty metadata fields plus `strategies_used=['fts']`
+- `make scope-check`: `PASS`
 - `./quality-format.sh --check`: `PASS`
 - `./quality-lint.sh`: `PASS`
 - `./quality-test.sh`: `PASS`
@@ -57,25 +56,25 @@
 
 ## Risks / Blockers
 
-- Risk: `LOW`
+- Risk: `HIGH`
 - Blockers: `None`
 
 ## Required Handoff Fields
 
 ### Roadmap item(s) affected
 
-- `Milestone 3: Product Readiness`
-- `Milestone 4: Retrieval Layer`
+- `Milestone 3: Real workflow loop`
+- keep retrieval/search FTS-first and structured for the canonical engine loop
 
 ### Vision capability affected
 
 - `Retrieval-first context handling`
-- `Auditable generation`
+- structured, deterministic excerpt provenance suitable for downstream basket promotion
 
 ### Canonical demo-path step advanced
 
 - `retrieve relevant material`
-- failed excerpt lookups now stay schema-aligned with successful FTS excerpt lookups, which reduces audit special-casing for basket promotion and later revise/apply flows when excerpt rehydration fails
+- `fetch_excerpt` now stays on the canonical FTS-only path, so excerpt rehydration for this step is deterministic and non-FTS IDs fail closed instead of silently using PageIndex fallback data
 
 ### Routing/provider impact note
 
@@ -88,4 +87,5 @@
 ## Validation Refresh
 
 - Full required gate suite rerun on `2026-04-24`
-- Net code delta: `1` retrieval-owned file changed, `+30/-0` in `src/qual/retrieval/service.py`
+- Reviewed implementation range for this handoff: `378cf9a74a3658058079a32f186fcd254c4a4034..adfa8cdadd43747ffbcb612e4151e262b13e52ca`
+- Narrowed diff summary: `2` reviewed implementation files changed, `28` insertions and `31` deletions
