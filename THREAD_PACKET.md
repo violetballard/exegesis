@@ -67,8 +67,8 @@
 
 - `plan complete`: the packet was re-scoped to the actual pre-fix branch tip `b31db490a635fe5c7195cb2ce173b09a838ad8ab` and the retrieval demo-path step was made explicit.
 - `before risky/shared file edit`: the shared/high-risk boundary was called out before touching packet files because `tests/unit/test_unified_retrieval.py` remains in the reviewed range.
-- `first green tests`: pending gate rerun on the restamped packet state.
-- `ready for handoff`: pending gate rerun and final fixer commit.
+- `first green tests`: `make scope-check`, `./quality-format.sh --check`, `./quality-lint.sh`, `./quality-test.sh`, `./typecheck-test.sh`, and `make ci` all passed on the restamped packet state.
+- `ready for handoff`: the writable handoff artifacts now agree on the actual pre-fix branch tip, the exact post-adfa ledger, the retrieval demo-path mapping, and the green gate results; the `.codex` mirrors remain blocked by sandbox write restrictions.
 
 ## Exact Post-adfa Commit Accounting
 
@@ -94,12 +94,12 @@
 
 ## Commands Run With Results
 
-- `make scope-check`: `PENDING`
-- `./quality-format.sh --check`: `PENDING`
-- `./quality-lint.sh`: `PENDING`
-- `./quality-test.sh`: `PENDING`
-- `./typecheck-test.sh`: `PENDING`
-- `make ci`: `PENDING`
+- `make scope-check`: `PASS`
+- `./quality-format.sh --check`: `PASS`
+- `./quality-lint.sh`: `PASS`
+- `./quality-test.sh`: `PASS`
+- `./typecheck-test.sh`: `PASS`
+- `make ci`: `PASS`
 
 ## Risks / Blockers
 

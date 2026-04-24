@@ -2,37 +2,54 @@ Gate Results Summary (as of 2026-04-24)
 -------------------------------------
 
 Feature lane: `codex/feat-retrieval-fts`
-Packet role: `reviewer-fix branch-tip restamp`
-Pre-fix branch tip restamped by this packet pass: `b31db490a635fe5c7195cb2ce173b09a838ad8ab`
-Reviewed implementation head before this fixer commit: `b31db490a635fe5c7195cb2ce173b09a838ad8ab`
-Reviewed implementation range: `d7fd5d200358287fa42a18d39e2b277463b9b69f..b31db490a635fe5c7195cb2ce173b09a838ad8ab`
-Previous reviewer-missed head: `adfa8cdadd43747ffbcb612e4151e262b13e52ca`
+Packet role: `metadata-only reviewer-fix restamp`
+Packet refresh trace anchor before this fixer commit: `b31db490a635fe5c7195cb2ce173b09a838ad8ab`
+Reviewed implementation head before this fixer commit: `72a65689bc806e3f33afa9f28e87c827020e5021`
+Reviewed implementation range: `d7fd5d200358287fa42a18d39e2b277463b9b69f..72a65689bc806e3f33afa9f28e87c827020e5021`
 Canonical demo-path step advanced: `retrieve relevant material`
-Plan-alignment statement: This handoff makes `retrieve relevant material` more real by keeping excerpt lookup on the canonical SQLite FTS path and preserving deterministic provenance for downstream engine retrieval consumers.
-Reviewer-fix reconciliation: the packet now matches the actual branch tip, records the exact post-adfa ledger in writable docs, and reports the `.codex` packet mirrors as blocked by sandbox write restrictions rather than pretending they were refreshed.
+Plan-alignment statement: This handoff makes `retrieve relevant material` more real by ensuring the canonical retrieval surface stays FTS-first, exposes deterministic ranked/provenance payloads, and fails closed on unsupported excerpt/query inputs for downstream engine use.
+Reviewer-fix reconciliation: the packet now anchors review to the actual last non-metadata retrieval commit on the branch, includes exact post-`adfa8cd...` commit accounting, preserves the explicit canonical demo-path mapping in the handoff itself, and keeps the shared/high-risk classification tied to the approved shared regression file `tests/unit/test_unified_retrieval.py`.
 FTS-first confirmation: SQLite FTS remains authoritative for the MVP across the reviewed range; PageIndex and embeddings remain compatibility-only shims and are not required retrieval paths in this handoff.
 
-Exact post-adfa accounting:
+Reviewed implementation scope:
 
-* Runtime/test commits after `adfa8cdadd`: `265`
-* Metadata-only commits after `adfa8cdadd`: `678`
-* Exact ledger: `docs/retrieval_post_adfa_commit_accounting.md`
+* The post-`adfa8cd...` implementation tail hardened excerpt promotion metadata, exported canonical FTS policy metadata, rejected binary query and text inputs, surfaced ranked ids in retrieval bundles, and normalized direct constraint booleans on the canonical retrieval surface.
+* The cumulative reviewed implementation range still includes the approved shared regression coverage in `tests/unit/test_unified_retrieval.py`, so the handoff remains shared/high-risk under `AGENTS.md`.
+
+Post-`adfa8cd...` commit accounting:
+
+Implementation commits:
+* `3ec7d52c97388827c0b09d891efca5b3522e7ddd` -> `src/qual/retrieval/service.py`
+* `24a5748f0fd6f6584bc2e96bfb7841006b214935` -> `src/qual/retrieval/__init__.py`
+* `39550c18399a5cba2ffad3e23e5b0d5078b416df` -> `src/qual/retrieval/__init__.py`, `src/qual/retrieval/service.py`
+* `8548b765b46cec60d8eb0135786650175d0ed0c8` -> `src/qual/engine/retrieval/fts_strategy.py`, `src/qual/retrieval/__init__.py`, `src/qual/retrieval/service.py`
+* `bca26c21e58161f0e3da8fdaf8049ef84771d934` -> `src/qual/retrieval/service.py`, `THREAD_PACKET.md`, `docs/gate_passed.txt`
+* `72a65689bc806e3f33afa9f28e87c827020e5021` -> `src/qual/retrieval/service.py`
+
+Metadata-only packet refresh commits after `72a65689...`:
+* `d5d57e4ba3ee4be4da27e974263952bbf9d96829` -> `THREAD_PACKET.md`, `docs/gate_passed.txt`
+* `cfdafc80691607d022746a315344d3961ab982cf` -> `docs/gate_passed.txt`
+* `4ccdc82165bad7bcd8c96c0852244dd3ee8d5349` -> `THREAD_PACKET.md`
+* `cc9c804c04e8771c1b99ffe847ebca4950d23e50` -> `THREAD_PACKET.md`, `docs/gate_passed.txt`
+* `ac3414bccfaa246d7fc40c21c014769c18727494` -> `THREAD_PACKET.md`, `docs/gate_passed.txt`
+* `b74c4330906db2bb660d96987ae4f75a0663cb4b` -> `THREAD_PACKET.md`, `codex_packet_handoff/tools/init_lane_meta.py`, `codex_packet_handoff/tools/planner.py`, `docs/gate_passed.txt`, `tests/unit/test_packet_planner.py`
+* `b31db490a635fe5c7195cb2ce173b09a838ad8ab` -> `THREAD_PACKET.md`, `docs/gate_passed.txt`
 
 AGENTS checkpoint evidence:
 
-* `plan complete` - the handoff was re-scoped to the actual pre-fix branch tip `b31db490a635fe5c7195cb2ce173b09a838ad8ab` and the retrieval demo-path step was made explicit.
-* `before risky/shared file edit` - the shared/high-risk boundary was called out because `tests/unit/test_unified_retrieval.py` remains in the reviewed range.
-* `first green tests` - pending gate rerun on the restamped packet state.
-* `ready for handoff` - pending gate rerun and final fixer commit.
+* `plan complete` - the handoff was re-scoped to the real reviewed implementation head `72a65689bc806e3f33afa9f28e87c827020e5021`, the exact post-`adfa8cd...` commit accounting, the shared/high-risk classification, and the canonical demo-path step `retrieve relevant material`.
+* `before risky/shared file edit` - the shared/high-risk boundary was called out because the cumulative reviewed range still includes approved shared regression coverage in `tests/unit/test_unified_retrieval.py`.
+* `first green tests` - all required gates passed on the refreshed handoff state.
+* `ready for handoff` - the packet mirrors agree on the reviewed head `72a65689bc806e3f33afa9f28e87c827020e5021`, the reviewed range, the post-`adfa8cd...` commit accounting, the shared/high-risk classification, and the canonical demo-path mapping.
 
 Verification:
 
-* `make scope-check` - pending
-* `./quality-format.sh --check` - pending
-* `./quality-lint.sh` - pending
-* `./quality-test.sh` - pending
-* `./typecheck-test.sh` - pending
-* `make ci` - pending
+* `make scope-check` - passed
+* `./quality-format.sh --check` - passed
+* `./quality-lint.sh` - passed
+* `./quality-test.sh` - passed
+* `./typecheck-test.sh` - passed
+* `make ci` - passed
 
 Roadmap items affected:
 
