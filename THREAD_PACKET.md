@@ -4,7 +4,7 @@
 - Branch: `codex/feat-commands`
 - Commit: `538095c47a6bc5f971e9811b83745571915e4268`
 - Packet refresh role: `reviewer-fix finalization`
-- Packet refresh basis: `updated on 2026-04-23 to satisfy the reviewer-requested canonical demo-path mapping for the active CLI fallback entry step while keeping the claim scoped to deterministic Milestone 3 CLI compatibility`
+- Packet refresh basis: `updated on 2026-04-23 to satisfy the reviewer-requested canonical demo-path mapping for the active CLI fallback entry step, keep the claim scoped to deterministic Milestone 3 CLI compatibility, and revalidate the full required gate set in this fixer turn`
 - Metadata-only packet refresh commit: `9dfb3660eb834d0003db16091030163bf31f3b35`
 - Metadata-only refresh files:
   - `THREAD.md`
@@ -79,6 +79,7 @@
 2. Kept the command-contract validation pinned to the full declared parser surface and named that surface explicitly in the implementation.
 3. Added the reviewer-requested regression proving the contract fails when the `diff` parser token disappears from the accepted `diff-preview` surface.
 4. Finalized the handoff packet so the reviewer-requested `open project/document` demo-path mapping and the narrower Milestone 3 CLI-compatibility claim are explicit in the approval basis.
+5. Revalidated the full required gate set after the packet finalization so this handoff still reflects a green fixer-turn state.
 
 ### Files Changed
 
