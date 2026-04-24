@@ -37,7 +37,7 @@
 - plan complete: scope stayed pinned to the reviewed implementation slice in `src/qual/commands/catalog.py` and `tests/unit/test_commands_catalog.py`
 - first green tests: `make scope-check`, `./quality-format.sh --check`, `./quality-lint.sh`, `./quality-test.sh`, `./typecheck-test.sh`, and `make ci` all passed for this handoff slice
 - before risky/shared file edit: the only shared path in scope was the approved regression file `tests/unit/test_commands_catalog.py`
-- ready for handoff: this packet explicitly names the Milestone 3 CLI/operator-contract step for the engine-first loop, states the exact migration-safe CLI blocker removed there, and keeps the claim narrowed to CLI compatibility while Textual remains disabled
+- ready for handoff: this packet explicitly names the Milestone 3 CLI/operator-contract bridge from `produce a plan or revision` to `preview and apply or reject a patch`, states the exact migration-safe CLI blocker removed there, and keeps the claim narrowed to CLI compatibility while Textual remains disabled
 
 ### Handoff Packet
 
@@ -64,12 +64,12 @@
   - blockers: none
 - roadmap item(s) affected:
   - `ROADMAP.md` Milestone 3 `Product Readiness`: this slice helps lock an intentional user-facing CLI contract before publish by keeping the current engine-first loop on deterministic, migration-safe entrypoints while the future console client is still disabled
-  - canonical demo-path step advanced: Milestone 3 CLI/operator-contract compatibility for the engine-first loop while Textual remains disabled
-  - concrete canonical mapping: this slice advances the canonical Milestone 3 CLI/operator-contract step by keeping `project-open/bootstrap -> retrieval -> plan-or-revise -> apply-or-reject -> export-handoff` reachable through deterministic, migration-safe CLI entrypoints, so the operator can still run the engine-first loop on the current CLI surface without silent parser/catalog drift
+- canonical demo-path step advanced: the Milestone 3 CLI/operator-contract bridge that keeps the engine-first loop reachable through deterministic, migration-safe entrypoints while Textual remains disabled, specifically `produce a plan or revision` -> `preview and apply or reject a patch`
+- concrete canonical mapping: this slice advances that Milestone 3 CLI/operator-contract bridge by keeping `project-open/bootstrap -> retrieval -> plan-or-revise -> apply-or-reject -> export-handoff` reachable through deterministic, migration-safe CLI entrypoints, so the operator can still run the engine-first loop on the current CLI surface without silent parser/catalog drift
   - concrete canonical-path blocker removed: deterministic CLI ordering and fast-fail parser/catalog drift detection are now enforced on the existing review/apply command surface, removing the concrete blocker where the current CLI entrypoints could silently diverge before the engine-first loop reaches export handoff
   - non-claim boundary: this handoff does not claim broader CLI polish, new workflow reachability, persistence progress, A2UI contract work, provider routing work, or any new engine behavior
 - vision capability affected:
-  - `PRODUCT_VISION.md` capability 4 `Operator-first control surface`: the existing CLI surface now rejects parser/catalog drift before it can silently change the deterministic operator controls that remain first-class in this repository
+  - `PRODUCT_VISION.md` capability 4 `Operator-first control surface`: the existing CLI surface now rejects parser/catalog drift before it can silently change the deterministic operator contract that remains first-class in Engine and must stay compatible with future `Exegesis Console` consumption
 - routing/provider impact note:
   - none; this change does not touch routing or provider configuration
 - scope/ownership note:
