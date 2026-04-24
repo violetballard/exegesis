@@ -4957,6 +4957,64 @@ class A2UIFallbackSafetyTests(unittest.TestCase):
                 leaf_renderer.assert_called_once_with(artifact)
                 self.assertIsNone(_TERMINAL_ARTIFACT_CLI_FALLBACK_TARGET_HINT.get())
 
+    def test_shell_ui_render_cli_fallback_recovers_leaf_renderer_when_shared_resolver_raises(self) -> None:
+        shell = ShellUI()
+        cases = [
+            (
+                "action",
+                ActionRef(
+                    id=" export_document ",
+                    label=" Export ",
+                    payload={"format": "json"},
+                ),
+                "render_terminal_action",
+                "[ActionRef] recovered",
+            ),
+            (
+                "selection",
+                SelectionRef(
+                    id=" choice-1 ",
+                    label=" Choice ",
+                    payload={"nested": {"items": [1, 2]}},
+                ),
+                "render_terminal_selection",
+                "[SelectionRef] recovered",
+            ),
+        ]
+
+        for case_name, artifact, renderer_name, expected_text in cases:
+            with self.subTest(case=case_name):
+                with patch(
+                    "src.qual.ui.shell.resolve_terminal_artifact_cli_fallback_target",
+                    side_effect=RuntimeError("resolver boom"),
+                ):
+                    seen_hint: list[tuple[object, str] | None] = []
+
+                    def _raise_after_capturing(rendered_artifact: object, *, kind: str | None = None) -> str:
+                        seen_hint.append(_TERMINAL_ARTIFACT_CLI_FALLBACK_TARGET_HINT.get())
+                        raise RuntimeError("cli fallback boom")
+
+                    with patch(
+                        "src.qual.ui.shell.render_terminal_cli_fallback",
+                        side_effect=_raise_after_capturing,
+                    ) as cli_fallback:
+                        with patch(
+                            "src.qual.ui.shell.render_terminal_artifact",
+                            side_effect=RuntimeError("artifact boom"),
+                        ) as generic_renderer:
+                            with patch(
+                                f"src.qual.ui.shell.{renderer_name}",
+                                return_value=expected_text,
+                            ) as leaf_renderer:
+                                text = shell.render_cli_fallback(artifact)
+
+                self.assertEqual(text, expected_text)
+                cli_fallback.assert_called_once_with(artifact, kind=case_name)
+                generic_renderer.assert_not_called()
+                leaf_renderer.assert_called_once_with(artifact)
+                self.assertEqual(seen_hint, [(artifact, case_name)])
+                self.assertIsNone(_TERMINAL_ARTIFACT_CLI_FALLBACK_TARGET_HINT.get())
+
     def test_shell_ui_contract_can_opt_in_to_cli_fallback_route_contract(self) -> None:
         default_manifest = describe_shell_ui_contract()
         manifest = describe_shell_ui_contract(include_terminal_artifact_cli_fallback_route=True)

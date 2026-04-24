@@ -155,7 +155,10 @@ class ShellUI:
         try:
             fallback_target = resolve_terminal_artifact_cli_fallback_target(artifact, kind=kind)
         except Exception:
-            fallback_target = None
+            # Keep the explicit CLI fallback path aligned with the shell's own
+            # recovery classifier when the shared resolver breaks.
+            fallback_target = self._resolve_fallback_artifact(artifact, kind=kind)
+            fallback_hint_token = _TERMINAL_ARTIFACT_CLI_FALLBACK_TARGET_HINT.set(fallback_target)
         else:
             fallback_hint_token = _TERMINAL_ARTIFACT_CLI_FALLBACK_TARGET_HINT.set(fallback_target)
         try:
