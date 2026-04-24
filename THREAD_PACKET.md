@@ -1,33 +1,30 @@
 # Thread Handoff Packet
 
 - Branch name: `codex/feat-retrieval-fts`
-- Packet role: `shared high-risk branch-tip handoff refresh`
-- Reviewed implementation head before this fixer commit: `39550c18399a5cba2ffad3e23e5b0d5078b416df`
-- Reviewed implementation range: `d7fd5d200358287fa42a18d39e2b277463b9b69f..39550c18399a5cba2ffad3e23e5b0d5078b416df`
-- Writable reviewer-facing packet sources refreshed in this fixer pass: `THREAD_PACKET.md`, `docs/gate_passed.txt`
-- Blocked packet mirror files in this fixer pass: `.codex/kickoff_packets/feat-retrieval-fts.md`, `.codex/lane_meta/feat-retrieval-fts.json`
-- Mirror write attempt result in this session: `operation not permitted`
-- Companion fixer-commit note: this fixer pass refreshes only handoff metadata on top of the reviewed implementation head above; it does not change retrieval runtime behavior.
+- Packet role: `metadata-only reviewer-fix finalization`
+- Packet refresh trace anchor before this fixer commit: `72a65689bc806e3f33afa9f28e87c827020e5021`
+- Reviewed implementation head before this fixer commit: `72a65689bc806e3f33afa9f28e87c827020e5021`
+- Reviewed implementation range: `d7fd5d200358287fa42a18d39e2b277463b9b69f..72a65689bc806e3f33afa9f28e87c827020e5021`
+- Reviewer-facing packet sources refreshed in this fixer pass: `THREAD_PACKET.md`, `docs/gate_passed.txt`, `.codex/kickoff_packets/feat-retrieval-fts.md`, `.codex/lane_meta/feat-retrieval-fts.json`
 - Canonical demo-path step advanced: `retrieve relevant material`
-- Demo-path sentence: This work makes the "retrieve relevant material" step more real by enforcing FTS-only excerpt lookup on the canonical retrieval surface and failing closed for PageIndex-only IDs.
-- Reviewer-required packet fix: the handoff now uses the exact reviewer-required demo-path sentence and keeps the packet scoped only to the FTS-only excerpt lookup contract covered by `src/qual/retrieval/service.py` and `tests/unit/test_unified_retrieval.py`.
-- FTS-first lane-gate confirmation: the reviewed implementation range remains FTS-first for the MVP. PageIndex and embeddings stay compatibility-only shims and are not required retrieval paths anywhere in this handoff.
+- Demo-path sentence: This handoff makes the "retrieve relevant material" step more real by keeping retrieval FTS-first, hardening deterministic payload and provenance shaping on the canonical retrieval surface, and normalizing direct constraint booleans before retrieval executes.
 
 ## Scope Goal
 
-- Return this lane for re-review with a truthful packet that is explicitly scoped to the reviewed FTS-only excerpt lookup slice on `codex/feat-retrieval-fts`.
+- Return this lane for re-review with a truthful packet that matches the actual reviewed implementation tip `72a65689bc806e3f33afa9f28e87c827020e5021`, the shared/high-risk scope, and the canonical demo-path step it advances.
 
 ## Scope Completed
 
-- `fetch_excerpt` resolves excerpt IDs only through the canonical FTS lookup path in `src/qual/retrieval/service.py`.
-- PageIndex-only excerpt IDs fail closed instead of widening lookup behavior outside the canonical FTS retrieval surface.
-- Regression coverage in `tests/unit/test_unified_retrieval.py` proves the fail-closed contract for noncanonical excerpt IDs and keeps the handoff anchored to that retrieval slice only.
+- SQLite FTS remains the primary retrieval path for the reviewed range, with PageIndex and embeddings staying compatibility-only fallback shims.
+- The canonical retrieval query constructor and `retrieve_auto` helper are exported through both retrieval facades, and retrieval payloads, provenance bundles, and hit snapshots stay deterministic for downstream engine flows.
+- Sparse source and context bundles rehydrate deterministically, and `fetch_excerpt` stays on the canonical FTS-only excerpt path so PageIndex-only excerpt IDs fail closed under shared regression coverage.
+- Direct retrieval constraint booleans are normalized on the canonical surface: boolean `max_results` is rejected, and `require_citations` plus `prefer_exact_matches` are canonicalized through `_optional_bool` before retrieval runs.
 
 ## Thread Kickoff (High-Risk)
 
 - Branch: `codex/feat-retrieval-fts`
 - Lane/owned paths: `src/qual/retrieval/**`, `src/qual/engine/retrieval/**`, `engine/src/exegesis_engine/retrieval/**`
-- Scope goal: refresh the handoff so it states exactly which canonical demo-path step this slice advances and keeps the reviewer-facing claims limited to the FTS-only excerpt lookup contract.
+- Scope goal: regenerate the retrieval handoff against the actual reviewed tip, keep the shared/high-risk classification coherent, and map the reviewed slice to the canonical demo path.
 - Risk reason: the reviewed range includes approved shared regression coverage in `tests/unit/test_unified_retrieval.py`, so this remains shared/high-risk work under `AGENTS.md`.
 
 ### Budget
@@ -39,10 +36,10 @@
 
 ### Planned Tasks (max 4)
 
-1. Replace the demo-path statement with the exact reviewer-required sentence for the retrieval excerpt lookup slice.
-2. Remove broader branch-level claims so the handoff stays limited to the FTS-only excerpt lookup contract.
-3. Keep the reviewer-facing file scope anchored only to `src/qual/retrieval/service.py` and `tests/unit/test_unified_retrieval.py`.
-4. Re-run the required local gates against the current branch state and record the outcomes.
+1. Regenerate the packet against the real reviewed implementation tip `72a65689bc806e3f33afa9f28e87c827020e5021` and include that tip in the reviewed range and scope summary.
+2. Keep the handoff consistently classified as shared/high-risk work under the `4`-task cap because `tests/unit/test_unified_retrieval.py` is shared-by-approval.
+3. Add an explicit canonical demo-path mapping that states this lane advances `retrieve relevant material`.
+4. Re-run `make scope-check`, `./quality-format.sh --check`, `./quality-lint.sh`, `./quality-test.sh`, `./typecheck-test.sh`, and `make ci` on the refreshed packet state.
 
 ### Early Review Triggers
 
@@ -65,23 +62,35 @@
 
 ## AGENTS Checkpoint Evidence
 
-- `plan complete`: the handoff was re-scoped to the exact reviewer-required demo-path sentence and to the FTS-only excerpt lookup slice in `src/qual/retrieval/service.py` plus `tests/unit/test_unified_retrieval.py`.
-- `before risky/shared file edit`: the shared/high-risk boundary was called out before refreshing the packet because the reviewed range still includes the approved shared regression file `tests/unit/test_unified_retrieval.py`.
+- `plan complete`: the handoff was re-scoped to the actual reviewed implementation tip `72a65689bc806e3f33afa9f28e87c827020e5021`, the shared/high-risk classification, and the explicit canonical demo-path step.
+- `before risky/shared file edit`: the shared/high-risk boundary was called out before packet edits because the reviewed range still includes approved shared regression coverage in `tests/unit/test_unified_retrieval.py`.
 - `first green tests`: `make scope-check`, `./quality-format.sh --check`, `./quality-lint.sh`, `./quality-test.sh`, `./typecheck-test.sh`, and `make ci` all passed on the refreshed handoff state.
-- `ready for handoff`: `THREAD_PACKET.md` and `docs/gate_passed.txt` agree on the same canonical demo-path step, exact plan-alignment sentence, and narrowed excerpt-lookup scope. The `.codex` mirror files remain blocked by `operation not permitted`.
+- `ready for handoff`: the packet artifacts now agree on the reviewed head `72a65689bc806e3f33afa9f28e87c827020e5021`, the reviewed range, the shared/high-risk classification, and the canonical demo-path mapping.
 
 ## Tasks Completed
 
-1. Mapped this slice directly to the canonical demo-path step `retrieve relevant material` and recorded the exact reviewer-required sentence across the writable handoff sources.
-2. Tied the completed retrieval work back to that step by keeping the reviewer-facing scope limited to the FTS-only excerpt lookup contract enforced in `src/qual/retrieval/service.py`.
-3. Tied the shared regression story back to that same step by keeping the regression reference limited to fail-closed excerpt-ID coverage in `tests/unit/test_unified_retrieval.py`.
-4. Re-ran the required local gates and recorded the outcomes on the refreshed handoff state.
+1. Restamped the handoff artifacts to the real reviewed implementation tip `72a65689bc806e3f33afa9f28e87c827020e5021` and its cumulative reviewed range.
+2. Reconciled the packet budget/risk classification so the handoff consistently reads as shared/high-risk work under the `4`-task cap.
+3. Added the explicit canonical demo-path mapping showing that this lane advances `retrieve relevant material`.
+4. Re-ran the required local gates and recorded the outcomes on the refreshed packet state.
 
 ## Files Changed
 
+- `.codex/kickoff_packets/feat-retrieval-fts.md`
+- `.codex/lane_meta/feat-retrieval-fts.json`
 - `THREAD_PACKET.md`
+- `codex_packet_handoff/tools/init_lane_meta.py`
+- `codex_packet_handoff/tools/planner.py`
 - `docs/gate_passed.txt`
+- `src/qual/engine/retrieval/__init__.py`
+- `src/qual/engine/retrieval/embeddings_strategy.py`
+- `src/qual/engine/retrieval/fts_strategy.py`
+- `src/qual/engine/retrieval/interface.py`
+- `src/qual/engine/retrieval/pageindex_strategy.py`
+- `src/qual/engine/retrieval/payload.py`
+- `src/qual/retrieval/__init__.py`
 - `src/qual/retrieval/service.py`
+- `tests/unit/test_packet_planner.py`
 - `tests/unit/test_unified_retrieval.py`
 
 ## Commands Run With Results
@@ -96,9 +105,8 @@
 ## Risks / Blockers
 
 - Risk: `HIGH`
-- This fixer pass does not add feature scope; it corrects reviewer traceability and narrows the packet to the excerpt lookup contract already implemented and tested.
-- Public excerpt lookup intentionally fails closed on noncanonical/PageIndex-only IDs. Callers must stay on canonical FTS-backed excerpt IDs.
-- `.codex/kickoff_packets/feat-retrieval-fts.md` and `.codex/lane_meta/feat-retrieval-fts.json` remain blocked in this sandboxed session; direct writes fail with `operation not permitted`.
+- Shared regression coverage in `tests/unit/test_unified_retrieval.py` remains the reason this handoff is capped at `4` tasks.
+- No unresolved blockers remain in this fixer pass.
 
 ## Required Handoff Fields
 
@@ -124,4 +132,4 @@
 
 - Shared-by-approval edits in reviewed range: `YES` (`tests/unit/test_unified_retrieval.py`)
 - Integrator-locked edits in reviewed range: `NO`
-- This packet is intentionally narrowed to the excerpt lookup slice even though the branch contains other reviewed changes.
+- The reviewed implementation range is cumulative through `72a65689bc806e3f33afa9f28e87c827020e5021`; this fixer commit only refreshes packet metadata on top of that reviewed tip.
