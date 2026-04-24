@@ -1256,14 +1256,23 @@ def describe_terminal_artifact_renderer_entrypoints_contract() -> dict[str, Any]
     return manifest
 
 
+def describe_terminal_artifact_renderer_entrypoints_contract_manifest() -> dict[str, Any]:
+    """Return the renderer-entrypoints manifest under a manifest-specific name."""
+
+    return describe_terminal_artifact_renderer_entrypoints_contract()
+
+
 def describe_terminal_artifact_renderer_entrypoints_contract_fingerprints(
     include_contract_aliases: bool = False,
 ) -> dict[str, str]:
     """Return stable fingerprints for the renderer-entrypoints contract slice."""
 
-    return _build_terminal_artifact_renderer_entrypoints_contract_fingerprints(
+    fingerprints = _build_terminal_artifact_renderer_entrypoints_contract_fingerprints(
         include_contract_aliases=include_contract_aliases,
     )
+    if include_contract_aliases:
+        fingerprints["renderer_entrypoints_contract_manifest"] = fingerprints["renderer_entrypoints_contract"]
+    return fingerprints
 
 
 def describe_terminal_artifact_cli_fallback_entrypoint_contract() -> dict[str, Any]:
@@ -3583,6 +3592,12 @@ def terminal_artifact_renderer_entrypoints_contract_fingerprint() -> str:
 
     manifest = _build_terminal_artifact_renderer_entrypoints_contract_manifest()
     return _fingerprint_manifest_section(manifest)
+
+
+def terminal_artifact_renderer_entrypoints_contract_manifest_fingerprint() -> str:
+    """Return the renderer-entrypoints manifest fingerprint under a manifest-specific name."""
+
+    return terminal_artifact_renderer_entrypoints_contract_fingerprint()
 
 
 def terminal_artifact_renderer_entrypoints_contract_fingerprints_fingerprint(
