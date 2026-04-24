@@ -2,11 +2,12 @@ Gate Results Summary (as of 2026-04-24)
 -------------------------------------
 
 Feature lane: `codex/feat-retrieval-fts`
-Reviewed implementation head: `141b2168208d78cbd25bc8fd63fcdbc34e6aa958`
-Reviewed implementation range: `adfa8cdadd43747ffbcb612e4151e262b13e52ca..141b2168208d78cbd25bc8fd63fcdbc34e6aa958`
+Packet role: `metadata-only reviewer-fix handoff refresh`
+Packet refresh trace anchor before fixer commit: `76bb509bfe69429ab92d4401b033b8f173b082f6`
+Reviewed implementation head: `adfa8cdadd43747ffbcb612e4151e262b13e52ca`
+Reviewed implementation range: `d7fd5d200358287fa42a18d39e2b277463b9b69f..adfa8cdadd43747ffbcb612e4151e262b13e52ca`
 Canonical demo-path step advanced: `retrieve relevant material`
-Scope: branch-tip cumulative retrieval slice covering engine-facing query-builder delegation, deterministic retrieval payload and provenance normalization, a public excerpt lookup contract that resolves only canonical SQLite FTS hits, fail-closed behavior for noncanonical/PageIndex-only/scoped-query requests, and expanded shared regression coverage.
-Branch tip at start of this reviewer-fix refresh pass: `d0e0e7985de8549ea81831222e1543080a83cc65`
+Scope: metadata-only packet refresh for the reviewed FTS-first retrieval slice. The reviewed implementation keeps SQLite FTS authoritative, resolves the public excerpt lookup contract only through canonical FTS hits, keeps payload and provenance output deterministic, and leaves PageIndex plus embeddings as compatibility-only fallback shims rather than required runtime paths.
 
 Reviewed implementation files:
 
@@ -20,26 +21,23 @@ Reviewed implementation files:
 * `src/qual/engine/retrieval/pageindex_strategy.py`
 * `tests/unit/test_unified_retrieval.py`
 
-Visible handoff artifacts refreshed in this fixer pass:
-
-* `THREAD_PACKET.md`
-* `docs/gate_passed.txt`
-
-Stale packet mirrors in this worktree:
+Metadata-only packet artifacts refreshed in this fixer pass:
 
 * `.codex/kickoff_packets/feat-retrieval-fts.md`
 * `.codex/lane_meta/feat-retrieval-fts.json`
+* `THREAD_PACKET.md`
+* `docs/gate_passed.txt`
 
 Plan-alignment note:
 
 * This slice advances `retrieve relevant material` by making the public excerpt lookup surface resolve only canonical SQLite FTS hits, so excerpt provenance stays deterministic and auditable for downstream engine retrieval flow.
 * PageIndex and embeddings are not required runtime paths for this MVP excerpt lookup contract; PageIndex-only and other noncanonical excerpt IDs fail closed on that public surface.
-* Direct handoff statement: this handoff corrects the visible branch-tip packet on top of later metadata-only packet refresh commits while preserving the reviewed retrieval implementation head and range recorded here.
+* This fixer pass refreshes packet metadata only and does not move the reviewed retrieval implementation head or widen the reviewed implementation range.
 
 Budget classification:
 
 * Shared/high-risk because `tests/unit/test_unified_retrieval.py` is a shared-by-approval file for this lane.
-* The reviewed range touches `13` files total with `10976` insertions and `1132` deletions, so it exceeds the normal high-risk autonomy window and must be read as a cumulative branch-tip handoff.
+* The packet is reissued on the AGENTS high-risk 4-task basis.
 
 Verification:
 
@@ -66,5 +64,4 @@ Routing/provider impact:
 
 Remaining blocker:
 
-* This worktree cannot write `.codex/kickoff_packets/feat-retrieval-fts.md` or `.codex/lane_meta/feat-retrieval-fts.json` (`operation not permitted`), so those mirror files remain stale even though the visible handoff is corrected here.
-* 2026-04-24 fixer pass corrected the visible branch-tip packet wording and metadata, then revalidated all required local gates against pre-fix HEAD `d0e0e7985de8549ea81831222e1543080a83cc65`.
+* none
