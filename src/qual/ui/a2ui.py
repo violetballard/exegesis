@@ -2366,6 +2366,7 @@ def build_terminal_artifact_envelope(artifact: Any, *, kind: str) -> dict[str, A
     """
 
     normalized_kind = _normalize_terminal_artifact_kind(artifact, kind=kind)
+    artifact = _unwrap_terminal_artifact_for_kind(artifact, kind=normalized_kind)
     artifact_snapshot = normalize_terminal_artifact_payload(artifact, kind=normalized_kind)
     envelope = {
         "type": _TERMINAL_ARTIFACT_ENVELOPE_TYPE,
@@ -2376,6 +2377,19 @@ def build_terminal_artifact_envelope(artifact: Any, *, kind: str) -> dict[str, A
     }
     validate_terminal_artifact_envelope(envelope)
     return envelope
+
+
+def _unwrap_terminal_artifact_for_kind(artifact: Any, *, kind: str) -> Any:
+    if not isinstance(artifact, Mapping):
+        return artifact
+    extracted = _extract_terminal_artifact_envelope(artifact)
+    if extracted is None:
+        return artifact
+    _, envelope_kind = extracted
+    if envelope_kind != kind:
+        raise ValueError("kind does not match TerminalArtifact envelope")
+    unwrapped_artifact, _ = _unwrap_terminal_artifact_payload(artifact)
+    return unwrapped_artifact
 
 
 def normalize_terminal_artifact_payload(artifact: Any, *, kind: str | None = None) -> dict[str, Any]:
@@ -2389,11 +2403,14 @@ def normalize_terminal_artifact_payload(artifact: Any, *, kind: str | None = Non
     payloads are copied as mappings or dataclass snapshots so the envelope does
     not retain references to mutable source objects. Card action lists are
     canonicalized into a deterministic order so equivalent payloads produce the
-    same envelope snapshot. Unordered set-like values are converted to sorted
-    lists so the snapshot stays deterministic and JSON-safe.
+    same envelope snapshot. Same-kind ``TerminalArtifact`` envelopes are
+    unwrapped before snapshotting so the builder stays idempotent across
+    repeated wrapping. Unordered set-like values are converted to sorted lists
+    so the snapshot stays deterministic and JSON-safe.
     """
 
     normalized_kind = _normalize_terminal_artifact_kind(artifact, kind=kind)
+    artifact = _unwrap_terminal_artifact_for_kind(artifact, kind=normalized_kind)
     if normalized_kind == "action":
         if isinstance(artifact, Mapping):
             artifact = _strip_terminal_type_hint(artifact, expected_type="ActionRef")

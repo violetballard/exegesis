@@ -6400,6 +6400,45 @@ class A2UIFallbackSafetyTests(unittest.TestCase):
         self.assertIn("[SelectionRef] Choice", selection_text)
         self.assertIn("Selection schema v1", selection_text)
 
+    def test_terminal_artifact_envelope_builder_is_idempotent_for_matching_envelopes(self) -> None:
+        cases = [
+            (
+                "action",
+                ActionRef(
+                    id=" export_document ",
+                    label=" Export ",
+                    payload={"format": "md"},
+                ),
+            ),
+            (
+                "selection",
+                SelectionRef(
+                    id=" choice-1 ",
+                    label=" Choice ",
+                    payload={"nested": {"items": [1, 2]}},
+                    selected=True,
+                ),
+            ),
+            (
+                "card",
+                {
+                    "type": "GenericCard",
+                    "title": " Run Log ",
+                    "a2ui_version": 1,
+                    "blocks": [{"type": "MarkdownBlock", "markdown": "Hello"}],
+                    "actions": [],
+                },
+            ),
+        ]
+
+        for case_name, source in cases:
+            with self.subTest(case=case_name):
+                envelope = build_terminal_artifact_envelope(source, kind=case_name)
+                rebuilt = build_terminal_artifact_envelope(envelope, kind=case_name)
+
+                self.assertEqual(rebuilt, envelope)
+                validate_terminal_artifact_envelope(rebuilt)
+
     def test_terminal_artifact_payload_normalizer_returns_plain_dict_snapshots(self) -> None:
         action_payload = normalize_terminal_artifact_payload(
             ActionRef(
