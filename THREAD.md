@@ -6,16 +6,16 @@ Canonical handoff contract lives in `THREAD_PACKET.md`.
 
 ## Current Review Focus
 
-- Packet refresh status: fixer corrected the packet after the reviewer flagged missing canonical demo-path wording, scope overclaiming beyond the parser-surface guard, and missing evidence for full parser-surface drift detection.
+- Packet refresh status: fixer committed the reviewer-required parser-surface guard and is refreshing the packet metadata so re-review points to one exact implementation commit.
 - Exact implementation basis for re-review:
-  - `8e747334f4da2d5486e15088979a36184c8c9116` (`feat(commands): validate full CLI token projection`)
+  - `744c0fefcbd69ff3a128df512b6786fd2dba8023` (`feat(commands): fail on parser surface drift`)
 - Approval basis pin for re-review:
-  - Only `8e747334f4da2d5486e15088979a36184c8c9116`, `src/qual/commands/catalog.py`, and `tests/unit/test_commands_catalog.py` are part of the implementation approval basis.
+  - Only `744c0fefcbd69ff3a128df512b6786fd2dba8023`, `src/qual/commands/catalog.py`, and `tests/unit/test_commands_catalog.py` are part of the implementation approval basis.
   - The packet-refresh commit is metadata-only and must not be treated as widening the implementation scope.
 - Current packet refresh traceability:
   - the packet-refresh commit updates only `THREAD.md`, `THREAD_PACKET.md`, and `handoff_packets/feat-commands.md`
 - Post-fixer verification note:
-- `2026-04-24T11:08:30Z UTC` full required gate rerun confirmed this packet correction matches the current branch state while the reviewed implementation basis remains pinned to `8e747334f4da2d5486e15088979a36184c8c9116`
+- `2026-04-24T11:16:57Z UTC` full required gate rerun confirmed this packet refresh matches the current branch state while the reviewed implementation basis remains pinned to `744c0fefcbd69ff3a128df512b6786fd2dba8023`
 - High-risk kickoff context:
   - scope goal: make the canonical `continue working without losing context` step more real by removing a concrete blocker at the CLI fallback boundary: silent parser/catalog drift on the operator-visible `project-open` / `retrieval` / `patch-review` command surface
   - risk reason: the reviewed slice touches the command contract in `src/qual/commands/catalog.py` and a shared-by-approval regression test file

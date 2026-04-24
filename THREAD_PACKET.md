@@ -2,10 +2,10 @@
 
 - Lane: `feat-commands`
 - Branch: `codex/feat-commands`
-- Commit: `8e747334f4da2d5486e15088979a36184c8c9116`
+- Commit: `744c0fefcbd69ff3a128df512b6786fd2dba8023`
 - Packet refresh role: `fixer reviewer packet verification refresh`
-- Packet refresh basis: `preserved the narrowed reviewer-fix packet wording, then reran the full required gate set and refreshed the metadata-only handoff timestamps without widening the reviewed implementation scope`
-- Post-fixer verification: `2026-04-24T11:08:30Z UTC full required gate rerun confirmed this packet correction still matches the current branch state; the current refresh is metadata-only and keeps the reviewed implementation scope pinned to 8e747334f4da2d5486e15088979a36184c8c9116`
+- Packet refresh basis: `committed the reviewer-required parser-surface guard and regression coverage, then refreshed the metadata-only handoff packet so every artifact points to that exact implementation commit without widening the reviewed scope`
+- Post-fixer verification: `2026-04-24T11:16:57Z UTC full required gate rerun confirmed the metadata-only packet refresh matches the current branch state while the reviewed implementation scope remains pinned to 744c0fefcbd69ff3a128df512b6786fd2dba8023`
 - Packet-only refresh files:
   - `THREAD.md`
   - `THREAD_PACKET.md`
@@ -61,17 +61,17 @@
 ## Review Basis
 
 - Exact implementation basis for re-review:
-  - `8e747334f4da2d5486e15088979a36184c8c9116` (`feat(commands): validate full CLI token projection`)
+  - `744c0fefcbd69ff3a128df512b6786fd2dba8023` (`feat(commands): fail on parser surface drift`)
 - Approval basis pin for re-review:
-  - Only `8e747334f4da2d5486e15088979a36184c8c9116`, `src/qual/commands/catalog.py`, and `tests/unit/test_commands_catalog.py` are part of the implementation approval basis.
+  - Only `744c0fefcbd69ff3a128df512b6786fd2dba8023`, `src/qual/commands/catalog.py`, and `tests/unit/test_commands_catalog.py` are part of the implementation approval basis.
   - The current packet-refresh commit is metadata-only and must not be treated as widening the reviewed implementation scope.
 - Current packet refresh traceability: the current packet-refresh commit is metadata-only and updates only `THREAD.md`, `THREAD_PACKET.md`, and `handoff_packets/feat-commands.md`.
 - Reviewed implementation files:
   - `src/qual/commands/catalog.py`
   - `tests/unit/test_commands_catalog.py`
 - Reviewed implementation summary:
-  - `command_cli_contract()` now validates that the live parser entrypoint projection stays identical to the declared command catalog projection, then derives the expected token sequence and lookup table from that same authoritative surface.
-  - Regression coverage proves the command contract stays aligned to the declared parser surface and fails fast if extra accepted aliases, missing canonical tokens, lookup-table substitutions, or reordered entrypoints are introduced.
+  - `command_cli_contract()` now validates the full authoritative parser entrypoint projection against the declared command catalog projection, then derives canonical names, tokens, and the lookup table from that same parser surface.
+  - Regression coverage proves the command contract fails fast on alias substitution, dropped canonical tokens, extra accepted tokens, reordered entrypoints within a command, and reordered command groups in the parser projection.
 
 ## Scope Completed
 
@@ -115,7 +115,7 @@
 
 1. `continue working without losing context`: locked the live CLI command contract to the command catalog so parser-surface drift fails closed before the operator reaches the wrong `project-open`, `retrieval`, or `patch-review` verb sets on the active CLI fallback path.
 2. `continue working without losing context`: added focused regression coverage for parser-surface alignment and command-catalog drift rejection in `tests/unit/test_commands_catalog.py`, with evidence scoped to the supporting `open project/document` / `retrieve relevant material` / `preview and apply or reject a patch` smoke surface.
-3. `continue working without losing context`: regenerated the handoff packet so the re-review basis points to commit `8e747334f4da2d5486e15088979a36184c8c9116`, the roadmap or vision mapping stays narrow, and the exact canonical demo-path step plus blocker removal are stated explicitly per reviewer request.
+3. `continue working without losing context`: regenerated the handoff packet so the re-review basis points to commit `744c0fefcbd69ff3a128df512b6786fd2dba8023`, the roadmap or vision mapping stays narrow, and the exact canonical demo-path step plus blocker removal are stated explicitly per reviewer request.
 4. `continue working without losing context`: re-ran the required gates and recorded the outcomes against the current reviewed implementation scope so the packet stays tied to a verified command-contract slice.
 
 ### Files Changed
@@ -134,7 +134,7 @@
 - `./quality-test.sh`: `PASSED`
 - `./typecheck-test.sh`: `PASSED`
 - `make ci`: `PASSED`
-- Gate attribution note: these gates were rerun at `2026-04-24T11:08:30Z UTC` against the current branch state while the reviewed implementation scope remains pinned to `8e747334f4da2d5486e15088979a36184c8c9116`; the current packet refresh itself is metadata-only.
+- Gate attribution note: these gates were rerun at `2026-04-24T11:16:57Z UTC` against the current branch state while the reviewed implementation scope remains pinned to `744c0fefcbd69ff3a128df512b6786fd2dba8023`; the current packet refresh itself is metadata-only.
 
 ### Risks / Blockers
 
