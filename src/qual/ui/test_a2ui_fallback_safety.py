@@ -8868,6 +8868,28 @@ class A2UIFallbackSafetyTests(unittest.TestCase):
         self.assertEqual(text, "cli-fallback")
         cli_fallback.assert_called_once_with(raw_leaf, kind="card")
 
+    def test_shell_ui_keeps_raw_leaf_card_default_for_action_and_selection_hints_during_fallback(
+        self,
+    ) -> None:
+        shell = ShellUI()
+        raw_leaf = {
+            "id": "export_document",
+            "label": "Export",
+            "payload": {"format": "md"},
+        }
+
+        for hint in ("action", "selection"):
+            with self.subTest(kind=hint):
+                with patch("src.qual.ui.shell.render_terminal_artifact", side_effect=RuntimeError("boom")):
+                    with patch(
+                        "src.qual.ui.shell.render_terminal_cli_fallback",
+                        return_value="cli-fallback",
+                    ) as cli_fallback:
+                        text = shell.render_artifact(raw_leaf, kind=hint)
+
+                self.assertEqual(text, "cli-fallback")
+                cli_fallback.assert_called_once_with(raw_leaf, kind="card")
+
     def test_shell_ui_keeps_raw_leaf_card_default_for_explicit_card_hints_during_fallback(self) -> None:
         shell = ShellUI()
         raw_leaf = {

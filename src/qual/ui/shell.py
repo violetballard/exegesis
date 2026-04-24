@@ -104,11 +104,11 @@ class ShellUI:
             try:
                 resolve_terminal_artifact_cli_fallback_target(artifact, kind=kind)
             except Exception:
-                fallback_artifact = artifact
-                fallback_kind = "card"
-            else:
-                fallback_artifact = artifact
-                fallback_kind = normalized_kind
+                pass
+            # Raw leaf card defaults must remain on the card path even when the
+            # caller supplied an action or selection hint.
+            fallback_artifact = artifact
+            fallback_kind = "card"
             fallback_hint_token = _TERMINAL_ARTIFACT_CLI_FALLBACK_TARGET_HINT.set(
                 (fallback_artifact, fallback_kind),
             )
