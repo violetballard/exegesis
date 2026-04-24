@@ -189,6 +189,8 @@
 ## Approved Exception Note
 
 - Approved shared-by-approval exception: `tests/unit/test_commands_catalog.py`
+- Approval basis: this packet relies on the explicit shared-file allowance required by `THREAD_OWNERSHIP.md` for non-owned test coverage plus the review-gate rule in `INTEGRATION.md` that permits shared edits when the handoff carries an explicit approval note.
+- Scope-check allowance used: `SCOPE_ALLOW_SHARED=1` for the shared-by-approval test path only; no integrator-locked files are part of this exception.
 - Integrator-locked edits in this slice: `none`
 - Approval scope limit: the shared-file exception stays scoped to command-catalog regression coverage only and does not broaden this lane into integrator-locked files.
 
