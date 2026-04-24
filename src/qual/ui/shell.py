@@ -14,6 +14,7 @@ from .a2ui import (
     ActionRef,
     A2UI_CONTRACT_VERSION,
     A2UI_VERSION,
+    describe_card_contract,
     card_contract_fingerprint,
     SelectionRef,
     _add_contract_alias_fingerprints,
@@ -25,6 +26,7 @@ from .a2ui import (
     describe_terminal_artifact_cli_fallback_target_contract,
     describe_terminal_artifact_cli_fallback_route_contract,
     describe_terminal_artifact_renderer_entrypoints_contract,
+    describe_terminal_fallback_contract,
     terminal_fallback_contract_fingerprint,
     terminal_artifact_cli_fallback_contract_fingerprint,
     terminal_artifact_cli_fallback_entrypoint_contract_fingerprint,
@@ -712,11 +714,13 @@ def _build_shell_ui_contract_manifest(
     card_hint_recovery_policy_contract = describe_terminal_artifact_cli_fallback_card_hint_recovery_policy_contract()
     card_hint_recovery_policy_contract_fingerprint_value = card_hint_recovery_policy_contract["contract_fingerprint"]
     terminal_artifact_renderer_entrypoints_contract = describe_terminal_artifact_renderer_entrypoints_contract()
+    card_contract_manifest = copy.deepcopy(describe_card_contract())
     terminal_artifact_cli_fallback_target_contract = copy.deepcopy(
         describe_terminal_artifact_cli_fallback_target_contract(
             include_terminal_artifact_cli_fallback_route=include_terminal_artifact_cli_fallback_route,
         )
     )
+    terminal_fallback_contract_manifest = copy.deepcopy(describe_terminal_fallback_contract())
     terminal_artifact_cli_fallback_route_contract = copy.deepcopy(
         describe_terminal_artifact_cli_fallback_route_contract()
     )
@@ -844,6 +848,17 @@ def _build_shell_ui_contract_manifest(
             terminal_artifact_renderer_entrypoints_contract["contract_fingerprint"]
         ),
     }
+    if include_contract_aliases:
+        # Surface the shared card and terminal-fallback contract slices so
+        # shell-aware consumers can negotiate the same snapshots as the A2UI
+        # fingerprint map without reconstructing them from the generic engine
+        # contract.
+        manifest["card_contract_manifest"] = copy.deepcopy(card_contract_manifest)
+        manifest["card_contract_manifest_fingerprint"] = card_contract_manifest["contract_fingerprint"]
+        manifest["terminal_fallback_contract_manifest"] = copy.deepcopy(terminal_fallback_contract_manifest)
+        manifest["terminal_fallback_contract_manifest_fingerprint"] = terminal_fallback_contract_manifest[
+            "contract_fingerprint"
+        ]
     return manifest
 
 
