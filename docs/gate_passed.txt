@@ -2,33 +2,31 @@ Gate Results Summary (as of 2026-04-24)
 -------------------------------------
 
 Feature lane: `codex/feat-retrieval-fts`
-Packet role: `branch-tip handoff refresh`
-Packet refresh trace anchor before this fixer attempt: `2e052094c4cc2d4c3693c4dcb0f6e8f0c7764909`
-Reviewed implementation head: `bca26c21e58161f0e3da8fdaf8049ef84771d934`
-Reviewed implementation range: `378cf9a74a3658058079a32f186fcd254c4a4034..bca26c21e58161f0e3da8fdaf8049ef84771d934`
-Branch-tip handoff range before this fixer refresh: `378cf9a74a3658058079a32f186fcd254c4a4034..2e052094c4cc2d4c3693c4dcb0f6e8f0c7764909`
+Packet role: `metadata-only reviewer-fix finalization`
+Packet refresh trace anchor before this fixer attempt: `65199b1a7bf57dd9a2c2fc15ba29c09402a7e7ff`
+Reviewed implementation head: `adfa8cdadd43747ffbcb612e4151e262b13e52ca`
+Reviewed implementation range: `378cf9a74a3658058079a32f186fcd254c4a4034..adfa8cdadd43747ffbcb612e4151e262b13e52ca`
 Canonical demo-path step advanced: `retrieve relevant material`
-Plan-alignment statement: this reviewed slice strengthens `retrieve relevant material` by keeping retrieval/search FTS-first, forcing excerpt lookup to stay on the authoritative FTS path, and surfacing ranked retrieval ids for downstream promotion and context assembly.
-Explicit Milestone 3 mapping: this slice advances `Milestone 3: Real workflow loop` by keeping retrieval/search FTS-first and structured enough for downstream workflow consumers.
-FTS-first confirmation: the actual reviewed branch tip remains FTS-first for the MVP; SQLite FTS is authoritative, while PageIndex and embeddings remain compatibility-only fallback shims that fail closed when the canonical FTS path is not available.
+Plan-alignment statement: this reviewed slice strengthens `retrieve relevant material` by keeping retrieval/search FTS-first and forcing public excerpt lookup to stay on the authoritative FTS path.
+Explicit Milestone 3 mapping: this slice advances `Milestone 3: Real workflow loop` by keeping retrieval/search FTS-first and structured.
+FTS-first confirmation: SQLite FTS remains authoritative for the MVP in the reviewed range; PageIndex and embeddings remain deferred or compatibility paths and are not required runtime fallbacks for the public excerpt lookup surface.
 
 Reviewed implementation scope:
 
 * SQLite FTS remains authoritative for the reviewed slice.
 * `fetch_excerpt` stays on the canonical FTS-only path in `src/qual/retrieval/service.py`.
-* Direct retrieval bundle payloads now surface authoritative ranked `retrieved_doc_ids` and `retrieved_excerpt_ids` for downstream basket/context promotion flows.
-* `src/qual/engine/retrieval/__init__.py` lazy-binds retrieval runtime types while preserving delegation to the canonical retrieval facade.
 * Approved shared regression coverage proves that PageIndex-only excerpt ids fail closed with `KeyError`.
+* The reviewed implementation scope remains limited to `src/qual/retrieval/service.py` and `tests/unit/test_unified_retrieval.py`.
 
-Current handoff files:
+Writable packet artifacts refreshed in this fixer pass:
+
+* `THREAD_PACKET.md`
+* `docs/gate_passed.txt`
+
+Read-only packet artifacts blocked in this sandbox:
 
 * `.codex/kickoff_packets/feat-retrieval-fts.md`
 * `.codex/lane_meta/feat-retrieval-fts.json`
-* `THREAD_PACKET.md`
-* `docs/gate_passed.txt`
-* `src/qual/engine/retrieval/__init__.py`
-* `src/qual/retrieval/service.py`
-* `tests/unit/test_unified_retrieval.py`
 
 Verification:
 
@@ -52,7 +50,3 @@ Vision capabilities affected:
 Routing/provider impact:
 
 * none
-
-Environment note:
-
-* `.codex` packet mirrors are visible in this worktree, but this environment rejects writing them via the project write boundary. The refreshed handoff details are recorded in the writable packet artifacts for this fixer pass.
