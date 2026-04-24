@@ -71,10 +71,10 @@
   - `ROADMAP.md` Milestone 3 `Product Readiness`: this slice hardens the current manual CLI-first loop specifically at the `preview and apply or reject a patch` step by keeping the review/apply entrypoints deterministic and migration-safe while the future console client remains disabled
 - canonical demo-path step advanced: `preview and apply or reject a patch`
 - concrete canonical mapping: this slice hardens the existing patch-review/apply CLI surface inside `project-open/bootstrap -> retrieval -> plan-or-revise -> apply-or-reject -> export-handoff`, so the operator can still reach the current review/apply step through deterministic, migration-safe entrypoints while Textual remains disabled
-- concrete canonical-path blocker removed: deterministic CLI ordering and fast-fail parser/catalog drift detection now cover alias and token-level drift on the existing review/apply command surface, removing the blocker where the current CLI entrypoints could silently diverge before the engine-first loop reaches export handoff
-- non-claim boundary: this handoff does not claim broader CLI polish, new workflow reachability, persistence progress, A2UI contract work, provider routing work, or any new engine behavior
+- concrete canonical-path blocker removed: deterministic CLI ordering and fast-fail parser/catalog drift detection now cover alias and token-level drift on the existing review/apply command surface, removing the blocker where an operator could invoke `preview`, `apply`, or `reject` through entrypoints that silently no longer matched the canonical catalog before the engine-first loop reached export handoff
+- non-claim boundary: this handoff does not claim broader CLI polish, new workflow reachability, persistence progress, auditable-state/workflow progress, A2UI contract work, provider routing work, or any new engine behavior
 - vision capability affected:
-  - `PRODUCT_VISION.md` capability 4 `Operator-first control surface`: the current review/apply CLI surface now rejects parser/catalog drift before it can silently change the deterministic operator contract operators use in the engine-first MVP loop, while still preserving compatibility with future `Exegesis Console` consumption
+  - `PRODUCT_VISION.md` capability 4 `Operator-first control surface`: this slice only hardens the existing engine command contract behind the current review/apply CLI surface, so parser/catalog drift fails fast before the `preview and apply or reject a patch` step can silently change while Textual remains disabled
 - routing/provider impact note:
   - none; this change does not touch routing or provider configuration
 - traceability note:
