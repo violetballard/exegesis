@@ -5272,6 +5272,21 @@ def render_terminal_cli_fallback(artifact: Any, *, kind: str | None = None) -> s
         # card-hint fallback path. Malformed envelopes still get a recovery
         # chance below so engine flows can unwrap bad wrappers safely.
         return _render_invalid_terminal_card(artifact)
+    if requested_kind == "card" and isinstance(artifact, Mapping):
+        try:
+            extracted_envelope = _extract_terminal_artifact_envelope(artifact)
+        except ValueError:
+            extracted_envelope = None
+        if extracted_envelope is not None:
+            _, envelope_kind = extracted_envelope
+            if (
+                envelope_kind in _TERMINAL_ARTIFACT_NON_CARD_KIND_SET
+                and not _has_nested_terminal_artifact_envelope(artifact)
+            ):
+                # Authoritative action/selection envelopes stay on the
+                # invalid-card path when the caller explicitly asked for card
+                # rendering.
+                return _render_invalid_terminal_card(artifact)
     if (
         requested_kind == "card"
         and not malformed_envelope
