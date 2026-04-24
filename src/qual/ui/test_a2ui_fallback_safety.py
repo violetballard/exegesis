@@ -4475,6 +4475,29 @@ class A2UIFallbackSafetyTests(unittest.TestCase):
         self.assertNotIn("[SelectionRef]", text)
         self.assertNotIn("[TerminalArtifact]", text)
 
+    def test_terminal_artifact_cli_fallback_rejects_explicit_leaf_dataclasses_for_card_hints(self) -> None:
+        shell = ShellUI()
+        cases = [
+            ("action", ActionRef(id="export_document", label="Export", payload={"format": "md"})),
+            (
+                "selection",
+                SelectionRef(id="choice-1", label="Choice", payload={"nested": {"items": [1, 2]}}),
+            ),
+        ]
+
+        for case_name, artifact in cases:
+            with self.subTest(case=case_name):
+                direct_text = render_terminal_artifact(artifact, kind="card")
+                cli_text = render_terminal_cli_fallback(artifact, kind="card")
+                shell_text = shell.render_artifact(artifact, kind="card")
+
+                self.assertEqual(direct_text, cli_text)
+                self.assertEqual(shell_text, cli_text)
+                self.assertIn("[UnknownCard] <invalid card>", cli_text)
+                self.assertIn("Action policy: copy_to_clipboard_only", cli_text)
+                self.assertNotIn("[ActionRef]", cli_text)
+                self.assertNotIn("[SelectionRef]", cli_text)
+
     def test_terminal_artifact_cli_fallback_contract_fingerprints_are_public_and_canonical(self) -> None:
         manifest = describe_terminal_artifact_cli_fallback_contract()
         fingerprints = describe_terminal_artifact_cli_fallback_contract_fingerprints()
