@@ -4,11 +4,12 @@
 - Branch: `codex/feat-commands`
 - Review scope: narrow command-contract hardening in `src/qual/commands/catalog.py`, plus focused regression coverage in `tests/unit/test_commands_catalog.py`.
 - Canonical demo-path step advanced: `preview and apply or reject a patch`
-- Concrete canonical mapping: this slice makes `preview and apply or reject a patch` more reliable by forcing the parser-backed patch-review CLI entrypoints to stay aligned with the canonical catalog, so review commands fail fast on parser/catalog drift instead of silently accepting a mutated CLI surface.
+- Concrete canonical mapping: this slice makes canonical step 5, `preview and apply or reject a patch`, more reliable by locking the parser-backed patch-review CLI entrypoints to the canonical catalog so operators can move from `produce a plan or revision` into patch review on a deterministic CLI surface instead of silently accepting parser/catalog drift.
 - Scope clarification: this is CLI compatibility hardening for the existing patch-review step while Textual remains disabled. It does not add new commands, new engine behavior, persistence work, or new workflow reachability.
-- Roadmap tie-in: this is Milestone 3 real-workflow-loop hardening at the CLI patch-review step.
+- Roadmap tie-in: this is Milestone 3 real-workflow-loop hardening at the CLI patch-review step, specifically the canonical `preview and apply or reject a patch` boundary between revision output and persistence.
 - High-risk framing note: this remains a high-risk handoff because it hardens a public command contract and uses the explicitly approved shared regression path `tests/unit/test_commands_catalog.py`.
 - Review basis note: implementation approval is pinned to `src/qual/commands/catalog.py` and `tests/unit/test_commands_catalog.py`; `THREAD.md` and `handoff_packets/feat-commands.md` are metadata-only refreshes.
+- Counted lane work note: this handoff counts `3` meaningful, testable implementation tasks; metadata refresh is explicitly uncounted.
 
 ## Thread Kickoff (High-Risk)
 
@@ -61,4 +62,5 @@
 ## Roadmap and Vision Mapping
 
 - `ROADMAP.md` Milestone 3 `Real workflow loop`: this slice keeps the patch-review entry surface deterministic for the CLI-first MVP loop while the package/layout migration lands.
+- `ROADMAP.md` canonical MVP loop step `preview and apply or reject a patch`: this slice hardens the exact command boundary operators use at that step, after revision output and before persistence or continued work.
 - `PRODUCT_VISION.md` capability 3 `Canonical engine contract`: the active CLI surface now rejects parser/catalog drift before it can silently change the deterministic engine-facing contract.
