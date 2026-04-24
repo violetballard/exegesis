@@ -25,6 +25,7 @@ Canonical handoff contract lives in `THREAD_PACKET.md`.
 - Reviewed implementation scope:
   - fail fast when the canonical command names derived from the live CLI lookup table drift from the declared command catalog
   - prove in shared tests that the command contract returns canonical catalog order and raises on drift
+  - prove in shared tests that the smoke-route patch-review entry remains `("patch-review", "diff-preview", ("diff-preview", "diff"))`
 - Primary canonical demo-path step advanced:
   - `preview and apply or reject a patch`
 - Required handoff field now called out explicitly:
@@ -38,6 +39,7 @@ Canonical handoff contract lives in `THREAD_PACKET.md`.
   - task 4 `preview and apply or reject a patch`: rerun the required gates and record the outcomes against the same reviewed implementation scope
 - Scope note:
   - this packet advances the patch-review command contract only; deterministic CLI contract validation preserves the operator-facing command surface required by Milestone 3 while the package/layout migration is in flight, and it does not claim new retrieval, patch application, persistence, export, audit-path, or broader UI behavior
+  - the CLI-first MVP loop claim is intentionally narrowed to the tested patch-review route coverage in `tests/unit/test_commands_catalog.py`, not to a broader workflow-loop completion claim
 - Current engine-first MVP path statement:
   - the current CLI-first smoke route stays `project-open -> retrieval -> preview and apply or reject a patch -> persist -> export-handoff`
 - Concrete blocker removed:

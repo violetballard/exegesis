@@ -7,6 +7,7 @@
 - Canonical demo-path step advanced: `preview and apply or reject a patch`
 - Required AGENTS sentence: this change makes `preview and apply or reject a patch` more real by forcing the public command surface to stay catalog-locked and fail closed before the operator reaches the wrong CLI verb set.
 - Concrete blocker removed: parser or catalog drift can no longer silently change the canonical command contract, which keeps the CLI fallback deterministic at the patch-review step of the current engine-first MVP loop.
+- Route-coverage evidence anchor: `tests/unit/test_commands_catalog.py` keeps the CLI-first claim pinned to the tested patch-review route entry `("patch-review", "diff-preview", ("diff-preview", "diff"))` in the smoke-route summary and route-contract assertions.
 - Plan-alignment statement: this is one engine-first MVP review-step contract-hardening slice inside the current Milestone 3 loop. Deterministic CLI contract validation preserves the operator-facing command surface while the package/layout migration is in flight. It does not claim new retrieval, persistence, export, audit-path, or broader workflow behavior.
 - Packet refresh traceability: later `docs(commands)` commits are metadata-only and update only `handoff_packets/feat-commands.md`, `THREAD_PACKET.md`, and `THREAD.md`.
 - High-risk kickoff context:

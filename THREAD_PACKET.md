@@ -84,6 +84,7 @@
 - Current CLI smoke route context: `project-open -> retrieval -> preview and apply or reject a patch -> persist -> export-handoff`.
 - Smoke-test evidence:
   - `tests/unit/test_commands_catalog.py` proves `command_cli_contract()` returns the canonical command order from `command_names()` and fails fast when canonical-name drift is introduced.
+  - `tests/unit/test_commands_catalog.py` also proves the command route coverage stays pinned to the smoke route entry for patch review: `("patch-review", "diff-preview", ("diff-preview", "diff"))` in `test_command_cli_route_summary_tracks_the_smoke_route()` and `test_command_cli_route_contract_tracks_the_smoke_surface()`.
 - Plan-alignment note: while Textual remains disabled, the CLI fallback still has to carry the operator path. This slice makes the `preview and apply or reject a patch` step more real by locking the command contract to the same current engine-first Milestone 3 loop, and it does so specifically so deterministic CLI contract validation preserves the operator-facing command surface required during the package/layout migration now in flight.
 
 ## Approved Exception Note
@@ -147,12 +148,14 @@
 - `ROADMAP.md` Milestone 3: `preserve CLI compatibility while the package/layout migration lands`
 - `ROADMAP.md` lane mapping: `feat-commands`: `CLI compatibility and migration-safe entrypoints`
 - Scope-tightening statement: this is engine-first Milestone 3 CLI contract hardening for the current patch-review step, preserving the operator-facing command surface during the package/layout migration rather than broadening workflow behavior.
+  - Proven command-surface level only: the claimed support for the CLI-first MVP loop is limited to the tested patch-review route entry `patch-review -> diff-preview/diff`, not to retrieval, persistence, export, or broader workflow behavior.
 
 ### Vision capability affected
 
 - `PRODUCT_VISION.md` capability 3 `Canonical engine contract`
 - Exact requirement advanced: `CLI compatibility is required while Textual remains disabled.`
 - This slice narrows to the patch-review command contract only. It does not claim persistence, audit hooks, or workflow traceability progress.
+  - Evidence anchor: the claimed product-surface support is the tested patch-review CLI route coverage in `tests/unit/test_commands_catalog.py`, not an unproven broader engine-loop claim.
 
 ### Routing / Provider Impact Note
 
