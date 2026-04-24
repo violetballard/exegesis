@@ -38,7 +38,7 @@
 - Retrieval is FTS-first by default.
 - Results are structured and deterministic enough for basket promotion and workflow cards.
 - Excerpt provenance is stable and auditable.
-- Retrieval is reachable through the canonical engine surface.
+- Retrieval excerpt lookup fails closed on the canonical FTS path.
 
 ## Do not spend time on
 
@@ -54,14 +54,15 @@
 
 ## Scope completed
 
-- SQLite FTS remains the authoritative MVP retrieval path in this narrowed slice. The reviewed implementation commit makes excerpt lookup fail closed on the canonical FTS-only path by removing the PageIndex fallback from `fetch_excerpt`, while keeping approved shared regression coverage in `tests/unit/test_unified_retrieval.py` to prove PageIndex-only excerpt IDs now raise `KeyError`.
-- PageIndex and embeddings remain non-required compatibility paths in this slice; excerpt lookup no longer promotes PageIndex as a runtime fallback path for the MVP contract.
-- This re-review deliberately narrows scope from the earlier over-budget cumulative branch summary to the single implementation commit `adfa8cdadd43747ffbcb612e4151e262b13e52ca`, which stays within the high-risk size budget for shared-file work.
+- This narrowed reviewed slice only changes excerpt lookup behavior: `src/qual/retrieval/service.py` removes the PageIndex fallback from `fetch_excerpt`, so excerpt lookup now fails closed on the canonical FTS-only path.
+- Approved shared regression coverage in `tests/unit/test_unified_retrieval.py` proves PageIndex-only excerpt IDs now raise `KeyError`.
+- This re-review deliberately narrows scope to the single implementation commit `adfa8cdadd43747ffbcb612e4151e262b13e52ca`; broader retrieval facade and engine-surface claims are outside this reviewed slice.
 
 ## Canonical demo-path step advanced
 
 - `retrieve relevant material`
 - This change makes excerpt lookup deterministic on the FTS-first retrieval path by failing closed on non-FTS excerpt IDs.
+- Basket-promotion readiness is downstream support only here, not new implemented behavior proven by this reviewed slice.
 
 ## Kickoff budget/limits compliance
 
@@ -73,7 +74,7 @@
 
 ## Tasks completed
 
-1. Removed the PageIndex fallback from `fetch_excerpt` so the public excerpt lookup surface now resolves through the canonical FTS-only path.
+1. Removed the PageIndex fallback from `fetch_excerpt` so excerpt lookup now resolves through the canonical FTS-only path and fails closed for PageIndex-only IDs.
 2. Added approved shared regression coverage in `tests/unit/test_unified_retrieval.py` proving PageIndex-only excerpt IDs fail closed with `KeyError`.
 
 ## Files changed
