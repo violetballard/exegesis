@@ -21,7 +21,7 @@ Plan-alignment statement: this branch makes `retrieve relevant material` more re
 Scope-tightening statement: the post-`adfa8cda` retrieval changes stay inside the Milestone 4 FTS-first path because they harden payload normalization, provenance, query snapshots, confidentiality handling, and promotion inputs without restoring PageIndex or embeddings as required retrieval paths.
 Branch-tip in-scope retrieval commits after `adfa8cda`: `845fcfb9`, `66b288ef`, `153c6939`, and `c8df9342`.
 Non-lane support statement: `codex_packet_handoff/tools/planner.py` and `tests/unit/test_packet_planner.py` are included in the reviewed implementation range because they keep packet emission traceable to the real reviewed tip.
-Metadata mirror note: `.codex/kickoff_packets/feat-retrieval-fts.md` and `.codex/lane_meta/feat-retrieval-fts.json` could not be updated in this restricted worktree, so `THREAD_PACKET.md` and this file are the reviewer-facing source of truth for this refresh.
+Metadata mirror note: `.codex/kickoff_packets/feat-retrieval-fts.md` and `.codex/lane_meta/feat-retrieval-fts.json` remain stale in this worktree because those paths are not writable here; `THREAD_PACKET.md` and this file are the reviewer-facing source of truth for this refresh.
 
 Reviewed implementation files:
 

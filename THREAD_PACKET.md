@@ -108,7 +108,7 @@
 3. The packet explicitly states which canonical demo-path step this work advances: `retrieve relevant material`.
 4. The scope statement stays tight by classifying the added retrieval work as deterministic FTS payload/provenance/basket-promotion support for the Milestone 4 retrieval path.
 5. The current refresh commit is metadata-only only because its diff is limited to packet files; the reviewed implementation remains the full branch-tip code through `c8df9342`.
-6. Reviewer-facing truth for this refresh is carried by `THREAD_PACKET.md` and `docs/gate_passed.txt`; `.codex` packet mirrors could not be updated from this restricted worktree.
+6. Reviewer-facing truth for this refresh is carried by `THREAD_PACKET.md` and `docs/gate_passed.txt`; the `.codex` packet mirrors remain stale in this worktree because those paths are not writable here.
 
 ## Risks / Blockers
 
