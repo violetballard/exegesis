@@ -76,7 +76,7 @@
 - concrete canonical-path blocker removed: before this change, alias or token drift could let the operator reach the `preview`, `apply`, or `reject` entrypoints through parser surfaces that no longer matched the canonical catalog even though canonical command names still looked stable; this slice removes that direct blocker on `preview and apply or reject a patch` by forcing the CLI fallback review/apply step to fail fast on parser/catalog drift instead of silently diverging before `persist -> export-handoff`
 - non-claim boundary: this handoff does not claim broader CLI polish, new workflow reachability, persistence progress, auditable-state/workflow progress, A2UI contract work, provider routing work, or any new engine behavior
 - vision capability affected:
-  - `PRODUCT_VISION.md` capability 4 `Operator-first control surface`: this slice only hardens the existing engine command contract behind the current review/apply CLI surface, so parser/catalog drift fails fast before the `preview and apply or reject a patch` step can silently change while `feat-console` stays disabled
+  - `PRODUCT_VISION.md` capability 4 `Operator-first control surface` (`CLI remains a first-class surface` / `engine contracts come first`): this slice is limited to CLI compatibility for the existing engine-facing review/apply contract at `preview`, `apply`, and `reject`, so parser/catalog drift fails fast before the `preview and apply or reject a patch` step can silently change while `feat-console` stays disabled; it does not claim auditable-state/workflow progress or broader operator-surface expansion
 - routing/provider impact note:
   - none; this change does not touch routing or provider configuration
 - traceability note:
