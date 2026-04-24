@@ -5,7 +5,7 @@
   - `f8d860ed9f6299f0169c4f21321ac5f37c949fd3` (`feat(commands): lock CLI contract to command catalog`)
 - Scope completed: hardened the review-step CLI contract for the canonical `preview and apply or reject a patch` step so the public `diff-preview` entrypoint stays locked to the catalog-projected parser surface.
 - Canonical demo-path step advanced: `preview and apply or reject a patch`
-- Demo-path mapping: this slice makes the canonical `preview and apply or reject a patch` step more real by keeping the operator-facing `diff-preview` preview entrypoint stable at the parser/catalog boundary for the current engine-first Milestone 3 CLI loop.
+- Required AGENTS sentence: this change makes `preview and apply or reject a patch` more real by forcing the review-step public command surface to stay catalog-locked and fail closed before the operator reaches the wrong CLI verb set.
 - Concrete blocker removed: parser/catalog drift can no longer silently drop the public `diff-preview` token and leave only the still-resolvable alias `diff`, which keeps the CLI fallback deterministic at the patch-review step of the current MVP loop.
 - Plan-alignment statement: this is one review-step contract-hardening slice inside the current engine-first Milestone 3 loop. It does not claim new retrieval, persistence, export, audit-path, or broader workflow behavior.
 - Packet refresh traceability: this resubmission is metadata-only and updates only `handoff_packets/feat-commands.md`, `THREAD_PACKET.md`, and `THREAD.md`.
@@ -38,7 +38,7 @@
 - `./quality-test.sh` -> passed
 - `./typecheck-test.sh` -> passed
 - `make ci` -> passed
-- Verification rerun timestamp: `2026-04-24T08:29:45Z UTC`
+- Verification rerun timestamp: `2026-04-24T08:32:47Z UTC`
 
 ## Risks / Blockers
 - Risks: future command-surface changes now need to keep `_CLI_ENTRYPOINTS` and the shared regression suite aligned so the public `diff-preview` review token stays catalog-locked.
@@ -46,5 +46,5 @@
 
 ## Scope-Check / Ownership Note
 - Shared-by-approval edit: `tests/unit/test_commands_catalog.py`
-- Approval trace: `scripts/scope-check.sh` `is_approved_shared_test()` allowlists `tests/unit/test_commands_catalog.py` for `codex/feat-commands*`
+- Approval trace: `THREAD_OWNERSHIP.md` marks the test path as non-owned and `scripts/scope-check.sh` `is_approved_shared_test()` allowlists `tests/unit/test_commands_catalog.py` for `codex/feat-commands*`
 - Integrator-locked edits: `none`
