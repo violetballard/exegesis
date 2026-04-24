@@ -37,7 +37,9 @@ from src.qual.commands.catalog import (
     command_mvp_next_action_preferred_invocation_table,
     command_mvp_path_contract,
     command_mvp_path_invocation_plan,
+    command_mvp_surface_invocation_table,
     command_mvp_trusted_surface_contract,
+    command_mvp_trusted_surface_flow_lookup_table,
     command_mvp_trusted_surface_tokens,
     command_mvp_workflow_trusted_contract,
     command_mvp_workflow_branch_tokens,
@@ -56,6 +58,16 @@ def command_workflow_surface_contract() -> CommandTrustedSurfaceContract:
 def command_workflow_surface_tokens() -> tuple[str, ...]:
     """Return the trusted current-MVP command tokens in deterministic order."""
     return command_mvp_trusted_surface_tokens()
+
+
+def command_workflow_surface_flow_lookup_table() -> tuple[tuple[str, str], ...]:
+    """Return trusted current-MVP tokens mapped to their canonical workflow steps."""
+    return command_mvp_trusted_surface_flow_lookup_table()
+
+
+def command_workflow_surface_invocation_table() -> tuple[tuple[str, tuple[str, ...]], ...]:
+    """Return parser-ready argv for the trusted current-MVP command surface."""
+    return command_mvp_surface_invocation_table()
 
 
 def command_workflow_contract() -> CommandDemoWorkflowContract:
