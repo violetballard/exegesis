@@ -148,22 +148,25 @@ class ShellUI:
     def render_cli_fallback(self, artifact: Any, *, kind: str | None = None) -> str:
         """Render an A2UI artifact through the explicit CLI fallback entrypoint."""
         normalized_kind = self._normalize_fallback_kind(kind)
-        if normalized_kind == "card":
-            fallback_hint_token = _TERMINAL_ARTIFACT_CLI_FALLBACK_TARGET_HINT.set((artifact, "card"))
-            try:
-                return self._render_cli_fallback_with_recovery(artifact, "card")
-            finally:
-                _TERMINAL_ARTIFACT_CLI_FALLBACK_TARGET_HINT.reset(fallback_hint_token)
         fallback_hint_token = None
+        fallback_target: tuple[Any, str] | None = None
         try:
-            fallback_target = resolve_terminal_artifact_cli_fallback_target(artifact, kind=kind)
+            if normalized_kind == "card" and _is_malformed_terminal_artifact_envelope(artifact):
+                # Keep malformed card envelopes on the safe invalid-card path.
+                # Clean card hints still flow through the shared resolver below
+                # so the shell and CLI entrypoints negotiate the same target
+                # selection contract.
+                fallback_target = (artifact, "card")
+            else:
+                fallback_target = resolve_terminal_artifact_cli_fallback_target(artifact, kind=kind)
         except Exception:
             # Keep the explicit CLI fallback path aligned with the shell's own
             # recovery classifier when the shared resolver breaks.
-            fallback_target = self._resolve_fallback_artifact(artifact, kind=kind)
-            fallback_hint_token = _TERMINAL_ARTIFACT_CLI_FALLBACK_TARGET_HINT.set(fallback_target)
-        else:
-            fallback_hint_token = _TERMINAL_ARTIFACT_CLI_FALLBACK_TARGET_HINT.set(fallback_target)
+            if normalized_kind == "card" and _is_malformed_terminal_artifact_envelope(artifact):
+                fallback_target = (artifact, "card")
+            else:
+                fallback_target = self._resolve_fallback_artifact(artifact, kind=kind)
+        fallback_hint_token = _TERMINAL_ARTIFACT_CLI_FALLBACK_TARGET_HINT.set(fallback_target)
         try:
             if fallback_target is not None:
                 fallback_artifact, fallback_kind = fallback_target

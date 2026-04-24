@@ -5470,6 +5470,28 @@ class A2UIFallbackSafetyTests(unittest.TestCase):
             render_terminal_cli_fallback(artifact),
         )
 
+    def test_shell_ui_render_cli_fallback_uses_shared_resolver_for_clean_card_hints(self) -> None:
+        shell = ShellUI()
+        artifact = {
+            "id": "export_document",
+            "label": "Export",
+            "payload": {"format": "json"},
+        }
+
+        with patch(
+            "src.qual.ui.shell.resolve_terminal_artifact_cli_fallback_target",
+            return_value=(artifact, "card"),
+        ) as resolver:
+            with patch(
+                "src.qual.ui.shell.render_terminal_cli_fallback",
+                return_value="cli-fallback",
+            ) as cli_fallback:
+                text = shell.render_cli_fallback(artifact, kind="card")
+
+        self.assertEqual(text, "cli-fallback")
+        resolver.assert_called_once_with(artifact, kind="card")
+        cli_fallback.assert_called_once_with(artifact, kind="card")
+
     def test_shell_ui_render_artifact_preserves_card_hint_semantics(self) -> None:
         shell = ShellUI()
         cases = [
