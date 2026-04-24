@@ -1325,7 +1325,7 @@ class UnifiedRetrievalTests(unittest.TestCase):
         self.assertEqual(excerpt["provenance"]["excerpt_fingerprint"], result.hits[0].provenance["excerpt_fingerprint"])
         self.assertTrue(excerpt["text"])
 
-    def test_fetch_excerpt_requires_an_fts_lookup_hit(self) -> None:
+    def test_fetch_excerpt_preserves_pageindex_compatibility(self) -> None:
         docindex_service = DocIndexService(self.root, audit_log=self.audit)
         doc_id = "doc-pageindex-only"
         source = (
@@ -1344,8 +1344,14 @@ class UnifiedRetrievalTests(unittest.TestCase):
         )
         excerpt_id = query.hits[0]["excerpt_ids"][0]  # type: ignore[index]
 
-        with self.assertRaisesRegex(KeyError, "unknown excerpt_id"):
-            self.service.fetch_excerpt(str(excerpt_id))
+        excerpt = self.service.fetch_excerpt(str(excerpt_id))
+        self.assertEqual(excerpt["excerpt_id"], str(excerpt_id))
+        self.assertEqual(excerpt["doc_id"], doc_id)
+        self.assertEqual(excerpt["source_strategy"], "pageindex")
+        self.assertEqual(excerpt["retrieval_source_strategy"], "pageindex")
+        self.assertEqual(excerpt["lookup_resolution"], "pageindex_fallback")
+        self.assertEqual(excerpt["lookup_confidentiality_profile"], "confidential")
+        self.assertTrue(excerpt["text"])
 
     def test_retrieve_fts_excerpt_returns_canonical_fts_payload(self) -> None:
         result = self.service.retrieve_auto(
@@ -2246,7 +2252,7 @@ class UnifiedRetrievalTests(unittest.TestCase):
         self.assertEqual(doc_hit["retrieval_mode"], "fts_first")
         self.assertEqual(doc_hit["retrieval_policy"]["deferred_strategy_ids"], ["pageindex", "embeddings"])
 
-    def test_retrieval_service_rejects_pageindex_excerpt_payloads(self) -> None:
+    def test_retrieve_fts_excerpt_rejects_pageindex_excerpt_payloads(self) -> None:
         query_result = self.service._docindex.query(
             "doc-pdf-1",
             self.service._read_doc_text("doc-pdf-1").encode("utf-8"),
@@ -2259,7 +2265,10 @@ class UnifiedRetrievalTests(unittest.TestCase):
         self.assertTrue(excerpt_ids)
 
         with self.assertRaisesRegex(KeyError, "unknown excerpt_id"):
-            self.service.fetch_excerpt(str(excerpt_ids[0]))
+            self.service.retrieve_fts_excerpt(str(excerpt_ids[0]))
+
+        with self.assertRaisesRegex(KeyError, "unknown excerpt_id"):
+            self.service.fetch_fts_excerpt(str(excerpt_ids[0]))
 
     def test_retrieval_payload_helpers_normalize_tuple_shaped_snapshots(self) -> None:
         payload = {
