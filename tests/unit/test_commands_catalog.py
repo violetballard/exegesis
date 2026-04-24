@@ -210,7 +210,9 @@ from src.qual.commands import (
     command_workflow_next_action_compatibility_lookup_table,
     command_workflow_next_action_invocation_table,
     command_workflow_next_action_lookup_table,
+    command_workflow_next_action_surface_lookup_table,
     command_workflow_next_action_surface,
+    command_workflow_next_action_surface_tokens,
     command_workflow_next_action_surface_invocation_table,
     command_workflow_next_action_tokens,
     command_workflow_lookup_table,
@@ -6015,6 +6017,29 @@ class CommandCatalogTests(unittest.TestCase):
             command_workflow_next_action_surface("review"),
             command_mvp_next_action_catalog("review"),
         )
+
+    def test_public_workflow_next_action_surface_tokens_follow_preferred_demo_verbs(self) -> None:
+        self.assertEqual(command_workflow_next_action_surface_tokens("project-open"), ("retrieval",))
+        self.assertEqual(command_workflow_next_action_surface_tokens("review"), ("apply-patch", "reject-patch"))
+        self.assertEqual(command_workflow_next_action_surface_tokens("apply"), ("persist",))
+        self.assertEqual(command_workflow_next_action_surface_tokens("save"), ("export-handoff", "export"))
+        self.assertEqual(command_workflow_next_action_surface_tokens("queue-export"), ())
+
+    def test_public_workflow_next_action_surface_lookup_table_tracks_preferred_demo_verbs(self) -> None:
+        self.assertEqual(
+            command_workflow_next_action_surface_lookup_table("project-open"),
+            (("retrieval", "context-basket"),),
+        )
+        self.assertEqual(
+            command_workflow_next_action_surface_lookup_table("review"),
+            (("apply-patch", "terminal"), ("reject-patch", "terminal")),
+        )
+        self.assertEqual(command_workflow_next_action_surface_lookup_table("apply"), (("persist", "terminal"),))
+        self.assertEqual(
+            command_workflow_next_action_surface_lookup_table("save"),
+            (("export-handoff", "terminal"), ("export", "terminal")),
+        )
+        self.assertEqual(command_workflow_next_action_surface_lookup_table("queue-export"), ())
 
     def test_command_manifest_keeps_catalog_order(self) -> None:
         manifest = command_manifest()

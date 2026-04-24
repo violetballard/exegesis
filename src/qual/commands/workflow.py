@@ -339,6 +339,26 @@ def command_workflow_next_action_surface_invocation_table(
     return command_mvp_next_action_preferred_invocation_table(source_token)
 
 
+def command_workflow_next_action_surface_tokens(source_token: str) -> tuple[str, ...]:
+    """Return the trusted current-MVP follow-up action surface tokens."""
+    return tuple(
+        token
+        for entry in command_workflow_next_action_catalog(source_token)
+        for token in entry.preferred_surface_tokens
+    )
+
+
+def command_workflow_next_action_surface_lookup_table(
+    source_token: str,
+) -> tuple[tuple[str, str], ...]:
+    """Return trusted follow-up surface verbs mapped to canonical command names."""
+    return tuple(
+        (token, entry.canonical_name)
+        for entry in command_workflow_next_action_catalog(source_token)
+        for token in entry.preferred_surface_tokens
+    )
+
+
 def command_workflow_next_action_surface(
     source_token: str,
 ) -> tuple[CommandDemoNextActionEntry, ...]:
@@ -395,6 +415,8 @@ __all__ = [
     "command_workflow_next_action_invocation_table",
     "command_workflow_next_action_compatibility_lookup_table",
     "command_workflow_next_action_compatibility_invocation_table",
+    "command_workflow_next_action_surface_lookup_table",
+    "command_workflow_next_action_surface_tokens",
     "command_workflow_next_action_surface_invocation_table",
     "command_workflow_next_action_surface",
 ]
