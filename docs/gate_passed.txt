@@ -26,7 +26,7 @@ Focused retrieval proof:
 * `python3 -m unittest tests.unit.test_unified_retrieval` - passed
 
 Canonical demo-path step advanced: `retrieve relevant material`.
-Plan-alignment statement: This change makes the "retrieve relevant material" step more real by making excerpt lookup fail closed unless the excerpt originated from the canonical FTS retrieval path.
+Plan-alignment statement: This change makes the "retrieve relevant material" step more real by keeping excerpt lookup on the canonical FTS-only contract and making provenance and audit behavior deterministic for downstream basket and workflow use.
 Scope note: this handoff now covers the real cumulative implementation range through `9d9e11a1`, including the substantive post-`adfa8cda` retrieval commits `206ee919`, `a96043f`, and `9d9e11a1` that previously sat outside the packet's claimed scope.
 Budget compliance statement: this packet is shared/high-risk work because it includes the approved shared regression surface `tests/unit/test_unified_retrieval.py`, so the handoff is read against the 4-task cap rather than the default 8-task cap.
 Traceability statement: this fixer commit is metadata-only; re-review should validate the actual reviewed implementation range `378cf9a7..9d9e11a1`, not the fixer commit itself.

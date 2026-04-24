@@ -7,7 +7,7 @@
 - Reviewed implementation range: `378cf9a74a3658058079a32f186fcd254c4a4034..9d9e11a1929dc56e44f5a4d459aa385e7a6ce1e5`
 - Packet traceability note: review this lane against the cumulative implementation range above. That range includes the substantive post-`adfa8cda` retrieval commits `206ee919c0bb7a1736e07a86a5cba5aff314a785`, `a96043fee95c3be1b69fba0148e6fdbb5d1d51a9`, and `9d9e11a1929dc56e44f5a4d459aa385e7a6ce1e5`. This fixer commit is metadata-only and does not broaden retrieval scope beyond `378cf9a7..9d9e11a1`; it only reissues the reviewer packet with truthful self-contained traceability on top of `4302bc117bedba915197161c40f23c3a3537b373`.
 - Canonical demo-path step advanced: `retrieve relevant material`
-- Reviewer-required plan-alignment statement: This change makes the "retrieve relevant material" step more real by making excerpt lookup fail closed unless the excerpt originated from the canonical FTS retrieval path.
+- Reviewer-required plan-alignment statement: This change makes the "retrieve relevant material" step more real by keeping excerpt lookup on the canonical FTS-only contract and making provenance and audit behavior deterministic for downstream basket and workflow use.
 - Evidence note: `tests/unit/test_unified_retrieval.py` covers both the canonical/public FTS excerpt helpers and the fail-closed excerpt contract, while the cumulative reviewed range also carries the sparse-hit query-constraint preservation fixes in `src/qual/engine/retrieval/payload.py`.
 - Packet authority note: this top-level packet and [docs/gate_passed.txt](/Users/doctor-violet/.codex/worktrees/rfts/qual/docs/gate_passed.txt:1) are the reviewer-facing source of truth for the corrected reviewed range, demo-path mapping, and gate results for this branch. This fixer pass updates only those reviewer-facing artifacts because attempts to rewrite the mirrored `.codex/*` packet artifacts failed with `Operation not permitted`, so any unchanged mirrors should be treated as non-authoritative for re-review.
 - Gate reissue note: the required gate suite was rerun on this metadata-only reissue so the packet now couples the corrected traceability claims with a fresh green verification pass.
@@ -78,7 +78,7 @@
 
 1. Corrected the reviewed implementation head and range so the packet now includes the substantive post-`adfa8cda` retrieval commits through `9d9e11a1929dc56e44f5a4d459aa385e7a6ce1e5`.
 2. Replaced the false metadata-only branch-history claim with truthful cumulative traceability and the real file list.
-3. Added the explicit canonical demo-path statement naming `retrieve relevant material` and tying it only to the FTS excerpt fail-closed contract.
+3. Added the explicit canonical demo-path statement naming `retrieve relevant material` and explaining that the FTS-only excerpt contract keeps provenance and audit behavior deterministic for downstream basket and workflow use.
 4. Re-ran the required gate suite on top of this metadata-only packet refresh and recorded that the reviewer-facing truth source for re-review is `THREAD_PACKET.md` plus `docs/gate_passed.txt`.
 
 ## Files Changed
@@ -134,7 +134,7 @@
 ### Canonical demo-path step advanced
 
 - `retrieve relevant material`
-- This change makes the "retrieve relevant material" step more real by making excerpt lookup fail closed unless the excerpt originated from the canonical FTS retrieval path.
+- This change makes the "retrieve relevant material" step more real by keeping excerpt lookup on the canonical FTS-only contract and making provenance and audit behavior deterministic for downstream basket and workflow use.
 
 ### Vision capability affected
 
