@@ -12,7 +12,7 @@ Canonical handoff contract lives in `THREAD_PACKET.md`.
 - Concrete blocker removed: alias-level parser drift can no longer quietly drop or mutate `diff` while the canonical command sequence still appears unchanged.
 - Traceability note: reviewed implementation remains `ebe78557`, and the prior metadata refresh `e1d22341` updated only `THREAD.md`, `THREAD_PACKET.md`, and `handoff_packets/feat-commands.md` before this branch-tip packet refresh.
 - Canonical roadmap/vision mapping: `ROADMAP.md` Milestone 3 `Real workflow loop` plus `PRODUCT_VISION.md` capability 3 `Canonical engine contract`, because the CLI remains the active operator surface while Textual is disabled.
-- Latest verification rerun: `2026-04-24T12:17:02Z`
+- Latest verification rerun: `2026-04-24T12:17:42Z`
 
 ## Reviewed Files
 
