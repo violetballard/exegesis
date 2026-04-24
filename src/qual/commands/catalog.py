@@ -3995,7 +3995,11 @@ def _trusted_surface_source_by_token(
     return source_by_token
 
 
-def _validate_command_trusted_surface_contract(contract: CommandTrustedSurfaceContract) -> None:
+def _validate_command_trusted_surface_contract(
+    contract: CommandTrustedSurfaceContract,
+    *,
+    specs: tuple[CommandSpec, ...] = COMMAND_SPECS,
+) -> None:
     if contract.tokens != tuple(entry.token for entry in contract.entries):
         raise ValueError("Command trusted surface tokens are inconsistent")
     if contract.lookup_table != tuple((entry.token, entry.canonical_name) for entry in contract.entries):
@@ -4003,6 +4007,7 @@ def _validate_command_trusted_surface_contract(contract: CommandTrustedSurfaceCo
     if contract.invocation_table != tuple((entry.token, entry.argv) for entry in contract.entries):
         raise ValueError("Command trusted surface invocation table is inconsistent")
     allowed_sources = {"preferred", "surface", "compatibility", "compatibility-variant"}
+    workflow_by_token = {entry.token: entry for entry in command_demo_workflow_contract(specs).entries}
     for entry in contract.entries:
         if not entry.argv:
             raise ValueError(f"Command trusted surface entry is missing argv: {entry.token}")
@@ -4016,6 +4021,23 @@ def _validate_command_trusted_surface_contract(contract: CommandTrustedSurfaceCo
             )
         if entry.flow_step != _normalize_token(entry.flow_step):
             raise ValueError(f"Command trusted surface flow step is inconsistent: {entry.token}")
+        canonical_workflow_entry = workflow_by_token.get(entry.canonical_token)
+        if canonical_workflow_entry is None:
+            raise ValueError(f"Command trusted surface canonical token is unresolved: {entry.token}")
+        if entry.canonical_name != canonical_workflow_entry.canonical_name:
+            raise ValueError(f"Command trusted surface canonical name is inconsistent: {entry.token}")
+        if entry.flow_step != canonical_workflow_entry.flow_step:
+            raise ValueError(f"Command trusted surface canonical flow step is inconsistent: {entry.token}")
+        if entry.description != canonical_workflow_entry.description:
+            raise ValueError(f"Command trusted surface description is inconsistent: {entry.token}")
+        if entry.next_tokens != canonical_workflow_entry.next_tokens:
+            raise ValueError(f"Command trusted surface next tokens are inconsistent: {entry.token}")
+        if entry.compatibility_tokens != canonical_workflow_entry.compatibility_tokens:
+            raise ValueError(f"Command trusted surface compatibility tokens are inconsistent: {entry.token}")
+        if entry.preferred_surface_tokens != canonical_workflow_entry.preferred_surface_tokens:
+            raise ValueError(
+                f"Command trusted surface preferred surface tokens are inconsistent: {entry.token}"
+            )
 
 
 def command_demo_trusted_surface_invocation_table(
@@ -4113,7 +4135,7 @@ def command_demo_trusted_surface_contract(
         lookup_table=tuple((entry.token, entry.canonical_name) for entry in entries),
         invocation_table=tuple((entry.token, entry.argv) for entry in entries),
     )
-    _validate_command_trusted_surface_contract(contract)
+    _validate_command_trusted_surface_contract(contract, specs=specs)
     return contract
 
 
