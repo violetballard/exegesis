@@ -3,7 +3,7 @@ Gate Results Summary (as of 2026-04-23)
 
 Required automated gates reran for the reviewed retrieval branch tip:
 
-* current packet refresh tip before this commit `df7829f8b8641af6b62eb839c41fb9c8db5a0cac`
+* current packet refresh tip before this commit `6a0ba8e05618246f9735919b04d19ff37b5ae519`
 * reviewed implementation head `adfa8cdadd43747ffbcb612e4151e262b13e52ca`
 * reviewed implementation range `d7fd5d200358287fa42a18d39e2b277463b9b69f..adfa8cdadd43747ffbcb612e4151e262b13e52ca`
 * reviewed implementation files `src/qual/retrieval/service.py` and `tests/unit/test_unified_retrieval.py`
