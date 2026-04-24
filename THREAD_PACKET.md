@@ -107,7 +107,7 @@
 
 ### Roadmap item(s) affected
 
-- `ROADMAP.md` Milestone 3: define and lock user-facing output contracts.
+- `ROADMAP.md` Milestone 3: preserve CLI compatibility while the package/layout migration lands, within the `feat-commands` lane for CLI compatibility and migration-safe entrypoints.
 - This diff contributes only the deterministic CLI compatibility surface for the active `open project/document` fallback path by ensuring the declared parser-facing command catalog cannot drift away from the canonical command catalog without failing closed.
 
 ### Vision capability affected

@@ -27,7 +27,7 @@ Canonical handoff contract lives in `THREAD_PACKET.md`.
 - Why this is milestone-worthy now:
   - deterministic CLI command ordering is a required smoke-test guard for the active engine-first MVP loop while Textual remains disabled, so preventing silent contract drift in the declared command catalog is direct operator-surface hardening rather than second-order cleanup.
 - Roadmap / vision alignment for this reviewed slice:
-  - `ROADMAP.md` Milestone 3: define and lock user-facing output contracts, applied here as a deterministic CLI command catalog for the active `open project/document` fallback path
+  - `ROADMAP.md` Milestone 3: preserve CLI compatibility while the package/layout migration lands, applied here as a deterministic CLI command catalog for the active `open project/document` fallback path
   - `PRODUCT_VISION.md` capability 4 `Operator-first control surface`: keep the CLI command catalog deterministic and fail-closed before the `open project/document` step begins
 - Ownership / scope note:
   - lane-owned implementation path: `src/qual/commands/catalog.py`
