@@ -6,10 +6,13 @@ Canonical handoff contract lives in `THREAD_PACKET.md`.
 
 ## Current Review Focus
 
-- Packet refresh commit status: metadata-only resubmission packet update.
+- Packet refresh commit status: regenerated against the live branch tip instead of treated as metadata-only.
 - Reviewed implementation base previously approved for comparison: `f8d860ed9f6299f0169c4f21321ac5f37c949fd3`.
-- Reviewed implementation range in this resubmission: the full branch delta through `5ea27f3d960f2f2876347f2b8ce616223227a713`.
-- The resubmission commit is metadata-only, but the true reviewed basis includes non-doc command and diff-preview implementation across:
+- Reviewed implementation range in this resubmission: the full branch delta through `2f6929c1185a3d77c984ce1de01d1fb445ebb84a`.
+- Post-packet implementation now explicitly in scope:
+  - `6c8d54c79eb9c0da811069e97603664468067d22` `Harden demo terminal command canonicalization`
+  - `2f6929c1185a3d77c984ce1de01d1fb445ebb84a` `Fix demo argv flow-step alignment`
+- The true reviewed basis includes non-doc command and diff-preview implementation across:
   - `scripts/scope-check.sh`
   - `src/qual/commands/__init__.py`
   - `src/qual/commands/canonical.py`
@@ -35,8 +38,6 @@ Canonical handoff contract lives in `THREAD_PACKET.md`.
   - Packet B: demo token, shim, and next-action workflow contracts
   - Packet C: diff-preview stabilization
 - Canonical demo-path steps advanced by the true range:
-  - `open project/document`
-  - `retrieval`
   - `patch-review`
   - `apply-patch`
   - `reject-patch`
