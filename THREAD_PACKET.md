@@ -1,27 +1,26 @@
 # Thread Handoff Packet
 
 - Branch name: `codex/feat-retrieval-fts`
-- Packet role: `metadata-only reviewer-fix refresh`
-- Current branch tip before this packet refresh commit: `4387c7277d8d983012d970312a6bcc14f6fb571d`
-- Reviewed implementation head: `adfa8cdadd43747ffbcb612e4151e262b13e52ca`
-- Reviewed implementation range: `378cf9a74a3658058079a32f186fcd254c4a4034..adfa8cdadd43747ffbcb612e4151e262b13e52ca`
-- Packet traceability note: re-review this lane against the narrowed implementation range above. Later branch commits after `adfa8cdadd43747ffbcb612e4151e262b13e52ca`, including substantive retrieval commits and metadata-only packet refreshes, remain outside this reviewed implementation range unless the handoff is explicitly regenerated to widen scope.
+- Packet role: `metadata-only reviewer-fix finalization`
+- Packet refresh trace anchor before this fixer commit: `3a7f478b243e5e6e23c46a9bedea7f782defd497`
+- Reviewed implementation head: `4387c7277d8d983012d970312a6bcc14f6fb571d`
+- Reviewed implementation range: `378cf9a74a3658058079a32f186fcd254c4a4034..4387c7277d8d983012d970312a6bcc14f6fb571d`
+- Packet traceability note: the current branch tip before this fixer pass is `3a7f478b243e5e6e23c46a9bedea7f782defd497`, which is a metadata-only packet refresh on top of the substantive retrieval commit `4387c7277d8d983012d970312a6bcc14f6fb571d`. Re-review this lane against the true merge candidate range above. The post-`adfa8cdadd43747ffbcb612e4151e262b13e52ca` retrieval commit `4387c7277d8d983012d970312a6bcc14f6fb571d fix(retrieval): canonicalize hit provenance strategy metadata` is in-scope implementation, not metadata-only.
 - Canonical demo-path step advanced: `retrieve relevant material`
-- Reviewer-required plan-alignment statement: This change makes the canonical demo-path step `retrieve relevant material` more real because the public engine-facing `fetch_excerpt` surface now rehydrates shortlisted excerpt IDs only through the authoritative SQLite FTS path, so the engine loop cannot promote or reuse a PageIndex-only excerpt that lacks canonical retrieval evidence before downstream context gathering moves it into the basket.
-- Canonical excerpt lookup contract note: `fetch_excerpt` is the canonical engine-facing excerpt lookup surface consumed downstream through the retrieval facade and engine excerpt tool wrapper, not just an internal consistency hardening point.
+- Reviewer-required plan-alignment statement: this lane advances `retrieve relevant material` by keeping SQLite FTS authoritative across retrieval execution, excerpt lookup, and provenance payload rehydration so engine flows consume canonical retrieval state instead of PageIndex-only fallbacks.
 - Approved shared regression exception: `tests/unit/test_unified_retrieval.py` remains the only shared-by-approval regression surface in the reviewed implementation range.
-- Packet authority note: the writable re-review artifacts for this fixer pass are `THREAD_PACKET.md` and `docs/gate_passed.txt`. The tracked `.codex/kickoff_packets/feat-retrieval-fts.md` and `.codex/lane_meta/feat-retrieval-fts.json` mirrors remain stale because this worktree rejects writes to `.codex/*` with `operation not permitted`.
+- Packet authority note: this packet, `.codex/kickoff_packets/feat-retrieval-fts.md`, and `.codex/lane_meta/feat-retrieval-fts.json` are the aligned reviewer-fix artifacts for this pass.
 
 ## Scope Goal
 
-- Refresh the reviewer-facing handoff metadata so it truthfully stays shared/high-risk under the 4-task cap, states the canonical demo-path step explicitly, and keeps the reviewed implementation range narrowed to `378cf9a74a3658058079a32f186fcd254c4a4034..adfa8cdadd43747ffbcb612e4151e262b13e52ca`.
+- Complete the FTS-first retrieval MVP handoff for the actual current merge candidate and correct packet traceability so review scope matches the live branch tip.
 
 ## Thread Kickoff (High-Risk)
 
 - Branch: `codex/feat-retrieval-fts`
 - Lane/owned paths: `src/qual/retrieval/**`, `src/qual/engine/retrieval/**`, `engine/src/exegesis_engine/retrieval/**`
-- Scope goal: correct reviewer-facing packet traceability without widening the reviewed retrieval implementation beyond the approved FTS-only excerpt slice.
-- Risk reason: the reviewed implementation range includes approved shared regression coverage in `tests/unit/test_unified_retrieval.py`, so this handoff is shared/high-risk work under the 4-task cap.
+- Scope goal: regenerate the handoff packet against the true merge candidate instead of the stale narrowed slice.
+- Risk reason: this lane includes approved shared regression coverage in `tests/unit/test_unified_retrieval.py`, and the packet previously misrepresented the reviewed retrieval head after a later live code commit landed.
 
 ### Budget
 
@@ -32,43 +31,47 @@
 
 ### Planned Tasks
 
-1. Regenerate the kickoff and handoff metadata so every writable artifact classifies this work as shared/high-risk under the 4-task cap.
-2. Keep the reviewed implementation head fixed at `adfa8cdadd43747ffbcb612e4151e262b13e52ca` and the reviewed implementation range fixed at `378cf9a74a3658058079a32f186fcd254c4a4034..adfa8cdadd43747ffbcb612e4151e262b13e52ca`.
-3. Add the required canonical demo-path statement naming `retrieve relevant material`.
-4. Re-run the required local gates after the metadata refresh and record results without broadening scope.
+1. Re-anchor the reviewed implementation head/range to the true merge candidate `378cf9a74a3658058079a32f186fcd254c4a4034..4387c7277d8d983012d970312a6bcc14f6fb571d`.
+2. Correct the packet traceability note so `4387c7277d8d983012d970312a6bcc14f6fb571d` is listed as in-scope retrieval implementation.
+3. Re-list `Scope completed`, `Files changed`, and `Tasks completed` against the true merge candidate.
+4. Re-run `make scope-check`, `./quality-format.sh --check`, `./quality-lint.sh`, `./quality-test.sh`, `./typecheck-test.sh`, and `make ci`, then record the outcomes.
 
 ## Scope Completed
 
-- Kept excerpt lookup on the canonical engine-facing FTS-only path so PageIndex-only excerpt IDs fail closed instead of slipping into downstream workflow reuse without authoritative retrieval evidence.
-- Kept the reviewed implementation scope narrowed to `src/qual/retrieval/service.py` and `tests/unit/test_unified_retrieval.py` in `378cf9a74a3658058079a32f186fcd254c4a4034..adfa8cdadd43747ffbcb612e4151e262b13e52ca`.
-- Added the explicit handoff statement that this slice advances `retrieve relevant material`.
-- Left later branch commits outside this re-review packet.
+- The true merge candidate `378cf9a74a3658058079a32f186fcd254c4a4034..4387c7277d8d983012d970312a6bcc14f6fb571d` keeps retrieval FTS-first for the MVP: engine and service facades export the canonical retrieval helpers, FTS strategy execution and cache/query normalization are hardened for canonical vault/doc scopes, payloads and provenance snapshots are deterministic for downstream engine flows, sparse source and context bundles rehydrate consistently, basket-promotion and excerpt-lookup metadata stay canonical, and excerpt lookup now fails closed on non-FTS/PageIndex-only paths under shared regression coverage.
 
 ## Reviewed Scope Boundary
 
-- Reviewed implementation range: `378cf9a74a3658058079a32f186fcd254c4a4034..adfa8cdadd43747ffbcb612e4151e262b13e52ca`
-- Reviewed implementation files:
-- `src/qual/retrieval/service.py`
-- `tests/unit/test_unified_retrieval.py`
-- Metadata-only packet refresh files in this commit:
-- `THREAD_PACKET.md`
-- `docs/gate_passed.txt`
+- Reviewed implementation range: `378cf9a74a3658058079a32f186fcd254c4a4034..4387c7277d8d983012d970312a6bcc14f6fb571d`
+- Current metadata-only branch tip before this fixer pass: `3a7f478b243e5e6e23c46a9bedea7f782defd497`
+- Substantive post-review retrieval commit now included in scope:
+- `4387c7277d8d983012d970312a6bcc14f6fb571d fix(retrieval): canonicalize hit provenance strategy metadata`
 
 ## Tasks Completed
 
-1. Regenerated the writable handoff packet and gate summary so they classify this work as shared/high-risk under the 4-task cap.
-2. Narrowed the reviewed implementation head and range back to `adfa8cdadd43747ffbcb612e4151e262b13e52ca` and `378cf9a74a3658058079a32f186fcd254c4a4034..adfa8cdadd43747ffbcb612e4151e262b13e52ca`.
-3. Added the explicit canonical demo-path statement naming `retrieve relevant material` and tied it to the FTS-only `fetch_excerpt` contract.
-4. Re-ran the required gate suite on top of this metadata-only packet refresh and recorded results against the corrected range.
+1. Hardened the FTS-first retrieval path by exporting canonical retrieval helpers through the service and engine facades, guarding unsupported scopes, and keeping PageIndex/embeddings fallback-only and fail-closed.
+2. Canonicalized retrieval payloads, provenance bundles, hit snapshots, and excerpt/basket-promotion metadata so downstream engine flows consume deterministic audit-friendly state.
+3. Rehydrated sparse source/context bundle fields and preserved canonical query, policy, citation, and strategy metadata across excerpt lookup and basket promotion flows.
+4. Expanded regression coverage in `tests/unit/test_unified_retrieval.py` and `tests/unit/test_packet_planner.py`, and kept the packet planner aligned with cumulative reviewed-range handoffs.
 
 ## Files Changed
 
-- Reviewed implementation files in `378cf9a74a3658058079a32f186fcd254c4a4034..adfa8cdadd43747ffbcb612e4151e262b13e52ca`:
-- `src/qual/retrieval/service.py`
-- `tests/unit/test_unified_retrieval.py`
-- Metadata-only packet refresh files in this commit:
+- Files in the true merge candidate `378cf9a74a3658058079a32f186fcd254c4a4034..4387c7277d8d983012d970312a6bcc14f6fb571d`:
+- `.codex/kickoff_packets/feat-retrieval-fts.md`
+- `.codex/lane_meta/feat-retrieval-fts.json`
 - `THREAD_PACKET.md`
+- `codex_packet_handoff/tools/planner.py`
 - `docs/gate_passed.txt`
+- `src/qual/engine/retrieval/__init__.py`
+- `src/qual/engine/retrieval/embeddings_strategy.py`
+- `src/qual/engine/retrieval/fts_strategy.py`
+- `src/qual/engine/retrieval/interface.py`
+- `src/qual/engine/retrieval/pageindex_strategy.py`
+- `src/qual/engine/retrieval/payload.py`
+- `src/qual/retrieval/__init__.py`
+- `src/qual/retrieval/service.py`
+- `tests/unit/test_packet_planner.py`
+- `tests/unit/test_unified_retrieval.py`
 
 ## Commands Run With Results
 
@@ -79,47 +82,36 @@
 - `./typecheck-test.sh`: `PASS`
 - `make ci`: `PASS`
 
-## Validation Refresh Note
-
-- Re-ran the full required gate suite on `2026-04-24` after the reviewer-required packet alignment refresh.
-- This packet remains metadata-only and keeps the reviewed implementation range anchored to `378cf9a74a3658058079a32f186fcd254c4a4034..adfa8cdadd43747ffbcb612e4151e262b13e52ca`.
-- Latest verification refresh for this metadata-only fixer handoff completed at `2026-04-24T01:41:31 PDT`.
-
 ## Reviewer Fix Closure
 
-1. The writable packet and gate summary now classify this work as shared/high-risk under the 4-task cap.
-2. The handoff explicitly states the canonical demo-path step `retrieve relevant material`.
-3. The refreshed packet keeps the reviewed implementation range narrowed to `378cf9a74a3658058079a32f186fcd254c4a4034..adfa8cdadd43747ffbcb612e4151e262b13e52ca`.
-4. Remaining blocker: the worktree refuses writes to `.codex/*`, so the kickoff artifact and lane-meta mirror could not be updated in place.
+1. The reviewed implementation head/range now match the true merge candidate: `378cf9a74a3658058079a32f186fcd254c4a4034..4387c7277d8d983012d970312a6bcc14f6fb571d`.
+2. The traceability note now treats `4387c7277d8d983012d970312a6bcc14f6fb571d` as in-scope retrieval implementation instead of calling everything after `adfa8cdadd43747ffbcb612e4151e262b13e52ca` metadata-only.
+3. `Scope completed`, `Files changed`, and `Tasks completed` are re-listed against the true merge candidate rather than the stale narrowed slice.
+4. This handoff explicitly states that it advances the canonical demo-path step `retrieve relevant material`.
+5. Required gates were re-run and recorded against the true merge candidate.
 
 ## Risks / Blockers
 
 - Risk: `HIGH`
-- Blockers: `.codex/kickoff_packets/feat-retrieval-fts.md` and `.codex/lane_meta/feat-retrieval-fts.json` are not writable in this worktree and still contain stale metadata.
+- Blockers: none
 
 ## Required Handoff Fields
 
 ### Roadmap item(s) affected
 
 - `Milestone 3: Real workflow loop`
-- `feat-retrieval-fts`: authoritative FTS-first retrieval feeding the engine loop
-
-### Canonical demo-path step advanced
-
-- `retrieve relevant material`
-- This change makes the `retrieve relevant material` step more real because the public engine-facing `fetch_excerpt` surface now rehydrates shortlisted excerpt IDs only through the authoritative SQLite FTS path, so the engine loop cannot promote or reuse a PageIndex-only excerpt before downstream context gathering moves it into the basket.
-- `src/qual/retrieval/__init__.py::fetch_excerpt`, its engine re-export in `src/qual/engine/retrieval/__init__.py`, and the engine excerpt tool wrapper are the canonical downstream excerpt lookup surface for this MVP path; the service-level change is a public contract tightening, not only internal consistency hardening.
+- `feat-retrieval-fts`: retrieval/search
 
 ### Vision capability affected
 
-- `2. Retrieval-first context handling`
-- `6. Auditable state and workflow`
+- `Retrieval-first context handling`
+- `Auditable state and workflow`
 
 ### Routing/provider impact note
 
 - None
 
-## Scope-Check / Ownership Note
+### Scope-Check / Ownership Note
 
 - Shared or integrator-locked edits: `YES`
 - Approved shared regression coverage remains limited to `tests/unit/test_unified_retrieval.py`.
