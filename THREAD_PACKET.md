@@ -8,7 +8,7 @@
 - Canonical demo-path step advanced: `retrieve relevant material`
 - Plan-alignment statement: this slice advances `retrieve relevant material` by making the public `fetch_excerpt` surface resolve only through the canonical SQLite FTS path, so PageIndex-only excerpt IDs fail closed on the retrieval step itself and downstream basket promotion or later workflow consumers only see canonical FTS-backed excerpt IDs.
 - Direct handoff statement: this handoff advances the canonical demo-path step `retrieve relevant material` by narrowing public excerpt resolution to the canonical FTS-only lookup path and by keeping approved shared regression coverage proving PageIndex-only excerpt IDs raise `KeyError`. That FTS-only `fetch_excerpt` contract makes downstream basket promotion and workflow consumers more reliable because excerpt lookup now fails closed before non-canonical PageIndex-only IDs can leak past retrieval. It does not promote PageIndex or embeddings to required runtime paths, and it does not claim basket promotion, plan/revise behavior, or broader workflow progress.
-- Approved exception surface: one approved shared test edit in `tests/unit/test_unified_retrieval.py` only; no integrator-locked files and no other shared-by-approval files are part of the reviewed implementation slice. This `THREAD_PACKET.md` refresh is the canonical reissued handoff packet in this sandbox because the mirrored `.codex` packet directories are OS-protected here.
+- Approved exception surface: one approved shared test edit in `tests/unit/test_unified_retrieval.py` only; no integrator-locked files and no other shared-by-approval files are part of the reviewed implementation slice. This `THREAD_PACKET.md` refresh is the canonical reissued handoff packet in this worktree because the mirrored `.codex` packet paths are present but not writable here.
 
 ## Scope Completed
 
@@ -40,7 +40,6 @@
 ## Files Changed
 
 - `THREAD_PACKET.md`
-- `docs/gate_passed.txt`
 
 ## Commands Run With Results
 
@@ -55,7 +54,7 @@
 
 - Risk: `HIGH`
 - Residual risk: later branch commits after `adfa8cdadd43747ffbcb612e4151e262b13e52ca` remain outside this reviewed slice unless a new packet explicitly regenerates the reviewed implementation range.
-- Blocker: the sandbox rejects writes under `.codex/`, so `.codex/kickoff_packets/feat-retrieval-fts.md` and `.codex/lane_meta/feat-retrieval-fts.json` could not be updated in this fixer pass even though they are the remaining stale packet mirrors. `THREAD_PACKET.md` is therefore the canonical reissued packet for re-review.
+- Blocker: `.codex/kickoff_packets/feat-retrieval-fts.md` and `.codex/lane_meta/feat-retrieval-fts.json` are present but OS denies writes to those mirrored packet files in this worktree, so `THREAD_PACKET.md` is the canonical reissued packet for re-review.
 - Budget note: this handoff includes approved shared regression coverage in `tests/unit/test_unified_retrieval.py`, so it remains shared/high-risk work under the `4`-task cap and outside the low-risk owned-path-only budget class.
 
 ## Required Handoff Fields
