@@ -62,8 +62,8 @@
 ## Approved Exception Note
 
 - Approved shared-test exception: `tests/unit/test_commands_catalog.py`
-- Approved by: the local `reviewer` lane, as recorded in the canonical repo approval packet `/Users/doctor-violet/Library/CloudStorage/Box-Box/projects/qual/.codex/packet_router/local_jobs/reviewer/20260416T185314Z__feat-commands__F__codex-feat-commands__f3e88eb90a1116054bac208067568d3c7fbed927__20260416T185054Z.md.spec.json`.
-- Approval source: prior reviewer approval packet at `/Users/doctor-violet/Library/CloudStorage/Box-Box/projects/qual/.codex/packet_router/local_jobs/reviewer/20260416T185314Z__feat-commands__F__codex-feat-commands__f3e88eb90a1116054bac208067568d3c7fbed927__20260416T185054Z.md.spec.json`, which approved this same narrowed `feat-commands` handoff with `tests/unit/test_commands_catalog.py` as the only non-owned implementation path.
+- Approved by: the lane `reviewer` role, as recorded in archived approval packet `/Users/doctor-violet/Library/CloudStorage/Box-Box/projects/qual/.codex/packets/lanes/feat-commands/archive/R__APPROVED__codex-feat-commands__96f57e262da909d58a61cbdf4aa162aac8f16196__20260424T005429Z.md`.
+- Approval source: archived reviewer approval packet `/Users/doctor-violet/Library/CloudStorage/Box-Box/projects/qual/.codex/packets/lanes/feat-commands/archive/R__APPROVED__codex-feat-commands__96f57e262da909d58a61cbdf4aa162aac8f16196__20260424T005429Z.md`, plus canonical lane metadata `/Users/doctor-violet/Library/CloudStorage/Box-Box/projects/qual/.codex/lane_meta/feat-commands.json`; both describe `tests/unit/test_commands_catalog.py` as the only approved non-owned implementation path in this narrowed handoff.
 - Approval scope limit: this exception applies only to the focused regression coverage needed to prove canonical-order alignment and parser/catalog drift rejection for the `f8d860ed9f6299f0169c4f21321ac5f37c949fd3` command-catalog slice.
 
 ## Handoff Packet
@@ -103,14 +103,14 @@
 
 ### Roadmap item(s) affected
 
-- Milestone 3: `Product Readiness` requires user-facing output contracts to be defined and locked and end-to-end verification scenarios to expand; this change makes that concrete for the CLI-first MVP loop by locking the command-catalog contract that drives `patch-review` before `apply-patch`/`reject-patch`, `persist`, and `export-handoff`.
-- `ROADMAP.md` CLI-first Milestone 3 loop requirement: `CLI can execute the MVP flow (vault -> context -> run -> patch -> export) against the same engine PolicyGate`; this change removes parser/catalog drift as a blocker on the `patch` segment of that exact loop and helps keep the output contract test-covered and backward-compatible by policy.
-- `feat-commands`: keep migration-safe command entrypoints deterministic so the active Milestone 3 lane can still exercise the reviewed patch/export path through CLI while Textual remains disabled.
+- `feat-commands`: this slice is explicit CLI-compatibility hardening for the active engine-first MVP loop, specifically the `patch-review` step and its downstream `apply-patch`/`reject-patch`, `persist`, and `export-handoff` transitions.
+- `ROADMAP.md` engine-first MVP loop requirement: `CLI can execute the MVP flow (vault -> context -> run -> patch -> export) against the same engine PolicyGate`; this change removes parser/catalog drift as a blocker on the `patch` segment of that exact loop, so the live CLI surface stays migration-safe while Textual remains disabled.
+- Milestone 3 `Product Readiness`: this slice counts as contract work only because it explicitly locks the `feat-commands` CLI surface for that engine-first patch/export operator path, not because it is broad contract cleanup.
 
 ### Vision capability affected
 
-- `PRODUCT_VISION.md` operator-first control surface: CLI remains a first-class development and reliability surface, so the reviewed patch command path must stay canonical and deterministic instead of depending on parser alias drift.
-- `PRODUCT_VISION.md` CLI-first artifact consumption requirement: artifacts must be consumable by CLI first, with CLI text fallback preserved, so silent parser drift cannot be allowed to break the CLI command path that reaches `patch-review` and the downstream `export-handoff`.
+- `PRODUCT_VISION.md` operator-first control surface: `feat-commands` is responsible for keeping the active CLI operator path canonical and deterministic while the engine-first MVP loop still runs through CLI instead of Textual.
+- `PRODUCT_VISION.md` CLI-first artifact consumption requirement: the reviewed `patch-review` -> `apply-patch`/`reject-patch` -> `persist` -> `export-handoff` path must stay available through CLI first, so parser/catalog drift must fail closed instead of silently weakening the engine-first command contract.
 
 ### Routing / Provider Impact Note
 
@@ -120,6 +120,6 @@
 
 - Shared/integrator-locked edits: `YES`
 - Approved shared-test exception: `tests/unit/test_commands_catalog.py`
-- Approved by: the local `reviewer` lane, recorded in the canonical lane metadata record at `/Users/doctor-violet/Library/CloudStorage/Box-Box/projects/qual/.codex/lane_meta/feat-commands.json` and the prior reviewer packet source at `/Users/doctor-violet/Library/CloudStorage/Box-Box/projects/qual/.codex/packet_router/local_jobs/reviewer/20260416T185314Z__feat-commands__F__codex-feat-commands__f3e88eb90a1116054bac208067568d3c7fbed927__20260416T185054Z.md.spec.json`
-- Approval source: canonical lane metadata record at `/Users/doctor-violet/Library/CloudStorage/Box-Box/projects/qual/.codex/lane_meta/feat-commands.json`; prior reviewer packet source at `/Users/doctor-violet/Library/CloudStorage/Box-Box/projects/qual/.codex/packet_router/local_jobs/reviewer/20260416T185314Z__feat-commands__F__codex-feat-commands__f3e88eb90a1116054bac208067568d3c7fbed927__20260416T185054Z.md.spec.json`
+- Approved by: the lane `reviewer` role, recorded in archived approval packet `/Users/doctor-violet/Library/CloudStorage/Box-Box/projects/qual/.codex/packets/lanes/feat-commands/archive/R__APPROVED__codex-feat-commands__96f57e262da909d58a61cbdf4aa162aac8f16196__20260424T005429Z.md`
+- Approval source: archived reviewer approval packet `/Users/doctor-violet/Library/CloudStorage/Box-Box/projects/qual/.codex/packets/lanes/feat-commands/archive/R__APPROVED__codex-feat-commands__96f57e262da909d58a61cbdf4aa162aac8f16196__20260424T005429Z.md`; canonical lane metadata record `/Users/doctor-violet/Library/CloudStorage/Box-Box/projects/qual/.codex/lane_meta/feat-commands.json`
 - Approval record detail: `Approved shared-test exception for tests/unit/test_commands_catalog.py. It is the only non-owned implementation path in this handoff.`
