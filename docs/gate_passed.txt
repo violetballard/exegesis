@@ -2,40 +2,34 @@ Gate Results Summary (as of 2026-04-24)
 -------------------------------------
 
 Feature lane: `codex/feat-retrieval-fts`
-Packet role: `metadata-only reviewer-fix handoff refresh`
-Packet refresh trace anchor before fixer commit: `9bd108298e82f2ba9cc1a6ab97d2f20f7dc622fe`
-Reviewed implementation head: `9bd108298e82f2ba9cc1a6ab97d2f20f7dc622fe`
-Reviewed implementation range: `378cf9a74a3658058079a32f186fcd254c4a4034..9bd108298e82f2ba9cc1a6ab97d2f20f7dc622fe`
+Packet role: `branch-tip retrieval handoff refresh`
+Packet refresh trace anchor before fixer commit: `05c341b5acaa21bd64843e0ac1a6dc62bbed2d01`
+Reviewed implementation head: `05c341b5acaa21bd64843e0ac1a6dc62bbed2d01`
+Reviewed implementation range: `378cf9a74a3658058079a32f186fcd254c4a4034..05c341b5acaa21bd64843e0ac1a6dc62bbed2d01`
 Canonical demo-path step advanced: `retrieve relevant material`
-Scope: metadata-only packet refresh for the full live retrieval implementation slice through the current branch tip. The reviewed implementation keeps SQLite FTS authoritative, hardens fail-closed excerpt lookup and audit behavior, mirrors normalized query text into doc-hit and excerpt-hit payloads plus provenance, backfills that query text during downstream payload reconstruction from sparse source bundles, resolves engine query annotations without an eager import cycle, and keeps the retrieval output contract deterministic and auditable.
+Scope: branch-tip retrieval handoff refresh for the full live retrieval implementation slice. The reviewed implementation keeps SQLite FTS authoritative, hardens fail-closed excerpt lookup and scoped-query behavior, mirrors normalized query text into doc-hit and excerpt-hit payloads plus provenance, backfills that query text during downstream payload reconstruction from sparse source bundles, resolves engine query annotations without an eager import cycle, and backfills sparse-hit query context on the current tip.
 
-Reviewed implementation files:
-
-* `src/qual/retrieval/__init__.py`
-* `src/qual/retrieval/service.py`
-* `src/qual/engine/retrieval/payload.py`
-* `src/qual/engine/retrieval/__init__.py`
-* `src/qual/engine/retrieval/fts_strategy.py`
-* `src/qual/engine/retrieval/interface.py`
-* `src/qual/engine/retrieval/pageindex_strategy.py`
-* `src/qual/engine/retrieval/embeddings_strategy.py`
-* `tests/unit/test_unified_retrieval.py`
-
-Metadata-only packet artifacts refreshed in this fixer pass:
-
-* `THREAD_PACKET.md`
-* `docs/gate_passed.txt`
-
-Metadata-only packet artifacts blocked by filesystem policy in this fixer pass:
+Reviewed branch-tip merge scope:
 
 * `.codex/kickoff_packets/feat-retrieval-fts.md`
 * `.codex/lane_meta/feat-retrieval-fts.json`
+* `THREAD_PACKET.md`
+* `docs/gate_passed.txt`
+* `src/qual/retrieval/__init__.py`
+* `src/qual/retrieval/service.py`
+* `src/qual/engine/retrieval/__init__.py`
+* `src/qual/engine/retrieval/embeddings_strategy.py`
+* `src/qual/engine/retrieval/fts_strategy.py`
+* `src/qual/engine/retrieval/interface.py`
+* `src/qual/engine/retrieval/pageindex_strategy.py`
+* `src/qual/engine/retrieval/payload.py`
+* `tests/unit/test_unified_retrieval.py`
 
 Plan-alignment note:
 
-* This slice advances `retrieve relevant material` by keeping retrieval output deterministic, auditable, and correctly shaped for downstream engine flows and later basket promotion.
+* This slice advances `retrieve relevant material` by keeping retrieval output deterministic, auditable, and correctly shaped for the engine-first workflow loop while preserving the MVP's FTS-first retrieval path.
 * SQLite FTS remains the authoritative retrieval path for this MVP surface.
-* This fixer pass refreshes packet metadata only and does not move the reviewed implementation head or widen the reviewed implementation range beyond `378cf9a74a3658058079a32f186fcd254c4a4034..9bd108298e82f2ba9cc1a6ab97d2f20f7dc622fe`.
+* Re-review traceability is direct from `git log --oneline 378cf9a74a3658058079a32f186fcd254c4a4034..05c341b5acaa21bd64843e0ac1a6dc62bbed2d01` and `git diff --name-only 378cf9a74a3658058079a32f186fcd254c4a4034..05c341b5acaa21bd64843e0ac1a6dc62bbed2d01`.
 
 Budget classification:
 
@@ -53,13 +47,13 @@ Verification:
 
 Roadmap items affected:
 
-* `Milestone 3: Real workflow loop`
-* `feat-retrieval-fts`
+* `Milestone 4: Retrieval Layer`
+* `Milestone 3: Product Readiness`
 
 Vision capabilities affected:
 
 * `2. Retrieval-first context handling`
-* `6. Auditable state and workflow`
+* `3. Auditable generation`
 
 Routing/provider impact:
 
