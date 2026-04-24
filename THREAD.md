@@ -6,12 +6,12 @@ Canonical handoff contract lives in `THREAD_PACKET.md`.
 
 ## Current Review Focus
 
-- Packet refresh status: reviewer-fix final verification refresh regenerated at 2026-04-24T06:50:57Z for the exact reviewed implementation slice, with the canonical `patch-review` mapping preserved and the required gates rerun against the unchanged CLI-first contract surface in `ROADMAP.md` Milestone 1 and `PRODUCT_VISION.md` capability 4.
+- Packet refresh status: reviewer-fix final verification refresh regenerated at 2026-04-24T06:53:22Z for the exact reviewed implementation slice, with the canonical `patch-review` mapping preserved and the required gates rerun against the unchanged CLI-first contract surface in `ROADMAP.md` Milestone 3 and `PRODUCT_VISION.md` capability 3.
 - Reviewed implementation commit: `bd118a6c34ac5c2f42c8df62f364895474f9f7a7` (`test(commands): cover cached parser surface drift`).
 - Packet refresh traceability:
   - the current branch tip for re-review is a packet-only refresh above `bd118a6c34ac5c2f42c8df62f364895474f9f7a7`; no implementation files beyond the reviewed slice changed in this refresh
 - Post-fixer verification note:
-- 2026-04-24T06:50:57Z UTC gate rerun confirmed the packet still matches the branch state during this final verification refresh; no implementation files changed in this packet-only refresh
+- 2026-04-24T06:53:22Z UTC gate rerun confirmed the packet still matches the branch state during this final verification refresh; no implementation files changed in this packet-only refresh
 - Reviewed implementation files:
   - `tests/unit/test_commands_catalog.py`
   - implementation basis retained on branch: `src/qual/commands/catalog.py`
@@ -48,13 +48,13 @@ Canonical handoff contract lives in `THREAD_PACKET.md`.
 - Scope-tightening note:
   - this reviewed slice hardens only parser-surface drift detection for the `patch-review` command contract plus focused regression coverage; it does not claim new retrieval, patch application, persistence, export, or broader CLI behavior
 - Why this is in-scope now:
-  - `ROADMAP.md` Milestone 1 already calls out command and `diff-preview` behavior hardening, and its exit criteria require the manual CLI smoke flow to remain stable; preventing silent drift in the `patch-review` parser surface removes a concrete blocker from that existing smoke route instead of claiming a broader release-contract milestone.
+  - `ROADMAP.md` Milestone 3 calls out locking user-facing output contracts; preventing silent drift in the `patch-review` parser surface removes a concrete CLI-compatibility blocker at that public review-step contract without claiming a broader release-readiness slice.
 - Roadmap / vision alignment for this reviewed slice:
-  - `ROADMAP.md` Milestone 1 `Bootstrap Flow Stabilization`: this slice narrows to the existing CLI smoke route and its `patch-review` step rather than claiming a broader release-readiness milestone
-  - `ROADMAP.md` Milestone 1 scope: `Command and diff-preview behavior hardening`, applied here only to parser-surface drift detection for the public `diff-preview` and companion CLI tokens in the `patch-review` step
-  - `ROADMAP.md` Milestone 1 exit criteria: `Manual CLI smoke flow remains stable`, protected here by failing closed when the live `patch-review` parser entrypoints drift from the catalog
+  - `ROADMAP.md` Milestone 3 `Product Readiness`: this slice narrows to locking the existing public `patch-review` CLI contract rather than claiming a broader release-readiness milestone
+  - `ROADMAP.md` Milestone 3 scope: `Define and lock user-facing output contracts`, applied here only to parser-surface drift detection for the public `diff-preview` and companion CLI tokens in the `patch-review` step
+  - `ROADMAP.md` Milestone 3 contract note: this hardening keeps the review-step CLI surface intentional and fail-closed when the live parser entrypoints drift from the catalog
   - `ROADMAP.md` MVP focus: `feat-commands` is an active implementation lane, while `feat-console` remains deferred and no UI-lane scope is claimed here
-  - `PRODUCT_VISION.md` capability 4 `Operator-first control surface`: this is narrow CLI compatibility and engine-contract hardening for the `patch-review` entrypoint, keeping the public `diff-preview` surface stable for the current CLI-first MVP loop rather than claiming broader auditable workflow progress
+  - `PRODUCT_VISION.md` capability 3 `Auditable generation`: this is narrow contract hardening for the operator-visible `patch-review` diff surface, keeping the public `diff-preview` token deterministic so review-step drift cannot silently change the auditable command boundary
 - Ownership / scope note:
   - lane-owned implementation paths: `src/qual/commands/catalog.py`
   - approved shared-by-approval exception: `tests/unit/test_commands_catalog.py`
@@ -70,4 +70,4 @@ Canonical handoff contract lives in `THREAD_PACKET.md`.
   - `./typecheck-test.sh`
   - `make ci`
 - Gate attribution note:
-- these gates were rerun at 2026-04-24T06:50:57Z against the packet-refresh workspace state whose only changed files above `bd118a6c34ac5c2f42c8df62f364895474f9f7a7` are `THREAD.md`, `THREAD_PACKET.md`, and `handoff_packets/feat-commands.md`
+- these gates were rerun at 2026-04-24T06:53:22Z against the packet-refresh workspace state whose only changed files above `bd118a6c34ac5c2f42c8df62f364895474f9f7a7` are `THREAD.md`, `THREAD_PACKET.md`, and `handoff_packets/feat-commands.md`

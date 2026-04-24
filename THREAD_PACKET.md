@@ -4,8 +4,8 @@
 - Branch: `codex/feat-commands`
 - Commit: `bd118a6c34ac5c2f42c8df62f364895474f9f7a7`
 - Packet refresh role: `reviewer-fix final verification refresh`
-- Packet refresh basis: `regenerated on 2026-04-24T06:50:57Z after rerunning the required gates on the current branch tip to satisfy the reviewer's numbered handoff fixes for explicit canonical demo-path mapping, concrete blocker removal, narrowed roadmap and vision mapping, and current branch-tip traceability`
-- Post-fixer verification: `2026-04-24T06:50:57Z UTC gate rerun confirmed the packet still matches the branch state during this final verification refresh; no implementation files changed in this packet-only refresh`
+- Packet refresh basis: `regenerated on 2026-04-24T06:53:22Z after rerunning the required gates on the current branch tip to satisfy the reviewer's numbered handoff fixes for explicit canonical demo-path mapping, concrete blocker removal, narrowed roadmap and vision mapping, and current branch-tip traceability`
+- Post-fixer verification: `2026-04-24T06:53:22Z UTC gate rerun confirmed the packet still matches the branch state during this final verification refresh; no implementation files changed in this packet-only refresh`
 - Packet-only refresh files:
   - `THREAD.md`
   - `THREAD_PACKET.md`
@@ -65,7 +65,7 @@
 - Scope-tightening statement: this slice claims only `patch-review` command-contract hardening plus focused regression coverage. It does not claim new retrieval, patch application, persistence, export, or broader CLI-surface work.
 - Current CLI smoke route context: `project-open -> retrieval -> patch-review -> apply-patch/reject-patch -> persist -> export-handoff`, entered through `bootstrap --project demo`.
 - Smoke-test evidence: `tests/unit/test_commands_catalog.py` proves the live parser surface keeps `diff-preview` before `diff` for `patch-review` and fails fast when `diff-preview` disappears while `diff` still resolves to the same canonical command, including after `command_cli_tokens()` has already been warmed.
-- Plan-alignment note: `ROADMAP.md` Milestone 1 already calls out command and `diff-preview` hardening, so this removes a concrete blocker in the current CLI smoke route rather than claiming a broader release-readiness step.
+- Plan-alignment note: `ROADMAP.md` Milestone 3 calls out locking user-facing output contracts, so this removes a concrete blocker in the current CLI smoke route rather than claiming a broader release-readiness step.
 
 ## Approved Exception Note
 
@@ -103,7 +103,7 @@
 - `./quality-test.sh`: `PASSED`
 - `./typecheck-test.sh`: `PASSED`
 - `make ci`: `PASSED`
-- Gate attribution note: these gates were rerun at 2026-04-24T06:50:57Z against the reviewer-fix packet-refresh workspace state whose only changed files above `bd118a6c34ac5c2f42c8df62f364895474f9f7a7` are `THREAD.md`, `THREAD_PACKET.md`, and `handoff_packets/feat-commands.md`.
+- Gate attribution note: these gates were rerun at 2026-04-24T06:53:22Z against the reviewer-fix packet-refresh workspace state whose only changed files above `bd118a6c34ac5c2f42c8df62f364895474f9f7a7` are `THREAD.md`, `THREAD_PACKET.md`, and `handoff_packets/feat-commands.md`.
 
 ### Risks / Blockers
 
@@ -123,15 +123,15 @@
 
 ### Roadmap item(s) affected
 
-- `ROADMAP.md` Milestone 1 `Bootstrap Flow Stabilization`: this slice narrows to the existing CLI smoke route and its `patch-review` step rather than claiming a broader release-readiness milestone.
-- `ROADMAP.md` Milestone 1 scope: `Command and diff-preview behavior hardening`; this packet applies that only to the operator-visible parser token contract for the `patch-review` command surface.
-- `ROADMAP.md` Milestone 1 exit criteria: `Manual CLI smoke flow remains stable`; this slice makes unexpected `patch-review` parser-surface drift fail fast instead of silently changing the accepted public command tokens in that smoke route.
+- `ROADMAP.md` Milestone 3 `Product Readiness`: this slice narrows to the existing CLI smoke route and its `patch-review` step rather than claiming a broader release-readiness milestone.
+- `ROADMAP.md` Milestone 3 scope: `Define and lock user-facing output contracts`; this packet applies that only to the operator-visible parser token contract for the `patch-review` command surface.
+- `ROADMAP.md` Milestone 3 contract note: this slice makes unexpected `patch-review` parser-surface drift fail fast instead of silently changing the accepted public command tokens in that smoke route.
 - This diff contributes only the `patch-review` step of the current CLI smoke route by hardening the public parser surface used at the review command boundary.
 - Scope-tightening statement: this is CLI contract hardening for the current smoke route, not new UI work and not broader demo-path expansion beyond the `patch-review` contract.
 
 ### Vision capability affected
 
-- `PRODUCT_VISION.md` capability 4 `Operator-first control surface`: this slice is narrow CLI compatibility and engine-contract hardening for the `patch-review` entrypoint. It keeps the public `diff-preview` parser surface deterministic, stable, and catalog-locked for the current CLI-first MVP loop while `Exegesis Console` remains deferred, rather than claiming broader auditable-workflow progress.
+- `PRODUCT_VISION.md` capability 3 `Auditable generation`: this slice is narrow contract hardening for the operator-visible `patch-review` entrypoint. It keeps the public `diff-preview` parser surface deterministic, stable, and catalog-locked so review-step drift cannot silently change the auditable command boundary, rather than claiming broader workflow progress.
 
 ### Routing / Provider Impact Note
 
