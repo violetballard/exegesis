@@ -2,7 +2,7 @@
 
 - Branch name: `codex/feat-retrieval-fts`
 - Packet role: `metadata-only reviewer-fix finalization`
-- Packet refresh trace anchor before this fixer commit: `a30809c13617516f67d63fed3a5e76c755085304`
+- Packet refresh trace anchor before this fixer commit: `fdb3af1c404926722e7ba031fd270311ee496496`
 - Reviewed implementation head: `adfa8cdadd43747ffbcb612e4151e262b13e52ca`
 - Reviewed implementation range: `378cf9a74a3658058079a32f186fcd254c4a4034..adfa8cdadd43747ffbcb612e4151e262b13e52ca`
 - Canonical demo-path step advanced: `retrieve relevant material`
@@ -106,7 +106,7 @@
 ## Risks / Blockers
 
 - Risk: `HIGH`
-- Blockers: cannot write `.codex/kickoff_packets/feat-retrieval-fts.md` or `.codex/lane_meta/feat-retrieval-fts.json` in this sandbox because direct writes fail with `PermissionError: [Errno 1] Operation not permitted`
+- Blockers: `.codex/kickoff_packets/feat-retrieval-fts.md` and `.codex/lane_meta/feat-retrieval-fts.json` remain sandbox-blocked (`PermissionError: [Errno 1] Operation not permitted`); the writable handoff surfaces in this commit carry the required canonical demo-path statement for re-review.
 
 ## Ready For Handoff
 
