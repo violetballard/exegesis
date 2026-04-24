@@ -74,7 +74,7 @@
 ## Risks / Blockers
 
 - Risk: `HIGH`
-- Blocker: `This worktree cannot write .codex/kickoff_packets/feat-retrieval-fts.md or .codex/lane_meta/feat-retrieval-fts.json` (`operation not permitted`), so those packet mirrors still describe the stale narrowed slice.`
+- Blocker: `This worktree cannot write .codex/kickoff_packets/feat-retrieval-fts.md or .codex/lane_meta/feat-retrieval-fts.json` (`operation not permitted`), so those packet mirrors still describe the stale narrowed slice.
 - Fixer pass note: `2026-04-24 visible handoff rerun confirmed the corrected branch-tip slice and revalidated all required local gates against HEAD 141b2168208d78cbd25bc8fd63fcdbc34e6aa958.`
 - Budget classification: shared/high-risk because `tests/unit/test_unified_retrieval.py` is a shared-by-approval file in the reviewed slice.
 - Budget status: over the normal high-risk autonomy window for a single handoff slice. The reviewed range touches `13` files total (`9` implementation files plus `4` handoff artifacts) with `10976` insertions and `1132` deletions, so this must be reviewed as a cumulative branch-tip handoff rather than a narrow 4-task packet-only refresh.
