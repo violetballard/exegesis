@@ -569,6 +569,9 @@ def describe_a2ui_contract_fingerprints(
         "card_contract": card_contract_fingerprint(),
         "terminal_fallback": terminal_fallback_contract_fingerprint(),
     }
+    card_hint_recovery_policy_contract_fingerprint_value = _fingerprint_manifest_section(
+        _build_terminal_artifact_cli_fallback_card_hint_recovery_policy_manifest()
+    )
     if include_action:
         fingerprints["action"] = action_contract_fingerprint()
     if include_terminal_artifact:
@@ -579,6 +582,7 @@ def describe_a2ui_contract_fingerprints(
         fingerprints["terminal_artifact_rendering"] = terminal_artifact_rendering_contract_fingerprint()
     if include_terminal_artifact_cli_fallback:
         fingerprints["terminal_artifact_cli_fallback"] = terminal_artifact_cli_fallback_contract_fingerprint()
+        fingerprints["card_hint_recovery_policy"] = card_hint_recovery_policy_contract_fingerprint_value
     if include_terminal_artifact_cli_fallback_target:
         fingerprints["terminal_artifact_cli_fallback_target"] = (
             terminal_artifact_cli_fallback_target_contract_fingerprint()
@@ -726,6 +730,7 @@ def describe_a2ui_contract_fingerprints(
                 "terminal_artifact_cli_fallback_resolver_failure_policy_contract_manifest_fingerprint"
             ]
         )
+        fingerprints["card_hint_recovery_policy"] = card_hint_recovery_policy_contract_fingerprint_value
     if include_terminal_artifact_raw_leaf_card_default:
         fingerprints["terminal_artifact_raw_leaf_card_default"] = (
             terminal_artifact_raw_leaf_card_default_contract_fingerprint()
@@ -752,6 +757,7 @@ def describe_a2ui_contract_fingerprints(
         fingerprints["shell_ui_contract_manifest_fingerprint"] = shell_ui_contract_fingerprints[
             "shell_ui_contract_manifest_fingerprint"
         ]
+        fingerprints["card_hint_recovery_policy"] = card_hint_recovery_policy_contract_fingerprint_value
         # Mirror the shell entrypoint bundle as well so shell-aware engine
         # consumers can fingerprint the explicit CLI fallback entrypoint
         # without opting into the standalone slice separately.
@@ -870,6 +876,14 @@ def describe_a2ui_contract_fingerprints(
             (
                 "terminal_artifact_cli_fallback_entrypoint_contract_fingerprints",
                 terminal_artifact_cli_fallback_entrypoint_contract_fingerprints_fingerprint(),
+            ),
+            (
+                "card_hint_recovery_policy_contract",
+                card_hint_recovery_policy_contract_fingerprint_value,
+            ),
+            (
+                "card_hint_recovery_policy_contract_manifest",
+                card_hint_recovery_policy_contract_fingerprint_value,
             ),
             ("renderer_entrypoints", terminal_artifact_renderer_entrypoints_contract_fingerprint()),
             (
@@ -1959,6 +1973,9 @@ def describe_terminal_artifact_cli_fallback_contract_fingerprints(
             ),
         )
     if include_contract_aliases:
+        card_hint_recovery_policy_contract_fingerprint_value = _fingerprint_manifest_section(
+            _build_terminal_artifact_cli_fallback_card_hint_recovery_policy_manifest()
+        )
         _add_contract_alias_fingerprints(
             fingerprints,
             ("allowed_actions", _fingerprint_manifest_section(sorted(ALLOWED_ACTION_IDS))),
@@ -1975,6 +1992,10 @@ def describe_terminal_artifact_cli_fallback_contract_fingerprints(
             (
                 "resolver_failure_policy",
                 _fingerprint_manifest_section(_build_terminal_artifact_cli_fallback_resolver_failure_policy_manifest()),
+            ),
+            (
+                "card_hint_recovery_policy",
+                card_hint_recovery_policy_contract_fingerprint_value,
             ),
             (
                 "terminal_artifact_cli_fallback_target",
@@ -1999,6 +2020,14 @@ def describe_terminal_artifact_cli_fallback_contract_fingerprints(
             (
                 "raw_leaf_card_default_policy_contract",
                 terminal_artifact_raw_leaf_card_default_policy_contract_fingerprint(),
+            ),
+            (
+                "card_hint_recovery_policy_contract",
+                card_hint_recovery_policy_contract_fingerprint_value,
+            ),
+            (
+                "card_hint_recovery_policy_contract_manifest",
+                card_hint_recovery_policy_contract_fingerprint_value,
             ),
             ("terminal_artifact_kind_contracts", terminal_artifact_kind_contracts_fingerprint()),
             ("terminal_artifact_cli_fallback", terminal_artifact_cli_fallback_contract_fingerprint()),
@@ -2196,6 +2225,9 @@ def _build_terminal_artifact_cli_fallback_contract_fingerprints(
     include_terminal_artifact_cli_fallback: bool = False,
     include_terminal_artifact_cli_fallback_route: bool = False,
 ) -> dict[str, str]:
+    card_hint_recovery_policy_contract_fingerprint_value = _fingerprint_manifest_section(
+        _build_terminal_artifact_cli_fallback_card_hint_recovery_policy_manifest()
+    )
     fingerprints = {
         "allowed_actions": _fingerprint_manifest_section(sorted(ALLOWED_ACTION_IDS)),
         "kind_contracts": terminal_artifact_kind_contracts_fingerprint(),
@@ -2213,6 +2245,7 @@ def _build_terminal_artifact_cli_fallback_contract_fingerprints(
         "resolver_failure_policy": _fingerprint_manifest_section(
             _build_terminal_artifact_cli_fallback_resolver_failure_policy_manifest()
         ),
+        "card_hint_recovery_policy": card_hint_recovery_policy_contract_fingerprint_value,
     }
     if include_terminal_artifact_cli_fallback:
         fingerprints["terminal_artifact_cli_fallback"] = terminal_artifact_cli_fallback_contract_fingerprint()
