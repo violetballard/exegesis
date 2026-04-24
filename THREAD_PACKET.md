@@ -4,8 +4,8 @@
 - Branch: `codex/feat-commands`
 - Commit: `f49cae6e16b70f71397d74480e83e6a1742a0379`
 - Packet refresh role: `reviewer-fix metadata refresh`
-- Packet refresh basis: `regenerated on 2026-04-24T07:44:12Z after rerunning the required gates on the pre-refresh branch tip f49cae6e16b70f71397d74480e83e6a1742a0379 to keep the packet aligned with current branch-tip traceability while preserving the reviewer's required canonical demo-path mapping, concrete blocker removal, CLI-fallback reliability note while Textual remains disabled, narrowed roadmap and vision wording, and explicit shared-test approval note`
-- Post-fixer verification: `2026-04-24T07:44:12Z UTC gate rerun confirmed the packet still matches the branch state during this metadata-only refresh; no implementation files changed in this packet-only refresh`
+- Packet refresh basis: `regenerated on 2026-04-24T07:45:42Z after rerunning the required gates on the pre-refresh branch tip f49cae6e16b70f71397d74480e83e6a1742a0379 to keep the packet aligned with current branch-tip traceability while preserving the reviewer's required canonical demo-path mapping, concrete blocker removal, CLI-fallback reliability note while Textual remains disabled, narrowed roadmap and vision wording, and explicit shared-test approval note`
+- Post-fixer verification: `2026-04-24T07:45:42Z UTC gate rerun confirmed the packet still matches the branch state during this metadata-only refresh; no implementation files changed in this packet-only refresh`
 - Packet-only refresh files:
   - `THREAD.md`
   - `THREAD_PACKET.md`
@@ -107,7 +107,7 @@
 - `./quality-test.sh`: `PASSED`
 - `./typecheck-test.sh`: `PASSED`
 - `make ci`: `PASSED`
-- Gate attribution note: these gates were rerun at 2026-04-24T07:44:12Z against the metadata-refresh workspace state at `f49cae6e16b70f71397d74480e83e6a1742a0379`; this refresh updates only `THREAD.md`, `THREAD_PACKET.md`, and `handoff_packets/feat-commands.md`.
+- Gate attribution note: these gates were rerun at 2026-04-24T07:45:42Z against the metadata-refresh workspace state at `f49cae6e16b70f71397d74480e83e6a1742a0379`; this refresh updates only `THREAD.md`, `THREAD_PACKET.md`, and `handoff_packets/feat-commands.md`.
 
 ### Risks / Blockers
 

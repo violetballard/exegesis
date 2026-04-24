@@ -6,7 +6,7 @@ Canonical handoff contract lives in `THREAD_PACKET.md`.
 
 ## Current Review Focus
 
-- Packet refresh status: reviewer-fix metadata refresh regenerated at 2026-04-24T07:44:12Z for the exact reviewed implementation slice, with the canonical `preview and apply or reject a patch` mapping preserved, the CLI-fallback reliability note added for the Textual-disabled MVP loop, and the required gates rerun against the unchanged CLI-first contract surface in `ROADMAP.md` Milestone 3 and `PRODUCT_VISION.md` capability 4.
+- Packet refresh status: reviewer-fix metadata refresh regenerated at 2026-04-24T07:45:42Z for the exact reviewed implementation slice, with the canonical `preview and apply or reject a patch` mapping preserved, the CLI-fallback reliability note added for the Textual-disabled MVP loop, and the required gates rerun against the unchanged CLI-first contract surface in `ROADMAP.md` Milestone 3 and `PRODUCT_VISION.md` capability 4.
 - Reviewed implementation commit: `f49cae6e16b70f71397d74480e83e6a1742a0379` (`docs(commands): refresh fixer handoff evidence`), carrying forward the command helper implementation from `3e1e7d7f9ebce3001ebe941133b00e145e79cb7b` and the warmed-cache parser-surface regression coverage from `bd118a6cbb417005bb793b3d784372ba6c1452a1`.
 - Packet refresh traceability:
   - the pre-refresh branch tip for this metadata refresh was `f49cae6e16b70f71397d74480e83e6a1742a0379`; this refresh updates only `THREAD.md`, `THREAD_PACKET.md`, and `handoff_packets/feat-commands.md`
@@ -71,4 +71,4 @@ Canonical handoff contract lives in `THREAD_PACKET.md`.
   - `./typecheck-test.sh`
   - `make ci`
 - Gate attribution note:
-- these gates were rerun at 2026-04-24T07:44:12Z against the packet-refresh workspace state at `f49cae6e16b70f71397d74480e83e6a1742a0379`; this refresh updates only `THREAD.md`, `THREAD_PACKET.md`, and `handoff_packets/feat-commands.md`
+- these gates were rerun at 2026-04-24T07:45:42Z against the packet-refresh workspace state at `f49cae6e16b70f71397d74480e83e6a1742a0379`; this refresh updates only `THREAD.md`, `THREAD_PACKET.md`, and `handoff_packets/feat-commands.md`
