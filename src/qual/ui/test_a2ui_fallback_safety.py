@@ -3947,6 +3947,53 @@ class A2UIFallbackSafetyTests(unittest.TestCase):
         self.assertNotIn("[ActionRef]", text)
         self.assertNotIn("[SelectionRef]", text)
 
+    def test_terminal_artifact_cli_fallback_entrypoint_recovers_typed_leaf_mappings_from_malformed_envelopes(
+        self,
+    ) -> None:
+        shell = ShellUI()
+        cases = [
+            (
+                "action",
+                {
+                    "type": "TerminalArtifact",
+                    "kind": "dialog",
+                    "artifact": {
+                        "type": "ActionRef",
+                        "id": "export_document",
+                        "label": "Export",
+                        "payload": {"format": "md"},
+                    },
+                },
+                "[ActionRef] Export",
+                "Action schema v1",
+            ),
+            (
+                "selection",
+                {
+                    "type": "TerminalArtifact",
+                    "kind": "dialog",
+                    "artifact": {
+                        "type": "SelectionRef",
+                        "id": "choice-1",
+                        "label": "Choice",
+                        "payload": {"nested": {"items": [1, 2]}},
+                    },
+                },
+                "[SelectionRef] Choice",
+                "Selection schema v1",
+            ),
+        ]
+
+        for case_name, artifact, expected_prefix, expected_schema in cases:
+            with self.subTest(kind=case_name):
+                cli_text = render_terminal_cli_fallback(artifact, kind="card")
+                shell_text = shell.render_cli_fallback(artifact, kind="card")
+
+                self.assertEqual(cli_text, shell_text)
+                self.assertIn(expected_prefix, cli_text)
+                self.assertIn(expected_schema, cli_text)
+                self.assertNotIn("[UnknownCard] <invalid card>", cli_text)
+
     def test_terminal_artifact_cli_fallback_target_resolver_preserves_raw_leaf_card_default(self) -> None:
         raw_leaf = {
             "id": "export_document",

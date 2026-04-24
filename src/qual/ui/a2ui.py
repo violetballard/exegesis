@@ -4377,11 +4377,16 @@ def render_terminal_cli_fallback(artifact: Any, *, kind: str | None = None) -> s
     """
 
     requested_kind = _normalize_terminal_artifact_kind_hint(kind)
+    malformed_envelope = _is_malformed_terminal_artifact_envelope(artifact)
+    envelope_kind = None
+    if isinstance(artifact, Mapping):
+        envelope_kind = _normalize_terminal_artifact_envelope_kind(artifact.get("kind"))
     if (
         requested_kind == "card"
         and _contains_action_or_selection_payload(artifact)
         and not _should_preserve_raw_leaf_card_default(artifact)
         and not _is_explicit_terminal_artifact_leaf(artifact)
+        and (not malformed_envelope or envelope_kind == "card")
     ):
         return _render_invalid_terminal_card(artifact)
     fallback_target = _TERMINAL_ARTIFACT_CLI_FALLBACK_TARGET_HINT.get()
@@ -4403,19 +4408,19 @@ def render_terminal_cli_fallback(artifact: Any, *, kind: str | None = None) -> s
                 requested_kind == "card"
                 and fallback_target[1] in _TERMINAL_ARTIFACT_NON_CARD_KIND_SET
                 and not _is_explicit_terminal_artifact_leaf(artifact)
+                and envelope_kind == "card"
             ):
                 return _render_invalid_terminal_card(artifact)
     elif (
         requested_kind == "card"
         and fallback_target[1] in _TERMINAL_ARTIFACT_NON_CARD_KIND_SET
         and not _is_explicit_terminal_artifact_leaf(artifact)
+        and envelope_kind == "card"
     ):
         return _render_invalid_terminal_card(artifact)
 
-    malformed_envelope = _is_malformed_terminal_artifact_envelope(artifact)
     if requested_kind == "card" and malformed_envelope and isinstance(artifact, Mapping):
         payload = artifact.get("artifact")
-        envelope_kind = _normalize_terminal_artifact_envelope_kind(artifact.get("kind"))
         if _should_preserve_raw_leaf_card_default(payload):
             if envelope_kind == "card":
                 return _render_invalid_terminal_card(artifact)
@@ -4423,7 +4428,7 @@ def render_terminal_cli_fallback(artifact: Any, *, kind: str | None = None) -> s
             payload_kind = _infer_terminal_artifact_explicit_kind(payload)
             if payload_kind not in _TERMINAL_ARTIFACT_NON_CARD_KIND_SET:
                 payload_kind = _recover_terminal_artifact_leaf_kind(payload)
-            if payload_kind in _TERMINAL_ARTIFACT_NON_CARD_KIND_SET:
+            if payload_kind in _TERMINAL_ARTIFACT_NON_CARD_KIND_SET and envelope_kind == "card":
                 return _render_invalid_terminal_card(artifact)
     if fallback_target is None:
         # Keep the explicit CLI fallback path usable even if the shared
