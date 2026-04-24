@@ -1,9 +1,12 @@
+from __future__ import annotations
+
 """Engine retrieval strategies.
 
 The retrieval lane keeps this package as the narrow public surface for the
 engine's retrieval orchestration code.
 """
 
+from collections.abc import Mapping
 from functools import lru_cache
 from importlib import import_module
 
@@ -33,7 +36,7 @@ def build_retrieval_query(
     query_text: str,
     scope: str,
     intent: str,
-    constraints: object | None = None,
+    constraints: Mapping[str, object] | RetrievalConstraints | None = None,
     confidentiality_profile: str = "confidential",
 ) -> RetrievalQuery:
     """Return the canonical FTS-first retrieval query object.
@@ -84,6 +87,14 @@ def _retrieval_module():
     """Resolve the canonical retrieval facade once for engine delegation."""
 
     return import_module("src.qual.retrieval")
+
+
+def _bind_runtime_types() -> None:
+    """Populate annotation globals without creating an eager import cycle."""
+
+    service_module = import_module("src.qual.retrieval.service")
+    globals()["RetrievalConstraints"] = service_module.RetrievalConstraints
+    globals()["RetrievalQuery"] = service_module.RetrievalQuery
 
 
 def _delegate_to_retrieval(name: str, *args, **kwargs):
@@ -168,6 +179,9 @@ def retrieve_auto_excerpt_bundle(*args, **kwargs):
 
 def retrieve_auto_payload(*args, **kwargs):
     return _delegate_to_retrieval("retrieve_auto_payload", *args, **kwargs)
+
+
+_bind_runtime_types()
 
 
 __all__ = [
