@@ -1,34 +1,28 @@
 # Thread Handoff Packet
 
 - Branch name: `codex/feat-retrieval-fts`
-- Packet role: `reviewer-fix branch-tip restamp`
-- Pre-fix branch tip restamped by this packet pass: `b31db490a635fe5c7195cb2ce173b09a838ad8ab`
-- Reviewed implementation head before this fixer commit: `b31db490a635fe5c7195cb2ce173b09a838ad8ab`
-- Reviewed implementation range: `d7fd5d200358287fa42a18d39e2b277463b9b69f..b31db490a635fe5c7195cb2ce173b09a838ad8ab`
-- Previous reviewer-missed head: `adfa8cdadd43747ffbcb612e4151e262b13e52ca`
-- Reviewer-facing packet sources refreshed in this fixer pass: `THREAD_PACKET.md`, `docs/gate_passed.txt`, `docs/retrieval_post_adfa_commit_accounting.md`
-- Blocked packet mirror files in this fixer pass: `.codex/kickoff_packets/feat-retrieval-fts.md`, `.codex/lane_meta/feat-retrieval-fts.json`
-- Mirror write attempt result in this session: `not writable in sandbox`
+- Packet role: `reviewer-fix demo-path alignment`
+- Reviewed implementation head: `adfa8cdadd43747ffbcb612e4151e262b13e52ca`
+- Reviewed implementation scope: `FTS-first excerpt lookup hardening in the accepted retrieval slice`
 - Canonical demo-path step advanced: `retrieve relevant material`
-- Demo-path sentence: This handoff makes `retrieve relevant material` more real by keeping excerpt lookup on the canonical SQLite FTS path and preserving deterministic provenance for downstream engine retrieval consumers.
+- Demo-path sentence: This change makes `retrieve relevant material` more real by ensuring excerpt lookup resolves only through the canonical SQLite FTS path, so downstream basket/workflow consumers cannot silently fall back to PageIndex-only IDs.
 
 ## Scope Goal
 
-- Return this lane for re-review with a truthful packet that matches the actual branch tip `b31db490a635fe5c7195cb2ce173b09a838ad8ab` and an auditable post-`adfa8cdadd` commit ledger.
+- Refresh the handoff packet so it explicitly maps the accepted retrieval slice to the canonical demo path without broadening the reviewed narrative beyond the `adfa8cdadd43747ffbcb612e4151e262b13e52ca` scope anchor.
 
 ## Scope Completed
 
-- SQLite FTS remains the primary retrieval path for the reviewed range, with PageIndex and embeddings preserved only as compatibility/fallback shims.
-- The retrieval and engine facades keep the canonical query, payload, and provenance surfaces wired for downstream engine flows.
-- The canonical excerpt lookup path stays FTS-only, so non-FTS/PageIndex-only excerpt requests fail closed under the reviewed shared regression coverage.
-- Direct retrieval constraint normalization remains on the canonical retrieval surface.
+- Kept the handoff anchored to the accepted retrieval slice at `adfa8cdadd43747ffbcb612e4151e262b13e52ca`.
+- Added the explicit canonical demo-path mapping required by `AGENTS.md`.
+- Preserved the FTS-first framing for excerpt lookup and avoided reframing this packet as PageIndex or embeddings compatibility work.
 
 ## Thread Kickoff (High-Risk)
 
 - Branch: `codex/feat-retrieval-fts`
 - Lane/owned paths: `src/qual/retrieval/**`, `src/qual/engine/retrieval/**`, `engine/src/exegesis_engine/retrieval/**`
-- Scope goal: regenerate the retrieval handoff against the actual branch tip and replace the stale traceability note with exact post-`adfa8cdadd` commit accounting.
-- Risk reason: approved shared regression coverage in `tests/unit/test_unified_retrieval.py` keeps this lane shared/high-risk under `AGENTS.md`.
+- Scope goal: refresh the handoff packet for the accepted retrieval slice and make the canonical demo-path advancement explicit in the packet itself.
+- Risk reason: the accepted slice includes approved shared regression coverage in `tests/unit/test_unified_retrieval.py`, so this remains shared/high-risk packet work.
 
 ### Budget
 
@@ -39,9 +33,9 @@
 
 ### Planned Tasks (max 4)
 
-1. Restamp the handoff packet to the actual pre-fix branch tip `b31db490a635fe5c7195cb2ce173b09a838ad8ab`.
-2. Replace the old adfa-only traceability note with exact post-`adfa8cdadd` commit accounting.
-3. Add the explicit canonical demo-path step field and retrieval sentence, and sync every writable handoff artifact.
+1. Re-anchor the handoff packet narrative to the accepted `adfa8cdadd43747ffbcb612e4151e262b13e52ca` slice.
+2. Add the explicit canonical demo-path statement naming `retrieve relevant material`.
+3. Refresh writable handoff artifacts so the demo-path statement is present in the packet itself.
 4. Re-run `make scope-check`, `./quality-format.sh --check`, `./quality-lint.sh`, `./quality-test.sh`, `./typecheck-test.sh`, and `make ci`.
 
 ### Early Review Triggers
@@ -65,32 +59,21 @@
 
 ## AGENTS Checkpoint Evidence
 
-- `plan complete`: the packet was re-scoped to the actual pre-fix branch tip `b31db490a635fe5c7195cb2ce173b09a838ad8ab` and the retrieval demo-path step was made explicit.
-- `before risky/shared file edit`: the shared/high-risk boundary was called out before touching packet files because `tests/unit/test_unified_retrieval.py` remains in the reviewed range.
-- `first green tests`: `make scope-check`, `./quality-format.sh --check`, `./quality-lint.sh`, `./quality-test.sh`, `./typecheck-test.sh`, and `make ci` all passed on the restamped packet state.
-- `ready for handoff`: the writable handoff artifacts now agree on the actual pre-fix branch tip, the exact post-adfa ledger, the retrieval demo-path mapping, and the green gate results; the `.codex` mirrors remain blocked by sandbox write restrictions.
-
-## Exact Post-adfa Commit Accounting
-
-- Previous reviewer-missed head: `adfa8cdadd43747ffbcb612e4151e262b13e52ca`
-- Runtime/test commits after `adfa8cdadd`: `265`
-- Metadata-only commits after `adfa8cdadd`: `678`
-- Exact ledger document: `docs/retrieval_post_adfa_commit_accounting.md`
-- Runtime/test files touched after `adfa8cdadd`: `codex_packet_handoff/tools/init_lane_meta.py`, `codex_packet_handoff/tools/planner.py`, `src/qual/engine/retrieval/__init__.py`, `src/qual/engine/retrieval/embeddings_strategy.py`, `src/qual/engine/retrieval/fts_strategy.py`, `src/qual/engine/retrieval/interface.py`, `src/qual/engine/retrieval/pageindex_strategy.py`, `src/qual/engine/retrieval/payload.py`, `src/qual/engine/tools/excerpt_tools.py`, `src/qual/retrieval/__init__.py`, `src/qual/retrieval/service.py`, `tests/unit/test_packet_planner.py`, `tests/unit/test_unified_retrieval.py`
-- Metadata-only filesets after `adfa8cdadd`: [.codex/kickoff_packets/feat-retrieval-fts.md, .codex/lane_meta/feat-retrieval-fts.json, THREAD_PACKET.md], [THREAD_PACKET.md], [docs/gate_passed.txt], [THREAD_PACKET.md, docs/gate_passed.txt]
+- `plan complete`: the packet was narrowed to the accepted `adfa8cdadd43747ffbcb612e4151e262b13e52ca` retrieval slice and the explicit demo-path statement was queued for the handoff itself.
+- `before risky/shared file edit`: the shared/high-risk boundary was restated before editing packet files because the accepted slice includes `tests/unit/test_unified_retrieval.py`.
+- `first green tests`: `make scope-check`, `./quality-format.sh --check`, `./quality-lint.sh`, `./quality-test.sh`, `./typecheck-test.sh`, and `make ci` all passed after the packet refresh.
+- `ready for handoff`: the writable handoff artifacts now explicitly name `retrieve relevant material` and explain the FTS-only excerpt lookup impact inside the packet itself.
 
 ## Tasks Completed
 
-1. Restamped the handoff artifacts to the actual pre-fix branch tip `b31db490a635fe5c7195cb2ce173b09a838ad8ab` instead of the older `adfa8cdadd43747ffbcb612e4151e262b13e52ca` reviewer anchor.
-2. Replaced the stale traceability note with exact post-`adfa8cdadd` commit accounting in the writable docs packet.
-3. Added the explicit canonical demo-path step field naming `retrieve relevant material` and a sentence describing the FTS-only excerpt path impact.
-4. Updated the writable handoff artifacts and recorded the blocked `.codex` mirror writes accurately for this sandbox.
+1. Re-anchored the handoff narrative to the accepted `adfa8cdadd43747ffbcb612e4151e262b13e52ca` retrieval slice.
+2. Added the explicit canonical demo-path statement required for `AGENTS.md` compliance.
+3. Refreshed the writable handoff artifacts without broadening the packet into PageIndex or embeddings compatibility work.
 
 ## Files Changed
 
 - `THREAD_PACKET.md`
 - `docs/gate_passed.txt`
-- `docs/retrieval_post_adfa_commit_accounting.md`
 
 ## Commands Run With Results
 
@@ -104,8 +87,8 @@
 ## Risks / Blockers
 
 - Risk: `HIGH`
-- Approved shared test coverage in `tests/unit/test_unified_retrieval.py` remains the reason this handoff stays under the `4`-task high-risk cap.
-- `.codex/kickoff_packets/feat-retrieval-fts.md` and `.codex/lane_meta/feat-retrieval-fts.json` are readable but not writable in this sandbox, so their stale contents could not be refreshed in this pass.
+- Approved shared regression coverage in `tests/unit/test_unified_retrieval.py` keeps this handoff under the `4`-task high-risk cap.
+- `.codex/kickoff_packets/feat-retrieval-fts.md` and `.codex/lane_meta/feat-retrieval-fts.json` remain blocked mirror targets in this sandbox and were not refreshed here.
 
 ## Required Handoff Fields
 
@@ -129,6 +112,6 @@
 
 ## Scope-Check / Ownership Note
 
-- Approved shared test edit in reviewed range: `YES` (`tests/unit/test_unified_retrieval.py`)
-- Integrator-locked edit in reviewed range: `NO`
-- The handoff now matches the actual pre-fix branch tip `b31db490a635fe5c7195cb2ce173b09a838ad8ab`; the prior packet was incorrect to stop at `adfa8cdadd43747ffbcb612e4151e262b13e52ca`.
+- Approved shared test edit in accepted slice: `YES` (`tests/unit/test_unified_retrieval.py`)
+- Integrator-locked edit in accepted slice: `NO`
+- This packet is intentionally narrowed to the accepted `adfa8cdadd43747ffbcb612e4151e262b13e52ca` slice and should be re-reviewed on that basis.
