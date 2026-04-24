@@ -1702,6 +1702,11 @@ def describe_terminal_artifact_cli_fallback_contract(
     renderer_entrypoints_contract = describe_terminal_artifact_renderer_entrypoints_contract()
     manifest["renderer_entrypoints_contract"] = _snapshot_contract_section(renderer_entrypoints_contract)
     manifest["renderer_entrypoints_contract_fingerprint"] = renderer_entrypoints_contract["contract_fingerprint"]
+    manifest["kind_policy_fingerprint"] = _fingerprint_manifest_section(manifest["kind_policy"])
+    manifest["kind_policy_contract"] = _snapshot_contract_section(manifest["kind_policy"])
+    manifest["kind_policy_contract_fingerprint"] = manifest["kind_policy_fingerprint"]
+    manifest["kind_policy_contract_manifest"] = _snapshot_contract_section(manifest["kind_policy"])
+    manifest["kind_policy_contract_manifest_fingerprint"] = manifest["kind_policy_fingerprint"]
     manifest["terminal_fallback_contract_fingerprint"] = manifest["terminal_fallback_contract"][
         "contract_fingerprint"
     ]
@@ -2047,7 +2052,8 @@ def describe_terminal_artifact_cli_fallback_contract_fingerprints(
     """Return stable fingerprints for the CLI fallback wrapper contract sections.
 
     Pass ``include_terminal_artifact_cli_fallback=True`` to include the wrapper
-    contract fingerprint itself alongside the nested section fingerprints.
+    contract fingerprint itself alongside the nested section fingerprints and
+    the kind-policy slice.
     Pass ``include_terminal_artifact_cli_fallback_route=True`` to include the
     CLI fallback route contract fingerprint itself alongside the nested
     section fingerprints.
@@ -2061,7 +2067,11 @@ def describe_terminal_artifact_cli_fallback_contract_fingerprints(
             include_terminal_artifact_cli_fallback_route=include_terminal_artifact_cli_fallback_route,
         )
     )
+    kind_policy_contract_fingerprint_value = _fingerprint_manifest_section(
+        _build_terminal_artifact_cli_fallback_kind_policy_manifest()
+    )
     if include_terminal_artifact_cli_fallback:
+        fingerprints["kind_policy"] = kind_policy_contract_fingerprint_value
         _add_contract_alias_fingerprints(
             fingerprints,
             (
@@ -2095,6 +2105,10 @@ def describe_terminal_artifact_cli_fallback_contract_fingerprints(
                 card_hint_recovery_policy_contract_fingerprint_value,
             ),
             (
+                "kind_policy",
+                kind_policy_contract_fingerprint_value,
+            ),
+            (
                 "terminal_artifact_cli_fallback_target",
                 terminal_artifact_cli_fallback_target_contract_fingerprint(),
             ),
@@ -2125,6 +2139,14 @@ def describe_terminal_artifact_cli_fallback_contract_fingerprints(
             (
                 "card_hint_recovery_policy_contract_manifest",
                 card_hint_recovery_policy_contract_fingerprint_value,
+            ),
+            (
+                "kind_policy_contract",
+                kind_policy_contract_fingerprint_value,
+            ),
+            (
+                "kind_policy_contract_manifest",
+                kind_policy_contract_fingerprint_value,
             ),
             ("terminal_artifact_kind_contracts", terminal_artifact_kind_contracts_fingerprint()),
             ("terminal_artifact_cli_fallback", terminal_artifact_cli_fallback_contract_fingerprint()),
@@ -2431,6 +2453,14 @@ def _build_terminal_artifact_cli_fallback_resolver_failure_policy_manifest() -> 
             "action": "render_terminal_action",
             "selection": "render_terminal_selection",
         },
+    }
+
+
+def _build_terminal_artifact_cli_fallback_kind_policy_manifest() -> dict[str, str]:
+    return {
+        "card": "defer to terminal artifact dispatch and keep card as the default recovery path",
+        "action": "recover action payloads with render_terminal_action",
+        "selection": "recover selection payloads with render_terminal_selection",
     }
 
 

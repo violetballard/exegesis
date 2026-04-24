@@ -21,6 +21,8 @@ from src.qual.ui.a2ui import (
     describe_a2ui_contract_fingerprints,
     describe_a2ui_capabilities_contract,
     describe_selection_contract,
+    describe_terminal_artifact_cli_fallback_contract,
+    describe_terminal_artifact_cli_fallback_contract_fingerprints,
     describe_terminal_artifact_cli_fallback_target_contract,
     GENERIC_FALLBACK_SUBTITLE,
     engine_prepare_card,
@@ -534,6 +536,21 @@ class A2UIContractTests(unittest.TestCase):
             fingerprints["terminal_artifact_cli_fallback_target_contract_manifest"],
             target_fingerprint,
         )
+
+    def test_cli_fallback_contract_exposes_kind_policy_slice(self) -> None:
+        manifest = describe_terminal_artifact_cli_fallback_contract()
+        fingerprints = describe_terminal_artifact_cli_fallback_contract_fingerprints(
+            include_terminal_artifact_cli_fallback=True,
+            include_contract_aliases=True,
+        )
+        expected_fingerprint = _fingerprint_manifest_section(manifest["kind_policy"])
+
+        self.assertEqual(manifest["kind_policy_fingerprint"], expected_fingerprint)
+        self.assertEqual(manifest["kind_policy_contract_fingerprint"], expected_fingerprint)
+        self.assertEqual(manifest["kind_policy_contract_manifest_fingerprint"], expected_fingerprint)
+        self.assertEqual(fingerprints["kind_policy"], expected_fingerprint)
+        self.assertEqual(fingerprints["kind_policy_contract"], expected_fingerprint)
+        self.assertEqual(fingerprints["kind_policy_contract_manifest"], expected_fingerprint)
 
     def test_selection_contract_manifest_is_versioned_and_fingerprintable(self) -> None:
         manifest = describe_selection_contract()
