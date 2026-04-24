@@ -67,6 +67,8 @@ def _canonicalize_doc_types(doc_types: tuple[str, ...]) -> tuple[str, ...]:
 
 
 def _optional_text(value: object) -> str | None:
+    if isinstance(value, (bytes, bytearray)):
+        raise TypeError("text value must be a string, not bytes")
     if isinstance(value, str):
         text = value.strip()
         if text:

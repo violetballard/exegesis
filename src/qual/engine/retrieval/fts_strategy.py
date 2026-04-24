@@ -392,6 +392,8 @@ class FTSStrategy:
     def _normalize_raw_text(value: object) -> str | None:
         if value is None:
             return None
+        if isinstance(value, (bytes, bytearray)):
+            raise TypeError("text value must be a string, not bytes")
         text = str(value).strip()
         if not text:
             return None

@@ -98,6 +98,8 @@ def _normalize_optional_bool(value: object, *, default: bool) -> bool:
 
 
 def _normalize_required_text(value: object, *, field_name: str, casefold: bool = False) -> str:
+    if isinstance(value, (bytes, bytearray)):
+        raise TypeError(f"{field_name} must be a text string, not bytes")
     text = str(value).strip()
     if not text:
         raise ValueError(f"{field_name} must be a non-empty string")
