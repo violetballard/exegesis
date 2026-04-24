@@ -2,16 +2,19 @@
 
 - Branch name: `codex/feat-retrieval-fts`
 - Packet role: `feature lane handoff`
-- Scope goal: keep the retrieval lane FTS-first for the MVP by enforcing one canonical FTS-only excerpt contract on `fetch_excerpt(...)`, `fetch_fts_excerpt(...)`, and `retrieve_fts_excerpt(...)`.
+- Reviewer fix note: this packet explicitly maps the retrieval lane to the canonical demo-path step `retrieve relevant material` so the AGENTS handoff remains complete for re-review.
+- Reviewed implementation head: `adfa8cdadd43747ffbcb612e4151e262b13e52ca`
+- Reviewed implementation range: `378cf9a74a3658058079a32f186fcd254c4a4034..adfa8cdadd43747ffbcb612e4151e262b13e52ca`
+- Scope goal: keep the retrieval lane FTS-first for the MVP by narrowing excerpt lookup hardening to one canonical FTS-only contract on `fetch_excerpt(...)`, `fetch_fts_excerpt(...)`, and `retrieve_fts_excerpt(...)`, plus the approved shared regression coverage for that contract.
 - Canonical demo-path step advanced: `retrieve relevant material`
-- Plan-alignment statement: this fix pass makes `retrieve relevant material` more real by ensuring excerpt lookup fails closed unless the excerpt came from the SQLite FTS path that feeds basket promotion and downstream workflow use.
+- Plan-alignment statement: this slice advances `retrieve relevant material` by making `fetch_excerpt(...)` fail closed unless the excerpt is resolvable through the canonical SQLite FTS lookup path that feeds basket promotion and downstream workflow use, so PageIndex is not a required runtime excerpt path for the MVP.
 
 ## Scope Completed
 
 - Removed the reintroduced PageIndex fallback from `fetch_excerpt(...)` so the public excerpt lookup surface matches the FTS-first lane gate again.
 - Kept PageIndex-only excerpt IDs fail-closed across `fetch_excerpt(...)`, `fetch_fts_excerpt(...)`, and `retrieve_fts_excerpt(...)`.
 - Extended the regression to the engine/package facades so imported `fetch_excerpt(...)` helpers fail closed on PageIndex-only excerpt IDs too.
-- Regenerated the handoff packet so it describes the current branch-tip retrieval behavior instead of a stale metadata-only branch-head story.
+- Regenerated the handoff packet so it describes the reviewed implementation range above instead of a stale metadata-only branch-head story.
 
 ## Thread Kickoff (High-Risk)
 
@@ -34,11 +37,15 @@
 3. Added facade-level coverage so engine/package `fetch_excerpt(...)` imports enforce the same fail-closed FTS-only contract.
 4. Re-ran the required gate suite and recorded the results for this handoff.
 
-## Files Changed
+## Reviewed Implementation Files
 
 - `src/qual/retrieval/service.py`
 - `tests/unit/test_unified_retrieval.py`
+
+## Files Changed In This Fixer Pass
+
 - `THREAD_PACKET.md`
+- `docs/gate_passed.txt`
 
 ## Commands Run With Results
 
@@ -60,7 +67,6 @@
 
 ### Roadmap item(s) affected
 
-- `Milestone 4: Retrieval Layer`
 - `Milestone 3: Product Readiness`
 
 ### Vision capability affected
@@ -71,7 +77,7 @@
 ### Canonical demo-path step advanced
 
 - `retrieve relevant material`
-- This slice advances that step by keeping excerpt resolution auditable and deterministic on the canonical SQLite FTS path used before basket promotion.
+- This slice advances that step by making `fetch_excerpt(...)` and its public facades fail closed unless the excerpt resolves through the canonical SQLite FTS path used before basket promotion, so PageIndex-only excerpt IDs are not a required runtime MVP path.
 
 ### Routing/provider impact note
 

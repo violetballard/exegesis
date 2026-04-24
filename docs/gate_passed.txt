@@ -5,7 +5,7 @@ Feature lane: `codex/feat-retrieval-fts`
 Reviewed implementation head: `adfa8cdadd43747ffbcb612e4151e262b13e52ca`
 Reviewed implementation range: `378cf9a74a3658058079a32f186fcd254c4a4034..adfa8cdadd43747ffbcb612e4151e262b13e52ca`
 Canonical demo-path step advanced: `retrieve relevant material`
-Scope: keep the retrieval lane FTS-first for the MVP by enforcing the FTS-only excerpt contract on `retrieve_fts_excerpt` / `fetch_fts_excerpt` while preserving generic `fetch_excerpt(...)` PageIndex compatibility.
+Scope: keep the retrieval lane FTS-first for the MVP by enforcing the canonical FTS-only excerpt contract on `fetch_excerpt(...)`, `retrieve_fts_excerpt(...)`, and `fetch_fts_excerpt(...)`, with no PageIndex runtime excerpt fallback required for the MVP.
 Current branch tip before this handoff refresh commit: `748004b1f28f30b1f662718ffc2d8c6960ebafe8`
 
 Files changed in the reviewed implementation range:
@@ -17,12 +17,10 @@ Files updated in this fixer pass:
 
 * `THREAD_PACKET.md`
 * `docs/gate_passed.txt`
-* `src/qual/retrieval/service.py`
-* `tests/unit/test_unified_retrieval.py`
 
 Plan-alignment note:
 
-* This narrowed slice advances `retrieve relevant material` by keeping the canonical FTS-specific excerpt entrypoints deterministic on the SQLite FTS path used before basket promotion without tightening the broader `fetch_excerpt(...)` compatibility surface.
+* This narrowed slice advances `retrieve relevant material` by making `fetch_excerpt(...)` fail closed unless the excerpt is resolvable through the canonical SQLite FTS lookup path used before basket promotion, so PageIndex is not a required runtime excerpt path for the MVP.
 
 Budget classification:
 
@@ -36,8 +34,7 @@ Verification:
 * `./quality-test.sh` - passed
 * `./typecheck-test.sh` - passed
 * `make ci` - passed
-* `fetch_excerpt(...)` preserves PageIndex compatibility for generic excerpt lookup callers
-* `retrieve_fts_excerpt(...)` and `fetch_fts_excerpt(...)` raise `KeyError` for PageIndex-only excerpt IDs under shared regression coverage
+* `fetch_excerpt(...)`, `retrieve_fts_excerpt(...)`, and `fetch_fts_excerpt(...)` raise `KeyError` for PageIndex-only excerpt IDs under shared regression coverage
 
 Roadmap items affected:
 
