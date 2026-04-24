@@ -796,6 +796,12 @@ def _fallback_hit_query_constraint_snapshot(snapshot: Mapping[str, object]) -> d
         else {}
     )
     fallback = {
+        "query_date_range": _normalize_query_date_range(
+            _first_non_none_value(
+                snapshot.get("query_date_range"),
+                normalized_query_constraints.get("date_range"),
+            )
+        ),
         "query_constraints": normalized_query_constraints,
         "query_max_results": _normalize_optional_int(
             _first_non_none_value(
@@ -813,6 +819,12 @@ def _fallback_hit_query_constraint_snapshot(snapshot: Mapping[str, object]) -> d
             _first_non_none_value(
                 snapshot.get("query_require_citations"),
                 normalized_query_constraints.get("require_citations"),
+            )
+        ),
+        "query_section_hint": _normalize_query_hint(
+            _first_non_none_value(
+                snapshot.get("query_section_hint"),
+                normalized_query_constraints.get("section_hint"),
             )
         ),
         "query_prefer_exact_matches": _normalize_optional_bool(
