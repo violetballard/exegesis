@@ -71,6 +71,12 @@
 3. Refreshed the handoff packet to state explicitly that this work advances `retrieve relevant material`.
 4. Preserved the roadmap and vision mapping on Milestone 3 FTS-first retrieval and retrieval-first context handling.
 
+## Canonical Step Task Mapping
+
+- Task 1 advances `retrieve relevant material` by keeping excerpt lookup on the canonical SQLite FTS path before basket promotion can consume the result.
+- Task 2 advances `retrieve relevant material` by proving PageIndex-only excerpt IDs fail closed, so downstream workflow use does not see non-canonical retrieval state.
+- Tasks 3 and 4 keep the packet and roadmap framing tied to that same retrieval step rather than broadening the branch story to later workflow phases.
+
 ## Files Changed
 
 - Reviewed implementation files in `d7fd5d200358287fa42a18d39e2b277463b9b69f..adfa8cdadd43747ffbcb612e4151e262b13e52ca`:
@@ -97,6 +103,7 @@
 4. The current refresh commit is metadata-only because its diff is limited to packet files.
 5. This fixer pass revalidated the reviewer-approved narrowed slice `d7fd5d20..adfa8cda` after the reviewer requested an explicit canonical demo-path statement and task-to-step linkage.
 6. The metadata-only history above is reconciled commit-by-commit, and each cited refresh commit touched only `THREAD_PACKET.md` plus `docs/gate_passed.txt`.
+7. The task list is now explicitly mapped back to `retrieve relevant material`, so the reviewer no longer has to infer how the excerpt fallback removal hardens the Milestone 3 retrieval surface.
 
 ## Risks / Blockers
 

@@ -30,6 +30,7 @@ Metadata-only commit/file accounting after the reviewed implementation head and 
 * `ef827a8a` -> `THREAD_PACKET.md`, `docs/gate_passed.txt`
 * `e013b29a` -> `THREAD_PACKET.md`, `docs/gate_passed.txt`
 Reviewer-fix note: this pass revalidated the narrowed `adfa8cda` implementation slice after the reviewer asked for an explicit `retrieve relevant material` handoff statement and direct task-to-step linkage for the basket-promotion-facing retrieval surface.
+Task-to-step mapping note: removing the PageIndex excerpt fallback and locking in the shared `KeyError` regression both advance `retrieve relevant material` by hardening the canonical FTS retrieval surface that feeds basket promotion and downstream workflow use.
 
 Reviewed implementation files:
 
