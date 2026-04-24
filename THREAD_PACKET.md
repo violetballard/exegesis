@@ -4,13 +4,13 @@
 
 - Branch: `codex/feat-commands`
 - Lane/owned paths: `src/qual/commands/**`
-- Scope goal: keep the handoff aligned to the reviewed command-catalog slice only by documenting explicit CLI parser-surface validation in `src/qual/commands/catalog.py` with focused token-level drift coverage in `tests/unit/test_commands_catalog.py`.
+- Scope goal: keep the handoff aligned to the reviewed command-catalog slice only by documenting explicit canonical-name validation in `src/qual/commands/catalog.py` with focused catalog-order and drift coverage in `tests/unit/test_commands_catalog.py`.
 - Risk reason: this is a high-risk command-contract handoff because it touches the operator-facing CLI catalog contract and uses one approved shared test path.
 
 ### Scope / Plan Alignment
 
 - Canonical demo-path step advanced: `preview and apply or reject a patch`.
-- Explicit handoff sentence: this handoff advances the canonical demo-path step `preview and apply or reject a patch` by keeping the operator-facing CLI parser surface deterministic and making alias or token drift fail fast before the operator relies on that contract.
+- Explicit handoff sentence: this handoff advances the canonical demo-path step `preview and apply or reject a patch` by making the `diff-preview` CLI contract deterministic, so the operator-facing patch-review command cannot silently drift away from the canonical catalog during Milestone 3 smoke runs.
 - Roadmap alignment: `ROADMAP.md` Milestone 3 CLI compatibility while Textual remains disabled, specifically the migration-safe `feat-commands` entrypoint contract.
 - Vision alignment: `PRODUCT_VISION.md` capability 3 `Canonical engine contract` only.
 - Non-claim boundary: this handoff does not claim persistence progress, audit/workflow tracing progress, new workflow branches, provider changes, or new engine behavior.
@@ -24,9 +24,9 @@
 
 ### Planned Tasks (max 4)
 
-1. Keep `src/qual/commands/catalog.py` authoritative for the explicit CLI parser surface and canonical command ordering.
-2. Make `command_cli_contract()` reject alias-only or token-level parser drift, not just canonical-name drift.
-3. Cover extra-alias and missing-alias parser-surface drift in `tests/unit/test_commands_catalog.py`.
+1. Keep `src/qual/commands/catalog.py` authoritative for the canonical CLI command ordering used by the active MVP loop.
+2. Make `command_cli_contract()` fail fast when the parser-derived canonical names drift from `command_names()`.
+3. Cover canonical-order alignment and catalog drift rejection in `tests/unit/test_commands_catalog.py`.
 4. Re-run the required gates and record the outcomes for this narrow handoff slice.
 
 ### Early Review Triggers
@@ -46,20 +46,20 @@
 - plan complete: scope stayed pinned to `src/qual/commands/catalog.py`, the approved shared test exception in `tests/unit/test_commands_catalog.py`, and the required handoff metadata refresh
 - first green tests: `make scope-check`, `./quality-format.sh --check`, `./quality-lint.sh`, `./quality-test.sh`, `./typecheck-test.sh`, and `make ci` passed for this handoff slice
 - before risky/shared file edit: no additional shared runtime edits were required in this fixer pass
-- ready for handoff: the packet now states one exact canonical demo-path step, documents the explicit parser-surface guard, and keeps the roadmap/vision mapping limited to the reviewed command-catalog slice
+- ready for handoff: the packet now states one exact canonical demo-path step, explains the concrete Milestone 3 blocker it removes for patch-review smoke runs, and keeps the roadmap/vision mapping limited to the reviewed command-catalog slice
 
 ### Handoff Packet
 
 - branch name: `codex/feat-commands`
 - scope completed:
-  - hardened `command_cli_contract()` in `src/qual/commands/catalog.py` so it validates the full explicit CLI parser-entrypoint projection, tokens, and lookup table against the command catalog and raises `ValueError` on alias-only or token-level drift
-  - preserved canonical contract ordering while deriving the exported CLI contract from the validated parser surface instead of a weaker canonical-name-only projection
-  - added focused regression coverage in `tests/unit/test_commands_catalog.py` for extra-alias and missing-alias parser-surface drift, including cases where canonical command order would otherwise stay unchanged
+  - hardened `command_cli_contract()` in `src/qual/commands/catalog.py` so it compares the parser-derived canonical command order against `command_names()` and raises `ValueError` if the CLI surface drifts from the catalog
+  - preserved canonical contract ordering by returning the validated canonical tuple directly instead of rebuilding a divergent list from the lookup table
+  - added focused regression coverage in `tests/unit/test_commands_catalog.py` for canonical-order alignment and catalog drift rejection
   - reissued the handoff packet so it stays limited to the reviewed implementation scope and plan mapping
 - tasks completed (numbered implementation work only; metadata-only packet refreshes excluded):
-  1. Hardened `command_cli_contract()` to validate the full parser-entrypoint projection and fail fast on alias-only or token-level drift.
-  2. Preserved canonical command ordering in the CLI contract while deriving it from the validated parser surface.
-  3. Added regression coverage in `tests/unit/test_commands_catalog.py` for extra-alias and missing-alias parser-surface drift.
+  1. Hardened `command_cli_contract()` to compare parser-derived canonical names against `command_names()` and fail fast on catalog drift.
+  2. Preserved canonical command ordering in the CLI contract by returning the validated canonical tuple directly.
+  3. Added regression coverage in `tests/unit/test_commands_catalog.py` for canonical-order alignment and catalog drift rejection.
 - files changed:
   - reviewed implementation: `src/qual/commands/catalog.py`
   - reviewed implementation: `tests/unit/test_commands_catalog.py`
@@ -74,7 +74,7 @@
   - `./typecheck-test.sh` -> passed
   - `make ci` -> passed
 - risks/blockers:
-  - risk: future command-surface edits still need to preserve the explicit parser-entrypoint projection and fail-fast alias/token drift detection so the CLI contract remains deterministic
+  - risk: future command-surface edits still need to preserve the canonical-name projection used by `command_cli_contract()` so the patch-review command contract remains deterministic
   - blockers: none
 - roadmap item(s) affected:
   - `ROADMAP.md` Milestone 3 CLI compatibility while Textual remains disabled
@@ -86,4 +86,4 @@
 - approved exception note:
   - `tests/unit/test_commands_catalog.py` is the approved shared-test exception for this handoff
 - reviewer-fix satisfaction note:
-  - this packet keeps the reviewed scope to `src/qual/commands/catalog.py` plus `tests/unit/test_commands_catalog.py`, names the single canonical demo-path step, documents the explicit parser-surface guard, and records token-level alias drift coverage without expanding into workflow/audit claims
+  - this packet keeps the reviewed scope to `src/qual/commands/catalog.py` plus `tests/unit/test_commands_catalog.py`, names the single canonical demo-path step, and explains that the contract check removes a concrete Milestone 3 patch-review smoke-test blocker without expanding into workflow/audit claims
