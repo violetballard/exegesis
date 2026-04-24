@@ -4,9 +4,9 @@ Gate Results Summary (as of 2026-04-23)
 Required automated gates reran against the current handoff refresh worktree content for:
 
 * current branch tip before this fixer refresh `94a1fb6bd179b275992e02fd7be8938f4ff8fa1b`
-* reviewed implementation head `c8df93427a6974883518f7857b015fb7424795ce`
-* reviewed implementation range `d7fd5d200358287fa42a18d39e2b277463b9b69f..c8df93427a6974883518f7857b015fb7424795ce`
-* metadata-only packet refresh files `THREAD_PACKET.md` and `docs/gate_passed.txt`
+* reviewed implementation head `a9eaaaa7d60a39464b801bd7e6cbcec467e77a3d`
+* reviewed implementation range `d7fd5d200358287fa42a18d39e2b277463b9b69f..a9eaaaa7d60a39464b801bd7e6cbcec467e77a3d`
+* metadata-only packet refresh files `.codex/kickoff_packets/feat-retrieval-fts.md`, `.codex/lane_meta/feat-retrieval-fts.json`, `THREAD_PACKET.md`, and `docs/gate_passed.txt`
 
 Gate status:
 
@@ -18,9 +18,10 @@ Gate status:
 * `make ci` - passed
 
 Canonical demo-path step advanced: `retrieve relevant material`.
-Plan-alignment statement: this branch makes `retrieve relevant material` more real by keeping excerpt lookup, evidence context, and basket-promotion inputs on deterministic, auditable SQLite FTS-backed payloads that are suitable for later promotion.
-Scope-tightening statement: the post-`adfa8cda` retrieval changes stay inside the Milestone 4 FTS-first path because they harden payload normalization, provenance, query snapshots, confidentiality handling, and promotion inputs without restoring PageIndex or embeddings as required retrieval paths.
-Branch-tip in-scope retrieval commits after `adfa8cda`: `845fcfb9`, `66b288ef`, `153c6939`, and `c8df9342`.
+Plan-alignment statement: this branch makes `retrieve relevant material` more real by keeping excerpt lookup, evidence context, provenance, and basket-promotion inputs on deterministic, auditable SQLite FTS-backed payloads that are suitable for later promotion.
+Scope-tightening statement: the post-`adfa8cda` runtime changes stay inside the current FTS-first retrieval MVP path because they harden payload normalization, provenance, query snapshots, confidentiality handling, nested query metadata, and promotion-source mirroring without restoring PageIndex or embeddings as required retrieval paths.
+Post-`adfa8cda` runtime commits in reviewed scope: `845fcfb9`, `66b288ef`, `153c6939`, `c8df9342`, and `a9eaaaa7`.
+Metadata-only commits after the reviewed implementation head and before this fixer refresh: `eee6ee24`, `4e6a09c2`, `31b91107`, and `94a1fb6b`.
 Non-lane support statement: `codex_packet_handoff/tools/planner.py` and `tests/unit/test_packet_planner.py` are included in the reviewed implementation range because they keep packet emission traceable to the real reviewed tip.
 Metadata mirror note: `.codex/kickoff_packets/feat-retrieval-fts.md` and `.codex/lane_meta/feat-retrieval-fts.json` remain stale in this worktree because writes there fail with `Operation not permitted`; `THREAD_PACKET.md` and this file are the reviewer-facing source of truth for this refresh.
 
@@ -38,8 +39,10 @@ Reviewed implementation files:
 * `tests/unit/test_packet_planner.py`
 * `tests/unit/test_unified_retrieval.py`
 
-Metadata-only refresh files in this packet slice:
+Metadata-only refresh files in this fixer slice:
 
+* `.codex/kickoff_packets/feat-retrieval-fts.md`
+* `.codex/lane_meta/feat-retrieval-fts.json`
 * `THREAD_PACKET.md`
 * `docs/gate_passed.txt`
 

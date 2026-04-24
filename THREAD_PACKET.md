@@ -3,21 +3,21 @@
 - Branch name: `codex/feat-retrieval-fts`
 - Packet role: `actual-branch-tip handoff with metadata-only refresh`
 - Current branch tip before this packet refresh commit: `94a1fb6bd179b275992e02fd7be8938f4ff8fa1b`
-- Reviewed implementation head: `c8df93427a6974883518f7857b015fb7424795ce`
-- Reviewed implementation range: `d7fd5d200358287fa42a18d39e2b277463b9b69f..c8df93427a6974883518f7857b015fb7424795ce`
+- Reviewed implementation head: `a9eaaaa7d60a39464b801bd7e6cbcec467e77a3d`
+- Reviewed implementation range: `d7fd5d200358287fa42a18d39e2b277463b9b69f..a9eaaaa7d60a39464b801bd7e6cbcec467e77a3d`
 - Canonical demo-path step advanced: `retrieve relevant material`
-- Canonical demo-path statement: This branch advances `retrieve relevant material` by keeping excerpt lookup, evidence context, and basket-promotion inputs on deterministic, auditable SQLite FTS-backed payloads that are suitable for later promotion without reintroducing PageIndex or embeddings as required retrieval paths.
+- Canonical demo-path statement: This branch advances `retrieve relevant material` by keeping excerpt lookup, evidence context, provenance, and basket-promotion inputs on deterministic, auditable SQLite FTS-backed payloads that are suitable for later promotion without reintroducing PageIndex or embeddings as required retrieval paths.
 
 ## Scope Goal
 
-- Regenerate the handoff packet against the actual reviewed implementation, keep the current branch-tip metadata refresh explicit, include the post-`adfa8cda` retrieval changes in scope, and rerun the required gates for the exact handoff content.
+- Regenerate the handoff packet against the actual reviewed implementation, keep the current branch-tip metadata refresh explicit, include the post-`adfa8cda` retrieval changes through `a9eaaaa7` in scope, and rerun the required gates for the exact handoff content.
 
 ## Thread Kickoff (High-Risk)
 
 - Branch: `codex/feat-retrieval-fts`
 - Lane/owned paths: `src/qual/retrieval/**`, `src/qual/engine/retrieval/**`, `engine/src/exegesis_engine/retrieval/**`
-- Scope goal: hand off the real branch-tip retrieval implementation through `c8df9342` and keep the packet refresh itself limited to metadata files.
-- Risk reason: this branch includes approved shared regression coverage in `tests/unit/test_unified_retrieval.py` and branch-tip support changes in `codex_packet_handoff/tools/planner.py`, so the handoff is treated as high-risk and summarized under the 4-task cap.
+- Scope goal: hand off the real reviewed runtime implementation through `a9eaaaa7` and keep the packet refresh itself limited to metadata files.
+- Risk reason: this branch includes approved shared regression coverage in `tests/unit/test_unified_retrieval.py` and reviewed support changes in `codex_packet_handoff/tools/planner.py` plus `tests/unit/test_packet_planner.py`, so the handoff is treated as high-risk and summarized under the 4-task cap.
 
 ### Budget
 
@@ -28,14 +28,14 @@
 
 ### Planned Tasks (max 4)
 
-1. Re-anchor the packet to the real branch-tip implementation range `d7fd5d20..c8df9342`.
+1. Re-anchor the packet to the real reviewed implementation range `d7fd5d20..a9eaaaa7`.
 2. State explicitly that this work advances `retrieve relevant material`.
-3. Tighten the scope summary so the post-`adfa8cda` retrieval changes are justified as deterministic FTS payload/provenance work for the Milestone 4 path.
+3. Tighten the scope summary so the post-`adfa8cda` retrieval changes are justified as deterministic FTS payload/provenance work for the current retrieval MVP path.
 4. Rerun and report `make scope-check`, `./quality-format.sh --check`, `./quality-lint.sh`, `./quality-test.sh`, `./typecheck-test.sh`, and `make ci` for the exact handoff content.
 
 ### Checkpoint Status
 
-- `plan complete`: the handoff is re-anchored to `d7fd5d20..c8df9342`.
+- `plan complete`: the handoff is re-anchored to `d7fd5d20..a9eaaaa7`.
 - `first green tests`: recorded after rerunning the required gate stack for this handoff refresh.
 - `before risky/shared file edit`: the branch still includes approved shared regression coverage in `tests/unit/test_unified_retrieval.py`.
 - `ready for handoff`: the reviewer-facing packet files and gate summary agree on the same implementation head, implementation range, and file inventory.
@@ -43,14 +43,14 @@
 ## Scope Completed
 
 - Kept SQLite FTS authoritative for the excerpt-lookup surface and the engine/public retrieval facades; PageIndex and embeddings remain compatibility-only shims that fail closed rather than becoming routing-authoritative paths.
-- Hardened deterministic retrieval payloads across `src/qual/retrieval/service.py` and `src/qual/engine/retrieval/payload.py`, including normalized query snapshots, confidentiality/redaction handling, ranked-hit metadata, provenance fingerprints, and nested excerpt-query metadata.
+- Hardened deterministic retrieval payloads across `src/qual/retrieval/service.py` and `src/qual/engine/retrieval/payload.py`, including normalized query snapshots, confidentiality/redaction handling, ranked-hit metadata, provenance fingerprints, nested excerpt-query metadata, and basket-promotion source mirroring.
 - Preserved deterministic sparse source/context bundle rehydration and basket-promotion inputs so later promotion can consume auditable excerpt payloads without reconstructing ambiguous retrieval state.
 - Updated `codex_packet_handoff/tools/planner.py` and `tests/unit/test_packet_planner.py` so packet emission stays attached to the actual reviewed tip instead of silently drifting to a narrowed or stale slice.
-- This handoff stays scope-tight even though it is broader than the earlier `adfa8cda` slice: the additional retrieval commits are still all in service of the Milestone 4 FTS-first path and do not restore PageIndex or embeddings as required runtime retrieval strategies.
+- The post-`adfa8cda` runtime commits in scope are `845fcfb9`, `66b288ef`, `153c6939`, `c8df9342`, and `a9eaaaa7`; they remain within the FTS-first retrieval MVP path and do not restore PageIndex or embeddings as required runtime retrieval strategies.
 
 ## Reviewed Scope Boundary
 
-- Reviewed implementation range: `d7fd5d200358287fa42a18d39e2b277463b9b69f..c8df93427a6974883518f7857b015fb7424795ce`
+- Reviewed implementation range: `d7fd5d200358287fa42a18d39e2b277463b9b69f..a9eaaaa7d60a39464b801bd7e6cbcec467e77a3d`
 - Reviewed implementation files:
 - `codex_packet_handoff/tools/planner.py`
 - `src/qual/engine/retrieval/__init__.py`
@@ -63,7 +63,14 @@
 - `src/qual/retrieval/service.py`
 - `tests/unit/test_packet_planner.py`
 - `tests/unit/test_unified_retrieval.py`
+- Metadata-only commits after the reviewed implementation head and before this fixer refresh:
+- `eee6ee24`
+- `4e6a09c2`
+- `31b91107`
+- `94a1fb6b`
 - Current metadata-only packet refresh files:
+- `.codex/kickoff_packets/feat-retrieval-fts.md`
+- `.codex/lane_meta/feat-retrieval-fts.json`
 - `THREAD_PACKET.md`
 - `docs/gate_passed.txt`
 
@@ -72,11 +79,11 @@
 1. Kept the excerpt-lookup entrypoints FTS-first and fail-closed while exporting the canonical helpers through the retrieval facades.
 2. Normalized retrieval payloads, provenance, ranked-hit snapshots, query constraints, confidentiality metadata, and nested excerpt-query state so downstream engine consumers receive deterministic audit-friendly data.
 3. Preserved deterministic sparse source/context bundle and basket-promotion backfills without widening runtime retrieval authority beyond SQLite FTS.
-4. Reattached packet/planner traceability to the real branch tip and refreshed the reviewer-facing handoff metadata to cover the full non-metadata implementation through `c8df9342`.
+4. Reattached packet/planner traceability to the real branch tip and refreshed the reviewer-facing handoff metadata to cover the full non-metadata implementation through `a9eaaaa7d60a39464b801bd7e6cbcec467e77a3d`.
 
 ## Files Changed
 
-- Reviewed implementation files in `d7fd5d200358287fa42a18d39e2b277463b9b69f..c8df93427a6974883518f7857b015fb7424795ce`:
+- Reviewed implementation files in `d7fd5d200358287fa42a18d39e2b277463b9b69f..a9eaaaa7d60a39464b801bd7e6cbcec467e77a3d`:
 - `codex_packet_handoff/tools/planner.py`
 - `src/qual/engine/retrieval/__init__.py`
 - `src/qual/engine/retrieval/embeddings_strategy.py`
@@ -88,7 +95,9 @@
 - `src/qual/retrieval/service.py`
 - `tests/unit/test_packet_planner.py`
 - `tests/unit/test_unified_retrieval.py`
-- Current metadata-only packet refresh files:
+- Metadata-only refresh files in this fixer slice:
+- `.codex/kickoff_packets/feat-retrieval-fts.md`
+- `.codex/lane_meta/feat-retrieval-fts.json`
 - `THREAD_PACKET.md`
 - `docs/gate_passed.txt`
 
@@ -103,12 +112,12 @@
 
 ## Reviewer Fix Closure
 
-1. The packet now covers the actual non-metadata branch-tip implementation through `c8df93427a6974883518f7857b015fb7424795ce`; it no longer presents `adfa8cda` as the effective reviewed head.
+1. The packet now covers the actual non-metadata branch-tip implementation through `a9eaaaa7d60a39464b801bd7e6cbcec467e77a3d`; it no longer presents `c8df93427a6974883518f7857b015fb7424795ce` as the effective reviewed head.
 2. `Files changed`, `Scope completed`, and the reviewed range now include the post-`adfa8cda` retrieval code changes and the branch-tip packet-planner support changes.
 3. The packet explicitly states which canonical demo-path step this work advances: `retrieve relevant material`.
-4. The scope statement stays tight by classifying the added retrieval work as deterministic FTS payload/provenance/basket-promotion support for the Milestone 4 retrieval path.
-5. The current refresh commit is metadata-only only because its diff is limited to packet files; the reviewed implementation remains the full branch-tip code through `c8df9342`.
-6. Reviewer-facing truth for this refresh is carried by `THREAD_PACKET.md` and `docs/gate_passed.txt`; the `.codex` packet mirrors remain stale in this worktree because those paths are not writable here.
+4. The scope statement stays tight by classifying the added retrieval work as deterministic FTS payload/provenance/basket-promotion support for the current FTS-first retrieval path.
+5. The current refresh commit is metadata-only because its diff is limited to packet files; the reviewed implementation remains the full branch-tip runtime scope through `a9eaaaa7`.
+6. Reviewer-facing truth for this refresh is carried by `THREAD_PACKET.md` and `docs/gate_passed.txt`; the `.codex` packet mirrors remain stale in this worktree because writes there fail with `Operation not permitted`.
 
 ## Risks / Blockers
 
@@ -119,8 +128,8 @@
 
 ### Roadmap item(s) affected
 
-- `Milestone 4: Retrieval Layer`
-- `MVP Focus Through 2026-05-04: feat-retrieval-fts`
+- `Milestone 3: Real workflow loop`
+- `feat-retrieval-fts`
 
 ### Canonical demo-path step advanced
 
@@ -130,7 +139,7 @@
 ### Vision capability affected
 
 - `2. Retrieval-first context handling`
-- `3. Auditable generation`
+- `6. Auditable state and workflow`
 
 ### Routing/provider impact note
 
