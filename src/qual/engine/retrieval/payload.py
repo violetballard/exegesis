@@ -3478,6 +3478,19 @@ def _build_retrieval_provenance_from_payload(payload: dict[str, object]) -> dict
         top_level_doc_hits = []
     if not isinstance(top_level_excerpt_hits, list):
         top_level_excerpt_hits = []
+    normalized_excerpt_hits = _normalize_excerpt_hits(top_level_excerpt_hits)
+    first_excerpt_hit = (
+        normalized_excerpt_hits[0]
+        if normalized_excerpt_hits and isinstance(normalized_excerpt_hits[0], dict)
+        else {}
+    )
+    first_excerpt_provenance = (
+        first_excerpt_hit.get("provenance", {})
+        if isinstance(first_excerpt_hit, dict)
+        else {}
+    )
+    if not isinstance(first_excerpt_provenance, dict):
+        first_excerpt_provenance = {}
     normalized["query"] = _normalize_query_snapshot(
         _first_dict_value(
             normalized.get("query"),
@@ -3598,6 +3611,55 @@ def _build_retrieval_provenance_from_payload(payload: dict[str, object]) -> dict
         )
     else:
         normalized["fts_shortlist_doc_ids"] = _normalize_text_list_like(normalized["fts_shortlist_doc_ids"])
+    normalized_lookup_resolution = _normalize_optional_canonical_source_strategy(
+        normalized.get("lookup_resolution")
+    )
+    if normalized_lookup_resolution is None:
+        normalized_lookup_resolution = _normalize_optional_canonical_source_strategy(
+            _first_text_value(
+                payload.get("lookup_resolution"),
+                first_excerpt_hit.get("lookup_resolution") if isinstance(first_excerpt_hit, dict) else None,
+                first_excerpt_provenance.get("lookup_resolution"),
+            )
+        )
+    if normalized_lookup_resolution is not None:
+        normalized["lookup_resolution"] = normalized_lookup_resolution
+    else:
+        normalized.pop("lookup_resolution", None)
+    normalized_lookup_confidentiality_profile = _normalize_query_confidentiality_profile(
+        normalized.get("lookup_confidentiality_profile")
+    )
+    if normalized_lookup_confidentiality_profile is None:
+        normalized_lookup_confidentiality_profile = _normalize_query_confidentiality_profile(
+            _first_text_value(
+                payload.get("lookup_confidentiality_profile"),
+                first_excerpt_hit.get("lookup_confidentiality_profile")
+                if isinstance(first_excerpt_hit, dict)
+                else None,
+                first_excerpt_provenance.get("lookup_confidentiality_profile"),
+            )
+        )
+    if normalized_lookup_confidentiality_profile is not None:
+        normalized["lookup_confidentiality_profile"] = normalized_lookup_confidentiality_profile
+    else:
+        normalized.pop("lookup_confidentiality_profile", None)
+    normalized_lookup_query_context_status = _normalize_lookup_query_context_status(
+        normalized.get("lookup_query_context_status")
+    )
+    if normalized_lookup_query_context_status is None:
+        normalized_lookup_query_context_status = _normalize_lookup_query_context_status(
+            _first_text_value(
+                payload.get("lookup_query_context_status"),
+                first_excerpt_hit.get("lookup_query_context_status")
+                if isinstance(first_excerpt_hit, dict)
+                else None,
+                first_excerpt_provenance.get("lookup_query_context_status"),
+            )
+        )
+    if normalized_lookup_query_context_status is not None:
+        normalized["lookup_query_context_status"] = normalized_lookup_query_context_status
+    else:
+        normalized.pop("lookup_query_context_status", None)
     if _is_missing_snapshot_value(normalized.get("primary_doc_id")):
         normalized["primary_doc_id"] = summary.get("primary_doc_id")
     else:

@@ -4013,6 +4013,50 @@ class UnifiedRetrievalTests(unittest.TestCase):
             provenance["primary_excerpt_provenance_fingerprint"],
             result.retrieval_provenance_bundle()["primary_excerpt_provenance_fingerprint"],
         )
+
+    def test_retrieval_provenance_helper_backfills_lookup_query_context_from_excerpt_hits(self) -> None:
+        result = self.service.retrieve_auto(
+            RetrievalQuery(
+                query_text="discussion theory",
+                scope="doc:doc-pdf-1",
+                intent="lookup",
+                constraints=RetrievalConstraints(max_results=3),
+                confidentiality_profile="confidential",
+            )
+        )
+
+        excerpt_id = result.hits[0].excerpt_id
+        self.assertIsNotNone(excerpt_id)
+        lookup_payload = self.service.retrieve_fts_excerpt(excerpt_id or "")
+
+        class _DictOnlySource:
+            def __init__(self, payload: dict[str, object]) -> None:
+                self._payload = payload
+
+            def as_dict(self) -> dict[str, object]:
+                return self._payload
+
+        sparse_payload = json.loads(json.dumps(lookup_payload))
+        retrieval_provenance = sparse_payload.setdefault("retrieval_provenance", {})
+        self.assertIsInstance(retrieval_provenance, dict)
+        retrieval_provenance.pop("lookup_resolution", None)
+        retrieval_provenance.pop("lookup_confidentiality_profile", None)
+        retrieval_provenance.pop("lookup_query_context_status", None)
+
+        provenance = build_retrieval_provenance_from_result(_DictOnlySource(sparse_payload))
+
+        self.assertEqual(
+            provenance["lookup_resolution"],
+            lookup_payload["lookup_resolution"],
+        )
+        self.assertEqual(
+            provenance["lookup_confidentiality_profile"],
+            lookup_payload["lookup_confidentiality_profile"],
+        )
+        self.assertEqual(
+            provenance["lookup_query_context_status"],
+            lookup_payload["lookup_query_context_status"],
+        )
         self.assertEqual(
             provenance["primary_excerpt_text_hash"],
             result.retrieval_provenance_bundle()["primary_excerpt_text_hash"],
