@@ -107,25 +107,9 @@ class ShellUI:
                 rendered_cli_fallback = render_terminal_cli_fallback(artifact, kind="card")
             except Exception:
                 rendered_cli_fallback = None
-            else:
-                if _is_nonempty_terminal_rendered_text(rendered_cli_fallback):
-                    if not rendered_cli_fallback.startswith("["):
-                        return rendered_cli_fallback
-            if normalized_kind == "action":
-                try:
-                    rendered_action = render_terminal_action(artifact)
-                except Exception:
-                    return _render_invalid_terminal_action(artifact)
-                if _is_nonempty_terminal_rendered_text(rendered_action):
-                    return rendered_action
-                return _render_invalid_terminal_action(artifact)
-            try:
-                rendered_selection = render_terminal_selection(artifact)
-            except Exception:
-                return _render_invalid_terminal_selection(artifact)
-            if _is_nonempty_terminal_rendered_text(rendered_selection):
-                return rendered_selection
-            return _render_invalid_terminal_selection(artifact)
+            if _is_nonempty_terminal_rendered_text(rendered_cli_fallback):
+                return rendered_cli_fallback
+            return _render_invalid_terminal_card(artifact)
         resolved_fallback: tuple[Any, str | None] | None = None
         if normalized_kind == "card":
             try:
