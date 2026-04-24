@@ -72,8 +72,8 @@
 
 - `THREAD_PACKET.md`
 - `docs/gate_passed.txt`
-- `.codex/kickoff_packets/feat-retrieval-fts.md` (stale mirror remains unchanged here because this worktree cannot write that path)
-- `.codex/lane_meta/feat-retrieval-fts.json` (stale mirror remains unchanged here because this worktree cannot write that path)
+- `.codex/kickoff_packets/feat-retrieval-fts.md` (unchanged in this session because the `apply_patch` tool rejects hidden `.codex/**` paths here)
+- `.codex/lane_meta/feat-retrieval-fts.json` (unchanged in this session because the `apply_patch` tool rejects hidden `.codex/**` paths here)
 
 ## Commands Run With Results
 
@@ -89,12 +89,12 @@
 1. `Scope completed` and `Tasks completed` now describe the full reviewed implementation range anchored at `adfa8cda`, not just the final `fetch_excerpt` fail-closed behavior.
 2. The handoff explicitly includes the added retrieval contract, provenance snapshot, and helper-surface changes in scope and plan mapping rather than implying a narrower implementation than the reviewed range.
 3. The handoff explicitly states that this work advances the canonical demo-path step `retrieve relevant material` using engine-first wording.
-4. This fixer pass refreshes the writable reviewer-facing packet surfaces and records the `.codex` mirror lock so re-review uses the updated packet text from this worktree.
+4. This fixer pass refreshes the writable reviewer-facing packet surfaces and removes the stale write-permission claim from the visible handoff.
 
 ## Risks / Blockers
 
 - Risk: `HIGH`
-- Blockers: `.codex/kickoff_packets/feat-retrieval-fts.md` and `.codex/lane_meta/feat-retrieval-fts.json` are not writable from this worktree (`operation not permitted`); the updated reviewer-facing packet surfaces are `THREAD_PACKET.md` and `docs/gate_passed.txt`.
+- Blockers: the `apply_patch` tool in this session rejects hidden `.codex/**` paths as outside the project, so the tracked mirror files `.codex/kickoff_packets/feat-retrieval-fts.md` and `.codex/lane_meta/feat-retrieval-fts.json` could not be updated through the required edit path.
 
 ## Required Handoff Fields
 
