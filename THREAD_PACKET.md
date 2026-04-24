@@ -176,6 +176,7 @@
 - The branch-tip command slice now exposes a trusted, deterministic command surface for the CLI-first MVP path, including parser-ready entry argv, compatibility aliases, trusted-surface lookup tables, workflow transition metadata, and next-action planning helpers.
 - The latest tip commit adds trusted command workflow-plan helpers in `src/qual/commands/catalog.py` and exports them from `src/qual/commands/__init__.py`.
 - The cumulative slice keeps parser/catalog drift fail-closed through repeated contract validation and targeted command-catalog regression coverage.
+- The final fixer pass corrected the trailing-whitespace normalization expression in `src/qual/commands/diff_preview.py` so the branch tip compiles cleanly under the required Python typecheck gate.
 - This packet regeneration now matches that actual implementation scope instead of asking the reviewer to ignore command-code commits at the tip.
 
 ## Canonical Demo-Path Mapping
@@ -200,7 +201,7 @@
 1. Regenerated the reviewer packet so it truthfully reviews the actual branch tip `5c5980e8813134af0e5f29a0ac5cb793cde44ffb`.
 2. Scope-tightened the packet to one coherent implementation basis: the cumulative branch-tip command slice from `f8d860ed9f6299f0169c4f21321ac5f37c949fd3..5c5980e8813134af0e5f29a0ac5cb793cde44ffb`.
 3. Added the required plan-alignment statement naming the exact canonical `open project/document` demo-path step advanced and the concrete Milestone 3 blocker removed.
-4. Corrected the ownership note to distinguish the shared-by-approval test exception from integrator-locked files, then reran the required gates.
+4. Corrected the ownership note to distinguish the shared-by-approval test exception from integrator-locked files, fixed the lane-owned `src/qual/commands/diff_preview.py` compile blocker found during gate execution, then reran the required gates.
 
 ### Files Changed
 
