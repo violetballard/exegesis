@@ -56,12 +56,12 @@
 - unresolved `make scope-check`
 - budget/size/time limit hit
 
-### Checkpoint Cadence (short updates)
+## AGENTS Checkpoint Evidence
 
-- plan complete
-- first green tests
-- before risky/shared file edit
-- ready for handoff
+- `plan complete`: the high-risk kickoff and planned tasks were locked to the narrowed reviewed implementation slice `378cf9a74a3658058079a32f186fcd254c4a4034..adfa8cdadd43747ffbcb612e4151e262b13e52ca` and to the canonical demo-path step `retrieve relevant material`.
+- `first green tests`: `make scope-check`, `./quality-format.sh --check`, `./quality-lint.sh`, `./quality-test.sh`, `./typecheck-test.sh`, and `make ci` all passed on the packet-refresh branch head before this re-review handoff was finalized.
+- `before risky/shared file edit`: this fixer pass stayed metadata-only, and the shared/high-risk boundary was called out before refreshing the handoff because the reviewed implementation scope still includes approved shared regression coverage in `tests/unit/test_unified_retrieval.py`.
+- `ready for handoff`: the top-level packet and gate summary now carry the same reviewed implementation head, narrowed reviewed range, demo-path mapping, and checkpoint trail required for re-review; the `.codex` packet mirrors remain read-only in this sandbox and are called out separately.
 
 ### Handoff Packet
 
@@ -76,7 +76,7 @@
 
 1. Removed the PageIndex fallback from `fetch_excerpt` so the public excerpt lookup surface now resolves through the canonical FTS-only path.
 2. Added approved shared regression coverage in `tests/unit/test_unified_retrieval.py` proving PageIndex-only excerpt ids fail closed with `KeyError`.
-3. Reissued the kickoff and handoff metadata in the High-Risk form required for shared-file work.
+3. Reissued the writable handoff metadata in the High-Risk form required for shared-file work and recorded the blocked `.codex` mirror files explicitly.
 4. Re-ran the required local gates on the packet-refresh branch head and recorded the results for re-review.
 
 ## Files Changed
