@@ -5,6 +5,7 @@
 - Commit: `adfa8cdadd43747ffbcb612e4151e262b13e52ca`
 - Packet refresh commit: `reported in final fixer handoff`
 - Packet refresh role: `metadata-only reviewer-fix finalization`
+- Pre-fix packet refresh trace anchor: `abeeea61485a2f5c40fa9f979e737b773805c11a`
 - Reviewed implementation range: `378cf9a74a3658058079a32f186fcd254c4a4034..adfa8cdadd43747ffbcb612e4151e262b13e52ca`
 
 ## Packet traceability note
@@ -57,6 +58,7 @@
 - This narrowed reviewed slice only changes excerpt lookup behavior: `src/qual/retrieval/service.py` removes the PageIndex fallback from `fetch_excerpt`, so excerpt lookup now fails closed on the canonical FTS-only path.
 - Approved shared regression coverage in `tests/unit/test_unified_retrieval.py` proves PageIndex-only excerpt IDs now raise `KeyError`.
 - This re-review deliberately narrows scope to the single implementation commit `adfa8cdadd43747ffbcb612e4151e262b13e52ca`; broader retrieval facade and engine-surface claims are outside this reviewed slice.
+- This packet is the canonical re-review artifact for the narrowed slice in this fixer pass; later metadata-only packet refresh commits must not widen the reviewed diff without regenerating the handoff.
 
 ## Canonical demo-path step advanced
 
