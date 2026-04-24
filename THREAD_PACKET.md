@@ -5,18 +5,18 @@
 - Current submitted tip before this packet refresh commit: `6ccd62dcb7d2073258d50f9a4882e786cab7e9d5`
 - Reviewed implementation head: `adfa8cdadd43747ffbcb612e4151e262b13e52ca`
 - Reviewed implementation range: `378cf9a74a3658058079a32f186fcd254c4a4034..adfa8cdadd43747ffbcb612e4151e262b13e52ca`
-- Packet traceability note: review this lane against the single-commit implementation range above. The current packet refresh commit is metadata-only and does not broaden retrieval scope beyond `378cf9a7..adfa8cda`.
+- Packet traceability note: review this lane against the single-commit implementation range above. The reviewer anchor `378cf9a74a3658058079a32f186fcd254c4a4034` is the direct parent of the reviewed implementation head, so the reviewed implementation slice is the single commit `adfa8cdadd43747ffbcb612e4151e262b13e52ca`. The current packet refresh commit is metadata-only and does not broaden retrieval scope beyond that slice.
 - Canonical demo-path step advanced: `retrieve relevant material` via the FTS-first engine surface with fail-closed excerpt lookup and auditable provenance.
 - Reviewer-required plan-alignment statement: This work advances `retrieve relevant material` by making the public excerpt lookup surface resolve through the authoritative SQLite FTS path, so PageIndex-only excerpt IDs fail closed under shared regression coverage and basket-promotion inputs stay deterministic.
 - AGENTS.md handoff completeness note: This packet explicitly satisfies the required canonical demo-path field by stating that the reviewed slice advances `retrieve relevant material`.
-- Evidence note: `tests/unit/test_unified_retrieval.py` covers both the narrowed service-level contract and the public retrieval facade for this slice. `test_retrieval_service_rejects_pageindex_excerpt_payloads` proves PageIndex-only excerpt IDs fail closed on `fetch_excerpt(...)`, and `test_retrieve_fts_excerpt_returns_canonical_fts_payload` proves the canonical/public FTS excerpt helpers return the same payload shape.
+- Evidence note: `tests/unit/test_unified_retrieval.py` covers both the narrowed service-level contract and the public retrieval facade for this slice. `test_retrieval_service_rejects_pageindex_excerpt_payloads` proves PageIndex-only excerpt IDs fail closed on `fetch_excerpt(...)`, and `test_retrieve_fts_excerpt_returns_canonical_fts_payload` proves the canonical/public FTS excerpt helpers still return the same normalized FTS payload after the fail-closed change.
 - Packet authority note: this top-level packet and `docs/gate_passed.txt` are the reviewer-facing source of truth for the explicit demo-path mapping and plan-alignment wording on this branch. They intentionally describe only the narrowed FTS-only excerpt fail-closed slice and do not claim lane-level MVP completion.
 - Verified refresh-scope note: this refresh changes only `THREAD_PACKET.md` and `docs/gate_passed.txt` in this worktree; any earlier metadata-only refreshes are outside the scope of this re-review packet.
 - Post-rerun confirmation note: the full required gate stack was rerun against metadata-only packet tip `6ccd62dcb7d2073258d50f9a4882e786cab7e9d5` immediately before this reviewer-fix commit.
 
 ## Scope Goal
 
-- Regenerate the retrieval-specific handoff packet so it stays narrowed to reviewed commit `adfa8cdadd43747ffbcb612e4151e262b13e52ca`, states explicitly that this work advances `retrieve relevant material`, and reports the metadata-only refresh files from this packet slice accurately.
+- Regenerate the retrieval-specific handoff packet so it stays narrowed to the actual reviewed diff `378cf9a74a3658058079a32f186fcd254c4a4034..adfa8cdadd43747ffbcb612e4151e262b13e52ca`, states explicitly that this work advances `retrieve relevant material`, and reports the metadata-only refresh files from this packet slice accurately.
 
 ## Thread Kickoff (High-Risk)
 
@@ -37,7 +37,7 @@
 1. Keep the handoff anchored to reviewed implementation head `adfa8cda` and reviewed range `378cf9a7..adfa8cda`.
 2. State the canonical demo-path step explicitly as `retrieve relevant material`.
 3. Reconcile the packet file lists and metadata-only traceability so they match this packet-refresh slice, including `docs/gate_passed.txt`.
-4. Re-run the required gates and record results against the narrowed reviewed implementation head/range.
+4. State explicitly that broader provenance/helper surfaces already present in the touched files predate this reviewed slice and are not claimed by this handoff.
 
 ### Checkpoint Status
 
@@ -48,9 +48,9 @@
 
 ## Scope Completed
 
-- SQLite FTS remains the authoritative retrieval path for the reviewed implementation range.
+- SQLite FTS remains the authoritative retrieval path for the reviewed implementation slice.
 - The public excerpt lookup surface resolves through the canonical FTS path, so PageIndex-only excerpt IDs fail closed with no PageIndex runtime fallback on that surface.
-- The reviewed evidence is intentionally narrow: it hardens the excerpt lookup contract and its public FTS helper surface rather than re-proving every broader lane claim.
+- The reviewed evidence is intentionally narrow: it hardens the excerpt lookup contract and its public FTS helper surface rather than re-proving broader retrieval helper or provenance surfaces already present in these files before this reviewed slice.
 - This handoff records an incremental retrieval-contract hardening slice for `retrieve relevant material`; it does not claim that the full `feat-retrieval-fts` MVP or lane definition of done is complete.
 - This handoff explicitly states that the reviewed slice advances the canonical demo-path step `retrieve relevant material`.
 
@@ -69,7 +69,7 @@
 1. Kept `fetch_excerpt` on the canonical FTS-only lookup path so PageIndex-only excerpt IDs fail closed.
 2. Kept the reviewed scope anchored to commit `adfa8cdadd43747ffbcb612e4151e262b13e52ca` and range `378cf9a74a3658058079a32f186fcd254c4a4034..adfa8cdadd43747ffbcb612e4151e262b13e52ca`.
 3. Re-emitted the reviewer-facing handoff truth sources so the completed packet is no longer stale or lane-mismatched.
-4. Regenerated the metadata-only file lists so this packet-refresh slice discloses only `THREAD_PACKET.md` and `docs/gate_passed.txt`, which are the files changed in this verified refresh.
+4. Narrowed the handoff to the actual reviewed diff and stated that broader provenance/helper surfaces already present in the touched files are out of scope for this re-review.
 
 ## Files Changed
 
@@ -97,7 +97,8 @@
 4. The handoff is classified consistently as shared/high-risk work because the reviewed slice includes approved shared regression coverage in `tests/unit/test_unified_retrieval.py`.
 5. The completed packet is retrieval-specific and branch-local instead of lane-stale.
 6. The reviewed file list, metadata-only file list, and gate summary all match the narrowed reviewed implementation range and current packet-refresh contents.
-7. The reviewer-facing truth sources are explicitly identified so re-review reads the demo-path mapping from this packet and `docs/gate_passed.txt`.
+7. Broader retrieval provenance/helper surfaces already present in the touched files are explicitly treated as pre-existing context, not as claimed changes in this re-review slice.
+8. The reviewer-facing truth sources are explicitly identified so re-review reads the demo-path mapping from this packet and `docs/gate_passed.txt`.
 
 ## Risks / Blockers
 
