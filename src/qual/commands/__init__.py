@@ -336,6 +336,16 @@ from src.qual.commands.catalog import (
     command_resolution_tokens,
     validate_command_catalog,
 )
+from src.qual.commands.workflow import (
+    command_workflow_branch_contract,
+    command_workflow_branch_invocation_plan,
+    command_workflow_branch_invocation_table,
+    command_workflow_branch_surface,
+    command_workflow_branch_surface_invocation_table,
+    command_workflow_branch_tokens,
+    command_workflow_surface_contract,
+    command_workflow_surface_tokens,
+)
 
 __all__ = [
     "CommandSpec",
@@ -672,4 +682,12 @@ __all__ = [
     "command_tokens",
     "command_resolution_tokens",
     "validate_command_catalog",
+    "command_workflow_branch_contract",
+    "command_workflow_branch_invocation_plan",
+    "command_workflow_branch_invocation_table",
+    "command_workflow_branch_surface",
+    "command_workflow_branch_surface_invocation_table",
+    "command_workflow_branch_tokens",
+    "command_workflow_surface_contract",
+    "command_workflow_surface_tokens",
 ]
