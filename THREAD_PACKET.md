@@ -5,17 +5,17 @@
 - Commit: `f8d860ed9f6299f0169c4f21321ac5f37c949fd3`
 - Packet refresh role: `reviewer-fix handoff metadata narrowing`
 - Review scope: narrow Milestone 3 CLI-contract hardening in `src/qual/commands/catalog.py` plus focused regression coverage in `tests/unit/test_commands_catalog.py`.
-- Canonical demo-path step advanced: `continue working without losing context` in the CLI-first engine loop
-- AGENTS.md alignment note: this packet explicitly names the single canonical demo-path step advanced by the reviewed slice, rather than only citing Milestone 3 or broad lane ownership.
-- Required mapping statement: this `feat-commands` CLI-contract hardening slice strengthens `continue working without losing context` by preserving the operator-facing CLI command catalog contract that this step depends on while Textual remains disabled.
-- Concrete blocker removed: before this slice, parser drift could change the accepted CLI surface without a hard failure, so the operator could reach `continue working without losing context` with a CLI contract that had silently drifted away from the canonical catalog.
+- Canonical MVP flow advanced: `vault -> context -> run -> patch -> export` for the manual CLI smoke flow
+- AGENTS.md alignment note: this packet explicitly names the exact roadmap MVP flow advanced by the reviewed slice and ties the claim to the current AGENTS handoff packet and checkpoint requirements.
+- Required mapping statement: this `feat-commands` CLI-contract hardening slice strengthens `vault -> context -> run -> patch -> export` by preserving the operator-facing CLI command catalog contract that the manual smoke flow depends on while CLI remains the active first-class surface.
+- Concrete blocker removed: before this slice, parser drift could change the accepted CLI surface without a hard failure, so an operator could run `vault -> context -> run -> patch -> export` through a CLI contract that had silently drifted away from the canonical catalog.
 - Traceable shared-edit approval: `tests/unit/test_commands_catalog.py` is permitted for `codex/feat-commands*` by the explicit allowlist entry in `scripts/scope-check.sh` (`codex/feat-commands*` case, `tests/unit/test_commands_catalog.py) return 0 ;;`).
 
 ## Thread Kickoff (High-Risk)
 
 - Branch: `codex/feat-commands`
 - Lane/owned paths: `src/qual/commands/**`
-- Scope goal: keep one Milestone 3 CLI dependency deterministic by locking the parser-backed CLI contract to the canonical command catalog for the `continue working without losing context` step.
+- Scope goal: keep the manual CLI smoke flow deterministic by locking the parser-backed CLI contract to the canonical command catalog for `vault -> context -> run -> patch -> export`.
 - Risk reason: this touches a public command contract in `src/qual/commands/catalog.py` and one shared-by-approval regression test file.
 
 ### Budget
@@ -49,7 +49,7 @@
 - Plan complete: scope stayed pinned to the reviewed implementation slice in `src/qual/commands/catalog.py` and `tests/unit/test_commands_catalog.py`, with no expansion beyond Milestone 3 CLI-contract hardening.
 - First green tests: `make scope-check`, `./quality-format.sh --check`, `./quality-lint.sh`, `./quality-test.sh`, `./typecheck-test.sh`, and `make ci` all passed for this handoff slice.
 - Before risky/shared file edit: `tests/unit/test_commands_catalog.py` was confirmed as the approved shared regression path for `codex/feat-commands*` via `scripts/scope-check.sh`, and this fixer records that approval basis before refreshing shared handoff metadata.
-- Ready for handoff: this packet now carries the reviewer-requested canonical demo-path mapping plus explicit approval and checkpoint provenance for the shared regression path.
+- Ready for handoff: this packet now carries the reviewer-requested exact roadmap flow mapping plus explicit approval and checkpoint provenance for the shared regression path.
 
 ## Review Basis
 
@@ -81,7 +81,8 @@
 
 ## Roadmap and Vision Mapping
 
-- `AGENTS.md` current MVP narrowing rules: this slice satisfies the requirement to name one concrete canonical demo-path step and removes a blocker only for `continue working without losing context`.
-- `ROADMAP.md` Milestone 3 `Define and lock user-facing output contracts`: this is a narrow `feat-commands` command-catalog contract hardening slice, not a milestone-closure claim, and it keeps the `continue working without losing context` step deterministic while Textual remains disabled.
-- `PRODUCT_VISION.md` capability 4 `Operator-first control surface`: the active CLI surface now rejects parser/catalog drift before it can silently change the command contract the operator relies on for `continue working without losing context`.
-- `PRODUCT_VISION.md` near-term product truth: while Textual remains disabled, the CLI is the real operator surface, so this change hardens the live operator contract for one current MVP step rather than claiming broader command reachability.
+- `AGENTS.md` handoff readiness and checkpoint rules: this slice stays within the documented high-risk task budget, records the required shared-file checkpoint, and keeps the claim pinned to one concrete MVP flow instead of a broad lane narrative.
+- `ROADMAP.md` Milestone 1 `Bootstrap Flow Stabilization`: this is a narrow `feat-commands` command-catalog contract hardening slice that keeps the manual CLI smoke flow `vault -> context -> run -> patch -> export` stable.
+- `ROADMAP.md` Milestone 3 `Product Readiness`: this slice helps lock an intentional user-facing output contract by failing fast when the parser-backed CLI surface drifts from the canonical catalog.
+- `PRODUCT_VISION.md` capability 4 `Operator-first control surface`: the active CLI surface now rejects parser/catalog drift before it can silently change the command contract the operator relies on for `vault -> context -> run -> patch -> export`.
+- `PRODUCT_VISION.md` current capability alignments: this change hardens the current CLI-first operator path without claiming broader surface expansion beyond the existing engine and A2UI contract work.

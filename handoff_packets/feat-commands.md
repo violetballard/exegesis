@@ -2,9 +2,9 @@
 
 - Branch name: `codex/feat-commands`
 - Scope completed: hardened `command_cli_contract()` in `src/qual/commands/catalog.py` so the CLI contract reuses the canonical `command_names()` ordering and raises if the parser surface drifts from the command catalog, then added focused regression coverage for canonical-order alignment and drift rejection in `tests/unit/test_commands_catalog.py`.
-- Canonical demo-path step advanced: `continue working without losing context` in the CLI-first engine loop.
-- Canonical demo-path mapping sentence: this `feat-commands` CLI-contract hardening slice strengthens `continue working without losing context` by preserving the operator-facing CLI command catalog contract that this step depends on while Textual remains disabled.
-- Concrete blocker removed: before this change, parser drift could silently desynchronize the CLI surface from the catalog while leaving the contract seemingly valid, so an operator could reach `continue working without losing context` with a CLI contract that had drifted away from the canonical catalog for that step.
+- Canonical MVP flow advanced: `vault -> context -> run -> patch -> export` for the manual CLI smoke flow.
+- Canonical MVP flow mapping sentence: this `feat-commands` CLI-contract hardening slice strengthens `vault -> context -> run -> patch -> export` by preserving the operator-facing CLI command catalog contract that the manual smoke flow depends on while CLI remains the active first-class surface.
+- Concrete blocker removed: before this change, parser drift could silently desynchronize the CLI surface from the catalog while leaving the contract seemingly valid, so an operator could run `vault -> context -> run -> patch -> export` through a CLI contract that had drifted away from the canonical catalog.
 - Traceability note: reviewed implementation commit is `f8d860ed9f6299f0169c4f21321ac5f37c949fd3`; this refresh updates only `THREAD.md`, `THREAD_PACKET.md`, and `handoff_packets/feat-commands.md`.
 
 ## Tasks Completed
@@ -29,16 +29,17 @@
 - `make ci` -> passed
 
 ## Risks / Blockers
-- Risks: future command-surface edits still need to preserve the parser/catalog lock so the CLI contract for `continue working without losing context` stays deterministic while Textual remains disabled.
+- Risks: future command-surface edits still need to preserve the parser/catalog lock so the CLI contract for `vault -> context -> run -> patch -> export` stays deterministic.
 - Blockers: none.
 
 ## Roadmap Item(s) Affected
-- `AGENTS.md` current MVP narrowing rules because this packet now explicitly names the one canonical demo-path step advanced and limits the claim to the blocker removed at `continue working without losing context`.
-- `ROADMAP.md` Milestone 3 `Define and lock user-facing output contracts` because this is a narrow `feat-commands` command-catalog contract hardening slice, not a milestone-closure claim, and it keeps `continue working without losing context` deterministic while Textual remains disabled.
+- `AGENTS.md` handoff readiness and checkpoint rules because this packet now explicitly names the exact roadmap MVP flow advanced, records the shared-file checkpoint, and keeps the claim limited to the blocker removed for that flow.
+- `ROADMAP.md` Milestone 1 `Bootstrap Flow Stabilization` because this is a narrow `feat-commands` command-catalog contract hardening slice that keeps the manual CLI smoke flow `vault -> context -> run -> patch -> export` stable.
+- `ROADMAP.md` Milestone 3 `Product Readiness` because this slice helps lock an intentional user-facing output contract by failing fast when the parser-backed CLI surface drifts from the canonical catalog.
 
 ## Vision Capability Affected
-- `PRODUCT_VISION.md` capability 4 `Operator-first control surface` because the active CLI operator surface now rejects parser/catalog drift before it can silently change the command contract the operator relies on for `continue working without losing context`.
-- `PRODUCT_VISION.md` near-term product truth because the CLI remains the active operator surface while Textual is disabled, and this change hardens one real operator step rather than claiming broader command reachability.
+- `PRODUCT_VISION.md` capability 4 `Operator-first control surface` because the active CLI operator surface now rejects parser/catalog drift before it can silently change the command contract the operator relies on for `vault -> context -> run -> patch -> export`.
+- `PRODUCT_VISION.md` current capability alignments because the CLI remains the current operator path while `Exegesis Console` is still next, and this change hardens one real operator flow rather than claiming broader command reachability.
 
 ## Routing / Provider Impact Note
 - None. This change does not touch routing or provider configuration.
