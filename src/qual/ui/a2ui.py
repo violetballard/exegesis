@@ -3934,6 +3934,37 @@ def a2ui_contract_fingerprint(
     return _fingerprint_manifest_section(manifest)
 
 
+def describe_a2ui_engine_contract(
+    *,
+    include_shell_ui_contract: bool = False,
+) -> dict[str, Any]:
+    """Return the engine-facing A2UI contract snapshot.
+
+    This wrapper keeps the engine contract explicit: it always includes the
+    CLI fallback route and entrypoint slices that the engine loop needs while
+    leaving the shell UI snapshot opt-in.
+    """
+
+    return describe_a2ui_contract(
+        include_terminal_artifact_cli_fallback_route=True,
+        include_terminal_artifact_cli_fallback_entrypoint=True,
+        include_shell_ui_contract=include_shell_ui_contract,
+    )
+
+
+def a2ui_engine_contract_fingerprint(
+    *,
+    include_shell_ui_contract: bool = False,
+) -> str:
+    """Return a stable fingerprint for the engine-facing A2UI manifest."""
+
+    return a2ui_contract_fingerprint(
+        include_terminal_artifact_cli_fallback_route=True,
+        include_terminal_artifact_cli_fallback_entrypoint=True,
+        include_shell_ui_contract=include_shell_ui_contract,
+    )
+
+
 def selection_contract_fingerprint() -> str:
     """Return a stable fingerprint for the SelectionRef contract manifest."""
 

@@ -12,10 +12,12 @@ from src.qual.ui.a2ui import (
     ActionRef,
     card_contract_fingerprint,
     a2ui_capabilities_contract_fingerprint,
+    a2ui_engine_contract_fingerprint,
     SelectionRef,
     a2ui_contract_fingerprint,
     build_unknown_card,
     describe_a2ui_contract,
+    describe_a2ui_engine_contract,
     describe_a2ui_contract_fingerprints,
     describe_a2ui_capabilities_contract,
     describe_selection_contract,
@@ -32,6 +34,7 @@ from src.qual.ui.a2ui import (
     terminal_artifact_cli_fallback_contract_fingerprint,
     terminal_artifact_cli_fallback_target_contract_fingerprint,
     terminal_artifact_contract_fingerprint,
+    _fingerprint_manifest_section,
     terminal_artifact_raw_leaf_card_default_contract_fingerprint,
     terminal_artifact_render_target_contract_fingerprint,
     terminal_artifact_rendering_contract_fingerprint,
@@ -428,6 +431,36 @@ class A2UIContractTests(unittest.TestCase):
             sorted(entry["id"] for entry in manifest["actions"]),
         )
         self.assertEqual(len(a2ui_contract_fingerprint()), 64)
+
+    def test_engine_contract_manifest_bundles_the_cli_fallback_route_and_entrypoint(self) -> None:
+        manifest = describe_a2ui_engine_contract()
+        expected_manifest = describe_a2ui_contract(
+            include_terminal_artifact_cli_fallback_route=True,
+            include_terminal_artifact_cli_fallback_entrypoint=True,
+        )
+        expected_fingerprint = a2ui_contract_fingerprint(
+            include_terminal_artifact_cli_fallback_route=True,
+            include_terminal_artifact_cli_fallback_entrypoint=True,
+        )
+
+        self.assertEqual(manifest, expected_manifest)
+        self.assertEqual(manifest["terminal_artifact_cli_fallback_entrypoint"], "render_terminal_cli_fallback")
+        self.assertEqual(
+            manifest["terminal_artifact_cli_fallback_route"]["type"],
+            "TerminalArtifactCliFallbackRouteContract",
+        )
+        self.assertEqual(
+            manifest["contract_fingerprint"],
+            expected_fingerprint,
+        )
+        self.assertEqual(
+            a2ui_engine_contract_fingerprint(),
+            expected_fingerprint,
+        )
+        self.assertEqual(
+            manifest["contract_fingerprints"]["terminal_artifact_cli_fallback_entrypoint"],
+            _fingerprint_manifest_section("render_terminal_cli_fallback"),
+        )
 
     def test_contract_fingerprint_alias_mode_exposes_terminal_artifact_field_names(self) -> None:
         fingerprints = describe_a2ui_contract_fingerprints(
