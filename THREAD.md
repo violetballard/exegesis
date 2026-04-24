@@ -6,52 +6,23 @@ Canonical handoff contract lives in `THREAD_PACKET.md`.
 
 ## Current Review Focus
 
-- Packet refresh commit status: regenerated against the live branch tip instead of treated as metadata-only.
-- Reviewed implementation base previously approved for comparison: `f8d860ed9f6299f0169c4f21321ac5f37c949fd3`.
-- Reviewed implementation range in this resubmission: the full branch delta through `2f6929c1185a3d77c984ce1de01d1fb445ebb84a`.
-- Post-packet implementation now explicitly in scope:
-  - `6c8d54c79eb9c0da811069e97603664468067d22` `Harden demo terminal command canonicalization`
-  - `2f6929c1185a3d77c984ce1de01d1fb445ebb84a` `Fix demo argv flow-step alignment`
-- The true reviewed basis includes non-doc command and diff-preview implementation across:
-  - `scripts/scope-check.sh`
-  - `src/qual/commands/__init__.py`
-  - `src/qual/commands/canonical.py`
+- Reviewed implementation basis: `f8d860ed9f6299f0169c4f21321ac5f37c949fd3` (`feat(commands): lock CLI contract to command catalog`).
+- Approval basis stays narrow to deterministic CLI contract validation plus regression tests in:
   - `src/qual/commands/catalog.py`
-  - `src/qual/commands/diff_preview.py`
   - `tests/unit/test_commands_catalog.py`
-  - `tests/unit/test_diff_preview.py`
-  - `THREAD.md`
-  - `THREAD_PACKET.md`
-- True implementation scope included in the reviewed range:
-  - parser-surface and command-catalog hardening, including drift rejection, lookup helpers, parser-ready entry argv helpers, smoke argv helpers, trusted-surface helpers, and CLI shim contracts
-  - demo token and shim resolution work, including stable workflow, compatibility, and next-action metadata for `project-open`, `retrieval`, `patch-review`, `apply-patch`, `reject-patch`, `persist`, and `export-handoff`
-  - legacy alias normalization and retrieval/document-open compatibility handling
-  - diff-preview truncation, fingerprint, and no-diff payload stabilization
-  - expanded regression coverage for command parser surfaces, trusted/demo workflow tables, compatibility aliases, next-action metadata, and diff-preview behavior
-- Recomputed budget against the true reviewed basis:
-  - `9` files changed
-  - `+9652/-485` lines in the full `f8d860ed..5ea27f3d` range
-  - this is not a valid `AGENTS.md` high-risk `4`-task handoff as previously framed because it exceeds the `<=8 files` and `<=300 net LOC` size limits
-  - the packet is now truthful about that budget miss; the implementation should be split into smaller reviewable packets before integration promotion
-- High-risk reason for the refreshed packet:
-  - the reviewed branch tip includes additional command-surface behavior beyond the earlier `command_cli_contract()` hardening and still carries one approved shared-test file outside lane-owned paths
-- Recommended split for re-review:
-  - Packet A: parser-surface and catalog hardening
-  - Packet B: demo token, shim, and next-action workflow contracts
-  - Packet C: diff-preview stabilization
-- Canonical demo-path steps advanced by the true range:
-  - `patch-review`
-  - `apply-patch`
-  - `reject-patch`
-  - `persist`
-  - `export-handoff`
-- Explicit canonical demo-path statement:
-  - this refreshed handoff makes the roadmap's `preview and apply or reject a patch` step more real by keeping terminal-driven CLI routes pinned to the same canonical tokens before the downstream `persist` and `export-handoff` transitions
-- Roadmap / vision alignment for the true scope:
-  - `ROADMAP.md` Milestone 1 (`Bootstrap Flow Stabilization`) scope item `Command and diff-preview behavior hardening`
-  - `ROADMAP.md` Milestone 2 (`Test Hardening`) scope items `Add focused unit coverage for core behaviors` and `Keep command-level probes for integration confidence`
-  - `PRODUCT_VISION.md` capability 4 (`Operator-first control surface`): the branch hardens the CLI-first MVP route across the full reviewed command surface while Textual remains disabled
-- Required gates rerun for the true reviewed basis:
+- Canonical demo-path step advanced:
+  - `preview and apply or reject a patch`
+- Concrete blocker removed:
+  - parser/catalog drift can no longer silently change the canonical CLI entrypoint used for the MVP patch-review surface.
+- Roadmap alignment:
+  - `ROADMAP.md` MVP loop requirement keeps the CLI `patch` segment migration-safe in the active `vault -> context -> run -> patch -> export` flow.
+  - `feat-commands` scope remains `CLI compatibility and migration-safe entrypoints`.
+- Vision alignment:
+  - `PRODUCT_VISION.md` capability 4 `Operator-first control surface`
+- Scope guard:
+  - no `Auditable state and workflow` claim remains in this handoff
+  - no broader workflow-progress claim remains beyond the named canonical patch step
+- Required gates rerun for the reviewed slice:
   - `make scope-check`
   - `./quality-format.sh --check`
   - `./quality-lint.sh`
