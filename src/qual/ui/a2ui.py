@@ -4383,6 +4383,14 @@ def render_terminal_cli_fallback(artifact: Any, *, kind: str | None = None) -> s
         envelope_kind = _normalize_terminal_artifact_envelope_kind(artifact.get("kind"))
     if (
         requested_kind == "card"
+        and isinstance(artifact, Mapping)
+        and isinstance(artifact.get("type"), str)
+        and artifact.get("type").strip() == _TERMINAL_ARTIFACT_ENVELOPE_TYPE
+        and envelope_kind in _TERMINAL_ARTIFACT_NON_CARD_KIND_SET
+    ):
+        return _render_invalid_terminal_card(artifact)
+    if (
+        requested_kind == "card"
         and _contains_action_or_selection_payload(artifact)
         and not _should_preserve_raw_leaf_card_default(artifact)
         and not _is_explicit_terminal_artifact_leaf(artifact)

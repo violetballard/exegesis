@@ -32,6 +32,7 @@ from .a2ui import (
     _TERMINAL_ARTIFACT_CLI_FALLBACK_TARGET_HINT,
     _fingerprint_manifest_section,
     _is_explicit_terminal_artifact_leaf,
+    _is_explicit_terminal_artifact_leaf_mapping,
     _normalize_terminal_artifact_kind_hint,
     _should_preserve_raw_leaf_card_default,
     refine_terminal_artifact_cli_fallback_target,
@@ -79,6 +80,8 @@ class ShellUI:
 
     def render_artifact(self, artifact: Any, *, kind: str | None = None) -> str:
         normalized_kind = self._normalize_fallback_kind(kind)
+        if normalized_kind == "card" and _is_explicit_terminal_artifact_leaf_mapping(artifact):
+            return _render_invalid_terminal_card(artifact)
         if normalized_kind == "card" and isinstance(artifact, Mapping) and _is_malformed_terminal_artifact_envelope(artifact):
             payload = artifact.get("artifact")
             envelope_kind = _normalize_terminal_artifact_envelope_kind(artifact.get("kind"))
