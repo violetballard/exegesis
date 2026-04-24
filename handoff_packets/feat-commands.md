@@ -7,10 +7,10 @@
     - `dbb8e0156f3520c759d4d29e2cbbb186013f6df7` (`fix(commands): harden parser surface drift checks`)
     - `6890b8c6d81c7700e84b6cbf9402177d0bafab4f` (`test(commands): lock parser drift regressions to live entrypoints`)
     - `bd118a6c0d7693d58882f74efc8066387bc82189` (`test(commands): cover cached parser surface drift`)
-- Scope completed: hardened the review-step CLI contract for the canonical `preview and apply or reject a patch` step so the public `diff-preview` entrypoint stays locked to the live parser/catalog surface, then exposed default workflow and trusted-surface alias helpers as thin forwards to the current MVP contract helpers.
+- Scope completed: hardened the review-step CLI contract for the canonical `preview and apply or reject a patch` step so the public `diff-preview` entrypoint stays locked to the live parser/catalog surface, then exposed default workflow and trusted-surface alias helpers as thin forwards to the current engine-first MVP contract helpers.
 - Canonical demo-path step advanced: `preview and apply or reject a patch`
 - Required AGENTS sentence: this change makes `preview and apply or reject a patch` more real by forcing the review-step public command surface to stay catalog-locked and fail closed before the operator reaches the wrong CLI verb set.
-- Concrete blocker removed: parser/catalog drift can no longer silently drop the public `diff-preview` token and leave only the still-resolvable alias `diff`, which keeps the CLI fallback deterministic at the patch-review step of the current MVP loop.
+- Concrete blocker removed: parser/catalog drift can no longer silently drop the public `diff-preview` token and leave only the still-resolvable alias `diff`, which keeps the CLI fallback deterministic at the patch-review step of the current engine-first MVP loop.
 - Plan-alignment statement: this is one engine-first MVP review-step contract-hardening slice inside the current Milestone 3 loop. Deterministic CLI contract validation preserves the operator-facing command surface while the package/layout migration is in flight. It does not claim new retrieval, persistence, export, audit-path, or broader workflow behavior.
 - Packet refresh traceability: later `docs(commands)` commits are metadata-only and update only `handoff_packets/feat-commands.md`, `THREAD_PACKET.md`, and `THREAD.md`.
 - Roadmap item(s) affected:
@@ -28,7 +28,7 @@
 1. Locked the live review-step parser surface to the command catalog so `diff-preview` drift fails closed.
 2. Added parser-surface regressions in [tests/unit/test_commands_catalog.py](/Users/doctor-violet/.codex/worktrees/5494/qual/tests/unit/test_commands_catalog.py:5584) covering alias-only, missing-token, extra-token, and cache-warm drift cases.
 3. Added thin public alias helpers that forward the default workflow and trusted-surface contract accessors to the current MVP helpers in [src/qual/commands/catalog.py](/Users/doctor-violet/.codex/worktrees/5494/qual/src/qual/commands/catalog.py:3511).
-4. Updated [handoff_packets/feat-commands.md](/Users/doctor-violet/.codex/worktrees/5494/qual/handoff_packets/feat-commands.md:1), [THREAD_PACKET.md](/Users/doctor-violet/.codex/worktrees/5494/qual/THREAD_PACKET.md:1), and [THREAD.md](/Users/doctor-violet/.codex/worktrees/5494/qual/THREAD.md:1) so the re-review packet points to commit `4cd1d6b4857ce3da125bb32ae2c76d4b9c41defa`, states the canonical demo-path step explicitly, and keeps the non-owned test edit labeled as a shared-by-approval exception.
+4. Updated [handoff_packets/feat-commands.md](/Users/doctor-violet/.codex/worktrees/5494/qual/handoff_packets/feat-commands.md:1), [THREAD_PACKET.md](/Users/doctor-violet/.codex/worktrees/5494/qual/THREAD_PACKET.md:1), and [THREAD.md](/Users/doctor-violet/.codex/worktrees/5494/qual/THREAD.md:1) so the re-review packet points to commit `4cd1d6b4857ce3da125bb32ae2c76d4b9c41defa`, states the canonical demo-path step explicitly, frames the slice as engine-first Milestone 3 CLI contract support, and keeps the non-owned test edit labeled as a shared-by-approval exception rather than an integrator-locked change.
 
 ## Files Changed
 - `src/qual/commands/catalog.py`
@@ -44,7 +44,7 @@
 - `./quality-test.sh` -> passed
 - `./typecheck-test.sh` -> passed
 - `make ci` -> passed
-- Verification rerun timestamp: `2026-04-24T08:43:50Z UTC`
+- Verification rerun timestamp: `2026-04-24T08:48:39Z UTC`
 
 ## Risks / Blockers
 - Risks: future command-surface changes now need to keep `_CLI_ENTRYPOINTS`, the shared regression suite, and the default alias-forwarding helpers aligned so the public `diff-preview` review token stays catalog-locked.
@@ -52,5 +52,5 @@
 
 ## Scope-Check / Ownership Note
 - Shared-by-approval edit: `tests/unit/test_commands_catalog.py`
-- Approval trace: `THREAD_OWNERSHIP.md` marks the test path as non-owned and `scripts/scope-check.sh` `is_approved_shared_test()` allowlists `tests/unit/test_commands_catalog.py` for `codex/feat-commands*`
+- Approval basis: `THREAD_OWNERSHIP.md` marks the test path as non-owned shared coverage rather than an integrator-locked path, and `scripts/scope-check.sh` `is_approved_shared_test()` explicitly allowlists `tests/unit/test_commands_catalog.py` for `codex/feat-commands*`
 - Integrator-locked edits: `none`

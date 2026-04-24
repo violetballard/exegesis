@@ -5,7 +5,7 @@
 - Commit: `4cd1d6b4857ce3da125bb32ae2c76d4b9c41defa`
 - Packet refresh role: `fixer re-review packet refresh`
 - Packet refresh basis: `regenerated after the reviewer requested parser-surface validation for the public diff-preview entrypoint, matching shared regressions, and a packet scope statement that matches the actual implementation now on this branch`
-- Post-fixer verification: `2026-04-24T08:43:50Z UTC gate rerun confirmed this packet refresh matches the current branch state; later docs-only packet refresh commits remain metadata-only`
+- Post-fixer verification: `2026-04-24T08:48:39Z UTC gate rerun confirmed this packet refresh matches the current branch state; later docs-only packet refresh commits remain metadata-only`
 - Packet-only refresh files:
   - `THREAD.md`
   - `THREAD_PACKET.md`
@@ -68,7 +68,7 @@
 - Canonical demo-path step advanced: `preview and apply or reject a patch`.
 - Required AGENTS sentence: this change makes `preview and apply or reject a patch` more real by forcing the review-step public command surface to stay catalog-locked and fail closed before the operator reaches the wrong CLI verb set.
 - Concrete blocker removed: the public `diff-preview` preview entrypoint can no longer silently drift to alias-only parser shapes, reordered live parser surfaces, or extra unexpected entrypoints while still resolving through lookup. That removes a concrete CLI-fallback blocker at the operator-visible patch-review step.
-- Scope-tightening statement: this slice claims only review-step command-contract hardening. It does not claim new retrieval, persistence, audit-path, export, or broader workflow behavior.
+- Scope-tightening statement: this slice claims only engine-first Milestone 3 review-step command-contract hardening. Deterministic CLI contract validation preserves the operator-facing command surface required while the package/layout migration is in flight, and it does not claim new retrieval, persistence, audit-path, export, or broader workflow behavior.
 - Current CLI smoke route context: `project-open -> retrieval -> preview and apply or reject a patch -> persist -> export-handoff`, entered through `bootstrap --project demo`.
 - Smoke-test evidence:
   - `tests/unit/test_commands_catalog.py` proves the live parser surface keeps `diff-preview` before `diff` for the review step and fails fast when `diff-preview` disappears, reorders, or expands while `diff` still resolves to the same canonical command.
@@ -80,7 +80,7 @@
 - Approved shared-by-approval exception: `tests/unit/test_commands_catalog.py`
 - Approval owner: the integrator-managed branch policy for `codex/feat-commands`
 - Approval source: `scripts/scope-check.sh` `is_approved_shared_test()` branch allowlist for `codex/feat-commands*`
-- Additional ownership source: `THREAD_OWNERSHIP.md` keeps lane ownership on `src/qual/commands/**`; the non-owned test edit is a shared-by-approval exception, not an integrator-locked edit
+- Additional ownership source: `THREAD_OWNERSHIP.md` keeps lane ownership on `src/qual/commands/**`; the non-owned test edit is a shared-by-approval exception with explicit branch allowlist approval, not an integrator-locked edit
 - Approval basis: shared regression coverage is required to prove the review-step parser contract
 - Scope-check allowance used: `not required`
 - Integrator-locked edits in this slice: `none`
@@ -113,7 +113,7 @@
 - `./quality-test.sh`: `PASSED`
 - `./typecheck-test.sh`: `PASSED`
 - `make ci`: `PASSED`
-- Gate attribution note: these gates were rerun at `2026-04-24T08:43:50Z UTC` against the current branch state while the reviewed implementation scope is pinned to `4cd1d6b4857ce3da125bb32ae2c76d4b9c41defa`; the current packet refresh itself is metadata-only.
+- Gate attribution note: these gates were rerun at `2026-04-24T08:48:39Z UTC` against the current branch state while the reviewed implementation scope is pinned to `4cd1d6b4857ce3da125bb32ae2c76d4b9c41defa`; the current packet refresh itself is metadata-only.
 
 ### Risks / Blockers
 
@@ -135,7 +135,7 @@
 
 - `ROADMAP.md` MVP focus: `feat-commands` remains one of the active implementation lanes in the current MVP push.
 - `ROADMAP.md` Milestone 3 `Product Readiness`: this slice contributes to `Define and lock user-facing output contracts`, specifically by keeping the patch-review command surface intentional and stable inside the current CLI loop `project-open -> retrieval -> preview and apply or reject a patch -> persist -> export-handoff`.
-- Scope-tightening statement: this is engine-first MVP contract hardening for the review step plus thin alias forwards for the default workflow/trusted-surface accessors, not broader workflow expansion.
+- Scope-tightening statement: this is engine-first Milestone 3 CLI contract hardening for the review step plus thin alias forwards for the default workflow/trusted-surface accessors, preserving the operator-facing command surface during the package/layout migration rather than broadening workflow behavior.
 - Milestone 3 support note: deterministic CLI contract validation preserves the operator-facing command surface required by Milestone 3 while the package/layout migration is in flight.
 
 ### Vision capability affected
@@ -152,6 +152,6 @@
 
 - Shared-by-approval edits: `YES`
 - Shared-by-approval path included: `tests/unit/test_commands_catalog.py`
-- Shared-file approval trace: `scripts/scope-check.sh` `is_approved_shared_test()` allowlists `tests/unit/test_commands_catalog.py` for `codex/feat-commands*`
+- Shared-file approval basis: `THREAD_OWNERSHIP.md` leaves `tests/unit/test_commands_catalog.py` outside the lane-owned path, and `scripts/scope-check.sh` `is_approved_shared_test()` allowlists that shared test file for `codex/feat-commands*`
 - Integrator-locked edits: `NO`
 - Integrator-locked paths included: `none`

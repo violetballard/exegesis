@@ -16,7 +16,7 @@ Canonical handoff contract lives in `THREAD_PACKET.md`.
 - Current packet refresh traceability:
   - later `docs(commands)` commits update only `THREAD.md`, `THREAD_PACKET.md`, and `handoff_packets/feat-commands.md`
 - Post-fixer verification note:
-- `2026-04-24T08:43:50Z UTC` gate rerun confirmed this packet matches the current branch state while the reviewed implementation basis remains pinned to `4cd1d6b4857ce3da125bb32ae2c76d4b9c41defa`
+- `2026-04-24T08:48:39Z UTC` gate rerun confirmed this packet matches the current branch state while the reviewed implementation basis remains pinned to `4cd1d6b4857ce3da125bb32ae2c76d4b9c41defa`
 - Reviewed implementation files:
   - `src/qual/commands/catalog.py`
   - `tests/unit/test_commands_catalog.py`
@@ -32,7 +32,7 @@ Canonical handoff contract lives in `THREAD_PACKET.md`.
 - Explicit re-review statement:
   - this slice advances the canonical `preview and apply or reject a patch` step by keeping the public `diff-preview` review entrypoint catalog-locked inside the current engine-first Milestone 3 loop so deterministic CLI contract validation preserves the operator-facing command surface while the package/layout migration is in flight
 - Scope note:
-  - this packet advances the patch-review command contract and adds alias-forwarding helpers that mirror the current MVP workflow/trusted surface; it does not claim new retrieval, patch application, persistence, export, audit-path, or broader UI behavior
+  - this packet advances the patch-review command contract and adds alias-forwarding helpers that mirror the current engine-first MVP workflow/trusted surface; deterministic CLI contract validation preserves the operator-facing command surface required by Milestone 3 while the package/layout migration is in flight, and it does not claim new retrieval, patch application, persistence, export, audit-path, or broader UI behavior
 - Current engine-first MVP path statement:
   - the current CLI-first smoke route stays `project-open -> retrieval -> preview and apply or reject a patch -> persist -> export-handoff`
 - Concrete blocker removed:
@@ -45,7 +45,7 @@ Canonical handoff contract lives in `THREAD_PACKET.md`.
 - Ownership / scope note:
   - lane-owned implementation path: `src/qual/commands/catalog.py`
   - approved shared-by-approval exception: `tests/unit/test_commands_catalog.py`
-  - approval source: `THREAD_OWNERSHIP.md` plus `scripts/scope-check.sh` `is_approved_shared_test()` allowlist for `codex/feat-commands*`
+- approval source: `THREAD_OWNERSHIP.md` keeps the test outside the lane-owned path and `scripts/scope-check.sh` `is_approved_shared_test()` allowlists it for `codex/feat-commands*`
   - integrator-locked edits are not part of this slice
 - Required gates for the reviewed slice:
   - `make scope-check`
