@@ -41,8 +41,7 @@
 ## Files Changed
 
 - `THREAD_PACKET.md`
-- `codex_packet_handoff/tools/planner.py`
-- `tests/unit/test_packet_planner.py`
+- `docs/gate_passed.txt`
 
 ## Commands Run With Results
 
