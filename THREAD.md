@@ -25,7 +25,7 @@ Canonical handoff contract lives in `THREAD_PACKET.md`.
 - Concrete blocker removed for Milestone 3:
   - the active CLI surface no longer allows the declared parser-facing token catalog to drift away from the canonical command catalog without failing closed, including the explicit reviewer-called case where the `diff` parser token disappears while the canonical-name tuple still appears stable; that removes a concrete reliability blocker before the CLI can safely begin the `open project/document` demo-path step.
 - Scope-tightening note:
-  - this reviewed slice hardens the command-catalog contract that the CLI uses before workflow execution starts and maps its milestone value to the `open project/document` entry step only; it does not claim patch preview, apply/reject, or end-to-end command-flow coverage
+  - this reviewed slice hardens only the deterministic CLI compatibility surface for the Milestone 3 engine-first loop while Textual stays disabled, anchored to the `open project/document` entry step; it does not claim patch preview, apply/reject, or end-to-end command-flow coverage
 - Why this is milestone-worthy now:
   - Milestone 3 still depends on the CLI as the active operator surface while Textual remains disabled, so preventing silent contract drift in the declared command catalog is direct operator-surface hardening for the live CLI fallback path rather than second-order cleanup.
 - Roadmap / vision alignment for this reviewed slice:
