@@ -3,7 +3,7 @@
 ## Thread Kickoff (High-Risk)
 
 - Branch: `codex/feat-commands`
-- Verified implementation basis SHA: `f8d860ed9f6299f0169c4f21321ac5f37c949fd3`
+- Verified implementation basis SHA: `0777640324e7d3a54dba191135bd2d867c32d399`
 - Submitted tip note: any newer tip created by this handoff refresh is metadata-only packet bookkeeping on top of that verified implementation basis
 - Lane/owned paths: `src/qual/commands/**`
 - Scope goal: submit the reviewed command-catalog slice only, keeping the handoff limited to deterministic `command_cli_contract()` behavior in `src/qual/commands/catalog.py` plus the approved shared regression coverage in `tests/unit/test_commands_catalog.py`.
@@ -26,9 +26,9 @@
 
 ### Planned Tasks (max 4)
 
-1. Keep `command_cli_contract()` aligned to the canonical command order by reusing `command_names()` directly.
-2. Reject parser/catalog drift with a fail-fast validation when the CLI contract surface diverges from the catalog.
-3. Add focused regression coverage in the approved shared test file for canonical-order alignment and drift rejection.
+1. Keep `command_cli_contract()` aligned to the canonical command order by reusing the canonical parser projection directly.
+2. Reject full parser-surface drift with a fail-fast validation when added, removed, or reordered CLI entrypoint tokens diverge from the catalog.
+3. Add focused regression coverage in the approved shared test file for canonical-order alignment plus alias-level parser-surface drift rejection.
 4. Refresh the handoff packet so review scope, roadmap mapping, and file list match the reviewed implementation slice exactly.
 
 ### Early Review Triggers
@@ -54,14 +54,14 @@
 
 - branch name: `codex/feat-commands`
 - scope completed:
-  - hardened `command_cli_contract()` in `src/qual/commands/catalog.py` so it reuses the canonical `command_names()` ordering instead of rebuilding a divergent list
-  - added fail-fast validation in `src/qual/commands/catalog.py` so parser/catalog canonical-name drift raises `ValueError` instead of silently changing the CLI contract
-  - added focused regression coverage in the approved shared test file `tests/unit/test_commands_catalog.py` for canonical-order alignment and drift rejection
+  - hardened `command_cli_contract()` in `src/qual/commands/catalog.py` so it rebuilds and validates the grouped parser-entrypoint projection instead of trusting only the deduplicated canonical-name sequence
+  - added fail-fast validation in `src/qual/commands/catalog.py` so added, removed, or reordered CLI entrypoint tokens and alias drift raise `ValueError` instead of silently changing the CLI contract
+  - added focused regression coverage in the approved shared test file `tests/unit/test_commands_catalog.py` for canonical-order alignment plus removed, reordered, and extra alias-token drift rejection
   - refreshed the handoff packet so the review claim, roadmap mapping, and file list match the reviewed command-catalog slice exactly
 - tasks completed (numbered implementation work only; metadata-only packet refreshes excluded):
-  1. Hardened `command_cli_contract()` to validate canonical-name consistency against `command_names()`.
-  2. Preserved canonical command ordering in the returned CLI contract by using the canonical names tuple directly.
-  3. Added regression coverage in `tests/unit/test_commands_catalog.py` for canonical-order alignment and drift rejection.
+  1. Hardened `command_cli_contract()` to validate the full grouped parser-entrypoint projection against the catalog.
+  2. Preserved canonical command ordering in the returned CLI contract while rejecting added, removed, or reordered parser tokens that would otherwise preserve canonical-name order.
+  3. Added regression coverage in `tests/unit/test_commands_catalog.py` for canonical-order alignment and alias-level parser-surface drift rejection.
   4. Refreshed the packet metadata to satisfy the reviewer’s required fixes without widening the implementation claim.
 - files changed:
   - reviewed implementation: `src/qual/commands/catalog.py`
@@ -70,8 +70,8 @@
   - metadata-only handoff refresh: `THREAD_PACKET.md`
   - metadata-only handoff refresh: `handoff_packets/feat-commands.md`
 - commands run + outcomes:
-  - reviewed implementation basis SHA `f8d860ed9f6299f0169c4f21321ac5f37c949fd3` from the reviewer packet on `2026-04-24`
-  - rerun on current tip `0ba2eb03fca6dfc377208d7757c9a71221b3652e` on `2026-04-24`; this tip is metadata-only and does not change the reviewed implementation scope
+  - reviewed implementation basis SHA `0777640324e7d3a54dba191135bd2d867c32d399` on `2026-04-24`
+  - rerun on current tip `c6865320004f8b4fe5e3ca63faf3769fed16e591` on `2026-04-24`; this tip is metadata-only and does not change the reviewed implementation scope
   - `make scope-check` -> passed
   - `./quality-format.sh --check` -> passed
   - `./quality-lint.sh` -> passed
@@ -79,7 +79,7 @@
   - `./typecheck-test.sh` -> passed
   - `make ci` -> passed
 - risks/blockers:
-  - risk: future parser token or alias changes that affect canonical-name projection must keep `command_names()` and `command_cli_lookup_table()` aligned, or the fail-fast contract will reject the surface
+  - risk: future parser token or alias changes must keep the grouped parser-entrypoint projection aligned with the catalog, or the fail-fast contract will reject the surface
   - blockers: none
 - roadmap item(s) affected:
   - `ROADMAP.md` Milestone 3: preserve CLI compatibility while the package/layout migration lands
