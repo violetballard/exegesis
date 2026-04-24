@@ -956,6 +956,9 @@ def describe_shell_ui_contract_fingerprints(
             terminal_artifact_renderer_entrypoints_contract_fingerprint_value
         ),
         "renderer_entrypoints_contract_manifest": terminal_artifact_renderer_entrypoints_contract_fingerprint_value,
+        "renderer_entrypoints_contract_manifest_fingerprint": (
+            terminal_artifact_renderer_entrypoints_contract_fingerprint_value
+        ),
     }
     _add_contract_alias_fingerprints(
         fingerprints,
