@@ -1,25 +1,34 @@
 # Thread Handoff Packet
 
 - Branch name: `codex/feat-retrieval-fts`
-- Packet role: `metadata-only handoff packet refresh`
-- Packet refresh trace anchor before fixer commit: `26395a2b80fac607b540cd9925284e9a51cf4c78`
-- Reviewed implementation head: `255bf8d81801cfd21aa8dc5c9db5d5e11c3efa2b`
-- Reviewed implementation range: `378cf9a74a3658058079a32f186fcd254c4a4034..255bf8d81801cfd21aa8dc5c9db5d5e11c3efa2b`
-- Scope goal: publish a review-safe handoff packet for the full live retrieval code slice and distinguish it from later metadata refreshes.
+- Packet role: `metadata-only reviewer-fix finalization`
+- Packet refresh trace anchor before this fixer commit: `26395a2b80fac607b540cd9925284e9a51cf4c78`
+- Reviewed implementation head: `adfa8cdadd43747ffbcb612e4151e262b13e52ca`
+- Reviewed implementation range: `d7fd5d200358287fa42a18d39e2b277463b9b69f..adfa8cdadd43747ffbcb612e4151e262b13e52ca`
 - Canonical demo-path step advanced: `retrieve relevant material`
-- Plan-alignment statement: this slice advances `retrieve relevant material` by keeping SQLite FTS authoritative, failing closed for unsupported excerpt lookup paths, preserving deterministic retrieval payloads and provenance, and making the engine-facing retrieval contract stable enough for the Milestone 3 engine-first loop while moving Milestone 4 retrieval behavior forward.
-- Direct handoff statement: this fixer pass updates packet metadata so it matches the real reviewed retrieval code slice and the actual current packet tip. Re-review should use `git log --oneline 378cf9a74a3658058079a32f186fcd254c4a4034..255bf8d81801cfd21aa8dc5c9db5d5e11c3efa2b` and compare the later metadata-only packet refresh chain `05c341b5acaa21bd64843e0ac1a6dc62bbed2d01..26395a2b80fac607b540cd9925284e9a51cf4c78` separately.
+- Plan-alignment statement: this reviewed range advances `retrieve relevant material` by keeping SQLite FTS authoritative, exporting the canonical retrieval contract through both facades, and making retrieval payloads, provenance snapshots, and excerpt lookup behavior deterministic enough for the engine-first workflow loop.
+- Traceability note: review this lane against the reviewed implementation range above. The current packet refresh commit is metadata-only and does not broaden retrieval scope beyond `d7fd5d20..adfa8cda`.
+
+## Scope Goal
+
+- Regenerate the retrieval handoff packet so it accurately describes the full reviewed implementation range anchored at `adfa8cdadd43747ffbcb612e4151e262b13e52ca`, including the retrieval contract and provenance surfaces that landed before the final fail-closed excerpt change.
 
 ## Scope Completed
 
-The reviewed retrieval implementation range now truthfully covers the full live retrieval code slice rather than only the FTS-only excerpt fallback removal. Across `378cf9a74a3658058079a32f186fcd254c4a4034..255bf8d81801cfd21aa8dc5c9db5d5e11c3efa2b`, SQLite FTS stays authoritative, unsupported scoped queries and PageIndex-only excerpt IDs fail closed, retrieval payloads and provenance snapshots are normalized for deterministic downstream use, sparse source bundles reconstruct canonical hit payloads without losing query text, engine retrieval facade exports stay aligned with the canonical query constructor and `retrieve_auto`, engine query annotations no longer create an eager import cycle, and sparse-hit payload reconstruction backfills missing query context. PageIndex and embeddings remain compatibility-only fallback shims behind the canonical retrieval facade.
+- Branch-level cumulative handoff from `d7fd5d200358287fa42a18d39e2b277463b9b69f..adfa8cdadd43747ffbcb612e4151e262b13e52ca`: SQLite FTS remains authoritative.
+- The canonical retrieval query constructor and `retrieve_auto` helper are exported through both retrieval facades, so the public engine/package retrieval surfaces stay aligned.
+- Retrieval dataclass-shaped constraints are normalized deterministically, and payload/provenance/hit snapshot helpers keep stable downstream shapes for engine flows.
+- Source-bundle and provenance-bundle helpers return deterministic snapshots for downstream engine flows.
+- Sparse source and context bundles rehydrate deterministically, including the provenance and query-context expectations covered in `tests/unit/test_unified_retrieval.py`.
+- The excerpt lookup surface now uses the canonical FTS-only path, so PageIndex-only excerpt IDs fail closed under shared regression coverage.
+- PageIndex and embeddings remain compatibility-only fallback shims that fail closed rather than required MVP retrieval paths.
 
 ## Thread Kickoff (High-Risk)
 
 - Branch: `codex/feat-retrieval-fts`
 - Lane/owned paths: `src/qual/retrieval/**`, `src/qual/engine/retrieval/**`, `engine/src/exegesis_engine/retrieval/**`
-- Scope goal: regenerate the handoff around the full reviewed retrieval code slice instead of a narrowed excerpt-only story.
-- Risk reason: the reviewed implementation range includes approved shared regression coverage in `tests/unit/test_unified_retrieval.py`, so the handoff must stay on the high-risk/shared basis.
+- Scope goal: correct the reviewer-facing packet against the reviewed retrieval implementation head `adfa8cdadd43747ffbcb612e4151e262b13e52ca` without broadening the reviewed scope beyond that cumulative range.
+- Risk reason: this handoff includes approved shared regression coverage in `tests/unit/test_unified_retrieval.py`, so it is shared/high-risk work under the 4-task cap.
 
 ### Budget
 
@@ -30,91 +39,79 @@ The reviewed retrieval implementation range now truthfully covers the full live 
 
 ### Planned Tasks (max 4)
 
-1. Re-anchor the reviewed implementation head and range to the truthful retrieval code slice and separate later packet-only commits.
-2. Rewrite scope, tasks, and file summaries so they match the full reviewed retrieval behavior.
-3. State the canonical demo-path step explicitly as `retrieve relevant material` and explain the concrete engine-loop effect.
-4. Re-run the required gates and publish the corrected handoff packet.
-
-### Early Review Triggers
-
-- before first edit to any shared/integrator-locked file
-- before changing public interfaces or command contracts
-- before touching provider routing/config behavior
-
-### Stop Triggers
-
-- unresolved test/lint/typecheck after 2 attempts
-- unresolved `make scope-check`
-- budget/size/time limit hit
-
-### Checkpoint Cadence (short updates)
-
-- plan complete
-- first green tests
-- before risky/shared file edit
-- ready for handoff
-
-### Handoff Packet
-
-- branch name
-- tasks completed (numbered)
-- files changed
-- commands run + outcomes
-- risks/blockers
-- all required fields from `INTEGRATION.md`
+1. Keep the handoff anchored to reviewed implementation head `adfa8cda` and reviewed range `d7fd5d20..adfa8cda`.
+2. Rewrite the scope and tasks so they explicitly include the retrieval contract, provenance snapshot, and helper-surface changes already present in that reviewed range.
+3. State the canonical demo-path step explicitly as `retrieve relevant material` using the repo's engine-first wording.
+4. Re-run the required gates and record results against the narrowed reviewed implementation head/range.
 
 ## Tasks Completed
 
-1. Re-anchored the handoff to the truthful reviewed retrieval code head `255bf8d81801cfd21aa8dc5c9db5d5e11c3efa2b` and separated later packet-only commits from the reviewed implementation range.
-2. Updated the scope summary to cover the full reviewed retrieval behavior, including fail-closed excerpt lookup and scoped-query behavior, deterministic payload and provenance normalization, sparse source/context rehydration, engine facade exports, and the sparse-hit query-context backfill.
-3. Added the explicit canonical demo-path statement for `retrieve relevant material` and tied it to stable engine-facing retrieval contracts for the Milestone 3 engine-first loop while keeping Milestone 4 retrieval work FTS-first.
-4. Refreshed the visible handoff packet surfaces so re-review can compare the code range and the later metadata-only packet refresh chain without conflating them.
+1. Re-anchored the packet to reviewed implementation head `adfa8cdadd43747ffbcb612e4151e262b13e52ca` and reviewed range `d7fd5d200358287fa42a18d39e2b277463b9b69f..adfa8cdadd43747ffbcb612e4151e262b13e52ca`.
+2. Regenerated `Scope Completed` so it explicitly covers the retrieval contract changes in the reviewed range: facade exports, deterministic dataclass-shaped constraints, deterministic payload/provenance/hit snapshots, source/provenance bundle helpers, sparse bundle rehydration, and FTS-only excerpt lookup behavior.
+3. Added the explicit canonical demo-path statement for `retrieve relevant material` and tied it to deterministic engine-first retrieval behavior.
+4. Re-ran the required local gates after refreshing the reviewer-facing metadata.
 
 ## Files Changed
 
-### Reviewed retrieval code scope
+### Reviewed implementation files
 
-- `src/qual/retrieval/__init__.py`
-- `src/qual/retrieval/service.py`
 - `src/qual/engine/retrieval/__init__.py`
 - `src/qual/engine/retrieval/embeddings_strategy.py`
 - `src/qual/engine/retrieval/fts_strategy.py`
-- `src/qual/engine/retrieval/interface.py`
 - `src/qual/engine/retrieval/pageindex_strategy.py`
 - `src/qual/engine/retrieval/payload.py`
-- `tests/unit/test_unified_retrieval.py`
+- `src/qual/retrieval/__init__.py`
+- `src/qual/retrieval/service.py`
+- `tests/unit/test_unified_retrieval.py` (approved shared regression coverage)
 
-### Packet refresh files in this fixer pass
+### Current metadata-only packet refresh files
 
-- `.codex/kickoff_packets/feat-retrieval-fts.md`
-- `.codex/lane_meta/feat-retrieval-fts.json`
 - `THREAD_PACKET.md`
 - `docs/gate_passed.txt`
+- `.codex/kickoff_packets/feat-retrieval-fts.md` (existing mirror remains unchanged here because this worktree cannot write that path)
+- `.codex/lane_meta/feat-retrieval-fts.json` (existing mirror remains unchanged here because this worktree cannot write that path)
 
 ## Commands Run With Results
 
-- `make scope-check`: `PENDING`
-- `./quality-format.sh --check`: `PENDING`
-- `./quality-lint.sh`: `PENDING`
-- `./quality-test.sh`: `PENDING`
-- `./typecheck-test.sh`: `PENDING`
-- `make ci`: `PENDING`
+- `make scope-check`: `PASS`
+- `./quality-format.sh --check`: `PASS`
+- `./quality-lint.sh`: `PASS`
+- `./quality-test.sh`: `PASS`
+- `./typecheck-test.sh`: `PASS`
+- `make ci`: `PASS`
+
+## Reviewer Fix Closure
+
+1. `Scope completed` and `Tasks completed` now describe the full reviewed implementation range anchored at `adfa8cda`, not just the final `fetch_excerpt` fail-closed behavior.
+2. The handoff explicitly includes the added retrieval contract, provenance snapshot, and helper-surface changes in scope and plan mapping rather than implying a narrower implementation than the reviewed range.
+3. The handoff explicitly states that this work advances the canonical demo-path step `retrieve relevant material` using engine-first wording.
 
 ## Risks / Blockers
 
 - Risk: `HIGH`
-- Blockers:
-  - `.codex/kickoff_packets/feat-retrieval-fts.md` remains unwritable from this worktree (`operation not permitted`).
-  - `.codex/lane_meta/feat-retrieval-fts.json` remains unwritable from this worktree (`operation not permitted`).
-- Budget classification: shared/high-risk because `tests/unit/test_unified_retrieval.py` is a shared-by-approval file for this lane.
-- Traceability note: reviewers can verify the reviewed retrieval scope directly with `git log --oneline 378cf9a74a3658058079a32f186fcd254c4a4034..255bf8d81801cfd21aa8dc5c9db5d5e11c3efa2b` and `git diff --name-only 378cf9a74a3658058079a32f186fcd254c4a4034..255bf8d81801cfd21aa8dc5c9db5d5e11c3efa2b`. The packet-only refresh chain after the reviewed code head is `05c341b5acaa21bd64843e0ac1a6dc62bbed2d01..26395a2b80fac607b540cd9925284e9a51cf4c78`.
+- Blockers: `.codex/kickoff_packets/feat-retrieval-fts.md` and `.codex/lane_meta/feat-retrieval-fts.json` are not writable from this worktree (`operation not permitted`), so the reviewer-facing corrections are recorded in `THREAD_PACKET.md` and `docs/gate_passed.txt`.
 
 ## Required Handoff Fields
 
-- Roadmap item(s) affected: `Milestone 4: Retrieval Layer`, `Milestone 3: Product Readiness`
-- Vision capability affected: `2. Retrieval-first context handling`, `6. Auditable state and workflow`
-- Routing/provider impact note: `None`
-- Canonical demo-path step advanced: `retrieve relevant material`
-- Demo-path effect statement: `Retrieval output remains deterministic, auditable, and correctly shaped for the engine-first workflow loop while keeping the MVP retrieval path FTS-first.`
-- Ownership/risk classification: `shared-by-approval`; the reviewed slice includes shared test coverage in `tests/unit/test_unified_retrieval.py` and no integrator-locked files.
-- Proposed `README.md` patch text: `None`
+### Roadmap item(s) affected
+
+- `ROADMAP.md: Milestone 3: Product Readiness`
+- `ROADMAP.md: Milestone 4: Retrieval Layer`
+
+### Vision capability affected
+
+- `2. Retrieval-first context handling`
+- `6. Auditable state and workflow`
+
+### Routing/provider impact note
+
+- None
+
+### Proposed `README.md` patch text
+
+- None
+
+## Scope-Check / Ownership Note
+
+- Shared or integrator-locked edits: `YES`
+- Approved shared regression coverage remains limited to `tests/unit/test_unified_retrieval.py`.
