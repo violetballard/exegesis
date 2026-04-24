@@ -613,11 +613,28 @@ def describe_a2ui_contract_fingerprints(
     if include_terminal_artifact_cli_fallback_entrypoint:
         terminal_artifact_cli_fallback_entrypoint_contract = _snapshot_terminal_artifact_cli_fallback_entrypoint_contract()
         terminal_artifact_renderer_entrypoints_contract = describe_terminal_artifact_renderer_entrypoints_contract()
+        terminal_artifact_cli_fallback_contract_fingerprint_value = terminal_artifact_cli_fallback_contract_fingerprint()
         fingerprints["terminal_artifact_cli_fallback_entrypoint"] = (
             terminal_artifact_cli_fallback_entrypoint_contract["terminal_artifact_cli_fallback_entrypoint_fingerprint"]
         )
         fingerprints["terminal_artifact_cli_fallback_entrypoint_fingerprint"] = (
             terminal_artifact_cli_fallback_entrypoint_contract["terminal_artifact_cli_fallback_entrypoint_fingerprint"]
+        )
+        fingerprints["terminal_artifact_cli_fallback"] = terminal_artifact_cli_fallback_contract_fingerprint_value
+        fingerprints["terminal_artifact_cli_fallback_fingerprint"] = (
+            terminal_artifact_cli_fallback_contract_fingerprint_value
+        )
+        fingerprints["terminal_artifact_cli_fallback_contract"] = (
+            terminal_artifact_cli_fallback_contract_fingerprint_value
+        )
+        fingerprints["terminal_artifact_cli_fallback_contract_fingerprint"] = (
+            terminal_artifact_cli_fallback_contract_fingerprint_value
+        )
+        fingerprints["terminal_artifact_cli_fallback_contract_manifest"] = (
+            terminal_artifact_cli_fallback_contract_fingerprint_value
+        )
+        fingerprints["terminal_artifact_cli_fallback_contract_manifest_fingerprint"] = (
+            terminal_artifact_cli_fallback_contract_fingerprint_value
         )
         fingerprints["terminal_artifact_cli_fallback_entrypoint_contract"] = (
             terminal_artifact_cli_fallback_entrypoint_contract["contract_fingerprint"]
