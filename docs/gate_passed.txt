@@ -3,39 +3,31 @@ Gate Results Summary (as of 2026-04-24)
 
 Feature lane: `codex/feat-retrieval-fts`
 Packet role: `metadata-only reviewer-fix handoff refresh`
-Packet refresh trace anchor before fixer commit: `76bb509bfe69429ab92d4401b033b8f173b082f6`
-Reviewed implementation head: `adfa8cdadd43747ffbcb612e4151e262b13e52ca`
-Reviewed implementation range: `d7fd5d200358287fa42a18d39e2b277463b9b69f..adfa8cdadd43747ffbcb612e4151e262b13e52ca`
+Packet refresh trace anchor before fixer commit: `9bd108298e82f2ba9cc1a6ab97d2f20f7dc622fe`
+Reviewed implementation head: `9bd108298e82f2ba9cc1a6ab97d2f20f7dc622fe`
+Reviewed implementation range: `adfa8cdadd43747ffbcb612e4151e262b13e52ca..9bd108298e82f2ba9cc1a6ab97d2f20f7dc622fe`
 Canonical demo-path step advanced: `retrieve relevant material`
-Scope: metadata-only packet refresh for the reviewed FTS-first retrieval slice. The reviewed implementation keeps SQLite FTS authoritative, resolves the public excerpt lookup contract only through canonical FTS hits, keeps payload and provenance output deterministic, and leaves PageIndex plus embeddings as compatibility-only fallback shims rather than required runtime paths.
+Scope: metadata-only packet refresh for the live retrieval branch tip after the post-`adfa8cda` follow-up fixes. The reviewed implementation mirrors normalized query text into doc-hit and excerpt-hit payloads plus provenance, backfills that query text during downstream payload reconstruction from sparse source bundles, resolves engine query annotations without an eager import cycle, and keeps SQLite FTS authoritative for the MVP retrieval surface.
 
 Reviewed implementation files:
 
 * `src/qual/retrieval/service.py`
-* `src/qual/retrieval/__init__.py`
-* `src/qual/engine/retrieval/__init__.py`
-* `src/qual/engine/retrieval/fts_strategy.py`
 * `src/qual/engine/retrieval/payload.py`
-* `src/qual/engine/retrieval/interface.py`
-* `src/qual/engine/retrieval/embeddings_strategy.py`
-* `src/qual/engine/retrieval/pageindex_strategy.py`
+* `src/qual/engine/retrieval/__init__.py`
 * `tests/unit/test_unified_retrieval.py`
 
 Metadata-only packet artifacts refreshed in this fixer pass:
 
 * `THREAD_PACKET.md`
-* `docs/gate_passed.txt`
-
-Metadata-only packet artifacts blocked by sandbox policy in this fixer pass:
-
 * `.codex/kickoff_packets/feat-retrieval-fts.md`
 * `.codex/lane_meta/feat-retrieval-fts.json`
+* `docs/gate_passed.txt`
 
 Plan-alignment note:
 
-* This slice advances `retrieve relevant material` by making the public excerpt lookup surface resolve only canonical SQLite FTS hits, so excerpt provenance stays deterministic and auditable for downstream engine retrieval flow.
-* PageIndex and embeddings are not required runtime paths for this MVP excerpt lookup contract; PageIndex-only and other noncanonical excerpt IDs fail closed on that public surface.
-* This fixer pass refreshes packet metadata only and does not move the reviewed retrieval implementation head or widen the reviewed implementation range.
+* This slice advances `retrieve relevant material` by mirroring normalized query text into hit payloads and provenance so retrieval output stays deterministic and auditable for downstream engine flows and later basket promotion.
+* SQLite FTS remains the authoritative retrieval path for this MVP surface.
+* This fixer pass refreshes packet metadata only and does not move the reviewed implementation head or widen the reviewed implementation range.
 
 Budget classification:
 
@@ -44,12 +36,12 @@ Budget classification:
 
 Verification:
 
-* `make scope-check` - passed
-* `./quality-format.sh --check` - passed
-* `./quality-lint.sh` - passed
-* `./quality-test.sh` - passed
-* `./typecheck-test.sh` - passed
-* `make ci` - passed
+* `make scope-check` - pending rerun
+* `./quality-format.sh --check` - pending rerun
+* `./quality-lint.sh` - pending rerun
+* `./quality-test.sh` - pending rerun
+* `./typecheck-test.sh` - pending rerun
+* `make ci` - pending rerun
 
 Roadmap items affected:
 
@@ -67,4 +59,4 @@ Routing/provider impact:
 
 Remaining blocker:
 
-* Sandbox write denial on `.codex/kickoff_packets/feat-retrieval-fts.md` and `.codex/lane_meta/feat-retrieval-fts.json` (`operation not permitted`).
+* none
