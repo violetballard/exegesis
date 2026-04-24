@@ -1,11 +1,13 @@
 Gate Results Summary (as of 2026-04-23)
 -------------------------------------
 
-Required automated gates reran against the canonical retrieval-contract fixer worktree content for:
+Required automated gates reran for the reviewer-fix packet refresh on:
 
-* submitted branch tip under review before this fixer commit `0c5666a28b46874f6b6e77692015ea561cf3ae75`
-* reviewed implementation head `cf644d98c43cc396cd5b7c6b8d725b87fb715c61`
-* reviewed implementation files `src/qual/engine/retrieval/payload.py` and `tests/unit/test_unified_retrieval.py`
+* current packet-refresh branch tip before this commit `059b68f3d88492e3b5795d9807e239b866d814a2`
+* reviewed implementation head `adfa8cdadd43747ffbcb612e4151e262b13e52ca`
+* reviewed implementation range `378cf9a74a3658058079a32f186fcd254c4a4034..adfa8cdadd43747ffbcb612e4151e262b13e52ca`
+* reviewed implementation files `src/qual/retrieval/service.py` and `tests/unit/test_unified_retrieval.py`
+* metadata-only packet refresh files `.codex/kickoff_packets/feat-retrieval-fts.md`, `.codex/lane_meta/feat-retrieval-fts.json`, `THREAD_PACKET.md`, and `docs/gate_passed.txt`
 * shared regression approval basis `tests/unit/test_unified_retrieval.py`
 
 Gate status:
@@ -19,14 +21,14 @@ Gate status:
 
 Focused retrieval proof:
 
-* `python3 -m unittest tests.unit.test_unified_retrieval.UnifiedRetrievalTests.test_retrieval_downstream_payload_helper_fail_closes_noncanonical_basket_metadata tests.unit.test_unified_retrieval.UnifiedRetrievalTests.test_retrieval_context_bundle_helper_fail_closes_noncanonical_hit_metadata tests.unit.test_unified_retrieval.UnifiedRetrievalTests.test_retrieval_downstream_payload_helper_normalizes_nested_citation_fields` - passed
-* `python3 -m unittest tests.unit.test_unified_retrieval.UnifiedRetrievalTests.test_fetch_excerpt_requires_an_fts_lookup_hit tests.unit.test_unified_retrieval.UnifiedRetrievalTests.test_retrieve_fts_source_bundle_matches_result_snapshot tests.unit.test_unified_retrieval.UnifiedRetrievalTests.test_retrieval_context_bundle_helper_packages_payload_and_bundles` - passed
+* `python3 -m unittest tests.unit.test_unified_retrieval.UnifiedRetrievalTests.test_fetch_excerpt_requires_an_fts_lookup_hit` - passed
+* `python3 -m unittest tests.unit.test_unified_retrieval.UnifiedRetrievalTests.test_retrieve_fts_source_bundle_matches_result_snapshot` - passed
 * `python3 -m unittest tests.unit.test_unified_retrieval` - passed (`214 tests`)
 
 Canonical demo-path step advanced: `retrieve relevant material`.
-Plan-alignment statement: this fixer pass strengthens the canonical engine-facing source-bundle/context-bundle retrieval contract used before basket/workflow promotion by fail-closing stale non-FTS metadata and rebuilding structured payloads from the canonical FTS source bundle.
-Scope-tightening statement: this slice proves the canonical structured retrieval path stays FTS-first and auditable; it does not claim new basket/workflow wiring.
+Plan-alignment statement: this work advances `retrieve relevant material` by making the public excerpt lookup surface resolve through the authoritative SQLite FTS path, so PageIndex-only excerpt IDs fail closed under shared regression coverage and basket-promotion inputs stay deterministic.
+Scope-tightening statement: basket promotion is a downstream consumer of the structured FTS results from this slice; this handoff does not broaden the lane beyond the FTS-only excerpt fail-closed contract.
 Shared-file approval basis: `tests/unit/test_unified_retrieval.py` remains the approved shared-by-approval regression exception for this lane.
-Traceability statement: the submitted branch tip `0c5666a2` already included a packet-only commit, but the latest code-changing reviewed head on that tip is `cf644d98`, so re-review should validate `adfa8cda..cf644d98` while treating `0c5666a2` as the correct submitted tip.
+Traceability statement: re-review should validate the narrowed reviewed implementation range `378cf9a7..adfa8cda` and read the explicit demo-path mapping from `THREAD_PACKET.md` plus this gate summary.
 
 The authoritative handoff packet remains `THREAD_PACKET.md`.
