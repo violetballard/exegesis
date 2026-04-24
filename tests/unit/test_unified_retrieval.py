@@ -1346,6 +1346,10 @@ class UnifiedRetrievalTests(unittest.TestCase):
 
         with self.assertRaisesRegex(KeyError, "unknown excerpt_id"):
             self.service.fetch_excerpt(str(excerpt_id))
+        with self.assertRaisesRegex(KeyError, "unknown excerpt_id"):
+            engine_retrieval.fetch_excerpt(self.service, excerpt_id=str(excerpt_id))
+        with self.assertRaisesRegex(KeyError, "unknown excerpt_id"):
+            package_retrieval.fetch_excerpt(self.service, excerpt_id=str(excerpt_id))
 
     def test_retrieve_fts_excerpt_returns_canonical_fts_payload(self) -> None:
         result = self.service.retrieve_auto(
