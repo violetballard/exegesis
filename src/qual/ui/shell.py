@@ -31,6 +31,7 @@ from .a2ui import (
     terminal_artifact_renderer_entrypoints_contract_fingerprint,
     _TERMINAL_ARTIFACT_CLI_FALLBACK_TARGET_HINT,
     _fingerprint_manifest_section,
+    _has_expected_card_renderer_prefix,
     _is_explicit_terminal_artifact_leaf,
     _is_explicit_terminal_artifact_leaf_mapping,
     _normalize_terminal_artifact_kind_hint,
@@ -181,18 +182,41 @@ class ShellUI:
         """
 
         leaf_specific_fallback = kind in {"action", "selection"}
+        card_hint_leaf_kind: str | None = None
+        if kind == "card":
+            inferred_leaf_kind = _infer_terminal_artifact_explicit_kind(artifact)
+            if inferred_leaf_kind not in {"action", "selection"} and isinstance(artifact, Mapping):
+                artifact_type = artifact.get("type")
+                if isinstance(artifact_type, str) and artifact_type.strip() == "TerminalArtifact":
+                    inferred_payload_kind = _infer_terminal_artifact_explicit_kind(artifact.get("artifact"))
+                    if inferred_payload_kind in {"action", "selection"}:
+                        inferred_leaf_kind = inferred_payload_kind
+            if inferred_leaf_kind in {"action", "selection"}:
+                card_hint_leaf_kind = inferred_leaf_kind
         try:
             rendered_cli_fallback = render_terminal_cli_fallback(artifact, kind=kind)
         except Exception:
             rendered_cli_fallback = None
         else:
-            if isinstance(rendered_cli_fallback, str) and (
-                not leaf_specific_fallback or self._has_expected_leaf_renderer_prefix(
+            if isinstance(rendered_cli_fallback, str):
+                if leaf_specific_fallback and self._has_expected_leaf_renderer_prefix(
                     rendered_cli_fallback,
                     kind,
-                )
-            ):
-                return rendered_cli_fallback
+                ):
+                    return rendered_cli_fallback
+                if kind == "card":
+                    if (
+                        card_hint_leaf_kind in {"action", "selection"}
+                        and self._has_expected_leaf_renderer_prefix(
+                            rendered_cli_fallback,
+                            card_hint_leaf_kind,
+                        )
+                    ):
+                        return rendered_cli_fallback
+                    if card_hint_leaf_kind is None and _has_expected_card_renderer_prefix(rendered_cli_fallback):
+                        return rendered_cli_fallback
+                if kind not in {"action", "selection", "card"}:
+                    return rendered_cli_fallback
         if kind == "action":
             try:
                 rendered_action = render_terminal_action(artifact)
@@ -209,6 +233,23 @@ class ShellUI:
             if isinstance(rendered_selection, str):
                 return rendered_selection
             return _render_invalid_terminal_selection(artifact)
+        if kind == "card" and card_hint_leaf_kind in {"action", "selection"}:
+            if card_hint_leaf_kind == "action":
+                try:
+                    rendered_action = render_terminal_action(artifact)
+                except Exception:
+                    pass
+                else:
+                    if isinstance(rendered_action, str):
+                        return rendered_action
+            else:
+                try:
+                    rendered_selection = render_terminal_selection(artifact)
+                except Exception:
+                    pass
+                else:
+                    if isinstance(rendered_selection, str):
+                        return rendered_selection
         if kind not in {"action", "selection"}:
             try:
                 # Retry the shared renderer on the resolved fallback target so
@@ -219,7 +260,14 @@ class ShellUI:
                 pass
             else:
                 if isinstance(rendered_artifact, str):
-                    return rendered_artifact
+                    if kind == "card":
+                        if card_hint_leaf_kind in {"action", "selection"}:
+                            if self._has_expected_leaf_renderer_prefix(rendered_artifact, card_hint_leaf_kind):
+                                return rendered_artifact
+                        elif _has_expected_card_renderer_prefix(rendered_artifact):
+                            return rendered_artifact
+                    else:
+                        return rendered_artifact
         try:
             rendered_card = render_terminal_card(artifact)
         except Exception:

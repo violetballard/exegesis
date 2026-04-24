@@ -5194,6 +5194,33 @@ class A2UIFallbackSafetyTests(unittest.TestCase):
                 leaf_renderer.assert_called_once_with(artifact)
                 self.assertIsNone(_TERMINAL_ARTIFACT_CLI_FALLBACK_TARGET_HINT.get())
 
+    def test_shell_ui_render_cli_fallback_rejects_leaf_renderer_text_for_card_hints(self) -> None:
+        shell = ShellUI()
+        artifact = {
+            "id": "export_document",
+            "label": "Export",
+            "payload": {"format": "json"},
+        }
+
+        with patch(
+            "src.qual.ui.shell.render_terminal_cli_fallback",
+            return_value="[ActionRef] leaked",
+        ) as cli_fallback:
+            with patch(
+                "src.qual.ui.shell.render_terminal_artifact",
+                return_value="[ActionRef] leaked",
+            ) as generic_renderer:
+                with patch(
+                    "src.qual.ui.shell.render_terminal_card",
+                    return_value="[<missing>] <untitled>",
+                ) as card_renderer:
+                    text = shell.render_cli_fallback(artifact, kind="card")
+
+        self.assertEqual(text, "[<missing>] <untitled>")
+        cli_fallback.assert_called_once_with(artifact, kind="card")
+        generic_renderer.assert_called_once_with(artifact, kind="card")
+        card_renderer.assert_called_once_with(artifact)
+
     def test_shell_ui_render_cli_fallback_recovers_leaf_renderer_when_shared_resolver_raises(self) -> None:
         shell = ShellUI()
         cases = [
