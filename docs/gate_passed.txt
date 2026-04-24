@@ -3,11 +3,12 @@ Gate Results Summary (as of 2026-04-23)
 
 Required automated gates reran for the narrowed metadata-only packet refresh on:
 
-* current submitted tip before this packet refresh commit `5148e26650fe64ef05c5820556552cfc7840ff7a`
+* current submitted tip before this packet refresh commit `11c628ef9adcaabbc39c7aa7b5fd1138f4a46d1b`
 * reviewed implementation head `adfa8cdadd43747ffbcb612e4151e262b13e52ca`
 * reviewed implementation range `d7fd5d200358287fa42a18d39e2b277463b9b69f..adfa8cdadd43747ffbcb612e4151e262b13e52ca`
 * reviewed implementation files `src/qual/retrieval/service.py` and `tests/unit/test_unified_retrieval.py`
-* current metadata-only packet refresh files `.codex/kickoff_packets/feat-retrieval-fts.md`, `.codex/lane_meta/feat-retrieval-fts.json`, `THREAD_PACKET.md`, and `docs/gate_passed.txt`
+* refreshed reviewer-facing packet files `THREAD_PACKET.md` and `docs/gate_passed.txt`
+* stale `.codex/` packet mirrors not refreshed due to local filesystem write restrictions `.codex/kickoff_packets/feat-retrieval-fts.md` and `.codex/lane_meta/feat-retrieval-fts.json`
 * shared regression approval basis `tests/unit/test_unified_retrieval.py`
 
 Gate status:
@@ -26,9 +27,10 @@ Focused retrieval proof:
 * `python3 -m unittest tests.unit.test_unified_retrieval` - passed (`214 tests`)
 
 Canonical demo-path step advanced: `retrieve relevant material`.
-Plan-alignment statement: this change makes `retrieve relevant material` more real by forcing excerpt lookup to fail closed unless the hit comes from the authoritative SQLite FTS path.
-Scope note: this packet narrows the claim to excerpt lookup behavior behind the existing retrieval surface; it does not newly establish broader engine-surface reachability on its own.
+Plan-alignment statement: this change makes `retrieve relevant material` more real by ensuring retrieval evidence, provenance, and excerpt lookup all stay anchored to the authoritative SQLite FTS path.
+Scope note: this packet narrows the claim to the reviewed FTS-first retrieval slice, including the FTS-only runtime guards, provenance-bundle surface, deterministic payload work, and excerpt lookup behavior behind the existing retrieval surface; it does not newly establish broader engine-surface reachability on its own.
 Budget compliance statement: this packet is shared/high-risk work because it includes the approved shared regression surface `tests/unit/test_unified_retrieval.py`, so it is read against the 4-task cap rather than the low-risk 8-task cap.
+Shared approval note: the approved `tests/unit/test_unified_retrieval.py` coverage now explicitly includes the fail-closed excerpt regression plus the payload, provenance-bundle, and public helper assertions exercised by the narrowed reviewed range.
 Traceability statement: re-review should validate the narrowed reviewed implementation range `d7fd5d20..adfa8cda`; the current packet refresh commit is metadata-only and does not broaden retrieval scope beyond that range.
 
 The authoritative handoff packet remains `THREAD_PACKET.md`.
