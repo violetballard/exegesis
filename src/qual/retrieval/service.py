@@ -2007,7 +2007,11 @@ class RetrievalService:
         retrieval_policy = self._retrieval_policy.as_snapshot()
         active_strategy_ids = copy.deepcopy(retrieval_policy["active_strategy_ids"])
         deferred_strategy_ids = copy.deepcopy(retrieval_policy["deferred_strategy_ids"])
-        strategies_used: list[str] = []
+        # Direct excerpt lookup always executes against the canonical FTS path,
+        # even when the excerpt id is missing. Keep failure audits aligned with
+        # successful lookup payloads so audit consumers can treat both events as
+        # explicit FTS attempts instead of a strategy-less special case.
+        strategies_used = [_FTS_SOURCE_STRATEGY]
         retrieved_doc_ids: list[str] = []
         retrieved_excerpt_ids: list[str] = []
         fts_shortlist_doc_ids: list[str] = []
