@@ -3,7 +3,7 @@
 ## Thread Kickoff (High-Risk)
 
 - Branch: `codex/feat-commands`
-- Verified implementation basis SHA: `1dcafb3361ea830fdda6eeb03c9ed774580faf9c`
+- Verified implementation basis SHA: `077764032`
 - Submitted tip note: this handoff refresh may add a metadata-only packet commit on top of that verified implementation basis
 - Lane/owned paths: `src/qual/commands/**` with approved shared/runtime touchpoints in `src/qual/cli.py` and shared test/scope-check coverage required to make the branch reviewable
 - Scope goal: submit the actual branch tip for review as a command-surface hardening lane that adds an authoritative command catalog, binds the live CLI parser entrypoints to that catalog, exposes current-MVP workflow and patch-loop wrappers, and hardens the `diff-preview` output contract with matching unit coverage.
@@ -80,7 +80,7 @@
 - size/accounting note:
   - actual branch-tip delta versus `main` spans 12 files and a large command-surface addition; this re-review packet is intentionally truthful about that full submitted scope
 - commands run + outcomes:
-  - rerun on implementation basis SHA `1dcafb3361ea830fdda6eeb03c9ed774580faf9c` on `2026-04-24`
+  - rerun on implementation basis SHA `077764032` on `2026-04-24`
   - packet refresh commits after that basis are metadata-only and do not change the reviewed implementation scope
   - `make scope-check` -> passed
   - `./quality-format.sh --check` -> passed
@@ -102,4 +102,4 @@
 - approved exception note:
   - this branch includes approved shared parser work in `src/qual/cli.py` and approved shared-test/scope-check coverage needed to keep the lane reviewable
 - reviewer-fix satisfaction note:
-  - this packet is reissued against the actual merge candidate implementation basis `1dcafb3361ea830fdda6eeb03c9ed774580faf9c`, tightens the claim to the branch’s real command-surface and diff-preview work, names the concrete `patch` step it advances, and makes explicit that any newer tip from this handoff refresh is metadata-only instead of hidden implementation drift
+  - this packet is reissued against the actual merge candidate implementation basis `077764032`, tightens the claim to the branch’s real command-surface and diff-preview work, names the concrete `patch` step it advances, and makes explicit that any newer tip from this handoff refresh is metadata-only instead of hidden implementation drift

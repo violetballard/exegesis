@@ -7,7 +7,7 @@ Canonical handoff contract lives in `THREAD_PACKET.md`.
 - Lane: `feat-commands`
 - Branch: `codex/feat-commands`
 - Review basis: actual branch tip submitted for merge, not a narrowed historical SHA
-- Verified implementation basis SHA: `1dcafb3361ea830fdda6eeb03c9ed774580faf9c`
+- Verified implementation basis SHA: `077764032`
 - Submitted tip note: any newer tip created by this handoff refresh is metadata-only packet bookkeeping on top of that verified implementation basis
 - Review scope: branch-tip command-surface hardening across the command catalog, live CLI parser entrypoints, diff-preview contract output, current-MVP workflow wrappers, and the matching unit coverage
 - Canonical demo-path step advanced: `patch` in the CLI MVP flow `vault -> context -> run -> patch -> export`
@@ -31,7 +31,7 @@ Canonical handoff contract lives in `THREAD_PACKET.md`.
 
 ## Required Gates
 
-- Verified on implementation basis SHA `1dcafb3361ea830fdda6eeb03c9ed774580faf9c` on `2026-04-24`; any newer tip from this handoff refresh is metadata-only
+- Verified on implementation basis SHA `077764032` on `2026-04-24`; any newer tip from this handoff refresh is metadata-only
 - `make scope-check`
 - `./quality-format.sh --check`
 - `./quality-lint.sh`
