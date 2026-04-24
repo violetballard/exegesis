@@ -2,7 +2,7 @@
 
 - Branch name: `codex/feat-retrieval-fts`
 - Packet role: `metadata-only reviewer-fix finalization`
-- Packet refresh trace anchor before this fixer commit: `fdb3af1c404926722e7ba031fd270311ee496496`
+- Packet refresh trace anchor before this fixer commit: `8f9cf40dc34c42d31418cd5c6907cbf182c5c971`
 - Reviewed implementation head: `adfa8cdadd43747ffbcb612e4151e262b13e52ca`
 - Reviewed implementation range: `378cf9a74a3658058079a32f186fcd254c4a4034..adfa8cdadd43747ffbcb612e4151e262b13e52ca`
 - Canonical demo-path step advanced: `retrieve relevant material`
@@ -84,8 +84,8 @@
 
 ## Blocked Packet Mirrors
 
-- `.codex/kickoff_packets/feat-retrieval-fts.md` (`PermissionError: [Errno 1] Operation not permitted`)
-- `.codex/lane_meta/feat-retrieval-fts.json` (`PermissionError: [Errno 1] Operation not permitted`)
+- `.codex/kickoff_packets/feat-retrieval-fts.md` (live write-access recheck failed in this sandbox: `Operation not permitted`)
+- `.codex/lane_meta/feat-retrieval-fts.json` (live write-access recheck failed in this sandbox: `Operation not permitted`)
 
 ## Commands Run With Results
 
@@ -106,7 +106,7 @@
 ## Risks / Blockers
 
 - Risk: `HIGH`
-- Blockers: `.codex/kickoff_packets/feat-retrieval-fts.md` and `.codex/lane_meta/feat-retrieval-fts.json` remain sandbox-blocked (`PermissionError: [Errno 1] Operation not permitted`); the writable handoff surfaces in this commit carry the required canonical demo-path statement for re-review.
+- Blockers: `.codex/kickoff_packets/feat-retrieval-fts.md` and `.codex/lane_meta/feat-retrieval-fts.json` were rechecked on this fixer pass and remain sandbox-blocked (`Operation not permitted` on direct write-access checks); the writable handoff surfaces in this commit carry the required canonical demo-path statement for re-review.
 
 ## Ready For Handoff
 
