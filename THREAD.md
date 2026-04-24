@@ -7,7 +7,7 @@ Canonical handoff contract lives in `THREAD_PACKET.md`.
 ## Current Review Focus
 
 - Packet refresh status: reviewer-fix packet refresh regenerated on 2026-04-24 for the exact reviewed implementation slice.
-- Reviewed implementation commit: `538095c47a6bc5f971e9811b83745571915e4268` (`test(commands): cover diff parser surface drift`).
+- Reviewed implementation commit: `86e7450a89c33ed158097c4fde9d5fc9edb023ab` (`feat(commands): normalize persist-and-continue`).
 - Reviewed implementation files:
   - `src/qual/commands/catalog.py`
   - `tests/unit/test_commands_catalog.py`
@@ -15,11 +15,13 @@ Canonical handoff contract lives in `THREAD_PACKET.md`.
   - `THREAD.md`
   - `THREAD_PACKET.md`
 - Reviewed implementation scope:
-  - deterministic command ordering plus fail-fast parser/catalog drift detection for the existing CLI compatibility surface
+  - deterministic CLI compatibility for the active fallback surface: fail-fast parser/catalog drift detection plus normalized terminal persistence alias routing
 - Canonical demo-path step advanced:
   - `open project/document`
 - Active MVP operator path strengthened:
   - the CLI fallback path for `open project/document` by keeping command ordering deterministic and failing fast before the first operator step runs if parser/catalog drift is introduced
+- Traceability note:
+  - `86e7450a89c33ed158097c4fde9d5fc9edb023ab` is the actual implementation tip for this reviewed slice; later commits on the branch are packet-only refreshes
 - Concrete blocker removed for Milestone 3:
   - the active CLI surface no longer allows the declared parser-facing token catalog to drift away from the canonical command catalog without failing closed, including the explicit reviewer-called case where the `diff` parser token disappears while the canonical-name tuple still appears stable; that removes a concrete reliability blocker before the CLI can safely begin the `open project/document` demo-path step.
 - Scope-tightening note:
