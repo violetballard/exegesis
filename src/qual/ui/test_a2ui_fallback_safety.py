@@ -4356,6 +4356,7 @@ class A2UIFallbackSafetyTests(unittest.TestCase):
         manifest_alias_fingerprint = terminal_artifact_cli_fallback_contract_manifest_fingerprint()
         a2ui_manifest = describe_a2ui_contract()
         cli_fallback_target_manifest = describe_terminal_artifact_cli_fallback_target_contract()
+        card_hint_recovery_policy_manifest = describe_terminal_artifact_cli_fallback_card_hint_recovery_policy_contract()
 
         self.assertEqual(manifest["contract_version"], 2)
         self.assertEqual(manifest["a2ui_version"], 1)
@@ -4447,6 +4448,30 @@ class A2UIFallbackSafetyTests(unittest.TestCase):
                     "selection": "render_terminal_selection",
                 },
             },
+        )
+        self.assertEqual(
+            manifest["card_hint_recovery_policy"],
+            card_hint_recovery_policy_manifest,
+        )
+        self.assertEqual(
+            manifest["card_hint_recovery_policy_fingerprint"],
+            card_hint_recovery_policy_manifest["contract_fingerprint"],
+        )
+        self.assertEqual(
+            manifest["card_hint_recovery_policy_contract"],
+            card_hint_recovery_policy_manifest,
+        )
+        self.assertEqual(
+            manifest["card_hint_recovery_policy_contract_manifest"],
+            card_hint_recovery_policy_manifest,
+        )
+        self.assertEqual(
+            manifest["card_hint_recovery_policy_contract_fingerprint"],
+            card_hint_recovery_policy_manifest["contract_fingerprint"],
+        )
+        self.assertEqual(
+            manifest["card_hint_recovery_policy_contract_manifest_fingerprint"],
+            card_hint_recovery_policy_manifest["contract_fingerprint"],
         )
         self.assertEqual(
             manifest["terminal_artifact_cli_fallback_target"]["raw_leaf_card_default_policy"],
