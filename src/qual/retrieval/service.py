@@ -4231,14 +4231,15 @@ class RetrievalService:
             if isinstance(query_snapshot, dict)
             else provenance.get("query_confidentiality_profile")
         )
+        # Direct excerpt lookup is always the canonical FTS-only path. Do not
+        # trust any sparse legacy strategy metadata carried on the excerpt or
+        # provenance payload when reconstructing basket-promotion state.
         retrieval_policy = _normalize_retrieval_policy_snapshot_payload(
-            copy.deepcopy(excerpt.get("retrieval_policy", self._retrieval_policy.as_snapshot()))
+            self._retrieval_policy.as_snapshot()
         )
-        active_strategy_ids = _normalize_strategy_id_list_payload(
-            excerpt.get("active_strategy_ids", retrieval_policy.get("active_strategy_ids", []))
-        )
+        active_strategy_ids = _normalize_strategy_id_list_payload(retrieval_policy.get("active_strategy_ids", []))
         deferred_strategy_ids = _normalize_strategy_id_list_payload(
-            excerpt.get("deferred_strategy_ids", retrieval_policy.get("deferred_strategy_ids", []))
+            retrieval_policy.get("deferred_strategy_ids", [])
         )
         promotion = {
             "promotion_ready": True,
@@ -4255,9 +4256,7 @@ class RetrievalService:
             "query_require_citations": _optional_bool(query_constraints.get("require_citations")),
             "query_section_hint": _normalized_query_hint_text(query_constraints.get("section_hint")),
             "query_prefer_exact_matches": _optional_bool(query_constraints.get("prefer_exact_matches")),
-            "lookup_resolution": _normalize_lookup_resolution_payload(
-                excerpt.get("lookup_resolution") or provenance.get("lookup_resolution")
-            ),
+            "lookup_resolution": _FTS_SOURCE_STRATEGY,
             "lookup_confidentiality_profile": _normalize_lookup_confidentiality_profile_payload(
                 excerpt.get("lookup_confidentiality_profile")
                 or provenance.get("lookup_confidentiality_profile")
@@ -4293,16 +4292,8 @@ class RetrievalService:
             or _optional_text(provenance.get("hash")),
             "excerpt_text": _optional_text(excerpt.get("excerpt_text")) or _optional_text(excerpt.get("text")),
             "span": copy.deepcopy(RetrievalService._canonicalize_span(excerpt.get("span"))),
-            "source_strategy": _normalize_source_strategy(
-                excerpt.get("source_strategy") or provenance.get("source_strategy") or _FTS_SOURCE_STRATEGY
-            ),
-            "retrieval_source_strategy": _normalize_source_strategy(
-                excerpt.get("retrieval_source_strategy")
-                or provenance.get("retrieval_source_strategy")
-                or excerpt.get("source_strategy")
-                or provenance.get("source_strategy")
-                or _FTS_SOURCE_STRATEGY
-            ),
+            "source_strategy": _FTS_SOURCE_STRATEGY,
+            "retrieval_source_strategy": _FTS_SOURCE_STRATEGY,
             "matched_terms": copy.deepcopy(_normalize_matched_terms(provenance.get("matched_terms"))),
             "match_count": provenance.get("match_count"),
             "rank": provenance.get("rank"),
@@ -4310,23 +4301,13 @@ class RetrievalService:
             "doc_rank": provenance.get("doc_rank"),
             "section_hint": _optional_text(provenance.get("section_hint")),
             "section_hint_rank": provenance.get("section_hint_rank"),
-            "retrieval_backend": _normalized_profile_text(
-                excerpt.get("retrieval_backend") or provenance.get("retrieval_backend")
-            ),
-            "retrieval_mode": _normalized_profile_text(
-                excerpt.get("retrieval_mode") or provenance.get("retrieval_mode")
-            ),
+            "retrieval_backend": retrieval_policy["retrieval_backend"],
+            "retrieval_mode": retrieval_policy["retrieval_mode"],
             "policy": copy.deepcopy(retrieval_policy),
             "retrieval_policy": retrieval_policy,
             "active_strategy_ids": active_strategy_ids,
             "deferred_strategy_ids": deferred_strategy_ids,
-            "strategies_used": copy.deepcopy(
-                _normalize_strategy_id_list_payload(
-                    excerpt.get("strategies_used")
-                    or provenance.get("strategies_used")
-                    or active_strategy_ids
-                )
-            ),
+            "strategies_used": [_FTS_SOURCE_STRATEGY],
             "retrieved_doc_ids": _normalize_doc_id_list_payload(
                 excerpt.get("retrieved_doc_ids")
                 or provenance.get("retrieved_doc_ids")
