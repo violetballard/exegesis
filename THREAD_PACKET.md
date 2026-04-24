@@ -2,11 +2,11 @@
 
 - Branch name: `codex/feat-retrieval-fts`
 - Packet role: `metadata-only reviewer-fix finalization`
-- Packet refresh trace anchor before this fixer commit: `23f67bb0be9beb036ab86eade9d48db62ea2dd21`
+- Packet refresh trace anchor before this fixer commit: `6a41f0f118163f4fa8082cda04789c54ed796e34`
 - Reviewed implementation head: `adfa8cdadd43747ffbcb612e4151e262b13e52ca`
 - Reviewed implementation range: `378cf9a74a3658058079a32f186fcd254c4a4034..adfa8cdadd43747ffbcb612e4151e262b13e52ca`
 - Canonical demo-path step advanced: `retrieve relevant material`
-- Plan-alignment statement: this reviewed implementation advances `retrieve relevant material` by keeping excerpt provenance lookup deterministic on the FTS-only path and preventing PageIndex-only excerpt IDs from acting like an MVP retrieval path.
+- Plan-alignment statement: this reviewed implementation advances `retrieve relevant material` by enforcing canonical FTS-only excerpt resolution for the retrieval contract, so PageIndex-only excerpt IDs fail closed under the approved shared regression coverage.
 - Traceability note: review this lane against the reviewed implementation range above. This fixer pass is metadata-only and does not broaden retrieval scope beyond `378cf9a74a3658058079a32f186fcd254c4a4034..adfa8cdadd43747ffbcb612e4151e262b13e52ca`.
 
 ## Scope Goal
@@ -102,7 +102,7 @@
 ## Reviewer Fix Closure
 
 1. The `Files changed` section now matches the narrowed reviewed implementation slice plus the actual metadata-only refresh files touched by this fixer pass.
-2. The handoff now includes an explicit canonical demo-path statement naming `retrieve relevant material`.
+2. The handoff now includes an explicit canonical demo-path statement naming `retrieve relevant material` and tying it to canonical FTS-only excerpt resolution for the retrieval contract.
 3. The handoff now carries the missing AGENTS high-risk sections for early review triggers, stop triggers, checkpoint cadence, and the explicit handoff packet fields.
 4. The metadata-only refresh list now matches the packet files restamped in this fixer pass.
 5. The demo-path mapping is tied directly to the narrowed change: `fetch_excerpt` now fails closed to the canonical FTS lookup path, keeping excerpt provenance deterministic and auditable for `retrieve relevant material`.
