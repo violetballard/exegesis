@@ -82,6 +82,7 @@
   - packet reissue purpose: this final fixer refresh keeps the written handoff aligned with the landed operator-path proof, the explicit canonical demo-path step statement, and the narrowed CLI-compatibility mapping required in review
   - gate rerun verification for this handoff pass was repeated at the current branch tip during the final fixer refresh after adding the explicit `context` alias drift regression
   - final revalidation scope note: this fixer refresh added one focused parser-surface regression in `tests/unit/test_commands_catalog.py` for the reviewer-called `context` alias drift case, then reran all required gates at the post-review-fix branch tip
+  - current fixer rerun status: the required gate sequence passed again on `2026-04-24` at the current branch tip, and this metadata-only refresh binds that clean rerun to the new final fixer HEAD without broadening the reviewed implementation claim
 - risks/blockers:
   - risk: future command-surface edits still need to preserve deterministic ordering and fast-fail parser/catalog drift detection so the patch-review CLI contract stays stable throughout the current manual operator flow
   - blockers: none
