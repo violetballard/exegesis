@@ -69,6 +69,7 @@
 ## Approved Exception Note
 
 - Approved shared-by-approval exception: `tests/unit/test_commands_catalog.py`
+- Approval owner: the integrator-managed branch policy for `codex/feat-commands`
 - Approved by: the integrator/release ownership gate for `codex/feat-commands`
 - Approval recorded in: `scripts/scope-check.sh` under `is_approved_shared_test()` for branch `codex/feat-commands*`, plus the approval-only rule in `THREAD_OWNERSHIP.md`
 - Approval basis: shared test coverage is required to prove the contract guard and remains the only non-lane-owned path in the reviewed slice.
@@ -115,6 +116,7 @@
 ### Canonical demo-path step advanced
 
 - `open project/document`
+- This packet names only the first canonical MVP-loop step, not any downstream retrieval, review, or export step.
 - This change makes `open project/document` more real by keeping the CLI fallback command contract deterministic and failing fast if the parser-facing surface drifts from the canonical command catalog before the first operator step runs.
 - Concrete blocker removal: deterministic parser/catalog validation removes the blocker where the CLI could appear stable by canonical command names while silently losing required parser tokens before `open project/document` begins.
 

@@ -48,6 +48,7 @@ Canonical handoff contract lives in `THREAD_PACKET.md`.
 - Ownership / scope note:
   - lane-owned implementation path: `src/qual/commands/catalog.py`
   - approved shared-by-approval exception: `tests/unit/test_commands_catalog.py`
+  - approval owner: the integrator-managed branch policy for `codex/feat-commands`
   - approval source: approved by the integrator/release ownership gate for `codex/feat-commands`, recorded in `scripts/scope-check.sh` under the branch-scoped shared-test allowlist for `tests/unit/test_commands_catalog.py`
   - approval reference: `THREAD_OWNERSHIP.md` marks non-owned shared paths as approval-only, and this packet binds the specific approved test path to reviewed implementation commit `86e7450a89c33ed158097c4fde9d5fc9edb023ab`
   - integrator-locked edits are not part of this slice
