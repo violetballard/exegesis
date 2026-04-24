@@ -3548,6 +3548,12 @@ def _build_retrieval_provenance_from_payload(payload: dict[str, object]) -> dict
         normalized["primary_excerpt_citation"] = _normalize_excerpt_citation(normalized["primary_excerpt_citation"])
     else:
         normalized["primary_excerpt_citation"] = None
+    first_normalized_doc_citation = (
+        normalized["primary_doc_citation"] if isinstance(normalized.get("primary_doc_citation"), dict) else None
+    )
+    first_normalized_excerpt_citation = (
+        normalized["primary_excerpt_citation"] if isinstance(normalized.get("primary_excerpt_citation"), dict) else None
+    )
     if "retrieved_doc_ids" not in normalized or _is_missing_snapshot_value(normalized.get("retrieved_doc_ids")):
         normalized["retrieved_doc_ids"] = _normalize_text_list_like(
             _first_non_none_value(
@@ -3581,40 +3587,38 @@ def _build_retrieval_provenance_from_payload(payload: dict[str, object]) -> dict
     )
     if isinstance(normalized["basket_promotion"], dict):
         normalized["basket_promotion"].pop("source_bundle_fingerprint", None)
-    if doc_citations:
-        first_doc_citation = doc_citations[0]
-        if isinstance(first_doc_citation, dict):
-            if _is_missing_snapshot_value(normalized.get("primary_doc_id")):
-                normalized["primary_doc_id"] = first_doc_citation.get("doc_id")
-            if _is_missing_snapshot_value(normalized.get("primary_doc_type")):
-                normalized["primary_doc_type"] = first_doc_citation.get("doc_type")
-            if _is_missing_snapshot_value(normalized.get("primary_source_hash")):
-                normalized["primary_source_hash"] = first_doc_citation.get("source_hash")
-            if _is_missing_snapshot_value(normalized.get("primary_doc_fingerprint")):
-                normalized["primary_doc_fingerprint"] = first_doc_citation.get("doc_fingerprint")
-            if _is_missing_snapshot_value(normalized.get("primary_doc_identity_fingerprint")):
-                normalized["primary_doc_identity_fingerprint"] = first_doc_citation.get("doc_identity_fingerprint")
-    if excerpt_citations:
-        first_excerpt_citation = excerpt_citations[0]
-        if isinstance(first_excerpt_citation, dict):
-            if _is_missing_snapshot_value(normalized.get("primary_doc_type")):
-                normalized["primary_doc_type"] = first_excerpt_citation.get("doc_type")
-            if _is_missing_snapshot_value(normalized.get("primary_source_hash")):
-                normalized["primary_source_hash"] = first_excerpt_citation.get("source_hash")
-            if _is_missing_snapshot_value(normalized.get("primary_excerpt_id")):
-                normalized["primary_excerpt_id"] = first_excerpt_citation.get("excerpt_id")
-            if _is_missing_snapshot_value(normalized.get("primary_excerpt_fingerprint")):
-                normalized["primary_excerpt_fingerprint"] = first_excerpt_citation.get("excerpt_fingerprint")
-            if _is_missing_snapshot_value(normalized.get("primary_excerpt_provenance_fingerprint")):
-                normalized["primary_excerpt_provenance_fingerprint"] = first_excerpt_citation.get(
-                    "excerpt_provenance_fingerprint"
-                )
-            if _is_missing_snapshot_value(normalized.get("primary_excerpt_text_hash")):
-                normalized["primary_excerpt_text_hash"] = first_excerpt_citation.get("excerpt_text_hash")
-            if _is_missing_snapshot_value(normalized.get("primary_excerpt_span")):
-                normalized["primary_excerpt_span"] = copy.deepcopy(
-                    _normalize_span_snapshot(first_excerpt_citation.get("span"))
-                )
+    if first_normalized_doc_citation is not None:
+        if _is_missing_snapshot_value(normalized.get("primary_doc_id")):
+            normalized["primary_doc_id"] = first_normalized_doc_citation.get("doc_id")
+        if _is_missing_snapshot_value(normalized.get("primary_doc_type")):
+            normalized["primary_doc_type"] = first_normalized_doc_citation.get("doc_type")
+        if _is_missing_snapshot_value(normalized.get("primary_source_hash")):
+            normalized["primary_source_hash"] = first_normalized_doc_citation.get("source_hash")
+        if _is_missing_snapshot_value(normalized.get("primary_doc_fingerprint")):
+            normalized["primary_doc_fingerprint"] = first_normalized_doc_citation.get("doc_fingerprint")
+        if _is_missing_snapshot_value(normalized.get("primary_doc_identity_fingerprint")):
+            normalized["primary_doc_identity_fingerprint"] = first_normalized_doc_citation.get(
+                "doc_identity_fingerprint"
+            )
+    if first_normalized_excerpt_citation is not None:
+        if _is_missing_snapshot_value(normalized.get("primary_doc_type")):
+            normalized["primary_doc_type"] = first_normalized_excerpt_citation.get("doc_type")
+        if _is_missing_snapshot_value(normalized.get("primary_source_hash")):
+            normalized["primary_source_hash"] = first_normalized_excerpt_citation.get("source_hash")
+        if _is_missing_snapshot_value(normalized.get("primary_excerpt_id")):
+            normalized["primary_excerpt_id"] = first_normalized_excerpt_citation.get("excerpt_id")
+        if _is_missing_snapshot_value(normalized.get("primary_excerpt_fingerprint")):
+            normalized["primary_excerpt_fingerprint"] = first_normalized_excerpt_citation.get("excerpt_fingerprint")
+        if _is_missing_snapshot_value(normalized.get("primary_excerpt_provenance_fingerprint")):
+            normalized["primary_excerpt_provenance_fingerprint"] = first_normalized_excerpt_citation.get(
+                "excerpt_provenance_fingerprint"
+            )
+        if _is_missing_snapshot_value(normalized.get("primary_excerpt_text_hash")):
+            normalized["primary_excerpt_text_hash"] = first_normalized_excerpt_citation.get("excerpt_text_hash")
+        if _is_missing_snapshot_value(normalized.get("primary_excerpt_span")):
+            normalized["primary_excerpt_span"] = copy.deepcopy(
+                _normalize_span_snapshot(first_normalized_excerpt_citation.get("span"))
+            )
     if _is_missing_snapshot_value(normalized.get("primary_doc_type")):
         normalized["primary_doc_type"] = normalized["basket_promotion"].get("doc_type")
     if _is_missing_snapshot_value(normalized.get("primary_doc_id")):
