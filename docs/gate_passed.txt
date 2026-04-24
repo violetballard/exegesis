@@ -3,30 +3,19 @@ Gate Results Summary (as of 2026-04-24)
 
 Feature lane: `codex/feat-retrieval-fts`
 Reviewed implementation head: `adfa8cdadd43747ffbcb612e4151e262b13e52ca`
-Reviewed implementation range: `d7fd5d200358287fa42a18d39e2b277463b9b69f..adfa8cdadd43747ffbcb612e4151e262b13e52ca`
+Reviewed implementation range: `378cf9a74a3658058079a32f186fcd254c4a4034..adfa8cdadd43747ffbcb612e4151e262b13e52ca`
 Canonical demo-path step advanced: `retrieve relevant material`
-Scope: keep the retrieval lane FTS-first for the MVP by making the canonical retrieval/query/export surfaces deterministic for downstream engine flows and by keeping public excerpt lookup on the authoritative SQLite FTS path.
-Current branch tip before this handoff refresh commit: `dd73909afaeada2b8d48e7eade98f9a968636936`
+Scope: keep the retrieval lane FTS-first for the MVP by making the public excerpt lookup path deterministic on the authoritative SQLite FTS path before basket promotion.
+Current branch tip before this handoff refresh commit: `81e954da3f89e7b47b3adb3560d476fef87fdcba`
 
 Files changed in the reviewed implementation range:
 
-* `.codex/kickoff_packets/feat-retrieval-fts.md`
-* `.codex/lane_meta/feat-retrieval-fts.json`
-* `THREAD_PACKET.md`
-* `codex_packet_handoff/tools/planner.py`
-* `src/qual/engine/retrieval/__init__.py`
-* `src/qual/engine/retrieval/embeddings_strategy.py`
-* `src/qual/engine/retrieval/fts_strategy.py`
-* `src/qual/engine/retrieval/pageindex_strategy.py`
-* `src/qual/engine/retrieval/payload.py`
-* `src/qual/retrieval/__init__.py`
 * `src/qual/retrieval/service.py`
-* `tests/unit/test_packet_planner.py`
 * `tests/unit/test_unified_retrieval.py`
 
 Plan-alignment note:
 
-* The additional provenance/export and helper-surface work in this reviewed range is deliberate contract-surface expansion for `retrieve relevant material`, not detached second-order work: engine-side Milestone 3 flows need deterministic retrieval bundles, exported canonical query/retrieve helpers, and FTS-only excerpt rehydration so retrieved material can be consumed reliably.
+* This narrowed slice advances `retrieve relevant material` by removing the `fetch_excerpt` PageIndex fallback, so excerpt provenance is deterministic on the FTS-first retrieval path used before basket promotion and PageIndex-only excerpt IDs fail closed.
 
 Verification:
 
@@ -36,14 +25,14 @@ Verification:
 * `./quality-test.sh` - passed
 * `./typecheck-test.sh` - passed
 * `make ci` - passed
-* SQLite FTS remains authoritative across the reviewed retrieval/query/export surfaces
+* SQLite FTS remains authoritative on the reviewed excerpt lookup surface
 * `fetch_excerpt(...)` resolves through the authoritative SQLite FTS path only, and PageIndex-only excerpt IDs raise `KeyError` under approved shared regression coverage
 
 Roadmap items affected:
 
 * `Milestone 3: Real workflow loop`
 * `feat-retrieval-fts`
-* `retrieve relevant material` now has deterministic FTS-first retrieval/query/export surfaces in the reviewed implementation range
+* `retrieve relevant material` now has deterministic excerpt lookup provenance on the FTS-first path used before basket promotion in the reviewed implementation range
 
 Vision capabilities affected:
 
