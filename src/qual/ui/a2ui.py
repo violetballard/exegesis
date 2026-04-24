@@ -5072,15 +5072,15 @@ def resolve_terminal_artifact_cli_fallback_target(
 ) -> tuple[Any, str]:
     """Resolve the payload and render kind for the explicit CLI fallback path.
 
-    Raw leaf card defaults stay on the card path when no valid kind hint is
-    present, so the shell and CLI fallback can share the same target-selection
-    contract without duplicating heuristics. If the shared render-target
-    resolver fails on a malformed envelope, recover a nested leaf payload
-    before falling back to the card default.
+    Raw leaf card defaults stay on the card path even when a caller supplies a
+    leaf kind hint, so the shell and CLI fallback can share the same
+    target-selection contract without promoting an untyped payload on their
+    own. If the shared render-target resolver fails on a malformed envelope,
+    recover a nested leaf payload before falling back to the card default.
     """
 
     requested_kind = _normalize_terminal_artifact_kind_hint(kind)
-    if requested_kind is None and _should_preserve_raw_leaf_card_default(artifact):
+    if _should_preserve_raw_leaf_card_default(artifact):
         return artifact, "card"
     if requested_kind == "card" and _is_explicit_terminal_artifact_leaf(artifact):
         # Explicit leaf payloads should stay on the card path so the CLI

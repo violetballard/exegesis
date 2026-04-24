@@ -4534,6 +4534,36 @@ class A2UIFallbackSafetyTests(unittest.TestCase):
             (raw_leaf, "card"),
         )
 
+    def test_terminal_artifact_cli_fallback_target_resolver_keeps_ambiguous_raw_leaf_payloads_on_card_default_for_leaf_kind_hints(
+        self,
+    ) -> None:
+        raw_leaf = {
+            "id": "export_document",
+            "label": "Export",
+            "payload": {"format": "md"},
+        }
+
+        self.assertEqual(
+            resolve_terminal_artifact_cli_fallback_target(raw_leaf, kind="action"),
+            (raw_leaf, "card"),
+        )
+        self.assertEqual(
+            resolve_terminal_artifact_cli_fallback_target(raw_leaf, kind="selection"),
+            (raw_leaf, "card"),
+        )
+
+        action_text = render_terminal_cli_fallback(raw_leaf, kind="action")
+        selection_text = render_terminal_cli_fallback(raw_leaf, kind="selection")
+
+        self.assertEqual(action_text, render_terminal_cli_fallback(raw_leaf))
+        self.assertEqual(selection_text, render_terminal_cli_fallback(raw_leaf))
+        self.assertIn("[<missing>] <untitled>", action_text)
+        self.assertIn("[<missing>] <untitled>", selection_text)
+        self.assertNotIn("[ActionRef]", action_text)
+        self.assertNotIn("[SelectionRef]", action_text)
+        self.assertNotIn("[ActionRef]", selection_text)
+        self.assertNotIn("[SelectionRef]", selection_text)
+
     def test_terminal_artifact_cli_fallback_target_resolver_keeps_explicit_typed_leaf_mappings_on_card_path(
         self,
     ) -> None:
@@ -8375,6 +8405,27 @@ class A2UIFallbackSafetyTests(unittest.TestCase):
 
         self.assertEqual(text, "cli-fallback")
         cli_fallback.assert_called_once_with(raw_leaf, kind="card")
+
+    def test_shell_ui_keeps_ambiguous_raw_leaf_payloads_on_card_default_for_leaf_kind_hints(self) -> None:
+        shell = ShellUI()
+        raw_leaf = {
+            "id": "export_document",
+            "label": "Export",
+            "payload": {"format": "md"},
+        }
+
+        action_text = shell.render_artifact(raw_leaf, kind="action")
+        selection_text = shell.render_artifact(raw_leaf, kind="selection")
+        default_text = shell.render_artifact(raw_leaf)
+
+        self.assertEqual(action_text, default_text)
+        self.assertEqual(selection_text, default_text)
+        self.assertIn("[<missing>] <untitled>", action_text)
+        self.assertIn("[<missing>] <untitled>", selection_text)
+        self.assertNotIn("[ActionRef]", action_text)
+        self.assertNotIn("[SelectionRef]", action_text)
+        self.assertNotIn("[ActionRef]", selection_text)
+        self.assertNotIn("[SelectionRef]", selection_text)
 
     def test_shell_ui_prefers_specific_leaf_fallbacks_over_generic_artifact_retry(self) -> None:
         shell = ShellUI()
