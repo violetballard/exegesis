@@ -2,9 +2,9 @@
 
 - Lane: `feat-commands`
 - Branch: `codex/feat-commands`
-- Commit: `dbb8e0155a647bd0eb7f442a1799136ee4d591f4`
+- Commit: `dbb8e0156f3520c759d4d29e2cbbb186013f6df7`
 - Packet refresh role: `reviewer-fix packet refresh`
-- Packet refresh basis: `regenerated on 2026-04-24 for re-review against the fixer delta that locks the live parser surface to the command catalog, proves the reviewer-called-out diff-preview-to-diff token drift now fails fast, states the canonical demo-path step explicitly, and narrows roadmap/vision mapping to Milestone 3 CLI compatibility while the Textual lanes remain disabled`
+- Packet refresh basis: `regenerated on 2026-04-24 for re-review against the fixer delta that locks the live parser surface to the command catalog, proves the reviewer-called-out diff-preview-to-diff token drift now fails fast, states the canonical demo-path step explicitly, and narrows roadmap/vision mapping to the current CLI-first command surface in ROADMAP Milestone 1 and PRODUCT_VISION capability 4`
 - Packet-only refresh files:
   - `THREAD.md`
   - `THREAD_PACKET.md`
@@ -39,8 +39,8 @@
 
 ## Review Basis
 
-- Reviewed implementation commit: `dbb8e0155a647bd0eb7f442a1799136ee4d591f4` (`fix(commands): harden parser surface drift checks`).
-- Packet refresh traceability: the current branch tip for re-review is a packet-only refresh above `dbb8e0155a647bd0eb7f442a1799136ee4d591f4`; no implementation files beyond the reviewed slice changed in this refresh.
+- Reviewed implementation commit: `dbb8e0156f3520c759d4d29e2cbbb186013f6df7` (`fix(commands): harden parser surface drift checks`).
+- Packet refresh traceability: the current branch tip for re-review is a packet-only refresh above `dbb8e0156f3520c759d4d29e2cbbb186013f6df7`; no implementation files beyond the reviewed slice changed in this refresh.
 - Reviewed implementation files:
   - `src/qual/commands/catalog.py`
   - `tests/unit/test_commands_catalog.py`
@@ -69,8 +69,8 @@
 - Direct plan-alignment statement: this change makes the `project-open` bootstrap step more real by failing closed when the parser-facing entrypoint contract no longer matches the cataloged command surface.
 - Concrete smoke-test evidence already in the reviewed slice: `tests/unit/test_commands_catalog.py` proves the canonical smoke contract keeps `project-open` on `("bootstrap", "--project", "demo")` and that the trusted MVP workflow tables still start from the same parser-ready bootstrap argv for both apply and reject branches.
 - Scope-tightening note: this handoff claims only parser-surface drift detection plus focused regression coverage for the primary `project-open` entrypoint contract; it does not claim new retrieval quality, patch semantics, persistence behavior, or export behavior.
-- Traceability note: `dbb8e0155a647bd0eb7f442a1799136ee4d591f4` is the implementation tip for this reviewed slice. `THREAD.md` and `THREAD_PACKET.md` are packet refresh companions that capture the updated reviewer-fix mapping and gate results.
-- Why this is milestone-worthy now instead of second-order cleanup: Milestone 3 is where user-facing contracts are locked and documented intentionally. This guard removes a concrete operator-surface contract risk at the `project-open` entrypoint before the engine-first CLI loop even starts.
+- Traceability note: `dbb8e0156f3520c759d4d29e2cbbb186013f6df7` is the implementation tip for this reviewed slice. `THREAD.md` and `THREAD_PACKET.md` are packet refresh companions that capture the updated reviewer-fix mapping and gate results.
+- Why this is milestone-worthy now instead of second-order cleanup: `ROADMAP.md` Milestone 1 already includes command and diff-preview hardening and requires the manual CLI smoke flow to remain stable. This guard removes a concrete operator-surface contract risk at the `project-open` entrypoint before the loop even starts.
 
 ## Approved Exception Note
 
@@ -108,7 +108,7 @@
 - `./quality-test.sh`: `PASSED`
 - `./typecheck-test.sh`: `PASSED`
 - `make ci`: `PASSED`
-- Gate attribution note: these gates were rerun on 2026-04-24 against the packet-refresh workspace state whose only changed files above `dbb8e0155a647bd0eb7f442a1799136ee4d591f4` are `THREAD.md` and `THREAD_PACKET.md`.
+- Gate attribution note: these gates were rerun on 2026-04-24 against the packet-refresh workspace state whose only changed files above `dbb8e0156f3520c759d4d29e2cbbb186013f6df7` are `THREAD.md` and `THREAD_PACKET.md`.
 
 ### Risks / Blockers
 
@@ -128,17 +128,16 @@
 
 ### Roadmap item(s) affected
 
-- `ROADMAP.md` Milestone 3 `Real workflow loop`: this slice hardens the CLI-first operator contract for the current engine loop while Textual stays scaffolded and disabled.
-- `ROADMAP.md` Milestone 3 scope: `preserve CLI compatibility while the package/layout migration lands`; this packet makes that compatibility fail closed when the parser entrypoint surface drifts from the catalog.
-- `ROADMAP.md` Milestone 3 exit criteria: `CLI can still execute the MVP loop while Textual remains disabled`; this slice protects the first operator-visible `project-open` entrypoint in that loop.
-- `ROADMAP.md` Active now: `feat-commands` remains an active lane, while `feat-console-shell` and `feat-console-workflow` stay disabled and no UI-lane scope is claimed here.
+- `ROADMAP.md` Milestone 1 `Bootstrap Flow Stabilization`: this slice hardens the CLI-first `project-open` entrypoint used to start the current smoke route.
+- `ROADMAP.md` Milestone 1 scope: `Command and diff-preview behavior hardening`; this packet narrows that to parser-surface drift detection for the public command tokens only.
+- `ROADMAP.md` Milestone 1 exit criteria: `Manual CLI smoke flow remains stable`; this slice protects the first operator-visible step in that flow by failing closed when the parser entrypoint surface drifts from the catalog.
+- `ROADMAP.md` MVP focus: `feat-commands` remains an active lane while `feat-console` stays deferred, so no UI-lane scope is claimed here.
 - This diff contributes only the `project-open` entrypoint of the current engine-first CLI smoke route by hardening the public parser surface before the operator proceeds into retrieval, patch-review, persist, and export-handoff.
-- Scope-tightening statement: this is operator-surface support for the engine-first MVP loop while the Textual lanes remain disabled, not new UI work and not broader demo-path expansion beyond the bootstrap contract.
+- Scope-tightening statement: this is operator-surface support for the current CLI smoke route, not new UI work and not broader demo-path expansion beyond the bootstrap contract.
 
 ### Vision capability affected
 
-- `PRODUCT_VISION.md` capability 3 `Canonical engine contract`: CLI compatibility is required while Textual remains disabled, so the bootstrap parser contract for `project-open` must stay deterministic and catalog-locked.
-- `PRODUCT_VISION.md` capability 6 `Auditable state and workflow`: the operator-facing command surface now fails loudly on parser/catalog drift instead of silently accepting a changed public entrypoint.
+- `PRODUCT_VISION.md` capability 4 `Operator-first control surface`: the bootstrap parser contract for `project-open` must stay deterministic and catalog-locked because CLI remains a first-class operator surface.
 
 ### Routing / Provider Impact Note
 
