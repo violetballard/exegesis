@@ -2279,48 +2279,18 @@ class RetrievalService:
         *,
         confidentiality_profile: str = "confidential",
     ) -> dict[str, object]:
-        """Return an excerpt payload, preferring FTS and falling back to PageIndex for compatibility."""
+        """Return an excerpt payload through the canonical FTS-only lookup path."""
 
         normalized_confidentiality_profile = _normalize_supported_value(
             confidentiality_profile,
             field_name="confidentiality_profile",
             allowed=_SUPPORTED_CONFIDENTIALITY_PROFILES,
         )
-        try:
-            return self._lookup_fts_excerpt(
-                excerpt_id,
-                lookup_entrypoint="fetch_excerpt",
-                confidentiality_profile=normalized_confidentiality_profile,
-            )
-        except KeyError:
-            pass
-
-        excerpt = self._docindex.fetch_excerpt(excerpt_id)
-        provenance = excerpt.get("provenance", {})
-        if not isinstance(provenance, dict):
-            provenance = {}
-        normalized_excerpt = dict(excerpt)
-        normalized_excerpt["doc_id"] = provenance.get("doc_id")
-        normalized_excerpt["span"] = copy.deepcopy(provenance.get("span"))
-        normalized_excerpt["text_hash"] = provenance.get("hash")
-        normalized_excerpt["excerpt_text"] = normalized_excerpt.get("text")
-        normalized_excerpt["source_strategy"] = "pageindex"
-        normalized_excerpt["retrieval_source_strategy"] = "pageindex"
-        normalized_excerpt["lookup_resolution"] = "pageindex_fallback"
-        normalized_excerpt["lookup_confidentiality_profile"] = normalized_confidentiality_profile
-        normalized_provenance = copy.deepcopy(provenance)
-        normalized_provenance["source_strategy"] = "pageindex"
-        normalized_provenance["retrieval_source_strategy"] = "pageindex"
-        normalized_provenance["lookup_resolution"] = "pageindex_fallback"
-        normalized_provenance["lookup_confidentiality_profile"] = normalized_confidentiality_profile
-        normalized_excerpt["provenance"] = normalized_provenance
-        self._record_excerpt_lookup_audit(
-            normalized_excerpt,
+        return self._lookup_fts_excerpt(
+            excerpt_id,
             lookup_entrypoint="fetch_excerpt",
-            lookup_resolution="pageindex_fallback",
-            lookup_confidentiality_profile=normalized_confidentiality_profile,
+            confidentiality_profile=normalized_confidentiality_profile,
         )
-        return normalized_excerpt
 
     def _run_fts_hits(self, query: RetrievalQuery, candidate_doc_ids: tuple[str, ...]) -> list[RetrievalHit]:
         match_query, query_terms = self._build_fts_match_query(query.query_text)

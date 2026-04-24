@@ -1325,7 +1325,7 @@ class UnifiedRetrievalTests(unittest.TestCase):
         self.assertEqual(excerpt["provenance"]["excerpt_fingerprint"], result.hits[0].provenance["excerpt_fingerprint"])
         self.assertTrue(excerpt["text"])
 
-    def test_fetch_excerpt_preserves_pageindex_compatibility(self) -> None:
+    def test_fetch_excerpt_requires_an_fts_lookup_hit(self) -> None:
         docindex_service = DocIndexService(self.root, audit_log=self.audit)
         doc_id = "doc-pageindex-only"
         source = (
@@ -1344,16 +1344,8 @@ class UnifiedRetrievalTests(unittest.TestCase):
         )
         excerpt_id = query.hits[0]["excerpt_ids"][0]  # type: ignore[index]
 
-        excerpt = self.service.fetch_excerpt(str(excerpt_id))
-        self.assertEqual(excerpt["excerpt_id"], str(excerpt_id))
-        self.assertEqual(excerpt["doc_id"], doc_id)
-        self.assertEqual(excerpt["source_strategy"], "pageindex")
-        self.assertEqual(excerpt["retrieval_source_strategy"], "pageindex")
-        self.assertEqual(excerpt["lookup_resolution"], "pageindex_fallback")
-        self.assertEqual(excerpt["lookup_confidentiality_profile"], "confidential")
-        self.assertEqual(excerpt["provenance"]["source_strategy"], "pageindex")
-        self.assertEqual(excerpt["provenance"]["lookup_resolution"], "pageindex_fallback")
-        self.assertTrue(excerpt["text"])
+        with self.assertRaisesRegex(KeyError, "unknown excerpt_id"):
+            self.service.fetch_excerpt(str(excerpt_id))
 
     def test_retrieve_fts_excerpt_returns_canonical_fts_payload(self) -> None:
         result = self.service.retrieve_auto(
@@ -2270,9 +2262,6 @@ class UnifiedRetrievalTests(unittest.TestCase):
             self.service.fetch_fts_excerpt(str(excerpt_ids[0]))
         with self.assertRaisesRegex(KeyError, "unknown excerpt_id"):
             self.service.retrieve_fts_excerpt(str(excerpt_ids[0]))
-
-        with self.assertRaisesRegex(KeyError, "unknown excerpt_id"):
-            self.service.fetch_fts_excerpt(str(excerpt_ids[0]))
 
     def test_retrieval_payload_helpers_normalize_tuple_shaped_snapshots(self) -> None:
         payload = {
