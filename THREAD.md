@@ -14,12 +14,12 @@ Canonical handoff contract lives in `THREAD_PACKET.md`.
 - Canonical demo-path step advanced:
   - `open project/document`
 - Concrete blocker removed for Milestone 3:
-  - the CLI-first MVP no longer allows the parser-facing contract for the `open project/document` entry step to drift away from `command_names()` and the canonical command catalog without failing closed.
+  - the CLI-first MVP no longer allows the parser-facing contract for the `open project/document` entry step to drift away from `command_names()` and the canonical command catalog without failing closed, so the first command a CLI operator uses in the demo loop cannot silently advertise a different canonical surface than the one the rest of the loop executes.
 - Why this is milestone-worthy now:
-  - Milestone 3 still depends on the CLI as the active operator surface while Textual remains disabled, so preventing silent contract drift at the demo-path entry step is direct operator-path hardening rather than second-order cleanup.
+  - Milestone 3 still depends on the CLI as the active operator surface while Textual remains disabled, so preventing silent contract drift at the demo-path entry step is direct operator-path hardening for the live CLI-first MVP loop rather than second-order cleanup.
 - Roadmap / vision alignment for this reviewed slice:
-  - `ROADMAP.md` Milestone 3: define and lock user-facing output contracts, specifically the CLI-compatibility and migration-safe-entrypoint slice this diff proves
-  - `PRODUCT_VISION.md` capability 4: keep the CLI as a deterministic canonical operator surface with a stable engine contract while Textual work remains disabled
+  - `ROADMAP.md` Milestone 3: define and lock user-facing output contracts, specifically the CLI-first compatibility requirement that the active operator surface keep stable, migration-safe entrypoints while Textual remains disabled
+  - `PRODUCT_VISION.md` capability 4: keep the CLI as a deterministic canonical operator surface whose engine-facing contract is stable enough to drive the demo path now and `Exegesis Console` later
 - Ownership / scope note:
   - lane-owned implementation path: `src/qual/commands/catalog.py`
   - approved shared-by-approval exception: `tests/unit/test_commands_catalog.py`
