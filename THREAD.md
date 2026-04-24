@@ -56,10 +56,10 @@ Canonical handoff contract lives in `THREAD_PACKET.md`.
   - the active CLI fallback no longer allows the parser-derived command surface to diverge from the declared command catalog, including extra accepted aliases, without an immediate contract failure on the `project-open` / `retrieval` / `patch-review` smoke path
 - Roadmap / vision alignment for this reviewed slice:
   - `ROADMAP.md` active lane keeps `feat-commands` in the current implementation push
-  - `ROADMAP.md` Milestone 5 keeps CLI fallback in scope for the MVP flow with the exit criterion `CLI can execute the MVP flow (vault -> context -> run -> patch -> export) against the same engine PolicyGate`
+  - `ROADMAP.md` Milestone 3 keeps this slice narrowed to `Define and lock user-facing output contracts`
   - `AGENTS.md` operational narrowing rules require each active lane task to name which canonical demo-path step it advances and to state that step explicitly before handoff
-  - `PRODUCT_VISION.md` capability 4 `Operator-first control surface` and capability 5 `Agent-to-UI protocol (A2UI)` are the only capabilities claimed here, specifically `CLI remains a first-class surface for development and reliability` and `CLI remains able to render a text fallback of the same underlying artifacts`
-  - this packet does not claim persistence, audit hooks, auditable generation, retrieval progress, or broader workflow trace records
+  - `PRODUCT_VISION.md` capability 4 `Operator-first control surface` is the only capability claimed here, specifically `CLI remains a first-class surface for development and reliability`
+  - this packet does not claim A2UI payloads, persistence, audit hooks, auditable generation, retrieval progress, or broader workflow trace records
 - Ownership / scope note:
   - lane-owned implementation path: `src/qual/commands/catalog.py`
   - approved shared-by-approval exception: `tests/unit/test_commands_catalog.py`

@@ -93,7 +93,7 @@
 - Smoke-test evidence:
   - `tests/unit/test_commands_catalog.py` proves `command_cli_contract()` returns the declared parser surface and fails fast when parser-surface drift is introduced.
   - `tests/unit/test_commands_catalog.py` also proves the command route coverage stays pinned to the smoke route entry for patch review: `("patch-review", "diff-preview", ("diff-preview", "diff"))` in `test_command_cli_route_summary_tracks_the_smoke_route()` and `test_command_cli_route_contract_tracks_the_smoke_surface()`.
-- Plan-alignment note: this slice keeps the explicit canonical demo-path mapping requested by review, while staying aligned to the current roadmap and vision truth sources. `AGENTS.md` operational narrowing rules require each active lane task to name the canonical demo-path step it advances, and `ROADMAP.md` keeps `feat-commands` in the active implementation emphasis for command and diff-preview hardening. This guard removes a concrete blocker by failing fast if `project-open`, `retrieval`, or `patch-review` command drift would send the operator through the wrong verb set.
+- Plan-alignment note: this slice keeps the explicit canonical demo-path mapping requested by review, while staying aligned to the current roadmap and vision truth sources. `AGENTS.md` operational narrowing rules require each active lane task to name the canonical demo-path step it advances, `ROADMAP.md` keeps `feat-commands` in the active implementation emphasis, and Milestone 3 narrows the roadmap claim to `Define and lock user-facing output contracts`. This guard removes a concrete blocker by failing fast if parser or catalog drift would silently send `project-open`, `retrieval`, or `patch-review` through the wrong CLI fallback verb set.
 
 ## Approved Exception Note
 
@@ -154,21 +154,17 @@
 
 ### Roadmap item(s) affected
 
-- `ROADMAP.md` active lane: `feat-commands`
-- `ROADMAP.md` Milestone 5 scope: `Provide CLI rendering fallback for the same structured payloads`
-- `ROADMAP.md` Milestone 5 exit criterion slice: `CLI can execute the MVP flow (vault -> context -> run -> patch -> export) against the same engine PolicyGate`
-- Scope-tightening statement: this is CLI contract hardening for the `project-open` / `retrieval` / `patch-review` smoke path, preserving the operator-facing bootstrap, context-basket, and diff-preview surfaces rather than broadening workflow behavior.
-- Proven command-surface level only: the claimed MVP-loop support is limited to the tested smoke-route entries `project-open -> bootstrap`, `retrieval -> context-basket`, and `patch-review -> diff-preview/diff`.
+- `ROADMAP.md` active implementation emphasis: `feat-commands`
+- `ROADMAP.md` Milestone 3 scope: `Define and lock user-facing output contracts`
+- Scope-tightening statement: this is CLI command-contract hardening for the `project-open` / `retrieval` / `patch-review` smoke path, preserving the operator-facing bootstrap, context-basket, and diff-preview verb surface rather than broadening workflow behavior.
+- Proven command-surface level only: the claim is limited to the tested smoke-route entries `project-open -> bootstrap`, `retrieval -> context-basket`, and `patch-review -> diff-preview/diff`.
 - Explicit exclusion: `terminal` and `export-handoff` are not part of the approval basis for this packet.
 
 ### Vision capability affected
 
 - `PRODUCT_VISION.md` capability 4 `Operator-first control surface`
-- `PRODUCT_VISION.md` capability 5 `Agent-to-UI protocol (A2UI)`
-- Exact requirements advanced:
-  - `CLI remains a first-class surface for development and reliability.`
-  - `CLI remains able to render a text fallback of the same underlying artifacts.`
-- This slice narrows to the `project-open` / `retrieval` / `patch-review` command contract only. It does not claim persistence, audit hooks, auditable generation, retrieval internals, or broader workflow traceability progress.
+- Exact requirement advanced: `CLI remains a first-class surface for development and reliability.`
+- This slice narrows to the `project-open` / `retrieval` / `patch-review` command contract only. It does not claim A2UI payload generation, persistence, audit hooks, auditable generation, retrieval internals, or broader workflow traceability progress.
 - Evidence anchor: the claimed product-surface support is the tested CLI route coverage for those smoke-path steps in `tests/unit/test_commands_catalog.py`, not an unproven broader engine-loop claim.
 
 ### Routing / Provider Impact Note

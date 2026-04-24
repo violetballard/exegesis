@@ -17,7 +17,7 @@
 - Route-coverage evidence anchor: `tests/unit/test_commands_catalog.py` keeps the CLI-first claim pinned to the tested patch-review route entry `("patch-review", "diff-preview", ("diff-preview", "diff"))` in the smoke-route summary and route-contract assertions.
 - Plan-alignment statement: this is one CLI smoke-path contract-hardening slice inside the active engine-first MVP path. Deterministic CLI contract validation preserves the operator-facing bootstrap, context-basket, and diff-preview command surface for the current `project-open` / `retrieval` / `patch-review` smoke path while Textual remains disabled and interactive clients stay secondary. It does not claim new retrieval internals, patch application, persistence, export, audit-path, or broader workflow behavior.
 - `AGENTS.md` compliance statement: every active lane task in this packet is tied to the canonical `open project/document`, `retrieve`, or `preview and apply or reject a patch` steps, and the packet now states the concrete blocker removed on that path.
-- Current roadmap alignment statement: this slice stays aligned to the current canonical roadmap by narrowing its claim to the active `feat-commands` implementation emphasis and the Milestone 5 CLI-fallback contract work needed for the MVP flow. Deterministic command-contract validation hardens the `project-open` / `retrieval` / `patch-review` boundary while `feat-console` stays deferred. `terminal` and `export-handoff` remain outside the review basis for this packet and appear here only as incidental aliases inside the shared catalog contract. It does not claim retrieval internals, persistence, export, audit-path, or broader workflow behavior.
+- Current roadmap alignment statement: this slice stays aligned to the current canonical roadmap by narrowing its claim to the active `feat-commands` implementation emphasis and the Milestone 3 contract work to `Define and lock user-facing output contracts`. Deterministic command-contract validation hardens the `project-open` / `retrieval` / `patch-review` boundary while `feat-console` stays deferred. `terminal` and `export-handoff` remain outside the review basis for this packet and appear here only as incidental aliases inside the shared catalog contract. It does not claim retrieval internals, persistence, export, audit-path, or broader workflow behavior.
 - Packet refresh traceability: later `docs(commands)` commits are metadata-only and update only `handoff_packets/feat-commands.md`, `THREAD_PACKET.md`, and `THREAD.md`.
 - High-risk kickoff context:
   - lane/owned paths: `src/qual/commands/**`
@@ -27,17 +27,13 @@
   - early review triggers: before first edit to any shared or integrator-locked file, before changing public interfaces or command contracts, and before touching provider routing or config behavior
   - stop triggers: unresolved test, lint, or typecheck failure after `2` focused fix attempts, unresolved `make scope-check`, or budget, size, or time limit hit
 - Roadmap item(s) affected:
-  - `ROADMAP.md` active lane: `feat-commands`
-  - `ROADMAP.md` Milestone 5 scope: `Provide CLI rendering fallback for the same structured payloads`
-  - `ROADMAP.md` Milestone 5 exit criterion slice: `CLI can execute the MVP flow (vault -> context -> run -> patch -> export) against the same engine PolicyGate`
-  - roadmap relevance is limited to the `project-open` / `retrieval` / `patch-review` segment of the CLI-first MVP loop; `terminal` and `export-handoff` are not part of this packet's approval basis
+  - `ROADMAP.md` active implementation emphasis: `feat-commands`
+  - `ROADMAP.md` Milestone 3 scope: `Define and lock user-facing output contracts`
+  - roadmap relevance is limited to the `project-open` / `retrieval` / `patch-review` command surface; `terminal` and `export-handoff` are not part of this packet's approval basis
 - Vision capability affected:
   - `PRODUCT_VISION.md` capability 4 `Operator-first control surface`
-  - `PRODUCT_VISION.md` capability 5 `Agent-to-UI protocol (A2UI)`
-  - specific requirements advanced:
-    - `CLI remains a first-class surface for development and reliability.`
-    - `CLI remains able to render a text fallback of the same underlying artifacts.`
-  - no claim against persistence, audit hooks, auditable generation, retrieval internals, or workflow trace records; this diff does not add them
+  - specific requirement advanced: `CLI remains a first-class surface for development and reliability.`
+  - no claim against A2UI payloads, persistence, audit hooks, auditable generation, retrieval internals, or workflow trace records; this diff does not add them
 - Routing/provider impact note: none; this slice does not touch model routing, provider configuration, or integrator-locked entrypoints.
 - Proposed `README.md` patch text: none.
 
