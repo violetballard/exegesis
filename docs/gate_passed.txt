@@ -1,17 +1,17 @@
-Gate Results Summary (as of 2026-04-24)
+Gate Results Summary (as of 2026-04-23)
 -------------------------------------
 
-Required automated gates reran for the reviewed retrieval branch tip:
+Required automated gates reran for the corrected retrieval handoff:
 
-* current packet refresh tip before this commit `7baf6c00c87f89ef8b80e60b167e03d4eb3f2b88`
-* reviewed implementation head `adfa8cdadd43747ffbcb612e4151e262b13e52ca`
-* reviewed implementation range `378cf9a74a3658058079a32f186fcd254c4a4034..adfa8cdadd43747ffbcb612e4151e262b13e52ca`
-* reviewed implementation files `src/qual/retrieval/service.py` and `tests/unit/test_unified_retrieval.py`
+* current submitted implementation tip before this metadata-only fixer commit `9d9e11a1929dc56e44f5a4d459aa385e7a6ce1e5`
+* reviewed implementation head `9d9e11a1929dc56e44f5a4d459aa385e7a6ce1e5`
+* reviewed implementation range `378cf9a74a3658058079a32f186fcd254c4a4034..9d9e11a1929dc56e44f5a4d459aa385e7a6ce1e5`
+* reviewed implementation files `.codex/kickoff_packets/feat-retrieval-fts.md`, `.codex/lane_meta/feat-retrieval-fts.json`, `THREAD_PACKET.md`, `codex_packet_handoff/tools/planner.py`, `docs/gate_passed.txt`, `src/qual/engine/retrieval/__init__.py`, `src/qual/engine/retrieval/embeddings_strategy.py`, `src/qual/engine/retrieval/fts_strategy.py`, `src/qual/engine/retrieval/interface.py`, `src/qual/engine/retrieval/pageindex_strategy.py`, `src/qual/engine/retrieval/payload.py`, `src/qual/retrieval/__init__.py`, `src/qual/retrieval/service.py`, `tests/unit/test_packet_planner.py`, and `tests/unit/test_unified_retrieval.py`
 * approved shared regression surface `tests/unit/test_unified_retrieval.py`
 
 Gate status:
 
-* `make scope-check` - passed (`no policy for branch 'codex/feat-retrieval-fts'; skipping`)
+* `make scope-check` - passed
 * `./quality-format.sh --check` - passed
 * `./quality-lint.sh` - passed
 * `./quality-test.sh` - passed
@@ -26,10 +26,9 @@ Focused retrieval proof:
 * `python3 -m unittest tests.unit.test_unified_retrieval` - passed
 
 Canonical demo-path step advanced: `retrieve relevant material`.
-Plan-alignment statement: this reviewed retrieval range makes `retrieve relevant material` more real by ensuring excerpt lookup stays on the auditable SQLite FTS path, so PageIndex-only excerpt IDs fail closed under shared regression coverage. That is this slice's direct contribution to Milestone 3's FTS-first structured retrieval requirement.
-Scope note: this packet is intentionally narrow to the reviewed slice `378cf9a7..adfa8cda`: removal of the PageIndex fallback from `fetch_excerpt` and regression coverage proving non-FTS excerpt IDs now raise `KeyError`.
+Plan-alignment statement: the reviewed range `378cf9a7..9d9e11a1` makes `retrieve relevant material` more real by keeping excerpt lookup on the auditable SQLite FTS path and by preserving deterministic query-constraint snapshots in sparse retrieval payloads, so downstream engine flows see stable retrieval state.
+Scope note: this handoff now covers the real cumulative implementation range through `9d9e11a1`, including the substantive post-`adfa8cda` retrieval commits that previously sat outside the packet's claimed scope.
 Budget compliance statement: this packet is shared/high-risk work because it includes the approved shared regression surface `tests/unit/test_unified_retrieval.py`, so the handoff is read against the 4-task cap rather than the default 8-task cap.
-Traceability statement: re-review should validate the actual reviewed implementation range `378cf9a7..adfa8cda`; this packet refresh remains metadata-only and does not broaden that reviewed slice.
-Fixer pass note: this packet records a fresh full-gate rerun on a metadata-only handoff refresh without changing the reviewed implementation range.
+Traceability statement: this fixer commit is metadata-only; re-review should validate the actual reviewed implementation range `378cf9a7..9d9e11a1`, not the fixer commit itself.
 
-The authoritative handoff packet remains `THREAD_PACKET.md`. Reviewer-facing plan alignment for this branch is carried by `THREAD_PACKET.md` and this gate summary.
+The authoritative handoff packet remains `THREAD_PACKET.md`.
