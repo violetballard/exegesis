@@ -44,7 +44,7 @@
 - `ROADMAP.md` Milestone 3 exit criterion `CLI can still execute the MVP loop while Textual remains disabled` because deterministic parser/catalog alignment keeps the operator-facing `open project/document` entry surface stable for the CLI-first loop.
 
 ## Vision Capability Affected
-- `PRODUCT_VISION.md` capability 3 `Canonical engine contract` and its requirement that `CLI compatibility is required while Textual remains disabled` because the existing CLI surface now rejects parser/catalog drift before it can silently change the deterministic command contract the operator relies on.
+- `PRODUCT_VISION.md` capability 4 `Operator-first control surface` because the existing CLI surface now rejects parser/catalog drift before it can silently change the deterministic command contract the operator relies on while `Exegesis Console` remains a later client on top of the same engine contracts.
 
 ## Routing / Provider Impact Note
 - None. This change does not touch routing or provider configuration.
