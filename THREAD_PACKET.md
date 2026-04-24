@@ -4,7 +4,7 @@
 
 - Branch: `codex/feat-commands`
 - Lane/owned paths: `src/qual/commands/**`
-- Scope goal: keep the CLI-first MVP demo loop self-describing by preserving logical flow-step metadata for shim-backed terminal commands used for patch apply/reject, persist, and export handoff.
+- Scope goal: keep the active CLI-first MVP smoke route deterministic at the `preview and apply or reject a patch` step by preserving logical flow-step metadata for shim-backed terminal commands that carry patch apply/reject forward into `persist` and `export-handoff` while the Textual surface stays disabled.
 - Risk reason: reviewed implementation includes one approved shared regression file, `tests/unit/test_commands_catalog.py`.
 
 ### Budget
@@ -57,6 +57,7 @@
 - Hardened `command_cli_contract()` so it rejects parser-surface drift, including alias-only substitutions, token removals, token additions, and entrypoint reordering that would otherwise leave canonical command names unchanged.
 - Fixed `_resolve_demo_loop_token()` so demo-loop resolution preserves the logical demo token as the flow step when a shim-backed terminal command is selected for `apply-patch`, `reject-patch`, or `persist`.
 - Added canonical demo-argv normalization so shim-backed parser invocations map back to the stable workflow token used by the demo-path contracts.
+- Kept the active CLI smoke route self-describing from `patch-review` into `apply-patch` or `reject-patch`, then `persist`, by preventing shim-backed terminal actions from collapsing back to fallback `terminal` metadata.
 - Corrected the downstream demo workflow metadata generated from that loop resolution so the canonical CLI MVP path now reports:
   - `apply-patch` as `apply-patch`
   - `reject-patch` as `reject-patch`
@@ -88,6 +89,8 @@
   - `preview and apply or reject a patch`
 - Concrete blocker removed:
   - shim-backed terminal commands in the demo workflow previously inherited the base `terminal` spec flow step `export-handoff`, and shim-backed parser invocations could canonicalize to the fallback command name instead of the stable workflow token, so follow-up metadata for apply/reject/persist was internally mislabeled even when the argv was correct. That made the CLI demo loop less deterministic for smoke checks and future A2UI/Console consumers reading command workflow contracts.
+- Why this is not second-order work under the current narrowing rules:
+  - the active operator surface is still the CLI while Textual stays disabled, so failing fast on parser/catalog drift and keeping the patch-review to apply/reject workflow tokens stable directly protects the live MVP command contract instead of adding optional catalog hygiene.
 
 ## Handoff Packet
 
@@ -133,6 +136,7 @@
 - `ROADMAP.md` Milestone 2 (`Test Hardening`): adds focused regression coverage for the corrected command-contract metadata.
 - `ROADMAP.md` active MVP emphasis `feat-commands`: keeps the CLI-first command surface stable for the engine-first MVP loop.
 - Canonical demo-path step advanced: `preview and apply or reject a patch`.
+- Canonical smoke-route coverage kept explicit: `project-open -> retrieval -> patch-review -> apply-patch/reject-patch -> persist -> export-handoff`.
 - Concrete blocker removed on that step: shim-backed terminal workflow metadata no longer collapses `apply-patch`, `reject-patch`, and `persist` into `export-handoff`, and parser-surface drift on the exposed CLI contract now fails at validation time instead of silently leaving a stale operator-facing surface in place.
 
 ### Vision capability affected

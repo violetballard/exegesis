@@ -20,6 +20,7 @@ Canonical handoff contract lives in `THREAD_PACKET.md`.
   - canonical demo-path argv now map back to the stable workflow token instead of inheriting the fallback canonical command name for shim-backed terminal actions
   - `apply-patch`, `reject-patch`, and `persist` no longer collapse to `export-handoff` inside workflow, trusted-surface, compatibility, and next-action metadata
   - regression coverage now locks that corrected metadata for the `project-open -> retrieval -> patch-review -> apply/reject -> persist -> export-handoff` demo path
+  - this is first-order MVP contract work, not second-order catalog cleanup, because the CLI remains the active operator surface while Textual stays disabled
 - Exact existing CLI demo-path commands this work hardens:
   - `project-open`
   - `retrieval`
