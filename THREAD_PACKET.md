@@ -6,6 +6,7 @@
 - Reviewed implementation range: `d7fd5d200358287fa42a18d39e2b277463b9b69f..39550c18399a5cba2ffad3e23e5b0d5078b416df`
 - Writable reviewer-facing packet sources refreshed in this fixer pass: `THREAD_PACKET.md`, `docs/gate_passed.txt`
 - Blocked packet mirror files in this fixer pass: `.codex/kickoff_packets/feat-retrieval-fts.md`, `.codex/lane_meta/feat-retrieval-fts.json`
+- Mirror write attempt result in this session: `operation not permitted`
 - Companion fixer-commit note: this fixer pass refreshes only handoff metadata on top of the reviewed implementation head above; it does not change retrieval runtime behavior.
 - Canonical demo-path step advanced: `retrieve relevant material`
 - Demo-path sentence: this branch advances the canonical demo-path step `retrieve relevant material` by keeping excerpt lookup, query normalization, provenance, and retrieval payload reconstruction on the SQLite FTS-first path while rejecting noncanonical and binary lookup inputs without reintroducing PageIndex or embeddings as required runtime paths.

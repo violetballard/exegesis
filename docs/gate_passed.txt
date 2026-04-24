@@ -69,3 +69,4 @@ Blocked mirror files:
 
 * `.codex/kickoff_packets/feat-retrieval-fts.md`
 * `.codex/lane_meta/feat-retrieval-fts.json`
+* mirror write attempt result in this session: `operation not permitted`
