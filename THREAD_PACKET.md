@@ -109,7 +109,7 @@
 - `./quality-format.sh --check`: `PASSED` (`[format] check passed`)
 - `./quality-lint.sh`: `PASSED` (`[lint] passed`)
 - `./quality-test.sh`: `PASSED` (`smoke passed`; `Ran 203 tests ... OK`)
-- `./typecheck-test.sh`: `PASSED` (`[typecheck] compiling Python sources in src/`)
+- `./typecheck-test.sh`: `PASSED` (exit code `0`; output: `[typecheck] compiling Python sources in src/`)
 - `make ci`: `PASSED` (`[devex] CI entrypoint completed`)
 
 ### Risks / Blockers
