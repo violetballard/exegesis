@@ -80,8 +80,8 @@
   - implementation commit note for this fixer pass: the operator-path proof landed in `426f2fe5e`, and this final handoff refresh records a clean gate rerun in the final fixer commit before reporting the final HEAD SHA
   - current packet refresh files: `THREAD.md`, `THREAD_PACKET.md`, and `handoff_packets/feat-commands.md`
   - packet reissue purpose: this final fixer refresh keeps the written handoff aligned with the landed operator-path proof, the explicit canonical demo-path step statement, and the narrowed CLI-compatibility mapping required in review
-  - gate rerun verification for this handoff pass was repeated at the current branch tip during the final fixer refresh
-  - final revalidation scope note: this metadata-only fixer refresh reran all required gates at the post-review-fix branch tip without changing the reviewed implementation slice
+  - gate rerun verification for this handoff pass was repeated at the current branch tip during the final fixer refresh after adding the explicit `context` alias drift regression
+  - final revalidation scope note: this fixer refresh added one focused parser-surface regression in `tests/unit/test_commands_catalog.py` for the reviewer-called `context` alias drift case, then reran all required gates at the post-review-fix branch tip
 - risks/blockers:
   - risk: future command-surface edits still need to preserve deterministic ordering and fast-fail parser/catalog drift detection so the patch-review CLI contract stays stable throughout the current manual operator flow
   - blockers: none
@@ -109,6 +109,6 @@
   - lane-owned implementation path: `src/qual/commands/catalog.py`
   - shared runtime evidence path: `src/main.py` and `src/qual/cli.py`
   - focused regression path: `tests/unit/test_commands_catalog.py`
-  - approval/source note: the reviewed implementation claim is pinned to `src/main.py`, `src/qual/cli.py`, `src/qual/commands/catalog.py`, and `tests/unit/test_commands_catalog.py`; this fixer pass adds operator-path proof in tests and does not change the existing runtime enforcement point; `THREAD.md`, `THREAD_PACKET.md`, and `handoff_packets/feat-commands.md` are metadata-only refreshes and do not broaden the approval basis beyond deterministic CLI contract hardening for migration-safe entrypoints
+  - approval/source note: the reviewed implementation claim is pinned to `src/main.py`, `src/qual/cli.py`, `src/qual/commands/catalog.py`, and `tests/unit/test_commands_catalog.py`; this fixer pass adds one more parser-surface regression test and refreshes the packet wording, but does not change the existing runtime enforcement point or broaden the approval basis beyond deterministic CLI contract hardening for migration-safe entrypoints
   - shared-test approval record: `scripts/scope-check.sh` lists `tests/unit/test_commands_catalog.py` under `is_approved_shared_test()` for branch `codex/feat-commands*`
   - integrator-locked edits: none in this fixer pass; runtime enforcement already existed in `src/qual/cli.py::parse_args()`
