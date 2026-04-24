@@ -2090,7 +2090,9 @@ class UnifiedRetrievalTests(unittest.TestCase):
         self.assertEqual(event["metadata"]["excerpt_text_hash"], excerpt["excerpt_text_hash"])
         self.assertEqual(event["metadata"]["retrieved_doc_ids"], excerpt["retrieved_doc_ids"])
         self.assertEqual(event["metadata"]["retrieved_excerpt_ids"], excerpt["retrieved_excerpt_ids"])
-        self.assertEqual(event["metadata"]["basket_promotion"], excerpt["basket_promotion"])
+        expected_basket_promotion = dict(excerpt["basket_promotion"])
+        expected_basket_promotion.pop("query_text", None)
+        self.assertEqual(event["metadata"]["basket_promotion"], expected_basket_promotion)
         self.assertEqual(event["metadata"]["query_fingerprint"], excerpt["query_fingerprint"])
         self.assertEqual(event["metadata"]["query_scope"], excerpt["query_scope"])
         self.assertEqual(event["metadata"]["query_intent"], excerpt["query_intent"])
@@ -2100,6 +2102,32 @@ class UnifiedRetrievalTests(unittest.TestCase):
         )
         self.assertEqual(event["metadata"]["candidate_doc_count"], excerpt["candidate_doc_count"])
         self.assertEqual(event["metadata"]["fts_shortlist_doc_ids"], excerpt["fts_shortlist_doc_ids"])
+
+    def test_retrieve_fts_excerpt_audit_redacts_plaintext_query_text(self) -> None:
+        query_text = "memo coding comparison"
+        result = self.service.retrieve_auto(
+            RetrievalQuery(
+                query_text=query_text,
+                scope="vault",
+                intent="compare",
+                constraints=RetrievalConstraints(max_results=4),
+                confidentiality_profile="confidential",
+            )
+        )
+
+        excerpt_id = result.hits[0].excerpt_id
+        self.assertIsNotNone(excerpt_id)
+
+        excerpt = self.service.retrieve_fts_excerpt(excerpt_id or "")
+
+        payload = (self.root / "audit_events.jsonl").read_text(encoding="utf-8")
+        self.assertIn("excerpt_lookup_completed", payload)
+        self.assertNotIn(query_text, payload)
+
+        lines = [json.loads(line) for line in payload.splitlines()]
+        event = next(item for item in lines if item["name"] == "excerpt_lookup_completed")
+        self.assertEqual(event["metadata"]["query_fingerprint"], excerpt["query_fingerprint"])
+        self.assertNotIn("query_text", event["metadata"]["basket_promotion"])
 
     def test_normalize_excerpt_payload_backfills_retrieved_ids_for_promotion_and_audit(self) -> None:
         normalized = self.service._normalize_excerpt_payload(

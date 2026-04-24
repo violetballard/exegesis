@@ -1913,6 +1913,11 @@ class RetrievalService:
         basket_promotion = excerpt.get("basket_promotion")
         if not isinstance(basket_promotion, dict):
             basket_promotion = None
+        else:
+            basket_promotion = copy.deepcopy(basket_promotion)
+            # Audit logs must stay auditable without persisting raw retrieval
+            # query text for confidential lookup flows.
+            basket_promotion.pop("query_text", None)
         self._audit.record(
             name="excerpt_lookup_completed",
             metadata={
@@ -1963,7 +1968,7 @@ class RetrievalService:
                 "promotion_fingerprint": (
                     basket_promotion.get("promotion_fingerprint") if basket_promotion is not None else None
                 ),
-                "basket_promotion": copy.deepcopy(basket_promotion),
+                "basket_promotion": basket_promotion,
                 "span": copy.deepcopy(span),
             },
         )
