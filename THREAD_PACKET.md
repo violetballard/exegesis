@@ -22,10 +22,10 @@
 
 ### Planned Tasks (max 4)
 
-1. Prove the existing command-catalog CLI contract in `src/qual/cli.py::parse_args()` is exercised by the real operator entrypoint `src/main.py::_dispatch()`.
-2. Keep `src/qual/commands/catalog.py` as the authoritative grouped parser-surface check behind that active CLI entry path.
-3. Add regression coverage proving drift is rejected from `_dispatch()` and `parse_args()`, not only from a direct helper call.
-4. Re-run the required gates and record the results for the patch-review CLI compatibility slice.
+1. Advance the canonical demo-path step `preview and apply or reject a patch` by proving the existing command-catalog CLI contract in `src/qual/cli.py::parse_args()` is exercised by the real operator entrypoint `src/main.py::_dispatch()`.
+2. Advance the canonical demo-path step `preview and apply or reject a patch` by keeping `src/qual/commands/catalog.py` as the authoritative grouped parser-surface check behind that active CLI entry path.
+3. Advance the canonical demo-path step `preview and apply or reject a patch` by adding regression coverage proving drift is rejected from `_dispatch()` and `parse_args()`, not only from a direct helper call.
+4. Advance the canonical demo-path step `preview and apply or reject a patch` by re-running the required gates and recording the results for the patch-review CLI compatibility slice.
 
 ### Early Review Triggers
 
@@ -50,9 +50,9 @@
 
 - branch name: `codex/feat-commands`
 - tasks completed (numbered implementation work only; metadata-only packet refreshes excluded):
-  1. Proved the existing command-catalog CLI contract from `src/qual/cli.py::parse_args()` is exercised by the active operator entrypoint `src/main.py::_dispatch()`.
-  2. Kept `src/qual/commands/catalog.py` as the authoritative grouped parser-surface contract behind that active CLI check.
-  3. Added focused regression coverage in `tests/unit/test_commands_catalog.py` proving parser/catalog drift is rejected from `src/main.py::_dispatch()` and `parse_args()`, alongside the existing helper-level catalog drift checks.
+  1. Advanced the canonical demo-path step `preview and apply or reject a patch` by proving the existing command-catalog CLI contract from `src/qual/cli.py::parse_args()` is exercised by the active operator entrypoint `src/main.py::_dispatch()`.
+  2. Advanced the canonical demo-path step `preview and apply or reject a patch` by keeping `src/qual/commands/catalog.py` as the authoritative grouped parser-surface contract behind that active CLI check.
+  3. Advanced the canonical demo-path step `preview and apply or reject a patch` by adding focused regression coverage in `tests/unit/test_commands_catalog.py` proving parser/catalog drift is rejected from `src/main.py::_dispatch()` and `parse_args()`, alongside the existing helper-level catalog drift checks.
 - files changed:
   - reviewed implementation evidence: `src/main.py`
   - reviewed implementation evidence: `src/qual/cli.py`
