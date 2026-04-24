@@ -54,7 +54,7 @@
 
 ## Scope Completed
 
-- Hardened `command_cli_contract()` so it rejects parser-surface drift, including alias-only substitutions, token removals, token additions, and entrypoint reordering that would otherwise leave canonical command names unchanged.
+- Hardened `command_cli_contract()` so it rejects catalog-entrypoint projection drift, including alias-only substitutions, token removals, token additions, and entrypoint reordering that would otherwise leave canonical command names unchanged.
 - Fixed `_resolve_demo_loop_token()` so demo-loop resolution preserves the logical demo token as the flow step when a shim-backed terminal command is selected for `apply-patch`, `reject-patch`, or `persist`.
 - Added canonical demo-argv normalization so shim-backed parser invocations map back to the stable workflow token used by the demo-path contracts.
 - Kept the active CLI smoke route self-describing from `patch-review` into `apply-patch` or `reject-patch`, then `persist`, by preventing shim-backed terminal actions from collapsing back to fallback `terminal` metadata.
@@ -86,11 +86,13 @@
   - `persist`
   - `export-handoff`
 - Canonical demo-path step advanced:
-  - `open project/document`
+  - `open project/document` via the `project-open` operator token
 - Broader CLI operator surface kept stable:
   - `project-open -> retrieval -> patch-review -> apply-patch/reject-patch -> persist -> export-handoff`
 - Concrete blocker removed:
-  - parser/catalog drift and shim-backed fallback metadata could silently destabilize the operator-facing CLI entrypoints that the engine-side MVP loop still depends on while Textual stays disabled. This slice keeps the command contract deterministic so `project-open` and the downstream CLI workflow tokens remain explicit instead of drifting behind unchanged canonical command names.
+  - `command_cli_contract()` now fails fast when accepted CLI entrypoints drift behind unchanged canonical command names, including alias-only substitution, token removal/addition, or entrypoint reorder. That removes the concrete blocker on the `open project/document` step because the `project-open` parser surface can no longer silently diverge from the catalog projection.
+- Broader workflow context:
+  - the same reviewed implementation also keeps shim-backed workflow metadata explicit for `apply-patch`, `reject-patch`, `persist`, and `export-handoff` while Textual stays disabled, but that is supporting context rather than the named demo-path step advanced for this handoff.
 - Why this is not second-order work under the current narrowing rules:
   - the active operator surface is still the CLI while Textual stays disabled, so failing fast on parser/catalog drift and keeping the patch-review to apply/reject workflow tokens stable directly protects the live MVP command contract instead of adding optional catalog hygiene.
 
@@ -100,9 +102,9 @@
 
 ### Tasks Completed (Numbered)
 
-1. Verified the CLI contract path now rejects parser-surface drift while preserving canonical command ordering for the exposed command catalog.
+1. Verified the CLI contract path now rejects catalog-entrypoint projection drift while preserving canonical command ordering for the exposed command catalog.
 2. Fixed lane-owned demo-loop resolution so workflow contracts preserve the logical demo token for apply/reject/persist instead of collapsing to `export-handoff`.
-3. Canonicalized full demo-path argv back to the stable workflow token and updated regression coverage to lock both parser-surface drift rejection and the corrected demo-path metadata.
+3. Canonicalized full demo-path argv back to the stable workflow token and updated regression coverage to lock both catalog-entrypoint projection drift rejection and the corrected demo-path metadata.
 4. Re-ran the required gate suite and refreshed the handoff metadata for re-review.
 
 ### Files Changed
@@ -137,9 +139,9 @@
 - `ROADMAP.md` Milestone 1 (`Bootstrap Flow Stabilization`): hardens the `open project/document` entrypoint and the broader CLI smoke flow by keeping the command workflow metadata deterministic.
 - `ROADMAP.md` Milestone 2 (`Test Hardening`): adds focused regression coverage for the corrected command-contract metadata.
 - `ROADMAP.md` active MVP emphasis `feat-commands`: keeps the CLI-first command surface stable for the engine-first MVP loop.
-- Canonical demo-path step advanced: `open project/document`.
+- Canonical demo-path step advanced: `open project/document` via the `project-open` operator token.
 - Canonical smoke-route coverage kept explicit: `project-open -> retrieval -> patch-review -> apply-patch/reject-patch -> persist -> export-handoff`.
-- Concrete blocker removed on that step: parser-surface drift on the exposed CLI contract now fails at validation time instead of silently leaving stale operator entrypoints in place, and the downstream shim-backed workflow tokens remain explicit for the rest of the CLI MVP loop.
+- Concrete blocker removed on that step: catalog-entrypoint projection drift on the exposed CLI contract now fails at validation time for `project-open` and the rest of the exposed CLI surface instead of silently leaving stale catalog-backed operator entrypoints in place through alias-only substitution, token removal/addition, or entrypoint reorder behind unchanged canonical command names.
 
 ### Vision capability affected
 

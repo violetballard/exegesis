@@ -15,7 +15,7 @@ Canonical handoff contract lives in `THREAD_PACKET.md`.
   - `src/qual/commands/catalog.py`
   - `tests/unit/test_commands_catalog.py`
 - Reviewed implementation behavior:
-  - `command_cli_contract()` rejects parser-surface drift, including alias substitution, token removal, token addition, and parser-surface reorder cases that leave canonical command names unchanged
+  - `command_cli_contract()` rejects catalog-entrypoint projection drift, including alias substitution, token removal, token addition, and catalog-entrypoint projection reorder cases that leave canonical command names unchanged
   - shim-backed demo-loop tokens now keep their logical flow-step identity in the canonical CLI MVP workflow contract
   - canonical demo-path argv now map back to the stable workflow token instead of inheriting the fallback canonical command name for shim-backed terminal actions
   - `apply-patch`, `reject-patch`, and `persist` no longer collapse to `export-handoff` inside workflow, trusted-surface, compatibility, and next-action metadata
@@ -38,7 +38,8 @@ Canonical handoff contract lives in `THREAD_PACKET.md`.
   - lane-owned implementation: `src/qual/commands/catalog.py`
   - approved shared regression file: `tests/unit/test_commands_catalog.py`
   - integrator-locked files touched: none
-  - canonical demo-path step advanced: `open project/document`
-  - concrete blocker removed: parser-surface drift on `command_cli_contract()` now fails fast instead of silently leaving stale CLI entrypoints in place, and the broader CLI MVP loop keeps explicit workflow tokens while Textual remains disabled
+  - canonical demo-path step advanced: `open project/document` via the `project-open` operator token
+  - concrete blocker removed on that step: `command_cli_contract()` now rejects catalog-entrypoint projection drift in the accepted CLI entrypoints for `project-open` and the rest of the exposed CLI surface, instead of allowing alias-only substitutions, token additions/removals, or entrypoint reorder to pass behind unchanged canonical command names
+  - broader CLI MVP loop context preserved: shim-backed workflow metadata for `apply-patch`, `reject-patch`, `persist`, and `export-handoff` remains explicit while Textual stays disabled
   - required gates passed: `make scope-check`, `./quality-format.sh --check`, `./quality-lint.sh`, `./quality-test.sh`, `./typecheck-test.sh`, `make ci`
   - metadata refreshed for this handoff: `THREAD.md`, `THREAD_PACKET.md`
