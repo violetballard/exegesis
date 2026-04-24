@@ -559,6 +559,21 @@ class CommandCatalogTests(unittest.TestCase):
                 with self.subTest(token=token):
                     self.assertEqual(parse_args(argv_by_token[token]).command, canonical_name)
 
+    def test_parse_args_rejects_drift_from_live_cli_module_surface(self) -> None:
+        command_catalog.command_cli_contract.cache_clear()
+        with patch(
+            "src.qual.cli.parser_cli_entrypoints",
+            return_value=(
+                ("bootstrap", ("bootstrap",)),
+                ("diff-preview", ("diff-preview",)),
+                ("context-basket", ("context-basket",)),
+                ("terminal", ("terminal",)),
+            ),
+        ):
+            with self.assertRaisesRegex(ValueError, "Command CLI catalog entrypoint projection is inconsistent"):
+                parse_args(["bootstrap"])
+        command_catalog.command_cli_contract.cache_clear()
+
     def test_command_cli_contract_rejects_drift_from_live_cli_module_surface(self) -> None:
         command_catalog.command_cli_contract.cache_clear()
         with patch(

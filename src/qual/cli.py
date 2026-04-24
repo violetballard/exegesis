@@ -65,6 +65,9 @@ def _normalize_argv(argv: list[str] | None) -> list[str]:
 
 
 def parse_args(argv: list[str] | None = None) -> CLIArgs:
+    from src.qual.commands.catalog import command_cli_contract
+
+    command_cli_contract()
     parser = argparse.ArgumentParser(prog="qual-bootstrap")
     sub = parser.add_subparsers(dest="command")
 
