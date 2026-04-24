@@ -3174,14 +3174,19 @@ class RetrievalService:
             normalized.get("lookup_resolution", provenance.get("lookup_resolution", lookup_resolution))
         )
         normalized["lookup_resolution"] = canonical_lookup_resolution
-        canonical_lookup_confidentiality_profile = _normalize_lookup_confidentiality_profile_payload(
+        explicit_lookup_confidentiality_profile = _normalize_lookup_confidentiality_profile_payload(
             normalized.get(
                 "lookup_confidentiality_profile",
                 provenance.get("lookup_confidentiality_profile", lookup_confidentiality_profile),
             )
         )
-        if canonical_lookup_confidentiality_profile is not None:
-            normalized["lookup_confidentiality_profile"] = canonical_lookup_confidentiality_profile
+        canonical_lookup_confidentiality_profile = explicit_lookup_confidentiality_profile
+        if canonical_lookup_confidentiality_profile is None:
+            # Fail closed so sparse lookup payloads always carry an explicit
+            # confidentiality contract for downstream promotion and audit
+            # consumers, even when the original lookup metadata is absent.
+            canonical_lookup_confidentiality_profile = "confidential"
+        normalized["lookup_confidentiality_profile"] = canonical_lookup_confidentiality_profile
         excerpt_text = _optional_text(normalized.get("text")) or _optional_text(normalized.get("excerpt_text"))
         if excerpt_text is not None:
             # Keep lookup payloads aligned with excerpt-hit payload naming so
@@ -3256,7 +3261,7 @@ class RetrievalService:
             provenance.get("query_confidentiality_profile"),
         )
         explicit_title_hint_confidentiality_profile = (
-            canonical_lookup_confidentiality_profile
+            explicit_lookup_confidentiality_profile
             or _normalized_profile_text(normalized.get("query_confidentiality_profile"))
             or _normalized_profile_text(provenance.get("query_confidentiality_profile"))
         )
