@@ -615,6 +615,8 @@ class RetrievalConstraints:
     prefer_exact_matches: bool = False
 
     def __post_init__(self) -> None:
+        if isinstance(self.max_results, bool):
+            raise TypeError("max_results must not be a boolean")
         if self.max_results < 1:
             raise ValueError("max_results must be greater than zero")
         object.__setattr__(self, "doc_types", _canonicalize_doc_types(self.doc_types))
@@ -630,6 +632,14 @@ class RetrievalConstraints:
         if isinstance(self.section_hint, (bytes, bytearray)):
             raise TypeError("section_hint must be a text string, not bytes")
         object.__setattr__(self, "section_hint", _normalized_query_hint_text(self.section_hint))
+        normalized_require_citations = _optional_bool(self.require_citations)
+        if normalized_require_citations is None:
+            raise ValueError(f"unsupported boolean value: {self.require_citations}")
+        object.__setattr__(self, "require_citations", normalized_require_citations)
+        normalized_prefer_exact_matches = _optional_bool(self.prefer_exact_matches)
+        if normalized_prefer_exact_matches is None:
+            raise ValueError(f"unsupported boolean value: {self.prefer_exact_matches}")
+        object.__setattr__(self, "prefer_exact_matches", normalized_prefer_exact_matches)
 
 
 @dataclass(frozen=True)
