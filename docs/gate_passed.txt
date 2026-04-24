@@ -3,7 +3,7 @@ Gate Results Summary (as of 2026-04-24)
 
 Feature lane: `codex/feat-retrieval-fts`
 Packet role: `metadata-only reviewer-fix finalization`
-Packet refresh trace anchor before this fixer commit: `8f9cf40dc34c42d31418cd5c6907cbf182c5c971`
+Packet refresh trace anchor before this fixer commit: `8a545525c6fbaa908a82d249d07c3cbb85cb7add`
 Reviewed implementation head: `adfa8cdadd43747ffbcb612e4151e262b13e52ca`
 Reviewed implementation range: `378cf9a74a3658058079a32f186fcd254c4a4034..adfa8cdadd43747ffbcb612e4151e262b13e52ca`
 Canonical demo-path step advanced: `retrieve relevant material`
