@@ -5,6 +5,7 @@
 - Commit: `f8d860ed9f6299f0169c4f21321ac5f37c949fd3`
 - Packet refresh role: `metadata-only reviewer-fix handoff refresh`
 - Packet refresh basis: `narrowed to the reviewer-approved implementation basis on 2026-04-24`
+- Packet revalidation: `required gates re-run on 2026-04-23 at metadata tip 444b03876f4fbf4f08d0b8695d8f0f11ac20f6d1`
 
 ## Thread Kickoff (High-Risk)
 
@@ -44,6 +45,7 @@
   - `src/qual/commands/catalog.py` rejects parser/catalog drift by raising `ValueError` when canonical names or declared CLI entrypoints diverge from the validated catalog projection.
   - `tests/unit/test_commands_catalog.py` adds regression coverage for canonical ordering and parser/catalog drift rejection.
 - Later handoff refresh commits are documentation-only and do not broaden the approval basis described here.
+- Current metadata tip `444b03876f4fbf4f08d0b8695d8f0f11ac20f6d1` only revalidates that packet against fresh local gate runs.
 
 ## Scope Completed
 
@@ -54,9 +56,9 @@
 
 ## Canonical Demo-Path Mapping
 
-- Canonical demo-path step advanced: `preview and apply or reject a patch`.
-- Concrete blocker removed: parser/catalog drift could silently reorder or drop the canonical CLI token used to enter the patch-review surface, which weakens the CLI contract the MVP loop depends on before an operator can apply or reject a patch.
-- Direct plan-alignment statement: this slice makes the canonical `preview and apply or reject a patch` step more real by ensuring the CLI parser surface stays pinned to the validated command catalog instead of drifting silently.
+- Canonical demo-path step advanced: `preview and apply or reject a patch`, specifically the `patch-review` entry step reached through the canonical CLI tokens that precede the `apply-patch` / `reject-patch` branch.
+- Concrete blocker removed: parser/catalog drift could silently change or drop the canonical `review-patch` / `diff` entry token for `patch-review`, which blocks the CLI-first MVP loop at the exact point where an operator needs to open the reviewed patch before choosing `apply-patch` or `reject-patch`.
+- Direct plan-alignment statement: this slice makes the canonical `preview and apply or reject a patch` step more real by pinning the `patch-review` CLI entry surface to the validated command catalog instead of letting parser/catalog drift break that review handoff silently.
 - Scope guard: this packet does not claim broader workflow progress beyond the named canonical patch step.
 
 ## Approved Exception Note
