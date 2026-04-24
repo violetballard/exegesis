@@ -998,6 +998,26 @@ class A2UIFallbackSafetyTests(unittest.TestCase):
         self.assertEqual(cli_fingerprints["renderer_entrypoints_contract_fingerprint"], fingerprint)
         self.assertEqual(a2ui_fingerprints["renderer_entrypoints_contract"], fingerprint)
         self.assertEqual(a2ui_fingerprints["renderer_entrypoints_contract_fingerprint"], fingerprint)
+        self.assertEqual(
+            a2ui_fingerprints["terminal_artifact_renderer_entrypoints"],
+            fingerprint,
+        )
+        self.assertEqual(
+            a2ui_fingerprints["terminal_artifact_renderer_entrypoints_contract"],
+            fingerprint,
+        )
+        self.assertEqual(
+            a2ui_fingerprints["terminal_artifact_renderer_entrypoints_contract_fingerprint"],
+            fingerprint,
+        )
+        self.assertEqual(
+            a2ui_fingerprints["terminal_artifact_renderer_entrypoints_contract_manifest"],
+            fingerprint,
+        )
+        self.assertEqual(
+            a2ui_fingerprints["terminal_artifact_renderer_entrypoints_contract_manifest_fingerprint"],
+            fingerprint,
+        )
 
     def test_terminal_artifact_cli_fallback_entrypoint_contract_is_versioned_and_fingerprintable(
         self,

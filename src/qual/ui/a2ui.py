@@ -630,6 +630,14 @@ def describe_a2ui_contract_fingerprints(
             ("action_contract_manifest", action_contract_fingerprint()),
             ("selection_contract", selection_contract_fingerprint()),
             ("selection_contract_manifest", selection_contract_fingerprint()),
+            (
+                "terminal_artifact_renderer_entrypoints_contract",
+                terminal_artifact_renderer_entrypoints_contract_fingerprint(),
+            ),
+            (
+                "terminal_artifact_renderer_entrypoints_contract_manifest",
+                terminal_artifact_renderer_entrypoints_contract_fingerprint(),
+            ),
         )
     if include_terminal_artifact_cli_fallback_target:
         fingerprints["terminal_artifact_cli_fallback_target"] = (
@@ -965,6 +973,10 @@ def describe_a2ui_contract_fingerprints(
             (
                 "card_hint_recovery_policy_contract_manifest",
                 card_hint_recovery_policy_contract_fingerprint_value,
+            ),
+            (
+                "terminal_artifact_renderer_entrypoints",
+                terminal_artifact_renderer_entrypoints_contract_fingerprint(),
             ),
             ("renderer_entrypoints", terminal_artifact_renderer_entrypoints_contract_fingerprint()),
             (
