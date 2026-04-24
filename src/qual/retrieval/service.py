@@ -1522,6 +1522,11 @@ class RetrievalResult:
                 if primary_excerpt_hit is not None
                 else primary_doc_hit.source_strategy if primary_doc_hit is not None else None
             ),
+            "retrieval_source_strategy": (
+                primary_excerpt_hit.source_strategy
+                if primary_excerpt_hit is not None
+                else primary_doc_hit.source_strategy if primary_doc_hit is not None else None
+            ),
             "matched_terms": copy.deepcopy(
                 primary_excerpt_provenance.get("matched_terms")
                 if primary_excerpt_hit is not None
@@ -4080,6 +4085,13 @@ class RetrievalService:
             "span": copy.deepcopy(RetrievalService._canonicalize_span(excerpt.get("span"))),
             "source_strategy": _normalize_source_strategy(
                 excerpt.get("source_strategy") or provenance.get("source_strategy") or _FTS_SOURCE_STRATEGY
+            ),
+            "retrieval_source_strategy": _normalize_source_strategy(
+                excerpt.get("retrieval_source_strategy")
+                or provenance.get("retrieval_source_strategy")
+                or excerpt.get("source_strategy")
+                or provenance.get("source_strategy")
+                or _FTS_SOURCE_STRATEGY
             ),
             "matched_terms": copy.deepcopy(_normalize_matched_terms(provenance.get("matched_terms"))),
             "match_count": provenance.get("match_count"),

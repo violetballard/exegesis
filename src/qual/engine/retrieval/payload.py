@@ -1452,11 +1452,18 @@ def _normalize_basket_promotion_snapshot(snapshot: object) -> dict[str, object]:
         normalized["promotion_source"] = promotion_source
     elif "promotion_source" in normalized:
         normalized["promotion_source"] = None
-    source_strategy = _normalize_optional_casefold_text(normalized.get("source_strategy"))
+    source_strategy = _normalize_optional_casefold_text(
+        normalized.get("source_strategy") or normalized.get("retrieval_source_strategy")
+    )
     if source_strategy is not None:
         normalized["source_strategy"] = source_strategy
+        normalized["retrieval_source_strategy"] = source_strategy
     elif "source_strategy" in normalized:
         normalized["source_strategy"] = None
+        if "retrieval_source_strategy" in normalized:
+            normalized["retrieval_source_strategy"] = None
+    elif "retrieval_source_strategy" in normalized:
+        normalized["retrieval_source_strategy"] = None
     retrieval_backend = _normalize_optional_casefold_text(normalized.get("retrieval_backend"))
     if retrieval_backend is not None:
         normalized["retrieval_backend"] = retrieval_backend
@@ -1868,8 +1875,24 @@ def _build_basket_promotion_from_payload(payload: dict[str, object]) -> dict[str
         ),
         "source_strategy": _first_text_value(
             first_excerpt_hit.get("source_strategy") if isinstance(first_excerpt_hit, dict) else None,
+            first_excerpt_hit.get("retrieval_source_strategy") if isinstance(first_excerpt_hit, dict) else None,
             first_doc_hit.get("source_strategy") if isinstance(first_doc_hit, dict) else None,
+            first_doc_hit.get("retrieval_source_strategy") if isinstance(first_doc_hit, dict) else None,
             first_excerpt_provenance.get("source_strategy"),
+            first_excerpt_provenance.get("retrieval_source_strategy"),
+            first_doc_provenance.get("source_strategy"),
+            first_doc_provenance.get("retrieval_source_strategy"),
+            first_excerpt_citation.get("source_strategy"),
+            first_doc_citation.get("source_strategy"),
+        ),
+        "retrieval_source_strategy": _first_text_value(
+            first_excerpt_hit.get("retrieval_source_strategy") if isinstance(first_excerpt_hit, dict) else None,
+            first_excerpt_hit.get("source_strategy") if isinstance(first_excerpt_hit, dict) else None,
+            first_doc_hit.get("retrieval_source_strategy") if isinstance(first_doc_hit, dict) else None,
+            first_doc_hit.get("source_strategy") if isinstance(first_doc_hit, dict) else None,
+            first_excerpt_provenance.get("retrieval_source_strategy"),
+            first_excerpt_provenance.get("source_strategy"),
+            first_doc_provenance.get("retrieval_source_strategy"),
             first_doc_provenance.get("source_strategy"),
             first_excerpt_citation.get("source_strategy"),
             first_doc_citation.get("source_strategy"),
