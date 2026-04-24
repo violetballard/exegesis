@@ -3,7 +3,7 @@
 - Lane: `feat-retrieval-fts`
 - Branch: `codex/feat-retrieval-fts`
 - Commit: `adfa8cdadd43747ffbcb612e4151e262b13e52ca`
-- Packet refresh commit: `563bebdadd7433fd353fa0da5c098f673e87bf56`
+- Packet refresh commit: `reported in final fixer handoff`
 - Packet refresh role: `metadata-only reviewer-fix finalization`
 - Reviewed implementation range: `378cf9a74a3658058079a32f186fcd254c4a4034..adfa8cdadd43747ffbcb612e4151e262b13e52ca`
 
