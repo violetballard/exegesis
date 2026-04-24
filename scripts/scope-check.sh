@@ -95,7 +95,7 @@ is_allowed() {
       .codex/*|.agents/*|.git-*/**|.git-*/?|.git-box/*|.git-local/*|.git-real/*|.git-copy/*|.git-local-root/*|.git-worktree-local/*|.pycache_global/*|.git.box|.git.box-backup|.git.original_box|.git_alt_index|.git.orig|.git.remote)
         return 0
         ;;
-      handoff/*|handoff.block/*|handoffs/*)
+      handoff/*|handoff.block/*|handoffs/*|handoff_packets/*)
         return 0
         ;;
       THREAD.md|THREAD_PACKET.md|AGENTS.md|INTEGRATION.md)
