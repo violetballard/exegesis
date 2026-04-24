@@ -53,9 +53,9 @@
 ## Canonical Demo-Path Mapping
 
 - Canonical demo-path step advanced: `open project/document`.
-- Concrete blocker removed: before this guard, the CLI-first MVP could ship a parser-facing command surface whose canonical-name order no longer matched the underlying command catalog, which makes the `open project/document` entry step vulnerable to migration drift between declared commands and the parser contract.
-- Direct plan-alignment statement: this change makes `open project/document` more real by forcing the CLI contract used at the demo-path entrypoint to stay identical to the canonical catalog instead of letting catalog drift hide behind a passing lookup table.
-- Why this is milestone-worthy now: `AGENTS.md` narrows active MVP work to engine stability, FTS-first retrieval, and A2UI contracts with CLI fallback; while Textual is disabled, a fail-closed guard on the CLI entry contract is part of keeping the active operator path trustworthy, not second-order cleanup.
+- Concrete blocker removed: before this guard, the CLI-first MVP could keep parsing `bootstrap` while the parser-facing canonical-name list drifted away from `command_names()`, which turns the demo-path entry step into a migration-risk surface where the advertised canonical command contract no longer matches the catalog the rest of the CLI loop depends on.
+- Direct plan-alignment statement: this change makes `open project/document` more real by forcing the CLI contract at the demo-path entrypoint to fail closed whenever the parser surface and canonical command catalog stop matching.
+- Why this is milestone-worthy now instead of second-order cleanup: `AGENTS.md` says contract work counts only when it removes a concrete blocker on the canonical demo path. This guard does that because Milestone 3 still relies on the CLI as the active operator surface while Textual is disabled, so preventing silent contract drift at the first demo-path step is operator-path hardening, not broad cleanup.
 
 ## Approved Exception Note
 
@@ -102,12 +102,12 @@
 
 ### Roadmap item(s) affected
 
-- `ROADMAP.md` Milestone 3: output contracts are test-covered and backward-compatible by policy, and the CLI can execute the MVP flow against the same engine PolicyGate.
-- This diff contributes only that CLI-compatibility and migration-safe-entrypoint slice by preventing parser-surface canonical names from drifting away from the command catalog.
+- `ROADMAP.md` Milestone 3: define and lock user-facing output contracts.
+- This diff contributes only the Milestone 3 CLI-compatibility and migration-safe-entrypoint slice by preventing parser-surface canonical names from drifting away from the canonical command catalog.
 
 ### Vision capability affected
 
-- `PRODUCT_VISION.md` capability 4 `Operator-first control surface`: the CLI is the active operator surface while Textual work is deferred, so its canonical engine contract must stay deterministic and migration-safe.
+- `PRODUCT_VISION.md` capability 4 `Operator-first control surface`: the CLI is the active operator surface while Textual work is deferred, so its canonical engine contract and CLI compatibility need to stay deterministic and migration-safe.
 
 ### Routing / Provider Impact Note
 
