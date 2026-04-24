@@ -6,7 +6,7 @@ Canonical handoff contract lives in `THREAD_PACKET.md`.
 
 ## Current Review Focus
 
-- Packet refresh status: fixer committed the reviewer-required parser-surface guard and is refreshing the packet metadata so re-review points to one exact implementation commit.
+- Packet refresh status: fixer reran the full required gate set after the reviewer-required parser-surface guard and is refreshing the packet metadata so re-review points to one exact implementation commit.
 - Exact implementation basis for re-review:
   - `2c5e1e6eeaf7a39a30f8f542a827110d681c1399` (`fix(commands): derive CLI contract from live parser projection`)
 - Approval basis pin for re-review:
@@ -16,7 +16,7 @@ Canonical handoff contract lives in `THREAD_PACKET.md`.
 - Current packet refresh traceability:
   - the packet-refresh commit updates only `THREAD.md`, `THREAD_PACKET.md`, and `handoff_packets/feat-commands.md`
 - Post-fixer verification note:
-- `TIMESTAMP_UTC` full required gate rerun confirmed this packet refresh matches the current branch state while the reviewed implementation basis remains pinned to `2c5e1e6eeaf7a39a30f8f542a827110d681c1399`
+- `2026-04-24T11:19:02Z UTC` full required gate rerun confirmed this packet refresh matches the current branch state while the reviewed implementation basis remains pinned to `2c5e1e6eeaf7a39a30f8f542a827110d681c1399`
 - High-risk kickoff context:
   - scope goal: make the canonical `continue working without losing context` step more real by removing a concrete blocker at the CLI fallback boundary: silent parser/catalog drift on the operator-visible `project-open` / `retrieval` / `patch-review` command surface
   - risk reason: the reviewed slice touches the command contract in `src/qual/commands/catalog.py` and a shared-by-approval regression test file

@@ -23,7 +23,7 @@
 - Current roadmap alignment statement: this slice stays aligned to the current canonical roadmap by narrowing its claim to Milestone 3 `Real workflow loop`, where `feat-commands` is the CLI compatibility and migration-safe entrypoint lane and the relevant exit criterion is that `CLI can still execute the MVP loop while Textual remains disabled`. Deterministic command-contract validation hardens the `project-open` / `retrieval` / `patch-review` boundary while `feat-console` stays deferred. `terminal` and `export-handoff` remain outside the review basis for this packet and appear here only as incidental aliases inside the shared catalog contract. It does not claim retrieval internals, persistence, export, audit-path, or broader workflow behavior.
 - Packet refresh traceability: the current packet-refresh commit is metadata-only and updates only `handoff_packets/feat-commands.md`, `THREAD_PACKET.md`, and `THREAD.md`.
 - Parser-surface evidence statement: `command_cli_contract()` now validates the full authoritative parser projection and derives `tokens` plus `lookup_table` from that same projection, so the implementation claim is full parser-surface drift detection rather than canonical-name ordering alone.
-- Re-review refresh note: packet metadata refreshed on `2026-04-24` to pin re-review to the single implementation commit above, then re-verified after rerunning the full required local gates at `2026-04-24T11:16:57Z UTC`.
+- Re-review refresh note: packet metadata refreshed on `2026-04-24` to pin re-review to the single implementation commit above, then re-verified after rerunning the full required local gates at `2026-04-24T11:19:02Z UTC`.
 - High-risk kickoff context:
   - lane/owned paths: `src/qual/commands/**`
   - scope goal: make the canonical `continue working without losing context` step more real by removing a concrete blocker at the CLI fallback boundary: silent parser/catalog drift on the operator-visible `project-open` / `retrieval` / `patch-review` command surface
@@ -63,7 +63,7 @@
 - `./quality-test.sh` -> passed
 - `./typecheck-test.sh` -> passed
 - `make ci` -> passed
-- Verification rerun timestamp: `2026-04-24T11:16:57Z UTC`
+- Verification rerun timestamp: `2026-04-24T11:19:02Z UTC`
 
 ## Risks / Blockers
 - Risks: future command-surface changes now need to keep the CLI lookup-table behavior and the shared regression suite aligned so the canonical command contract stays catalog-locked.
