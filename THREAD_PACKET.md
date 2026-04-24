@@ -3,7 +3,7 @@
 - Lane: `feat-commands`
 - Branch: `codex/feat-commands`
 - Commit: `f8d860ed9f6299f0169c4f21321ac5f37c949fd3`
-- Packet refresh role: `reviewer-fix handoff narrowing`
+- Packet refresh role: `reviewer-fix final gate rerun`
 - Review scope: narrow Milestone 3 CLI-contract hardening in `src/qual/commands/catalog.py`, plus focused regression coverage in `tests/unit/test_commands_catalog.py`.
 - Canonical demo-path step advanced: the Milestone 3 CLI-first `open project/document` control surface that keeps the operator in the manual MVP loop while Textual remains disabled
 - Canonical MVP flow context: `open project/document -> retrieve relevant material -> preview and apply or reject a patch` for the manual CLI smoke flow, with this slice specifically hardening the parser-backed command surface that starts and preserves that operator path
@@ -12,6 +12,7 @@
 - Demo-path sentence: this change makes the CLI-first MVP path more real by ensuring the concrete parser-backed command entrypoints an operator uses to open project or document state cannot silently drift away from the canonical catalog before the rest of the loop runs.
 - Concrete blocker removed: before this slice, parser drift could change the accepted CLI surface without a hard failure, so an operator could start the manual MVP loop through an `open project/document` surface that had silently drifted away from the canonical catalog.
 - Review basis scope: keep implementation and approval claims pinned to reviewed commit `f8d860ed9f6299f0169c4f21321ac5f37c949fd3` and its two implementation files only: `src/qual/commands/catalog.py` and `tests/unit/test_commands_catalog.py`.
+- Final fixer note: this packet refresh exists only to record the green rerun of the required gates after the reviewer-requested demo-path mapping was added; the reviewed implementation commit remains `f8d860ed9f6299f0169c4f21321ac5f37c949fd3`.
 
 ## Thread Kickoff (High-Risk)
 

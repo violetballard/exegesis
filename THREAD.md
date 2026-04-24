@@ -13,6 +13,7 @@ Canonical handoff contract lives in `THREAD_PACKET.md`.
 - Explicit re-review statement: this `feat-commands` slice is not internal contract cleanup for its own sake; it is in-plan Milestone 3 CLI-first hardening because `command_cli_contract()` now fails fast when parser/catalog drift would otherwise silently break the operator-facing CLI surface that the `open project/document` entry step and the rest of the manual MVP loop depend on while Textual remains disabled.
 - Demo-path sentence: this change makes the CLI-first MVP path more real by ensuring the concrete parser-backed command entrypoints an operator uses to open project or document state cannot silently drift away from the canonical catalog before the rest of the loop runs.
 - Concrete blocker removed: before this change, parser drift could silently desynchronize the CLI contract from the canonical catalog, so an operator could start the manual MVP loop through an `open project/document` surface that no longer matched the expected contract.
+- Final fixer note: this pointer remains implementation-scoped to reviewed commit `f8d860ed9f6299f0169c4f21321ac5f37c949fd3`; the current branch tip only refreshes the handoff after a green rerun of the required gates.
 - Reviewed implementation commit: `f8d860ed9f6299f0169c4f21321ac5f37c949fd3`
 - Reviewed implementation files: `src/qual/commands/catalog.py` and `tests/unit/test_commands_catalog.py`
 
