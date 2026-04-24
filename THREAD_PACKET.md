@@ -7,6 +7,12 @@
 - Scope goal: remove the parser/catalog drift blocker on the canonical `preview and apply or reject a patch` demo-path step by proving the existing catalog-backed guard in `src/qual/cli.py::parse_args()` rejects drift from the top-level operator path `src/main.py::_dispatch()`, without adding new engine behavior.
 - Risk reason: this is a high-risk command-contract handoff because it relies on the public command contract in `src/qual/commands/catalog.py` and the approved shared regression path `tests/unit/test_commands_catalog.py`, and drift at operator-facing CLI entrypoints would directly weaken the current manual CLI smoke flow.
 
+### Scope / Plan Alignment
+
+- Canonical demo-path step made more real: `preview and apply or reject a patch`, because this slice proves the current CLI fallback rejects parser/catalog drift from `src/main.py::_dispatch()` before the operator reaches the review/apply entrypoints that Milestone 3 still depends on while Textual remains disabled.
+- Explicit handoff sentence: this handoff advances the canonical demo-path step `preview and apply or reject a patch` by proving the current CLI fallback rejects parser/catalog drift before an operator reaches `preview`, `apply`, or `reject` from the real `_dispatch() -> parse_args()` path.
+- High-risk planned-task framing: prove the real operator path exercises the existing `parse_args()` guard, keep `src/qual/commands/catalog.py` authoritative for canonical command names, add focused regression coverage for drift rejection, and rerun the required gates for this narrow CLI-compatibility slice.
+
 ### Budget
 
 - Task budget: `4`
