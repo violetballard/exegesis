@@ -3,13 +3,13 @@ Gate Results Summary (as of 2026-04-24)
 
 Feature lane: `codex/feat-retrieval-fts`
 Packet role: `metadata-only reviewer-fix finalization`
-Packet refresh trace anchor before this fixer attempt: `65199b1a7bf57dd9a2c2fc15ba29c09402a7e7ff`
+Packet refresh trace anchor before this fixer pass: `ee2befa746328053cd9917307f87ae68ae3bc75e`
 Reviewed implementation head: `adfa8cdadd43747ffbcb612e4151e262b13e52ca`
 Reviewed implementation range: `378cf9a74a3658058079a32f186fcd254c4a4034..adfa8cdadd43747ffbcb612e4151e262b13e52ca`
 Canonical demo-path step advanced: `retrieve relevant material`
-Plan-alignment statement: this slice advances `retrieve relevant material` by making excerpt lookup auditable and fail-closed on the FTS-first engine path used before basket promotion.
+Plan-alignment statement: this slice advances the canonical demo-path step `retrieve relevant material` by making `fetch_excerpt` resolve only through the canonical FTS lookup path, so PageIndex-only excerpt IDs fail closed and Milestone 3 stays aligned to FTS-first structured retrieval before basket promotion.
 Canonical demo-path strengthening statement: this slice makes excerpt lookup auditable and fail-closed on the FTS-first engine path used before basket promotion.
-Reviewer-required plan-alignment statement: this reviewed slice is a narrow Milestone 3 retrieval contract correction, not a lane-completion claim; `fetch_excerpt` now resolves only through the canonical FTS lookup path, and the shared approved regression test proves PageIndex-only excerpt ids fail closed, which strengthens the deterministic retrieval/provenance contract for the engine-side Milestone 3 loop.
+Reviewer-required plan-alignment statement: this reviewed slice is a narrow Milestone 3 retrieval contract correction, not a lane-completion claim; `fetch_excerpt` now resolves only through the canonical FTS lookup path, and the shared approved regression test proves PageIndex-only excerpt IDs fail closed, which keeps the `retrieve relevant material` step aligned to Milestone 3's FTS-first structured retrieval requirement.
 Explicit Milestone 3 mapping: this slice advances `Milestone 3: Real workflow loop` by keeping retrieval/search FTS-first and structured.
 FTS-first confirmation: SQLite FTS remains authoritative for the MVP in the reviewed range; PageIndex and embeddings remain deferred or compatibility paths and are not required runtime fallbacks for the public excerpt lookup surface.
 
@@ -17,30 +17,23 @@ Reviewed implementation scope:
 
 * SQLite FTS remains authoritative for the reviewed slice.
 * `fetch_excerpt` stays on the canonical FTS-only path in `src/qual/retrieval/service.py`.
-* PageIndex-only excerpt ids now fail closed on `fetch_excerpt`, so public excerpt lookup stays bound to the canonical FTS-backed provenance path.
-* Approved shared regression coverage proves that PageIndex-only excerpt ids fail closed with `KeyError`.
+* PageIndex-only excerpt IDs now fail closed on `fetch_excerpt`, so public excerpt lookup stays bound to the canonical FTS-backed provenance path.
+* Approved shared regression coverage proves that PageIndex-only excerpt IDs fail closed with `KeyError`.
 * The reviewed implementation scope remains limited to `src/qual/retrieval/service.py` and `tests/unit/test_unified_retrieval.py`.
 
-Writable packet artifacts refreshed in this fixer pass:
-
-* `THREAD_PACKET.md`
-* `docs/gate_passed.txt`
-
-Read-only packet artifacts blocked in this sandbox:
+Packet artifacts refreshed in this fixer pass:
 
 * `.codex/kickoff_packets/feat-retrieval-fts.md`
 * `.codex/lane_meta/feat-retrieval-fts.json`
-
-Re-review authority note:
-
-* Use `THREAD_PACKET.md` and this gate summary as the reviewer-facing source of truth for the narrowed range, canonical demo-path mapping, and checkpoint evidence in this sandbox.
+* `THREAD_PACKET.md`
+* `docs/gate_passed.txt`
 
 AGENTS checkpoint evidence:
 
-* `plan complete` - the high-risk kickoff was locked to the narrowed reviewed implementation range `378cf9a74a3658058079a32f186fcd254c4a4034..adfa8cdadd43747ffbcb612e4151e262b13e52ca` and the canonical demo-path step `retrieve relevant material`.
-* `first green tests` - all required gates passed on the packet-refresh branch head before this re-review handoff was finalized.
-* `before risky/shared file edit` - the handoff stayed metadata-only, and the shared/high-risk boundary was called out because the reviewed scope still includes approved shared regression coverage in `tests/unit/test_unified_retrieval.py`.
-* `ready for handoff` - the top-level packet and gate summary now carry the reviewed implementation head, narrowed reviewed range, demo-path mapping, and checkpoint trail required for re-review; the `.codex` packet mirrors remain read-only in this sandbox and are called out separately.
+* `plan complete` - the high-risk kickoff was locked to the narrowed reviewed implementation range `378cf9a74a3658058079a32f186fcd254c4a4034..adfa8cdadd43747ffbcb612e4151e262b13e52ca`.
+* `first green tests` - all required gates passed for this metadata-only fixer pass.
+* `before risky/shared file edit` - the shared/high-risk boundary was called out because the reviewed scope still includes approved shared regression coverage in `tests/unit/test_unified_retrieval.py`.
+* `ready for handoff` - the kickoff packet, lane metadata, thread handoff, and this gate summary now carry the same reviewed implementation head, narrowed reviewed range, and checkpoint trail required for re-review.
 
 Verification:
 
