@@ -2,15 +2,15 @@
 
 - Lane: `feat-commands`
 - Branch: `codex/feat-commands`
-- Commit: `f8d860ed9f6299f0169c4f21321ac5f37c949fd3`
-- Packet refresh role: `reviewer-fix verification refresh`
-- Packet refresh basis: `updated on 2026-04-23 to confirm the branch tip satisfies the reviewer's parser-surface drift fixes and to align the handoff text with the actual reviewed implementation slice`
+- Commit: `538095c47a6bc5f971e9811b83745571915e4268`
+- Packet refresh role: `reviewer-fix handoff refresh`
+- Packet refresh basis: `updated on 2026-04-23 after adding the explicit diff parser-surface regression and revalidating the required gates`
 
 ## Thread Kickoff (High-Risk)
 
 - Branch: `codex/feat-commands`
 - Lane/owned paths: `src/qual/commands/**`
-- Scope goal: harden the CLI contract so the parser-facing command catalog stays in lockstep with the canonical command catalog used by the CLI-first MVP loop.
+- Scope goal: harden the CLI contract so the parser-facing command catalog stays in lockstep with the canonical command catalog used by the CLI-first MVP loop, including fail-closed rejection when the `diff` parser token disappears from the approved surface.
 - Risk reason: the reviewed slice touches the command contract in `src/qual/commands/catalog.py` and a shared-by-approval regression test file.
 
 ### Budget
@@ -22,9 +22,9 @@
 
 ### Planned Tasks (Completed)
 
-1. Re-anchor the handoff to the exact reviewed implementation slice at `f8d860ed9f6299f0169c4f21321ac5f37c949fd3`.
-2. Add the AGENTS-required canonical demo-path statement naming the exact step advanced and the concrete blocker removed.
-3. Tighten roadmap and product-vision mapping to only the CLI compatibility evidence this diff actually proves.
+1. Tighten the command contract wording and helper structure so the full declared parser surface remains the explicit validation target.
+2. Add a regression that proves the contract fails when the `diff` parser token disappears from the accepted surface.
+3. Refresh the AGENTS-required canonical demo-path statement naming the exact step advanced and the concrete blocker removed.
 4. Rerun the required gates and refresh the compatibility pointer file.
 
 ### Checkpoint Cadence
@@ -36,18 +36,18 @@
 
 ## Review Basis
 
-- Reviewed implementation commit: `f8d860ed9f6299f0169c4f21321ac5f37c949fd3` (`feat(commands): lock CLI contract to command catalog`).
+- Reviewed implementation commit: `538095c47a6bc5f971e9811b83745571915e4268` (`test(commands): cover diff parser surface drift`).
 - Reviewed implementation files:
   - `src/qual/commands/catalog.py`
   - `tests/unit/test_commands_catalog.py`
 - Reviewed implementation summary:
-  - `command_cli_contract()` now validates the full parser-facing CLI entrypoint projection against the declared catalog surface instead of checking only the deduplicated canonical-name projection.
-  - focused regression tests cover canonical-name alignment and parser-surface drift failures, including dropped canonical tokens, removed aliases, and reordered parser entrypoints.
+  - `command_cli_contract()` keeps the full parser-facing CLI entrypoint projection as the explicit validation target through a dedicated declared-entrypoint projection helper instead of relying on the deduplicated canonical-name projection.
+  - focused regression tests now include the exact reviewer-called failure mode: the contract raises when the `diff` parser token disappears from the accepted `diff-preview` surface, alongside the broader canonical-name and parser-order drift cases.
 
 ## Scope Completed
 
 - Added a fail-closed guard in `command_cli_contract()` so the parser-facing CLI contract cannot silently diverge from the canonical command catalog ordering.
-- Added regression coverage proving the CLI contract matches the catalog in the normal case and raises if parser-surface drift is introduced.
+- Added regression coverage proving the CLI contract matches the catalog in the normal case and raises if parser-surface drift is introduced, including explicit rejection when the `diff` parser token disappears.
 - Kept the slice narrow: one command-contract guard plus targeted tests, with no provider, routing, or broader workflow behavior changes.
 
 ## Canonical Demo-Path Mapping
@@ -72,10 +72,10 @@
 
 ### Tasks Completed (Numbered)
 
-1. Re-anchored the handoff packet to the exact reviewed implementation commit `f8d860ed9f6299f0169c4f21321ac5f37c949fd3`.
-2. Added the required canonical demo-path mapping for the CLI fallback `open project/document` entry step and named the concrete parser-surface drift failure mode it prevents.
-3. Tightened the roadmap and vision mapping to the actual Milestone 3 CLI-compatibility requirement and canonical engine-contract evidence only.
-4. Refreshed the compatibility pointer file and reran the required gates.
+1. Re-anchored the handoff packet to the exact reviewed implementation commit `538095c47a6bc5f971e9811b83745571915e4268`.
+2. Kept the command-contract validation pinned to the full declared parser surface and named that surface explicitly in the implementation.
+3. Added the reviewer-requested regression proving the contract fails when the `diff` parser token disappears from the accepted `diff-preview` surface.
+4. Refreshed the canonical demo-path mapping, compatibility pointer, and required gate results for the CLI-first MVP loop.
 
 ### Files Changed
 

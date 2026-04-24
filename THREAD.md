@@ -6,8 +6,8 @@ Canonical handoff contract lives in `THREAD_PACKET.md`.
 
 ## Current Review Focus
 
-- Packet refresh status: reviewer-fix verification refresh aligned to the exact reviewed implementation slice.
-- Reviewed implementation commit: `f8d860ed9f6299f0169c4f21321ac5f37c949fd3` (`feat(commands): lock CLI contract to command catalog`).
+- Packet refresh status: reviewer-fix handoff refresh aligned to the exact reviewed implementation slice.
+- Reviewed implementation commit: `538095c47a6bc5f971e9811b83745571915e4268` (`test(commands): cover diff parser surface drift`).
 - Reviewed implementation files:
   - `src/qual/commands/catalog.py`
   - `tests/unit/test_commands_catalog.py`
@@ -16,7 +16,7 @@ Canonical handoff contract lives in `THREAD_PACKET.md`.
 - Active MVP operator path strengthened:
   - the CLI fallback path for `open project/document` while Textual remains disabled
 - Concrete blocker removed for Milestone 3:
-  - the CLI-first MVP no longer allows the parser-facing token surface for the `open project/document` entry step to drift away from the canonical command catalog without failing closed, so the first command a CLI operator uses in the demo loop cannot silently lose required entrypoints or aliases while the canonical-name tuple still appears stable.
+  - the CLI-first MVP no longer allows the parser-facing token surface for the `open project/document` entry step to drift away from the canonical command catalog without failing closed, including the explicit reviewer-called case where the `diff` parser token disappears while the canonical-name tuple still appears stable.
 - Scope-tightening note:
   - this reviewed slice hardens only the CLI fallback entry step above; it does not claim patch preview, apply or reject, or broader command-flow coverage
 - Why this is milestone-worthy now:
