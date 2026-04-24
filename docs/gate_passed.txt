@@ -3,7 +3,7 @@ Gate Results Summary (as of 2026-04-23)
 
 Required automated gates reran for the narrowed metadata-only packet refresh on:
 
-* current submitted tip before this packet refresh commit `e96b9e841bca7609b37a168126eb982e8f352f49`
+* current submitted tip before this packet refresh commit `04f5e07cea8089f17f6a7cae55b5f8a2a6ded41e`
 * reviewed implementation head `adfa8cdadd43747ffbcb612e4151e262b13e52ca`
 * reviewed implementation range `d7fd5d200358287fa42a18d39e2b277463b9b69f..adfa8cdadd43747ffbcb612e4151e262b13e52ca`
 * reviewed implementation files `src/qual/retrieval/service.py` and `tests/unit/test_unified_retrieval.py`
