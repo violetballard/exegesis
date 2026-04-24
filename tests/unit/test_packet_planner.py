@@ -43,8 +43,10 @@ class PacketPlannerTests(unittest.TestCase):
             "roadmap_items": ["ROADMAP.md: Milestone 3: Real workflow loop"],
             "canonical_demo_path_step": "retrieve relevant material",
             "canonical_demo_path_impact": (
-                "This change makes `retrieve relevant material` more real by forcing excerpt "
-                "lookup to fail closed unless the hit comes from the authoritative SQLite FTS path."
+                "This change makes `retrieve relevant material` more real because the canonical "
+                "engine-facing `fetch_excerpt` surface now rehydrates shortlisted excerpt IDs only "
+                "through the authoritative SQLite FTS path, so non-FTS IDs fail closed before "
+                "downstream context gathering can promote them into the basket."
             ),
             "vision_capabilities": ["2. Retrieval-first context handling"],
             "routing_provider_impact": "None",
@@ -72,7 +74,8 @@ class PacketPlannerTests(unittest.TestCase):
         self.assertIn("Tightened the cumulative 1d6057e9..42820d4864f8b5137a6a9e05399ad68fe5b9d4ac retrieval slice", packet)
         self.assertIn("### Canonical demo-path step advanced", packet)
         self.assertIn("- retrieve relevant material", packet)
-        self.assertIn("authoritative SQLite FTS path", packet)
+        self.assertIn("engine-facing `fetch_excerpt` surface", packet)
+        self.assertIn("downstream context gathering can promote them into the basket", packet)
 
     def test_build_packet_uses_lane_default_demo_path_when_metadata_is_stale(self) -> None:
         meta = {
@@ -96,7 +99,8 @@ class PacketPlannerTests(unittest.TestCase):
 
         self.assertIn("### Canonical demo-path step advanced", packet)
         self.assertIn("- retrieve relevant material", packet)
-        self.assertIn("fail closed unless the hit comes from the authoritative SQLite FTS path", packet)
+        self.assertIn("engine-facing `fetch_excerpt` surface", packet)
+        self.assertIn("downstream context gathering can promote them into the basket", packet)
 
 
 if __name__ == "__main__":

@@ -7,13 +7,14 @@
 - Reviewed implementation range: `378cf9a74a3658058079a32f186fcd254c4a4034..416d3293d064b6e7fb05a7e8997d91bddbef443f`
 - Packet traceability note: review this lane against the cumulative implementation range above. That range includes the substantive post-`adfa8cda` retrieval commits `206ee919c0bb7a1736e07a86a5cba5aff314a785`, `a96043fee95c3be1b69fba0148e6fdbb5d1d51a9`, `9d9e11a1929dc56e44f5a4d459aa385e7a6ce1e5`, `2a136e56b78470a1a579f3cca73397a58b08622a`, `18f0ab0960c6d07920de212785c9517e8688418c`, `7fb9b3cb389e424fcbc0d54cb2087421fe8c6727`, and `416d3293d064b6e7fb05a7e8997d91bddbef443f`. This fixer commit is metadata-only and does not broaden retrieval scope beyond `378cf9a7..416d3293`.
 - Canonical demo-path step advanced: `retrieve relevant material`
-- Reviewer-required plan-alignment statement: This change makes the `retrieve relevant material` step more real by keeping excerpt lookup on the canonical FTS-only contract and by making sparse-hit provenance and citation ordering deterministic for downstream basket and workflow use.
+- Reviewer-required plan-alignment statement: This change makes the canonical demo-path step `retrieve relevant material` more real because the public engine-facing `fetch_excerpt` surface now rehydrates shortlisted excerpt IDs only through the authoritative SQLite FTS path, so the engine loop cannot promote or reuse a PageIndex-only excerpt that lacks canonical retrieval evidence before downstream context gathering moves it into the basket.
+- Canonical excerpt lookup contract note: `fetch_excerpt` is the canonical engine-facing excerpt lookup surface consumed downstream through the retrieval facade and engine excerpt tool wrapper, not just an internal consistency hardening point.
 - Approved shared regression exception: `tests/unit/test_unified_retrieval.py` remains the only shared-by-approval regression surface in the reviewed implementation range.
 - Packet authority note: the authoritative re-review artifacts for this fixer pass are `THREAD_PACKET.md` and `docs/gate_passed.txt`. The tracked `.codex/*` mirror files remain stale because this worktree rejects writes to those paths with `operation not permitted`.
 
 ## Scope Goal
 
-- Reissue the retrieval handoff truthfully against the real reviewed implementation range through the current substantive branch tip `416d3293`, while keeping this fixer commit metadata-only.
+- Reissue the retrieval handoff truthfully against the real reviewed implementation range through the current substantive branch tip `416d3293`, while keeping this fixer commit metadata-only and making explicit that failing closed on non-FTS excerpt IDs removes the concrete MVP blocker where the `retrieve relevant material` engine loop could otherwise consume a non-canonical excerpt lookup result.
 
 ## Thread Kickoff (High-Risk)
 
@@ -33,13 +34,13 @@
 
 1. Move the reviewed implementation head and range to the real substantive branch tip.
 2. Remove the stale metadata-only story and replace it with truthful cumulative traceability.
-3. State the canonical demo-path step explicitly as `retrieve relevant material`.
+3. State the canonical demo-path step explicitly as `retrieve relevant material`, explain the concrete blocker removed on that step, and clarify whether `fetch_excerpt` is the canonical downstream lookup surface.
 4. Re-run the required gates and record results against the corrected reviewed range.
 
 ## Scope Completed
 
-- Kept excerpt lookup on the canonical FTS-only path so PageIndex-only excerpt IDs fail closed.
-- Preserved mirrored query constraints, sparse-hit provenance, and primary citation ordering in deterministic retrieval payloads for downstream engine flows.
+- Kept excerpt lookup on the canonical engine-facing FTS-only path so PageIndex-only excerpt IDs fail closed instead of slipping into basket-promotion and downstream workflow reuse without authoritative retrieval evidence.
+- Preserved mirrored query constraints, sparse-hit provenance, and primary citation ordering in deterministic retrieval payloads for the same engine loop that gathers context after `retrieve relevant material`.
 - Exposed the canonical retrieval provenance bundle alias and hardened sparse FTS excerpt query rehydration so excerpt payloads preserve stable query metadata when looked up after retrieval.
 - Kept retrieval FTS-first, with PageIndex and embeddings remaining compatibility-only fallback shims rather than required runtime paths.
 - Regenerated the handoff against the real cumulative implementation range through `416d3293` instead of the stale `adfa8cda`-anchored slice.
@@ -71,7 +72,7 @@
 
 1. Corrected the reviewed implementation head and range so the packet now includes the substantive post-`adfa8cda` retrieval commits through `416d3293`.
 2. Replaced the false metadata-only branch-history claim with truthful cumulative traceability and the real reviewed file list.
-3. Added the explicit canonical demo-path statement naming `retrieve relevant material`.
+3. Added the explicit canonical demo-path statement naming `retrieve relevant material`, tied the fail-closed contract to the engine loop blocker it removes, and clarified that `fetch_excerpt` is the canonical downstream lookup surface.
 4. Re-ran the required gate suite on top of this metadata-only packet refresh and recorded results against the corrected range.
 
 ## Files Changed
@@ -114,7 +115,7 @@
 
 1. The packet now includes the real substantive history after `adfa8cda`, including `2a136e56`, `18f0ab09`, `7fb9b3cb`, and `416d3293`.
 2. The reviewed file list is the real cumulative file set for `378cf9a7..416d3293`; the false metadata-only implementation story is gone.
-3. The packet names the canonical demo-path step directly as `retrieve relevant material` and explains how this range makes that step more real.
+3. The packet names the canonical demo-path step directly as `retrieve relevant material`, explains the concrete engine-loop blocker removed by rejecting non-FTS excerpt IDs, and states that `fetch_excerpt` is the canonical downstream lookup surface.
 4. The shared-file exception remains limited to `tests/unit/test_unified_retrieval.py`.
 
 ## Risks / Blockers
@@ -132,7 +133,8 @@
 ### Canonical demo-path step advanced
 
 - `retrieve relevant material`
-- This change makes the `retrieve relevant material` step more real by keeping excerpt lookup on the canonical FTS-only contract and by making sparse-hit provenance and citation ordering deterministic for downstream basket and workflow use.
+- This change makes the `retrieve relevant material` step more real because the public engine-facing `fetch_excerpt` surface now rehydrates shortlisted excerpt IDs only through the authoritative SQLite FTS path, so the engine loop cannot promote or reuse a PageIndex-only excerpt before downstream context gathering moves it into the basket.
+- `src/qual/retrieval/__init__.py::fetch_excerpt`, its engine re-export in `src/qual/engine/retrieval/__init__.py`, and the engine excerpt tool wrapper are the canonical downstream excerpt lookup surface for this MVP path; the service-level change is a public contract tightening, not only internal consistency hardening.
 
 ### Vision capability affected
 

@@ -23,8 +23,10 @@ LANE_CANONICAL_DEMO_PATH = {
     "feat-retrieval-fts": {
         "step": "retrieve relevant material",
         "impact": (
-            "This change makes `retrieve relevant material` more real by forcing excerpt "
-            "lookup to fail closed unless the hit comes from the authoritative SQLite FTS path."
+            "This change makes `retrieve relevant material` more real because the canonical "
+            "engine-facing `fetch_excerpt` surface now rehydrates shortlisted excerpt IDs only "
+            "through the authoritative SQLite FTS path, so non-FTS IDs fail closed before "
+            "downstream context gathering can promote them into the basket."
         ),
     },
 }

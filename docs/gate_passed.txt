@@ -26,7 +26,8 @@ Focused retrieval proof:
 * `python3 -m unittest tests.unit.test_unified_retrieval` - passed
 
 Canonical demo-path step advanced: `retrieve relevant material`.
-Plan-alignment statement: This change makes the `retrieve relevant material` step more real by keeping excerpt lookup on the canonical FTS-only contract and by making sparse-hit provenance and citation ordering deterministic for downstream basket and workflow use.
+Plan-alignment statement: This change makes the canonical demo-path step `retrieve relevant material` more real because the public engine-facing `fetch_excerpt` surface now rehydrates shortlisted excerpt IDs only through the authoritative SQLite FTS path, so the engine loop cannot promote or reuse a PageIndex-only excerpt before downstream context gathering moves it into the basket.
+Canonical surface note: `src/qual/retrieval/__init__.py::fetch_excerpt`, its engine re-export in `src/qual/engine/retrieval/__init__.py`, and the engine excerpt tool wrapper are the canonical downstream excerpt lookup surface for this MVP path; this is a public contract tightening, not only internal consistency hardening.
 Scope note: this handoff now covers the real cumulative implementation range through `416d3293`, including the substantive post-`adfa8cda` retrieval commits `206ee919`, `a96043fe`, `9d9e11a1`, `2a136e56`, `18f0ab09`, `7fb9b3cb`, and `416d3293` that previously sat outside the packet's claimed scope.
 Budget compliance statement: this packet is shared/high-risk work because it includes the approved shared regression surface `tests/unit/test_unified_retrieval.py`, so the handoff is read against the 4-task cap rather than the default 8-task cap.
 Traceability statement: this fixer commit is metadata-only; re-review should validate the actual reviewed implementation range `378cf9a7..416d3293`, not the fixer commit itself.
