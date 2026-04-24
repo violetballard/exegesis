@@ -4,7 +4,8 @@
 - Branch: `codex/feat-commands`
 - Review scope: narrow command-contract hardening in `src/qual/commands/catalog.py`, plus focused regression coverage in `tests/unit/test_commands_catalog.py`.
 - Canonical demo-path step advanced: `preview and apply or reject a patch`
-- Concrete canonical mapping: this slice makes canonical step 5, `preview and apply or reject a patch`, more reliable by locking the parser-backed patch-review CLI entrypoints to the canonical catalog so operators can move from `produce a plan or revision` into patch review on a deterministic CLI surface instead of silently accepting parser/catalog drift.
+- Concrete canonical mapping: this slice advances canonical step 5, `preview and apply or reject a patch`, by locking the parser-backed patch-review CLI entrypoints to the canonical catalog so operators can move from `produce a plan or revision` into patch review on a deterministic CLI surface instead of silently accepting parser/catalog drift.
+- Concrete canonical-path blocker removed: deterministic CLI ordering and fast-fail parser/catalog drift detection are now enforced at the patch-review boundary, removing the blocker where review/apply commands could silently diverge from the canonical catalog while Textual remains disabled.
 - Scope clarification: this is CLI compatibility hardening for the existing patch-review step while Textual remains disabled. It does not add new commands, new engine behavior, persistence work, or new workflow reachability.
 - Roadmap tie-in: this is Milestone 3 real-workflow-loop hardening at the CLI patch-review step, specifically the canonical `preview and apply or reject a patch` boundary between revision output and persistence.
 - High-risk framing note: this remains a high-risk handoff because it hardens a public command contract and uses the explicitly approved shared regression path `tests/unit/test_commands_catalog.py`.
@@ -48,7 +49,7 @@
 - Plan complete: scope stayed pinned to the reviewed implementation slice in `src/qual/commands/catalog.py` and `tests/unit/test_commands_catalog.py`.
 - First green tests: `make scope-check`, `./quality-format.sh --check`, `./quality-lint.sh`, `./quality-test.sh`, `./typecheck-test.sh`, and `make ci` all passed for this handoff slice.
 - Before risky/shared file edit: the only shared path in scope was the approved regression file `tests/unit/test_commands_catalog.py`.
-- Ready for handoff: this packet explicitly names `preview and apply or reject a patch` as the protected canonical step and keeps the claim narrowed to CLI compatibility hardening for that existing MVP loop step.
+- Ready for handoff: this packet explicitly names `preview and apply or reject a patch` as the protected canonical step, states the exact CLI-surface stability blocker removed there, and keeps the claim narrowed to CLI compatibility hardening for that existing MVP loop step.
 
 ## Commands Run and Outcomes
 
@@ -61,6 +62,6 @@
 
 ## Roadmap and Vision Mapping
 
-- `ROADMAP.md` Milestone 3 `Real workflow loop`: this slice keeps the patch-review entry surface deterministic for the CLI-first MVP loop while the package/layout migration lands.
+- `ROADMAP.md` Milestone 3 `Real workflow loop`: this slice removes a CLI-surface stability blocker at the patch-review boundary for the CLI-first MVP loop while the package/layout migration lands.
 - `ROADMAP.md` canonical MVP loop step `preview and apply or reject a patch`: this slice hardens the exact command boundary operators use at that step, after revision output and before persistence or continued work.
 - `PRODUCT_VISION.md` capability 3 `Canonical engine contract`: the active CLI surface now rejects parser/catalog drift before it can silently change the deterministic engine-facing contract.

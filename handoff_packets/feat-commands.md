@@ -4,7 +4,8 @@
 - Scope completed: hardened `command_cli_contract()` in `src/qual/commands/catalog.py` so the existing CLI contract validates the full grouped parser-surface projection against the canonical catalog, rejects alias substitution, missing canonical entrypoints, reordered grouped entrypoints, and extra parser-only aliases, and raises if the parser-backed catalog surface drifts; added focused regression coverage for that parser-surface drift rejection in `tests/unit/test_commands_catalog.py`.
 - Scope summary: this is CLI compatibility hardening for the active MVP loop while Textual remains disabled. It does not add new commands, new engine behavior, or new workflow reachability.
 - Canonical demo-path step advanced: `preview and apply or reject a patch`
-- Concrete canonical mapping: this slice makes canonical step 5, `preview and apply or reject a patch`, more real inside the current MVP loop by locking the parser-backed patch-review entrypoints to the canonical catalog before review commands run, so the operator moves from `produce a plan or revision` into patch review on a deterministic CLI surface instead of silently accepting parser/catalog drift.
+- Concrete canonical mapping: this slice advances canonical step 5, `preview and apply or reject a patch`, inside the current MVP loop by locking the parser-backed patch-review entrypoints to the canonical catalog before review commands run, so the operator moves from `produce a plan or revision` into patch review on a deterministic CLI surface instead of silently accepting parser/catalog drift.
+- Concrete canonical-path blocker removed: deterministic CLI ordering and fast-fail parser/catalog drift detection are now enforced at the patch-review boundary, removing the blocker where review/apply commands could silently diverge from the canonical catalog while Textual remains disabled.
 - Canonical demo-path context: `AGENTS.md` defines the engine-side path as `open project/document` -> `retrieve relevant material` -> `promote or gather context into the basket` -> `produce a plan or revision` -> `preview and apply or reject a patch` -> `persist the updated document/session state` -> `continue working without losing context`.
 - Roadmap tie-in: this is Milestone 3 CLI compatibility work for the real workflow loop, specifically at the patch-review step while Textual remains disabled.
 - Non-claim boundary: this handoff does not claim progress on persistence, A2UI, Textual activation, or any new command reachability.
@@ -36,11 +37,11 @@
 - `make ci` -> passed
 
 ## Risks / Blockers
-- Risks: future command-surface edits still need to preserve the parser/catalog lock so the patch-review CLI contract stays deterministic throughout the active Milestone 3 workflow.
+- Risks: future command-surface edits still need to preserve deterministic ordering and fast-fail parser/catalog drift detection so the patch-review CLI contract stays stable throughout the active Milestone 3 workflow while Textual remains disabled.
 - Blockers: none.
 
 ## Roadmap Item(s) Affected
-- `ROADMAP.md` Milestone 3 `Real workflow loop`: this slice keeps the patch-review entry surface deterministic for the CLI-first MVP loop while the package/layout migration lands.
+- `ROADMAP.md` Milestone 3 `Real workflow loop`: this slice removes a CLI-surface stability blocker at the patch-review boundary for the CLI-first MVP loop while the package/layout migration lands.
 - `ROADMAP.md` canonical MVP loop step `preview and apply or reject a patch`: this slice hardens the exact command boundary operators use at that step, after planning/revision output and before persistence/continued work.
 - `ROADMAP.md` lane mapping for `feat-commands`: this slice hardens migration-safe CLI entrypoints only and does not claim broader workflow reachability.
 
