@@ -3,14 +3,14 @@
 - Branch name: `codex/feat-commands`
 - Scope completed: hardened `command_cli_contract()` in `src/qual/commands/catalog.py` so the existing CLI contract validates the full grouped parser-surface projection against the canonical catalog, rejects alias substitution, missing canonical entrypoints, reordered grouped entrypoints, and extra parser-only aliases, and raises if the parser-backed catalog surface drifts, plus focused regression coverage for parser-surface drift rejection in `tests/unit/test_commands_catalog.py`.
 - Scope summary: this commit does not add new commands, new workflow coverage, or new engine behavior; it only makes parser/catalog drift fail fast for the existing command surface, including alias-level and ordering drift that would otherwise preserve canonical command names while changing the actual parser surface.
-- Canonical demo-path step advanced: the roadmap's `vault` step in the CLI MVP flow `vault -> context -> run -> patch -> export`, with this slice keeping the operator-facing `open project/document` entry surface deterministic before the workflow can enter vault-backed state through the CLI.
-- Canonical MVP flow context: `ROADMAP.md` currently defines the CLI MVP flow as `vault -> context -> run -> patch -> export` against the same engine `PolicyGate`, and this slice only hardens the parser-backed CLI compatibility surface that operators use before that flow begins.
-- Causal link: the CLI MVP flow cannot begin unless `open project/document` still resolves through the canonical command surface, so making parser/catalog drift fail fast hardens that gateway and keeps the downstream `context`, `run`, `patch`, and `export` steps reachable through the same deterministic CLI path.
-- Deterministic validation sentence: deterministic CLI contract validation directly strengthens the roadmap's `vault` step because it fails fast before the operator enters vault-backed state through a parser surface that no longer matches the canonical catalog.
-- Canonical MVP flow mapping sentence: this `feat-commands` slice is migration-safe compatibility hardening only; it tightens the existing command catalog contract so parser/catalog drift cannot silently break the CLI gateway operators use before the roadmap's `vault -> context -> run -> patch -> export` flow, even when the parser surface changes without changing canonical command names.
-- Step-1 strengthening sentence: deterministic CLI contract validation makes the roadmap's `vault` step more real because the exact parser-backed entrypoints the operator uses to open project or document state are now forced to match the canonical catalog before the CLI MVP flow can enter vault-backed state.
-- Demo-path sentence: this change keeps the operator-facing CLI entry surface aligned with the canonical catalog so the downstream `context`, `run`, `patch`, and `export` steps remain reachable through the same deterministic CLI loop, even if someone accidentally swaps aliases, reorders grouped entrypoints, or adds parser-only aliases.
-- Canonical wording lock: this handoff intentionally uses the current canonical roadmap wording for the CLI MVP flow, namely `vault -> context -> run -> patch -> export` against the same engine `PolicyGate`.
+- Canonical demo-path step advanced: `open project/document` in the active AGENTS demo path, with this slice keeping the operator-facing CLI entry surface deterministic before the workflow moves into retrieval, basket gathering, plan or revise, patch review, and persistence.
+- Canonical demo-path context: `AGENTS.md` currently defines the engine-side path as `open project/document` -> `retrieve relevant material` -> `promote or gather context into the basket` -> `produce a plan or revision` -> `preview and apply or reject a patch` -> `persist the updated document/session state` -> `continue working without losing context`.
+- Causal link: the Milestone 3 CLI loop cannot begin unless `open project/document` still resolves through the canonical command surface, so making parser/catalog drift fail fast hardens that gateway and keeps the downstream retrieval, basket, revise, patch, and persistence steps reachable through the same deterministic CLI path.
+- Deterministic validation sentence: deterministic CLI contract validation directly strengthens the `open project/document` step because it fails fast before the operator starts the workflow through a parser surface that no longer matches the canonical catalog.
+- Canonical MVP flow mapping sentence: this `feat-commands` slice is migration-safe compatibility hardening only; it tightens the existing command catalog contract so parser/catalog drift cannot silently break the CLI gateway operators use at `open project/document`, even when the parser surface changes without changing canonical command names.
+- Step-1 strengthening sentence: deterministic CLI contract validation makes the `open project/document` step more real because the exact parser-backed entrypoints the operator uses to open project or document state are now forced to match the canonical catalog before the CLI loop begins.
+- Demo-path sentence: this change keeps the operator-facing CLI entry surface aligned with the canonical catalog so the downstream retrieval, basket, revise, patch, and persistence steps remain reachable through the same deterministic CLI loop, even if someone accidentally swaps aliases, reorders grouped entrypoints, or adds parser-only aliases.
+- Canonical wording lock: this handoff intentionally uses the current Milestone 3 and AGENTS wording for the active engine-side demo path rather than older CLI MVP flow terminology.
 - Concrete blocker removed: before this change, parser drift could silently desynchronize the existing CLI surface from the catalog while leaving the contract seemingly valid, so an operator could begin the CLI workflow through an `open project/document` surface that no longer matched the canonical command catalog.
 - Traceability note: reviewed implementation commit is `f8d860ed9f6299f0169c4f21321ac5f37c949fd3`, and its implementation scope is limited to `src/qual/commands/catalog.py` and `tests/unit/test_commands_catalog.py`; this follow-up commit refreshes handoff metadata only after another green rerun of the required gates from this fixer pass.
 - Final verification note: this metadata-only fixer rerun on `2026-04-24` revalidated the reviewer-requested demo-path mapping, aligned the packet wording to the already-landed full parser-surface guardrail, and reran the full required gate set from the current branch tip without changing the reviewed implementation files.
@@ -45,16 +45,17 @@
 - `make ci` -> passed
 
 ## Risks / Blockers
-- Risks: future command-surface edits still need to preserve the parser/catalog lock so the existing `open project/document` CLI contract stays deterministic before the CLI MVP flow enters vault-backed state.
+- Risks: future command-surface edits still need to preserve the parser/catalog lock so the existing `open project/document` CLI contract stays deterministic before the active Milestone 3 workflow moves into retrieval, basket, revise, patch, and persistence.
 - Scope clarification: this is command-contract hardening only; it does not add new commands, new engine behavior, new persistence or auditability mechanisms, or a new workflow capability.
 - Blockers: none.
 
 ## Roadmap Item(s) Affected
-- `ROADMAP.md` MVP emphasis includes active lane `feat-commands`: this slice hardens the existing command catalog contract without adding new workflow reachability.
-- `ROADMAP.md` Milestone 5 exit criterion `CLI can execute the MVP flow (vault -> context -> run -> patch -> export) against the same engine PolicyGate`: deterministic parser/catalog alignment hardens the CLI gateway that operators use before that flow begins.
+- `ROADMAP.md` Milestone 3 `Real workflow loop`: this slice supports the requirement to preserve CLI compatibility while the package/layout migration lands.
+- `ROADMAP.md` lane mapping for `feat-commands`: this slice hardens migration-safe CLI entrypoints without adding new workflow reachability.
 
 ## Vision Capability Affected
-- `PRODUCT_VISION.md` capability 4 `Operator-first control surface` because the existing CLI surface now rejects parser/catalog drift before it can silently change the command contract the operator relies on.
+- `PRODUCT_VISION.md` capability 3 `Canonical engine contract` because the existing CLI surface now rejects parser/catalog drift before it can silently change the command contract the operator relies on while Textual remains disabled.
+- `PRODUCT_VISION.md` capability 6 `Auditable state and workflow` because the change makes command-surface drift explicit and traceable instead of silent.
 
 ## Routing / Provider Impact Note
 - None. This change does not touch routing or provider configuration.
