@@ -1,11 +1,11 @@
 # Handoff Packet: feat-commands
 
 - Branch name: `codex/feat-commands`
-- Scope completed: hardened `command_cli_contract()` in `src/qual/commands/catalog.py` so the existing CLI contract reuses the canonical `command_names()` ordering and raises if the parser-backed catalog surface drifts, plus focused regression coverage for canonical-order alignment and drift rejection in `tests/unit/test_commands_catalog.py`.
+- Scope completed: hardened `command_cli_contract()` in `src/qual/commands/catalog.py` so the existing CLI contract reuses the canonical `command_names()` ordering, preserves canonical command ordering, and raises if the parser-backed catalog surface drifts, plus focused regression coverage for canonical-order alignment and drift rejection in `tests/unit/test_commands_catalog.py`.
 - Scope summary: this commit does not add new commands, new workflow coverage, or new engine behavior; it only makes parser/catalog drift fail fast and preserves canonical command ordering for the existing command surface.
 - Canonical demo-path step advanced: the already-modeled `open project/document` CLI entry step, by making its existing parser/catalog contract deterministic rather than expanding loop reachability.
 - Canonical MVP flow context: `open project/document -> retrieve relevant material -> preview and apply or reject a patch` remains the same manual CLI smoke flow, and this slice only hardens the existing parser-backed command surface that starts that path.
-- Canonical MVP flow mapping sentence: this `feat-commands` slice is not claiming new workflow reachability; it is narrower command-contract hardening that makes the existing `open project/document` entry surface fail fast if parser/catalog drift would otherwise silently change the operator-facing CLI contract.
+- Canonical MVP flow mapping sentence: this `feat-commands` slice is not claiming new workflow reachability; it is migration-safe compatibility hardening for the existing command catalog that makes the existing `open project/document` entry surface fail fast if parser/catalog drift would otherwise silently change the operator-facing CLI contract.
 - Demo-path sentence: this change makes the existing CLI-first MVP path safer to rely on because the concrete parser-backed command entrypoints an operator already uses to open project or document state can no longer silently drift away from the canonical catalog.
 - Concrete blocker removed: before this change, parser drift could silently desynchronize the existing CLI surface from the catalog while leaving the contract seemingly valid, so an operator could begin the manual MVP flow through an `open project/document` surface that no longer matched the canonical command catalog.
 - Traceability note: reviewed implementation commit is `f8d860ed9f6299f0169c4f21321ac5f37c949fd3`, and its implementation scope is limited to `src/qual/commands/catalog.py` and `tests/unit/test_commands_catalog.py`; this follow-up commit refreshes handoff metadata only after a green rerun of the required gates.
@@ -16,7 +16,7 @@
 3. Added focused regression coverage in `tests/unit/test_commands_catalog.py` for canonical-order alignment and parser/catalog drift rejection.
 
 ## Packet Refresh Notes
-- This handoff now names the exact canonical demo-path step advanced, states why the work is in-plan as command-surface hardening instead of second-order cleanup, and keeps the approval basis pinned to reviewed commit `f8d860ed9f6299f0169c4f21321ac5f37c949fd3` plus its two implementation files only.
+- This handoff now names the exact canonical demo-path step advanced, states why the work is migration-safe compatibility hardening for the existing catalog instead of second-order cleanup, and keeps the approval basis pinned to reviewed commit `f8d860ed9f6299f0169c4f21321ac5f37c949fd3` plus its two implementation files only.
 
 ## Files Changed
 - `src/qual/commands/catalog.py`
@@ -34,13 +34,13 @@
 - `make ci` -> passed
 
 ## Risks / Blockers
-- Risks: future command-surface edits still need to preserve the parser/catalog lock so the CLI contract for `open project/document -> retrieve relevant material -> preview and apply or reject a patch` stays deterministic.
-- Scope clarification: this is command-contract hardening only; it does not add new command behavior, new persistence or auditability mechanisms, or a new workflow capability.
+- Risks: future command-surface edits still need to preserve the parser/catalog lock so the existing `open project/document` CLI contract stays deterministic.
+- Scope clarification: this is command-contract hardening only; it does not add new commands, new engine behavior, new persistence or auditability mechanisms, or a new workflow capability.
 - Blockers: none.
 
 ## Roadmap Item(s) Affected
 - `ROADMAP.md` Milestone 1 scope item `Command and diff-preview behavior hardening` because this slice hardens the existing command catalog contract without adding new CLI workflow coverage.
-- `ROADMAP.md` Milestone 2 scope item `Add focused unit coverage for core behaviors` because the added tests lock in canonical-order alignment and parser/catalog drift rejection for the current command surface.
+- `ROADMAP.md` Milestone 2 scope item `Keep command-level probes for integration confidence` because the added tests and fail-fast contract check keep parser/catalog drift visible at the command-contract layer for the current command surface.
 
 ## Vision Capability Affected
 - `PRODUCT_VISION.md` capability 4 `Operator-first control surface` because the existing CLI surface now rejects parser/catalog drift before it can silently change the deterministic command contract the operator relies on.
