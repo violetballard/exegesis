@@ -107,7 +107,7 @@
 
 ### Vision capability affected
 
-- `PRODUCT_VISION.md` capability 4 `Operator-first control surface`: the CLI remains a deterministic first-class operator surface only if canonical command routing fails closed when parser/catalog drift appears.
+- `PRODUCT_VISION.md` capability 4 `Operator-first control surface`: the CLI remains the active first-class operator surface for the MVP loop while Textual stays disabled, so the parser surface must stay deterministic and fail closed when parser/catalog drift appears.
 
 ### Routing / Provider Impact Note
 

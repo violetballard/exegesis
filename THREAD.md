@@ -20,7 +20,7 @@ Canonical handoff contract lives in `THREAD_PACKET.md`.
   - parser/catalog drift could silently change the canonical CLI token used to enter patch review, weakening the migration-safe CLI contract the MVP loop depends on.
 - Roadmap / vision alignment for this slice only:
   - `ROADMAP.md` Milestone 3 / `feat-commands`: CLI compatibility and migration-safe entrypoints
-  - `PRODUCT_VISION.md` capability 4: `Operator-first control surface`
+  - `PRODUCT_VISION.md` capability 4: `Operator-first control surface`, with the CLI as the active first-class operator surface while Textual stays disabled
 - Explicit scope guard:
   - do not claim `Auditable state and workflow` for this handoff
   - do not claim broader workflow progress beyond the named canonical patch step unless new reviewed implementation evidence is added
