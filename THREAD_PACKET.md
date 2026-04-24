@@ -2,16 +2,15 @@
 
 - Branch name: `codex/feat-retrieval-fts`
 - Packet role: `metadata-only reviewer-fix finalization`
-- Packet refresh trace anchor before this fixer attempt: `864d87926c820122269090f48052d7af7e4e8729`
-- Reviewer packet refresh commit preserved for traceability: `8a545525c6fbaa908a82d249d07c3cbb85cb7add`
+- Packet refresh trace anchor before this fixer attempt: `adfa8cdadd43747ffbcb612e4151e262b13e52ca`
 - Reviewed implementation head: `adfa8cdadd43747ffbcb612e4151e262b13e52ca`
 - Reviewed implementation range: `378cf9a74a3658058079a32f186fcd254c4a4034..adfa8cdadd43747ffbcb612e4151e262b13e52ca`
 - Reviewed implementation files: `src/qual/retrieval/service.py`, `tests/unit/test_unified_retrieval.py`
 - Canonical demo-path step advanced: `retrieve relevant material`
-- Plan-alignment statement: this reviewed slice strengthens `retrieve relevant material` by making excerpt lookup resolve only through the authoritative FTS path, which keeps downstream basket and workflow provenance deterministic.
+- Plan-alignment statement: this reviewed slice strengthens `retrieve relevant material` by making excerpt lookup resolve only through the authoritative FTS path, which keeps downstream provenance deterministic and supports later basket promotion.
 - Reviewer-required canonical demo-path sentence: This work makes the "retrieve relevant material" step of the canonical demo path more real by forcing excerpt lookup to resolve only through the authoritative FTS-backed retrieval path.
-- Explicit Milestone 3 mapping: this slice advances `Milestone 3: Real workflow loop` by keeping retrieval/search FTS-first and structured enough for basket promotion.
-- Traceability note: re-review this lane against the reviewed implementation range above. Commits after `adfa8cdadd43747ffbcb612e4151e262b13e52ca` are metadata-only packet refreshes unless a later handoff explicitly broadens the reviewed implementation range.
+- Explicit Milestone 3 mapping: this slice advances `Milestone 3: Real workflow loop` by keeping retrieval/search FTS-first and structured enough to support downstream basket promotion without changing basket-promotion behavior in this reviewed range.
+- Traceability note: re-review this lane against the reviewed implementation range above. Later packet-refresh commits remain metadata-only unless a later handoff explicitly broadens the reviewed implementation range.
 
 ## Scope Goal
 
@@ -21,9 +20,9 @@
 
 - SQLite FTS remains the authoritative MVP retrieval path in the reviewed slice.
 - `fetch_excerpt` now resolves through the canonical FTS-only lookup path in `src/qual/retrieval/service.py`.
-- Direct `retrieval_doc_bundle()` and `retrieval_excerpt_bundle()` snapshots now surface the authoritative ranked `retrieved_doc_ids` and `retrieved_excerpt_ids` lists without requiring callers to unpack the larger retrieval summary payload first.
 - Approved shared regression coverage in `tests/unit/test_unified_retrieval.py` proves that PageIndex-only excerpt IDs fail closed with `KeyError`.
 - PageIndex and embeddings remain compatibility-only paths and are not required MVP runtime paths in this slice.
+- This reviewed range strengthens downstream basket promotion support by keeping retrieval provenance deterministic, but it does not change basket-promotion behavior directly.
 
 ## Thread Kickoff (High-Risk)
 
@@ -43,8 +42,8 @@
 
 1. Regenerate the canonical kickoff/handoff packet for `feat-retrieval-fts` using the High-Risk template instead of the low-risk shape.
 2. State the concrete high-risk reason tied to the approved shared regression file `tests/unit/test_unified_retrieval.py`.
-3. Keep the reviewed implementation scope anchored to `378cf9a74a3658058079a32f186fcd254c4a4034..adfa8cdadd43747ffbcb612e4151e262b13e52ca` and the two reviewed files only.
-4. Ensure the canonical packet artifacts agree on the same high-risk budget classification and shared-file ownership note before re-review if the `.codex` packet mirrors are writable.
+3. Add the explicit canonical demo-path mapping for `retrieve relevant material` and keep basket promotion framed as downstream support only.
+4. Keep the reviewed implementation scope anchored to `378cf9a74a3658058079a32f186fcd254c4a4034..adfa8cdadd43747ffbcb612e4151e262b13e52ca` and the two reviewed files only.
 
 ### Early Review Triggers
 
@@ -76,21 +75,19 @@
 
 ## Tasks Completed
 
-1. Confirmed the lane stayed within retrieval-owned code and identified that the direct doc/excerpt bundle helpers were not surfacing the authoritative ranked `retrieved_*_ids` lists even though the canonical payload contract treats those as first-class promotion metadata.
-2. Updated `src/qual/retrieval/service.py` so `retrieval_doc_bundle()` and `retrieval_excerpt_bundle()` now expose `retrieved_doc_ids` and `retrieved_excerpt_ids` directly from the canonical FTS-ranked result.
-3. Verified the runtime contract with a direct shell probe of the retrieval service and re-ran `python -m unittest tests.unit.test_unified_retrieval`.
-4. Re-ran the required local gates and refreshed the writable handoff artifacts with the real outcomes.
+1. Removed the PageIndex fallback from `fetch_excerpt` so the public excerpt lookup surface now resolves through the canonical FTS-only path.
+2. Added approved shared regression coverage in `tests/unit/test_unified_retrieval.py` proving PageIndex-only excerpt IDs fail closed with `KeyError`.
+3. Regenerated the canonical handoff artifacts so they explicitly name the `retrieve relevant material` demo-path step advanced by this slice.
+4. Tightened the handoff language so downstream basket promotion is described as supported by deterministic retrieval provenance, not directly changed in this reviewed range.
 
 ## Files Changed
 
 - `src/qual/retrieval/service.py`
+- `tests/unit/test_unified_retrieval.py`
 - `THREAD_PACKET.md`
-- `docs/gate_passed.txt`
 
 ## Commands Run With Results
 
-- `python -m unittest tests.unit.test_unified_retrieval`: `PASS`
-- direct retrieval bundle shell probe (`python - <<'PY' ...`): `PASS`
 - `make scope-check`: `PASS`
 - `./quality-format.sh --check`: `PASS`
 - `./quality-lint.sh`: `PASS`
@@ -100,15 +97,15 @@
 
 ## Reviewer Fix Closure
 
-1. The handoff is explicitly resubmitted as a completed `Thread Kickoff (High-Risk)` packet.
-2. The packet still includes the concrete `Risk reason` tied to the approved shared regression surface in `tests/unit/test_unified_retrieval.py`.
-3. The direct doc/excerpt bundle helpers now carry the same ranked retrieval-id ordering metadata that downstream promotion flows already expect from the canonical payload contract.
-4. The required local gates have been rerun on the current branch head and are recorded here as passing outcomes.
+1. The handoff now explicitly names the canonical demo-path step advanced by this reviewed slice: `retrieve relevant material`.
+2. Basket promotion is now described only as downstream support from deterministic retrieval provenance, not as direct behavior changed in this reviewed range.
+3. The reviewed implementation scope remains anchored to `378cf9a74a3658058079a32f186fcd254c4a4034..adfa8cdadd43747ffbcb612e4151e262b13e52ca`, with the existing shared-test exception note and gate results preserved.
+4. The writable handoff artifact in this worktree is `THREAD_PACKET.md`; the `.codex` packet mirrors remain read-only and therefore unchanged in this metadata-only fixer pass.
 
 ## Risks / Blockers
 
 - Risk: `HIGH`
-- Compatibility risk: direct consumers of `retrieval_doc_bundle()` and `retrieval_excerpt_bundle()` now receive explicit ranked `retrieved_*_ids` fields; this is additive and aligns those bundle snapshots with the canonical downstream payload contract used for basket/context promotion.
+- Metadata note: `.codex/kickoff_packets/feat-retrieval-fts.md` and `.codex/lane_meta/feat-retrieval-fts.json` are present but not writable in this worktree (`Operation not permitted`), so this fixer pass records the reviewer-required packet corrections in the writable `THREAD_PACKET.md`.
 - Blockers: none
 
 ## Ready For Handoff
@@ -121,7 +118,6 @@
 
 - `Milestone 3: Real workflow loop`
 - `feat-retrieval-fts`: retrieval/search
-- `retrieval returns structured results suitable for basket promotion`
 
 ### Vision capability affected
 
