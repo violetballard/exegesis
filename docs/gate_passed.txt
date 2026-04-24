@@ -2,23 +2,22 @@ Gate Results Summary (as of 2026-04-24)
 -------------------------------------
 
 Feature lane: `codex/feat-retrieval-fts`
-Packet role: `shared high-risk handoff refresh`
+Packet role: `metadata-only reviewer-fix finalization`
+Packet refresh trace anchor before this fixer commit: `72a65689bc806e3f33afa9f28e87c827020e5021`
 Reviewed implementation head before this fixer commit: `72a65689bc806e3f33afa9f28e87c827020e5021`
 Reviewed implementation range: `d7fd5d200358287fa42a18d39e2b277463b9b69f..72a65689bc806e3f33afa9f28e87c827020e5021`
 Canonical demo-path step advanced: `retrieve relevant material`
-Plan-alignment statement: This work makes the "retrieve relevant material" step more real by keeping SQLite FTS authoritative on the canonical retrieval surface, failing closed for PageIndex-only excerpt IDs, and normalizing direct retrieval inputs before they reach downstream workflow consumers.
-Reviewer-required packet fix: the handoff now uses the shared/high-risk budget model, includes the explicit demo-path mapping, and truthfully restamps the reviewed implementation range to the current branch state after later retrieval commits landed.
+Plan-alignment statement: This handoff makes the "retrieve relevant material" step more real by keeping retrieval FTS-first, hardening deterministic payload and provenance shaping on the canonical retrieval surface, and normalizing direct constraint booleans before retrieval executes.
+Reviewer-fix reconciliation: the packet now includes `72a65689bc806e3f33afa9f28e87c827020e5021` in the reviewed implementation range, keeps the handoff classified as shared/high-risk work under the `4`-task cap, and records the explicit canonical demo-path mapping in the handoff itself.
 FTS-first confirmation: SQLite FTS remains authoritative for the MVP across the reviewed range; PageIndex and embeddings remain compatibility-only shims and are not required retrieval paths in this handoff.
 
 Reviewed implementation scope:
 
-* `fetch_excerpt` resolves excerpt IDs only through the canonical FTS lookup path in `src/qual/retrieval/service.py`.
-* PageIndex-only excerpt IDs fail closed instead of widening lookup behavior outside the canonical FTS retrieval surface.
-* Bytes-backed direct query metadata and binary date/scope/doc-type inputs are rejected before query normalization in `src/qual/retrieval/service.py`.
-* Direct boolean constraint inputs are normalized before provenance and payload snapshots are emitted.
-* Regression coverage in `tests/unit/test_unified_retrieval.py` remains the approved shared-by-approval surface for the lane.
+* Canonical retrieval exports, payload snapshots, provenance bundles, and sparse source/context rehydration stay deterministic across the reviewed range.
+* `fetch_excerpt` stays on the canonical FTS-only excerpt lookup path, so PageIndex-only excerpt IDs fail closed under shared regression coverage.
+* Direct retrieval constraint booleans are normalized on the canonical surface: boolean `max_results` is rejected, and `require_citations` plus `prefer_exact_matches` are canonicalized before retrieval runs.
 
-Reviewed files in cumulative range:
+Reviewed files in scope:
 
 * `.codex/kickoff_packets/feat-retrieval-fts.md`
 * `.codex/lane_meta/feat-retrieval-fts.json`
@@ -37,18 +36,12 @@ Reviewed files in cumulative range:
 * `tests/unit/test_packet_planner.py`
 * `tests/unit/test_unified_retrieval.py`
 
-Blocked packet mirrors in this fixer pass:
-
-* `.codex/kickoff_packets/feat-retrieval-fts.md`
-* `.codex/lane_meta/feat-retrieval-fts.json`
-* mirror write attempt result: `operation not permitted`
-
 AGENTS checkpoint evidence:
 
-* `plan complete` - the handoff was narrowed to the concrete reviewer fixes and aligned to the current reviewed retrieval range on the branch.
+* `plan complete` - the handoff was re-scoped to the actual reviewed implementation tip `72a65689bc806e3f33afa9f28e87c827020e5021`, the shared/high-risk classification, and the canonical demo-path step.
 * `before risky/shared file edit` - the shared/high-risk boundary was called out because the reviewed range still includes approved shared regression coverage in `tests/unit/test_unified_retrieval.py`.
 * `first green tests` - all required gates passed on the refreshed handoff state.
-* `ready for handoff` - the writable handoff artifacts agree on the same reviewed head, reviewed range, explicit demo-path sentence, and shared/high-risk classification; the `.codex` mirror files remain blocked by `operation not permitted`.
+* `ready for handoff` - the writable handoff artifacts now agree on the reviewed head `72a65689bc806e3f33afa9f28e87c827020e5021`, the reviewed range, the shared/high-risk classification, and the canonical demo-path mapping. The `.codex` mirror files remain blocked by `operation not permitted`.
 
 Verification:
 
