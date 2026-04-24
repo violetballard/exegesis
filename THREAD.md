@@ -6,13 +6,13 @@ Canonical handoff contract lives in `THREAD_PACKET.md`.
 
 ## Current Review Focus
 
-- Packet refresh status: reviewer-fix packet refresh regenerated on 2026-04-24 for the exact reviewed implementation slice, with roadmap/vision mapping narrowed to the current CLI-first command surface in `ROADMAP.md` Milestone 1 and `PRODUCT_VISION.md` capability 4.
-- Reviewed implementation commit: `dbb8e0156f3520c759d4d29e2cbbb186013f6df7` (`fix(commands): harden parser surface drift checks`).
+- Packet refresh status: reviewer-fix packet refresh regenerated on 2026-04-24 for the exact reviewed implementation slice, with roadmap/vision mapping narrowed to the current CLI-first contract surface in `ROADMAP.md` Milestone 3 and `PRODUCT_VISION.md` capability 4.
+- Reviewed implementation commit: `6890b8c6ea9b6dcd9cd58eb7cdbd9f68356f47ac` (`test(commands): lock parser drift regressions to live entrypoints`).
 - Packet refresh traceability:
-  - the current branch tip for re-review is a packet-only refresh above `dbb8e0156f3520c759d4d29e2cbbb186013f6df7`; no implementation files beyond the reviewed slice changed in this refresh
+  - the current branch tip for re-review is a packet-only refresh above `6890b8c6ea9b6dcd9cd58eb7cdbd9f68356f47ac`; no implementation files beyond the reviewed slice changed in this refresh
 - Reviewed implementation files:
-  - `src/qual/commands/catalog.py`
   - `tests/unit/test_commands_catalog.py`
+  - implementation basis retained on branch: `src/qual/commands/catalog.py`
 - Packet-only refresh files:
   - `THREAD.md`
   - `THREAD_PACKET.md`
@@ -40,17 +40,17 @@ Canonical handoff contract lives in `THREAD_PACKET.md`.
 - Concrete smoke-test evidence:
   - `tests/unit/test_commands_catalog.py` keeps the canonical `project-open` smoke argv at `("bootstrap", "--project", "demo")` and keeps both trusted MVP workflow branches rooted at that same parser-ready bootstrap invocation
 - Traceability note:
-  - `dbb8e0156f3520c759d4d29e2cbbb186013f6df7` is the reviewed implementation tip for the parser-surface fix set; this packet refresh commit records the updated re-review mapping and gate results on top of it
+  - `6890b8c6ea9b6dcd9cd58eb7cdbd9f68356f47ac` is the reviewed implementation tip for the parser-surface fix set; this packet refresh commit records the updated re-review mapping and gate results on top of it
 - Concrete blocker removed for the current CLI smoke route:
   - the active CLI smoke route no longer allows `bootstrap` or other canonical parser entrypoints to be swapped for still-resolvable aliases without an immediate contract failure, which removes silent drift at the entrypoint to the operator-visible loop
 - Scope-tightening note:
   - this reviewed slice hardens only parser-surface drift detection for the command catalog plus focused regression coverage; it does not claim new retrieval, patch application, persistence, or export behavior
 - Why this is milestone-worthy now:
-  - `ROADMAP.md` Milestone 1 already calls out command and diff-preview hardening, and its exit criteria require the manual CLI smoke flow to remain stable; preventing silent drift in the bootstrap-facing parser surface is direct operator-surface hardening for that active milestone.
+  - `ROADMAP.md` Milestone 3 is where user-facing contracts are defined and locked intentionally; preventing silent drift in the bootstrap-facing parser surface is direct CLI contract hardening for that release-readiness milestone.
 - Roadmap / vision alignment for this reviewed slice:
-  - `ROADMAP.md` Milestone 1 `Bootstrap Flow Stabilization`: this slice hardens the command surface used to enter the CLI smoke route at `project-open`
-  - `ROADMAP.md` Milestone 1 scope: `Command and diff-preview behavior hardening`, applied here only to parser-surface drift detection for the public command tokens
-  - `ROADMAP.md` Milestone 1 exit criteria: `Manual CLI smoke flow remains stable`, protected here by failing closed when the live parser entrypoints drift from the catalog
+  - `ROADMAP.md` Milestone 3 `Product Readiness`: this slice narrows to the CLI-first contract surface that must be defined and locked intentionally before release
+  - `ROADMAP.md` Milestone 3 scope: `Define and lock user-facing output contracts`, applied here only to parser-surface drift detection for the public command tokens
+  - `ROADMAP.md` Milestone 3 exit criteria: `Contract changes documented and intentional`, protected here by failing closed when the live parser entrypoints drift from the catalog
   - `ROADMAP.md` MVP focus: `feat-commands` is an active implementation lane, while `feat-console` remains deferred and no UI-lane scope is claimed here
   - `PRODUCT_VISION.md` capability 4 `Operator-first control surface`: keep the CLI bootstrap surface deterministic so the current operator-facing entrypoint stays stable for both manual smoke runs and downstream structured-output consumers
 - Ownership / scope note:
@@ -68,4 +68,4 @@ Canonical handoff contract lives in `THREAD_PACKET.md`.
   - `./typecheck-test.sh`
   - `make ci`
 - Gate attribution note:
-  - these gates were rerun on 2026-04-24 against the packet-refresh workspace state whose only changed files above `dbb8e0156f3520c759d4d29e2cbbb186013f6df7` are `THREAD.md` and `THREAD_PACKET.md`
+  - these gates were rerun on 2026-04-24 against the packet-refresh workspace state whose only changed files above `6890b8c6ea9b6dcd9cd58eb7cdbd9f68356f47ac` are `THREAD.md` and `THREAD_PACKET.md`
