@@ -3042,6 +3042,17 @@ class UnifiedRetrievalTests(unittest.TestCase):
         self.assertEqual(replayed.hits, ["fresh-hit"])
         self.assertEqual(runner_hits, [])
 
+    def test_fts_strategy_normalizes_none_runner_hits_to_empty_list(self) -> None:
+        strategy = engine_retrieval.FTSStrategy(lambda query, candidate_doc_ids: None)
+
+        first = strategy.retrieve("theory implications", candidate_doc_ids=("doc-b", "doc-a"))
+        replayed = strategy.retrieve("theory implications", candidate_doc_ids=("doc-a", "doc-b"))
+
+        self.assertFalse(first.cache_used)
+        self.assertEqual(first.hits, [])
+        self.assertTrue(replayed.cache_used)
+        self.assertEqual(replayed.hits, [])
+
     def test_fts_strategy_reuses_cache_for_semantically_equivalent_query_objects(self) -> None:
         runner_hits = [["fresh-hit"]]
         strategy = engine_retrieval.FTSStrategy(lambda query, candidate_doc_ids: list(runner_hits.pop(0)))

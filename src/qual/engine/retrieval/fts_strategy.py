@@ -101,6 +101,8 @@ class FTSStrategy:
     def _snapshot_hits(hits: Any) -> list[Any]:
         """Normalize runner output into the stable list contract used by StrategyRun."""
 
+        if hits is None:
+            return []
         if isinstance(hits, list):
             return copy.deepcopy(hits)
         if isinstance(hits, tuple):
