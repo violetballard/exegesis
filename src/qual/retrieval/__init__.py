@@ -103,15 +103,34 @@ def _normalize_optional_bool(value: object, *, default: bool) -> bool:
     raise ValueError(f"unsupported boolean value: {value}")
 
 
-def _normalize_required_text(value: object, *, field_name: str, casefold: bool = False) -> str:
+def _normalize_required_text(
+    value: object,
+    *,
+    field_name: str,
+    casefold: bool = False,
+    collapse_whitespace: bool = False,
+) -> str:
     if isinstance(value, (bytes, bytearray)):
         raise TypeError(f"{field_name} must be a text string, not bytes")
     text = str(value).strip()
     if not text:
         raise ValueError(f"{field_name} must be a non-empty string")
+    if collapse_whitespace:
+        text = " ".join(text.split())
     if casefold:
         return text.casefold()
     return text
+
+
+def _normalize_optional_query_hint(value: object) -> str | None:
+    if value is None:
+        return None
+    return _normalize_required_text(
+        value,
+        field_name="section_hint",
+        casefold=True,
+        collapse_whitespace=True,
+    )
 
 
 def _build_retrieval_query(
@@ -163,7 +182,11 @@ def build_retrieval_query(
     else:
         raise TypeError("constraints must be a mapping or RetrievalConstraints")
 
-    normalized_query_text = _normalize_required_text(query_text, field_name="query_text")
+    normalized_query_text = _normalize_required_text(
+        query_text,
+        field_name="query_text",
+        collapse_whitespace=True,
+    )
     normalized_scope = _normalize_required_text(scope, field_name="scope")
     normalized_intent = _normalize_required_text(intent, field_name="intent", casefold=True)
     normalized_confidentiality_profile = _normalize_required_text(
@@ -171,9 +194,7 @@ def build_retrieval_query(
         field_name="confidentiality_profile",
         casefold=True,
     )
-    section_hint = payload.get("section_hint")
-    if section_hint is not None and isinstance(section_hint, (bytes, bytearray)):
-        raise TypeError("section_hint must be a text string, not bytes")
+    section_hint = _normalize_optional_query_hint(payload.get("section_hint"))
     doc_types = _normalize_constraint_values(payload.get("doc_types"), field_name="doc_types")
     date_range = payload.get("date_range")
     if isinstance(date_range, str):
