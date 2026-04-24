@@ -6,29 +6,21 @@ Canonical handoff contract lives in `THREAD_PACKET.md`.
 
 ## Current Review Focus
 
-- Packet refresh status: truthful branch-tip handoff regeneration against the actual `codex/feat-commands` tip.
-- Packet revalidation status: all required gates re-ran successfully on 2026-04-23 against branch tip `5c5980e8813134af0e5f29a0ac5cb793cde44ffb`.
-- Reviewed implementation tip: `5c5980e8813134af0e5f29a0ac5cb793cde44ffb` (`Add trusted command workflow plan helpers`).
-- Reviewed implementation range: cumulative command-surface branch-tip slice from `f8d860ed9f6299f0169c4f21321ac5f37c949fd3..5c5980e8813134af0e5f29a0ac5cb793cde44ffb`.
-- Reviewed implementation files in that branch-tip slice:
-  - `src/qual/commands/__init__.py`
-  - `src/qual/commands/canonical.py`
+- Packet refresh status: reviewer-fix handoff aligned to the exact reviewed implementation slice.
+- Reviewed implementation commit: `f8d860ed9f6299f0169c4f21321ac5f37c949fd3` (`feat(commands): lock CLI contract to command catalog`).
+- Reviewed implementation files:
   - `src/qual/commands/catalog.py`
-  - `src/qual/commands/diff_preview.py`
   - `tests/unit/test_commands_catalog.py`
-- Implementation-commit traceability:
-  - every command-code commit after `f8d860ed9f6299f0169c4f21321ac5f37c949fd3` is listed in `THREAD_PACKET.md`
-  - no later command-code commit is labeled metadata-only
 - Canonical demo-path step advanced:
   - `open project/document`
 - Concrete blocker removed for Milestone 3:
-  - the CLI-first MVP now has a trusted, deterministic command workflow plan for the canonical `open project/document` entry step, so Textual-disabled operator flows do not depend on ambiguous command-token routing or untracked next-action resolution.
-- Roadmap / vision alignment for this branch-tip slice:
-  - `ROADMAP.md` Milestone 3 / `feat-commands`: CLI compatibility and migration-safe entrypoints
-  - `PRODUCT_VISION.md` capability 4: `Operator-first control surface`, with the CLI as the active first-class operator surface while Textual stays disabled
+  - the CLI-first MVP no longer allows the parser-facing contract for the `open project/document` entry step to drift away from the canonical command catalog without failing closed.
+- Roadmap / vision alignment for this reviewed slice:
+  - `ROADMAP.md` Milestone 3: lock intentional operator-facing contracts
+  - `PRODUCT_VISION.md` capability 4: keep the CLI as a deterministic operator surface while interactive console work remains disabled
 - Ownership / scope note:
-  - lane-owned implementation paths stay under `src/qual/commands/**`
-  - approved shared-by-approval exception stays scoped to `tests/unit/test_commands_catalog.py` only
+  - lane-owned implementation path: `src/qual/commands/catalog.py`
+  - approved shared-by-approval exception: `tests/unit/test_commands_catalog.py`
   - integrator-locked edits are not part of this slice
 - Required gates for the reviewed slice:
   - `make scope-check`
