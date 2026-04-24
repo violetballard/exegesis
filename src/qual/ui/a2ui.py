@@ -245,9 +245,10 @@ def describe_a2ui_contract(
     shell-style manifest naming, and it also exposes
     ``terminal_artifact_renderer_entrypoints_contract_manifest`` for the
     renderer-entrypoints contract slice itself. The shared action/selection
-    leaf bundle is also surfaced as ``leaf_contracts`` so engine outputs can
-    negotiate that stable contract slice without reassembling it from the
-    separate leaf manifests.
+    leaf bundle is also surfaced as ``leaf_contracts`` and
+    ``leaf_contracts_contract_manifest`` so engine outputs can negotiate that
+    stable contract slice without reassembling it from the separate leaf
+    manifests.
     """
 
     manifest = _snapshot_contract_section(_build_a2ui_contract_manifest(
@@ -279,6 +280,8 @@ def describe_a2ui_contract(
     manifest["leaf_contracts_fingerprint"] = leaf_contracts["contract_fingerprint"]
     manifest["leaf_contracts_contract"] = _snapshot_contract_section(leaf_contracts)
     manifest["leaf_contracts_contract_fingerprint"] = manifest["leaf_contracts_fingerprint"]
+    manifest["leaf_contracts_contract_manifest"] = _snapshot_contract_section(leaf_contracts)
+    manifest["leaf_contracts_contract_manifest_fingerprint"] = manifest["leaf_contracts_fingerprint"]
     terminal_artifact_contract = _snapshot_contract_section(manifest["terminal_artifact"])
     manifest["terminal_artifact_contract"] = _snapshot_contract_section(terminal_artifact_contract)
     manifest["terminal_artifact_contract_fingerprint"] = terminal_artifact_contract["contract_fingerprint"]
@@ -807,6 +810,7 @@ def describe_a2ui_contract_fingerprints(
             ("card_fingerprint", card_contract_fingerprint()),
             ("card_contract_fingerprint", card_contract_fingerprint()),
             ("leaf_contracts_contract", a2ui_leaf_contracts_fingerprint()),
+            ("leaf_contracts_contract_manifest", a2ui_leaf_contracts_fingerprint()),
             ("action_contract", action_contract_fingerprint()),
             ("selection_contract", selection_contract_fingerprint()),
             ("terminal_fallback_contract", terminal_fallback_contract_fingerprint()),

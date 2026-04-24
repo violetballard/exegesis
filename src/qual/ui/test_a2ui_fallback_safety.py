@@ -404,13 +404,20 @@ class A2UIFallbackSafetyTests(unittest.TestCase):
 
         self.assertEqual(manifest["leaf_contracts"], leaf_contracts)
         self.assertEqual(manifest["leaf_contracts_contract"], leaf_contracts)
+        self.assertEqual(manifest["leaf_contracts_contract_manifest"], leaf_contracts)
         self.assertEqual(manifest["leaf_contracts_fingerprint"], leaf_fingerprint)
         self.assertEqual(manifest["leaf_contracts_contract_fingerprint"], leaf_fingerprint)
+        self.assertEqual(manifest["leaf_contracts_contract_manifest_fingerprint"], leaf_fingerprint)
         self.assertEqual(manifest["schemas"]["leaf_contracts"], leaf_contracts)
         self.assertEqual(manifest["contract_fingerprints"]["leaf_contracts"], leaf_fingerprint)
         self.assertEqual(fingerprints["leaf_contracts"], leaf_fingerprint)
         self.assertEqual(aliased_fingerprints["leaf_contracts_contract"], leaf_fingerprint)
         self.assertEqual(aliased_fingerprints["leaf_contracts_contract_fingerprint"], leaf_fingerprint)
+        self.assertEqual(aliased_fingerprints["leaf_contracts_contract_manifest"], leaf_fingerprint)
+        self.assertEqual(
+            aliased_fingerprints["leaf_contracts_contract_manifest_fingerprint"],
+            leaf_fingerprint,
+        )
 
     def test_standalone_contract_manifests_expose_contract_fingerprint_aliases(self) -> None:
         cases = [
@@ -2319,6 +2326,14 @@ class A2UIFallbackSafetyTests(unittest.TestCase):
         self.assertNotIn("card_contract_fingerprint_fingerprint", fingerprints_with_aliases)
         self.assertEqual(fingerprints_with_aliases["action_contract"], action_contract_fingerprint())
         self.assertEqual(fingerprints_with_aliases["selection_contract"], selection_contract_fingerprint())
+        self.assertEqual(
+            fingerprints_with_aliases["leaf_contracts_contract_manifest"],
+            a2ui_leaf_contracts_fingerprint(),
+        )
+        self.assertEqual(
+            fingerprints_with_aliases["leaf_contracts_contract_manifest_fingerprint"],
+            a2ui_leaf_contracts_fingerprint(),
+        )
         self.assertEqual(
             fingerprints_with_aliases["terminal_artifact_renderer_entrypoints_contract_manifest"],
             terminal_artifact_renderer_entrypoints_contract_fingerprint(),
