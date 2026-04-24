@@ -1,38 +1,37 @@
 # Thread Handoff Packet
 
 - Branch name: `codex/feat-retrieval-fts`
-- Packet role: `metadata-only reviewer-fix packet refresh`
-- Packet refresh trace anchor before this fixer attempt: `bca26c21e58161f0e3da8fdaf8049ef84771d934`
+- Packet role: `branch-tip handoff refresh`
+- Packet refresh trace anchor before this fixer attempt: `2e052094c4cc2d4c3693c4dcb0f6e8f0c7764909`
 - Reviewed implementation head: `bca26c21e58161f0e3da8fdaf8049ef84771d934`
 - Reviewed implementation range: `378cf9a74a3658058079a32f186fcd254c4a4034..bca26c21e58161f0e3da8fdaf8049ef84771d934`
-- Reviewed implementation files: `.codex/kickoff_packets/feat-retrieval-fts.md`, `.codex/lane_meta/feat-retrieval-fts.json`, `docs/gate_passed.txt`, `src/qual/engine/retrieval/__init__.py`, `src/qual/engine/retrieval/embeddings_strategy.py`, `src/qual/engine/retrieval/fts_strategy.py`, `src/qual/engine/retrieval/interface.py`, `src/qual/engine/retrieval/pageindex_strategy.py`, `src/qual/engine/retrieval/payload.py`, `src/qual/retrieval/__init__.py`, `src/qual/retrieval/service.py`, `tests/unit/test_unified_retrieval.py`
+- Branch-tip handoff range before this fixer refresh: `378cf9a74a3658058079a32f186fcd254c4a4034..2e052094c4cc2d4c3693c4dcb0f6e8f0c7764909`
+- Runtime implementation files in the reviewed range: `src/qual/engine/retrieval/__init__.py`, `src/qual/retrieval/service.py`, `tests/unit/test_unified_retrieval.py`
+- Packet/supporting files in the branch-tip handoff range: `.codex/kickoff_packets/feat-retrieval-fts.md`, `.codex/lane_meta/feat-retrieval-fts.json`, `THREAD_PACKET.md`, `docs/gate_passed.txt`
 - Canonical demo-path step advanced: `retrieve relevant material`
-- Plan-alignment statement: this reviewed slice strengthens `retrieve relevant material` by keeping the MVP explicitly FTS-first, making retrieval payloads and provenance deterministic for downstream engine flows, and preserving ranked retrieval ids on the narrowed bundles used for later basket/context promotion.
-- Reviewer-required canonical demo-path sentence: This work makes the "retrieve relevant material" step of the canonical demo path more real by keeping retrieval/search FTS-first end to end and forcing excerpt resolution through the authoritative FTS-backed retrieval path.
-- Explicit Milestone 3 mapping: this slice advances `Milestone 3: Real workflow loop` by shipping an FTS-first retrieval path with deterministic payload/provenance surfaces and fail-closed compatibility shims for non-FTS excerpt lookup inputs.
-- FTS-first confirmation: the actual reviewed branch tip remains FTS-first for the MVP; SQLite FTS is authoritative, while PageIndex and embeddings remain compatibility-only fallback shims that fail closed when the canonical FTS path is not available.
-- Traceability note: re-review this lane against the reviewed implementation range above. This fixer pass is metadata-only; the reviewed implementation head remains `bca26c21e58161f0e3da8fdaf8049ef84771d934` unless a later handoff explicitly broadens the reviewed implementation range.
+- Reviewer-required canonical demo-path sentence: This work makes the `retrieve relevant material` step of the canonical demo path more real by keeping retrieval/search FTS-first, forcing excerpt lookup through the authoritative FTS-backed path, and surfacing ranked retrieval ids for downstream promotion and context assembly.
+- Explicit Milestone 3 mapping: this branch-tip slice advances `Milestone 3: Real workflow loop` by keeping retrieval/search FTS-first for the MVP while making the retrieval payloads more complete for downstream workflow consumers.
+- FTS-first gate statement: the reviewed implementation range remains FTS-first for the MVP; PageIndex and embeddings stay deferred or compatibility-only shims and are not promoted to active runtime retrieval paths in this handoff.
+- Traceability note: re-review runtime behavior against the reviewed implementation range above. The packet refresh commit `2e052094c4cc2d4c3693c4dcb0f6e8f0c7764909` is metadata-only; the later runtime retrieval change after `adfa8cdadd43747ffbcb612e4151e262b13e52ca` is `bca26c21e58161f0e3da8fdaf8049ef84771d934`.
 
 ## Scope Goal
 
-- Resubmit the retrieval handoff against the actual branch tip so the reviewed slice, files changed, completed tasks, and gate evidence all match the real FTS-first retrieval implementation under review.
+- Resubmit the retrieval handoff against the actual branch-tip implementation instead of the stale pre-`bca26c21` slice.
 
 ## Scope Completed
 
 - SQLite FTS remains the authoritative MVP retrieval path in the reviewed slice.
-- The canonical retrieval query constructor and `retrieve_auto` helper are exported through both retrieval facades.
-- Retrieval payloads, provenance snapshots, sparse source/context bundles, and strategy hit snapshots are deterministic for downstream engine flows.
-- `fetch_excerpt` resolves through the canonical FTS-only lookup path, and the shared regression coverage proves PageIndex-only excerpt ids fail closed with `KeyError`.
-- Ranked document ids and excerpt ids are preserved directly on the narrower retrieval bundles so downstream consumers do not need to unpack larger summary payloads just to preserve authoritative FTS ordering.
-- Engine retrieval runtime types are lazy-bound so the engine retrieval facade can expose the canonical retrieval helpers without widening import-time runtime coupling.
+- `fetch_excerpt` resolves through the canonical FTS-only lookup path in `src/qual/retrieval/service.py`, and approved shared regression coverage proves PageIndex-only excerpt ids fail closed with `KeyError`.
+- `src/qual/engine/retrieval/__init__.py` lazy-binds retrieval runtime types while continuing to delegate to the canonical retrieval facade, so engine callers keep the same FTS-first runtime contract without the eager import-cycle coupling.
+- Direct retrieval bundle payloads now surface authoritative ranked `retrieved_doc_ids` and `retrieved_excerpt_ids`, which makes downstream basket/context promotion consume the same ranked ids produced by the FTS-first retrieval path.
 - PageIndex and embeddings remain compatibility-only paths and are not required MVP runtime paths in this reviewed slice.
 
 ## Thread Kickoff (High-Risk)
 
 - Branch: `codex/feat-retrieval-fts`
 - Lane/owned paths: `src/qual/retrieval/**`, `src/qual/engine/retrieval/**`, `engine/src/exegesis_engine/retrieval/**`
-- Scope goal: resubmit the retrieval handoff against the real branch-tip implementation and confirm the full reviewed slice still satisfies the FTS-first MVP contract.
-- Risk reason: the lane includes approved shared regression coverage in `tests/unit/test_unified_retrieval.py`, and the truthful reviewed slice spans retrieval facade, engine retrieval export, payload, and test surfaces rather than a two-file narrowed excerpt patch.
+- Scope goal: resubmit the retrieval handoff against the actual branch-tip implementation instead of the stale pre-`bca26c21` slice.
+- Risk reason: approved shared regression coverage in `tests/unit/test_unified_retrieval.py` makes the lane shared/high-risk, and the branch-tip handoff also includes packet artifacts that must stay traceable to the real runtime retrieval scope.
 
 ### Budget
 
@@ -43,10 +42,10 @@
 
 ### Planned Tasks (max 4)
 
-1. Regenerate the packet surfaces against the actual branch tip `bca26c21e58161f0e3da8fdaf8049ef84771d934` instead of the stale `..adfa8c` reviewed range.
-2. Update `Scope completed`, `Tasks completed`, `Files changed`, and `Commands run with results` so they match the real reviewed slice and its runtime retrieval changes.
-3. Restate the canonical demo-path step as `retrieve relevant material` and explicitly confirm the branch tip remains FTS-first for MVP review.
-4. Re-run the required local gates on the refreshed metadata-only handoff commit.
+1. Regenerate the canonical kickoff and handoff packet fields so they describe the real branch-tip reviewed slice through `bca26c21e58161f0e3da8fdaf8049ef84771d934`.
+2. Update `Scope completed`, `Tasks completed`, `Files changed`, and gate reporting so they match the current retrieval implementation and packet-supporting files.
+3. Restate the AGENTS-required canonical demo-path sentence for the retrieval step and make the FTS-first MVP gate explicit against the refreshed reviewed range.
+4. Re-run the required local gates on the refreshed packet branch head and record the outcomes for re-review.
 
 ### Early Review Triggers
 
@@ -78,26 +77,20 @@
 
 ## Tasks Completed
 
-1. Kept retrieval/search FTS-first across the reviewed slice by exporting the canonical query builder and `retrieve_auto` helper through both retrieval facades while leaving PageIndex and embeddings as fail-closed compatibility shims.
-2. Hardened deterministic retrieval payloads, provenance snapshots, sparse source/context bundles, and audit-aligned hit metadata for downstream engine flows.
-3. Removed the noncanonical excerpt fallback path so excerpt lookup resolves only through the authoritative FTS path, then added approved shared regression coverage proving PageIndex-only excerpt ids fail closed.
-4. Extended the reviewed tip with the remaining runtime follow-ups: lazy-bound engine retrieval runtime typing and direct `retrieved_doc_ids` / `retrieved_excerpt_ids` exposure on narrowed retrieval bundles.
+1. Preserved the FTS-first retrieval contract across the canonical retrieval service and the engine retrieval facade while lazy-binding engine runtime types in `src/qual/engine/retrieval/__init__.py`.
+2. Kept excerpt lookup on the authoritative FTS-only path in `src/qual/retrieval/service.py` and covered the fail-closed PageIndex-only case in approved shared regression coverage.
+3. Exposed ranked `retrieved_doc_ids` and `retrieved_excerpt_ids` in retrieval bundles so downstream workflow consumers can use the same ranked ids produced by the retrieval service.
+4. Refreshed the handoff artifacts to match the actual branch-tip reviewed implementation range, the retrieval demo-path step, and the FTS-first MVP gate.
 
 ## Files Changed
 
 - `.codex/kickoff_packets/feat-retrieval-fts.md`
 - `.codex/lane_meta/feat-retrieval-fts.json`
+- `THREAD_PACKET.md`
 - `docs/gate_passed.txt`
 - `src/qual/engine/retrieval/__init__.py`
-- `src/qual/engine/retrieval/embeddings_strategy.py`
-- `src/qual/engine/retrieval/fts_strategy.py`
-- `src/qual/engine/retrieval/interface.py`
-- `src/qual/engine/retrieval/pageindex_strategy.py`
-- `src/qual/engine/retrieval/payload.py`
-- `src/qual/retrieval/__init__.py`
 - `src/qual/retrieval/service.py`
 - `tests/unit/test_unified_retrieval.py`
-- `THREAD_PACKET.md`
 
 ## Commands Run With Results
 
@@ -110,10 +103,10 @@
 
 ## Reviewer Fix Closure
 
-1. The packet is regenerated against the actual reviewed implementation head `bca26c21e58161f0e3da8fdaf8049ef84771d934`, and the reviewed implementation range now includes every non-metadata commit after `378cf9a74a3658058079a32f186fcd254c4a4034`.
-2. `Scope completed`, `Tasks completed`, `Files changed`, and the gate table now describe the real reviewed slice, including the later runtime edits in `src/qual/engine/retrieval/__init__.py` and `src/qual/retrieval/service.py`.
-3. The handoff explicitly states that this work advances the canonical demo-path step `retrieve relevant material`.
-4. The packet explicitly reconfirms that the actual branch tip remains FTS-first for the MVP under the `feat-retrieval-fts` lane gate.
+1. The packet now describes the real reviewed implementation through `bca26c21e58161f0e3da8fdaf8049ef84771d934`, which includes the later runtime `src/qual/retrieval/service.py` change the reviewer called out.
+2. `Scope completed`, `Tasks completed`, `Files changed`, and the gate summary now map to the actual branch-tip handoff slice instead of the stale pre-`bca26c21` slice.
+3. The AGENTS-required canonical demo-path step is stated explicitly as `retrieve relevant material`.
+4. The packet now states directly that the refreshed reviewed range remains FTS-first for the MVP and that PageIndex and embeddings remain non-primary paths.
 
 ## Risks / Blockers
 
@@ -147,5 +140,6 @@
 
 ## Scope-Check / Ownership Note
 
-- Shared or integrator-locked edits: `YES`
+- Shared-by-approval edits in reviewed range: `YES`
+- Integrator-locked edits in reviewed range: `NO`
 - Approved shared regression coverage remains limited to `tests/unit/test_unified_retrieval.py`.
