@@ -65,10 +65,10 @@
   - revalidation note: all required gates were rerun on `2026-04-24`, and the top-level operator-path regression plus the alias-substitution regression still raise the expected `ValueError`, confirming the packet stays narrowed to command-catalog CLI compatibility for the exact drift concern raised in review
 - traceability:
   - reviewed implementation slice: `src/main.py`, `src/qual/cli.py`, `src/qual/commands/catalog.py`, and `tests/unit/test_commands_catalog.py`
-  - implementation commit note for this fixer pass: final HEAD SHA is reported with the handoff deliverable after the operator-path proof commit is created
-  - current packet refresh files: `THREAD_PACKET.md` and `handoff_packets/feat-commands.md`
-  - packet reissue purpose: this fixer refresh aligns the handoff with the reviewer-required active-CLI-path enforcement evidence and preserves the explicit canonical demo-path step statement plus the narrowed CLI-compatibility mapping
-  - gate rerun verification for this handoff pass was repeated after the operator-path proof update in this turn
+  - implementation commit note for this fixer pass: the operator-path proof landed in `426f2fe5e`, and this final handoff refresh records a clean gate rerun at the current branch tip before reporting the final HEAD SHA
+  - current packet refresh files: `THREAD.md`, `THREAD_PACKET.md`, and `handoff_packets/feat-commands.md`
+  - packet reissue purpose: this final fixer refresh keeps the written handoff aligned with the landed operator-path proof, the explicit canonical demo-path step statement, and the narrowed CLI-compatibility mapping required in review
+  - gate rerun verification for this handoff pass was repeated at the current branch tip during the final fixer refresh
 - risks/blockers:
   - risk: future command-surface edits still need to preserve deterministic ordering and fast-fail parser/catalog drift detection so the patch-review CLI contract stays stable throughout the current manual operator flow
   - blockers: none
