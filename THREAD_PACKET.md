@@ -1,10 +1,10 @@
 # Thread Handoff Packet
 
 - Branch name: `codex/feat-retrieval-fts`
-- Packet role: `metadata-only branch-tip restamp`
-- Packet refresh trace anchor before this fixer commit: `cc9c804c04e8771c1b99ffe847ebca4950d23e50`
-- Reviewed implementation head before this fixer commit: `72a65689bc806e3f33afa9f28e87c827020e5021`
-- Reviewed implementation range: `d7fd5d200358287fa42a18d39e2b277463b9b69f..72a65689bc806e3f33afa9f28e87c827020e5021`
+- Packet role: `metadata-only reviewer-fix finalization`
+- Packet refresh trace anchor before this fixer commit: `b74c4330906db2bb660d96987ae4f75a0663cb4b`
+- Reviewed implementation head before this fixer commit: `adfa8cdadd43747ffbcb612e4151e262b13e52ca`
+- Reviewed implementation range: `d7fd5d200358287fa42a18d39e2b277463b9b69f..adfa8cdadd43747ffbcb612e4151e262b13e52ca`
 - Reviewer-facing packet sources refreshed in this fixer pass: `THREAD_PACKET.md`, `docs/gate_passed.txt`
 - Blocked packet mirror files in this fixer pass: `.codex/kickoff_packets/feat-retrieval-fts.md`, `.codex/lane_meta/feat-retrieval-fts.json`
 - Mirror write attempt result in this session: `not writable`
@@ -13,7 +13,7 @@
 
 ## Scope Goal
 
-- Return this lane for re-review with a truthful packet that matches the current packet-refresh branch tip `cc9c804c04e8771c1b99ffe847ebca4950d23e50`, the actual reviewed implementation tip `72a65689bc806e3f33afa9f28e87c827020e5021`, the shared/high-risk scope, the precise ownership distinction between approved shared and integrator-locked edits, and the canonical demo-path step it advances.
+- Return this lane for re-review with a truthful packet that matches the current packet-refresh branch tip `b74c4330906db2bb660d96987ae4f75a0663cb4b`, the actual reviewed implementation tip `adfa8cdadd43747ffbcb612e4151e262b13e52ca`, the shared/high-risk scope, the precise ownership distinction between approved shared and integrator-locked edits, and the canonical demo-path step it advances.
 
 ## Scope Completed
 
@@ -38,7 +38,7 @@
 
 ### Planned Tasks (max 4)
 
-1. Regenerate the packet against the current packet-refresh branch tip `cc9c804c04e8771c1b99ffe847ebca4950d23e50` while explicitly keeping the real reviewed implementation tip `72a65689bc806e3f33afa9f28e87c827020e5021` inside the reviewed range and scope summary.
+1. Regenerate the packet against the current packet-refresh branch tip `b74c4330906db2bb660d96987ae4f75a0663cb4b` while explicitly keeping the real reviewed implementation tip `adfa8cdadd43747ffbcb612e4151e262b13e52ca` inside the reviewed range and scope summary.
 2. Keep the handoff consistently classified as shared/high-risk work under the `4`-task cap because `tests/unit/test_unified_retrieval.py` is shared-by-approval.
 3. Tighten the ownership wording so approved shared test coverage is called out separately from integrator-locked edits while keeping the explicit canonical demo-path mapping that states this lane advances `retrieve relevant material` by ensuring the canonical excerpt lookup surface is FTS-only and auditable for downstream engine use through deterministic provenance on the engine retrieval surface.
 4. Re-run `make scope-check`, `./quality-format.sh --check`, `./quality-lint.sh`, `./quality-test.sh`, `./typecheck-test.sh`, and `make ci` on the refreshed packet state.
@@ -64,27 +64,22 @@
 
 ## AGENTS Checkpoint Evidence
 
-- `plan complete`: the handoff was re-scoped to the current packet-refresh branch tip `cc9c804c04e8771c1b99ffe847ebca4950d23e50`, the actual reviewed implementation tip `72a65689bc806e3f33afa9f28e87c827020e5021`, the approved shared test-edit classification, the explicit no-integrator-locked-edits note, and the explicit canonical demo-path step `retrieve relevant material` with the required FTS-only excerpt/provenance wording.
+- `plan complete`: the handoff was re-scoped to the current packet-refresh branch tip `b74c4330906db2bb660d96987ae4f75a0663cb4b`, the actual reviewed implementation tip `adfa8cdadd43747ffbcb612e4151e262b13e52ca`, the approved shared test-edit classification, the explicit no-integrator-locked-edits note, and the explicit canonical demo-path step `retrieve relevant material` with the required FTS-only excerpt/provenance wording.
 - `before risky/shared file edit`: the shared/high-risk boundary was called out before packet edits because the reviewed range still includes approved shared regression coverage in `tests/unit/test_unified_retrieval.py`.
 - `first green tests`: `make scope-check`, `./quality-format.sh --check`, `./quality-lint.sh`, `./quality-test.sh`, `./typecheck-test.sh`, and `make ci` all passed on the refreshed handoff state.
-- `ready for handoff`: the writable handoff artifacts agree on the packet-refresh branch tip `cc9c804c04e8771c1b99ffe847ebca4950d23e50`, the reviewed head `72a65689bc806e3f33afa9f28e87c827020e5021`, the reviewed range, the shared/high-risk classification, the ownership distinction, and the canonical demo-path mapping. The `.codex` mirrors remain blocked by permissions in this session.
+- `ready for handoff`: the writable handoff artifacts agree on the packet-refresh branch tip `b74c4330906db2bb660d96987ae4f75a0663cb4b`, the reviewed head `adfa8cdadd43747ffbcb612e4151e262b13e52ca`, the reviewed range, the shared/high-risk classification, the ownership distinction, and the canonical demo-path mapping. The `.codex` mirrors remain blocked by permissions in this session.
 
 ## Tasks Completed
 
-1. Restamped the handoff artifacts to the current packet-refresh branch tip `cc9c804c04e8771c1b99ffe847ebca4950d23e50` while keeping the real reviewed implementation tip `72a65689bc806e3f33afa9f28e87c827020e5021` inside the cumulative reviewed range.
+1. Restamped the handoff artifacts to the current packet-refresh branch tip `b74c4330906db2bb660d96987ae4f75a0663cb4b` while keeping the real reviewed implementation tip `adfa8cdadd43747ffbcb612e4151e262b13e52ca` inside the cumulative reviewed range.
 2. Reconciled the packet budget/risk classification so the handoff consistently reads as shared/high-risk work under the `4`-task cap.
 3. Tightened the ownership wording so approved shared test coverage is called out separately from integrator-locked edits, and kept the explicit canonical demo-path mapping showing that this lane advances `retrieve relevant material` by ensuring the canonical excerpt lookup surface is FTS-only and auditable for downstream engine use through deterministic provenance on the engine retrieval surface.
 4. Re-ran the required local gates and recorded the outcomes on the refreshed packet state.
 
 ## Files Changed
 
-- `.codex/kickoff_packets/feat-retrieval-fts.md`
-- `.codex/lane_meta/feat-retrieval-fts.json`
 - `THREAD_PACKET.md`
-- `codex_packet_handoff/tools/init_lane_meta.py`
-- `codex_packet_handoff/tools/planner.py`
 - `docs/gate_passed.txt`
-- `tests/unit/test_packet_planner.py`
 
 ## Commands Run With Results
 
@@ -125,4 +120,4 @@
 
 - Approved shared test edit in reviewed range: `YES` (`tests/unit/test_unified_retrieval.py`)
 - Integrator-locked edit in reviewed range: `NO`
-- The reviewed implementation range is cumulative through `72a65689bc806e3f33afa9f28e87c827020e5021`; the pre-fix packet-refresh branch tip for this pass is `cc9c804c04e8771c1b99ffe847ebca4950d23e50`, and this fixer commit only refreshes packet metadata on top of that reviewed tip.
+- The reviewed implementation range is cumulative through `adfa8cdadd43747ffbcb612e4151e262b13e52ca`; the pre-fix packet-refresh branch tip for this pass is `b74c4330906db2bb660d96987ae4f75a0663cb4b`, and this fixer commit only refreshes packet metadata on top of that reviewed tip.

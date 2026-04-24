@@ -2,13 +2,13 @@ Gate Results Summary (as of 2026-04-24)
 -------------------------------------
 
 Feature lane: `codex/feat-retrieval-fts`
-Packet role: `metadata-only branch-tip restamp`
-Packet refresh trace anchor before this fixer commit: `cc9c804c04e8771c1b99ffe847ebca4950d23e50`
-Reviewed implementation head before this fixer commit: `72a65689bc806e3f33afa9f28e87c827020e5021`
-Reviewed implementation range: `d7fd5d200358287fa42a18d39e2b277463b9b69f..72a65689bc806e3f33afa9f28e87c827020e5021`
+Packet role: `metadata-only reviewer-fix finalization`
+Packet refresh trace anchor before this fixer commit: `b74c4330906db2bb660d96987ae4f75a0663cb4b`
+Reviewed implementation head before this fixer commit: `adfa8cdadd43747ffbcb612e4151e262b13e52ca`
+Reviewed implementation range: `d7fd5d200358287fa42a18d39e2b277463b9b69f..adfa8cdadd43747ffbcb612e4151e262b13e52ca`
 Canonical demo-path step advanced: `retrieve relevant material`
 Plan-alignment statement: This handoff makes `retrieve relevant material` more real by ensuring the canonical excerpt lookup surface is FTS-only and auditable for downstream engine use through deterministic provenance on the engine retrieval surface.
-Reviewer-fix reconciliation: the packet now includes `72a65689bc806e3f33afa9f28e87c827020e5021` in the reviewed implementation range, records the explicit canonical demo-path mapping in the handoff itself, distinguishes the packet-refresh branch tip from the reviewed implementation head, and narrows the ownership note to approved shared test coverage in `tests/unit/test_unified_retrieval.py` with no integrator-locked edits in scope.
+Reviewer-fix reconciliation: the packet now includes `adfa8cdadd43747ffbcb612e4151e262b13e52ca` in the reviewed implementation range, records the explicit canonical demo-path mapping in the handoff itself, distinguishes the packet-refresh branch tip from the reviewed implementation head, and narrows the ownership note to approved shared test coverage in `tests/unit/test_unified_retrieval.py` with no integrator-locked edits in scope.
 FTS-first confirmation: SQLite FTS remains authoritative for the MVP across the reviewed range; PageIndex and embeddings remain compatibility-only shims and are not required retrieval paths in this handoff.
 
 Reviewed implementation scope:
@@ -44,10 +44,10 @@ Blocked packet mirrors in this fixer pass:
 
 AGENTS checkpoint evidence:
 
-* `plan complete` - the handoff was re-scoped to the current packet-refresh branch tip `cc9c804c04e8771c1b99ffe847ebca4950d23e50`, the actual reviewed implementation tip `72a65689bc806e3f33afa9f28e87c827020e5021`, the shared/high-risk classification, the ownership distinction, and the canonical demo-path step.
+* `plan complete` - the handoff was re-scoped to the current packet-refresh branch tip `b74c4330906db2bb660d96987ae4f75a0663cb4b`, the actual reviewed implementation tip `adfa8cdadd43747ffbcb612e4151e262b13e52ca`, the shared/high-risk classification, the ownership distinction, and the canonical demo-path step.
 * `before risky/shared file edit` - the shared/high-risk boundary was called out because the reviewed range still includes approved shared regression coverage in `tests/unit/test_unified_retrieval.py`.
 * `first green tests` - all required gates passed on the refreshed handoff state.
-* `ready for handoff` - the writable handoff artifacts agree on the packet-refresh branch tip `cc9c804c04e8771c1b99ffe847ebca4950d23e50`, the reviewed head `72a65689bc806e3f33afa9f28e87c827020e5021`, the reviewed range, the shared/high-risk classification, the ownership distinction, and the canonical demo-path mapping; the `.codex` mirrors remain blocked by permissions in this session.
+* `ready for handoff` - the writable handoff artifacts agree on the packet-refresh branch tip `b74c4330906db2bb660d96987ae4f75a0663cb4b`, the reviewed head `adfa8cdadd43747ffbcb612e4151e262b13e52ca`, the reviewed range, the shared/high-risk classification, the ownership distinction, and the canonical demo-path mapping; the `.codex` mirrors remain blocked by permissions in this session.
 
 Verification:
 
