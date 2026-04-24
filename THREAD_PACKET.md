@@ -65,9 +65,9 @@ The reviewed retrieval implementation range keeps SQLite FTS authoritative, expo
 
 ## Tasks Completed
 
-1. Regenerated `.codex/kickoff_packets/feat-retrieval-fts.md` in the AGENTS high-risk template for the shared retrieval handoff.
-2. Aligned kickoff metadata, lane metadata, and the visible handoff packet to the same reviewed implementation anchor and 4-task budget basis.
-3. Trimmed the metadata-only inventory to the actual packet artifacts refreshed in this fixer pass.
+1. Reissued the visible handoff packet on the AGENTS high-risk basis for the shared retrieval handoff.
+2. Realigned the visible handoff packet to the reviewed implementation anchor `d7fd5d200358287fa42a18d39e2b277463b9b69f..adfa8cdadd43747ffbcb612e4151e262b13e52ca`.
+3. Removed the false claim that `.codex` mirror files were unwritable because of missing permissions evidence in the handoff text itself; the actual blocker is sandbox write denial on those paths in this environment.
 4. Re-ran the required local gates for the metadata-only packet refresh.
 
 ## Files Changed
@@ -86,10 +86,13 @@ The reviewed retrieval implementation range keeps SQLite FTS authoritative, expo
 
 ### Metadata-only packet artifacts refreshed in this fixer pass
 
-- `.codex/kickoff_packets/feat-retrieval-fts.md`
-- `.codex/lane_meta/feat-retrieval-fts.json`
 - `THREAD_PACKET.md`
 - `docs/gate_passed.txt`
+
+### Metadata-only packet artifacts blocked by sandbox policy in this fixer pass
+
+- `.codex/kickoff_packets/feat-retrieval-fts.md`
+- `.codex/lane_meta/feat-retrieval-fts.json`
 
 ## Commands Run With Results
 
@@ -103,7 +106,7 @@ The reviewed retrieval implementation range keeps SQLite FTS authoritative, expo
 ## Risks / Blockers
 
 - Risk: `HIGH`
-- Blocker: `None`
+- Blocker: `Sandbox write denial on .codex/kickoff_packets/feat-retrieval-fts.md and .codex/lane_meta/feat-retrieval-fts.json` (`operation not permitted`)
 - Budget classification: shared/high-risk because `tests/unit/test_unified_retrieval.py` is a shared-by-approval file in the reviewed slice.
 - Traceability note: the actual post-fix branch tip is reported in the final fixer handoff; the reviewed implementation head for retrieval scope remains `adfa8cdadd43747ffbcb612e4151e262b13e52ca`.
 

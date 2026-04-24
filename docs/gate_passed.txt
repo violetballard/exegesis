@@ -23,10 +23,13 @@ Reviewed implementation files:
 
 Metadata-only packet artifacts refreshed in this fixer pass:
 
-* `.codex/kickoff_packets/feat-retrieval-fts.md`
-* `.codex/lane_meta/feat-retrieval-fts.json`
 * `THREAD_PACKET.md`
 * `docs/gate_passed.txt`
+
+Metadata-only packet artifacts blocked by sandbox policy in this fixer pass:
+
+* `.codex/kickoff_packets/feat-retrieval-fts.md`
+* `.codex/lane_meta/feat-retrieval-fts.json`
 
 Plan-alignment note:
 
@@ -37,7 +40,7 @@ Plan-alignment note:
 Budget classification:
 
 * Shared/high-risk because `tests/unit/test_unified_retrieval.py` is a shared-by-approval file for this lane.
-* The packet is reissued on the AGENTS high-risk 4-task basis.
+* The visible packet is reissued on the AGENTS high-risk 4-task basis.
 
 Verification:
 
@@ -64,4 +67,4 @@ Routing/provider impact:
 
 Remaining blocker:
 
-* none
+* Sandbox write denial on `.codex/kickoff_packets/feat-retrieval-fts.md` and `.codex/lane_meta/feat-retrieval-fts.json` (`operation not permitted`).
