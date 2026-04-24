@@ -7887,10 +7887,54 @@ class A2UIFallbackSafetyTests(unittest.TestCase):
                     return_value=(artifact, "card"),
                 ):
                     text = render_terminal_cli_fallback(artifact)
-
                 self.assertIn(expected_prefix, text)
                 self.assertIn(expected_schema, text)
                 self.assertNotIn("[UnknownCard] <invalid card>", text)
+
+    def test_terminal_artifact_cli_fallback_recovers_typed_leaf_dataclasses_when_shared_resolver_underflows_to_card(
+        self,
+    ) -> None:
+        shell = ShellUI()
+        cases = [
+            (
+                "action",
+                ActionRef(
+                    id=" export_document ",
+                    label=" Export ",
+                    payload={"format": "md"},
+                ),
+                "[ActionRef] Export",
+                "Action schema v1",
+            ),
+            (
+                "selection",
+                SelectionRef(
+                    id=" choice-1 ",
+                    label=" Choice ",
+                    payload={"nested": {"items": [1, 2]}},
+                ),
+                "[SelectionRef] Choice",
+                "Selection schema v1",
+            ),
+        ]
+
+        for case_name, artifact, expected_prefix, expected_schema in cases:
+            with self.subTest(case=case_name):
+                with patch(
+                    "src.qual.ui.a2ui.resolve_terminal_artifact_cli_fallback_target",
+                    return_value=(artifact, "card"),
+                ):
+                    with patch(
+                        "src.qual.ui.shell.resolve_terminal_artifact_cli_fallback_target",
+                        return_value=(artifact, "card"),
+                    ):
+                        cli_text = render_terminal_cli_fallback(artifact, kind="card")
+                        shell_text = shell.render_cli_fallback(artifact, kind="card")
+
+                self.assertEqual(cli_text, shell_text)
+                self.assertIn(expected_prefix, cli_text)
+                self.assertIn(expected_schema, cli_text)
+                self.assertNotIn("[UnknownCard] <invalid card>", cli_text)
 
     def test_public_cli_fallback_target_refinement_helper_recovers_leaf_kinds(self) -> None:
         cases = [

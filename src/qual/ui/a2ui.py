@@ -4663,7 +4663,13 @@ def _refine_terminal_artifact_cli_fallback_target(
     generic card renderer runs. Raw leaf card defaults remain on the card path.
     """
 
-    if resolved_kind != "card" or requested_kind == "card":
+    if resolved_kind != "card":
+        return artifact, resolved_kind
+    if requested_kind == "card":
+        if isinstance(artifact, (ActionRef, SelectionRef)):
+            explicit_kind = _infer_terminal_artifact_explicit_kind(artifact)
+            if explicit_kind in {"action", "selection"}:
+                return artifact, explicit_kind
         return artifact, resolved_kind
     if _should_preserve_raw_leaf_card_default(artifact):
         return artifact, "card"
