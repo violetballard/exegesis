@@ -2,21 +2,16 @@
 
 - Lane: `feat-commands`
 - Branch: `codex/feat-commands`
-- Commit: `b551c0786f650ef38bc72f97841f4bdbb2de1f6e`
-- Packet refresh role: `fixer reviewer packet verification refresh`
-- Packet refresh basis: `committed the reviewer-required parser-surface guard and regression coverage, then refreshed the metadata-only handoff packet so every artifact points to that exact implementation commit without widening the reviewed scope`
-- Post-fixer verification: `2026-04-24T11:45:09Z UTC full required gate rerun confirmed the metadata-only packet refresh matches the current branch state while the reviewed implementation scope remains pinned to b551c0786f650ef38bc72f97841f4bdbb2de1f6e`
-- Packet-only refresh files:
-  - `THREAD.md`
-  - `THREAD_PACKET.md`
-  - `handoff_packets/feat-commands.md`
+- Review scope: command-catalog contract hardening plus shared regression coverage for alias-level parser-surface drift
+- Canonical demo-path step advanced: `preview and apply or reject a patch`
+- Required mapping statement: this slice strengthens the patch-review step because the `diff-preview` CLI surface now fails fast if the `diff` alias drops or mutates while the canonical command order still looks stable.
 
 ## Thread Kickoff (High-Risk)
 
 - Branch: `codex/feat-commands`
 - Lane/owned paths: `src/qual/commands/**`
-- Scope goal: make the canonical `continue working without losing context` step more real by removing a concrete blocker at the CLI fallback boundary: silent parser/catalog drift on the operator-visible `project-open` / `retrieval` / `patch-review` command surface. The reviewed evidence stays limited to those supporting smoke-path steps while interactive clients remain secondary.
-- Risk reason: the reviewed slice touches the command contract in `src/qual/commands/catalog.py` and a shared-by-approval regression test file.
+- Scope goal: keep the patch-review CLI surface deterministic by rejecting alias-level parser drift in the command catalog contract.
+- Risk reason: this touches the command contract in `src/qual/commands/catalog.py` and a shared-by-approval regression test file.
 
 ### Budget
 
@@ -25,108 +20,24 @@
 - Size limits: `<=8 files`, `<=300 net LOC`
 - Max fix attempts per failing gate: `2`
 
-### Planned Tasks (max 4)
+### Planned Tasks
 
-1. Lock the live CLI parser surface to the command catalog so parser-surface drift fails closed instead of silently changing the operator-facing contract.
-2. Add regression coverage for parser-surface alignment and catalog-drift rejection in the command contract tests.
-3. Regenerate the handoff packet so the re-review basis points to the actual implementation commit, the canonical demo-path mapping is explicit, and the roadmap or vision mapping stays narrow.
-4. Re-run the required gates and record the outcomes against the unchanged reviewed implementation scope.
-
-### Early Review Triggers
-
-- before first edit to any shared or integrator-locked file
-- before changing public interfaces or command contracts
-- before touching provider routing or config behavior
-
-### Stop Triggers
-
-- unresolved test, lint, or typecheck failure after `2` focused fix attempts
-- unresolved `make scope-check`
-- budget, size, or time limit hit
-
-### High-Risk Audit Note
-
-- Shared-test exception reason: the regression proving contract drift rejection for the `continue working without losing context` step lives in `tests/unit/test_commands_catalog.py`, because that shared test is where the supporting `project-open` / `retrieval` / `patch-review` smoke path is pinned to the catalog-locked CLI surface.
-- Shared-test exception statement: the only non-owned edit stays justified by that same mapping and blocker removal, because `tests/unit/test_commands_catalog.py` is the evidence that the supporting smoke path remains deterministic on the CLI fallback route instead of silently drifting away from `continue working without losing context`.
-- Command-contract risk reason: this slice hardens the operator-visible parser/catalog boundary in `src/qual/commands/catalog.py`, so the stricter high-risk kickoff template applied even though the code change stayed narrow.
-- Auditability result: the risk reason, early review triggers, stop triggers, scope goal, 4-task cap, and approval basis are now all recorded directly in the handoff artifacts for re-review.
-
-### Checkpoint Cadence
-
-- plan complete
-- first green tests
-- before risky/shared file edit
-- ready for handoff
+1. Tighten the CLI contract to validate full grouped parser surface, not just canonical command order.
+2. Add a regression proving alias-level drift raises even when canonical names stay unchanged.
+3. Refresh the handoff packet with an explicit canonical demo-path mapping to `preview and apply or reject a patch`.
+4. Re-run the required gates and record the results.
 
 ## Review Basis
 
-- Exact implementation basis for re-review:
-  - `b551c0786f650ef38bc72f97841f4bdbb2de1f6e` (`fix(commands): harden cli parser surface contract`)
-- Approval basis pin for re-review:
-  - Only `b551c0786f650ef38bc72f97841f4bdbb2de1f6e`, `src/qual/commands/catalog.py`, and `tests/unit/test_commands_catalog.py` are part of the implementation approval basis.
-  - The current packet-refresh commit is metadata-only and must not be treated as widening the reviewed implementation scope.
-- Current packet refresh traceability: the current packet-refresh commit is metadata-only and updates only `THREAD.md`, `THREAD_PACKET.md`, and `handoff_packets/feat-commands.md`.
-- Reviewed implementation files:
+- Implementation files:
   - `src/qual/commands/catalog.py`
   - `tests/unit/test_commands_catalog.py`
-- Reviewed implementation summary:
-  - `command_cli_contract()` now validates the full authoritative parser entrypoint projection against the declared command catalog projection, then derives canonical names, tokens, and the lookup table from that same parser surface.
-  - Regression coverage proves the command contract fails fast on alias substitution, dropped canonical tokens, extra accepted tokens, reordered entrypoints within a command, and reordered command groups in the parser projection.
+- Metadata files:
+  - `THREAD.md`
+  - `THREAD_PACKET.md`
+  - `handoff_packets/feat-commands.md`
 
-## Scope Completed
-
-- Hardened `command_cli_contract()` so the live CLI parser entrypoint projection must match the declared command catalog projection.
-- Added focused regressions for parser-surface alignment and command-catalog drift rejection.
-- Kept the slice narrow: command-contract hardening and targeted tests only. No provider, routing, persistence, retrieval, or UI-surface behavior changed.
-
-## Canonical Demo-Path Mapping
-
-- Primary canonical demo-path step advanced: `continue working without losing context`.
-- Supporting smoke-path steps strengthened for that primary step:
-  - `open project/document` corresponds to the current MVP loop's `vault` and `context` entry boundary via `project-open`.
-  - `retrieve relevant material` corresponds to the current MVP loop's `context` and `run` handoff boundary via `retrieval`.
-  - `preview and apply or reject a patch` corresponds to the current MVP loop's `patch` boundary via `patch-review`.
-- Required packet statement: this change makes `continue working without losing context` more real by forcing the operator-visible `project-open` / `retrieval` / `patch-review` command surface to stay catalog-locked and fail closed instead of silently drifting while Textual remains disabled.
-- Reviewer wording trace: this work makes `open project/document` and the broader CLI operator path more real by preventing silent command-surface drift while Textual remains disabled.
-- Concrete blocker removed: parser-surface drift between the live parser entrypoints and the declared catalog can no longer pass silently. That removes the concrete blocker on `continue working without losing context`: a CLI fallback session can no longer quietly switch to the wrong bootstrap, retrieval, or patch-review verb set because of extra accepted aliases, dropped canonical tokens, lookup-table substitutions, or token reorderings.
-- `AGENTS.md` compliance note: every active lane task in this packet now names the exact canonical demo-path step it advances, and this handoff states the concrete blocker removed at that step.
-- Scope-tightening statement: this slice claims command-contract hardening for the current engine-first `project-open` / `retrieval` / `patch-review` smoke path only. That is the supporting evidence for `continue working without losing context` on the CLI fallback path while Textual remains disabled, and it does not claim new retrieval internals, patch application, persistence, audit-path, export, or broader workflow behavior.
-- Review-basis exclusion: `terminal` and `export-handoff` remain outside this packet's approval basis; they are mentioned only because the shared command catalog still contains those aliases, not because this slice proves their runtime behavior.
-- Smoke-test evidence:
-  - `tests/unit/test_commands_catalog.py` proves `command_cli_contract()` returns the declared parser surface and fails fast when parser-surface drift is introduced at the token, canonical-entrypoint, or lookup-table level.
-  - `tests/unit/test_commands_catalog.py` also proves the command route coverage stays pinned to the smoke route entry for patch review: `("patch-review", "diff-preview", ("diff-preview", "diff"))` in `test_command_cli_route_summary_tracks_the_smoke_route()` and `test_command_cli_route_contract_tracks_the_smoke_surface()`.
-- Plan-alignment note: this slice keeps the explicit smoke-path mapping requested by review while aligning the packet to the current repo truth sources. `ROADMAP.md` keeps `feat-commands` in the active implementation emphasis, Milestone 1 calls for command and diff-preview hardening, and Milestone 2 explicitly calls out missing targeted parser-edge cases from review. This guard removes a concrete blocker by failing fast if parser or catalog drift would silently change the CLI verb surface along the current `project-open` / `retrieval` / `patch-review` smoke path.
-
-## Approved Exception Note
-
-- Approved shared-by-approval exception: `tests/unit/test_commands_catalog.py`
-- Approval owner: the repo branch policy for `codex/feat-commands*`
-- Approval mechanism: `scripts/scope-check.sh` `is_approved_shared_test()` branch allowlist for `codex/feat-commands*`
-- Approval source: `THREAD_OWNERSHIP.md` keeps lane ownership on `src/qual/commands/**`; the non-owned test edit is a shared-by-approval exception with the explicit branch allowlist approval above, not an integrator-locked edit
-- Approval basis: shared regression coverage is required to prove the same `continue working without losing context` mapping claimed by this packet, specifically that the supporting `project-open` / `retrieval` / `patch-review` smoke path stays catalog-locked on the CLI fallback route while Textual remains disabled. The branch allowlist above is the explicit approved mechanism covering this shared-path edit; no separate ad hoc exception was used.
-- Scope-check allowance used: `not required`
-- Integrator-locked edits in this slice: `none`
-
-## Handoff Packet
-
-- Branch name: `codex/feat-commands`
-
-### Tasks Completed (Numbered)
-
-1. `continue working without losing context`: locked the live CLI command contract to the command catalog so parser-surface drift fails closed before the operator reaches the wrong `project-open`, `retrieval`, or `patch-review` verb sets on the active CLI fallback path.
-2. `continue working without losing context`: added focused regression coverage for parser-surface alignment and command-catalog drift rejection in `tests/unit/test_commands_catalog.py`, with evidence scoped to the supporting `open project/document` / `retrieve relevant material` / `preview and apply or reject a patch` smoke surface.
-3. `continue working without losing context`: regenerated the handoff packet so the re-review basis points to commit `b551c0786f650ef38bc72f97841f4bdbb2de1f6e`, the roadmap or vision mapping stays narrow, and the exact canonical demo-path step plus blocker removal are stated explicitly per reviewer request.
-4. `continue working without losing context`: re-ran the required gates and recorded the outcomes against the current reviewed implementation scope so the packet stays tied to a verified command-contract slice.
-
-### Files Changed
-
-- `src/qual/commands/catalog.py`
-- `tests/unit/test_commands_catalog.py`
-- `THREAD.md`
-- `THREAD_PACKET.md`
-- `handoff_packets/feat-commands.md`
-
-### Commands Run and Outcomes
+## Commands Run and Outcomes
 
 - `make scope-check`: `PASSED`
 - `./quality-format.sh --check`: `PASSED`
@@ -134,49 +45,9 @@
 - `./quality-test.sh`: `PASSED`
 - `./typecheck-test.sh`: `PASSED`
 - `make ci`: `PASSED`
-- Gate attribution note: these gates were rerun at `2026-04-24T11:45:09Z UTC` against the current branch state while the reviewed implementation scope remains pinned to `b551c0786f650ef38bc72f97841f4bdbb2de1f6e`; the current packet refresh itself is metadata-only.
 
-### Risks / Blockers
+## Ownership Note
 
-- Risks:
-  - future command-surface changes must keep `_CLI_ENTRYPOINTS` and the shared regression suite aligned or the contract will fail fast by design
-- Blockers:
-  - none
-
-## Required Handoff Fields
-
-### Explicit CLI smoke-path mapping
-
-- Primary step: `continue working without losing context`
-- Supporting tested steps: `open project/document`, `retrieve relevant material`, `preview and apply or reject a patch`
-- This change makes `continue working without losing context` more real by keeping the supporting `project-open` / `retrieval` / `patch-review` command surface catalog-locked instead of letting parser-surface drift pass silently on the current engine-first CLI fallback path.
-- Concrete blocker removal: downstream CLI fallback consumers can no longer silently accept a contract where the parser-derived command surface diverges from the declared `(token, canonical_name)` command catalog projection, including extra accepted aliases, dropped canonical tokens, lookup-table substitutions, or token reorderings, which removes a concrete blocker on `continue working without losing context`.
-- Smoke-test evidence for the supporting steps is explicit in `tests/unit/test_commands_catalog.py`: the command contract now matches the declared parser surface and raises immediately when parser-surface drift is introduced.
-
-### Roadmap item(s) affected
-
-- `ROADMAP.md` Milestone 3 `Real workflow loop`
-- `ROADMAP.md` lane mapping: `feat-commands` is the CLI compatibility and migration-safe entrypoint lane
-- `ROADMAP.md` exit criterion: `CLI can still execute the MVP loop while Textual remains disabled`
-- Scope-tightening statement: this is CLI command-contract hardening for the supporting `open project/document` / `retrieve relevant material` / `preview and apply or reject a patch` smoke path, used here only as evidence for `continue working without losing context` rather than as a broader workflow claim.
-- Proven command-surface level only: the claim is limited to the tested smoke-route entries `project-open -> bootstrap`, `retrieval -> context-basket`, and `patch-review -> diff-preview/diff`.
-- Explicit exclusion: `terminal` and `export-handoff` are not part of the approval basis for this packet.
-
-### Vision capability affected
-
-- `PRODUCT_VISION.md` capability 3 `Canonical engine contract`
-- Exact requirement advanced: `CLI compatibility is required while Textual remains disabled.`
-- This slice narrows to the `project-open` / `retrieval` / `patch-review` command contract only. It does not claim A2UI payload generation, persistence, audit hooks, retrieval internals, or broader workflow traceability progress.
-- Evidence anchor: the claimed product-surface support is the tested CLI route coverage for those smoke-path steps in `tests/unit/test_commands_catalog.py`, not an unproven broader engine-loop claim.
-
-### Routing / Provider Impact Note
-
-- None. This diff only hardens local command-contract behavior for the current MVP `project-open` / `retrieval` / `patch-review` smoke surface.
-
-### Scope-Check / Ownership Note
-
-- Shared-by-approval edits: `YES`
-- Shared-by-approval path included: `tests/unit/test_commands_catalog.py`
-- Shared-file approval basis: `THREAD_OWNERSHIP.md` limits lane-owned edits for `codex/feat-commands*` to `src/qual/commands/**`, so `tests/unit/test_commands_catalog.py` stays outside the owned path. The explicit approval mechanism is `scripts/scope-check.sh` `is_approved_shared_test()`, which branch-allowlists that shared test file for `codex/feat-commands*`. The exception is used only because that shared regression is the proof for the same `continue working without losing context` mapping claimed above: it keeps the supporting `project-open` / `retrieval` / `patch-review` smoke path catalog-locked while Textual remains disabled.
-- Integrator-locked edits: `NO`
-- Integrator-locked paths included: `none`
+- Lane-owned implementation path: `src/qual/commands/catalog.py`
+- Approved shared-by-approval exception: `tests/unit/test_commands_catalog.py`
+- Integrator-locked edits: `none`

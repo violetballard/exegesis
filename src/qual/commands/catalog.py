@@ -578,6 +578,8 @@ def _validate_command_cli_contract(
     if live_entrypoints != authoritative_entrypoints:
         raise ValueError("Command CLI catalog entrypoint projection is inconsistent")
 
+    # Rebuild the grouped parser surface from the public contract so alias drift
+    # cannot hide behind a stable canonical-name sequence.
     contract_entrypoints = _cli_entrypoint_projection_from_contract(contract)
     if contract_entrypoints != authoritative_entrypoints:
         raise ValueError("Command CLI catalog entrypoint projection is inconsistent")
