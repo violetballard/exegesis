@@ -5,6 +5,7 @@ engine's retrieval orchestration code.
 """
 
 from collections.abc import Iterable, Mapping
+from functools import lru_cache
 from importlib import import_module
 
 from src.qual.engine.retrieval.fts_strategy import FTSStrategy
@@ -183,9 +184,15 @@ def primary_strategy_id() -> str:
     return _primary_strategy_id()
 
 
+@lru_cache(maxsize=1)
+def _retrieval_module():
+    """Resolve the canonical retrieval facade once for engine delegation."""
+
+    return import_module("src.qual.retrieval")
+
+
 def _delegate_to_retrieval(name: str, *args, **kwargs):
-    retrieval_module = import_module("src.qual.retrieval")
-    return getattr(retrieval_module, name)(*args, **kwargs)
+    return getattr(_retrieval_module(), name)(*args, **kwargs)
 
 
 def retrieve_fts_context_bundle(*args, **kwargs):
