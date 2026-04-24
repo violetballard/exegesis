@@ -9,14 +9,14 @@
 - Packet/supporting files refreshed in this fixer pass: `THREAD_PACKET.md`, `docs/gate_passed.txt`
 - Re-review authority note: in this sandbox, use `THREAD_PACKET.md` and `docs/gate_passed.txt` as the reviewer-facing source of truth because the mirrored `.codex` packet artifacts are read-only.
 - Canonical demo-path step advanced: `retrieve relevant material`
-- Demo-path sentence: this reviewed slice makes `retrieve relevant material` more real by keeping retrieval/search FTS-first and forcing public excerpt lookup through the authoritative FTS-backed path.
-- Reviewer-required plan-alignment statement: this work advances `retrieve relevant material` because `fetch_excerpt` now fails closed to the canonical FTS lookup path, which strengthens the deterministic retrieval/provenance contract for the engine-side Milestone 3 loop.
+- Demo-path sentence: this slice advances `retrieve relevant material` by making excerpt lookup auditable and fail-closed on the FTS-first engine path used before basket promotion.
+- Reviewer-required plan-alignment statement: this reviewed slice is a narrow Milestone 3 retrieval contract correction, not a lane-completion claim; `fetch_excerpt` now fails closed to the canonical FTS lookup path, which strengthens the deterministic retrieval/provenance contract for the engine-side Milestone 3 loop.
 - Milestone mapping: `Milestone 3: Real workflow loop`
 - FTS-first gate statement: the reviewed implementation range remains FTS-first for the MVP; PageIndex and embeddings remain deferred or compatibility paths and are not required runtime retrieval paths in this handoff.
 
 ## Scope Goal
 
-- Return this lane for re-review as a metadata-corrected, scope-tight handoff for the existing FTS-only excerpt change.
+- Return this lane for re-review as a metadata-corrected, scope-tight handoff for the existing narrow Milestone 3 retrieval contract correction.
 
 ## Scope Completed
 
