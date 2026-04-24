@@ -12,10 +12,11 @@
 ### Scope / Plan Alignment
 
 - Canonical demo-path step advanced: `preview and apply or reject a patch` in the engine-first demo path `open document -> retrieve relevant material -> gather context -> plan or revise -> preview and apply or reject a patch -> save and continue`.
-- Explicit handoff sentence: this handoff strengthens the active CLI fallback for the `preview and apply or reject a patch` step by making the command catalog contract deterministic, canonical-order aligned, and fail-fast when the parser surface drifts while Textual remains disabled.
-- Roadmap alignment: `ROADMAP.md` Milestone 2 remaining parser-edge coverage and `ROADMAP.md` Milestone 5 CLI fallback for the MVP loop, specifically the patch-review/apply-or-reject step that must stay stable while Textual remains disabled.
-- Vision alignment: `PRODUCT_VISION.md` capability 3 `Canonical engine contract` and capability 6 `Auditable state and workflow`.
-- Non-claim boundary: this handoff does not claim parser-entrypoint rewrites, workflow-wrapper additions, diff-preview output work, provider routing changes, storage changes, or UI-console work.
+- Explicit handoff sentence: this handoff makes the existing CLI fallback for the `preview and apply or reject a patch` step more reliable by keeping the command catalog ordering deterministic and failing fast when parser entrypoint tokens drift from that catalog while Textual remains disabled.
+- Concrete blocker removed: without this guard, parser/catalog drift could silently reorder, add, or drop operator-facing CLI tokens for the patch preview/apply-or-reject leg, weakening smoke checks and the current CLI fallback for that operator step.
+- Roadmap alignment: `ROADMAP.md` Milestone 1 `Bootstrap Flow Stabilization` command hardening, plus `ROADMAP.md` Milestone 2 remaining parser-edge coverage identified during reviews; this protects but does not expand the existing Milestone 5 patch-review/apply-or-reject loop step.
+- Vision alignment: `PRODUCT_VISION.md` capability 4 `Operator-first control surface`.
+- Non-claim boundary: this handoff claims only deterministic CLI catalog ordering and fail-fast parser-surface drift detection for the existing command surface; it does not claim parser-entrypoint rewrites, workflow-wrapper additions, diff-preview output work, provider routing changes, storage changes, reachability expansion, or UI-console work.
 
 ### Budget
 
@@ -54,9 +55,9 @@
 
 - branch name: `codex/feat-commands`
 - scope completed:
-  - hardened `command_cli_contract()` in `src/qual/commands/catalog.py` so it rebuilds and validates the grouped parser-entrypoint projection instead of trusting only the deduplicated canonical-name sequence
-  - added fail-fast validation in `src/qual/commands/catalog.py` so added, removed, or reordered CLI entrypoint tokens and alias drift raise `ValueError` instead of silently changing the CLI contract
-  - added focused regression coverage in the approved shared test file `tests/unit/test_commands_catalog.py` for canonical-order alignment plus removed, reordered, and extra alias-token drift rejection
+  - hardened `command_cli_contract()` in `src/qual/commands/catalog.py` so deterministic CLI catalog ordering is rebuilt from the grouped parser-entrypoint projection instead of trusting only the deduplicated canonical-name sequence
+  - added fail-fast validation in `src/qual/commands/catalog.py` so added, removed, or reordered CLI entrypoint tokens and alias drift raise `ValueError` instead of silently changing the current command surface
+  - added focused regression coverage in the approved shared test file `tests/unit/test_commands_catalog.py` for canonical-order alignment plus removed, reordered, and extra alias-token drift rejection on the current parser surface
   - refreshed the handoff packet so the review claim, roadmap mapping, and file list match the reviewed command-catalog slice exactly
 - tasks completed (numbered implementation work only; metadata-only packet refreshes excluded):
   1. Hardened `command_cli_contract()` to validate the full grouped parser-entrypoint projection against the catalog.
@@ -81,14 +82,14 @@
   - risk: future parser token or alias changes must keep the grouped parser-entrypoint projection aligned with the catalog, or the fail-fast contract will reject the surface
   - blockers: none
 - roadmap item(s) affected:
-  - `ROADMAP.md` Milestone 2 Remaining: add missing targeted parser-edge cases identified during reviews
-  - `ROADMAP.md` Milestone 5 Exit Criteria: keep the MVP CLI fallback stable enough to execute the patch-review leg of the workflow loop against the same engine contract while Textual remains disabled
+  - `ROADMAP.md` Milestone 1 `Bootstrap Flow Stabilization`: command hardening to keep the manual CLI smoke flow stable
+  - `ROADMAP.md` Milestone 2 `Test Hardening`: remaining targeted parser-edge coverage identified during reviews
+  - support-only note: this protects the existing Milestone 5 patch-review/apply-or-reject CLI step; it does not expand that surface
 - vision capability affected:
-  - `PRODUCT_VISION.md` capability 3 `Canonical engine contract`
-  - `PRODUCT_VISION.md` capability 6 `Auditable state and workflow`
+  - `PRODUCT_VISION.md` capability 4 `Operator-first control surface`
 - routing/provider impact note:
   - none; this change only hardens local command-catalog validation and focused command-catalog tests
 - approved exception note:
   - approved shared-test exception for `tests/unit/test_commands_catalog.py`; no other non-owned implementation paths are part of this handoff
 - reviewer-fix satisfaction note:
-  - this packet adds the missing canonical demo-path mapping, includes the high-risk `Risk reason`, and keeps the approval basis scoped to `src/qual/commands/catalog.py` plus the approved shared test file `tests/unit/test_commands_catalog.py`
+  - this packet adds the missing canonical demo-path mapping and concrete blocker, ties roadmap/vision alignment to the current repo wording, and keeps the approval basis scoped to deterministic CLI catalog ordering plus fail-fast parser-surface drift detection in `src/qual/commands/catalog.py` with the approved shared test file `tests/unit/test_commands_catalog.py`
