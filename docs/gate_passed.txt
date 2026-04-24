@@ -30,6 +30,6 @@ Plan-alignment statement: This work makes the `retrieve relevant material` step 
 Scope note: this handoff now covers the real cumulative implementation range through `9d9e11a1`, including the substantive post-`adfa8cda` retrieval commits that previously sat outside the packet's claimed scope.
 Budget compliance statement: this packet is shared/high-risk work because it includes the approved shared regression surface `tests/unit/test_unified_retrieval.py`, so the handoff is read against the 4-task cap rather than the default 8-task cap.
 Traceability statement: this fixer commit is metadata-only; re-review should validate the actual reviewed implementation range `378cf9a7..9d9e11a1`, not the fixer commit itself.
-Packet artifact note: the mirrored `.codex/*` packet artifacts remain stale in this worktree because sandbox policy blocks writes to those paths during this fixer pass; the reviewer-facing handoff source of truth remains `THREAD_PACKET.md` plus this gate summary.
+Packet artifact note: the mirrored `.codex/*` packet artifacts were read-only in this worktree during the fixer pass, so they may remain stale; the reviewer-facing source of truth is `THREAD_PACKET.md` plus this gate summary.
 
 The authoritative handoff packet remains `THREAD_PACKET.md`.
