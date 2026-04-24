@@ -4722,6 +4722,10 @@ def render_terminal_cli_fallback(artifact: Any, *, kind: str | None = None) -> s
     """
 
     requested_kind = _normalize_terminal_artifact_kind_hint(kind)
+    if requested_kind == "card" and _is_explicit_terminal_artifact_leaf(artifact):
+        # Keep explicit leaf payloads on the safe invalid-card path when the
+        # caller explicitly asked for card rendering.
+        return _render_invalid_terminal_card(artifact)
     malformed_envelope = _is_malformed_terminal_artifact_envelope(artifact)
     envelope_kind = None
     if isinstance(artifact, Mapping):

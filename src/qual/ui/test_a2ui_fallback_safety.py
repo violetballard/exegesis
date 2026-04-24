@@ -9720,6 +9720,37 @@ class A2UIFallbackSafetyTests(unittest.TestCase):
                 kind="card",
             )
 
+    def test_terminal_artifact_cli_fallback_keeps_explicit_leaf_payloads_on_invalid_card_path(self) -> None:
+        shell = ShellUI()
+        cases = [
+            (
+                "action",
+                ActionRef(
+                    id="export_document",
+                    label="Export",
+                    payload={"format": "md"},
+                ),
+            ),
+            (
+                "selection",
+                SelectionRef(
+                    id="choice-1",
+                    label="Choice",
+                    payload={"nested": {"items": [1, 2]}},
+                ),
+            ),
+        ]
+
+        for case_name, artifact in cases:
+            with self.subTest(case=case_name):
+                cli_text = render_terminal_cli_fallback(artifact, kind="card")
+                shell_text = shell.render_cli_fallback(artifact, kind="card")
+
+                self.assertIn("[UnknownCard] <invalid card>", cli_text)
+                self.assertEqual(shell_text, cli_text)
+                self.assertNotIn("[ActionRef]", cli_text)
+                self.assertNotIn("[SelectionRef]", cli_text)
+
     def test_terminal_artifact_infers_typed_action_and_selection_mappings(self) -> None:
         action_text = render_terminal_artifact(
             {"type": "ActionRef", "id": "export_document", "label": "Export", "payload": {"format": "md"}}
