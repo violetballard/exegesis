@@ -2,7 +2,7 @@
 
 - Branch name: `codex/feat-retrieval-fts`
 - Packet role: `metadata-only reviewer-fix re-emit`
-- Current submitted tip before this packet refresh commit: `11c628ef9adcaabbc39c7aa7b5fd1138f4a46d1b`
+- Current submitted tip before this packet refresh commit: `e96b9e841bca7609b37a168126eb982e8f352f49`
 - Reviewed implementation head: `adfa8cdadd43747ffbcb612e4151e262b13e52ca`
 - Reviewed implementation range: `d7fd5d200358287fa42a18d39e2b277463b9b69f..adfa8cdadd43747ffbcb612e4151e262b13e52ca`
 - Packet traceability note: review this lane against the narrowed implementation range above. The current packet refresh commit is metadata-only and does not broaden retrieval scope beyond `d7fd5d20..adfa8cda`.
@@ -13,7 +13,7 @@
 
 ## Scope Goal
 
-- Regenerate the retrieval-specific handoff packet so it stays narrowed to reviewed commit `adfa8cdadd43747ffbcb612e4151e262b13e52ca`, states explicitly that this change makes `retrieve relevant material` more real by keeping retrieval evidence, provenance, and excerpt lookup anchored to the authoritative SQLite FTS path, and reports the reviewer-facing refresh files from this packet slice accurately.
+- Regenerate the retrieval-specific handoff packet so it stays narrowed to reviewed commit `adfa8cdadd43747ffbcb612e4151e262b13e52ca`, truthfully describes the full reviewed retrieval slice, states explicitly that this change makes `retrieve relevant material` more real, and reports the reviewer-facing refresh files from this packet slice accurately.
 
 ## Thread Kickoff (High-Risk)
 
@@ -50,7 +50,7 @@
 - Retrieval hit/doc-hit models enforce FTS-only runtime contracts, so the public retrieval surfaces stay fail-closed when non-FTS data tries to cross that boundary.
 - The public excerpt lookup surface resolves through the canonical FTS path, so PageIndex-only excerpt IDs fail closed with no PageIndex runtime fallback on that surface.
 - Provenance bundles, payload snapshots, and sparse source/context rehydration stay deterministic across the reviewed retrieval helpers and public facade.
-- This handoff explicitly states that the reviewed slice advances the canonical demo-path step `retrieve relevant material`.
+- This reviewed retrieval slice makes the canonical demo-path step `retrieve relevant material` more real by ensuring the engine-first demo path consumes deterministic FTS-backed retrieval payloads and provenance instead of fallback-derived excerpt lookups.
 
 ## Reviewed Scope Boundary
 
