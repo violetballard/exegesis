@@ -2,10 +2,10 @@
 
 - Branch name: `codex/feat-commands`
 - Scope completed: wired `src/qual/cli.py` to expose the live parser entrypoint surface from shared command-name constants, then hardened `command_cli_contract()` in `src/qual/commands/catalog.py` so the CLI contract reuses the canonical `command_names()` ordering and raises if the live parser surface drifts from the command catalog, plus focused regression coverage for canonical-order alignment and drift rejection in `tests/unit/test_commands_catalog.py`.
-- Canonical demo-path step advanced: `preview and apply or reject a patch`
+- Canonical demo-path step(s) advanced: `open project/document`, `retrieve relevant material`, and `preview and apply or reject a patch`
 - Canonical MVP flow advanced: `open project/document -> retrieve relevant material -> preview and apply or reject a patch` for the manual CLI smoke flow, via `bootstrap`/`project-open` for open, `context-basket` for retrieval staging, and `diff-preview`/`review-patch` for patch preview.
 - Canonical MVP flow mapping sentence: this `feat-commands` CLI-contract hardening slice strengthens the canonical `open project/document`, `retrieve relevant material`, and `preview and apply or reject a patch` steps by preserving the operator-facing CLI command catalog contract used by `bootstrap`/`project-open`, `context-basket`, and `diff-preview`/`review-patch` while CLI remains the active first-class surface.
-- Demo-path sentence: this change makes the `preview and apply or reject a patch` step more real for the CLI-first MVP loop because the concrete parser-backed command entrypoints an operator runs now fail fast if parser drift changes the canonical catalog contract.
+- Demo-path sentence: this change makes the `open project/document -> retrieve relevant material -> preview and apply or reject a patch` loop more real for the CLI-first MVP path because the concrete parser-backed command entrypoints an operator runs now fail fast if parser drift changes the canonical catalog contract.
 - Concrete blocker removed: before this change, parser drift could silently desynchronize the CLI surface from the catalog while leaving the contract seemingly valid, so an operator could attempt the `open project/document -> retrieve relevant material -> preview and apply or reject a patch` loop through a CLI contract that had drifted away from the canonical catalog.
 - Traceability note: reviewed implementation commit is `f8d860ed9f6299f0169c4f21321ac5f37c949fd3`; this reviewer-fix follow-up adds parser-surface hardening in `src/qual/cli.py` and `src/qual/commands/catalog.py`, extends regression coverage in `tests/unit/test_commands_catalog.py`, and refreshes the handoff metadata.
 
@@ -36,6 +36,7 @@
 
 ## Risks / Blockers
 - Risks: future command-surface edits still need to preserve the parser/catalog lock so the CLI contract for `open project/document -> retrieve relevant material -> preview and apply or reject a patch` stays deterministic.
+- Scope clarification: this is command-contract hardening only; it does not add new command behavior, new persistence or auditability mechanisms, or a new workflow capability.
 - Blockers: none.
 
 ## Roadmap Item(s) Affected
@@ -44,7 +45,7 @@
 - `ROADMAP.md` exit criterion `CLI can still execute the MVP loop while Textual remains disabled` because this slice helps lock an intentional user-facing output contract by failing fast when the parser-backed CLI surface drifts from the canonical catalog.
 
 ## Vision Capability Affected
-- `PRODUCT_VISION.md` capability 3 `Canonical engine contract` because the active CLI operator surface now rejects parser/catalog drift before it can silently change the command contract the operator relies on for `open project/document -> retrieve relevant material -> preview and apply or reject a patch`.
+- `PRODUCT_VISION.md` operator-first control surface, narrowed here to canonical engine-contract hardening, because the active CLI operator surface now rejects parser/catalog drift before it can silently change the command contract the operator relies on for `open project/document -> retrieve relevant material -> preview and apply or reject a patch`.
 - `PRODUCT_VISION.md` near-term product truth because the CLI remains the current operator path while Textual stays disabled, and this change hardens one real operator flow rather than claiming broader command reachability.
 
 ## Routing / Provider Impact Note

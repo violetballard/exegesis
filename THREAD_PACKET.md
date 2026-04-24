@@ -5,11 +5,11 @@
 - Commit: `f8d860ed9f6299f0169c4f21321ac5f37c949fd3`
 - Packet refresh role: `reviewer-fix parser-surface hardening + handoff narrowing`
 - Review scope: narrow Milestone 3 CLI-contract hardening in `src/qual/cli.py` and `src/qual/commands/catalog.py`, plus focused regression coverage in `tests/unit/test_commands_catalog.py`.
-- Canonical demo-path step advanced: `preview and apply or reject a patch`
+- Canonical demo-path step(s) advanced: `open project/document`, `retrieve relevant material`, and `preview and apply or reject a patch`
 - Canonical MVP flow advanced: `open project/document -> retrieve relevant material -> preview and apply or reject a patch` for the manual CLI smoke flow, via `bootstrap`/`project-open` for open, `context-basket` for retrieval staging, and `diff-preview`/`review-patch` for patch preview
 - AGENTS.md alignment note: this packet explicitly names the exact roadmap MVP flow advanced by the reviewed slice and ties the claim to the current AGENTS handoff packet and checkpoint requirements.
 - Required mapping statement: this `feat-commands` CLI-contract hardening slice strengthens the canonical `open project/document`, `retrieve relevant material`, and `preview and apply or reject a patch` steps by preserving the operator-facing CLI command catalog contract used by `bootstrap`/`project-open`, `context-basket`, and `diff-preview`/`review-patch` while CLI remains the active first-class surface.
-- Demo-path sentence: this change makes the `preview and apply or reject a patch` step more real for the CLI-first MVP loop because the concrete parser-backed command entrypoints an operator runs now fail fast if parser drift changes the canonical catalog contract.
+- Demo-path sentence: this change makes the `open project/document -> retrieve relevant material -> preview and apply or reject a patch` loop more real for the CLI-first MVP path because the concrete parser-backed command entrypoints an operator runs now fail fast if parser drift changes the canonical catalog contract.
 - Concrete blocker removed: before this slice, parser drift could change the accepted CLI surface without a hard failure, so an operator could attempt the `open project/document -> retrieve relevant material -> preview and apply or reject a patch` loop through a CLI contract that had silently drifted away from the canonical catalog.
 - Traceable shared-edit approval: `src/qual/cli.py` and `tests/unit/test_commands_catalog.py` are permitted for `codex/feat-commands*` by the explicit allowlist entries in `scripts/scope-check.sh` when `SCOPE_ALLOW_SHARED=1`.
 
@@ -82,11 +82,12 @@
 - Checkpoint provenance: the high-risk `before risky/shared file edit` checkpoint above records that both shared paths were verified against the branch allowlist before this fixer edited the parser source and refreshed shared handoff metadata
 - Integrator-locked edits: `none`
 - Scope note: the implementation under review is limited to `src/qual/cli.py`, `src/qual/commands/catalog.py`, and `tests/unit/test_commands_catalog.py`; `THREAD.md`, `THREAD_PACKET.md`, and `handoff_packets/feat-commands.md` are metadata only.
+- Scope clarification: this is command-contract hardening only; it does not add new command behavior, new persistence or auditability mechanisms, or a new workflow capability.
 
 ## Roadmap and Vision Mapping
 
 - `AGENTS.md` handoff readiness and checkpoint rules: this slice stays within the documented high-risk task budget, records the required shared-file checkpoint, and keeps the claim pinned to one concrete MVP flow instead of a broad lane narrative.
 - `ROADMAP.md` Milestone 3 `Real workflow loop`: this narrow `feat-commands` command-catalog hardening slice keeps the manual CLI smoke flow `open project/document -> retrieve relevant material -> preview and apply or reject a patch` stable while Textual remains disabled.
 - `ROADMAP.md` exit criterion `CLI can still execute the MVP loop while Textual remains disabled`: this slice helps lock the operator-facing command contract by failing fast when the parser-backed CLI surface drifts from the canonical catalog.
-- `PRODUCT_VISION.md` capability 3 `Canonical engine contract`: the active CLI surface now rejects parser/catalog drift before it can silently change the command contract the operator relies on for `open project/document -> retrieve relevant material -> preview and apply or reject a patch`.
+- `PRODUCT_VISION.md` operator-first control surface, narrowed here to canonical engine-contract hardening: the active CLI surface now rejects parser/catalog drift before it can silently change the command contract the operator relies on for `open project/document -> retrieve relevant material -> preview and apply or reject a patch`.
 - `PRODUCT_VISION.md` near-term product truth: this change hardens the current CLI-first operator path without claiming broader surface expansion beyond the existing engine and A2UI contract work.
