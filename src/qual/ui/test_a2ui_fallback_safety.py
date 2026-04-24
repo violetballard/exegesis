@@ -880,6 +880,14 @@ class A2UIFallbackSafetyTests(unittest.TestCase):
             fingerprint,
         )
         self.assertEqual(
+            contract_fingerprints["card_hint_recovery_policy_contract"],
+            manifest["card_hint_recovery_policy_fingerprint"],
+        )
+        self.assertEqual(
+            contract_fingerprints["card_hint_recovery_policy_contract_manifest"],
+            manifest["card_hint_recovery_policy_fingerprint"],
+        )
+        self.assertEqual(
             manifest["renderer_entrypoints_contract"],
             describe_terminal_artifact_renderer_entrypoints_contract(),
         )

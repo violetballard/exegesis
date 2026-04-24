@@ -2481,6 +2481,14 @@ def _build_terminal_artifact_cli_fallback_entrypoint_contract_fingerprints(
             "resolver_failure_policy_contract_manifest",
             resolver_failure_policy_contract_fingerprint_value,
         ),
+        (
+            "card_hint_recovery_policy_contract",
+            card_hint_recovery_policy_contract_fingerprint_value,
+        ),
+        (
+            "card_hint_recovery_policy_contract_manifest",
+            card_hint_recovery_policy_contract_fingerprint_value,
+        ),
     )
     if include_contract_aliases:
         terminal_artifact_cli_fallback_entrypoint_contract_fingerprint_value = (
