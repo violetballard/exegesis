@@ -4,6 +4,7 @@ from __future__ import annotations
 
 from src.qual.commands.catalog import (
     CommandDemoWorkflowContract,
+    CommandDemoWorkflowEntry,
     CommandDemoLoopContract,
     CommandDemoBranchContract,
     CommandDemoWorkflowTrustedContract,
@@ -14,6 +15,7 @@ from src.qual.commands.catalog import (
     CommandTrustedSurfaceEntry,
     CommandInvocationPlanEntry,
     command_mvp_workflow_contract,
+    command_mvp_workflow_entry,
     command_mvp_workflow_tokens,
     command_mvp_workflow_lookup_table,
     command_mvp_workflow_invocation_table,
@@ -36,8 +38,10 @@ from src.qual.commands.catalog import (
     command_mvp_next_action_compatibility_invocation_table,
     command_mvp_next_action_preferred_invocation_table,
     command_mvp_path_contract,
+    command_mvp_path_entry,
     command_mvp_path_invocation_plan,
     command_mvp_surface_invocation_table,
+    command_mvp_trusted_surface_entry,
     command_mvp_trusted_surface_contract,
     command_mvp_trusted_surface_flow_lookup_table,
     command_mvp_trusted_surface_tokens,
@@ -73,6 +77,16 @@ def command_workflow_surface_invocation_table() -> tuple[tuple[str, tuple[str, .
 def command_workflow_contract() -> CommandDemoWorkflowContract:
     """Return the stable current-MVP workflow contract for the canonical CLI loop."""
     return command_mvp_workflow_contract()
+
+
+def command_workflow_entry(token: str) -> CommandDemoWorkflowEntry | None:
+    """Return one current-MVP workflow entry resolved from any known workflow token."""
+    return command_mvp_workflow_entry(token)
+
+
+def command_workflow_entry_for(token: str) -> CommandDemoWorkflowEntry | None:
+    """Return one current-MVP workflow entry resolved from any known workflow token."""
+    return command_mvp_workflow_entry(token)
 
 
 def command_workflow_tokens() -> tuple[str, ...]:
@@ -134,6 +148,16 @@ def command_workflow_compatibility_invocation_table() -> tuple[tuple[str, tuple[
 def command_workflow_path_contract() -> CommandDemoPathContract:
     """Return the canonical current-MVP demo path for the stable CLI loop."""
     return command_mvp_path_contract()
+
+
+def command_workflow_path_entry(flow_step: str) -> CommandDemoPathEntry | None:
+    """Return one current-MVP demo-path entry resolved from a canonical flow step."""
+    return command_mvp_path_entry(flow_step)
+
+
+def command_workflow_path_entry_for(flow_step: str) -> CommandDemoPathEntry | None:
+    """Return one current-MVP demo-path entry resolved from a canonical flow step."""
+    return command_mvp_path_entry(flow_step)
 
 
 def command_workflow_path_tokens() -> tuple[str, ...]:
@@ -206,6 +230,16 @@ def command_workflow_trusted_contract(
     return command_mvp_workflow_trusted_contract(decision_token)
 
 
+def command_workflow_surface_entry(token: str) -> CommandTrustedSurfaceEntry | None:
+    """Return one trusted current-MVP surface entry resolved from any known surface token."""
+    return command_mvp_trusted_surface_entry(token)
+
+
+def command_workflow_surface_entry_for(token: str) -> CommandTrustedSurfaceEntry | None:
+    """Return one trusted current-MVP surface entry resolved from any known surface token."""
+    return command_mvp_trusted_surface_entry(token)
+
+
 def command_workflow_trusted_tokens(decision_token: str) -> tuple[str, ...]:
     """Return the trusted current-MVP apply/reject branch tokens."""
     return command_mvp_workflow_trusted_tokens(decision_token)
@@ -272,7 +306,11 @@ def command_workflow_next_action_surface_invocation_table(
 
 __all__ = [
     "command_workflow_surface_contract",
+    "command_workflow_surface_entry",
+    "command_workflow_surface_entry_for",
     "command_workflow_surface_tokens",
+    "command_workflow_entry",
+    "command_workflow_entry_for",
     "command_workflow_contract",
     "command_workflow_tokens",
     "command_workflow_lookup_table",
@@ -285,6 +323,8 @@ __all__ = [
     "command_workflow_compatibility_lookup_table",
     "command_workflow_compatibility_invocation_table",
     "command_workflow_path_contract",
+    "command_workflow_path_entry",
+    "command_workflow_path_entry_for",
     "command_workflow_path_tokens",
     "command_workflow_path_invocation_plan",
     "command_workflow_loop_contract",
