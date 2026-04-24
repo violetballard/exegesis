@@ -8774,6 +8774,21 @@ class A2UIFallbackSafetyTests(unittest.TestCase):
         self.assertIn("A2UI v1", card_text)
         self.assertNotIn("[TerminalArtifact] <invalid artifact>", card_text)
 
+    def test_terminal_card_renderer_rejects_non_string_nested_envelope_render_results(self) -> None:
+        envelope = {
+            "type": "TerminalArtifact",
+            "kind": "dialog",
+            "artifact": _OpaqueValue(),
+            "trace_id": "drop-me",
+        }
+
+        with patch("src.qual.ui.a2ui.render_terminal_artifact", return_value={"oops": "not text"}):
+            text = render_terminal_card(envelope)
+
+        self.assertIn("[TerminalArtifact] <untitled>", text)
+        self.assertNotIsInstance(text, dict)
+        self.assertNotIn("oops", text)
+
     def test_terminal_card_renderer_recovers_action_payloads_from_malformed_terminal_artifacts(
         self,
     ) -> None:
@@ -8819,6 +8834,49 @@ class A2UIFallbackSafetyTests(unittest.TestCase):
         self.assertIn("Selection schema v1", text)
         self.assertNotIn("[TerminalArtifact] <invalid artifact>", text)
         self.assertNotIn("trace_id", text)
+
+    def test_terminal_card_renderer_rejects_non_string_nested_leaf_render_results(self) -> None:
+        cases = [
+            (
+                "action",
+                build_terminal_artifact_envelope(
+                    ActionRef(
+                        id=" export_document ",
+                        label=" Export ",
+                        payload={"format": "md"},
+                    ),
+                    kind="action",
+                ),
+                "render_terminal_action",
+                "[ActionRef] <invalid action>",
+            ),
+            (
+                "selection",
+                build_terminal_artifact_envelope(
+                    SelectionRef(
+                        id=" choice-1 ",
+                        label=" Choice ",
+                        payload={"nested": {"items": [1, 2]}},
+                    ),
+                    kind="selection",
+                ),
+                "render_terminal_selection",
+                "[SelectionRef] <invalid selection>",
+            ),
+        ]
+
+        for case_name, envelope, renderer_name, expected_prefix in cases:
+            with self.subTest(case=case_name):
+                with patch("src.qual.ui.a2ui.render_terminal_artifact", side_effect=RuntimeError("boom")):
+                    with patch(
+                        f"src.qual.ui.a2ui.{renderer_name}",
+                        return_value={"oops": "not text"},
+                    ):
+                        text = render_terminal_card(envelope)
+
+                self.assertIn(expected_prefix, text)
+                self.assertNotIsInstance(text, dict)
+                self.assertNotIn("oops", text)
 
     def test_terminal_artifact_unwraps_nested_envelopes_before_rendering(self) -> None:
         nested_envelope = {

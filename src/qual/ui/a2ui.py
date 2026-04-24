@@ -3868,38 +3868,54 @@ def render_terminal_card(card: Any) -> str:
         card_type = _normalize_card_type(normalized_card)
         if card_type == _TERMINAL_ARTIFACT_ENVELOPE_TYPE:
             try:
-                return render_terminal_artifact(normalized_card)
+                rendered_artifact = render_terminal_artifact(normalized_card)
             except Exception:
-                try:
-                    recovered_artifact, recovered_kind = _resolve_terminal_artifact_render_target(
-                        normalized_card,
-                        allow_invalid_envelope_recovery=True,
-                    )
-                except Exception:
-                    recovered_artifact = None
-                    recovered_kind = None
-                else:
-                    if recovered_kind == "action":
-                        try:
-                            return render_terminal_action(recovered_artifact)
-                        except Exception:
-                            return _render_invalid_terminal_action(recovered_artifact)
-                    if recovered_kind == "selection":
-                        try:
-                            return render_terminal_selection(recovered_artifact)
-                        except Exception:
-                            return _render_invalid_terminal_selection(recovered_artifact)
-                    if recovered_kind == "card":
-                        try:
-                            return render_terminal_card(recovered_artifact)
-                        except Exception:
-                            pass
+                rendered_artifact = None
+            else:
+                if isinstance(rendered_artifact, str):
+                    return rendered_artifact
+            try:
+                recovered_artifact, recovered_kind = _resolve_terminal_artifact_render_target(
+                    normalized_card,
+                    allow_invalid_envelope_recovery=True,
+                )
+            except Exception:
+                recovered_artifact = None
+                recovered_kind = None
+            else:
+                if recovered_kind == "action":
+                    try:
+                        rendered_action = render_terminal_action(recovered_artifact)
+                    except Exception:
+                        return _render_invalid_terminal_action(recovered_artifact)
+                    if isinstance(rendered_action, str):
+                        return rendered_action
+                    return _render_invalid_terminal_action(recovered_artifact)
+                if recovered_kind == "selection":
+                    try:
+                        rendered_selection = render_terminal_selection(recovered_artifact)
+                    except Exception:
+                        return _render_invalid_terminal_selection(recovered_artifact)
+                    if isinstance(rendered_selection, str):
+                        return rendered_selection
+                    return _render_invalid_terminal_selection(recovered_artifact)
+                if recovered_kind == "card":
+                    try:
+                        rendered_card = render_terminal_card(recovered_artifact)
+                    except Exception:
+                        pass
+                    else:
+                        if isinstance(rendered_card, str):
+                            return rendered_card
                 recovered_card = _resolve_terminal_artifact_card_fallback(normalized_card)
                 if recovered_card is not None:
                     try:
-                        return render_terminal_card(recovered_card)
+                        rendered_card = render_terminal_card(recovered_card)
                     except Exception:
                         pass
+                    else:
+                        if isinstance(rendered_card, str):
+                            return rendered_card
                 return _render_invalid_terminal_artifact(normalized_card)
         # Keep the card leaf renderer card-only so explicit action/selection
         # payloads do not masquerade as cards when a caller bypasses dispatch.
