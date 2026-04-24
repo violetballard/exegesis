@@ -37,6 +37,7 @@ _FTS_SEGMENT_OVERLAP_CHARS = 80
 _FTS_BOUNDARY_SCAN_CHARS = 40
 _SUPPORTED_RETRIEVAL_INTENTS = {"lookup", "compare", "summarize", "quote_find", "outline_support"}
 _SUPPORTED_CONFIDENTIALITY_PROFILES = {"confidential", "standard"}
+_SUPPORTED_LOOKUP_QUERY_CONTEXT_STATUSES = {"rehydrated", "missing", "stale_dropped"}
 _FTS_SOURCE_STRATEGY = "fts"
 _CANONICAL_RETRIEVAL_BACKEND = FTS_FIRST_POLICY.retrieval_backend
 _CANONICAL_RETRIEVAL_MODE = FTS_FIRST_POLICY.retrieval_mode
@@ -536,6 +537,13 @@ def _normalize_lookup_resolution(value: object) -> Literal["fts"]:
 
 def _normalize_lookup_confidentiality_profile_payload(value: object) -> str | None:
     return _normalized_profile_text(value)
+
+
+def _normalize_lookup_query_context_status_payload(value: object) -> str | None:
+    status = _normalized_profile_text(value)
+    if status in _SUPPORTED_LOOKUP_QUERY_CONTEXT_STATUSES:
+        return status
+    return None
 
 
 def _normalize_doc_id_list_payload(value: object) -> list[str] | None:
@@ -1952,6 +1960,7 @@ class RetrievalService:
                 "lookup_entrypoint": lookup_entrypoint,
                 "lookup_resolution": lookup_resolution,
                 "lookup_confidentiality_profile": lookup_confidentiality_profile,
+                "lookup_query_context_status": excerpt.get("lookup_query_context_status"),
                 "title_hint": excerpt.get("title_hint"),
                 "retrieval_backend": excerpt.get("retrieval_backend"),
                 "retrieval_mode": excerpt.get("retrieval_mode"),
@@ -2031,6 +2040,7 @@ class RetrievalService:
                 "lookup_entrypoint": lookup_entrypoint,
                 "lookup_resolution": lookup_resolution,
                 "lookup_confidentiality_profile": lookup_confidentiality_profile,
+                "lookup_query_context_status": "missing",
                 "retrieval_backend": retrieval_policy["retrieval_backend"],
                 "retrieval_mode": retrieval_policy["retrieval_mode"],
                 "active_strategy_ids": active_strategy_ids,
@@ -3042,7 +3052,13 @@ class RetrievalService:
             text_hash = hashlib.sha256(text.encode("utf-8")).hexdigest()
             doc_id = str(row["doc_id"])
             source_hash = self._doc_source_hash(doc_id)
-            excerpt_context = self._load_excerpt_context(excerpt_id, doc_id=doc_id)
+            excerpt_context, excerpt_context_is_stale = self._load_excerpt_context(excerpt_id, doc_id=doc_id)
+            if excerpt_context_is_stale:
+                lookup_query_context_status = "stale_dropped"
+            elif excerpt_context is not None:
+                lookup_query_context_status = "rehydrated"
+            else:
+                lookup_query_context_status = "missing"
             provenance = self._build_fts_provenance(
                 doc_id=doc_id,
                 excerpt_id=excerpt_id,
@@ -3100,6 +3116,7 @@ class RetrievalService:
                 source_strategy="fts",
                 lookup_resolution="fts",
                 lookup_confidentiality_profile=confidentiality_profile,
+                lookup_query_context_status=lookup_query_context_status,
             )
         return None
 
@@ -3168,19 +3185,19 @@ class RetrievalService:
             normalized[excerpt_id] = copy.deepcopy(context)
         return normalized
 
-    def _load_excerpt_context(self, excerpt_id: str, *, doc_id: str) -> dict[str, object] | None:
+    def _load_excerpt_context(self, excerpt_id: str, *, doc_id: str) -> tuple[dict[str, object] | None, bool]:
         context = self._load_excerpt_context_map().get(excerpt_id)
         if not isinstance(context, dict):
-            return None
+            return None, False
         stored_doc_id = _optional_text(context.get("doc_id"))
         if stored_doc_id is not None and stored_doc_id != doc_id:
-            return None
+            return None, False
         stored_source_hash = _optional_text(context.get("source_hash"))
         if stored_source_hash is not None:
             current_source_hash = self._doc_source_hash(doc_id)
             if current_source_hash and current_source_hash != stored_source_hash:
-                return None
-        return copy.deepcopy(context)
+                return None, True
+        return copy.deepcopy(context), False
 
     def _prune_excerpt_contexts_for_doc_ids(self, doc_ids: tuple[str, ...]) -> None:
         normalized_doc_ids = {
@@ -3308,6 +3325,7 @@ class RetrievalService:
         source_strategy: Literal["fts"],
         lookup_resolution: str,
         lookup_confidentiality_profile: str | None = None,
+        lookup_query_context_status: str | None = None,
     ) -> dict[str, object]:
         source_strategy = _normalize_source_strategy(source_strategy)
         provenance = excerpt.get("provenance", {})
@@ -3333,6 +3351,15 @@ class RetrievalService:
             # consumers, even when the original lookup metadata is absent.
             canonical_lookup_confidentiality_profile = "confidential"
         normalized["lookup_confidentiality_profile"] = canonical_lookup_confidentiality_profile
+        canonical_lookup_query_context_status = _normalize_lookup_query_context_status_payload(
+            normalized.get(
+                "lookup_query_context_status",
+                provenance.get("lookup_query_context_status", lookup_query_context_status),
+            )
+        )
+        if canonical_lookup_query_context_status is None:
+            canonical_lookup_query_context_status = "missing"
+        normalized["lookup_query_context_status"] = canonical_lookup_query_context_status
         excerpt_text = _optional_text(normalized.get("text")) or _optional_text(normalized.get("excerpt_text"))
         if excerpt_text is not None:
             # Keep lookup payloads aligned with excerpt-hit payload naming so
@@ -3575,6 +3602,7 @@ class RetrievalService:
         normalized_provenance["lookup_resolution"] = canonical_lookup_resolution
         if canonical_lookup_confidentiality_profile is not None:
             normalized_provenance["lookup_confidentiality_profile"] = canonical_lookup_confidentiality_profile
+        normalized_provenance["lookup_query_context_status"] = canonical_lookup_query_context_status
         top_level_query_fingerprint = _optional_text(normalized.get("query_fingerprint"))
         if (
             top_level_query_fingerprint is not None
@@ -3692,17 +3720,19 @@ class RetrievalService:
         section_hint_rank = _optional_int(normalized_provenance.get("section_hint_rank"))
         if section_hint_rank is not None:
             normalized_provenance["section_hint_rank"] = section_hint_rank
+        explicit_retrieved_doc_ids = normalized.get("retrieved_doc_ids")
+        if explicit_retrieved_doc_ids is None:
+            explicit_retrieved_doc_ids = normalized_provenance.get("retrieved_doc_ids")
         retrieved_doc_ids = _normalize_doc_id_list_payload(
-            normalized.get("retrieved_doc_ids")
-            or normalized_provenance.get("retrieved_doc_ids")
-            or [doc_id_value]
+            explicit_retrieved_doc_ids or [doc_id_value]
         )
         if retrieved_doc_ids is not None:
             normalized_provenance["retrieved_doc_ids"] = retrieved_doc_ids
+        explicit_retrieved_excerpt_ids = normalized.get("retrieved_excerpt_ids")
+        if explicit_retrieved_excerpt_ids is None:
+            explicit_retrieved_excerpt_ids = normalized_provenance.get("retrieved_excerpt_ids")
         retrieved_excerpt_ids = _normalize_doc_id_list_payload(
-            normalized.get("retrieved_excerpt_ids")
-            or normalized_provenance.get("retrieved_excerpt_ids")
-            or [excerpt_id_value]
+            explicit_retrieved_excerpt_ids or [excerpt_id_value]
         )
         if retrieved_excerpt_ids is not None:
             normalized_provenance["retrieved_excerpt_ids"] = retrieved_excerpt_ids
@@ -3812,6 +3842,7 @@ class RetrievalService:
                 "source_strategy": source_strategy,
                 "lookup_resolution": canonical_lookup_resolution,
                 "lookup_confidentiality_profile": canonical_lookup_confidentiality_profile,
+                "lookup_query_context_status": canonical_lookup_query_context_status,
                 # Include the canonical retrieval query context when it is
                 # present so excerpt promotion/audit records stay unique across
                 # materially different retrieval runs that land on the same
@@ -4192,6 +4223,10 @@ class RetrievalService:
             "lookup_confidentiality_profile": _normalize_lookup_confidentiality_profile_payload(
                 excerpt.get("lookup_confidentiality_profile")
                 or provenance.get("lookup_confidentiality_profile")
+            ),
+            "lookup_query_context_status": _normalize_lookup_query_context_status_payload(
+                excerpt.get("lookup_query_context_status")
+                or provenance.get("lookup_query_context_status")
             ),
             "query_date_range": _normalize_query_date_range_payload(
                 query_constraints.get("date_range", provenance.get("query_date_range"))
