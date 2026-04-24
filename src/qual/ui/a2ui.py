@@ -733,6 +733,28 @@ def describe_a2ui_contract_fingerprints(
         fingerprints["shell_ui_contract_manifest_fingerprint"] = shell_ui_contract_fingerprints[
             "shell_ui_contract_manifest_fingerprint"
         ]
+        # Mirror the shell entrypoint bundle as well so shell-aware engine
+        # consumers can fingerprint the explicit CLI fallback entrypoint
+        # without opting into the standalone slice separately.
+        _add_contract_alias_fingerprints(
+            fingerprints,
+            (
+                "terminal_artifact_cli_fallback_entrypoint",
+                shell_ui_contract_fingerprints["terminal_artifact_cli_fallback_entrypoint"],
+            ),
+            (
+                "terminal_artifact_cli_fallback_entrypoint_contract",
+                shell_ui_contract_fingerprints["terminal_artifact_cli_fallback_entrypoint_contract"],
+            ),
+            (
+                "terminal_artifact_cli_fallback_entrypoint_contract_manifest",
+                shell_ui_contract_fingerprints["terminal_artifact_cli_fallback_entrypoint_contract_manifest"],
+            ),
+            (
+                "terminal_artifact_cli_fallback_entrypoint_contract_fingerprints",
+                shell_ui_contract_fingerprints["terminal_artifact_cli_fallback_entrypoint_contract_fingerprints"],
+            ),
+        )
         fingerprints["terminal_artifact_renderer_entrypoints"] = shell_ui_contract[
             "terminal_artifact_renderer_entrypoints_contract_fingerprint"
         ]

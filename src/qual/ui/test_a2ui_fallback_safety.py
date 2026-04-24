@@ -2646,6 +2646,22 @@ class A2UIFallbackSafetyTests(unittest.TestCase):
             shell_manifest["terminal_artifact_cli_fallback_entrypoint_contract_fingerprints_fingerprint"],
         )
         self.assertEqual(
+            manifest["contract_fingerprints"]["terminal_artifact_cli_fallback_entrypoint"],
+            shell_manifest["contract_fingerprints"]["terminal_artifact_cli_fallback_entrypoint"],
+        )
+        self.assertEqual(
+            manifest["contract_fingerprints"]["terminal_artifact_cli_fallback_entrypoint_contract"],
+            shell_manifest["contract_fingerprints"]["terminal_artifact_cli_fallback_entrypoint_contract"],
+        )
+        self.assertEqual(
+            manifest["contract_fingerprints"]["terminal_artifact_cli_fallback_entrypoint_contract_manifest"],
+            shell_manifest["contract_fingerprints"]["terminal_artifact_cli_fallback_entrypoint_contract_manifest"],
+        )
+        self.assertEqual(
+            manifest["contract_fingerprints"]["terminal_artifact_cli_fallback_entrypoint_contract_fingerprints"],
+            shell_manifest["contract_fingerprints"]["terminal_artifact_cli_fallback_entrypoint_contract_fingerprints"],
+        )
+        self.assertEqual(
             manifest["shell_ui_contract_fingerprints"],
             shell_manifest["contract_fingerprints"],
         )
