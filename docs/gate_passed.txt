@@ -3,17 +3,24 @@ Gate Results Summary (as of 2026-04-24)
 
 Feature lane: `codex/feat-retrieval-fts`
 Packet role: `metadata-only reviewer-fix handoff refresh`
-Packet refresh trace anchor before fixer commit: `9bd108298e82f2ba9cc1a6ab97d2f20f7dc622fe`
+Packet refresh trace anchor before fixer commit: `bdbf1eeaa4dcec296f17ad2f3639b18a37a3ea6d`
 Reviewed implementation head: `9bd108298e82f2ba9cc1a6ab97d2f20f7dc622fe`
-Reviewed implementation range: `adfa8cdadd43747ffbcb612e4151e262b13e52ca..9bd108298e82f2ba9cc1a6ab97d2f20f7dc622fe`
+Reviewed implementation range: `d7fd5d200358287fa42a18d39e2b277463b9b69f..9bd108298e82f2ba9cc1a6ab97d2f20f7dc622fe`
 Canonical demo-path step advanced: `retrieve relevant material`
-Scope: metadata-only packet refresh for the live retrieval branch tip after the post-`adfa8cda` follow-up fixes. The reviewed implementation mirrors normalized query text into doc-hit and excerpt-hit payloads plus provenance, backfills that query text during downstream payload reconstruction from sparse source bundles, resolves engine query annotations without an eager import cycle, and keeps SQLite FTS authoritative for the MVP retrieval surface.
+Scope: metadata-only packet refresh for the live retrieval branch tip after the cumulative FTS-first retrieval fixes through `9bd10829`. The reviewed implementation keeps SQLite FTS authoritative, hardens deterministic payload and provenance reconstruction, preserves fail-closed deferred-strategy behavior, mirrors normalized query text and constraints across hit payloads plus provenance, and resolves engine query annotations via runtime type binding without introducing an eager import cycle.
 
 Reviewed implementation files:
 
+* `codex_packet_handoff/tools/planner.py`
 * `src/qual/retrieval/service.py`
+* `src/qual/retrieval/__init__.py`
 * `src/qual/engine/retrieval/payload.py`
 * `src/qual/engine/retrieval/__init__.py`
+* `src/qual/engine/retrieval/fts_strategy.py`
+* `src/qual/engine/retrieval/pageindex_strategy.py`
+* `src/qual/engine/retrieval/embeddings_strategy.py`
+* `src/qual/engine/retrieval/interface.py`
+* `tests/unit/test_packet_planner.py`
 * `tests/unit/test_unified_retrieval.py`
 
 Metadata-only packet artifacts refreshed in this fixer pass:
@@ -28,13 +35,13 @@ Metadata-only packet artifacts blocked by filesystem policy in this fixer pass:
 
 Plan-alignment note:
 
-* This slice advances `retrieve relevant material` by mirroring normalized query text into hit payloads and provenance so retrieval output stays deterministic and auditable for downstream engine flows and later basket promotion.
+* This slice advances `retrieve relevant material` by making the canonical FTS retrieval surface deterministic and auditable for the engine loop.
 * SQLite FTS remains the authoritative retrieval path for this MVP surface.
-* This fixer pass refreshes packet metadata only and does not move the reviewed implementation head or widen the reviewed implementation range.
+* This fixer pass refreshes packet metadata only on branch tip `bdbf1eeaa4dcec296f17ad2f3639b18a37a3ea6d` and does not move the reviewed implementation head or widen the reviewed implementation range.
 
 Budget classification:
 
-* Shared/high-risk because `tests/unit/test_unified_retrieval.py` is a shared-by-approval file for this lane.
+* Shared/high-risk because `tests/unit/test_unified_retrieval.py` and `tests/unit/test_packet_planner.py` are shared-by-approval files for this lane.
 * The visible packet is reissued on the AGENTS high-risk 4-task basis.
 
 Verification:
