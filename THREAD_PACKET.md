@@ -4,14 +4,15 @@
 
 - Branch: `codex/feat-commands`
 - Lane/owned paths: `src/qual/commands/**`
-- Scope goal: remove the parser/catalog drift blocker on the canonical `preview and apply or reject a patch` demo-path step by proving the existing catalog-backed guard in `src/qual/cli.py::parse_args()` rejects drift from the top-level operator path `src/main.py::_dispatch()`, without adding new engine behavior.
+- Scope goal: remove the parser/catalog drift blocker on the canonical `preview and apply or reject a patch` demo-path step by proving the grouped CLI entrypoint contract in `src/qual/commands/catalog.py` fails fast when the live parser surface drifts from the catalog at `src/qual/cli.py::parse_args()` and `src/main.py::_dispatch()`, including alias-level drift such as dropping `diff` or adding `context`, without adding new engine behavior.
 - Risk reason: this is a high-risk command-contract handoff because it relies on the public command contract in `src/qual/commands/catalog.py` and the approved shared regression path `tests/unit/test_commands_catalog.py`, and drift at operator-facing CLI entrypoints would directly weaken the current manual CLI smoke flow.
 
 ### Scope / Plan Alignment
 
 - Canonical demo-path step made more real: `preview and apply or reject a patch`, because this slice proves the current CLI fallback rejects parser/catalog drift from `src/main.py::_dispatch()` before the operator reaches the review/apply entrypoints that Milestone 3 still depends on while Textual remains disabled.
 - Explicit handoff sentence: this handoff advances the canonical demo-path step `preview and apply or reject a patch` by proving the current CLI fallback rejects parser/catalog drift before an operator reaches `preview`, `apply`, or `reject` from the real `_dispatch() -> parse_args()` path.
-- High-risk planned-task framing: prove the real operator path exercises the existing `parse_args()` guard, keep `src/qual/commands/catalog.py` authoritative for canonical command names, add focused regression coverage for drift rejection, and rerun the required gates for this narrow CLI-compatibility slice.
+- High-risk planned-task framing: prove the real operator path exercises the existing `parse_args()` guard, keep `src/qual/commands/catalog.py` authoritative for the grouped CLI parser surface rather than only canonical names, add focused regression coverage for alias/token-surface drift rejection, and rerun the required gates for this narrow CLI-compatibility slice.
+- Reviewer example coverage note: the active regression coverage explicitly rejects the reviewer-called parser-surface mutations of dropping `diff`, adding `context`, and reordering or otherwise altering the explicit CLI entrypoint list while canonical command names stay the same.
 - Per-task canonical demo-path mapping:
   - task 1 -> `preview and apply or reject a patch`: prove the real operator entrypoint reaches the existing parser/catalog guard before the operator reaches patch review/apply.
   - task 2 -> `preview and apply or reject a patch`: keep the catalog authoritative for the exact review/apply CLI surface the operator must use.
@@ -28,8 +29,8 @@
 ### Planned Tasks (max 4)
 
 1. Advance the canonical demo-path step `preview and apply or reject a patch` by proving the existing command-catalog CLI contract in `src/qual/cli.py::parse_args()` is exercised by the real operator entrypoint `src/main.py::_dispatch()`.
-2. Advance the canonical demo-path step `preview and apply or reject a patch` by keeping `src/qual/commands/catalog.py` as the authoritative grouped parser-surface check behind that active CLI entry path.
-3. Advance the canonical demo-path step `preview and apply or reject a patch` by adding regression coverage proving drift is rejected from `_dispatch()` and `parse_args()`, not only from a direct helper call.
+2. Advance the canonical demo-path step `preview and apply or reject a patch` by keeping `src/qual/commands/catalog.py` as the authoritative grouped parser-surface contract behind that active CLI entry path, not only a canonical-name ordering check.
+3. Advance the canonical demo-path step `preview and apply or reject a patch` by adding regression coverage proving alias/token-surface drift such as dropping `diff` or adding `context` is rejected from `_dispatch()` and `parse_args()`, not only from a direct helper call.
 4. Advance the canonical demo-path step `preview and apply or reject a patch` by re-running the required gates and recording the results for the patch-review CLI compatibility slice.
 
 ### Early Review Triggers
@@ -56,8 +57,8 @@
 - branch name: `codex/feat-commands`
 - tasks completed (numbered implementation work only; metadata-only packet refreshes excluded):
   1. Advanced the canonical demo-path step `preview and apply or reject a patch` by proving the existing command-catalog CLI contract from `src/qual/cli.py::parse_args()` is exercised by the active operator entrypoint `src/main.py::_dispatch()`.
-  2. Advanced the canonical demo-path step `preview and apply or reject a patch` by keeping `src/qual/commands/catalog.py` as the authoritative grouped parser-surface contract behind that active CLI check.
-  3. Advanced the canonical demo-path step `preview and apply or reject a patch` by adding focused regression coverage in `tests/unit/test_commands_catalog.py` proving parser/catalog drift is rejected from `src/main.py::_dispatch()` and `parse_args()`, alongside the existing helper-level catalog drift checks.
+  2. Advanced the canonical demo-path step `preview and apply or reject a patch` by keeping `src/qual/commands/catalog.py` as the authoritative grouped parser-surface contract behind that active CLI check, not only a canonical-name ordering check.
+  3. Advanced the canonical demo-path step `preview and apply or reject a patch` by adding focused regression coverage in `tests/unit/test_commands_catalog.py` proving alias/token-surface drift such as dropping `diff` or adding `context` is rejected from `src/main.py::_dispatch()` and `parse_args()`, alongside the existing helper-level catalog drift checks.
 - files changed:
   - reviewed implementation evidence: `src/main.py`
   - reviewed implementation evidence: `src/qual/cli.py`
@@ -73,7 +74,7 @@
   - `./quality-test.sh` -> passed
   - `./typecheck-test.sh` -> passed
   - `make ci` -> passed
-  - revalidation note: all required gates were rerun on `2026-04-24` in the final fixer pass, and the top-level operator-path regression plus the alias-substitution regression still raise the expected `ValueError`, confirming the packet stays narrowed to command-catalog CLI compatibility for the exact drift concern raised in review
+  - revalidation note: all required gates were rerun on `2026-04-24` in the final fixer pass, and the top-level operator-path regression plus the concrete reviewer examples for dropping `diff`, adding `context`, and reordering or altering the explicit CLI entrypoint list still raise the expected `ValueError`, confirming the packet stays narrowed to command-catalog CLI compatibility for the exact drift concern raised in review
 - traceability:
   - reviewed implementation slice: `src/main.py`, `src/qual/cli.py`, `src/qual/commands/catalog.py`, and `tests/unit/test_commands_catalog.py`
   - implementation commit note for this fixer pass: the operator-path proof landed in `426f2fe5e`, and this final handoff refresh records a clean gate rerun in the final fixer commit before reporting the final HEAD SHA
