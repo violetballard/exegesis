@@ -14,7 +14,7 @@
 
 - Branch: `codex/feat-commands`
 - Lane/owned paths: `src/qual/commands/**`
-- Scope goal: harden the CLI contract so the parser-facing command catalog stays in lockstep with the canonical command catalog used by the CLI-first MVP loop, including fail-closed rejection when the `diff` parser token disappears from the approved surface.
+- Scope goal: harden the declared parser-facing CLI command catalog so it stays in lockstep with the canonical command catalog and fails closed when parser-surface drift is introduced, including the reviewer-called `diff` token disappearance case.
 - Risk reason: the reviewed slice touches the command contract in `src/qual/commands/catalog.py` and a shared-by-approval regression test file.
 
 ### Budget
@@ -28,8 +28,7 @@
 
 1. Tighten the command contract wording and helper structure so the full declared parser surface remains the explicit validation target.
 2. Add a regression that proves the contract fails when the `diff` parser token disappears from the accepted surface.
-3. Refresh the AGENTS-required canonical demo-path statement naming the exact step advanced and the concrete blocker removed.
-4. Rerun the required gates and refresh the compatibility pointer file.
+3. Refresh the AGENTS-required canonical demo-path statement so it names the exact step advanced, the concrete blocker removed, and the narrower operator-surface claim supported by this slice.
 
 ### Checkpoint Cadence
 
@@ -52,16 +51,16 @@
 
 - Added a fail-closed guard in `command_cli_contract()` so the parser-facing CLI contract cannot silently diverge from the canonical command catalog ordering.
 - Added regression coverage proving the CLI contract matches the catalog in the normal case and raises if parser-surface drift is introduced, including explicit rejection when the `diff` parser token disappears.
-- Kept the slice narrow: one command-contract guard plus targeted tests, with no provider, routing, or broader workflow behavior changes.
+- Kept the slice narrow: one command-catalog contract guard plus targeted tests, with no provider, routing, or broader workflow behavior changes.
 
 ## Canonical Demo-Path Mapping
 
 - Canonical demo-path step advanced: `open project/document`.
-- Active MVP operator path strengthened: the CLI fallback path for `open project/document` while Textual remains disabled.
-- Concrete blocker removed: before this guard, the CLI-first MVP could lose required parser tokens or aliases such as `diff` while the deduplicated canonical-name tuple still matched `command_names()`, which left the `open project/document` entry step and the rest of the CLI loop vulnerable to silent parser-surface drift during the migration.
-- Direct plan-alignment statement: this change makes the CLI fallback `open project/document` entry step more real by forcing that demo-path entrypoint to fail closed whenever the parser-facing token surface and canonical command catalog stop matching.
-- Scope-tightening note: this handoff claims only the CLI fallback entry step above; it does not claim to harden patch preview, apply/reject, or any broader command flow in this slice.
-- Why this is milestone-worthy now instead of second-order cleanup: `AGENTS.md` says contract work counts only when it removes a concrete blocker on the canonical demo path. This guard does that because Milestone 3 still relies on the CLI as the active operator surface while Textual is disabled, so preventing silent contract drift at the first demo-path step hardens the live CLI-first MVP loop, not a speculative future path.
+- Active MVP operator path strengthened: the CLI fallback path for `open project/document` while Textual remains disabled, by ensuring the command surface fails closed before the first operator step runs if parser/catalog drift is introduced.
+- Concrete blocker removed: before this guard, the active CLI surface could lose required parser tokens or aliases such as `diff` while the deduplicated canonical-name tuple still matched `command_names()`. That left the CLI command catalog able to drift silently, which is a concrete reliability blocker before the operator can safely start the `open project/document` demo-path step.
+- Direct plan-alignment statement: this change makes the CLI fallback `open project/document` entry step more real by forcing the shared parser-facing command catalog to fail closed whenever it stops matching the canonical command catalog.
+- Scope-tightening note: this handoff claims command-catalog contract hardening whose roadmap value is anchored to the `open project/document` entry step only; it does not claim to harden patch preview, apply/reject, or end-to-end command-flow behavior in this slice.
+- Why this is milestone-worthy now instead of second-order cleanup: `AGENTS.md` says contract work counts only when it removes a concrete blocker on the canonical demo path. This guard does that because Milestone 3 still relies on the CLI as the active operator surface while Textual is disabled, so preventing silent command-catalog drift is direct operator-surface hardening for the live CLI fallback path, not speculative future work.
 
 ## Approved Exception Note
 
@@ -79,7 +78,6 @@
 1. Re-anchored the handoff packet to the exact reviewed implementation commit `538095c47a6bc5f971e9811b83745571915e4268`.
 2. Kept the command-contract validation pinned to the full declared parser surface and named that surface explicitly in the implementation.
 3. Added the reviewer-requested regression proving the contract fails when the `diff` parser token disappears from the accepted `diff-preview` surface.
-4. Refreshed the canonical demo-path mapping, compatibility pointer, and required gate results for the CLI-first MVP loop.
 
 ### Files Changed
 
@@ -108,12 +106,12 @@
 
 ### Roadmap item(s) affected
 
-- `ROADMAP.md` Milestone 3: preserve CLI compatibility while the package/layout migration lands.
-- This diff contributes only the Milestone 3 CLI-compatibility and migration-safe-entrypoint slice by ensuring the active CLI-first MVP loop can start with a stable `open project/document` contract instead of letting parser-surface tokens drift away from the canonical command catalog.
+- `ROADMAP.md` Milestone 3: define and lock user-facing output contracts.
+- This diff contributes only the Milestone 3 operator-surface contract slice by ensuring the active CLI can start the `open project/document` path from a stable declared command catalog instead of letting parser-surface tokens drift away from the canonical command catalog.
 
 ### Vision capability affected
 
-- `PRODUCT_VISION.md` capability 3 `Canonical engine contract`: the CLI is the active operator surface while Textual remains disabled, so its engine-facing contract and CLI compatibility need to stay deterministic and migration-safe enough to drive the demo path now.
+- `PRODUCT_VISION.md` capability 4 `Operator-first control surface`: the CLI is the active operator surface while Textual remains disabled, so its command catalog needs to stay deterministic and fail closed before the demo path begins.
 
 ### Routing / Provider Impact Note
 
