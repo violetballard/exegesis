@@ -356,6 +356,19 @@ class CommandCatalogTests(unittest.TestCase):
                 self.assertEqual(canonical_demo_command_argv(argv), expected)
                 self.assertEqual(canonical_mvp_command_argv(argv), expected)
 
+    def test_demo_surface_canonicalizer_preserves_requested_demo_verbs_when_terminal_args_change(self) -> None:
+        cases = (
+            (("persist", "--message", "Resume later"), "persist"),
+            (("apply", "--message", "Ship it"), "apply-patch"),
+            (("reject", "--message", "Try again"), "reject-patch"),
+            (("terminal", "--operation-kind", "terminal_synthesis_request", "--message", "Queued for later"), "terminal"),
+            (("terminal", "--operation-kind", "terminal_tool_orchestration", "--message", "Something else"), "terminal"),
+        )
+        for argv, expected in cases:
+            with self.subTest(argv=argv):
+                self.assertEqual(canonical_demo_command_argv(argv), expected)
+                self.assertEqual(canonical_mvp_command_argv(argv), expected)
+
     def test_unknown_commands_are_normalized_deterministically(self) -> None:
         self.assertEqual(canonical_command("  New_Command  "), "new-command")
         self.assertEqual(canonical_command(""), "")

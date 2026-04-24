@@ -4495,6 +4495,7 @@ def canonical_demo_command_argv(argv: tuple[str, ...] | list[str]) -> str:
         return ""
 
     resolved = command_demo_resolve_argv(raw_argv)
+    normalized_raw_token = _normalize_token(raw_argv[0])
     workflow_token_by_argv = {
         entry.argv: entry.token
         for entry in command_demo_workflow_contract(COMMAND_SPECS).entries
@@ -4508,12 +4509,19 @@ def canonical_demo_command_argv(argv: tuple[str, ...] | list[str]) -> str:
     if terminal_token:
         return terminal_token
 
+    if normalized_raw_token and normalized_raw_token != "terminal":
+        normalized_command = canonical_demo_command(raw_argv[0])
+        if normalized_command in _COMMAND_DEMO_LOOP_TOKENS:
+            return normalized_command
+
     if resolved.matched and resolved.flow_step:
         normalized_flow_step = _normalize_token(resolved.flow_step)
-        if normalized_flow_step in _COMMAND_DEMO_LOOP_TOKENS:
+        if normalized_flow_step in _COMMAND_DEMO_LOOP_TOKENS and (
+            resolved.kind == "flow-step" or normalized_raw_token != "terminal"
+        ):
             return normalized_flow_step
 
-    return canonical_demo_command(raw_argv[0])
+    return canonical_command(raw_argv[0])
 
 
 def canonical_mvp_command_argv(argv: tuple[str, ...] | list[str]) -> str:
