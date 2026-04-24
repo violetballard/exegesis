@@ -5,7 +5,7 @@
 - Commit: `8e747334f4da2d5486e15088979a36184c8c9116`
 - Packet refresh role: `fixer reviewer packet correction`
 - Packet refresh basis: `realigned the handoff to the actual reviewed implementation slice after the reviewer flagged missing canonical demo-path wording, scope overclaiming beyond the parser-surface guard, and missing evidence for full parser-surface drift detection`
-- Post-fixer verification: `2026-04-24T10:34:02Z UTC gate rerun confirmed this packet correction matches the current branch state; the current refresh is metadata-only and keeps the reviewed implementation scope pinned to 8e747334f4da2d5486e15088979a36184c8c9116`
+- Post-fixer verification: `2026-04-24T10:40:27Z UTC gate rerun confirmed this packet correction matches the current branch state; the current refresh is metadata-only and keeps the reviewed implementation scope pinned to 8e747334f4da2d5486e15088979a36184c8c9116`
 - Packet-only refresh files:
   - `THREAD.md`
   - `THREAD_PACKET.md`
@@ -15,7 +15,7 @@
 
 - Branch: `codex/feat-commands`
 - Lane/owned paths: `src/qual/commands/**`
-- Scope goal: make the canonical `open project/document`, `retrieve`, and `preview and apply or reject a patch` steps more real by keeping the operator-visible command contract locked to the parser/catalog boundary, so deterministic CLI contract validation protects the current engine-first CLI fallback across the `project-open` / `retrieval` / `patch-review` smoke path while interactive clients stay secondary.
+- Scope goal: make the canonical `open project/document`, `retrieve relevant material`, and `preview and apply or reject a patch` steps more real by keeping the operator-visible command contract locked to the parser/catalog boundary, so deterministic CLI contract validation protects the current engine-first CLI fallback across the `project-open` / `retrieval` / `patch-review` smoke path while interactive clients stay secondary.
 - Risk reason: the reviewed slice touches the command contract in `src/qual/commands/catalog.py` and a shared-by-approval regression test file.
 
 ### Budget
@@ -80,16 +80,16 @@
 
 ## Canonical Demo-Path Mapping
 
-- Canonical demo-path step(s) advanced: `open project/document`, `retrieve`, and `preview and apply or reject a patch`.
+- Canonical demo-path step(s) advanced: `open project/document`, `retrieve relevant material`, and `preview and apply or reject a patch`.
 - Roadmap loop mapping for those same steps:
   - `open project/document` corresponds to the current MVP loop's `vault` and `context` entry boundary via `project-open`.
-  - `retrieve` corresponds to the current MVP loop's `context` and `run` handoff boundary via `retrieval`.
+  - `retrieve relevant material` corresponds to the current MVP loop's `context` and `run` handoff boundary via `retrieval`.
   - `preview and apply or reject a patch` corresponds to the current MVP loop's `patch` boundary via `patch-review`.
-- Required packet statement: this change makes `open project/document`, `retrieve`, and `preview and apply or reject a patch` more real by forcing the command contract to stay catalog-locked and fail closed before the operator reaches the wrong CLI verb set on the current engine-first `project-open` / `retrieval` / `patch-review` smoke path.
-- Explicit CLI fallback statement: this specifically hardens the current CLI "continue working" operator surface while Textual remains disabled.
+- Required packet statement: this change makes `open project/document`, `retrieve relevant material`, and `preview and apply or reject a patch` more real by forcing the command contract to stay catalog-locked and fail closed before the operator reaches the wrong CLI verb set on the current engine-first `project-open` / `retrieval` / `patch-review` smoke path.
+- Explicit CLI fallback statement: this specifically hardens the current CLI path that lets the operator `continue working without losing context` while Textual remains disabled.
 - Concrete blocker removed: parser-surface drift between the live parser entrypoints and the declared catalog can no longer pass silently. That removes the concrete CLI-fallback blocker where silent parser drift, including extra accepted aliases, dropped canonical tokens, lookup-table substitutions, or token reorderings, could change the `project-open` / `retrieval` / `patch-review` operator contract.
 - `AGENTS.md` compliance note: every active lane task in this packet now names the exact canonical demo-path step it advances, and this handoff states the concrete blocker removed at that step.
-- Scope-tightening statement: this slice claims command-contract hardening for the current engine-first `project-open` / `retrieval` / `patch-review` smoke path only. Deterministic CLI contract validation preserves the operator-facing bootstrap, context-basket, and diff-preview surfaces needed by the current CLI fallback while Textual remains disabled, and it does not claim new retrieval internals, patch application, persistence, audit-path, export, or broader workflow behavior.
+- Scope-tightening statement: this slice claims command-contract hardening for the current engine-first `project-open` / `retrieval` / `patch-review` smoke path only. Deterministic CLI contract validation preserves the operator-facing bootstrap, context-basket, and diff-preview surfaces needed to `continue working without losing context` on that CLI fallback path while Textual remains disabled, and it does not claim new retrieval internals, patch application, persistence, audit-path, export, or broader workflow behavior.
 - Review-basis exclusion: `terminal` and `export-handoff` remain outside this packet's approval basis; they are mentioned only because the shared command catalog still contains those aliases, not because this slice proves their runtime behavior.
 - Smoke-test evidence:
   - `tests/unit/test_commands_catalog.py` proves `command_cli_contract()` returns the declared parser surface and fails fast when parser-surface drift is introduced at the token, canonical-entrypoint, or lookup-table level.
@@ -112,10 +112,10 @@
 
 ### Tasks Completed (Numbered)
 
-1. `open project/document`, `retrieve`, `preview and apply or reject a patch`: locked the live CLI command contract to the command catalog so parser-surface drift fails closed before the operator reaches the `project-open`, `retrieval`, or `patch-review` verb sets.
-2. `open project/document`, `retrieve`, `preview and apply or reject a patch`: added focused regression coverage for parser-surface alignment and command-catalog drift rejection in `tests/unit/test_commands_catalog.py` so the CLI smoke surface for those steps stays deterministic.
-3. `open project/document`, `retrieve`, `preview and apply or reject a patch`: regenerated the handoff packet so the re-review basis points to commit `8e747334f4da2d5486e15088979a36184c8c9116`, the roadmap or vision mapping stays narrow, and the canonical demo-path steps are stated explicitly per reviewer request.
-4. `open project/document`, `retrieve`, `preview and apply or reject a patch`: re-ran the required gates and recorded the outcomes against the current reviewed implementation scope so the packet stays tied to a verified command-contract slice.
+1. `open project/document`, `retrieve relevant material`, `preview and apply or reject a patch`: locked the live CLI command contract to the command catalog so parser-surface drift fails closed before the operator reaches the `project-open`, `retrieval`, or `patch-review` verb sets.
+2. `open project/document`, `retrieve relevant material`, `preview and apply or reject a patch`: added focused regression coverage for parser-surface alignment and command-catalog drift rejection in `tests/unit/test_commands_catalog.py` so the CLI smoke surface for those steps stays deterministic.
+3. `open project/document`, `retrieve relevant material`, `preview and apply or reject a patch`: regenerated the handoff packet so the re-review basis points to commit `8e747334f4da2d5486e15088979a36184c8c9116`, the roadmap or vision mapping stays narrow, and the canonical demo-path steps are stated explicitly per reviewer request.
+4. `open project/document`, `retrieve relevant material`, `preview and apply or reject a patch`: re-ran the required gates and recorded the outcomes against the current reviewed implementation scope so the packet stays tied to a verified command-contract slice.
 
 ### Files Changed
 
@@ -133,7 +133,7 @@
 - `./quality-test.sh`: `PASSED`
 - `./typecheck-test.sh`: `PASSED`
 - `make ci`: `PASSED`
-- Gate attribution note: these gates were rerun at `2026-04-24T10:34:02Z UTC` against the current branch state while the reviewed implementation scope remains pinned to `8e747334f4da2d5486e15088979a36184c8c9116`; the current packet refresh itself is metadata-only.
+- Gate attribution note: these gates were rerun at `2026-04-24T10:40:27Z UTC` against the current branch state while the reviewed implementation scope remains pinned to `8e747334f4da2d5486e15088979a36184c8c9116`; the current packet refresh itself is metadata-only.
 
 ### Risks / Blockers
 
@@ -147,7 +147,7 @@
 ### Explicit CLI smoke-path mapping
 
 - `open project/document`
-- `retrieve`
+- `retrieve relevant material`
 - `preview and apply or reject a patch`
 - This change makes those steps more real by keeping the command contract catalog-locked instead of letting parser-surface drift pass silently in the current engine-first CLI fallback path from `project-open` through `retrieval` to `patch-review`.
 - Concrete blocker removal: downstream CLI fallback consumers can no longer silently accept a contract where the parser-derived command surface diverges from the declared `(token, canonical_name)` command catalog projection, including extra accepted aliases, dropped canonical tokens, lookup-table substitutions, or token reorderings, which keeps the `project-open` / `retrieval` / `patch-review` smoke path deterministic.
@@ -155,18 +155,18 @@
 
 ### Roadmap item(s) affected
 
-- `ROADMAP.md` active implementation emphasis: `feat-commands`
-- `ROADMAP.md` Milestone 1 scope: `Command and diff-preview behavior hardening`
-- `ROADMAP.md` Milestone 2 remaining work: `Add missing targeted cases identified during reviews (parser edges, persistence edge cases)`
-- Scope-tightening statement: this is CLI command-contract hardening for the `project-open` / `retrieval` / `patch-review` smoke path, preserving the operator-facing bootstrap, context-basket, and diff-preview verb surface rather than broadening workflow behavior.
+- `ROADMAP.md` Milestone 3 `Real workflow loop`
+- `ROADMAP.md` lane mapping: `feat-commands` is the CLI compatibility and migration-safe entrypoint lane
+- `ROADMAP.md` exit criterion: `CLI can still execute the MVP loop while Textual remains disabled`
+- Scope-tightening statement: this is CLI command-contract hardening for the `open project/document` / `retrieve relevant material` / `preview and apply or reject a patch` smoke path, preserving the operator-facing bootstrap, context-basket, and diff-preview verb surface rather than broadening workflow behavior.
 - Proven command-surface level only: the claim is limited to the tested smoke-route entries `project-open -> bootstrap`, `retrieval -> context-basket`, and `patch-review -> diff-preview/diff`.
 - Explicit exclusion: `terminal` and `export-handoff` are not part of the approval basis for this packet.
 
 ### Vision capability affected
 
-- `PRODUCT_VISION.md` capability 4 `Operator-first control surface`
-- Exact requirement advanced: `CLI remains a first-class surface for development and reliability.`
-- This slice narrows to the `project-open` / `retrieval` / `patch-review` command contract only. It does not claim A2UI payload generation, persistence, audit hooks, auditable generation, retrieval internals, or broader workflow traceability progress.
+- `PRODUCT_VISION.md` capability 3 `Canonical engine contract`
+- Exact requirement advanced: `CLI compatibility is required while Textual remains disabled.`
+- This slice narrows to the `project-open` / `retrieval` / `patch-review` command contract only. It does not claim A2UI payload generation, persistence, audit hooks, retrieval internals, or broader workflow traceability progress.
 - Evidence anchor: the claimed product-surface support is the tested CLI route coverage for those smoke-path steps in `tests/unit/test_commands_catalog.py`, not an unproven broader engine-loop claim.
 
 ### Routing / Provider Impact Note
