@@ -48,6 +48,7 @@
 - SQLite FTS remains the authoritative retrieval path for the reviewed implementation range.
 - The public excerpt lookup surface resolves through the canonical FTS path, so PageIndex-only excerpt IDs fail closed with no PageIndex runtime fallback on that surface.
 - The reviewed evidence is intentionally narrow: it hardens the excerpt lookup contract and its public FTS helper surface rather than re-proving every broader lane claim.
+- This handoff records an incremental retrieval-contract hardening slice for `retrieve relevant material`; it does not claim that the full `feat-retrieval-fts` MVP or lane definition of done is complete.
 - This handoff explicitly states that the reviewed slice advances the canonical demo-path step `retrieve relevant material`.
 
 ## Reviewed Scope Boundary
