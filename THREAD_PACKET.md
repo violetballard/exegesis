@@ -79,7 +79,7 @@
 - Approval owner: the integrator-managed branch policy for `codex/feat-commands`
 - Approved by: the integrator/release ownership gate for `codex/feat-commands`
 - Approval recorded in: `scripts/scope-check.sh` under `is_approved_shared_test()` for branch `codex/feat-commands*`, plus the approval-only rule in `THREAD_OWNERSHIP.md`
-- Approval basis: shared test coverage is required to prove the bootstrap-facing parser contract and remains the only non-lane-owned path in the reviewed slice.
+- Approval basis: shared test coverage is required to prove the review-facing parser contract and remains the only non-lane-owned path in the reviewed slice.
 - Scope-check allowance used: `not required`
 - Integrator-locked edits in this slice: `none`
 
