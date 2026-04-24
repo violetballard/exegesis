@@ -205,6 +205,8 @@ class ShellUI:
                 ):
                     return rendered_cli_fallback
                 if kind == "card":
+                    if _has_expected_card_renderer_prefix(rendered_cli_fallback):
+                        return rendered_cli_fallback
                     if (
                         card_hint_leaf_kind in {"action", "selection"}
                         and self._has_expected_leaf_renderer_prefix(
@@ -212,8 +214,6 @@ class ShellUI:
                             card_hint_leaf_kind,
                         )
                     ):
-                        return rendered_cli_fallback
-                    if card_hint_leaf_kind is None and _has_expected_card_renderer_prefix(rendered_cli_fallback):
                         return rendered_cli_fallback
                 if kind not in {"action", "selection", "card"}:
                     return rendered_cli_fallback

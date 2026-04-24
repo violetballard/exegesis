@@ -5329,6 +5329,28 @@ class A2UIFallbackSafetyTests(unittest.TestCase):
         generic_renderer.assert_called_once_with(artifact, kind="card")
         card_renderer.assert_called_once_with(artifact)
 
+    def test_shell_ui_render_cli_fallback_preserves_shared_invalid_card_fallback_for_malformed_envelopes(
+        self,
+    ) -> None:
+        shell = ShellUI()
+        artifact = {
+            "type": "TerminalArtifact",
+            "artifact": {
+                "type": "ActionRef",
+                "id": "export_document",
+                "label": "Export",
+                "payload": {"format": "json"},
+            },
+        }
+
+        direct_text = render_terminal_cli_fallback(artifact, kind="card")
+        shell_text = shell.render_cli_fallback(artifact, kind="card")
+
+        self.assertEqual(shell_text, direct_text)
+        self.assertIn("[UnknownCard] <invalid card>", shell_text)
+        self.assertNotIn("[ActionRef]", shell_text)
+        self.assertNotIn("[SelectionRef]", shell_text)
+
     def test_shell_ui_render_cli_fallback_recovers_leaf_renderer_when_shared_resolver_raises(self) -> None:
         shell = ShellUI()
         cases = [
