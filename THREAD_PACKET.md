@@ -3,7 +3,7 @@
 - Lane: `feat-commands`
 - Branch: `codex/feat-commands`
 - Reviewed implementation commit: `2446deb4`
-- Packet refresh role: `reviewer-fix resubmission refresh 16`
+- Packet refresh role: `reviewer-fix resubmission refresh 17`
 - Review scope: narrow command-contract hardening in `src/qual/commands/catalog.py`, plus focused regression coverage in `tests/unit/test_commands_catalog.py`, with the guardrail explicitly enforcing full parser-surface projection consistency rather than only canonical-name/order consistency.
 - Canonical demo-path step advanced: `preview and apply or reject a patch`
 - Concrete canonical mapping sentence: this slice makes the `preview and apply or reject a patch` step more reliable by forcing the parser-backed patch-review CLI entrypoints to stay aligned with the canonical catalog, so review commands fail fast on parser/catalog drift instead of silently accepting a mutated CLI surface.
@@ -24,7 +24,7 @@
 - Reviewer-fix closure note: this refresh exists specifically to satisfy the reviewer-requested handoff fields by stating `preview and apply or reject a patch` as the exact canonical demo-path step advanced, tying deterministic patch-review entrypoints to the Milestone 3 CLI compatibility surface, and keeping the resubmission scoped to packet alignment rather than new implementation work.
 - Resubmission note: this pass is metadata-only and exists to regenerate the handoff packet after the reviewer packet reload, keeping the claims pinned to the already-landed parser-surface implementation while recording a fresh full gate rerun on the current branch tip before re-review.
 - Gate rerun confirmation: `make scope-check`, `./quality-format.sh --check`, `./quality-lint.sh`, `./quality-test.sh`, `./typecheck-test.sh`, and `make ci` were rerun in this packet-refresh pass.
-- Current revalidation note: this fixer pass re-read the reviewer packet from `fixer__feat-commands__20260424T184119Z.prompt.txt`, refreshed the live handoff metadata so it explicitly maps this slice to the patch-review step in the canonical demo path, reran the full required gate set on the current branch tip, and reissued the packet as a fresh metadata-only resubmission commit for re-review traceability.
+- Current revalidation note: this fixer pass re-read the reviewer packet from `fixer__feat-commands__20260424T184608Z.prompt.txt`, refreshed the live handoff metadata so it explicitly maps this slice to the patch-review step in the canonical demo path, reran the full required gate set on the current branch tip, and reissued the packet as a fresh metadata-only resubmission commit for re-review traceability.
 
 ## Thread Kickoff (High-Risk)
 
