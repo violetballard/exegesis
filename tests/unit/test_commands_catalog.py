@@ -127,10 +127,12 @@ from src.qual.commands import (
     command_demo_compatibility_invocation_table,
     command_demo_workflow_contract,
     command_demo_workflow_catalog,
+    command_demo_workflow_branch_tokens,
     command_demo_workflow_compatibility_invocation_table,
     command_demo_workflow_tokens,
     command_demo_workflow_lookup_table,
     command_demo_workflow_invocation_table,
+    command_demo_workflow_trusted_tokens,
     command_demo_workflow_trusted_invocation_table,
     command_demo_workflow_transition_targets,
     command_demo_workflow_compatibility_lookup_table,
@@ -186,9 +188,11 @@ from src.qual.commands import (
     command_mvp_compatibility_invocation_table,
     command_mvp_workflow_contract,
     command_mvp_workflow_catalog,
+    command_mvp_workflow_branch_tokens,
     command_mvp_workflow_tokens,
     command_mvp_workflow_lookup_table,
     command_mvp_workflow_invocation_table,
+    command_mvp_workflow_trusted_tokens,
     command_mvp_workflow_trusted_invocation_table,
     command_mvp_workflow_transition_targets,
     command_mvp_workflow_compatibility_lookup_table,
@@ -4020,6 +4024,50 @@ class CommandCatalogTests(unittest.TestCase):
         self.assertEqual(
             compatibility_invocations["queue-for-export"],
             ("terminal", "--operation-kind", "terminal_synthesis_request", "--message", "Export handoff"),
+        )
+
+    def test_command_demo_workflow_branch_token_helpers_return_apply_and_reject_paths(self) -> None:
+        self.assertEqual(
+            command_demo_workflow_branch_tokens("apply"),
+            ("project-open", "retrieval", "patch-review", "apply-patch", "persist", "export-handoff"),
+        )
+        self.assertEqual(
+            command_demo_workflow_branch_tokens("accept-patch"),
+            ("project-open", "retrieval", "patch-review", "apply-patch", "persist", "export-handoff"),
+        )
+        self.assertEqual(
+            command_demo_workflow_branch_tokens("reject"),
+            ("project-open", "retrieval", "patch-review", "reject-patch", "persist", "export-handoff"),
+        )
+        self.assertEqual(
+            command_demo_workflow_branch_tokens("discard-patch"),
+            ("project-open", "retrieval", "patch-review", "reject-patch", "persist", "export-handoff"),
+        )
+        self.assertEqual(
+            command_mvp_workflow_branch_tokens("approve"),
+            command_demo_workflow_branch_tokens("apply"),
+        )
+        self.assertEqual(
+            command_mvp_workflow_branch_tokens("decline"),
+            command_demo_workflow_branch_tokens("reject"),
+        )
+
+    def test_command_demo_workflow_trusted_token_helpers_prefer_stable_demo_surface(self) -> None:
+        self.assertEqual(
+            command_demo_workflow_trusted_tokens("apply"),
+            ("project-open", "retrieval", "patch-review", "apply-patch", "persist", "export-handoff"),
+        )
+        self.assertEqual(
+            command_demo_workflow_trusted_tokens("reject"),
+            ("project-open", "retrieval", "patch-review", "reject-patch", "persist", "export-handoff"),
+        )
+        self.assertEqual(
+            command_mvp_workflow_trusted_tokens("accept"),
+            command_demo_workflow_trusted_tokens("apply"),
+        )
+        self.assertEqual(
+            command_mvp_workflow_trusted_tokens("discard"),
+            command_demo_workflow_trusted_tokens("reject"),
         )
 
     def test_command_demo_workflow_contract_tracks_custom_specs(self) -> None:

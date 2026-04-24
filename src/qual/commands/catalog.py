@@ -3584,6 +3584,22 @@ def command_mvp_workflow_invocation_plan(
     return command_demo_workflow_invocation_plan(decision_token, specs)
 
 
+def command_demo_workflow_branch_tokens(
+    decision_token: str,
+    specs: tuple[CommandSpec, ...] = COMMAND_SPECS,
+) -> tuple[str, ...]:
+    """Return the canonical demo-loop tokens for one apply/reject branch."""
+    return _demo_workflow_branch_tokens(specs, decision_token)
+
+
+def command_mvp_workflow_branch_tokens(
+    decision_token: str,
+    specs: tuple[CommandSpec, ...] = COMMAND_SPECS,
+) -> tuple[str, ...]:
+    """Return the current MVP canonical tokens for one apply/reject branch."""
+    return command_demo_workflow_branch_tokens(decision_token, specs)
+
+
 def command_demo_workflow_trusted_invocation_plan(
     decision_token: str,
     specs: tuple[CommandSpec, ...] = COMMAND_SPECS,
@@ -3601,6 +3617,22 @@ def command_mvp_workflow_trusted_invocation_plan(
 ) -> tuple[CommandTrustedSurfaceEntry, ...]:
     """Return the current MVP trusted command surface for the full apply/reject branch."""
     return command_demo_workflow_trusted_invocation_plan(decision_token, specs)
+
+
+def command_demo_workflow_trusted_tokens(
+    decision_token: str,
+    specs: tuple[CommandSpec, ...] = COMMAND_SPECS,
+) -> tuple[str, ...]:
+    """Return the trusted demo command tokens for one apply/reject branch."""
+    return tuple(entry.token for entry in command_demo_workflow_trusted_invocation_plan(decision_token, specs))
+
+
+def command_mvp_workflow_trusted_tokens(
+    decision_token: str,
+    specs: tuple[CommandSpec, ...] = COMMAND_SPECS,
+) -> tuple[str, ...]:
+    """Return the current MVP trusted command tokens for one apply/reject branch."""
+    return command_demo_workflow_trusted_tokens(decision_token, specs)
 
 
 def command_demo_workflow_trusted_invocation_table(
