@@ -3536,6 +3536,25 @@ def command_mvp_workflow_trusted_invocation_plan(
     return command_demo_workflow_trusted_invocation_plan(decision_token, specs)
 
 
+def command_demo_workflow_trusted_invocation_table(
+    decision_token: str,
+    specs: tuple[CommandSpec, ...] = COMMAND_SPECS,
+) -> tuple[tuple[str, tuple[str, ...]], ...]:
+    """Flatten the trusted demo apply/reject branch into parser-ready argv."""
+    return tuple(
+        (entry.token, entry.argv)
+        for entry in command_demo_workflow_trusted_invocation_plan(decision_token, specs)
+    )
+
+
+def command_mvp_workflow_trusted_invocation_table(
+    decision_token: str,
+    specs: tuple[CommandSpec, ...] = COMMAND_SPECS,
+) -> tuple[tuple[str, tuple[str, ...]], ...]:
+    """Flatten the current MVP trusted apply/reject branch into parser-ready argv."""
+    return command_demo_workflow_trusted_invocation_table(decision_token, specs)
+
+
 def command_demo_workflow_invocation_contract(
     decision_token: str,
     specs: tuple[CommandSpec, ...] = COMMAND_SPECS,

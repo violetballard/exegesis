@@ -131,6 +131,7 @@ from src.qual.commands import (
     command_demo_workflow_tokens,
     command_demo_workflow_lookup_table,
     command_demo_workflow_invocation_table,
+    command_demo_workflow_trusted_invocation_table,
     command_demo_workflow_transition_targets,
     command_demo_workflow_compatibility_lookup_table,
     command_demo_next_action_contract,
@@ -188,6 +189,7 @@ from src.qual.commands import (
     command_mvp_workflow_tokens,
     command_mvp_workflow_lookup_table,
     command_mvp_workflow_invocation_table,
+    command_mvp_workflow_trusted_invocation_table,
     command_mvp_workflow_transition_targets,
     command_mvp_workflow_compatibility_lookup_table,
     command_mvp_workflow_compatibility_invocation_table,
@@ -5171,6 +5173,86 @@ class CommandCatalogTests(unittest.TestCase):
         self.assertEqual(
             sequence.lookup_tokens,
             tuple(entry.lookup_tokens for entry in command_mvp_flow()),
+        )
+
+    def test_demo_workflow_trusted_invocation_table_uses_the_preferred_branch_surface(self) -> None:
+        self.assertEqual(
+            command_demo_workflow_trusted_invocation_table("apply"),
+            (
+                ("project-open", ("bootstrap", "--project", "demo")),
+                ("retrieval", ("context-basket", "list")),
+                ("patch-review", ("diff-preview", "--original", "before", "--proposed", "after")),
+                (
+                    "apply-patch",
+                    (
+                        "terminal",
+                        "--operation-kind",
+                        "terminal_tool_orchestration",
+                        "--message",
+                        "Apply patch",
+                    ),
+                ),
+                (
+                    "persist",
+                    (
+                        "terminal",
+                        "--operation-kind",
+                        "terminal_synthesis_request",
+                        "--message",
+                        "Persist and continue",
+                    ),
+                ),
+                (
+                    "export-handoff",
+                    (
+                        "terminal",
+                        "--operation-kind",
+                        "terminal_synthesis_request",
+                        "--message",
+                        "Export handoff",
+                    ),
+                ),
+            ),
+        )
+
+    def test_mvp_workflow_trusted_invocation_table_tracks_the_reject_branch(self) -> None:
+        self.assertEqual(
+            command_mvp_workflow_trusted_invocation_table("reject"),
+            (
+                ("project-open", ("bootstrap", "--project", "demo")),
+                ("retrieval", ("context-basket", "list")),
+                ("patch-review", ("diff-preview", "--original", "before", "--proposed", "after")),
+                (
+                    "reject-patch",
+                    (
+                        "terminal",
+                        "--operation-kind",
+                        "terminal_tool_orchestration",
+                        "--message",
+                        "Reject patch",
+                    ),
+                ),
+                (
+                    "persist",
+                    (
+                        "terminal",
+                        "--operation-kind",
+                        "terminal_synthesis_request",
+                        "--message",
+                        "Persist and continue",
+                    ),
+                ),
+                (
+                    "export-handoff",
+                    (
+                        "terminal",
+                        "--operation-kind",
+                        "terminal_synthesis_request",
+                        "--message",
+                        "Export handoff",
+                    ),
+                ),
+            ),
         )
 
     def test_command_surface_contract_bundles_the_mvp_smoke_surface(self) -> None:
