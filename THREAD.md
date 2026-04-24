@@ -43,12 +43,13 @@ Canonical handoff contract lives in `THREAD_PACKET.md`.
 - Why this is milestone-worthy now:
   - deterministic CLI command ordering is a required smoke-test guard for the active engine-first MVP loop while Textual remains disabled, so preventing silent contract drift in the declared command catalog is direct operator-surface hardening rather than second-order cleanup.
 - Roadmap / vision alignment for this reviewed slice:
-  - `ROADMAP.md` Milestone 3: preserve CLI compatibility while the package/layout migration lands, applied here as a deterministic CLI command catalog for the active `open project/document` fallback path
-  - `PRODUCT_VISION.md` capability 4 `Operator-first control surface`: keep the CLI command catalog deterministic and fail-closed before the `open project/document` step begins
+  - `ROADMAP.md` Milestone 3 product-readiness work is applied here only as CLI-compatibility hardening for the active `open project/document` fallback path, not as progress on later MVP steps.
+  - `PRODUCT_VISION.md` capability 4 `Operator-first control surface` is advanced here only by keeping the CLI command catalog deterministic and fail-closed before the `open project/document` step begins.
 - Ownership / scope note:
   - lane-owned implementation path: `src/qual/commands/catalog.py`
   - approved shared-by-approval exception: `tests/unit/test_commands_catalog.py`
-  - approval reference: this packet refresh in `THREAD.md` and `THREAD_PACKET.md`, tied to reviewed implementation commit `86e7450a89c33ed158097c4fde9d5fc9edb023ab`, is the in-tree approval record for that single shared-path test edit
+  - approval source: approved by the integrator/release ownership gate for `codex/feat-commands`, recorded in `scripts/scope-check.sh` under the branch-scoped shared-test allowlist for `tests/unit/test_commands_catalog.py`
+  - approval reference: `THREAD_OWNERSHIP.md` marks non-owned shared paths as approval-only, and this packet binds the specific approved test path to reviewed implementation commit `86e7450a89c33ed158097c4fde9d5fc9edb023ab`
   - integrator-locked edits are not part of this slice
 - Required gates for the reviewed slice:
   - `make scope-check`

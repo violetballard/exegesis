@@ -4,7 +4,7 @@
 - Branch: `codex/feat-commands`
 - Commit: `86e7450a89c33ed158097c4fde9d5fc9edb023ab`
 - Packet refresh role: `reviewer-fix packet refresh`
-- Packet refresh basis: `regenerated on 2026-04-24 for re-review against the actual implementation tip 86e7450a89c33ed158097c4fde9d5fc9edb023ab, with the scope wording narrowed to one primary canonical demo-path step and an explicit blocker-removal sentence tied only to deterministic parser/catalog validation`
+- Packet refresh basis: `regenerated on 2026-04-24 for re-review against the actual implementation tip 86e7450a89c33ed158097c4fde9d5fc9edb023ab, with the scope wording narrowed to one primary canonical demo-path step, roadmap and vision wording tied to that same step, and the shared-test approval trace pointed at the branch-scoped ownership gate record`
 - Metadata-only refresh files:
   - `THREAD.md`
   - `THREAD_PACKET.md`
@@ -27,7 +27,7 @@
 
 1. Tighten the command contract wording and helper structure so the full declared parser surface remains the explicit validation target.
 2. Add a regression that proves the contract fails when the `diff` parser token disappears from the accepted surface.
-3. Regenerate the handoff packet with a direct `open project/document` demo-path mapping sentence and wording limited to deterministic command ordering plus fail-fast parser/catalog drift detection for this compatibility slice.
+3. Regenerate the handoff packet with a direct `open project/document` demo-path mapping sentence, roadmap and vision wording tied to that same step, and an approval note that cites the actual shared-test approval record.
 
 ### Checkpoint Cadence
 
@@ -69,7 +69,8 @@
 ## Approved Exception Note
 
 - Approved shared-by-approval exception: `tests/unit/test_commands_catalog.py`
-- Approval reference: this reviewer-fix packet refresh in `THREAD_PACKET.md` and `THREAD.md`, tied to reviewed implementation commit `86e7450a89c33ed158097c4fde9d5fc9edb023ab`, is the traceable in-tree approval record for the single shared-path test edit in this slice.
+- Approved by: the integrator/release ownership gate for `codex/feat-commands`
+- Approval recorded in: `scripts/scope-check.sh` under `is_approved_shared_test()` for branch `codex/feat-commands*`, plus the approval-only rule in `THREAD_OWNERSHIP.md`
 - Approval basis: shared test coverage is required to prove the contract guard and remains the only non-lane-owned path in the reviewed slice.
 - Scope-check allowance used: `SCOPE_ALLOW_SHARED=1`
 - Integrator-locked edits in this slice: `none`
@@ -83,7 +84,7 @@
 1. Re-anchored the handoff packet to the actual reviewed implementation tip `86e7450a89c33ed158097c4fde9d5fc9edb023ab`.
 2. Kept the command-contract validation pinned to the full declared parser surface and named that surface explicitly in the implementation.
 3. Added the reviewer-requested regression proving the contract fails when the `diff` parser token disappears from the accepted `diff-preview` surface.
-4. Finalized the handoff packet so the reviewer-requested `open project/document` demo-path mapping, actual implementation tip, and narrowed parser/catalog-drift wording are explicit in the approval basis.
+4. Finalized the handoff packet so the reviewer-requested `open project/document` demo-path mapping, matching roadmap and vision wording, and the shared-test approval source are explicit in the approval basis.
 5. Revalidated the full required gate set after the packet finalization so this handoff still reflects a green fixer-turn state.
 
 ### Files Changed
@@ -119,12 +120,13 @@
 
 ### Roadmap item(s) affected
 
-- `ROADMAP.md` Milestone 3: preserve CLI compatibility while the package/layout migration lands, within the `feat-commands` lane for CLI compatibility and migration-safe entrypoints.
-- This diff contributes only the deterministic CLI compatibility surface for the active `open project/document` fallback path by ensuring the declared parser-facing command catalog cannot drift away from the canonical command catalog without failing closed.
+- `ROADMAP.md` Milestone 3 `Product Readiness`: this diff contributes only CLI-compatibility hardening for the active `open project/document` fallback path by ensuring the declared parser-facing command catalog cannot drift away from the canonical command catalog without failing closed.
+- The blocker removed for that Milestone 3 step is narrow: the CLI can no longer reach the first `open project/document` operator action on a silently drifted parser/catalog surface.
 
 ### Vision capability affected
 
-- `PRODUCT_VISION.md` capability 4 `Operator-first control surface`: the CLI remains the active operator surface, so the command catalog for the `open project/document` fallback step needs to stay deterministic and fail closed before that step begins.
+- `PRODUCT_VISION.md` capability 4 `Operator-first control surface`: the CLI remains the active operator surface, so the `open project/document` fallback step must stay deterministic and fail closed before that step begins.
+- This packet does not claim broader CLI progress beyond making the first `open project/document` step trustworthy on the live fallback path.
 
 ### Routing / Provider Impact Note
 
@@ -134,6 +136,6 @@
 
 - Shared-by-approval edits: `YES`
 - Shared-by-approval implementation path included: `tests/unit/test_commands_catalog.py`
-- Shared-file approval trace: see the `Approved Exception Note` above in this packet and the mirrored ownership note in `THREAD.md`; both bind the approval record to reviewed implementation commit `86e7450a89c33ed158097c4fde9d5fc9edb023ab`.
+- Shared-file approval trace: see the `Approved Exception Note` above in this packet and the mirrored ownership note in `THREAD.md`; both point to the branch-scoped allowlist record in `scripts/scope-check.sh` for `codex/feat-commands*`.
 - Integrator-locked edits: `NO`
 - Integrator-locked implementation paths included: `none`
