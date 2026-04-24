@@ -59,24 +59,24 @@
   - `./quality-test.sh` -> passed
   - `./typecheck-test.sh` -> passed
   - `make ci` -> passed
-  - revalidation note: all required gates were rerun on `2026-04-24` for reviewer packet `fixer__feat-commands__20260424T205649Z`, and the reviewer's alias-substitution repro now raises `ValueError: Command CLI catalog entrypoint projection is inconsistent`, confirming the packet stays narrowed to CLI compatibility and the branch includes explicit exported-parser alias-substitution regression coverage for the exact drift concern raised there
+  - revalidation note: all required gates were rerun on `2026-04-24` for reviewer packet `fixer__feat-commands__20260424T210253Z`, and the reviewer's alias-substitution repro still raises `ValueError: Command CLI catalog entrypoint projection is inconsistent`, confirming the packet stays narrowed to CLI compatibility and the branch includes explicit exported-parser alias-substitution regression coverage for the exact drift concern raised there
 - traceability:
   - reviewed implementation slice only: `src/qual/commands/catalog.py` and `tests/unit/test_commands_catalog.py`
   - docs-only refresh commit in branch history: `8391bf07914fffd6fcd29867dc6f21ed25a56ea1` (`docs(thread): pin feat-commands demo-path step`)
   - metadata-only file changed by `8391bf07914fffd6fcd29867dc6f21ed25a56ea1`: `THREAD.md`
   - current packet refresh files: `THREAD_PACKET.md` and `handoff_packets/feat-commands.md`
-  - gate rerun verification for this handoff pass was completed on HEAD `56ff308a8ecfae8953803a3efe83365d90396473`
+  - gate rerun verification for this handoff pass was repeated for the current reviewer packet before the metadata refresh commit in this turn
 - risks/blockers:
   - risk: future command-surface edits still need to preserve deterministic ordering and fast-fail parser/catalog drift detection so the patch-review CLI contract stays stable throughout the current manual operator flow
   - blockers: none
 - roadmap item(s) affected:
-  - `ROADMAP.md` Milestone 3 `Product Readiness`: this slice hardens the current manual CLI-first loop specifically at the `preview and apply or reject a patch` step by keeping the review/apply entrypoints deterministic and migration-safe while the future console client remains disabled
+  - `ROADMAP.md` Milestone 3 `Product Readiness`: this slice hardens the current manual CLI-first loop specifically at the `preview and apply or reject a patch` step by keeping the review/apply entrypoints deterministic and migration-safe while `feat-console` stays disabled and the MVP continues to rely on the CLI fallback surface
 - canonical demo-path step advanced: `preview and apply or reject a patch` on the active MVP engine-first path (`Engine stability`, `FTS-first retrieval`, `A2UI contracts with CLI fallback`)
-- concrete canonical mapping: this slice advances the canonical `preview and apply or reject a patch` step in the current engine-first MVP path `project-open/bootstrap -> retrieval -> plan-or-revise -> apply-or-reject -> export-handoff` by hardening the exact `patch-review -> apply-patch|reject-patch` command surface the operator uses before `persist -> export-handoff`, while Textual remains disabled and the A2UI contract continues to rely on CLI fallback
-- concrete canonical-path blocker removed: before this change, alias or token drift could let the operator reach the `preview`, `apply`, or `reject` entrypoints through parser surfaces that no longer matched the canonical catalog even though canonical command names still looked stable; this slice removes that direct blocker on `preview and apply or reject a patch` by making the review/apply step fail fast on parser/catalog drift instead of silently diverging before `persist -> export-handoff`
+- concrete canonical mapping: this slice advances the canonical `preview and apply or reject a patch` step in the current engine-first MVP path `project-open/bootstrap -> retrieval -> plan-or-revise -> apply-or-reject -> export-handoff` by hardening the exact `patch-review -> apply-patch|reject-patch` command surface the operator must use before `persist -> export-handoff`, while `feat-console` stays disabled and the MVP continues to depend on `A2UI contracts with CLI fallback`
+- concrete canonical-path blocker removed: before this change, alias or token drift could let the operator reach the `preview`, `apply`, or `reject` entrypoints through parser surfaces that no longer matched the canonical catalog even though canonical command names still looked stable; this slice removes that direct blocker on `preview and apply or reject a patch` by forcing the CLI fallback review/apply step to fail fast on parser/catalog drift instead of silently diverging before `persist -> export-handoff`
 - non-claim boundary: this handoff does not claim broader CLI polish, new workflow reachability, persistence progress, auditable-state/workflow progress, A2UI contract work, provider routing work, or any new engine behavior
 - vision capability affected:
-  - `PRODUCT_VISION.md` capability 4 `Operator-first control surface`: this slice only hardens the existing engine command contract behind the current review/apply CLI surface, so parser/catalog drift fails fast before the `preview and apply or reject a patch` step can silently change while Textual remains disabled
+  - `PRODUCT_VISION.md` capability 4 `Operator-first control surface`: this slice only hardens the existing engine command contract behind the current review/apply CLI surface, so parser/catalog drift fails fast before the `preview and apply or reject a patch` step can silently change while `feat-console` stays disabled
 - routing/provider impact note:
   - none; this change does not touch routing or provider configuration
 - traceability note:
