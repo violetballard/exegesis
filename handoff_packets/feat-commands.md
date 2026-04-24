@@ -1,13 +1,13 @@
 # Handoff Packet: feat-commands
 
 - Branch name: `codex/feat-commands`
-- Scope completed: tightened the command CLI contract so it validates the real parser token surface and fails fast if the `patch-review` entrypoint drifts to alias-only, missing-canonical-token, reordered, or extra-token shapes.
+- Scope completed: tightened the `patch-review` command CLI contract so it validates the real `diff-preview` parser token surface and fails fast if that public review-step entrypoint drifts to alias-only, missing-canonical-token, reordered, or extra-token shapes.
 - Canonical demo-path step advanced: `patch-review`
-- Demo-path mapping: this slice makes the canonical `patch-review` step more real by requiring the public `diff-preview` parser surface to stay intact before operators can enter the existing apply-or-reject, persist, and export-handoff branch.
-- Concrete blocker removed: parser/catalog drift can no longer silently drop the public `diff-preview` token and leave only the still-resolvable alias `diff`, which would otherwise make the CLI-first MVP review step non-deterministic to smoke-test during the migration.
-- Plan-alignment statement: this is a single engine-first demo-path hardening step, not a general CLI cleanup. It makes the `patch-review` contract deterministic so the downstream apply/reject, persist, and export steps keep starting from one intentional parser surface.
-- Roadmap item(s) affected: `ROADMAP.md` Milestone 1 `Bootstrap Flow Stabilization`, specifically `Command and diff-preview behavior hardening` and the `Manual CLI smoke flow remains stable` exit criterion, applied only to the public `patch-review` parser token contract in the current CLI-first route.
-- Vision capability affected: `PRODUCT_VISION.md` capability 4 `Operator-first control surface`, specifically the CLI-first engine contract rule that keeps the `patch-review` entrypoint deterministic and stable while `Exegesis Console` is still deferred.
+- Demo-path mapping: this slice makes the canonical `patch-review` step more real by requiring the public `diff-preview` parser surface to stay intact before operators can enter the existing apply-or-reject branch of the current CLI smoke route.
+- Concrete blocker removed: parser/catalog drift can no longer silently drop the public `diff-preview` token and leave only the still-resolvable alias `diff`, which would otherwise change the operator-visible review step without any fail-fast signal during CLI smoke tests.
+- Plan-alignment statement: this is a single CLI smoke-route hardening step, not a general CLI cleanup. It makes the `patch-review` contract deterministic and does not claim new retrieval, patch-apply, persistence, or export behavior.
+- Roadmap item(s) affected: `ROADMAP.md` Milestone 1 `Bootstrap Flow Stabilization`, specifically `Command and diff-preview behavior hardening` and the `Manual CLI smoke flow remains stable` exit criterion, applied only to the public `patch-review` parser token contract in the current CLI smoke route.
+- Vision capability affected: `PRODUCT_VISION.md` capability 4 `Operator-first control surface`, specifically the CLI-first engine contract rule that keeps the `patch-review` entrypoint deterministic and stable while `Exegesis Console` remains deferred.
 - Routing/provider impact note: none; this slice does not touch model routing, provider configuration, or shared entrypoints.
 - Proposed `README.md` patch text: none.
 
@@ -32,7 +32,7 @@
 - `./quality-test.sh` -> passed
 - `./typecheck-test.sh` -> passed
 - `make ci` -> passed
-- Verification rerun timestamp: `2026-04-24T06:42:22Z`
+- Verification rerun timestamp: `2026-04-24T06:46:27Z`
 
 ## Risks / Blockers
 - Risks: future parser-surface changes now need to keep the declared CLI entrypoints, authoritative parser projection, and packet metadata aligned; the updated regressions are intended to fail fast if they drift.
