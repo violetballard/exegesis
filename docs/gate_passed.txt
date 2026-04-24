@@ -5,7 +5,7 @@ Required automated gates reran against:
 
 * current reviewed implementation head `adfa8cdadd43747ffbcb612e4151e262b13e52ca`
 * reviewed implementation range `378cf9a74a3658058079a32f186fcd254c4a4034..adfa8cdadd43747ffbcb612e4151e262b13e52ca`
-* current packet refresh workspace before this metadata-only fixer commit (`5824ddbba3f3880457bdfbab33d02c9a51557315`)
+* current packet refresh workspace before this metadata-only fixer commit (`6ccd62dcb7d2073258d50f9a4882e786cab7e9d5`)
 
 Gate status:
 
@@ -18,6 +18,7 @@ Gate status:
 
 Canonical demo-path step advanced: `retrieve relevant material` via the FTS-first engine surface with fail-closed excerpt lookup and auditable provenance.
 Plan-alignment statement: this work advances `retrieve relevant material` by making the public excerpt lookup surface resolve through the authoritative SQLite FTS path, so PageIndex-only excerpt IDs fail closed under shared regression coverage and basket-promotion inputs stay deterministic.
+Canonical-step authority note: the exact canonical demo-path step advanced by this narrowed slice is `retrieve relevant material`, and `fetch_excerpt(...)` now resolves only through the canonical FTS path while rejecting PageIndex-only excerpt IDs.
 AGENTS.md handoff completeness note: the reviewer-facing packet now explicitly carries the required canonical demo-path field for this narrowed retrieval slice.
 Evidence note: `tests/unit/test_unified_retrieval.py` proves the narrowed contract on both surfaces used in re-review. `test_retrieval_service_rejects_pageindex_excerpt_payloads` covers `fetch_excerpt(...)` failing closed for PageIndex-only IDs, and `test_retrieve_fts_excerpt_returns_canonical_fts_payload` covers the canonical/public FTS excerpt helpers returning the same payload.
 Reviewer fix closure: the authoritative handoff packet is retrieval-specific, remains classified as shared/high-risk work, and stays narrowed to reviewed commit `adfa8cdadd43747ffbcb612e4151e262b13e52ca`.
