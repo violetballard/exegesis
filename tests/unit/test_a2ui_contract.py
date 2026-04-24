@@ -19,6 +19,7 @@ from src.qual.ui.a2ui import (
     describe_a2ui_contract_fingerprints,
     describe_a2ui_capabilities_contract,
     describe_selection_contract,
+    describe_terminal_artifact_cli_fallback_target_contract,
     GENERIC_FALLBACK_SUBTITLE,
     engine_prepare_card,
     execute_action_with_policy_gate,
@@ -469,6 +470,35 @@ class A2UIContractTests(unittest.TestCase):
         self.assertEqual(
             fingerprints["terminal_artifact_raw_leaf_card_default_contract"],
             terminal_artifact_raw_leaf_card_default_contract_fingerprint(),
+        )
+
+    def test_contract_manifest_can_expose_the_cli_fallback_target_contract_slice(self) -> None:
+        manifest = describe_a2ui_contract(include_terminal_artifact_cli_fallback_entrypoint=True)
+        fingerprints = describe_a2ui_contract_fingerprints(
+            include_terminal_artifact_cli_fallback_entrypoint=True,
+        )
+        target_contract = describe_terminal_artifact_cli_fallback_target_contract()
+        target_fingerprint = terminal_artifact_cli_fallback_target_contract_fingerprint()
+
+        self.assertEqual(manifest["terminal_artifact_cli_fallback_target"], target_contract)
+        self.assertEqual(manifest["terminal_artifact_cli_fallback_target_fingerprint"], target_fingerprint)
+        self.assertEqual(manifest["terminal_artifact_cli_fallback_target_contract"], target_contract)
+        self.assertEqual(
+            manifest["terminal_artifact_cli_fallback_target_contract_fingerprint"],
+            target_fingerprint,
+        )
+        self.assertEqual(
+            manifest["terminal_artifact_cli_fallback_target_contract_manifest"],
+            target_contract,
+        )
+        self.assertEqual(
+            manifest["terminal_artifact_cli_fallback_target_contract_manifest_fingerprint"],
+            target_fingerprint,
+        )
+        self.assertEqual(fingerprints["terminal_artifact_cli_fallback_target"], target_fingerprint)
+        self.assertEqual(
+            fingerprints["terminal_artifact_cli_fallback_target_contract_manifest"],
+            target_fingerprint,
         )
 
     def test_selection_contract_manifest_is_versioned_and_fingerprintable(self) -> None:
