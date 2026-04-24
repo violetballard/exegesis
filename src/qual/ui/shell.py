@@ -907,6 +907,7 @@ def describe_shell_ui_contract_fingerprints(
     )
     shell_ui_contract_fingerprint_value = shell_ui_contract_fingerprint(
         include_terminal_artifact_cli_fallback_route=include_terminal_artifact_cli_fallback_route,
+        include_contract_aliases=include_contract_aliases,
     )
     fingerprints = {
         "shell_ui_contract_fingerprint": shell_ui_contract_fingerprint_value,
@@ -1083,12 +1084,14 @@ def describe_shell_ui_contract_manifest(
 def shell_ui_contract_fingerprint(
     *,
     include_terminal_artifact_cli_fallback_route: bool = False,
+    include_contract_aliases: bool = False,
 ) -> str:
     """Return a stable fingerprint for the shell UI contract manifest."""
 
     return _fingerprint_manifest_section(
         _build_shell_ui_contract_manifest(
             include_terminal_artifact_cli_fallback_route=include_terminal_artifact_cli_fallback_route,
+            include_contract_aliases=include_contract_aliases,
         )
     )
 
@@ -1096,9 +1099,11 @@ def shell_ui_contract_fingerprint(
 def shell_ui_contract_manifest_fingerprint(
     *,
     include_terminal_artifact_cli_fallback_route: bool = False,
+    include_contract_aliases: bool = False,
 ) -> str:
     """Return the shell UI contract fingerprint under a manifest-specific name."""
 
     return shell_ui_contract_fingerprint(
         include_terminal_artifact_cli_fallback_route=include_terminal_artifact_cli_fallback_route,
+        include_contract_aliases=include_contract_aliases,
     )

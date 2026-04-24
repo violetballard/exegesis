@@ -2904,6 +2904,11 @@ class A2UIFallbackSafetyTests(unittest.TestCase):
             include_shell_ui_contract=True,
             include_contract_aliases=True,
         )
+        aliased_manifest = describe_a2ui_contract(
+            include_shell_ui_contract=True,
+            include_contract_aliases=True,
+        )
+        aliased_shell_manifest = describe_shell_ui_contract(include_contract_aliases=True)
 
         self.assertNotIn("shell_ui_contract", default_manifest)
         self.assertNotIn("shell_ui_contract_manifest", default_manifest)
@@ -3241,19 +3246,19 @@ class A2UIFallbackSafetyTests(unittest.TestCase):
         )
         self.assertEqual(
             aliased_fingerprints["shell_ui_contract_fingerprint"],
-            shell_manifest["contract_fingerprint"],
+            aliased_shell_manifest["contract_fingerprint"],
         )
         self.assertEqual(
             aliased_fingerprints["shell_ui_contract_manifest"],
-            shell_manifest["contract_fingerprint"],
+            aliased_shell_manifest["contract_fingerprint"],
         )
         self.assertEqual(
             aliased_fingerprints["shell_ui_fingerprint"],
-            shell_manifest["contract_fingerprint"],
+            aliased_shell_manifest["contract_fingerprint"],
         )
         self.assertEqual(
             aliased_fingerprints["shell_ui_contract_fingerprints"],
-            shell_manifest["contract_fingerprints_fingerprint"],
+            aliased_shell_manifest["contract_fingerprints_fingerprint"],
         )
         self.assertEqual(
             aliased_fingerprints["terminal_artifact_cli_fallback_entrypoint"],
@@ -3282,6 +3287,64 @@ class A2UIFallbackSafetyTests(unittest.TestCase):
         self.assertEqual(
             manifest["contract_fingerprint"],
             a2ui_contract_fingerprint(include_shell_ui_contract=True),
+        )
+        self.assertEqual(aliased_manifest["shell_ui_contract"], aliased_shell_manifest)
+        self.assertEqual(aliased_manifest["shell_ui_contract_manifest"], aliased_shell_manifest)
+        self.assertEqual(
+            aliased_manifest["shell_ui_contract"]["card_contract_manifest"],
+            describe_card_contract(),
+        )
+        self.assertEqual(
+            aliased_manifest["shell_ui_contract"]["card_contract_manifest_fingerprint"],
+            card_contract_fingerprint(),
+        )
+        self.assertEqual(
+            aliased_manifest["shell_ui_contract"]["terminal_fallback_contract_manifest"],
+            describe_terminal_fallback_contract(),
+        )
+        self.assertEqual(
+            aliased_manifest["shell_ui_contract"]["terminal_fallback_contract_manifest_fingerprint"],
+            terminal_fallback_contract_fingerprint(),
+        )
+        self.assertEqual(
+            aliased_manifest["shell_ui_contract_manifest"]["card_contract_manifest"],
+            describe_card_contract(),
+        )
+        self.assertEqual(
+            aliased_manifest["shell_ui_contract_manifest"]["terminal_fallback_contract_manifest"],
+            describe_terminal_fallback_contract(),
+        )
+        self.assertEqual(
+            aliased_manifest["shell_ui_contract_fingerprints"]["card_contract_manifest"],
+            card_contract_fingerprint(),
+        )
+        self.assertEqual(
+            aliased_manifest["shell_ui_contract_fingerprints"]["terminal_fallback_contract_manifest"],
+            terminal_fallback_contract_fingerprint(),
+        )
+        self.assertEqual(
+            aliased_fingerprints["shell_ui_contract"],
+            aliased_shell_manifest["contract_fingerprint"],
+        )
+        self.assertEqual(
+            aliased_fingerprints["shell_ui_contract_fingerprint"],
+            aliased_shell_manifest["contract_fingerprint"],
+        )
+        self.assertEqual(
+            aliased_fingerprints["shell_ui_contract_manifest"],
+            aliased_shell_manifest["contract_fingerprint"],
+        )
+        self.assertEqual(
+            aliased_fingerprints["shell_ui_contract_manifest_fingerprint"],
+            aliased_shell_manifest["contract_fingerprint"],
+        )
+        self.assertEqual(
+            aliased_fingerprints["shell_ui_contract_fingerprints"],
+            aliased_shell_manifest["contract_fingerprints_fingerprint"],
+        )
+        self.assertEqual(
+            aliased_fingerprints["shell_ui_contract_fingerprints_fingerprint"],
+            aliased_shell_manifest["contract_fingerprints_fingerprint"],
         )
 
     def test_a2ui_contract_can_opt_in_to_terminal_artifact_cli_fallback_card_hint_recovery_policy_slice(self) -> None:
@@ -6753,7 +6816,7 @@ class A2UIFallbackSafetyTests(unittest.TestCase):
     def test_shell_ui_contract_fingerprints_can_include_contract_aliases(self) -> None:
         manifest = describe_shell_ui_contract(include_contract_aliases=True)
         fingerprints = describe_shell_ui_contract_fingerprints(include_contract_aliases=True)
-        shell_fingerprint = shell_ui_contract_fingerprint()
+        shell_fingerprint = shell_ui_contract_fingerprint(include_contract_aliases=True)
 
         self.assertEqual(fingerprints["contract"], shell_fingerprint)
         self.assertEqual(fingerprints["contract_fingerprint"], shell_fingerprint)
