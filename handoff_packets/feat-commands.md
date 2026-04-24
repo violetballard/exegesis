@@ -34,7 +34,7 @@
 - `./quality-test.sh` -> passed
 - `./typecheck-test.sh` -> passed
 - `make ci` -> passed
-- Verification rerun timestamp: `2026-04-24T07:45:42Z`
+- Verification rerun timestamp: `2026-04-24T07:49:33Z`
 
 ## Risks / Blockers
 - Risks: future parser-surface changes now need to keep the declared CLI entrypoints, authoritative parser projection, and packet metadata aligned; the updated regressions are intended to fail fast if they drift.
