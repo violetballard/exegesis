@@ -3,6 +3,13 @@ from __future__ import annotations
 from collections.abc import Iterable, Mapping
 from typing import TypeAlias
 
+from src.qual.engine.retrieval.policy import (
+    FTS_FIRST_POLICY,
+    active_strategy_ids as _active_strategy_ids,
+    deferred_strategy_ids as _deferred_strategy_ids,
+    fts_first_policy_snapshot as _fts_first_policy_snapshot,
+    primary_strategy_id as _primary_strategy_id,
+)
 from src.qual.retrieval.service import (
     RetrievalConstraints,
     RetrievalDocHit,
@@ -13,6 +20,32 @@ from src.qual.retrieval.service import (
 )
 
 RetrievalConstraintInput: TypeAlias = Mapping[str, object] | RetrievalConstraints | None
+ACTIVE_STRATEGY_IDS = _active_strategy_ids()
+DEFERRED_STRATEGY_IDS = _deferred_strategy_ids()
+
+
+def active_strategy_ids() -> tuple[str, ...]:
+    """Return the deterministic strategy set enabled for the MVP."""
+
+    return _active_strategy_ids()
+
+
+def deferred_strategy_ids() -> tuple[str, ...]:
+    """Return the deferred retrieval strategies for the MVP."""
+
+    return _deferred_strategy_ids()
+
+
+def retrieval_policy_snapshot() -> dict[str, object]:
+    """Return the canonical FTS-first retrieval policy snapshot."""
+
+    return _fts_first_policy_snapshot()
+
+
+def primary_strategy_id() -> str:
+    """Return the only active retrieval strategy used by the MVP."""
+
+    return _primary_strategy_id()
 
 
 def _normalize_constraint_values(value: object, *, field_name: str) -> tuple[str, ...]:
@@ -589,13 +622,20 @@ def retrieve_auto_payload(
     )
 
 __all__ = [
+    "FTS_FIRST_POLICY",
+    "ACTIVE_STRATEGY_IDS",
+    "DEFERRED_STRATEGY_IDS",
     "RetrievalService",
     "RetrievalQuery",
     "RetrievalConstraints",
     "RetrievalDocHit",
     "RetrievalHit",
     "RetrievalResult",
+    "active_strategy_ids",
+    "deferred_strategy_ids",
     "build_retrieval_query",
+    "retrieval_policy_snapshot",
+    "primary_strategy_id",
     "retrieve_fts",
     "retrieve_fts_payload",
     "retrieve_fts_context_bundle",
