@@ -3,9 +3,9 @@
 - Lane: `feat-commands`
 - Branch: `codex/feat-commands`
 - Commit: `bd118a6c34ac5c2f42c8df62f364895474f9f7a7`
-- Packet refresh role: `reviewer-fix packet regeneration`
-- Packet refresh basis: `regenerated on 2026-04-23 after rerunning the required gates on the current branch tip to satisfy the reviewer's numbered handoff fixes for explicit canonical demo-path mapping and concrete blocker removal`
-- Post-fixer verification: `2026-04-23 local gate rerun confirmed the packet still matches the branch state during this reviewer-fix regeneration; no implementation files changed in this packet-only refresh`
+- Packet refresh role: `reviewer-fix final verification refresh`
+- Packet refresh basis: `regenerated on 2026-04-24 after rerunning the required gates on the current branch tip to satisfy the reviewer's numbered handoff fixes for explicit canonical demo-path mapping, concrete blocker removal, and current branch-tip traceability`
+- Post-fixer verification: `2026-04-24 UTC gate rerun confirmed the packet still matches the branch state during this final verification refresh; no implementation files changed in this packet-only refresh`
 - Packet-only refresh files:
   - `THREAD_PACKET.md`
 
@@ -109,7 +109,7 @@
 - `./quality-test.sh`: `PASSED`
 - `./typecheck-test.sh`: `PASSED`
 - `make ci`: `PASSED`
-- Gate attribution note: these gates were rerun on 2026-04-23 against the reviewer-fix packet-refresh workspace state whose only changed file above `bd118a6c34ac5c2f42c8df62f364895474f9f7a7` is `THREAD_PACKET.md`.
+- Gate attribution note: these gates were rerun on 2026-04-24 against the reviewer-fix packet-refresh workspace state whose only changed files above `bd118a6c34ac5c2f42c8df62f364895474f9f7a7` are `THREAD.md` and `THREAD_PACKET.md`.
 
 ### Risks / Blockers
 
