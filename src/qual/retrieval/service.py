@@ -1930,6 +1930,7 @@ class RetrievalService:
                 "doc_id": excerpt.get("doc_id"),
                 "doc_type": excerpt.get("doc_type"),
                 "source_strategy": excerpt.get("source_strategy"),
+                "retrieval_source_strategy": excerpt.get("retrieval_source_strategy"),
                 "lookup_entrypoint": lookup_entrypoint,
                 "lookup_resolution": lookup_resolution,
                 "lookup_confidentiality_profile": lookup_confidentiality_profile,
@@ -1948,6 +1949,9 @@ class RetrievalService:
                 "excerpt_fingerprint": excerpt.get("excerpt_fingerprint"),
                 "excerpt_provenance_fingerprint": excerpt.get("excerpt_provenance_fingerprint"),
                 "lookup_fingerprint": excerpt.get("lookup_fingerprint"),
+                # Keep the success/failure audit payloads aligned so audit
+                # consumers can key on one lookup-attempt fingerprint field.
+                "lookup_attempt_fingerprint": excerpt.get("lookup_fingerprint"),
                 "doc_identity_fingerprint": excerpt.get("doc_identity_fingerprint"),
                 "matched_terms": copy.deepcopy(excerpt.get("matched_terms")),
                 "match_count": excerpt.get("match_count"),
