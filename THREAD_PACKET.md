@@ -96,6 +96,7 @@
 - `./quality-test.sh`: `PASS`
 - `./typecheck-test.sh`: `PASS`
 - `make ci`: `PASS`
+- Final verification note: required gates were rerun on the packet-only finalization state on `2026-04-24` before this fixer handoff commit.
 
 ## Reviewer Fix Closure
 

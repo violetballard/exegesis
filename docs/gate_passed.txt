@@ -47,6 +47,7 @@ Verification:
 * `./quality-test.sh` - passed
 * `./typecheck-test.sh` - passed
 * `make ci` - passed
+* Final verification note: required gates were rerun on the packet-only finalization state on `2026-04-24` before this fixer handoff commit.
 
 Roadmap items affected:
 
