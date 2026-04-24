@@ -65,6 +65,7 @@
   - docs-only refresh commit in branch history: `8391bf07914fffd6fcd29867dc6f21ed25a56ea1` (`docs(thread): pin feat-commands demo-path step`)
   - metadata-only file changed by `8391bf07914fffd6fcd29867dc6f21ed25a56ea1`: `THREAD.md`
   - current packet refresh files: `THREAD_PACKET.md` and `handoff_packets/feat-commands.md`
+  - gate rerun verification for this handoff pass was completed on HEAD `75d493595100b7c8d90742dab33614ede5f3c77b`
 - risks/blockers:
   - risk: future command-surface edits still need to preserve deterministic ordering and fast-fail parser/catalog drift detection so the patch-review CLI contract stays stable throughout the current manual operator flow
   - blockers: none
