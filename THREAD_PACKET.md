@@ -51,12 +51,13 @@
 
 - Hardened the `open project/document` CLI fallback entry step by adding a fail-fast guard in `command_cli_contract()` so the parser-facing command surface cannot silently diverge from the canonical command catalog ordering before the operator can start the demo path.
 - Added regression coverage proving that `open project/document` entry surface stays trustworthy in the normal case and raises on parser/catalog drift, including explicit rejection when the `diff` parser token disappears from the accepted parser-facing surface.
-- Kept the active fallback loop on one deterministic persistence route by normalizing the `persist-and-continue` compatibility verb onto the existing terminal `persist` flow instead of allowing a second silent routing target to drift away from the reviewed command catalog.
+- Secondary compatibility benefit only: normalizing the `persist-and-continue` compatibility verb onto the existing terminal `persist` flow keeps the reviewed command catalog deterministic, but this handoff does not claim the `persist` step as the demo-path advancement for this slice.
 - Kept the slice narrow: concrete blocker removal for the `open project/document` fallback entry step through command-surface compatibility hardening plus targeted tests, with no provider, routing, or broader workflow behavior changes.
 
 ## Canonical Demo-Path Mapping
 
 - Primary canonical demo-path step advanced now: `open project/document`.
+- Primary-step scope note: this packet advances `open project/document` only; any downstream persistence compatibility value is secondary context rather than a second canonical demo-path-step claim.
 - One-line plan alignment: this change makes `open project/document` more real by keeping the CLI fallback command contract deterministic and failing fast before that first operator step can run on a drifted parser/catalog surface.
 - `command_cli_contract()` dependency sentence: deterministic `command_cli_contract()` behavior is necessary for `open project/document` because, while Textual remains disabled and the CLI must still execute the MVP loop, the operator cannot trust the very first demo-path command unless parser/catalog drift is rejected before command resolution.
 - Active MVP operator path strengthened: the CLI fallback path for `open project/document` while Textual remains disabled, by ensuring the command surface fails closed before the first operator step runs if parser/catalog drift is introduced.
@@ -82,7 +83,7 @@
 1. Re-anchored the handoff packet to the actual reviewed implementation tip `86e7450a89c33ed158097c4fde9d5fc9edb023ab`.
 2. Kept the command-contract validation pinned to the full declared parser surface and named that surface explicitly in the implementation.
 3. Added the reviewer-requested regression proving the contract fails when the `diff` parser token disappears from the accepted `diff-preview` surface.
-4. Kept the terminal persistence compatibility surface deterministic by normalizing `persist-and-continue` onto the existing `persist` route instead of letting a second silent routing target emerge.
+4. Preserved deterministic compatibility for `persist-and-continue` as secondary support for the same reviewed command catalog, without changing the packet's primary demo-path claim away from `open project/document`.
 5. Finalized the handoff packet so the reviewer-requested `open project/document` demo-path mapping, actual implementation tip, and narrowed compatibility-surface wording are explicit in the approval basis.
 6. Revalidated the full required gate set after the packet finalization so this handoff still reflects a green fixer-turn state.
 
