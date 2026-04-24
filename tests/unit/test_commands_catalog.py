@@ -190,6 +190,9 @@ from src.qual.commands import (
     command_tokens,
     command_flow_tokens,
     command_mvp_smoke_contract,
+    command_mvp_smoke_invocation_contract,
+    command_mvp_smoke_invocation_plan,
+    command_mvp_smoke_argv,
     command_mvp_compatibility_contract,
     command_mvp_compatibility_catalog,
     command_mvp_compatibility_tokens,
@@ -210,6 +213,10 @@ from src.qual.commands import (
     command_workflow_next_action_surface_invocation_table,
     command_workflow_next_action_tokens,
     command_workflow_lookup_table,
+    command_workflow_smoke_contract,
+    command_workflow_smoke_invocation_plan,
+    command_workflow_smoke_invocation_contract,
+    command_workflow_smoke_argv,
     command_workflow_path_contract,
     command_workflow_path_invocation_plan,
     command_workflow_path_tokens,
@@ -5904,6 +5911,21 @@ class CommandCatalogTests(unittest.TestCase):
         self.assertEqual(
             command_workflow_surface_invocation_table(),
             command_mvp_surface_invocation_table(),
+        )
+
+    def test_public_workflow_smoke_aliases_track_the_current_mvp_surface(self) -> None:
+        self.assertEqual(command_workflow_smoke_contract(), command_mvp_smoke_contract())
+        self.assertEqual(
+            command_workflow_smoke_invocation_plan(),
+            command_mvp_smoke_invocation_plan(),
+        )
+        self.assertEqual(
+            command_workflow_smoke_invocation_contract(),
+            command_mvp_smoke_invocation_contract(),
+        )
+        self.assertEqual(
+            command_workflow_smoke_argv(("persist",)),
+            command_mvp_smoke_argv(("persist",)),
         )
 
     def test_public_workflow_trusted_tokens_alias_tracks_the_current_mvp_branch(self) -> None:

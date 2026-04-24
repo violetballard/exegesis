@@ -12,9 +12,15 @@ from src.qual.commands.catalog import (
     CommandDemoNextActionContract,
     CommandDemoWorkflowInvocationEntry,
     CommandDemoPathContract,
+    CommandSmokeContract,
+    CommandSmokeInvocationContract,
     CommandTrustedSurfaceContract,
     CommandTrustedSurfaceEntry,
     CommandInvocationPlanEntry,
+    command_mvp_smoke_argv,
+    command_mvp_smoke_contract,
+    command_mvp_smoke_invocation_contract,
+    command_mvp_smoke_invocation_plan,
     command_mvp_workflow_contract,
     command_mvp_workflow_entry,
     command_mvp_workflow_tokens,
@@ -104,6 +110,26 @@ def command_workflow_lookup_table() -> tuple[tuple[str, str], ...]:
 def command_workflow_invocation_table() -> tuple[tuple[str, tuple[str, ...]], ...]:
     """Return the parser-ready invocation table for the canonical CLI loop."""
     return command_mvp_workflow_invocation_table()
+
+
+def command_workflow_smoke_contract() -> CommandSmokeContract:
+    """Return the smoke-test contract for the stable current-MVP workflow surface."""
+    return command_mvp_smoke_contract()
+
+
+def command_workflow_smoke_invocation_plan() -> tuple[CommandInvocationPlanEntry, ...]:
+    """Return the parser-ready smoke invocation plan for the canonical CLI loop."""
+    return command_mvp_smoke_invocation_plan()
+
+
+def command_workflow_smoke_invocation_contract() -> CommandSmokeInvocationContract:
+    """Return the smoke invocation contract for the canonical CLI loop."""
+    return command_mvp_smoke_invocation_contract()
+
+
+def command_workflow_smoke_argv(argv: tuple[str, ...] | list[str]) -> tuple[str, ...]:
+    """Resolve one workflow smoke invocation onto the deterministic current-MVP surface."""
+    return command_mvp_smoke_argv(argv)
 
 
 def command_workflow_transition_targets() -> tuple[tuple[str, tuple[str, ...]], ...]:
@@ -331,6 +357,10 @@ __all__ = [
     "command_workflow_tokens",
     "command_workflow_lookup_table",
     "command_workflow_invocation_table",
+    "command_workflow_smoke_contract",
+    "command_workflow_smoke_invocation_plan",
+    "command_workflow_smoke_invocation_contract",
+    "command_workflow_smoke_argv",
     "command_workflow_transition_targets",
     "command_workflow_transition_targets_by_source",
     "command_workflow_transition_targets_for",
