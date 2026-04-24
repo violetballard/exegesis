@@ -27,7 +27,7 @@ Canonical handoff contract lives in `THREAD_PACKET.md`.
 - Scope-tightening note:
   - this reviewed slice hardens only the deterministic CLI compatibility surface for the Milestone 3 engine-first loop while Textual stays disabled, anchored to the `open project/document` entry step; it does not claim patch preview, apply/reject, or end-to-end command-flow coverage
 - Why this is milestone-worthy now:
-  - Milestone 3 still depends on the CLI as the active operator surface while Textual remains disabled, so preventing silent contract drift in the declared command catalog is direct operator-surface hardening for the live CLI fallback path rather than second-order cleanup.
+  - the deterministic CLI compatibility surface for the Milestone 3 engine-first loop still depends on the live CLI fallback path while Textual remains disabled, so preventing silent contract drift in the declared command catalog is direct operator-surface hardening rather than second-order cleanup.
 - Roadmap / vision alignment for this reviewed slice:
   - `ROADMAP.md` Milestone 3: define and lock user-facing output contracts, applied here as a deterministic CLI command catalog for the active operator surface while Textual remains disabled
   - `PRODUCT_VISION.md` capability 4 `Operator-first control surface`: keep the CLI as a first-class deterministic operator surface that can start the demo path safely while Textual remains disabled

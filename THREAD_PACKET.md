@@ -4,7 +4,7 @@
 - Branch: `codex/feat-commands`
 - Commit: `538095c47a6bc5f971e9811b83745571915e4268`
 - Packet refresh role: `reviewer-fix finalization`
-- Packet refresh basis: `updated on 2026-04-23 to satisfy the reviewer-requested canonical demo-path mapping for the active CLI fallback entry step, keep the claim scoped to deterministic Milestone 3 CLI compatibility, and revalidate the full required gate set in this fixer turn`
+- Packet refresh basis: `updated on 2026-04-23 to satisfy the reviewer-requested canonical demo-path mapping for the active CLI fallback entry step, keep the approval basis scoped to the deterministic CLI compatibility surface for the Milestone 3 engine-first loop while Textual stays disabled, and revalidate the full required gate set in this fixer turn`
 - Metadata-only packet refresh commit: `9dfb3660eb834d0003db16091030163bf31f3b35`
 - Metadata-only refresh files:
   - `THREAD.md`
@@ -60,7 +60,7 @@
 - Concrete blocker removed: before this guard, the active CLI surface could lose required parser tokens or aliases such as `diff` while the deduplicated canonical-name tuple still matched `command_names()`. That left the CLI command catalog able to drift silently, which is a concrete reliability blocker before the operator can safely start the `open project/document` demo-path step.
 - Direct plan-alignment statement: this change makes the CLI fallback `open project/document` entry step more real by forcing the shared parser-facing command catalog to fail closed whenever it stops matching the canonical command catalog.
 - Scope-tightening note: this handoff claims only deterministic CLI compatibility surface hardening for the Milestone 3 engine-first loop while Textual stays disabled, anchored to the `open project/document` entry step; it does not claim to harden patch preview, apply/reject, or end-to-end command-flow behavior in this slice.
-- Why this is milestone-worthy now instead of second-order cleanup: `AGENTS.md` says contract work counts only when it removes a concrete blocker on the canonical demo path. This guard does that because Milestone 3 still relies on the CLI as the active operator surface while Textual is disabled, so preventing silent command-catalog drift is direct operator-surface hardening for the live CLI fallback path, not speculative future work.
+- Why this is milestone-worthy now instead of second-order cleanup: `AGENTS.md` says contract work counts only when it removes a concrete blocker on the canonical demo path. This guard does that because the deterministic CLI compatibility surface for the Milestone 3 engine-first loop still relies on the live CLI fallback path while Textual is disabled, so preventing silent command-catalog drift is direct operator-surface hardening, not speculative future work.
 
 ## Approved Exception Note
 
