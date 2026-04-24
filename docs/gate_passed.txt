@@ -6,7 +6,7 @@ Packet role: `shared high-risk branch-tip handoff refresh`
 Reviewed implementation head before this fixer commit: `39550c18399a5cba2ffad3e23e5b0d5078b416df`
 Reviewed implementation range: `d7fd5d200358287fa42a18d39e2b277463b9b69f..39550c18399a5cba2ffad3e23e5b0d5078b416df`
 Canonical demo-path step advanced: `retrieve relevant material`
-Plan-alignment statement: this change advances the canonical demo-path step `retrieve relevant material` by ensuring excerpt lookup stays on the auditable FTS-only retrieval path, which also strengthens downstream basket promotion inputs.
+Plan-alignment statement: this change advances the canonical demo-path step `retrieve relevant material` by ensuring excerpt lookup stays on the auditable FTS-only retrieval path, which also strengthens downstream basket promotion inputs and downstream workflow use.
 Reviewer-required packet fix: the handoff now names `retrieve relevant material` explicitly and scopes the branch only to that Milestone 3 FTS-first retrieval step rather than to general retrieval cleanup.
 FTS-first confirmation: SQLite FTS remains authoritative for the MVP across the reviewed range; PageIndex and embeddings remain compatibility-only shims and are not required retrieval paths in this handoff.
 
@@ -15,7 +15,7 @@ Reviewed implementation scope:
 * SQLite FTS remains authoritative across the cumulative reviewed range.
 * The public and engine retrieval facades expose the canonical query builder, excerpt helpers, and `retrieve_auto` through the same FTS-first contract.
 * Retrieval payloads, provenance, sparse source/context bundles, basket-promotion payloads, and excerpt metadata are normalized deterministically for downstream engine flows.
-* Excerpt lookup fails closed on the canonical FTS-first structured retrieval path required by Milestone 3, so basket promotion and downstream workflow consumers only receive canonical excerpt IDs, supported scopes, and normalized query metadata.
+* Excerpt lookup fails closed on the canonical FTS-first structured retrieval path required by Milestone 3 for basket promotion and downstream workflow use, so those consumers only receive canonical excerpt IDs, supported scopes, and normalized query metadata.
 * Packet-planner support now resolves the reviewed implementation head from lane metadata so reviewer packets disclose the real cumulative range and `Scope completed` summary instead of drifting to a later packet-only SHA.
 
 Reviewed files in scope:
