@@ -5,6 +5,7 @@
 - Review scope: current branch-tip command-catalog contract hardening plus one shared regression for alias-level parser-surface drift
 - Canonical demo-path step advanced: `preview and apply or reject a patch`
 - Required mapping statement: this slice strengthens the patch-review step because the `diff-preview` CLI surface now fails fast if the `diff` alias drops or mutates while the canonical command order still looks stable.
+- Concrete blocker removed: before this slice, alias-level parser drift could silently change or remove the `diff` entrypoint while `canonical_names` still matched, weakening the deterministic CLI control surface for the patch-review step.
 
 ## Thread Kickoff (High-Risk)
 
@@ -46,7 +47,7 @@
 - `./quality-test.sh`: `PASSED`
 - `./typecheck-test.sh`: `PASSED`
 - `make ci`: `PASSED`
-- Verification rerun timestamp: `2026-04-24T11:52:54Z`
+- Verification rerun timestamp: `2026-04-24T11:55:32Z`
 
 ## Ownership Note
 
@@ -55,3 +56,11 @@
 - Approval mechanism: `scripts/scope-check.sh` branch allowlist for `codex/feat-commands*`
 - Integrator-locked edits: `none`
 - Scope note: the current branch tip contains only the two implementation files above plus the handoff metadata files in this packet.
+
+## Roadmap and Vision Mapping
+
+- `ROADMAP.md` Milestone 1 `Bootstrap Flow Stabilization (In Progress)`: command and `diff-preview` behavior hardening.
+- `ROADMAP.md` Milestone 2 `Test Hardening (In Progress)`: focused parser-edge regression coverage.
+- `ROADMAP.md` MVP focus lane: `feat-commands`.
+- `PRODUCT_VISION.md` capability 4 `Operator-first control surface`: the CLI remains a first-class deterministic operator surface.
+- `PRODUCT_VISION.md` handoff alignment rule: this packet stays scoped to roadmap- and vision-mapped command-surface hardening only.

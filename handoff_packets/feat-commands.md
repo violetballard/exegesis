@@ -3,6 +3,7 @@
 - Branch name: `codex/feat-commands`
 - Scope completed: tightened `command_cli_contract()` so it validates the full grouped CLI parser surface reconstructed from the contract lookup table, not just canonical command order, and added regression coverage for alias-level drift.
 - Canonical demo-path mapping sentence: this slice makes `preview and apply or reject a patch` more real because the patch-review CLI surface for `diff-preview` now fails fast if the parser or contract surface drops or mutates the `diff` alias while the canonical command sequence still appears unchanged.
+- Concrete blocker removed: without this change, alias-level parser drift could silently break the `diff-preview` entrypoint used for the patch-review step while `canonical_names` still looked valid, so the CLI operator surface was not deterministically guarded.
 
 ## Tasks Completed
 1. Hardened `src/qual/commands/catalog.py` so `command_cli_contract()` reconstructs grouped entrypoints from `lookup_table` and verifies that full surface against both the catalog-defined and live parser projections.
@@ -25,7 +26,7 @@
 - `./quality-test.sh` -> passed
 - `./typecheck-test.sh` -> passed
 - `make ci` -> passed
-- Verification rerun timestamp: `2026-04-24T11:52:54Z`
+- Verification rerun timestamp: `2026-04-24T11:55:32Z`
 
 ## Risks / Blockers
 - Risks: future command-surface edits still need to keep `_CLI_ENTRYPOINTS`, command specs, and shared contract tests aligned.
