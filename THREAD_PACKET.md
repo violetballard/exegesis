@@ -7,6 +7,7 @@
 - Reviewed implementation range: `378cf9a74a3658058079a32f186fcd254c4a4034..adfa8cdadd43747ffbcb612e4151e262b13e52ca`
 - Canonical demo-path step advanced: `retrieve relevant material`
 - Plan-alignment statement: this reviewed slice strengthens `retrieve relevant material` by making excerpt lookup resolve only through the authoritative FTS path, which keeps downstream basket and workflow provenance deterministic.
+- Reviewer-required canonical demo-path sentence: This work makes the "retrieve relevant material" step of the canonical demo path more real by forcing excerpt lookup to resolve only through the authoritative FTS-backed retrieval path.
 - Explicit Milestone 3 mapping: this slice advances `Milestone 3: Real workflow loop` by keeping retrieval/search FTS-first and structured enough for basket promotion.
 - Traceability note: re-review this lane against the reviewed implementation range above. Commits after `adfa8cdadd43747ffbcb612e4151e262b13e52ca` are metadata-only packet refreshes unless a later handoff explicitly broadens the reviewed implementation range.
 
