@@ -3053,6 +3053,14 @@ class A2UIFallbackSafetyTests(unittest.TestCase):
             terminal_artifact_renderer_entrypoints_contract_fingerprint(),
         )
         self.assertEqual(
+            aliased_fingerprints["renderer_entrypoints_contract_manifest"],
+            terminal_artifact_renderer_entrypoints_contract_fingerprint(),
+        )
+        self.assertEqual(
+            aliased_fingerprints["renderer_entrypoints_contract_manifest_fingerprint"],
+            terminal_artifact_renderer_entrypoints_contract_fingerprint(),
+        )
+        self.assertEqual(
             manifest["shell_ui_contract_manifest"],
             shell_manifest,
         )
