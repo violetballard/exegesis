@@ -52,8 +52,8 @@
 
 ## Canonical Demo-Path Mapping
 
-- Canonical demo-path step advanced: the CLI/operator-contract portion of the current MVP path that makes `produce a plan or revision` and `preview and apply or reject a patch` reachable through a stable command surface while Textual remains disabled.
-- Explicit statement of what this work makes more real: it hardens the CLI-first operator route across the canonical demo path by preventing parser/catalog drift from silently changing the command surface.
+- Canonical demo-path step advanced: `patch-review` in the current CLI-first MVP path (`project-open -> retrieval -> patch-review -> apply/reject -> persist -> export-handoff`).
+- Explicit statement of what this work makes more real: deterministic command-catalog validation removes a concrete blocker for `patch-review` by failing fast when parser tokens drift away from the canonical catalog, so the CLI cannot silently stop exposing the reviewed-patch entrypoint operators need before they can apply, reject, persist, and hand off the result.
 - Scope guard: this remains `feat-commands` contract hardening for the engine-first MVP loop; it does not claim broader workflow, UI, or A2UI progress.
 
 ## Handoff Packet
@@ -93,13 +93,14 @@
 
 ### Roadmap item(s) affected
 
-- Milestone 3: Real workflow loop - preserve CLI compatibility while the package/layout migration lands by keeping the command-catalog contract deterministic and drift-resistant.
-- `feat-commands` - CLI compatibility and migration-safe entrypoints for the engine-first MVP loop.
-- Canonical demo-path step advanced: the stable CLI/operator-contract path used to produce a plan or revision and to preview, apply, or reject a patch while Textual remains disabled.
+- Milestone 3: `Product Readiness` requires user-facing output contracts to be defined and locked and end-to-end verification scenarios to expand; this change makes that concrete for the CLI-first MVP loop by locking the command-catalog contract that drives `patch-review` before `apply/reject`, `persist`, and `export-handoff`.
+- `ROADMAP.md` CLI-first loop requirement: `CLI can execute the MVP flow (vault -> context -> run -> patch -> export) against the same engine PolicyGate`; this change removes parser/catalog drift as a blocker on the `patch` segment of that loop.
+- `feat-commands`: keep migration-safe command entrypoints deterministic so the active Milestone 3 lane can still exercise the reviewed patch/export path through CLI while Textual remains disabled.
 
 ### Vision capability affected
 
-- Canonical engine contract - CLI compatibility remains stable while the command-catalog surface rejects parser drift before it can silently change the operator contract.
+- `PRODUCT_VISION.md` operator-first control surface: CLI remains a first-class reliability surface, so the reviewed patch command path must stay canonical and deterministic.
+- `PRODUCT_VISION.md` A2UI CLI fallback: artifacts must be consumable by CLI first, with CLI text fallback preserved, so silent parser drift cannot be allowed to break the CLI command path that reaches patch review and the downstream export handoff.
 
 ### Routing / Provider Impact Note
 
