@@ -8,6 +8,7 @@
 - Scope goal: keep the retrieval lane FTS-first for the MVP by making the canonical retrieval/query/export surfaces deterministic for downstream engine flows and by keeping public excerpt lookup on the authoritative SQLite FTS path.
 - Canonical demo-path step advanced: `retrieve relevant material`
 - Reviewer-required plan-alignment statement: This work makes `retrieve relevant material` more real by keeping SQLite FTS authoritative across the retrieval facade, exported helper surfaces, and excerpt rehydration path, so downstream basket-promotion inputs stay deterministic and PageIndex-only excerpt IDs fail closed.
+- AGENTS-required canonical step mapping: The concrete Milestone 3 step advanced by this handoff is `retrieve relevant material`, specifically by restricting canonical excerpt lookup to FTS-backed excerpt IDs on the public retrieval surface.
 
 ## Scope Completed
 
@@ -110,6 +111,7 @@
 2. The packet explicitly justifies the additional API/test expansion against the canonical demo-path step `retrieve relevant material`: deterministic retrieval/query/export contracts are required for downstream engine flows to consume retrieved material reliably during Milestone 3.
 3. The handoff directly names the canonical demo-path step advanced in the required form.
 4. The extra provenance/export work is called out as deliberate contract-surface expansion that supports the canonical retrieval path rather than detached second-order work.
+5. The AGENTS-required canonical demo-path mapping is repeated in the top-level packet header and tied directly to the FTS-only excerpt lookup behavior the reviewer asked to see called out.
 
 ## Validation Refresh
 
