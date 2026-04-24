@@ -16,7 +16,7 @@ Canonical handoff contract lives in `THREAD_PACKET.md`.
 - Current packet refresh traceability:
   - later `docs(commands)` commits update only `THREAD.md`, `THREAD_PACKET.md`, and `handoff_packets/feat-commands.md`
 - Post-fixer verification note:
-  - `2026-04-24T08:37:05Z UTC` gate rerun confirmed this packet matches the current branch state while the reviewed implementation basis remains pinned to `4cd1d6b4857ce3da125bb32ae2c76d4b9c41defa`
+  - `2026-04-24T08:43:00Z UTC` gate rerun confirmed this packet matches the current branch state while the reviewed implementation basis remains pinned to `4cd1d6b4857ce3da125bb32ae2c76d4b9c41defa`
 - Reviewed implementation files:
   - `src/qual/commands/catalog.py`
   - `tests/unit/test_commands_catalog.py`
@@ -40,7 +40,8 @@ Canonical handoff contract lives in `THREAD_PACKET.md`.
 - Roadmap / vision alignment for this reviewed slice:
   - `ROADMAP.md` MVP focus keeps `feat-commands` active in the current implementation push
   - `ROADMAP.md` Milestone 3 contribution is limited to locking the user-facing command contract for the current CLI loop `project-open -> retrieval -> preview and apply or reject a patch -> persist -> export-handoff`
-  - `PRODUCT_VISION.md` capability 4 `Operator-first control surface` is the only capability claimed here
+  - `PRODUCT_VISION.md` capability 4 `Operator-first control surface` is the only capability claimed here, specifically the engine-contract requirement that structured outputs stay consumable by CLI now and `Exegesis Console` next
+  - this packet does not claim `PRODUCT_VISION.md` capability 3 `Auditable generation` because the reviewed diff does not add persistence, audit hooks, or workflow trace records
 - Ownership / scope note:
   - lane-owned implementation path: `src/qual/commands/catalog.py`
   - approved shared-by-approval exception: `tests/unit/test_commands_catalog.py`

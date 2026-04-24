@@ -19,7 +19,8 @@
   - `ROADMAP.md` Milestone 3 `Define and lock user-facing output contracts`
 - Vision capability affected:
   - `PRODUCT_VISION.md` capability 4 `Operator-first control surface`
-  - engine-contracts-first alignment while `Exegesis Console` stays deferred
+  - specific requirement advanced: `Engine emits structured outputs that can be consumed by CLI now and Exegesis Console next`, with `the engine contracts come first`
+  - no claim against `PRODUCT_VISION.md` capability 3 `Auditable generation`; this diff does not add persistence, audit hooks, or workflow trace records
 - Routing/provider impact note: none; this slice does not touch model routing, provider configuration, or integrator-locked entrypoints.
 - Proposed `README.md` patch text: none.
 
@@ -43,7 +44,7 @@
 - `./quality-test.sh` -> passed
 - `./typecheck-test.sh` -> passed
 - `make ci` -> passed
-- Verification rerun timestamp: `2026-04-24T08:37:05Z UTC`
+- Verification rerun timestamp: `2026-04-24T08:43:00Z UTC`
 
 ## Risks / Blockers
 - Risks: future command-surface changes now need to keep `_CLI_ENTRYPOINTS`, the shared regression suite, and the default alias-forwarding helpers aligned so the public `diff-preview` review token stays catalog-locked.
