@@ -3,17 +3,16 @@
 - Branch name: `codex/feat-commands`
 - Reviewed implementation basis:
   - `f8d860ed9f6299f0169c4f21321ac5f37c949fd3` (`feat(commands): lock CLI contract to command catalog`)
-- Scope completed: hardened the review-step CLI contract for the canonical `preview and apply or reject a patch` step by keeping the public `diff-preview` entrypoint locked to the command catalog.
-- Canonical demo-path step advanced: `preview and apply or reject a patch` in the current engine-first CLI fallback loop `vault -> context -> run -> patch -> export`
-- Required AGENTS sentence: this change makes the `patch` step of the current engine-first CLI fallback loop `vault -> context -> run -> patch -> export` more real by forcing the review-step public command surface to stay catalog-locked and fail closed before the operator reaches the wrong CLI verb set.
-- Concrete blocker removed: parser/catalog drift can no longer silently drop the public `diff-preview` token and leave only the still-resolvable alias `diff`, which means the CLI fallback `patch` step now fails fast instead of quietly exposing the wrong operator-visible contract.
-- Plan-alignment statement: this is one review-step contract-hardening slice for the current engine-first loop. It does not claim new retrieval, persistence, export, audit-path, alias-surface expansion, or broader workflow behavior.
+- Scope completed: hardened the review-step CLI contract for the canonical `preview and apply or reject a patch` step so the public `diff-preview` entrypoint stays locked to the catalog-projected parser surface.
+- Canonical demo-path step advanced: `preview and apply or reject a patch`
+- Demo-path mapping: this slice makes the canonical `preview and apply or reject a patch` step more real by keeping the operator-facing `diff-preview` preview entrypoint stable at the parser/catalog boundary for the current engine-first Milestone 3 CLI loop.
+- Concrete blocker removed: parser/catalog drift can no longer silently drop the public `diff-preview` token and leave only the still-resolvable alias `diff`, which keeps the CLI fallback deterministic at the patch-review step of the current MVP loop.
+- Plan-alignment statement: this is one review-step contract-hardening slice inside the current engine-first Milestone 3 loop. It does not claim new retrieval, persistence, export, audit-path, or broader workflow behavior.
 - Packet refresh traceability: this resubmission is metadata-only and updates only `handoff_packets/feat-commands.md`, `THREAD_PACKET.md`, and `THREAD.md`.
 - Roadmap item(s) affected:
   - `ROADMAP.md` MVP focus active lane: `feat-commands`
-  - `ROADMAP.md` current engine-first CLI fallback loop `vault -> context -> run -> patch -> export`; this slice specifically hardens the `patch` step
+  - `ROADMAP.md` Milestone 3 current CLI loop `project-open -> retrieval -> preview and apply or reject a patch -> persist -> export-handoff`
   - `ROADMAP.md` Milestone 3 `Define and lock user-facing output contracts`
-  - `ROADMAP.md` Milestone 5 CLI fallback exit criterion for the MVP flow
 - Vision capability affected:
   - `PRODUCT_VISION.md` capability 4 `Operator-first control surface`
   - engine-contracts-first alignment while `Exegesis Console` stays deferred
@@ -39,7 +38,7 @@
 - `./quality-test.sh` -> passed
 - `./typecheck-test.sh` -> passed
 - `make ci` -> passed
-- Verification rerun timestamp: `2026-04-24T08:28:18Z UTC`
+- Verification rerun timestamp: `2026-04-24T08:29:45Z UTC`
 
 ## Risks / Blockers
 - Risks: future command-surface changes now need to keep `_CLI_ENTRYPOINTS` and the shared regression suite aligned so the public `diff-preview` review token stays catalog-locked.

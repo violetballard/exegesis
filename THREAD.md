@@ -6,13 +6,13 @@ Canonical handoff contract lives in `THREAD_PACKET.md`.
 
 ## Current Review Focus
 
-- Packet refresh status: metadata-only resubmission generated at `2026-04-24T08:19:27Z` to satisfy the reviewer-requested packet corrections while keeping re-review pinned to the original reviewed implementation commit.
+- Packet refresh status: metadata-only resubmission generated at `2026-04-24T08:29:45Z` to satisfy the reviewer-requested packet corrections while keeping re-review pinned to the original reviewed implementation commit.
 - Exact implementation basis now approved:
   - `f8d860ed9f6299f0169c4f21321ac5f37c949fd3` (`feat(commands): lock CLI contract to command catalog`)
 - Current packet refresh traceability:
   - this refresh is metadata-only and updates only `THREAD.md`, `THREAD_PACKET.md`, and `handoff_packets/feat-commands.md`
 - Post-fixer verification note:
-  - `2026-04-24T08:19:27Z UTC` gate rerun confirmed the packet still matches the current branch state while the reviewed implementation basis remains pinned to `f8d860ed9f6299f0169c4f21321ac5f37c949fd3`
+  - `2026-04-24T08:29:45Z UTC` gate rerun confirmed the packet still matches the current branch state while the reviewed implementation basis remains pinned to `f8d860ed9f6299f0169c4f21321ac5f37c949fd3`
 - Reviewed implementation files:
   - `src/qual/commands/catalog.py`
   - `tests/unit/test_commands_catalog.py`
