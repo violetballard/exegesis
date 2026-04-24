@@ -5,7 +5,7 @@
 - Commit: `5c5980e8813134af0e5f29a0ac5cb793cde44ffb`
 - Packet refresh role: `truthful branch-tip reviewer-fix handoff refresh`
 - Packet refresh basis: `updated on 2026-04-23 to review the actual branch tip and to list every command-code implementation commit after f8d860ed9f6299f0169c4f21321ac5f37c949fd3`
-- Packet revalidation: `all required gates re-ran successfully on 2026-04-23 for the regenerated branch-tip packet`
+- Packet revalidation: `all required gates re-ran successfully on 2026-04-23 against branch tip 5c5980e8813134af0e5f29a0ac5cb793cde44ffb`
 
 ## Thread Kickoff (High-Risk)
 

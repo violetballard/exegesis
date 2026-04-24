@@ -7,7 +7,7 @@ Canonical handoff contract lives in `THREAD_PACKET.md`.
 ## Current Review Focus
 
 - Packet refresh status: truthful branch-tip handoff regeneration against the actual `codex/feat-commands` tip.
-- Packet revalidation status: all required gates re-ran successfully on 2026-04-23 for the regenerated branch-tip packet.
+- Packet revalidation status: all required gates re-ran successfully on 2026-04-23 against branch tip `5c5980e8813134af0e5f29a0ac5cb793cde44ffb`.
 - Reviewed implementation tip: `5c5980e8813134af0e5f29a0ac5cb793cde44ffb` (`Add trusted command workflow plan helpers`).
 - Reviewed implementation range: cumulative command-surface branch-tip slice from `f8d860ed9f6299f0169c4f21321ac5f37c949fd3..5c5980e8813134af0e5f29a0ac5cb793cde44ffb`.
 - Reviewed implementation files in that branch-tip slice:
