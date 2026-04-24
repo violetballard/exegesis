@@ -5,7 +5,9 @@
 - Packet refresh trace anchor before this fixer commit: `72a65689bc806e3f33afa9f28e87c827020e5021`
 - Reviewed implementation head before this fixer commit: `72a65689bc806e3f33afa9f28e87c827020e5021`
 - Reviewed implementation range: `d7fd5d200358287fa42a18d39e2b277463b9b69f..72a65689bc806e3f33afa9f28e87c827020e5021`
-- Reviewer-facing packet sources refreshed in this fixer pass: `THREAD_PACKET.md`, `docs/gate_passed.txt`, `.codex/kickoff_packets/feat-retrieval-fts.md`, `.codex/lane_meta/feat-retrieval-fts.json`
+- Reviewer-facing packet sources refreshed in this fixer pass: `THREAD_PACKET.md`, `docs/gate_passed.txt`
+- Blocked packet mirror files in this fixer pass: `.codex/kickoff_packets/feat-retrieval-fts.md`, `.codex/lane_meta/feat-retrieval-fts.json`
+- Mirror write attempt result in this session: `operation not permitted`
 - Canonical demo-path step advanced: `retrieve relevant material`
 - Demo-path sentence: This handoff makes the "retrieve relevant material" step more real by keeping retrieval FTS-first, hardening deterministic payload and provenance shaping on the canonical retrieval surface, and normalizing direct constraint booleans before retrieval executes.
 
@@ -65,7 +67,7 @@
 - `plan complete`: the handoff was re-scoped to the actual reviewed implementation tip `72a65689bc806e3f33afa9f28e87c827020e5021`, the shared/high-risk classification, and the explicit canonical demo-path step.
 - `before risky/shared file edit`: the shared/high-risk boundary was called out before packet edits because the reviewed range still includes approved shared regression coverage in `tests/unit/test_unified_retrieval.py`.
 - `first green tests`: `make scope-check`, `./quality-format.sh --check`, `./quality-lint.sh`, `./quality-test.sh`, `./typecheck-test.sh`, and `make ci` all passed on the refreshed handoff state.
-- `ready for handoff`: the packet artifacts now agree on the reviewed head `72a65689bc806e3f33afa9f28e87c827020e5021`, the reviewed range, the shared/high-risk classification, and the canonical demo-path mapping.
+- `ready for handoff`: the writable handoff artifacts now agree on the reviewed head `72a65689bc806e3f33afa9f28e87c827020e5021`, the reviewed range, the shared/high-risk classification, and the canonical demo-path mapping. The `.codex` mirror files remain blocked by `operation not permitted`.
 
 ## Tasks Completed
 
@@ -106,7 +108,7 @@
 
 - Risk: `HIGH`
 - Shared regression coverage in `tests/unit/test_unified_retrieval.py` remains the reason this handoff is capped at `4` tasks.
-- No unresolved blockers remain in this fixer pass.
+- `.codex/kickoff_packets/feat-retrieval-fts.md` and `.codex/lane_meta/feat-retrieval-fts.json` remain blocked in this session; write attempts fail with `operation not permitted`.
 
 ## Required Handoff Fields
 
