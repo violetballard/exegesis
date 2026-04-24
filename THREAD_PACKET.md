@@ -12,6 +12,7 @@
 - Evidence note: `tests/unit/test_unified_retrieval.py` covers both the narrowed service-level contract and the public retrieval facade for this slice. `test_retrieval_service_rejects_pageindex_excerpt_payloads` proves PageIndex-only excerpt IDs fail closed on `fetch_excerpt(...)`, and `test_retrieve_fts_excerpt_returns_canonical_fts_payload` proves the canonical/public FTS excerpt helpers return the same payload shape.
 - Packet authority note: this top-level packet and `docs/gate_passed.txt` are the reviewer-facing source of truth for the explicit demo-path mapping and plan-alignment wording on this branch. They intentionally describe only the narrowed FTS-only excerpt fail-closed slice and do not claim lane-level MVP completion.
 - Verified refresh-scope note: this refresh changes only `THREAD_PACKET.md` and `docs/gate_passed.txt` in this worktree; any earlier metadata-only refreshes are outside the scope of this re-review packet.
+- Post-rerun confirmation note: the full required gate stack was rerun against metadata-only packet tip `6ccd62dcb7d2073258d50f9a4882e786cab7e9d5` immediately before this reviewer-fix commit.
 
 ## Scope Goal
 

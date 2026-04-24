@@ -25,6 +25,7 @@ Reviewer fix closure: the authoritative handoff packet is retrieval-specific, re
 Scope note: this metadata-only handoff refresh documents an incremental retrieval-contract hardening slice for `retrieve relevant material`; it does not claim the full `feat-retrieval-fts` MVP or lane definition of done is complete.
 Reviewer-facing truth sources: `THREAD_PACKET.md` and this gate summary carry the canonical demo-path mapping and plan-alignment wording for re-review on this branch. They intentionally describe only the narrowed FTS-only excerpt fail-closed slice and do not claim lane-level MVP completion.
 Verified refresh-scope note: this refresh changes only `THREAD_PACKET.md` and `docs/gate_passed.txt` in this worktree; any earlier metadata-only refreshes are outside the scope of this re-review packet.
+Post-rerun confirmation note: the full required gate stack was rerun against metadata-only packet tip `6ccd62dcb7d2073258d50f9a4882e786cab7e9d5` immediately before this reviewer-fix commit.
 Remaining risks: none identified in the reviewed slice beyond normal merge risk on a metadata-only packet refresh. Re-review should continue to anchor retrieval scope to `adfa8cdadd43747ffbcb612e4151e262b13e52ca` so later packet-refresh commits are not mistaken for new retrieval implementation changes.
 
 Reviewed implementation files:
