@@ -88,7 +88,7 @@
 
 - Risk: `HIGH`
 - Approved shared regression coverage in `tests/unit/test_unified_retrieval.py` keeps this handoff under the `4`-task high-risk cap.
-- `.codex/kickoff_packets/feat-retrieval-fts.md` and `.codex/lane_meta/feat-retrieval-fts.json` remain blocked mirror targets in this sandbox and were not refreshed here.
+- `.codex/kickoff_packets/feat-retrieval-fts.md` and `.codex/lane_meta/feat-retrieval-fts.json` remain permission-blocked in this sandbox, so this fixer pass refreshes the reviewer-facing packet files that are writable here.
 
 ## Required Handoff Fields
 
