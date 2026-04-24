@@ -3,9 +3,9 @@
 - Lane: `feat-commands`
 - Branch: `codex/feat-commands`
 - Commit: `bd118a6c34ac5c2f42c8df62f364895474f9f7a7`
-- Packet refresh role: `final fixer verification refresh`
-- Packet refresh basis: `regenerated on 2026-04-23 after rerunning the required gates on the current branch tip to confirm the existing parser-surface fix and explicit patch-review demo-path mapping still match the auditable branch state`
-- Post-fixer verification: `2026-04-23 local gate rerun confirmed the packet still matches the branch state during this final verification refresh; no implementation files changed in this packet-only refresh`
+- Packet refresh role: `reviewer-fix packet regeneration`
+- Packet refresh basis: `regenerated on 2026-04-23 after rerunning the required gates on the current branch tip to satisfy the reviewer's numbered handoff fixes for explicit canonical demo-path mapping and concrete blocker removal`
+- Post-fixer verification: `2026-04-23 local gate rerun confirmed the packet still matches the branch state during this reviewer-fix regeneration; no implementation files changed in this packet-only refresh`
 - Packet-only refresh files:
   - `THREAD_PACKET.md`
 
@@ -60,6 +60,7 @@
 
 - Primary canonical demo-path step advanced now: `patch-review` (`diff-preview` on the public CLI surface).
 - Explicit canonical demo-path statement required for re-review: this slice advances the canonical `patch-review` step by locking the public `diff-preview` token surface, and no other demo-path step is claimed as newly implemented here.
+- Reviewer-fix traceability: this regenerated packet answers the reviewer request by naming the exact canonical demo-path step and by stating the concrete blocker removed at that step, without widening implementation scope.
 - Primary-step scope note: this packet advances `patch-review` specifically while hardening the parser contract reused by later loop steps.
 - Current CLI smoke route statement: the current operator-visible route is `project-open -> retrieval -> patch-review -> apply-patch/reject-patch -> persist -> export-handoff`, entered through parser-ready `bootstrap --project demo`.
 - One-line plan alignment: this change makes `patch-review` more real by ensuring the operator-facing `diff-preview` verb for that smoke route cannot silently drift to alias-only entrypoints while still resolving through lookup.
@@ -108,7 +109,7 @@
 - `./quality-test.sh`: `PASSED`
 - `./typecheck-test.sh`: `PASSED`
 - `make ci`: `PASSED`
-- Gate attribution note: these gates were rerun on 2026-04-23 against the packet-refresh workspace state whose only changed file above `bd118a6c34ac5c2f42c8df62f364895474f9f7a7` is `THREAD_PACKET.md`.
+- Gate attribution note: these gates were rerun on 2026-04-23 against the reviewer-fix packet-refresh workspace state whose only changed file above `bd118a6c34ac5c2f42c8df62f364895474f9f7a7` is `THREAD_PACKET.md`.
 
 ### Risks / Blockers
 
