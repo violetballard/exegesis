@@ -16,6 +16,7 @@ Canonical handoff contract lives in `THREAD_PACKET.md`.
 - Final fixer note: this pointer remains implementation-scoped to reviewed commit `f8d860ed9f6299f0169c4f21321ac5f37c949fd3`; the current branch tip only refreshes the handoff after a green rerun of the required gates.
 - Final verification note: a metadata-only fixer pass on `2026-04-24` revalidated the corrected handoff mapping and reran the full required gate set without changing the reviewed implementation slice.
 - Gate rerun confirmation: `make scope-check`, `./quality-format.sh --check`, `./quality-lint.sh`, `./quality-test.sh`, `./typecheck-test.sh`, and `make ci` were rerun successfully from the current branch tip before this metadata-only fixer handoff.
+- Shared-test approval provenance: the only non-owned implementation path, `tests/unit/test_commands_catalog.py`, is covered by the integrator-managed `codex/feat-commands` branch policy and the integrator/release ownership gate recorded locally in `scripts/scope-check.sh` under `is_approved_shared_test()` for `codex/feat-commands*`.
 - Reviewed implementation commit: `f8d860ed9f6299f0169c4f21321ac5f37c949fd3`
 - Reviewed implementation files: `src/qual/commands/catalog.py` and `tests/unit/test_commands_catalog.py`
 

@@ -76,6 +76,10 @@
 - Lane-owned implementation path: `src/qual/commands/catalog.py`
 - Focused regression path: `tests/unit/test_commands_catalog.py`
 - Approval/source note: the reviewed implementation claim is pinned to commit `f8d860ed9f6299f0169c4f21321ac5f37c949fd3` and only the two implementation files it touched.
+- Shared-test approval owner: the integrator-managed branch policy for `codex/feat-commands`.
+- Shared-test approved by: the integrator/release ownership gate for `codex/feat-commands`.
+- Shared-test approval record: `scripts/scope-check.sh` lists `tests/unit/test_commands_catalog.py` under `is_approved_shared_test()` for branch `codex/feat-commands*`, which is the auditable local approval source for this handoff's only non-owned implementation path.
+- Shared-test approval scope: the exception is limited to focused regression coverage in `tests/unit/test_commands_catalog.py`; no other shared or integrator-locked implementation paths are claimed in this slice.
 - Integrator-locked edits: `none`
 - Scope note: the implementation under review is limited to `src/qual/commands/catalog.py` and `tests/unit/test_commands_catalog.py`; `THREAD.md`, `THREAD_PACKET.md`, and `handoff_packets/feat-commands.md` are metadata only.
 - Scope clarification: this is command-contract hardening only; it does not add new commands, new engine behavior, new persistence or auditability mechanisms, or a new workflow capability.
