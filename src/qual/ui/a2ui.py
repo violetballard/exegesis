@@ -1446,6 +1446,12 @@ def describe_terminal_artifact_cli_fallback_target_contract(
     renderer_entrypoints_contract = describe_terminal_artifact_renderer_entrypoints_contract()
     manifest["renderer_entrypoints_contract"] = _snapshot_contract_section(renderer_entrypoints_contract)
     manifest["renderer_entrypoints_contract_fingerprint"] = renderer_entrypoints_contract["contract_fingerprint"]
+    manifest["terminal_artifact_renderer_entrypoints_contract_manifest"] = _snapshot_contract_section(
+        renderer_entrypoints_contract
+    )
+    manifest["terminal_artifact_renderer_entrypoints_contract_manifest_fingerprint"] = (
+        renderer_entrypoints_contract["contract_fingerprint"]
+    )
     manifest["terminal_artifact_cli_fallback_target_contract_manifest"] = _snapshot_contract_section(
         manifest
     )
@@ -1997,6 +2003,9 @@ def _build_terminal_artifact_cli_fallback_target_contract_fingerprints(
     include_terminal_artifact_cli_fallback_target: bool = False,
     include_terminal_artifact_cli_fallback_route: bool = False,
 ) -> dict[str, str]:
+    terminal_artifact_renderer_entrypoints_contract_fingerprint_value = (
+        terminal_artifact_renderer_entrypoints_contract_fingerprint()
+    )
     terminal_artifact_cli_fallback_entrypoint_fingerprint = _fingerprint_manifest_section(
         "render_terminal_cli_fallback"
     )
@@ -2016,6 +2025,17 @@ def _build_terminal_artifact_cli_fallback_target_contract_fingerprints(
         "kind_resolution": terminal_artifact_kind_resolution_fingerprint(),
         "fallback_recovery": terminal_artifact_fallback_recovery_fingerprint(),
     }
+    _add_contract_alias_fingerprints(
+        fingerprints,
+        (
+            "renderer_entrypoints_contract",
+            terminal_artifact_renderer_entrypoints_contract_fingerprint_value,
+        ),
+        (
+            "terminal_artifact_renderer_entrypoints_contract_manifest",
+            terminal_artifact_renderer_entrypoints_contract_fingerprint_value,
+        ),
+    )
     if include_terminal_artifact_cli_fallback_target:
         fingerprints["terminal_artifact_cli_fallback_target"] = _fingerprint_manifest_section(fingerprints)
     if include_terminal_artifact_cli_fallback_route:
