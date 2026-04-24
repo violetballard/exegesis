@@ -2,9 +2,9 @@
 
 - Lane: `feat-commands`
 - Branch: `codex/feat-commands`
-- Commit: `6890b8c6ea9b6dcd9cd58eb7cdbd9f68356f47ac`
+- Commit: `bd118a6c34ac5c2f42c8df62f364895474f9f7a7`
 - Packet refresh role: `reviewer-fix packet refresh`
-- Packet refresh basis: `regenerated on 2026-04-24 for re-review against the fixer delta that locks the live parser surface to the command catalog, proves the reviewer-called-out diff-preview-to-diff token drift now fails fast, states the canonical demo-path step explicitly, and narrows roadmap/vision mapping to the current CLI-first contract surface in ROADMAP Milestone 3 and PRODUCT_VISION capability 4`
+- Packet refresh basis: `regenerated on 2026-04-24 for re-review against the fixer delta that locks the live parser surface to the command catalog, proves the reviewer-called-out diff-preview-to-diff token drift now fails fast, extends that guard through warmed CLI-token caches, states the canonical demo-path step explicitly, and narrows roadmap/vision mapping to the current CLI-first contract surface in ROADMAP Milestone 3 and PRODUCT_VISION capability 4`
 - Post-fixer verification: `2026-04-24 UTC gate rerun confirmed the packet still matches the branch state after the fixer pass; no implementation files changed in this verification refresh`
 - Packet-only refresh files:
   - `THREAD.md`
@@ -40,21 +40,21 @@
 
 ## Review Basis
 
-- Reviewed implementation commit: `6890b8c6ea9b6dcd9cd58eb7cdbd9f68356f47ac` (`test(commands): lock parser drift regressions to live entrypoints`).
-- Packet refresh traceability: the current branch tip for re-review is a packet-only refresh above `6890b8c6ea9b6dcd9cd58eb7cdbd9f68356f47ac`; no implementation files beyond the reviewed slice changed in this refresh.
+- Reviewed implementation commit: `bd118a6c34ac5c2f42c8df62f364895474f9f7a7` (`test(commands): cover cached parser surface drift`).
+- Packet refresh traceability: the current branch tip for re-review is a packet-only refresh above `bd118a6c34ac5c2f42c8df62f364895474f9f7a7`; no implementation files beyond the reviewed slice changed in this refresh.
 - Reviewed implementation files:
   - `tests/unit/test_commands_catalog.py`
   - implementation basis retained on branch: `src/qual/commands/catalog.py`
 - Reviewed implementation summary:
   - `_CLI_ENTRYPOINTS` now locks the live default parser token surface independently from `COMMAND_SPECS`, so default CLI drift can be detected instead of re-derived from the same spec source.
   - `_validated_cli_entrypoints_for()` and `command_cli_contract()` now validate the actual parser surface against the declared catalog projection before exposing canonical names, tokens, or lookup tables.
-  - focused regression tests now patch `_CLI_ENTRYPOINTS` into alias-substituted, reordered, missing-canonical-token, and extra-entrypoint shapes to prove the contract fails fast even when lookup resolution still lands on the same canonical commands.
+- focused regression tests now patch `_CLI_ENTRYPOINTS` into alias-substituted, reordered, missing-canonical-token, and extra-entrypoint shapes to prove the contract fails fast even when lookup resolution still lands on the same canonical commands, including after `command_cli_tokens()` has already warmed its cache.
 
 ## Scope Completed
 
 - Locked the default parser surface to `_CLI_ENTRYPOINTS` so `command_cli_contract()` checks the live parser token contract instead of comparing only spec-derived canonical-name order.
 - Hardened validation so alias substitution, parser reordering, or extra accepted tokens fail fast even when the drifted tokens still resolve back to the same canonical commands.
-- Added live parser-drift regression coverage by patching `_CLI_ENTRYPOINTS` into drifted-but-still-resolvable shapes, including the exact case where `diff-preview` disappears while `diff` still resolves to the same canonical command.
+- Added live parser-drift regression coverage by patching `_CLI_ENTRYPOINTS` into drifted-but-still-resolvable shapes, including the exact case where `diff-preview` disappears while `diff` still resolves to the same canonical command and the cache-warm helper path still has to fail closed.
 - Kept the slice narrow: command-surface contract hardening plus targeted tests only, with no provider, routing, storage, retrieval, or terminal workflow behavior changes.
 
 ## Canonical Demo-Path Mapping
@@ -68,9 +68,9 @@
 - Concrete blocker removed: before this guard, the live parser surface for the current CLI smoke route could drop the public `diff-preview` token and leave only the still-resolvable alias `diff`, leaving automation, operator runbooks, and CLI fallback consumers pointed at a changed public review surface without any fail-fast signal.
 - Concrete reviewer-example blocker removed: the parser surface can no longer silently drop the public `diff-preview` token while leaving only `diff`, even though that remaining alias still resolves to the same canonical command and preserves canonical ordering.
 - Direct plan-alignment statement: this change makes the `patch-review` step more real by failing closed when the parser-facing `diff-preview` contract no longer matches the cataloged command surface.
-- Concrete smoke-test evidence already in the reviewed slice: `tests/unit/test_commands_catalog.py` proves the live parser surface keeps `diff-preview` before `diff` in the `patch-review` step and fails fast when `diff-preview` disappears while `diff` still resolves to the same canonical command.
+- Concrete smoke-test evidence already in the reviewed slice: `tests/unit/test_commands_catalog.py` proves the live parser surface keeps `diff-preview` before `diff` in the `patch-review` step and fails fast when `diff-preview` disappears while `diff` still resolves to the same canonical command, including after `command_cli_tokens()` has already been warmed.
 - Scope-tightening note: this handoff claims only parser-surface drift detection plus focused regression coverage for the `patch-review` command surface; it does not claim new retrieval quality, patch semantics, persistence behavior, or export behavior.
-- Traceability note: `6890b8c6ea9b6dcd9cd58eb7cdbd9f68356f47ac` is the implementation tip for this reviewed slice. `THREAD.md` and `THREAD_PACKET.md` are packet refresh companions that capture the updated reviewer-fix mapping and gate results.
+- Traceability note: `bd118a6c34ac5c2f42c8df62f364895474f9f7a7` is the implementation tip for this reviewed slice, carrying the warmed-cache regression coverage on top of the earlier `6890b8c6ea9b6dcd9cd58eb7cdbd9f68356f47ac` parser-surface drift fix. `THREAD.md` and `THREAD_PACKET.md` are packet refresh companions that capture the updated reviewer-fix mapping and gate results.
 - Why this is milestone-worthy now instead of second-order cleanup: `ROADMAP.md` Milestone 3 is where user-facing contracts are defined and locked intentionally. This guard removes a concrete CLI contract risk at the `patch-review` entrypoint before that public surface can drift silently.
 
 ## Approved Exception Note
@@ -91,7 +91,7 @@
 
 1. Added `_CLI_ENTRYPOINTS` so the default parser surface is locked independently from the catalog specs.
 2. Tightened the CLI contract path to validate actual parser entrypoints against the declared catalog projection before publishing command tokens and lookup tables.
-3. Reworked parser-drift regression coverage in `tests/unit/test_commands_catalog.py` to patch `_CLI_ENTRYPOINTS` into drifted-but-still-resolvable shapes, including the exact `diff-preview` removed / `diff` retained drift.
+3. Reworked parser-drift regression coverage in `tests/unit/test_commands_catalog.py` to patch `_CLI_ENTRYPOINTS` into drifted-but-still-resolvable shapes, including the exact `diff-preview` removed / `diff` retained drift and the cache-warm helper path.
 4. Regenerated the handoff packet so the reviewer-requested canonical demo-path step, narrowed engine-first CLI alignment, and shared-test approval source are explicit.
 
 ### Files Changed
@@ -109,7 +109,7 @@
 - `./quality-test.sh`: `PASSED`
 - `./typecheck-test.sh`: `PASSED`
 - `make ci`: `PASSED`
-- Gate attribution note: these gates were rerun on 2026-04-24 against the packet-refresh workspace state whose only changed files above `6890b8c6ea9b6dcd9cd58eb7cdbd9f68356f47ac` are `THREAD.md` and `THREAD_PACKET.md`.
+- Gate attribution note: these gates were rerun on 2026-04-24 against the packet-refresh workspace state whose only changed files above `bd118a6c34ac5c2f42c8df62f364895474f9f7a7` are `THREAD.md` and `THREAD_PACKET.md`.
 
 ### Risks / Blockers
 
@@ -125,7 +125,7 @@
 - `patch-review` (`diff-preview` on the public CLI surface)
 - This change makes `patch-review` more real by keeping the operator-facing `diff-preview` command surface for the current CLI smoke route catalog-locked instead of allowing alias-only parser drift to pass silently.
 - Concrete blocker removal: the contract now fails fast if the live parser entrypoint for `patch-review` drops `diff-preview`, substitutes alias-only ordering, or adds extra accepted tokens while still resolving through lookup, preventing the current CLI smoke route from silently changing at its operator-visible review step.
-- Smoke-test evidence for this step is explicit in the shared regression suite: `test_command_cli_contract_matches_the_catalog_order`, `test_command_cli_contract_rejects_parser_surface_drift_when_diff_token_disappears`, and the alias/reorder drift tests all assert the live `_CLI_ENTRYPOINTS` contract for `diff-preview`.
+- Smoke-test evidence for this step is explicit in the shared regression suite: `test_command_cli_contract_matches_the_catalog_order`, `test_command_cli_contract_rejects_parser_surface_drift_when_diff_token_disappears`, `test_command_cli_tokens_rejects_parser_surface_drift_after_cache_warm`, and the alias/reorder drift tests all assert the live `_CLI_ENTRYPOINTS` contract for `diff-preview`.
 
 ### Roadmap item(s) affected
 

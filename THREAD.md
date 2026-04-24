@@ -7,9 +7,9 @@ Canonical handoff contract lives in `THREAD_PACKET.md`.
 ## Current Review Focus
 
 - Packet refresh status: reviewer-fix packet refresh regenerated on 2026-04-24 for the exact reviewed implementation slice, with roadmap/vision mapping narrowed to the current CLI-first contract surface in `ROADMAP.md` Milestone 3 and `PRODUCT_VISION.md` capability 4.
-- Reviewed implementation commit: `6890b8c6ea9b6dcd9cd58eb7cdbd9f68356f47ac` (`test(commands): lock parser drift regressions to live entrypoints`).
+- Reviewed implementation commit: `bd118a6c34ac5c2f42c8df62f364895474f9f7a7` (`test(commands): cover cached parser surface drift`).
 - Packet refresh traceability:
-  - the current branch tip for re-review is a packet-only refresh above `6890b8c6ea9b6dcd9cd58eb7cdbd9f68356f47ac`; no implementation files beyond the reviewed slice changed in this refresh
+  - the current branch tip for re-review is a packet-only refresh above `bd118a6c34ac5c2f42c8df62f364895474f9f7a7`; no implementation files beyond the reviewed slice changed in this refresh
 - Post-fixer verification note:
   - 2026-04-24 UTC gate rerun confirmed the packet still matches the branch state after this fixer pass; no implementation files changed in this verification refresh
 - Reviewed implementation files:
@@ -20,7 +20,7 @@ Canonical handoff contract lives in `THREAD_PACKET.md`.
   - `THREAD_PACKET.md`
 - Reviewed implementation scope:
   - fail fast when the live default parser entrypoints drift from the command catalog by locking the parser surface to `_CLI_ENTRYPOINTS` and proving real drift cases against that source of truth
-  - explicitly reject the token-level drift where `diff-preview` disappears from the parser surface while `diff` still resolves to the same canonical command
+  - explicitly reject the token-level drift where `diff-preview` disappears from the parser surface while `diff` still resolves to the same canonical command, including after `command_cli_tokens()` has already warmed its cache
 - Primary canonical demo-path step advanced now:
   - `patch-review` (`diff-preview` on the public CLI surface)
 - Required handoff field now called out explicitly:
@@ -40,9 +40,9 @@ Canonical handoff contract lives in `THREAD_PACKET.md`.
 - Direct plan-alignment statement:
   - this change makes `patch-review` more real by preventing silent parser-surface drift at the `diff-preview` entrypoint and by failing fast before the operator reaches the review step with the wrong public verb set
 - Concrete smoke-test evidence:
-  - `tests/unit/test_commands_catalog.py` now proves the live parser surface stays `("diff-preview", "diff")` for the `patch-review` step and fails fast when `diff-preview` disappears while `diff` still resolves to the same canonical command
+  - `tests/unit/test_commands_catalog.py` now proves the live parser surface stays `("diff-preview", "diff")` for the `patch-review` step and fails fast when `diff-preview` disappears while `diff` still resolves to the same canonical command, even after the CLI token helpers have been warmed
 - Traceability note:
-  - `6890b8c6ea9b6dcd9cd58eb7cdbd9f68356f47ac` is the reviewed implementation tip for the parser-surface fix set; this packet refresh commit records the updated re-review mapping and gate results on top of it
+  - `bd118a6c34ac5c2f42c8df62f364895474f9f7a7` is the reviewed implementation tip for the parser-surface fix set, carrying the warmed-cache regression coverage on top of the earlier `6890b8c6ea9b6dcd9cd58eb7cdbd9f68356f47ac` drift fix; this packet refresh commit records the updated re-review mapping and gate results on top of it
 - Concrete blocker removed for the current CLI smoke route:
   - the active CLI smoke route no longer allows the public `diff-preview` parser token for `patch-review` to disappear or be reordered behind alias-only tokens without an immediate contract failure
 - Scope-tightening note:
@@ -70,4 +70,4 @@ Canonical handoff contract lives in `THREAD_PACKET.md`.
   - `./typecheck-test.sh`
   - `make ci`
 - Gate attribution note:
-  - these gates were rerun on 2026-04-24 against the packet-refresh workspace state whose only changed files above `6890b8c6ea9b6dcd9cd58eb7cdbd9f68356f47ac` are `THREAD.md` and `THREAD_PACKET.md`
+  - these gates were rerun on 2026-04-24 against the packet-refresh workspace state whose only changed files above `bd118a6c34ac5c2f42c8df62f364895474f9f7a7` are `THREAD.md` and `THREAD_PACKET.md`
