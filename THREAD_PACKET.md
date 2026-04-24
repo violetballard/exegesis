@@ -4,17 +4,17 @@
 - Packet role: `feature lane handoff`
 - Reviewed implementation head: `adfa8cdadd43747ffbcb612e4151e262b13e52ca`
 - Reviewed implementation range: `d7fd5d200358287fa42a18d39e2b277463b9b69f..adfa8cdadd43747ffbcb612e4151e262b13e52ca`
-- Scope goal: harden the Retrieval Layer MVP contract on the canonical retrieval surface by keeping SQLite FTS authoritative and by rejecting PageIndex-only excerpt IDs on the public excerpt lookup path.
+- Scope goal: narrow `fetch_excerpt()` to canonical FTS-only excerpt resolution and add regression coverage proving PageIndex-only excerpt IDs fail closed on the public excerpt lookup path.
 - Canonical demo-path step advanced: `retrieve relevant material`
-- Plan-alignment statement: this slice advances `retrieve relevant material` by hardening the canonical FTS-first retrieval contract: SQLite FTS stays authoritative, `fetch_excerpt` resolves only through the canonical FTS path, PageIndex-only excerpt IDs fail closed, and the structured hit/provenance payloads remain deterministic for downstream engine flows.
-- Direct handoff statement: this handoff advances the canonical demo-path step `retrieve relevant material` by preserving the FTS-first retrieval contract on the public excerpt lookup path and by keeping the approved shared regression surface narrowly scoped to `tests/unit/test_unified_retrieval.py`.
+- Plan-alignment statement: this slice advances `retrieve relevant material` by making the public `fetch_excerpt` surface resolve only through the canonical SQLite FTS path, so PageIndex-only excerpt IDs fail closed before later basket promotion or other downstream workflow use.
+- Direct handoff statement: this handoff advances the canonical demo-path step `retrieve relevant material` by narrowing public excerpt resolution to the canonical FTS-only lookup path and by adding approved shared regression coverage proving PageIndex-only excerpt IDs raise `KeyError`.
 - Approved exception surface: approved shared regression coverage in `tests/unit/test_unified_retrieval.py` only; no other shared-by-approval or integrator-locked files are part of the reviewed implementation range.
 
 ## Scope Completed
 
-- SQLite FTS remains the authoritative MVP retrieval path in the reviewed implementation range.
-- `fetch_excerpt` resolves only through the canonical FTS path and fails closed for PageIndex-only excerpt identifiers.
-- Deterministic structured retrieval output remains available through the canonical engine surface for downstream workflow use.
+- `src/qual/retrieval/service.py::fetch_excerpt()` now resolves only through the canonical SQLite FTS lookup path in the reviewed implementation range.
+- `tests/unit/test_unified_retrieval.py` proves PageIndex-only excerpt identifiers fail closed with `KeyError` on `fetch_excerpt()` and both retrieval facades.
+- This is a narrow Milestone 3 retrieval-contract slice that strengthens deterministic provenance for later basket promotion and workflow use; it does not claim the full `feat-retrieval-fts` lane is complete.
 - No retrieval code changed after `adfa8cdadd43747ffbcb612e4151e262b13e52ca`; later commits are metadata-only packet refreshes.
 
 ## Thread Kickoff (High-Risk)
@@ -35,8 +35,8 @@
 
 1. Reclassified the reviewed slice as shared/high-risk work with `tests/unit/test_unified_retrieval.py` as the sole approved shared exception surface.
 2. Aligned the handoff on the reviewed implementation range `d7fd5d200358287fa42a18d39e2b277463b9b69f..adfa8cdadd43747ffbcb612e4151e262b13e52ca`.
-3. Removed stale fallback wording so the handoff now states that `fetch_excerpt` is FTS-only and that PageIndex-only excerpt IDs fail closed.
-4. Re-emitted the canonical handoff packet with the explicit demo-path and ownership fields requested in review while preserving the narrowed shared/high-risk framing and the same FTS-only excerpt contract.
+3. Tightened the packet language so it describes the reviewed `fetch_excerpt()` slice rather than implying the full retrieval lane is complete.
+4. Re-emitted the canonical handoff packet with the explicit `retrieve relevant material` plan-alignment sentence and the narrower roadmap/vision mapping requested in review.
 
 ## Files Changed
 
@@ -59,9 +59,9 @@
 
 ## Required Handoff Fields
 
-- Roadmap item(s) affected: `Milestone 3: Real workflow loop`, `feat-retrieval-fts`
+- Roadmap item(s) affected: `Milestone 3: Real workflow loop`, `feat-retrieval-fts` as a narrow excerpt-resolution slice rather than as lane completion
 - Vision capability affected: `2. Retrieval-first context handling`, `6. Auditable state and workflow`
 - Routing/provider impact note: `None`
-- Canonical demo-path step advanced: `retrieve relevant material`; removing the PageIndex fallback from the public excerpt lookup path keeps excerpt resolution on the authoritative FTS-first path needed for basket promotion and downstream workflow use.
+- Canonical demo-path step advanced: `retrieve relevant material`; narrowing public excerpt resolution to the authoritative FTS-first path strengthens deterministic provenance for later basket promotion and downstream workflow use without claiming the full retrieval MVP is complete.
 - Ownership/risk classification: `shared-by-approval only`; the reviewed slice includes `tests/unit/test_unified_retrieval.py` as the sole approved shared file and includes no integrator-locked edits.
 - Proposed README.md patch text: `None`
