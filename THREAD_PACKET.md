@@ -47,7 +47,7 @@
 - `./quality-test.sh`: `PASSED`
 - `./typecheck-test.sh`: `PASSED`
 - `make ci`: `PASSED`
-- Verification rerun timestamp: `2026-04-24T12:04:35Z`
+- Verification rerun timestamp: `2026-04-24T12:08:15Z`
 
 ## Ownership Note
 
@@ -59,8 +59,8 @@
 
 ## Roadmap and Vision Mapping
 
-- `ROADMAP.md` Milestone 1 `Bootstrap Flow Stabilization (In Progress)`: command and `diff-preview` behavior hardening.
-- `ROADMAP.md` Milestone 2 `Test Hardening (In Progress)`: focused parser-edge regression coverage.
-- `ROADMAP.md` MVP focus lane: `feat-commands`.
-- `PRODUCT_VISION.md` capability 4 `Operator-first control surface`: the CLI remains a first-class deterministic operator surface.
-- `PRODUCT_VISION.md` handoff alignment rule: this packet stays scoped to roadmap- and vision-mapped command-surface hardening only.
+- `ROADMAP.md` Milestone 3 `Real workflow loop`: this change preserves CLI compatibility while Textual remains disabled by making the `diff-preview` patch-review entrypoint deterministic and drift-resistant.
+- `ROADMAP.md` canonical demo path step: `preview and apply or reject a patch` is more reliable because alias-level parser drift on `diff` now fails fast instead of silently weakening the patch-review command surface.
+- `ROADMAP.md` active lane mapping: `feat-commands` owns CLI compatibility and migration-safe entrypoints for the engine-first MVP loop.
+- `PRODUCT_VISION.md` capability 3 `Canonical engine contract`: the CLI compatibility surface stays stable for the future client while Textual remains disabled.
+- `PRODUCT_VISION.md` near-term product truth: the CLI remains the active operator surface until UI lanes are enabled, so guarding the `diff-preview` patch-review entrypoint removes a concrete blocker on that active path.

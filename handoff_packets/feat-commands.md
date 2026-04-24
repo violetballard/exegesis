@@ -26,20 +26,20 @@
 - `./quality-test.sh` -> passed
 - `./typecheck-test.sh` -> passed
 - `make ci` -> passed
-- Verification rerun timestamp: `2026-04-24T12:04:35Z`
+- Verification rerun timestamp: `2026-04-24T12:08:15Z`
 
 ## Risks / Blockers
 - Risks: future command-surface edits still need to keep `_CLI_ENTRYPOINTS`, command specs, and shared contract tests aligned.
 - Blockers: none.
 
 ## Roadmap Item(s) Affected
-- `ROADMAP.md` Milestone 1 `Bootstrap Flow Stabilization (In Progress)` because this is command and diff-preview behavior hardening.
-- `ROADMAP.md` Milestone 2 `Test Hardening (In Progress)` because it adds a focused parser-edge regression identified during review.
-- `ROADMAP.md` MVP focus lane: `feat-commands`
+- `ROADMAP.md` Milestone 3 `Real workflow loop` because this slice preserves CLI compatibility while Textual remains disabled by hardening the `diff-preview` patch-review entrypoint.
+- `ROADMAP.md` canonical demo path step `preview and apply or reject a patch` because alias-level parser drift on `diff` now fails fast instead of silently weakening that step's CLI surface.
+- `ROADMAP.md` lane mapping `feat-commands` because this lane owns CLI compatibility and migration-safe entrypoints for the engine-first MVP loop.
 
 ## Vision Capability Affected
-- `PRODUCT_VISION.md` capability 4 `Operator-first control surface`: `CLI remains a first-class surface for development and reliability.`
-- `PRODUCT_VISION.md` capability 4 `Operator-first control surface`: `Engine emits structured outputs that can be consumed by CLI now and Exegesis Console next.`
+- `PRODUCT_VISION.md` capability 3 `Canonical engine contract` because CLI compatibility must remain stable while Textual stays disabled.
+- `PRODUCT_VISION.md` near-term product truth because the CLI is still the active operator surface, so this drift check removes a concrete blocker on the patch-review step of the active MVP loop.
 
 ## Routing / Provider Impact Note
 - None. This change does not touch routing or provider configuration.
