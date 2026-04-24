@@ -87,6 +87,7 @@ def _normalize_optional_casefold_text(value: object) -> str | None:
 _CANONICAL_RETRIEVAL_BACKEND = "sqlite_fts"
 _CANONICAL_RETRIEVAL_MODE = "fts_first"
 _CANONICAL_SOURCE_STRATEGY = "fts"
+_SUPPORTED_LOOKUP_QUERY_CONTEXT_STATUSES = {"rehydrated", "missing", "stale_dropped"}
 
 
 def _normalize_optional_canonical_casefold_text(value: object, *, canonical: str) -> str | None:
@@ -115,6 +116,13 @@ def _normalize_optional_canonical_source_strategy(value: object) -> str | None:
         value,
         canonical=_CANONICAL_SOURCE_STRATEGY,
     )
+
+
+def _normalize_lookup_query_context_status(value: object) -> str | None:
+    text = _normalize_optional_casefold_text(value)
+    if text in _SUPPORTED_LOOKUP_QUERY_CONTEXT_STATUSES:
+        return text
+    return None
 
 
 def _normalize_span_snapshot(value: object) -> dict[str, object] | None:
@@ -632,6 +640,13 @@ def _normalize_hit_shared_provenance_snapshot(provenance: object) -> dict[str, o
         normalized["retrieval_policy"] = _normalize_policy_snapshot(retrieval_policy)
         if "policy" in normalized:
             normalized["policy"] = copy.deepcopy(normalized["retrieval_policy"])
+    lookup_query_context_status = _normalize_lookup_query_context_status(
+        normalized.get("lookup_query_context_status")
+    )
+    if lookup_query_context_status is not None:
+        normalized["lookup_query_context_status"] = lookup_query_context_status
+    elif "lookup_query_context_status" in normalized:
+        normalized["lookup_query_context_status"] = None
     return normalized
 
 
@@ -890,6 +905,13 @@ def _normalize_excerpt_hit_snapshot(hit: object) -> dict[str, object] | None:
     section_hint = _normalize_query_hint(normalized.get("section_hint"))
     if section_hint is not None:
         normalized["section_hint"] = section_hint
+    lookup_query_context_status = _normalize_lookup_query_context_status(
+        normalized.get("lookup_query_context_status")
+    )
+    if lookup_query_context_status is not None:
+        normalized["lookup_query_context_status"] = lookup_query_context_status
+    elif "lookup_query_context_status" in normalized:
+        normalized["lookup_query_context_status"] = None
     retrieval_policy = normalized.get("retrieval_policy", normalized.get("policy"))
     if isinstance(retrieval_policy, dict):
         normalized["retrieval_policy"] = _normalize_policy_snapshot(retrieval_policy)
@@ -942,6 +964,7 @@ def _normalize_excerpt_hit_snapshot(hit: object) -> dict[str, object] | None:
             "strategies_used": normalized.get("strategies_used"),
             "retrieved_doc_ids": normalized.get("retrieved_doc_ids"),
             "retrieved_excerpt_ids": normalized.get("retrieved_excerpt_ids"),
+            "lookup_query_context_status": normalized.get("lookup_query_context_status"),
             "span": normalized.get("span"),
             "policy": normalized.get("retrieval_policy"),
             "retrieval_policy": normalized.get("retrieval_policy"),
@@ -1870,6 +1893,13 @@ def _normalize_basket_promotion_snapshot(snapshot: object) -> dict[str, object]:
         normalized["lookup_confidentiality_profile"] = lookup_confidentiality_profile
     elif "lookup_confidentiality_profile" in normalized:
         normalized["lookup_confidentiality_profile"] = None
+    lookup_query_context_status = _normalize_lookup_query_context_status(
+        normalized.get("lookup_query_context_status")
+    )
+    if lookup_query_context_status is not None:
+        normalized["lookup_query_context_status"] = lookup_query_context_status
+    elif "lookup_query_context_status" in normalized:
+        normalized["lookup_query_context_status"] = None
     query_date_range = _normalize_query_date_range(normalized.get("query_date_range"))
     if query_date_range is not None:
         normalized["query_date_range"] = query_date_range
@@ -2052,6 +2082,14 @@ def _build_basket_promotion_from_payload(payload: dict[str, object]) -> dict[str
             first_excerpt_hit.get("lookup_confidentiality_profile") if isinstance(first_excerpt_hit, dict) else None,
             first_excerpt_provenance.get("lookup_confidentiality_profile"),
             retrieval_provenance.get("lookup_confidentiality_profile"),
+        )
+    )
+    lookup_query_context_status = _normalize_lookup_query_context_status(
+        _first_text_value(
+            payload.get("lookup_query_context_status"),
+            first_excerpt_hit.get("lookup_query_context_status") if isinstance(first_excerpt_hit, dict) else None,
+            first_excerpt_provenance.get("lookup_query_context_status"),
+            retrieval_provenance.get("lookup_query_context_status"),
         )
     )
     derived = {
@@ -2425,6 +2463,8 @@ def _build_basket_promotion_from_payload(payload: dict[str, object]) -> dict[str
         derived["lookup_resolution"] = lookup_resolution
     if lookup_confidentiality_profile is not None:
         derived["lookup_confidentiality_profile"] = lookup_confidentiality_profile
+    if lookup_query_context_status is not None:
+        derived["lookup_query_context_status"] = lookup_query_context_status
     if not primary_snapshot:
         return _normalize_basket_promotion_snapshot(derived)
     return _normalize_basket_promotion_snapshot(
@@ -2438,6 +2478,7 @@ def _build_basket_promotion_from_payload(payload: dict[str, object]) -> dict[str
                 "retrieval_mode",
                 "lookup_resolution",
                 "lookup_confidentiality_profile",
+                "lookup_query_context_status",
                 "retrieval_policy",
                 "policy",
                 "active_strategy_ids",
