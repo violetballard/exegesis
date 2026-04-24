@@ -3,15 +3,15 @@
 - Branch name: `codex/feat-commands`
 - Scope completed: hardened `command_cli_contract()` in `src/qual/commands/catalog.py` so the CLI contract reuses the canonical `command_names()` ordering and raises if the parser surface drifts from the command catalog, then added focused regression coverage for canonical-order alignment and drift rejection in `tests/unit/test_commands_catalog.py`.
 - Canonical demo-path step advanced: `continue working without losing context` in the CLI-first engine loop.
-- Canonical demo-path mapping sentence: this Milestone 3 CLI-contract hardening slice directly strengthens `continue working without losing context` by keeping the active CLI command contract deterministic while Textual remains disabled.
-- Concrete blocker removed: before this change, parser drift could silently desynchronize the CLI surface from the catalog while leaving the contract seemingly valid, which meant an operator could hit `continue working without losing context` against a CLI contract that had drifted away from the canonical MVP path without an immediate failure.
+- Canonical demo-path mapping sentence: this `feat-commands` CLI-contract hardening slice strengthens `continue working without losing context` by preserving the operator-facing CLI command catalog contract that this step depends on while Textual remains disabled.
+- Concrete blocker removed: before this change, parser drift could silently desynchronize the CLI surface from the catalog while leaving the contract seemingly valid, so an operator could reach `continue working without losing context` with a CLI contract that had drifted away from the canonical catalog for that step.
 - Traceability note: reviewed implementation commit is `f8d860ed9f6299f0169c4f21321ac5f37c949fd3`; this refresh updates only `THREAD.md`, `THREAD_PACKET.md`, and `handoff_packets/feat-commands.md`.
 
 ## Tasks Completed
 1. Hardened `command_cli_contract()` so it validates canonical command names against `command_names()` instead of rebuilding a divergent list from parser lookup output.
 2. Preserved canonical CLI contract ordering by returning the validated catalog-order tuple directly.
 3. Added focused regression coverage in `tests/unit/test_commands_catalog.py` for canonical-order alignment and parser/catalog drift rejection.
-4. Refreshed the lane handoff metadata so it names the exact canonical demo-path step advanced, cites the traceable shared-test approval source, and records the re-run gate results for the command-catalog slice.
+4. Refreshed the lane handoff metadata so it names the exact canonical demo-path step advanced, narrows the claim to CLI-contract hardening, cites the traceable shared-test approval source, and records the re-run gate results for the command-catalog slice.
 
 ## Files Changed
 - `src/qual/commands/catalog.py`
@@ -29,15 +29,15 @@
 - `make ci` -> passed
 
 ## Risks / Blockers
-- Risks: future command-surface edits still need to preserve the parser/catalog lock so the engine-first CLI loop stays deterministic from `project-open` through `continue working`.
+- Risks: future command-surface edits still need to preserve the parser/catalog lock so the CLI contract for `continue working without losing context` stays deterministic while Textual remains disabled.
 - Blockers: none.
 
 ## Roadmap Item(s) Affected
-- `ROADMAP.md` Milestone 3 `Real workflow loop` because this slice removes a concrete blocker in the active CLI-first operator path by keeping the command surface deterministic at `continue working without losing context`.
-- `ROADMAP.md` canonical demo path because the concrete operator step strengthened is `continue working without losing context`, and this CLI-contract hardening slice keeps that step's active command contract deterministic while Textual remains disabled.
+- `AGENTS.md` current MVP narrowing rules because this packet now explicitly names the one canonical demo-path step advanced and limits the claim to the blocker removed at `continue working without losing context`.
+- `ROADMAP.md` Milestone 3 `Define and lock user-facing output contracts` because this is a narrow `feat-commands` command-catalog contract hardening slice, not a milestone-closure claim, and it keeps `continue working without losing context` deterministic while Textual remains disabled.
 
 ## Vision Capability Affected
-- `PRODUCT_VISION.md` capability 3 `Canonical engine contract` because the active CLI operator surface now rejects parser/catalog drift before it can silently change the command contract the operator relies on at `continue working without losing context`.
+- `PRODUCT_VISION.md` capability 4 `Operator-first control surface` because the active CLI operator surface now rejects parser/catalog drift before it can silently change the command contract the operator relies on for `continue working without losing context`.
 - `PRODUCT_VISION.md` near-term product truth because the CLI remains the active operator surface while Textual is disabled, and this change hardens one real operator step rather than claiming broader command reachability.
 
 ## Routing / Provider Impact Note
