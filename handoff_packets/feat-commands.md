@@ -28,7 +28,7 @@
 - This handoff now names the primary roadmap step advanced plus the downstream CLI loop surfaces protected by the same contract guard, states why the work is migration-safe compatibility hardening for the existing catalog instead of second-order cleanup, makes the alias-level parser-surface-drift scope explicit even when canonical names stay stable, and keeps the approval basis pinned to the live branch review basis plus its two implementation files only.
 - Packet regeneration and metadata refresh remain here for traceability and are intentionally excluded from the numbered implementation task list above.
 - This revalidation pass confirmed the packet still satisfies the reviewer-requested demo-path mapping, explicit high-risk rationale, and AGENTS-compliant task framing after a fresh green rerun of the required gates from the current branch tip.
-- This fixer execution re-checked the live worktree, confirmed the parser-surface guardrail was already present, and tightened the regression proof by mutating the live parser entrypoint constant directly instead of only patching helper functions.
+- This fixer execution re-checked the live worktree, confirmed the parser-surface guardrail plus direct live-parser regression were already present on the branch, and kept this packet aligned to that shipped implementation without widening scope.
 
 ## Files Changed
 - `src/qual/commands/catalog.py`
