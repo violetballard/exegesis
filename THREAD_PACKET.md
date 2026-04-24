@@ -117,3 +117,4 @@
 - Reviewed implementation range for this handoff: `d7fd5d200358287fa42a18d39e2b277463b9b69f..adfa8cdadd43747ffbcb612e4151e262b13e52ca`
 - Current packet-refresh branch head at validation time: `dd73909afaeada2b8d48e7eade98f9a968636936`
 - This fixer pass is metadata-only and does not change the reviewed implementation head or reviewed implementation range above.
+- Validation evidence on that branch head: `quality-test.sh` passed `tests/smoke.sh` and `216` unit tests, `typecheck-test.sh` passed `python3 -m compileall -q src`, and `make ci` completed successfully.
