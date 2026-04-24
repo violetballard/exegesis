@@ -5,8 +5,8 @@ Feature lane: `codex/feat-retrieval-fts`
 Reviewed implementation head: `141b2168208d78cbd25bc8fd63fcdbc34e6aa958`
 Reviewed implementation range: `adfa8cdadd43747ffbcb612e4151e262b13e52ca..141b2168208d78cbd25bc8fd63fcdbc34e6aa958`
 Canonical demo-path step advanced: `retrieve relevant material`
-Scope: branch-tip cumulative retrieval slice covering engine-facing query-builder delegation, deterministic retrieval payload and provenance normalization, FTS-first excerpt and scoped-query fail-closed behavior, and expanded shared regression coverage.
-Branch tip at start of this reviewer-fix refresh pass: `141b2168208d78cbd25bc8fd63fcdbc34e6aa958`
+Scope: branch-tip cumulative retrieval slice covering engine-facing query-builder delegation, deterministic retrieval payload and provenance normalization, a public excerpt lookup contract that resolves only canonical SQLite FTS hits, fail-closed behavior for noncanonical/PageIndex-only/scoped-query requests, and expanded shared regression coverage.
+Branch tip at start of this reviewer-fix refresh pass: `d0e0e7985de8549ea81831222e1543080a83cc65`
 
 Reviewed implementation files:
 
@@ -32,8 +32,9 @@ Stale packet mirrors in this worktree:
 
 Plan-alignment note:
 
-* This slice advances `retrieve relevant material` by keeping the engine retrieval path on the authoritative SQLite FTS flow, preserving deterministic payload and provenance state for downstream basket-promotion inputs, and rejecting unsupported excerpt and scoped-query requests on that same step.
-* Direct handoff statement: this handoff covers the actual branch tip and does not describe post-`adfa8cda` retrieval commits as metadata-only.
+* This slice advances `retrieve relevant material` by making the public excerpt lookup surface resolve only canonical SQLite FTS hits, so excerpt provenance stays deterministic and auditable for downstream engine retrieval flow.
+* PageIndex and embeddings are not required runtime paths for this MVP excerpt lookup contract; PageIndex-only and other noncanonical excerpt IDs fail closed on that public surface.
+* Direct handoff statement: this handoff corrects the visible branch-tip packet on top of later metadata-only packet refresh commits while preserving the reviewed retrieval implementation head and range recorded here.
 
 Budget classification:
 
@@ -66,4 +67,4 @@ Routing/provider impact:
 Remaining blocker:
 
 * This worktree cannot write `.codex/kickoff_packets/feat-retrieval-fts.md` or `.codex/lane_meta/feat-retrieval-fts.json` (`operation not permitted`), so those mirror files remain stale even though the visible handoff is corrected here.
-* 2026-04-24 fixer pass revalidated the visible branch-tip handoff and all required local gates against HEAD `141b2168208d78cbd25bc8fd63fcdbc34e6aa958`.
+* 2026-04-24 fixer pass corrected the visible branch-tip packet wording and metadata, then revalidated all required local gates against pre-fix HEAD `d0e0e7985de8549ea81831222e1543080a83cc65`.
