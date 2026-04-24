@@ -38,7 +38,7 @@
 - plan complete: scope stayed pinned to the reviewed implementation slice in `src/qual/commands/catalog.py` and `tests/unit/test_commands_catalog.py`
 - first green tests: `make scope-check`, `./quality-format.sh --check`, `./quality-lint.sh`, `./quality-test.sh`, `./typecheck-test.sh`, and `make ci` all passed for this handoff slice
 - before risky/shared file edit: the only shared path in scope was the approved regression file `tests/unit/test_commands_catalog.py`
-- ready for handoff: this packet explicitly maps the reviewed slice to the canonical `preview and apply or reject a patch` step, states that parser/catalog drift on the review/apply loop was the direct blocker removed for that step, and keeps the claim narrowed to command-catalog CLI compatibility while Textual remains disabled
+- ready for handoff: this packet explicitly maps the reviewed slice to the canonical `preview and apply or reject a patch` step, states that parser/catalog drift on the review/apply loop was the direct blocker removed for that step, and adds the direct Milestone 3 CLI-compatibility claim that the MVP loop remains executable through the CLI fallback while Textual stays disabled
 
 ### Handoff Packet
 
@@ -73,6 +73,7 @@
 - roadmap item(s) affected:
   - `ROADMAP.md` Milestone 3 `Real workflow loop`: this slice hardens the current manual CLI-first loop specifically at the `preview and apply or reject a patch` step by keeping the review/apply entrypoints deterministic and migration-safe while `feat-console` stays disabled and the MVP continues to rely on the CLI fallback surface
 - canonical demo-path step advanced: `preview and apply or reject a patch` on the active MVP engine-first path (`Engine stability`, `FTS-first retrieval`, `A2UI contracts with CLI fallback`)
+- Milestone 3 exit-criterion mapping: this slice keeps the CLI/operator fallback able to execute the current MVP review/apply loop while Textual remains disabled by making the `preview`, `apply`, and `reject` command surface deterministic and drift-checked
 - concrete canonical mapping: this slice advances the canonical `preview and apply or reject a patch` step in the current engine-first MVP path `project-open/bootstrap -> retrieval -> plan-or-revise -> apply-or-reject -> export-handoff` by hardening the exact review/apply parser surface the operator must use before `persist -> export-handoff`, while `feat-console` stays disabled and the MVP continues to depend on the CLI fallback surface
 - concrete canonical-path blocker removed: before this change, alias or ordering drift could let the operator reach the `preview`, `apply`, or `reject` entrypoints through parser surfaces that no longer matched the canonical catalog even though canonical command names still looked stable; this slice removes that direct blocker on `preview and apply or reject a patch` by forcing the CLI fallback review/apply step to fail fast on parser/catalog drift
 - non-claim boundary: this handoff does not claim broader CLI polish, new workflow branches, persistence progress, auditable-state/workflow progress, A2UI contract work, provider routing work, public workflow-wrapper exposure, or any new engine behavior
