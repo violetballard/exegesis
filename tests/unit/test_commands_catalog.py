@@ -129,6 +129,7 @@ from src.qual.commands import (
     command_demo_workflow_catalog,
     command_demo_workflow_branch_tokens,
     command_demo_workflow_compatibility_invocation_table,
+    command_demo_workflow_trusted_contract,
     command_demo_workflow_tokens,
     command_demo_workflow_lookup_table,
     command_demo_workflow_invocation_table,
@@ -189,6 +190,7 @@ from src.qual.commands import (
     command_mvp_workflow_contract,
     command_mvp_workflow_catalog,
     command_mvp_workflow_branch_tokens,
+    command_mvp_workflow_trusted_contract,
     command_mvp_workflow_tokens,
     command_mvp_workflow_lookup_table,
     command_mvp_workflow_invocation_table,
@@ -4068,6 +4070,43 @@ class CommandCatalogTests(unittest.TestCase):
         self.assertEqual(
             command_mvp_workflow_trusted_tokens("discard"),
             command_demo_workflow_trusted_tokens("reject"),
+        )
+
+    def test_command_demo_workflow_trusted_contract_bundles_the_stable_demo_loop(self) -> None:
+        contract = command_demo_workflow_trusted_contract("accept")
+        self.assertEqual(contract, command_mvp_workflow_trusted_contract("apply"))
+        self.assertEqual(contract.decision_token, "apply-patch")
+        self.assertEqual(
+            contract.branch_tokens,
+            ("project-open", "retrieval", "patch-review", "apply-patch", "persist", "export-handoff"),
+        )
+        self.assertEqual(
+            tuple(entry.token for entry in contract.entries),
+            command_demo_workflow_trusted_tokens("apply"),
+        )
+        self.assertEqual(
+            contract.invocation_table,
+            command_demo_workflow_trusted_invocation_table("approve"),
+        )
+        self.assertEqual(contract.entries[0].source, "preferred")
+        self.assertEqual(contract.entries[3].source, "preferred")
+        self.assertEqual(contract.entries[-1].token, "export-handoff")
+
+        reject_contract = command_demo_workflow_trusted_contract("discard")
+        self.assertEqual(reject_contract.decision_token, "reject-patch")
+        self.assertEqual(reject_contract.branch_tokens[3], "reject-patch")
+        self.assertEqual(
+            tuple(entry.token for entry in reject_contract.entries),
+            command_demo_workflow_trusted_tokens("reject"),
+        )
+        self.assertEqual(
+            reject_contract.invocation_table,
+            command_demo_workflow_trusted_invocation_table("decline"),
+        )
+        self.assertEqual(reject_contract.entries[3].token, "reject-patch")
+        self.assertEqual(
+            reject_contract.entries[3].argv,
+            ("terminal", "--operation-kind", "terminal_tool_orchestration", "--message", "Reject patch"),
         )
 
     def test_command_demo_workflow_contract_tracks_custom_specs(self) -> None:

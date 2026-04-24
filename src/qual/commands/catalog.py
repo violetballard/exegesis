@@ -371,6 +371,14 @@ class CommandDemoWorkflowInvocationContract:
 
 
 @dataclass(frozen=True)
+class CommandDemoWorkflowTrustedContract:
+    decision_token: str
+    branch_tokens: tuple[str, ...]
+    entries: tuple[CommandTrustedSurfaceEntry, ...]
+    invocation_table: tuple[tuple[str, tuple[str, ...]], ...]
+
+
+@dataclass(frozen=True)
 class ResolvedCommand:
     token: str
     normalized_token: str
@@ -3605,10 +3613,7 @@ def command_demo_workflow_trusted_invocation_plan(
     specs: tuple[CommandSpec, ...] = COMMAND_SPECS,
 ) -> tuple[CommandTrustedSurfaceEntry, ...]:
     """Return the trusted demo verbs for the full apply/reject branch in workflow order."""
-    return tuple(
-        _trusted_surface_entry_for_workflow_token(specs, token)
-        for token in _demo_workflow_branch_tokens(specs, decision_token)
-    )
+    return command_demo_workflow_trusted_contract(decision_token, specs).entries
 
 
 def command_mvp_workflow_trusted_invocation_plan(
@@ -3640,10 +3645,7 @@ def command_demo_workflow_trusted_invocation_table(
     specs: tuple[CommandSpec, ...] = COMMAND_SPECS,
 ) -> tuple[tuple[str, tuple[str, ...]], ...]:
     """Flatten the trusted demo apply/reject branch into parser-ready argv."""
-    return tuple(
-        (entry.token, entry.argv)
-        for entry in command_demo_workflow_trusted_invocation_plan(decision_token, specs)
-    )
+    return command_demo_workflow_trusted_contract(decision_token, specs).invocation_table
 
 
 def command_mvp_workflow_trusted_invocation_table(
@@ -3652,6 +3654,31 @@ def command_mvp_workflow_trusted_invocation_table(
 ) -> tuple[tuple[str, tuple[str, ...]], ...]:
     """Flatten the current MVP trusted apply/reject branch into parser-ready argv."""
     return command_demo_workflow_trusted_invocation_table(decision_token, specs)
+
+
+def command_demo_workflow_trusted_contract(
+    decision_token: str,
+    specs: tuple[CommandSpec, ...] = COMMAND_SPECS,
+) -> CommandDemoWorkflowTrustedContract:
+    canonical_decision_token = _demo_workflow_branch_token(specs, decision_token)
+    branch_tokens = _demo_workflow_branch_tokens(specs, canonical_decision_token)
+    entries = tuple(
+        _trusted_surface_entry_for_workflow_token(specs, token)
+        for token in branch_tokens
+    )
+    return CommandDemoWorkflowTrustedContract(
+        decision_token=canonical_decision_token,
+        branch_tokens=branch_tokens,
+        entries=entries,
+        invocation_table=tuple((entry.token, entry.argv) for entry in entries),
+    )
+
+
+def command_mvp_workflow_trusted_contract(
+    decision_token: str,
+    specs: tuple[CommandSpec, ...] = COMMAND_SPECS,
+) -> CommandDemoWorkflowTrustedContract:
+    return command_demo_workflow_trusted_contract(decision_token, specs)
 
 
 def command_demo_workflow_invocation_contract(
