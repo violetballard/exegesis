@@ -15,7 +15,7 @@
 
 - Branch: `codex/feat-commands`
 - Lane/owned paths: `src/qual/commands/**`
-- Scope goal: make the canonical `preview and apply or reject a patch` step more real by keeping the operator-visible `diff-preview` review entrypoint contract locked to the parser/catalog boundary during the current engine-first CLI loop while Textual remains disabled.
+- Scope goal: make the canonical `preview and apply or reject a patch` step more real by keeping the operator-visible `diff-preview` review entrypoint contract locked to the parser/catalog boundary during the current engine-first CLI loop while Textual remains disabled, so deterministic CLI contract validation preserves the Milestone 3 operator-facing command surface while the package/layout migration is in flight.
 - Risk reason: the reviewed slice touches the command contract in `src/qual/commands/catalog.py` and a shared-by-approval regression test file, and the current implementation basis also exposes default workflow aliases in the same files.
 
 ### Budget
@@ -73,7 +73,7 @@
 - Smoke-test evidence:
   - `tests/unit/test_commands_catalog.py` proves the live parser surface keeps `diff-preview` before `diff` for the review step and fails fast when `diff-preview` disappears, reorders, or expands while `diff` still resolves to the same canonical command.
   - The same test module proves the drift checks still fail fast after parser cache warmup.
-- Plan-alignment note: while Textual remains disabled, the CLI fallback still has to carry the operator path. This slice makes the `preview and apply or reject a patch` step more real by locking the review-step token surface to the same current engine-first Milestone 3 loop.
+- Plan-alignment note: while Textual remains disabled, the CLI fallback still has to carry the operator path. This slice makes the `preview and apply or reject a patch` step more real by locking the review-step token surface to the same current engine-first Milestone 3 loop, and it does so specifically so deterministic CLI contract validation preserves the operator-facing command surface required during the package/layout migration now in flight.
 
 ## Approved Exception Note
 
@@ -135,7 +135,8 @@
 
 - `ROADMAP.md` MVP focus: `feat-commands` remains one of the active implementation lanes in the current MVP push.
 - `ROADMAP.md` Milestone 3 `Product Readiness`: this slice contributes to `Define and lock user-facing output contracts`, specifically by keeping the patch-review command surface intentional and stable inside the current CLI loop `project-open -> retrieval -> preview and apply or reject a patch -> persist -> export-handoff`.
-- Scope-tightening statement: this is engine-contract hardening for the review step plus thin alias forwards for the default workflow/trusted-surface accessors, not broader workflow expansion.
+- Scope-tightening statement: this is engine-first MVP contract hardening for the review step plus thin alias forwards for the default workflow/trusted-surface accessors, not broader workflow expansion.
+- Milestone 3 support note: deterministic CLI contract validation preserves the operator-facing command surface required by Milestone 3 while the package/layout migration is in flight.
 
 ### Vision capability affected
 

@@ -11,7 +11,7 @@
 - Canonical demo-path step advanced: `preview and apply or reject a patch`
 - Required AGENTS sentence: this change makes `preview and apply or reject a patch` more real by forcing the review-step public command surface to stay catalog-locked and fail closed before the operator reaches the wrong CLI verb set.
 - Concrete blocker removed: parser/catalog drift can no longer silently drop the public `diff-preview` token and leave only the still-resolvable alias `diff`, which keeps the CLI fallback deterministic at the patch-review step of the current MVP loop.
-- Plan-alignment statement: this is one review-step contract-hardening slice inside the current engine-first Milestone 3 loop. It does not claim new retrieval, persistence, export, audit-path, or broader workflow behavior.
+- Plan-alignment statement: this is one engine-first MVP review-step contract-hardening slice inside the current Milestone 3 loop. Deterministic CLI contract validation preserves the operator-facing command surface while the package/layout migration is in flight. It does not claim new retrieval, persistence, export, audit-path, or broader workflow behavior.
 - Packet refresh traceability: later `docs(commands)` commits are metadata-only and update only `handoff_packets/feat-commands.md`, `THREAD_PACKET.md`, and `THREAD.md`.
 - Roadmap item(s) affected:
   - `ROADMAP.md` MVP focus active lane: `feat-commands`

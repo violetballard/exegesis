@@ -30,7 +30,7 @@ Canonical handoff contract lives in `THREAD_PACKET.md`.
 - Required handoff field now called out explicitly:
   - `Canonical demo-path step advanced: preview and apply or reject a patch`
 - Explicit re-review statement:
-  - this slice advances the canonical `preview and apply or reject a patch` step by keeping the public `diff-preview` review entrypoint catalog-locked inside the current engine-first Milestone 3 loop
+  - this slice advances the canonical `preview and apply or reject a patch` step by keeping the public `diff-preview` review entrypoint catalog-locked inside the current engine-first Milestone 3 loop so deterministic CLI contract validation preserves the operator-facing command surface while the package/layout migration is in flight
 - Scope note:
   - this packet advances the patch-review command contract and adds alias-forwarding helpers that mirror the current MVP workflow/trusted surface; it does not claim new retrieval, patch application, persistence, export, audit-path, or broader UI behavior
 - Current engine-first MVP path statement:
