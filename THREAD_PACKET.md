@@ -11,7 +11,7 @@
 - Canonical demo-path step advanced: `retrieve relevant material`
 - Demo-path sentence: this slice advances `retrieve relevant material` by making excerpt lookup auditable and fail-closed on the FTS-first engine path used before basket promotion.
 - Canonical demo-path strengthening statement: this slice makes excerpt lookup auditable and fail-closed on the FTS-first engine path used before basket promotion.
-- Reviewer-required plan-alignment statement: this reviewed slice is a narrow Milestone 3 retrieval contract correction, not a lane-completion claim; `fetch_excerpt` now fails closed to the canonical FTS lookup path, which strengthens the deterministic retrieval/provenance contract for the engine-side Milestone 3 loop.
+- Reviewer-required plan-alignment statement: this reviewed slice is a narrow Milestone 3 retrieval contract correction, not a lane-completion claim; `fetch_excerpt` now resolves only through the canonical FTS lookup path, and the shared approved regression test proves PageIndex-only excerpt ids fail closed, which strengthens the deterministic retrieval/provenance contract for the engine-side Milestone 3 loop.
 - Milestone mapping: `Milestone 3: Real workflow loop`
 - FTS-first gate statement: the reviewed implementation range remains FTS-first for the MVP; PageIndex and embeddings remain deferred or compatibility paths and are not required runtime retrieval paths in this handoff.
 
@@ -78,7 +78,7 @@
 
 ## Tasks Completed
 
-1. Removed the PageIndex fallback from `fetch_excerpt` so the public excerpt lookup surface now resolves through the canonical FTS-only path.
+1. Removed the PageIndex fallback from `fetch_excerpt` so the public excerpt lookup surface now resolves only through the canonical FTS lookup path.
 2. Added approved shared regression coverage in `tests/unit/test_unified_retrieval.py` proving PageIndex-only excerpt ids fail closed with `KeyError`.
 3. Reissued the writable handoff metadata in the High-Risk form required for shared-file work and recorded the blocked `.codex` mirror files explicitly.
 4. Re-ran the required local gates on the packet-refresh branch head and recorded the results for re-review.
