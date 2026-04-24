@@ -87,10 +87,13 @@
   - `export-handoff`
 - Canonical demo-path step advanced:
   - `open project/document` via the `project-open` operator token
+- Concrete Milestone / vision claim this supports:
+  - `ROADMAP.md` Milestone 5 exit criterion: CLI can execute the MVP flow against the same engine `PolicyGate`, and this slice keeps that CLI-first loop safe by locking the `project-open` command contract while Textual remains disabled
+  - `PRODUCT_VISION.md` capability 4 (`Operator-first control surface`): CLI remains a first-class surface for development and reliability, so the `project-open` contract cannot be allowed to drift silently
 - Broader CLI operator surface kept stable:
   - `project-open -> retrieval -> patch-review -> apply-patch/reject-patch -> persist -> export-handoff`
 - Concrete blocker removed:
-  - `command_cli_contract()` now fails fast when accepted CLI entrypoints drift behind unchanged canonical command names, including alias-only substitution, token removal/addition, or entrypoint reorder. That removes the concrete blocker on the `open project/document` step because the `project-open` parser surface can no longer silently diverge from the catalog projection.
+  - This prevents parser/catalog drift from silently changing the operator command surface for the CLI-first MVP loop, including the `project-open` command used for `open project/document`.
 - Broader workflow context:
   - the same reviewed implementation also keeps shim-backed workflow metadata explicit for `apply-patch`, `reject-patch`, `persist`, and `export-handoff` while Textual stays disabled, but that is supporting context rather than the named demo-path step advanced for this handoff.
 - Why this is not second-order work under the current narrowing rules:
@@ -136,16 +139,15 @@
 
 ### Roadmap item(s) affected
 
-- `ROADMAP.md` Milestone 1 (`Bootstrap Flow Stabilization`): hardens the `open project/document` entrypoint and the broader CLI smoke flow by keeping the command workflow metadata deterministic.
-- `ROADMAP.md` Milestone 2 (`Test Hardening`): adds focused regression coverage for the corrected command-contract metadata.
-- `ROADMAP.md` active MVP emphasis `feat-commands`: keeps the CLI-first command surface stable for the engine-first MVP loop.
+- `ROADMAP.md` Milestone 5 (`A2UI Presentation Layer`) exit criterion: supports `CLI can execute the MVP flow (vault -> context -> run -> patch -> export) against the same engine PolicyGate` by keeping the CLI-first `project-open` contract deterministic while the interactive Textual client remains disabled.
+- `ROADMAP.md` active MVP emphasis `feat-commands`: keeps the CLI-first command surface stable for the engine-first MVP loop while Textual remains disabled.
 - Canonical demo-path step advanced: `open project/document` via the `project-open` operator token.
 - Canonical smoke-route coverage kept explicit: `project-open -> retrieval -> patch-review -> apply-patch/reject-patch -> persist -> export-handoff`.
-- Concrete blocker removed on that step: catalog-entrypoint projection drift on the exposed CLI contract now fails at validation time for `project-open` and the rest of the exposed CLI surface instead of silently leaving stale catalog-backed operator entrypoints in place through alias-only substitution, token removal/addition, or entrypoint reorder behind unchanged canonical command names.
+- Concrete blocker removed on that step: this prevents parser/catalog drift from silently changing the operator command surface for the CLI-first MVP loop, including the `project-open` command used for `open project/document`.
 
 ### Vision capability affected
 
-- `PRODUCT_VISION.md` capability 4 (`Operator-first control surface`): preserves a stable CLI operator surface for `open project/document` and the rest of the MVP loop while `Exegesis Console` remains disabled.
+- `PRODUCT_VISION.md` capability 4 (`Operator-first control surface`): preserves the required CLI compatibility for `open project/document` and the rest of the MVP loop while `Exegesis Console` remains disabled and CLI remains the first-class operator surface.
 
 ### Routing / Provider Impact Note
 

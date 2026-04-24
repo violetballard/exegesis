@@ -32,14 +32,15 @@ Canonical handoff contract lives in `THREAD_PACKET.md`.
 - Roadmap / vision alignment:
   - `ROADMAP.md` Milestone 1 (`Bootstrap Flow Stabilization`): hardens the `open project/document` entrypoint and the broader CLI-first workflow contract used by the current smoke path
   - `ROADMAP.md` Milestone 2 (`Test Hardening`): adds focused regression coverage for the shim-backed command metadata
-  - `ROADMAP.md` active MVP emphasis `feat-commands`: keeps the demo-path command surface deterministic for the engine-first MVP
-  - `PRODUCT_VISION.md` capability 4 (`Operator-first control surface`): preserves a stable CLI operator surface for `open project/document` and the rest of the MVP loop while Textual remains disabled
+  - `ROADMAP.md` Milestone 5 (`A2UI Presentation Layer`) exit criterion: supports `CLI can execute the MVP flow (vault -> context -> run -> patch -> export) against the same engine PolicyGate` by keeping the CLI-first command surface deterministic while Textual remains disabled
+  - `ROADMAP.md` active MVP emphasis `feat-commands`: keeps the demo-path command surface deterministic for the engine-first MVP while Textual remains disabled
+  - `PRODUCT_VISION.md` capability 4 (`Operator-first control surface`): preserves the required CLI compatibility for `open project/document` and the rest of the MVP loop while Textual remains disabled
 - Scope / risk note:
   - lane-owned implementation: `src/qual/commands/catalog.py`
   - approved shared regression file: `tests/unit/test_commands_catalog.py`
   - integrator-locked files touched: none
   - canonical demo-path step advanced: `open project/document` via the `project-open` operator token
-  - concrete blocker removed on that step: `command_cli_contract()` now rejects catalog-entrypoint projection drift in the accepted CLI entrypoints for `project-open` and the rest of the exposed CLI surface, instead of allowing alias-only substitutions, token additions/removals, or entrypoint reorder to pass behind unchanged canonical command names
+  - concrete blocker removed on that step: this prevents parser/catalog drift from silently changing the operator command surface for the CLI-first MVP loop, because `command_cli_contract()` now rejects catalog-entrypoint projection drift in the accepted CLI entrypoints for `project-open` and the rest of the exposed CLI surface instead of allowing alias-only substitutions, token additions/removals, or entrypoint reorder to pass behind unchanged canonical command names
   - broader CLI MVP loop context preserved: shim-backed workflow metadata for `apply-patch`, `reject-patch`, `persist`, and `export-handoff` remains explicit while Textual stays disabled
   - required gates passed: `make scope-check`, `./quality-format.sh --check`, `./quality-lint.sh`, `./quality-test.sh`, `./typecheck-test.sh`, `make ci`
   - metadata refreshed for this handoff: `THREAD.md`, `THREAD_PACKET.md`
