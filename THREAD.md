@@ -11,6 +11,11 @@ Canonical handoff contract lives in `THREAD_PACKET.md`.
 - Reviewed implementation files:
   - `src/qual/commands/catalog.py`
   - `tests/unit/test_commands_catalog.py`
+- Metadata-only packet refresh commit:
+  - `9dfb3660eb834d0003db16091030163bf31f3b35`
+- Metadata-only refresh files:
+  - `THREAD.md`
+  - `THREAD_PACKET.md`
 - Canonical demo-path step advanced:
   - `open project/document`
 - Active MVP operator path strengthened:

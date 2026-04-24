@@ -5,6 +5,10 @@
 - Commit: `538095c47a6bc5f971e9811b83745571915e4268`
 - Packet refresh role: `reviewer-fix handoff refresh`
 - Packet refresh basis: `updated on 2026-04-23 after adding the explicit diff parser-surface regression and revalidating the required gates`
+- Metadata-only packet refresh commit: `9dfb3660eb834d0003db16091030163bf31f3b35`
+- Metadata-only refresh files:
+  - `THREAD.md`
+  - `THREAD_PACKET.md`
 
 ## Thread Kickoff (High-Risk)
 
