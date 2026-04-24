@@ -15,7 +15,7 @@ Canonical handoff contract lives in `THREAD_PACKET.md`.
 - Current packet refresh traceability:
   - the packet-refresh commit updates only `THREAD.md`, `THREAD_PACKET.md`, and `handoff_packets/feat-commands.md`
 - Post-fixer verification note:
-- `2026-04-24T10:54:10Z UTC` full required gate rerun confirmed this packet correction matches the current branch state while the reviewed implementation basis remains pinned to `8e747334f4da2d5486e15088979a36184c8c9116`
+- `2026-04-24T11:01:42Z UTC` full required gate rerun confirmed this packet correction matches the current branch state while the reviewed implementation basis remains pinned to `8e747334f4da2d5486e15088979a36184c8c9116`
 - High-risk kickoff context:
   - scope goal: make the canonical `continue working without losing context` step more real by removing a concrete blocker at the CLI fallback boundary: silent parser/catalog drift on the operator-visible `project-open` / `retrieval` / `patch-review` command surface
   - risk reason: the reviewed slice touches the command contract in `src/qual/commands/catalog.py` and a shared-by-approval regression test file
@@ -62,6 +62,7 @@ Canonical handoff contract lives in `THREAD_PACKET.md`.
   - lane-owned implementation path: `src/qual/commands/catalog.py`
   - approved shared-by-approval exception: `tests/unit/test_commands_catalog.py`
   - approval source: `THREAD_OWNERSHIP.md` keeps the test outside the lane-owned path and `scripts/scope-check.sh` `is_approved_shared_test()` allowlists it for `codex/feat-commands*`
+  - approval reason: the shared regression is the evidence for the same `continue working without losing context` mapping claimed in this packet, because it proves the supporting `project-open` / `retrieval` / `patch-review` smoke path stays locked to the declared CLI contract
   - integrator-locked edits are not part of this slice
 - Required gates for the reviewed slice:
   - `make scope-check`

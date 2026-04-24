@@ -5,7 +5,7 @@
 - Commit: `8e747334f4da2d5486e15088979a36184c8c9116`
 - Packet refresh role: `fixer reviewer packet verification refresh`
 - Packet refresh basis: `preserved the narrowed reviewer-fix packet wording, then reran the full required gate set and refreshed the metadata-only handoff timestamps without widening the reviewed implementation scope`
-- Post-fixer verification: `2026-04-24T10:54:10Z UTC full required gate rerun confirmed this packet correction still matches the current branch state; the current refresh is metadata-only and keeps the reviewed implementation scope pinned to 8e747334f4da2d5486e15088979a36184c8c9116`
+- Post-fixer verification: `2026-04-24T11:01:42Z UTC full required gate rerun confirmed this packet correction still matches the current branch state; the current refresh is metadata-only and keeps the reviewed implementation scope pinned to 8e747334f4da2d5486e15088979a36184c8c9116`
 - Packet-only refresh files:
   - `THREAD.md`
   - `THREAD_PACKET.md`
@@ -46,7 +46,8 @@
 
 ### High-Risk Audit Note
 
-- Shared-test exception reason: the regression proving contract drift rejection lives in `tests/unit/test_commands_catalog.py`, which is shared-by-approval rather than lane-owned.
+- Shared-test exception reason: the regression proving contract drift rejection for the `continue working without losing context` step lives in `tests/unit/test_commands_catalog.py`, because that shared test is where the supporting `project-open` / `retrieval` / `patch-review` smoke path is pinned to the catalog-locked CLI surface.
+- Shared-test exception statement: the only non-owned edit stays justified by that same mapping and blocker removal, because `tests/unit/test_commands_catalog.py` is the evidence that the supporting smoke path remains deterministic on the CLI fallback route instead of silently drifting away from `continue working without losing context`.
 - Command-contract risk reason: this slice hardens the operator-visible parser/catalog boundary in `src/qual/commands/catalog.py`, so the stricter high-risk kickoff template applied even though the code change stayed narrow.
 - Auditability result: the risk reason, early review triggers, stop triggers, scope goal, 4-task cap, and approval basis are now all recorded directly in the handoff artifacts for re-review.
 
@@ -101,7 +102,7 @@
 - Approval owner: the integrator-managed branch policy for `codex/feat-commands`
 - Approval source: `scripts/scope-check.sh` `is_approved_shared_test()` branch allowlist for `codex/feat-commands*`
 - Additional ownership source: `THREAD_OWNERSHIP.md` keeps lane ownership on `src/qual/commands/**`; the non-owned test edit is a shared-by-approval exception with explicit branch allowlist approval, not an integrator-locked edit
-- Approval basis: shared regression coverage is required to prove the review-step parser contract
+- Approval basis: shared regression coverage is required to prove the same `continue working without losing context` mapping claimed by this packet, specifically that the supporting `project-open` / `retrieval` / `patch-review` smoke path stays catalog-locked on the CLI fallback route while Textual remains disabled
 - Scope-check allowance used: `not required`
 - Integrator-locked edits in this slice: `none`
 
@@ -132,7 +133,7 @@
 - `./quality-test.sh`: `PASSED`
 - `./typecheck-test.sh`: `PASSED`
 - `make ci`: `PASSED`
-- Gate attribution note: these gates were rerun at `2026-04-24T10:54:10Z UTC` against the current branch state while the reviewed implementation scope remains pinned to `8e747334f4da2d5486e15088979a36184c8c9116`; the current packet refresh itself is metadata-only.
+- Gate attribution note: these gates were rerun at `2026-04-24T11:01:42Z UTC` against the current branch state while the reviewed implementation scope remains pinned to `8e747334f4da2d5486e15088979a36184c8c9116`; the current packet refresh itself is metadata-only.
 
 ### Risks / Blockers
 
@@ -175,6 +176,6 @@
 
 - Shared-by-approval edits: `YES`
 - Shared-by-approval path included: `tests/unit/test_commands_catalog.py`
-- Shared-file approval basis: `THREAD_OWNERSHIP.md` leaves `tests/unit/test_commands_catalog.py` outside the lane-owned path, and `scripts/scope-check.sh` `is_approved_shared_test()` allowlists that shared test file for `codex/feat-commands*`
+- Shared-file approval basis: `THREAD_OWNERSHIP.md` leaves `tests/unit/test_commands_catalog.py` outside the lane-owned path, and `scripts/scope-check.sh` `is_approved_shared_test()` allowlists that shared test file for `codex/feat-commands*`. The exception is used only because that shared regression is the proof for the same `continue working without losing context` mapping claimed above: it keeps the supporting `project-open` / `retrieval` / `patch-review` smoke path catalog-locked while Textual remains disabled.
 - Integrator-locked edits: `NO`
 - Integrator-locked paths included: `none`
