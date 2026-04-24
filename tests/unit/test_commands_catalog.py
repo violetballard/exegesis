@@ -4,6 +4,7 @@ import unittest
 from dataclasses import replace
 from unittest.mock import patch
 
+import src.main as qual_main
 import src.qual.cli as qual_cli
 import src.qual.commands.catalog as command_catalog
 import src.qual.commands.workflow as command_workflow_module
@@ -572,6 +573,25 @@ class CommandCatalogTests(unittest.TestCase):
         ):
             with self.assertRaisesRegex(ValueError, "Command CLI catalog entrypoint projection is inconsistent"):
                 parse_args(["bootstrap"])
+        command_catalog.command_cli_contract.cache_clear()
+
+    def test_main_dispatch_rejects_drift_from_live_cli_module_surface(self) -> None:
+        command_catalog.command_cli_contract.cache_clear()
+        with patch(
+            "src.qual.cli.parser_cli_entrypoints",
+            return_value=(
+                ("bootstrap", ("bootstrap",)),
+                ("diff-preview", ("diff-preview",)),
+                ("context-basket", ("context-basket",)),
+                ("terminal", ("terminal",)),
+            ),
+        ):
+            with patch("sys.argv", ["qual-bootstrap", "bootstrap"]):
+                with self.assertRaisesRegex(
+                    ValueError,
+                    "Command CLI catalog entrypoint projection is inconsistent",
+                ):
+                    qual_main._dispatch()
         command_catalog.command_cli_contract.cache_clear()
 
     def test_command_cli_contract_rejects_drift_from_live_cli_module_surface(self) -> None:
