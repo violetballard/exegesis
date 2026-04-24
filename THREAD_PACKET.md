@@ -2,9 +2,9 @@
 
 - Branch name: `codex/feat-retrieval-fts`
 - Packet role: `actual-branch-tip handoff with metadata-only refresh`
-- Current branch tip before this packet refresh commit: `e013b29a9f9706424ad6b266a63850eb85eac440`
-- Reviewed implementation head: `adfa8cdadd43747ffbcb612e4151e262b13e52ca`
-- Reviewed implementation range: `d7fd5d200358287fa42a18d39e2b277463b9b69f..adfa8cdadd43747ffbcb612e4151e262b13e52ca`
+- Current branch tip before this packet refresh commit: `61b9c36f4b42898c7f86440600d8e02ec34a0b2a`
+- Reviewed implementation head: `a9eaaaa79afcd57cde90738adee76e52cfc29adb`
+- Reviewed implementation range: `d7fd5d200358287fa42a18d39e2b277463b9b69f..a9eaaaa79afcd57cde90738adee76e52cfc29adb`
 - Canonical demo-path step advanced: `retrieve relevant material`
 - Canonical demo-path statement: This branch advances `retrieve relevant material` by forcing excerpt lookup through the canonical SQLite FTS path and rejecting PageIndex-only excerpt IDs, which hardens the Milestone 3 retrieval surface used immediately before basket promotion and downstream workflow use.
 
@@ -16,7 +16,7 @@
 
 - Branch: `codex/feat-retrieval-fts`
 - Lane/owned paths: `src/qual/retrieval/**`, `src/qual/engine/retrieval/**`, `engine/src/exegesis_engine/retrieval/**`
-- Scope goal: hand off the reviewer-approved narrowed runtime implementation through `adfa8cda` and keep the packet refresh itself limited to metadata files.
+- Scope goal: hand off the truthful cumulative retrieval implementation through `a9eaaaa7` and keep the packet refresh itself limited to metadata files.
 - Risk reason: this branch includes approved shared regression coverage in `tests/unit/test_unified_retrieval.py`, so the handoff is treated as high-risk and summarized under the 4-task cap.
 
 ### Budget
@@ -28,14 +28,14 @@
 
 ### Planned Tasks (max 4)
 
-1. Re-anchor the packet to the reviewer-approved narrowed implementation range `d7fd5d20..adfa8cda`.
+1. Re-anchor the packet to the truthful cumulative implementation range `d7fd5d20..a9eaaaa7`.
 2. State explicitly that this work advances `retrieve relevant material` by forcing excerpt lookup through the canonical SQLite FTS path and rejecting PageIndex-only excerpt IDs before basket promotion and downstream workflow use.
 3. Keep the scope and roadmap mapping tied only to Milestone 3 FTS-first retrieval and retrieval-first context handling.
 4. Rerun and report `make scope-check`, `./quality-format.sh --check`, `./quality-lint.sh`, `./quality-test.sh`, `./typecheck-test.sh`, and `make ci` for the exact handoff content.
 
 ### Checkpoint Status
 
-- `plan complete`: the handoff is re-anchored to `d7fd5d20..adfa8cda`.
+- `plan complete`: the handoff is re-anchored to `d7fd5d20..a9eaaaa7`.
 - `first green tests`: recorded after rerunning the required gate stack for this handoff refresh.
 - `before risky/shared file edit`: the branch still includes approved shared regression coverage in `tests/unit/test_unified_retrieval.py`.
 - `ready for handoff`: the reviewer-facing packet files and gate summary agree on the same implementation head, implementation range, and canonical demo-path statement.
@@ -48,18 +48,20 @@
 
 ## Reviewed Scope Boundary
 
-- Reviewed implementation range: `d7fd5d200358287fa42a18d39e2b277463b9b69f..adfa8cdadd43747ffbcb612e4151e262b13e52ca`
+- Reviewed implementation range: `d7fd5d200358287fa42a18d39e2b277463b9b69f..a9eaaaa79afcd57cde90738adee76e52cfc29adb`
 - Reviewed implementation files:
+- `src/qual/engine/retrieval/payload.py`
 - `src/qual/retrieval/service.py`
 - `tests/unit/test_unified_retrieval.py`
 - Metadata-only commits after the reviewed implementation head and before this fixer refresh:
-- `31b91107` -> `THREAD_PACKET.md`, `docs/gate_passed.txt`
 - `94a1fb6b` -> `THREAD_PACKET.md`, `docs/gate_passed.txt`
 - `e1530c68` -> `THREAD_PACKET.md`, `docs/gate_passed.txt`
 - `422d1fda` -> `THREAD_PACKET.md`, `docs/gate_passed.txt`
 - `02f89443` -> `THREAD_PACKET.md`, `docs/gate_passed.txt`
 - `08cd31e3` -> `THREAD_PACKET.md`, `docs/gate_passed.txt`
 - `ef827a8a` -> `THREAD_PACKET.md`, `docs/gate_passed.txt`
+- `e013b29a` -> `THREAD_PACKET.md`, `docs/gate_passed.txt`
+- `61b9c36f` -> `THREAD_PACKET.md`, `docs/gate_passed.txt`
 - Current metadata-only packet refresh files:
 - `THREAD_PACKET.md`
 - `docs/gate_passed.txt`
@@ -79,7 +81,8 @@
 
 ## Files Changed
 
-- Reviewed implementation files in `d7fd5d200358287fa42a18d39e2b277463b9b69f..adfa8cdadd43747ffbcb612e4151e262b13e52ca`:
+- Reviewed implementation files in `d7fd5d200358287fa42a18d39e2b277463b9b69f..a9eaaaa79afcd57cde90738adee76e52cfc29adb`:
+- `src/qual/engine/retrieval/payload.py`
 - `src/qual/retrieval/service.py`
 - `tests/unit/test_unified_retrieval.py`
 - Metadata-only refresh files in this fixer slice:
@@ -98,10 +101,10 @@
 ## Reviewer Fix Closure
 
 1. The packet explicitly states which canonical demo-path step this work advances: `retrieve relevant material`, via the FTS-only excerpt fail-closed contract that hardens the retrieval surface used before basket promotion and downstream workflow use.
-2. The packet keeps the reviewed implementation range narrowed to `d7fd5d200358287fa42a18d39e2b277463b9b69f..adfa8cdadd43747ffbcb612e4151e262b13e52ca`.
+2. The packet cites the truthful cumulative reviewed implementation range `d7fd5d200358287fa42a18d39e2b277463b9b69f..a9eaaaa79afcd57cde90738adee76e52cfc29adb`, which matches the latest non-doc retrieval commit on this branch before the docs-only suffix.
 3. The scope and roadmap mapping stay tied only to Milestone 3 FTS-first retrieval and retrieval-first context handling.
 4. The current refresh commit is metadata-only because its diff is limited to packet files.
-5. This fixer pass revalidated the reviewer-approved narrowed slice `d7fd5d20..adfa8cda` after the reviewer requested an explicit canonical demo-path statement and task-to-step linkage.
+5. This fixer pass revalidated the truthful `d7fd5d20..a9eaaaa7` retrieval slice after the reviewer requested explicit canonical demo-path statement and task-to-step linkage.
 6. The metadata-only history above is reconciled commit-by-commit, and each cited refresh commit touched only `THREAD_PACKET.md` plus `docs/gate_passed.txt`.
 7. The task list is now explicitly mapped back to `retrieve relevant material`, so the reviewer no longer has to infer how the excerpt fallback removal hardens the Milestone 3 retrieval surface.
 
