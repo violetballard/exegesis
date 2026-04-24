@@ -6,7 +6,7 @@ Packet role: `shared high-risk branch-tip handoff refresh`
 Reviewed implementation head before this fixer commit: `39550c18399a5cba2ffad3e23e5b0d5078b416df`
 Reviewed implementation range: `d7fd5d200358287fa42a18d39e2b277463b9b69f..39550c18399a5cba2ffad3e23e5b0d5078b416df`
 Canonical demo-path step advanced: `retrieve relevant material`
-Plan-alignment statement: this branch advances `retrieve relevant material` by keeping excerpt lookup, query normalization, provenance reconstruction, and payload rebuilding on the canonical SQLite FTS-first path while rejecting noncanonical and binary lookup inputs without reintroducing PageIndex or embeddings as required runtime paths.
+Plan-alignment statement: this slice advances `retrieve relevant material` by strengthening the Milestone 3 canonical SQLite FTS-first path for excerpt lookup, query normalization, provenance reconstruction, and payload rebuilding while rejecting noncanonical and binary lookup inputs without reintroducing PageIndex or embeddings as required runtime paths.
 FTS-first confirmation: SQLite FTS remains authoritative for the MVP across the reviewed range; PageIndex and embeddings remain compatibility-only shims and are not required retrieval paths in this handoff.
 
 Reviewed implementation scope:
@@ -40,7 +40,7 @@ AGENTS checkpoint evidence:
 * `plan complete` - the handoff was re-scoped to the real cumulative reviewed range `d7fd5d200358287fa42a18d39e2b277463b9b69f..39550c18399a5cba2ffad3e23e5b0d5078b416df` and to the canonical demo-path step `retrieve relevant material`.
 * `before risky/shared file edit` - the shared/high-risk boundary was called out because the reviewed range still includes approved shared regression coverage in `tests/unit/test_unified_retrieval.py`.
 * `first green tests` - all required gates passed on the refreshed handoff state.
-* `ready for handoff` - the writable packet sources agree on the same reviewed head, reviewed range, demo-path step, and cumulative file list; `.codex/kickoff_packets/feat-retrieval-fts.md` and `.codex/lane_meta/feat-retrieval-fts.json` remain blocked by `operation not permitted`.
+* `ready for handoff` - `THREAD_PACKET.md` and this gate summary agree on the same reviewed head, reviewed range, demo-path step, and cumulative file list. `.codex/kickoff_packets/feat-retrieval-fts.md` and `.codex/lane_meta/feat-retrieval-fts.json` remain blocked by `operation not permitted`.
 
 Verification:
 

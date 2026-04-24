@@ -9,7 +9,7 @@
 - Mirror write attempt result in this session: `operation not permitted`
 - Companion fixer-commit note: this fixer pass refreshes only handoff metadata on top of the reviewed implementation head above; it does not change retrieval runtime behavior.
 - Canonical demo-path step advanced: `retrieve relevant material`
-- Demo-path sentence: this branch advances the canonical demo-path step `retrieve relevant material` by keeping excerpt lookup, query normalization, provenance, and retrieval payload reconstruction on the SQLite FTS-first path while rejecting noncanonical and binary lookup inputs without reintroducing PageIndex or embeddings as required runtime paths.
+- Demo-path sentence: this slice advances the canonical demo-path step `retrieve relevant material` by strengthening the Milestone 3 SQLite FTS-first retrieval path for excerpt lookup, query normalization, provenance, and retrieval payload reconstruction while rejecting noncanonical and binary lookup inputs without reintroducing PageIndex or embeddings as required runtime paths.
 - FTS-first lane-gate confirmation: the reviewed implementation range remains FTS-first for the MVP. PageIndex and embeddings stay compatibility-only shims and are not required retrieval paths anywhere in this handoff.
 
 ## Scope Goal
@@ -28,7 +28,7 @@
 
 - Branch: `codex/feat-retrieval-fts`
 - Lane/owned paths: `src/qual/retrieval/**`, `src/qual/engine/retrieval/**`, `engine/src/exegesis_engine/retrieval/**`
-- Scope goal: refresh the retrieval handoff against the actual branch-tip implementation range and keep the reviewer-facing packet aligned with the branch's FTS-first MVP scope.
+- Scope goal: refresh the handoff against the actual branch-tip implementation range and keep the reviewer-facing packet aligned only to the Milestone 3 FTS-first `retrieve relevant material` step.
 - Risk reason: the reviewed range includes approved shared regression coverage in `tests/unit/test_unified_retrieval.py`, so this remains shared/high-risk work under `AGENTS.md`.
 
 ### Budget
@@ -69,7 +69,7 @@
 - `plan complete`: the handoff was re-scoped to the real cumulative reviewed range `d7fd5d200358287fa42a18d39e2b277463b9b69f..39550c18399a5cba2ffad3e23e5b0d5078b416df` and to the canonical demo-path step `retrieve relevant material`.
 - `before risky/shared file edit`: the shared/high-risk boundary was called out before refreshing the packet because the reviewed range still includes the approved shared regression file `tests/unit/test_unified_retrieval.py`.
 - `first green tests`: `make scope-check`, `./quality-format.sh --check`, `./quality-lint.sh`, `./quality-test.sh`, `./typecheck-test.sh`, and `make ci` all passed on the refreshed handoff state.
-- `ready for handoff`: the writable packet sources now agree on the same reviewed head, reviewed range, demo-path step, FTS-first gate, and cumulative file list, while the `.codex` mirror files remain blocked by `operation not permitted`.
+- `ready for handoff`: `THREAD_PACKET.md` and `docs/gate_passed.txt` now agree on the same reviewed head, reviewed range, demo-path step, FTS-first gate, and cumulative file list. The `.codex` mirror files remain blocked by `operation not permitted`.
 
 ## Tasks Completed
 
@@ -110,7 +110,7 @@
 - Risk: `HIGH`
 - The cumulative reviewed range is larger than the nominal high-risk size guidance; this fixer pass does not add feature scope, it corrects reviewer traceability for the existing branch state.
 - Public excerpt lookup now intentionally fails closed on noncanonical/PageIndex-only or binary lookup inputs. Callers must stay on canonical FTS-backed excerpt IDs and normalized text query metadata.
-- `.codex/kickoff_packets/feat-retrieval-fts.md` and `.codex/lane_meta/feat-retrieval-fts.json` are blocked in this sandboxed session; direct shell writes fail with `operation not permitted`.
+- `.codex/kickoff_packets/feat-retrieval-fts.md` and `.codex/lane_meta/feat-retrieval-fts.json` are blocked in this sandboxed session; direct writes fail with `operation not permitted`.
 
 ## Required Handoff Fields
 
