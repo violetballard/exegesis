@@ -1991,6 +1991,10 @@ class RetrievalService:
         retrieval_policy = self._retrieval_policy.as_snapshot()
         active_strategy_ids = copy.deepcopy(retrieval_policy["active_strategy_ids"])
         deferred_strategy_ids = copy.deepcopy(retrieval_policy["deferred_strategy_ids"])
+        strategies_used: list[str] = []
+        retrieved_doc_ids: list[str] = []
+        retrieved_excerpt_ids: list[str] = []
+        fts_shortlist_doc_ids: list[str] = []
         attempt_fingerprint = RetrievalService._stable_fingerprint(
             {
                 "excerpt_id": excerpt_id,
@@ -2001,6 +2005,11 @@ class RetrievalService:
                 "retrieval_mode": retrieval_policy["retrieval_mode"],
                 "active_strategy_ids": active_strategy_ids,
                 "deferred_strategy_ids": deferred_strategy_ids,
+                "strategies_used": strategies_used,
+                "candidate_doc_count": 0,
+                "fts_shortlist_doc_ids": fts_shortlist_doc_ids,
+                "retrieved_doc_ids": retrieved_doc_ids,
+                "retrieved_excerpt_ids": retrieved_excerpt_ids,
             }
         )
         self._audit.record(
@@ -2012,9 +2021,15 @@ class RetrievalService:
                 "lookup_confidentiality_profile": lookup_confidentiality_profile,
                 "retrieval_backend": retrieval_policy["retrieval_backend"],
                 "retrieval_mode": retrieval_policy["retrieval_mode"],
-                "retrieval_policy": retrieval_policy,
+                "retrieval_policy": copy.deepcopy(retrieval_policy),
+                "policy": copy.deepcopy(retrieval_policy),
                 "active_strategy_ids": active_strategy_ids,
                 "deferred_strategy_ids": deferred_strategy_ids,
+                "strategies_used": strategies_used,
+                "candidate_doc_count": 0,
+                "fts_shortlist_doc_ids": fts_shortlist_doc_ids,
+                "retrieved_doc_ids": retrieved_doc_ids,
+                "retrieved_excerpt_ids": retrieved_excerpt_ids,
                 "lookup_attempt_fingerprint": attempt_fingerprint,
                 "failure_reason": "unknown_excerpt_id",
             },
