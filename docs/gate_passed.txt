@@ -40,7 +40,7 @@ AGENTS checkpoint evidence:
 * `plan complete` - the handoff was re-scoped to the real reviewed implementation head `72a65689bc806e3f33afa9f28e87c827020e5021`, the exact post-`adfa8cd...` commit accounting, the shared/high-risk classification, and the canonical demo-path step `retrieve relevant material`.
 * `before risky/shared file edit` - the shared/high-risk boundary was called out because the cumulative reviewed range still includes approved shared regression coverage in `tests/unit/test_unified_retrieval.py`.
 * `first green tests` - all required gates passed on the refreshed handoff state.
-* `ready for handoff` - the packet mirrors agree on the reviewed head `72a65689bc806e3f33afa9f28e87c827020e5021`, the reviewed range, the post-`adfa8cd...` commit accounting, the shared/high-risk classification, and the canonical demo-path mapping.
+* `ready for handoff` - the writable handoff artifacts agree on the reviewed head `72a65689bc806e3f33afa9f28e87c827020e5021`, the reviewed range, the post-`adfa8cd...` commit accounting, the shared/high-risk classification, and the canonical demo-path mapping; the `.codex` mirrors remain blocked by sandbox write restrictions.
 
 Verification:
 
