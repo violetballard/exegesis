@@ -12,6 +12,11 @@
 - Canonical demo-path step made more real: `preview and apply or reject a patch`, because this slice proves the current CLI fallback rejects parser/catalog drift from `src/main.py::_dispatch()` before the operator reaches the review/apply entrypoints that Milestone 3 still depends on while Textual remains disabled.
 - Explicit handoff sentence: this handoff advances the canonical demo-path step `preview and apply or reject a patch` by proving the current CLI fallback rejects parser/catalog drift before an operator reaches `preview`, `apply`, or `reject` from the real `_dispatch() -> parse_args()` path.
 - High-risk planned-task framing: prove the real operator path exercises the existing `parse_args()` guard, keep `src/qual/commands/catalog.py` authoritative for canonical command names, add focused regression coverage for drift rejection, and rerun the required gates for this narrow CLI-compatibility slice.
+- Per-task canonical demo-path mapping:
+  - task 1 -> `preview and apply or reject a patch`: prove the real operator entrypoint reaches the existing parser/catalog guard before the operator reaches patch review/apply.
+  - task 2 -> `preview and apply or reject a patch`: keep the catalog authoritative for the exact review/apply CLI surface the operator must use.
+  - task 3 -> `preview and apply or reject a patch`: add regression proof that drift is rejected from the real patch-review operator path, not only from helper-level checks.
+  - task 4 -> `preview and apply or reject a patch`: rerun the required gates so the handoff records current evidence for this exact blocker-removal slice.
 
 ### Budget
 
