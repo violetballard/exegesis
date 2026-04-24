@@ -2,15 +2,28 @@ Gate Results Summary (as of 2026-04-24)
 -------------------------------------
 
 Feature lane: `codex/feat-retrieval-fts`
-Reviewed implementation head: `adfa8cdadd43747ffbcb612e4151e262b13e52ca`
-Reviewed implementation range: `378cf9a74a3658058079a32f186fcd254c4a4034..adfa8cdadd43747ffbcb612e4151e262b13e52ca`
+Reviewed implementation head: `8f6fbb02309502159aac91a30d1fd6f0dcea114c`
+Reviewed implementation range: `378cf9a74a3658058079a32f186fcd254c4a4034..8f6fbb02309502159aac91a30d1fd6f0dcea114c`
 Canonical demo-path step advanced: `retrieve relevant material`
-Scope: keep the retrieval lane FTS-first for the MVP by enforcing the canonical FTS-only excerpt contract on `fetch_excerpt(...)`, `retrieve_fts_excerpt(...)`, and `fetch_fts_excerpt(...)`, with no PageIndex runtime excerpt fallback required for the MVP.
-Current branch tip before this handoff refresh commit: `748004b1f28f30b1f662718ffc2d8c6960ebafe8`
+Scope: keep the retrieval lane FTS-first for the MVP by handing off the cumulative retrieval-contract work on the live branch tip, including deterministic excerpt resolution, canonical query/provenance payload normalization, and the engine-side fail-closed FTS query guard.
+Current branch tip before this handoff refresh commit: `8f6fbb02309502159aac91a30d1fd6f0dcea114c`
 
 Files changed in the reviewed implementation range:
 
+* `.codex/kickoff_packets/feat-retrieval-fts.md`
+* `.codex/lane_meta/feat-retrieval-fts.json`
+* `THREAD_PACKET.md`
+* `codex_packet_handoff/tools/planner.py`
+* `docs/gate_passed.txt`
+* `src/qual/engine/retrieval/__init__.py`
+* `src/qual/engine/retrieval/embeddings_strategy.py`
+* `src/qual/engine/retrieval/fts_strategy.py`
+* `src/qual/engine/retrieval/interface.py`
+* `src/qual/engine/retrieval/pageindex_strategy.py`
+* `src/qual/engine/retrieval/payload.py`
+* `src/qual/retrieval/__init__.py`
 * `src/qual/retrieval/service.py`
+* `tests/unit/test_packet_planner.py`
 * `tests/unit/test_unified_retrieval.py`
 
 Files updated in this fixer pass:
@@ -20,11 +33,13 @@ Files updated in this fixer pass:
 
 Plan-alignment note:
 
-* This narrowed slice advances `retrieve relevant material` by making `fetch_excerpt(...)` fail closed unless the excerpt is resolvable through the canonical SQLite FTS lookup path used before basket promotion, so PageIndex is not a required runtime excerpt path for the MVP.
+* This lane advances `retrieve relevant material` by making the canonical SQLite FTS retrieval path and excerpt resolution deterministic for downstream basket and workflow use, including provenance-bundle query data and engine-side support checks that fail closed when the request is not a canonical FTS retrieval.
 
 Budget classification:
 
-* Shared/high-risk under the `4`-task cap because `tests/unit/test_unified_retrieval.py` is a shared-by-approval file for this lane.
+* Shared/high-risk because `tests/unit/test_unified_retrieval.py` is a shared-by-approval file for this lane.
+* Actual reviewed tip size: `15 files`, `10869 insertions`, `1087 deletions` relative to `378cf9a7`.
+* This exceeds the narrow high-risk slice limits, so this handoff now describes the cumulative branch tip instead of a two-file or metadata-only subset.
 
 Verification:
 
@@ -34,7 +49,6 @@ Verification:
 * `./quality-test.sh` - passed
 * `./typecheck-test.sh` - passed
 * `make ci` - passed
-* `fetch_excerpt(...)`, `retrieve_fts_excerpt(...)`, and `fetch_fts_excerpt(...)` raise `KeyError` for PageIndex-only excerpt IDs under shared regression coverage
 
 Roadmap items affected:
 
@@ -50,3 +64,7 @@ Vision capabilities affected:
 Routing/provider impact:
 
 * none
+
+Sandbox note:
+
+* `.codex/kickoff_packets/feat-retrieval-fts.md` and `.codex/lane_meta/feat-retrieval-fts.json` are not writable through the current patch sandbox, so this summary and `THREAD_PACKET.md` are the authoritative refreshed handoff artifacts for this fixer pass.
