@@ -4,8 +4,8 @@
 
 - Branch: `codex/feat-commands`
 - Lane/owned paths: `src/qual/commands/**`
-- Scope goal: keep the existing Milestone 3 CLI compatibility surface deterministic at the patch-review step by locking the parser-backed review command surface to the canonical catalog without adding new commands or new engine behavior.
-- Risk reason: this is a high-risk/shared-file handoff because it hardens the public command contract in `src/qual/commands/catalog.py` and uses the explicitly approved shared regression path `tests/unit/test_commands_catalog.py`, so parser drift at canonical patch-review entrypoints would directly weaken the active Milestone 3 CLI compatibility surface.
+- Scope goal: keep the current manual CLI smoke flow deterministic at the patch-review step by locking the parser-backed review command surface to the canonical catalog without adding new commands or new engine behavior.
+- Risk reason: this is a high-risk/shared-file handoff because it hardens the public command contract in `src/qual/commands/catalog.py` and uses the explicitly approved shared regression path `tests/unit/test_commands_catalog.py`, so parser drift at patch-review entrypoints would directly weaken the current manual CLI smoke flow.
 
 ### Budget
 
@@ -37,7 +37,7 @@
 - plan complete: scope stayed pinned to the reviewed implementation slice in `src/qual/commands/catalog.py` and `tests/unit/test_commands_catalog.py`
 - first green tests: `make scope-check`, `./quality-format.sh --check`, `./quality-lint.sh`, `./quality-test.sh`, `./typecheck-test.sh`, and `make ci` all passed for this handoff slice
 - before risky/shared file edit: the only shared path in scope was the approved regression file `tests/unit/test_commands_catalog.py`
-- ready for handoff: this packet explicitly names `preview and apply or reject a patch` as the protected canonical step, states the exact CLI-surface stability blocker removed there, and keeps the claim narrowed to CLI compatibility hardening for that existing MVP loop step
+- ready for handoff: this packet explicitly names `preview and apply or reject a patch` as the protected operator step, states the exact CLI-surface stability blocker removed there, and keeps the claim narrowed to CLI compatibility hardening for the current manual smoke flow
 
 ### Handoff Packet
 
@@ -60,17 +60,17 @@
   - `./typecheck-test.sh` -> passed
   - `make ci` -> passed
 - risks/blockers:
-  - risk: future command-surface edits still need to preserve deterministic ordering and fast-fail parser/catalog drift detection so the patch-review CLI contract stays stable throughout the active Milestone 3 workflow while Textual remains disabled
+  - risk: future command-surface edits still need to preserve deterministic ordering and fast-fail parser/catalog drift detection so the patch-review CLI contract stays stable throughout the current manual operator flow
   - blockers: none
 - roadmap item(s) affected:
-  - `ROADMAP.md` Milestone 3 `Real workflow loop`: this slice removes a CLI-surface stability blocker at the patch-review boundary for the CLI-first MVP loop while the package/layout migration lands
-  - `ROADMAP.md` Milestone 3 exit criteria `CLI can execute the MVP flow (vault -> context -> run -> patch -> export) against the same engine PolicyGate`: parser/catalog drift at patch review would break that CLI loop before operators can finish the run
+  - `ROADMAP.md` Milestone 1 `Bootstrap Flow Stabilization`: this slice removes a command-behavior stability blocker at the patch-review boundary, directly supporting the roadmap's command hardening scope and `Manual CLI smoke flow remains stable` exit criterion
+  - `ROADMAP.md` Milestone 2 `Test Hardening`: this slice adds the targeted parser-edge regression coverage the roadmap calls out as remaining review follow-up work
   - canonical demo-path step advanced: canonical step `5 of 7`, `preview and apply or reject a patch`
   - concrete canonical mapping: this slice advances canonical step `5 of 7`, `preview and apply or reject a patch`, by locking the parser-backed patch-review entrypoints to the canonical catalog before review commands run, so the operator moves from `produce a plan or revision` into patch review on a deterministic CLI surface instead of silently accepting parser/catalog drift
-  - concrete canonical-path blocker removed: deterministic CLI ordering and fast-fail parser/catalog drift detection are now enforced at the patch-review boundary, removing the concrete blocker where review/apply commands could silently diverge from the canonical catalog before the operator can safely continue to `persist the updated document/session state` while Textual remains disabled
-  - non-claim boundary: this handoff does not claim progress on persistence, A2UI, Textual activation, or any new command reachability
+  - concrete canonical-path blocker removed: deterministic CLI ordering and fast-fail parser/catalog drift detection are now enforced at the patch-review boundary, removing the concrete blocker where review/apply commands could silently diverge from the canonical catalog before the operator can safely continue the manual smoke flow through export
+  - non-claim boundary: this handoff does not claim progress on persistence, A2UI contracts, provider routing, or any new command reachability
 - vision capability affected:
-  - `PRODUCT_VISION.md` capability 3 `Canonical engine contract`: the existing CLI surface now rejects parser/catalog drift before it can silently change the engine-facing command contract that must remain stable while Textual remains disabled
+  - `PRODUCT_VISION.md` capability 4 `Operator-first control surface`: the existing CLI surface now rejects parser/catalog drift before it can silently change the deterministic operator controls that remain first-class in this repository
 - routing/provider impact note:
   - none; this change does not touch routing or provider configuration
 - scope/ownership note:
