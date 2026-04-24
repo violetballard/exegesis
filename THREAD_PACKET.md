@@ -68,13 +68,13 @@
 - `plan complete`: the handoff was re-scoped to the exact reviewer-required demo-path sentence and to the FTS-only excerpt lookup slice in `src/qual/retrieval/service.py` plus `tests/unit/test_unified_retrieval.py`.
 - `before risky/shared file edit`: the shared/high-risk boundary was called out before refreshing the packet because the reviewed range still includes the approved shared regression file `tests/unit/test_unified_retrieval.py`.
 - `first green tests`: `make scope-check`, `./quality-format.sh --check`, `./quality-lint.sh`, `./quality-test.sh`, `./typecheck-test.sh`, and `make ci` all passed on the refreshed handoff state.
-- `ready for handoff`: `THREAD_PACKET.md` and `docs/gate_passed.txt` now agree on the same reviewed head, reviewed range, exact demo-path sentence, and narrowed excerpt-lookup file scope. The `.codex` mirror files remain blocked by `operation not permitted`.
+- `ready for handoff`: `THREAD_PACKET.md` and `docs/gate_passed.txt` agree on the same canonical demo-path step, exact plan-alignment sentence, and narrowed excerpt-lookup scope. The `.codex` mirror files remain blocked by `operation not permitted`.
 
 ## Tasks Completed
 
-1. Regenerated the handoff packet with the exact required sentence: `This work makes the "retrieve relevant material" step more real by enforcing FTS-only excerpt lookup on the canonical retrieval surface and failing closed for PageIndex-only IDs.`
-2. Narrowed the reviewer-facing scope so it claims only the excerpt lookup contract enforced in `src/qual/retrieval/service.py`.
-3. Kept the regression reference limited to the fail-closed excerpt ID coverage in `tests/unit/test_unified_retrieval.py`.
+1. Mapped this slice directly to the canonical demo-path step `retrieve relevant material` and recorded the exact reviewer-required sentence across the writable handoff sources.
+2. Tied the completed retrieval work back to that step by keeping the reviewer-facing scope limited to the FTS-only excerpt lookup contract enforced in `src/qual/retrieval/service.py`.
+3. Tied the shared regression story back to that same step by keeping the regression reference limited to fail-closed excerpt-ID coverage in `tests/unit/test_unified_retrieval.py`.
 4. Re-ran the required local gates and recorded the outcomes on the refreshed handoff state.
 
 ## Files Changed
@@ -98,7 +98,7 @@
 - Risk: `HIGH`
 - This fixer pass does not add feature scope; it corrects reviewer traceability and narrows the packet to the excerpt lookup contract already implemented and tested.
 - Public excerpt lookup intentionally fails closed on noncanonical/PageIndex-only IDs. Callers must stay on canonical FTS-backed excerpt IDs.
-- `.codex/kickoff_packets/feat-retrieval-fts.md` and `.codex/lane_meta/feat-retrieval-fts.json` are blocked in this sandboxed session; direct writes fail with `operation not permitted`.
+- `.codex/kickoff_packets/feat-retrieval-fts.md` and `.codex/lane_meta/feat-retrieval-fts.json` remain blocked in this sandboxed session; direct writes fail with `operation not permitted`.
 
 ## Required Handoff Fields
 
