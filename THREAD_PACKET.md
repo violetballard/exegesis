@@ -59,7 +59,7 @@
   - `./quality-test.sh` -> passed
   - `./typecheck-test.sh` -> passed
   - `make ci` -> passed
-  - revalidation note: all required gates were rerun on `2026-04-24` for reviewer packet `fixer__feat-commands__20260424T210253Z`, and the reviewer's alias-substitution repro still raises `ValueError: Command CLI catalog entrypoint projection is inconsistent`, confirming the packet stays narrowed to CLI compatibility and the branch includes explicit exported-parser alias-substitution regression coverage for the exact drift concern raised there
+  - revalidation note: all required gates were rerun on `2026-04-24` for reviewer packet `fixer__feat-commands__20260424T211318Z`, and the reviewer's alias-substitution repro still raises `ValueError: Command CLI catalog entrypoint projection is inconsistent`, confirming the packet stays narrowed to CLI compatibility and the branch includes explicit exported-parser alias-substitution regression coverage for the exact drift concern raised there
 - traceability:
   - reviewed implementation slice only: `src/qual/commands/catalog.py` and `tests/unit/test_commands_catalog.py`
   - docs-only refresh commit in branch history: `8391bf07914fffd6fcd29867dc6f21ed25a56ea1` (`docs(thread): pin feat-commands demo-path step`)
