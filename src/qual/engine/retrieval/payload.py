@@ -84,6 +84,39 @@ def _normalize_optional_casefold_text(value: object) -> str | None:
     return text.casefold()
 
 
+_CANONICAL_RETRIEVAL_BACKEND = "sqlite_fts"
+_CANONICAL_RETRIEVAL_MODE = "fts_first"
+_CANONICAL_SOURCE_STRATEGY = "fts"
+
+
+def _normalize_optional_canonical_casefold_text(value: object, *, canonical: str) -> str | None:
+    text = _normalize_optional_casefold_text(value)
+    if text == canonical:
+        return canonical
+    return None
+
+
+def _normalize_optional_canonical_retrieval_backend(value: object) -> str | None:
+    return _normalize_optional_canonical_casefold_text(
+        value,
+        canonical=_CANONICAL_RETRIEVAL_BACKEND,
+    )
+
+
+def _normalize_optional_canonical_retrieval_mode(value: object) -> str | None:
+    return _normalize_optional_canonical_casefold_text(
+        value,
+        canonical=_CANONICAL_RETRIEVAL_MODE,
+    )
+
+
+def _normalize_optional_canonical_source_strategy(value: object) -> str | None:
+    return _normalize_optional_canonical_casefold_text(
+        value,
+        canonical=_CANONICAL_SOURCE_STRATEGY,
+    )
+
+
 def _normalize_span_snapshot(value: object) -> dict[str, object] | None:
     if not isinstance(value, dict):
         return None
@@ -277,6 +310,56 @@ def _first_dict_value(*values: object) -> dict[str, object] | None:
     return empty_dict
 
 
+def _canonical_doc_ids_from_sources(*values: object) -> list[str]:
+    doc_ids: list[str] = []
+    for value in values:
+        for item in _normalize_list_like(value):
+            if not isinstance(item, dict):
+                continue
+            doc_id = _normalize_optional_text(item.get("doc_id"))
+            if doc_id is not None:
+                doc_ids.append(doc_id)
+    return list(dict.fromkeys(doc_ids))
+
+
+def _canonical_excerpt_ids_from_sources(*values: object) -> list[str]:
+    excerpt_ids: list[str] = []
+    for value in values:
+        for item in _normalize_list_like(value):
+            if not isinstance(item, dict):
+                continue
+            excerpt_id = _normalize_optional_text(item.get("excerpt_id"))
+            if excerpt_id is not None:
+                excerpt_ids.append(excerpt_id)
+    return list(dict.fromkeys(excerpt_ids))
+
+
+def _canonical_top_excerpt_ids_from_sources(*values: object) -> list[str]:
+    excerpt_ids: list[str] = []
+    for value in values:
+        for item in _normalize_list_like(value):
+            if not isinstance(item, dict):
+                continue
+            excerpt_id = _normalize_optional_text(item.get("top_excerpt_id"))
+            if excerpt_id is not None:
+                excerpt_ids.append(excerpt_id)
+    return list(dict.fromkeys(excerpt_ids))
+
+
+def _overlay_canonical_fields(
+    primary: dict[str, object],
+    canonical: dict[str, object],
+    *,
+    field_names: tuple[str, ...],
+) -> dict[str, object]:
+    merged = _backfill_sparse_snapshot(primary, canonical)
+    for field_name in field_names:
+        canonical_value = canonical.get(field_name)
+        if not _is_missing_snapshot_value(canonical_value):
+            merged[field_name] = copy.deepcopy(canonical_value)
+    return merged
+
+
 def _stable_fingerprint(payload: object) -> str:
     serialized = json.dumps(payload, sort_keys=True, separators=(",", ":"), ensure_ascii=True)
     return hashlib.sha256(serialized.encode("utf-8")).hexdigest()
@@ -458,12 +541,16 @@ def _normalize_citation_bundle_snapshot(citation_bundle: dict[str, object]) -> d
         field_value = _normalize_optional_int(normalized.get(field_name))
         if field_value is not None:
             normalized[field_name] = field_value
-    retrieval_backend = _normalize_optional_casefold_text(normalized.get("retrieval_backend"))
+    retrieval_backend = _normalize_optional_canonical_retrieval_backend(normalized.get("retrieval_backend"))
     if retrieval_backend is not None:
         normalized["retrieval_backend"] = retrieval_backend
-    retrieval_mode = _normalize_optional_casefold_text(normalized.get("retrieval_mode"))
+    elif "retrieval_backend" in normalized:
+        normalized["retrieval_backend"] = None
+    retrieval_mode = _normalize_optional_canonical_retrieval_mode(normalized.get("retrieval_mode"))
     if retrieval_mode is not None:
         normalized["retrieval_mode"] = retrieval_mode
+    elif "retrieval_mode" in normalized:
+        normalized["retrieval_mode"] = None
     normalized["doc_citations"] = _normalize_doc_citations(normalized.get("doc_citations"))
     normalized["excerpt_citations"] = _normalize_excerpt_citations(normalized.get("excerpt_citations"))
     retrieval_policy = normalized.get("retrieval_policy", normalized.get("policy"))
@@ -530,12 +617,16 @@ def _normalize_hit_shared_provenance_snapshot(provenance: object) -> dict[str, o
     ):
         if field_name in normalized:
             normalized[field_name] = _normalize_text_list_like(normalized.get(field_name))
-    retrieval_backend = _normalize_optional_casefold_text(normalized.get("retrieval_backend"))
+    retrieval_backend = _normalize_optional_canonical_retrieval_backend(normalized.get("retrieval_backend"))
     if retrieval_backend is not None:
         normalized["retrieval_backend"] = retrieval_backend
-    retrieval_mode = _normalize_optional_casefold_text(normalized.get("retrieval_mode"))
+    elif "retrieval_backend" in normalized:
+        normalized["retrieval_backend"] = None
+    retrieval_mode = _normalize_optional_canonical_retrieval_mode(normalized.get("retrieval_mode"))
     if retrieval_mode is not None:
         normalized["retrieval_mode"] = retrieval_mode
+    elif "retrieval_mode" in normalized:
+        normalized["retrieval_mode"] = None
     retrieval_policy = normalized.get("retrieval_policy", normalized.get("policy"))
     if isinstance(retrieval_policy, dict):
         normalized["retrieval_policy"] = _normalize_policy_snapshot(retrieval_policy)
@@ -591,12 +682,18 @@ def _normalize_excerpt_hit_provenance_snapshot(provenance: object) -> dict[str, 
                 section_hint = _normalize_query_hint(query_constraints.get("section_hint"))
     if section_hint is not None:
         normalized["section_hint"] = section_hint
-    source_strategy = _normalize_optional_casefold_text(
+    source_strategy = _normalize_optional_canonical_source_strategy(
         normalized.get("source_strategy") or normalized.get("retrieval_source_strategy")
     )
     if source_strategy is not None:
         normalized["source_strategy"] = source_strategy
         normalized["retrieval_source_strategy"] = source_strategy
+    elif "source_strategy" in normalized:
+        normalized["source_strategy"] = None
+        if "retrieval_source_strategy" in normalized:
+            normalized["retrieval_source_strategy"] = None
+    elif "retrieval_source_strategy" in normalized:
+        normalized["retrieval_source_strategy"] = None
     return normalized
 
 
@@ -654,12 +751,18 @@ def _normalize_doc_hit_provenance_snapshot(provenance: object) -> dict[str, obje
                 section_hint = _normalize_query_hint(query_constraints.get("section_hint"))
     if section_hint is not None:
         normalized["section_hint"] = section_hint
-    source_strategy = _normalize_optional_casefold_text(
+    source_strategy = _normalize_optional_canonical_source_strategy(
         normalized.get("source_strategy") or normalized.get("retrieval_source_strategy")
     )
     if source_strategy is not None:
         normalized["source_strategy"] = source_strategy
         normalized["retrieval_source_strategy"] = source_strategy
+    elif "source_strategy" in normalized:
+        normalized["source_strategy"] = None
+        if "retrieval_source_strategy" in normalized:
+            normalized["retrieval_source_strategy"] = None
+    elif "retrieval_source_strategy" in normalized:
+        normalized["retrieval_source_strategy"] = None
     return normalized
 
 
@@ -716,12 +819,28 @@ def _normalize_excerpt_hit_snapshot(hit: object) -> dict[str, object] | None:
         normalized_fts_rank = _normalize_optional_float(fts_rank)
         if normalized_fts_rank is not None:
             normalized["fts_rank"] = normalized_fts_rank
-    source_strategy = _normalize_optional_casefold_text(
+    source_strategy = _normalize_optional_canonical_source_strategy(
         normalized.get("source_strategy") or normalized.get("retrieval_source_strategy")
     )
     if source_strategy is not None:
         normalized["source_strategy"] = source_strategy
         normalized["retrieval_source_strategy"] = source_strategy
+    elif "source_strategy" in normalized:
+        normalized["source_strategy"] = None
+        if "retrieval_source_strategy" in normalized:
+            normalized["retrieval_source_strategy"] = None
+    elif "retrieval_source_strategy" in normalized:
+        normalized["retrieval_source_strategy"] = None
+    retrieval_backend = _normalize_optional_canonical_retrieval_backend(normalized.get("retrieval_backend"))
+    if retrieval_backend is not None:
+        normalized["retrieval_backend"] = retrieval_backend
+    elif "retrieval_backend" in normalized:
+        normalized["retrieval_backend"] = None
+    retrieval_mode = _normalize_optional_canonical_retrieval_mode(normalized.get("retrieval_mode"))
+    if retrieval_mode is not None:
+        normalized["retrieval_mode"] = retrieval_mode
+    elif "retrieval_mode" in normalized:
+        normalized["retrieval_mode"] = None
     matched_terms = normalized.get("matched_terms")
     if matched_terms is not None:
         normalized["matched_terms"] = _normalize_text_list_like(matched_terms)
@@ -862,12 +981,28 @@ def _normalize_doc_hit_snapshot(hit: object) -> dict[str, object] | None:
         normalized_top_fts_rank = _normalize_optional_float(top_fts_rank)
         if normalized_top_fts_rank is not None:
             normalized["top_fts_rank"] = normalized_top_fts_rank
-    source_strategy = _normalize_optional_casefold_text(
+    source_strategy = _normalize_optional_canonical_source_strategy(
         normalized.get("source_strategy") or normalized.get("retrieval_source_strategy")
     )
     if source_strategy is not None:
         normalized["source_strategy"] = source_strategy
         normalized["retrieval_source_strategy"] = source_strategy
+    elif "source_strategy" in normalized:
+        normalized["source_strategy"] = None
+        if "retrieval_source_strategy" in normalized:
+            normalized["retrieval_source_strategy"] = None
+    elif "retrieval_source_strategy" in normalized:
+        normalized["retrieval_source_strategy"] = None
+    retrieval_backend = _normalize_optional_canonical_retrieval_backend(normalized.get("retrieval_backend"))
+    if retrieval_backend is not None:
+        normalized["retrieval_backend"] = retrieval_backend
+    elif "retrieval_backend" in normalized:
+        normalized["retrieval_backend"] = None
+    retrieval_mode = _normalize_optional_canonical_retrieval_mode(normalized.get("retrieval_mode"))
+    if retrieval_mode is not None:
+        normalized["retrieval_mode"] = retrieval_mode
+    elif "retrieval_mode" in normalized:
+        normalized["retrieval_mode"] = None
     excerpt_ids = normalized.get("excerpt_ids")
     if excerpt_ids is not None:
         normalized["excerpt_ids"] = _normalize_text_list_like(excerpt_ids)
@@ -1020,7 +1155,44 @@ def _backfill_top_level_excerpt_hits_from_bundle_hits(
         if fallback_hit is None and index < len(fallback_hits):
             fallback_hit = fallback_hits[index]
         if fallback_hit is not None:
-            merged_hits.append(_backfill_sparse_snapshot(hit, fallback_hit))
+            merged_hit = _overlay_canonical_fields(
+                hit,
+                fallback_hit,
+                field_names=(
+                    "source_strategy",
+                    "retrieval_source_strategy",
+                    "retrieval_backend",
+                    "retrieval_mode",
+                    "retrieval_policy",
+                    "policy",
+                    "active_strategy_ids",
+                    "deferred_strategy_ids",
+                    "strategies_used",
+                    "retrieved_doc_ids",
+                    "retrieved_excerpt_ids",
+                ),
+            )
+            primary_provenance = merged_hit.get("provenance")
+            fallback_provenance = fallback_hit.get("provenance")
+            if isinstance(primary_provenance, dict) and isinstance(fallback_provenance, dict):
+                merged_hit["provenance"] = _overlay_canonical_fields(
+                    primary_provenance,
+                    fallback_provenance,
+                    field_names=(
+                        "source_strategy",
+                        "retrieval_source_strategy",
+                        "retrieval_backend",
+                        "retrieval_mode",
+                        "retrieval_policy",
+                        "policy",
+                        "active_strategy_ids",
+                        "deferred_strategy_ids",
+                        "strategies_used",
+                        "retrieved_doc_ids",
+                        "retrieved_excerpt_ids",
+                    ),
+                )
+            merged_hits.append(merged_hit)
         else:
             merged_hits.append(hit)
     return merged_hits
@@ -1442,17 +1614,17 @@ def _normalize_basket_promotion_snapshot(snapshot: object) -> dict[str, object]:
         normalized["query_confidentiality_profile"] = query_confidentiality_profile
     elif "query_confidentiality_profile" in normalized:
         normalized["query_confidentiality_profile"] = None
-    lookup_resolution = _normalize_optional_text(normalized.get("lookup_resolution"))
+    lookup_resolution = _normalize_optional_canonical_source_strategy(normalized.get("lookup_resolution"))
     if lookup_resolution is not None:
-        normalized["lookup_resolution"] = lookup_resolution.casefold()
-    elif "lookup_resolution" in normalized:
-        normalized["lookup_resolution"] = None
+        normalized["lookup_resolution"] = lookup_resolution
+    else:
+        normalized.pop("lookup_resolution", None)
     promotion_source = _normalize_optional_casefold_text(normalized.get("promotion_source"))
     if promotion_source is not None:
         normalized["promotion_source"] = promotion_source
     elif "promotion_source" in normalized:
         normalized["promotion_source"] = None
-    source_strategy = _normalize_optional_casefold_text(
+    source_strategy = _normalize_optional_canonical_source_strategy(
         normalized.get("source_strategy") or normalized.get("retrieval_source_strategy")
     )
     if source_strategy is not None:
@@ -1464,12 +1636,12 @@ def _normalize_basket_promotion_snapshot(snapshot: object) -> dict[str, object]:
             normalized["retrieval_source_strategy"] = None
     elif "retrieval_source_strategy" in normalized:
         normalized["retrieval_source_strategy"] = None
-    retrieval_backend = _normalize_optional_casefold_text(normalized.get("retrieval_backend"))
+    retrieval_backend = _normalize_optional_canonical_retrieval_backend(normalized.get("retrieval_backend"))
     if retrieval_backend is not None:
         normalized["retrieval_backend"] = retrieval_backend
     elif "retrieval_backend" in normalized:
         normalized["retrieval_backend"] = None
-    retrieval_mode = _normalize_optional_casefold_text(normalized.get("retrieval_mode"))
+    retrieval_mode = _normalize_optional_canonical_retrieval_mode(normalized.get("retrieval_mode"))
     if retrieval_mode is not None:
         normalized["retrieval_mode"] = retrieval_mode
     elif "retrieval_mode" in normalized:
@@ -2019,7 +2191,25 @@ def _build_basket_promotion_from_payload(payload: dict[str, object]) -> dict[str
     if not primary_snapshot:
         return _normalize_basket_promotion_snapshot(derived)
     return _normalize_basket_promotion_snapshot(
-        _backfill_sparse_snapshot(primary_snapshot, derived)
+        _overlay_canonical_fields(
+            primary_snapshot,
+            derived,
+            field_names=(
+                "source_strategy",
+                "retrieval_source_strategy",
+                "retrieval_backend",
+                "retrieval_mode",
+                "lookup_resolution",
+                "lookup_confidentiality_profile",
+                "retrieval_policy",
+                "policy",
+                "active_strategy_ids",
+                "deferred_strategy_ids",
+                "strategies_used",
+                "retrieved_doc_ids",
+                "retrieved_excerpt_ids",
+            ),
+        )
     )
 
 
@@ -2083,6 +2273,35 @@ def _normalize_retrieval_source_bundle_snapshot(source_bundle: dict[str, object]
         )
         normalized["retrieval_excerpt_bundle"] = _normalize_excerpt_bundle_snapshot(retrieval_excerpt_bundle)
         retrieval_excerpt_bundle = normalized["retrieval_excerpt_bundle"]
+    canonical_doc_ids = _canonical_doc_ids_from_sources(
+        retrieval_citation_bundle.get("doc_citations", []),
+        retrieval_doc_bundle.get("doc_hits", []),
+        retrieval_excerpt_bundle.get("excerpt_hits", []),
+    )
+    canonical_excerpt_ids = _canonical_excerpt_ids_from_sources(
+        retrieval_citation_bundle.get("excerpt_citations", []),
+        retrieval_excerpt_bundle.get("excerpt_hits", []),
+    )
+    canonical_top_excerpt_ids = _canonical_top_excerpt_ids_from_sources(
+        retrieval_citation_bundle.get("doc_citations", []),
+        retrieval_doc_bundle.get("doc_hits", []),
+    )
+    if canonical_doc_ids:
+        normalized["retrieval_summary"]["doc_ids"] = copy.deepcopy(canonical_doc_ids)
+    if canonical_excerpt_ids:
+        normalized["retrieval_summary"]["excerpt_ids"] = copy.deepcopy(canonical_excerpt_ids)
+    if canonical_top_excerpt_ids:
+        normalized["retrieval_summary"]["top_excerpt_ids"] = copy.deepcopy(canonical_top_excerpt_ids)
+    if isinstance(normalized.get("retrieval_provenance"), dict):
+        if canonical_doc_ids:
+            normalized["retrieval_provenance"]["retrieved_doc_ids"] = copy.deepcopy(canonical_doc_ids)
+        if canonical_excerpt_ids:
+            normalized["retrieval_provenance"]["retrieved_excerpt_ids"] = copy.deepcopy(canonical_excerpt_ids)
+    if isinstance(normalized.get("basket_promotion"), dict):
+        if canonical_doc_ids:
+            normalized["basket_promotion"]["retrieved_doc_ids"] = copy.deepcopy(canonical_doc_ids)
+        if canonical_excerpt_ids:
+            normalized["basket_promotion"]["retrieved_excerpt_ids"] = copy.deepcopy(canonical_excerpt_ids)
     retrieval_policy = normalized.get("policy", normalized.get("retrieval_policy", {}))
     if not isinstance(retrieval_policy, dict):
         retrieval_policy = {}
@@ -2194,6 +2413,19 @@ def _normalize_retrieval_source_bundle_snapshot(source_bundle: dict[str, object]
     )
     if retrieval_mode is not None:
         normalized["retrieval_mode"] = retrieval_mode
+    if isinstance(normalized.get("retrieval_provenance"), dict):
+        if retrieval_backend is not None:
+            normalized["retrieval_provenance"]["retrieval_backend"] = retrieval_backend
+        if retrieval_mode is not None:
+            normalized["retrieval_provenance"]["retrieval_mode"] = retrieval_mode
+        normalized["retrieval_provenance"]["retrieval_policy"] = copy.deepcopy(retrieval_policy)
+        normalized["retrieval_provenance"]["policy"] = copy.deepcopy(retrieval_policy)
+        normalized["retrieval_provenance"]["active_strategy_ids"] = copy.deepcopy(
+            retrieval_policy.get("active_strategy_ids", [])
+        )
+        normalized["retrieval_provenance"]["deferred_strategy_ids"] = copy.deepcopy(
+            retrieval_policy.get("deferred_strategy_ids", [])
+        )
 
     fingerprint_payload = {
         key: value for key, value in normalized.items() if key != "source_bundle_fingerprint"
@@ -2765,6 +2997,10 @@ def _build_retrieval_context_bundle_from_payload(payload: dict[str, object]) -> 
     retrieval_provenance = _build_retrieval_provenance_from_payload(payload)
     retrieval_summary = _normalize_retrieval_summary_snapshot(payload.get("retrieval_summary", {}))
     retrieval_source_bundle = _build_retrieval_source_bundle_from_payload(payload)
+    canonical_downstream_payload = _build_retrieval_downstream_payload_from_source_bundle(
+        copy.deepcopy(retrieval_source_bundle)
+    )
+    canonical_downstream_payload["audit_ref"] = payload.get("audit_ref")
     source_query = retrieval_source_bundle.get("query", {})
     if not isinstance(source_query, dict):
         source_query = {}
@@ -2778,16 +3014,16 @@ def _build_retrieval_context_bundle_from_payload(payload: dict[str, object]) -> 
     if not isinstance(source_evidence, dict):
         source_evidence = {}
     retrieval_backend = _first_text_value(
-        payload.get("retrieval_backend"),
         retrieval_source_bundle.get("retrieval_backend"),
         retrieval_summary.get("retrieval_backend"),
         retrieval_provenance.get("retrieval_backend"),
+        payload.get("retrieval_backend"),
     )
     retrieval_mode = _first_text_value(
-        payload.get("retrieval_mode"),
         retrieval_source_bundle.get("retrieval_mode"),
         retrieval_summary.get("retrieval_mode"),
         retrieval_provenance.get("retrieval_mode"),
+        payload.get("retrieval_mode"),
     )
     policy_snapshot = _normalize_policy_snapshot(
         payload.get("policy", payload.get("retrieval_policy", source_policy))
@@ -2811,7 +3047,7 @@ def _build_retrieval_context_bundle_from_payload(payload: dict[str, object]) -> 
         "retrieval_mode": retrieval_mode,
         "citation_status": copy.deepcopy(payload.get("citation_status", source_citation_status)),
         "retrieval_summary": retrieval_summary,
-        "retrieval_downstream_payload": copy.deepcopy(payload),
+        "retrieval_downstream_payload": canonical_downstream_payload,
         "retrieval_citation_bundle": _build_retrieval_citation_bundle_from_payload(payload),
         "retrieval_doc_bundle": _build_retrieval_doc_bundle_from_payload(payload),
         "retrieval_excerpt_bundle": _build_retrieval_excerpt_bundle_from_payload(payload),
@@ -2986,12 +3222,22 @@ def _build_retrieval_provenance_from_payload(payload: dict[str, object]) -> dict
         normalized["query_fingerprint"] = _normalize_optional_text(normalized.get("query_fingerprint"))
     else:
         normalized["query_fingerprint"] = _normalize_optional_text(normalized.get("query_fingerprint"))
-    if _is_missing_snapshot_value(normalized.get("retrieval_backend")):
-        normalized["retrieval_backend"] = summary.get("retrieval_backend", diagnostics.get("retrieval_backend"))
-    normalized["retrieval_backend"] = _normalize_optional_casefold_text(normalized.get("retrieval_backend"))
-    if _is_missing_snapshot_value(normalized.get("retrieval_mode")):
-        normalized["retrieval_mode"] = summary.get("retrieval_mode", diagnostics.get("retrieval_mode"))
-    normalized["retrieval_mode"] = _normalize_optional_casefold_text(normalized.get("retrieval_mode"))
+    normalized_retrieval_backend = _normalize_optional_canonical_retrieval_backend(
+        normalized.get("retrieval_backend")
+    )
+    if normalized_retrieval_backend is None:
+        normalized_retrieval_backend = _normalize_optional_canonical_retrieval_backend(
+            summary.get("retrieval_backend", diagnostics.get("retrieval_backend"))
+        )
+    normalized["retrieval_backend"] = normalized_retrieval_backend
+    normalized_retrieval_mode = _normalize_optional_canonical_retrieval_mode(
+        normalized.get("retrieval_mode")
+    )
+    if normalized_retrieval_mode is None:
+        normalized_retrieval_mode = _normalize_optional_canonical_retrieval_mode(
+            summary.get("retrieval_mode", diagnostics.get("retrieval_mode"))
+        )
+    normalized["retrieval_mode"] = normalized_retrieval_mode
     if _is_missing_snapshot_value(normalized.get("retrieval_policy")):
         normalized["retrieval_policy"] = _normalize_policy_snapshot(
             summary.get(
@@ -3448,6 +3694,9 @@ def build_retrieval_downstream_payload_from_result(
         if isinstance(context_bundle, dict):
             downstream_payload = context_bundle.get("retrieval_downstream_payload")
             if isinstance(downstream_payload, dict):
+                source_bundle = context_bundle.get("retrieval_source_bundle")
+                if isinstance(source_bundle, dict):
+                    return _build_retrieval_downstream_payload_from_source_bundle(source_bundle)
                 return _backfill_downstream_payload_from_context_bundle(
                     copy.deepcopy(downstream_payload),
                     context_bundle,

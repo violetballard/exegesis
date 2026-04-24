@@ -2677,6 +2677,35 @@ class UnifiedRetrievalTests(unittest.TestCase):
         self.assertNotEqual(refreshed["doc_hits"][0]["provenance"]["doc_id"], "mutated-doc-id")
         self.assertNotEqual(refreshed["excerpt_hits"][0]["provenance"]["doc_id"], "mutated-doc-id")
 
+    def test_retrieval_source_bundle_normalizer_reconciles_excerpt_ids_to_canonical_hits(self) -> None:
+        result = self.service.retrieve_auto(
+            RetrievalQuery(
+                query_text="memo coding comparison",
+                scope="vault",
+                intent="compare",
+                constraints=RetrievalConstraints(max_results=4),
+                confidentiality_profile="confidential",
+            )
+        )
+
+        sparse_source_bundle = json.loads(json.dumps(result.source_bundle()))
+        sparse_source_bundle["retrieval_summary"]["excerpt_ids"] = ["pageindex-only-1"]
+        sparse_source_bundle["retrieval_provenance"]["retrieved_excerpt_ids"] = ["pageindex-only-1"]
+        sparse_source_bundle["basket_promotion"]["retrieved_excerpt_ids"] = ["pageindex-only-1"]
+
+        normalized = _build_retrieval_source_bundle_from_payload(
+            {"retrieval_source_bundle": sparse_source_bundle}
+        )
+
+        expected_excerpt_ids = [item.excerpt_id for item in result.hits if item.excerpt_id is not None]
+        self.assertEqual(normalized["retrieval_summary"]["excerpt_ids"], expected_excerpt_ids)
+        self.assertEqual(normalized["retrieval_provenance"]["retrieved_excerpt_ids"], expected_excerpt_ids)
+        self.assertEqual(normalized["basket_promotion"]["retrieved_excerpt_ids"], expected_excerpt_ids)
+        self.assertEqual(
+            [item["excerpt_id"] for item in normalized["retrieval_excerpt_bundle"]["excerpt_hits"]],
+            expected_excerpt_ids,
+        )
+
     def test_retrieval_source_bundle_exposes_retrieval_policy_alias(self) -> None:
         result = self.service.retrieve_auto(
             RetrievalQuery(
@@ -4169,6 +4198,101 @@ class UnifiedRetrievalTests(unittest.TestCase):
         self.assertEqual(payload["basket_promotion"]["candidate_doc_count"], result.diagnostics["candidate_doc_count"])
         self.assertEqual(payload["basket_promotion"]["fts_shortlist_doc_ids"], result.diagnostics["fts_shortlist_doc_ids"])
 
+    def test_retrieval_downstream_payload_helper_fail_closes_noncanonical_basket_metadata(self) -> None:
+        result = self.service.retrieve_auto(
+            RetrievalQuery(
+                query_text="memo coding comparison",
+                scope="vault",
+                intent="compare",
+                constraints=RetrievalConstraints(max_results=4),
+                confidentiality_profile="confidential",
+            )
+        )
+
+        class _SourceBundleOnlySource:
+            def __init__(self, payload: dict[str, object]) -> None:
+                self._payload = payload
+
+            def source_bundle(self) -> dict[str, object]:
+                return self._payload
+
+        mutated_source_bundle = json.loads(json.dumps(result.source_bundle()))
+        basket_promotion = mutated_source_bundle.get("basket_promotion")
+        self.assertIsInstance(basket_promotion, dict)
+        basket_promotion["source_strategy"] = "pageindex"
+        basket_promotion["retrieval_source_strategy"] = "embeddings"
+        basket_promotion["retrieval_backend"] = "pageindex"
+        basket_promotion["retrieval_mode"] = "pageindex_first"
+        basket_promotion["lookup_resolution"] = "pageindex"
+
+        retrieval_provenance = mutated_source_bundle.get("retrieval_provenance")
+        self.assertIsInstance(retrieval_provenance, dict)
+        retrieval_provenance["retrieval_backend"] = "pageindex"
+        retrieval_provenance["retrieval_mode"] = "pageindex_first"
+
+        payload = build_retrieval_downstream_payload_from_result(
+            _SourceBundleOnlySource(mutated_source_bundle)
+        )
+
+        self.assertEqual(payload["basket_promotion"], result.to_downstream_payload()["basket_promotion"])
+        self.assertEqual(payload["retrieval_provenance"], result.to_downstream_payload()["retrieval_provenance"])
+        self.assertEqual(payload["retrieval_summary"]["retrieval_backend"], "sqlite_fts")
+        self.assertEqual(payload["retrieval_summary"]["retrieval_mode"], "fts_first")
+
+    def test_retrieval_context_bundle_helper_fail_closes_noncanonical_hit_metadata(self) -> None:
+        result = self.service.retrieve_auto(
+            RetrievalQuery(
+                query_text="memo coding comparison",
+                scope="vault",
+                intent="compare",
+                constraints=RetrievalConstraints(max_results=4),
+                confidentiality_profile="confidential",
+            )
+        )
+
+        class _ContextBundleOnlySource:
+            def __init__(self, payload: dict[str, object]) -> None:
+                self._payload = payload
+
+            def retrieval_context_bundle(self) -> dict[str, object]:
+                return self._payload
+
+        sparse_context_bundle = json.loads(json.dumps(result.retrieval_context_bundle()))
+        downstream_payload = sparse_context_bundle.get("retrieval_downstream_payload")
+        self.assertIsInstance(downstream_payload, dict)
+        excerpt_hits = downstream_payload.get("excerpt_hits")
+        self.assertIsInstance(excerpt_hits, list)
+        self.assertTrue(excerpt_hits)
+        first_excerpt_hit = excerpt_hits[0]
+        self.assertIsInstance(first_excerpt_hit, dict)
+        first_excerpt_hit["source_strategy"] = "pageindex"
+        first_excerpt_hit["retrieval_source_strategy"] = "embeddings"
+        first_excerpt_hit["retrieval_backend"] = "pageindex"
+        first_excerpt_hit["retrieval_mode"] = "pageindex_first"
+        first_excerpt_provenance = first_excerpt_hit.get("provenance")
+        self.assertIsInstance(first_excerpt_provenance, dict)
+        first_excerpt_provenance["source_strategy"] = "pageindex"
+        first_excerpt_provenance["retrieval_source_strategy"] = "embeddings"
+        first_excerpt_provenance["retrieval_backend"] = "pageindex"
+        first_excerpt_provenance["retrieval_mode"] = "pageindex_first"
+
+        context_bundle = engine_build_retrieval_context_bundle_from_result(
+            _ContextBundleOnlySource(sparse_context_bundle)
+        )
+
+        self.assertEqual(
+            context_bundle["retrieval_downstream_payload"]["excerpt_hits"][0]["provenance"],
+            result.to_downstream_payload()["excerpt_hits"][0]["provenance"],
+        )
+        self.assertEqual(
+            context_bundle["retrieval_downstream_payload"]["basket_promotion"],
+            result.to_downstream_payload()["basket_promotion"],
+        )
+        self.assertEqual(
+            context_bundle["retrieval_source_bundle"]["basket_promotion"],
+            result.source_bundle()["basket_promotion"],
+        )
+
     def test_retrieval_downstream_payload_helper_normalizes_evidence_strategy_ids_from_source_bundle(self) -> None:
         result = self.service.retrieve_auto(
             RetrievalQuery(
@@ -4542,6 +4666,43 @@ class UnifiedRetrievalTests(unittest.TestCase):
         self.assertEqual(
             payload["excerpt_hits"][0]["provenance"],
             result.to_downstream_payload()["excerpt_hits"][0]["provenance"],
+        )
+
+    def test_retrieval_downstream_payload_helper_reconciles_excerpt_ids_to_canonical_hits(self) -> None:
+        result = self.service.retrieve_auto(
+            RetrievalQuery(
+                query_text="memo coding comparison",
+                scope="vault",
+                intent="compare",
+                constraints=RetrievalConstraints(max_results=4),
+                confidentiality_profile="confidential",
+            )
+        )
+
+        class _SourceBundleOnlySource:
+            def __init__(self, payload: dict[str, object]) -> None:
+                self._payload = payload
+
+            def source_bundle(self) -> dict[str, object]:
+                return self._payload
+
+        sparse_source_bundle = json.loads(json.dumps(result.source_bundle()))
+        sparse_source_bundle["retrieval_summary"]["excerpt_ids"] = ["pageindex-only-1"]
+        sparse_source_bundle["retrieval_provenance"]["retrieved_excerpt_ids"] = ["pageindex-only-1"]
+        sparse_source_bundle["basket_promotion"]["retrieved_excerpt_ids"] = ["pageindex-only-1"]
+
+        payload = build_retrieval_downstream_payload_from_result(
+            _SourceBundleOnlySource(sparse_source_bundle)
+        )
+
+        expected_excerpt_ids = [item.excerpt_id for item in result.hits if item.excerpt_id is not None]
+        self.assertEqual(payload["retrieval_summary"]["excerpt_ids"], expected_excerpt_ids)
+        self.assertEqual(payload["retrieval_provenance"]["retrieved_excerpt_ids"], expected_excerpt_ids)
+        self.assertEqual(payload["basket_promotion"]["retrieved_excerpt_ids"], expected_excerpt_ids)
+        self.assertEqual(payload["retrieval_source_bundle"]["retrieval_summary"]["excerpt_ids"], expected_excerpt_ids)
+        self.assertEqual(
+            [item["excerpt_id"] for item in payload["retrieval_excerpt_bundle"]["excerpt_hits"]],
+            expected_excerpt_ids,
         )
 
     def test_retrieval_downstream_payload_helper_backfills_missing_doc_hit_provenance(self) -> None:
