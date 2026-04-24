@@ -103,6 +103,7 @@
 2. The handoff now includes an explicit canonical demo-path statement naming `retrieve relevant material`.
 3. The handoff now carries the missing AGENTS high-risk sections for early review triggers, stop triggers, checkpoint cadence, and the explicit handoff packet fields.
 4. The metadata-only refresh list now matches the packet files restamped in this fixer pass.
+5. The demo-path mapping is tied directly to the narrowed change: `fetch_excerpt` now fails closed to the canonical FTS lookup path, keeping excerpt provenance deterministic and auditable for `retrieve relevant material`.
 
 ## Risks / Blockers
 
