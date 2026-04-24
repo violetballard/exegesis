@@ -2,15 +2,15 @@ Gate Results Summary (as of 2026-04-24)
 -------------------------------------
 
 Feature lane: `codex/feat-retrieval-fts`
-Reviewed implementation head: `adfa8cdadd43747ffbcb612e4151e262b13e52ca`
-Reviewed implementation range: `378cf9a74a3658058079a32f186fcd254c4a4034..adfa8cdadd43747ffbcb612e4151e262b13e52ca`
+Reviewed implementation head: `4ec62ffecef5ee266d766cbb35ffc531cd597e60`
+Reviewed implementation range: `adfa8cdadd43747ffbcb612e4151e262b13e52ca..4ec62ffecef5ee266d766cbb35ffc531cd597e60`
 Canonical demo-path step advanced: `retrieve relevant material`
-Scope: narrow `fetch_excerpt()` to canonical FTS-only excerpt resolution and preserve approved shared regression coverage proving PageIndex-only excerpt IDs fail closed on the public excerpt lookup path.
-Current branch tip before this handoff refresh commit: `b3a31ec52225191b0362918231fc9973ab45317a`
+Scope: fail closed on unsupported scoped-query payloads in the canonical FTS strategy and preserve approved shared regression coverage proving unsupported scoped queries do not execute as canonical FTS requests.
+Current branch tip before this handoff refresh commit: `91017271631061ff5c6d76d32ac07bb168f21c28`
 
 Reviewed implementation files:
 
-* `src/qual/retrieval/service.py`
+* `src/qual/engine/retrieval/fts_strategy.py`
 * `tests/unit/test_unified_retrieval.py`
 
 Visible handoff artifacts refreshed in this fixer pass:
@@ -20,14 +20,14 @@ Visible handoff artifacts refreshed in this fixer pass:
 
 Plan-alignment note:
 
-* This slice advances `retrieve relevant material` by making the public `fetch_excerpt` surface resolve only through the canonical SQLite FTS path, so PageIndex-only excerpt IDs fail closed on the retrieval step itself.
-* Direct handoff statement: this handoff advances the canonical demo-path step `retrieve relevant material` by narrowing public excerpt resolution to the canonical FTS-only lookup path and by keeping approved shared regression coverage proving PageIndex-only excerpt IDs raise `KeyError`.
+* This slice advances `retrieve relevant material` by forcing excerpt lookup and scoped-query handling to resolve only through supported canonical FTS requests, so unsupported scoped queries fail closed on the retrieval step itself.
+* Direct handoff statement: this handoff advances the canonical demo-path step `retrieve relevant material` by keeping the engine retrieval surface on supported SQLite FTS requests and by keeping approved shared regression coverage proving unsupported scoped queries are rejected.
 
 Budget classification:
 
 * Shared/high-risk because `tests/unit/test_unified_retrieval.py` is a shared-by-approval file for this lane.
-* The narrowed reviewed implementation commit changes `2` files with `59` lines touched, which stays within the high-risk budget limits.
-* Later branch commits after `adfa8cdadd43747ffbcb612e4151e262b13e52ca` remain outside this reviewed slice unless a new packet explicitly regenerates the reviewed implementation range.
+* The narrowed reviewed implementation commit changes `2` files with `36` lines touched, which stays within the high-risk budget limits.
+* Later packet-refresh commits after `4ec62ffecef5ee266d766cbb35ffc531cd597e60` remain outside this reviewed slice unless a new packet explicitly regenerates the reviewed implementation range.
 
 Verification:
 
@@ -41,7 +41,7 @@ Verification:
 Roadmap items affected:
 
 * `Milestone 3: Real workflow loop`
-* `feat-retrieval-fts` as a narrow excerpt-resolution slice rather than as lane completion
+* `feat-retrieval-fts` as a narrow scoped-query fail-closed slice rather than as lane completion
 
 Vision capabilities affected:
 
