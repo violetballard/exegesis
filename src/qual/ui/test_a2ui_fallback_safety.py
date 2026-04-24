@@ -912,6 +912,17 @@ class A2UIFallbackSafetyTests(unittest.TestCase):
             terminal_artifact_cli_fallback_resolver_failure_policy_contract_fingerprint(),
         )
         self.assertEqual(
+            manifest["card_hint_recovery_policy"],
+            {
+                "recover_typed_leaf_payloads": True,
+                "preserve_raw_leaf_card_default": True,
+            },
+        )
+        self.assertEqual(
+            manifest["card_hint_recovery_policy_fingerprint"],
+            _fingerprint_manifest_section(manifest["card_hint_recovery_policy"]),
+        )
+        self.assertEqual(
             manifest["terminal_artifact_cli_fallback_entrypoint_contract_fingerprints"],
             contract_fingerprints,
         )
@@ -942,6 +953,10 @@ class A2UIFallbackSafetyTests(unittest.TestCase):
         self.assertEqual(
             contract_fingerprints["terminal_artifact_renderer_entrypoints_contract_manifest_fingerprint"],
             terminal_artifact_renderer_entrypoints_contract_fingerprint(),
+        )
+        self.assertEqual(
+            contract_fingerprints["card_hint_recovery_policy"],
+            _fingerprint_manifest_section(manifest["card_hint_recovery_policy"]),
         )
         self.assertEqual(
             terminal_artifact_cli_fallback_entrypoint_contract_fingerprints_fingerprint(),
@@ -1048,6 +1063,15 @@ class A2UIFallbackSafetyTests(unittest.TestCase):
         self.assertEqual(
             fingerprints["resolver_failure_policy_contract_manifest"],
             resolver_policy_contract["contract_fingerprint"],
+        )
+        self.assertEqual(
+            fingerprints["card_hint_recovery_policy"],
+            _fingerprint_manifest_section(
+                {
+                    "recover_typed_leaf_payloads": True,
+                    "preserve_raw_leaf_card_default": True,
+                }
+            ),
         )
         self.assertEqual(
             fingerprints["shell_refinement_policy_contract_fingerprint"],

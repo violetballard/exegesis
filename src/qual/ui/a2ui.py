@@ -2233,6 +2233,13 @@ def _build_terminal_artifact_cli_fallback_resolver_failure_policy_manifest() -> 
     }
 
 
+def _build_terminal_artifact_cli_fallback_card_hint_recovery_policy_manifest() -> dict[str, Any]:
+    return {
+        "recover_typed_leaf_payloads": True,
+        "preserve_raw_leaf_card_default": True,
+    }
+
+
 def _build_terminal_artifact_renderer_entrypoints() -> dict[str, str]:
     """Return the canonical renderer-entrypoint map shared by A2UI manifests."""
 
@@ -2286,6 +2293,7 @@ def _build_terminal_artifact_cli_fallback_entrypoint_contract_manifest() -> dict
     renderer_entrypoints_contract = describe_terminal_artifact_renderer_entrypoints_contract()
     shell_refinement_policy_contract = describe_terminal_artifact_cli_fallback_shell_refinement_policy_contract()
     resolver_failure_policy_contract = describe_terminal_artifact_cli_fallback_resolver_failure_policy_contract()
+    card_hint_recovery_policy_contract = _build_terminal_artifact_cli_fallback_card_hint_recovery_policy_manifest()
     terminal_artifact_cli_fallback_entrypoint = "render_terminal_cli_fallback"
     contract_fingerprints = describe_terminal_artifact_cli_fallback_entrypoint_contract_fingerprints()
     terminal_artifact_cli_fallback_entrypoint_fingerprint = _fingerprint_manifest_section(
@@ -2349,6 +2357,8 @@ def _build_terminal_artifact_cli_fallback_entrypoint_contract_manifest() -> dict
         "terminal_artifact_cli_fallback_resolver_failure_policy_contract_manifest_fingerprint": (
             resolver_failure_policy_contract["contract_fingerprint"]
         ),
+        "card_hint_recovery_policy": _snapshot_contract_section(card_hint_recovery_policy_contract),
+        "card_hint_recovery_policy_fingerprint": _fingerprint_manifest_section(card_hint_recovery_policy_contract),
         "terminal_artifact_cli_fallback_entrypoint_contract_fingerprints": _snapshot_contract_section(
             contract_fingerprints
         ),
@@ -2370,6 +2380,9 @@ def _build_terminal_artifact_cli_fallback_entrypoint_contract_fingerprints(
     resolver_failure_policy_contract_fingerprint_value = (
         terminal_artifact_cli_fallback_resolver_failure_policy_contract_fingerprint()
     )
+    card_hint_recovery_policy_contract_fingerprint_value = _fingerprint_manifest_section(
+        _build_terminal_artifact_cli_fallback_card_hint_recovery_policy_manifest()
+    )
     fingerprints = {
         "terminal_artifact_cli_fallback_entrypoint": _fingerprint_manifest_section(
             "render_terminal_cli_fallback"
@@ -2377,6 +2390,7 @@ def _build_terminal_artifact_cli_fallback_entrypoint_contract_fingerprints(
         "renderer_entrypoints": renderer_entrypoints_contract_fingerprint_value,
         "shell_refinement_policy": shell_refinement_policy_contract_fingerprint_value,
         "resolver_failure_policy": resolver_failure_policy_contract_fingerprint_value,
+        "card_hint_recovery_policy": card_hint_recovery_policy_contract_fingerprint_value,
     }
     _add_contract_alias_fingerprints(
         fingerprints,
