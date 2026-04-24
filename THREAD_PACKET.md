@@ -7,12 +7,12 @@
 - Reviewed implementation range: `378cf9a74a3658058079a32f186fcd254c4a4034..9bd108298e82f2ba9cc1a6ab97d2f20f7dc622fe`
 - Scope goal: publish a review-safe handoff packet for the full live retrieval implementation slice through the current branch tip.
 - Canonical demo-path step advanced: `retrieve relevant material`
-- Plan-alignment statement: this slice advances `retrieve relevant material` by keeping retrieval output deterministic, auditable, and correctly shaped for downstream engine workflows and later basket-promotion consumers without widening runtime scope beyond SQLite FTS.
+- Plan-alignment statement: this slice advances `retrieve relevant material` by forcing excerpt lookup onto the canonical SQLite FTS path, failing closed for PageIndex-only excerpt IDs, and keeping retrieval output deterministic, auditable, and correctly shaped for downstream engine workflows and later basket-promotion consumers.
 - Direct handoff statement: this fixer pass refreshes packet metadata only. The reviewed implementation head remains the live branch tip `9bd108298e82f2ba9cc1a6ab97d2f20f7dc622fe`, and the reviewed implementation range remains `378cf9a74a3658058079a32f186fcd254c4a4034..9bd108298e82f2ba9cc1a6ab97d2f20f7dc622fe`.
 
 ## Scope Completed
 
-The reviewed implementation range covers the full live retrieval slice through the current branch tip. It keeps SQLite FTS authoritative, hardens fail-closed excerpt lookup and audit behavior, preserves normalized query text in doc-hit and excerpt-hit payloads plus provenance backfills, keeps downstream payload reconstruction deterministic when sparse source bundles omit top-level hit query text, and resolves engine-facing query annotations without introducing an eager import cycle. The result shape stays structured and auditable for downstream engine workflows and later basket promotion.
+The reviewed implementation range covers the full live retrieval slice through the current branch tip. It strengthens `retrieve relevant material` by keeping SQLite FTS authoritative, hardening fail-closed excerpt lookup and audit behavior so PageIndex-only excerpt IDs are rejected, preserving normalized query text in doc-hit and excerpt-hit payloads plus provenance backfills, keeping downstream payload reconstruction deterministic when sparse source bundles omit top-level hit query text, and resolving engine-facing query annotations without introducing an eager import cycle. The result shape stays structured and auditable for downstream engine workflows and later basket promotion.
 
 ## Thread Kickoff (High-Risk)
 
