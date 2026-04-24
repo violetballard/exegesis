@@ -6,42 +6,37 @@ Canonical handoff contract lives in `THREAD_PACKET.md`.
 
 ## Current Review Focus
 
-- Packet refresh status: fixer verification refreshed against the current reviewed implementation basis after the reviewer requested explicit canonical demo-path mapping and tighter Milestone 3 handoff alignment.
+- Packet refresh status: fixer corrected the packet after the reviewer flagged inconsistent traceability, overbroad roadmap or vision mapping, and a missing explicit canonical demo-path statement.
 - Exact implementation basis for re-review:
-  - `4cd1d6b4857ce3da125bb32ae2c76d4b9c41defa` (`feat(commands): expose default workflow aliases`)
-  - reviewer-requested parser-surface fixes are included in the reviewed ancestry:
-    - `dbb8e0156f3520c759d4d29e2cbbb186013f6df7` (`fix(commands): harden parser surface drift checks`)
-    - `6890b8c6d81c7700e84b6cbf9402177d0bafab4f` (`test(commands): lock parser drift regressions to live entrypoints`)
-    - `bd118a6c0d7693d58882f74efc8066387bc82189` (`test(commands): cover cached parser surface drift`)
+  - `f8d860ed9f6299f0169c4f21321ac5f37c949fd3` (`feat(commands): lock CLI contract to command catalog`)
 - Current packet refresh traceability:
   - later `docs(commands)` commits update only `THREAD.md`, `THREAD_PACKET.md`, and `handoff_packets/feat-commands.md`
 - Post-fixer verification note:
-- `2026-04-24T08:51:22Z UTC` gate rerun confirmed this packet still matches the current branch state while the reviewed implementation basis remains pinned to `4cd1d6b4857ce3da125bb32ae2c76d4b9c41defa`
+- `2026-04-24T08:57:56Z UTC` gate rerun confirmed this packet correction matches the current branch state while the reviewed implementation basis remains pinned to `f8d860ed9f6299f0169c4f21321ac5f37c949fd3`
 - Reviewed implementation files:
   - `src/qual/commands/catalog.py`
   - `tests/unit/test_commands_catalog.py`
 - Reviewed implementation scope:
-  - fail fast when the live review-step parser surface drifts from the declared command catalog, including the `diff-preview` removed / `diff` retained case
-  - reject alias-only substitution, reordered parser surface, and unexpected extra parser entrypoints for the review-step token surface
-  - prove in shared tests that the review-step parser surface still fails fast after cache warmup
-  - expose the default workflow and trusted-surface aliases as direct forwards to the current MVP contracts without changing provider, retrieval, persistence, or UI behavior
+  - fail fast when the canonical command names derived from the live CLI lookup table drift from the declared command catalog
+  - prove in shared tests that the command contract returns canonical catalog order and raises on drift
 - Primary canonical demo-path step advanced:
   - `preview and apply or reject a patch`
 - Required handoff field now called out explicitly:
   - `Canonical demo-path step advanced: preview and apply or reject a patch`
 - Explicit re-review statement:
-  - this slice advances the canonical `preview and apply or reject a patch` step by keeping the public `diff-preview` review entrypoint catalog-locked inside the current engine-first Milestone 3 loop so deterministic CLI contract validation preserves the operator-facing command surface while the package/layout migration is in flight
+  - this slice advances the canonical `preview and apply or reject a patch` step by keeping the command contract catalog-locked inside the current engine-first Milestone 3 loop so deterministic CLI contract validation preserves the operator-facing command surface while the package/layout migration is in flight
 - Scope note:
-  - this packet advances the patch-review command contract and adds alias-forwarding helpers that mirror the current engine-first MVP workflow/trusted surface; deterministic CLI contract validation preserves the operator-facing command surface required by Milestone 3 while the package/layout migration is in flight, and it does not claim new retrieval, patch application, persistence, export, audit-path, or broader UI behavior
+  - this packet advances the patch-review command contract only; deterministic CLI contract validation preserves the operator-facing command surface required by Milestone 3 while the package/layout migration is in flight, and it does not claim new retrieval, patch application, persistence, export, audit-path, or broader UI behavior
 - Current engine-first MVP path statement:
   - the current CLI-first smoke route stays `project-open -> retrieval -> preview and apply or reject a patch -> persist -> export-handoff`
 - Concrete blocker removed:
-  - the active CLI fallback no longer allows the public `diff-preview` token to disappear, reorder, or expand unexpectedly behind parser drift without an immediate contract failure at the patch-review step
+  - the active CLI fallback no longer allows the parser-derived canonical command order to diverge from the declared command catalog without an immediate contract failure at the patch-review step
 - Roadmap / vision alignment for this reviewed slice:
   - `ROADMAP.md` MVP focus keeps `feat-commands` active in the current implementation push
-  - `ROADMAP.md` Milestone 3 contribution is limited to locking the user-facing command contract for the current CLI loop `project-open -> retrieval -> preview and apply or reject a patch -> persist -> export-handoff`
-  - `PRODUCT_VISION.md` capability 4 `Operator-first control surface` is the only capability claimed here, specifically the engine-contract requirement that structured outputs stay consumable by CLI now and `Exegesis Console` next
-  - this packet does not claim `PRODUCT_VISION.md` capability 3 `Auditable generation` because the reviewed diff does not add persistence, audit hooks, or workflow trace records
+  - `ROADMAP.md` Milestone 3 contribution is limited to preserving CLI compatibility while the package/layout migration lands for the current CLI loop `project-open -> retrieval -> preview and apply or reject a patch -> persist -> export-handoff`
+  - `ROADMAP.md` lane mapping for this slice is `feat-commands`: `CLI compatibility and migration-safe entrypoints`
+  - `PRODUCT_VISION.md` capability 3 `Canonical engine contract` is the only capability claimed here, specifically the requirement that `CLI compatibility is required while Textual remains disabled`
+  - this packet does not claim persistence, audit hooks, or workflow trace records
 - Ownership / scope note:
   - lane-owned implementation path: `src/qual/commands/catalog.py`
   - approved shared-by-approval exception: `tests/unit/test_commands_catalog.py`
