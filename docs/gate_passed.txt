@@ -9,7 +9,7 @@ Required automated gates reran against the current handoff refresh worktree cont
 
 Gate status:
 
-* `make scope-check` - passed
+* `make scope-check` - passed (`no policy for branch 'codex/feat-retrieval-fts'; skipping`)
 * `./quality-format.sh --check` - passed
 * `./quality-lint.sh` - passed
 * `./quality-test.sh` - passed
