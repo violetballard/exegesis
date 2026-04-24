@@ -2,6 +2,7 @@
 
 - Branch name: `codex/feat-commands`
 - Scope completed: hardened `command_cli_contract()` in `src/qual/commands/catalog.py` so the CLI contract reuses the canonical `command_names()` ordering and raises if the parser surface drifts from the command catalog, then added focused regression coverage for canonical-order alignment and drift rejection in `tests/unit/test_commands_catalog.py`.
+- Canonical demo-path step advanced: `preview and apply or reject a patch`
 - Canonical demo-path mapping sentence: this slice specifically strengthens `preview and apply or reject a patch` in the current CLI-first Milestone 3 loop because the operator reaches that step through the `diff-preview` and `diff` patch-review entrypoints, and those entrypoints now fail fast if the parser surface drifts from the canonical catalog instead of silently changing the command contract while Textual remains disabled.
 - Concrete blocker removed: before this change, parser drift could silently desynchronize the patch-review CLI surface from the catalog while leaving the contract seemingly valid, which weakened the deterministic command path the operator uses to reach patch review and apply-or-reject follow-up work.
 - Traceability note: reviewed implementation commit is `f8d860ed9f6299f0169c4f21321ac5f37c949fd3`; this refresh updates only `THREAD.md`, `THREAD_PACKET.md`, and `handoff_packets/feat-commands.md`.

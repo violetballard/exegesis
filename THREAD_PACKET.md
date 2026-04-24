@@ -6,6 +6,7 @@
 - Packet refresh role: `reviewer-fix handoff metadata refresh`
 - Review scope: command-catalog Milestone 3 CLI compatibility slice that hardens `command_cli_contract()` against parser-surface drift and keeps the returned contract in canonical command order
 - Canonical demo-path step advanced: `preview and apply or reject a patch`
+- AGENTS.md alignment note: this packet explicitly names the single canonical demo-path step advanced by the reviewed slice, rather than only citing Milestone 3 or broad lane ownership.
 - Required mapping statement: this slice directly makes `preview and apply or reject a patch` more real in the current CLI-first Milestone 3 loop because the operator-facing `diff-preview` and `diff` patch-review entrypoints now fail fast if the parser surface drifts from the catalog instead of silently changing the command contract while Textual remains disabled.
 - Concrete blocker removed: before this slice, parser drift could change the accepted patch-review CLI surface without a hard failure, which weakened the deterministic command contract the operator relies on to reach patch review in the canonical demo loop.
 - Traceable shared-edit approval: `tests/unit/test_commands_catalog.py` is permitted for `codex/feat-commands*` by the explicit allowlist entry in `scripts/scope-check.sh` (`codex/feat-commands*` case, `tests/unit/test_commands_catalog.py) return 0 ;;`).
