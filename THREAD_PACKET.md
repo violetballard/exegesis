@@ -5,6 +5,7 @@
 - Commit: `6890b8c6ea9b6dcd9cd58eb7cdbd9f68356f47ac`
 - Packet refresh role: `reviewer-fix packet refresh`
 - Packet refresh basis: `regenerated on 2026-04-24 for re-review against the fixer delta that locks the live parser surface to the command catalog, proves the reviewer-called-out diff-preview-to-diff token drift now fails fast, states the canonical demo-path step explicitly, and narrows roadmap/vision mapping to the current CLI-first contract surface in ROADMAP Milestone 3 and PRODUCT_VISION capability 4`
+- Post-fixer verification: `2026-04-24 UTC gate rerun confirmed the packet still matches the branch state after the fixer pass; no implementation files changed in this verification refresh`
 - Packet-only refresh files:
   - `THREAD.md`
   - `THREAD_PACKET.md`
@@ -13,7 +14,7 @@
 
 - Branch: `codex/feat-commands`
 - Lane/owned paths: `src/qual/commands/**`
-- Scope goal: make the canonical `project-open` bootstrap step in the current CLI smoke route more real by locking the live parser surface to the command catalog and failing fast if canonical CLI entrypoints drift to alias-only or reordered shapes.
+- Scope goal: make the canonical `patch-review` step in the current CLI smoke route more real by locking the live parser surface for `diff-preview` to the command catalog and failing fast if its canonical CLI entrypoints drift to alias-only or reordered shapes.
 - Risk reason: the reviewed slice touches the command contract in `src/qual/commands/catalog.py` and a shared-by-approval regression test file.
 
 ### Budget
@@ -58,19 +59,19 @@
 
 ## Canonical Demo-Path Mapping
 
-- Primary canonical demo-path step advanced now: `project-open` (`bootstrap` the session).
-- Explicit canonical demo-path statement required for re-review: this slice advances the canonical `project-open` bootstrap step first, and no other demo-path step is claimed as newly implemented here.
-- Primary-step scope note: this packet advances `project-open` first while hardening the parser contract reused by later loop steps.
+- Primary canonical demo-path step advanced now: `patch-review` (`diff-preview` on the public CLI surface).
+- Explicit canonical demo-path statement required for re-review: this slice advances the canonical `patch-review` step by locking the public `diff-preview` token surface, and no other demo-path step is claimed as newly implemented here.
+- Primary-step scope note: this packet advances `patch-review` specifically while hardening the parser contract reused by later loop steps.
 - Current CLI smoke route statement: the current operator-visible route is `project-open -> retrieval -> patch-review -> apply-patch/reject-patch -> persist -> export-handoff`, entered through parser-ready `bootstrap --project demo`.
-- One-line plan alignment: this change makes `project-open` more real by ensuring the operator-facing bootstrap verb for that smoke route cannot silently drift to alias-only entrypoints while still resolving through lookup.
-- Active MVP operator path strengthened: the existing CLI smoke route entrypoint into `project-open -> retrieval -> patch-review -> apply-patch/reject-patch -> persist -> export-handoff`.
-- Concrete blocker removed: before this guard, the live parser surface for the current CLI smoke route could drift from `bootstrap` to an alias such as `open` and still resolve through lookup, leaving automation, operator runbooks, and CLI fallback consumers pointed at a changed public surface without any fail-fast signal.
+- One-line plan alignment: this change makes `patch-review` more real by ensuring the operator-facing `diff-preview` verb for that smoke route cannot silently drift to alias-only entrypoints while still resolving through lookup.
+- Active MVP operator path strengthened: the existing CLI smoke route review step inside `project-open -> retrieval -> patch-review -> apply-patch/reject-patch -> persist -> export-handoff`.
+- Concrete blocker removed: before this guard, the live parser surface for the current CLI smoke route could drop the public `diff-preview` token and leave only the still-resolvable alias `diff`, leaving automation, operator runbooks, and CLI fallback consumers pointed at a changed public review surface without any fail-fast signal.
 - Concrete reviewer-example blocker removed: the parser surface can no longer silently drop the public `diff-preview` token while leaving only `diff`, even though that remaining alias still resolves to the same canonical command and preserves canonical ordering.
-- Direct plan-alignment statement: this change makes the `project-open` bootstrap step more real by failing closed when the parser-facing entrypoint contract no longer matches the cataloged command surface.
-- Concrete smoke-test evidence already in the reviewed slice: `tests/unit/test_commands_catalog.py` proves the canonical smoke contract keeps `project-open` on `("bootstrap", "--project", "demo")` and that the trusted MVP workflow tables still start from the same parser-ready bootstrap argv for both apply and reject branches.
-- Scope-tightening note: this handoff claims only parser-surface drift detection plus focused regression coverage for the primary `project-open` entrypoint contract; it does not claim new retrieval quality, patch semantics, persistence behavior, or export behavior.
+- Direct plan-alignment statement: this change makes the `patch-review` step more real by failing closed when the parser-facing `diff-preview` contract no longer matches the cataloged command surface.
+- Concrete smoke-test evidence already in the reviewed slice: `tests/unit/test_commands_catalog.py` proves the live parser surface keeps `diff-preview` before `diff` in the `patch-review` step and fails fast when `diff-preview` disappears while `diff` still resolves to the same canonical command.
+- Scope-tightening note: this handoff claims only parser-surface drift detection plus focused regression coverage for the `patch-review` command surface; it does not claim new retrieval quality, patch semantics, persistence behavior, or export behavior.
 - Traceability note: `6890b8c6ea9b6dcd9cd58eb7cdbd9f68356f47ac` is the implementation tip for this reviewed slice. `THREAD.md` and `THREAD_PACKET.md` are packet refresh companions that capture the updated reviewer-fix mapping and gate results.
-- Why this is milestone-worthy now instead of second-order cleanup: `ROADMAP.md` Milestone 3 is where user-facing contracts are defined and locked intentionally. This guard removes a concrete CLI contract risk at the `project-open` entrypoint before that public surface can drift silently.
+- Why this is milestone-worthy now instead of second-order cleanup: `ROADMAP.md` Milestone 3 is where user-facing contracts are defined and locked intentionally. This guard removes a concrete CLI contract risk at the `patch-review` entrypoint before that public surface can drift silently.
 
 ## Approved Exception Note
 
@@ -121,23 +122,23 @@
 
 ### Canonical demo-path step advanced
 
-- `project-open` (`bootstrap` the session)
-- This change makes `project-open` more real by keeping the operator-facing bootstrap command surface for the current CLI smoke route catalog-locked instead of allowing alias-only parser drift to pass silently.
-- Concrete blocker removal: the contract now fails fast if the live parser entrypoint for bootstrap drifts to a different accepted token set while still resolving through lookup, preventing the current CLI smoke route from silently changing at its first operator-visible step.
-- Smoke-test evidence for this step is explicit in the shared regression suite: `test_command_smoke_contract_bundles_the_mvp_invocation_surface` keeps `project-open` mapped to `("bootstrap", "--project", "demo")`, and the trusted workflow-table tests keep both apply and reject branches rooted at that same bootstrap argv.
+- `patch-review` (`diff-preview` on the public CLI surface)
+- This change makes `patch-review` more real by keeping the operator-facing `diff-preview` command surface for the current CLI smoke route catalog-locked instead of allowing alias-only parser drift to pass silently.
+- Concrete blocker removal: the contract now fails fast if the live parser entrypoint for `patch-review` drops `diff-preview`, substitutes alias-only ordering, or adds extra accepted tokens while still resolving through lookup, preventing the current CLI smoke route from silently changing at its operator-visible review step.
+- Smoke-test evidence for this step is explicit in the shared regression suite: `test_command_cli_contract_matches_the_catalog_order`, `test_command_cli_contract_rejects_parser_surface_drift_when_diff_token_disappears`, and the alias/reorder drift tests all assert the live `_CLI_ENTRYPOINTS` contract for `diff-preview`.
 
 ### Roadmap item(s) affected
 
 - `ROADMAP.md` Milestone 3 `Product Readiness`: this slice narrows to the CLI-first contract surface that must be defined and locked intentionally before release.
-- `ROADMAP.md` Milestone 3 scope: `Define and lock user-facing output contracts`; this packet applies that to the operator-visible parser token contract for the public command surface only.
-- `ROADMAP.md` Milestone 3 exit criteria: `Contract changes documented and intentional`; this slice makes unexpected parser-surface drift fail fast instead of silently changing the accepted public command tokens.
+- `ROADMAP.md` Milestone 3 scope: `Define and lock user-facing output contracts`; this packet applies that to the operator-visible parser token contract for the `patch-review` command surface only.
+- `ROADMAP.md` Milestone 3 exit criteria: `Contract changes documented and intentional`; this slice makes unexpected `patch-review` parser-surface drift fail fast instead of silently changing the accepted public command tokens.
 - `ROADMAP.md` MVP focus: `feat-commands` remains an active lane while `feat-console` stays deferred, so no UI-lane scope is claimed here.
-- This diff contributes only the `project-open` entrypoint of the current engine-first CLI smoke route by hardening the public parser surface before the operator proceeds into retrieval, patch-review, persist, and export-handoff.
-- Scope-tightening statement: this is CLI contract hardening for the current smoke route, not new UI work and not broader demo-path expansion beyond the bootstrap contract.
+- This diff contributes only the `patch-review` step of the current engine-first CLI smoke route by hardening the public parser surface used at the review command boundary.
+- Scope-tightening statement: this is CLI contract hardening for the current smoke route, not new UI work and not broader demo-path expansion beyond the `patch-review` contract.
 
 ### Vision capability affected
 
-- `PRODUCT_VISION.md` capability 4 `Operator-first control surface`: the bootstrap parser contract for `project-open` must stay deterministic and catalog-locked because CLI remains a first-class operator surface.
+- `PRODUCT_VISION.md` capability 4 `Operator-first control surface`: the `patch-review` parser contract for `diff-preview` must stay deterministic and catalog-locked because CLI remains a first-class operator surface.
 
 ### Routing / Provider Impact Note
 
