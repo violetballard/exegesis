@@ -104,6 +104,7 @@
 ### Roadmap item(s) affected
 
 - `Milestone 3: Product Readiness`
+- This narrowed slice directly supports the Milestone 3 exit criterion `retrieval returns structured results suitable for basket promotion` by keeping excerpt lookup on the authoritative FTS-only path and preserving deterministic structured retrieval output.
 - `feat-retrieval-fts`
 
 ### Canonical demo-path step advanced
@@ -114,6 +115,7 @@
 ### Vision capability affected
 
 - `2. Retrieval-first context handling`
+- The FTS-only excerpt fail-closed contract keeps retrieval output structured and deterministic before any downstream basket promotion step consumes it.
 - `3. Auditable generation`
 
 ### Routing/provider impact note
