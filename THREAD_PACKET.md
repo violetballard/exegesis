@@ -4,11 +4,12 @@
 - Branch: `codex/feat-commands`
 - Commit: `f8d860ed9f6299f0169c4f21321ac5f37c949fd3`
 - Packet refresh role: `reviewer-fix handoff metadata narrowing`
-- Review scope: narrow Milestone 3 CLI-contract hardening in `src/qual/commands/catalog.py` plus focused regression coverage in `tests/unit/test_commands_catalog.py`.
+- Review scope: narrow Milestone 3 CLI-contract hardening in `src/qual/cli.py` and `src/qual/commands/catalog.py`, plus focused regression coverage in `tests/unit/test_commands_catalog.py`.
+- Canonical demo-path step advanced: `preview and apply or reject a patch`
 - Canonical MVP flow advanced: `open project/document -> retrieve relevant material -> preview and apply or reject a patch` for the manual CLI smoke flow, via `bootstrap`/`project-open` for open, `context-basket` for retrieval staging, and `diff-preview`/`review-patch` for patch preview
 - AGENTS.md alignment note: this packet explicitly names the exact roadmap MVP flow advanced by the reviewed slice and ties the claim to the current AGENTS handoff packet and checkpoint requirements.
 - Required mapping statement: this `feat-commands` CLI-contract hardening slice strengthens the canonical `open project/document`, `retrieve relevant material`, and `preview and apply or reject a patch` steps by preserving the operator-facing CLI command catalog contract used by `bootstrap`/`project-open`, `context-basket`, and `diff-preview`/`review-patch` while CLI remains the active first-class surface.
-- Demo-path sentence: this change makes the `preview and apply or reject a patch` step more real for the CLI-first MVP loop because the concrete command entrypoints an operator runs now fail fast if parser drift changes the canonical catalog contract.
+- Demo-path sentence: this change makes the `preview and apply or reject a patch` step more real for the CLI-first MVP loop because the concrete parser-backed command entrypoints an operator runs now fail fast if parser drift changes the canonical catalog contract.
 - Concrete blocker removed: before this slice, parser drift could change the accepted CLI surface without a hard failure, so an operator could attempt the `open project/document -> retrieve relevant material -> preview and apply or reject a patch` loop through a CLI contract that had silently drifted away from the canonical catalog.
 - Traceable shared-edit approval: `tests/unit/test_commands_catalog.py` is permitted for `codex/feat-commands*` by the explicit allowlist entry in `scripts/scope-check.sh` (`codex/feat-commands*` case, `tests/unit/test_commands_catalog.py) return 0 ;;`).
 
@@ -28,9 +29,9 @@
 
 ### Planned Tasks
 
-1. Harden `command_cli_contract()` so the canonical-name projection is validated against the catalog instead of being rebuilt from parser lookup output.
-2. Add regression coverage proving catalog/parser drift raises a hard failure.
-3. Refresh the handoff packet so it names the exact canonical demo-path step protected by this contract and cites the shared-test approval source.
+1. Wire the live parser entrypoint surface in `src/qual/cli.py` to shared command-name constants so the CLI and contract validation read the same parser source.
+2. Harden `command_cli_contract()` so the canonical-name projection is validated against the live parser surface instead of duplicated catalog-local entrypoint data.
+3. Add regression coverage proving live parser/catalog drift raises a hard failure, then refresh the handoff packet so it names the exact canonical demo-path step protected by this contract and cites the shared-file approval source.
 4. Re-run the required gates and record the results.
 
 ### Early Review Triggers
@@ -49,12 +50,13 @@
 
 - Plan complete: scope stayed pinned to the reviewed implementation slice in `src/qual/commands/catalog.py` and `tests/unit/test_commands_catalog.py`, with no expansion beyond Milestone 3 CLI-contract hardening.
 - First green tests: `make scope-check`, `./quality-format.sh --check`, `./quality-lint.sh`, `./quality-test.sh`, `./typecheck-test.sh`, and `make ci` all passed for this handoff slice.
-- Before risky/shared file edit: `tests/unit/test_commands_catalog.py` was confirmed as the approved shared regression path for `codex/feat-commands*` via `scripts/scope-check.sh`, and this fixer records that approval basis before refreshing shared handoff metadata.
-- Ready for handoff: this packet now carries the reviewer-requested exact roadmap flow mapping plus explicit approval and checkpoint provenance for the shared regression path.
+- Before risky/shared file edit: `src/qual/cli.py` and `tests/unit/test_commands_catalog.py` were confirmed as approved shared paths for `codex/feat-commands*` via `scripts/scope-check.sh`, and this fixer records that approval basis before editing the parser source and refreshing shared handoff metadata.
+- Ready for handoff: this packet now carries the reviewer-requested exact roadmap flow mapping plus explicit approval and checkpoint provenance for both shared paths.
 
 ## Review Basis
 
 - Implementation files:
+  - `src/qual/cli.py`
   - `src/qual/commands/catalog.py`
   - `tests/unit/test_commands_catalog.py`
 - Metadata files:
@@ -74,11 +76,12 @@
 ## Ownership Note
 
 - Lane-owned implementation path: `src/qual/commands/catalog.py`
+- Shared-by-approval parser path: `src/qual/cli.py`
 - Shared-by-approval regression path: `tests/unit/test_commands_catalog.py`
-- Approval source: `THREAD_OWNERSHIP.md` marks `tests/unit/test_commands_catalog.py` as shared-by-approval for `codex/feat-commands*`, and `scripts/scope-check.sh` codifies that approval with the branch-specific allowlist entry that explicitly permits the file
-- Checkpoint provenance: the high-risk `before risky/shared file edit` checkpoint above records that the shared regression path was verified against the branch allowlist before this fixer refreshed shared handoff metadata
+- Approval source: `THREAD_OWNERSHIP.md` marks `src/qual/cli.py` and `tests/unit/test_commands_catalog.py` as shared-by-approval for `codex/feat-commands*`, and `scripts/scope-check.sh` codifies those approvals with the branch-specific allowlist entries that explicitly permit the files when `SCOPE_ALLOW_SHARED=1`
+- Checkpoint provenance: the high-risk `before risky/shared file edit` checkpoint above records that both shared paths were verified against the branch allowlist before this fixer edited the parser source and refreshed shared handoff metadata
 - Integrator-locked edits: `none`
-- Scope note: the implementation under review is limited to `src/qual/commands/catalog.py` and `tests/unit/test_commands_catalog.py`; `THREAD.md`, `THREAD_PACKET.md`, and `handoff_packets/feat-commands.md` are metadata only.
+- Scope note: the implementation under review is limited to `src/qual/cli.py`, `src/qual/commands/catalog.py`, and `tests/unit/test_commands_catalog.py`; `THREAD.md`, `THREAD_PACKET.md`, and `handoff_packets/feat-commands.md` are metadata only.
 
 ## Roadmap and Vision Mapping
 

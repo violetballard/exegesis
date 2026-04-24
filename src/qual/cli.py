@@ -7,6 +7,19 @@ from dataclasses import dataclass
 from src.qual.commands.canonical import canonical_command
 from src.qual.config import validate_project_name
 
+_BOOTSTRAP_COMMAND = "bootstrap"
+_DIFF_PREVIEW_COMMAND = "diff-preview"
+_DIFF_PREVIEW_ALIASES = ("diff",)
+_CONTEXT_BASKET_COMMAND = "context-basket"
+_TERMINAL_COMMAND = "terminal"
+
+_CLI_PARSER_ENTRYPOINTS: tuple[tuple[str, tuple[str, ...]], ...] = (
+    (_BOOTSTRAP_COMMAND, (_BOOTSTRAP_COMMAND,)),
+    (_DIFF_PREVIEW_COMMAND, (_DIFF_PREVIEW_COMMAND, *_DIFF_PREVIEW_ALIASES)),
+    (_CONTEXT_BASKET_COMMAND, (_CONTEXT_BASKET_COMMAND,)),
+    (_TERMINAL_COMMAND, (_TERMINAL_COMMAND,)),
+)
+
 
 @dataclass(frozen=True)
 class CLIArgs:
@@ -28,16 +41,24 @@ class CLIArgs:
     terminal_runtime_supports_qwen: bool
 
 
+def parser_cli_entrypoints() -> tuple[tuple[str, tuple[str, ...]], ...]:
+    return _CLI_PARSER_ENTRYPOINTS
+
+
 def _normalize_argv(argv: list[str] | None) -> list[str]:
     raw = list(sys.argv[1:] if argv is None else argv)
     if not raw:
-        return ["bootstrap"]
+        return [_BOOTSTRAP_COMMAND]
 
-    known = {"bootstrap", "diff-preview", "diff", "context-basket", "terminal"}
+    known = {
+        token
+        for _, entrypoints in parser_cli_entrypoints()
+        for token in entrypoints
+    }
     first = raw[0]
     # Backward compatibility: allow `--project ...` without explicit subcommand.
     if first.startswith("-"):
-        return ["bootstrap", *raw]
+        return [_BOOTSTRAP_COMMAND, *raw]
     if first in known:
         return raw
     return raw
@@ -47,22 +68,22 @@ def parse_args(argv: list[str] | None = None) -> CLIArgs:
     parser = argparse.ArgumentParser(prog="qual-bootstrap")
     sub = parser.add_subparsers(dest="command")
 
-    p_bootstrap = sub.add_parser("bootstrap", help="Run bootstrap shell")
+    p_bootstrap = sub.add_parser(_BOOTSTRAP_COMMAND, help="Run bootstrap shell")
     p_bootstrap.add_argument(
         "--project",
         type=validate_project_name,
         help="Project name to bootstrap under local app data directory.",
     )
 
-    p_diff = sub.add_parser("diff-preview", help="Preview unified diff output")
+    p_diff = sub.add_parser(_DIFF_PREVIEW_COMMAND, help="Preview unified diff output")
     p_diff.add_argument("--original", help="Original text")
     p_diff.add_argument("--proposed", help="Proposed text")
 
-    p_diff_alias = sub.add_parser("diff", help="Alias for diff-preview")
+    p_diff_alias = sub.add_parser(_DIFF_PREVIEW_ALIASES[0], help="Alias for diff-preview")
     p_diff_alias.add_argument("--original", help="Original text")
     p_diff_alias.add_argument("--proposed", help="Proposed text")
 
-    p_basket = sub.add_parser("context-basket", help="Manage context basket items")
+    p_basket = sub.add_parser(_CONTEXT_BASKET_COMMAND, help="Manage context basket items")
     p_basket_sub = p_basket.add_subparsers(dest="basket_action", required=True)
 
     p_basket_add = p_basket_sub.add_parser("add", help="Add an item id to basket")
@@ -74,7 +95,7 @@ def parse_args(argv: list[str] | None = None) -> CLIArgs:
     p_basket_sub.add_parser("list", help="List basket item ids")
     p_basket_sub.add_parser("clear", help="Clear all basket item ids")
 
-    p_terminal = sub.add_parser("terminal", help="Run terminal routing scaffold")
+    p_terminal = sub.add_parser(_TERMINAL_COMMAND, help="Run terminal routing scaffold")
     p_terminal.add_argument("--message", help="User terminal input")
     p_terminal.add_argument(
         "--operation-kind",
@@ -97,7 +118,7 @@ def parse_args(argv: list[str] | None = None) -> CLIArgs:
     p_terminal.add_argument("--runtime-supports-qwen", action="store_true")
 
     parser.set_defaults(
-        command="bootstrap",
+        command=_BOOTSTRAP_COMMAND,
         project=None,
         original=None,
         proposed=None,

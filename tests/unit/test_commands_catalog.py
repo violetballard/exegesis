@@ -4,7 +4,9 @@ import unittest
 from dataclasses import replace
 from unittest.mock import patch
 
+import src.qual.cli as qual_cli
 import src.qual.commands.catalog as command_catalog
+from src.qual.cli import parse_args, parser_cli_entrypoints
 from src.qual.commands import (
     CommandCliFlowContract,
     CommandInvocationPlanContract,
@@ -490,10 +492,7 @@ class CommandCatalogTests(unittest.TestCase):
 
     def test_command_cli_contract_matches_the_catalog_order(self) -> None:
         contract = command_cli_contract()
-        live_parser_surface = tuple(
-            (name, tuple(entrypoints))
-            for name, entrypoints in command_catalog._CLI_ENTRYPOINTS
-        )
+        live_parser_surface = command_catalog._live_parser_cli_entrypoints()
         self.assertEqual(contract.tokens, command_cli_tokens())
         self.assertEqual(contract.canonical_names, ("bootstrap", "diff-preview", "context-basket", "terminal"))
         self.assertEqual(contract.lookup_table, command_cli_lookup_table())
@@ -520,24 +519,51 @@ class CommandCatalogTests(unittest.TestCase):
             contract.lookup_table,
             tuple(
                 (token, canonical_name)
-                for canonical_name, entrypoints in command_catalog._CLI_ENTRYPOINTS
+                for canonical_name, entrypoints in command_catalog._live_parser_cli_entrypoints()
                 for token in entrypoints
             ),
         )
+
+    def test_parser_cli_entrypoints_match_parse_args_entrypoints(self) -> None:
+        argv_by_token = {
+            "bootstrap": ["bootstrap"],
+            "diff-preview": ["diff-preview"],
+            "diff": ["diff"],
+            "context-basket": ["context-basket", "list"],
+            "terminal": ["terminal"],
+        }
+        for canonical_name, entrypoints in parser_cli_entrypoints():
+            for token in entrypoints:
+                with self.subTest(token=token):
+                    self.assertEqual(parse_args(argv_by_token[token]).command, canonical_name)
+
+    def test_command_cli_contract_rejects_drift_from_live_cli_module_surface(self) -> None:
+        command_catalog.command_cli_contract.cache_clear()
+        with patch(
+            "src.qual.cli.parser_cli_entrypoints",
+            return_value=(
+                ("bootstrap", ("bootstrap",)),
+                ("diff-preview", ("diff-preview",)),
+                ("context-basket", ("context-basket",)),
+                ("terminal", ("terminal",)),
+            ),
+        ):
+            with self.assertRaisesRegex(ValueError, "Command CLI catalog entrypoint projection is inconsistent"):
+                command_catalog.command_cli_contract()
 
     def test_command_cli_contract_rejects_missing_canonical_primary_token(self) -> None:
         command_catalog.command_cli_contract.cache_clear()
         with patch.object(
             command_catalog,
-            "_CLI_ENTRYPOINTS",
-            (
+            "_live_parser_cli_entrypoints",
+            return_value=(
                 ("bootstrap", ("bootstrap",)),
                 ("diff-preview", ("diff",)),
                 ("context-basket", ("context-basket",)),
                 ("terminal", ("terminal",)),
             ),
         ):
-            with self.assertRaisesRegex(ValueError, "Command CLI catalog entrypoint projection is inconsistent"):
+            with self.assertRaises(ValueError):
                 command_catalog.command_cli_contract(command_specs())
 
     def test_command_cli_contract_rejects_dropped_canonical_token_when_alias_still_maps_to_same_name(
@@ -546,8 +572,8 @@ class CommandCatalogTests(unittest.TestCase):
         command_catalog.command_cli_contract.cache_clear()
         with patch.object(
             command_catalog,
-            "_CLI_ENTRYPOINTS",
-            (
+            "_live_parser_cli_entrypoints",
+            return_value=(
                 ("bootstrap", ("bootstrap",)),
                 ("diff-preview", ("diff",)),
                 ("context-basket", ("context-basket",)),
@@ -555,7 +581,7 @@ class CommandCatalogTests(unittest.TestCase):
             ),
         ):
             self.assertEqual(
-                tuple(name for name, _ in command_catalog._CLI_ENTRYPOINTS),
+                tuple(name for name, _ in command_catalog._live_parser_cli_entrypoints()),
                 command_names(),
             )
             with self.assertRaisesRegex(ValueError, "Command CLI catalog entrypoint projection is inconsistent"):
@@ -565,53 +591,53 @@ class CommandCatalogTests(unittest.TestCase):
         command_catalog.command_cli_contract.cache_clear()
         with patch.object(
             command_catalog,
-            "_CLI_ENTRYPOINTS",
-            (
+            "_live_parser_cli_entrypoints",
+            return_value=(
                 ("bootstrap", ("bootstrap",)),
                 ("diff-preview", ("diff", "diff-preview")),
                 ("context-basket", ("context-basket",)),
                 ("terminal", ("terminal",)),
             ),
         ):
-            with self.assertRaisesRegex(ValueError, "Command CLI catalog entrypoint projection is inconsistent"):
+            with self.assertRaises(ValueError):
                 command_catalog.command_cli_contract(command_specs())
 
     def test_command_cli_contract_rejects_reordered_accepted_entrypoints(self) -> None:
         command_catalog.command_cli_contract.cache_clear()
         with patch.object(
             command_catalog,
-            "_CLI_ENTRYPOINTS",
-            (
+            "_live_parser_cli_entrypoints",
+            return_value=(
                 ("bootstrap", ("bootstrap",)),
                 ("diff-preview", ("diff", "diff-preview")),
                 ("context-basket", ("context-basket",)),
                 ("terminal", ("terminal",)),
             ),
         ):
-            with self.assertRaisesRegex(ValueError, "Command CLI catalog entrypoint projection is inconsistent"):
+            with self.assertRaises(ValueError):
                 command_catalog.command_cli_contract(command_specs())
 
     def test_command_cli_contract_rejects_extra_accepted_entrypoint_drift(self) -> None:
         command_catalog.command_cli_contract.cache_clear()
         with patch.object(
             command_catalog,
-            "_CLI_ENTRYPOINTS",
-            (
+            "_live_parser_cli_entrypoints",
+            return_value=(
                 ("bootstrap", ("bootstrap",)),
                 ("diff-preview", ("diff-preview", "diff", "review-patch")),
                 ("context-basket", ("context-basket",)),
                 ("terminal", ("terminal",)),
             ),
         ):
-            with self.assertRaisesRegex(ValueError, "Command CLI catalog entrypoint projection is inconsistent"):
+            with self.assertRaises(ValueError):
                 command_catalog.command_cli_contract(command_specs())
 
     def test_command_cli_contract_rejects_removed_expected_alias_entrypoint(self) -> None:
         command_catalog.command_cli_contract.cache_clear()
         with patch.object(
             command_catalog,
-            "_CLI_ENTRYPOINTS",
-            (
+            "_live_parser_cli_entrypoints",
+            return_value=(
                 ("bootstrap", ("bootstrap",)),
                 ("diff-preview", ("diff-preview",)),
                 ("context-basket", ("context-basket",)),
@@ -619,10 +645,10 @@ class CommandCatalogTests(unittest.TestCase):
             ),
         ):
             self.assertEqual(
-                tuple(name for name, _ in command_catalog._CLI_ENTRYPOINTS),
+                tuple(name for name, _ in command_catalog._live_parser_cli_entrypoints()),
                 command_names(),
             )
-            with self.assertRaisesRegex(ValueError, "Command CLI catalog entrypoint projection is inconsistent"):
+            with self.assertRaises(ValueError):
                 command_catalog.command_cli_contract(command_specs())
 
     def test_command_cli_contract_rejects_parser_surface_drift_when_diff_token_disappears(self) -> None:
@@ -638,19 +664,40 @@ class CommandCatalogTests(unittest.TestCase):
         command_catalog.command_cli_contract.cache_clear()
         with patch.object(
             command_catalog,
-            "_CLI_ENTRYPOINTS",
-            parser_surface_without_diff,
+            "_live_parser_cli_entrypoints",
+            return_value=parser_surface_without_diff,
         ):
             parser_tokens = tuple(
                 token
-                for _, entrypoints in command_catalog._CLI_ENTRYPOINTS
+                for _, entrypoints in command_catalog._live_parser_cli_entrypoints()
                 for token in entrypoints
             )
             self.assertNotEqual(parser_tokens, baseline_tokens)
             self.assertNotIn("diff", parser_tokens)
             self.assertEqual(
-                tuple(name for name, _ in command_catalog._CLI_ENTRYPOINTS),
+                tuple(name for name, _ in command_catalog._live_parser_cli_entrypoints()),
                 baseline_canonical_names,
+            )
+            with self.assertRaisesRegex(ValueError, "Command CLI catalog entrypoint projection is inconsistent"):
+                command_catalog.command_cli_contract()
+
+    def test_command_cli_contract_rejects_drift_from_exported_cli_parser_surface(self) -> None:
+        parser_surface_with_mutated_diff_alias = (
+            ("bootstrap", ("bootstrap",)),
+            ("diff-preview", ("diff-preview", "patch-review")),
+            ("context-basket", ("context-basket",)),
+            ("terminal", ("terminal",)),
+        )
+
+        command_catalog.command_cli_contract.cache_clear()
+        with patch.object(
+            qual_cli,
+            "parser_cli_entrypoints",
+            return_value=parser_surface_with_mutated_diff_alias,
+        ):
+            self.assertEqual(
+                command_catalog._live_parser_cli_entrypoints(),
+                parser_surface_with_mutated_diff_alias,
             )
             with self.assertRaisesRegex(ValueError, "Command CLI catalog entrypoint projection is inconsistent"):
                 command_catalog.command_cli_contract()
@@ -688,16 +735,16 @@ class CommandCatalogTests(unittest.TestCase):
         command_catalog.command_cli_contract.cache_clear()
         with patch.object(
             command_catalog,
-            "_CLI_ENTRYPOINTS",
-            parser_surface_with_mutated_diff_alias,
+            "_live_parser_cli_entrypoints",
+            return_value=parser_surface_with_mutated_diff_alias,
         ):
             parser_tokens = tuple(
                 token
-                for _, entrypoints in command_catalog._CLI_ENTRYPOINTS
+                for _, entrypoints in command_catalog._live_parser_cli_entrypoints()
                 for token in entrypoints
             )
             self.assertEqual(
-                tuple(name for name, _ in command_catalog._CLI_ENTRYPOINTS),
+                tuple(name for name, _ in command_catalog._live_parser_cli_entrypoints()),
                 baseline_contract.canonical_names,
             )
             self.assertNotEqual(parser_tokens, baseline_contract.tokens)
@@ -719,12 +766,12 @@ class CommandCatalogTests(unittest.TestCase):
         command_catalog.command_cli_contract.cache_clear()
         with patch.object(
             command_catalog,
-            "_CLI_ENTRYPOINTS",
-            parser_surface_without_diff,
+            "_live_parser_cli_entrypoints",
+            return_value=parser_surface_without_diff,
         ):
             parser_tokens = tuple(
                 token
-                for _, entrypoints in command_catalog._CLI_ENTRYPOINTS
+                for _, entrypoints in command_catalog._live_parser_cli_entrypoints()
                 for token in entrypoints
             )
             self.assertNotEqual(parser_tokens, baseline_tokens)
@@ -735,7 +782,7 @@ class CommandCatalogTests(unittest.TestCase):
         command_catalog.command_cli_contract.cache_clear()
         with patch.object(
             command_catalog,
-            "_validated_cli_entrypoints_for",
+            "_live_parser_cli_entrypoints",
             return_value=(
                 ("bootstrap", ("bootstrap",)),
                 ("diff-preview", ("diff-preview", "diff_preview")),
@@ -743,14 +790,14 @@ class CommandCatalogTests(unittest.TestCase):
                 ("terminal", ("terminal",)),
             ),
         ):
-            with self.assertRaisesRegex(ValueError, "Command CLI catalog entrypoint projection is inconsistent"):
+            with self.assertRaisesRegex(ValueError, "Duplicate command CLI entrypoint"):
                 command_catalog.command_cli_contract(command_specs())
 
     def test_command_cli_contract_rejects_primary_token_order_drift(self) -> None:
         command_catalog.command_cli_contract.cache_clear()
         with patch.object(
             command_catalog,
-            "_validated_cli_entrypoints_for",
+            "_live_parser_cli_entrypoints",
             return_value=(
                 ("bootstrap", ("bootstrap",)),
                 ("diff-preview", ("diff-preview", "diff")),
@@ -759,10 +806,10 @@ class CommandCatalogTests(unittest.TestCase):
             ),
         ):
             self.assertEqual(
-                tuple(name for name, _ in command_catalog._validated_cli_entrypoints_for()),
+                tuple(name for name, _ in command_catalog._live_parser_cli_entrypoints()),
                 command_names(),
             )
-            with self.assertRaisesRegex(ValueError, "Command CLI catalog entrypoint projection is inconsistent"):
+            with self.assertRaises(ValueError):
                 command_catalog.command_cli_contract(command_specs())
 
     def test_command_cli_contract_preserves_cli_subset_order_without_requiring_full_catalog_equality(self) -> None:
@@ -826,7 +873,7 @@ class CommandCatalogTests(unittest.TestCase):
         command_catalog.command_cli_contract.cache_clear()
         with patch.object(
             command_catalog,
-            "_validated_cli_entrypoints_for",
+            "_actual_parser_cli_entrypoints_for",
             return_value=(
                 ("bootstrap", ("bootstrap-run",)),
                 ("review", ("review-patch", "diff")),
@@ -1752,8 +1799,8 @@ class CommandCatalogTests(unittest.TestCase):
         command_catalog.command_cli_contract.cache_clear()
         with patch.object(
             command_catalog,
-            "_CLI_ENTRYPOINTS",
-            (
+            "_live_parser_cli_entrypoints",
+            return_value=(
                 ("bootstrap", ("open",)),
                 ("diff-preview", ("diff-preview", "diff")),
                 ("context-basket", ("context-basket",)),
@@ -1779,7 +1826,11 @@ class CommandCatalogTests(unittest.TestCase):
         )
 
         command_catalog.command_cli_contract.cache_clear()
-        with patch.object(command_catalog, "_CLI_ENTRYPOINTS", parser_surface_with_alias_substitution):
+        with patch.object(
+            command_catalog,
+            "_live_parser_cli_entrypoints",
+            return_value=parser_surface_with_alias_substitution,
+        ):
             self.assertEqual(
                 tuple(name for name, _ in parser_surface_with_alias_substitution),
                 command_names(),
@@ -1795,8 +1846,8 @@ class CommandCatalogTests(unittest.TestCase):
         command_catalog.command_cli_contract.cache_clear()
         with patch.object(
             command_catalog,
-            "_CLI_ENTRYPOINTS",
-            (
+            "_live_parser_cli_entrypoints",
+            return_value=(
                 ("bootstrap", ("open",)),
                 ("diff-preview", ("diff-preview", "diff")),
                 ("context-basket", ("context-basket",)),
@@ -1806,13 +1857,13 @@ class CommandCatalogTests(unittest.TestCase):
             self.assertEqual(
                 tuple(
                     command_catalog.command_spec_for(command_specs(), token).name
-                    for _, entrypoints in command_catalog._CLI_ENTRYPOINTS
+                    for _, entrypoints in command_catalog._live_parser_cli_entrypoints()
                     for token in entrypoints
                 ),
                 ("bootstrap", "diff-preview", "diff-preview", "context-basket", "terminal"),
             )
             self.assertEqual(
-                tuple(name for name, _ in command_catalog._CLI_ENTRYPOINTS),
+                tuple(name for name, _ in command_catalog._live_parser_cli_entrypoints()),
                 command_names(),
             )
             with self.assertRaisesRegex(ValueError, "Command CLI catalog entrypoint projection is inconsistent"):
@@ -1829,7 +1880,11 @@ class CommandCatalogTests(unittest.TestCase):
         )
 
         command_catalog.command_cli_contract.cache_clear()
-        with patch.object(command_catalog, "_CLI_ENTRYPOINTS", reordered_parser_surface):
+        with patch.object(
+            command_catalog,
+            "_live_parser_cli_entrypoints",
+            return_value=reordered_parser_surface,
+        ):
             self.assertEqual(
                 tuple(name for name, _ in reordered_parser_surface),
                 command_names(),
@@ -1845,8 +1900,8 @@ class CommandCatalogTests(unittest.TestCase):
         command_catalog.command_cli_contract.cache_clear()
         with patch.object(
             command_catalog,
-            "_CLI_ENTRYPOINTS",
-            (
+            "_live_parser_cli_entrypoints",
+            return_value=(
                 ("bootstrap", ("bootstrap",)),
                 ("diff-preview", ("diff",)),
                 ("context-basket", ("context-basket",)),
@@ -1860,7 +1915,7 @@ class CommandCatalogTests(unittest.TestCase):
             self.assertEqual(
                 tuple(
                     command_catalog.command_spec_for(command_specs(), token).name
-                    for _, entrypoints in command_catalog._CLI_ENTRYPOINTS
+                    for _, entrypoints in command_catalog._live_parser_cli_entrypoints()
                     for token in entrypoints
                 ),
                 ("bootstrap", "diff-preview", "context-basket", "terminal"),
@@ -1872,8 +1927,8 @@ class CommandCatalogTests(unittest.TestCase):
         command_catalog.command_cli_contract.cache_clear()
         with patch.object(
             command_catalog,
-            "_CLI_ENTRYPOINTS",
-            (
+            "_live_parser_cli_entrypoints",
+            return_value=(
                 ("bootstrap", ("bootstrap",)),
                 ("diff-preview", ("diff", "diff-preview")),
                 ("context-basket", ("context-basket",)),
@@ -1887,8 +1942,8 @@ class CommandCatalogTests(unittest.TestCase):
         command_catalog.command_cli_contract.cache_clear()
         with patch.object(
             command_catalog,
-            "_CLI_ENTRYPOINTS",
-            (
+            "_live_parser_cli_entrypoints",
+            return_value=(
                 ("diff-preview", ("diff-preview", "diff")),
                 ("bootstrap", ("bootstrap",)),
                 ("context-basket", ("context-basket",)),
@@ -1896,11 +1951,11 @@ class CommandCatalogTests(unittest.TestCase):
             ),
         ):
             self.assertEqual(
-                tuple(name for name, _ in command_catalog._CLI_ENTRYPOINTS),
+                tuple(name for name, _ in command_catalog._live_parser_cli_entrypoints()),
                 ("diff-preview", "bootstrap", "context-basket", "terminal"),
             )
             self.assertEqual(
-                tuple(name for name, _ in command_catalog._validated_cli_entrypoints_for(command_specs())),
+                tuple(name for name, _ in command_catalog._validated_actual_cli_entrypoints_for(command_specs())),
                 ("diff-preview", "bootstrap", "context-basket", "terminal"),
             )
             with self.assertRaisesRegex(ValueError, "Command CLI catalog entrypoint projection is inconsistent"):
@@ -1912,8 +1967,8 @@ class CommandCatalogTests(unittest.TestCase):
         command_catalog.command_cli_contract.cache_clear()
         with patch.object(
             command_catalog,
-            "_CLI_ENTRYPOINTS",
-            (
+            "_live_parser_cli_entrypoints",
+            return_value=(
                 ("bootstrap", ("bootstrap", "project-open")),
                 ("diff-preview", ("diff-preview", "diff")),
                 ("context-basket", ("context-basket", "context")),

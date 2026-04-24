@@ -518,7 +518,21 @@ def _parser_cli_entrypoints_for(
     specs: tuple[CommandSpec, ...],
 ) -> tuple[tuple[str, tuple[str, ...]], ...]:
     if specs is COMMAND_SPECS:
-        return _CLI_ENTRYPOINTS
+        return _live_parser_cli_entrypoints()
+    return _declared_cli_entrypoint_projection(specs)
+
+
+def _live_parser_cli_entrypoints() -> tuple[tuple[str, tuple[str, ...]], ...]:
+    from src.qual.cli import parser_cli_entrypoints
+
+    return parser_cli_entrypoints()
+
+
+def _actual_parser_cli_entrypoints_for(
+    specs: tuple[CommandSpec, ...],
+) -> tuple[tuple[str, tuple[str, ...]], ...]:
+    if specs is COMMAND_SPECS:
+        return _live_parser_cli_entrypoints()
     return _declared_cli_entrypoint_projection(specs)
 
 
@@ -531,7 +545,38 @@ def _authoritative_cli_entrypoint_projection(
 def _actual_cli_entrypoint_projection(
     specs: tuple[CommandSpec, ...],
 ) -> tuple[tuple[str, tuple[str, ...]], ...]:
-    return _validated_cli_entrypoints_for(specs)
+    return _validated_actual_cli_entrypoints_for(specs)
+
+
+def _validated_actual_cli_entrypoints_for(
+    specs: tuple[CommandSpec, ...],
+) -> tuple[tuple[str, tuple[str, ...]], ...]:
+    validate_command_catalog(specs)
+    parser_entrypoints = _actual_parser_cli_entrypoints_for(specs)
+    seen_entrypoints: set[str] = set()
+    validated_entrypoints: list[tuple[str, tuple[str, ...]]] = []
+    for spec_name, entrypoints in parser_entrypoints:
+        if not entrypoints:
+            raise ValueError(f"Command {spec_name} must define at least one CLI entrypoint")
+        normalized_entrypoints: list[str] = []
+        for entrypoint in entrypoints:
+            normalized_entrypoint = _normalize_token(entrypoint)
+            if not normalized_entrypoint:
+                raise ValueError("Command CLI entrypoints must not be empty")
+            if normalized_entrypoint in seen_entrypoints:
+                raise ValueError(f"Duplicate command CLI entrypoint: {entrypoint}")
+            seen_entrypoints.add(normalized_entrypoint)
+            resolved = command_spec_for(specs, entrypoint)
+            if resolved is None:
+                raise ValueError(f"Unknown CLI command entrypoint: {entrypoint}")
+            if resolved.name != spec_name:
+                raise ValueError(
+                    "Command CLI entrypoint resolves to the wrong command: "
+                    f"{entrypoint} -> {resolved.name}"
+                )
+            normalized_entrypoints.append(normalized_entrypoint)
+        validated_entrypoints.append((spec_name, tuple(normalized_entrypoints)))
+    return tuple(validated_entrypoints)
 
 
 def _cli_lookup_projection_from_entrypoints(
@@ -1181,14 +1226,6 @@ COMMAND_SPECS: tuple[CommandSpec, ...] = (
     ),
 )
 
-# Lock the default parser surface separately from the command catalog so
-# command_cli_contract() can fail fast if the accepted CLI entrypoints drift.
-_CLI_ENTRYPOINTS: tuple[tuple[str, tuple[str, ...]], ...] = (
-    ("bootstrap", ("bootstrap",)),
-    ("diff-preview", ("diff-preview", "diff")),
-    ("context-basket", ("context-basket",)),
-    ("terminal", ("terminal",)),
-)
 DEMO_COMMAND_FLOW_STEPS: tuple[str, ...] = (
     "project-open",
     "retrieval",

@@ -1,22 +1,25 @@
 # Handoff Packet: feat-commands
 
 - Branch name: `codex/feat-commands`
-- Scope completed: hardened `command_cli_contract()` in `src/qual/commands/catalog.py` so the CLI contract reuses the canonical `command_names()` ordering and raises if the parser surface drifts from the command catalog, then added focused regression coverage for canonical-order alignment and drift rejection in `tests/unit/test_commands_catalog.py`.
+- Scope completed: wired `src/qual/cli.py` to expose the live parser entrypoint surface from shared command-name constants, then hardened `command_cli_contract()` in `src/qual/commands/catalog.py` so the CLI contract reuses the canonical `command_names()` ordering and raises if the live parser surface drifts from the command catalog, plus focused regression coverage for canonical-order alignment and drift rejection in `tests/unit/test_commands_catalog.py`.
+- Canonical demo-path step advanced: `preview and apply or reject a patch`
 - Canonical MVP flow advanced: `open project/document -> retrieve relevant material -> preview and apply or reject a patch` for the manual CLI smoke flow, via `bootstrap`/`project-open` for open, `context-basket` for retrieval staging, and `diff-preview`/`review-patch` for patch preview.
 - Canonical MVP flow mapping sentence: this `feat-commands` CLI-contract hardening slice strengthens the canonical `open project/document`, `retrieve relevant material`, and `preview and apply or reject a patch` steps by preserving the operator-facing CLI command catalog contract used by `bootstrap`/`project-open`, `context-basket`, and `diff-preview`/`review-patch` while CLI remains the active first-class surface.
-- Demo-path sentence: this change makes the `preview and apply or reject a patch` step more real for the CLI-first MVP loop because the concrete command entrypoints an operator runs now fail fast if parser drift changes the canonical catalog contract.
+- Demo-path sentence: this change makes the `preview and apply or reject a patch` step more real for the CLI-first MVP loop because the concrete parser-backed command entrypoints an operator runs now fail fast if parser drift changes the canonical catalog contract.
 - Concrete blocker removed: before this change, parser drift could silently desynchronize the CLI surface from the catalog while leaving the contract seemingly valid, so an operator could attempt the `open project/document -> retrieve relevant material -> preview and apply or reject a patch` loop through a CLI contract that had drifted away from the canonical catalog.
 - Traceability note: reviewed implementation commit is `f8d860ed9f6299f0169c4f21321ac5f37c949fd3`; this refresh updates only `THREAD.md`, `THREAD_PACKET.md`, and `handoff_packets/feat-commands.md`.
 
 ## Tasks Completed
-1. Hardened `command_cli_contract()` so it validates canonical command names against `command_names()` instead of rebuilding a divergent list from parser lookup output.
-2. Preserved canonical CLI contract ordering by returning the validated catalog-order tuple directly.
-3. Added focused regression coverage in `tests/unit/test_commands_catalog.py` for canonical-order alignment and parser/catalog drift rejection.
+1. Wired the live parser entrypoint surface in `src/qual/cli.py` to shared command-name constants so the CLI and contract validation read the same parser source.
+2. Hardened `command_cli_contract()` so it validates canonical command names against `command_names()` and the live parser surface instead of duplicated catalog-local entrypoint data.
+3. Preserved canonical CLI contract ordering by returning the validated catalog-order tuple directly.
+4. Added focused regression coverage in `tests/unit/test_commands_catalog.py` for canonical-order alignment and live parser/catalog drift rejection.
 
 ## Packet Refresh Notes
 - Metadata refresh only: this handoff now names the exact canonical demo-path step advanced, narrows the claim to CLI-contract hardening, cites the traceable shared-test approval source, and records the re-run gate results for the command-catalog slice.
 
 ## Files Changed
+- `src/qual/cli.py`
 - `src/qual/commands/catalog.py`
 - `tests/unit/test_commands_catalog.py`
 - `THREAD.md`
@@ -49,8 +52,9 @@
 
 ## Scope / Ownership Note
 - Lane-owned implementation path: `src/qual/commands/catalog.py`
+- Shared-by-approval parser path: `src/qual/cli.py`
 - Shared-by-approval regression path: `tests/unit/test_commands_catalog.py`
-- Approval source: `THREAD_OWNERSHIP.md` marks `tests/unit/test_commands_catalog.py` as shared-by-approval for `codex/feat-commands*`, and `scripts/scope-check.sh` codifies that approval with the branch-specific allowlist entry that explicitly permits the file
-- Checkpoint provenance: `THREAD_PACKET.md` preserves the high-risk `before risky/shared file edit` checkpoint showing that the shared regression path was verified against the branch allowlist before shared handoff metadata was refreshed
+- Approval source: `THREAD_OWNERSHIP.md` marks `src/qual/cli.py` and `tests/unit/test_commands_catalog.py` as shared-by-approval for `codex/feat-commands*`, and `scripts/scope-check.sh` codifies those approvals with the branch-specific allowlist entries that explicitly permit the files when `SCOPE_ALLOW_SHARED=1`
+- Checkpoint provenance: `THREAD_PACKET.md` preserves the high-risk `before risky/shared file edit` checkpoint showing that both shared paths were verified against the branch allowlist before the parser source and handoff metadata were refreshed
 - Integrator-locked edits: none
-- Branch-tip scope note: the implementation under review is limited to `src/qual/commands/catalog.py` and `tests/unit/test_commands_catalog.py`; `THREAD.md`, `THREAD_PACKET.md`, and this handoff file are metadata only.
+- Branch-tip scope note: the implementation under review is limited to `src/qual/cli.py`, `src/qual/commands/catalog.py`, and `tests/unit/test_commands_catalog.py`; `THREAD.md`, `THREAD_PACKET.md`, and this handoff file are metadata only.
