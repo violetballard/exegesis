@@ -13,7 +13,7 @@
 
 - Branch: `codex/feat-commands`
 - Lane/owned paths: `src/qual/commands/**`
-- Scope goal: make the canonical `open project/document` CLI fallback step more real as the primary step advanced by this slice, by locking the declared parser-facing command ordering to the canonical command catalog and failing fast when parser/catalog drift is introduced, including the reviewer-called `diff` token disappearance case.
+- Scope goal: make the canonical `open project/document` CLI fallback step more real by locking the declared parser-facing command ordering to the canonical command catalog and failing fast when parser/catalog drift is introduced, including the reviewer-called `diff` token disappearance case.
 - Risk reason: the reviewed slice touches the command contract in `src/qual/commands/catalog.py` and a shared-by-approval regression test file.
 
 ### Budget
@@ -55,6 +55,7 @@
 ## Canonical Demo-Path Mapping
 
 - Primary canonical demo-path step advanced now: `open project/document`.
+- Explicit canonical demo-path statement required for re-review: this slice advances the canonical `open project/document` step, and no other demo-path step.
 - Primary-step scope note: this packet advances `open project/document` only.
 - One-line plan alignment: this change makes `open project/document` more real by keeping the CLI fallback command contract deterministic and failing fast before that first operator step can run on a drifted parser/catalog surface.
 - `command_cli_contract()` dependency sentence: deterministic `command_cli_contract()` behavior is necessary for `open project/document` because, while Textual remains disabled and the CLI must still execute the MVP loop, the operator cannot trust the very first demo-path command unless parser/catalog drift is rejected before command resolution.
@@ -63,7 +64,7 @@
 - Direct plan-alignment statement: this change makes the `open project/document` CLI fallback entry step more real by keeping command ordering deterministic and failing fast whenever the parser-facing catalog drifts from the canonical command catalog.
 - Scope-tightening note: this handoff claims only deterministic command ordering plus fail-fast parser/catalog drift detection for the primary `open project/document` CLI fallback step; it does not claim progress on retrieval, patch review, persistence, export, or any later demo-path step.
 - Traceability note: `86e7450a89c33ed158097c4fde9d5fc9edb023ab` is the actual implementation tip for this reviewed slice. Later branch commits are packet-only refreshes in `THREAD.md` and `THREAD_PACKET.md`.
-- Why this is milestone-worthy now instead of second-order cleanup: deterministic CLI command ordering is a required smoke-test guard for the active engine-first MVP loop while Textual remains disabled. `AGENTS.md` says contract work counts only when it removes a concrete blocker on the canonical demo path, and this guard does that by preventing silent command-catalog drift on the live CLI fallback path before the operator can begin `open project/document`.
+- Why this is milestone-worthy now instead of second-order cleanup: deterministic CLI command ordering is a required smoke-test guard for the active engine-first MVP loop while Textual remains disabled. This guard removes a concrete blocker on the canonical demo path by preventing silent command-catalog drift on the live CLI fallback path before the operator can begin `open project/document`.
 
 ## Approved Exception Note
 
@@ -114,6 +115,7 @@
 
 - `open project/document`
 - This change makes `open project/document` more real by keeping the CLI fallback command contract deterministic and failing fast if the parser-facing surface drifts from the canonical command catalog before the first operator step runs.
+- Concrete blocker removal: deterministic parser/catalog validation removes the blocker where the CLI could appear stable by canonical command names while silently losing required parser tokens before `open project/document` begins.
 
 ### Roadmap item(s) affected
 

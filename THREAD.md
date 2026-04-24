@@ -20,6 +20,8 @@ Canonical handoff contract lives in `THREAD_PACKET.md`.
   - `open project/document`
 - Required handoff field now called out explicitly:
   - `Canonical demo-path step advanced: open project/document`
+- Explicit re-review statement:
+  - this slice advances the canonical `open project/document` step, and no other demo-path step
 - Primary-step scope note:
   - this packet advances `open project/document` only
 - One-line plan alignment:
@@ -36,6 +38,8 @@ Canonical handoff contract lives in `THREAD_PACKET.md`.
   - the active CLI surface no longer allows the declared parser-facing token catalog to drift away from the canonical command catalog without failing closed, including the explicit reviewer-called case where the `diff` parser token disappears while the canonical-name tuple still appears stable; that removes a concrete reliability blocker before the CLI can safely begin the `open project/document` demo-path step.
 - Scope-tightening note:
   - this reviewed slice hardens only deterministic command ordering plus fail-fast parser/catalog drift detection for the primary `open project/document` fallback step; it does not claim progress on retrieval, patch review, persistence, export, or any later demo-path step
+- Concrete review-fix claim:
+  - the handoff correction is only that explicit `open project/document` mapping and blocker-removal statement; it does not broaden the implementation claim beyond parser/catalog determinism and fail-fast CLI contract validation
 - Why this is milestone-worthy now:
   - deterministic CLI command ordering is a required smoke-test guard for the active engine-first MVP loop while Textual remains disabled, so preventing silent contract drift in the declared command catalog is direct operator-surface hardening rather than second-order cleanup.
 - Roadmap / vision alignment for this reviewed slice:
