@@ -3,9 +3,9 @@
 - Lane: `feat-commands`
 - Branch: `codex/feat-commands`
 - Review scope: narrow command-contract hardening in `src/qual/commands/catalog.py`, plus focused regression coverage in `tests/unit/test_commands_catalog.py`.
-- Canonical demo-path step advanced: `preview and apply or reject a patch`
-- Concrete canonical mapping: this slice advances canonical step 5, `preview and apply or reject a patch`, by locking the parser-backed patch-review CLI entrypoints to the canonical catalog so operators can move from `produce a plan or revision` into patch review on a deterministic CLI surface instead of silently accepting parser/catalog drift.
-- Concrete canonical-path blocker removed: deterministic CLI ordering and fast-fail parser/catalog drift detection are now enforced at the patch-review boundary, removing the blocker where review/apply commands could silently diverge from the canonical catalog while Textual remains disabled.
+- Canonical demo-path step advanced: canonical step `5 of 7`, `preview and apply or reject a patch`
+- Concrete canonical mapping: this slice advances canonical step `5 of 7`, `preview and apply or reject a patch`, by locking the parser-backed patch-review CLI entrypoints to the canonical catalog so operators can move from `produce a plan or revision` into patch review on a deterministic CLI surface instead of silently accepting parser/catalog drift.
+- Concrete canonical-path blocker removed: deterministic CLI ordering and fast-fail parser/catalog drift detection are now enforced at the patch-review boundary, removing the concrete blocker where review/apply commands could silently diverge from the canonical catalog before the operator can safely continue to `persist the updated document/session state` while Textual remains disabled.
 - Scope clarification: this is CLI compatibility hardening for the existing patch-review step while Textual remains disabled. It does not add new commands, new engine behavior, persistence work, or new workflow reachability.
 - Roadmap tie-in: this is Milestone 3 real-workflow-loop hardening at the CLI patch-review step, specifically the canonical `preview and apply or reject a patch` boundary between revision output and persistence.
 - High-risk framing note: this remains a high-risk handoff because it hardens a public command contract and uses the explicitly approved shared regression path `tests/unit/test_commands_catalog.py`.
