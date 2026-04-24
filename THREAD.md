@@ -8,8 +8,8 @@ Canonical handoff contract lives in `THREAD_PACKET.md`.
 - Branch: `codex/feat-commands`
 - Review scope: command-catalog Milestone 3 CLI compatibility slice that locks `command_cli_contract()` to the canonical catalog and rejects parser-surface drift
 - Canonical demo-path step advanced: `continue working without losing context` in the CLI-first engine loop.
-- Explicit re-review statement: this Milestone 3 CLI-compatibility slice makes the `open project/document` and overall `continue working` command surface more reliable by keeping the canonical command contract deterministic while Textual remains disabled.
-- Concrete blocker removed: after the operator opens a project or document, command-surface drift can no longer silently desynchronize the CLI contract from the canonical catalog and then leak into the ongoing engine-first loop as the operator continues working.
+- Explicit re-review statement: this Milestone 3 CLI-compatibility slice directly strengthens `continue working without losing context` by forcing the active CLI command contract to stay deterministic while Textual remains disabled.
+- Concrete blocker removed: once the operator is in the engine-first loop, parser drift can no longer silently desynchronize the CLI contract from the canonical catalog and then break the operator's ability to continue working against the expected Milestone 3 command surface.
 - Reviewed implementation commit: `f8d860ed9f6299f0169c4f21321ac5f37c949fd3`
 - Shared-test approval reference: `scripts/scope-check.sh` explicitly allowlists `tests/unit/test_commands_catalog.py` for `codex/feat-commands*`.
 

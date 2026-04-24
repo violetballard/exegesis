@@ -3,16 +3,15 @@
 - Branch name: `codex/feat-commands`
 - Scope completed: hardened `command_cli_contract()` in `src/qual/commands/catalog.py` so the CLI contract reuses the canonical `command_names()` ordering and raises if the parser surface drifts from the command catalog, then added focused regression coverage for canonical-order alignment and drift rejection in `tests/unit/test_commands_catalog.py`.
 - Canonical demo-path step advanced: `continue working without losing context` in the CLI-first engine loop.
-- Canonical demo-path mapping sentence: this Milestone 3 CLI-compatibility slice makes the `open project/document` and overall `continue working` command surface more reliable by keeping the canonical command contract deterministic while Textual remains disabled.
-- Concrete blocker removed: before this change, parser drift could silently desynchronize the CLI surface from the catalog while leaving the contract seemingly valid, which meant an operator could open a project or document and continue through the engine-first loop against a contract that had drifted away from the canonical MVP path without an immediate failure.
+- Canonical demo-path mapping sentence: this Milestone 3 CLI-compatibility slice directly strengthens `continue working without losing context` by keeping the active CLI command contract deterministic while Textual remains disabled.
+- Concrete blocker removed: before this change, parser drift could silently desynchronize the CLI surface from the catalog while leaving the contract seemingly valid, which meant an operator could continue through the engine-first loop against a contract that had drifted away from the canonical MVP path without an immediate failure.
 - Traceability note: reviewed implementation commit is `f8d860ed9f6299f0169c4f21321ac5f37c949fd3`; this refresh updates only `THREAD.md`, `THREAD_PACKET.md`, and `handoff_packets/feat-commands.md`.
 
 ## Tasks Completed
 1. Hardened `command_cli_contract()` so it validates canonical command names against `command_names()` instead of rebuilding a divergent list from parser lookup output.
 2. Preserved canonical CLI contract ordering by returning the validated catalog-order tuple directly.
 3. Added focused regression coverage in `tests/unit/test_commands_catalog.py` for canonical-order alignment and parser/catalog drift rejection.
-4. Refreshed the lane handoff metadata so it names the exact canonical demo-path step advanced and cites the traceable shared-test approval source.
-5. Re-ran the required gates for the command-catalog slice.
+4. Refreshed the lane handoff metadata so it names the exact canonical demo-path step advanced, cites the traceable shared-test approval source, and records the re-run gate results for the command-catalog slice.
 
 ## Files Changed
 - `src/qual/commands/catalog.py`
@@ -34,8 +33,8 @@
 - Blockers: none.
 
 ## Roadmap Item(s) Affected
-- `ROADMAP.md` Milestone 3 `Real workflow loop` because this slice removes a concrete blocker in the active CLI-first operator path by keeping the command surface deterministic from `project-open` through `continue working`.
-- `ROADMAP.md` canonical demo path because the concrete operator step strengthened is `continue working without losing context`, and this Milestone 3 CLI-compatibility slice makes the `open project/document` and overall `continue working` command surface more reliable by keeping the canonical command contract deterministic while Textual remains disabled.
+- `ROADMAP.md` Milestone 3 `Real workflow loop` because this slice removes a concrete blocker in the active CLI-first operator path by keeping the command surface deterministic as the operator continues through the loop.
+- `ROADMAP.md` canonical demo path because the concrete operator step strengthened is `continue working without losing context`, and this Milestone 3 CLI-compatibility slice keeps the active CLI command contract deterministic while Textual remains disabled.
 - `ROADMAP.md` lane mapping `feat-commands` because this lane owns CLI compatibility and migration-safe entrypoints for the engine-first MVP loop.
 
 ## Vision Capability Affected
