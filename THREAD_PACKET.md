@@ -2,18 +2,18 @@
 
 - Branch name: `codex/feat-retrieval-fts`
 - Packet role: `metadata-only reviewer-fix finalization`
-- Current submitted tip before this packet refresh commit: `764dc41208453059a2a8c96502a092b6676d4fd2`
+- Current submitted tip before this packet refresh commit: `ca859a13eb27df76025cd4f4360273785a66fdec`
 - Reviewed implementation head: `9d9e11a1929dc56e44f5a4d459aa385e7a6ce1e5`
 - Reviewed implementation range: `378cf9a74a3658058079a32f186fcd254c4a4034..9d9e11a1929dc56e44f5a4d459aa385e7a6ce1e5`
 - Packet traceability note: review this lane against the cumulative implementation range above. That range includes the substantive post-`adfa8cda` retrieval commits, including `a96043fee95c3be1b69fba0148e6fdbb5d1d51a9` and `9d9e11a1929dc56e44f5a4d459aa385e7a6ce1e5`. This fixer commit is metadata-only and does not broaden retrieval scope beyond `378cf9a7..9d9e11a1`.
 - Canonical demo-path step advanced: `retrieve relevant material`
 - Reviewer-required plan-alignment statement: This work makes the `retrieve relevant material` step more real by ensuring excerpt lookup fails closed to the canonical FTS-backed retrieval path and returns deterministic provenance only for FTS hits.
 - Evidence note: `tests/unit/test_unified_retrieval.py` covers both the canonical/public FTS excerpt helpers and the fail-closed excerpt contract, while the cumulative reviewed range also carries the sparse-hit query-constraint preservation fixes in `src/qual/engine/retrieval/payload.py`.
-- Packet authority note: this top-level packet and [docs/gate_passed.txt](/Users/doctor-violet/.codex/worktrees/rfts/qual/docs/gate_passed.txt:1) are the reviewer-facing source of truth for the corrected reviewed range, demo-path mapping, and gate results on this branch. The mirrored `.codex/*` packet artifacts remain read-only in this worktree, so they are supporting context rather than the writable handoff source of truth for this fixer pass.
+- Packet authority note: this top-level packet and [docs/gate_passed.txt](/Users/doctor-violet/.codex/worktrees/rfts/qual/docs/gate_passed.txt:1) are the reviewer-facing source of truth for the corrected reviewed range, demo-path mapping, and gate results on this branch. The mirrored `.codex/*` packet artifacts remain stale in this worktree because sandbox policy blocks writes to those paths during this fixer pass.
 
 ## Scope Goal
 
-- Re-emit the retrieval handoff truthfully against the real reviewed implementation range `378cf9a74a3658058079a32f186fcd254c4a4034..9d9e11a1929dc56e44f5a4d459aa385e7a6ce1e5`, state explicitly that this work advances `retrieve relevant material`, record that the mirrored `.codex/*` packet artifacts are read-only in this worktree, and keep this final fixer commit metadata-only on top of `764dc41208453059a2a8c96502a092b6676d4fd2`.
+- Re-emit the retrieval handoff truthfully against the real reviewed implementation range `378cf9a74a3658058079a32f186fcd254c4a4034..9d9e11a1929dc56e44f5a4d459aa385e7a6ce1e5`, state explicitly that this work advances `retrieve relevant material`, record that the mirrored `.codex/*` packet artifacts are sandbox-blocked in this worktree, and keep this final fixer commit metadata-only on top of `ca859a13eb27df76025cd4f4360273785a66fdec`.
 
 ## Thread Kickoff (High-Risk)
 
@@ -38,7 +38,7 @@
 
 ### Checkpoint Status
 
-- `plan complete`: the packet stays anchored to the real reviewed implementation head `9d9e11a1929dc56e44f5a4d459aa385e7a6ce1e5` while refreshing the writable handoff artifacts on top of `764dc41208453059a2a8c96502a092b6676d4fd2`.
+- `plan complete`: the packet stays anchored to the real reviewed implementation head `9d9e11a1929dc56e44f5a4d459aa385e7a6ce1e5` while refreshing the handoff artifacts on top of `ca859a13eb27df76025cd4f4360273785a66fdec`.
 - `first green tests`: recorded after rerunning `make scope-check`, `./quality-format.sh --check`, `./quality-lint.sh`, `./quality-test.sh`, `./typecheck-test.sh`, and `make ci`.
 - `before risky/shared file edit`: this handoff includes approved shared regression coverage in `tests/unit/test_unified_retrieval.py`.
 - `ready for handoff`: the top-level packet and gate summary agree on the same reviewed implementation head, reviewed range, risk class, and demo-path statement.
@@ -78,7 +78,7 @@
 1. Corrected the reviewed implementation head and range so the packet now includes the substantive post-`adfa8cda` retrieval commits through `9d9e11a1929dc56e44f5a4d459aa385e7a6ce1e5`.
 2. Replaced the false metadata-only branch-history claim with truthful cumulative traceability and the real file list.
 3. Added the explicit canonical demo-path statement naming `retrieve relevant material` and tying it to the FTS-first excerpt and sparse-payload contract.
-4. Re-ran the required gate suite on top of this metadata-only packet refresh and recorded the `.codex/*` permission constraint in the authoritative packet.
+4. Re-ran the required gate suite on top of this metadata-only packet refresh and recorded that the mirrored `.codex/*` packet artifacts are sandbox-blocked in this worktree.
 
 ## Files Changed
 
