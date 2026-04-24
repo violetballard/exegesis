@@ -14,14 +14,10 @@ LANES = [
 ]
 TEMPLATE = {
   "scope_goal": "",
-  "scope_completed": "",
-  "demo_path_mapping": "",
   "tasks_completed": [],
   "risk": "LOW",
   "roadmap_items": [],
   "vision_capabilities": [],
-  "canonical_demo_path_step": "",
-  "plan_alignment_note": "",
   "routing_provider_impact": "None",
   "proposed_readme_patch": "",
   "shared_file_exception": False,

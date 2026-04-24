@@ -1,36 +1,42 @@
 # Handoff Packet: feat-commands
 
 - Branch name: `codex/feat-commands`
-- Scope completed: added public helper APIs for the canonical and trusted Milestone 3 apply/reject command branches so callers can request the stable demo-loop token sequence directly instead of reconstructing it from invocation tables.
-- Canonical demo-path step advanced: `patch-review -> apply-patch/reject-patch -> persist -> export-handoff`
-- Demo-path mapping: this change makes the review/apply-or-reject/persist/export section of the CLI-first MVP loop easier to drive deterministically by exposing the exact canonical branch tokens and the exact trusted surface tokens for either decision path.
-- Roadmap item(s) affected: `ROADMAP.md` Milestone 1 `Bootstrap Flow Stabilization` via command-surface hardening, and `ROADMAP.md` Milestone 5 `A2UI Presentation Layer` exit criteria requiring the CLI to execute the MVP flow through patch and export on stable contracts.
-- Vision capability affected: `PRODUCT_VISION.md` capability 4 `Operator-first control surface`, specifically keeping the CLI command path deterministic and easy to smoke-test.
+- Scope completed: tightened the command CLI contract so it validates the real parser token surface and fails fast if the `patch-review` entrypoint drifts to alias-only, missing-canonical-token, reordered, or extra-token shapes.
+- Canonical demo-path step advanced: `patch-review`
+- Demo-path mapping: this slice locks the review-entry step of the engine-first CLI demo path by requiring the canonical `diff-preview` parser surface to stay intact before operators can enter the existing apply-or-reject, persist, and export-handoff branch.
+- Plan-alignment statement: this is a single engine-first demo-path hardening step, not a general CLI cleanup. It makes the `patch-review` contract deterministic so the downstream apply/reject, persist, and export steps keep starting from one intentional parser surface.
+- Roadmap item(s) affected: `ROADMAP.md` Milestone 1 `Bootstrap Flow Stabilization` via patch-review command-surface hardening, and `ROADMAP.md` Milestone 3 `Product Readiness` via fail-fast validation of user-facing CLI contracts.
+- Vision capability affected: `PRODUCT_VISION.md` capability 4 `Operator-first control surface`, specifically keeping the patch-review CLI entrypoint deterministic and auditable.
 - Routing/provider impact note: none; this slice does not touch model routing, provider configuration, or shared entrypoints.
 - Proposed `README.md` patch text: none.
 
 ## Tasks Completed
-1. Added `command_demo_workflow_branch_tokens()` and `command_mvp_workflow_branch_tokens()` in [src/qual/commands/catalog.py](/Users/doctor-violet/.codex/worktrees/5494/qual/src/qual/commands/catalog.py:3587) to expose the canonical apply/reject branch token order directly.
-2. Added `command_demo_workflow_trusted_tokens()` and `command_mvp_workflow_trusted_tokens()` in [src/qual/commands/catalog.py](/Users/doctor-violet/.codex/worktrees/5494/qual/src/qual/commands/catalog.py:3622) to expose the preferred stable command surface for the same branch.
-3. Re-exported the new helpers from [src/qual/commands/__init__.py](/Users/doctor-violet/.codex/worktrees/5494/qual/src/qual/commands/__init__.py:150) so command consumers can import them from the lane’s public package surface.
-4. Added focused regression coverage in [tests/unit/test_commands_catalog.py](/Users/doctor-violet/.codex/worktrees/5494/qual/tests/unit/test_commands_catalog.py:4027) proving apply/reject aliases normalize to the right canonical branch and trusted token sequence.
+1. Tightened `_validate_command_cli_contract()` in [src/qual/commands/catalog.py](/Users/doctor-violet/.codex/worktrees/5494/qual/src/qual/commands/catalog.py:553) so the command contract validates the authoritative parser projection against the declared CLI entrypoint surface instead of only comparing deduplicated canonical command names.
+2. Added parser-surface regressions in [tests/unit/test_commands_catalog.py](/Users/doctor-violet/.codex/worktrees/5494/qual/tests/unit/test_commands_catalog.py:494) that patch the real parser surface and prove alias-only, missing-canonical-token, reordered, and extra-token drift fail fast, including the critical `diff-preview` removed while `diff` still resolves case.
+3. Updated [handoff_packets/feat-commands.md](/Users/doctor-violet/.codex/worktrees/5494/qual/handoff_packets/feat-commands.md:1) to name the exact `patch-review` demo-path step this slice advances and to keep the scope claim tied to that step.
+4. Refreshed the packet generator in [planner.py](/Users/doctor-violet/.codex/worktrees/5494/qual/codex_packet_handoff/tools/planner.py:142) plus [init_lane_meta.py](/Users/doctor-violet/.codex/worktrees/5494/qual/codex_packet_handoff/tools/init_lane_meta.py:5) so regenerated feature packets can include the explicit demo-path mapping.
 5. Ran the required gate suite and scope check.
 
 ## Files Changed
+- `codex_packet_handoff/tools/init_lane_meta.py`
+- `codex_packet_handoff/tools/planner.py`
 - `src/qual/commands/catalog.py`
-- `src/qual/commands/__init__.py`
 - `tests/unit/test_commands_catalog.py`
 - `handoff_packets/feat-commands.md`
 
 ## Commands Run With Results
-- `python -m unittest tests.unit.test_commands_catalog -q` -> passed (`131` tests)
+- `python -m unittest tests.unit.test_commands_catalog -q` -> passed
 - `make scope-check` -> passed
 - `./quality-format.sh --check` -> passed
 - `./quality-lint.sh` -> passed
-- `./quality-test.sh` -> passed (`214` tests plus smoke)
+- `./quality-test.sh` -> passed
 - `./typecheck-test.sh` -> passed
 - `make ci` -> passed
 
 ## Risks / Blockers
-- Risks: future workflow-branch contract changes now need to keep the new token helpers aligned with the existing invocation-plan helpers and tests; the new coverage is intended to fail fast if they drift.
+- Risks: future parser-surface changes now need to keep the declared CLI entrypoints, authoritative parser projection, and packet metadata aligned; the updated regressions are intended to fail fast if they drift.
 - Blockers: none.
+
+## Scope-Check / Ownership Note
+- Shared-by-approval edit: `tests/unit/test_commands_catalog.py`
+- Approval note: `THREAD_OWNERSHIP.md` shared-file exception retained for the required parser-surface regression coverage.
