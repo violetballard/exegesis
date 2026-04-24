@@ -2,7 +2,7 @@
 
 - Branch name: `codex/feat-retrieval-fts`
 - Packet role: `metadata-only reviewer-fix re-emit`
-- Current submitted tip before this packet refresh commit: `f246061b66e00e2ad8e750c1b75a54cbcaae91b4`
+- Current submitted tip before this packet refresh commit: `5148e26650fe64ef05c5820556552cfc7840ff7a`
 - Reviewed implementation head: `adfa8cdadd43747ffbcb612e4151e262b13e52ca`
 - Reviewed implementation range: `d7fd5d200358287fa42a18d39e2b277463b9b69f..adfa8cdadd43747ffbcb612e4151e262b13e52ca`
 - Packet traceability note: review this lane against the narrowed implementation range above. The current packet refresh commit is metadata-only and does not broaden retrieval scope beyond `d7fd5d20..adfa8cda`.
@@ -20,6 +20,7 @@
 - Branch: `codex/feat-retrieval-fts`
 - Lane/owned paths: `src/qual/retrieval/**`, `src/qual/engine/retrieval/**`, `engine/src/exegesis_engine/retrieval/**`
 - Scope goal: correct the reviewer packet against the reviewed retrieval implementation head `adfa8cdadd43747ffbcb612e4151e262b13e52ca` while keeping the claim narrow to the existing excerpt-lookup contract and not newly asserting broader engine-surface reachability.
+- Scope note: this handoff tightens excerpt lookup behavior behind the existing retrieval surface; it does not newly establish broader engine-surface reachability on its own.
 - Risk reason: this handoff includes approved shared regression coverage in `tests/unit/test_unified_retrieval.py`, so it is shared/high-risk work under the 4-task cap.
 
 ### Budget
@@ -118,7 +119,7 @@
 ### Vision capability affected
 
 - `2. Retrieval-first context handling`
-- `3. Auditable generation`
+- `6. Auditable state and workflow`
 
 ### Routing/provider impact note
 

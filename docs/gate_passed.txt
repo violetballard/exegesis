@@ -1,11 +1,13 @@
 Gate Results Summary (as of 2026-04-23)
 -------------------------------------
 
-Required automated gates reran for the truthful branch-tip handoff on:
+Required automated gates reran for the narrowed metadata-only packet refresh on:
 
-* current submitted tip before this packet refresh commit `d0d89fe51d8d44a0cc798698c7b0354c7392d307`
-* truthful promoted implementation range `378cf9a74a3658058079a32f186fcd254c4a4034..d0d89fe51d8d44a0cc798698c7b0354c7392d307`
-* promoted files `.codex/kickoff_packets/feat-retrieval-fts.md`, `.codex/lane_meta/feat-retrieval-fts.json`, `THREAD_PACKET.md`, `codex_packet_handoff/tools/planner.py`, `docs/gate_passed.txt`, `src/qual/engine/retrieval/__init__.py`, `src/qual/engine/retrieval/embeddings_strategy.py`, `src/qual/engine/retrieval/fts_strategy.py`, `src/qual/engine/retrieval/interface.py`, `src/qual/engine/retrieval/pageindex_strategy.py`, `src/qual/engine/retrieval/payload.py`, `src/qual/retrieval/__init__.py`, `src/qual/retrieval/service.py`, `tests/unit/test_packet_planner.py`, and `tests/unit/test_unified_retrieval.py`
+* current submitted tip before this packet refresh commit `5148e26650fe64ef05c5820556552cfc7840ff7a`
+* reviewed implementation head `adfa8cdadd43747ffbcb612e4151e262b13e52ca`
+* reviewed implementation range `d7fd5d200358287fa42a18d39e2b277463b9b69f..adfa8cdadd43747ffbcb612e4151e262b13e52ca`
+* reviewed implementation files `src/qual/retrieval/service.py` and `tests/unit/test_unified_retrieval.py`
+* current metadata-only packet refresh files `.codex/kickoff_packets/feat-retrieval-fts.md`, `.codex/lane_meta/feat-retrieval-fts.json`, `THREAD_PACKET.md`, and `docs/gate_passed.txt`
 * shared regression approval basis `tests/unit/test_unified_retrieval.py`
 
 Gate status:
@@ -25,7 +27,8 @@ Focused retrieval proof:
 
 Canonical demo-path step advanced: `retrieve relevant material`.
 Plan-alignment statement: this change makes `retrieve relevant material` more real by forcing excerpt lookup to fail closed unless the hit comes from the authoritative SQLite FTS path.
-Budget compliance statement: task count remains within the 4-task high-risk cap, but the truthful promoted range exceeds the high-risk size budget at `15 files changed, 10447 insertions(+), 1082 deletions(-)`.
-Traceability statement: re-review should validate the truthful promoted branch-tip range `378cf9a7..d0d89fe5`; post-`adfa8cda` retrieval/runtime commits are in scope and are not metadata-only.
+Scope note: this packet narrows the claim to excerpt lookup behavior behind the existing retrieval surface; it does not newly establish broader engine-surface reachability on its own.
+Budget compliance statement: this packet is shared/high-risk work because it includes the approved shared regression surface `tests/unit/test_unified_retrieval.py`, so it is read against the 4-task cap rather than the low-risk 8-task cap.
+Traceability statement: re-review should validate the narrowed reviewed implementation range `d7fd5d20..adfa8cda`; the current packet refresh commit is metadata-only and does not broaden retrieval scope beyond that range.
 
 The authoritative handoff packet remains `THREAD_PACKET.md`.
