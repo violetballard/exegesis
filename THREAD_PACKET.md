@@ -4,9 +4,9 @@
 - Branch: `codex/feat-commands`
 - Review scope: current branch-tip Milestone 3 CLI compatibility safeguard for the engine-first demo loop plus one shared regression for alias-level parser-surface drift
 - Canonical demo-path steps advanced: `open project/document`, `promote or gather context into the basket`, and `preview and apply or reject a patch`
-- Required mapping statement: this slice strengthens the active CLI demo loop by making `open project/document`, `promote or gather context into the basket`, and `preview and apply or reject a patch` more reliable because the `diff-preview` CLI surface now fails fast if the `diff` alias drops or mutates while the canonical command order still looks stable.
+- Required mapping statement: this slice strengthens the active CLI demo loop by specifically making `preview and apply or reject a patch` more reliable, with `open project/document` and `promote or gather context into the basket` included only as the surrounding CLI-first Milestone 3 path that feeds the patch-review step, because the `diff-preview` CLI surface now fails fast if the `diff` alias drops or mutates while the canonical command order still looks stable.
 - Concrete blocker removed: before this slice, alias-level parser drift could silently change or remove the `diff` entrypoint while `canonical_names` still matched, weakening the deterministic CLI control surface for the patch-review step.
-- Traceability note: reviewed implementation commit is `ebe78557`; the latest metadata refresh commit on this branch is `e1d22341`, and it changes `THREAD.md`, `THREAD_PACKET.md`, and `handoff_packets/feat-commands.md` only.
+- Traceability note: reviewed implementation commit is `ebe78557`; prior metadata refresh `e1d22341` changed only `THREAD.md`, `THREAD_PACKET.md`, and `handoff_packets/feat-commands.md` before this branch-tip packet refresh.
 
 ## Thread Kickoff (High-Risk)
 
@@ -57,11 +57,12 @@
 - Approval mechanism: `scripts/scope-check.sh` branch allowlist for `codex/feat-commands*`
 - Integrator-locked edits: `none`
 - Scope note: the current branch tip contains only the two implementation files above plus the handoff metadata files in this packet.
+- Packet-refresh accounting note: metadata-only refresh commit `e1d22341` changed `THREAD.md`, `THREAD_PACKET.md`, and `handoff_packets/feat-commands.md`; those files are intentionally part of the branch-level handoff record.
 
 ## Roadmap and Vision Mapping
 
 - `ROADMAP.md` Milestone 3 `Real workflow loop`: this change is a CLI compatibility safeguard for the engine-first MVP loop while Textual remains disabled, making the `diff-preview` patch-review entrypoint deterministic and drift-resistant.
-- `ROADMAP.md` canonical demo path steps: `open project/document`, `promote or gather context into the basket`, and `preview and apply or reject a patch` are more reliable because alias-level parser drift on `diff` now fails fast instead of silently weakening the CLI command surface the operator relies on across that loop.
+- `ROADMAP.md` canonical demo path steps: the direct operator-visible gain is `preview and apply or reject a patch`, while `open project/document` and `promote or gather context into the basket` stay relevant only as the surrounding CLI-first loop that must still arrive at a trustworthy `diff-preview` step; alias-level parser drift on `diff` now fails fast instead of silently weakening that patch-review surface.
 - `ROADMAP.md` active lane mapping: `feat-commands` owns CLI compatibility and migration-safe entrypoints for the engine-first MVP loop.
 - `PRODUCT_VISION.md` capability 3 `Canonical engine contract`: the CLI compatibility surface stays stable for the future client while Textual remains disabled.
 - `PRODUCT_VISION.md` near-term product truth: the CLI remains the active operator surface until UI lanes are enabled, so guarding the `diff-preview` patch-review entrypoint removes a concrete blocker on that active path.
