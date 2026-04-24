@@ -92,7 +92,7 @@
 
 ## Reviewer Fix Closure
 
-1. The packet explicitly states which canonical demo-path step this work advances: `retrieve relevant material`.
+1. The packet explicitly states which canonical demo-path step this work advances: `retrieve relevant material`, via the FTS-only excerpt fail-closed contract.
 2. The packet keeps the reviewed implementation range narrowed to `d7fd5d200358287fa42a18d39e2b277463b9b69f..adfa8cdadd43747ffbcb612e4151e262b13e52ca`.
 3. The scope and roadmap mapping stay tied only to Milestone 3 FTS-first retrieval and retrieval-first context handling.
 4. The current refresh commit is metadata-only because its diff is limited to packet files.
