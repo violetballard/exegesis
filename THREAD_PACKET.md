@@ -24,7 +24,7 @@
 - Reviewer-fix closure note: this refresh exists specifically to satisfy the reviewer-requested handoff fields by stating `preview and apply or reject a patch` as the exact canonical demo-path step advanced, tying deterministic patch-review entrypoints to the Milestone 3 CLI compatibility surface, and keeping the resubmission scoped to packet alignment rather than new implementation work.
 - Resubmission note: this pass is metadata-only and exists to regenerate the handoff packet after the reviewer packet reload, keeping the claims pinned to the already-landed parser-surface implementation while recording a fresh full gate rerun on the current branch tip before re-review.
 - Gate rerun confirmation: `make scope-check`, `./quality-format.sh --check`, `./quality-lint.sh`, `./quality-test.sh`, `./typecheck-test.sh`, and `make ci` were rerun in this packet-refresh pass.
-- Current revalidation note: this fixer pass re-read the reviewer packet from `fixer__feat-commands__20260424T183615Z.prompt.txt`, refreshed the live handoff metadata so it explicitly maps this slice to the patch-review step in the canonical demo path, reran the full required gate set on the current branch tip, and reissued the packet as a fresh metadata-only resubmission commit for re-review traceability.
+- Current revalidation note: this fixer pass re-read the reviewer packet from `fixer__feat-commands__20260424T183838Z.prompt.txt`, refreshed the live handoff metadata so it explicitly maps this slice to the patch-review step in the canonical demo path, reran the full required gate set on the current branch tip, and reissued the packet as a fresh metadata-only resubmission commit for re-review traceability.
 
 ## Thread Kickoff (High-Risk)
 
