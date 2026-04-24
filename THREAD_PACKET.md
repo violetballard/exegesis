@@ -1,38 +1,34 @@
 # Thread Handoff Packet
 
 - Branch name: `codex/feat-retrieval-fts`
-- Packet role: `metadata-only reviewer-fix finalization`
-- Packet refresh trace anchor before this fixer pass: `ee2befa746328053cd9917307f87ae68ae3bc75e`
-- Reviewed implementation head: `adfa8cdadd43747ffbcb612e4151e262b13e52ca`
-- Reviewed implementation range: `378cf9a74a3658058079a32f186fcd254c4a4034..adfa8cdadd43747ffbcb612e4151e262b13e52ca`
-- Reviewed implementation files: `src/qual/retrieval/service.py`, `tests/unit/test_unified_retrieval.py`
-- Packet/supporting files refreshed in this fixer pass: `THREAD_PACKET.md`, `docs/gate_passed.txt`
-- Re-review authority note: in this worktree, use `THREAD_PACKET.md` and `docs/gate_passed.txt` as the updated reviewer-facing record because `.codex/kickoff_packets/feat-retrieval-fts.md` and `.codex/lane_meta/feat-retrieval-fts.json` are unwritable (`operation not permitted`).
+- Packet role: `shared high-risk branch-tip handoff refresh`
+- Reviewed implementation head before this fixer commit: `39550c18399a5cba2ffad3e23e5b0d5078b416df`
+- Reviewed implementation range: `d7fd5d200358287fa42a18d39e2b277463b9b69f..39550c18399a5cba2ffad3e23e5b0d5078b416df`
+- Writable reviewer-facing packet sources refreshed in this fixer pass: `THREAD_PACKET.md`, `docs/gate_passed.txt`
+- Blocked packet mirror files in this fixer pass: `.codex/kickoff_packets/feat-retrieval-fts.md`, `.codex/lane_meta/feat-retrieval-fts.json`
+- Companion fixer-commit note: this fixer pass refreshes only handoff metadata on top of the reviewed implementation head above; it does not change retrieval runtime behavior.
 - Canonical demo-path step advanced: `retrieve relevant material`
-- Demo-path sentence: this slice advances the canonical demo-path step `retrieve relevant material` by making `fetch_excerpt` resolve only through the canonical FTS lookup path, so PageIndex-only excerpt IDs fail closed and Milestone 3 stays aligned to FTS-first structured retrieval before basket promotion.
-- Canonical demo-path strengthening statement: this slice makes excerpt lookup auditable and fail-closed on the FTS-first engine path used before basket promotion.
-- Reviewer-required plan-alignment statement: this reviewed slice is a narrow Milestone 3 retrieval contract correction, not a lane-completion claim; `fetch_excerpt` now resolves only through the canonical FTS lookup path, and the shared approved regression test proves PageIndex-only excerpt IDs fail closed, which keeps the `retrieve relevant material` step aligned to Milestone 3's FTS-first structured retrieval requirement.
-- Milestone mapping: `Milestone 3: Real workflow loop`
-- FTS-first gate statement: the reviewed implementation range remains FTS-first for the MVP; PageIndex and embeddings remain deferred or compatibility paths and are not required runtime retrieval paths in this handoff.
+- Demo-path sentence: this branch advances the canonical demo-path step `retrieve relevant material` by keeping excerpt lookup, query normalization, provenance, and retrieval payload reconstruction on the SQLite FTS-first path while rejecting noncanonical and binary lookup inputs without reintroducing PageIndex or embeddings as required runtime paths.
+- FTS-first lane-gate confirmation: the reviewed implementation range remains FTS-first for the MVP. PageIndex and embeddings stay compatibility-only shims and are not required retrieval paths anywhere in this handoff.
 
 ## Scope Goal
 
-- Return this lane for re-review as a metadata-corrected, scope-tight handoff for the existing narrow Milestone 3 retrieval contract correction.
+- Return this lane for re-review with a truthful branch-tip packet that covers the full cumulative retrieval range currently on `codex/feat-retrieval-fts`.
 
 ## Scope Completed
 
-- SQLite FTS remains the authoritative MVP retrieval path in the reviewed slice.
-- `fetch_excerpt` resolves through the canonical FTS-only lookup path in `src/qual/retrieval/service.py`.
-- PageIndex-only excerpt IDs now fail closed on `fetch_excerpt`, so public excerpt lookup stays bound to the canonical FTS-backed provenance path.
-- Approved shared regression coverage proves that PageIndex-only excerpt IDs fail closed with `KeyError`.
-- PageIndex and embeddings remain deferred or compatibility paths; they are not required runtime fallbacks for this public excerpt contract.
+- SQLite FTS remains the authoritative retrieval path across the cumulative reviewed range.
+- The public and engine retrieval facades now export the canonical query builder, excerpt helpers, and `retrieve_auto` surfaces through the same normalized FTS-first path.
+- Retrieval payloads, provenance snapshots, sparse source/context bundles, basket-promotion payloads, and excerpt metadata are normalized deterministically for downstream engine flows.
+- Excerpt lookup stays fail-closed on the canonical FTS path, with noncanonical strategy use, unsupported scopes, and binary query metadata rejected instead of silently widening runtime behavior.
+- The packet planner and its regression test now understand cumulative reviewed ranges so emitted review packets disclose the real reviewed head and `Scope completed` summary instead of drifting to a later packet-only SHA.
 
 ## Thread Kickoff (High-Risk)
 
 - Branch: `codex/feat-retrieval-fts`
 - Lane/owned paths: `src/qual/retrieval/**`, `src/qual/engine/retrieval/**`, `engine/src/exegesis_engine/retrieval/**`
-- Scope goal: refresh the retrieval handoff metadata so re-review stays anchored to the narrowed `adfa8cdadd43747ffbcb612e4151e262b13e52ca` FTS-only excerpt change and its approved shared regression coverage.
-- Risk reason: approved shared regression coverage in `tests/unit/test_unified_retrieval.py` makes this shared/high-risk work under `AGENTS.md`.
+- Scope goal: refresh the retrieval handoff against the actual branch-tip implementation range and keep the reviewer-facing packet aligned with the branch's FTS-first MVP scope.
+- Risk reason: the reviewed range includes approved shared regression coverage in `tests/unit/test_unified_retrieval.py`, so this remains shared/high-risk work under `AGENTS.md`.
 
 ### Budget
 
@@ -43,10 +39,10 @@
 
 ### Planned Tasks (max 4)
 
-1. Reissue the kickoff metadata in the High-Risk template required for shared-file work.
-2. Tighten the handoff text to the reviewed implementation range `378cf9a74a3658058079a32f186fcd254c4a4034..adfa8cdadd43747ffbcb612e4151e262b13e52ca`.
-3. Keep `fetch_excerpt` described as FTS-only on the public lookup path while PageIndex and embeddings remain deferred or compatibility paths.
-4. Re-run the required local gates and record the outcomes for re-review.
+1. Re-anchor the packet to the real reviewed implementation head and cumulative reviewed range on this branch.
+2. State explicitly that this lane advances `retrieve relevant material` and reconfirm the FTS-first gate against the full reviewed range.
+3. Disclose every reviewed file currently in scope, including packet-planner support changes and shared regression coverage.
+4. Re-run the required local gates against the current branch state and record the outcomes.
 
 ### Early Review Triggers
 
@@ -69,32 +65,35 @@
 
 ## AGENTS Checkpoint Evidence
 
-- `plan complete`: the high-risk kickoff and planned tasks were locked to the narrowed reviewed implementation slice `378cf9a74a3658058079a32f186fcd254c4a4034..adfa8cdadd43747ffbcb612e4151e262b13e52ca` and to the canonical demo-path step `retrieve relevant material`.
-- `first green tests`: `make scope-check`, `./quality-format.sh --check`, `./quality-lint.sh`, `./quality-test.sh`, `./typecheck-test.sh`, and `make ci` all passed for this metadata-only fixer pass.
-- `before risky/shared file edit`: the shared/high-risk boundary was called out before refreshing the handoff because the reviewed implementation scope still includes approved shared regression coverage in `tests/unit/test_unified_retrieval.py`.
-- `ready for handoff`: `THREAD_PACKET.md` and `docs/gate_passed.txt` now carry the same reviewed implementation head, narrowed reviewed range, and checkpoint trail required for re-review, while the `.codex` mirror files remain blocked by filesystem permissions in this worktree.
-
-### Handoff Packet
-
-- branch name
-- tasks completed (numbered)
-- files changed
-- commands run + outcomes
-- risks/blockers
-- all required fields from `INTEGRATION.md`
+- `plan complete`: the handoff was re-scoped to the real cumulative reviewed range `d7fd5d200358287fa42a18d39e2b277463b9b69f..39550c18399a5cba2ffad3e23e5b0d5078b416df` and to the canonical demo-path step `retrieve relevant material`.
+- `before risky/shared file edit`: the shared/high-risk boundary was called out before refreshing the packet because the reviewed range still includes the approved shared regression file `tests/unit/test_unified_retrieval.py`.
+- `first green tests`: `make scope-check`, `./quality-format.sh --check`, `./quality-lint.sh`, `./quality-test.sh`, `./typecheck-test.sh`, and `make ci` all passed on the refreshed handoff state.
+- `ready for handoff`: the writable packet sources now agree on the same reviewed head, reviewed range, demo-path step, FTS-first gate, and cumulative file list, while the `.codex` mirror files remain blocked by `operation not permitted`.
 
 ## Tasks Completed
 
-1. Removed the PageIndex fallback from `fetch_excerpt` so the public excerpt lookup surface now resolves through the canonical FTS-only path.
-2. Added approved shared regression coverage in `tests/unit/test_unified_retrieval.py` proving PageIndex-only excerpt IDs fail closed with `KeyError`.
-3. Regenerated the writable thread handoff and gate summary artifacts in the required shared/high-risk format and recorded the blocked `.codex` mirror files explicitly.
-4. Re-ran the required local gates and recorded the results for re-review.
+1. Kept both retrieval facades aligned to the canonical SQLite FTS-first contract by exporting canonical query/excerpt helpers, tightening strategy gating, and preserving deterministic runtime type boundaries.
+2. Normalized retrieval payloads, provenance, sparse source/context bundles, cache keys, and basket-promotion metadata so downstream engine flows receive deterministic reconstruction data.
+3. Hardened excerpt lookup behavior to fail closed on unsupported or noncanonical paths, including PageIndex-only excerpt IDs and binary query metadata, while leaving PageIndex and embeddings compatibility-only.
+4. Updated the packet planner, packet-planner regression coverage, and all reviewer-facing handoff artifacts so re-review is anchored to the real cumulative reviewed range instead of a stale metadata-only slice.
 
 ## Files Changed
 
-- Reviewed implementation files: `src/qual/retrieval/service.py`, `tests/unit/test_unified_retrieval.py`
-- Packet/supporting files: `THREAD_PACKET.md`, `docs/gate_passed.txt`
-- Blocked mirror files: `.codex/kickoff_packets/feat-retrieval-fts.md`, `.codex/lane_meta/feat-retrieval-fts.json`
+- `.codex/kickoff_packets/feat-retrieval-fts.md`
+- `.codex/lane_meta/feat-retrieval-fts.json`
+- `THREAD_PACKET.md`
+- `codex_packet_handoff/tools/planner.py`
+- `docs/gate_passed.txt`
+- `src/qual/engine/retrieval/__init__.py`
+- `src/qual/engine/retrieval/embeddings_strategy.py`
+- `src/qual/engine/retrieval/fts_strategy.py`
+- `src/qual/engine/retrieval/interface.py`
+- `src/qual/engine/retrieval/pageindex_strategy.py`
+- `src/qual/engine/retrieval/payload.py`
+- `src/qual/retrieval/__init__.py`
+- `src/qual/retrieval/service.py`
+- `tests/unit/test_packet_planner.py`
+- `tests/unit/test_unified_retrieval.py`
 
 ## Commands Run With Results
 
@@ -108,8 +107,9 @@
 ## Risks / Blockers
 
 - Risk: `HIGH`
-- Compatibility risk: callers must preserve canonical FTS excerpt IDs; PageIndex-only excerpt IDs now fail closed with `KeyError` on the public lookup path.
-- Blockers: `.codex/kickoff_packets/feat-retrieval-fts.md` and `.codex/lane_meta/feat-retrieval-fts.json` are unwritable in this worktree (`operation not permitted`), so the reviewer-targeted packet mirrors could not be refreshed here.
+- The cumulative reviewed range is larger than the nominal high-risk size guidance; this fixer pass does not add feature scope, it corrects reviewer traceability for the existing branch state.
+- Public excerpt lookup now intentionally fails closed on noncanonical/PageIndex-only or binary lookup inputs. Callers must stay on canonical FTS-backed excerpt IDs and normalized text query metadata.
+- `.codex/kickoff_packets/feat-retrieval-fts.md` and `.codex/lane_meta/feat-retrieval-fts.json` are blocked in this sandboxed session; direct shell writes fail with `operation not permitted`.
 
 ## Required Handoff Fields
 
@@ -133,6 +133,6 @@
 
 ## Scope-Check / Ownership Note
 
-- Shared-by-approval edits in reviewed range: `YES`
+- Shared-by-approval edits in reviewed range: `YES` (`tests/unit/test_unified_retrieval.py`)
 - Integrator-locked edits in reviewed range: `NO`
-- Approved shared regression coverage remains limited to `tests/unit/test_unified_retrieval.py`.
+- Packet artifacts and planner coverage are included in the reviewed range because the branch tip currently contains them.
