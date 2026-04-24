@@ -18,8 +18,7 @@
 - `handoff_packets/feat-commands.md`
 
 ## Commands Run With Results
-- `python3 -m unittest tests.unit.test_commands_catalog.CommandCatalogTests.test_command_cli_contract_validation_rejects_alias_drift_with_stable_canonical_names` -> passed
-- `python3 -m unittest tests.unit.test_commands_catalog.CommandCatalogTests -k command_cli_contract` -> passed
+- `python3 -m unittest tests.unit.test_commands_catalog.CommandCatalogTests.test_command_cli_contract_rejects_mutated_diff_alias_with_stable_canonical_names` -> passed
 - `make scope-check` -> passed
 - `./quality-format.sh --check` -> passed
 - `./quality-lint.sh` -> passed
@@ -32,14 +31,13 @@
 - Blockers: none.
 
 ## Roadmap Item(s) Affected
-- `ROADMAP.md` Milestone 5 `A2UI Presentation Layer (In Progress)`
-- `ROADMAP.md` exit criterion: `CLI can execute the MVP flow (vault -> context -> run -> patch -> export) against the same engine PolicyGate`
-- `ROADMAP.md` active lane: `feat-commands`
+- `ROADMAP.md` Milestone 1 `Bootstrap Flow Stabilization (In Progress)` because this is command and diff-preview behavior hardening.
+- `ROADMAP.md` Milestone 2 `Test Hardening (In Progress)` because it adds a focused parser-edge regression identified during review.
+- `ROADMAP.md` MVP focus lane: `feat-commands`
 
 ## Vision Capability Affected
-- `PRODUCT_VISION.md`: `CLI remains a first-class surface for development and reliability.`
-- `PRODUCT_VISION.md`: `Artifacts must be consumable by CLI first, then Exegesis Console, then future Studio UI.`
-- `PRODUCT_VISION.md`: `Current MVP emphasis is on Engine output contracts, FTS-backed retrieval, and A2UI cards/actions that can be rendered in CLI now and Exegesis Console next.`
+- `PRODUCT_VISION.md` capability 4 `Operator-first control surface`: `CLI remains a first-class surface for development and reliability.`
+- `PRODUCT_VISION.md` capability 4 `Operator-first control surface`: `Engine emits structured outputs that can be consumed by CLI now and Exegesis Console next.`
 
 ## Routing / Provider Impact Note
 - None. This change does not touch routing or provider configuration.
@@ -47,4 +45,6 @@
 ## Scope / Ownership Note
 - Lane-owned implementation path: `src/qual/commands/catalog.py`
 - Approved shared-by-approval exception: `tests/unit/test_commands_catalog.py`
+- Approval mechanism: `scripts/scope-check.sh` branch allowlist for `codex/feat-commands*`
 - Integrator-locked edits: none
+- Branch-tip scope note: the implementation under review is limited to `src/qual/commands/catalog.py` and `tests/unit/test_commands_catalog.py`; `THREAD.md`, `THREAD_PACKET.md`, and this handoff file are metadata only.

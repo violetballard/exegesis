@@ -2,7 +2,7 @@
 
 - Lane: `feat-commands`
 - Branch: `codex/feat-commands`
-- Review scope: command-catalog contract hardening plus shared regression coverage for alias-level parser-surface drift
+- Review scope: current branch-tip command-catalog contract hardening plus one shared regression for alias-level parser-surface drift
 - Canonical demo-path step advanced: `preview and apply or reject a patch`
 - Required mapping statement: this slice strengthens the patch-review step because the `diff-preview` CLI surface now fails fast if the `diff` alias drops or mutates while the canonical command order still looks stable.
 
@@ -24,7 +24,7 @@
 
 1. Tighten the CLI contract to validate full grouped parser surface, not just canonical command order.
 2. Add a regression proving alias-level drift raises even when canonical names stay unchanged.
-3. Refresh the handoff packet with an explicit canonical demo-path mapping to `preview and apply or reject a patch`.
+3. Refresh the handoff packet so it matches the current branch tip, states the shared-test exception explicitly, and maps the work to `preview and apply or reject a patch`.
 4. Re-run the required gates and record the results.
 
 ## Review Basis
@@ -39,6 +39,7 @@
 
 ## Commands Run and Outcomes
 
+- `python3 -m unittest tests.unit.test_commands_catalog.CommandCatalogTests.test_command_cli_contract_rejects_mutated_diff_alias_with_stable_canonical_names`: `PASSED`
 - `make scope-check`: `PASSED`
 - `./quality-format.sh --check`: `PASSED`
 - `./quality-lint.sh`: `PASSED`
@@ -50,4 +51,6 @@
 
 - Lane-owned implementation path: `src/qual/commands/catalog.py`
 - Approved shared-by-approval exception: `tests/unit/test_commands_catalog.py`
+- Approval mechanism: `scripts/scope-check.sh` branch allowlist for `codex/feat-commands*`
 - Integrator-locked edits: `none`
+- Scope note: the current branch tip contains only the two implementation files above plus the handoff metadata files in this packet.
