@@ -4489,14 +4489,27 @@ class A2UIFallbackSafetyTests(unittest.TestCase):
             with self.subTest(case=case_name):
                 direct_text = render_terminal_artifact(artifact, kind="card")
                 cli_text = render_terminal_cli_fallback(artifact, kind="card")
-                shell_text = shell.render_artifact(artifact, kind="card")
+                with patch.object(
+                    ShellUI,
+                    "_resolve_fallback_artifact",
+                    side_effect=AssertionError("unexpected fallback resolution"),
+                ) as resolve_fallback:
+                    with patch(
+                        "src.qual.ui.shell.render_terminal_cli_fallback",
+                        side_effect=AssertionError("unexpected shared fallback"),
+                    ) as shared_cli_fallback:
+                        shell_text = shell.render_artifact(artifact, kind="card")
+                        shell_cli_text = shell.render_cli_fallback(artifact, kind="card")
 
                 self.assertEqual(direct_text, cli_text)
                 self.assertEqual(shell_text, cli_text)
+                self.assertEqual(shell_cli_text, cli_text)
                 self.assertIn("[UnknownCard] <invalid card>", cli_text)
                 self.assertIn("Action policy: copy_to_clipboard_only", cli_text)
                 self.assertNotIn("[ActionRef]", cli_text)
                 self.assertNotIn("[SelectionRef]", cli_text)
+                resolve_fallback.assert_not_called()
+                shared_cli_fallback.assert_not_called()
 
     def test_terminal_artifact_cli_fallback_contract_fingerprints_are_public_and_canonical(self) -> None:
         manifest = describe_terminal_artifact_cli_fallback_contract()

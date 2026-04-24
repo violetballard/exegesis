@@ -33,7 +33,6 @@ from .a2ui import (
     _fingerprint_manifest_section,
     _has_expected_card_renderer_prefix,
     _is_explicit_terminal_artifact_leaf,
-    _is_explicit_terminal_artifact_leaf_mapping,
     _normalize_terminal_artifact_kind_hint,
     _should_preserve_raw_leaf_card_default,
     refine_terminal_artifact_cli_fallback_target,
@@ -81,7 +80,7 @@ class ShellUI:
 
     def render_artifact(self, artifact: Any, *, kind: str | None = None) -> str:
         normalized_kind = self._normalize_fallback_kind(kind)
-        if normalized_kind == "card" and _is_explicit_terminal_artifact_leaf_mapping(artifact):
+        if normalized_kind == "card" and _is_explicit_terminal_artifact_leaf(artifact):
             return _render_invalid_terminal_card(artifact)
         if normalized_kind == "card" and isinstance(artifact, Mapping) and _is_malformed_terminal_artifact_envelope(artifact):
             payload = artifact.get("artifact")
@@ -149,6 +148,8 @@ class ShellUI:
     def render_cli_fallback(self, artifact: Any, *, kind: str | None = None) -> str:
         """Render an A2UI artifact through the explicit CLI fallback entrypoint."""
         normalized_kind = self._normalize_fallback_kind(kind)
+        if normalized_kind == "card" and _is_explicit_terminal_artifact_leaf(artifact):
+            return _render_invalid_terminal_card(artifact)
         if normalized_kind == "card":
             fallback_hint_token = _TERMINAL_ARTIFACT_CLI_FALLBACK_TARGET_HINT.set((artifact, "card"))
             try:
