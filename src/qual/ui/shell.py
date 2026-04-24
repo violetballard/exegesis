@@ -102,24 +102,28 @@ class ShellUI:
                     return _render_invalid_terminal_card(artifact)
         if normalized_kind in {"action", "selection"} and _should_preserve_raw_leaf_card_default(artifact):
             try:
-                resolve_terminal_artifact_cli_fallback_target(artifact, kind=kind)
+                rendered_cli_fallback = render_terminal_cli_fallback(artifact, kind="card")
             except Exception:
-                pass
-            # Raw leaf card defaults must remain on the card path even when the
-            # caller supplied an action or selection hint.
-            fallback_artifact = artifact
-            fallback_kind = "card"
-            fallback_hint_token = _TERMINAL_ARTIFACT_CLI_FALLBACK_TARGET_HINT.set(
-                (fallback_artifact, fallback_kind),
-            )
+                rendered_cli_fallback = None
+            else:
+                if _is_nonempty_terminal_rendered_text(rendered_cli_fallback):
+                    if not rendered_cli_fallback.startswith("["):
+                        return rendered_cli_fallback
+            if normalized_kind == "action":
+                try:
+                    rendered_action = render_terminal_action(artifact)
+                except Exception:
+                    return _render_invalid_terminal_action(artifact)
+                if _is_nonempty_terminal_rendered_text(rendered_action):
+                    return rendered_action
+                return _render_invalid_terminal_action(artifact)
             try:
-                return self._render_cli_fallback_with_recovery(
-                    fallback_artifact,
-                    fallback_kind,
-                )
-            finally:
-                if fallback_hint_token is not None:
-                    _TERMINAL_ARTIFACT_CLI_FALLBACK_TARGET_HINT.reset(fallback_hint_token)
+                rendered_selection = render_terminal_selection(artifact)
+            except Exception:
+                return _render_invalid_terminal_selection(artifact)
+            if _is_nonempty_terminal_rendered_text(rendered_selection):
+                return rendered_selection
+            return _render_invalid_terminal_selection(artifact)
         resolved_fallback: tuple[Any, str | None] | None = None
         if normalized_kind == "card":
             try:
@@ -191,7 +195,11 @@ class ShellUI:
         normalized_kind = self._normalize_fallback_kind(kind)
         fallback_hint_token = None
         fallback_target: tuple[Any, str] | None = None
-        if normalized_kind == "card" and _is_malformed_terminal_artifact_envelope(artifact):
+        if normalized_kind in {"action", "selection"} and _should_preserve_raw_leaf_card_default(artifact):
+            # Raw leaf card defaults stay on the card path even when the caller
+            # supplies a leaf hint.
+            fallback_target = (artifact, "card")
+        elif normalized_kind == "card" and _is_malformed_terminal_artifact_envelope(artifact):
             # Keep malformed card envelopes on the safe invalid-card path.
             # Everything else flows through the shell's canonical fallback
             # classifier so the shell and CLI entrypoints stay on the same
