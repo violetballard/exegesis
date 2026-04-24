@@ -3067,6 +3067,21 @@ def _align_demo_flow_step(
     return replace(resolved, flow_step=normalized_demo_token)
 
 
+def _demo_alignment_token_for_argv(
+    resolved: ResolvedCommand,
+    raw_argv: tuple[str, ...],
+) -> str:
+    if not raw_argv:
+        return ""
+    terminal_token = _canonical_demo_terminal_argv_token(resolved)
+    if terminal_token:
+        return terminal_token
+    normalized_flow_step = _normalize_token(resolved.flow_step)
+    if normalized_flow_step in _COMMAND_DEMO_LOOP_TOKENS:
+        return normalized_flow_step
+    return raw_argv[0]
+
+
 def _resolve_demo_loop_token(
     specs: tuple[CommandSpec, ...],
     token: str,
@@ -4954,13 +4969,14 @@ def command_demo_resolve_argv(
     """Resolve argv against the canonical demo-path command surface."""
     requested_argv = tuple(argv)
     raw_argv = _normalize_demo_compatibility_argv(requested_argv)
+    resolved = _prefer_demo_flow_smoke_resolution(
+        command_resolve_argv_for(COMMAND_SPECS, raw_argv, command_demo_flow_steps()),
+        specs=COMMAND_SPECS,
+        raw_argv=raw_argv,
+    )
     resolved = _align_demo_flow_step(
-        _prefer_demo_flow_smoke_resolution(
-            command_resolve_argv_for(COMMAND_SPECS, raw_argv, command_demo_flow_steps()),
-            specs=COMMAND_SPECS,
-            raw_argv=raw_argv,
-        ),
-        raw_argv[0] if raw_argv else "",
+        resolved,
+        _demo_alignment_token_for_argv(resolved, raw_argv),
     )
     if not requested_argv:
         return resolved
