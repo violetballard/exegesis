@@ -9307,7 +9307,7 @@ class A2UIFallbackSafetyTests(unittest.TestCase):
                 self.assertNotIn(expected_prefix, cli_text)
                 self.assertNotIn(expected_schema, cli_text)
 
-    def test_terminal_artifact_cli_fallback_recovers_typed_leaf_mappings_when_shared_resolver_underflows_to_card(
+    def test_terminal_artifact_cli_fallback_keeps_explicit_typed_leaf_mappings_invalid_when_shared_resolver_underflows_to_card(
         self,
     ) -> None:
         shell = ShellUI()
@@ -9350,9 +9350,10 @@ class A2UIFallbackSafetyTests(unittest.TestCase):
                         shell_text = shell.render_cli_fallback(artifact, kind="card")
 
                 self.assertEqual(cli_text, shell_text)
-                self.assertIn(expected_prefix, cli_text)
-                self.assertIn(expected_schema, cli_text)
-                self.assertNotIn("[UnknownCard] <invalid card>", cli_text)
+                self.assertIn("[UnknownCard] <invalid card>", cli_text)
+                self.assertIn("Action policy: copy_to_clipboard_only", cli_text)
+                self.assertNotIn(expected_prefix, cli_text)
+                self.assertNotIn(expected_schema, cli_text)
 
     def test_public_cli_fallback_target_refinement_helper_recovers_leaf_kinds(self) -> None:
         cases = [
@@ -10015,6 +10016,62 @@ class A2UIFallbackSafetyTests(unittest.TestCase):
                 self.assertNotIn("[SelectionRef]", cli_text)
                 self.assertNotIn("[ActionRef]", shell_cli_text)
                 self.assertNotIn("[SelectionRef]", shell_cli_text)
+
+    def test_shell_ui_keeps_explicit_typed_leaf_instances_invalid_when_cli_fallback_recovery_raises(
+        self,
+    ) -> None:
+        shell = ShellUI()
+        cases = [
+            (
+                "action",
+                ActionRef(
+                    id=" export_document ",
+                    label=" Export ",
+                    payload={"format": "md"},
+                ),
+            ),
+            (
+                "action_mapping",
+                {
+                    "type": "ActionRef",
+                    "id": " export_document ",
+                    "label": " Export ",
+                    "payload": {"format": "md"},
+                },
+            ),
+            (
+                "selection",
+                SelectionRef(
+                    id=" choice-1 ",
+                    label=" Choice ",
+                    payload={"nested": {"items": [1, 2]}},
+                ),
+            ),
+            (
+                "selection_mapping",
+                {
+                    "type": "SelectionRef",
+                    "id": " choice-1 ",
+                    "label": " Choice ",
+                    "payload": {"nested": {"items": [1, 2]}},
+                },
+            ),
+        ]
+
+        for case_name, artifact in cases:
+            with self.subTest(case=case_name):
+                with patch(
+                    "src.qual.ui.shell.render_terminal_cli_fallback",
+                    side_effect=RuntimeError("cli fallback boom"),
+                ):
+                    cli_text = shell.render_cli_fallback(artifact, kind="card")
+                render_text = shell.render_artifact(artifact, kind="card")
+
+                self.assertEqual(cli_text, render_text)
+                self.assertIn("[UnknownCard] <invalid card>", cli_text)
+                self.assertIn("Action policy: copy_to_clipboard_only", cli_text)
+                self.assertNotIn("[ActionRef]", cli_text)
+                self.assertNotIn("[SelectionRef]", cli_text)
 
     def test_terminal_artifact_cli_fallback_entrypoint_matches_shell_for_malformed_card_hint_envelopes(
         self,

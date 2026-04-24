@@ -217,6 +217,7 @@ class ShellUI:
         """
 
         leaf_specific_fallback = kind in {"action", "selection"}
+        explicit_leaf_source = kind == "card" and _is_explicit_terminal_artifact_leaf(artifact)
         card_hint_leaf_kind: str | None = None
         if kind == "card" and not _should_preserve_raw_leaf_card_default(artifact):
             inferred_leaf_kind = _infer_terminal_artifact_explicit_kind(artifact)
@@ -253,6 +254,11 @@ class ShellUI:
                         return rendered_cli_fallback
                 if kind not in {"action", "selection", "card"}:
                     return rendered_cli_fallback
+        if kind == "card" and card_hint_leaf_kind in {"action", "selection"}:
+            if explicit_leaf_source:
+                # Direct ActionRef/SelectionRef instances stay on the invalid
+                # card path even when the shared CLI fallback renderer fails.
+                return _render_invalid_terminal_card(artifact)
         if kind == "action":
             try:
                 rendered_action = render_terminal_action(artifact)
