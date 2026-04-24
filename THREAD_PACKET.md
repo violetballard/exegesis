@@ -39,6 +39,7 @@
 
 - `plan complete`: the packet is anchored to the reviewer-approved retrieval implementation range `378cf9a7..adfa8cda`.
 - `first green tests`: recorded after rerunning `make scope-check`, `./quality-format.sh --check`, `./quality-lint.sh`, `./quality-test.sh`, `./typecheck-test.sh`, and `make ci`.
+- `fixer gate rerun`: all required gates passed again on metadata-only packet tip `059b68f366a2a67814e68f0baf9eb740600099bb` immediately before this commit.
 - `before risky/shared file edit`: this handoff includes approved shared regression coverage in `tests/unit/test_unified_retrieval.py`.
 - `ready for handoff`: the top-level packet and gate summary agree on the same reviewed implementation head, reviewed range, and canonical-step wording.
 
