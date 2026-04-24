@@ -10,8 +10,7 @@ Canonical handoff contract lives in `THREAD_PACKET.md`.
 - Exact implementation basis for re-review:
   - `2c5e1e6eeaf7a39a30f8f542a827110d681c1399` (`fix(commands): derive CLI contract from live parser projection`)
 - Approval basis pin for re-review:
-  - Only `2c5e1e6eeaf7a39a30f8f542a827110d681c1399` and `src/qual/commands/catalog.py` are part of the implementation approval basis.
-  - `tests/unit/test_commands_catalog.py` remains the supporting regression evidence already present on branch for alias substitution and parser-surface reordering.
+  - Only `2c5e1e6eeaf7a39a30f8f542a827110d681c1399`, `src/qual/commands/catalog.py`, and `tests/unit/test_commands_catalog.py` are part of the implementation approval basis.
   - The packet-refresh commit is metadata-only and must not be treated as widening the implementation scope.
 - Current packet refresh traceability:
   - the packet-refresh commit updates only `THREAD.md`, `THREAD_PACKET.md`, and `handoff_packets/feat-commands.md`
