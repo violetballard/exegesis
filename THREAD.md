@@ -48,13 +48,13 @@ Canonical handoff contract lives in `THREAD_PACKET.md`.
 - Scope-tightening note:
   - this reviewed slice hardens only parser-surface drift detection for the `patch-review` command contract plus focused regression coverage; it does not claim new retrieval, patch application, persistence, export, or broader CLI behavior
 - Why this is in-scope now:
-  - `ROADMAP.md` Milestone 3 calls out locking user-facing output contracts; preventing silent drift in the `patch-review` parser surface removes a concrete CLI-compatibility blocker at that public review-step contract without claiming a broader release-readiness slice.
+  - `ROADMAP.md` Milestone 3 calls out preserving CLI compatibility while the package/layout migration lands; preventing silent drift in the `patch-review` parser surface removes a concrete CLI-compatibility blocker at that public review-step contract without claiming broader workflow coverage.
 - Roadmap / vision alignment for this reviewed slice:
-  - `ROADMAP.md` Milestone 3 `Product Readiness`: this slice narrows to locking the existing public `patch-review` CLI contract rather than claiming a broader release-readiness milestone
-  - `ROADMAP.md` Milestone 3 scope: `Define and lock user-facing output contracts`, applied here only to parser-surface drift detection for the public `diff-preview` and companion CLI tokens in the `patch-review` step
+  - `ROADMAP.md` Milestone 3 `Real workflow loop`: this slice narrows to locking the existing public `patch-review` CLI contract rather than claiming broader workflow coverage
+  - `ROADMAP.md` Milestone 3 scope: `preserve CLI compatibility while the package/layout migration lands`, applied here only to parser-surface drift detection for the public `diff-preview` and companion CLI tokens in the `patch-review` step
   - `ROADMAP.md` Milestone 3 contract note: this hardening keeps the review-step CLI surface intentional and fail-closed when the live parser entrypoints drift from the catalog
   - `ROADMAP.md` MVP focus: `feat-commands` is an active implementation lane, while `feat-console` remains deferred and no UI-lane scope is claimed here
-  - `PRODUCT_VISION.md` capability 3 `Auditable generation`: this is narrow contract hardening for the operator-visible `patch-review` diff surface, keeping the public `diff-preview` token deterministic so review-step drift cannot silently change the auditable command boundary
+  - `PRODUCT_VISION.md` capability 3 `Canonical engine contract`: this is narrow contract hardening for the operator-visible `patch-review` diff surface, keeping the public `diff-preview` token deterministic so review-step drift cannot silently change the CLI compatibility boundary
 - Ownership / scope note:
   - lane-owned implementation paths: `src/qual/commands/catalog.py`
   - approved shared-by-approval exception: `tests/unit/test_commands_catalog.py`

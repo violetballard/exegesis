@@ -6,8 +6,8 @@
 - Demo-path mapping: this slice makes the canonical `patch-review` step more real by requiring the public `diff-preview` parser surface to stay intact before operators can enter the existing apply-or-reject branch of the current CLI smoke route.
 - Concrete blocker removed: parser/catalog drift can no longer silently drop the public `diff-preview` token and leave only the still-resolvable alias `diff`, which would otherwise change the operator-visible review step without any fail-fast signal during CLI smoke tests.
 - Plan-alignment statement: this is a single CLI smoke-route hardening step, not a general CLI cleanup. It makes the `patch-review` contract deterministic and does not claim new retrieval, patch-apply, persistence, or export behavior.
-- Roadmap item(s) affected: `ROADMAP.md` Milestone 3 `Product Readiness`, specifically `Define and lock user-facing output contracts`, applied here only to the public `patch-review` parser token contract so CLI compatibility at that review step fails closed when the surface drifts.
-- Vision capability affected: `PRODUCT_VISION.md` capability 3 `Auditable generation`, applied narrowly to the operator-visible diff review step so parser/catalog drift cannot silently change the public `diff-preview` contract without an immediate failure signal.
+- Roadmap item(s) affected: `ROADMAP.md` Milestone 3 `Real workflow loop`, specifically `preserve CLI compatibility while the package/layout migration lands`, applied here only to the public `patch-review` parser token contract so CLI compatibility at that review step fails closed when the surface drifts.
+- Vision capability affected: `PRODUCT_VISION.md` capability 3 `Canonical engine contract`, applied narrowly to the operator-visible diff review step so parser/catalog drift cannot silently change the public `diff-preview` contract without an immediate failure signal.
 - Routing/provider impact note: none; this slice does not touch model routing, provider configuration, or shared entrypoints.
 - Proposed `README.md` patch text: none.
 

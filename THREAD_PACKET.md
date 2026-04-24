@@ -123,15 +123,15 @@
 
 ### Roadmap item(s) affected
 
-- `ROADMAP.md` Milestone 3 `Product Readiness`: this slice narrows to the existing CLI smoke route and its `patch-review` step rather than claiming a broader release-readiness milestone.
-- `ROADMAP.md` Milestone 3 scope: `Define and lock user-facing output contracts`; this packet applies that only to the operator-visible parser token contract for the `patch-review` command surface.
+- `ROADMAP.md` Milestone 3 `Real workflow loop`: this slice narrows to the existing CLI smoke route and its `patch-review` step rather than claiming broader workflow coverage.
+- `ROADMAP.md` Milestone 3 scope: `preserve CLI compatibility while the package/layout migration lands`; this packet applies that only to the operator-visible parser token contract for the `patch-review` command surface.
 - `ROADMAP.md` Milestone 3 contract note: this slice makes unexpected `patch-review` parser-surface drift fail fast instead of silently changing the accepted public command tokens in that smoke route.
 - This diff contributes only the `patch-review` step of the current CLI smoke route by hardening the public parser surface used at the review command boundary.
 - Scope-tightening statement: this is CLI contract hardening for the current smoke route, not new UI work and not broader demo-path expansion beyond the `patch-review` contract.
 
 ### Vision capability affected
 
-- `PRODUCT_VISION.md` capability 3 `Auditable generation`: this slice is narrow contract hardening for the operator-visible `patch-review` entrypoint. It keeps the public `diff-preview` parser surface deterministic, stable, and catalog-locked so review-step drift cannot silently change the auditable command boundary, rather than claiming broader workflow progress.
+- `PRODUCT_VISION.md` capability 3 `Canonical engine contract`: this slice is narrow contract hardening for the operator-visible `patch-review` entrypoint. It keeps the public `diff-preview` parser surface deterministic, stable, and catalog-locked so the CLI compatibility surface does not silently drift at the review-step boundary, rather than claiming broader workflow progress.
 
 ### Routing / Provider Impact Note
 
