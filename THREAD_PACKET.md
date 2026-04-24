@@ -70,8 +70,8 @@
   - blockers: none
 - roadmap item(s) affected:
   - `ROADMAP.md` Milestone 3 `Product Readiness`: this slice hardens the current manual CLI-first loop specifically at the `preview and apply or reject a patch` step by keeping the review/apply entrypoints deterministic and migration-safe while the future console client remains disabled
-- canonical demo-path step advanced: `preview and apply or reject a patch`
-- concrete canonical mapping: this slice hardens the existing patch-review/apply CLI surface inside `project-open/bootstrap -> retrieval -> plan-or-revise -> apply-or-reject -> export-handoff`, so the operator can still reach the current review/apply step through deterministic, migration-safe entrypoints while Textual remains disabled
+- canonical demo-path step advanced: `preview and apply or reject a patch` on the active MVP engine-first path (`Engine stability`, `FTS-first retrieval`, `A2UI contracts with CLI fallback`)
+- concrete canonical mapping: this slice hardens the existing patch-review/apply CLI surface inside the current engine-first MVP path `project-open/bootstrap -> retrieval -> plan-or-revise -> apply-or-reject -> export-handoff`, so the operator can still reach the current review/apply step through deterministic, migration-safe entrypoints while Textual remains disabled and the A2UI contract continues to rely on CLI fallback
 - concrete canonical-path blocker removed: deterministic CLI ordering and fast-fail parser/catalog drift detection now cover alias and token-level drift on the existing review/apply command surface, removing the blocker where an operator could invoke `preview`, `apply`, or `reject` through entrypoints that silently no longer matched the canonical catalog before the engine-first loop reached export handoff
 - non-claim boundary: this handoff does not claim broader CLI polish, new workflow reachability, persistence progress, auditable-state/workflow progress, A2UI contract work, provider routing work, or any new engine behavior
 - vision capability affected:
