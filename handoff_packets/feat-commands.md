@@ -14,6 +14,7 @@
 - Concrete blocker removed: before this change, parser drift could silently desynchronize the existing CLI surface from the catalog while leaving the contract seemingly valid, so an operator could begin the manual MVP flow through an `open project/document` surface that no longer matched the canonical command catalog.
 - Traceability note: reviewed implementation commit is `f8d860ed9f6299f0169c4f21321ac5f37c949fd3`, and its implementation scope is limited to `src/qual/commands/catalog.py` and `tests/unit/test_commands_catalog.py`; this follow-up commit refreshes handoff metadata only after another green rerun of the required gates from this fixer pass.
 - Final verification note: this metadata-only fixer pass on `2026-04-24` revalidated the reviewer-requested demo-path mapping, aligned the packet wording to the already-landed full parser-surface guardrail, and reran the full required gate set from the current branch tip without changing the reviewed implementation files.
+- Latest verifier rerun note: after the reviewer-fixer prompt was reloaded on `2026-04-24`, the packet was checked again at the current branch tip and the same demo-path mapping remained intact before another full required gate rerun.
 - Gate rerun confirmation: `make scope-check`, `./quality-format.sh --check`, `./quality-lint.sh`, `./quality-test.sh`, `./typecheck-test.sh`, and `make ci` all passed again from the current branch tip in this metadata-only fixer handoff.
 
 ## Tasks completed (numbered)
