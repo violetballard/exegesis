@@ -6,7 +6,7 @@ Canonical handoff contract lives in `THREAD_PACKET.md`.
 
 ## Current Review Focus
 
-- Packet refresh status: reviewer-fix packet refresh regenerated on 2026-04-24 for the exact reviewed implementation slice.
+- Packet refresh status: reviewer-fix packet refresh regenerated on 2026-04-24 for the exact reviewed implementation slice, with roadmap/vision mapping narrowed to the engine-first CLI operator surface while `feat-console` remains inactive.
 - Reviewed implementation commit: `aef67223fb2ea280860de95d2a860880630a84dd` (`fix(commands): lock parser surface contract`).
 - Reviewed implementation files:
   - `src/qual/commands/catalog.py`
@@ -39,12 +39,13 @@ Canonical handoff contract lives in `THREAD_PACKET.md`.
 - Scope-tightening note:
   - this reviewed slice hardens only parser-surface drift detection for the command catalog plus focused regression coverage; it does not claim new retrieval, patch application, persistence, or export behavior
 - Why this is milestone-worthy now:
-  - the roadmap's active A2UI-with-CLI-fallback work requires stable output contracts and a CLI-executable MVP loop, so preventing silent drift in the bootstrap-facing parser surface is direct operator-surface hardening rather than second-order cleanup
+  - Milestone 3 is where user-facing contracts are locked and documented intentionally, so preventing silent drift in the bootstrap-facing parser surface is direct operator-surface hardening rather than second-order cleanup
 - Roadmap / vision alignment for this reviewed slice:
-  - `ROADMAP.md` Milestone 5 scope: `Provide CLI rendering fallback for the same structured payloads`
-  - `ROADMAP.md` Milestone 5 exit criteria: `Output contracts are test-covered and backward-compatible by policy` and `CLI can execute the MVP flow (vault -> context -> run -> patch -> export) against the same engine PolicyGate`, applied here only to the parser contract for the `project-open` smoke-route entrypoint
-  - `PRODUCT_VISION.md` capability 4 `Operator-first control surface`: keep the CLI bootstrap surface deterministic
-  - `PRODUCT_VISION.md` capability 5 `Agent-to-UI protocol (A2UI)`: keep the parser-ready command contract stable for CLI-first artifact consumption
+  - `ROADMAP.md` Milestone 3 `Product Readiness`: lock the `project-open` bootstrap command contract intentionally instead of letting the parser surface drift silently
+  - `ROADMAP.md` Milestone 3 exit criteria: contract changes should be documented and intentional, applied here only to the parser contract for the `project-open` smoke-route entrypoint
+  - `ROADMAP.md` MVP Focus Through 2026-05-04: `feat-commands` is active while `feat-console` is defined but not active, so this slice stays on the engine-first CLI operator surface
+  - `PRODUCT_VISION.md` capability 4 `Operator-first control surface`: keep the CLI bootstrap surface deterministic because CLI is the current first-class operator surface
+  - `PRODUCT_VISION.md` current capability alignment: engine contracts come first and `Exegesis Console` comes later, so no UI expansion is claimed here
 - Ownership / scope note:
   - lane-owned implementation paths: `src/qual/commands/catalog.py`
   - approved shared-by-approval exception: `tests/unit/test_commands_catalog.py`

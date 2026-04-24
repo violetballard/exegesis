@@ -4,7 +4,7 @@
 - Branch: `codex/feat-commands`
 - Commit: `aef67223fb2ea280860de95d2a860880630a84dd`
 - Packet refresh role: `reviewer-fix packet refresh`
-- Packet refresh basis: `regenerated on 2026-04-24 for re-review against the fixer delta that locks the live parser surface to the command catalog, replaces helper-only drift coverage with live _CLI_ENTRYPOINTS drift checks, and states the canonical demo-path step explicitly`
+- Packet refresh basis: `regenerated on 2026-04-24 for re-review against the fixer delta that locks the live parser surface to the command catalog, replaces helper-only drift coverage with live _CLI_ENTRYPOINTS drift checks, states the canonical demo-path step explicitly, and narrows roadmap/vision mapping to the engine-first CLI operator surface while feat-console remains inactive`
 - Packet-only refresh files:
   - `THREAD.md`
   - `THREAD_PACKET.md`
@@ -67,7 +67,7 @@
 - Direct plan-alignment statement: this change makes the `project-open` bootstrap step more real by failing closed when the parser-facing entrypoint contract no longer matches the cataloged command surface.
 - Scope-tightening note: this handoff claims only parser-surface drift detection plus focused regression coverage for the primary `project-open` entrypoint contract; it does not claim new retrieval quality, patch semantics, persistence behavior, or export behavior.
 - Traceability note: `aef67223fb2ea280860de95d2a860880630a84dd` is the implementation tip for this reviewed slice. `THREAD.md` and `THREAD_PACKET.md` are packet refresh companions that capture the updated reviewer-fix mapping and gate results.
-- Why this is milestone-worthy now instead of second-order cleanup: the roadmap's active A2UI-with-CLI-fallback work requires stable output contracts and a CLI-executable MVP loop. This guard removes a concrete reliability blocker at the loop entrypoint by preventing silent parser-surface drift before the operator even starts the bootstrap step.
+- Why this is milestone-worthy now instead of second-order cleanup: Milestone 3 is where user-facing contracts are locked and documented intentionally. This guard removes a concrete operator-surface contract risk at the `project-open` entrypoint before the engine-first CLI loop even starts.
 
 ## Approved Exception Note
 
@@ -88,7 +88,7 @@
 1. Added `_CLI_ENTRYPOINTS` so the default parser surface is locked independently from the catalog specs.
 2. Tightened the CLI contract path to validate actual parser entrypoints against the declared catalog projection before publishing command tokens and lookup tables.
 3. Reworked parser-drift regression coverage in `tests/unit/test_commands_catalog.py` to patch `_CLI_ENTRYPOINTS` into drifted-but-still-resolvable shapes.
-4. Regenerated the handoff packet so the reviewer-requested canonical demo-path step, roadmap/vision tie-in, and shared-test approval source are explicit.
+4. Regenerated the handoff packet so the reviewer-requested canonical demo-path step, narrowed engine-first CLI alignment, and shared-test approval source are explicit.
 
 ### Files Changed
 
@@ -123,15 +123,16 @@
 
 ### Roadmap item(s) affected
 
-- `ROADMAP.md` Milestone 5 scope: `Provide CLI rendering fallback for the same structured payloads`.
-- `ROADMAP.md` Milestone 5 exit criteria: `Output contracts are test-covered and backward-compatible by policy` and `CLI can execute the MVP flow (vault -> context -> run -> patch -> export) against the same engine PolicyGate`.
-- This diff contributes only the `project-open` entrypoint of that current CLI smoke route by hardening the public parser surface before the operator proceeds into retrieval, patch-review, persist, and export-handoff.
-- `feat-commands`: keep migration-safe command entrypoints deterministic so the active CLI smoke route and CLI fallback contract remain trustworthy while Textual remains disabled.
+- `ROADMAP.md` Milestone 3 `Product Readiness`: this slice helps lock a user-facing command contract intentionally instead of letting the bootstrap parser surface drift silently.
+- `ROADMAP.md` Milestone 3 exit criteria: contract changes should be documented and intentional; this packet documents the parser-surface contract that guards the canonical `project-open` entrypoint.
+- `ROADMAP.md` MVP Focus Through 2026-05-04: `feat-commands` is an active lane while `feat-console` is defined but not active, so this work stays on the CLI/operator surface instead of claiming any console/UI expansion.
+- This diff contributes only the `project-open` entrypoint of the current engine-first CLI smoke route by hardening the public parser surface before the operator proceeds into retrieval, patch-review, persist, and export-handoff.
+- Scope-tightening statement: this is operator-surface support for the engine-first MVP loop while `feat-console` remains inactive, not new UI work and not broader demo-path expansion beyond the bootstrap contract.
 
 ### Vision capability affected
 
-- `PRODUCT_VISION.md` capability 4 `Operator-first control surface`: the CLI remains a first-class reliability surface, so the bootstrap parser surface must stay deterministic instead of depending on alias fallback drift.
-- `PRODUCT_VISION.md` capability 5 `Agent-to-UI protocol (A2UI)`: artifacts must be consumable by CLI first, so the parser-ready command contract needs to stay stable for both CLI fallback rendering and later Console consumption.
+- `PRODUCT_VISION.md` capability 4 `Operator-first control surface`: CLI remains a first-class surface for development and reliability, so the bootstrap parser contract for `project-open` must stay deterministic.
+- `PRODUCT_VISION.md` current capability alignment: engine contracts come first and `Exegesis Console` comes later, which is why this slice is limited to CLI/operator-surface hardening while the future interactive client remains out of scope.
 
 ### Routing / Provider Impact Note
 
