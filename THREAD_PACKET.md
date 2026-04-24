@@ -102,12 +102,12 @@
 
 ### Roadmap item(s) affected
 
-- `ROADMAP.md` Milestone 3: user-facing output and operator contracts must be defined and locked intentionally.
-- This diff contributes only the CLI-compatibility slice of that requirement by preventing migration drift in the parser-facing entry contract.
+- `ROADMAP.md` Milestone 3: output contracts are test-covered and backward-compatible by policy, and the CLI can execute the MVP flow against the same engine PolicyGate.
+- This diff contributes only that CLI-compatibility and migration-safe-entrypoint slice by preventing parser-surface canonical names from drifting away from the command catalog.
 
 ### Vision capability affected
 
-- `PRODUCT_VISION.md` capability 4 `Operator-first control surface`: the CLI is the active operator surface while interactive console work is deferred, so its canonical engine contract must stay deterministic.
+- `PRODUCT_VISION.md` capability 4 `Operator-first control surface`: the CLI is the active operator surface while Textual work is deferred, so its canonical engine contract must stay deterministic and migration-safe.
 
 ### Routing / Provider Impact Note
 
