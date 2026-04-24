@@ -1005,6 +1005,22 @@ class A2UIFallbackSafetyTests(unittest.TestCase):
             _fingerprint_manifest_section(manifest["card_hint_recovery_policy"]),
         )
         self.assertEqual(
+            manifest["card_hint_recovery_policy_contract"],
+            describe_terminal_artifact_cli_fallback_card_hint_recovery_policy_contract(),
+        )
+        self.assertEqual(
+            manifest["card_hint_recovery_policy_contract_manifest"],
+            describe_terminal_artifact_cli_fallback_card_hint_recovery_policy_contract(),
+        )
+        self.assertEqual(
+            manifest["card_hint_recovery_policy_contract_fingerprint"],
+            terminal_artifact_cli_fallback_card_hint_recovery_policy_contract_fingerprint(),
+        )
+        self.assertEqual(
+            manifest["card_hint_recovery_policy_contract_manifest_fingerprint"],
+            terminal_artifact_cli_fallback_card_hint_recovery_policy_contract_fingerprint(),
+        )
+        self.assertEqual(
             manifest["terminal_artifact_cli_fallback_entrypoint_contract_fingerprints"],
             contract_fingerprints,
         )
@@ -5536,6 +5552,18 @@ class A2UIFallbackSafetyTests(unittest.TestCase):
                 ],
                 "terminal_artifact_cli_fallback_entrypoint_contract_fingerprints_fingerprint": manifest[
                     "terminal_artifact_cli_fallback_entrypoint_contract_fingerprints_fingerprint"
+                ],
+                "card_hint_recovery_policy": manifest["card_hint_recovery_policy"],
+                "card_hint_recovery_policy_fingerprint": manifest["card_hint_recovery_policy_fingerprint"],
+                "card_hint_recovery_policy_contract": manifest["card_hint_recovery_policy_contract"],
+                "card_hint_recovery_policy_contract_fingerprint": manifest[
+                    "card_hint_recovery_policy_contract_fingerprint"
+                ],
+                "card_hint_recovery_policy_contract_manifest": manifest[
+                    "card_hint_recovery_policy_contract_manifest"
+                ],
+                "card_hint_recovery_policy_contract_manifest_fingerprint": manifest[
+                    "card_hint_recovery_policy_contract_manifest_fingerprint"
                 ],
                 "terminal_artifact_cli_fallback_target": manifest["terminal_artifact_cli_fallback_target"],
                 "terminal_artifact_cli_fallback_target_fingerprint": manifest[

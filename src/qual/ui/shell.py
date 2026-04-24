@@ -689,6 +689,8 @@ def _build_shell_ui_contract_manifest(
     terminal_artifact_cli_fallback_entrypoint_contract_manifest = (
         describe_terminal_artifact_cli_fallback_entrypoint_contract()
     )
+    card_hint_recovery_policy_contract = describe_terminal_artifact_cli_fallback_card_hint_recovery_policy_contract()
+    card_hint_recovery_policy_contract_fingerprint_value = card_hint_recovery_policy_contract["contract_fingerprint"]
     terminal_artifact_renderer_entrypoints_contract = describe_terminal_artifact_renderer_entrypoints_contract()
     terminal_artifact_cli_fallback_target_contract = copy.deepcopy(
         describe_terminal_artifact_cli_fallback_target_contract(
@@ -741,6 +743,12 @@ def _build_shell_ui_contract_manifest(
         "terminal_artifact_cli_fallback_entrypoint_contract_fingerprints_fingerprint": (
             terminal_artifact_cli_fallback_entrypoint_contract_fingerprints_fingerprint()
         ),
+        "card_hint_recovery_policy": copy.deepcopy(card_hint_recovery_policy_contract),
+        "card_hint_recovery_policy_contract": copy.deepcopy(card_hint_recovery_policy_contract),
+        "card_hint_recovery_policy_contract_manifest": copy.deepcopy(card_hint_recovery_policy_contract),
+        "card_hint_recovery_policy_fingerprint": card_hint_recovery_policy_contract_fingerprint_value,
+        "card_hint_recovery_policy_contract_fingerprint": card_hint_recovery_policy_contract_fingerprint_value,
+        "card_hint_recovery_policy_contract_manifest_fingerprint": card_hint_recovery_policy_contract_fingerprint_value,
         "terminal_artifact_cli_fallback_target": copy.deepcopy(
             terminal_artifact_cli_fallback_target_contract
         ),
@@ -867,6 +875,8 @@ def describe_shell_ui_contract_fingerprints(
             terminal_artifact_cli_fallback_entrypoint_fingerprint
         ),
         "card_hint_recovery_policy": card_hint_recovery_policy_contract_fingerprint_value,
+        "card_hint_recovery_policy_contract": card_hint_recovery_policy_contract_fingerprint_value,
+        "card_hint_recovery_policy_contract_manifest": card_hint_recovery_policy_contract_fingerprint_value,
         "terminal_artifact_cli_fallback_target": terminal_artifact_cli_fallback_target_contract_fingerprint_value,
         "terminal_artifact_cli_fallback_target_contract": (
             terminal_artifact_cli_fallback_target_contract_fingerprint_value
