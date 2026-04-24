@@ -3,7 +3,7 @@
 - Lane: `feat-commands`
 - Branch: `codex/feat-commands`
 - Commit: `f6742007`
-- Packet refresh role: `reviewer-fix resubmission refresh 3`
+- Packet refresh role: `reviewer-fix resubmission refresh 4`
 - Review scope: narrow command-contract hardening in `src/qual/commands/catalog.py`, plus focused regression coverage in `tests/unit/test_commands_catalog.py`, with the guardrail explicitly enforcing full parser-surface projection consistency rather than only canonical-name/order consistency.
 - Canonical demo-path step advanced: primarily `open project/document` in the active AGENTS demo path, with direct protection for the downstream CLI handoff into `retrieve relevant material`, `preview and apply or reject a patch`, and export-oriented command surfaces because the same contract lock covers `project-open`, `retrieval`, `patch-review`, and `export-handoff` while Textual remains disabled.
 - Canonical demo-path context: `AGENTS.md` currently defines the engine-side path as `open project/document` -> `retrieve relevant material` -> `promote or gather context into the basket` -> `produce a plan or revision` -> `preview and apply or reject a patch` -> `persist the updated document/session state` -> `continue working without losing context`.
@@ -19,6 +19,7 @@
 - Final verification note: this packet refresh revalidated the corrected handoff packet, confirmed the shipped broader parser-surface validation still matches the stated scope, and reran the full required gate set without widening implementation scope.
 - Latest implementation evidence note: after reloading the reviewer packet against the live worktree on `2026-04-24`, the parser-surface guardrail remained present on `codex/feat-commands`, including the direct `_CLI_PARSER_ENTRYPOINTS` regression that exercises live parser drift.
 - Current fixer pass note: this follow-up pass is metadata-only; it rechecked the live `src/qual/commands/catalog.py` and `tests/unit/test_commands_catalog.py` state, confirmed the reviewer-requested parser-surface guardrail and tests were already committed, and refreshed the handoff wording to match that shipped scope exactly before another required-gates rerun.
+- Reviewer-fix closure note: this refresh exists specifically to satisfy the reviewer-requested handoff field by stating the exact canonical demo-path step advanced, tying that step to the active Milestone 3 CLI-first loop, and keeping the resubmission scoped to packet alignment rather than new implementation work.
 - Resubmission note: this pass is metadata-only and exists to regenerate the handoff packet after the reviewer packet reload, keeping the claims pinned to the already-landed parser-surface implementation while recording a fresh full gate rerun on the current branch tip before re-review.
 - Gate rerun confirmation: `make scope-check`, `./quality-format.sh --check`, `./quality-lint.sh`, `./quality-test.sh`, `./typecheck-test.sh`, and `make ci` were rerun in this packet-refresh pass.
 
