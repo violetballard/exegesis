@@ -8,17 +8,19 @@
   - Later `docs(commands)` commits are metadata-only packet refreshes and are not part of the implementation approval basis.
 - Scope completed: hardened `command_cli_contract()` for the current engine-first CLI smoke path by protecting the `project-open` / `retrieval` / `patch-review` command surface so the live parser entrypoints stay locked to the declared command catalog and fail fast on parser-surface drift.
 - Canonical demo-path step(s) advanced: `open project/document`, `retrieve`, `preview and apply or reject a patch`
+- Explicit CLI fallback statement: this specifically hardens the current CLI "continue working" operator surface while Textual remains disabled.
 - Roadmap loop mapping:
   - `open project/document` advances the roadmap loop's `vault` and `context` entry boundary through the `project-open` command surface.
   - `retrieve` advances the roadmap loop's `context` and `run` handoff boundary through the `retrieval` command surface.
   - `preview and apply or reject a patch` advances the roadmap loop's `patch` boundary through the `patch-review` command surface.
 - Required packet statement: this change makes `open project/document`, `retrieve`, and `preview and apply or reject a patch` more real by forcing the public command surface to stay catalog-locked and fail closed before the operator reaches the wrong CLI verb set on the current engine-first `project-open` / `retrieval` / `patch-review` smoke path.
-- Concrete blocker removed: parser or catalog drift can no longer silently change the canonical command contract, which keeps the current CLI fallback deterministic across the `project-open` / `retrieval` / `patch-review` path.
+- Concrete blocker removed: parser or catalog drift can no longer silently change the canonical command contract, including token-level reorderings, dropped canonical entrypoints, or lookup-table substitutions, which keeps the current CLI fallback deterministic across the `project-open` / `retrieval` / `patch-review` path.
 - Route-coverage evidence anchor: `tests/unit/test_commands_catalog.py` keeps the CLI-first claim pinned to the tested patch-review route entry `("patch-review", "diff-preview", ("diff-preview", "diff"))` in the smoke-route summary and route-contract assertions.
 - Plan-alignment statement: this is one CLI smoke-path contract-hardening slice inside the active engine-first MVP path. Deterministic CLI contract validation preserves the operator-facing bootstrap, context-basket, and diff-preview command surface for the current `project-open` / `retrieval` / `patch-review` smoke path while Textual remains disabled and interactive clients stay secondary. It does not claim new retrieval internals, patch application, persistence, export, audit-path, or broader workflow behavior.
 - `AGENTS.md` compliance statement: this packet stays within the high-risk 4-task cap, records the shared-test exception, and includes the required handoff fields from `INTEGRATION.md`.
 - Current roadmap alignment statement: this slice stays aligned to the current canonical roadmap by narrowing its claim to the active `feat-commands` implementation emphasis, Milestone 1 command and diff-preview hardening, and Milestone 2 parser-edge follow-up from review. Deterministic command-contract validation hardens the `project-open` / `retrieval` / `patch-review` boundary while `feat-console` stays deferred. `terminal` and `export-handoff` remain outside the review basis for this packet and appear here only as incidental aliases inside the shared catalog contract. It does not claim retrieval internals, persistence, export, audit-path, or broader workflow behavior.
 - Packet refresh traceability: later `docs(commands)` commits are metadata-only and update only `handoff_packets/feat-commands.md`, `THREAD_PACKET.md`, and `THREAD.md`.
+- Parser-surface evidence statement: `command_cli_contract()` now validates the full authoritative parser projection and derives `tokens` plus `lookup_table` from that same projection, so the implementation claim is full parser-surface drift detection rather than canonical-name ordering alone.
 - High-risk kickoff context:
   - lane/owned paths: `src/qual/commands/**`
   - scope goal: make the canonical `open project/document`, `retrieve`, and `preview and apply or reject a patch` steps more real by keeping the operator-visible command contract locked to the parser/catalog boundary so the CLI fallback stays deterministic across the `project-open` / `retrieval` / `patch-review` smoke path while interactive clients stay secondary
@@ -58,7 +60,7 @@
 - `./quality-test.sh` -> passed
 - `./typecheck-test.sh` -> passed
 - `make ci` -> passed
-- Verification rerun timestamp: `2026-04-24T10:28:22Z UTC`
+- Verification rerun timestamp: `2026-04-24T10:31:01Z UTC`
 
 ## Risks / Blockers
 - Risks: future command-surface changes now need to keep the CLI lookup-table behavior and the shared regression suite aligned so the canonical command contract stays catalog-locked.
