@@ -45,7 +45,7 @@
 - tasks completed (numbered implementation work only; metadata-only packet refreshes excluded):
   1. Hardened `command_cli_contract()` so it validates the full grouped parser-surface projection against the canonical catalog instead of trusting derived canonical-name order alone.
   2. Preserved deterministic patch-review CLI entrypoint ordering by rebuilding grouped entrypoints from the public contract and rejecting alias-level or ordering drift that would otherwise keep canonical names stable.
-  3. Added focused regression coverage in `tests/unit/test_commands_catalog.py` for parser/catalog drift rejection, including alias-level drift that preserves canonical command names and direct mutation of the live CLI parser entrypoint constant.
+  3. Added focused regression coverage in `tests/unit/test_commands_catalog.py` for parser/catalog drift rejection, including alias-level drift that preserves canonical command names, direct mutation of the live CLI parser entrypoint constant, and canonical-token replacement with a valid alias in that exported parser surface.
 - files changed:
   - reviewed implementation: `src/qual/commands/catalog.py`
   - reviewed implementation: `tests/unit/test_commands_catalog.py`
@@ -59,7 +59,7 @@
   - `./quality-test.sh` -> passed
   - `./typecheck-test.sh` -> passed
   - `make ci` -> passed
-  - revalidation note: all required gates were rerun on `2026-04-24` for reviewer packet `fixer__feat-commands__20260424T204003Z`, confirming the packet names the exact demo-path step and the existing command-contract hardening already covers alias-only parser-surface drift
+  - revalidation note: all required gates were rerun on `2026-04-24` for reviewer packet `fixer__feat-commands__20260424T205038Z`, and the reviewer's alias-substitution repro now raises `ValueError: Command CLI catalog entrypoint projection is inconsistent`, confirming the packet stays narrowed to CLI compatibility and the branch includes explicit exported-parser alias-substitution regression coverage for the exact drift concern raised there
 - traceability:
   - reviewed implementation slice only: `src/qual/commands/catalog.py` and `tests/unit/test_commands_catalog.py`
   - docs-only refresh commit in branch history: `8391bf07914fffd6fcd29867dc6f21ed25a56ea1` (`docs(thread): pin feat-commands demo-path step`)

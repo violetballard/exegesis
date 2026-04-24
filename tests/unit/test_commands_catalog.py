@@ -749,6 +749,44 @@ class CommandCatalogTests(unittest.TestCase):
             with self.assertRaisesRegex(ValueError, "Command CLI catalog entrypoint projection is inconsistent"):
                 command_catalog.command_cli_contract()
 
+    def test_command_cli_contract_rejects_exported_parser_alias_substitution_with_stable_canonical_names(
+        self,
+    ) -> None:
+        baseline_contract = command_catalog.command_cli_contract()
+        parser_surface_with_bootstrap_alias_substitution = (
+            ("bootstrap", ("open",)),
+            ("diff-preview", ("diff-preview", "diff")),
+            ("context-basket", ("context-basket",)),
+            ("terminal", ("terminal",)),
+        )
+
+        command_catalog.command_cli_contract.cache_clear()
+        with patch.object(
+            qual_cli,
+            "_CLI_PARSER_ENTRYPOINTS",
+            parser_surface_with_bootstrap_alias_substitution,
+        ):
+            parser_tokens = tuple(
+                token
+                for _, entrypoints in qual_cli.parser_cli_entrypoints()
+                for token in entrypoints
+            )
+            self.assertEqual(
+                tuple(name for name, _ in qual_cli.parser_cli_entrypoints()),
+                baseline_contract.canonical_names,
+            )
+            self.assertEqual(
+                tuple(
+                    command_catalog.command_spec_for(command_specs(), token).name
+                    for token in parser_tokens
+                ),
+                ("bootstrap", "diff-preview", "diff-preview", "context-basket", "terminal"),
+            )
+            self.assertIn("open", parser_tokens)
+            self.assertNotIn("bootstrap", parser_tokens)
+            with self.assertRaisesRegex(ValueError, "Command CLI catalog entrypoint projection is inconsistent"):
+                command_catalog.command_cli_contract()
+
     def test_command_cli_contract_validation_rejects_alias_drift_with_stable_canonical_names(self) -> None:
         contract = command_catalog.command_cli_contract()
         drifted_contract = replace(
