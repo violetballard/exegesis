@@ -5,10 +5,11 @@
   - `f8d860ed9f6299f0169c4f21321ac5f37c949fd3` (`feat(commands): lock CLI contract to command catalog`)
 - Scope completed: hardened `command_cli_contract()` for `preview and apply or reject a patch` by protecting the CLI patch-review surface so the parser-derived canonical command names stay locked to the declared command catalog and fail fast on drift.
 - Canonical demo-path step advanced: `preview and apply or reject a patch`
-- Required AGENTS sentence: this change makes `preview and apply or reject a patch` more real by forcing the public command surface to stay catalog-locked and fail closed before the operator reaches the wrong CLI verb set.
+- Required packet statement: this change makes `preview and apply or reject a patch` more real by forcing the public command surface to stay catalog-locked and fail closed before the operator reaches the wrong CLI verb set.
 - Concrete blocker removed: parser or catalog drift can no longer silently change the canonical command contract, which keeps the CLI fallback deterministic at the patch-review step of the canonical demo path.
 - Route-coverage evidence anchor: `tests/unit/test_commands_catalog.py` keeps the CLI-first claim pinned to the tested patch-review route entry `("patch-review", "diff-preview", ("diff-preview", "diff"))` in the smoke-route summary and route-contract assertions.
-- Plan-alignment statement: this is one Milestone 3 patch-review contract-hardening slice inside the canonical demo path. Deterministic CLI contract validation preserves the operator-facing command surface while Textual remains disabled. It does not claim new retrieval, persistence, export, audit-path, or broader workflow behavior.
+- Plan-alignment statement: this is one patch-review contract-hardening slice inside the active CLI-first MVP path. Deterministic CLI contract validation preserves the operator-facing command surface while UI work remains secondary. It does not claim new retrieval, persistence, export, audit-path, or broader workflow behavior.
+- Current roadmap alignment statement: this slice stays aligned to the current canonical roadmap by narrowing its claim to command and diff-preview hardening under Milestone 1 and CLI fallback reliability under the MVP-flow exit criteria in Milestone 5. It does not claim retrieval, persistence, export, audit-path, or broader workflow behavior.
 - Packet refresh traceability: later `docs(commands)` commits are metadata-only and update only `handoff_packets/feat-commands.md`, `THREAD_PACKET.md`, and `THREAD.md`.
 - High-risk kickoff context:
   - lane/owned paths: `src/qual/commands/**`
@@ -19,15 +20,15 @@
   - stop triggers: unresolved test, lint, or typecheck failure after `2` focused fix attempts, unresolved `make scope-check`, or budget, size, or time limit hit
 - Roadmap item(s) affected:
   - `ROADMAP.md` active lane: `feat-commands`
-  - `ROADMAP.md` Milestone 3 exit criterion: `CLI can still execute the MVP loop while Textual remains disabled`
-  - `ROADMAP.md` current operational narrowing: active lane work must directly advance the canonical demo-path step `preview and apply or reject a patch`
+  - `ROADMAP.md` Milestone 1 scope: `Command and diff-preview behavior hardening`
+  - `ROADMAP.md` Milestone 5 exit criterion: `CLI can execute the MVP flow (vault -> context -> run -> patch -> export) against the same engine PolicyGate`
 - Vision capability affected:
-  - `PRODUCT_VISION.md` capability 1 `Writing-centered workflow`
-  - `PRODUCT_VISION.md` capability 3 `Canonical engine contract`
+  - `PRODUCT_VISION.md` capability 4 `Operator-first control surface`
+  - `PRODUCT_VISION.md` capability 5 `Agent-to-UI protocol (A2UI)`
   - specific requirements advanced:
-    - `Opening a document, working in it, and continuing after plan/revise/apply loops is the trust surface.`
-    - `CLI compatibility is required while Textual remains disabled.`
-  - no claim against persistence, audit hooks, or workflow trace records; this diff does not add them
+    - `CLI remains a first-class surface for development and reliability.`
+    - `CLI remains able to render a text fallback of the same underlying artifacts.`
+  - no claim against persistence, audit hooks, retrieval progress, or workflow trace records; this diff does not add them
 - Routing/provider impact note: none; this slice does not touch model routing, provider configuration, or integrator-locked entrypoints.
 - Proposed `README.md` patch text: none.
 
@@ -51,7 +52,7 @@
 - `./quality-test.sh` -> passed
 - `./typecheck-test.sh` -> passed
 - `make ci` -> passed
-- Verification rerun timestamp: `2026-04-24T09:31:15Z UTC`
+- Verification rerun timestamp: `2026-04-24T09:34:20Z UTC`
 
 ## Risks / Blockers
 - Risks: future command-surface changes now need to keep the CLI lookup-table behavior and the shared regression suite aligned so the canonical command contract stays catalog-locked.

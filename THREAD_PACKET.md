@@ -4,8 +4,8 @@
 - Branch: `codex/feat-commands`
 - Commit: `f8d860ed9f6299f0169c4f21321ac5f37c949fd3`
 - Packet refresh role: `fixer reviewer packet correction`
-- Packet refresh basis: `realigned the handoff to the actual reviewed implementation slice after the reviewer flagged inconsistent traceability, stale roadmap or vision mapping, and a missing explicit canonical demo-path statement`
-- Post-fixer verification: `2026-04-24T09:31:15Z UTC gate rerun confirmed this packet correction matches the current branch state; the current refresh is metadata-only and keeps the reviewed implementation scope pinned to f8d860ed9f6299f0169c4f21321ac5f37c949fd3`
+- Packet refresh basis: `realigned the handoff to the actual reviewed implementation slice after the reviewer flagged inconsistent traceability, stale roadmap or vision mapping, and a missing explicit patch-step mapping`
+- Post-fixer verification: `2026-04-24T09:34:20Z UTC gate rerun confirmed this packet correction matches the current branch state; the current refresh is metadata-only and keeps the reviewed implementation scope pinned to f8d860ed9f6299f0169c4f21321ac5f37c949fd3`
 - Packet-only refresh files:
   - `THREAD.md`
   - `THREAD_PACKET.md`
@@ -78,14 +78,14 @@
 ## Canonical Demo-Path Mapping
 
 - Canonical demo-path step advanced: `preview and apply or reject a patch`.
-- Required AGENTS sentence: this change makes `preview and apply or reject a patch` more real by forcing the command contract to stay catalog-locked and fail closed before the operator reaches the wrong CLI verb set.
+- Required packet statement: this change makes `preview and apply or reject a patch` more real by forcing the command contract to stay catalog-locked and fail closed before the operator reaches the wrong CLI verb set.
 - Concrete blocker removed: canonical command-name drift between the parser lookup table and the declared catalog can no longer pass silently. That removes a concrete CLI-fallback blocker at the operator-visible patch-review step.
 - Scope-tightening statement: this slice claims only command-contract hardening for `preview and apply or reject a patch`. Deterministic CLI contract validation preserves the operator-facing command surface needed by the current CLI fallback, and it does not claim new retrieval, persistence, audit-path, export, or broader workflow behavior.
 - Current CLI smoke route context: `open project/document -> retrieve relevant material -> promote or gather context into the basket -> produce a plan or revision -> preview and apply or reject a patch -> persist the updated document/session state -> continue working`.
 - Smoke-test evidence:
   - `tests/unit/test_commands_catalog.py` proves `command_cli_contract()` returns the canonical command order from `command_names()` and fails fast when canonical-name drift is introduced.
   - `tests/unit/test_commands_catalog.py` also proves the command route coverage stays pinned to the smoke route entry for patch review: `("patch-review", "diff-preview", ("diff-preview", "diff"))` in `test_command_cli_route_summary_tracks_the_smoke_route()` and `test_command_cli_route_contract_tracks_the_smoke_surface()`.
-- Plan-alignment note: `AGENTS.md` and `ROADMAP.md` both narrow active work to the canonical demo path, and this slice advances only `preview and apply or reject a patch` inside that path. While Textual remains disabled, the CLI still has to execute the MVP loop, so this guard removes a concrete blocker by failing fast if patch-review command drift would send the operator through the wrong verb set.
+- Plan-alignment note: this slice keeps the explicit patch-step mapping requested by review, while staying aligned to the current roadmap and vision truth sources. `ROADMAP.md` keeps `feat-commands` in the active implementation emphasis, Milestone 1 still includes command and diff-preview hardening, and Milestone 5 requires the CLI fallback to execute the MVP flow against the same engine-facing contracts while UI work stays secondary. This guard removes a concrete blocker by failing fast if patch-review command drift would send the operator through the wrong verb set.
 
 ## Approved Exception Note
 
@@ -124,7 +124,7 @@
 - `./quality-test.sh`: `PASSED`
 - `./typecheck-test.sh`: `PASSED`
 - `make ci`: `PASSED`
-- Gate attribution note: these gates were rerun at `2026-04-24T09:31:15Z UTC` against the current branch state while the reviewed implementation scope remains pinned to `f8d860ed9f6299f0169c4f21321ac5f37c949fd3`; the current packet refresh itself is metadata-only.
+- Gate attribution note: these gates were rerun at `2026-04-24T09:34:20Z UTC` against the current branch state while the reviewed implementation scope remains pinned to `f8d860ed9f6299f0169c4f21321ac5f37c949fd3`; the current packet refresh itself is metadata-only.
 
 ### Risks / Blockers
 
@@ -135,7 +135,7 @@
 
 ## Required Handoff Fields
 
-### Canonical demo-path step advanced
+### Explicit patch-step mapping
 
 - `preview and apply or reject a patch`
 - This change makes `preview and apply or reject a patch` more real by keeping the command contract catalog-locked instead of letting canonical-name drift pass silently in the current CLI fallback path.
@@ -145,19 +145,19 @@
 ### Roadmap item(s) affected
 
 - `ROADMAP.md` active lane: `feat-commands`
-- `ROADMAP.md` Milestone 3 exit criterion: `CLI can still execute the MVP loop while Textual remains disabled`
-- `ROADMAP.md` current operational narrowing: active lane work must directly advance the canonical demo path step `preview and apply or reject a patch`
-- Scope-tightening statement: this is CLI contract hardening for `preview and apply or reject a patch`, preserving the operator-facing command surface rather than broadening workflow behavior.
-- Proven command-surface level only: the claimed support for the CLI-first MVP loop is limited to the tested patch-review route entry `patch-review -> diff-preview/diff`, not to retrieval, persistence, export, or broader workflow behavior.
+- `ROADMAP.md` Milestone 1 scope: `Command and diff-preview behavior hardening`
+- `ROADMAP.md` Milestone 5 exit criterion: `CLI can execute the MVP flow (vault -> context -> run -> patch -> export) against the same engine PolicyGate`
+- Scope-tightening statement: this is CLI contract hardening for `preview and apply or reject a patch`, preserving the operator-facing patch and diff-preview surface rather than broadening workflow behavior.
+- Proven command-surface level only: the claimed MVP-loop support is limited to the tested patch-review route entry `patch-review -> diff-preview/diff`, not to retrieval, persistence, export, or broader workflow behavior.
 
 ### Vision capability affected
 
-- `PRODUCT_VISION.md` capability 1 `Writing-centered workflow`
-- `PRODUCT_VISION.md` capability 3 `Canonical engine contract`
+- `PRODUCT_VISION.md` capability 4 `Operator-first control surface`
+- `PRODUCT_VISION.md` capability 5 `Agent-to-UI protocol (A2UI)`
 - Exact requirements advanced:
-  - `Opening a document, working in it, and continuing after plan/revise/apply loops is the trust surface.`
-  - `CLI compatibility is required while Textual remains disabled.`
-- This slice narrows to the patch-review command contract only. It does not claim persistence, audit hooks, or workflow traceability progress.
+  - `CLI remains a first-class surface for development and reliability.`
+  - `CLI remains able to render a text fallback of the same underlying artifacts.`
+- This slice narrows to the patch-review command contract only. It does not claim persistence, audit hooks, retrieval, or broader workflow traceability progress.
 - Evidence anchor: the claimed product-surface support is the tested patch-review CLI route coverage in `tests/unit/test_commands_catalog.py`, not an unproven broader engine-loop claim.
 
 ### Routing / Provider Impact Note
