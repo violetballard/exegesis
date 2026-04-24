@@ -38,11 +38,11 @@ Canonical handoff contract lives in `THREAD_PACKET.md`.
   - `retrieve` maps to the MVP loop's `context` and `run` handoff boundary through `retrieval`
   - `preview and apply or reject a patch` maps to the MVP loop's `patch` boundary through `patch-review`
 - Required handoff field now called out explicitly:
-  - `Explicit canonical demo-path mapping: open project/document, retrieve, preview and apply or reject a patch`
+  - `Explicit CLI smoke-path mapping: open project/document, retrieve, preview and apply or reject a patch`
 - Explicit re-review statement:
   - this slice advances the canonical `open project/document`, `retrieve`, and `preview and apply or reject a patch` steps by keeping the CLI smoke-surface contract catalog-locked, so deterministic contract validation protects the current engine-first operator path from silent parser drift at those steps
 - AGENTS compliance note:
-  - every active lane task in this packet now names the exact canonical demo-path step it advances, and the handoff states the concrete blocker removed at that step
+  - this packet stays within the high-risk 4-task cap, records the shared-test exception, and includes the required handoff fields from `INTEGRATION.md`
 - Per-task canonical demo-path mapping for re-review:
   - task 1 `open project/document`, `retrieve`, `preview and apply or reject a patch`: lock the live CLI smoke-surface command contract to the command catalog so parser-surface drift fails closed before the operator reaches the `project-open`, `retrieval`, or `patch-review` verb sets
   - task 2 `open project/document`, `retrieve`, `preview and apply or reject a patch`: add focused regression coverage proving parser-surface alignment and command-catalog drift rejection for the `project-open` / `retrieval` / `patch-review` CLI smoke surface
@@ -56,8 +56,8 @@ Canonical handoff contract lives in `THREAD_PACKET.md`.
   - the active CLI fallback no longer allows the parser-derived command surface to diverge from the declared command catalog, including extra accepted aliases, without an immediate contract failure on the `project-open` / `retrieval` / `patch-review` smoke path
 - Roadmap / vision alignment for this reviewed slice:
   - `ROADMAP.md` active lane keeps `feat-commands` in the current implementation push
-  - `ROADMAP.md` Milestone 3 keeps this slice narrowed to `Define and lock user-facing output contracts`
-  - `AGENTS.md` operational narrowing rules require each active lane task to name which canonical demo-path step it advances and to state that step explicitly before handoff
+  - `ROADMAP.md` Milestone 1 narrows this slice to `Command and diff-preview behavior hardening`
+  - `ROADMAP.md` Milestone 2 remaining work explicitly includes `Add missing targeted cases identified during reviews (parser edges, persistence edge cases)`
   - `PRODUCT_VISION.md` capability 4 `Operator-first control surface` is the only capability claimed here, specifically `CLI remains a first-class surface for development and reliability`
   - this packet does not claim A2UI payloads, persistence, audit hooks, auditable generation, retrieval progress, or broader workflow trace records
 - Ownership / scope note:

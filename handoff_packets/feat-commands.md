@@ -16,8 +16,8 @@
 - Concrete blocker removed: parser or catalog drift can no longer silently change the canonical command contract, which keeps the current CLI fallback deterministic across the `project-open` / `retrieval` / `patch-review` path.
 - Route-coverage evidence anchor: `tests/unit/test_commands_catalog.py` keeps the CLI-first claim pinned to the tested patch-review route entry `("patch-review", "diff-preview", ("diff-preview", "diff"))` in the smoke-route summary and route-contract assertions.
 - Plan-alignment statement: this is one CLI smoke-path contract-hardening slice inside the active engine-first MVP path. Deterministic CLI contract validation preserves the operator-facing bootstrap, context-basket, and diff-preview command surface for the current `project-open` / `retrieval` / `patch-review` smoke path while Textual remains disabled and interactive clients stay secondary. It does not claim new retrieval internals, patch application, persistence, export, audit-path, or broader workflow behavior.
-- `AGENTS.md` compliance statement: every active lane task in this packet is tied to the canonical `open project/document`, `retrieve`, or `preview and apply or reject a patch` steps, and the packet now states the concrete blocker removed on that path.
-- Current roadmap alignment statement: this slice stays aligned to the current canonical roadmap by narrowing its claim to the active `feat-commands` implementation emphasis and the Milestone 3 contract work to `Define and lock user-facing output contracts`. Deterministic command-contract validation hardens the `project-open` / `retrieval` / `patch-review` boundary while `feat-console` stays deferred. `terminal` and `export-handoff` remain outside the review basis for this packet and appear here only as incidental aliases inside the shared catalog contract. It does not claim retrieval internals, persistence, export, audit-path, or broader workflow behavior.
+- `AGENTS.md` compliance statement: this packet stays within the high-risk 4-task cap, records the shared-test exception, and includes the required handoff fields from `INTEGRATION.md`.
+- Current roadmap alignment statement: this slice stays aligned to the current canonical roadmap by narrowing its claim to the active `feat-commands` implementation emphasis, Milestone 1 command and diff-preview hardening, and Milestone 2 parser-edge follow-up from review. Deterministic command-contract validation hardens the `project-open` / `retrieval` / `patch-review` boundary while `feat-console` stays deferred. `terminal` and `export-handoff` remain outside the review basis for this packet and appear here only as incidental aliases inside the shared catalog contract. It does not claim retrieval internals, persistence, export, audit-path, or broader workflow behavior.
 - Packet refresh traceability: later `docs(commands)` commits are metadata-only and update only `handoff_packets/feat-commands.md`, `THREAD_PACKET.md`, and `THREAD.md`.
 - High-risk kickoff context:
   - lane/owned paths: `src/qual/commands/**`
@@ -28,7 +28,8 @@
   - stop triggers: unresolved test, lint, or typecheck failure after `2` focused fix attempts, unresolved `make scope-check`, or budget, size, or time limit hit
 - Roadmap item(s) affected:
   - `ROADMAP.md` active implementation emphasis: `feat-commands`
-  - `ROADMAP.md` Milestone 3 scope: `Define and lock user-facing output contracts`
+  - `ROADMAP.md` Milestone 1 scope: `Command and diff-preview behavior hardening`
+  - `ROADMAP.md` Milestone 2 remaining work: `Add missing targeted cases identified during reviews (parser edges, persistence edge cases)`
   - roadmap relevance is limited to the `project-open` / `retrieval` / `patch-review` command surface; `terminal` and `export-handoff` are not part of this packet's approval basis
 - Vision capability affected:
   - `PRODUCT_VISION.md` capability 4 `Operator-first control surface`

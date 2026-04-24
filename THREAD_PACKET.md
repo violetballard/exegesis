@@ -93,7 +93,7 @@
 - Smoke-test evidence:
   - `tests/unit/test_commands_catalog.py` proves `command_cli_contract()` returns the declared parser surface and fails fast when parser-surface drift is introduced.
   - `tests/unit/test_commands_catalog.py` also proves the command route coverage stays pinned to the smoke route entry for patch review: `("patch-review", "diff-preview", ("diff-preview", "diff"))` in `test_command_cli_route_summary_tracks_the_smoke_route()` and `test_command_cli_route_contract_tracks_the_smoke_surface()`.
-- Plan-alignment note: this slice keeps the explicit canonical demo-path mapping requested by review, while staying aligned to the current roadmap and vision truth sources. `AGENTS.md` operational narrowing rules require each active lane task to name the canonical demo-path step it advances, `ROADMAP.md` keeps `feat-commands` in the active implementation emphasis, and Milestone 3 narrows the roadmap claim to `Define and lock user-facing output contracts`. This guard removes a concrete blocker by failing fast if parser or catalog drift would silently send `project-open`, `retrieval`, or `patch-review` through the wrong CLI fallback verb set.
+- Plan-alignment note: this slice keeps the explicit smoke-path mapping requested by review while aligning the packet to the current repo truth sources. `ROADMAP.md` keeps `feat-commands` in the active implementation emphasis, Milestone 1 calls for command and diff-preview hardening, and Milestone 2 explicitly calls out missing targeted parser-edge cases from review. This guard removes a concrete blocker by failing fast if parser or catalog drift would silently change the CLI verb surface along the current `project-open` / `retrieval` / `patch-review` smoke path.
 
 ## Approved Exception Note
 
@@ -143,7 +143,7 @@
 
 ## Required Handoff Fields
 
-### Explicit canonical demo-path mapping
+### Explicit CLI smoke-path mapping
 
 - `open project/document`
 - `retrieve`
@@ -155,7 +155,8 @@
 ### Roadmap item(s) affected
 
 - `ROADMAP.md` active implementation emphasis: `feat-commands`
-- `ROADMAP.md` Milestone 3 scope: `Define and lock user-facing output contracts`
+- `ROADMAP.md` Milestone 1 scope: `Command and diff-preview behavior hardening`
+- `ROADMAP.md` Milestone 2 remaining work: `Add missing targeted cases identified during reviews (parser edges, persistence edge cases)`
 - Scope-tightening statement: this is CLI command-contract hardening for the `project-open` / `retrieval` / `patch-review` smoke path, preserving the operator-facing bootstrap, context-basket, and diff-preview verb surface rather than broadening workflow behavior.
 - Proven command-surface level only: the claim is limited to the tested smoke-route entries `project-open -> bootstrap`, `retrieval -> context-basket`, and `patch-review -> diff-preview/diff`.
 - Explicit exclusion: `terminal` and `export-handoff` are not part of the approval basis for this packet.
