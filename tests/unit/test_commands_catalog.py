@@ -273,10 +273,12 @@ class CommandCatalogTests(unittest.TestCase):
             "save": "persist",
             "persist": "persist",
             "persist-and-continue": "persist",
+            "save-and-continue": "persist",
             "resume-work": "persist",
             "handoff": "export-handoff",
             "export": "export-handoff",
             "export-handoff": "export-handoff",
+            "queue-for-export": "export-handoff",
             "terminal": "export-handoff",
         }
         for token, expected in cases.items():
@@ -2791,6 +2793,7 @@ class CommandCatalogTests(unittest.TestCase):
                 "continue",
                 "resume",
                 "persist-and-continue",
+                "save-and-continue",
                 "save-work",
                 "continue-work",
                 "resume-work",
@@ -2808,6 +2811,7 @@ class CommandCatalogTests(unittest.TestCase):
                 "queue-export",
                 "handoff-export",
                 "queue-handoff",
+                "queue-for-export",
             ),
         )
 
@@ -2857,7 +2861,16 @@ class CommandCatalogTests(unittest.TestCase):
         self.assertEqual(persist_variant.next_tokens, ("export-handoff",))
         self.assertEqual(
             persist_variant.compatibility_tokens,
-            ("save", "continue", "resume", "persist-and-continue", "save-work", "continue-work", "resume-work"),
+            (
+                "save",
+                "continue",
+                "resume",
+                "persist-and-continue",
+                "save-and-continue",
+                "save-work",
+                "continue-work",
+                "resume-work",
+            ),
         )
         self.assertEqual(persist_variant.preferred_surface_tokens, ("persist",))
 
@@ -2869,7 +2882,7 @@ class CommandCatalogTests(unittest.TestCase):
         self.assertEqual(export_variant.next_tokens, ())
         self.assertEqual(
             export_variant.compatibility_tokens,
-            ("handoff", "queue-export", "handoff-export", "queue-handoff"),
+            ("handoff", "queue-export", "handoff-export", "queue-handoff", "queue-for-export"),
         )
         self.assertEqual(export_variant.preferred_surface_tokens, ("export-handoff", "export"))
 
@@ -2976,6 +2989,7 @@ class CommandCatalogTests(unittest.TestCase):
                 "continue",
                 "resume",
                 "persist-and-continue",
+                "save-and-continue",
                 "save-work",
                 "continue-work",
                 "resume-work",
@@ -2993,6 +3007,7 @@ class CommandCatalogTests(unittest.TestCase):
                 "queue-export",
                 "handoff-export",
                 "queue-handoff",
+                "queue-for-export",
             ),
         )
         self.assertEqual(
@@ -3122,6 +3137,14 @@ class CommandCatalogTests(unittest.TestCase):
                     ("terminal", "--operation-kind", "terminal_synthesis_request", "--message", "Persist and continue"),
                 ),
                 (
+                    "save-and-continue",
+                    "persist",
+                    "terminal",
+                    "persist",
+                    "compatibility",
+                    ("terminal", "--operation-kind", "terminal_synthesis_request", "--message", "Persist and continue"),
+                ),
+                (
                     "save-work",
                     "persist",
                     "terminal",
@@ -3251,6 +3274,14 @@ class CommandCatalogTests(unittest.TestCase):
                 ),
                 (
                     "queue-handoff",
+                    "export-handoff",
+                    "terminal",
+                    "export-handoff",
+                    "compatibility",
+                    ("terminal", "--operation-kind", "terminal_synthesis_request", "--message", "Export handoff"),
+                ),
+                (
+                    "queue-for-export",
                     "export-handoff",
                     "terminal",
                     "export-handoff",
@@ -3290,6 +3321,10 @@ class CommandCatalogTests(unittest.TestCase):
                     ("terminal", "--operation-kind", "terminal_synthesis_request", "--message", "Persist and continue"),
                 ),
                 (
+                    "save-and-continue",
+                    ("terminal", "--operation-kind", "terminal_synthesis_request", "--message", "Persist and continue"),
+                ),
+                (
                     "save-work",
                     ("terminal", "--operation-kind", "terminal_synthesis_request", "--message", "Persist and continue"),
                 ),
@@ -3355,6 +3390,10 @@ class CommandCatalogTests(unittest.TestCase):
                 ),
                 (
                     "queue-handoff",
+                    ("terminal", "--operation-kind", "terminal_synthesis_request", "--message", "Export handoff"),
+                ),
+                (
+                    "queue-for-export",
                     ("terminal", "--operation-kind", "terminal_synthesis_request", "--message", "Export handoff"),
                 ),
             ),
@@ -3487,6 +3526,10 @@ class CommandCatalogTests(unittest.TestCase):
                     ("terminal", "--operation-kind", "terminal_synthesis_request", "--message", "Persist and continue"),
                 ),
                 (
+                    "save-and-continue",
+                    ("terminal", "--operation-kind", "terminal_synthesis_request", "--message", "Persist and continue"),
+                ),
+                (
                     "save-work",
                     ("terminal", "--operation-kind", "terminal_synthesis_request", "--message", "Persist and continue"),
                 ),
@@ -3552,6 +3595,10 @@ class CommandCatalogTests(unittest.TestCase):
                 ),
                 (
                     "queue-handoff",
+                    ("terminal", "--operation-kind", "terminal_synthesis_request", "--message", "Export handoff"),
+                ),
+                (
+                    "queue-for-export",
                     ("terminal", "--operation-kind", "terminal_synthesis_request", "--message", "Export handoff"),
                 ),
             ),
@@ -3897,12 +3944,21 @@ class CommandCatalogTests(unittest.TestCase):
         )
         self.assertEqual(
             workflow_by_token["persist"].compatibility_tokens,
-            ("save", "continue", "resume", "persist-and-continue", "save-work", "continue-work", "resume-work"),
+            (
+                "save",
+                "continue",
+                "resume",
+                "persist-and-continue",
+                "save-and-continue",
+                "save-work",
+                "continue-work",
+                "resume-work",
+            ),
         )
         self.assertEqual(workflow_by_token["export-handoff"].next_tokens, ())
         self.assertEqual(
             workflow_by_token["export-handoff"].compatibility_tokens,
-            ("handoff", "queue-export", "handoff-export", "queue-handoff"),
+            ("handoff", "queue-export", "handoff-export", "queue-handoff", "queue-for-export"),
         )
         self.assertEqual(
             compatibility_invocations["retrieve-context"],
@@ -3950,11 +4006,19 @@ class CommandCatalogTests(unittest.TestCase):
             ("terminal", "--operation-kind", "terminal_synthesis_request", "--message", "Persist and continue"),
         )
         self.assertEqual(
+            compatibility_invocations["save-and-continue"],
+            ("terminal", "--operation-kind", "terminal_synthesis_request", "--message", "Persist and continue"),
+        )
+        self.assertEqual(
             compatibility_invocations["queue-export"],
             ("terminal", "--operation-kind", "terminal_synthesis_request", "--message", "Export handoff"),
         )
         self.assertEqual(
             compatibility_invocations["queue-handoff"],
+            ("terminal", "--operation-kind", "terminal_synthesis_request", "--message", "Export handoff"),
+        )
+        self.assertEqual(
+            compatibility_invocations["queue-for-export"],
             ("terminal", "--operation-kind", "terminal_synthesis_request", "--message", "Export handoff"),
         )
 
@@ -4120,11 +4184,20 @@ class CommandCatalogTests(unittest.TestCase):
         )
         self.assertEqual(
             workflow_by_token["persist"].compatibility_tokens,
-            ("save", "continue", "resume", "persist-and-continue", "save-work", "continue-work", "resume-work"),
+            (
+                "save",
+                "continue",
+                "resume",
+                "persist-and-continue",
+                "save-and-continue",
+                "save-work",
+                "continue-work",
+                "resume-work",
+            ),
         )
         self.assertEqual(
             workflow_by_token["export-handoff"].compatibility_tokens,
-            ("handoff", "queue-export", "handoff-export", "queue-handoff"),
+            ("handoff", "queue-export", "handoff-export", "queue-handoff", "queue-for-export"),
         )
         self.assertEqual(
             workflow_by_token["apply-patch"].preferred_surface_tokens,

@@ -2986,6 +2986,7 @@ _COMMAND_DEMO_COMPATIBILITY_VARIANTS: dict[str, str] = {
     "approve-patch": "apply-patch",
     "accept-patch": "apply-patch",
     "persist-and-continue": "persist",
+    "save-and-continue": "persist",
     "decline-patch": "reject-patch",
     "discard-patch": "reject-patch",
     "save-work": "persist",
@@ -2993,6 +2994,7 @@ _COMMAND_DEMO_COMPATIBILITY_VARIANTS: dict[str, str] = {
     "resume-work": "persist",
     "handoff-export": "export-handoff",
     "queue-handoff": "export-handoff",
+    "queue-for-export": "export-handoff",
 }
 
 
