@@ -22,6 +22,7 @@
 ## Packet Refresh Notes
 - This handoff now names the exact canonical demo-path step advanced, locks the CLI/Textual wording to the reviewer-requested phrasing, states why the work is migration-safe compatibility hardening for the existing catalog instead of second-order cleanup, makes the alias-level parser-surface-drift scope explicit even when canonical names stay stable, and keeps the approval basis pinned to reviewed commit `f8d860ed9f6299f0169c4f21321ac5f37c949fd3` plus its two implementation files only.
 - Packet regeneration and metadata refresh remain here for traceability and are intentionally excluded from the numbered implementation task list above.
+- This revalidation pass confirmed the packet still satisfies the reviewer-requested demo-path mapping and AGENTS-compliant task framing after a fresh green rerun of the required gates from the current branch tip.
 
 ## Files Changed
 - `src/qual/commands/catalog.py`
