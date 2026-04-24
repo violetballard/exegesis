@@ -18,6 +18,7 @@ Gate status:
 * `make ci` - passed
 
 Canonical demo-path step advanced: `retrieve relevant material`, via the FTS-only excerpt fail-closed contract.
+Shared-file approval basis: `tests/unit/test_unified_retrieval.py` is the only non-owned edit in the reviewed slice, and this handoff treats it as the explicit shared-by-approval regression exception under `THREAD_OWNERSHIP.md`'s shared-file mechanism (`SCOPE_ALLOW_SHARED=1 make scope-check`) for canonical retrieval-contract coverage.
 Plan-alignment statement: this branch makes Milestone 3's `retrieve relevant material` step more real by forcing excerpt lookup through the canonical SQLite FTS path and rejecting PageIndex-only excerpt IDs, hardening the retrieval surface used before basket promotion and downstream workflow use.
 Scope-tightening statement: the reviewed runtime slice stays inside the current Milestone 3 FTS-first retrieval MVP path because it removes the PageIndex fallback from excerpt lookup without restoring PageIndex or embeddings as required retrieval paths.
 Metadata-only commit/file accounting after the reviewed implementation head and before this fixer refresh:

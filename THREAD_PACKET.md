@@ -5,6 +5,7 @@
 - Current branch tip before this packet refresh commit: `61b9c36f4b42898c7f86440600d8e02ec34a0b2a`
 - Reviewed implementation head: `a9eaaaa79afcd57cde90738adee76e52cfc29adb`
 - Reviewed implementation range: `d7fd5d200358287fa42a18d39e2b277463b9b69f..a9eaaaa79afcd57cde90738adee76e52cfc29adb`
+- Shared-file approval basis: `tests/unit/test_unified_retrieval.py` is the only non-owned edit in the reviewed slice, and this handoff treats it as the explicit shared-by-approval regression exception under `THREAD_OWNERSHIP.md`'s shared-file mechanism (`SCOPE_ALLOW_SHARED=1 make scope-check`) for canonical retrieval-contract coverage.
 - Canonical demo-path step advanced: `retrieve relevant material`
 - Canonical demo-path statement: This branch advances `retrieve relevant material` by forcing excerpt lookup through the canonical SQLite FTS path and rejecting PageIndex-only excerpt IDs, which hardens the Milestone 3 retrieval surface used immediately before basket promotion and downstream workflow use.
 
@@ -141,5 +142,5 @@
 ## Scope-Check / Ownership Note
 
 - Shared or integrator-locked edits: `YES`
-- Approved shared regression coverage remains limited to `tests/unit/test_unified_retrieval.py`.
+- Shared-file approval basis remains limited to `tests/unit/test_unified_retrieval.py` under the `THREAD_OWNERSHIP.md` shared-file exception mechanism (`SCOPE_ALLOW_SHARED=1 make scope-check`).
 - No provider or routing surfaces are part of the reviewed implementation range.
