@@ -24,7 +24,7 @@
 - Reviewer-fix closure note: this refresh exists specifically to satisfy the reviewer-requested handoff field by stating the exact canonical demo-path step advanced, tying that step to the active Milestone 3 CLI-first loop, and keeping the resubmission scoped to packet alignment rather than new implementation work.
 - Resubmission note: this pass is metadata-only and exists to regenerate the handoff packet after the reviewer packet reload, keeping the claims pinned to the already-landed parser-surface implementation while recording a fresh full gate rerun on the current branch tip before re-review.
 - Gate rerun confirmation: `make scope-check`, `./quality-format.sh --check`, `./quality-lint.sh`, `./quality-test.sh`, `./typecheck-test.sh`, and `make ci` were rerun in this packet-refresh pass.
-- Current revalidation note: this fixer pass re-read the reviewer packet from `fixer__feat-commands__20260424T180716Z.prompt.txt`, confirmed the missing canonical demo-path field was present in the live handoff metadata, reran the full required gate set on the current branch tip, and reissued the packet as a fresh metadata-only resubmission commit for re-review traceability.
+- Current revalidation note: this fixer pass re-read the reviewer packet from `fixer__feat-commands__20260424T181851Z.prompt.txt`, confirmed the missing canonical demo-path field was present in the live handoff metadata, reran the full required gate set on the current branch tip, and reissued the packet as a fresh metadata-only resubmission commit for re-review traceability.
 
 ## Thread Kickoff (High-Risk)
 
