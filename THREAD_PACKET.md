@@ -1,32 +1,33 @@
 # Thread Handoff Packet
 
 - Branch name: `codex/feat-retrieval-fts`
-- Packet role: `metadata-only reviewer-fix finalization`
-- Reviewed implementation head: `adfa8cdadd43747ffbcb612e4151e262b13e52ca`
-- Reviewed implementation range: `378cf9a74a3658058079a32f186fcd254c4a4034..adfa8cdadd43747ffbcb612e4151e262b13e52ca`
+- Packet role: `branch-tip cumulative retrieval handoff`
+- Reviewed implementation head: `e5d20f4012eed3c1e12e9acea2737e1e03dad50b`
+- Reviewed implementation range: `d7fd5d200358287fa42a18d39e2b277463b9b69f..e5d20f4012eed3c1e12e9acea2737e1e03dad50b`
+- Packet refresh note: the final fixer commit for this handoff is metadata-only and restamps these packet mirrors after the cumulative retrieval range above.
 
 ## Scope Goal
 
-- Complete the FTS-first retrieval MVP for engine flows with deterministic excerpt and provenance output.
+- Complete the FTS-first retrieval MVP for engine flows with deterministic excerpt, provenance, and handoff output on the actual branch tip.
 
 ## Scope Completed
 
-- SQLite FTS remains the authoritative MVP retrieval path in this narrowed slice.
-- `fetch_excerpt()` now fails closed unless the excerpt exists on the canonical FTS path, removing the PageIndex fallback from excerpt lookup.
-- Approved shared regression coverage proves PageIndex-only excerpt IDs now raise `KeyError`.
-- PageIndex and embeddings remain non-required compatibility paths in this slice; excerpt lookup no longer promotes PageIndex as a runtime fallback path for the MVP contract.
+- SQLite FTS remains the authoritative MVP retrieval path across the cumulative lane range, and excerpt lookup stays fail-closed on the canonical FTS path instead of promoting PageIndex or embeddings to required runtime paths.
+- Retrieval payloads, lookup snapshots, sparse bundles, provenance mirrors, and query-context fields are normalized deterministically for downstream engine and basket consumers, including direct-constraint normalization and mirrored lookup/backfill context.
+- The canonical retrieval query constructor and FTS policy metadata are exported through both retrieval facades, while the engine-side FTS strategy rejects invalid binary query metadata and guards candidate-doc-id inputs.
+- Handoff plumbing was updated on this branch so planner-generated packets can carry canonical demo-path metadata and the tracked packet mirrors now truthfully describe the actual reviewed branch-tip range.
 
 ## Canonical Demo-Path Step Advanced
 
 - `retrieve relevant material`
-- This slice makes `retrieve relevant material` more real because `fetch_excerpt()` now fails closed unless the excerpt exists on the canonical FTS path, rejecting PageIndex-only IDs and hardening deterministic structured retrieval and provenance for downstream basket promotion and workflow use.
+- This cumulative branch makes `retrieve relevant material` more real by keeping retrieval FTS-first, preserving deterministic payload and provenance fields, and ensuring excerpt/query metadata stays auditable and structured for downstream basket promotion and workflow use.
 
 ## Thread Kickoff (High-Risk)
 
 - Branch: `codex/feat-retrieval-fts`
 - Lane/owned paths: `src/qual/retrieval/**`, `src/qual/engine/retrieval/**`, `engine/src/exegesis_engine/retrieval/**`
-- Scope goal: close the FTS-only excerpt lookup gap without expanding retrieval scope beyond the MVP contract.
-- Risk reason: approved shared regression coverage in `tests/unit/test_unified_retrieval.py` makes this shared/high-risk work.
+- Scope goal: finish the FTS-first retrieval MVP and restamp the branch-tip handoff packet so it matches the code actually present on the branch.
+- Risk reason: the cumulative branch includes shared regression coverage and shared packet-plumbing edits outside lane-owned retrieval paths.
 
 ### Budget
 
@@ -37,10 +38,10 @@
 
 ### Planned Tasks
 
-1. Confirm the reviewed retrieval slice and the excerpt contract gap the reviewer narrowed to.
-2. Refresh the handoff packet so it explicitly names the canonical demo-path step advanced.
-3. Tighten roadmap and vision mapping to the exact FTS-only excerpt contract change.
-4. Re-run the required gates on the current branch tip and hand off the refreshed packet.
+1. Trace the actual cumulative branch-tip retrieval range and identify code-bearing commits after `adfa8cdadd43747ffbcb612e4151e262b13e52ca`.
+2. Regenerate the tracked handoff packet so it names the actual reviewed implementation head and cumulative file set.
+3. Restate roadmap, vision, and canonical demo-path mapping against the real branch-tip range.
+4. Re-run the required local gates and hand off the refreshed packet.
 
 ### Early Review Triggers
 
@@ -63,21 +64,37 @@
 
 ## AGENTS Checkpoint Evidence
 
-- `plan complete`: narrowed the fixer pass to the reviewer-requested packet refresh for the excerpt lookup slice.
-- `first green tests`: prior lane gates were green on the reviewed slice; this fixer pass re-runs the required gates on the current branch tip.
-- `before risky/shared file edit`: no new shared code edits were needed; this pass refreshes the handoff packet only.
-- `ready for handoff`: the packet now names `retrieve relevant material` explicitly and maps the exact excerpt contract change to roadmap and vision language.
+- `plan complete`: traced the actual post-`adfa8c` branch history and confirmed `e5d20f4` is code-bearing retrieval work, not metadata-only packet churn.
+- `first green tests`: the required lane gates were re-run on the current branch tip for this packet restamp.
+- `before risky/shared file edit`: this fixer pass only refreshed the tracked handoff mirrors, but it acknowledges the cumulative shared packet-plumbing and shared-test edits already present in the reviewed range.
+- `ready for handoff`: the packet now explicitly maps the real branch-tip range to `retrieve relevant material` and truthfully lists the cumulative files and scope.
 
 ## Tasks Completed
 
-1. Refreshed the packet so it explicitly names the canonical demo-path step advanced as `retrieve relevant material`.
-2. Tightened the roadmap and vision mapping to the exact contract change: `fetch_excerpt()` now fails closed unless the excerpt exists on the canonical FTS path, rejecting PageIndex-only IDs.
-3. Preserved the narrowed reviewed implementation head and range for the excerpt-lookup slice.
-4. Re-ran the required local gates on the current fixer branch tip.
+1. Kept retrieval FTS-first while hardening excerpt lookup, query metadata normalization, direct-constraint normalization, and deterministic retrieval payload/provenance mirrors across the cumulative lane range.
+2. Exported the canonical retrieval query constructor and FTS policy metadata through the retrieval facades, while preserving deferred PageIndex and embeddings behavior as compatibility-only paths.
+3. Updated the engine-side FTS strategy and payload helpers to reject invalid binary query metadata, guard candidate-doc-id inputs, and preserve mirrored query context for lookup/backfill payloads.
+4. Updated the handoff planner plumbing and packet mirrors so branch-tip review packets include the canonical demo-path field and accurately restamp the actual reviewed implementation range.
 
 ## Files Changed
 
+- `.codex/kickoff_packets/feat-retrieval-fts.md`
+- `.codex/lane_meta/feat-retrieval-fts.json`
 - `THREAD_PACKET.md`
+- `codex_packet_handoff/tools/init_lane_meta.py`
+- `codex_packet_handoff/tools/planner.py`
+- `docs/gate_passed.txt`
+- `docs/retrieval_post_adfa_commit_accounting.md`
+- `src/qual/engine/retrieval/__init__.py`
+- `src/qual/engine/retrieval/embeddings_strategy.py`
+- `src/qual/engine/retrieval/fts_strategy.py`
+- `src/qual/engine/retrieval/interface.py`
+- `src/qual/engine/retrieval/pageindex_strategy.py`
+- `src/qual/engine/retrieval/payload.py`
+- `src/qual/retrieval/__init__.py`
+- `src/qual/retrieval/service.py`
+- `tests/unit/test_packet_planner.py`
+- `tests/unit/test_unified_retrieval.py`
 
 ## Commands Run With Results
 
@@ -92,28 +109,24 @@
 
 - Risk: `HIGH`
 - Blockers: none
-- This pass is metadata-only; no retrieval code changed.
-- Packet-router metadata files under `.codex/` are not writable in this sandbox, so the tracked handoff packet is the source of truth refreshed here.
+- The reviewed branch range is cumulative and includes shared handoff-plumbing files plus approved shared regression coverage, so integration should review the cumulative file list rather than the earlier narrowed `adfa8c` slice.
+- This fixer pass itself is metadata-only; the code-bearing reviewed head remains `e5d20f4012eed3c1e12e9acea2737e1e03dad50b`.
 
 ## Required Handoff Fields
 
 ### Roadmap item(s) affected
 
-- `ROADMAP.md: Milestone 3: Product Readiness`
-- `ROADMAP.md: Milestone 4: Retrieval Layer`
+- `ROADMAP.md: Milestone 3: Real workflow loop`
+- `feat-retrieval-fts`: retrieval/search
 
 ### Vision capability affected
 
-- `2. Retrieval-first context handling`
-- `3. Auditable generation`
+- `Retrieval-first context handling`
+- `Auditable state and workflow`
 
 ### Canonical demo-path step advanced
 
 - `retrieve relevant material`
-
-### Exact contract impact
-
-- This slice hardens the Milestone 3 retrieval/search surface and Milestone 4 retrieval contract because `fetch_excerpt()` now fails closed unless the excerpt exists on the canonical FTS path, rejecting PageIndex-only IDs and preserving deterministic structured retrieval and provenance for downstream basket promotion and workflow use.
 
 ### Routing/provider impact note
 
@@ -126,5 +139,5 @@
 ## Scope-Check / Ownership Note
 
 - Shared/integrator-locked edits: `YES`
-- Approved exception note: approved shared regression coverage in `tests/unit/test_unified_retrieval.py` remains the sole shared-by-approval regression surface for this lane.
+- Approved exception note: approved shared regression coverage in `tests/unit/test_unified_retrieval.py` remains part of the reviewed range, and the cumulative branch also includes shared packet-plumbing updates needed to emit canonical demo-path metadata in handoff packets.
 - Retrieval remains FTS-first; PageIndex and embeddings stay deferred or compatibility-only and are not promoted to required MVP paths.
