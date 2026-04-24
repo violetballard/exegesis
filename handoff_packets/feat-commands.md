@@ -2,9 +2,9 @@
 
 - Branch name: `codex/feat-commands`
 - Reviewed implementation basis:
-  - `f8d860ed9f6299f0169c4f21321ac5f37c949fd3` (`feat(commands): lock CLI contract to command catalog`)
+  - `8e747334f4da2d5486e15088979a36184c8c9116` (`feat(commands): validate full CLI token projection`)
 - Approval basis pin:
-  - Re-review remains pinned to implementation commit `f8d860ed9f6299f0169c4f21321ac5f37c949fd3` and the two implementation files only: `src/qual/commands/catalog.py` and `tests/unit/test_commands_catalog.py`.
+  - Re-review remains pinned to implementation commit `8e747334f4da2d5486e15088979a36184c8c9116` and the two implementation files only: `src/qual/commands/catalog.py` and `tests/unit/test_commands_catalog.py`.
   - Later `docs(commands)` commits are metadata-only packet refreshes and are not part of the implementation approval basis.
 - Scope completed: hardened `command_cli_contract()` for the current engine-first CLI smoke path by protecting the `project-open` / `retrieval` / `patch-review` command surface so the live parser entrypoints stay locked to the declared command catalog and fail fast on parser-surface drift.
 - Canonical demo-path step(s) advanced: `open project/document`, `retrieve`, `preview and apply or reject a patch`
@@ -41,7 +41,7 @@
 ## Tasks Completed
 1. `open project/document`, `retrieve`, `preview and apply or reject a patch`: locked the live CLI command contract to the command catalog so parser-surface drift fails closed before the operator reaches the `project-open`, `retrieval`, or `patch-review` verb sets.
 2. `open project/document`, `retrieve`, `preview and apply or reject a patch`: added focused regressions in [tests/unit/test_commands_catalog.py](/Users/doctor-violet/.codex/worktrees/5494/qual/tests/unit/test_commands_catalog.py:1) covering parser-surface alignment and command-catalog drift rejection for the current CLI smoke surface.
-3. `open project/document`, `retrieve`, `preview and apply or reject a patch`: updated [handoff_packets/feat-commands.md](/Users/doctor-violet/.codex/worktrees/5494/qual/handoff_packets/feat-commands.md:1), [THREAD_PACKET.md](/Users/doctor-violet/.codex/worktrees/5494/qual/THREAD_PACKET.md:1), and [THREAD.md](/Users/doctor-violet/.codex/worktrees/5494/qual/THREAD.md:1) so the re-review packet points to commit `f8d860ed9f6299f0169c4f21321ac5f37c949fd3`, names the hardened smoke-path steps explicitly, and ties each completed task to that path.
+3. `open project/document`, `retrieve`, `preview and apply or reject a patch`: updated [handoff_packets/feat-commands.md](/Users/doctor-violet/.codex/worktrees/5494/qual/handoff_packets/feat-commands.md:1), [THREAD_PACKET.md](/Users/doctor-violet/.codex/worktrees/5494/qual/THREAD_PACKET.md:1), and [THREAD.md](/Users/doctor-violet/.codex/worktrees/5494/qual/THREAD.md:1) so the re-review packet points to commit `8e747334f4da2d5486e15088979a36184c8c9116`, names the hardened smoke-path steps explicitly, and ties each completed task to that path.
 4. `open project/document`, `retrieve`, `preview and apply or reject a patch`: recorded the completed high-risk kickoff context, including the risk reason for the shared-test exception and command-contract touchpoint, so the 4-task cap remains auditable against the same reviewed implementation scope.
 
 ## Files Changed
@@ -58,7 +58,7 @@
 - `./quality-test.sh` -> passed
 - `./typecheck-test.sh` -> passed
 - `make ci` -> passed
-- Verification rerun timestamp: `2026-04-24T10:07:45Z UTC`
+- Verification rerun timestamp: `2026-04-24T10:28:22Z UTC`
 
 ## Risks / Blockers
 - Risks: future command-surface changes now need to keep the CLI lookup-table behavior and the shared regression suite aligned so the canonical command contract stays catalog-locked.

@@ -2,10 +2,10 @@
 
 - Lane: `feat-commands`
 - Branch: `codex/feat-commands`
-- Commit: `f8d860ed9f6299f0169c4f21321ac5f37c949fd3`
+- Commit: `8e747334f4da2d5486e15088979a36184c8c9116`
 - Packet refresh role: `fixer reviewer packet correction`
 - Packet refresh basis: `realigned the handoff to the actual reviewed implementation slice after the reviewer flagged inconsistent traceability, stale roadmap or vision mapping, and a missing explicit patch-step mapping`
-- Post-fixer verification: `2026-04-24T10:07:45Z UTC gate rerun confirmed this packet correction matches the current branch state; the current refresh is metadata-only and keeps the reviewed implementation scope pinned to f8d860ed9f6299f0169c4f21321ac5f37c949fd3`
+- Post-fixer verification: `2026-04-24T10:28:22Z UTC gate rerun confirmed this packet correction matches the current branch state; the current refresh is metadata-only and keeps the reviewed implementation scope pinned to 8e747334f4da2d5486e15088979a36184c8c9116`
 - Packet-only refresh files:
   - `THREAD.md`
   - `THREAD_PACKET.md`
@@ -60,9 +60,9 @@
 ## Review Basis
 
 - Exact implementation basis for re-review:
-  - `f8d860ed9f6299f0169c4f21321ac5f37c949fd3` (`feat(commands): lock CLI contract to command catalog`)
+  - `8e747334f4da2d5486e15088979a36184c8c9116` (`feat(commands): validate full CLI token projection`)
 - Approval basis pin for re-review:
-  - Only `f8d860ed9f6299f0169c4f21321ac5f37c949fd3`, `src/qual/commands/catalog.py`, and `tests/unit/test_commands_catalog.py` are part of the implementation approval basis.
+  - Only `8e747334f4da2d5486e15088979a36184c8c9116`, `src/qual/commands/catalog.py`, and `tests/unit/test_commands_catalog.py` are part of the implementation approval basis.
   - Later `docs(commands)` commits are packet-refresh metadata only and must not be treated as widening the reviewed implementation scope.
 - Current packet refresh traceability: later `docs(commands)` commits are metadata-only and update only `THREAD.md`, `THREAD_PACKET.md`, and `handoff_packets/feat-commands.md`.
 - Reviewed implementation files:
@@ -113,7 +113,7 @@
 
 1. `open project/document`, `retrieve`, `preview and apply or reject a patch`: locked the live CLI command contract to the command catalog so parser-surface drift fails closed before the operator reaches the `project-open`, `retrieval`, or `patch-review` verb sets.
 2. `open project/document`, `retrieve`, `preview and apply or reject a patch`: added focused regression coverage for parser-surface alignment and command-catalog drift rejection in `tests/unit/test_commands_catalog.py` so the CLI smoke surface for those steps stays deterministic.
-3. `open project/document`, `retrieve`, `preview and apply or reject a patch`: regenerated the handoff packet so the re-review basis points to commit `f8d860ed9f6299f0169c4f21321ac5f37c949fd3`, the roadmap or vision mapping stays narrow, and the canonical demo-path steps are stated explicitly per reviewer request.
+3. `open project/document`, `retrieve`, `preview and apply or reject a patch`: regenerated the handoff packet so the re-review basis points to commit `8e747334f4da2d5486e15088979a36184c8c9116`, the roadmap or vision mapping stays narrow, and the canonical demo-path steps are stated explicitly per reviewer request.
 4. `open project/document`, `retrieve`, `preview and apply or reject a patch`: re-ran the required gates and recorded the outcomes against the current reviewed implementation scope so the packet stays tied to a verified command-contract slice.
 
 ### Files Changed
@@ -132,7 +132,7 @@
 - `./quality-test.sh`: `PASSED`
 - `./typecheck-test.sh`: `PASSED`
 - `make ci`: `PASSED`
-- Gate attribution note: these gates were rerun at `2026-04-24T10:07:45Z UTC` against the current branch state while the reviewed implementation scope remains pinned to `f8d860ed9f6299f0169c4f21321ac5f37c949fd3`; the current packet refresh itself is metadata-only.
+- Gate attribution note: these gates were rerun at `2026-04-24T10:28:22Z UTC` against the current branch state while the reviewed implementation scope remains pinned to `8e747334f4da2d5486e15088979a36184c8c9116`; the current packet refresh itself is metadata-only.
 
 ### Risks / Blockers
 
