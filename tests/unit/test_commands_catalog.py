@@ -499,6 +499,17 @@ class CommandCatalogTests(unittest.TestCase):
             ),
         )
 
+    def test_command_cli_contract_lookup_table_matches_the_live_parser_surface(self) -> None:
+        contract = command_cli_contract()
+        self.assertEqual(
+            contract.lookup_table,
+            tuple(
+                (token, canonical_name)
+                for canonical_name, entrypoints in command_catalog._CLI_ENTRYPOINTS
+                for token in entrypoints
+            ),
+        )
+
     def test_command_cli_contract_rejects_missing_canonical_primary_token(self) -> None:
         command_catalog.command_cli_contract.cache_clear()
         with patch.object(

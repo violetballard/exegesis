@@ -540,6 +540,16 @@ def _actual_cli_entrypoint_projection(
     return _validated_cli_entrypoints_for(specs)
 
 
+def _cli_lookup_projection_from_entrypoints(
+    entrypoints: tuple[tuple[str, tuple[str, ...]], ...],
+) -> tuple[tuple[str, str], ...]:
+    return tuple(
+        (normalized_entrypoint, spec_name)
+        for spec_name, spec_entrypoints in entrypoints
+        for normalized_entrypoint in spec_entrypoints
+    )
+
+
 def _validate_command_cli_contract(
     contract: CommandCliContract,
     specs: tuple[CommandSpec, ...],
@@ -548,35 +558,23 @@ def _validate_command_cli_contract(
 ) -> None:
     validate_command_catalog(specs)
     authoritative_entrypoints = _authoritative_cli_entrypoint_projection(specs)
-    if actual_entrypoints is not None and actual_entrypoints != authoritative_entrypoints:
-        raise ValueError("Command CLI catalog entrypoint projection is inconsistent")
-
-    expected_canonical_names = tuple(name for name, _ in actual_entrypoints or ())
-    if contract.canonical_names != expected_canonical_names:
-        raise ValueError("Command CLI canonical names are inconsistent")
-
-    # The CLI contract must track the full declared catalog projection of CLI
-    # entrypoints, not just the canonical-name projection. Dropping a canonical
-    # token such as `diff-preview` while leaving only a still-resolvable alias
-    # such as `diff` must still fail fast for both the default catalog and
-    # custom spec sets.
     expected_parser_surface = _declared_cli_entrypoint_projection(specs)
     if authoritative_entrypoints != expected_parser_surface:
         raise ValueError("Command CLI catalog entrypoint projection is inconsistent")
 
-    expected_tokens = tuple(
-        normalized_entrypoint
-        for spec in specs
-        for normalized_entrypoint in _declared_cli_entrypoints_for(spec)
-    )
+    live_entrypoints = actual_entrypoints or _actual_cli_entrypoint_projection(specs)
+    if live_entrypoints != authoritative_entrypoints:
+        raise ValueError("Command CLI catalog entrypoint projection is inconsistent")
+
+    expected_canonical_names = tuple(name for name, _ in authoritative_entrypoints)
+    if contract.canonical_names != expected_canonical_names:
+        raise ValueError("Command CLI canonical names are inconsistent")
+
+    expected_lookup_table = _cli_lookup_projection_from_entrypoints(authoritative_entrypoints)
+    expected_tokens = tuple(token for token, _ in expected_lookup_table)
     if contract.tokens != expected_tokens:
         raise ValueError("Command CLI tokens are inconsistent")
 
-    expected_lookup_table = tuple(
-        (normalized_entrypoint, spec.name)
-        for spec in specs
-        for normalized_entrypoint in _declared_cli_entrypoints_for(spec)
-    )
     if contract.lookup_table != expected_lookup_table:
         raise ValueError("Command CLI lookup table is inconsistent")
 
