@@ -4,7 +4,7 @@
 
 - Branch: `codex/feat-commands`
 - Lane/owned paths: `src/qual/commands/**`
-- Scope goal: keep the active CLI-first MVP smoke route deterministic at the `preview and apply or reject a patch` step by preserving logical flow-step metadata for shim-backed terminal commands that carry patch apply/reject forward into `persist` and `export-handoff` while the Textual surface stays disabled.
+- Scope goal: keep the active CLI-first MVP operator surface deterministic at the `open project/document` step, and across the broader CLI MVP loop, by preserving stable command-contract metadata while the Textual surface stays disabled.
 - Risk reason: reviewed implementation includes one approved shared regression file, `tests/unit/test_commands_catalog.py`.
 
 ### Budget
@@ -86,9 +86,11 @@
   - `persist`
   - `export-handoff`
 - Canonical demo-path step advanced:
-  - `preview and apply or reject a patch`
+  - `open project/document`
+- Broader CLI operator surface kept stable:
+  - `project-open -> retrieval -> patch-review -> apply-patch/reject-patch -> persist -> export-handoff`
 - Concrete blocker removed:
-  - shim-backed terminal commands in the demo workflow previously inherited the base `terminal` spec flow step `export-handoff`, and shim-backed parser invocations could canonicalize to the fallback command name instead of the stable workflow token, so follow-up metadata for apply/reject/persist was internally mislabeled even when the argv was correct. That made the CLI demo loop less deterministic for smoke checks and future A2UI/Console consumers reading command workflow contracts.
+  - parser/catalog drift and shim-backed fallback metadata could silently destabilize the operator-facing CLI entrypoints that the engine-side MVP loop still depends on while Textual stays disabled. This slice keeps the command contract deterministic so `project-open` and the downstream CLI workflow tokens remain explicit instead of drifting behind unchanged canonical command names.
 - Why this is not second-order work under the current narrowing rules:
   - the active operator surface is still the CLI while Textual stays disabled, so failing fast on parser/catalog drift and keeping the patch-review to apply/reject workflow tokens stable directly protects the live MVP command contract instead of adding optional catalog hygiene.
 
@@ -132,16 +134,16 @@
 
 ### Roadmap item(s) affected
 
-- `ROADMAP.md` Milestone 1 (`Bootstrap Flow Stabilization`): hardens command behavior for the active CLI smoke flow by keeping the demo workflow metadata deterministic.
+- `ROADMAP.md` Milestone 1 (`Bootstrap Flow Stabilization`): hardens the `open project/document` entrypoint and the broader CLI smoke flow by keeping the command workflow metadata deterministic.
 - `ROADMAP.md` Milestone 2 (`Test Hardening`): adds focused regression coverage for the corrected command-contract metadata.
 - `ROADMAP.md` active MVP emphasis `feat-commands`: keeps the CLI-first command surface stable for the engine-first MVP loop.
-- Canonical demo-path step advanced: `preview and apply or reject a patch`.
+- Canonical demo-path step advanced: `open project/document`.
 - Canonical smoke-route coverage kept explicit: `project-open -> retrieval -> patch-review -> apply-patch/reject-patch -> persist -> export-handoff`.
-- Concrete blocker removed on that step: shim-backed terminal workflow metadata no longer collapses `apply-patch`, `reject-patch`, and `persist` into `export-handoff`, and parser-surface drift on the exposed CLI contract now fails at validation time instead of silently leaving a stale operator-facing surface in place.
+- Concrete blocker removed on that step: parser-surface drift on the exposed CLI contract now fails at validation time instead of silently leaving stale operator entrypoints in place, and the downstream shim-backed workflow tokens remain explicit for the rest of the CLI MVP loop.
 
 ### Vision capability affected
 
-- `PRODUCT_VISION.md` capability 4 (`Operator-first control surface`): preserves a stable CLI command contract for the MVP loop and for future `Exegesis Console` consumption of the same engine/A2UI-facing command metadata.
+- `PRODUCT_VISION.md` capability 4 (`Operator-first control surface`): preserves a stable CLI operator surface for `open project/document` and the rest of the MVP loop while `Exegesis Console` remains disabled.
 
 ### Routing / Provider Impact Note
 

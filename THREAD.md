@@ -30,15 +30,15 @@ Canonical handoff contract lives in `THREAD_PACKET.md`.
   - `persist`
   - `export-handoff`
 - Roadmap / vision alignment:
-  - `ROADMAP.md` Milestone 1 (`Bootstrap Flow Stabilization`): hardens the CLI-first workflow contract used by the current smoke path
+  - `ROADMAP.md` Milestone 1 (`Bootstrap Flow Stabilization`): hardens the `open project/document` entrypoint and the broader CLI-first workflow contract used by the current smoke path
   - `ROADMAP.md` Milestone 2 (`Test Hardening`): adds focused regression coverage for the shim-backed command metadata
   - `ROADMAP.md` active MVP emphasis `feat-commands`: keeps the demo-path command surface deterministic for the engine-first MVP
-  - `PRODUCT_VISION.md` capability 4 (`Operator-first control surface`): preserves a stable CLI command contract for the operator-facing MVP loop
+  - `PRODUCT_VISION.md` capability 4 (`Operator-first control surface`): preserves a stable CLI operator surface for `open project/document` and the rest of the MVP loop while Textual remains disabled
 - Scope / risk note:
   - lane-owned implementation: `src/qual/commands/catalog.py`
   - approved shared regression file: `tests/unit/test_commands_catalog.py`
   - integrator-locked files touched: none
-  - canonical demo-path step advanced: `preview and apply or reject a patch`
-  - concrete blocker removed: shim-backed terminal commands no longer inherit the base `export-handoff` flow-step label when the logical command is `apply-patch`, `reject-patch`, or `persist`, canonical demo argv now resolve back to those stable workflow tokens, and parser-surface drift on `command_cli_contract()` now fails fast instead of silently preserving only canonical-name order
+  - canonical demo-path step advanced: `open project/document`
+  - concrete blocker removed: parser-surface drift on `command_cli_contract()` now fails fast instead of silently leaving stale CLI entrypoints in place, and the broader CLI MVP loop keeps explicit workflow tokens while Textual remains disabled
   - required gates passed: `make scope-check`, `./quality-format.sh --check`, `./quality-lint.sh`, `./quality-test.sh`, `./typecheck-test.sh`, `make ci`
   - metadata refreshed for this handoff: `THREAD.md`, `THREAD_PACKET.md`
