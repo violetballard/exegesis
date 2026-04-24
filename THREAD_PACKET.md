@@ -3,7 +3,7 @@
 - Lane: `feat-commands`
 - Branch: `codex/feat-commands`
 - Commit: `f8d860ed9f6299f0169c4f21321ac5f37c949fd3`
-- Packet refresh role: `reviewer-fix handoff metadata narrowing`
+- Packet refresh role: `reviewer-fix parser-surface hardening + handoff narrowing`
 - Review scope: narrow Milestone 3 CLI-contract hardening in `src/qual/cli.py` and `src/qual/commands/catalog.py`, plus focused regression coverage in `tests/unit/test_commands_catalog.py`.
 - Canonical demo-path step advanced: `preview and apply or reject a patch`
 - Canonical MVP flow advanced: `open project/document -> retrieve relevant material -> preview and apply or reject a patch` for the manual CLI smoke flow, via `bootstrap`/`project-open` for open, `context-basket` for retrieval staging, and `diff-preview`/`review-patch` for patch preview
@@ -11,7 +11,7 @@
 - Required mapping statement: this `feat-commands` CLI-contract hardening slice strengthens the canonical `open project/document`, `retrieve relevant material`, and `preview and apply or reject a patch` steps by preserving the operator-facing CLI command catalog contract used by `bootstrap`/`project-open`, `context-basket`, and `diff-preview`/`review-patch` while CLI remains the active first-class surface.
 - Demo-path sentence: this change makes the `preview and apply or reject a patch` step more real for the CLI-first MVP loop because the concrete parser-backed command entrypoints an operator runs now fail fast if parser drift changes the canonical catalog contract.
 - Concrete blocker removed: before this slice, parser drift could change the accepted CLI surface without a hard failure, so an operator could attempt the `open project/document -> retrieve relevant material -> preview and apply or reject a patch` loop through a CLI contract that had silently drifted away from the canonical catalog.
-- Traceable shared-edit approval: `tests/unit/test_commands_catalog.py` is permitted for `codex/feat-commands*` by the explicit allowlist entry in `scripts/scope-check.sh` (`codex/feat-commands*` case, `tests/unit/test_commands_catalog.py) return 0 ;;`).
+- Traceable shared-edit approval: `src/qual/cli.py` and `tests/unit/test_commands_catalog.py` are permitted for `codex/feat-commands*` by the explicit allowlist entries in `scripts/scope-check.sh`.
 
 ## Thread Kickoff (High-Risk)
 
@@ -48,7 +48,7 @@
 
 ### Checkpoint Cadence (Short Updates)
 
-- Plan complete: scope stayed pinned to the reviewed implementation slice in `src/qual/commands/catalog.py` and `tests/unit/test_commands_catalog.py`, with no expansion beyond Milestone 3 CLI-contract hardening.
+- Plan complete: scope stayed pinned to the reviewed implementation slice in `src/qual/cli.py`, `src/qual/commands/catalog.py`, and `tests/unit/test_commands_catalog.py`, with no expansion beyond Milestone 3 CLI-contract hardening.
 - First green tests: `make scope-check`, `./quality-format.sh --check`, `./quality-lint.sh`, `./quality-test.sh`, `./typecheck-test.sh`, and `make ci` all passed for this handoff slice.
 - Before risky/shared file edit: `src/qual/cli.py` and `tests/unit/test_commands_catalog.py` were confirmed as approved shared paths for `codex/feat-commands*` via `scripts/scope-check.sh`, and this fixer records that approval basis before editing the parser source and refreshing shared handoff metadata.
 - Ready for handoff: this packet now carries the reviewer-requested exact roadmap flow mapping plus explicit approval and checkpoint provenance for both shared paths.
