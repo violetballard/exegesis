@@ -44,12 +44,12 @@
 
 ## Commands Run With Results
 
-- `make scope-check`: `PENDING`
-- `./quality-format.sh --check`: `PENDING`
-- `./quality-lint.sh`: `PENDING`
-- `./quality-test.sh`: `PENDING`
-- `./typecheck-test.sh`: `PENDING`
-- `make ci`: `PENDING`
+- `make scope-check`: `PASS` (`[devex] scope-check: passed for branch 'codex/feat-retrieval-fts'`)
+- `./quality-format.sh --check`: `PASS`
+- `./quality-lint.sh`: `PASS`
+- `./quality-test.sh`: `PASS` (`216 tests`)
+- `./typecheck-test.sh`: `PASS`
+- `make ci`: `PASS`
 
 ## Risks / Blockers
 

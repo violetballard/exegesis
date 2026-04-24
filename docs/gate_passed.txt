@@ -2,37 +2,32 @@ Gate Results Summary (as of 2026-04-24)
 -------------------------------------
 
 Feature lane: `codex/feat-retrieval-fts`
-Reviewed implementation head: `f310336ed561c8c126ff279d1368df88d7bc6e6c`
-Reviewed implementation range: `378cf9a74a3658058079a32f186fcd254c4a4034..f310336ed561c8c126ff279d1368df88d7bc6e6c`
+Reviewed implementation head: `adfa8cdadd43747ffbcb612e4151e262b13e52ca`
+Reviewed implementation range: `378cf9a74a3658058079a32f186fcd254c4a4034..adfa8cdadd43747ffbcb612e4151e262b13e52ca`
 Canonical demo-path step advanced: `retrieve relevant material`
-Scope: narrow `fetch_excerpt()` to canonical FTS-only excerpt resolution and add regression coverage proving PageIndex-only excerpt IDs fail closed on the public excerpt lookup path, while preserving the same reviewed implementation range.
-Current branch tip before this handoff refresh commit: `31cb8a23788e9a4e435d8d365a82d5a520c54589`
+Scope: narrow `fetch_excerpt()` to canonical FTS-only excerpt resolution and preserve approved shared regression coverage proving PageIndex-only excerpt IDs fail closed on the public excerpt lookup path.
+Current branch tip before this handoff refresh commit: `b3a31ec52225191b0362918231fc9973ab45317a`
 
 Reviewed implementation files:
 
 * `src/qual/retrieval/service.py`
-* `src/qual/engine/retrieval/__init__.py`
-* `src/qual/engine/retrieval/payload.py`
-* `src/qual/retrieval/__init__.py`
 * `tests/unit/test_unified_retrieval.py`
 
-Metadata-only packet refresh commits:
+Visible handoff artifacts refreshed in this fixer pass:
 
-* `8f6fbb02309502159aac91a30d1fd6f0dcea114c`: `THREAD_PACKET.md`
-* `f360f73552fb5536abf9e4b74d1a8348fd54eec6`: `THREAD_PACKET.md`, `docs/gate_passed.txt`
-* `307c6576ecf36031ce7bee82f076580772e5ca77`: `THREAD_PACKET.md`, `docs/gate_passed.txt`
-* `f2c2cbd90bc3b5b5d062911296cb9b8d13a9c6d6`: `THREAD_PACKET.md`, `docs/gate_passed.txt`
+* `THREAD_PACKET.md`
+* `docs/gate_passed.txt`
 
 Plan-alignment note:
 
 * This slice advances `retrieve relevant material` by making the public `fetch_excerpt` surface resolve only through the canonical SQLite FTS path, so PageIndex-only excerpt IDs fail closed on the retrieval step itself.
-* Direct handoff statement: this handoff advances the canonical demo-path step `retrieve relevant material` by narrowing public excerpt resolution to the canonical FTS-only lookup path and by adding approved shared regression coverage proving PageIndex-only excerpt IDs raise `KeyError`.
+* Direct handoff statement: this handoff advances the canonical demo-path step `retrieve relevant material` by narrowing public excerpt resolution to the canonical FTS-only lookup path and by keeping approved shared regression coverage proving PageIndex-only excerpt IDs raise `KeyError`.
 
 Budget classification:
 
 * Shared/high-risk because `tests/unit/test_unified_retrieval.py` is a shared-by-approval file for this lane.
-* The reviewed implementation range stays fixed at `378cf9a74a3658058079a32f186fcd254c4a4034..adfa8cdadd43747ffbcb612e4151e262b13e52ca`.
-* Later commits listed above are metadata-only and do not expand retrieval implementation scope.
+* The narrowed reviewed implementation commit changes `2` files with `59` lines touched, which stays within the high-risk budget limits.
+* Later branch commits after `adfa8cdadd43747ffbcb612e4151e262b13e52ca` remain outside this reviewed slice unless a new packet explicitly regenerates the reviewed implementation range.
 
 Verification:
 
@@ -56,3 +51,7 @@ Vision capabilities affected:
 Routing/provider impact:
 
 * none
+
+Remaining blocker:
+
+* The sandbox rejects writes under `.codex/`, so `.codex/kickoff_packets/feat-retrieval-fts.md` and `.codex/lane_meta/feat-retrieval-fts.json` remain stale and could not be corrected in this fixer pass.
