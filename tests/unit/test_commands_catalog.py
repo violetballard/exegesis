@@ -461,16 +461,36 @@ class CommandCatalogTests(unittest.TestCase):
 
     def test_command_cli_contract_matches_the_catalog_order(self) -> None:
         contract = command_cli_contract()
+        live_parser_surface = tuple(
+            (name, tuple(entrypoints))
+            for name, entrypoints in command_catalog._CLI_ENTRYPOINTS
+        )
         self.assertEqual(contract.tokens, command_cli_tokens())
         self.assertEqual(contract.canonical_names, ("bootstrap", "diff-preview", "context-basket", "terminal"))
         self.assertEqual(contract.lookup_table, command_cli_lookup_table())
+        self.assertEqual(
+            live_parser_surface,
+            (
+                ("bootstrap", ("bootstrap",)),
+                ("diff-preview", ("diff-preview", "diff")),
+                ("context-basket", ("context-basket",)),
+                ("terminal", ("terminal",)),
+            ),
+        )
+        self.assertEqual(
+            live_parser_surface,
+            tuple(
+                (name, tuple(token for token, resolved_name in contract.lookup_table if resolved_name == name))
+                for name in contract.canonical_names
+            ),
+        )
 
     def test_command_cli_contract_rejects_missing_canonical_primary_token(self) -> None:
         command_catalog.command_cli_contract.cache_clear()
         with patch.object(
             command_catalog,
-            "_validated_cli_entrypoints_for",
-            return_value=(
+            "_CLI_ENTRYPOINTS",
+            (
                 ("bootstrap", ("bootstrap",)),
                 ("diff-preview", ("diff",)),
                 ("context-basket", ("context-basket",)),
@@ -486,8 +506,8 @@ class CommandCatalogTests(unittest.TestCase):
         command_catalog.command_cli_contract.cache_clear()
         with patch.object(
             command_catalog,
-            "_validated_cli_entrypoints_for",
-            return_value=(
+            "_CLI_ENTRYPOINTS",
+            (
                 ("bootstrap", ("bootstrap",)),
                 ("diff-preview", ("diff",)),
                 ("context-basket", ("context-basket",)),
@@ -495,7 +515,7 @@ class CommandCatalogTests(unittest.TestCase):
             ),
         ):
             self.assertEqual(
-                tuple(name for name, _ in command_catalog._validated_cli_entrypoints_for()),
+                tuple(name for name, _ in command_catalog._CLI_ENTRYPOINTS),
                 command_names(),
             )
             with self.assertRaisesRegex(ValueError, "Command CLI catalog entrypoint projection is inconsistent"):
@@ -505,8 +525,8 @@ class CommandCatalogTests(unittest.TestCase):
         command_catalog.command_cli_contract.cache_clear()
         with patch.object(
             command_catalog,
-            "_validated_cli_entrypoints_for",
-            return_value=(
+            "_CLI_ENTRYPOINTS",
+            (
                 ("bootstrap", ("bootstrap",)),
                 ("diff-preview", ("diff", "diff-preview")),
                 ("context-basket", ("context-basket",)),
@@ -520,8 +540,8 @@ class CommandCatalogTests(unittest.TestCase):
         command_catalog.command_cli_contract.cache_clear()
         with patch.object(
             command_catalog,
-            "_validated_cli_entrypoints_for",
-            return_value=(
+            "_CLI_ENTRYPOINTS",
+            (
                 ("bootstrap", ("bootstrap",)),
                 ("diff-preview", ("diff", "diff-preview")),
                 ("context-basket", ("context-basket",)),
@@ -535,8 +555,8 @@ class CommandCatalogTests(unittest.TestCase):
         command_catalog.command_cli_contract.cache_clear()
         with patch.object(
             command_catalog,
-            "_validated_cli_entrypoints_for",
-            return_value=(
+            "_CLI_ENTRYPOINTS",
+            (
                 ("bootstrap", ("bootstrap",)),
                 ("diff-preview", ("diff-preview", "diff", "review-patch")),
                 ("context-basket", ("context-basket",)),
@@ -550,8 +570,8 @@ class CommandCatalogTests(unittest.TestCase):
         command_catalog.command_cli_contract.cache_clear()
         with patch.object(
             command_catalog,
-            "_validated_cli_entrypoints_for",
-            return_value=(
+            "_CLI_ENTRYPOINTS",
+            (
                 ("bootstrap", ("bootstrap",)),
                 ("diff-preview", ("diff-preview",)),
                 ("context-basket", ("context-basket",)),
@@ -559,13 +579,14 @@ class CommandCatalogTests(unittest.TestCase):
             ),
         ):
             self.assertEqual(
-                tuple(name for name, _ in command_catalog._validated_cli_entrypoints_for()),
+                tuple(name for name, _ in command_catalog._CLI_ENTRYPOINTS),
                 command_names(),
             )
             with self.assertRaisesRegex(ValueError, "Command CLI catalog entrypoint projection is inconsistent"):
                 command_catalog.command_cli_contract(command_specs())
 
     def test_command_cli_contract_rejects_parser_surface_drift_when_diff_token_disappears(self) -> None:
+        baseline_tokens = command_catalog.command_cli_contract().tokens
         parser_surface_without_diff = (
             ("bootstrap", ("bootstrap",)),
             ("diff-preview", ("diff-preview",)),
@@ -576,15 +597,15 @@ class CommandCatalogTests(unittest.TestCase):
         command_catalog.command_cli_contract.cache_clear()
         with patch.object(
             command_catalog,
-            "_validated_cli_entrypoints_for",
-            return_value=parser_surface_without_diff,
+            "_CLI_ENTRYPOINTS",
+            parser_surface_without_diff,
         ):
             parser_tokens = tuple(
                 token
-                for _, entrypoints in command_catalog._validated_cli_entrypoints_for()
+                for _, entrypoints in command_catalog._CLI_ENTRYPOINTS
                 for token in entrypoints
             )
-            self.assertNotEqual(parser_tokens, command_cli_tokens())
+            self.assertNotEqual(parser_tokens, baseline_tokens)
             self.assertNotIn("diff", parser_tokens)
             with self.assertRaisesRegex(ValueError, "Command CLI catalog entrypoint projection is inconsistent"):
                 command_catalog.command_cli_contract()
