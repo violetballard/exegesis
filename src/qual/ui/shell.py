@@ -180,33 +180,47 @@ class ShellUI:
         except Exception:
             rendered_cli_fallback = None
         else:
-            if not leaf_specific_fallback or self._has_expected_leaf_renderer_prefix(
-                rendered_cli_fallback,
-                kind,
+            if isinstance(rendered_cli_fallback, str) and (
+                not leaf_specific_fallback or self._has_expected_leaf_renderer_prefix(
+                    rendered_cli_fallback,
+                    kind,
+                )
             ):
                 return rendered_cli_fallback
         if kind == "action":
             try:
-                return render_terminal_action(artifact)
+                rendered_action = render_terminal_action(artifact)
             except Exception:
                 return _render_invalid_terminal_action(artifact)
+            if isinstance(rendered_action, str):
+                return rendered_action
+            return _render_invalid_terminal_action(artifact)
         if kind == "selection":
             try:
-                return render_terminal_selection(artifact)
+                rendered_selection = render_terminal_selection(artifact)
             except Exception:
                 return _render_invalid_terminal_selection(artifact)
+            if isinstance(rendered_selection, str):
+                return rendered_selection
+            return _render_invalid_terminal_selection(artifact)
         if kind not in {"action", "selection"}:
             try:
                 # Retry the shared renderer on the resolved fallback target so
                 # we do not reprocess the original envelope after CLI fallback
                 # resolution has already recovered a safer payload.
-                return render_terminal_artifact(artifact, kind=kind)
+                rendered_artifact = render_terminal_artifact(artifact, kind=kind)
             except Exception:
                 pass
+            else:
+                if isinstance(rendered_artifact, str):
+                    return rendered_artifact
         try:
-            return render_terminal_card(artifact)
+            rendered_card = render_terminal_card(artifact)
         except Exception:
             return _render_invalid_terminal_card(artifact)
+        if isinstance(rendered_card, str):
+            return rendered_card
+        return _render_invalid_terminal_card(artifact)
 
     def render_startup(self, runtime: EngineRuntime) -> str:
         item_ids = self._snapshot_item_ids(runtime.basket.item_ids)

@@ -4158,9 +4158,12 @@ def render_terminal_artifact(artifact: Any, *, kind: str | None = None) -> str:
         raise ValueError("TerminalArtifact card artifact must not use action or selection payload shape")
     if requested_kind is None and _should_preserve_raw_leaf_card_default(artifact):
         try:
-            return render_terminal_card(artifact)
+            rendered_card = render_terminal_card(artifact)
         except Exception:
             return _render_invalid_terminal_card(artifact)
+        if isinstance(rendered_card, str):
+            return rendered_card
+        return _render_invalid_terminal_card(artifact)
     malformed_envelope = _is_malformed_terminal_artifact_envelope(artifact)
     allow_invalid_envelope_recovery = malformed_envelope
     if requested_kind == "card" and malformed_envelope and isinstance(artifact, Mapping):
@@ -4181,12 +4184,21 @@ def render_terminal_artifact(artifact: Any, *, kind: str | None = None) -> str:
         allow_invalid_envelope_recovery=allow_invalid_envelope_recovery,
     )
     if resolved_kind == "action":
-        return render_terminal_action(artifact)
+        rendered_action = render_terminal_action(artifact)
+        if isinstance(rendered_action, str):
+            return rendered_action
+        return _render_invalid_terminal_action(artifact)
     if resolved_kind == "selection":
-        return render_terminal_selection(artifact)
+        rendered_selection = render_terminal_selection(artifact)
+        if isinstance(rendered_selection, str):
+            return rendered_selection
+        return _render_invalid_terminal_selection(artifact)
     if requested_kind != "card":
         _validate_terminal_artifact_card_payload(artifact)
-    return render_terminal_card(artifact)
+    rendered_card = render_terminal_card(artifact)
+    if isinstance(rendered_card, str):
+        return rendered_card
+    return _render_invalid_terminal_card(artifact)
 
 
 def render_terminal_cli_fallback(artifact: Any, *, kind: str | None = None) -> str:
@@ -4401,20 +4413,29 @@ def _render_terminal_artifact_resolved(
 ) -> str:
     if resolved_kind == "action":
         try:
-            return render_terminal_action(artifact)
+            rendered_action = render_terminal_action(artifact)
         except Exception:
             return _render_invalid_terminal_action(artifact)
+        if isinstance(rendered_action, str):
+            return rendered_action
+        return _render_invalid_terminal_action(artifact)
     if resolved_kind == "selection":
         try:
-            return render_terminal_selection(artifact)
+            rendered_selection = render_terminal_selection(artifact)
         except Exception:
             return _render_invalid_terminal_selection(artifact)
+        if isinstance(rendered_selection, str):
+            return rendered_selection
+        return _render_invalid_terminal_selection(artifact)
     if requested_kind != "card":
         _validate_terminal_artifact_card_payload(artifact)
     try:
-        return render_terminal_card(artifact)
+        rendered_card = render_terminal_card(artifact)
     except Exception:
         return _render_invalid_terminal_card(artifact)
+    if isinstance(rendered_card, str):
+        return rendered_card
+    return _render_invalid_terminal_card(artifact)
 
 
 def _render_terminal_artifact_cli_fallback_failure(
@@ -4424,9 +4445,12 @@ def _render_terminal_artifact_cli_fallback_failure(
 ) -> str:
     if _should_preserve_raw_leaf_card_default(artifact):
         try:
-            return render_terminal_card(artifact)
+            rendered_card = render_terminal_card(artifact)
         except Exception:
             return _render_invalid_terminal_card(artifact)
+        if isinstance(rendered_card, str):
+            return rendered_card
+        return _render_invalid_terminal_card(artifact)
     fallback_kind = requested_kind
     if fallback_kind is None:
         fallback_kind = _infer_terminal_artifact_explicit_kind(artifact)
@@ -4434,20 +4458,29 @@ def _render_terminal_artifact_cli_fallback_failure(
         fallback_kind = _infer_terminal_artifact_partial_leaf_kind(artifact)
     if fallback_kind == "action":
         try:
-            return render_terminal_action(artifact)
+            rendered_action = render_terminal_action(artifact)
         except Exception:
             return _render_invalid_terminal_action(artifact)
+        if isinstance(rendered_action, str):
+            return rendered_action
+        return _render_invalid_terminal_action(artifact)
     if fallback_kind == "selection":
         try:
-            return render_terminal_selection(artifact)
+            rendered_selection = render_terminal_selection(artifact)
         except Exception:
             return _render_invalid_terminal_selection(artifact)
+        if isinstance(rendered_selection, str):
+            return rendered_selection
+        return _render_invalid_terminal_selection(artifact)
     try:
         if fallback_kind != "card":
             _validate_terminal_artifact_card_payload(artifact)
-        return render_terminal_card(artifact)
+        rendered_card = render_terminal_card(artifact)
     except Exception:
         return _render_invalid_terminal_card(artifact)
+    if isinstance(rendered_card, str):
+        return rendered_card
+    return _render_invalid_terminal_card(artifact)
 
 
 def _refine_terminal_artifact_cli_fallback_target(

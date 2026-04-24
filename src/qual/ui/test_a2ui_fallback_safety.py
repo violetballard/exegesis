@@ -3956,6 +3956,22 @@ class A2UIFallbackSafetyTests(unittest.TestCase):
         self.assertIn("Action schema v1", text)
         self.assertNotIn("[TerminalArtifact] <invalid artifact>", text)
 
+    def test_terminal_artifact_renderers_recover_when_card_renderer_returns_non_string(self) -> None:
+        raw_leaf = {
+            "id": "export_document",
+            "label": "Export",
+            "payload": {"format": "md"},
+        }
+
+        with patch("src.qual.ui.a2ui.render_terminal_card", return_value={"oops": "not text"}):
+            rendered_text = render_terminal_artifact(raw_leaf)
+            cli_fallback_text = render_terminal_cli_fallback(raw_leaf)
+
+        for text in (rendered_text, cli_fallback_text):
+            self.assertIn("[UnknownCard] <invalid card>", text)
+            self.assertIn("Fallback: unknown card", text)
+            self.assertNotIsInstance(text, dict)
+
     def test_terminal_artifact_cli_fallback_entrypoint_recovers_leaf_payloads_when_shared_resolver_fails(
         self,
     ) -> None:
@@ -7032,6 +7048,32 @@ class A2UIFallbackSafetyTests(unittest.TestCase):
         self.assertEqual(text, "cli-fallback")
         cli_fallback.assert_called_once_with(artifact, kind="card")
         generic_renderer.assert_not_called()
+
+    def test_shell_ui_recovers_when_shared_renderers_return_non_string(self) -> None:
+        shell = ShellUI()
+        raw_leaf = {
+            "id": "export_document",
+            "label": "Export",
+            "payload": {"format": "md"},
+        }
+
+        with patch(
+            "src.qual.ui.shell.render_terminal_cli_fallback",
+            return_value={"oops": "not text"},
+        ):
+            with patch(
+                "src.qual.ui.shell.render_terminal_artifact",
+                return_value={"oops": "not text"},
+            ):
+                with patch(
+                    "src.qual.ui.shell.render_terminal_card",
+                    return_value={"oops": "not text"},
+                ):
+                    text = shell.render_artifact(raw_leaf)
+
+        self.assertIn("[UnknownCard] <invalid card>", text)
+        self.assertIn("Fallback: unknown card", text)
+        self.assertNotIsInstance(text, dict)
 
     def test_shell_ui_keeps_raw_leaf_card_default_for_invalid_kind_hints_during_fallback(self) -> None:
         shell = ShellUI()
