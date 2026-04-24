@@ -13,7 +13,7 @@
 
 - Canonical demo-path step advanced: `preview and apply or reject a patch` in the engine-first demo path `open document -> retrieve relevant material -> gather context -> plan or revise -> preview and apply or reject a patch -> save and continue`.
 - Explicit handoff sentence: this handoff strengthens the active CLI fallback for the `preview and apply or reject a patch` step by making the command catalog contract deterministic, canonical-order aligned, and fail-fast when the parser surface drifts while Textual remains disabled.
-- Roadmap alignment: `ROADMAP.md` Milestone 3 CLI compatibility for the real workflow loop, specifically the deterministic CLI fallback surface that remains stable while the package/layout migration lands.
+- Roadmap alignment: `ROADMAP.md` Milestone 2 remaining parser-edge coverage and `ROADMAP.md` Milestone 5 CLI fallback for the MVP loop, specifically the patch-review/apply-or-reject step that must stay stable while Textual remains disabled.
 - Vision alignment: `PRODUCT_VISION.md` capability 3 `Canonical engine contract` and capability 6 `Auditable state and workflow`.
 - Non-claim boundary: this handoff does not claim parser-entrypoint rewrites, workflow-wrapper additions, diff-preview output work, provider routing changes, storage changes, or UI-console work.
 
@@ -62,7 +62,6 @@
   1. Hardened `command_cli_contract()` to validate the full grouped parser-entrypoint projection against the catalog.
   2. Preserved canonical command ordering in the returned CLI contract while rejecting added, removed, or reordered parser tokens that would otherwise preserve canonical-name order.
   3. Added regression coverage in `tests/unit/test_commands_catalog.py` for canonical-order alignment and alias-level parser-surface drift rejection.
-  4. Refreshed the packet metadata to satisfy the reviewer’s required fixes without widening the implementation claim.
 - files changed:
   - reviewed implementation: `src/qual/commands/catalog.py`
   - reviewed implementation: `tests/unit/test_commands_catalog.py`
@@ -82,8 +81,8 @@
   - risk: future parser token or alias changes must keep the grouped parser-entrypoint projection aligned with the catalog, or the fail-fast contract will reject the surface
   - blockers: none
 - roadmap item(s) affected:
-  - `ROADMAP.md` Milestone 3: preserve CLI compatibility while the package/layout migration lands
-  - `ROADMAP.md` lane mapping for `feat-commands`: CLI compatibility and migration-safe entrypoints
+  - `ROADMAP.md` Milestone 2 Remaining: add missing targeted parser-edge cases identified during reviews
+  - `ROADMAP.md` Milestone 5 Exit Criteria: keep the MVP CLI fallback stable enough to execute the patch-review leg of the workflow loop against the same engine contract while Textual remains disabled
 - vision capability affected:
   - `PRODUCT_VISION.md` capability 3 `Canonical engine contract`
   - `PRODUCT_VISION.md` capability 6 `Auditable state and workflow`
