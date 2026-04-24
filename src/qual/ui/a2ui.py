@@ -23,6 +23,7 @@ TERMINAL_ARTIFACT_RENDER_TARGET_SCHEMA_VERSION = 1
 TERMINAL_ARTIFACT_RENDERING_SCHEMA_VERSION = 1
 TERMINAL_ARTIFACT_RENDERER_ENTRYPOINTS_SCHEMA_VERSION = 1
 TERMINAL_ARTIFACT_CLI_FALLBACK_SCHEMA_VERSION = 1
+TERMINAL_ARTIFACT_CLI_FALLBACK_ENTRYPOINT_SCHEMA_VERSION = 1
 TERMINAL_ARTIFACT_CLI_FALLBACK_TARGET_SCHEMA_VERSION = 1
 TERMINAL_ARTIFACT_CLI_FALLBACK_ROUTE_SCHEMA_VERSION = 1
 TERMINAL_ARTIFACT_RAW_LEAF_CARD_DEFAULT_SCHEMA_VERSION = 1
@@ -1112,6 +1113,9 @@ def _build_a2ui_schema_versions_manifest(
         ),
         "terminal_artifact_rendering_schema_version": TERMINAL_ARTIFACT_RENDERING_SCHEMA_VERSION,
         "terminal_artifact_cli_fallback_schema_version": TERMINAL_ARTIFACT_CLI_FALLBACK_SCHEMA_VERSION,
+        "terminal_artifact_cli_fallback_entrypoint_schema_version": (
+            TERMINAL_ARTIFACT_CLI_FALLBACK_ENTRYPOINT_SCHEMA_VERSION
+        ),
         "terminal_artifact_cli_fallback_target_schema_version": TERMINAL_ARTIFACT_CLI_FALLBACK_TARGET_SCHEMA_VERSION,
         "terminal_artifact_raw_leaf_card_default_schema_version": TERMINAL_ARTIFACT_RAW_LEAF_CARD_DEFAULT_SCHEMA_VERSION,
     }
@@ -2577,6 +2581,9 @@ def _build_terminal_artifact_cli_fallback_entrypoint_contract_manifest() -> dict
         "a2ui_version": A2UI_VERSION,
         "terminal_artifact_schema_version": TERMINAL_ARTIFACT_SCHEMA_VERSION,
         "terminal_artifact_cli_fallback_schema_version": TERMINAL_ARTIFACT_CLI_FALLBACK_SCHEMA_VERSION,
+        "terminal_artifact_cli_fallback_entrypoint_schema_version": (
+            TERMINAL_ARTIFACT_CLI_FALLBACK_ENTRYPOINT_SCHEMA_VERSION
+        ),
         "terminal_artifact_renderer_entrypoints_schema_version": TERMINAL_ARTIFACT_RENDERER_ENTRYPOINTS_SCHEMA_VERSION,
         "type": "TerminalArtifactCliFallbackEntrypointContract",
         "terminal_artifact_cli_fallback_entrypoint": terminal_artifact_cli_fallback_entrypoint,
@@ -2584,6 +2591,9 @@ def _build_terminal_artifact_cli_fallback_entrypoint_contract_manifest() -> dict
         "terminal_artifact_cli_fallback_entrypoint_fingerprint": terminal_artifact_cli_fallback_entrypoint_fingerprint,
         "terminal_artifact_cli_fallback_entrypoint_contract_fingerprint": (
             terminal_artifact_cli_fallback_entrypoint_fingerprint
+        ),
+        "terminal_artifact_cli_fallback_entrypoint_version": (
+            TERMINAL_ARTIFACT_CLI_FALLBACK_ENTRYPOINT_SCHEMA_VERSION
         ),
         "renderer_entrypoints": _snapshot_contract_section(renderer_entrypoints_contract["renderer_entrypoints"]),
         "renderer_entrypoints_contract": _snapshot_contract_section(renderer_entrypoints_contract),
@@ -3033,6 +3043,16 @@ def _build_a2ui_contract_manifest(
         manifest["terminal_artifact_cli_fallback_entrypoint_fingerprint"] = shell_ui_contract[
             "terminal_artifact_cli_fallback_entrypoint_fingerprint"
         ]
+        manifest["terminal_artifact_cli_fallback_entrypoint_schema_version"] = (
+            shell_ui_contract["terminal_artifact_cli_fallback_entrypoint_contract_manifest"][
+                "terminal_artifact_cli_fallback_entrypoint_schema_version"
+            ]
+        )
+        manifest["terminal_artifact_cli_fallback_entrypoint_version"] = (
+            shell_ui_contract["terminal_artifact_cli_fallback_entrypoint_contract_manifest"][
+                "terminal_artifact_cli_fallback_entrypoint_version"
+            ]
+        )
         manifest["terminal_artifact_cli_fallback_entrypoint_contract"] = shell_ui_contract[
             "terminal_artifact_cli_fallback_entrypoint_contract"
         ]
@@ -3065,6 +3085,16 @@ def _build_a2ui_contract_manifest(
         ]
         manifest["terminal_artifact_cli_fallback_entrypoint_fingerprint"] = (
             terminal_artifact_cli_fallback_entrypoint_contract["terminal_artifact_cli_fallback_entrypoint_fingerprint"]
+        )
+        manifest["terminal_artifact_cli_fallback_entrypoint_schema_version"] = (
+            terminal_artifact_cli_fallback_entrypoint_contract[
+                "terminal_artifact_cli_fallback_entrypoint_schema_version"
+            ]
+        )
+        manifest["terminal_artifact_cli_fallback_entrypoint_version"] = (
+            terminal_artifact_cli_fallback_entrypoint_contract[
+                "terminal_artifact_cli_fallback_entrypoint_version"
+            ]
         )
         manifest["terminal_artifact_cli_fallback_entrypoint_contract"] = _snapshot_contract_section(
             terminal_artifact_cli_fallback_entrypoint_contract

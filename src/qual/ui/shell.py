@@ -749,6 +749,16 @@ def _build_shell_ui_contract_manifest(
         "terminal_artifact_cli_fallback_entrypoint_contract_fingerprint": _fingerprint_manifest_section(
             terminal_artifact_cli_fallback_entrypoint
         ),
+        "terminal_artifact_cli_fallback_entrypoint_schema_version": (
+            terminal_artifact_cli_fallback_entrypoint_contract_manifest[
+                "terminal_artifact_cli_fallback_entrypoint_schema_version"
+            ]
+        ),
+        "terminal_artifact_cli_fallback_entrypoint_version": (
+            terminal_artifact_cli_fallback_entrypoint_contract_manifest[
+                "terminal_artifact_cli_fallback_entrypoint_version"
+            ]
+        ),
         "terminal_artifact_cli_fallback_entrypoint_contract_manifest": copy.deepcopy(
             terminal_artifact_cli_fallback_entrypoint_contract_manifest
         ),
