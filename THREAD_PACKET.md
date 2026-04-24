@@ -62,6 +62,7 @@
 ## Approved Exception Note
 
 - Approved shared-test exception: `tests/unit/test_commands_catalog.py`
+- Approved by: the local `reviewer` lane recorded in `.codex/packet_router/local_jobs/reviewer/20260416T185314Z__feat-commands__F__codex-feat-commands__f3e88eb90a1116054bac208067568d3c7fbed927__20260416T185054Z.md.spec.json`.
 - Approval source: prior reviewer approval packet at `.codex/packet_router/local_jobs/reviewer/20260416T185314Z__feat-commands__F__codex-feat-commands__f3e88eb90a1116054bac208067568d3c7fbed927__20260416T185054Z.md.spec.json`, which approved this same narrowed `feat-commands` handoff with `tests/unit/test_commands_catalog.py` as the only non-owned implementation path.
 - Approval scope limit: this exception applies only to the focused regression coverage needed to prove canonical-order alignment and parser/catalog drift rejection for the `f8d860ed9f6299f0169c4f21321ac5f37c949fd3` command-catalog slice.
 
@@ -119,5 +120,6 @@
 
 - Shared/integrator-locked edits: `YES`
 - Approved shared-test exception: `tests/unit/test_commands_catalog.py`
+- Approved by: the local `reviewer` lane, recorded in the canonical lane metadata record at `/Users/doctor-violet/Library/CloudStorage/Box-Box/projects/qual/.codex/lane_meta/feat-commands.json` and the prior reviewer packet source at `.codex/packet_router/local_jobs/reviewer/20260416T185314Z__feat-commands__F__codex-feat-commands__f3e88eb90a1116054bac208067568d3c7fbed927__20260416T185054Z.md.spec.json`
 - Approval source: canonical lane metadata record at `/Users/doctor-violet/Library/CloudStorage/Box-Box/projects/qual/.codex/lane_meta/feat-commands.json`; prior reviewer packet source at `.codex/packet_router/local_jobs/reviewer/20260416T185314Z__feat-commands__F__codex-feat-commands__f3e88eb90a1116054bac208067568d3c7fbed927__20260416T185054Z.md.spec.json`
 - Approval record detail: `Approved shared-test exception for tests/unit/test_commands_catalog.py. It is the only non-owned implementation path in this handoff.`
