@@ -18,6 +18,9 @@ from src.qual.commands.catalog import (
     command_mvp_workflow_lookup_table,
     command_mvp_workflow_invocation_table,
     command_mvp_workflow_transition_targets,
+    command_mvp_transition_targets_by_source,
+    command_mvp_transition_targets,
+    command_mvp_transition_argv,
     command_mvp_workflow_compatibility_lookup_table,
     command_mvp_workflow_compatibility_invocation_table,
     command_mvp_branch_contract,
@@ -78,6 +81,32 @@ def command_workflow_invocation_table() -> tuple[tuple[str, tuple[str, ...]], ..
 def command_workflow_transition_targets() -> tuple[tuple[str, tuple[str, ...]], ...]:
     """Return the canonical next-step transitions for the current MVP workflow."""
     return command_mvp_workflow_transition_targets()
+
+
+def command_workflow_transition_targets_by_source() -> tuple[tuple[str, tuple[str, ...]], ...]:
+    """Return current-MVP transitions grouped by canonical source token."""
+    return command_mvp_transition_targets_by_source()
+
+
+def command_workflow_transition_targets_for(source_token: str) -> tuple[str, ...]:
+    """Return canonical follow-up workflow tokens for one current-MVP source token."""
+    return command_mvp_transition_targets(source_token)
+
+
+def command_workflow_transition_argv(
+    source_token: str,
+    target_token: str,
+) -> tuple[str, ...]:
+    """Return parser-ready argv for one current-MVP workflow transition."""
+    return command_mvp_transition_argv(source_token, target_token)
+
+
+def command_workflow_transition_argv_for(
+    source_token: str,
+    target_token: str,
+) -> tuple[str, ...]:
+    """Return parser-ready argv for one current-MVP workflow transition alias pair."""
+    return command_mvp_transition_argv(source_token, target_token)
 
 
 def command_workflow_compatibility_lookup_table() -> tuple[tuple[str, str], ...]:
@@ -237,6 +266,10 @@ __all__ = [
     "command_workflow_lookup_table",
     "command_workflow_invocation_table",
     "command_workflow_transition_targets",
+    "command_workflow_transition_targets_by_source",
+    "command_workflow_transition_targets_for",
+    "command_workflow_transition_argv",
+    "command_workflow_transition_argv_for",
     "command_workflow_compatibility_lookup_table",
     "command_workflow_compatibility_invocation_table",
     "command_workflow_path_contract",

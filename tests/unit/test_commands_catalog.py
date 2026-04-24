@@ -213,6 +213,10 @@ from src.qual.commands import (
     command_workflow_compatibility_invocation_table,
     command_workflow_compatibility_lookup_table,
     command_workflow_invocation_table,
+    command_workflow_transition_targets_by_source,
+    command_workflow_transition_targets_for,
+    command_workflow_transition_argv,
+    command_workflow_transition_argv_for,
     command_workflow_transition_targets,
     command_workflow_tokens,
     command_mvp_workflow_lookup_table,
@@ -234,6 +238,7 @@ from src.qual.commands import (
     command_mvp_loop_invocation_plan,
     command_mvp_loop_lookup_table,
     command_mvp_loop_tokens,
+    command_mvp_transition_targets_by_source,
     command_mvp_transition_targets,
     command_mvp_transition_targets_for,
     command_mvp_transition_argv,
@@ -5817,6 +5822,28 @@ class CommandCatalogTests(unittest.TestCase):
         self.assertEqual(
             command_workflow_compatibility_invocation_table(),
             command_mvp_workflow_compatibility_invocation_table(),
+        )
+
+    def test_public_workflow_transition_aliases_track_the_current_mvp_transition_helpers(self) -> None:
+        self.assertEqual(
+            command_workflow_transition_targets_by_source(),
+            command_mvp_transition_targets_by_source(),
+        )
+        self.assertEqual(
+            command_workflow_transition_targets_for("review"),
+            command_mvp_transition_targets("review"),
+        )
+        self.assertEqual(
+            command_workflow_transition_argv("review", "apply"),
+            command_mvp_transition_argv("review", "apply"),
+        )
+        self.assertEqual(
+            command_workflow_transition_argv_for("preview-diff", "approve-patch"),
+            command_mvp_transition_argv("preview-diff", "approve-patch"),
+        )
+        self.assertEqual(
+            command_workflow_transition_argv_for("save", "handoff"),
+            command_mvp_transition_argv("save", "handoff"),
         )
 
     def test_public_workflow_path_aliases_track_the_current_mvp_path(self) -> None:

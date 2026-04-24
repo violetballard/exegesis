@@ -368,6 +368,10 @@ from src.qual.commands.workflow import (
     command_workflow_trusted_tokens,
     command_workflow_tokens,
     command_workflow_transition_targets,
+    command_workflow_transition_targets_by_source,
+    command_workflow_transition_targets_for,
+    command_workflow_transition_argv,
+    command_workflow_transition_argv_for,
 )
 
 __all__ = [
@@ -736,4 +740,8 @@ __all__ = [
     "command_workflow_trusted_tokens",
     "command_workflow_tokens",
     "command_workflow_transition_targets",
+    "command_workflow_transition_targets_by_source",
+    "command_workflow_transition_targets_for",
+    "command_workflow_transition_argv",
+    "command_workflow_transition_argv_for",
 ]
