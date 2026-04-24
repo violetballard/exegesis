@@ -5,7 +5,7 @@ Feature lane: `codex/feat-retrieval-fts`
 Reviewed implementation head: `adfa8cdadd43747ffbcb612e4151e262b13e52ca`
 Reviewed implementation range: `378cf9a74a3658058079a32f186fcd254c4a4034..adfa8cdadd43747ffbcb612e4151e262b13e52ca`
 Canonical demo-path step advanced: `retrieve relevant material`
-Scope: keep the retrieval lane FTS-first for the MVP by making the public excerpt lookup path deterministic on the authoritative SQLite FTS path before basket promotion.
+Scope: keep the retrieval lane FTS-first for the MVP by removing the non-canonical `fetch_excerpt` PageIndex fallback and preserving deterministic excerpt provenance on the SQLite FTS path used before basket promotion.
 Current branch tip before this handoff refresh commit: `81e954da3f89e7b47b3adb3560d476fef87fdcba`
 
 Files changed in the reviewed implementation range:
@@ -15,7 +15,7 @@ Files changed in the reviewed implementation range:
 
 Plan-alignment note:
 
-* This narrowed slice advances `retrieve relevant material` by removing the `fetch_excerpt` PageIndex fallback, so excerpt provenance is deterministic on the FTS-first retrieval path used before basket promotion and PageIndex-only excerpt IDs fail closed.
+* This narrowed slice advances `retrieve relevant material` by removing the `fetch_excerpt` PageIndex fallback, which keeps excerpt provenance deterministic on the FTS-first retrieval path used before basket promotion.
 
 Verification:
 
@@ -25,14 +25,14 @@ Verification:
 * `./quality-test.sh` - passed
 * `./typecheck-test.sh` - passed
 * `make ci` - passed
-* SQLite FTS remains authoritative on the reviewed excerpt lookup surface
-* `fetch_excerpt(...)` resolves through the authoritative SQLite FTS path only, and PageIndex-only excerpt IDs raise `KeyError` under approved shared regression coverage
+* `fetch_excerpt(...)` resolves through the authoritative SQLite FTS path only
+* PageIndex-only excerpt IDs raise `KeyError` under shared regression coverage
 
 Roadmap items affected:
 
 * `Milestone 3: Real workflow loop`
 * `feat-retrieval-fts`
-* `retrieve relevant material` now has deterministic excerpt lookup provenance on the FTS-first path used before basket promotion in the reviewed implementation range
+* `retrieve relevant material`
 
 Vision capabilities affected:
 
