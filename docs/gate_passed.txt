@@ -30,7 +30,7 @@ Plan-alignment statement: This change makes the "retrieve relevant material" ste
 Scope note: this handoff now covers the real cumulative implementation range through `9d9e11a1`, including the substantive post-`adfa8cda` retrieval commits `206ee919`, `a96043f`, and `9d9e11a1` that previously sat outside the packet's claimed scope.
 Budget compliance statement: this packet is shared/high-risk work because it includes the approved shared regression surface `tests/unit/test_unified_retrieval.py`, so the handoff is read against the 4-task cap rather than the default 8-task cap.
 Traceability statement: this fixer commit is metadata-only; re-review should validate the actual reviewed implementation range `378cf9a7..9d9e11a1`, not the fixer commit itself.
-Packet artifact note: this fixer pass refreshed only the reviewer-facing artifacts `THREAD_PACKET.md` and `docs/gate_passed.txt`; use them as the authoritative handoff source for re-review.
+Packet artifact note: this fixer pass refreshed only the reviewer-facing artifacts `THREAD_PACKET.md` and `docs/gate_passed.txt`; attempts to rewrite the mirrored `.codex/*` packet artifacts failed with `Operation not permitted`, so use the reviewer-facing pair as the authoritative handoff source for re-review.
 Gate reissue note: this summary records the fresh green rerun for the metadata-only packet reissue built on top of `4302bc117bedba915197161c40f23c3a3537b373`.
 
 The authoritative handoff packet remains `THREAD_PACKET.md`.
