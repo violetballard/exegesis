@@ -3,8 +3,15 @@
 - Branch name: `codex/feat-commands`
 - Reviewed implementation basis:
   - `f8d860ed9f6299f0169c4f21321ac5f37c949fd3` (`feat(commands): lock CLI contract to command catalog`)
+- Approval basis pin:
+  - Re-review remains pinned to implementation commit `f8d860ed9f6299f0169c4f21321ac5f37c949fd3` and the two implementation files only: `src/qual/commands/catalog.py` and `tests/unit/test_commands_catalog.py`.
+  - Later `docs(commands)` commits are metadata-only packet refreshes and are not part of the implementation approval basis.
 - Scope completed: hardened `command_cli_contract()` for the current engine-first CLI smoke path by protecting the `project-open` / `retrieval` / `patch-review` command surface so the live parser entrypoints stay locked to the declared command catalog and fail fast on parser-surface drift.
 - Canonical demo-path step(s) advanced: `open project/document`, `retrieve`, `preview and apply or reject a patch`
+- Roadmap loop mapping:
+  - `open project/document` advances the roadmap loop's `vault` and `context` entry boundary through the `project-open` command surface.
+  - `retrieve` advances the roadmap loop's `context` and `run` handoff boundary through the `retrieval` command surface.
+  - `preview and apply or reject a patch` advances the roadmap loop's `patch` boundary through the `patch-review` command surface.
 - Required packet statement: this change makes `open project/document`, `retrieve`, and `preview and apply or reject a patch` more real by forcing the public command surface to stay catalog-locked and fail closed before the operator reaches the wrong CLI verb set on the current engine-first `project-open` / `retrieval` / `patch-review` smoke path.
 - Concrete blocker removed: parser or catalog drift can no longer silently change the canonical command contract, which keeps the current CLI fallback deterministic across the `project-open` / `retrieval` / `patch-review` path.
 - Route-coverage evidence anchor: `tests/unit/test_commands_catalog.py` keeps the CLI-first claim pinned to the tested patch-review route entry `("patch-review", "diff-preview", ("diff-preview", "diff"))` in the smoke-route summary and route-contract assertions.
@@ -30,7 +37,7 @@
   - specific requirements advanced:
     - `CLI remains a first-class surface for development and reliability.`
     - `CLI remains able to render a text fallback of the same underlying artifacts.`
-  - no claim against persistence, audit hooks, retrieval internals, or workflow trace records; this diff does not add them
+  - no claim against persistence, audit hooks, auditable generation, retrieval internals, or workflow trace records; this diff does not add them
 - Routing/provider impact note: none; this slice does not touch model routing, provider configuration, or integrator-locked entrypoints.
 - Proposed `README.md` patch text: none.
 

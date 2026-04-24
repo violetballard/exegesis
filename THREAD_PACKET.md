@@ -61,6 +61,9 @@
 
 - Exact implementation basis for re-review:
   - `f8d860ed9f6299f0169c4f21321ac5f37c949fd3` (`feat(commands): lock CLI contract to command catalog`)
+- Approval basis pin for re-review:
+  - Only `f8d860ed9f6299f0169c4f21321ac5f37c949fd3`, `src/qual/commands/catalog.py`, and `tests/unit/test_commands_catalog.py` are part of the implementation approval basis.
+  - Later `docs(commands)` commits are packet-refresh metadata only and must not be treated as widening the reviewed implementation scope.
 - Current packet refresh traceability: later `docs(commands)` commits are metadata-only and update only `THREAD.md`, `THREAD_PACKET.md`, and `handoff_packets/feat-commands.md`.
 - Reviewed implementation files:
   - `src/qual/commands/catalog.py`
@@ -78,6 +81,10 @@
 ## Canonical Demo-Path Mapping
 
 - Canonical demo-path step(s) advanced: `open project/document`, `retrieve`, and `preview and apply or reject a patch`.
+- Roadmap loop mapping for those same steps:
+  - `open project/document` corresponds to the current MVP loop's `vault` and `context` entry boundary via `project-open`.
+  - `retrieve` corresponds to the current MVP loop's `context` and `run` handoff boundary via `retrieval`.
+  - `preview and apply or reject a patch` corresponds to the current MVP loop's `patch` boundary via `patch-review`.
 - Required packet statement: this change makes `open project/document`, `retrieve`, and `preview and apply or reject a patch` more real by forcing the command contract to stay catalog-locked and fail closed before the operator reaches the wrong CLI verb set on the current engine-first `project-open` / `retrieval` / `patch-review` smoke path.
 - Concrete blocker removed: parser-surface drift between the live parser entrypoints and the declared catalog can no longer pass silently. That removes the concrete CLI-fallback blocker where silent parser drift, including extra accepted aliases, could change the `project-open` / `retrieval` / `patch-review` operator contract.
 - `AGENTS.md` compliance note: every active lane task in this packet now names the exact canonical demo-path step it advances, and this handoff states the concrete blocker removed at that step.
@@ -161,7 +168,7 @@
 - Exact requirements advanced:
   - `CLI remains a first-class surface for development and reliability.`
   - `CLI remains able to render a text fallback of the same underlying artifacts.`
-- This slice narrows to the `project-open` / `retrieval` / `patch-review` command contract only. It does not claim persistence, audit hooks, retrieval internals, or broader workflow traceability progress.
+- This slice narrows to the `project-open` / `retrieval` / `patch-review` command contract only. It does not claim persistence, audit hooks, auditable generation, retrieval internals, or broader workflow traceability progress.
 - Evidence anchor: the claimed product-surface support is the tested CLI route coverage for those smoke-path steps in `tests/unit/test_commands_catalog.py`, not an unproven broader engine-loop claim.
 
 ### Routing / Provider Impact Note

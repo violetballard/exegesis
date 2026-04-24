@@ -9,6 +9,9 @@ Canonical handoff contract lives in `THREAD_PACKET.md`.
 - Packet refresh status: fixer corrected the packet after the reviewer flagged inconsistent traceability, stale roadmap or vision mapping, and a missing explicit patch-step mapping.
 - Exact implementation basis for re-review:
   - `f8d860ed9f6299f0169c4f21321ac5f37c949fd3` (`feat(commands): lock CLI contract to command catalog`)
+- Approval basis pin for re-review:
+  - Only `f8d860ed9f6299f0169c4f21321ac5f37c949fd3`, `src/qual/commands/catalog.py`, and `tests/unit/test_commands_catalog.py` are part of the implementation approval basis.
+  - Later `docs(commands)` commits are metadata-only packet refreshes.
 - Current packet refresh traceability:
   - later `docs(commands)` commits update only `THREAD.md`, `THREAD_PACKET.md`, and `handoff_packets/feat-commands.md`
 - Post-fixer verification note:
@@ -30,6 +33,10 @@ Canonical handoff contract lives in `THREAD_PACKET.md`.
   - `open project/document`
   - `retrieve`
   - `preview and apply or reject a patch`
+- Roadmap loop mapping for the same steps:
+  - `open project/document` maps to the MVP loop's `vault` and `context` entry boundary through `project-open`
+  - `retrieve` maps to the MVP loop's `context` and `run` handoff boundary through `retrieval`
+  - `preview and apply or reject a patch` maps to the MVP loop's `patch` boundary through `patch-review`
 - Required handoff field now called out explicitly:
   - `Explicit canonical demo-path mapping: open project/document, retrieve, preview and apply or reject a patch`
 - Explicit re-review statement:
@@ -52,7 +59,7 @@ Canonical handoff contract lives in `THREAD_PACKET.md`.
   - `ROADMAP.md` Milestone 5 keeps CLI fallback in scope for the MVP flow with the exit criterion `CLI can execute the MVP flow (vault -> context -> run -> patch -> export) against the same engine PolicyGate`
   - `AGENTS.md` operational narrowing rules require each active lane task to name which canonical demo-path step it advances and to state that step explicitly before handoff
   - `PRODUCT_VISION.md` capability 4 `Operator-first control surface` and capability 5 `Agent-to-UI protocol (A2UI)` are the only capabilities claimed here, specifically `CLI remains a first-class surface for development and reliability` and `CLI remains able to render a text fallback of the same underlying artifacts`
-  - this packet does not claim persistence, audit hooks, retrieval progress, or broader workflow trace records
+  - this packet does not claim persistence, audit hooks, auditable generation, retrieval progress, or broader workflow trace records
 - Ownership / scope note:
   - lane-owned implementation path: `src/qual/commands/catalog.py`
   - approved shared-by-approval exception: `tests/unit/test_commands_catalog.py`
