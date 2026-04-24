@@ -142,6 +142,8 @@ def build_packet(lane: str, branch: str, sha: str, meta: Json, files: List[str],
     def rcstr(rc:int)->str: return "PASS" if rc==0 else f"FAIL ({rc})"
     reviewed_range = str(meta.get("reviewed_implementation_range", "")).strip()
     scope_completed = str(meta.get("scope_completed", "")).strip()
+    canonical_demo_path_step = str(meta.get("canonical_demo_path_step", "")).strip()
+    canonical_demo_path_alignment = str(meta.get("canonical_demo_path_alignment", "")).strip()
     is_cumulative = bool(reviewed_range or scope_completed)
     lines=[]
     lines += ["# Feature → Review Packet",""]
@@ -149,6 +151,13 @@ def build_packet(lane: str, branch: str, sha: str, meta: Json, files: List[str],
     if reviewed_range:
         lines += [f"- Reviewed implementation range: `{reviewed_range}`"]
     lines += ["## Scope goal", f"- {str(meta.get('scope_goal','')).strip() or '(missing)'}", ""]
+    if canonical_demo_path_step or canonical_demo_path_alignment:
+        lines += ["## Canonical demo-path step advanced"]
+        if canonical_demo_path_step:
+            lines.append(f"- Step: `{canonical_demo_path_step}`")
+        if canonical_demo_path_alignment:
+            lines.append(f"- {canonical_demo_path_alignment}")
+        lines += [""]
     if scope_completed:
         lines += ["## Scope completed", f"- {scope_completed}", ""]
     lines += ["## Lane/owned paths"] + [f"- `{p}`" for p in LANE_OWNED_PATHS.get(lane,[])] + [""]

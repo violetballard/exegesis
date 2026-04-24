@@ -29,6 +29,12 @@ class PacketPlannerTests(unittest.TestCase):
     def test_build_packet_includes_completed_scope_and_cumulative_context(self) -> None:
         meta = {
             "scope_goal": "Complete the FTS-first retrieval MVP review packet.",
+            "canonical_demo_path_step": "retrieve relevant material",
+            "canonical_demo_path_alignment": (
+                "This work makes the \"retrieve relevant material\" step more real by enforcing "
+                "FTS-only excerpt lookup on the canonical retrieval surface and failing closed for "
+                "PageIndex-only IDs."
+            ),
             "scope_completed": (
                 "Shipped the cumulative 1d6057e9..42820d4864f8b5137a6a9e05399ad68fe5b9d4ac retrieval thread: SQLite FTS stayed authoritative, "
                 "the canonical retrieval query constructor was exported through both retrieval facades, and the "
@@ -62,6 +68,12 @@ class PacketPlannerTests(unittest.TestCase):
         )
 
         self.assertIn("## Scope goal", packet)
+        self.assertIn("## Canonical demo-path step advanced", packet)
+        self.assertIn("- Step: `retrieve relevant material`", packet)
+        self.assertIn(
+            "This work makes the \"retrieve relevant material\" step more real by enforcing FTS-only excerpt lookup",
+            packet,
+        )
         self.assertIn("## Scope completed", packet)
         self.assertIn("- Reviewed implementation range: `1d6057e9..42820d4864f8b5137a6a9e05399ad68fe5b9d4ac`", packet)
         self.assertIn("## Files changed (cumulative range)", packet)

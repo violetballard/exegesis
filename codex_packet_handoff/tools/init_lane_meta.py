@@ -14,6 +14,8 @@ LANES = [
 ]
 TEMPLATE = {
   "scope_goal": "",
+  "canonical_demo_path_step": "",
+  "canonical_demo_path_alignment": "",
   "tasks_completed": [],
   "risk": "LOW",
   "roadmap_items": [],
