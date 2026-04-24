@@ -10,6 +10,7 @@
 - Re-review authority note: in this sandbox, use `THREAD_PACKET.md` and `docs/gate_passed.txt` as the reviewer-facing source of truth because the mirrored `.codex` packet artifacts are read-only.
 - Canonical demo-path step advanced: `retrieve relevant material`
 - Demo-path sentence: this reviewed slice makes `retrieve relevant material` more real by keeping retrieval/search FTS-first and forcing public excerpt lookup through the authoritative FTS-backed path.
+- Reviewer-required plan-alignment statement: this work advances `retrieve relevant material` because `fetch_excerpt` now fails closed to the canonical FTS lookup path, which strengthens the deterministic retrieval/provenance contract for the engine-side Milestone 3 loop.
 - Milestone mapping: `Milestone 3: Real workflow loop`
 - FTS-first gate statement: the reviewed implementation range remains FTS-first for the MVP; PageIndex and embeddings remain deferred or compatibility paths and are not required runtime retrieval paths in this handoff.
 
@@ -21,6 +22,7 @@
 
 - SQLite FTS remains the authoritative MVP retrieval path in the reviewed slice.
 - `fetch_excerpt` resolves through the canonical FTS-only lookup path in `src/qual/retrieval/service.py`.
+- PageIndex-only excerpt ids now fail closed on `fetch_excerpt`, so public excerpt lookup stays bound to the canonical FTS-backed provenance path.
 - Approved shared regression coverage proves that PageIndex-only excerpt ids fail closed with `KeyError`.
 - PageIndex and embeddings remain deferred or compatibility paths; they are not required runtime fallbacks for this public excerpt contract.
 
