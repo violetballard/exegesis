@@ -244,8 +244,10 @@ def describe_a2ui_contract(
     ``shell_ui_contract_manifest_fingerprint`` for consumers that prefer the
     shell-style manifest naming, and it also exposes
     ``terminal_artifact_renderer_entrypoints_contract_manifest`` for the
-    renderer-entrypoints contract slice itself. The shared action/selection
-    leaf bundle is also surfaced as ``leaf_contracts`` and
+    renderer-entrypoints contract slice itself. The shell card-hint recovery
+    policy is surfaced directly as well so CLI fallback policy stays
+    addressable without drilling into the embedded shell snapshot. The shared
+    action/selection leaf bundle is also surfaced as ``leaf_contracts`` and
     ``leaf_contracts_contract_manifest`` so engine outputs can negotiate that
     stable contract slice without reassembling it from the separate leaf
     manifests.
@@ -546,7 +548,8 @@ def describe_a2ui_contract_fingerprints(
     snapshot always carries the CLI fallback route slice, that opt-in also
     surfaces the route fingerprint aliases for the embedded fallback route
     contract and the explicit CLI fallback entrypoint aliases used by the
-    shell adapter, plus
+    shell adapter, plus the shell card-hint recovery policy aliases that keep
+    the CLI fallback policy directly negotiable, plus
     ``terminal_artifact_renderer_entrypoints_contract_manifest`` for the
     renderer-entrypoints contract slice itself.
     """
@@ -775,6 +778,17 @@ def describe_a2ui_contract_fingerprints(
             "shell_ui_contract_manifest_fingerprint"
         ]
         fingerprints["card_hint_recovery_policy"] = card_hint_recovery_policy_contract_fingerprint_value
+        _add_contract_alias_fingerprints(
+            fingerprints,
+            (
+                "card_hint_recovery_policy_contract",
+                card_hint_recovery_policy_contract_fingerprint_value,
+            ),
+            (
+                "card_hint_recovery_policy_contract_manifest",
+                card_hint_recovery_policy_contract_fingerprint_value,
+            ),
+        )
         # Mirror the shell entrypoint bundle as well so shell-aware engine
         # consumers can fingerprint the explicit CLI fallback entrypoint
         # without opting into the standalone slice separately.
@@ -2874,6 +2888,25 @@ def _build_a2ui_contract_manifest(
         )
         manifest["shell_ui_contract_fingerprints_fingerprint"] = shell_ui_contract[
             "contract_fingerprints_fingerprint"
+        ]
+        card_hint_recovery_policy_contract = _snapshot_contract_section(
+            shell_ui_contract["card_hint_recovery_policy_contract"]
+        )
+        manifest["card_hint_recovery_policy"] = _snapshot_contract_section(
+            shell_ui_contract["card_hint_recovery_policy"]
+        )
+        manifest["card_hint_recovery_policy_fingerprint"] = shell_ui_contract[
+            "card_hint_recovery_policy_fingerprint"
+        ]
+        manifest["card_hint_recovery_policy_contract"] = card_hint_recovery_policy_contract
+        manifest["card_hint_recovery_policy_contract_fingerprint"] = shell_ui_contract[
+            "card_hint_recovery_policy_contract_fingerprint"
+        ]
+        manifest["card_hint_recovery_policy_contract_manifest"] = _snapshot_contract_section(
+            shell_ui_contract["card_hint_recovery_policy_contract_manifest"]
+        )
+        manifest["card_hint_recovery_policy_contract_manifest_fingerprint"] = shell_ui_contract[
+            "card_hint_recovery_policy_contract_manifest_fingerprint"
         ]
         # Mirror the shell's renderer-entrypoint alias so shell-aware
         # consumers can negotiate the same renderer contract names.

@@ -2828,6 +2828,30 @@ class A2UIFallbackSafetyTests(unittest.TestCase):
             shell_manifest["contract_fingerprints"],
         )
         self.assertEqual(
+            manifest["card_hint_recovery_policy"],
+            shell_manifest["card_hint_recovery_policy"],
+        )
+        self.assertEqual(
+            manifest["card_hint_recovery_policy_fingerprint"],
+            shell_manifest["card_hint_recovery_policy_fingerprint"],
+        )
+        self.assertEqual(
+            manifest["card_hint_recovery_policy_contract"],
+            shell_manifest["card_hint_recovery_policy_contract"],
+        )
+        self.assertEqual(
+            manifest["card_hint_recovery_policy_contract_fingerprint"],
+            shell_manifest["card_hint_recovery_policy_contract_fingerprint"],
+        )
+        self.assertEqual(
+            manifest["card_hint_recovery_policy_contract_manifest"],
+            shell_manifest["card_hint_recovery_policy_contract_manifest"],
+        )
+        self.assertEqual(
+            manifest["card_hint_recovery_policy_contract_manifest_fingerprint"],
+            shell_manifest["card_hint_recovery_policy_contract_manifest_fingerprint"],
+        )
+        self.assertEqual(
             manifest["shell_ui_contract_fingerprints"]["shell_ui_contract_manifest"],
             shell_manifest["contract_fingerprint"],
         )
@@ -2926,6 +2950,26 @@ class A2UIFallbackSafetyTests(unittest.TestCase):
         self.assertEqual(
             fingerprints["terminal_artifact_renderer_entrypoints_contract_manifest_fingerprint"],
             terminal_artifact_renderer_entrypoints_contract_fingerprint(),
+        )
+        self.assertEqual(
+            fingerprints["card_hint_recovery_policy"],
+            shell_manifest["contract_fingerprints"]["card_hint_recovery_policy"],
+        )
+        self.assertEqual(
+            fingerprints["card_hint_recovery_policy_contract"],
+            shell_manifest["contract_fingerprints"]["card_hint_recovery_policy_contract"],
+        )
+        self.assertEqual(
+            fingerprints["card_hint_recovery_policy_contract_fingerprint"],
+            shell_manifest["contract_fingerprints"]["card_hint_recovery_policy_contract_fingerprint"],
+        )
+        self.assertEqual(
+            fingerprints["card_hint_recovery_policy_contract_manifest"],
+            shell_manifest["contract_fingerprints"]["card_hint_recovery_policy_contract_manifest"],
+        )
+        self.assertEqual(
+            fingerprints["card_hint_recovery_policy_contract_manifest_fingerprint"],
+            shell_manifest["contract_fingerprints"]["card_hint_recovery_policy_contract_manifest_fingerprint"],
         )
         self.assertEqual(
             fingerprints["terminal_artifact_cli_fallback_target_contract_manifest"],
