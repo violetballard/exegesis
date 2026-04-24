@@ -38,7 +38,7 @@
 - `./quality-test.sh` -> passed
 - `./typecheck-test.sh` -> passed
 - `make ci` -> passed
-- Verification rerun timestamp: `2026-04-24T08:32:47Z UTC`
+- Verification rerun timestamp: `2026-04-24T08:33:38Z UTC`
 
 ## Risks / Blockers
 - Risks: future command-surface changes now need to keep `_CLI_ENTRYPOINTS` and the shared regression suite aligned so the public `diff-preview` review token stays catalog-locked.

@@ -4,8 +4,8 @@
 - Branch: `codex/feat-commands`
 - Commit: `f8d860ed9f6299f0169c4f21321ac5f37c949fd3`
 - Packet refresh role: `fixer metadata-only resubmission`
-- Packet refresh basis: `regenerated on 2026-04-24T08:32:47Z after the reviewer requested three packet corrections: state the canonical demo-path step explicitly, describe the test edit as shared-by-approval rather than integrator-locked, and keep re-review pinned to commit f8d860ed9f6299f0169c4f21321ac5f37c949fd3`
-- Post-fixer verification: `2026-04-24T08:32:47Z UTC gate rerun confirmed this packet refresh matches the current branch state; this refresh changes only THREAD.md, THREAD_PACKET.md, and handoff_packets/feat-commands.md while keeping re-review scope pinned to f8d860ed9f6299f0169c4f21321ac5f37c949fd3`
+- Packet refresh basis: `regenerated on 2026-04-24T08:33:38Z after the reviewer requested three packet corrections: state the canonical demo-path step explicitly, describe the test edit as shared-by-approval rather than integrator-locked, and keep re-review pinned to commit f8d860ed9f6299f0169c4f21321ac5f37c949fd3`
+- Post-fixer verification: `2026-04-24T08:33:38Z UTC gate rerun confirmed this packet refresh matches the current branch state; this refresh changes only THREAD.md, THREAD_PACKET.md, and handoff_packets/feat-commands.md while keeping re-review scope pinned to f8d860ed9f6299f0169c4f21321ac5f37c949fd3`
 - Packet-only refresh files:
   - `THREAD.md`
   - `THREAD_PACKET.md`
