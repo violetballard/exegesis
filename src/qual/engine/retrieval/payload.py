@@ -766,6 +766,49 @@ def _normalize_doc_hit_provenance_snapshot(provenance: object) -> dict[str, obje
     return normalized
 
 
+def _fallback_hit_query_constraint_snapshot(snapshot: Mapping[str, object]) -> dict[str, object]:
+    """Rebuild mirrored query-constraint fields from a sparse top-level hit snapshot."""
+
+    query_constraints = snapshot.get("query_constraints")
+    normalized_query_constraints = (
+        _normalize_basket_promotion_query_constraints(query_constraints)
+        if isinstance(query_constraints, dict)
+        else {}
+    )
+    fallback = {
+        "query_constraints": normalized_query_constraints,
+        "query_max_results": _normalize_optional_int(
+            _first_non_none_value(
+                snapshot.get("query_max_results"),
+                normalized_query_constraints.get("max_results"),
+            )
+        ),
+        "query_doc_types": _normalize_query_doc_types(
+            _first_non_none_value(
+                snapshot.get("query_doc_types"),
+                normalized_query_constraints.get("doc_types"),
+            )
+        ),
+        "query_require_citations": _normalize_optional_bool(
+            _first_non_none_value(
+                snapshot.get("query_require_citations"),
+                normalized_query_constraints.get("require_citations"),
+            )
+        ),
+        "query_prefer_exact_matches": _normalize_optional_bool(
+            _first_non_none_value(
+                snapshot.get("query_prefer_exact_matches"),
+                normalized_query_constraints.get("prefer_exact_matches"),
+            )
+        ),
+    }
+    return {
+        key: value
+        for key, value in fallback.items()
+        if not _is_missing_snapshot_value(value)
+    }
+
+
 def _normalize_excerpt_hit_snapshot(hit: object) -> dict[str, object] | None:
     if not isinstance(hit, dict):
         return None
@@ -902,6 +945,7 @@ def _normalize_excerpt_hit_snapshot(hit: object) -> dict[str, object] | None:
             "span": normalized.get("span"),
             "policy": normalized.get("retrieval_policy"),
             "retrieval_policy": normalized.get("retrieval_policy"),
+            **_fallback_hit_query_constraint_snapshot(normalized),
         }
     )
     if normalized_provenance or fallback_provenance:
@@ -1077,6 +1121,7 @@ def _normalize_doc_hit_snapshot(hit: object) -> dict[str, object] | None:
             "retrieved_excerpt_ids": normalized.get("retrieved_excerpt_ids"),
             "policy": normalized.get("retrieval_policy"),
             "retrieval_policy": normalized.get("retrieval_policy"),
+            **_fallback_hit_query_constraint_snapshot(normalized),
         }
     )
     if normalized_provenance or fallback_provenance:
