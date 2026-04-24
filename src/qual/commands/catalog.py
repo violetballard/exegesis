@@ -443,15 +443,12 @@ def _validated_cli_entrypoints_for(
     specs: tuple[CommandSpec, ...],
 ) -> tuple[tuple[str, tuple[str, ...]], ...]:
     validate_command_catalog(specs)
-    require_lookup_resolution = specs is COMMAND_SPECS
+    parser_entrypoints = _parser_cli_entrypoints_for(specs)
     seen_entrypoints: set[str] = set()
     validated_entrypoints: list[tuple[str, tuple[str, ...]]] = []
-    for spec in specs:
-        if not spec.cli_exposed:
-            continue
-        entrypoints = spec.cli_tokens or _lookup_tokens(spec)
+    for spec_name, entrypoints in parser_entrypoints:
         if not entrypoints:
-            raise ValueError(f"Command {spec.name} must define at least one CLI entrypoint")
+            raise ValueError(f"Command {spec_name} must define at least one CLI entrypoint")
         normalized_entrypoints: list[str] = []
         for entrypoint in entrypoints:
             normalized_entrypoint = _normalize_token(entrypoint)
@@ -460,17 +457,16 @@ def _validated_cli_entrypoints_for(
             if normalized_entrypoint in seen_entrypoints:
                 raise ValueError(f"Duplicate command CLI entrypoint: {entrypoint}")
             seen_entrypoints.add(normalized_entrypoint)
-            if require_lookup_resolution:
-                resolved = command_spec_for(specs, entrypoint)
-                if resolved is None:
-                    raise ValueError(f"Unknown CLI command entrypoint: {entrypoint}")
-                if resolved.name != spec.name:
-                    raise ValueError(
-                        "Command CLI entrypoint resolves to the wrong command: "
-                        f"{entrypoint} -> {resolved.name}"
-                    )
+            resolved = command_spec_for(specs, entrypoint)
+            if resolved is None:
+                raise ValueError(f"Unknown CLI command entrypoint: {entrypoint}")
+            if resolved.name != spec_name:
+                raise ValueError(
+                    "Command CLI entrypoint resolves to the wrong command: "
+                    f"{entrypoint} -> {resolved.name}"
+                )
             normalized_entrypoints.append(normalized_entrypoint)
-        validated_entrypoints.append((spec.name, tuple(normalized_entrypoints)))
+        validated_entrypoints.append((spec_name, tuple(normalized_entrypoints)))
     return tuple(validated_entrypoints)
 
 def _cli_entrypoints_by_name(
@@ -500,14 +496,28 @@ def _declared_cli_entrypoint_projection(
     )
 
 
+def _parser_cli_entrypoints_for(
+    specs: tuple[CommandSpec, ...],
+) -> tuple[tuple[str, tuple[str, ...]], ...]:
+    if specs is COMMAND_SPECS:
+        return _CLI_ENTRYPOINTS
+    return _declared_cli_entrypoint_projection(specs)
+
+
+def _actual_cli_entrypoint_projection(
+    specs: tuple[CommandSpec, ...],
+) -> tuple[tuple[str, tuple[str, ...]], ...]:
+    return _validated_cli_entrypoints_for(specs)
+
+
 def _validate_command_cli_contract(
     contract: CommandCliContract,
     specs: tuple[CommandSpec, ...],
     *,
-    validated_entrypoints: tuple[tuple[str, tuple[str, ...]], ...] | None = None,
+    actual_entrypoints: tuple[tuple[str, tuple[str, ...]], ...] | None = None,
 ) -> None:
     validate_command_catalog(specs)
-    expected_canonical_names = tuple(name for name, _ in validated_entrypoints or ())
+    expected_canonical_names = tuple(name for name, _ in actual_entrypoints or ())
     if contract.canonical_names != expected_canonical_names:
         raise ValueError("Command CLI canonical names are inconsistent")
 
@@ -515,9 +525,9 @@ def _validate_command_cli_contract(
     # entrypoints, not just the canonical-name projection. Dropping a canonical
     # token and keeping only an alias must still fail fast for both the default
     # catalog and custom spec sets.
-    if validated_entrypoints is not None:
+    if actual_entrypoints is not None:
         expected_parser_surface = _declared_cli_entrypoint_projection(specs)
-        if validated_entrypoints != expected_parser_surface:
+        if actual_entrypoints != expected_parser_surface:
             raise ValueError("Command CLI catalog entrypoint projection is inconsistent")
 
     expected_tokens = tuple(
@@ -538,12 +548,12 @@ def _validate_command_cli_contract(
 
 
 def _command_cli_contract_for(specs: tuple[CommandSpec, ...]) -> CommandCliContract:
-    validated_entrypoints = _validated_cli_entrypoints_for(specs)
+    actual_entrypoints = _actual_cli_entrypoint_projection(specs)
     tokens: list[str] = []
     lookup_table: list[tuple[str, str]] = []
     seen_canonical_names: set[str] = set()
     canonical_names: list[str] = []
-    for spec_name, entrypoints in validated_entrypoints:
+    for spec_name, entrypoints in actual_entrypoints:
         for normalized_entrypoint in entrypoints:
             tokens.append(normalized_entrypoint)
             lookup_table.append((normalized_entrypoint, spec_name))
@@ -560,7 +570,7 @@ def _command_cli_contract_for(specs: tuple[CommandSpec, ...]) -> CommandCliContr
     _validate_command_cli_contract(
         contract,
         specs,
-        validated_entrypoints=validated_entrypoints,
+        actual_entrypoints=actual_entrypoints,
     )
     return contract
 
@@ -1115,6 +1125,15 @@ COMMAND_SPECS: tuple[CommandSpec, ...] = (
         description="Run terminal export handoff routing.",
         flow_step="export-handoff",
     ),
+)
+
+# Lock the default parser surface separately from the command catalog so
+# command_cli_contract() can fail fast if the accepted CLI entrypoints drift.
+_CLI_ENTRYPOINTS: tuple[tuple[str, tuple[str, ...]], ...] = (
+    ("bootstrap", ("bootstrap",)),
+    ("diff-preview", ("diff-preview", "diff")),
+    ("context-basket", ("context-basket",)),
+    ("terminal", ("terminal",)),
 )
 DEMO_COMMAND_FLOW_STEPS: tuple[str, ...] = (
     "project-open",
