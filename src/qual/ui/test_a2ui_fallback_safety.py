@@ -1868,6 +1868,12 @@ class A2UIFallbackSafetyTests(unittest.TestCase):
             _fingerprint_manifest_section("render_terminal_cli_fallback"),
         )
         self.assertEqual(
+            fingerprints["terminal_artifact_cli_fallback_target_contract_fingerprints"][
+                "terminal_artifact_cli_fallback_entrypoint_contract_manifest_fingerprint"
+            ],
+            terminal_artifact_cli_fallback_entrypoint_contract_fingerprint(),
+        )
+        self.assertEqual(
             fingerprints["terminal_artifact_cli_fallback_target_contract_fingerprints"]["renderer_entrypoints_contract"],
             terminal_artifact_renderer_entrypoints_contract_fingerprint(),
         )

@@ -2438,6 +2438,10 @@ def _build_terminal_artifact_cli_fallback_target_contract_fingerprints(
             "terminal_artifact_renderer_entrypoints_contract_manifest",
             terminal_artifact_renderer_entrypoints_contract_fingerprint_value,
         ),
+        (
+            "terminal_artifact_cli_fallback_entrypoint_contract_manifest",
+            terminal_artifact_cli_fallback_entrypoint_contract_fingerprint_value,
+        ),
     )
     if include_terminal_artifact_cli_fallback_target:
         fingerprints["terminal_artifact_cli_fallback_target"] = _fingerprint_manifest_section(fingerprints)
