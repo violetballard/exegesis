@@ -118,7 +118,7 @@
 ### Vision capability affected
 
 - `2. Retrieval-first context handling`
-- `3. Auditable generation`
+- `6. Auditable state and workflow`
 
 ### Routing/provider impact note
 
