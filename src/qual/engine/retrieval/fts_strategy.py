@@ -274,10 +274,10 @@ class FTSStrategy:
             return bool(normalized_remainder)
         # The FTS-first MVP lane owns vault/doc retrieval only. Section and
         # collection scopes remain deferred until a future strategy can resolve
-        # them deterministically without widening the active engine path.
-        if normalized_prefix in {"section", "collection"}:
-            return False
-        return True
+        # them deterministically without widening the active engine path, and
+        # any other scoped prefix must fail closed so orchestration cannot treat
+        # unsupported scopes as valid engine-visible retrieval work.
+        return False
 
     @staticmethod
     def _payload_is_supported(payload: Mapping[str, object]) -> bool:

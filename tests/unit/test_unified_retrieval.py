@@ -3308,32 +3308,22 @@ class UnifiedRetrievalTests(unittest.TestCase):
         self.assertEqual(second.hits, ["lower-hit"])
         self.assertEqual(runner_hits, [])
 
-    def test_fts_strategy_does_not_alias_case_distinct_unknown_scopes_in_cache(self) -> None:
-        runner_hits = [["upper-hit"], ["lower-hit"]]
-        strategy = engine_retrieval.FTSStrategy(lambda query, candidate_doc_ids: list(runner_hits.pop(0)))
-        upper_scope = RetrievalQuery(
+    def test_fts_strategy_rejects_unknown_scoped_prefixes(self) -> None:
+        strategy = engine_retrieval.FTSStrategy(lambda query, candidate_doc_ids: ["unexpected-hit"])
+        unknown_scope = RetrievalQuery(
             query_text="discussion theory",
             scope="Project:Alpha",
             intent="outline_support",
             constraints=RetrievalConstraints(max_results=6),
             confidentiality_profile="confidential",
         )
-        lower_scope = RetrievalQuery(
-            query_text="discussion theory",
-            scope="project:alpha",
-            intent="outline_support",
-            constraints=RetrievalConstraints(max_results=6),
-            confidentiality_profile="confidential",
-        )
 
-        first = strategy.retrieve(upper_scope, candidate_doc_ids=("doc-a",))
-        second = strategy.retrieve(lower_scope, candidate_doc_ids=("doc-a",))
-
-        self.assertFalse(first.cache_used)
-        self.assertEqual(first.hits, ["upper-hit"])
-        self.assertFalse(second.cache_used)
-        self.assertEqual(second.hits, ["lower-hit"])
-        self.assertEqual(runner_hits, [])
+        self.assertFalse(strategy.supports(unknown_scope))
+        with self.assertRaisesRegex(
+            ValueError,
+            "FTSStrategy only supports canonical FTS-first retrieval queries",
+        ):
+            strategy.retrieve(unknown_scope, candidate_doc_ids=("doc-a",))
 
     def test_retrieve_auto_invalidates_fts_cache_after_document_update(self) -> None:
         query = RetrievalQuery(
