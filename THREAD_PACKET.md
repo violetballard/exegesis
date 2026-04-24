@@ -5,11 +5,11 @@
 - Current submitted tip before this packet refresh commit: `ca859a13eb27df76025cd4f4360273785a66fdec`
 - Reviewed implementation head: `9d9e11a1929dc56e44f5a4d459aa385e7a6ce1e5`
 - Reviewed implementation range: `378cf9a74a3658058079a32f186fcd254c4a4034..9d9e11a1929dc56e44f5a4d459aa385e7a6ce1e5`
-- Packet traceability note: review this lane against the cumulative implementation range above. That range includes the substantive post-`adfa8cda` retrieval commits, including `a96043fee95c3be1b69fba0148e6fdbb5d1d51a9` and `9d9e11a1929dc56e44f5a4d459aa385e7a6ce1e5`. This fixer commit is metadata-only and does not broaden retrieval scope beyond `378cf9a7..9d9e11a1`.
+- Packet traceability note: review this lane against the cumulative implementation range above. That range includes the substantive post-`adfa8cda` retrieval commits `206ee919c0bb7a1736e07a86a5cba5aff314a785`, `a96043fee95c3be1b69fba0148e6fdbb5d1d51a9`, and `9d9e11a1929dc56e44f5a4d459aa385e7a6ce1e5`. This fixer commit is metadata-only and does not broaden retrieval scope beyond `378cf9a7..9d9e11a1`.
 - Canonical demo-path step advanced: `retrieve relevant material`
-- Reviewer-required plan-alignment statement: This work makes the `retrieve relevant material` step more real by ensuring excerpt lookup fails closed to the canonical FTS-backed retrieval path and returns deterministic provenance only for FTS hits.
+- Reviewer-required plan-alignment statement: This work makes the `retrieve relevant material` step more real by ensuring excerpt lookup on the canonical retrieval surface fails closed unless the hit came from the authoritative FTS path.
 - Evidence note: `tests/unit/test_unified_retrieval.py` covers both the canonical/public FTS excerpt helpers and the fail-closed excerpt contract, while the cumulative reviewed range also carries the sparse-hit query-constraint preservation fixes in `src/qual/engine/retrieval/payload.py`.
-- Packet authority note: this top-level packet and [docs/gate_passed.txt](/Users/doctor-violet/.codex/worktrees/rfts/qual/docs/gate_passed.txt:1) are the reviewer-facing source of truth for the corrected reviewed range, demo-path mapping, and gate results for this branch. The mirrored `.codex/*` packet artifacts are read-only in this worktree, so this fixer pass records their stale state explicitly instead of claiming they were refreshed.
+- Packet authority note: this top-level packet and [docs/gate_passed.txt](/Users/doctor-violet/.codex/worktrees/rfts/qual/docs/gate_passed.txt:1) are the reviewer-facing source of truth for the corrected reviewed range, demo-path mapping, and gate results for this branch. The mirrored `.codex/*` packet artifacts are read-only in this worktree because write attempts fail with `operation not permitted`, so this fixer pass records their stale state explicitly instead of claiming they were refreshed.
 
 ## Scope Goal
 
@@ -133,7 +133,7 @@
 ### Canonical demo-path step advanced
 
 - `retrieve relevant material`
-- This work makes the `retrieve relevant material` step more real by ensuring excerpt lookup fails closed to the canonical FTS-backed retrieval path and returns deterministic provenance only for FTS hits.
+- This work makes the `retrieve relevant material` step more real by ensuring excerpt lookup on the canonical retrieval surface fails closed unless the hit came from the authoritative FTS path.
 
 ### Vision capability affected
 
