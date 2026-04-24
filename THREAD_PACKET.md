@@ -4,7 +4,7 @@
 - Branch: `codex/feat-commands`
 - Commit: `aef67223fb2ea280860de95d2a860880630a84dd`
 - Packet refresh role: `reviewer-fix packet refresh`
-- Packet refresh basis: `regenerated on 2026-04-24 for re-review against the fixer delta that locks the live parser surface to the command catalog, replaces helper-only drift coverage with live _CLI_ENTRYPOINTS drift checks, states the canonical demo-path step explicitly, and narrows roadmap/vision mapping to the engine-first CLI operator surface while feat-console remains inactive`
+- Packet refresh basis: `regenerated on 2026-04-24 for re-review against the fixer delta that locks the live parser surface to the command catalog, proves the reviewer-called-out diff-preview-to-diff token drift now fails fast, states the canonical demo-path step explicitly, and narrows roadmap/vision mapping to the engine-first CLI operator surface while feat-console remains inactive`
 - Packet-only refresh files:
   - `THREAD.md`
   - `THREAD_PACKET.md`
@@ -26,8 +26,8 @@
 ### Planned Tasks (Completed)
 
 1. Lock the default parser surface behind a dedicated `_CLI_ENTRYPOINTS` contract so the command catalog can detect drift independently from spec-derived lookup resolution.
-2. Tighten CLI contract validation so live parser entrypoints must match the declared catalog projection, including alias substitution and reordered token failures.
-3. Replace helper-only regression coverage with live `_CLI_ENTRYPOINTS` drift tests that stay resolvable through lookup but still fail fast.
+2. Tighten CLI contract validation so live parser entrypoints must match the declared catalog projection, including token-level drift that preserves canonical command order.
+3. Replace helper-only regression coverage with live `_CLI_ENTRYPOINTS` drift tests that stay resolvable through lookup but still fail fast, including the exact `diff-preview` removed / `diff` retained case.
 4. Regenerate the handoff packet with one concrete canonical demo-path step and an explicit shared-test approval source.
 
 ### Checkpoint Cadence
@@ -46,13 +46,13 @@
 - Reviewed implementation summary:
   - `_CLI_ENTRYPOINTS` now locks the live default parser token surface independently from `COMMAND_SPECS`, so default CLI drift can be detected instead of re-derived from the same spec source.
   - `_validated_cli_entrypoints_for()` and `command_cli_contract()` now validate the actual parser surface against the declared catalog projection before exposing canonical names, tokens, or lookup tables.
-  - focused regression tests now patch `_CLI_ENTRYPOINTS` into alias-substituted, reordered, and extra-entrypoint shapes to prove the contract fails fast even when lookup resolution still lands on the same canonical commands.
+  - focused regression tests now patch `_CLI_ENTRYPOINTS` into alias-substituted, reordered, missing-canonical-token, and extra-entrypoint shapes to prove the contract fails fast even when lookup resolution still lands on the same canonical commands.
 
 ## Scope Completed
 
 - Locked the default parser surface to `_CLI_ENTRYPOINTS` so `command_cli_contract()` checks the live parser token contract instead of comparing only spec-derived canonical-name order.
 - Hardened validation so alias substitution, parser reordering, or extra accepted tokens fail fast even when the drifted tokens still resolve back to the same canonical commands.
-- Added live parser-drift regression coverage by patching `_CLI_ENTRYPOINTS` into drifted-but-still-resolvable shapes.
+- Added live parser-drift regression coverage by patching `_CLI_ENTRYPOINTS` into drifted-but-still-resolvable shapes, including the exact case where `diff-preview` disappears while `diff` still resolves to the same canonical command.
 - Kept the slice narrow: command-surface contract hardening plus targeted tests only, with no provider, routing, storage, retrieval, or terminal workflow behavior changes.
 
 ## Canonical Demo-Path Mapping
@@ -64,6 +64,7 @@
 - One-line plan alignment: this change makes `project-open` more real by ensuring the operator-facing bootstrap verb for that smoke route cannot silently drift to alias-only entrypoints while still resolving through lookup.
 - Active MVP operator path strengthened: the existing CLI smoke route entrypoint into `project-open -> retrieval -> patch-review -> apply-patch/reject-patch -> persist -> export-handoff`.
 - Concrete blocker removed: before this guard, the live parser surface for the current CLI smoke route could drift from `bootstrap` to an alias such as `open` and still resolve through lookup, leaving automation, operator runbooks, and CLI fallback consumers pointed at a changed public surface without any fail-fast signal.
+- Concrete reviewer-example blocker removed: the parser surface can no longer silently drop the public `diff-preview` token while leaving only `diff`, even though that remaining alias still resolves to the same canonical command and preserves canonical ordering.
 - Direct plan-alignment statement: this change makes the `project-open` bootstrap step more real by failing closed when the parser-facing entrypoint contract no longer matches the cataloged command surface.
 - Concrete smoke-test evidence already in the reviewed slice: `tests/unit/test_commands_catalog.py` proves the canonical smoke contract keeps `project-open` on `("bootstrap", "--project", "demo")` and that the trusted MVP workflow tables still start from the same parser-ready bootstrap argv for both apply and reject branches.
 - Scope-tightening note: this handoff claims only parser-surface drift detection plus focused regression coverage for the primary `project-open` entrypoint contract; it does not claim new retrieval quality, patch semantics, persistence behavior, or export behavior.
@@ -88,7 +89,7 @@
 
 1. Added `_CLI_ENTRYPOINTS` so the default parser surface is locked independently from the catalog specs.
 2. Tightened the CLI contract path to validate actual parser entrypoints against the declared catalog projection before publishing command tokens and lookup tables.
-3. Reworked parser-drift regression coverage in `tests/unit/test_commands_catalog.py` to patch `_CLI_ENTRYPOINTS` into drifted-but-still-resolvable shapes.
+3. Reworked parser-drift regression coverage in `tests/unit/test_commands_catalog.py` to patch `_CLI_ENTRYPOINTS` into drifted-but-still-resolvable shapes, including the exact `diff-preview` removed / `diff` retained drift.
 4. Regenerated the handoff packet so the reviewer-requested canonical demo-path step, narrowed engine-first CLI alignment, and shared-test approval source are explicit.
 
 ### Files Changed

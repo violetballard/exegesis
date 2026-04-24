@@ -16,6 +16,7 @@ Canonical handoff contract lives in `THREAD_PACKET.md`.
   - `THREAD_PACKET.md`
 - Reviewed implementation scope:
   - fail fast when the live default parser entrypoints drift from the command catalog by locking the parser surface to `_CLI_ENTRYPOINTS` and proving real drift cases against that source of truth
+  - explicitly reject the token-level drift where `diff-preview` disappears from the parser surface while `diff` still resolves to the same canonical command
 - Primary canonical demo-path step advanced now:
   - `project-open` (`bootstrap` the session)
 - Required handoff field now called out explicitly:
@@ -28,6 +29,8 @@ Canonical handoff contract lives in `THREAD_PACKET.md`.
   - the current CLI-first smoke route stays `project-open -> retrieval -> patch-review -> apply-patch/reject-patch -> persist -> export-handoff`, with `bootstrap --project demo` as the parser-ready entry for the `project-open` step
 - One-line plan alignment:
   - this change makes `project-open` more real by ensuring the bootstrap command surface cannot silently drift to alias-only entrypoints while still resolving through lookup
+- Concrete reviewer-example coverage:
+  - the shared regression suite now includes the exact parser drift shape where the public `diff-preview` token is removed, `diff` still resolves to `diff-preview`, canonical ordering still matches, and `command_cli_contract()` still fails fast
 - Active MVP operator path strengthened:
   - the existing CLI smoke route entrypoint into `project-open -> retrieval -> patch-review -> apply-patch/reject-patch -> persist -> export-handoff` by keeping the default parser verb contract catalog-locked
 - Direct plan-alignment statement:
