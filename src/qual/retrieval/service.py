@@ -3946,6 +3946,16 @@ class RetrievalService:
                     return value
             return None
 
+        def _first_normalized_query_value(
+            normalizer,
+            *values: object,
+        ) -> object | None:
+            for value in values:
+                normalized = normalizer(value)
+                if normalized is not None:
+                    return normalized
+            return None
+
         query_constraints_explicit = query_payload_present and "constraints" in query_payload
         top_level_query_constraint_payloads: list[dict[str, object]] = []
         for candidate in (
@@ -3970,22 +3980,26 @@ class RetrievalService:
                         or not _query_constraint_value_present(merged_query_constraints_payload.get(key))
                     ):
                         merged_query_constraints_payload[key] = copy.deepcopy(value)
-            query_text_raw = _first_query_value(
+            query_text = _first_normalized_query_value(
+                _normalize_query_text_payload,
                 query_payload.get("query_text"),
                 excerpt.get("query_text"),
                 provenance.get("query_text"),
             )
-            query_scope_raw = _first_query_value(
+            query_scope = _first_normalized_query_value(
+                _normalize_query_scope_payload,
                 query_payload.get("scope"),
                 excerpt.get("query_scope"),
                 provenance.get("query_scope"),
             )
-            query_intent_raw = _first_query_value(
+            query_intent = _first_normalized_query_value(
+                _normalize_query_intent_payload,
                 query_payload.get("intent"),
                 excerpt.get("query_intent"),
                 provenance.get("query_intent"),
             )
-            query_confidentiality_profile_raw = _first_query_value(
+            query_confidentiality_profile = _first_normalized_query_value(
+                _normalized_profile_text,
                 query_payload.get("confidentiality_profile"),
                 excerpt.get("query_confidentiality_profile"),
                 provenance.get("query_confidentiality_profile"),
@@ -4002,27 +4016,26 @@ class RetrievalService:
                     continue
                 query_constraints_payload.update(candidate)
             merged_query_constraints_payload = copy.deepcopy(query_constraints_payload)
-            query_text_raw = _first_query_value(
+            query_text = _first_normalized_query_value(
+                _normalize_query_text_payload,
                 excerpt.get("query_text"),
                 provenance.get("query_text"),
             )
-            query_scope_raw = _first_query_value(
+            query_scope = _first_normalized_query_value(
+                _normalize_query_scope_payload,
                 excerpt.get("query_scope"),
                 provenance.get("query_scope"),
             )
-            query_intent_raw = _first_query_value(
+            query_intent = _first_normalized_query_value(
+                _normalize_query_intent_payload,
                 excerpt.get("query_intent"),
                 provenance.get("query_intent"),
             )
-            query_confidentiality_profile_raw = _first_query_value(
+            query_confidentiality_profile = _first_normalized_query_value(
+                _normalized_profile_text,
                 excerpt.get("query_confidentiality_profile"),
                 provenance.get("query_confidentiality_profile"),
             )
-
-        query_text = _normalize_query_text_payload(query_text_raw)
-        query_scope = _normalize_query_scope_payload(query_scope_raw)
-        query_intent = _normalize_query_intent_payload(query_intent_raw)
-        query_confidentiality_profile = _normalized_profile_text(query_confidentiality_profile_raw)
         if query_constraints_explicit:
             # Older sparse excerpt snapshots may carry a partial nested
             # ``query.constraints`` object while the mirrored top-level query
