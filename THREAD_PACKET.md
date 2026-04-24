@@ -2,7 +2,9 @@
 
 - Branch name: `codex/feat-retrieval-fts`
 - Packet role: `reviewer-fix canonical retrieval contract`
-- Current branch tip before this fixer commit: `791668c7935f920034a09bc83827e3e2d4df1d0d`
+- Current branch tip before this fixer commit: `0c5666a28b46874f6b6e77692015ea561cf3ae75`
+- Reviewed implementation head: `cf644d98c43cc396cd5b7c6b8d725b87fb715c61`
+- Reviewed implementation range: `adfa8cdadd43747ffbcb612e4151e262b13e52ca..cf644d98c43cc396cd5b7c6b8d725b87fb715c61`
 - Canonical demo-path step advanced: `retrieve relevant material`
 - Canonical demo-path statement: This fixer pass makes `retrieve relevant material` more real on the engine-facing MVP path by fail-closing non-FTS retrieval metadata on the canonical source-bundle/context-bundle reconstruction helpers that feed structured results and basket/workflow promotion. It does not claim new retrieval wiring; it hardens the existing canonical contract so stale PageIndex-style metadata cannot leak back into downstream payloads.
 - Shared-file approval basis: `tests/unit/test_unified_retrieval.py` remains the only approved shared-by-approval regression surface for this lane under `THREAD_OWNERSHIP.md`.
@@ -45,6 +47,13 @@
 - Changed context-bundle reconstruction to rebuild `retrieval_downstream_payload` from the canonical source bundle when available, so the engine-facing structured-result path used before basket/workflow promotion no longer trusts stale top-level metadata.
 - Added shared regression coverage in [tests/unit/test_unified_retrieval.py](/Users/doctor-violet/.codex/worktrees/rfts/qual/tests/unit/test_unified_retrieval.py) proving source-bundle and context-bundle helpers fail closed when `pageindex`-style metadata is injected into sparse inputs.
 
+## Traceability Note
+
+- Submitted branch tip for the stale packet the reviewer saw: `0c5666a28b46874f6b6e77692015ea561cf3ae75`
+- Latest code-changing commit on that submitted tip: `cf644d98c43cc396cd5b7c6b8d725b87fb715c61`
+- Packet-only commit already on the submitted tip: `0c5666a28b46874f6b6e77692015ea561cf3ae75`
+- Re-review should validate the implementation range `adfa8cdadd43747ffbcb612e4151e262b13e52ca..cf644d98c43cc396cd5b7c6b8d725b87fb715c61`, then treat `0c5666a2` as the accurate submitted branch tip metadata wrapper around that implementation.
+
 ## Tasks Completed
 
 1. Restricted canonical payload normalization to the FTS-first MVP contract in `src/qual/engine/retrieval/payload.py`.
@@ -61,8 +70,8 @@
 
 ## Files Changed
 
-- `src/qual/engine/retrieval/payload.py`
-- `tests/unit/test_unified_retrieval.py`
+- Reviewed implementation files: `src/qual/engine/retrieval/payload.py`, `tests/unit/test_unified_retrieval.py`
+- Packet files on the submitted branch tip: `THREAD_PACKET.md`, `docs/gate_passed.txt`
 
 ## Commands Run With Results
 
@@ -78,9 +87,10 @@
 
 ## Reviewer Fix Closure
 
-1. The packet now states explicitly that this work advances the canonical demo-path step `retrieve relevant material`.
-2. The fail-closed behavior and proof now live on the actual canonical engine-facing retrieval reconstruction surface in `src/qual/engine/retrieval/payload.py`, not only on the compatibility `fetch_excerpt()` path.
-3. The shared regressions now demonstrate stronger behavior on the structured-result, source-bundle, context-bundle, and basket/workflow-facing helpers instead of only on PageIndex-only excerpt lookups.
+1. The packet now names the actual submitted branch tip `0c5666a28b46874f6b6e77692015ea561cf3ae75`.
+2. The packet now names the actual latest code-changing reviewed head `cf644d98c43cc396cd5b7c6b8d725b87fb715c61` and reviewed implementation range `adfa8cdadd43747ffbcb612e4151e262b13e52ca..cf644d98c43cc396cd5b7c6b8d725b87fb715c61`.
+3. The packet now states explicitly that this work advances the canonical demo-path step `retrieve relevant material`.
+4. The fail-closed behavior and proof remain tied to the canonical engine-facing retrieval reconstruction surface in `src/qual/engine/retrieval/payload.py`.
 
 ## Risks / Blockers
 

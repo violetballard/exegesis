@@ -3,8 +3,9 @@ Gate Results Summary (as of 2026-04-23)
 
 Required automated gates reran against the canonical retrieval-contract fixer worktree content for:
 
-* current branch tip before this fixer commit `791668c7935f920034a09bc83827e3e2d4df1d0d`
-* runtime files changed in this fixer pass `src/qual/engine/retrieval/payload.py` and `tests/unit/test_unified_retrieval.py`
+* submitted branch tip under review before this fixer commit `0c5666a28b46874f6b6e77692015ea561cf3ae75`
+* reviewed implementation head `cf644d98c43cc396cd5b7c6b8d725b87fb715c61`
+* reviewed implementation files `src/qual/engine/retrieval/payload.py` and `tests/unit/test_unified_retrieval.py`
 * shared regression approval basis `tests/unit/test_unified_retrieval.py`
 
 Gate status:
@@ -26,5 +27,6 @@ Canonical demo-path step advanced: `retrieve relevant material`.
 Plan-alignment statement: this fixer pass strengthens the canonical engine-facing source-bundle/context-bundle retrieval contract used before basket/workflow promotion by fail-closing stale non-FTS metadata and rebuilding structured payloads from the canonical FTS source bundle.
 Scope-tightening statement: this slice proves the canonical structured retrieval path stays FTS-first and auditable; it does not claim new basket/workflow wiring.
 Shared-file approval basis: `tests/unit/test_unified_retrieval.py` remains the approved shared-by-approval regression exception for this lane.
+Traceability statement: the submitted branch tip `0c5666a2` already included a packet-only commit, but the latest code-changing reviewed head on that tip is `cf644d98`, so re-review should validate `adfa8cda..cf644d98` while treating `0c5666a2` as the correct submitted tip.
 
 The authoritative handoff packet remains `THREAD_PACKET.md`.
