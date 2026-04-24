@@ -13,8 +13,8 @@
 - Canonical wording lock: this handoff intentionally uses the current canonical roadmap wording for the CLI MVP flow, namely `vault -> context -> run -> patch -> export` against the same engine `PolicyGate`.
 - Concrete blocker removed: before this change, parser drift could silently desynchronize the existing CLI surface from the catalog while leaving the contract seemingly valid, so an operator could begin the CLI workflow through an `open project/document` surface that no longer matched the canonical command catalog.
 - Traceability note: reviewed implementation commit is `f8d860ed9f6299f0169c4f21321ac5f37c949fd3`, and its implementation scope is limited to `src/qual/commands/catalog.py` and `tests/unit/test_commands_catalog.py`; this follow-up commit refreshes handoff metadata only after another green rerun of the required gates from this fixer pass.
-- Final verification note: this metadata-only fixer pass on `2026-04-24` revalidated the reviewer-requested demo-path mapping, aligned the packet wording to the already-landed full parser-surface guardrail, and reran the full required gate set from the current branch tip without changing the reviewed implementation files.
-- Latest verifier rerun note: after the reviewer-fixer prompt was reloaded on `2026-04-24`, the packet was checked again at the current branch tip and the same demo-path mapping remained intact before another full required gate rerun.
+- Final verification note: this metadata-only fixer rerun on `2026-04-24` revalidated the reviewer-requested demo-path mapping, aligned the packet wording to the already-landed full parser-surface guardrail, and reran the full required gate set from the current branch tip without changing the reviewed implementation files.
+- Latest fixer rerun note: after the reviewer-fixer prompt was reloaded against the live worktree on `2026-04-24`, the packet was checked again at the current branch tip and the same demo-path mapping plus explicit high-risk rationale remained intact before another full required gate rerun.
 - Gate rerun confirmation: `make scope-check`, `./quality-format.sh --check`, `./quality-lint.sh`, `./quality-test.sh`, `./typecheck-test.sh`, and `make ci` all passed again from the current branch tip in this metadata-only fixer handoff.
 
 ## Tasks completed (numbered)
@@ -25,7 +25,7 @@
 ## Packet Refresh Notes
 - This handoff now names the single roadmap step advanced using the current canonical roadmap wording, states why the work is migration-safe compatibility hardening for the existing catalog instead of second-order cleanup, makes the alias-level parser-surface-drift scope explicit even when canonical names stay stable, and keeps the approval basis pinned to reviewed commit `f8d860ed9f6299f0169c4f21321ac5f37c949fd3` plus its two implementation files only.
 - Packet regeneration and metadata refresh remain here for traceability and are intentionally excluded from the numbered implementation task list above.
-- This revalidation pass confirmed the packet still satisfies the reviewer-requested demo-path mapping and AGENTS-compliant task framing after a fresh green rerun of the required gates from the current branch tip.
+- This revalidation pass confirmed the packet still satisfies the reviewer-requested demo-path mapping, explicit high-risk rationale, and AGENTS-compliant task framing after a fresh green rerun of the required gates from the current branch tip.
 - This fixer execution re-checked the live worktree, confirmed the parser-surface guardrail and regression coverage were already present, and therefore limited this follow-up to another metadata-only verification refresh instead of inventing additional implementation churn.
 
 ## Files Changed

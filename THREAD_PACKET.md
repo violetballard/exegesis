@@ -15,7 +15,8 @@
 - Concrete blocker removed: before this slice, parser drift could change the accepted CLI surface without a hard failure, so an operator could begin the manual MVP flow through an `open project/document` surface that no longer matched the canonical command catalog.
 - Review basis scope: keep implementation and approval claims pinned to reviewed commit `f8d860ed9f6299f0169c4f21321ac5f37c949fd3` and its two implementation files only: `src/qual/commands/catalog.py` and `tests/unit/test_commands_catalog.py`.
 - Final fixer note: this packet refresh exists only to align the handoff scope language with the already-landed full parser-surface guardrail and to record the green rerun of the required gates from this fixer pass; the reviewed implementation commit remains `f8d860ed9f6299f0169c4f21321ac5f37c949fd3`.
-- Final verification note: this metadata-only fixer pass on `2026-04-24` revalidated the corrected handoff packet and reran the full required gate set from the current branch tip without widening implementation scope.
+- Final verification note: this metadata-only fixer rerun on `2026-04-24` revalidated the corrected handoff packet and reran the full required gate set from the current branch tip without widening implementation scope.
+- Latest fixer rerun note: after reloading the reviewer packet against the live worktree, this handoff remained metadata-only because the required command-contract guardrail and regression coverage were already present on `codex/feat-commands`.
 - Gate rerun confirmation: `make scope-check`, `./quality-format.sh --check`, `./quality-lint.sh`, `./quality-test.sh`, `./typecheck-test.sh`, and `make ci` all passed again from the current branch tip in this metadata-only fixer handoff.
 
 ## Thread Kickoff (High-Risk)
@@ -56,7 +57,7 @@
 - Plan complete: scope stayed pinned to the reviewed implementation slice in `src/qual/commands/catalog.py` and `tests/unit/test_commands_catalog.py`, with no expansion beyond deterministic CLI-contract hardening for the existing command surface.
 - First green tests: `make scope-check`, `./quality-format.sh --check`, `./quality-lint.sh`, `./quality-test.sh`, `./typecheck-test.sh`, and `make ci` all passed for this handoff slice.
 - Before risky/shared file edit: scope was rechecked against reviewed commit `f8d860ed9f6299f0169c4f21321ac5f37c949fd3` so the refreshed handoff only describes `src/qual/commands/catalog.py` and `tests/unit/test_commands_catalog.py`.
-- Ready for handoff: this packet now carries the reviewer-requested exact demo-path mapping using the current roadmap wording, plus the explicit migration-safe compatibility justification, without implying any broader lane scope.
+- Ready for handoff: this packet now carries the reviewer-requested exact demo-path mapping using the current roadmap wording, the explicit high-risk `Risk reason`, and the migration-safe compatibility justification, without implying any broader lane scope.
 
 ## Review Basis
 
