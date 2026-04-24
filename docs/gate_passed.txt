@@ -8,6 +8,7 @@ Reviewed implementation head: `adfa8cdadd43747ffbcb612e4151e262b13e52ca`
 Reviewed implementation range: `378cf9a74a3658058079a32f186fcd254c4a4034..adfa8cdadd43747ffbcb612e4151e262b13e52ca`
 Canonical demo-path step advanced: `retrieve relevant material`
 Plan-alignment statement: this slice advances `retrieve relevant material` by making excerpt lookup auditable and fail-closed on the FTS-first engine path used before basket promotion.
+Canonical demo-path strengthening statement: this slice makes excerpt lookup auditable and fail-closed on the FTS-first engine path used before basket promotion.
 Reviewer-required plan-alignment statement: this reviewed slice is a narrow Milestone 3 retrieval contract correction, not a lane-completion claim; `fetch_excerpt` now fails closed to the canonical FTS lookup path, which strengthens the deterministic retrieval/provenance contract for the engine-side Milestone 3 loop.
 Explicit Milestone 3 mapping: this slice advances `Milestone 3: Real workflow loop` by keeping retrieval/search FTS-first and structured.
 FTS-first confirmation: SQLite FTS remains authoritative for the MVP in the reviewed range; PageIndex and embeddings remain deferred or compatibility paths and are not required runtime fallbacks for the public excerpt lookup surface.
