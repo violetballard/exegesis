@@ -612,6 +612,58 @@ def describe_a2ui_contract_fingerprints(
                 "terminal_artifact_renderer_entrypoints_contract_manifest_fingerprint"
             ]
         )
+        fingerprints["shell_refinement_policy"] = terminal_artifact_cli_fallback_entrypoint_contract[
+            "terminal_artifact_cli_fallback_shell_refinement_policy_fingerprint"
+        ]
+        fingerprints["shell_refinement_policy_fingerprint"] = (
+            terminal_artifact_cli_fallback_entrypoint_contract[
+                "terminal_artifact_cli_fallback_shell_refinement_policy_fingerprint"
+            ]
+        )
+        fingerprints["shell_refinement_policy_contract"] = terminal_artifact_cli_fallback_entrypoint_contract[
+            "terminal_artifact_cli_fallback_shell_refinement_policy_contract_fingerprint"
+        ]
+        fingerprints["shell_refinement_policy_contract_fingerprint"] = (
+            terminal_artifact_cli_fallback_entrypoint_contract[
+                "terminal_artifact_cli_fallback_shell_refinement_policy_contract_fingerprint"
+            ]
+        )
+        fingerprints["shell_refinement_policy_contract_manifest"] = (
+            terminal_artifact_cli_fallback_entrypoint_contract[
+                "terminal_artifact_cli_fallback_shell_refinement_policy_contract_manifest_fingerprint"
+            ]
+        )
+        fingerprints["shell_refinement_policy_contract_manifest_fingerprint"] = (
+            terminal_artifact_cli_fallback_entrypoint_contract[
+                "terminal_artifact_cli_fallback_shell_refinement_policy_contract_manifest_fingerprint"
+            ]
+        )
+        fingerprints["resolver_failure_policy"] = terminal_artifact_cli_fallback_entrypoint_contract[
+            "terminal_artifact_cli_fallback_resolver_failure_policy_fingerprint"
+        ]
+        fingerprints["resolver_failure_policy_fingerprint"] = (
+            terminal_artifact_cli_fallback_entrypoint_contract[
+                "terminal_artifact_cli_fallback_resolver_failure_policy_fingerprint"
+            ]
+        )
+        fingerprints["resolver_failure_policy_contract"] = terminal_artifact_cli_fallback_entrypoint_contract[
+            "terminal_artifact_cli_fallback_resolver_failure_policy_contract_fingerprint"
+        ]
+        fingerprints["resolver_failure_policy_contract_fingerprint"] = (
+            terminal_artifact_cli_fallback_entrypoint_contract[
+                "terminal_artifact_cli_fallback_resolver_failure_policy_contract_fingerprint"
+            ]
+        )
+        fingerprints["resolver_failure_policy_contract_manifest"] = (
+            terminal_artifact_cli_fallback_entrypoint_contract[
+                "terminal_artifact_cli_fallback_resolver_failure_policy_contract_manifest_fingerprint"
+            ]
+        )
+        fingerprints["resolver_failure_policy_contract_manifest_fingerprint"] = (
+            terminal_artifact_cli_fallback_entrypoint_contract[
+                "terminal_artifact_cli_fallback_resolver_failure_policy_contract_manifest_fingerprint"
+            ]
+        )
     if include_terminal_artifact_raw_leaf_card_default:
         fingerprints["terminal_artifact_raw_leaf_card_default"] = (
             terminal_artifact_raw_leaf_card_default_contract_fingerprint()
@@ -2203,6 +2255,8 @@ def _build_terminal_artifact_renderer_entrypoints_contract_manifest() -> dict[st
 
 def _build_terminal_artifact_cli_fallback_entrypoint_contract_manifest() -> dict[str, Any]:
     renderer_entrypoints_contract = describe_terminal_artifact_renderer_entrypoints_contract()
+    shell_refinement_policy_contract = describe_terminal_artifact_cli_fallback_shell_refinement_policy_contract()
+    resolver_failure_policy_contract = describe_terminal_artifact_cli_fallback_resolver_failure_policy_contract()
     terminal_artifact_cli_fallback_entrypoint = "render_terminal_cli_fallback"
     contract_fingerprints = describe_terminal_artifact_cli_fallback_entrypoint_contract_fingerprints()
     terminal_artifact_cli_fallback_entrypoint_fingerprint = _fingerprint_manifest_section(
@@ -2230,6 +2284,42 @@ def _build_terminal_artifact_cli_fallback_entrypoint_contract_manifest() -> dict
         "terminal_artifact_renderer_entrypoints_contract_manifest_fingerprint": (
             renderer_entrypoints_contract["contract_fingerprint"]
         ),
+        "terminal_artifact_cli_fallback_shell_refinement_policy": _snapshot_contract_section(
+            shell_refinement_policy_contract
+        ),
+        "terminal_artifact_cli_fallback_shell_refinement_policy_fingerprint": shell_refinement_policy_contract[
+            "contract_fingerprint"
+        ],
+        "terminal_artifact_cli_fallback_shell_refinement_policy_contract": _snapshot_contract_section(
+            shell_refinement_policy_contract
+        ),
+        "terminal_artifact_cli_fallback_shell_refinement_policy_contract_fingerprint": (
+            shell_refinement_policy_contract["contract_fingerprint"]
+        ),
+        "terminal_artifact_cli_fallback_shell_refinement_policy_contract_manifest": _snapshot_contract_section(
+            shell_refinement_policy_contract
+        ),
+        "terminal_artifact_cli_fallback_shell_refinement_policy_contract_manifest_fingerprint": (
+            shell_refinement_policy_contract["contract_fingerprint"]
+        ),
+        "terminal_artifact_cli_fallback_resolver_failure_policy": _snapshot_contract_section(
+            resolver_failure_policy_contract
+        ),
+        "terminal_artifact_cli_fallback_resolver_failure_policy_fingerprint": resolver_failure_policy_contract[
+            "contract_fingerprint"
+        ],
+        "terminal_artifact_cli_fallback_resolver_failure_policy_contract": _snapshot_contract_section(
+            resolver_failure_policy_contract
+        ),
+        "terminal_artifact_cli_fallback_resolver_failure_policy_contract_fingerprint": (
+            resolver_failure_policy_contract["contract_fingerprint"]
+        ),
+        "terminal_artifact_cli_fallback_resolver_failure_policy_contract_manifest": _snapshot_contract_section(
+            resolver_failure_policy_contract
+        ),
+        "terminal_artifact_cli_fallback_resolver_failure_policy_contract_manifest_fingerprint": (
+            resolver_failure_policy_contract["contract_fingerprint"]
+        ),
         "terminal_artifact_cli_fallback_entrypoint_contract_fingerprints": _snapshot_contract_section(
             contract_fingerprints
         ),
@@ -2245,11 +2335,19 @@ def _build_terminal_artifact_cli_fallback_entrypoint_contract_fingerprints(
     include_contract_aliases: bool = False,
 ) -> dict[str, str]:
     renderer_entrypoints_contract_fingerprint_value = terminal_artifact_renderer_entrypoints_contract_fingerprint()
+    shell_refinement_policy_contract_fingerprint_value = (
+        terminal_artifact_cli_fallback_shell_refinement_policy_contract_fingerprint()
+    )
+    resolver_failure_policy_contract_fingerprint_value = (
+        terminal_artifact_cli_fallback_resolver_failure_policy_contract_fingerprint()
+    )
     fingerprints = {
         "terminal_artifact_cli_fallback_entrypoint": _fingerprint_manifest_section(
             "render_terminal_cli_fallback"
         ),
         "renderer_entrypoints": renderer_entrypoints_contract_fingerprint_value,
+        "shell_refinement_policy": shell_refinement_policy_contract_fingerprint_value,
+        "resolver_failure_policy": resolver_failure_policy_contract_fingerprint_value,
     }
     _add_contract_alias_fingerprints(
         fingerprints,
@@ -2260,6 +2358,22 @@ def _build_terminal_artifact_cli_fallback_entrypoint_contract_fingerprints(
         (
             "terminal_artifact_renderer_entrypoints_contract_manifest",
             renderer_entrypoints_contract_fingerprint_value,
+        ),
+        (
+            "shell_refinement_policy_contract",
+            shell_refinement_policy_contract_fingerprint_value,
+        ),
+        (
+            "shell_refinement_policy_contract_manifest",
+            shell_refinement_policy_contract_fingerprint_value,
+        ),
+        (
+            "resolver_failure_policy_contract",
+            resolver_failure_policy_contract_fingerprint_value,
+        ),
+        (
+            "resolver_failure_policy_contract_manifest",
+            resolver_failure_policy_contract_fingerprint_value,
         ),
     )
     if include_contract_aliases:
