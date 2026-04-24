@@ -9,6 +9,11 @@
 - Concrete blocker removed: parser or catalog drift can no longer silently change the canonical command contract, which keeps the CLI fallback deterministic at the patch-review step of the current engine-first MVP loop.
 - Plan-alignment statement: this is one engine-first MVP review-step contract-hardening slice inside the current Milestone 3 loop. Deterministic CLI contract validation preserves the operator-facing command surface while the package/layout migration is in flight. It does not claim new retrieval, persistence, export, audit-path, or broader workflow behavior.
 - Packet refresh traceability: later `docs(commands)` commits are metadata-only and update only `handoff_packets/feat-commands.md`, `THREAD_PACKET.md`, and `THREAD.md`.
+- High-risk kickoff context:
+  - lane/owned paths: `src/qual/commands/**`
+  - scope goal: make the canonical `preview and apply or reject a patch` step more real by keeping the operator-visible command contract locked to the parser/catalog boundary during the current engine-first CLI loop while Textual remains disabled
+  - risk reason: the reviewed slice touches the command contract in `src/qual/commands/catalog.py` and a shared-by-approval regression test file
+  - planned scope: 4-task high-risk slice limited to command-contract hardening, shared regression coverage, packet correction, and required gate reruns
 - Roadmap item(s) affected:
   - `ROADMAP.md` MVP focus active lane: `feat-commands`
   - `ROADMAP.md` Milestone 3: `preserve CLI compatibility while the package/layout migration lands`
@@ -24,6 +29,7 @@
 1. Locked the live CLI command contract to the command catalog so canonical-name drift fails closed.
 2. Added focused regressions in [tests/unit/test_commands_catalog.py](/Users/doctor-violet/.codex/worktrees/5494/qual/tests/unit/test_commands_catalog.py:1) covering canonical-order alignment and command-catalog drift rejection.
 3. Updated [handoff_packets/feat-commands.md](/Users/doctor-violet/.codex/worktrees/5494/qual/handoff_packets/feat-commands.md:1), [THREAD_PACKET.md](/Users/doctor-violet/.codex/worktrees/5494/qual/THREAD_PACKET.md:1), and [THREAD.md](/Users/doctor-violet/.codex/worktrees/5494/qual/THREAD.md:1) so the re-review packet points to commit `f8d860ed9f6299f0169c4f21321ac5f37c949fd3`, states the canonical demo-path step explicitly, and narrows the roadmap or vision mapping to the actual reviewed slice.
+4. Recorded the completed high-risk kickoff context, including the risk reason for the shared-test exception and command-contract touchpoint, so the 4-task cap remains auditable.
 
 ## Files Changed
 - `src/qual/commands/catalog.py`
@@ -39,7 +45,7 @@
 - `./quality-test.sh` -> passed
 - `./typecheck-test.sh` -> passed
 - `make ci` -> passed
-- Verification rerun timestamp: `2026-04-24T09:01:55Z UTC`
+- Verification rerun timestamp: `2026-04-24T09:03:53Z UTC`
 
 ## Risks / Blockers
 - Risks: future command-surface changes now need to keep the CLI lookup-table behavior and the shared regression suite aligned so the canonical command contract stays catalog-locked.
