@@ -6143,6 +6143,18 @@ class A2UIFallbackSafetyTests(unittest.TestCase):
         self.assertIn("- context_preview: alpha, beta, +1 more item", text)
         self.assertIn("- context_preview: <none>", empty_text)
 
+    def test_shell_ui_render_startup_handles_zero_preview_limit_without_leading_separator(self) -> None:
+        runtime = SimpleNamespace(
+            vault=SimpleNamespace(project_name="Demo", root_dir="/tmp/demo", is_locked=False),
+            basket=SimpleNamespace(item_ids=["alpha"]),
+        )
+
+        with patch("src.qual.ui.shell.SHELL_UI_STARTUP_PREVIEW_LIMIT", 0):
+            text = ShellUI().render_startup(runtime)
+
+        self.assertIn("- context_preview: +1 more item", text)
+        self.assertNotIn("- context_preview: , +1 more item", text)
+
     def test_terminal_artifact_cli_fallback_route_contract_fingerprints_are_public_and_canonical(self) -> None:
         from src.qual.ui import (
             describe_terminal_artifact_cli_fallback_route_contract_fingerprints as exported_route_fingerprints,

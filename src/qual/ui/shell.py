@@ -272,17 +272,7 @@ class ShellUI:
 
     def render_startup(self, runtime: EngineRuntime) -> str:
         item_ids = self._snapshot_item_ids(runtime.basket.item_ids)
-        if item_ids:
-            preview_items = [
-                self._format_item_id(value) for value in item_ids[:SHELL_UI_STARTUP_PREVIEW_LIMIT]
-            ]
-            preview = ", ".join(preview_items)
-            if len(item_ids) > SHELL_UI_STARTUP_PREVIEW_LIMIT:
-                remaining = len(item_ids) - SHELL_UI_STARTUP_PREVIEW_LIMIT
-                label = "item" if remaining == 1 else "items"
-                preview = f"{preview}, +{remaining} more {label}"
-        else:
-            preview = SHELL_UI_STARTUP_EMPTY_PREVIEW
+        preview = self._render_startup_preview(item_ids)
         return (
             "Qual Workstation bootstrap is running\n"
             f"- project: {self._render_startup_value(runtime.vault.project_name)}\n"
@@ -291,6 +281,19 @@ class ShellUI:
             f"- context_items: {len(item_ids)}\n"
             f"- context_preview: {preview}"
         )
+
+    @staticmethod
+    def _render_startup_preview(item_ids: list[object]) -> str:
+        if not item_ids:
+            return SHELL_UI_STARTUP_EMPTY_PREVIEW
+        preview_items = [ShellUI._format_item_id(value) for value in item_ids[:SHELL_UI_STARTUP_PREVIEW_LIMIT]]
+        preview = ", ".join(preview_items)
+        if len(item_ids) > SHELL_UI_STARTUP_PREVIEW_LIMIT:
+            remaining = len(item_ids) - SHELL_UI_STARTUP_PREVIEW_LIMIT
+            label = "item" if remaining == 1 else "items"
+            overflow = f"+{remaining} more {label}"
+            return f"{preview}, {overflow}" if preview else overflow
+        return preview
 
     @staticmethod
     def _snapshot_item_ids(item_ids: object) -> list[object]:
