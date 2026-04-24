@@ -6,7 +6,7 @@
 - Reviewed implementation head: `adfa8cdadd43747ffbcb612e4151e262b13e52ca`
 - Reviewed implementation range: `d7fd5d200358287fa42a18d39e2b277463b9b69f..adfa8cdadd43747ffbcb612e4151e262b13e52ca`
 - Packet traceability note: review this lane against the narrowed implementation range above. The current packet refresh commit is metadata-only and does not broaden retrieval scope beyond `d7fd5d20..adfa8cda`.
-- Canonical demo-path step advanced: `retrieve relevant material`
+- Canonical demo-path step advanced: `retrieve relevant material` via the FTS-first engine surface with fail-closed excerpt lookup and auditable provenance.
 - Reviewer-required plan-alignment statement: This work advances `retrieve relevant material` by making the public excerpt lookup surface resolve through the authoritative SQLite FTS path, so PageIndex-only excerpt IDs fail closed under shared regression coverage and basket-promotion inputs stay deterministic.
 - Evidence note: `tests/unit/test_unified_retrieval.py` covers both the narrowed service-level contract and the public retrieval facade for this slice. `test_retrieval_service_rejects_pageindex_excerpt_payloads` proves PageIndex-only excerpt IDs fail closed on `fetch_excerpt(...)`, and `test_retrieve_fts_excerpt_returns_canonical_fts_payload` proves the canonical/public FTS excerpt helpers return the same payload shape.
 - Packet authority note: this top-level packet and `docs/gate_passed.txt` are the reviewer-facing source of truth for the explicit demo-path mapping and plan-alignment wording on this branch.
@@ -100,7 +100,7 @@
 
 ## Risks / Blockers
 
-- Risk: `HIGH`
+- Remaining risks: none identified in the reviewed slice beyond normal merge risk on a metadata-only packet refresh. Re-review should continue to anchor retrieval scope to `adfa8cdadd43747ffbcb612e4151e262b13e52ca` so later packet-refresh commits are not mistaken for new retrieval implementation changes.
 - Blockers: none
 
 ## Required Handoff Fields
@@ -112,7 +112,7 @@
 
 ### Canonical demo-path step advanced
 
-- `retrieve relevant material`
+- `retrieve relevant material` via the FTS-first engine surface with fail-closed excerpt lookup and auditable provenance.
 - Deterministic FTS-only excerpt lookup strengthens auditable basket-promotion inputs.
 
 ### Vision capability affected
