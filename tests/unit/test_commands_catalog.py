@@ -197,6 +197,13 @@ from src.qual.commands import (
     command_mvp_workflow_branch_tokens,
     command_mvp_workflow_trusted_contract,
     command_mvp_workflow_tokens,
+    command_workflow_next_action_contract,
+    command_workflow_next_action_invocation_table,
+    command_workflow_next_action_surface_invocation_table,
+    command_workflow_next_action_tokens,
+    command_workflow_path_contract,
+    command_workflow_path_invocation_plan,
+    command_workflow_path_tokens,
     command_workflow_tokens,
     command_mvp_workflow_lookup_table,
     command_mvp_workflow_invocation_table,
@@ -5682,6 +5689,14 @@ class CommandCatalogTests(unittest.TestCase):
         self.assertEqual(command_workflow_contract(), command_mvp_workflow_contract())
         self.assertEqual(command_workflow_tokens(), command_mvp_workflow_tokens())
 
+    def test_public_workflow_path_aliases_track_the_current_mvp_path(self) -> None:
+        self.assertEqual(command_workflow_path_contract(), command_mvp_path_contract())
+        self.assertEqual(command_workflow_path_tokens(), command_mvp_path_contract().flow_steps)
+        self.assertEqual(
+            command_workflow_path_invocation_plan(),
+            command_mvp_path_contract().invocation_plan,
+        )
+
     def test_public_trusted_surface_aliases_track_the_current_mvp_surface(self) -> None:
         self.assertEqual(command_trusted_surface_contract(), command_mvp_trusted_surface_contract())
         self.assertEqual(command_trusted_surface_catalog(), command_mvp_trusted_surface_catalog())
@@ -5695,6 +5710,21 @@ class CommandCatalogTests(unittest.TestCase):
         self.assertEqual(
             command_workflow_trusted_tokens("reject"),
             command_mvp_workflow_trusted_tokens("reject"),
+        )
+
+    def test_public_workflow_next_action_aliases_track_the_current_mvp_contract(self) -> None:
+        self.assertEqual(
+            command_workflow_next_action_contract("review"),
+            command_mvp_next_action_contract("review"),
+        )
+        self.assertEqual(command_workflow_next_action_tokens("review"), ("apply-patch", "reject-patch"))
+        self.assertEqual(
+            command_workflow_next_action_invocation_table("review"),
+            command_mvp_next_action_invocation_table("review"),
+        )
+        self.assertEqual(
+            command_workflow_next_action_surface_invocation_table("review"),
+            command_mvp_next_action_preferred_invocation_table("review"),
         )
 
     def test_command_manifest_keeps_catalog_order(self) -> None:
