@@ -30,6 +30,10 @@ Canonical handoff contract lives in `THREAD_PACKET.md`.
   - `+9652/-485` lines in the full `f8d860ed..5ea27f3d` range
   - this is not a valid `AGENTS.md` high-risk `4`-task handoff as previously framed because it exceeds the `<=8 files` and `<=300 net LOC` size limits
   - the packet is now truthful about that budget miss; the implementation should be split into smaller reviewable packets before integration promotion
+- Recommended split for re-review:
+  - Packet A: parser-surface and catalog hardening
+  - Packet B: demo token, shim, and next-action workflow contracts
+  - Packet C: diff-preview stabilization
 - Canonical demo-path steps advanced by the true range:
   - `open project/document`
   - `retrieval`

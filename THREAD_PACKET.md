@@ -24,6 +24,18 @@
 - Result: this is not a valid `AGENTS.md` high-risk `4`-task handoff because it exceeds the `<=8 files` and `<=300 net LOC` limits
 - Required follow-up for integration promotion: split this implementation into smaller reviewable packets before promotion
 
+### Recommended Split For Re-Review
+
+1. Packet A: parser-surface and catalog hardening
+   - Scope: `src/qual/commands/catalog.py`, `src/qual/commands/__init__.py`, `src/qual/commands/canonical.py`, `tests/unit/test_commands_catalog.py`
+   - Behavior: parser-surface drift rejection, lookup helpers, parser-ready argv helpers, smoke argv helpers, and canonical command catalog validation
+2. Packet B: demo token, shim, and next-action workflow contracts
+   - Scope: `src/qual/commands/catalog.py`, `src/qual/commands/__init__.py`, `src/qual/commands/canonical.py`, `tests/unit/test_commands_catalog.py`
+   - Behavior: trusted surface metadata, demo-loop token preservation, compatibility aliases, workflow step normalization, and next-action/export-handoff routing
+3. Packet C: diff-preview stabilization
+   - Scope: `src/qual/commands/diff_preview.py`, `tests/unit/test_diff_preview.py`
+   - Behavior: truncation, fingerprint, and no-diff payload stability
+
 ### Checkpoint Cadence
 
 - plan complete
