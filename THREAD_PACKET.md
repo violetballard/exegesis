@@ -5,7 +5,7 @@
 - Commit: `f8d860ed9f6299f0169c4f21321ac5f37c949fd3`
 - Packet refresh role: `fixer reviewer packet correction`
 - Packet refresh basis: `realigned the handoff to the actual reviewed implementation slice after the reviewer flagged inconsistent traceability, overbroad roadmap or vision mapping, and a missing explicit canonical demo-path statement`
-- Post-fixer verification: `2026-04-24T09:13:47Z UTC gate rerun confirmed this packet correction matches the current branch state; the current refresh is metadata-only and keeps the reviewed implementation scope pinned to f8d860ed9f6299f0169c4f21321ac5f37c949fd3`
+- Post-fixer verification: `2026-04-24T09:17:49Z UTC gate rerun confirmed this packet correction matches the current branch state; the current refresh is metadata-only and keeps the reviewed implementation scope pinned to f8d860ed9f6299f0169c4f21321ac5f37c949fd3`
 - Packet-only refresh files:
   - `THREAD.md`
   - `THREAD_PACKET.md`
@@ -25,18 +25,30 @@
 - Size limits: `<=8 files`, `<=300 net LOC`
 - Max fix attempts per failing gate: `2`
 
-### Planned Tasks (Completed)
+### Planned Tasks (max 4)
 
 1. Lock the live CLI parser surface to the command catalog so canonical-name drift fails closed instead of silently changing the operator-facing contract.
 2. Add regression coverage for canonical-order alignment and catalog-drift rejection in the command contract tests.
 3. Regenerate the handoff packet so the re-review basis points to the actual implementation commit, the canonical demo-path mapping is explicit, and the roadmap or vision mapping stays narrow.
 4. Re-run the required gates and record the outcomes against the unchanged reviewed implementation scope.
 
+### Early Review Triggers
+
+- before first edit to any shared or integrator-locked file
+- before changing public interfaces or command contracts
+- before touching provider routing or config behavior
+
+### Stop Triggers
+
+- unresolved test, lint, or typecheck failure after `2` focused fix attempts
+- unresolved `make scope-check`
+- budget, size, or time limit hit
+
 ### High-Risk Audit Note
 
 - Shared-test exception reason: the regression proving contract drift rejection lives in `tests/unit/test_commands_catalog.py`, which is shared-by-approval rather than lane-owned.
 - Command-contract risk reason: this slice hardens the operator-visible parser/catalog boundary in `src/qual/commands/catalog.py`, so the stricter high-risk kickoff template applied even though the code change stayed narrow.
-- Auditability result: the risk reason, scope goal, 4-task cap, and approval basis are now all recorded directly in the handoff artifacts for re-review.
+- Auditability result: the risk reason, early review triggers, stop triggers, scope goal, 4-task cap, and approval basis are now all recorded directly in the handoff artifacts for re-review.
 
 ### Checkpoint Cadence
 
@@ -111,7 +123,7 @@
 - `./quality-test.sh`: `PASSED`
 - `./typecheck-test.sh`: `PASSED`
 - `make ci`: `PASSED`
-- Gate attribution note: these gates were rerun at `2026-04-24T09:13:47Z UTC` against the current branch state while the reviewed implementation scope remains pinned to `f8d860ed9f6299f0169c4f21321ac5f37c949fd3`; the current packet refresh itself is metadata-only.
+- Gate attribution note: these gates were rerun at `2026-04-24T09:17:49Z UTC` against the current branch state while the reviewed implementation scope remains pinned to `f8d860ed9f6299f0169c4f21321ac5f37c949fd3`; the current packet refresh itself is metadata-only.
 
 ### Risks / Blockers
 
