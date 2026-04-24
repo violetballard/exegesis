@@ -12,14 +12,14 @@
 ## Scope Completed
 
 - SQLite FTS remains the authoritative MVP retrieval path in this narrowed slice.
-- `fetch_excerpt` now fails closed on the canonical FTS-only path by removing the PageIndex fallback from excerpt lookup.
+- `fetch_excerpt()` now fails closed unless the excerpt exists on the canonical FTS path, removing the PageIndex fallback from excerpt lookup.
 - Approved shared regression coverage proves PageIndex-only excerpt IDs now raise `KeyError`.
 - PageIndex and embeddings remain non-required compatibility paths in this slice; excerpt lookup no longer promotes PageIndex as a runtime fallback path for the MVP contract.
 
 ## Canonical Demo-Path Step Advanced
 
 - `retrieve relevant material`
-- This slice makes `retrieve relevant material` more real by ensuring excerpt lookup only accepts FTS-backed excerpt IDs and rejects PageIndex-only IDs, which keeps the engine-facing retrieval step deterministic and auditable.
+- This slice makes `retrieve relevant material` more real because `fetch_excerpt()` now fails closed unless the excerpt exists on the canonical FTS path, rejecting PageIndex-only IDs and hardening deterministic structured retrieval and provenance for downstream basket promotion and workflow use.
 
 ## Thread Kickoff (High-Risk)
 
@@ -71,7 +71,7 @@
 ## Tasks Completed
 
 1. Refreshed the packet so it explicitly names the canonical demo-path step advanced as `retrieve relevant material`.
-2. Tightened the roadmap and vision mapping to the exact contract change: excerpt lookup accepts only FTS-backed excerpt IDs and rejects PageIndex-only IDs.
+2. Tightened the roadmap and vision mapping to the exact contract change: `fetch_excerpt()` now fails closed unless the excerpt exists on the canonical FTS path, rejecting PageIndex-only IDs.
 3. Preserved the narrowed reviewed implementation head and range for the excerpt-lookup slice.
 4. Re-ran the required local gates on the current fixer branch tip.
 
@@ -113,7 +113,7 @@
 
 ### Exact contract impact
 
-- This slice hardens the Milestone 3 retrieval/search surface and Milestone 4 retrieval contract by ensuring excerpt lookup only accepts FTS-backed excerpt IDs and rejects PageIndex-only IDs, making `retrieve relevant material` more deterministic and auditable.
+- This slice hardens the Milestone 3 retrieval/search surface and Milestone 4 retrieval contract because `fetch_excerpt()` now fails closed unless the excerpt exists on the canonical FTS path, rejecting PageIndex-only IDs and preserving deterministic structured retrieval and provenance for downstream basket promotion and workflow use.
 
 ### Routing/provider impact note
 
