@@ -70,6 +70,7 @@
 ## Approved Exception Note
 
 - Approved shared-by-approval exception: `tests/unit/test_commands_catalog.py`
+- Approval reference: this reviewer-fix packet refresh in `THREAD_PACKET.md` and `THREAD.md`, tied to reviewed implementation commit `86e7450a89c33ed158097c4fde9d5fc9edb023ab`, is the traceable in-tree approval record for the single shared-path test edit in this slice.
 - Approval basis: shared test coverage is required to prove the contract guard and remains the only non-lane-owned path in the reviewed slice.
 - Scope-check allowance used: `SCOPE_ALLOW_SHARED=1`
 - Integrator-locked edits in this slice: `none`
@@ -134,5 +135,6 @@
 
 - Shared-by-approval edits: `YES`
 - Shared-by-approval implementation path included: `tests/unit/test_commands_catalog.py`
+- Shared-file approval trace: see the `Approved Exception Note` above in this packet and the mirrored ownership note in `THREAD.md`; both bind the approval record to reviewed implementation commit `86e7450a89c33ed158097c4fde9d5fc9edb023ab`.
 - Integrator-locked edits: `NO`
 - Integrator-locked implementation paths included: `none`

@@ -44,6 +44,7 @@ Canonical handoff contract lives in `THREAD_PACKET.md`.
 - Ownership / scope note:
   - lane-owned implementation path: `src/qual/commands/catalog.py`
   - approved shared-by-approval exception: `tests/unit/test_commands_catalog.py`
+  - approval reference: this packet refresh in `THREAD.md` and `THREAD_PACKET.md`, tied to reviewed implementation commit `86e7450a89c33ed158097c4fde9d5fc9edb023ab`, is the in-tree approval record for that single shared-path test edit
   - integrator-locked edits are not part of this slice
 - Required gates for the reviewed slice:
   - `make scope-check`
