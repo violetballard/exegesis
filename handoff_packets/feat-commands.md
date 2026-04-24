@@ -2,9 +2,9 @@
 
 - Branch name: `codex/feat-commands`
 - Scope completed: hardened `command_cli_contract()` in `src/qual/commands/catalog.py` so the CLI contract reuses the canonical `command_names()` ordering and raises if the parser surface drifts from the command catalog, then added focused regression coverage for canonical-order alignment and drift rejection in `tests/unit/test_commands_catalog.py`.
-- Canonical demo-path step advanced: `patch-review` in the CLI-first `project-open -> retrieval -> patch-review -> apply/reject -> persist -> export-handoff` MVP loop.
-- Canonical demo-path mapping sentence: this slice makes the `patch-review` step more real because `command_cli_contract()` now returns the validated canonical parser-entrypoint projection sourced from `_validated_cli_entrypoints_for()` and `_cli_entrypoints_by_name()` in `src/qual/commands/catalog.py` for the live `diff-preview` and `diff` patch-review surface after `project-open`/document open and retrieval, and the regression coverage imported in `tests/unit/test_commands_catalog.py` proves both the canonical catalog order and the fail-fast parser-drift rejection that keeps this operator contract deterministic while Textual remains disabled.
-- Concrete blocker removed: before this change, parser drift could silently desynchronize the patch-review CLI surface from the catalog while leaving the contract seemingly valid, which meant an operator could open a project or document and advance through retrieval only to hit a patch-review surface that had drifted away from the canonical MVP loop without an immediate failure.
+- Canonical demo-path step advanced: `continue working without losing context` in the CLI-first engine loop.
+- Canonical demo-path mapping sentence: this slice makes the `open project/document` and overall `continue working` command surface more reliable by keeping the canonical command contract deterministic while Textual remains disabled, because `command_cli_contract()` now returns the validated canonical parser-entrypoint projection sourced from `_validated_cli_entrypoints_for()` and `_cli_entrypoints_by_name()` in `src/qual/commands/catalog.py`, and the regression coverage imported in `tests/unit/test_commands_catalog.py` proves both the canonical catalog order and the fail-fast parser-drift rejection.
+- Concrete blocker removed: before this change, parser drift could silently desynchronize the CLI surface from the catalog while leaving the contract seemingly valid, which meant an operator could open a project or document and continue through the engine-first loop against a contract that had drifted away from the canonical MVP path without an immediate failure.
 - Traceability note: reviewed implementation commit is `f8d860ed9f6299f0169c4f21321ac5f37c949fd3`; this refresh updates only `THREAD.md`, `THREAD_PACKET.md`, and `handoff_packets/feat-commands.md`.
 
 ## Tasks Completed
@@ -30,16 +30,16 @@
 - `make ci` -> passed
 
 ## Risks / Blockers
-- Risks: future command-surface edits still need to preserve the parser/catalog lock so the `diff-preview` and `diff` patch-review entrypoints stay deterministic.
+- Risks: future command-surface edits still need to preserve the parser/catalog lock so the engine-first CLI loop stays deterministic from `project-open` through `continue working`.
 - Blockers: none.
 
 ## Roadmap Item(s) Affected
-- `ROADMAP.md` Milestone 3 `Real workflow loop` because this slice removes a concrete blocker in the active CLI-first operator path by keeping `patch-review` deterministic after the operator opens a project/document and advances through retrieval.
-- `ROADMAP.md` canonical demo path because the concrete operator step protected is `patch-review` in `project-open -> retrieval -> patch-review -> apply/reject -> persist -> export-handoff`, where `command_cli_contract()` now inherits the `diff-preview` and `diff` entrypoints from `_validated_cli_entrypoints_for()` and `_cli_entrypoints_by_name()` in `src/qual/commands/catalog.py`, and the regression coverage imported in `tests/unit/test_commands_catalog.py` proves they fail fast on drift.
+- `ROADMAP.md` Milestone 3 `Real workflow loop` because this slice removes a concrete blocker in the active CLI-first operator path by keeping the command surface deterministic from `project-open` through `continue working`.
+- `ROADMAP.md` canonical demo path because the concrete operator step strengthened is `continue working without losing context`, where `command_cli_contract()` now inherits the canonical catalog projection from `_validated_cli_entrypoints_for()` and `_cli_entrypoints_by_name()` in `src/qual/commands/catalog.py`, and the regression coverage imported in `tests/unit/test_commands_catalog.py` proves the engine-first CLI contract fails fast on drift.
 - `ROADMAP.md` lane mapping `feat-commands` because this lane owns CLI compatibility and migration-safe entrypoints for the engine-first MVP loop.
 
 ## Vision Capability Affected
-- `PRODUCT_VISION.md` capability 3 `Canonical engine contract` because the active CLI operator surface now rejects parser/catalog drift before it can silently change the patch-review command contract.
+- `PRODUCT_VISION.md` capability 3 `Canonical engine contract` because the active CLI operator surface now rejects parser/catalog drift before it can silently change the command contract the operator relies on while continuing through the engine loop.
 - `PRODUCT_VISION.md` near-term product truth because the CLI remains the active operator surface while Textual is disabled, and this change hardens a real operator path rather than abstract CLI metadata.
 
 ## Routing / Provider Impact Note
