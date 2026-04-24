@@ -13,8 +13,12 @@ Canonical handoff contract lives in `THREAD_PACKET.md`.
   - `tests/unit/test_commands_catalog.py`
 - Canonical demo-path step advanced:
   - `open project/document`
+- Active MVP operator path strengthened:
+  - the CLI fallback path for `open project/document` while Textual remains disabled
 - Concrete blocker removed for Milestone 3:
   - the CLI-first MVP no longer allows the parser-facing contract for the `open project/document` entry step to drift away from `command_names()` and the canonical command catalog without failing closed, so the first command a CLI operator uses in the demo loop cannot silently advertise a different canonical surface than the one the rest of the loop executes.
+- Scope-tightening note:
+  - this reviewed slice hardens only the CLI fallback entry step above; it does not claim patch preview, apply or reject, or broader command-flow coverage
 - Why this is milestone-worthy now:
   - Milestone 3 still depends on the CLI as the active operator surface while Textual remains disabled, so preventing silent contract drift at the demo-path entry step is direct operator-path hardening for the live CLI-first MVP loop rather than second-order cleanup.
 - Roadmap / vision alignment for this reviewed slice:

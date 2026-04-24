@@ -53,8 +53,10 @@
 ## Canonical Demo-Path Mapping
 
 - Canonical demo-path step advanced: `open project/document`.
+- Active MVP operator path strengthened: the CLI fallback path for `open project/document` while Textual remains disabled.
 - Concrete blocker removed: before this guard, the CLI-first MVP could keep parsing `bootstrap` while the parser-facing canonical-name list drifted away from `command_names()`, which makes the `open project/document` entry step a migration-risk surface where the CLI can advertise one canonical command contract and execute another as the rest of the loop continues.
-- Direct plan-alignment statement: this change makes `open project/document` more real by forcing stable CLI execution of the demo-path entrypoint to fail closed whenever the parser surface and canonical command catalog stop matching.
+- Direct plan-alignment statement: this change makes the CLI fallback `open project/document` entry step more real by forcing that demo-path entrypoint to fail closed whenever the parser surface and canonical command catalog stop matching.
+- Scope-tightening note: this handoff claims only the CLI fallback entry step above; it does not claim to harden patch preview, apply/reject, or any broader command flow in this slice.
 - Why this is milestone-worthy now instead of second-order cleanup: `AGENTS.md` says contract work counts only when it removes a concrete blocker on the canonical demo path. This guard does that because Milestone 3 still relies on the CLI as the active operator surface while Textual is disabled, so preventing silent contract drift at the first demo-path step hardens the live CLI-first MVP loop, not a speculative future path.
 
 ## Approved Exception Note
@@ -71,7 +73,7 @@
 ### Tasks Completed (Numbered)
 
 1. Re-anchored the handoff packet to the exact reviewed implementation commit `f8d860ed9f6299f0169c4f21321ac5f37c949fd3`.
-2. Added the required canonical demo-path mapping for the `open project/document` entry step and named the concrete contract-drift failure mode it prevents.
+2. Added the required canonical demo-path mapping for the CLI fallback `open project/document` entry step and named the concrete contract-drift failure mode it prevents.
 3. Narrowed the roadmap and vision mapping to CLI compatibility and canonical engine-contract evidence only.
 4. Refreshed the compatibility pointer file and reran the required gates.
 
