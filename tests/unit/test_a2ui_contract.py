@@ -258,6 +258,7 @@ class A2UIContractTests(unittest.TestCase):
                 "capabilities",
                 "cards",
                 "fallbacks",
+                "leaf_contracts",
                 "selection",
                 "primitive_blocks",
                 "actions",

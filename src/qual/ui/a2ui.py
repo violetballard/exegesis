@@ -244,7 +244,10 @@ def describe_a2ui_contract(
     ``shell_ui_contract_manifest_fingerprint`` for consumers that prefer the
     shell-style manifest naming, and it also exposes
     ``terminal_artifact_renderer_entrypoints_contract_manifest`` for the
-    renderer-entrypoints contract slice itself.
+    renderer-entrypoints contract slice itself. The shared action/selection
+    leaf bundle is also surfaced as ``leaf_contracts`` so engine outputs can
+    negotiate that stable contract slice without reassembling it from the
+    separate leaf manifests.
     """
 
     manifest = _snapshot_contract_section(_build_a2ui_contract_manifest(
@@ -271,6 +274,11 @@ def describe_a2ui_contract(
     manifest["selection_fingerprint"] = selection_contract["contract_fingerprint"]
     manifest["selection_contract"] = _snapshot_contract_section(selection_contract)
     manifest["selection_contract_fingerprint"] = manifest["selection_fingerprint"]
+    leaf_contracts = _snapshot_contract_section(manifest["schemas"]["leaf_contracts"])
+    manifest["leaf_contracts"] = leaf_contracts
+    manifest["leaf_contracts_fingerprint"] = leaf_contracts["contract_fingerprint"]
+    manifest["leaf_contracts_contract"] = _snapshot_contract_section(leaf_contracts)
+    manifest["leaf_contracts_contract_fingerprint"] = manifest["leaf_contracts_fingerprint"]
     terminal_artifact_contract = _snapshot_contract_section(manifest["terminal_artifact"])
     manifest["terminal_artifact_contract"] = _snapshot_contract_section(terminal_artifact_contract)
     manifest["terminal_artifact_contract_fingerprint"] = terminal_artifact_contract["contract_fingerprint"]
@@ -515,13 +523,14 @@ def describe_a2ui_contract_fingerprints(
 ) -> dict[str, str]:
     """Return stable fingerprints for the contract sections and embedded contracts.
 
-    The default key set stays lean for existing callers. Opt-in flags expose the
-    embedded dispatch fingerprints, including the raw-leaf card-default
-    recovery contract and its policy contract, plus contract aliases that the
-    full manifest already surfaces so lightweight callers can negotiate the
-    same contract slice without pulling the entire manifest. The top-level
-    `contract_fingerprint` alias is included only when alias expansion is
-    requested, mirroring the manifest surface. Pass
+    The default key set stays lean for existing callers while still exposing
+    the shared leaf bundle fingerprint that engine consumers need. Opt-in
+    flags expose the embedded dispatch fingerprints, including the raw-leaf
+    card-default recovery contract and its policy contract, plus contract
+    aliases that the full manifest already surfaces so lightweight callers can
+    negotiate the same contract slice without pulling the entire manifest. The
+    top-level `contract_fingerprint` alias is included only when alias
+    expansion is requested, mirroring the manifest surface. Pass
     ``include_terminal_artifact_cli_fallback_entrypoint=True`` to expose the
     explicit CLI fallback entrypoint contract slice without pulling in the
     shell UI snapshot. Pass
@@ -548,6 +557,7 @@ def describe_a2ui_contract_fingerprints(
         "capabilities": a2ui_capabilities_contract_fingerprint(),
         "cards": _fingerprint_manifest_section(manifest["cards"]),
         "fallbacks": _fingerprint_manifest_section(manifest["fallbacks"]),
+        "leaf_contracts": a2ui_leaf_contracts_fingerprint(),
         "selection": selection_contract_fingerprint(),
         "primitive_blocks": _fingerprint_manifest_section(manifest["primitive_blocks"]),
         "actions": _fingerprint_manifest_section(manifest["actions"]),
@@ -796,6 +806,7 @@ def describe_a2ui_contract_fingerprints(
             ("capabilities_contract", a2ui_capabilities_contract_fingerprint()),
             ("card_fingerprint", card_contract_fingerprint()),
             ("card_contract_fingerprint", card_contract_fingerprint()),
+            ("leaf_contracts_contract", a2ui_leaf_contracts_fingerprint()),
             ("action_contract", action_contract_fingerprint()),
             ("selection_contract", selection_contract_fingerprint()),
             ("terminal_fallback_contract", terminal_fallback_contract_fingerprint()),
@@ -3682,6 +3693,7 @@ def _build_a2ui_schema_manifest(
         "capabilities": describe_a2ui_capabilities_contract(),
         "card_contract": describe_card_contract(),
         "cards": _build_card_schema_manifest(),
+        "leaf_contracts": describe_a2ui_leaf_contracts(),
         "selection": describe_selection_contract(),
         "action": describe_action_contract(),
         "terminal_artifact_envelope": describe_terminal_artifact_envelope_contract(),
