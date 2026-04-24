@@ -3,9 +3,9 @@
 - Lane: `feat-commands`
 - Branch: `codex/feat-commands`
 - Commit: `bd118a6c34ac5c2f42c8df62f364895474f9f7a7`
-- Packet refresh role: `reviewer-fix packet refresh`
-- Packet refresh basis: `regenerated on 2026-04-24 for re-review against the fixer delta that locks the live parser surface to the command catalog, proves the reviewer-called-out diff-preview-to-diff token drift now fails fast, extends that guard through warmed CLI-token caches, states the canonical demo-path step explicitly, and narrows roadmap/vision mapping to the current CLI-first contract surface in ROADMAP Milestone 3 and PRODUCT_VISION capability 4`
-- Post-fixer verification: `2026-04-24 UTC gate rerun confirmed the packet still matches the branch state after the fixer pass; no implementation files changed in this verification refresh`
+- Packet refresh role: `reviewer-fix final verification refresh`
+- Packet refresh basis: `regenerated on 2026-04-24 for final re-review verification after rerunning the required gates on the existing parser-surface fix, keeping the explicit canonical demo-path mapping for patch-review, and leaving the reviewed implementation scope unchanged`
+- Post-fixer verification: `2026-04-24 UTC gate rerun confirmed the packet still matches the branch state during this final verification refresh; no implementation files changed in this packet-only refresh`
 - Packet-only refresh files:
   - `THREAD.md`
   - `THREAD_PACKET.md`
@@ -41,7 +41,7 @@
 ## Review Basis
 
 - Reviewed implementation commit: `bd118a6c34ac5c2f42c8df62f364895474f9f7a7` (`test(commands): cover cached parser surface drift`).
-- Packet refresh traceability: the current branch tip for re-review is a packet-only refresh above `bd118a6c34ac5c2f42c8df62f364895474f9f7a7`; no implementation files beyond the reviewed slice changed in this refresh.
+- Packet refresh traceability: the current branch tip for final verification is a packet-only refresh above `bd118a6c34ac5c2f42c8df62f364895474f9f7a7`; no implementation files beyond the reviewed slice changed in this refresh.
 - Reviewed implementation files:
   - `tests/unit/test_commands_catalog.py`
   - implementation basis retained on branch: `src/qual/commands/catalog.py`

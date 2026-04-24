@@ -6,12 +6,12 @@ Canonical handoff contract lives in `THREAD_PACKET.md`.
 
 ## Current Review Focus
 
-- Packet refresh status: reviewer-fix packet refresh regenerated on 2026-04-24 for the exact reviewed implementation slice, with roadmap/vision mapping narrowed to the current CLI-first contract surface in `ROADMAP.md` Milestone 3 and `PRODUCT_VISION.md` capability 4.
+- Packet refresh status: reviewer-fix final verification refresh regenerated on 2026-04-24 for the exact reviewed implementation slice, with the canonical demo-path mapping preserved and the required gates rerun against the unchanged CLI-first contract surface in `ROADMAP.md` Milestone 3 and `PRODUCT_VISION.md` capability 4.
 - Reviewed implementation commit: `bd118a6c34ac5c2f42c8df62f364895474f9f7a7` (`test(commands): cover cached parser surface drift`).
 - Packet refresh traceability:
   - the current branch tip for re-review is a packet-only refresh above `bd118a6c34ac5c2f42c8df62f364895474f9f7a7`; no implementation files beyond the reviewed slice changed in this refresh
 - Post-fixer verification note:
-  - 2026-04-24 UTC gate rerun confirmed the packet still matches the branch state after this fixer pass; no implementation files changed in this verification refresh
+  - 2026-04-24 UTC gate rerun confirmed the packet still matches the branch state during this final verification refresh; no implementation files changed in this packet-only refresh
 - Reviewed implementation files:
   - `tests/unit/test_commands_catalog.py`
   - implementation basis retained on branch: `src/qual/commands/catalog.py`
