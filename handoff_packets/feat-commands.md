@@ -1,21 +1,30 @@
 # Handoff Packet: feat-commands
 
 - Branch name: `codex/feat-commands`
-- Scope completed: tightened the preview-entry CLI contract for the canonical `preview and apply or reject a patch` step so it validates the real `diff-preview` parser token surface and fails fast if that public review-step entrypoint drifts to alias-only, missing-canonical-token, reordered, or extra-token shapes.
+- Scope completed: hardened the review-step CLI contract for the canonical `preview and apply or reject a patch` step and exposed default current-MVP workflow aliases so CLI consumers use one stable command-contract surface for the same review/apply-or-reject branch.
 - Canonical demo-path step advanced: `preview and apply or reject a patch`
-- Demo-path mapping: this slice makes the canonical `preview and apply or reject a patch` step more real by keeping the operator-facing `diff-preview` preview entrypoint stable before operators enter the existing apply-or-reject branch of the current CLI smoke route.
-- Concrete blocker removed: parser/catalog drift can no longer silently drop the public `diff-preview` token and leave only the still-resolvable alias `diff`, which would otherwise make the CLI fallback unreliable at the operator-visible review step while Textual remains disabled and Milestone 3 still depends on the CLI MVP loop.
-- Plan-alignment statement: this is a single CLI smoke-route hardening step, not a general CLI cleanup. It makes the preview entrypoint for `preview and apply or reject a patch` deterministic and does not claim new retrieval, patch-apply, persistence, or export behavior.
-- Roadmap item(s) affected: `ROADMAP.md` Milestone 3 `Real workflow loop`, specifically `preserve CLI compatibility while the package/layout migration lands`, applied here only to the public preview entrypoint for `preview and apply or reject a patch` so CLI compatibility at that review step fails closed when the surface drifts.
-- Vision capability affected: `PRODUCT_VISION.md` capability 4 `Operator-first control surface`, applied narrowly to the CLI-first preview contract within `preview and apply or reject a patch` so parser/catalog drift cannot silently change the public `diff-preview` entrypoint while Textual remains disabled.
-- Routing/provider impact note: none; this slice does not touch model routing, provider configuration, or shared entrypoints.
+- Demo-path mapping: this slice makes the canonical `preview and apply or reject a patch` step more real by keeping the operator-facing `diff-preview` preview entrypoint stable and by exposing one default current-MVP helper surface for the apply/reject branch of that same review step.
+- Concrete blocker removed: parser/catalog drift can no longer silently drop the public `diff-preview` token and leave only the still-resolvable alias `diff`, and downstream callers no longer need to choose between demo-only and MVP-only helper names for the current review/apply-or-reject branch while the CLI fallback remains the active operator path.
+- Plan-alignment statement: this is one review-step contract-hardening slice. It does not claim new retrieval, persistence, export, audit-path, or broader workflow behavior.
+- Reviewed implementation basis:
+  - `f8d860ed9f6299f0169c4f21321ac5f37c949fd3` (`feat(commands): lock CLI contract to command catalog`)
+  - `4cd1d6b4857ce3da125bb32ae2c76d4b9c41defa` (`feat(commands): expose default workflow aliases`)
+- Packet refresh traceability: this resubmission is metadata-only and updates only `handoff_packets/feat-commands.md`, `THREAD_PACKET.md`, and `THREAD.md`.
+- Roadmap item(s) affected:
+  - `ROADMAP.md` MVP focus active lane: `feat-commands`
+  - `ROADMAP.md` Milestone 3 `Define and lock user-facing output contracts`
+  - `ROADMAP.md` Milestone 5 CLI fallback exit criterion for the MVP flow
+- Vision capability affected:
+  - `PRODUCT_VISION.md` capability 4 `Operator-first control surface`
+  - engine-contracts-first alignment while `Exegesis Console` stays deferred
+- Routing/provider impact note: none; this slice does not touch model routing, provider configuration, or integrator-locked entrypoints.
 - Proposed `README.md` patch text: none.
 
 ## Tasks Completed
-1. Tightened `_validate_command_cli_contract()` in [src/qual/commands/catalog.py](/Users/doctor-violet/.codex/worktrees/5494/qual/src/qual/commands/catalog.py:553) so the command contract validates the authoritative parser projection against the declared CLI entrypoint surface instead of only comparing deduplicated canonical command names.
-2. Added parser-surface regressions in [tests/unit/test_commands_catalog.py](/Users/doctor-violet/.codex/worktrees/5494/qual/tests/unit/test_commands_catalog.py:494) that patch the real parser surface and prove alias-only, missing-canonical-token, reordered, and extra-token drift fail fast, including the critical `diff-preview` removed while `diff` still resolves case.
-3. Added the review-step branch-contract helpers in [src/qual/commands/catalog.py](/Users/doctor-violet/.codex/worktrees/5494/qual/src/qual/commands/catalog.py:3687) and [src/qual/commands/__init__.py](/Users/doctor-violet/.codex/worktrees/5494/qual/src/qual/commands/__init__.py:24) so the apply/reject branch for the review step can be consumed through explicit contract exports without changing provider, routing, or broader workflow scope.
-4. Updated [handoff_packets/feat-commands.md](/Users/doctor-violet/.codex/worktrees/5494/qual/handoff_packets/feat-commands.md:1), [THREAD_PACKET.md](/Users/doctor-violet/.codex/worktrees/5494/qual/THREAD_PACKET.md:1), and [THREAD.md](/Users/doctor-violet/.codex/worktrees/5494/qual/THREAD.md:1) so the re-review packet names the exact canonical demo-path step this slice advances, states the concrete blocker removed, keeps the roadmap and vision mapping narrow, and records the current verification traceability.
+1. Locked the live review-step parser surface to the command catalog so `diff-preview` drift fails closed.
+2. Added parser-surface regressions in [tests/unit/test_commands_catalog.py](/Users/doctor-violet/.codex/worktrees/5494/qual/tests/unit/test_commands_catalog.py:5584) covering alias-only, missing-token, extra-token, and cache-warm drift cases.
+3. Added public default current-MVP workflow aliases and trusted-surface aliases in [src/qual/commands/catalog.py](/Users/doctor-violet/.codex/worktrees/5494/qual/src/qual/commands/catalog.py:3509) and [src/qual/commands/__init__.py](/Users/doctor-violet/.codex/worktrees/5494/qual/src/qual/commands/__init__.py:145).
+4. Updated [handoff_packets/feat-commands.md](/Users/doctor-violet/.codex/worktrees/5494/qual/handoff_packets/feat-commands.md:1), [THREAD_PACKET.md](/Users/doctor-violet/.codex/worktrees/5494/qual/THREAD_PACKET.md:1), and [THREAD.md](/Users/doctor-violet/.codex/worktrees/5494/qual/THREAD.md:1) so the re-review packet points at the real implementation basis and distinguishes shared-by-approval test scope from integrator-locked scope.
 5. Ran the required gate suite and scope check.
 
 ## Files Changed
@@ -27,19 +36,19 @@
 - `handoff_packets/feat-commands.md`
 
 ## Commands Run With Results
-- `python -m unittest tests.unit.test_commands_catalog -q` -> passed
 - `make scope-check` -> passed
 - `./quality-format.sh --check` -> passed
 - `./quality-lint.sh` -> passed
 - `./quality-test.sh` -> passed
 - `./typecheck-test.sh` -> passed
 - `make ci` -> passed
-- Verification rerun timestamp: `2026-04-24T08:01:00Z`
+- Verification rerun timestamp: `2026-04-24T08:19:27Z UTC`
 
 ## Risks / Blockers
-- Risks: future parser-surface changes now need to keep the declared CLI entrypoints, authoritative parser projection, and packet metadata aligned; the updated regressions are intended to fail fast if they drift.
+- Risks: future command-surface changes now need to keep `_CLI_ENTRYPOINTS`, the public default current-MVP alias exports, and the shared regression suite aligned.
 - Blockers: none.
 
 ## Scope-Check / Ownership Note
 - Shared-by-approval edit: `tests/unit/test_commands_catalog.py`
-- Approval note: `THREAD_OWNERSHIP.md` shared-file exception retained for the required parser-surface regression coverage.
+- Approval trace: `scripts/scope-check.sh` `is_approved_shared_test()` allowlists `tests/unit/test_commands_catalog.py` for `codex/feat-commands*`
+- Integrator-locked edits: `none`
