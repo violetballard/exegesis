@@ -3,9 +3,9 @@ Gate Results Summary (as of 2026-04-24)
 
 Required automated gates reran for the corrected retrieval handoff:
 
-* current submitted implementation tip before this metadata-only fixer commit `4302bc117bedba915197161c40f23c3a3537b373`
-* reviewed implementation head `9d9e11a1929dc56e44f5a4d459aa385e7a6ce1e5`
-* reviewed implementation range `378cf9a74a3658058079a32f186fcd254c4a4034..9d9e11a1929dc56e44f5a4d459aa385e7a6ce1e5`
+* current submitted implementation tip before this metadata-only fixer commit `18f0ab0960c6d07920de212785c9517e8688418c`
+* reviewed implementation head `18f0ab0960c6d07920de212785c9517e8688418c`
+* reviewed implementation range `378cf9a74a3658058079a32f186fcd254c4a4034..18f0ab0960c6d07920de212785c9517e8688418c`
 * reviewed implementation files `.codex/kickoff_packets/feat-retrieval-fts.md`, `.codex/lane_meta/feat-retrieval-fts.json`, `THREAD_PACKET.md`, `codex_packet_handoff/tools/planner.py`, `docs/gate_passed.txt`, `src/qual/engine/retrieval/__init__.py`, `src/qual/engine/retrieval/embeddings_strategy.py`, `src/qual/engine/retrieval/fts_strategy.py`, `src/qual/engine/retrieval/interface.py`, `src/qual/engine/retrieval/pageindex_strategy.py`, `src/qual/engine/retrieval/payload.py`, `src/qual/retrieval/__init__.py`, `src/qual/retrieval/service.py`, `tests/unit/test_packet_planner.py`, and `tests/unit/test_unified_retrieval.py`
 * approved shared regression surface `tests/unit/test_unified_retrieval.py`
 
@@ -26,11 +26,10 @@ Focused retrieval proof:
 * `python3 -m unittest tests.unit.test_unified_retrieval` - passed
 
 Canonical demo-path step advanced: `retrieve relevant material`.
-Plan-alignment statement: This change makes the "retrieve relevant material" step more real by keeping excerpt lookup on the canonical FTS-only contract and making provenance and audit behavior deterministic for downstream basket and workflow use.
-Scope note: this handoff now covers the real cumulative implementation range through `9d9e11a1`, including the substantive post-`adfa8cda` retrieval commits `206ee919`, `a96043f`, and `9d9e11a1` that previously sat outside the packet's claimed scope.
+Plan-alignment statement: This change makes the `retrieve relevant material` step more real by keeping excerpt lookup on the canonical FTS-only contract and by making sparse-hit provenance and citation ordering deterministic for downstream basket and workflow use.
+Scope note: this handoff now covers the real cumulative implementation range through `18f0ab09`, including the substantive post-`adfa8cda` retrieval commits `206ee919`, `a96043fe`, `9d9e11a1`, `2a136e56`, and `18f0ab09` that previously sat outside the packet's claimed scope.
 Budget compliance statement: this packet is shared/high-risk work because it includes the approved shared regression surface `tests/unit/test_unified_retrieval.py`, so the handoff is read against the 4-task cap rather than the default 8-task cap.
-Traceability statement: this fixer commit is metadata-only; re-review should validate the actual reviewed implementation range `378cf9a7..9d9e11a1`, not the fixer commit itself.
-Packet artifact note: this fixer pass refreshed only the reviewer-facing artifacts `THREAD_PACKET.md` and `docs/gate_passed.txt`; attempts to rewrite the mirrored `.codex/*` packet artifacts failed with `Operation not permitted`, so use the reviewer-facing pair as the authoritative handoff source for re-review.
-Gate reissue note: this summary records the fresh green rerun for the metadata-only packet reissue built on top of `4302bc117bedba915197161c40f23c3a3537b373`.
+Traceability statement: this fixer commit is metadata-only; re-review should validate the actual reviewed implementation range `378cf9a7..18f0ab09`, not the fixer commit itself.
+Packet artifact note: the authoritative re-review artifacts are `THREAD_PACKET.md` and this gate summary. The tracked `.codex/*` packet mirrors remain stale because this worktree rejects writes to those paths with `operation not permitted`.
 
 The authoritative handoff packet remains `THREAD_PACKET.md`.
