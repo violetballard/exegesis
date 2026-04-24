@@ -2,9 +2,9 @@
 
 - Branch name: `codex/feat-commands`
 - Scope completed: hardened `command_cli_contract()` in `src/qual/commands/catalog.py` so the CLI contract reuses the canonical `command_names()` ordering and raises if the parser surface drifts from the command catalog, then added focused regression coverage for canonical-order alignment and drift rejection in `tests/unit/test_commands_catalog.py`.
-- Canonical demo-path step advanced: `preview and apply or reject a patch`
-- Canonical demo-path mapping sentence: this slice specifically strengthens `preview and apply or reject a patch` in the current CLI-first Milestone 3 loop because the operator reaches that step through the `diff-preview` and `diff` patch-review entrypoints, and those entrypoints now fail fast if the parser surface drifts from the canonical catalog instead of silently changing the command contract while Textual remains disabled.
-- Concrete blocker removed: before this change, parser drift could silently desynchronize the patch-review CLI surface from the catalog while leaving the contract seemingly valid, which weakened the deterministic command path the operator uses to reach patch review and apply-or-reject follow-up work.
+- Canonical demo-path step advanced: `patch-review` in the CLI-first `project-open -> retrieval -> patch-review -> apply/reject -> persist -> export-handoff` MVP loop.
+- Canonical demo-path mapping sentence: this slice makes the `patch-review` step more real because the live CLI-first loop still depends on the `diff-preview` and `diff` entrypoints after `project-open`/document open and retrieval, and those patch-review entrypoints now fail fast if the parser surface drifts from the canonical catalog instead of silently changing the deterministic command surface while Textual remains disabled.
+- Concrete blocker removed: before this change, parser drift could silently desynchronize the patch-review CLI surface from the catalog while leaving the contract seemingly valid, which meant an operator could open a project or document and advance through retrieval only to hit a patch-review surface that had drifted away from the canonical MVP loop without an immediate failure.
 - Traceability note: reviewed implementation commit is `f8d860ed9f6299f0169c4f21321ac5f37c949fd3`; this refresh updates only `THREAD.md`, `THREAD_PACKET.md`, and `handoff_packets/feat-commands.md`.
 
 ## Tasks Completed
@@ -34,8 +34,8 @@
 - Blockers: none.
 
 ## Roadmap Item(s) Affected
-- `ROADMAP.md` Milestone 3 `Real workflow loop` because this slice preserves CLI compatibility while the migration continues by making the patch-review command contract deterministic and drift-resistant.
-- `ROADMAP.md` canonical demo path because the concrete operator step protected is `preview and apply or reject a patch`, where the `diff-preview` and `diff` entrypoints now stay tied to the canonical catalog and fail fast on drift.
+- `ROADMAP.md` Milestone 3 `Real workflow loop` because this slice removes a concrete blocker in the active CLI-first operator path by keeping `patch-review` deterministic after the operator opens a project/document and advances through retrieval.
+- `ROADMAP.md` canonical demo path because the concrete operator step protected is `patch-review` in `project-open -> retrieval -> patch-review -> apply/reject -> persist -> export-handoff`, where the `diff-preview` and `diff` entrypoints now stay tied to the canonical catalog and fail fast on drift.
 - `ROADMAP.md` lane mapping `feat-commands` because this lane owns CLI compatibility and migration-safe entrypoints for the engine-first MVP loop.
 
 ## Vision Capability Affected

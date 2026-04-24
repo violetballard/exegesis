@@ -5,10 +5,10 @@
 - Commit: `f8d860ed9f6299f0169c4f21321ac5f37c949fd3`
 - Packet refresh role: `reviewer-fix handoff metadata refresh`
 - Review scope: command-catalog Milestone 3 CLI compatibility slice that hardens `command_cli_contract()` against parser-surface drift and keeps the returned contract in canonical command order
-- Canonical demo-path step advanced: `preview and apply or reject a patch`
+- Canonical demo-path step advanced: `patch-review` in the CLI-first `project-open -> retrieval -> patch-review -> apply/reject -> persist -> export-handoff` MVP loop
 - AGENTS.md alignment note: this packet explicitly names the single canonical demo-path step advanced by the reviewed slice, rather than only citing Milestone 3 or broad lane ownership.
-- Required mapping statement: this slice directly makes `preview and apply or reject a patch` more real in the current CLI-first Milestone 3 loop because the operator-facing `diff-preview` and `diff` patch-review entrypoints now fail fast if the parser surface drifts from the catalog instead of silently changing the command contract while Textual remains disabled.
-- Concrete blocker removed: before this slice, parser drift could change the accepted patch-review CLI surface without a hard failure, which weakened the deterministic command contract the operator relies on to reach patch review in the canonical demo loop.
+- Required mapping statement: this slice directly makes `patch-review` more real in the current CLI-first MVP loop because the operator still reaches that step after `project-open`/document open and retrieval, and the operator-facing `diff-preview` and `diff` patch-review entrypoints now fail fast if the parser surface drifts from the catalog instead of silently changing the deterministic command contract while Textual remains disabled.
+- Concrete blocker removed: before this slice, parser drift could change the accepted patch-review CLI surface without a hard failure, which meant the operator could open a project or document and progress through retrieval only to land on a patch-review step that had drifted away from the canonical demo loop.
 - Traceable shared-edit approval: `tests/unit/test_commands_catalog.py` is permitted for `codex/feat-commands*` by the explicit allowlist entry in `scripts/scope-check.sh` (`codex/feat-commands*` case, `tests/unit/test_commands_catalog.py) return 0 ;;`).
 
 ## Thread Kickoff (High-Risk)
@@ -61,8 +61,8 @@
 
 ## Roadmap and Vision Mapping
 
-- `ROADMAP.md` Milestone 3 `Real workflow loop`: this change preserves CLI compatibility while the migration continues by making the patch-review command contract deterministic and drift-resistant.
-- `ROADMAP.md` canonical demo path: the concrete operator step protected is `preview and apply or reject a patch`, because the `diff-preview` and `diff` CLI entrypoints now stay tied to the canonical command catalog and fail fast on drift instead of silently changing patch-review behavior.
+- `ROADMAP.md` Milestone 3 `Real workflow loop`: this change removes a concrete blocker in the active CLI-first operator path by keeping `patch-review` deterministic after the operator opens a project/document and advances through retrieval.
+- `ROADMAP.md` canonical demo path: the concrete operator step protected is `patch-review` in `project-open -> retrieval -> patch-review -> apply/reject -> persist -> export-handoff`, because the `diff-preview` and `diff` CLI entrypoints now stay tied to the canonical command catalog and fail fast on drift instead of silently changing patch-review behavior.
 - `ROADMAP.md` active lane mapping: `feat-commands` owns CLI compatibility and migration-safe entrypoints for the engine-first MVP loop.
 - `PRODUCT_VISION.md` capability 3 `Canonical engine contract`: the active CLI operator surface now rejects parser/catalog drift before it can silently change the patch-review command contract.
 - `PRODUCT_VISION.md` near-term product truth: while Textual remains disabled, the CLI is the real operator surface, so hardening the patch-review entrypoint protects the live Milestone 3 workflow path instead of abstract CLI behavior.
