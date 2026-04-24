@@ -9,7 +9,7 @@ Canonical handoff contract lives in `THREAD_PACKET.md`.
 - Review scope: command-catalog contract hardening plus one shared regression for alias-level parser drift
 - Canonical demo-path step advanced: `preview and apply or reject a patch`
 - Explicit re-review statement: the current branch tip is the review target, and the `diff-preview` patch-review CLI surface now fails fast if alias-level parser drift changes the `diff` token while canonical command names still appear stable.
-- Latest verification rerun: `2026-04-24T11:50:50Z`
+- Latest verification rerun: `2026-04-24T11:52:54Z`
 
 ## Reviewed Files
 

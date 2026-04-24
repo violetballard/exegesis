@@ -25,7 +25,7 @@
 - `./quality-test.sh` -> passed
 - `./typecheck-test.sh` -> passed
 - `make ci` -> passed
-- Verification rerun timestamp: `2026-04-24T11:50:50Z`
+- Verification rerun timestamp: `2026-04-24T11:52:54Z`
 
 ## Risks / Blockers
 - Risks: future command-surface edits still need to keep `_CLI_ENTRYPOINTS`, command specs, and shared contract tests aligned.
