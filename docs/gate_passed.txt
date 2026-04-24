@@ -2,19 +2,22 @@ Gate Results Summary (as of 2026-04-24)
 -------------------------------------
 
 Feature lane: `codex/feat-retrieval-fts`
-Scope: align failed direct excerpt lookup audits with the canonical FTS-first retrieval audit schema.
-Current branch tip before handoff commit: `6ed15b42efa484dc7d0db8e3f2c37fdb8a34eb35`
+Reviewed implementation head: `adfa8cdadd43747ffbcb612e4151e262b13e52ca`
+Reviewed implementation range: `378cf9a74a3658058079a32f186fcd254c4a4034..adfa8cdadd43747ffbcb612e4151e262b13e52ca`
+Scope: keep the public excerpt lookup surface on the canonical FTS-only path so PageIndex-only excerpt IDs fail closed.
+Current branch tip before handoff commit: `7372c97fcee7f8a0ab1aea22b25d58bbff0e7eb9`
 
 Files changed:
 
 * `src/qual/retrieval/service.py`
+* `tests/unit/test_unified_retrieval.py`
 * `THREAD_PACKET.md`
 * `docs/gate_passed.txt`
 
 Verification:
 
 * `python -m unittest tests.unit.test_unified_retrieval` - passed
-* targeted Python probe for `retrieve_fts_excerpt('missing-excerpt')` now records aligned null or empty lookup metadata fields plus `strategies_used=['fts']` in the `excerpt_lookup_failed` audit event
+* `fetch_excerpt(...)` now resolves through the authoritative SQLite FTS path only, and PageIndex-only excerpt IDs raise `KeyError` under shared regression coverage
 * `./quality-format.sh --check` - passed
 * `./quality-lint.sh` - passed
 * `./quality-test.sh` - passed
@@ -23,18 +26,18 @@ Verification:
 
 Roadmap items affected:
 
-* `Milestone 3: Product Readiness`
-* `Milestone 4: Retrieval Layer`
+* `Milestone 3: Real workflow loop`
+* `retrieve relevant material` now has deterministic FTS-only excerpt rehydration in the reviewed implementation range
 
 Vision capabilities affected:
 
 * `Retrieval-first context handling`
-* `Auditable generation`
+* deterministic FTS-only excerpt payloads stay structured for downstream basket promotion
 
 Canonical demo-path step advanced:
 
 * `retrieve relevant material`
-* failed excerpt lookups now stay schema-aligned with successful FTS excerpt lookups, which improves auditability for basket promotion and later revise/apply flows when excerpt rehydration fails
+* `fetch_excerpt` now stays on the canonical FTS-only path in `378cf9a74a3658058079a32f186fcd254c4a4034..adfa8cdadd43747ffbcb612e4151e262b13e52ca`, so excerpt rehydration is deterministic and non-FTS IDs fail closed
 
 Routing/provider impact:
 

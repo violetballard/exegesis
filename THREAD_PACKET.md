@@ -3,11 +3,15 @@
 - Branch name: `codex/feat-retrieval-fts`
 - Packet role: `feature lane handoff`
 - Current branch tip before handoff commit: `7372c97fcee7f8a0ab1aea22b25d58bbff0e7eb9`
+- Reviewed implementation head: `adfa8cdadd43747ffbcb612e4151e262b13e52ca`
+- Reviewed implementation range: `378cf9a74a3658058079a32f186fcd254c4a4034..adfa8cdadd43747ffbcb612e4151e262b13e52ca`
 - Scope goal: keep the public excerpt lookup surface on the canonical FTS-only path so non-FTS excerpt IDs fail closed and excerpt provenance stays deterministic.
+- Canonical demo-path step advanced: `retrieve relevant material`
+- Reviewer-required plan-alignment statement: This change makes `retrieve relevant material` more real by keeping excerpt rehydration on the authoritative SQLite FTS path, so PageIndex-only excerpt IDs fail closed and basket-promotion inputs stay deterministic.
 
 ## Scope Completed
 
-- Kept the retrieval lane FTS-first by hardening the public `fetch_excerpt` path to resolve through the canonical FTS lookup only.
+- Kept the reviewed implementation range `378cf9a74a3658058079a32f186fcd254c4a4034..adfa8cdadd43747ffbcb612e4151e262b13e52ca` FTS-first by hardening the public `fetch_excerpt` path to resolve through the canonical FTS lookup only.
 - Removed the PageIndex fallback from excerpt lookup so PageIndex-only excerpt IDs now fail closed with `KeyError`.
 - Preserved deterministic excerpt provenance for canonical FTS lookup hits and kept the shared regression surface limited to `tests/unit/test_unified_retrieval.py`.
 - Verified the narrowed fix with the required local gate suite.
@@ -64,17 +68,17 @@
 ### Roadmap item(s) affected
 
 - `Milestone 3: Real workflow loop`
-- keep retrieval/search FTS-first and structured for the canonical engine loop
+- `retrieve relevant material` now has deterministic FTS-only excerpt rehydration in the reviewed implementation range
 
 ### Vision capability affected
 
 - `Retrieval-first context handling`
-- structured, deterministic excerpt provenance suitable for downstream basket promotion
+- deterministic FTS-only excerpt payloads stay structured for downstream basket promotion
 
 ### Canonical demo-path step advanced
 
 - `retrieve relevant material`
-- `fetch_excerpt` now stays on the canonical FTS-only path, so excerpt rehydration for this step is deterministic and non-FTS IDs fail closed instead of silently using PageIndex fallback data
+- `fetch_excerpt` now stays on the canonical FTS-only path in `378cf9a74a3658058079a32f186fcd254c4a4034..adfa8cdadd43747ffbcb612e4151e262b13e52ca`, so excerpt rehydration for this step is deterministic and non-FTS IDs fail closed instead of silently using PageIndex fallback data
 
 ### Routing/provider impact note
 
