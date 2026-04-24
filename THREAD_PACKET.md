@@ -3,7 +3,7 @@
 - Lane: `feat-commands`
 - Branch: `codex/feat-commands`
 - Commit: `f8d860ed9f6299f0169c4f21321ac5f37c949fd3`
-- Packet refresh role: `reviewer-fix final verification rerun (second pass)`
+- Packet refresh role: `reviewer-fix final verification rerun`
 - Review scope: narrow command-contract hardening in `src/qual/commands/catalog.py`, plus focused regression coverage in `tests/unit/test_commands_catalog.py`, with the guardrail explicitly enforcing full parser-surface projection consistency rather than only canonical-name/order consistency.
 - Canonical demo-path step advanced: the already-modeled CLI-first MVP loop that starts with `open project/document` and continues through `retrieve relevant material` to `preview and apply or reject a patch`, by tightening the existing parser/catalog contract for the command surface that starts that loop while Textual remains disabled rather than expanding loop reachability
 - Canonical MVP flow context: `open project/document -> retrieve relevant material -> preview and apply or reject a patch` remains the same manual CLI smoke flow, and this slice only hardens the parser-backed CLI command surface that starts and therefore gates that path so the CLI can still execute the MVP loop while Textual remains disabled
@@ -12,9 +12,9 @@
 - Demo-path sentence: this change makes the existing CLI-first MVP path safer to rely on because the concrete parser-backed command entrypoints an operator already uses to open project or document state can no longer silently drift away from the canonical catalog through alias-level or ordering changes, which keeps the downstream `retrieve relevant material` and `preview and apply or reject a patch` steps reachable through the same deterministic CLI loop while Textual remains disabled.
 - Concrete blocker removed: before this slice, parser drift could change the accepted CLI surface without a hard failure, so an operator could begin the manual MVP flow through an `open project/document` surface that no longer matched the canonical command catalog.
 - Review basis scope: keep implementation and approval claims pinned to reviewed commit `f8d860ed9f6299f0169c4f21321ac5f37c949fd3` and its two implementation files only: `src/qual/commands/catalog.py` and `tests/unit/test_commands_catalog.py`.
-- Final fixer note: this packet refresh exists only to align the handoff scope language with the already-landed full parser-surface guardrail and to record another green rerun of the required gates; the reviewed implementation commit remains `f8d860ed9f6299f0169c4f21321ac5f37c949fd3`.
-- Final verification note: a metadata-only fixer pass on `2026-04-24` revalidated the corrected handoff packet and reran the full required gate set without widening implementation scope.
-- Gate rerun confirmation: `make scope-check`, `./quality-format.sh --check`, `./quality-lint.sh`, `./quality-test.sh`, `./typecheck-test.sh`, and `make ci` were rerun successfully from the current branch tip before this metadata-only fixer handoff.
+- Final fixer note: this packet refresh exists only to align the handoff scope language with the already-landed full parser-surface guardrail and to record the green rerun of the required gates from this fixer pass; the reviewed implementation commit remains `f8d860ed9f6299f0169c4f21321ac5f37c949fd3`.
+- Final verification note: a metadata-only fixer pass on `2026-04-24` revalidated the corrected handoff packet and reran the full required gate set from the current branch tip without widening implementation scope.
+- Gate rerun confirmation: `make scope-check`, `./quality-format.sh --check`, `./quality-lint.sh`, `./quality-test.sh`, `./typecheck-test.sh`, and `make ci` all passed again from the current branch tip during this metadata-only fixer handoff.
 
 ## Thread Kickoff (High-Risk)
 
