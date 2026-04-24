@@ -117,4 +117,5 @@
 
 - Shared/integrator-locked edits: `YES`
 - Approved shared-test exception: `tests/unit/test_commands_catalog.py`
-- Approval source: `.codex/packet_router/local_jobs/reviewer/20260416T185314Z__feat-commands__F__codex-feat-commands__f3e88eb90a1116054bac208067568d3c7fbed927__20260416T185054Z.md.spec.json`
+- Approval source: canonical lane metadata record at `/Users/doctor-violet/Library/CloudStorage/Box-Box/projects/qual/.codex/lane_meta/feat-commands.json`; prior reviewer packet source at `.codex/packet_router/local_jobs/reviewer/20260416T185314Z__feat-commands__F__codex-feat-commands__f3e88eb90a1116054bac208067568d3c7fbed927__20260416T185054Z.md.spec.json`
+- Approval record detail: `Approved shared-test exception for tests/unit/test_commands_catalog.py. It is the only non-owned implementation path in this handoff.`
