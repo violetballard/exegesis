@@ -4974,6 +4974,75 @@ class UnifiedRetrievalTests(unittest.TestCase):
             result.to_downstream_payload()["basket_promotion"]["span"],
         )
 
+    def test_sparse_source_bundle_reorders_citations_to_match_summary_identity_order(self) -> None:
+        result = self.service.retrieve_auto(
+            RetrievalQuery(
+                query_text="memo coding comparison",
+                scope="vault",
+                intent="compare",
+                constraints=RetrievalConstraints(max_results=4),
+                confidentiality_profile="confidential",
+            )
+        )
+
+        class _SourceBundleOnlySource:
+            def __init__(self, payload: dict[str, object]) -> None:
+                self._payload = payload
+
+            def source_bundle(self) -> dict[str, object]:
+                return self._payload
+
+        sparse_source_bundle = json.loads(json.dumps(result.source_bundle()))
+        sparse_source_bundle["doc_hits"] = []
+        sparse_source_bundle["excerpt_hits"] = []
+
+        retrieval_doc_bundle = sparse_source_bundle.get("retrieval_doc_bundle")
+        self.assertIsInstance(retrieval_doc_bundle, dict)
+        retrieval_doc_bundle["doc_hits"] = []
+
+        retrieval_excerpt_bundle = sparse_source_bundle.get("retrieval_excerpt_bundle")
+        self.assertIsInstance(retrieval_excerpt_bundle, dict)
+        retrieval_excerpt_bundle["excerpt_hits"] = []
+
+        retrieval_citation_bundle = sparse_source_bundle.get("retrieval_citation_bundle")
+        self.assertIsInstance(retrieval_citation_bundle, dict)
+        retrieval_citation_bundle["doc_citations"] = list(reversed(retrieval_citation_bundle["doc_citations"]))
+        retrieval_citation_bundle["excerpt_citations"] = list(
+            reversed(retrieval_citation_bundle["excerpt_citations"])
+        )
+
+        retrieval_provenance = sparse_source_bundle.get("retrieval_provenance")
+        self.assertIsInstance(retrieval_provenance, dict)
+        retrieval_provenance["doc_citations"] = list(reversed(retrieval_provenance["doc_citations"]))
+        retrieval_provenance["excerpt_citations"] = list(reversed(retrieval_provenance["excerpt_citations"]))
+
+        payload = build_retrieval_downstream_payload_from_result(
+            _SourceBundleOnlySource(sparse_source_bundle)
+        )
+        canonical_payload = result.to_downstream_payload()
+
+        self.assertEqual(payload["retrieval_summary"]["doc_ids"], canonical_payload["retrieval_summary"]["doc_ids"])
+        self.assertEqual(
+            payload["retrieval_summary"]["excerpt_ids"],
+            canonical_payload["retrieval_summary"]["excerpt_ids"],
+        )
+        self.assertEqual(
+            [item["doc_id"] for item in payload["retrieval_provenance"]["doc_citations"]],
+            canonical_payload["retrieval_summary"]["doc_ids"],
+        )
+        self.assertEqual(
+            [item["excerpt_id"] for item in payload["retrieval_provenance"]["excerpt_citations"]],
+            canonical_payload["retrieval_summary"]["excerpt_ids"],
+        )
+        self.assertEqual(
+            payload["retrieval_citation_bundle"]["doc_citations"],
+            canonical_payload["retrieval_citation_bundle"]["doc_citations"],
+        )
+        self.assertEqual(
+            payload["retrieval_citation_bundle"]["excerpt_citations"],
+            canonical_payload["retrieval_citation_bundle"]["excerpt_citations"],
+        )
+
     def test_retrieval_downstream_payload_helper_normalizes_basket_promotion_contract_fields(self) -> None:
         result = self.service.retrieve_auto(
             RetrievalQuery(

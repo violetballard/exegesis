@@ -1457,6 +1457,89 @@ def _normalize_excerpt_citations(value: object) -> list[dict[str, object]]:
     return normalized
 
 
+def _doc_citation_sort_key(citation: dict[str, object]) -> tuple[object, ...]:
+    doc_rank = _normalize_optional_int(citation.get("doc_rank"))
+    top_excerpt_rank = _normalize_optional_int(citation.get("top_excerpt_rank"))
+    top_fts_rank = _normalize_optional_float(citation.get("top_fts_rank"))
+    return (
+        doc_rank if doc_rank is not None else 1_000_000_000,
+        top_excerpt_rank if top_excerpt_rank is not None else 1_000_000_000,
+        top_fts_rank if top_fts_rank is not None else 1_000_000_000.0,
+        _normalize_optional_text(citation.get("doc_id")) or "",
+        _normalize_optional_text(citation.get("top_excerpt_id")) or "",
+        _normalize_optional_text(citation.get("doc_fingerprint")) or "",
+    )
+
+
+def _excerpt_citation_sort_key(citation: dict[str, object]) -> tuple[object, ...]:
+    rank = _normalize_optional_int(citation.get("rank"))
+    fts_rank = _normalize_optional_float(citation.get("fts_rank"))
+    return (
+        rank if rank is not None else 1_000_000_000,
+        fts_rank if fts_rank is not None else 1_000_000_000.0,
+        _normalize_optional_text(citation.get("doc_id")) or "",
+        _normalize_optional_text(citation.get("excerpt_id")) or "",
+        _normalize_optional_text(citation.get("excerpt_fingerprint")) or "",
+    )
+
+
+def _reorder_citations_by_identity(
+    citations: list[dict[str, object]],
+    *,
+    ordered_ids: object,
+    identity_key: str,
+    sort_key,
+) -> list[dict[str, object]]:
+    normalized_order = [item for item in _normalize_text_list_like(ordered_ids) if item]
+    if not citations:
+        return []
+    if not normalized_order:
+        return sorted(citations, key=sort_key)
+
+    buckets: dict[str, list[dict[str, object]]] = {}
+    extras: list[dict[str, object]] = []
+    for citation in citations:
+        identity = _normalize_optional_text(citation.get(identity_key))
+        if identity is None or identity not in normalized_order:
+            extras.append(citation)
+            continue
+        buckets.setdefault(identity, []).append(citation)
+
+    ordered: list[dict[str, object]] = []
+    for identity in normalized_order:
+        ordered.extend(buckets.pop(identity, []))
+    for identity in sorted(buckets):
+        ordered.extend(sorted(buckets[identity], key=sort_key))
+    ordered.extend(sorted(extras, key=sort_key))
+    return ordered
+
+
+def _order_doc_citations_for_contract(
+    citations: object,
+    *,
+    ordered_doc_ids: object,
+) -> list[dict[str, object]]:
+    return _reorder_citations_by_identity(
+        _normalize_doc_citations(citations),
+        ordered_ids=ordered_doc_ids,
+        identity_key="doc_id",
+        sort_key=_doc_citation_sort_key,
+    )
+
+
+def _order_excerpt_citations_for_contract(
+    citations: object,
+    *,
+    ordered_excerpt_ids: object,
+) -> list[dict[str, object]]:
+    return _reorder_citations_by_identity(
+        _normalize_excerpt_citations(citations),
+        ordered_ids=ordered_excerpt_ids,
+        identity_key="excerpt_id",
+        sort_key=_excerpt_citation_sort_key,
+    )
+
+
 def _normalize_doc_citation(citation: dict[str, object]) -> dict[str, object]:
     normalized = copy.deepcopy(citation)
     for field_name in (
@@ -2660,11 +2743,19 @@ def _build_retrieval_citation_bundle_from_payload(payload: dict[str, object]) ->
         doc_citations = _derive_doc_citations_from_hits(
             doc_bundle.get("doc_hits", top_level_doc_hits)
         )
+    doc_citations = _order_doc_citations_for_contract(
+        doc_citations,
+        ordered_doc_ids=summary.get("doc_ids", []),
+    )
     excerpt_citations = copy.deepcopy(excerpt_bundle.get("excerpt_citations", provenance.get("excerpt_citations", [])))
     if _is_missing_snapshot_value(excerpt_citations):
         excerpt_citations = _derive_excerpt_citations_from_hits(
             excerpt_bundle.get("excerpt_hits", top_level_excerpt_hits)
         )
+    excerpt_citations = _order_excerpt_citations_for_contract(
+        excerpt_citations,
+        ordered_excerpt_ids=summary.get("excerpt_ids", []),
+    )
     derived_citation_bundle = _normalize_citation_bundle_snapshot({
         "query_fingerprint": provenance.get(
             "query_fingerprint",
@@ -3424,11 +3515,17 @@ def _build_retrieval_provenance_from_payload(payload: dict[str, object]) -> dict
     if "doc_citations" not in normalized or _is_missing_snapshot_value(normalized.get("doc_citations")):
         normalized["doc_citations"] = copy.deepcopy(doc_citations)
     else:
-        normalized["doc_citations"] = _normalize_doc_citations(normalized["doc_citations"])
+        normalized["doc_citations"] = _order_doc_citations_for_contract(
+            normalized["doc_citations"],
+            ordered_doc_ids=summary.get("doc_ids", []),
+        )
     if "excerpt_citations" not in normalized or _is_missing_snapshot_value(normalized.get("excerpt_citations")):
         normalized["excerpt_citations"] = copy.deepcopy(excerpt_citations)
     else:
-        normalized["excerpt_citations"] = _normalize_excerpt_citations(normalized["excerpt_citations"])
+        normalized["excerpt_citations"] = _order_excerpt_citations_for_contract(
+            normalized["excerpt_citations"],
+            ordered_excerpt_ids=summary.get("excerpt_ids", []),
+        )
     if "primary_doc_citation" not in normalized or _is_missing_snapshot_value(normalized.get("primary_doc_citation")):
         normalized["primary_doc_citation"] = (
             copy.deepcopy(normalized["doc_citations"][0])
