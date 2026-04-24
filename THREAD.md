@@ -32,6 +32,8 @@ Canonical handoff contract lives in `THREAD_PACKET.md`.
   - the existing CLI smoke route entrypoint into `project-open -> retrieval -> patch-review -> apply-patch/reject-patch -> persist -> export-handoff` by keeping the default parser verb contract catalog-locked
 - Direct plan-alignment statement:
   - this change makes `project-open` more real by preventing silent parser-surface drift at the bootstrap entrypoint and by failing fast before the operator starts the loop with the wrong public verb set
+- Concrete smoke-test evidence:
+  - `tests/unit/test_commands_catalog.py` keeps the canonical `project-open` smoke argv at `("bootstrap", "--project", "demo")` and keeps both trusted MVP workflow branches rooted at that same parser-ready bootstrap invocation
 - Traceability note:
   - `aef67223fb2ea280860de95d2a860880630a84dd` is the reviewed implementation tip for the parser-surface fix set; this packet refresh commit records the updated re-review mapping and gate results on top of it
 - Concrete blocker removed for the current CLI smoke route:

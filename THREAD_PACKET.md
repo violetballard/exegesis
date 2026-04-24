@@ -65,6 +65,7 @@
 - Active MVP operator path strengthened: the existing CLI smoke route entrypoint into `project-open -> retrieval -> patch-review -> apply-patch/reject-patch -> persist -> export-handoff`.
 - Concrete blocker removed: before this guard, the live parser surface for the current CLI smoke route could drift from `bootstrap` to an alias such as `open` and still resolve through lookup, leaving automation, operator runbooks, and CLI fallback consumers pointed at a changed public surface without any fail-fast signal.
 - Direct plan-alignment statement: this change makes the `project-open` bootstrap step more real by failing closed when the parser-facing entrypoint contract no longer matches the cataloged command surface.
+- Concrete smoke-test evidence already in the reviewed slice: `tests/unit/test_commands_catalog.py` proves the canonical smoke contract keeps `project-open` on `("bootstrap", "--project", "demo")` and that the trusted MVP workflow tables still start from the same parser-ready bootstrap argv for both apply and reject branches.
 - Scope-tightening note: this handoff claims only parser-surface drift detection plus focused regression coverage for the primary `project-open` entrypoint contract; it does not claim new retrieval quality, patch semantics, persistence behavior, or export behavior.
 - Traceability note: `aef67223fb2ea280860de95d2a860880630a84dd` is the implementation tip for this reviewed slice. `THREAD.md` and `THREAD_PACKET.md` are packet refresh companions that capture the updated reviewer-fix mapping and gate results.
 - Why this is milestone-worthy now instead of second-order cleanup: Milestone 3 is where user-facing contracts are locked and documented intentionally. This guard removes a concrete operator-surface contract risk at the `project-open` entrypoint before the engine-first CLI loop even starts.
@@ -120,6 +121,7 @@
 - `project-open` (`bootstrap` the session)
 - This change makes `project-open` more real by keeping the operator-facing bootstrap command surface for the current CLI smoke route catalog-locked instead of allowing alias-only parser drift to pass silently.
 - Concrete blocker removal: the contract now fails fast if the live parser entrypoint for bootstrap drifts to a different accepted token set while still resolving through lookup, preventing the current CLI smoke route from silently changing at its first operator-visible step.
+- Smoke-test evidence for this step is explicit in the shared regression suite: `test_command_smoke_contract_bundles_the_mvp_invocation_surface` keeps `project-open` mapped to `("bootstrap", "--project", "demo")`, and the trusted workflow-table tests keep both apply and reject branches rooted at that same bootstrap argv.
 
 ### Roadmap item(s) affected
 
