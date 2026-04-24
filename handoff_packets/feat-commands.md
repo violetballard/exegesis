@@ -14,12 +14,9 @@
 1. Tightened `_validate_command_cli_contract()` in [src/qual/commands/catalog.py](/Users/doctor-violet/.codex/worktrees/5494/qual/src/qual/commands/catalog.py:553) so the command contract validates the authoritative parser projection against the declared CLI entrypoint surface instead of only comparing deduplicated canonical command names.
 2. Added parser-surface regressions in [tests/unit/test_commands_catalog.py](/Users/doctor-violet/.codex/worktrees/5494/qual/tests/unit/test_commands_catalog.py:494) that patch the real parser surface and prove alias-only, missing-canonical-token, reordered, and extra-token drift fail fast, including the critical `diff-preview` removed while `diff` still resolves case.
 3. Updated [handoff_packets/feat-commands.md](/Users/doctor-violet/.codex/worktrees/5494/qual/handoff_packets/feat-commands.md:1) to name the exact `patch-review` demo-path step this slice advances and to keep the scope claim tied to that step.
-4. Refreshed the packet generator in [planner.py](/Users/doctor-violet/.codex/worktrees/5494/qual/codex_packet_handoff/tools/planner.py:142) plus [init_lane_meta.py](/Users/doctor-violet/.codex/worktrees/5494/qual/codex_packet_handoff/tools/init_lane_meta.py:5) so regenerated feature packets can include the explicit demo-path mapping.
-5. Ran the required gate suite and scope check.
+4. Ran the required gate suite and scope check.
 
 ## Files Changed
-- `codex_packet_handoff/tools/init_lane_meta.py`
-- `codex_packet_handoff/tools/planner.py`
 - `src/qual/commands/catalog.py`
 - `tests/unit/test_commands_catalog.py`
 - `handoff_packets/feat-commands.md`
