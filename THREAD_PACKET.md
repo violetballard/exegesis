@@ -11,7 +11,7 @@
 - Required mapping statement: this `feat-commands` CLI-contract hardening slice strengthens the canonical `open project/document`, `retrieve relevant material`, and `preview and apply or reject a patch` steps by preserving the operator-facing CLI command catalog contract used by `bootstrap`/`project-open`, `context-basket`, and `diff-preview`/`review-patch` while CLI remains the active first-class surface.
 - Demo-path sentence: this change makes the `preview and apply or reject a patch` step more real for the CLI-first MVP loop because the concrete parser-backed command entrypoints an operator runs now fail fast if parser drift changes the canonical catalog contract.
 - Concrete blocker removed: before this slice, parser drift could change the accepted CLI surface without a hard failure, so an operator could attempt the `open project/document -> retrieve relevant material -> preview and apply or reject a patch` loop through a CLI contract that had silently drifted away from the canonical catalog.
-- Traceable shared-edit approval: `src/qual/cli.py` and `tests/unit/test_commands_catalog.py` are permitted for `codex/feat-commands*` by the explicit allowlist entries in `scripts/scope-check.sh`.
+- Traceable shared-edit approval: `src/qual/cli.py` and `tests/unit/test_commands_catalog.py` are permitted for `codex/feat-commands*` by the explicit allowlist entries in `scripts/scope-check.sh` when `SCOPE_ALLOW_SHARED=1`.
 
 ## Thread Kickoff (High-Risk)
 
@@ -66,12 +66,12 @@
 
 ## Commands Run and Outcomes
 
-- `make scope-check`: `PASSED`
-- `./quality-format.sh --check`: `PASSED`
-- `./quality-lint.sh`: `PASSED`
-- `./quality-test.sh`: `PASSED`
-- `./typecheck-test.sh`: `PASSED`
-- `make ci`: `PASSED`
+- `SCOPE_ALLOW_SHARED=1 make scope-check`: `PASSED`
+- `SCOPE_ALLOW_SHARED=1 ./quality-format.sh --check`: `PASSED`
+- `SCOPE_ALLOW_SHARED=1 ./quality-lint.sh`: `PASSED`
+- `SCOPE_ALLOW_SHARED=1 ./quality-test.sh`: `PASSED`
+- `SCOPE_ALLOW_SHARED=1 ./typecheck-test.sh`: `PASSED`
+- `SCOPE_ALLOW_SHARED=1 make ci`: `PASSED`
 
 ## Ownership Note
 

@@ -7,7 +7,7 @@
 - Canonical MVP flow mapping sentence: this `feat-commands` CLI-contract hardening slice strengthens the canonical `open project/document`, `retrieve relevant material`, and `preview and apply or reject a patch` steps by preserving the operator-facing CLI command catalog contract used by `bootstrap`/`project-open`, `context-basket`, and `diff-preview`/`review-patch` while CLI remains the active first-class surface.
 - Demo-path sentence: this change makes the `preview and apply or reject a patch` step more real for the CLI-first MVP loop because the concrete parser-backed command entrypoints an operator runs now fail fast if parser drift changes the canonical catalog contract.
 - Concrete blocker removed: before this change, parser drift could silently desynchronize the CLI surface from the catalog while leaving the contract seemingly valid, so an operator could attempt the `open project/document -> retrieve relevant material -> preview and apply or reject a patch` loop through a CLI contract that had drifted away from the canonical catalog.
-- Traceability note: reviewed implementation commit is `f8d860ed9f6299f0169c4f21321ac5f37c949fd3`; this refresh updates only `THREAD.md`, `THREAD_PACKET.md`, and `handoff_packets/feat-commands.md`.
+- Traceability note: reviewed implementation commit is `f8d860ed9f6299f0169c4f21321ac5f37c949fd3`; this reviewer-fix follow-up adds parser-surface hardening in `src/qual/cli.py` and `src/qual/commands/catalog.py`, extends regression coverage in `tests/unit/test_commands_catalog.py`, and refreshes the handoff metadata.
 
 ## Tasks Completed
 1. Wired the live parser entrypoint surface in `src/qual/cli.py` to shared command-name constants so the CLI and contract validation read the same parser source.
@@ -16,7 +16,7 @@
 4. Added focused regression coverage in `tests/unit/test_commands_catalog.py` for canonical-order alignment and live parser/catalog drift rejection.
 
 ## Packet Refresh Notes
-- Metadata refresh only: this handoff now names the exact canonical demo-path step advanced, narrows the claim to CLI-contract hardening, cites the traceable shared-test approval source, and records the re-run gate results for the command-catalog slice.
+- This handoff now names the exact canonical demo-path step advanced, narrows the claim to CLI-contract hardening, cites the traceable shared-file approval source, and records the re-run gate results for the parser-surface hardening slice.
 
 ## Files Changed
 - `src/qual/cli.py`
