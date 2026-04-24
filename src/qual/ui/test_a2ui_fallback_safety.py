@@ -3982,7 +3982,7 @@ class A2UIFallbackSafetyTests(unittest.TestCase):
             (selection, "card"),
         )
 
-    def test_terminal_artifact_cli_fallback_entrypoint_keeps_typed_leaf_mappings_on_card_path(
+    def test_terminal_artifact_cli_fallback_entrypoint_recovers_typed_leaf_mappings_on_card_hint(
         self,
     ) -> None:
         shell = ShellUI()
@@ -3995,6 +3995,8 @@ class A2UIFallbackSafetyTests(unittest.TestCase):
                     "label": "Export",
                     "payload": {"format": "md"},
                 },
+                "[ActionRef] Export",
+                "Action schema v1",
             ),
             (
                 "selection",
@@ -4004,19 +4006,20 @@ class A2UIFallbackSafetyTests(unittest.TestCase):
                     "label": "Choice",
                     "payload": {"nested": {"items": [1, 2]}},
                 },
+                "[SelectionRef] Choice",
+                "Selection schema v1",
             ),
         ]
 
-        for case_name, artifact in cases:
+        for case_name, artifact, expected_prefix, expected_schema in cases:
             with self.subTest(kind=case_name):
                 cli_text = render_terminal_cli_fallback(artifact, kind="card")
                 shell_text = shell.render_cli_fallback(artifact, kind="card")
 
                 self.assertEqual(cli_text, shell_text)
-                self.assertIn("[UnknownCard] <invalid card>", cli_text)
-                self.assertIn("Fallback: unknown card", cli_text)
-                self.assertNotIn("[ActionRef]", cli_text)
-                self.assertNotIn("[SelectionRef]", cli_text)
+                self.assertIn(expected_prefix, cli_text)
+                self.assertIn(expected_schema, cli_text)
+                self.assertNotIn("[UnknownCard] <invalid card>", cli_text)
 
     def test_terminal_artifact_cli_fallback_target_resolver_keeps_ambiguous_raw_leaf_payloads_on_card_default_for_malformed_envelope_kinds(
         self,
@@ -7931,6 +7934,53 @@ class A2UIFallbackSafetyTests(unittest.TestCase):
                     label=" Choice ",
                     payload={"nested": {"items": [1, 2]}},
                 ),
+                "[SelectionRef] Choice",
+                "Selection schema v1",
+            ),
+        ]
+
+        for case_name, artifact, expected_prefix, expected_schema in cases:
+            with self.subTest(case=case_name):
+                with patch(
+                    "src.qual.ui.a2ui.resolve_terminal_artifact_cli_fallback_target",
+                    return_value=(artifact, "card"),
+                ):
+                    with patch(
+                        "src.qual.ui.shell.resolve_terminal_artifact_cli_fallback_target",
+                        return_value=(artifact, "card"),
+                    ):
+                        cli_text = render_terminal_cli_fallback(artifact, kind="card")
+                        shell_text = shell.render_cli_fallback(artifact, kind="card")
+
+                self.assertEqual(cli_text, shell_text)
+                self.assertIn(expected_prefix, cli_text)
+                self.assertIn(expected_schema, cli_text)
+                self.assertNotIn("[UnknownCard] <invalid card>", cli_text)
+
+    def test_terminal_artifact_cli_fallback_recovers_typed_leaf_mappings_when_shared_resolver_underflows_to_card(
+        self,
+    ) -> None:
+        shell = ShellUI()
+        cases = [
+            (
+                "action",
+                {
+                    "type": "ActionRef",
+                    "id": " export_document ",
+                    "label": " Export ",
+                    "payload": {"format": "md"},
+                },
+                "[ActionRef] Export",
+                "Action schema v1",
+            ),
+            (
+                "selection",
+                {
+                    "type": "SelectionRef",
+                    "id": " choice-1 ",
+                    "label": " Choice ",
+                    "payload": {"nested": {"items": [1, 2]}},
+                },
                 "[SelectionRef] Choice",
                 "Selection schema v1",
             ),

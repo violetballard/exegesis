@@ -4689,6 +4689,10 @@ def _refine_terminal_artifact_cli_fallback_target(
             explicit_kind = _infer_terminal_artifact_explicit_kind(artifact)
             if explicit_kind in {"action", "selection"}:
                 return artifact, explicit_kind
+        if _is_explicit_terminal_artifact_leaf_mapping(artifact):
+            explicit_kind = _infer_terminal_artifact_explicit_kind(artifact)
+            if explicit_kind in {"action", "selection"}:
+                return artifact, explicit_kind
         return artifact, resolved_kind
     if _should_preserve_raw_leaf_card_default(artifact):
         return artifact, "card"
