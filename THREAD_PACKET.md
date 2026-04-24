@@ -4,9 +4,10 @@
 - Packet role: `feature lane handoff`
 - Reviewed implementation head: `adfa8cdadd43747ffbcb612e4151e262b13e52ca`
 - Reviewed implementation range: `378cf9a74a3658058079a32f186fcd254c4a4034..adfa8cdadd43747ffbcb612e4151e262b13e52ca`
-- Scope goal: harden the Milestone 3 retrieval contract by keeping the canonical FTS-first retrieval surface deterministic and by rejecting PageIndex-only excerpt IDs on that public excerpt lookup path.
+- Scope goal: harden the Milestone 3 retrieval contract on the canonical retrieval surface by keeping the canonical FTS-first retrieval path deterministic and by rejecting PageIndex-only excerpt IDs on the public excerpt lookup path.
 - Canonical demo-path step advanced: `retrieve relevant material`
 - Plan-alignment statement: this slice advances `retrieve relevant material` by hardening the Milestone 3 retrieval contract around the canonical retrieval surface: SQLite FTS stays authoritative, PageIndex-only excerpt IDs are rejected on the public excerpt lookup path, and the structured hit/provenance payloads stay deterministic enough to unblock downstream basket promotion and workflow cards.
+- Direct handoff statement: this handoff advances the canonical demo-path step `retrieve relevant material` by hardening the Milestone 3 retrieval contract on the canonical retrieval surface and rejecting PageIndex-only excerpt IDs on that public excerpt lookup path.
 
 ## Scope Completed
 
