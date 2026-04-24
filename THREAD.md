@@ -7,7 +7,7 @@ Canonical handoff contract lives in `THREAD_PACKET.md`.
 ## Current Review Focus
 
 - Packet refresh status: reviewer-fix packet refresh regenerated on 2026-04-24 for the exact reviewed implementation slice, with roadmap/vision mapping narrowed to the engine-first CLI operator surface while `feat-console` remains inactive.
-- Reviewed implementation commit: `aef67223fb2ea280860de95d2a860880630a84dd` (`fix(commands): lock parser surface contract`).
+- Reviewed implementation commit: `dbb8e0155a647bd0eb7f442a1799136ee4d591f4` (`fix(commands): harden parser surface drift checks`).
 - Reviewed implementation files:
   - `src/qual/commands/catalog.py`
   - `tests/unit/test_commands_catalog.py`
@@ -38,7 +38,7 @@ Canonical handoff contract lives in `THREAD_PACKET.md`.
 - Concrete smoke-test evidence:
   - `tests/unit/test_commands_catalog.py` keeps the canonical `project-open` smoke argv at `("bootstrap", "--project", "demo")` and keeps both trusted MVP workflow branches rooted at that same parser-ready bootstrap invocation
 - Traceability note:
-  - `aef67223fb2ea280860de95d2a860880630a84dd` is the reviewed implementation tip for the parser-surface fix set; this packet refresh commit records the updated re-review mapping and gate results on top of it
+  - `dbb8e0155a647bd0eb7f442a1799136ee4d591f4` is the reviewed implementation tip for the parser-surface fix set; this packet refresh commit records the updated re-review mapping and gate results on top of it
 - Concrete blocker removed for the current CLI smoke route:
   - the active CLI smoke route no longer allows `bootstrap` or other canonical parser entrypoints to be swapped for still-resolvable aliases without an immediate contract failure, which removes silent drift at the entrypoint to the operator-visible loop
 - Scope-tightening note:
