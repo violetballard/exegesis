@@ -4984,6 +4984,12 @@ class A2UIFallbackSafetyTests(unittest.TestCase):
                 "terminal_artifact_renderer_entrypoints_contract_fingerprint": manifest[
                     "terminal_artifact_renderer_entrypoints_contract_fingerprint"
                 ],
+                "terminal_artifact_renderer_entrypoints_contract_manifest": manifest[
+                    "terminal_artifact_renderer_entrypoints_contract_manifest"
+                ],
+                "terminal_artifact_renderer_entrypoints_contract_manifest_fingerprint": manifest[
+                    "terminal_artifact_renderer_entrypoints_contract_manifest_fingerprint"
+                ],
                 "contract_fingerprints_contract": manifest["contract_fingerprints_contract"],
                 "contract_fingerprints_contract_fingerprint": manifest[
                     "contract_fingerprints_contract_fingerprint"
