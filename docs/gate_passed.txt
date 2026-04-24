@@ -66,3 +66,4 @@ Routing/provider impact:
 Remaining blocker:
 
 * This worktree cannot write `.codex/kickoff_packets/feat-retrieval-fts.md` or `.codex/lane_meta/feat-retrieval-fts.json` (`operation not permitted`), so those mirror files remain stale even though the visible handoff is corrected here.
+* 2026-04-24 fixer pass revalidated the visible branch-tip handoff and all required local gates against HEAD `141b2168208d78cbd25bc8fd63fcdbc34e6aa958`.
