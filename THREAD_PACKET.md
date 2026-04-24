@@ -41,10 +41,12 @@
 ## Files Changed
 
 - `THREAD_PACKET.md`
+- `codex_packet_handoff/tools/planner.py`
+- `tests/unit/test_packet_planner.py`
 
 ## Commands Run With Results
 
-- `make scope-check`: `PASS` (`[devex] scope-check: no policy for branch 'codex/feat-retrieval-fts'; skipping` then `passed`)
+- `make scope-check`: `PASS` (`[devex] scope-check: passed for branch 'codex/feat-retrieval-fts'`)
 - `./quality-format.sh --check`: `PASS`
 - `./quality-lint.sh`: `PASS`
 - `./quality-test.sh`: `PASS` (`216 tests`)

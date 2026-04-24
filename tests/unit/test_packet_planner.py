@@ -45,8 +45,8 @@ class PacketPlannerTests(unittest.TestCase):
             "canonical_demo_path_impact": (
                 "This change makes `retrieve relevant material` more real because the canonical "
                 "engine-facing `fetch_excerpt` surface now rehydrates shortlisted excerpt IDs only "
-                "through the authoritative SQLite FTS path, so non-FTS IDs fail closed before "
-                "downstream context gathering can promote them into the basket."
+                "through the authoritative SQLite FTS path, so non-FTS IDs fail closed on the "
+                "retrieval step itself."
             ),
             "vision_capabilities": ["2. Retrieval-first context handling"],
             "routing_provider_impact": "None",
@@ -75,7 +75,7 @@ class PacketPlannerTests(unittest.TestCase):
         self.assertIn("### Canonical demo-path step advanced", packet)
         self.assertIn("- retrieve relevant material", packet)
         self.assertIn("engine-facing `fetch_excerpt` surface", packet)
-        self.assertIn("downstream context gathering can promote them into the basket", packet)
+        self.assertIn("non-FTS IDs fail closed on the retrieval step itself", packet)
 
     def test_build_packet_uses_lane_default_demo_path_when_metadata_is_stale(self) -> None:
         meta = {
@@ -100,7 +100,7 @@ class PacketPlannerTests(unittest.TestCase):
         self.assertIn("### Canonical demo-path step advanced", packet)
         self.assertIn("- retrieve relevant material", packet)
         self.assertIn("engine-facing `fetch_excerpt` surface", packet)
-        self.assertIn("downstream context gathering can promote them into the basket", packet)
+        self.assertIn("non-FTS IDs fail closed on the retrieval step itself", packet)
 
 
 if __name__ == "__main__":

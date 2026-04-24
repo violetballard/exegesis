@@ -25,8 +25,8 @@ LANE_CANONICAL_DEMO_PATH = {
         "impact": (
             "This change makes `retrieve relevant material` more real because the canonical "
             "engine-facing `fetch_excerpt` surface now rehydrates shortlisted excerpt IDs only "
-            "through the authoritative SQLite FTS path, so non-FTS IDs fail closed before "
-            "downstream context gathering can promote them into the basket."
+            "through the authoritative SQLite FTS path, so non-FTS IDs fail closed on the "
+            "retrieval step itself."
         ),
     },
 }
