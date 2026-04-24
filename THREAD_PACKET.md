@@ -2,7 +2,7 @@
 
 - Branch name: `codex/feat-retrieval-fts`
 - Packet role: `metadata-only reviewer-fix finalization`
-- Packet refresh trace anchor before this fixer commit: `6c4a28c2cb158e3fbe812021c9f547d85fa56ee1`
+- Packet refresh trace anchor before this fixer commit: `6bd72d835d0e0df4a382b664cb97630447496758`
 - Reviewed implementation head: `adfa8cdadd43747ffbcb612e4151e262b13e52ca`
 - Reviewed implementation range: `378cf9a74a3658058079a32f186fcd254c4a4034..adfa8cdadd43747ffbcb612e4151e262b13e52ca`
 - Canonical demo-path step advanced: `retrieve relevant material`
@@ -41,6 +41,34 @@
 3. State explicitly that this advances the canonical demo-path step `retrieve relevant material`.
 4. Refresh the visible metadata-only packet surfaces and rerun the required gates.
 
+### Early Review Triggers
+
+- before first edit to any shared/integrator-locked file
+- before changing public interfaces or command contracts
+- before touching provider routing/config behavior
+
+### Stop Triggers
+
+- unresolved test/lint/typecheck after 2 attempts
+- unresolved `make scope-check`
+- budget/size/time limit hit
+
+### Checkpoint Cadence (short updates)
+
+- plan complete
+- first green tests
+- before risky/shared file edit
+- ready for handoff
+
+### Handoff Packet
+
+- branch name
+- tasks completed (numbered)
+- files changed
+- commands run + outcomes
+- risks/blockers
+- all required fields from `INTEGRATION.md`
+
 ## Tasks Completed
 
 1. Restamped the handoff to reviewed implementation head `adfa8cdadd43747ffbcb612e4151e262b13e52ca` and reviewed implementation range `378cf9a74a3658058079a32f186fcd254c4a4034..adfa8cdadd43747ffbcb612e4151e262b13e52ca`.
@@ -73,7 +101,8 @@
 
 1. The `Files changed` section now matches the narrowed reviewed implementation slice plus the actual metadata-only refresh files touched by this fixer pass.
 2. The handoff now includes an explicit canonical demo-path statement naming `retrieve relevant material`.
-3. The metadata-only refresh list no longer includes uncited files that were not touched by the current packet-refresh commit.
+3. The handoff now carries the missing AGENTS high-risk sections for early review triggers, stop triggers, checkpoint cadence, and the explicit handoff packet fields.
+4. The metadata-only refresh list now matches the packet files restamped in this fixer pass.
 
 ## Risks / Blockers
 

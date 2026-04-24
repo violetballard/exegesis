@@ -3,7 +3,7 @@ Gate Results Summary (as of 2026-04-24)
 
 Feature lane: `codex/feat-retrieval-fts`
 Packet role: `metadata-only reviewer-fix finalization`
-Packet refresh trace anchor before this fixer commit: `6c4a28c2cb158e3fbe812021c9f547d85fa56ee1`
+Packet refresh trace anchor before this fixer commit: `6bd72d835d0e0df4a382b664cb97630447496758`
 Reviewed implementation head: `adfa8cdadd43747ffbcb612e4151e262b13e52ca`
 Reviewed implementation range: `378cf9a74a3658058079a32f186fcd254c4a4034..adfa8cdadd43747ffbcb612e4151e262b13e52ca`
 Canonical demo-path step advanced: `retrieve relevant material`
@@ -30,7 +30,8 @@ Reviewer-fix closure:
 
 * The `Files changed` section now matches the narrowed reviewed implementation slice plus the actual metadata-only refresh files touched by this fixer pass.
 * The handoff now includes an explicit canonical demo-path statement naming `retrieve relevant material`.
-* The metadata-only refresh list no longer includes uncited files that were not touched by the current packet-refresh commit.
+* `THREAD_PACKET.md` now carries the missing AGENTS high-risk packet sections for early review triggers, stop triggers, checkpoint cadence, and the explicit handoff packet fields.
+* The metadata-only refresh list now matches the packet files restamped in this fixer pass.
 
 Budget classification:
 
