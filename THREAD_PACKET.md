@@ -2,7 +2,7 @@
 
 - Branch name: `codex/feat-retrieval-fts`
 - Packet role: `actual-branch-tip handoff with metadata-only refresh`
-- Current branch tip before this packet refresh commit: `422d1fdabf53f56e70a26eb00fce31a15bc189f7`
+- Current branch tip before this packet refresh commit: `ef827a8ad18ac6f2d70d5f80781f5a869acb9e4c`
 - Reviewed implementation head: `adfa8cdadd43747ffbcb612e4151e262b13e52ca`
 - Reviewed implementation range: `d7fd5d200358287fa42a18d39e2b277463b9b69f..adfa8cdadd43747ffbcb612e4151e262b13e52ca`
 - Canonical demo-path step advanced: `retrieve relevant material`
@@ -53,13 +53,14 @@
 - `src/qual/retrieval/service.py`
 - `tests/unit/test_unified_retrieval.py`
 - Metadata-only commits after the reviewed implementation head and before this fixer refresh:
-- `31b91107`
-- `94a1fb6b`
-- `e1530c68`
-- `422d1fda`
+- `31b91107` -> `THREAD_PACKET.md`, `docs/gate_passed.txt`
+- `94a1fb6b` -> `THREAD_PACKET.md`, `docs/gate_passed.txt`
+- `e1530c68` -> `THREAD_PACKET.md`, `docs/gate_passed.txt`
+- `422d1fda` -> `THREAD_PACKET.md`, `docs/gate_passed.txt`
+- `02f89443` -> `THREAD_PACKET.md`, `docs/gate_passed.txt`
+- `08cd31e3` -> `THREAD_PACKET.md`, `docs/gate_passed.txt`
+- `ef827a8a` -> `THREAD_PACKET.md`, `docs/gate_passed.txt`
 - Current metadata-only packet refresh files:
-- `.codex/kickoff_packets/feat-retrieval-fts.md`
-- `.codex/lane_meta/feat-retrieval-fts.json`
 - `THREAD_PACKET.md`
 - `docs/gate_passed.txt`
 
@@ -76,8 +77,6 @@
 - `src/qual/retrieval/service.py`
 - `tests/unit/test_unified_retrieval.py`
 - Metadata-only refresh files in this fixer slice:
-- `.codex/kickoff_packets/feat-retrieval-fts.md`
-- `.codex/lane_meta/feat-retrieval-fts.json`
 - `THREAD_PACKET.md`
 - `docs/gate_passed.txt`
 
@@ -97,6 +96,7 @@
 3. The scope and roadmap mapping stay tied only to Milestone 3 FTS-first retrieval and retrieval-first context handling.
 4. The current refresh commit is metadata-only because its diff is limited to packet files.
 5. This fixer pass revalidated the reviewer-approved narrowed slice `d7fd5d20..adfa8cda` after the reviewer requested an explicit canonical demo-path statement and scope tightening.
+6. The metadata-only history above is reconciled commit-by-commit, and each cited refresh commit touched only `THREAD_PACKET.md` plus `docs/gate_passed.txt`.
 
 ## Risks / Blockers
 
