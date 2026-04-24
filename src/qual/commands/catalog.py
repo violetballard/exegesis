@@ -2950,6 +2950,7 @@ _COMMAND_DEMO_COMPATIBILITY_VARIANTS: dict[str, str] = {
     "preview-diff": "patch-review",
     "approve-patch": "apply-patch",
     "accept-patch": "apply-patch",
+    "persist-and-continue": "persist",
     "decline-patch": "reject-patch",
     "discard-patch": "reject-patch",
     "save-work": "persist",

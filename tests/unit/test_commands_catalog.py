@@ -270,6 +270,7 @@ class CommandCatalogTests(unittest.TestCase):
             "patch-reject": "reject-patch",
             "save": "persist",
             "persist": "persist",
+            "persist-and-continue": "persist",
             "resume-work": "persist",
             "handoff": "export-handoff",
             "export": "export-handoff",
@@ -1187,6 +1188,16 @@ class CommandCatalogTests(unittest.TestCase):
         self.assertEqual(save.kind, "lookup")
         self.assertEqual(
             save.argv,
+            ("terminal", "--operation-kind", "terminal_synthesis_request", "--message", "Persist and continue"),
+        )
+
+        persist_and_continue = command_demo_resolve("persist-and-continue")
+        self.assertTrue(persist_and_continue.matched)
+        self.assertEqual(persist_and_continue.token, "persist-and-continue")
+        self.assertEqual(persist_and_continue.normalized_token, "persist-and-continue")
+        self.assertEqual(persist_and_continue.kind, "lookup")
+        self.assertEqual(
+            persist_and_continue.argv,
             ("terminal", "--operation-kind", "terminal_synthesis_request", "--message", "Persist and continue"),
         )
 
@@ -2663,6 +2674,7 @@ class CommandCatalogTests(unittest.TestCase):
                 "save",
                 "continue",
                 "resume",
+                "persist-and-continue",
                 "save-work",
                 "continue-work",
                 "resume-work",
@@ -2729,7 +2741,7 @@ class CommandCatalogTests(unittest.TestCase):
         self.assertEqual(persist_variant.next_tokens, ("export-handoff",))
         self.assertEqual(
             persist_variant.compatibility_tokens,
-            ("save", "continue", "resume", "save-work", "continue-work", "resume-work"),
+            ("save", "continue", "resume", "persist-and-continue", "save-work", "continue-work", "resume-work"),
         )
         self.assertEqual(persist_variant.preferred_surface_tokens, ("persist",))
 
@@ -2847,6 +2859,7 @@ class CommandCatalogTests(unittest.TestCase):
                 "save",
                 "continue",
                 "resume",
+                "persist-and-continue",
                 "save-work",
                 "continue-work",
                 "resume-work",
@@ -2978,6 +2991,14 @@ class CommandCatalogTests(unittest.TestCase):
                 ),
                 (
                     "resume",
+                    "persist",
+                    "terminal",
+                    "persist",
+                    "compatibility",
+                    ("terminal", "--operation-kind", "terminal_synthesis_request", "--message", "Persist and continue"),
+                ),
+                (
+                    "persist-and-continue",
                     "persist",
                     "terminal",
                     "persist",
@@ -3146,6 +3167,10 @@ class CommandCatalogTests(unittest.TestCase):
                 ),
                 (
                     "resume",
+                    ("terminal", "--operation-kind", "terminal_synthesis_request", "--message", "Persist and continue"),
+                ),
+                (
+                    "persist-and-continue",
                     ("terminal", "--operation-kind", "terminal_synthesis_request", "--message", "Persist and continue"),
                 ),
                 (
@@ -3339,6 +3364,10 @@ class CommandCatalogTests(unittest.TestCase):
                 ),
                 (
                     "resume",
+                    ("terminal", "--operation-kind", "terminal_synthesis_request", "--message", "Persist and continue"),
+                ),
+                (
+                    "persist-and-continue",
                     ("terminal", "--operation-kind", "terminal_synthesis_request", "--message", "Persist and continue"),
                 ),
                 (
@@ -3752,7 +3781,7 @@ class CommandCatalogTests(unittest.TestCase):
         )
         self.assertEqual(
             workflow_by_token["persist"].compatibility_tokens,
-            ("save", "continue", "resume", "save-work", "continue-work", "resume-work"),
+            ("save", "continue", "resume", "persist-and-continue", "save-work", "continue-work", "resume-work"),
         )
         self.assertEqual(workflow_by_token["export-handoff"].next_tokens, ())
         self.assertEqual(
@@ -3975,7 +4004,7 @@ class CommandCatalogTests(unittest.TestCase):
         )
         self.assertEqual(
             workflow_by_token["persist"].compatibility_tokens,
-            ("save", "continue", "resume", "save-work", "continue-work", "resume-work"),
+            ("save", "continue", "resume", "persist-and-continue", "save-work", "continue-work", "resume-work"),
         )
         self.assertEqual(
             workflow_by_token["export-handoff"].compatibility_tokens,
