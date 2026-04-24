@@ -7,6 +7,7 @@ Reviewed implementation head before this fixer commit: `39550c18399a5cba2ffad3e2
 Reviewed implementation range: `d7fd5d200358287fa42a18d39e2b277463b9b69f..39550c18399a5cba2ffad3e23e5b0d5078b416df`
 Canonical demo-path step advanced: `retrieve relevant material`
 Plan-alignment statement: this slice advances `retrieve relevant material` by strengthening the Milestone 3 canonical SQLite FTS-first path for excerpt lookup, query normalization, provenance reconstruction, and payload rebuilding while rejecting noncanonical and binary lookup inputs without reintroducing PageIndex or embeddings as required runtime paths.
+Reviewer-required packet fix: the handoff now names `retrieve relevant material` explicitly and scopes the branch only to that Milestone 3 FTS-first retrieval step rather than to general retrieval cleanup.
 FTS-first confirmation: SQLite FTS remains authoritative for the MVP across the reviewed range; PageIndex and embeddings remain compatibility-only shims and are not required retrieval paths in this handoff.
 
 Reviewed implementation scope:

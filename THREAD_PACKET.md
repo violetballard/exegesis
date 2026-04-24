@@ -10,6 +10,7 @@
 - Companion fixer-commit note: this fixer pass refreshes only handoff metadata on top of the reviewed implementation head above; it does not change retrieval runtime behavior.
 - Canonical demo-path step advanced: `retrieve relevant material`
 - Demo-path sentence: this slice advances the canonical demo-path step `retrieve relevant material` by strengthening the Milestone 3 SQLite FTS-first retrieval path for excerpt lookup, query normalization, provenance, and retrieval payload reconstruction while rejecting noncanonical and binary lookup inputs without reintroducing PageIndex or embeddings as required runtime paths.
+- Reviewer-required packet fix: the handoff now states explicitly that this slice advances `retrieve relevant material` and frames the branch scope only as strengthening that Milestone 3 FTS-first retrieval step, not as general retrieval cleanup.
 - FTS-first lane-gate confirmation: the reviewed implementation range remains FTS-first for the MVP. PageIndex and embeddings stay compatibility-only shims and are not required retrieval paths anywhere in this handoff.
 
 ## Scope Goal
