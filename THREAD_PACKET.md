@@ -2,15 +2,15 @@
 
 - Branch name: `codex/feat-retrieval-fts`
 - Packet role: `actual-branch-tip handoff with metadata-only refresh`
-- Current branch tip before this packet refresh commit: `ef827a8ad18ac6f2d70d5f80781f5a869acb9e4c`
+- Current branch tip before this packet refresh commit: `e013b29a9f9706424ad6b266a63850eb85eac440`
 - Reviewed implementation head: `adfa8cdadd43747ffbcb612e4151e262b13e52ca`
 - Reviewed implementation range: `d7fd5d200358287fa42a18d39e2b277463b9b69f..adfa8cdadd43747ffbcb612e4151e262b13e52ca`
 - Canonical demo-path step advanced: `retrieve relevant material`
-- Canonical demo-path statement: This branch advances `retrieve relevant material` by forcing excerpt lookup through the canonical SQLite FTS path and rejecting PageIndex-only excerpt IDs so downstream basket-promotion inputs stay deterministic and auditable.
+- Canonical demo-path statement: This branch advances `retrieve relevant material` by forcing excerpt lookup through the canonical SQLite FTS path and rejecting PageIndex-only excerpt IDs, which hardens the Milestone 3 retrieval surface used immediately before basket promotion and downstream workflow use.
 
 ## Scope Goal
 
-- Keep this handoff explicitly limited to Milestone 3's `retrieve relevant material` step by documenting the FTS-only excerpt fail-closed contract, preserving the current branch-tip metadata refresh, and rerunning the required gates for the exact handoff content.
+- Keep this handoff explicitly limited to Milestone 3's `retrieve relevant material` step by documenting the FTS-only excerpt fail-closed contract, showing how it hardens the retrieval surface used before basket promotion, preserving the current branch-tip metadata refresh, and rerunning the required gates for the exact handoff content.
 
 ## Thread Kickoff (High-Risk)
 
@@ -29,7 +29,7 @@
 ### Planned Tasks (max 4)
 
 1. Re-anchor the packet to the reviewer-approved narrowed implementation range `d7fd5d20..adfa8cda`.
-2. State explicitly that this work advances `retrieve relevant material` by forcing excerpt lookup through the canonical SQLite FTS path and rejecting PageIndex-only excerpt IDs.
+2. State explicitly that this work advances `retrieve relevant material` by forcing excerpt lookup through the canonical SQLite FTS path and rejecting PageIndex-only excerpt IDs before basket promotion and downstream workflow use.
 3. Keep the scope and roadmap mapping tied only to Milestone 3 FTS-first retrieval and retrieval-first context handling.
 4. Rerun and report `make scope-check`, `./quality-format.sh --check`, `./quality-lint.sh`, `./quality-test.sh`, `./typecheck-test.sh`, and `make ci` for the exact handoff content.
 
@@ -42,7 +42,7 @@
 
 ## Scope Completed
 
-- Kept SQLite FTS authoritative for the excerpt-lookup surface by removing the PageIndex fallback from `fetch_excerpt`, so PageIndex-only excerpt IDs now fail closed instead of being accepted through a non-canonical path.
+- Kept SQLite FTS authoritative for the excerpt-lookup surface by removing the PageIndex fallback from `fetch_excerpt`, so PageIndex-only excerpt IDs now fail closed instead of being accepted through a non-canonical path before basket promotion and downstream workflow use.
 - Preserved the lane's roadmap and vision mapping as Milestone 3 FTS-first retrieval and retrieval-first context handling, with no routing or provider behavior changes.
 - Kept the packet refresh metadata-only while re-stating the canonical demo-path step the reviewer required.
 
@@ -66,8 +66,8 @@
 
 ## Tasks Completed
 
-1. Kept the excerpt-lookup entrypoint FTS-first and fail-closed by removing the PageIndex fallback from `fetch_excerpt`.
-2. Added approved shared regression coverage proving PageIndex-only excerpt IDs raise `KeyError`.
+1. Kept the `retrieve relevant material` entrypoint FTS-first and fail-closed by removing the PageIndex fallback from `fetch_excerpt`, which hardens the retrieval surface used before basket promotion.
+2. Added approved shared regression coverage proving PageIndex-only excerpt IDs raise `KeyError`, so downstream workflow use sees the same fail-closed contract.
 3. Refreshed the handoff packet to state explicitly that this work advances `retrieve relevant material`.
 4. Preserved the roadmap and vision mapping on Milestone 3 FTS-first retrieval and retrieval-first context handling.
 
@@ -91,11 +91,11 @@
 
 ## Reviewer Fix Closure
 
-1. The packet explicitly states which canonical demo-path step this work advances: `retrieve relevant material`, via the FTS-only excerpt fail-closed contract.
+1. The packet explicitly states which canonical demo-path step this work advances: `retrieve relevant material`, via the FTS-only excerpt fail-closed contract that hardens the retrieval surface used before basket promotion and downstream workflow use.
 2. The packet keeps the reviewed implementation range narrowed to `d7fd5d200358287fa42a18d39e2b277463b9b69f..adfa8cdadd43747ffbcb612e4151e262b13e52ca`.
 3. The scope and roadmap mapping stay tied only to Milestone 3 FTS-first retrieval and retrieval-first context handling.
 4. The current refresh commit is metadata-only because its diff is limited to packet files.
-5. This fixer pass revalidated the reviewer-approved narrowed slice `d7fd5d20..adfa8cda` after the reviewer requested an explicit canonical demo-path statement and scope tightening.
+5. This fixer pass revalidated the reviewer-approved narrowed slice `d7fd5d20..adfa8cda` after the reviewer requested an explicit canonical demo-path statement and task-to-step linkage.
 6. The metadata-only history above is reconciled commit-by-commit, and each cited refresh commit touched only `THREAD_PACKET.md` plus `docs/gate_passed.txt`.
 
 ## Risks / Blockers
@@ -113,7 +113,7 @@
 ### Canonical demo-path step advanced
 
 - `retrieve relevant material`
-- Deterministic FTS excerpt payloads now remain suitable for later basket promotion without ambiguous fallback state.
+- Deterministic FTS excerpt payloads now remain suitable for later basket promotion and downstream workflow use without ambiguous fallback state.
 
 ### Vision capability affected
 
