@@ -2,15 +2,15 @@
 
 - Lane: `feat-retrieval-fts`
 - Branch: `codex/feat-retrieval-fts`
-- Commit: `adfa8cdadd43747ffbcb612e4151e262b13e52ca`
+- Commit: `5885b67031db4c51dffe7bce7647bae265d4f236`
 - Packet refresh commit: `reported in final fixer handoff`
 - Packet refresh role: `metadata-only reviewer-fix finalization`
-- Pre-fix packet refresh trace anchor: `778eb5db8d5623d58a12051794ef720cb23ebd3a`
-- Reviewed implementation range: `378cf9a74a3658058079a32f186fcd254c4a4034..adfa8cdadd43747ffbcb612e4151e262b13e52ca`
+- Pre-fix packet refresh trace anchor: `af6dbf89c145f6157378deca5c9e5dd42b0ea193`
+- Reviewed implementation range: `8356d5f2d0ee39f2e079bb1059a79e397ba58a91..5885b67031db4c51dffe7bce7647bae265d4f236`
 
 ## Packet traceability note
 
-- `378cf9a74a3658058079a32f186fcd254c4a4034` is the direct parent of `adfa8cdadd43747ffbcb612e4151e262b13e52ca`, so this reviewed implementation range is intentionally a single-commit slice.
+- `8356d5f2d0ee39f2e079bb1059a79e397ba58a91` is the direct parent of `5885b67031db4c51dffe7bce7647bae265d4f236`, so this reviewed implementation range is intentionally a single-commit slice.
 - Review the implementation against that exact one-commit range; later packet-refresh commits remain metadata-only unless this handoff is regenerated.
 
 ## Current program focus
@@ -27,23 +27,23 @@
 
 ## Scope goal
 
-- Tighten the canonical excerpt lookup surface so the engine's FTS-first retrieval path fails closed instead of silently rehydrating PageIndex-only excerpts.
+- Tighten canonical lookup-promotion defaults so the engine's FTS-first retrieval path preserves deterministic, auditable constraint snapshots when excerpt provenance is rehydrated.
 
 ## Priority outcomes
 
 1. Keep SQLite FTS as the primary retrieval path.
-2. Ensure excerpt lookup uses the same canonical FTS evidence path as retrieval results.
-3. Prove that PageIndex-only excerpt IDs are rejected instead of being normalized into mixed-source payloads.
+2. Ensure excerpt provenance rehydration uses the same canonical constraint normalization path as retrieval results.
+3. Keep query constraint snapshots stable across lookup promotion so downstream workflow evidence stays deterministic.
 
 ## Definition of done for this lane
 
 - Retrieval is FTS-first by default.
-- Excerpt lookup fails closed on the canonical FTS path.
-- Shared regression coverage proves PageIndex-only excerpt IDs are rejected.
+- Excerpt provenance promotion uses canonicalized query-constraint payloads.
+- Lookup-driven retrieval snapshots stay deterministic and auditable.
 
 ## Do not spend time on
 
-- Broadening the reviewed slice into earlier retrieval facade or provenance-bundle work.
+- Broadening the reviewed slice into earlier excerpt fail-closed work or wider retrieval facade changes.
 - UI rendering concerns.
 - Search features outside the core writing loop.
 
@@ -55,37 +55,34 @@
 
 ## Scope completed
 
-- The reviewed slice is the single implementation commit `adfa8cdadd43747ffbcb612e4151e262b13e52ca` only.
-- In `src/qual/retrieval/service.py`, `fetch_excerpt` now delegates directly to the canonical `_lookup_fts_excerpt(...)` path and no longer falls back to PageIndex normalization.
-- In `tests/unit/test_unified_retrieval.py`, shared regression coverage now asserts both a synthetic PageIndex-only document and an existing PageIndex query path raise `KeyError` when `fetch_excerpt` is asked to resolve non-FTS excerpt IDs.
-- This handoff deliberately excludes earlier retrieval-surface and provenance-bundle work from scope; those behaviors are not claimed as part of this re-review packet.
+- The reviewed slice is the single implementation commit `5885b67031db4c51dffe7bce7647bae265d4f236` only.
+- In `src/qual/retrieval/service.py`, lookup-promotion query constraints now pass through `_canonical_query_constraint_snapshot_payload(...)` before the excerpt provenance snapshot is constructed.
+- This keeps lookup-triggered retrieval summaries aligned with the canonical retrieval constraint shape used elsewhere in the FTS-first retrieval service instead of preserving raw, potentially non-canonical constraint payloads.
+- This handoff deliberately excludes earlier excerpt fail-closed work and broader retrieval-facade changes from scope; those behaviors are not newly claimed as part of this re-review packet.
 
 ## Canonical demo-path step advanced
 
 - `retrieve relevant material`
-- This work advances `retrieve relevant material` by making `fetch_excerpt` resolve only through the canonical SQLite FTS retrieval surface and reject PageIndex-only excerpt IDs, which keeps downstream basket and workflow use tied to deterministic, auditable retrieval evidence.
+- This work advances `retrieve relevant material` by canonicalizing lookup-promotion constraint snapshots before provenance is emitted, which keeps downstream basket and workflow use tied to deterministic, auditable retrieval evidence.
 
 ## Kickoff budget/limits compliance
 
-- This handoff is high-risk only because it includes approved shared regression coverage in `tests/unit/test_unified_retrieval.py`, so the 4-task cap applies.
-- The reviewed implementation slice changes 2 files with 59 lines touched in `adfa8cdadd43747ffbcb612e4151e262b13e52ca`, which fits the shared/high-risk size budget.
-- The packet accounts for the full reviewed slice in 2 meaningful tasks and does not claim broader cumulative retrieval work.
+- This reviewed implementation slice changes 1 lane-owned file with 7 lines touched in `5885b67031db4c51dffe7bce7647bae265d4f236`, which fits the high-risk size budget.
+- The packet accounts for the full reviewed slice in 1 meaningful task and does not claim broader cumulative retrieval work.
 
 ## Approved exception note
 
-- Approved shared regression coverage in `tests/unit/test_unified_retrieval.py` for the `feat-retrieval-fts` lane; it is the sole shared-by-approval regression surface for this reviewed slice and exercises the canonical retrieval contract.
+- No additional shared-by-approval files are part of this reviewed slice.
 
 ## Tasks completed
 
-1. Removed the PageIndex fallback from `fetch_excerpt` so the canonical excerpt lookup surface now resolves only through the FTS-backed lookup path.
-2. Added approved shared regression coverage proving PageIndex-only excerpt IDs now fail closed with `KeyError` instead of being normalized as retrieval payloads.
+1. Canonicalized lookup-promotion query constraints before excerpt provenance snapshots are emitted so retrieval diagnostics and summaries keep the same deterministic constraint shape as the rest of the FTS-first service.
 
 ## Files changed
 
 ### Reviewed implementation files
 
 - `src/qual/retrieval/service.py`
-- `tests/unit/test_unified_retrieval.py`
 
 ### Metadata-only handoff files
 
@@ -117,12 +114,12 @@
 ### Vision capability affected
 
 - `2. Retrieval-first context handling`
-- `3. Auditable generation`
+- `6. Auditable state and workflow`
 
 ### Canonical demo-path step advanced
 
 - `retrieve relevant material`
-- This work advances `retrieve relevant material` by making `fetch_excerpt` resolve only through the canonical SQLite FTS retrieval surface and reject PageIndex-only excerpt IDs, which keeps downstream basket and workflow use tied to deterministic, auditable retrieval evidence.
+- This work advances `retrieve relevant material` by canonicalizing lookup-promotion constraint snapshots before provenance is emitted, which keeps downstream basket and workflow use tied to deterministic, auditable retrieval evidence.
 
 ### Routing/provider impact note
 
@@ -130,4 +127,4 @@
 
 ## Scope-check / ownership note
 
-- Shared/integrator-locked edits: `YES`
+- Shared/integrator-locked edits: `NO`
