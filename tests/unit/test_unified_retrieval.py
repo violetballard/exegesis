@@ -3038,6 +3038,8 @@ class UnifiedRetrievalTests(unittest.TestCase):
                 "RetrievalStrategy",
                 "FTSStrategy",
                 "FTS_FIRST_POLICY",
+                "RetrievalConstraints",
+                "RetrievalQuery",
                 "ACTIVE_STRATEGY_IDS",
                 "DEFERRED_STRATEGY_IDS",
                 "active_strategy_ids",
@@ -3077,6 +3079,10 @@ class UnifiedRetrievalTests(unittest.TestCase):
         )
         self.assertTrue(hasattr(package_retrieval, "build_retrieval_query"))
         self.assertTrue(hasattr(engine_retrieval, "build_retrieval_query"))
+        self.assertTrue(hasattr(engine_retrieval, "RetrievalConstraints"))
+        self.assertTrue(hasattr(engine_retrieval, "RetrievalQuery"))
+        self.assertIs(engine_retrieval.RetrievalConstraints, RetrievalConstraints)
+        self.assertIs(engine_retrieval.RetrievalQuery, RetrievalQuery)
         self.assertTrue(hasattr(engine_retrieval, "FTSStrategy"))
         self.assertFalse(hasattr(engine_retrieval, "PageIndexStrategy"))
         self.assertFalse(hasattr(engine_retrieval, "EmbeddingsStrategy"))

@@ -203,6 +203,8 @@ __all__ = [
     "RetrievalStrategy",
     "FTSStrategy",
     "FTS_FIRST_POLICY",
+    "RetrievalConstraints",
+    "RetrievalQuery",
     "ACTIVE_STRATEGY_IDS",
     "DEFERRED_STRATEGY_IDS",
     "active_strategy_ids",
