@@ -76,8 +76,8 @@
   - metadata-only handoff refresh: `handoff_packets/feat-commands.md`
 - commands run + outcomes:
   - reviewed implementation basis SHA `0777640324e7d3a54dba191135bd2d867c32d399` on `2026-04-24`
-  - fixer refresh reran the required gates on `2026-04-24` after aligning the handoff packet to the reviewer-requested high-risk fields and the explicit Milestone 5 CLI `patch` mapping; this refresh remains metadata-only and does not change the reviewed implementation scope
-  - fixer rerun revalidated implementation tip SHA `491dd5a81631b2138102cf477adf32eccdee3ec8` on `2026-04-24`; the branch tip already contained the required parser-surface contract hardening, token-drift regression coverage, and explicit CLI `patch` mapping before this metadata-only handoff refresh commit
+  - fixer refresh reran the required gates on `2026-04-24` after confirming the live command-catalog implementation and shared regression coverage already satisfy the reviewer-requested fixes on the current branch tip; this refresh remains metadata-only and does not change the reviewed implementation scope
+  - fixer rerun revalidated implementation tip SHA `d72e8f1149250b320ef2eb9c417c4f98e118f295` on `2026-04-24`; the branch tip already contained the required grouped parser-surface contract hardening, token-drift regression coverage, and explicit CLI `patch` mapping before this metadata-only handoff refresh commit
   - `make scope-check` -> passed
   - `./quality-format.sh --check` -> passed
   - `./quality-lint.sh` -> passed
@@ -99,5 +99,5 @@
   - approved shared-test exception for `tests/unit/test_commands_catalog.py`; no other non-owned implementation paths are part of this handoff
 - reviewer-fix satisfaction note:
   - required fix 1 is already satisfied in `src/qual/commands/catalog.py` by validating the full grouped parser-entrypoint projection instead of only deduplicated canonical names
-  - required fix 2 is already satisfied in `tests/unit/test_commands_catalog.py` by token-level drift regressions for added, removed, substituted, and reordered parser entrypoints that still preserve canonical-name order
+  - required fix 2 is already satisfied in `tests/unit/test_commands_catalog.py` by token-level drift regressions for added, removed, substituted, reordered, and alias-substitution parser entrypoints that still preserve canonical-name order
   - required fix 3 is satisfied by the explicit Milestone 3 contract-locking reference, the Milestone 5 CLI `patch` step mapping, the operator-facing blocker statement, and the MVP tie-in stated in this packet; this refresh records a fresh all-gates-green rerun on the current branch tip for re-review
