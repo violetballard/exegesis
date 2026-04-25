@@ -400,6 +400,7 @@ class A2UIFallbackSafetyTests(unittest.TestCase):
         self.assertEqual(manifest["schema_version"], SELECTION_SCHEMA_VERSION)
         self.assertEqual(manifest["selection_schema_version"], SELECTION_SCHEMA_VERSION)
         self.assertEqual(manifest["selection_version"], SELECTION_SCHEMA_VERSION)
+        self.assertEqual(manifest["selection_contract_version"], SELECTION_SCHEMA_VERSION)
 
     def test_a2ui_leaf_contract_manifest_bundles_action_and_selection_contracts(self) -> None:
         manifest = describe_a2ui_leaf_contracts()
@@ -2077,7 +2078,9 @@ class A2UIFallbackSafetyTests(unittest.TestCase):
                 "type": "A2UISchemaVersions",
                 "capabilities_schema_version": A2UI_CAPABILITIES_SCHEMA_VERSION,
                 "selection_schema_version": SELECTION_SCHEMA_VERSION,
+                "selection_contract_version": SELECTION_SCHEMA_VERSION,
                 "action_schema_version": A2UI_ACTION_SCHEMA_VERSION,
+                "action_contract_version": A2UI_ACTION_SCHEMA_VERSION,
                 "card_contract_version": CARD_CONTRACT_VERSION,
                 "terminal_fallback_schema_version": 1,
                 "terminal_artifact_schema_version": TERMINAL_ARTIFACT_SCHEMA_VERSION,
@@ -10344,6 +10347,7 @@ class A2UIFallbackSafetyTests(unittest.TestCase):
         self.assertEqual(manifest["schema_version"], A2UI_ACTION_SCHEMA_VERSION)
         self.assertEqual(manifest["action_schema_version"], A2UI_ACTION_SCHEMA_VERSION)
         self.assertEqual(manifest["action_version"], A2UI_ACTION_SCHEMA_VERSION)
+        self.assertEqual(manifest["action_contract_version"], A2UI_ACTION_SCHEMA_VERSION)
         self.assertEqual(manifest["type"], "ActionRef")
 
     def test_action_contract_manifest_lists_canonical_payload_schemas(self) -> None:
