@@ -9199,9 +9199,7 @@ class A2UIFallbackSafetyTests(unittest.TestCase):
                 primary_renderer.assert_not_called()
                 cli_fallback.assert_not_called()
 
-    def test_shell_ui_keeps_raw_leaf_card_default_for_action_and_selection_hints_during_cli_fallback(
-        self,
-    ) -> None:
+    def test_shell_ui_forwards_explicit_raw_leaf_kind_hints_during_cli_fallback(self) -> None:
         shell = ShellUI()
         raw_leaf = {
             "id": "export_document",
@@ -9209,7 +9207,12 @@ class A2UIFallbackSafetyTests(unittest.TestCase):
             "payload": {"format": "md"},
         }
 
-        for hint in ("action", "selection"):
+        cases = [
+            ("action", "render_terminal_action", "[ActionRef] Export\nAction schema v1"),
+            ("selection", "render_terminal_selection", "[SelectionRef] Export\nSelection schema v1"),
+        ]
+
+        for hint, renderer_name, expected_text in cases:
             with self.subTest(kind=hint):
                 with patch(
                     "src.qual.ui.shell.resolve_terminal_artifact_cli_fallback_target",
@@ -9219,11 +9222,13 @@ class A2UIFallbackSafetyTests(unittest.TestCase):
                         "src.qual.ui.shell.render_terminal_cli_fallback",
                         return_value="cli-fallback",
                     ) as cli_fallback:
-                        text = shell.render_cli_fallback(raw_leaf, kind=hint)
+                        with patch(f"src.qual.ui.shell.{renderer_name}", return_value=expected_text) as leaf_renderer:
+                            text = shell.render_cli_fallback(raw_leaf, kind=hint)
 
-                self.assertEqual(text, "cli-fallback")
+                self.assertEqual(text, expected_text)
                 resolver.assert_not_called()
-                cli_fallback.assert_called_once_with(raw_leaf, kind="card")
+                cli_fallback.assert_not_called()
+                leaf_renderer.assert_called_once_with(raw_leaf)
 
     def test_shell_ui_keeps_raw_leaf_card_default_for_explicit_card_hints_during_fallback(self) -> None:
         shell = ShellUI()
@@ -9358,7 +9363,7 @@ class A2UIFallbackSafetyTests(unittest.TestCase):
         resolver.assert_not_called()
         cli_fallback.assert_not_called()
 
-    def test_shell_ui_keeps_ambiguous_raw_leaf_payloads_on_card_default_for_leaf_kind_hints(self) -> None:
+    def test_shell_ui_forwards_explicit_raw_leaf_kind_hints_in_cli_fallback(self) -> None:
         shell = ShellUI()
         raw_leaf = {
             "id": "export_document",
@@ -9370,14 +9375,13 @@ class A2UIFallbackSafetyTests(unittest.TestCase):
         selection_text = shell.render_cli_fallback(raw_leaf, kind="selection")
         default_text = shell.render_cli_fallback(raw_leaf)
 
-        self.assertEqual(action_text, default_text)
-        self.assertEqual(selection_text, default_text)
-        self.assertIn("[<missing>] <untitled>", action_text)
-        self.assertIn("[<missing>] <untitled>", selection_text)
-        self.assertNotIn("[ActionRef]", action_text)
-        self.assertNotIn("[SelectionRef]", action_text)
-        self.assertNotIn("[ActionRef]", selection_text)
-        self.assertNotIn("[SelectionRef]", selection_text)
+        self.assertIn("[ActionRef] Export", action_text)
+        self.assertIn("[SelectionRef] Export", selection_text)
+        self.assertIn("[<missing>] <untitled>", default_text)
+        self.assertNotIn("[<missing>] <untitled>", action_text)
+        self.assertNotIn("[<missing>] <untitled>", selection_text)
+        self.assertNotIn("[ActionRef]", default_text)
+        self.assertNotIn("[SelectionRef]", default_text)
 
     def test_shell_ui_forwards_explicit_raw_leaf_kind_hints(self) -> None:
         shell = ShellUI()
