@@ -1,13 +1,16 @@
-Gate Results Summary (as of 2026-04-24)
--------------------------------------
+Gate Results Summary
+--------------------
 
 Feature lane: `codex/feat-retrieval-fts`
-Change summary: explicit engine-surface export of canonical retrieval query types plus regression coverage for that public contract.
+Reviewed implementation head: `22a56fce70167ddd4c7708fd4a1ee18fad7b8ffe`
+Reviewed implementation range: `d7fd5d200358287fa42a18d39e2b277463b9b69f..22a56fce70167ddd4c7708fd4a1ee18fad7b8ffe`
+Change summary: FTS-only excerpt lookup remains fail-closed, and the owned engine retrieval shim now exports the canonical retrieval query dataclasses with shared regression coverage for that public contract.
 Canonical demo-path step advanced: `retrieve relevant material`
-Basket-promotion alignment: engine callers now import the canonical retrieval query dataclasses from the same public shim used for FTS-first retrieval, which keeps downstream promotion and provenance flows anchored to one deterministic query contract.
+Basket-promotion alignment: engine callers and downstream promotion flows now build FTS-first retrieval requests from one public query contract, which keeps provenance and excerpt handling deterministic across the retrieval surface.
 
 Files changed:
 
+* `src/qual/retrieval/service.py`
 * `src/qual/engine/retrieval/__init__.py`
 * `tests/unit/test_unified_retrieval.py`
 * `THREAD_PACKET.md`
@@ -25,13 +28,13 @@ Verification:
 
 Roadmap items affected:
 
-* `Milestone 4: Retrieval Layer`
-* `Milestone 3: Product Readiness`
+* `Milestone 3: Real workflow loop`
+* `feat-retrieval-fts`
 
 Vision capabilities affected:
 
-* `2. Retrieval-first context handling`
-* `3. Auditable generation`
+* `Retrieval-first context handling`
+* `Auditable state and workflow`
 
 Routing/provider impact:
 
@@ -39,5 +42,5 @@ Routing/provider impact:
 
 Risks / blockers:
 
-* Residual risk: future retrieval shim changes must keep the explicit engine export list and shared regression assertions aligned.
+* Residual risk: future retrieval shim changes must keep the explicit engine export list and shared regression assertions aligned with the canonical retrieval dataclasses.
 * Blockers: none
