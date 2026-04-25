@@ -25,20 +25,20 @@
 
 ## Scope goal
 
-- Complete the FTS-first retrieval MVP for engine flows with deterministic excerpt and provenance output. This lane slice advances the canonical demo-path step `retrieve relevant material` and stays out of scope for basket promotion, plan/revise/apply flow work, and any PageIndex or embeddings runtime fallback behavior.
+- Remove the PageIndex fallback from `fetch_excerpt`, keep excerpt lookup on the canonical FTS-only path, and prove PageIndex-only excerpt IDs fail closed under approved shared regression coverage. This lane slice advances the canonical demo-path step `retrieve relevant material` and stays out of scope for broader retrieval MVP claims, basket promotion, plan/revise/apply flow work, and any PageIndex or embeddings runtime fallback behavior beyond fail-closed compatibility.
 
 ## Priority outcomes
 
-1. Keep SQLite FTS as the primary retrieval path.
-2. Return stable, structured hits suitable for basket promotion and downstream workflow use.
-3. Keep provenance and excerpt payloads deterministic and auditable.
+1. Keep `fetch_excerpt` on the canonical FTS-only lookup path.
+2. Fail closed for PageIndex-only excerpt IDs instead of silently falling back.
+3. Keep the reviewed slice explicitly limited to the excerpt lookup contract and its regression coverage.
 
 ## Definition of done for this lane
 
-- Retrieval is FTS-first by default.
-- Results are structured and deterministic enough for basket promotion and workflow cards.
-- Excerpt provenance is stable and auditable.
-- Retrieval is reachable through the canonical engine surface.
+- `fetch_excerpt` no longer uses the PageIndex fallback path.
+- PageIndex-only excerpt IDs raise `KeyError` through the public excerpt lookup surface.
+- Approved shared regression coverage proves the fail-closed behavior.
+- The handoff outcome is limited to the canonical excerpt lookup contract, not the full retrieval lane.
 
 ## Do not spend time on
 
@@ -54,9 +54,9 @@
 
 ## Scope completed
 
-- SQLite FTS remains the authoritative MVP retrieval path in this narrowed slice. The reviewed implementation commit makes excerpt lookup fail closed on the canonical FTS-only path by removing the PageIndex fallback from `fetch_excerpt`, while keeping approved shared regression coverage in `tests/unit/test_unified_retrieval.py` to prove PageIndex-only excerpt IDs now raise `KeyError`.
-- PageIndex and embeddings remain non-required compatibility paths in this slice; excerpt lookup no longer promotes PageIndex as a runtime fallback path for the MVP contract. Basket promotion and plan/revise/apply flow work remain explicitly out of scope for this handoff.
-- This re-review deliberately narrows scope from the earlier over-budget cumulative branch summary to the single implementation commit `adfa8cdadd43747ffbcb612e4151e262b13e52ca`, which stays within the high-risk size budget for shared-file work.
+- The reviewed implementation commit `adfa8cdadd43747ffbcb612e4151e262b13e52ca` removes the PageIndex fallback from `fetch_excerpt`, so excerpt lookup now resolves only through the canonical FTS path.
+- Approved shared regression coverage in `tests/unit/test_unified_retrieval.py` proves PageIndex-only excerpt IDs fail closed with `KeyError`.
+- In AGENTS terms, this strengthens the canonical demo-path step `retrieve relevant material` by ensuring excerpt lookup stays on the canonical FTS path. Basket promotion, plan/revise/apply flow work, and broader retrieval MVP claims remain explicitly out of scope for this handoff.
 
 ## Canonical demo-path step advanced
 
@@ -71,7 +71,7 @@
 
 ## Kickoff budget/limits compliance
 
-- This handoff includes approved shared regression coverage in `tests/unit/test_unified_retrieval.py`, so the packet is shared/high-risk work and should be read against the 4-task cap. The narrowed reviewed slice changes 2 files with 59 lines touched in `adfa8cdadd43747ffbcb612e4151e262b13e52ca`, which fits the shared/high-risk size budget.
+- This handoff includes approved shared regression coverage in `tests/unit/test_unified_retrieval.py`, so the packet is shared/high-risk work and should be read against the 4-task cap. The narrowed reviewed slice changes 2 files with 59 lines touched in `adfa8cdadd43747ffbcb612e4151e262b13e52ca`, and the handoff describes 2 meaningful tasks, which fits the shared/high-risk size budget.
 
 ## Approved exception note
 
@@ -94,8 +94,6 @@
 - `.codex/kickoff_packets/feat-retrieval-fts.md`
 - `.codex/lane_meta/feat-retrieval-fts.json`
 - `THREAD_PACKET.md`
-- `codex_packet_handoff/tools/planner.py`
-- `tests/unit/test_packet_planner.py`
 
 ## Commands run and outcomes
 
