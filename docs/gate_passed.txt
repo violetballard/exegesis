@@ -8,6 +8,7 @@ Reviewed implementation range: `adfa8cdadd43747ffbcb612e4151e262b13e52ca..22a56f
 Change summary: the reviewed branch-tip range is not excerpt-only. It includes the FTS-only excerpt lookup follow-up, provenance/source/doc/excerpt bundle normalization, FTS-only strategy enforcement, engine-surface helper exports including `retrieve_fts_provenance_bundle`, `retrieve_auto_provenance_bundle`, `fetch_fts_excerpt`, and the canonical query dataclass exports on the engine retrieval facade, plus matching regression and packet/planner traceability updates.
 Canonical demo-path step advanced: `retrieve relevant material`
 Basket-promotion alignment: the added payload/provenance/source-bundle normalization is what keeps downstream basket promotion auditable, because engine consumers now receive one deterministic FTS-first retrieval shape with stable fingerprints, ranked IDs, and strategy metadata.
+Review note: use this file together with `THREAD_PACKET.md` as the authoritative re-review packet for the `22a56fce...` tip.
 
 Files changed in the reviewed range:
 
