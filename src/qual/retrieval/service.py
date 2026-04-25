@@ -4259,9 +4259,10 @@ class RetrievalService:
     ) -> dict[str, object]:
         query_snapshot = self._build_excerpt_query_snapshot(excerpt=excerpt, provenance=provenance)
         query_fingerprint = self._query_fingerprint_from_snapshot(query_snapshot)
-        query_constraints = query_snapshot.get("constraints", {}) if isinstance(query_snapshot, dict) else {}
-        if not isinstance(query_constraints, dict):
-            query_constraints = {}
+        raw_query_constraints = query_snapshot.get("constraints", {}) if isinstance(query_snapshot, dict) else {}
+        if not isinstance(raw_query_constraints, dict):
+            raw_query_constraints = {}
+        query_constraints = _canonical_query_constraint_snapshot_payload(raw_query_constraints)
         query_text = (
             query_snapshot.get("query_text")
             if isinstance(query_snapshot, dict)
