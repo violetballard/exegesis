@@ -2,33 +2,33 @@ Gate Results Summary (as of 2026-04-24)
 -------------------------------------
 
 Feature lane: `codex/feat-retrieval-fts`
-Packet role: `metadata-only reviewer-fix finalization`
-Packet refresh commit corrected by this pass: `reported in final fixer handoff`
-Reviewed implementation head: `32c259cdec2670ec777f31a41c6dd7639219acea`
-Reviewed implementation range: `378cf9a74a3658058079a32f186fcd254c4a4034..32c259cdec2670ec777f31a41c6dd7639219acea`
+Packet role: `packet traceability correction for the actual branch tip`
+Packet refresh commit corrected by this pass: `d4ce75fdeb2e2f4dbf1dcebd06a3e53659db8165`
+Reviewed implementation head: `6e963e1b209cec127e7da6734aa5ca3328a05f88`
+Reviewed implementation range: `75572c120239a84402a82b845c3df797806fcdf4..6e963e1b209cec127e7da6734aa5ca3328a05f88`
 Canonical demo-path step advanced: `retrieve relevant material`
-Plan-alignment statement: This work makes the canonical demo-path step `retrieve relevant material` more real by enforcing FTS-only excerpt lookup, canonical source-bundle provenance, and deterministic failure audit behavior.
-Reviewer-fix reconciliation: the handoff packet now matches the actual tip, includes the canonical provenance normalization and excerpt-failure audit schema change, and keeps the writable packet artifacts aligned on the same reviewed implementation range.
-Packet refresh traceability: the reviewed implementation tip is `32c259cdec2670ec777f31a41c6dd7639219acea`; the in-scope implementation commits added after the previous packeted tip are `d31e408e631adf1e3ae1fb660449510a33715de7` and `32c259cdec2670ec777f31a41c6dd7639219acea`; the packet-only commits `ef83180f4452742ff97f640a2471e4708d622747`, `cdd3a4c6e6e39ff1efbb1ec62b0f70b64d0af717`, `9d3573f26ede9092b31016b9bf4846e79bae2b5e`, `54e7dc0dd80607108e61477ffe9466328932a78b`, and `6a94334ea3b13e716770e2cf4e8bb17d139e3e9d` remain metadata-only.
+Plan-alignment statement: In the Milestone 3 engine-first demo path, this reviewed range advances `retrieve relevant material` by keeping excerpt lookup on the canonical FTS-backed path and making retrieval payload, provenance, policy snapshot, and missing-query-context audit behavior deterministic and reviewable.
+Reviewer-fix reconciliation: the handoff packet is regenerated against the real implementation head `6e963e1b209cec127e7da6734aa5ca3328a05f88`, includes the in-scope retrieval commits through that head, and keeps the repo-visible handoff artifacts aligned on that actual reviewed range.
+Packet refresh traceability: `d4ce75fdeb2e2f4dbf1dcebd06a3e53659db8165` refreshed `THREAD_PACKET.md`; this pass refreshes `THREAD_PACKET.md` and `docs/gate_passed.txt` to agree on the actual reviewed implementation head. The mirrored `.codex` packet files require a separate write path in this sandbox.
+Packet refresh traceability correction: commit `6e963e1b209cec127e7da6734aa5ca3328a05f88` is reviewed implementation scope, not a metadata-only packet refresh.
 
 Reviewed implementation scope:
 
 * `fetch_excerpt` no longer falls back to PageIndex; excerpt lookup stays fail-closed on the canonical FTS path.
-* `src/qual/engine/retrieval/payload.py` now prefers canonical source-bundle-derived provenance for engine-facing snapshots when multiple provenance surfaces are present.
-* Failed FTS excerpt lookup audits now emit `lookup_query_context_status: "missing"` so failure payloads stay schema-aligned with successful lookup events.
-* `tests/unit/test_unified_retrieval.py` covers the fail-closed excerpt lookup contract, the canonical provenance normalization, and the missing-query-context failure audit field.
+* Approved shared regression coverage in `tests/unit/test_unified_retrieval.py` proves missing excerpt query context is reported with `lookup_query_context_status: "missing"` and PageIndex-only excerpt IDs still fail closed.
+* Retrieval policy snapshots are deep-copied before response enrichment so packet- or consumer-side mutation cannot alias back into stored retrieval metadata.
 
-Metadata-only packet refresh inventory for this fixer pass:
+Packet artifacts refreshed by this fixer pass:
 
 * `THREAD_PACKET.md`
 * `docs/gate_passed.txt`
 
 AGENTS checkpoint evidence:
 
-* `plan complete` - restamped the reviewed implementation range to the actual tip `32c259cdec2670ec777f31a41c6dd7639219acea` and enumerated the now-in-scope code/test commits.
-* `before risky/shared file edit` - the packet now explicitly acknowledges approved shared regression coverage and the shared/high-risk budget posture.
+* `plan complete` - regenerated the reviewed implementation range to the real non-metadata tip and mapped it explicitly to `retrieve relevant material`.
+* `before risky/shared file edit` - the packet explicitly acknowledges approved shared regression coverage and the shared/high-risk budget posture.
 * `first green tests` - all required gates passed after the branch-tip packet restamp.
-* `ready for handoff` - the writable handoff artifacts explicitly map the handed-off tip to `retrieve relevant material` and list the real reviewed files and contract changes.
+* `ready for handoff` - the writable handoff artifacts explicitly map the reviewed range to `retrieve relevant material` and describe the real implementation files in scope.
 
 Verification:
 
@@ -41,8 +41,8 @@ Verification:
 
 Roadmap items affected:
 
-* `Milestone 4: Retrieval Layer`
-* `feat-retrieval-fts`: excerpt lookup contract hardening plus canonical provenance/failure-audit normalization
+* `Milestone 3: Real workflow loop`
+* `feat-retrieval-fts`: retrieval/search
 
 Vision capabilities affected:
 
@@ -55,5 +55,5 @@ Routing/provider impact:
 
 Risks / blockers:
 
-* Residual risk: this handoff updated shared regression coverage in `tests/unit/test_unified_retrieval.py`, so any later retrieval change that intentionally broadens excerpt lookup semantics or alters provenance normalization will need coordinated updates to that shared test surface.
-* Blockers: `.codex/kickoff_packets/feat-retrieval-fts.md` and `.codex/lane_meta/feat-retrieval-fts.json` could not be refreshed with `apply_patch` in this environment even though the authoritative handoff files were updated.
+* Residual risk: this handoff still depends on shared regression coverage in `tests/unit/test_unified_retrieval.py`, so any later retrieval change that broadens excerpt lookup semantics or alters the retrieval audit payload shape will need coordinated updates to that shared test surface.
+* Blockers: mirrored packet files under `.codex/` could not be updated with `apply_patch` in this sandbox even though the repo-visible handoff artifacts were refreshed successfully.
