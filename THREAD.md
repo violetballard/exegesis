@@ -45,6 +45,7 @@ Canonical handoff contract lives in `THREAD_PACKET.md`.
 - This fixer refresh reruns the same required gates on `2026-04-24` in the lane worktree after confirming the current tip `171a6c810` keeps the reviewer-requested parser-projection validation, direct live parser coverage, canonical demo-path mapping, and narrowed implementation task accounting
 - Green implementation evidence on the current branch comes from `beaf91853`, `4a4d47048`, `077764032`, and `3ede0bbf8`, while the final validated packet tip is `171a6c810`; this handoff refresh only records that evidence and the corrected plan mapping
 - Verified gate rerun on tip `171a6c810`: `make scope-check`, `./quality-format.sh --check`, `./quality-lint.sh`, `./quality-test.sh`, `./typecheck-test.sh`, and `make ci` all passed
+- Gate execution note: bare `python -m pytest` was unavailable in this shell (`No module named pytest`), so verification used the repo-required gate scripts as the source of truth
 - `make scope-check`
 - `./quality-format.sh --check`
 - `./quality-lint.sh`

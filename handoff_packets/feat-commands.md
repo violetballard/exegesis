@@ -106,6 +106,7 @@
   - `./quality-test.sh` -> passed
   - `./typecheck-test.sh` -> passed
   - `make ci` -> passed
+  - gate execution note: bare `python -m pytest` was unavailable in this shell (`No module named pytest`), so verification used the repo-required gate scripts as the source of truth
 - risks/blockers:
   - risk: future parser token or alias changes must keep the grouped parser-entrypoint projection aligned with the catalog, or the fail-fast contract will reject the patch-review surface
   - blockers: none
