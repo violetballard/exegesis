@@ -13,9 +13,9 @@ Canonical handoff contract lives in `THREAD_PACKET.md`.
 - Latest gate rerun date: `2026-04-24`
 - Current fixer refresh purpose: rerun the required gates after confirming the reviewer fixes remain satisfied and refresh the handoff metadata on top of the verified command-catalog slice
 - Review scope: deterministic `command_cli_contract()` behavior in `src/qual/commands/catalog.py` plus the approved shared regression coverage in `tests/unit/test_commands_catalog.py`
-- Canonical demo-path step advanced: the CLI-first `patch review` step via `diff-preview`, keeping the MVP loop executable from the CLI while Textual remains disabled
-- Explicit handoff sentence: This work makes the CLI-first `patch review` step more real by hardening the catalog-driven parser contract, so parser/catalog drift fails fast instead of silently mutating the `diff-preview` entrypoint that the engine-first fallback path depends on.
-- Concrete blocker removed: parser/catalog drift can no longer silently reorder, add, or substitute accepted `diff-preview` tokens on the current engine-first fallback path without tripping the contract validation before the `patch review` step reaches the real engine path.
+- Canonical demo-path step advanced: the CLI/operator-contract portion of `open project/document`, keeping the MVP loop executable from the CLI while Textual remains disabled
+- Explicit handoff sentence: This work makes the CLI/operator-contract portion of `open project/document` more real by hardening the catalog-driven parser contract, so parser/catalog drift fails fast instead of silently mutating the operator entrypoint that the engine-first fallback path depends on.
+- Concrete blocker removed: parser/catalog drift can no longer silently reorder, add, or drop CLI tokens on the current engine-first fallback path without tripping the contract validation before the `open project/document` operator contract reaches the real engine path.
 - Roadmap alignment: `ROADMAP.md` Milestone 3 exit criterion `Contract changes documented and intentional` only
 - Vision alignment: `PRODUCT_VISION.md` capability 3 `Canonical engine contract` only
 - Scope boundary: this handoff claims only command-catalog contract hardening and the approved shared regression test; it does not claim broader retrieval, persistence, apply/reject, routing, or UI progress
