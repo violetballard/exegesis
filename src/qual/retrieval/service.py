@@ -384,6 +384,31 @@ def _basket_promotion_query_constraint_snapshot(query: RetrievalQuery) -> dict[s
     return constraints
 
 
+def _canonical_query_constraint_snapshot_payload(constraints: object) -> dict[str, object]:
+    """Return the canonical query-constraint snapshot used by retrieval payloads.
+
+    Sparse excerpt lookup payloads may omit fields that were implicit in the
+    original query. Reconstruct the same default-bearing shape used by live
+    RetrievalQuery objects so basket promotion and provenance rebuilding remain
+    deterministic across sparse and non-sparse paths.
+    """
+
+    payload = constraints if isinstance(constraints, dict) else {}
+    snapshot: dict[str, object] = {
+        "max_results": _optional_int(payload.get("max_results")) or 10,
+        "doc_types": _normalize_query_doc_types_payload(payload.get("doc_types")) or [],
+        "require_citations": _optional_bool(payload.get("require_citations")) or False,
+        "prefer_exact_matches": _optional_bool(payload.get("prefer_exact_matches")) or False,
+    }
+    date_range = _normalize_query_date_range_payload(payload.get("date_range"))
+    if date_range is not None:
+        snapshot["date_range"] = date_range
+    section_hint = _normalized_query_hint_text(payload.get("section_hint"))
+    if section_hint is not None:
+        snapshot["section_hint"] = section_hint
+    return snapshot
+
+
 def _normalize_hit_shared_provenance_payload(provenance: object) -> dict[str, object]:
     if not isinstance(provenance, dict):
         return {}
@@ -4157,19 +4182,16 @@ class RetrievalService:
         doc_types = _normalize_query_doc_types_payload(doc_types_raw)
         require_citations = _optional_bool(require_citations_raw)
         prefer_exact_matches = _optional_bool(prefer_exact_matches_raw)
-        query_constraints: dict[str, object] = {}
-        if max_results is not None:
-            query_constraints["max_results"] = max_results
-        if doc_types is not None:
-            query_constraints["doc_types"] = doc_types
-        if query_date_range is not None:
-            query_constraints["date_range"] = query_date_range
-        if require_citations is not None:
-            query_constraints["require_citations"] = require_citations
-        if section_hint is not None:
-            query_constraints["section_hint"] = section_hint
-        if prefer_exact_matches is not None:
-            query_constraints["prefer_exact_matches"] = prefer_exact_matches
+        query_constraints = _canonical_query_constraint_snapshot_payload(
+            {
+                "max_results": max_results,
+                "doc_types": doc_types,
+                "date_range": query_date_range,
+                "require_citations": require_citations,
+                "section_hint": section_hint,
+                "prefer_exact_matches": prefer_exact_matches,
+            }
+        )
         # Fail closed when sparse lookup context cannot identify the original
         # retrieval contract. A partial ``query`` object looks canonical to
         # downstream basket-promotion flows even though it cannot be
@@ -4181,8 +4203,13 @@ class RetrievalService:
             "scope": query_scope,
             "intent": query_intent,
         }
-        if query_constraints:
-            query_snapshot["constraints"] = query_constraints
+        sparse_query_constraints = {
+            key: copy.deepcopy(value)
+            for key, value in query_constraints.items()
+            if key in {"date_range", "section_hint"} or value not in (10, [], False)
+        }
+        if sparse_query_constraints:
+            query_snapshot["constraints"] = sparse_query_constraints
         query_snapshot["confidentiality_profile"] = query_confidentiality_profile or "confidential"
         return query_snapshot
 
