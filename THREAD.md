@@ -21,7 +21,7 @@ Canonical handoff contract lives in `THREAD_PACKET.md`.
   1. `command_cli_contract()` now validates the grouped parser-entrypoint projection, so alias add/remove/reorder drift fails even when canonical-name order stays stable.
   2. `tests/unit/test_commands_catalog.py` covers token-level parser drift that preserves canonical-name order.
   3. This handoff explicitly maps the change to the canonical demo-path step above and names the concrete CLI-fallback blocker it removes.
-- Verified re-review tip before this packet refresh: `91cf2dadb`
+- Verified re-review tip before this packet refresh: `2571e9d6e`
 - Verified token-drift coverage on that tip includes alias substitution, extra parser token, removed parser token, and reordered parser tokens within the same canonical command group while canonical-name order stays stable
 - MVP focus tie-in: this is CLI-fallback contract hardening for the current `A2UI`-with-CLI-fallback MVP emphasis, not new command-surface expansion
 - Shared-test approval record: `scripts/scope-check.sh` allowlists `tests/unit/test_commands_catalog.py` for `codex/feat-commands`; the allowlist line was added by Violet Ballard in commit `c3a66bb580` (`fix(commands): tighten feat-commands packet and policy`, `2026-03-28`) and is still present on the current tip
@@ -39,9 +39,9 @@ Canonical handoff contract lives in `THREAD_PACKET.md`.
 ## Required Gates
 
 - Reviewer packet reported these gates as passing on implementation basis SHA `0777640324e7d3a54dba191135bd2d867c32d399`
-- This fixer refresh reruns the same required gates on `2026-04-24` in the lane worktree after confirming the current tip `91cf2dadb` already contains the reviewer-requested parser-projection validation and token-drift coverage
+- This fixer refresh reruns the same required gates on `2026-04-24` in the lane worktree after confirming the current tip `2571e9d6e` already contains the reviewer-requested parser-projection validation and token-drift coverage
 - Green implementation evidence on the current branch comes from `beaf91853`, `4a4d47048`, and `077764032`; this handoff refresh only records that evidence and the corrected plan mapping
-- Verified gate rerun on tip `91cf2dadb`: `make scope-check`, `./quality-format.sh --check`, `./quality-lint.sh`, `./quality-test.sh`, `./typecheck-test.sh`, and `make ci` all passed
+- Verified gate rerun on tip `2571e9d6e`: `make scope-check`, `./quality-format.sh --check`, `./quality-lint.sh`, `./quality-test.sh`, `./typecheck-test.sh`, and `make ci` all passed
 - `make scope-check`
 - `./quality-format.sh --check`
 - `./quality-lint.sh`
