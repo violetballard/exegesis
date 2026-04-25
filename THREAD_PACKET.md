@@ -22,7 +22,8 @@
   3. This packet explicitly maps the change to the CLI/operator-contract portion of `open project/document` and names the concrete CLI-contract blocker it removes.
 - Previous verified re-review tip before this packet refresh: `8cbf181261855e9594885fcde058a1aa0588b5a7`
 - Previous validated handoff tip before this packet refresh: `8cbf181261855e9594885fcde058a1aa0588b5a7`
-- Current verifier refresh base SHA: `b96781ea37c42b806f9e0921032b101c6cec76da`
+- Current verifier refresh base SHA: `d94217d02dc785d22b6f43a7498fb70c2801f0a3`
+- Current fixer refresh purpose: satisfy the review request for an explicit canonical demo-path mapping without broadening the claim beyond the `open project/document` CLI/operator contract.
 - Roadmap alignment: `ROADMAP.md` Milestone 3 exit criterion `Contract changes documented and intentional` only; this handoff is a narrow canonical engine contract and CLI-compatibility hardening change for the existing engine-first CLI fallback path while Textual remains disabled and without claiming broader workflow coverage beyond the `open project/document` operator contract.
 - Vision alignment: `PRODUCT_VISION.md` capability 3 `Canonical engine contract` only; this change hardens the current parser/catalog contract that the CLI fallback depends on for the `open project/document` operator contract and does not claim audit-state, workflow-state, or broader workflow progress.
 - Non-claim boundary: this handoff claims only deterministic CLI catalog ordering and fail-fast parser-surface drift detection for the existing CLI fallback path; it does not claim parser-entrypoint rewrites, workflow-wrapper additions, diff-preview output work, provider routing changes, storage changes, reachability expansion, or UI-console work.
@@ -82,7 +83,7 @@
 - commands run + outcomes:
   - reviewed implementation basis SHA `f8d860ed9f6299f0169c4f21321ac5f37c949fd3`
   - previous packet refresh commit preserved as metadata-only scope on tip `8cbf181261855e9594885fcde058a1aa0588b5a7`
-  - verifier rerun base SHA before this metadata-only refresh: `b96781ea37c42b806f9e0921032b101c6cec76da`
+  - verifier rerun base SHA before this metadata-only refresh: `d94217d02dc785d22b6f43a7498fb70c2801f0a3`
   - `make scope-check` -> passed
   - `./quality-format.sh --check` -> passed
   - `./quality-lint.sh` -> passed
