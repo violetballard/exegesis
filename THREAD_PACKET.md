@@ -25,7 +25,7 @@
   3. This packet explicitly names the canonical demo-path step advanced and states how this work makes that exact CLI-first MVP step more real.
 - Verified re-review tip before this packet refresh: `38fd87277`
 - Verified token-drift coverage on that tip includes alias substitution, extra parser token, removed parser token, and reordered parser tokens within the same canonical command group while canonical-name order stays stable.
-- Roadmap alignment: `ROADMAP.md` Milestone 3 scope `Define and lock user-facing output contracts` and `AGENTS.md` active MVP note `A2UI contracts with CLI fallback`; this handoff is a narrow contract-hardening change that protects the deterministic CLI contract required for `preview and apply or reject a patch`, concretely the canonical `patch-review` -> `apply-patch`/`reject-patch` contract, without claiming new flow coverage.
+- Roadmap alignment: `ROADMAP.md` Milestone 3 exit criterion `Contract changes documented and intentional` plus `AGENTS.md` active MVP note `A2UI contracts with CLI fallback`; this handoff is a narrow contract-hardening change that documents and locks the deterministic CLI contract for the existing `preview and apply or reject a patch` step, concretely the canonical `patch-review` -> `apply-patch`/`reject-patch` contract, while Textual remains disabled and without claiming new flow coverage.
 - Vision alignment: primarily `PRODUCT_VISION.md` capability 4 `Operator-first control surface`, because this change only hardens the current CLI contract that operators use today while Textual remains disabled; `PRODUCT_VISION.md` capability 5 `Agent-to-UI protocol (A2UI)` is relevant only insofar as the same engine-authored command contract must remain reliable for the CLI fallback surface.
 - Non-claim boundary: this handoff claims only deterministic CLI catalog ordering and fail-fast parser-surface drift detection for the existing command surface; it does not claim parser-entrypoint rewrites, workflow-wrapper additions, diff-preview output work, provider routing changes, storage changes, reachability expansion, or UI-console work.
 
@@ -57,7 +57,7 @@
 
 ### Checkpoint Cadence (short updates)
 
-- plan complete: the handoff is narrowed to the reviewed `command_cli_contract()` slice and explicitly mapped to the roadmap `patch` step via the canonical `patch-review` -> `apply-patch`/`reject-patch` contract
+- plan complete: the handoff is narrowed to the reviewed `command_cli_contract()` slice and explicitly mapped to the existing roadmap patch step via the canonical `patch-review` -> `apply-patch`/`reject-patch` contract
 - first green tests: `make scope-check`, `./quality-format.sh --check`, `./quality-lint.sh`, `./quality-test.sh`, `./typecheck-test.sh`, and `make ci` are rerun on this branch after confirming the live parser-projection validation and token-drift coverage remain present
 - before risky/shared file edit: the only non-owned path is the repo-policy-allowlisted shared test file `tests/unit/test_commands_catalog.py`
 - ready for handoff: the packet names the exact reviewed files, includes the missing canonical demo-path step mapping, and records the concrete scope-gate approval evidence for the only non-owned test path
@@ -69,7 +69,7 @@
   - hardened `command_cli_contract()` in `src/qual/commands/catalog.py` so deterministic CLI catalog ordering is rebuilt from the grouped parser-entrypoint projection instead of trusting only the deduplicated canonical-name sequence
   - added fail-fast validation in `src/qual/commands/catalog.py` so added, removed, or reordered CLI entrypoint tokens and alias drift raise `ValueError` instead of silently changing the current command surface
   - added focused regression coverage in the allowlisted shared test file `tests/unit/test_commands_catalog.py` for canonical-order alignment plus removed, reordered, and extra alias-token drift rejection on the current parser surface
-  - refreshed the handoff packet so the review claim, Milestone 3 user-facing-contract mapping, and file list match the reviewed command-catalog slice exactly
+  - refreshed the handoff packet so the review claim, Milestone 3 exit-criterion mapping, and file list match the reviewed command-catalog slice exactly
 - tasks completed (numbered implementation work only; metadata-only packet refreshes excluded):
   1. Hardened `command_cli_contract()` to validate the full grouped parser-entrypoint projection against the catalog.
   2. Preserved canonical command ordering in the returned CLI contract while rejecting added, removed, or reordered parser tokens that would otherwise preserve canonical-name order.
@@ -103,8 +103,8 @@
   - risk: future parser token or alias changes must keep the grouped parser-entrypoint projection aligned with the catalog, or the fail-fast contract will reject the surface
   - blockers: none
 - roadmap item(s) affected:
-  - `ROADMAP.md` Milestone 3 scope `Define and lock user-facing output contracts`: preserve the deterministic CLI contract for the existing `preview and apply or reject a patch` step by failing fast when parser/catalog drift mutates the `patch-review`, `apply-patch`, or `reject-patch` command surface
-  - `AGENTS.md` active MVP note `A2UI contracts with CLI fallback`: this keeps the current CLI fallback contract reliable for the patch segment of that MVP loop; it does not expand that surface
+  - `ROADMAP.md` Milestone 3 exit criterion `Contract changes documented and intentional`: preserve the deterministic CLI contract for the existing `preview and apply or reject a patch` step by failing fast when parser/catalog drift mutates the `patch-review`, `apply-patch`, or `reject-patch` command surface
+  - `AGENTS.md` active MVP note `A2UI contracts with CLI fallback`: this keeps the current CLI fallback contract reliable for the patch segment of that MVP loop while Textual remains disabled; it does not expand that surface
 - vision capability affected:
   - primary: `PRODUCT_VISION.md` capability 4 `Operator-first control surface`
   - secondary only: `PRODUCT_VISION.md` capability 5 `Agent-to-UI protocol (A2UI)` via the existing CLI fallback surface, not via any new workflow or audit behavior
