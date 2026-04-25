@@ -106,6 +106,15 @@ def _ensure_runtime_types() -> None:
     _bind_runtime_types()
 
 
+def __getattr__(name: str):
+    """Lazily expose canonical retrieval dataclasses on the engine surface."""
+
+    if name in {"RetrievalConstraints", "RetrievalQuery"}:
+        _ensure_runtime_types()
+        return globals()[name]
+    raise AttributeError(f"module {__name__!r} has no attribute {name!r}")
+
+
 def _delegate_to_retrieval(name: str, *args, **kwargs):
     return getattr(_retrieval_module(), name)(*args, **kwargs)
 
