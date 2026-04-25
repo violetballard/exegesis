@@ -73,6 +73,7 @@
 - commands run + outcomes:
   - reviewed implementation basis SHA `0777640324e7d3a54dba191135bd2d867c32d399` on `2026-04-24`
   - fixer refresh reran the required gates on `2026-04-24` after aligning the handoff packet to the reviewer-requested high-risk fields and canonical demo-path mapping; this refresh remains metadata-only and does not change the reviewed implementation scope
+  - re-review refresh revalidated the current tip SHA `fc7fceb071d47809dde76b57d187aef954f1a723` on `2026-04-24`; the branch tip already contains the required parser-surface contract hardening, token-drift regression coverage, and explicit canonical demo-path mapping, so this refresh is packet bookkeeping plus fresh gate evidence only
   - `make scope-check` -> passed
   - `./quality-format.sh --check` -> passed
   - `./quality-lint.sh` -> passed
@@ -93,4 +94,6 @@
 - approved exception note:
   - approved shared-test exception for `tests/unit/test_commands_catalog.py`; no other non-owned implementation paths are part of this handoff
 - reviewer-fix satisfaction note:
-  - this packet adds the missing canonical demo-path mapping and concrete blocker, ties roadmap/vision alignment to the current repo wording, and keeps the approval basis scoped to deterministic CLI catalog ordering plus fail-fast parser-surface drift detection in `src/qual/commands/catalog.py` with the approved shared test file `tests/unit/test_commands_catalog.py`
+  - required fix 1 is already satisfied in `src/qual/commands/catalog.py` by validating the full grouped parser-entrypoint projection instead of only deduplicated canonical names
+  - required fix 2 is already satisfied in `tests/unit/test_commands_catalog.py` by token-level drift regressions for added, removed, substituted, and reordered parser entrypoints that still preserve canonical-name order
+  - required fix 3 is satisfied by the explicit canonical demo-path step, blocker, and MVP tie-in stated in this packet; this refresh records a fresh all-gates-green rerun on the current branch tip for re-review
