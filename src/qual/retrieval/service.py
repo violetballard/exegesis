@@ -257,6 +257,12 @@ def _stable_sort_key(value: object) -> str:
     return json.dumps(value, sort_keys=True, separators=(",", ":"), ensure_ascii=True)
 
 
+def _snapshot_mapping(value: Mapping[str, object]) -> dict[str, object]:
+    """Return a deep-copied mapping for engine-facing retrieval snapshots."""
+
+    return copy.deepcopy(dict(value))
+
+
 def _normalize_supported_value(value: object, *, field_name: str, allowed: set[str]) -> str:
     if isinstance(value, (bytes, bytearray)):
         raise TypeError(f"{field_name} must be a text string, not bytes")
@@ -1434,7 +1440,7 @@ class RetrievalResult:
             "retrieval_backend": self.diagnostics["retrieval_backend"],
             "retrieval_mode": self.diagnostics["retrieval_mode"],
             "policy": copy.deepcopy(retrieval_policy),
-            "retrieval_policy": retrieval_policy,
+            "retrieval_policy": _snapshot_mapping(retrieval_policy),
             "active_strategy_ids": list(self.diagnostics["active_strategy_ids"]),
             "deferred_strategy_ids": list(self.diagnostics["deferred_strategy_ids"]),
             "doc_hits_fingerprint": self.diagnostics["doc_hits_fingerprint"],
@@ -1656,7 +1662,7 @@ class RetrievalResult:
             "retrieval_backend": self.diagnostics["retrieval_backend"],
             "retrieval_mode": self.diagnostics["retrieval_mode"],
             "policy": copy.deepcopy(retrieval_policy),
-            "retrieval_policy": retrieval_policy,
+            "retrieval_policy": _snapshot_mapping(retrieval_policy),
             "active_strategy_ids": list(self.diagnostics["active_strategy_ids"]),
             "deferred_strategy_ids": list(self.diagnostics["deferred_strategy_ids"]),
             "strategies_used": list(self.diagnostics["strategies_used"]),
@@ -2282,7 +2288,7 @@ class RetrievalService:
         )
         elapsed_ms_total = max(0, int((self._now_fn() - started).total_seconds() * 1000))
         diagnostics = {
-            "retrieval_policy": retrieval_policy,
+            "retrieval_policy": _snapshot_mapping(retrieval_policy),
             "retrieval_backend": retrieval_policy["retrieval_backend"],
             "retrieval_mode": retrieval_policy["retrieval_mode"],
             "active_strategy_ids": list(retrieval_policy["active_strategy_ids"]),
@@ -2321,7 +2327,7 @@ class RetrievalService:
             metadata={
                 "query_hash": query_hash,
                 "query_fingerprint": query_fingerprint,
-                "retrieval_policy": retrieval_policy,
+                "retrieval_policy": _snapshot_mapping(retrieval_policy),
                 "retrieval_mode": diagnostics["retrieval_mode"],
                 "query_scope": query.scope,
                 "query_confidentiality_profile": query.confidentiality_profile,
@@ -2588,7 +2594,7 @@ class RetrievalService:
                             "retrieval_backend",
                             cast(str, retrieval_policy["retrieval_backend"]),
                         ),
-                        "retrieval_policy": dict(retrieval_policy),
+                        "retrieval_policy": _snapshot_mapping(retrieval_policy),
                         "doc_rank": doc_rank,
                         "doc_identity_fingerprint": doc_identity_fingerprint,
                         "doc_fingerprint": self._stable_fingerprint(
@@ -2695,7 +2701,7 @@ class RetrievalService:
             "excerpt_text_hashes": excerpt_text_hashes,
             "doc_hits_fingerprint": doc_hits_fingerprint,
             "excerpt_hits_fingerprint": excerpt_hits_fingerprint,
-            "retrieval_policy": dict(retrieval_policy),
+            "retrieval_policy": _snapshot_mapping(retrieval_policy),
             "active_strategy_ids": list(cast(list[str], retrieval_policy["active_strategy_ids"])),
             "deferred_strategy_ids": list(cast(list[str], retrieval_policy["deferred_strategy_ids"])),
         }
@@ -2781,7 +2787,7 @@ class RetrievalService:
                 if query.constraints.date_range is not None
                 else None
             ),
-            "retrieval_policy": dict(retrieval_policy),
+            "retrieval_policy": _snapshot_mapping(retrieval_policy),
             "retrieval_backend": cast(str, retrieval_policy["retrieval_backend"]),
             "retrieval_mode": cast(str, retrieval_policy["retrieval_mode"]),
             "active_strategy_ids": list(cast(list[str], retrieval_policy["active_strategy_ids"])),
@@ -2801,7 +2807,7 @@ class RetrievalService:
             "excerpt_count": len(hits),
             "doc_citations": doc_citations,
             "excerpt_citations": excerpt_citations,
-            "retrieval_manifest": dict(retrieval_manifest),
+            "retrieval_manifest": _snapshot_mapping(retrieval_manifest),
         }
 
     @staticmethod
@@ -4373,7 +4379,7 @@ class RetrievalService:
             "retrieval_backend": retrieval_policy["retrieval_backend"],
             "retrieval_mode": retrieval_policy["retrieval_mode"],
             "policy": copy.deepcopy(retrieval_policy),
-            "retrieval_policy": retrieval_policy,
+            "retrieval_policy": _snapshot_mapping(retrieval_policy),
             "active_strategy_ids": active_strategy_ids,
             "deferred_strategy_ids": deferred_strategy_ids,
             "strategies_used": [_FTS_SOURCE_STRATEGY],
@@ -4520,7 +4526,7 @@ class RetrievalService:
         return RetrievalService._stable_fingerprint(
             {
                 "lookup_fingerprint": lookup_fingerprint,
-                "retrieval_policy": retrieval_policy,
+                "retrieval_policy": _snapshot_mapping(retrieval_policy),
                 "doc_fingerprint": doc_fingerprint,
                 "excerpt_fingerprint": excerpt_fingerprint,
                 "excerpt_provenance_fingerprint": excerpt_provenance_fingerprint,
