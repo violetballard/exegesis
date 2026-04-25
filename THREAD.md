@@ -10,6 +10,10 @@ Canonical handoff contract lives in `THREAD_PACKET.md`.
 - Verified implementation basis SHA: `0777640324e7d3a54dba191135bd2d867c32d399`
 - Submitted tip note: any newer tip created by this handoff refresh is metadata-only packet bookkeeping on top of that verified implementation basis
 - Review scope: deterministic `command_cli_contract()` behavior in `src/qual/commands/catalog.py` plus the approved shared regression coverage in `tests/unit/test_commands_catalog.py`
+- Implementation commits already on this branch:
+  - `beaf91853` for grouped parser-entrypoint contract validation
+  - `4a4d47048` for alias-level parser-surface drift rejection
+  - `077764032` for explicit shared regression coverage on stable canonical-name ordering with token drift
 - Canonical demo-path step advanced: `preview and apply or reject a patch`, because the command catalog is the CLI-facing contract that must stay deterministic before an operator can safely reach patch preview/apply-or-reject while the Textual client remains disabled
 - Concrete blocker removed: without this contract hardening, parser/catalog drift could silently reorder, add, or drop the operator-facing CLI tokens that must stay stable for the canonical `preview and apply or reject a patch` step, so the current MVP loop could keep a stale smoke-check contract while the real CLI patch path no longer matches the catalog
 - Reviewer fix closure:
@@ -30,8 +34,8 @@ Canonical handoff contract lives in `THREAD_PACKET.md`.
 ## Required Gates
 
 - Reviewer packet reported these gates as passing on implementation basis SHA `0777640324e7d3a54dba191135bd2d867c32d399`
-- This fixer refresh reran the same required gates on `2026-04-25` after confirming the live command-catalog implementation and shared regression coverage already satisfy the reviewer's required fixes on the current branch tip
-- Green implementation tip revalidated before this metadata-only handoff refresh commit: `f0cf58b7129e5c90f8cba7bca7cf1eee60431fc4`
+- This fixer refresh reruns the same required gates on `2026-04-24` in the lane worktree after confirming the live branch already contains the reviewer-requested parser-projection validation and token-drift coverage
+- Green implementation evidence on the current branch comes from `beaf91853`, `4a4d47048`, and `077764032`; this handoff refresh only records that evidence and the corrected plan mapping
 - `make scope-check`
 - `./quality-format.sh --check`
 - `./quality-lint.sh`
