@@ -10,13 +10,14 @@ Canonical handoff contract lives in `THREAD_PACKET.md`.
 - Verified implementation basis SHA: `cafe42ff5e9c5921610b2765a64fb6802a1ee5f5`
 - Current verifier refresh base SHA: `06d5d67e8efc31884479e2fb6aab9270fb2088c9`
 - Previous metadata-only packet refresh tip: `06d5d67e8efc31884479e2fb6aab9270fb2088c9`
+- Latest gate rerun date: `2026-04-24`
 - Current fixer refresh purpose: rerun the required gates after confirming the reviewer fixes remain satisfied and refresh the handoff metadata on top of the verified command-catalog slice
 - Review scope: deterministic `command_cli_contract()` behavior in `src/qual/commands/catalog.py` plus the approved shared regression coverage in `tests/unit/test_commands_catalog.py`
-- Canonical demo-path step advanced: the CLI/operator-contract portion of `open project/document`, keeping the MVP loop executable from the CLI while Textual remains disabled
-- Explicit handoff sentence: This work makes the CLI/operator-contract portion of `open project/document` more real by hardening the catalog-driven parser contract, so parser/catalog drift fails fast instead of silently mutating the operator entrypoint that the engine-first fallback path depends on.
-- Concrete blocker removed: parser/catalog drift can no longer silently reorder, add, or drop CLI tokens on the current engine-first fallback path without tripping the contract validation before the `open project/document` operator contract reaches the real engine path.
-- Roadmap alignment: `ROADMAP.md` Milestone 3 exit criterion `Contract changes documented and intentional` only
-- Vision alignment: `PRODUCT_VISION.md` capability 3 `Canonical engine contract` only
+- Canonical demo-path step advanced: the CLI-first `patch review` step via `diff-preview`, keeping the MVP loop executable from the CLI while Textual remains disabled
+- Explicit handoff sentence: This work makes the CLI-first `patch review` step more real by hardening the catalog-driven parser contract, so parser/catalog drift fails fast instead of silently mutating the `diff-preview` entrypoint that the engine-first fallback path depends on.
+- Concrete blocker removed: parser/catalog drift can no longer silently reorder, add, or substitute accepted `diff-preview` tokens on the current engine-first fallback path without tripping the contract validation before the `patch review` step reaches the real engine path.
+- Roadmap alignment: `ROADMAP.md` Milestone 3 exit criterion `Contract changes documented and intentional`, plus Milestone 5 exit criterion `CLI can execute the MVP flow ...`
+- Vision alignment: `PRODUCT_VISION.md` capability 4 `Operator-first control surface` and capability 5 `Agent-to-UI protocol (A2UI)`
 - Scope boundary: this handoff claims only command-catalog contract hardening and the approved shared regression test; it does not claim broader retrieval, persistence, apply/reject, routing, or UI progress
 
 ## Reviewed Files
@@ -27,7 +28,7 @@ Canonical handoff contract lives in `THREAD_PACKET.md`.
 ## Required Gates
 
 - Reviewer packet reported these gates as passing on the older reviewed implementation basis SHA `f8d860ed9f6299f0169c4f21321ac5f37c949fd3`
-- This fixer refresh reverified the current branch tip at base SHA `06d5d67e8efc31884479e2fb6aab9270fb2088c9` before issuing a new metadata-only handoff commit
+- This fixer refresh reverified the current branch tip at base SHA `06d5d67e8efc31884479e2fb6aab9270fb2088c9` on `2026-04-24` before issuing a new metadata-only handoff commit
 - `make scope-check`
 - `./quality-format.sh --check`
 - `./quality-lint.sh`
