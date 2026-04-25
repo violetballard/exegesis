@@ -3,12 +3,12 @@
 ## Thread Kickoff (High-Risk)
 
 - Branch: `codex/feat-commands`
-- Verified implementation basis SHA: `f8d860ed9f6299f0169c4f21321ac5f37c949fd3`
+- Verified implementation basis SHA: `cafe42ff5e9c5921610b2765a64fb6802a1ee5f5`
 - Submitted tip note: any newer tip created by this handoff refresh is metadata-only packet bookkeeping on top of that verified implementation basis
 - Lane/owned paths: `src/qual/commands/**`
 - Scope goal: submit the reviewed command-catalog slice only, keeping the handoff limited to deterministic `command_cli_contract()` behavior in `src/qual/commands/catalog.py` plus the repo-policy-allowlisted shared regression coverage in `tests/unit/test_commands_catalog.py`.
 - Risk reason: this is a high-risk command-contract handoff because it touches the operator-facing CLI contract and uses a repo-policy-allowlisted shared test file outside the lane-owned path.
-- Previous validated packet tip before this metadata-only refresh: `35e9293e30bdeb3c93b6d310d6af15dabc9c28eb`
+- Previous validated packet tip before this metadata-only refresh: `cafe42ff5e9c5921610b2765a64fb6802a1ee5f5`
 
 ### Scope / Plan Alignment
 
@@ -20,9 +20,9 @@
   1. `command_cli_contract()` remains aligned to the canonical command order and raises `ValueError` if the parser surface drifts from the catalog.
   2. `tests/unit/test_commands_catalog.py` covers canonical-order alignment and parser/catalog drift rejection for the reviewed command-catalog slice.
   3. This packet explicitly maps the change to the CLI/operator-contract portion of `open project/document` and names the concrete CLI-contract blocker it removes.
-- Previous verified re-review tip before this packet refresh: `35e9293e30bdeb3c93b6d310d6af15dabc9c28eb`
-- Previous validated handoff tip before this packet refresh: `35e9293e30bdeb3c93b6d310d6af15dabc9c28eb`
-- Current verifier refresh base SHA: `9ee534867889ac13c047fddef2ff048e4bab47ca`
+- Previous verified re-review tip before this packet refresh: `cafe42ff5e9c5921610b2765a64fb6802a1ee5f5`
+- Previous validated handoff tip before this packet refresh: `cafe42ff5e9c5921610b2765a64fb6802a1ee5f5`
+- Current verifier refresh base SHA: `cafe42ff5e9c5921610b2765a64fb6802a1ee5f5`
 - Current fixer refresh purpose: satisfy the review request for an explicit canonical demo-path mapping without broadening the claim beyond the `open project/document` CLI/operator contract.
 - Roadmap alignment: `ROADMAP.md` Milestone 3 exit criterion `Contract changes documented and intentional` only; this handoff is a narrow canonical engine contract and CLI-compatibility hardening change for the existing engine-first CLI fallback path while Textual remains disabled and without claiming broader workflow coverage beyond the `open project/document` operator contract.
 - Vision alignment: `PRODUCT_VISION.md` capability 3 `Canonical engine contract` only; this change hardens the current parser/catalog contract that the CLI fallback depends on for the `open project/document` operator contract and does not claim audit-state, workflow-state, or broader workflow progress.
@@ -81,9 +81,9 @@
   - metadata-only handoff refresh: `THREAD_PACKET.md`
   - metadata-only handoff refresh: `handoff_packets/feat-commands.md`
 - commands run + outcomes:
-  - reviewed implementation basis SHA `f8d860ed9f6299f0169c4f21321ac5f37c949fd3`
-  - previous packet refresh commit preserved as metadata-only scope on tip `35e9293e30bdeb3c93b6d310d6af15dabc9c28eb`
-  - verifier rerun base SHA before this metadata-only refresh: `9ee534867889ac13c047fddef2ff048e4bab47ca`
+  - older reviewer packet implementation basis SHA `f8d860ed9f6299f0169c4f21321ac5f37c949fd3`
+  - current verified branch tip before this metadata-only refresh: `cafe42ff5e9c5921610b2765a64fb6802a1ee5f5`
+  - verifier rerun base SHA before this metadata-only refresh: `cafe42ff5e9c5921610b2765a64fb6802a1ee5f5`
   - `make scope-check` -> passed
   - `./quality-format.sh --check` -> passed
   - `./quality-lint.sh` -> passed
