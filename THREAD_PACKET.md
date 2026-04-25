@@ -21,8 +21,10 @@
 - Concrete blocker removed: without this guard, parser/catalog drift could silently reorder, add, or drop the operator-facing CLI tokens that must stay stable for the canonical `preview and apply or reject a patch` step, so the current MVP loop could present a stale smoke-check contract while the real CLI patch path no longer matches the catalog.
 - Reviewer fix closure:
   1. `command_cli_contract()` validates the full grouped parser-entrypoint projection, not only the deduplicated canonical-name sequence.
-  2. `tests/unit/test_commands_catalog.py` exercises token-level parser drift cases where canonical-name order still matches.
+  2. `tests/unit/test_commands_catalog.py` exercises the reviewer-requested token-level parser drift cases where canonical-name order still matches: alias substitution, extra parser token, removed parser token, and reordered token within the same canonical command group.
   3. This packet explicitly names the canonical demo-path step advanced and why the contract hardening removes a concrete blocker for that step.
+- Verified re-review tip before this packet refresh: `8fb97890a`
+- Verified token-drift coverage on that tip includes alias substitution, extra parser token, removed parser token, and reordered parser tokens within the same canonical command group while canonical-name order stays stable.
 - Roadmap alignment: `ROADMAP.md` Milestone 3 `Real workflow loop` requires that CLI compatibility remains intact while Textual stays disabled, and this handoff is a narrow contract-hardening change that protects the canonical demo-path `preview and apply or reject a patch` step without claiming new flow coverage.
 - Vision alignment: `PRODUCT_VISION.md` capability 4 `Operator-first control surface` and capability 5 `Agent-to-UI protocol (A2UI)` because the same engine-authored command contract must stay reliable for the CLI fallback surface that operators use today.
 - Non-claim boundary: this handoff claims only deterministic CLI catalog ordering and fail-fast parser-surface drift detection for the existing command surface; it does not claim parser-entrypoint rewrites, workflow-wrapper additions, diff-preview output work, provider routing changes, storage changes, reachability expansion, or UI-console work.
@@ -85,6 +87,12 @@
     - `4a4d47048` -> alias-level parser-surface drift rejection in `src/qual/commands/catalog.py`
     - `077764032` -> explicit shared regression coverage for stable canonical-name ordering with token drift in `tests/unit/test_commands_catalog.py`
   - fixer refresh reruns the required gates on `2026-04-24` in the lane worktree; this refresh updates the handoff evidence and plan mapping without widening the reviewed implementation scope
+  - verified re-review tip before this packet refresh: `8fb97890a`
+  - targeted reviewer-fix evidence on that tip:
+    - alias substitution drift rejection -> `test_command_cli_contract_rejects_exported_parser_alias_substitution_with_stable_canonical_names`
+    - extra parser token drift rejection -> `test_command_cli_contract_rejects_extra_alias_entrypoint_when_canonical_order_still_matches`
+    - removed parser token drift rejection -> `test_command_cli_contract_rejects_missing_canonical_token_when_alias_still_resolves`
+    - reordered token-in-group drift rejection -> `test_command_cli_contract_rejects_reordered_parser_projection_when_tokens_change_but_names_do_not`
   - `make scope-check` -> passed
   - `./quality-format.sh --check` -> passed
   - `./quality-lint.sh` -> passed
@@ -106,5 +114,5 @@
   - approved shared-test exception for `tests/unit/test_commands_catalog.py`; no other non-owned implementation paths are part of this handoff
 - reviewer-fix satisfaction note:
   - required fix 1 is satisfied in `src/qual/commands/catalog.py` by rebuilding and validating the full grouped parser-entrypoint projection instead of trusting only deduplicated canonical names
-  - required fix 2 is satisfied in `tests/unit/test_commands_catalog.py` by explicit token-level drift regressions for alias substitution, reordered parser tokens with stable canonical-name order, and added or removed parser tokens
+  - required fix 2 is satisfied in `tests/unit/test_commands_catalog.py` by explicit token-level drift regressions for alias substitution, extra parser token, removed parser token, and reordered token within the same canonical command group while canonical-name order stays stable
   - required fix 3 is satisfied by the explicit canonical demo-path step mapping, the concrete blocker statement, and the Milestone 3 CLI-compatibility framing recorded in this packet
