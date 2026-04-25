@@ -8,8 +8,8 @@ Canonical handoff contract lives in `THREAD_PACKET.md`.
 - Branch: `codex/feat-commands`
 - Review basis: reviewed command-catalog slice only, not the broader branch tip
 - Verified implementation basis SHA: `cafe42ff5e9c5921610b2765a64fb6802a1ee5f5`
-- Current verifier refresh base SHA: `06d5d67e8efc31884479e2fb6aab9270fb2088c9`
-- Previous metadata-only packet refresh tip: `06d5d67e8efc31884479e2fb6aab9270fb2088c9`
+- Current verifier refresh base SHA: `24a930fb600745b1cecc27915f97617e333f93df`
+- Previous metadata-only packet refresh tip: `24a930fb600745b1cecc27915f97617e333f93df`
 - Latest gate rerun date: `2026-04-24`
 - Current fixer refresh purpose: rerun the required gates after confirming the reviewer fixes remain satisfied and refresh the handoff metadata on top of the verified command-catalog slice
 - Review scope: deterministic `command_cli_contract()` behavior in `src/qual/commands/catalog.py` plus the approved shared regression coverage in `tests/unit/test_commands_catalog.py`
@@ -28,7 +28,8 @@ Canonical handoff contract lives in `THREAD_PACKET.md`.
 ## Required Gates
 
 - Reviewer packet reported these gates as passing on the older reviewed implementation basis SHA `f8d860ed9f6299f0169c4f21321ac5f37c949fd3`
-- This fixer refresh reverified the current branch tip at base SHA `06d5d67e8efc31884479e2fb6aab9270fb2088c9` on `2026-04-24` before issuing a new metadata-only handoff commit
+- This fixer refresh reverified the current branch tip at base SHA `24a930fb600745b1cecc27915f97617e333f93df` on `2026-04-24` before issuing a new metadata-only handoff commit
+- Plain-checkout verifier command: `python -m unittest tests.unit.test_commands_catalog` -> passed
 - `make scope-check`
 - `./quality-format.sh --check`
 - `./quality-lint.sh`
