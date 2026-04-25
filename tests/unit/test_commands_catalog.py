@@ -226,6 +226,9 @@ from src.qual.commands import (
     command_workflow_smoke_argv,
     command_workflow_path_contract,
     command_workflow_path_invocation_plan,
+    command_workflow_path_surface_invocation_table,
+    command_workflow_path_surface_lookup_table,
+    command_workflow_path_surface_tokens,
     command_workflow_path_tokens,
     command_workflow_compatibility_invocation_table,
     command_workflow_compatibility_lookup_table,
@@ -6132,6 +6135,39 @@ class CommandCatalogTests(unittest.TestCase):
             command_mvp_path_contract().invocation_plan,
         )
 
+    def test_public_workflow_path_surface_aliases_expose_canonical_demo_path_verbs(self) -> None:
+        self.assertEqual(
+            command_workflow_path_surface_tokens(),
+            ("project-open", "retrieval", "patch-review", "export-handoff"),
+        )
+        self.assertEqual(
+            command_workflow_path_surface_lookup_table(),
+            (
+                ("project-open", "bootstrap"),
+                ("retrieval", "context-basket"),
+                ("patch-review", "diff-preview"),
+                ("export-handoff", "terminal"),
+            ),
+        )
+        self.assertEqual(
+            command_workflow_path_surface_invocation_table(),
+            (
+                ("project-open", ("bootstrap", "--project", "demo")),
+                ("retrieval", ("context-basket", "list")),
+                ("patch-review", ("diff-preview", "--original", "before", "--proposed", "after")),
+                (
+                    "export-handoff",
+                    (
+                        "terminal",
+                        "--operation-kind",
+                        "terminal_synthesis_request",
+                        "--message",
+                        "Export handoff",
+                    ),
+                ),
+            ),
+        )
+
     def test_public_workflow_loop_surface_aliases_track_the_current_mvp_surface(self) -> None:
         self.assertEqual(
             command_workflow_loop_surface_tokens(),
@@ -6166,6 +6202,9 @@ class CommandCatalogTests(unittest.TestCase):
     def test_public_workflow_module_exports_surface_projection_helpers(self) -> None:
         self.assertIn("command_workflow_surface_flow_lookup_table", command_workflow_module.__all__)
         self.assertIn("command_workflow_surface_invocation_table", command_workflow_module.__all__)
+        self.assertIn("command_workflow_path_surface_tokens", command_workflow_module.__all__)
+        self.assertIn("command_workflow_path_surface_lookup_table", command_workflow_module.__all__)
+        self.assertIn("command_workflow_path_surface_invocation_table", command_workflow_module.__all__)
         self.assertIn("command_workflow_loop_surface_lookup_table", command_workflow_module.__all__)
         self.assertIn("command_workflow_loop_surface_invocation_table", command_workflow_module.__all__)
 

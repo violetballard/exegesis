@@ -201,6 +201,21 @@ def command_workflow_path_invocation_plan() -> tuple[CommandInvocationPlanEntry,
     return command_mvp_path_invocation_plan()
 
 
+def command_workflow_path_surface_tokens() -> tuple[str, ...]:
+    """Return the trusted current-MVP demo-path verbs in workflow order."""
+    return tuple(entry.flow_step for entry in command_workflow_path_contract().entries)
+
+
+def command_workflow_path_surface_lookup_table() -> tuple[tuple[str, str], ...]:
+    """Return trusted demo-path verbs mapped to their canonical command names."""
+    return tuple((entry.flow_step, entry.name) for entry in command_workflow_path_contract().entries)
+
+
+def command_workflow_path_surface_invocation_table() -> tuple[tuple[str, tuple[str, ...]], ...]:
+    """Return parser-ready argv for the trusted current-MVP demo-path verbs."""
+    return tuple((entry.flow_step, entry.parser_argv) for entry in command_workflow_path_contract().entries)
+
+
 def command_workflow_loop_contract() -> CommandDemoLoopContract:
     """Return the stable current-MVP review/apply-or-reject/persist/export loop."""
     return command_mvp_loop_contract()
@@ -413,6 +428,9 @@ __all__ = [
     "command_workflow_path_entry_for",
     "command_workflow_path_tokens",
     "command_workflow_path_invocation_plan",
+    "command_workflow_path_surface_tokens",
+    "command_workflow_path_surface_lookup_table",
+    "command_workflow_path_surface_invocation_table",
     "command_workflow_loop_contract",
     "command_workflow_loop_tokens",
     "command_workflow_loop_invocation_plan",
