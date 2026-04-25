@@ -6322,6 +6322,7 @@ class A2UIFallbackSafetyTests(unittest.TestCase):
         self.assertEqual(manifest["a2ui_version"], 1)
         self.assertEqual(manifest["shell_ui_schema_version"], SHELL_UI_CONTRACT_VERSION)
         self.assertEqual(manifest["shell_ui_version"], SHELL_UI_CONTRACT_VERSION)
+        self.assertEqual(manifest["shell_ui_contract_version"], SHELL_UI_CONTRACT_VERSION)
         self.assertEqual(manifest["type"], "ShellUIContract")
         self.assertEqual(manifest["contract_fingerprint"], shell_fingerprint)
         self.assertEqual(manifest_alias, manifest)
@@ -6337,6 +6338,10 @@ class A2UIFallbackSafetyTests(unittest.TestCase):
             SHELL_UI_CONTRACT_VERSION,
         )
         self.assertEqual(manifest["shell_ui_contract"]["shell_ui_version"], SHELL_UI_CONTRACT_VERSION)
+        self.assertEqual(
+            manifest["shell_ui_contract"]["shell_ui_contract_version"],
+            SHELL_UI_CONTRACT_VERSION,
+        )
         self.assertEqual(
             manifest["shell_ui_contract"]["terminal_artifact_cli_fallback_entrypoint_schema_version"],
             TERMINAL_ARTIFACT_CLI_FALLBACK_ENTRYPOINT_SCHEMA_VERSION,

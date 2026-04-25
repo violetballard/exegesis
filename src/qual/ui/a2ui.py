@@ -2252,9 +2252,10 @@ def describe_terminal_artifact_cli_fallback_contract_fingerprints(
 ) -> dict[str, str]:
     """Return stable fingerprints for the CLI fallback wrapper contract sections.
 
-    Pass ``include_terminal_artifact_cli_fallback=True`` to include the wrapper
-    contract fingerprint itself alongside the nested section fingerprints and
-    the kind-policy slice.
+    The default fingerprint map always includes the kind-policy slice because
+    it is part of the stable CLI fallback contract surface. Pass
+    ``include_terminal_artifact_cli_fallback=True`` to include the wrapper
+    contract fingerprint itself alongside the nested section fingerprints.
     Pass ``include_terminal_artifact_cli_fallback_route=True`` to include the
     CLI fallback route contract fingerprint itself alongside the nested
     section fingerprints.
@@ -2271,8 +2272,8 @@ def describe_terminal_artifact_cli_fallback_contract_fingerprints(
     kind_policy_contract_fingerprint_value = _fingerprint_manifest_section(
         _build_terminal_artifact_cli_fallback_kind_policy_manifest()
     )
+    fingerprints["kind_policy"] = kind_policy_contract_fingerprint_value
     if include_terminal_artifact_cli_fallback:
-        fingerprints["kind_policy"] = kind_policy_contract_fingerprint_value
         _add_contract_alias_fingerprints(
             fingerprints,
             (

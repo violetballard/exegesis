@@ -765,6 +765,7 @@ def _build_shell_ui_contract_manifest(
         "a2ui_version": A2UI_VERSION,
         "shell_ui_schema_version": SHELL_UI_CONTRACT_VERSION,
         "shell_ui_version": SHELL_UI_CONTRACT_VERSION,
+        "shell_ui_contract_version": SHELL_UI_CONTRACT_VERSION,
         "type": "ShellUIContract",
         "entrypoints": entrypoints,
         "entrypoints_fingerprint": _fingerprint_manifest_section(entrypoints),
