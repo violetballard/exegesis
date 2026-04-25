@@ -76,8 +76,8 @@
   - metadata-only handoff refresh: `handoff_packets/feat-commands.md`
 - commands run + outcomes:
   - reviewed implementation basis SHA `0777640324e7d3a54dba191135bd2d867c32d399` on `2026-04-24`
-  - fixer refresh reran the required gates on `2026-04-24` after confirming the live command-catalog implementation and shared regression coverage already satisfy the reviewer-requested fixes on the current branch tip; this refresh remains metadata-only and does not change the reviewed implementation scope
-  - fixer rerun revalidated implementation tip SHA `d72e8f1149250b320ef2eb9c417c4f98e118f295` on `2026-04-24`; the branch tip already contained the required grouped parser-surface contract hardening, token-drift regression coverage, and explicit CLI `patch` mapping before this metadata-only handoff refresh commit
+  - fixer refresh reran the required gates on `2026-04-25` after confirming the live command-catalog implementation and shared regression coverage already satisfy the reviewer-requested fixes on the current branch tip; this refresh remains metadata-only and does not change the reviewed implementation scope
+  - fixer rerun revalidated implementation tip SHA `f0cf58b7129e5c90f8cba7bca7cf1eee60431fc4` on `2026-04-25`; the branch tip already contained the required grouped parser-surface contract hardening, token-drift regression coverage, and explicit CLI `patch` mapping before this metadata-only handoff refresh commit
   - `make scope-check` -> passed
   - `./quality-format.sh --check` -> passed
   - `./quality-lint.sh` -> passed
@@ -100,4 +100,4 @@
 - reviewer-fix satisfaction note:
   - required fix 1 is already satisfied in `src/qual/commands/catalog.py` by validating the full grouped parser-entrypoint projection instead of only deduplicated canonical names
   - required fix 2 is already satisfied in `tests/unit/test_commands_catalog.py` by token-level drift regressions for added, removed, substituted, reordered, and alias-substitution parser entrypoints that still preserve canonical-name order
-  - required fix 3 is satisfied by the explicit canonical demo-path step mapping, the operator-facing blocker statement, and the MVP tie-in stated in this packet; this refresh records a fresh all-gates-green rerun on the current branch tip for re-review
+  - required fix 3 is satisfied by the explicit canonical demo-path step mapping, the operator-facing blocker statement, and the MVP tie-in stated in this packet; this refresh records the `2026-04-25` all-gates-green rerun on the current branch tip for re-review

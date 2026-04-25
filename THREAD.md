@@ -30,8 +30,8 @@ Canonical handoff contract lives in `THREAD_PACKET.md`.
 ## Required Gates
 
 - Reviewer packet reported these gates as passing on implementation basis SHA `0777640324e7d3a54dba191135bd2d867c32d399`
-- This fixer refresh reran the same required gates on `2026-04-24` after confirming the live command-catalog implementation and shared regression coverage already satisfy the reviewer's required fixes on the current branch tip
-- Green implementation tip revalidated before this metadata-only handoff refresh commit: `d72e8f1149250b320ef2eb9c417c4f98e118f295`
+- This fixer refresh reran the same required gates on `2026-04-25` after confirming the live command-catalog implementation and shared regression coverage already satisfy the reviewer's required fixes on the current branch tip
+- Green implementation tip revalidated before this metadata-only handoff refresh commit: `f0cf58b7129e5c90f8cba7bca7cf1eee60431fc4`
 - `make scope-check`
 - `./quality-format.sh --check`
 - `./quality-lint.sh`
