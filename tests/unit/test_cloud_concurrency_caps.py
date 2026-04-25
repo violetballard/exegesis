@@ -18,7 +18,7 @@ class CloudConcurrencyCapsTests(unittest.TestCase):
                 "worker_local": {
                     "codex_cmd": "codex",
                     "codex_args": ["-c", "model_provider=lms"],
-                    "model": "gpt-oss-20b",
+                    "model": "gpt-oss-120b",
                 },
             },
             "role_profiles": {
@@ -39,16 +39,20 @@ class CloudConcurrencyCapsTests(unittest.TestCase):
         cfg = {
             "runtime_mode_default": "cloud_primary",
             "profiles": {
-                "worker_cloud": {"codex_cmd": "codex", "model": "gpt-5.4-mini"},
+                "worker_cloud": {
+                    "codex_cmd": "codex",
+                    "model": "gpt-5.4-mini",
+                    "model_args": ["-c", "model_reasoning_effort=medium"],
+                },
                 "worker_cloud_standard_medium": {
                     "codex_cmd": "codex",
-                    "model": "gpt-5.4",
+                    "model": "gpt-5.5",
                     "model_args": ["-c", "model_reasoning_effort=medium"],
                 },
                 "worker_local": {
                     "codex_cmd": "codex",
                     "codex_args": ["-c", "model_provider=lms"],
-                    "model": "gpt-oss-20b",
+                    "model": "gpt-oss-120b",
                 },
             },
             "role_profiles": {
@@ -66,7 +70,7 @@ class CloudConcurrencyCapsTests(unittest.TestCase):
             launch_cfg = launch_feature_lanes.runtime_launch_config("feat-commands")
 
         self.assertEqual(launch_cfg["profile_name"], "worker_cloud_standard_medium")
-        self.assertEqual(launch_cfg["model"], "gpt-5.4")
+        self.assertEqual(launch_cfg["model"], "gpt-5.5")
         self.assertEqual(launch_cfg["model_args"], ["-c", "model_reasoning_effort=medium"])
 
     def test_runtime_launch_config_honors_lane_local_profile_override(self) -> None:
@@ -107,9 +111,9 @@ class CloudConcurrencyCapsTests(unittest.TestCase):
         cfg = router.RouterConfig(
             model="gpt-5.1-codex",
             codex_cmd="codex",
-            fallback_model="gpt-oss-20b",
+            fallback_model="gpt-oss-120b",
             fallback_codex_cmd="codex",
-            fallback_codex_args=["-c", "model_provider=lms"],
+            fallback_codex_args=["--oss", "--local-provider", "lmstudio"],
             fallback_model_args=[],
             runtime_mode_default="cloud_primary",
             auto_switch_to_local_on_quota=True,
@@ -134,11 +138,16 @@ class CloudConcurrencyCapsTests(unittest.TestCase):
             use_cli_reviewer_fallback=True,
             use_cli_integrator_fallback=True,
             profiles={
-                "worker_cloud": router.LaunchProfile("codex", [], "gpt-5.4-mini", []),
+                "worker_cloud": router.LaunchProfile(
+                    "codex",
+                    [],
+                    "gpt-5.4-mini",
+                    ["-c", "model_reasoning_effort=medium"],
+                ),
                 "worker_cloud_standard_medium": router.LaunchProfile(
                     "codex",
                     [],
-                    "gpt-5.4",
+                    "gpt-5.5",
                     ["-c", "model_reasoning_effort=medium"],
                 ),
             },
@@ -152,7 +161,7 @@ class CloudConcurrencyCapsTests(unittest.TestCase):
 
         profile = router._profile_for_role(cfg, "reviewer", local=False, lane="feat-retrieval-fts")
 
-        self.assertEqual(profile.model, "gpt-5.4")
+        self.assertEqual(profile.model, "gpt-5.5")
         self.assertEqual(profile.model_args, ["-c", "model_reasoning_effort=medium"])
 
     def test_router_profile_for_role_honors_lane_local_profile_override(self) -> None:
@@ -435,8 +444,8 @@ class CloudConcurrencyCapsTests(unittest.TestCase):
             profiles={
                 "worker_local": router.LaunchProfile(
                     "codex",
-                    ["-c", "model_provider=lms"],
-                    "gpt-oss-20b",
+                    ["--oss", "--local-provider", "lmstudio"],
+                    "gpt-oss-120b",
                     [],
                 ),
             },
@@ -470,16 +479,16 @@ class CloudConcurrencyCapsTests(unittest.TestCase):
 
         self.assertEqual(updated["fixer_fallback_jobs"]["feat-commands"]["pid"], 12345)
         self.assertIn("prompt_path", updated["fixer_fallback_jobs"]["feat-commands"])
-        self.assertEqual(popen_mock.call_args.args[0][-1], "-")
-        self.assertNotEqual(popen_mock.call_args.kwargs["stdin"], router.subprocess.DEVNULL)
+        self.assertIn(".prompt.txt", popen_mock.call_args.args[0][-1])
+        self.assertIs(popen_mock.call_args.kwargs["stdin"], router.subprocess.DEVNULL)
 
     def test_spawn_detached_cli_job_writes_prompt_to_spec_stdin_path(self) -> None:
         cfg = router.RouterConfig(
             model="gpt-5.4-mini",
             codex_cmd="codex",
-            fallback_model="gpt-oss-20b",
+            fallback_model="gpt-oss-120b",
             fallback_codex_cmd="codex",
-            fallback_codex_args=["-c", "model_provider=lms"],
+            fallback_codex_args=["--oss", "--local-provider", "lmstudio"],
             fallback_model_args=[],
             runtime_mode_default="cloud_primary",
             auto_switch_to_local_on_quota=True,
@@ -532,11 +541,10 @@ class CloudConcurrencyCapsTests(unittest.TestCase):
                 )
 
             spec = router.load_json(Path(job["spec_path"]), {})
-            self.assertEqual(spec["cmd"][-1], "-")
-            self.assertTrue(spec["stdin_path"])
-            self.assertEqual(Path(spec["stdin_path"]).read_text(), "very long prompt")
+            self.assertIn(".prompt.txt", spec["cmd"][-1])
+            self.assertNotIn("stdin_path", spec)
 
-    def test_feature_direct_exec_streams_prompt_via_stdin(self) -> None:
+    def test_feature_direct_exec_bootstraps_prompt_from_file(self) -> None:
         profile_cfg = {
             "cmd": "codex",
             "cmd_args": [],
@@ -560,8 +568,8 @@ class CloudConcurrencyCapsTests(unittest.TestCase):
                 )
                 self.assertEqual(pid, 2468)
                 self.assertEqual(prompt_path.read_text(), "lane kickoff prompt")
-                self.assertEqual(popen_mock.call_args.args[0][-1], "-")
-                self.assertNotEqual(popen_mock.call_args.kwargs["stdin"], launch_feature_lanes.subprocess.DEVNULL)
+                self.assertIn(str(prompt_path), popen_mock.call_args.args[0][-1])
+                self.assertIs(popen_mock.call_args.kwargs["stdin"], launch_feature_lanes.subprocess.DEVNULL)
 
     def test_materialize_reviewer_packet_uses_final_verdict_packet_for_huge_note(self) -> None:
         with tempfile.TemporaryDirectory() as tmp:

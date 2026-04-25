@@ -1,39 +1,38 @@
 {
   "model": "gpt-5.1-codex",
   "codex_cmd": "/Applications/Codex.app/Contents/Resources/codex",
-  "fallback_model": "gpt-oss-20b",
+  "fallback_model": "gpt-oss-120b",
   "fallback_codex_cmd": "/Applications/Codex.app/Contents/Resources/codex",
   "fallback_codex_args": [
-    "-c",
-    "model_provider=lms"
+    "--oss",
+    "--local-provider",
+    "lmstudio"
   ],
-  "fallback_model_args": [
-    "-c",
-    "model_reasoning_effort=medium"
-  ],
+  "fallback_model_args": [],
   "profiles": {
     "orchestrator": {
       "codex_cmd": "/Applications/Codex.app/Contents/Resources/codex",
       "codex_args": [
-        "-c",
-        "model_provider=lms"
+        "--oss",
+        "--local-provider",
+        "lmstudio"
       ],
-      "model": "gpt-oss-20b",
-      "model_args": [
-        "-c",
-        "model_reasoning_effort=medium"
-      ]
+      "model": "gpt-oss-120b",
+      "model_args": []
     },
     "worker_cloud": {
       "codex_cmd": "/Applications/Codex.app/Contents/Resources/codex",
       "codex_args": [],
       "model": "gpt-5.4-mini",
-      "model_args": []
+      "model_args": [
+        "-c",
+        "model_reasoning_effort=medium"
+      ]
     },
     "worker_cloud_standard_medium": {
       "codex_cmd": "/Applications/Codex.app/Contents/Resources/codex",
       "codex_args": [],
-      "model": "gpt-5.4",
+      "model": "gpt-5.5",
       "model_args": [
         "-c",
         "model_reasoning_effort=medium"
@@ -42,26 +41,28 @@
     "integrator_cloud": {
       "codex_cmd": "/Applications/Codex.app/Contents/Resources/codex",
       "codex_args": [],
-      "model": "gpt-5.4",
-      "model_args": []
-    },
-    "worker_local": {
-      "codex_cmd": "/Applications/Codex.app/Contents/Resources/codex",
-      "codex_args": [
-        "-c",
-        "model_provider=lms"
-      ],
-      "model": "gpt-oss-20b",
+      "model": "gpt-5.5",
       "model_args": [
         "-c",
         "model_reasoning_effort=medium"
       ]
     },
+    "worker_local": {
+      "codex_cmd": "/Applications/Codex.app/Contents/Resources/codex",
+      "codex_args": [
+        "--oss",
+        "--local-provider",
+        "lmstudio"
+      ],
+      "model": "gpt-oss-120b",
+      "model_args": []
+    },
     "worker_local_heavy": {
       "codex_cmd": "/Applications/Codex.app/Contents/Resources/codex",
       "codex_args": [
-        "-c",
-        "model_provider=lms"
+        "--oss",
+        "--local-provider",
+        "lmstudio"
       ],
       "model": "gpt-oss-120b",
       "model_args": []
