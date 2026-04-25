@@ -21,7 +21,7 @@
 - Concrete blocker removed: without this guard, parser/catalog drift could silently reorder, add, or drop the operator-facing CLI tokens that must stay stable for the canonical `preview and apply or reject a patch` step, so the current MVP loop could present a stale smoke-check contract while the real CLI patch path no longer matches the catalog.
 - Reviewer fix closure:
   1. `command_cli_contract()` validates the full grouped parser-entrypoint projection, not only the deduplicated canonical-name sequence.
-  2. `tests/unit/test_commands_catalog.py` exercises token-level parser drift cases where canonical-name order still matches.
+  2. `tests/unit/test_commands_catalog.py` exercises the reviewer-requested token-level parser drift cases where canonical-name order still matches: alias substitution, extra parser token, removed parser token, and reordered token within the same canonical command group.
   3. This packet explicitly names the canonical demo-path step advanced and why the contract hardening removes a concrete blocker for that step.
 - Roadmap alignment: `ROADMAP.md` Milestone 3 `Real workflow loop` requires that CLI compatibility remains intact while Textual stays disabled, and this handoff is a narrow contract-hardening change that protects the canonical demo-path `preview and apply or reject a patch` step without claiming new flow coverage.
 - Vision alignment: `PRODUCT_VISION.md` capability 4 `Operator-first control surface` and capability 5 `Agent-to-UI protocol (A2UI)` because the same engine-authored command contract must stay reliable for the CLI fallback surface that operators use today.
@@ -66,7 +66,7 @@
 - scope completed:
   - hardened `command_cli_contract()` in `src/qual/commands/catalog.py` so deterministic CLI catalog ordering is rebuilt from the grouped parser-entrypoint projection instead of trusting only the deduplicated canonical-name sequence
   - added fail-fast validation in `src/qual/commands/catalog.py` so added, removed, or reordered CLI entrypoint tokens and alias drift raise `ValueError` instead of silently changing the current command surface
-  - added focused regression coverage in the approved shared test file `tests/unit/test_commands_catalog.py` for canonical-order alignment plus removed, reordered, and extra alias-token drift rejection on the current parser surface
+  - added focused regression coverage in the approved shared test file `tests/unit/test_commands_catalog.py` for canonical-order alignment plus alias substitution, extra parser token, removed parser token, and reordered token drift rejection on the current parser surface
   - refreshed the handoff packet so the review claim, current Milestone 3 canonical demo-path mapping, and file list match the reviewed command-catalog slice exactly
 - tasks completed (numbered implementation work only; metadata-only packet refreshes excluded):
   1. Hardened `command_cli_contract()` to validate the full grouped parser-entrypoint projection against the catalog.
@@ -106,5 +106,5 @@
   - approved shared-test exception for `tests/unit/test_commands_catalog.py`; no other non-owned implementation paths are part of this handoff
 - reviewer-fix satisfaction note:
   - required fix 1 is satisfied in `src/qual/commands/catalog.py` by rebuilding and validating the full grouped parser-entrypoint projection instead of trusting only deduplicated canonical names
-  - required fix 2 is satisfied in `tests/unit/test_commands_catalog.py` by explicit token-level drift regressions for alias substitution, reordered parser tokens with stable canonical-name order, and added or removed parser tokens
+  - required fix 2 is satisfied in `tests/unit/test_commands_catalog.py` by explicit token-level drift regressions for alias substitution, extra parser token, removed parser token, and reordered token within the same canonical command group while canonical-name order stays stable
   - required fix 3 is satisfied by the explicit canonical demo-path step mapping, the concrete blocker statement, and the Milestone 3 CLI-compatibility framing recorded in this packet
