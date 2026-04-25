@@ -16,8 +16,8 @@ Canonical handoff contract lives in `THREAD_PACKET.md`.
 - Canonical demo-path step advanced: the CLI-first `patch review` step via `diff-preview`, keeping the MVP loop executable from the CLI while Textual remains disabled
 - Explicit handoff sentence: This work makes the CLI-first `patch review` step more real by hardening the catalog-driven parser contract, so parser/catalog drift fails fast instead of silently mutating the `diff-preview` entrypoint that the engine-first fallback path depends on.
 - Concrete blocker removed: parser/catalog drift can no longer silently reorder, add, or substitute accepted `diff-preview` tokens on the current engine-first fallback path without tripping the contract validation before the `patch review` step reaches the real engine path.
-- Roadmap alignment: `ROADMAP.md` Milestone 3 exit criterion `Contract changes documented and intentional`, plus Milestone 5 exit criterion `CLI can execute the MVP flow ...`
-- Vision alignment: `PRODUCT_VISION.md` capability 4 `Operator-first control surface` and capability 5 `Agent-to-UI protocol (A2UI)`
+- Roadmap alignment: `ROADMAP.md` Milestone 3 exit criterion `Contract changes documented and intentional` only
+- Vision alignment: `PRODUCT_VISION.md` capability 3 `Canonical engine contract` only
 - Scope boundary: this handoff claims only command-catalog contract hardening and the approved shared regression test; it does not claim broader retrieval, persistence, apply/reject, routing, or UI progress
 
 ## Reviewed Files

@@ -25,8 +25,8 @@
 - Current verifier refresh base SHA: `06d5d67e8efc31884479e2fb6aab9270fb2088c9`
 - Latest gate rerun date: `2026-04-24`
 - Current fixer refresh purpose: rerun the required gates after confirming the reviewer fixes remain satisfied and refresh the handoff metadata on top of the verified command-catalog slice.
-- Roadmap alignment: `ROADMAP.md` Milestone 3 exit criterion `Contract changes documented and intentional`, plus Milestone 5 exit criterion `CLI can execute the MVP flow ...`; this handoff is narrow CLI-contract hardening for the existing engine-first fallback path while Textual remains disabled and specifically keeps the `diff-preview` patch-review step deterministic.
-- Vision alignment: `PRODUCT_VISION.md` capability 4 `Operator-first control surface` and capability 5 `Agent-to-UI protocol (A2UI)`; this change hardens the current parser/catalog contract that the CLI fallback depends on for the `diff-preview` patch-review step without claiming broader workflow progress.
+- Roadmap alignment: `ROADMAP.md` Milestone 3 exit criterion `Contract changes documented and intentional` only; this handoff is a narrow CLI-compatibility hardening change for the existing engine-first fallback path while Textual remains disabled and does not claim broader workflow progress.
+- Vision alignment: `PRODUCT_VISION.md` capability 3 `Canonical engine contract` only; this change hardens the current parser/catalog contract that the CLI fallback depends on for the `diff-preview` patch-review step without claiming audit-state, workflow-state, or broader workflow progress.
 - Non-claim boundary: this handoff claims only deterministic CLI catalog ordering and fail-fast parser-surface drift detection for the existing CLI fallback path; it does not claim parser-entrypoint rewrites, workflow-wrapper additions, diff-preview output work, provider routing changes, storage changes, reachability expansion, or UI-console work.
 
 ### Budget
@@ -97,10 +97,8 @@
   - blockers: none
 - roadmap item(s) affected:
   - `ROADMAP.md` Milestone 3 exit criterion `Contract changes documented and intentional`: preserve deterministic CLI compatibility for the `diff-preview` patch-review step while Textual remains disabled
-  - `ROADMAP.md` Milestone 5 exit criterion `CLI can execute the MVP flow ...`: keep the CLI-first patch-review loop deterministic on the same trusted command surface the future A2UI clients will consume
 - vision capability affected:
-  - primary: `PRODUCT_VISION.md` capability 4 `Operator-first control surface`
-  - secondary: `PRODUCT_VISION.md` capability 5 `Agent-to-UI protocol (A2UI)`
+  - primary: `PRODUCT_VISION.md` capability 3 `Canonical engine contract`
 - routing/provider impact note:
   - none; this change only hardens local command-catalog validation and focused command-catalog tests
 - approved exception note:
@@ -108,5 +106,5 @@
   - no other non-owned implementation paths are part of this handoff
 - reviewer-fix satisfaction note:
   - required fix 1 is satisfied by naming the `diff-preview` patch-review contract explicitly and explaining how parser/catalog drift would otherwise mutate that entrypoint before it reaches the engine path
-  - required fix 2 is satisfied by narrowing the roadmap and vision mapping to the CLI-first fallback path and the operator/A2UI contract it supports, without claiming broader progress
+  - required fix 2 is satisfied by keeping the roadmap and vision mapping tight to Milestone 3 CLI compatibility and `Canonical engine contract` only, without claiming broader progress
   - required fix 3 is satisfied by the live parser-surface drift regressions now present in `tests/unit/test_commands_catalog.py`, including cases where canonical names stay stable but accepted entrypoints drift
