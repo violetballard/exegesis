@@ -762,14 +762,10 @@ def describe_a2ui_contract_fingerprints(
             terminal_artifact_renderer_entrypoints_contract["contract_fingerprint"]
         )
         fingerprints["terminal_artifact_renderer_entrypoints_contract_manifest"] = (
-            terminal_artifact_cli_fallback_entrypoint_contract[
-                "terminal_artifact_renderer_entrypoints_contract_manifest_fingerprint"
-            ]
+            terminal_artifact_renderer_entrypoints_contract["contract_fingerprint"]
         )
         fingerprints["terminal_artifact_renderer_entrypoints_contract_manifest_fingerprint"] = (
-            terminal_artifact_cli_fallback_entrypoint_contract[
-                "terminal_artifact_renderer_entrypoints_contract_manifest_fingerprint"
-            ]
+            terminal_artifact_renderer_entrypoints_contract["contract_fingerprint"]
         )
         terminal_artifact_cli_fallback_target_contract = describe_terminal_artifact_cli_fallback_target_contract(
             include_terminal_artifact_cli_fallback_route=include_terminal_artifact_cli_fallback_route,
