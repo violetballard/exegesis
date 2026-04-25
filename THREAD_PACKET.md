@@ -3,13 +3,13 @@
 - Lane: `feat-retrieval-fts`
 - Branch: `codex/feat-retrieval-fts`
 - Commit: `adfa8cdadd43747ffbcb612e4151e262b13e52ca`
-- Packet refresh commit: `reported in final fixer handoff`
+- Packet refresh commit: `6a94334ea3b13e716770e2cf4e8bb17d139e3e9d`
 - Packet refresh role: `metadata-only reviewer-fix finalization`
 - Reviewed implementation range: `378cf9a74a3658058079a32f186fcd254c4a4034..adfa8cdadd43747ffbcb612e4151e262b13e52ca`
 
 ## Packet traceability note
 
-- The current branch tip is a packet-refresh commit. Review the narrowed retrieval implementation range `378cf9a74a3658058079a32f186fcd254c4a4034..adfa8cdadd43747ffbcb612e4151e262b13e52ca`; later packet-refresh commits remain metadata-only unless this handoff is regenerated.
+- The pre-fixer packet-refresh commit `6a94334ea3b13e716770e2cf4e8bb17d139e3e9d` is metadata-only and its actual diff is `docs/gate_passed.txt` only. Review the narrowed retrieval implementation range `378cf9a74a3658058079a32f186fcd254c4a4034..adfa8cdadd43747ffbcb612e4151e262b13e52ca`; later packet-refresh commits remain metadata-only unless this handoff is regenerated.
 
 ## Current program focus
 
@@ -56,6 +56,7 @@
 
 - The reviewed implementation commit `adfa8cdadd43747ffbcb612e4151e262b13e52ca` removes the PageIndex fallback from `fetch_excerpt`, so excerpt lookup now resolves only through the canonical FTS path.
 - Approved shared regression coverage in `tests/unit/test_unified_retrieval.py` proves PageIndex-only excerpt IDs fail closed with `KeyError`.
+- This work makes `retrieve relevant material` more real by enforcing FTS-only excerpt resolution on the canonical retrieval surface.
 - In AGENTS terms, this strengthens the canonical demo-path step `retrieve relevant material` by ensuring excerpt lookup stays on the canonical FTS path. Basket promotion, plan/revise/apply flow work, and broader retrieval MVP claims remain explicitly out of scope for this handoff.
 
 ## Canonical demo-path step advanced
@@ -89,7 +90,11 @@
 - `src/qual/retrieval/service.py`
 - `tests/unit/test_unified_retrieval.py`
 
-### Metadata-only handoff files
+### Packet refresh commit `6a94334ea3b13e716770e2cf4e8bb17d139e3e9d` files
+
+- `docs/gate_passed.txt`
+
+### Current fixer-pass handoff artifacts
 
 - `.codex/kickoff_packets/feat-retrieval-fts.md`
 - `.codex/lane_meta/feat-retrieval-fts.json`
