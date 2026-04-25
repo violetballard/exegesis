@@ -2,33 +2,38 @@ Gate Results Summary (as of 2026-04-24)
 -------------------------------------
 
 Feature lane: `codex/feat-retrieval-fts`
-Packet role: `packet traceability correction for the actual branch tip`
-Packet refresh commit corrected by this pass: `d4ce75fdeb2e2f4dbf1dcebd06a3e53659db8165`
-Reviewed implementation head: `6e963e1b209cec127e7da6734aa5ca3328a05f88`
-Reviewed implementation range: `75572c120239a84402a82b845c3df797806fcdf4..6e963e1b209cec127e7da6734aa5ca3328a05f88`
+Packet role: `metadata-only reviewer-fix finalization`
+Packet refresh commit corrected by this pass: `reported in final fixer handoff`
+Reviewed implementation head: `adfa8cdadd43747ffbcb612e4151e262b13e52ca`
+Reviewed implementation range: `378cf9a74a3658058079a32f186fcd254c4a4034..adfa8cdadd43747ffbcb612e4151e262b13e52ca`
 Canonical demo-path step advanced: `retrieve relevant material`
-Plan-alignment statement: In the Milestone 3 engine-first demo path, this reviewed range advances `retrieve relevant material` by keeping excerpt lookup on the canonical FTS-backed path and making retrieval payload, provenance, policy snapshot, and missing-query-context audit behavior deterministic and reviewable.
-Reviewer-fix reconciliation: the handoff packet is regenerated against the real implementation head `6e963e1b209cec127e7da6734aa5ca3328a05f88`, includes the in-scope retrieval commits through that head, and keeps the repo-visible handoff artifacts aligned on that actual reviewed range.
-Packet refresh traceability: `d4ce75fdeb2e2f4dbf1dcebd06a3e53659db8165` refreshed `THREAD_PACKET.md`; this pass refreshes `THREAD_PACKET.md` and `docs/gate_passed.txt` to agree on the actual reviewed implementation head. The mirrored `.codex` packet files require a separate write path in this sandbox.
-Packet refresh traceability correction: commit `6e963e1b209cec127e7da6734aa5ca3328a05f88` is reviewed implementation scope, not a metadata-only packet refresh.
+Plan-alignment statement: This narrowed slice advances `retrieve relevant material` by making excerpt lookup fail closed to FTS-backed IDs and preserving deterministic provenance on the canonical retrieval path.
+Basket-promotion statement: The deterministic and auditable excerpt contract gives downstream flows a stable payload they can safely promote or gather into the basket without PageIndex ambiguity.
+Reviewer-fix reconciliation: the handoff packet explicitly names `retrieve relevant material`, adds the basket-promotion linkage, and keeps the reviewed slice narrowed to `378cf9a74a3658058079a32f186fcd254c4a4034..adfa8cdadd43747ffbcb612e4151e262b13e52ca`.
+Packet refresh traceability: this fixer pass refreshed `THREAD_PACKET.md` and `docs/gate_passed.txt` without widening the reviewed implementation range.
 
 Reviewed implementation scope:
 
 * `fetch_excerpt` no longer falls back to PageIndex; excerpt lookup stays fail-closed on the canonical FTS path.
-* Approved shared regression coverage in `tests/unit/test_unified_retrieval.py` proves missing excerpt query context is reported with `lookup_query_context_status: "missing"` and PageIndex-only excerpt IDs still fail closed.
-* Retrieval policy snapshots are deep-copied before response enrichment so packet- or consumer-side mutation cannot alias back into stored retrieval metadata.
+* Approved shared regression coverage in `tests/unit/test_unified_retrieval.py` proves PageIndex-only excerpt IDs now raise `KeyError`.
+* This handoff remains intentionally limited to that reviewed slice and does not claim broader retrieval-lane or MVP completion.
 
-Packet artifacts refreshed by this fixer pass:
+Metadata-only packet refresh inventory for this fixer pass:
 
 * `THREAD_PACKET.md`
 * `docs/gate_passed.txt`
 
+Packet mirror artifacts blocked in this environment:
+
+* `.codex/kickoff_packets/feat-retrieval-fts.md`
+* `.codex/lane_meta/feat-retrieval-fts.json`
+
 AGENTS checkpoint evidence:
 
-* `plan complete` - regenerated the reviewed implementation range to the real non-metadata tip and mapped it explicitly to `retrieve relevant material`.
-* `before risky/shared file edit` - the packet explicitly acknowledges approved shared regression coverage and the shared/high-risk budget posture.
-* `first green tests` - all required gates passed after the branch-tip packet restamp.
-* `ready for handoff` - the writable handoff artifacts explicitly map the reviewed range to `retrieve relevant material` and describe the real implementation files in scope.
+* `plan complete` - confirmed the reviewer fix scope: explicit canonical demo-path mapping, explicit basket-promotion linkage, and the narrowed reviewed implementation range.
+* `before risky/shared file edit` - the packet now explicitly acknowledges approved shared regression coverage and the shared/high-risk budget posture.
+* `first green tests` - all required gates passed after the packet refresh.
+* `ready for handoff` - the writable handoff artifacts explicitly map the narrowed slice to `retrieve relevant material` and explain how the deterministic excerpt contract supports basket promotion.
 
 Verification:
 
@@ -42,7 +47,7 @@ Verification:
 Roadmap items affected:
 
 * `Milestone 3: Real workflow loop`
-* `feat-retrieval-fts`: retrieval/search
+* `feat-retrieval-fts`: authoritative FTS-first retrieval feeding the engine loop
 
 Vision capabilities affected:
 
@@ -55,5 +60,5 @@ Routing/provider impact:
 
 Risks / blockers:
 
-* Residual risk: this handoff still depends on shared regression coverage in `tests/unit/test_unified_retrieval.py`, so any later retrieval change that broadens excerpt lookup semantics or alters the retrieval audit payload shape will need coordinated updates to that shared test surface.
-* Blockers: mirrored packet files under `.codex/` could not be updated with `apply_patch` in this sandbox even though the repo-visible handoff artifacts were refreshed successfully.
+* Residual risk: this handoff updated shared regression coverage in `tests/unit/test_unified_retrieval.py`, so any later retrieval change that intentionally broadens excerpt lookup semantics or reintroduces PageIndex fallback will need coordinated updates to that shared test surface.
+* Blockers: `.codex/kickoff_packets/feat-retrieval-fts.md` and `.codex/lane_meta/feat-retrieval-fts.json` could not be refreshed with `apply_patch` in this environment.
