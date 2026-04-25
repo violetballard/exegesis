@@ -15,6 +15,7 @@ Canonical handoff contract lives in `THREAD_PACKET.md`.
   - `4a4d47048` for alias-level parser-surface drift rejection
   - `077764032` for explicit shared regression coverage on stable canonical-name ordering with token drift
 - Canonical demo-path step advanced: `preview and apply or reject a patch`, because the command catalog is the CLI-facing contract that must stay deterministic before an operator can safely reach patch preview/apply-or-reject while the Textual client remains disabled
+- This work makes `preview and apply or reject a patch` more real by enforcing a deterministic parser-facing CLI command contract, so parser entrypoint token drift fails before an operator reaches patch preview/apply-or-reject in the current CLI-first MVP loop
 - Concrete blocker removed: without this contract hardening, parser/catalog drift could silently reorder, add, or drop the operator-facing CLI tokens that must stay stable for the canonical `preview and apply or reject a patch` step, so the current MVP loop could keep a stale smoke-check contract while the real CLI patch path no longer matches the catalog
 - Reviewer fix closure:
   1. `command_cli_contract()` now validates the grouped parser-entrypoint projection, so alias add/remove/reorder drift fails even when canonical-name order stays stable.

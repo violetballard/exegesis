@@ -16,13 +16,13 @@
 ### Scope / Plan Alignment
 
 - Canonical demo-path step advanced: `preview and apply or reject a patch`, because the command catalog is the CLI-facing contract that must stay deterministic before an operator can safely reach the patch preview/apply-or-reject step while Textual remains disabled.
-- Explicit handoff sentence: this handoff makes the canonical demo-path `preview and apply or reject a patch` step more real by keeping the parser-facing command catalog deterministic and failing fast when parser entrypoint tokens drift from that catalog before an operator reaches patch preview/apply-or-reject.
+- Explicit handoff sentence: this work makes `preview and apply or reject a patch` more real by enforcing a deterministic parser-facing CLI command contract, so parser entrypoint token drift fails before an operator reaches patch preview/apply-or-reject in the current CLI-first MVP loop.
 - MVP focus tie-in: this is CLI-fallback contract hardening in support of the current MVP emphasis on `A2UI` contracts with CLI fallback, not new surface-area expansion.
 - Concrete blocker removed: without this guard, parser/catalog drift could silently reorder, add, or drop the operator-facing CLI tokens that must stay stable for the canonical `preview and apply or reject a patch` step, so the current MVP loop could present a stale smoke-check contract while the real CLI patch path no longer matches the catalog.
 - Reviewer fix closure:
   1. `command_cli_contract()` validates the full grouped parser-entrypoint projection, not only the deduplicated canonical-name sequence.
   2. `tests/unit/test_commands_catalog.py` exercises the reviewer-requested token-level parser drift cases where canonical-name order still matches: alias substitution, extra parser token, removed parser token, and reordered token within the same canonical command group.
-  3. This packet explicitly names the canonical demo-path step advanced and why the contract hardening removes a concrete blocker for that step.
+  3. This packet explicitly names the canonical demo-path step advanced and states how this work makes that exact CLI-first MVP step more real.
 - Verified re-review tip before this packet refresh: `60aa4eef8`
 - Verified token-drift coverage on that tip includes alias substitution, extra parser token, removed parser token, and reordered parser tokens within the same canonical command group while canonical-name order stays stable.
 - Roadmap alignment: `ROADMAP.md` Milestone 3 `Real workflow loop` requires that CLI compatibility remains intact while Textual stays disabled, and this handoff is a narrow contract-hardening change that protects the canonical demo-path `preview and apply or reject a patch` step without claiming new flow coverage.
