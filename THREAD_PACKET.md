@@ -13,6 +13,7 @@
 
 - Canonical demo-path step advanced: `preview and apply or reject a patch` in the engine-first demo path `open document -> retrieve relevant material -> gather context -> plan or revise -> preview and apply or reject a patch -> save and continue`.
 - Explicit handoff sentence: this handoff makes the existing CLI fallback for the `preview and apply or reject a patch` step more reliable by keeping the command catalog ordering deterministic and failing fast when parser entrypoint tokens drift from that catalog while Textual remains disabled.
+- MVP focus tie-in: this is CLI-fallback contract hardening in support of the current MVP emphasis on `A2UI` contracts with CLI fallback, not new surface-area expansion.
 - Concrete blocker removed: without this guard, parser/catalog drift could silently reorder, add, or drop operator-facing CLI tokens for the patch preview/apply-or-reject leg, weakening smoke checks and the current CLI fallback for that operator step.
 - Roadmap alignment: `ROADMAP.md` Milestone 1 `Bootstrap Flow Stabilization` command hardening, plus `ROADMAP.md` Milestone 2 remaining parser-edge coverage identified during reviews; this protects but does not expand the existing Milestone 5 patch-review/apply-or-reject loop step.
 - Vision alignment: `PRODUCT_VISION.md` capability 4 `Operator-first control surface`.
