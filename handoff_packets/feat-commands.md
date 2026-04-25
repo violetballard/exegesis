@@ -15,6 +15,10 @@
 - Explicit handoff sentence: this handoff makes the existing CLI fallback for the `preview and apply or reject a patch` step more reliable by keeping the command catalog ordering deterministic and failing fast when parser entrypoint tokens drift from that catalog while Textual remains disabled.
 - MVP focus tie-in: this is CLI-fallback contract hardening in support of the current MVP emphasis on `A2UI` contracts with CLI fallback, not new surface-area expansion.
 - Concrete blocker removed: without this guard, parser/catalog drift could silently reorder, add, or drop operator-facing CLI tokens for the patch preview/apply-or-reject leg, weakening smoke checks and the current CLI fallback for that operator step.
+- Reviewer fix closure:
+  1. `command_cli_contract()` validates the full grouped parser-entrypoint projection, not only the deduplicated canonical-name sequence.
+  2. `tests/unit/test_commands_catalog.py` exercises token-level parser drift cases where canonical-name order still matches.
+  3. This packet explicitly names the canonical demo-path step advanced and why the contract hardening removes a concrete blocker for that step.
 - Roadmap alignment: `ROADMAP.md` Milestone 1 `Bootstrap Flow Stabilization` command hardening, plus `ROADMAP.md` Milestone 2 remaining parser-edge coverage identified during reviews; this protects but does not expand the existing Milestone 5 patch-review/apply-or-reject loop step.
 - Vision alignment: `PRODUCT_VISION.md` capability 4 `Operator-first control surface`.
 - Non-claim boundary: this handoff claims only deterministic CLI catalog ordering and fail-fast parser-surface drift detection for the existing command surface; it does not claim parser-entrypoint rewrites, workflow-wrapper additions, diff-preview output work, provider routing changes, storage changes, reachability expansion, or UI-console work.

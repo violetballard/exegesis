@@ -12,6 +12,10 @@ Canonical handoff contract lives in `THREAD_PACKET.md`.
 - Review scope: deterministic `command_cli_contract()` behavior in `src/qual/commands/catalog.py` plus the approved shared regression coverage in `tests/unit/test_commands_catalog.py`
 - Canonical demo-path step advanced: `preview and apply or reject a patch` in the engine-first demo path `open document -> retrieve relevant material -> gather context -> plan or revise -> preview and apply or reject a patch -> save and continue`
 - Concrete blocker removed: without this contract hardening, parser/catalog drift could silently reorder, add, or drop operator-facing CLI tokens for the patch preview/apply-or-reject leg, weakening the current CLI fallback and its smoke checks while Textual remains disabled
+- Reviewer fix closure:
+  1. `command_cli_contract()` now validates the grouped parser-entrypoint projection, so alias add/remove/reorder drift fails even when canonical-name order stays stable.
+  2. `tests/unit/test_commands_catalog.py` covers token-level parser drift that preserves canonical-name order.
+  3. This handoff explicitly maps the change to the canonical demo-path step above and names the concrete CLI-fallback blocker it removes.
 - MVP focus tie-in: this is CLI-fallback contract hardening for the current `A2UI`-with-CLI-fallback MVP emphasis, not new command-surface expansion
 - Roadmap alignment: `ROADMAP.md` Milestone 1 `Bootstrap Flow Stabilization` command hardening, plus `ROADMAP.md` Milestone 2 remaining parser-edge coverage identified during review; this protects but does not expand the existing Milestone 5 patch-review loop step
 - Vision alignment: `PRODUCT_VISION.md` capability 4 `Operator-first control surface`; this is current-surface hardening, not broader command reachability work
