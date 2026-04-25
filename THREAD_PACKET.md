@@ -56,18 +56,18 @@
 
 - The reviewed implementation commit `adfa8cdadd43747ffbcb612e4151e262b13e52ca` removes the PageIndex fallback from `fetch_excerpt`, so excerpt lookup now resolves only through the canonical FTS path.
 - Approved shared regression coverage in `tests/unit/test_unified_retrieval.py` proves PageIndex-only excerpt IDs fail closed with `KeyError`.
-- This work advances `retrieve relevant material` by making excerpt lookup fail closed to FTS-backed IDs and preserving deterministic provenance on the FTS-first canonical retrieval path.
-- In AGENTS terms, this strengthens the canonical demo-path step `retrieve relevant material` by keeping excerpt lookup on the canonical FTS path, preserving deterministic provenance on that path, and leaving basket promotion, plan/revise/apply flow work, and broader retrieval MVP claims explicitly out of scope for this handoff.
+- This work advances `retrieve relevant material` by keeping excerpt lookup on the FTS-backed path and rejecting PageIndex-only excerpt IDs.
+- In AGENTS terms, this strengthens the canonical demo-path step `retrieve relevant material` by narrowing the public excerpt lookup contract to FTS-backed IDs and leaving basket promotion, plan/revise/apply flow work, and broader retrieval MVP claims explicitly out of scope for this handoff.
 
 ## Canonical demo-path step advanced
 
 - `retrieve relevant material`
-- Milestone 3 engine-first demo path: this slice advances `retrieve relevant material` by making excerpt lookup fail closed to FTS-backed IDs and preserving deterministic provenance on the FTS-first canonical retrieval path.
+- Milestone 3 engine-first demo path: this slice advances `retrieve relevant material` by keeping excerpt lookup on the FTS-backed path and rejecting PageIndex-only excerpt IDs.
 
 ## Reviewer fix reconciliation
 
 - This packet explicitly names the canonical demo-path step `retrieve relevant material`.
-- The scope stays narrow to FTS-only excerpt lookup, fail-closed PageIndex-only IDs, and deterministic provenance on the FTS-first MVP retrieval path.
+- The scope stays narrow to FTS-only excerpt lookup and fail-closed PageIndex-only IDs.
 - PageIndex and embeddings remain out of scope as active runtime retrieval paths for this handoff.
 
 ## Explicitly out of scope for this lane slice
@@ -128,13 +128,13 @@
 
 ### Roadmap item(s) affected
 
-- Milestone 3: Real workflow loop - FTS-first retrieval remains the authoritative context path for the engine loop.
-- `feat-retrieval-fts` - authoritative FTS-first retrieval feeding the engine loop.
+- Milestone 3: Real workflow loop - narrow retrieval/search hardening for the `retrieve relevant material` step.
+- `feat-retrieval-fts` - excerpt lookup contract hardening on the FTS-backed retrieval path.
 
 ### Vision capability affected
 
 - Retrieval-first context handling
-- Auditable state and workflow
+- Auditable state and workflow for the excerpt lookup contract
 
 ### Routing/provider impact note
 
