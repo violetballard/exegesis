@@ -8,6 +8,7 @@ Canonical handoff contract lives in `THREAD_PACKET.md`.
 - Branch: `codex/feat-commands`
 - Review basis: reviewed command-catalog slice only, not the broader branch tip
 - Verified implementation basis SHA: `f8d860ed9f6299f0169c4f21321ac5f37c949fd3`
+- Current verifier refresh base SHA: `b96781ea37c42b806f9e0921032b101c6cec76da`
 - Previous metadata-only packet refresh tip: `8cbf181261855e9594885fcde058a1aa0588b5a7`
 - Review scope: deterministic `command_cli_contract()` behavior in `src/qual/commands/catalog.py` plus the approved shared regression coverage in `tests/unit/test_commands_catalog.py`
 - Canonical demo-path step advanced: the CLI-backed `run` step in the MVP flow `vault -> context -> run -> patch -> export` while Textual remains disabled
@@ -25,7 +26,7 @@ Canonical handoff contract lives in `THREAD_PACKET.md`.
 ## Required Gates
 
 - Reviewer packet reported these gates as passing on implementation basis SHA `f8d860ed9f6299f0169c4f21321ac5f37c949fd3`
-- This fixer refresh keeps `8cbf181261855e9594885fcde058a1aa0588b5a7` explicit as the previous metadata-only packet refresh on top of that implementation basis
+- This fixer refresh reverified the current branch tip at base SHA `b96781ea37c42b806f9e0921032b101c6cec76da` before issuing a new metadata-only handoff commit
 - `make scope-check`
 - `./quality-format.sh --check`
 - `./quality-lint.sh`
