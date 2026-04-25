@@ -87,7 +87,7 @@
     - `4a4d47048` -> alias-level parser-surface drift rejection in `src/qual/commands/catalog.py`
     - `077764032` -> explicit shared regression coverage for stable canonical-name ordering with token drift in `tests/unit/test_commands_catalog.py`
   - fixer refresh reruns the required gates on `2026-04-24` in the lane worktree; this refresh updates the handoff evidence and plan mapping without widening the reviewed implementation scope
-  - verified re-review tip before this packet refresh: `8fb97890a`
+  - verified re-review tip before this packet refresh: `7903c46c1`
   - targeted reviewer-fix evidence on that tip:
     - alias substitution drift rejection -> `test_command_cli_contract_rejects_exported_parser_alias_substitution_with_stable_canonical_names`
     - extra parser token drift rejection -> `test_command_cli_contract_rejects_extra_alias_entrypoint_when_canonical_order_still_matches`
