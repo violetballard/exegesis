@@ -21,7 +21,7 @@
 - Concrete blocker removed: without this guard, parser/catalog drift could silently reorder, add, or drop the operator-facing CLI tokens that must stay stable for `preview and apply or reject a patch`, so the current MVP loop could present a stale smoke-check contract while the real CLI review/apply-or-reject path no longer matches the catalog.
 - Reviewer fix closure:
   1. `command_cli_contract()` validates the full grouped parser-entrypoint projection, not only the deduplicated canonical-name sequence.
-  2. `tests/unit/test_commands_catalog.py` exercises the reviewer-requested token-level parser drift cases where canonical-name order still matches: alias substitution, extra parser token, removed parser token, and reordered token within the same canonical command group.
+  2. `tests/unit/test_commands_catalog.py` exercises the reviewer-requested token-level parser drift cases where canonical-name order still matches: alias substitution, extra parser token, removed parser token, and reordered token within the same canonical command group, plus direct live-parser coverage for `diff` -> `diff-preview` and `context-basket list`.
   3. This packet explicitly names the canonical demo-path step advanced and states how this work makes that exact CLI-first MVP step more real.
 - Verified re-review tip before this packet refresh: `2cd6eb012`
 - Verified token-drift coverage on that tip includes alias substitution, extra parser token, removed parser token, and reordered parser tokens within the same canonical command group while canonical-name order stays stable.
@@ -89,6 +89,8 @@
   - fixer refresh reruns the required gates on `2026-04-25` in the lane worktree; this refresh updates the handoff evidence, shared-test approval traceability, and plan mapping without widening the reviewed implementation scope
   - verified re-review tip before this packet refresh: `2cd6eb012`
   - targeted reviewer-fix evidence on that tip:
+    - live parser alias coverage -> `test_live_parser_diff_alias_matches_catalog_contract`
+    - live parser context-basket coverage -> `test_live_parser_context_basket_path_matches_catalog_contract`
     - alias substitution drift rejection -> `test_command_cli_contract_rejects_exported_parser_alias_substitution_with_stable_canonical_names`
     - extra parser token drift rejection -> `test_command_cli_contract_rejects_extra_alias_entrypoint_when_canonical_order_still_matches`
     - removed parser token drift rejection -> `test_command_cli_contract_rejects_missing_canonical_token_when_alias_still_resolves`
@@ -115,6 +117,6 @@
   - scope-check handling for this handoff: `make scope-check` passed on the current tip without `SCOPE_ALLOW_SHARED=1` because the repo policy already treats `tests/unit/test_commands_catalog.py` as an approved shared regression test for this lane
   - no other non-owned implementation paths are part of this handoff
 - reviewer-fix satisfaction note:
-  - required fix 1 is satisfied in `src/qual/commands/catalog.py` by rebuilding and validating the full grouped parser-entrypoint projection instead of trusting only deduplicated canonical names
-  - required fix 2 is satisfied in `tests/unit/test_commands_catalog.py` by explicit token-level drift regressions for alias substitution, extra parser token, removed parser token, and reordered token within the same canonical command group while canonical-name order stays stable
-  - required fix 3 is satisfied by the explicit canonical demo-path step mapping, the concrete blocker statement, the traced shared-test approval record, and the Milestone 3 user-facing-contract framing recorded in this packet
+  - required fix 1 is satisfied in `src/qual/commands/catalog.py` by rebuilding and validating the full grouped parser-entrypoint projection against the live parser exported by `src/qual/cli.py` instead of trusting only deduplicated canonical names
+  - required fix 2 is satisfied in `tests/unit/test_commands_catalog.py` by explicit live-parser coverage for `diff` -> `diff-preview` and `context-basket list`, plus token-level drift regressions for alias substitution, extra parser token, removed parser token, and reordered token within the same canonical command group while canonical-name order stays stable
+  - required fix 3 is satisfied by the explicit canonical demo-path step mapping, the concrete blocker statement, the traced shared-test approval record, and the Milestone 3 CLI-contract framing recorded in this packet

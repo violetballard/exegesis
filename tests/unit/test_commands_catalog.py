@@ -560,6 +560,26 @@ class CommandCatalogTests(unittest.TestCase):
                 with self.subTest(token=token):
                     self.assertEqual(parse_args(argv_by_token[token]).command, canonical_name)
 
+    def test_live_parser_diff_alias_matches_catalog_contract(self) -> None:
+        contract = command_cli_contract()
+        self.assertEqual(qual_cli.parse_args(["diff"]).command, "diff-preview")
+        self.assertEqual(dict(contract.lookup_table)["diff"], "diff-preview")
+        self.assertIn(
+            ("diff-preview", ("diff-preview", "diff")),
+            command_catalog._live_parser_cli_entrypoints(),
+        )
+
+    def test_live_parser_context_basket_path_matches_catalog_contract(self) -> None:
+        contract = command_cli_contract()
+        parsed = qual_cli.parse_args(["context-basket", "list"])
+        self.assertEqual(parsed.command, "context-basket")
+        self.assertEqual(parsed.basket_action, "list")
+        self.assertEqual(dict(contract.lookup_table)["context-basket"], "context-basket")
+        self.assertIn(
+            ("context-basket", ("context-basket",)),
+            command_catalog._live_parser_cli_entrypoints(),
+        )
+
     def test_parse_args_rejects_drift_from_live_cli_module_surface(self) -> None:
         command_catalog.command_cli_contract.cache_clear()
         with patch(

@@ -19,7 +19,7 @@ Canonical handoff contract lives in `THREAD_PACKET.md`.
 - Concrete blocker removed: without this contract hardening, parser/catalog drift could silently reorder, add, or drop the operator-facing CLI tokens that must stay stable for `preview and apply or reject a patch`, so the current MVP loop could keep a stale smoke-check contract while the real CLI review/apply-or-reject path no longer matches the catalog
 - Reviewer fix closure:
   1. `command_cli_contract()` now validates the grouped parser-entrypoint projection, so alias add/remove/reorder drift fails even when canonical-name order stays stable.
-  2. `tests/unit/test_commands_catalog.py` covers token-level parser drift that preserves canonical-name order.
+  2. `tests/unit/test_commands_catalog.py` covers the live parser `diff` -> `diff-preview` alias, the `context-basket list` path, and token-level parser drift that preserves canonical-name order.
   3. This handoff explicitly maps the change to the canonical demo-path step above and names the concrete CLI-fallback blocker it removes.
 - Verified re-review tip before this packet refresh: `2cd6eb012`
 - Verified token-drift coverage on that tip includes alias substitution, extra parser token, removed parser token, and reordered parser tokens within the same canonical command group while canonical-name order stays stable
