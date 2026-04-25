@@ -19,18 +19,18 @@
 
 - Canonical demo-path step advanced: `preview and apply or reject a patch` via the existing CLI fallback surface while Textual remains disabled.
 - Explicit handoff sentence: This work makes `preview and apply or reject a patch` more real on the current engine-first demo path by locking the parser-facing command contract for the existing patch-review CLI entrypoints so that parser/catalog drift fails fast instead of silently mutating that operator surface; it does not add a new workflow step.
-- MVP focus tie-in: this is Milestone 3 CLI-compatibility hardening for the existing command surface in support of the current MVP emphasis on `A2UI` contracts with CLI fallback, not new workflow capability or surface-area expansion.
+- MVP focus tie-in: this is Milestone 3 CLI-compatibility hardening for one concrete CLI-fallback step in the current engine-first demo path, not new workflow capability or surface-area expansion.
 - Concrete blocker removed: without this guard, parser/catalog drift could silently reorder, add, or drop the patch-review CLI tokens that must stay stable for `preview and apply or reject a patch`, so the current MVP CLI fallback could drift away from the real engine contract at the exact step where operators inspect and accept or reject a change.
 - Reviewer fix closure:
   1. `command_cli_contract()` validates the full grouped parser-entrypoint projection, not only the deduplicated canonical-name sequence.
   2. `tests/unit/test_commands_catalog.py` exercises the reviewer-requested token-level parser drift cases where canonical-name order still matches: alias substitution, extra parser token, removed parser token, and reordered token within the same canonical command group, plus direct live-parser coverage for `diff` -> `diff-preview` and `context-basket list`.
-  3. This packet explicitly names the canonical demo-path step advanced and states how this work makes that exact CLI-first MVP step more real.
+  3. This packet explicitly names the single canonical demo-path step advanced and states how deterministic command-catalog validation removes a concrete blocker for that step.
 - Verified re-review tip before this packet refresh: `3ede0bbf8`
 - Final validated handoff tip before this packet refresh: `667b5e979`
 - Verified token-drift coverage on that tip includes alias substitution, extra parser token, removed parser token, and reordered parser tokens within the same canonical command group while canonical-name order stays stable.
-- Roadmap alignment: `ROADMAP.md` Milestone 3 exit criterion `Contract changes documented and intentional` plus `AGENTS.md` active MVP note `A2UI contracts with CLI fallback`; this handoff is a narrow canonical engine contract and CLI-compatibility hardening change for the existing `preview and apply or reject a patch` step while Textual remains disabled and without claiming new workflow coverage.
-- Vision alignment: canonical engine contract and CLI compatibility only; this change hardens the current parser/catalog contract that the CLI fallback depends on for the patch-review step and does not claim audit-state or broader workflow progress.
-- Non-claim boundary: this handoff claims only deterministic CLI catalog ordering and fail-fast parser-surface drift detection for the existing command surface; it does not claim parser-entrypoint rewrites, workflow-wrapper additions, diff-preview output work, provider routing changes, storage changes, reachability expansion, or UI-console work.
+- Roadmap alignment: `ROADMAP.md` Milestone 3 exit criterion `Contract changes documented and intentional` plus the `AGENTS.md` rule that contract/infra work only counts when it removes a concrete blocker on the canonical demo path; this handoff is a narrow canonical engine contract and CLI-compatibility hardening change for the existing `preview and apply or reject a patch` step while Textual remains disabled and without claiming new workflow coverage.
+- Vision alignment: `PRODUCT_VISION.md` capability 4 `Operator-first control surface` only; this change hardens the current parser/catalog contract that the CLI fallback depends on for the patch-review step and does not claim audit-state or broader workflow progress.
+- Non-claim boundary: this handoff claims only deterministic CLI catalog ordering and fail-fast parser-surface drift detection for the existing patch-review command surface; it does not claim parser-entrypoint rewrites, workflow-wrapper additions, diff-preview output work, provider routing changes, storage changes, reachability expansion, or UI-console work.
 
 ### Budget
 
@@ -90,7 +90,7 @@
     - `4a4d47048` -> alias-level parser-surface drift rejection in `src/qual/commands/catalog.py`
     - `077764032` -> explicit shared regression coverage for stable canonical-name ordering with token drift in `tests/unit/test_commands_catalog.py`
     - `3ede0bbf8` -> direct live parser contract coverage and stable-name parser drift regressions in `tests/unit/test_commands_catalog.py`
-  - fixer refresh reruns the required gates on `2026-04-24` in the lane worktree on validated packet tip `667b5e979`; this refresh updates the handoff evidence, shared-test approval traceability, and plan mapping without widening the reviewed implementation scope
+  - fixer refresh reruns the required gates on `2026-04-24` in the lane worktree on validated packet tip `667b5e979`; this refresh updates the handoff evidence, shared-test approval traceability, and single-step plan mapping without widening the reviewed implementation scope
   - verified re-review tip before this packet refresh: `3ede0bbf8`
   - final validated handoff tip before this packet refresh: `667b5e979`
   - targeted reviewer-fix evidence on that tip:
@@ -107,13 +107,13 @@
   - `./typecheck-test.sh` -> passed
   - `make ci` -> passed
 - risks/blockers:
-  - risk: future parser token or alias changes must keep the grouped parser-entrypoint projection aligned with the catalog, or the fail-fast contract will reject the surface
+  - risk: future parser token or alias changes must keep the grouped parser-entrypoint projection aligned with the catalog, or the fail-fast contract will reject the patch-review surface
   - blockers: none
 - roadmap item(s) affected:
-  - `ROADMAP.md` Milestone 3 exit criterion `Contract changes documented and intentional`: preserve the deterministic CLI contract for the existing patch-review operator surface by failing fast when parser/catalog drift mutates the `patch-review`/`apply-patch`/`reject-patch` command surface
-  - `AGENTS.md` active MVP note `A2UI contracts with CLI fallback`: this keeps the current CLI fallback contract reliable for `preview and apply or reject a patch` while Textual remains disabled; it does not expand that surface
+  - `ROADMAP.md` Milestone 3 exit criterion `Contract changes documented and intentional`: preserve the deterministic CLI contract for the existing patch-review operator surface by failing fast when parser/catalog drift mutates the `diff-preview`/`apply-patch`/`reject-patch` command surface
+  - `AGENTS.md` contracts/infra rule: this packet names the concrete blocker removed from the canonical demo path instead of claiming broad cross-step progress
 - vision capability affected:
-  - primary: `Canonical engine contract` and CLI compatibility for the existing patch-review surface
+  - primary: `PRODUCT_VISION.md` capability 4 `Operator-first control surface`
 - routing/provider impact note:
   - none; this change only hardens local command-catalog validation and focused command-catalog tests
 - approved exception note:
