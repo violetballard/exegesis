@@ -8,7 +8,7 @@
 - Lane/owned paths: `src/qual/commands/**`
 - Scope goal: submit the reviewed command-catalog slice only, keeping the handoff limited to deterministic `command_cli_contract()` behavior in `src/qual/commands/catalog.py` plus the repo-policy-allowlisted shared regression coverage in `tests/unit/test_commands_catalog.py`.
 - Risk reason: this is a high-risk command-contract handoff because it touches the operator-facing CLI contract and uses a repo-policy-allowlisted shared test file outside the lane-owned path.
-- Previous validated packet tip before this metadata-only refresh: `800b39b009979ab4dfab5501b757c5839a921ab1`
+- Previous validated packet tip before this metadata-only refresh: `06d5d67e8efc31884479e2fb6aab9270fb2088c9`
 
 ### Scope / Plan Alignment
 
@@ -20,10 +20,10 @@
   1. `command_cli_contract()` remains aligned to the canonical command order and raises `ValueError` if the parser surface drifts from the catalog.
   2. `tests/unit/test_commands_catalog.py` covers canonical-order alignment and parser/catalog drift rejection for the reviewed command-catalog slice.
   3. This packet explicitly maps the change to the CLI/operator-contract portion of `open project/document` and names the concrete CLI-contract blocker it removes.
-- Previous verified re-review tip before this packet refresh: `800b39b009979ab4dfab5501b757c5839a921ab1`
-- Previous validated handoff tip before this packet refresh: `800b39b009979ab4dfab5501b757c5839a921ab1`
-- Current verifier refresh base SHA: `800b39b009979ab4dfab5501b757c5839a921ab1`
-- Current fixer refresh purpose: satisfy the review request for an explicit canonical demo-path mapping without broadening the claim beyond the `open project/document` CLI/operator contract.
+- Previous verified re-review tip before this packet refresh: `06d5d67e8efc31884479e2fb6aab9270fb2088c9`
+- Previous validated handoff tip before this packet refresh: `06d5d67e8efc31884479e2fb6aab9270fb2088c9`
+- Current verifier refresh base SHA: `06d5d67e8efc31884479e2fb6aab9270fb2088c9`
+- Current fixer refresh purpose: rerun the required gates after confirming the reviewer fixes remain satisfied and refresh the handoff metadata on top of the verified command-catalog slice.
 - Roadmap alignment: `ROADMAP.md` Milestone 3 exit criterion `Contract changes documented and intentional` only; this handoff is a narrow canonical engine contract and CLI-compatibility hardening change for the existing engine-first CLI fallback path while Textual remains disabled and without claiming broader workflow coverage beyond the `open project/document` operator contract.
 - Vision alignment: `PRODUCT_VISION.md` capability 3 `Canonical engine contract` only; this change hardens the current parser/catalog contract that the CLI fallback depends on for the `open project/document` operator contract and does not claim audit-state, workflow-state, or broader workflow progress.
 - Non-claim boundary: this handoff claims only deterministic CLI catalog ordering and fail-fast parser-surface drift detection for the existing CLI fallback path; it does not claim parser-entrypoint rewrites, workflow-wrapper additions, diff-preview output work, provider routing changes, storage changes, reachability expansion, or UI-console work.
@@ -59,7 +59,7 @@
 - plan complete: the handoff is narrowed to the reviewed `command_cli_contract()` slice and explicitly mapped to Milestone 3 CLI-compatibility hardening for the `open project/document` operator contract
 - first green tests: `make scope-check`, `./quality-format.sh --check`, `./quality-lint.sh`, `./quality-test.sh`, `./typecheck-test.sh`, and `make ci` passed for the reviewed implementation basis and are rerun on the current branch for this packet refresh
 - before risky/shared file edit: the only non-owned path is the repo-policy-allowlisted shared test file `tests/unit/test_commands_catalog.py`
-- ready for handoff: the packet names the exact reviewed files, includes the single-step canonical demo-path mapping, and records the metadata-only refresh scope for the reviewed implementation basis
+- ready for handoff: the packet names the exact reviewed files, includes the single-step canonical demo-path mapping, and records the latest full-gate verification pass for the reviewed implementation basis
 
 ### Handoff Packet
 
@@ -82,8 +82,8 @@
   - metadata-only handoff refresh: `handoff_packets/feat-commands.md`
 - commands run + outcomes:
   - older reviewer packet implementation basis SHA `f8d860ed9f6299f0169c4f21321ac5f37c949fd3`
-  - current verified branch tip before this metadata-only refresh: `800b39b009979ab4dfab5501b757c5839a921ab1`
-  - verifier rerun base SHA before this metadata-only refresh: `800b39b009979ab4dfab5501b757c5839a921ab1`
+  - current verified branch tip before this metadata-only refresh: `06d5d67e8efc31884479e2fb6aab9270fb2088c9`
+  - verifier rerun base SHA before this metadata-only refresh: `06d5d67e8efc31884479e2fb6aab9270fb2088c9`
   - `make scope-check` -> passed
   - `./quality-format.sh --check` -> passed
   - `./quality-lint.sh` -> passed
