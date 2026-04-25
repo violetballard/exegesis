@@ -8,7 +8,7 @@
 - Lane/owned paths: `src/qual/commands/**`
 - Scope goal: submit the reviewed command-catalog slice only, keeping the handoff limited to deterministic `command_cli_contract()` behavior in `src/qual/commands/catalog.py` plus the repo-policy-allowlisted shared regression coverage in `tests/unit/test_commands_catalog.py`.
 - Risk reason: this is a high-risk command-contract handoff because it touches the operator-facing CLI contract and uses a repo-policy-allowlisted shared test file outside the lane-owned path.
-- Final validated packet tip before this metadata-only refresh: `621fcc4204a4c0fba0918cc9d9c563dab6638585`
+- Final validated packet tip before this metadata-only refresh: `8cbf181261855e9594885fcde058a1aa0588b5a7`
 
 ### Scope / Plan Alignment
 
@@ -20,8 +20,8 @@
   1. `command_cli_contract()` remains aligned to the canonical command order and raises `ValueError` if the parser surface drifts from the catalog.
   2. `tests/unit/test_commands_catalog.py` covers canonical-order alignment and parser/catalog drift rejection for the reviewed command-catalog slice.
   3. This packet explicitly maps the change to the current engine-first CLI fallback steps above and names the concrete CLI-contract blocker it removes.
-- Verified re-review tip before this packet refresh: `621fcc4204a4c0fba0918cc9d9c563dab6638585`
-- Final validated handoff tip before this packet refresh: `621fcc4204a4c0fba0918cc9d9c563dab6638585`
+- Verified re-review tip before this packet refresh: `8cbf181261855e9594885fcde058a1aa0588b5a7`
+- Final validated handoff tip before this packet refresh: `8cbf181261855e9594885fcde058a1aa0588b5a7`
 - Roadmap alignment: `ROADMAP.md` Milestone 3 exit criterion `Contract changes documented and intentional` only; this handoff is a narrow canonical engine contract and CLI-compatibility hardening change for the existing engine-first CLI fallback path while Textual remains disabled and without claiming broader workflow coverage.
 - Vision alignment: `PRODUCT_VISION.md` capability 4 `Operator-first control surface` only; this change hardens the current parser/catalog contract that the CLI fallback depends on for `project-open`, `retrieval`, `patch-review`, and `export-handoff` and does not claim audit-state or broader workflow progress.
 - Non-claim boundary: this handoff claims only deterministic CLI catalog ordering and fail-fast parser-surface drift detection for the existing CLI fallback command surfaces; it does not claim parser-entrypoint rewrites, workflow-wrapper additions, diff-preview output work, provider routing changes, storage changes, reachability expansion, or UI-console work.
@@ -80,7 +80,7 @@
   - metadata-only handoff refresh: `handoff_packets/feat-commands.md`
 - commands run + outcomes:
   - reviewed implementation basis SHA `f8d860ed9f6299f0169c4f21321ac5f37c949fd3`
-  - packet refresh commit preserved as metadata-only scope on tip `621fcc4204a4c0fba0918cc9d9c563dab6638585`
+  - packet refresh commit preserved as metadata-only scope on tip `8cbf181261855e9594885fcde058a1aa0588b5a7`
   - `make scope-check` -> passed
   - `./quality-format.sh --check` -> passed
   - `./quality-lint.sh` -> passed
@@ -102,4 +102,4 @@
 - reviewer-fix satisfaction note:
   - required fix 1 is satisfied by naming the exact engine-first CLI fallback command surfaces this contract hardening protects: `project-open`, `retrieval`, `patch-review`, and `export-handoff`
   - required fix 2 is satisfied by narrowing the roadmap and vision mapping to Milestone 3 CLI compatibility and `Operator-first control surface` only, without claiming broader progress
-  - required fix 3 is satisfied by preserving the reviewed implementation basis `f8d860ed9f6299f0169c4f21321ac5f37c949fd3` and keeping `621fcc4204a4c0fba0918cc9d9c563dab6638585` explicit as a metadata-only packet refresh
+  - required fix 3 is satisfied by preserving the reviewed implementation basis `f8d860ed9f6299f0169c4f21321ac5f37c949fd3` and keeping `8cbf181261855e9594885fcde058a1aa0588b5a7` explicit as the latest metadata-only packet refresh

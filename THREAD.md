@@ -8,7 +8,7 @@ Canonical handoff contract lives in `THREAD_PACKET.md`.
 - Branch: `codex/feat-commands`
 - Review basis: reviewed command-catalog slice only, not the broader branch tip
 - Verified implementation basis SHA: `f8d860ed9f6299f0169c4f21321ac5f37c949fd3`
-- Metadata-only packet refresh tip: `621fcc4204a4c0fba0918cc9d9c563dab6638585`
+- Metadata-only packet refresh tip: `8cbf181261855e9594885fcde058a1aa0588b5a7`
 - Review scope: deterministic `command_cli_contract()` behavior in `src/qual/commands/catalog.py` plus the approved shared regression coverage in `tests/unit/test_commands_catalog.py`
 - Canonical demo-path steps advanced: stable CLI command reachability for `project-open`, `retrieval`, `patch-review`, and `export-handoff` while Textual remains disabled
 - Explicit handoff sentence: This work makes the current engine-first CLI fallback path more real by keeping the catalog-driven parser contract deterministic for `project-open`, `retrieval`, `patch-review`, and `export-handoff`, so parser/catalog drift fails fast instead of silently mutating those operator entrypoints.
@@ -25,7 +25,7 @@ Canonical handoff contract lives in `THREAD_PACKET.md`.
 ## Required Gates
 
 - Reviewer packet reported these gates as passing on implementation basis SHA `f8d860ed9f6299f0169c4f21321ac5f37c949fd3`
-- This fixer refresh keeps `621fcc4204a4c0fba0918cc9d9c563dab6638585` explicit as a metadata-only packet refresh on top of that implementation basis
+- This fixer refresh keeps `8cbf181261855e9594885fcde058a1aa0588b5a7` explicit as the latest metadata-only packet refresh on top of that implementation basis
 - `make scope-check`
 - `./quality-format.sh --check`
 - `./quality-lint.sh`
