@@ -3821,44 +3821,54 @@ class RetrievalService:
             if derived_query_fingerprint is not None:
                 normalized["query_fingerprint"] = derived_query_fingerprint
                 normalized_provenance["query_fingerprint"] = derived_query_fingerprint
-            query_constraints = query_snapshot.get("constraints", {})
-            if not isinstance(query_constraints, dict):
-                query_constraints = {}
+            raw_query_constraints = query_snapshot.get("constraints", {})
+            if not isinstance(raw_query_constraints, dict):
+                raw_query_constraints = {}
             # Mirror the canonical retrieval-result query constraint fields on
             # excerpt lookups so direct promotion/audit callers do not need to
             # unpack the nested query snapshot to recover the original contract.
-            normalized_query_constraints = copy.deepcopy(query_constraints)
+            normalized_query_constraints = _canonical_query_constraint_snapshot_payload(
+                raw_query_constraints
+            )
             normalized["query_constraints"] = copy.deepcopy(normalized_query_constraints)
             normalized_provenance["query_constraints"] = normalized_query_constraints
-            query_max_results = _optional_int(query_constraints.get("max_results"))
+            query_max_results = _optional_int(normalized_query_constraints.get("max_results"))
             if query_max_results is not None:
                 normalized["query_max_results"] = query_max_results
                 normalized_provenance["query_max_results"] = query_max_results
             else:
                 normalized.pop("query_max_results", None)
                 normalized_provenance.pop("query_max_results", None)
-            query_doc_types = _normalize_query_doc_types_payload(query_constraints.get("doc_types"))
+            query_doc_types = _normalize_query_doc_types_payload(
+                normalized_query_constraints.get("doc_types")
+            )
             if query_doc_types is not None:
                 normalized["query_doc_types"] = copy.deepcopy(query_doc_types)
                 normalized_provenance["query_doc_types"] = copy.deepcopy(query_doc_types)
             else:
                 normalized.pop("query_doc_types", None)
                 normalized_provenance.pop("query_doc_types", None)
-            query_require_citations = _optional_bool(query_constraints.get("require_citations"))
+            query_require_citations = _optional_bool(
+                normalized_query_constraints.get("require_citations")
+            )
             if query_require_citations is not None:
                 normalized["query_require_citations"] = query_require_citations
                 normalized_provenance["query_require_citations"] = query_require_citations
             else:
                 normalized.pop("query_require_citations", None)
                 normalized_provenance.pop("query_require_citations", None)
-            query_section_hint = _normalized_query_hint_text(query_constraints.get("section_hint"))
+            query_section_hint = _normalized_query_hint_text(
+                normalized_query_constraints.get("section_hint")
+            )
             if query_section_hint is not None:
                 normalized["query_section_hint"] = query_section_hint
                 normalized_provenance["query_section_hint"] = query_section_hint
             else:
                 normalized.pop("query_section_hint", None)
                 normalized_provenance.pop("query_section_hint", None)
-            query_prefer_exact_matches = _optional_bool(query_constraints.get("prefer_exact_matches"))
+            query_prefer_exact_matches = _optional_bool(
+                normalized_query_constraints.get("prefer_exact_matches")
+            )
             if query_prefer_exact_matches is not None:
                 normalized["query_prefer_exact_matches"] = query_prefer_exact_matches
                 normalized_provenance["query_prefer_exact_matches"] = query_prefer_exact_matches
@@ -3883,14 +3893,18 @@ class RetrievalService:
             if query_confidentiality_profile is not None:
                 normalized["query_confidentiality_profile"] = query_confidentiality_profile
                 normalized_provenance["query_confidentiality_profile"] = query_confidentiality_profile
-            query_date_range = _normalize_query_date_range_payload(query_constraints.get("date_range"))
+            query_date_range = _normalize_query_date_range_payload(
+                normalized_query_constraints.get("date_range")
+            )
             if query_date_range is not None:
                 normalized["query_date_range"] = query_date_range
                 normalized_provenance["query_date_range"] = query_date_range
             else:
                 normalized.pop("query_date_range", None)
                 normalized_provenance.pop("query_date_range", None)
-            section_hint = _normalized_query_hint_text(query_constraints.get("section_hint"))
+            section_hint = _normalized_query_hint_text(
+                normalized_query_constraints.get("section_hint")
+            )
             if section_hint is not None:
                 normalized["section_hint"] = section_hint
                 normalized_provenance["section_hint"] = section_hint

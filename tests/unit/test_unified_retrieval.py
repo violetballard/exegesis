@@ -1527,6 +1527,46 @@ class UnifiedRetrievalTests(unittest.TestCase):
         self.assertEqual(excerpt["basket_promotion"]["query_confidentiality_profile"], "confidential")
         self.assertEqual(excerpt["basket_promotion"]["section_hint"], "coding")
 
+    def test_retrieve_fts_excerpt_canonicalizes_sparse_query_constraint_mirrors(self) -> None:
+        result = self.service.retrieve_auto(
+            RetrievalQuery(
+                query_text="discussion theory",
+                scope="doc:doc-pdf-1",
+                intent="outline_support",
+                constraints=RetrievalConstraints(max_results=6, section_hint="discussion"),
+                confidentiality_profile="standard",
+            )
+        )
+
+        excerpt_id = result.hits[0].excerpt_id
+        self.assertIsNotNone(excerpt_id)
+
+        fresh_service = RetrievalService(self.root, audit_log=self.audit)
+        excerpt = fresh_service.retrieve_fts_excerpt(excerpt_id or "")
+
+        expected_constraints = {
+            "max_results": 6,
+            "doc_types": [],
+            "require_citations": False,
+            "section_hint": "discussion",
+            "prefer_exact_matches": False,
+        }
+
+        self.assertEqual(excerpt["query"]["constraints"], {"max_results": 6, "section_hint": "discussion"})
+        self.assertEqual(excerpt["query_constraints"], expected_constraints)
+        self.assertEqual(excerpt["provenance"]["query_constraints"], expected_constraints)
+        self.assertEqual(excerpt["query_max_results"], 6)
+        self.assertEqual(excerpt["query_doc_types"], [])
+        self.assertFalse(excerpt["query_require_citations"])
+        self.assertEqual(excerpt["query_section_hint"], "discussion")
+        self.assertFalse(excerpt["query_prefer_exact_matches"])
+        self.assertEqual(excerpt["basket_promotion"]["query_constraints"], expected_constraints)
+        self.assertEqual(excerpt["basket_promotion"]["query_max_results"], 6)
+        self.assertEqual(excerpt["basket_promotion"]["query_doc_types"], [])
+        self.assertFalse(excerpt["basket_promotion"]["query_require_citations"])
+        self.assertEqual(excerpt["basket_promotion"]["query_section_hint"], "discussion")
+        self.assertFalse(excerpt["basket_promotion"]["query_prefer_exact_matches"])
+
     def test_retrieve_fts_excerpt_drops_stale_saved_query_context_after_doc_update(self) -> None:
         stable_prefix = (
             "memo coding comparison excerpt anchor. "
