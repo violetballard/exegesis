@@ -5,6 +5,7 @@ import unittest
 from dataclasses import dataclass
 
 from src.qual.ui.a2ui import (
+    A2UI_CONTRACT_VERSION,
     A2UI_ACTION_SCHEMA_VERSION,
     A2UI_CAPABILITIES_SCHEMA_VERSION,
     A2UICapabilities,
@@ -247,6 +248,7 @@ class A2UIContractTests(unittest.TestCase):
 
         self.assertEqual(manifest["a2ui_version"], 1)
         self.assertEqual(manifest["contract_version"], 2)
+        self.assertEqual(manifest["a2ui_contract_version"], A2UI_CONTRACT_VERSION)
         self.assertEqual(manifest["contract_fingerprint"], a2ui_contract_fingerprint())
         self.assertEqual(len(manifest["contract_fingerprint"]), 64)
         self.assertEqual(manifest["capabilities"], describe_a2ui_capabilities_contract())
@@ -254,6 +256,7 @@ class A2UIContractTests(unittest.TestCase):
             manifest["capabilities_fingerprint"],
             a2ui_capabilities_contract_fingerprint(),
         )
+        self.assertEqual(manifest["a2ui_contract"]["a2ui_contract_version"], A2UI_CONTRACT_VERSION)
         fingerprints = describe_a2ui_contract_fingerprints()
         self.assertEqual(fingerprints["contract"], manifest["contract_fingerprint"])
         self.assertEqual(

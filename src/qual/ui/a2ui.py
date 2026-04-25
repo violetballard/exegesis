@@ -526,6 +526,7 @@ def describe_a2ui_contract(
         manifest["contract_fingerprints"]
     )
     manifest["contract_fingerprints_contract_fingerprint"] = manifest["contract_fingerprints_fingerprint"]
+    manifest["a2ui_contract_version"] = A2UI_CONTRACT_VERSION
     manifest["a2ui_contract"] = _snapshot_contract_section(manifest)
     manifest["a2ui_contract_fingerprint"] = manifest["contract_fingerprint"]
     return manifest
