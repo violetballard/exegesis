@@ -2608,6 +2608,9 @@ def _build_terminal_artifact_cli_fallback_target_contract_fingerprints(
     terminal_artifact_cli_fallback_entrypoint_contract_fingerprint_value = (
         terminal_artifact_cli_fallback_entrypoint_contract_fingerprint()
     )
+    kind_policy_contract_fingerprint_value = _fingerprint_manifest_section(
+        _build_terminal_artifact_cli_fallback_kind_policy_manifest()
+    )
     fingerprints = {
         "terminal_artifact_cli_fallback_entrypoint": terminal_artifact_cli_fallback_entrypoint_fingerprint,
         "terminal_artifact_cli_fallback_entrypoint_contract": terminal_artifact_cli_fallback_entrypoint_fingerprint,
@@ -2620,6 +2623,7 @@ def _build_terminal_artifact_cli_fallback_target_contract_fingerprints(
         "raw_leaf_card_default_policy_contract": terminal_artifact_raw_leaf_card_default_policy_contract_fingerprint(),
         "kind_resolution": terminal_artifact_kind_resolution_fingerprint(),
         "fallback_recovery": terminal_artifact_fallback_recovery_fingerprint(),
+        "kind_policy": kind_policy_contract_fingerprint_value,
     }
     _add_contract_alias_fingerprints(
         fingerprints,
@@ -2634,6 +2638,14 @@ def _build_terminal_artifact_cli_fallback_target_contract_fingerprints(
         (
             "terminal_artifact_cli_fallback_entrypoint_contract_manifest",
             terminal_artifact_cli_fallback_entrypoint_contract_fingerprint_value,
+        ),
+        (
+            "kind_policy_contract",
+            kind_policy_contract_fingerprint_value,
+        ),
+        (
+            "kind_policy_contract_manifest",
+            kind_policy_contract_fingerprint_value,
         ),
     )
     if include_terminal_artifact_cli_fallback_target:
@@ -3809,6 +3821,7 @@ def _build_terminal_artifact_cli_fallback_target_contract_manifest(
     terminal_artifact_cli_fallback_entrypoint_contract = (
         describe_terminal_artifact_cli_fallback_entrypoint_contract()
     )
+    kind_policy = _build_terminal_artifact_cli_fallback_kind_policy_manifest()
     contract_fingerprints = describe_terminal_artifact_cli_fallback_target_contract_fingerprints(
         include_terminal_artifact_cli_fallback_route=include_terminal_artifact_cli_fallback_route,
     )
@@ -3869,6 +3882,12 @@ def _build_terminal_artifact_cli_fallback_target_contract_manifest(
             "invalid_kind_treated_as_absent": True,
             "refine_card_underflow": True,
         },
+        "kind_policy": kind_policy,
+        "kind_policy_fingerprint": _fingerprint_manifest_section(kind_policy),
+        "kind_policy_contract": _snapshot_contract_section(kind_policy),
+        "kind_policy_contract_fingerprint": _fingerprint_manifest_section(kind_policy),
+        "kind_policy_contract_manifest": _snapshot_contract_section(kind_policy),
+        "kind_policy_contract_manifest_fingerprint": _fingerprint_manifest_section(kind_policy),
         "terminal_fallback_contract": _snapshot_contract_section(terminal_fallback_contract),
         "terminal_fallback_fingerprint": terminal_fallback_contract["contract_fingerprint"],
         "terminal_fallback_contract_fingerprint": terminal_fallback_contract["contract_fingerprint"],

@@ -1847,12 +1847,24 @@ class A2UIFallbackSafetyTests(unittest.TestCase):
             terminal_artifact_fallback_recovery_fingerprint(),
         )
         self.assertEqual(
+            fingerprints["kind_policy"],
+            _fingerprint_manifest_section(manifest["kind_policy"]),
+        )
+        self.assertEqual(
             fingerprints["renderer_entrypoints_contract"],
             terminal_artifact_renderer_entrypoints_contract_fingerprint(),
         )
         self.assertEqual(
             fingerprints["terminal_artifact_renderer_entrypoints_contract_manifest"],
             terminal_artifact_renderer_entrypoints_contract_fingerprint(),
+        )
+        self.assertEqual(
+            fingerprints_with_self["kind_policy_contract"],
+            _fingerprint_manifest_section(manifest["kind_policy"]),
+        )
+        self.assertEqual(
+            fingerprints_with_self["kind_policy_contract_manifest"],
+            _fingerprint_manifest_section(manifest["kind_policy"]),
         )
         self.assertEqual(
             fingerprints_with_self["terminal_artifact_cli_fallback_target"],
@@ -4877,6 +4889,17 @@ class A2UIFallbackSafetyTests(unittest.TestCase):
             },
         )
         self.assertEqual(
+            manifest["kind_policy_fingerprint"],
+            _fingerprint_manifest_section(manifest["kind_policy"]),
+        )
+        self.assertEqual(manifest["kind_policy_contract"], manifest["kind_policy"])
+        self.assertEqual(manifest["kind_policy_contract_fingerprint"], manifest["kind_policy_fingerprint"])
+        self.assertEqual(manifest["kind_policy_contract_manifest"], manifest["kind_policy"])
+        self.assertEqual(
+            manifest["kind_policy_contract_manifest_fingerprint"],
+            manifest["kind_policy_fingerprint"],
+        )
+        self.assertEqual(
             manifest["resolver_failure_policy"],
             {
                 "retry_resolver": "resolve_terminal_artifact_render_target",
@@ -5039,6 +5062,7 @@ class A2UIFallbackSafetyTests(unittest.TestCase):
                 "raw_leaf_card_default_policy_contract": terminal_artifact_raw_leaf_card_default_policy_contract_fingerprint(),
                 "shell_refinement_policy": _fingerprint_manifest_section(manifest["shell_refinement_policy"]),
                 "resolver_failure_policy": _fingerprint_manifest_section(manifest["resolver_failure_policy"]),
+                "kind_policy": _fingerprint_manifest_section(manifest["kind_policy"]),
             },
         )
         self.assertEqual(
