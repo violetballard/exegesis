@@ -24,7 +24,7 @@ Canonical handoff contract lives in `THREAD_PACKET.md`.
 - Verified token-drift coverage on that tip includes alias substitution, extra parser token, removed parser token, and reordered parser tokens within the same canonical command group while canonical-name order stays stable
 - MVP focus tie-in: this is CLI-fallback contract hardening for the current `A2UI`-with-CLI-fallback MVP emphasis, not new command-surface expansion
 - Roadmap alignment: `ROADMAP.md` Milestone 3 `Real workflow loop` CLI compatibility plus the `AGENTS.md` canonical demo-path `preview and apply or reject a patch` step; this protects but does not expand the existing patch step
-- Vision alignment: `PRODUCT_VISION.md` capability 4 `Operator-first control surface` and capability 5 `Agent-to-UI protocol (A2UI)` via the current CLI fallback surface; this is current-surface hardening, not broader command reachability work
+- Vision alignment: primarily `PRODUCT_VISION.md` capability 4 `Operator-first control surface`, because this handoff only hardens the current CLI contract while Textual remains disabled; `PRODUCT_VISION.md` capability 5 `Agent-to-UI protocol (A2UI)` is relevant only secondarily through the existing CLI fallback surface, not through any new workflow or audit behavior
 - Scope boundary: this handoff claims only the command-catalog contract hardening and the approved shared regression test; it does not claim parser-entrypoint rewrites, diff-preview work, workflow-wrapper additions, provider/routing changes, or storage behavior changes
 - Task accounting note: metadata-only packet refreshes are bookkeeping for the handoff and are not counted as implementation tasks
 

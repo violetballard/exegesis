@@ -26,7 +26,7 @@
 - Verified re-review tip before this packet refresh: `8fb97890a`
 - Verified token-drift coverage on that tip includes alias substitution, extra parser token, removed parser token, and reordered parser tokens within the same canonical command group while canonical-name order stays stable.
 - Roadmap alignment: `ROADMAP.md` Milestone 3 `Real workflow loop` requires that CLI compatibility remains intact while Textual stays disabled, and this handoff is a narrow contract-hardening change that protects the canonical demo-path `preview and apply or reject a patch` step without claiming new flow coverage.
-- Vision alignment: `PRODUCT_VISION.md` capability 4 `Operator-first control surface` and capability 5 `Agent-to-UI protocol (A2UI)` because the same engine-authored command contract must stay reliable for the CLI fallback surface that operators use today.
+- Vision alignment: primarily `PRODUCT_VISION.md` capability 4 `Operator-first control surface`, because this change only hardens the current CLI contract that operators use today while Textual remains disabled; `PRODUCT_VISION.md` capability 5 `Agent-to-UI protocol (A2UI)` is relevant only insofar as the same engine-authored command contract must remain reliable for the CLI fallback surface.
 - Non-claim boundary: this handoff claims only deterministic CLI catalog ordering and fail-fast parser-surface drift detection for the existing command surface; it does not claim parser-entrypoint rewrites, workflow-wrapper additions, diff-preview output work, provider routing changes, storage changes, reachability expansion, or UI-console work.
 
 ### Budget
@@ -106,12 +106,13 @@
   - `ROADMAP.md` Milestone 3 `Real workflow loop`: preserve CLI compatibility while Textual remains disabled by failing fast when parser/catalog drift mutates the existing command surface
   - `AGENTS.md` canonical demo path: protects the existing `preview and apply or reject a patch` step in the current engine-first MVP loop; it does not expand that surface
 - vision capability affected:
-  - `PRODUCT_VISION.md` capability 4 `Operator-first control surface`
-  - `PRODUCT_VISION.md` capability 5 `Agent-to-UI protocol (A2UI)` via the current CLI fallback surface
+  - primary: `PRODUCT_VISION.md` capability 4 `Operator-first control surface`
+  - secondary only: `PRODUCT_VISION.md` capability 5 `Agent-to-UI protocol (A2UI)` via the existing CLI fallback surface, not via any new workflow or audit behavior
 - routing/provider impact note:
   - none; this change only hardens local command-catalog validation and focused command-catalog tests
 - approved exception note:
-  - approved shared-test exception for `tests/unit/test_commands_catalog.py`; no other non-owned implementation paths are part of this handoff
+  - approval basis for `tests/unit/test_commands_catalog.py`: this high-risk kickoff explicitly scoped the handoff to `src/qual/commands/catalog.py` plus the approved shared regression coverage in that test file, satisfying `INTEGRATION.md`'s requirement to carry an explicit approval note for the only non-owned edit in this packet
+  - no other non-owned implementation paths are part of this handoff
 - reviewer-fix satisfaction note:
   - required fix 1 is satisfied in `src/qual/commands/catalog.py` by rebuilding and validating the full grouped parser-entrypoint projection instead of trusting only deduplicated canonical names
   - required fix 2 is satisfied in `tests/unit/test_commands_catalog.py` by explicit token-level drift regressions for alias substitution, extra parser token, removed parser token, and reordered token within the same canonical command group while canonical-name order stays stable
