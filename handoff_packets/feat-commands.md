@@ -8,7 +8,7 @@
 - Lane/owned paths: `src/qual/commands/**`
 - Scope goal: submit the reviewed command-catalog slice only, keeping the handoff limited to deterministic `command_cli_contract()` behavior in `src/qual/commands/catalog.py` plus the repo-policy-allowlisted shared regression coverage in `tests/unit/test_commands_catalog.py`.
 - Risk reason: this is a high-risk command-contract handoff because it touches the operator-facing CLI contract and uses a repo-policy-allowlisted shared test file outside the lane-owned path.
-- Final validated packet tip before this metadata-only refresh: `7e2ecb220`
+- Final validated packet tip before this metadata-only refresh: `667b5e979`
 - Implementation commits already on this branch:
   - `beaf91853` for grouped parser-entrypoint contract validation
   - `4a4d47048` for alias-level parser-surface drift rejection
@@ -26,7 +26,7 @@
   2. `tests/unit/test_commands_catalog.py` exercises the reviewer-requested token-level parser drift cases where canonical-name order still matches: alias substitution, extra parser token, removed parser token, and reordered token within the same canonical command group, plus direct live-parser coverage for `diff` -> `diff-preview` and `context-basket list`.
   3. This packet explicitly names the canonical demo-path step advanced and states how this work makes that exact CLI-first MVP step more real.
 - Verified re-review tip before this packet refresh: `3ede0bbf8`
-- Final validated handoff tip before this packet refresh: `7e2ecb220`
+- Final validated handoff tip before this packet refresh: `667b5e979`
 - Verified token-drift coverage on that tip includes alias substitution, extra parser token, removed parser token, and reordered parser tokens within the same canonical command group while canonical-name order stays stable.
 - Roadmap alignment: `ROADMAP.md` Milestone 3 exit criterion `Contract changes documented and intentional` plus `AGENTS.md` active MVP note `A2UI contracts with CLI fallback`; this handoff is a narrow canonical engine contract and CLI-compatibility hardening change for the existing `preview and apply or reject a patch` step while Textual remains disabled and without claiming new workflow coverage.
 - Vision alignment: canonical engine contract and CLI compatibility only; this change hardens the current parser/catalog contract that the CLI fallback depends on for the patch-review step and does not claim audit-state or broader workflow progress.
@@ -84,15 +84,15 @@
   - metadata-only handoff refresh: `THREAD_PACKET.md`
   - metadata-only handoff refresh: `handoff_packets/feat-commands.md`
 - commands run + outcomes:
-  - reviewed implementation basis SHA `3ede0bbf814cbee26464fa671be67b2e3293ab93` on `2026-04-25`
+  - reviewed implementation basis SHA `3ede0bbf814cbee26464fa671be67b2e3293ab93` on `2026-04-24`
   - implementation evidence already on this branch:
     - `beaf91853` -> grouped parser-entrypoint contract validation in `src/qual/commands/catalog.py`
     - `4a4d47048` -> alias-level parser-surface drift rejection in `src/qual/commands/catalog.py`
     - `077764032` -> explicit shared regression coverage for stable canonical-name ordering with token drift in `tests/unit/test_commands_catalog.py`
     - `3ede0bbf8` -> direct live parser contract coverage and stable-name parser drift regressions in `tests/unit/test_commands_catalog.py`
-  - fixer refresh reruns the required gates on `2026-04-25` in the lane worktree on validated packet tip `7e2ecb220`; this refresh updates the handoff evidence, shared-test approval traceability, and plan mapping without widening the reviewed implementation scope
+  - fixer refresh reruns the required gates on `2026-04-24` in the lane worktree on validated packet tip `667b5e979`; this refresh updates the handoff evidence, shared-test approval traceability, and plan mapping without widening the reviewed implementation scope
   - verified re-review tip before this packet refresh: `3ede0bbf8`
-  - final validated handoff tip before this packet refresh: `7e2ecb220`
+  - final validated handoff tip before this packet refresh: `667b5e979`
   - targeted reviewer-fix evidence on that tip:
     - live parser alias coverage -> `test_live_parser_diff_alias_matches_catalog_contract`
     - live parser context-basket coverage -> `test_live_parser_context_basket_path_matches_catalog_contract`
