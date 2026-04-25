@@ -61,7 +61,7 @@
 ## Canonical demo-path step advanced
 
 - `retrieve relevant material`
-- This work advances `retrieve relevant material` by ensuring excerpt lookup stays on the canonical FTS-first path and fails closed for PageIndex-only IDs, keeping retrieval output deterministic and auditable.
+- Milestone 3 engine-first demo path: this slice advances `retrieve relevant material` by removing PageIndex fallback from excerpt lookup and proving PageIndex-only excerpt IDs fail closed under shared regression coverage.
 
 ## Explicitly out of scope for this lane slice
 
@@ -106,7 +106,7 @@
 
 ## Risks / blockers
 
-- Risk: `HIGH`
+- Residual risk: This slice edited shared regression coverage in `tests/unit/test_unified_retrieval.py`, so any future retrieval change that intentionally broadens excerpt lookup semantics or reintroduces PageIndex fallback will need coordinated updates to that shared test surface before integration.
 - Blockers: none
 
 ## Required handoff fields
