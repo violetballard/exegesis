@@ -16,7 +16,7 @@
 ### Scope / Plan Alignment
 
 - Canonical demo-path step advanced: `preview and apply or reject a patch`, because the command catalog is the CLI-facing contract that must stay deterministic before an operator can safely reach the patch preview/apply-or-reject step while Textual remains disabled.
-- Explicit handoff sentence: this work makes `preview and apply or reject a patch` more real by enforcing a deterministic parser-facing CLI command contract, so parser entrypoint token drift fails before an operator reaches patch preview/apply-or-reject in the current CLI-first MVP loop.
+- Explicit handoff sentence: This work makes `preview and apply or reject a patch` more real by enforcing a deterministic parser-facing CLI command contract, so parser entrypoint token drift fails before an operator reaches patch preview/apply-or-reject in the current CLI-first MVP loop.
 - MVP focus tie-in: this is CLI-fallback contract hardening in support of the current MVP emphasis on `A2UI` contracts with CLI fallback, not new surface-area expansion.
 - Concrete blocker removed: without this guard, parser/catalog drift could silently reorder, add, or drop the operator-facing CLI tokens that must stay stable for the canonical `preview and apply or reject a patch` step, so the current MVP loop could present a stale smoke-check contract while the real CLI patch path no longer matches the catalog.
 - Reviewer fix closure:
@@ -25,7 +25,7 @@
   3. This packet explicitly names the canonical demo-path step advanced and states how this work makes that exact CLI-first MVP step more real.
 - Verified re-review tip before this packet refresh: `60aa4eef8`
 - Verified token-drift coverage on that tip includes alias substitution, extra parser token, removed parser token, and reordered parser tokens within the same canonical command group while canonical-name order stays stable.
-- Roadmap alignment: `ROADMAP.md` Milestone 3 `Real workflow loop` requires that CLI compatibility remains intact while Textual stays disabled, and this handoff is a narrow contract-hardening change that protects the canonical demo-path `preview and apply or reject a patch` step without claiming new flow coverage.
+- Roadmap alignment: `ROADMAP.md` Milestone 5 exit criterion `CLI can execute the MVP flow (vault -> context -> run -> patch -> export) against the same engine PolicyGate` and `AGENTS.md` active MVP note `A2UI contracts with CLI fallback`; this handoff is a narrow contract-hardening change that protects the canonical demo-path `preview and apply or reject a patch` step inside that CLI-first loop without claiming new flow coverage.
 - Vision alignment: primarily `PRODUCT_VISION.md` capability 4 `Operator-first control surface`, because this change only hardens the current CLI contract that operators use today while Textual remains disabled; `PRODUCT_VISION.md` capability 5 `Agent-to-UI protocol (A2UI)` is relevant only insofar as the same engine-authored command contract must remain reliable for the CLI fallback surface.
 - Non-claim boundary: this handoff claims only deterministic CLI catalog ordering and fail-fast parser-surface drift detection for the existing command surface; it does not claim parser-entrypoint rewrites, workflow-wrapper additions, diff-preview output work, provider routing changes, storage changes, reachability expansion, or UI-console work.
 
@@ -103,8 +103,8 @@
   - risk: future parser token or alias changes must keep the grouped parser-entrypoint projection aligned with the catalog, or the fail-fast contract will reject the surface
   - blockers: none
 - roadmap item(s) affected:
-  - `ROADMAP.md` Milestone 3 `Real workflow loop`: preserve CLI compatibility while Textual remains disabled by failing fast when parser/catalog drift mutates the existing command surface
-  - `AGENTS.md` canonical demo path: protects the existing `preview and apply or reject a patch` step in the current engine-first MVP loop; it does not expand that surface
+  - `ROADMAP.md` Milestone 5 exit criterion `CLI can execute the MVP flow (vault -> context -> run -> patch -> export) against the same engine PolicyGate`: preserve the existing CLI-first patch step by failing fast when parser/catalog drift mutates the current command surface
+  - `AGENTS.md` canonical demo path: protects the existing `preview and apply or reject a patch` step in that CLI-first MVP loop; it does not expand that surface
 - vision capability affected:
   - primary: `PRODUCT_VISION.md` capability 4 `Operator-first control surface`
   - secondary only: `PRODUCT_VISION.md` capability 5 `Agent-to-UI protocol (A2UI)` via the existing CLI fallback surface, not via any new workflow or audit behavior
