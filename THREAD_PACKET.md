@@ -63,8 +63,7 @@
 ## Canonical demo-path step advanced
 
 - `retrieve relevant material`
-- This work makes the `retrieve relevant material` step more real by ensuring excerpt follow-up reads use the same FTS-backed source of truth as the retrieval hit that surfaced the material.
-- The fail-closed behavior strengthens the demo path by preventing PageIndex-only excerpts from masquerading as canonical retrieval evidence.
+- This work advances `retrieve relevant material` by making `fetch_excerpt` resolve only through the canonical SQLite FTS retrieval surface and reject PageIndex-only excerpt IDs, which keeps downstream basket and workflow use tied to deterministic, auditable retrieval evidence.
 
 ## Kickoff budget/limits compliance
 
@@ -106,7 +105,7 @@
 ## Risks / blockers
 
 - Risk: `HIGH`
-- Blockers: `.codex/kickoff_packets/feat-retrieval-fts.md` and `.codex/lane_meta/feat-retrieval-fts.json` are read-only in this worktree, so the packet mirrors there could not be updated in this fixer pass.
+- Blockers: none
 
 ## Required handoff fields
 
@@ -123,7 +122,7 @@
 ### Canonical demo-path step advanced
 
 - `retrieve relevant material`
-- This work makes the `retrieve relevant material` step more real by forcing excerpt follow-up reads through the same canonical FTS-backed evidence path as the retrieval hit itself.
+- This work advances `retrieve relevant material` by making `fetch_excerpt` resolve only through the canonical SQLite FTS retrieval surface and reject PageIndex-only excerpt IDs, which keeps downstream basket and workflow use tied to deterministic, auditable retrieval evidence.
 
 ### Routing/provider impact note
 
