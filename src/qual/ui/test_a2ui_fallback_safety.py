@@ -414,8 +414,12 @@ class A2UIFallbackSafetyTests(unittest.TestCase):
         self.assertEqual(manifest["selection"], describe_selection_contract())
         self.assertEqual(manifest["action_contract"], describe_action_contract())
         self.assertEqual(manifest["selection_contract"], describe_selection_contract())
+        self.assertEqual(manifest["action_contract_manifest"], describe_action_contract())
+        self.assertEqual(manifest["selection_contract_manifest"], describe_selection_contract())
         self.assertEqual(manifest["action_fingerprint"], action_contract_fingerprint())
         self.assertEqual(manifest["selection_fingerprint"], selection_contract_fingerprint())
+        self.assertEqual(manifest["action_contract_manifest_fingerprint"], action_contract_fingerprint())
+        self.assertEqual(manifest["selection_contract_manifest_fingerprint"], selection_contract_fingerprint())
         self.assertEqual(manifest["contract_fingerprints"]["action"], action_contract_fingerprint())
         self.assertEqual(manifest["contract_fingerprints"]["selection"], selection_contract_fingerprint())
         self.assertEqual(
@@ -426,6 +430,23 @@ class A2UIFallbackSafetyTests(unittest.TestCase):
         self.assertEqual(manifest["contract_fingerprint"], a2ui_leaf_contracts_fingerprint())
         self.assertEqual(manifest["leaf_contracts_fingerprint"], a2ui_leaf_contracts_fingerprint())
         self.assertEqual(manifest["leaf_contracts_contract_fingerprint"], a2ui_leaf_contracts_fingerprint())
+        self.assertEqual(manifest["leaf_contracts_contract_manifest"]["type"], "A2UILeafContracts")
+        self.assertEqual(
+            manifest["leaf_contracts_contract_manifest"]["contract_fingerprint"],
+            a2ui_leaf_contracts_fingerprint(),
+        )
+        self.assertEqual(
+            manifest["leaf_contracts_contract_manifest"]["action_contract_manifest"],
+            describe_action_contract(),
+        )
+        self.assertEqual(
+            manifest["leaf_contracts_contract_manifest"]["selection_contract_manifest"],
+            describe_selection_contract(),
+        )
+        self.assertEqual(
+            manifest["leaf_contracts_contract_manifest_fingerprint"],
+            a2ui_leaf_contracts_fingerprint(),
+        )
         self.assertEqual(len(manifest["contract_fingerprint"]), 64)
 
     def test_a2ui_contract_surfaces_leaf_contract_bundle_for_engine_consumers(self) -> None:
@@ -10257,6 +10278,8 @@ class A2UIFallbackSafetyTests(unittest.TestCase):
         self.assertEqual(manifest["contract_fingerprint"], manifest["card_fingerprint"])
         self.assertEqual(len(manifest["card_fingerprint"]), 64)
         self.assertEqual(a2ui_manifest["card_contract"], manifest)
+        self.assertEqual(a2ui_manifest["card_contract_manifest"], manifest)
+        self.assertEqual(a2ui_manifest["card_contract_manifest_fingerprint"], manifest["contract_fingerprint"])
         self.assertEqual(a2ui_manifest["card_contract_fingerprint"], manifest["contract_fingerprint"])
         self.assertEqual(manifest["card_schemas"], a2ui_manifest["schemas"]["cards"])
         self.assertEqual(a2ui_manifest["schemas"]["card_contract"], manifest)

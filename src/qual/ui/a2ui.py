@@ -307,6 +307,8 @@ def describe_a2ui_contract(
     card_contract = _snapshot_contract_section(manifest["schemas"]["card_contract"])
     manifest["card_contract"] = card_contract
     manifest["card_contract_fingerprint"] = card_contract["contract_fingerprint"]
+    manifest["card_contract_manifest"] = _snapshot_contract_section(card_contract)
+    manifest["card_contract_manifest_fingerprint"] = manifest["card_contract_fingerprint"]
     action_contract = _snapshot_contract_section(manifest["schemas"]["action"])
     manifest["action"] = action_contract
     manifest["action_fingerprint"] = action_contract["contract_fingerprint"]
@@ -1322,11 +1324,17 @@ def describe_a2ui_leaf_contracts() -> dict[str, Any]:
     fingerprint = a2ui_leaf_contracts_fingerprint()
     manifest["action_fingerprint"] = manifest["action"]["contract_fingerprint"]
     manifest["action_contract_fingerprint"] = manifest["action_fingerprint"]
+    manifest["action_contract_manifest"] = _snapshot_contract_section(manifest["action"])
+    manifest["action_contract_manifest_fingerprint"] = manifest["action_fingerprint"]
     manifest["selection_fingerprint"] = manifest["selection"]["contract_fingerprint"]
     manifest["selection_contract_fingerprint"] = manifest["selection_fingerprint"]
+    manifest["selection_contract_manifest"] = _snapshot_contract_section(manifest["selection"])
+    manifest["selection_contract_manifest_fingerprint"] = manifest["selection_fingerprint"]
     manifest["leaf_contracts_fingerprint"] = fingerprint
     manifest["leaf_contracts_contract_fingerprint"] = fingerprint
     manifest["contract_fingerprint"] = fingerprint
+    manifest["leaf_contracts_contract_manifest"] = _snapshot_contract_section(manifest)
+    manifest["leaf_contracts_contract_manifest_fingerprint"] = fingerprint
     return manifest
 
 
