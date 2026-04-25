@@ -3273,6 +3273,12 @@ class UnifiedRetrievalTests(unittest.TestCase):
         with self.assertRaisesRegex(TypeError, "candidate_doc_ids must be an iterable of document IDs, not a mapping"):
             strategy.retrieve("discussion theory", candidate_doc_ids={"doc-a": True})
 
+    def test_fts_strategy_rejects_bytes_candidate_doc_id_entries(self) -> None:
+        strategy = engine_retrieval.FTSStrategy(lambda query, candidate_doc_ids: ["unexpected-hit"])
+
+        with self.assertRaisesRegex(TypeError, "candidate_doc_ids entries must be text strings, not bytes"):
+            strategy.retrieve("discussion theory", candidate_doc_ids=("doc-a", b"doc-b"))
+
     def test_fts_strategy_normalizes_string_boolean_constraints_in_mapping_queries(self) -> None:
         runner_hits = [["fresh-hit"]]
         strategy = engine_retrieval.FTSStrategy(lambda query, candidate_doc_ids: list(runner_hits.pop(0)))

@@ -133,6 +133,8 @@ class FTSStrategy:
             raise TypeError("candidate_doc_ids must be an iterable of document IDs, not a mapping")
         normalized: set[str] = set()
         for doc_id in candidate_doc_ids:
+            if isinstance(doc_id, (bytes, bytearray)):
+                raise TypeError("candidate_doc_ids entries must be text strings, not bytes")
             text = str(doc_id).strip()
             if not text:
                 continue
