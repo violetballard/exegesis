@@ -1876,6 +1876,7 @@ class UnifiedRetrievalTests(unittest.TestCase):
                     "candidate_doc_count": "3",
                     "rank": "4",
                     "fts_rank": "-0.75",
+                    "doc_rank": "2",
                     "section_hint": "  discussion   notes  ",
                     "section_hint_rank": "1",
                 },
@@ -1894,10 +1895,15 @@ class UnifiedRetrievalTests(unittest.TestCase):
         self.assertEqual(normalized["basket_promotion"]["candidate_doc_count"], 3)
         self.assertEqual(normalized["basket_promotion"]["section_hint"], "discussion notes")
         self.assertEqual(normalized["basket_promotion"]["section_hint_rank"], 1)
+        self.assertEqual(normalized["basket_promotion"]["match_count"], 2)
+        self.assertEqual(normalized["basket_promotion"]["rank"], 4)
+        self.assertEqual(normalized["basket_promotion"]["fts_rank"], -0.75)
+        self.assertEqual(normalized["basket_promotion"]["doc_rank"], 2)
         self.assertEqual(normalized["provenance"]["query_confidentiality_profile"], "standard")
         self.assertEqual(normalized["provenance"]["candidate_doc_count"], 3)
         self.assertEqual(normalized["provenance"]["rank"], 4)
         self.assertEqual(normalized["provenance"]["fts_rank"], -0.75)
+        self.assertEqual(normalized["provenance"]["doc_rank"], 2)
         self.assertEqual(normalized["provenance"]["section_hint"], "discussion notes")
         self.assertEqual(normalized["provenance"]["section_hint_rank"], 1)
 

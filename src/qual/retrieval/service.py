@@ -497,6 +497,9 @@ def _normalize_excerpt_hit_provenance_payload(provenance: object) -> dict[str, o
     fts_rank = _optional_float(normalized.get("fts_rank"))
     if fts_rank is not None:
         normalized["fts_rank"] = fts_rank
+    doc_rank = _optional_int(normalized.get("doc_rank"))
+    if doc_rank is not None:
+        normalized["doc_rank"] = doc_rank
     section_hint = _normalized_query_hint_text(normalized.get("section_hint"))
     if section_hint is not None:
         normalized["section_hint"] = section_hint
@@ -3800,6 +3803,9 @@ class RetrievalService:
         fts_rank = _optional_float(normalized_provenance.get("fts_rank"))
         if fts_rank is not None:
             normalized_provenance["fts_rank"] = fts_rank
+        doc_rank = _optional_int(normalized_provenance.get("doc_rank"))
+        if doc_rank is not None:
+            normalized_provenance["doc_rank"] = doc_rank
         section_hint_rank = _optional_int(normalized_provenance.get("section_hint_rank"))
         if section_hint_rank is not None:
             normalized_provenance["section_hint_rank"] = section_hint_rank
@@ -4370,12 +4376,12 @@ class RetrievalService:
             "source_strategy": _FTS_SOURCE_STRATEGY,
             "retrieval_source_strategy": _FTS_SOURCE_STRATEGY,
             "matched_terms": copy.deepcopy(_normalize_matched_terms(provenance.get("matched_terms"))),
-            "match_count": provenance.get("match_count"),
-            "rank": provenance.get("rank"),
-            "fts_rank": provenance.get("fts_rank"),
-            "doc_rank": provenance.get("doc_rank"),
-            "section_hint": _optional_text(provenance.get("section_hint")),
-            "section_hint_rank": provenance.get("section_hint_rank"),
+            "match_count": _optional_int(provenance.get("match_count")),
+            "rank": _optional_int(provenance.get("rank")),
+            "fts_rank": _optional_float(provenance.get("fts_rank")),
+            "doc_rank": _optional_int(provenance.get("doc_rank")),
+            "section_hint": _normalized_query_hint_text(provenance.get("section_hint")),
+            "section_hint_rank": _optional_int(provenance.get("section_hint_rank")),
             "retrieval_backend": retrieval_policy["retrieval_backend"],
             "retrieval_mode": retrieval_policy["retrieval_mode"],
             "policy": copy.deepcopy(retrieval_policy),
