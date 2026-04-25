@@ -93,6 +93,7 @@
   - fixer refresh reruns the required gates on `2026-04-24` in the lane worktree on validated packet tip `c9da1617d`; this refresh updates the handoff evidence, shared-test approval traceability, and single-step plan mapping without widening the reviewed implementation scope
   - verified re-review tip before this packet refresh: `3ede0bbf8`
   - final validated handoff tip before this packet refresh: `c9da1617d`
+  - focused reviewer-fix rerun on tip `c9da1617d`: `python -m unittest tests.unit.test_commands_catalog.CommandCatalogTests.test_command_cli_contract_rejects_extra_accepted_entrypoint_drift tests.unit.test_commands_catalog.CommandCatalogTests.test_command_cli_contract_rejects_removed_expected_alias_entrypoint tests.unit.test_commands_catalog.CommandCatalogTests.test_command_cli_contract_rejects_alias_substitution_in_live_parser_entrypoints tests.unit.test_commands_catalog.CommandCatalogTests.test_command_cli_contract_rejects_reordered_parser_surface tests.unit.test_commands_catalog.CommandCatalogTests.test_command_cli_contract_lookup_table_matches_the_live_parser_surface tests.unit.test_commands_catalog.CommandCatalogTests.test_command_cli_contract_matches_the_catalog_order` -> passed
   - targeted reviewer-fix evidence on that tip:
     - live parser alias coverage -> `test_live_parser_diff_alias_matches_catalog_contract`
     - live parser context-basket coverage -> `test_live_parser_context_basket_path_matches_catalog_contract`
