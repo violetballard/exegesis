@@ -4068,11 +4068,11 @@ def build_retrieval_provenance_from_result(
     if callable(provenance_source):
         source_bundle = _build_retrieval_source_bundle_from_result_source(result)
         if source_bundle is not None:
-            primary = _build_retrieval_provenance_from_payload(
-                {"retrieval_provenance": provenance_source()}
-            )
-            fallback = _build_retrieval_provenance_from_payload(source_bundle)
-            return _backfill_sparse_snapshot(primary, fallback)
+            # Source bundles are the canonical retrieval contract. When both
+            # surfaces exist, prefer the source-bundle-derived provenance so
+            # direct compatibility helpers cannot reintroduce non-canonical or
+            # extra fields into the engine-facing snapshot.
+            return _build_retrieval_provenance_from_payload(source_bundle)
         return _build_retrieval_provenance_from_payload({"retrieval_provenance": provenance_source()})
     source_bundle = _build_retrieval_source_bundle_from_result_source(result)
     if source_bundle is not None:

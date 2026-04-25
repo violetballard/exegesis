@@ -4134,6 +4134,52 @@ class UnifiedRetrievalTests(unittest.TestCase):
             result.retrieval_provenance_bundle()["primary_excerpt_text_hash"],
         )
 
+    def test_retrieval_provenance_helper_normalizes_direct_bundle_sources(self) -> None:
+        result = self.service.retrieve_auto(
+            RetrievalQuery(
+                query_text="discussion theory",
+                scope="doc:doc-pdf-1",
+                intent="outline_support",
+                constraints=RetrievalConstraints(
+                    max_results=6,
+                    doc_types=("pdf",),
+                    require_citations=True,
+                    section_hint="discussion",
+                    prefer_exact_matches=True,
+                ),
+                confidentiality_profile="standard",
+            )
+        )
+
+        class _DirectProvenanceSource:
+            def __init__(self, payload: dict[str, object]) -> None:
+                self._payload = payload
+
+            def retrieval_provenance_bundle(self) -> dict[str, object]:
+                return self._payload["retrieval_provenance"]
+
+            def source_bundle(self) -> dict[str, object]:
+                return self._payload["retrieval_source_bundle"]
+
+        sparse_payload = json.loads(json.dumps(result.to_downstream_payload()))
+        retrieval_provenance = sparse_payload["retrieval_provenance"]
+        self.assertIsInstance(retrieval_provenance, dict)
+        retrieval_provenance["lookup_resolution"] = "  FTS  "
+        retrieval_provenance["lookup_confidentiality_profile"] = "  STANDARD  "
+        retrieval_provenance["query_scope"] = "  DOC:doc-pdf-1  "
+        retrieval_provenance["query_intent"] = "  OUTLINE_SUPPORT  "
+        retrieval_provenance["query_doc_types"] = ["  PDF  ", "pdf"]
+        retrieval_provenance["query_section_hint"] = "  Discussion  "
+        retrieval_provenance["active_strategy_ids"] = ["  FTS  "]
+        retrieval_provenance["deferred_strategy_ids"] = ["  EMBEDDINGS  ", "pageindex"]
+        retrieval_provenance["fts_shortlist_doc_ids"] = [" doc-pdf-1 ", "doc-pdf-1"]
+
+        provenance = build_retrieval_provenance_from_result(
+            _DirectProvenanceSource(sparse_payload)
+        )
+
+        self.assertEqual(provenance, result.retrieval_provenance_bundle())
+
     def test_retrieval_provenance_helper_backfills_query_constraint_mirrors(self) -> None:
         result = self.service.retrieve_auto(
             RetrievalQuery(
