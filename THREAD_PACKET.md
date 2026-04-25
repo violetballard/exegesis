@@ -8,7 +8,7 @@
 - Lane/owned paths: `src/qual/commands/**`
 - Scope goal: submit the reviewed command-catalog slice only, keeping the handoff limited to deterministic `command_cli_contract()` behavior in `src/qual/commands/catalog.py` plus the repo-policy-allowlisted shared regression coverage in `tests/unit/test_commands_catalog.py`.
 - Risk reason: this is a high-risk command-contract handoff because it touches the operator-facing CLI contract and uses a repo-policy-allowlisted shared test file outside the lane-owned path.
-- Final validated packet tip before this metadata-only refresh: `171a6c810`
+- Final validated packet tip before this metadata-only refresh: `c9da1617d`
 - Implementation commits already on this branch:
   - `beaf91853` for grouped parser-entrypoint contract validation
   - `4a4d47048` for alias-level parser-surface drift rejection
@@ -26,7 +26,7 @@
   2. `tests/unit/test_commands_catalog.py` exercises the reviewer-requested token-level parser drift cases where canonical-name order still matches: alias substitution, extra parser token, removed parser token, and reordered token within the same canonical command group, plus direct live-parser coverage for `diff` -> `diff-preview` and `context-basket list`.
   3. This packet explicitly names the single canonical demo-path step advanced and states how deterministic command-catalog validation removes a concrete blocker for that step.
 - Verified re-review tip before this packet refresh: `3ede0bbf8`
-- Final validated handoff tip before this packet refresh: `171a6c810`
+- Final validated handoff tip before this packet refresh: `c9da1617d`
 - Verified token-drift coverage on that tip includes alias substitution, extra parser token, removed parser token, and reordered parser tokens within the same canonical command group while canonical-name order stays stable.
 - Roadmap alignment: `ROADMAP.md` Milestone 3 exit criterion `Contract changes documented and intentional` plus the `AGENTS.md` rule that contract/infra work only counts when it removes a concrete blocker on the canonical demo path; this handoff is a narrow canonical engine contract and CLI-compatibility hardening change for the existing `preview and apply or reject a patch` step while Textual remains disabled and without claiming new workflow coverage.
 - Vision alignment: `PRODUCT_VISION.md` capability 4 `Operator-first control surface` only; this change hardens the current parser/catalog contract that the CLI fallback depends on for the patch-review step and does not claim audit-state or broader workflow progress.
@@ -90,9 +90,9 @@
     - `4a4d47048` -> alias-level parser-surface drift rejection in `src/qual/commands/catalog.py`
     - `077764032` -> explicit shared regression coverage for stable canonical-name ordering with token drift in `tests/unit/test_commands_catalog.py`
     - `3ede0bbf8` -> direct live parser contract coverage and stable-name parser drift regressions in `tests/unit/test_commands_catalog.py`
-  - fixer refresh reruns the required gates on `2026-04-24` in the lane worktree on validated packet tip `171a6c810`; this refresh updates the handoff evidence, shared-test approval traceability, and single-step plan mapping without widening the reviewed implementation scope
+  - fixer refresh reruns the required gates on `2026-04-24` in the lane worktree on validated packet tip `c9da1617d`; this refresh updates the handoff evidence, shared-test approval traceability, and single-step plan mapping without widening the reviewed implementation scope
   - verified re-review tip before this packet refresh: `3ede0bbf8`
-  - final validated handoff tip before this packet refresh: `171a6c810`
+  - final validated handoff tip before this packet refresh: `c9da1617d`
   - targeted reviewer-fix evidence on that tip:
     - live parser alias coverage -> `test_live_parser_diff_alias_matches_catalog_contract`
     - live parser context-basket coverage -> `test_live_parser_context_basket_path_matches_catalog_contract`

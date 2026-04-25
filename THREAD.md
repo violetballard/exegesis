@@ -10,7 +10,7 @@ Canonical handoff contract lives in `THREAD_PACKET.md`.
 - Verified implementation basis SHA: `3ede0bbf814cbee26464fa671be67b2e3293ab93`
 - Submitted tip note: any newer tip created by this handoff refresh is metadata-only packet bookkeeping on top of that verified implementation basis
 - Review scope: deterministic `command_cli_contract()` behavior in `src/qual/commands/catalog.py` plus the repo-policy-allowlisted shared regression coverage in `tests/unit/test_commands_catalog.py`
-- Final validated packet tip before this metadata-only refresh: `171a6c810`
+- Final validated packet tip before this metadata-only refresh: `c9da1617d`
 - Implementation commits already on this branch:
   - `beaf91853` for grouped parser-entrypoint contract validation
   - `4a4d47048` for alias-level parser-surface drift rejection
@@ -24,7 +24,7 @@ Canonical handoff contract lives in `THREAD_PACKET.md`.
   2. `tests/unit/test_commands_catalog.py` covers the live parser `diff` -> `diff-preview` alias, the `context-basket list` path, and token-level parser drift that preserves canonical-name order.
   3. This handoff explicitly maps the change to the canonical demo-path step above and names the concrete CLI-fallback blocker it removes.
 - Verified re-review tip before this packet refresh: `3ede0bbf8`
-- Final validated handoff tip before this packet refresh: `171a6c810`
+- Final validated handoff tip before this packet refresh: `c9da1617d`
 - Verified token-drift coverage on that tip includes alias substitution, extra parser token, removed parser token, and reordered parser tokens within the same canonical command group while canonical-name order stays stable
 - MVP focus tie-in: this is Milestone 3 CLI-compatibility hardening for one concrete CLI-fallback step in the current engine-first demo path, not new workflow capability or command-surface expansion
 - Shared-test approval record: `scripts/scope-check.sh` allowlists `tests/unit/test_commands_catalog.py` for `codex/feat-commands`; the allowlist line was added by Violet Ballard in commit `c3a66bb580` (`fix(commands): tighten feat-commands packet and policy`, `2026-03-28`) and is still present on the current tip
@@ -42,9 +42,9 @@ Canonical handoff contract lives in `THREAD_PACKET.md`.
 ## Required Gates
 
 - Reviewer packet reported these gates as passing on implementation basis SHA `3ede0bbf814cbee26464fa671be67b2e3293ab93`
-- This fixer refresh reruns the same required gates on `2026-04-24` in the lane worktree after confirming the current tip `171a6c810` keeps the reviewer-requested parser-projection validation, direct live parser coverage, canonical demo-path mapping, and narrowed implementation task accounting
-- Green implementation evidence on the current branch comes from `beaf91853`, `4a4d47048`, `077764032`, and `3ede0bbf8`, while the final validated packet tip is `171a6c810`; this handoff refresh only records that evidence and the corrected plan mapping
-- Verified gate rerun on tip `171a6c810`: `make scope-check`, `./quality-format.sh --check`, `./quality-lint.sh`, `./quality-test.sh`, `./typecheck-test.sh`, and `make ci` all passed
+- This fixer refresh reruns the same required gates on `2026-04-24` in the lane worktree after confirming the current tip `c9da1617d` keeps the reviewer-requested parser-projection validation, direct live parser coverage, canonical demo-path mapping, and narrowed implementation task accounting
+- Green implementation evidence on the current branch comes from `beaf91853`, `4a4d47048`, `077764032`, and `3ede0bbf8`, while the final validated packet tip is `c9da1617d`; this handoff refresh only records that evidence and the corrected plan mapping
+- Verified gate rerun on tip `c9da1617d`: `make scope-check`, `./quality-format.sh --check`, `./quality-lint.sh`, `./quality-test.sh`, `./typecheck-test.sh`, and `make ci` all passed
 - Gate execution note: bare `python -m pytest` was unavailable in this shell (`No module named pytest`), so verification used the repo-required gate scripts as the source of truth
 - `make scope-check`
 - `./quality-format.sh --check`
