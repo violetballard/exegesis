@@ -423,6 +423,10 @@ def _lookup_resolution_tokens(spec: CommandSpec) -> tuple[str, ...]:
     return (*_lookup_tokens(spec), *spec.cli_tokens)
 
 
+def _discoverable_lookup_tokens(spec: CommandSpec) -> tuple[str, ...]:
+    return _flow_surface_tokens(*_lookup_resolution_tokens(spec), spec.flow_step)
+
+
 def _flow_surface_tokens(*tokens: str) -> tuple[str, ...]:
     seen_tokens: set[str] = set()
     surface_tokens: list[str] = []
@@ -1346,7 +1350,7 @@ def command_lookup_tokens_for(specs: tuple[CommandSpec, ...], name: str) -> tupl
     spec = command_spec_for(specs, name)
     if spec is None:
         return ()
-    return _lookup_tokens(spec)
+    return _discoverable_lookup_tokens(spec)
 
 
 @lru_cache(maxsize=None)

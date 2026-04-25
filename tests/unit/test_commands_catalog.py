@@ -466,6 +466,25 @@ class CommandCatalogTests(unittest.TestCase):
             command_lookup_tokens("project-open"),
             ("bootstrap", "open", "project-open", "project", "bootstrap-run", "document-open", "open-document"),
         )
+        self.assertEqual(
+            command_lookup_tokens("patch-review"),
+            ("diff-preview", "diff", "review-patch", "patch-review"),
+        )
+        self.assertEqual(
+            command_lookup_tokens("export-handoff"),
+            (
+                "terminal",
+                "export",
+                "save-export",
+                "persist",
+                "persist-continue",
+                "apply-patch",
+                "patch-apply",
+                "reject-patch",
+                "patch-reject",
+                "export-handoff",
+            ),
+        )
         self.assertEqual(command_aliases("missing"), ())
         self.assertEqual(command_lookup_tokens("missing"), ())
         self.assertEqual(
@@ -2502,7 +2521,10 @@ class CommandCatalogTests(unittest.TestCase):
 
         self.assertEqual(command_spec_for(specs, "project-open").name, "bootstrap")
         self.assertEqual(command_aliases_for(specs, "patch-review"), ("patch", "patch-review"))
-        self.assertEqual(command_lookup_tokens_for(specs, "patch-review"), ("review", "patch"))
+        self.assertEqual(
+            command_lookup_tokens_for(specs, "patch-review"),
+            ("review", "patch", "patch-review"),
+        )
         self.assertEqual(command_resolution_tokens_for(specs, "patch-review"), ("review", "patch"))
         self.assertEqual(canonical_command_for(specs, " PATCH REVIEW "), "review")
 
@@ -2575,8 +2597,24 @@ class CommandCatalogTests(unittest.TestCase):
             ),
         )
         self.assertEqual(
-            tuple(command_lookup_tokens(entry.name) for entry in manifest),
-            tuple(entry.lookup_tokens for entry in manifest),
+            tuple(command_lookup_tokens(entry.flow_step) for entry in manifest),
+            (
+                ("bootstrap", "open", "project-open", "project", "bootstrap-run", "document-open", "open-document"),
+                ("diff-preview", "diff", "review-patch", "patch-review"),
+                ("context-basket", "context", "basket", "retrieval", "retrieve"),
+                (
+                    "terminal",
+                    "export",
+                    "save-export",
+                    "persist",
+                    "persist-continue",
+                    "apply-patch",
+                    "patch-apply",
+                    "reject-patch",
+                    "patch-reject",
+                    "export-handoff",
+                ),
+            ),
         )
 
     def test_command_tokens_flatten_the_catalog_in_order(self) -> None:
