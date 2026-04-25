@@ -104,13 +104,23 @@ class ShellUI:
                 if payload_kind in {"action", "selection"}:
                     return _render_invalid_terminal_card(artifact)
         if normalized_kind in {"action", "selection"} and _should_preserve_raw_leaf_card_default(artifact):
+            # Explicit leaf hints should render as leaves even when the raw
+            # payload would otherwise stay on the card default.
+            if normalized_kind == "action":
+                try:
+                    rendered_leaf = render_terminal_action(artifact)
+                except Exception:
+                    return _render_invalid_terminal_action(artifact)
+                if _is_nonempty_terminal_rendered_text(rendered_leaf):
+                    return rendered_leaf
+                return _render_invalid_terminal_action(artifact)
             try:
-                rendered_cli_fallback = render_terminal_cli_fallback(artifact, kind="card")
+                rendered_leaf = render_terminal_selection(artifact)
             except Exception:
-                rendered_cli_fallback = None
-            if _is_nonempty_terminal_rendered_text(rendered_cli_fallback):
-                return rendered_cli_fallback
-            return _render_invalid_terminal_card(artifact)
+                return _render_invalid_terminal_selection(artifact)
+            if _is_nonempty_terminal_rendered_text(rendered_leaf):
+                return rendered_leaf
+            return _render_invalid_terminal_selection(artifact)
         resolved_fallback: tuple[Any, str | None] | None = None
         if normalized_kind == "card":
             try:
