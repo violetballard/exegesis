@@ -12,19 +12,19 @@
 
 ### Scope / Plan Alignment
 
-- Canonical demo-path steps advanced: stable CLI command reachability for `project-open`, `retrieval`, `patch-review`, and `export-handoff` while Textual remains disabled.
-- Explicit handoff sentence: This work makes the current engine-first CLI fallback path more real by keeping the catalog-driven parser contract deterministic for the canonical `project-open`, `retrieval`, `patch-review`, and `export-handoff` command surfaces, so parser/catalog drift fails fast instead of silently mutating those operator entrypoints.
+- Canonical demo-path step advanced: the CLI-backed `run` step in the MVP flow `vault -> context -> run -> patch -> export` while Textual remains disabled.
+- Explicit handoff sentence: This work makes the canonical CLI-backed `run` step more real by keeping the catalog-driven parser contract deterministic, so parser/catalog drift fails fast instead of silently mutating the operator entrypoint that the engine-first fallback path depends on.
 - MVP focus tie-in: this is Milestone 3 CLI-compatibility hardening for the existing engine-first CLI fallback path, not new workflow capability or surface-area expansion.
-- Concrete blocker removed: without this guard, parser/catalog drift could silently reorder, add, or drop CLI tokens on the existing engine-first fallback path, which would make `project-open`, `retrieval`, `patch-review`, or `export-handoff` command reachability drift away from the real engine contract.
+- Concrete blocker removed: without this guard, parser/catalog drift could silently reorder, add, or drop CLI tokens on the existing engine-first fallback path before the canonical CLI-backed `run` step reaches the real engine contract.
 - Reviewer fix closure:
   1. `command_cli_contract()` remains aligned to the canonical command order and raises `ValueError` if the parser surface drifts from the catalog.
   2. `tests/unit/test_commands_catalog.py` covers canonical-order alignment and parser/catalog drift rejection for the reviewed command-catalog slice.
-  3. This packet explicitly maps the change to the current engine-first CLI fallback steps above and names the concrete CLI-contract blocker it removes.
+  3. This packet explicitly maps the change to the canonical CLI-backed `run` step and names the concrete CLI-contract blocker it removes.
 - Verified re-review tip before this packet refresh: `8cbf181261855e9594885fcde058a1aa0588b5a7`
 - Final validated handoff tip before this packet refresh: `8cbf181261855e9594885fcde058a1aa0588b5a7`
 - Roadmap alignment: `ROADMAP.md` Milestone 3 exit criterion `Contract changes documented and intentional` only; this handoff is a narrow canonical engine contract and CLI-compatibility hardening change for the existing engine-first CLI fallback path while Textual remains disabled and without claiming broader workflow coverage.
-- Vision alignment: `PRODUCT_VISION.md` capability 4 `Operator-first control surface` only; this change hardens the current parser/catalog contract that the CLI fallback depends on for `project-open`, `retrieval`, `patch-review`, and `export-handoff` and does not claim audit-state or broader workflow progress.
-- Non-claim boundary: this handoff claims only deterministic CLI catalog ordering and fail-fast parser-surface drift detection for the existing CLI fallback command surfaces; it does not claim parser-entrypoint rewrites, workflow-wrapper additions, diff-preview output work, provider routing changes, storage changes, reachability expansion, or UI-console work.
+- Vision alignment: `PRODUCT_VISION.md` capability 4 `Operator-first control surface` only; this change hardens the current parser/catalog contract that the CLI fallback depends on for the canonical CLI-backed `run` step and does not claim audit-state or broader workflow progress.
+- Non-claim boundary: this handoff claims only deterministic CLI catalog ordering and fail-fast parser-surface drift detection for the existing CLI fallback path; it does not claim parser-entrypoint rewrites, workflow-wrapper additions, diff-preview output work, provider routing changes, storage changes, reachability expansion, or UI-console work.
 
 ### Budget
 
@@ -54,10 +54,10 @@
 
 ### Checkpoint Cadence (short updates)
 
-- plan complete: the handoff is narrowed to the reviewed `command_cli_contract()` slice and explicitly mapped to Milestone 3 CLI-compatibility hardening for the existing `project-open`, `retrieval`, `patch-review`, and `export-handoff` fallback surfaces
+- plan complete: the handoff is narrowed to the reviewed `command_cli_contract()` slice and explicitly mapped to Milestone 3 CLI-compatibility hardening for the canonical CLI-backed `run` step
 - first green tests: `make scope-check`, `./quality-format.sh --check`, `./quality-lint.sh`, `./quality-test.sh`, `./typecheck-test.sh`, and `make ci` passed for the reviewed implementation basis and are rerun on the current branch for this packet refresh
 - before risky/shared file edit: the only non-owned path is the repo-policy-allowlisted shared test file `tests/unit/test_commands_catalog.py`
-- ready for handoff: the packet names the exact reviewed files, includes the canonical demo-path mapping, and records the metadata-only refresh scope for the reviewed implementation basis
+- ready for handoff: the packet names the exact reviewed files, includes the single-step canonical demo-path mapping, and records the metadata-only refresh scope for the reviewed implementation basis
 
 ### Handoff Packet
 
@@ -66,7 +66,7 @@
   - hardened `command_cli_contract()` in `src/qual/commands/catalog.py` so it validates the full parser entrypoint projection and lookup table against the catalog and raises `ValueError` if alias-only or token-level parser-surface drift appears
   - preserved canonical command ordering in the CLI contract by reusing the canonical names tuple instead of rebuilding a divergent list
   - added focused regression coverage in `tests/unit/test_commands_catalog.py` for canonical-order alignment plus alias-only parser-surface drift rejection
-  - refreshed the handoff packet so the review claim, canonical CLI fallback step mapping, and file list match the reviewed command-catalog slice exactly
+  - refreshed the handoff packet so the review claim, single-step canonical demo-path mapping, and file list match the reviewed command-catalog slice exactly
 - tasks completed (numbered):
   1. Hardened `command_cli_contract()` to verify the parser entrypoint projection and lookup table against the catalog and fail fast on parser drift.
   2. Preserved canonical command ordering in the CLI contract by returning the validated canonical tuple directly.
@@ -88,10 +88,10 @@
   - `./typecheck-test.sh` -> passed
   - `make ci` -> passed
 - risks/blockers:
-  - risk: future parser token changes must keep the catalog aligned with the canonical CLI fallback command surfaces, or the fail-fast contract will reject `project-open`, `retrieval`, `patch-review`, or `export-handoff` reachability
+  - risk: future parser token changes must keep the catalog aligned with the canonical CLI-backed `run` step, or the fail-fast contract will reject the engine-first fallback path before that operator entrypoint reaches the real engine contract
   - blockers: none
 - roadmap item(s) affected:
-  - `ROADMAP.md` Milestone 3 exit criterion `Contract changes documented and intentional`: preserve deterministic CLI compatibility for the existing engine-first fallback command surfaces while Textual remains disabled
+  - `ROADMAP.md` Milestone 3 exit criterion `Contract changes documented and intentional`: preserve deterministic CLI compatibility for the canonical CLI-backed `run` step while Textual remains disabled
 - vision capability affected:
   - primary: `PRODUCT_VISION.md` capability 4 `Operator-first control surface`
 - routing/provider impact note:
@@ -100,6 +100,5 @@
   - approved shared-test exception for `tests/unit/test_commands_catalog.py`
   - no other non-owned implementation paths are part of this handoff
 - reviewer-fix satisfaction note:
-  - required fix 1 is satisfied by naming the exact engine-first CLI fallback command surfaces this contract hardening protects: `project-open`, `retrieval`, `patch-review`, and `export-handoff`
+  - required fix 1 is satisfied by naming the canonical CLI-backed `run` step in `ROADMAP.md` and explaining how parser/catalog drift would otherwise mutate that operator entrypoint before it reaches the engine contract
   - required fix 2 is satisfied by narrowing the roadmap and vision mapping to Milestone 3 CLI compatibility and `Operator-first control surface` only, without claiming broader progress
-  - required fix 3 is satisfied by preserving the reviewed implementation basis `f8d860ed9f6299f0169c4f21321ac5f37c949fd3` and keeping `8cbf181261855e9594885fcde058a1aa0588b5a7` explicit as the latest metadata-only packet refresh
