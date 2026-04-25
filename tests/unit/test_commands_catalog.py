@@ -154,6 +154,9 @@ from src.qual.commands import (
     command_demo_loop_catalog,
     command_demo_loop_invocation_plan,
     command_demo_loop_lookup_table,
+    command_demo_loop_preferred_surface_invocation_table,
+    command_demo_loop_preferred_surface_lookup_table,
+    command_demo_loop_preferred_surface_tokens,
     command_demo_loop_tokens,
     command_demo_transition_targets,
     command_demo_transition_targets_for,
@@ -227,6 +230,9 @@ from src.qual.commands import (
     command_workflow_compatibility_invocation_table,
     command_workflow_compatibility_lookup_table,
     command_workflow_invocation_table,
+    command_workflow_loop_surface_invocation_table,
+    command_workflow_loop_surface_lookup_table,
+    command_workflow_loop_surface_tokens,
     command_workflow_surface_contract,
     command_workflow_surface_flow_lookup_table,
     command_workflow_surface_invocation_table,
@@ -255,6 +261,9 @@ from src.qual.commands import (
     command_mvp_loop_catalog,
     command_mvp_loop_invocation_plan,
     command_mvp_loop_lookup_table,
+    command_mvp_loop_preferred_surface_invocation_table,
+    command_mvp_loop_preferred_surface_lookup_table,
+    command_mvp_loop_preferred_surface_tokens,
     command_mvp_loop_tokens,
     command_mvp_transition_targets_by_source,
     command_mvp_transition_targets,
@@ -3349,6 +3358,74 @@ class CommandCatalogTests(unittest.TestCase):
             ),
         )
 
+    def test_command_demo_loop_preferred_surface_helpers_expose_stable_cli_verbs(self) -> None:
+        self.assertEqual(
+            command_demo_loop_preferred_surface_tokens(),
+            (
+                "project-open",
+                "retrieval",
+                "patch-review",
+                "apply-patch",
+                "reject-patch",
+                "persist",
+                "export-handoff",
+                "export",
+            ),
+        )
+        self.assertEqual(
+            command_demo_loop_preferred_surface_lookup_table(),
+            (
+                ("project-open", "bootstrap"),
+                ("retrieval", "context-basket"),
+                ("patch-review", "diff-preview"),
+                ("apply-patch", "terminal"),
+                ("reject-patch", "terminal"),
+                ("persist", "terminal"),
+                ("export-handoff", "terminal"),
+                ("export", "terminal"),
+            ),
+        )
+        self.assertEqual(
+            command_demo_loop_preferred_surface_invocation_table(),
+            (
+                ("project-open", ("bootstrap", "--project", "demo")),
+                ("retrieval", ("context-basket", "list")),
+                ("patch-review", ("diff-preview", "--original", "before", "--proposed", "after")),
+                (
+                    "apply-patch",
+                    ("terminal", "--operation-kind", "terminal_tool_orchestration", "--message", "Apply patch"),
+                ),
+                (
+                    "reject-patch",
+                    ("terminal", "--operation-kind", "terminal_tool_orchestration", "--message", "Reject patch"),
+                ),
+                (
+                    "persist",
+                    ("terminal", "--operation-kind", "terminal_synthesis_request", "--message", "Persist and continue"),
+                ),
+                (
+                    "export-handoff",
+                    ("terminal", "--operation-kind", "terminal_synthesis_request", "--message", "Export handoff"),
+                ),
+                (
+                    "export",
+                    ("terminal", "--operation-kind", "terminal_synthesis_request", "--message", "Export handoff"),
+                ),
+            ),
+        )
+        self.assertEqual(
+            command_mvp_loop_preferred_surface_tokens(),
+            command_demo_loop_preferred_surface_tokens(),
+        )
+        self.assertEqual(
+            command_mvp_loop_preferred_surface_lookup_table(),
+            command_demo_loop_preferred_surface_lookup_table(),
+        )
+        self.assertEqual(
+            command_mvp_loop_preferred_surface_invocation_table(),
+            command_demo_loop_preferred_surface_invocation_table(),
+        )
+
     def test_command_demo_compatibility_contract_exposes_legacy_demo_verbs(self) -> None:
         contract = command_demo_compatibility_contract()
         self.assertEqual(contract, command_mvp_compatibility_contract())
@@ -6017,6 +6094,20 @@ class CommandCatalogTests(unittest.TestCase):
             command_mvp_path_contract().invocation_plan,
         )
 
+    def test_public_workflow_loop_surface_aliases_track_the_current_mvp_surface(self) -> None:
+        self.assertEqual(
+            command_workflow_loop_surface_tokens(),
+            command_mvp_loop_preferred_surface_tokens(),
+        )
+        self.assertEqual(
+            command_workflow_loop_surface_lookup_table(),
+            command_mvp_loop_preferred_surface_lookup_table(),
+        )
+        self.assertEqual(
+            command_workflow_loop_surface_invocation_table(),
+            command_mvp_loop_preferred_surface_invocation_table(),
+        )
+
     def test_public_trusted_surface_aliases_track_the_current_mvp_surface(self) -> None:
         self.assertEqual(command_trusted_surface_contract(), command_mvp_trusted_surface_contract())
         self.assertEqual(command_trusted_surface_catalog(), command_mvp_trusted_surface_catalog())
@@ -6037,6 +6128,8 @@ class CommandCatalogTests(unittest.TestCase):
     def test_public_workflow_module_exports_surface_projection_helpers(self) -> None:
         self.assertIn("command_workflow_surface_flow_lookup_table", command_workflow_module.__all__)
         self.assertIn("command_workflow_surface_invocation_table", command_workflow_module.__all__)
+        self.assertIn("command_workflow_loop_surface_lookup_table", command_workflow_module.__all__)
+        self.assertIn("command_workflow_loop_surface_invocation_table", command_workflow_module.__all__)
 
     def test_public_workflow_smoke_aliases_track_the_current_mvp_surface(self) -> None:
         self.assertEqual(command_workflow_smoke_contract(), command_mvp_smoke_contract())

@@ -4357,6 +4357,70 @@ def command_mvp_loop_lookup_table(
     return command_demo_loop_lookup_table(specs)
 
 
+def command_demo_loop_preferred_surface_invocation_table(
+    specs: tuple[CommandSpec, ...] = COMMAND_SPECS,
+) -> tuple[tuple[str, tuple[str, ...]], ...]:
+    """Flatten the stable preferred CLI verbs for the canonical review/apply/persist/export loop."""
+    workflow_entries = {
+        entry.token: entry
+        for entry in command_demo_workflow_contract(specs).entries
+    }
+    return tuple(
+        (preferred_token, workflow_entries[entry.token].argv)
+        for entry in command_demo_loop_contract(specs).entries
+        for preferred_token in (
+            workflow_entries[entry.token].preferred_surface_tokens
+            or (entry.token,)
+        )
+    )
+
+
+def command_mvp_loop_preferred_surface_invocation_table(
+    specs: tuple[CommandSpec, ...] = COMMAND_SPECS,
+) -> tuple[tuple[str, tuple[str, ...]], ...]:
+    """Flatten the current MVP preferred CLI verbs for the review/apply/persist/export loop."""
+    return command_demo_loop_preferred_surface_invocation_table(specs)
+
+
+def command_demo_loop_preferred_surface_tokens(
+    specs: tuple[CommandSpec, ...] = COMMAND_SPECS,
+) -> tuple[str, ...]:
+    """List the stable preferred CLI verbs for the canonical review/apply/persist/export loop."""
+    return tuple(token for token, _ in command_demo_loop_preferred_surface_invocation_table(specs))
+
+
+def command_mvp_loop_preferred_surface_tokens(
+    specs: tuple[CommandSpec, ...] = COMMAND_SPECS,
+) -> tuple[str, ...]:
+    """List the current MVP preferred CLI verbs for the review/apply/persist/export loop."""
+    return command_demo_loop_preferred_surface_tokens(specs)
+
+
+def command_demo_loop_preferred_surface_lookup_table(
+    specs: tuple[CommandSpec, ...] = COMMAND_SPECS,
+) -> tuple[tuple[str, str], ...]:
+    """Map preferred CLI loop verbs to canonical command names in workflow order."""
+    workflow_entries = {
+        entry.token: entry
+        for entry in command_demo_workflow_contract(specs).entries
+    }
+    return tuple(
+        (token, workflow_entries[entry.token].canonical_name)
+        for entry in command_demo_loop_contract(specs).entries
+        for token in (
+            workflow_entries[entry.token].preferred_surface_tokens
+            or (entry.token,)
+        )
+    )
+
+
+def command_mvp_loop_preferred_surface_lookup_table(
+    specs: tuple[CommandSpec, ...] = COMMAND_SPECS,
+) -> tuple[tuple[str, str], ...]:
+    """Map current MVP preferred CLI loop verbs to canonical command names in workflow order."""
+    return command_demo_loop_preferred_surface_lookup_table(specs)
+
+
 def command_demo_loop_surface_invocation_table(
     specs: tuple[CommandSpec, ...] = COMMAND_SPECS,
 ) -> tuple[tuple[str, tuple[str, ...]], ...]:

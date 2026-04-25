@@ -48,6 +48,9 @@ from src.qual.commands.catalog import (
     command_mvp_path_contract,
     command_mvp_path_entry,
     command_mvp_path_invocation_plan,
+    command_mvp_loop_preferred_surface_invocation_table,
+    command_mvp_loop_preferred_surface_lookup_table,
+    command_mvp_loop_preferred_surface_tokens,
     command_mvp_surface_invocation_table,
     command_mvp_trusted_surface_entry,
     command_mvp_trusted_surface_contract,
@@ -211,6 +214,21 @@ def command_workflow_loop_tokens() -> tuple[str, ...]:
 def command_workflow_loop_invocation_plan() -> tuple[CommandInvocationPlanEntry, ...]:
     """Return the parser-ready current-MVP workflow loop invocation plan."""
     return command_mvp_loop_invocation_plan()
+
+
+def command_workflow_loop_surface_tokens() -> tuple[str, ...]:
+    """Return the trusted current-MVP loop surface tokens in workflow order."""
+    return command_mvp_loop_preferred_surface_tokens()
+
+
+def command_workflow_loop_surface_lookup_table() -> tuple[tuple[str, str], ...]:
+    """Return trusted current-MVP loop verbs mapped to canonical command names."""
+    return command_mvp_loop_preferred_surface_lookup_table()
+
+
+def command_workflow_loop_surface_invocation_table() -> tuple[tuple[str, tuple[str, ...]], ...]:
+    """Return the trusted current-MVP loop surface invocation table."""
+    return command_mvp_loop_preferred_surface_invocation_table()
 
 
 def command_workflow_branch_contract(decision_token: str) -> CommandDemoBranchContract:
@@ -398,6 +416,9 @@ __all__ = [
     "command_workflow_loop_contract",
     "command_workflow_loop_tokens",
     "command_workflow_loop_invocation_plan",
+    "command_workflow_loop_surface_tokens",
+    "command_workflow_loop_surface_lookup_table",
+    "command_workflow_loop_surface_invocation_table",
     "command_workflow_branch_contract",
     "command_workflow_branch_tokens",
     "command_workflow_branch_invocation_plan",
