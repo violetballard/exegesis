@@ -9,7 +9,7 @@ Canonical handoff contract lives in `THREAD_PACKET.md`.
 - Review basis: reviewed command-catalog slice only, not the broader branch-tip command-surface packet
 - Verified implementation basis SHA: `0777640324e7d3a54dba191135bd2d867c32d399`
 - Submitted tip note: any newer tip created by this handoff refresh is metadata-only packet bookkeeping on top of that verified implementation basis
-- Review scope: deterministic `command_cli_contract()` behavior in `src/qual/commands/catalog.py` plus the approved shared regression coverage in `tests/unit/test_commands_catalog.py`
+- Review scope: deterministic `command_cli_contract()` behavior in `src/qual/commands/catalog.py` plus the repo-policy-allowlisted shared regression coverage in `tests/unit/test_commands_catalog.py`
 - Implementation commits already on this branch:
   - `beaf91853` for grouped parser-entrypoint contract validation
   - `4a4d47048` for alias-level parser-surface drift rejection
@@ -23,9 +23,11 @@ Canonical handoff contract lives in `THREAD_PACKET.md`.
 - Verified re-review tip before this packet refresh: `8418db4b3`
 - Verified token-drift coverage on that tip includes alias substitution, extra parser token, removed parser token, and reordered parser tokens within the same canonical command group while canonical-name order stays stable
 - MVP focus tie-in: this is CLI-fallback contract hardening for the current `A2UI`-with-CLI-fallback MVP emphasis, not new command-surface expansion
+- Shared-test approval record: `scripts/scope-check.sh` allowlists `tests/unit/test_commands_catalog.py` for `codex/feat-commands`; the allowlist line was added by Violet Ballard in commit `c3a66bb580` (`fix(commands): tighten feat-commands packet and policy`, `2026-03-28`) and is still present on the current tip
+- Scope-check handling: `make scope-check` passed without `SCOPE_ALLOW_SHARED=1` because the current scope gate already treats `tests/unit/test_commands_catalog.py` as an approved shared regression test for this lane
 - Roadmap alignment: `ROADMAP.md` Milestone 3 `Real workflow loop` CLI compatibility plus the `AGENTS.md` canonical demo-path `preview and apply or reject a patch` step; this protects but does not expand the existing patch step
 - Vision alignment: primarily `PRODUCT_VISION.md` capability 4 `Operator-first control surface`, because this handoff only hardens the current CLI contract while Textual remains disabled; `PRODUCT_VISION.md` capability 5 `Agent-to-UI protocol (A2UI)` is relevant only secondarily through the existing CLI fallback surface, not through any new workflow or audit behavior
-- Scope boundary: this handoff claims only the command-catalog contract hardening and the approved shared regression test; it does not claim parser-entrypoint rewrites, diff-preview work, workflow-wrapper additions, provider/routing changes, or storage behavior changes
+- Scope boundary: this handoff claims only the command-catalog contract hardening and the allowlisted shared regression test; it does not claim parser-entrypoint rewrites, diff-preview work, workflow-wrapper additions, provider/routing changes, or storage behavior changes
 - Task accounting note: metadata-only packet refreshes are bookkeeping for the handoff and are not counted as implementation tasks
 
 ## Reviewed Files
