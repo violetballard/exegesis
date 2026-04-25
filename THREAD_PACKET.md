@@ -3,7 +3,7 @@
 - Lane: `feat-retrieval-fts`
 - Branch: `codex/feat-retrieval-fts`
 - Commit: `adfa8cdadd43747ffbcb612e4151e262b13e52ca`
-- Packet refresh commit: `reported in final fixer handoff`
+- Packet refresh commit: `8d151564b4312709f0bd9fff97f26f53561ecebb`
 - Packet refresh role: `metadata-only reviewer-fix finalization`
 - Reviewed implementation range: `378cf9a74a3658058079a32f186fcd254c4a4034..adfa8cdadd43747ffbcb612e4151e262b13e52ca`
 
@@ -36,6 +36,7 @@
 - The handoff now explicitly names the canonical demo-path step `retrieve relevant material`.
 - The packet now includes a concrete basket-promotion sentence tied to the deterministic and auditable excerpt contract.
 - The reviewed implementation range remains narrowed to `378cf9a74a3658058079a32f186fcd254c4a4034..adfa8cdadd43747ffbcb612e4151e262b13e52ca` and does not widen scope back to unrelated retrieval work.
+- This metadata-only refresh pass reran the required gates and still updates only `THREAD_PACKET.md` plus `docs/gate_passed.txt`.
 
 ## Kickoff budget/limits compliance
 
