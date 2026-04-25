@@ -63,6 +63,12 @@
 - `retrieve relevant material`
 - This work advances `retrieve relevant material` by ensuring excerpt lookup stays on the canonical FTS-first path and fails closed for PageIndex-only IDs, keeping retrieval output deterministic and auditable.
 
+## Explicitly out of scope for this lane slice
+
+- Basket promotion remains out of scope.
+- Plan, revise, patch, and apply workflow work remains out of scope.
+- PageIndex or embeddings runtime fallback behavior remains out of scope beyond compatibility-only fail-closed handling.
+
 ## Kickoff budget/limits compliance
 
 - This handoff includes approved shared regression coverage in `tests/unit/test_unified_retrieval.py`, so the packet is shared/high-risk work and should be read against the 4-task cap. The narrowed reviewed slice changes 2 files with 59 lines touched in `adfa8cdadd43747ffbcb612e4151e262b13e52ca`, which fits the shared/high-risk size budget.
