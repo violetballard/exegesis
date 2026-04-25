@@ -870,6 +870,12 @@ def _build_shell_ui_contract_manifest(
         manifest["terminal_fallback_contract_manifest_fingerprint"] = terminal_fallback_contract_manifest[
             "contract_fingerprint"
         ]
+        manifest["terminal_artifact_cli_fallback_contract_manifest"] = copy.deepcopy(
+            describe_terminal_artifact_cli_fallback_contract()
+        )
+        manifest["terminal_artifact_cli_fallback_contract_manifest_fingerprint"] = (
+            terminal_artifact_cli_fallback_contract_fingerprint()
+        )
     return manifest
 
 
@@ -1016,6 +1022,10 @@ def describe_shell_ui_contract_fingerprints(
         (
             "terminal_artifact_cli_fallback_target_contract_manifest",
             terminal_artifact_cli_fallback_target_contract_fingerprint_value,
+        ),
+        (
+            "terminal_artifact_cli_fallback_contract_manifest",
+            terminal_artifact_cli_fallback_contract_fingerprint(),
         ),
         (
             "terminal_artifact_cli_fallback_route_contract_manifest_fingerprint",
