@@ -113,7 +113,7 @@
   - `ROADMAP.md` Milestone 3 exit criterion `Contract changes documented and intentional`: preserve the deterministic CLI contract for the existing patch-review operator surface by failing fast when parser/catalog drift mutates the `patch-review`/`apply-patch`/`reject-patch` command surface
   - `AGENTS.md` active MVP note `A2UI contracts with CLI fallback`: this keeps the current CLI fallback contract reliable for `preview and apply or reject a patch` while Textual remains disabled; it does not expand that surface
 - vision capability affected:
-  - primary: canonical engine contract / CLI compatibility for the existing patch-review surface
+  - primary: `Canonical engine contract` and CLI compatibility for the existing patch-review surface
 - routing/provider impact note:
   - none; this change only hardens local command-catalog validation and focused command-catalog tests
 - approved exception note:

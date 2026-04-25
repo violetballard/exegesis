@@ -20,7 +20,7 @@ Canonical handoff contract lives in `THREAD_PACKET.md`.
 - Explicit handoff sentence: This work makes `preview and apply or reject a patch` more real on the current engine-first demo path by locking the parser-facing command contract for the existing patch-review CLI entrypoints so that parser/catalog drift fails fast instead of silently mutating that operator surface; it does not add a new workflow step
 - Concrete blocker removed: without this contract hardening, parser/catalog drift could silently reorder, add, or drop the patch-review CLI tokens that must stay stable for `preview and apply or reject a patch`, so the current MVP CLI fallback could drift away from the real engine contract at the exact step where operators inspect and accept or reject a change
 - Reviewer fix closure:
-  1. `command_cli_contract()` now validates the grouped parser-entrypoint projection, so alias add/remove/reorder drift fails even when canonical-name order stays stable.
+  1. `command_cli_contract()` now validates the grouped parser-entrypoint projection, so alias substitution, add/remove, and reorder drift fail even when canonical-name order stays stable.
   2. `tests/unit/test_commands_catalog.py` covers the live parser `diff` -> `diff-preview` alias, the `context-basket list` path, and token-level parser drift that preserves canonical-name order.
   3. This handoff explicitly maps the change to the canonical demo-path step above and names the concrete CLI-fallback blocker it removes.
 - Verified re-review tip before this packet refresh: `3ede0bbf8`

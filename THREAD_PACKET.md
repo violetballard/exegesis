@@ -71,7 +71,7 @@
 - scope completed:
   - hardened `command_cli_contract()` in `src/qual/commands/catalog.py` so deterministic CLI catalog ordering is rebuilt from the grouped parser-entrypoint projection instead of trusting only the deduplicated canonical-name sequence
   - added fail-fast validation in `src/qual/commands/catalog.py` so added, removed, or reordered CLI entrypoint tokens and alias drift raise `ValueError` instead of silently changing the current command surface
-  - added focused regression coverage in the allowlisted shared test file `tests/unit/test_commands_catalog.py` for canonical-order alignment plus removed, reordered, and extra alias-token drift rejection on the current parser surface
+  - added focused regression coverage in the allowlisted shared test file `tests/unit/test_commands_catalog.py` for canonical-order alignment plus alias substitution, extra parser token, removed parser token, and reordered token drift rejection on the current parser surface
   - refreshed the handoff packet so the review claim, single-step demo-path mapping, and file list match the reviewed command-catalog slice exactly
 - tasks completed (numbered implementation work only; metadata-only packet refreshes excluded):
   1. Hardened `command_cli_contract()` to validate the full grouped parser-entrypoint projection against the catalog.
@@ -113,7 +113,7 @@
   - `ROADMAP.md` Milestone 3 exit criterion `Contract changes documented and intentional`: preserve the deterministic CLI contract for the existing patch-review operator surface by failing fast when parser/catalog drift mutates the `patch-review`/`apply-patch`/`reject-patch` command surface
   - `AGENTS.md` active MVP note `A2UI contracts with CLI fallback`: this keeps the current CLI fallback contract reliable for `preview and apply or reject a patch` while Textual remains disabled; it does not expand that surface
 - vision capability affected:
-  - primary: canonical engine contract / CLI compatibility for the existing patch-review surface
+  - primary: `Canonical engine contract` and CLI compatibility for the existing patch-review surface
 - routing/provider impact note:
   - none; this change only hardens local command-catalog validation and focused command-catalog tests
 - approved exception note:
