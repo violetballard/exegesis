@@ -2,16 +2,16 @@
 
 - Lane: `feat-retrieval-fts`
 - Branch: `codex/feat-retrieval-fts`
-- Commit: `5885b67031db4c51dffe7bce7647bae265d4f236`
+- Commit: `b9aa3451d28bf86c8d07ff06a9a86a647a200664`
 - Packet refresh commit: `reported in final fixer handoff`
-- Packet refresh role: `metadata-only reviewer-fix finalization`
-- Pre-fix packet refresh trace anchor: `af6dbf89c145f6157378deca5c9e5dd42b0ea193`
-- Reviewed implementation range: `8356d5f2d0ee39f2e079bb1059a79e397ba58a91..5885b67031db4c51dffe7bce7647bae265d4f236`
+- Packet refresh role: `metadata-only packet regeneration for corrected review traceability`
+- Pre-fix packet trace anchor: `b9aa3451d28bf86c8d07ff06a9a86a647a200664`
+- Reviewed implementation range: `e6ec49365e1d0e1a3631b8a71b3af32bbe08aafd..b9aa3451d28bf86c8d07ff06a9a86a647a200664`
 
 ## Packet traceability note
 
-- `8356d5f2d0ee39f2e079bb1059a79e397ba58a91` is the direct parent of `5885b67031db4c51dffe7bce7647bae265d4f236`, so this reviewed implementation range is intentionally a single-commit slice.
-- Review the implementation against that exact one-commit range; later packet-refresh commits remain metadata-only unless this handoff is regenerated.
+- `e6ec49365e1d0e1a3631b8a71b3af32bbe08aafd` is the direct parent of `b9aa3451d28bf86c8d07ff06a9a86a647a200664`, so this reviewed implementation range is intentionally a single-commit slice.
+- The reviewed implementation commit is the current branch tip before this fixer pass. The follow-up fixer commit is metadata-only and must not be treated as part of the reviewed implementation range.
 
 ## Current program focus
 
@@ -27,23 +27,23 @@
 
 ## Scope goal
 
-- Tighten canonical lookup-promotion defaults so the engine's FTS-first retrieval path preserves deterministic, auditable constraint snapshots when excerpt provenance is rehydrated.
+- Canonicalize sparse lookup constraint mirrors so FTS excerpt promotion emits the same deterministic, auditable query-constraint payload shape as the canonical retrieval path.
 
 ## Priority outcomes
 
 1. Keep SQLite FTS as the primary retrieval path.
-2. Ensure excerpt provenance rehydration uses the same canonical constraint normalization path as retrieval results.
-3. Keep query constraint snapshots stable across lookup promotion so downstream workflow evidence stays deterministic.
+2. Ensure sparse excerpt lookup mirrors canonicalize query constraints before provenance is emitted.
+3. Keep downstream retrieval evidence deterministic when constraint defaults are rehydrated from saved excerpt context.
 
 ## Definition of done for this lane
 
-- Retrieval is FTS-first by default.
-- Excerpt provenance promotion uses canonicalized query-constraint payloads.
-- Lookup-driven retrieval snapshots stay deterministic and auditable.
+- Retrieval remains FTS-first by default.
+- Sparse excerpt lookup mirrors expose canonicalized `query_constraints` fields and defaulted mirror fields.
+- Shared regression coverage proves the canonicalized mirror contract end to end.
 
 ## Do not spend time on
 
-- Broadening the reviewed slice into earlier excerpt fail-closed work or wider retrieval facade changes.
+- Broadening scope beyond the sparse lookup constraint-mirroring fix.
 - UI rendering concerns.
 - Search features outside the core writing loop.
 
@@ -55,34 +55,35 @@
 
 ## Scope completed
 
-- The reviewed slice is the single implementation commit `5885b67031db4c51dffe7bce7647bae265d4f236` only.
-- In `src/qual/retrieval/service.py`, lookup-promotion query constraints now pass through `_canonical_query_constraint_snapshot_payload(...)` before the excerpt provenance snapshot is constructed.
-- This keeps lookup-triggered retrieval summaries aligned with the canonical retrieval constraint shape used elsewhere in the FTS-first retrieval service instead of preserving raw, potentially non-canonical constraint payloads.
-- This handoff deliberately excludes earlier excerpt fail-closed work and broader retrieval-facade changes from scope; those behaviors are not newly claimed as part of this re-review packet.
+- The reviewed slice is the single implementation commit `b9aa3451d28bf86c8d07ff06a9a86a647a200664`.
+- In `src/qual/retrieval/service.py`, sparse excerpt lookup mirror fields now canonicalize `query_constraints` before the top-level and provenance mirror fields are derived, so absent values fail closed to the same normalized defaults used by the retrieval service.
+- In `tests/unit/test_unified_retrieval.py`, approved shared regression coverage now verifies that sparse lookup mirrors expose canonicalized `query_constraints`, defaulted query mirror fields, and matching basket-promotion fields after excerpt rehydration.
 
 ## Canonical demo-path step advanced
 
 - `retrieve relevant material`
-- This work advances `retrieve relevant material` by canonicalizing lookup-promotion constraint snapshots before provenance is emitted, which keeps downstream basket and workflow use tied to deterministic, auditable retrieval evidence.
+- This work advances `retrieve relevant material` by making sparse excerpt lookups preserve canonical, auditable retrieval constraint mirrors when saved FTS context is rehydrated into provenance and basket-promotion payloads.
 
 ## Kickoff budget/limits compliance
 
-- This reviewed implementation slice changes 1 lane-owned file with 7 lines touched in `5885b67031db4c51dffe7bce7647bae265d4f236`, which fits the high-risk size budget.
-- The packet accounts for the full reviewed slice in 1 meaningful task and does not claim broader cumulative retrieval work.
+- This reviewed implementation slice is high-risk because it includes approved shared regression coverage in `tests/unit/test_unified_retrieval.py`.
+- The slice changes 2 files and stays within the 4-task high-risk cap as a 2-task handoff.
 
 ## Approved exception note
 
-- No additional shared-by-approval files are part of this reviewed slice.
+- Approved shared regression coverage in `tests/unit/test_unified_retrieval.py` is part of this reviewed slice because it exercises the canonical retrieval contract for sparse excerpt lookup mirrors.
 
 ## Tasks completed
 
-1. Canonicalized lookup-promotion query constraints before excerpt provenance snapshots are emitted so retrieval diagnostics and summaries keep the same deterministic constraint shape as the rest of the FTS-first service.
+1. Canonicalized sparse excerpt lookup `query_constraints` mirrors before derived query mirror fields are emitted so lookup promotion uses the same normalized constraint contract as the main retrieval path.
+2. Added shared regression coverage that proves sparse excerpt rehydration emits canonicalized query mirror fields and matching basket-promotion metadata.
 
 ## Files changed
 
 ### Reviewed implementation files
 
 - `src/qual/retrieval/service.py`
+- `tests/unit/test_unified_retrieval.py`
 
 ### Metadata-only handoff files
 
@@ -119,7 +120,7 @@
 ### Canonical demo-path step advanced
 
 - `retrieve relevant material`
-- This work advances `retrieve relevant material` by canonicalizing lookup-promotion constraint snapshots before provenance is emitted, which keeps downstream basket and workflow use tied to deterministic, auditable retrieval evidence.
+- This work advances `retrieve relevant material` by making sparse excerpt lookups preserve canonical, auditable retrieval constraint mirrors when saved FTS context is rehydrated into provenance and basket-promotion payloads.
 
 ### Routing/provider impact note
 
@@ -127,4 +128,5 @@
 
 ## Scope-check / ownership note
 
-- Shared/integrator-locked edits: `NO`
+- Shared/integrator-locked edits: `YES`
+- Approved exception: `tests/unit/test_unified_retrieval.py`
