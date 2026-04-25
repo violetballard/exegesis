@@ -7,8 +7,9 @@ Packet refresh commit corrected by this pass: `6a94334ea3b13e716770e2cf4e8bb17d1
 Reviewed implementation head: `adfa8cdadd43747ffbcb612e4151e262b13e52ca`
 Reviewed implementation range: `378cf9a74a3658058079a32f186fcd254c4a4034..adfa8cdadd43747ffbcb612e4151e262b13e52ca`
 Canonical demo-path step advanced: `retrieve relevant material`
-Plan-alignment statement: In the Milestone 3 engine-first demo path, this narrowed slice advances `retrieve relevant material` by ensuring `fetch_excerpt` stays on the canonical FTS path and PageIndex-only excerpt IDs fail closed.
+Plan-alignment statement: In the Milestone 3 engine-first demo path, this narrowed slice advances `retrieve relevant material` by making excerpt lookup fail closed to FTS-backed IDs and preserving deterministic provenance on the canonical retrieval path.
 Reviewer-fix reconciliation: the handoff packet is restamped as a shared/high-risk metadata refresh, narrows the reviewed slice to the `fetch_excerpt` fail-closed change plus its shared regression coverage, and keeps the packet mirrors aligned on that exact reviewed range.
+Packet refresh traceability: `778eb5db8d5623d58a12051794ef720cb23ebd3a` updated `.codex/kickoff_packets/feat-retrieval-fts.md`, `.codex/lane_meta/feat-retrieval-fts.json`, and `THREAD_PACKET.md`; `6a94334ea3b13e716770e2cf4e8bb17d139e3e9d` updated `docs/gate_passed.txt` only.
 Packet refresh traceability correction: commit `6a94334ea3b13e716770e2cf4e8bb17d139e3e9d` is metadata-only and its actual diff is `docs/gate_passed.txt` only.
 
 Reviewed implementation scope:

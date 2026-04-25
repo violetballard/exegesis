@@ -56,13 +56,19 @@
 
 - The reviewed implementation commit `adfa8cdadd43747ffbcb612e4151e262b13e52ca` removes the PageIndex fallback from `fetch_excerpt`, so excerpt lookup now resolves only through the canonical FTS path.
 - Approved shared regression coverage in `tests/unit/test_unified_retrieval.py` proves PageIndex-only excerpt IDs fail closed with `KeyError`.
-- This work makes `retrieve relevant material` more real by enforcing FTS-only excerpt resolution on the canonical retrieval surface.
-- In AGENTS terms, this strengthens the canonical demo-path step `retrieve relevant material` by ensuring excerpt lookup stays on the canonical FTS path. Basket promotion, plan/revise/apply flow work, and broader retrieval MVP claims remain explicitly out of scope for this handoff.
+- This work advances `retrieve relevant material` by making excerpt lookup fail closed to FTS-backed IDs and preserving deterministic provenance on the FTS-first canonical retrieval path.
+- In AGENTS terms, this strengthens the canonical demo-path step `retrieve relevant material` by keeping excerpt lookup on the canonical FTS path, preserving deterministic provenance on that path, and leaving basket promotion, plan/revise/apply flow work, and broader retrieval MVP claims explicitly out of scope for this handoff.
 
 ## Canonical demo-path step advanced
 
 - `retrieve relevant material`
-- Milestone 3 engine-first demo path: this slice advances `retrieve relevant material` by removing PageIndex fallback from excerpt lookup and proving PageIndex-only excerpt IDs fail closed under shared regression coverage.
+- Milestone 3 engine-first demo path: this slice advances `retrieve relevant material` by making excerpt lookup fail closed to FTS-backed IDs and preserving deterministic provenance on the FTS-first canonical retrieval path.
+
+## Reviewer fix reconciliation
+
+- This packet explicitly names the canonical demo-path step `retrieve relevant material`.
+- The scope stays narrow to FTS-only excerpt lookup, fail-closed PageIndex-only IDs, and deterministic provenance on the FTS-first MVP retrieval path.
+- PageIndex and embeddings remain out of scope as active runtime retrieval paths for this handoff.
 
 ## Explicitly out of scope for this lane slice
 
