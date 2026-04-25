@@ -31,7 +31,7 @@ Canonical handoff contract lives in `THREAD_PACKET.md`.
 
 - Reviewer packet reported these gates as passing on implementation basis SHA `0777640324e7d3a54dba191135bd2d867c32d399`
 - This fixer refresh reran the same required gates after aligning the handoff packet to the reviewer-requested high-risk fields and canonical demo-path mapping
-- Current green tip for this metadata-only rerun: `491dd5a81631b2138102cf477adf32eccdee3ec8`
+- Green implementation tip revalidated before this metadata-only handoff refresh commit: `491dd5a81631b2138102cf477adf32eccdee3ec8`
 - `make scope-check`
 - `./quality-format.sh --check`
 - `./quality-lint.sh`
