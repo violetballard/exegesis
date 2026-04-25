@@ -24,7 +24,7 @@
 - Previous validated handoff tip before this packet refresh: `24a930fb600745b1cecc27915f97617e333f93df`
 - Current verifier refresh base SHA: `24a930fb600745b1cecc27915f97617e333f93df`
 - Latest gate rerun date: `2026-04-24`
-- Current fixer refresh purpose: rerun the required gates after confirming the reviewer fixes remain satisfied and refresh the handoff metadata on top of the verified command-catalog slice.
+- Current fixer refresh purpose: rerun the full required gate set on the current verified tip after confirming the reviewer fixes remain satisfied, then refresh the handoff metadata on top of the verified command-catalog slice.
 - Roadmap alignment: `ROADMAP.md` Milestone 3 exit criterion `Contract changes documented and intentional` only; this handoff is a narrow canonical engine contract and CLI-compatibility hardening change for the existing engine-first CLI fallback path while Textual remains disabled and without claiming broader workflow coverage beyond the `open project/document` operator contract.
 - Vision alignment: `PRODUCT_VISION.md` capability 3 `Canonical engine contract` only; this change hardens the current parser/catalog contract that the CLI fallback depends on for the `open project/document` operator contract and does not claim audit-state, workflow-state, or broader workflow progress.
 - Non-claim boundary: this handoff claims only deterministic CLI catalog ordering and fail-fast parser-surface drift detection for the existing CLI fallback path; it does not claim parser-entrypoint rewrites, workflow-wrapper additions, diff-preview output work, provider routing changes, storage changes, reachability expansion, or UI-console work.
@@ -87,6 +87,7 @@
   - verifier rerun base SHA before this metadata-only refresh: `24a930fb600745b1cecc27915f97617e333f93df`
   - latest gate rerun date: `2026-04-24`
   - `python -m unittest tests.unit.test_commands_catalog` -> passed
+  - current fixer reran the full required gate set on the verified branch tip before this metadata-only refresh
   - `make scope-check` -> passed
   - `./quality-format.sh --check` -> passed
   - `./quality-lint.sh` -> passed

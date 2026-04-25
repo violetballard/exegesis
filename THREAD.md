@@ -11,7 +11,7 @@ Canonical handoff contract lives in `THREAD_PACKET.md`.
 - Current verifier refresh base SHA: `24a930fb600745b1cecc27915f97617e333f93df`
 - Previous metadata-only packet refresh tip: `24a930fb600745b1cecc27915f97617e333f93df`
 - Latest gate rerun date: `2026-04-24`
-- Current fixer refresh purpose: rerun the required gates after confirming the reviewer fixes remain satisfied and refresh the handoff metadata on top of the verified command-catalog slice
+- Current fixer refresh purpose: rerun the full required gate set on the current verified tip after confirming the reviewer fixes remain satisfied, then refresh the handoff metadata on top of the verified command-catalog slice
 - Review scope: deterministic `command_cli_contract()` behavior in `src/qual/commands/catalog.py` plus the approved shared regression coverage in `tests/unit/test_commands_catalog.py`
 - Canonical demo-path step advanced: the CLI/operator-contract portion of `open project/document`, keeping the MVP loop executable from the CLI while Textual remains disabled
 - Explicit handoff sentence: This work makes the CLI/operator-contract portion of `open project/document` more real by hardening the catalog-driven parser contract, so parser/catalog drift fails fast instead of silently mutating the operator entrypoint that the engine-first fallback path depends on.
@@ -29,6 +29,7 @@ Canonical handoff contract lives in `THREAD_PACKET.md`.
 
 - Reviewer packet reported these gates as passing on the older reviewed implementation basis SHA `f8d860ed9f6299f0169c4f21321ac5f37c949fd3`
 - This fixer refresh reverified the current branch tip at base SHA `24a930fb600745b1cecc27915f97617e333f93df` on `2026-04-24` before issuing a new metadata-only handoff commit
+- This fixer pass reran the full required gate set on the current verified tip before preparing the next metadata-only handoff commit
 - Plain-checkout verifier command: `python -m unittest tests.unit.test_commands_catalog` -> passed
 - `make scope-check`
 - `./quality-format.sh --check`
