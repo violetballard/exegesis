@@ -2216,6 +2216,25 @@ class UnifiedRetrievalTests(unittest.TestCase):
         self.assertEqual(event["metadata"]["query_fingerprint"], excerpt["query_fingerprint"])
         self.assertNotIn("query_text", event["metadata"]["basket_promotion"])
 
+    def test_retrieve_fts_excerpt_failure_audit_carries_missing_query_context_status(self) -> None:
+        with self.assertRaises(KeyError):
+            self.service.retrieve_fts_excerpt("missing-excerpt-id")
+
+        lines = [json.loads(line) for line in (self.root / "audit_events.jsonl").read_text(encoding="utf-8").splitlines()]
+        event = next(item for item in lines if item["name"] == "excerpt_lookup_failed")
+
+        self.assertEqual(event["metadata"]["lookup_entrypoint"], "retrieve_fts_excerpt")
+        self.assertEqual(event["metadata"]["lookup_resolution"], "fts")
+        self.assertEqual(event["metadata"]["lookup_confidentiality_profile"], "confidential")
+        self.assertEqual(event["metadata"]["lookup_query_context_status"], "missing")
+        self.assertEqual(event["metadata"]["active_strategy_ids"], ["fts"])
+        self.assertEqual(event["metadata"]["deferred_strategy_ids"], ["pageindex", "embeddings"])
+        self.assertEqual(event["metadata"]["strategies_used"], ["fts"])
+        self.assertEqual(event["metadata"]["retrieved_doc_ids"], [])
+        self.assertEqual(event["metadata"]["retrieved_excerpt_ids"], [])
+        self.assertEqual(event["metadata"]["fts_shortlist_doc_ids"], [])
+        self.assertEqual(event["metadata"]["failure_reason"], "unknown_excerpt_id")
+
     def test_normalize_excerpt_payload_backfills_retrieved_ids_for_promotion_and_audit(self) -> None:
         normalized = self.service._normalize_excerpt_payload(
             {

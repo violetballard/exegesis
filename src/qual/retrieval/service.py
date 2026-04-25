@@ -2133,6 +2133,9 @@ class RetrievalService:
                 "lookup_entrypoint": lookup_entrypoint,
                 "lookup_resolution": lookup_resolution,
                 "lookup_confidentiality_profile": lookup_confidentiality_profile,
+                # Keep success and failure lookup audit payloads schema-aligned
+                # so downstream audit readers can treat both events uniformly.
+                "lookup_query_context_status": "missing",
                 "retrieval_backend": retrieval_policy["retrieval_backend"],
                 "retrieval_mode": retrieval_policy["retrieval_mode"],
                 "retrieval_policy": copy.deepcopy(retrieval_policy),
