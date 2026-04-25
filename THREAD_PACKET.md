@@ -25,7 +25,7 @@
 
 ## Scope goal
 
-- Complete the FTS-first retrieval MVP for engine flows with deterministic excerpt and provenance output.
+- Complete the FTS-first retrieval MVP for engine flows with deterministic excerpt and provenance output. This lane slice advances the canonical demo-path step `retrieve relevant material` and stays out of scope for basket promotion, plan/revise/apply flow work, and any PageIndex or embeddings runtime fallback behavior.
 
 ## Priority outcomes
 
@@ -55,7 +55,7 @@
 ## Scope completed
 
 - SQLite FTS remains the authoritative MVP retrieval path in this narrowed slice. The reviewed implementation commit makes excerpt lookup fail closed on the canonical FTS-only path by removing the PageIndex fallback from `fetch_excerpt`, while keeping approved shared regression coverage in `tests/unit/test_unified_retrieval.py` to prove PageIndex-only excerpt IDs now raise `KeyError`.
-- PageIndex and embeddings remain non-required compatibility paths in this slice; excerpt lookup no longer promotes PageIndex as a runtime fallback path for the MVP contract.
+- PageIndex and embeddings remain non-required compatibility paths in this slice; excerpt lookup no longer promotes PageIndex as a runtime fallback path for the MVP contract. Basket promotion and plan/revise/apply flow work remain explicitly out of scope for this handoff.
 - This re-review deliberately narrows scope from the earlier over-budget cumulative branch summary to the single implementation commit `adfa8cdadd43747ffbcb612e4151e262b13e52ca`, which stays within the high-risk size budget for shared-file work.
 
 ## Canonical demo-path step advanced
