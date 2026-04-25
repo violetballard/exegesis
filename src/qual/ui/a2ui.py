@@ -1662,6 +1662,8 @@ def describe_terminal_artifact_renderer_entrypoints_contract() -> dict[str, Any]
     manifest["contract_fingerprint"] = fingerprint
     manifest["renderer_entrypoints_contract_manifest"] = _snapshot_contract_section(manifest)
     manifest["renderer_entrypoints_contract_manifest_fingerprint"] = fingerprint
+    manifest["terminal_artifact_renderer_entrypoints_contract_manifest"] = _snapshot_contract_section(manifest)
+    manifest["terminal_artifact_renderer_entrypoints_contract_manifest_fingerprint"] = fingerprint
     return manifest
 
 
