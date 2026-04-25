@@ -3,7 +3,7 @@
 - Lane: `feat-retrieval-fts`
 - Branch: `codex/feat-retrieval-fts`
 - Commit: `adfa8cdadd43747ffbcb612e4151e262b13e52ca`
-- Packet refresh commit: `6a94334ea3b13e716770e2cf4e8bb17d139e3e9d`
+- Packet refresh commit: `reported in final fixer handoff`
 - Packet refresh role: `metadata-only reviewer-fix finalization`
 - Reviewed implementation range: `378cf9a74a3658058079a32f186fcd254c4a4034..adfa8cdadd43747ffbcb612e4151e262b13e52ca`
 
@@ -102,9 +102,13 @@
 
 ### Current fixer-pass handoff artifacts
 
+- `THREAD_PACKET.md`
+- `docs/gate_passed.txt`
+
+### Previously refreshed packet mirror artifacts
+
 - `.codex/kickoff_packets/feat-retrieval-fts.md`
 - `.codex/lane_meta/feat-retrieval-fts.json`
-- `THREAD_PACKET.md`
 
 ## Commands run and outcomes
 
