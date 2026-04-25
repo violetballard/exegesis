@@ -2,83 +2,39 @@
 
 - Lane: `feat-retrieval-fts`
 - Branch: `codex/feat-retrieval-fts`
-- Commit: `adfa8cdadd43747ffbcb612e4151e262b13e52ca`
+- Commit: `32c259cdec2670ec777f31a41c6dd7639219acea`
 - Packet refresh commit: `reported in final fixer handoff`
-- Packet refresh role: `metadata-only reviewer-fix finalization`
-- Reviewed implementation range: `378cf9a74a3658058079a32f186fcd254c4a4034..adfa8cdadd43747ffbcb612e4151e262b13e52ca`
+- Packet refresh role: `packet traceability correction for the actual branch tip`
+- Reviewed implementation range: `75572c120239a84402a82b845c3df797806fcdf4..32c259cdec2670ec777f31a41c6dd7639219acea`
 
 ## Packet traceability note
 
-- The pre-fixer packet-refresh commit `6a94334ea3b13e716770e2cf4e8bb17d139e3e9d` is metadata-only and its actual diff is `docs/gate_passed.txt` only. Review the narrowed retrieval implementation range `378cf9a74a3658058079a32f186fcd254c4a4034..adfa8cdadd43747ffbcb612e4151e262b13e52ca`; later packet-refresh commits remain metadata-only unless this handoff is regenerated.
+- The branch tip `32c259cdec2670ec777f31a41c6dd7639219acea` is in scope for re-review. It is not metadata-only: it updates `src/qual/retrieval/service.py` and `tests/unit/test_unified_retrieval.py` to align excerpt-failure audit output with the shipped retrieval contract.
+- Review this handoff against the actual tip and the reviewed implementation range above. Earlier packet-only restamps are superseded by this regenerated handoff.
 
 ## Current program focus
 
-- Close the engine-side Milestone 3 workflow loop before activating any Textual UI lanes.
-
-## Current engine execution order
-
-1. `feat-context-storage` - Persistence floor for document, basket, vault, and session state.
-2. `feat-commands` - Stable command surface for the CLI-first MVP loop.
-3. `feat-retrieval-fts` - Authoritative FTS-first retrieval for engine runs.
-4. `feat-engine-runs` - Close the plan, revise, patch, and apply loop in the engine.
-5. `feat-a2ui-contract` - Support the engine loop with stable shared contracts, not UI ambition.
+- Close the engine-side retrieval part of the Milestone 3 workflow loop before activating any Textual UI lanes.
 
 ## Scope goal
 
-- Remove the PageIndex fallback from `fetch_excerpt`, keep excerpt lookup on the canonical FTS-only path, and prove PageIndex-only excerpt IDs fail closed under approved shared regression coverage. This lane slice advances the canonical demo-path step `retrieve relevant material` and stays out of scope for broader retrieval MVP claims, basket promotion, plan/revise/apply flow work, and any PageIndex or embeddings runtime fallback behavior beyond fail-closed compatibility.
-
-## Priority outcomes
-
-1. Keep `fetch_excerpt` on the canonical FTS-only lookup path.
-2. Fail closed for PageIndex-only excerpt IDs instead of silently falling back.
-3. Keep the reviewed slice explicitly limited to the excerpt lookup contract and its regression coverage.
-
-## Definition of done for this lane
-
-- `fetch_excerpt` no longer uses the PageIndex fallback path.
-- PageIndex-only excerpt IDs raise `KeyError` through the public excerpt lookup surface.
-- Approved shared regression coverage proves the fail-closed behavior.
-- The handoff outcome is limited to the canonical excerpt lookup contract, not the full retrieval lane.
-
-## Do not spend time on
-
-- Over-investing in embeddings or alternate retrieval modes.
-- UI rendering concerns.
-- Search features outside the core writing loop.
-
-## Lane/owned paths
-
-- `src/qual/retrieval/**`
-- `src/qual/engine/retrieval/**`
-- `engine/src/exegesis_engine/retrieval/**`
+- Keep retrieval FTS-first for the MVP, make excerpt lookup deterministic and fail closed, and keep downstream provenance, payload, and audit snapshots stable enough for engine workflows and reviewable audit trails.
 
 ## Scope completed
 
-- The reviewed implementation commit `adfa8cdadd43747ffbcb612e4151e262b13e52ca` removes the PageIndex fallback from `fetch_excerpt`, so excerpt lookup now resolves only through the canonical FTS path.
-- Approved shared regression coverage in `tests/unit/test_unified_retrieval.py` proves PageIndex-only excerpt IDs fail closed with `KeyError`.
-- This work advances `retrieve relevant material` by keeping excerpt lookup on the FTS-backed path and rejecting PageIndex-only excerpt IDs.
-- In AGENTS terms, this strengthens the canonical demo-path step `retrieve relevant material` by narrowing the public excerpt lookup contract to FTS-backed IDs and leaving basket promotion, plan/revise/apply flow work, and broader retrieval MVP claims explicitly out of scope for this handoff.
+- Branch-level cumulative handoff from `75572c120239a84402a82b845c3df797806fcdf4..32c259cdec2670ec777f31a41c6dd7639219acea`: excerpt lookup resolves through the canonical FTS-backed path, retrieval payloads and provenance snapshots are deterministic for downstream engine flows, sparse source and context bundles rehydrate deterministically, and PageIndex or embeddings remain compatibility-only fallback shims that fail closed instead of becoming required runtime paths.
+- The current tip `32c259cdec2670ec777f31a41c6dd7639219acea` adds the excerpt-failure audit schema change that reports `lookup_query_context_status: "missing"` when excerpt query context cannot be rehydrated, and shared regression coverage now asserts that behavior in `tests/unit/test_unified_retrieval.py`.
+- This work makes the canonical demo-path step `retrieve relevant material` more real by enforcing FTS-only excerpt lookup, deterministic retrieval payloads, and auditable missing-context failure behavior for excerpt resolution.
 
 ## Canonical demo-path step advanced
 
 - `retrieve relevant material`
-- Milestone 3 engine-first demo path: this slice advances `retrieve relevant material` by keeping excerpt lookup on the FTS-backed path and rejecting PageIndex-only excerpt IDs.
-
-## Reviewer fix reconciliation
-
-- This packet explicitly names the canonical demo-path step `retrieve relevant material`.
-- The scope stays narrow to FTS-only excerpt lookup and fail-closed PageIndex-only IDs.
-- PageIndex and embeddings remain out of scope as active runtime retrieval paths for this handoff.
-
-## Explicitly out of scope for this lane slice
-
-- Basket promotion remains out of scope.
-- Plan, revise, patch, and apply workflow work remains out of scope.
-- PageIndex or embeddings runtime fallback behavior remains out of scope beyond compatibility-only fail-closed handling.
+- Milestone 3 retrieval step: this lane makes `retrieve relevant material` more real by keeping excerpt resolution on the FTS-backed path and making missing excerpt-query context fail with deterministic audit metadata instead of silent fallback behavior.
 
 ## Kickoff budget/limits compliance
 
-- This handoff includes approved shared regression coverage in `tests/unit/test_unified_retrieval.py`, so the packet is shared/high-risk work and should be read against the 4-task cap. The narrowed reviewed slice changes 2 files with 59 lines touched in `adfa8cdadd43747ffbcb612e4151e262b13e52ca`, and the handoff describes 2 meaningful tasks, which fits the shared/high-risk size budget.
+- This handoff includes approved shared regression coverage in `tests/unit/test_unified_retrieval.py`, so the lane remains shared/high-risk work under the 4-task cap.
+- The completed work is summarized as four meaningful tasks to match the shared/high-risk budget even though the reviewed implementation range is cumulative.
 
 ## Approved exception note
 
@@ -86,26 +42,31 @@
 
 ## Tasks completed (numbered)
 
-1. Removed the PageIndex fallback from `fetch_excerpt` so the public excerpt lookup surface now resolves through the canonical FTS-only path.
-2. Added approved shared regression coverage in `tests/unit/test_unified_retrieval.py` proving PageIndex-only excerpt IDs fail closed with `KeyError`.
+1. Exposed the canonical excerpt lookup resolution path and enforced FTS-only excerpt lookup so PageIndex-only excerpt IDs fail closed instead of silently falling back.
+2. Canonicalized retrieval payloads, provenance snapshots, sparse source bundles, and context rehydration so downstream engine consumers receive deterministic retrieval data.
+3. Kept the retrieval facade FTS-first by exporting the canonical helpers through the retrieval surfaces while leaving PageIndex and embeddings as compatibility-only, fail-closed shims.
+4. Aligned excerpt-failure audit output with the shipped contract by recording `lookup_query_context_status: "missing"` for missing excerpt query context and adding shared regression coverage for that auditable failure path.
 
 ## Files changed
 
 ### Reviewed implementation files
 
 - `src/qual/retrieval/service.py`
+- `src/qual/retrieval/__init__.py`
+- `src/qual/engine/retrieval/__init__.py`
+- `src/qual/engine/retrieval/embeddings_strategy.py`
+- `src/qual/engine/retrieval/fts_strategy.py`
+- `src/qual/engine/retrieval/interface.py`
+- `src/qual/engine/retrieval/pageindex_strategy.py`
+- `src/qual/engine/retrieval/payload.py`
+- `src/qual/engine/tools/excerpt_tools.py`
 - `tests/unit/test_unified_retrieval.py`
 
-### Packet refresh commit `6a94334ea3b13e716770e2cf4e8bb17d139e3e9d` files
-
-- `docs/gate_passed.txt`
-
-### Current fixer-pass handoff artifacts
+### Packet artifacts refreshed for this re-review
 
 - `THREAD_PACKET.md`
-- `docs/gate_passed.txt`
 
-### Previously refreshed packet mirror artifacts
+### Packet mirror artifacts blocked by sandbox permissions
 
 - `.codex/kickoff_packets/feat-retrieval-fts.md`
 - `.codex/lane_meta/feat-retrieval-fts.json`
@@ -121,20 +82,19 @@
 
 ## Risks / blockers
 
-- Residual risk: This slice edited shared regression coverage in `tests/unit/test_unified_retrieval.py`, so any future retrieval change that intentionally broadens excerpt lookup semantics or reintroduces PageIndex fallback will need coordinated updates to that shared test surface before integration.
-- Blockers: none
+- Residual risk: the lane still depends on shared regression coverage in `tests/unit/test_unified_retrieval.py`, so any future change that broadens excerpt lookup semantics or alters the audit payload shape will need coordinated updates to that shared surface.
+- Blockers: `.codex/kickoff_packets/feat-retrieval-fts.md` and `.codex/lane_meta/feat-retrieval-fts.json` are read-only in this sandbox, so this fixer pass updates the authoritative handoff in `THREAD_PACKET.md` but cannot refresh those mirror artifacts from this environment.
 
 ## Required handoff fields
 
 ### Roadmap item(s) affected
 
-- Milestone 3: Real workflow loop - narrow retrieval/search hardening for the `retrieve relevant material` step.
-- `feat-retrieval-fts` - excerpt lookup contract hardening on the FTS-backed retrieval path.
+- `ROADMAP.md`: Milestone 3 retrieval step for `retrieve relevant material`.
 
 ### Vision capability affected
 
 - Retrieval-first context handling
-- Auditable state and workflow for the excerpt lookup contract
+- Auditable state and workflow
 
 ### Routing/provider impact note
 
