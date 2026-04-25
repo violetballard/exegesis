@@ -77,7 +77,7 @@
 - commands run + outcomes:
   - reviewed implementation basis SHA `0777640324e7d3a54dba191135bd2d867c32d399` on `2026-04-24`
   - fixer refresh reran the required gates on `2026-04-24` after aligning the handoff packet to the reviewer-requested high-risk fields and canonical demo-path mapping; this refresh remains metadata-only and does not change the reviewed implementation scope
-  - re-review refresh revalidated the current tip SHA `fc7fceb071d47809dde76b57d187aef954f1a723` on `2026-04-24`; the branch tip already contains the required parser-surface contract hardening, token-drift regression coverage, and explicit canonical demo-path mapping, so this refresh is packet bookkeeping plus fresh gate evidence only
+  - fixer rerun revalidated the current tip SHA `491dd5a81631b2138102cf477adf32eccdee3ec8` on `2026-04-24`; the branch tip already contains the required parser-surface contract hardening, token-drift regression coverage, and explicit canonical demo-path mapping, so this refresh is packet bookkeeping plus fresh gate evidence only
   - `make scope-check` -> passed
   - `./quality-format.sh --check` -> passed
   - `./quality-lint.sh` -> passed
