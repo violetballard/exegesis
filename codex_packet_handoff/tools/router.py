@@ -727,7 +727,7 @@ def _run_cli_codex(
     env: Optional[Dict[str, str]] = None,
     skip_git_repo_check: bool = False,
 ) -> Tuple[int, str]:
-    cmd = [codex_cmd, *codex_args, "exec"]
+    cmd = [codex_cmd, "exec", *codex_args]
     if skip_git_repo_check:
         cmd.append("--skip-git-repo-check")
     if model:
@@ -885,17 +885,31 @@ def _build_cli_exec_cmd(
     sandbox: str,
     prompt: str,
     local: bool,
-    read_prompt_from_stdin: bool = False,
+    add_dirs: Optional[List[str]] = None,
 ) -> List[str]:
-    cmd = [profile.codex_cmd, *profile.codex_args, "exec"]
+    cmd = [profile.codex_cmd, "exec", *profile.codex_args]
     if local:
         cmd.append("--skip-git-repo-check")
     if profile.model:
         cmd.extend(["-m", profile.model])
     if profile.model_args:
         cmd.extend(profile.model_args)
-    cmd.extend(["-s", sandbox, "-" if read_prompt_from_stdin else prompt])
+    for add_dir in add_dirs or []:
+        if add_dir:
+            cmd.extend(["--add-dir", str(add_dir)])
+    cmd.extend(["-s", sandbox, prompt])
     return [str(x) for x in cmd]
+
+
+def _prompt_file_bootstrap(prompt_path: Path) -> str:
+    resolved = prompt_path.resolve()
+    return (
+        "Do not answer in prose first. Use the shell tool immediately.\n"
+        f"Your first shell command must be exactly: cat {resolved}\n"
+        "After reading that file, treat its contents as the real user prompt and follow it exactly.\n"
+        "Begin real work immediately after reading the file.\n"
+        "If the file is missing, report that exact blocker and stop."
+    )
 
 
 def _spawn_detached_cli_job(
@@ -925,14 +939,13 @@ def _spawn_detached_cli_job(
         "cmd": _build_cli_exec_cmd(
             profile,
             sandbox=sandbox,
-            prompt=prompt,
+            prompt=_prompt_file_bootstrap(prompt_path),
             local=local,
-            read_prompt_from_stdin=True,
+            add_dirs=[str(prompt_path.parent.resolve())] if local else None,
         ),
         "cwd": repo_cwd,
         "timeout_seconds": float(timeout_seconds),
         "env_overrides": {"CODEX_HOME": isolated_codex_env(repo_cwd)["CODEX_HOME"]} if local else {},
-        "stdin_path": str(prompt_path),
         "output_path": str(output_path),
         "result_path": str(result_path),
         "resume_epoch": resume_epoch,
@@ -1128,6 +1141,75 @@ def _prepare_local_integrator_result(
     return False, "", state
 
 
+def _integrator_failure_handback_packet(
+    lane: str,
+    pkt: Path,
+    *,
+    reason: str,
+    output: str,
+) -> str:
+    evidence = (output or "").strip()
+    if len(evidence) > 6000:
+        evidence = evidence[-6000:]
+    evidence_block = evidence or "(no captured integrator output)"
+    return (
+        "Verdict: `CHANGES_REQUESTED`\n\n"
+        "Findings (highest severity first)\n"
+        f"- High: The approved `{lane}` packet failed during integrator merge/check execution, "
+        "so it must go back through the feature fixer before another approval attempt.\n\n"
+        "Missing handoff fields (if any)\n"
+        "- none\n\n"
+        "Required fixes before re-review (numbered, actionable)\n"
+        "1. Reproduce the integrator failure locally in the lane worktree.\n"
+        "2. Fix the failing integration gate or merge conflict that blocked integration.\n"
+        "3. Re-run the required lane gates and resubmit a fresh feature packet for review.\n\n"
+        "Integrator failure context\n"
+        f"- Approval packet: `{pkt.name}`\n"
+        f"- Failure reason: {reason}\n\n"
+        "Captured integrator output\n"
+        "```text\n"
+        f"{evidence_block}\n"
+        "```\n"
+    )
+
+
+def _write_integrator_failure_handback(
+    lane_dir: Path,
+    lane: str,
+    pkt: Path,
+    *,
+    reason: str,
+    output: str,
+) -> Path:
+    ts = datetime.now(timezone.utc).strftime("%Y%m%dT%H%M%SZ")
+    sha = _packet_sha(pkt.name) or "unknown"
+    note = lane_dir / "inbox" / "reviewer" / f"R__CHANGES__codex-{lane}__{sha}__{ts}.md"
+    write_text(
+        note,
+        _integrator_failure_handback_packet(
+            lane,
+            pkt,
+            reason=reason,
+            output=output,
+        ),
+    )
+
+    failed_dir = lane_dir / "archive" / "integrator_failed"
+    failed_dir.mkdir(parents=True, exist_ok=True)
+    target = failed_dir / pkt.name
+    counter = 1
+    while target.exists():
+        target = failed_dir / f"{pkt.stem}__failed{counter}{pkt.suffix}"
+        counter += 1
+    try:
+        pkt.rename(target)
+    except Exception:
+        if pkt.exists():
+            target.write_text(pkt.read_text())
+            pkt.unlink()
+    return note
+
+
 def _prepare_cli_integrator_result(
     cfg: RouterConfig,
     state: Dict[str, Any],
@@ -1141,9 +1223,6 @@ def _prepare_cli_integrator_result(
     jobs_key = "local_integrator_jobs" if local else "cloud_integrator_jobs"
     retry_key = "local_integrator_retry_ts" if local else "cloud_integrator_retry_ts"
     max_active = LOCAL_INTEGRATOR_MAX_ACTIVE if local else CLOUD_INTEGRATOR_MAX_ACTIVE
-    retry_cooldown = (
-        LOCAL_INTEGRATOR_RETRY_COOLDOWN_SECONDS if local else CLOUD_INTEGRATOR_RETRY_COOLDOWN_SECONDS
-    )
     mode_label = "local" if local else "cloud"
     jobs = _local_job_map(state, jobs_key)
     retry_ts = state.get(retry_key)
@@ -1178,9 +1257,17 @@ def _prepare_cli_integrator_result(
             state[retry_key] = retry_ts
             print(f"[router] cloud integrator job for {lane} hit quota; switching to local fallback: {reason}")
             return False, "", state
-        retry_ts[job_key] = time.time() + retry_cooldown
+        lane_dir = pkt.parents[2] if len(pkt.parents) > 2 else ensure_lane_dirs(lane)
+        note = _write_integrator_failure_handback(
+            lane_dir,
+            lane,
+            pkt,
+            reason=reason,
+            output=text,
+        )
+        retry_ts.pop(job_key, None)
         state[retry_key] = retry_ts
-        print(f"[router] {mode_label} integrator job for {lane} failed; will retry later: {reason}")
+        print(f"[router] {mode_label} integrator job for {lane} failed; handed back to fixer via {note.name}: {reason}")
         return False, "", state
 
     retry_at = float(retry_ts.get(job_key, 0) or 0)
@@ -1362,25 +1449,25 @@ def run_fixer(
         write_text(prompt_path, prompt_text)
         cmd = [
             prof.codex_cmd,
-            *prof.codex_args,
             "exec",
+            *prof.codex_args,
             *(["--skip-git-repo-check"] if runtime_local else []),
             *(["-m", prof.model] if prof.model else []),
             *prof.model_args,
+            *(["--add-dir", str(prompt_path.parent.resolve())] if runtime_local else []),
             "-s",
             "workspace-write",
-            "-",
+            _prompt_file_bootstrap(prompt_path),
         ]
-        with prompt_path.open("r", encoding="utf-8") as pf:
-            proc = subprocess.Popen(
-                cmd,
-                cwd=(wt or repo_cwd),
-                stdout=lf,
-                stderr=subprocess.STDOUT,
-                stdin=pf,
-                text=True,
-                env=env,
-            )
+        proc = subprocess.Popen(
+            cmd,
+            cwd=(wt or repo_cwd),
+            stdout=lf,
+            stderr=subprocess.STDOUT,
+            stdin=subprocess.DEVNULL,
+            text=True,
+            env=env,
+        )
     fallback = state.get("fixer_fallback_jobs") or {}
     fallback[lane] = {
         "log": str(logp),
@@ -1771,7 +1858,9 @@ def process_reviewer_backlog(
         lane_dir = ensure_lane_dirs(lane)
         now = time.time()
         lane_quota_until = float(quota_retry_ts.get(lane, 0) or 0)
-        if lane_quota_until > now:
+        if local_mode:
+            quota_retry_ts.pop(lane, None)
+        elif lane_quota_until > now:
             continue
         notes = sorted((lane_dir / "inbox/reviewer").glob("*.md"), key=lambda p: p.stat().st_mtime)
         if not notes:
@@ -1792,7 +1881,7 @@ def process_reviewer_backlog(
             else:
                 # Fresh feature packet exists; let reviewer flow handle it first.
                 continue
-        latest_log = _latest_fixer_log(lane)
+        latest_log = None if local_mode else _latest_fixer_log(lane)
         if latest_log:
             try:
                 text = latest_log.read_text(errors="ignore")

@@ -284,6 +284,80 @@ class CloudConcurrencyCapsTests(unittest.TestCase):
         self.assertEqual(kicked, 1)
         self.assertEqual(len(kicked_lanes), 1)
 
+    def test_process_reviewer_backlog_ignores_stale_cloud_quota_in_local_mode(self) -> None:
+        with tempfile.TemporaryDirectory() as tmpdir:
+            packet_root = Path(tmpdir) / "packets"
+            lane = "feat-a"
+            lane_dir = packet_root / lane / "inbox" / "reviewer"
+            lane_dir.mkdir(parents=True, exist_ok=True)
+            (lane_dir / f"R__{lane}.md").write_text("## Verdict\nCHANGES_REQUESTED\n", encoding="utf-8")
+            quota_log = Path(tmpdir) / "fixer.log"
+            quota_log.write_text(
+                "provider: openai\nERROR: You've hit your usage limit. try again at Apr 30, 2026 10:45 AM.\n",
+                encoding="utf-8",
+            )
+
+            cfg = router.RouterConfig(
+                model="gpt-5.1-codex",
+                codex_cmd="codex",
+                fallback_model="gpt-oss-20b",
+                fallback_codex_cmd="codex",
+                fallback_codex_args=["-c", "model_provider=lms"],
+                fallback_model_args=[],
+                runtime_mode_default="cloud_primary",
+                auto_switch_to_local_on_quota=True,
+                auto_probe_cloud_recovery=True,
+                cloud_probe_cooldown_seconds=1800.0,
+                cloud_probe_timeout_seconds=30.0,
+                reviewer_timeout=180.0,
+                integrator_timeout=900.0,
+                max_packets_per_run=5,
+                inline_fixer=True,
+                kick_fixers_on_reviewer_backlog=True,
+                fixer_kick_timeout_seconds=8.0,
+                reviewer_fixer_retry_cooldown_seconds=120.0,
+                fixer_quota_retry_cooldown_seconds=3600.0,
+                max_cloud_fixer_kicks_per_run=1,
+                max_local_fixer_kicks_per_run=1,
+                max_cloud_fixer_jobs=1,
+                max_local_fixer_jobs=1,
+                prefer_cli_fixer=True,
+                prefer_cli_reviewer=True,
+                prefer_cli_integrator=True,
+                use_cli_reviewer_fallback=True,
+                use_cli_integrator_fallback=True,
+                profiles={},
+                role_profiles={},
+                lanes={lane: {"branch": "codex/feat-a", "enabled": True}},
+            )
+
+            kicked_lanes = []
+            state = {"runtime_mode": "local_fallback", "fixer_quota_retry_ts": {lane: 9999999999.0}}
+
+            def fake_ensure_lane_dirs(lane_name: str) -> Path:
+                lane_root = packet_root / lane_name
+                (lane_root / "inbox" / "feature").mkdir(parents=True, exist_ok=True)
+                (lane_root / "outbox" / "integrator").mkdir(parents=True, exist_ok=True)
+                (lane_root / "archive").mkdir(parents=True, exist_ok=True)
+                return lane_root
+
+            def fake_run_fixer(reviewer_client, cfg, state, lane, reviewer_packet, repo_cwd, local_mode):
+                kicked_lanes.append((lane, local_mode))
+                return state
+
+            with (
+                mock.patch.object(router, "ensure_lane_dirs", side_effect=fake_ensure_lane_dirs),
+                mock.patch.object(router, "_latest_fixer_log", return_value=quota_log),
+                mock.patch.object(router, "_maybe_restore_cloud", side_effect=lambda cfg, state, repo_cwd: state),
+                mock.patch.object(router, "_materialize_reviewer_packet", return_value="review packet"),
+                mock.patch.object(router, "run_fixer", side_effect=fake_run_fixer),
+            ):
+                kicked, updated = router.process_reviewer_backlog(object(), cfg, state, str(packet_root))
+
+        self.assertEqual(kicked, 1)
+        self.assertEqual(kicked_lanes, [(lane, True)])
+        self.assertEqual(updated["fixer_quota_retry_ts"], {})
+
     def test_process_reviewer_backlog_skips_lane_that_already_advanced(self) -> None:
         with tempfile.TemporaryDirectory() as tmpdir:
             packet_root = Path(tmpdir) / "packets"

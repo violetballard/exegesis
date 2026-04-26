@@ -18,13 +18,13 @@ FIXTURES = REPO_ROOT / "tests" / "fixtures" / "offline_handoff"
 class OfflineHandoffConfigTests(unittest.TestCase):
     def test_live_router_config_uses_explicit_lms_provider(self) -> None:
         cfg = json.loads((REPO_ROOT / ".codex/packet_router/config.json").read_text(encoding="utf-8"))
-        self.assertEqual(cfg["fallback_codex_args"], ["-c", "model_provider=lms"])
-        self.assertEqual(cfg["fallback_model"], "gpt-oss-20b")
-        self.assertEqual(cfg["fallback_model_args"], ["-c", "model_reasoning_effort=medium"])
-        self.assertEqual(cfg["profiles"]["worker_local"]["codex_args"], ["-c", "model_provider=lms"])
-        self.assertEqual(cfg["profiles"]["worker_local"]["model"], "gpt-oss-20b")
-        self.assertEqual(cfg["profiles"]["worker_local"]["model_args"], ["-c", "model_reasoning_effort=medium"])
-        self.assertEqual(cfg["profiles"]["orchestrator"]["model_args"], ["-c", "model_reasoning_effort=medium"])
+        self.assertEqual(cfg["fallback_codex_args"], ["--oss", "--local-provider", "lmstudio"])
+        self.assertEqual(cfg["fallback_model"], "gpt-oss-120b")
+        self.assertEqual(cfg["fallback_model_args"], [])
+        self.assertEqual(cfg["profiles"]["worker_local"]["codex_args"], ["--oss", "--local-provider", "lmstudio"])
+        self.assertEqual(cfg["profiles"]["worker_local"]["model"], "gpt-oss-120b")
+        self.assertEqual(cfg["profiles"]["worker_local"]["model_args"], [])
+        self.assertEqual(cfg["profiles"]["orchestrator"]["model_args"], [])
         self.assertEqual(cfg["profiles"]["worker_local_heavy"]["model"], "gpt-oss-120b")
         self.assertEqual(cfg["role_profiles"]["integrator_local"], "worker_local")
         self.assertEqual(cfg["lanes"]["feat-retrieval-fts"]["integrator_local_profile"], "worker_local_heavy")
@@ -42,13 +42,13 @@ class OfflineHandoffConfigTests(unittest.TestCase):
             finally:
                 os.chdir(prev_cwd)
 
-        self.assertEqual(cfg["fallback_codex_args"], ["-c", "model_provider=lms"])
-        self.assertEqual(cfg["fallback_model"], "gpt-oss-20b")
-        self.assertEqual(cfg["fallback_model_args"], ["-c", "model_reasoning_effort=medium"])
-        self.assertEqual(cfg["profiles"]["worker_local"]["codex_args"], ["-c", "model_provider=lms"])
-        self.assertEqual(cfg["profiles"]["worker_local"]["model"], "gpt-oss-20b")
-        self.assertEqual(cfg["profiles"]["worker_local"]["model_args"], ["-c", "model_reasoning_effort=medium"])
-        self.assertEqual(cfg["profiles"]["orchestrator"]["model_args"], ["-c", "model_reasoning_effort=medium"])
+        self.assertEqual(cfg["fallback_codex_args"], ["--oss", "--local-provider", "lmstudio"])
+        self.assertEqual(cfg["fallback_model"], "gpt-oss-120b")
+        self.assertEqual(cfg["fallback_model_args"], [])
+        self.assertEqual(cfg["profiles"]["worker_local"]["codex_args"], ["--oss", "--local-provider", "lmstudio"])
+        self.assertEqual(cfg["profiles"]["worker_local"]["model"], "gpt-oss-120b")
+        self.assertEqual(cfg["profiles"]["worker_local"]["model_args"], [])
+        self.assertEqual(cfg["profiles"]["orchestrator"]["model_args"], [])
         self.assertEqual(cfg["profiles"]["worker_local_heavy"]["model"], "gpt-oss-120b")
         self.assertEqual(cfg["role_profiles"]["integrator_local"], "worker_local")
         self.assertEqual(cfg["lanes"]["feat-retrieval-fts"]["integrator_local_profile"], "worker_local_heavy")
@@ -58,7 +58,7 @@ class OfflineHandoffConfigTests(unittest.TestCase):
 
 class OfflineReviewerGuardTests(unittest.TestCase):
     def setUp(self) -> None:
-        self.profile = router.LaunchProfile("codex", ["-c", "model_provider=lms"], "gpt-oss-120b", [])
+        self.profile = router.LaunchProfile("codex", ["--oss", "--local-provider", "lmstudio"], "gpt-oss-120b", [])
 
     def test_local_reviewer_rejects_known_bad_marker(self) -> None:
         bad_output = (FIXTURES / "reviewer_bad_text_format.txt").read_text(encoding="utf-8")
@@ -123,7 +123,7 @@ class OfflineReviewerGuardTests(unittest.TestCase):
             rc, out = router._run_cli_codex(
                 "codex",
                 ["-c", "model_provider=lms"],
-                "gpt-oss-20b",
+                "gpt-oss-120b",
                 [],
                 "read-only",
                 "/repo",
@@ -461,6 +461,70 @@ class LocalFallbackDetachedJobTests(unittest.TestCase):
         self.assertEqual(processed, 1)
         self.assertEqual(new_state["local_integrator_jobs"], {})
 
+    def test_process_integrator_backlog_hands_failed_local_job_back_to_fixer(self) -> None:
+        with tempfile.TemporaryDirectory() as tmp:
+            lane_dir = Path(tmp)
+            pkt = lane_dir / "outbox" / "integrator" / "R__APPROVED__codex-feat-commands__abc1234__20260328T000000Z.md"
+            pkt.parent.mkdir(parents=True, exist_ok=True)
+            pkt.write_text("Verdict: `APPROVED`\n", encoding="utf-8")
+
+            cfg = SimpleNamespace(
+                lanes={"feat-commands": {}},
+                max_packets_per_run=1,
+                integrator_timeout=30,
+                prefer_cli_integrator=True,
+            )
+            job_key = f"feat-commands:{pkt.name}"
+            state = {
+                "runtime_mode": "local_fallback",
+                "local_integrator_jobs": {
+                    job_key: {
+                        "packet_name": pkt.name,
+                        "pid": 0,
+                        "result_path": str(lane_dir / "integrator.result.json"),
+                        "output_path": str(lane_dir / "integrator.out.log"),
+                    }
+                },
+                "local_integrator_retry_ts": {job_key: 123.0},
+            }
+
+            with (
+                patch.object(router, "ensure_lane_dirs", return_value=lane_dir),
+                patch.object(router, "_maybe_restore_cloud", side_effect=lambda cfg, state, cwd: state),
+                patch.object(router, "_runtime_mode", return_value="local_fallback"),
+                patch.object(
+                    router,
+                    "_poll_detached_local_cli_job",
+                    return_value={
+                        "done": True,
+                        "status": "error",
+                        "rc": 1,
+                        "error": "local integrator job failed",
+                        "output": "FAILED test_scope_check_blocks_engine_work_on_console_shell_lane",
+                    },
+                ),
+            ):
+                processed, new_state, _integrator_tid = router.process_integrator_backlog(
+                    SimpleNamespace(),
+                    cfg,
+                    state,
+                    "/repo",
+                    "",
+                )
+
+            reviewer_notes = list((lane_dir / "inbox" / "reviewer").glob("R__CHANGES__codex-feat-commands__abc1234__*.md"))
+            failed_approvals = list((lane_dir / "archive" / "integrator_failed").glob(pkt.name))
+            self.assertEqual(processed, 0)
+            self.assertEqual(new_state["local_integrator_jobs"], {})
+            self.assertEqual(new_state["local_integrator_retry_ts"], {})
+            self.assertFalse(pkt.exists())
+            self.assertEqual(len(failed_approvals), 1)
+            self.assertEqual(len(reviewer_notes), 1)
+            note = reviewer_notes[0].read_text(encoding="utf-8")
+            self.assertIn("Verdict: `CHANGES_REQUESTED`", note)
+            self.assertIn("failed during integrator merge/check execution", note)
+            self.assertIn("test_scope_check_blocks_engine_work_on_console_shell_lane", note)
+
     def test_process_integrator_backlog_completes_detached_cloud_job_on_later_tick(self) -> None:
         with tempfile.TemporaryDirectory() as tmp:
             lane_dir = Path(tmp)
@@ -580,8 +644,7 @@ class LocalCodexRuntimeTests(unittest.TestCase):
 
             target_home = Path(env["CODEX_HOME"])
             written = (target_home / "config.toml").read_text(encoding="utf-8")
-            self.assertIn('model = "gpt-oss-20b"', written)
-            self.assertIn('model_reasoning_effort = "medium"', written)
+            self.assertIn('model = "gpt-oss-120b"', written)
             self.assertIn('oss_provider = "lmstudio"', written)
             self.assertIn('[model_providers.lms]', written)
             self.assertIn('base_url = "http://127.0.0.1:1234/v1"', written)
