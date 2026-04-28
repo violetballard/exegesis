@@ -6,7 +6,7 @@ Canonical handoff contract lives in `THREAD_PACKET.md`.
 
 - Lane: `feat-commands`
 - Branch: `codex/feat-commands`
-- Review basis: final branch tip after this `2026-04-28T23:21:20Z` fixer pass for reviewer packet `20260428T231936Z`; implementation, tests, and packet metadata are reviewed together.
+- Review basis: final branch tip after this `2026-04-28T23:27:51Z` fixer pass for reviewer packet `20260428T232503Z`; implementation, tests, and packet metadata are reviewed together.
 - Scope: CLI command-catalog contract hardening for the current engine-first MVP focus without starting `feat-console`.
 - Roadmap alignment: Milestone 3 CLI compatibility for the engine-first workflow loop, and `feat-commands` as the command-surface compatibility lane.
 - Vision alignment: canonical engine contract stability while the CLI remains the active operator surface.
@@ -29,7 +29,7 @@ Canonical handoff contract lives in `THREAD_PACKET.md`.
 
 - Added `_CANONICAL_CLI_COMMAND_SURFACE` so `_CLI_COMMAND_SURFACE` cannot drift by changing to a same-canonical alias while remaining self-consistent.
 - Kept `_CLI_ENTRYPOINTS` frozen against the canonical accepted token tuple.
-- Added regression coverage for self-consistent declared-surface drift where the declared surface and entrypoints both substitute `bootstrap` with same-canonical alias `open`.
+- Added regression coverage for declared-surface order drift and self-consistent declared-surface drift where the declared surface and entrypoints both substitute `bootstrap` with same-canonical alias `open`.
 - Regenerated the packet from the actual branch tip and stopped classifying code-bearing catalog/test commits as metadata-only.
 
 ## Canonical Demo-Path Mapping
@@ -48,11 +48,11 @@ Canonical handoff contract lives in `THREAD_PACKET.md`.
 
 ## Verification
 
-- `python3 -m unittest tests.unit.test_commands_catalog -v`: PASS
+- `python3 -m unittest tests.unit.test_commands_catalog -v`: PASS (55 tests)
 - `make scope-check`: PASS
 - `./quality-format.sh --check`: PASS
 - `./quality-lint.sh`: PASS
 - `./quality-test.sh`: PASS
 - `./typecheck-test.sh`: PASS
 - `make ci`: PASS
-- Final verification pass: `2026-04-28T23:21:20Z`
+- Final verification pass: `2026-04-28T23:27:51Z`

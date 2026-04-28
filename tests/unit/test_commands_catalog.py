@@ -228,6 +228,18 @@ class CommandCatalogTests(unittest.TestCase):
             with self.assertRaisesRegex(ValueError, "Command CLI declared surface is inconsistent"):
                 command_catalog.command_cli_contract()
 
+    def test_command_cli_contract_rejects_declared_surface_order_drift(self) -> None:
+        self._clear_cli_caches()
+        drifted_surface = (
+            ("bootstrap", ("bootstrap",)),
+            ("context-basket", ("context-basket",)),
+            ("diff-preview", ("diff-preview", "diff")),
+            ("terminal", ("terminal",)),
+        )
+        with patch.object(command_catalog, "_CLI_COMMAND_SURFACE", drifted_surface):
+            with self.assertRaisesRegex(ValueError, "Command CLI declared surface is inconsistent"):
+                command_catalog.command_cli_contract()
+
     def test_command_cli_contract_rejects_self_consistent_declared_surface_drift(self) -> None:
         self._clear_cli_caches()
         drifted_surface = (
