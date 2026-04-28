@@ -44,12 +44,12 @@ Parser/catalog drift validation is needed now because the CLI is the active oper
 
 ## Required Fix Satisfaction
 
-1. Reviewer fix 1, full parser-surface validation: `command_cli_contract()` checks grouped parser projection, accepted token tuple, lookup table shape/order, and canonical names against the declared command-catalog projection.
-2. Reviewer fix 2, drift regression tests: coverage includes extra accepted alias, removed accepted alias, substituted accepted alias, parser-token reorder preserving canonical names, grouped token-to-canonical drift, and lookup-table shape/order drift.
-3. Reviewer fix 3, unambiguous review basis: final branch tip is the review basis, and code-bearing catalog/test commits are not called metadata-only.
+1. Reviewer fix 1, regenerate packet against actual branch tip: final branch tip is the review basis, and code-bearing catalog/test commits are not called metadata-only.
+2. Reviewer fix 2, full parser-surface validation: `command_cli_contract()` checks grouped parser projection, accepted token tuple, lookup table shape/order, and canonical names against the declared command-catalog projection.
+3. Reviewer fix 3, drift regression tests: coverage includes extra accepted alias, removed accepted alias, substituted accepted alias, parser-token reorder preserving canonical names, grouped token-to-canonical drift, and lookup-table shape/order drift.
 4. Reviewer fix 4, canonical demo-path mapping: every completed task maps to `continue working`, and this packet states that the CLI command contract makes that step more real while Textual remains disabled.
 5. Reviewer fix 5, ownership clarity: `tests/unit/test_commands_catalog.py` is an approved shared-by-approval test edit, and there are no integrator-locked edits.
 
 ## Final Verification
 
-- Required gates passed on branch `codex/feat-commands` at `2026-04-28T21:15:31Z`: `make scope-check`, `./quality-format.sh --check`, `./quality-lint.sh`, `./quality-test.sh`, `./typecheck-test.sh`, and `make ci`.
+- Required gates passed on branch `codex/feat-commands` at `2026-04-28T21:18:45Z`: `make scope-check`, `./quality-format.sh --check`, `./quality-lint.sh`, `./quality-test.sh`, `./typecheck-test.sh`, and `make ci`.
