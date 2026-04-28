@@ -3,22 +3,22 @@
 ## Thread Kickoff (High-Risk)
 
 - Branch: `codex/feat-commands`
-- Review basis: actual submitted branch tip, including all implementation files listed below and the final fresh-gate evidence commit. Do not review against the older `f8d860ed9f6299f0169c4f21321ac5f37c949fd3` slice.
-- Implementation-file accounting basis: actual branch tip relative to `f8d860ed9f6299f0169c4f21321ac5f37c949fd3`, including follow-up handoff evidence and this final reviewer-fix closure commit.
+- Review basis: actual submitted branch tip after this reviewer-fix commit, including every implementation and handoff file listed below. Do not review against the older `f8d860ed9f6299f0169c4f21321ac5f37c949fd3` two-file slice.
+- Implementation-file accounting basis: actual branch tip relative to `f8d860ed9f6299f0169c4f21321ac5f37c949fd3`, including all follow-up implementation, test, scope-check, and handoff commits.
 - Lane/owned paths: `src/qual/commands/**`
 - Shared / integrator-locked ownership statement:
   - Integrator-locked edit: `src/qual/cli.py`, explicitly listed as shared-by-approval for `codex/feat-commands*` in `THREAD_OWNERSHIP.md`; this handoff includes it because the live argparse surface must expose the same CLI entrypoint projection validated by the command catalog.
   - No other integrator-locked files were touched.
   - Shared support edit: `scripts/scope-check.sh`, included only to keep scope enforcement aware of the approved shared command test path used by this lane.
   - Approved shared test edits: `tests/unit/test_commands_catalog.py` and `tests/unit/test_diff_preview.py`, both used as command-surface regression coverage for this lane.
-- Scope goal: harden the CLI command contract for the engine-first MVP loop by keeping command entrypoints deterministic, validating live parser tokens against the catalog, and covering the command diff-preview/workflow surfaces without starting disabled Textual lanes.
+- Scope goal: harden the CLI command contract for the engine-first MVP loop by keeping command entrypoints deterministic, validating live parser tokens against the catalog, and covering the command diff-preview/workflow surfaces without starting disabled `feat-console` work.
 - Risk reason: this is high-risk command-contract work because it touches operator-facing CLI entrypoints and the shared `src/qual/cli.py` parser surface.
 
 ### Scope / Plan Alignment
 
 - Roadmap alignment: `ROADMAP.md` Milestone 1 `Command and diff-preview behavior hardening` / `Manual CLI smoke flow remains stable`, Milestone 2 remaining parser-edge coverage, Milestone 3 output-contract intentionality, and the active MVP emphasis on `feat-commands`.
 - Vision alignment: `PRODUCT_VISION.md` capability 4 `Operator-first control surface`; CLI remains a first-class development and reliability surface with deterministic text fallback behavior.
-- Exact capability delivered: deterministic CLI command-surface hardening for the existing engine-first command path. This does not claim retrieval, persistence, provider routing, apply/reject engine execution, or Textual UI progress.
+- Exact capability delivered: deterministic CLI command-surface hardening for the existing engine-first command path. This does not claim retrieval, persistence, provider routing, apply/reject engine execution, or `feat-console` progress.
 - Parser-surface drift fix: `command_cli_contract()` now validates the full grouped CLI entrypoint projection, token tuple, canonical-name tuple, and lookup table against the declared catalog and the argparse-derived live parser surface, so alias-only token drift is rejected even when canonical command names stay stable.
 - Actual-tip traceability: this packet intentionally reviews the real branch tip and includes every implementation file changed since the older reviewer basis, instead of treating later commits as metadata-only.
 
@@ -35,7 +35,7 @@
 - Task budget: `4`
 - Time budget: `30m`
 - Size limits: exceeded by existing branch history before this fixer pass; this packet makes the overage explicit for reviewer/integrator risk assessment rather than hiding implementation files behind a metadata-only claim.
-- Size accounting: `12 files changed, 12832 insertions(+), 982 deletions(-)` across the actual branch tip relative to `f8d860ed9f6299f0169c4f21321ac5f37c949fd3`; this final commit only records fresh gate evidence.
+- Size accounting before this reviewer-fix metadata update: `12 files changed, 12841 insertions(+), 982 deletions(-)` across the actual branch tip relative to `f8d860ed9f6299f0169c4f21321ac5f37c949fd3`; the required gates below were rerun after this packet correction.
 - Exception route: high-risk branch-size overage requires reviewer/integrator exception; this handoff is not claiming normal high-risk size compliance.
 - Max fix attempts per failing gate: `2`
 
@@ -91,11 +91,11 @@
   - implementation: `src/qual/commands/workflow.py`
   - tests, approved shared path: `tests/unit/test_commands_catalog.py`
   - tests, approved shared path: `tests/unit/test_diff_preview.py`
-  - metadata-only handoff refresh: `THREAD.md`
-  - metadata-only handoff refresh: `THREAD_PACKET.md`
-  - metadata-only handoff refresh: `handoff_packets/feat-commands.md`
+  - handoff reviewer-fix update: `THREAD.md`
+  - handoff reviewer-fix update: `THREAD_PACKET.md`
+  - handoff reviewer-fix update: `handoff_packets/feat-commands.md`
 - commands run + outcomes:
-  - latest fixer evidence timestamp: `2026-04-28T19:31:00Z`
+  - latest fixer evidence timestamp: `2026-04-28T19:36:01Z`
   - `python -m unittest tests.unit.test_commands_catalog` -> passed
   - `make scope-check` -> passed
   - `./quality-format.sh --check` -> passed
@@ -118,12 +118,11 @@
 - routing/provider impact note:
   - none; this change does not touch model routing or provider configuration.
 - reviewer-fix satisfaction note:
-  1. Required fix 1 is satisfied by `src/qual/commands/catalog.py` and `src/qual/cli.py`: `command_cli_contract()` validates the declared catalog entrypoint projection, argparse-derived live parser entrypoint projection, canonical-name order, accepted CLI token tuple, token-to-command lookup table, and reconstructed grouped projection.
-  2. Required fix 2 is satisfied by `tests/unit/test_commands_catalog.py`: regression coverage rejects the explicit alias-only parser projection drift matrix, including token removal, token substitution, token reorder, extra aliases, live parser constant drift, real argparse subparser drift, and stable-canonical-name drift cases.
-  3. Required fix 3 is satisfied by `src/qual/cli.py` and `src/qual/commands/catalog.py`: the live argparse surface is exported through `parser_cli_entrypoints()`, `command_cli_contract()` validates that parser-derived projection, and `parse_args()` invokes the contract before dispatch.
-  4. Required fix 4 is satisfied by this actual-tip handoff packet: implementation files, approved shared-test exceptions, the shared/integrator-locked CLI parser exception, and the claimed parser-surface drift protection all match the current branch tip.
-  5. Required fix 5 is satisfied by the canonical demo-path mapping above and by the numbered completed tasks, each of which names the demo-path step it supports.
+  1. Required fix 1 is satisfied by keeping the actual submitted branch tip as the review basis instead of the older `f8d860ed9f6299f0169c4f21321ac5f37c949fd3` slice.
+  2. Required fix 2 is satisfied by replacing the earlier metadata-only traceability claim with actual implementation, test, scope-check, and handoff file accounting.
+  3. Required fix 3 is satisfied by listing every implementation file changed in the actual review range, including `src/qual/cli.py`, `scripts/scope-check.sh`, `src/qual/commands/__init__.py`, `src/qual/commands/canonical.py`, `src/qual/commands/catalog.py`, `src/qual/commands/diff_preview.py`, `src/qual/commands/workflow.py`, and both shared test files.
+  4. Required fix 4 is satisfied by the explicit shared/integrator-locked exception for `src/qual/cli.py`, the shared support exception for `scripts/scope-check.sh`, and the approved shared-test exception for both command test files.
+  5. Required fix 5 is satisfied by routing the high-risk size overage for reviewer/integrator exception with concrete merge risk instead of claiming normal high-risk size compliance.
+  6. Required fix 6 is satisfied by the canonical demo-path mapping above and by the numbered completed tasks, each of which names the demo-path step it supports and calls out `continue working` as the step made most real.
 - reviewer-fix closure note:
-  - This closure keeps the actual submitted branch tip as the only review basis, preserves the full alias-only parser drift protection already present in the branch, and records fresh gate evidence for the final metadata state.
-- final fixer approval note:
-  - Reviewer packet `fixer__feat-commands__20260428T192928Z` returned `APPROVED` with no required fixes. This finalization commit records that no implementation changes were required after re-review and refreshes the required gate evidence.
+  - This closure keeps the actual submitted branch tip as the only review basis, preserves the full alias-only parser drift protection already present in the branch, corrects the actual-tip size/file accounting, and reruns the required gates for the final metadata state.

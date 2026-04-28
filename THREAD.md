@@ -6,11 +6,11 @@ Canonical handoff contract lives in `THREAD_PACKET.md`.
 
 - Lane: `feat-commands`
 - Branch: `codex/feat-commands`
-- Review basis: actual submitted branch tip, not the older `f8d860ed9f6299f0169c4f21321ac5f37c949fd3` slice. Implementation-file accounting covers the actual branch tip relative to `f8d860ed9f6299f0169c4f21321ac5f37c949fd3`, including follow-up handoff evidence and this final fresh-gate reviewer-fix closure commit.
+- Review basis: actual submitted branch tip after this reviewer-fix commit, not the older `f8d860ed9f6299f0169c4f21321ac5f37c949fd3` two-file slice. Implementation-file accounting covers the actual branch tip relative to `f8d860ed9f6299f0169c4f21321ac5f37c949fd3`, including all follow-up implementation, test, scope-check, and handoff commits.
 - Scope: CLI command-contract hardening for the current engine-first MVP focus without starting `feat-console`.
 - Roadmap alignment: `ROADMAP.md` Milestone 1 `Command and diff-preview behavior hardening` / `Manual CLI smoke flow remains stable`, Milestone 2 remaining parser-edge coverage, Milestone 3 output-contract intentionality, and the active MVP emphasis on `feat-commands`.
 - Vision alignment: `PRODUCT_VISION.md` capability 4 `Operator-first control surface`.
-- Scope boundary: this handoff claims deterministic CLI command-surface hardening only. It does not claim retrieval, persistence, provider routing, apply/reject engine execution, or Textual UI progress.
+- Scope boundary: this handoff claims deterministic CLI command-surface hardening only. It does not claim retrieval, persistence, provider routing, apply/reject engine execution, or `feat-console` progress.
 
 ## Reviewed Files
 
@@ -31,7 +31,7 @@ Canonical handoff contract lives in `THREAD_PACKET.md`.
 
 - Task budget: `4`; tasks completed: `4`.
 - High-risk size limit status: exceeded and routed for reviewer/integrator exception instead of normal lane approval.
-- Implementation range accounting: `12 files changed, 12832 insertions(+), 982 deletions(-)` from the actual branch tip relative to `f8d860ed9f6299f0169c4f21321ac5f37c949fd3`.
+- Implementation range accounting before this reviewer-fix metadata update: `12 files changed, 12841 insertions(+), 982 deletions(-)` from the actual branch tip relative to `f8d860ed9f6299f0169c4f21321ac5f37c949fd3`.
 - Reason for exception routing: branch history already includes command catalog expansion, parser surface alignment, workflow helpers, diff-preview hardening, scope-check accommodation, and shared unit tests.
 
 ## Shared / Approval Notes
@@ -51,28 +51,21 @@ Canonical handoff contract lives in `THREAD_PACKET.md`.
 
 ## Reviewer Fix Satisfaction
 
-1. `command_cli_contract()` validates the full parser/catalog projection: declared entrypoints, argparse-derived live parser entrypoints, canonical-name order, accepted CLI tokens, lookup rows, and reconstructed grouped projection.
-2. `tests/unit/test_commands_catalog.py` includes alias-only parser drift coverage where canonical names remain stable but parser tokens or lookup rows change, including a real argparse subparser mutation.
-3. `THREAD_PACKET.md` and `handoff_packets/feat-commands.md` now review the actual branch tip and do not label test or implementation changes as metadata-only.
-4. Each numbered completed task names the canonical demo-path step it supports, with `continue working` called out as the step made most real.
-5. The focused command-catalog regression suite passed after the explicit alias-only drift matrix regression and packet refresh were in place; the full required gates are recorded below.
+1. Required fix 1 is satisfied by keeping the actual submitted branch tip as the review basis instead of the older `f8d860ed9f6299f0169c4f21321ac5f37c949fd3` slice.
+2. Required fix 2 is satisfied by replacing the earlier metadata-only traceability claim with actual implementation, test, scope-check, and handoff file accounting.
+3. Required fix 3 is satisfied by listing every implementation file changed in the actual review range, including `src/qual/cli.py`, `scripts/scope-check.sh`, `src/qual/commands/__init__.py`, `src/qual/commands/canonical.py`, `src/qual/commands/catalog.py`, `src/qual/commands/diff_preview.py`, `src/qual/commands/workflow.py`, and both shared test files.
+4. Required fix 4 is satisfied by the explicit shared/integrator-locked exception for `src/qual/cli.py`, the shared support exception for `scripts/scope-check.sh`, and the approved shared-test exception for both command test files.
+5. Required fix 5 is satisfied by routing the high-risk size overage for reviewer/integrator exception with concrete merge risk instead of claiming normal high-risk size compliance.
+6. Required fix 6 is satisfied by the canonical demo-path mapping and by the numbered completed tasks, each of which names the demo-path step it supports and calls out `continue working` as the step made most real.
 
 ## Reviewer-Fix Closure
 
-- Required fix 1: `command_cli_contract()` validates declared catalog entrypoints against the argparse-derived live parser surface, canonical-name order, CLI tokens, lookup rows, and reconstructed grouped projection.
-- Required fix 2: `tests/unit/test_commands_catalog.py` covers catalog-only and parser-only drift, including stable-canonical-name alias substitutions and real argparse subparser drift.
-- Required fix 3: the live argparse surface is part of the contract through `src.qual.cli.parser_cli_entrypoints()`, and `parse_args()` calls `command_cli_contract()` before dispatch.
-- Required fix 4: `THREAD_PACKET.md` and `handoff_packets/feat-commands.md` name the actual implementation files, approved shared-test exception, shared/integrator-locked CLI parser exception, and the parser-surface drift protection at the current branch tip.
-- Required fix 5: every numbered completed task in `THREAD_PACKET.md` and `handoff_packets/feat-commands.md` names the canonical demo-path step it advances, with `continue working` called out as the step made most real.
-
-## Final Fixer Approval
-
-- Reviewer packet `fixer__feat-commands__20260428T192928Z` returned `APPROVED` with no required fixes.
-- No implementation changes were required after re-review; this finalization records the approval state and refreshed gate evidence.
+- Reviewer packet `fixer__feat-commands__20260428T193229Z` requested actual-tip traceability, complete file accounting, shared/integrator-locked exceptions, high-risk size exception routing, and per-task demo-path mapping.
+- This closure records those fixes and reruns the required gates for the final handoff state.
 
 ## Required Gates
 
-- Latest fixer evidence timestamp: `2026-04-28T19:31:00Z`
+- Latest fixer evidence timestamp: `2026-04-28T19:36:01Z`
 - `python -m unittest tests.unit.test_commands_catalog` -> passed
 - `make scope-check` -> passed
 - `./quality-format.sh --check` -> passed
