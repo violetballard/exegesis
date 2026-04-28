@@ -11186,6 +11186,28 @@ class A2UIFallbackSafetyTests(unittest.TestCase):
                 self.assertNotIn("[ActionRef]", cli_text)
                 self.assertNotIn("[SelectionRef]", cli_text)
 
+    def test_terminal_artifact_cli_fallback_entrypoint_rejects_plain_cards_under_leaf_hints(self) -> None:
+        shell = ShellUI()
+        card = {
+            "type": "GenericCard",
+            "title": "Run Log",
+            "a2ui_version": 1,
+            "blocks": [{"type": "MarkdownBlock", "markdown": "Hi"}],
+            "actions": [],
+        }
+
+        for kind, invalid_prefix in (
+            ("action", "[ActionRef] <invalid action>"),
+            ("selection", "[SelectionRef] <invalid selection>"),
+        ):
+            with self.subTest(kind=kind):
+                cli_text = render_terminal_cli_fallback(card, kind=kind)
+                shell_text = shell.render_cli_fallback(card, kind=kind)
+
+                self.assertEqual(cli_text, shell_text)
+                self.assertEqual(cli_text.splitlines()[0], invalid_prefix)
+                self.assertNotIn("[GenericCard] Run Log", cli_text)
+
     def test_shell_ui_preserves_card_kind_hint_for_action_and_selection_envelopes_during_fallback(self) -> None:
         shell = ShellUI()
         direct_action_envelope = build_terminal_artifact_envelope(

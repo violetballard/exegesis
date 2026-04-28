@@ -204,6 +204,11 @@ class ShellUI:
                     # in the explicit CLI fallback entrypoint. Malformed
                     # envelopes keep their recovery path below.
                     fallback_target = (artifact, "card")
+        if normalized_kind in {"action", "selection"} and not ShellUI._contains_action_or_selection_payload(artifact):
+            # Keep the explicit CLI fallback entrypoint aligned with the
+            # shared contract: plain cards under a leaf hint should fail as
+            # leaf renders instead of silently downgrading back to card text.
+            fallback_target = (artifact, normalized_kind)
         fallback_hint_token = _TERMINAL_ARTIFACT_CLI_FALLBACK_TARGET_HINT.set(fallback_target)
         try:
             if fallback_target is not None:
