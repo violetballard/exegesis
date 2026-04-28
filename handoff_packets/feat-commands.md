@@ -87,9 +87,9 @@
   - `make scope-check` -> passed
   - `./quality-format.sh --check` -> passed
   - `./quality-lint.sh` -> passed
-  - `./quality-test.sh` -> passed
+  - `./quality-test.sh` -> passed (`Ran 246 tests`; `OK`)
   - `./typecheck-test.sh` -> passed
-  - `make ci` -> passed
+  - `make ci` -> passed (`CI entrypoint completed`; unit suite reported `Ran 246 tests`; `OK`)
 - risks/blockers:
   - risk: high. This branch already exceeds the normal high-risk size budget and touches the shared CLI parser surface; the packet now makes that explicit for review instead of narrowing the claimed basis.
   - blockers: none.
