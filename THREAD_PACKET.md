@@ -4,7 +4,7 @@
 
 - Branch: `codex/feat-commands`
 - Review basis: actual submitted branch tip, including all implementation files listed below. Do not review against the older `f8d860ed9f6299f0169c4f21321ac5f37c949fd3` slice.
-- Implementation-file accounting basis: `f8d860ed9f6299f0169c4f21321ac5f37c949fd3..f175b28266c0981c89c20f74b31c37c25f232277`, plus the later metadata-only reviewer-fix finalization commits.
+- Implementation-file accounting basis: `f8d860ed9f6299f0169c4f21321ac5f37c949fd3..f175b28266c0981c89c20f74b31c37c25f232277`, plus the later reviewer-fix commits and this packet correction commit.
 - Lane/owned paths: `src/qual/commands/**`
 - Shared / integrator-locked ownership statement:
   - Integrator-locked edit: `src/qual/cli.py`, explicitly listed as shared-by-approval for `codex/feat-commands*` in `THREAD_OWNERSHIP.md`; this handoff includes it because the live argparse surface must expose the same CLI entrypoint projection validated by the command catalog.
@@ -35,7 +35,7 @@
 - Task budget: `4`
 - Time budget: `30m`
 - Size limits: exceeded by existing branch history before this fixer pass; this packet makes the overage explicit for reviewer/integrator risk assessment rather than hiding implementation files behind a metadata-only claim.
-- Size accounting: `12 files changed, 12561 insertions(+), 927 deletions(-)` across `f8d860ed9f6299f0169c4f21321ac5f37c949fd3..f175b28266c0981c89c20f74b31c37c25f232277`.
+- Size accounting: `12 files changed, 12561 insertions(+), 927 deletions(-)` across `f8d860ed9f6299f0169c4f21321ac5f37c949fd3..f175b28266c0981c89c20f74b31c37c25f232277`; later commits are reviewer-fix and handoff metadata corrections.
 - Exception route: high-risk branch-size overage requires reviewer/integrator exception; this handoff is not claiming normal high-risk size compliance.
 - Max fix attempts per failing gate: `2`
 
@@ -95,14 +95,14 @@
   - metadata-only handoff refresh: `THREAD_PACKET.md`
   - metadata-only handoff refresh: `handoff_packets/feat-commands.md`
 - commands run + outcomes:
-  - latest fixer evidence timestamp: `2026-04-28T18:55:44Z`
-  - `python -m unittest tests.unit.test_commands_catalog` -> passed (`Ran 164 tests`; `OK`)
+  - latest fixer evidence timestamp: `2026-04-28T18:58:14Z`
+  - `python -m unittest tests.unit.test_commands_catalog` -> passed
   - `make scope-check` -> passed
   - `./quality-format.sh --check` -> passed
   - `./quality-lint.sh` -> passed
-  - `./quality-test.sh` -> passed (`Ran 247 tests`; `OK`)
+  - `./quality-test.sh` -> passed
   - `./typecheck-test.sh` -> passed
-  - `make ci` -> passed (`CI entrypoint completed`; unit suite reported `Ran 247 tests`; `OK`)
+  - `make ci` -> passed
 - risks/blockers:
   - risk: high. This branch already exceeds the normal high-risk size budget and touches the shared CLI parser surface; the packet now makes that explicit for review instead of narrowing the claimed basis.
   - blockers: none.
@@ -117,7 +117,8 @@
 - routing/provider impact note:
   - none; this change does not touch model routing or provider configuration.
 - reviewer-fix satisfaction note:
-  1. Required fix 1 is satisfied by the canonical demo-path mapping above and the final statement that this command-catalog hardening advances `continue working`.
-  2. Required fix 2 is satisfied by the numbered completed tasks above, where each task names the canonical demo-path step it supports.
-  3. Required fix 3 is satisfied by the files changed list above, which includes all metadata-only packet refresh files: `THREAD.md`, `THREAD_PACKET.md`, and `handoff_packets/feat-commands.md`.
-  4. Required fix 4 is satisfied by keeping implementation scope unchanged in this fixer pass; only handoff metadata was edited.
+  1. Required fix 1 is satisfied by `src/qual/commands/catalog.py`: `command_cli_contract()` validates the declared catalog entrypoint projection, live parser entrypoint projection, canonical-name order, accepted CLI token tuple, token-to-command lookup table, and reconstructed grouped projection.
+  2. Required fix 2 is satisfied by `tests/unit/test_commands_catalog.py`: regression coverage rejects alias-only parser drift, token substitution, token removal, token reorder, extra aliases, live parser constant drift, and stable-canonical-name drift cases.
+  3. Required fix 3 is satisfied by this actual-tip handoff packet: the implementation file list includes all non-metadata changes, and the packet no longer labels test or implementation changes as metadata-only.
+  4. Required fix 4 is satisfied by the canonical demo-path mapping above and by the numbered completed tasks, each of which names the demo-path step it supports.
+  5. Required fix 5 is satisfied by rerunning and reporting the full required gates after the corrected implementation and packet are in place.

@@ -6,7 +6,7 @@ Canonical handoff contract lives in `THREAD_PACKET.md`.
 
 - Lane: `feat-commands`
 - Branch: `codex/feat-commands`
-- Review basis: actual submitted branch tip, not the older `f8d860ed9f6299f0169c4f21321ac5f37c949fd3` slice. Implementation-file accounting covers `f8d860ed9f6299f0169c4f21321ac5f37c949fd3..f175b28266c0981c89c20f74b31c37c25f232277` plus this metadata-only fixer commit.
+- Review basis: actual submitted branch tip, not the older `f8d860ed9f6299f0169c4f21321ac5f37c949fd3` slice. Implementation-file accounting covers `f8d860ed9f6299f0169c4f21321ac5f37c949fd3..f175b28266c0981c89c20f74b31c37c25f232277` plus the reviewer-fix and handoff metadata correction commits.
 - Scope: Milestone 3 CLI command-contract hardening for the engine-first MVP loop while Textual lanes remain disabled.
 - Roadmap alignment: `ROADMAP.md` Milestone 1 `Command and diff-preview behavior hardening` / `Manual CLI smoke flow remains stable`, Milestone 2 parser-edge coverage, and Milestone 3 output-contract intentionality.
 - Vision alignment: `PRODUCT_VISION.md` capability 4 `Operator-first control surface`.
@@ -51,18 +51,19 @@ Canonical handoff contract lives in `THREAD_PACKET.md`.
 
 ## Reviewer Fix Satisfaction
 
-1. The handoff packet states that command-catalog hardening advances the canonical `continue working` step.
-2. Each numbered completed task in `THREAD_PACKET.md` and `handoff_packets/feat-commands.md` names the canonical demo-path step it supports.
-3. The handoff files changed list includes all metadata-only packet refresh files: `THREAD.md`, `THREAD_PACKET.md`, and `handoff_packets/feat-commands.md`.
-4. This fixer pass keeps implementation scope unchanged and edits only handoff metadata.
+1. `command_cli_contract()` validates the full parser/catalog projection: declared entrypoints, live parser entrypoints, canonical-name order, accepted CLI tokens, lookup rows, and reconstructed grouped projection.
+2. `tests/unit/test_commands_catalog.py` includes alias-only parser drift coverage where canonical names remain stable but parser tokens or lookup rows change.
+3. `THREAD_PACKET.md` and `handoff_packets/feat-commands.md` now review the actual branch tip and do not label test or implementation changes as metadata-only.
+4. Each numbered completed task names the canonical demo-path step it supports, with `continue working` called out as the step made most real.
+5. The full required gates were rerun after the corrected implementation and packet were in place.
 
 ## Required Gates
 
-- Latest fixer evidence timestamp: `2026-04-28T18:55:44Z`
-- `python -m unittest tests.unit.test_commands_catalog` -> passed (`Ran 164 tests`; `OK`)
+- Latest fixer evidence timestamp: `2026-04-28T18:58:14Z`
+- `python -m unittest tests.unit.test_commands_catalog` -> passed
 - `make scope-check` -> passed
 - `./quality-format.sh --check` -> passed
 - `./quality-lint.sh` -> passed
-- `./quality-test.sh` -> passed (`Ran 247 tests`; `OK`)
+- `./quality-test.sh` -> passed
 - `./typecheck-test.sh` -> passed
-- `make ci` -> passed (`CI entrypoint completed`; unit suite reported `Ran 247 tests`; `OK`)
+- `make ci` -> passed
