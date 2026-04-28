@@ -54,11 +54,10 @@ Canonical handoff contract lives in `THREAD_PACKET.md`.
 
 ## Reviewer Fix Satisfaction
 
-1. Required fix 1 is satisfied by using the actual submitted branch tip as the review basis in `THREAD_PACKET.md` and `handoff_packets/feat-commands.md`, instead of asking review to use the older `f8d860ed9f6299f0169c4f21321ac5f37c949fd3` command-catalog slice.
-2. Required fix 2 is satisfied by listing every implementation, test, scope-check, and handoff file changed in the submitted branch, including `src/qual/cli.py`, `scripts/scope-check.sh`, `src/qual/commands/workflow.py`, and `tests/unit/test_diff_preview.py`.
-3. Required fix 3 is satisfied by replacing normal high-risk compliance with explicit size-overage accounting and a reviewer/integrator exception route.
-4. Required fix 4 is satisfied by the per-task canonical demo-path mapping and the final pre-handoff statement naming `continue working` as the demo-path step made more real.
-5. Required fix 5 is satisfied by rerunning and reporting the required gates after the corrected packet is in place.
+1. Required fix 1 is satisfied by `command_cli_contract()` validating the declared catalog projection, live parser projection, accepted token tuple, canonical-name tuple, and lookup table instead of only deduplicated canonical names.
+2. Required fix 2 is satisfied by alias-only parser drift regressions covering alias substitution, extra accepted aliases, missing canonical tokens, and parser-token reordering while canonical names stay stable.
+3. Required fix 3 is satisfied by the per-task canonical demo-path mapping and the final pre-handoff statement naming `continue working` as the demo-path step made more real.
+4. Required fix 4 is satisfied by the shared / integrator-locked ownership statement in `THREAD_PACKET.md` and `handoff_packets/feat-commands.md`, which separates the approved shared-test exception from the actual-tip `src/qual/cli.py` shared-by-approval and integrator-locked exception.
 
 ## Reviewer-Fix Closure
 
