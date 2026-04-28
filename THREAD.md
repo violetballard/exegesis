@@ -54,6 +54,7 @@ Canonical handoff contract lives in `THREAD_PACKET.md`.
 - Reviewer packet `fixer__feat-commands__20260428T200235Z` closure: the required demo-path mapping is explicit in the task bullets above and the canonical packet's numbered completed-task list; the ownership note separates the original command-catalog slice, which had no integrator-locked edit, from later actual-tip accounting.
 - Reviewer packet `fixer__feat-commands__20260428T200453Z` closure: the implementation already validates the full parser token projection and lookup rows, the focused tests cover alias-only added/removed/substituted/reordered drift with stable canonical names, and the actual branch tip remains the high-risk review basis.
 - Reviewer packet `fixer__feat-commands__20260428T200726Z` closure: the validator now compares full constructed `CommandCliContract` surfaces for declared, authoritative, live, and returned projections before exposing the parser contract.
+- Reviewer packet `fixer__feat-commands__20260428T201248Z` closure: the current branch preserves full parser-surface validation, the alias-only regression matrix covers substituted, removed, extra, and reordered parser tokens with stable canonical names, and this packet keeps the per-task `continue working` demo-path mapping plus precise shared/integrator-locked accounting.
 
 ## Reviewer Fix Satisfaction
 
@@ -73,6 +74,7 @@ Canonical handoff contract lives in `THREAD_PACKET.md`.
 - Reviewer packet `fixer__feat-commands__20260428T200235Z` requested per-task demo-path mapping, a final demo-path statement, and clearer ownership wording for the original narrow command-catalog slice; this fixer pass records those clarifications without changing implementation code.
 - Reviewer packet `fixer__feat-commands__20260428T200453Z` repeated the parser-surface, alias-only drift, actual-tip traceability, demo-path, and high-risk exception requirements; this fixer pass verifies those implementation/tests are already present and refreshes the handoff evidence.
 - Reviewer packet `fixer__feat-commands__20260428T200726Z` requested explicit full-surface validation, alias-only parser drift coverage, extra alias drift coverage, and refreshed packet evidence; this fixer pass makes full `CommandCliContract` comparison the validator unit and reruns every required gate.
+- Reviewer packet `fixer__feat-commands__20260428T201248Z` repeated the parser-surface, alias-only drift, demo-path, ownership-accounting, and required-gate fixes; this fixer pass verifies those fixes at the current branch tip and records fresh required-gate evidence.
 
 ## Required Gates
 
@@ -87,6 +89,14 @@ Canonical handoff contract lives in `THREAD_PACKET.md`.
 - Final fixer validation sequence for `fixer__feat-commands__20260428T200726Z`:
 - `python -m unittest tests.unit.test_commands_catalog.CommandCatalogTests.test_command_cli_contract_rejects_alias_only_parser_projection_drift_cases tests.unit.test_commands_catalog.CommandCatalogTests.test_command_cli_contract_rejects_alias_substitution_when_parser_projection_keeps_same_name_order tests.unit.test_commands_catalog.CommandCatalogTests.test_command_cli_contract_rejects_extra_alias_entrypoint_when_canonical_order_still_matches` -> passed
 - `python -m unittest tests.unit.test_commands_catalog` -> passed
+- `make scope-check` -> passed
+- `./quality-format.sh --check` -> passed
+- `./quality-lint.sh` -> passed
+- `./quality-test.sh` -> passed
+- `./typecheck-test.sh` -> passed
+- `make ci` -> passed
+- Final fixer validation sequence for `fixer__feat-commands__20260428T201248Z`:
+- `python -m unittest tests.unit.test_commands_catalog.CommandCatalogTests.test_command_cli_contract_rejects_alias_only_parser_projection_drift_cases tests.unit.test_commands_catalog.CommandCatalogTests.test_command_cli_contract_rejects_alias_substitution_when_parser_projection_keeps_same_name_order tests.unit.test_commands_catalog.CommandCatalogTests.test_command_cli_contract_rejects_reordered_parser_projection_when_tokens_change_but_names_do_not tests.unit.test_commands_catalog.CommandCatalogTests.test_command_cli_contract_rejects_extra_alias_entrypoint_when_canonical_order_still_matches` -> passed
 - `make scope-check` -> passed
 - `./quality-format.sh --check` -> passed
 - `./quality-lint.sh` -> passed
