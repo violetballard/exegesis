@@ -41,84 +41,78 @@ class CLIArgs:
     terminal_runtime_supports_qwen: bool
 
 
-def parser_cli_entrypoints() -> tuple[tuple[str, tuple[str, ...]], ...]:
-    return _CLI_PARSER_ENTRYPOINTS
+def _add_diff_preview_args(parser: argparse.ArgumentParser) -> None:
+    parser.add_argument("--original", help="Original text")
+    parser.add_argument("--proposed", help="Proposed text")
 
 
-def _normalize_argv(argv: list[str] | None) -> list[str]:
-    raw = list(sys.argv[1:] if argv is None else argv)
-    if not raw:
-        return [_BOOTSTRAP_COMMAND]
-
-    known = {
-        token
-        for _, entrypoints in parser_cli_entrypoints()
-        for token in entrypoints
-    }
-    first = raw[0]
-    # Backward compatibility: allow `--project ...` without explicit subcommand.
-    if first.startswith("-"):
-        return [_BOOTSTRAP_COMMAND, *raw]
-    if first in known:
-        return raw
-    return raw
+def _subparser_action(parser: argparse.ArgumentParser) -> argparse._SubParsersAction:
+    for action in parser._actions:
+        if isinstance(action, argparse._SubParsersAction):
+            return action
+    raise ValueError("CLI parser is missing a command subparser surface")
 
 
-def parse_args(argv: list[str] | None = None) -> CLIArgs:
-    from src.qual.commands.catalog import command_cli_contract
-
-    command_cli_contract()
+def _build_parser() -> argparse.ArgumentParser:
     parser = argparse.ArgumentParser(prog="qual-bootstrap")
     sub = parser.add_subparsers(dest="command")
 
-    p_bootstrap = sub.add_parser(_BOOTSTRAP_COMMAND, help="Run bootstrap shell")
-    p_bootstrap.add_argument(
-        "--project",
-        type=validate_project_name,
-        help="Project name to bootstrap under local app data directory.",
-    )
+    for command_name, entrypoints in _CLI_PARSER_ENTRYPOINTS:
+        for index, entrypoint in enumerate(entrypoints):
+            alias_label = "" if index == 0 else " alias"
+            if command_name == _BOOTSTRAP_COMMAND:
+                p_bootstrap = sub.add_parser(entrypoint, help=f"Run bootstrap shell{alias_label}")
+                p_bootstrap.add_argument(
+                    "--project",
+                    type=validate_project_name,
+                    help="Project name to bootstrap under local app data directory.",
+                )
+                continue
 
-    p_diff = sub.add_parser(_DIFF_PREVIEW_COMMAND, help="Preview unified diff output")
-    p_diff.add_argument("--original", help="Original text")
-    p_diff.add_argument("--proposed", help="Proposed text")
+            if command_name == _DIFF_PREVIEW_COMMAND:
+                p_diff = sub.add_parser(entrypoint, help=f"Preview unified diff output{alias_label}")
+                _add_diff_preview_args(p_diff)
+                continue
 
-    p_diff_alias = sub.add_parser(_DIFF_PREVIEW_ALIASES[0], help="Alias for diff-preview")
-    p_diff_alias.add_argument("--original", help="Original text")
-    p_diff_alias.add_argument("--proposed", help="Proposed text")
+            if command_name == _CONTEXT_BASKET_COMMAND:
+                p_basket = sub.add_parser(entrypoint, help=f"Manage context basket items{alias_label}")
+                p_basket_sub = p_basket.add_subparsers(dest="basket_action", required=True)
 
-    p_basket = sub.add_parser(_CONTEXT_BASKET_COMMAND, help="Manage context basket items")
-    p_basket_sub = p_basket.add_subparsers(dest="basket_action", required=True)
+                p_basket_add = p_basket_sub.add_parser("add", help="Add an item id to basket")
+                p_basket_add.add_argument("item_id", help="Context item id")
 
-    p_basket_add = p_basket_sub.add_parser("add", help="Add an item id to basket")
-    p_basket_add.add_argument("item_id", help="Context item id")
+                p_basket_remove = p_basket_sub.add_parser("remove", help="Remove an item id from basket")
+                p_basket_remove.add_argument("item_id", help="Context item id")
 
-    p_basket_remove = p_basket_sub.add_parser("remove", help="Remove an item id from basket")
-    p_basket_remove.add_argument("item_id", help="Context item id")
+                p_basket_sub.add_parser("list", help="List basket item ids")
+                p_basket_sub.add_parser("clear", help="Clear all basket item ids")
+                continue
 
-    p_basket_sub.add_parser("list", help="List basket item ids")
-    p_basket_sub.add_parser("clear", help="Clear all basket item ids")
+            if command_name == _TERMINAL_COMMAND:
+                p_terminal = sub.add_parser(entrypoint, help=f"Run terminal routing scaffold{alias_label}")
+                p_terminal.add_argument("--message", help="User terminal input")
+                p_terminal.add_argument(
+                    "--operation-kind",
+                    choices=[
+                        "terminal_chat",
+                        "terminal_query",
+                        "terminal_tool_orchestration",
+                        "terminal_outline_request",
+                        "terminal_synthesis_request",
+                    ],
+                    default="terminal_chat",
+                )
+                p_terminal.add_argument("--section-type", help="Optional section type context")
+                p_terminal.add_argument("--user-intent", help="Optional user intent label")
+                p_terminal.add_argument("--input-tokens", type=int, default=120)
+                p_terminal.add_argument("--constraints-count", type=int, default=0)
+                p_terminal.add_argument("--requires-multi-step-tools", action="store_true")
+                p_terminal.add_argument("--sku-gb", type=int, default=128)
+                p_terminal.add_argument("--qwen-available", action="store_true")
+                p_terminal.add_argument("--runtime-supports-qwen", action="store_true")
+                continue
 
-    p_terminal = sub.add_parser(_TERMINAL_COMMAND, help="Run terminal routing scaffold")
-    p_terminal.add_argument("--message", help="User terminal input")
-    p_terminal.add_argument(
-        "--operation-kind",
-        choices=[
-            "terminal_chat",
-            "terminal_query",
-            "terminal_tool_orchestration",
-            "terminal_outline_request",
-            "terminal_synthesis_request",
-        ],
-        default="terminal_chat",
-    )
-    p_terminal.add_argument("--section-type", help="Optional section type context")
-    p_terminal.add_argument("--user-intent", help="Optional user intent label")
-    p_terminal.add_argument("--input-tokens", type=int, default=120)
-    p_terminal.add_argument("--constraints-count", type=int, default=0)
-    p_terminal.add_argument("--requires-multi-step-tools", action="store_true")
-    p_terminal.add_argument("--sku-gb", type=int, default=128)
-    p_terminal.add_argument("--qwen-available", action="store_true")
-    p_terminal.add_argument("--runtime-supports-qwen", action="store_true")
+            raise ValueError(f"Unknown CLI parser command entrypoint group: {command_name}")
 
     parser.set_defaults(
         command=_BOOTSTRAP_COMMAND,
@@ -138,6 +132,45 @@ def parse_args(argv: list[str] | None = None) -> CLIArgs:
         qwen_available=False,
         runtime_supports_qwen=False,
     )
+    return parser
+
+
+def parser_cli_entrypoints() -> tuple[tuple[str, tuple[str, ...]], ...]:
+    grouped: dict[str, list[str]] = {}
+    for entrypoint in _subparser_action(_build_parser()).choices:
+        command_name = canonical_command(entrypoint)
+        grouped.setdefault(command_name, []).append(entrypoint)
+    return tuple((command_name, tuple(entrypoints)) for command_name, entrypoints in grouped.items())
+
+
+def _parser_cli_tokens() -> set[str]:
+    return {
+        token
+        for _, entrypoints in parser_cli_entrypoints()
+        for token in entrypoints
+    }
+
+
+def _normalize_argv(argv: list[str] | None) -> list[str]:
+    raw = list(sys.argv[1:] if argv is None else argv)
+    if not raw:
+        return [_BOOTSTRAP_COMMAND]
+
+    known = _parser_cli_tokens()
+    first = raw[0]
+    # Backward compatibility: allow `--project ...` without explicit subcommand.
+    if first.startswith("-"):
+        return [_BOOTSTRAP_COMMAND, *raw]
+    if first in known:
+        return raw
+    return raw
+
+
+def parse_args(argv: list[str] | None = None) -> CLIArgs:
+    from src.qual.commands.catalog import command_cli_contract
+
+    command_cli_contract()
+    parser = _build_parser()
     ns = parser.parse_args(_normalize_argv(argv))
     command = canonical_command(str(ns.command))
     return CLIArgs(
