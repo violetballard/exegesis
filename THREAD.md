@@ -66,7 +66,7 @@ Canonical handoff contract lives in `THREAD_PACKET.md`.
 
 ## Required Gates
 
-- Latest fixer evidence timestamp: `2026-04-28T19:46:51Z`
+- Latest fixer evidence timestamp: `2026-04-28T19:47:59Z`
 - `python -m unittest tests.unit.test_commands_catalog.CommandCatalogTests.test_command_cli_contract_rejects_extra_alias_entrypoint_when_canonical_order_still_matches tests.unit.test_commands_catalog.CommandCatalogTests.test_command_cli_contract_rejects_reordered_parser_projection_when_tokens_change_but_names_do_not` -> passed
 - `python -m unittest tests.unit.test_commands_catalog` -> passed
 - `make scope-check` -> passed
