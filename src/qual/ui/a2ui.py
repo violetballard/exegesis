@@ -1323,6 +1323,12 @@ def describe_selection_contract() -> dict[str, Any]:
     return manifest
 
 
+def describe_selection_contract_manifest() -> dict[str, Any]:
+    """Return the stable SelectionRef contract manifest alias."""
+
+    return describe_selection_contract()
+
+
 def describe_action_contract() -> dict[str, Any]:
     """Return the stable, versioned ActionRef contract manifest."""
 
@@ -1334,6 +1340,12 @@ def describe_action_contract() -> dict[str, Any]:
     return manifest
 
 
+def describe_action_contract_manifest() -> dict[str, Any]:
+    """Return the stable ActionRef contract manifest alias."""
+
+    return describe_action_contract()
+
+
 def describe_card_contract() -> dict[str, Any]:
     """Return the stable, versioned card contract manifest."""
 
@@ -1343,6 +1355,12 @@ def describe_card_contract() -> dict[str, Any]:
     manifest["card_contract_fingerprint"] = fingerprint
     manifest["contract_fingerprint"] = fingerprint
     return manifest
+
+
+def describe_card_contract_manifest() -> dict[str, Any]:
+    """Return the stable card contract manifest alias."""
+
+    return describe_card_contract()
 
 
 def describe_a2ui_leaf_contracts() -> dict[str, Any]:

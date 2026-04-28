@@ -37,8 +37,11 @@ from src.qual.ui.a2ui import (
     describe_a2ui_engine_contract,
     describe_a2ui_leaf_contracts,
     describe_action_contract,
+    describe_action_contract_manifest,
     describe_card_contract,
+    describe_card_contract_manifest,
     describe_selection_contract,
+    describe_selection_contract_manifest,
     describe_terminal_artifact_envelope_contract,
     describe_terminal_artifact_cli_fallback_contract,
     describe_terminal_artifact_cli_fallback_contract_manifest,
@@ -221,6 +224,8 @@ class A2UIFallbackSafetyTests(unittest.TestCase):
         self.assertIs(public_ui.PolicyGate, PolicyGate)
         self.assertIs(public_ui.describe_a2ui_engine_contract, describe_a2ui_engine_contract)
         self.assertIs(public_ui.a2ui_engine_contract_fingerprint, a2ui_engine_contract_fingerprint)
+        self.assertIs(public_ui.describe_action_contract_manifest, describe_action_contract_manifest)
+        self.assertIs(public_ui.describe_card_contract_manifest, describe_card_contract_manifest)
         self.assertEqual(
             public_ui.TERMINAL_ARTIFACT_RENDERER_ENTRYPOINTS_SCHEMA_VERSION,
             TERMINAL_ARTIFACT_RENDERER_ENTRYPOINTS_SCHEMA_VERSION,
@@ -272,6 +277,10 @@ class A2UIFallbackSafetyTests(unittest.TestCase):
         self.assertIs(
             public_ui.describe_terminal_artifact_cli_fallback_entrypoint_contract,
             describe_terminal_artifact_cli_fallback_entrypoint_contract,
+        )
+        self.assertIs(
+            public_ui.describe_selection_contract_manifest,
+            describe_selection_contract_manifest,
         )
         self.assertIs(
             public_ui.describe_terminal_artifact_cli_fallback_entrypoint_contract_manifest,
@@ -390,17 +399,23 @@ class A2UIFallbackSafetyTests(unittest.TestCase):
 
     def test_selection_contract_manifest_exposes_contract_fingerprint_alias(self) -> None:
         manifest = describe_selection_contract()
+        manifest_alias = describe_selection_contract_manifest()
 
         self.assertEqual(manifest["contract_fingerprint"], manifest["selection_fingerprint"])
         self.assertEqual(
             manifest["selection_contract_fingerprint"],
             manifest["selection_fingerprint"],
         )
+        self.assertEqual(manifest_alias, manifest)
         self.assertEqual(len(manifest["contract_fingerprint"]), 64)
         self.assertEqual(manifest["schema_version"], SELECTION_SCHEMA_VERSION)
         self.assertEqual(manifest["selection_schema_version"], SELECTION_SCHEMA_VERSION)
         self.assertEqual(manifest["selection_version"], SELECTION_SCHEMA_VERSION)
         self.assertEqual(manifest["selection_contract_version"], SELECTION_SCHEMA_VERSION)
+
+    def test_leaf_contract_manifest_alias_helpers_match_the_base_contracts(self) -> None:
+        self.assertEqual(describe_action_contract_manifest(), describe_action_contract())
+        self.assertEqual(describe_card_contract_manifest(), describe_card_contract())
 
     def test_a2ui_leaf_contract_manifest_bundles_action_and_selection_contracts(self) -> None:
         manifest = describe_a2ui_leaf_contracts()
