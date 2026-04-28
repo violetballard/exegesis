@@ -61,7 +61,7 @@
 ### Checkpoint Cadence (short updates)
 
 - plan complete: the handoff is scoped to CLI command-contract hardening for the current engine-first MVP focus and reviews the actual branch tip.
-- first green tests: focused command-catalog tests and the full required gates were rerun on `2026-04-28T18:55:03Z` for this fixer pass.
+- first green tests: focused command-catalog tests and the full required gates were rerun on `2026-04-28T19:01:20Z` for this fixer pass.
 - before risky/shared file edit: risky/shared paths are listed above with the approval rationale.
 - ready for handoff: this packet names the full implementation set and records the latest gate results.
 
@@ -74,7 +74,7 @@
   - aligned `src/qual/cli.py` parser entrypoint metadata with the command catalog so argparse token drift is checked before dispatch.
   - added command workflow and diff-preview helpers under `src/qual/commands/**` while keeping command handlers thin and CLI-oriented.
   - updated scope-check handling for the approved shared command test paths.
-  - added regression tests for canonical-order alignment, alias-only parser drift, exported parser constant alias substitution with stable canonical names, live parser constant drift, parse_args fail-fast behavior under parser constant drift, diff-preview behavior, and command workflow contracts.
+  - added regression tests for canonical-order alignment, the explicit alias-only parser projection drift matrix, exported parser constant alias substitution with stable canonical names, live parser constant drift, parse_args fail-fast behavior under parser constant drift, diff-preview behavior, and command workflow contracts.
   - refreshed `THREAD.md`, `THREAD_PACKET.md`, and `handoff_packets/feat-commands.md` so the handoff reviews the actual tip rather than an older narrow slice.
 - tasks completed (numbered):
   1. Validated `command_cli_contract()` against the full parser entrypoint projection and lookup table, including alias-only drift cases where canonical names remain stable. Canonical demo-path step: `continue working`.
@@ -119,7 +119,7 @@
   - none; this change does not touch model routing or provider configuration.
 - reviewer-fix satisfaction note:
   1. Required fix 1 is satisfied by `src/qual/commands/catalog.py`: `command_cli_contract()` validates the declared catalog entrypoint projection, live parser entrypoint projection, canonical-name order, accepted CLI token tuple, token-to-command lookup table, and reconstructed grouped projection.
-  2. Required fix 2 is satisfied by `tests/unit/test_commands_catalog.py`: regression coverage rejects alias-only parser drift, token substitution, token removal, token reorder, extra aliases, live parser constant drift, and stable-canonical-name drift cases.
+  2. Required fix 2 is satisfied by `tests/unit/test_commands_catalog.py`: regression coverage rejects the explicit alias-only parser projection drift matrix, including token removal, token substitution, token reorder, extra aliases, live parser constant drift, and stable-canonical-name drift cases.
   3. Required fix 3 is satisfied by this actual-tip handoff packet: the implementation file list includes all non-metadata changes, and the packet no longer labels test or implementation changes as metadata-only.
   4. Required fix 4 is satisfied by the canonical demo-path mapping above and by the numbered completed tasks, each of which names the demo-path step it supports.
-  5. Required fix 5 is satisfied by rerunning and reporting the full required gates after the corrected implementation and packet are in place.
+  5. Required fix 5 is satisfied by rerunning and reporting the full required gates after the explicit drift-matrix regression and packet refresh are in place.

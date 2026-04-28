@@ -55,7 +55,7 @@ Canonical handoff contract lives in `THREAD_PACKET.md`.
 2. `tests/unit/test_commands_catalog.py` includes alias-only parser drift coverage where canonical names remain stable but parser tokens or lookup rows change.
 3. `THREAD_PACKET.md` and `handoff_packets/feat-commands.md` now review the actual branch tip and do not label test or implementation changes as metadata-only.
 4. Each numbered completed task names the canonical demo-path step it supports, with `continue working` called out as the step made most real.
-5. The full required gates were rerun after the corrected implementation and packet were in place.
+5. The full required gates were rerun after the explicit alias-only drift matrix regression and packet refresh were in place.
 
 ## Required Gates
 
