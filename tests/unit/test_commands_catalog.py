@@ -155,7 +155,7 @@ class CommandCatalogTests(unittest.TestCase):
         with patch.object(
             command_catalog,
             "_CLI_ENTRYPOINTS",
-            ("bootstrap", "diff-preview", "project", "context-basket", "terminal"),
+            ("open", "diff-preview", "diff", "context-basket", "terminal"),
         ):
             with self.assertRaisesRegex(ValueError, "Command CLI tokens are inconsistent"):
                 command_catalog.command_cli_contract()
