@@ -40,9 +40,9 @@ Parser/catalog drift validation is needed now because the CLI is the active oper
 
 1. `command_cli_contract()` validates the full declared parser surface: grouped parser projection, CLI token tuple, lookup table, and canonical command order.
 2. Regression coverage patches `_CLI_ENTRYPOINTS` for added valid alias, removed accepted token, substituted valid token, and parser-token reorder drift.
-3. Changed-file accounting includes both metadata updates, `THREAD.md` and `THREAD_PACKET.md`.
-4. The only approved non-owned path remains `tests/unit/test_commands_catalog.py`; there are no integrator-locked edits in the final review tree.
-5. The required gates were rerun on the exact final commit submitted.
+3. Handoff mapping names the canonical demo-path step advanced by each completed task and states the final demo-path step made more real.
+4. The required gates were rerun after the parser-surface validation, regression tests, and handoff mapping were aligned.
+5. The only approved non-owned path remains `tests/unit/test_commands_catalog.py`; there are no integrator-locked edits in the final review tree.
 
 ## Required Gates
 
@@ -53,4 +53,4 @@ Parser/catalog drift validation is needed now because the CLI is the active oper
 - `./typecheck-test.sh`: PASS
 - `make ci`: PASS
 
-Latest fixer pass: `fixer__feat-commands__20260428T204632Z` requested full parser-surface drift validation, matching regression tests, complete metadata-file accounting, and a full gate rerun. This pass keeps the implementation path and aligns the packet claims with the final tree.
+Latest fixer pass: `fixer__feat-commands__20260428T205234Z` requested full parser-surface drift validation, matching regression tests for added/removed/substituted/reordered parser tokens, canonical demo-path mapping in the handoff, and a full gate rerun. This pass keeps the implementation narrow and aligns the packet claims with the final tree.
