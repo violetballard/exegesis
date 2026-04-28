@@ -3,7 +3,7 @@
 ## Thread Kickoff (High-Risk)
 
 - Branch: `codex/feat-commands`
-- Review basis: actual submitted branch tip after this reviewer-fix commit, including every implementation and handoff file listed below. Do not review against the older `f8d860ed9f6299f0169c4f21321ac5f37c949fd3` two-file slice.
+- Review basis: actual submitted branch tip for this fixer commit, including every implementation and handoff file listed below. Do not review against the older `f8d860ed9f6299f0169c4f21321ac5f37c949fd3` two-file slice.
 - Implementation-file accounting basis: actual branch tip relative to `f8d860ed9f6299f0169c4f21321ac5f37c949fd3`, including all follow-up implementation, test, scope-check, and handoff commits.
 - Lane/owned paths: `src/qual/commands/**`
 - Shared / integrator-locked ownership statement:
@@ -38,7 +38,7 @@
 - Task budget: `4`
 - Time budget: `30m`
 - Size limits: exceeded by existing branch history before this fixer pass; this packet makes the overage explicit for reviewer/integrator risk assessment rather than hiding implementation files behind a metadata-only claim.
-- Size accounting before this reviewer-fix metadata update: `12 files changed, 12853 insertions(+), 983 deletions(-)` across the actual branch tip relative to `f8d860ed9f6299f0169c4f21321ac5f37c949fd3`; the required gates below were rerun after this packet correction.
+- Size accounting for the actual submitted tip relative to `f8d860ed9f6299f0169c4f21321ac5f37c949fd3`: `12 files changed, 12853 insertions(+), 983 deletions(-)` before this metadata-only fixer update. This exceeds normal high-risk size limits and is routed for reviewer/integrator exception.
 - Exception route: high-risk branch-size overage requires reviewer/integrator exception; this handoff is not claiming normal high-risk size compliance.
 - Max fix attempts per failing gate: `2`
 
@@ -64,7 +64,7 @@
 ### Checkpoint Cadence (short updates)
 
 - plan complete: the handoff is scoped to CLI command-contract hardening for the current engine-first MVP focus and reviews the actual branch tip.
-- first green tests: focused command-catalog tests passed on `2026-04-28T19:54:10Z`, including the reviewer-requested extra alias and alias-first parser drift regressions; the full required gates were rerun after the final packet refresh for this fixer pass.
+- first green tests: focused command-catalog tests passed, including the reviewer-requested extra alias and alias-first parser drift regressions; the full required gates are reported below for this regenerated packet.
 - before risky/shared file edit: risky/shared paths are listed above with the approval rationale.
 - pre-handoff demo-path readiness: canonical demo-path step now made more real is `continue working`; the concrete blocker removed is silent parser/catalog drift that could let follow-up CLI operator turns continue through an unexpected command surface.
 - ready for handoff: this packet names the full implementation set and records the latest gate results.
@@ -99,7 +99,7 @@
   - handoff reviewer-fix update: `THREAD_PACKET.md`
   - handoff reviewer-fix update: `handoff_packets/feat-commands.md`
 - commands run + outcomes:
-  - latest fixer evidence timestamp: `2026-04-28T19:54:10Z`
+  - final fixer validation sequence for this regenerated packet:
   - `python -m unittest tests.unit.test_commands_catalog.CommandCatalogTests.test_command_cli_contract_rejects_extra_alias_entrypoint_when_canonical_order_still_matches tests.unit.test_commands_catalog.CommandCatalogTests.test_command_cli_contract_rejects_reordered_parser_projection_when_tokens_change_but_names_do_not tests.unit.test_commands_catalog.CommandCatalogTests.test_command_cli_contract_rejects_alias_substitution_when_parser_projection_keeps_same_name_order` -> passed
   - `python -m unittest tests.unit.test_commands_catalog` -> passed
   - `make scope-check` -> passed
@@ -123,9 +123,10 @@
 - routing/provider impact note:
   - none; this change does not touch model routing or provider configuration.
 - reviewer-fix satisfaction note:
-  1. Required fix 1 is satisfied by `command_cli_contract()` validating the declared catalog projection, live parser projection, accepted token tuple, canonical-name tuple, and lookup table instead of only deduplicated canonical names.
-  2. Required fix 2 is satisfied by alias-only parser drift regressions covering alias substitution, extra accepted aliases, missing canonical tokens, and parser-token reordering while canonical names stay stable.
-  3. Required fix 3 is satisfied by the per-task canonical demo-path mapping and the final pre-handoff statement naming `continue working` as the demo-path step made more real.
-  4. Required fix 4 is satisfied by the shared / integrator-locked ownership statement, which separates the approved shared-test exception from the actual-tip `src/qual/cli.py` shared-by-approval and integrator-locked exception.
+  1. Required fix 1 is satisfied by making the full actual branch tip the only review basis and explicitly excluding the older narrow `f8d860ed9f6299f0169c4f21321ac5f37c949fd3` slice as the review target.
+  2. Required fix 2 is satisfied by listing every changed implementation, test, scope-check, and handoff file, and by calling out `src/qual/cli.py`, `scripts/scope-check.sh`, and the shared tests with approval/exception context.
+  3. Required fix 3 is satisfied by replacing normal budget-compliance claims with high-risk accounting: `12 files changed, 12853 insertions(+), 983 deletions(-)` before this metadata-only fixer update, with reviewer/integrator exception routing required.
+  4. Required fix 4 is satisfied by the per-task canonical demo-path mapping and the final pre-handoff statement naming `continue working` as the demo-path step made more real.
+  5. Required fix 5 is satisfied by rerunning and reporting the full required gate sequence against this regenerated full-tip review basis.
 - reviewer-fix closure note:
   - This closure keeps the actual submitted branch tip as the only review basis, preserves the full alias-only parser drift protection already present in the branch, corrects the actual-tip size/file accounting, and records fresh required-gate evidence for the final metadata state.
