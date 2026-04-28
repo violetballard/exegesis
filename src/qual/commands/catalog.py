@@ -167,7 +167,7 @@ def _validate_cli_entrypoints() -> None:
         seen_entrypoints.add(normalized_entrypoint)
         if command_spec_for(COMMAND_SPECS, entrypoint) is None:
             raise ValueError(f"Unknown CLI command entrypoint: {entrypoint}")
-    if tuple(_CLI_ENTRYPOINTS) != _declared_cli_tokens():
+    if tuple(_CLI_ENTRYPOINTS) != _DECLARED_CLI_ENTRYPOINTS:
         raise ValueError("Command CLI tokens are inconsistent")
 
 
@@ -220,9 +220,10 @@ _CLI_COMMAND_SURFACE: tuple[tuple[str, tuple[str, ...]], ...] = (
     ("context-basket", ("context-basket",)),
     ("terminal", ("terminal",)),
 )
-_CLI_ENTRYPOINTS: tuple[str, ...] = tuple(
+_DECLARED_CLI_ENTRYPOINTS: tuple[str, ...] = tuple(
     entrypoint for _, entrypoints in _CLI_COMMAND_SURFACE for entrypoint in entrypoints
 )
+_CLI_ENTRYPOINTS: tuple[str, ...] = _DECLARED_CLI_ENTRYPOINTS
 DEMO_COMMAND_FLOW_STEPS: tuple[str, ...] = (
     "project-open",
     "retrieval",

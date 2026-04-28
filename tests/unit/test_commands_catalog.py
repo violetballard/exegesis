@@ -140,6 +140,16 @@ class CommandCatalogTests(unittest.TestCase):
             with self.assertRaisesRegex(ValueError, "Command CLI tokens are inconsistent"):
                 command_catalog.command_cli_contract()
 
+    def test_command_cli_tokens_reject_extra_accepted_alias_drift(self) -> None:
+        self._clear_cli_caches()
+        with patch.object(
+            command_catalog,
+            "_CLI_ENTRYPOINTS",
+            ("bootstrap", "open", "diff-preview", "diff", "context-basket", "terminal"),
+        ):
+            with self.assertRaisesRegex(ValueError, "Command CLI tokens are inconsistent"):
+                command_catalog.command_cli_tokens()
+
     def test_command_cli_contract_rejects_removed_accepted_alias_drift(self) -> None:
         self._clear_cli_caches()
         with patch.object(
@@ -215,7 +225,7 @@ class CommandCatalogTests(unittest.TestCase):
             ("terminal", ("terminal",)),
         )
         with patch.object(command_catalog, "_CLI_COMMAND_SURFACE", drifted_surface):
-            with self.assertRaisesRegex(ValueError, "Command CLI tokens are inconsistent"):
+            with self.assertRaisesRegex(ValueError, "Command CLI parser surface is inconsistent"):
                 command_catalog.command_cli_contract()
 
     def test_command_cli_lookup_table_resolves_through_the_catalog(self) -> None:

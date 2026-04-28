@@ -3,7 +3,7 @@
 ## Thread Kickoff (High-Risk)
 
 - Branch: `codex/feat-commands`
-- Review basis: final branch tip after this `2026-04-28T22:24:38Z` fixer pass for reviewer packet `20260428T222227Z`; implementation, tests, and handoff metadata are reviewed together.
+- Review basis: final branch tip after this `2026-04-28T22:32:52Z` fixer pass for reviewer packet `20260428T223211Z`; implementation, tests, and handoff metadata are reviewed together.
 - Lane/owned paths: `src/qual/commands/**`
 - Scope goal: harden `command_cli_contract()` so the CLI contract stays deterministic, follows canonical command order, and fails fast when the parser surface drifts from the command catalog.
 - Risk reason: this changes the command contract used by the active CLI operator surface while Textual lanes remain disabled.
@@ -20,7 +20,7 @@
 - Shared-by-approval test edit: yes, `tests/unit/test_commands_catalog.py`, covered by the approved shared-test exception.
 - Integrator-locked edits: no.
 - Lane-owned implementation edit: `src/qual/commands/catalog.py`.
-- This packet presents the final branch tip after this `2026-04-28T22:25:15Z` fixer pass as the implementation basis so implementation commits are not hidden behind metadata-only packet refreshes.
+- This packet presents the final branch tip after this `2026-04-28T22:32:52Z` fixer pass as the implementation basis so implementation commits are not hidden behind metadata-only packet refreshes.
 - Previous stale review basis `f8d860ed9f6299f0169c4f21321ac5f37c949fd3` was incomplete because later commits changed `src/qual/commands/catalog.py` and `tests/unit/test_commands_catalog.py`; the corrected branch-tip basis supersedes it for re-review.
 
 ### Implementation Basis
@@ -30,7 +30,7 @@
   - `ea0ab36b4 fix(commands): enforce parser surface drift checks`
   - `b438f4554 fix(commands): validate full CLI parser surface`
   - `18c7c627a fix(commands): cover declared CLI surface drift`
-- This `2026-04-28T22:24:38Z` fixer pass addresses reviewer packet `20260428T222227Z` by correcting the actual branch-tip review basis again, preserving all code-bearing catalog/test changes in the reviewed implementation basis, refreshing the packet ownership/demo-path accounting, and rerunning all required gates.
+- This `2026-04-28T22:32:52Z` fixer pass addresses reviewer packet `20260428T223211Z` by keeping the actual branch-tip review basis, preserving all code-bearing catalog/test changes in the reviewed implementation basis, refreshing the packet ownership/demo-path accounting, and rerunning all required gates.
 - Packet-refresh commits after those implementation commits are metadata-only only when they touch `THREAD.md` or `THREAD_PACKET.md`.
 - No commit that modifies `src/qual/commands/catalog.py` or `tests/unit/test_commands_catalog.py` is classified as metadata-only in this packet.
 
@@ -53,7 +53,7 @@
 
 1. Hardened `command_cli_contract()` to validate the full parser surface by comparing grouped parser projection, CLI token tuple, lookup table, and canonical names against the declared command-catalog projection. Canonical demo-path step: `continue working`.
 2. Preserved canonical command ordering in the CLI contract while rejecting alias-only parser drift that keeps the same canonical-name order. Canonical demo-path step: `continue working`.
-3. Added focused regression coverage in `tests/unit/test_commands_catalog.py` for extra accepted alias, removed accepted alias, substituted accepted alias to another known alias with the same canonical command, explicit `diff` to `diff_preview` same-canonical alias substitution, reordered parser-token surface drift, declared-surface alias drift, lookup-table token-substitution drift, and lookup-table shape/order drift. Canonical demo-path step: `continue working`.
+3. Added focused regression coverage in `tests/unit/test_commands_catalog.py` for extra accepted alias at both contract and token-surface levels, removed accepted alias, substituted accepted alias to another known alias with the same canonical command, explicit `diff` to `diff_preview` same-canonical alias substitution, reordered parser-token surface drift, declared-surface alias drift, lookup-table token-substitution drift, and lookup-table shape/order drift. Canonical demo-path step: `continue working`.
 4. Regenerated `THREAD.md` and `THREAD_PACKET.md` so the handoff claims match the final implementation and test coverage. Canonical demo-path step: `continue working`.
 
 ### Files Changed
@@ -80,15 +80,9 @@
 - Reviewer packet `20260428T215506Z` repeated token-level parser-surface validation, parser-surface drift tests, canonical demo-path mapping, and ownership-accounting fixes; focused catalog regressions passed at `2026-04-28T21:55:56Z`.
 - Reviewer packet `20260428T215506Z` required gates passed again at `2026-04-28T21:56:45Z`.
 - Reviewer packet `20260428T215757Z` requested complete branch-tip metadata accounting and no code changes; required gates passed again at `2026-04-28T22:00:00Z`.
-- Reviewer packet `20260428T220047Z` requested actual-branch-tip review basis, parser-surface validation, drift-test citation, canonical demo-path mapping, and ownership accounting; focused catalog regressions and required gates passed at `2026-04-28T22:02:44Z`.
 - Approved reviewer packet `20260428T220257Z` required no code fixes; required gates passed again at `2026-04-28T22:04:00Z`.
-- Reviewer packet `20260428T220712Z` requested branch-tip review-basis correction, parser-surface validation, same-canonical accepted-token substitution coverage, canonical demo-path mapping, and gate rerun; focused catalog regressions and all required gates passed at `2026-04-28T22:10:40Z`.
-- Reviewer packet `20260428T220957Z` requested actual branch-tip review basis, per-task canonical demo-path mapping, precise ownership accounting, and a required gate rerun; all required gates passed at `2026-04-28T22:12:47Z`.
-- Reviewer packet `20260428T221051Z` requested actual branch-tip review basis, per-task canonical demo-path mapping, precise ownership accounting, and a required gate rerun; all required gates passed at `2026-04-28T22:14:40Z`.
-- Reviewer packet `20260428T221436Z` requested actual branch-tip review basis, full parser-surface validation, parser-surface drift tests, canonical demo-path mapping, and a required gate rerun; focused catalog regressions passed at `2026-04-28T22:15:21Z`, and all required gates passed at `2026-04-28T22:17:05Z`.
 - Approved reviewer packet `20260428T221733Z` required no code fixes; required gates passed again at `2026-04-28T22:18:52Z`.
-- Reviewer packet `20260428T222005Z` requested actual branch-tip review basis, full parser-surface validation or branch-basis correction, per-task canonical demo-path mapping, precise ownership accounting, and a required gate rerun; all required gates passed at `2026-04-28T22:22:05Z`.
-- Reviewer packet `20260428T222227Z` repeated actual branch-tip review basis, full parser-surface validation or branch-basis correction, drift-test coverage, canonical demo-path mapping, ownership accounting, and required gate rerun; all required gates passed at `2026-04-28T22:24:38Z`.
+- Reviewer packet `20260428T222600Z` requested `_CLI_ENTRYPOINTS` drift rejection, an extra known alias regression, and canonical demo-path mapping; focused catalog regressions and all required gates passed at `2026-04-28T22:28:37Z`.
 
 ### Risks / Blockers
 
@@ -108,11 +102,12 @@
 
 ### Required Fix Satisfaction
 
-1. Reviewer fix 1, regenerate packet against actual branch tip: satisfied by the `Implementation Basis` section. This packet uses the final branch tip after this `2026-04-28T22:24:38Z` fixer pass as the review basis and does not mark code-bearing catalog/test commits as metadata-only.
+1. Reviewer fix 1, regenerate packet against actual branch tip: satisfied by the `Implementation Basis` section. This packet uses the final branch tip after this `2026-04-28T22:32:52Z` fixer pass as the review basis and does not mark code-bearing catalog/test commits as metadata-only.
 2. Reviewer fix 2, full parser-surface validation: satisfied by `command_cli_contract()` validating accepted token tuple, grouped parser projection, lookup table shape/order, and canonical names against the declared command-catalog projection.
 3. Reviewer fix 3, drift regression tests: satisfied by focused tests for extra accepted alias, removed accepted alias, substituted accepted alias to another known alias with the same canonical command, parser-token reorder preserving canonical names, declared-surface alias drift, grouped token-to-canonical drift, lookup-table token-substitution drift, and lookup-table shape/order drift.
 4. Reviewer fix 4, canonical demo-path mapping: satisfied by per-task `continue working` mappings and the final statement that this handoff makes that step more real while Textual remains disabled.
 5. Reviewer fix 5, complete metadata-only accounting: satisfied by the `Files Changed` and `Shared / Integrator-Locked Accounting` sections, which list `THREAD.md` and `THREAD_PACKET.md` as metadata-only packet files, record the approved shared-by-approval test edit, and confirm no integrator-locked edits.
+6. Reviewer fix 6, rerun required gates: `python -m unittest tests.unit.test_commands_catalog`, `make scope-check`, `./quality-format.sh --check`, `./quality-lint.sh`, `./quality-test.sh`, `./typecheck-test.sh`, and `make ci` all passed at `2026-04-28T22:34:02Z`.
 
 ### Reviewer Packet `20260428T213854Z` Fix Satisfaction
 
@@ -180,72 +175,9 @@
 2. Implementation review basis: unchanged; this pass keeps the command-catalog implementation and tests as-is and makes no code edits to `src/qual/commands/catalog.py` or `tests/unit/test_commands_catalog.py`.
 3. Gate restatement after metadata correction: required gates passed again at `2026-04-28T22:00:00Z`.
 
-### Reviewer Packet `20260428T220047Z` Fix Satisfaction
+### Reviewer Packet `20260428T222600Z` Fix Satisfaction
 
-1. Required fix 1, regenerate packet against actual branch tip: satisfied by this packet using the final branch tip after the `2026-04-28T22:01:42Z` fixer pass as the review basis and including all code-bearing `src/qual/commands/catalog.py` and `tests/unit/test_commands_catalog.py` commits in the implementation basis.
-2. Required fix 2, full parser-surface validation: satisfied at branch tip by `command_cli_contract()` validating accepted token tuple, grouped parser projection, lookup-table shape/order, and canonical names against `_CLI_COMMAND_SURFACE`.
-3. Required fix 3, drift regression tests: satisfied by focused tests for alias substitution, added accepted alias, removed accepted alias, parser-token reordering, declared-surface alias drift, grouped parser drift, lookup-table token substitution, and lookup-table shape/order drift.
-4. Required fix 4, canonical demo-path mapping: satisfied by per-task `continue working` mappings and the final statement that this handoff makes stable follow-up CLI operation more real while Textual remains disabled.
-5. Required fix 5, ownership accounting: satisfied by listing `tests/unit/test_commands_catalog.py` as the approved shared-by-approval test edit and confirming integrator-locked edits are `no`.
-6. Final verification: focused catalog regressions and all required gates passed at `2026-04-28T22:02:44Z`.
+1. Required fix 1, reject unintended `_CLI_ENTRYPOINTS` drift: satisfied by validating `_CLI_ENTRYPOINTS` against the frozen `_DECLARED_CLI_ENTRYPOINTS` tuple before building command CLI tokens or lookup tables, so adding a known alias such as `open` fails even when it maps to an already-covered canonical command.
+2. Required fix 2, extra known alias regression: satisfied by `test_command_cli_contract_rejects_extra_accepted_alias_drift` and `test_command_cli_tokens_reject_extra_accepted_alias_drift`, both patching `_CLI_ENTRYPOINTS` with `open` and expecting `Command CLI tokens are inconsistent`.
+3. Required fix 3, canonical demo-path mapping: satisfied by the per-task `continue working` mappings and final statement that this handoff makes that step more real while Textual remains disabled.
 
-### Reviewer Packet `20260428T220257Z` Fix Satisfaction
-
-1. Reviewer verdict: `APPROVED`.
-2. Required fixes before re-review: none.
-3. Fixer action: no code changes were needed; this pass records the approval and reruns all required gates on the final tree.
-4. Final verification: required gates passed again at `2026-04-28T22:04:00Z`.
-
-### Reviewer Packet `20260428T220712Z` Fix Satisfaction
-
-1. Required fix 1, regenerate packet against actual branch tip: satisfied by this packet using the final branch tip after the `2026-04-28T22:10:40Z` fixer pass as the review basis and keeping code-bearing catalog/test commits in the implementation basis.
-2. Required fix 2, full parser-surface validation: satisfied at branch tip by `command_cli_contract()` validating accepted token tuple, grouped parser projection, lookup-table shape/order, and canonical names against `_CLI_COMMAND_SURFACE`.
-3. Required fix 3, drift regression tests: satisfied by focused tests for added accepted alias, removed accepted alias, substituted accepted alias to another known alias with the same canonical command, parser-token reordering, declared-surface alias drift, grouped parser drift, lookup-table token substitution, and lookup-table shape/order drift.
-4. Required fix 4, canonical demo-path mapping: satisfied by per-task `continue working` mappings and the final statement that this handoff makes stable follow-up CLI operation more real while Textual remains disabled.
-5. Required fix 5, gate rerun: focused catalog regressions and all required gates passed at `2026-04-28T22:10:40Z`.
-
-### Reviewer Packet `20260428T220957Z` Fix Satisfaction
-
-1. Required fix 1, actual review basis: satisfied by this packet using the final branch tip after the `2026-04-28T22:12:47Z` fixer pass as the review basis and including all code-bearing catalog/test changes in that basis.
-2. Required fix 2, canonical demo-path mapping: satisfied by the numbered `Tasks Completed` entries, each mapped to `continue working`.
-3. Required fix 3, precise ownership accounting: satisfied by listing `src/qual/commands/catalog.py` as lane-owned, `tests/unit/test_commands_catalog.py` as approved shared-by-approval, and integrator-locked edits as `no`.
-4. Required fix 4, gate rerun: all required gates passed at `2026-04-28T22:12:47Z` on the corrected review basis.
-
-### Reviewer Packet `20260428T221051Z` Fix Satisfaction
-
-1. Required fix 1, actual review basis: satisfied by this packet using the final branch tip after the `2026-04-28T22:14:40Z` fixer pass as the review basis and including all code-bearing catalog/test changes after `f8d860ed9f6299f0169c4f21321ac5f37c949fd3`.
-2. Required fix 2, canonical demo-path mapping: satisfied by the numbered `Tasks Completed` entries, each mapped to `continue working`.
-3. Required fix 3, precise ownership accounting: satisfied by listing `src/qual/commands/catalog.py` as lane-owned, `tests/unit/test_commands_catalog.py` as approved shared-by-approval, and integrator-locked edits as `no`.
-4. Required fix 4, gate rerun: `make scope-check`, `./quality-format.sh --check`, `./quality-lint.sh`, `./quality-test.sh`, `./typecheck-test.sh`, and `make ci` all passed at `2026-04-28T22:14:40Z` on the corrected review basis.
-
-### Reviewer Packet `20260428T221436Z` Fix Satisfaction
-
-1. Required fix 1, actual review basis: satisfied by this packet using the final branch tip after the `2026-04-28T22:15:21Z` fixer pass as the review basis and including all code-bearing catalog/test changes after `f8d860ed9f6299f0169c4f21321ac5f37c949fd3`.
-2. Required fix 2, full parser-surface validation: satisfied by `command_cli_contract()` validating accepted token tuple, grouped parser projection, lookup-table shape/order, and canonical names against `_CLI_COMMAND_SURFACE`.
-3. Required fix 3, parser-surface drift tests: satisfied by focused tests for added accepted alias, removed accepted alias, substituted accepted alias to another known alias with the same canonical command, parser-token reordering, declared-surface alias drift, grouped token-to-canonical drift, lookup-table token substitution, and lookup-table shape/order drift.
-4. Required fix 4, canonical demo-path mapping: satisfied by the numbered `Tasks Completed` entries, each mapped to `continue working`, and by the final statement that this handoff makes that step more real.
-5. Required fix 5, gate rerun: focused catalog regressions passed at `2026-04-28T22:15:21Z`; `make scope-check`, `./quality-format.sh --check`, `./quality-lint.sh`, `./quality-test.sh`, `./typecheck-test.sh`, and `make ci` all passed at `2026-04-28T22:17:05Z`.
-
-### Reviewer Packet `20260428T221733Z` Fix Satisfaction
-
-1. Reviewer verdict: `APPROVED`.
-2. Required fixes before re-review: none.
-3. Fixer action: no code changes were needed; this pass records the approval and reruns all required gates on the final tree.
-4. Final verification: `make scope-check`, `./quality-format.sh --check`, `./quality-lint.sh`, `./quality-test.sh`, `./typecheck-test.sh`, and `make ci` all passed at `2026-04-28T22:18:52Z`.
-
-### Reviewer Packet `20260428T222005Z` Fix Satisfaction
-
-1. Required fix 1, actual review basis: satisfied by presenting the final branch tip after this fixer pass as the review basis and keeping all code-bearing `src/qual/commands/catalog.py` and `tests/unit/test_commands_catalog.py` changes in scope.
-2. Required fix 2, full parser-surface drift rejection: already satisfied at branch tip by `command_cli_contract()` checking grouped parser projection, accepted token tuple, lookup-table shape/order, and canonical names against `_CLI_COMMAND_SURFACE`; this pass does not submit stale commit `f8d860ed9f6299f0169c4f21321ac5f37c949fd3` as the review basis.
-3. Required fix 3, canonical demo-path mapping and blocker: every completed task maps to `continue working`, and the concrete blocker removed is preventing follow-up CLI turns for open/retrieve/basket/revise/patch/save from continuing through a silently drifted parser surface.
-4. Required fix 4, ownership accounting: `src/qual/commands/catalog.py` is lane-owned, `tests/unit/test_commands_catalog.py` is the approved shared-by-approval test edit, `THREAD.md` and `THREAD_PACKET.md` are metadata-only packet files, and integrator-locked edits are `no`.
-5. Required fix 5, gate rerun: `make scope-check`, `./quality-format.sh --check`, `./quality-lint.sh`, `./quality-test.sh`, `./typecheck-test.sh`, and `make ci` all passed at `2026-04-28T22:22:05Z`.
-
-### Reviewer Packet `20260428T222227Z` Fix Satisfaction
-
-1. Required fix 1, actual review basis: satisfied by presenting the final branch tip after this fixer pass as the review basis and keeping all code-bearing `src/qual/commands/catalog.py` and `tests/unit/test_commands_catalog.py` changes in scope.
-2. Required fix 2, full parser-surface drift rejection: already satisfied at branch tip by `command_cli_contract()` checking grouped parser projection, accepted token tuple, lookup-table shape/order, and canonical names against `_CLI_COMMAND_SURFACE`; this pass does not submit stale commit `f8d860ed9f6299f0169c4f21321ac5f37c949fd3` as the review basis.
-3. Required fix 3, parser-surface drift coverage: satisfied by focused regressions for added accepted alias, removed accepted alias, same-canonical alias substitution, explicit `diff` to `diff_preview` same-canonical alias substitution, parser-token reorder, declared-surface alias drift, grouped parser drift, lookup-table token substitution, and lookup-table shape/order drift.
-4. Required fix 4, canonical demo-path mapping and blocker: every completed task maps to `continue working`, and the concrete blocker removed is preventing follow-up CLI turns for open/retrieve/basket/revise/patch/save from continuing through a silently drifted parser surface.
-5. Required fix 5, ownership accounting: `src/qual/commands/catalog.py` is lane-owned, `tests/unit/test_commands_catalog.py` is the approved shared-by-approval test edit, `THREAD.md` and `THREAD_PACKET.md` are metadata-only packet files, and integrator-locked edits are `no`.
-6. Required fix 6, gate rerun: `make scope-check`, `./quality-format.sh --check`, `./quality-lint.sh`, `./quality-test.sh`, `./typecheck-test.sh`, and `make ci` all passed at `2026-04-28T22:24:38Z`.
