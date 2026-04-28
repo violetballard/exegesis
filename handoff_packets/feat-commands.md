@@ -4,7 +4,7 @@
 
 - Branch: `codex/feat-commands`
 - Review basis: actual submitted branch tip, including all implementation files listed below. Do not review against the older `f8d860ed9f6299f0169c4f21321ac5f37c949fd3` slice.
-- Implementation-file accounting basis: `f8d860ed9f6299f0169c4f21321ac5f37c949fd3..f175b28266c0981c89c20f74b31c37c25f232277`, plus this metadata-only fixer commit.
+- Implementation-file accounting basis: `f8d860ed9f6299f0169c4f21321ac5f37c949fd3..f175b28266c0981c89c20f74b31c37c25f232277`, plus the later metadata-only reviewer-fix finalization commits.
 - Lane/owned paths: `src/qual/commands/**`
 - Shared / integrator-locked ownership statement:
   - Integrator-locked edit: `src/qual/cli.py`, explicitly listed as shared-by-approval for `codex/feat-commands*` in `THREAD_OWNERSHIP.md`; this handoff includes it because the live argparse surface must expose the same CLI entrypoint projection validated by the command catalog.
@@ -61,7 +61,7 @@
 ### Checkpoint Cadence (short updates)
 
 - plan complete: the handoff is scoped to Milestone 3 CLI command-contract hardening and reviews the actual branch tip.
-- first green tests: full required gates were rerun on `2026-04-28T18:51:29Z` for this fixer pass.
+- first green tests: focused command-catalog tests and the full required gates were rerun on `2026-04-28T18:53:19Z` for this fixer pass.
 - before risky/shared file edit: risky/shared paths are listed above with the approval rationale.
 - ready for handoff: this packet names the full implementation set and records the latest gate results.
 
@@ -95,14 +95,14 @@
   - metadata-only handoff refresh: `THREAD_PACKET.md`
   - metadata-only handoff refresh: `handoff_packets/feat-commands.md`
 - commands run + outcomes:
-  - latest fixer evidence timestamp: `2026-04-28T18:51:29Z`
+  - latest fixer evidence timestamp: `2026-04-28T18:53:19Z`
   - `python -m unittest tests.unit.test_commands_catalog` -> passed (`Ran 163 tests`; `OK`)
   - `make scope-check` -> passed
   - `./quality-format.sh --check` -> passed
   - `./quality-lint.sh` -> passed
-  - `./quality-test.sh` -> passed (`Ran 246 tests`; `OK`)
+  - `./quality-test.sh` -> passed (`Ran 247 tests`; `OK`)
   - `./typecheck-test.sh` -> passed
-  - `make ci` -> passed (`CI entrypoint completed`; unit suite reported `Ran 246 tests`; `OK`)
+  - `make ci` -> passed (`CI entrypoint completed`; unit suite reported `Ran 247 tests`; `OK`)
 - risks/blockers:
   - risk: high. This branch already exceeds the normal high-risk size budget and touches the shared CLI parser surface; the packet now makes that explicit for review instead of narrowing the claimed basis.
   - blockers: none.
