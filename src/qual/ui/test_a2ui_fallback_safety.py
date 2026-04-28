@@ -3260,6 +3260,14 @@ class A2UIFallbackSafetyTests(unittest.TestCase):
             route_manifest,
         )
         self.assertEqual(
+            manifest["shell_ui_contract"]["terminal_artifact_rendering_contract_manifest"],
+            describe_terminal_artifact_rendering_contract(),
+        )
+        self.assertEqual(
+            manifest["shell_ui_contract"]["terminal_artifact_rendering_contract_manifest_fingerprint"],
+            terminal_artifact_rendering_contract_fingerprint(),
+        )
+        self.assertEqual(
             manifest["terminal_artifact_cli_fallback_entrypoint_contract_manifest"],
             describe_terminal_artifact_cli_fallback_entrypoint_contract(),
         )
@@ -7217,6 +7225,14 @@ class A2UIFallbackSafetyTests(unittest.TestCase):
             terminal_artifact_cli_fallback_route_contract_fingerprint(),
         )
         self.assertEqual(
+            fingerprints["terminal_artifact_rendering_contract_manifest"],
+            terminal_artifact_rendering_contract_fingerprint(),
+        )
+        self.assertEqual(
+            fingerprints["terminal_artifact_rendering_contract_manifest_fingerprint"],
+            terminal_artifact_rendering_contract_fingerprint(),
+        )
+        self.assertEqual(
             fingerprints["terminal_artifact_cli_fallback_route_contract_fingerprints_fingerprint"],
             route_contract["contract_fingerprints_fingerprint"],
         )
@@ -7363,6 +7379,14 @@ class A2UIFallbackSafetyTests(unittest.TestCase):
         self.assertEqual(
             fingerprints["terminal_artifact_cli_fallback_contract_manifest"],
             terminal_artifact_cli_fallback_contract_fingerprint(),
+        )
+        self.assertEqual(
+            fingerprints["terminal_artifact_rendering_contract_manifest"],
+            terminal_artifact_rendering_contract_fingerprint(),
+        )
+        self.assertEqual(
+            fingerprints["terminal_artifact_rendering_contract_manifest_fingerprint"],
+            terminal_artifact_rendering_contract_fingerprint(),
         )
         self.assertEqual(
             fingerprints["terminal_fallback_contract_manifest_fingerprint"],
