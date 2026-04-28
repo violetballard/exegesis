@@ -79,7 +79,7 @@
 
 ### Required Fix Satisfaction
 
-1. Required fix 1 is satisfied by validating the full expected CLI token tuple and lookup table through `command_cli_contract()`, not just deduplicated canonical names.
-2. Required fix 2 is satisfied by regression tests covering extra accepted alias, removed accepted alias, substituted accepted alias, and reordered parser token surface while canonical names remain stable.
-3. Required fix 3 is satisfied by using the full current branch tip as the review basis and listing both implementation and packet files in the handoff.
+1. Required fix 1 is satisfied by using the full current branch tip as the review basis and listing both implementation and packet files in the handoff.
+2. Required fix 2 is satisfied by validating the full expected CLI token tuple and lookup table through `command_cli_contract()`, not just deduplicated canonical names.
+3. Required fix 3 is satisfied by regression tests covering extra accepted alias, removed accepted alias, substituted accepted alias, and reordered parser token surface while canonical names remain stable.
 4. Required fix 4 is satisfied by keeping the roadmap/vision mapping narrow: Milestone 3 CLI compatibility for the engine-first `continue working` loop only, with no persistence, retrieval, provider, Textual, or A2UI claim.

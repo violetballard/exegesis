@@ -39,9 +39,9 @@ Parser/catalog drift validation is needed now because the CLI is the active oper
 
 ## Required Fix Satisfaction
 
-1. `command_cli_contract()` now validates the full expected CLI token tuple and lookup table, not just deduplicated canonical names.
-2. Regression coverage now includes extra accepted alias, removed accepted alias, substituted accepted alias, and reordered parser-token drift while canonical names remain stable.
-3. Packet metadata now uses the full current branch tip as the review basis instead of pinning review to an older implementation commit.
+1. Packet metadata now uses the full current branch tip as the review basis instead of pinning review to an older implementation commit, so `9df1a4e32` and later branch-tip changes are in scope for review.
+2. `command_cli_contract()` now validates the full expected CLI token tuple and lookup table, not just deduplicated canonical names.
+3. Regression coverage now includes extra accepted alias, removed accepted alias, substituted accepted alias, and reordered parser-token drift while canonical names remain stable.
 4. Roadmap/vision mapping stays limited to Milestone 3 CLI compatibility for the engine-first `continue working` loop.
 
 ## Required Gates
