@@ -79,6 +79,7 @@
 - Reviewer packet `20260428T214935Z` repeated parser-surface validation, parser-surface drift test, canonical demo-path mapping, and ownership-accounting fixes; required gates passed again at `2026-04-28T21:52:01Z`.
 - Reviewer packet `20260428T215506Z` repeated token-level parser-surface validation, parser-surface drift tests, canonical demo-path mapping, and ownership-accounting fixes; focused catalog regressions passed at `2026-04-28T21:55:56Z`.
 - Reviewer packet `20260428T215506Z` required gates passed again at `2026-04-28T21:56:45Z`.
+- Reviewer packet `20260428T215757Z` requested complete branch-tip metadata accounting and no code changes; required gates passed again at `2026-04-28T22:00:00Z`.
 
 ### Risks / Blockers
 
@@ -163,3 +164,9 @@
 4. Required fix 4, ownership accounting: satisfied by listing `tests/unit/test_commands_catalog.py` as the approved shared-by-approval edit and confirming integrator-locked edits are `no`.
 5. Focused verification: `python -m unittest tests.unit.test_commands_catalog` passed at `2026-04-28T21:55:56Z`.
 6. Final verification: required gates passed again at `2026-04-28T21:56:45Z`.
+
+### Reviewer Packet `20260428T215757Z` Fix Satisfaction
+
+1. Complete branch-tip metadata accounting: satisfied by listing both `THREAD.md` and `THREAD_PACKET.md` as metadata-only handoff updates in `Files Changed`, and by the shared/integrator-locked accounting above.
+2. Implementation review basis: unchanged; this pass keeps the command-catalog implementation and tests as-is and makes no code edits to `src/qual/commands/catalog.py` or `tests/unit/test_commands_catalog.py`.
+3. Gate restatement after metadata correction: required gates passed again at `2026-04-28T22:00:00Z`.

@@ -94,6 +94,12 @@ Parser/catalog drift validation is needed now because the CLI is the active oper
 3. Canonical demo-path mapping: satisfied by the per-task `continue working` mapping above and the final statement that the stable CLI contract keeps follow-up operator turns from continuing through a drifted parser surface.
 4. Ownership accounting: satisfied by listing `tests/unit/test_commands_catalog.py` as the approved shared-by-approval edit and confirming integrator-locked edits are `no`.
 
+## Reviewer Packet `20260428T215757Z` Fix Satisfaction
+
+1. Complete branch-tip metadata accounting: satisfied by listing `THREAD.md` and `THREAD_PACKET.md` as metadata-only packet files and keeping `tests/unit/test_commands_catalog.py` recorded as the approved shared-by-approval test edit.
+2. Implementation review basis: unchanged; this pass makes no code edits to `src/qual/commands/catalog.py` or `tests/unit/test_commands_catalog.py`.
+3. Gate restatement after metadata correction: required gates passed again at `2026-04-28T22:00:00Z`.
+
 ## Final Verification
 
 - Required gates passed on branch `codex/feat-commands` at `2026-04-28T21:35:44Z`: `make scope-check`, `./quality-format.sh --check`, `./quality-lint.sh`, `./quality-test.sh`, `./typecheck-test.sh`, and `make ci`.
@@ -106,3 +112,4 @@ Parser/catalog drift validation is needed now because the CLI is the active oper
 - Approved reviewer packet `20260428T215233Z` required no code fixes; this pass records the approval and required gates passed again at `2026-04-28T21:54:07Z`.
 - Focused catalog regression check passed at `2026-04-28T21:55:56Z`: `python -m unittest tests.unit.test_commands_catalog`.
 - Reviewer packet `20260428T215506Z` required fixes were verified at branch tip; required gates passed again at `2026-04-28T21:56:45Z`.
+- Reviewer packet `20260428T215757Z` requested complete branch-tip metadata accounting and no code changes; required gates passed again at `2026-04-28T22:00:00Z`.
