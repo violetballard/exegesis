@@ -54,19 +54,20 @@ Canonical handoff contract lives in `THREAD_PACKET.md`.
 
 ## Reviewer Fix Satisfaction
 
-1. Required fix 1 is satisfied by `command_cli_contract()` validating the declared catalog projection, live parser projection, accepted token tuple, canonical-name tuple, and lookup table instead of only deduplicated canonical names.
-2. Required fix 2 is satisfied by alias-only parser drift regressions covering alias substitution, extra accepted aliases, missing canonical tokens, and parser-token reordering while canonical names stay stable.
-3. Required fix 3 is satisfied by the per-task canonical demo-path mapping and the final pre-handoff statement naming `continue working` as the demo-path step made more real.
-4. Required fix 4 is satisfied by the shared / integrator-locked ownership statement in `THREAD_PACKET.md` and `handoff_packets/feat-commands.md`, which separates the approved shared-test exception from the actual-tip `src/qual/cli.py` shared-by-approval and integrator-locked exception.
+1. Required fix 1 is satisfied by making the full actual branch tip the only review basis and explicitly excluding the older narrow `f8d860ed9f6299f0169c4f21321ac5f37c949fd3` slice as the review target.
+2. Required fix 2 is satisfied by listing every changed implementation, test, scope-check, and handoff file, and by calling out `src/qual/cli.py`, `scripts/scope-check.sh`, and the shared tests with approval/exception context.
+3. Required fix 3 is satisfied by replacing normal budget-compliance claims with high-risk accounting: `12 files changed, 12853 insertions(+), 983 deletions(-)` before this metadata-only fixer update, with reviewer/integrator exception routing required.
+4. Required fix 4 is satisfied by the per-task canonical demo-path mapping and the final pre-handoff statement naming `continue working` as the demo-path step made more real.
+5. Required fix 5 is satisfied by rerunning and reporting the full required gate sequence against this regenerated full-tip review basis.
 
 ## Reviewer-Fix Closure
 
-- Reviewer packet `fixer__feat-commands__20260428T194736Z` requested actual-tip traceability, complete file accounting, high-risk size exception routing, per-task demo-path mapping, and fresh gate evidence.
+- Reviewer packet `fixer__feat-commands__20260428T195234Z` requested actual-tip traceability, complete file accounting, high-risk size exception routing, per-task demo-path mapping, and fresh gate evidence.
 - This closure records those fixes and reran the required gates for the final handoff state.
 
 ## Required Gates
 
-- Latest fixer evidence timestamp: `2026-04-28T19:54:10Z`
+- Final fixer validation sequence for this regenerated packet:
 - `python -m unittest tests.unit.test_commands_catalog.CommandCatalogTests.test_command_cli_contract_rejects_extra_alias_entrypoint_when_canonical_order_still_matches tests.unit.test_commands_catalog.CommandCatalogTests.test_command_cli_contract_rejects_reordered_parser_projection_when_tokens_change_but_names_do_not` -> passed
 - `python -m unittest tests.unit.test_commands_catalog` -> passed
 - `make scope-check` -> passed
