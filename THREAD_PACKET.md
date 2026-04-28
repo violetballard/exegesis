@@ -39,10 +39,10 @@
 
 ### Tasks Completed
 
-1. Hardened `command_cli_contract()` to verify canonical-name consistency against `command_names()` and fail fast on parser/catalog drift. Canonical demo-path step: `continue working`.
-2. Preserved canonical command ordering in the CLI contract by returning the validated canonical tuple directly. Canonical demo-path step: `continue working`.
-3. Added regression coverage in `tests/unit/test_commands_catalog.py` for canonical-order alignment and drift rejection. Canonical demo-path step: `continue working`.
-4. Regenerated handoff metadata so the branch metadata stays scoped to the command-catalog slice and uses the current roadmap, vision, ownership, and demo-path labels. Canonical demo-path step: `continue working`.
+1. Hardened `command_cli_contract()` to compare the full grouped parser projection, CLI token tuple, and lookup table against the declared command-catalog projection. Canonical demo-path step: `continue working`.
+2. Preserved canonical command ordering in the CLI contract while rejecting alias-only parser drift that keeps the same canonical-name order. Canonical demo-path step: `continue working`.
+3. Added focused regression coverage in `tests/unit/test_commands_catalog.py` for extra accepted alias, removed accepted alias, substituted accepted alias, and reordered parser-token surface drift. Canonical demo-path step: `continue working`.
+4. Regenerated handoff metadata so all packet-refresh files are listed and the roadmap/vision claim stays limited to Milestone 3 CLI compatibility. Canonical demo-path step: `continue working`.
 
 ### Files Changed
 
@@ -79,7 +79,7 @@
 
 ### Required Fix Satisfaction
 
-1. Required fix 1 is satisfied by mapping each completed task to the `continue working` canonical demo-path step.
-2. Required fix 2 is satisfied by the blocker statement explaining why fail-fast parser/catalog drift validation is needed now for the CLI-first engine loop.
-3. Required fix 3 is satisfied by separating the approved shared-by-approval test edit from integrator-locked accounting and stating that no integrator-locked files changed.
-4. Required fix 4 is satisfied by pinning the reviewed implementation basis to `f8d860ed9f6299f0169c4f21321ac5f37c949fd3` and not expanding this packet beyond the command-catalog slice.
+1. Required fix 1 is satisfied by validating the full expected CLI token tuple and lookup table through `command_cli_contract()`, not just deduplicated canonical names.
+2. Required fix 2 is satisfied by regression tests covering extra accepted alias, removed accepted alias, substituted accepted alias, and reordered parser token surface while canonical names remain stable.
+3. Required fix 3 is satisfied by listing all packet-refresh files: `THREAD.md`, `THREAD_PACKET.md`, and `handoff_packets/feat-commands.md`.
+4. Required fix 4 is satisfied by keeping the roadmap/vision mapping narrow: Milestone 3 CLI compatibility for the engine-first `continue working` loop only, with no persistence, retrieval, provider, Textual, or A2UI claim.

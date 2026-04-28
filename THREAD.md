@@ -39,10 +39,10 @@ Parser/catalog drift validation is needed now because the CLI is the active oper
 
 ## Required Fix Satisfaction
 
-1. Each completed task now names the canonical demo-path step it strengthens.
-2. The packet explains why parser/catalog drift validation is needed now for the engine-side MVP loop.
-3. Ownership accounting now states that `tests/unit/test_commands_catalog.py` is an approved shared-by-approval test edit and that no integrator-locked files changed.
-4. Review basis remains pinned to `f8d860ed9f6299f0169c4f21321ac5f37c949fd3` and does not expand beyond the command-catalog slice.
+1. `command_cli_contract()` now validates the full expected CLI token tuple and lookup table, not just deduplicated canonical names.
+2. Regression coverage now includes extra accepted alias, removed accepted alias, substituted accepted alias, and reordered parser-token drift while canonical names remain stable.
+3. Packet metadata lists all packet-refresh files: `THREAD.md`, `THREAD_PACKET.md`, and `handoff_packets/feat-commands.md`.
+4. Roadmap/vision mapping stays limited to Milestone 3 CLI compatibility for the engine-first `continue working` loop.
 
 ## Required Gates
 
