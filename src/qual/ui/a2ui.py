@@ -7646,11 +7646,13 @@ def _render_invalid_terminal_card(card: Any | None = None) -> str:
         "Action policy: copy_to_clipboard_only",
     ]
     if card is not None:
+        card = _canonicalize_terminal_artifact_invalid_preview(card)
         lines.append(f"- raw: {_render_payload_preview(card, max_payload_bytes=256)}")
     return "\n".join(lines)
 
 
 def _render_invalid_terminal_artifact(artifact: Any) -> str:
+    artifact = _canonicalize_terminal_artifact_invalid_preview(artifact)
     return "\n".join(
         [
             "[TerminalArtifact] <invalid artifact>",
@@ -7693,3 +7695,23 @@ def _escape_terminal_text(value: str) -> str:
         else:
             parts.append(char)
     return "".join(parts)
+
+
+def _canonicalize_terminal_artifact_invalid_preview(value: Any) -> Any:
+    """Return a stable preview snapshot for invalid card/artifact renders.
+
+    Invalid terminal previews should stay deterministic even when the source
+    payload contains equivalent action lists in a different order. The
+    canonicalization is intentionally limited to the preview path so the
+    underlying payload contract remains untouched.
+    """
+
+    snapshot = _snapshot_terminal_artifact_value(value)
+    if not isinstance(snapshot, Mapping):
+        return snapshot
+    actions = snapshot.get("actions")
+    if not isinstance(actions, list):
+        return snapshot
+    canonical_snapshot = dict(snapshot)
+    canonical_snapshot["actions"] = sorted(actions, key=_canonical_action_snapshot_key)
+    return canonical_snapshot

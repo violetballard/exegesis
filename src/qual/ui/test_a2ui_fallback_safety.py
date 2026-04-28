@@ -10640,6 +10640,59 @@ class A2UIFallbackSafetyTests(unittest.TestCase):
         self.assertIn("A2UI v1", invalid)
         self.assertIn('"icon":"sparkle"', invalid)
 
+    def test_terminal_renderer_invalid_card_preview_canonicalizes_action_list_order(self) -> None:
+        card_variants = [
+            {
+                "type": "ActionRef",
+                "id": "launch_missiles",
+                "label": "Run",
+                "payload": {"operation": "x"},
+                "actions": [
+                    {
+                        "id": "export_document",
+                        "label": "Export",
+                        "payload": {"format": "md"},
+                    },
+                    {
+                        "id": "copy_to_clipboard",
+                        "label": "Copy JSON",
+                        "payload": {"text": "safe"},
+                    },
+                ],
+            },
+            {
+                "type": "ActionRef",
+                "id": "launch_missiles",
+                "label": "Run",
+                "payload": {"operation": "x"},
+                "actions": [
+                    {
+                        "id": "copy_to_clipboard",
+                        "label": "Copy JSON",
+                        "payload": {"text": "safe"},
+                    },
+                    {
+                        "id": "export_document",
+                        "label": "Export",
+                        "payload": {"format": "md"},
+                    },
+                ],
+            },
+        ]
+
+        rendered_cards = [render_terminal_card(card) for card in card_variants]
+        rendered_cli_fallback = [render_terminal_cli_fallback(card, kind="card") for card in card_variants]
+
+        self.assertEqual(rendered_cards[0], rendered_cards[1])
+        self.assertEqual(rendered_cli_fallback[0], rendered_cli_fallback[1])
+        self.assertEqual(rendered_cards[0], rendered_cli_fallback[0])
+        self.assertIn("[UnknownCard] <invalid card>", rendered_cards[0])
+        self.assertIn('"actions":[{"id":"copy_to_clipboard"', rendered_cards[0])
+        self.assertLess(
+            rendered_cards[0].index('"id":"copy_to_clipboard"'),
+            rendered_cards[0].index('"id":"export_document"'),
+        )
+
     def test_terminal_renderer_invalid_action_preview_strips_malformed_terminal_envelope_metadata(
         self,
     ) -> None:
