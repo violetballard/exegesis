@@ -61,7 +61,7 @@
 ### Checkpoint Cadence (short updates)
 
 - plan complete: the handoff is scoped to Milestone 3 CLI command-contract hardening and reviews the actual branch tip.
-- first green tests: focused command-catalog tests and the full required gates were rerun on `2026-04-28T18:53:33Z` for this fixer pass.
+- first green tests: focused command-catalog tests and the full required gates were rerun on `2026-04-28T18:55:03Z` for this fixer pass.
 - before risky/shared file edit: risky/shared paths are listed above with the approval rationale.
 - ready for handoff: this packet names the full implementation set and records the latest gate results.
 
@@ -77,10 +77,10 @@
   - added regression tests for canonical-order alignment, alias-only parser drift, exported parser constant alias substitution with stable canonical names, live parser constant drift, parse_args fail-fast behavior under parser constant drift, diff-preview behavior, and command workflow contracts.
   - refreshed `THREAD.md`, `THREAD_PACKET.md`, and `handoff_packets/feat-commands.md` so the handoff reviews the actual tip rather than an older narrow slice.
 - tasks completed (numbered):
-  1. Validated `command_cli_contract()` against the full parser entrypoint projection and lookup table, including alias-only drift cases where canonical names remain stable.
-  2. Kept deterministic command ordering and helper exports aligned with the canonical command catalog.
-  3. Added focused command catalog, parser fail-fast, workflow, and diff-preview regression coverage.
-  4. Regenerated handoff metadata to include every actual implementation file, shared/integrator-locked exception, gate result, and canonical demo-path mapping.
+  1. Validated `command_cli_contract()` against the full parser entrypoint projection and lookup table, including alias-only drift cases where canonical names remain stable. Canonical demo-path step: `continue working`.
+  2. Kept deterministic command ordering and helper exports aligned with the canonical command catalog. Canonical demo-path step: `continue working`.
+  3. Added focused command catalog, parser fail-fast, workflow, and diff-preview regression coverage. Canonical demo-path steps: `plan/revise` and `apply/reject patch`.
+  4. Regenerated handoff metadata to include every actual implementation file, shared/integrator-locked exception, gate result, and canonical demo-path mapping. Canonical demo-path step: `continue working`.
 - files changed:
   - implementation: `scripts/scope-check.sh`
   - implementation, shared-by-approval: `src/qual/cli.py`
@@ -95,7 +95,7 @@
   - metadata-only handoff refresh: `THREAD_PACKET.md`
   - metadata-only handoff refresh: `handoff_packets/feat-commands.md`
 - commands run + outcomes:
-  - latest fixer evidence timestamp: `2026-04-28T18:53:33Z`
+  - latest fixer evidence timestamp: `2026-04-28T18:55:44Z`
   - `python -m unittest tests.unit.test_commands_catalog` -> passed (`Ran 164 tests`; `OK`)
   - `make scope-check` -> passed
   - `./quality-format.sh --check` -> passed
@@ -117,8 +117,7 @@
 - routing/provider impact note:
   - none; this change does not touch model routing or provider configuration.
 - reviewer-fix satisfaction note:
-  1. Required fix 1 is satisfied by implementing real parser/catalog drift validation against the live argparse entrypoint surface, with tests for accepted-token removal, alias substitution, reordered aliases, extra aliases, exported parser metadata drift, exported parser constant alias substitution with stable canonical names, and `parse_args` fail-fast behavior.
-  2. Required fix 2 is satisfied by choosing the actual branch tip as the review basis and recording the full scope, changed files, budget overage, shared/integrator-locked exceptions, and gate evidence for that basis.
-  3. Required fix 3 is satisfied by the canonical demo-path mapping above, including per-task mappings and the final `continue working` statement.
-  4. Required fix 4 is satisfied by distinguishing the approved shared test edits, the shared support edit, and the integrator-locked `src/qual/cli.py` edit with its approval basis from `THREAD_OWNERSHIP.md`.
-  5. Required fix 5 is satisfied by the full required gate rerun recorded above.
+  1. Required fix 1 is satisfied by the canonical demo-path mapping above and the final statement that this command-catalog hardening advances `continue working`.
+  2. Required fix 2 is satisfied by the numbered completed tasks above, where each task names the canonical demo-path step it supports.
+  3. Required fix 3 is satisfied by the files changed list above, which includes all metadata-only packet refresh files: `THREAD.md`, `THREAD_PACKET.md`, and `handoff_packets/feat-commands.md`.
+  4. Required fix 4 is satisfied by keeping implementation scope unchanged in this fixer pass; only handoff metadata was edited.
