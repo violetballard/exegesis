@@ -28,7 +28,8 @@
   - `9df1a4e32 fix(commands): enforce full CLI contract drift checks`
   - `ea0ab36b4 fix(commands): enforce parser surface drift checks`
   - `b438f4554 fix(commands): validate full CLI parser surface`
-  - this fixer pass, which adds declared parser-surface alias drift coverage.
+  - `18c7c627a fix(commands): cover declared CLI surface drift`
+- This final fixer verification pass updates handoff metadata only after rerunning all required gates.
 - Packet-refresh commits after those implementation commits are metadata-only only when they touch `THREAD.md` or `THREAD_PACKET.md`.
 - No commit that modifies `src/qual/commands/catalog.py` or `tests/unit/test_commands_catalog.py` is classified as metadata-only in this packet.
 
@@ -69,7 +70,7 @@
 - `./quality-test.sh`: PASS
 - `./typecheck-test.sh`: PASS
 - `make ci`: PASS
-- Final verification pass: `2026-04-28T21:21:50Z` on branch `codex/feat-commands`.
+- Final verification pass: `2026-04-28T21:24:15Z` on branch `codex/feat-commands`.
 
 ### Risks / Blockers
 
