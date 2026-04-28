@@ -3,7 +3,7 @@
 ## Thread Kickoff (High-Risk)
 
 - Branch: `codex/feat-commands`
-- Review basis: final branch tip after this `2026-04-28T22:32:52Z` fixer pass for reviewer packet `20260428T223211Z`; implementation, tests, and handoff metadata are reviewed together.
+- Review basis: final branch tip after this `2026-04-28T22:27:33Z` fixer pass for reviewer packet `20260428T222600Z`; implementation, tests, and handoff metadata are reviewed together.
 - Lane/owned paths: `src/qual/commands/**`
 - Scope goal: harden `command_cli_contract()` so the CLI contract stays deterministic, follows canonical command order, and fails fast when the parser surface drifts from the command catalog.
 - Risk reason: this changes the command contract used by the active CLI operator surface while Textual lanes remain disabled.
@@ -30,7 +30,7 @@
   - `ea0ab36b4 fix(commands): enforce parser surface drift checks`
   - `b438f4554 fix(commands): validate full CLI parser surface`
   - `18c7c627a fix(commands): cover declared CLI surface drift`
-- This `2026-04-28T22:32:52Z` fixer pass addresses reviewer packet `20260428T223211Z` by keeping the actual branch-tip review basis, preserving all code-bearing catalog/test changes in the reviewed implementation basis, refreshing the packet ownership/demo-path accounting, and rerunning all required gates.
+- This `2026-04-28T22:27:33Z` fixer pass addresses reviewer packet `20260428T222600Z` by freezing declared CLI entrypoint validation, preserving all code-bearing catalog/test changes in the reviewed implementation basis, refreshing the packet ownership/demo-path accounting, and rerunning all required gates.
 - Packet-refresh commits after those implementation commits are metadata-only only when they touch `THREAD.md` or `THREAD_PACKET.md`.
 - No commit that modifies `src/qual/commands/catalog.py` or `tests/unit/test_commands_catalog.py` is classified as metadata-only in this packet.
 
@@ -180,4 +180,3 @@
 1. Required fix 1, reject unintended `_CLI_ENTRYPOINTS` drift: satisfied by validating `_CLI_ENTRYPOINTS` against the frozen `_DECLARED_CLI_ENTRYPOINTS` tuple before building command CLI tokens or lookup tables, so adding a known alias such as `open` fails even when it maps to an already-covered canonical command.
 2. Required fix 2, extra known alias regression: satisfied by `test_command_cli_contract_rejects_extra_accepted_alias_drift` and `test_command_cli_tokens_reject_extra_accepted_alias_drift`, both patching `_CLI_ENTRYPOINTS` with `open` and expecting `Command CLI tokens are inconsistent`.
 3. Required fix 3, canonical demo-path mapping: satisfied by the per-task `continue working` mappings and final statement that this handoff makes that step more real while Textual remains disabled.
-
