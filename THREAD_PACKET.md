@@ -3,7 +3,7 @@
 ## Thread Kickoff (High-Risk)
 
 - Branch: `codex/feat-commands`
-- Review basis: final branch tip after this `2026-04-28T22:27:33Z` fixer pass for reviewer packet `20260428T222600Z`; implementation, tests, and handoff metadata are reviewed together.
+- Review basis: final branch tip after this `2026-04-28T22:33:54Z` fixer pass for reviewer packet `20260428T223309Z`; implementation, tests, and handoff metadata are reviewed together.
 - Lane/owned paths: `src/qual/commands/**`
 - Scope goal: harden `command_cli_contract()` so the CLI contract stays deterministic, follows canonical command order, and fails fast when the parser surface drifts from the command catalog.
 - Risk reason: this changes the command contract used by the active CLI operator surface while Textual lanes remain disabled.
