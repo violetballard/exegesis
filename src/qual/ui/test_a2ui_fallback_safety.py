@@ -3260,6 +3260,14 @@ class A2UIFallbackSafetyTests(unittest.TestCase):
             route_manifest,
         )
         self.assertEqual(
+            aliased_shell_manifest["terminal_artifact_cli_fallback_route_contract_manifest"],
+            route_manifest,
+        )
+        self.assertEqual(
+            aliased_shell_manifest["terminal_artifact_cli_fallback_route_contract_manifest_fingerprint"],
+            route_manifest["contract_fingerprint"],
+        )
+        self.assertEqual(
             manifest["shell_ui_contract"]["terminal_artifact_rendering_contract_manifest"],
             describe_terminal_artifact_rendering_contract(),
         )
