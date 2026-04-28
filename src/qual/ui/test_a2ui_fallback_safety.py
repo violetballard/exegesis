@@ -12172,6 +12172,17 @@ class A2UIFallbackSafetyTests(unittest.TestCase):
         self.assertNotIn("Demo\nProject", text)
         self.assertNotIn("/tmp/demo\u202e", text)
 
+    def test_shell_ui_normalizes_locked_flag_in_bootstrap_metadata(self) -> None:
+        runtime = SimpleNamespace(
+            vault=SimpleNamespace(project_name="Demo", root_dir="/tmp/demo", is_locked=True),
+            basket=SimpleNamespace(item_ids=[]),
+        )
+
+        text = ShellUI().render_startup(runtime)
+
+        self.assertIn("- locked: true", text)
+        self.assertNotIn("- locked: True", text)
+
     def test_shell_ui_replaces_opaque_object_reprs_in_preview(self) -> None:
         runtime = SimpleNamespace(
             vault=SimpleNamespace(project_name="Demo", root_dir="/tmp/demo", is_locked=False),

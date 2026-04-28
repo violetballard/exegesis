@@ -331,7 +331,7 @@ class ShellUI:
             "Qual Workstation bootstrap is running\n"
             f"- project: {self._render_startup_value(runtime.vault.project_name)}\n"
             f"- vault: {self._render_startup_value(runtime.vault.root_dir)}\n"
-            f"- locked: {runtime.vault.is_locked}\n"
+            f"- locked: {self._render_startup_locked_value(runtime.vault.is_locked)}\n"
             f"- context_items: {len(item_ids)}\n"
             f"- context_preview: {preview}"
         )
@@ -383,6 +383,17 @@ class ShellUI:
     def _render_startup_value(value: object) -> str:
         if value is None:
             return "<blank>"
+        rendered = ShellUI._escape_control_chars(str(value)).strip()
+        if not rendered:
+            return "<blank>"
+        return rendered
+
+    @staticmethod
+    def _render_startup_locked_value(value: object) -> str:
+        if value is None:
+            return "<blank>"
+        if isinstance(value, bool):
+            return "true" if value else "false"
         rendered = ShellUI._escape_control_chars(str(value)).strip()
         if not rendered:
             return "<blank>"
