@@ -7,8 +7,8 @@ Canonical handoff contract lives in `THREAD_PACKET.md`.
 - Lane: `feat-commands`
 - Branch: `codex/feat-commands`
 - Review basis: actual submitted branch tip, not the older `f8d860ed9f6299f0169c4f21321ac5f37c949fd3` slice. Implementation-file accounting covers `f8d860ed9f6299f0169c4f21321ac5f37c949fd3..f175b28266c0981c89c20f74b31c37c25f232277` plus the reviewer-fix and handoff metadata correction commits.
-- Scope: Milestone 3 CLI command-contract hardening for the engine-first MVP loop while Textual lanes remain disabled.
-- Roadmap alignment: `ROADMAP.md` Milestone 1 `Command and diff-preview behavior hardening` / `Manual CLI smoke flow remains stable`, Milestone 2 parser-edge coverage, and Milestone 3 output-contract intentionality.
+- Scope: CLI command-contract hardening for the current engine-first MVP focus without starting `feat-console`.
+- Roadmap alignment: `ROADMAP.md` Milestone 1 `Command and diff-preview behavior hardening` / `Manual CLI smoke flow remains stable`, Milestone 2 remaining parser-edge coverage, Milestone 3 output-contract intentionality, and the active MVP emphasis on `feat-commands`.
 - Vision alignment: `PRODUCT_VISION.md` capability 4 `Operator-first control surface`.
 - Scope boundary: this handoff claims deterministic CLI command-surface hardening only. It does not claim retrieval, persistence, provider routing, apply/reject engine execution, or Textual UI progress.
 
@@ -59,7 +59,7 @@ Canonical handoff contract lives in `THREAD_PACKET.md`.
 
 ## Required Gates
 
-- Latest fixer evidence timestamp: `2026-04-28T18:58:14Z`
+- Latest fixer evidence timestamp: `2026-04-28T19:01:20Z`
 - `python -m unittest tests.unit.test_commands_catalog` -> passed
 - `make scope-check` -> passed
 - `./quality-format.sh --check` -> passed

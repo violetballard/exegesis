@@ -16,7 +16,7 @@
 
 ### Scope / Plan Alignment
 
-- Roadmap alignment: `ROADMAP.md` Milestone 1 `Command and diff-preview behavior hardening` / `Manual CLI smoke flow remains stable`, Milestone 2 parser-edge coverage, and Milestone 3 output-contract intentionality.
+- Roadmap alignment: `ROADMAP.md` Milestone 1 `Command and diff-preview behavior hardening` / `Manual CLI smoke flow remains stable`, Milestone 2 remaining parser-edge coverage, Milestone 3 output-contract intentionality, and the active MVP emphasis on `feat-commands`.
 - Vision alignment: `PRODUCT_VISION.md` capability 4 `Operator-first control surface`; CLI remains a first-class development and reliability surface with deterministic text fallback behavior.
 - Exact capability delivered: deterministic CLI command-surface hardening for the existing engine-first command path. This does not claim retrieval, persistence, provider routing, apply/reject engine execution, or Textual UI progress.
 - Parser-surface drift fix: `command_cli_contract()` now validates the full grouped CLI entrypoint projection, token tuple, canonical-name tuple, and lookup table against the declared catalog and the live parser surface, so alias-only token drift is rejected even when canonical command names stay stable.
@@ -60,7 +60,7 @@
 
 ### Checkpoint Cadence (short updates)
 
-- plan complete: the handoff is scoped to Milestone 3 CLI command-contract hardening and reviews the actual branch tip.
+- plan complete: the handoff is scoped to CLI command-contract hardening for the current engine-first MVP focus and reviews the actual branch tip.
 - first green tests: focused command-catalog tests and the full required gates were rerun on `2026-04-28T18:55:03Z` for this fixer pass.
 - before risky/shared file edit: risky/shared paths are listed above with the approval rationale.
 - ready for handoff: this packet names the full implementation set and records the latest gate results.
@@ -95,7 +95,7 @@
   - metadata-only handoff refresh: `THREAD_PACKET.md`
   - metadata-only handoff refresh: `handoff_packets/feat-commands.md`
 - commands run + outcomes:
-  - latest fixer evidence timestamp: `2026-04-28T18:58:14Z`
+  - latest fixer evidence timestamp: `2026-04-28T19:01:20Z`
   - `python -m unittest tests.unit.test_commands_catalog` -> passed
   - `make scope-check` -> passed
   - `./quality-format.sh --check` -> passed
@@ -111,6 +111,7 @@
   - `ROADMAP.md` Milestone 1 exit criterion `Manual CLI smoke flow remains stable`.
   - `ROADMAP.md` Milestone 2 remaining parser-edge coverage.
   - `ROADMAP.md` Milestone 3 exit criterion `Contract changes documented and intentional`.
+  - `ROADMAP.md` MVP Focus active implementation emphasis `feat-commands`.
 - vision capability affected:
   - `PRODUCT_VISION.md` capability 4 `Operator-first control surface`.
   - `PRODUCT_VISION.md` capability 5 `Agent-to-UI protocol (A2UI)` only insofar as CLI text fallback remains compatible with structured command output; this handoff does not add A2UI schemas.

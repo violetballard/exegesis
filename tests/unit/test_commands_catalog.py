@@ -789,6 +789,54 @@ class CommandCatalogTests(unittest.TestCase):
             with self.assertRaisesRegex(ValueError, "Command CLI catalog entrypoint projection is inconsistent"):
                 command_catalog.command_cli_contract()
 
+    def test_command_cli_contract_rejects_alias_only_parser_projection_drift_cases(self) -> None:
+        baseline_contract = command_catalog.command_cli_contract()
+        drift_cases = {
+            "accepted token removal": (
+                ("bootstrap", ("bootstrap",)),
+                ("diff-preview", ("diff-preview",)),
+                ("context-basket", ("context-basket",)),
+                ("terminal", ("terminal",)),
+            ),
+            "alias substitution": (
+                ("bootstrap", ("bootstrap",)),
+                ("diff-preview", ("diff-preview", "review-patch")),
+                ("context-basket", ("context-basket",)),
+                ("terminal", ("terminal",)),
+            ),
+            "token reordering": (
+                ("bootstrap", ("bootstrap",)),
+                ("diff-preview", ("diff", "diff-preview")),
+                ("context-basket", ("context-basket",)),
+                ("terminal", ("terminal",)),
+            ),
+            "extra accepted alias": (
+                ("bootstrap", ("bootstrap",)),
+                ("diff-preview", ("diff-preview", "diff", "review-patch")),
+                ("context-basket", ("context-basket",)),
+                ("terminal", ("terminal",)),
+            ),
+        }
+
+        for drift_name, parser_surface in drift_cases.items():
+            with self.subTest(drift_name=drift_name):
+                command_catalog.command_cli_contract.cache_clear()
+                with patch.object(qual_cli, "_CLI_PARSER_ENTRYPOINTS", parser_surface):
+                    self.assertEqual(
+                        tuple(name for name, _ in qual_cli.parser_cli_entrypoints()),
+                        baseline_contract.canonical_names,
+                    )
+                    self.assertNotEqual(
+                        qual_cli.parser_cli_entrypoints(),
+                        command_catalog._declared_cli_entrypoint_projection(command_specs()),
+                    )
+                    with self.assertRaisesRegex(
+                        ValueError,
+                        "Command CLI catalog entrypoint projection is inconsistent",
+                    ):
+                        command_catalog.command_cli_contract()
+        command_catalog.command_cli_contract.cache_clear()
+
     def test_command_cli_contract_rejects_drift_from_exported_cli_parser_surface(self) -> None:
         parser_surface_with_mutated_diff_alias = (
             ("bootstrap", ("bootstrap",)),
