@@ -73,7 +73,7 @@
 - `./quality-test.sh`: PASS
 - `./typecheck-test.sh`: PASS
 - `make ci`: PASS
-- Final verification pass: `2026-04-28T23:50:21Z`
+- Final verification pass: `2026-04-28T23:52:46Z`
 
 ### Risks / Blockers
 
@@ -128,7 +128,7 @@
 3. Strengthen parser-surface drift rejection: satisfied by `command_cli_contract()` validating the accepted token tuple, declared canonical surface, grouped parser projection, lookup-table shape/order, and canonical names against `_CANONICAL_CLI_COMMAND_SURFACE`.
 4. Add focused parser-surface drift tests: satisfied by focused catalog tests for added aliases, removed aliases, same-canonical alias substitutions, token reorder, declared-surface drift, grouped parser drift, lookup-table token substitution, and lookup-table shape/order drift.
 5. Update demo-path mapping and ownership accounting: satisfied by the `Tasks Completed`, `Canonical Demo-Path Mapping`, `Files Changed`, and `Shared / Integrator-Locked Accounting` sections.
-6. Rerun required gates against the final reviewed tip: satisfied by `make scope-check`, `./quality-format.sh --check`, `./quality-lint.sh`, `./quality-test.sh`, `./typecheck-test.sh`, and `make ci` all passing at `2026-04-28T23:50:21Z`.
+6. Rerun required gates against the final reviewed tip: satisfied by `make scope-check`, `./quality-format.sh --check`, `./quality-lint.sh`, `./quality-test.sh`, `./typecheck-test.sh`, and `make ci` all passing at `2026-04-28T23:52:46Z`.
 
 ### Reviewer Packet `20260428T234820Z` Fix Satisfaction
 
@@ -142,7 +142,7 @@
 ### Reviewer Packet `20260428T234415Z` Fix Satisfaction
 
 1. No numbered required fixes were requested. The reviewer approved the branch and listed no blocking findings.
-2. Fresh required gates were rerun for this fixer packet: `make scope-check`, `./quality-format.sh --check`, `./quality-lint.sh`, `./quality-test.sh`, `./typecheck-test.sh`, and `make ci` all passed at `2026-04-28T23:50:21Z`.
+2. Fresh required gates were rerun for this fixer packet: `make scope-check`, `./quality-format.sh --check`, `./quality-lint.sh`, `./quality-test.sh`, `./typecheck-test.sh`, and `make ci` all passed at `2026-04-28T23:52:46Z`.
 
 ### Reviewer Packet `20260428T231936Z` Fix Satisfaction
 
