@@ -65,12 +65,20 @@ Canonical handoff contract lives in `THREAD_PACKET.md`.
 - Reviewer packet `fixer__feat-commands__20260428T195234Z` requested actual-tip traceability, complete file accounting, high-risk size exception routing, per-task demo-path mapping, and fresh gate evidence.
 - This closure records those fixes and reran the required gates for the final handoff state.
 - Reviewer packet `fixer__feat-commands__20260428T195448Z` approved the branch with no required fixes; this fixer pass records that approval state and refreshes the required gate evidence.
+- Reviewer packet `fixer__feat-commands__20260428T195731Z` repeated the earlier required-fix packet; this fixer pass verified the existing full parser-projection guard, actual-tip handoff basis, shared exception accounting, and demo-path mapping, then reran every required gate.
 
 ## Required Gates
 
 - Final fixer validation sequence for this regenerated packet:
 - `python -m unittest tests.unit.test_commands_catalog.CommandCatalogTests.test_command_cli_contract_rejects_extra_alias_entrypoint_when_canonical_order_still_matches tests.unit.test_commands_catalog.CommandCatalogTests.test_command_cli_contract_rejects_reordered_parser_projection_when_tokens_change_but_names_do_not` -> passed
 - `python -m unittest tests.unit.test_commands_catalog` -> passed
+- `make scope-check` -> passed
+- `./quality-format.sh --check` -> passed
+- `./quality-lint.sh` -> passed
+- `./quality-test.sh` -> passed
+- `./typecheck-test.sh` -> passed
+- `make ci` -> passed
+- Final fixer validation sequence for `fixer__feat-commands__20260428T195731Z`:
 - `make scope-check` -> passed
 - `./quality-format.sh --check` -> passed
 - `./quality-lint.sh` -> passed
