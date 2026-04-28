@@ -3,7 +3,7 @@
 ## Thread Kickoff (High-Risk)
 
 - Branch: `codex/feat-commands`
-- Review basis: final branch tip after the `2026-04-28T21:55:56Z` fixer pass for reviewer packet `20260428T215506Z`; implementation, tests, and handoff metadata are reviewed together.
+- Review basis: final branch tip after the `2026-04-28T22:01:42Z` fixer pass for reviewer packet `20260428T220047Z`; implementation, tests, and handoff metadata are reviewed together.
 - Lane/owned paths: `src/qual/commands/**`
 - Scope goal: harden `command_cli_contract()` so the CLI contract stays deterministic, follows canonical command order, and fails fast when the parser surface drifts from the command catalog.
 - Risk reason: this changes the command contract used by the active CLI operator surface while Textual lanes remain disabled.
@@ -30,7 +30,7 @@
   - `ea0ab36b4 fix(commands): enforce parser surface drift checks`
   - `b438f4554 fix(commands): validate full CLI parser surface`
   - `18c7c627a fix(commands): cover declared CLI surface drift`
-- This `2026-04-28T21:55:56Z` fixer pass refreshes handoff metadata for reviewer packet `20260428T215506Z`. The parser-surface validation and drift regression coverage requested by that packet are already present at branch tip.
+- This `2026-04-28T22:01:42Z` fixer pass refreshes handoff metadata for reviewer packet `20260428T220047Z`. The parser-surface validation and drift regression coverage requested by that packet are already present at branch tip.
 - Packet-refresh commits after those implementation commits are metadata-only only when they touch `THREAD.md` or `THREAD_PACKET.md`.
 - No commit that modifies `src/qual/commands/catalog.py` or `tests/unit/test_commands_catalog.py` is classified as metadata-only in this packet.
 
@@ -80,6 +80,7 @@
 - Reviewer packet `20260428T215506Z` repeated token-level parser-surface validation, parser-surface drift tests, canonical demo-path mapping, and ownership-accounting fixes; focused catalog regressions passed at `2026-04-28T21:55:56Z`.
 - Reviewer packet `20260428T215506Z` required gates passed again at `2026-04-28T21:56:45Z`.
 - Reviewer packet `20260428T215757Z` requested complete branch-tip metadata accounting and no code changes; required gates passed again at `2026-04-28T22:00:00Z`.
+- Reviewer packet `20260428T220047Z` requested actual-branch-tip review basis, parser-surface validation, drift-test citation, canonical demo-path mapping, and ownership accounting; focused catalog regressions and required gates passed at `2026-04-28T22:02:44Z`.
 
 ### Risks / Blockers
 
@@ -170,3 +171,12 @@
 1. Complete branch-tip metadata accounting: satisfied by listing both `THREAD.md` and `THREAD_PACKET.md` as metadata-only handoff updates in `Files Changed`, and by the shared/integrator-locked accounting above.
 2. Implementation review basis: unchanged; this pass keeps the command-catalog implementation and tests as-is and makes no code edits to `src/qual/commands/catalog.py` or `tests/unit/test_commands_catalog.py`.
 3. Gate restatement after metadata correction: required gates passed again at `2026-04-28T22:00:00Z`.
+
+### Reviewer Packet `20260428T220047Z` Fix Satisfaction
+
+1. Required fix 1, regenerate packet against actual branch tip: satisfied by this packet using the final branch tip after the `2026-04-28T22:01:42Z` fixer pass as the review basis and including all code-bearing `src/qual/commands/catalog.py` and `tests/unit/test_commands_catalog.py` commits in the implementation basis.
+2. Required fix 2, full parser-surface validation: satisfied at branch tip by `command_cli_contract()` validating accepted token tuple, grouped parser projection, lookup-table shape/order, and canonical names against `_CLI_COMMAND_SURFACE`.
+3. Required fix 3, drift regression tests: satisfied by focused tests for alias substitution, added accepted alias, removed accepted alias, parser-token reordering, declared-surface alias drift, grouped parser drift, lookup-table token substitution, and lookup-table shape/order drift.
+4. Required fix 4, canonical demo-path mapping: satisfied by per-task `continue working` mappings and the final statement that this handoff makes stable follow-up CLI operation more real while Textual remains disabled.
+5. Required fix 5, ownership accounting: satisfied by listing `tests/unit/test_commands_catalog.py` as the approved shared-by-approval test edit and confirming integrator-locked edits are `no`.
+6. Final verification: focused catalog regressions and all required gates passed at `2026-04-28T22:02:44Z`.
