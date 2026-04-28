@@ -32,7 +32,7 @@ Canonical handoff contract lives in `THREAD_PACKET.md`.
 
 - Task budget: `4`; tasks completed: `4`.
 - High-risk size limit status: exceeded and routed for reviewer/integrator exception instead of normal lane approval.
-- Implementation range accounting before this reviewer-fix metadata update: `12 files changed, 12838 insertions(+), 982 deletions(-)` from the actual branch tip relative to `f8d860ed9f6299f0169c4f21321ac5f37c949fd3`.
+- Implementation range accounting before this reviewer-fix metadata update: `12 files changed, 12853 insertions(+), 983 deletions(-)` from the actual branch tip relative to `f8d860ed9f6299f0169c4f21321ac5f37c949fd3`.
 - Reason for exception routing: branch history already includes command catalog expansion, parser surface alignment, workflow helpers, diff-preview hardening, scope-check accommodation, and shared unit tests.
 
 ## Shared / Approval Notes
@@ -54,19 +54,20 @@ Canonical handoff contract lives in `THREAD_PACKET.md`.
 
 ## Reviewer Fix Satisfaction
 
-1. Required fix 1 is satisfied by `command_cli_contract()` validating the declared catalog entrypoint projection, live parser projection, contract token tuple, canonical-name tuple, and lookup table; regression coverage includes extra alias token drift and alias-first reordering with stable canonical names.
-2. Required fix 2 is satisfied by the per-task canonical demo-path mapping in `THREAD_PACKET.md`.
-3. Required fix 3 is satisfied by the pre-handoff demo-path readiness line in `THREAD_PACKET.md`: this command-catalog contract makes `continue working` more real by removing silent parser/catalog drift as a blocker for deterministic follow-up CLI operator turns.
-4. Required fix 4 is satisfied by the ownership clarification above and the shared-test approval context: the reviewed `f8d860ed9f6299f0169c4f21321ac5f37c949fd3` slice touched no integrator-locked files, and the reviewer packet explicitly carried an approved shared-test exception for `tests/unit/test_commands_catalog.py`. The packet still separately preserves actual-tip shared/integrator-locked accounting for `src/qual/cli.py`.
+1. Required fix 1 is satisfied by using the actual submitted branch tip as the review basis in `THREAD_PACKET.md` and `handoff_packets/feat-commands.md`, instead of asking review to use the older `f8d860ed9f6299f0169c4f21321ac5f37c949fd3` command-catalog slice.
+2. Required fix 2 is satisfied by listing every implementation, test, scope-check, and handoff file changed in the submitted branch, including `src/qual/cli.py`, `scripts/scope-check.sh`, `src/qual/commands/workflow.py`, and `tests/unit/test_diff_preview.py`.
+3. Required fix 3 is satisfied by replacing normal high-risk compliance with explicit size-overage accounting and a reviewer/integrator exception route.
+4. Required fix 4 is satisfied by the per-task canonical demo-path mapping and the final pre-handoff statement naming `continue working` as the demo-path step made more real.
+5. Required fix 5 is satisfied by rerunning and reporting the required gates after the corrected packet is in place.
 
 ## Reviewer-Fix Closure
 
-- Reviewer packet `fixer__feat-commands__20260428T193229Z` requested actual-tip traceability, complete file accounting, shared/integrator-locked exceptions, high-risk size exception routing, and per-task demo-path mapping.
+- Reviewer packet `fixer__feat-commands__20260428T194736Z` requested actual-tip traceability, complete file accounting, high-risk size exception routing, per-task demo-path mapping, and fresh gate evidence.
 - This closure records those fixes and reran the required gates for the final handoff state.
 
 ## Required Gates
 
-- Latest fixer evidence timestamp: `2026-04-28T19:47:59Z`
+- Latest fixer evidence timestamp: `2026-04-28T19:49:27Z`
 - `python -m unittest tests.unit.test_commands_catalog.CommandCatalogTests.test_command_cli_contract_rejects_extra_alias_entrypoint_when_canonical_order_still_matches tests.unit.test_commands_catalog.CommandCatalogTests.test_command_cli_contract_rejects_reordered_parser_projection_when_tokens_change_but_names_do_not` -> passed
 - `python -m unittest tests.unit.test_commands_catalog` -> passed
 - `make scope-check` -> passed

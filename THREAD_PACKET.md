@@ -38,7 +38,7 @@
 - Task budget: `4`
 - Time budget: `30m`
 - Size limits: exceeded by existing branch history before this fixer pass; this packet makes the overage explicit for reviewer/integrator risk assessment rather than hiding implementation files behind a metadata-only claim.
-- Size accounting before this reviewer-fix metadata update: `12 files changed, 12838 insertions(+), 982 deletions(-)` across the actual branch tip relative to `f8d860ed9f6299f0169c4f21321ac5f37c949fd3`; the required gates below were rerun after this packet correction.
+- Size accounting before this reviewer-fix metadata update: `12 files changed, 12853 insertions(+), 983 deletions(-)` across the actual branch tip relative to `f8d860ed9f6299f0169c4f21321ac5f37c949fd3`; the required gates below were rerun after this packet correction.
 - Exception route: high-risk branch-size overage requires reviewer/integrator exception; this handoff is not claiming normal high-risk size compliance.
 - Max fix attempts per failing gate: `2`
 
@@ -99,7 +99,7 @@
   - handoff reviewer-fix update: `THREAD_PACKET.md`
   - handoff reviewer-fix update: `handoff_packets/feat-commands.md`
 - commands run + outcomes:
-  - latest fixer evidence timestamp: `2026-04-28T19:47:59Z`
+  - latest fixer evidence timestamp: `2026-04-28T19:49:27Z`
   - `python -m unittest tests.unit.test_commands_catalog.CommandCatalogTests.test_command_cli_contract_rejects_extra_alias_entrypoint_when_canonical_order_still_matches tests.unit.test_commands_catalog.CommandCatalogTests.test_command_cli_contract_rejects_reordered_parser_projection_when_tokens_change_but_names_do_not` -> passed
   - `python -m unittest tests.unit.test_commands_catalog` -> passed
   - `make scope-check` -> passed
@@ -123,9 +123,10 @@
 - routing/provider impact note:
   - none; this change does not touch model routing or provider configuration.
 - reviewer-fix satisfaction note:
-  1. Required fix 1 is satisfied by `command_cli_contract()` validating the declared catalog entrypoint projection, live parser projection, contract token tuple, canonical-name tuple, and lookup table; regression coverage includes extra alias token drift and alias-first reordering with stable canonical names.
-  2. Required fix 2 is satisfied by the per-task canonical demo-path mapping in `Canonical Demo-Path Mapping` and `tasks completed`.
-  3. Required fix 3 is satisfied by the `pre-handoff demo-path readiness` line: this command-catalog contract makes `continue working` more real by removing silent parser/catalog drift as a blocker for deterministic follow-up CLI operator turns.
-  4. Required fix 4 is satisfied by the ownership clarification above and the shared-test approval context: the reviewed `f8d860ed9f6299f0169c4f21321ac5f37c949fd3` slice touched no integrator-locked files, and the reviewer packet explicitly carried an approved shared-test exception for `tests/unit/test_commands_catalog.py`. The packet still separately preserves actual-tip shared/integrator-locked accounting for `src/qual/cli.py`.
+  1. Required fix 1 is satisfied by using the actual submitted branch tip as the review basis instead of asking review to use the older `f8d860ed9f6299f0169c4f21321ac5f37c949fd3` command-catalog slice.
+  2. Required fix 2 is satisfied by listing every implementation, test, scope-check, and handoff file changed in the submitted branch, including `src/qual/cli.py`, `scripts/scope-check.sh`, `src/qual/commands/workflow.py`, and `tests/unit/test_diff_preview.py`.
+  3. Required fix 3 is satisfied by replacing normal high-risk compliance with explicit size-overage accounting and a reviewer/integrator exception route.
+  4. Required fix 4 is satisfied by the per-task canonical demo-path mapping and the final pre-handoff statement naming `continue working` as the demo-path step made more real.
+  5. Required fix 5 is satisfied by rerunning and reporting the required gates after the corrected packet is in place.
 - reviewer-fix closure note:
   - This closure keeps the actual submitted branch tip as the only review basis, preserves the full alias-only parser drift protection already present in the branch, corrects the actual-tip size/file accounting, and records fresh required-gate evidence for the final metadata state.
