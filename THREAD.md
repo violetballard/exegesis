@@ -52,5 +52,4 @@ Parser/catalog drift validation is needed now because the CLI is the active oper
 
 ## Final Verification
 
-- Required gates passed on branch `codex/feat-commands` at `2026-04-28T21:13:34Z`: `make scope-check`, `./quality-format.sh --check`, `./quality-lint.sh`, `./quality-test.sh`, `./typecheck-test.sh`, and `make ci`.
-- Direct targeted smoke note: `python -m pytest tests/unit/test_commands_catalog.py` could not run because this Python environment does not have `pytest` installed.
+- Required gates passed on branch `codex/feat-commands` at `2026-04-28T21:15:31Z`: `make scope-check`, `./quality-format.sh --check`, `./quality-lint.sh`, `./quality-test.sh`, `./typecheck-test.sh`, and `make ci`.
