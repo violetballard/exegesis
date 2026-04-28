@@ -44,7 +44,7 @@ Parser/catalog drift validation is needed now because the CLI is the active oper
 
 ## Required Fix Satisfaction
 
-1. Full parser-surface validation: `command_cli_contract()` checks grouped parser projection, accepted token tuple, lookup table, and canonical names against the declared command-catalog projection.
-2. Traceability: final branch tip is the review basis, and code-bearing catalog/test commits are not called metadata-only.
-3. Demo-path mapping: every completed task maps to `continue working`, the canonical CLI demo-path step advanced by this command-catalog work.
-4. Gate rerun: final gate outcomes are recorded in `THREAD_PACKET.md`.
+1. Reviewer fix 1, unambiguous review basis: final branch tip is the review basis, and code-bearing catalog/test commits are not called metadata-only.
+2. Reviewer fix 2, full parser-surface validation: `command_cli_contract()` checks grouped parser projection, accepted token tuple, lookup table, and canonical names against the declared command-catalog projection.
+3. Reviewer fix 3, alias-level drift tests: regression coverage includes extra accepted alias, removed accepted alias, substituted accepted alias, parser-token reorder preserving canonical names, grouped parser-surface drift, and lookup-table shape/order drift.
+4. Reviewer fix 4, gate rerun: final gate outcomes are recorded in `THREAD_PACKET.md`.

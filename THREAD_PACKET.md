@@ -69,7 +69,7 @@
 - `./quality-test.sh`: PASS
 - `./typecheck-test.sh`: PASS
 - `make ci`: PASS
-- Final verification pass: `2026-04-28T21:04:55Z` on branch `codex/feat-commands`.
+- Final verification pass: `2026-04-28T21:07:02Z` on branch `codex/feat-commands`.
 
 ### Risks / Blockers
 
@@ -89,7 +89,7 @@
 
 ### Required Fix Satisfaction
 
-1. Required fix 1 is satisfied by `command_cli_contract()` validating full parser surface projections: grouped parser tokens, accepted tokens, lookup table, and canonical names; the tests now include lookup-table shape/order drift coverage.
-2. Required fix 2 is satisfied by the `Implementation Basis` section: this packet uses final branch tip as the review basis and does not mark code-bearing catalog/test commits as metadata-only.
-3. Required fix 3 is satisfied by the `Canonical Demo-Path Mapping` and `Tasks Completed` sections: each task maps to `continue working`, the canonical CLI demo-path step this command-catalog work makes more real.
-4. Required fix 4 is satisfied by the final gate rerun recorded in `Commands Run + Outcomes`.
+1. Reviewer fix 1, unambiguous review basis: satisfied by the `Implementation Basis` section. This packet uses final branch tip as the review basis and does not mark code-bearing catalog/test commits as metadata-only.
+2. Reviewer fix 2, full parser-surface validation: satisfied by `command_cli_contract()` validating grouped parser projection, accepted token tuple, lookup table, and canonical names against the declared command-catalog projection.
+3. Reviewer fix 3, alias-level drift tests: satisfied by focused tests for extra accepted alias, removed accepted alias, substituted accepted alias, parser-token reorder preserving canonical names, grouped parser-surface drift, and lookup-table shape/order drift.
+4. Reviewer fix 4, gate rerun: satisfied by the final gate rerun recorded in `Commands Run + Outcomes`.
