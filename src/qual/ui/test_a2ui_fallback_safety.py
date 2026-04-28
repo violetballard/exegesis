@@ -1140,6 +1140,14 @@ class A2UIFallbackSafetyTests(unittest.TestCase):
         self.assertEqual(manifest["contract_version"], 2)
         self.assertEqual(manifest["a2ui_version"], 1)
         self.assertEqual(
+            manifest["schema_version"],
+            TERMINAL_ARTIFACT_CLI_FALLBACK_ENTRYPOINT_SCHEMA_VERSION,
+        )
+        self.assertEqual(
+            manifest["version"],
+            TERMINAL_ARTIFACT_CLI_FALLBACK_ENTRYPOINT_SCHEMA_VERSION,
+        )
+        self.assertEqual(
             manifest["terminal_artifact_cli_fallback_schema_version"],
             TERMINAL_ARTIFACT_CLI_FALLBACK_SCHEMA_VERSION,
         )
@@ -1495,6 +1503,14 @@ class A2UIFallbackSafetyTests(unittest.TestCase):
         )
         self.assertEqual(
             manifest["terminal_artifact_cli_fallback_entrypoint_version"],
+            TERMINAL_ARTIFACT_CLI_FALLBACK_ENTRYPOINT_SCHEMA_VERSION,
+        )
+        self.assertEqual(
+            manifest["terminal_artifact_cli_fallback_entrypoint_contract_manifest"]["schema_version"],
+            TERMINAL_ARTIFACT_CLI_FALLBACK_ENTRYPOINT_SCHEMA_VERSION,
+        )
+        self.assertEqual(
+            manifest["terminal_artifact_cli_fallback_entrypoint_contract_manifest"]["version"],
             TERMINAL_ARTIFACT_CLI_FALLBACK_ENTRYPOINT_SCHEMA_VERSION,
         )
         self.assertEqual(
