@@ -45,7 +45,7 @@ Parser/catalog drift validation is needed now because the CLI is the active oper
 
 ## Required Fix Satisfaction
 
-1. Reviewer fix 1, regenerate packet against actual branch tip: final branch tip after reviewer prompt `20260428T225248Z` is the review basis, and code-bearing catalog/test commits are not called metadata-only.
+1. Reviewer fix 1, regenerate packet against actual branch tip: final branch tip after reviewer prompt `20260428T225546Z` is the review basis, and code-bearing catalog/test commits are not called metadata-only.
 2. Reviewer fix 2, full parser-surface validation: `command_cli_contract()` checks grouped parser projection, accepted token tuple, lookup table shape/order, and canonical names against the declared command-catalog projection.
 3. Reviewer fix 3, drift regression tests: coverage includes extra accepted alias, removed accepted alias, substituted alias to another known alias with the same canonical command, explicit `diff` to `diff_preview` same-canonical alias substitution, parser-token reorder preserving canonical names, declared-surface alias drift, grouped token-to-canonical drift, lookup-table token-substitution drift, and lookup-table shape/order drift.
 4. Reviewer fix 4, canonical demo-path mapping: every completed task maps to `continue working`, and this packet states that the CLI command contract makes that step more real while Textual remains disabled.
