@@ -86,6 +86,6 @@
 
 ### Fixer Re-Review Disposition
 
-- Reviewer packet `fixer__feat-commands__20260428T205234Z` requested full parser-surface drift validation, regression tests for added/removed/substituted/reordered parser tokens, canonical demo-path mapping in the handoff, and a full gate rerun.
+- Reviewer packet `fixer__feat-commands__20260428T205430Z` requested full parser-surface drift validation, regression tests for added/removed/substituted/reordered parser tokens, canonical demo-path mapping in the handoff, and a full gate rerun.
 - Fixer follow-up scope: keep the implementation narrow to `src/qual/commands/catalog.py`, `tests/unit/test_commands_catalog.py`, `THREAD.md`, and `THREAD_PACKET.md`.
 - Final fixer pass reran the required handoff gates from the final branch tip.

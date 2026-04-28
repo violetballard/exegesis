@@ -53,4 +53,4 @@ Parser/catalog drift validation is needed now because the CLI is the active oper
 - `./typecheck-test.sh`: PASS
 - `make ci`: PASS
 
-Latest fixer pass: `fixer__feat-commands__20260428T205234Z` requested full parser-surface drift validation, matching regression tests for added/removed/substituted/reordered parser tokens, canonical demo-path mapping in the handoff, and a full gate rerun. This pass keeps the implementation narrow and aligns the packet claims with the final tree.
+Latest fixer pass: `fixer__feat-commands__20260428T205430Z` requested full parser-surface drift validation, matching regression tests for added/removed/substituted/reordered parser tokens, canonical demo-path mapping in the handoff, and a full gate rerun. This pass keeps the implementation narrow and aligns the packet claims with the final tree.
