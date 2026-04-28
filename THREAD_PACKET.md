@@ -3,7 +3,7 @@
 ## Thread Kickoff (High-Risk)
 
 - Branch: `codex/feat-commands`
-- Review basis: final branch tip after the `2026-04-28T21:50:24Z` fixer pass for reviewer packet `20260428T214935Z`; implementation, tests, and handoff metadata are reviewed together.
+- Review basis: final branch tip after the `2026-04-28T21:55:56Z` fixer pass for reviewer packet `20260428T215506Z`; implementation, tests, and handoff metadata are reviewed together.
 - Lane/owned paths: `src/qual/commands/**`
 - Scope goal: harden `command_cli_contract()` so the CLI contract stays deterministic, follows canonical command order, and fails fast when the parser surface drifts from the command catalog.
 - Risk reason: this changes the command contract used by the active CLI operator surface while Textual lanes remain disabled.
@@ -30,7 +30,7 @@
   - `ea0ab36b4 fix(commands): enforce parser surface drift checks`
   - `b438f4554 fix(commands): validate full CLI parser surface`
   - `18c7c627a fix(commands): cover declared CLI surface drift`
-- This `2026-04-28T21:50:24Z` fixer pass refreshes handoff metadata for reviewer packet `20260428T214935Z`. The parser-surface validation and drift regression coverage requested by that packet are already present at branch tip.
+- This `2026-04-28T21:55:56Z` fixer pass refreshes handoff metadata for reviewer packet `20260428T215506Z`. The parser-surface validation and drift regression coverage requested by that packet are already present at branch tip.
 - Packet-refresh commits after those implementation commits are metadata-only only when they touch `THREAD.md` or `THREAD_PACKET.md`.
 - No commit that modifies `src/qual/commands/catalog.py` or `tests/unit/test_commands_catalog.py` is classified as metadata-only in this packet.
 
@@ -77,6 +77,8 @@
 - Approved reviewer packet `20260428T214345Z` required no code fixes; required gates passed again at `2026-04-28T21:45:26Z`.
 - Reviewer packet `20260428T214706Z` requested packet-basis correction plus parser-surface fixes already present at branch tip; required gates passed again at `2026-04-28T21:50:01Z`.
 - Reviewer packet `20260428T214935Z` repeated parser-surface validation, parser-surface drift test, canonical demo-path mapping, and ownership-accounting fixes; required gates passed again at `2026-04-28T21:52:01Z`.
+- Reviewer packet `20260428T215506Z` repeated token-level parser-surface validation, parser-surface drift tests, canonical demo-path mapping, and ownership-accounting fixes; focused catalog regressions passed at `2026-04-28T21:55:56Z`.
+- Reviewer packet `20260428T215506Z` required gates passed again at `2026-04-28T21:56:45Z`.
 
 ### Risks / Blockers
 
@@ -152,3 +154,12 @@
 2. Required fixes before re-review: none.
 3. Fixer action: no code changes were needed; this pass records the approval and reruns all required gates on the final tree.
 4. Final verification: required gates passed again at `2026-04-28T21:54:07Z`.
+
+### Reviewer Packet `20260428T215506Z` Fix Satisfaction
+
+1. Required fix 1, token-level parser-surface validation: satisfied at branch tip by `command_cli_contract()` validating accepted token tuple, grouped parser projection, lookup-table shape/order, and canonical names against `_CLI_COMMAND_SURFACE`.
+2. Required fix 2, parser-surface drift tests: satisfied by focused regressions for added known alias, removed accepted alias, substituted accepted token for the same canonical command, same-canonical token reorder, declared-surface alias drift, lookup-table token substitution, grouped parser drift, and lookup-table shape/order drift.
+3. Required fix 3, canonical demo-path mapping: satisfied by per-task `continue working` mappings and the final statement that this handoff makes stable follow-up CLI operation more real while Textual remains disabled.
+4. Required fix 4, ownership accounting: satisfied by listing `tests/unit/test_commands_catalog.py` as the approved shared-by-approval edit and confirming integrator-locked edits are `no`.
+5. Focused verification: `python -m unittest tests.unit.test_commands_catalog` passed at `2026-04-28T21:55:56Z`.
+6. Final verification: required gates passed again at `2026-04-28T21:56:45Z`.
