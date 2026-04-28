@@ -28,7 +28,6 @@ PROPOSED_LABEL_ENV = "QUAL_DIFF_PROPOSED_LABEL"
 OUTPUT_FORMAT_ENV = "QUAL_DIFF_OUTPUT_FORMAT"
 INCLUDE_FINGERPRINT_ENV = "QUAL_DIFF_INCLUDE_FINGERPRINT"
 MAX_FILE_LABEL_CHARS = 120
-MAX_TRUNCATION_MARKER_CHARS = 120
 ANSI_ESCAPE_RE = re.compile(r"\x1B\[[0-?]*[ -/]*[@-~]")
 COMMAND_NAME = "diff-preview"
 
@@ -56,7 +55,7 @@ def _normalize_trailing_whitespace(value: str) -> str:
     normalized: list[str] = []
     for line in lines:
         if line.endswith("\n"):
-            normalized.append(line[:-1].rstrip(" \t") + "\n")
+            normalized.append(f"{line[:-1].rstrip(' \t')}\n")
         else:
             normalized.append(line.rstrip(" \t"))
     return "".join(normalized)
@@ -118,13 +117,6 @@ def _resolve_file_label(env_name: str, default: str) -> str:
     if not label:
         return default
     return label
-
-
-def _sanitize_inline_env_text(value: str, *, max_chars: int) -> str:
-    sanitized = _strip_ansi(value)
-    sanitized = re.sub(r"[\x00-\x1f\x7f]+", " ", sanitized)
-    sanitized = " ".join(sanitized.split())
-    return sanitized[:max_chars].rstrip()
 
 
 def _apply_file_labels(diff: str) -> tuple[str, bool]:
@@ -207,66 +199,12 @@ def _diff_fingerprint(diff: str) -> dict[str, object]:
     }
 
 
-def _labels_payload(*, applied: bool, original_label: str, proposed_label: str) -> dict[str, object]:
-    return {
-        "applied": applied,
-        "original": original_label,
-        "proposed": proposed_label,
-    }
-
-
-def _options_payload(
-    *,
-    ignore_trailing_whitespace: bool,
-    suppress_file_headers: bool,
-    include_summary: bool,
-    include_options_banner: bool,
-    max_chars: int,
-) -> dict[str, object]:
-    return {
-        "canonicalize_inline_whitespace": _env_enabled(CANONICALIZE_INLINE_WHITESPACE_ENV),
-        "ignore_all_blank_lines": _env_enabled(IGNORE_ALL_BLANK_LINES_ENV),
-        "ignore_case": _env_enabled(IGNORE_CASE_ENV),
-        "ignore_edge_blank_lines": _env_enabled(IGNORE_EDGE_BLANK_LINES_ENV),
-        "ignore_trailing_whitespace": ignore_trailing_whitespace,
-        "include_options_banner": include_options_banner,
-        "include_summary": include_summary,
-        "max_output_chars": max_chars,
-        "strip_ansi": _env_enabled(STRIP_ANSI_ENV),
-        "suppress_file_headers": suppress_file_headers,
-        "truncation_strategy": _truncation_strategy(),
-    }
-
-
-def _no_diff_payload(
-    message: str,
-    *,
-    summary_only: bool,
-    original_label: str,
-    proposed_label: str,
-    ignore_trailing_whitespace: bool,
-    suppress_file_headers: bool,
-    include_summary: bool,
-    include_options_banner: bool,
-    max_chars: int,
-) -> dict[str, object]:
+def _no_diff_payload(message: str, *, summary_only: bool) -> dict[str, object]:
     return {
         "command": COMMAND_NAME,
         "diff": "",
         "fingerprint": None,
-        "labels": _labels_payload(
-            applied=False,
-            original_label=original_label,
-            proposed_label=proposed_label,
-        ),
         "message": message,
-        "options": _options_payload(
-            ignore_trailing_whitespace=ignore_trailing_whitespace,
-            suppress_file_headers=suppress_file_headers,
-            include_summary=include_summary,
-            include_options_banner=include_options_banner,
-            max_chars=max_chars,
-        ),
         "status": "no_diff",
         "summary": None,
         "summary_only": summary_only,
@@ -274,46 +212,15 @@ def _no_diff_payload(
     }
 
 
-def _no_diff_result(
-    message: str,
-    *,
-    summary_only: bool,
-    original_label: str,
-    proposed_label: str,
-    ignore_trailing_whitespace: bool,
-    suppress_file_headers: bool,
-    include_summary: bool,
-    include_options_banner: bool,
-    max_chars: int,
-) -> str:
+def _no_diff_result(message: str, *, summary_only: bool) -> str:
     if _resolve_output_format() == "json":
-        return _json_result(
-            _no_diff_payload(
-                message,
-                summary_only=summary_only,
-                original_label=original_label,
-                proposed_label=proposed_label,
-                ignore_trailing_whitespace=ignore_trailing_whitespace,
-                suppress_file_headers=suppress_file_headers,
-                include_summary=include_summary,
-                include_options_banner=include_options_banner,
-                max_chars=max_chars,
-            )
-        )
+        return _json_result(_no_diff_payload(message, summary_only=summary_only))
     return message
 
 
 def _emitted_diff_payload(*, output: str, summary_only: bool) -> str:
     if summary_only:
         return ""
-    return output
-
-
-def _fingerprint_source_payload(*, diff: str, output: str, summary_only: bool) -> str:
-    # Fingerprints must identify the reviewed diff, even when the rendered view
-    # is collapsed to summary-only text for a thin CLI surface.
-    if summary_only:
-        return diff
     return output
 
 
@@ -360,18 +267,24 @@ def _text_or_json_result(
                 "command": COMMAND_NAME,
                 "diff": emitted_diff,
                 "fingerprint": emitted_fingerprint,
-                "labels": _labels_payload(
-                    applied=labels_applied,
-                    original_label=original_label,
-                    proposed_label=proposed_label,
-                ),
-                "options": _options_payload(
-                    ignore_trailing_whitespace=ignore_trailing_whitespace,
-                    suppress_file_headers=suppress_file_headers,
-                    include_summary=include_summary,
-                    include_options_banner=include_options_banner,
-                    max_chars=max_chars,
-                ),
+                "labels": {
+                    "applied": labels_applied,
+                    "original": original_label,
+                    "proposed": proposed_label,
+                },
+                "options": {
+                    "canonicalize_inline_whitespace": _env_enabled(CANONICALIZE_INLINE_WHITESPACE_ENV),
+                    "ignore_all_blank_lines": _env_enabled(IGNORE_ALL_BLANK_LINES_ENV),
+                    "ignore_case": _env_enabled(IGNORE_CASE_ENV),
+                    "ignore_edge_blank_lines": _env_enabled(IGNORE_EDGE_BLANK_LINES_ENV),
+                    "ignore_trailing_whitespace": ignore_trailing_whitespace,
+                    "include_options_banner": include_options_banner,
+                    "include_summary": include_summary,
+                    "max_output_chars": max_chars,
+                    "strip_ansi": _env_enabled(STRIP_ANSI_ENV),
+                    "suppress_file_headers": suppress_file_headers,
+                    "truncation_strategy": _truncation_strategy(),
+                },
                 "status": "ok",
                 "summary": {
                     "details_enabled": _env_enabled(INCLUDE_SUMMARY_DETAILS_ENV),
@@ -423,49 +336,21 @@ def _truncation_strategy() -> str:
 
 def _truncation_marker(omitted: int) -> str:
     custom = os.getenv(TRUNCATION_MARKER_ENV)
-    if custom is not None:
-        marker = _sanitize_inline_env_text(custom, max_chars=MAX_TRUNCATION_MARKER_CHARS)
-        if marker:
-            return marker
+    if custom is not None and custom.strip():
+        return custom.strip()
     return f"... diff truncated ({omitted} characters omitted) ..."
 
 
 def _truncate_diff(diff: str, max_chars: int) -> str:
     strategy = _truncation_strategy()
-    separator = "\n" if strategy == "tail" else ""
-    omitted = max(len(diff) - max_chars, 0)
-    marker = _truncation_marker(omitted)
-
-    while True:
-        visible_budget = max_chars - len(separator) - len(marker)
-        if visible_budget <= 0:
-            return marker[:max_chars]
-        new_omitted = max(len(diff) - visible_budget, 0)
-        new_marker = _truncation_marker(new_omitted)
-        if new_omitted == omitted and new_marker == marker:
-            break
-        omitted = new_omitted
-        marker = new_marker
-
     if strategy == "tail":
-        return f"{diff[:visible_budget]}{separator}{marker}"
+        omitted = len(diff) - max_chars
+        return f"{diff[:max_chars]}\n{_truncation_marker(omitted)}"
 
-    lines = diff.splitlines(keepends=True)
-    header_prefix = ""
-    if len(lines) >= 2 and lines[0].startswith("--- ") and lines[1].startswith("+++ "):
-        header_prefix = "".join(lines[:2])
-    if header_prefix:
-        if len(header_prefix) >= visible_budget:
-            return f"{header_prefix[:visible_budget]}{marker}"
-        remaining = diff[len(header_prefix):]
-        remaining_budget = visible_budget - len(header_prefix)
-        head_chars = remaining_budget // 2
-        tail_chars = remaining_budget - head_chars
-        return f"{header_prefix}{remaining[:head_chars]}{marker}{remaining[-tail_chars:]}"
-
-    head_chars = visible_budget // 2
-    tail_chars = visible_budget - head_chars
-    return f"{diff[:head_chars]}{marker}{diff[-tail_chars:]}"
+    head_chars = max_chars // 2
+    tail_chars = max_chars - head_chars
+    omitted = len(diff) - (head_chars + tail_chars)
+    return f"{diff[:head_chars]}{_truncation_marker(omitted)}{diff[-tail_chars:]}"
 
 
 def run_diff_preview(payload: DiffPreviewInput) -> str:
@@ -476,9 +361,6 @@ def run_diff_preview(payload: DiffPreviewInput) -> str:
     include_options_banner = _env_enabled(INCLUDE_OPTIONS_BANNER_ENV)
     summary_only = _env_enabled(SUMMARY_ONLY_ENV)
     include_summary = _env_enabled(INCLUDE_SUMMARY_ENV)
-    max_chars = _max_diff_output_chars()
-    original_label = _resolve_file_label(ORIGINAL_LABEL_ENV, "original")
-    proposed_label = _resolve_file_label(PROPOSED_LABEL_ENV, "proposed")
 
     if _env_enabled(STRIP_ANSI_ENV):
         original = _strip_ansi(original)
@@ -500,58 +382,33 @@ def run_diff_preview(payload: DiffPreviewInput) -> str:
         proposed = _normalize_trailing_whitespace(proposed)
 
     if not original and not proposed:
-        return _no_diff_result(
-            "No diff: both inputs are empty.",
-            summary_only=summary_only,
-            original_label=original_label,
-            proposed_label=proposed_label,
-            ignore_trailing_whitespace=ignore_trailing_whitespace,
-            suppress_file_headers=suppress_file_headers,
-            include_summary=include_summary,
-            include_options_banner=include_options_banner,
-            max_chars=max_chars,
-        )
+        return _no_diff_result("No diff: both inputs are empty.", summary_only=summary_only)
 
     if original == proposed:
         return _no_diff_result(
             "No diff: inputs are identical after normalization.",
             summary_only=summary_only,
-            original_label=original_label,
-            proposed_label=proposed_label,
-            ignore_trailing_whitespace=ignore_trailing_whitespace,
-            suppress_file_headers=suppress_file_headers,
-            include_summary=include_summary,
-            include_options_banner=include_options_banner,
-            max_chars=max_chars,
         )
 
     drafting = DraftingService()
     diff = drafting.propose_diff(original, proposed)
     summary_source = diff
+    original_label = _resolve_file_label(ORIGINAL_LABEL_ENV, "original")
+    proposed_label = _resolve_file_label(PROPOSED_LABEL_ENV, "proposed")
     diff, labels_applied = _apply_file_labels(diff)
     if suppress_file_headers:
         diff = _suppress_file_headers(diff)
     if not diff:
-        return _no_diff_result(
-            "No diff: inputs are identical.",
-            summary_only=summary_only,
-            original_label=original_label,
-            proposed_label=proposed_label,
-            ignore_trailing_whitespace=ignore_trailing_whitespace,
-            suppress_file_headers=suppress_file_headers,
-            include_summary=include_summary,
-            include_options_banner=include_options_banner,
-            max_chars=max_chars,
-        )
+        return _no_diff_result("No diff: inputs are identical.", summary_only=summary_only)
+    max_chars = _max_diff_output_chars()
     output = diff
     truncated = False
     if len(diff) > max_chars:
         output = _truncate_diff(diff, max_chars)
         truncated = True
     emitted_diff = _emitted_diff_payload(output=output, summary_only=summary_only)
-    fingerprint = _diff_fingerprint(
-        _fingerprint_source_payload(diff=diff, output=output, summary_only=summary_only)
-    )
+    # Hash the exact payload we expose after summary-only collapsing.
+    fingerprint = _diff_fingerprint(emitted_diff)
 
     return _text_or_json_result(
         summary_source=summary_source,

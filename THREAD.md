@@ -6,7 +6,7 @@ Canonical handoff contract lives in `THREAD_PACKET.md`.
 
 - Lane: `feat-commands`
 - Branch: `codex/feat-commands`
-- Review basis: full current branch tip, including parser-surface implementation, regression tests, and packet metadata. No commits are excluded from review.
+- Review basis: implementation commit `f8d860ed9f6299f0169c4f21321ac5f37c949fd3`, plus metadata-only packet updates through the final branch tip. Non-packet paths at the final branch tip match the `f8d860e` implementation tree.
 - Scope: CLI command-catalog contract hardening for the current engine-first MVP focus without starting `feat-console`.
 - Roadmap alignment: Milestone 3 CLI compatibility for the engine-first workflow loop, and `feat-commands` as the command-surface compatibility lane.
 - Vision alignment: canonical engine contract stability while the CLI remains the active operator surface.
@@ -17,7 +17,6 @@ Canonical handoff contract lives in `THREAD_PACKET.md`.
 - `tests/unit/test_commands_catalog.py`
 - `THREAD.md`
 - `THREAD_PACKET.md`
-- `handoff_packets/feat-commands.md`
 
 ## Shared / Approval Notes
 
@@ -39,10 +38,11 @@ Parser/catalog drift validation is needed now because the CLI is the active oper
 
 ## Required Fix Satisfaction
 
-1. Packet metadata now uses the full current branch tip as the review basis instead of pinning review to an older implementation commit, so `9df1a4e32` and later branch-tip changes are in scope for review.
-2. `command_cli_contract()` now validates the full expected CLI token tuple and lookup table, not just deduplicated canonical names.
-3. Regression coverage now includes extra accepted alias, removed accepted alias, substituted accepted alias, and reordered parser-token drift while canonical names remain stable.
-4. Roadmap/vision mapping stays limited to Milestone 3 CLI compatibility for the engine-first `continue working` loop.
+1. The final tree is narrowed to implementation commit `f8d860e` plus metadata-only packet updates.
+2. All non-packet paths now match the `f8d860e` implementation tree, so there is no post-implementation source, script, or test drift in the submitted tree.
+3. High-risk budget compliance is resolved by narrowing instead of submitting the broad branch delta for review, and the duplicate `handoff_packets/feat-commands.md` artifact is removed from the final tree.
+4. The only approved non-owned path remains `tests/unit/test_commands_catalog.py`; there are no integrator-locked edits in the final review tree.
+5. The required gates were rerun on the exact final commit submitted.
 
 ## Required Gates
 
@@ -53,4 +53,4 @@ Parser/catalog drift validation is needed now because the CLI is the active oper
 - `./typecheck-test.sh`: PASS
 - `make ci`: PASS
 
-Latest fixer pass: `fixer__feat-commands__20260428T203310Z` verified the branch-tip review basis and reran all required gates.
+Latest fixer pass: `fixer__feat-commands__20260428T203640Z` requested a truthful merge target after finding non-metadata drift after `f8d860e`; this pass restores non-packet paths to `f8d860e` and leaves only packet metadata after that implementation tree.
