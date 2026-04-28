@@ -3,7 +3,7 @@
 ## Thread Kickoff (High-Risk)
 
 - Branch: `codex/feat-commands`
-- Review basis: final branch tip after this `2026-04-28T23:04:58Z` fixer pass for reviewer packet `20260428T230343Z`; implementation, tests, and handoff metadata are reviewed together.
+- Review basis: final branch tip after this `2026-04-28T23:07:44Z` fixer pass for reviewer packet `20260428T230636Z`; implementation, tests, and handoff metadata are reviewed together.
 - Lane/owned paths: `src/qual/commands/**`
 - Scope goal: harden `command_cli_contract()` so the CLI contract stays deterministic, follows canonical command order, and fails fast when the parser surface drifts from the command catalog.
 - Risk reason: this changes the command contract used by the active CLI operator surface while Textual lanes remain disabled.
@@ -20,7 +20,7 @@
 - Shared-by-approval test edit: yes, `tests/unit/test_commands_catalog.py`, covered by the approved shared-test exception.
 - Integrator-locked edits: no.
 - Lane-owned implementation edit: `src/qual/commands/catalog.py`.
-- This packet presents the final branch tip after this `2026-04-28T23:04:58Z` fixer pass as the implementation basis so implementation commits are not hidden behind metadata-only packet refreshes.
+- This packet presents the final branch tip after this `2026-04-28T23:07:44Z` fixer pass as the implementation basis so implementation commits are not hidden behind metadata-only packet refreshes.
 - Previous stale review basis `f8d860ed9f6299f0169c4f21321ac5f37c949fd3` was incomplete because later commits changed `src/qual/commands/catalog.py` and `tests/unit/test_commands_catalog.py`; the corrected branch-tip basis supersedes it for re-review.
 
 ### Implementation Basis
@@ -30,7 +30,7 @@
   - `ea0ab36b4 fix(commands): enforce parser surface drift checks`
   - `b438f4554 fix(commands): validate full CLI parser surface`
   - `18c7c627a fix(commands): cover declared CLI surface drift`
-- This `2026-04-28T23:04:58Z` fixer pass addresses reviewer packet `20260428T230343Z` by keeping the actual branch-tip review basis, preserving all code-bearing catalog/test changes in the reviewed implementation basis, refreshing the packet ownership/demo-path accounting, and rerunning all required gates.
+- This `2026-04-28T23:07:44Z` fixer pass addresses reviewer packet `20260428T230636Z` by keeping the actual branch-tip review basis, preserving all code-bearing catalog/test changes in the reviewed implementation basis, refreshing the packet ownership/demo-path accounting, and rerunning all required gates.
 - Packet-refresh commits after those implementation commits are metadata-only only when they touch `THREAD.md` or `THREAD_PACKET.md`.
 - No commit that modifies `src/qual/commands/catalog.py` or `tests/unit/test_commands_catalog.py` is classified as metadata-only in this packet.
 
@@ -94,6 +94,7 @@
 - Reviewer prompt `20260428T225248Z` repeated actual branch-tip review basis, full parser-surface validation, parser-surface drift coverage, canonical demo-path mapping, and required gate rerun; focused catalog regressions passed at `2026-04-28T22:53:54Z`, and all required gates passed at `2026-04-28T22:55:20Z`.
 - Reviewer packet `20260428T230036Z` repeated actual branch-tip review basis, full parser-surface validation, parser-surface drift coverage, complete file and ownership accounting, canonical demo-path mapping, and required gate rerun; focused catalog regressions and all required gates passed at `2026-04-28T23:02:47Z`.
 - Reviewer packet `20260428T230343Z` repeated actual branch-tip review basis, full parser-surface validation, parser-surface drift coverage, complete file and ownership accounting, canonical demo-path mapping, and required gate rerun; focused catalog regressions passed at `2026-04-28T23:04:58Z`, and all required gates passed at `2026-04-28T23:05:57Z`.
+- Reviewer packet `20260428T230636Z` repeated actual branch-tip review basis, full parser-surface validation, parser-surface drift coverage, canonical demo-path mapping, and required gate rerun; focused catalog regressions and all required gates passed at `2026-04-28T23:09:03Z`.
 
 ### Risks / Blockers
 
@@ -113,12 +114,20 @@
 
 ### Required Fix Satisfaction
 
-1. Reviewer fix 1, regenerate packet against actual branch tip: satisfied by the `Implementation Basis` section. This packet uses the final branch tip after reviewer packet `20260428T230036Z` as the review basis and does not mark code-bearing catalog/test commits as metadata-only.
+1. Reviewer fix 1, regenerate packet against actual branch tip: satisfied by the `Implementation Basis` section. This packet uses the final branch tip after reviewer packet `20260428T230636Z` as the review basis and does not mark code-bearing catalog/test commits as metadata-only.
 2. Reviewer fix 2, full parser-surface validation: satisfied by `command_cli_contract()` validating accepted token tuple, grouped parser projection, lookup table shape/order, and canonical names against the declared command-catalog projection.
 3. Reviewer fix 3, drift regression tests: satisfied by focused tests for extra accepted alias, removed accepted alias, substituted accepted alias to another known alias with the same canonical command, parser-token reorder preserving canonical names, declared-surface alias drift, grouped token-to-canonical drift, lookup-table token-substitution drift, and lookup-table shape/order drift.
 4. Reviewer fix 4, canonical demo-path mapping: satisfied by per-task `continue working` mappings and the final statement that this handoff makes that step more real while Textual remains disabled.
 5. Reviewer fix 5, complete metadata-only accounting: satisfied by the `Files Changed` and `Shared / Integrator-Locked Accounting` sections, which list `THREAD.md` and `THREAD_PACKET.md` as metadata-only packet files, record the approved shared-by-approval test edit, and confirm no integrator-locked edits.
-6. Reviewer fix 6, rerun required gates: focused catalog regressions and all required gates passed at `2026-04-28T23:02:47Z`.
+6. Reviewer fix 6, rerun required gates: focused catalog regressions and all required gates passed at `2026-04-28T23:09:03Z`.
+
+### Reviewer Packet `20260428T230636Z` Fix Satisfaction
+
+1. Required fix 1, regenerate packet from the actual merge candidate: satisfied by this packet using the final branch tip after this `2026-04-28T23:07:44Z` fixer pass as the review basis and not classifying commits as metadata-only when they modify `src/qual/commands/catalog.py` or `tests/unit/test_commands_catalog.py`.
+2. Required fix 2, full parser-surface validation: satisfied at branch tip by `command_cli_contract()` validating grouped parser projection, accepted token tuple, lookup-table shape/order, and canonical names against `_CLI_COMMAND_SURFACE`, with `_CLI_ENTRYPOINTS` frozen against `_DECLARED_CLI_ENTRYPOINTS`.
+3. Required fix 3, parser-surface drift tests: satisfied at branch tip by focused regressions for removed `diff`, added known alias `open`, replacing `diff` with `diff_preview`, token reorder, grouped lookup-table drift, lookup-table token substitution, and lookup-table shape/order drift.
+4. Required fix 4, canonical demo-path mapping: every completed task maps to `continue working`, and this packet states that deterministic CLI command validation makes that step more real while Textual remains disabled.
+5. Required fix 5, gate rerun: focused catalog regressions and all required gates passed at `2026-04-28T23:09:03Z`.
 
 ### Reviewer Packet `20260428T230343Z` Fix Satisfaction
 
@@ -287,6 +296,7 @@
 
 ### Final Verification
 
+- Reviewer packet `20260428T230636Z` required fixes were satisfied at branch tip; focused catalog regressions and all required gates passed at `2026-04-28T23:09:03Z`: `python -m unittest tests.unit.test_commands_catalog`, `make scope-check`, `./quality-format.sh --check`, `./quality-lint.sh`, `./quality-test.sh`, `./typecheck-test.sh`, and `make ci`.
 - Reviewer packet `20260428T230036Z` required fixes were satisfied at branch tip; focused catalog regressions and required gates passed at `2026-04-28T23:02:47Z`: `python -m unittest tests.unit.test_commands_catalog`, `make scope-check`, `./quality-format.sh --check`, `./quality-lint.sh`, `./quality-test.sh`, `./typecheck-test.sh`, and `make ci`.
 - Reviewer packet `20260428T223408Z` required gates passed at `2026-04-28T22:37:14Z`: `make scope-check`, `./quality-format.sh --check`, `./quality-lint.sh`, `./quality-test.sh`, `./typecheck-test.sh`, and `make ci`.
 - Approved reviewer packet `20260428T223738Z` required no code fixes; required gates passed at `2026-04-28T22:39:37Z`: `make scope-check`, `./quality-format.sh --check`, `./quality-lint.sh`, `./quality-test.sh`, `./typecheck-test.sh`, and `make ci`.
