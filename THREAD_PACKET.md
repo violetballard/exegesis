@@ -83,7 +83,8 @@
   - metadata-only handoff refresh: `THREAD_PACKET.md`
   - metadata-only handoff refresh: `handoff_packets/feat-commands.md`
 - commands run + outcomes:
-  - `python -m unittest tests.unit.test_commands_catalog` -> passed
+  - latest fixer evidence timestamp: `2026-04-28T18:38:12Z`
+  - `python -m unittest tests.unit.test_commands_catalog` -> passed (`Ran 163 tests`; `OK`)
   - `make scope-check` -> passed
   - `./quality-format.sh --check` -> passed
   - `./quality-lint.sh` -> passed

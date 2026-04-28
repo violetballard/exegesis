@@ -35,10 +35,11 @@ Canonical handoff contract lives in `THREAD_PACKET.md`.
 
 ## Required Gates
 
-- `python -m unittest tests.unit.test_commands_catalog`
-- `make scope-check`
-- `./quality-format.sh --check`
-- `./quality-lint.sh`
-- `./quality-test.sh`
-- `./typecheck-test.sh`
-- `make ci`
+- Latest fixer evidence timestamp: `2026-04-28T18:38:12Z`
+- `python -m unittest tests.unit.test_commands_catalog` -> passed (`Ran 163 tests`; `OK`)
+- `make scope-check` -> passed
+- `./quality-format.sh --check` -> passed
+- `./quality-lint.sh` -> passed
+- `./quality-test.sh` -> passed (`Ran 246 tests`; `OK`)
+- `./typecheck-test.sh` -> passed
+- `make ci` -> passed (`CI entrypoint completed`; unit suite reported `Ran 246 tests`; `OK`)
