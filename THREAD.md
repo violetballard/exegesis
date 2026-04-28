@@ -10,6 +10,7 @@ Canonical handoff contract lives in `THREAD_PACKET.md`.
 - Scope: CLI command-contract hardening for the current engine-first MVP focus without starting `feat-console`.
 - Roadmap alignment: `ROADMAP.md` Milestone 1 `Command and diff-preview behavior hardening` / `Manual CLI smoke flow remains stable`, Milestone 2 remaining parser-edge coverage, Milestone 3 output-contract intentionality, and the active MVP emphasis on `feat-commands`.
 - Vision alignment: `PRODUCT_VISION.md` capability 4 `Operator-first control surface`.
+- Architecture alignment: `ARCHITECTURE.md` assigns `src/qual/commands/**` to command-level behavior and output contracts; command code may call public `drafting`, `context`, and `engine` entrypoints, must not directly mutate persistent storage, and must keep provider routing centralized in engine policy modules.
 - Scope boundary: this handoff claims deterministic CLI command-surface hardening only. It does not claim retrieval, persistence, provider routing, apply/reject engine execution, or `feat-console` progress.
 
 ## Reviewed Files
@@ -52,20 +53,19 @@ Canonical handoff contract lives in `THREAD_PACKET.md`.
 ## Reviewer Fix Satisfaction
 
 1. Required fix 1 is satisfied by keeping the actual submitted branch tip as the review basis instead of the older `f8d860ed9f6299f0169c4f21321ac5f37c949fd3` slice.
-2. Required fix 2 is satisfied by replacing the earlier metadata-only traceability claim with actual implementation, test, scope-check, and handoff file accounting.
-3. Required fix 3 is satisfied by listing every implementation file changed in the actual review range, including `src/qual/cli.py`, `scripts/scope-check.sh`, `src/qual/commands/__init__.py`, `src/qual/commands/canonical.py`, `src/qual/commands/catalog.py`, `src/qual/commands/diff_preview.py`, `src/qual/commands/workflow.py`, and both shared test files.
-4. Required fix 4 is satisfied by the explicit shared/integrator-locked exception for `src/qual/cli.py`, the shared support exception for `scripts/scope-check.sh`, and the approved shared-test exception for both command test files.
-5. Required fix 5 is satisfied by routing the high-risk size overage for reviewer/integrator exception with concrete merge risk instead of claiming normal high-risk size compliance.
-6. Required fix 6 is satisfied by the canonical demo-path mapping and by the numbered completed tasks, each of which names the demo-path step it supports and calls out `continue working` as the step made most real.
+2. Required fix 2 is not the selected route; later implementation commits remain on this branch, so the packet does not claim a narrow `f8d860ed9f6299f0169c4f21321ac5f37c949fd3` review slice.
+3. Required fix 3 is satisfied by listing every implementation file changed in the actual review range, including `src/qual/cli.py`, `scripts/scope-check.sh`, `src/qual/commands/__init__.py`, `src/qual/commands/canonical.py`, `src/qual/commands/catalog.py`, `src/qual/commands/diff_preview.py`, `src/qual/commands/workflow.py`, and both shared test files; the packet also records the shared/integrator-locked exceptions, high-risk size overage, and fresh gate evidence.
+4. Required fix 4 is satisfied by the roadmap, vision, architecture, and AGENTS demo-path mapping in this packet.
+5. Required fix 5 is satisfied by removing the earlier metadata-only contradiction and submitting this actual-tip packet for re-review.
 
 ## Reviewer-Fix Closure
 
 - Reviewer packet `fixer__feat-commands__20260428T193229Z` requested actual-tip traceability, complete file accounting, shared/integrator-locked exceptions, high-risk size exception routing, and per-task demo-path mapping.
-- This closure records those fixes and reruns the required gates for the final handoff state.
+- This closure records those fixes and reran the required gates for the final handoff state.
 
 ## Required Gates
 
-- Latest fixer evidence timestamp: `2026-04-28T19:36:01Z`
+- Latest fixer evidence timestamp: `2026-04-28T19:38:10Z`
 - `python -m unittest tests.unit.test_commands_catalog` -> passed
 - `make scope-check` -> passed
 - `./quality-format.sh --check` -> passed
