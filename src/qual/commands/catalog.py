@@ -599,6 +599,17 @@ def _canonical_name_projection_from_entrypoints(
     return tuple(spec_name for spec_name, _ in entrypoints)
 
 
+def _command_cli_contract_from_entrypoints(
+    entrypoints: tuple[tuple[str, tuple[str, ...]], ...],
+) -> CommandCliContract:
+    lookup_table = _cli_lookup_projection_from_entrypoints(entrypoints)
+    return CommandCliContract(
+        tokens=tuple(token for token, _ in lookup_table),
+        canonical_names=_canonical_name_projection_from_entrypoints(entrypoints),
+        lookup_table=lookup_table,
+    )
+
+
 def _cli_entrypoint_projection_from_contract(
     contract: CommandCliContract,
 ) -> tuple[tuple[str, tuple[str, ...]], ...]:
@@ -620,12 +631,19 @@ def _validate_command_cli_contract(
     validate_command_catalog(specs)
     authoritative_entrypoints = _authoritative_cli_entrypoint_projection(specs)
     expected_entrypoints = _declared_cli_entrypoint_projection(specs)
+    expected_contract = _command_cli_contract_from_entrypoints(expected_entrypoints)
+    authoritative_contract = _command_cli_contract_from_entrypoints(authoritative_entrypoints)
     if authoritative_entrypoints != expected_entrypoints:
         raise ValueError("Command CLI catalog entrypoint projection is inconsistent")
+    if authoritative_contract != expected_contract:
+        raise ValueError("Command CLI contract surface is inconsistent")
 
     live_entrypoints = actual_entrypoints or _actual_cli_entrypoint_projection(specs)
+    live_contract = _command_cli_contract_from_entrypoints(live_entrypoints)
     if live_entrypoints != authoritative_entrypoints:
         raise ValueError("Command CLI catalog entrypoint projection is inconsistent")
+    if live_contract != authoritative_contract:
+        raise ValueError("Command CLI contract surface is inconsistent")
 
     # Rebuild the grouped parser surface from the public contract so alias drift
     # cannot hide behind a stable canonical-name sequence.
@@ -634,6 +652,10 @@ def _validate_command_cli_contract(
         raise ValueError("Command CLI catalog entrypoint projection is inconsistent")
     if contract_entrypoints != live_entrypoints:
         raise ValueError("Command CLI catalog entrypoint projection is inconsistent")
+    if contract != expected_contract:
+        raise ValueError("Command CLI contract surface is inconsistent")
+    if contract != live_contract:
+        raise ValueError("Command CLI contract surface is inconsistent")
 
     expected_canonical_names = _canonical_name_projection_from_entrypoints(
         authoritative_entrypoints
@@ -661,15 +683,7 @@ def _validate_command_cli_contract(
 
 def _command_cli_contract_for(specs: tuple[CommandSpec, ...]) -> CommandCliContract:
     actual_entrypoints = _actual_cli_entrypoint_projection(specs)
-    lookup_table = _cli_lookup_projection_from_entrypoints(actual_entrypoints)
-    tokens = tuple(token for token, _ in lookup_table)
-    canonical_names = _canonical_name_projection_from_entrypoints(actual_entrypoints)
-
-    contract = CommandCliContract(
-        tokens=tokens,
-        canonical_names=canonical_names,
-        lookup_table=lookup_table,
-    )
+    contract = _command_cli_contract_from_entrypoints(actual_entrypoints)
     _validate_command_cli_contract(
         contract,
         specs,

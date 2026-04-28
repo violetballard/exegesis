@@ -36,6 +36,7 @@
 - Reviewer packet `fixer__feat-commands__20260428T195915Z` closure: this packet explicitly maps the command-catalog slice to the `continue working` canonical demo-path step, maps each completed task to its canonical demo-path step, and limits the vision claim to command contract stability rather than auditable state, persistence, or audit behavior.
 - Reviewer packet `fixer__feat-commands__20260428T200235Z` closure: the required demo-path mapping is already explicit in the four task bullets above and in the numbered completed-task list below; the final demo-path statement names `continue working` as the canonical step made more real.
 - Reviewer packet `fixer__feat-commands__20260428T200453Z` closure: the actual branch tip is still the review basis, the parser-surface drift guard already validates full grouped tokens and lookup rows, the alias-only drift test matrix covers added, removed, substituted, and reordered parser tokens with stable canonical names, and the demo-path step remains `continue working`.
+- Reviewer packet `fixer__feat-commands__20260428T200726Z` closure: `_validate_command_cli_contract()` now constructs full `CommandCliContract` values from the declared catalog projection, authoritative parser projection, live parser projection, and reconstructed public contract projection before checking individual fields, so token and lookup-table drift cannot pass behind stable canonical-name order.
 
 ### Budget
 
@@ -78,6 +79,7 @@
 - branch name: `codex/feat-commands`
 - scope completed:
   - hardened `command_cli_contract()` in `src/qual/commands/catalog.py` so it validates declared catalog entrypoints, live parser entrypoints, canonical-name order, accepted CLI tokens, and token-to-command lookup rows.
+  - factored CLI entrypoint projection into explicit `CommandCliContract` construction so the validator compares the complete expected, authoritative, live, and returned contract surfaces before exposing parser tokens.
   - preserved deterministic command ordering for the CLI contract and command helper exports.
   - derived `src/qual/cli.py` parser entrypoint metadata from the actual argparse subparser surface so argparse token drift is checked before dispatch.
   - added command workflow and diff-preview helpers under `src/qual/commands/**` while keeping command handlers thin and CLI-oriented.
@@ -103,6 +105,15 @@
   - handoff reviewer-fix update: `THREAD_PACKET.md`
   - handoff reviewer-fix update: `handoff_packets/feat-commands.md`
 - commands run + outcomes:
+  - final fixer validation sequence for `fixer__feat-commands__20260428T200726Z`:
+  - `python -m unittest tests.unit.test_commands_catalog.CommandCatalogTests.test_command_cli_contract_rejects_alias_only_parser_projection_drift_cases tests.unit.test_commands_catalog.CommandCatalogTests.test_command_cli_contract_rejects_alias_substitution_when_parser_projection_keeps_same_name_order tests.unit.test_commands_catalog.CommandCatalogTests.test_command_cli_contract_rejects_extra_alias_entrypoint_when_canonical_order_still_matches` -> passed
+  - `python -m unittest tests.unit.test_commands_catalog` -> passed
+  - `make scope-check` -> passed
+  - `./quality-format.sh --check` -> passed
+  - `./quality-lint.sh` -> passed
+  - `./quality-test.sh` -> passed
+  - `./typecheck-test.sh` -> passed
+  - `make ci` -> passed
   - final fixer validation sequence for `fixer__feat-commands__20260428T200453Z`:
   - `python -m unittest tests.unit.test_commands_catalog.CommandCatalogTests.test_command_cli_contract_rejects_alias_only_parser_projection_drift_cases tests.unit.test_commands_catalog.CommandCatalogTests.test_command_cli_contract_rejects_alias_substitution_when_parser_projection_keeps_same_name_order tests.unit.test_commands_catalog.CommandCatalogTests.test_command_cli_contract_rejects_reordered_parser_projection_when_tokens_change_but_names_do_not tests.unit.test_commands_catalog.CommandCatalogTests.test_command_cli_contract_rejects_extra_alias_entrypoint_when_canonical_order_still_matches` -> passed
   - `make scope-check` -> passed
@@ -177,6 +188,7 @@
   4. Required fix 4 is satisfied by the per-task canonical demo-path mapping and final `continue working` statement above.
   5. Required fix 5 is satisfied by routing this packet as high-risk, documenting the `src/qual/cli.py` shared/integrator-locked exception, and preserving the branch-size exception path.
 - reviewer-fix closure note:
+  - Follow-up fixer packet `fixer__feat-commands__20260428T200726Z` was satisfied by making full `CommandCliContract` construction the validator's comparison unit, preserving the alias-only parser drift tests, refreshing the handoff packet, and rerunning every required gate.
   - This closure keeps the actual submitted branch tip as the only review basis, preserves the full alias-only parser drift protection already present in the branch, corrects the actual-tip size/file accounting, and records fresh required-gate evidence for the final metadata state.
   - Follow-up fixer packet `fixer__feat-commands__20260428T195731Z` was satisfied by re-verifying the same numbered required fixes against the current branch tip and rerunning every required gate.
   - Follow-up fixer packet `fixer__feat-commands__20260428T195915Z` was satisfied by naming `continue working` as the exact demo-path step made more real, mapping all four completed tasks to demo-path steps, and narrowing the vision claim away from auditable state or persistence behavior.
