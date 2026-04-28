@@ -8,8 +8,8 @@ Canonical handoff contract lives in `THREAD_PACKET.md`.
 - Branch: `codex/feat-commands`
 - Review basis: actual submitted branch tip after this reviewer-fix commit, not the older `f8d860ed9f6299f0169c4f21321ac5f37c949fd3` two-file slice. Implementation-file accounting covers the actual branch tip relative to `f8d860ed9f6299f0169c4f21321ac5f37c949fd3`, including all follow-up implementation, test, scope-check, and handoff commits.
 - Scope: CLI command-contract hardening for the current engine-first MVP focus without starting `feat-console`.
-- Roadmap alignment: `ROADMAP.md` Milestone 1 `Command and diff-preview behavior hardening` / `Manual CLI smoke flow remains stable`, Milestone 2 remaining parser-edge coverage, Milestone 3 output-contract intentionality, and the active MVP emphasis on `feat-commands`.
-- Vision alignment: `PRODUCT_VISION.md` capability 4 `Operator-first control surface`.
+- Roadmap alignment: current Milestone 3 CLI compatibility for the engine-first workflow loop, and the active MVP emphasis on `feat-commands`.
+- Vision alignment: canonical engine contract stability while the CLI remains the active operator surface; this handoff does not claim auditable state, persistence, retrieval, provider routing, Textual work, or A2UI schema progress.
 - Architecture alignment: `ARCHITECTURE.md` assigns `src/qual/commands/**` to command-level behavior and output contracts; command code may call public `drafting`, `context`, and `engine` entrypoints, must not directly mutate persistent storage, and must keep provider routing centralized in engine policy modules.
 - Scope boundary: this handoff claims deterministic CLI command-surface hardening only. It does not claim retrieval, persistence, provider routing, apply/reject engine execution, or `feat-console` progress.
 
@@ -32,7 +32,7 @@ Canonical handoff contract lives in `THREAD_PACKET.md`.
 
 - Task budget: `4`; tasks completed: `4`.
 - High-risk size limit status: exceeded and routed for reviewer/integrator exception instead of normal lane approval.
-- Implementation range accounting before this reviewer-fix metadata update: `12 files changed, 12841 insertions(+), 982 deletions(-)` from the actual branch tip relative to `f8d860ed9f6299f0169c4f21321ac5f37c949fd3`.
+- Implementation range accounting before this reviewer-fix metadata update: `12 files changed, 12838 insertions(+), 982 deletions(-)` from the actual branch tip relative to `f8d860ed9f6299f0169c4f21321ac5f37c949fd3`.
 - Reason for exception routing: branch history already includes command catalog expansion, parser surface alignment, workflow helpers, diff-preview hardening, scope-check accommodation, and shared unit tests.
 
 ## Shared / Approval Notes
@@ -65,7 +65,7 @@ Canonical handoff contract lives in `THREAD_PACKET.md`.
 
 ## Required Gates
 
-- Latest fixer evidence timestamp: `2026-04-28T19:39:03Z`
+- Latest fixer evidence timestamp: `2026-04-28T19:41:19Z`
 - `python -m unittest tests.unit.test_commands_catalog` -> passed
 - `make scope-check` -> passed
 - `./quality-format.sh --check` -> passed

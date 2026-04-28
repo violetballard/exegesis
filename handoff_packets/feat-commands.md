@@ -16,8 +16,8 @@
 
 ### Scope / Plan Alignment
 
-- Roadmap alignment: `ROADMAP.md` Milestone 1 `Command and diff-preview behavior hardening` / `Manual CLI smoke flow remains stable`, Milestone 2 remaining parser-edge coverage, Milestone 3 output-contract intentionality, and the active MVP emphasis on `feat-commands`.
-- Vision alignment: `PRODUCT_VISION.md` capability 4 `Operator-first control surface`; CLI remains a first-class development and reliability surface with deterministic text fallback behavior.
+- Roadmap alignment: current Milestone 3 CLI compatibility for the engine-first workflow loop, and the active MVP emphasis on `feat-commands`.
+- Vision alignment: canonical engine contract stability while the CLI remains the active operator surface; this handoff does not claim auditable state, persistence, retrieval, provider routing, Textual work, or A2UI schema progress.
 - Architecture alignment: `ARCHITECTURE.md` assigns `src/qual/commands/**` to command-level behavior and command output contracts; this handoff keeps command handlers thin, uses public `drafting`, `context`, and `engine` entrypoints, does not directly mutate persistent storage, and does not move provider routing out of engine policy modules.
 - Exact capability delivered: deterministic CLI command-surface hardening for the existing engine-first command path. This does not claim retrieval, persistence, provider routing, apply/reject engine execution, or `feat-console` progress.
 - Parser-surface drift fix: `command_cli_contract()` now validates the full grouped CLI entrypoint projection, token tuple, canonical-name tuple, and lookup table against the declared catalog and the argparse-derived live parser surface, so alias-only token drift is rejected even when canonical command names stay stable.
@@ -36,7 +36,7 @@
 - Task budget: `4`
 - Time budget: `30m`
 - Size limits: exceeded by existing branch history before this fixer pass; this packet makes the overage explicit for reviewer/integrator risk assessment rather than hiding implementation files behind a metadata-only claim.
-- Size accounting before this reviewer-fix metadata update: `12 files changed, 12841 insertions(+), 982 deletions(-)` across the actual branch tip relative to `f8d860ed9f6299f0169c4f21321ac5f37c949fd3`; the required gates below were rerun after this packet correction.
+- Size accounting before this reviewer-fix metadata update: `12 files changed, 12838 insertions(+), 982 deletions(-)` across the actual branch tip relative to `f8d860ed9f6299f0169c4f21321ac5f37c949fd3`; the required gates below were rerun after this packet correction.
 - Exception route: high-risk branch-size overage requires reviewer/integrator exception; this handoff is not claiming normal high-risk size compliance.
 - Max fix attempts per failing gate: `2`
 
@@ -96,7 +96,7 @@
   - handoff reviewer-fix update: `THREAD_PACKET.md`
   - handoff reviewer-fix update: `handoff_packets/feat-commands.md`
 - commands run + outcomes:
-  - latest fixer evidence timestamp: `2026-04-28T19:39:03Z`
+  - latest fixer evidence timestamp: `2026-04-28T19:41:19Z`
   - `python -m unittest tests.unit.test_commands_catalog` -> passed
   - `make scope-check` -> passed
   - `./quality-format.sh --check` -> passed
@@ -108,14 +108,11 @@
   - risk: high. This branch already exceeds the normal high-risk size budget and touches the shared CLI parser surface; the packet now makes that explicit for review instead of narrowing the claimed basis.
   - blockers: none.
 - roadmap item(s) affected:
-  - `ROADMAP.md` Milestone 1 scope item `Command and diff-preview behavior hardening`.
-  - `ROADMAP.md` Milestone 1 exit criterion `Manual CLI smoke flow remains stable`.
-  - `ROADMAP.md` Milestone 2 remaining parser-edge coverage.
-  - `ROADMAP.md` Milestone 3 exit criterion `Contract changes documented and intentional`.
-  - `ROADMAP.md` MVP Focus active implementation emphasis `feat-commands`.
+  - Milestone 3 CLI compatibility for the engine-first workflow loop.
+  - Active MVP emphasis on `feat-commands` as the command-surface compatibility lane.
 - vision capability affected:
-  - `PRODUCT_VISION.md` capability 4 `Operator-first control surface`.
-  - `PRODUCT_VISION.md` capability 5 `Agent-to-UI protocol (A2UI)` only insofar as CLI text fallback remains compatible with structured command output; this handoff does not add A2UI schemas.
+  - Canonical engine contract stability while the CLI remains the active operator surface.
+  - This handoff does not claim auditable state, persistence, retrieval, provider routing, Textual work, or A2UI schema progress.
 - architecture guardrail affected:
   - `ARCHITECTURE.md` `src/qual/commands/**` owns command-level behavior and command output contracts.
   - Command code remains limited to public `drafting`, `context`, and `engine` entrypoints and does not directly mutate storage or provider routing policy.
