@@ -95,3 +95,10 @@
 3. Reviewer fix 3, drift regression tests: satisfied by focused tests for extra accepted alias, removed accepted alias, substituted accepted alias, parser-token reorder preserving canonical names, declared-surface alias drift, grouped token-to-canonical drift, and lookup-table shape/order drift.
 4. Reviewer fix 4, canonical demo-path mapping: satisfied by per-task `continue working` mappings and the final statement that this handoff makes that step more real while Textual remains disabled.
 5. Reviewer fix 5, ownership clarity: satisfied by the `Shared / Integrator-Locked Accounting` section, which records the approved shared-by-approval test edit and confirms no integrator-locked edits.
+
+### Reviewer Packet `20260428T213354Z` Fix Satisfaction
+
+1. Exact canonical demo-path step: this handoff advances `continue working`.
+2. Concrete blocker removed: the fail-fast `command_cli_contract()` check prevents CLI follow-up turns for open/retrieve/basket/revise/patch/save from running against a parser surface that has drifted away from the canonical catalog.
+3. Complete metadata-only file list: `THREAD.md` and `THREAD_PACKET.md`.
+4. Implementation scope: unchanged; this pass updates handoff metadata only.

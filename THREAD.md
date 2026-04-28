@@ -50,6 +50,13 @@ Parser/catalog drift validation is needed now because the CLI is the active oper
 4. Reviewer fix 4, canonical demo-path mapping: every completed task maps to `continue working`, and this packet states that the CLI command contract makes that step more real while Textual remains disabled.
 5. Reviewer fix 5, ownership clarity: `tests/unit/test_commands_catalog.py` is an approved shared-by-approval test edit, and there are no integrator-locked edits.
 
+## Reviewer Packet `20260428T213354Z` Fix Satisfaction
+
+1. Exact canonical demo-path step: this handoff advances `continue working`.
+2. Concrete blocker removed: the fail-fast `command_cli_contract()` check prevents CLI follow-up turns for open/retrieve/basket/revise/patch/save from running against a parser surface that has drifted away from the canonical catalog.
+3. Complete metadata-only file list: `THREAD.md` and `THREAD_PACKET.md`.
+4. Implementation scope: unchanged; this pass updates handoff metadata only.
+
 ## Final Verification
 
 - Required gates passed on branch `codex/feat-commands` at `2026-04-28T21:30:35Z`: `make scope-check`, `./quality-format.sh --check`, `./quality-lint.sh`, `./quality-test.sh`, `./typecheck-test.sh`, and `make ci`.
