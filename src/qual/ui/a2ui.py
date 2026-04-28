@@ -3775,6 +3775,7 @@ def _build_terminal_artifact_cli_fallback_contract_manifest(
         "terminal_artifact_cli_fallback_entrypoint": "render_terminal_cli_fallback",
         "supported_kinds": list(TERMINAL_ARTIFACT_SUPPORTED_KINDS),
         "default_kind": TERMINAL_ARTIFACT_DEFAULT_KIND,
+        "terminal_artifact_supported_kinds": list(TERMINAL_ARTIFACT_SUPPORTED_KINDS),
         "allowed_actions": sorted(ALLOWED_ACTION_IDS),
         "envelope": describe_terminal_artifact_envelope_contract(),
         "kind_contracts": kind_contracts,
@@ -3871,6 +3872,10 @@ def _build_terminal_artifact_cli_fallback_contract_manifest(
         "terminal_artifact_render_target_contract_fingerprint": terminal_artifact_render_target_contract_fingerprint(),
         "terminal_artifact_rendering_contract_fingerprint": terminal_artifact_rendering_contract_fingerprint(),
         "terminal_fallback_contract_fingerprint": terminal_fallback_contract_fingerprint(),
+        "terminal_artifact_supported_kinds_contract": list(TERMINAL_ARTIFACT_SUPPORTED_KINDS),
+        "terminal_artifact_supported_kinds_contract_fingerprint": _fingerprint_manifest_section(
+            list(TERMINAL_ARTIFACT_SUPPORTED_KINDS)
+        ),
     }
     if include_terminal_artifact_cli_fallback_route:
         route_contract = describe_terminal_artifact_cli_fallback_route_contract()
@@ -3923,6 +3928,7 @@ def _build_terminal_artifact_cli_fallback_target_contract_manifest(
         "fallback_renderer": "ShellUI.render_artifact",
         "supported_kinds": list(TERMINAL_ARTIFACT_SUPPORTED_KINDS),
         "default_kind": TERMINAL_ARTIFACT_DEFAULT_KIND,
+        "terminal_artifact_supported_kinds": list(TERMINAL_ARTIFACT_SUPPORTED_KINDS),
         "allowed_actions": sorted(ALLOWED_ACTION_IDS),
         "route_precedence": list(_TERMINAL_ARTIFACT_CLI_FALLBACK_ROUTE_PRECEDENCE),
         "terminal_artifact_cli_fallback_entrypoint": terminal_artifact_cli_fallback_entrypoint,
@@ -4002,6 +4008,10 @@ def _build_terminal_artifact_cli_fallback_target_contract_manifest(
         "terminal_artifact_cli_fallback_target_contract_fingerprints_fingerprint": (
             terminal_artifact_cli_fallback_target_contract_fingerprints_fingerprint()
         ),
+        "terminal_artifact_supported_kinds_contract": list(TERMINAL_ARTIFACT_SUPPORTED_KINDS),
+        "terminal_artifact_supported_kinds_contract_fingerprint": _fingerprint_manifest_section(
+            list(TERMINAL_ARTIFACT_SUPPORTED_KINDS)
+        ),
         "leaf_contracts": _snapshot_contract_section(leaf_contracts_contract),
         "leaf_contracts_fingerprint": leaf_contracts_contract["contract_fingerprint"],
         "leaf_contracts_contract": _snapshot_contract_section(leaf_contracts_contract),
@@ -4044,6 +4054,7 @@ def _build_terminal_artifact_cli_fallback_route_contract_manifest() -> dict[str,
         "type": "TerminalArtifactCliFallbackRouteContract",
         "fallback_target_resolver": "resolve_terminal_artifact_cli_fallback_target",
         "fallback_renderer": "ShellUI.render_artifact",
+        "terminal_artifact_supported_kinds": list(TERMINAL_ARTIFACT_SUPPORTED_KINDS),
         "allowed_actions": sorted(ALLOWED_ACTION_IDS),
         "route_precedence": list(_TERMINAL_ARTIFACT_CLI_FALLBACK_ROUTE_PRECEDENCE),
         "render_target_contract": render_target_contract,
@@ -4089,6 +4100,10 @@ def _build_terminal_artifact_cli_fallback_route_contract_manifest() -> dict[str,
             contract_fingerprints
         ),
         "terminal_artifact_cli_fallback_route_contract_fingerprints_fingerprint": contract_fingerprints_fingerprint,
+        "terminal_artifact_supported_kinds_contract": list(TERMINAL_ARTIFACT_SUPPORTED_KINDS),
+        "terminal_artifact_supported_kinds_contract_fingerprint": _fingerprint_manifest_section(
+            list(TERMINAL_ARTIFACT_SUPPORTED_KINDS)
+        ),
     }
 
 

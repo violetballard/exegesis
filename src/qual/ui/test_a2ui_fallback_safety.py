@@ -955,6 +955,15 @@ class A2UIFallbackSafetyTests(unittest.TestCase):
             manifest_alias_fingerprint,
         )
         self.assertEqual(manifest["terminal_fallback_contract"], terminal_fallback_contract)
+        self.assertEqual(manifest["terminal_artifact_supported_kinds"], list(TERMINAL_ARTIFACT_SUPPORTED_KINDS))
+        self.assertEqual(
+            manifest["terminal_artifact_supported_kinds_contract"],
+            list(TERMINAL_ARTIFACT_SUPPORTED_KINDS),
+        )
+        self.assertEqual(
+            manifest["terminal_artifact_supported_kinds_contract_fingerprint"],
+            _fingerprint_manifest_section(list(TERMINAL_ARTIFACT_SUPPORTED_KINDS)),
+        )
         self.assertEqual(manifest["raw_leaf_card_default_contract"], raw_leaf_card_default_contract)
         self.assertEqual(
             manifest["raw_leaf_card_default_policy_contract"],
@@ -4982,6 +4991,15 @@ class A2UIFallbackSafetyTests(unittest.TestCase):
             describe_terminal_artifact_raw_leaf_card_default_contract(),
         )
         self.assertEqual(manifest["supported_kinds"], list(TERMINAL_ARTIFACT_SUPPORTED_KINDS))
+        self.assertEqual(manifest["terminal_artifact_supported_kinds"], list(TERMINAL_ARTIFACT_SUPPORTED_KINDS))
+        self.assertEqual(
+            manifest["terminal_artifact_supported_kinds_contract"],
+            list(TERMINAL_ARTIFACT_SUPPORTED_KINDS),
+        )
+        self.assertEqual(
+            manifest["terminal_artifact_supported_kinds_contract_fingerprint"],
+            _fingerprint_manifest_section(list(TERMINAL_ARTIFACT_SUPPORTED_KINDS)),
+        )
         self.assertEqual(manifest["default_kind"], TERMINAL_ARTIFACT_DEFAULT_KIND)
         self.assertEqual(manifest["envelope"]["type"], "TerminalArtifact")
         self.assertEqual(manifest["envelope"]["contract_version"], 2)
@@ -6366,6 +6384,18 @@ class A2UIFallbackSafetyTests(unittest.TestCase):
         self.assertEqual(
             route_manifest["leaf_renderers_fingerprint"],
             _fingerprint_manifest_section(route_manifest["leaf_renderers"]),
+        )
+        self.assertEqual(
+            route_manifest["terminal_artifact_supported_kinds"],
+            list(TERMINAL_ARTIFACT_SUPPORTED_KINDS),
+        )
+        self.assertEqual(
+            route_manifest["terminal_artifact_supported_kinds_contract"],
+            list(TERMINAL_ARTIFACT_SUPPORTED_KINDS),
+        )
+        self.assertEqual(
+            route_manifest["terminal_artifact_supported_kinds_contract_fingerprint"],
+            _fingerprint_manifest_section(list(TERMINAL_ARTIFACT_SUPPORTED_KINDS)),
         )
         self.assertEqual(manifest["route_precedence"], route_manifest["route_precedence"])
         self.assertEqual(routed_manifest["route_precedence"], route_manifest["route_precedence"])
