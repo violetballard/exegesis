@@ -69,7 +69,7 @@
 - `./quality-test.sh`: PASS
 - `./typecheck-test.sh`: PASS
 - `make ci`: PASS
-- Final verification pass: `2026-04-28T21:07:02Z` on branch `codex/feat-commands`.
+- Final verification pass: `2026-04-28T21:10:05Z` on branch `codex/feat-commands`.
 
 ### Risks / Blockers
 
@@ -89,7 +89,8 @@
 
 ### Required Fix Satisfaction
 
-1. Reviewer fix 1, unambiguous review basis: satisfied by the `Implementation Basis` section. This packet uses final branch tip as the review basis and does not mark code-bearing catalog/test commits as metadata-only.
-2. Reviewer fix 2, full parser-surface validation: satisfied by `command_cli_contract()` validating grouped parser projection, accepted token tuple, lookup table, and canonical names against the declared command-catalog projection.
-3. Reviewer fix 3, alias-level drift tests: satisfied by focused tests for extra accepted alias, removed accepted alias, substituted accepted alias, parser-token reorder preserving canonical names, grouped parser-surface drift, and lookup-table shape/order drift.
-4. Reviewer fix 4, gate rerun: satisfied by the final gate rerun recorded in `Commands Run + Outcomes`.
+1. Reviewer fix 1, full parser-surface validation: satisfied by `command_cli_contract()` validating grouped parser projection, accepted token tuple, lookup table shape/order, and canonical names against the declared command-catalog projection.
+2. Reviewer fix 2, drift regression tests: satisfied by focused tests for extra accepted alias, removed accepted alias, substituted accepted alias, parser-token reorder preserving canonical names, grouped token-to-canonical drift, and lookup-table shape/order drift.
+3. Reviewer fix 3, unambiguous review basis: satisfied by the `Implementation Basis` section. This packet uses final branch tip as the review basis and does not mark code-bearing catalog/test commits as metadata-only.
+4. Reviewer fix 4, canonical demo-path mapping: satisfied by per-task `continue working` mappings and the final statement that this handoff makes that step more real while Textual remains disabled.
+5. Reviewer fix 5, ownership clarity: satisfied by the `Shared / Integrator-Locked Accounting` section, which records the approved shared-by-approval test edit and confirms no integrator-locked edits.
