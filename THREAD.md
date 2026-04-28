@@ -59,7 +59,7 @@ Canonical handoff contract lives in `THREAD_PACKET.md`.
 
 ## Required Gates
 
-- Latest fixer evidence timestamp: `2026-04-28T19:08:58Z`
+- Latest fixer evidence timestamp: `2026-04-28T19:11:56Z`
 - `python -m unittest tests.unit.test_commands_catalog` -> passed
 - `make scope-check` -> passed
 - `./quality-format.sh --check` -> passed
