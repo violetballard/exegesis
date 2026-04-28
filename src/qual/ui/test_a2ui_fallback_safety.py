@@ -788,6 +788,19 @@ class A2UIFallbackSafetyTests(unittest.TestCase):
             manifest["terminal_artifact_renderer_entrypoints_contract_manifest_fingerprint"],
             terminal_artifact_renderer_entrypoints_contract_fingerprint(),
         )
+        leaf_contracts = describe_a2ui_leaf_contracts()
+        self.assertEqual(manifest["leaf_contracts"], leaf_contracts)
+        self.assertEqual(manifest["leaf_contracts_contract"], leaf_contracts)
+        self.assertEqual(manifest["leaf_contracts_contract_manifest"], leaf_contracts)
+        self.assertEqual(manifest["leaf_contracts_fingerprint"], a2ui_leaf_contracts_fingerprint())
+        self.assertEqual(
+            manifest["leaf_contracts_contract_fingerprint"],
+            a2ui_leaf_contracts_fingerprint(),
+        )
+        self.assertEqual(
+            manifest["leaf_contracts_contract_manifest_fingerprint"],
+            a2ui_leaf_contracts_fingerprint(),
+        )
         self.assertEqual(manifest_alias, manifest)
         self.assertEqual(
             manifest_alias_fingerprint,
@@ -1838,6 +1851,10 @@ class A2UIFallbackSafetyTests(unittest.TestCase):
         self.assertEqual(
             fingerprints["raw_leaf_card_default_contract"],
             terminal_artifact_raw_leaf_card_default_contract_fingerprint(),
+        )
+        self.assertEqual(
+            fingerprints["leaf_contracts"],
+            a2ui_leaf_contracts_fingerprint(),
         )
         self.assertEqual(
             fingerprints["kind_resolution"],
@@ -6120,6 +6137,31 @@ class A2UIFallbackSafetyTests(unittest.TestCase):
             cli_fingerprints["terminal_artifact_cli_fallback_target_contract_fingerprints"],
             route_target_fingerprints,
         )
+        self.assertEqual(route_target_fingerprints["leaf_contracts"], a2ui_leaf_contracts_fingerprint())
+        self.assertEqual(
+            route_target_fingerprints_with_aliases["leaf_contracts"],
+            a2ui_leaf_contracts_fingerprint(),
+        )
+        self.assertEqual(
+            route_target_fingerprints_with_aliases["leaf_contracts_fingerprint"],
+            a2ui_leaf_contracts_fingerprint(),
+        )
+        self.assertEqual(
+            route_target_fingerprints_with_aliases["leaf_contracts_contract"],
+            a2ui_leaf_contracts_fingerprint(),
+        )
+        self.assertEqual(
+            route_target_fingerprints_with_aliases["leaf_contracts_contract_fingerprint"],
+            a2ui_leaf_contracts_fingerprint(),
+        )
+        self.assertEqual(
+            route_target_fingerprints_with_aliases["leaf_contracts_contract_manifest"],
+            a2ui_leaf_contracts_fingerprint(),
+        )
+        self.assertEqual(
+            route_target_fingerprints_with_aliases["leaf_contracts_contract_manifest_fingerprint"],
+            a2ui_leaf_contracts_fingerprint(),
+        )
         self.assertEqual(
             route_target_fingerprints_with_aliases["terminal_artifact_cli_fallback_route_contract_fingerprints"],
             terminal_artifact_cli_fallback_route_contract_fingerprints_fingerprint(),
@@ -6139,6 +6181,10 @@ class A2UIFallbackSafetyTests(unittest.TestCase):
         self.assertEqual(
             a2ui_fingerprints["terminal_artifact_cli_fallback_target_contract_fingerprints"],
             route_target_fingerprints,
+        )
+        self.assertEqual(
+            a2ui_fingerprints["terminal_artifact_cli_fallback_target_contract_fingerprints"]["leaf_contracts"],
+            a2ui_leaf_contracts_fingerprint(),
         )
         self.assertEqual(
             a2ui_fingerprints["terminal_artifact_cli_fallback_route_contract_fingerprints"],

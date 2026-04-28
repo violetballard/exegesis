@@ -2010,10 +2010,10 @@ def describe_terminal_artifact_cli_fallback_target_contract_fingerprints(
     """Return stable fingerprints for the CLI fallback target-selection contract.
 
     The default key set stays focused on the shared render-target and raw-leaf
-    recovery contracts plus the explicit CLI fallback entrypoint manifest the
-    target contract negotiates directly. Opt in to include the wrapper contract
-    fingerprint or alias keys when a caller needs the full negotiated contract
-    slice.
+    recovery contracts plus the shared action/selection leaf bundle and the
+    explicit CLI fallback entrypoint manifest the target contract negotiates
+    directly. Opt in to include the wrapper contract fingerprint or alias keys
+    when a caller needs the full negotiated contract slice.
     """
 
     fingerprints = _build_terminal_artifact_cli_fallback_target_contract_fingerprints(
@@ -2622,6 +2622,7 @@ def _build_terminal_artifact_cli_fallback_target_contract_fingerprints(
             terminal_artifact_cli_fallback_entrypoint_contract_fingerprint_value
         ),
         "render_target_contract": terminal_artifact_render_target_contract_fingerprint(),
+        "leaf_contracts": a2ui_leaf_contracts_fingerprint(),
         "terminal_fallback_contract": terminal_fallback_contract_fingerprint(),
         "raw_leaf_card_default_contract": terminal_artifact_raw_leaf_card_default_contract_fingerprint(),
         "raw_leaf_card_default_policy_contract": terminal_artifact_raw_leaf_card_default_policy_contract_fingerprint(),
@@ -2639,6 +2640,9 @@ def _build_terminal_artifact_cli_fallback_target_contract_fingerprints(
             "terminal_artifact_renderer_entrypoints_contract_manifest",
             terminal_artifact_renderer_entrypoints_contract_fingerprint_value,
         ),
+        ("leaf_contracts", a2ui_leaf_contracts_fingerprint()),
+        ("leaf_contracts_contract", a2ui_leaf_contracts_fingerprint()),
+        ("leaf_contracts_contract_manifest", a2ui_leaf_contracts_fingerprint()),
         (
             "terminal_artifact_cli_fallback_entrypoint_contract_manifest",
             terminal_artifact_cli_fallback_entrypoint_contract_fingerprint_value,
@@ -3821,6 +3825,7 @@ def _build_terminal_artifact_cli_fallback_target_contract_manifest(
     render_target_contract = describe_terminal_artifact_render_target_contract()
     terminal_artifact_render_target_contract = _snapshot_contract_section(render_target_contract)
     terminal_fallback_contract = describe_terminal_fallback_contract()
+    leaf_contracts_contract = describe_a2ui_leaf_contracts()
     raw_leaf_card_default_contract = describe_terminal_artifact_raw_leaf_card_default_contract()
     raw_leaf_card_default_policy_contract = describe_terminal_artifact_raw_leaf_card_default_policy_contract()
     terminal_artifact_cli_fallback_entrypoint = "render_terminal_cli_fallback"
@@ -3921,6 +3926,12 @@ def _build_terminal_artifact_cli_fallback_target_contract_manifest(
         "terminal_artifact_cli_fallback_target_contract_fingerprints_fingerprint": (
             terminal_artifact_cli_fallback_target_contract_fingerprints_fingerprint()
         ),
+        "leaf_contracts": _snapshot_contract_section(leaf_contracts_contract),
+        "leaf_contracts_fingerprint": leaf_contracts_contract["contract_fingerprint"],
+        "leaf_contracts_contract": _snapshot_contract_section(leaf_contracts_contract),
+        "leaf_contracts_contract_fingerprint": leaf_contracts_contract["contract_fingerprint"],
+        "leaf_contracts_contract_manifest": _snapshot_contract_section(leaf_contracts_contract),
+        "leaf_contracts_contract_manifest_fingerprint": leaf_contracts_contract["contract_fingerprint"],
     }
     if include_terminal_artifact_cli_fallback_route:
         route_contract = describe_terminal_artifact_cli_fallback_route_contract()
