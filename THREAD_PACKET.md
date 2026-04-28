@@ -93,10 +93,10 @@
 
 ### Reviewer Packet `20260428T231539Z` Fix Satisfaction
 
-1. Regenerate packet from actual merge candidate: satisfied by submitting the full branch tip after the `2026-04-28T23:18:41Z` fixer pass as the review basis.
+1. Regenerate packet from actual merge candidate: satisfied by submitting the full branch tip after the `2026-04-28T23:21:20Z` fixer pass as the review basis.
 2. Submit full branch-tip implementation or clean branch: satisfied by submitting the full branch-tip implementation; no code-bearing command catalog or command catalog test commits are hidden as metadata-only.
 3. Reject full parser-surface drift: satisfied by validating accepted tokens, declared canonical surface, grouped parser projection, lookup-table shape/order, and canonical names, including self-consistent declared-surface alias substitutions.
 4. Add or retain focused parser-surface drift tests: satisfied by the focused command-catalog tests listed in Tasks Completed.
 5. Update completed tasks with canonical demo-path mapping: satisfied by mapping the work to open project/document (`bootstrap`), retrieve/context basket (`context-basket`), patch preview (`diff-preview` and `diff`), and continued CLI operation (`terminal`).
 6. Correct ownership accounting: satisfied by recording `tests/unit/test_commands_catalog.py` as an approved shared-by-approval test edit and integrator-locked edits as `no`.
-7. Rerun and report required gates: satisfied by the full required gate sequence passing at `2026-04-28T23:18:41Z`.
+7. Rerun and report required gates: satisfied by the full required gate sequence passing at `2026-04-28T23:21:17Z`.
