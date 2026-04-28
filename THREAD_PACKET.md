@@ -3,7 +3,7 @@
 ## Thread Kickoff (High-Risk)
 
 - Branch: `codex/feat-commands`
-- Review basis: final branch tip after this fixer pass for reviewer packet `20260428T233410Z`; implementation, tests, scope-check support, and handoff metadata are reviewed together.
+- Review basis: final branch tip after this fixer pass for reviewer packet `20260428T233637Z`; implementation, tests, scope-check support, and handoff metadata are reviewed together.
 - Lane/owned paths: `src/qual/commands/**`
 - Scope goal: harden `command_cli_contract()` so the CLI contract stays deterministic, follows canonical command order, and fails fast when the parser surface drifts from the command catalog.
 - Risk reason: this changes the command contract used by the active CLI operator surface while Textual lanes remain disabled.
@@ -71,7 +71,7 @@
 - `./quality-test.sh`: PASS
 - `./typecheck-test.sh`: PASS
 - `make ci`: PASS
-- Final verification pass: `2026-04-28T23:36:25Z`
+- Final verification pass: `2026-04-28T23:38:43Z`
 
 ### Risks / Blockers
 
@@ -103,6 +103,13 @@
 2. Drift regression matrix: satisfied by focused tests for added same-canonical alias, substituted same-canonical alias, token reorder, removed token, lookup-table shape/order drift, lookup-table token substitution drift, and lookup-table added same-canonical alias drift.
 3. Canonical demo-path mapping: satisfied in `Tasks Completed` and `Canonical Demo-Path Mapping` by mapping the work to open project/document, retrieve/context basket, patch preview, and continued CLI operation.
 4. Actual merge-candidate packet: satisfied by reviewing the final branch tip after this fixer pass and stating that implementation, tests, scope-check support, and packet metadata are reviewed together.
+
+### Reviewer Packet `20260428T233637Z` Fix Satisfaction
+
+1. Strengthen `command_cli_contract()` parser-token drift validation: satisfied by validating the accepted CLI token tuple, declared canonical CLI surface, grouped parser projection, lookup-table shape/order, and canonical command order against `_CANONICAL_CLI_COMMAND_SURFACE`.
+2. Add same-canonical alias substitution regression coverage: satisfied by tests that reject replacing accepted tokens with same-canonical aliases such as `diff_preview` and adding `open` as an accepted `bootstrap` parser row.
+3. State the concrete canonical demo-path step: satisfied in `Tasks Completed` and `Canonical Demo-Path Mapping` by mapping the work to open project/document, retrieve/context basket, patch preview, and continued CLI operation.
+4. Correct ownership accounting: satisfied by listing the command files as lane-owned, tests as approved shared-by-approval edits, scope-check as shared gate support, and integrator-locked edits as `no`.
 
 ### Reviewer Packet `20260428T231936Z` Fix Satisfaction
 

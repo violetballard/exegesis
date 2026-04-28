@@ -6,7 +6,7 @@ Canonical handoff contract lives in `THREAD_PACKET.md`.
 
 - Lane: `feat-commands`
 - Branch: `codex/feat-commands`
-- Review basis: final branch tip after this fixer pass for reviewer packet `20260428T233410Z`; implementation, tests, scope-check support, and packet metadata are reviewed together.
+- Review basis: final branch tip after this fixer pass for reviewer packet `20260428T233637Z`; implementation, tests, scope-check support, and packet metadata are reviewed together.
 - Scope: CLI command-catalog contract hardening for the current engine-first MVP focus without starting `feat-console`.
 - Roadmap alignment: Milestone 3 CLI compatibility for the engine-first workflow loop, and `feat-commands` as the command-surface compatibility lane.
 - Vision alignment: canonical engine contract stability while the CLI remains the active operator surface.
@@ -53,6 +53,13 @@ Canonical handoff contract lives in `THREAD_PACKET.md`.
 2. Required fix 2, command-surface scope: satisfied under the current full branch-tip accounting; this pass does not add CLI flags, Textual work, routing/provider changes, or non-command business logic.
 3. Required fix 3, approved shared-test exception and complete changed-file list: satisfied by listing the real nine-file branch-tip range and distinguishing lane-owned command files, approved shared tests, scope-check support, and metadata files.
 
+## Reviewer Packet `20260428T233637Z` Fix Satisfaction
+
+1. Strengthen `command_cli_contract()` parser-token drift validation: satisfied by validating the accepted CLI token tuple, declared canonical CLI surface, grouped parser projection, lookup-table shape/order, and canonical command order against `_CANONICAL_CLI_COMMAND_SURFACE`.
+2. Add same-canonical alias substitution regression coverage: satisfied by tests that reject replacing accepted tokens with same-canonical aliases such as `diff_preview` and adding `open` as an accepted `bootstrap` parser row.
+3. State concrete canonical demo-path step: satisfied by mapping the contract to open project/document, retrieve/context basket, patch preview, and continued CLI operation.
+4. Correct ownership accounting: satisfied by listing `tests/unit/test_commands_catalog.py` and `tests/unit/test_diff_preview.py` as approved shared-by-approval tests and `Integrator-locked edits: no`.
+
 ## Verification
 
 - `python3 -m unittest tests.unit.test_commands_catalog -v`: PASS (56 tests)
@@ -62,4 +69,4 @@ Canonical handoff contract lives in `THREAD_PACKET.md`.
 - `./quality-test.sh`: PASS
 - `./typecheck-test.sh`: PASS
 - `make ci`: PASS
-- Final verification pass: `2026-04-28T23:36:25Z`
+- Final verification pass: `2026-04-28T23:38:43Z`
