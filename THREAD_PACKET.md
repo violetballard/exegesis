@@ -3,7 +3,7 @@
 ## Thread Kickoff (High-Risk)
 
 - Branch: `codex/feat-commands`
-- Review basis: final branch tip after this `2026-04-28T22:44:44Z` fixer pass for reviewer packet `20260428T224356Z`; implementation, tests, and handoff metadata are reviewed together.
+- Review basis: final branch tip after this `2026-04-28T22:48:05Z` fixer pass for reviewer packet `20260428T224635Z`; implementation, tests, and handoff metadata are reviewed together.
 - Lane/owned paths: `src/qual/commands/**`
 - Scope goal: harden `command_cli_contract()` so the CLI contract stays deterministic, follows canonical command order, and fails fast when the parser surface drifts from the command catalog.
 - Risk reason: this changes the command contract used by the active CLI operator surface while Textual lanes remain disabled.
@@ -89,6 +89,7 @@
 - Approved reviewer packet `20260428T223738Z` required no code fixes; required gates passed again at `2026-04-28T22:39:37Z`.
 - Reviewer packet `20260428T224051Z` repeated actual branch-tip review basis, full parser-surface validation, parser-surface drift coverage, complete ownership accounting, canonical demo-path mapping, and required gate rerun; focused catalog regressions passed at `2026-04-28T22:41:45Z`, and all required gates passed at `2026-04-28T22:42:46Z`.
 - Reviewer packet `20260428T224356Z` repeated actual branch-tip review basis, full parser-surface validation, parser-surface drift coverage, canonical demo-path mapping, and required gate rerun; focused catalog regressions and all required gates passed at `2026-04-28T22:45:40Z`.
+- Approved reviewer packet `20260428T224635Z` required no code fixes; all required gates passed again at `2026-04-28T22:48:05Z`.
 
 ### Risks / Blockers
 
@@ -122,6 +123,13 @@
 3. Required fix 3, parser-surface drift tests: already satisfied at branch tip by focused regressions for extra accepted alias, removed accepted alias, same-canonical alias substitution, token reorder, lookup-table substitution, declared-surface mismatch, grouped parser drift, and lookup-table shape/order drift.
 4. Required fix 4, canonical demo-path mapping: every completed task maps to `continue working`, and the blocker removed is stale parser/catalog drift during follow-up CLI operation while Textual remains disabled.
 5. Required fix 5, gate rerun: `make scope-check`, `./quality-format.sh --check`, `./quality-lint.sh`, `./quality-test.sh`, `./typecheck-test.sh`, and `make ci` all passed at `2026-04-28T22:45:40Z`.
+
+### Reviewer Packet `20260428T224635Z` Fix Satisfaction
+
+1. Reviewer verdict: `APPROVED`.
+2. Required fixes before re-review: none.
+3. Fixer action: no code changes were needed; this pass records the approval and reruns all required gates on the final tree.
+4. Final verification: `make scope-check`, `./quality-format.sh --check`, `./quality-lint.sh`, `./quality-test.sh`, `./typecheck-test.sh`, and `make ci` all passed at `2026-04-28T22:48:05Z`.
 
 ### Reviewer Packet `20260428T224051Z` Fix Satisfaction
 
