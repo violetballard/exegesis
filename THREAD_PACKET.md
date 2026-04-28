@@ -130,6 +130,15 @@
 5. Update demo-path mapping and ownership accounting: satisfied by the `Tasks Completed`, `Canonical Demo-Path Mapping`, `Files Changed`, and `Shared / Integrator-Locked Accounting` sections.
 6. Rerun required gates against the final reviewed tip: satisfied by `make scope-check`, `./quality-format.sh --check`, `./quality-lint.sh`, `./quality-test.sh`, `./typecheck-test.sh`, and `make ci` all passing at `2026-04-28T23:50:21Z`.
 
+### Reviewer Packet `20260428T234820Z` Fix Satisfaction
+
+1. Regenerate the packet from the actual merge candidate, or submit a clean branch whose diff is exactly the intended narrow command-catalog slice: satisfied by anchoring this packet to the final `codex/feat-commands` branch tip and reviewing implementation, tests, scope-check support, and handoff metadata together.
+2. Do not classify commits after `f8d860ed9f6299f0169c4f21321ac5f37c949fd3` as metadata-only if they modify `src/qual/commands/catalog.py` or tests: satisfied by stating that no code-bearing command-catalog implementation or test commits after `f8d860ed9f6299f0169c4f21321ac5f37c949fd3` are metadata-only.
+3. Strengthen the reviewed implementation so `command_cli_contract()` rejects added aliases, removed aliases, same-canonical alias substitutions, token reorder, and lookup-table shape/order drift: satisfied by validating accepted tokens, declared canonical surface, grouped parser projection, lookup-table shape/order, and canonical names against `_CANONICAL_CLI_COMMAND_SURFACE`.
+4. Add focused regression tests for those parser-surface drift cases: satisfied by tests covering extra accepted aliases, removed accepted aliases, substituted accepted aliases, same-canonical substitutions, parser-token reorder, declared-surface drift, grouped parser drift, lookup-table token substitution, and lookup-table shape/order drift.
+5. Update the handoff with explicit canonical demo-path mapping and corrected shared-file ownership accounting: satisfied in `Tasks Completed`, `Canonical Demo-Path Mapping`, `Files Changed`, and `Shared / Integrator-Locked Accounting`.
+6. Rerun and report the required gates against the final reviewed tip: satisfied by this fixer pass rerunning and recording `make scope-check`, `./quality-format.sh --check`, `./quality-lint.sh`, `./quality-test.sh`, `./typecheck-test.sh`, and `make ci`.
+
 ### Reviewer Packet `20260428T234415Z` Fix Satisfaction
 
 1. No numbered required fixes were requested. The reviewer approved the branch and listed no blocking findings.
