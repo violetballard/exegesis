@@ -866,7 +866,7 @@ class A2UIFallbackSafetyTests(unittest.TestCase):
         )
         self.assertEqual(
             manifest["terminal_artifact_renderer_entrypoints_contract_manifest_fingerprint"],
-            terminal_artifact_renderer_entrypoints_contract_fingerprint(),
+            terminal_artifact_renderer_entrypoints_contract_manifest_fingerprint(),
         )
         leaf_contracts = describe_a2ui_leaf_contracts()
         self.assertEqual(manifest["leaf_contracts"], leaf_contracts)
@@ -7470,7 +7470,7 @@ class A2UIFallbackSafetyTests(unittest.TestCase):
         )
         self.assertEqual(
             fingerprints["terminal_artifact_renderer_entrypoints_contract_manifest_fingerprint"],
-            terminal_artifact_renderer_entrypoints_contract_fingerprint(),
+            terminal_artifact_renderer_entrypoints_contract_manifest_fingerprint(),
         )
         self.assertEqual(
             fingerprints["renderer_entrypoints_contract_manifest"],
@@ -7573,7 +7573,7 @@ class A2UIFallbackSafetyTests(unittest.TestCase):
         )
         self.assertEqual(
             manifest["terminal_artifact_renderer_entrypoints_contract_manifest_fingerprint"],
-            terminal_artifact_renderer_entrypoints_contract_fingerprint(),
+            terminal_artifact_renderer_entrypoints_contract_manifest_fingerprint(),
         )
         self.assertEqual(
             manifest["contract_fingerprints"]["card_contract_manifest"],

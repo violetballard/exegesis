@@ -31,10 +31,12 @@ from .a2ui import (
     terminal_fallback_contract_fingerprint,
     terminal_artifact_cli_fallback_contract_fingerprint,
     terminal_artifact_cli_fallback_entrypoint_contract_fingerprint,
+    terminal_artifact_cli_fallback_entrypoint_contract_manifest_fingerprint,
     terminal_artifact_cli_fallback_entrypoint_contract_fingerprints_fingerprint,
     terminal_artifact_cli_fallback_target_contract_fingerprint,
     terminal_artifact_cli_fallback_route_contract_fingerprint,
     terminal_artifact_renderer_entrypoints_contract_fingerprint,
+    terminal_artifact_renderer_entrypoints_contract_manifest_fingerprint,
     terminal_artifact_rendering_contract_fingerprint,
     _TERMINAL_ARTIFACT_CLI_FALLBACK_TARGET_HINT,
     _fingerprint_manifest_section,
@@ -821,7 +823,7 @@ def _build_shell_ui_contract_manifest(
             terminal_artifact_cli_fallback_entrypoint_contract_manifest
         ),
         "terminal_artifact_cli_fallback_entrypoint_contract_manifest_fingerprint": (
-            terminal_artifact_cli_fallback_entrypoint_contract_manifest["contract_fingerprint"]
+            terminal_artifact_cli_fallback_entrypoint_contract_manifest_fingerprint()
         ),
         "terminal_artifact_cli_fallback_entrypoint_contract_fingerprints": dict(
             terminal_artifact_cli_fallback_entrypoint_contract_manifest["terminal_artifact_cli_fallback_entrypoint_contract_fingerprints"]
@@ -888,7 +890,7 @@ def _build_shell_ui_contract_manifest(
             terminal_artifact_renderer_entrypoints_contract
         ),
         "renderer_entrypoints_contract_manifest_fingerprint": (
-            terminal_artifact_renderer_entrypoints_contract["contract_fingerprint"]
+            terminal_artifact_renderer_entrypoints_contract_fingerprint()
         ),
         "terminal_artifact_renderer_entrypoints_contract_fingerprint": (
             terminal_artifact_renderer_entrypoints_contract_fingerprint()
@@ -897,7 +899,7 @@ def _build_shell_ui_contract_manifest(
             terminal_artifact_renderer_entrypoints_contract
         ),
         "terminal_artifact_renderer_entrypoints_contract_manifest_fingerprint": (
-            terminal_artifact_renderer_entrypoints_contract["contract_fingerprint"]
+            terminal_artifact_renderer_entrypoints_contract_manifest_fingerprint()
         ),
         "terminal_artifact_rendering": copy.deepcopy(terminal_artifact_rendering_contract),
         "terminal_artifact_rendering_contract": copy.deepcopy(terminal_artifact_rendering_contract),
@@ -1018,6 +1020,9 @@ def describe_shell_ui_contract_fingerprints(
         "terminal_artifact_renderer_entrypoints_contract": terminal_artifact_renderer_entrypoints_contract_fingerprint_value,
         "renderer_entrypoints_contract_manifest": terminal_artifact_renderer_entrypoints_contract_fingerprint_value,
         "renderer_entrypoints_contract_manifest_fingerprint": terminal_artifact_renderer_entrypoints_contract_fingerprint_value,
+        "terminal_artifact_renderer_entrypoints_contract_manifest_fingerprint": (
+            terminal_artifact_renderer_entrypoints_contract_manifest_fingerprint()
+        ),
         "terminal_artifact_rendering": terminal_artifact_rendering_contract_fingerprint_value,
         "terminal_artifact_rendering_contract": terminal_artifact_rendering_contract_fingerprint_value,
         "terminal_artifact_rendering_contract_manifest": terminal_artifact_rendering_contract_fingerprint_value,
