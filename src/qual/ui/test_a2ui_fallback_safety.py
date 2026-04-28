@@ -1235,6 +1235,10 @@ class A2UIFallbackSafetyTests(unittest.TestCase):
             fingerprint,
         )
         self.assertEqual(
+            manifest["terminal_artifact_cli_fallback_entrypoint_contract_fingerprints_fingerprint"],
+            manifest["contract_fingerprints_fingerprint"],
+        )
+        self.assertEqual(
             contract_fingerprints["card_hint_recovery_policy_contract"],
             manifest["card_hint_recovery_policy_fingerprint"],
         )
@@ -1446,6 +1450,10 @@ class A2UIFallbackSafetyTests(unittest.TestCase):
             entrypoint_fingerprint,
         )
         self.assertEqual(
+            fingerprints["terminal_artifact_cli_fallback_entrypoint_contract_fingerprints_fingerprint"],
+            terminal_artifact_cli_fallback_entrypoint_contract_fingerprints_fingerprint(),
+        )
+        self.assertEqual(
             fingerprints["renderer_entrypoints_contract_manifest"],
             renderer_entrypoints_fingerprint,
         )
@@ -1607,6 +1615,10 @@ class A2UIFallbackSafetyTests(unittest.TestCase):
         self.assertEqual(
             manifest["terminal_artifact_cli_fallback_entrypoint_contract_manifest_fingerprint"],
             terminal_artifact_cli_fallback_entrypoint_contract_fingerprint(),
+        )
+        self.assertEqual(
+            manifest["terminal_artifact_cli_fallback_entrypoint_contract_fingerprints_fingerprint"],
+            entrypoint_manifest["contract_fingerprints_fingerprint"],
         )
         self.assertEqual(
             manifest["terminal_artifact_renderer_entrypoints_contract_manifest"],

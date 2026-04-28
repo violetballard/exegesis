@@ -1776,6 +1776,9 @@ def describe_terminal_artifact_cli_fallback_entrypoint_contract() -> dict[str, A
         manifest
     )
     manifest["terminal_artifact_cli_fallback_entrypoint_contract_manifest_fingerprint"] = contract_fingerprint
+    manifest["terminal_artifact_cli_fallback_entrypoint_contract_fingerprints_fingerprint"] = (
+        manifest["contract_fingerprints_fingerprint"]
+    )
     return manifest
 
 
@@ -2978,6 +2981,9 @@ def _build_terminal_artifact_cli_fallback_entrypoint_contract_fingerprints(
         terminal_artifact_cli_fallback_entrypoint_contract_fingerprint_value = (
             terminal_artifact_cli_fallback_entrypoint_contract_fingerprint()
         )
+        terminal_artifact_cli_fallback_entrypoint_contract_fingerprints_fingerprint_value = (
+            terminal_artifact_cli_fallback_entrypoint_contract_fingerprints_fingerprint()
+        )
         _add_contract_alias_fingerprints(
             fingerprints,
             (
@@ -2987,6 +2993,14 @@ def _build_terminal_artifact_cli_fallback_entrypoint_contract_fingerprints(
             (
                 "terminal_artifact_cli_fallback_entrypoint_contract_manifest",
                 terminal_artifact_cli_fallback_entrypoint_contract_fingerprint_value,
+            ),
+            (
+                "terminal_artifact_cli_fallback_entrypoint_contract_fingerprints",
+                terminal_artifact_cli_fallback_entrypoint_contract_fingerprints_fingerprint_value,
+            ),
+            (
+                "terminal_artifact_cli_fallback_entrypoint_contract_fingerprints_fingerprint",
+                terminal_artifact_cli_fallback_entrypoint_contract_fingerprints_fingerprint_value,
             ),
         )
     return fingerprints
