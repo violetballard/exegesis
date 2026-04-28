@@ -6,7 +6,7 @@ Canonical handoff contract lives in `THREAD_PACKET.md`.
 
 - Lane: `feat-commands`
 - Branch: `codex/feat-commands`
-- Review basis: command-catalog implementation commit `f8d860ed9f6299f0169c4f21321ac5f37c949fd3`; later packet-refresh commits are metadata-only for this review.
+- Review basis: full current branch tip, including parser-surface implementation, regression tests, and packet metadata. No commits are excluded from review.
 - Scope: CLI command-catalog contract hardening for the current engine-first MVP focus without starting `feat-console`.
 - Roadmap alignment: Milestone 3 CLI compatibility for the engine-first workflow loop, and `feat-commands` as the command-surface compatibility lane.
 - Vision alignment: canonical engine contract stability while the CLI remains the active operator surface.
@@ -41,7 +41,7 @@ Parser/catalog drift validation is needed now because the CLI is the active oper
 
 1. `command_cli_contract()` now validates the full expected CLI token tuple and lookup table, not just deduplicated canonical names.
 2. Regression coverage now includes extra accepted alias, removed accepted alias, substituted accepted alias, and reordered parser-token drift while canonical names remain stable.
-3. Packet metadata lists all packet-refresh files: `THREAD.md`, `THREAD_PACKET.md`, and `handoff_packets/feat-commands.md`.
+3. Packet metadata now uses the full current branch tip as the review basis instead of pinning review to an older implementation commit.
 4. Roadmap/vision mapping stays limited to Milestone 3 CLI compatibility for the engine-first `continue working` loop.
 
 ## Required Gates

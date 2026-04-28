@@ -3,7 +3,7 @@
 ## Thread Kickoff (High-Risk)
 
 - Branch: `codex/feat-commands`
-- Review basis: command-catalog implementation commit `f8d860ed9f6299f0169c4f21321ac5f37c949fd3`; later packet-refresh commits are metadata-only for this review.
+- Review basis: full current branch tip, including parser-surface implementation, regression tests, and packet metadata. No commits are excluded from review.
 - Lane/owned paths: `src/qual/commands/**`
 - Scope goal: harden `command_cli_contract()` so the CLI contract stays deterministic, follows canonical command order, and fails fast when the parser surface drifts from the command catalog.
 - Risk reason: this changes the command contract used by the active CLI operator surface while Textual lanes remain disabled.
@@ -20,7 +20,7 @@
 - Shared-by-approval test edit: yes, `tests/unit/test_commands_catalog.py`, covered by the approved shared-test exception.
 - Integrator-locked edits: no.
 - Lane-owned implementation edit: `src/qual/commands/catalog.py`.
-- This packet keeps the reviewed implementation basis pinned to `f8d860ed9f6299f0169c4f21321ac5f37c949fd3` and does not expand the review beyond the command-catalog slice.
+- This packet presents the mergeable branch tip as the review basis so implementation commits and packet-refresh commits are reviewed together.
 
 ### Canonical Demo-Path Mapping
 
@@ -81,11 +81,11 @@
 
 1. Required fix 1 is satisfied by validating the full expected CLI token tuple and lookup table through `command_cli_contract()`, not just deduplicated canonical names.
 2. Required fix 2 is satisfied by regression tests covering extra accepted alias, removed accepted alias, substituted accepted alias, and reordered parser token surface while canonical names remain stable.
-3. Required fix 3 is satisfied by listing all packet-refresh files: `THREAD.md`, `THREAD_PACKET.md`, and `handoff_packets/feat-commands.md`.
+3. Required fix 3 is satisfied by using the full current branch tip as the review basis and listing both implementation and packet files in the handoff.
 4. Required fix 4 is satisfied by keeping the roadmap/vision mapping narrow: Milestone 3 CLI compatibility for the engine-first `continue working` loop only, with no persistence, retrieval, provider, Textual, or A2UI claim.
 
 ### Fixer Re-Review Disposition
 
-- Reviewer packet `fixer__feat-commands__20260428T202553Z` returned `APPROVED` with no required fixes before re-review.
-- Fixer follow-up scope: metadata-only disposition update; no runtime, test, routing, provider, Textual, engine, or A2UI changes.
-- Final fixer pass reran the required handoff gates.
+- Reviewer packet `fixer__feat-commands__20260428T202931Z` requested full live parser-surface validation, matching regression coverage, branch-tip review basis, and explicit demo-path mapping.
+- Fixer follow-up scope: packet-basis correction after the parser-surface implementation and regression coverage were already present on the branch.
+- Final fixer pass reran the required handoff gates after this update.
