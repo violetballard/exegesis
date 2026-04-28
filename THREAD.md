@@ -6,7 +6,7 @@ Canonical handoff contract lives in `THREAD_PACKET.md`.
 
 - Lane: `feat-commands`
 - Branch: `codex/feat-commands`
-- Review basis: actual submitted branch tip, not the older `f8d860ed9f6299f0169c4f21321ac5f37c949fd3` slice. Implementation-file accounting covers `f8d860ed9f6299f0169c4f21321ac5f37c949fd3..8ef82873046f003a2ecf241dae3d0b5c352796be` plus follow-up handoff evidence and this final reviewer-fix closure commit.
+- Review basis: actual submitted branch tip, not the older `f8d860ed9f6299f0169c4f21321ac5f37c949fd3` slice. Implementation-file accounting covers `f8d860ed9f6299f0169c4f21321ac5f37c949fd3..8ef82873046f003a2ecf241dae3d0b5c352796be` plus follow-up handoff evidence and this final fresh-gate reviewer-fix closure commit.
 - Scope: CLI command-contract hardening for the current engine-first MVP focus without starting `feat-console`.
 - Roadmap alignment: `ROADMAP.md` Milestone 1 `Command and diff-preview behavior hardening` / `Manual CLI smoke flow remains stable`, Milestone 2 remaining parser-edge coverage, Milestone 3 output-contract intentionality, and the active MVP emphasis on `feat-commands`.
 - Vision alignment: `PRODUCT_VISION.md` capability 4 `Operator-first control surface`.
@@ -61,12 +61,13 @@ Canonical handoff contract lives in `THREAD_PACKET.md`.
 
 - Required fix 1: `command_cli_contract()` validates declared catalog entrypoints against the argparse-derived live parser surface, canonical-name order, CLI tokens, lookup rows, and reconstructed grouped projection.
 - Required fix 2: `tests/unit/test_commands_catalog.py` covers catalog-only and parser-only drift, including stable-canonical-name alias substitutions and real argparse subparser drift.
-- Required fix 3: every numbered completed task in `THREAD_PACKET.md` and `handoff_packets/feat-commands.md` names the canonical demo-path step it advances.
-- Required fix 4: branch scope is explicit: command implementation stays under `src/qual/commands/**`, the CLI parser edit is listed as the approved shared/integrator-locked exception, and shared tests are limited to the approved command regression paths.
+- Required fix 3: the live argparse surface is part of the contract through `src.qual.cli.parser_cli_entrypoints()`, and `parse_args()` calls `command_cli_contract()` before dispatch.
+- Required fix 4: `THREAD_PACKET.md` and `handoff_packets/feat-commands.md` name the actual implementation files, approved shared-test exception, shared/integrator-locked CLI parser exception, and the parser-surface drift protection at the current branch tip.
+- Required fix 5: every numbered completed task in `THREAD_PACKET.md` and `handoff_packets/feat-commands.md` names the canonical demo-path step it advances, with `continue working` called out as the step made most real.
 
 ## Required Gates
 
-- Latest fixer evidence timestamp: `2026-04-28T19:18:59Z`
+- Latest fixer evidence timestamp: `2026-04-28T19:22:17Z`
 - `python -m unittest tests.unit.test_commands_catalog` -> passed
 - `make scope-check` -> passed
 - `./quality-format.sh --check` -> passed
