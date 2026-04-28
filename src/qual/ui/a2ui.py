@@ -5301,7 +5301,14 @@ def _resolve_terminal_artifact_render_target(
     elif typed_kind in {"action", "selection"}:
         if requested_kind == "card":
             _validate_terminal_artifact_card_payload(artifact)
-        kind = typed_kind
+            kind = typed_kind
+        elif requested_kind in {"action", "selection"} and requested_kind != typed_kind:
+            # The explicit caller hint stays authoritative for leaf renders so
+            # a typed payload cannot silently retarget to the opposite leaf
+            # renderer and leak the wrong presentation contract.
+            kind = requested_kind
+        else:
+            kind = typed_kind
     elif typed_kind == "card":
         # Preserve typed card payloads as cards even if a caller passes a
         # conflicting action/selection hint.

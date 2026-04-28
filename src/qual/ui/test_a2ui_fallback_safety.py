@@ -10763,6 +10763,37 @@ class A2UIFallbackSafetyTests(unittest.TestCase):
         self.assertIn("[SelectionRef] Choice", shell.render_artifact(selection))
         self.assertIn("[GenericCard] Run Log", shell.render_artifact(card))
 
+    def test_terminal_artifact_explicit_leaf_kind_hints_stay_authoritative(self) -> None:
+        action_payload = {
+            "type": "ActionRef",
+            "id": "copy_to_clipboard",
+            "label": "Copy JSON",
+            "payload": {"text": "hi"},
+        }
+        selection_payload = {
+            "type": "SelectionRef",
+            "id": "choice-1",
+            "label": "Choice",
+            "payload": {"nested": {"items": [1, 2]}},
+        }
+
+        action_as_selection = render_terminal_artifact(action_payload, kind="selection")
+        selection_as_action = render_terminal_artifact(selection_payload, kind="action")
+        cli_action_as_selection = render_terminal_cli_fallback(action_payload, kind="selection")
+        cli_selection_as_action = render_terminal_cli_fallback(selection_payload, kind="action")
+        shell = ShellUI()
+
+        self.assertIn("[SelectionRef] <invalid selection>", action_as_selection)
+        self.assertIn("Selection schema v1", action_as_selection)
+        self.assertIn("[ActionRef] <invalid action>", selection_as_action)
+        self.assertIn("Action schema v1", selection_as_action)
+        self.assertEqual(cli_action_as_selection, action_as_selection)
+        self.assertEqual(cli_selection_as_action, selection_as_action)
+        self.assertEqual(shell.render_artifact(action_payload, kind="selection"), action_as_selection)
+        self.assertEqual(shell.render_artifact(selection_payload, kind="action"), selection_as_action)
+        self.assertEqual(shell.render_cli_fallback(action_payload, kind="selection"), action_as_selection)
+        self.assertEqual(shell.render_cli_fallback(selection_payload, kind="action"), selection_as_action)
+
     def test_terminal_card_renderer_rejects_explicit_action_and_selection_payloads(self) -> None:
         action = {
             "type": "ActionRef",
