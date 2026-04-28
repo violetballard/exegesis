@@ -3,7 +3,7 @@
 ## Thread Kickoff (High-Risk)
 
 - Branch: `codex/feat-commands`
-- Review basis: final branch tip after this fixer pass for reviewer packet `20260428T235008Z`; implementation, tests, scope-check support, and handoff metadata are reviewed together.
+- Review basis: final branch tip after this fixer pass for reviewer packet `20260428T235333Z`; implementation, tests, scope-check support, and handoff metadata are reviewed together.
 - Lane/owned paths: `src/qual/commands/**`
 - Scope goal: harden `command_cli_contract()` so the CLI contract stays deterministic, follows canonical command order, and fails fast when the parser surface drifts from the command catalog.
 - Risk reason: this changes the command contract used by the active CLI operator surface while Textual lanes remain disabled.
@@ -20,8 +20,8 @@
 - This packet submits the full branch-tip implementation for review.
 - No commit that modifies `src/qual/commands/catalog.py` or `tests/unit/test_commands_catalog.py` is classified as metadata-only.
 - Previous stale review basis `f8d860ed9f6299f0169c4f21321ac5f37c949fd3` is superseded because later branch commits changed command-catalog implementation and tests.
-- Previous branch-tip review basis `8a84d0e0e` is superseded by this reviewer-fix pass; the actual merge candidate is the final `codex/feat-commands` branch tip after the `20260428T235008Z` fixes and gate rerun.
-- This fixer pass also satisfies reviewer packet `20260428T235008Z`; no command-catalog implementation or test commits after `f8d860ed9f6299f0169c4f21321ac5f37c949fd3` are classified as metadata-only.
+- Previous branch-tip review basis `8a84d0e0e` is superseded by this reviewer-fix pass; the actual merge candidate is the final `codex/feat-commands` branch tip after the `20260428T235333Z` fixes and gate rerun.
+- This fixer pass also satisfies reviewer packet `20260428T235333Z`; no command-catalog implementation or test commits after `f8d860ed9f6299f0169c4f21321ac5f37c949fd3` are classified as metadata-only.
 - Metadata-only handoff files are limited to `THREAD.md` and `THREAD_PACKET.md`.
 
 ### Shared / Integrator-Locked Accounting
@@ -34,14 +34,14 @@
 
 - Task budget: `4`
 - Time budget: `30m`
-- Size limits: reviewer-fix pass stays metadata-only; full branch-tip merge range is over the high-risk size budget and is submitted explicitly below for review rather than hidden behind a stale narrow basis.
+- Size limits: this reviewer-fix pass stays narrow: one focused shared-by-approval test addition plus handoff metadata updates. The full branch-tip merge range remains over the high-risk size budget and is submitted explicitly below for review rather than hidden behind a stale narrow basis.
 - Max fix attempts per failing gate: `2`
 
 ### Tasks Completed
 
 1. Hardened `command_cli_contract()` to validate the full parser surface by comparing grouped parser projection, accepted token tuple, lookup table, canonical names, and the declared parser surface against a separate canonical surface. Canonical demo-path steps protected: `open project/document`, `retrieve relevant material`, `promote or gather context into the basket`, `preview and apply or reject a patch`, and `continue working`.
 2. Preserved canonical command ordering in the CLI contract while rejecting added aliases, removed aliases, same-canonical alias substitutions, token reordering, and lookup-table shape/order drift. Canonical demo-path commands protected: `bootstrap`, `context-basket`, `diff-preview`, `diff`, and `terminal`.
-3. Added focused regression coverage in `tests/unit/test_commands_catalog.py` for extra accepted alias, removed accepted alias, substituted accepted alias, same-canonical `diff` to `diff_preview` substitution, parser-token reorder, declared-surface alias drift, declared-surface order drift, self-consistent declared-surface drift, grouped parser drift, lookup-table token-substitution drift, lookup-table added same-canonical alias drift, and lookup-table shape/order drift. Canonical demo-path steps protected: open project/document, retrieve/context basket, patch preview, and continued CLI operation.
+3. Added focused regression coverage in `tests/unit/test_commands_catalog.py` for extra accepted alias, removed accepted alias, substituted accepted alias, same-canonical `diff` to `diff_preview` substitution, same-canonical alias order drift in accepted tokens and declared surface, parser-token reorder, declared-surface alias drift, declared-surface order drift, self-consistent declared-surface drift, grouped parser drift, lookup-table token-substitution drift, lookup-table added same-canonical alias drift, and lookup-table shape/order drift. Canonical demo-path steps protected: open project/document, retrieve/context basket, patch preview, and continued CLI operation.
 4. Regenerated `THREAD.md` and `THREAD_PACKET.md` so the handoff claims match the final implementation, full branch-tip file range, test coverage, branch-tip review basis, canonical demo-path mapping, and ownership accounting. Canonical demo-path step protected: `continue working`.
 
 ### Canonical Demo-Path Mapping
@@ -66,14 +66,14 @@
 
 ### Commands Run + Outcomes
 
-- `python3 -m unittest tests.unit.test_commands_catalog -v`: PASS (56 tests)
+- `python3 -m unittest tests.unit.test_commands_catalog -v`: PASS (58 tests)
 - `make scope-check`: PASS
 - `./quality-format.sh --check`: PASS
 - `./quality-lint.sh`: PASS
 - `./quality-test.sh`: PASS
 - `./typecheck-test.sh`: PASS
 - `make ci`: PASS
-- Final verification pass: `2026-04-28T23:52:46Z`
+- Final verification pass: `2026-04-28T23:57:43Z`
 
 ### Risks / Blockers
 
@@ -128,7 +128,7 @@
 3. Strengthen parser-surface drift rejection: satisfied by `command_cli_contract()` validating the accepted token tuple, declared canonical surface, grouped parser projection, lookup-table shape/order, and canonical names against `_CANONICAL_CLI_COMMAND_SURFACE`.
 4. Add focused parser-surface drift tests: satisfied by focused catalog tests for added aliases, removed aliases, same-canonical alias substitutions, token reorder, declared-surface drift, grouped parser drift, lookup-table token substitution, and lookup-table shape/order drift.
 5. Update demo-path mapping and ownership accounting: satisfied by the `Tasks Completed`, `Canonical Demo-Path Mapping`, `Files Changed`, and `Shared / Integrator-Locked Accounting` sections.
-6. Rerun required gates against the final reviewed tip: satisfied by `make scope-check`, `./quality-format.sh --check`, `./quality-lint.sh`, `./quality-test.sh`, `./typecheck-test.sh`, and `make ci` all passing at `2026-04-28T23:52:46Z`.
+6. Rerun required gates against the final reviewed tip: satisfied by `make scope-check`, `./quality-format.sh --check`, `./quality-lint.sh`, `./quality-test.sh`, `./typecheck-test.sh`, and `make ci` all passing at `2026-04-28T23:57:43Z`.
 
 ### Reviewer Packet `20260428T234820Z` Fix Satisfaction
 
@@ -148,10 +148,17 @@
 5. Update the handoff with explicit canonical demo-path mapping and corrected shared-file ownership accounting: satisfied in `Tasks Completed`, `Canonical Demo-Path Mapping`, `Files Changed`, and `Shared / Integrator-Locked Accounting`.
 6. Rerun and report the required gates against the final reviewed tip: satisfied by this fixer pass rerunning and recording `make scope-check`, `./quality-format.sh --check`, `./quality-lint.sh`, `./quality-test.sh`, `./typecheck-test.sh`, and `make ci`.
 
+### Reviewer Packet `20260428T235333Z` Fix Satisfaction
+
+1. Strengthen `command_cli_contract()` parser-surface validation: satisfied by validating accepted parser tokens, declared canonical surface, grouped parser projection, lookup-table order/shape, and canonical command order against `_CANONICAL_CLI_COMMAND_SURFACE`.
+2. Add parser-surface drift regression tests: satisfied by focused tests for alias substitution that resolves to the same canonical command, same-canonical alias order drift in accepted tokens and declared surface, added aliases, removed aliases, parser-token reorder, grouped parser drift, and lookup-table drift.
+3. Name the exact canonical demo-path step: satisfied by mapping the work to open project/document, retrieve/context basket, patch preview, and continued CLI operation.
+4. Correct ownership accounting: satisfied by listing command files as lane-owned, tests as approved shared-by-approval, `scripts/scope-check.sh` as shared gate support, metadata files as metadata-only, and integrator-locked edits as `no`.
+
 ### Reviewer Packet `20260428T234415Z` Fix Satisfaction
 
 1. No numbered required fixes were requested. The reviewer approved the branch and listed no blocking findings.
-2. Fresh required gates were rerun for this fixer packet: `make scope-check`, `./quality-format.sh --check`, `./quality-lint.sh`, `./quality-test.sh`, `./typecheck-test.sh`, and `make ci` all passed at `2026-04-28T23:52:46Z`.
+2. Fresh required gates were rerun for this fixer packet: `make scope-check`, `./quality-format.sh --check`, `./quality-lint.sh`, `./quality-test.sh`, `./typecheck-test.sh`, and `make ci` all passed at `2026-04-28T23:57:43Z`.
 
 ### Reviewer Packet `20260428T231936Z` Fix Satisfaction
 

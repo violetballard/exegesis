@@ -37,7 +37,7 @@ Canonical handoff contract lives in `THREAD_PACKET.md`.
 - Kept `_CLI_ENTRYPOINTS` frozen against the canonical accepted token tuple.
 - Added regression coverage for declared-surface order drift and self-consistent declared-surface drift where the declared surface and entrypoints both substitute `bootstrap` with same-canonical alias `open`.
 - Added regression coverage for lookup-table added same-canonical alias drift where `open` appears as an accepted `bootstrap` parser row without being part of the canonical CLI surface.
-- Added regression coverage for same-canonical alias order drift where `diff` and `diff-preview` are reordered within the `diff-preview` parser group.
+- Added regression coverage for same-canonical alias order drift where `diff` and `diff-preview` are reordered within the accepted parser tokens or the declared `diff-preview` parser group.
 - Regenerated the packet from the actual branch tip and stopped classifying code-bearing command/test commits as metadata-only.
 
 ## Canonical Demo-Path Mapping
@@ -105,11 +105,11 @@ Canonical handoff contract lives in `THREAD_PACKET.md`.
 
 ## Verification
 
-- `python3 -m unittest tests.unit.test_commands_catalog -v`: PASS (57 tests)
+- `python3 -m unittest tests.unit.test_commands_catalog -v`: PASS (58 tests)
 - `make scope-check`: PASS
 - `./quality-format.sh --check`: PASS
 - `./quality-lint.sh`: PASS
 - `./quality-test.sh`: PASS
 - `./typecheck-test.sh`: PASS
 - `make ci`: PASS
-- Final verification pass: `2026-04-28T23:52:46Z`
+- Final verification pass: `2026-04-28T23:57:43Z`
