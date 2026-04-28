@@ -3,7 +3,7 @@
 ## Thread Kickoff (High-Risk)
 
 - Branch: `codex/feat-commands`
-- Review basis: final branch tip after this fixer pass for reviewer packet `20260428T233637Z`; implementation, tests, scope-check support, and handoff metadata are reviewed together.
+- Review basis: final branch tip after this fixer pass for reviewer packet `20260428T234152Z`; implementation, tests, scope-check support, and handoff metadata are reviewed together.
 - Lane/owned paths: `src/qual/commands/**`
 - Scope goal: harden `command_cli_contract()` so the CLI contract stays deterministic, follows canonical command order, and fails fast when the parser surface drifts from the command catalog.
 - Risk reason: this changes the command contract used by the active CLI operator surface while Textual lanes remain disabled.
@@ -20,6 +20,7 @@
 - This packet submits the full branch-tip implementation for review.
 - No commit that modifies `src/qual/commands/catalog.py` or `tests/unit/test_commands_catalog.py` is classified as metadata-only.
 - Previous stale review basis `f8d860ed9f6299f0169c4f21321ac5f37c949fd3` is superseded because later branch commits changed command-catalog implementation and tests.
+- Previous branch-tip review basis `8a84d0e0e` is superseded by this reviewer-fix pass; the actual merge candidate is the final `codex/feat-commands` branch tip after the `20260428T234152Z` fixes and gate rerun.
 - Metadata-only handoff files are limited to `THREAD.md` and `THREAD_PACKET.md`.
 
 ### Shared / Integrator-Locked Accounting
@@ -71,7 +72,7 @@
 - `./quality-test.sh`: PASS
 - `./typecheck-test.sh`: PASS
 - `make ci`: PASS
-- Final verification pass: `2026-04-28T23:39:59Z`
+- Final verification pass: `2026-04-28T23:43:52Z`
 
 ### Risks / Blockers
 
@@ -110,6 +111,14 @@
 2. Add same-canonical alias substitution regression coverage: satisfied by tests that reject replacing accepted tokens with same-canonical aliases such as `diff_preview` and adding `open` as an accepted `bootstrap` parser row.
 3. State the concrete canonical demo-path step: satisfied in `Tasks Completed` and `Canonical Demo-Path Mapping` by mapping the work to open project/document, retrieve/context basket, patch preview, and continued CLI operation.
 4. Correct ownership accounting: satisfied by listing the command files as lane-owned, tests as approved shared-by-approval edits, scope-check as shared gate support, and integrator-locked edits as `no`.
+
+### Reviewer Packet `20260428T234152Z` Fix Satisfaction
+
+1. Regenerate the review packet from the actual merge candidate: satisfied by anchoring review to the final `codex/feat-commands` branch tip after this fixer pass, with implementation, tests, `scripts/scope-check.sh`, and handoff metadata reviewed together.
+2. Strengthen `command_cli_contract()` so parser-surface drift is rejected: satisfied by validating accepted tokens, declared canonical surface, grouped parser projection, lookup-table shape/order, and canonical names against `_CANONICAL_CLI_COMMAND_SURFACE`, including same-canonical alias substitutions, extra accepted aliases, removed aliases, and token/order drift.
+3. Add focused parser-surface drift regression coverage: satisfied by tests for added same-canonical alias drift, substituted same-canonical alias drift, removed accepted alias drift, parser-token reorder, declared-surface drift, lookup-table token-substitution drift, and lookup-table shape/order drift.
+4. Reconcile ownership accounting against `THREAD_OWNERSHIP.md`: satisfied by distinguishing lane-owned command files, approved shared-by-approval tests, shared scope-check support, metadata-only files, and `Integrator-locked edits: no`.
+5. Rerun and report required gates against the final reviewed tip: satisfied by this fixer pass rerunning `make scope-check`, `./quality-format.sh --check`, `./quality-lint.sh`, `./quality-test.sh`, `./typecheck-test.sh`, and `make ci`.
 
 ### Reviewer Packet `20260428T231936Z` Fix Satisfaction
 
