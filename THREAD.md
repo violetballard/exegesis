@@ -54,3 +54,5 @@ Parser/catalog drift validation is needed now because the CLI is the active oper
 - `make ci`: PASS
 
 Latest fixer pass: `fixer__feat-commands__20260428T203640Z` requested a truthful merge target after finding non-metadata drift after `f8d860e`; this pass restores non-packet paths to `f8d860e` and leaves only packet metadata after that implementation tree.
+
+Final submitted HEAD is packet-only so `make scope-check` evaluates the same narrow metadata surface submitted for re-review.
