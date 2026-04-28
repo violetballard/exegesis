@@ -65,6 +65,11 @@ from src.qual.commands import (
 
 
 class CommandCatalogTests(unittest.TestCase):
+    def _clear_cli_caches(self) -> None:
+        command_catalog.command_cli_tokens.cache_clear()
+        command_catalog.command_cli_lookup_table.cache_clear()
+        command_catalog.command_cli_contract.cache_clear()
+
     def test_command_names_match_catalog_order(self) -> None:
         self.assertEqual(
             command_names(),
@@ -120,9 +125,49 @@ class CommandCatalogTests(unittest.TestCase):
         self.assertEqual(contract.lookup_table, command_cli_lookup_table())
 
     def test_command_cli_contract_rejects_catalog_drift(self) -> None:
-        command_catalog.command_cli_contract.cache_clear()
+        self._clear_cli_caches()
         with patch.object(command_catalog, "command_names", return_value=("bootstrap", "diff-preview")):
             with self.assertRaisesRegex(ValueError, "Command CLI canonical names are inconsistent"):
+                command_catalog.command_cli_contract()
+
+    def test_command_cli_contract_rejects_extra_accepted_alias_drift(self) -> None:
+        self._clear_cli_caches()
+        with patch.object(
+            command_catalog,
+            "_CLI_ENTRYPOINTS",
+            ("bootstrap", "open", "diff-preview", "diff", "context-basket", "terminal"),
+        ):
+            with self.assertRaisesRegex(ValueError, "Command CLI tokens are inconsistent"):
+                command_catalog.command_cli_contract()
+
+    def test_command_cli_contract_rejects_removed_accepted_alias_drift(self) -> None:
+        self._clear_cli_caches()
+        with patch.object(
+            command_catalog,
+            "_CLI_ENTRYPOINTS",
+            ("bootstrap", "diff-preview", "context-basket", "terminal"),
+        ):
+            with self.assertRaisesRegex(ValueError, "Command CLI tokens are inconsistent"):
+                command_catalog.command_cli_contract()
+
+    def test_command_cli_contract_rejects_substituted_accepted_alias_drift(self) -> None:
+        self._clear_cli_caches()
+        with patch.object(
+            command_catalog,
+            "_CLI_ENTRYPOINTS",
+            ("bootstrap", "diff-preview", "project", "context-basket", "terminal"),
+        ):
+            with self.assertRaisesRegex(ValueError, "Command CLI tokens are inconsistent"):
+                command_catalog.command_cli_contract()
+
+    def test_command_cli_contract_rejects_reordered_parser_token_surface_drift(self) -> None:
+        self._clear_cli_caches()
+        with patch.object(
+            command_catalog,
+            "_CLI_ENTRYPOINTS",
+            ("bootstrap", "context-basket", "diff-preview", "diff", "terminal"),
+        ):
+            with self.assertRaisesRegex(ValueError, "Command CLI tokens are inconsistent"):
                 command_catalog.command_cli_contract()
 
     def test_command_cli_lookup_table_resolves_through_the_catalog(self) -> None:

@@ -167,6 +167,8 @@ def _validate_cli_entrypoints() -> None:
         seen_entrypoints.add(normalized_entrypoint)
         if command_spec_for(COMMAND_SPECS, entrypoint) is None:
             raise ValueError(f"Unknown CLI command entrypoint: {entrypoint}")
+    if tuple(_CLI_ENTRYPOINTS) != _declared_cli_tokens():
+        raise ValueError("Command CLI tokens are inconsistent")
 
 
 def _command_cli_tokens_by_name() -> dict[str, tuple[str, ...]]:
@@ -212,12 +214,14 @@ COMMAND_SPECS: tuple[CommandSpec, ...] = (
 
 # Keep the parser surface explicit: only these tokens are accepted by the current CLI.
 # Each token must resolve through the command catalog so the surface cannot drift.
-_CLI_ENTRYPOINTS: tuple[str, ...] = (
-    "bootstrap",
-    "diff-preview",
-    "diff",
-    "context-basket",
-    "terminal",
+_CLI_COMMAND_SURFACE: tuple[tuple[str, tuple[str, ...]], ...] = (
+    ("bootstrap", ("bootstrap",)),
+    ("diff-preview", ("diff-preview", "diff")),
+    ("context-basket", ("context-basket",)),
+    ("terminal", ("terminal",)),
+)
+_CLI_ENTRYPOINTS: tuple[str, ...] = tuple(
+    entrypoint for _, entrypoints in _CLI_COMMAND_SURFACE for entrypoint in entrypoints
 )
 DEMO_COMMAND_FLOW_STEPS: tuple[str, ...] = (
     "project-open",
@@ -226,6 +230,65 @@ DEMO_COMMAND_FLOW_STEPS: tuple[str, ...] = (
     "export-handoff",
 )
 MVP_COMMAND_FLOW_STEPS: tuple[str, ...] = DEMO_COMMAND_FLOW_STEPS
+
+
+def _declared_cli_surface_projection() -> tuple[tuple[str, tuple[str, ...]], ...]:
+    validate_command_catalog(COMMAND_SPECS)
+    seen_canonical_names: set[str] = set()
+    seen_tokens: set[str] = set()
+    projection: list[tuple[str, tuple[str, ...]]] = []
+    for canonical_name, tokens in _CLI_COMMAND_SURFACE:
+        spec = command_spec_for(COMMAND_SPECS, canonical_name)
+        if spec is None or spec.name != canonical_name:
+            raise ValueError(f"Unknown command CLI canonical name: {canonical_name}")
+        if canonical_name in seen_canonical_names:
+            raise ValueError(f"Duplicate command CLI canonical name: {canonical_name}")
+        seen_canonical_names.add(canonical_name)
+        if not tokens:
+            raise ValueError(f"Command CLI surface for {canonical_name} must not be empty")
+        canonical_tokens: list[str] = []
+        for token in tokens:
+            normalized_token = _normalize_token(token)
+            if not normalized_token:
+                raise ValueError(f"Command CLI surface for {canonical_name} has an empty token")
+            if normalized_token in seen_tokens:
+                raise ValueError(f"Duplicate command CLI token: {token}")
+            token_spec = command_spec_for(COMMAND_SPECS, token)
+            if token_spec is None or token_spec.name != canonical_name:
+                raise ValueError(f"Command CLI token {token} does not resolve to {canonical_name}")
+            seen_tokens.add(normalized_token)
+            canonical_tokens.append(token)
+        projection.append((canonical_name, tuple(canonical_tokens)))
+    return tuple(projection)
+
+
+def _declared_cli_canonical_names() -> tuple[str, ...]:
+    return tuple(canonical_name for canonical_name, _ in _declared_cli_surface_projection())
+
+
+def _declared_cli_tokens() -> tuple[str, ...]:
+    return tuple(token for _, tokens in _declared_cli_surface_projection() for token in tokens)
+
+
+def _declared_cli_lookup_table() -> tuple[tuple[str, str], ...]:
+    return tuple(
+        (token, canonical_name)
+        for canonical_name, tokens in _declared_cli_surface_projection()
+        for token in tokens
+    )
+
+
+def _group_cli_lookup_table(
+    lookup_table: tuple[tuple[str, str], ...],
+) -> tuple[tuple[str, tuple[str, ...]], ...]:
+    grouped_tokens: dict[str, list[str]] = {}
+    canonical_order: list[str] = []
+    for token, canonical_name in lookup_table:
+        if canonical_name not in grouped_tokens:
+            canonical_order.append(canonical_name)
+            grouped_tokens[canonical_name] = []
+        grouped_tokens[canonical_name].append(token)
+    return tuple((canonical_name, tuple(grouped_tokens[canonical_name])) for canonical_name in canonical_order)
 
 
 def validate_command_catalog(specs: tuple[CommandSpec, ...] = COMMAND_SPECS) -> None:
@@ -486,19 +549,19 @@ def command_cli_lookup_table() -> tuple[tuple[str, str], ...]:
 
 @lru_cache(maxsize=None)
 def command_cli_contract() -> CommandCliContract:
+    tokens = command_cli_tokens()
     lookup_table = command_cli_lookup_table()
     canonical_names = command_names()
-    seen_canonical_names: set[str] = set()
-    lookup_canonical_names: list[str] = []
-    for _, canonical_name in lookup_table:
-        if canonical_name in seen_canonical_names:
-            continue
-        seen_canonical_names.add(canonical_name)
-        lookup_canonical_names.append(canonical_name)
-    if tuple(lookup_canonical_names) != canonical_names:
+    if _group_cli_lookup_table(lookup_table) != _declared_cli_surface_projection():
+        raise ValueError("Command CLI parser surface is inconsistent")
+    if tokens != _declared_cli_tokens():
+        raise ValueError("Command CLI tokens are inconsistent")
+    if lookup_table != _declared_cli_lookup_table():
+        raise ValueError("Command CLI lookup table is inconsistent")
+    if _declared_cli_canonical_names() != canonical_names:
         raise ValueError("Command CLI canonical names are inconsistent")
     return CommandCliContract(
-        tokens=command_cli_tokens(),
+        tokens=tokens,
         canonical_names=canonical_names,
         lookup_table=lookup_table,
     )

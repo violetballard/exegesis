@@ -3,7 +3,7 @@
 ## Thread Kickoff (High-Risk)
 
 - Branch: `codex/feat-commands`
-- Review basis: implementation commit `f8d860ed9f6299f0169c4f21321ac5f37c949fd3`, plus metadata-only packet updates through the final branch tip. Non-packet paths at the final branch tip match the `f8d860e` implementation tree.
+- Review basis: final branch tip after this fixer pass; implementation and packet metadata are reviewed together.
 - Lane/owned paths: `src/qual/commands/**`
 - Scope goal: harden `command_cli_contract()` so the CLI contract stays deterministic, follows canonical command order, and fails fast when the parser surface drifts from the command catalog.
 - Risk reason: this changes the command contract used by the active CLI operator surface while Textual lanes remain disabled.
@@ -20,7 +20,7 @@
 - Shared-by-approval test edit: yes, `tests/unit/test_commands_catalog.py`, covered by the approved shared-test exception.
 - Integrator-locked edits: no.
 - Lane-owned implementation edit: `src/qual/commands/catalog.py`.
-- This packet presents `f8d860e` as the implementation basis and the final branch tip as metadata-only closure. The final tree has no post-`f8d860e` source, script, or test drift outside the listed packet files.
+- This packet presents the final branch tip as the implementation basis so the implementation, regression tests, and handoff claims agree.
 
 ### Canonical Demo-Path Mapping
 
@@ -42,7 +42,7 @@
 1. Hardened `command_cli_contract()` to compare the full grouped parser projection, CLI token tuple, and lookup table against the declared command-catalog projection. Canonical demo-path step: `continue working`.
 2. Preserved canonical command ordering in the CLI contract while rejecting alias-only parser drift that keeps the same canonical-name order. Canonical demo-path step: `continue working`.
 3. Added focused regression coverage in `tests/unit/test_commands_catalog.py` for extra accepted alias, removed accepted alias, substituted accepted alias, and reordered parser-token surface drift. Canonical demo-path step: `continue working`.
-4. Removed post-`f8d860e` non-packet drift and duplicate packet artifacts from the final tree so the roadmap/vision claim stays limited to Milestone 3 CLI compatibility. Canonical demo-path step: `continue working`.
+4. Regenerated `THREAD.md` and `THREAD_PACKET.md` so the handoff claims match the final implementation and test coverage. Canonical demo-path step: `continue working`.
 
 ### Files Changed
 
@@ -78,18 +78,13 @@
 
 ### Required Fix Satisfaction
 
-1. Required fix 1 is satisfied by making the final branch tree a clean narrow review target: implementation commit `f8d860e` plus metadata-only packet updates.
-2. Required fix 2 is satisfied by not submitting the broad current-branch delta for review; all non-packet paths now match the `f8d860e` implementation tree at the final tip.
-3. Required fix 3 is satisfied by resolving high-risk budget compliance through narrowing instead of expanding the packet to cover unrelated source/script/test drift, and by removing the duplicate `handoff_packets/feat-commands.md` artifact from the final tree.
-4. Required fix 4 is satisfied by documenting the only approved non-owned path, `tests/unit/test_commands_catalog.py`, and confirming there are no integrator-locked edits in the final review tree.
-5. Required fix 5 is satisfied by rerunning `make scope-check`, `./quality-format.sh --check`, `./quality-lint.sh`, `./quality-test.sh`, `./typecheck-test.sh`, and `make ci` on the exact final commit submitted.
+1. Required fix 1 is satisfied by validating the full declared CLI parser surface: grouped parser projection, token tuple, lookup table, and canonical-name order now must match the command catalog declaration.
+2. Required fix 2 is satisfied by focused tests that patch `_CLI_ENTRYPOINTS` for added valid alias, removed accepted token, substituted valid token, and reordered parser-token drift.
+3. Required fix 3 is satisfied by listing both metadata files changed after the implementation slice: `THREAD.md` and `THREAD_PACKET.md`.
+4. Required fix 4 is satisfied by rerunning `make scope-check`, `./quality-format.sh --check`, `./quality-lint.sh`, `./quality-test.sh`, `./typecheck-test.sh`, and `make ci` on the exact final branch tip after implementation and packet metadata agree.
 
 ### Fixer Re-Review Disposition
 
-- Reviewer packet `fixer__feat-commands__20260428T202931Z` requested full live parser-surface validation, matching regression coverage, branch-tip review basis, and explicit demo-path mapping.
-- Fixer follow-up scope: packet-basis correction after the parser-surface implementation and regression coverage were already present on the branch.
+- Reviewer packet `fixer__feat-commands__20260428T204730Z` requested full parser-surface drift validation, regression tests for added/removed/substituted/reordered parser tokens, complete metadata-file accounting, and a full gate rerun.
+- Fixer follow-up scope: keep the implementation narrow to `src/qual/commands/catalog.py`, `tests/unit/test_commands_catalog.py`, `THREAD.md`, and `THREAD_PACKET.md`.
 - Final fixer pass reran the required handoff gates after this update.
-- Latest fixer pass `fixer__feat-commands__20260428T203310Z` verified the branch-tip review basis and reran all required gates.
-- Reviewer packet `fixer__feat-commands__20260428T203640Z` requested a truthful merge target after finding non-metadata drift after `f8d860e`; this final pass restores non-packet paths to `f8d860e` and leaves only packet metadata after that implementation tree.
-- Final submitted HEAD is a packet-only commit so `make scope-check` evaluates the same narrow metadata surface that the reviewer is asked to re-review.
-- Approved fixer verification `fixer__feat-commands__20260428T203906Z`: reviewer verdict was `APPROVED` with no required fixes; all required gates were rerun cleanly on the submitted tree.

@@ -6,7 +6,7 @@ Canonical handoff contract lives in `THREAD_PACKET.md`.
 
 - Lane: `feat-commands`
 - Branch: `codex/feat-commands`
-- Review basis: implementation commit `f8d860ed9f6299f0169c4f21321ac5f37c949fd3`, plus metadata-only packet updates through the final branch tip. Non-packet paths at the final branch tip match the `f8d860e` implementation tree.
+- Review basis: final branch tip after this fixer pass; implementation and packet metadata are reviewed together.
 - Scope: CLI command-catalog contract hardening for the current engine-first MVP focus without starting `feat-console`.
 - Roadmap alignment: Milestone 3 CLI compatibility for the engine-first workflow loop, and `feat-commands` as the command-surface compatibility lane.
 - Vision alignment: canonical engine contract stability while the CLI remains the active operator surface.
@@ -38,9 +38,9 @@ Parser/catalog drift validation is needed now because the CLI is the active oper
 
 ## Required Fix Satisfaction
 
-1. The final tree is narrowed to implementation commit `f8d860e` plus metadata-only packet updates.
-2. All non-packet paths now match the `f8d860e` implementation tree, so there is no post-implementation source, script, or test drift in the submitted tree.
-3. High-risk budget compliance is resolved by narrowing instead of submitting the broad branch delta for review, and the duplicate `handoff_packets/feat-commands.md` artifact is removed from the final tree.
+1. `command_cli_contract()` validates the full declared parser surface: grouped parser projection, CLI token tuple, lookup table, and canonical command order.
+2. Regression coverage patches `_CLI_ENTRYPOINTS` for added valid alias, removed accepted token, substituted valid token, and parser-token reorder drift.
+3. Changed-file accounting includes both metadata updates, `THREAD.md` and `THREAD_PACKET.md`.
 4. The only approved non-owned path remains `tests/unit/test_commands_catalog.py`; there are no integrator-locked edits in the final review tree.
 5. The required gates were rerun on the exact final commit submitted.
 
@@ -53,8 +53,4 @@ Parser/catalog drift validation is needed now because the CLI is the active oper
 - `./typecheck-test.sh`: PASS
 - `make ci`: PASS
 
-Latest fixer pass: `fixer__feat-commands__20260428T203640Z` requested a truthful merge target after finding non-metadata drift after `f8d860e`; this pass restores non-packet paths to `f8d860e` and leaves only packet metadata after that implementation tree.
-
-Final submitted HEAD is packet-only so `make scope-check` evaluates the same narrow metadata surface submitted for re-review.
-
-Approved fixer verification `fixer__feat-commands__20260428T203906Z`: reviewer verdict was `APPROVED` with no required fixes; all required gates were rerun cleanly on the submitted tree.
+Latest fixer pass: `fixer__feat-commands__20260428T204632Z` requested full parser-surface drift validation, matching regression tests, complete metadata-file accounting, and a full gate rerun. This pass keeps the implementation path and aligns the packet claims with the final tree.
