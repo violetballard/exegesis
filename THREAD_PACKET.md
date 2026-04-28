@@ -4,7 +4,7 @@
 
 - Branch: `codex/feat-commands`
 - Review basis: actual submitted branch tip, including all implementation files listed below. Do not review against the older `f8d860ed9f6299f0169c4f21321ac5f37c949fd3` slice.
-- Implementation-file accounting basis: `f8d860ed9f6299f0169c4f21321ac5f37c949fd3..8ef82873046f003a2ecf241dae3d0b5c352796be`, plus the follow-up handoff evidence and this reviewer-fix closure commit.
+- Implementation-file accounting basis: `f8d860ed9f6299f0169c4f21321ac5f37c949fd3..8ef82873046f003a2ecf241dae3d0b5c352796be`, plus follow-up handoff evidence and this final reviewer-fix closure commit.
 - Lane/owned paths: `src/qual/commands/**`
 - Shared / integrator-locked ownership statement:
   - Integrator-locked edit: `src/qual/cli.py`, explicitly listed as shared-by-approval for `codex/feat-commands*` in `THREAD_OWNERSHIP.md`; this handoff includes it because the live argparse surface must expose the same CLI entrypoint projection validated by the command catalog.
@@ -61,7 +61,7 @@
 ### Checkpoint Cadence (short updates)
 
 - plan complete: the handoff is scoped to CLI command-contract hardening for the current engine-first MVP focus and reviews the actual branch tip.
-- first green tests: focused command-catalog tests and the full required gates were rerun on `2026-04-28T19:16:43Z` for this fixer pass.
+- first green tests: focused command-catalog tests passed on `2026-04-28T19:18:59Z`; the full required gates were rerun after the final packet refresh for this fixer pass.
 - before risky/shared file edit: risky/shared paths are listed above with the approval rationale.
 - ready for handoff: this packet names the full implementation set and records the latest gate results.
 
@@ -95,7 +95,7 @@
   - metadata-only handoff refresh: `THREAD_PACKET.md`
   - metadata-only handoff refresh: `handoff_packets/feat-commands.md`
 - commands run + outcomes:
-  - latest fixer evidence timestamp: `2026-04-28T19:16:43Z`
+  - latest fixer evidence timestamp: `2026-04-28T19:18:59Z`
   - `python -m unittest tests.unit.test_commands_catalog` -> passed
   - `make scope-check` -> passed
   - `./quality-format.sh --check` -> passed
@@ -120,8 +120,7 @@
 - reviewer-fix satisfaction note:
   1. Required fix 1 is satisfied by `src/qual/commands/catalog.py` and `src/qual/cli.py`: `command_cli_contract()` validates the declared catalog entrypoint projection, argparse-derived live parser entrypoint projection, canonical-name order, accepted CLI token tuple, token-to-command lookup table, and reconstructed grouped projection.
   2. Required fix 2 is satisfied by `tests/unit/test_commands_catalog.py`: regression coverage rejects the explicit alias-only parser projection drift matrix, including token removal, token substitution, token reorder, extra aliases, live parser constant drift, real argparse subparser drift, and stable-canonical-name drift cases.
-  3. Required fix 3 is satisfied by this actual-tip handoff packet: the implementation file list includes all non-metadata changes, and the packet no longer labels test or implementation changes as metadata-only.
-  4. Required fix 4 is satisfied by the canonical demo-path mapping above and by the numbered completed tasks, each of which names the demo-path step it supports.
-  5. Required fix 5 is satisfied by rerunning and reporting the full required gates after the explicit drift-matrix regression and packet refresh are in place.
+  3. Required fix 3 is satisfied by the canonical demo-path mapping above and by the numbered completed tasks, each of which names the demo-path step it supports.
+  4. Required fix 4 is satisfied by the shared/integrator-locked ownership statement above: `src/qual/cli.py` is the only integrator-locked implementation path and is explicitly called out as shared-by-approval for the parser-surface fix; command changes remain under `src/qual/commands/**`, with shared test coverage limited to the approved command test paths.
 - reviewer-fix closure note:
   - This closure keeps the actual submitted branch tip as the only review basis, preserves the full alias-only parser drift protection already present in the branch, and records fresh gate evidence for the final metadata state.
