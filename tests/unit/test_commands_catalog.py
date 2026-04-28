@@ -838,6 +838,35 @@ class CommandCatalogTests(unittest.TestCase):
             with self.assertRaisesRegex(ValueError, "Command CLI catalog entrypoint projection is inconsistent"):
                 command_catalog.command_cli_contract()
 
+    def test_parse_args_rejects_live_cli_entrypoint_constant_drift_with_stable_canonical_names(
+        self,
+    ) -> None:
+        baseline_contract = command_catalog.command_cli_contract()
+        parser_surface_with_bootstrap_alias_substitution = (
+            ("bootstrap", ("open",)),
+            ("diff-preview", ("diff-preview", "diff")),
+            ("context-basket", ("context-basket",)),
+            ("terminal", ("terminal",)),
+        )
+
+        command_catalog.command_cli_contract.cache_clear()
+        with patch.object(
+            qual_cli,
+            "_CLI_PARSER_ENTRYPOINTS",
+            parser_surface_with_bootstrap_alias_substitution,
+        ):
+            self.assertEqual(
+                tuple(name for name, _ in qual_cli.parser_cli_entrypoints()),
+                baseline_contract.canonical_names,
+            )
+            self.assertNotEqual(
+                qual_cli.parser_cli_entrypoints(),
+                command_catalog._declared_cli_entrypoint_projection(command_specs()),
+            )
+            with self.assertRaisesRegex(ValueError, "Command CLI catalog entrypoint projection is inconsistent"):
+                parse_args(["open"])
+        command_catalog.command_cli_contract.cache_clear()
+
     def test_command_cli_contract_rejects_exported_parser_alias_substitution_with_stable_canonical_names(
         self,
     ) -> None:
