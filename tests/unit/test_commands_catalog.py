@@ -798,6 +798,18 @@ class CommandCatalogTests(unittest.TestCase):
                 ("context-basket", ("context-basket",)),
                 ("terminal", ("terminal",)),
             ),
+            "extra open alias token": (
+                ("bootstrap", ("bootstrap", "open")),
+                ("diff-preview", ("diff-preview", "diff")),
+                ("context-basket", ("context-basket",)),
+                ("terminal", ("terminal",)),
+            ),
+            "open alias first": (
+                ("bootstrap", ("open", "bootstrap")),
+                ("diff-preview", ("diff-preview", "diff")),
+                ("context-basket", ("context-basket",)),
+                ("terminal", ("terminal",)),
+            ),
             "alias substitution": (
                 ("bootstrap", ("bootstrap",)),
                 ("diff-preview", ("diff-preview", "review-patch")),

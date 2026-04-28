@@ -12,6 +12,7 @@
   - No other integrator-locked files were touched in the actual submitted tip.
   - Shared support edit: `scripts/scope-check.sh`, included only to keep scope enforcement aware of the approved shared command test path used by this lane.
   - Approved shared test edits: `tests/unit/test_commands_catalog.py` and `tests/unit/test_diff_preview.py`, both used as command-surface regression coverage for this lane.
+  - Shared-test approval context: the reviewer packet being fixed included an `Approved exception note` naming `tests/unit/test_commands_catalog.py` as the approved shared-test exception; this packet preserves that context and separately lists `tests/unit/test_diff_preview.py` as shared command-surface regression coverage included in the actual branch tip.
 - Scope goal: harden the CLI command contract for the engine-first MVP loop by keeping command entrypoints deterministic, validating live parser tokens against the catalog, and covering the command diff-preview/workflow surfaces without starting disabled `feat-console` work.
 - Risk reason: this is high-risk command-contract work because it touches operator-facing CLI entrypoints and the shared `src/qual/cli.py` parser surface.
 
@@ -63,7 +64,7 @@
 ### Checkpoint Cadence (short updates)
 
 - plan complete: the handoff is scoped to CLI command-contract hardening for the current engine-first MVP focus and reviews the actual branch tip.
-- first green tests: focused command-catalog tests passed on `2026-04-28T19:28:10Z`; the full required gates were rerun after the final packet refresh for this fixer pass.
+- first green tests: focused command-catalog tests passed on `2026-04-28T19:46:51Z`, including the reviewer-requested extra `open` alias and alias-first parser drift regressions; the full required gates were rerun after the final packet refresh for this fixer pass.
 - before risky/shared file edit: risky/shared paths are listed above with the approval rationale.
 - pre-handoff demo-path readiness: canonical demo-path step now made more real is `continue working`; the concrete blocker removed is silent parser/catalog drift that could let follow-up CLI operator turns continue through an unexpected command surface.
 - ready for handoff: this packet names the full implementation set and records the latest gate results.
@@ -77,7 +78,7 @@
   - derived `src/qual/cli.py` parser entrypoint metadata from the actual argparse subparser surface so argparse token drift is checked before dispatch.
   - added command workflow and diff-preview helpers under `src/qual/commands/**` while keeping command handlers thin and CLI-oriented.
   - updated scope-check handling for the approved shared command test paths.
-  - added regression tests for canonical-order alignment, the explicit alias-only parser projection drift matrix, exported parser constant alias substitution with stable canonical names, live parser constant drift, real argparse subparser drift, parse_args fail-fast behavior under parser constant drift, diff-preview behavior, and command workflow contracts.
+  - added regression tests for canonical-order alignment, the explicit alias-only parser projection drift matrix, extra `open` alias token drift, alias-first `open` parser drift, exported parser constant alias substitution with stable canonical names, live parser constant drift, real argparse subparser drift, parse_args fail-fast behavior under parser constant drift, diff-preview behavior, and command workflow contracts.
   - refreshed `THREAD.md`, `THREAD_PACKET.md`, and `handoff_packets/feat-commands.md` so the handoff reviews the actual tip rather than an older narrow slice.
 - tasks completed (numbered):
   1. Validated `command_cli_contract()` against the full parser entrypoint projection and lookup table, including alias-only drift cases where canonical names remain stable. Canonical demo-path step: `continue working`.
@@ -98,7 +99,7 @@
   - handoff reviewer-fix update: `THREAD_PACKET.md`
   - handoff reviewer-fix update: `handoff_packets/feat-commands.md`
 - commands run + outcomes:
-  - latest fixer evidence timestamp: `2026-04-28T19:44:49Z`
+  - latest fixer evidence timestamp: `2026-04-28T19:46:51Z`
   - `python -m unittest tests.unit.test_commands_catalog` -> passed
   - `make scope-check` -> passed
   - `./quality-format.sh --check` -> passed
@@ -121,9 +122,9 @@
 - routing/provider impact note:
   - none; this change does not touch model routing or provider configuration.
 - reviewer-fix satisfaction note:
-  1. Required fix 1 is satisfied by the per-task canonical demo-path mapping in `Canonical Demo-Path Mapping` and `tasks completed`.
-  2. Required fix 2 is satisfied by the `pre-handoff demo-path readiness` line: this command-catalog contract makes `continue working` more real by removing silent parser/catalog drift as a blocker for deterministic follow-up CLI operator turns.
-  3. Required fix 3 is satisfied by the ownership clarification above: the narrow `f8d860ed9f6299f0169c4f21321ac5f37c949fd3` reviewed slice touched no integrator-locked files, and `tests/unit/test_commands_catalog.py` is the approved shared-by-approval test exception. The packet still separately preserves actual-tip shared/integrator-locked accounting for `src/qual/cli.py`.
-  4. Required fix 4 is satisfied by keeping the implementation scope unchanged in this reviewer-fix pass; this commit only tightens handoff metadata.
+  1. Required fix 1 is satisfied by `command_cli_contract()` validating the declared catalog entrypoint projection, live parser projection, contract token tuple, canonical-name tuple, and lookup table; regression coverage includes extra alias token drift and alias-first reordering with stable canonical names.
+  2. Required fix 2 is satisfied by the per-task canonical demo-path mapping in `Canonical Demo-Path Mapping` and `tasks completed`.
+  3. Required fix 3 is satisfied by the `pre-handoff demo-path readiness` line: this command-catalog contract makes `continue working` more real by removing silent parser/catalog drift as a blocker for deterministic follow-up CLI operator turns.
+  4. Required fix 4 is satisfied by the ownership clarification above and the shared-test approval context: the reviewed `f8d860ed9f6299f0169c4f21321ac5f37c949fd3` slice touched no integrator-locked files, and the reviewer packet explicitly carried an approved shared-test exception for `tests/unit/test_commands_catalog.py`. The packet still separately preserves actual-tip shared/integrator-locked accounting for `src/qual/cli.py`.
 - reviewer-fix closure note:
   - This closure keeps the actual submitted branch tip as the only review basis, preserves the full alias-only parser drift protection already present in the branch, corrects the actual-tip size/file accounting, and records fresh required-gate evidence for the final metadata state.
