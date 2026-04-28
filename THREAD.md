@@ -6,7 +6,7 @@ Canonical handoff contract lives in `THREAD_PACKET.md`.
 
 - Lane: `feat-commands`
 - Branch: `codex/feat-commands`
-- Review basis: actual submitted branch tip, not the older `f8d860ed9f6299f0169c4f21321ac5f37c949fd3` slice. Implementation-file accounting covers `f8d860ed9f6299f0169c4f21321ac5f37c949fd3..8ef82873046f003a2ecf241dae3d0b5c352796be` plus this final gate-evidence commit.
+- Review basis: actual submitted branch tip, not the older `f8d860ed9f6299f0169c4f21321ac5f37c949fd3` slice. Implementation-file accounting covers `f8d860ed9f6299f0169c4f21321ac5f37c949fd3..8ef82873046f003a2ecf241dae3d0b5c352796be` plus the follow-up handoff evidence and this reviewer-fix closure commit.
 - Scope: CLI command-contract hardening for the current engine-first MVP focus without starting `feat-console`.
 - Roadmap alignment: `ROADMAP.md` Milestone 1 `Command and diff-preview behavior hardening` / `Manual CLI smoke flow remains stable`, Milestone 2 remaining parser-edge coverage, Milestone 3 output-contract intentionality, and the active MVP emphasis on `feat-commands`.
 - Vision alignment: `PRODUCT_VISION.md` capability 4 `Operator-first control surface`.
@@ -57,9 +57,17 @@ Canonical handoff contract lives in `THREAD_PACKET.md`.
 4. Each numbered completed task names the canonical demo-path step it supports, with `continue working` called out as the step made most real.
 5. The full required gates were rerun after the explicit alias-only drift matrix regression and packet refresh were in place.
 
+## Reviewer-Fix Closure
+
+- Required fix 1: this handoff keeps the actual branch tip as the sole review basis and includes every implementation file changed after the older `f8d860ed9f6299f0169c4f21321ac5f37c949fd3` slice.
+- Required fix 2: the actual-tip implementation keeps the full parser-token projection validation and alias-only drift matrix instead of relying only on canonical-name equality.
+- Required fix 3: files changed, shared/integrator-locked edits, size overage, risk, and exception notes are stated against the actual tip.
+- Required fix 4: the canonical demo-path step most directly advanced is `continue working`; the command contract keeps follow-on operator turns deterministic while the engine-first MVP loop is being closed.
+- Required fix 5: the gates below were rerun for this closure pass.
+
 ## Required Gates
 
-- Latest fixer evidence timestamp: `2026-04-28T19:11:56Z`
+- Latest fixer evidence timestamp: `2026-04-28T19:13:22Z`
 - `python -m unittest tests.unit.test_commands_catalog` -> passed
 - `make scope-check` -> passed
 - `./quality-format.sh --check` -> passed
