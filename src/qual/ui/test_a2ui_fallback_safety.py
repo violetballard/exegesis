@@ -474,6 +474,29 @@ class A2UIFallbackSafetyTests(unittest.TestCase):
             leaf_fingerprint,
         )
 
+    def test_a2ui_contract_surfaces_terminal_artifact_supported_kinds(self) -> None:
+        manifest = describe_a2ui_contract()
+        fingerprints = describe_a2ui_contract_fingerprints(include_terminal_artifact=True)
+        supported_kinds = list(TERMINAL_ARTIFACT_SUPPORTED_KINDS)
+        supported_kinds_fingerprint = _fingerprint_manifest_section(supported_kinds)
+
+        self.assertEqual(manifest["terminal_artifact_supported_kinds"], supported_kinds)
+        self.assertEqual(manifest["terminal_artifact_supported_kinds_contract"], supported_kinds)
+        self.assertEqual(manifest["terminal_artifact_supported_kinds_fingerprint"], supported_kinds_fingerprint)
+        self.assertEqual(
+            manifest["terminal_artifact_supported_kinds_contract_fingerprint"],
+            supported_kinds_fingerprint,
+        )
+        self.assertEqual(fingerprints["terminal_artifact_supported_kinds"], supported_kinds_fingerprint)
+        self.assertEqual(
+            fingerprints["terminal_artifact_supported_kinds_contract"],
+            supported_kinds_fingerprint,
+        )
+        self.assertEqual(
+            fingerprints["terminal_artifact_supported_kinds_contract_fingerprint"],
+            supported_kinds_fingerprint,
+        )
+
     def test_a2ui_contract_exposes_leaf_contract_manifest_aliases(self) -> None:
         manifest = describe_a2ui_contract()
         fingerprints = describe_a2ui_contract_fingerprints(include_contract_aliases=True)

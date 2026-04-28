@@ -333,6 +333,17 @@ def describe_a2ui_contract(
     terminal_artifact_contract = _snapshot_contract_section(manifest["terminal_artifact"])
     manifest["terminal_artifact_contract"] = _snapshot_contract_section(terminal_artifact_contract)
     manifest["terminal_artifact_contract_fingerprint"] = terminal_artifact_contract["contract_fingerprint"]
+    terminal_artifact_supported_kinds = list(terminal_artifact_contract["supported_kinds"])
+    manifest["terminal_artifact_supported_kinds"] = terminal_artifact_supported_kinds
+    manifest["terminal_artifact_supported_kinds_contract"] = _snapshot_contract_section(
+        terminal_artifact_supported_kinds
+    )
+    manifest["terminal_artifact_supported_kinds_fingerprint"] = _fingerprint_manifest_section(
+        terminal_artifact_supported_kinds
+    )
+    manifest["terminal_artifact_supported_kinds_contract_fingerprint"] = manifest[
+        "terminal_artifact_supported_kinds_fingerprint"
+    ]
     manifest["card_fingerprint"] = card_contract_fingerprint()
     schema_versions = _snapshot_contract_section(
         _build_a2ui_schema_versions_manifest(
@@ -641,6 +652,20 @@ def describe_a2ui_contract_fingerprints(
         fingerprints["action"] = action_contract_fingerprint()
     if include_terminal_artifact:
         fingerprints["terminal_artifact"] = manifest["terminal_artifact_fingerprint"]
+        fingerprints["terminal_artifact_supported_kinds"] = manifest[
+            "terminal_artifact_supported_kinds_fingerprint"
+        ]
+        _add_contract_alias_fingerprints(
+            fingerprints,
+            (
+                "terminal_artifact_supported_kinds_contract",
+                manifest["terminal_artifact_supported_kinds_fingerprint"],
+            ),
+            (
+                "terminal_artifact_supported_kinds_contract_fingerprint",
+                manifest["terminal_artifact_supported_kinds_fingerprint"],
+            ),
+        )
     if include_terminal_artifact_render_target:
         fingerprints["terminal_artifact_render_target"] = terminal_artifact_render_target_contract_fingerprint()
     if include_terminal_artifact_rendering:
@@ -3149,6 +3174,10 @@ def _build_a2ui_contract_manifest(
         "terminal_fallback_fingerprint": terminal_fallback_contract_fingerprint(),
         "terminal_artifact_fingerprint": terminal_artifact_contract_fingerprint(
             include_terminal_artifact_cli_fallback_route=include_terminal_artifact_cli_fallback_route,
+        ),
+        "terminal_artifact_supported_kinds": list(terminal_artifact_contract["supported_kinds"]),
+        "terminal_artifact_supported_kinds_fingerprint": _fingerprint_manifest_section(
+            terminal_artifact_contract["supported_kinds"]
         ),
         "cards": {
             "generic": GENERIC_CARD_TYPE,
