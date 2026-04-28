@@ -59,7 +59,7 @@
 - `./quality-test.sh`: PASS
 - `./typecheck-test.sh`: PASS
 - `make ci`: PASS
-- Final verification pass: `2026-04-28T20:58:19Z` on branch `codex/feat-commands`.
+- Final verification pass: `2026-04-28T21:01:08Z` on branch `codex/feat-commands`.
 
 ### Risks / Blockers
 
@@ -79,13 +79,13 @@
 
 ### Required Fix Satisfaction
 
-1. Required fix 1 is satisfied by validating the full declared CLI parser surface: grouped parser projection, token tuple, lookup table, and canonical-name order now must match the command catalog declaration.
-2. Required fix 2 is satisfied by focused tests that patch `_CLI_ENTRYPOINTS` for added valid alias, removed accepted token, substituted valid token, and reordered parser-token drift.
-3. Required fix 3 is satisfied by mapping each completed task to the canonical demo-path step it advances and stating the final demo-path step made more real.
-4. Required fix 4 is satisfied by rerunning `make scope-check`, `./quality-format.sh --check`, `./quality-lint.sh`, `./quality-test.sh`, `./typecheck-test.sh`, and `make ci` on the exact final branch tip after implementation and packet metadata agree.
+1. Latest required fix 1 is satisfied by the `Canonical Demo-Path Mapping` section: the concrete canonical demo-path step is `continue working`.
+2. Latest required fix 2 is satisfied by mapping each completed task to `continue working`; all four tasks strengthen the same named demo-path step.
+3. Latest required fix 3 is satisfied by keeping this fixer pass metadata-only. No code was added for the latest review packet.
+4. The prior implementation still keeps `command_cli_contract()` deterministic and covered by parser-surface drift regression tests.
 
 ### Fixer Re-Review Disposition
 
-- Reviewer packet `fixer__feat-commands__20260428T205430Z` requested full parser-surface drift validation, regression tests for added/removed/substituted/reordered parser tokens, canonical demo-path mapping in the handoff, and a full gate rerun.
-- Fixer follow-up scope: keep the implementation narrow to `src/qual/commands/catalog.py`, `tests/unit/test_commands_catalog.py`, `THREAD.md`, and `THREAD_PACKET.md`.
-- Final fixer pass reran the required handoff gates from the final branch tip.
+- Reviewer packet `fixer__feat-commands__20260428T205934Z` requested a metadata-only handoff correction: name the canonical demo-path step, map completed tasks to that step, and keep the code scope unchanged.
+- Fixer follow-up scope: metadata-only updates to `THREAD.md` and `THREAD_PACKET.md`.
+- Final fixer pass reran the required handoff gates from the final branch tip after this metadata correction.

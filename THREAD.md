@@ -38,10 +38,10 @@ Parser/catalog drift validation is needed now because the CLI is the active oper
 
 ## Required Fix Satisfaction
 
-1. `command_cli_contract()` validates the full declared parser surface: grouped parser projection, CLI token tuple, lookup table, and canonical command order.
-2. Regression coverage patches `_CLI_ENTRYPOINTS` for added valid alias, removed accepted token, substituted valid token, and parser-token reorder drift.
-3. Handoff mapping names the canonical demo-path step advanced by each completed task and states the final demo-path step made more real.
-4. The required gates were rerun after the parser-surface validation, regression tests, and handoff mapping were aligned.
+1. Latest required fix 1 is satisfied by the `Canonical Demo-Path Mapping` section: the concrete canonical demo-path step is `continue working`.
+2. Latest required fix 2 is satisfied by mapping each completed task to `continue working`; all four tasks strengthen the same named demo-path step.
+3. Latest required fix 3 is satisfied by keeping this pass metadata-only. No code was added for the latest review packet.
+4. The prior implementation still keeps `command_cli_contract()` deterministic and covered by parser-surface drift regression tests.
 5. The only approved non-owned path remains `tests/unit/test_commands_catalog.py`; there are no integrator-locked edits in the final review tree.
 
 ## Required Gates
@@ -53,4 +53,4 @@ Parser/catalog drift validation is needed now because the CLI is the active oper
 - `./typecheck-test.sh`: PASS
 - `make ci`: PASS
 
-Latest fixer pass: `fixer__feat-commands__20260428T205430Z` requested full parser-surface drift validation, matching regression tests for added/removed/substituted/reordered parser tokens, canonical demo-path mapping in the handoff, and a full gate rerun. This pass keeps the implementation narrow and aligns the packet claims with the final tree.
+Latest fixer pass: `fixer__feat-commands__20260428T205934Z` requested a metadata-only handoff correction: name the canonical demo-path step, map completed tasks to that step, and keep the code scope unchanged. This pass keeps the implementation unchanged and aligns the packet claims with the final review request.
