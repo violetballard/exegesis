@@ -10811,6 +10811,61 @@ class A2UIFallbackSafetyTests(unittest.TestCase):
                 self.assertIn("[ActionRef]" if case_name == "action" else "[SelectionRef]", cli_text)
                 self.assertNotIn("[UnknownCard] <invalid card>", cli_text)
 
+    def test_terminal_artifact_cli_fallback_distinguishes_card_and_non_card_malformed_envelopes(
+        self,
+    ) -> None:
+        shell = ShellUI()
+        cases = [
+            (
+                "action",
+                {
+                    "type": "ActionRef",
+                    "id": "export_document",
+                    "label": "Export",
+                    "payload": {"format": "md"},
+                },
+            ),
+            (
+                "selection",
+                {
+                    "type": "SelectionRef",
+                    "id": "selected",
+                    "label": "Selected",
+                    "payload": {"value": True},
+                },
+            ),
+        ]
+
+        for case_name, payload in cases:
+            with self.subTest(case=case_name):
+                card_envelope = {
+                    "type": "TerminalArtifact",
+                    "kind": "card",
+                    "artifact": payload,
+                }
+                dialog_envelope = {
+                    "type": "TerminalArtifact",
+                    "kind": "dialog",
+                    "artifact": payload,
+                }
+
+                card_cli_text = render_terminal_cli_fallback(card_envelope, kind="card")
+                dialog_cli_text = render_terminal_cli_fallback(dialog_envelope, kind="card")
+                card_shell_text = shell.render_cli_fallback(card_envelope, kind="card")
+                dialog_shell_text = shell.render_cli_fallback(dialog_envelope, kind="card")
+
+                expected_header = (
+                    "[ActionRef] Export" if case_name == "action" else "[SelectionRef] Selected"
+                )
+                self.assertEqual(card_cli_text, card_shell_text)
+                self.assertEqual(dialog_cli_text, dialog_shell_text)
+                self.assertIn("[UnknownCard] <invalid card>", card_cli_text)
+                self.assertIn("[UnknownCard] <invalid card>", card_shell_text)
+                self.assertIn(expected_header, dialog_cli_text)
+                self.assertIn(expected_header, dialog_shell_text)
+                self.assertNotIn(expected_header, card_cli_text)
+                self.assertNotIn(expected_header, card_shell_text)
+
     def test_terminal_artifact_cli_fallback_entrypoint_preserves_card_hints_for_valid_typed_envelopes(
         self,
     ) -> None:

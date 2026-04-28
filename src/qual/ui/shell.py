@@ -51,6 +51,7 @@ from .a2ui import (
     _render_invalid_terminal_action,
     _render_invalid_terminal_card,
     _render_invalid_terminal_selection,
+    _should_force_invalid_terminal_card_for_card_hinted_leaf,
     _is_malformed_terminal_artifact_envelope,
     _extract_terminal_artifact_envelope,
     _infer_terminal_artifact_kind_from_mapping,
@@ -94,15 +95,11 @@ class ShellUI:
         if normalized_kind == "card" and isinstance(artifact, Mapping) and _is_malformed_terminal_artifact_envelope(artifact):
             payload = artifact.get("artifact")
             envelope_kind = _normalize_terminal_artifact_envelope_kind(artifact.get("kind"))
-            if _should_preserve_raw_leaf_card_default(payload):
-                if envelope_kind == "card":
-                    return _render_invalid_terminal_card(artifact)
-            else:
-                payload_kind = _infer_terminal_artifact_explicit_kind(payload)
-                if payload_kind not in {"action", "selection"}:
-                    payload_kind = _recover_terminal_artifact_leaf_kind(payload)
-                if payload_kind in {"action", "selection"}:
-                    return _render_invalid_terminal_card(artifact)
+            if _should_force_invalid_terminal_card_for_card_hinted_leaf(
+                payload,
+                envelope_kind=envelope_kind,
+            ):
+                return _render_invalid_terminal_card(artifact)
         explicit_leaf_render = self._render_explicit_raw_leaf_hint(artifact, normalized_kind)
         if explicit_leaf_render is not None:
             return explicit_leaf_render

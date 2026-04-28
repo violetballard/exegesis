@@ -5368,15 +5368,11 @@ def render_terminal_cli_fallback(artifact: Any, *, kind: str | None = None) -> s
         envelope_kind = _normalize_terminal_artifact_envelope_kind(artifact.get("kind"))
     if requested_kind == "card" and isinstance(artifact, Mapping) and malformed_envelope:
         payload = artifact.get("artifact")
-        # Only explicit card envelopes stay on the invalid-card path here.
-        # Other malformed envelope kinds still get a chance to recover typed
-        # leaf payloads through the shared fallback resolver below.
-        if envelope_kind == "card" and not _should_preserve_raw_leaf_card_default(payload):
-            payload_kind = _infer_terminal_artifact_explicit_kind(payload)
-            if payload_kind not in _TERMINAL_ARTIFACT_NON_CARD_KIND_SET:
-                payload_kind = _recover_terminal_artifact_leaf_kind(payload)
-            if payload_kind in _TERMINAL_ARTIFACT_NON_CARD_KIND_SET:
-                return _render_invalid_terminal_card(artifact)
+        if _should_force_invalid_terminal_card_for_card_hinted_leaf(
+            payload,
+            envelope_kind=envelope_kind,
+        ):
+            return _render_invalid_terminal_card(artifact)
     if requested_kind == "card" and malformed_envelope and isinstance(artifact, Mapping):
         kind_value = artifact.get("kind")
         if not isinstance(kind_value, str) or not kind_value.strip():
@@ -6232,6 +6228,23 @@ def _should_preserve_raw_leaf_card_default(artifact: Any) -> bool:
     if any(field in artifact for field in ("blocks", "actions")):
         return False
     return all(field in artifact for field in ("id", "label", "payload"))
+
+
+def _should_force_invalid_terminal_card_for_card_hinted_leaf(
+    artifact: Any,
+    *,
+    envelope_kind: str | None,
+) -> bool:
+    """Return True when a card-hinted envelope must stay on the invalid-card path."""
+
+    if envelope_kind != "card":
+        return False
+    if _should_preserve_raw_leaf_card_default(artifact):
+        return False
+    payload_kind = _infer_terminal_artifact_explicit_kind(artifact)
+    if payload_kind not in _TERMINAL_ARTIFACT_NON_CARD_KIND_SET:
+        payload_kind = _recover_terminal_artifact_leaf_kind(artifact)
+    return payload_kind in _TERMINAL_ARTIFACT_NON_CARD_KIND_SET
 
 
 def _contains_action_or_selection_payload(
