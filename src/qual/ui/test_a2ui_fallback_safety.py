@@ -9692,6 +9692,28 @@ class A2UIFallbackSafetyTests(unittest.TestCase):
         self.assertNotIn("[ActionRef]", default_text)
         self.assertNotIn("[SelectionRef]", default_text)
 
+    def test_terminal_artifact_cli_fallback_forwards_explicit_raw_leaf_kind_hints(self) -> None:
+        shell = ShellUI()
+        raw_leaf = {
+            "id": "export_document",
+            "label": "Export",
+            "payload": {"format": "md"},
+        }
+
+        action_text = render_terminal_cli_fallback(raw_leaf, kind="action")
+        selection_text = render_terminal_cli_fallback(raw_leaf, kind="selection")
+        shell_action_text = shell.render_cli_fallback(raw_leaf, kind="action")
+        shell_selection_text = shell.render_cli_fallback(raw_leaf, kind="selection")
+
+        self.assertEqual(action_text, shell_action_text)
+        self.assertEqual(selection_text, shell_selection_text)
+        self.assertIn("[ActionRef] Export", action_text)
+        self.assertIn("[SelectionRef] Export", selection_text)
+        self.assertNotIn("[<missing>] <untitled>", action_text)
+        self.assertNotIn("[<missing>] <untitled>", selection_text)
+        self.assertNotIn("[ActionRef]", selection_text)
+        self.assertNotIn("[SelectionRef]", action_text)
+
     def test_shell_ui_forwards_explicit_raw_leaf_kind_hints(self) -> None:
         shell = ShellUI()
         raw_leaf = {

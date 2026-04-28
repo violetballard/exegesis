@@ -5420,6 +5420,22 @@ def render_terminal_cli_fallback(artifact: Any, *, kind: str | None = None) -> s
         # caller explicitly asked for card rendering. Typed mapping payloads
         # still recover through the shared fallback resolver below.
         return _render_invalid_terminal_card(artifact)
+    if requested_kind == "action":
+        try:
+            rendered_action = render_terminal_action(artifact)
+        except Exception:
+            return _render_invalid_terminal_action(artifact)
+        if _is_nonempty_terminal_rendered_text(rendered_action):
+            return rendered_action
+        return _render_invalid_terminal_action(artifact)
+    if requested_kind == "selection":
+        try:
+            rendered_selection = render_terminal_selection(artifact)
+        except Exception:
+            return _render_invalid_terminal_selection(artifact)
+        if _is_nonempty_terminal_rendered_text(rendered_selection):
+            return rendered_selection
+        return _render_invalid_terminal_selection(artifact)
     malformed_envelope = _is_malformed_terminal_artifact_envelope(artifact)
     envelope_kind = None
     if isinstance(artifact, Mapping):
