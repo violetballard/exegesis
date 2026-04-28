@@ -512,6 +512,28 @@ class A2UIFallbackSafetyTests(unittest.TestCase):
             supported_kinds_fingerprint,
         )
 
+    def test_shell_inclusive_a2ui_fingerprint_surface_is_stable(self) -> None:
+        first = describe_a2ui_contract_fingerprints(
+            include_shell_ui_contract=True,
+            include_contract_aliases=True,
+        )
+        second = describe_a2ui_contract_fingerprints(
+            include_shell_ui_contract=True,
+            include_contract_aliases=True,
+        )
+
+        self.assertEqual(first, second)
+        self.assertIn("shell_ui_contract", first)
+        self.assertIn("shell_ui_contract_manifest", first)
+        self.assertIn("terminal_artifact_cli_fallback_entrypoint_contract_manifest", first)
+        self.assertIn("terminal_artifact_cli_fallback_route_contract_manifest", first)
+        self.assertIn("terminal_artifact_cli_fallback_contract_manifest", first)
+        self.assertEqual(first["shell_ui_contract"], first["shell_ui_contract_fingerprint"])
+        self.assertEqual(
+            first["shell_ui_contract_manifest"],
+            first["shell_ui_contract_manifest_fingerprint"],
+        )
+
     def test_a2ui_contract_exposes_leaf_contract_manifest_aliases(self) -> None:
         manifest = describe_a2ui_contract()
         fingerprints = describe_a2ui_contract_fingerprints(include_contract_aliases=True)

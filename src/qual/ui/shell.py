@@ -906,6 +906,7 @@ def _build_shell_ui_contract_manifest(
     return manifest
 
 
+@lru_cache(maxsize=None)
 def describe_shell_ui_contract_fingerprints(
     include_terminal_artifact_cli_fallback_route: bool = False,
     include_contract_aliases: bool = False,
