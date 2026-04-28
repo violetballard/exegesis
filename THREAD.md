@@ -26,7 +26,7 @@ Canonical handoff contract lives in `THREAD_PACKET.md`.
 
 ## Implementation Basis
 
-- Final branch tip is the review basis, including this final fixer verification metadata refresh.
+- Final branch tip is the review basis, including this `2026-04-28T21:30:35Z` fixer verification metadata refresh.
 - Code-bearing command-catalog/test commits are part of the implementation basis and are not classified as metadata-only.
 - Metadata-only commits are limited to `THREAD.md` and `THREAD_PACKET.md` packet maintenance.
 
@@ -52,4 +52,4 @@ Parser/catalog drift validation is needed now because the CLI is the active oper
 
 ## Final Verification
 
-- Required gates passed on branch `codex/feat-commands` at `2026-04-28T21:26:52Z`: `make scope-check`, `./quality-format.sh --check`, `./quality-lint.sh`, `./quality-test.sh`, `./typecheck-test.sh`, and `make ci`.
+- Required gates passed on branch `codex/feat-commands` at `2026-04-28T21:30:35Z`: `make scope-check`, `./quality-format.sh --check`, `./quality-lint.sh`, `./quality-test.sh`, `./typecheck-test.sh`, and `make ci`.
