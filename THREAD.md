@@ -51,6 +51,7 @@ Canonical handoff contract lives in `THREAD_PACKET.md`.
 - Task 3 advances `plan/revise` and `apply/reject patch`: command workflow and diff-preview regression coverage preserves the command surfaces used to revise plans and inspect patch choices.
 - Task 4 advances `continue working`: refreshed handoff metadata gives reviewer/integrator the exact review basis needed to keep the branch moving without scope ambiguity.
 - Final demo-path statement: this handoff most directly makes `continue working` more real by hardening the CLI command contract that preserves deterministic follow-on operation in the engine-first MVP loop.
+- Reviewer packet `fixer__feat-commands__20260428T200235Z` closure: the required demo-path mapping is explicit in the task bullets above and the canonical packet's numbered completed-task list; the ownership note separates the original command-catalog slice, which had no integrator-locked edit, from later actual-tip accounting.
 
 ## Reviewer Fix Satisfaction
 
@@ -67,6 +68,7 @@ Canonical handoff contract lives in `THREAD_PACKET.md`.
 - Reviewer packet `fixer__feat-commands__20260428T195448Z` approved the branch with no required fixes; this fixer pass records that approval state and refreshes the required gate evidence.
 - Reviewer packet `fixer__feat-commands__20260428T195731Z` repeated the earlier required-fix packet; this fixer pass verified the existing full parser-projection guard, actual-tip handoff basis, shared exception accounting, and demo-path mapping, then reran every required gate.
 - Reviewer packet `fixer__feat-commands__20260428T195915Z` requested narrower demo-path and vision mapping; this fixer pass records `continue working` as the exact canonical demo-path step, preserves per-task demo-path mapping, and narrows the vision claim to command contract drift validation only.
+- Reviewer packet `fixer__feat-commands__20260428T200235Z` requested per-task demo-path mapping, a final demo-path statement, and clearer ownership wording for the original narrow command-catalog slice; this fixer pass records those clarifications without changing implementation code.
 
 ## Required Gates
 
@@ -87,6 +89,13 @@ Canonical handoff contract lives in `THREAD_PACKET.md`.
 - `./typecheck-test.sh` -> passed
 - `make ci` -> passed
 - Final fixer validation sequence for `fixer__feat-commands__20260428T195731Z`:
+- `make scope-check` -> passed
+- `./quality-format.sh --check` -> passed
+- `./quality-lint.sh` -> passed
+- `./quality-test.sh` -> passed
+- `./typecheck-test.sh` -> passed
+- `make ci` -> passed
+- Final fixer validation sequence for `fixer__feat-commands__20260428T200235Z`:
 - `make scope-check` -> passed
 - `./quality-format.sh --check` -> passed
 - `./quality-lint.sh` -> passed

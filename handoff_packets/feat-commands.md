@@ -34,6 +34,7 @@
 - Final demo-path statement: this handoff most directly makes `continue working` more real by hardening the CLI command contract that preserves deterministic follow-on operation in the engine-first MVP loop.
 - Command-catalog slice statement: the original command-catalog implementation slice at `f8d860ed9f6299f0169c4f21321ac5f37c949fd3` makes `continue working` more real by rejecting catalog/parser drift before follow-up CLI turns can continue through an unexpected command surface.
 - Reviewer packet `fixer__feat-commands__20260428T195915Z` closure: this packet explicitly maps the command-catalog slice to the `continue working` canonical demo-path step, maps each completed task to its canonical demo-path step, and limits the vision claim to command contract stability rather than auditable state, persistence, or audit behavior.
+- Reviewer packet `fixer__feat-commands__20260428T200235Z` closure: the required demo-path mapping is already explicit in the four task bullets above and in the numbered completed-task list below; the final demo-path statement names `continue working` as the canonical step made more real.
 
 ### Budget
 
@@ -117,13 +118,20 @@
   - `./quality-test.sh` -> passed
   - `./typecheck-test.sh` -> passed
   - `make ci` -> passed
-  - final fixer validation sequence for `fixer__feat-commands__20260428T195915Z`:
-  - `make scope-check` -> passed
-  - `./quality-format.sh --check` -> passed
-  - `./quality-lint.sh` -> passed
-  - `./quality-test.sh` -> passed
-  - `./typecheck-test.sh` -> passed
-  - `make ci` -> passed
+	  - final fixer validation sequence for `fixer__feat-commands__20260428T195915Z`:
+	  - `make scope-check` -> passed
+	  - `./quality-format.sh --check` -> passed
+	  - `./quality-lint.sh` -> passed
+	  - `./quality-test.sh` -> passed
+	  - `./typecheck-test.sh` -> passed
+	  - `make ci` -> passed
+	  - final fixer validation sequence for `fixer__feat-commands__20260428T200235Z`:
+	  - `make scope-check` -> passed
+	  - `./quality-format.sh --check` -> passed
+	  - `./quality-lint.sh` -> passed
+	  - `./quality-test.sh` -> passed
+	  - `./typecheck-test.sh` -> passed
+	  - `make ci` -> passed
 - risks/blockers:
   - risk: high. This branch already exceeds the normal high-risk size budget and touches the shared CLI parser surface; the packet now makes that explicit for review instead of narrowing the claimed basis.
   - blockers: none.
@@ -149,7 +157,12 @@
   1. Required fix 1 is satisfied by the canonical demo-path mapping and final demo-path statement naming `continue working` as the step this command-catalog slice makes more real.
   2. Required fix 2 is satisfied by the four numbered task mappings under both `Canonical Demo-Path Mapping` and `tasks completed`, keeping the scope to CLI contract stability for the engine-first MVP loop.
   3. Required fix 3 is satisfied by tightening the vision capability to command contract drift validation and explicitly excluding auditable state changes, persistence, and audit behavior.
+- follow-up reviewer-fix satisfaction note for `fixer__feat-commands__20260428T200235Z`:
+  1. Required fix 1 is satisfied by mapping every completed task to its canonical demo-path step in both `Canonical Demo-Path Mapping` and the numbered `tasks completed` list.
+  2. Required fix 2 is satisfied by the final demo-path statement naming `continue working` as the canonical demo-path step made more real by command-contract hardening.
+  3. Required fix 3 is satisfied by separating the original narrow-slice ownership note from actual-tip accounting: the `f8d860ed9f6299f0169c4f21321ac5f37c949fd3` command-catalog slice touched no integrator-locked file and only used the approved `tests/unit/test_commands_catalog.py` shared-test exception, while later actual-tip accounting separately lists `src/qual/cli.py` as the only integrator-locked/shared-by-approval implementation exception.
 - reviewer-fix closure note:
   - This closure keeps the actual submitted branch tip as the only review basis, preserves the full alias-only parser drift protection already present in the branch, corrects the actual-tip size/file accounting, and records fresh required-gate evidence for the final metadata state.
   - Follow-up fixer packet `fixer__feat-commands__20260428T195731Z` was satisfied by re-verifying the same numbered required fixes against the current branch tip and rerunning every required gate.
   - Follow-up fixer packet `fixer__feat-commands__20260428T195915Z` was satisfied by naming `continue working` as the exact demo-path step made more real, mapping all four completed tasks to demo-path steps, and narrowing the vision claim away from auditable state or persistence behavior.
+  - Follow-up fixer packet `fixer__feat-commands__20260428T200235Z` was satisfied by reasserting the per-task demo-path mappings, preserving the final `continue working` statement, and clarifying that the older command-catalog slice had no integrator-locked edit beyond the approved shared-test exception.
