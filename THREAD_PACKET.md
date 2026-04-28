@@ -28,7 +28,7 @@
   - `9df1a4e32 fix(commands): enforce full CLI contract drift checks`
   - `ea0ab36b4 fix(commands): enforce parser surface drift checks`
   - `b438f4554 fix(commands): validate full CLI parser surface`
-  - this fixer pass, which adds direct lookup-table shape/order drift coverage.
+  - this fixer pass, which adds declared parser-surface alias drift coverage.
 - Packet-refresh commits after those implementation commits are metadata-only only when they touch `THREAD.md` or `THREAD_PACKET.md`.
 - No commit that modifies `src/qual/commands/catalog.py` or `tests/unit/test_commands_catalog.py` is classified as metadata-only in this packet.
 
@@ -36,7 +36,7 @@
 
 - Task 1 advances `continue working`: parser/catalog validation prevents follow-up CLI turns from continuing through a silently drifted command contract.
 - Task 2 advances `continue working`: canonical command ordering stays deterministic across operator turns and command smoke checks.
-- Task 3 advances `continue working`: regression tests lock accepted-token, lookup-table, and alias-level parser drift before handoff.
+- Task 3 advances `continue working`: regression tests lock accepted-token, declared-surface, lookup-table, and alias-level parser drift before handoff.
 - Task 4 advances `continue working`: refreshed handoff metadata gives reviewer/integrator the exact branch-tip review basis.
 - Final demo-path statement: this handoff makes `continue working` more real by keeping the CLI command contract deterministic while Textual remains disabled.
 
@@ -51,7 +51,7 @@
 
 1. Hardened `command_cli_contract()` to validate the full parser surface by comparing grouped parser projection, CLI token tuple, lookup table, and canonical names against the declared command-catalog projection. Canonical demo-path step: `continue working`.
 2. Preserved canonical command ordering in the CLI contract while rejecting alias-only parser drift that keeps the same canonical-name order. Canonical demo-path step: `continue working`.
-3. Added focused regression coverage in `tests/unit/test_commands_catalog.py` for extra accepted alias, removed accepted alias, substituted accepted alias, reordered parser-token surface drift, and lookup-table shape/order drift. Canonical demo-path step: `continue working`.
+3. Added focused regression coverage in `tests/unit/test_commands_catalog.py` for extra accepted alias, removed accepted alias, substituted accepted alias, reordered parser-token surface drift, declared-surface alias drift, and lookup-table shape/order drift. Canonical demo-path step: `continue working`.
 4. Regenerated `THREAD.md` and `THREAD_PACKET.md` so the handoff claims match the final implementation and test coverage. Canonical demo-path step: `continue working`.
 
 ### Files Changed
@@ -69,7 +69,7 @@
 - `./quality-test.sh`: PASS
 - `./typecheck-test.sh`: PASS
 - `make ci`: PASS
-- Final verification pass: `2026-04-28T21:18:45Z` on branch `codex/feat-commands`.
+- Final verification pass: `2026-04-28T21:21:50Z` on branch `codex/feat-commands`.
 
 ### Risks / Blockers
 
@@ -91,6 +91,6 @@
 
 1. Reviewer fix 1, regenerate packet against actual branch tip: satisfied by the `Implementation Basis` section. This packet uses final branch tip as the review basis and does not mark code-bearing catalog/test commits as metadata-only.
 2. Reviewer fix 2, full parser-surface validation: satisfied by `command_cli_contract()` validating accepted token tuple, grouped parser projection, lookup table shape/order, and canonical names against the declared command-catalog projection.
-3. Reviewer fix 3, drift regression tests: satisfied by focused tests for extra accepted alias, removed accepted alias, substituted accepted alias, parser-token reorder preserving canonical names, grouped token-to-canonical drift, and lookup-table shape/order drift.
+3. Reviewer fix 3, drift regression tests: satisfied by focused tests for extra accepted alias, removed accepted alias, substituted accepted alias, parser-token reorder preserving canonical names, declared-surface alias drift, grouped token-to-canonical drift, and lookup-table shape/order drift.
 4. Reviewer fix 4, canonical demo-path mapping: satisfied by per-task `continue working` mappings and the final statement that this handoff makes that step more real while Textual remains disabled.
 5. Reviewer fix 5, ownership clarity: satisfied by the `Shared / Integrator-Locked Accounting` section, which records the approved shared-by-approval test edit and confirms no integrator-locked edits.
