@@ -32,6 +32,8 @@
 - Task 3 advances `plan/revise` and `apply/reject patch`: command workflow and diff-preview regression coverage preserves the command surfaces used to revise plans and inspect patch choices.
 - Task 4 advances `continue working`: refreshed handoff metadata gives reviewer/integrator the exact review basis needed to keep the branch moving without scope ambiguity.
 - Final demo-path statement: this handoff most directly makes `continue working` more real by hardening the CLI command contract that preserves deterministic follow-on operation in the engine-first MVP loop.
+- Command-catalog slice statement: the original command-catalog implementation slice at `f8d860ed9f6299f0169c4f21321ac5f37c949fd3` makes `continue working` more real by rejecting catalog/parser drift before follow-up CLI turns can continue through an unexpected command surface.
+- Reviewer packet `fixer__feat-commands__20260428T195915Z` closure: this packet explicitly maps the command-catalog slice to the `continue working` canonical demo-path step, maps each completed task to its canonical demo-path step, and limits the vision claim to command contract stability rather than auditable state, persistence, or audit behavior.
 
 ### Budget
 
@@ -115,6 +117,20 @@
   - `./quality-test.sh` -> passed
   - `./typecheck-test.sh` -> passed
   - `make ci` -> passed
+  - final fixer validation sequence for `fixer__feat-commands__20260428T195915Z`:
+  - `make scope-check` -> passed
+  - `./quality-format.sh --check` -> passed
+  - `./quality-lint.sh` -> passed
+  - `./quality-test.sh` -> passed
+  - `./typecheck-test.sh` -> passed
+  - `make ci` -> passed
+  - final fixer validation sequence for `fixer__feat-commands__20260428T195915Z`:
+  - `make scope-check` -> passed
+  - `./quality-format.sh --check` -> passed
+  - `./quality-lint.sh` -> passed
+  - `./quality-test.sh` -> passed
+  - `./typecheck-test.sh` -> passed
+  - `make ci` -> passed
 - risks/blockers:
   - risk: high. This branch already exceeds the normal high-risk size budget and touches the shared CLI parser surface; the packet now makes that explicit for review instead of narrowing the claimed basis.
   - blockers: none.
@@ -123,7 +139,8 @@
   - Active MVP emphasis on `feat-commands` as the command-surface compatibility lane.
 - vision capability affected:
   - Canonical engine contract stability while the CLI remains the active operator surface.
-  - This handoff does not claim auditable state, persistence, retrieval, provider routing, Textual work, or A2UI schema progress.
+  - Command contract drift validation for deterministic CLI follow-on operation.
+  - This handoff does not claim auditable state changes, persistence, audit behavior, retrieval, provider routing, Textual work, or A2UI schema progress.
 - architecture guardrail affected:
   - `ARCHITECTURE.md` `src/qual/commands/**` owns command-level behavior and command output contracts.
   - Command code remains limited to public `drafting`, `context`, and `engine` entrypoints and does not directly mutate storage or provider routing policy.
@@ -135,6 +152,16 @@
   3. Required fix 3 is satisfied by replacing normal budget-compliance claims with high-risk accounting: `12 files changed, 12853 insertions(+), 983 deletions(-)` before this metadata-only fixer update, with reviewer/integrator exception routing required.
   4. Required fix 4 is satisfied by the per-task canonical demo-path mapping and the final pre-handoff statement naming `continue working` as the demo-path step made more real.
   5. Required fix 5 is satisfied by rerunning and reporting the full required gate sequence against this regenerated full-tip review basis.
+- follow-up reviewer-fix satisfaction note for `fixer__feat-commands__20260428T195915Z`:
+  1. Required fix 1 is satisfied by the canonical demo-path mapping and final demo-path statement naming `continue working` as the step this command-catalog slice makes more real.
+  2. Required fix 2 is satisfied by the four numbered task mappings under both `Canonical Demo-Path Mapping` and `tasks completed`, keeping the scope to CLI contract stability for the engine-first MVP loop.
+  3. Required fix 3 is satisfied by tightening the vision capability to command contract drift validation and explicitly excluding auditable state changes, persistence, and audit behavior.
 - reviewer-fix closure note:
   - This closure keeps the actual submitted branch tip as the only review basis, preserves the full alias-only parser drift protection already present in the branch, corrects the actual-tip size/file accounting, and records fresh required-gate evidence for the final metadata state.
   - Follow-up fixer packet `fixer__feat-commands__20260428T195731Z` was satisfied by re-verifying the same numbered required fixes against the current branch tip and rerunning every required gate.
+  - Follow-up fixer packet `fixer__feat-commands__20260428T195915Z` was satisfied by naming `continue working` as the exact demo-path step made more real, mapping all four completed tasks to demo-path steps, and narrowing the vision claim away from auditable state or persistence behavior.
+- latest reviewer-fix satisfaction note:
+  1. Required fix 1 is satisfied by the canonical demo-path mapping and command-catalog slice statement naming `continue working` as the exact step made more real.
+  2. Required fix 2 is satisfied by the numbered task list, where all four completed tasks name the relevant canonical demo-path step and stay limited to CLI contract stability for the engine-first MVP loop.
+  3. Required fix 3 is satisfied by the vision capability section, which claims only canonical engine contract stability while the CLI remains the active operator surface and explicitly excludes auditable state, persistence, retrieval, provider routing, Textual work, and A2UI schema progress.
+  - Follow-up fixer packet `fixer__feat-commands__20260428T195915Z` was satisfied with a metadata-only clarification: exact demo-path step, per-task demo-path mapping, narrowed vision wording, and fresh required-gate evidence.
