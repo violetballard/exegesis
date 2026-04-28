@@ -7715,6 +7715,45 @@ class A2UIFallbackSafetyTests(unittest.TestCase):
         )
         self.assertEqual(len(fingerprints_with_self["terminal_artifact_cli_fallback_route"]), 64)
 
+    def test_terminal_artifact_cli_fallback_fingerprint_maps_return_fresh_snapshots(self) -> None:
+        contract_kwargs = {
+            "include_terminal_artifact_cli_fallback": True,
+            "include_terminal_artifact_cli_fallback_route": True,
+            "include_contract_aliases": True,
+        }
+        entrypoint_kwargs = {"include_contract_aliases": True}
+        route_kwargs = {
+            "include_terminal_artifact_cli_fallback_route": True,
+            "include_contract_aliases": True,
+        }
+
+        contract_fingerprints = describe_terminal_artifact_cli_fallback_contract_fingerprints(**contract_kwargs)
+        entrypoint_fingerprints = describe_terminal_artifact_cli_fallback_entrypoint_contract_fingerprints(
+            **entrypoint_kwargs,
+        )
+        route_fingerprints = describe_terminal_artifact_cli_fallback_route_contract_fingerprints(**route_kwargs)
+
+        contract_snapshot = dict(contract_fingerprints)
+        entrypoint_snapshot = dict(entrypoint_fingerprints)
+        route_snapshot = dict(route_fingerprints)
+
+        contract_fingerprints["terminal_artifact_cli_fallback_contract"] = "mutated"
+        entrypoint_fingerprints["renderer_entrypoints"] = "mutated"
+        route_fingerprints["route_precedence"] = "mutated"
+
+        self.assertEqual(
+            describe_terminal_artifact_cli_fallback_contract_fingerprints(**contract_kwargs),
+            contract_snapshot,
+        )
+        self.assertEqual(
+            describe_terminal_artifact_cli_fallback_entrypoint_contract_fingerprints(**entrypoint_kwargs),
+            entrypoint_snapshot,
+        )
+        self.assertEqual(
+            describe_terminal_artifact_cli_fallback_route_contract_fingerprints(**route_kwargs),
+            route_snapshot,
+        )
+
     def test_terminal_artifact_cli_fallback_route_contract_fingerprints_can_opt_into_aliases(self) -> None:
         fingerprints = describe_terminal_artifact_cli_fallback_route_contract_fingerprints(
             include_contract_aliases=True,

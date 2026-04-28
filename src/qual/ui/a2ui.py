@@ -2305,11 +2305,11 @@ def describe_terminal_artifact_contract_fingerprints(
 
 
 @lru_cache(maxsize=None)
-def describe_terminal_artifact_cli_fallback_contract_fingerprints(
+def _terminal_artifact_cli_fallback_contract_fingerprints_snapshot(
     include_terminal_artifact_cli_fallback: bool = False,
     include_terminal_artifact_cli_fallback_route: bool = False,
     include_contract_aliases: bool = False,
-) -> dict[str, str]:
+) -> tuple[tuple[str, str], ...]:
     """Return stable fingerprints for the CLI fallback wrapper contract sections.
 
     The default fingerprint map always includes the kind-policy slice because
@@ -2492,9 +2492,38 @@ def describe_terminal_artifact_cli_fallback_contract_fingerprints(
                 (
                     "terminal_artifact_cli_fallback_route_contract_fingerprints",
                     terminal_artifact_cli_fallback_route_contract_fingerprints_fingerprint(),
-            ),
+                ),
+            )
+    return tuple(fingerprints.items())
+
+
+def describe_terminal_artifact_cli_fallback_contract_fingerprints(
+    include_terminal_artifact_cli_fallback: bool = False,
+    include_terminal_artifact_cli_fallback_route: bool = False,
+    include_contract_aliases: bool = False,
+) -> dict[str, str]:
+    """Return stable fingerprints for the CLI fallback wrapper contract sections.
+
+    The default fingerprint map always includes the kind-policy slice because
+    it is part of the stable CLI fallback contract surface. Pass
+    ``include_terminal_artifact_cli_fallback=True`` to include the wrapper
+    contract fingerprint itself alongside the nested section fingerprints.
+    Pass ``include_terminal_artifact_cli_fallback_route=True`` to include the
+    CLI fallback route contract fingerprint itself alongside the nested
+    section fingerprints.
+    Pass ``include_contract_aliases=True`` to include alias keys that mirror
+    the manifest field names.
+    """
+
+    return _TerminalArtifactCliFallbackContractFingerprints(
+        dict(
+            _terminal_artifact_cli_fallback_contract_fingerprints_snapshot(
+                include_terminal_artifact_cli_fallback=include_terminal_artifact_cli_fallback,
+                include_terminal_artifact_cli_fallback_route=include_terminal_artifact_cli_fallback_route,
+                include_contract_aliases=include_contract_aliases,
+            )
         )
-    return fingerprints
+    )
 
 
 class _TerminalArtifactCliFallbackContractFingerprints(dict[str, str]):
@@ -2512,17 +2541,10 @@ class _TerminalArtifactCliFallbackContractFingerprints(dict[str, str]):
 
 
 @lru_cache(maxsize=None)
-def describe_terminal_artifact_cli_fallback_route_contract_fingerprints(
+def _terminal_artifact_cli_fallback_route_contract_fingerprints_snapshot(
     include_terminal_artifact_cli_fallback_route: bool = False,
     include_contract_aliases: bool = False,
-) -> dict[str, str]:
-    """Return stable fingerprints for the CLI fallback route contract sections.
-
-    Pass ``include_terminal_artifact_cli_fallback_route=True`` to include the
-    route contract fingerprint itself. Pass ``include_contract_aliases=True``
-    to include alias keys that mirror the manifest field names.
-    """
-
+) -> tuple[tuple[str, str], ...]:
     fingerprints = _build_terminal_artifact_cli_fallback_route_contract_fingerprints()
     if include_terminal_artifact_cli_fallback_route:
         fingerprints["terminal_artifact_cli_fallback_route"] = (
@@ -2601,7 +2623,21 @@ def describe_terminal_artifact_cli_fallback_route_contract_fingerprints(
                 terminal_artifact_cli_fallback_route_contract_fingerprint(),
             ),
         )
-    return fingerprints
+    return tuple(fingerprints.items())
+
+
+def describe_terminal_artifact_cli_fallback_route_contract_fingerprints(
+    include_terminal_artifact_cli_fallback_route: bool = False,
+    include_contract_aliases: bool = False,
+) -> dict[str, str]:
+    """Return stable fingerprints for the CLI fallback route contract sections."""
+
+    return dict(
+        _terminal_artifact_cli_fallback_route_contract_fingerprints_snapshot(
+            include_terminal_artifact_cli_fallback_route=include_terminal_artifact_cli_fallback_route,
+            include_contract_aliases=include_contract_aliases,
+        )
+    )
 
 
 def _build_terminal_artifact_rendering_contract_fingerprints(
@@ -3007,17 +3043,25 @@ def _build_terminal_artifact_cli_fallback_entrypoint_contract_fingerprints(
 
 
 @lru_cache(maxsize=None)
+def _terminal_artifact_cli_fallback_entrypoint_contract_fingerprints_snapshot(
+    include_contract_aliases: bool = False,
+) -> tuple[tuple[str, str], ...]:
+    return tuple(
+        _build_terminal_artifact_cli_fallback_entrypoint_contract_fingerprints(
+            include_contract_aliases=include_contract_aliases,
+        ).items()
+    )
+
+
 def describe_terminal_artifact_cli_fallback_entrypoint_contract_fingerprints(
     include_contract_aliases: bool = False,
 ) -> dict[str, str]:
-    """Return stable fingerprints for the explicit CLI fallback entrypoint contract.
+    """Return stable fingerprints for the explicit CLI fallback entrypoint contract."""
 
-    Pass ``include_contract_aliases=True`` to add self-describing aliases for
-    the explicit entrypoint contract manifest and its fingerprint.
-    """
-
-    return _build_terminal_artifact_cli_fallback_entrypoint_contract_fingerprints(
-        include_contract_aliases=include_contract_aliases,
+    return dict(
+        _terminal_artifact_cli_fallback_entrypoint_contract_fingerprints_snapshot(
+            include_contract_aliases=include_contract_aliases,
+        )
     )
 
 
