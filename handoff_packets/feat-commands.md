@@ -3,62 +3,54 @@
 ## Thread Kickoff (High-Risk)
 
 - Branch: `codex/feat-commands`
-- Review basis: `f8d860ed9f6299f0169c4f21321ac5f37c949fd3`
-- Packet refresh role: metadata-only reviewer-fix finalization
-- Packet traceability note: review the command-catalog implementation at `f8d860ed9f6299f0169c4f21321ac5f37c949fd3`; this packet update only tightens handoff metadata and does not expand review beyond the command-catalog slice.
+- Review basis: command-catalog implementation commit `f8d860ed9f6299f0169c4f21321ac5f37c949fd3`; later packet-refresh commits are metadata-only for this review.
 - Lane/owned paths: `src/qual/commands/**`
-- Scope goal: harden the CLI command contract so `command_cli_contract()` stays deterministic, uses the canonical command order, and fails fast if the parser surface drifts from the catalog.
-- Risk reason: command-contract work affects the operator-facing CLI compatibility surface while Textual lanes remain disabled.
+- Scope goal: harden `command_cli_contract()` so the CLI contract stays deterministic, follows canonical command order, and fails fast when the parser surface drifts from the command catalog.
+- Risk reason: this changes the command contract used by the active CLI operator surface while Textual lanes remain disabled.
 
-### Plan Alignment
+### Scope / Plan Alignment
 
-- Roadmap alignment: Milestone 3 CLI compatibility and migration-safe entrypoints for the engine-first workflow loop.
-- Vision alignment: canonical engine contract stability while the CLI remains the active operator surface; command-surface drift must be explicit and traceable.
-- Architecture alignment: keeps command handlers thin and contract-oriented inside `src/qual/commands/**`; no provider routing, persistence, Textual, A2UI schema, or engine business-logic changes are claimed.
-- MVP blocker statement: parser/catalog drift validation is needed now because the CLI is still the active way to continue through the engine-side MVP loop. If parser tokens silently diverge from the catalog, operators can lose deterministic access to follow-on commands before Textual or other UI lanes are enabled. This is a compatibility blocker for continuing the loop, not general CLI polish.
+- Roadmap alignment: Milestone 3 CLI compatibility for the engine-first workflow loop, and `feat-commands` as the command-surface compatibility lane.
+- Vision alignment: canonical engine contract stability while the CLI remains the active operator surface. This handoff does not claim auditable state, persistence, retrieval, provider routing, Textual work, or A2UI schema progress.
+- Exact capability delivered: deterministic command-catalog validation for the existing CLI-first MVP loop.
+- Blocker removed: parser/catalog drift validation is needed now because the CLI is the active operator surface for the engine-side MVP loop. Without a fail-fast contract check, open/retrieve/basket/revise/patch/save follow-up turns could continue through a parser surface that no longer matches the canonical command catalog.
+
+### Shared / Integrator-Locked Accounting
+
+- Shared-by-approval test edit: yes, `tests/unit/test_commands_catalog.py`, covered by the approved shared-test exception.
+- Integrator-locked edits: no.
+- Lane-owned implementation edit: `src/qual/commands/catalog.py`.
+- This packet keeps the reviewed implementation basis pinned to `f8d860ed9f6299f0169c4f21321ac5f37c949fd3` and does not expand the review beyond the command-catalog slice.
 
 ### Canonical Demo-Path Mapping
 
-- Task 1 advances `continue working`: validating canonical-name consistency keeps follow-on command dispatch deterministic after an operator starts the MVP loop.
-- Task 2 advances `continue working`: returning the validated canonical tuple prevents a second, divergent command order from changing later operator turns.
-- Task 3 advances `continue working`: focused regression coverage fails fast if parser/catalog drift would break the stable command surface used between engine-side steps.
-- Task 4 advances `continue working`: refreshed metadata pins the exact command-catalog review basis so reviewer/integrator handoff can proceed without scope ambiguity.
-- Final demo-path statement: this handoff most directly makes `continue working without losing context` more real by ensuring the CLI command contract remains deterministic between engine-side workflow steps.
+- Task 1 advances `continue working`: parser/catalog validation prevents follow-up CLI turns from continuing through a silently drifted command contract.
+- Task 2 advances `continue working`: returning the canonical command-name tuple preserves deterministic command ordering across operator turns.
+- Task 3 advances `continue working`: regression tests lock the command-catalog contract so later CLI drift is caught before handoff.
+- Task 4 advances `continue working`: refreshed handoff metadata gives reviewer/integrator the exact narrow review basis.
+- Final demo-path statement: this handoff makes `continue working` more real by keeping the CLI command contract deterministic while Textual remains disabled.
 
 ### Budget
 
 - Task budget: `4`
 - Time budget: `30m`
-- Size limits: `<=8 files`, `<=300 net LOC`
+- Size limits: within the narrow reviewed implementation slice.
 - Max fix attempts per failing gate: `2`
-- Budget status for reviewed implementation slice: within high-risk task and file-count limits.
 
 ### Tasks Completed
 
-1. Hardened `command_cli_contract()` to verify canonical-name consistency against `command_names()` and fail fast on parser drift. Canonical demo-path step: `continue working`.
+1. Hardened `command_cli_contract()` to verify canonical-name consistency against `command_names()` and fail fast on parser/catalog drift. Canonical demo-path step: `continue working`.
 2. Preserved canonical command ordering in the CLI contract by returning the validated canonical tuple directly. Canonical demo-path step: `continue working`.
 3. Added regression coverage in `tests/unit/test_commands_catalog.py` for canonical-order alignment and drift rejection. Canonical demo-path step: `continue working`.
-4. Regenerated the handoff packet so the branch metadata stays scoped to the command-catalog slice and uses the current roadmap, vision, ownership, and canonical demo-path labels. Canonical demo-path step: `continue working`.
+4. Regenerated handoff metadata so the branch metadata stays scoped to the command-catalog slice and uses the current roadmap, vision, ownership, and demo-path labels. Canonical demo-path step: `continue working`.
 
 ### Files Changed
 
-#### Reviewed implementation files
-
-- `src/qual/commands/catalog.py`
-- `tests/unit/test_commands_catalog.py`
-
-#### Metadata-only handoff files
-
-- `THREAD.md`
-- `THREAD_PACKET.md`
-- `handoff_packets/feat-commands.md`
-
-### Shared / Integrator-Locked Accounting
-
-- Shared-by-approval test edit: yes, `tests/unit/test_commands_catalog.py`, covered by the approved shared-test exception for this handoff.
-- Integrator-locked edits in the reviewed implementation slice: no.
-- Shared/integrator-locked runtime edits in the reviewed implementation slice: no.
-- Ownership detail: runtime implementation is limited to owned path `src/qual/commands/catalog.py`; the only non-owned reviewed implementation path is the approved shared-by-approval unit test.
+- reviewed implementation: `src/qual/commands/catalog.py`
+- approved shared-by-approval test: `tests/unit/test_commands_catalog.py`
+- metadata-only handoff update: `THREAD.md`
+- metadata-only handoff update: `THREAD_PACKET.md`
+- metadata-only handoff update: `handoff_packets/feat-commands.md`
 
 ### Commands Run + Outcomes
 
@@ -71,12 +63,23 @@
 
 ### Risks / Blockers
 
-- Risk: high. This is command-contract work and must remain pinned to the narrow reviewed command-catalog slice.
+- Risk: high, because command-contract behavior is operator-facing.
 - Blockers: none.
+
+### Required Handoff Fields
+
+- Branch name: `codex/feat-commands`
+- Scope completed: command-catalog contract now validates canonical command ordering and rejects parser/catalog drift.
+- Files changed: listed above.
+- Commands run with results: listed above.
+- Risks/blockers: listed above.
+- Roadmap item(s) affected: Milestone 3 CLI compatibility while the package/layout migration lands; `feat-commands` CLI compatibility and migration-safe entrypoints.
+- Vision capability affected: canonical engine contract stability while the CLI remains the active operator surface.
+- Routing/provider impact note: none; this change does not touch model routing or provider configuration.
 
 ### Required Fix Satisfaction
 
-1. Required fix 1 is satisfied by naming the canonical demo-path step on every completed task.
-2. Required fix 2 is satisfied by the MVP blocker statement explaining why parser/catalog drift validation is needed while the CLI is the active engine-side operator surface.
-3. Required fix 3 is satisfied by distinguishing the approved shared-by-approval test edit from integrator-locked edits and stating that no integrator-locked files changed in the reviewed implementation slice.
-4. Required fix 4 is satisfied by keeping the reviewed implementation basis pinned to `f8d860ed9f6299f0169c4f21321ac5f37c949fd3` and limiting the packet to the command-catalog slice.
+1. Required fix 1 is satisfied by mapping each completed task to the `continue working` canonical demo-path step.
+2. Required fix 2 is satisfied by the blocker statement explaining why fail-fast parser/catalog drift validation is needed now for the CLI-first engine loop.
+3. Required fix 3 is satisfied by separating the approved shared-by-approval test edit from integrator-locked accounting and stating that no integrator-locked files changed.
+4. Required fix 4 is satisfied by pinning the reviewed implementation basis to `f8d860ed9f6299f0169c4f21321ac5f37c949fd3` and not expanding this packet beyond the command-catalog slice.
