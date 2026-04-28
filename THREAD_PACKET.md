@@ -3,7 +3,7 @@
 ## Thread Kickoff (High-Risk)
 
 - Branch: `codex/feat-commands`
-- Review basis: final branch tip after this fixer pass for reviewer packet `20260428T232817Z`; implementation, tests, scope-check support, and handoff metadata are reviewed together.
+- Review basis: final branch tip after this fixer pass for reviewer packet `20260428T233046Z`; implementation, tests, scope-check support, and handoff metadata are reviewed together.
 - Lane/owned paths: `src/qual/commands/**`
 - Scope goal: harden `command_cli_contract()` so the CLI contract stays deterministic, follows canonical command order, and fails fast when the parser surface drifts from the command catalog.
 - Risk reason: this changes the command contract used by the active CLI operator surface while Textual lanes remain disabled.
@@ -71,7 +71,7 @@
 - `./quality-test.sh`: PASS
 - `./typecheck-test.sh`: PASS
 - `make ci`: PASS
-- Final verification pass: `2026-04-28T23:31:10Z`
+- Final verification pass: `2026-04-28T23:32:29Z`
 
 ### Risks / Blockers
 
@@ -89,13 +89,13 @@
 - Vision capability affected: canonical engine contract stability while the CLI remains the active operator surface.
 - Routing/provider impact note: none; this change does not touch model routing or provider configuration.
 
-### Reviewer Packet `20260428T232817Z` Fix Satisfaction
+### Reviewer Packet `20260428T233046Z` Fix Satisfaction
 
-1. Regenerated from actual merge candidate: satisfied by using the final `codex/feat-commands` branch tip as the review basis and stating that implementation, tests, scope-check support, and metadata are reviewed together.
-2. Clean branch or justify additional files: satisfied by listing and justifying all nine files in `main...HEAD`; the branch is not presented as a two-file catalog-only slice.
-3. Correct ownership accounting: satisfied by distinguishing lane-owned command files, approved shared-by-approval tests, shared scope-check support, metadata-only files, and `Integrator-locked edits: no`.
-4. Gate rerun: satisfied by running the full required sequence against the final submitted tree at `2026-04-28T23:31:10Z`; results are recorded above.
-5. Canonical demo-path mapping: satisfied in `Tasks Completed` and `Canonical Demo-Path Mapping`.
+1. Regenerate the review packet from the actual merge candidate: satisfied by using the final `codex/feat-commands` branch tip as the review basis and stating that implementation, tests, scope-check support, and metadata are reviewed together.
+2. Reject full parser-surface drift: satisfied by validating accepted tokens, declared canonical surface, grouped parser projection, lookup-table shape/order, and canonical names, including same-canonical alias substitutions.
+3. Add or retain focused parser-surface drift tests: satisfied by the focused command-catalog tests listed in Tasks Completed.
+4. Update completed tasks with canonical demo-path mapping: satisfied in `Tasks Completed` and `Canonical Demo-Path Mapping`.
+5. Correct ownership/accounting language: satisfied by distinguishing lane-owned command files, approved shared-by-approval tests, shared scope-check support, metadata-only files, and `Integrator-locked edits: no`.
 
 ### Reviewer Packet `20260428T231936Z` Fix Satisfaction
 
