@@ -3,7 +3,8 @@
 ## Thread Kickoff (High-Risk)
 
 - Branch: `codex/feat-commands`
-- Review basis: actual submitted branch tip after this fixer commit, including all implementation files listed below. Do not review against the older `f8d860ed9f6299f0169c4f21321ac5f37c949fd3` slice.
+- Review basis: actual submitted branch tip, including all implementation files listed below. Do not review against the older `f8d860ed9f6299f0169c4f21321ac5f37c949fd3` slice.
+- Implementation-file accounting basis: `f8d860ed9f6299f0169c4f21321ac5f37c949fd3..f175b28266c0981c89c20f74b31c37c25f232277`, plus this metadata-only fixer commit.
 - Lane/owned paths: `src/qual/commands/**`
 - Shared/integrator-locked paths with approval note:
   - `src/qual/cli.py` is shared-by-approval for `codex/feat-commands*` in `THREAD_OWNERSHIP.md`; this handoff includes it because the live argparse surface must expose the same CLI entrypoint projection validated by the command catalog.
@@ -14,8 +15,8 @@
 
 ### Scope / Plan Alignment
 
-- Roadmap alignment: `ROADMAP.md` Milestone 3 exit criterion `Contract changes documented and intentional`, plus CLI stability for the MVP flow while Textual remains disabled.
-- Vision alignment: `PRODUCT_VISION.md` capability 3 `Canonical engine contract`; CLI remains a first-class development and reliability surface with deterministic text fallback behavior.
+- Roadmap alignment: `ROADMAP.md` Milestone 1 `Command and diff-preview behavior hardening` / `Manual CLI smoke flow remains stable`, Milestone 2 parser-edge coverage, and Milestone 3 output-contract intentionality.
+- Vision alignment: `PRODUCT_VISION.md` capability 4 `Operator-first control surface`; CLI remains a first-class development and reliability surface with deterministic text fallback behavior.
 - Exact capability delivered: deterministic CLI command-surface hardening for the existing engine-first command path. This does not claim retrieval, persistence, provider routing, apply/reject engine execution, or Textual UI progress.
 - Parser-surface drift fix: `command_cli_contract()` now validates the full grouped CLI entrypoint projection, token tuple, canonical-name tuple, and lookup table against the declared catalog and the live parser surface, so alias-only token drift is rejected even when canonical command names stay stable.
 - Actual-tip traceability: this packet intentionally reviews the real branch tip and includes every implementation file changed since the older reviewer basis, instead of treating later commits as metadata-only.
@@ -25,6 +26,8 @@
 - Task budget: `4`
 - Time budget: `30m`
 - Size limits: exceeded by existing branch history before this fixer pass; this packet makes the overage explicit for reviewer/integrator risk assessment rather than hiding implementation files behind a metadata-only claim.
+- Size accounting: `12 files changed, 12561 insertions(+), 927 deletions(-)` across `f8d860ed9f6299f0169c4f21321ac5f37c949fd3..f175b28266c0981c89c20f74b31c37c25f232277`.
+- Exception route: high-risk branch-size overage requires reviewer/integrator exception; this handoff is not claiming normal high-risk size compliance.
 - Max fix attempts per failing gate: `2`
 
 ### Planned Tasks (max 4)
@@ -83,7 +86,7 @@
   - metadata-only handoff refresh: `THREAD_PACKET.md`
   - metadata-only handoff refresh: `handoff_packets/feat-commands.md`
 - commands run + outcomes:
-  - latest fixer evidence timestamp: `2026-04-28T18:40:59Z`
+  - latest fixer evidence timestamp: `2026-04-28T18:45:06Z`
   - `python -m unittest tests.unit.test_commands_catalog` -> passed (`Ran 163 tests`; `OK`)
   - `make scope-check` -> passed
   - `./quality-format.sh --check` -> passed
@@ -95,16 +98,18 @@
   - risk: high. This branch already exceeds the normal high-risk size budget and touches the shared CLI parser surface; the packet now makes that explicit for review instead of narrowing the claimed basis.
   - blockers: none.
 - roadmap item(s) affected:
+  - `ROADMAP.md` Milestone 1 scope item `Command and diff-preview behavior hardening`.
+  - `ROADMAP.md` Milestone 1 exit criterion `Manual CLI smoke flow remains stable`.
+  - `ROADMAP.md` Milestone 2 remaining parser-edge coverage.
   - `ROADMAP.md` Milestone 3 exit criterion `Contract changes documented and intentional`.
-  - `ROADMAP.md` CLI stability for the MVP flow while Textual lanes remain disabled.
 - vision capability affected:
-  - `PRODUCT_VISION.md` capability 3 `Canonical engine contract`.
-  - CLI remains a first-class surface for development and reliability.
+  - `PRODUCT_VISION.md` capability 4 `Operator-first control surface`.
+  - `PRODUCT_VISION.md` capability 5 `Agent-to-UI protocol (A2UI)` only insofar as CLI text fallback remains compatible with structured command output; this handoff does not add A2UI schemas.
 - routing/provider impact note:
   - none; this change does not touch model routing or provider configuration.
 - reviewer-fix satisfaction note:
   1. Required fix 1 is satisfied by choosing the actual branch tip as the review basis and listing every implementation file changed since the older reviewer basis.
   2. Required fix 2 is satisfied by validating the full CLI token projection, canonical-name projection, and lookup table against declared and live parser entrypoints.
   3. Required fix 3 is satisfied by alias-add/remove/substitution tests in `tests/unit/test_commands_catalog.py` where canonical names remain stable but accepted parser tokens drift, including a `parse_args` regression against live parser constant drift.
-  4. Required fix 4 is satisfied by narrowing roadmap/vision mapping to Milestone 3 CLI determinism and `Canonical engine contract`, without claiming broader demo-path, retrieval, provider, or UI progress.
+  4. Required fix 4 is satisfied by narrowing roadmap/vision mapping to CLI command/diff-preview hardening, parser-edge coverage, output-contract intentionality, and the `Operator-first control surface`, without claiming broader retrieval, provider, or UI progress.
   5. Required fix 5 is satisfied by the full required gate rerun recorded above.
