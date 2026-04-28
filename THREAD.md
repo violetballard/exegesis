@@ -52,3 +52,5 @@ Parser/catalog drift validation is needed now because the CLI is the active oper
 - `./quality-test.sh`: PASS
 - `./typecheck-test.sh`: PASS
 - `make ci`: PASS
+
+Latest fixer pass: `fixer__feat-commands__20260428T203310Z` verified the branch-tip review basis and reran all required gates.
