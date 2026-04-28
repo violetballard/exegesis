@@ -6,7 +6,7 @@ Canonical handoff contract lives in `THREAD_PACKET.md`.
 
 - Lane: `feat-commands`
 - Branch: `codex/feat-commands`
-- Review basis: final branch tip after this fixer pass for reviewer packet `20260428T234820Z`; implementation, tests, scope-check support, and packet metadata are reviewed together.
+- Review basis: final branch tip after this fixer pass for reviewer packet `20260428T235333Z`; implementation, tests, scope-check support, and packet metadata are reviewed together.
 - Scope: CLI command-catalog contract hardening for the current engine-first MVP focus without starting `feat-console`.
 - Roadmap alignment: Milestone 3 CLI compatibility for the engine-first workflow loop, and `feat-commands` as the command-surface compatibility lane.
 - Vision alignment: canonical engine contract stability while the CLI remains the active operator surface.
@@ -37,6 +37,7 @@ Canonical handoff contract lives in `THREAD_PACKET.md`.
 - Kept `_CLI_ENTRYPOINTS` frozen against the canonical accepted token tuple.
 - Added regression coverage for declared-surface order drift and self-consistent declared-surface drift where the declared surface and entrypoints both substitute `bootstrap` with same-canonical alias `open`.
 - Added regression coverage for lookup-table added same-canonical alias drift where `open` appears as an accepted `bootstrap` parser row without being part of the canonical CLI surface.
+- Added regression coverage for same-canonical alias order drift where `diff` and `diff-preview` are reordered within the `diff-preview` parser group.
 - Regenerated the packet from the actual branch tip and stopped classifying code-bearing command/test commits as metadata-only.
 
 ## Canonical Demo-Path Mapping
@@ -73,7 +74,7 @@ Canonical handoff contract lives in `THREAD_PACKET.md`.
 1. Actual merge-candidate packet: satisfied by anchoring review to the final branch tip after this fixer pass and reviewing implementation, tests, scope-check support, and metadata together.
 2. Metadata classification: satisfied by stating that no command-catalog implementation or test commits after `f8d860ed9f6299f0169c4f21321ac5f37c949fd3` are metadata-only.
 3. Parser-surface drift rejection: satisfied by validating accepted tokens, declared canonical surface, grouped parser projection, lookup-table shape/order, and canonical names against `_CANONICAL_CLI_COMMAND_SURFACE`.
-4. Parser-surface drift regression tests: satisfied by coverage for added aliases, removed aliases, same-canonical substitutions, token reorder, declared-surface drift, lookup-table token substitution, and lookup-table shape/order drift.
+4. Parser-surface drift regression tests: satisfied by coverage for added aliases, removed aliases, same-canonical substitutions, same-canonical order drift, token reorder, declared-surface drift, lookup-table token substitution, and lookup-table shape/order drift.
 5. Handoff accounting: satisfied by mapping the canonical demo path and distinguishing lane-owned command files, approved shared-by-approval tests, shared scope-check support, metadata-only files, and integrator-locked edits as `no`.
 6. Gate rerun: this fixer pass reruns and records `make scope-check`, `./quality-format.sh --check`, `./quality-lint.sh`, `./quality-test.sh`, `./typecheck-test.sh`, and `make ci`.
 
@@ -86,9 +87,25 @@ Canonical handoff contract lives in `THREAD_PACKET.md`.
 5. Handoff accounting: satisfied by mapping the canonical demo path and distinguishing lane-owned command files, approved shared-by-approval tests, shared scope-check support, metadata-only files, and integrator-locked edits as `no`.
 6. Gate rerun: this fixer pass reruns and records `make scope-check`, `./quality-format.sh --check`, `./quality-lint.sh`, `./quality-test.sh`, `./typecheck-test.sh`, and `make ci`.
 
+## Reviewer Packet `20260428T235008Z` Fix Satisfaction
+
+1. Actual merge-candidate packet: satisfied by anchoring review to the final branch tip after this fixer pass and reviewing implementation, tests, scope-check support, and metadata together.
+2. Metadata classification: satisfied by stating that no command-catalog implementation or test commits after `f8d860ed9f6299f0169c4f21321ac5f37c949fd3` are metadata-only.
+3. Parser-surface drift rejection: satisfied by validating accepted tokens, declared canonical surface, grouped parser projection, lookup-table shape/order, and canonical names against `_CANONICAL_CLI_COMMAND_SURFACE`.
+4. Parser-surface drift regression tests: satisfied by coverage for added aliases, removed aliases, same-canonical substitutions, token reorder, declared-surface drift, lookup-table token substitution, and lookup-table shape/order drift.
+5. Handoff accounting: satisfied by mapping the canonical demo path and distinguishing lane-owned command files, approved shared-by-approval tests, shared scope-check support, metadata-only files, and integrator-locked edits as `no`.
+6. Gate rerun: this fixer pass reruns and records `make scope-check`, `./quality-format.sh --check`, `./quality-lint.sh`, `./quality-test.sh`, `./typecheck-test.sh`, and `make ci`.
+
+## Reviewer Packet `20260428T235333Z` Fix Satisfaction
+
+1. Full parser-surface validation: satisfied by `command_cli_contract()` validating accepted parser tokens, declared canonical surface, grouped parser projection, lookup-table order/shape, and canonical command order against `_CANONICAL_CLI_COMMAND_SURFACE`.
+2. Drift regressions: satisfied by focused tests for alias substitution that resolves to the same canonical command, same-canonical alias order drift, added aliases, removed aliases, parser-token reorder, and lookup-table drift.
+3. Canonical demo-path step: satisfied by mapping the work to open project/document, retrieve/context basket, patch preview, and continued CLI operation.
+4. Ownership accounting: satisfied by listing command files as lane-owned, tests as approved shared-by-approval, `scripts/scope-check.sh` as shared gate support, metadata files as metadata-only, and integrator-locked edits as `no`.
+
 ## Verification
 
-- `python3 -m unittest tests.unit.test_commands_catalog -v`: PASS (56 tests)
+- `python3 -m unittest tests.unit.test_commands_catalog -v`: PASS (57 tests)
 - `make scope-check`: PASS
 - `./quality-format.sh --check`: PASS
 - `./quality-lint.sh`: PASS
