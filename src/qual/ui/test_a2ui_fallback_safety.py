@@ -6547,6 +6547,26 @@ class A2UIFallbackSafetyTests(unittest.TestCase):
             _fingerprint_manifest_section(manifest["entrypoints"]),
         )
         self.assertEqual(
+            manifest["route_precedence"],
+            [
+                "shared_target_resolver",
+                "shell_refinement",
+                "render_terminal_action",
+                "render_terminal_selection",
+                "render_terminal_card",
+            ],
+        )
+        self.assertEqual(manifest["route_precedence_contract"], manifest["route_precedence"])
+        self.assertIsNot(manifest["route_precedence_contract"], manifest["route_precedence"])
+        self.assertEqual(
+            manifest["route_precedence_fingerprint"],
+            _fingerprint_manifest_section(manifest["route_precedence"]),
+        )
+        self.assertEqual(
+            manifest["route_precedence_contract_fingerprint"],
+            _fingerprint_manifest_section(manifest["route_precedence"]),
+        )
+        self.assertEqual(
             manifest["startup_fields"],
             ["project", "vault", "locked", "context_items", "context_preview"],
         )
@@ -6590,6 +6610,22 @@ class A2UIFallbackSafetyTests(unittest.TestCase):
         self.assertEqual(
             embedded["contract_fingerprints_contract_fingerprint"],
             manifest["contract_fingerprints_contract_fingerprint"],
+        )
+        self.assertEqual(embedded["route_precedence_contract"], manifest["route_precedence_contract"])
+        self.assertIsNot(embedded["route_precedence_contract"], manifest["route_precedence_contract"])
+        self.assertEqual(
+            embedded["route_precedence_contract"],
+            [
+                "shared_target_resolver",
+                "shell_refinement",
+                "render_terminal_action",
+                "render_terminal_selection",
+                "render_terminal_card",
+            ],
+        )
+        self.assertEqual(
+            embedded["route_precedence_contract_fingerprint"],
+            _fingerprint_manifest_section(embedded["route_precedence_contract"]),
         )
         self.assertEqual(manifest["startup_preview"]["limit"], 99)
         self.assertIsNot(manifest["startup_fields_contract"], manifest["startup_fields"])
@@ -6644,6 +6680,16 @@ class A2UIFallbackSafetyTests(unittest.TestCase):
         )
         self.assertEqual(manifest["terminal_artifact_cli_fallback_route"], route_contract)
         self.assertEqual(manifest["terminal_artifact_cli_fallback_route_contract"], route_contract)
+        self.assertEqual(manifest["route_precedence"], route_contract["route_precedence"])
+        self.assertEqual(manifest["route_precedence_contract"], route_contract["route_precedence"])
+        self.assertEqual(
+            manifest["route_precedence_fingerprint"],
+            _fingerprint_manifest_section(route_contract["route_precedence"]),
+        )
+        self.assertEqual(
+            manifest["route_precedence_contract_fingerprint"],
+            _fingerprint_manifest_section(route_contract["route_precedence"]),
+        )
         self.assertEqual(
             manifest["terminal_artifact_cli_fallback_route_contract_fingerprints"],
             route_contract["contract_fingerprints"],

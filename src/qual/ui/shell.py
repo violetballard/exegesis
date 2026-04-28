@@ -53,6 +53,7 @@ from .a2ui import (
     _render_invalid_terminal_action,
     _render_invalid_terminal_card,
     _render_invalid_terminal_selection,
+    _TERMINAL_ARTIFACT_CLI_FALLBACK_ROUTE_PRECEDENCE,
     _should_force_invalid_terminal_card_for_card_hinted_leaf,
     _is_malformed_terminal_artifact_envelope,
     _extract_terminal_artifact_envelope,
@@ -765,6 +766,7 @@ def _build_shell_ui_contract_manifest(
     )
     terminal_artifact_rendering_contract = copy.deepcopy(describe_terminal_artifact_rendering_contract())
     entrypoints = _build_shell_ui_entrypoints()
+    route_precedence = list(_TERMINAL_ARTIFACT_CLI_FALLBACK_ROUTE_PRECEDENCE)
     startup_fields = list(SHELL_UI_STARTUP_FIELDS)
     startup_preview = {
         "empty_value": SHELL_UI_STARTUP_EMPTY_PREVIEW,
@@ -782,6 +784,10 @@ def _build_shell_ui_contract_manifest(
         "entrypoints_fingerprint": _fingerprint_manifest_section(entrypoints),
         "entrypoints_contract": dict(entrypoints),
         "entrypoints_contract_fingerprint": _fingerprint_manifest_section(entrypoints),
+        "route_precedence": route_precedence,
+        "route_precedence_contract": list(route_precedence),
+        "route_precedence_fingerprint": _fingerprint_manifest_section(route_precedence),
+        "route_precedence_contract_fingerprint": _fingerprint_manifest_section(route_precedence),
         "startup_fields": startup_fields,
         "startup_fields_contract": list(startup_fields),
         "startup_fields_contract_fingerprint": _fingerprint_manifest_section(startup_fields),
@@ -968,6 +974,7 @@ def describe_shell_ui_contract_fingerprints(
         terminal_artifact_renderer_entrypoints_contract_fingerprint()
     )
     terminal_artifact_rendering_contract_fingerprint_value = terminal_artifact_rendering_contract_fingerprint()
+    route_precedence = list(_TERMINAL_ARTIFACT_CLI_FALLBACK_ROUTE_PRECEDENCE)
     shell_ui_contract_fingerprint_value = shell_ui_contract_fingerprint(
         include_terminal_artifact_cli_fallback_route=include_terminal_artifact_cli_fallback_route,
         include_contract_aliases=include_contract_aliases,
@@ -979,6 +986,8 @@ def describe_shell_ui_contract_fingerprints(
         "shell_ui_contract_manifest_fingerprint": shell_ui_contract_fingerprint_value,
         "entrypoints": _fingerprint_manifest_section(entrypoints),
         "entrypoints_contract": _fingerprint_manifest_section(entrypoints),
+        "route_precedence": _fingerprint_manifest_section(route_precedence),
+        "route_precedence_contract": _fingerprint_manifest_section(route_precedence),
         "startup_fields": _fingerprint_manifest_section(startup_fields),
         "startup_fields_contract": _fingerprint_manifest_section(startup_fields),
         "startup_preview": _fingerprint_manifest_section(startup_preview),
@@ -1015,6 +1024,8 @@ def describe_shell_ui_contract_fingerprints(
         fingerprints,
         ("entrypoints", fingerprints["entrypoints"]),
         ("entrypoints_contract", fingerprints["entrypoints_contract"]),
+        ("route_precedence", fingerprints["route_precedence"]),
+        ("route_precedence_contract", fingerprints["route_precedence_contract"]),
         ("startup_fields", fingerprints["startup_fields"]),
         ("startup_fields_contract", fingerprints["startup_fields_contract"]),
         ("startup_preview", fingerprints["startup_preview"]),
