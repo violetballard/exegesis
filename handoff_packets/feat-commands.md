@@ -61,7 +61,7 @@
 ### Checkpoint Cadence (short updates)
 
 - plan complete: the handoff is scoped to Milestone 3 CLI command-contract hardening and reviews the actual branch tip.
-- first green tests: full required gates were rerun on `2026-04-28T18:47:43Z` for this fixer pass.
+- first green tests: full required gates were rerun on `2026-04-28T18:51:29Z` for this fixer pass.
 - before risky/shared file edit: risky/shared paths are listed above with the approval rationale.
 - ready for handoff: this packet names the full implementation set and records the latest gate results.
 
@@ -95,7 +95,7 @@
   - metadata-only handoff refresh: `THREAD_PACKET.md`
   - metadata-only handoff refresh: `handoff_packets/feat-commands.md`
 - commands run + outcomes:
-  - latest fixer evidence timestamp: `2026-04-28T18:47:43Z`
+  - latest fixer evidence timestamp: `2026-04-28T18:51:29Z`
   - `python -m unittest tests.unit.test_commands_catalog` -> passed (`Ran 163 tests`; `OK`)
   - `make scope-check` -> passed
   - `./quality-format.sh --check` -> passed
@@ -117,8 +117,8 @@
 - routing/provider impact note:
   - none; this change does not touch model routing or provider configuration.
 - reviewer-fix satisfaction note:
-  1. Required fix 1 is satisfied by choosing the actual branch tip as the review basis and listing every implementation file changed since the older reviewer basis.
-  2. Required fix 2 is satisfied by reclassifying the handoff as high-risk command-contract/parser-surface work and recording full scope, changed files, budget overage, shared/integrator-locked exceptions, and gate evidence for the actual tip.
+  1. Required fix 1 is satisfied by implementing real parser/catalog drift validation against the live argparse entrypoint surface, with tests for accepted-token removal, alias substitution, reordered aliases, extra aliases, exported parser metadata drift, and `parse_args` fail-fast behavior.
+  2. Required fix 2 is satisfied by choosing the actual branch tip as the review basis and recording the full scope, changed files, budget overage, shared/integrator-locked exceptions, and gate evidence for that basis.
   3. Required fix 3 is satisfied by the canonical demo-path mapping above, including per-task mappings and the final `continue working` statement.
   4. Required fix 4 is satisfied by distinguishing the approved shared test edits, the shared support edit, and the integrator-locked `src/qual/cli.py` edit with its approval basis from `THREAD_OWNERSHIP.md`.
   5. Required fix 5 is satisfied by the full required gate rerun recorded above.
