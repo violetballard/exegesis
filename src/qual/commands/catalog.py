@@ -214,14 +214,15 @@ COMMAND_SPECS: tuple[CommandSpec, ...] = (
 
 # Keep the parser surface explicit: only these tokens are accepted by the current CLI.
 # Each token must resolve through the command catalog so the surface cannot drift.
-_CLI_COMMAND_SURFACE: tuple[tuple[str, tuple[str, ...]], ...] = (
+_CANONICAL_CLI_COMMAND_SURFACE: tuple[tuple[str, tuple[str, ...]], ...] = (
     ("bootstrap", ("bootstrap",)),
     ("diff-preview", ("diff-preview", "diff")),
     ("context-basket", ("context-basket",)),
     ("terminal", ("terminal",)),
 )
+_CLI_COMMAND_SURFACE: tuple[tuple[str, tuple[str, ...]], ...] = _CANONICAL_CLI_COMMAND_SURFACE
 _DECLARED_CLI_ENTRYPOINTS: tuple[str, ...] = tuple(
-    entrypoint for _, entrypoints in _CLI_COMMAND_SURFACE for entrypoint in entrypoints
+    entrypoint for _, entrypoints in _CANONICAL_CLI_COMMAND_SURFACE for entrypoint in entrypoints
 )
 _CLI_ENTRYPOINTS: tuple[str, ...] = _DECLARED_CLI_ENTRYPOINTS
 DEMO_COMMAND_FLOW_STEPS: tuple[str, ...] = (
@@ -235,6 +236,8 @@ MVP_COMMAND_FLOW_STEPS: tuple[str, ...] = DEMO_COMMAND_FLOW_STEPS
 
 def _declared_cli_surface_projection() -> tuple[tuple[str, tuple[str, ...]], ...]:
     validate_command_catalog(COMMAND_SPECS)
+    if tuple(_CLI_COMMAND_SURFACE) != _CANONICAL_CLI_COMMAND_SURFACE:
+        raise ValueError("Command CLI declared surface is inconsistent")
     seen_canonical_names: set[str] = set()
     seen_tokens: set[str] = set()
     projection: list[tuple[str, tuple[str, ...]]] = []
