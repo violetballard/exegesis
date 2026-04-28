@@ -44,7 +44,7 @@
 1. Keep `command_cli_contract()` aligned to the canonical command order while validating the full parser token projection.
 2. Reject parser/catalog drift when aliases are added, removed, reordered, or substituted while canonical names remain stable.
 3. Cover the command diff-preview and workflow command surfaces with focused unit tests.
-4. Refresh handoff metadata so review scope, file list, shared exceptions, and roadmap/vision mapping match the actual submitted tip.
+4. Refresh handoff metadata so review scope, file list, size overage, shared exceptions, and roadmap/vision mapping match the actual submitted tip.
 
 ### Early Review Triggers
 
@@ -80,7 +80,7 @@
   1. Validated `command_cli_contract()` against the full parser entrypoint projection and lookup table, including alias-only drift cases where canonical names remain stable. Canonical demo-path step: `continue working`.
   2. Kept deterministic command ordering and helper exports aligned with the canonical command catalog. Canonical demo-path step: `continue working`.
   3. Added focused command catalog, parser fail-fast, workflow, and diff-preview regression coverage. Canonical demo-path steps: `plan/revise` and `apply/reject patch`.
-  4. Regenerated handoff metadata to include every actual implementation file, shared/integrator-locked exception, gate result, and canonical demo-path mapping. Canonical demo-path step: `continue working`.
+  4. Regenerated handoff metadata to include every actual implementation file, real size overage, shared/integrator-locked exception, gate result, and canonical demo-path mapping. Canonical demo-path step: `continue working`.
 - files changed:
   - implementation: `scripts/scope-check.sh`
   - implementation, shared-by-approval: `src/qual/cli.py`
