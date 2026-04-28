@@ -4,7 +4,7 @@
 
 - Branch: `codex/feat-commands`
 - Review basis: actual submitted branch tip, including all implementation files listed below and the final fresh-gate evidence commit. Do not review against the older `f8d860ed9f6299f0169c4f21321ac5f37c949fd3` slice.
-- Implementation-file accounting basis: `f8d860ed9f6299f0169c4f21321ac5f37c949fd3..8ef82873046f003a2ecf241dae3d0b5c352796be`, plus follow-up handoff evidence and this final reviewer-fix closure commit.
+- Implementation-file accounting basis: actual branch tip relative to `f8d860ed9f6299f0169c4f21321ac5f37c949fd3`, including follow-up handoff evidence and this final reviewer-fix closure commit.
 - Lane/owned paths: `src/qual/commands/**`
 - Shared / integrator-locked ownership statement:
   - Integrator-locked edit: `src/qual/cli.py`, explicitly listed as shared-by-approval for `codex/feat-commands*` in `THREAD_OWNERSHIP.md`; this handoff includes it because the live argparse surface must expose the same CLI entrypoint projection validated by the command catalog.
@@ -35,7 +35,7 @@
 - Task budget: `4`
 - Time budget: `30m`
 - Size limits: exceeded by existing branch history before this fixer pass; this packet makes the overage explicit for reviewer/integrator risk assessment rather than hiding implementation files behind a metadata-only claim.
-- Size accounting: `12 files changed, 12820 insertions(+), 982 deletions(-)` across `f8d860ed9f6299f0169c4f21321ac5f37c949fd3..8ef82873046f003a2ecf241dae3d0b5c352796be`; this final commit only records fresh gate evidence.
+- Size accounting: `12 files changed, 12832 insertions(+), 982 deletions(-)` across the actual branch tip relative to `f8d860ed9f6299f0169c4f21321ac5f37c949fd3`; this final commit only records fresh gate evidence.
 - Exception route: high-risk branch-size overage requires reviewer/integrator exception; this handoff is not claiming normal high-risk size compliance.
 - Max fix attempts per failing gate: `2`
 

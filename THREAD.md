@@ -6,7 +6,7 @@ Canonical handoff contract lives in `THREAD_PACKET.md`.
 
 - Lane: `feat-commands`
 - Branch: `codex/feat-commands`
-- Review basis: actual submitted branch tip, not the older `f8d860ed9f6299f0169c4f21321ac5f37c949fd3` slice. Implementation-file accounting covers `f8d860ed9f6299f0169c4f21321ac5f37c949fd3..8ef82873046f003a2ecf241dae3d0b5c352796be` plus follow-up handoff evidence and this final fresh-gate reviewer-fix closure commit.
+- Review basis: actual submitted branch tip, not the older `f8d860ed9f6299f0169c4f21321ac5f37c949fd3` slice. Implementation-file accounting covers the actual branch tip relative to `f8d860ed9f6299f0169c4f21321ac5f37c949fd3`, including follow-up handoff evidence and this final fresh-gate reviewer-fix closure commit.
 - Scope: CLI command-contract hardening for the current engine-first MVP focus without starting `feat-console`.
 - Roadmap alignment: `ROADMAP.md` Milestone 1 `Command and diff-preview behavior hardening` / `Manual CLI smoke flow remains stable`, Milestone 2 remaining parser-edge coverage, Milestone 3 output-contract intentionality, and the active MVP emphasis on `feat-commands`.
 - Vision alignment: `PRODUCT_VISION.md` capability 4 `Operator-first control surface`.
@@ -31,7 +31,7 @@ Canonical handoff contract lives in `THREAD_PACKET.md`.
 
 - Task budget: `4`; tasks completed: `4`.
 - High-risk size limit status: exceeded and routed for reviewer/integrator exception instead of normal lane approval.
-- Implementation range accounting: `12 files changed, 12820 insertions(+), 982 deletions(-)` from `f8d860ed9f6299f0169c4f21321ac5f37c949fd3..8ef82873046f003a2ecf241dae3d0b5c352796be`.
+- Implementation range accounting: `12 files changed, 12832 insertions(+), 982 deletions(-)` from the actual branch tip relative to `f8d860ed9f6299f0169c4f21321ac5f37c949fd3`.
 - Reason for exception routing: branch history already includes command catalog expansion, parser surface alignment, workflow helpers, diff-preview hardening, scope-check accommodation, and shared unit tests.
 
 ## Shared / Approval Notes
