@@ -35,6 +35,7 @@
 - Command-catalog slice statement: the original command-catalog implementation slice at `f8d860ed9f6299f0169c4f21321ac5f37c949fd3` makes `continue working` more real by rejecting catalog/parser drift before follow-up CLI turns can continue through an unexpected command surface.
 - Reviewer packet `fixer__feat-commands__20260428T195915Z` closure: this packet explicitly maps the command-catalog slice to the `continue working` canonical demo-path step, maps each completed task to its canonical demo-path step, and limits the vision claim to command contract stability rather than auditable state, persistence, or audit behavior.
 - Reviewer packet `fixer__feat-commands__20260428T200235Z` closure: the required demo-path mapping is already explicit in the four task bullets above and in the numbered completed-task list below; the final demo-path statement names `continue working` as the canonical step made more real.
+- Reviewer packet `fixer__feat-commands__20260428T200453Z` closure: the actual branch tip is still the review basis, the parser-surface drift guard already validates full grouped tokens and lookup rows, the alias-only drift test matrix covers added, removed, substituted, and reordered parser tokens with stable canonical names, and the demo-path step remains `continue working`.
 
 ### Budget
 
@@ -102,6 +103,14 @@
   - handoff reviewer-fix update: `THREAD_PACKET.md`
   - handoff reviewer-fix update: `handoff_packets/feat-commands.md`
 - commands run + outcomes:
+  - final fixer validation sequence for `fixer__feat-commands__20260428T200453Z`:
+  - `python -m unittest tests.unit.test_commands_catalog.CommandCatalogTests.test_command_cli_contract_rejects_alias_only_parser_projection_drift_cases tests.unit.test_commands_catalog.CommandCatalogTests.test_command_cli_contract_rejects_alias_substitution_when_parser_projection_keeps_same_name_order tests.unit.test_commands_catalog.CommandCatalogTests.test_command_cli_contract_rejects_reordered_parser_projection_when_tokens_change_but_names_do_not tests.unit.test_commands_catalog.CommandCatalogTests.test_command_cli_contract_rejects_extra_alias_entrypoint_when_canonical_order_still_matches` -> passed
+  - `make scope-check` -> passed
+  - `./quality-format.sh --check` -> passed
+  - `./quality-lint.sh` -> passed
+  - `./quality-test.sh` -> passed
+  - `./typecheck-test.sh` -> passed
+  - `make ci` -> passed
   - final fixer validation sequence for this regenerated packet:
   - `python -m unittest tests.unit.test_commands_catalog.CommandCatalogTests.test_command_cli_contract_rejects_extra_alias_entrypoint_when_canonical_order_still_matches tests.unit.test_commands_catalog.CommandCatalogTests.test_command_cli_contract_rejects_reordered_parser_projection_when_tokens_change_but_names_do_not tests.unit.test_commands_catalog.CommandCatalogTests.test_command_cli_contract_rejects_alias_substitution_when_parser_projection_keeps_same_name_order` -> passed
   - `python -m unittest tests.unit.test_commands_catalog` -> passed
@@ -161,8 +170,15 @@
   1. Required fix 1 is satisfied by mapping every completed task to its canonical demo-path step in both `Canonical Demo-Path Mapping` and the numbered `tasks completed` list.
   2. Required fix 2 is satisfied by the final demo-path statement naming `continue working` as the canonical demo-path step made more real by command-contract hardening.
   3. Required fix 3 is satisfied by separating the original narrow-slice ownership note from actual-tip accounting: the `f8d860ed9f6299f0169c4f21321ac5f37c949fd3` command-catalog slice touched no integrator-locked file and only used the approved `tests/unit/test_commands_catalog.py` shared-test exception, while later actual-tip accounting separately lists `src/qual/cli.py` as the only integrator-locked/shared-by-approval implementation exception.
+- follow-up reviewer-fix satisfaction note for `fixer__feat-commands__20260428T200453Z`:
+  1. Required fix 1 is satisfied by `_validate_command_cli_contract()`, which compares declared catalog entrypoints, live parser entrypoints, reconstructed contract entrypoints, canonical-name order, accepted CLI tokens, and lookup table rows.
+  2. Required fix 2 is satisfied by the focused alias-only parser drift tests covering added aliases, removed aliases, substituted aliases, and token reordering while canonical names remain stable.
+  3. Required fix 3 is satisfied by keeping the actual branch tip as the only review basis and listing every actual implementation, shared-test, scope-check, and handoff file.
+  4. Required fix 4 is satisfied by the per-task canonical demo-path mapping and final `continue working` statement above.
+  5. Required fix 5 is satisfied by routing this packet as high-risk, documenting the `src/qual/cli.py` shared/integrator-locked exception, and preserving the branch-size exception path.
 - reviewer-fix closure note:
   - This closure keeps the actual submitted branch tip as the only review basis, preserves the full alias-only parser drift protection already present in the branch, corrects the actual-tip size/file accounting, and records fresh required-gate evidence for the final metadata state.
   - Follow-up fixer packet `fixer__feat-commands__20260428T195731Z` was satisfied by re-verifying the same numbered required fixes against the current branch tip and rerunning every required gate.
   - Follow-up fixer packet `fixer__feat-commands__20260428T195915Z` was satisfied by naming `continue working` as the exact demo-path step made more real, mapping all four completed tasks to demo-path steps, and narrowing the vision claim away from auditable state or persistence behavior.
   - Follow-up fixer packet `fixer__feat-commands__20260428T200235Z` was satisfied by reasserting the per-task demo-path mappings, preserving the final `continue working` statement, and clarifying that the older command-catalog slice had no integrator-locked edit beyond the approved shared-test exception.
+  - Follow-up fixer packet `fixer__feat-commands__20260428T200453Z` was satisfied by verifying the implementation already rejects full parser-surface alias drift, documenting the exact alias-only regression coverage, retaining the actual-tip high-risk handoff basis, and rerunning the required gate sequence.
