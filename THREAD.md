@@ -52,4 +52,4 @@ Parser/catalog drift validation is needed now because the CLI is the active oper
 
 ## Final Verification
 
-- Required gates passed on branch `codex/feat-commands` at `2026-04-28T21:24:15Z`: `make scope-check`, `./quality-format.sh --check`, `./quality-lint.sh`, `./quality-test.sh`, `./typecheck-test.sh`, and `make ci`.
+- Required gates passed on branch `codex/feat-commands` at `2026-04-28T21:26:52Z`: `make scope-check`, `./quality-format.sh --check`, `./quality-lint.sh`, `./quality-test.sh`, `./typecheck-test.sh`, and `make ci`.
