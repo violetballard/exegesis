@@ -49,3 +49,8 @@ Parser/catalog drift validation is needed now because the CLI is the active oper
 3. Reviewer fix 3, unambiguous review basis: final branch tip is the review basis, and code-bearing catalog/test commits are not called metadata-only.
 4. Reviewer fix 4, canonical demo-path mapping: every completed task maps to `continue working`, and this packet states that the CLI command contract makes that step more real while Textual remains disabled.
 5. Reviewer fix 5, ownership clarity: `tests/unit/test_commands_catalog.py` is an approved shared-by-approval test edit, and there are no integrator-locked edits.
+
+## Final Verification
+
+- Required gates passed on branch `codex/feat-commands` at `2026-04-28T21:13:34Z`: `make scope-check`, `./quality-format.sh --check`, `./quality-lint.sh`, `./quality-test.sh`, `./typecheck-test.sh`, and `make ci`.
+- Direct targeted smoke note: `python -m pytest tests/unit/test_commands_catalog.py` could not run because this Python environment does not have `pytest` installed.

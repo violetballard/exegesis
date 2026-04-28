@@ -69,7 +69,8 @@
 - `./quality-test.sh`: PASS
 - `./typecheck-test.sh`: PASS
 - `make ci`: PASS
-- Final verification pass: `2026-04-28T21:10:05Z` on branch `codex/feat-commands`.
+- Direct targeted smoke note: `python -m pytest tests/unit/test_commands_catalog.py` could not run because this Python environment does not have `pytest` installed.
+- Final verification pass: `2026-04-28T21:13:34Z` on branch `codex/feat-commands`.
 
 ### Risks / Blockers
 
