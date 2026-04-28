@@ -37,8 +37,9 @@ Canonical handoff contract lives in `THREAD_PACKET.md`.
 
 ## Shared / Approval Notes
 
-- Integrator-locked edit: `src/qual/cli.py`, explicitly listed as shared-by-approval for `codex/feat-commands*` in `THREAD_OWNERSHIP.md`; included because the live argparse entrypoint surface must match the command catalog.
-- No other integrator-locked files were touched.
+- Reviewer-requested narrow-slice clarification: the `f8d860ed9f6299f0169c4f21321ac5f37c949fd3` command-catalog implementation slice touched no integrator-locked files. Its only non-owned implementation path was `tests/unit/test_commands_catalog.py`, the approved shared-by-approval test exception.
+- Actual-tip shared/integrator-locked exception: `src/qual/cli.py`, explicitly listed as shared-by-approval for `codex/feat-commands*` and integrator-locked in `THREAD_OWNERSHIP.md`; included because the live argparse entrypoint surface must match the command catalog.
+- No other integrator-locked files were touched in the actual submitted tip.
 - Shared support edit: `scripts/scope-check.sh`, included to keep scope enforcement aligned with approved shared command tests.
 - Approved shared test edits: `tests/unit/test_commands_catalog.py` and `tests/unit/test_diff_preview.py`, used as command-surface regression coverage for this lane.
 
@@ -52,11 +53,10 @@ Canonical handoff contract lives in `THREAD_PACKET.md`.
 
 ## Reviewer Fix Satisfaction
 
-1. Required fix 1 is satisfied by keeping the actual submitted branch tip as the review basis instead of the older `f8d860ed9f6299f0169c4f21321ac5f37c949fd3` slice.
-2. Required fix 2 is not the selected route; later implementation commits remain on this branch, so the packet does not claim a narrow `f8d860ed9f6299f0169c4f21321ac5f37c949fd3` review slice.
-3. Required fix 3 is satisfied by listing every implementation file changed in the actual review range, including `src/qual/cli.py`, `scripts/scope-check.sh`, `src/qual/commands/__init__.py`, `src/qual/commands/canonical.py`, `src/qual/commands/catalog.py`, `src/qual/commands/diff_preview.py`, `src/qual/commands/workflow.py`, and both shared test files; the packet also records the shared/integrator-locked exceptions, high-risk size overage, and fresh gate evidence.
-4. Required fix 4 is satisfied by the roadmap, vision, architecture, and AGENTS demo-path mapping in this packet.
-5. Required fix 5 is satisfied by removing the earlier metadata-only contradiction and submitting this actual-tip packet for re-review.
+1. Required fix 1 is satisfied by the per-task canonical demo-path mapping in `THREAD_PACKET.md`.
+2. Required fix 2 is satisfied by the pre-handoff demo-path readiness line in `THREAD_PACKET.md`: this command-catalog contract makes `continue working` more real by removing silent parser/catalog drift as a blocker for deterministic follow-up CLI operator turns.
+3. Required fix 3 is satisfied by the ownership clarification above: the narrow `f8d860ed9f6299f0169c4f21321ac5f37c949fd3` reviewed slice touched no integrator-locked files, and `tests/unit/test_commands_catalog.py` is the approved shared-by-approval test exception. The packet still separately preserves actual-tip shared/integrator-locked accounting for `src/qual/cli.py`.
+4. Required fix 4 is satisfied by keeping the implementation scope unchanged in this reviewer-fix pass; this commit only tightens handoff metadata.
 
 ## Reviewer-Fix Closure
 
@@ -65,7 +65,7 @@ Canonical handoff contract lives in `THREAD_PACKET.md`.
 
 ## Required Gates
 
-- Latest fixer evidence timestamp: `2026-04-28T19:41:19Z`
+- Latest fixer evidence timestamp: `2026-04-28T19:44:49Z`
 - `python -m unittest tests.unit.test_commands_catalog` -> passed
 - `make scope-check` -> passed
 - `./quality-format.sh --check` -> passed
