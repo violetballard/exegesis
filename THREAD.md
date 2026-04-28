@@ -6,7 +6,7 @@ Canonical handoff contract lives in `THREAD_PACKET.md`.
 
 - Lane: `feat-commands`
 - Branch: `codex/feat-commands`
-- Review basis: final branch tip after this `2026-04-28T22:12:47Z` fixer pass for reviewer packet `20260428T220957Z`; implementation, tests, and packet metadata are reviewed together.
+- Review basis: final branch tip after this `2026-04-28T22:14:40Z` fixer pass for reviewer packet `20260428T221051Z`; implementation, tests, and packet metadata are reviewed together.
 - Scope: CLI command-catalog contract hardening for the current engine-first MVP focus without starting `feat-console`.
 - Roadmap alignment: Milestone 3 CLI compatibility for the engine-first workflow loop, and `feat-commands` as the command-surface compatibility lane.
 - Vision alignment: canonical engine contract stability while the CLI remains the active operator surface.
@@ -26,7 +26,7 @@ Canonical handoff contract lives in `THREAD_PACKET.md`.
 
 ## Implementation Basis
 
-- Final branch tip after this `2026-04-28T22:12:47Z` fixer pass is the review basis.
+- Final branch tip after this `2026-04-28T22:14:40Z` fixer pass is the review basis.
 - Previous stale review basis `f8d860ed9f6299f0169c4f21321ac5f37c949fd3` was incomplete because later commits changed `src/qual/commands/catalog.py` and `tests/unit/test_commands_catalog.py`; the corrected branch-tip basis supersedes it for re-review.
 - Code-bearing command-catalog/test commits are part of the implementation basis and are not classified as metadata-only.
 - Metadata-only commits are limited to `THREAD.md` and `THREAD_PACKET.md` packet maintenance.
@@ -131,6 +131,13 @@ Parser/catalog drift validation is needed now because the CLI is the active oper
 3. Precise ownership accounting: `src/qual/commands/catalog.py` is lane-owned, `tests/unit/test_commands_catalog.py` is approved shared-by-approval, and integrator-locked edits are `no`.
 4. Final verification: all required gates passed at `2026-04-28T22:12:47Z`.
 
+## Reviewer Packet `20260428T221051Z` Fix Satisfaction
+
+1. Actual branch-tip packet: this packet presents the final branch tip after the `2026-04-28T22:14:40Z` fixer pass as the review basis and includes all code-bearing catalog/test commits after `f8d860ed9f6299f0169c4f21321ac5f37c949fd3`.
+2. Canonical demo-path mapping: every completed task maps to `continue working`, with the concrete blocker removed stated above.
+3. Ownership accounting: `src/qual/commands/catalog.py` is lane-owned, `tests/unit/test_commands_catalog.py` is the approved shared-by-approval test edit, and integrator-locked edits are `no`.
+4. Final verification: `make scope-check`, `./quality-format.sh --check`, `./quality-lint.sh`, `./quality-test.sh`, `./typecheck-test.sh`, and `make ci` all passed at `2026-04-28T22:14:40Z`.
+
 ## Final Verification
 
 - Required gates passed on branch `codex/feat-commands` at `2026-04-28T21:35:44Z`: `make scope-check`, `./quality-format.sh --check`, `./quality-lint.sh`, `./quality-test.sh`, `./typecheck-test.sh`, and `make ci`.
@@ -148,3 +155,4 @@ Parser/catalog drift validation is needed now because the CLI is the active oper
 - Approved reviewer packet `20260428T220257Z` required no code fixes; required gates passed again at `2026-04-28T22:04:00Z`.
 - Reviewer packet `20260428T220712Z` requested branch-tip review-basis correction, parser-surface validation, same-canonical accepted-token substitution coverage, canonical demo-path mapping, and gate rerun; focused catalog regressions and all required gates passed at `2026-04-28T22:10:40Z`.
 - Reviewer packet `20260428T220957Z` requested actual branch-tip review basis, per-task canonical demo-path mapping, precise ownership accounting, and gate rerun; all required gates passed at `2026-04-28T22:12:47Z`.
+- Reviewer packet `20260428T221051Z` requested actual branch-tip review basis, per-task canonical demo-path mapping, precise ownership accounting, and gate rerun; all required gates passed at `2026-04-28T22:14:40Z`.
