@@ -11199,6 +11199,56 @@ class A2UIFallbackSafetyTests(unittest.TestCase):
         self.assertIn("- label: Export", text)
         self.assertNotIn("[UnknownCard] <invalid card>", text)
 
+    def test_terminal_artifact_cli_fallback_entrypoint_recovers_nested_typed_leaves_under_card_hints(
+        self,
+    ) -> None:
+        shell = ShellUI()
+        nested_envelopes = [
+            (
+                "action",
+                {
+                    "type": "TerminalArtifact",
+                    "kind": "card",
+                    "artifact": build_terminal_artifact_envelope(
+                        ActionRef(
+                            id=" export_document ",
+                            label=" Export ",
+                            payload={"format": "md"},
+                        ),
+                        kind="action",
+                    ),
+                },
+            ),
+            (
+                "selection",
+                {
+                    "type": "TerminalArtifact",
+                    "kind": "card",
+                    "artifact": build_terminal_artifact_envelope(
+                        SelectionRef(
+                            id=" choice-1 ",
+                            label=" Choice ",
+                            payload={"nested": {"items": [1, 2]}},
+                        ),
+                        kind="selection",
+                    ),
+                },
+            ),
+        ]
+
+        for case_name, artifact in nested_envelopes:
+            with self.subTest(case=case_name):
+                cli_text = render_terminal_cli_fallback(artifact, kind="card")
+                shell_text = shell.render_cli_fallback(artifact, kind="card")
+
+                self.assertEqual(cli_text, shell_text)
+                self.assertIn(
+                    "[ActionRef] Export" if case_name == "action" else "[SelectionRef] Choice",
+                    cli_text,
+                )
+                self.assertNotIn("[UnknownCard] <invalid card>", cli_text)
+                self.assertNotIn("Action policy: copy_to_clipboard_only", cli_text)
+
     def test_terminal_artifact_renderer_and_shell_fallback_preserve_card_hints_for_malformed_envelopes(
         self,
     ) -> None:
