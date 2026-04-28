@@ -3,7 +3,7 @@
 ## Thread Kickoff (High-Risk)
 
 - Branch: `codex/feat-commands`
-- Review basis: final branch tip after this fixer pass for reviewer packet `20260428T234152Z`; implementation, tests, scope-check support, and handoff metadata are reviewed together.
+- Review basis: final branch tip after this fixer pass for reviewer packet `20260428T234728Z`; implementation, tests, scope-check support, and handoff metadata are reviewed together.
 - Lane/owned paths: `src/qual/commands/**`
 - Scope goal: harden `command_cli_contract()` so the CLI contract stays deterministic, follows canonical command order, and fails fast when the parser surface drifts from the command catalog.
 - Risk reason: this changes the command contract used by the active CLI operator surface while Textual lanes remain disabled.
@@ -72,7 +72,7 @@
 - `./quality-test.sh`: PASS
 - `./typecheck-test.sh`: PASS
 - `make ci`: PASS
-- Final verification pass: `2026-04-28T23:43:52Z`
+- Final verification pass: `2026-04-28T23:49:38Z`
 
 ### Risks / Blockers
 
@@ -119,6 +119,20 @@
 3. Add focused parser-surface drift regression coverage: satisfied by tests for added same-canonical alias drift, substituted same-canonical alias drift, removed accepted alias drift, parser-token reorder, declared-surface drift, lookup-table token-substitution drift, and lookup-table shape/order drift.
 4. Reconcile ownership accounting against `THREAD_OWNERSHIP.md`: satisfied by distinguishing lane-owned command files, approved shared-by-approval tests, shared scope-check support, metadata-only files, and `Integrator-locked edits: no`.
 5. Rerun and report required gates against the final reviewed tip: satisfied by this fixer pass rerunning `make scope-check`, `./quality-format.sh --check`, `./quality-lint.sh`, `./quality-test.sh`, `./typecheck-test.sh`, and `make ci`.
+
+### Reviewer Packet `20260428T234728Z` Fix Satisfaction
+
+1. Regenerate the packet from the actual merge candidate: satisfied by keeping this packet anchored to the current `codex/feat-commands` branch tip and reviewing implementation, tests, scope-check support, and handoff metadata together.
+2. Do not classify implementation/test commits as metadata-only: satisfied by stating that no commit modifying `src/qual/commands/catalog.py` or `tests/unit/test_commands_catalog.py` is metadata-only, and by listing the full non-metadata branch-tip file range.
+3. Strengthen parser-surface drift rejection: satisfied by `command_cli_contract()` validating the accepted token tuple, declared canonical surface, grouped parser projection, lookup-table shape/order, and canonical names against `_CANONICAL_CLI_COMMAND_SURFACE`.
+4. Add focused parser-surface drift tests: satisfied by focused catalog tests for added aliases, removed aliases, same-canonical alias substitutions, token reorder, declared-surface drift, grouped parser drift, lookup-table token substitution, and lookup-table shape/order drift.
+5. Update demo-path mapping and ownership accounting: satisfied by the `Tasks Completed`, `Canonical Demo-Path Mapping`, `Files Changed`, and `Shared / Integrator-Locked Accounting` sections.
+6. Rerun required gates against the final reviewed tip: satisfied by `make scope-check`, `./quality-format.sh --check`, `./quality-lint.sh`, `./quality-test.sh`, `./typecheck-test.sh`, and `make ci` all passing at `2026-04-28T23:49:38Z`.
+
+### Reviewer Packet `20260428T234415Z` Fix Satisfaction
+
+1. No numbered required fixes were requested. The reviewer approved the branch and listed no blocking findings.
+2. Fresh required gates were rerun for this fixer packet: `make scope-check`, `./quality-format.sh --check`, `./quality-lint.sh`, `./quality-test.sh`, `./typecheck-test.sh`, and `make ci` all passed at `2026-04-28T23:49:38Z`.
 
 ### Reviewer Packet `20260428T231936Z` Fix Satisfaction
 
