@@ -36,13 +36,22 @@ Canonical handoff contract lives in `THREAD_PACKET.md`.
 
 ## Shared / Approval Notes
 
-- `src/qual/cli.py` is shared-by-approval for `codex/feat-commands*` in `THREAD_OWNERSHIP.md` and is included because the live argparse entrypoint surface must match the command catalog.
-- `scripts/scope-check.sh` is included to keep scope enforcement aligned with approved shared command tests.
-- `tests/unit/test_commands_catalog.py` and `tests/unit/test_diff_preview.py` are approved shared test coverage for this command-surface handoff.
+- Integrator-locked edit: `src/qual/cli.py`, explicitly listed as shared-by-approval for `codex/feat-commands*` in `THREAD_OWNERSHIP.md`; included because the live argparse entrypoint surface must match the command catalog.
+- No other integrator-locked files were touched.
+- Shared support edit: `scripts/scope-check.sh`, included to keep scope enforcement aligned with approved shared command tests.
+- Approved shared test edits: `tests/unit/test_commands_catalog.py` and `tests/unit/test_diff_preview.py`, used as command-surface regression coverage for this lane.
+
+## Canonical Demo-Path Mapping
+
+- Task 1 advances `continue working`: stable parser/catalog contracts keep command dispatch deterministic across follow-up operator turns.
+- Task 2 advances `continue working`: alias-only parser drift now fails fast before an operator continues through a changed command surface.
+- Task 3 advances `plan/revise` and `apply/reject patch`: command workflow and diff-preview regression coverage preserves the command surfaces used to revise plans and inspect patch choices.
+- Task 4 advances `continue working`: refreshed handoff metadata gives reviewer/integrator the exact review basis needed to keep the branch moving without scope ambiguity.
+- Final demo-path statement: this handoff most directly makes `continue working` more real by hardening the CLI command contract that preserves deterministic follow-on operation in the engine-first MVP loop.
 
 ## Required Gates
 
-- Latest fixer evidence timestamp: `2026-04-28T18:45:06Z`
+- Latest fixer evidence timestamp: `2026-04-28T18:47:43Z`
 - `python -m unittest tests.unit.test_commands_catalog` -> passed (`Ran 163 tests`; `OK`)
 - `make scope-check` -> passed
 - `./quality-format.sh --check` -> passed
