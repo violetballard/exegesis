@@ -50,7 +50,7 @@ Parser/catalog drift validation is needed now because the CLI is the active oper
 3. Reviewer fix 3, drift regression tests: coverage includes extra accepted alias, removed accepted alias, substituted alias to another known alias with the same canonical command, explicit `diff` to `diff_preview` same-canonical alias substitution, parser-token reorder preserving canonical names, declared-surface alias drift, grouped token-to-canonical drift, lookup-table token-substitution drift, and lookup-table shape/order drift.
 4. Reviewer fix 4, canonical demo-path mapping: every completed task maps to `continue working`, and this packet states that the CLI command contract makes that step more real while Textual remains disabled.
 5. Reviewer fix 5, complete metadata-only accounting: packet refresh metadata files are `THREAD.md` and `THREAD_PACKET.md`; `tests/unit/test_commands_catalog.py` remains the approved shared-by-approval test edit, and there are no integrator-locked edits.
-6. Reviewer fix 6, rerun required gates: final results are recorded in the `Final Verification` section.
+6. Reviewer fix 6, rerun required gates: `make scope-check`, `./quality-format.sh --check`, `./quality-lint.sh`, `./quality-test.sh`, `./typecheck-test.sh`, and `make ci` all passed at `2026-04-28T22:37:14Z`.
 
 ## Reviewer Packet `20260428T223309Z` Fix Satisfaction
 
@@ -68,7 +68,7 @@ Parser/catalog drift validation is needed now because the CLI is the active oper
 3. Required fix 3, parser-surface drift tests: satisfied by focused regressions for parser token addition/removal, token-level extra alias rejection, same-canonical alias substitution, token reorder, declared-surface drift, lookup-table token substitution, and lookup-table shape/order drift.
 4. Required fix 4, canonical demo-path mapping: every completed task maps to `continue working`, and the final statement says this handoff makes that step more real while Textual remains disabled.
 5. Required fix 5, ownership accounting: lane-owned implementation is `src/qual/commands/catalog.py`, the approved shared-by-approval test edit is `tests/unit/test_commands_catalog.py`, metadata-only packet files are `THREAD.md` and `THREAD_PACKET.md`, and integrator-locked edits are `no`.
-6. Required fix 6, gate rerun: final results are recorded in the `Final Verification` section.
+6. Required fix 6, gate rerun: `make scope-check`, `./quality-format.sh --check`, `./quality-lint.sh`, `./quality-test.sh`, `./typecheck-test.sh`, and `make ci` all passed at `2026-04-28T22:37:14Z`.
 
 ## Reviewer Packet `20260428T222600Z` Fix Satisfaction
 
@@ -141,3 +141,4 @@ Parser/catalog drift validation is needed now because the CLI is the active oper
 - Approved reviewer packet `20260428T220257Z` required no code fixes; required gates passed again at `2026-04-28T22:04:00Z`.
 - Approved reviewer packet `20260428T221733Z` required no code fixes; required gates passed again at `2026-04-28T22:18:52Z`.
 - Reviewer packet `20260428T222600Z` requested `_CLI_ENTRYPOINTS` drift rejection, an extra known alias regression, and canonical demo-path mapping; focused catalog regressions and all required gates passed at `2026-04-28T22:28:37Z`.
+- Reviewer packet `20260428T223408Z` repeated actual branch-tip review basis, full parser-surface validation, drift-test coverage, canonical demo-path mapping, ownership accounting, and required gate rerun; all required gates passed at `2026-04-28T22:37:14Z`.
