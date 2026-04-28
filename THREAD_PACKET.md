@@ -3,7 +3,7 @@
 ## Thread Kickoff (High-Risk)
 
 - Branch: `codex/feat-commands`
-- Review basis: final branch tip after this `2026-04-28T22:35:49Z` fixer pass for reviewer packet `20260428T223309Z`; implementation, tests, and handoff metadata are reviewed together.
+- Review basis: final branch tip after this `2026-04-28T22:39:37Z` fixer pass for approved reviewer packet `20260428T223738Z`; implementation, tests, and handoff metadata are reviewed together.
 - Lane/owned paths: `src/qual/commands/**`
 - Scope goal: harden `command_cli_contract()` so the CLI contract stays deterministic, follows canonical command order, and fails fast when the parser surface drifts from the command catalog.
 - Risk reason: this changes the command contract used by the active CLI operator surface while Textual lanes remain disabled.
@@ -20,7 +20,7 @@
 - Shared-by-approval test edit: yes, `tests/unit/test_commands_catalog.py`, covered by the approved shared-test exception.
 - Integrator-locked edits: no.
 - Lane-owned implementation edit: `src/qual/commands/catalog.py`.
-- This packet presents the final branch tip after this `2026-04-28T22:35:49Z` fixer pass as the implementation basis so implementation commits are not hidden behind metadata-only packet refreshes.
+- This packet presents the final branch tip after this `2026-04-28T22:39:37Z` fixer pass as the implementation basis so implementation commits are not hidden behind metadata-only packet refreshes.
 - Previous stale review basis `f8d860ed9f6299f0169c4f21321ac5f37c949fd3` was incomplete because later commits changed `src/qual/commands/catalog.py` and `tests/unit/test_commands_catalog.py`; the corrected branch-tip basis supersedes it for re-review.
 
 ### Implementation Basis
@@ -86,6 +86,7 @@
 - Reviewer packet `20260428T223211Z` repeated actual branch-tip review basis, full parser-surface validation, drift-test coverage, canonical demo-path mapping, ownership accounting, and required gate rerun; focused catalog regressions and all required gates passed at `2026-04-28T22:34:25Z`.
 - Reviewer packet `20260428T223309Z` repeated actual branch-tip review basis, full parser-surface validation, drift-test coverage, canonical demo-path mapping, ownership accounting, and required gate rerun; focused catalog regressions and all required gates passed at `2026-04-28T22:35:49Z`.
 - Reviewer packet `20260428T223408Z` repeated actual branch-tip review basis, full parser-surface validation, drift-test coverage, canonical demo-path mapping, ownership accounting, and required gate rerun; all required gates passed at `2026-04-28T22:37:14Z`.
+- Approved reviewer packet `20260428T223738Z` required no code fixes; required gates passed again at `2026-04-28T22:39:37Z`.
 
 ### Risks / Blockers
 
@@ -129,6 +130,13 @@
 4. Required fix 4, canonical demo-path mapping: every completed task maps to `continue working`, and the final statement says this handoff makes that step more real while Textual remains disabled.
 5. Required fix 5, ownership accounting: lane-owned implementation is `src/qual/commands/catalog.py`, the approved shared-by-approval test edit is `tests/unit/test_commands_catalog.py`, metadata-only packet files are `THREAD.md` and `THREAD_PACKET.md`, and integrator-locked edits are `no`.
 6. Required fix 6, gate rerun: `make scope-check`, `./quality-format.sh --check`, `./quality-lint.sh`, `./quality-test.sh`, `./typecheck-test.sh`, and `make ci` all passed at `2026-04-28T22:37:14Z`.
+
+### Reviewer Packet `20260428T223738Z` Fix Satisfaction
+
+1. Reviewer verdict: `APPROVED`.
+2. Required fixes before re-review: none.
+3. Fixer action: no code changes were needed; this pass records the approval and reruns all required gates on the final tree.
+4. Final verification: required gates passed again at `2026-04-28T22:39:37Z`.
 
 ### Reviewer Packet `20260428T213854Z` Fix Satisfaction
 
@@ -205,3 +213,4 @@
 ### Final Verification
 
 - Reviewer packet `20260428T223408Z` required gates passed at `2026-04-28T22:37:14Z`: `make scope-check`, `./quality-format.sh --check`, `./quality-lint.sh`, `./quality-test.sh`, `./typecheck-test.sh`, and `make ci`.
+- Approved reviewer packet `20260428T223738Z` required no code fixes; required gates passed at `2026-04-28T22:39:37Z`: `make scope-check`, `./quality-format.sh --check`, `./quality-lint.sh`, `./quality-test.sh`, `./typecheck-test.sh`, and `make ci`.
