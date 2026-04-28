@@ -6341,6 +6341,40 @@ class A2UIFallbackSafetyTests(unittest.TestCase):
             terminal_artifact_cli_fallback_target_contract_fingerprint(),
         )
 
+    def test_a2ui_contract_fingerprints_can_opt_into_cli_fallback_contract_and_target_manifests(self) -> None:
+        cli_fingerprints = describe_a2ui_contract_fingerprints(
+            include_terminal_artifact_cli_fallback=True,
+            include_terminal_artifact_cli_fallback_target=True,
+        )
+        cli_fallback_fingerprint = terminal_artifact_cli_fallback_contract_fingerprint()
+        target_fingerprint = terminal_artifact_cli_fallback_target_contract_fingerprint()
+
+        self.assertEqual(cli_fingerprints["terminal_artifact_cli_fallback"], cli_fallback_fingerprint)
+        self.assertEqual(
+            cli_fingerprints["terminal_artifact_cli_fallback_contract"],
+            cli_fallback_fingerprint,
+        )
+        self.assertEqual(
+            cli_fingerprints["terminal_artifact_cli_fallback_contract_manifest"],
+            cli_fallback_fingerprint,
+        )
+        self.assertEqual(
+            cli_fingerprints["terminal_artifact_cli_fallback_target"],
+            target_fingerprint,
+        )
+        self.assertEqual(
+            cli_fingerprints["terminal_artifact_cli_fallback_target_contract"],
+            target_fingerprint,
+        )
+        self.assertEqual(
+            cli_fingerprints["terminal_artifact_cli_fallback_target_contract_manifest"],
+            target_fingerprint,
+        )
+        self.assertEqual(
+            cli_fingerprints["terminal_artifact_cli_fallback_target_contract_manifest_fingerprint"],
+            target_fingerprint,
+        )
+
     def test_terminal_artifact_cli_fallback_route_contract_is_opt_in_and_fingerprintable(self) -> None:
         from src.qual.ui import (
             describe_terminal_artifact_cli_fallback_route_contract as exported_route_contract,
