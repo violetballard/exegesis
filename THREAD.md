@@ -11,7 +11,7 @@ Canonical handoff contract lives in `THREAD_PACKET.md`.
 - Current verifier refresh base SHA: `67fcee80c5b33ba4b1d3de5b835d5ff1fbc7a331`
 - Previous metadata-only packet refresh tip: `67fcee80c5b33ba4b1d3de5b835d5ff1fbc7a331`
 - Latest gate rerun date: `2026-04-28`
-- Current fixer evidence timestamp: `2026-04-28T18:27:09Z`
+- Current fixer evidence timestamp: `2026-04-28T18:28:15Z`
 - Current fixer refresh purpose: resolve the reviewer fallback gate-output request by rerunning the full required gate set on the current verified tip, recording passing results, then refreshing the handoff metadata on top of the verified command-catalog slice
 - Review scope: deterministic `command_cli_contract()` behavior in `src/qual/commands/catalog.py` plus the approved shared regression coverage in `tests/unit/test_commands_catalog.py`
 - Canonical demo-path step advanced: the CLI/operator-contract portion of `open project/document`, keeping the MVP loop executable from the CLI while Textual remains disabled
@@ -31,7 +31,7 @@ Canonical handoff contract lives in `THREAD_PACKET.md`.
 - Reviewer packet reported these gates as passing on the older reviewed implementation basis SHA `f8d860ed9f6299f0169c4f21321ac5f37c949fd3`
 - This fixer refresh reverified the current branch tip at base SHA `67fcee80c5b33ba4b1d3de5b835d5ff1fbc7a331` on `2026-04-28` before issuing a new metadata-only handoff commit
 - This fixer pass reran the full required gate set on the current verified tip before preparing the next metadata-only handoff commit; all required gates passed
-- Current fixer evidence timestamp `2026-04-28T18:27:09Z`; `./quality-test.sh` and `make ci` each reported `Ran 245 tests` and `OK`
+- Current fixer evidence timestamp `2026-04-28T18:28:15Z`; `./quality-test.sh` and `make ci` each reported `Ran 245 tests` and `OK`
 - Plain-checkout verifier command: `python -m unittest tests.unit.test_commands_catalog` -> passed
 - `make scope-check`
 - `./quality-format.sh --check`

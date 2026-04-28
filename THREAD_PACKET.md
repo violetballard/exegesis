@@ -24,7 +24,7 @@
 - Previous validated handoff tip before this packet refresh: `67fcee80c5b33ba4b1d3de5b835d5ff1fbc7a331`
 - Current verifier refresh base SHA: `67fcee80c5b33ba4b1d3de5b835d5ff1fbc7a331`
 - Latest gate rerun date: `2026-04-28`
-- Current fixer evidence timestamp: `2026-04-28T18:27:09Z`
+- Current fixer evidence timestamp: `2026-04-28T18:28:15Z`
 - Current fixer refresh purpose: resolve the reviewer fallback gate-output request by rerunning the full required gate set on the current verified tip, recording passing results, then refreshing the handoff metadata on top of the verified command-catalog slice.
 - Roadmap alignment: `ROADMAP.md` Milestone 3 exit criterion `Contract changes documented and intentional` only; this handoff is a narrow canonical engine contract and CLI-compatibility hardening change for the existing engine-first CLI fallback path while Textual remains disabled and without claiming broader workflow coverage beyond the `open project/document` operator contract.
 - Vision alignment: `PRODUCT_VISION.md` capability 3 `Canonical engine contract` only; this change hardens the current parser/catalog contract that the CLI fallback depends on for the `open project/document` operator contract and does not claim audit-state, workflow-state, or broader workflow progress.
@@ -87,7 +87,7 @@
   - current verified branch tip before this metadata-only refresh: `67fcee80c5b33ba4b1d3de5b835d5ff1fbc7a331`
   - verifier rerun base SHA before this metadata-only refresh: `67fcee80c5b33ba4b1d3de5b835d5ff1fbc7a331`
   - latest gate rerun date: `2026-04-28`
-  - current fixer evidence timestamp: `2026-04-28T18:27:09Z`
+  - current fixer evidence timestamp: `2026-04-28T18:28:15Z`
   - `python -m unittest tests.unit.test_commands_catalog` -> passed
   - current fixer reran the full required gate set on the verified branch tip before this metadata-only refresh; all required gates passed
   - `make scope-check` -> passed
