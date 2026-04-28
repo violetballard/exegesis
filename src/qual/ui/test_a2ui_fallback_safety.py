@@ -413,6 +413,26 @@ class A2UIFallbackSafetyTests(unittest.TestCase):
         self.assertEqual(manifest["selection_version"], SELECTION_SCHEMA_VERSION)
         self.assertEqual(manifest["selection_contract_version"], SELECTION_SCHEMA_VERSION)
 
+    def test_action_and_selection_contract_manifests_expose_contract_manifest_aliases(self) -> None:
+        action_manifest = describe_action_contract()
+        selection_manifest = describe_selection_contract()
+
+        self.assertEqual(action_manifest["contract_manifest_fingerprint"], action_manifest["contract_fingerprint"])
+        self.assertEqual(selection_manifest["contract_manifest_fingerprint"], selection_manifest["contract_fingerprint"])
+        self.assertEqual(action_manifest["contract_manifest"]["contract_fingerprint"], action_manifest["contract_fingerprint"])
+        self.assertEqual(
+            selection_manifest["contract_manifest"]["contract_fingerprint"],
+            selection_manifest["contract_fingerprint"],
+        )
+        self.assertEqual(
+            action_manifest["contract_manifest"]["action_contract_fingerprint"],
+            action_manifest["contract_fingerprint"],
+        )
+        self.assertEqual(
+            selection_manifest["contract_manifest"]["selection_contract_fingerprint"],
+            selection_manifest["contract_fingerprint"],
+        )
+
     def test_leaf_contract_manifest_alias_helpers_match_the_base_contracts(self) -> None:
         self.assertEqual(describe_action_contract_manifest(), describe_action_contract())
         self.assertEqual(describe_card_contract_manifest(), describe_card_contract())

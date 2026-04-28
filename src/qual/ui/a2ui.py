@@ -1325,6 +1325,8 @@ def describe_selection_contract() -> dict[str, Any]:
     manifest["selection_fingerprint"] = fingerprint
     manifest["selection_contract_fingerprint"] = fingerprint
     manifest["contract_fingerprint"] = fingerprint
+    manifest["contract_manifest"] = _snapshot_contract_section(manifest)
+    manifest["contract_manifest_fingerprint"] = fingerprint
     return manifest
 
 
@@ -1342,6 +1344,8 @@ def describe_action_contract() -> dict[str, Any]:
     manifest["action_fingerprint"] = fingerprint
     manifest["action_contract_fingerprint"] = fingerprint
     manifest["contract_fingerprint"] = fingerprint
+    manifest["contract_manifest"] = _snapshot_contract_section(manifest)
+    manifest["contract_manifest_fingerprint"] = fingerprint
     return manifest
 
 
