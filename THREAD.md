@@ -6,7 +6,7 @@ Canonical handoff contract lives in `THREAD_PACKET.md`.
 
 - Lane: `feat-commands`
 - Branch: `codex/feat-commands`
-- Review basis: actual submitted branch tip, not the older `f8d860ed9f6299f0169c4f21321ac5f37c949fd3` slice. Implementation-file accounting covers `f8d860ed9f6299f0169c4f21321ac5f37c949fd3..f175b28266c0981c89c20f74b31c37c25f232277` plus the reviewer-fix and handoff metadata correction commits.
+- Review basis: actual submitted branch tip, not the older `f8d860ed9f6299f0169c4f21321ac5f37c949fd3` slice. Implementation-file accounting covers `f8d860ed9f6299f0169c4f21321ac5f37c949fd3..8ef82873046f003a2ecf241dae3d0b5c352796be` plus this handoff metadata correction commit.
 - Scope: CLI command-contract hardening for the current engine-first MVP focus without starting `feat-console`.
 - Roadmap alignment: `ROADMAP.md` Milestone 1 `Command and diff-preview behavior hardening` / `Manual CLI smoke flow remains stable`, Milestone 2 remaining parser-edge coverage, Milestone 3 output-contract intentionality, and the active MVP emphasis on `feat-commands`.
 - Vision alignment: `PRODUCT_VISION.md` capability 4 `Operator-first control surface`.
@@ -31,7 +31,7 @@ Canonical handoff contract lives in `THREAD_PACKET.md`.
 
 - Task budget: `4`; tasks completed: `4`.
 - High-risk size limit status: exceeded and routed for reviewer/integrator exception instead of normal lane approval.
-- Implementation range accounting: `12 files changed, 12561 insertions(+), 927 deletions(-)` from `f8d860ed9f6299f0169c4f21321ac5f37c949fd3..f175b28266c0981c89c20f74b31c37c25f232277`.
+- Implementation range accounting: `12 files changed, 12820 insertions(+), 982 deletions(-)` from `f8d860ed9f6299f0169c4f21321ac5f37c949fd3..8ef82873046f003a2ecf241dae3d0b5c352796be`.
 - Reason for exception routing: branch history already includes command catalog expansion, parser surface alignment, workflow helpers, diff-preview hardening, scope-check accommodation, and shared unit tests.
 
 ## Shared / Approval Notes
@@ -51,15 +51,15 @@ Canonical handoff contract lives in `THREAD_PACKET.md`.
 
 ## Reviewer Fix Satisfaction
 
-1. `command_cli_contract()` validates the full parser/catalog projection: declared entrypoints, live parser entrypoints, canonical-name order, accepted CLI tokens, lookup rows, and reconstructed grouped projection.
-2. `tests/unit/test_commands_catalog.py` includes alias-only parser drift coverage where canonical names remain stable but parser tokens or lookup rows change.
+1. `command_cli_contract()` validates the full parser/catalog projection: declared entrypoints, argparse-derived live parser entrypoints, canonical-name order, accepted CLI tokens, lookup rows, and reconstructed grouped projection.
+2. `tests/unit/test_commands_catalog.py` includes alias-only parser drift coverage where canonical names remain stable but parser tokens or lookup rows change, including a real argparse subparser mutation.
 3. `THREAD_PACKET.md` and `handoff_packets/feat-commands.md` now review the actual branch tip and do not label test or implementation changes as metadata-only.
 4. Each numbered completed task names the canonical demo-path step it supports, with `continue working` called out as the step made most real.
 5. The full required gates were rerun after the explicit alias-only drift matrix regression and packet refresh were in place.
 
 ## Required Gates
 
-- Latest fixer evidence timestamp: `2026-04-28T19:01:20Z`
+- Latest fixer evidence timestamp: `2026-04-28T19:07:08Z`
 - `python -m unittest tests.unit.test_commands_catalog` -> passed
 - `make scope-check` -> passed
 - `./quality-format.sh --check` -> passed
