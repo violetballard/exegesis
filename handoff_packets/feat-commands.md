@@ -64,7 +64,7 @@
 ### Checkpoint Cadence (short updates)
 
 - plan complete: the handoff is scoped to CLI command-contract hardening for the current engine-first MVP focus and reviews the actual branch tip.
-- first green tests: focused command-catalog tests passed on `2026-04-28T19:51:43Z`, including the reviewer-requested extra alias and alias-first parser drift regressions; the full required gates were rerun after the final packet refresh for this fixer pass.
+- first green tests: focused command-catalog tests passed on `2026-04-28T19:54:10Z`, including the reviewer-requested extra alias and alias-first parser drift regressions; the full required gates were rerun after the final packet refresh for this fixer pass.
 - before risky/shared file edit: risky/shared paths are listed above with the approval rationale.
 - pre-handoff demo-path readiness: canonical demo-path step now made more real is `continue working`; the concrete blocker removed is silent parser/catalog drift that could let follow-up CLI operator turns continue through an unexpected command surface.
 - ready for handoff: this packet names the full implementation set and records the latest gate results.
@@ -99,7 +99,7 @@
   - handoff reviewer-fix update: `THREAD_PACKET.md`
   - handoff reviewer-fix update: `handoff_packets/feat-commands.md`
 - commands run + outcomes:
-  - latest fixer evidence timestamp: `2026-04-28T19:51:43Z`
+  - latest fixer evidence timestamp: `2026-04-28T19:54:10Z`
   - `python -m unittest tests.unit.test_commands_catalog.CommandCatalogTests.test_command_cli_contract_rejects_extra_alias_entrypoint_when_canonical_order_still_matches tests.unit.test_commands_catalog.CommandCatalogTests.test_command_cli_contract_rejects_reordered_parser_projection_when_tokens_change_but_names_do_not tests.unit.test_commands_catalog.CommandCatalogTests.test_command_cli_contract_rejects_alias_substitution_when_parser_projection_keeps_same_name_order` -> passed
   - `python -m unittest tests.unit.test_commands_catalog` -> passed
   - `make scope-check` -> passed
