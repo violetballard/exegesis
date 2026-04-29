@@ -969,6 +969,10 @@ def _describe_a2ui_contract_fingerprints_cached(
         fingerprints["shell_ui_fingerprint"] = shell_ui_contract_fingerprint_value
         fingerprints["shell_ui_contract_fingerprints"] = shell_ui_contract_fingerprints_fingerprint
         fingerprints["shell_ui_contract_fingerprints_fingerprint"] = shell_ui_contract_fingerprints_fingerprint
+        fingerprints["shell_ui_contract_manifest_fingerprints"] = shell_ui_contract_fingerprints_fingerprint
+        fingerprints["shell_ui_contract_manifest_fingerprints_fingerprint"] = (
+            shell_ui_contract_fingerprints_fingerprint
+        )
         fingerprints["shell_ui_contract_manifest"] = shell_ui_contract_manifest_fingerprint
         fingerprints["shell_ui_contract_manifest_fingerprint"] = shell_ui_contract_manifest_fingerprint
         fingerprints["card_hint_recovery_policy"] = card_hint_recovery_policy_contract_fingerprint_value
@@ -3480,6 +3484,12 @@ def _build_a2ui_contract_manifest(
         )
         manifest["shell_ui_contract_fingerprints_fingerprint"] = shell_ui_contract[
             "contract_fingerprints_fingerprint"
+        ]
+        manifest["shell_ui_contract_manifest_fingerprints"] = _snapshot_contract_section(
+            shell_ui_contract["shell_ui_contract_manifest_fingerprints"]
+        )
+        manifest["shell_ui_contract_manifest_fingerprints_fingerprint"] = shell_ui_contract[
+            "shell_ui_contract_manifest_fingerprints_fingerprint"
         ]
         # Mirror the shell's renderer-entrypoint alias so shell-aware
         # consumers can negotiate the same renderer contract names.

@@ -573,6 +573,7 @@ class A2UIFallbackSafetyTests(unittest.TestCase):
         self.assertEqual(first, second)
         self.assertIn("shell_ui_contract", first)
         self.assertIn("shell_ui_contract_manifest", first)
+        self.assertIn("shell_ui_contract_manifest_fingerprints", first)
         self.assertIn("terminal_artifact_cli_fallback_entrypoint_contract_manifest", first)
         self.assertIn("terminal_artifact_cli_fallback_route_contract_manifest", first)
         self.assertIn("terminal_artifact_cli_fallback_contract_manifest", first)
@@ -580,6 +581,10 @@ class A2UIFallbackSafetyTests(unittest.TestCase):
         self.assertEqual(
             first["shell_ui_contract_manifest"],
             first["shell_ui_contract_manifest_fingerprint"],
+        )
+        self.assertEqual(
+            first["shell_ui_contract_manifest_fingerprints"],
+            first["shell_ui_contract_manifest_fingerprints_fingerprint"],
         )
 
     def test_a2ui_fingerprint_snapshots_do_not_leak_mutations_between_calls(self) -> None:
@@ -619,6 +624,10 @@ class A2UIFallbackSafetyTests(unittest.TestCase):
         self.assertEqual(
             shell_contract["terminal_artifact_cli_fallback_contract_manifest_fingerprint"],
             cli_fallback_contract["contract_fingerprint"],
+        )
+        self.assertEqual(
+            a2ui_shell_contract["shell_ui_contract_manifest_fingerprints"],
+            a2ui_shell_contract["shell_ui_contract_fingerprints"],
         )
 
     def test_shell_ui_fingerprint_snapshots_do_not_leak_mutations_between_calls(self) -> None:
