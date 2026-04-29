@@ -51,7 +51,7 @@ Matches `git diff --name-status 378cf9a74a3658058079a32f186fcd254c4a4034..HEAD` 
 
 ## Budget / Risk
 
-Risk/budget: high/shared because `tests/unit/test_unified_retrieval.py` is approved shared regression coverage and the reviewed range includes runtime retrieval payload/service behavior. Recomputed from `378cf9a74a3658058079a32f186fcd254c4a4034..HEAD`: task budget `4/4`; file budget `6/8`; size budget remains within the high-risk `<=300` net LOC cap after this packet fixer commit is reviewed against its final SHA. Integrator-locked files: none. Routing/provider/core entrypoint impact: none.
+Risk/budget: high/shared because `tests/unit/test_unified_retrieval.py` is approved shared regression coverage and the reviewed range includes runtime retrieval payload/service behavior. Recomputed from `378cf9a74a3658058079a32f186fcd254c4a4034..HEAD`: task budget `4/4`; file budget `6/8`; size budget `6 files changed, 383 insertions(+), 131 deletions(-)`, which is `252` net LOC and within the high-risk `<=300` net LOC cap. Integrator-locked files: none. Routing/provider/core entrypoint impact: none.
 
 ## FTS-First Alignment Proof
 
