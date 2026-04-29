@@ -3,7 +3,7 @@
 ## Thread Kickoff (High-Risk)
 
 - Branch: `codex/feat-commands`
-- Review basis: final branch tip after this fixer pass for reviewer packet `20260429T004039Z`; implementation, tests, scope-check support, and handoff metadata are reviewed together.
+- Review basis: final branch tip after this fixer pass for reviewer packet `20260429T004322Z`; implementation, tests, scope-check support, and handoff metadata are reviewed together.
 - Lane/owned paths: `src/qual/commands/**`
 - Scope goal: harden `command_cli_contract()` so the CLI contract stays deterministic, follows canonical command order, and fails fast when the parser surface drifts from the command catalog.
 - Risk reason: this changes the command contract used by the active CLI operator surface while Textual lanes remain disabled.
@@ -20,8 +20,8 @@
 - This packet submits the full branch-tip implementation for review.
 - No commit that modifies `src/qual/commands/catalog.py` or `tests/unit/test_commands_catalog.py` is classified as metadata-only.
 - Previous stale review basis `f8d860ed9f6299f0169c4f21321ac5f37c949fd3` is superseded because later branch commits changed command-catalog implementation and tests.
-- Previous branch-tip review basis `8c7cfbea1` is superseded by this reviewer-fix pass; the actual merge candidate is the final `codex/feat-commands` branch tip after the `20260429T004039Z` fixes and gate rerun.
-- This fixer pass also satisfies reviewer packet `20260429T004039Z`; no command-catalog implementation or test commits after `f8d860ed9f6299f0169c4f21321ac5f37c949fd3` are classified as metadata-only.
+- Previous branch-tip review basis `8c7cfbea1` is superseded by this reviewer-fix pass; the actual merge candidate is the final `codex/feat-commands` branch tip after the `20260429T004322Z` fixes and gate rerun.
+- This fixer pass also satisfies reviewer packet `20260429T004322Z`; no command-catalog implementation or test commits after `f8d860ed9f6299f0169c4f21321ac5f37c949fd3` are classified as metadata-only.
 - Metadata-only handoff files are limited to `THREAD.md` and `THREAD_PACKET.md`.
 
 ### Shared / Integrator-Locked Accounting
@@ -73,8 +73,8 @@
 - `./quality-test.sh`: PASS
 - `./typecheck-test.sh`: PASS
 - `make ci`: PASS
-- Final verification pass: PASS in final gate rerun for reviewer packet `20260429T004039Z`.
-- Exact-tip fixer verification: PASS after the `20260429T004039Z` handoff metadata refresh.
+- Final verification pass: PASS in final gate rerun for reviewer packet `20260429T004322Z`.
+- Exact-tip fixer verification: PASS after the `20260429T004322Z` handoff metadata refresh.
 
 ### Risks / Blockers
 
@@ -264,6 +264,14 @@
 3. Strengthen `command_cli_contract()` so it validates the accepted parser token tuple and lookup table against an explicit canonical parser surface: satisfied by `_CANONICAL_CLI_COMMAND_SURFACE`, `_CLI_COMMAND_SURFACE`, `_CLI_ENTRYPOINTS`, grouped parser projection, accepted token tuple, lookup-table shape/order, canonical names, and explicit canonical token/lookup projection checks.
 4. Add focused same-canonical parser-drift tests: satisfied by tests covering added alias `open`, removed accepted token, substituted alias `diff_preview`, same-canonical token/order drift, declared-surface drift, grouped parser drift, lookup-table token/target substitution, lookup-table removed-token drift, lookup-table shape/order drift, and canonical command order drift.
 5. Restate the canonical demo-path step this work makes more real: satisfied by naming open project/document, retrieve/context basket, patch preview/apply-reject support, and continued CLI operation while Textual remains disabled.
+
+### Reviewer Packet `20260429T004322Z` Fix Satisfaction
+
+1. Strengthen `command_cli_contract()` so it validates the parser surface itself: satisfied by comparing accepted CLI tokens, token order, lookup-table shape/order, declared canonical parser surface, grouped parser projection, canonical command order, and explicit canonical token/lookup projections against `_CANONICAL_CLI_COMMAND_SURFACE`.
+2. Add focused parser-surface drift tests: satisfied by tests covering added same-canonical alias `open`, removed accepted token, token reordering, same-canonical alias substitution such as `diff` to `diff_preview`, lookup-table added same-canonical alias drift, lookup-table removed-token drift, lookup-table token/target substitution drift, and lookup-table shape/order drift.
+3. Update the handoff packet with exact canonical demo-path steps: satisfied by mapping this command-catalog work to open project/document (`bootstrap`), retrieve/context basket (`context-basket`), patch preview/apply-reject support (`diff-preview` and `diff`), and continued CLI operation (`terminal`).
+4. Correct ownership accounting: satisfied by listing lane-owned command files, approved shared-by-approval tests, shared scope-check support, metadata-only handoff files, and `Integrator-locked edits: no`.
+5. Rerun required gates against the final reviewed tip: this fixer pass reruns and records `make scope-check`, `./quality-format.sh --check`, `./quality-lint.sh`, `./quality-test.sh`, `./typecheck-test.sh`, and `make ci`.
 
 ### Reviewer Packet `20260428T234415Z` Fix Satisfaction
 
