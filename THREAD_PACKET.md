@@ -12,6 +12,8 @@
   - `0492bb2bc00dd03c126789985d9a5f18e5cd8e67`: metadata-only packet refresh that documents the additional implementation commits above; it is not itself implementation.
   - `f1931ac437f5f051b397e36ca27560bd1023d975`: metadata-only packet correction that resubmitted the corrected packet without changing implementation behavior.
   - `0fe7c8c84e5f65bb0f557d191960ebbcf3946b9ef`: metadata-only packet correction that clarified the corrected review packet.
+  - `07a3eeb86c53ae01416569b8806d63d4085e44c1`: metadata-only packet correction that recorded final packet validation.
+  - `d020227ca44c691f2f8e655762b4465618f1faa5`: metadata-only packet correction that refreshed reviewer-fix traceability.
   - Final fixer validation commit from this packet: packet-only metadata update confirming the corrected target, required-fix mapping, and green gates. The exact final HEAD SHA is reported by the fixer after commit creation.
 - Merge base used for file accounting: `06cdebc2d5d53533b73f264a4bbf5a4b4daacb27`.
 - Risk classification: low-risk lane-owned implementation plus one shared-by-approval unit-test exception and packet metadata; no integrator-locked files are changed.
@@ -20,7 +22,7 @@
 
 - Branch name: `codex/feat-commands`
 - Scope completed: isolated the command catalog implementation slice from `f8d860ed9f6299f0169c4f21321ac5f37c949fd3`, included `ab96cb722094e821105d1cdfd3cae24f4b9184ef` and `2836f5f0e4e0e903acc0e3633e6204be3f982a5d` as implementation fixes, and removed off-lane branch-tip changes from the corrected merge target.
-- Implementation review basis: the branch tip produced by this fixer pass. This tip includes the corrected command-catalog slice from `f8d860e`, `ab96cb7`, and `2836f5f`, plus metadata-only packet refreshes from `0492bb2`, `f1931ac`, and the final fixer-pass commit.
+- Implementation review basis: the branch tip produced by this fixer pass. This tip includes the corrected command-catalog slice from `f8d860e`, `ab96cb7`, and `2836f5f`, plus metadata-only packet refreshes from `0492bb2`, `f1931ac`, `0fe7c8c`, `07a3eeb`, `d020227`, and the final fixer-pass commit.
 - Roadmap item(s) affected: active MVP `feat-commands`; Milestone 3 command surface stability while Textual remains disabled.
 - Vision capability affected: canonical engine contract and CLI compatibility through deterministic command catalog metadata.
 - Exact canonical demo-path step advanced: `preview/apply/reject patch`.
@@ -65,12 +67,12 @@ Actual corrected merge diff from `06cdebc2d5d53533b73f264a4bbf5a4b4daacb27` to t
 
 ## Commands Run
 
-- `make scope-check`: PASS on the corrected target.
-- `./quality-format.sh --check`: PASS on the corrected target.
-- `./quality-lint.sh`: PASS on the corrected target.
-- `./quality-test.sh`: PASS on the corrected target.
-- `./typecheck-test.sh`: PASS on the corrected target.
-- `make ci`: PASS on the corrected target.
+- `make scope-check`: PASS on 2026-04-29 for the corrected target.
+- `./quality-format.sh --check`: PASS on 2026-04-29 for the corrected target.
+- `./quality-lint.sh`: PASS on 2026-04-29 for the corrected target.
+- `./quality-test.sh`: PASS on 2026-04-29 for the corrected target.
+- `./typecheck-test.sh`: PASS on 2026-04-29 for the corrected target.
+- `make ci`: PASS on 2026-04-29 for the corrected target.
 
 ## Risks And Blockers
 
