@@ -768,6 +768,9 @@ class RetrievalResult:
                 "source_strategy": hit.source_strategy,
                 "retrieval_backend": hit.provenance.get("retrieval_backend"),
                 "retrieval_mode": hit.provenance.get("retrieval_mode"),
+                "query_scope": hit.provenance.get("query_scope"),
+                "query_intent": hit.provenance.get("query_intent"),
+                "query_date_range": copy.deepcopy(hit.provenance.get("query_date_range")),
             }
             candidates.append(
                 {
@@ -777,6 +780,13 @@ class RetrievalResult:
                     "doc_type": hit.provenance.get("doc_type"),
                     "title_hint": hit.title_hint,
                     "query_fingerprint": self.diagnostics["query_fingerprint"],
+                    "query_scope": self.query.scope,
+                    "query_intent": self.query.intent,
+                    "query_date_range": (
+                        list(self.query.constraints.date_range)
+                        if self.query.constraints.date_range is not None
+                        else None
+                    ),
                     "result_fingerprint": self.result_fingerprint,
                     "source_strategy": hit.source_strategy,
                     "retrieval_backend": hit.provenance.get("retrieval_backend"),

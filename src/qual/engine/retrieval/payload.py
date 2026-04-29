@@ -235,6 +235,11 @@ def _build_basket_candidates_from_excerpt_hits(excerpt_hits: list[object]) -> li
             "source_strategy": hit.get("source_strategy", provenance.get("source_strategy")),
             "retrieval_backend": hit.get("retrieval_backend", provenance.get("retrieval_backend")),
             "retrieval_mode": hit.get("retrieval_mode", provenance.get("retrieval_mode")),
+            "query_scope": hit.get("query_scope", provenance.get("query_scope")),
+            "query_intent": hit.get("query_intent", provenance.get("query_intent")),
+            "query_date_range": copy.deepcopy(
+                hit.get("query_date_range", provenance.get("query_date_range")),
+            ),
         }
         candidates.append(
             {
@@ -246,6 +251,11 @@ def _build_basket_candidates_from_excerpt_hits(excerpt_hits: list[object]) -> li
                 "query_fingerprint": hit.get(
                     "query_fingerprint",
                     provenance.get("query_fingerprint"),
+                ),
+                "query_scope": hit.get("query_scope", provenance.get("query_scope")),
+                "query_intent": hit.get("query_intent", provenance.get("query_intent")),
+                "query_date_range": copy.deepcopy(
+                    hit.get("query_date_range", provenance.get("query_date_range")),
                 ),
                 "result_fingerprint": hit.get(
                     "result_fingerprint",
