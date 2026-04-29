@@ -105,8 +105,9 @@ tests/unit/test_unified_retrieval.py             | 581 ++++++++++++++++-
 - `make scope-check`: PASS.
 - `./quality-format.sh --check`: PASS.
 - `./quality-lint.sh`: PASS.
-- `python -m pytest tests/unit/test_unified_retrieval.py -q`: not runnable in this environment (`No module named pytest`); reran focused coverage with unittest instead.
-- `python -m unittest tests.unit.test_unified_retrieval -q`: PASS (`57` retrieval tests).
+- `pytest tests/unit/test_unified_retrieval.py -k "basket_promotion or fetch_excerpt_requires_an_fts_lookup_hit or rejects_pageindex_excerpt_payloads"`: not runnable in this environment (`pytest` not found).
+- `python -m pytest tests/unit/test_unified_retrieval.py -k "basket_promotion or fetch_excerpt_requires_an_fts_lookup_hit or rejects_pageindex_excerpt_payloads"`: not runnable in this environment (`No module named pytest`).
+- `python3 -m unittest tests.unit.test_unified_retrieval.UnifiedRetrievalTests.test_retrieval_context_bundle_includes_deterministic_basket_promotion tests.unit.test_unified_retrieval.UnifiedRetrievalTests.test_retrieval_basket_promotion_reconstructs_from_payload_helpers tests.unit.test_unified_retrieval.UnifiedRetrievalTests.test_fetch_excerpt_requires_an_fts_lookup_hit tests.unit.test_unified_retrieval.UnifiedRetrievalTests.test_retrieval_service_rejects_pageindex_excerpt_payloads -v`: PASS (`4` focused retrieval tests).
 - `./quality-test.sh`: PASS (`126` unit tests plus smoke).
 - `./typecheck-test.sh`: PASS.
 - `make ci`: PASS.
