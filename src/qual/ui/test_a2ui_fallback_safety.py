@@ -5122,6 +5122,30 @@ class A2UIFallbackSafetyTests(unittest.TestCase):
             _fingerprint_manifest_section(manifest["allowed_actions"]),
         )
         self.assertEqual(
+            manifest["card_hint_recovery_policy"],
+            card_hint_recovery_policy_manifest,
+        )
+        self.assertEqual(
+            manifest["card_hint_recovery_policy_fingerprint"],
+            card_hint_recovery_policy_manifest["contract_fingerprint"],
+        )
+        self.assertEqual(
+            manifest["card_hint_recovery_policy_contract"],
+            card_hint_recovery_policy_manifest,
+        )
+        self.assertEqual(
+            manifest["card_hint_recovery_policy_contract_manifest"],
+            card_hint_recovery_policy_manifest,
+        )
+        self.assertEqual(
+            manifest["card_hint_recovery_policy_contract_fingerprint"],
+            card_hint_recovery_policy_manifest["contract_fingerprint"],
+        )
+        self.assertEqual(
+            manifest["card_hint_recovery_policy_contract_manifest_fingerprint"],
+            card_hint_recovery_policy_manifest["contract_fingerprint"],
+        )
+        self.assertEqual(
             manifest["raw_leaf_card_default_contract"],
             describe_terminal_artifact_raw_leaf_card_default_contract(),
         )

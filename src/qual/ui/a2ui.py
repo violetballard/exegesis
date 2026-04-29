@@ -4097,6 +4097,7 @@ def _build_terminal_artifact_cli_fallback_target_contract_manifest(
     leaf_contracts_contract = describe_a2ui_leaf_contracts()
     raw_leaf_card_default_contract = describe_terminal_artifact_raw_leaf_card_default_contract()
     raw_leaf_card_default_policy_contract = describe_terminal_artifact_raw_leaf_card_default_policy_contract()
+    card_hint_recovery_policy_contract = describe_terminal_artifact_cli_fallback_card_hint_recovery_policy_contract()
     terminal_artifact_cli_fallback_entrypoint = "render_terminal_cli_fallback"
     terminal_artifact_cli_fallback_entrypoint_contract = (
         describe_terminal_artifact_cli_fallback_entrypoint_contract()
@@ -4163,6 +4164,18 @@ def _build_terminal_artifact_cli_fallback_target_contract_manifest(
             "invalid_kind_treated_as_absent": True,
             "refine_card_underflow": True,
         },
+        "card_hint_recovery_policy": _snapshot_contract_section(card_hint_recovery_policy_contract),
+        "card_hint_recovery_policy_fingerprint": card_hint_recovery_policy_contract["contract_fingerprint"],
+        "card_hint_recovery_policy_contract": _snapshot_contract_section(card_hint_recovery_policy_contract),
+        "card_hint_recovery_policy_contract_fingerprint": card_hint_recovery_policy_contract[
+            "contract_fingerprint"
+        ],
+        "card_hint_recovery_policy_contract_manifest": _snapshot_contract_section(
+            card_hint_recovery_policy_contract
+        ),
+        "card_hint_recovery_policy_contract_manifest_fingerprint": card_hint_recovery_policy_contract[
+            "contract_fingerprint"
+        ],
         "kind_policy": kind_policy,
         "kind_policy_fingerprint": _fingerprint_manifest_section(kind_policy),
         "kind_policy_contract": _snapshot_contract_section(kind_policy),
