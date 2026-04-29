@@ -90,12 +90,14 @@ Classification:
 
 Required gates rerun for this branch-tip fixer pass:
 
-- `make scope-check` - passed.
+- `make scope-check` - failed on disclosed shared/integrator-locked `src/qual/cli.py`; this is expected for the actual branch-tip range without the documented shared-file approval flag.
+- `SCOPE_ALLOW_SHARED=1 make scope-check` - passed.
 - `./quality-format.sh --check` - passed.
 - `./quality-lint.sh` - passed.
 - `./quality-test.sh` - passed, `187` tests.
 - `./typecheck-test.sh` - passed, Python sources compiled.
-- `make ci` - passed.
+- `make ci` - failed on strict scope-check for disclosed shared/integrator-locked `src/qual/cli.py`; this is expected without the documented shared-file approval flag.
+- `SCOPE_ALLOW_SHARED=1 make ci` - passed, including scope-check, format, lint, typecheck, and `187` tests.
 
 Focused coverage also run previously in this branch:
 
@@ -109,6 +111,6 @@ Focused coverage also run previously in this branch:
 - Branch name: `codex/feat-commands`
 - Tasks completed: listed in Scope Completed
 - Files changed: listed above
-- Commands run and outcomes: all required gates passed
+- Commands run and outcomes: required gates passed with `SCOPE_ALLOW_SHARED=1` for scope-gated commands; bare `make scope-check` and `make ci` fail on the disclosed `src/qual/cli.py` shared/integrator-locked edit.
 - Risks/blockers: listed above
 - Required `INTEGRATION.md` fields: present
