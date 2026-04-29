@@ -1325,6 +1325,10 @@ def command_mvp_demo_path_command_lines() -> tuple[str, ...]:
     return command_mvp_demo_path_contract().command_lines
 
 
+def command_mvp_demo_path_operator_checkpoints() -> tuple[str, ...]:
+    return tuple(step.operator_checkpoint for step in command_mvp_demo_path_contract().steps)
+
+
 def command_mvp_demo_path_engine_handoffs() -> tuple[str, ...]:
     return command_mvp_demo_path_contract().engine_handoffs
 
