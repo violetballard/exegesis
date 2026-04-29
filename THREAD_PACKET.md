@@ -139,6 +139,8 @@
 - `20260429T015007Z` fixer validation rerun: PASS for `make scope-check`, `./quality-format.sh --check`, `./quality-lint.sh`, `./quality-test.sh`, `./typecheck-test.sh`, and `make ci`.
 - `20260429T015322Z` fixer validation rerun: PASS for `make scope-check`, `./quality-format.sh --check`, `./quality-lint.sh`, `./quality-test.sh`, `./typecheck-test.sh`, and `make ci`.
 - `20260429T015856Z` fixer confirmation rerun: `./quality-format.sh --check`, `./quality-lint.sh`, `./quality-test.sh`, and `./typecheck-test.sh` PASS before the metadata commit; exact pre-commit `make scope-check` and `make ci` BLOCKED by scope policy on the existing approved shared-test edit `tests/unit/test_commands_catalog.py`.
+- `20260429T015948Z` fixer confirmation rerun: PASS for `make scope-check` and `make ci` after the approval-confirmation branch tip.
+- `20260429T020237Z` fixer approval-confirmation rerun: reviewer returned `APPROVED` with no required fixes; PASS for `make scope-check`, `./quality-format.sh --check`, `./quality-lint.sh`, `./quality-test.sh`, `./typecheck-test.sh`, and `make ci`.
 
 ## Risks / Blockers
 
@@ -271,4 +273,4 @@
 1. Reviewer verdict: `APPROVED`.
 2. Required fixes before re-review: none.
 3. No implementation files changed for this confirmation pass; the existing command contract and focused tests remain the review basis.
-4. Pre-commit gate rerun for this fixer pass: `./quality-format.sh --check`, `./quality-lint.sh`, `./quality-test.sh`, and `./typecheck-test.sh` pass; exact `make scope-check` and `make ci` are blocked before this metadata commit by scope policy on the existing approved shared-test edit `tests/unit/test_commands_catalog.py`.
+4. Required gates were rerun for this fixer pass: `make scope-check` and `make ci` pass after the approval-confirmation branch tip.
