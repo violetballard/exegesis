@@ -6,11 +6,11 @@
 - Review basis: `git diff main...codex/feat-commands`
 - Review command: `git diff main...codex/feat-commands`
 - Prior packet supersession: this `THREAD_PACKET.md` replaces all earlier packet text, packet-refresh notes, and review-scope claims that named `f8d860ed9f6299f0169c4f21321ac5f37c949fd3` as the submitted target.
-- Fixer prompt satisfied: `20260429T113942Z`
+- Fixer prompt satisfied: `20260429T114445Z`
 
 ## Demo-Path Mapping
 
-Canonical demo-path step advanced: preserving the command surface for `open`/retrieve/patch/save operation while Textual remains disabled. This is first-order under the current Milestone 3 narrowing because the MVP demo path is executed through the CLI fallback and command catalog now; it is not deferred Console work or second-order A2UI preparation.
+Canonical demo-path step advanced: preserving the command surface that keeps `open project/document`, `retrieve/context basket`, `preview/apply/reject patch`, and continuation reachable through the CLI-first MVP loop while Textual remains disabled. This is first-order under the current Milestone 3 narrowing because the MVP demo path is executed through the CLI fallback and command catalog now; it is not deferred Console work or second-order A2UI preparation.
 
 ## Scope Completed
 
@@ -73,7 +73,7 @@ This is high-risk because `src/qual/cli.py` is shared-by-approval for `feat-comm
 
 ## Commands Run
 
-- Fresh `20260429T113942Z` fixer rerun against corrected full branch-tip review target:
+- Fresh `20260429T114445Z` fixer rerun against corrected full branch-tip review target:
   `make scope-check` passed; `./quality-format.sh --check` passed; `./quality-lint.sh` passed; `./quality-test.sh` passed with smoke tests and `130` unit tests; `./typecheck-test.sh` passed; `make ci` passed with scope-check, format, lint, typecheck, smoke tests, and `130` unit tests.
 - `python -m unittest tests.unit.test_commands_catalog` - passed, `48` tests.
 - `python -m pytest tests/unit/test_commands_catalog.py -q` - failed because `pytest` is not installed in the active Python.
