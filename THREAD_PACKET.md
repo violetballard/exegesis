@@ -5,7 +5,7 @@
 - Review target: actual branch tip after this fixer commit
 - Review basis: `f8d860ed9f6299f0169c4f21321ac5f37c949fd3..HEAD`
 - Review range command: `git diff f8d860ed9f6299f0169c4f21321ac5f37c949fd3..HEAD`
-- Fixer scope: satisfy fixer prompt `20260429T102713Z` by regenerating the handoff for the real branch tip and real review range named by the reviewer, stopping treatment of code/test commits as metadata-only, disclosing the shared/integrator-locked CLI parser edit, including commit `50921ba10fee9d5d3a8ef3c7ed34f02e0c710f5d` as a runtime catalog change, validating the live argparse parser choices directly, recomputing branch-tip size accounting, mapping every completed task to canonical demo-path steps, and rerunning the required gates.
+- Fixer scope: satisfy fixer prompt `20260429T103311Z` by regenerating the handoff for the real branch tip and real review range named by the reviewer, stopping treatment of code/test commits as metadata-only, disclosing the shared/integrator-locked CLI parser edit, including commit `50921ba10fee9d5d3a8ef3c7ed34f02e0c710f5d` as a runtime catalog change, validating the live argparse parser choices directly, recomputing branch-tip size accounting, mapping every completed task to canonical demo-path steps, and rerunning the required gates.
 
 ## Traceability Correction
 
@@ -21,7 +21,7 @@ The review target is the actual `codex/feat-commands` branch tip after this fixe
 
 1. Bound the real argparse top-level command surface in `src/qual/cli.py` to `command_cli_lookup_table()` and exposed raw `command_parser_tokens()`, so accepted parser tokens consume and report the same source as the command catalog.
    Canonical demo-path steps advanced: `open project/document` through `bootstrap`; `retrieve material` through `context-basket`; `preview/apply/reject patch` through `diff-preview` and `diff`; `continue working` through `terminal`.
-2. Added live parser-surface parity checks to `command_cli_contract()` that compare raw argparse choices, canonical parser projection, catalog CLI tokens, and the lookup table, so same-canonical parser-token drift is rejected. This fixer pass also makes `src/qual/cli.py` locate the top-level argparse action by `dest="command"` before exposing parser tokens.
+2. Added live parser-surface parity checks to `command_cli_contract()` that call the real `src.qual.cli._build_parser()` path through `command_parser_tokens()` and `command_parser_lookup_table()`, then compare raw argparse choices, canonical parser projection, catalog CLI tokens, and the lookup table. Same-canonical parser-token drift is rejected even when the canonical command names still match. This fixer pass also makes `src/qual/cli.py` locate the top-level argparse action by `dest="command"` before exposing parser tokens.
    Canonical demo-path steps advanced: `open project/document`, `retrieve material`, `preview/apply/reject patch`, and `continue working`, by preventing the CLI fallback command names for those steps from drifting away from the catalog.
 3. Added and exported the MVP smoke-contract API: `CommandSmokeStep`, `CommandSmokeContract`, `command_mvp_smoke_contract()`, `command_mvp_smoke_commands()`, `command_mvp_smoke_argv()`, and `command_mvp_smoke_lookup_table()` in `src/qual/commands/catalog.py` and `src/qual/commands/__init__.py`.
    This includes the `50921ba10fee9d5d3a8ef3c7ed34f02e0c710f5d` runtime validation change in `src/qual/commands/catalog.py`, which rejects smoke steps whose argv no longer begins with the declared command.
@@ -36,7 +36,22 @@ This is a high-risk handoff because it changes command surface validation and in
 - Task budget: `4` completed tasks of `4` high-risk tasks allowed.
 - Time budget: original high-risk target `30m`; this fixer pass is documentation and gate-rerun work.
 - High-risk file budget: `6` files changed in the actual review range, within the `<=8` high-risk file limit.
-- High-risk net LOC budget: exceeded in the actual review range. Current branch-tip accounting for `f8d860ed9..HEAD` is `2038 insertions(+), 109 deletions(-)` before this metadata-only fixer packet refresh; the required gate rerun will report the final committed SHA. This is explicitly disclosed for reviewer/integrator handling instead of being presented as a narrow catalog-only slice.
+- High-risk net LOC budget: exceeded in the actual review range. Current branch-tip accounting for `f8d860ed9..HEAD` including this fixer packet refresh is `2055 insertions(+), 109 deletions(-)`. This is explicitly disclosed for reviewer/integrator handling instead of being presented as a narrow catalog-only slice.
+- Current `git diff --stat f8d860ed9..HEAD` evidence including this fixer packet refresh:
+  - `THREAD.md`: `20` lines changed
+  - `THREAD_PACKET.md`: `172` lines changed
+  - `src/qual/cli.py`: `118` lines changed
+  - `src/qual/commands/__init__.py`: `12` lines changed
+  - `src/qual/commands/catalog.py`: `320` lines changed
+  - `tests/unit/test_commands_catalog.py`: `1522` lines changed
+  - Total: `6 files changed, 2055 insertions(+), 109 deletions(-)`
+- Current `git diff --numstat f8d860ed9..HEAD` evidence including this fixer packet refresh:
+  - `THREAD.md`: `18` insertions, `2` deletions
+  - `THREAD_PACKET.md`: `116` insertions, `56` deletions
+  - `src/qual/cli.py`: `84` insertions, `34` deletions
+  - `src/qual/commands/__init__.py`: `12` insertions, `0` deletions
+  - `src/qual/commands/catalog.py`: `304` insertions, `16` deletions
+  - `tests/unit/test_commands_catalog.py`: `1521` insertions, `1` deletion
 - Size-budget disposition: this handoff is not within the high-risk net LOC budget. Re-review must either explicitly accept the over-budget branch-tip range as an exception or send the lane back for an integrator-directed split; this packet does not claim pre-existing acceptance.
 - Shared-by-approval file: `src/qual/cli.py`.
 - Integrator-locked file: `src/qual/cli.py`.
@@ -72,6 +87,7 @@ Classification:
 ## Regression Coverage
 
 - `test_actual_argparse_surface_matches_the_command_contract` verifies the live argparse parser surface matches the command catalog.
+- `test_actual_argparse_surface_rebuilds_from_catalog_tokens` points at the real argparse construction path by patching catalog tokens and proving `src.qual.cli._build_parser()` rebuilds top-level parser choices from the catalog lookup table.
 - `test_command_cli_contract_rejects_actual_parser_surface_mismatch`, `test_command_cli_contract_rejects_real_argparse_choice_drift`, `test_command_cli_contract_rejects_mutated_real_argparse_choices`, and `test_command_cli_contract_rejects_actual_add_parser_token_drift` verify same-canonical parser drift, removed tokens, substituted tokens, added aliases, reordered parser choices, direct mutation of the actual argparse choices map, and a real top-level `add_parser()` token rewrite are rejected.
 - `test_public_mvp_smoke_exports_track_the_demo_path` verifies the public `src.qual.commands` exports for the smoke-contract API and locks the MVP smoke argv for `project-open`, `retrieval`, `patch-review`, and `export-handoff`.
 
