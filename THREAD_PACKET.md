@@ -2,10 +2,10 @@
 
 - Lane: `feat-commands`
 - Branch: `codex/feat-commands`
-- Commit: branch tip after fixer prompt `20260429T041242Z`
+- Commit: branch tip after fixer prompt `20260429T041540Z`
 - Review basis: branch tip after this fixer commit, not `f8d860ed9f6299f0169c4f21321ac5f37c949fd3` alone.
 - Prior implementation anchor: `f8d860ed9f6299f0169c4f21321ac5f37c949fd3`
-- Packet refresh role: reviewer-fix handoff correction after prompt `20260429T041242Z`
+- Packet refresh role: reviewer-fix handoff correction after prompt `20260429T041540Z`
 
 ## Packet Traceability Note
 
@@ -15,6 +15,7 @@
 - Fixer prompt `20260429T040701Z` requested the reviewer-required fixes again with emphasis on full parser-surface drift rejection, regression coverage for extra/missing/substituted/ordered same-canonical drift, exact review-basis accounting, and complete metadata file listing.
 - Fixer prompt `20260429T040923Z` requested the same reviewer-required fixes against the current branch tip and requires a new commit with refreshed gate evidence.
 - Fixer prompt `20260429T041242Z` requested the same reviewer-required fixes against the current branch tip and requires a new commit with refreshed gate evidence.
+- Fixer prompt `20260429T041540Z` requested the same reviewer-required fixes against the current branch tip and requires a new commit with refreshed gate evidence.
 - The reviewable branch-tip implementation is narrowed to the command-catalog slice:
   - `src/qual/commands/catalog.py`
   - `tests/unit/test_commands_catalog.py`
@@ -23,7 +24,7 @@
 
 ## Branch-Tip Review Basis
 
-- Review target: branch tip after fixer prompt `20260429T041242Z`.
+- Review target: branch tip after fixer prompt `20260429T041540Z`.
 - Prior implementation anchor: `f8d860ed9f6299f0169c4f21321ac5f37c949fd3`.
 - Review range: `f8d860ed9f6299f0169c4f21321ac5f37c949fd3..HEAD`.
 - Matching changed-file scope:
@@ -183,6 +184,15 @@
 1. Confirmed the branch-tip `command_cli_contract()` validates accepted parser tokens, lookup-table order, grouped canonical surface, declared CLI surface, and canonical command order before returning `CommandCliContract`.
 2. Added an explicitly named regression for declared missing accepted-alias drift and preserved coverage for extra known aliases, removed tokens, substituted aliases, parser token ordering drift, lookup-table ordering drift, and declared-surface drift.
 3. Refreshed `THREAD.md` and this packet so the reviewer can evaluate the current branch tip after prompt `20260429T041242Z`.
+4. Retained complete branch-tip accounting: implementation files are `src/qual/commands/catalog.py` and `tests/unit/test_commands_catalog.py`; metadata-only files are `THREAD.md` and `THREAD_PACKET.md`.
+5. Retained the canonical demo-path mapping and concrete-blocker statement: the CLI-first parser surface for project open, retrieval/basket, patch review, and export handoff now fails loudly if it drifts before Textual is enabled.
+6. Reran all required gates after this refresh and recorded the outcomes below.
+
+## Required Fixes Addressed From Fixer Prompt `20260429T041540Z`
+
+1. Confirmed the branch-tip `command_cli_contract()` validates accepted parser tokens, lookup-table order, grouped canonical surface, declared CLI surface, and canonical command order before returning `CommandCliContract`.
+2. Confirmed focused regression coverage remains in `tests/unit/test_commands_catalog.py` for extra same-canonical aliases, missing expected aliases, substituted aliases, parser token ordering drift, lookup-table substitutions that preserve the canonical-name set, lookup-table ordering drift, and declared-surface drift.
+3. Refreshed `THREAD.md` and this packet so the reviewer can evaluate the current branch tip after prompt `20260429T041540Z`.
 4. Retained complete branch-tip accounting: implementation files are `src/qual/commands/catalog.py` and `tests/unit/test_commands_catalog.py`; metadata-only files are `THREAD.md` and `THREAD_PACKET.md`.
 5. Retained the canonical demo-path mapping and concrete-blocker statement: the CLI-first parser surface for project open, retrieval/basket, patch review, and export handoff now fails loudly if it drifts before Textual is enabled.
 6. Reran all required gates after this refresh and recorded the outcomes below.
