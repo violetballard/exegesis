@@ -2,15 +2,15 @@
 
 - Lane: `feat-commands`
 - Branch: `codex/feat-commands`
-- Commit: `f8d860ed9f6299f0169c4f21321ac5f37c949fd3`
-- Packet refresh commit: this metadata-only fixer commit
-- Packet refresh role: metadata-only reviewer-fix finalization for reviewer packet `20260429T010138Z`
+- Commit / review basis: current branch tip after this reviewer-fix commit.
+- Previous implementation anchor: `f8d860ed9f6299f0169c4f21321ac5f37c949fd3`
+- Reviewer packet addressed: `20260429T010426Z`
 
 ## Packet Traceability Note
 
-- Review the command-catalog implementation at `f8d860ed9f6299f0169c4f21321ac5f37c949fd3`.
-- Later packet-refresh commits are metadata-only for this review unless they modify `src/qual/commands/catalog.py` or `tests/unit/test_commands_catalog.py`.
-- This fixer pass does not change command implementation or tests.
+- Review the actual `codex/feat-commands` branch tip. Do not treat commits after `f8d860ed9f6299f0169c4f21321ac5f37c949fd3` as metadata-only.
+- The branch-tip implementation includes command-catalog code and test changes after `f8d860e`.
+- This fixer pass removes the prior `scripts/scope-check.sh` scope-policy edit so no gate-policy file remains part of the net review diff.
 
 ## Current Program Focus
 
@@ -53,32 +53,43 @@
 
 ## Scope Completed
 
-- Hardened `command_cli_contract()` in `src/qual/commands/catalog.py` so it compares CLI canonical names against `command_names()` and raises `ValueError` if the parser surface drifts from the catalog.
-- Kept the returned contract aligned with the canonical command order by reusing the canonical names tuple instead of rebuilding a divergent list.
-- Added focused regression coverage in `tests/unit/test_commands_catalog.py` for canonical-order alignment and drift rejection.
-- Reissued the handoff packet as a command-catalog-only slice so the review scope matches the claimed implementation files and approval basis.
+- Hardened `command_cli_contract()` in `src/qual/commands/catalog.py` so it validates the full parser-visible command surface against the canonical CLI surface.
+- Preserved canonical command ordering by keeping CLI canonical names aligned with `command_names()`.
+- Rejected parser drift for added aliases, removed aliases, same-canonical substitutions, token reordering, lookup-table shape drift, lookup-table order drift, and declared-surface drift.
+- Added focused regression coverage in `tests/unit/test_commands_catalog.py` for accepted-alias drift such as `open` for `bootstrap` and `diff_preview` for `diff-preview`.
+- Reconciled the handoff packet so the review basis is the actual branch tip and the file/accounting list matches the branch-tip implementation.
 
 ## Canonical Demo-Path Step Advanced
 
 - This makes the open/retrieve/basket/patch-review CLI smoke path more real by keeping the parser-visible command contract deterministic and failing fast when parser tokens drift from the command catalog.
 
-## Kickoff Budget / Limits Compliance
+## Kickoff Budget / Limits Accounting
 
-- High-risk shared-file handoff: stayed within the 4-task cap, 30-minute budget, and lane size limits.
-- The reviewed implementation slice stays limited to one owned command file plus one focused approved shared-by-approval test file, so the handoff remains narrow and reviewable.
+- Risk level: `HIGH`, because command-surface contract behavior and shared test coverage are in scope.
+- High-risk task cap: `4`; completed `4` meaningful tasks.
+- Size/file accounting for the actual branch-tip review basis is no longer represented as a metadata-only slice after `f8d860e`; code and tests after that commit are part of review.
+- Net reviewed files after this fixer pass:
+  - `THREAD.md`
+  - `THREAD_PACKET.md`
+  - `src/qual/commands/catalog.py`
+  - `tests/unit/test_commands_catalog.py`
+- Removed from net review diff by this fixer pass:
+  - `scripts/scope-check.sh`
 
 ## Approved Exception Note
 
-- Approved shared-test exception for `tests/unit/test_commands_catalog.py`.
+- Lane-owned implementation edit: `src/qual/commands/catalog.py`.
+- Approved shared-test exception: `tests/unit/test_commands_catalog.py`.
 - Shared-by-approval edits: YES, `tests/unit/test_commands_catalog.py` under approved exception.
 - Integrator-locked edits: NO.
+- Gate-policy edits: NO net change after this fixer pass.
 
 ## Tasks Completed
 
-1. Hardened `command_cli_contract()` to verify canonical-name consistency against `command_names()` and fail fast on parser drift.
-2. Preserved canonical command ordering in the CLI contract by returning the validated canonical tuple directly.
-3. Added regression coverage in `tests/unit/test_commands_catalog.py` for canonical-order alignment and drift rejection.
-4. Regenerated the handoff packet so the branch metadata stays scoped to the command-catalog slice, names the canonical demo-path step advanced, and uses corrected ownership accounting.
+1. Hardened `command_cli_contract()` to verify the parser surface against the canonical CLI surface and reject parser/catalog drift.
+2. Preserved canonical command ordering in the CLI contract by returning canonical names aligned with `command_names()`.
+3. Added regression coverage for added aliases, removed aliases, same-canonical substitutions, token reordering, lookup-table shape/order drift, and declared-surface drift.
+4. Reconciled the branch-tip packet/accounting and removed the unrelated `scripts/scope-check.sh` scope-policy edit from the net diff.
 
 ## Files Changed
 
@@ -92,14 +103,19 @@
 - `THREAD.md`
 - `THREAD_PACKET.md`
 
+### Removed From Net Diff
+
+- `scripts/scope-check.sh`
+
 ## Commands Run + Outcomes
 
+- `python -m pytest tests/unit/test_commands_catalog.py`: BLOCKED, active `/opt/homebrew/opt/python@3.14/bin/python3.14` does not have `pytest`; repo gate scripts below were used as authoritative validation.
 - `make scope-check`: PASS
 - `./quality-format.sh --check`: PASS
 - `./quality-lint.sh`: PASS
 - `./quality-test.sh`: PASS (144 tests)
 - `./typecheck-test.sh`: PASS
-- `make ci`: PASS (includes scope-check, format, lint, compile/typecheck, and quality-test)
+- `make ci`: PASS (scope-check, format, lint, compile/typecheck, and quality-test)
 
 ## Risks / Blockers
 
@@ -114,7 +130,7 @@
 
 ### Scope Completed
 
-- Command-catalog contract validation now keeps CLI canonical names aligned with the canonical command order and rejects parser/catalog drift.
+- Command-catalog contract validation now keeps CLI canonical names aligned with the canonical command order and rejects parser/catalog drift across the full parser-visible CLI surface.
 
 ### Files Changed
 
@@ -146,9 +162,13 @@
 
 - Shared-by-approval edits: YES, `tests/unit/test_commands_catalog.py` under approved exception.
 - Integrator-locked edits: NO.
+- Gate-policy edits: NO net change after this fixer pass.
 
-## Reviewer Packet `20260429T010138Z` Fix Satisfaction
+## Reviewer Packet `20260429T010426Z` Fix Satisfaction
 
-1. Canonical demo-path step advanced: satisfied by stating that this makes the open/retrieve/basket/patch-review CLI smoke path more real through deterministic parser-visible command contract validation.
-2. Ownership accounting: satisfied by distinguishing the approved shared-by-approval test edit from integrator-locked edits.
-3. Reviewed implementation scope: kept fixed to `f8d860ed9f6299f0169c4f21321ac5f37c949fd3`; this fixer pass changes metadata only.
+1. Coherent review packet for actual merge candidate: satisfied by making the current branch tip the only review basis.
+2. Metadata-only misclassification: satisfied by explicitly stating that post-`f8d860e` implementation and test commits are part of review.
+3. Parser-surface drift validation: satisfied by code/tests covering added aliases, removed aliases, same-canonical substitutions, token reordering, and lookup-table shape/order drift.
+4. Same-canonical regression coverage: satisfied by tests for `open`/`bootstrap` and `diff_preview`/`diff-preview` drift.
+5. Ownership/accounting reconciliation: satisfied by listing the approved shared test edit and removing the scope-check policy edit from the net diff.
+6. Required gates: satisfied by rerunning `make scope-check`, `./quality-format.sh --check`, `./quality-lint.sh`, `./quality-test.sh`, `./typecheck-test.sh`, and `make ci` against this reviewer-fix worktree state.
