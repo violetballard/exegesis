@@ -4,7 +4,7 @@ import argparse
 import sys
 from dataclasses import dataclass
 
-from src.qual.commands.canonical import canonical_command
+import src.qual.commands.catalog as command_catalog
 from src.qual.config import validate_project_name
 
 
@@ -33,7 +33,7 @@ def _normalize_argv(argv: list[str] | None) -> list[str]:
     if not raw:
         return ["bootstrap"]
 
-    known = {"bootstrap", "diff-preview", "diff", "context-basket", "terminal"}
+    known = set(command_catalog.command_cli_tokens())
     first = raw[0]
     # Backward compatibility: allow `--project ...` without explicit subcommand.
     if first.startswith("-"):
@@ -43,40 +43,35 @@ def _normalize_argv(argv: list[str] | None) -> list[str]:
     return raw
 
 
-def parse_args(argv: list[str] | None = None) -> CLIArgs:
-    parser = argparse.ArgumentParser(prog="qual-bootstrap")
-    sub = parser.add_subparsers(dest="command")
-
-    p_bootstrap = sub.add_parser("bootstrap", help="Run bootstrap shell")
-    p_bootstrap.add_argument(
+def _add_bootstrap_arguments(parser: argparse.ArgumentParser) -> None:
+    parser.add_argument(
         "--project",
         type=validate_project_name,
         help="Project name to bootstrap under local app data directory.",
     )
 
-    p_diff = sub.add_parser("diff-preview", help="Preview unified diff output")
-    p_diff.add_argument("--original", help="Original text")
-    p_diff.add_argument("--proposed", help="Proposed text")
 
-    p_diff_alias = sub.add_parser("diff", help="Alias for diff-preview")
-    p_diff_alias.add_argument("--original", help="Original text")
-    p_diff_alias.add_argument("--proposed", help="Proposed text")
+def _add_diff_arguments(parser: argparse.ArgumentParser) -> None:
+    parser.add_argument("--original", help="Original text")
+    parser.add_argument("--proposed", help="Proposed text")
 
-    p_basket = sub.add_parser("context-basket", help="Manage context basket items")
-    p_basket_sub = p_basket.add_subparsers(dest="basket_action", required=True)
 
-    p_basket_add = p_basket_sub.add_parser("add", help="Add an item id to basket")
-    p_basket_add.add_argument("item_id", help="Context item id")
+def _add_context_basket_arguments(parser: argparse.ArgumentParser) -> None:
+    basket_sub = parser.add_subparsers(dest="basket_action", required=True)
 
-    p_basket_remove = p_basket_sub.add_parser("remove", help="Remove an item id from basket")
-    p_basket_remove.add_argument("item_id", help="Context item id")
+    basket_add = basket_sub.add_parser("add", help="Add an item id to basket")
+    basket_add.add_argument("item_id", help="Context item id")
 
-    p_basket_sub.add_parser("list", help="List basket item ids")
-    p_basket_sub.add_parser("clear", help="Clear all basket item ids")
+    basket_remove = basket_sub.add_parser("remove", help="Remove an item id from basket")
+    basket_remove.add_argument("item_id", help="Context item id")
 
-    p_terminal = sub.add_parser("terminal", help="Run terminal routing scaffold")
-    p_terminal.add_argument("--message", help="User terminal input")
-    p_terminal.add_argument(
+    basket_sub.add_parser("list", help="List basket item ids")
+    basket_sub.add_parser("clear", help="Clear all basket item ids")
+
+
+def _add_terminal_arguments(parser: argparse.ArgumentParser) -> None:
+    parser.add_argument("--message", help="User terminal input")
+    parser.add_argument(
         "--operation-kind",
         choices=[
             "terminal_chat",
@@ -87,14 +82,36 @@ def parse_args(argv: list[str] | None = None) -> CLIArgs:
         ],
         default="terminal_chat",
     )
-    p_terminal.add_argument("--section-type", help="Optional section type context")
-    p_terminal.add_argument("--user-intent", help="Optional user intent label")
-    p_terminal.add_argument("--input-tokens", type=int, default=120)
-    p_terminal.add_argument("--constraints-count", type=int, default=0)
-    p_terminal.add_argument("--requires-multi-step-tools", action="store_true")
-    p_terminal.add_argument("--sku-gb", type=int, default=128)
-    p_terminal.add_argument("--qwen-available", action="store_true")
-    p_terminal.add_argument("--runtime-supports-qwen", action="store_true")
+    parser.add_argument("--section-type", help="Optional section type context")
+    parser.add_argument("--user-intent", help="Optional user intent label")
+    parser.add_argument("--input-tokens", type=int, default=120)
+    parser.add_argument("--constraints-count", type=int, default=0)
+    parser.add_argument("--requires-multi-step-tools", action="store_true")
+    parser.add_argument("--sku-gb", type=int, default=128)
+    parser.add_argument("--qwen-available", action="store_true")
+    parser.add_argument("--runtime-supports-qwen", action="store_true")
+
+
+def _add_command_arguments(parser: argparse.ArgumentParser, canonical_name: str) -> None:
+    if canonical_name == "bootstrap":
+        _add_bootstrap_arguments(parser)
+    elif canonical_name == "diff-preview":
+        _add_diff_arguments(parser)
+    elif canonical_name == "context-basket":
+        _add_context_basket_arguments(parser)
+    elif canonical_name == "terminal":
+        _add_terminal_arguments(parser)
+    else:
+        raise ValueError(f"Unknown CLI command target: {canonical_name}")
+
+
+def _build_parser() -> argparse.ArgumentParser:
+    parser = argparse.ArgumentParser(prog="qual-bootstrap")
+    sub = parser.add_subparsers(dest="command")
+
+    for token, canonical_name in command_catalog.command_cli_lookup_table():
+        command_parser = sub.add_parser(token, help=_command_help(canonical_name))
+        _add_command_arguments(command_parser, canonical_name)
 
     parser.set_defaults(
         command="bootstrap",
@@ -114,8 +131,33 @@ def parse_args(argv: list[str] | None = None) -> CLIArgs:
         qwen_available=False,
         runtime_supports_qwen=False,
     )
+    return parser
+
+
+def _command_help(canonical_name: str) -> str:
+    if canonical_name == "bootstrap":
+        return "Run bootstrap shell"
+    if canonical_name == "diff-preview":
+        return "Preview unified diff output"
+    if canonical_name == "context-basket":
+        return "Manage context basket items"
+    if canonical_name == "terminal":
+        return "Run terminal routing scaffold"
+    raise ValueError(f"Unknown CLI command target: {canonical_name}")
+
+
+def command_parser_lookup_table() -> tuple[tuple[str, str], ...]:
+    parser = _build_parser()
+    for action in parser._actions:
+        if isinstance(action, argparse._SubParsersAction):
+            return tuple((token, command_catalog.canonical_command(token)) for token in action.choices)
+    raise ValueError("Command CLI parser has no subcommands")
+
+
+def parse_args(argv: list[str] | None = None) -> CLIArgs:
+    parser = _build_parser()
     ns = parser.parse_args(_normalize_argv(argv))
-    command = canonical_command(str(ns.command))
+    command = command_catalog.canonical_command(str(ns.command))
     return CLIArgs(
         command=command,
         project=ns.project,

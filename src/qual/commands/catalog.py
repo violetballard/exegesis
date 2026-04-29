@@ -283,6 +283,12 @@ def _expected_cli_parser_surface() -> tuple[tuple[str, str], ...]:
     return _canonical_cli_lookup_table()
 
 
+def _actual_cli_parser_surface() -> tuple[tuple[str, str], ...]:
+    from src.qual.cli import command_parser_lookup_table
+
+    return command_parser_lookup_table()
+
+
 def _canonical_cli_grouped_surface() -> tuple[tuple[str, tuple[str, ...]], ...]:
     return tuple((canonical_name, tuple(tokens)) for canonical_name, tokens in _CANONICAL_CLI_COMMAND_SURFACE)
 
@@ -344,7 +350,13 @@ def _validate_exact_cli_parser_token_surface(
     lookup_table: tuple[tuple[str, str], ...],
 ) -> None:
     expected_lookup_table = _expected_cli_parser_surface()
+    actual_lookup_table = _actual_cli_parser_surface()
     expected_tokens = tuple(token for token, _ in expected_lookup_table)
+    actual_tokens = tuple(token for token, _ in actual_lookup_table)
+    if actual_lookup_table != expected_lookup_table:
+        raise ValueError("Command CLI parser surface is inconsistent")
+    if actual_tokens != expected_tokens:
+        raise ValueError("Command CLI parser surface is inconsistent")
     if entrypoints != expected_tokens:
         raise ValueError("Command CLI parser surface is inconsistent")
     if tokens != expected_tokens:

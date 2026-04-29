@@ -3,6 +3,7 @@ from __future__ import annotations
 import unittest
 from unittest.mock import patch
 
+import src.qual.cli as cli
 import src.qual.commands.catalog as command_catalog
 from src.qual.commands import (
     CommandSpec,
@@ -118,6 +119,13 @@ class CommandCatalogTests(unittest.TestCase):
             ),
         )
 
+    def test_actual_argparse_surface_matches_the_command_contract(self) -> None:
+        self.assertEqual(cli.command_parser_lookup_table(), command_cli_lookup_table())
+        self.assertEqual(
+            tuple(token for token, _ in cli.command_parser_lookup_table()),
+            command_cli_tokens(),
+        )
+
     def test_command_cli_contract_matches_the_catalog_order(self) -> None:
         contract = command_cli_contract()
         self.assertEqual(contract.tokens, command_cli_tokens())
@@ -136,6 +144,67 @@ class CommandCatalogTests(unittest.TestCase):
             tuple((canonical_name, tokens) for canonical_name, tokens in command_catalog._CLI_COMMAND_SURFACE),
             command_catalog._canonical_cli_grouped_surface(),
         )
+        self.assertEqual(cli.command_parser_lookup_table(), command_catalog._canonical_cli_lookup_table())
+
+    def test_command_cli_contract_rejects_actual_parser_surface_mismatch(self) -> None:
+        drift_cases = (
+            (
+                "open replaces bootstrap while preserving canonical target",
+                (
+                    ("open", "bootstrap"),
+                    ("diff-preview", "diff-preview"),
+                    ("diff", "diff-preview"),
+                    ("context-basket", "context-basket"),
+                    ("terminal", "terminal"),
+                ),
+            ),
+            (
+                "diff alias removed while diff-preview remains",
+                (
+                    ("bootstrap", "bootstrap"),
+                    ("diff-preview", "diff-preview"),
+                    ("context-basket", "context-basket"),
+                    ("terminal", "terminal"),
+                ),
+            ),
+            (
+                "same-canonical diff alias substituted",
+                (
+                    ("bootstrap", "bootstrap"),
+                    ("diff-preview", "diff-preview"),
+                    ("diff_preview", "diff-preview"),
+                    ("context-basket", "context-basket"),
+                    ("terminal", "terminal"),
+                ),
+            ),
+            (
+                "accepted parser tokens reordered",
+                (
+                    ("bootstrap", "bootstrap"),
+                    ("diff", "diff-preview"),
+                    ("diff-preview", "diff-preview"),
+                    ("context-basket", "context-basket"),
+                    ("terminal", "terminal"),
+                ),
+            ),
+        )
+        for label, parser_surface in drift_cases:
+            with self.subTest(label=label):
+                self._clear_cli_caches()
+                with patch.object(cli, "command_parser_lookup_table", return_value=parser_surface):
+                    with self.assertRaisesRegex(ValueError, "Command CLI parser surface is inconsistent"):
+                        command_catalog.command_cli_contract()
+
+    def test_actual_argparse_surface_rebuilds_from_catalog_tokens(self) -> None:
+        self._clear_cli_caches()
+        parser_surface = (
+            ("bootstrap", "bootstrap"),
+            ("diff-preview", "diff-preview"),
+            ("context-basket", "context-basket"),
+            ("terminal", "terminal"),
+        )
+        with patch.object(command_catalog, "command_cli_lookup_table", return_value=parser_surface):
+            self.assertEqual(cli.command_parser_lookup_table(), parser_surface)
 
     def test_command_cli_contract_rejects_catalog_drift(self) -> None:
         self._clear_cli_caches()
