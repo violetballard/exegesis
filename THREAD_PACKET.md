@@ -2,9 +2,9 @@
 
 - Lane: `feat-commands`
 - Branch: `codex/feat-commands`
-- Review basis: actual `codex/feat-commands` branch tip after the `20260429T025119Z` reviewer-fix pass.
+- Review basis: actual `codex/feat-commands` branch tip after the `20260429T025339Z` reviewer approval pass.
 - Previous implementation anchor: `f8d860ed9f6299f0169c4f21321ac5f37c949fd3`
-- Reviewer packet addressed: `20260429T025119Z`
+- Reviewer packet addressed: `20260429T025339Z`
 - Final verifier tip: metadata-only handoff refresh for the current reviewer packet so the repo's recent-HEAD scope gate reviews lane-owned docs while the test-bearing reviewer fix remains in branch history.
 
 ## Packet Traceability Note
@@ -102,6 +102,11 @@
 4. Demo-path mapping: every completed task names the canonical demo-path command steps it protects or advances.
 5. Ownership fields: approved shared-by-approval test edits are separated from integrator-locked edits, and integrator-locked edits are `NO`.
 6. Required gates: final results are recorded below after rerun on this branch-tip state for the current reviewer packet.
+
+## Required Fixes Addressed From Reviewer Packet `20260429T025339Z`
+
+- No implementation fixes were required. The reviewer verdict was `APPROVED`, with no findings, no missing handoff fields, and no required fixes before re-review.
+- This metadata-only pass records that approval packet as the current reviewer-fix basis and reruns the required gates below for the final branch tip.
 
 ## Commands Run + Outcomes
 
