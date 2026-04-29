@@ -620,9 +620,10 @@ class RetrievalResult:
                 "citation_ref": citation_ref,
                 "provenance": provenance,
             }
-            context_ref["context_ref_fingerprint"] = RetrievalService._stable_fingerprint(
-                context_ref
-            )
+            context_ref_fingerprint = RetrievalService._stable_fingerprint(context_ref)
+            context_ref["context_ref_fingerprint"] = context_ref_fingerprint
+            citation_ref["context_ref_fingerprint"] = context_ref_fingerprint
+            provenance["context_ref_fingerprint"] = context_ref_fingerprint
             refs.append(context_ref)
         return refs
 
