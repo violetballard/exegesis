@@ -108,12 +108,12 @@ tests/unit/test_unified_retrieval.py | 38 ++++++++++++++++++++++++------------
 
 ## Commands Run And Outcomes
 
-- `make scope-check`: rerun required on the final fixer commit.
-- `./quality-format.sh --check`: rerun required on the final fixer commit.
-- `./quality-lint.sh`: rerun required on the final fixer commit.
-- `./quality-test.sh`: rerun required on the final fixer commit.
-- `./typecheck-test.sh`: rerun required on the final fixer commit.
-- `make ci`: rerun required on the final fixer commit.
+- `make scope-check`: PASS
+- `./quality-format.sh --check`: PASS
+- `./quality-lint.sh`: PASS
+- `./quality-test.sh`: PASS (`124` unit tests plus smoke)
+- `./typecheck-test.sh`: PASS
+- `make ci`: PASS
 
 ## Roadmap Items Affected
 
