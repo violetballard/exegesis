@@ -2,15 +2,15 @@
 
 - Branch/lane: `codex/feat-retrieval-fts` / `feat-retrieval-fts`
 - Merge candidate: current branch tip after this metadata-only fixer commit; final HEAD SHA is reported in the fixer response.
-- Pre-fixer branch-tip SHA: `cd9b8fce5d91468941da0e3fc05c2fbbaf5162d83`
-- Reviewed implementation head: `cd9b8fce5d91468941da0e3fc05c2fbbaf5162d83`
-- Reviewed implementation range: `378cf9a74a3658058079a32f186fcd254c4a4034..cd9b8fce5d91468941da0e3fc05c2fbbaf5162d83`
+- Pre-fixer branch-tip SHA: `cd9b8fce5102e04dc41a62a1d824251eb8e7042b`
+- Reviewed implementation head: `cd9b8fce5102e04dc41a62a1d824251eb8e7042b`
+- Reviewed implementation range: `378cf9a74a3658058079a32f186fcd254c4a4034..cd9b8fce5102e04dc41a62a1d824251eb8e7042b`
 - Handoff classification: high-risk/shared because the range includes approved shared regression coverage in `tests/unit/test_unified_retrieval.py`.
 - Shared-file approval provenance: reviewer packet `fixer__feat-retrieval-fts__20260429T202122Z.prompt.txt`, finding 2, identifies `tests/unit/test_unified_retrieval.py` as the approved shared surface for `feat-retrieval-fts`.
 
 ## Required Fixes Addressed
 
-1. The full branch-tip implementation through `cd9b8fce5d91468941da0e3fc05c2fbbaf5162d83` is the merge candidate; the handoff no longer narrows review to `adfa8cdadd43747ffbcb612e4151e262b13e52ca`.
+1. The full branch-tip implementation through `cd9b8fce5102e04dc41a62a1d824251eb8e7042b` is the merge candidate; the handoff no longer narrows review to `adfa8cdadd43747ffbcb612e4151e262b13e52ca`.
 2. `Reviewed implementation range`, `Files changed`, `Tasks completed`, and size/budget accounting now match the actual runtime/test implementation diff.
 3. Post-`adfa8cda` retrieval changes remain in scope and are mapped below to Milestone 3, retrieval-first context handling, and the canonical demo path.
 4. Required gates are re-run against the final merge-candidate working tree and recorded below.
@@ -79,4 +79,4 @@ Current metadata-only fixer files: `THREAD_PACKET.md`.
 
 - No implementation blockers are known.
 - The tracked mirror packet files under `.codex/kickoff_packets/feat-retrieval-fts.md` and `.codex/lane_meta/feat-retrieval-fts.json` still contain stale pre-fixer metadata, but this sandbox rejects writes to those paths with `Operation not permitted`; `THREAD_PACKET.md` is the corrected handoff packet for re-review.
-- Re-review should use the full implementation range through `cd9b8fce5d91468941da0e3fc05c2fbbaf5162d83`, plus this metadata-only fixer commit at final HEAD.
+- Re-review should use the full implementation range through `cd9b8fce5102e04dc41a62a1d824251eb8e7042b`, plus this metadata-only fixer commit at final HEAD.
