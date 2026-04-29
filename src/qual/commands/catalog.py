@@ -141,6 +141,43 @@ class CommandSmokeContract:
     flow_surface_tokens: tuple[tuple[str, ...], ...] = ()
 
 
+@dataclass(frozen=True)
+class CommandDemoPathStep:
+    flow_step: str
+    name: str
+    cli_token: str
+    argv: tuple[str, ...]
+    command_line: str
+    operator_checkpoint: str
+    engine_handoff: str
+    description: str
+
+
+@dataclass(frozen=True)
+class CommandDemoPathContract:
+    steps: tuple[CommandDemoPathStep, ...]
+    flow_steps: tuple[str, ...]
+    names: tuple[str, ...]
+    command_tokens: tuple[str, ...]
+    command_lines: tuple[str, ...]
+    engine_handoffs: tuple[str, ...]
+
+
+DEMO_PATH_ENGINE_HANDOFFS: dict[str, str] = {
+    "project-open": "engine project bootstrap/open",
+    "retrieval": "engine retrieval context selection",
+    "patch-review": "engine patch preview and apply/reject decision",
+    "export-handoff": "engine export handoff routing",
+}
+
+DEMO_PATH_OPERATOR_CHECKPOINTS: dict[str, str] = {
+    "project-open": "open project/document",
+    "retrieval": "retrieve relevant material",
+    "patch-review": "preview and accept or reject patch",
+    "export-handoff": "persist and continue through export handoff",
+}
+
+
 def _normalize_token(value: str) -> str:
     normalized = re.sub(r"[-_\s]+", "-", value.strip().casefold())
     return normalized.strip("-")
@@ -1024,6 +1061,24 @@ def _validate_command_smoke_argv(steps: tuple[CommandSmokeStep, ...]) -> None:
             raise ValueError("Command smoke argv does not parse to the expected basket action")
 
 
+def _validate_command_demo_path_contract(contract: CommandDemoPathContract) -> None:
+    smoke_contract = command_mvp_smoke_contract()
+    if contract.flow_steps != tuple(step.flow_step for step in smoke_contract.steps):
+        raise ValueError("Command demo path flow steps are inconsistent")
+    if contract.names != tuple(step.name for step in smoke_contract.steps):
+        raise ValueError("Command demo path names are inconsistent")
+    if contract.command_tokens != smoke_contract.command_tokens:
+        raise ValueError("Command demo path tokens are inconsistent")
+    if contract.command_lines != smoke_contract.command_lines:
+        raise ValueError("Command demo path command lines are inconsistent")
+    expected_handoffs = tuple(
+        DEMO_PATH_ENGINE_HANDOFFS[step.flow_step]
+        for step in smoke_contract.steps
+    )
+    if contract.engine_handoffs != expected_handoffs:
+        raise ValueError("Command demo path engine handoffs are inconsistent")
+
+
 @lru_cache(maxsize=None)
 def command_flow_contract(
     specs: tuple[CommandSpec, ...] = COMMAND_SPECS,
@@ -1232,6 +1287,46 @@ def command_mvp_smoke_lookup_table() -> tuple[tuple[str, str], ...]:
 
 def command_mvp_smoke_route_summary() -> tuple[tuple[str, str, tuple[str, ...]], ...]:
     return command_mvp_smoke_contract().route_summary
+
+
+@lru_cache(maxsize=None)
+def command_mvp_demo_path_contract() -> CommandDemoPathContract:
+    smoke_contract = command_mvp_smoke_contract()
+    steps = tuple(
+        CommandDemoPathStep(
+            flow_step=step.flow_step,
+            name=step.name,
+            cli_token=step.cli_token,
+            argv=step.argv,
+            command_line=step.command_line,
+            operator_checkpoint=DEMO_PATH_OPERATOR_CHECKPOINTS[step.flow_step],
+            engine_handoff=DEMO_PATH_ENGINE_HANDOFFS[step.flow_step],
+            description=step.description,
+        )
+        for step in smoke_contract.steps
+    )
+    contract = CommandDemoPathContract(
+        steps=steps,
+        flow_steps=tuple(step.flow_step for step in steps),
+        names=tuple(step.name for step in steps),
+        command_tokens=tuple(step.cli_token for step in steps),
+        command_lines=tuple(step.command_line for step in steps),
+        engine_handoffs=tuple(step.engine_handoff for step in steps),
+    )
+    _validate_command_demo_path_contract(contract)
+    return contract
+
+
+def command_mvp_demo_path_steps() -> tuple[CommandDemoPathStep, ...]:
+    return command_mvp_demo_path_contract().steps
+
+
+def command_mvp_demo_path_command_lines() -> tuple[str, ...]:
+    return command_mvp_demo_path_contract().command_lines
+
+
+def command_mvp_demo_path_engine_handoffs() -> tuple[str, ...]:
+    return command_mvp_demo_path_contract().engine_handoffs
 
 
 @lru_cache(maxsize=None)
