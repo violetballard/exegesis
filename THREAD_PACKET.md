@@ -1,13 +1,14 @@
 ## Thread Handoff Packet
 
 - Branch/lane: `codex/feat-retrieval-fts` / `feat-retrieval-fts`
-- Packet purpose: branch-tip retrieval feature handoff for FTS-first retrieval and auditable basket promotion references.
+- Packet purpose: branch-tip retrieval feature handoff for FTS-first retrieval and auditable basket promotion references. This packet is the writable source of truth for re-review because `.codex` packet mirrors could not be edited by the sandbox in this fixer pass.
 - Merge candidate: the current branch tip after this fixer commit.
 - Authoritative merge-review range: `378cf9a74a3658058079a32f186fcd254c4a4034..HEAD` on `codex/feat-retrieval-fts`.
-- Branch-tip correction: this packet includes `6d3ca5d75d517b508fd6dfb954ac83bcc8c85591` and the final packet refresh commit in the reviewed implementation range. The handoff no longer claims that the candidate ends at `adfa8cdadd43747ffbcb612e4151e262b13e52ca`.
+- Branch-tip correction: this packet includes `6d3ca5d75d517b508fd6dfb954ac83bcc8c85591`, `3f09ca2f4132eff22bd3faa0e8a3e1f5411482f5`, and packet-refresh commits through `04ad10a5d` in the reviewed branch-tip range. The handoff no longer claims that the candidate ends at `adfa8cdadd43747ffbcb612e4151e262b13e52ca`, and it does not label implementation commits as metadata-only.
 - Code-bearing branch-tip commits in scope:
   - `adfa8cdadd43747ffbcb612e4151e262b13e52ca`: FTS-only excerpt lookup and deterministic retrieval payload behavior.
   - `6d3ca5d75d517b508fd6dfb954ac83bcc8c85591`: stable document and excerpt references for basket promotion in retrieval evidence.
+  - `3f09ca2f4132eff22bd3faa0e8a3e1f5411482f5`: exposes normalized basket-promotion refs through retrieval source/context/downstream payload reconstruction.
   - final fixer commit: packet traceability correction for the actual branch-tip candidate.
 - Final proposed merge HEAD SHA: reported in the final fixer response after commit creation.
 
@@ -51,7 +52,7 @@ The canonical demo path advanced by this range is:
 - `src/qual/retrieval/service.py`
 - `tests/unit/test_unified_retrieval.py`
 
-Historical branch-tip packet metadata also references `.codex/kickoff_packets/feat-retrieval-fts.md` and `.codex/lane_meta/feat-retrieval-fts.json`, but this sandbox cannot write inside `.codex` (`Operation not permitted`). This handoff packet is therefore the updated review source for the actual merge candidate.
+Historical branch-tip packet metadata also references `.codex/kickoff_packets/feat-retrieval-fts.md` and `.codex/lane_meta/feat-retrieval-fts.json`, but this sandbox rejected writes to `.codex` during this fixer pass (`writing outside of the project; rejected by user approval settings`). Those mirrors are stale and should not override this `THREAD_PACKET.md`; this handoff packet is the updated review source for the actual merge candidate.
 
 No integrator-owned `README.md`, `INTEGRATION.md`, `src/main.py`, `src/qual/cli.py`, or `src/qual/app.py` changes are included.
 
