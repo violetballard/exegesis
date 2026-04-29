@@ -360,6 +360,7 @@ class RetrievalResult:
             retrieval_citation_bundle=citation_bundle,
             retrieval_doc_bundle=retrieval_doc_bundle,
             retrieval_excerpt_bundle=retrieval_excerpt_bundle,
+            retrieval_context_refs=self._context_ref_snapshots(),
             retrieval_summary=retrieval_summary,
             doc_hits=[doc_hit.as_dict() for doc_hit in self.doc_hits],
             excerpt_hits=[hit.as_dict() for hit in self.hits],
@@ -486,6 +487,7 @@ class RetrievalResult:
             "retrieval_provenance": copy.deepcopy(downstream_payload["retrieval_provenance"]),
             "retrieval_source_bundle": copy.deepcopy(downstream_payload["retrieval_source_bundle"]),
             "retrieval_evidence": copy.deepcopy(downstream_payload["retrieval_evidence"]),
+            "retrieval_context_refs": copy.deepcopy(downstream_payload["retrieval_context_refs"]),
         }
 
     def _query_snapshot(self) -> dict[str, object]:
@@ -552,6 +554,38 @@ class RetrievalResult:
             }
             for hit in self.hits
             if hit.excerpt_id is not None
+        ]
+
+    def _context_ref_snapshots(self) -> list[dict[str, object]]:
+        doc_fingerprints = {
+            doc_hit.doc_id: doc_hit.provenance.get("doc_fingerprint")
+            for doc_hit in self.doc_hits
+        }
+        return [
+            {
+                "context_ref_id": f"fts:{hit.provenance.get('excerpt_fingerprint')}",
+                "ref_type": "retrieval_excerpt",
+                "doc_id": hit.doc_id,
+                "doc_type": hit.provenance.get("doc_type"),
+                "title_hint": hit.title_hint,
+                "source_hash": hit.provenance.get("source_hash"),
+                "doc_fingerprint": doc_fingerprints.get(hit.doc_id),
+                "doc_identity_fingerprint": hit.provenance.get("doc_identity_fingerprint"),
+                "excerpt_id": hit.excerpt_id,
+                "excerpt_text": hit.excerpt_text,
+                "excerpt_fingerprint": hit.provenance.get("excerpt_fingerprint"),
+                "excerpt_text_hash": hit.provenance.get("excerpt_text_hash") or hit.provenance.get("hash"),
+                "span": copy.deepcopy(hit.provenance.get("span")),
+                "rank": hit.provenance.get("rank"),
+                "score": hit.score,
+                "source_strategy": hit.source_strategy,
+                "retrieval_backend": hit.provenance.get("retrieval_backend"),
+                "retrieval_mode": hit.provenance.get("retrieval_mode"),
+                "query_fingerprint": self.diagnostics["query_fingerprint"],
+                "result_fingerprint": self.result_fingerprint,
+            }
+            for hit in self.hits
+            if hit.excerpt_id is not None and hit.provenance.get("excerpt_fingerprint")
         ]
 
     def _retrieval_summary_snapshot(
@@ -696,6 +730,7 @@ class RetrievalResult:
             "retrieval_manifest": copy.deepcopy(self.diagnostics["retrieval_manifest"]),
             "retrieval_provenance": copy.deepcopy(retrieval_provenance),
             "retrieval_evidence": copy.deepcopy(self.evidence),
+            "retrieval_context_refs": self._context_ref_snapshots(),
         }
 
     def _retrieval_source_bundle_snapshot(
@@ -731,6 +766,7 @@ class RetrievalResult:
             "retrieval_summary": retrieval_summary_snapshot,
             "retrieval_doc_bundle": copy.deepcopy(self.retrieval_doc_bundle()),
             "retrieval_excerpt_bundle": copy.deepcopy(self.retrieval_excerpt_bundle()),
+            "retrieval_context_refs": self._context_ref_snapshots(),
             "doc_hits": [doc_hit.as_dict() for doc_hit in self.doc_hits],
             "excerpt_hits": [hit.as_dict() for hit in self.hits],
             "retrieval_manifest": copy.deepcopy(self.diagnostics["retrieval_manifest"]),
