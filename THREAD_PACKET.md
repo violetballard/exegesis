@@ -2,10 +2,10 @@
 
 - Lane: `feat-commands`
 - Branch: `codex/feat-commands`
-- Review basis: actual `codex/feat-commands` branch tip after the `20260429T030532Z` reviewer-fix pass.
+- Review basis: actual `codex/feat-commands` branch tip after the `20260429T030847Z` reviewer-fix pass.
 - Previous implementation anchor: `f8d860ed9f6299f0169c4f21321ac5f37c949fd3`
-- Reviewer packet addressed: `20260429T030532Z`
-- Final verifier tip: reviewer-fix commit that restores the scope policy to the previous implementation anchor state, restamps this handoff metadata, reruns required gates, and uses the final branch tip as the only review basis.
+- Reviewer packet addressed: `20260429T030847Z`
+- Final verifier tip: the branch-tip reviewer-fix commit containing this packet restamp, with the actual `codex/feat-commands` branch tip as the only review basis.
 
 ## Packet Traceability Note
 
@@ -144,6 +144,15 @@
 3. Truthful review basis: this handoff uses the actual final `codex/feat-commands` branch tip and lists `scripts/scope-check.sh` as a cleanup-only gate-policy file instead of treating it as metadata.
 4. Demo-path mapping: every completed task names the canonical demo-path command steps it protects or advances.
 5. Required gates: final results are recorded below after rerun on the same final branch-tip review basis named in this packet.
+
+## Required Fixes Addressed From Reviewer Packet `20260429T030847Z`
+
+1. One truthful review basis: this packet uses the actual final `codex/feat-commands` branch tip after this fixer pass, not the narrow `f8d860ed9f6299f0169c4f21321ac5f37c949fd3` implementation slice.
+2. False metadata-only claim removed: post-anchor implementation and test changes are included in the branch-tip review basis, and only `THREAD.md` / `THREAD_PACKET.md` are described as metadata-only handoff files.
+3. Complete changed-file accounting: the effective review diff from `f8d860ed9f6299f0169c4f21321ac5f37c949fd3` contains `THREAD.md`, `THREAD_PACKET.md`, `scripts/scope-check.sh`, `src/qual/commands/catalog.py`, and `tests/unit/test_commands_catalog.py`.
+4. Demo-path mapping: every completed task names the canonical demo-path command steps it protects or advances, including project open, retrieval/context basket, patch preview/apply/reject, and export/handoff.
+5. Ownership accounting split: lane-owned command edits, approved shared-by-approval test edits, integrator-locked edits, and cleanup/policy edits are reported separately.
+6. Required gates: final results are recorded below after rerun on the same final branch-tip review basis named in this packet.
 
 ## Commands Run + Outcomes
 
