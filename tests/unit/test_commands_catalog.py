@@ -4,7 +4,7 @@ import unittest
 from unittest.mock import patch
 
 import src.qual.commands.catalog as command_catalog
-from src.qual.commands import (
+from src.qual.commands.catalog import (
     CommandSpec,
     canonical_command,
     canonical_command_for,
