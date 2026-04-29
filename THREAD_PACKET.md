@@ -2,8 +2,9 @@
 
 - Branch/lane: `codex/feat-retrieval-fts` / `feat-retrieval-fts`
 - Selected merge candidate: actual branch-tip lineage, not the narrowed `adfa8cdadd43747ffbcb612e4151e262b13e52ca` slice.
-- Packet head before this metadata-only fixer commit: `e11cdde86ac7a062630e26ef4bf9485cf32013905`
-- Reviewed implementation range before this fixer commit: `378cf9a74a3658058079a32f186fcd254c4a4034..e11cdde86ac7a062630e26ef4bf9485cf32013905`
+- Packet head before this metadata-only fixer commit: `ebbf24614e9dd84f25616a1a8e12b324ec37d905`
+- Reviewed merge-candidate range before this fixer commit: `378cf9a74a3658058079a32f186fcd254c4a4034..ebbf24614e9dd84f25616a1a8e12b324ec37d905`
+- Runtime/test implementation head in that range: `e11cdde8610587c865afec904674f9366cbfa0cf`
 - Final reviewed head: reported in the fixer response after this metadata-only packet correction is committed.
 
 ## Scope Completed
@@ -31,7 +32,7 @@ The full branch-tip lineage is the review surface. It implements the FTS-first r
 - Risk: high, because approved shared regression coverage touches `tests/unit/test_unified_retrieval.py`.
 - Task budget: `4/4`.
 - File budget before this metadata-only fixer commit: `6/8`.
-- Size budget before this metadata-only fixer commit: `6 files changed, 462 insertions(+), 112 deletions(-)` for `378cf9a74a3658058079a32f186fcd254c4a4034..e11cdde86ac7a062630e26ef4bf9485cf32013905`.
+- Size budget before this metadata-only fixer commit: `6 files changed, 474 insertions(+), 120 deletions(-)` for `378cf9a74a3658058079a32f186fcd254c4a4034..ebbf24614e9dd84f25616a1a8e12b324ec37d905`.
 
 ## Roadmap / Vision
 
@@ -41,17 +42,17 @@ The full branch-tip lineage is the review surface. It implements the FTS-first r
 
 ## Canonical Demo Path
 
-This branch makes the `retrieve relevant material` and `gather context` steps more real. The FTS-only excerpt path retrieves relevant material without PageIndex/embeddings as required paths, and the deterministic basket-promotion/source-bundle payloads gather that material into context with stable provenance for later `plan/revise`, `apply/reject patch`, `persist state`, and `continue working` steps.
+This branch advances the `retrieve relevant material` step. The FTS-only excerpt path retrieves relevant material without PageIndex/embeddings as required paths, and the deterministic basket-promotion/source-bundle payloads keep that retrieved material stable for later context assembly.
 
 ## Traceability Correction
 
-Earlier packet text incorrectly treated commits after `adfa8cdadd43747ffbcb612e4151e262b13e52ca` as metadata-only. That claim is withdrawn. This handoff chooses the actual branch-tip lineage. The review surface is the full range ending at `e11cdde86ac7a062630e26ef4bf9485cf32013905` before this fixer commit, which includes runtime/test changes after `adfa8cdadd43747ffbcb612e4151e262b13e52ca` in `src/qual/engine/retrieval/payload.py`, `src/qual/retrieval/service.py`, and `tests/unit/test_unified_retrieval.py`.
+Earlier packet text incorrectly treated commits after `adfa8cdadd43747ffbcb612e4151e262b13e52ca` as metadata-only. That claim is withdrawn. This handoff chooses the actual branch-tip lineage. The review surface is the full merge-candidate range ending at `ebbf24614e9dd84f25616a1a8e12b324ec37d905` before this fixer commit, with runtime/test implementation through `e11cdde8610587c865afec904674f9366cbfa0cf`. That includes runtime/test changes after `adfa8cdadd43747ffbcb612e4151e262b13e52ca` in `src/qual/engine/retrieval/payload.py`, `src/qual/retrieval/service.py`, and `tests/unit/test_unified_retrieval.py`.
 
-This fixer pass changes packet metadata only. It does not narrow, split, reset, or modify the reviewed runtime/test implementation.
+This fixer pass changes packet metadata only. It does not narrow, split, reset, or modify the reviewed runtime/test implementation. The final HEAD SHA and gate outcomes against that final branch tip are reported in the fixer response after commit.
 
 ## Commands Run
 
-Required gates are rerun after this packet correction and reported in the final fixer response:
+Required gates are rerun after this packet correction and reported in the final fixer response against the exact final branch tip:
 
 - `make scope-check`
 - `./quality-format.sh --check`
@@ -62,6 +63,5 @@ Required gates are rerun after this packet correction and reported in the final 
 
 ## Risks / Blockers
 
-- `.codex/kickoff_packets/feat-retrieval-fts.md` and `.codex/lane_meta/feat-retrieval-fts.json` still contain stale `adfa8cd` framing from earlier packet refreshes. Both files are protected by `com.apple.provenance`; direct writes and `xattr -d com.apple.provenance` returned `Operation not permitted` in this sandbox. Use `THREAD_PACKET.md` plus the final fixer response as the corrected re-review packet.
 - Residual risk: broader retrieval orchestration beyond deterministic source/context bundles remains separate high-risk work.
 - Shared-file note: `tests/unit/test_unified_retrieval.py` is included as approved shared regression coverage for the retrieval lane; no other shared or integrator-locked runtime files are edited.
