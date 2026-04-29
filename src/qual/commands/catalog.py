@@ -618,8 +618,11 @@ def command_cli_contract() -> CommandCliContract:
         lookup_table = command_cli_lookup_table()
     except ValueError as exc:
         raise ValueError("Command CLI parser surface is inconsistent") from exc
+    parser_tokens = _actual_cli_parser_tokens()
     parser_lookup_table = _parser_cli_lookup_table()
-    if tuple(token for token, _ in parser_lookup_table) != tokens:
+    if parser_tokens != tokens:
+        raise ValueError("Command CLI parser surface is inconsistent")
+    if tuple(token for token, _ in parser_lookup_table) != parser_tokens:
         raise ValueError("Command CLI parser surface is inconsistent")
     _validate_cli_contract_lookup_table(lookup_table, parser_lookup_table)
     canonical_names = command_names()
