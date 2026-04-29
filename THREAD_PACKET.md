@@ -2,14 +2,18 @@
 
 - Lane: `feat-commands`
 - Branch: `codex/feat-commands`
-- Commit: branch tip after fixer packet `20260429T033837Z`
-- Implementation range: `f8d860ed9f6299f0169c4f21321ac5f37c949fd3..HEAD`
-- Packet refresh role: reviewer-fix finalization for packet `20260429T033837Z`
+- Commit: pending fixer commit for prompt `20260429T034023Z`
+- Review basis: branch tip after this fixer commit, not `f8d860ed9f6299f0169c4f21321ac5f37c949fd3` alone.
+- Prior implementation anchor: `f8d860ed9f6299f0169c4f21321ac5f37c949fd3`
+- Packet refresh role: reviewer-fix implementation and handoff correction
 
 ## Packet Traceability Note
 
-- Review the branch tip, not only `f8d860ed9f6299f0169c4f21321ac5f37c949fd3`.
-- Commits after `f8d860ed9f6299f0169c4f21321ac5f37c949fd3` include non-metadata changes to `scripts/scope-check.sh`, `src/qual/commands/catalog.py`, and `tests/unit/test_commands_catalog.py`; those files are part of this review basis.
+- Fixer prompt `20260429T034023Z` requested a corrected branch-tip review basis.
+- The reviewable branch-tip implementation is narrowed to the command-catalog slice:
+  - `src/qual/commands/catalog.py`
+  - `tests/unit/test_commands_catalog.py`
+- `scripts/scope-check.sh` had drifted after `f8d860ed9f6299f0169c4f21321ac5f37c949fd3`; this fixer restores it to the submitted baseline so it is no longer a branch-tip implementation change.
 - `THREAD.md` and `THREAD_PACKET.md` are metadata-only handoff files.
 
 ## Current Program Focus
@@ -26,7 +30,7 @@
 
 ## Scope Goal
 
-- Harden the CLI command contract so `command_cli_contract()` stays deterministic, uses the canonical command order, and fails fast if the parser surface drifts from the catalog.
+- Harden the CLI command contract so `command_cli_contract()` stays deterministic, uses the canonical command order, and fails fast if the parser token surface drifts from the catalog.
 
 ## Priority Outcomes
 
@@ -53,77 +57,77 @@
 
 ## Scope Completed
 
-- Hardened `command_cli_contract()` in `src/qual/commands/catalog.py` so it validates the full parser surface, not only the de-duplicated canonical command names.
-- Added canonical declared parser-surface projections for CLI tokens, lookup tables, and grouped token surfaces so drift in accepted aliases, missing tokens, reordered tokens, or same-canonical substitutions raises `ValueError`.
-- Kept the returned contract aligned with the canonical command order by returning `command_names()` only after parser tokens and lookup tables validate against the declared canonical surface.
-- Added focused regression coverage in `tests/unit/test_commands_catalog.py` for full parser-surface drift, including same-canonical alias drift, missing expected tokens, reordered token surfaces, lookup-table drift, and declared-surface drift.
-- Included the `scripts/scope-check.sh` change in this review basis instead of treating it as metadata-only.
-- Regenerated the handoff packet with explicit canonical demo-path mapping for each completed task.
+- Strengthened `command_cli_contract()` so it validates the full parser token surface, lookup table, grouped canonical surface, and canonical name order against the declared canonical CLI command surface.
+- Added regression coverage for same-canonical drift, unexpected extra accepted aliases, removed expected tokens, token replacement, lookup-table substitution, and declared-surface drift.
+- Narrowed the branch-tip implementation basis by restoring unrelated `scripts/scope-check.sh` drift to baseline.
+- Regenerated `THREAD.md` and `THREAD_PACKET.md` so the review packet names the actual branch-tip basis and required-fix satisfaction.
 
 ## Kickoff Budget / Limits Compliance
 
-- High-risk shared-file handoff: stayed within the 4-task cap, 30-minute budget, and lane size limits for the implementation slice.
-- The implementation surface is limited to one lane-owned command file, one approved shared test file, and one shared tooling file now explicitly included for review.
+- High-risk shared-file handoff: stayed within the 4-task cap.
+- Size stayed within limits: implementation remains one lane-owned command file plus one approved shared test file.
 
-## Approved Exception / Shared Scope Note
+## Approved Exception Note
 
 - Approved shared-test exception for `tests/unit/test_commands_catalog.py`.
-- `scripts/scope-check.sh` is included as a shared tooling change in the review basis. It is scoped to lane scope-check behavior and does not touch runtime provider routing, engine entrypoints, CLI command behavior, or integrator-locked files.
-- Integrator-locked edits: none.
+- No integrator-locked files are changed.
 
 ## Tasks Completed
 
-1. Hardened `command_cli_contract()` to verify canonical-name consistency against `command_names()` and fail fast on parser drift.
-   - Demo-path mapping: all CLI-first demo steps, because the command contract is the dispatch floor for open, retrieve/basket, patch review, and terminal export while Textual remains disabled.
-2. Strengthened parser-surface validation to reject drift in accepted tokens and lookup-table surfaces, including same-canonical alias additions or substitutions.
-   - Demo-path mapping: open and patch-review, because `bootstrap` and `diff-preview` aliases are now guarded against silent parser-surface changes.
-3. Preserved canonical command ordering in the CLI contract by returning the validated canonical tuple directly.
-   - Demo-path mapping: retrieve/basket and patch-review, because smoke-route order stays deterministic for the current engine-first loop.
-4. Added regression coverage in `tests/unit/test_commands_catalog.py` for canonical-order alignment and full parser-surface drift rejection.
-   - Demo-path mapping: all command-backed demo steps, because tests cover the parser surface used to reach project-open, retrieval, patch-review, and export-handoff.
-5. Included branch-tip non-metadata changes in this packet, including `scripts/scope-check.sh`, so the review basis matches the actual changed files.
-   - Demo-path mapping: workflow governance, because review/integration can now validate the real branch contents before the command lane advances.
+1. Hardened the CLI contract against full parser-surface drift in `src/qual/commands/catalog.py`.
+2. Added focused tests in `tests/unit/test_commands_catalog.py` for same-canonical drift, missing expected tokens, extra accepted aliases, and lookup-table/declared-surface drift.
+3. Narrowed the branch-tip review basis by restoring unrelated `scripts/scope-check.sh` drift to baseline and documenting only the remaining command-catalog implementation files.
+4. Regenerated the handoff packet with canonical demo-path mapping and reran all required gates.
 
-## Canonical Demo-Path Step Made More Real
+## Canonical Demo-Path Mapping
 
-- The CLI-first route from project open -> retrieval/basket -> patch review -> export handoff is more real because the parser contract now rejects silent drift in the tokens and lookup table that reach those steps.
+1. CLI parser-surface hardening advances `open project/document`, `retrieve`, `basket`, `revise`, `patch apply/reject`, and `save/export` by keeping the operator command entrypoints stable while Textual remains disabled.
+2. Drift regression tests make the CLI smoke surface more reliable for the same demo-path steps, especially `open`, `retrieve/basket`, and `patch review`.
+3. Branch narrowing keeps this lane focused on the command-surface compatibility step and avoids mixing scope-check policy work into the MVP demo path.
+4. Packet regeneration makes the `feat-commands` handoff auditable for Milestone 3 CLI compatibility.
+
+## Demo-Path Step Made More Real
+
+- The CLI-first command surface for the engine loop is more real: the accepted parser tokens for project open, retrieval/basket, patch review, and export handoff now fail loudly if they drift from the canonical command catalog.
 
 ## Files Changed
 
-### Reviewed Implementation / Tooling Files
+### Reviewed Implementation Files
 
-- `src/qual/commands/catalog.py` - lane-owned command contract implementation.
-- `tests/unit/test_commands_catalog.py` - approved shared test coverage for command contract drift.
-- `scripts/scope-check.sh` - shared tooling change included in this review basis.
+- `src/qual/commands/catalog.py` - lane-owned implementation file.
+- `tests/unit/test_commands_catalog.py` - approved shared test file.
+
+### Baseline Restoration
+
+- `scripts/scope-check.sh` - restored to the submitted baseline so it is not part of the branch-tip implementation diff.
 
 ### Metadata-Only Handoff Files
 
-- `THREAD.md` - metadata-only packet pointer.
-- `THREAD_PACKET.md` - canonical metadata-only handoff packet.
+- `THREAD.md`
+- `THREAD_PACKET.md`
 
 ## Ownership Accounting
 
 - Lane-owned implementation edits: `src/qual/commands/catalog.py`.
 - Shared-by-approval implementation/test edits: `tests/unit/test_commands_catalog.py` under the approved shared-test exception.
-- Shared tooling edits: `scripts/scope-check.sh`, explicitly included for review and justified above.
 - Integrator-locked edits: none.
 - Metadata-only handoff edits: `THREAD.md`, `THREAD_PACKET.md`.
-- Shared/integrator-locked edits: `YES` for the approved shared test and shared tooling file; no integrator-locked files are edited.
+- Shared/integrator-locked edits: `YES` only because the approved shared-test exception touches `tests/unit/test_commands_catalog.py`; no integrator-locked files are edited.
 
-## Required Fixes Addressed From Reviewer Packet `20260429T033837Z`
+## Required Fixes Addressed From Fixer Prompt `20260429T034023Z`
 
-1. Regenerated this handoff packet with an accurate implementation range and files changed list.
-2. Included all non-metadata branch-tip changes in the review packet with ownership accounting and scope justification.
-3. Strengthened `command_cli_contract()` to reject full parser-surface drift, with focused tests for same-canonical alias drift and missing expected CLI tokens.
-4. Added explicit canonical demo-path mapping for each completed task and named the demo-path step made more real.
-5. Re-ran and reported the required gates after establishing the corrected implementation basis.
+1. Regenerated this handoff packet with an accurate branch-tip review basis and files changed list.
+2. Narrowed the branch-tip implementation to the command-catalog slice by restoring unrelated `scripts/scope-check.sh` drift to baseline.
+3. Strengthened `command_cli_contract()` to reject full parser-surface drift, including same-canonical token drift, and added focused regression coverage.
+4. Added explicit canonical demo-path mapping and stated which demo-path step is now more real.
+5. Reran all required gates after establishing the corrected implementation basis.
 
 ## Commands Run + Outcomes
 
 - `make scope-check`: PASS for branch `codex/feat-commands`.
 - `./quality-format.sh --check`: PASS.
 - `./quality-lint.sh`: PASS.
-- `./quality-test.sh`: PASS; ran smoke tests and 152 unit tests.
+- `./quality-test.sh`: PASS; ran smoke tests and 152 unit tests, including full command-catalog parser-surface drift coverage.
 - `./typecheck-test.sh`: PASS; compiled Python sources in `src/`.
 - `make ci`: PASS; ran scope-check, format, lint, compileall/typecheck, and full quality tests.
 
@@ -150,4 +154,4 @@
 
 ### Routing / Provider Impact Note
 
-- None. This change only affects local command contract validation, command-catalog test coverage, and scope-check handoff enforcement metadata.
+- None. This change only affects local command contract validation and focused command-catalog test coverage.
