@@ -6,7 +6,7 @@ Canonical handoff contract lives in `THREAD_PACKET.md`.
 
 - Lane: `feat-commands`
 - Branch: `codex/feat-commands`
-- Review basis: current branch tip after this `20260429T011857Z` reviewer-fix commit.
+- Review basis: current branch tip after this `20260429T012436Z` reviewer-fix commit.
 - Previous implementation anchor: `f8d860ed9f6299f0169c4f21321ac5f37c949fd3`
 - Scope: command-catalog contract hardening for the current engine-first MVP focus without starting `feat-console`.
 - Roadmap alignment: Milestone 3 CLI compatibility for the engine-first workflow loop, and `feat-commands` as the command-surface compatibility lane.
@@ -34,9 +34,9 @@ Canonical handoff contract lives in `THREAD_PACKET.md`.
 
 - This makes the open/retrieve/basket/patch-review CLI smoke path more real by keeping the parser-visible command contract deterministic and failing fast when parser tokens drift from the command catalog.
 
-## Reviewer Packet `20260429T011857Z` Fix Satisfaction
+## Reviewer Packet `20260429T012436Z` Fix Satisfaction
 
 1. Review basis now points to the current branch tip instead of a stale `f8d860e` slice.
 2. Post-`f8d860e` implementation and test commits are included in review rather than classified as metadata-only.
-3. Parser-surface drift coverage includes added aliases, removed aliases, same-canonical substitutions, token reordering, lookup-table shape/order drift, and declared-surface drift.
+3. Parser-surface drift coverage includes added aliases, removed aliases, same-canonical substitutions such as replacing `bootstrap` with `open` or `diff-preview` with `diff`, token reordering, lookup-table shape/order drift, and declared-surface drift.
 4. Ownership/accounting lists the approved shared test edits and keeps `scripts/scope-check.sh` out of the net `main...HEAD` review diff.

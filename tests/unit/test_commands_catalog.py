@@ -192,6 +192,16 @@ class CommandCatalogTests(unittest.TestCase):
             with self.assertRaisesRegex(ValueError, "Duplicate command CLI entrypoint: diff_preview"):
                 command_catalog.command_cli_contract()
 
+    def test_command_cli_contract_rejects_same_canonical_token_replacement_drift(self) -> None:
+        self._clear_cli_caches()
+        with patch.object(
+            command_catalog,
+            "_CLI_ENTRYPOINTS",
+            ("bootstrap", "diff", "context-basket", "terminal"),
+        ):
+            with self.assertRaisesRegex(ValueError, "Command CLI tokens are inconsistent"):
+                command_catalog.command_cli_contract()
+
     def test_command_cli_contract_rejects_same_canonical_alias_order_drift(self) -> None:
         self._clear_cli_caches()
         with patch.object(

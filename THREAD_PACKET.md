@@ -2,9 +2,9 @@
 
 - Lane: `feat-commands`
 - Branch: `codex/feat-commands`
-- Commit / review basis: current branch tip after this `20260429T011857Z` reviewer-fix commit.
+- Commit / review basis: current branch tip after this `20260429T012436Z` reviewer-fix commit.
 - Previous implementation anchor: `f8d860ed9f6299f0169c4f21321ac5f37c949fd3`
-- Reviewer packet addressed: `20260429T011857Z`
+- Reviewer packet addressed: `20260429T012436Z`
 
 ## Packet Traceability Note
 
@@ -56,7 +56,7 @@
 - Hardened `command_cli_contract()` in `src/qual/commands/catalog.py` so it validates the full parser-visible command surface against the canonical CLI surface.
 - Preserved canonical command ordering by keeping CLI canonical names aligned with `command_names()`.
 - Rejected parser drift for added aliases, removed aliases, same-canonical substitutions, token reordering, lookup-table shape drift, lookup-table order drift, and declared-surface drift.
-- Added focused regression coverage in `tests/unit/test_commands_catalog.py` for accepted-alias drift such as `open` for `bootstrap` and `diff_preview` for `diff-preview`.
+- Added focused regression coverage in `tests/unit/test_commands_catalog.py` for accepted-alias drift such as `open` for `bootstrap`, `diff` replacing `diff-preview`, and `diff_preview` replacing `diff`.
 - Reconciled the handoff packet so the review basis is the actual branch tip and the file/accounting list matches the branch-tip implementation.
 
 ## Canonical Demo-Path Step Advanced
@@ -98,7 +98,7 @@
 
 1. Hardened `command_cli_contract()` to verify the parser surface against the canonical CLI surface and reject parser/catalog drift for the `project-open`, `retrieval`, `patch-review`, and `export-handoff` CLI smoke path.
 2. Preserved canonical command ordering in the CLI contract by returning names aligned with `command_names()` for `bootstrap`, `diff-preview`, `context-basket`, and `terminal`.
-3. Added regression coverage for added aliases, removed aliases, same-canonical substitutions, token reordering, lookup-table shape/order drift, and declared-surface drift, including `open` for the `project-open` step and `diff_preview` for the `patch-review` step.
+3. Added regression coverage for added aliases, removed aliases, same-canonical substitutions, token reordering, lookup-table shape/order drift, and declared-surface drift, including `open` for the `project-open` step and both `diff` and `diff_preview` replacement drift for the `patch-review` step.
 4. Reconciled the branch-tip packet/accounting for `THREAD.md`, `THREAD_PACKET.md`, `src/qual/commands/__init__.py`, `src/qual/commands/canonical.py`, `src/qual/commands/catalog.py`, `src/qual/commands/diff_preview.py`, `tests/unit/test_commands_catalog.py`, and `tests/unit/test_diff_preview.py`, and kept the unrelated `scripts/scope-check.sh` scope-policy edit out of the net `main...HEAD` review diff.
 
 ## Files Changed
@@ -127,7 +127,7 @@
 - `make scope-check`: PASS after scope cleanup.
 - `./quality-format.sh --check`: PASS after scope cleanup.
 - `./quality-lint.sh`: PASS after scope cleanup.
-- `./quality-test.sh`: PASS after scope cleanup.
+- `./quality-test.sh`: PASS after scope cleanup; ran 145 unit tests, including the new same-canonical `diff-preview` -> `diff` replacement regression.
 - `./typecheck-test.sh`: PASS after scope cleanup.
 - `make ci`: PASS after scope cleanup.
 
@@ -178,7 +178,7 @@
 - Integrator-locked edits: NO.
 - Gate-policy edits: NO net change after this fixer pass.
 
-## Reviewer Packet `20260429T011857Z` Fix Satisfaction
+## Reviewer Packet `20260429T012436Z` Fix Satisfaction
 
 1. Actual branch-tip review basis: satisfied by removing the metadata-only post-`f8d860e` framing and listing the current branch-tip diff.
 2. Gate-policy diff: satisfied by restoring `scripts/scope-check.sh` to the branch review baseline, leaving no net gate-policy change in the `main...HEAD` review diff.
