@@ -3,32 +3,26 @@
 - Branch: `codex/feat-retrieval-fts`
 - Lane: `feat-retrieval-fts`
 - Review target: final fixer commit reported in the fixer response.
-- Pre-fix branch tip: `ba2f81e91f6d2fd05a0c8a6cd0d803c0d016e4f3`
+- Pre-fix branch tip: `0e934aa2f1743d360e3f0f5f97ff48731785f98f`
 - Actual merge candidate: final fixer commit reported in the fixer response.
-- Reviewed range: `378cf9a74a3658058079a32f186fcd254c4a4034..final fixer commit reported in response`
-- Scope choice: option 1, narrowed excerpt-only implementation; the later basket-promotion runtime/test work from the pre-fix branch tip is excluded from the retained merge payload.
-- `a28ccf520ea0983f538106f1bd418670d9cea73b` scope: not metadata-only; it changed shared regression tests and packet text, and its retained effects are accounted for or reverted in the final reviewed range.
-- `ba2f81e91f6d2fd05a0c8a6cd0d803c0d016e4f3` scope: the pre-fix branch tip whose retained effects are accounted for or reverted by the final fixer commit.
-- Handoff type: high-risk retrieval fixer re-review.
+- Reviewed implementation range: `378cf9a74a3658058079a32f186fcd254c4a4034..final fixer commit reported in response`
+- Handoff type: high-risk retrieval fixer re-review with retained basket-promotion runtime scope.
 
 ## Scope completed
 
-This handoff is narrowed back to the reviewed FTS-only excerpt fix against the actual branch state. Post-`adfa8cda` runtime/test changes in `src/qual/engine/retrieval/payload.py`, `src/qual/retrieval/service.py`, and `tests/unit/test_unified_retrieval.py` are removed from the final merge candidate, so later basket-promotion runtime work is not submitted as metadata-only.
-
-The branch history includes basket-promotion provenance/fingerprint commits after `adfa8cda`, including `a28ccf520ea0983f538106f1bd418670d9cea73b`; those commits are not described as metadata-only here. The final reviewed diff range above is the authoritative merge candidate and does not retain basket-promotion runtime behavior.
-
-The remaining implementation makes excerpt lookup FTS-first and fail-closed for PageIndex-only excerpt IDs, with shared regression coverage. PageIndex and embeddings stay compatibility-only/deferred paths and are not required runtime paths for the canonical retrieval flow.
+This handoff includes the actual branch-tip retrieval runtime changes: FTS-only excerpt lookup plus basket-promotion context bundles.
+`fetch_excerpt` now uses the canonical FTS lookup path, PageIndex-only excerpt IDs fail closed under shared regression coverage, and PageIndex/embeddings remain compatibility-only deferred paths. Basket promotion adds a compact deterministic `retrieval_basket_promotion` snapshot with stable IDs, fingerprints, citation status, query scope/intent/date range, and source-bundle fingerprint.
 
 ## Canonical demo-path step
 
 - Step: `retrieve relevant material`
-- Impact: excerpt retrieval now requires an FTS lookup hit, preserving the MVP retrieval contract.
+- Impact: excerpt retrieval now requires an FTS lookup hit, while retrieved context exposes stable basket-promotion references for the next engine-side promotion step.
 
 ## Budget and ownership
 
 - Risk: `HIGH`
-- Task count: `1` of `4`
-- Actual merge-candidate size before final commit: `5 files changed, 276 insertions(+), 113 deletions(-)` for `378cf9a74a3658058079a32f186fcd254c4a4034..working tree`; net LOC `+163`.
+- Task count: `2` of `4`
+- Actual merge-candidate size before final commit: `6 files changed, 406 insertions(+), 113 deletions(-)` for `378cf9a74a3658058079a32f186fcd254c4a4034..working tree`; net LOC `+293`.
 - Budget result: within high-risk limits (`<=8 files`, `<=300 net LOC`).
 - Owned runtime paths touched: `src/qual/retrieval/**`, `src/qual/engine/retrieval/**`
 - Approved shared-by-approval edit: `tests/unit/test_unified_retrieval.py`
@@ -37,6 +31,7 @@ The remaining implementation makes excerpt lookup FTS-first and fail-closed for 
 ## Tasks completed
 
 1. Made excerpt lookup FTS-first and fail-closed for PageIndex-only excerpt IDs, with shared regression coverage.
+2. Added deterministic basket-promotion snapshots to retrieval context bundles and engine payload rehydration, including stable promotion fingerprints and query/context reference fields.
 
 ## Files changed
 
@@ -44,31 +39,30 @@ The remaining implementation makes excerpt lookup FTS-first and fail-closed for 
 .codex/kickoff_packets/feat-retrieval-fts.md
 .codex/lane_meta/feat-retrieval-fts.json
 THREAD_PACKET.md
+src/qual/engine/retrieval/payload.py
 src/qual/retrieval/service.py
 tests/unit/test_unified_retrieval.py
 ```
 
-`src/qual/engine/retrieval/payload.py` had post-`adfa8cda` basket-promotion drift on the pre-fix branch tip, but its retained changes are removed from the final reviewed range from `378cf9a`.
-
-`.codex/kickoff_packets/feat-retrieval-fts.md` and `.codex/lane_meta/feat-retrieval-fts.json` remain in the actual diff because this sandbox cannot rewrite those Box-backed packet mirrors (`Operation not permitted`). They are included in accounting above.
+The Box-backed `.codex` packet mirrors rejected writes from this sandbox, so `THREAD_PACKET.md` is the authoritative corrected handoff packet for this fixer pass.
 
 ## Commands run
 
 - `make scope-check`: PASS.
 - `./quality-format.sh --check`: PASS.
 - `./quality-lint.sh`: PASS.
-- `./quality-test.sh`: PASS (`124` unit tests plus smoke).
+- `./quality-test.sh`: PASS.
 - `./typecheck-test.sh`: PASS.
 - `make ci`: PASS.
 
 ## Roadmap items affected
 
 - `ROADMAP.md`: MVP focus on `feat-retrieval-fts`.
-- `ROADMAP.md`: Milestone 3 product readiness item for retrieval evidence in the real workflow loop.
+- `ROADMAP.md`: Milestone 3 retrieval evidence and context promotion for the real workflow loop.
 
 ## Vision capabilities affected
 
-- `PRODUCT_VISION.md`: retrieval-backed context, FTS-first for the current MVP.
+- `PRODUCT_VISION.md`: retrieval-backed context and durable context promotion using compact references.
 - `PRODUCT_VISION.md`: auditable state and workflow.
 
 ## Routing/provider impact
@@ -77,17 +71,12 @@ None. This handoff does not touch model routing, provider configuration, or core
 
 ## Required Fix Reconciliation
 
-1. Scope choice: use the narrowed excerpt-only implementation and exclude the later basket-promotion runtime/test payload from the retained merge candidate.
-2. Full-branch-tip alternative rejected: the handoff does not keep the full `ba2f81e91` basket-promotion implementation payload, so `src/qual/engine/retrieval/payload.py` is explicitly called out as pre-fix drift rather than a retained merge file.
-3. Budget accounting is recomputed against the actual reviewed range above: 1 task, 5 files, net `+163`.
-4. Required gates are rerun against the final branch tip in this fixer pass.
-5. Canonical demo-path step advanced: `retrieve relevant material`.
-
-## Metadata-only Claim Correction
-
-The previous metadata-only claim for `a28ccf520ea0983f538106f1bd418670d9cea73b` was false. That commit changed `tests/unit/test_unified_retrieval.py` as well as `THREAD_PACKET.md`. This fixer does not rely on that claim: `a28ccf5` and the previous branch tip `ba2f81e9` are treated as part of the pre-fix branch history, and the final reviewed range above is the authoritative merge candidate after the source/test narrowing.
+1. The reviewed implementation range now matches the actual merge candidate: `378cf9a74a3658058079a32f186fcd254c4a4034..final fixer commit reported in response`.
+2. Basket-promotion runtime changes are retained and included in scope completed, tasks completed, files changed, roadmap mapping, and vision mapping.
+3. `src/qual/engine/retrieval/payload.py` is included in reviewed implementation files.
+4. Required gates are rerun against the corrected final branch tip in this fixer pass.
+5. High-risk budget accounting includes the approved shared test exception and true changed-file/net-LOC counts.
 
 ## Risks/blockers
 
-- Later basket-promotion provenance/fingerprint runtime work is intentionally excluded and needs a separate high-risk handoff if still wanted.
-- Box-backed packet mirrors could not be edited in this sandbox, so `THREAD_PACKET.md` is the authoritative corrected handoff packet.
+- Basket-promotion snapshots are intentionally compact references. Further promotion behavior should be implemented in a separate high-risk handoff if it expands engine orchestration or public command contracts.

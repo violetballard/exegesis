@@ -593,6 +593,13 @@ class RetrievalResult:
         ]
         return {
             "query_fingerprint": self.diagnostics["query_fingerprint"],
+            "query_scope": self.query.scope,
+            "query_intent": self.query.intent,
+            "query_date_range": (
+                list(self.query.constraints.date_range)
+                if self.query.constraints.date_range is not None
+                else None
+            ),
             "result_fingerprint": self.result_fingerprint,
             "retrieval_backend": self.diagnostics["retrieval_backend"],
             "retrieval_mode": self.diagnostics["retrieval_mode"],
@@ -781,6 +788,9 @@ class RetrievalResult:
         promotion = {
             "result_fingerprint": payload.get("result_fingerprint"),
             "query_fingerprint": summary.get("query_fingerprint"),
+            "query_scope": summary.get("query_scope"),
+            "query_intent": summary.get("query_intent"),
+            "query_date_range": copy.deepcopy(summary.get("query_date_range")),
             "retrieval_backend": payload.get("retrieval_backend", summary.get("retrieval_backend")),
             "retrieval_mode": payload.get("retrieval_mode", summary.get("retrieval_mode")),
             "doc_count": summary.get("doc_count"),
