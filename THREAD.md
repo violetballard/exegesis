@@ -6,15 +6,16 @@ Canonical handoff contract lives in `THREAD_PACKET.md`.
 
 - Lane: `feat-commands`
 - Branch: `codex/feat-commands`
-- Review target: actual branch tip after the `20260429T094952Z` fixer pass
-- Review basis: `a6cf0fd59763be784dae53d1cf707938ef20c385..HEAD` after this fixer commit
-- Scope: command CLI contract hardening plus MVP smoke-contract public exports for the current Engine-first MVP focus without starting `feat-console`
-- Current fixer pass: confirm the existing live argparse token-drift fix at branch tip, preserve truthful commit classification, explicitly map the slice to CLI fallback command execution across the canonical demo path, and rerun required gates.
+- Review target: actual branch tip after this fixer commit
+- Review basis: `f8d860ed9f6299f0169c4f21321ac5f37c949fd3..HEAD`
+- Scope: high-risk command CLI contract hardening plus MVP smoke-contract public exports for the current Engine-first MVP focus without starting `feat-console`
+- Current fixer pass: regenerate the handoff for the actual branch tip and actual reviewer-observed range, disclose `src/qual/cli.py` as shared-by-approval and integrator-locked, stop classifying `f8cfa2337` as metadata-only, map each completed task to canonical demo-path steps, and rerun all required gates.
 
-## Fixer Prompt `20260429T094952Z` Fix Satisfaction
+## Fixer Prompt `20260429T095242Z` Fix Satisfaction
 
-1. `src/qual/cli.py` builds the real argparse top-level parser from `command_cli_lookup_table()` and exposes live parser tokens through `command_parser_tokens()`.
-2. `command_cli_contract()` compares catalog tokens and lookup rows against the live argparse parser surface.
-3. `tests/unit/test_commands_catalog.py` proves same-canonical alias drift, missing/extra parser-token drift, parser-token reorder drift, and actual `add_parser()` rewrite drift are rejected.
-4. `THREAD_PACKET.md` names the canonical demo-path step advanced as CLI fallback command execution across `project-open` -> `retrieval` -> `patch-review` -> `export-handoff`.
-5. Required branch-tip gates are rerun and recorded in `THREAD_PACKET.md`.
+1. The packet now reviews `f8d860ed9f6299f0169c4f21321ac5f37c949fd3..HEAD`, the actual branch-tip range named by the reviewer.
+2. `f8cfa2337f661b52511ab8dde84d9d7d72288738` is explicitly classified as test/handoff work, not metadata-only.
+3. `src/qual/cli.py` is explicitly disclosed as shared-by-approval and integrator-locked, with approval basis and high-risk risk accounting.
+4. Size accounting is recomputed from the actual range and discloses that the net LOC budget is exceeded instead of preserving the previous narrow-slice story.
+5. Each completed task maps to exact canonical demo-path steps: `open project/document`, `retrieve material`, `preview/apply/reject patch`, and `continue working`.
+6. Required branch-tip gates are rerun and recorded in `THREAD_PACKET.md`.
