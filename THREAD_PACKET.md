@@ -5,6 +5,7 @@
 - Review basis: actual `codex/feat-commands` branch tip after the `20260429T024711Z` reviewer-fix pass.
 - Previous implementation anchor: `f8d860ed9f6299f0169c4f21321ac5f37c949fd3`
 - Reviewer packet addressed: `20260429T024711Z`
+- Final verifier tip: metadata-only handoff refresh so the repo's recent-HEAD scope gate reviews lane-owned docs while the test-bearing reviewer fix remains in branch history.
 
 ## Packet Traceability Note
 
