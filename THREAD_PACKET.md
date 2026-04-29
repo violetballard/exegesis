@@ -6,7 +6,7 @@
 - Review basis: `git diff main...codex/feat-commands`
 - Review command: `git diff main...codex/feat-commands`
 - Prior packet supersession: this `THREAD_PACKET.md` replaces all earlier packet text, packet-refresh notes, and review-scope claims that named `f8d860ed9f6299f0169c4f21321ac5f37c949fd3` as the submitted target.
-- Fixer prompt satisfied: `20260429T115031Z`
+- Fixer prompt satisfied: `20260429T115230Z`
 
 ## Demo-Path Mapping
 
@@ -75,7 +75,7 @@ This is high-risk because `src/qual/cli.py` is shared-by-approval for `feat-comm
 
 ## Commands Run
 
-- Fresh `20260429T115031Z` fixer rerun against corrected full branch-tip review target:
+- Fresh `20260429T115230Z` fixer rerun against corrected full branch-tip review target:
   `make scope-check` passed; `./quality-format.sh --check` passed; `./quality-lint.sh` passed; `./quality-test.sh` passed with smoke tests and `131` unit tests; `./typecheck-test.sh` passed; `make ci` passed with scope-check, format, lint, typecheck, smoke tests, and `131` unit tests.
 - `python -m unittest tests.unit.test_commands_catalog` - passed, `49` tests.
 - `python -m pytest tests/unit/test_commands_catalog.py` - failed because `pytest` is not installed in the active Python.
