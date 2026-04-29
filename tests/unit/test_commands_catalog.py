@@ -123,6 +123,8 @@ class CommandCatalogTests(unittest.TestCase):
         self.assertEqual(contract.tokens, command_cli_tokens())
         self.assertEqual(contract.canonical_names, command_names())
         self.assertEqual(contract.lookup_table, command_cli_lookup_table())
+        self.assertEqual(contract.tokens, command_catalog._canonical_cli_tokens())
+        self.assertEqual(contract.lookup_table, command_catalog._canonical_cli_lookup_table())
 
     def test_command_cli_contract_rejects_catalog_drift(self) -> None:
         self._clear_cli_caches()
