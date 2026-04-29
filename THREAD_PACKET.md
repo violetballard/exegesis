@@ -2,9 +2,9 @@
 
 - Lane: `feat-commands`
 - Branch: `codex/feat-commands`
-- Review target: branch tip `codex/feat-commands`, including this fixer commit.
+- Review target: branch tip `codex/feat-commands`, including the latest fixer commit.
 - Review basis: `git diff --stat --name-status f8d860ed9f6299f0169c4f21321ac5f37c949fd3..HEAD -- THREAD.md THREAD_PACKET.md src/qual/cli.py src/qual/commands/__init__.py src/qual/commands/catalog.py tests/unit/test_commands_catalog.py`
-- Fixer prompt satisfied: `20260429T152044Z`
+- Fixer prompts satisfied: `20260429T152044Z`, `20260429T152842Z`
 
 This packet uses the branch tip as the review target. It includes the earlier reviewed `f8d860ed9f6299f0169c4f21321ac5f37c949fd3` slice and all later implementation, test, and handoff commits on `codex/feat-commands`.
 
@@ -13,8 +13,9 @@ This packet uses the branch tip as the review target. It includes the earlier re
 1. The review basis is the full branch-tip diff from `f8d860ed9f6299f0169c4f21321ac5f37c949fd3..HEAD`, not a narrowed historical commit.
 2. `command_cli_contract()` now validates the command catalog against the actual argparse subparser surface built by `src/qual/cli.py`.
 3. Parser drift tests cover live parser rename drift, extra-token drift, missing-token drift, and catalog canonical-name drift.
-4. Each numbered completed task below states the exact canonical demo-path step it advances.
+4. The canonical demo-path alignment below states the exact command surfaces advanced and the concrete parser/catalog blocker removed.
 5. Ownership wording distinguishes lane-owned files, shared-by-approval files, and integrator-locked files.
+6. Metadata-only files changed by packet refresh commit `a9266aca4b87a2ad1df4e8615a2a4adfb816fc44` are listed completely: `THREAD.md` and `THREAD_PACKET.md`.
 
 ## Implementation Summary
 
@@ -26,22 +27,24 @@ This packet uses the branch tip as the review target. It includes the earlier re
 
 ## Canonical Demo-Path Alignment
 
-Canonical demo-path sequence: `open document`, `retrieve relevant material`, `gather context`, `plan/revise`, `apply/reject patch`, `save/continue`.
+Canonical demo-path sequence: `open project/document`, `retrieve relevant material`, `gather context into basket`, `preview/apply/reject patch`, `persist session state`.
+
+This command-catalog slice makes the `retrieve relevant material` step more real directly, and keeps adjacent command surfaces discoverable for `open project/document`, `gather context into basket`, `preview/apply/reject patch`, and `persist session state`. The concrete blocker removed is parser/catalog drift: before this contract check, the live CLI parser could accept a command token that the catalog did not describe, or the catalog could advertise a token the parser could not parse. This fix does not implement revise/save/apply behavior; it only validates the command discovery and parser contract for the command surfaces already present in this branch.
 
 1. Added and exported deterministic command catalog helpers for CLI command tokens and route metadata.
-   Canonical demo-path step advanced: `retrieve relevant material`, because retrieval starts from stable parser tokens and catalog metadata.
+   Canonical demo-path surface advanced: `retrieve relevant material`, because retrieval starts from stable parser tokens and catalog metadata.
 
 2. Bound `command_cli_contract()` to the actual argparse subparser choices created by the CLI.
-   Canonical demo-path step advanced: `retrieve relevant material`, because the CLI cannot reliably request relevant material if the parser accepts a token the catalog does not describe.
+   Canonical demo-path surface advanced: `retrieve relevant material`, because the CLI cannot reliably request relevant material if the parser accepts a token the catalog does not describe.
 
 3. Added live parser drift tests for renamed parser tokens, missing parser tokens, and extra parser tokens.
-   Canonical demo-path step advanced: `gather context`, because context basket operations depend on the parser and catalog agreeing on the `context-basket` command surface.
+   Canonical demo-path surface advanced: `gather context into basket`, because context basket operations depend on the parser and catalog agreeing on the `context-basket` command surface.
 
 4. Preserved alias and route-contract coverage for `diff-preview`/`diff`, terminal/export routing, and smoke argv helpers.
-   Canonical demo-path step advanced: `apply/reject patch`, because patch preview and review commands must stay discoverable and parseable under the same contract.
+   Canonical demo-path surfaces kept discoverable: `preview/apply/reject patch` through `diff-preview`/`diff` command metadata, and `persist session state` through `terminal` export-handoff metadata. This branch validates command surfaces only; it does not add apply/reject or persistence behavior.
 
 5. Refreshed the handoff packet with the complete branch-tip diff, changed-file list, ownership/risk note, and gate evidence.
-   Canonical demo-path step advanced: `save/continue`, because the handoff now preserves enough accurate state for review and later continuation.
+   Review blocker removed: the handoff now states the exact canonical command surfaces and the parser/catalog drift blocker, and it names every metadata file changed by packet refresh commit `a9266aca4b87a2ad1df4e8615a2a4adfb816fc44`.
 
 ## Files Changed In Review Target
 
@@ -69,6 +72,11 @@ Handoff metadata:
 - `THREAD.md`
 - `THREAD_PACKET.md`
 
+Metadata-only files changed by packet refresh commit `a9266aca4b87a2ad1df4e8615a2a4adfb816fc44`:
+
+- `THREAD.md`
+- `THREAD_PACKET.md`
+
 ## Ownership And Risk
 
 - Lane-owned implementation paths: `src/qual/commands/**`.
@@ -81,7 +89,7 @@ Handoff metadata:
 
 ## Roadmap And Vision
 
-- Roadmap: Milestone 3 "Real workflow loop," specifically CLI compatibility for command-driven retrieval, context gathering, patch preview/review, and persistence.
+- Roadmap: Milestone 3 "Real workflow loop," specifically CLI compatibility for command-driven retrieval plus adjacent command-surface discovery for context gathering, patch preview/review, and persistence handoff.
 - Roadmap adjacency: Milestone 5 "YC demo readiness," specifically reproducible command behavior on the canonical demo path.
 - Product vision: `Exegesis Engine` remains the engine/runtime and CLI compatibility surface; the command catalog is the deterministic command contract consumed by CLI now and A2UI later.
 - Routing/provider impact: none. This branch does not touch model routing or provider configuration.
@@ -97,6 +105,7 @@ Handoff metadata:
 - `make ci`: PASS
 
 Fresh fixer rerun for `20260429T152044Z` validates the corrected branch-tip review target.
+Fresh fixer rerun for `20260429T152842Z` validates the canonical demo-path and metadata file-list corrections.
 
 ## Risks And Blockers
 
@@ -106,4 +115,4 @@ Fresh fixer rerun for `20260429T152044Z` validates the corrected branch-tip revi
 
 ## Final Readiness Statement
 
-This branch-tip command contract work makes `retrieve relevant material` more real by ensuring the live CLI parser and command catalog cannot silently drift apart. That parser/catalog drift was a direct blocker because the demo path begins with concrete command tokens; if the parser and catalog disagree, the CLI cannot reliably retrieve relevant material, gather context, preview or apply/reject patches, or save/continue the workflow.
+This branch-tip command contract work makes `retrieve relevant material` more real by ensuring the live CLI parser and command catalog cannot silently drift apart. That parser/catalog drift was a direct blocker because the demo path begins with concrete command tokens; if the parser and catalog disagree, the CLI cannot reliably discover and parse the retrieval command surface. Adjacent catalog entries also keep the existing `open project/document`, `gather context into basket`, `preview/apply/reject patch`, and `persist session state` command surfaces discoverable, without claiming new revise/save/apply behavior.
