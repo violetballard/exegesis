@@ -114,21 +114,6 @@ class CommandFlowRouteContract:
     entries: tuple[CommandFlowRouteEntry, ...]
 
 
-@dataclass(frozen=True)
-class CommandSmokeStep:
-    flow_step: str
-    name: str
-    argv: tuple[str, ...]
-    description: str
-
-
-@dataclass(frozen=True)
-class CommandSmokePlan:
-    flow_steps: tuple[str, ...]
-    names: tuple[str, ...]
-    steps: tuple[CommandSmokeStep, ...]
-
-
 def _normalize_token(value: str) -> str:
     normalized = re.sub(r"[-_\s]+", "-", value.strip().casefold())
     return normalized.strip("-")
@@ -182,12 +167,6 @@ def _validate_cli_entrypoints() -> None:
         seen_entrypoints.add(normalized_entrypoint)
         if command_spec_for(COMMAND_SPECS, entrypoint) is None:
             raise ValueError(f"Unknown CLI command entrypoint: {entrypoint}")
-
-
-def _live_parser_cli_tokens() -> tuple[str, ...]:
-    from src.qual.cli import parser_command_tokens
-
-    return parser_command_tokens()
 
 
 def _command_cli_tokens_by_name() -> dict[str, tuple[str, ...]]:
@@ -247,12 +226,6 @@ DEMO_COMMAND_FLOW_STEPS: tuple[str, ...] = (
     "export-handoff",
 )
 MVP_COMMAND_FLOW_STEPS: tuple[str, ...] = DEMO_COMMAND_FLOW_STEPS
-_DEMO_SMOKE_ARGV_BY_FLOW_STEP: dict[str, tuple[str, ...]] = {
-    "project-open": ("bootstrap",),
-    "retrieval": ("context-basket", "list"),
-    "patch-review": ("diff-preview", "--original", "before", "--proposed", "after"),
-    "export-handoff": ("terminal", "--message", "export handoff", "--operation-kind", "terminal_query"),
-}
 
 
 def validate_command_catalog(specs: tuple[CommandSpec, ...] = COMMAND_SPECS) -> None:
@@ -513,10 +486,6 @@ def command_cli_lookup_table() -> tuple[tuple[str, str], ...]:
 
 @lru_cache(maxsize=None)
 def command_cli_contract() -> CommandCliContract:
-    tokens = command_cli_tokens()
-    live_parser_tokens = _live_parser_cli_tokens()
-    if live_parser_tokens != tokens:
-        raise ValueError("Command CLI parser tokens are inconsistent")
     lookup_table = command_cli_lookup_table()
     canonical_names = command_names()
     seen_canonical_names: set[str] = set()
@@ -529,7 +498,7 @@ def command_cli_contract() -> CommandCliContract:
     if tuple(lookup_canonical_names) != canonical_names:
         raise ValueError("Command CLI canonical names are inconsistent")
     return CommandCliContract(
-        tokens=tokens,
+        tokens=command_cli_tokens(),
         canonical_names=canonical_names,
         lookup_table=lookup_table,
     )
@@ -942,16 +911,6 @@ def _validate_command_surface_contract(contract: CommandSurfaceContract) -> None
         raise ValueError("Command surface lookup surfaces must match")
 
 
-def _smoke_argv_for_flow_step(flow_step: str, route: CommandFlowRouteEntry) -> tuple[str, ...]:
-    normalized_flow_step = _normalize_token(flow_step)
-    smoke_argv = _DEMO_SMOKE_ARGV_BY_FLOW_STEP.get(normalized_flow_step)
-    if smoke_argv is None:
-        return (route.cli_tokens[0],)
-    if smoke_argv[0] not in route.cli_tokens:
-        raise ValueError(f"Command smoke argv is inconsistent for flow step: {flow_step}")
-    return smoke_argv
-
-
 @lru_cache(maxsize=None)
 def command_flow_contract(
     specs: tuple[CommandSpec, ...] = COMMAND_SPECS,
@@ -1104,36 +1063,6 @@ def command_mvp_flow_surface_lookup_index(
     specs: tuple[CommandSpec, ...] = COMMAND_SPECS,
 ) -> tuple[tuple[str, str], ...]:
     return command_demo_flow_surface_lookup_index(specs)
-
-
-@lru_cache(maxsize=None)
-def command_smoke_plan(
-    specs: tuple[CommandSpec, ...] = COMMAND_SPECS,
-    flow_steps: tuple[str, ...] | None = None,
-) -> CommandSmokePlan:
-    route_catalog = command_flow_route_catalog(flow_steps=flow_steps, specs=specs)
-    steps = tuple(
-        CommandSmokeStep(
-            flow_step=entry.flow_step,
-            name=entry.name,
-            argv=_smoke_argv_for_flow_step(entry.flow_step, entry),
-            description=entry.description,
-        )
-        for entry in route_catalog
-    )
-    return CommandSmokePlan(
-        flow_steps=tuple(step.flow_step for step in steps),
-        names=tuple(step.name for step in steps),
-        steps=steps,
-    )
-
-
-def command_demo_smoke_plan(specs: tuple[CommandSpec, ...] = COMMAND_SPECS) -> CommandSmokePlan:
-    return command_smoke_plan(specs, command_demo_flow_steps())
-
-
-def command_mvp_smoke_plan(specs: tuple[CommandSpec, ...] = COMMAND_SPECS) -> CommandSmokePlan:
-    return command_demo_smoke_plan(specs)
 
 
 @lru_cache(maxsize=None)

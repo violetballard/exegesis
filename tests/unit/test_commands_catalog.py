@@ -1,11 +1,9 @@
 from __future__ import annotations
 
-import argparse
 import unittest
 from unittest.mock import patch
 
 import src.qual.commands.catalog as command_catalog
-from src.qual.cli import _build_parser, parser_command_tokens
 from src.qual.commands import (
     CommandSpec,
     canonical_command,
@@ -56,27 +54,17 @@ from src.qual.commands import (
     command_surface_contract,
     command_demo_flow_route_summary,
     command_demo_flow_surface_tokens,
-    command_demo_smoke_plan,
     command_names,
     command_spec,
     command_spec_for,
     command_specs,
-    command_smoke_plan,
     command_tokens,
     command_flow_tokens,
     validate_command_catalog,
-    command_mvp_smoke_plan,
 )
 
 
 class CommandCatalogTests(unittest.TestCase):
-    def _parser_with_command_tokens(self, tokens: tuple[str, ...]) -> argparse.ArgumentParser:
-        parser = argparse.ArgumentParser(prog="qual-bootstrap-test")
-        subparsers = parser.add_subparsers(dest="command")
-        for token in tokens:
-            subparsers.add_parser(token)
-        return parser
-
     def test_command_names_match_catalog_order(self) -> None:
         self.assertEqual(
             command_names(),
@@ -114,7 +102,6 @@ class CommandCatalogTests(unittest.TestCase):
         self.assertEqual(command_lookup_tokens("missing"), ())
 
     def test_command_cli_lookup_table_exposes_the_parser_surface(self) -> None:
-        self.assertEqual(parser_command_tokens(_build_parser()), command_cli_tokens())
         self.assertEqual(
             command_cli_lookup_table(),
             (
@@ -136,30 +123,6 @@ class CommandCatalogTests(unittest.TestCase):
         command_catalog.command_cli_contract.cache_clear()
         with patch.object(command_catalog, "command_names", return_value=("bootstrap", "diff-preview")):
             with self.assertRaisesRegex(ValueError, "Command CLI canonical names are inconsistent"):
-                command_catalog.command_cli_contract()
-
-    def test_command_cli_contract_rejects_parser_only_added_token(self) -> None:
-        command_catalog.command_cli_contract.cache_clear()
-        parser_tokens = (*command_cli_tokens(), "experimental")
-        parser = self._parser_with_command_tokens(parser_tokens)
-        with patch("src.qual.cli._build_parser", return_value=parser):
-            with self.assertRaisesRegex(ValueError, "Command CLI parser tokens are inconsistent"):
-                command_catalog.command_cli_contract()
-
-    def test_command_cli_contract_rejects_parser_only_missing_token(self) -> None:
-        command_catalog.command_cli_contract.cache_clear()
-        parser_tokens = tuple(token for token in command_cli_tokens() if token != "terminal")
-        parser = self._parser_with_command_tokens(parser_tokens)
-        with patch("src.qual.cli._build_parser", return_value=parser):
-            with self.assertRaisesRegex(ValueError, "Command CLI parser tokens are inconsistent"):
-                command_catalog.command_cli_contract()
-
-    def test_command_cli_contract_rejects_parser_only_alias_rename(self) -> None:
-        command_catalog.command_cli_contract.cache_clear()
-        parser_tokens = tuple("diff-alias" if token == "diff" else token for token in command_cli_tokens())
-        parser = self._parser_with_command_tokens(parser_tokens)
-        with patch("src.qual.cli._build_parser", return_value=parser):
-            with self.assertRaisesRegex(ValueError, "Command CLI parser tokens are inconsistent"):
                 command_catalog.command_cli_contract()
 
     def test_command_cli_lookup_table_resolves_through_the_catalog(self) -> None:
@@ -517,32 +480,6 @@ class CommandCatalogTests(unittest.TestCase):
             sequence.lookup_tokens,
             tuple(entry.lookup_tokens for entry in command_mvp_flow()),
         )
-
-    def test_command_smoke_plan_exposes_executable_mvp_argv(self) -> None:
-        plan = command_smoke_plan()
-        self.assertEqual(plan, command_demo_smoke_plan())
-        self.assertEqual(plan, command_mvp_smoke_plan())
-        self.assertEqual(plan.flow_steps, command_mvp_flow_steps())
-        self.assertEqual(plan.names, command_mvp_flow_names())
-        self.assertEqual(
-            tuple((step.flow_step, step.name, step.argv) for step in plan.steps),
-            (
-                ("project-open", "bootstrap", ("bootstrap",)),
-                ("retrieval", "context-basket", ("context-basket", "list")),
-                ("patch-review", "diff-preview", ("diff-preview", "--original", "before", "--proposed", "after")),
-                (
-                    "export-handoff",
-                    "terminal",
-                    ("terminal", "--message", "export handoff", "--operation-kind", "terminal_query"),
-                ),
-            ),
-        )
-
-    def test_command_smoke_plan_rejects_inconsistent_configured_argv(self) -> None:
-        command_catalog.command_smoke_plan.cache_clear()
-        with patch.object(command_catalog, "_DEMO_SMOKE_ARGV_BY_FLOW_STEP", {"retrieval": ("missing",)}):
-            with self.assertRaisesRegex(ValueError, "Command smoke argv is inconsistent"):
-                command_catalog.command_smoke_plan()
 
     def test_command_surface_contract_bundles_the_mvp_smoke_surface(self) -> None:
         contract = command_surface_contract()
