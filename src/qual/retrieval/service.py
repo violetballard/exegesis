@@ -994,17 +994,18 @@ class RetrievalService:
             merged_hits,
             retrieval_policy=retrieval_policy,
         )
+        result_fingerprint = self._build_result_fingerprint(
+            query_fingerprint=query_fingerprint,
+            retrieval_manifest=retrieval_manifest,
+        )
         retrieval_evidence = self._build_retrieval_evidence(
             query=query,
             doc_hits=doc_hits,
             hits=merged_hits,
             retrieval_manifest=retrieval_manifest,
             query_fingerprint=query_fingerprint,
+            result_fingerprint=result_fingerprint,
             retrieval_policy=retrieval_policy,
-        )
-        result_fingerprint = self._build_result_fingerprint(
-            query_fingerprint=query_fingerprint,
-            retrieval_manifest=retrieval_manifest,
         )
         elapsed_ms_total = max(0, int((self._now_fn() - started).total_seconds() * 1000))
         diagnostics = {
@@ -1358,6 +1359,7 @@ class RetrievalService:
         hits: list[RetrievalHit],
         retrieval_manifest: dict[str, object],
         query_fingerprint: str,
+        result_fingerprint: str,
         retrieval_policy: dict[str, object],
     ) -> dict[str, object]:
         doc_citations: list[dict[str, object]] = []
@@ -1404,6 +1406,7 @@ class RetrievalService:
 
         return {
             "query_fingerprint": query_fingerprint,
+            "result_fingerprint": result_fingerprint,
             "query_scope": query.scope,
             "query_intent": query.intent,
             "retrieval_policy": dict(retrieval_policy),
@@ -1427,6 +1430,8 @@ class RetrievalService:
             "basket_promotion_refs": self._build_basket_promotion_refs(
                 doc_hits=doc_hits,
                 hits=hits,
+                query_fingerprint=query_fingerprint,
+                result_fingerprint=result_fingerprint,
             ),
             "retrieval_manifest": dict(retrieval_manifest),
         }
@@ -1436,6 +1441,8 @@ class RetrievalService:
         *,
         doc_hits: list[RetrievalDocHit],
         hits: list[RetrievalHit],
+        query_fingerprint: str,
+        result_fingerprint: str,
     ) -> dict[str, object]:
         """Return stable doc/excerpt references suitable for basket promotion."""
 
@@ -1443,6 +1450,8 @@ class RetrievalService:
             "doc_refs": [
                 {
                     "doc_id": doc_hit.doc_id,
+                    "query_fingerprint": query_fingerprint,
+                    "result_fingerprint": result_fingerprint,
                     "doc_fingerprint": doc_hit.provenance.get("doc_fingerprint"),
                     "doc_identity_fingerprint": doc_hit.provenance.get("doc_identity_fingerprint"),
                     "source_hash": doc_hit.source_hash,
@@ -1458,6 +1467,8 @@ class RetrievalService:
                 {
                     "doc_id": hit.doc_id,
                     "excerpt_id": hit.excerpt_id,
+                    "query_fingerprint": query_fingerprint,
+                    "result_fingerprint": result_fingerprint,
                     "excerpt_fingerprint": hit.provenance.get("excerpt_fingerprint"),
                     "excerpt_text_hash": hit.provenance.get("excerpt_text_hash") or hit.provenance.get("hash"),
                     "span": copy.deepcopy(hit.provenance.get("span")),
