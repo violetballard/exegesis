@@ -6,7 +6,7 @@ Canonical handoff contract lives in `THREAD_PACKET.md`.
 
 - Lane: `feat-commands`
 - Branch: `codex/feat-commands`
-- Review basis: final branch tip after this fixer pass for reviewer packet `20260429T000211Z`; implementation, tests, scope-check support, and packet metadata are reviewed together.
+- Review basis: final branch tip after this fixer pass for reviewer packet `20260429T000428Z`; implementation, tests, scope-check support, and packet metadata are reviewed together.
 - Scope: CLI command-catalog contract hardening for the current engine-first MVP focus without starting `feat-console`.
 - Roadmap alignment: Milestone 3 CLI compatibility for the engine-first workflow loop, and `feat-commands` as the command-surface compatibility lane.
 - Vision alignment: canonical engine contract stability while the CLI remains the active operator surface.
@@ -112,7 +112,7 @@ Canonical handoff contract lives in `THREAD_PACKET.md`.
 5. Canonical demo-path mapping: satisfied in the task list and mapping section by naming open project/document, retrieve/context basket, patch preview, and continued CLI operation.
 6. Required gates: this fixer pass reruns and records `make scope-check`, `./quality-format.sh --check`, `./quality-lint.sh`, `./quality-test.sh`, `./typecheck-test.sh`, and `make ci`.
 
-## Reviewer Packet `20260429T000211Z` Fix Satisfaction
+## Reviewer Packet `20260429T000428Z` Fix Satisfaction
 
 1. Actual merge-candidate packet: satisfied by anchoring this packet to the final `codex/feat-commands` branch tip after this fixer pass rather than stale commit `f8d860ed9f6299f0169c4f21321ac5f37c949fd3`.
 2. Metadata classification: satisfied by stating that no command-catalog implementation or test commits after `f8d860ed9f6299f0169c4f21321ac5f37c949fd3` are metadata-only.
@@ -130,4 +130,4 @@ Canonical handoff contract lives in `THREAD_PACKET.md`.
 - `./quality-test.sh`: PASS
 - `./typecheck-test.sh`: PASS
 - `make ci`: PASS
-- Final verification pass: `2026-04-29T00:04:29Z`
+- Final verification pass: `2026-04-29T00:06:01Z`
