@@ -6,7 +6,7 @@ Canonical handoff contract lives in `THREAD_PACKET.md`.
 
 - Lane: `feat-commands`
 - Branch: `codex/feat-commands`
-- Review basis: current branch tip after the `20260429T012712Z` approval-closeout commit.
+- Review basis: current branch tip after the `20260429T013005Z` reviewer-fix commit.
 - Previous implementation anchor: `f8d860ed9f6299f0169c4f21321ac5f37c949fd3`
 - Scope: command-catalog contract hardening for the current engine-first MVP focus without starting `feat-console`.
 - Roadmap alignment: Milestone 3 CLI compatibility for the engine-first workflow loop, and `feat-commands` as the command-surface compatibility lane.
@@ -41,8 +41,10 @@ Canonical handoff contract lives in `THREAD_PACKET.md`.
 3. Parser-surface drift coverage includes added aliases, removed aliases, same-canonical substitutions such as replacing `bootstrap` with `open` or `diff-preview` with `diff`, token reordering, lookup-table shape/order drift, and declared-surface drift.
 4. Ownership/accounting lists the approved shared test edits and keeps `scripts/scope-check.sh` out of the net `main...HEAD` review diff.
 
-## Reviewer Packet `20260429T012712Z` Approval Closeout
+## Reviewer Packet `20260429T013005Z` Fix Satisfaction
 
-1. Reviewer verdict: `APPROVED`.
-2. Required fixes before re-review: none.
-3. This closeout commit is metadata-only and keeps the current branch tip scope-clean while preserving the approved shared-test implementation history below it.
+1. `command_cli_contract()` validates the full parser-visible token surface through canonical tokens, canonical lookup-table shape, and grouped parser-surface checks.
+2. Same-canonical substitutions are covered by focused tests, including `bootstrap` -> `open`, `diff-preview` -> `diff`, and `diff` -> `diff_preview` drift.
+3. The handoff basis now points at the actual branch tip and does not classify test-changing commits as metadata-only.
+4. Ownership accounting identifies `tests/unit/test_commands_catalog.py` and `tests/unit/test_diff_preview.py` as approved shared-by-approval test edits, with no integrator-locked edits.
+5. The canonical demo-path mapping explicitly names the protected `project-open`, `retrieval`, `patch-review`, and `export-handoff` command steps.

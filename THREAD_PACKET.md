@@ -2,9 +2,9 @@
 
 - Lane: `feat-commands`
 - Branch: `codex/feat-commands`
-- Commit / review basis: current branch tip after the `20260429T012712Z` approval-closeout commit.
+- Commit / review basis: current branch tip after the `20260429T013005Z` reviewer-fix commit.
 - Previous implementation anchor: `f8d860ed9f6299f0169c4f21321ac5f37c949fd3`
-- Reviewer packet addressed: `20260429T012436Z`
+- Reviewer packet addressed: `20260429T013005Z`
 
 ## Packet Traceability Note
 
@@ -124,12 +124,12 @@
 ## Commands Run + Outcomes
 
 - `python -m pytest tests/unit/test_commands_catalog.py`: BLOCKED, active `/opt/homebrew/opt/python@3.14/bin/python3.14` does not have `pytest`; repo gate scripts below were used as authoritative validation.
-- `make scope-check`: PASS after scope cleanup.
-- `./quality-format.sh --check`: PASS after scope cleanup.
-- `./quality-lint.sh`: PASS after scope cleanup.
-- `./quality-test.sh`: PASS after scope cleanup; ran 145 unit tests, including the new same-canonical `diff-preview` -> `diff` replacement regression.
-- `./typecheck-test.sh`: PASS after scope cleanup.
-- `make ci`: PASS after scope cleanup.
+- `make scope-check`: PASS.
+- `./quality-format.sh --check`: PASS.
+- `./quality-lint.sh`: PASS.
+- `./quality-test.sh`: PASS; ran 145 unit tests, including same-canonical parser drift regressions for `bootstrap` -> `open`, `diff-preview` -> `diff`, and `diff` -> `diff_preview`.
+- `./typecheck-test.sh`: PASS.
+- `make ci`: PASS; reran scope-check, format, lint, compileall, and the 145-test suite.
 
 ## Risks / Blockers
 
@@ -186,10 +186,10 @@
 4. Demo-path mapping: satisfied by naming the protected `project-open`, `retrieval`, `patch-review`, and `export-handoff` steps in the task list and demo-path section.
 5. Required gates: satisfied by rerunning `make scope-check`, `./quality-format.sh --check`, `./quality-lint.sh`, `./quality-test.sh`, `./typecheck-test.sh`, and `make ci` against this reviewer-fix worktree state.
 
-## Reviewer Packet `20260429T012712Z` Approval Closeout
+## Reviewer Packet `20260429T013005Z` Fix Satisfaction
 
-1. Reviewer verdict: `APPROVED`.
-2. Findings: none.
-3. Missing handoff fields: none.
-4. Required fixes before re-review: none.
-5. This closeout commit is metadata-only and exists to record the approval packet at the current branch tip without changing implementation behavior.
+1. `command_cli_contract()` validates the full parser-visible CLI token surface, not only de-duplicated canonical names. It compares canonical parser tokens, lookup-table shape, grouped parser surface, declared surface, and canonical command order.
+2. Focused tests prove same-canonical parser drift is rejected, including `bootstrap` -> `open`, `diff-preview` -> `diff`, and `diff` -> `diff_preview` substitutions.
+3. The packet is regenerated against the actual branch tip and does not classify test-changing commits as metadata-only.
+4. Ownership accounting identifies `tests/unit/test_commands_catalog.py` and `tests/unit/test_diff_preview.py` as approved shared-by-approval test edits. Integrator-locked edits: NO.
+5. The canonical demo-path step mapping explicitly names the protected `project-open`, `retrieval`, `patch-review`, and `export-handoff` command steps.
