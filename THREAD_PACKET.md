@@ -3,9 +3,9 @@
 - Lane: `feat-commands`
 - Branch: `codex/feat-commands`
 - Review target: final fixer commit range from this pass
-- Review basis: `HEAD~4..HEAD` after the final gate-evidence fixer commit
-- Review range command: `git diff HEAD~4..HEAD`
-- Current fixer pass: close the parser-token drift gap by binding the real argparse surface to the command catalog contract, documenting the canonical demo-path step advanced by each task, and recording current passing gate evidence.
+- Review basis: `HEAD~5..HEAD` after the `20260429T085016Z` fixer commit
+- Review range command: `git diff HEAD~5..HEAD`
+- Current fixer pass: close the parser-token drift gap by binding the real argparse surface to the command catalog contract, proving drift through the actual argparse choices, documenting the canonical demo-path step advanced by each task, and recording current passing gate evidence.
 
 ## Review Basis Correction
 
@@ -15,14 +15,16 @@ Do not review older branch-tip history as this packet's implementation basis. Th
 
 The only delta requested for review here is:
 
-- `HEAD~4..HEAD` after the final gate-evidence fixer commit
+- `HEAD~5..HEAD` after the `20260429T085016Z` fixer commit
+
+This basis includes runtime/test commits after `f8d860e`; they are intentionally part of the requested re-review and are not described as metadata-only.
 
 ## Scope Completed
 
 1. Bound the real argparse top-level command surface in `src/qual/cli.py` to `command_cli_lookup_table()`, so accepted parser tokens consume the same source as the command catalog. Canonical demo-path steps advanced: `project-open` (`bootstrap`), `retrieval` (`context-basket`), `patch-review` (`diff-preview`/`diff`), and `export-handoff` (`terminal`).
 2. Added a live parser-surface parity check to `command_cli_contract()`, so `bootstrap` -> `open`, removed `diff`, added `diff_preview`, or reordered parser choices fail even when canonical command names still match. Canonical demo-path steps advanced: `project-open` and `patch-review`, with the same exact-token guard applying to `retrieval` and `export-handoff`.
-3. Added focused unit coverage for actual argparse-vs-catalog parity and same-canonical parser-token drift. Canonical demo-path steps advanced: `project-open` through the `bootstrap`/`open` regression and `patch-review` through the `diff`/`diff_preview` removal, substitution, and order regressions.
-4. Updated this handoff packet to narrow the claim to command-contract integrity and explicitly name the canonical demo-path steps advanced by each completed task.
+3. Added focused unit coverage for actual argparse-vs-catalog parity, same-canonical parser-token drift, and direct `_build_parser()` argparse choice drift. Canonical demo-path steps advanced: `project-open` through the `bootstrap`/`open` regression and `patch-review` through the `diff`/`diff_preview` removal, substitution, and order regressions.
+4. Updated this handoff packet to narrow the claim to command-contract integrity, include the later runtime/test commits in one authoritative review basis, correct ownership accounting, and explicitly name the canonical demo-path steps advanced by each completed task. Canonical demo-path steps advanced: `project-open`, `retrieval`, `patch-review`, and `export-handoff`.
 
 ## AGENTS.md Budget And Size Accounting
 
@@ -39,7 +41,7 @@ Because `scripts/scope-check.sh` is not part of the narrow review basis, no appr
 
 ## Files Changed
 
-Changed files in `HEAD~4..HEAD` after the final gate-evidence fixer commit:
+Changed files in `HEAD~5..HEAD` after the `20260429T085016Z` fixer commit:
 
 - `THREAD.md`
 - `src/qual/cli.py`
@@ -79,19 +81,21 @@ Classification:
 
 ## Commands Run
 
-Required gates rerun after the `20260429T084441Z` fixer prompt:
+Required gates rerun after the `20260429T085016Z` fixer prompt:
 
+- `python -m pytest tests/unit/test_commands_catalog.py -q` - attempted; failed because the active Python environment has no `pytest` module.
+- `python -m unittest tests.unit.test_commands_catalog` - passed, `102` tests.
 - `make scope-check` - passed.
 - `./quality-format.sh --check` - passed.
 - `./quality-lint.sh` - passed.
-- `./quality-test.sh` - passed, including `183` unit tests and smoke tests.
+- `./quality-test.sh` - passed, including `184` unit tests and smoke tests.
 - `./typecheck-test.sh` - passed.
-- `make ci` - passed.
+- `make ci` - passed, including scope, format, lint, typecheck, and `184` unit tests plus smoke tests.
 
 Review-basis verification commands:
 
-- `git diff --name-status HEAD~4..HEAD` - run after final gate-evidence commit.
-- `git diff --stat HEAD~4..HEAD` - run after final gate-evidence commit.
+- `git diff --name-status HEAD~5..HEAD` - to run after the `20260429T085016Z` fixer commit.
+- `git diff --stat HEAD~5..HEAD` - to run after the `20260429T085016Z` fixer commit.
 
 ## Handoff Readiness Checklist
 

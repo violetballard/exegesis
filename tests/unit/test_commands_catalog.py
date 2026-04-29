@@ -195,6 +195,40 @@ class CommandCatalogTests(unittest.TestCase):
                     with self.assertRaisesRegex(ValueError, "Command CLI parser surface is inconsistent"):
                         command_catalog.command_cli_contract()
 
+    def test_command_cli_contract_rejects_real_argparse_choice_drift(self) -> None:
+        drift_cases = (
+            (
+                "open replaces bootstrap while preserving canonical target",
+                ("open", "diff-preview", "diff", "context-basket", "terminal"),
+            ),
+            (
+                "diff alias removed while diff-preview remains",
+                ("bootstrap", "diff-preview", "context-basket", "terminal"),
+            ),
+            (
+                "same-canonical diff alias substituted",
+                ("bootstrap", "diff-preview", "diff_preview", "context-basket", "terminal"),
+            ),
+            (
+                "accepted parser tokens reordered",
+                ("bootstrap", "diff", "diff-preview", "context-basket", "terminal"),
+            ),
+        )
+
+        def build_parser_with_choices(tokens: tuple[str, ...]) -> cli.argparse.ArgumentParser:
+            parser = cli.argparse.ArgumentParser(prog="qual-bootstrap")
+            subcommands = parser.add_subparsers(dest="command")
+            for token in tokens:
+                subcommands.add_parser(token)
+            return parser
+
+        for label, parser_tokens in drift_cases:
+            with self.subTest(label=label):
+                self._clear_cli_caches()
+                with patch.object(cli, "_build_parser", return_value=build_parser_with_choices(parser_tokens)):
+                    with self.assertRaisesRegex(ValueError, "Command CLI parser surface is inconsistent"):
+                        command_catalog.command_cli_contract()
+
     def test_actual_argparse_surface_rebuilds_from_catalog_tokens(self) -> None:
         self._clear_cli_caches()
         parser_surface = (
