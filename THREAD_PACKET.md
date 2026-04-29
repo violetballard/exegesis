@@ -2,16 +2,16 @@
 
 - Lane: `feat-commands`
 - Branch: `codex/feat-commands`
-- Review target: actual branch tip after the `20260429T093401Z` fixer pass
-- Review basis: `HEAD~12..HEAD` after this fixer commit
-- Review range command: `git diff HEAD~12..HEAD`
-- Current fixer pass: satisfy the reviewer-required branch-tip traceability fixes by keeping `3304c2871` in scope as implementation work, identifying public smoke-argv export coverage, correcting ownership notes, and rerunning all required gates against the actual branch tip.
+- Review target: actual branch tip after the `20260429T093809Z` fixer pass
+- Review basis: `a6cf0fd59763be784dae53d1cf707938ef20c385..HEAD` after this fixer commit
+- Review range command: `git diff a6cf0fd59763be784dae53d1cf707938ef20c385..HEAD`
+- Current fixer pass: satisfy the reviewer-required branch-tip traceability fixes by keeping all post-`a6cf0fd` code/test work in scope, identifying parser-drift and public smoke-argv export coverage, correcting ownership notes, and rerunning all required gates against the actual branch tip.
 
 ## Traceability Correction
 
-This packet covers the actual `codex/feat-commands` branch tip for the current re-review range. The prior rejected packet incorrectly described the packet-refresh commit `3304c2871b49036b551754cc778684add5009e63` as metadata-only even though it changed `src/qual/commands/__init__.py` and `src/qual/commands/catalog.py`.
+This packet covers the actual `codex/feat-commands` branch tip for the current re-review range. The prior rejected packet incorrectly described later packet-refresh work as metadata-only even though the reviewed branch includes code and test changes.
 
-Implementation commits in this review basis are code-changing work. Commit `3304c2871b49036b551754cc778684add5009e63` remains in scope and is documented here as the parser-valid MVP smoke argv/public export change, adding the exported `command_mvp_smoke_argv()` surface and argv data on smoke contract steps. No implementation commit in this basis is described as metadata-only.
+Implementation and test commits in this review basis are code-changing work. Commit `3304c2871b49036b551754cc778684add5009e63` remains in scope and is documented here as the parser-valid MVP smoke argv/public export change, adding the exported `command_mvp_smoke_argv()` surface and argv data on smoke contract steps. Commit `4eb2b622f1ba63a24792dc610e60afcbdb3e92f1` also remains in scope and is documented as a test/handoff correction because it changes `tests/unit/test_commands_catalog.py`. No implementation or test commit in this basis is described as metadata-only.
 
 ## Scope Completed
 
@@ -37,7 +37,7 @@ This is a high-risk command-contract handoff because it changes command surface 
 
 ## Files Changed
 
-Changed files in `HEAD~12..HEAD` after this fixer commit:
+Changed files in `a6cf0fd59763be784dae53d1cf707938ef20c385..HEAD` after this fixer commit:
 
 - `THREAD.md`
 - `THREAD_PACKET.md`
