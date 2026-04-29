@@ -349,6 +349,9 @@ class RetrievalResult:
             citation_status=citation_status,
             retrieval_summary=retrieval_summary,
         )
+        basket_promotion_refs = self.evidence.get("basket_promotion_refs", {})
+        if not isinstance(basket_promotion_refs, dict):
+            basket_promotion_refs = {"doc_refs": [], "excerpt_refs": []}
         return build_retrieval_downstream_payload(
             query=query,
             policy=retrieval_policy,
@@ -367,6 +370,7 @@ class RetrievalResult:
             retrieval_manifest=dict(self.diagnostics["retrieval_manifest"]),
             retrieval_evidence=dict(self.evidence),
             retrieval_provenance=retrieval_provenance,
+            retrieval_basket_promotion_refs=copy.deepcopy(basket_promotion_refs),
             source_bundle_fingerprint=cast(str, retrieval_source_bundle["source_bundle_fingerprint"]),
             retrieval_source_bundle=retrieval_source_bundle,
         )
@@ -486,6 +490,9 @@ class RetrievalResult:
             "retrieval_provenance": copy.deepcopy(downstream_payload["retrieval_provenance"]),
             "retrieval_source_bundle": copy.deepcopy(downstream_payload["retrieval_source_bundle"]),
             "retrieval_evidence": copy.deepcopy(downstream_payload["retrieval_evidence"]),
+            "retrieval_basket_promotion_refs": copy.deepcopy(
+                downstream_payload["retrieval_basket_promotion_refs"]
+            ),
         }
 
     def _query_snapshot(self) -> dict[str, object]:
@@ -735,6 +742,9 @@ class RetrievalResult:
             "excerpt_hits": [hit.as_dict() for hit in self.hits],
             "retrieval_manifest": copy.deepcopy(self.diagnostics["retrieval_manifest"]),
             "retrieval_evidence": copy.deepcopy(self.evidence),
+            "retrieval_basket_promotion_refs": copy.deepcopy(
+                self.evidence.get("basket_promotion_refs", {"doc_refs": [], "excerpt_refs": []})
+            ),
             "retrieval_provenance": copy.deepcopy(
                 self._retrieval_provenance_snapshot(
                     citation_bundle=citation_bundle_snapshot,
