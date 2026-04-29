@@ -12,7 +12,7 @@
   - `0492bb2bc00dd03c126789985d9a5f18e5cd8e67`: metadata-only packet refresh that documents the additional implementation commits above; it is not itself implementation.
   - `f1931ac437f5f051b397e36ca27560bd1023d975`: metadata-only packet correction that resubmitted the corrected packet without changing implementation behavior.
   - `0fe7c8c84e5f65bb0f557d191960ebbcf3946b9ef`: metadata-only packet correction that clarified the corrected review packet.
-  - Final fixer validation commit from this packet: packet-only metadata update confirming the corrected target and green gates. The exact final HEAD SHA is reported by the fixer after commit creation.
+  - Final fixer validation commit from this packet: packet-only metadata update confirming the corrected target, required-fix mapping, and green gates. The exact final HEAD SHA is reported by the fixer after commit creation.
 - Merge base used for file accounting: `06cdebc2d5d53533b73f264a4bbf5a4b4daacb27`.
 - Risk classification: low-risk lane-owned implementation plus one shared-by-approval unit-test exception and packet metadata; no integrator-locked files are changed.
 
@@ -59,6 +59,7 @@ Actual corrected merge diff from `06cdebc2d5d53533b73f264a4bbf5a4b4daacb27` to t
 - Packet metadata files changed: `THREAD.md`, `THREAD_PACKET.md`.
 - Shared-by-approval files changed: approved exception for `tests/unit/test_commands_catalog.py` to cover the command-catalog alias-replacement regression.
 - Integrator-locked files changed: none in the corrected target.
+- Clarified ownership note: shared-by-approval test edit is `YES`; integrator-locked implementation edit is `NO`.
 - Corrected ownership note: the reviewed implementation touched `src/qual/commands/catalog.py` plus approved shared test `tests/unit/test_commands_catalog.py`; no integrator-locked files were changed in the reviewed implementation commit.
 - Routing/provider impact: none.
 
