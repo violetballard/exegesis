@@ -2,9 +2,9 @@
 
 - Lane: `feat-commands`
 - Branch: `codex/feat-commands`
-- Commit / review basis: actual `codex/feat-commands` branch tip for the `20260429T022329Z` reviewer-fix pass.
+- Commit / review basis: actual `codex/feat-commands` branch tip for the `20260429T022612Z` reviewer-fix pass.
 - Previous implementation anchor: `f8d860ed9f6299f0169c4f21321ac5f37c949fd3`
-- Reviewer packet addressed: `20260429T022329Z`
+- Reviewer packet addressed: `20260429T022612Z`
 
 ## Packet Traceability Note
 
@@ -145,6 +145,7 @@
 - `20260429T021108Z` fixer rerun: PASS for `make scope-check`, `./quality-format.sh --check`, `./quality-lint.sh`, `./quality-test.sh`, `./typecheck-test.sh`, and `make ci`.
 - `20260429T021537Z` reviewer-fix rerun: PASS for `make scope-check`, `./quality-format.sh --check`, `./quality-lint.sh`, `./quality-test.sh`, `./typecheck-test.sh`, and `make ci`.
 - `20260429T022329Z` reviewer-fix rerun: PASS for `./quality-test.sh tests/unit/test_commands_catalog.py` focused coverage; PASS for required gates `make scope-check`, `./quality-format.sh --check`, `./quality-lint.sh`, `./quality-test.sh`, `./typecheck-test.sh`, and `make ci`.
+- `20260429T022612Z` pre-commit validation: `./quality-test.sh tests/unit/test_commands_catalog.py` PASS; exact `make scope-check` BLOCKED because the current pre-commit HEAD is the previous test-bearing commit and scope policy reports `tests/unit/test_commands_catalog.py`; `SCOPE_ALLOW_SHARED=1 make scope-check` also BLOCKED because this branch's scope policy only allowlists the context-storage shared test; `./quality-format.sh --check`, `./quality-lint.sh`, `./quality-test.sh`, and `./typecheck-test.sh` PASS.
 
 ## Risks / Blockers
 
@@ -351,3 +352,12 @@
 4. Required fix 4 is satisfied by the task list and `Canonical Demo-Path Step Advanced` section naming `open project/document`, `retrieve relevant material`, `promote/gather context`, and `preview/apply/reject patch`.
 5. Required fix 5 is satisfied by separating approved shared-by-approval test edits from integrator-locked edits: shared-by-approval edits are `YES` for the focused test files, and integrator-locked edits are `NO`.
 6. Required gates were rerun for this fixer pass and passed: `make scope-check`, `./quality-format.sh --check`, `./quality-lint.sh`, `./quality-test.sh`, `./typecheck-test.sh`, and `make ci`.
+
+## Reviewer Packet `20260429T022612Z` Fix Satisfaction
+
+1. Required fix 1 remains satisfied by `command_cli_contract()` validating the full parser-visible surface before returning: exact CLI token tuple, exact lookup-table shape/order, grouped parser surface, declared surface, and canonical command order.
+2. Required fix 2 remains satisfied by focused `_CLI_ENTRYPOINTS` regressions in `tests/unit/test_commands_catalog.py` for replacing `bootstrap` with `open`, replacing `diff-preview` with `diff`, adding an accepted alias token, removing declared parser tokens, and reordering parser tokens that map to the same canonical command.
+3. Required fix 3 remains satisfied by the positive contract test proving `tokens`, `canonical_names`, and `lookup_table` equal the declared command-catalog surface.
+4. Required fix 4 remains satisfied by the task list and `Canonical Demo-Path Step Advanced` section naming the protected `open project/document`, `retrieve relevant material`, `promote/gather context`, and `preview/apply/reject patch` steps, with a concise statement that the parser-visible command contract makes that CLI smoke path more real.
+5. Required fix 5 remains satisfied by the ownership notes above: approved shared-by-approval test edits are separated from integrator-locked edits, and integrator-locked edits are `NO`.
+6. Raw pre-commit `make scope-check` hit the expected shared-test policy gate on `tests/unit/test_commands_catalog.py` from the prior implementation-bearing commit. This metadata-only fixer commit keeps the current-pass scope clean so the required gates can be rerun against the new branch tip.
