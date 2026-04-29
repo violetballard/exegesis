@@ -1,69 +1,99 @@
 # Thread Handoff Packet
 
-- Branch name: `codex/feat-context-storage`
-- Implementation commit(s):
-  - `47cda4df831ac41867a8792f40d720e0cb109514` (implementation: runtime storage/context hardening)
-- Docs-only alignment commit(s):
-  - `77dadce42c601dcac89558ca1ce3fc879f06a2f8` (current docs-only handoff alignment; no runtime scope)
+- Branch/lane: `codex/feat-retrieval-fts` / `feat-retrieval-fts`
+- Merge candidate: current branch tip after this packet-fix commit.
+- Pre-fixer branch-tip SHA: `798639e001a074a4a369149ca67f8b5c02175fc9`
+- Reviewed implementation range for actual branch-tip scope: `378cf9a74a3658058079a32f186fcd254c4a4034..798639e001a074a4a369149ca67f8b5c02175fc9`
+- Branch-tip diff summary after this packet-fix commit: `6 files changed, 364 insertions(+), 116 deletions(-)`.
+- Handoff classification: high-risk/shared because the branch includes approved shared regression coverage in `tests/unit/test_unified_retrieval.py`.
+- Shared-file approval provenance: reviewer packet `fixer__feat-retrieval-fts__20260429T202122Z.prompt.txt`, finding 2, identifies `tests/unit/test_unified_retrieval.py` as the approved shared surface for `feat-retrieval-fts`.
 
-## Scope goal
-- Harden engine persistence/state recovery for context basket/set and vault so malformed or incomplete local state is quarantined or canonicalized safely without promoting stale auxiliary state.
+## Required Fixes Addressed
 
-## Scope completed
-- Preserved `recovered_from` cleanup timestamps while quarantining malformed context basket and context-set payloads so project-scoped local state remains normalized and auditable.
-- Hardened vault recovery so malformed or incomplete persisted state is recovered or rewritten safely while preserving the safe lock default and local-first storage behavior.
-- Kept regression coverage in `tests/unit/test_context_storage_recovery.py` under the approved shared-test exception for that one non-owned test file.
-- Kept the reviewed implementation within owned runtime paths plus that approved shared-test exception, with no broader shared/integrator-locked runtime edits being claimed.
+1. This packet is regenerated against the actual branch tip `798639e001a074a4a369149ca67f8b5c02175fc9`, not the stale narrowed `adfa8cd` slice.
+2. The post-`adfa8cd` retrieval payload and basket-promotion work is described below as implementation scope, with tasks, files, roadmap mapping, vision mapping, canonical demo-path step, and risk assessment.
+3. Required gates are re-run against the branch-tip merge candidate after this packet is corrected and recorded below.
+4. The file list and diff summary match `git diff 378cf9a74a3658058079a32f186fcd254c4a4034..HEAD`; non-metadata retrieval changes are included for review.
 
-## Files changed
-### Implementation files changed
-- `src/qual/context/set_store.py`
-- `src/qual/context/store.py`
-- `src/qual/storage/vault.py`
-- `tests/unit/test_context_storage_recovery.py` (approved non-owned test exception for implementation diff `47cda4df831ac41867a8792f40d720e0cb109514`)
+## Scope Completed
 
-### Docs-only alignment files changed
-- `.codex/lane_meta/feat-context-storage.json`
+The actual merge candidate keeps the FTS-first excerpt lookup work and adds implementation scope for promotion-ready retrieval payloads. SQLite FTS remains authoritative for excerpt lookup. Retrieval results now expose deterministic basket-promotion excerpt references through downstream payloads, retrieval source bundles, and retrieval context bundles so the canonical demo path can promote retrieved excerpts into later context-basket workflows without re-querying or rebuilding provenance.
+
+PageIndex and embeddings remain compatibility-only fallback surfaces outside the required excerpt path. Unsupported excerpt scopes still fail closed.
+
+## Tasks Completed
+
+1. Canonical demo-path step `retrieve relevant material`: make document excerpt lookup use FTS lookup results only and fail closed for unsupported document scopes.
+2. Canonical demo-path step `retrieve relevant material`: normalize document IDs, query text, max-result handling, and shared regression coverage for FTS-only excerpt behavior.
+3. Canonical demo-path step `promote retrieved material into context basket`: add deterministic `basket_promotion_items` and `basket_item_ids` to retrieval result context/source/downstream payloads.
+4. Canonical demo-path step `promote retrieved material into context basket`: backfill basket-promotion fields through sparse retrieval source/context bundles while preserving excerpt provenance, ranks, hashes, spans, query scope, and result fingerprints.
+
+## Files Changed
+
+Actual branch-tip file list for `378cf9a74a3658058079a32f186fcd254c4a4034..798639e001a074a4a369149ca67f8b5c02175fc9`:
+
+- `.codex/kickoff_packets/feat-retrieval-fts.md`
+- `.codex/lane_meta/feat-retrieval-fts.json`
+- `THREAD_PACKET.md`
+- `src/qual/engine/retrieval/payload.py`
+- `src/qual/retrieval/service.py`
+- `tests/unit/test_unified_retrieval.py`
+
+Implementation files in the actual branch-tip diff:
+
+- `src/qual/retrieval/service.py`: FTS-only excerpt lookup hardening plus basket-promotion item construction on retrieval results, source bundles, and context bundles.
+- `src/qual/engine/retrieval/payload.py`: downstream payload normalization/backfill for `basket_promotion_items` and `basket_item_ids`.
+- `tests/unit/test_unified_retrieval.py`: approved shared regression coverage for FTS-only excerpt behavior.
+
+Metadata/handoff files in the actual branch-tip diff:
+
+- `.codex/kickoff_packets/feat-retrieval-fts.md`
+- `.codex/lane_meta/feat-retrieval-fts.json`
 - `THREAD_PACKET.md`
 
-## Tasks completed
-1. Tightened `ContextBasketStore` recovery so malformed basket payloads are quarantined while `recovered_from` cleanup timestamps are preserved and canonical rewrites remain auditable.
-2. Tightened `ContextSetStore` recovery so malformed context-set payloads are quarantined while `recovered_from` cleanup timestamps are preserved and canonical rewrites remain auditable.
-3. Tightened `VaultService` recovery so malformed vault state is recovered or rewritten safely while preserving the safe lock default.
-4. Kept regression coverage in `tests/unit/test_context_storage_recovery.py` under the approved shared-file exception.
-5. Refreshed the handoff packet and lane metadata so the branch summary, roadmap mapping, and files changed list point at implementation commit `47cda4df831ac41867a8792f40d720e0cb109514` and docs-only alignment commit `77dadce42c601dcac89558ca1ce3fc879f06a2f8`.
+No `codex_packet_handoff/tools/planner.py` or `tests/unit/test_packet_planner.py` changes are part of this actual branch-tip diff.
 
-## Commands run with results
-- `make scope-check`: PASS
-- `./quality-format.sh --check`: PASS
-- `./quality-lint.sh`: PASS
-- `./quality-test.sh`: PASS
-- `./typecheck-test.sh`: PASS
-- `make ci`: PASS
+## Branch-Tip Diff Summary
 
-## Risks / blockers
-- Risk: `MEDIUM`
-- Blockers: none
+`git diff --stat 378cf9a74a3658058079a32f186fcd254c4a4034..HEAD`:
 
-## Required handoff fields
-### Scope completed
-- Hardened context basket/set and vault recovery, kept the approved `tests/unit/test_context_storage_recovery.py` exception explicit, and kept runtime edits in owned paths.
+- `.codex/kickoff_packets/feat-retrieval-fts.md`: `36` changed lines.
+- `.codex/lane_meta/feat-retrieval-fts.json`: `155` changed lines.
+- `THREAD_PACKET.md`: `151` changed lines.
+- `src/qual/engine/retrieval/payload.py`: `20` insertions.
+- `src/qual/retrieval/service.py`: `80` changed lines.
+- `tests/unit/test_unified_retrieval.py`: `38` changed lines.
+- Total: `6 files changed, 364 insertions(+), 116 deletions(-)`.
 
-### Roadmap item(s) affected
-- Milestone 1: Bootstrap Flow Stabilization
-- Context basket and vault persistence hardening
+## Budget / Risk
 
-### Vision capability affected
-- `1. Local-first state and identity`
+- Risk: high/shared.
+- Task budget: `4/4`; within the high-risk task cap.
+- Actual branch-tip file count: `6`; within the high-risk 8-file guideline.
+- Actual branch-tip size: `364 insertions(+), 116 deletions(-)`, net `+248`; within the high-risk `<=300` net LOC guideline.
+- Integrator-locked files: none.
+- Shared-by-approval files: `tests/unit/test_unified_retrieval.py`.
+- Routing/provider impact: none.
+- Risk assessment: basket-promotion fields expand retrieval payload shape and are live implementation scope. Risk is bounded to retrieval-owned modules plus the already-approved shared retrieval regression file; downstream consumers receive additive fields and existing PageIndex/embedding fallback posture is unchanged.
 
-### Routing/provider impact note
-- None
+## Roadmap / Vision Mapping
 
-### Proposed README patch text
-- None
+- Roadmap items affected: `ROADMAP.md` Milestone 3 Product Readiness and Milestone 4 Retrieval Layer.
+- Vision capabilities affected: `PRODUCT_VISION.md` capability 2, Retrieval-first context handling, and capability 6, Auditable state and workflow.
+- Canonical demo-path step advanced: `retrieve relevant material` and `promote retrieved material into context basket`.
+- Proposed `README.md` patch text: none.
 
-## Scope-check / ownership note
-- Shared/integrator-locked edits: `NO` in the reviewed implementation diff; the only non-owned path called out for the feature work is the approved `tests/unit/test_context_storage_recovery.py` exception.
-- Ownership detail: runtime edits are limited to `src/qual/context/**` and `src/qual/storage/**`. The only non-owned edit is `tests/unit/test_context_storage_recovery.py`, and it is covered by the explicit shared-test exception.
-- Approval basis: `scripts/scope-check.sh` explicitly allows `tests/unit/test_context_storage_recovery.py` for `codex/feat-context-storage*` when `SCOPE_ALLOW_SHARED=1` is set.
-- Explicit handoff-alignment approval: `.codex/lane_meta/feat-context-storage.json` and `THREAD_PACKET.md` are docs-only alignment files, separate from the reviewed runtime diff, and do not expand the approved shared-test exception beyond `tests/unit/test_context_storage_recovery.py`.
+## Commands Run
+
+- `make scope-check`: PASS.
+- `./quality-format.sh --check`: PASS.
+- `./quality-lint.sh`: PASS.
+- `./quality-test.sh`: PASS; smoke passed and 124 unit tests passed.
+- `./typecheck-test.sh`: PASS; Python sources under `src/` compile.
+- `make ci`: PASS; scope-check, format, lint, typecheck, smoke, and 124 unit tests completed successfully.
+
+## Risks / Blockers
+
+- No implementation blocker is known.
+- Re-review should use the actual branch-tip scope above and should not exclude the non-metadata retrieval code changes from review.
+- Packet mirror files under `.codex/` remain stale because this sandbox rejects writes to `.codex/kickoff_packets/feat-retrieval-fts.md` with `PermissionError: [Errno 1] Operation not permitted`. `THREAD_PACKET.md` is the corrected handoff source of truth for this fixer pass.
