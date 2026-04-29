@@ -6,7 +6,7 @@
 - Review basis: `git diff main...codex/feat-commands`
 - Review command: `git diff main...codex/feat-commands`
 - Prior packet supersession: this `THREAD_PACKET.md` replaces all earlier packet text, packet-refresh notes, and review-scope claims that named `f8d860ed9f6299f0169c4f21321ac5f37c949fd3` as the submitted target.
-- Fixer prompt satisfied: `20260429T122501Z`
+- Fixer prompt satisfied: `20260429T123522Z`
 
 ## Required-Fix Resolution
 
@@ -59,9 +59,19 @@ Handoff metadata: `THREAD.md`, `THREAD_PACKET.md`.
 
 This packet submits exactly one review target: the full branch tip of `codex/feat-commands`. Review should use `git diff main...codex/feat-commands`; do not use the historical `f8d860ed9f6299f0169c4f21321ac5f37c949fd3` slice or any earlier packet-refresh wording as the review basis.
 
-Non-metadata changes after `f8d860e` are intentionally included in this handoff. In particular, `08466cd7f8d48592c6f6585dd816e4478c102e47` is an implementation commit, not metadata-only: it changes `src/qual/commands/__init__.py` and `src/qual/commands/catalog.py` to export and populate the command MVP smoke command-line API. `091f508e3535b4fdc5d814aa89d68e766e3166c1` is also implementation scope: it changes `src/qual/commands/__init__.py` and `src/qual/commands/catalog.py` to expose the MVP demo-path contract, command lines, and engine handoff labels. The current fixer commit adds focused public-export coverage in `tests/unit/test_commands_catalog.py`. Later runtime/test commits in the submitted branch tip also touch `src/qual/cli.py`, `src/qual/commands/__init__.py`, `src/qual/commands/catalog.py`, and `tests/unit/test_commands_catalog.py`; those changes are represented by the branch-tip file list and gate evidence above.
+Non-metadata changes after `f8d860e` are intentionally included in this handoff. All implementation/test commits after `f8d860ed9f6299f0169c4f21321ac5f37c949fd3` are exactly the commits returned by:
 
-Commits after `f8d860e` that affect the disputed branch-tip slice are therefore classified as implementation/test when they touch `src/qual/**`, `scripts/**`, or `tests/**`, and as metadata-only only when they touch `THREAD.md` or `THREAD_PACKET.md`.
+`git log --reverse --format='%H %s' f8d860ed9f6299f0169c4f21321ac5f37c949fd3..codex/feat-commands -- src tests scripts`
+
+That command is the exhaustive implementation/test ledger for the post-`f8d860e` range; any commit omitted by that pathspec is metadata-only for this packet. The commits currently nearest the submitted branch tip that affect the disputed runtime/test surface are:
+
+- `a6a2235801322530aaf9e4f9839b67e92c234d38` `Harden command MVP smoke contract` (`src/qual/commands/__init__.py`, `src/qual/commands/catalog.py`)
+- `2f9eb28ca298e5e2f801db300a6b67bf94662a3d` `fix(commands): derive cli surface from catalog specs` (`src/qual/commands/catalog.py`, `tests/unit/test_commands_catalog.py`)
+- `08466cd7f8d48592c6f6585dd816e4478c102e47` `Add command smoke command lines` (`src/qual/commands/__init__.py`, `src/qual/commands/catalog.py`)
+- `091f508e3535b4fdc5d814aa89d68e766e3166c1` `Expose MVP command demo path contract` (`src/qual/commands/__init__.py`, `src/qual/commands/catalog.py`)
+- `383c53ceeef91383aef50ff5d19ac435e9264d2c` `fix(commands): align handoff with smoke command APIs` (`tests/unit/test_commands_catalog.py`)
+
+Commits after `f8d860e` are classified as implementation/test when they touch `src/qual/**`, `scripts/**`, or `tests/**`, and as metadata-only only when they touch `THREAD.md` or `THREAD_PACKET.md`.
 
 Test coverage for the exported command-line/demo-path API: `tests/unit/test_commands_catalog.py::CommandCatalogTests.test_public_mvp_smoke_exports_track_the_demo_path` asserts `command_mvp_smoke_command_lines()` through the package export, including `context-basket list`; `test_public_mvp_demo_path_exports_document_engine_handoffs` asserts the package-exported demo-path steps, command lines, and engine handoff labels.
 
@@ -88,7 +98,7 @@ This is high-risk because `src/qual/cli.py` is shared-by-approval for `feat-comm
 
 ## Commands Run
 
-- Fresh `20260429T122501Z` fixer rerun against corrected full branch-tip review target and current roadmap/product labels:
+- Fresh `20260429T123522Z` fixer rerun against corrected full branch-tip review target and current roadmap/product labels:
   `make scope-check` passed; `./quality-format.sh --check` passed; `./quality-lint.sh` passed; `./quality-test.sh` passed with smoke tests and `132` unit tests; `./typecheck-test.sh` passed; `make ci` passed with scope-check, format, lint, typecheck, smoke tests, and `132` unit tests.
 - `python -m unittest tests.unit.test_commands_catalog` - passed, `50` tests.
 - `python -m pytest tests/unit/test_commands_catalog.py` - failed because `pytest` is not installed in the active Python.
