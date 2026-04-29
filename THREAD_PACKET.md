@@ -2,14 +2,15 @@
 
 - Branch/lane: `codex/feat-retrieval-fts` / `feat-retrieval-fts`
 - Merge candidate: current branch tip after this fixer pass; final SHA is reported in the fixer handoff.
-- Reviewed range: `378cf9a7..HEAD`
-- Reviewed implementation range: `378cf9a7..HEAD`
+- Reviewed range: `378cf9a74a3658058079a32f186fcd254c4a4034..HEAD`
+- Reviewed implementation range: `378cf9a74a3658058079a32f186fcd254c4a4034..HEAD`
 - Review choice: review the true branch tip, including the runtime retrieval changes originally introduced after `adfa8cdadd43747ffbcb612e4151e262b13e52ca` and the follow-up context-ref fingerprint fix.
-- Pre-fix reviewer-cited commits: `68f23aa26ae0be2b043484d61aa6fa5c4c3f10bd` and `0d9723f6b`.
+- Pre-fix reviewer-cited commits: `68f23aa26ae0be2b043484d61aa6fa5c4c3f10bd` and `0d9723f6be77cb1be30ae97f7bfe82c1dd2d1698`.
+- Canonical demo-path step advanced: retrieve relevant material.
 
 ## Required Fixes Addressed
 
-The merge candidate is the branch tip, not an obsolete narrowed packet slice. The actual `378cf9a7..HEAD` runtime scope is included in tasks, file list, roadmap/vision mapping, risk accounting, and gate reporting. The branch keeps the promotion-ready context ref behavior and explicitly includes `src/qual/engine/retrieval/payload.py` and `src/qual/retrieval/service.py` in the reviewed implementation scope.
+The merge candidate is the branch tip, not an obsolete narrowed packet slice. The actual `378cf9a74a3658058079a32f186fcd254c4a4034..HEAD` runtime scope is included in tasks, file list, roadmap/vision mapping, risk accounting, and gate reporting. The branch keeps the promotion-ready context ref behavior and explicitly includes `src/qual/engine/retrieval/payload.py` and `src/qual/retrieval/service.py` in the reviewed implementation scope.
 
 ## Scope Completed
 
@@ -27,14 +28,20 @@ Canonical demo path advanced by the full branch tip:
 3. Basket/workflow promotion readiness: stable refs, fingerprints, and auditable excerpt/context refs added to downstream payloads, source bundles, context bundles, doc/excerpt bundles, and helper backfills. Canonical demo path advanced: promote or gather context into the basket.
 4. Regression and handoff coverage: shared canonical retrieval coverage plus branch-tip packet metadata corrected for the actual merge candidate. Canonical demo path advanced: keep retrieval and context-promotion behavior reviewable before draft/revise/apply steps.
 
+## Packet Mirror Write Blocker
+
+The patch tool rejects edits under `.codex/kickoff_packets/feat-retrieval-fts.md` and `.codex/lane_meta/feat-retrieval-fts.json` as outside the editable project boundary during this fixer pass. This `THREAD_PACKET.md` is therefore the authoritative regenerated handoff packet for re-review and supersedes stale mirror text that still references `adfa8cdadd43747ffbcb612e4151e262b13e52ca` as the implementation head.
+
 ## Branch-Tip Files Changed
 
-- `.codex/kickoff_packets/feat-retrieval-fts.md`: kickoff packet mirror changed earlier in the branch range.
-- `.codex/lane_meta/feat-retrieval-fts.json`: lane metadata changed earlier in the branch range.
-- `THREAD_PACKET.md`: handoff packet regenerated for branch-tip review.
-- `src/qual/engine/retrieval/payload.py`: normalizes `retrieval_context_refs` and backfills sparse context-bundle/source-bundle payloads.
-- `src/qual/retrieval/service.py`: emits promotion-ready FTS context refs with deterministic fingerprints through downstream payload, source bundle, context bundle, and bundle snapshots.
-- `tests/unit/test_unified_retrieval.py`: regression coverage for FTS-first retrieval, canonical excerpt lookup, context-ref payload propagation, snapshot safety, and sparse context-bundle backfill.
+Matches `git diff --name-status 378cf9a74a3658058079a32f186fcd254c4a4034..HEAD` for the true merge candidate:
+
+- `M .codex/kickoff_packets/feat-retrieval-fts.md`
+- `M .codex/lane_meta/feat-retrieval-fts.json`
+- `M THREAD_PACKET.md`
+- `M src/qual/engine/retrieval/payload.py`
+- `M src/qual/retrieval/service.py`
+- `M tests/unit/test_unified_retrieval.py`
 
 ## Focused Regression Coverage
 
@@ -44,7 +51,7 @@ Canonical demo path advanced by the full branch tip:
 
 ## Budget / Risk
 
-Risk/budget: high/shared because `tests/unit/test_unified_retrieval.py` is approved shared regression coverage and the reviewed range includes runtime retrieval payload/service behavior. Recomputed from `378cf9a7..HEAD`: task budget `4/4`; file budget `6/8`; size budget remains within the high-risk `<=300` net LOC cap before this packet/test fixer commit is reviewed against its final SHA. Integrator-locked files: none. Routing/provider/core entrypoint impact: none.
+Risk/budget: high/shared because `tests/unit/test_unified_retrieval.py` is approved shared regression coverage and the reviewed range includes runtime retrieval payload/service behavior. Recomputed from `378cf9a74a3658058079a32f186fcd254c4a4034..HEAD`: task budget `4/4`; file budget `6/8`; size budget remains within the high-risk `<=300` net LOC cap after this packet fixer commit is reviewed against its final SHA. Integrator-locked files: none. Routing/provider/core entrypoint impact: none.
 
 ## FTS-First Alignment Proof
 
@@ -65,4 +72,4 @@ Fresh fixer pass on the branch-tip merge candidate: `make scope-check` PASS; `./
 ## Risks / Blockers
 
 - Merge risk remains high because the branch-tip reviewed range includes approved shared regression coverage and runtime retrieval payload/service changes.
-- Reviewers should evaluate `378cf9a7..HEAD` as the merge candidate; any narrower `adfa8cd` slice is obsolete.
+- Reviewers should evaluate `378cf9a74a3658058079a32f186fcd254c4a4034..HEAD` as the merge candidate; any narrower `adfa8cd` slice is obsolete.
