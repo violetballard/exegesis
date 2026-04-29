@@ -2,9 +2,9 @@
 
 - Lane: `feat-commands`
 - Branch: `codex/feat-commands`
-- Commit / review basis: current branch tip after the `20260429T014157Z` fixer validation commit.
+- Commit / review basis: current branch tip after the `20260429T014429Z` fixer validation commit.
 - Previous implementation anchor: `f8d860ed9f6299f0169c4f21321ac5f37c949fd3`
-- Reviewer packet addressed: `20260429T014157Z`
+- Reviewer packet addressed: `20260429T014429Z`
 
 ## Packet Traceability Note
 
@@ -133,6 +133,7 @@
 - `make ci`: PASS; reran scope-check, format, lint, compileall, and the 145-test suite.
 - `20260429T013834Z` fixer validation rerun: PASS for `make scope-check`, `./quality-format.sh --check`, `./quality-lint.sh`, `./quality-test.sh`, `./typecheck-test.sh`, and `make ci`.
 - `20260429T014157Z` fixer validation rerun: PASS for `make scope-check`, `./quality-format.sh --check`, `./quality-lint.sh`, `./quality-test.sh`, `./typecheck-test.sh`, and `make ci`.
+- `20260429T014429Z` fixer validation rerun: PASS for `make scope-check`, `./quality-format.sh --check`, `./quality-lint.sh`, `./quality-test.sh`, `./typecheck-test.sh`, and `make ci`.
 
 ## Risks / Blockers
 
@@ -218,3 +219,11 @@
 4. Required fix 4 remains satisfied because `scripts/scope-check.sh` is absent from the net `main...HEAD` review diff.
 5. Required fix 5 remains satisfied by naming `open project/document`, `retrieve relevant material`, `promote/gather context`, and `preview/apply/reject patch` in the canonical demo-path mapping.
 6. Required gates were rerun and passed for this fixer pass.
+
+## Fixer Packet `20260429T014429Z` Validation
+
+1. Required fix 1 remains satisfied by `command_cli_contract()` comparing the full parser-visible CLI surface: canonical parser tokens, lookup-table shape, grouped parser surface, declared surface, and canonical command order.
+2. Required fix 2 remains satisfied by focused tests that patch `_CLI_ENTRYPOINTS` and reject same-canonical substitutions, removed tokens, extra tokens, and reordered tokens.
+3. Required fix 3 remains satisfied by the positive contract test proving `contract.tokens`, `contract.canonical_names`, and `contract.lookup_table` stay aligned with the declared canonical parser surface.
+4. Required fix 4 remains satisfied by the canonical demo-path mapping for `open project/document`, `retrieve relevant material`, `promote/gather context`, and `preview/apply/reject patch`.
+5. Required gates were rerun and passed for this fixer pass.
