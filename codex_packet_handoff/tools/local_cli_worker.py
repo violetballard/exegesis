@@ -4,6 +4,7 @@ from __future__ import annotations
 import argparse
 import json
 import os
+import signal
 import subprocess
 import time
 from pathlib import Path
@@ -26,6 +27,16 @@ def parse_args() -> argparse.Namespace:
     ap = argparse.ArgumentParser(description="Detached local Codex CLI worker")
     ap.add_argument("--spec", required=True, help="Path to the JSON job spec")
     return ap.parse_args()
+
+
+def _terminate_process_group(pid: int, sig: int) -> None:
+    try:
+        os.killpg(pid, sig)
+    except OSError:
+        try:
+            os.kill(pid, sig)
+        except OSError:
+            pass
 
 
 def main() -> int:
@@ -51,27 +62,38 @@ def main() -> int:
     try:
         stdin_handle = open(stdin_path, "r", encoding="utf-8") if stdin_path else None
         try:
-            proc = subprocess.run(
+            proc = subprocess.Popen(
                 cmd,
                 cwd=cwd,
                 stdout=subprocess.PIPE,
                 stderr=subprocess.STDOUT,
                 stdin=stdin_handle if stdin_handle is not None else subprocess.DEVNULL,
                 text=True,
-                timeout=timeout_seconds,
                 env=env,
+                start_new_session=True,
             )
+            try:
+                stdout_text, _ = proc.communicate(timeout=timeout_seconds)
+            except subprocess.TimeoutExpired as exc:
+                _terminate_process_group(proc.pid, signal.SIGTERM)
+                try:
+                    stdout_text, _ = proc.communicate(timeout=5)
+                except subprocess.TimeoutExpired:
+                    _terminate_process_group(proc.pid, signal.SIGKILL)
+                    stdout_text, _ = proc.communicate()
+                partial = exc.stdout if isinstance(exc.stdout, str) else ""
+                if partial and not stdout_text:
+                    stdout_text = partial
+                rc = 124
+                status = "timeout"
+                error = f"timed out after {timeout_seconds}s"
+            else:
+                stdout_text = stdout_text or ""
+                rc = int(proc.returncode)
+                status = "ok" if rc == 0 else "error"
         finally:
             if stdin_handle is not None:
                 stdin_handle.close()
-        stdout_text = proc.stdout or ""
-        rc = int(proc.returncode)
-        status = "ok" if rc == 0 else "error"
-    except subprocess.TimeoutExpired as exc:
-        stdout_text = (exc.stdout or "") if isinstance(exc.stdout, str) else ""
-        rc = 124
-        status = "timeout"
-        error = f"timed out after {timeout_seconds}s"
     except Exception as exc:
         rc = 1
         status = "error"

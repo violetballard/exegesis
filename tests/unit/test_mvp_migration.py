@@ -257,6 +257,35 @@ class ScopeCheckMigrationTests(unittest.TestCase):
         self.assertTrue(any("typecheck-test.sh" in call[0] for call in calls))
         self.assertTrue(any("quality-test.sh" in call[0] for call in calls))
 
+    def test_planner_run_timeout_terminates_process_group(self) -> None:
+        from codex_packet_handoff.tools import planner as planner_mod
+
+        class FakeProc:
+            pid = 4242
+            returncode = None
+
+            def __init__(self) -> None:
+                self.calls = 0
+
+            def communicate(self, timeout: int | None = None):
+                self.calls += 1
+                if self.calls == 1:
+                    raise subprocess.TimeoutExpired(cmd="slow", timeout=timeout)
+                return "partial output", None
+
+        fake_proc = FakeProc()
+        with (
+            patch.object(planner_mod.subprocess, "Popen", return_value=fake_proc) as popen_mock,
+            patch.object(planner_mod.os, "killpg") as killpg_mock,
+        ):
+            rc, out = planner_mod.run("slow", cwd=str(self.root), timeout=1)
+
+        self.assertEqual(rc, 124)
+        self.assertIn("partial output", out)
+        self.assertIn("[TIMEOUT]", out)
+        self.assertTrue(popen_mock.call_args.kwargs["start_new_session"])
+        killpg_mock.assert_called_once_with(4242, planner_mod.signal.SIGTERM)
+
     def test_planner_list_git_remotes_returns_empty_without_remote(self) -> None:
         from codex_packet_handoff.tools import planner as planner_mod
 

@@ -1,7 +1,7 @@
 #!/usr/bin/env python3
 from __future__ import annotations
 
-import json, os, shlex, subprocess
+import json, os, shlex, signal, subprocess
 from datetime import datetime, timezone
 from pathlib import Path
 from typing import Any, Dict, List, Optional, Tuple
@@ -118,13 +118,36 @@ def save_json(p: Path, data: Any) -> None:
     p.parent.mkdir(parents=True, exist_ok=True)
     p.write_text(json.dumps(data, indent=2))
 
+def _terminate_process_group(pid: int, sig: int) -> None:
+    try:
+        os.killpg(pid, sig)
+    except OSError:
+        try:
+            os.kill(pid, sig)
+        except OSError:
+            pass
+
+
 def run(cmd: str, cwd: str, env: Optional[Dict[str,str]] = None, timeout: int = 3600) -> Tuple[int,str]:
-    p = subprocess.Popen(cmd, cwd=cwd, shell=True, stdout=subprocess.PIPE, stderr=subprocess.STDOUT, text=True, env=env or os.environ.copy())
+    p = subprocess.Popen(
+        cmd,
+        cwd=cwd,
+        shell=True,
+        stdout=subprocess.PIPE,
+        stderr=subprocess.STDOUT,
+        text=True,
+        env=env or os.environ.copy(),
+        start_new_session=True,
+    )
     try:
         out, _ = p.communicate(timeout=timeout)
     except subprocess.TimeoutExpired:
-        p.kill()
-        out, _ = p.communicate()
+        _terminate_process_group(p.pid, signal.SIGTERM)
+        try:
+            out, _ = p.communicate(timeout=5)
+        except subprocess.TimeoutExpired:
+            _terminate_process_group(p.pid, signal.SIGKILL)
+            out, _ = p.communicate()
         return 124, (out or "") + "\n[TIMEOUT]"
     return p.returncode, out or ""
 
