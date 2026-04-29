@@ -2,43 +2,39 @@
 
 - Lane: `feat-retrieval-fts`
 - Branch: `codex/feat-retrieval-fts`
-- Reviewed base: `d7fd5d200358287fa42a18d39e2b277463b9b69f`
-- Reviewed tip: current branch tip after this fixer commit; final SHA is reported in the fixer handoff.
-- Reviewed implementation range: `d7fd5d200358287fa42a18d39e2b277463b9b69f..HEAD`
-- Handoff type: branch-tip re-review packet for the full `feat-retrieval-fts` state.
+- Review target: current branch tip for `codex/feat-retrieval-fts`; final SHA is reported in the fixer handoff.
+- Authoritative reviewed range: `378cf9a7..HEAD`
+- Handoff type: high-risk retrieval fixer re-review.
 
 ## Scope Goal
 
-Complete the FTS-first retrieval MVP for engine flows with deterministic query, hit, provenance, excerpt, and basket-promotion payloads while keeping PageIndex and embeddings out of the required MVP retrieval path.
+Keep excerpt lookup FTS-first by removing the PageIndex fallback from `fetch_excerpt`, with regression coverage for the fail-closed behavior.
 
 ## Scope Completed
 
-The full branch-tip diff keeps SQLite FTS as the authoritative retrieval path. It exports canonical retrieval query and helper surfaces through both retrieval facades, hardens FTS strategy validation and cache normalization, adds compatibility-only PageIndex and embeddings shims that fail closed, normalizes retrieval payload/provenance/source/context/basket snapshots, and makes excerpt lookup resolve through FTS-only evidence. Shared regression coverage in `tests/unit/test_unified_retrieval.py` verifies FTS-first diagnostics, deterministic snapshots, fail-closed non-FTS hits, FTS-only excerpt lookup, and deferred PageIndex/embeddings behavior.
+The branch tip now contains only the narrowed retrieval slice plus handoff packet metadata. `fetch_excerpt` no longer falls back to PageIndex lookup when the FTS path cannot resolve an excerpt, and the shared retrieval regression test asserts PageIndex-only excerpt IDs fail closed. Later retrieval payload, engine facade, planner, and packet-tooling drift has been reverted out of the branch-tip merge result.
 
 ## Canonical Demo-Path Step Advanced
 
 - Step: `retrieve relevant material`
-- This branch makes that step more real by turning retrieved material into deterministic FTS-derived evidence bundles that downstream basket promotion can consume without depending on PageIndex or embeddings.
-- No PageIndex or embeddings path is required for the MVP retrieval contract: FTS is the only active strategy, PageIndex and embeddings are deferred compatibility shims, and tests assert non-FTS/source-strategy inputs fail closed.
+- The change advances the canonical demo path by making excerpt retrieval honor the FTS-first retrieval contract. Material promoted or gathered into context must come from the canonical FTS path rather than a PageIndex-only fallback.
 
 ## Budget And Ownership
 
 - Risk: `HIGH`
-- High-risk reason: the branch includes shared regression coverage in `tests/unit/test_unified_retrieval.py` and broad retrieval facade/payload changes.
-- Task budget: read as 4 high-risk tasks.
-- Size accounting for the final branch-tip diff: 12 files changed, 12,797 insertions, 902 deletions.
-- Owned runtime paths touched: `src/qual/retrieval/**`, `src/qual/engine/retrieval/**`.
-- Approved shared-by-approval edit: `tests/unit/test_unified_retrieval.py`, used only for retrieval contract regression coverage.
-- Handoff metadata artifacts touched: `.codex/kickoff_packets/feat-retrieval-fts.md`, `.codex/lane_meta/feat-retrieval-fts.json`, `THREAD_PACKET.md`.
-- Integrator-locked files touched: none.
-- Removed from the final branch-tip diff: `codex_packet_handoff/tools/init_lane_meta.py`, `codex_packet_handoff/tools/planner.py`, `docs/gate_passed.txt`, `docs/retrieval_post_adfa_commit_accounting.md`, and `tests/unit/test_packet_planner.py`.
+- High-risk reason: the reviewed range includes approved shared regression coverage in `tests/unit/test_unified_retrieval.py`.
+- Task count: `1`
+- Task budget: `4`
+- Size accounting: `5 files changed, 251 insertions(+), 106 deletions(-)` in `378cf9a7..HEAD` after this packet rewrite, within the `<=8 files` and `<=300 net LOC` high-risk caps.
+- Owned runtime path touched: `src/qual/retrieval/service.py`
+- Approved shared-by-approval edit: `tests/unit/test_unified_retrieval.py`
+- Handoff metadata artifacts touched: `.codex/kickoff_packets/feat-retrieval-fts.md`, `.codex/lane_meta/feat-retrieval-fts.json`, `THREAD_PACKET.md`
+- Integrator-locked files touched: none
+- Removed from the branch-tip merge result: retrieval engine facade/payload drift, packet planner/tooling drift, and packet-planner test drift after `adfa8cda`.
 
 ## Tasks Completed
 
-1. Kept retrieval FTS-first by making `retrieve_auto` and `retrieve_fts` share canonical query normalization, active strategy reporting, FTS-only hit provenance, and fail-closed unsupported scopes.
-2. Stabilized engine retrieval strategy behavior by validating canonical FTS query payloads, normalizing cache keys and candidate doc IDs, isolating cached hit snapshots, and leaving PageIndex/embeddings as importable deferred shims.
-3. Normalized retrieval payloads for downstream engine flows, including source bundles, context bundles, citation/provenance bundles, basket-promotion snapshots, fingerprints, date ranges, ranked IDs, and sparse backfill/reconstruction paths.
-4. Added approved shared regression coverage for the full FTS-first retrieval contract, including facade exports, payload determinism, FTS-only excerpt lookup, failed lookup audit shape, basket-promotion evidence, and fail-closed non-FTS strategy inputs.
+1. Removed PageIndex fallback behavior from `fetch_excerpt` and covered the FTS-only excerpt contract with shared retrieval regression coverage.
 
 ## Complete Files Changed
 
@@ -46,33 +42,8 @@ The full branch-tip diff keeps SQLite FTS as the authoritative retrieval path. I
 .codex/kickoff_packets/feat-retrieval-fts.md
 .codex/lane_meta/feat-retrieval-fts.json
 THREAD_PACKET.md
-src/qual/engine/retrieval/__init__.py
-src/qual/engine/retrieval/embeddings_strategy.py
-src/qual/engine/retrieval/fts_strategy.py
-src/qual/engine/retrieval/interface.py
-src/qual/engine/retrieval/pageindex_strategy.py
-src/qual/engine/retrieval/payload.py
-src/qual/retrieval/__init__.py
 src/qual/retrieval/service.py
 tests/unit/test_unified_retrieval.py
-```
-
-## Diff Stat
-
-```text
-.codex/kickoff_packets/feat-retrieval-fts.md     |   55 +-
-.codex/lane_meta/feat-retrieval-fts.json         |  162 +-
-THREAD_PACKET.md                                 |  168 +-
-src/qual/engine/retrieval/__init__.py            |  175 +-
-src/qual/engine/retrieval/embeddings_strategy.py |   25 +
-src/qual/engine/retrieval/fts_strategy.py        |  394 +-
-src/qual/engine/retrieval/interface.py           |    2 +-
-src/qual/engine/retrieval/pageindex_strategy.py  |   34 +
-src/qual/engine/retrieval/payload.py             | 4114 ++++++++++++++++-
-src/qual/retrieval/__init__.py                   |  330 +-
-src/qual/retrieval/service.py                    | 3111 ++++++++++++-
-tests/unit/test_unified_retrieval.py             | 5129 ++++++++++++++++++++--
-12 files changed, 12797 insertions(+), 902 deletions(-)
 ```
 
 ## Commands Run And Outcomes
@@ -86,20 +57,19 @@ tests/unit/test_unified_retrieval.py             | 5129 ++++++++++++++++++++--
 
 ## Roadmap Items Affected
 
-- `ROADMAP.md`: Milestone 3 product-readiness work for generation provenance and the engine workflow loop.
-- `ROADMAP.md`: MVP focus through 2026-05-04, specifically `feat-retrieval-fts`.
+- `ROADMAP.md`: MVP focus on FTS-first retrieval.
+- `ROADMAP.md`: Milestone 3 retrieval context handling for the real workflow loop.
 
 ## Vision Capabilities Affected
 
-- `PRODUCT_VISION.md`: retrieval-backed context, FTS-first for the current MVP.
-- `PRODUCT_VISION.md`: Retrieval-first context handling.
-- `PRODUCT_VISION.md`: Auditable state and workflow.
+- `PRODUCT_VISION.md`: retrieval-first context handling.
+- `PRODUCT_VISION.md`: auditable state and workflow.
 
 ## Routing / Provider Impact
 
-None. This branch changes retrieval behavior and payload normalization only; it does not touch model routing or provider configuration.
+None. This handoff does not touch model routing, provider configuration, or core provider entrypoints.
 
 ## Risks / Blockers
 
-- Remaining risk: high review surface because the branch-tip diff is large and includes broad retrieval payload normalization.
-- Blockers: none after non-owned tool/docs drift was removed from the final branch-tip diff.
+- Remaining risk: shared regression coverage is included, so the handoff remains high-risk by ownership policy.
+- Blockers: none.
