@@ -36,6 +36,12 @@ class FTSStrategy:
     def supports(self, query: Any) -> bool:
         return True
 
+    def clear_cache(self) -> None:
+        """Drop cached hits after the backing FTS index changes."""
+
+        self._cache_key = None
+        self._cache_hits = None
+
     def retrieve(self, query: Any, *, candidate_doc_ids: tuple[str, ...]) -> StrategyRun:
         """Execute the underlying ``runner`` or return a cached result.
 
