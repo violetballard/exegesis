@@ -12,7 +12,7 @@
 
 - Branch name: `codex/feat-commands`
 - Scope completed: isolated the command catalog implementation slice from `f8d860ed9f6299f0169c4f21321ac5f37c949fd3` and removed off-lane branch-tip changes from the corrected merge target.
-- Implementation review basis: pinned to `f8d860ed9f6299f0169c4f21321ac5f37c949fd3`; this fixer adds handoff metadata only and no new implementation changes.
+- Implementation review basis: starts from `f8d860ed9f6299f0169c4f21321ac5f37c949fd3`; this fixer tightens the CLI contract guard, adds the alias-replacement regression, and refreshes packet metadata.
 - Roadmap item(s) affected: active MVP `feat-commands`; Milestone 3 command surface stability while Textual remains disabled.
 - Vision capability affected: canonical engine contract and CLI compatibility through deterministic command catalog metadata.
 - Canonical demo-path step advanced: this command-catalog hardening strengthens the CLI path for `open project/document`, `retrieve relevant material`, and `preview and apply or reject a patch` by keeping command tokens and canonical command names deterministic.
@@ -21,10 +21,12 @@
 
 ## Tasks Completed
 
-1. Narrowed the corrected target to the command-catalog implementation slice: `src/qual/commands/catalog.py`, `tests/unit/test_commands_catalog.py`, and packet metadata only.
-2. Regenerated `THREAD_PACKET.md` and `THREAD.md` so they describe the corrected branch-tip target instead of the rejected broad review basis.
-3. Reconciled the prior metadata mismatch by explicitly noting that `f5a35438c2808b247cb70a86da7e0e9b19f82f67` modified both packet files and described the wrong target.
-4. Kept the unit test isolated to the catalog module so the corrected target does not require `src/qual/commands/__init__.py`.
+1. Tightened `command_cli_contract()` so each `command_names()` canonical entry must appear as a canonical CLI token in catalog order. Demo-path mapping: strengthens `open project/document`, `retrieve relevant material`, and `apply/reject` CLI entrypoint stability.
+2. Added a regression test proving that removing canonical token `diff-preview` while keeping alias `diff` raises `ValueError`. Demo-path mapping: strengthens `apply/reject` by preserving the canonical diff-preview parser surface.
+3. Narrowed the corrected target to the command-catalog implementation slice: `src/qual/commands/catalog.py`, `tests/unit/test_commands_catalog.py`, and packet metadata only. Demo-path mapping: keeps this lane scoped to command-surface stability for the active demo path.
+4. Regenerated `THREAD_PACKET.md` and `THREAD.md` so they describe the corrected branch-tip target instead of the rejected broad review basis. Demo-path mapping: keeps handoff evidence aligned with command-catalog work that supports `open project/document`, `retrieve relevant material`, and `apply/reject`.
+5. Reconciled the prior metadata mismatch by explicitly noting that `f5a35438c2808b247cb70a86da7e0e9b19f82f67` modified both packet files and described the wrong target. Demo-path mapping: keeps review metadata accurate for the command-catalog handoff.
+6. Kept the unit test isolated to the catalog module so the corrected target does not require `src/qual/commands/__init__.py`. Demo-path mapping: limits validation to command-surface behavior used by the active demo path.
 
 ## Complete Corrected File List
 

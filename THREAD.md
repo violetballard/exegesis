@@ -12,5 +12,5 @@ Canonical handoff contract lives in `THREAD_PACKET.md`.
 - Complete corrected file list: `THREAD.md`, `THREAD_PACKET.md`, `src/qual/commands/catalog.py`, and `tests/unit/test_commands_catalog.py`.
 - Metadata-only handoff files changed: `THREAD.md` and `THREAD_PACKET.md`.
 - Canonical demo-path step advanced: command-catalog hardening strengthens the CLI path for `open project/document`, `retrieve relevant material`, and `preview and apply or reject a patch` by keeping command tokens and canonical command names deterministic.
-- Implementation slice: `src/qual/commands/catalog.py` and `tests/unit/test_commands_catalog.py` remain pinned to reviewed commit `f8d860ed9f6299f0169c4f21321ac5f37c949fd3`; this fixer adds handoff metadata only and no new implementation changes.
+- Implementation slice: `src/qual/commands/catalog.py` and `tests/unit/test_commands_catalog.py` starts from reviewed commit `f8d860ed9f6299f0169c4f21321ac5f37c949fd3`; this fixer tightens the canonical CLI-token contract, adds the `diff-preview` alias-replacement regression, and refreshes packet metadata.
 - Required gates for the exact corrected target: `make scope-check`, `./quality-format.sh --check`, `./quality-lint.sh`, `./quality-test.sh`, `./typecheck-test.sh`, and `make ci` all pass.
