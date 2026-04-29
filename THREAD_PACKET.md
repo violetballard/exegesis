@@ -273,4 +273,4 @@
 1. Reviewer verdict: `APPROVED`.
 2. Required fixes before re-review: none.
 3. No implementation files changed for this confirmation pass; the existing command contract and focused tests remain the review basis.
-4. Required gates were rerun for this fixer pass: `make scope-check` and `make ci` pass after the approval-confirmation branch tip.
+4. Required gates were rerun for this fixer pass after the approval-confirmation branch tip: `make scope-check`, `./quality-format.sh --check`, `./quality-lint.sh`, `./quality-test.sh`, `./typecheck-test.sh`, and `make ci` pass.
