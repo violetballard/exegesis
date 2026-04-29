@@ -2,9 +2,9 @@
 
 - Lane: `feat-commands`
 - Branch: `codex/feat-commands`
-- Review basis: actual `codex/feat-commands` branch tip after the `20260429T030236Z` reviewer-fix pass.
+- Review basis: actual `codex/feat-commands` branch tip after the `20260429T030532Z` reviewer-fix pass.
 - Previous implementation anchor: `f8d860ed9f6299f0169c4f21321ac5f37c949fd3`
-- Reviewer packet addressed: `20260429T030236Z`
+- Reviewer packet addressed: `20260429T030532Z`
 - Final verifier tip: reviewer-fix commit that restores the scope policy to the previous implementation anchor state, restamps this handoff metadata, reruns required gates, and uses the final branch tip as the only review basis.
 
 ## Packet Traceability Note
@@ -135,6 +135,14 @@
 2. Complete changed-file accounting: the effective review diff from `f8d860ed9f6299f0169c4f21321ac5f37c949fd3` contains `THREAD.md`, `THREAD_PACKET.md`, `scripts/scope-check.sh`, `src/qual/commands/catalog.py`, and `tests/unit/test_commands_catalog.py`.
 3. Packet refresh claim corrected: no post-anchor commit is described as metadata-only unless it is metadata-only in the final branch-tip review basis; post-anchor implementation and test changes are included in the review basis.
 4. Ownership accounting corrected: `tests/unit/test_commands_catalog.py` is treated as an approved shared-by-approval test edit, integrator-locked edits are `NO`, and `scripts/scope-check.sh` is explicitly called out as a cleanup-only gate-policy edit with approval/risk rationale.
+5. Required gates: final results are recorded below after rerun on the same final branch-tip review basis named in this packet.
+
+## Required Fixes Addressed From Reviewer Packet `20260429T030532Z`
+
+1. Exact parser-visible validation: `command_cli_contract()` validates declared CLI tokens, `_CLI_ENTRYPOINTS`, grouped parser surface, lookup-table shape/order, and canonical-name order so same-canonical substitutions, additions, removals, and ordering changes raise.
+2. Regression coverage: `tests/unit/test_commands_catalog.py` patches `_CLI_ENTRYPOINTS` for `bootstrap` -> `open`, `diff-preview` -> `diff`, token removal, token addition, and token order drift, with additional lookup-table and declared-surface drift coverage.
+3. Truthful review basis: this handoff uses the actual final `codex/feat-commands` branch tip and lists `scripts/scope-check.sh` as a cleanup-only gate-policy file instead of treating it as metadata.
+4. Demo-path mapping: every completed task names the canonical demo-path command steps it protects or advances.
 5. Required gates: final results are recorded below after rerun on the same final branch-tip review basis named in this packet.
 
 ## Commands Run + Outcomes
