@@ -119,3 +119,4 @@ Canonical handoff contract lives in `THREAD_PACKET.md`.
 2. The packet includes the concise statement that this work makes `open project/document`, `retrieve relevant material`, `promote/gather context`, and `preview/apply/reject patch` more real by guaranteeing parser-visible CLI tokens stay aligned with the command catalog.
 3. The ownership note separates approved shared-by-approval test edits from integrator-locked edits; integrator-locked edits remain `NO`.
 4. The packet keeps the review basis on the actual branch tip because post-`f8d860ed9f6299f0169c4f21321ac5f37c949fd3` command/test commits are implementation-bearing.
+5. Required gates were rerun for this fixer pass and passed: `make scope-check`, `./quality-format.sh --check`, `./quality-lint.sh`, `./quality-test.sh`, `./typecheck-test.sh`, and `make ci`.
