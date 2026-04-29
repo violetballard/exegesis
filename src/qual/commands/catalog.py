@@ -151,6 +151,7 @@ class CommandDemoPathStep:
     operator_checkpoint: str
     engine_handoff: str
     description: str
+    engine_actions: tuple[str, ...] = ()
 
 
 @dataclass(frozen=True)
@@ -161,6 +162,7 @@ class CommandDemoPathContract:
     command_tokens: tuple[str, ...]
     command_lines: tuple[str, ...]
     engine_handoffs: tuple[str, ...]
+    engine_actions: tuple[tuple[str, ...], ...] = ()
 
 
 DEMO_PATH_ENGINE_HANDOFFS: dict[str, str] = {
@@ -168,6 +170,13 @@ DEMO_PATH_ENGINE_HANDOFFS: dict[str, str] = {
     "retrieval": "engine retrieval context selection",
     "patch-review": "engine patch preview and apply/reject decision",
     "export-handoff": "engine export handoff routing",
+}
+
+DEMO_PATH_ENGINE_ACTIONS: dict[str, tuple[str, ...]] = {
+    "project-open": ("open_project",),
+    "retrieval": ("retrieve_context",),
+    "patch-review": ("preview_patch", "apply_patch", "reject_patch"),
+    "export-handoff": ("persist_session", "export_handoff"),
 }
 
 DEMO_PATH_OPERATOR_CHECKPOINTS: dict[str, str] = {
@@ -1077,6 +1086,20 @@ def _validate_command_demo_path_contract(contract: CommandDemoPathContract) -> N
     )
     if contract.engine_handoffs != expected_handoffs:
         raise ValueError("Command demo path engine handoffs are inconsistent")
+    expected_actions = tuple(
+        DEMO_PATH_ENGINE_ACTIONS[step.flow_step]
+        for step in smoke_contract.steps
+    )
+    if contract.engine_actions != expected_actions:
+        raise ValueError("Command demo path engine actions are inconsistent")
+    for step in contract.steps:
+        if not step.engine_actions:
+            raise ValueError("Command demo path engine actions must not be empty")
+    patch_step = next((step for step in contract.steps if step.flow_step == "patch-review"), None)
+    if patch_step is None:
+        raise ValueError("Command demo path must include patch review")
+    if not {"apply_patch", "reject_patch"}.issubset(patch_step.engine_actions):
+        raise ValueError("Command demo path patch review must expose apply/reject actions")
 
 
 @lru_cache(maxsize=None)
@@ -1302,6 +1325,7 @@ def command_mvp_demo_path_contract() -> CommandDemoPathContract:
             operator_checkpoint=DEMO_PATH_OPERATOR_CHECKPOINTS[step.flow_step],
             engine_handoff=DEMO_PATH_ENGINE_HANDOFFS[step.flow_step],
             description=step.description,
+            engine_actions=DEMO_PATH_ENGINE_ACTIONS[step.flow_step],
         )
         for step in smoke_contract.steps
     )
@@ -1312,6 +1336,7 @@ def command_mvp_demo_path_contract() -> CommandDemoPathContract:
         command_tokens=tuple(step.cli_token for step in steps),
         command_lines=tuple(step.command_line for step in steps),
         engine_handoffs=tuple(step.engine_handoff for step in steps),
+        engine_actions=tuple(step.engine_actions for step in steps),
     )
     _validate_command_demo_path_contract(contract)
     return contract
@@ -1331,6 +1356,10 @@ def command_mvp_demo_path_operator_checkpoints() -> tuple[str, ...]:
 
 def command_mvp_demo_path_engine_handoffs() -> tuple[str, ...]:
     return command_mvp_demo_path_contract().engine_handoffs
+
+
+def command_mvp_demo_path_engine_actions() -> tuple[tuple[str, ...], ...]:
+    return command_mvp_demo_path_contract().engine_actions
 
 
 @lru_cache(maxsize=None)
