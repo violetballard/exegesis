@@ -6,7 +6,7 @@ Canonical handoff contract lives in `THREAD_PACKET.md`.
 
 - Lane: `feat-commands`
 - Branch: `codex/feat-commands`
-- Review basis: actual `codex/feat-commands` branch tip after the `20260429T032835Z` reviewer-fix pass.
+- Review basis: actual `codex/feat-commands` branch tip after the `20260429T033114Z` reviewer-fix pass.
 - Previous implementation anchor: `f8d860ed9f6299f0169c4f21321ac5f37c949fd3`
 - Scope: command-catalog contract hardening for the current engine-first MVP focus without starting `feat-console`.
 - Roadmap alignment: Milestone 3 CLI compatibility for the engine-first workflow loop, and `feat-commands` as the command-surface compatibility lane.
@@ -41,11 +41,11 @@ Canonical handoff contract lives in `THREAD_PACKET.md`.
 
 - This command contract hardening makes the CLI smoke path more real for `open project/document`, `retrieve relevant material`, `promote/gather context`, and `preview/apply/reject patch` by guaranteeing parser-visible tokens stay aligned with the command catalog before the contract is returned.
 
-## Reviewer Packet `20260429T032835Z` Fix Satisfaction
+## Reviewer Packet `20260429T033114Z` Fix Satisfaction
 
 1. One review basis is used: the actual final `codex/feat-commands` branch tip, not a narrow historical implementation slice.
 2. The complete effective changed-file list from `f8d860ed9f6299f0169c4f21321ac5f37c949fd3` is named, including `THREAD.md`, `THREAD_PACKET.md`, `scripts/scope-check.sh`, `src/qual/commands/catalog.py`, and `tests/unit/test_commands_catalog.py`.
-3. `scripts/scope-check.sh` is documented as cleanup-only gate-policy accounting, with explicit rationale and no integrator-locked claim.
-4. Ownership accounting separates approved shared-by-approval tests from integrator-locked edits.
-5. Per-task demo-path mapping names project open, retrieval/context basket, patch preview/apply/reject, and export/handoff.
+3. `command_cli_contract()` validates exact parser-visible tokens, grouped declared surface, lookup-table shape/order, and canonical command order.
+4. Regression coverage patches `_CLI_ENTRYPOINTS` for same-canonical parser drift, token additions/removals, and token order drift.
+5. Ownership accounting separates approved shared-by-approval tests from integrator-locked edits.
 6. Final required gate results for the current reviewer packet are recorded in `THREAD_PACKET.md`.

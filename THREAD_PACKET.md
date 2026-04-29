@@ -2,9 +2,9 @@
 
 - Lane: `feat-commands`
 - Branch: `codex/feat-commands`
-- Review basis: actual `codex/feat-commands` branch tip after the `20260429T032835Z` reviewer-fix pass.
+- Review basis: actual `codex/feat-commands` branch tip after the `20260429T033114Z` reviewer-fix pass.
 - Previous implementation anchor: `f8d860ed9f6299f0169c4f21321ac5f37c949fd3`
-- Reviewer packet addressed: `20260429T032835Z`
+- Reviewer packet addressed: `20260429T033114Z`
 - Final verifier tip: the branch-tip reviewer-fix commit containing this packet restamp, with the actual `codex/feat-commands` branch tip as the only review basis.
 
 ## Packet Traceability Note
@@ -211,6 +211,14 @@
 3. Parser-surface validation: `command_cli_contract()` validates parser-visible token additions, removals, substitutions, ordering drift, grouped surface drift, lookup-table substitutions, lookup-table ordering, declared surface drift, and canonical-name ordering before returning the contract.
 4. Same-canonical drift coverage: tests cover `bootstrap` -> `open`, `diff-preview` -> `diff`, `diff` -> `diff_preview`, extra accepted alias drift, removed accepted alias drift, and reordered parser token drift.
 5. Demo-path mapping: every completed task names the canonical demo-path steps protected by this command-catalog work, including project/document open, retrieval/context basket, patch preview/apply/reject, save/continue support through the CLI operator surface, and export/handoff.
+
+## Required Fixes Addressed From Reviewer Packet `20260429T033114Z`
+
+1. Exact parser-visible validation: `command_cli_contract()` validates `_CLI_ENTRYPOINTS`, declared grouped surface, canonical token tuple, lookup-table shape/order, and canonical command order before returning the contract.
+2. Same-canonical drift coverage: tests patch `_CLI_ENTRYPOINTS` for `bootstrap` -> `open`, `diff-preview` -> `diff`, token additions/removals, and token order drift; additional tests cover lookup-table drift and self-consistent declared-surface drift.
+3. One review basis: this packet uses the actual final `codex/feat-commands` branch tip after this fixer pass and includes implementation, test, metadata, and cleanup files in the effective review diff.
+4. Complete changed-file accounting: the effective review diff from `f8d860ed9f6299f0169c4f21321ac5f37c949fd3` through the final branch tip includes `THREAD.md`, `THREAD_PACKET.md`, `scripts/scope-check.sh`, `src/qual/commands/catalog.py`, and `tests/unit/test_commands_catalog.py`.
+5. Required gates: final results are recorded below after rerun on the same final branch-tip review basis named in this packet.
 
 ## Commands Run + Outcomes
 
