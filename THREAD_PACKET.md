@@ -6,7 +6,15 @@
 - Review basis: `git diff main...codex/feat-commands`
 - Review command: `git diff main...codex/feat-commands`
 - Prior packet supersession: this `THREAD_PACKET.md` replaces all earlier packet text, packet-refresh notes, and review-scope claims that named `f8d860ed9f6299f0169c4f21321ac5f37c949fd3` as the submitted target.
-- Fixer prompt satisfied: `20260429T115230Z`
+- Fixer prompt satisfied: `20260429T115507Z`
+
+## Required-Fix Resolution
+
+1. Review basis is the full branch tip only: `git diff main...codex/feat-commands`.
+2. The narrow `f8d860ed9f6299f0169c4f21321ac5f37c949fd3` slice is not submitted for review; its earlier packet text is superseded.
+3. This is intentionally submitted as high-risk over-budget work with all branch-tip files, task count, LOC count, shared/locked exceptions, and an explicit integrator acceptance request below.
+4. Each completed task below maps to a canonical demo-path step, and the handoff states which CLI-first demo steps are now more real.
+5. Ownership accounting distinguishes the locked implementation file, shared policy script, shared tests, owned command files, and metadata files.
 
 ## Demo-Path Mapping
 
@@ -75,7 +83,7 @@ This is high-risk because `src/qual/cli.py` is shared-by-approval for `feat-comm
 
 ## Commands Run
 
-- Fresh `20260429T115230Z` fixer rerun against corrected full branch-tip review target:
+- Fresh `20260429T115507Z` fixer rerun against corrected full branch-tip review target:
   `make scope-check` passed; `./quality-format.sh --check` passed; `./quality-lint.sh` passed; `./quality-test.sh` passed with smoke tests and `131` unit tests; `./typecheck-test.sh` passed; `make ci` passed with scope-check, format, lint, typecheck, smoke tests, and `131` unit tests.
 - `python -m unittest tests.unit.test_commands_catalog` - passed, `49` tests.
 - `python -m pytest tests/unit/test_commands_catalog.py` - failed because `pytest` is not installed in the active Python.
