@@ -4,7 +4,7 @@
 - Branch: `codex/feat-commands`
 - Review target: branch tip `codex/feat-commands`, including the latest fixer commit.
 - Review basis: `git diff --stat --name-status f8d860ed9f6299f0169c4f21321ac5f37c949fd3..HEAD -- THREAD.md THREAD_PACKET.md src/qual/cli.py src/qual/commands/__init__.py src/qual/commands/catalog.py tests/unit/test_commands_catalog.py`
-- Fixer prompts satisfied: `20260429T152044Z`, `20260429T152842Z`
+- Fixer prompts satisfied: `20260429T152044Z`, `20260429T152842Z`, `20260429T154016Z`
 
 This packet uses the branch tip as the review target. It includes the earlier reviewed `f8d860ed9f6299f0169c4f21321ac5f37c949fd3` slice and all later implementation, test, and handoff commits on `codex/feat-commands`.
 
@@ -44,7 +44,7 @@ This command-catalog slice makes the `retrieve relevant material` step more real
    Canonical demo-path surfaces kept discoverable: `preview/apply/reject patch` through `diff-preview`/`diff` command metadata, and `persist session state` through `terminal` export-handoff metadata. This branch validates command surfaces only; it does not add apply/reject or persistence behavior.
 
 5. Refreshed the handoff packet with the complete branch-tip diff, changed-file list, ownership/risk note, and gate evidence.
-   Review blocker removed: the handoff now states the exact canonical command surfaces and the parser/catalog drift blocker, and it names every metadata file changed by packet refresh commit `a9266aca4b87a2ad1df4e8615a2a4adfb816fc44`.
+   Canonical demo-path step advanced: `retrieve relevant material`, because the handoff now names how parser/catalog drift blocked reliable retrieval command discovery and parsing. It also states the adjacent `open project/document`, `gather context into basket`, `preview/apply/reject patch`, and `persist session state` surfaces kept discoverable, and names every metadata file changed by packet refresh commit `a9266aca4b87a2ad1df4e8615a2a4adfb816fc44`.
 
 ## Files Changed In Review Target
 
@@ -106,6 +106,7 @@ Metadata-only files changed by packet refresh commit `a9266aca4b87a2ad1df4e8615a
 
 Fresh fixer rerun for `20260429T152044Z` validates the corrected branch-tip review target.
 Fresh fixer rerun for `20260429T152842Z` validates the canonical demo-path and metadata file-list corrections.
+Fresh fixer rerun for `20260429T154016Z` validates that every completed task explicitly names the canonical demo-path step it advances.
 
 ## Risks And Blockers
 
@@ -116,3 +117,5 @@ Fresh fixer rerun for `20260429T152842Z` validates the canonical demo-path and m
 ## Final Readiness Statement
 
 This branch-tip command contract work makes `retrieve relevant material` more real by ensuring the live CLI parser and command catalog cannot silently drift apart. That parser/catalog drift was a direct blocker because the demo path begins with concrete command tokens; if the parser and catalog disagree, the CLI cannot reliably discover and parse the retrieval command surface. Adjacent catalog entries also keep the existing `open project/document`, `gather context into basket`, `preview/apply/reject patch`, and `persist session state` command surfaces discoverable, without claiming new revise/save/apply behavior.
+
+This work makes `retrieve relevant material` more real by enforcing one shared parser/catalog contract for the CLI retrieval command surface.
