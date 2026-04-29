@@ -6604,6 +6604,38 @@ class A2UIFallbackSafetyTests(unittest.TestCase):
             terminal_artifact_renderer_entrypoints_contract_fingerprint(),
         )
         self.assertEqual(
+            manifest["shell_ui_contract"]["entrypoints_contract_manifest"],
+            manifest["shell_ui_contract"]["entrypoints_contract"],
+        )
+        self.assertEqual(
+            manifest["shell_ui_contract"]["entrypoints_contract_manifest_fingerprint"],
+            _fingerprint_manifest_section(manifest["shell_ui_contract"]["entrypoints_contract"]),
+        )
+        self.assertEqual(
+            manifest["shell_ui_contract"]["route_precedence_contract_manifest"],
+            manifest["shell_ui_contract"]["route_precedence_contract"],
+        )
+        self.assertEqual(
+            manifest["shell_ui_contract"]["route_precedence_contract_manifest_fingerprint"],
+            _fingerprint_manifest_section(manifest["shell_ui_contract"]["route_precedence_contract"]),
+        )
+        self.assertEqual(
+            manifest["shell_ui_contract"]["startup_fields_contract_manifest"],
+            manifest["shell_ui_contract"]["startup_fields_contract"],
+        )
+        self.assertEqual(
+            manifest["shell_ui_contract"]["startup_fields_contract_manifest_fingerprint"],
+            _fingerprint_manifest_section(manifest["shell_ui_contract"]["startup_fields_contract"]),
+        )
+        self.assertEqual(
+            manifest["shell_ui_contract"]["startup_preview_contract_manifest"],
+            manifest["shell_ui_contract"]["startup_preview_contract"],
+        )
+        self.assertEqual(
+            manifest["shell_ui_contract"]["startup_preview_contract_manifest_fingerprint"],
+            _fingerprint_manifest_section(manifest["shell_ui_contract"]["startup_preview_contract"]),
+        )
+        self.assertEqual(
             manifest["shell_ui_contract"]["terminal_artifact_cli_fallback_target_contract"],
             manifest["terminal_artifact_cli_fallback_target_contract"],
         )
@@ -6723,12 +6755,24 @@ class A2UIFallbackSafetyTests(unittest.TestCase):
             embedded["route_precedence_contract_fingerprint"],
             _fingerprint_manifest_section(embedded["route_precedence_contract"]),
         )
+        self.assertIsNot(embedded["entrypoints_contract_manifest"], embedded["entrypoints_contract"])
+        self.assertEqual(embedded["entrypoints_contract_manifest"], embedded["entrypoints_contract"])
+        self.assertEqual(
+            embedded["entrypoints_contract_manifest_fingerprint"],
+            _fingerprint_manifest_section(embedded["entrypoints_contract"]),
+        )
         self.assertEqual(manifest["startup_preview"]["limit"], 99)
         self.assertIsNot(manifest["startup_fields_contract"], manifest["startup_fields"])
         self.assertEqual(manifest["startup_fields_contract"], manifest["startup_fields"])
         self.assertEqual(
             manifest["startup_fields_contract_fingerprint"],
             _fingerprint_manifest_section(manifest["startup_fields"]),
+        )
+        self.assertIsNot(manifest["startup_fields_contract_manifest"], manifest["startup_fields_contract"])
+        self.assertEqual(manifest["startup_fields_contract_manifest"], manifest["startup_fields_contract"])
+        self.assertEqual(
+            manifest["startup_fields_contract_manifest_fingerprint"],
+            _fingerprint_manifest_section(manifest["startup_fields_contract"]),
         )
         self.assertIsNot(manifest["startup_preview_contract"], manifest["startup_preview"])
         self.assertEqual(
@@ -6742,6 +6786,12 @@ class A2UIFallbackSafetyTests(unittest.TestCase):
         self.assertEqual(
             manifest["startup_preview_contract_fingerprint"],
             _fingerprint_manifest_section(embedded["startup_preview"]),
+        )
+        self.assertIsNot(manifest["startup_preview_contract_manifest"], manifest["startup_preview_contract"])
+        self.assertEqual(manifest["startup_preview_contract_manifest"], manifest["startup_preview_contract"])
+        self.assertEqual(
+            manifest["startup_preview_contract_manifest_fingerprint"],
+            _fingerprint_manifest_section(manifest["startup_preview_contract"]),
         )
         self.assertEqual(manifest["terminal_artifact_cli_fallback_entrypoint"], "render_terminal_cli_fallback")
         self.assertEqual(
@@ -7311,6 +7361,14 @@ class A2UIFallbackSafetyTests(unittest.TestCase):
             _fingerprint_manifest_section(manifest["entrypoints"]),
         )
         self.assertEqual(
+            fingerprints["entrypoints_contract_manifest"],
+            _fingerprint_manifest_section(manifest["entrypoints"]),
+        )
+        self.assertEqual(
+            fingerprints["entrypoints_contract_manifest_fingerprint"],
+            _fingerprint_manifest_section(manifest["entrypoints"]),
+        )
+        self.assertEqual(
             manifest["startup_fields_fingerprint"],
             _fingerprint_manifest_section(manifest["startup_fields"]),
         )
@@ -7335,6 +7393,14 @@ class A2UIFallbackSafetyTests(unittest.TestCase):
             _fingerprint_manifest_section(manifest["startup_fields"]),
         )
         self.assertEqual(
+            fingerprints["startup_fields_contract_manifest"],
+            _fingerprint_manifest_section(manifest["startup_fields"]),
+        )
+        self.assertEqual(
+            fingerprints["startup_fields_contract_manifest_fingerprint"],
+            _fingerprint_manifest_section(manifest["startup_fields"]),
+        )
+        self.assertEqual(
             fingerprints["startup_preview"],
             _fingerprint_manifest_section(manifest["startup_preview"]),
         )
@@ -7348,6 +7414,14 @@ class A2UIFallbackSafetyTests(unittest.TestCase):
         )
         self.assertEqual(
             fingerprints["startup_preview_contract_fingerprint"],
+            _fingerprint_manifest_section(manifest["startup_preview"]),
+        )
+        self.assertEqual(
+            fingerprints["startup_preview_contract_manifest"],
+            _fingerprint_manifest_section(manifest["startup_preview"]),
+        )
+        self.assertEqual(
+            fingerprints["startup_preview_contract_manifest_fingerprint"],
             _fingerprint_manifest_section(manifest["startup_preview"]),
         )
         self.assertEqual(
@@ -7544,6 +7618,14 @@ class A2UIFallbackSafetyTests(unittest.TestCase):
             terminal_artifact_renderer_entrypoints_contract_manifest_fingerprint(),
         )
         self.assertEqual(
+            fingerprints["route_precedence_contract_manifest"],
+            _fingerprint_manifest_section(manifest["route_precedence"]),
+        )
+        self.assertEqual(
+            fingerprints["route_precedence_contract_manifest_fingerprint"],
+            _fingerprint_manifest_section(manifest["route_precedence"]),
+        )
+        self.assertEqual(
             fingerprints["renderer_entrypoints_contract_manifest"],
             terminal_artifact_renderer_entrypoints_contract_fingerprint(),
         )
@@ -7602,6 +7684,22 @@ class A2UIFallbackSafetyTests(unittest.TestCase):
         self.assertEqual(
             manifest["terminal_artifact_cli_fallback_contract_manifest_fingerprint"],
             terminal_artifact_cli_fallback_contract_fingerprint(),
+        )
+        self.assertEqual(
+            manifest["shell_ui_contract"]["entrypoints_contract_manifest"],
+            manifest["shell_ui_contract"]["entrypoints_contract"],
+        )
+        self.assertEqual(
+            manifest["shell_ui_contract"]["route_precedence_contract_manifest"],
+            manifest["shell_ui_contract"]["route_precedence_contract"],
+        )
+        self.assertEqual(
+            manifest["shell_ui_contract"]["startup_fields_contract_manifest"],
+            manifest["shell_ui_contract"]["startup_fields_contract"],
+        )
+        self.assertEqual(
+            manifest["shell_ui_contract"]["startup_preview_contract_manifest"],
+            manifest["shell_ui_contract"]["startup_preview_contract"],
         )
         self.assertEqual(
             manifest["shell_ui_contract"]["card_contract_manifest"],
