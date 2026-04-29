@@ -20,6 +20,7 @@ from src.qual.engine.retrieval import build_retrieval_source_bundle_from_result 
 from src.qual.engine.retrieval.payload import build_retrieval_citation_bundle_from_result
 from src.qual.engine.retrieval.payload import build_retrieval_downstream_payload_from_result
 from src.qual.engine.retrieval.payload import build_retrieval_provenance_from_result
+from src.qual.engine.retrieval.payload import _build_retrieval_basket_promotion_from_payload
 from src.qual.engine.retrieval.payload import _build_retrieval_excerpt_bundle_from_payload
 from src.qual.engine.retrieval.payload import _build_retrieval_source_bundle_from_payload
 from src.qual.engine.retrieval.payload import _build_retrieval_provenance_from_payload
@@ -1522,6 +1523,81 @@ class UnifiedRetrievalTests(unittest.TestCase):
             refreshed["retrieval_excerpt_bundle"]["excerpt_hits"][0]["provenance"]["doc_id"],
             "mutated-doc-id",
         )
+
+    def test_retrieval_context_bundle_includes_basket_promotion_snapshot(self) -> None:
+        result = self.service.retrieve_auto(
+            RetrievalQuery(
+                query_text="memo coding comparison",
+                scope="vault",
+                intent="compare",
+                constraints=RetrievalConstraints(max_results=4, date_range=("2026-01-01", "2026-12-31")),
+                confidentiality_profile="confidential",
+            )
+        )
+
+        bundle = result.retrieval_context_bundle()
+        promotion = bundle["retrieval_basket_promotion"]
+        source_bundle = result.source_bundle()
+
+        self.assertEqual(promotion, _build_retrieval_basket_promotion_from_payload(result.to_downstream_payload()))
+        self.assertEqual(promotion["result_fingerprint"], result.result_fingerprint)
+        self.assertEqual(promotion["query_fingerprint"], result.diagnostics["query_fingerprint"])
+        self.assertEqual(promotion["query_scope"], "vault")
+        self.assertEqual(promotion["query_intent"], "compare")
+        self.assertEqual(promotion["query_date_range"], ["2026-01-01", "2026-12-31"])
+        self.assertEqual(promotion["retrieval_backend"], "sqlite_fts")
+        self.assertEqual(promotion["retrieval_mode"], "fts_first")
+        self.assertEqual(promotion["doc_ids"], [item.doc_id for item in result.doc_hits])
+        self.assertEqual(promotion["excerpt_ids"], [item.excerpt_id for item in result.hits if item.excerpt_id is not None])
+        self.assertEqual(promotion["doc_fingerprints"], result.to_downstream_payload()["retrieval_summary"]["doc_fingerprints"])
+        self.assertEqual(
+            promotion["doc_identity_fingerprints"],
+            result.to_downstream_payload()["retrieval_summary"]["doc_identity_fingerprints"],
+        )
+        self.assertEqual(
+            promotion["top_excerpt_fingerprints"],
+            result.to_downstream_payload()["retrieval_summary"]["top_excerpt_fingerprints"],
+        )
+        self.assertEqual(promotion["citation_status"], result.to_downstream_payload()["citation_status"])
+        self.assertEqual(promotion["source_bundle_fingerprint"], source_bundle["source_bundle_fingerprint"])
+        self.assertIsInstance(promotion["basket_promotion_fingerprint"], str)
+        self.assertEqual(len(promotion["basket_promotion_fingerprint"]), 64)
+
+        bundle["retrieval_basket_promotion"]["doc_ids"].append("mutated-doc-id")
+        refreshed = result.retrieval_context_bundle()
+        self.assertNotIn("mutated-doc-id", refreshed["retrieval_basket_promotion"]["doc_ids"])
+
+    def test_retrieval_basket_promotion_rehydrates_from_source_bundle(self) -> None:
+        result = self.service.retrieve_auto(
+            RetrievalQuery(
+                query_text="memo coding comparison",
+                scope="vault",
+                intent="compare",
+                constraints=RetrievalConstraints(max_results=4),
+                confidentiality_profile="confidential",
+            )
+        )
+
+        class _SourceBundleOnlySource:
+            def __init__(self, payload: dict[str, object]) -> None:
+                self._payload = payload
+
+            def source_bundle(self) -> dict[str, object]:
+                return self._payload
+
+        source_bundle = result.source_bundle()
+        expected = _build_retrieval_basket_promotion_from_payload(source_bundle)
+        context_bundle = engine_build_retrieval_context_bundle_from_result(_SourceBundleOnlySource(source_bundle))
+
+        self.assertEqual(context_bundle["retrieval_basket_promotion"], expected)
+        self.assertEqual(context_bundle["retrieval_basket_promotion"]["result_fingerprint"], result.result_fingerprint)
+        self.assertEqual(
+            context_bundle["retrieval_basket_promotion"]["source_bundle_fingerprint"],
+            source_bundle["source_bundle_fingerprint"],
+        )
+        context_bundle["retrieval_basket_promotion"]["doc_ids"].append("mutated-doc-id")
+        refreshed = engine_build_retrieval_context_bundle_from_result(_SourceBundleOnlySource(source_bundle))
+        self.assertNotIn("mutated-doc-id", refreshed["retrieval_basket_promotion"]["doc_ids"])
 
     def test_retrieval_context_bundle_helper_reads_generic_sources_once(self) -> None:
         result = self.service.retrieve_auto(

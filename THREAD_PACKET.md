@@ -3,7 +3,7 @@
 - Branch: `codex/feat-retrieval-fts`
 - Lane: `feat-retrieval-fts`
 - Review target: current branch tip after this fixer commit.
-- Pre-fix branch tip: `e5d0dd8d4121bec2b98c64d5c75409c9147cf708`
+- Pre-fix branch tip: `97d73a1aa732f8722b485af4d965609989ee259d`
 - Actual merge candidate: final fixer commit reported in the fixer response.
 - Reviewed implementation range: `378cf9a74a3658058079a32f186fcd254c4a4034..final fixer commit reported in response`
 - Handoff type: high-risk retrieval fixer re-review with retained basket-promotion runtime scope.
@@ -32,7 +32,7 @@ This handoff includes the actual branch-tip retrieval runtime changes: FTS-only 
 
 1. Made excerpt lookup FTS-first and fail-closed for PageIndex-only excerpt IDs, with shared regression coverage.
 2. Added deterministic basket-promotion snapshots to retrieval context bundles, including stable promotion IDs, fingerprints, query scope, intent, date range, citation status, and source-bundle fingerprints.
-3. Rehydrated basket-promotion context through engine retrieval payload helpers so downstream engine flows receive compact references.
+3. Rehydrated basket-promotion context through engine retrieval payload helpers so downstream engine flows receive compact references from downstream payloads and source-bundle-only inputs.
 4. Regenerated the handoff packet for the actual branch-tip merge candidate and reran all required gates against that candidate.
 
 ## Files changed
@@ -73,11 +73,12 @@ None. This handoff does not touch model routing, provider configuration, or core
 
 ## Required Fix Reconciliation
 
-1. The reviewed implementation range now matches the actual branch-tip merge candidate: `378cf9a74a3658058079a32f186fcd254c4a4034..final fixer commit reported in response`; the pre-fix branch-tip candidate was `e5d0dd8d4121bec2b98c64d5c75409c9147cf708`.
+1. The reviewed implementation range now matches the actual branch-tip merge candidate: `378cf9a74a3658058079a32f186fcd254c4a4034..final fixer commit reported in response`; the pre-fix branch-tip candidate was `97d73a1aa732f8722b485af4d965609989ee259d`.
 2. Basket-promotion runtime changes are retained and included in scope completed, tasks completed, files changed, roadmap mapping, and vision mapping.
-3. `src/qual/engine/retrieval/payload.py` and `src/qual/retrieval/service.py` are included in reviewed implementation files and scope.
-4. Required gates are rerun against the corrected final branch tip in this fixer pass.
-5. High-risk budget accounting includes the approved shared test exception, task count, true changed-file count, and true net-LOC count.
+3. Focused shared regression tests now cover `retrieval_basket_promotion` construction from live retrieval results, downstream payloads, and source bundles.
+4. `src/qual/engine/retrieval/payload.py` and `src/qual/retrieval/service.py` are included in reviewed implementation files and scope.
+5. Required gates are rerun against the corrected final branch tip in this fixer pass.
+6. High-risk budget accounting includes the approved shared test exception, task count, true changed-file count, and true net-LOC count.
 
 ## Risks/blockers
 
