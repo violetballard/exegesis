@@ -6,7 +6,7 @@ Canonical handoff contract lives in `THREAD_PACKET.md`.
 
 - Lane: `feat-commands`
 - Branch: `codex/feat-commands`
-- Review basis: actual `codex/feat-commands` branch tip after the `20260429T030847Z` reviewer-fix pass.
+- Review basis: actual `codex/feat-commands` branch tip after the `20260429T031136Z` reviewer-fix pass.
 - Previous implementation anchor: `f8d860ed9f6299f0169c4f21321ac5f37c949fd3`
 - Scope: command-catalog contract hardening for the current engine-first MVP focus without starting `feat-console`.
 - Roadmap alignment: Milestone 3 CLI compatibility for the engine-first workflow loop, and `feat-commands` as the command-surface compatibility lane.
@@ -41,10 +41,10 @@ Canonical handoff contract lives in `THREAD_PACKET.md`.
 
 - This command contract hardening makes the CLI smoke path more real for `open project/document`, `retrieve relevant material`, `promote/gather context`, and `preview/apply/reject patch` by guaranteeing parser-visible tokens stay aligned with the command catalog before the contract is returned.
 
-## Reviewer Packet `20260429T030847Z` Fix Satisfaction
+## Reviewer Packet `20260429T031136Z` Fix Satisfaction
 
-1. The handoff uses one truthful review basis: the actual branch tip after this fixer pass.
-2. The effective changed-file list from the previous implementation anchor is complete and names all five effective review files.
-3. Post-anchor implementation and test changes are included in the review basis; no post-anchor implementation commit is called metadata-only.
-4. `scripts/scope-check.sh` is listed as a cleanup-only gate-policy edit with approval/risk rationale; shared-by-approval tests are separated from integrator-locked edits.
+1. The branch-tip implementation validates the exact parser-visible token surface before returning `command_cli_contract()`.
+2. Regression tests cover same-canonical substitutions, token additions, removals, ordering drift, lookup-table drift, and declared-surface drift.
+3. The packet names the protected canonical demo-path steps: project open, retrieval/context basket, patch preview/apply/reject, and export/handoff.
+4. Ownership accounting separates approved shared-by-approval tests from integrator-locked edits.
 5. Final required gate results for the current reviewer packet are recorded in `THREAD_PACKET.md`.

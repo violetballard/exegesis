@@ -2,9 +2,9 @@
 
 - Lane: `feat-commands`
 - Branch: `codex/feat-commands`
-- Review basis: actual `codex/feat-commands` branch tip after the `20260429T030847Z` reviewer-fix pass.
+- Review basis: actual `codex/feat-commands` branch tip after the `20260429T031136Z` reviewer-fix pass.
 - Previous implementation anchor: `f8d860ed9f6299f0169c4f21321ac5f37c949fd3`
-- Reviewer packet addressed: `20260429T030847Z`
+- Reviewer packet addressed: `20260429T031136Z`
 - Final verifier tip: the branch-tip reviewer-fix commit containing this packet restamp, with the actual `codex/feat-commands` branch tip as the only review basis.
 
 ## Packet Traceability Note
@@ -153,6 +153,14 @@
 4. Demo-path mapping: every completed task names the canonical demo-path command steps it protects or advances, including project open, retrieval/context basket, patch preview/apply/reject, and export/handoff.
 5. Ownership accounting split: lane-owned command edits, approved shared-by-approval test edits, integrator-locked edits, and cleanup/policy edits are reported separately.
 6. Required gates: final results are recorded below after rerun on the same final branch-tip review basis named in this packet.
+
+## Required Fixes Addressed From Reviewer Packet `20260429T031136Z`
+
+1. Exact parser-visible validation is present in `command_cli_contract()`: it checks canonical CLI tokens, declared grouped surface, lookup-table shape/order, parser token order, and canonical-name order before returning the contract.
+2. Regression coverage is present for same-canonical substitutions such as `bootstrap` -> `open`, `diff-preview` -> `diff`, and `diff` -> `diff_preview`, plus token additions, removals, ordering drift, lookup-table drift, and declared-surface drift.
+3. Demo-path mapping is explicit: the hardened command contract protects project/document open, retrieval/context basket, patch preview/apply/reject, and export/handoff smoke steps.
+4. Ownership accounting is split between lane-owned command edits, approved shared-by-approval test edits, integrator-locked edits, and cleanup/policy edits.
+5. Required gates are recorded below after rerun on the same final branch-tip review basis named in this packet.
 
 ## Commands Run + Outcomes
 
