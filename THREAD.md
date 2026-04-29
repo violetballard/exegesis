@@ -6,6 +6,6 @@ Canonical handoff contract lives in `THREAD_PACKET.md`.
 - Branch: `codex/feat-commands`
 - Review target: full branch tip of `codex/feat-commands` only.
 - Review basis: `git diff main...codex/feat-commands`.
-- Scope: high-risk command catalog, CLI parser binding, diff-preview contract hardening, scope-check policy, MVP smoke command-line exports, and MVP demo-path contract exports.
-- Demo-path mapping: preserving the CLI-first MVP loop for `open project/document`, `retrieve/context basket`, `preview/apply/reject patch`, and continuation while Textual remains disabled; task-by-task details live in `THREAD_PACKET.md`.
-- Fixer prompt satisfied: `20260429T123522Z`; canonical packet details live in `THREAD_PACKET.md`.
+- Scope: deterministic CLI command contract for the current command catalog and parser surface.
+- Demo-path mapping: advances the canonical `retrieve relevant material` step by keeping catalog-owned CLI tokens, aliases, and parser choices deterministic for the current command surface; task-by-task details live in `THREAD_PACKET.md`.
+- Fixer prompt satisfied: `20260429T124024Z`; canonical packet details live in `THREAD_PACKET.md`.
