@@ -493,6 +493,15 @@ class A2UIFallbackSafetyTests(unittest.TestCase):
             manifest["leaf_contracts_contract_manifest_fingerprint"],
             a2ui_leaf_contracts_fingerprint(),
         )
+        self.assertEqual(manifest["leaf_contracts_manifest"]["type"], "A2UILeafContracts")
+        self.assertEqual(
+            manifest["leaf_contracts_manifest"]["contract_fingerprint"],
+            a2ui_leaf_contracts_fingerprint(),
+        )
+        self.assertEqual(
+            manifest["leaf_contracts_manifest_fingerprint"],
+            a2ui_leaf_contracts_fingerprint(),
+        )
         self.assertEqual(len(manifest["contract_fingerprint"]), 64)
 
     def test_a2ui_contract_surfaces_leaf_contract_bundle_for_engine_consumers(self) -> None:
@@ -508,6 +517,8 @@ class A2UIFallbackSafetyTests(unittest.TestCase):
         self.assertEqual(manifest["leaf_contracts_fingerprint"], leaf_fingerprint)
         self.assertEqual(manifest["leaf_contracts_contract_fingerprint"], leaf_fingerprint)
         self.assertEqual(manifest["leaf_contracts_contract_manifest_fingerprint"], leaf_fingerprint)
+        self.assertEqual(manifest["leaf_contracts_manifest"], leaf_contracts)
+        self.assertEqual(manifest["leaf_contracts_manifest_fingerprint"], leaf_fingerprint)
         self.assertEqual(manifest["schemas"]["leaf_contracts"], leaf_contracts)
         self.assertEqual(manifest["contract_fingerprints"]["leaf_contracts"], leaf_fingerprint)
         self.assertEqual(fingerprints["leaf_contracts"], leaf_fingerprint)
@@ -516,6 +527,11 @@ class A2UIFallbackSafetyTests(unittest.TestCase):
         self.assertEqual(aliased_fingerprints["leaf_contracts_contract_manifest"], leaf_fingerprint)
         self.assertEqual(
             aliased_fingerprints["leaf_contracts_contract_manifest_fingerprint"],
+            leaf_fingerprint,
+        )
+        self.assertEqual(aliased_fingerprints["leaf_contracts_manifest"], leaf_fingerprint)
+        self.assertEqual(
+            aliased_fingerprints["leaf_contracts_manifest_fingerprint"],
             leaf_fingerprint,
         )
 
@@ -2908,6 +2924,14 @@ class A2UIFallbackSafetyTests(unittest.TestCase):
         )
         self.assertEqual(
             fingerprints_with_aliases["leaf_contracts_contract_manifest_fingerprint"],
+            a2ui_leaf_contracts_fingerprint(),
+        )
+        self.assertEqual(
+            fingerprints_with_aliases["leaf_contracts_manifest"],
+            a2ui_leaf_contracts_fingerprint(),
+        )
+        self.assertEqual(
+            fingerprints_with_aliases["leaf_contracts_manifest_fingerprint"],
             a2ui_leaf_contracts_fingerprint(),
         )
         self.assertEqual(
@@ -6328,6 +6352,14 @@ class A2UIFallbackSafetyTests(unittest.TestCase):
         )
         self.assertEqual(
             route_target_fingerprints_with_aliases["leaf_contracts_contract_manifest_fingerprint"],
+            a2ui_leaf_contracts_fingerprint(),
+        )
+        self.assertEqual(
+            route_target_fingerprints_with_aliases["leaf_contracts_manifest"],
+            a2ui_leaf_contracts_fingerprint(),
+        )
+        self.assertEqual(
+            route_target_fingerprints_with_aliases["leaf_contracts_manifest_fingerprint"],
             a2ui_leaf_contracts_fingerprint(),
         )
         self.assertEqual(

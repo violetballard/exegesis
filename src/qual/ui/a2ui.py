@@ -330,6 +330,8 @@ def describe_a2ui_contract(
     manifest["leaf_contracts_contract_fingerprint"] = manifest["leaf_contracts_fingerprint"]
     manifest["leaf_contracts_contract_manifest"] = _snapshot_contract_section(leaf_contracts)
     manifest["leaf_contracts_contract_manifest_fingerprint"] = manifest["leaf_contracts_fingerprint"]
+    manifest["leaf_contracts_manifest"] = _snapshot_contract_section(leaf_contracts)
+    manifest["leaf_contracts_manifest_fingerprint"] = manifest["leaf_contracts_fingerprint"]
     terminal_artifact_contract = _snapshot_contract_section(manifest["terminal_artifact"])
     manifest["terminal_artifact_contract"] = _snapshot_contract_section(terminal_artifact_contract)
     manifest["terminal_artifact_contract_fingerprint"] = terminal_artifact_contract["contract_fingerprint"]
@@ -1109,6 +1111,7 @@ def describe_a2ui_contract_fingerprints(
             ("card_contract_fingerprint", card_contract_fingerprint()),
             ("leaf_contracts_contract", a2ui_leaf_contracts_fingerprint()),
             ("leaf_contracts_contract_manifest", a2ui_leaf_contracts_fingerprint()),
+            ("leaf_contracts_manifest", a2ui_leaf_contracts_fingerprint()),
             ("action_contract", action_contract_fingerprint()),
             ("selection_contract", selection_contract_fingerprint()),
             ("terminal_fallback_contract", terminal_fallback_contract_fingerprint()),
@@ -1457,6 +1460,8 @@ def describe_a2ui_leaf_contracts() -> dict[str, Any]:
     manifest["contract_fingerprint"] = fingerprint
     manifest["leaf_contracts_contract_manifest"] = _snapshot_contract_section(manifest)
     manifest["leaf_contracts_contract_manifest_fingerprint"] = fingerprint
+    manifest["leaf_contracts_manifest"] = _snapshot_contract_section(manifest)
+    manifest["leaf_contracts_manifest_fingerprint"] = fingerprint
     return manifest
 
 
@@ -4147,6 +4152,8 @@ def _build_terminal_artifact_cli_fallback_target_contract_manifest(
         "leaf_contracts_contract_fingerprint": leaf_contracts_contract["contract_fingerprint"],
         "leaf_contracts_contract_manifest": _snapshot_contract_section(leaf_contracts_contract),
         "leaf_contracts_contract_manifest_fingerprint": leaf_contracts_contract["contract_fingerprint"],
+        "leaf_contracts_manifest": _snapshot_contract_section(leaf_contracts_contract),
+        "leaf_contracts_manifest_fingerprint": leaf_contracts_contract["contract_fingerprint"],
     }
     if include_terminal_artifact_cli_fallback_route:
         route_contract = describe_terminal_artifact_cli_fallback_route_contract()
