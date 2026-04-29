@@ -6,7 +6,7 @@ Canonical handoff contract lives in `THREAD_PACKET.md`.
 
 - Lane: `feat-commands`
 - Branch: `codex/feat-commands`
-- Implementation review target: branch tip after fixer prompt `20260429T034023Z`
+- Implementation review target: branch tip after reviewer-fix packet `20260429T033930Z`
 - Prior implementation anchor: `f8d860ed9f6299f0169c4f21321ac5f37c949fd3`
 - Scope: command-catalog contract hardening for the current engine-first MVP focus without starting `feat-console`.
 - Roadmap alignment: Milestone 3 CLI compatibility for the engine-first workflow loop, and `feat-commands` as the command-surface compatibility lane.
@@ -33,7 +33,7 @@ Canonical handoff contract lives in `THREAD_PACKET.md`.
 - Integrator-locked edits: none.
 - Metadata-only handoff edits: `THREAD.md`, `THREAD_PACKET.md`.
 
-## Fixer Prompt `20260429T034023Z` Fix Satisfaction
+## Reviewer Packet `20260429T033930Z` Fix Satisfaction
 
 1. Branch-tip review basis and files changed list are accurate in `THREAD_PACKET.md`.
 2. Unrelated `scripts/scope-check.sh` drift is restored to baseline.

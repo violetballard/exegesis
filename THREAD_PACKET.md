@@ -2,14 +2,14 @@
 
 - Lane: `feat-commands`
 - Branch: `codex/feat-commands`
-- Commit: pending fixer commit for prompt `20260429T034023Z`
+- Commit: pending reviewer-fix commit for packet `20260429T033930Z`
 - Review basis: branch tip after this fixer commit, not `f8d860ed9f6299f0169c4f21321ac5f37c949fd3` alone.
 - Prior implementation anchor: `f8d860ed9f6299f0169c4f21321ac5f37c949fd3`
 - Packet refresh role: reviewer-fix implementation and handoff correction
 
 ## Packet Traceability Note
 
-- Fixer prompt `20260429T034023Z` requested a corrected branch-tip review basis.
+- Reviewer packet `20260429T033930Z` requested a corrected branch-tip review basis.
 - The reviewable branch-tip implementation is narrowed to the command-catalog slice:
   - `src/qual/commands/catalog.py`
   - `tests/unit/test_commands_catalog.py`
@@ -114,7 +114,7 @@
 - Metadata-only handoff edits: `THREAD.md`, `THREAD_PACKET.md`.
 - Shared/integrator-locked edits: `YES` only because the approved shared-test exception touches `tests/unit/test_commands_catalog.py`; no integrator-locked files are edited.
 
-## Required Fixes Addressed From Fixer Prompt `20260429T034023Z`
+## Required Fixes Addressed From Reviewer Packet `20260429T033930Z`
 
 1. Regenerated this handoff packet with an accurate branch-tip review basis and files changed list.
 2. Narrowed the branch-tip implementation to the command-catalog slice by restoring unrelated `scripts/scope-check.sh` drift to baseline.
