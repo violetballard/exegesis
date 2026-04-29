@@ -349,6 +349,7 @@ class RetrievalResult:
             citation_status=citation_status,
             retrieval_summary=retrieval_summary,
         )
+        basket_promotion_items = self.basket_promotion_items()
         return build_retrieval_downstream_payload(
             query=query,
             policy=retrieval_policy,
@@ -369,6 +370,7 @@ class RetrievalResult:
             retrieval_provenance=retrieval_provenance,
             source_bundle_fingerprint=cast(str, retrieval_source_bundle["source_bundle_fingerprint"]),
             retrieval_source_bundle=retrieval_source_bundle,
+            basket_promotion_items=basket_promotion_items,
         )
 
     def citation_bundle(self) -> dict[str, object]:
@@ -476,6 +478,7 @@ class RetrievalResult:
         """Return the canonical retrieval context for drafting, patching, and research flows."""
 
         downstream_payload = self.to_downstream_payload()
+        basket_promotion_items = self.basket_promotion_items()
         return {
             "audit_ref": self.audit_ref,
             "result_fingerprint": self.result_fingerprint,
@@ -486,7 +489,37 @@ class RetrievalResult:
             "retrieval_provenance": copy.deepcopy(downstream_payload["retrieval_provenance"]),
             "retrieval_source_bundle": copy.deepcopy(downstream_payload["retrieval_source_bundle"]),
             "retrieval_evidence": copy.deepcopy(downstream_payload["retrieval_evidence"]),
+            "basket_promotion_items": copy.deepcopy(basket_promotion_items),
+            "basket_item_ids": [str(item["item_id"]) for item in basket_promotion_items],
         }
+
+    def basket_promotion_items(self) -> list[dict[str, object]]:
+        """Return deterministic excerpt references ready for context-basket promotion."""
+
+        items: list[dict[str, object]] = []
+        for hit in self.hits:
+            if hit.excerpt_id is None:
+                continue
+            items.append(
+                {
+                    "item_id": hit.excerpt_id,
+                    "item_type": "excerpt",
+                    "doc_id": hit.doc_id,
+                    "doc_type": hit.provenance.get("doc_type"),
+                    "source_hash": hit.provenance.get("source_hash"),
+                    "excerpt_id": hit.excerpt_id,
+                    "excerpt_fingerprint": hit.provenance.get("excerpt_fingerprint"),
+                    "excerpt_text_hash": hit.provenance.get("excerpt_text_hash") or hit.provenance.get("hash"),
+                    "span": copy.deepcopy(hit.provenance.get("span")),
+                    "rank": hit.provenance.get("rank"),
+                    "source_strategy": hit.source_strategy,
+                    "retrieval_backend": hit.provenance.get("retrieval_backend"),
+                    "retrieval_mode": hit.provenance.get("retrieval_mode"),
+                    "query_fingerprint": hit.provenance.get("query_fingerprint"),
+                    "result_fingerprint": self.result_fingerprint,
+                }
+            )
+        return items
 
     def _query_snapshot(self) -> dict[str, object]:
         return {
@@ -719,6 +752,7 @@ class RetrievalResult:
                 citation_status=citation_status_snapshot,
             )
         )
+        basket_promotion_items = self.basket_promotion_items()
         source_bundle = {
             "result_fingerprint": self.result_fingerprint,
             "query_fingerprint": self.diagnostics["query_fingerprint"],
@@ -735,6 +769,8 @@ class RetrievalResult:
             "excerpt_hits": [hit.as_dict() for hit in self.hits],
             "retrieval_manifest": copy.deepcopy(self.diagnostics["retrieval_manifest"]),
             "retrieval_evidence": copy.deepcopy(self.evidence),
+            "basket_promotion_items": copy.deepcopy(basket_promotion_items),
+            "basket_item_ids": [str(item["item_id"]) for item in basket_promotion_items],
             "retrieval_provenance": copy.deepcopy(
                 self._retrieval_provenance_snapshot(
                     citation_bundle=citation_bundle_snapshot,
@@ -1411,6 +1447,25 @@ class RetrievalService:
             "excerpt_count": len(hits),
             "doc_citations": doc_citations,
             "excerpt_citations": excerpt_citations,
+            "basket_promotion_items": [
+                {
+                    "item_id": item["excerpt_id"],
+                    "item_type": "excerpt",
+                    "doc_id": item["doc_id"],
+                    "doc_type": item["doc_type"],
+                    "source_hash": item["source_hash"],
+                    "excerpt_id": item["excerpt_id"],
+                    "excerpt_fingerprint": item["excerpt_fingerprint"],
+                    "excerpt_text_hash": item["excerpt_text_hash"],
+                    "span": copy.deepcopy(item["span"]),
+                    "rank": item["rank"],
+                    "source_strategy": item["source_strategy"],
+                    "retrieval_backend": item["retrieval_backend"],
+                    "retrieval_mode": item["retrieval_mode"],
+                    "query_fingerprint": query_fingerprint,
+                }
+                for item in excerpt_citations
+            ],
             "retrieval_manifest": dict(retrieval_manifest),
         }
 

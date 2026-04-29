@@ -278,6 +278,10 @@ def _normalize_retrieval_source_bundle_snapshot(source_bundle: dict[str, object]
     normalized["retrieval_provenance"] = _build_retrieval_provenance_from_payload(normalized)
     normalized["doc_hits"] = _normalize_list_like(normalized.get("doc_hits", []))
     normalized["excerpt_hits"] = _normalize_list_like(normalized.get("excerpt_hits", []))
+    normalized["basket_promotion_items"] = _normalize_list_like(
+        normalized.get("basket_promotion_items", [])
+    )
+    normalized["basket_item_ids"] = _normalize_list_like(normalized.get("basket_item_ids", []))
     retrieval_summary = normalized.get("retrieval_summary", {})
     if not isinstance(retrieval_summary, dict):
         retrieval_summary = {}
@@ -490,6 +494,8 @@ def _backfill_downstream_payload_from_context_bundle(
         "retrieval_provenance": context_bundle.get("retrieval_provenance"),
         "retrieval_source_bundle": context_bundle.get("retrieval_source_bundle"),
         "retrieval_evidence": context_bundle.get("retrieval_evidence"),
+        "basket_promotion_items": context_bundle.get("basket_promotion_items"),
+        "basket_item_ids": context_bundle.get("basket_item_ids"),
     }
     return _backfill_sparse_snapshot(
         merged,
@@ -524,6 +530,8 @@ def _build_retrieval_context_bundle_from_source_bundle(source_bundle: dict[str, 
         "retrieval_provenance": copy.deepcopy(retrieval_provenance),
         "retrieval_source_bundle": copy.deepcopy(source_bundle),
         "retrieval_evidence": copy.deepcopy(source_bundle.get("retrieval_evidence", {})),
+        "basket_promotion_items": _normalize_list_like(source_bundle.get("basket_promotion_items", [])),
+        "basket_item_ids": _normalize_list_like(source_bundle.get("basket_item_ids", [])),
     }
 
 
@@ -642,6 +650,8 @@ def _build_retrieval_context_bundle_from_payload(payload: dict[str, object]) -> 
         "retrieval_provenance": _build_retrieval_provenance_from_payload(payload),
         "retrieval_source_bundle": _build_retrieval_source_bundle_from_payload(payload),
         "retrieval_evidence": copy.deepcopy(payload.get("retrieval_evidence", {})),
+        "basket_promotion_items": _normalize_list_like(payload.get("basket_promotion_items", [])),
+        "basket_item_ids": _normalize_list_like(payload.get("basket_item_ids", [])),
     }
 
 
@@ -879,6 +889,7 @@ class RetrievalDownstreamPayload:
     retrieval_provenance: dict[str, object]
     source_bundle_fingerprint: str
     retrieval_source_bundle: dict[str, object]
+    basket_promotion_items: list[dict[str, object]] | None = None
 
     def as_dict(self) -> dict[str, object]:
         policy = copy.deepcopy(self.policy)
@@ -888,6 +899,7 @@ class RetrievalDownstreamPayload:
         provenance = copy.deepcopy(self.retrieval_provenance)
         summary = copy.deepcopy(self.retrieval_summary)
         source_bundle = copy.deepcopy(self.retrieval_source_bundle)
+        basket_promotion_items = _normalize_list_like(self.basket_promotion_items)
         return {
             "query": copy.deepcopy(self.query),
             "policy": policy,
@@ -909,6 +921,12 @@ class RetrievalDownstreamPayload:
             "retrieval_provenance": provenance,
             "source_bundle_fingerprint": self.source_bundle_fingerprint,
             "retrieval_source_bundle": source_bundle,
+            "basket_promotion_items": basket_promotion_items,
+            "basket_item_ids": [
+                item.get("item_id")
+                for item in basket_promotion_items
+                if isinstance(item, dict) and item.get("item_id") is not None
+            ],
         }
 
 
@@ -948,6 +966,7 @@ def build_retrieval_downstream_payload(
     retrieval_provenance: dict[str, object],
     source_bundle_fingerprint: str,
     retrieval_source_bundle: dict[str, object],
+    basket_promotion_items: list[dict[str, object]] | None = None,
 ) -> dict[str, object]:
     return RetrievalDownstreamPayload(
         query=query,
@@ -969,6 +988,7 @@ def build_retrieval_downstream_payload(
         retrieval_provenance=retrieval_provenance,
         source_bundle_fingerprint=source_bundle_fingerprint,
         retrieval_source_bundle=retrieval_source_bundle,
+        basket_promotion_items=basket_promotion_items,
     ).as_dict()
 
 
