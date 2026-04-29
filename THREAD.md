@@ -6,7 +6,7 @@ Canonical handoff contract lives in `THREAD_PACKET.md`.
 
 - Lane: `feat-commands`
 - Branch: `codex/feat-commands`
-- Review basis: actual `codex/feat-commands` branch tip for the `20260429T022329Z` reviewer-fix pass.
+- Review basis: actual `codex/feat-commands` branch tip for the `20260429T022926Z` reviewer-fix pass.
 - Previous implementation anchor: `f8d860ed9f6299f0169c4f21321ac5f37c949fd3`
 - Scope: command-catalog contract hardening for the current engine-first MVP focus without starting `feat-console`.
 - Roadmap alignment: Milestone 3 CLI compatibility for the engine-first workflow loop, and `feat-commands` as the command-surface compatibility lane.
@@ -138,3 +138,11 @@ Canonical handoff contract lives in `THREAD_PACKET.md`.
 4. The handoff packet maps each completed task to the protected demo-path steps: `open project/document`, `retrieve relevant material`, `promote/gather context`, and `preview/apply/reject patch`.
 5. Ownership notes continue to separate approved shared-by-approval test edits from integrator-locked edits; integrator-locked edits remain `NO`.
 6. Required gates were rerun for this fixer pass and passed: `make scope-check`, `./quality-format.sh --check`, `./quality-lint.sh`, `./quality-test.sh`, `./typecheck-test.sh`, and `make ci`.
+
+## Reviewer Packet `20260429T022926Z` Fix Satisfaction
+
+1. Required fix 1 is satisfied by using the actual branch tip as the review basis; post-`f8d860ed9f6299f0169c4f21321ac5f37c949fd3` command and test commits remain implementation-bearing and included in review.
+2. Required fix 2 remains satisfied by `command_cli_contract()` validating the full parser-visible token surface: exact tokens, lookup-table shape and order, grouped parser surface, declared surface, and canonical command order.
+3. Required fix 3 is reinforced by focused parser-surface drift tests, including `_CLI_ENTRYPOINTS` alias substitution, token addition, token removal, token reorder, lookup-table target drift, and an explicit lookup-table order drift regression.
+4. Required fix 4 remains satisfied by separating approved shared-by-approval test edits from integrator-locked edits; integrator-locked edits remain `NO`.
+5. Required fix 5 is satisfied by the final required gate rerun for this fixer pass: `make scope-check`, `./quality-format.sh --check`, `./quality-lint.sh`, `./quality-test.sh`, `./typecheck-test.sh`, and `make ci` all passed.
