@@ -6,7 +6,7 @@ Canonical handoff contract lives in `THREAD_PACKET.md`.
 
 - Lane: `feat-commands`
 - Branch: `codex/feat-commands`
-- Review basis: final branch tip after this fixer pass for reviewer packet `20260429T002514Z`; implementation, tests, scope-check support, and packet metadata are reviewed together.
+- Review basis: final branch tip after this fixer pass for reviewer packet `20260429T002758Z`; implementation, tests, scope-check support, and packet metadata are reviewed together.
 - Scope: CLI command-catalog contract hardening for the current engine-first MVP focus without starting `feat-console`.
 - Roadmap alignment: Milestone 3 CLI compatibility for the engine-first workflow loop, and `feat-commands` as the command-surface compatibility lane.
 - Vision alignment: canonical engine contract stability while the CLI remains the active operator surface.
@@ -43,7 +43,7 @@ Canonical handoff contract lives in `THREAD_PACKET.md`.
 - Added regression coverage for same-canonical alias order drift where `diff` and `diff-preview` are reordered within the accepted parser tokens or the declared `diff-preview` parser group.
 - Added regression coverage for canonical command order drift where `command_names()` returns the right command set in the wrong order.
 - Regenerated the packet from the actual branch tip and stopped classifying code-bearing command/test commits as metadata-only.
-- Reconfirmed the `20260429T002514Z` reviewer fixes against the branch-tip implementation and refreshed handoff metadata so the current review basis is no longer stale.
+- Reconfirmed the `20260429T002758Z` reviewer fixes against the branch-tip implementation and refreshed handoff metadata so the current review basis is no longer stale.
 
 ## Canonical Demo-Path Mapping
 
@@ -175,6 +175,14 @@ Canonical handoff contract lives in `THREAD_PACKET.md`.
 3. Canonical demo-path mapping: satisfied by naming open project/document, retrieve/context basket, patch preview, and continued CLI operation in the task list, mapping section, and final demo-path statement.
 4. Ownership accounting: satisfied by separating lane-owned command files, approved shared-by-approval tests, scope-check support, metadata-only handoff files, and `Integrator-locked edits: no`.
 
+## Reviewer Packet `20260429T002758Z` Fix Satisfaction
+
+1. Submit one coherent review packet for the actual merge candidate: satisfied by anchoring review to the final `codex/feat-commands` branch tip after this fixer pass, with implementation, tests, scope-check support, `THREAD.md`, and `THREAD_PACKET.md` reviewed together.
+2. Remove the metadata-only claim for code-bearing commits after `f8d860ed9f6299f0169c4f21321ac5f37c949fd3`: satisfied by stating that no command-catalog implementation or test commits after that commit are metadata-only.
+3. Strengthen `command_cli_contract()` if reviewing the narrow slice: already satisfied at the actual branch tip by validating accepted tokens, declared canonical surface, grouped parser projection, lookup-table shape/order, canonical names, and explicit canonical token/lookup projections against `_CANONICAL_CLI_COMMAND_SURFACE`.
+4. Regenerate file and ownership accounting against `THREAD_OWNERSHIP.md`: satisfied by listing lane-owned command files, approved shared-by-approval tests, shared scope-check support, metadata-only handoff files, and `Integrator-locked edits: no`.
+5. Rerun required gates against the exact reviewed tip: this fixer pass reruns and records `make scope-check`, `./quality-format.sh --check`, `./quality-lint.sh`, `./quality-test.sh`, `./typecheck-test.sh`, and `make ci`.
+
 ## Verification
 
 - `python3 -m unittest tests.unit.test_commands_catalog -v`: PASS (62 tests)
@@ -184,4 +192,4 @@ Canonical handoff contract lives in `THREAD_PACKET.md`.
 - `./quality-test.sh`: PASS
 - `./typecheck-test.sh`: PASS
 - `make ci`: PASS
-- Final verification pass: PASS in final gate rerun for reviewer packet `20260429T002514Z`.
+- Final verification pass: PASS in final gate rerun for reviewer packet `20260429T002758Z`.
