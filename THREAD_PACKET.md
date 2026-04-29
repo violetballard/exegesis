@@ -5,6 +5,7 @@
 - Merge candidate: `HEAD` after the fixer commit that updates this packet; final HEAD SHA is reported by the fixer.
 - Authoritative reviewed range: `378cf9a74a3658058079a32f186fcd254c4a4034..HEAD`.
 - Scope rule: review the full range above. Do not use `adfa8cdadd43747ffbcb612e4151e262b13e52ca` as the endpoint, and do not treat later retrieval-code commits as metadata-only.
+- Packet mirror note: `.codex/kickoff_packets/feat-retrieval-fts.md` and `.codex/lane_meta/feat-retrieval-fts.json` are stale packet mirrors in this worktree and still contain the older narrowed-slice wording. The fixer attempted to update them, but the sandbox rejected writes to those `.codex` paths as outside-project writes. Treat this `THREAD_PACKET.md` as the source of truth for re-review.
 
 ## Required Reviewer Fixes Addressed
 
@@ -13,6 +14,7 @@
 3. Recomputed files changed, task count, high-risk/shared budget accounting, risks, and blockers from the actual range.
 4. Mapped every completed task to the canonical demo path.
 5. Re-ran the required gates against the corrected merge candidate; outcomes are recorded below.
+6. Recorded the stale `.codex` packet mirror write blocker so reviewers do not treat those locked mirrors as authoritative.
 
 ## Scope Completed
 
@@ -83,5 +85,6 @@ Required final gates against the corrected merge candidate:
 
 - Merge risk is high only because the handoff includes approved shared regression coverage; there are no integrator-locked file edits.
 - The reviewed range intentionally includes post-`adfa8cd` retrieval code-bearing commits. They are part of the merge candidate and must be reviewed.
+- The `.codex` packet mirror files are stale and write-blocked in this sandbox; this `THREAD_PACKET.md` packet is the authoritative branch-tip handoff source.
 - The branch intentionally does not add embeddings, PageIndex requirements, UI rendering behavior, alternate retrieval modes, routing changes, or provider changes.
 - Final HEAD SHA is reported by the fixer after commit creation.
