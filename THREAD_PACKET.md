@@ -5,7 +5,7 @@
 - Review target: actual branch tip after this fixer commit
 - Review basis: `f8d860ed9f6299f0169c4f21321ac5f37c949fd3..HEAD`
 - Review range command: `git diff f8d860ed9f6299f0169c4f21321ac5f37c949fd3..HEAD`
-- Fixer scope: satisfy fixer prompt `20260429T102201Z` by regenerating the handoff for the real branch tip and real review range named by the reviewer, stopping treatment of code/test commits as metadata-only, disclosing the shared/integrator-locked CLI parser edit, including commit `50921ba10fee9d5d3a8ef3c7ed34f02e0c710f5d` as a runtime catalog change, validating the live argparse parser choices directly, recomputing branch-tip size accounting, mapping every completed task to canonical demo-path steps, and rerunning the required gates.
+- Fixer scope: satisfy fixer prompt `20260429T102713Z` by regenerating the handoff for the real branch tip and real review range named by the reviewer, stopping treatment of code/test commits as metadata-only, disclosing the shared/integrator-locked CLI parser edit, including commit `50921ba10fee9d5d3a8ef3c7ed34f02e0c710f5d` as a runtime catalog change, validating the live argparse parser choices directly, recomputing branch-tip size accounting, mapping every completed task to canonical demo-path steps, and rerunning the required gates.
 
 ## Traceability Correction
 
@@ -36,11 +36,12 @@ This is a high-risk handoff because it changes command surface validation and in
 - Task budget: `4` completed tasks of `4` high-risk tasks allowed.
 - Time budget: original high-risk target `30m`; this fixer pass is documentation and gate-rerun work.
 - High-risk file budget: `6` files changed in the actual review range, within the `<=8` high-risk file limit.
-- High-risk net LOC budget: exceeded in the actual review range. Current branch-tip accounting for `f8d860ed9..HEAD` is `2038 insertions(+), 109 deletions(-)`. This is explicitly disclosed for reviewer/integrator handling instead of being presented as a narrow catalog-only slice.
-- Size-budget disposition: this handoff is not within the high-risk net LOC budget. Approval depends on explicit reviewer/integrator acceptance of the over-budget branch-tip range, or an integrator-directed split in a follow-up pass.
+- High-risk net LOC budget: exceeded in the actual review range. Current branch-tip accounting for `f8d860ed9..HEAD` is `2038 insertions(+), 109 deletions(-)` before this metadata-only fixer packet refresh; the required gate rerun will report the final committed SHA. This is explicitly disclosed for reviewer/integrator handling instead of being presented as a narrow catalog-only slice.
+- Size-budget disposition: this handoff is not within the high-risk net LOC budget. Re-review must either explicitly accept the over-budget branch-tip range as an exception or send the lane back for an integrator-directed split; this packet does not claim pre-existing acceptance.
 - Shared-by-approval file: `src/qual/cli.py`.
 - Integrator-locked file: `src/qual/cli.py`.
 - Approval basis for `src/qual/cli.py`: reviewer-required parser-surface traceability fix for the real CLI parser entrypoint; no routing/provider/config behavior is changed.
+- Shared/integrator-locked disposition requested: approve the `src/qual/cli.py` exception for this branch-tip review because the numbered reviewer fix requires validating the live argparse parser surface. If that exception is not accepted, the required disposition is an integrator-directed split rather than promotion of this range.
 - Expected strict scope-check behavior: the required bare `make scope-check` gate must pass on this branch tip; if integrator reruns with stricter shared-file policy, `src/qual/cli.py` is the disclosed shared/integrator-locked exception and `SCOPE_ALLOW_SHARED=1 make scope-check` is the documented approval mode from `THREAD_OWNERSHIP.md`.
 
 ## Files Changed
@@ -87,7 +88,7 @@ Classification:
 ## Risks And Blockers
 
 - Risk level: high due to `src/qual/cli.py` shared/integrator-locked parser entrypoint changes and over-budget actual range size.
-- Remaining risk: the actual review range is larger than the high-risk net LOC limit. This handoff requires explicit reviewer/integrator acceptance as an over-budget branch-tip range, or an integrator-directed split before promotion.
+- Remaining risk: the actual review range is larger than the high-risk net LOC limit and includes the disclosed shared/integrator-locked `src/qual/cli.py` edit. This handoff requires explicit reviewer/integrator acceptance as an over-budget branch-tip range with a CLI-file exception, or an integrator-directed split before promotion.
 - Blockers: none known for local validation; approval depends on reviewer/integrator acceptance of the disclosed high-risk scope.
 
 ## Commands Run
