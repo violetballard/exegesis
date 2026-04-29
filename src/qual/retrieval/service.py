@@ -434,13 +434,21 @@ class RetrievalResult:
     def retrieval_context_bundle(self) -> dict[str, object]:
         """Return the canonical retrieval context for drafting, patching, and research flows."""
 
+        citation_bundle = self.citation_bundle()
+        doc_bundle = self.retrieval_doc_bundle()
+        excerpt_bundle = self.retrieval_excerpt_bundle()
         return {
             "audit_ref": self.audit_ref,
             "result_fingerprint": self.result_fingerprint,
             "retrieval_downstream_payload": copy.deepcopy(self.to_downstream_payload()),
-            "retrieval_citation_bundle": copy.deepcopy(self.citation_bundle()),
-            "retrieval_doc_bundle": copy.deepcopy(self.retrieval_doc_bundle()),
-            "retrieval_excerpt_bundle": copy.deepcopy(self.retrieval_excerpt_bundle()),
+            "retrieval_citation_bundle": copy.deepcopy(citation_bundle),
+            "retrieval_doc_bundle": copy.deepcopy(doc_bundle),
+            "retrieval_excerpt_bundle": copy.deepcopy(excerpt_bundle),
+            "basket_promotion": self._basket_promotion_snapshot(
+                citation_bundle=citation_bundle,
+                doc_bundle=doc_bundle,
+                excerpt_bundle=excerpt_bundle,
+            ),
             "retrieval_provenance": copy.deepcopy(build_retrieval_provenance_from_result(self)),
             "retrieval_source_bundle": copy.deepcopy(self.source_bundle()),
             "retrieval_evidence": copy.deepcopy(self.evidence),
@@ -675,6 +683,34 @@ class RetrievalResult:
                     retrieval_policy=retrieval_policy_snapshot,
                 )
             ),
+        }
+
+    def _basket_promotion_snapshot(
+        self,
+        *,
+        citation_bundle: dict[str, object],
+        doc_bundle: dict[str, object],
+        excerpt_bundle: dict[str, object],
+    ) -> dict[str, object]:
+        """Return the narrow retrieval evidence set needed for basket promotion."""
+
+        return {
+            "result_fingerprint": self.result_fingerprint,
+            "query_fingerprint": citation_bundle["query_fingerprint"],
+            "query_scope": citation_bundle["query_scope"],
+            "query_intent": citation_bundle["query_intent"],
+            "retrieval_backend": citation_bundle["retrieval_backend"],
+            "retrieval_mode": citation_bundle["retrieval_mode"],
+            "retrieval_policy": copy.deepcopy(citation_bundle["retrieval_policy"]),
+            "citation_status": copy.deepcopy(citation_bundle["citation_status"]),
+            "doc_ids": [doc_hit["doc_id"] for doc_hit in doc_bundle["doc_hits"]],
+            "excerpt_ids": [
+                hit["excerpt_id"]
+                for hit in excerpt_bundle["excerpt_hits"]
+                if hit["excerpt_id"] is not None
+            ],
+            "doc_citations": copy.deepcopy(citation_bundle["doc_citations"]),
+            "excerpt_citations": copy.deepcopy(citation_bundle["excerpt_citations"]),
         }
 
 

@@ -35,6 +35,43 @@ class RetrievalContextBundleSource(Protocol):
         """Return the deterministic retrieval context consumed by engine flows."""
 
 
+def _build_basket_promotion_snapshot_from_bundles(
+    *,
+    result_fingerprint: object,
+    citation_bundle: dict[str, object],
+    doc_bundle: dict[str, object],
+    excerpt_bundle: dict[str, object],
+) -> dict[str, object]:
+    """Return the narrow retrieval evidence set needed for basket promotion."""
+
+    doc_hits = doc_bundle.get("doc_hits", [])
+    if not isinstance(doc_hits, list):
+        doc_hits = []
+    excerpt_hits = excerpt_bundle.get("excerpt_hits", [])
+    if not isinstance(excerpt_hits, list):
+        excerpt_hits = []
+    doc_ids = [item.get("doc_id") for item in doc_hits if isinstance(item, dict) and isinstance(item.get("doc_id"), str)]
+    excerpt_ids = [
+        item.get("excerpt_id")
+        for item in excerpt_hits
+        if isinstance(item, dict) and isinstance(item.get("excerpt_id"), str)
+    ]
+    return {
+        "result_fingerprint": result_fingerprint,
+        "query_fingerprint": citation_bundle.get("query_fingerprint"),
+        "query_scope": citation_bundle.get("query_scope"),
+        "query_intent": citation_bundle.get("query_intent"),
+        "retrieval_backend": citation_bundle.get("retrieval_backend"),
+        "retrieval_mode": citation_bundle.get("retrieval_mode"),
+        "retrieval_policy": copy.deepcopy(citation_bundle.get("retrieval_policy", {})),
+        "citation_status": copy.deepcopy(citation_bundle.get("citation_status", {})),
+        "doc_ids": doc_ids,
+        "excerpt_ids": excerpt_ids,
+        "doc_citations": copy.deepcopy(citation_bundle.get("doc_citations", [])),
+        "excerpt_citations": copy.deepcopy(citation_bundle.get("excerpt_citations", [])),
+    }
+
+
 def _build_retrieval_citation_bundle_from_payload(payload: dict[str, object]) -> dict[str, object]:
     """Return the deterministic citation bundle from a downstream payload snapshot."""
 
@@ -202,6 +239,12 @@ def _build_retrieval_context_bundle_from_source_bundle(source_bundle: dict[str, 
         "retrieval_citation_bundle": copy.deepcopy(retrieval_citation_bundle),
         "retrieval_doc_bundle": copy.deepcopy(retrieval_doc_bundle),
         "retrieval_excerpt_bundle": copy.deepcopy(retrieval_excerpt_bundle),
+        "basket_promotion": _build_basket_promotion_snapshot_from_bundles(
+            result_fingerprint=source_bundle.get("result_fingerprint"),
+            citation_bundle=retrieval_citation_bundle,
+            doc_bundle=retrieval_doc_bundle,
+            excerpt_bundle=retrieval_excerpt_bundle,
+        ),
         "retrieval_provenance": copy.deepcopy(retrieval_provenance),
         "retrieval_source_bundle": copy.deepcopy(source_bundle),
         "retrieval_evidence": copy.deepcopy(source_bundle.get("retrieval_evidence", {})),
@@ -315,13 +358,22 @@ def _build_retrieval_excerpt_bundle_from_payload(payload: dict[str, object]) -> 
 def _build_retrieval_context_bundle_from_payload(payload: dict[str, object]) -> dict[str, object]:
     """Return the deterministic retrieval context bundle from a downstream payload snapshot."""
 
+    citation_bundle = _build_retrieval_citation_bundle_from_payload(payload)
+    doc_bundle = _build_retrieval_doc_bundle_from_payload(payload)
+    excerpt_bundle = _build_retrieval_excerpt_bundle_from_payload(payload)
     return {
         "audit_ref": payload.get("audit_ref"),
         "result_fingerprint": payload.get("result_fingerprint"),
         "retrieval_downstream_payload": copy.deepcopy(payload),
-        "retrieval_citation_bundle": _build_retrieval_citation_bundle_from_payload(payload),
-        "retrieval_doc_bundle": _build_retrieval_doc_bundle_from_payload(payload),
-        "retrieval_excerpt_bundle": _build_retrieval_excerpt_bundle_from_payload(payload),
+        "retrieval_citation_bundle": citation_bundle,
+        "retrieval_doc_bundle": doc_bundle,
+        "retrieval_excerpt_bundle": excerpt_bundle,
+        "basket_promotion": _build_basket_promotion_snapshot_from_bundles(
+            result_fingerprint=payload.get("result_fingerprint"),
+            citation_bundle=citation_bundle,
+            doc_bundle=doc_bundle,
+            excerpt_bundle=excerpt_bundle,
+        ),
         "retrieval_provenance": _build_retrieval_provenance_from_payload(payload),
         "retrieval_source_bundle": _build_retrieval_source_bundle_from_payload(payload),
         "retrieval_evidence": copy.deepcopy(payload.get("retrieval_evidence", {})),
