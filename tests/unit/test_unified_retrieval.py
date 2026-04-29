@@ -1510,6 +1510,11 @@ class UnifiedRetrievalTests(unittest.TestCase):
         self.assertEqual(bundle["retrieval_excerpt_bundle"], result.retrieval_excerpt_bundle())
         self.assertEqual(bundle["retrieval_provenance"], result.to_downstream_payload()["retrieval_provenance"])
         self.assertEqual(bundle["retrieval_source_bundle"], result.source_bundle())
+        basket_candidate = bundle["retrieval_excerpt_bundle"]["basket_candidates"][0]
+        self.assertEqual(basket_candidate["result_fingerprint"], result.result_fingerprint)
+        self.assertEqual(basket_candidate["query_fingerprint"], result.diagnostics["query_fingerprint"])
+        self.assertEqual(basket_candidate["citation"]["result_fingerprint"], result.result_fingerprint)
+        self.assertEqual(basket_candidate["citation"]["query_fingerprint"], result.diagnostics["query_fingerprint"])
         bundle["retrieval_downstream_payload"]["retrieval_summary"]["doc_ids"].append("mutated-doc-id")
         refreshed = engine_build_retrieval_context_bundle_from_result(result)
         self.assertNotIn("mutated-doc-id", refreshed["retrieval_downstream_payload"]["retrieval_summary"]["doc_ids"])
@@ -1670,6 +1675,10 @@ class UnifiedRetrievalTests(unittest.TestCase):
         retrieval_summary.pop("doc_identity_fingerprints", None)
         retrieval_summary.pop("top_excerpt_fingerprints", None)
         retrieval_summary.pop("top_excerpt_text_hashes", None)
+        first_excerpt_hit = downstream_payload["excerpt_hits"][0]
+        self.assertIsInstance(first_excerpt_hit, dict)
+        first_excerpt_hit.pop("result_fingerprint", None)
+        first_excerpt_hit["provenance"].pop("result_fingerprint", None)
 
         class _SparseContextBundleSource:
             def __init__(self, payload: dict[str, object]) -> None:
@@ -1704,6 +1713,11 @@ class UnifiedRetrievalTests(unittest.TestCase):
             [item.excerpt_id for item in result.hits if item.excerpt_id is not None],
         )
         self.assertEqual(context_bundle["retrieval_downstream_payload"]["retrieval_citation_bundle"], result.citation_bundle())
+        basket_candidate = context_bundle["retrieval_excerpt_bundle"]["basket_candidates"][0]
+        self.assertEqual(basket_candidate["result_fingerprint"], result.result_fingerprint)
+        self.assertEqual(basket_candidate["query_fingerprint"], result.diagnostics["query_fingerprint"])
+        self.assertEqual(basket_candidate["citation"]["result_fingerprint"], result.result_fingerprint)
+        self.assertEqual(basket_candidate["citation"]["query_fingerprint"], result.diagnostics["query_fingerprint"])
 
     def test_retrieve_auto_citation_bundle_matches_result_snapshot(self) -> None:
         query = RetrievalQuery(

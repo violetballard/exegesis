@@ -196,6 +196,7 @@ def _normalize_excerpt_bundle_snapshot(excerpt_bundle: dict[str, object]) -> dic
             ],
         )
     )
+    _backfill_basket_candidate_context(normalized)
     retrieval_policy = normalized.get("retrieval_policy")
     if isinstance(retrieval_policy, dict):
         normalized["retrieval_policy"] = _normalize_policy_snapshot(retrieval_policy)
@@ -205,6 +206,34 @@ def _normalize_excerpt_bundle_snapshot(excerpt_bundle: dict[str, object]) -> dic
     elif "citation_status" in normalized:
         normalized["citation_status"] = {}
     return normalized
+
+
+def _backfill_basket_candidate_context(excerpt_bundle: dict[str, object]) -> None:
+    """Keep rebuilt basket candidates auditable when only excerpt hits are present."""
+
+    basket_candidates = excerpt_bundle.get("basket_candidates")
+    if not isinstance(basket_candidates, list):
+        return
+
+    fallback_fields = {
+        "result_fingerprint": excerpt_bundle.get("result_fingerprint"),
+        "query_fingerprint": excerpt_bundle.get("query_fingerprint"),
+        "query_scope": excerpt_bundle.get("query_scope"),
+        "query_intent": excerpt_bundle.get("query_intent"),
+        "query_date_range": excerpt_bundle.get("query_date_range"),
+        "retrieval_backend": excerpt_bundle.get("retrieval_backend"),
+        "retrieval_mode": excerpt_bundle.get("retrieval_mode"),
+    }
+    for candidate in basket_candidates:
+        if not isinstance(candidate, dict):
+            continue
+        for key, fallback in fallback_fields.items():
+            _backfill_missing_snapshot_value(candidate, key, fallback)
+
+        citation = candidate.get("citation")
+        if isinstance(citation, dict):
+            for key, fallback in fallback_fields.items():
+                _backfill_missing_snapshot_value(citation, key, fallback)
 
 
 def _build_basket_candidates_from_excerpt_hits(excerpt_hits: list[object]) -> list[dict[str, object]]:
@@ -239,6 +268,10 @@ def _build_basket_candidates_from_excerpt_hits(excerpt_hits: list[object]) -> li
             "query_intent": hit.get("query_intent", provenance.get("query_intent")),
             "query_date_range": copy.deepcopy(
                 hit.get("query_date_range", provenance.get("query_date_range")),
+            ),
+            "result_fingerprint": hit.get(
+                "result_fingerprint",
+                provenance.get("result_fingerprint"),
             ),
         }
         candidates.append(

@@ -765,6 +765,8 @@ class RetrievalResult:
                 "source_hash": hit.provenance.get("source_hash"),
                 "excerpt_fingerprint": hit.provenance.get("excerpt_fingerprint"),
                 "excerpt_text_hash": hit.provenance.get("excerpt_text_hash") or hit.provenance.get("hash"),
+                "result_fingerprint": self.result_fingerprint,
+                "query_fingerprint": self.diagnostics["query_fingerprint"],
                 "source_strategy": hit.source_strategy,
                 "retrieval_backend": hit.provenance.get("retrieval_backend"),
                 "retrieval_mode": hit.provenance.get("retrieval_mode"),
