@@ -2,9 +2,9 @@
 
 - Lane: `feat-commands`
 - Branch: `codex/feat-commands`
-- Commit / review basis: current branch tip after the `20260429T013005Z` reviewer-fix commit.
+- Commit / review basis: current branch tip after the `20260429T013303Z` reviewer-fix commit.
 - Previous implementation anchor: `f8d860ed9f6299f0169c4f21321ac5f37c949fd3`
-- Reviewer packet addressed: `20260429T013005Z`
+- Reviewer packet addressed: `20260429T013303Z`
 
 ## Packet Traceability Note
 
@@ -186,7 +186,7 @@
 4. Demo-path mapping: satisfied by naming the protected `project-open`, `retrieval`, `patch-review`, and `export-handoff` steps in the task list and demo-path section.
 5. Required gates: satisfied by rerunning `make scope-check`, `./quality-format.sh --check`, `./quality-lint.sh`, `./quality-test.sh`, `./typecheck-test.sh`, and `make ci` against this reviewer-fix worktree state.
 
-## Reviewer Packet `20260429T013005Z` Fix Satisfaction
+## Reviewer Packet `20260429T013303Z` Fix Satisfaction
 
 1. `command_cli_contract()` validates the full parser-visible CLI token surface, not only de-duplicated canonical names. It compares canonical parser tokens, lookup-table shape, grouped parser surface, declared surface, and canonical command order.
 2. Focused tests prove same-canonical parser drift is rejected, including `bootstrap` -> `open`, `diff-preview` -> `diff`, and `diff` -> `diff_preview` substitutions.
