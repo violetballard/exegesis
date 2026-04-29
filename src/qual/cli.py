@@ -147,10 +147,14 @@ def _command_help(canonical_name: str) -> str:
 
 
 def command_parser_lookup_table() -> tuple[tuple[str, str], ...]:
+    return tuple((token, command_catalog.canonical_command(token)) for token in command_parser_tokens())
+
+
+def command_parser_tokens() -> tuple[str, ...]:
     parser = _build_parser()
     for action in parser._actions:
         if isinstance(action, argparse._SubParsersAction):
-            return tuple((token, command_catalog.canonical_command(token)) for token in action.choices)
+            return tuple(action.choices)
     raise ValueError("Command CLI parser has no subcommands")
 
 

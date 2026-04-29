@@ -121,6 +121,7 @@ class CommandCatalogTests(unittest.TestCase):
 
     def test_actual_argparse_surface_matches_the_command_contract(self) -> None:
         self.assertEqual(cli.command_parser_lookup_table(), command_cli_lookup_table())
+        self.assertEqual(cli.command_parser_tokens(), command_cli_tokens())
         self.assertEqual(
             tuple(token for token, _ in cli.command_parser_lookup_table()),
             command_cli_tokens(),
@@ -210,6 +211,10 @@ class CommandCatalogTests(unittest.TestCase):
                 ("bootstrap", "diff-preview", "diff_preview", "context-basket", "terminal"),
             ),
             (
+                "same-canonical diff alias added",
+                ("bootstrap", "diff-preview", "diff", "diff_preview", "context-basket", "terminal"),
+            ),
+            (
                 "accepted parser tokens reordered",
                 ("bootstrap", "diff", "diff-preview", "context-basket", "terminal"),
             ),
@@ -239,6 +244,10 @@ class CommandCatalogTests(unittest.TestCase):
         )
         with patch.object(command_catalog, "command_cli_lookup_table", return_value=parser_surface):
             self.assertEqual(cli.command_parser_lookup_table(), parser_surface)
+            self.assertEqual(
+                cli.command_parser_tokens(),
+                ("bootstrap", "diff-preview", "context-basket", "terminal"),
+            )
 
     def test_command_cli_contract_rejects_catalog_drift(self) -> None:
         self._clear_cli_caches()

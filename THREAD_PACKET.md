@@ -3,9 +3,9 @@
 - Lane: `feat-commands`
 - Branch: `codex/feat-commands`
 - Review target: final fixer commit range from this pass
-- Review basis: `HEAD~7..HEAD` after the `20260429T085733Z` fixer commit
-- Review range command: `git diff HEAD~7..HEAD`
-- Current fixer pass: close the parser-token drift gap by binding the real argparse surface to the command catalog contract, proving drift through the actual argparse choices, documenting the canonical demo-path step advanced by each task, and recording current passing gate evidence.
+- Review basis: `HEAD~8..HEAD` after the `20260429T090331Z` fixer commit
+- Review range command: `git diff HEAD~8..HEAD`
+- Current fixer pass: close the parser-token drift gap by binding raw argparse choice tokens to the command catalog contract, proving added `diff_preview` drift through actual argparse choices, documenting the canonical demo-path step advanced by each task, and recording current passing gate evidence.
 
 ## Review Basis Correction
 
@@ -15,15 +15,15 @@ Do not review older branch-tip history as this packet's implementation basis. Th
 
 The only delta requested for review here is:
 
-- `HEAD~7..HEAD` after the `20260429T085733Z` fixer commit
+- `HEAD~8..HEAD` after the `20260429T090331Z` fixer commit
 
 This basis includes runtime/test commits after `f8d860e`; they are intentionally part of the requested re-review and are not described as metadata-only.
 
 ## Scope Completed
 
-1. Bound the real argparse top-level command surface in `src/qual/cli.py` to `command_cli_lookup_table()`, so accepted parser tokens consume the same source as the command catalog. Canonical demo-path steps advanced: `project-open` (`bootstrap`), `retrieval` (`context-basket`), `patch-review` (`diff-preview`/`diff`), and `export-handoff` (`terminal`).
-2. Added a live parser-surface parity check to `command_cli_contract()`, so `bootstrap` -> `open`, removed `diff`, added `diff_preview`, or reordered parser choices fail even when canonical command names still match. Canonical demo-path steps advanced: `project-open` and `patch-review`, with the same exact-token guard applying to `retrieval` and `export-handoff`.
-3. Added focused unit coverage for actual argparse-vs-catalog parity, same-canonical parser-token drift, and direct `_build_parser()` argparse choice drift. Canonical demo-path steps advanced: `project-open` through the `bootstrap`/`open` regression and `patch-review` through the `diff`/`diff_preview` removal, substitution, and order regressions.
+1. Bound the real argparse top-level command surface in `src/qual/cli.py` to `command_cli_lookup_table()` and exposed raw `command_parser_tokens()`, so accepted parser tokens consume and report the same source as the command catalog. Canonical demo-path steps advanced: `project-open` (`bootstrap`), `retrieval` (`context-basket`), `patch-review` (`diff-preview`/`diff`), and `export-handoff` (`terminal`).
+2. Added a live parser-surface parity check to `command_cli_contract()` that compares raw argparse choices, canonicalized parser projection, `command_cli_tokens()`, and `command_cli_lookup_table()`, so `bootstrap` -> `open`, removed `diff`, added `diff_preview`, or reordered parser choices fail even when canonical command names still match. Canonical demo-path steps advanced: `project-open` and `patch-review`, with the same exact-token guard applying to `retrieval` and `export-handoff`.
+3. Added focused unit coverage for actual argparse-vs-catalog parity, same-canonical parser-token drift, and direct `_build_parser()` argparse choice drift, including the reviewer example where `diff_preview` is added as an extra accepted parser token. Canonical demo-path steps advanced: `project-open` through the `bootstrap`/`open` regression and `patch-review` through the `diff`/`diff_preview` removal, addition, substitution, and order regressions.
 4. Updated this handoff packet to narrow the claim to command-contract integrity, include the later runtime/test commits in one authoritative review basis, correct ownership accounting, and explicitly name the canonical demo-path steps advanced by each completed task. Canonical demo-path steps advanced: `project-open`, `retrieval`, `patch-review`, and `export-handoff`.
 
 ## AGENTS.md Budget And Size Accounting
@@ -41,7 +41,7 @@ Because `scripts/scope-check.sh` is not part of the narrow review basis, no appr
 
 ## Files Changed
 
-Changed files in `HEAD~7..HEAD` after the `20260429T085733Z` fixer commit:
+Changed files in `HEAD~8..HEAD` after the `20260429T090331Z` fixer commit:
 
 - `THREAD.md`
 - `src/qual/cli.py`
@@ -59,7 +59,7 @@ Classification:
 ## Ownership Accounting
 
 - Lane-owned implementation edits: `src/qual/commands/catalog.py`
-- Approved shared-test edits: none required; command catalog tests are the lane's direct unit coverage for the command contract.
+- Shared-by-approval test edits: `tests/unit/test_commands_catalog.py`, limited to command-contract unit coverage for the shared CLI parser surface.
 - Shared-by-approval edits: `src/qual/cli.py`, required to make the actual argparse parser consume the command contract token source and expose live parser parity.
 - Integrator-locked edits: `src/qual/cli.py`, approved for this fixer pass because the reviewer-required fix explicitly targets the shared CLI parser entrypoint.
 - Non-owned support edits: none.
@@ -81,9 +81,9 @@ Classification:
 
 ## Commands Run
 
-Required gates rerun after the `20260429T085733Z` fixer prompt:
+Required gates rerun after the `20260429T090331Z` fixer prompt:
 
-- `python -m unittest tests.unit.test_commands_catalog` - passed, `102` tests.
+- `python3 -m unittest tests.unit.test_commands_catalog -v` - passed, `102` tests.
 - `make scope-check` - passed.
 - `./quality-format.sh --check` - passed.
 - `./quality-lint.sh` - passed.
@@ -93,8 +93,8 @@ Required gates rerun after the `20260429T085733Z` fixer prompt:
 
 Review-basis verification commands:
 
-- `git diff --name-status HEAD~7..HEAD` - to run after the `20260429T085733Z` fixer commit.
-- `git diff --stat HEAD~7..HEAD` - to run after the `20260429T085733Z` fixer commit.
+- `git diff --name-status HEAD~8..HEAD` - to run after the `20260429T090331Z` fixer commit.
+- `git diff --stat HEAD~8..HEAD` - to run after the `20260429T090331Z` fixer commit.
 
 ## Handoff Readiness Checklist
 
