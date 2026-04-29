@@ -3,12 +3,18 @@
 - Branch: `codex/feat-retrieval-fts`
 - Lane: `feat-retrieval-fts`
 - Review target: final fixer commit reported in the fixer response.
+- Pre-fix branch tip: `ba2f81e91f6d2fd05a0c8a6cd0d803c0d016e4f3`
+- Actual merge candidate: final fixer commit reported in the fixer response.
 - Reviewed range: `378cf9a74a3658058079a32f186fcd254c4a4034..final fixer commit reported in response`
+- `a28ccf520ea0983f538106f1bd418670d9cea73b` scope: not metadata-only; it changed shared regression tests and packet text, and its retained effects are accounted for or reverted in the final reviewed range.
+- `ba2f81e91f6d2fd05a0c8a6cd0d803c0d016e4f3` scope: the pre-fix branch tip whose retained effects are accounted for or reverted by the final fixer commit.
 - Handoff type: high-risk retrieval fixer re-review.
 
 ## Scope completed
 
-This handoff is narrowed back to the reviewed FTS-only excerpt fix. Post-`adfa8cda` runtime/test changes in `src/qual/engine/retrieval/payload.py`, `src/qual/retrieval/service.py`, and `tests/unit/test_unified_retrieval.py` are removed from the final merge candidate, so later basket-promotion runtime work is not submitted as metadata-only.
+This handoff is narrowed back to the reviewed FTS-only excerpt fix against the actual branch state. Post-`adfa8cda` runtime/test changes in `src/qual/engine/retrieval/payload.py`, `src/qual/retrieval/service.py`, and `tests/unit/test_unified_retrieval.py` are removed from the final merge candidate, so later basket-promotion runtime work is not submitted as metadata-only.
+
+The branch history includes basket-promotion provenance/fingerprint commits after `adfa8cda`, including `a28ccf520ea0983f538106f1bd418670d9cea73b`; those commits are not described as metadata-only here. The final reviewed diff range above is the authoritative merge candidate and does not retain basket-promotion runtime behavior.
 
 The remaining implementation makes excerpt lookup FTS-first and fail-closed for PageIndex-only excerpt IDs, with shared regression coverage. PageIndex and embeddings stay compatibility-only/deferred paths and are not required runtime paths for the canonical retrieval flow.
 
@@ -21,7 +27,7 @@ The remaining implementation makes excerpt lookup FTS-first and fail-closed for 
 
 - Risk: `HIGH`
 - Task count: `1` of `4`
-- Actual merge-candidate size before final commit: `5 files changed, 257 insertions(+), 114 deletions(-)` for `378cf9a74a3658058079a32f186fcd254c4a4034..working tree`; net LOC `+143`.
+- Actual merge-candidate size before final commit: `5 files changed, 258 insertions(+), 114 deletions(-)` for `378cf9a74a3658058079a32f186fcd254c4a4034..working tree`; net LOC `+144`.
 - Budget result: within high-risk limits (`<=8 files`, `<=300 net LOC`).
 - Owned runtime paths touched: `src/qual/retrieval/**`, `src/qual/engine/retrieval/**`
 - Approved shared-by-approval edit: `tests/unit/test_unified_retrieval.py`
