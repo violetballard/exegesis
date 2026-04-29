@@ -2,14 +2,14 @@
 
 - Lane: `feat-commands`
 - Branch: `codex/feat-commands`
-- Review target: implementation commit `f8d860ed9f6299f0169c4f21321ac5f37c949fd3` plus metadata refresh commit `a8b484ee9d8f9e8b5676faf1a0534eff23d6a19d`.
-- Fixer correction: this metadata-only refresh resolves reviewer packet `20260429T170229Z`; it does not change the reviewed implementation.
+- Review target: implementation commit `f8d860ed9f6299f0169c4f21321ac5f37c949fd3` plus metadata refresh commits `a8b484ee9d8f9e8b5676faf1a0534eff23d6a19d` and `7fd312d6d1c8aae5554bba05265b939c1163bdfa`.
+- Fixer correction: this metadata-only refresh resolves reviewer packet `20260429T170759Z`; it does not change the reviewed implementation.
 
 ## Required-Fix Resolution
 
 1. The canonical demo-path mapping is explicit below. This command-catalog slice advances CLI contract stability for the existing `open project/document`, `retrieve relevant material`, `gather context into basket`, `plan/revise`, `apply/reject patch`, `persist state`, and `continue working` command surfaces. It makes `retrieve relevant material` more real directly by preventing parser/catalog drift for retrieval command discovery and parsing.
 2. Ownership wording is corrected: the reviewed implementation target contains one lane-owned command file and one approved shared-by-approval test file. There were no integrator-locked implementation edits in commit `f8d860ed9f6299f0169c4f21321ac5f37c949fd3`.
-3. Re-review should stay pinned to implementation commit `f8d860ed9f6299f0169c4f21321ac5f37c949fd3` and metadata refresh commit `a8b484ee9d8f9e8b5676faf1a0534eff23d6a19d`.
+3. Re-review should stay pinned to implementation commit `f8d860ed9f6299f0169c4f21321ac5f37c949fd3` and metadata refresh commits `a8b484ee9d8f9e8b5676faf1a0534eff23d6a19d` and `7fd312d6d1c8aae5554bba05265b939c1163bdfa`.
 
 ## Implementation Summary
 
@@ -45,7 +45,12 @@ Metadata refresh commit `a8b484ee9d8f9e8b5676faf1a0534eff23d6a19d`:
 - `THREAD.md`
 - `THREAD_PACKET.md`
 
-This fixer refresh:
+Metadata refresh commit `7fd312d6d1c8aae5554bba05265b939c1163bdfa`:
+
+- `THREAD.md`
+- `THREAD_PACKET.md`
+
+This fixer refresh for reviewer packet `20260429T170759Z`:
 
 - `THREAD.md`
 - `THREAD_PACKET.md`
@@ -69,9 +74,9 @@ This fixer refresh:
 
 ## Risks And Blockers
 
-- Risk: metadata-only correction depends on the reviewer accepting the narrowed re-review target exactly as requested: implementation commit `f8d860ed9f6299f0169c4f21321ac5f37c949fd3` plus metadata refresh commit `a8b484ee9d8f9e8b5676faf1a0534eff23d6a19d`.
+- Risk: metadata-only correction depends on the reviewer accepting the narrowed re-review target exactly as requested: implementation commit `f8d860ed9f6299f0169c4f21321ac5f37c949fd3` plus metadata refresh commits `a8b484ee9d8f9e8b5676faf1a0534eff23d6a19d` and `7fd312d6d1c8aae5554bba05265b939c1163bdfa`.
 - Blockers: none known.
 
 ## Final Readiness Statement
 
-This handoff packet now explicitly names the canonical demo-path steps advanced by the command-catalog slice and separates the approved shared test edit from integrator-locked implementation edits. Re-review should remain pinned to implementation commit `f8d860ed9f6299f0169c4f21321ac5f37c949fd3` and metadata refresh commit `a8b484ee9d8f9e8b5676faf1a0534eff23d6a19d`.
+This handoff packet now explicitly names the canonical demo-path steps advanced by the command-catalog slice and separates the approved shared test edit from integrator-locked implementation edits. Re-review should remain pinned to implementation commit `f8d860ed9f6299f0169c4f21321ac5f37c949fd3` and metadata refresh commits `a8b484ee9d8f9e8b5676faf1a0534eff23d6a19d` and `7fd312d6d1c8aae5554bba05265b939c1163bdfa`.
