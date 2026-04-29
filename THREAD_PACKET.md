@@ -2,7 +2,7 @@
 
 - Lane: `feat-commands`
 - Branch: `codex/feat-commands`
-- Corrected review target: the current branch tip after this fixer packet refresh commit only, with the corrected four-file merge-target list below.
+- Corrected review target: the branch tip produced by this fixer pass, with the corrected four-file merge-target list below.
 - Integration instruction: review and merge the corrected branch tip only if its merge diff remains exactly `THREAD.md`, `THREAD_PACKET.md`, `src/qual/commands/catalog.py`, and `tests/unit/test_commands_catalog.py`; otherwise cherry-pick the final corrective commit target that preserves only that command-catalog slice.
 - Rejected packet reconciled: prior packet traceability incorrectly treated `ab96cb722094e821105d1cdfd3cae24f4b9184ef` and `2836f5f0e4e0e903acc0e3633e6204be3f982a5d` as metadata-only even though they modified implementation files. This packet classifies both commits as implementation and reviews them with this packet refresh.
 - Accurate implementation commits under review:
@@ -10,7 +10,8 @@
   - `ab96cb722094e821105d1cdfd3cae24f4b9184ef`: implementation fix for canonical-token drift, including alias-before-canonical regression coverage.
   - `2836f5f0e4e0e903acc0e3633e6204be3f982a5d`: implementation fix that enforces canonical parser tokens in `src/qual/commands/catalog.py` and refreshes packet traceability.
   - `0492bb2bc00dd03c126789985d9a5f18e5cd8e67`: metadata-only packet refresh that documents the additional implementation commits above; it is not itself implementation.
-  - This fixer packet refresh commit: metadata-only correction that resubmits the corrected packet without changing implementation behavior.
+  - `f1931ac437f5f051b397e36ca27560bd1023d975`: metadata-only packet correction that resubmitted the corrected packet without changing implementation behavior.
+  - Final fixer-pass commit from this packet: packet-only metadata correction. The exact final HEAD SHA is reported by the fixer after commit creation.
 - Merge base used for file accounting: `06cdebc2d5d53533b73f264a4bbf5a4b4daacb27`.
 - Risk classification: low-risk lane-owned implementation plus one shared-by-approval unit-test exception and packet metadata; no integrator-locked files are changed.
 
@@ -18,7 +19,7 @@
 
 - Branch name: `codex/feat-commands`
 - Scope completed: isolated the command catalog implementation slice from `f8d860ed9f6299f0169c4f21321ac5f37c949fd3`, included `ab96cb722094e821105d1cdfd3cae24f4b9184ef` and `2836f5f0e4e0e903acc0e3633e6204be3f982a5d` as implementation fixes, and removed off-lane branch-tip changes from the corrected merge target.
-- Implementation review basis: the current branch tip after this fixer packet refresh commit only. This tip includes the corrected command-catalog slice from `f8d860e`, `ab96cb7`, and `2836f5f`, plus metadata-only packet refreshes from `0492bb2` and this commit.
+- Implementation review basis: the branch tip produced by this fixer pass. This tip includes the corrected command-catalog slice from `f8d860e`, `ab96cb7`, and `2836f5f`, plus metadata-only packet refreshes from `0492bb2`, `f1931ac`, and the final fixer-pass commit.
 - Roadmap item(s) affected: active MVP `feat-commands`; Milestone 3 command surface stability while Textual remains disabled.
 - Vision capability affected: canonical engine contract and CLI compatibility through deterministic command catalog metadata.
 - Exact canonical demo-path step advanced: `preview/apply/reject patch`.
@@ -38,7 +39,7 @@
 2. Added a regression test proving that removing canonical token `diff-preview` while keeping alias `diff` raises `ValueError`. Demo-path mapping: strengthens `preview/apply/reject patch` by preserving the canonical `diff-preview` parser surface.
 3. Added a regression test proving that alias `diff` cannot appear before canonical token `diff-preview`. Demo-path mapping: strengthens `preview/apply/reject patch` by preserving canonical-token precedence.
 4. Narrowed the corrected target to the command-catalog implementation slice: `src/qual/commands/catalog.py`, `tests/unit/test_commands_catalog.py`, and packet metadata only. Demo-path mapping: keeps this lane scoped to preserving the CLI surface for `preview/apply/reject patch`.
-5. Regenerated `THREAD_PACKET.md` and `THREAD.md` so they describe the corrected branch-tip target, classify `ab96cb722094e821105d1cdfd3cae24f4b9184ef` and `2836f5f0e4e0e903acc0e3633e6204be3f982a5d` as implementation, and classify `0492bb2bc00dd03c126789985d9a5f18e5cd8e67` as metadata-only. Demo-path mapping: keeps handoff evidence aligned with the engine-first path `Engine stability -> A2UI contracts with CLI fallback -> preview/apply/reject patch`.
+5. Regenerated `THREAD_PACKET.md` and `THREAD.md` so they describe the corrected branch-tip target, classify `ab96cb722094e821105d1cdfd3cae24f4b9184ef` and `2836f5f0e4e0e903acc0e3633e6204be3f982a5d` as implementation, and classify `0492bb2bc00dd03c126789985d9a5f18e5cd8e67`, `f1931ac437f5f051b397e36ca27560bd1023d975`, and this final fixer-pass commit as metadata-only. Demo-path mapping: keeps handoff evidence aligned with the engine-first path `Engine stability -> A2UI contracts with CLI fallback -> preview/apply/reject patch`.
 6. Kept the unit test isolated to the catalog module so the corrected target does not require `src/qual/commands/__init__.py`. Demo-path mapping: limits validation to command-surface behavior used by the engine-first path `Engine stability -> A2UI contracts with CLI fallback -> preview/apply/reject patch`.
 
 ## Complete Corrected File List

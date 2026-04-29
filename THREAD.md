@@ -4,10 +4,10 @@ Canonical handoff contract lives in `THREAD_PACKET.md`.
 
 - Lane: `feat-commands`
 - Branch: `codex/feat-commands`
-- Corrected review target: the current branch tip after this fixer packet refresh commit only, with the corrected four-file merge-target list below.
+- Corrected review target: the branch tip produced by this fixer pass, with the corrected four-file merge-target list below.
 - Integration instruction: review and merge the corrected branch tip only if its merge diff remains exactly `THREAD.md`, `THREAD_PACKET.md`, `src/qual/commands/catalog.py`, and `tests/unit/test_commands_catalog.py`; otherwise cherry-pick the final corrective commit target that preserves only that command-catalog slice.
 - Rejected packet reconciled: prior traceability incorrectly classified `ab96cb722094e821105d1cdfd3cae24f4b9184ef` and `2836f5f0e4e0e903acc0e3633e6204be3f982a5d` as metadata-only. They are implementation because they modify `src/qual/commands/catalog.py` and, for `ab96cb722094e821105d1cdfd3cae24f4b9184ef`, `tests/unit/test_commands_catalog.py`.
-- Accurate implementation commits under review: `f8d860ed9f6299f0169c4f21321ac5f37c949fd3`, `ab96cb722094e821105d1cdfd3cae24f4b9184ef`, and `2836f5f0e4e0e903acc0e3633e6204be3f982a5d`. Commit `0492bb2bc00dd03c126789985d9a5f18e5cd8e67` is metadata-only because it refreshes `THREAD.md` and `THREAD_PACKET.md` while documenting the additional implementation commits; this fixer packet refresh commit is also metadata-only.
+- Accurate implementation commits under review: `f8d860ed9f6299f0169c4f21321ac5f37c949fd3`, `ab96cb722094e821105d1cdfd3cae24f4b9184ef`, and `2836f5f0e4e0e903acc0e3633e6204be3f982a5d`. Commit `0492bb2bc00dd03c126789985d9a5f18e5cd8e67` is metadata-only because it refreshes `THREAD.md` and `THREAD_PACKET.md` while documenting the additional implementation commits; `f1931ac437f5f051b397e36ca27560bd1023d975` and this final fixer-pass commit are also metadata-only.
 - Merge base used for file accounting: `06cdebc2d5d53533b73f264a4bbf5a4b4daacb27`.
 - Risk classification: low-risk lane-owned implementation plus one shared-by-approval unit-test exception and packet metadata; no integrator-locked files are changed in the corrected target.
 - Complete corrected file list: `THREAD.md`, `THREAD_PACKET.md`, `src/qual/commands/catalog.py`, and `tests/unit/test_commands_catalog.py`.
@@ -15,6 +15,6 @@ Canonical handoff contract lives in `THREAD_PACKET.md`.
 - Exact canonical demo-path step advanced: `preview/apply/reject patch`.
 - Canonical demo-path step advanced: command-catalog hardening makes `preview/apply/reject patch` more real by keeping patch-preview command tokens and canonical command names deterministic.
 - Per-task canonical demo-path mapping uses the current engine-first MVP path from `AGENTS.md`: `Engine stability -> A2UI contracts with CLI fallback -> preview/apply/reject patch`.
-- Implementation review basis: the current branch tip after this fixer packet refresh commit only.
+- Implementation review basis: the branch tip produced by this fixer pass.
 - Implementation slice: `src/qual/commands/catalog.py` and shared-by-approval test exception `tests/unit/test_commands_catalog.py`; no integrator-locked files were changed in the reviewed implementation commits. The implementation fixes tighten the canonical CLI-token contract, add the `diff-preview` alias-replacement and alias-before-canonical regressions, and refresh packet metadata.
 - Required gates for the exact corrected target: `make scope-check`, `./quality-format.sh --check`, `./quality-lint.sh`, `./quality-test.sh`, `./typecheck-test.sh`, and `make ci` all pass.
