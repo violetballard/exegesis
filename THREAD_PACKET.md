@@ -2,17 +2,17 @@
 
 - Lane: `feat-commands`
 - Branch: `codex/feat-commands`
-- Corrected review target: the current branch tip after this fixer commit, with the corrected four-file target listed below.
+- Corrected review target: the current branch tip after this fixer commit only, with the corrected four-file target listed below.
 - Integration instruction: review and merge the corrected branch tip only if its merge diff remains exactly `THREAD.md`, `THREAD_PACKET.md`, `src/qual/commands/catalog.py`, and `tests/unit/test_commands_catalog.py`; otherwise cherry-pick the final corrective commit target that preserves only that command-catalog slice.
 - Rejected packet reconciled: `f5a35438c2808b247cb70a86da7e0e9b19f82f67` claimed a metadata-only packet refresh while modifying both `THREAD.md` and `THREAD_PACKET.md`, and described a broad full-branch-tip review target. This packet replaces that with a narrowed command-catalog review target.
 - Merge base used for file accounting: `06cdebc2d5d53533b73f264a4bbf5a4b4daacb27`.
-- Risk classification: low-risk; implementation changes stay in `src/qual/commands/**` with unit-test coverage and packet metadata.
+- Risk classification: low-risk lane-owned implementation plus one shared-by-approval unit-test exception and packet metadata; no integrator-locked files are changed.
 
 ## Required Handoff Fields
 
 - Branch name: `codex/feat-commands`
 - Scope completed: isolated the command catalog implementation slice from `f8d860ed9f6299f0169c4f21321ac5f37c949fd3` and removed off-lane branch-tip changes from the corrected merge target.
-- Implementation review basis: starts from `f8d860ed9f6299f0169c4f21321ac5f37c949fd3`; this fixer tightens the CLI contract guard, adds the alias-replacement regression, and refreshes packet metadata.
+- Implementation review basis: the current branch tip after this fixer commit only. This tip includes the corrected command-catalog slice that tightens the CLI contract guard, adds the alias-replacement regression, and refreshes packet metadata.
 - Roadmap item(s) affected: active MVP `feat-commands`; Milestone 3 command surface stability while Textual remains disabled.
 - Vision capability affected: canonical engine contract and CLI compatibility through deterministic command catalog metadata.
 - Canonical demo-path step advanced: this command-catalog hardening strengthens the CLI path for `open project/document`, `retrieve relevant material`, and `preview and apply or reject a patch` by keeping command tokens and canonical command names deterministic.
@@ -40,9 +40,9 @@ Actual corrected merge diff from `06cdebc2d5d53533b73f264a4bbf5a4b4daacb27` to t
 ## Ownership And Scope
 
 - Lane-owned implementation path changed: `src/qual/commands/catalog.py`.
-- Test path changed: `tests/unit/test_commands_catalog.py`.
+- Shared-by-approval test path changed: `tests/unit/test_commands_catalog.py`.
 - Metadata-only handoff files changed: `THREAD.md`, `THREAD_PACKET.md`.
-- Shared-by-approval files changed: none in the corrected target.
+- Shared-by-approval files changed: approved exception for `tests/unit/test_commands_catalog.py` to cover the command-catalog alias-replacement regression.
 - Integrator-locked files changed: none in the corrected target.
 - Routing/provider impact: none.
 
