@@ -1,7 +1,7 @@
 ## Thread Handoff Packet
 
 - Branch/lane: `codex/feat-retrieval-fts` / `feat-retrieval-fts`
-- Merge candidate: current branch tip after this fixer pass; final SHA is reported in the fixer handoff.
+- Merge candidate: current branch tip after this retrieval payload hardening pass; final SHA is reported in the fixer handoff.
 - Reviewed range: `d7fd5d200358287fa42a18d39e2b277463b9b69f..HEAD`
 - Reviewed implementation range: `d7fd5d200358287fa42a18d39e2b277463b9b69f..HEAD`
 - Review choice: keep the current branch tip and regenerate the packet for the full branch-tip implementation range. The older narrowed `378cf9a74a3658058079a32f186fcd254c4a4034..adfa8cdadd43747ffbcb612e4151e262b13e52ca` slice is obsolete and must not be used for approval.
@@ -12,23 +12,23 @@
 1. The reviewable merge candidate is the branch tip. This packet uses `d7fd5d200358287fa42a18d39e2b277463b9b69f..HEAD`, the actual merge-base-to-tip range for `codex/feat-retrieval-fts`.
 2. The full implementation diff is in scope, including all post-`adfa8cdadd43747ffbcb612e4151e262b13e52ca` runtime retrieval and regression-test changes.
 3. Files changed, task count, line/file budget accounting, shared-file exception notes, roadmap/product vision mapping, and canonical demo-path mapping are regenerated for the actual branch tip.
-4. Gate results below are tied to this branch-tip merge candidate and must be refreshed again by the final fixer pass before re-review.
+4. Gate results below are tied to this branch-tip merge candidate and were refreshed after the current retrieval payload hardening change.
 
 ## Scope Completed
 
-The branch delivers the cumulative FTS-first retrieval slice for the MVP engine workflow loop. SQLite FTS is the canonical retrieval path; PageIndex and embeddings remain compatibility/fallback shims rather than required paths. Retrieval query construction, payload normalization, provenance bundles, source/context bundles, cache snapshots, excerpt lookup, and downstream context refs are deterministic enough for engine orchestration and auditable handoff into basket/workflow flows.
+The branch delivers the cumulative FTS-first retrieval slice for the MVP engine workflow loop. SQLite FTS is the canonical retrieval path; PageIndex and embeddings remain compatibility/fallback shims rather than required paths. Retrieval query construction, payload normalization, provenance bundles, source/context bundles, cache snapshots, excerpt lookup, and downstream context refs are deterministic enough for engine orchestration and auditable handoff into basket/workflow flows. The current branch-tip code hardening preserves `retrieval_context_refs` when downstream consumers reconstruct source, doc, excerpt, or context bundles from nested sparse snapshots, keeping basket-promotion refs available without requiring broader retrieval strategies.
 
 Canonical demo path advanced by the full branch tip:
 
 1. Retrieve relevant material through SQLite FTS-backed retrieval.
 2. Preserve document/excerpt provenance and citations in deterministic payload snapshots.
-3. Expose `retrieval_context_refs` and promotion-ready bundle data for downstream basket/context use.
+3. Expose and preserve `retrieval_context_refs` and promotion-ready bundle data for downstream basket/context use, including sparse nested bundle reconstruction.
 
 ## Tasks Completed
 
 1. FTS-first retrieval contract: canonical SQLite FTS retrieval, FTS-only excerpt lookup, guarded scope handling, compatibility exports, and fallback-only PageIndex/embedding shims.
 2. Deterministic payloads: normalized queries, constraints, date ranges, cache keys, ranked IDs, hit snapshots, policy metadata, citation fields, and provenance/source/context bundles.
-3. Basket/workflow promotion readiness: stable context refs, fingerprints, source bundle aliases, sparse bundle rehydration, and downstream helper backfills.
+3. Basket/workflow promotion readiness: stable context refs, fingerprints, source bundle aliases, sparse bundle rehydration, nested context-ref extraction, and downstream helper backfills.
 4. Regression and packet coverage: shared canonical retrieval tests plus packet planner coverage and branch-tip handoff metadata corrected for the actual merge candidate.
 
 ## Branch-Tip Files Changed
@@ -56,11 +56,11 @@ Matches `git diff --name-status d7fd5d200358287fa42a18d39e2b277463b9b69f..HEAD` 
 
 ## Budget / Risk
 
-Risk/budget: high/shared because shared regression coverage and runtime retrieval payload/service behavior are included in the reviewed range. Recomputed from `d7fd5d200358287fa42a18d39e2b277463b9b69f..HEAD`: task budget `4/4`; file budget `13/8`; size budget `13 files changed, 1938 insertions(+), 264 deletions(-)`, which is `1674` net LOC and exceeds the high-risk `<=300` net LOC cap. Integrator-locked files: none. Shared-by-approval files: `tests/unit/test_unified_retrieval.py` and `tests/unit/test_packet_planner.py` as regression/packet coverage for this lane. Routing/provider/core entrypoint impact: none.
+Risk/budget: high/shared because shared regression coverage and runtime retrieval payload/service behavior are included in the reviewed range. Recomputed from `d7fd5d200358287fa42a18d39e2b277463b9b69f..HEAD` including this packet refresh: task budget `4/4`; file budget `13/8`; size budget `13 files changed, 1975 insertions(+), 265 deletions(-)`, which is `1710` net LOC and exceeds the high-risk `<=300` net LOC cap. Integrator-locked files: none. Shared-by-approval files: `tests/unit/test_unified_retrieval.py` and `tests/unit/test_packet_planner.py` as regression/packet coverage for this lane. Routing/provider/core entrypoint impact: none.
 
 ## FTS-First Alignment Proof
 
-`src/qual/retrieval/service.py` and `src/qual/engine/retrieval/fts_strategy.py` keep SQLite FTS canonical for retrieval and excerpt lookup. PageIndex and embeddings are compatibility/fallback surfaces only; they are not required for the MVP retrieval path. Context refs are built from canonical retrieval hits and carry FTS provenance so downstream basket/workflow consumers can audit source material.
+`src/qual/retrieval/service.py` and `src/qual/engine/retrieval/fts_strategy.py` keep SQLite FTS canonical for retrieval and excerpt lookup. PageIndex and embeddings are compatibility/fallback surfaces only; they are not required for the MVP retrieval path. Context refs are built from canonical retrieval hits and carry FTS provenance so downstream basket/workflow consumers can audit source material. `src/qual/engine/retrieval/payload.py` now preserves those refs from nested source/doc/excerpt snapshots during sparse bundle reconstruction.
 
 ## Roadmap / Vision Mapping
 
@@ -73,7 +73,16 @@ Risk/budget: high/shared because shared regression coverage and runtime retrieva
 
 ## Commands Run
 
-Fresh branch-tip fixer pass: `make scope-check` PASS; `./quality-format.sh --check` PASS; `./quality-lint.sh` PASS; `./quality-test.sh` PASS (`124` tests); `./typecheck-test.sh` PASS; `make ci` PASS (`124` tests).
+Fresh branch-tip fixer pass:
+
+- `python -m pytest tests/unit/test_unified_retrieval.py -q` BLOCKED because this Python environment has no `pytest` module.
+- `python -m unittest tests.unit.test_unified_retrieval` PASS (`55` tests).
+- `make scope-check` PASS.
+- `./quality-format.sh --check` PASS.
+- `./quality-lint.sh` PASS.
+- `./quality-test.sh` PASS (`124` tests).
+- `./typecheck-test.sh` PASS.
+- `make ci` PASS (`124` tests).
 
 ## Risks / Blockers
 

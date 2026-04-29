@@ -254,6 +254,28 @@ def _normalize_context_refs_snapshot(refs: object) -> list[object]:
     return _normalize_list_like(refs)
 
 
+def _extract_context_refs_snapshot(payload: dict[str, object]) -> list[object]:
+    """Return promotion refs from top-level or nested retrieval snapshots."""
+
+    refs = payload.get("retrieval_context_refs")
+    if not _is_missing_snapshot_value(refs):
+        return _normalize_context_refs_snapshot(refs)
+
+    for bundle_key in (
+        "retrieval_source_bundle",
+        "source_bundle",
+        "retrieval_doc_bundle",
+        "retrieval_excerpt_bundle",
+    ):
+        bundle = payload.get(bundle_key)
+        if not isinstance(bundle, dict):
+            continue
+        nested_refs = bundle.get("retrieval_context_refs")
+        if not _is_missing_snapshot_value(nested_refs):
+            return _normalize_context_refs_snapshot(nested_refs)
+    return []
+
+
 def _normalize_retrieval_source_bundle_snapshot(source_bundle: dict[str, object]) -> dict[str, object]:
     normalized = copy.deepcopy(source_bundle)
     if not isinstance(normalized, dict):
@@ -276,9 +298,7 @@ def _normalize_retrieval_source_bundle_snapshot(source_bundle: dict[str, object]
     normalized["retrieval_evidence"] = _normalize_retrieval_evidence_snapshot(
         normalized.get("retrieval_evidence", {})
     )
-    normalized["retrieval_context_refs"] = _normalize_context_refs_snapshot(
-        normalized.get("retrieval_context_refs", [])
-    )
+    normalized["retrieval_context_refs"] = _extract_context_refs_snapshot(normalized)
     normalized["retrieval_citation_bundle"] = _build_retrieval_citation_bundle_from_payload(normalized)
     normalized["retrieval_doc_bundle"] = _build_retrieval_doc_bundle_from_payload(normalized)
     normalized["retrieval_excerpt_bundle"] = _build_retrieval_excerpt_bundle_from_payload(normalized)
@@ -474,7 +494,7 @@ def _build_retrieval_source_bundle_from_payload(payload: dict[str, object]) -> d
         "retrieval_manifest": copy.deepcopy(payload.get("retrieval_manifest", {})),
         "retrieval_evidence": copy.deepcopy(payload.get("retrieval_evidence", {})),
         "retrieval_provenance": copy.deepcopy(payload.get("retrieval_provenance", {})),
-        "retrieval_context_refs": _normalize_context_refs_snapshot(payload.get("retrieval_context_refs", [])),
+        "retrieval_context_refs": _extract_context_refs_snapshot(payload),
     })
 
 
@@ -595,7 +615,7 @@ def _build_retrieval_bundle_context_from_payload(payload: dict[str, object]) -> 
         "retrieval_manifest": copy.deepcopy(payload.get("retrieval_manifest", {})),
         "retrieval_provenance": copy.deepcopy(provenance),
         "retrieval_evidence": copy.deepcopy(payload.get("retrieval_evidence", {})),
-        "retrieval_context_refs": _normalize_context_refs_snapshot(payload.get("retrieval_context_refs", [])),
+        "retrieval_context_refs": _extract_context_refs_snapshot(payload),
     }
 
 
@@ -653,7 +673,7 @@ def _build_retrieval_context_bundle_from_payload(payload: dict[str, object]) -> 
         "retrieval_provenance": _build_retrieval_provenance_from_payload(payload),
         "retrieval_source_bundle": _build_retrieval_source_bundle_from_payload(payload),
         "retrieval_evidence": copy.deepcopy(payload.get("retrieval_evidence", {})),
-        "retrieval_context_refs": _normalize_context_refs_snapshot(payload.get("retrieval_context_refs", [])),
+        "retrieval_context_refs": _extract_context_refs_snapshot(payload),
     }
 
 
