@@ -46,6 +46,7 @@ from src.qual.ui.a2ui import (
     describe_terminal_artifact_kind_contracts_manifest,
     describe_terminal_artifact_cli_fallback_contract,
     describe_terminal_artifact_cli_fallback_contract_manifest,
+    describe_terminal_artifact_cli_fallback_contract_manifest_fingerprints,
     describe_terminal_artifact_cli_fallback_contract_fingerprints,
     describe_terminal_artifact_cli_fallback_entrypoint_contract,
     describe_terminal_artifact_cli_fallback_entrypoint_contract_fingerprints,
@@ -59,6 +60,7 @@ from src.qual.ui.a2ui import (
     describe_terminal_artifact_cli_fallback_target_contract_fingerprints,
     describe_terminal_artifact_cli_fallback_route_contract,
     describe_terminal_artifact_cli_fallback_route_contract_manifest,
+    describe_terminal_artifact_cli_fallback_route_contract_manifest_fingerprints,
     describe_terminal_artifact_cli_fallback_route_contract_fingerprints,
     describe_terminal_artifact_kind_contracts,
     describe_terminal_artifact_contract_fingerprints,
@@ -105,6 +107,7 @@ from src.qual.ui.a2ui import (
     terminal_artifact_envelope_contract_fingerprint,
     terminal_artifact_cli_fallback_contract_fingerprint,
     terminal_artifact_cli_fallback_contract_manifest_fingerprint,
+    terminal_artifact_cli_fallback_contract_manifest_fingerprints_fingerprint,
     terminal_artifact_cli_fallback_entrypoint_contract_fingerprint,
     terminal_artifact_cli_fallback_entrypoint_contract_manifest_fingerprint,
     terminal_artifact_cli_fallback_entrypoint_contract_fingerprints_fingerprint,
@@ -118,6 +121,7 @@ from src.qual.ui.a2ui import (
     terminal_artifact_cli_fallback_target_contract_fingerprints_fingerprint,
     terminal_artifact_cli_fallback_route_contract_fingerprint,
     terminal_artifact_cli_fallback_route_contract_manifest_fingerprint,
+    terminal_artifact_cli_fallback_route_contract_manifest_fingerprints_fingerprint,
     terminal_artifact_cli_fallback_route_contract_fingerprints_fingerprint,
     terminal_artifact_kind_contracts_manifest_fingerprint,
     _fingerprint_manifest_section,
@@ -7272,6 +7276,54 @@ class A2UIFallbackSafetyTests(unittest.TestCase):
         self.assertEqual(
             manifest["contract_fingerprints"]["allowed_actions"],
             _fingerprint_manifest_section(sorted(ALLOWED_ACTION_IDS)),
+        )
+
+    def test_cli_fallback_contract_exposes_manifest_specific_fingerprint_aliases(self) -> None:
+        contract_fingerprints = describe_terminal_artifact_cli_fallback_contract_fingerprints(
+            include_terminal_artifact_cli_fallback=True,
+            include_terminal_artifact_cli_fallback_route=True,
+        )
+        route_fingerprints = describe_terminal_artifact_cli_fallback_route_contract_fingerprints(
+            include_contract_aliases=True,
+        )
+        manifest_fingerprints = describe_terminal_artifact_cli_fallback_contract_manifest_fingerprints(
+            include_terminal_artifact_cli_fallback=True,
+            include_terminal_artifact_cli_fallback_route=True,
+        )
+        route_manifest_fingerprints = describe_terminal_artifact_cli_fallback_route_contract_manifest_fingerprints(
+            include_contract_aliases=True,
+        )
+
+        self.assertEqual(manifest_fingerprints, contract_fingerprints)
+        self.assertEqual(route_manifest_fingerprints, route_fingerprints)
+        self.assertEqual(
+            terminal_artifact_cli_fallback_contract_manifest_fingerprints_fingerprint(
+                include_terminal_artifact_cli_fallback=True,
+                include_terminal_artifact_cli_fallback_route=True,
+            ),
+            _fingerprint_manifest_section(manifest_fingerprints),
+        )
+        self.assertEqual(
+            terminal_artifact_cli_fallback_route_contract_manifest_fingerprints_fingerprint(
+                include_contract_aliases=True,
+            ),
+            _fingerprint_manifest_section(route_manifest_fingerprints),
+        )
+        self.assertIs(
+            public_ui.describe_terminal_artifact_cli_fallback_contract_manifest_fingerprints,
+            describe_terminal_artifact_cli_fallback_contract_manifest_fingerprints,
+        )
+        self.assertIs(
+            public_ui.describe_terminal_artifact_cli_fallback_route_contract_manifest_fingerprints,
+            describe_terminal_artifact_cli_fallback_route_contract_manifest_fingerprints,
+        )
+        self.assertIs(
+            public_ui.terminal_artifact_cli_fallback_contract_manifest_fingerprints_fingerprint,
+            terminal_artifact_cli_fallback_contract_manifest_fingerprints_fingerprint,
+        )
+        self.assertIs(
+            public_ui.terminal_artifact_cli_fallback_route_contract_manifest_fingerprints_fingerprint,
+            terminal_artifact_cli_fallback_route_contract_manifest_fingerprints_fingerprint,
         )
 
     def test_shell_ui_render_cli_fallback_matches_shared_cli_fallback_renderer(self) -> None:
