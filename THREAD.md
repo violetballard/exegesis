@@ -30,7 +30,7 @@ Canonical handoff contract lives in `THREAD_PACKET.md`.
 
 - This makes the open/retrieve/basket/patch-review CLI smoke path more real by keeping the parser-visible command contract deterministic and failing fast when parser tokens drift from the command catalog.
 
-## Reviewer Packet `20260429T010426Z` Fix Satisfaction
+## Reviewer Packet `20260429T010722Z` Fix Satisfaction
 
 1. Review basis now points to the current branch tip instead of a stale `f8d860e` slice.
 2. Post-`f8d860e` implementation and test commits are included in review rather than classified as metadata-only.

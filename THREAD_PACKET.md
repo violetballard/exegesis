@@ -4,7 +4,7 @@
 - Branch: `codex/feat-commands`
 - Commit / review basis: current branch tip after this reviewer-fix commit.
 - Previous implementation anchor: `f8d860ed9f6299f0169c4f21321ac5f37c949fd3`
-- Reviewer packet addressed: `20260429T010426Z`
+- Reviewer packet addressed: `20260429T010722Z`
 
 ## Packet Traceability Note
 
@@ -62,6 +62,11 @@
 ## Canonical Demo-Path Step Advanced
 
 - This makes the open/retrieve/basket/patch-review CLI smoke path more real by keeping the parser-visible command contract deterministic and failing fast when parser tokens drift from the command catalog.
+- Protected command steps:
+  - `project-open`: `bootstrap` remains the only parser-visible project-open token.
+  - `retrieval`: `context-basket` remains the parser-visible basket/retrieval token.
+  - `patch-review`: `diff-preview` and compatibility alias `diff` remain the only parser-visible patch-review tokens.
+  - `export-handoff`: `terminal` remains the parser-visible export/handoff token.
 
 ## Kickoff Budget / Limits Accounting
 
@@ -86,10 +91,10 @@
 
 ## Tasks Completed
 
-1. Hardened `command_cli_contract()` to verify the parser surface against the canonical CLI surface and reject parser/catalog drift.
-2. Preserved canonical command ordering in the CLI contract by returning canonical names aligned with `command_names()`.
-3. Added regression coverage for added aliases, removed aliases, same-canonical substitutions, token reordering, lookup-table shape/order drift, and declared-surface drift.
-4. Reconciled the branch-tip packet/accounting and removed the unrelated `scripts/scope-check.sh` scope-policy edit from the net diff.
+1. Hardened `command_cli_contract()` to verify the parser surface against the canonical CLI surface and reject parser/catalog drift for the `project-open`, `retrieval`, `patch-review`, and `export-handoff` CLI smoke path.
+2. Preserved canonical command ordering in the CLI contract by returning names aligned with `command_names()` for `bootstrap`, `diff-preview`, `context-basket`, and `terminal`.
+3. Added regression coverage for added aliases, removed aliases, same-canonical substitutions, token reordering, lookup-table shape/order drift, and declared-surface drift, including `open` for the `project-open` step and `diff_preview` for the `patch-review` step.
+4. Reconciled the branch-tip packet/accounting for `THREAD.md`, `THREAD_PACKET.md`, `src/qual/commands/catalog.py`, and `tests/unit/test_commands_catalog.py`, and removed the unrelated `scripts/scope-check.sh` scope-policy edit from the net diff.
 
 ## Files Changed
 
@@ -164,11 +169,11 @@
 - Integrator-locked edits: NO.
 - Gate-policy edits: NO net change after this fixer pass.
 
-## Reviewer Packet `20260429T010426Z` Fix Satisfaction
+## Reviewer Packet `20260429T010722Z` Fix Satisfaction
 
-1. Coherent review packet for actual merge candidate: satisfied by making the current branch tip the only review basis.
-2. Metadata-only misclassification: satisfied by explicitly stating that post-`f8d860e` implementation and test commits are part of review.
-3. Parser-surface drift validation: satisfied by code/tests covering added aliases, removed aliases, same-canonical substitutions, token reordering, and lookup-table shape/order drift.
-4. Same-canonical regression coverage: satisfied by tests for `open`/`bootstrap` and `diff_preview`/`diff-preview` drift.
-5. Ownership/accounting reconciliation: satisfied by listing the approved shared test edit and removing the scope-check policy edit from the net diff.
+1. Parser-surface drift validation: satisfied by comparing CLI tokens, lookup table, grouped parser surface, declared surface, and canonical names against the explicit canonical CLI parser surface.
+2. Same-canonical parser drift coverage: satisfied by tests for replacing/adding `bootstrap` with `open` and replacing `diff` with `diff_preview`, plus lookup-table substitution coverage.
+3. Branch-tip packet accounting: satisfied by listing `THREAD.md` and `THREAD_PACKET.md` as metadata-only handoff files and the command catalog/test files as reviewed implementation files.
+4. Demo-path mapping: satisfied by naming the protected `project-open`, `retrieval`, `patch-review`, and `export-handoff` steps in the task list and demo-path section.
+5. Scope discipline: satisfied by keeping the net review scope to `src/qual/commands/catalog.py`, `tests/unit/test_commands_catalog.py`, `THREAD.md`, and `THREAD_PACKET.md`; no provider/routing/Textual behavior is added.
 6. Required gates: satisfied by rerunning `make scope-check`, `./quality-format.sh --check`, `./quality-lint.sh`, `./quality-test.sh`, `./typecheck-test.sh`, and `make ci` against this reviewer-fix worktree state.
