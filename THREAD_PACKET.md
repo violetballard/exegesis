@@ -14,7 +14,7 @@
 3. Exported the MVP smoke-contract API from `src/qual/commands`.
 4. Kept focused regression coverage for live argparse drift and smoke exports.
 
-Canonical demo-path steps advanced: `open project/document`, `retrieve material`, `preview/apply/reject patch`, and `continue working`.
+Canonical demo-path steps advanced, using `AGENTS.md` wording: `open project/document`, `retrieve relevant material`, `preview/apply/reject patch`, and `continue working`.
 
 ## Files Changed
 
