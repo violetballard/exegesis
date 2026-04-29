@@ -91,6 +91,7 @@ Runtime/test subset stat before this fixer commit: 4 files changed, 169 insertio
 
 Corrected merge-candidate gates, rerun after regenerating this packet:
 
+- Fixer rerun on 2026-04-29 after the authoritative branch-tip packet correction.
 - `make scope-check`: PASS; scope-check reported no branch policy and passed for `codex/feat-retrieval-fts`.
 - `./quality-format.sh --check`: PASS.
 - `./quality-lint.sh`: PASS; shell syntax and trailing whitespace checks passed.
