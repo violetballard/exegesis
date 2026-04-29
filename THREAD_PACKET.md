@@ -4,7 +4,7 @@
 - Branch: `codex/feat-commands`
 - Commit / review basis: current branch tip after this reviewer-fix commit.
 - Previous implementation anchor: `f8d860ed9f6299f0169c4f21321ac5f37c949fd3`
-- Reviewer packet addressed: `20260429T010722Z`
+- Reviewer packet addressed: `20260429T011042Z`
 
 ## Packet Traceability Note
 
@@ -169,7 +169,7 @@
 - Integrator-locked edits: NO.
 - Gate-policy edits: NO net change after this fixer pass.
 
-## Reviewer Packet `20260429T010722Z` Fix Satisfaction
+## Reviewer Packet `20260429T011042Z` Fix Satisfaction
 
 1. Parser-surface drift validation: satisfied by comparing CLI tokens, lookup table, grouped parser surface, declared surface, and canonical names against the explicit canonical CLI parser surface.
 2. Same-canonical parser drift coverage: satisfied by tests for replacing/adding `bootstrap` with `open` and replacing `diff` with `diff_preview`, plus lookup-table substitution coverage.
