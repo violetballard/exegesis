@@ -119,6 +119,7 @@ class CommandSmokeStep:
     flow_step: str
     name: str
     cli_token: str
+    argv: tuple[str, ...]
     description: str
 
 
@@ -126,6 +127,7 @@ class CommandSmokeStep:
 class CommandSmokeContract:
     steps: tuple[CommandSmokeStep, ...]
     command_tokens: tuple[str, ...]
+    argv: tuple[tuple[str, ...], ...]
     lookup_table: tuple[tuple[str, str], ...]
 
 
@@ -1125,16 +1127,22 @@ def _validate_command_surface_contract(contract: CommandSurfaceContract) -> None
 def _validate_command_smoke_contract(contract: CommandSmokeContract) -> None:
     cli_lookup = dict(command_cli_lookup_table())
     expected_tokens: list[str] = []
+    expected_argv: list[tuple[str, ...]] = []
     expected_lookup: list[tuple[str, str]] = []
     for step in contract.steps:
         if not step.cli_token:
             raise ValueError("Command smoke token must not be empty")
+        if not step.argv or step.argv[0] != step.cli_token:
+            raise ValueError("Command smoke argv must begin with the CLI token")
         if cli_lookup.get(step.cli_token) != step.name:
             raise ValueError("Command smoke token is not accepted by the CLI parser")
         expected_tokens.append(step.cli_token)
+        expected_argv.append(step.argv)
         expected_lookup.append((step.cli_token, step.flow_step))
     if contract.command_tokens != tuple(expected_tokens):
         raise ValueError("Command smoke tokens are inconsistent")
+    if contract.argv != tuple(expected_argv):
+        raise ValueError("Command smoke argv is inconsistent")
     if contract.lookup_table != tuple(expected_lookup):
         raise ValueError("Command smoke lookup table is inconsistent")
 
@@ -1300,6 +1308,7 @@ def command_mvp_smoke_contract() -> CommandSmokeContract:
             flow_step=entry.flow_step,
             name=entry.name,
             cli_token=entry.cli_tokens[0],
+            argv=_smoke_argv_for(entry.name, entry.cli_tokens[0]),
             description=entry.description,
         )
         for entry in command_mvp_flow_route_catalog()
@@ -1307,14 +1316,25 @@ def command_mvp_smoke_contract() -> CommandSmokeContract:
     contract = CommandSmokeContract(
         steps=steps,
         command_tokens=tuple(step.cli_token for step in steps),
+        argv=tuple(step.argv for step in steps),
         lookup_table=tuple((step.cli_token, step.flow_step) for step in steps),
     )
     _validate_command_smoke_contract(contract)
     return contract
 
 
+def _smoke_argv_for(command_name: str, cli_token: str) -> tuple[str, ...]:
+    if command_name == "context-basket":
+        return (cli_token, "list")
+    return (cli_token,)
+
+
 def command_mvp_smoke_commands() -> tuple[str, ...]:
     return command_mvp_smoke_contract().command_tokens
+
+
+def command_mvp_smoke_argv() -> tuple[tuple[str, ...], ...]:
+    return command_mvp_smoke_contract().argv
 
 
 def command_mvp_smoke_lookup_table() -> tuple[tuple[str, str], ...]:
