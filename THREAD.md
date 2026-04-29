@@ -6,7 +6,7 @@ Canonical handoff contract lives in `THREAD_PACKET.md`.
 
 - Lane: `feat-commands`
 - Branch: `codex/feat-commands`
-- Review basis: final branch tip after this fixer pass for reviewer packet `20260429T001930Z`; implementation, tests, scope-check support, and packet metadata are reviewed together.
+- Review basis: final branch tip after this fixer pass for reviewer packet `20260429T002214Z`; implementation, tests, scope-check support, and packet metadata are reviewed together.
 - Scope: CLI command-catalog contract hardening for the current engine-first MVP focus without starting `feat-console`.
 - Roadmap alignment: Milestone 3 CLI compatibility for the engine-first workflow loop, and `feat-commands` as the command-surface compatibility lane.
 - Vision alignment: canonical engine contract stability while the CLI remains the active operator surface.
@@ -39,8 +39,9 @@ Canonical handoff contract lives in `THREAD_PACKET.md`.
 - Added regression coverage for lookup-table added same-canonical alias drift where `open` appears as an accepted `bootstrap` parser row without being part of the canonical CLI surface.
 - Added regression coverage for lookup-table removed-token drift where a parser row disappears from the lookup table while the accepted token tuple remains unchanged.
 - Added regression coverage for same-canonical alias order drift where `diff` and `diff-preview` are reordered within the accepted parser tokens or the declared `diff-preview` parser group.
+- Added regression coverage for canonical command order drift where `command_names()` returns the right command set in the wrong order.
 - Regenerated the packet from the actual branch tip and stopped classifying code-bearing command/test commits as metadata-only.
-- Reconfirmed the `20260429T001930Z` reviewer fixes against the branch-tip implementation and refreshed handoff metadata so the current review basis is no longer stale.
+- Reconfirmed the `20260429T002214Z` reviewer fixes against the branch-tip implementation and refreshed handoff metadata so the current review basis is no longer stale.
 
 ## Canonical Demo-Path Mapping
 
@@ -157,13 +158,21 @@ Canonical handoff contract lives in `THREAD_PACKET.md`.
 4. Update canonical demo-path mapping: satisfied by naming open project/document, retrieve/context basket, patch preview, and continued CLI operation in the task list, mapping section, and final demo-path statement.
 5. Required gates: this fixer pass reruns and records `make scope-check`, `./quality-format.sh --check`, `./quality-lint.sh`, `./quality-test.sh`, `./typecheck-test.sh`, and `make ci`.
 
+## Reviewer Packet `20260429T002214Z` Fix Satisfaction
+
+1. Submit one coherent packet from the actual branch tip: satisfied by anchoring review to the final `codex/feat-commands` branch tip after this fixer pass, with implementation, tests, scope-check support, `THREAD.md`, and `THREAD_PACKET.md` reviewed together.
+2. Clean narrow-branch alternative: not used, because this packet intentionally submits the actual branch tip and no longer asks reviewers to ignore code-bearing commits.
+3. Strengthen `command_cli_contract()` parser-surface validation: already satisfied by comparing accepted tokens, declared canonical surface, grouped parser projection, lookup-table shape/order, canonical names, and explicit canonical token/lookup projections against `_CANONICAL_CLI_COMMAND_SURFACE`.
+4. Add focused parser-surface drift tests: satisfied by coverage for added accepted aliases, removed accepted tokens, same-canonical substitutions such as `diff` to `diff_preview`, parser-token reorder, declared-surface drift, grouped parser drift, lookup-table target drift, lookup-table removed-token drift, lookup-table shape/order drift, and canonical command order drift.
+5. Regenerate handoff metadata: satisfied by listing the complete branch-tip file range, limiting metadata-only classification to `THREAD.md` and `THREAD_PACKET.md`, distinguishing shared-by-approval tests from integrator-locked files, naming concrete canonical demo-path steps, and rerunning all required gates.
+
 ## Verification
 
-- `python3 -m unittest tests.unit.test_commands_catalog -v`: PASS (60 tests)
+- `python3 -m unittest tests.unit.test_commands_catalog -v`: PASS (61 tests)
 - `make scope-check`: PASS
 - `./quality-format.sh --check`: PASS
 - `./quality-lint.sh`: PASS
 - `./quality-test.sh`: PASS
 - `./typecheck-test.sh`: PASS
 - `make ci`: PASS
-- Final verification pass: `2026-04-29T00:21:51Z`
+- Final verification pass: `2026-04-29T00:25:10Z`
