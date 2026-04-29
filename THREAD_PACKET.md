@@ -101,7 +101,7 @@ Corrected merge-candidate gates, rerun after regenerating this packet:
 ## Risks / Blockers
 
 - Merge risk is high only because the handoff includes approved shared regression coverage; there are no integrator-locked file edits.
-- `.codex/kickoff_packets/feat-retrieval-fts.md` and `.codex/lane_meta/feat-retrieval-fts.json` still contain stale narrowed-range metadata because the patch tool rejects `.codex` writes in this sandbox as outside the project. `THREAD_PACKET.md` is the regenerated authoritative handoff packet for the actual branch-tip candidate.
+- `THREAD_PACKET.md` is the regenerated authoritative handoff packet for the actual branch-tip candidate. The `.codex` packet mirrors still contain stale narrowed-range metadata because both the patch tool and direct file writes are blocked for `.codex` paths in this worktree (`Operation not permitted`).
 - The reviewed range intentionally includes post-`adfa8cd` retrieval code-bearing commits. They are part of the merge candidate and must be reviewed.
 - The branch intentionally does not add embeddings, PageIndex requirements, UI rendering behavior, alternate retrieval modes, routing changes, or provider changes.
 - Final HEAD SHA is reported in the fixer final response after commit creation.
