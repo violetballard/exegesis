@@ -6,13 +6,13 @@
 - Review basis: `git diff main...codex/feat-commands`
 - Review command: `git diff main...codex/feat-commands`
 - Prior packet supersession: this `THREAD_PACKET.md` replaces all earlier packet text, packet-refresh notes, and review-scope claims that named `f8d860ed9f6299f0169c4f21321ac5f37c949fd3` as the submitted target.
-- Fixer prompt satisfied: `20260429T120455Z`
+- Fixer prompt satisfied: `20260429T120337Z`
 
 ## Required-Fix Resolution
 
-1. Review basis is the full branch tip only: `git diff main...codex/feat-commands`.
+1. Review basis is the full branch tip only: `git diff main...codex/feat-commands`. There is no alternate narrow review target in this packet.
 2. The narrow `f8d860ed9f6299f0169c4f21321ac5f37c949fd3` slice is not submitted for review; its earlier packet text is superseded.
-3. This is intentionally submitted as high-risk over-budget work with all branch-tip files, task count, LOC count, shared/locked exceptions, and an explicit integrator acceptance request below.
+3. This is intentionally submitted as high-risk over-budget work with all branch-tip files, task count, LOC count, shared/locked exceptions, and an explicit integrator acceptance requirement below. If integrator does not accept that exception, this handoff must be split before integration.
 4. Each completed task below maps to a canonical demo-path step, and the handoff states which CLI-first demo steps are now more real.
 5. Ownership accounting distinguishes the locked implementation file, shared policy script, shared tests, owned command files, and metadata files.
 
@@ -65,6 +65,7 @@ Commits after `f8d860e` that affect the disputed branch-tip slice are therefore 
 
 This is high-risk because `src/qual/cli.py` is shared-by-approval for `feat-commands` and integrator-locked in `THREAD_OWNERSHIP.md`.
 
+- Explicit integrator acceptance required for over-budget high-risk scope: this packet cannot satisfy AGENTS high-risk limits by metadata alone because the true branch-tip diff is `6` tasks, `10` files, and more than `300` net LOC. Integrator must either accept this specific over-budget branch-tip packet before merge or request a split; reviewer should treat absence of that acceptance as a remaining integration blocker, not as an alternate review target.
 - Explicit integrator approval note for `src/qual/cli.py`: approve the locked-file exception for this branch-tip range because the canonical demo path must bind the real argparse entrypoint to the command catalog; the edit keeps Textual disabled, does not change provider/routing/config behavior, and is limited to parser construction plus parser-surface introspection.
 - Additional non-owned/shared accounting: `scripts/scope-check.sh` updates lane policy for the active MVP lanes and the `feat-commands` approved catalog test surface; `tests/unit/test_commands_catalog.py` and `tests/unit/test_diff_preview.py` are shared test files that cover this branch's command and diff-preview contracts.
 - Task budget: `6` meaningful tasks reported against the actual merge diff.
@@ -96,6 +97,6 @@ This is high-risk because `src/qual/cli.py` is shared-by-approval for `feat-comm
 
 ## Risks And Blockers
 
-- Risk: the true merge diff is high-risk and over the AGENTS high-risk task/file/LOC budget; re-review should evaluate this disclosed scope rather than the earlier command-catalog-only packet.
+- Risk: the true merge diff is high-risk and over the AGENTS high-risk task/file/LOC budget; re-review should evaluate this disclosed scope rather than the earlier command-catalog-only packet. Integration still requires either explicit integrator acceptance of this over-budget packet or a branch split.
 - Risk: integration depends on accepting the explicit `src/qual/cli.py` locked-file exception.
 - Blockers: none known for local gate execution.
