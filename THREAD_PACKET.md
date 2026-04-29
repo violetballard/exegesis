@@ -5,7 +5,7 @@
 - Review target: full current branch tip `HEAD`
 - Review basis: `f8d860ed9f6299f0169c4f21321ac5f37c949fd3^..HEAD`, including `f8d860ed9` and every later branch-tip implementation and handoff metadata commit.
 - Review command: `git diff f8d860ed9f6299f0169c4f21321ac5f37c949fd3^..HEAD -- THREAD.md THREAD_PACKET.md src/qual/cli.py src/qual/commands/__init__.py src/qual/commands/catalog.py tests/unit/test_commands_catalog.py`
-- Fixer prompt satisfied: `20260429T110615Z`
+- Fixer prompt satisfied: `20260429T111645Z`
 
 ## Scope Completed
 
@@ -38,9 +38,9 @@ This is high-risk because `src/qual/cli.py` is shared-by-approval for `feat-comm
 
 - Task budget: `4` of `4`.
 - File budget: `6` files, within `<=8`.
-- Net LOC budget: resolved. Current branch-tip review range is `381 insertions(+), 111 deletions(-)`, net `270`, under the `<=300` high-risk net LOC cap.
-- Size evidence: `6 files changed, 381 insertions(+), 111 deletions(-)` for `f8d860ed9f6299f0169c4f21321ac5f37c949fd3^..HEAD`.
-- Numstat evidence: `THREAD.md` `8/2`; `THREAD_PACKET.md` `50/59`; `src/qual/cli.py` `84/34`; `src/qual/commands/__init__.py` `12/0`; `src/qual/commands/catalog.py` `140/16`; `tests/unit/test_commands_catalog.py` `87/0`.
+- Net LOC budget: resolved. Current branch-tip review range is `382 insertions(+), 111 deletions(-)`, net `271`, under the `<=300` high-risk net LOC cap.
+- Size evidence: `6 files changed, 382 insertions(+), 111 deletions(-)` for `f8d860ed9f6299f0169c4f21321ac5f37c949fd3^..HEAD`.
+- Numstat evidence: `THREAD.md` `8/2`; `THREAD_PACKET.md` `51/59`; `src/qual/cli.py` `84/34`; `src/qual/commands/__init__.py` `12/0`; `src/qual/commands/catalog.py` `140/16`; `tests/unit/test_commands_catalog.py` `87/0`.
 - Explicit integrator approval note for `src/qual/cli.py`: approve the locked-file exception for this branch-tip range because the reviewer-required live parser-surface check must inspect the real argparse entrypoint; no provider, routing, or config behavior changes.
 
 ## Roadmap And Vision
