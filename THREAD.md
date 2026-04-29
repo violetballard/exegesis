@@ -6,7 +6,7 @@ Canonical handoff contract lives in `THREAD_PACKET.md`.
 
 - Lane: `feat-commands`
 - Branch: `codex/feat-commands`
-- Review basis: final branch tip after this fixer pass for reviewer packet `20260429T004952Z`; implementation, tests, scope-check support, and packet metadata are reviewed together.
+- Review basis: final branch tip after this fixer pass for reviewer packet `20260429T005225Z`; implementation, tests, scope-check support, and packet metadata are reviewed together.
 - Scope: CLI command-catalog contract hardening for the current engine-first MVP focus without starting `feat-console`.
 - Roadmap alignment: Milestone 3 CLI compatibility for the engine-first workflow loop, and `feat-commands` as the command-surface compatibility lane.
 - Vision alignment: canonical engine contract stability while the CLI remains the active operator surface.
@@ -43,7 +43,7 @@ Canonical handoff contract lives in `THREAD_PACKET.md`.
 - Added regression coverage for same-canonical alias order drift where `diff` and `diff-preview` are reordered within the accepted parser tokens or the declared `diff-preview` parser group.
 - Added regression coverage for canonical command order drift where `command_names()` returns the right command set in the wrong order.
 - Regenerated the packet from the actual branch tip and stopped classifying code-bearing command/test commits as metadata-only.
-- Reconfirmed the `20260429T004952Z` reviewer fixes against the branch-tip implementation and refreshed handoff metadata so the current review basis is no longer stale.
+- Reconfirmed the `20260429T005225Z` reviewer fixes against the branch-tip implementation and refreshed handoff metadata so the current review basis is no longer stale.
 
 ## Canonical Demo-Path Mapping
 
@@ -237,6 +237,16 @@ Canonical handoff contract lives in `THREAD_PACKET.md`.
 4. Canonical demo-path mapping: satisfied by mapping each completed task to open project/document, retrieve/context basket, patch preview/apply-reject support, and continued CLI operation.
 5. Required gates: this fixer pass reruns and records `make scope-check`, `./quality-format.sh --check`, `./quality-lint.sh`, `./quality-test.sh`, `./typecheck-test.sh`, and `make ci`.
 
+## Reviewer Packet `20260429T005225Z` Fix Satisfaction
+
+1. Regenerate the handoff from the actual merge candidate tip: satisfied by anchoring review to the final `codex/feat-commands` branch tip after this fixer pass, with command implementation, tests, scope-check support, `THREAD.md`, and `THREAD_PACKET.md` reviewed together.
+2. Do not classify code-bearing command-catalog or test commits after `f8d860ed9f6299f0169c4f21321ac5f37c949fd3` as metadata-only: satisfied by submitting the full branch-tip implementation and limiting metadata-only classification to `THREAD.md` and `THREAD_PACKET.md`.
+3. Validate the parser surface itself: satisfied by `command_cli_contract()` comparing accepted parser tokens, token order, lookup-table shape/order, declared canonical parser surface, grouped parser projection, canonical command order, and explicit canonical token/lookup projections against `_CANONICAL_CLI_COMMAND_SURFACE`.
+4. Add focused parser-surface drift tests: satisfied by tests covering added aliases, removed aliases, same-canonical substitutions such as `diff` to `diff_preview`, same-canonical token order drift, parser-token reorder, declared-surface drift, grouped parser drift, lookup-table token/target substitution, lookup-table removed-token drift, lookup-table shape/order drift, and canonical command order drift.
+5. Update files-changed and ownership accounting against `THREAD_OWNERSHIP.md`: satisfied by listing lane-owned command files, approved shared-by-approval tests, `scripts/scope-check.sh` shared gate support, metadata-only handoff files, and `Integrator-locked edits: no`.
+6. State the canonical demo-path step advanced: satisfied by naming open project/document, retrieve/context basket, patch preview/apply-reject support, and continued CLI operation while Textual remains disabled.
+7. Required gates: this fixer pass reruns and records `make scope-check`, `./quality-format.sh --check`, `./quality-lint.sh`, `./quality-test.sh`, `./typecheck-test.sh`, and `make ci`.
+
 ## Verification
 
 - `python3 -m unittest tests.unit.test_commands_catalog -v`: PASS (62 tests)
@@ -246,5 +256,5 @@ Canonical handoff contract lives in `THREAD_PACKET.md`.
 - `./quality-test.sh`: PASS
 - `./typecheck-test.sh`: PASS
 - `make ci`: PASS
-- Final verification pass: PASS in final gate rerun for reviewer packet `20260429T004952Z`.
-- Exact-tip fixer verification: PASS after the `20260429T004952Z` handoff metadata refresh.
+- Final verification pass: PASS in final gate rerun for reviewer packet `20260429T005225Z`.
+- Exact-tip fixer verification: PASS after the `20260429T005225Z` handoff metadata refresh.
