@@ -6,8 +6,8 @@ Canonical handoff contract lives in `THREAD_PACKET.md`.
 
 - Lane: `feat-commands`
 - Branch: `codex/feat-commands`
-- Implementation review target: current branch tip after fixer prompt `20260429T051134Z`
-- Current handoff refresh: reviewer fix after prompt `20260429T051134Z`
+- Implementation review target: current branch tip after fixer prompt `20260429T051633Z`
+- Current handoff refresh: reviewer fix after prompt `20260429T051633Z`
 - Prior implementation anchor: `f8d860ed9f6299f0169c4f21321ac5f37c949fd3`
 - Scope: command-catalog contract hardening for the current engine-first MVP focus without starting `feat-console`.
 - Roadmap alignment: Milestone 3 CLI compatibility for the engine-first workflow loop, and `feat-commands` as the command-surface compatibility lane.
@@ -27,9 +27,9 @@ Canonical handoff contract lives in `THREAD_PACKET.md`.
 - `THREAD.md`
 - `THREAD_PACKET.md`
 
-## Fixer Prompt `20260429T051134Z` Fix Satisfaction
+## Fixer Prompt `20260429T051633Z` Fix Satisfaction
 
-1. The handoff target is refreshed for prompt `20260429T051134Z`; review should use the current branch tip after this fixer commit.
+1. The handoff target is refreshed for prompt `20260429T051633Z`; review should use the current branch tip after this fixer commit.
 2. `command_cli_contract()` validates the exact parser token projection through `_validate_cli_parser_surface()`: accepted tokens, lookup-table order, grouped canonical surface, declared surface, parser projection, and canonical-name order must all match the canonical command surface.
 3. Regression coverage now includes an explicit current-reviewer `_CLI_ENTRYPOINTS` drift table for the requested cases: extra same-canonical token, substituted same-canonical token, missing parser token, and reordered parser token surface.
 4. Regression coverage also includes the exact reviewer example where `open` replaces `bootstrap` while preserving the `bootstrap` canonical name, proving `command_cli_contract()` rejects same-canonical parser-surface drift.
