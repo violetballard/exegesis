@@ -421,6 +421,23 @@ def describe_a2ui_contract(
     manifest["terminal_artifact"] = terminal_artifact_contract
     manifest["terminal_artifact_contract"] = _snapshot_contract_section(terminal_artifact_contract)
     manifest["terminal_artifact_contract_fingerprint"] = manifest["terminal_artifact_fingerprint"]
+    terminal_artifact_allowed_actions = list(terminal_artifact_contract["allowed_actions"])
+    manifest["terminal_artifact_allowed_actions"] = terminal_artifact_allowed_actions
+    manifest["terminal_artifact_allowed_actions_fingerprint"] = _fingerprint_manifest_section(
+        terminal_artifact_allowed_actions
+    )
+    manifest["terminal_artifact_allowed_actions_contract"] = _snapshot_contract_section(
+        terminal_artifact_allowed_actions
+    )
+    manifest["terminal_artifact_allowed_actions_contract_fingerprint"] = manifest[
+        "terminal_artifact_allowed_actions_fingerprint"
+    ]
+    manifest["terminal_artifact_allowed_actions_contract_manifest"] = _snapshot_contract_section(
+        terminal_artifact_allowed_actions
+    )
+    manifest["terminal_artifact_allowed_actions_contract_manifest_fingerprint"] = manifest[
+        "terminal_artifact_allowed_actions_fingerprint"
+    ]
     renderer_entrypoints = _snapshot_contract_section(terminal_artifact_contract["renderer_entrypoints"])
     manifest["renderer_entrypoints"] = renderer_entrypoints
     manifest["renderer_entrypoints_fingerprint"] = _fingerprint_manifest_section(renderer_entrypoints)
@@ -656,6 +673,9 @@ def describe_a2ui_contract_fingerprints(
         fingerprints["terminal_artifact_supported_kinds"] = manifest[
             "terminal_artifact_supported_kinds_fingerprint"
         ]
+        fingerprints["terminal_artifact_allowed_actions"] = _fingerprint_manifest_section(
+            manifest["terminal_artifact"]["allowed_actions"]
+        )
         _add_contract_alias_fingerprints(
             fingerprints,
             (
@@ -665,6 +685,14 @@ def describe_a2ui_contract_fingerprints(
             (
                 "terminal_artifact_supported_kinds_contract_fingerprint",
                 manifest["terminal_artifact_supported_kinds_fingerprint"],
+            ),
+            (
+                "terminal_artifact_allowed_actions_contract",
+                _fingerprint_manifest_section(manifest["terminal_artifact"]["allowed_actions"]),
+            ),
+            (
+                "terminal_artifact_allowed_actions_contract_manifest",
+                _fingerprint_manifest_section(manifest["terminal_artifact"]["allowed_actions"]),
             ),
         )
     if include_terminal_artifact_render_target:
@@ -712,6 +740,15 @@ def describe_a2ui_contract_fingerprints(
             ("selection_contract_manifest", selection_contract_fingerprint()),
             ("card_contract_manifest", card_contract_fingerprint()),
             ("terminal_fallback_contract_manifest", terminal_fallback_contract_fingerprint()),
+            ("terminal_artifact_allowed_actions", _fingerprint_manifest_section(sorted(ALLOWED_ACTION_IDS))),
+            (
+                "terminal_artifact_allowed_actions_contract",
+                _fingerprint_manifest_section(sorted(ALLOWED_ACTION_IDS)),
+            ),
+            (
+                "terminal_artifact_allowed_actions_contract_manifest",
+                _fingerprint_manifest_section(sorted(ALLOWED_ACTION_IDS)),
+            ),
             (
                 "terminal_artifact_renderer_entrypoints_contract",
                 terminal_artifact_renderer_entrypoints_contract_fingerprint(),
@@ -1519,6 +1556,11 @@ def describe_terminal_artifact_contract(
         manifest["render_target_contract"]
     )
     manifest["terminal_artifact_render_target_fingerprint"] = terminal_artifact_render_target_contract_fingerprint()
+    manifest["allowed_actions_fingerprint"] = _fingerprint_manifest_section(manifest["allowed_actions"])
+    manifest["allowed_actions_contract"] = _snapshot_contract_section(manifest["allowed_actions"])
+    manifest["allowed_actions_contract_fingerprint"] = manifest["allowed_actions_fingerprint"]
+    manifest["allowed_actions_contract_manifest"] = _snapshot_contract_section(manifest["allowed_actions"])
+    manifest["allowed_actions_contract_manifest_fingerprint"] = manifest["allowed_actions_fingerprint"]
     manifest["raw_leaf_card_default_contract_fingerprint"] = manifest["raw_leaf_card_default_contract"][
         "contract_fingerprint"
     ]
@@ -2243,6 +2285,7 @@ def describe_terminal_artifact_contract_fingerprints(
         "rendering_contract": terminal_artifact_rendering_contract_fingerprint(),
         "cli_fallback_contract": terminal_artifact_cli_fallback_contract_fingerprint(),
         "raw_leaf_card_default_contract": terminal_artifact_raw_leaf_card_default_contract_fingerprint(),
+        "allowed_actions": _fingerprint_manifest_section(sorted(ALLOWED_ACTION_IDS)),
     }
     if include_terminal_artifact:
         fingerprints["terminal_artifact"] = terminal_artifact_contract_fingerprint(
@@ -2267,6 +2310,7 @@ def describe_terminal_artifact_contract_fingerprints(
                     include_terminal_artifact_cli_fallback_route=include_terminal_artifact_cli_fallback_route,
                 ),
             ),
+            ("allowed_actions", _fingerprint_manifest_section(sorted(ALLOWED_ACTION_IDS))),
             ("terminal_artifact_envelope", terminal_artifact_envelope_contract_fingerprint()),
             ("terminal_artifact_envelope_contract", terminal_artifact_envelope_contract_fingerprint()),
             ("terminal_artifact_render_target", terminal_artifact_render_target_contract_fingerprint()),
@@ -3688,6 +3732,7 @@ def _build_terminal_artifact_contract_manifest(
         "type": "TerminalArtifactContract",
         "envelope": describe_terminal_artifact_envelope_contract(),
         "supported_kinds": list(TERMINAL_ARTIFACT_SUPPORTED_KINDS),
+        "allowed_actions": sorted(ALLOWED_ACTION_IDS),
         "default_kind": TERMINAL_ARTIFACT_DEFAULT_KIND,
         "render_target_contract": render_target_contract,
         "rendering": rendering_contract,

@@ -111,7 +111,7 @@ class ShellUI:
         resolved_fallback: tuple[Any, str | None] | None = None
         if normalized_kind == "card":
             try:
-                resolved_fallback = self._resolve_fallback_artifact(artifact, kind=kind)
+                resolved_fallback = self._resolve_fallback_artifact(artifact, kind=normalized_kind)
             except Exception:
                 resolved_fallback = None
             else:
@@ -136,7 +136,7 @@ class ShellUI:
             try:
                 fallback_artifact, fallback_kind = self._resolve_fallback_artifact(
                     artifact,
-                    kind=kind,
+                    kind=normalized_kind,
                 )
             except Exception:
                 fallback_artifact = artifact
@@ -189,7 +189,7 @@ class ShellUI:
             # target-selection policy.
             fallback_target = (artifact, "card")
         else:
-            fallback_target = self._resolve_fallback_artifact(artifact, kind=kind)
+            fallback_target = self._resolve_fallback_artifact(artifact, kind=normalized_kind)
         if (
             normalized_kind == "card"
             and fallback_target is not None
@@ -216,7 +216,7 @@ class ShellUI:
             if fallback_target is not None:
                 fallback_artifact, fallback_kind = fallback_target
                 return self._render_cli_fallback_with_recovery(fallback_artifact, fallback_kind)
-            return self._render_cli_fallback_with_recovery(artifact, kind)
+            return self._render_cli_fallback_with_recovery(artifact, normalized_kind)
         finally:
             if fallback_hint_token is not None:
                 _TERMINAL_ARTIFACT_CLI_FALLBACK_TARGET_HINT.reset(fallback_hint_token)

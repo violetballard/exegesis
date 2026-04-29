@@ -6834,6 +6834,21 @@ class A2UIFallbackSafetyTests(unittest.TestCase):
         )
         self.assertEqual(len(manifest["contract_fingerprint"]), 64)
 
+    def test_terminal_artifact_contract_exposes_allowed_actions_contract(self) -> None:
+        manifest = describe_terminal_artifact_contract()
+
+        self.assertEqual(manifest["allowed_actions"], sorted(ALLOWED_ACTION_IDS))
+        self.assertEqual(
+            manifest["allowed_actions_fingerprint"],
+            _fingerprint_manifest_section(sorted(ALLOWED_ACTION_IDS)),
+        )
+        self.assertEqual(manifest["allowed_actions_contract"], sorted(ALLOWED_ACTION_IDS))
+        self.assertEqual(manifest["allowed_actions_contract_manifest"], sorted(ALLOWED_ACTION_IDS))
+        self.assertEqual(
+            manifest["contract_fingerprints"]["allowed_actions"],
+            _fingerprint_manifest_section(sorted(ALLOWED_ACTION_IDS)),
+        )
+
     def test_shell_ui_render_cli_fallback_matches_shared_cli_fallback_renderer(self) -> None:
         shell = ShellUI()
         artifact = {
@@ -6873,6 +6888,28 @@ class A2UIFallbackSafetyTests(unittest.TestCase):
                 return_value="cli-fallback",
             ) as cli_fallback:
                 text = shell.render_cli_fallback(artifact, kind="card")
+
+        self.assertEqual(text, "cli-fallback")
+        resolver.assert_called_once_with(artifact, kind="card")
+        cli_fallback.assert_called_once_with(artifact, kind="card")
+
+    def test_shell_ui_render_cli_fallback_canonicalizes_kind_hint_before_dispatch(self) -> None:
+        shell = ShellUI()
+        artifact = {
+            "id": "export_document",
+            "label": "Export",
+            "payload": {"format": "json"},
+        }
+
+        with patch(
+            "src.qual.ui.shell.resolve_terminal_artifact_cli_fallback_target",
+            return_value=(artifact, "card"),
+        ) as resolver:
+            with patch(
+                "src.qual.ui.shell.render_terminal_cli_fallback",
+                return_value="cli-fallback",
+            ) as cli_fallback:
+                text = shell.render_cli_fallback(artifact, kind=" Card ")
 
         self.assertEqual(text, "cli-fallback")
         resolver.assert_called_once_with(artifact, kind="card")
