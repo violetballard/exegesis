@@ -53,6 +53,7 @@ class CommandFlowSequence:
 class CommandSurfaceContract:
     flow_steps: tuple[str, ...]
     names: tuple[str, ...]
+    smoke_tokens: tuple[str, ...]
     manifest: tuple[CommandManifestEntry, ...]
     lookup_table: tuple[tuple[str, str], ...]
     lookup_index: tuple[tuple[str, str], ...]
@@ -78,6 +79,7 @@ class CommandCliRouteContract:
 
     tokens: tuple[str, ...]
     canonical_names: tuple[str, ...]
+    smoke_tokens: tuple[str, ...]
     lookup_table: tuple[tuple[str, str], ...]
     flow_steps: tuple[str, ...]
     flow_names: tuple[str, ...]
@@ -540,6 +542,8 @@ def _validate_command_cli_route_contract(
         raise ValueError("Command CLI route tokens are inconsistent")
     if contract.canonical_names != cli_contract.canonical_names:
         raise ValueError("Command CLI route canonical names are inconsistent")
+    if contract.smoke_tokens != command_flow_smoke_tokens(specs, flow_steps):
+        raise ValueError("Command CLI route smoke tokens are inconsistent")
     if contract.lookup_table != cli_contract.lookup_table:
         raise ValueError("Command CLI route lookup table is inconsistent")
     if contract.lookup_surface != command_flow_lookup_surface(specs, flow_steps):
@@ -560,6 +564,7 @@ def command_cli_route_contract(
     contract = CommandCliRouteContract(
         tokens=cli_contract.tokens,
         canonical_names=cli_contract.canonical_names,
+        smoke_tokens=command_flow_smoke_tokens(specs, ordered_flow_steps),
         lookup_table=cli_contract.lookup_table,
         flow_steps=ordered_flow_steps,
         flow_names=tuple(name for _, name, _ in route_summary),
@@ -606,6 +611,14 @@ def command_cli_route_summary(
     flow_steps: tuple[str, ...] | None = None,
 ) -> tuple[tuple[str, str, tuple[str, ...]], ...]:
     return command_flow_route_summary(specs, flow_steps)
+
+
+@lru_cache(maxsize=None)
+def command_flow_smoke_tokens(
+    specs: tuple[CommandSpec, ...] = COMMAND_SPECS,
+    flow_steps: tuple[str, ...] | None = None,
+) -> tuple[str, ...]:
+    return tuple(cli_tokens[0] for _, _, cli_tokens in command_flow_route_summary(specs, flow_steps))
 
 
 @lru_cache(maxsize=None)
@@ -674,6 +687,18 @@ def command_mvp_flow_route_summary(
     specs: tuple[CommandSpec, ...] = COMMAND_SPECS,
 ) -> tuple[tuple[str, str, tuple[str, ...]], ...]:
     return command_demo_flow_route_summary(specs)
+
+
+def command_demo_flow_smoke_tokens(
+    specs: tuple[CommandSpec, ...] = COMMAND_SPECS,
+) -> tuple[str, ...]:
+    return command_flow_smoke_tokens(specs, command_demo_flow_steps())
+
+
+def command_mvp_flow_smoke_tokens(
+    specs: tuple[CommandSpec, ...] = COMMAND_SPECS,
+) -> tuple[str, ...]:
+    return command_demo_flow_smoke_tokens(specs)
 
 
 @lru_cache(maxsize=None)
@@ -908,6 +933,8 @@ def _validate_command_surface_contract(contract: CommandSurfaceContract) -> None
         raise ValueError("Command surface route steps are inconsistent")
     if tuple(entry.name for entry in contract.route_catalog) != contract.names:
         raise ValueError("Command surface route names are inconsistent")
+    if tuple(entry.cli_tokens[0] for entry in contract.route_catalog) != contract.smoke_tokens:
+        raise ValueError("Command surface smoke tokens are inconsistent")
     if tuple((entry.flow_step, entry.name) for entry in contract.route_catalog) != contract.lookup_table:
         raise ValueError("Command surface route table is inconsistent")
     if tuple(entry.lookup_tokens for entry in contract.route_catalog) != contract.lookup_tokens:
@@ -930,6 +957,7 @@ def command_flow_contract(
     contract = CommandSurfaceContract(
         flow_steps=sequence.flow_steps,
         names=sequence.names,
+        smoke_tokens=command_flow_smoke_tokens(specs, ordered_flow_steps),
         manifest=command_flow_manifest(specs, ordered_flow_steps),
         lookup_table=sequence.lookup_table,
         lookup_index=command_flow_surface_lookup_index(specs, ordered_flow_steps),
