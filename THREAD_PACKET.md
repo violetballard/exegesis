@@ -2,10 +2,10 @@
 
 - Lane: `feat-commands`
 - Branch: `codex/feat-commands`
-- Commit: branch tip after fixer prompt `20260429T040923Z`
+- Commit: branch tip after fixer prompt `20260429T041242Z`
 - Review basis: branch tip after this fixer commit, not `f8d860ed9f6299f0169c4f21321ac5f37c949fd3` alone.
 - Prior implementation anchor: `f8d860ed9f6299f0169c4f21321ac5f37c949fd3`
-- Packet refresh role: reviewer-fix handoff correction after prompt `20260429T040923Z`
+- Packet refresh role: reviewer-fix handoff correction after prompt `20260429T041242Z`
 
 ## Packet Traceability Note
 
@@ -14,6 +14,7 @@
 - Fixer prompt `20260429T040347Z` requested the same reviewer-required fixes against the actual branch tip, including current review-basis accounting, exact parser-surface validation, same-canonical drift coverage, demo-path mapping, gate reruns, and a new commit.
 - Fixer prompt `20260429T040701Z` requested the reviewer-required fixes again with emphasis on full parser-surface drift rejection, regression coverage for extra/missing/substituted/ordered same-canonical drift, exact review-basis accounting, and complete metadata file listing.
 - Fixer prompt `20260429T040923Z` requested the same reviewer-required fixes against the current branch tip and requires a new commit with refreshed gate evidence.
+- Fixer prompt `20260429T041242Z` requested the same reviewer-required fixes against the current branch tip and requires a new commit with refreshed gate evidence.
 - The reviewable branch-tip implementation is narrowed to the command-catalog slice:
   - `src/qual/commands/catalog.py`
   - `tests/unit/test_commands_catalog.py`
@@ -22,7 +23,7 @@
 
 ## Branch-Tip Review Basis
 
-- Review target: branch tip after fixer prompt `20260429T040923Z`.
+- Review target: branch tip after fixer prompt `20260429T041242Z`.
 - Prior implementation anchor: `f8d860ed9f6299f0169c4f21321ac5f37c949fd3`.
 - Review range: `f8d860ed9f6299f0169c4f21321ac5f37c949fd3..HEAD`.
 - Matching changed-file scope:
@@ -79,7 +80,7 @@
 ## Scope Completed
 
 - Strengthened `command_cli_contract()` so it validates the full parser token surface, lookup table, grouped canonical surface, and canonical name order against the declared canonical CLI command surface.
-- Added regression coverage for same-canonical drift, unexpected extra accepted aliases, removed expected tokens, token replacement, lookup-table substitution including same-name-set mapping drift, and declared-surface drift.
+- Added regression coverage for same-canonical drift, unexpected extra accepted aliases, removed expected tokens, token replacement, lookup-table substitution including same-name-set mapping drift, lookup-table ordering drift, and declared-surface drift.
 - Narrowed the branch-tip implementation basis by restoring unrelated `scripts/scope-check.sh` drift to baseline.
 - Regenerated `THREAD.md` and `THREAD_PACKET.md` so the review packet names the actual branch-tip basis and required-fix satisfaction.
 
@@ -96,7 +97,7 @@
 ## Tasks Completed
 
 1. Hardened the CLI contract against full parser-surface drift in `src/qual/commands/catalog.py`; demo-path step supported: stable CLI entrypoints for `open project/document`, `retrieve relevant material`, `promote or gather context into the basket`, `preview and apply or reject a patch`, and `persist/export the updated state`.
-2. Added focused tests in `tests/unit/test_commands_catalog.py` for same-canonical drift, missing expected tokens, extra accepted aliases, lookup-table substitutions that preserve the canonical-name set, and declared-surface drift; demo-path step supported: repeatable CLI smoke coverage for the same open, retrieve/basket, patch-review, and export command surfaces.
+2. Added focused tests in `tests/unit/test_commands_catalog.py` for same-canonical drift, missing expected tokens, extra accepted aliases, lookup-table ordering drift, lookup-table substitutions that preserve the canonical-name set, and declared-surface drift; demo-path step supported: repeatable CLI smoke coverage for the same open, retrieve/basket, patch-review, and export command surfaces.
 3. Narrowed the branch-tip review basis by restoring unrelated `scripts/scope-check.sh` drift to baseline and documenting only the remaining command-catalog implementation files; demo-path step supported: keeping the `feat-commands` lane focused on command-surface compatibility instead of unrelated scope policy work.
 4. Regenerated the handoff packet with canonical demo-path mapping, complete metadata-only file accounting, and reran all required gates; demo-path step supported: auditable Milestone 3 CLI compatibility for the engine-first workflow loop.
 
@@ -177,12 +178,23 @@
 4. Retained the canonical demo-path mapping and concrete-blocker statement: the CLI-first parser surface for project open, retrieval/basket, patch review, and export handoff now fails loudly if it drifts before Textual is enabled.
 5. Reran all required gates after this refresh and recorded the outcomes below.
 
+## Required Fixes Addressed From Fixer Prompt `20260429T041242Z`
+
+1. Confirmed the branch-tip `command_cli_contract()` validates accepted parser tokens, lookup-table order, grouped canonical surface, declared CLI surface, and canonical command order before returning `CommandCliContract`.
+2. Added an explicitly named regression for declared missing accepted-alias drift and preserved coverage for extra known aliases, removed tokens, substituted aliases, parser token ordering drift, lookup-table ordering drift, and declared-surface drift.
+3. Refreshed `THREAD.md` and this packet so the reviewer can evaluate the current branch tip after prompt `20260429T041242Z`.
+4. Retained complete branch-tip accounting: implementation files are `src/qual/commands/catalog.py` and `tests/unit/test_commands_catalog.py`; metadata-only files are `THREAD.md` and `THREAD_PACKET.md`.
+5. Retained the canonical demo-path mapping and concrete-blocker statement: the CLI-first parser surface for project open, retrieval/basket, patch review, and export handoff now fails loudly if it drifts before Textual is enabled.
+6. Reran all required gates after this refresh and recorded the outcomes below.
+
 ## Commands Run + Outcomes
 
+- `python -m pytest tests/unit/test_commands_catalog.py`: NOT RUN; `pytest` is not installed in this environment.
+- `python -m unittest tests.unit.test_commands_catalog`: PASS; ran 72 command-catalog tests.
 - `make scope-check`: PASS for branch `codex/feat-commands`.
 - `./quality-format.sh --check`: PASS.
 - `./quality-lint.sh`: PASS.
-- `./quality-test.sh`: PASS; ran smoke tests and 153 unit tests, including full command-catalog parser-surface drift coverage.
+- `./quality-test.sh`: PASS; ran smoke tests and 154 unit tests, including full command-catalog parser-surface drift coverage.
 - `./typecheck-test.sh`: PASS; compiled Python sources in `src/`.
 - `make ci`: PASS; ran scope-check, format, lint, compileall/typecheck, and full quality tests.
 

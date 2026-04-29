@@ -6,8 +6,8 @@ Canonical handoff contract lives in `THREAD_PACKET.md`.
 
 - Lane: `feat-commands`
 - Branch: `codex/feat-commands`
-- Implementation review target: branch tip after fixer prompt `20260429T040923Z`
-- Current handoff refresh: reviewer fix after prompt `20260429T040923Z`
+- Implementation review target: branch tip after fixer prompt `20260429T041242Z`
+- Current handoff refresh: reviewer fix after prompt `20260429T041242Z`
 - Prior implementation anchor: `f8d860ed9f6299f0169c4f21321ac5f37c949fd3`
 - Scope: command-catalog contract hardening for the current engine-first MVP focus without starting `feat-console`.
 - Roadmap alignment: Milestone 3 CLI compatibility for the engine-first workflow loop, and `feat-commands` as the command-surface compatibility lane.
@@ -78,5 +78,13 @@ Canonical handoff contract lives in `THREAD_PACKET.md`.
 1. The handoff target is refreshed for prompt `20260429T040923Z`; review should use branch tip, not only `f8d860ed9f6299f0169c4f21321ac5f37c949fd3`.
 2. The existing implementation still validates exact parser tokens, lookup-table order, grouped canonical surface, declared CLI surface, and canonical command order before returning `CommandCliContract`.
 3. The existing test slice still covers added same-canonical aliases, removed tokens, replacement aliases, lookup-table substitutions that preserve the name set, and declared-surface drift.
+4. The canonical demo-path mapping remains explicit in `THREAD_PACKET.md`, including the CLI-first blocker removed for project open, retrieval/basket, patch review, and export handoff.
+5. Required gates are rerun after this refresh and recorded in `THREAD_PACKET.md`.
+
+## Fixer Prompt `20260429T041242Z` Fix Satisfaction
+
+1. The handoff target is refreshed for prompt `20260429T041242Z`; review should use branch tip after this fixer commit.
+2. The command-catalog implementation validates exact parser tokens, lookup-table order, grouped canonical surface, declared CLI surface, and canonical command order before returning `CommandCliContract`.
+3. Regression coverage now includes an explicitly named declared missing accepted-alias drift case in addition to extra aliases, removed tokens, substituted aliases, parser token ordering drift, lookup-table ordering drift, and declared-surface drift.
 4. The canonical demo-path mapping remains explicit in `THREAD_PACKET.md`, including the CLI-first blocker removed for project open, retrieval/basket, patch review, and export handoff.
 5. Required gates are rerun after this refresh and recorded in `THREAD_PACKET.md`.
