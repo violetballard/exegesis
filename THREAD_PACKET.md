@@ -5,7 +5,7 @@
 - Reviewed range: `378cf9a7..HEAD`
 - Reviewed implementation range: `378cf9a7..HEAD`
 - Pre-fix rejected branch tip: `15b737eef`
-- Merge candidate: current branch tip after this fixer commit. Final SHA is reported in the fixer response.
+- Merge candidate: current branch tip after this fixer pass. Final SHA is reported in the fixer response.
 - Scope rule: review the full range above. Do not use `adfa8cdadd43747ffbcb612e4151e262b13e52ca` as the endpoint, and do not classify post-`adfa8cdadd43747ffbcb612e4151e262b13e52ca` retrieval-code changes as metadata-only.
 
 ## Required Fixes Addressed
@@ -47,7 +47,7 @@ The branch delivers the FTS-first retrieval slice needed for the current MVP eng
 - Risk: high/shared because `tests/unit/test_unified_retrieval.py` is approved shared regression coverage.
 - Task budget: `4/4`.
 - File budget: `7/8`.
-- Size budget: runtime/test scope is `4` files changed, `204` insertions, `43` deletions, net `+161` in `378cf9a7..HEAD` before this packet correction; full packet-inclusive range is `7` files changed, `439` insertions, `130` deletions, net `+309`. The implementation/test scope remains under the high-risk `<=300` net LOC cap.
+- Size budget: runtime/test scope is `4` files changed, `204` insertions, `43` deletions, net `+161` in `378cf9a7..HEAD` before packet corrections; full packet-inclusive range after this fixer pass is reported in the fixer response. The implementation/test scope remains under the high-risk `<=300` net LOC cap.
 - Integrator-locked files: none.
 
 ## Roadmap / Vision
@@ -75,5 +75,5 @@ The branch delivers the FTS-first retrieval slice needed for the current MVP eng
 ## Risks / Blockers
 
 - Merge risk remains high because the actual reviewed range includes approved shared regression coverage.
-- Blocker for packet mirrors: `.codex/kickoff_packets/feat-retrieval-fts.md` and `.codex/lane_meta/feat-retrieval-fts.json` remain stale because this sandbox rejects writes to `.codex` paths with `Operation not permitted`.
+- Blocker for packet mirrors: `.codex/kickoff_packets/feat-retrieval-fts.md` and `.codex/lane_meta/feat-retrieval-fts.json` remain stale because this sandbox rejects writes to `.codex` paths as outside-project writes.
 - `THREAD_PACKET.md` is the corrected writable source of truth for re-review: the reviewed range is `378cf9a7..HEAD`, post-`adfa8cdadd43747ffbcb612e4151e262b13e52ca` retrieval code is in scope, and the handoff is high-risk/shared under the 4-task cap.
