@@ -6,7 +6,7 @@ Canonical handoff contract lives in `THREAD_PACKET.md`.
 
 - Lane: `feat-commands`
 - Branch: `codex/feat-commands`
-- Review basis: final branch tip after this fixer pass for reviewer packet `20260428T235333Z`; implementation, tests, scope-check support, and packet metadata are reviewed together.
+- Review basis: final branch tip after this fixer pass for reviewer packet `20260428T235908Z`; implementation, tests, scope-check support, and packet metadata are reviewed together.
 - Scope: CLI command-catalog contract hardening for the current engine-first MVP focus without starting `feat-console`.
 - Roadmap alignment: Milestone 3 CLI compatibility for the engine-first workflow loop, and `feat-commands` as the command-surface compatibility lane.
 - Vision alignment: canonical engine contract stability while the CLI remains the active operator surface.
@@ -103,6 +103,15 @@ Canonical handoff contract lives in `THREAD_PACKET.md`.
 3. Canonical demo-path step: satisfied by mapping the work to open project/document, retrieve/context basket, patch preview, and continued CLI operation.
 4. Ownership accounting: satisfied by listing command files as lane-owned, tests as approved shared-by-approval, `scripts/scope-check.sh` as shared gate support, metadata files as metadata-only, and integrator-locked edits as `no`.
 
+## Reviewer Packet `20260428T235908Z` Fix Satisfaction
+
+1. Actual merge-candidate packet: satisfied by anchoring this packet to the final `codex/feat-commands` branch tip after this fixer pass rather than stale commit `f8d860ed9f6299f0169c4f21321ac5f37c949fd3`.
+2. Metadata classification: satisfied by stating that no command-catalog implementation or test commits after `f8d860ed9f6299f0169c4f21321ac5f37c949fd3` are metadata-only.
+3. Full parser-surface drift rejection: satisfied by validating accepted tokens, declared canonical surface, grouped parser projection, lookup-table shape/order, and canonical names against `_CANONICAL_CLI_COMMAND_SURFACE`.
+4. Parser-surface drift regressions: satisfied by focused tests for added same-canonical aliases, removed accepted tokens, same-canonical substitutions, token reorder, and lookup-table shape/order drift.
+5. Canonical demo-path mapping: satisfied in the task list and mapping section by naming open project/document, retrieve/context basket, patch preview, and continued CLI operation.
+6. Required gates: this fixer pass reruns and records `make scope-check`, `./quality-format.sh --check`, `./quality-lint.sh`, `./quality-test.sh`, `./typecheck-test.sh`, and `make ci`.
+
 ## Verification
 
 - `python3 -m unittest tests.unit.test_commands_catalog -v`: PASS (58 tests)
@@ -112,4 +121,4 @@ Canonical handoff contract lives in `THREAD_PACKET.md`.
 - `./quality-test.sh`: PASS
 - `./typecheck-test.sh`: PASS
 - `make ci`: PASS
-- Final verification pass: `2026-04-28T23:58:30Z`
+- Final verification pass: `2026-04-29T00:01:33Z`
