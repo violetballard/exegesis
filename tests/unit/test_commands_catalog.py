@@ -55,13 +55,16 @@ from src.qual.commands import (
     command_surface_contract,
     command_demo_flow_route_summary,
     command_demo_flow_surface_tokens,
+    command_demo_smoke_plan,
     command_names,
     command_spec,
     command_spec_for,
     command_specs,
+    command_smoke_plan,
     command_tokens,
     command_flow_tokens,
     validate_command_catalog,
+    command_mvp_smoke_plan,
 )
 
 
@@ -503,6 +506,32 @@ class CommandCatalogTests(unittest.TestCase):
             sequence.lookup_tokens,
             tuple(entry.lookup_tokens for entry in command_mvp_flow()),
         )
+
+    def test_command_smoke_plan_exposes_executable_mvp_argv(self) -> None:
+        plan = command_smoke_plan()
+        self.assertEqual(plan, command_demo_smoke_plan())
+        self.assertEqual(plan, command_mvp_smoke_plan())
+        self.assertEqual(plan.flow_steps, command_mvp_flow_steps())
+        self.assertEqual(plan.names, command_mvp_flow_names())
+        self.assertEqual(
+            tuple((step.flow_step, step.name, step.argv) for step in plan.steps),
+            (
+                ("project-open", "bootstrap", ("bootstrap",)),
+                ("retrieval", "context-basket", ("context-basket", "list")),
+                ("patch-review", "diff-preview", ("diff-preview", "--original", "before", "--proposed", "after")),
+                (
+                    "export-handoff",
+                    "terminal",
+                    ("terminal", "--message", "export handoff", "--operation-kind", "terminal_query"),
+                ),
+            ),
+        )
+
+    def test_command_smoke_plan_rejects_inconsistent_configured_argv(self) -> None:
+        command_catalog.command_smoke_plan.cache_clear()
+        with patch.object(command_catalog, "_DEMO_SMOKE_ARGV_BY_FLOW_STEP", {"retrieval": ("missing",)}):
+            with self.assertRaisesRegex(ValueError, "Command smoke argv is inconsistent"):
+                command_catalog.command_smoke_plan()
 
     def test_command_surface_contract_bundles_the_mvp_smoke_surface(self) -> None:
         contract = command_surface_contract()
