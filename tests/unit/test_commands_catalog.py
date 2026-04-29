@@ -609,6 +609,32 @@ class CommandCatalogTests(unittest.TestCase):
                     with self.assertRaisesRegex(ValueError, "Command CLI tokens are inconsistent"):
                         command_catalog.command_cli_contract()
 
+    def test_command_cli_contract_rejects_current_reviewer_entrypoint_drift_examples(self) -> None:
+        drift_cases = (
+            (
+                "extra open alias preserves bootstrap canonical target",
+                ("bootstrap", "open", "diff-preview", "diff", "context-basket", "terminal"),
+            ),
+            (
+                "missing diff alias removes accepted parser token",
+                ("bootstrap", "diff-preview", "context-basket", "terminal"),
+            ),
+            (
+                "open replaces bootstrap while preserving canonical target",
+                ("open", "diff-preview", "diff", "context-basket", "terminal"),
+            ),
+            (
+                "context basket moves before patch review",
+                ("bootstrap", "context-basket", "diff-preview", "diff", "terminal"),
+            ),
+        )
+        for label, drifted_entrypoints in drift_cases:
+            with self.subTest(label=label):
+                self._clear_cli_caches()
+                with patch.object(command_catalog, "_CLI_ENTRYPOINTS", drifted_entrypoints):
+                    with self.assertRaisesRegex(ValueError, "Command CLI tokens are inconsistent"):
+                        command_catalog.command_cli_contract()
+
     def test_command_cli_contract_rejects_open_replacing_bootstrap_from_review_packet(self) -> None:
         self._clear_cli_caches()
         drifted_tokens = ("open", "diff-preview", "diff", "context-basket", "terminal")
