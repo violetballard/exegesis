@@ -3,7 +3,7 @@
 - Lane: `feat-commands`
 - Branch: `codex/feat-commands`
 - Corrected review target: the branch tip produced by this fixer pass, with the corrected four-file merge-target list below.
-- Current fixer packet validated: `fixer__feat-commands__20260429T222030Z`.
+- Current fixer packet validated: `fixer__feat-commands__20260429T222550Z`.
 - Integration instruction: review and merge the corrected branch tip only if its merge diff remains exactly `THREAD.md`, `THREAD_PACKET.md`, `src/qual/commands/catalog.py`, and `tests/unit/test_commands_catalog.py`; otherwise cherry-pick the final corrective commit target that preserves only that command-catalog slice.
 - Rejected packet reconciled: prior packet traceability incorrectly treated `ab96cb722094e821105d1cdfd3cae24f4b9184ef`, `2836f5f0e4e0e903acc0e3633e6204be3f982a5d`, and `e72c69d75446e3ad10de3d3d0c7c30b4957c4baa` as metadata-only or ambiguous final-fixer work even though they modified implementation files. This packet classifies all three commits as implementation and reviews them with this packet refresh.
 - Accurate implementation commits under review:
@@ -19,7 +19,7 @@
   - `6201d051c5eaf86c35cfa123f7625bb9a874a112`: metadata-only packet correction that clarified the demo-path handoff in `THREAD.md` and `THREAD_PACKET.md`.
   - `d80fa9fa97faabae47000e07002757b76e5edc02`: metadata-only packet correction that clarified the exact canonical demo-path step and blocker removed.
   - `e72c69d75446e3ad10de3d3d0c7c30b4957c4baa`: implementation fix that modifies `src/qual/commands/catalog.py` to require exact canonical CLI tokens in catalog order; this commit is not metadata-only.
-- Final fixer validation commit for reviewer packet `fixer__feat-commands__20260429T222030Z`: packet update confirming the corrected target, required-fix mapping, accurate `e72c69d75446e3ad10de3d3d0c7c30b4957c4baa` implementation classification, concrete MVP-loop blocker removed, ownership clarification, and green gates. The exact final HEAD SHA is reported by the fixer after commit creation.
+- Final fixer validation commit for reviewer packet `fixer__feat-commands__20260429T222550Z`: packet update confirming the corrected target, required-fix mapping, accurate `e72c69d75446e3ad10de3d3d0c7c30b4957c4baa` implementation classification, concrete MVP-loop blocker removed, ownership clarification, and green gates. The exact final HEAD SHA is reported by the fixer after commit creation.
 - Merge base used for file accounting: `06cdebc2d5d53533b73f264a4bbf5a4b4daacb27`.
 - Risk classification: low-risk lane-owned implementation plus one shared-by-approval unit-test exception and packet metadata; no integrator-locked files are changed.
 
