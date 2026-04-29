@@ -250,24 +250,6 @@ def _normalize_retrieval_evidence_snapshot(evidence: dict[str, object]) -> dict[
     return normalized
 
 
-def _normalize_context_refs(value: object) -> list[object]:
-    refs = _normalize_list_like(value)
-    normalized: list[object] = []
-    for ref in refs:
-        if isinstance(ref, dict):
-            normalized.append(copy.deepcopy(ref))
-    return normalized
-
-
-def _normalize_promotion_refs(value: object) -> list[object]:
-    refs = _normalize_list_like(value)
-    normalized: list[object] = []
-    for ref in refs:
-        if isinstance(ref, dict):
-            normalized.append(copy.deepcopy(ref))
-    return normalized
-
-
 def _normalize_retrieval_source_bundle_snapshot(source_bundle: dict[str, object]) -> dict[str, object]:
     normalized = copy.deepcopy(source_bundle)
     if not isinstance(normalized, dict):
@@ -294,12 +276,6 @@ def _normalize_retrieval_source_bundle_snapshot(source_bundle: dict[str, object]
     normalized["retrieval_doc_bundle"] = _build_retrieval_doc_bundle_from_payload(normalized)
     normalized["retrieval_excerpt_bundle"] = _build_retrieval_excerpt_bundle_from_payload(normalized)
     normalized["retrieval_provenance"] = _build_retrieval_provenance_from_payload(normalized)
-    normalized["retrieval_context_refs"] = _normalize_context_refs(
-        normalized.get("retrieval_context_refs", [])
-    )
-    normalized["retrieval_promotion_refs"] = _normalize_promotion_refs(
-        normalized.get("retrieval_promotion_refs", [])
-    )
     normalized["doc_hits"] = _normalize_list_like(normalized.get("doc_hits", []))
     normalized["excerpt_hits"] = _normalize_list_like(normalized.get("excerpt_hits", []))
     retrieval_summary = normalized.get("retrieval_summary", {})
@@ -486,8 +462,6 @@ def _build_retrieval_source_bundle_from_payload(payload: dict[str, object]) -> d
         "retrieval_summary": copy.deepcopy(payload.get("retrieval_summary", {})),
         "retrieval_doc_bundle": copy.deepcopy(retrieval_doc_bundle),
         "retrieval_excerpt_bundle": copy.deepcopy(retrieval_excerpt_bundle),
-        "retrieval_context_refs": _normalize_context_refs(payload.get("retrieval_context_refs", [])),
-        "retrieval_promotion_refs": _normalize_promotion_refs(payload.get("retrieval_promotion_refs", [])),
         "doc_hits": copy.deepcopy(payload.get("doc_hits", [])),
         "excerpt_hits": copy.deepcopy(payload.get("excerpt_hits", [])),
         "retrieval_manifest": copy.deepcopy(payload.get("retrieval_manifest", {})),
@@ -516,8 +490,6 @@ def _backfill_downstream_payload_from_context_bundle(
         "retrieval_provenance": context_bundle.get("retrieval_provenance"),
         "retrieval_source_bundle": context_bundle.get("retrieval_source_bundle"),
         "retrieval_evidence": context_bundle.get("retrieval_evidence"),
-        "retrieval_context_refs": context_bundle.get("retrieval_context_refs"),
-        "retrieval_promotion_refs": context_bundle.get("retrieval_promotion_refs"),
     }
     return _backfill_sparse_snapshot(
         merged,
@@ -552,8 +524,6 @@ def _build_retrieval_context_bundle_from_source_bundle(source_bundle: dict[str, 
         "retrieval_provenance": copy.deepcopy(retrieval_provenance),
         "retrieval_source_bundle": copy.deepcopy(source_bundle),
         "retrieval_evidence": copy.deepcopy(source_bundle.get("retrieval_evidence", {})),
-        "retrieval_context_refs": _normalize_context_refs(source_bundle.get("retrieval_context_refs", [])),
-        "retrieval_promotion_refs": _normalize_promotion_refs(source_bundle.get("retrieval_promotion_refs", [])),
     }
 
 
@@ -615,8 +585,6 @@ def _build_retrieval_bundle_context_from_payload(payload: dict[str, object]) -> 
         "retrieval_manifest": copy.deepcopy(payload.get("retrieval_manifest", {})),
         "retrieval_provenance": copy.deepcopy(provenance),
         "retrieval_evidence": copy.deepcopy(payload.get("retrieval_evidence", {})),
-        "retrieval_context_refs": _normalize_context_refs(payload.get("retrieval_context_refs", [])),
-        "retrieval_promotion_refs": _normalize_promotion_refs(payload.get("retrieval_promotion_refs", [])),
     }
 
 
@@ -674,8 +642,6 @@ def _build_retrieval_context_bundle_from_payload(payload: dict[str, object]) -> 
         "retrieval_provenance": _build_retrieval_provenance_from_payload(payload),
         "retrieval_source_bundle": _build_retrieval_source_bundle_from_payload(payload),
         "retrieval_evidence": copy.deepcopy(payload.get("retrieval_evidence", {})),
-        "retrieval_context_refs": _normalize_context_refs(payload.get("retrieval_context_refs", [])),
-        "retrieval_promotion_refs": _normalize_promotion_refs(payload.get("retrieval_promotion_refs", [])),
     }
 
 
@@ -904,8 +870,6 @@ class RetrievalDownstreamPayload:
     retrieval_citation_bundle: dict[str, object]
     retrieval_doc_bundle: dict[str, object]
     retrieval_excerpt_bundle: dict[str, object]
-    retrieval_context_refs: list[object]
-    retrieval_promotion_refs: list[object]
     retrieval_summary: dict[str, object]
     doc_hits: list[dict[str, object]]
     excerpt_hits: list[dict[str, object]]
@@ -936,8 +900,6 @@ class RetrievalDownstreamPayload:
             "retrieval_citation_bundle": copy.deepcopy(self.retrieval_citation_bundle),
             "retrieval_doc_bundle": copy.deepcopy(self.retrieval_doc_bundle),
             "retrieval_excerpt_bundle": copy.deepcopy(self.retrieval_excerpt_bundle),
-            "retrieval_context_refs": copy.deepcopy(self.retrieval_context_refs),
-            "retrieval_promotion_refs": copy.deepcopy(self.retrieval_promotion_refs),
             "retrieval_summary": summary,
             "doc_hits": [copy.deepcopy(doc_hit) for doc_hit in self.doc_hits],
             "excerpt_hits": [copy.deepcopy(hit) for hit in self.excerpt_hits],
@@ -977,8 +939,6 @@ def build_retrieval_downstream_payload(
     retrieval_citation_bundle: dict[str, object],
     retrieval_doc_bundle: dict[str, object],
     retrieval_excerpt_bundle: dict[str, object],
-    retrieval_context_refs: list[object],
-    retrieval_promotion_refs: list[object],
     retrieval_summary: dict[str, object],
     doc_hits: list[dict[str, object]],
     excerpt_hits: list[dict[str, object]],
@@ -1000,8 +960,6 @@ def build_retrieval_downstream_payload(
         retrieval_citation_bundle=retrieval_citation_bundle,
         retrieval_doc_bundle=retrieval_doc_bundle,
         retrieval_excerpt_bundle=retrieval_excerpt_bundle,
-        retrieval_context_refs=retrieval_context_refs,
-        retrieval_promotion_refs=retrieval_promotion_refs,
         retrieval_summary=retrieval_summary,
         doc_hits=doc_hits,
         excerpt_hits=excerpt_hits,
