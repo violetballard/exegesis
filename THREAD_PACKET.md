@@ -2,9 +2,9 @@
 
 - Lane: `feat-commands`
 - Branch: `codex/feat-commands`
-- Review basis: actual `codex/feat-commands` branch tip after the `20260429T032011Z` reviewer-fix pass.
+- Review basis: actual `codex/feat-commands` branch tip after the `20260429T032302Z` reviewer-fix pass.
 - Previous implementation anchor: `f8d860ed9f6299f0169c4f21321ac5f37c949fd3`
-- Reviewer packet addressed: `20260429T032011Z`
+- Reviewer packet addressed: `20260429T032302Z`
 - Final verifier tip: the branch-tip reviewer-fix commit containing this packet restamp, with the actual `codex/feat-commands` branch tip as the only review basis.
 
 ## Packet Traceability Note
@@ -187,6 +187,14 @@
 4. Ownership accounting: shared-by-approval test edits are separated from integrator-locked edits, and integrator-locked edits are `NO`.
 5. Demo-path mapping: every completed task stays scoped to Milestone 3 CLI compatibility and names the canonical demo-path command steps it protects, including project/document open, retrieval/context basket, patch preview/apply/reject, and save/continue support through the CLI operator surface.
 6. Required gates: final results are recorded below after rerun on the same final branch-tip review basis named in this packet.
+
+## Required Fixes Addressed From Reviewer Packet `20260429T032302Z`
+
+1. One review basis: this packet uses the actual final `codex/feat-commands` branch tip after this fixer pass, and does not describe implementation-bearing commits as metadata-only.
+2. Complete changed-file accounting: the effective review diff from `f8d860ed9f6299f0169c4f21321ac5f37c949fd3` through the final branch tip includes `THREAD.md`, `THREAD_PACKET.md`, `scripts/scope-check.sh`, `src/qual/commands/catalog.py`, and `tests/unit/test_commands_catalog.py`.
+3. Exact parser-visible validation: `command_cli_contract()` validates token additions, removals, replacements, ordering, lookup-table substitutions, lookup-table ordering, grouped surface drift, declared surface drift, and canonical-name ordering before returning the contract.
+4. Same-canonical drift coverage: tests lock replacements and aliases including `bootstrap` -> `open`, `diff-preview` -> `diff`, and `diff` -> `diff_preview`, plus token additions/removals/reordering and lookup-table drift.
+5. Demo-path mapping: every completed task names the canonical demo-path steps protected by this command-catalog work, including project/document open, retrieval/context basket, patch preview/apply/reject, and export/handoff.
 
 ## Commands Run + Outcomes
 

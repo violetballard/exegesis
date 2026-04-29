@@ -6,7 +6,7 @@ Canonical handoff contract lives in `THREAD_PACKET.md`.
 
 - Lane: `feat-commands`
 - Branch: `codex/feat-commands`
-- Review basis: actual `codex/feat-commands` branch tip after the `20260429T032011Z` reviewer-fix pass.
+- Review basis: actual `codex/feat-commands` branch tip after the `20260429T032302Z` reviewer-fix pass.
 - Previous implementation anchor: `f8d860ed9f6299f0169c4f21321ac5f37c949fd3`
 - Scope: command-catalog contract hardening for the current engine-first MVP focus without starting `feat-console`.
 - Roadmap alignment: Milestone 3 CLI compatibility for the engine-first workflow loop, and `feat-commands` as the command-surface compatibility lane.
@@ -41,7 +41,7 @@ Canonical handoff contract lives in `THREAD_PACKET.md`.
 
 - This command contract hardening makes the CLI smoke path more real for `open project/document`, `retrieve relevant material`, `promote/gather context`, and `preview/apply/reject patch` by guaranteeing parser-visible tokens stay aligned with the command catalog before the contract is returned.
 
-## Reviewer Packet `20260429T032011Z` Fix Satisfaction
+## Reviewer Packet `20260429T032302Z` Fix Satisfaction
 
 1. One review basis is used: the actual final `codex/feat-commands` branch tip, not a narrow historical implementation slice.
 2. The complete effective changed-file list from `f8d860ed9f6299f0169c4f21321ac5f37c949fd3` is named, including `THREAD.md`, `THREAD_PACKET.md`, `scripts/scope-check.sh`, `src/qual/commands/catalog.py`, and `tests/unit/test_commands_catalog.py`.
