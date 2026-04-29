@@ -95,6 +95,15 @@ Required gates rerun against the actual branch-tip merge candidate after this pa
 - `./typecheck-test.sh`: PASS; Python sources in `src/` compile.
 - `make ci`: PASS; setup verification, scope-check, format, lint, compileall/typecheck, smoke, and 124 unit tests completed.
 
+Fallback-review fixer gate rerun against pre-fix branch head `d564761748b01f6b96e2bc3a329556032d604f5e`:
+
+- `make scope-check`: PASS; scope-check passed for branch `codex/feat-retrieval-fts`.
+- `./quality-format.sh --check`: PASS.
+- `./quality-lint.sh`: PASS; shell syntax and trailing whitespace checks passed.
+- `./quality-test.sh`: PASS; smoke plus 124 unit tests.
+- `./typecheck-test.sh`: PASS; Python sources in `src/` compile.
+- `make ci`: PASS; setup verification, scope-check, format, lint, compileall/typecheck, smoke, and 124 unit tests completed.
+
 ## Risks / Blockers
 
 - `.codex/kickoff_packets/feat-retrieval-fts.md` and `.codex/lane_meta/feat-retrieval-fts.json` still contain stale `adfa8cd` endpoint language because this sandbox rejects writes to those packet mirrors. This `THREAD_PACKET.md` is the authoritative regenerated packet for the actual branch tip.
