@@ -6,7 +6,7 @@ Canonical handoff contract lives in `THREAD_PACKET.md`.
 
 - Lane: `feat-commands`
 - Branch: `codex/feat-commands`
-- Review basis: actual `codex/feat-commands` branch tip for the `20260429T022926Z` reviewer-fix pass.
+- Review basis: actual `codex/feat-commands` branch tip for the `20260429T024140Z` reviewer-fix pass.
 - Previous implementation anchor: `f8d860ed9f6299f0169c4f21321ac5f37c949fd3`
 - Scope: command-catalog contract hardening for the current engine-first MVP focus without starting `feat-console`.
 - Roadmap alignment: Milestone 3 CLI compatibility for the engine-first workflow loop, and `feat-commands` as the command-surface compatibility lane.
@@ -160,3 +160,11 @@ Canonical handoff contract lives in `THREAD_PACKET.md`.
 4. Ownership accounting separates approved shared-by-approval tests from integrator-locked edits; integrator-locked edits remain `NO`.
 5. Demo-path mapping names the protected `open project/document`, `retrieve relevant material`, `promote/gather context`, and `preview/apply/reject patch` CLI smoke path.
 6. Required gates were rerun for this reviewer-fix pass and passed: `make scope-check`, `./quality-format.sh --check`, `./quality-lint.sh`, `./quality-test.sh`, `./typecheck-test.sh`, and `make ci`.
+
+## Reviewer Packet `20260429T024140Z` Fix Satisfaction
+
+1. The handoff uses one truthful review basis: the actual `codex/feat-commands` branch tip, including post-`f8d860ed9f6299f0169c4f21321ac5f37c949fd3` implementation-bearing command and test commits.
+2. `command_cli_contract()` validates the full parser-visible CLI surface before returning the contract: exact tokens, lookup-table shape and order, grouped parser surface, declared surface, and canonical command order.
+3. Focused tests cover same-canonical parser drift where canonical names still match, including `bootstrap` -> `open`, `diff-preview` -> `diff`, and `diff` -> `diff_preview`, plus token additions, removals, and ordering drift.
+4. Demo-path mapping remains narrow to command-contract stability for `open project/document`, `retrieve relevant material`, `promote/gather context`, and `preview/apply/reject patch`.
+5. Required gates were rerun for this fixer pass and passed: `make scope-check`, `./quality-format.sh --check`, `./quality-lint.sh`, `./quality-test.sh`, `./typecheck-test.sh`, and `make ci`.
