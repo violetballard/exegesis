@@ -106,6 +106,11 @@ def _backfill_sparse_snapshot(primary: dict[str, object], fallback: dict[str, ob
     return merged
 
 
+def _backfill_missing_snapshot_value(snapshot: dict[str, object], key: str, fallback: object) -> None:
+    if _is_missing_snapshot_value(snapshot.get(key)) and not _is_missing_snapshot_value(fallback):
+        snapshot[key] = copy.deepcopy(fallback)
+
+
 def _normalize_query_snapshot(query: object) -> dict[str, object]:
     if not isinstance(query, dict):
         return {}
@@ -748,24 +753,42 @@ def _build_retrieval_provenance_from_payload(payload: dict[str, object]) -> dict
     if not isinstance(diagnostics, dict):
         diagnostics = {}
     query_date_range = _normalize_optional_list_like(normalized.get("query_date_range"))
-    if "query_fingerprint" not in normalized:
-        normalized["query_fingerprint"] = summary.get("query_fingerprint", diagnostics.get("query_fingerprint"))
-    if "query_scope" not in normalized:
-        normalized["query_scope"] = summary.get("query_scope", diagnostics.get("query_scope"))
-    if "query_intent" not in normalized:
-        normalized["query_intent"] = summary.get("query_intent", diagnostics.get("query_intent"))
+    _backfill_missing_snapshot_value(
+        normalized,
+        "query_fingerprint",
+        summary.get("query_fingerprint", diagnostics.get("query_fingerprint")),
+    )
+    _backfill_missing_snapshot_value(
+        normalized,
+        "query_scope",
+        summary.get("query_scope", diagnostics.get("query_scope")),
+    )
+    _backfill_missing_snapshot_value(
+        normalized,
+        "query_intent",
+        summary.get("query_intent", diagnostics.get("query_intent")),
+    )
     if "query_date_range" not in normalized:
         normalized["query_date_range"] = _normalize_optional_list_like(
             summary.get("query_date_range", diagnostics.get("date_range"))
         )
     else:
         normalized["query_date_range"] = query_date_range
-    if "result_fingerprint" not in normalized:
-        normalized["result_fingerprint"] = summary.get("result_fingerprint", diagnostics.get("result_fingerprint"))
-    if "retrieval_backend" not in normalized:
-        normalized["retrieval_backend"] = summary.get("retrieval_backend", diagnostics.get("retrieval_backend"))
-    if "retrieval_mode" not in normalized:
-        normalized["retrieval_mode"] = summary.get("retrieval_mode", diagnostics.get("retrieval_mode"))
+    _backfill_missing_snapshot_value(
+        normalized,
+        "result_fingerprint",
+        summary.get("result_fingerprint", diagnostics.get("result_fingerprint")),
+    )
+    _backfill_missing_snapshot_value(
+        normalized,
+        "retrieval_backend",
+        summary.get("retrieval_backend", diagnostics.get("retrieval_backend")),
+    )
+    _backfill_missing_snapshot_value(
+        normalized,
+        "retrieval_mode",
+        summary.get("retrieval_mode", diagnostics.get("retrieval_mode")),
+    )
     if "retrieval_policy" not in normalized:
         normalized["retrieval_policy"] = _normalize_policy_snapshot(
             summary.get("retrieval_policy", diagnostics.get("retrieval_policy", {}))
@@ -784,42 +807,48 @@ def _build_retrieval_provenance_from_payload(payload: dict[str, object]) -> dict
         )
     else:
         normalized["deferred_strategy_ids"] = _normalize_list_like(normalized["deferred_strategy_ids"])
-    if "candidate_doc_count" not in normalized:
-        normalized["candidate_doc_count"] = diagnostics.get("candidate_doc_count")
+    _backfill_missing_snapshot_value(normalized, "candidate_doc_count", diagnostics.get("candidate_doc_count"))
     if "fts_shortlist_doc_ids" not in normalized:
         normalized["fts_shortlist_doc_ids"] = _normalize_list_like(
             diagnostics.get("fts_shortlist_doc_ids", [])
         )
     else:
         normalized["fts_shortlist_doc_ids"] = _normalize_list_like(normalized["fts_shortlist_doc_ids"])
-    if "primary_doc_id" not in normalized:
-        normalized["primary_doc_id"] = summary.get("primary_doc_id")
-    if "primary_doc_fingerprint" not in normalized:
-        normalized["primary_doc_fingerprint"] = summary.get("primary_doc_fingerprint")
-    if "primary_doc_identity_fingerprint" not in normalized:
-        normalized["primary_doc_identity_fingerprint"] = summary.get("primary_doc_identity_fingerprint")
-    if "primary_excerpt_id" not in normalized:
-        normalized["primary_excerpt_id"] = summary.get("primary_excerpt_id")
-    if "primary_excerpt_fingerprint" not in normalized:
-        normalized["primary_excerpt_fingerprint"] = summary.get("primary_excerpt_fingerprint")
-    if "primary_excerpt_text_hash" not in normalized:
-        normalized["primary_excerpt_text_hash"] = summary.get("primary_excerpt_text_hash")
-    if "doc_hits_fingerprint" not in normalized:
-        normalized["doc_hits_fingerprint"] = summary.get(
-            "doc_hits_fingerprint",
-            diagnostics.get("doc_hits_fingerprint"),
-        )
-    if "excerpt_hits_fingerprint" not in normalized:
-        normalized["excerpt_hits_fingerprint"] = summary.get(
-            "excerpt_hits_fingerprint",
-            diagnostics.get("excerpt_hits_fingerprint"),
-        )
-    if "citation_status" not in normalized:
-        normalized["citation_status"] = copy.deepcopy(summary.get("citation_status", {}))
-    if "doc_count" not in normalized:
-        normalized["doc_count"] = summary.get("doc_count")
-    if "excerpt_count" not in normalized:
-        normalized["excerpt_count"] = summary.get("excerpt_count")
+    _backfill_missing_snapshot_value(normalized, "primary_doc_id", summary.get("primary_doc_id"))
+    _backfill_missing_snapshot_value(
+        normalized,
+        "primary_doc_fingerprint",
+        summary.get("primary_doc_fingerprint"),
+    )
+    _backfill_missing_snapshot_value(
+        normalized,
+        "primary_doc_identity_fingerprint",
+        summary.get("primary_doc_identity_fingerprint"),
+    )
+    _backfill_missing_snapshot_value(normalized, "primary_excerpt_id", summary.get("primary_excerpt_id"))
+    _backfill_missing_snapshot_value(
+        normalized,
+        "primary_excerpt_fingerprint",
+        summary.get("primary_excerpt_fingerprint"),
+    )
+    _backfill_missing_snapshot_value(
+        normalized,
+        "primary_excerpt_text_hash",
+        summary.get("primary_excerpt_text_hash"),
+    )
+    _backfill_missing_snapshot_value(
+        normalized,
+        "doc_hits_fingerprint",
+        summary.get("doc_hits_fingerprint", diagnostics.get("doc_hits_fingerprint")),
+    )
+    _backfill_missing_snapshot_value(
+        normalized,
+        "excerpt_hits_fingerprint",
+        summary.get("excerpt_hits_fingerprint", diagnostics.get("excerpt_hits_fingerprint")),
+    )
+    _backfill_missing_snapshot_value(normalized, "citation_status", summary.get("citation_status", {}))
+    _backfill_missing_snapshot_value(normalized, "doc_count", summary.get("doc_count"))
+    _backfill_missing_snapshot_value(normalized, "excerpt_count", summary.get("excerpt_count"))
     citation_bundle = payload.get("retrieval_citation_bundle", {})
     if not isinstance(citation_bundle, dict):
         citation_bundle = {}
@@ -837,22 +866,38 @@ def _build_retrieval_provenance_from_payload(payload: dict[str, object]) -> dict
         normalized["excerpt_citations"] = copy.deepcopy(excerpt_citations)
     else:
         normalized["excerpt_citations"] = _normalize_list_like(normalized["excerpt_citations"])
-    if "primary_doc_id" not in normalized and doc_citations:
+    if doc_citations:
         first_doc_citation = doc_citations[0]
         if isinstance(first_doc_citation, dict):
-            normalized["primary_doc_id"] = first_doc_citation.get("doc_id")
-            if "primary_doc_fingerprint" not in normalized:
-                normalized["primary_doc_fingerprint"] = first_doc_citation.get("doc_fingerprint")
-            if "primary_doc_identity_fingerprint" not in normalized:
-                normalized["primary_doc_identity_fingerprint"] = first_doc_citation.get("doc_identity_fingerprint")
-    if "primary_excerpt_id" not in normalized and excerpt_citations:
+            _backfill_missing_snapshot_value(normalized, "primary_doc_id", first_doc_citation.get("doc_id"))
+            _backfill_missing_snapshot_value(
+                normalized,
+                "primary_doc_fingerprint",
+                first_doc_citation.get("doc_fingerprint"),
+            )
+            _backfill_missing_snapshot_value(
+                normalized,
+                "primary_doc_identity_fingerprint",
+                first_doc_citation.get("doc_identity_fingerprint"),
+            )
+    if excerpt_citations:
         first_excerpt_citation = excerpt_citations[0]
         if isinstance(first_excerpt_citation, dict):
-            normalized["primary_excerpt_id"] = first_excerpt_citation.get("excerpt_id")
-            if "primary_excerpt_fingerprint" not in normalized:
-                normalized["primary_excerpt_fingerprint"] = first_excerpt_citation.get("excerpt_fingerprint")
-            if "primary_excerpt_text_hash" not in normalized:
-                normalized["primary_excerpt_text_hash"] = first_excerpt_citation.get("excerpt_text_hash")
+            _backfill_missing_snapshot_value(
+                normalized,
+                "primary_excerpt_id",
+                first_excerpt_citation.get("excerpt_id"),
+            )
+            _backfill_missing_snapshot_value(
+                normalized,
+                "primary_excerpt_fingerprint",
+                first_excerpt_citation.get("excerpt_fingerprint"),
+            )
+            _backfill_missing_snapshot_value(
+                normalized,
+                "primary_excerpt_text_hash",
+                first_excerpt_citation.get("excerpt_text_hash"),
+            )
     return normalized
 
 
