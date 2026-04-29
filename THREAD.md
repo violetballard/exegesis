@@ -150,4 +150,4 @@ Canonical handoff contract lives in `THREAD_PACKET.md`.
 ## Reviewer Packet `20260429T023318Z` Fix Satisfaction
 
 1. Required fix 1 is addressed by moving the branch tip to this metadata-only fixer pass before rerunning gates, so the feature-branch `scope-check` recent-window policy no longer evaluates the prior implementation-bearing shared-test commit as `HEAD`.
-2. Final gate results for this pass are recorded in `THREAD_PACKET.md` after the required rerun.
+2. Final gate results for this pass are recorded in `THREAD_PACKET.md`: `make scope-check`, `./quality-format.sh --check`, `./quality-lint.sh`, `./quality-test.sh`, `./typecheck-test.sh`, and `make ci` all passed.

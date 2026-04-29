@@ -148,6 +148,7 @@
 - `20260429T022612Z` pre-commit validation: `./quality-test.sh tests/unit/test_commands_catalog.py` PASS; exact `make scope-check` BLOCKED because the current pre-commit HEAD is the previous test-bearing commit and scope policy reports `tests/unit/test_commands_catalog.py`; `SCOPE_ALLOW_SHARED=1 make scope-check` also BLOCKED because this branch's scope policy only allowlists the context-storage shared test; `./quality-format.sh --check`, `./quality-lint.sh`, `./quality-test.sh`, and `./typecheck-test.sh` PASS.
 - `20260429T022926Z` reviewer-fix rerun: PASS for focused `./quality-test.sh tests/unit/test_commands_catalog.py`; PASS for required gates `make scope-check`, `./quality-format.sh --check`, `./quality-lint.sh`, `./quality-test.sh`, `./typecheck-test.sh`, and `make ci`.
 - `20260429T023318Z` pre-commit validation: exact `make scope-check` initially BLOCKED on the prior implementation-bearing `HEAD` because it included the approved shared-test edit `tests/unit/test_commands_catalog.py`; this metadata-only fixer pass moves the branch tip before the required final gate rerun.
+- `20260429T023318Z` final gate rerun: PASS for `make scope-check`; PASS for `./quality-format.sh --check`; PASS for `./quality-lint.sh`; PASS for `./quality-test.sh` with 150 tests; PASS for `./typecheck-test.sh`; PASS for `make ci`, including scope-check, format, lint, compileall/typecheck, and 150 tests.
 
 ## Risks / Blockers
 
@@ -375,4 +376,4 @@
 ## Reviewer Packet `20260429T023318Z` Fix Satisfaction
 
 1. Required fix 1 is addressed by recording the initial exact `make scope-check` failure against the prior implementation-bearing `HEAD`, then moving the branch tip to this metadata-only fixer pass so the recent-window scope gate can evaluate the current pass.
-2. Final required gate results for this fixer pass are recorded in `Commands Run + Outcomes`.
+2. Required fix 1 is satisfied by the final required gate rerun recorded in `Commands Run + Outcomes`: `make scope-check`, `./quality-format.sh --check`, `./quality-lint.sh`, `./quality-test.sh`, `./typecheck-test.sh`, and `make ci` all passed.
