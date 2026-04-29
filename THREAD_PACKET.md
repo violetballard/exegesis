@@ -2,14 +2,15 @@
 
 - Lane: `feat-commands`
 - Branch: `codex/feat-commands`
-- Commit: branch tip after fixer prompt `20260429T035831Z`
-- Review basis: branch tip after this fixer commit, not `f8d860ed9f6299f0169c4f21321ac5f37c949fd3` alone.
+- Commit: branch tip after metadata-only fixer prompt `20260429T040101Z`
+- Review basis: branch tip after this metadata-only fixer commit, not `f8d860ed9f6299f0169c4f21321ac5f37c949fd3` alone.
 - Prior implementation anchor: `f8d860ed9f6299f0169c4f21321ac5f37c949fd3`
-- Packet refresh role: reviewer-fix implementation and handoff correction
+- Packet refresh role: metadata-only reviewer-fix handoff correction after prompt `20260429T040101Z`
 
 ## Packet Traceability Note
 
 - Fixer prompt `20260429T035831Z` requested reviewer-required fixes for exact parser-token validation, same-canonical drift coverage, canonical demo-path handoff mapping, and gate reruns.
+- Fixer prompt `20260429T040101Z` requested a metadata-only handoff refresh so every completed task names the canonical demo-path step it supports and states the concrete blocker removed by the command-catalog work.
 - The reviewable branch-tip implementation is narrowed to the command-catalog slice:
   - `src/qual/commands/catalog.py`
   - `tests/unit/test_commands_catalog.py`
@@ -18,7 +19,7 @@
 
 ## Branch-Tip Review Basis
 
-- Review target: branch tip after fixer prompt `20260429T035831Z`.
+- Review target: branch tip after metadata-only fixer prompt `20260429T040101Z`.
 - Prior implementation anchor: `f8d860ed9f6299f0169c4f21321ac5f37c949fd3`.
 - Review range: `f8d860ed9f6299f0169c4f21321ac5f37c949fd3..HEAD`.
 - Matching changed-file scope:
@@ -91,10 +92,10 @@
 
 ## Tasks Completed
 
-1. Hardened the CLI contract against full parser-surface drift in `src/qual/commands/catalog.py`.
-2. Added focused tests in `tests/unit/test_commands_catalog.py` for same-canonical drift, missing expected tokens, extra accepted aliases, lookup-table substitutions that preserve the canonical-name set, and declared-surface drift.
-3. Narrowed the branch-tip review basis by restoring unrelated `scripts/scope-check.sh` drift to baseline and documenting only the remaining command-catalog implementation files.
-4. Regenerated the handoff packet with canonical demo-path mapping, complete metadata-only file accounting, and reran all required gates.
+1. Hardened the CLI contract against full parser-surface drift in `src/qual/commands/catalog.py`; demo-path step supported: stable CLI entrypoints for `open project/document`, `retrieve relevant material`, `promote or gather context into the basket`, `preview and apply or reject a patch`, and `persist/export the updated state`.
+2. Added focused tests in `tests/unit/test_commands_catalog.py` for same-canonical drift, missing expected tokens, extra accepted aliases, lookup-table substitutions that preserve the canonical-name set, and declared-surface drift; demo-path step supported: repeatable CLI smoke coverage for the same open, retrieve/basket, patch-review, and export command surfaces.
+3. Narrowed the branch-tip review basis by restoring unrelated `scripts/scope-check.sh` drift to baseline and documenting only the remaining command-catalog implementation files; demo-path step supported: keeping the `feat-commands` lane focused on command-surface compatibility instead of unrelated scope policy work.
+4. Regenerated the handoff packet with canonical demo-path mapping, complete metadata-only file accounting, and reran all required gates; demo-path step supported: auditable Milestone 3 CLI compatibility for the engine-first workflow loop.
 
 ## Canonical Demo-Path Mapping
 
@@ -106,6 +107,10 @@
 ## Demo-Path Step Made More Real
 
 - The CLI-first command surface for the engine loop is more real: the accepted parser tokens for project open, retrieval/basket, patch review, and export handoff now fail loudly if they drift from the canonical command catalog.
+
+## Concrete Blocker Removed
+
+- This removes the blocker where parser drift could silently change the CLI operator surface before Textual is enabled, which would make the Milestone 3 demo path unreliable to smoke-test through commands.
 
 ## Files Changed
 
@@ -137,6 +142,13 @@
 2. Added focused tests for same-canonical parser drift, including removed `diff`, added `open`, `diff_preview` replacement, lookup-table mapping drift that preserves the canonical-name set, and declared-surface drift.
 3. Regenerated the handoff packet with explicit canonical demo-path mapping for each completed task and a direct statement of which demo-path step is more real.
 4. Reran all required gates after the parser-surface, test, and handoff-packet fixes.
+
+## Required Fixes Addressed From Fixer Prompt `20260429T040101Z`
+
+1. Refreshed the handoff packet to name the exact canonical demo-path steps advanced by the command-catalog contract work.
+2. Updated each completed task line to include the demo-path step it supports.
+3. Added a concise concrete-blocker statement explaining why this is not speculative second-order hardening.
+4. This is a metadata-only handoff refresh after prompt `20260429T040101Z`; no implementation files changed after the already-reviewed command-catalog slice, and the required gates were rerun below.
 
 ## Commands Run + Outcomes
 
