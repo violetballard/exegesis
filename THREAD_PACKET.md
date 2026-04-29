@@ -2,9 +2,9 @@
 
 - Lane: `feat-commands`
 - Branch: `codex/feat-commands`
-- Commit / review basis: current branch tip after the `20260429T013834Z` fixer validation commit.
+- Commit / review basis: current branch tip after the `20260429T014157Z` fixer validation commit.
 - Previous implementation anchor: `f8d860ed9f6299f0169c4f21321ac5f37c949fd3`
-- Reviewer packet addressed: `20260429T013834Z`
+- Reviewer packet addressed: `20260429T014157Z`
 
 ## Packet Traceability Note
 
@@ -132,6 +132,7 @@
 - `./typecheck-test.sh`: PASS.
 - `make ci`: PASS; reran scope-check, format, lint, compileall, and the 145-test suite.
 - `20260429T013834Z` fixer validation rerun: PASS for `make scope-check`, `./quality-format.sh --check`, `./quality-lint.sh`, `./quality-test.sh`, `./typecheck-test.sh`, and `make ci`.
+- `20260429T014157Z` fixer validation rerun: PASS for `make scope-check`, `./quality-format.sh --check`, `./quality-lint.sh`, `./quality-test.sh`, `./typecheck-test.sh`, and `make ci`.
 
 ## Risks / Blockers
 
@@ -208,3 +209,12 @@
 2. Required fixes 2 and 3 remain satisfied by focused tests for same-canonical substitutions, additions, removals, and reordering across `_CLI_ENTRYPOINTS`, declared surface, and lookup-table drift.
 3. Required fix 4 remains satisfied by listing both metadata files and naming the canonical demo-path steps advanced by the work.
 4. Required gates were rerun and passed for this fixer pass.
+
+## Fixer Packet `20260429T014157Z` Validation
+
+1. Required fix 1 remains satisfied by the actual branch-tip review basis: post-`f8d860e` command package, command-catalog, diff-preview command, focused test, and metadata changes are all included in this packet.
+2. Required fix 2 remains satisfied by `command_cli_contract()` validating parser-visible tokens, lookup-table shape, grouped parser surface, declared surface, and canonical command order.
+3. Required fix 3 remains satisfied by focused regressions for same-canonical substitution, token removal, token addition, and token reordering across `_CLI_ENTRYPOINTS`, declared surface, and lookup-table drift.
+4. Required fix 4 remains satisfied because `scripts/scope-check.sh` is absent from the net `main...HEAD` review diff.
+5. Required fix 5 remains satisfied by naming `open project/document`, `retrieve relevant material`, `promote/gather context`, and `preview/apply/reject patch` in the canonical demo-path mapping.
+6. Required gates were rerun and passed for this fixer pass.

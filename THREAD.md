@@ -6,7 +6,7 @@ Canonical handoff contract lives in `THREAD_PACKET.md`.
 
 - Lane: `feat-commands`
 - Branch: `codex/feat-commands`
-- Review basis: current branch tip after the `20260429T013834Z` fixer validation commit.
+- Review basis: current branch tip after the `20260429T014157Z` fixer validation commit.
 - Previous implementation anchor: `f8d860ed9f6299f0169c4f21321ac5f37c949fd3`
 - Scope: command-catalog contract hardening for the current engine-first MVP focus without starting `feat-console`.
 - Roadmap alignment: Milestone 3 CLI compatibility for the engine-first workflow loop, and `feat-commands` as the command-surface compatibility lane.
@@ -61,3 +61,9 @@ Canonical handoff contract lives in `THREAD_PACKET.md`.
 1. The branch already contains the required parser-surface drift guard and focused same-canonical alias drift tests.
 2. Required gates were rerun for this fixer pass: `make scope-check`, `./quality-format.sh --check`, `./quality-lint.sh`, `./quality-test.sh`, `./typecheck-test.sh`, and `make ci`.
 3. This pass is metadata-only; implementation scope remains unchanged.
+
+## Fixer Packet `20260429T014157Z` Validation
+
+1. The branch tip remains the single review basis and includes the post-`f8d860e` command package and test changes.
+2. The required parser-surface drift fixes are already present in `src/qual/commands/catalog.py` and covered by focused `_CLI_ENTRYPOINTS`, declared-surface, and lookup-table regressions.
+3. Required gates were rerun for this fixer pass: `make scope-check`, `./quality-format.sh --check`, `./quality-lint.sh`, `./quality-test.sh`, `./typecheck-test.sh`, and `make ci`.
