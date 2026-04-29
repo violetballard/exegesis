@@ -524,6 +524,7 @@ def _build_retrieval_context_bundle_from_source_bundle(source_bundle: dict[str, 
         "retrieval_provenance": copy.deepcopy(retrieval_provenance),
         "retrieval_source_bundle": copy.deepcopy(source_bundle),
         "retrieval_evidence": copy.deepcopy(source_bundle.get("retrieval_evidence", {})),
+        "retrieval_basket_promotion": _build_retrieval_basket_promotion_from_payload(source_bundle),
     }
 
 
@@ -642,7 +643,61 @@ def _build_retrieval_context_bundle_from_payload(payload: dict[str, object]) -> 
         "retrieval_provenance": _build_retrieval_provenance_from_payload(payload),
         "retrieval_source_bundle": _build_retrieval_source_bundle_from_payload(payload),
         "retrieval_evidence": copy.deepcopy(payload.get("retrieval_evidence", {})),
+        "retrieval_basket_promotion": _build_retrieval_basket_promotion_from_payload(payload),
     }
+
+
+def _build_retrieval_basket_promotion_from_payload(payload: dict[str, object]) -> dict[str, object]:
+    """Return the compact retrieval reference set needed to promote context."""
+
+    summary = payload.get("retrieval_summary", {})
+    if not isinstance(summary, dict):
+        summary = {}
+    manifest = payload.get("retrieval_manifest", {})
+    if not isinstance(manifest, dict):
+        manifest = {}
+    citation_status = payload.get("citation_status", summary.get("citation_status", {}))
+    if not isinstance(citation_status, dict):
+        citation_status = {}
+    source_bundle = payload.get("retrieval_source_bundle", {})
+    if not isinstance(source_bundle, dict):
+        source_bundle = payload.get("source_bundle", {})
+    if not isinstance(source_bundle, dict):
+        source_bundle = {}
+    promotion = {
+        "result_fingerprint": payload.get("result_fingerprint"),
+        "query_fingerprint": summary.get("query_fingerprint"),
+        "retrieval_backend": payload.get("retrieval_backend", summary.get("retrieval_backend")),
+        "retrieval_mode": payload.get("retrieval_mode", summary.get("retrieval_mode")),
+        "doc_count": summary.get("doc_count"),
+        "excerpt_count": summary.get("excerpt_count"),
+        "doc_ids": _normalize_list_like(summary.get("doc_ids", [])),
+        "excerpt_ids": _normalize_list_like(summary.get("excerpt_ids", [])),
+        "doc_fingerprints": _normalize_list_like(summary.get("doc_fingerprints", [])),
+        "doc_identity_fingerprints": _normalize_list_like(summary.get("doc_identity_fingerprints", [])),
+        "excerpt_fingerprints": _normalize_list_like(summary.get("excerpt_fingerprints", [])),
+        "excerpt_text_hashes": _normalize_list_like(summary.get("excerpt_text_hashes", [])),
+        "top_excerpt_ids": _normalize_list_like(manifest.get("top_excerpt_ids", [])),
+        "top_excerpt_fingerprints": _normalize_list_like(
+            summary.get("top_excerpt_fingerprints", manifest.get("top_excerpt_fingerprints", []))
+        ),
+        "top_excerpt_text_hashes": _normalize_list_like(
+            summary.get("top_excerpt_text_hashes", manifest.get("top_excerpt_text_hashes", []))
+        ),
+        "primary_doc_id": summary.get("primary_doc_id"),
+        "primary_excerpt_id": summary.get("primary_excerpt_id"),
+        "primary_doc_fingerprint": summary.get("primary_doc_fingerprint"),
+        "primary_doc_identity_fingerprint": summary.get("primary_doc_identity_fingerprint"),
+        "primary_excerpt_fingerprint": summary.get("primary_excerpt_fingerprint"),
+        "primary_excerpt_text_hash": summary.get("primary_excerpt_text_hash"),
+        "citation_status": copy.deepcopy(citation_status),
+        "source_bundle_fingerprint": source_bundle.get(
+            "source_bundle_fingerprint",
+            payload.get("source_bundle_fingerprint"),
+        ),
+    }
+    promotion["basket_promotion_fingerprint"] = _stable_fingerprint(promotion)
+    return promotion
 
 
 def _build_retrieval_diagnostics_from_source_bundle(source_bundle: dict[str, object]) -> dict[str, object]:
