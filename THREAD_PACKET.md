@@ -57,7 +57,7 @@ Matches `git diff --name-status d7fd5d200358287fa42a18d39e2b277463b9b69f..HEAD` 
 
 ## Budget / Risk
 
-Risk/budget: high/shared because shared regression coverage and runtime retrieval payload/service behavior are included in the reviewed range. Recomputed from `d7fd5d200358287fa42a18d39e2b277463b9b69f..HEAD` including this packet refresh: task budget `4/4`; file budget `13/8`; size budget `13 files changed, 1973 insertions(+), 264 deletions(-)`, which is `1709` net LOC and exceeds the high-risk `<=300` net LOC cap. Integrator-locked files: none. Shared-by-approval files: `tests/unit/test_unified_retrieval.py` and `tests/unit/test_packet_planner.py` as regression/packet coverage for this lane. Routing/provider/core entrypoint impact: none.
+Risk/budget: high/shared because shared regression coverage and runtime retrieval payload/service behavior are included in the reviewed range. Recomputed from `d7fd5d200358287fa42a18d39e2b277463b9b69f..HEAD` including this packet refresh: task budget `4/4`; file budget `13/8`; size budget `13 files changed, 1980 insertions(+), 262 deletions(-)`, which is `1718` net LOC and exceeds the high-risk `<=300` net LOC cap. Integrator-locked files: none. Shared-by-approval files: `tests/unit/test_unified_retrieval.py` and `tests/unit/test_packet_planner.py` as regression/packet coverage for this lane. Routing/provider/core entrypoint impact: none.
 
 Required budget disposition: do not approve the full branch tip under normal AGENTS high-risk enforcement unless the integrator grants an explicit budget exception. Without that exception, split the work into budget-compliant high-risk handoffs, each capped at `4` meaningful tasks, `<=8` files, and `<=300` net LOC, and regenerate each split packet against its intended merge-candidate range.
 
@@ -76,6 +76,15 @@ Required budget disposition: do not approve the full branch tip under normal AGE
 ## Commands Run
 
 Fresh branch-tip fixer pass:
+
+- `make scope-check` PASS.
+- `./quality-format.sh --check` PASS.
+- `./quality-lint.sh` PASS.
+- `./quality-test.sh` PASS (`124` tests).
+- `./typecheck-test.sh` PASS.
+- `make ci` PASS (`124` tests).
+
+Validation fixer pass on `2026-04-29` against branch tip `8fc3b8786e5c407ba9ae8e97ad2081ad900bdb54`:
 
 - `make scope-check` PASS.
 - `./quality-format.sh --check` PASS.
