@@ -2,7 +2,7 @@
 
 - Lane: `feat-commands`
 - Branch: `codex/feat-commands`
-- Commit: pending reviewer-fix commit for packet `20260429T033930Z`
+- Commit: current branch tip after reviewer-fix packet `20260429T033930Z`
 - Review basis: branch tip after this fixer commit, not `f8d860ed9f6299f0169c4f21321ac5f37c949fd3` alone.
 - Prior implementation anchor: `f8d860ed9f6299f0169c4f21321ac5f37c949fd3`
 - Packet refresh role: reviewer-fix implementation and handoff correction
