@@ -10,11 +10,7 @@
 
 ## Required Fixes Addressed
 
-1. Handoff scope is regenerated against one source of truth: `378cf9a7..HEAD`.
-2. All post-`adfa8cdadd43747ffbcb612e4151e262b13e52ca` implementation changes are in the reviewed range and task summary.
-3. Files, size budget, and gates are recalculated against the exact branch-tip merge candidate.
-4. Canonical demo-path step advanced: `retrieve relevant material`.
-5. `.codex` packet mirrors remain sandbox-blocked: `touch .codex/.write_test` fails with `Operation not permitted`.
+Scope is regenerated against one source of truth, `378cf9a7..HEAD`; all post-`adfa8cdadd43747ffbcb612e4151e262b13e52ca` implementation changes are in scope; files, size budget, and gates are recalculated for the branch-tip merge candidate; canonical demo-path step advanced is `retrieve relevant material`; `.codex` packet mirrors remain sandbox-blocked because `touch .codex/.write_test` fails with `Operation not permitted`.
 
 ## Scope Completed
 
@@ -32,6 +28,10 @@ The branch delivers the FTS-first retrieval slice for the current MVP engine wor
 - `src/qual/engine/retrieval/fts_strategy.py`: adds one-slot cache invalidation and deep-copies fresh runner hits before returning/caching them.
 - `src/qual/engine/retrieval/payload.py`: normalizes basket promotion refs across payload snapshots, backfills missing primary provenance from citations, and exposes `retrieval_basket_promotion_refs`.
 - `src/qual/retrieval/service.py`: clears the FTS cache after document upserts, computes result fingerprints before evidence construction, and emits stable doc/excerpt promotion refs.
+
+## Non-Retrieval Tooling / Test Scope
+
+No `codex_packet_handoff/tools/planner.py` or `tests/unit/test_packet_planner.py` changes are part of this merge candidate. They are not metadata-only files, they are not listed as metadata-only handoff files, and they are outside the reviewed range diff for `378cf9a7..HEAD`.
 
 ## Files Changed
 
