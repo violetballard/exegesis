@@ -1432,6 +1432,9 @@ class RetrievalService:
                 hits=hits,
                 query_fingerprint=query_fingerprint,
                 result_fingerprint=result_fingerprint,
+                query_scope=query.scope,
+                query_intent=query.intent,
+                query_date_range=query.constraints.date_range,
             ),
             "retrieval_manifest": dict(retrieval_manifest),
         }
@@ -1443,20 +1446,30 @@ class RetrievalService:
         hits: list[RetrievalHit],
         query_fingerprint: str,
         result_fingerprint: str,
+        query_scope: str,
+        query_intent: str,
+        query_date_range: tuple[str, str] | None,
     ) -> dict[str, object]:
         """Return stable doc/excerpt references suitable for basket promotion."""
 
+        query_date_range_snapshot = list(query_date_range) if query_date_range is not None else None
         return {
             "doc_refs": [
                 {
                     "doc_id": doc_hit.doc_id,
+                    "doc_type": doc_hit.provenance.get("doc_type"),
                     "query_fingerprint": query_fingerprint,
+                    "query_scope": query_scope,
+                    "query_intent": query_intent,
+                    "query_date_range": query_date_range_snapshot,
                     "result_fingerprint": result_fingerprint,
                     "doc_fingerprint": doc_hit.provenance.get("doc_fingerprint"),
                     "doc_identity_fingerprint": doc_hit.provenance.get("doc_identity_fingerprint"),
+                    "doc_rank": doc_hit.provenance.get("doc_rank"),
                     "source_hash": doc_hit.source_hash,
                     "top_excerpt_id": doc_hit.top_excerpt_id,
                     "top_excerpt_fingerprint": doc_hit.provenance.get("top_excerpt_fingerprint"),
+                    "top_excerpt_text_hash": doc_hit.provenance.get("top_excerpt_text_hash"),
                     "source_strategy": doc_hit.source_strategy,
                     "retrieval_backend": doc_hit.provenance.get("retrieval_backend"),
                     "retrieval_mode": doc_hit.provenance.get("retrieval_mode"),
@@ -1467,12 +1480,19 @@ class RetrievalService:
                 {
                     "doc_id": hit.doc_id,
                     "excerpt_id": hit.excerpt_id,
+                    "doc_type": hit.provenance.get("doc_type"),
                     "query_fingerprint": query_fingerprint,
+                    "query_scope": query_scope,
+                    "query_intent": query_intent,
+                    "query_date_range": query_date_range_snapshot,
                     "result_fingerprint": result_fingerprint,
                     "excerpt_fingerprint": hit.provenance.get("excerpt_fingerprint"),
                     "excerpt_text_hash": hit.provenance.get("excerpt_text_hash") or hit.provenance.get("hash"),
                     "span": copy.deepcopy(hit.provenance.get("span")),
                     "source_hash": hit.provenance.get("source_hash"),
+                    "rank": hit.provenance.get("rank"),
+                    "match_count": hit.provenance.get("match_count"),
+                    "matched_terms": copy.deepcopy(hit.provenance.get("matched_terms")),
                     "source_strategy": hit.source_strategy,
                     "retrieval_backend": hit.provenance.get("retrieval_backend"),
                     "retrieval_mode": hit.provenance.get("retrieval_mode"),
