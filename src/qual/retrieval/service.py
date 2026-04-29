@@ -753,17 +753,31 @@ class RetrievalResult:
         return source_bundle
 
     def _basket_candidate_snapshots(self) -> list[dict[str, object]]:
-        """Return deterministic excerpt IDs ready for context basket promotion."""
+        """Return deterministic excerpt payloads ready for context basket promotion."""
 
         candidates: list[dict[str, object]] = []
         for hit in self.hits:
             if hit.excerpt_id is None:
                 continue
+            citation = {
+                "doc_id": hit.doc_id,
+                "excerpt_id": hit.excerpt_id,
+                "source_hash": hit.provenance.get("source_hash"),
+                "excerpt_fingerprint": hit.provenance.get("excerpt_fingerprint"),
+                "excerpt_text_hash": hit.provenance.get("excerpt_text_hash") or hit.provenance.get("hash"),
+                "source_strategy": hit.source_strategy,
+                "retrieval_backend": hit.provenance.get("retrieval_backend"),
+                "retrieval_mode": hit.provenance.get("retrieval_mode"),
+            }
             candidates.append(
                 {
                     "item_id": hit.excerpt_id,
                     "kind": "excerpt",
                     "doc_id": hit.doc_id,
+                    "doc_type": hit.provenance.get("doc_type"),
+                    "title_hint": hit.title_hint,
+                    "query_fingerprint": self.diagnostics["query_fingerprint"],
+                    "result_fingerprint": self.result_fingerprint,
                     "source_strategy": hit.source_strategy,
                     "retrieval_backend": hit.provenance.get("retrieval_backend"),
                     "retrieval_mode": hit.provenance.get("retrieval_mode"),
@@ -773,6 +787,7 @@ class RetrievalResult:
                     "source_hash": hit.provenance.get("source_hash"),
                     "excerpt_fingerprint": hit.provenance.get("excerpt_fingerprint"),
                     "excerpt_text_hash": hit.provenance.get("excerpt_text_hash") or hit.provenance.get("hash"),
+                    "citation": citation,
                 }
             )
         return candidates

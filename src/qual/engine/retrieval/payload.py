@@ -220,11 +220,37 @@ def _build_basket_candidates_from_excerpt_hits(excerpt_hits: list[object]) -> li
         provenance = hit.get("provenance", {})
         if not isinstance(provenance, dict):
             provenance = {}
+        citation = {
+            "doc_id": hit.get("doc_id", provenance.get("doc_id")),
+            "excerpt_id": excerpt_id,
+            "source_hash": hit.get("source_hash", provenance.get("source_hash")),
+            "excerpt_fingerprint": hit.get(
+                "excerpt_fingerprint",
+                provenance.get("excerpt_fingerprint"),
+            ),
+            "excerpt_text_hash": hit.get(
+                "excerpt_text_hash",
+                provenance.get("excerpt_text_hash", provenance.get("hash")),
+            ),
+            "source_strategy": hit.get("source_strategy", provenance.get("source_strategy")),
+            "retrieval_backend": hit.get("retrieval_backend", provenance.get("retrieval_backend")),
+            "retrieval_mode": hit.get("retrieval_mode", provenance.get("retrieval_mode")),
+        }
         candidates.append(
             {
                 "item_id": excerpt_id,
                 "kind": "excerpt",
                 "doc_id": hit.get("doc_id", provenance.get("doc_id")),
+                "doc_type": hit.get("doc_type", provenance.get("doc_type")),
+                "title_hint": hit.get("title_hint", provenance.get("title_hint")),
+                "query_fingerprint": hit.get(
+                    "query_fingerprint",
+                    provenance.get("query_fingerprint"),
+                ),
+                "result_fingerprint": hit.get(
+                    "result_fingerprint",
+                    provenance.get("result_fingerprint"),
+                ),
                 "source_strategy": hit.get("source_strategy", provenance.get("source_strategy")),
                 "retrieval_backend": hit.get("retrieval_backend", provenance.get("retrieval_backend")),
                 "retrieval_mode": hit.get("retrieval_mode", provenance.get("retrieval_mode")),
@@ -240,6 +266,7 @@ def _build_basket_candidates_from_excerpt_hits(excerpt_hits: list[object]) -> li
                     "excerpt_text_hash",
                     provenance.get("excerpt_text_hash", provenance.get("hash")),
                 ),
+                "citation": citation,
             }
         )
     return candidates
