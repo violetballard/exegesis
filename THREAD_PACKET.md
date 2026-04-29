@@ -4,7 +4,7 @@
 - Packet purpose: branch-tip re-review packet for the actual merge candidate, including FTS-first retrieval, basket-promotion reference plumbing, and FTS strategy snapshot isolation.
 - Merge candidate: the branch tip after this fixer commit.
 - Authoritative merge-review range: `378cf9a74a3658058079a32f186fcd254c4a4034..HEAD`.
-- Pre-fix packet HEAD: `f26b3a6de39492e288fbdf8c2338dab64a6e61e5`.
+- Pre-fix packet HEAD: `6da82ca9157bb1b95cbdcd654df3d932eabf415b`.
 - Reviewed scope rule: review the full branch tip range above. Do not use `adfa8cdadd43747ffbcb612e4151e262b13e52ca` as the merge-candidate endpoint.
 
 ## Branch-Tip Scope Summary
@@ -30,7 +30,7 @@ Reviewer-required traceability fix: this packet intentionally reviews `f26b3a6de
 - `3f09ca2f4132eff22bd3faa0e8a3e1f5411482f5`: exposes normalized basket-promotion refs through retrieval source/context/downstream payload reconstruction.
 - `f26b3a6de39492e288fbdf8c2338dab64a6e61e5`: isolates FTS strategy hit snapshots with deep copies around runner output, cache storage, and returned `StrategyRun` hits.
 
-Packet/documentation commits after `f26b3a6de39492e288fbdf8c2338dab64a6e61e5`, including this fixer commit, update packet metadata only. Runtime code changes through `f26b3a6de39492e288fbdf8c2338dab64a6e61e5` remain inside the reviewed branch-tip range.
+Packet/documentation commits after `f26b3a6de39492e288fbdf8c2338dab64a6e61e5`, including this fixer commit, update packet metadata only. Runtime code changes through `f26b3a6de39492e288fbdf8c2338dab64a6e61e5` remain inside the reviewed branch-tip range. The mirrored kickoff packet and lane metadata still contain stale narrowed-target language because this sandbox rejects writes to those packet mirrors; this `THREAD_PACKET.md` remains the authoritative regenerated packet for the actual branch-tip target.
 
 ## Tasks Completed
 
@@ -97,7 +97,7 @@ Required gates rerun against the actual branch-tip merge candidate after this pa
 
 ## Risks / Blockers
 
-- `.codex/kickoff_packets/feat-retrieval-fts.md` and `.codex/lane_meta/feat-retrieval-fts.json` still contain stale `adfa8cd` endpoint language because this worktree rejects writes under those `.codex` mirror directories as outside the writable project. This `THREAD_PACKET.md` is the authoritative regenerated packet for the actual branch tip.
+- `.codex/kickoff_packets/feat-retrieval-fts.md` and `.codex/lane_meta/feat-retrieval-fts.json` still contain stale `adfa8cd` endpoint language because this sandbox rejects writes to those packet mirrors. This `THREAD_PACKET.md` is the authoritative regenerated packet for the actual branch tip.
 - Merge risk is high only because the handoff includes approved shared regression coverage; there are no integrator-locked file edits.
 - The branch intentionally does not add embeddings, PageIndex requirements, UI rendering behavior, alternate retrieval modes, routing changes, or provider changes.
 - Final HEAD SHA is reported in the fixer final response after commit creation.
