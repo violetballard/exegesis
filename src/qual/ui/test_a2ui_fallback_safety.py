@@ -471,6 +471,77 @@ class A2UIFallbackSafetyTests(unittest.TestCase):
             selection_manifest["contract_fingerprint"],
         )
 
+    def test_leaf_contract_helpers_return_fresh_snapshots(self) -> None:
+        action_manifest = describe_action_contract()
+        selection_manifest = describe_selection_contract()
+        card_manifest = describe_card_contract()
+        leaf_manifest = describe_a2ui_leaf_contracts()
+
+        action_manifest["allowed_actions"][0] = "mutated"
+        selection_manifest["required_fields"][0] = "mutated"
+        card_manifest["card_schemas"][0]["allowed_actions"][0] = "mutated"
+        leaf_manifest["action"]["allowed_actions"][0] = "mutated"
+        leaf_manifest["selection"]["required_fields"][0] = "mutated"
+
+        fresh_action_manifest = describe_action_contract()
+        fresh_selection_manifest = describe_selection_contract()
+        fresh_card_manifest = describe_card_contract()
+        fresh_leaf_manifest = describe_a2ui_leaf_contracts()
+
+        self.assertEqual(
+            fresh_action_manifest["allowed_actions"],
+            [
+                "apply_patch",
+                "copy_to_clipboard",
+                "create_context_set",
+                "export_document",
+                "open_corpus_item",
+                "open_section",
+                "pin_to_context_set",
+                "refresh_license",
+                "reject_patch",
+                "run_agent",
+            ],
+        )
+        self.assertEqual(
+            fresh_selection_manifest["required_fields"],
+            ["id", "label", "payload"],
+        )
+        self.assertEqual(
+            fresh_card_manifest["card_schemas"][0]["allowed_actions"],
+            [
+                "apply_patch",
+                "copy_to_clipboard",
+                "create_context_set",
+                "export_document",
+                "open_corpus_item",
+                "open_section",
+                "pin_to_context_set",
+                "refresh_license",
+                "reject_patch",
+                "run_agent",
+            ],
+        )
+        self.assertEqual(
+            fresh_leaf_manifest["action"]["allowed_actions"],
+            [
+                "apply_patch",
+                "copy_to_clipboard",
+                "create_context_set",
+                "export_document",
+                "open_corpus_item",
+                "open_section",
+                "pin_to_context_set",
+                "refresh_license",
+                "reject_patch",
+                "run_agent",
+            ],
+        )
+        self.assertEqual(
+            fresh_leaf_manifest["selection"]["required_fields"],
+            ["id", "label", "payload"],
+        )
+
     def test_leaf_contract_manifest_alias_helpers_match_the_base_contracts(self) -> None:
         self.assertEqual(describe_action_contract_manifest(), describe_action_contract())
         self.assertEqual(describe_card_contract_manifest(), describe_card_contract())

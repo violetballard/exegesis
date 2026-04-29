@@ -1470,9 +1470,7 @@ def a2ui_dispatch_contract_fingerprint(
 
 
 @lru_cache(maxsize=None)
-def describe_selection_contract() -> dict[str, Any]:
-    """Return the stable, versioned SelectionRef contract manifest."""
-
+def _describe_selection_contract_manifest() -> dict[str, Any]:
     manifest = _build_selection_contract_manifest()
     fingerprint = selection_contract_fingerprint()
     manifest["selection_fingerprint"] = fingerprint
@@ -1483,6 +1481,12 @@ def describe_selection_contract() -> dict[str, Any]:
     return manifest
 
 
+def describe_selection_contract() -> dict[str, Any]:
+    """Return the stable, versioned SelectionRef contract manifest."""
+
+    return _snapshot_contract_section(_describe_selection_contract_manifest())
+
+
 def describe_selection_contract_manifest() -> dict[str, Any]:
     """Return the stable SelectionRef contract manifest alias."""
 
@@ -1490,9 +1494,7 @@ def describe_selection_contract_manifest() -> dict[str, Any]:
 
 
 @lru_cache(maxsize=None)
-def describe_action_contract() -> dict[str, Any]:
-    """Return the stable, versioned ActionRef contract manifest."""
-
+def _describe_action_contract_manifest() -> dict[str, Any]:
     manifest = _build_action_contract_manifest()
     fingerprint = action_contract_fingerprint()
     manifest["action_fingerprint"] = fingerprint
@@ -1503,15 +1505,20 @@ def describe_action_contract() -> dict[str, Any]:
     return manifest
 
 
+def describe_action_contract() -> dict[str, Any]:
+    """Return the stable, versioned ActionRef contract manifest."""
+
+    return _snapshot_contract_section(_describe_action_contract_manifest())
+
+
 def describe_action_contract_manifest() -> dict[str, Any]:
     """Return the stable ActionRef contract manifest alias."""
 
     return describe_action_contract()
 
 
-def describe_card_contract() -> dict[str, Any]:
-    """Return the stable, versioned card contract manifest."""
-
+@lru_cache(maxsize=None)
+def _describe_card_contract_manifest() -> dict[str, Any]:
     manifest = _build_card_contract_manifest()
     fingerprint = card_contract_fingerprint()
     manifest["card_fingerprint"] = fingerprint
@@ -1522,6 +1529,12 @@ def describe_card_contract() -> dict[str, Any]:
     return manifest
 
 
+def describe_card_contract() -> dict[str, Any]:
+    """Return the stable, versioned card contract manifest."""
+
+    return _snapshot_contract_section(_describe_card_contract_manifest())
+
+
 def describe_card_contract_manifest() -> dict[str, Any]:
     """Return the stable card contract manifest alias."""
 
@@ -1529,9 +1542,7 @@ def describe_card_contract_manifest() -> dict[str, Any]:
 
 
 @lru_cache(maxsize=None)
-def describe_a2ui_leaf_contracts() -> dict[str, Any]:
-    """Return the stable shared ActionRef and SelectionRef contract bundle."""
-
+def _describe_a2ui_leaf_contracts_manifest() -> dict[str, Any]:
     manifest = _snapshot_contract_section(_build_a2ui_leaf_contracts_manifest())
     fingerprint = a2ui_leaf_contracts_fingerprint()
     manifest["action_fingerprint"] = manifest["action"]["contract_fingerprint"]
@@ -1550,6 +1561,12 @@ def describe_a2ui_leaf_contracts() -> dict[str, Any]:
     manifest["leaf_contracts_manifest"] = _snapshot_contract_section(manifest)
     manifest["leaf_contracts_manifest_fingerprint"] = fingerprint
     return manifest
+
+
+def describe_a2ui_leaf_contracts() -> dict[str, Any]:
+    """Return the stable shared ActionRef and SelectionRef contract bundle."""
+
+    return _snapshot_contract_section(_describe_a2ui_leaf_contracts_manifest())
 
 
 def describe_a2ui_capabilities_contract() -> dict[str, Any]:
