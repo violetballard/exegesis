@@ -5,7 +5,7 @@
 - Review target: full branch tip of `codex/feat-commands`
 - Review basis: `git diff main...codex/feat-commands`
 - Pre-fixer branch-tip SHA before this fixer pass: `fc6e67941`
-- Fixer prompt satisfied: `20260429T131018Z`
+- Fixer prompt satisfied: `20260429T131636Z`
 
 This packet supersedes all earlier packets and packet-refresh notes. No commit in the reviewed range is described as metadata-only; implementation and handoff edits are part of the branch-tip review target.
 
@@ -20,6 +20,7 @@ This packet supersedes all earlier packets and packet-refresh notes. No commit i
 7. The concrete blocker statement below explains why parser/catalog drift was direct loop breakage for the CLI-first Milestone 3 path.
 8. The final readiness statement names which canonical demo-path steps this command-catalog slice now makes more real.
 9. Ownership wording now distinguishes the approved shared-test exception from the earlier branch-tip integrator-locked parser exception.
+10. Fresh gate evidence is recorded for the `20260429T131636Z` offline-review fallback fix request; no source changes were required because all required gates passed on rerun.
 
 ## Canonical Demo-Path Alignment
 
@@ -111,6 +112,8 @@ This is a high-risk branch-tip handoff because the full branch review target inc
 
 ## Commands Run
 
+- Fresh `20260429T131636Z` fixer rerun for offline-review fallback:
+  `make scope-check` passed; `./quality-format.sh --check` passed; `./quality-lint.sh` passed; `./quality-test.sh` passed with smoke tests and `132` unit tests; `./typecheck-test.sh` passed; `make ci` passed with scope-check, format, lint, typecheck, smoke tests, and `132` unit tests.
 - Fresh `20260429T131018Z` fixer rerun after live parser-surface and ownership-note updates:
   `python -m unittest tests.unit.test_commands_catalog` passed with `50` tests; `make scope-check` passed; `./quality-format.sh --check` passed; `./quality-lint.sh` passed; `./quality-test.sh` passed with smoke tests and `132` unit tests; `./typecheck-test.sh` passed; `make ci` passed with scope-check, format, lint, typecheck, smoke tests, and `132` unit tests.
 - Fresh `20260429T130328Z` fixer rerun after canonical demo-path handoff updates:
