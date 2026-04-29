@@ -1175,6 +1175,8 @@ def describe_shell_ui_contract(
     manifest["shell_ui_contract_manifest"] = copy.deepcopy(manifest["shell_ui_contract"])
     manifest["shell_ui_contract_manifest_fingerprint"] = fingerprint
     manifest["shell_ui_contract_fingerprint"] = fingerprint
+    manifest["contract_manifest"] = copy.deepcopy(manifest["shell_ui_contract"])
+    manifest["contract_manifest_fingerprint"] = fingerprint
     manifest["startup_fields_fingerprint"] = contract_fingerprints["startup_fields_fingerprint"]
     manifest["startup_preview_fingerprint"] = contract_fingerprints["startup_preview_fingerprint"]
     manifest["shell_ui_fingerprint"] = fingerprint
