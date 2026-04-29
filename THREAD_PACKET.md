@@ -11,7 +11,8 @@
   - `2836f5f0e4e0e903acc0e3633e6204be3f982a5d`: implementation fix that enforces canonical parser tokens in `src/qual/commands/catalog.py` and refreshes packet traceability.
   - `0492bb2bc00dd03c126789985d9a5f18e5cd8e67`: metadata-only packet refresh that documents the additional implementation commits above; it is not itself implementation.
   - `f1931ac437f5f051b397e36ca27560bd1023d975`: metadata-only packet correction that resubmitted the corrected packet without changing implementation behavior.
-  - Final fixer-pass commit from this packet: packet-only metadata correction. The exact final HEAD SHA is reported by the fixer after commit creation.
+  - `0fe7c8c84e5f65bb0f557d191960ebbcf3946b9ef`: metadata-only packet correction that clarified the corrected review packet.
+  - Final fixer validation commit from this packet: packet-only metadata update confirming the corrected target and green gates. The exact final HEAD SHA is reported by the fixer after commit creation.
 - Merge base used for file accounting: `06cdebc2d5d53533b73f264a4bbf5a4b4daacb27`.
 - Risk classification: low-risk lane-owned implementation plus one shared-by-approval unit-test exception and packet metadata; no integrator-locked files are changed.
 
@@ -39,7 +40,7 @@
 2. Added a regression test proving that removing canonical token `diff-preview` while keeping alias `diff` raises `ValueError`. Demo-path mapping: strengthens `preview/apply/reject patch` by preserving the canonical `diff-preview` parser surface.
 3. Added a regression test proving that alias `diff` cannot appear before canonical token `diff-preview`. Demo-path mapping: strengthens `preview/apply/reject patch` by preserving canonical-token precedence.
 4. Narrowed the corrected target to the command-catalog implementation slice: `src/qual/commands/catalog.py`, `tests/unit/test_commands_catalog.py`, and packet metadata only. Demo-path mapping: keeps this lane scoped to preserving the CLI surface for `preview/apply/reject patch`.
-5. Regenerated `THREAD_PACKET.md` and `THREAD.md` so they describe the corrected branch-tip target, classify `ab96cb722094e821105d1cdfd3cae24f4b9184ef` and `2836f5f0e4e0e903acc0e3633e6204be3f982a5d` as implementation, and classify `0492bb2bc00dd03c126789985d9a5f18e5cd8e67`, `f1931ac437f5f051b397e36ca27560bd1023d975`, and this final fixer-pass commit as metadata-only. Demo-path mapping: keeps handoff evidence aligned with the engine-first path `Engine stability -> A2UI contracts with CLI fallback -> preview/apply/reject patch`.
+5. Regenerated `THREAD_PACKET.md` and `THREAD.md` so they describe the corrected branch-tip target, classify `ab96cb722094e821105d1cdfd3cae24f4b9184ef` and `2836f5f0e4e0e903acc0e3633e6204be3f982a5d` as implementation, and classify `0492bb2bc00dd03c126789985d9a5f18e5cd8e67`, `f1931ac437f5f051b397e36ca27560bd1023d975`, `0fe7c8c84e5f65bb0f557d191960ebbcf3946b9ef`, and this final validation commit as metadata-only. Demo-path mapping: keeps handoff evidence aligned with the engine-first path `Engine stability -> A2UI contracts with CLI fallback -> preview/apply/reject patch`.
 6. Kept the unit test isolated to the catalog module so the corrected target does not require `src/qual/commands/__init__.py`. Demo-path mapping: limits validation to command-surface behavior used by the engine-first path `Engine stability -> A2UI contracts with CLI fallback -> preview/apply/reject patch`.
 
 ## Complete Corrected File List
