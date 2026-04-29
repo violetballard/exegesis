@@ -6,7 +6,7 @@ Canonical handoff contract lives in `THREAD_PACKET.md`.
 
 - Lane: `feat-commands`
 - Branch: `codex/feat-commands`
-- Review basis: final branch tip after this fixer pass for reviewer packet `20260429T003757Z`; implementation, tests, scope-check support, and packet metadata are reviewed together.
+- Review basis: final branch tip after this fixer pass for reviewer packet `20260429T004039Z`; implementation, tests, scope-check support, and packet metadata are reviewed together.
 - Scope: CLI command-catalog contract hardening for the current engine-first MVP focus without starting `feat-console`.
 - Roadmap alignment: Milestone 3 CLI compatibility for the engine-first workflow loop, and `feat-commands` as the command-surface compatibility lane.
 - Vision alignment: canonical engine contract stability while the CLI remains the active operator surface.
@@ -43,7 +43,7 @@ Canonical handoff contract lives in `THREAD_PACKET.md`.
 - Added regression coverage for same-canonical alias order drift where `diff` and `diff-preview` are reordered within the accepted parser tokens or the declared `diff-preview` parser group.
 - Added regression coverage for canonical command order drift where `command_names()` returns the right command set in the wrong order.
 - Regenerated the packet from the actual branch tip and stopped classifying code-bearing command/test commits as metadata-only.
-- Reconfirmed the `20260429T003757Z` reviewer fixes against the branch-tip implementation and refreshed handoff metadata so the current review basis is no longer stale.
+- Reconfirmed the `20260429T004039Z` reviewer fixes against the branch-tip implementation and refreshed handoff metadata so the current review basis is no longer stale.
 
 ## Canonical Demo-Path Mapping
 
@@ -208,6 +208,14 @@ Canonical handoff contract lives in `THREAD_PACKET.md`.
 5. Update handoff tasks with exact canonical demo-path steps: satisfied by naming open project/document, retrieve/context basket, patch preview, and continued CLI operation in the task list, mapping section, and final demo-path statement.
 6. Required gates: this fixer pass reruns and records `make scope-check`, `./quality-format.sh --check`, `./quality-lint.sh`, `./quality-test.sh`, `./typecheck-test.sh`, and `make ci`.
 
+## Reviewer Packet `20260429T004039Z` Fix Satisfaction
+
+1. Regenerate the handoff packet from the actual merge candidate tip: satisfied by anchoring review to the final `codex/feat-commands` branch tip after this fixer pass, with implementation, tests, scope-check support, `THREAD.md`, and `THREAD_PACKET.md` reviewed together.
+2. Do not classify code-bearing commits after `f8d860ed9f6299f0169c4f21321ac5f37c949fd3` as metadata-only: satisfied by submitting the full branch-tip implementation and limiting metadata-only classification to `THREAD.md` and `THREAD_PACKET.md`.
+3. Strengthen `command_cli_contract()` against parser-surface drift: already satisfied at this branch tip by comparing accepted parser tokens, token order, lookup-table shape/order, declared canonical parser surface, grouped parser projection, canonical command order, and explicit canonical token/lookup projections against `_CANONICAL_CLI_COMMAND_SURFACE`.
+4. Add focused same-canonical parser-drift tests: satisfied by tests covering added alias `open`, removed accepted token, substituted alias `diff_preview`, same-canonical token/order drift, declared-surface drift, grouped parser drift, lookup-table token/target substitution, lookup-table removed-token drift, lookup-table shape/order drift, and canonical command order drift.
+5. Restate the canonical demo-path step: satisfied by mapping the work to open project/document, retrieve/context basket, patch preview/apply-reject support, and continued CLI operation while Textual remains disabled.
+
 ## Verification
 
 - `python3 -m unittest tests.unit.test_commands_catalog -v`: PASS (62 tests)
@@ -217,5 +225,5 @@ Canonical handoff contract lives in `THREAD_PACKET.md`.
 - `./quality-test.sh`: PASS
 - `./typecheck-test.sh`: PASS
 - `make ci`: PASS
-- Final verification pass: PASS in final gate rerun for reviewer packet `20260429T003757Z`.
-- Exact-tip fixer verification: PASS after the `20260429T003757Z` handoff metadata refresh.
+- Final verification pass: PASS in final gate rerun for reviewer packet `20260429T004039Z`.
+- Exact-tip fixer verification: PASS after the `20260429T004039Z` handoff metadata refresh.
