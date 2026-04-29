@@ -3,9 +3,9 @@
 - Lane: `feat-commands`
 - Branch: `codex/feat-commands`
 - Corrected review target: the branch tip produced by this fixer pass, with the corrected four-file merge-target list below.
-- Current fixer packet validated: `fixer__feat-commands__20260429T221634Z`.
+- Current fixer packet validated: `fixer__feat-commands__20260429T222030Z`.
 - Integration instruction: review and merge the corrected branch tip only if its merge diff remains exactly `THREAD.md`, `THREAD_PACKET.md`, `src/qual/commands/catalog.py`, and `tests/unit/test_commands_catalog.py`; otherwise cherry-pick the final corrective commit target that preserves only that command-catalog slice.
-- Rejected packet reconciled: prior packet traceability incorrectly treated `ab96cb722094e821105d1cdfd3cae24f4b9184ef` and `2836f5f0e4e0e903acc0e3633e6204be3f982a5d` as metadata-only even though they modified implementation files. This packet classifies both commits as implementation and reviews them with this packet refresh.
+- Rejected packet reconciled: prior packet traceability incorrectly treated `ab96cb722094e821105d1cdfd3cae24f4b9184ef`, `2836f5f0e4e0e903acc0e3633e6204be3f982a5d`, and `e72c69d75446e3ad10de3d3d0c7c30b4957c4baa` as metadata-only or ambiguous final-fixer work even though they modified implementation files. This packet classifies all three commits as implementation and reviews them with this packet refresh.
 - Accurate implementation commits under review:
   - `f8d860ed9f6299f0169c4f21321ac5f37c949fd3`: original command-catalog CLI contract implementation.
   - `ab96cb722094e821105d1cdfd3cae24f4b9184ef`: implementation fix for canonical-token drift, including alias-before-canonical regression coverage.
@@ -18,15 +18,16 @@
   - `19f037e38c13b9ae1891e3eb3d1a814663164f370`: metadata-only packet correction that validated the reviewer-fix packet without implementation changes.
   - `6201d051c5eaf86c35cfa123f7625bb9a874a112`: metadata-only packet correction that clarified the demo-path handoff in `THREAD.md` and `THREAD_PACKET.md`.
   - `d80fa9fa97faabae47000e07002757b76e5edc02`: metadata-only packet correction that clarified the exact canonical demo-path step and blocker removed.
-- Final fixer validation commit for reviewer packet `fixer__feat-commands__20260429T221634Z`: implementation clarification plus packet update confirming the corrected target, required-fix mapping, concrete MVP-loop blocker removed, ownership clarification, and green gates. The exact final HEAD SHA is reported by the fixer after commit creation.
+  - `e72c69d75446e3ad10de3d3d0c7c30b4957c4baa`: implementation fix that modifies `src/qual/commands/catalog.py` to require exact canonical CLI tokens in catalog order; this commit is not metadata-only.
+- Final fixer validation commit for reviewer packet `fixer__feat-commands__20260429T222030Z`: packet update confirming the corrected target, required-fix mapping, accurate `e72c69d75446e3ad10de3d3d0c7c30b4957c4baa` implementation classification, concrete MVP-loop blocker removed, ownership clarification, and green gates. The exact final HEAD SHA is reported by the fixer after commit creation.
 - Merge base used for file accounting: `06cdebc2d5d53533b73f264a4bbf5a4b4daacb27`.
 - Risk classification: low-risk lane-owned implementation plus one shared-by-approval unit-test exception and packet metadata; no integrator-locked files are changed.
 
 ## Required Handoff Fields
 
 - Branch name: `codex/feat-commands`
-- Scope completed: isolated the command catalog implementation slice from `f8d860ed9f6299f0169c4f21321ac5f37c949fd3`, included `ab96cb722094e821105d1cdfd3cae24f4b9184ef` and `2836f5f0e4e0e903acc0e3633e6204be3f982a5d` as implementation fixes, and removed off-lane branch-tip changes from the corrected merge target.
-- Implementation review basis: the branch tip produced by this fixer pass. This tip includes the corrected command-catalog slice from `f8d860e`, `ab96cb7`, `2836f5f`, and the final fixer-pass implementation clarification, plus metadata-only packet refreshes from `0492bb2`, `f1931ac`, `0fe7c8c`, `07a3eeb`, `d020227`, `19f037e`, `6201d05`, `d80fa9f`, and this final fixer-pass commit.
+- Scope completed: isolated the command catalog implementation slice from `f8d860ed9f6299f0169c4f21321ac5f37c949fd3`, included `ab96cb722094e821105d1cdfd3cae24f4b9184ef`, `2836f5f0e4e0e903acc0e3633e6204be3f982a5d`, and `e72c69d75446e3ad10de3d3d0c7c30b4957c4baa` as implementation fixes, and removed off-lane branch-tip changes from the corrected merge target.
+- Implementation review basis: the branch tip produced by this fixer pass. This tip includes the corrected command-catalog slice from `f8d860e`, `ab96cb7`, `2836f5f`, and `e72c69d`, plus metadata-only packet refreshes from `0492bb2`, `f1931ac`, `0fe7c8c`, `07a3eeb`, `d020227`, `19f037e`, `6201d05`, `d80fa9f`, and this final fixer-pass commit.
 - Roadmap item(s) affected: active MVP `feat-commands`; Milestone 3 command surface stability while Textual remains disabled.
 - Vision capability affected: canonical engine contract and CLI compatibility through deterministic command catalog metadata.
 - Exact canonical demo-path step advanced: `preview/apply/reject patch`.
@@ -47,7 +48,7 @@
 2. Added a regression test proving that removing canonical token `diff-preview` while keeping alias `diff` raises `ValueError`. Demo-path mapping: strengthens `preview/apply/reject patch` by preserving the canonical `diff-preview` / `patch-review` parser surface.
 3. Added a regression test proving that alias `diff` cannot appear before canonical token `diff-preview`. Demo-path mapping: strengthens `preview/apply/reject patch` by preserving canonical-token precedence for the `diff-preview` / `patch-review` route.
 4. Narrowed the corrected target to the command-catalog implementation slice: `src/qual/commands/catalog.py`, `tests/unit/test_commands_catalog.py`, and packet metadata only. Demo-path mapping: keeps this lane scoped to preserving the CLI surface for `preview/apply/reject patch`.
-5. Regenerated `THREAD_PACKET.md` and `THREAD.md` so they describe the corrected branch-tip target, classify `ab96cb722094e821105d1cdfd3cae24f4b9184ef` and `2836f5f0e4e0e903acc0e3633e6204be3f982a5d` as implementation, classify `d80fa9fa97faabae47000e07002757b76e5edc02` as metadata-only, and record this final fixer pass as the review target for `fixer__feat-commands__20260429T221634Z`. Demo-path mapping: keeps handoff evidence aligned with `open project/document`, `retrieve/gather context into basket`, `preview/apply/reject patch`, and `continue working` CLI routes.
+5. Regenerated `THREAD_PACKET.md` and `THREAD.md` so they describe the corrected branch-tip target, classify `ab96cb722094e821105d1cdfd3cae24f4b9184ef`, `2836f5f0e4e0e903acc0e3633e6204be3f982a5d`, and `e72c69d75446e3ad10de3d3d0c7c30b4957c4baa` as implementation, classify `d80fa9fa97faabae47000e07002757b76e5edc02` as metadata-only, and record this final fixer pass as the review target for `fixer__feat-commands__20260429T222030Z`. Demo-path mapping: keeps handoff evidence aligned with `open project/document`, `retrieve/gather context into basket`, `preview/apply/reject patch`, and `continue working` CLI routes.
 6. Kept the unit test isolated to the catalog module so the corrected target does not require `src/qual/commands/__init__.py`. Demo-path mapping: limits validation to command-surface behavior used by `open project/document`, `retrieve/gather context into basket`, `preview/apply/reject patch`, and `continue working` in the engine-first CLI fallback path.
 
 ## Complete Corrected File List
