@@ -566,27 +566,50 @@ class RetrievalResult:
             if hit.excerpt_id is None:
                 continue
             excerpt_text_hash = hit.provenance.get("excerpt_text_hash") or hit.provenance.get("hash")
-            refs.append(
-                {
-                    "ref_id": f"fts:{hit.excerpt_id}",
-                    "doc_id": hit.doc_id,
-                    "title_hint": hit.title_hint,
-                    "excerpt_id": hit.excerpt_id,
-                    "excerpt_text": hit.excerpt_text,
-                    "span": copy.deepcopy(hit.span),
-                    "source_hash": hit.provenance.get("source_hash"),
-                    "source_strategy": hit.source_strategy,
-                    "retrieval_backend": hit.provenance.get("retrieval_backend"),
-                    "retrieval_mode": hit.provenance.get("retrieval_mode"),
-                    "query_fingerprint": self.diagnostics["query_fingerprint"],
-                    "result_fingerprint": self.result_fingerprint,
-                    "excerpt_fingerprint": hit.provenance.get("excerpt_fingerprint"),
-                    "excerpt_text_hash": excerpt_text_hash,
-                    "rank": hit.provenance.get("rank"),
-                    "matched_terms": copy.deepcopy(hit.provenance.get("matched_terms", [])),
-                    "match_count": hit.provenance.get("match_count"),
-                }
+            provenance = {
+                "doc_id": hit.doc_id,
+                "doc_type": hit.provenance.get("doc_type"),
+                "excerpt_id": hit.excerpt_id,
+                "source_hash": hit.provenance.get("source_hash"),
+                "source_strategy": hit.source_strategy,
+                "retrieval_backend": hit.provenance.get("retrieval_backend"),
+                "retrieval_mode": hit.provenance.get("retrieval_mode"),
+                "query_fingerprint": self.diagnostics["query_fingerprint"],
+                "result_fingerprint": self.result_fingerprint,
+                "excerpt_fingerprint": hit.provenance.get("excerpt_fingerprint"),
+                "excerpt_text_hash": excerpt_text_hash,
+                "span": copy.deepcopy(hit.span),
+                "rank": hit.provenance.get("rank"),
+                "fts_rank": hit.provenance.get("fts_rank"),
+                "matched_terms": copy.deepcopy(hit.provenance.get("matched_terms", [])),
+                "match_count": hit.provenance.get("match_count"),
+            }
+            context_ref = {
+                "ref_id": f"fts:{hit.excerpt_id}",
+                "doc_id": hit.doc_id,
+                "doc_type": hit.provenance.get("doc_type"),
+                "title_hint": hit.title_hint,
+                "excerpt_id": hit.excerpt_id,
+                "excerpt_text": hit.excerpt_text,
+                "span": copy.deepcopy(hit.span),
+                "source_hash": hit.provenance.get("source_hash"),
+                "source_strategy": hit.source_strategy,
+                "retrieval_backend": hit.provenance.get("retrieval_backend"),
+                "retrieval_mode": hit.provenance.get("retrieval_mode"),
+                "query_fingerprint": self.diagnostics["query_fingerprint"],
+                "result_fingerprint": self.result_fingerprint,
+                "excerpt_fingerprint": hit.provenance.get("excerpt_fingerprint"),
+                "excerpt_text_hash": excerpt_text_hash,
+                "rank": hit.provenance.get("rank"),
+                "fts_rank": hit.provenance.get("fts_rank"),
+                "matched_terms": copy.deepcopy(hit.provenance.get("matched_terms", [])),
+                "match_count": hit.provenance.get("match_count"),
+                "provenance": provenance,
+            }
+            context_ref["context_ref_fingerprint"] = RetrievalService._stable_fingerprint(
+                context_ref
             )
+            refs.append(context_ref)
         return refs
 
     def _retrieval_summary_snapshot(
