@@ -50,7 +50,7 @@ Implementation files in that range:
 - Risk: high/shared.
 - Task budget: `4/4`.
 - File budget: `6/8`.
-- Size accounting for `378cf9a74a3658058079a32f186fcd254c4a4034..HEAD` is recomputed after this metadata refresh and reported in the final fixer response; the pre-refresh range was `6 files changed, 397 insertions(+), 87 deletions(-)`, net `310` LOC.
+- Size accounting before this final packet-status commit for `378cf9a74a3658058079a32f186fcd254c4a4034..HEAD`: `6 files changed, 426 insertions(+), 118 deletions(-)`, net `308` LOC.
 - This fixer commit changes editable packet metadata only and does not change retrieval implementation behavior.
 - Integrator-locked files: none.
 - Shared-by-approval files: `tests/unit/test_unified_retrieval.py`, used only for canonical retrieval regression coverage.
@@ -71,7 +71,7 @@ Implementation files in that range:
 
 ## Commands Run
 
-Fresh fixer pass on `2026-04-29` for the actual branch-tip merge candidate:
+Fresh fixer pass on `2026-04-29` for the actual branch-tip merge candidate, rerun after confirming the packet target is `378cf9a74a3658058079a32f186fcd254c4a4034..HEAD`:
 
 - `make scope-check` PASS.
 - `./quality-format.sh --check` PASS.
