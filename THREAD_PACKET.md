@@ -10,7 +10,7 @@
 
 - Review the actual `codex/feat-commands` branch tip. Do not treat commits after `f8d860ed9f6299f0169c4f21321ac5f37c949fd3` as metadata-only.
 - The branch-tip implementation includes command package, command-catalog, diff-preview command, and focused test changes after `f8d860e`.
-- This fixer pass restores the prior `scripts/scope-check.sh` scope-policy edit to the implementation anchor, so no gate-policy file remains part of the net review diff.
+- This fixer pass keeps `scripts/scope-check.sh` aligned with the current `main` scope-policy baseline, so no gate-policy file remains part of the net review diff.
 
 ## Current Program Focus
 
@@ -82,7 +82,7 @@
   - `src/qual/commands/diff_preview.py`
   - `tests/unit/test_commands_catalog.py`
   - `tests/unit/test_diff_preview.py`
-- Restored to the implementation anchor by this fixer pass and excluded from the net review diff:
+- Aligned with current `main` by this fixer pass and excluded from the net review diff:
   - `scripts/scope-check.sh`
 
 ## Approved Exception Note
@@ -99,7 +99,7 @@
 1. Hardened `command_cli_contract()` to verify the parser surface against the canonical CLI surface and reject parser/catalog drift for the `project-open`, `retrieval`, `patch-review`, and `export-handoff` CLI smoke path.
 2. Preserved canonical command ordering in the CLI contract by returning names aligned with `command_names()` for `bootstrap`, `diff-preview`, `context-basket`, and `terminal`.
 3. Added regression coverage for added aliases, removed aliases, same-canonical substitutions, token reordering, lookup-table shape/order drift, and declared-surface drift, including `open` for the `project-open` step and `diff_preview` for the `patch-review` step.
-4. Reconciled the branch-tip packet/accounting for `THREAD.md`, `THREAD_PACKET.md`, `src/qual/commands/__init__.py`, `src/qual/commands/canonical.py`, `src/qual/commands/catalog.py`, `src/qual/commands/diff_preview.py`, `tests/unit/test_commands_catalog.py`, and `tests/unit/test_diff_preview.py`, and restored the unrelated `scripts/scope-check.sh` scope-policy edit out of the net diff.
+4. Reconciled the branch-tip packet/accounting for `THREAD.md`, `THREAD_PACKET.md`, `src/qual/commands/__init__.py`, `src/qual/commands/canonical.py`, `src/qual/commands/catalog.py`, `src/qual/commands/diff_preview.py`, `tests/unit/test_commands_catalog.py`, and `tests/unit/test_diff_preview.py`, and kept the unrelated `scripts/scope-check.sh` scope-policy edit out of the net review diff against current `main`.
 
 ## Files Changed
 
