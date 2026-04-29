@@ -6,15 +6,15 @@ Canonical handoff contract lives in `THREAD_PACKET.md`.
 
 - Lane: `feat-commands`
 - Branch: `codex/feat-commands`
-- Review target: narrow implementation commit `f8d860ed9f6299f0169c4f21321ac5f37c949fd3`
-- Review basis: `f8d860ed9f6299f0169c4f21321ac5f37c949fd3^..f8d860ed9f6299f0169c4f21321ac5f37c949fd3`
+- Review target: final fixer commit range from this pass
+- Review basis: `HEAD~3..HEAD` after the final fixer commit
 - Scope: command CLI contract hardening for the current Engine-first MVP focus without starting `feat-console`
-- Current fixer pass: handoff packet correction for the reviewer's requested single narrow review basis
+- Current fixer pass: reconcile the review basis, real argparse parser-surface validation, shared CLI ownership accounting, and canonical demo-path reporting.
 
-## Fixer Prompt `20260429T080632Z` Fix Satisfaction
+## Fixer Prompt `20260429T083033Z` Fix Satisfaction
 
-1. `THREAD_PACKET.md` now uses one clear review basis: the narrow `f8d860e^..f8d860e` implementation commit.
-2. The packet lists and classifies only the files changed by that review basis: one implementation file and one test file.
-3. The packet resolves AGENTS.md size-budget accounting for this handoff: `2` files and `19 insertions(+), 3 deletions(-)` under the high-risk limit.
-4. `scripts/scope-check.sh` is explicitly outside this handoff's review basis, so no approval for that file is needed here.
-5. The roadmap and vision mapping now uses current Milestone 3 Product Readiness, canonical Engine/CLI contract, CLI compatibility, and Engine-first language.
+1. `THREAD_PACKET.md` uses one clear final fixer review basis: `HEAD~3..HEAD` after the final fixer commit.
+2. The packet lists and classifies every file changed by that review basis, including implementation, tests, and handoff metadata.
+3. The implementation verifies the real argparse parser surface through `src.qual.cli.command_parser_lookup_table()`, not catalog-internal tables alone.
+4. The packet records `src/qual/cli.py` as a shared-by-approval and integrator-locked parser-surface edit required by the reviewer fix.
+5. The packet names the canonical demo-path steps strengthened by the work: `project-open`, `retrieval`, `patch-review`, and `export-handoff`.
