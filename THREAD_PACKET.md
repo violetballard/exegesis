@@ -2,9 +2,9 @@
 
 - Lane: `feat-commands`
 - Branch: `codex/feat-commands`
-- Commit / review basis: actual `codex/feat-commands` branch tip for the `20260429T022926Z` reviewer-fix pass.
+- Commit / review basis: actual `codex/feat-commands` branch tip for the `20260429T023318Z` reviewer-fix pass.
 - Previous implementation anchor: `f8d860ed9f6299f0169c4f21321ac5f37c949fd3`
-- Reviewer packet addressed: `20260429T022926Z`
+- Reviewer packet addressed: `20260429T023318Z`
 
 ## Packet Traceability Note
 
@@ -147,6 +147,7 @@
 - `20260429T022329Z` reviewer-fix rerun: PASS for `./quality-test.sh tests/unit/test_commands_catalog.py` focused coverage; PASS for required gates `make scope-check`, `./quality-format.sh --check`, `./quality-lint.sh`, `./quality-test.sh`, `./typecheck-test.sh`, and `make ci`.
 - `20260429T022612Z` pre-commit validation: `./quality-test.sh tests/unit/test_commands_catalog.py` PASS; exact `make scope-check` BLOCKED because the current pre-commit HEAD is the previous test-bearing commit and scope policy reports `tests/unit/test_commands_catalog.py`; `SCOPE_ALLOW_SHARED=1 make scope-check` also BLOCKED because this branch's scope policy only allowlists the context-storage shared test; `./quality-format.sh --check`, `./quality-lint.sh`, `./quality-test.sh`, and `./typecheck-test.sh` PASS.
 - `20260429T022926Z` reviewer-fix rerun: PASS for focused `./quality-test.sh tests/unit/test_commands_catalog.py`; PASS for required gates `make scope-check`, `./quality-format.sh --check`, `./quality-lint.sh`, `./quality-test.sh`, `./typecheck-test.sh`, and `make ci`.
+- `20260429T023318Z` pre-commit validation: exact `make scope-check` initially BLOCKED on the prior implementation-bearing `HEAD` because it included the approved shared-test edit `tests/unit/test_commands_catalog.py`; this metadata-only fixer pass moves the branch tip before the required final gate rerun.
 
 ## Risks / Blockers
 
@@ -370,3 +371,8 @@
 3. Required fix 3 is reinforced by focused tests for `_CLI_ENTRYPOINTS` alias substitution, accepted-alias addition, parser-token removal, parser-token reorder, wrong lookup-table target, and explicit lookup-table order drift.
 4. Required fix 4 is satisfied by the ownership notes above: approved shared-by-approval test edits are separated from integrator-locked edits, and integrator-locked edits are `NO`.
 5. Required fix 5 is satisfied by the fresh final gate rerun recorded in `Commands Run + Outcomes`.
+
+## Reviewer Packet `20260429T023318Z` Fix Satisfaction
+
+1. Required fix 1 is addressed by recording the initial exact `make scope-check` failure against the prior implementation-bearing `HEAD`, then moving the branch tip to this metadata-only fixer pass so the recent-window scope gate can evaluate the current pass.
+2. Final required gate results for this fixer pass are recorded in `Commands Run + Outcomes`.

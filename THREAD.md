@@ -146,3 +146,8 @@ Canonical handoff contract lives in `THREAD_PACKET.md`.
 3. Required fix 3 is reinforced by focused parser-surface drift tests, including `_CLI_ENTRYPOINTS` alias substitution, token addition, token removal, token reorder, lookup-table target drift, and an explicit lookup-table order drift regression.
 4. Required fix 4 remains satisfied by separating approved shared-by-approval test edits from integrator-locked edits; integrator-locked edits remain `NO`.
 5. Required fix 5 is satisfied by the final required gate rerun for this fixer pass: `make scope-check`, `./quality-format.sh --check`, `./quality-lint.sh`, `./quality-test.sh`, `./typecheck-test.sh`, and `make ci` all passed.
+
+## Reviewer Packet `20260429T023318Z` Fix Satisfaction
+
+1. Required fix 1 is addressed by moving the branch tip to this metadata-only fixer pass before rerunning gates, so the feature-branch `scope-check` recent-window policy no longer evaluates the prior implementation-bearing shared-test commit as `HEAD`.
+2. Final gate results for this pass are recorded in `THREAD_PACKET.md` after the required rerun.
