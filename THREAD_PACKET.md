@@ -2,9 +2,9 @@
 
 - Lane: `feat-commands`
 - Branch: `codex/feat-commands`
-- Review target: final branch tip after the `20260429T175200Z` fixer, including implementation commit `f8d860ed9f6299f0169c4f21321ac5f37c949fd3`, implementation fixer commit `3f180d67ca82eebdce9da411fc2da5356064d46f`, packet refresh commits through `b67a7c87ca5c899909758ade80da79821ce0d772`, and this required-fix commit.
+- Review target: final branch tip after the `20260429T175932Z` fixer, including implementation commit `f8d860ed9f6299f0169c4f21321ac5f37c949fd3`, implementation fixer commit `3f180d67ca82eebdce9da411fc2da5356064d46f`, packet refresh commits through `b45da99dd1f4d1a1664bcae6751b03f733d28511`, and this required-fix commit.
 - Merge target: `codex/feat-commands` branch tip as merged against `main`.
-- Fixer correction: this refresh resolves reviewer packet `20260429T175200Z` by keeping one branch-truthful review basis at the actual merge scope, keeping `3f180d67ca82eebdce9da411fc2da5356064d46f` in scope as an implementation commit, explicitly accounting for `src/qual/cli.py` as shared-by-approval/integrator-locked implementation work, and reporting required gate results from the same branch tip.
+- Fixer correction: this refresh resolves reviewer packet `20260429T175932Z` by keeping one branch-truthful review basis at the actual merge scope, keeping `3f180d67ca82eebdce9da411fc2da5356064d46f` in scope as an implementation commit, explicitly accounting for `src/qual/cli.py` as shared-by-approval/integrator-locked implementation work, and reporting required gate results from the same branch tip.
 
 ## Required Handoff Fields
 
@@ -21,7 +21,7 @@
 2. `src/qual/cli.py` now builds top-level parsers from `command_cli_tokens()` and `_normalize_argv()` uses the same catalog-owned token set, removing the separate hardcoded command-token duplication.
 3. `tests/unit/test_commands_catalog.py` now asserts the actual parser surface and includes focused parser-only added-token, missing-token, and alias-rename drift tests.
 4. Ownership accounting is corrected below: this fixer intentionally keeps shared-by-approval/integrator-locked `src/qual/cli.py` in scope to satisfy the reviewer-required parser contract fix, plus the approved shared test file.
-5. Gate results below are tied to the actual branch tip after this `20260429T175200Z` fixer commit; normal scope-check and normal CI both pass without `SCOPE_ALLOW_SHARED=1`.
+5. Gate results below are tied to the actual branch tip after this `20260429T175932Z` fixer commit; normal scope-check and normal CI both pass without `SCOPE_ALLOW_SHARED=1`.
 
 ## Implementation Summary
 
@@ -104,6 +104,11 @@ This fixer refresh for reviewer packet `20260429T175200Z`:
 - `THREAD.md`
 - `THREAD_PACKET.md`
 
+This fixer refresh for reviewer packet `20260429T175932Z`:
+
+- `THREAD.md`
+- `THREAD_PACKET.md`
+
 Complete branch-tip file list for `codex/feat-commands` as it would actually be merged against `main`:
 
 - `THREAD.md`
@@ -129,21 +134,21 @@ Complete branch-tip file list for `codex/feat-commands` as it would actually be 
 
 ## Commands Run
 
-- `make scope-check`: PASS on the actual branch tip after the `20260429T175200Z` fixer. No `SCOPE_ALLOW_SHARED=1` override was required for this run.
+- `make scope-check`: PASS on the actual branch tip after the `20260429T175932Z` fixer. No `SCOPE_ALLOW_SHARED=1` override was required for this run.
 - `SCOPE_ALLOW_SHARED=1 make scope-check`: not rerun for this fixer because the normal gate passed; earlier packet-refresh history recorded this override path as PASS when the shared `src/qual/cli.py` implementation edit first needed explicit scope approval.
 - `./quality-format.sh --check`: PASS.
 - `./quality-lint.sh`: PASS.
 - `python -m unittest tests.unit.test_commands_catalog`: PASS, 46 tests.
 - `./quality-test.sh`: PASS, smoke plus 128 unit tests, including parser-only added-token, missing-token, and alias-rename drift coverage.
 - `./typecheck-test.sh`: PASS.
-- `make ci`: PASS on the actual branch tip after the `20260429T175200Z` fixer, including normal scope-check, format, lint, compile, smoke, and 128 unit tests. No `SCOPE_ALLOW_SHARED=1` override was required for this run.
+- `make ci`: PASS on the actual branch tip after the `20260429T175932Z` fixer, including normal scope-check, format, lint, compile, smoke, and 128 unit tests. No `SCOPE_ALLOW_SHARED=1` override was required for this run.
 - `SCOPE_ALLOW_SHARED=1 make ci`: not rerun for this fixer because normal CI passed; earlier packet-refresh history recorded this override path as PASS.
 
 ## Risks And Blockers
 
 - Risk: `src/qual/cli.py` is shared-by-approval/integrator-locked, but this edit is narrowly scoped to the reviewer-required parser/catalog validation path.
-- Blocker: `src/qual/cli.py` remains a shared-by-approval/integrator-locked implementation edit and requires integrator approval. Normal scope-check and normal CI pass at the actual branch tip after the `20260429T175200Z` fixer.
+- Blocker: `src/qual/cli.py` remains a shared-by-approval/integrator-locked implementation edit and requires integrator approval. Normal scope-check and normal CI pass at the actual branch tip after the `20260429T175932Z` fixer.
 
 ## Final Readiness Statement
 
-This handoff packet now explicitly names the narrow canonical demo-path step advanced by the command-catalog slice, separates the approved shared test edit from the shared `src/qual/cli.py` implementation edit, and accounts for the parser/catalog drift fix requested by reviewer packet `20260429T175200Z`.
+This handoff packet now explicitly names the narrow canonical demo-path step advanced by the command-catalog slice, separates the approved shared test edit from the shared `src/qual/cli.py` implementation edit, and accounts for the parser/catalog drift fix requested by reviewer packet `20260429T175932Z`.
