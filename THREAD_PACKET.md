@@ -4,7 +4,7 @@
 - Merge candidate: current branch tip after this packet-fix commit.
 - Pre-fixer branch-tip SHA: `798639e001a074a4a369149ca67f8b5c02175fc9`
 - Reviewed implementation range for actual branch-tip scope: `378cf9a74a3658058079a32f186fcd254c4a4034..798639e001a074a4a369149ca67f8b5c02175fc9`
-- Branch-tip diff summary before this packet-fix commit: `6 files changed, 369 insertions(+), 117 deletions(-)`.
+- Branch-tip diff summary after this packet-fix commit: `6 files changed, 364 insertions(+), 116 deletions(-)`.
 - Handoff classification: high-risk/shared because the branch includes approved shared regression coverage in `tests/unit/test_unified_retrieval.py`.
 - Shared-file approval provenance: reviewer packet `fixer__feat-retrieval-fts__20260429T202122Z.prompt.txt`, finding 2, identifies `tests/unit/test_unified_retrieval.py` as the approved shared surface for `feat-retrieval-fts`.
 
@@ -13,7 +13,7 @@
 1. This packet is regenerated against the actual branch tip `798639e001a074a4a369149ca67f8b5c02175fc9`, not the stale narrowed `adfa8cd` slice.
 2. The post-`adfa8cd` retrieval payload and basket-promotion work is described below as implementation scope, with tasks, files, roadmap mapping, vision mapping, canonical demo-path step, and risk assessment.
 3. Required gates are re-run against the branch-tip merge candidate after this packet is corrected and recorded below.
-4. The file list and diff summary match `git diff 378cf9a74a3658058079a32f186fcd254c4a4034..798639e001a074a4a369149ca67f8b5c02175fc9`; non-metadata retrieval changes are included for review.
+4. The file list and diff summary match `git diff 378cf9a74a3658058079a32f186fcd254c4a4034..HEAD`; non-metadata retrieval changes are included for review.
 
 ## Scope Completed
 
@@ -55,22 +55,22 @@ No `codex_packet_handoff/tools/planner.py` or `tests/unit/test_packet_planner.py
 
 ## Branch-Tip Diff Summary
 
-`git diff --stat 378cf9a74a3658058079a32f186fcd254c4a4034..798639e001a074a4a369149ca67f8b5c02175fc9`:
+`git diff --stat 378cf9a74a3658058079a32f186fcd254c4a4034..HEAD`:
 
 - `.codex/kickoff_packets/feat-retrieval-fts.md`: `36` changed lines.
 - `.codex/lane_meta/feat-retrieval-fts.json`: `155` changed lines.
-- `THREAD_PACKET.md`: `157` changed lines.
+- `THREAD_PACKET.md`: `151` changed lines.
 - `src/qual/engine/retrieval/payload.py`: `20` insertions.
 - `src/qual/retrieval/service.py`: `80` changed lines.
 - `tests/unit/test_unified_retrieval.py`: `38` changed lines.
-- Total: `6 files changed, 369 insertions(+), 117 deletions(-)`.
+- Total: `6 files changed, 364 insertions(+), 116 deletions(-)`.
 
 ## Budget / Risk
 
 - Risk: high/shared.
 - Task budget: `4/4`; within the high-risk task cap.
 - Actual branch-tip file count: `6`; within the high-risk 8-file guideline.
-- Actual branch-tip size: `369 insertions(+), 117 deletions(-)`, net `+252`; within the high-risk `<=300` net LOC guideline.
+- Actual branch-tip size: `364 insertions(+), 116 deletions(-)`, net `+248`; within the high-risk `<=300` net LOC guideline.
 - Integrator-locked files: none.
 - Shared-by-approval files: `tests/unit/test_unified_retrieval.py`.
 - Routing/provider impact: none.
@@ -85,7 +85,7 @@ No `codex_packet_handoff/tools/planner.py` or `tests/unit/test_packet_planner.py
 
 ## Commands Run
 
-- `make scope-check`: PASS; no branch policy was found for `codex/feat-retrieval-fts`, then scope-check passed.
+- `make scope-check`: PASS.
 - `./quality-format.sh --check`: PASS.
 - `./quality-lint.sh`: PASS.
 - `./quality-test.sh`: PASS; smoke passed and 124 unit tests passed.
