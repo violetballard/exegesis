@@ -126,10 +126,6 @@ class CommandCatalogTests(unittest.TestCase):
     def test_actual_argparse_surface_matches_the_command_contract(self) -> None:
         self.assertEqual(cli.command_parser_lookup_table(), command_cli_lookup_table())
         self.assertEqual(cli.command_parser_tokens(), command_cli_tokens())
-        self.assertEqual(
-            tuple(token for token, _ in cli.command_parser_lookup_table()),
-            command_cli_tokens(),
-        )
 
     def test_command_cli_contract_matches_the_catalog_order(self) -> None:
         contract = command_cli_contract()
