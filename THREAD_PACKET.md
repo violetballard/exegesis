@@ -2,10 +2,10 @@
 
 - Lane: `feat-commands`
 - Branch: `codex/feat-commands`
-- Commit: branch tip after fixer prompt `20260429T061457Z`
+- Commit: branch tip after fixer prompt `20260429T062117Z`
 - Review basis: current branch tip after this fixer commit. Do not review `f8d860ed9f6299f0169c4f21321ac5f37c949fd3` alone.
 - Prior implementation anchor: `f8d860ed9f6299f0169c4f21321ac5f37c949fd3`
-- Packet refresh role: reviewer-fix handoff correction after prompt `20260429T061457Z`
+- Packet refresh role: reviewer-fix handoff correction after prompt `20260429T062117Z`
 
 ## Packet Traceability Note
 
@@ -48,6 +48,7 @@
 - Fixer prompt `20260429T053740Z` requested the same numbered reviewer-required fixes against the current branch tip, with exact parser-surface validation, same-canonical drift coverage, refreshed handoff metadata, required gate reruns, a new commit, and final HEAD SHA.
 - Fixer prompt `20260429T054027Z` requested the same numbered reviewer-required fixes against the current branch tip, with exact parser-surface validation, same-canonical drift coverage, refreshed handoff metadata, required gate reruns, a new commit, and final HEAD SHA.
 - Fixer prompt `20260429T061457Z` requested the same numbered reviewer-required fixes against the current branch tip, with exact parser-surface validation for live parser tokens, lookup tables, declared surfaces, and ordering; focused same-canonical drift coverage including `diff` replaced by another alias; refreshed handoff metadata; required gate reruns; a new commit; and final HEAD SHA.
+- Fixer prompt `20260429T062117Z` requested the same numbered reviewer-required fixes against the current branch tip, with one unambiguous review basis, exact parser-surface validation, focused same-canonical parser-token drift coverage for substituted/extra/missing/reordered aliases, demo-path task mapping, required gate reruns, a new commit, and final HEAD SHA.
 - The reviewable branch-tip implementation is narrowed to the command-catalog slice:
   - `src/qual/commands/catalog.py`
   - `tests/unit/test_commands_catalog.py`
@@ -56,7 +57,7 @@
 
 ## Branch-Tip Review Basis
 
-- Review target: current branch tip after fixer prompt `20260429T061457Z`.
+- Review target: current branch tip after fixer prompt `20260429T062117Z`.
 - Prior implementation anchor: `f8d860ed9f6299f0169c4f21321ac5f37c949fd3`.
 - Review range: `f8d860ed9f6299f0169c4f21321ac5f37c949fd3..HEAD`.
 - Matching changed-file scope:
@@ -74,11 +75,11 @@
 ## Post-Anchor Implementation Commit Ledger
 
 - Ledger source command: `git log --format='- \`%h\` %s' --reverse f8d860ed9f6299f0169c4f21321ac5f37c949fd3..HEAD -- src/qual/commands/catalog.py tests/unit/test_commands_catalog.py`
-- Ledger count including the current `20260429T061457Z` fixer refresh: `205` non-metadata implementation/test commits touched the final implementation file set after the prior implementation anchor.
-- Current fixer commit: the branch-tip `20260429T061457Z` commit refreshes the handoff target for the current reviewer packet, makes the expected parser surface an explicit validation tuple, and adds the reviewer-requested `diff` to `diff_preview` same-canonical replacement regression; parser-projection implementation remains in the command-catalog slice and review target remains the current branch tip.
+- Ledger count including the current `20260429T062117Z` fixer refresh: `206` non-metadata implementation/test commits touched the final implementation file set after the prior implementation anchor.
+- Current fixer commit: the branch-tip `20260429T062117Z` commit refreshes the handoff target for the current reviewer packet and adds the reviewer-requested same-canonical entrypoint drift table for substituted, extra, missing, and reordered parser tokens; parser-projection implementation remains in the command-catalog slice and review target remains the current branch tip.
 - Final implementation file set for all listed commits: `src/qual/commands/catalog.py`, `tests/unit/test_commands_catalog.py`.
 - No other branch-tip implementation files are part of the selected review target.
-- The current fixer commit after prompt `20260429T061457Z` refreshes the handoff packet against the latest branch tip, preserves the selected implementation file set, documents exact parser-token projection validation, adds focused same-canonical parser-surface coverage, and reruns the required gates.
+- The current fixer commit after prompt `20260429T062117Z` refreshes the handoff packet against the latest branch tip, preserves the selected implementation file set, documents exact parser-token projection validation, adds focused same-canonical parser-surface coverage, and reruns the required gates.
 
 ### Post-Anchor Implementation Commits
 
@@ -319,6 +320,7 @@
 - Strengthened `command_cli_contract()` so it validates the full parser token surface, lookup table, grouped canonical surface, and canonical name order against the declared canonical CLI command surface.
 - Made the expected parser-token surface an explicit validation value so `_CLI_ENTRYPOINTS`, `command_cli_tokens()`, `command_cli_lookup_table()`, declared grouping, and ordering must all match the canonical surface before `CommandCliContract` returns.
 - Added regression coverage for same-canonical drift, unexpected extra accepted aliases, removed expected tokens, token replacement, lookup-table substitution including same-name-set mapping drift, lookup-table ordering drift, and declared-surface drift.
+- Added focused `20260429T062117Z` regression coverage for the four reviewer-required parser-token drift classes: substituted same-canonical alias, extra alias, missing alias, and reordered parser tokens.
 - Added focused `20260429T061457Z` regression coverage proving rejection when `diff` is replaced by the same-canonical `diff_preview` alias.
 - Added focused `20260429T054027Z` regression coverage proving rejection for the current reviewer examples: `open` replacing `bootstrap`, extra `open`, missing `diff`, and reordered same-canonical parser tokens.
 - Narrowed the branch-tip implementation basis by restoring unrelated `scripts/scope-check.sh` drift to baseline.
@@ -734,9 +736,19 @@
 7. Kept the AGENTS.md demo-path statement explicit: the CLI-first parser surface for project open, retrieval/basket, patch review, and export handoff is more real because parser drift fails loudly before Textual is enabled.
 8. Reran all required gates after this fixer pass and recorded the outcomes below.
 
+## Required Fixes Addressed From Fixer Prompt `20260429T062117Z`
+
+1. Regenerated this handoff packet with one unambiguous review target: the current branch tip after the `20260429T062117Z` fixer commit.
+2. Kept `command_cli_contract()` validating the exact accepted parser-token surface, lookup-table order, grouped canonical surface, declared canonical CLI surface, live parser projection, and canonical-name order before returning.
+3. Added focused regression coverage for same-canonical parser-surface drift requested by the reviewer: substituted alias (`open` for `bootstrap`), extra alias (`open` plus `bootstrap`), missing alias (`diff` removed), and reordered parser tokens (`diff` before `diff-preview`).
+4. Kept the review basis as branch tip after the current fixer commit and listed all review-target files: `src/qual/commands/catalog.py`, `tests/unit/test_commands_catalog.py`, `THREAD.md`, and `THREAD_PACKET.md`.
+5. Kept ownership accounting precise: `src/qual/commands/catalog.py` is lane-owned, `tests/unit/test_commands_catalog.py` is the approved shared-test exception, `THREAD.md` and `THREAD_PACKET.md` are metadata-only, and no integrator-locked files are edited.
+6. Kept each completed task mapped to the canonical demo path and retained the AGENTS.md final statement: the CLI-first parser surface for project open, retrieval/basket, patch review, and export handoff is more real because parser drift fails loudly before Textual is enabled.
+7. Reran all required gates after this fixer pass and recorded the outcomes below.
+
 ## Commands Run + Outcomes
 
-- `python -m unittest tests.unit.test_commands_catalog`: PASS; ran 89 command-catalog tests.
+- `python -m unittest tests.unit.test_commands_catalog`: PASS; ran 90 command-catalog tests.
 - `make scope-check`: PASS for branch `codex/feat-commands`.
 - `./quality-format.sh --check`: PASS.
 - `./quality-lint.sh`: PASS.

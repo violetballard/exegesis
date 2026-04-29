@@ -224,6 +224,11 @@ _CLI_COMMAND_SURFACE: tuple[tuple[str, tuple[str, ...]], ...] = _CANONICAL_CLI_C
 _DECLARED_CLI_ENTRYPOINTS: tuple[str, ...] = tuple(
     entrypoint for _, entrypoints in _CANONICAL_CLI_COMMAND_SURFACE for entrypoint in entrypoints
 )
+_CANONICAL_CLI_PARSER_SURFACE: tuple[tuple[str, str], ...] = tuple(
+    (entrypoint, canonical_name)
+    for canonical_name, entrypoints in _CANONICAL_CLI_COMMAND_SURFACE
+    for entrypoint in entrypoints
+)
 _CLI_ENTRYPOINTS: tuple[str, ...] = _DECLARED_CLI_ENTRYPOINTS
 DEMO_COMMAND_FLOW_STEPS: tuple[str, ...] = (
     "project-open",
@@ -271,11 +276,7 @@ def _canonical_cli_tokens() -> tuple[str, ...]:
 
 
 def _canonical_cli_lookup_table() -> tuple[tuple[str, str], ...]:
-    return tuple(
-        (token, canonical_name)
-        for canonical_name, tokens in _CANONICAL_CLI_COMMAND_SURFACE
-        for token in tokens
-    )
+    return _CANONICAL_CLI_PARSER_SURFACE
 
 
 def _expected_cli_parser_surface() -> tuple[tuple[str, str], ...]:
