@@ -22,7 +22,7 @@
 1. Narrowed the corrected target to the command-catalog implementation slice: `src/qual/commands/catalog.py`, `tests/unit/test_commands_catalog.py`, and packet metadata only.
 2. Regenerated `THREAD_PACKET.md` and `THREAD.md` so they describe the corrected branch-tip target instead of the rejected broad review basis.
 3. Reconciled the prior metadata mismatch by explicitly noting that `f5a35438c2808b247cb70a86da7e0e9b19f82f67` modified both packet files and described the wrong target.
-4. Prepared the exact corrected files-changed list and gate ledger for rerun on this target.
+4. Kept the unit test isolated to the catalog module so the corrected target does not require `src/qual/commands/__init__.py`.
 
 ## Complete Corrected File List
 
