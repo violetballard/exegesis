@@ -16,6 +16,11 @@
 - Roadmap item(s) affected: active MVP `feat-commands`; Milestone 3 command surface stability while Textual remains disabled.
 - Vision capability affected: canonical engine contract and CLI compatibility through deterministic command catalog metadata.
 - Canonical demo-path step advanced: this command-catalog hardening strengthens the CLI path for `open project/document`, `retrieve relevant material`, and `preview and apply or reject a patch` by keeping command tokens and canonical command names deterministic.
+- Canonical demo-path mapping by completed task:
+  1. Exact canonical CLI-token validation advances `open project/document`, `retrieve relevant material`, and `preview and apply or reject a patch` by requiring each catalog command to remain present as its exact parser token.
+  2. The `_CLI_ENTRYPOINTS` alias-replacement regression advances `preview and apply or reject a patch` by proving alias `diff` cannot replace canonical parser token `diff-preview`.
+  3. The narrowed command-catalog target advances the active demo path by keeping review focused on command-surface stability for project open, retrieval, and patch review.
+  4. Packet refresh work advances the active demo path by making the command-surface evidence and review target explicit for project open, retrieval, and patch review.
 - Routing/provider impact note: none. No routing, provider configuration, model selection, or core entrypoint behavior is changed.
 - Proposed `README.md` patch text: none.
 
