@@ -10963,6 +10963,8 @@ class A2UIFallbackSafetyTests(unittest.TestCase):
         self.assertEqual(manifest["type"], "CardContract")
         self.assertEqual(manifest["card_fingerprint"], card_contract_fingerprint())
         self.assertEqual(manifest["contract_fingerprint"], manifest["card_fingerprint"])
+        self.assertEqual(manifest["contract_manifest"]["contract_fingerprint"], manifest["contract_fingerprint"])
+        self.assertEqual(manifest["contract_manifest_fingerprint"], manifest["contract_fingerprint"])
         self.assertEqual(len(manifest["card_fingerprint"]), 64)
         self.assertEqual(a2ui_manifest["card_contract"], manifest)
         self.assertEqual(a2ui_manifest["card_contract_manifest"], manifest)
@@ -10991,6 +10993,8 @@ class A2UIFallbackSafetyTests(unittest.TestCase):
         self.assertEqual(manifest["card_fallbacks"], a2ui_manifest["fallbacks"])
         self.assertEqual(a2ui_manifest["terminal_fallback"], manifest)
         self.assertEqual(manifest["contract_fingerprint"], terminal_fallback_contract_fingerprint())
+        self.assertEqual(manifest["contract_manifest"]["contract_fingerprint"], manifest["contract_fingerprint"])
+        self.assertEqual(manifest["contract_manifest_fingerprint"], manifest["contract_fingerprint"])
         self.assertEqual(len(manifest["contract_fingerprint"]), 64)
         self.assertEqual(a2ui_manifest["schemas"]["terminal_fallback"], manifest)
 
