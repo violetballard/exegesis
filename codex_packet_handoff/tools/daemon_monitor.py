@@ -6,9 +6,17 @@ import errno
 import os
 import re
 import subprocess
+import sys
 import time
+from datetime import datetime, timezone
+from functools import lru_cache
 from pathlib import Path
 from typing import Any, Dict, List
+
+try:
+    from packet_progress import infer_last_submitted_sha
+except ImportError:  # pragma: no cover - package execution fallback
+    from .packet_progress import infer_last_submitted_sha
 
 PACKETS_ROOT = Path(".codex/packets/lanes")
 COORD_STATE = Path(".codex/packet_coordinator/state.json")
@@ -26,11 +34,11 @@ STALE_LOG_SECONDS = 1800
 DEFAULT_LANES = [
     "feat-commands",
     "feat-context-storage",
-    "feat-ux-flow",
     "feat-retrieval-fts",
     "feat-a2ui-contract",
     "feat-engine-runs",
-    "feat-console",
+    "feat-console-shell",
+    "feat-console-workflow",
 ]
 VERDICT_RE = re.compile(
     r"(?:\*\*Verdict\*\*|Verdict:)\s*`?(APPROVED|CHANGES_REQUESTED|CHANGES REQUESTED)`?",
@@ -41,6 +49,10 @@ EXEC_RESULT_RE = re.compile(r"exited (\d+)|succeeded", re.IGNORECASE)
 REQUIRED_FIX_RE = re.compile(r"^\s*\d+\.\s+", re.MULTILINE)
 LANE_NAME_RE = re.compile(r"feature lane agent for\s+`?([A-Za-z0-9._-]+)`?", re.IGNORECASE)
 CODEX_EXEC_RE = re.compile(r"\bcodex\b.*\bexec\b", re.IGNORECASE)
+PROC_TIMEOUT_SECONDS = 2.0
+LOG_TAIL_MAX_BYTES = 128 * 1024
+LOG_TAIL_MAX_LINES = 240
+PACKET_PREVIEW_MAX_BYTES = 64 * 1024
 
 
 def _load_json(path: Path, default: Any) -> Any:
@@ -98,6 +110,21 @@ def _pid_alive(pid: int) -> bool:
         return False
 
 
+def _count_active_pid_jobs(job_map: Any, *, local: bool | None = None) -> int:
+    if not isinstance(job_map, dict):
+        return 0
+    active = 0
+    for job in job_map.values():
+        if not isinstance(job, dict):
+            continue
+        if local is not None and bool(job.get("local")) != local:
+            continue
+        pid = int(job.get("pid") or 0)
+        if _pid_alive(pid):
+            active += 1
+    return active
+
+
 def _pid_matches_daemon(pid: int) -> bool:
     try:
         p = subprocess.run(
@@ -105,6 +132,7 @@ def _pid_matches_daemon(pid: int) -> bool:
             stdout=subprocess.PIPE,
             stderr=subprocess.DEVNULL,
             text=True,
+            timeout=PROC_TIMEOUT_SECONDS,
         )
     except Exception:
         # In restricted environments, process table inspection may be blocked.
@@ -125,6 +153,7 @@ def _matching_pids() -> list[int]:
             stdout=subprocess.PIPE,
             stderr=subprocess.DEVNULL,
             text=True,
+            timeout=PROC_TIMEOUT_SECONDS,
         )
     except Exception:
         return []
@@ -157,6 +186,7 @@ def _manual_feature_sessions() -> list[dict[str, str]]:
             stdout=subprocess.PIPE,
             stderr=subprocess.DEVNULL,
             text=True,
+            timeout=PROC_TIMEOUT_SECONDS,
         )
     except Exception:
         return []
@@ -186,10 +216,24 @@ def _manual_feature_sessions() -> list[dict[str, str]]:
     return rows
 
 
+def _latest_by_mtime(paths) -> Path | None:
+    latest: Path | None = None
+    latest_mtime = float("-inf")
+    for path in paths:
+        try:
+            mtime = path.stat().st_mtime
+        except Exception:
+            continue
+        if latest is None or mtime > latest_mtime:
+            latest = path
+            latest_mtime = mtime
+    return latest
+
+
+@lru_cache(maxsize=None)
 def _latest_feature_runner_log(lane: str) -> Path | None:
     log_dir = FEATURE_RUNNER_ROOT / "logs"
-    files = sorted(log_dir.glob(f"{lane}__*.log"), key=lambda p: p.stat().st_mtime, reverse=True)
-    return files[0] if files else None
+    return _latest_by_mtime(log_dir.glob(f"{lane}__*.log"))
 
 
 def _manual_feature_session_map() -> Dict[str, dict[str, str]]:
@@ -220,6 +264,7 @@ def _manual_feature_logs(limit: int = 5) -> list[Path]:
     return sorted(log_dir.glob("*.log"), key=lambda p: p.stat().st_mtime, reverse=True)[:limit]
 
 
+@lru_cache(maxsize=1)
 def _feature_thread_state() -> Dict[str, Dict[str, Any]]:
     data = _load_json(FEATURE_STATE, {})
     lanes = data.get("lanes") if isinstance(data, dict) else {}
@@ -274,7 +319,7 @@ def _collect_lane_totals() -> Dict[str, int]:
         if c["review"] <= 0:
             continue
         head = _branch_head(branch_map.get(lane, f"codex/{lane}"))
-        last_sub = str(((planner_lanes.get(lane) or {}).get("last_submitted_sha") or ""))[:8]
+        last_sub = str(infer_last_submitted_sha(lane_dir, planner_lanes.get(lane, {})) or "")[:8]
         if head and last_sub and head != last_sub:
             totals["ready_for_reemit"] += 1
         else:
@@ -312,10 +357,33 @@ def _runtime_state() -> Dict[str, Any]:
     }
 
 
+def _coordinator_state() -> Dict[str, Any]:
+    state = _load_json(COORD_STATE, {})
+    last_cycle_at = str(state.get("last_cycle_at") or "-")
+    live_cycle_count = state.get("live_cycle_count", 0)
+    last_cycle_activity = bool(state.get("last_cycle_activity", False))
+    daemon_mode = bool(state.get("daemon_mode", False))
+    last_cycle_age_s = "-"
+    if last_cycle_at != "-":
+        try:
+            parsed = datetime.strptime(last_cycle_at, "%Y-%m-%dT%H:%M:%SZ")
+            parsed = parsed.replace(tzinfo=timezone.utc)
+            last_cycle_age_s = str(int(max(0, time.time() - parsed.timestamp())))
+        except Exception:
+            last_cycle_age_s = "-"
+    return {
+        "daemon_mode": daemon_mode,
+        "last_cycle_at": last_cycle_at,
+        "last_cycle_age_s": last_cycle_age_s,
+        "last_cycle_activity": last_cycle_activity,
+        "live_cycle_count": live_cycle_count,
+    }
+
+
 def _tail_log(lines: int = 15) -> str:
     if not DAEMON_LOG.exists():
         return "(no daemon log yet)"
-    txt = DAEMON_LOG.read_text(errors="ignore").splitlines()
+    txt = _read_log_tail_lines(DAEMON_LOG, max_lines=lines, max_bytes=64 * 1024)
     return "\n".join(txt[-lines:]) if txt else "(daemon log empty)"
 
 
@@ -345,15 +413,64 @@ def _tail_scope_check_note(totals: Dict[str, int], tail: str) -> str:
 
 
 def _branch_head(branch: str) -> str:
-    p = subprocess.run(
-        ["git", "rev-parse", branch],
-        stdout=subprocess.PIPE,
-        stderr=subprocess.DEVNULL,
-        text=True,
-    )
+    try:
+        p = subprocess.run(
+            ["git", "rev-parse", branch],
+            stdout=subprocess.PIPE,
+            stderr=subprocess.DEVNULL,
+            text=True,
+            timeout=PROC_TIMEOUT_SECONDS,
+        )
+    except Exception:
+        return "-"
     if p.returncode != 0:
         return "-"
     return (p.stdout or "").strip()[:8]
+
+
+@lru_cache(maxsize=None)
+def _read_log_tail_lines(path: Path, *, max_lines: int = LOG_TAIL_MAX_LINES, max_bytes: int = LOG_TAIL_MAX_BYTES) -> List[str]:
+    if not path.exists():
+        return []
+    try:
+        size = path.stat().st_size
+    except Exception:
+        size = 0
+    try:
+        with path.open("rb") as fh:
+            if size > max_bytes:
+                fh.seek(max(size - max_bytes, 0))
+                fh.readline()
+            chunk = fh.read()
+    except Exception:
+        return []
+    text = chunk.decode("utf-8", errors="ignore")
+    lines = text.splitlines()
+    if len(lines) > max_lines:
+        lines = lines[-max_lines:]
+    return lines
+
+
+@lru_cache(maxsize=None)
+def _read_text_window(path: Path, *, head_bytes: int = PACKET_PREVIEW_MAX_BYTES, tail_bytes: int = PACKET_PREVIEW_MAX_BYTES) -> str:
+    if not path.exists():
+        return ""
+    try:
+        size = path.stat().st_size
+    except Exception:
+        size = 0
+    try:
+        with path.open("rb") as fh:
+            if size <= (head_bytes + tail_bytes):
+                data = fh.read()
+            else:
+                head = fh.read(head_bytes)
+                fh.seek(max(size - tail_bytes, 0))
+                tail = fh.read(tail_bytes)
+                data = head + b"\n...\n" + tail
+    except Exception:
+        return ""
+    return data.decode("utf-8", errors="ignore")
 
 
 def _lane_branch_map() -> Dict[str, str]:
@@ -368,33 +485,25 @@ def _lane_branch_map() -> Dict[str, str]:
 
 def _lane_latest_review_file(lane: str) -> Path | None:
     lane_dir = PACKETS_ROOT / lane / "inbox" / "reviewer"
-    notes = sorted(lane_dir.glob("*.md"), key=lambda p: p.stat().st_mtime)
-    if not notes:
-        return None
-    return notes[-1]
+    return _latest_by_mtime(lane_dir.glob("*.md"))
 
 
 def _lane_latest_feature_archive(lane: str) -> Path | None:
     lane_dir = PACKETS_ROOT / lane / "archive"
-    notes = sorted(lane_dir.glob("F__*.md"), key=lambda p: p.stat().st_mtime)
-    if not notes:
-        return None
-    return notes[-1]
+    return _latest_by_mtime(lane_dir.glob("F__*.md"))
 
 
 def _lane_latest_feature_pending(lane: str) -> Path | None:
     lane_dir = PACKETS_ROOT / lane / "inbox" / "feature"
-    notes = sorted(lane_dir.glob("*.md"), key=lambda p: p.stat().st_mtime)
-    if not notes:
-        return None
-    return notes[-1]
+    return _latest_by_mtime(lane_dir.glob("*.md"))
 
 
+@lru_cache(maxsize=None)
 def _lane_verdict_summary(lane: str) -> str:
     note = _lane_latest_review_file(lane)
     if note is None:
         return "no reviewer note"
-    txt = note.read_text(errors="ignore")
+    txt = _read_text_window(note)
     m = VERDICT_RE.search(txt)
     if not m:
         return "review note present (verdict not explicit)"
@@ -402,11 +511,12 @@ def _lane_verdict_summary(lane: str) -> str:
     return v
 
 
+@lru_cache(maxsize=None)
 def _review_history_summary(lane: str) -> Dict[str, Any]:
     rf = _lane_latest_review_file(lane)
     if rf is None:
         return {"state": "none", "required_fixes": 0, "age_s": None, "msg": "no reviewer note"}
-    txt = rf.read_text(errors="ignore")
+    txt = _read_text_window(rf)
     lower = txt.lower()
     if "session not found for thread_id" in lower:
         state = "invalid_session_note"
@@ -423,6 +533,7 @@ def _review_history_summary(lane: str) -> Dict[str, Any]:
     }
 
 
+@lru_cache(maxsize=1)
 def _integrator_history_summary() -> Dict[str, Any]:
     approved_now = 0
     integrated_archived = 0
@@ -445,7 +556,7 @@ def _first_nonempty_line(path: Path | None, max_len: int = 140) -> str:
     if path is None:
         return "-"
     try:
-        for ln in path.read_text(errors="ignore").splitlines():
+        for ln in _read_text_window(path, head_bytes=16 * 1024, tail_bytes=0).splitlines():
             s = ln.strip()
             if not s:
                 continue
@@ -472,7 +583,7 @@ def _reviewer_live_summary() -> Dict[str, Any]:
         if rf is not None:
             if latest_review is None or rf.stat().st_mtime > latest_review[1].stat().st_mtime:
                 latest_review = (lane, rf)
-            txt = rf.read_text(errors="ignore").lower()
+            txt = _read_text_window(rf).lower()
             if "session not found for thread_id" in txt or "thread not found" in txt:
                 invalid_count += 1
     pending_items.sort(key=lambda x: x[1].stat().st_mtime)
@@ -555,15 +666,16 @@ def _integrator_live_summary() -> Dict[str, Any]:
     }
 
 
+@lru_cache(maxsize=None)
 def _latest_fixer_log(lane: str) -> Path | None:
-    files = sorted(LOG_DIR.glob(f"fixer__{lane}__*.log"), key=lambda p: p.stat().st_mtime, reverse=True)
-    return files[0] if files else None
+    return _latest_by_mtime(LOG_DIR.glob(f"fixer__{lane}__*.log"))
 
 
+@lru_cache(maxsize=None)
 def _conversation_summary(log_path: Path | None) -> str:
     if log_path is None:
         return "no fixer log"
-    lines = log_path.read_text(errors="ignore").splitlines()
+    lines = _read_log_tail_lines(log_path)
     picked: list[str] = []
     for ln in lines[-120:]:
         s = ln.strip()
@@ -603,6 +715,7 @@ def _compact_cmd(cmd_line: str) -> str:
     return s
 
 
+@lru_cache(maxsize=None)
 def _detailed_conversation_summary(log_path: Path | None) -> Dict[str, Any]:
     if log_path is None:
         return {
@@ -615,7 +728,7 @@ def _detailed_conversation_summary(log_path: Path | None) -> Dict[str, Any]:
             "head_sha": None,
         }
 
-    lines = log_path.read_text(errors="ignore").splitlines()
+    lines = _read_log_tail_lines(log_path)
     log_age_seconds = int(max(0, time.time() - log_path.stat().st_mtime))
     objective = "Apply reviewer required fixes"
     packet = "review packet present"
@@ -712,7 +825,36 @@ def _detailed_conversation_summary(log_path: Path | None) -> Dict[str, Any]:
     }
 
 
+@lru_cache(maxsize=None)
+def _lane_counts_for(lane: str) -> Dict[str, int]:
+    lane_dir = PACKETS_ROOT / lane
+    if not lane_dir.exists():
+        return {"pending": 0, "review": 0, "approved": 0}
+    return _lane_counts(lane_dir)
+
+
+def _should_print_lane_conversation(
+    lane: str,
+    counts: Dict[str, int],
+    verdict: str,
+    feature_state: Dict[str, Any],
+    detail: Dict[str, Any],
+) -> bool:
+    if lane.startswith("feat-console"):
+        return False
+    if any(counts.values()):
+        return True
+    if verdict != "no reviewer note":
+        return True
+    if feature_state["state"] in {"live", "recent_empty", "recent_log", "managed_thread", "launching", "error", "direct_exec_running"}:
+        return True
+    if detail.get("blockers") or detail.get("recent"):
+        return True
+    return False
+
+
 def _feature_runner_state(lane: str, live_sessions: Dict[str, dict[str, str]]) -> Dict[str, Any]:
+    counts = _lane_counts_for(lane)
     live = live_sessions.get(lane)
     if live:
         return {
@@ -751,9 +893,17 @@ def _feature_runner_state(lane: str, live_sessions: Dict[str, dict[str, str]]) -
         if status == "direct_exec_running":
             pid = int(thread_state.get("pid") or 0)
             if _pid_alive(pid):
+                runtime_mode = str(thread_state.get("mode") or "unknown")
+                profile = str(thread_state.get("profile") or "-")
+                if runtime_mode == "cloud_primary":
+                    summary = f"direct exec cloud session running pid={pid} profile={profile}"
+                elif runtime_mode == "local_fallback":
+                    summary = f"direct exec local fallback running pid={pid} profile={profile}"
+                else:
+                    summary = f"direct exec session running pid={pid} mode={runtime_mode} profile={profile}"
                 return {
                     "state": "direct_exec_running",
-                    "summary": f"direct exec fallback running pid={pid}",
+                    "summary": summary,
                     "log": log_name,
                     "age_s": None,
                 }
@@ -763,6 +913,27 @@ def _feature_runner_state(lane: str, live_sessions: Dict[str, dict[str, str]]) -
                 "log": log_name,
                 "age_s": None,
             }
+    if counts["review"] > 0:
+        return {
+            "state": "review_wait",
+            "summary": "reviewer note present; waiting on fixer/re-emit path",
+            "log": None,
+            "age_s": None,
+        }
+    if counts["approved"] > 0:
+        return {
+            "state": "integrator_wait",
+            "summary": "approved packet waiting on integrator",
+            "log": None,
+            "age_s": None,
+        }
+    if counts["pending"] <= 0:
+        return {
+            "state": "none",
+            "summary": "no recent feature launch",
+            "log": None,
+            "age_s": None,
+        }
     logp = _latest_feature_runner_log(lane)
     if logp is None:
         return {
@@ -796,6 +967,10 @@ def _feature_runner_state(lane: str, live_sessions: Dict[str, dict[str, str]]) -
 
 
 def main() -> None:
+    try:
+        sys.stdout.reconfigure(line_buffering=True, write_through=True)
+    except Exception:
+        pass
     pid = _read_pid()
     lease_pid, lease_ts = _lease_pid_ts()
     if not pid and lease_pid:
@@ -818,6 +993,7 @@ def main() -> None:
 
     run = _latest_run() or {}
     runtime = _runtime_state()
+    coord_state = _coordinator_state()
     print("LAST RUN")
     print(f"status={run.get('status', '-')}")
     print(f"mode={run.get('mode', '-')}")
@@ -826,6 +1002,19 @@ def main() -> None:
     print(f"router_errors={run.get('router_errors', '-')}")
     print(f"router_processed_total={run.get('router_processed_total', '-')}")
     print(f"fixer_kicked_total={run.get('fixer_kicked_total', '-')}")
+    print()
+
+    print("COORDINATOR HEARTBEAT")
+    print(f"daemon_mode={coord_state['daemon_mode']}")
+    print(f"live_cycle_count={coord_state['live_cycle_count']}")
+    print(f"last_cycle_at={coord_state['last_cycle_at']}")
+    print(f"last_cycle_age_seconds={coord_state['last_cycle_age_s']}")
+    print(f"last_cycle_activity={coord_state['last_cycle_activity']}")
+    git_hygiene = coord_state.get("git_hygiene_status") if isinstance(coord_state, dict) else {}
+    if isinstance(git_hygiene, dict):
+        print(f"git_hygiene_last_stale_count={git_hygiene.get('last_stale_count', 0)}")
+        print(f"git_hygiene_consecutive_cycles={git_hygiene.get('consecutive_cycles', 0)}")
+        print(f"git_hygiene_alert={git_hygiene.get('alert', '-') or '-'}")
     print()
 
     router_state = _load_json(ROUTER_STATE, {})
@@ -869,7 +1058,11 @@ def main() -> None:
         print(f"reviewer_thread_missing_lanes={','.join(str(x) for x in missing) if missing else '-'}")
     print(f"integrator_thread_id={router_state.get('integrator_thread_id', '-')}")
     fallback_jobs = router_state.get("fixer_fallback_jobs") or {}
-    print(f"fixer_fallback_jobs={len(fallback_jobs) if isinstance(fallback_jobs, dict) else 0}")
+    print(f"fixer_fallback_jobs={_count_active_pid_jobs(fallback_jobs)}")
+    local_reviewer_jobs = router_state.get("local_reviewer_jobs") or {}
+    print(f"local_reviewer_jobs={_count_active_pid_jobs(local_reviewer_jobs)}")
+    local_integrator_jobs = router_state.get("local_integrator_jobs") or {}
+    print(f"local_integrator_jobs={_count_active_pid_jobs(local_integrator_jobs)}")
     print()
 
     manual_sessions = _manual_feature_sessions()
@@ -952,7 +1145,7 @@ def main() -> None:
     branch_map = _lane_branch_map()
     print("LANE LIVE SUMMARY")
     for lane in _configured_lanes():
-        c = _lane_counts(PACKETS_ROOT / lane) if (PACKETS_ROOT / lane).exists() else {"pending": 0, "review": 0, "approved": 0}
+        c = _lane_counts_for(lane)
         logp = _latest_fixer_log(lane)
         feature_state = _feature_runner_state(lane, manual_session_map)
         age = "-"
@@ -969,7 +1162,7 @@ def main() -> None:
             if stale_idle
             else _detailed_conversation_summary(logp)
         )
-        if c["pending"] == 0 and c["review"] == 0 and c["approved"] == 0 and feature_state["state"] in {"live", "recent_empty", "recent_log", "managed_thread", "launching", "error", "direct_exec_running"}:
+        if feature_state["state"] in {"live", "recent_empty", "recent_log", "managed_thread", "launching", "error", "direct_exec_running"}:
             detail = {
                 "phase": "feature lane execution",
                 "progress": feature_state["summary"],
@@ -981,6 +1174,7 @@ def main() -> None:
     print()
 
     print("LANE CONVERSATIONS")
+    printed_lane_conversations = 0
     for lane in _configured_lanes():
         branch = branch_map.get(lane, f"codex/{lane}")
         head = _branch_head(branch)
@@ -988,16 +1182,16 @@ def main() -> None:
         logp = _latest_fixer_log(lane)
         log_name = logp.name if logp else "-"
         feature_state = _feature_runner_state(lane, manual_session_map)
-        counts = _lane_counts(PACKETS_ROOT / lane) if (PACKETS_ROOT / lane).exists() else {"pending": 0, "review": 0, "approved": 0}
+        counts = _lane_counts_for(lane)
         stale_idle = False
         if logp is not None:
             age_s = int(max(0, time.time() - logp.stat().st_mtime))
             stale_idle = counts["pending"] == 0 and counts["review"] == 0 and counts["approved"] == 0 and age_s >= STALE_LOG_SECONDS
-        if counts["pending"] == 0 and counts["review"] == 0 and counts["approved"] == 0 and feature_state["state"] in {"live", "recent_empty", "recent_log", "managed_thread", "launching", "error", "direct_exec_running"}:
+        if feature_state["state"] in {"live", "recent_empty", "recent_log", "managed_thread", "launching", "error", "direct_exec_running"}:
             convo = feature_state["summary"]
             detail = {
                 "objective": "produce the next lane commit and handoff packet",
-                "packet": "-",
+                "packet": "feature packet present" if counts["pending"] > 0 else "-",
                 "phase": "feature lane execution",
                 "progress": feature_state["summary"],
                 "recent": [feature_state["log"]] if feature_state["log"] else [],
@@ -1018,6 +1212,9 @@ def main() -> None:
         else:
             convo = _conversation_summary(logp)
             detail = _detailed_conversation_summary(logp)
+        if not _should_print_lane_conversation(lane, counts, verdict, feature_state, detail):
+            continue
+        printed_lane_conversations += 1
         print(f"{lane:22} head={head} verdict={verdict} log={log_name}")
         print(f"  convo: {convo}")
         print(f"  objective: {detail['objective']}")
@@ -1034,22 +1231,24 @@ def main() -> None:
             print("  blockers:")
             for item in detail["blockers"]:
                 print(f"    - {item}")
+    if printed_lane_conversations == 0:
+        print("(no active lane conversations)")
     print()
 
     print("MANUAL FEATURE LOGS")
-    logs = _manual_feature_logs()
-    if not logs:
-        print("(none)")
+    if not manual_sessions:
+        print("(skipped; no live manual feature sessions)")
     else:
-        for logp in logs:
-            age = int(max(0, time.time() - logp.stat().st_mtime))
-            print(f"{logp.name} age={age}s")
-            try:
-                tail = logp.read_text(errors="ignore").splitlines()[-5:]
-            except Exception:
-                tail = ["(unable to read log)"]
-            for line in tail:
-                print(f"  {line[:200]}")
+        logs = _manual_feature_logs()
+        if not logs:
+            print("(none)")
+        else:
+            for logp in logs:
+                age = int(max(0, time.time() - logp.stat().st_mtime))
+                print(f"{logp.name} age={age}s")
+                tail = _read_log_tail_lines(logp, max_lines=5, max_bytes=16 * 1024) or ["(unable to read log)"]
+                for line in tail:
+                    print(f"  {line[:200]}")
     print()
 
     tail = _tail_log()

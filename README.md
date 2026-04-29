@@ -1,21 +1,29 @@
-# Exegesis Engine (`qual`)
+# Exegesis MVP (`qual` compatibility repo)
 
-CLI scaffold for bootstrap, diff-preview, context basket, and vault state flows.
+This repository is in a staged migration from the original `qual` package layout toward a unified Exegesis MVP structure:
+- `engine/`
+- `client-textual/`
+- `shared/`
+- `docs/`
 
-Future commercial UI package name: `Exegesis Studio` (separate project after Engine contract maturity).
+The Textual writing client is the MVP target, but Textual is not an active dependency yet. Current work remains engine-first while the future UI lanes stay scaffolded and disabled.
 
-## Project Docs
-
+## Canonical docs
 - Product target and non-negotiables: `PRODUCT_VISION.md`
 - Roadmap and milestone status: `ROADMAP.md`
-- Pipeline dashboard and operator runbook: `PIPELINE_RUNBOOK.md`
-- Product architecture and contracts: `ARCHITECTURE.md`, `PRODUCT_VISION.md`, `INTEGRATION.md`
-- Fresh lane kickoff packets for Codex CLI: `.codex/kickoff_packets/`
-- Architecture boundaries and dependency rules: `ARCHITECTURE.md`
+- Architecture boundaries and migration rules: `ARCHITECTURE.md`
+- Infra migration plan away from Codex/OpenAI: `MIGRATION.md`
 - Integration process and merge gates: `INTEGRATION.md`
 - Thread lane ownership and scope guardrails: `THREAD_OWNERSHIP.md`
+- Detailed milestone breakdown: `docs/milestones.md`
+- Detailed tasks and lane mapping: `docs/TASKS.md`
+- Detailed staged structure notes: `docs/PROJECT_STRUCTURE.md`
+- Codex-facing migration notes: `docs/README-for-codex.md`
 
-## Quick Commands
+## Compatibility note
+- `src/main.py` and `src/qual/*` remain the live compatibility surface for the CLI and packet tooling.
+- Canonical packages now live under `exegesis_engine`, `exegesis_shared`, and `exegesis_textual` via staged import bridges.
 
+## Quick commands
 - `make help`
 - `make ci`

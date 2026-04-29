@@ -18,14 +18,21 @@ Run:
 from __future__ import annotations
 
 import json
+import os
 import subprocess
 from dataclasses import dataclass
 from pathlib import Path
 from typing import Dict, List, Optional
 
+try:
+    from packet_progress import infer_last_submitted_sha
+except ImportError:  # pragma: no cover - package execution fallback
+    from .packet_progress import infer_last_submitted_sha
+
 ROOT = Path('.codex/packets/lanes')
 CONFIG_FILE = Path('.codex/packet_router/config.json')
 PLANNER_STATE_FILE = Path('.codex/packet_planner/state.json')
+FEATURE_STATE_FILE = Path('.codex/feature_runner/state.json')
 
 @dataclass
 class LaneStatus:
@@ -65,12 +72,41 @@ def _branch_head_sha(branch: Optional[str]) -> Optional[str]:
     except Exception:
         return None
 
+
+def _pid_alive(pid: int) -> bool:
+    if pid <= 0:
+        return False
+    try:
+        os.kill(pid, 0)
+        return True
+    except OSError:
+        return False
+
+
+def _feature_thread_state() -> Dict[str, Dict]:
+    state = _load_json(FEATURE_STATE_FILE, {})
+    lanes = state.get("lanes") if isinstance(state, dict) else {}
+    return lanes if isinstance(lanes, dict) else {}
+
+
+def _feature_session_active(lane: str) -> bool:
+    lane_state = _feature_thread_state().get(lane)
+    if isinstance(lane_state, dict):
+        status = str(lane_state.get("status") or "")
+        if status in {"managed_thread", "launching"}:
+            return True
+        if status == "direct_exec_running":
+            return _pid_alive(int(lane_state.get("pid") or 0))
+    return False
+
+
 def _derive_lane_state(
     pending: List[Path],
     reviewer: List[Path],
     approved: List[Path],
     head_sha: Optional[str],
     last_submitted_sha: Optional[str],
+    feature_active: bool = False,
 ) -> tuple[str, str]:
     if approved:
         return ("ready_for_integrator", "approved packet waiting for integrator")
@@ -80,6 +116,8 @@ def _derive_lane_state(
         if head_sha and last_submitted_sha and head_sha != last_submitted_sha:
             return ("ready_for_reemit", "review notes present, lane advanced, planner should re-emit")
         return ("waiting_feature_update", "review notes present, lane has not advanced yet")
+    if feature_active:
+        return ("feature_in_progress", "feature lane is actively working on the next handoff")
     return ("idle", "no pending/review/approved packets")
 
 def scan_lane(lane_dir: Path, lane_cfg: Dict, planner_lane_state: Dict) -> LaneStatus:
@@ -90,11 +128,18 @@ def scan_lane(lane_dir: Path, lane_cfg: Dict, planner_lane_state: Dict) -> LaneS
     integ = sorted((lane_dir/'archive').glob('INTEGRATOR__*.md'))
     branch = (lane_cfg or {}).get("branch")
     head_sha = _branch_head_sha(branch)
-    last_submitted_sha = (planner_lane_state or {}).get("last_submitted_sha")
+    last_submitted_sha = infer_last_submitted_sha(lane_dir, planner_lane_state)
     if not bool((lane_cfg or {}).get("enabled", True)):
         state, note = ("disabled", "lane disabled in router config")
     else:
-        state, note = _derive_lane_state(pending, reviewer, approved, head_sha, last_submitted_sha)
+        state, note = _derive_lane_state(
+            pending,
+            reviewer,
+            approved,
+            head_sha,
+            last_submitted_sha,
+            _feature_session_active(lane),
+        )
     return LaneStatus(lane, pending, reviewer, approved, integ, branch, head_sha, last_submitted_sha, state, note)
 
 def main() -> None:
@@ -167,6 +212,7 @@ def main() -> None:
 
     print('\nHints:')
     print('- If pending>0 and review=0: router likely hasn\'t run recently or is blocked waiting on Codex.')
+    print('- If state=feature_in_progress: no queue packet is waiting because the feature lane is actively working.')
     print('- If state=waiting_feature_update: lane branch has not advanced since reviewer notes.')
     print('- If state=ready_for_reemit: lane advanced and planner should emit a new feature packet.')
     print('- If approved>0: integrator run should fire; check for INTEGRATOR__ outputs in archive.')

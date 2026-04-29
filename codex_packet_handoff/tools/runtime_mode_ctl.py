@@ -56,7 +56,7 @@ def main() -> int:
     if args.mode == "local_fallback":
         retry_seconds = args.retry_seconds
         if retry_seconds is None:
-            retry_seconds = int(cfg.get("cloud_probe_cooldown_seconds", 1800))
+            retry_seconds = int(cfg.get("cloud_probe_cooldown_seconds", 300))
         state["cloud_retry_at"] = time.time() + retry_seconds
     else:
         state["cloud_retry_at"] = 0

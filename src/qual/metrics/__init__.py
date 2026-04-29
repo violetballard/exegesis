@@ -1,7 +1,13 @@
-from src.qual.metrics.db import MetricsDB
-from src.qual.metrics.exporter import MetricsExportFlow, MetricsExportPlan, MetricsExporter, build_os_major
-from src.qual.metrics.recorder import MetricsRecorder
-from src.qual.metrics.ui import UsageIntegrityScreen, UsageIntegrityService
+from exegesis_engine.metrics import (
+    MetricsDB,
+    MetricsExportFlow,
+    MetricsExportPlan,
+    MetricsExporter,
+    MetricsRecorder,
+    UsageIntegrityScreen,
+    UsageIntegrityService,
+    build_os_major,
+)
 
 __all__ = [
     "MetricsDB",
