@@ -11028,6 +11028,30 @@ class A2UIFallbackSafetyTests(unittest.TestCase):
         self.assertNotIn("[ActionRef]", text)
         self.assertNotIn("[SelectionRef]", text)
 
+    def test_terminal_artifact_cli_fallback_refines_local_card_underflow_after_shared_resolver_failure(
+        self,
+    ) -> None:
+        artifact = {
+            "id": "export_document",
+            "label": "Export",
+            "payload": {"format": "md"},
+            "confirm": {"title": "Approve", "message": "Proceed?"},
+        }
+
+        with patch(
+            "src.qual.ui.a2ui.resolve_terminal_artifact_cli_fallback_target",
+            side_effect=RuntimeError("boom"),
+        ):
+            with patch(
+                "src.qual.ui.a2ui._resolve_terminal_artifact_render_target",
+                return_value=(artifact, "card"),
+            ):
+                text = render_terminal_cli_fallback(artifact)
+
+        self.assertIn("[ActionRef] Export", text)
+        self.assertIn("Action schema v1", text)
+        self.assertNotIn("[UnknownCard] <invalid card>", text)
+
     def test_terminal_artifact_cli_fallback_ignores_stale_context_hints_for_other_artifacts(self) -> None:
         stale_artifact = {
             "id": "choice-1",

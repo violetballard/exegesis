@@ -6122,6 +6122,11 @@ def render_terminal_cli_fallback(artifact: Any, *, kind: str | None = None) -> s
                 )
             except Exception:
                 return _render_terminal_artifact_cli_fallback_failure(artifact, requested_kind=requested_kind)
+            fallback_artifact, fallback_kind = refine_terminal_artifact_cli_fallback_target(
+                fallback_artifact,
+                fallback_kind,
+                requested_kind=requested_kind,
+            )
     else:
         fallback_artifact, fallback_kind = fallback_target
         fallback_artifact, fallback_kind = refine_terminal_artifact_cli_fallback_target(
