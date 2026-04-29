@@ -1,19 +1,19 @@
 ## Thread Handoff Packet
 
 - Branch/lane: `codex/feat-retrieval-fts` / `feat-retrieval-fts`
-- Packet refresh commit before this fixer: `39f88e18bb189f1db6e5d5d1bed3d987f3bef222`
-- Merge candidate before this metadata-only fixer: `39f88e18bb189f1db6e5d5d1bed3d987f3bef222`
+- Packet refresh commit before this fixer: `3bef51f327ec4d37780b518790840cf3bf9563b7`
+- Merge candidate before this metadata-only fixer: `3bef51f327ec4d37780b518790840cf3bf9563b7`
 - Merge candidate after this reviewer-fix packet refresh: final SHA reported in the fixer handoff.
 - Reviewed range: `378cf9a..HEAD`
-- Reviewed implementation range: `378cf9a..HEAD`
+- Reviewed implementation range before this metadata-only fixer: `378cf9a74a3658058079a32f186fcd254c4a4034..3bef51f327ec4d37780b518790840cf3bf9563b7`
 - Review choice: this packet supersedes earlier narrowed-slice packets. Re-review must use the actual branch-tip range above, or a later split branch explicitly identified as the merge candidate.
 - Canonical demo-path step advanced: `retrieve relevant material` and `promote or gather context into the basket`.
 
 ## Required Fixes Addressed
 
-1. The reviewable branch-tip merge candidate is regenerated against `378cf9a..HEAD`, with pre-fix branch tip `39f88e18bb189f1db6e5d5d1bed3d987f3bef222` and the final metadata-only fixer SHA reported in the handoff.
+1. The reviewable branch-tip merge candidate is regenerated against `378cf9a..HEAD`, with pre-fix branch tip `3bef51f327ec4d37780b518790840cf3bf9563b7` and the final metadata-only fixer SHA reported in the handoff.
 2. The packet no longer asks reviewers to approve the older `adfa8cdadd43747ffbcb612e4151e262b13e52ca` narrowed implementation slice. The actual branch-tip range is the only current merge-candidate range named for review.
-3. Budget accounting is explicit for the actual branch tip. The reviewed `378cf9a..39f88e18bb189f1db6e5d5d1bed3d987f3bef222` range is high-risk/shared work and fits the AGENTS high-risk task, file, and net-LOC caps before this metadata-only packet refresh.
+3. Budget accounting is explicit for the actual branch tip. The reviewed `378cf9a74a3658058079a32f186fcd254c4a4034..3bef51f327ec4d37780b518790840cf3bf9563b7` range is high-risk/shared work and fits the AGENTS high-risk task, file, and net-LOC caps before this metadata-only packet refresh.
 4. Roadmap mapping is corrected to the reviewer-required current roadmap target: `ROADMAP.md` Milestone 3 Real workflow loop, specifically FTS-first structured retrieval suitable for basket promotion.
 5. The canonical demo-path step is explicit: `retrieve relevant material` and `promote or gather context into the basket`.
 6. Required gates are re-run and reported below for the final branch-tip range.
@@ -37,7 +37,7 @@ Canonical demo path advanced by the full branch tip:
 
 ## Branch-Tip Files Changed
 
-Matches `git diff --name-status 378cf9a..HEAD` for the true merge candidate before this metadata-only fixer commit; this packet refresh itself changes `THREAD_PACKET.md` only:
+Matches `git diff --name-status 378cf9a74a3658058079a32f186fcd254c4a4034..3bef51f327ec4d37780b518790840cf3bf9563b7` for the true merge candidate before this metadata-only fixer commit; this packet refresh itself changes `THREAD_PACKET.md` only:
 
 - `M .codex/kickoff_packets/feat-retrieval-fts.md`
 - `M .codex/lane_meta/feat-retrieval-fts.json`
@@ -52,9 +52,11 @@ Matches `git diff --name-status 378cf9a..HEAD` for the true merge candidate befo
 
 ## Budget / Risk
 
-Risk/budget: high/shared because shared regression coverage and runtime retrieval payload/service behavior are included in the reviewed range. Recomputed from `378cf9a..39f88e18bb189f1db6e5d5d1bed3d987f3bef222`: task budget `4/4`; file budget `6/8`; size budget `6 files changed, 427 insertions(+), 131 deletions(-)`, which is `296` net LOC and stays within the high-risk `<=300` net LOC cap before this metadata-only packet refresh. Integrator-locked files: none. Shared-by-approval files: `tests/unit/test_unified_retrieval.py` as regression coverage for this lane. Routing/provider/core entrypoint impact: none.
+Risk/budget: high/shared because shared regression coverage and runtime retrieval payload/service behavior are included in the reviewed range. Recomputed from `378cf9a74a3658058079a32f186fcd254c4a4034..3bef51f327ec4d37780b518790840cf3bf9563b7`: task budget `4/4`; file budget `6/8`; size budget `6 files changed, 422 insertions(+), 131 deletions(-)`, which is `291` net LOC and stays within the high-risk `<=300` net LOC cap before this metadata-only packet refresh. Integrator-locked files: none. Shared-by-approval files: `tests/unit/test_unified_retrieval.py` as regression coverage for this lane. Routing/provider/core entrypoint impact: none.
 
-Required budget disposition: the regenerated actual branch-tip range fits the high-risk task, file, and net-LOC caps before this metadata-only packet refresh. Re-review should use the final fixer SHA as the branch tip and confirm the only additional change after `39f88e18bb189f1db6e5d5d1bed3d987f3bef222` is this packet metadata update.
+Required budget disposition: the regenerated actual branch-tip range fits the high-risk task, file, and net-LOC caps before this metadata-only packet refresh. Re-review should use the final fixer SHA as the branch tip and confirm the only additional change after `3bef51f327ec4d37780b518790840cf3bf9563b7` is this packet metadata update.
+
+Packet mirror blocker: `.codex/kickoff_packets/feat-retrieval-fts.md` and `.codex/lane_meta/feat-retrieval-fts.json` are present in the worktree but reject writes with `Operation not permitted`; this `THREAD_PACKET.md` is the writable corrected handoff source for this fixer pass. Those protected mirrors still contain older `adfa8cd` wording and should not be used as the re-review source of truth.
 
 ## FTS-First Alignment Proof
 
@@ -90,5 +92,5 @@ Validation fixer pass on `2026-04-29` against the branch-tip working tree before
 
 ## Risks / Blockers
 
-- The branch-tip merge candidate now has truthful traceability for the actual `378cf9a..HEAD` range. The only expected delta after `39f88e18bb189f1db6e5d5d1bed3d987f3bef222` is this metadata-only packet refresh.
+- The branch-tip merge candidate now has truthful traceability for the actual `378cf9a..HEAD` range. The only expected delta after `3bef51f327ec4d37780b518790840cf3bf9563b7` is this metadata-only packet refresh.
 - Reviewers should evaluate `378cf9a..HEAD` as the current branch-tip merge candidate. Earlier narrowed-slice packet ranges, including `378cf9a..adfa8cdadd43747ffbcb612e4151e262b13e52ca`, are superseded and are not approval candidates.
