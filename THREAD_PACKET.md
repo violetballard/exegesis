@@ -3,8 +3,8 @@
 - Lane: `feat-commands`
 - Branch: `codex/feat-commands`
 - Review target: final fixer commit range from this pass
-- Review basis: `HEAD~5..HEAD` after the `20260429T085016Z` fixer commit
-- Review range command: `git diff HEAD~5..HEAD`
+- Review basis: `HEAD~7..HEAD` after the `20260429T085733Z` fixer commit
+- Review range command: `git diff HEAD~7..HEAD`
 - Current fixer pass: close the parser-token drift gap by binding the real argparse surface to the command catalog contract, proving drift through the actual argparse choices, documenting the canonical demo-path step advanced by each task, and recording current passing gate evidence.
 
 ## Review Basis Correction
@@ -15,7 +15,7 @@ Do not review older branch-tip history as this packet's implementation basis. Th
 
 The only delta requested for review here is:
 
-- `HEAD~5..HEAD` after the `20260429T085016Z` fixer commit
+- `HEAD~7..HEAD` after the `20260429T085733Z` fixer commit
 
 This basis includes runtime/test commits after `f8d860e`; they are intentionally part of the requested re-review and are not described as metadata-only.
 
@@ -41,7 +41,7 @@ Because `scripts/scope-check.sh` is not part of the narrow review basis, no appr
 
 ## Files Changed
 
-Changed files in `HEAD~5..HEAD` after the `20260429T085016Z` fixer commit:
+Changed files in `HEAD~7..HEAD` after the `20260429T085733Z` fixer commit:
 
 - `THREAD.md`
 - `src/qual/cli.py`
@@ -81,9 +81,8 @@ Classification:
 
 ## Commands Run
 
-Required gates rerun after the `20260429T085016Z` fixer prompt:
+Required gates rerun after the `20260429T085733Z` fixer prompt:
 
-- `python -m pytest tests/unit/test_commands_catalog.py -q` - attempted; failed because the active Python environment has no `pytest` module.
 - `python -m unittest tests.unit.test_commands_catalog` - passed, `102` tests.
 - `make scope-check` - passed.
 - `./quality-format.sh --check` - passed.
@@ -94,8 +93,8 @@ Required gates rerun after the `20260429T085016Z` fixer prompt:
 
 Review-basis verification commands:
 
-- `git diff --name-status HEAD~5..HEAD` - to run after the `20260429T085016Z` fixer commit.
-- `git diff --stat HEAD~5..HEAD` - to run after the `20260429T085016Z` fixer commit.
+- `git diff --name-status HEAD~7..HEAD` - to run after the `20260429T085733Z` fixer commit.
+- `git diff --stat HEAD~7..HEAD` - to run after the `20260429T085733Z` fixer commit.
 
 ## Handoff Readiness Checklist
 

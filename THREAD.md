@@ -7,13 +7,13 @@ Canonical handoff contract lives in `THREAD_PACKET.md`.
 - Lane: `feat-commands`
 - Branch: `codex/feat-commands`
 - Review target: final fixer commit range from this pass
-- Review basis: `HEAD~5..HEAD` after the `20260429T085016Z` fixer commit
+- Review basis: `HEAD~7..HEAD` after the `20260429T085733Z` fixer commit
 - Scope: command CLI contract hardening for the current Engine-first MVP focus without starting `feat-console`
 - Current fixer pass: reconcile the review basis, real argparse parser-surface validation, shared CLI ownership accounting, and canonical demo-path reporting.
 
 ## Fixer Prompt `20260429T083033Z` Fix Satisfaction
 
-1. `THREAD_PACKET.md` uses one clear final fixer review basis: `HEAD~5..HEAD` after the `20260429T085016Z` fixer commit.
+1. `THREAD_PACKET.md` uses one clear final fixer review basis: `HEAD~7..HEAD` after the `20260429T085733Z` fixer commit.
 2. The packet lists and classifies every file changed by that review basis, including implementation, tests, and handoff metadata.
 3. The implementation verifies the real argparse parser surface through `src.qual.cli.command_parser_lookup_table()`, not catalog-internal tables alone.
 4. The packet records `src/qual/cli.py` as a shared-by-approval and integrator-locked parser-surface edit required by the reviewer fix.
@@ -24,9 +24,9 @@ Canonical handoff contract lives in `THREAD_PACKET.md`.
 1. Required gates were rerun directly in this worktree and now pass without fallback allowances: `make scope-check`, `./quality-format.sh --check`, `./quality-lint.sh`, `./quality-test.sh`, `./typecheck-test.sh`, and `make ci`.
 2. `THREAD_PACKET.md` records the passing gate results for re-review, including `184` passing unit tests plus smoke tests through `./quality-test.sh`.
 
-## Fixer Prompt `20260429T085016Z` Fix Satisfaction
+## Fixer Prompt `20260429T085016Z`, `20260429T085633Z`, And `20260429T085733Z` Fix Satisfaction
 
-1. The authoritative review basis is the final fixer range `HEAD~5..HEAD`, which includes the parser implementation, parser-surface tests, packet corrections, and this basis reconciliation.
+1. The authoritative review basis is the final fixer range `HEAD~7..HEAD`, which includes the parser implementation, parser-surface tests, packet corrections, current gate evidence, and this basis reconciliation.
 2. Parser-surface drift coverage now patches the actual `_build_parser()` argparse choices, so same-canonical token replacement, removal, substitution, and reordering are proven against accepted parser tokens.
 3. Runtime/test edits after `f8d860e` are included in that basis and are not described as metadata-only.
 4. Ownership accounting stays tied to that exact basis: `src/qual/commands/catalog.py` is lane-owned, `src/qual/cli.py` is shared-by-approval and integrator-locked, and `tests/unit/test_commands_catalog.py` is command-contract unit coverage.
