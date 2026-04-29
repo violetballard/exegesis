@@ -6,7 +6,7 @@ Canonical handoff contract lives in `THREAD_PACKET.md`.
 
 - Lane: `feat-commands`
 - Branch: `codex/feat-commands`
-- Implementation review target: branch tip after fixer prompt `20260429T034739Z`
+- Implementation review target: branch tip after fixer prompt `20260429T035003Z`
 - Prior implementation anchor: `f8d860ed9f6299f0169c4f21321ac5f37c949fd3`
 - Scope: command-catalog contract hardening for the current engine-first MVP focus without starting `feat-console`.
 - Roadmap alignment: Milestone 3 CLI compatibility for the engine-first workflow loop, and `feat-commands` as the command-surface compatibility lane.
@@ -33,10 +33,9 @@ Canonical handoff contract lives in `THREAD_PACKET.md`.
 - Integrator-locked edits: none.
 - Metadata-only handoff edits: `THREAD.md`, `THREAD_PACKET.md`.
 
-## Fixer Prompt `20260429T034739Z` Fix Satisfaction
+## Fixer Prompt `20260429T035003Z` Fix Satisfaction
 
-1. Branch-tip review basis and files changed list are accurate in `THREAD_PACKET.md`.
-2. Unrelated `scripts/scope-check.sh` drift is restored to baseline.
-3. `command_cli_contract()` rejects full parser-surface drift, including same-canonical drift.
-4. Completed tasks map to the canonical demo path.
-5. Required gates are rerun and recorded in `THREAD_PACKET.md`.
+1. Canonical demo-path mapping is explicit in `THREAD_PACKET.md`.
+2. Metadata-only changed files list includes both `THREAD.md` and `THREAD_PACKET.md`.
+3. Reviewed implementation scope remains unchanged from the command-catalog slice.
+4. Required gates are rerun and recorded in `THREAD_PACKET.md`.

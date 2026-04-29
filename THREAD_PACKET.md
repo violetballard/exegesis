@@ -2,14 +2,14 @@
 
 - Lane: `feat-commands`
 - Branch: `codex/feat-commands`
-- Commit: branch tip after fixer prompt `20260429T034739Z`
+- Commit: branch tip after fixer prompt `20260429T035003Z`
 - Review basis: branch tip after this fixer commit, not `f8d860ed9f6299f0169c4f21321ac5f37c949fd3` alone.
 - Prior implementation anchor: `f8d860ed9f6299f0169c4f21321ac5f37c949fd3`
 - Packet refresh role: reviewer-fix implementation and handoff correction
 
 ## Packet Traceability Note
 
-- Fixer prompt `20260429T034739Z` requested a corrected branch-tip review basis.
+- Fixer prompt `20260429T035003Z` requested packet-only reviewer fixes for canonical demo-path mapping and complete metadata file accounting.
 - The reviewable branch-tip implementation is narrowed to the command-catalog slice:
   - `src/qual/commands/catalog.py`
   - `tests/unit/test_commands_catalog.py`
@@ -77,7 +77,7 @@
 1. Hardened the CLI contract against full parser-surface drift in `src/qual/commands/catalog.py`.
 2. Added focused tests in `tests/unit/test_commands_catalog.py` for same-canonical drift, missing expected tokens, extra accepted aliases, and lookup-table/declared-surface drift.
 3. Narrowed the branch-tip review basis by restoring unrelated `scripts/scope-check.sh` drift to baseline and documenting only the remaining command-catalog implementation files.
-4. Regenerated the handoff packet with canonical demo-path mapping and reran all required gates.
+4. Regenerated the handoff packet with canonical demo-path mapping, complete metadata-only file accounting, and reran all required gates.
 
 ## Canonical Demo-Path Mapping
 
@@ -114,13 +114,12 @@
 - Metadata-only handoff edits: `THREAD.md`, `THREAD_PACKET.md`.
 - Shared/integrator-locked edits: `YES` only because the approved shared-test exception touches `tests/unit/test_commands_catalog.py`; no integrator-locked files are edited.
 
-## Required Fixes Addressed From Fixer Prompt `20260429T034739Z`
+## Required Fixes Addressed From Fixer Prompt `20260429T035003Z`
 
-1. Regenerated this handoff packet with an accurate branch-tip review basis and files changed list.
-2. Narrowed the branch-tip implementation to the command-catalog slice by restoring unrelated `scripts/scope-check.sh` drift to baseline.
-3. Strengthened `command_cli_contract()` to reject full parser-surface drift, including same-canonical token drift, and added focused regression coverage.
-4. Added explicit canonical demo-path mapping and stated which demo-path step is now more real.
-5. Reran all required gates after establishing the corrected implementation basis.
+1. Added explicit canonical demo-path mapping and stated which demo-path step is now more real.
+2. Updated the metadata-only files changed list to include both `THREAD.md` and `THREAD_PACKET.md`.
+3. Kept the reviewed implementation scope unchanged from the command-catalog slice.
+4. Reran all required gates after the packet correction.
 
 ## Commands Run + Outcomes
 
