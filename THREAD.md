@@ -14,6 +14,8 @@ Canonical handoff contract lives in `THREAD_PACKET.md`.
 - Approved shared-test exception: `tests/unit/test_commands_catalog.py`.
 - Shared-by-approval files: `src/qual/cli.py`.
 - Integrator-locked files touched: `src/qual/cli.py` only; this file is part of the actual branch-tip merge target and needs explicit review/approval.
-- Implementation/test traceability: `9d0c82ccdfa74d8daf33d98ce410fd599bf45609` changed `src/qual/commands/catalog.py` and `tests/unit/test_commands_catalog.py` as well as handoff metadata; it is not a metadata-only commit.
+- Post-`f8d860e` target delta: `THREAD.md`, `THREAD_PACKET.md`, `src/qual/cli.py`, `src/qual/commands/__init__.py`, `src/qual/commands/catalog.py`, and `tests/unit/test_commands_catalog.py`.
+- Implementation/test traceability: `c0b5392d4`, `8b56b5a13`, `c2ff1842f`, and `9d0c82ccdfa74d8daf33d98ce410fd599bf45609` are recent post-`f8d860e` non-metadata commits in the branch-tip review target; `9d0c82ccdfa74d8daf33d98ce410fd599bf45609` changed `src/qual/commands/catalog.py` and `tests/unit/test_commands_catalog.py` as well as handoff metadata.
 - Previous metadata-only traceability: `c65bfe07cc2b48aa35b3552774da12178d0e51bc4` changed `THREAD.md` and `THREAD_PACKET.md` only.
-- Fixer prompts satisfied: `20260429T152044Z`, `20260429T152842Z`, `20260429T154016Z`, `20260429T154607Z`, `20260429T155155Z`, `20260429T155636Z`, `20260429T160222Z`, `20260429T161403Z`, `20260429T161853Z`, `20260429T162401Z`, `20260429T162824Z`, `20260429T163215Z`, `20260429T163501Z`; canonical packet details live in `THREAD_PACKET.md`.
+- Reviewed-tip metadata-only traceability: `e233e4733c186a4843c4c1b4cd90a20c860f7118` changed `THREAD.md` and `THREAD_PACKET.md` only.
+- Fixer prompts satisfied: `20260429T152044Z`, `20260429T152842Z`, `20260429T154016Z`, `20260429T154607Z`, `20260429T155155Z`, `20260429T155636Z`, `20260429T160222Z`, `20260429T161403Z`, `20260429T161853Z`, `20260429T162401Z`, `20260429T162824Z`, `20260429T163215Z`, `20260429T163501Z`, `20260429T164041Z`; canonical packet details live in `THREAD_PACKET.md`.

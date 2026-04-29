@@ -4,9 +4,9 @@
 - Branch: `codex/feat-commands`
 - Review target: current branch tip `codex/feat-commands`.
 - Review basis: `git diff --stat --name-status 06cdebc2d5d53533b73f264a4bbf5a4b4daacb27..HEAD`
-- Fixer prompts satisfied: `20260429T152044Z`, `20260429T152842Z`, `20260429T154016Z`, `20260429T154607Z`, `20260429T155155Z`, `20260429T155636Z`, `20260429T160222Z`, `20260429T161403Z`, `20260429T161853Z`, `20260429T162401Z`, `20260429T162824Z`, `20260429T163215Z`, `20260429T163501Z`
+- Fixer prompts satisfied: `20260429T152044Z`, `20260429T152842Z`, `20260429T154016Z`, `20260429T154607Z`, `20260429T155155Z`, `20260429T155636Z`, `20260429T160222Z`, `20260429T161403Z`, `20260429T161853Z`, `20260429T162401Z`, `20260429T162824Z`, `20260429T163215Z`, `20260429T163501Z`, `20260429T164041Z`
 
-This packet uses the current branch tip as the only review target. The review basis is the full diff from merge base `06cdebc2d5d53533b73f264a4bbf5a4b4daacb27` to `HEAD`; no implementation or test commits are excluded from the merge target. Commit `9d0c82ccdfa74d8daf33d98ce410fd599bf45609` is not metadata-only: it changes `src/qual/commands/catalog.py` and `tests/unit/test_commands_catalog.py` as well as `THREAD.md` and `THREAD_PACKET.md`. The previous packet refresh commit `c65bfe07cc2b48aa35b3552774da12178d0e51bc4` is metadata-only and changes `THREAD.md` and `THREAD_PACKET.md`.
+This packet uses the current branch tip as the only review target. The review basis is the full diff from merge base `06cdebc2d5d53533b73f264a4bbf5a4b4daacb27` to `HEAD`; no implementation or test commits are excluded from the merge target. Commit `9d0c82ccdfa74d8daf33d98ce410fd599bf45609` is not metadata-only: it changes `src/qual/commands/catalog.py` and `tests/unit/test_commands_catalog.py` as well as `THREAD.md` and `THREAD_PACKET.md`. The previous packet refresh commit `c65bfe07cc2b48aa35b3552774da12178d0e51bc4` and reviewed-tip refresh `e233e4733c186a4843c4c1b4cd90a20c860f7118` are metadata-only and change `THREAD.md` and `THREAD_PACKET.md`.
 
 ## Required-Fix Resolution
 
@@ -16,8 +16,9 @@ This packet uses the current branch tip as the only review target. The review ba
 4. Parser drift tests cover live parser command-token rename drift, live parser alias-token rename drift, parser-only extra-token drift, parser-only missing-token drift, post-build extra-token drift, post-build missing-token drift, and catalog canonical-name drift.
 5. The canonical demo-path alignment below maps every completed task to the exact AGENTS canonical demo-path step it advances.
 6. Ownership wording distinguishes lane-owned files, shared-by-approval files, and integrator-locked files.
-7. Packet refresh commit `a9266aca4b87a2ad1df4e8615a2a4adfb816fc44` is metadata-only and changed `THREAD.md` and `THREAD_PACKET.md`; fixer commit `9d0c82ccdfa74d8daf33d98ce410fd599bf45609` is not metadata-only because it changed `src/qual/commands/catalog.py` and `tests/unit/test_commands_catalog.py`; previous packet refresh `c65bfe07cc2b48aa35b3552774da12178d0e51bc4` is metadata-only.
+7. Packet refresh commit `a9266aca4b87a2ad1df4e8615a2a4adfb816fc44` is metadata-only and changed `THREAD.md` and `THREAD_PACKET.md`; fixer commit `9d0c82ccdfa74d8daf33d98ce410fd599bf45609` is not metadata-only because it changed `src/qual/commands/catalog.py` and `tests/unit/test_commands_catalog.py`; previous packet refresh `c65bfe07cc2b48aa35b3552774da12178d0e51bc4` and reviewed-tip refresh `e233e4733c186a4843c4c1b4cd90a20c860f7118` are metadata-only.
 8. The canonical demo-path impact statement below explains how deterministic CLI contract validation strengthens the engine-first MVP loop rather than only the command catalog internals.
+9. The `20260429T164041Z` reviewer packet is satisfied against the current branch tip: the review target is not narrowed to `f8d860ed9f6299f0169c4f21321ac5f37c949fd3`, and the post-`f8d860e` delta is explicitly accounted for below.
 
 ## Implementation Summary
 
@@ -82,6 +83,29 @@ Handoff metadata:
 - `THREAD.md`
 - `THREAD_PACKET.md`
 
+Post-`f8d860e` branch-tip delta from `git diff --name-status f8d860ed9f6299f0169c4f21321ac5f37c949fd3..HEAD`:
+
+- `M THREAD.md`
+- `M THREAD_PACKET.md`
+- `M src/qual/cli.py`
+- `M src/qual/commands/__init__.py`
+- `M src/qual/commands/catalog.py`
+- `M tests/unit/test_commands_catalog.py`
+
+Post-`f8d860e` implementation/test files in the actual merge target:
+
+- `src/qual/cli.py`
+- `src/qual/commands/__init__.py`
+- `src/qual/commands/catalog.py`
+- `tests/unit/test_commands_catalog.py`
+
+Recent post-`f8d860e` non-metadata commits that remain part of the branch-tip review target:
+
+- `c0b5392d4` `fix(commands): enforce live parser drift guard` changed `src/qual/commands/catalog.py` and `tests/unit/test_commands_catalog.py`.
+- `8b56b5a13` `fix(commands): tighten live parser drift guard` changed `src/qual/commands/catalog.py` and `tests/unit/test_commands_catalog.py`.
+- `c2ff1842f` `fix(commands): prove parser-only drift rejection` changed `tests/unit/test_commands_catalog.py`.
+- `9d0c82ccdfa74d8daf33d98ce410fd599bf45609` `fix(commands): validate live parser alias drift` changed `src/qual/commands/catalog.py` and `tests/unit/test_commands_catalog.py`.
+
 Metadata-only files changed by packet refresh commit `a9266aca4b87a2ad1df4e8615a2a4adfb816fc44`:
 
 - `THREAD.md`
@@ -91,6 +115,11 @@ Non-metadata files changed by fixer commit `9d0c82ccdfa74d8daf33d98ce410fd599bf4
 
 - `src/qual/commands/catalog.py`
 - `tests/unit/test_commands_catalog.py`
+
+Metadata-only files changed by reviewed-tip refresh `e233e4733c186a4843c4c1b4cd90a20c860f7118`:
+
+- `THREAD.md`
+- `THREAD_PACKET.md`
 
 ## Ownership And Risk
 
@@ -133,6 +162,7 @@ Fresh fixer rerun for `20260429T162401Z` routes `command_cli_contract()` through
 Fresh fixer rerun for `20260429T162824Z` revalidates the live argparse parser-surface contract, confirms the required drift tests remain in the branch-tip review target, preserves the corrected ownership note, and reruns the full required gate set.
 Fresh fixer rerun for `20260429T163215Z` explicitly records that `9d0c82ccdfa74d8daf33d98ce410fd599bf45609` is an implementation/test commit, confirms `command_cli_contract()` is bound to the live argparse parser surface, verifies the focused parser-drift regression suite, and reruns the full required gate set.
 Fresh fixer rerun for `20260429T163501Z` keeps the current branch tip as the single review target, confirms the exact merge base and complete branch-tip file list, records `src/qual/cli.py` as shared-by-approval and integrator-locked, maps every completed task to the AGENTS canonical demo-path wording, and reruns the full required gate set after this packet correction.
+Fresh fixer rerun for `20260429T164041Z` keeps the current branch tip as the single review target, records the post-`f8d860e` branch-tip delta, names the recent non-metadata parser-surface commits, preserves the explicit `src/qual/cli.py` shared/integrator approval note, and reruns the full required gate set after this packet correction.
 
 ## Risks And Blockers
 
