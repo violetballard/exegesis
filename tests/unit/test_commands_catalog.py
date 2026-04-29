@@ -1906,6 +1906,35 @@ class CommandCatalogTests(unittest.TestCase):
                     with self.assertRaisesRegex(ValueError, "Command CLI tokens are inconsistent"):
                         command_catalog.command_cli_contract()
 
+    def test_command_cli_contract_rejects_exact_accepted_parser_token_surface_drift(self) -> None:
+        drift_cases = (
+            (
+                "same-canonical substitution",
+                ("open", "diff-preview", "diff", "context-basket", "terminal"),
+            ),
+            (
+                "extra same-canonical alias",
+                ("bootstrap", "open", "diff-preview", "diff", "context-basket", "terminal"),
+            ),
+            (
+                "missing accepted alias",
+                ("bootstrap", "diff-preview", "context-basket", "terminal"),
+            ),
+            (
+                "accepted token order drift",
+                ("bootstrap", "diff", "diff-preview", "context-basket", "terminal"),
+            ),
+        )
+        for label, drifted_tokens in drift_cases:
+            with self.subTest(label=label):
+                self._clear_cli_caches()
+                with (
+                    patch.object(command_catalog, "command_cli_tokens", return_value=drifted_tokens),
+                    patch.object(command_catalog, "command_names", return_value=command_names()),
+                ):
+                    with self.assertRaisesRegex(ValueError, "Command CLI parser surface is inconsistent"):
+                        command_catalog.command_cli_contract()
+
     def test_validate_command_catalog_rejects_ambiguous_definitions(self) -> None:
         with self.assertRaisesRegex(ValueError, "Duplicate command name"):
             validate_command_catalog(

@@ -2,19 +2,19 @@
 
 - Lane: `feat-commands`
 - Branch: `codex/feat-commands`
-- Review target: current branch tip after fixer prompt `20260429T074435Z`
+- Review target: current branch tip after fixer prompt `20260429T075238Z`
 - Review basis: all branch-tip changes relative to merge base `06cdebc2d5d53533b73f264a4bbf5a4b4daacb27`
 - Review range command: `git diff 06cdebc2d5d53533b73f264a4bbf5a4b4daacb27..HEAD`
-- Current fixer pass: metadata-only handoff correction in `THREAD.md` and `THREAD_PACKET.md`
+- Current fixer pass: focused accepted parser-token regression coverage plus handoff correction in `THREAD.md` and `THREAD_PACKET.md`
 - Prior implementation anchor referenced by earlier packets: `f8d860ed9f6299f0169c4f21321ac5f37c949fd3`
 - Important correction: `b9e1076e1fafac66a69b8916154db6e85c2bf7c4` is implementation/test-plus-metadata scope because it changes `src/qual/commands/catalog.py`, `tests/unit/test_commands_catalog.py`, `THREAD.md`, and `THREAD_PACKET.md`. It is not metadata-only.
 
 ## Scope Completed
 
-1. Hardened the command catalog contract so `command_cli_contract()` validates the live CLI parser token projection, accepted token order, lookup order, canonical grouping, declared surface, and canonical command ordering before returning a contract.
-2. Added parser-drift regression coverage for same-canonical substitution, extra same-canonical aliases, missing accepted aliases, reordered parser tokens, lookup-table substitutions, declared-surface drift, and `diff` replaced by the same-canonical `diff_preview` alias.
-3. Preserved command-lane compatibility helpers for the CLI-first workflow surface, including canonical command lookup, preferred command tokens, diff-preview compatibility, and exported command facade behavior.
-4. Regenerated this handoff packet with one current branch-tip review basis, accurate file/LOC accounting, implementation/test versus metadata classification, ownership accounting, and explicit canonical demo-path mapping.
+1. Project open: hardened `command_cli_contract()` so the accepted `bootstrap` parser token cannot silently drift to a same-canonical alias such as `open`. Concrete blocker removed: the CLI could otherwise accept a different project/document open token while the catalog contract still passed.
+2. Retrieval/basket: kept `context-basket` locked to the exact accepted parser-token surface and canonical order. Concrete blocker removed: retrieval context gathering could otherwise lose or reorder its parser token without an early catalog failure.
+3. Patch review: added focused parser-drift regression coverage for same-canonical substitution, extra accepted alias, missing accepted alias, and token order drift across `diff-preview`/`diff`. Concrete blocker removed: preview/apply/reject patch review could otherwise drift within the same canonical command and evade the weaker catalog-name invariant.
+4. Save/continue/export handoff: preserved the `terminal` CLI surface and command-lane compatibility helpers for export handoff routing while refreshing ownership accounting. Concrete blocker removed: the final operator handoff path now remains tied to the exact parser surface before `feat-console` starts.
 
 ## AGENTS.md Demo-Path Statement
 
@@ -41,9 +41,9 @@ Changed files against merge base `06cdebc2d5d53533b73f264a4bbf5a4b4daacb27`:
 - `tests/unit/test_commands_catalog.py`
 - `tests/unit/test_diff_preview.py`
 
-Size accounting against merge base after the final `20260429T074435Z` metadata correction:
+Size accounting against merge base after the final `20260429T075238Z` fixer pass:
 
-- `9 files changed, 3941 insertions(+), 42 deletions(-)`
+- `9 files changed, 3968 insertions(+), 42 deletions(-)`
 
 Implementation/test versus metadata classification:
 
@@ -80,7 +80,8 @@ Shared/approval note: the command tests are included as the approved shared-test
 - `make scope-check` - passed (`[devex] scope-check: passed for branch 'codex/feat-commands'`)
 - `./quality-format.sh --check` - passed (`[format] check passed`)
 - `./quality-lint.sh` - passed (`[lint] passed`)
-- `./quality-test.sh` - passed (`Ran 179 tests ... OK`; smoke passed)
+- `python3 -m unittest tests.unit.test_commands_catalog -q` - passed (`Ran 98 tests ... OK`)
+- `./quality-test.sh` - passed (`Ran 180 tests ... OK`; smoke passed)
 - `./typecheck-test.sh` - passed (`[typecheck] compiling Python sources in src/`)
 - `make ci` - passed (`[devex] CI entrypoint completed`)
 
