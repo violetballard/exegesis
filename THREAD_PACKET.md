@@ -40,7 +40,7 @@ The branch delivers the FTS-first retrieval slice needed for the current MVP eng
 - Risk: high/shared because `tests/unit/test_unified_retrieval.py` is approved shared regression coverage.
 - Task budget: `4/4`.
 - File budget: `7/8`.
-- Size budget: `7` files changed, 427 insertions, 130 deletions, net `+297` in `378cf9a7..HEAD` plus this packet stamp.
+- Size budget: `7` files changed, 427 insertions, 130 deletions, net `+297` in `378cf9a7..HEAD` before the final commit SHA changes.
 - Integrator-locked files: none.
 
 ## Roadmap / Vision
@@ -62,4 +62,4 @@ The branch delivers the FTS-first retrieval slice needed for the current MVP eng
 ## Risks / Blockers
 
 - Merge risk remains high because the actual reviewed range includes approved shared regression coverage.
-- No known blockers after the packet is committed and all required gates pass.
+- `.codex/kickoff_packets/feat-retrieval-fts.md` and `.codex/lane_meta/feat-retrieval-fts.json` are included in the reviewed range, but this sandbox rejects writes to those `.codex` paths with `Operation not permitted`; `THREAD_PACKET.md` is the corrected source of truth for re-review.
