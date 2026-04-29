@@ -704,10 +704,30 @@ class RetrievalResult:
             "retrieval_policy": copy.deepcopy(citation_bundle["retrieval_policy"]),
             "citation_status": copy.deepcopy(citation_bundle["citation_status"]),
             "doc_ids": [doc_hit["doc_id"] for doc_hit in doc_bundle["doc_hits"]],
+            "doc_fingerprints": [
+                doc_hit["doc_fingerprint"]
+                for doc_hit in doc_bundle["doc_hits"]
+                if isinstance(doc_hit.get("doc_fingerprint"), str)
+            ],
+            "doc_identity_fingerprints": [
+                doc_hit["doc_identity_fingerprint"]
+                for doc_hit in doc_bundle["doc_hits"]
+                if isinstance(doc_hit.get("doc_identity_fingerprint"), str)
+            ],
             "excerpt_ids": [
                 hit["excerpt_id"]
                 for hit in excerpt_bundle["excerpt_hits"]
                 if hit["excerpt_id"] is not None
+            ],
+            "excerpt_fingerprints": [
+                hit["excerpt_fingerprint"]
+                for hit in excerpt_bundle["excerpt_hits"]
+                if isinstance(hit.get("excerpt_fingerprint"), str)
+            ],
+            "excerpt_text_hashes": [
+                hit["excerpt_text_hash"]
+                for hit in excerpt_bundle["excerpt_hits"]
+                if isinstance(hit.get("excerpt_text_hash"), str)
             ],
             "doc_citations": copy.deepcopy(citation_bundle["doc_citations"]),
             "excerpt_citations": copy.deepcopy(citation_bundle["excerpt_citations"]),

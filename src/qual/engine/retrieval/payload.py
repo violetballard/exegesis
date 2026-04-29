@@ -51,10 +51,30 @@ def _build_basket_promotion_snapshot_from_bundles(
     if not isinstance(excerpt_hits, list):
         excerpt_hits = []
     doc_ids = [item.get("doc_id") for item in doc_hits if isinstance(item, dict) and isinstance(item.get("doc_id"), str)]
+    doc_fingerprints = [
+        item.get("doc_fingerprint")
+        for item in doc_hits
+        if isinstance(item, dict) and isinstance(item.get("doc_fingerprint"), str)
+    ]
+    doc_identity_fingerprints = [
+        item.get("doc_identity_fingerprint")
+        for item in doc_hits
+        if isinstance(item, dict) and isinstance(item.get("doc_identity_fingerprint"), str)
+    ]
     excerpt_ids = [
         item.get("excerpt_id")
         for item in excerpt_hits
         if isinstance(item, dict) and isinstance(item.get("excerpt_id"), str)
+    ]
+    excerpt_fingerprints = [
+        item.get("excerpt_fingerprint")
+        for item in excerpt_hits
+        if isinstance(item, dict) and isinstance(item.get("excerpt_fingerprint"), str)
+    ]
+    excerpt_text_hashes = [
+        item.get("excerpt_text_hash")
+        for item in excerpt_hits
+        if isinstance(item, dict) and isinstance(item.get("excerpt_text_hash"), str)
     ]
     return {
         "result_fingerprint": result_fingerprint,
@@ -66,7 +86,11 @@ def _build_basket_promotion_snapshot_from_bundles(
         "retrieval_policy": copy.deepcopy(citation_bundle.get("retrieval_policy", {})),
         "citation_status": copy.deepcopy(citation_bundle.get("citation_status", {})),
         "doc_ids": doc_ids,
+        "doc_fingerprints": doc_fingerprints,
+        "doc_identity_fingerprints": doc_identity_fingerprints,
         "excerpt_ids": excerpt_ids,
+        "excerpt_fingerprints": excerpt_fingerprints,
+        "excerpt_text_hashes": excerpt_text_hashes,
         "doc_citations": copy.deepcopy(citation_bundle.get("doc_citations", [])),
         "excerpt_citations": copy.deepcopy(citation_bundle.get("excerpt_citations", [])),
     }
