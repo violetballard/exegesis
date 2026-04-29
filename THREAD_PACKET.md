@@ -558,9 +558,9 @@
 5. Kept the AGENTS.md demo-path statement explicit: the CLI-first parser surface for project open, retrieval/basket, patch review, and export handoff is more real because parser drift now fails loudly before Textual is enabled.
 6. Reran all required gates after this fixer pass and recorded the outcomes below.
 
-## Required Fixes Addressed From Fixer Prompt `20260429T050502Z`
+## Required Fixes Addressed From Fixer Prompt `20260429T050213Z`
 
-1. Regenerated this handoff packet with one unambiguous review target: the current branch tip after the `20260429T050502Z` fixer commit.
+1. Regenerated this handoff packet with one unambiguous review target: the current branch tip after the `20260429T050213Z` fixer commit.
 2. Confirmed `command_cli_contract()` validates the exact expected parser-token projection, not only de-duplicated canonical command names: tokens, lookup-table order, grouped canonical surface, declared CLI surface, and canonical-name order are all checked before the contract returns.
 3. Added a direct regression for the reviewer packet example where `open` replaces `bootstrap` while preserving the `bootstrap` canonical name, proving `command_cli_contract()` rejects same-canonical parser-surface drift.
 4. Preserved regression coverage for added known aliases, removed tokens, substituted aliases, token order drift, lookup-table order/substitution drift, and declared-surface drift.
@@ -578,9 +578,9 @@
 6. Kept the AGENTS.md demo-path statement explicit: the CLI-first parser surface for project open, retrieval/basket, patch review, and export handoff is more real because parser drift now fails loudly before Textual is enabled.
 7. Reran all required gates after this fixer pass and recorded the outcomes below.
 
-## Required Fixes Addressed From Fixer Prompt `20260429T050502Z`
+## Required Fixes Addressed From Fixer Prompt `20260429T050555Z`
 
-1. Regenerated this handoff packet with one unambiguous review target: the current branch tip after the `20260429T050502Z` fixer commit.
+1. Regenerated this handoff packet with one unambiguous review target: the current branch tip after the `20260429T050555Z` fixer commit.
 2. Confirmed `command_cli_contract()` validates the exact expected parser-token projection, not only de-duplicated canonical command names: tokens, lookup-table order, grouped canonical surface, declared CLI surface, and canonical-name order are all checked before the contract returns.
 3. Added a current-reviewer `_CLI_ENTRYPOINTS` regression table for the requested parser drift classes: extra same-canonical alias, missing accepted token, substituted same-canonical token, and parser-token order drift.
 4. Preserved lookup-table and declared-surface regressions for same-canonical and self-consistent drift cases that would otherwise leave the canonical-name set unchanged.
@@ -588,12 +588,12 @@
 6. Kept the AGENTS.md demo-path statement explicit: the CLI-first parser surface for project open, retrieval/basket, patch review, and export handoff is more real because parser drift now fails loudly before Textual is enabled.
 7. Reran all required gates after this fixer pass and recorded the outcomes below.
 
-## Required Fixes Addressed From Fixer Prompt `20260429T050502Z`
+## Required Fixes Addressed From Fixer Prompt `20260429T050649Z`
 
-1. Regenerated this handoff packet with one unambiguous review target: the current branch tip after the `20260429T050502Z` fixer commit.
+1. Regenerated this handoff packet with one unambiguous review target: the current branch tip after the `20260429T050649Z` fixer commit.
 2. Confirmed `command_cli_contract()` validates the exact expected parser-token projection, not only de-duplicated canonical command names: tokens, lookup-table order, grouped canonical surface, declared CLI surface, and canonical-name order are all checked before the contract returns.
-3. Preserved the direct regression for the reviewer packet example where `open` replaces `bootstrap` while preserving the `bootstrap` canonical name, proving `command_cli_contract()` rejects same-canonical parser-surface drift.
-4. Preserved regression coverage for added known aliases, removed tokens, substituted aliases, token order drift, lookup-table order/substitution drift, and declared-surface drift.
+3. Added a current-reviewer `_CLI_ENTRYPOINTS` regression table for the requested parser drift classes: extra same-canonical alias, missing accepted token, substituted same-canonical token, and parser-token order drift.
+4. Preserved lookup-table and declared-surface regressions for same-canonical and self-consistent drift cases that would otherwise leave the canonical-name set unchanged.
 5. Kept the metadata-only file list complete (`THREAD.md`, `THREAD_PACKET.md`) and kept the review basis as branch tip rather than the original implementation anchor alone.
 6. Kept the AGENTS.md demo-path statement explicit: the CLI-first parser surface for project open, retrieval/basket, patch review, and export handoff is more real because parser drift now fails loudly before Textual is enabled.
 7. Reran all required gates after this fixer pass and recorded the outcomes below.
