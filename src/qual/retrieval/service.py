@@ -464,15 +464,12 @@ class RetrievalResult:
         """Return the deterministic excerpt-focused snapshot for downstream engine flows."""
 
         bundle_context = self._retrieval_bundle_context_snapshot()
-        basket_candidates = self._basket_candidate_snapshots()
         return {
             **bundle_context,
             "doc_count": len(self.doc_hits),
             "excerpt_count": len(self.hits),
             "excerpt_hits": [hit.as_dict() for hit in self.hits],
             "excerpt_citations": self._excerpt_citation_snapshots(),
-            "basket_candidate_item_ids": [candidate["item_id"] for candidate in basket_candidates],
-            "basket_candidates": basket_candidates,
         }
 
     def retrieval_context_bundle(self) -> dict[str, object]:
@@ -752,58 +749,6 @@ class RetrievalResult:
         )
         return source_bundle
 
-    def _basket_candidate_snapshots(self) -> list[dict[str, object]]:
-        """Return deterministic excerpt payloads ready for context basket promotion."""
-
-        candidates: list[dict[str, object]] = []
-        for hit in self.hits:
-            if hit.excerpt_id is None:
-                continue
-            citation = {
-                "doc_id": hit.doc_id,
-                "excerpt_id": hit.excerpt_id,
-                "source_hash": hit.provenance.get("source_hash"),
-                "excerpt_fingerprint": hit.provenance.get("excerpt_fingerprint"),
-                "excerpt_text_hash": hit.provenance.get("excerpt_text_hash") or hit.provenance.get("hash"),
-                "result_fingerprint": self.result_fingerprint,
-                "query_fingerprint": self.diagnostics["query_fingerprint"],
-                "source_strategy": hit.source_strategy,
-                "retrieval_backend": hit.provenance.get("retrieval_backend"),
-                "retrieval_mode": hit.provenance.get("retrieval_mode"),
-                "query_scope": hit.provenance.get("query_scope"),
-                "query_intent": hit.provenance.get("query_intent"),
-                "query_date_range": copy.deepcopy(hit.provenance.get("query_date_range")),
-            }
-            candidates.append(
-                {
-                    "item_id": hit.excerpt_id,
-                    "kind": "excerpt",
-                    "doc_id": hit.doc_id,
-                    "doc_type": hit.provenance.get("doc_type"),
-                    "title_hint": hit.title_hint,
-                    "query_fingerprint": self.diagnostics["query_fingerprint"],
-                    "query_scope": self.query.scope,
-                    "query_intent": self.query.intent,
-                    "query_date_range": (
-                        list(self.query.constraints.date_range)
-                        if self.query.constraints.date_range is not None
-                        else None
-                    ),
-                    "result_fingerprint": self.result_fingerprint,
-                    "source_strategy": hit.source_strategy,
-                    "retrieval_backend": hit.provenance.get("retrieval_backend"),
-                    "retrieval_mode": hit.provenance.get("retrieval_mode"),
-                    "rank": hit.provenance.get("rank"),
-                    "score": hit.score,
-                    "span": copy.deepcopy(hit.provenance.get("span", hit.span)),
-                    "source_hash": hit.provenance.get("source_hash"),
-                    "excerpt_fingerprint": hit.provenance.get("excerpt_fingerprint"),
-                    "excerpt_text_hash": hit.provenance.get("excerpt_text_hash") or hit.provenance.get("hash"),
-                    "citation": citation,
-                }
-            )
-        return candidates
-
 
 class RetrievalService:
     def __init__(self, vault_root: Path, *, audit_log: AuditLog, now_fn=None) -> None:
@@ -1036,18 +981,17 @@ class RetrievalService:
             merged_hits,
             retrieval_policy=retrieval_policy,
         )
-        result_fingerprint = self._build_result_fingerprint(
-            query_fingerprint=query_fingerprint,
-            retrieval_manifest=retrieval_manifest,
-        )
         retrieval_evidence = self._build_retrieval_evidence(
             query=query,
             doc_hits=doc_hits,
             hits=merged_hits,
             retrieval_manifest=retrieval_manifest,
             query_fingerprint=query_fingerprint,
-            result_fingerprint=result_fingerprint,
             retrieval_policy=retrieval_policy,
+        )
+        result_fingerprint = self._build_result_fingerprint(
+            query_fingerprint=query_fingerprint,
+            retrieval_manifest=retrieval_manifest,
         )
         elapsed_ms_total = max(0, int((self._now_fn() - started).total_seconds() * 1000))
         diagnostics = {
@@ -1401,7 +1345,6 @@ class RetrievalService:
         hits: list[RetrievalHit],
         retrieval_manifest: dict[str, object],
         query_fingerprint: str,
-        result_fingerprint: str,
         retrieval_policy: dict[str, object],
     ) -> dict[str, object]:
         doc_citations: list[dict[str, object]] = []
@@ -1411,15 +1354,6 @@ class RetrievalService:
                     "doc_id": doc_hit.doc_id,
                     "doc_type": doc_hit.provenance.get("doc_type"),
                     "source_hash": doc_hit.source_hash,
-                    "query_fingerprint": query_fingerprint,
-                    "query_scope": query.scope,
-                    "query_intent": query.intent,
-                    "query_date_range": (
-                        list(query.constraints.date_range)
-                        if query.constraints.date_range is not None
-                        else None
-                    ),
-                    "result_fingerprint": result_fingerprint,
                     "doc_fingerprint": doc_hit.provenance.get("doc_fingerprint"),
                     "doc_identity_fingerprint": doc_hit.provenance.get("doc_identity_fingerprint"),
                     "top_excerpt_id": doc_hit.top_excerpt_id,
@@ -1442,15 +1376,6 @@ class RetrievalService:
                     "excerpt_id": hit.excerpt_id,
                     "doc_type": hit.provenance.get("doc_type"),
                     "source_hash": hit.provenance.get("source_hash"),
-                    "query_fingerprint": query_fingerprint,
-                    "query_scope": query.scope,
-                    "query_intent": query.intent,
-                    "query_date_range": (
-                        list(query.constraints.date_range)
-                        if query.constraints.date_range is not None
-                        else None
-                    ),
-                    "result_fingerprint": result_fingerprint,
                     "excerpt_fingerprint": hit.provenance.get("excerpt_fingerprint"),
                     "excerpt_text_hash": hit.provenance.get("excerpt_text_hash") or hit.provenance.get("hash"),
                     "span": hit.provenance.get("span"),
