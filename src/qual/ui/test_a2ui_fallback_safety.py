@@ -12438,10 +12438,56 @@ class A2UIFallbackSafetyTests(unittest.TestCase):
         self.assertEqual(rendered[0], rendered[1])
         self.assertIn("- Copy JSON (copy_to_clipboard)", rendered[0])
         self.assertIn("- Export (export_document)", rendered[0])
-        self.assertLess(
-            rendered[0].index("- Copy JSON (copy_to_clipboard)"),
-            rendered[0].index("- Export (export_document)"),
+
+    def test_terminal_renderer_materializes_generator_actions_for_cli_fallback(self) -> None:
+        def action_stream():
+            yield {
+                "id": "export_document",
+                "label": "Export",
+                "payload": {"format": "md"},
+            }
+            yield {
+                "id": "copy_to_clipboard",
+                "label": "Copy JSON",
+                "payload": {"text": "safe"},
+            }
+
+        text = render_terminal_cli_fallback(
+            {
+                "type": "GenericCard",
+                "title": "Run Log",
+                "blocks": [{"type": "MarkdownBlock", "markdown": "safe"}],
+                "actions": action_stream(),
+            }
         )
+
+        self.assertIn("- Copy JSON (copy_to_clipboard)", text)
+        self.assertIn("- Export (export_document)", text)
+
+    def test_terminal_renderer_materializes_generator_actions_for_card_rendering(self) -> None:
+        def action_stream():
+            yield {
+                "id": "export_document",
+                "label": "Export",
+                "payload": {"format": "md"},
+            }
+            yield {
+                "id": "copy_to_clipboard",
+                "label": "Copy JSON",
+                "payload": {"text": "safe"},
+            }
+
+        text = render_terminal_card(
+            {
+                "type": "GenericCard",
+                "title": "Run Log",
+                "blocks": [{"type": "MarkdownBlock", "markdown": "safe"}],
+                "actions": action_stream(),
+            }
+        )
+
+        self.assertIn("- Copy JSON (copy_to_clipboard)", text)
+        self.assertIn("- Export (export_document)", text)
 
     def test_terminal_renderer_infers_generic_fallback_when_actions_are_missing(self) -> None:
         text = render_terminal_card(

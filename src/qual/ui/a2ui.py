@@ -6,7 +6,7 @@ import json
 import unicodedata
 from functools import lru_cache
 from contextvars import ContextVar
-from collections.abc import Mapping, Set
+from collections.abc import Iterable, Mapping, Set
 from dataclasses import dataclass, fields, is_dataclass
 from typing import Any, Callable, Protocol
 
@@ -7559,12 +7559,12 @@ def _canonicalize_supported_action_list(
     contract-safe instead of relying on downstream renderers to normalize it.
     """
 
-    if not isinstance(actions, (list, tuple)):
+    if not isinstance(actions, Iterable) or isinstance(actions, (str, bytes, bytearray, Mapping)):
         return []
 
     filtered: list[dict[str, Any]] = []
     seen: set[str] = set()
-    for action in actions:
+    for action in list(actions):
         try:
             normalized = _normalize_action(action, supported_actions=supported_actions)
         except ValueError:
