@@ -364,14 +364,29 @@ class ShellUI:
     def _render_startup_preview(item_ids: list[object]) -> str:
         if not item_ids:
             return SHELL_UI_STARTUP_EMPTY_PREVIEW
-        preview_items = [ShellUI._format_item_id(value) for value in item_ids[:SHELL_UI_STARTUP_PREVIEW_LIMIT]]
+        if SHELL_UI_STARTUP_PREVIEW_LIMIT <= 0:
+            remaining = len(item_ids)
+            label = "item" if remaining == 1 else "items"
+            return f"+{remaining} more {label}"
+        preview_items: list[str] = []
+        seen_preview_keys: set[tuple[str, str, str]] = set()
+        consumed_items = 0
+        for value in item_ids:
+            consumed_items += 1
+            preview_key = ShellUI._snapshot_item_sort_key(value)
+            if preview_key in seen_preview_keys:
+                continue
+            seen_preview_keys.add(preview_key)
+            preview_items.append(ShellUI._format_item_id(value))
+            if len(preview_items) >= SHELL_UI_STARTUP_PREVIEW_LIMIT:
+                break
         preview = ", ".join(preview_items)
-        if len(item_ids) > SHELL_UI_STARTUP_PREVIEW_LIMIT:
-            remaining = len(item_ids) - SHELL_UI_STARTUP_PREVIEW_LIMIT
+        remaining = len(item_ids) - consumed_items
+        if remaining > 0:
             label = "item" if remaining == 1 else "items"
             overflow = f"+{remaining} more {label}"
             return f"{preview}, {overflow}" if preview else overflow
-        return preview
+        return preview or SHELL_UI_STARTUP_EMPTY_PREVIEW
 
     @staticmethod
     def _snapshot_item_ids(item_ids: object) -> list[object]:

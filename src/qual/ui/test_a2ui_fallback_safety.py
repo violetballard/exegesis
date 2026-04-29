@@ -8264,6 +8264,19 @@ class A2UIFallbackSafetyTests(unittest.TestCase):
         self.assertIn("- context_preview: +1 more item", text)
         self.assertNotIn("- context_preview: , +1 more item", text)
 
+    def test_shell_ui_render_startup_collapses_duplicate_preview_items(self) -> None:
+        runtime = SimpleNamespace(
+            vault=SimpleNamespace(project_name="Demo", root_dir="/tmp/demo", is_locked=False),
+            basket=SimpleNamespace(item_ids=["alpha", "alpha", "beta", "gamma"]),
+        )
+
+        with patch("src.qual.ui.shell.SHELL_UI_STARTUP_PREVIEW_LIMIT", 3):
+            text = ShellUI().render_startup(runtime)
+
+        self.assertIn("- context_items: 4", text)
+        self.assertIn("- context_preview: alpha, beta, gamma", text)
+        self.assertNotIn("- context_preview: alpha, alpha", text)
+
     def test_terminal_artifact_cli_fallback_route_contract_fingerprints_are_public_and_canonical(self) -> None:
         from src.qual.ui import (
             describe_terminal_artifact_cli_fallback_route_contract_fingerprints as exported_route_fingerprints,
