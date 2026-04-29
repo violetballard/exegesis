@@ -288,6 +288,10 @@ def _parser_projection_from_grouped_surface(
     return tuple((token, canonical_name) for canonical_name, tokens in surface for token in tokens)
 
 
+def _parser_projection_from_tokens(tokens: tuple[str, ...]) -> tuple[tuple[str, str], ...]:
+    return tuple((token, canonical_command(token)) for token in tokens)
+
+
 def _declared_cli_canonical_names() -> tuple[str, ...]:
     return tuple(canonical_name for canonical_name, _ in _declared_cli_surface_projection())
 
@@ -343,16 +347,18 @@ def _validate_cli_parser_surface(
     expected_parser_projection = _parser_projection_from_grouped_surface(expected_surface)
     expected_canonical_names = tuple(canonical_name for canonical_name, _ in expected_surface)
     accepted_parser_surface = _accepted_cli_parser_surface(tokens=tokens, lookup_table=lookup_table)
-    resolved_lookup_table = tuple((token, canonical_command(token)) for token in tokens)
+    live_parser_projection = _parser_projection_from_tokens(tokens)
     if declared_surface != expected_surface:
         raise ValueError("Command CLI declared surface is inconsistent")
     if grouped_lookup_table != expected_surface or grouped_lookup_table != declared_surface:
         raise ValueError("Command CLI parser surface is inconsistent")
     if tokens != expected_tokens or tokens != _declared_cli_tokens():
         raise ValueError("Command CLI tokens are inconsistent")
+    if live_parser_projection != expected_parser_projection:
+        raise ValueError("Command CLI parser surface is inconsistent")
     if parser_projection != expected_parser_projection:
         raise ValueError("Command CLI parser surface is inconsistent")
-    if lookup_table != resolved_lookup_table:
+    if lookup_table != live_parser_projection:
         raise ValueError("Command CLI lookup table is inconsistent")
     if accepted_parser_surface != expected_parser_projection or expected_parser_projection != expected_lookup_table:
         raise ValueError("Command CLI parser surface is inconsistent")
