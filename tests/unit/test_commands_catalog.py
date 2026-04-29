@@ -159,7 +159,10 @@ class CommandCatalogTests(unittest.TestCase):
                 name = "diff-live"
             return original_add_parser(subparsers, name, *args, **kwargs)
 
-        with patch.object(cli.argparse._SubParsersAction, "add_parser", new=drift_add_parser):
+        with (
+            patch.object(cli, "command_parser_lookup_table", return_value=command_cli_lookup_table()),
+            patch.object(cli.argparse._SubParsersAction, "add_parser", new=drift_add_parser),
+        ):
             with self.assertRaisesRegex(ValueError, "Command CLI parser surface is inconsistent"):
                 command_catalog.command_cli_contract()
 
@@ -168,7 +171,10 @@ class CommandCatalogTests(unittest.TestCase):
         parser = cli._build_parser()
         choices = cli._command_subparser_action(parser).choices
         choices["diff-live"] = choices["diff-preview"]
-        with patch.object(cli, "_build_parser", return_value=parser):
+        with (
+            patch.object(cli, "command_parser_lookup_table", return_value=command_cli_lookup_table()),
+            patch.object(cli, "_build_parser", return_value=parser),
+        ):
             with self.assertRaisesRegex(ValueError, "Command CLI parser surface is inconsistent"):
                 command_catalog.command_cli_contract()
 
@@ -177,7 +183,10 @@ class CommandCatalogTests(unittest.TestCase):
         parser = cli._build_parser()
         choices = cli._command_subparser_action(parser).choices
         choices.pop("terminal")
-        with patch.object(cli, "_build_parser", return_value=parser):
+        with (
+            patch.object(cli, "command_parser_lookup_table", return_value=command_cli_lookup_table()),
+            patch.object(cli, "_build_parser", return_value=parser),
+        ):
             with self.assertRaisesRegex(ValueError, "Command CLI parser surface is inconsistent"):
                 command_catalog.command_cli_contract()
 
