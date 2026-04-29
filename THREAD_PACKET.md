@@ -863,3 +863,30 @@
 - Review target: current branch tip after the `20260429T070743Z` fixer commit.
 - Files changed by this fixer pass: `src/qual/commands/catalog.py`, `tests/unit/test_commands_catalog.py`, `THREAD.md`, `THREAD_PACKET.md`.
 - Risks/blockers: none.
+
+## Required Fixes Addressed From Fixer Prompt `20260429T071347Z`
+
+1. Regenerated this handoff with one review target only: the current branch tip after the `20260429T071347Z` fixer commit. No implementation or test commit is described as metadata-only; commits that touch `src/qual/commands/catalog.py` or `tests/unit/test_commands_catalog.py` are implementation/test scope.
+2. Selected the branch tip rather than `f8d860ed9f6299f0169c4f21321ac5f37c949fd3` alone. The branch-tip `command_cli_contract()` validates the exact parser token surface before returning by checking accepted token order, lookup-table order, grouped canonical surface, declared CLI surface, live parser projection, and canonical command order.
+3. Confirmed focused parser-surface drift coverage exists for the reviewer-required classes: same-canonical alias substitution (`open` replacing `bootstrap`), extra accepted alias (`open` plus `bootstrap`), missing accepted alias (`diff` removed), and parser-token order drift (`diff` before `diff-preview`).
+4. Recomputed branch-tip accounting against merge base `06cdebc2d5d53533b73f264a4bbf5a4b4daacb27`: changed files are `THREAD.md`, `THREAD_PACKET.md`, `scripts/scope-check.sh`, `src/qual/commands/__init__.py`, `src/qual/commands/canonical.py`, `src/qual/commands/catalog.py`, `src/qual/commands/diff_preview.py`, `tests/unit/test_commands_catalog.py`, and `tests/unit/test_diff_preview.py`; net LOC after this metadata refresh is 5035 insertions / 42 deletions across 9 files.
+5. Task count remains 4 completed tasks. Risk level remains high because this branch touches the CLI compatibility contract and an approved shared command test. Ownership exceptions: `tests/unit/test_commands_catalog.py` is the approved shared-by-approval test exception; no integrator-locked files were edited.
+6. Reran all required gates against this exact branch-tip target after the `20260429T071347Z` fixer prompt and recorded the outcomes below.
+
+## Latest Commands Run + Outcomes For `20260429T071347Z`
+
+- `make scope-check`: PASS for branch `codex/feat-commands`.
+- `./quality-format.sh --check`: PASS.
+- `./quality-lint.sh`: PASS.
+- `./quality-test.sh`: PASS; ran smoke tests and 178 unit tests, including the command parser-surface drift regressions.
+- `./typecheck-test.sh`: PASS; compiled Python sources in `src/`.
+- `make ci`: PASS; ran scope-check, format, lint, compileall/typecheck, and full quality tests.
+
+## Latest Review Target For `20260429T071347Z`
+
+- Branch: `codex/feat-commands`
+- Review target: current branch tip after the `20260429T071347Z` fixer commit.
+- Implementation/test files in the review target include `src/qual/commands/catalog.py` and `tests/unit/test_commands_catalog.py`; related command-lane files in the branch diff include `src/qual/commands/__init__.py`, `src/qual/commands/canonical.py`, `src/qual/commands/diff_preview.py`, and `tests/unit/test_diff_preview.py`.
+- Metadata-only handoff files: `THREAD.md`, `THREAD_PACKET.md`.
+- Other branch diff file: `scripts/scope-check.sh`.
+- Risks/blockers: none open; merge risk remains high for CLI contract review.
