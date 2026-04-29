@@ -6,8 +6,8 @@ Canonical handoff contract lives in `THREAD_PACKET.md`.
 
 - Lane: `feat-commands`
 - Branch: `codex/feat-commands`
-- Implementation review target: branch tip after metadata-only fixer prompt `20260429T040101Z`
-- Current handoff refresh: metadata-only reviewer fix after prompt `20260429T040101Z`
+- Implementation review target: branch tip after fixer prompt `20260429T040347Z`
+- Current handoff refresh: reviewer fix after prompt `20260429T040347Z`
 - Prior implementation anchor: `f8d860ed9f6299f0169c4f21321ac5f37c949fd3`
 - Scope: command-catalog contract hardening for the current engine-first MVP focus without starting `feat-console`.
 - Roadmap alignment: Milestone 3 CLI compatibility for the engine-first workflow loop, and `feat-commands` as the command-surface compatibility lane.
@@ -56,3 +56,11 @@ Canonical handoff contract lives in `THREAD_PACKET.md`.
 1. `THREAD_PACKET.md` now puts the canonical demo-path step directly on every completed task line.
 2. `THREAD_PACKET.md` now states the concrete blocker removed by this command-catalog work.
 3. This refresh is metadata-only; implementation remains limited to `src/qual/commands/catalog.py` and `tests/unit/test_commands_catalog.py`.
+
+## Fixer Prompt `20260429T040347Z` Fix Satisfaction
+
+1. `THREAD_PACKET.md` is refreshed against the actual branch-tip review target after prompt `20260429T040347Z`.
+2. The packet lists all implementation, test, baseline-restoration, and metadata files changed since `f8d860ed9f6299f0169c4f21321ac5f37c949fd3`.
+3. The command-catalog implementation still validates exact parser tokens, lookup table, grouped canonical surface, declared surface, and canonical name order.
+4. Regression coverage for removed tokens, added same-canonical aliases, replacement aliases, lookup substitutions, and declared-surface drift remains in `tests/unit/test_commands_catalog.py`.
+5. Required gates are rerun and recorded in `THREAD_PACKET.md`.
