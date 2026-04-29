@@ -3,8 +3,8 @@
 - Branch/lane: `codex/feat-retrieval-fts` / `feat-retrieval-fts`
 - Packet purpose: reviewer-fix re-review packet for the actual branch tip proposed for merge.
 - Review baseline from reviewer packet: `378cf9a74a3658058079a32f186fcd254c4a4034`
-- Actual branch tip reviewed before this metadata-only fixer commit: `88373d331f1c0a8758fefdcfb90b9ec06b81ae02`
-- Reviewed branch-tip range: `378cf9a74a3658058079a32f186fcd254c4a4034..88373d331f1c0a8758fefdcfb90b9ec06b81ae02`
+- Actual branch tip reviewed before this metadata-only fixer commit: `f81b95e8f837bead6df9444e6891cc7cbbf64903`
+- Reviewed branch-tip range: `378cf9a74a3658058079a32f186fcd254c4a4034..f81b95e8f837bead6df9444e6891cc7cbbf64903`
 - Final proposed merge HEAD after this metadata-only fixer commit: reported in the fixer response.
 - Canonical demo-path step advanced: retrieve relevant material for basket/workflow use.
 
@@ -21,7 +21,7 @@ This handoff covers the actual branch-tip Milestone 3 retrieval objective: FTS-f
 
 ## Files Changed
 
-The actual reviewed range `378cf9a74a3658058079a32f186fcd254c4a4034..88373d331f1c0a8758fefdcfb90b9ec06b81ae02` changes:
+The actual reviewed range `378cf9a74a3658058079a32f186fcd254c4a4034..f81b95e8f837bead6df9444e6891cc7cbbf64903` changes:
 
 - `.codex/kickoff_packets/feat-retrieval-fts.md` (`34` insertions, `2` deletions)
 - `.codex/lane_meta/feat-retrieval-fts.json` (`141` insertions, `14` deletions)
@@ -54,7 +54,7 @@ This branch makes the canonical demo-path step `retrieve relevant material` more
 
 ## Traceability Correction
 
-Earlier packet text incorrectly treated commits after `adfa8cdadd43747ffbcb612e4151e262b13e52ca` as metadata-only. That claim is withdrawn. The actual branch tip presented to this fixer was `88373d331f1c0a8758fefdcfb90b9ec06b81ae02`, and the truthful reviewed range is `378cf9a74a3658058079a32f186fcd254c4a4034..88373d331f1c0a8758fefdcfb90b9ec06b81ae02`.
+Earlier packet text incorrectly treated commits after `adfa8cdadd43747ffbcb612e4151e262b13e52ca` as metadata-only. That claim is withdrawn. The actual branch tip presented to this fixer was `f81b95e8f837bead6df9444e6891cc7cbbf64903`, and the truthful reviewed range is `378cf9a74a3658058079a32f186fcd254c4a4034..f81b95e8f837bead6df9444e6891cc7cbbf64903`.
 
 That range includes runtime and test changes after `adfa8cdadd43747ffbcb612e4151e262b13e52ca` in `src/qual/engine/retrieval/payload.py`, `src/qual/retrieval/service.py`, and `tests/unit/test_unified_retrieval.py`. This fixer pass changes packet metadata only; it does not narrow, split, reset, or modify the reviewed runtime/test implementation.
 
@@ -74,4 +74,4 @@ Required gates rerun in this fixer pass against the corrected packet state:
 - Residual risk: broader retrieval orchestration beyond deterministic source/context bundles remains separate high-risk work.
 - Budget risk: the actual base-to-tip range exceeds the high-risk net LOC guideline when packet metadata is counted; reviewer should evaluate that explicitly instead of relying on a narrowed packet slice.
 - Shared-file note: `tests/unit/test_unified_retrieval.py` is the only shared-by-approval file in this slice.
-- Packet mirror blocker: this sandbox returns `Operation not permitted` for writes/removal under `.codex/kickoff_packets/feat-retrieval-fts.md` and `.codex/lane_meta/feat-retrieval-fts.json`, so `THREAD_PACKET.md` is the corrected handoff packet for this fixer commit.
+- Packet mirror status: `.codex/kickoff_packets/feat-retrieval-fts.md` and `.codex/lane_meta/feat-retrieval-fts.json` still contain older packet mirror text from prior refreshes. The authoritative corrected handoff packet for this fixer commit is `THREAD_PACKET.md`.
