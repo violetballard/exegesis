@@ -234,6 +234,24 @@ class CommandCatalogTests(unittest.TestCase):
                     with self.assertRaisesRegex(ValueError, "Command CLI parser surface is inconsistent"):
                         command_catalog.command_cli_contract()
 
+    def test_command_cli_contract_rejects_actual_add_parser_token_drift(self) -> None:
+        self._clear_cli_caches()
+        original_add_parser = cli.argparse._SubParsersAction.add_parser
+
+        def drift_add_parser(
+            subparsers: cli.argparse._SubParsersAction,
+            name: str,
+            *args: object,
+            **kwargs: object,
+        ) -> cli.argparse.ArgumentParser:
+            if getattr(subparsers, "dest", None) == "command" and name == "diff-preview":
+                name = "diff-live"
+            return original_add_parser(subparsers, name, *args, **kwargs)
+
+        with patch.object(cli.argparse._SubParsersAction, "add_parser", new=drift_add_parser):
+            with self.assertRaisesRegex(ValueError, "Command CLI parser surface is inconsistent"):
+                command_catalog.command_cli_contract()
+
     def test_actual_argparse_surface_rebuilds_from_catalog_tokens(self) -> None:
         self._clear_cli_caches()
         parser_surface = (

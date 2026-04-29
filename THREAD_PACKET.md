@@ -2,21 +2,21 @@
 
 - Lane: `feat-commands`
 - Branch: `codex/feat-commands`
-- Review target: actual branch tip after the `20260429T093809Z` fixer pass
+- Review target: actual branch tip after the `20260429T094042Z` fixer pass
 - Review basis: `a6cf0fd59763be784dae53d1cf707938ef20c385..HEAD` after this fixer commit
 - Review range command: `git diff a6cf0fd59763be784dae53d1cf707938ef20c385..HEAD`
-- Current fixer pass: satisfy the reviewer-required branch-tip traceability fixes by keeping all post-`a6cf0fd` code/test work in scope, identifying parser-drift and public smoke-argv export coverage, correcting ownership notes, and rerunning all required gates against the actual branch tip.
+- Current fixer pass: satisfy the reviewer-required parser-surface drift guard and branch-tip traceability fixes by keeping all post-`a6cf0fd` code/test work in scope, identifying parser-drift and public smoke-argv export coverage, correcting ownership notes, and rerunning all required gates against the actual branch tip.
 
 ## Traceability Correction
 
 This packet covers the actual `codex/feat-commands` branch tip for the current re-review range. The prior rejected packet incorrectly described later packet-refresh work as metadata-only even though the reviewed branch includes code and test changes.
 
-Implementation and test commits in this review basis are code-changing work. Commit `3304c2871b49036b551754cc778684add5009e63` remains in scope and is documented here as the parser-valid MVP smoke argv/public export change, adding the exported `command_mvp_smoke_argv()` surface and argv data on smoke contract steps. Commit `4eb2b622f1ba63a24792dc610e60afcbdb3e92f1` also remains in scope and is documented as a test/handoff correction because it changes `tests/unit/test_commands_catalog.py`. No implementation or test commit in this basis is described as metadata-only.
+Implementation and test commits in this review basis are code-changing work. Commit `3304c2871b49036b551754cc778684add5009e63` remains in scope and is documented here as the parser-valid MVP smoke argv/public export change, adding the exported `command_mvp_smoke_argv()` surface and argv data on smoke contract steps. Commit `4eb2b622f1ba63a24792dc610e60afcbdb3e92f1` remains in scope and is documented as a test/handoff correction because it changes `tests/unit/test_commands_catalog.py`. Commit `a3c377410e0792db4145530f9b2d958a99f7b4ab` is also not metadata-only: it changes `THREAD.md`, `THREAD_PACKET.md`, and `tests/unit/test_commands_catalog.py` under the subject `fix(commands): satisfy smoke argv handoff review`. Commit `83dd521f5` is metadata-only because it changes only `THREAD.md` and `THREAD_PACKET.md`. No implementation or test commit in this basis is described as metadata-only.
 
 ## Scope Completed
 
 1. Bound the real argparse top-level command surface in `src/qual/cli.py` to `command_cli_lookup_table()` and exposed raw `command_parser_tokens()`, so accepted parser tokens consume and report the same source as the command catalog. Canonical demo-path steps advanced: `project-open` (`bootstrap`), `retrieval` (`context-basket`), `patch-review` (`diff-preview`/`diff`), and `export-handoff` (`terminal`).
-2. Added live parser-surface parity checks to `command_cli_contract()` that compare raw argparse choices, canonical parser projection, catalog CLI tokens, and the lookup table, so same-canonical parser-token drift is rejected. Canonical demo-path steps advanced: `project-open`, `retrieval`, `patch-review`, and `export-handoff`.
+2. Added live parser-surface parity checks to `command_cli_contract()` that compare raw argparse choices, canonical parser projection, catalog CLI tokens, and the lookup table, so same-canonical parser-token drift is rejected. Added a regression that lets the real `_build_parser()` run while intercepting `argparse._SubParsersAction.add_parser()` to rewrite the top-level `diff-preview` parser token, proving the contract fails on actual parser-choice drift. Canonical demo-path steps advanced: `project-open`, `retrieval`, `patch-review`, and `export-handoff`.
 3. Added and exported MVP smoke-contract API: `CommandSmokeStep`, `CommandSmokeContract`, `command_mvp_smoke_contract()`, `command_mvp_smoke_commands()`, `command_mvp_smoke_argv()`, and `command_mvp_smoke_lookup_table()` in `src/qual/commands/catalog.py` and `src/qual/commands/__init__.py`. The `3304c2871` implementation slice specifically makes the canonical demo path runnable as parser-valid argv: `bootstrap`, `context-basket list`, `diff-preview`, and `terminal`.
 4. Added focused regression coverage for parser-surface drift and smoke-contract public exports, then regenerated this handoff packet against the actual branch-tip review basis with complete scope, file list, ownership notes, roadmap/vision mapping, coverage, and gate outcomes.
 
@@ -63,7 +63,7 @@ Classification:
 ## Regression Coverage
 
 - `test_actual_argparse_surface_matches_the_command_contract` verifies the live argparse parser surface matches the command catalog.
-- `test_command_cli_contract_rejects_actual_parser_surface_mismatch` and `test_command_cli_contract_rejects_real_argparse_choice_drift` verify same-canonical parser drift, removed tokens, substituted tokens, added aliases, and reordered parser choices are rejected.
+- `test_command_cli_contract_rejects_actual_parser_surface_mismatch`, `test_command_cli_contract_rejects_real_argparse_choice_drift`, and `test_command_cli_contract_rejects_actual_add_parser_token_drift` verify same-canonical parser drift, removed tokens, substituted tokens, added aliases, reordered parser choices, and a real top-level `add_parser()` token rewrite are rejected.
 - `test_public_mvp_smoke_exports_track_the_demo_path` verifies the public `src.qual.commands` exports for the smoke-contract API and locks the MVP smoke argv for `project-open`, `retrieval`, `patch-review`, and `export-handoff`. This is the focused coverage for the new `command_mvp_smoke_argv()` public export contract from `3304c2871`.
 
 ## Roadmap And Vision Mapping
@@ -86,16 +86,17 @@ Classification:
 
 Focused pre-packet coverage:
 
-- `python3 -m unittest tests.unit.test_commands_catalog -v` - passed, `103` tests.
+- `python3 -m unittest tests.unit.test_commands_catalog -v` - passed, `104` tests.
+- `python3 -m unittest tests.unit.test_commands_catalog.CommandCatalogTests.test_command_cli_contract_rejects_actual_add_parser_token_drift tests.unit.test_commands_catalog.CommandCatalogTests.test_actual_argparse_surface_matches_the_command_contract tests.unit.test_commands_catalog.CommandCatalogTests.test_command_cli_contract_matches_the_catalog_order -v` - passed, `3` tests.
 
 Required gates rerun for this branch-tip fixer pass:
 
 - `make scope-check` - passed for branch `codex/feat-commands`.
 - `./quality-format.sh --check` - passed.
 - `./quality-lint.sh` - passed.
-- `./quality-test.sh` - passed, including smoke tests and `185` unit tests.
+- `./quality-test.sh` - passed, including smoke tests and `186` unit tests.
 - `./typecheck-test.sh` - passed, compiling Python sources in `src/`.
-- `make ci` - passed, including scope-check, format, lint, typecheck, smoke tests, and `185` unit tests.
+- `make ci` - passed, including scope-check, format, lint, typecheck, smoke tests, and `186` unit tests.
 
 ## Handoff Readiness Checklist
 
