@@ -6,7 +6,7 @@ Canonical handoff contract lives in `THREAD_PACKET.md`.
 
 - Lane: `feat-commands`
 - Branch: `codex/feat-commands`
-- Review basis: current branch tip after the `20260429T015007Z` fixer validation commit.
+- Review basis: actual `codex/feat-commands` branch tip for the `20260429T015948Z` fixer confirmation.
 - Previous implementation anchor: `f8d860ed9f6299f0169c4f21321ac5f37c949fd3`
 - Scope: command-catalog contract hardening for the current engine-first MVP focus without starting `feat-console`.
 - Roadmap alignment: Milestone 3 CLI compatibility for the engine-first workflow loop, and `feat-commands` as the command-surface compatibility lane.
@@ -88,3 +88,18 @@ Canonical handoff contract lives in `THREAD_PACKET.md`.
 2. Focused regressions still patch `_CLI_ENTRYPOINTS` for added alias tokens, removed tokens, token reordering, and same-canonical substitutions such as `bootstrap` -> `open` and `diff-preview` -> `diff`.
 3. The handoff packet continues to name the actual branch tip as review basis, list all branch-tip implementation files, and keep the canonical demo-path mapping explicit for `open project/document`, `retrieve relevant material`, `promote/gather context`, and `preview/apply/reject patch`.
 4. Required gates were rerun for this fixer pass: `make scope-check`, `./quality-format.sh --check`, `./quality-lint.sh`, `./quality-test.sh`, `./typecheck-test.sh`, and `make ci`.
+
+## Reviewer Packet `20260429T015607Z` Fix Satisfaction
+
+1. The handoff now selects one review basis: the actual `codex/feat-commands` branch tip for this fixer pass.
+2. Post-`f8d860e` commits are explicitly included as implementation-bearing and test-bearing rather than metadata-only.
+3. Branch-tip file accounting includes `THREAD.md`, `THREAD_PACKET.md`, `src/qual/commands/__init__.py`, `src/qual/commands/canonical.py`, `src/qual/commands/catalog.py`, `src/qual/commands/diff_preview.py`, `tests/unit/test_commands_catalog.py`, and `tests/unit/test_diff_preview.py`.
+4. Gate attribution is branch-tip based: exact `make scope-check` and `make ci` are blocked by scope policy on the existing approved shared-test edit, while `./quality-format.sh --check`, `./quality-lint.sh`, `./quality-test.sh`, and `./typecheck-test.sh` pass.
+5. Roadmap and vision mapping remains explicit for Milestone 3 CLI compatibility and canonical engine contract stability, with the canonical demo-path steps named in `THREAD_PACKET.md`.
+
+## Reviewer Packet `20260429T015948Z` Fix Confirmation
+
+1. Reviewer verdict: `APPROVED`.
+2. Required fixes before re-review: none.
+3. This fixer pass records the approval/no-fix outcome only; implementation scope remains unchanged.
+4. Pre-commit gate rerun for this fixer pass: `./quality-format.sh --check`, `./quality-lint.sh`, `./quality-test.sh`, and `./typecheck-test.sh` pass; exact `make scope-check` and `make ci` are blocked before this metadata commit by scope policy on the existing approved shared-test edit `tests/unit/test_commands_catalog.py`.

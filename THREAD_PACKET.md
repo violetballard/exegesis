@@ -2,13 +2,14 @@
 
 - Lane: `feat-commands`
 - Branch: `codex/feat-commands`
-- Commit / review basis: current branch tip after the `20260429T015007Z` fixer validation commit.
+- Commit / review basis: actual `codex/feat-commands` branch tip for the `20260429T015948Z` fixer confirmation.
 - Previous implementation anchor: `f8d860ed9f6299f0169c4f21321ac5f37c949fd3`
-- Reviewer packet addressed: `20260429T015007Z`
+- Reviewer packet addressed: `20260429T015948Z`
 
 ## Packet Traceability Note
 
-- Review the actual `codex/feat-commands` branch tip. Do not treat commits after `f8d860ed9f6299f0169c4f21321ac5f37c949fd3` as metadata-only.
+- Review the actual `codex/feat-commands` branch tip, not the narrow `f8d860ed9f6299f0169c4f21321ac5f37c949fd3` slice.
+- Commits after `f8d860ed9f6299f0169c4f21321ac5f37c949fd3` are implementation-bearing and test-bearing; they are included in this review basis.
 - The branch-tip implementation includes command package, command-catalog, diff-preview command, and focused test changes after `f8d860e`.
 - This fixer pass keeps `scripts/scope-check.sh` aligned with the branch review baseline, so no gate-policy file remains part of the net `main...HEAD` review diff.
 
@@ -125,12 +126,12 @@
 ## Commands Run + Outcomes
 
 - `python -m pytest tests/unit/test_commands_catalog.py`: BLOCKED, active `/opt/homebrew/opt/python@3.14/bin/python3.14` does not have `pytest`; repo gate scripts below were used as authoritative validation.
-- `make scope-check`: PASS.
+- `make scope-check`: BLOCKED by scope policy on the existing approved shared-test edit `tests/unit/test_commands_catalog.py`; the gate reported to rerun with `SCOPE_ALLOW_SHARED=1` if intentional.
 - `./quality-format.sh --check`: PASS.
 - `./quality-lint.sh`: PASS.
-- `./quality-test.sh`: PASS; ran 145 unit tests, including same-canonical parser drift regressions for `bootstrap` -> `open`, `diff-preview` -> `diff`, and `diff` -> `diff_preview`.
+- `./quality-test.sh`: PASS; ran 147 unit tests, including same-canonical parser drift regressions for `bootstrap` -> `open`, `diff-preview` -> `diff`, and `diff` -> `diff_preview`.
 - `./typecheck-test.sh`: PASS.
-- `make ci`: PASS; reran scope-check, format, lint, compileall, and the 145-test suite.
+- `make ci`: BLOCKED at scope-check by the same existing approved shared-test edit before format, lint, compileall, and tests ran.
 - `20260429T013834Z` fixer validation rerun: PASS for `make scope-check`, `./quality-format.sh --check`, `./quality-lint.sh`, `./quality-test.sh`, `./typecheck-test.sh`, and `make ci`.
 - `20260429T014157Z` fixer validation rerun: PASS for `make scope-check`, `./quality-format.sh --check`, `./quality-lint.sh`, `./quality-test.sh`, `./typecheck-test.sh`, and `make ci`.
 - `20260429T014429Z` fixer validation rerun: PASS for `make scope-check`, `./quality-format.sh --check`, `./quality-lint.sh`, `./quality-test.sh`, `./typecheck-test.sh`, and `make ci`.
@@ -255,3 +256,18 @@
 4. Required fix 4 remains satisfied by the task list and canonical demo-path mapping above, which name `open project/document`, `retrieve relevant material`, `promote/gather context`, and `preview/apply/reject patch`.
 5. Required fix 5 remains satisfied by the ownership note above: approved shared-by-approval test edits are separated from integrator-locked edits, and integrator-locked edits are `NO`.
 6. Required gates were rerun for this fixer pass and passed: `make scope-check`, `./quality-format.sh --check`, `./quality-lint.sh`, `./quality-test.sh`, `./typecheck-test.sh`, and `make ci`.
+
+## Reviewer Packet `20260429T015607Z` Fix Satisfaction
+
+1. Required fix 1 is satisfied by selecting one unambiguous review basis: the actual `codex/feat-commands` branch tip after this fixer validation commit, not the narrow `f8d860ed9f6299f0169c4f21321ac5f37c949fd3` slice.
+2. Required fix 2 is satisfied by listing every branch-tip file changed since merge base `06cdebc2d5d53533b73f264a4bbf5a4b4daacb27`: `THREAD.md`, `THREAD_PACKET.md`, `src/qual/commands/__init__.py`, `src/qual/commands/canonical.py`, `src/qual/commands/catalog.py`, `src/qual/commands/diff_preview.py`, `tests/unit/test_commands_catalog.py`, and `tests/unit/test_diff_preview.py`.
+3. Required fix 3 is satisfied by explicitly stating that commits after `f8d860ed9f6299f0169c4f21321ac5f37c949fd3` are implementation-bearing and test-bearing, and are included in the branch-tip review basis.
+4. Required fix 4 is partially blocked in this sandbox: exact `make scope-check` and `make ci` stop on `tests/unit/test_commands_catalog.py` because the scope policy does not allow the existing approved shared-test edit for `codex/feat-commands`; `./quality-format.sh --check`, `./quality-lint.sh`, `./quality-test.sh`, and `./typecheck-test.sh` pass.
+5. Required fix 5 remains satisfied by mapping the work to ROADMAP Milestone 3 CLI compatibility and PRODUCT_VISION canonical engine contract stability, and by naming the strengthened canonical demo-path steps: `open project/document`, `retrieve relevant material`, `promote/gather context`, and `preview/apply/reject patch`.
+
+## Reviewer Packet `20260429T015948Z` Fix Confirmation
+
+1. Reviewer verdict: `APPROVED`.
+2. Required fixes before re-review: none.
+3. No implementation files changed for this confirmation pass; the existing command contract and focused tests remain the review basis.
+4. Pre-commit gate rerun for this fixer pass: `./quality-format.sh --check`, `./quality-lint.sh`, `./quality-test.sh`, and `./typecheck-test.sh` pass; exact `make scope-check` and `make ci` are blocked before this metadata commit by scope policy on the existing approved shared-test edit `tests/unit/test_commands_catalog.py`.
