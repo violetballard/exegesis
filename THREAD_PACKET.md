@@ -6,7 +6,7 @@
 - Review basis: `git diff main...codex/feat-commands`
 - Review command: `git diff main...codex/feat-commands`
 - Prior packet supersession: this `THREAD_PACKET.md` replaces all earlier packet text, packet-refresh notes, and review-scope claims that named `f8d860ed9f6299f0169c4f21321ac5f37c949fd3` as the submitted target.
-- Fixer prompt satisfied: `20260429T115507Z`
+- Fixer prompt satisfied: `20260429T120455Z`
 
 ## Required-Fix Resolution
 
@@ -69,21 +69,21 @@ This is high-risk because `src/qual/cli.py` is shared-by-approval for `feat-comm
 - Additional non-owned/shared accounting: `scripts/scope-check.sh` updates lane policy for the active MVP lanes and the `feat-commands` approved catalog test surface; `tests/unit/test_commands_catalog.py` and `tests/unit/test_diff_preview.py` are shared test files that cover this branch's command and diff-preview contracts.
 - Task budget: `6` meaningful tasks reported against the actual merge diff.
 - File count: `10` changed files in `main...codex/feat-commands`.
-- Net LOC: `2802 insertions(+), 76 deletions(-)`, net `2726`.
+- Net LOC: `2810 insertions(+), 76 deletions(-)`, net `2734`.
 - Budget status: this actual branch-tip merge diff exceeds the nominal high-risk limits of `4` tasks, `<=8` files, and `<=300` net LOC. Re-review should treat this as the true branch scope and require integrator acceptance of the documented over-budget high-risk packet, or request that the lane be split.
-- Numstat evidence from `git diff --numstat main...HEAD`: `THREAD.md` `8/2`; `THREAD_PACKET.md` `93/0`; `scripts/scope-check.sh` `35/4`; `src/qual/cli.py` `84/34`; `src/qual/commands/__init__.py` `214/0`; `src/qual/commands/canonical.py` `1/6`; `src/qual/commands/catalog.py` `1243/0`; `src/qual/commands/diff_preview.py` `214/30`; `tests/unit/test_commands_catalog.py` `737/0`; `tests/unit/test_diff_preview.py` `173/0`.
+- Numstat evidence from `git diff --numstat main...HEAD`: `THREAD.md` `8/2`; `THREAD_PACKET.md` `101/0`; `scripts/scope-check.sh` `35/4`; `src/qual/cli.py` `84/34`; `src/qual/commands/__init__.py` `214/0`; `src/qual/commands/canonical.py` `1/6`; `src/qual/commands/catalog.py` `1243/0`; `src/qual/commands/diff_preview.py` `214/30`; `tests/unit/test_commands_catalog.py` `737/0`; `tests/unit/test_diff_preview.py` `173/0`.
 
 ## Roadmap And Vision
 
-- Roadmap: Milestone 3 Product Readiness, specifically command and diff-preview behavior hardening, stable manual CLI smoke flow, and command-level probes for integration confidence.
-- Roadmap adjacency: Milestone 5 A2UI Presentation Layer, specifically preserving CLI rendering fallback and the CLI-executable MVP flow while Textual remains disabled.
-- Product vision: CLI-first agent runtime, retrieval-first context handling through the `context-basket` command path, traceable draft/diff outputs, and structured artifacts consumable by CLI now and `Exegesis Console` later.
+- Roadmap: Milestone 3 "Real workflow loop," specifically preserving CLI compatibility and migration-safe entrypoints for the engine-first MVP loop while Textual remains disabled.
+- Roadmap adjacency: Milestone 5 "YC demo readiness," specifically keeping one reproducible retrieve -> basket -> plan/revise -> apply/reject path executable through the current CLI surface.
+- Product vision: `Exegesis Engine` remains the engine/runtime and CLI compatibility surface, with structured outputs and command paths kept consumable by CLI now and the `Exegesis Textual Client` MVP target later.
 - Routing/provider impact: none. This branch does not touch model routing or provider configuration.
 - Proposed `README.md` patch text: none.
 
 ## Commands Run
 
-- Fresh `20260429T115507Z` fixer rerun against corrected full branch-tip review target:
+- Fresh `20260429T120455Z` fixer rerun against corrected full branch-tip review target and current roadmap/product labels:
   `make scope-check` passed; `./quality-format.sh --check` passed; `./quality-lint.sh` passed; `./quality-test.sh` passed with smoke tests and `131` unit tests; `./typecheck-test.sh` passed; `make ci` passed with scope-check, format, lint, typecheck, smoke tests, and `131` unit tests.
 - `python -m unittest tests.unit.test_commands_catalog` - passed, `49` tests.
 - `python -m pytest tests/unit/test_commands_catalog.py` - failed because `pytest` is not installed in the active Python.
