@@ -30,7 +30,7 @@ Canonical handoff contract lives in `THREAD_PACKET.md`.
 ## Fixer Prompt `20260429T050649Z` Fix Satisfaction
 
 1. The handoff target is refreshed for prompt `20260429T050649Z`; review should use the current branch tip after this fixer commit.
-2. `command_cli_contract()` validates the exact parser token projection through `_validate_cli_parser_surface()`: accepted tokens, lookup-table order, grouped canonical surface, declared surface, and canonical-name order must all match the canonical command surface.
+2. `command_cli_contract()` validates the exact parser token projection through `_validate_cli_parser_surface()`: accepted tokens, lookup-table order, grouped canonical surface, declared surface, parser projection, and canonical-name order must all match the canonical command surface.
 3. Regression coverage now includes an explicit current-reviewer `_CLI_ENTRYPOINTS` drift table for the requested cases: extra same-canonical token, substituted same-canonical token, missing parser token, and reordered parser token surface.
 4. Regression coverage also includes the exact reviewer example where `open` replaces `bootstrap` while preserving the `bootstrap` canonical name, proving `command_cli_contract()` rejects same-canonical parser-surface drift.
 5. The AGENTS.md demo-path statement remains: the CLI-first command surface for project open, retrieval/basket, patch review, and export handoff is more real because parser drift fails loudly before Textual is enabled.
@@ -223,3 +223,10 @@ Canonical handoff contract lives in `THREAD_PACKET.md`.
 2. `command_cli_contract()` now also checks the returned canonical-name tuple directly against the canonical parser-surface projection, while preserving the exact token, lookup-table, grouped-surface, and declared-surface drift checks.
 3. The approved shared command-catalog tests still cover added same-canonical aliases, removed tokens, substituted aliases, token order drift, lookup-table order/substitution drift, and declared-surface drift.
 4. `THREAD_PACKET.md` keeps each completed task mapped to the canonical demo-path steps it supports, names the blocker removed, and records the latest required gate run.
+
+## Fixer Prompt `20260429T051134Z` Fix Satisfaction
+
+1. The handoff target is refreshed for prompt `20260429T051134Z`; review should use the current branch tip after this fixer commit, not `f8d860ed9f6299f0169c4f21321ac5f37c949fd3` alone.
+2. `command_cli_contract()` now names and checks the exact parser-token projection derived from the canonical grouped surface before returning the CLI contract, so a same-canonical substitution such as `open` replacing `bootstrap` fails as parser-surface drift.
+3. The approved shared command-catalog tests assert that the contract lookup table equals that exact parser projection and still cover the reviewer packet's `open` replacing `bootstrap` drift example.
+4. `THREAD_PACKET.md` keeps the review basis, implementation/test file set, metadata-only file accounting, per-task canonical demo-path mapping, and final demo-path statement explicit for the branch tip.

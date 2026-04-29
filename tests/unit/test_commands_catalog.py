@@ -127,6 +127,12 @@ class CommandCatalogTests(unittest.TestCase):
         self.assertEqual(contract.tokens, command_catalog._canonical_cli_tokens())
         self.assertEqual(contract.lookup_table, command_catalog._canonical_cli_lookup_table())
         self.assertEqual(
+            contract.lookup_table,
+            command_catalog._parser_projection_from_grouped_surface(
+                command_catalog._canonical_cli_grouped_surface()
+            ),
+        )
+        self.assertEqual(
             tuple((canonical_name, tokens) for canonical_name, tokens in command_catalog._CLI_COMMAND_SURFACE),
             command_catalog._canonical_cli_grouped_surface(),
         )
