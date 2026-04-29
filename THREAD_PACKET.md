@@ -82,7 +82,7 @@ No integrator-owned `README.md`, `INTEGRATION.md`, `src/main.py`, `src/qual/cli.
 
 ## Commands Run
 
-Required gates were re-run for this fixer pass against the actual branch-tip merge candidate:
+Required gates were re-run for this final fixer pass against the actual branch-tip merge candidate after the `.codex` mirror update attempt was rejected by the sandbox:
 
 - `make scope-check`: PASS; scope-check passed for branch `codex/feat-retrieval-fts`.
 - `./quality-format.sh --check`: PASS.
