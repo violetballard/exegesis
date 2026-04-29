@@ -2,10 +2,10 @@
 
 - Lane: `feat-commands`
 - Branch: `codex/feat-commands`
-- Review target: actual branch tip after the `20260429T094519Z` fixer pass
+- Review target: actual branch tip after the `20260429T094952Z` fixer pass
 - Review basis: `a6cf0fd59763be784dae53d1cf707938ef20c385..HEAD` after this fixer commit
 - Review range command: `git diff a6cf0fd59763be784dae53d1cf707938ef20c385..HEAD`
-- Current fixer pass: satisfy the reviewer-required parser-surface drift guard and operational narrowing fixes by keeping all post-`a6cf0fd` code/test work in scope, proving the contract rejects live argparse token drift, naming the CLI fallback command-execution step advanced by this slice, and rerunning all required gates against the actual branch tip.
+- Current fixer pass: confirm the reviewer-required parser-surface drift guard and operational narrowing fixes at the actual branch tip, keep all post-`a6cf0fd` code/test work in scope, prove the contract rejects live argparse token drift, name the CLI fallback command-execution step advanced by this slice, and rerun all required gates against the actual branch tip.
 
 ## Traceability Correction
 
@@ -18,7 +18,7 @@ Implementation and test commits in this review basis are code-changing work. Com
 1. Bound the real argparse top-level command surface in `src/qual/cli.py` to `command_cli_lookup_table()` and exposed raw `command_parser_tokens()`, so accepted parser tokens consume and report the same source as the command catalog. Canonical demo-path steps advanced: `project-open` (`bootstrap`), `retrieval` (`context-basket`), `patch-review` (`diff-preview`/`diff`), and `export-handoff` (`terminal`).
 2. Added live parser-surface parity checks to `command_cli_contract()` that compare raw argparse choices, canonical parser projection, catalog CLI tokens, and the lookup table, so same-canonical parser-token drift is rejected. Added regressions that patch the real `_build_parser()` choices and intercept `argparse._SubParsersAction.add_parser()` to rewrite the top-level `diff-preview` parser token, proving the contract fails on actual parser-choice drift. Canonical demo-path steps advanced: `project-open`, `retrieval`, `patch-review`, and `export-handoff`.
 3. Added and exported MVP smoke-contract API: `CommandSmokeStep`, `CommandSmokeContract`, `command_mvp_smoke_contract()`, `command_mvp_smoke_commands()`, `command_mvp_smoke_argv()`, and `command_mvp_smoke_lookup_table()` in `src/qual/commands/catalog.py` and `src/qual/commands/__init__.py`. The `3304c2871` implementation slice specifically makes the canonical demo path runnable as parser-valid argv: `bootstrap`, `context-basket list`, `diff-preview`, and `terminal`.
-4. Added focused regression coverage for parser-surface drift and smoke-contract public exports, then regenerated this handoff packet against the actual branch-tip review basis with complete scope, file list, ownership notes, roadmap/vision mapping, coverage, and gate outcomes.
+4. Added focused regression coverage for parser-surface drift and smoke-contract public exports, then regenerated this handoff packet against the actual branch-tip review basis with complete scope, file list, ownership notes, roadmap/vision mapping, coverage, and gate outcomes. The `20260429T094952Z` fixer pass rechecked the focused parser-drift tests and refreshes the packet without reclassifying any code/test commit as metadata-only.
 
 ## AGENTS.md Budget And Size Accounting
 
@@ -88,6 +88,7 @@ Focused pre-packet coverage:
 
 - `python3 -m unittest tests.unit.test_commands_catalog -v` - passed, `104` tests.
 - `python3 -m unittest tests.unit.test_commands_catalog.CommandCatalogTests.test_command_cli_contract_rejects_actual_add_parser_token_drift tests.unit.test_commands_catalog.CommandCatalogTests.test_actual_argparse_surface_matches_the_command_contract tests.unit.test_commands_catalog.CommandCatalogTests.test_command_cli_contract_matches_the_catalog_order -v` - passed, `3` tests.
+- `python3 -m unittest tests.unit.test_commands_catalog.CommandCatalogTests.test_command_cli_contract_rejects_actual_add_parser_token_drift tests.unit.test_commands_catalog.CommandCatalogTests.test_command_cli_contract_rejects_real_argparse_choice_drift tests.unit.test_commands_catalog.CommandCatalogTests.test_actual_argparse_surface_matches_the_command_contract -v` - passed, `3` tests in the `20260429T094952Z` fixer pass.
 
 Required gates rerun for this branch-tip fixer pass:
 
