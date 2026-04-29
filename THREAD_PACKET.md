@@ -19,25 +19,25 @@
 - Implementation review basis: the current branch tip after this fixer commit only. This tip includes the corrected command-catalog slice that tightens the CLI contract guard, rejects alias-replaces-canonical and alias-before-canonical parser drift, and refreshes packet metadata.
 - Roadmap item(s) affected: active MVP `feat-commands`; Milestone 3 command surface stability while Textual remains disabled.
 - Vision capability affected: canonical engine contract and CLI compatibility through deterministic command catalog metadata.
-- Exact canonical demo-path step advanced: preserving the CLI surface for open/retrieve/patch/save loop execution.
-- Canonical demo-path steps advanced: this command-catalog hardening strengthens the CLI path for `open project/document`, `retrieve relevant material`, and `preview/apply/reject patch` by keeping command tokens and canonical command names deterministic.
+- Exact canonical demo-path step advanced: `preview/apply/reject patch`.
+- Canonical demo-path step advanced: this command-catalog hardening makes `preview/apply/reject patch` more real by preserving deterministic command tokens and canonical command names for the patch-preview command surface.
 - Canonical demo-path mapping by completed task:
-  1. Exact canonical CLI-token validation advances `open project/document`, `retrieve relevant material`, and `preview/apply/reject patch` by requiring each catalog command to remain present as its exact parser token.
+  1. Exact canonical CLI-token validation advances `preview/apply/reject patch` by requiring each catalog command, including `diff-preview`, to remain present as its exact parser token.
   2. The `_CLI_ENTRYPOINTS` alias-replacement regression advances `preview/apply/reject patch` by proving alias `diff` cannot replace canonical parser token `diff-preview`.
   3. The `_CLI_ENTRYPOINTS` alias-before-canonical regression advances `preview/apply/reject patch` by proving alias `diff` cannot precede canonical parser token `diff-preview`.
-  4. The narrowed command-catalog target advances preserving the CLI surface for open/retrieve/patch/save loop execution by keeping review focused on command-surface stability for active MVP CLI steps.
-  5. Packet refresh work advances preserving the CLI surface for open/retrieve/patch/save loop execution by making the command-surface evidence and review target explicit for that path.
+  4. The narrowed command-catalog target advances `preview/apply/reject patch` by keeping review focused on command-surface stability for the patch-preview CLI path.
+  5. Packet refresh work advances `preview/apply/reject patch` by making the command-surface evidence and review target explicit for that path.
 - Routing/provider impact note: none. No routing, provider configuration, model selection, or core entrypoint behavior is changed.
 - Proposed `README.md` patch text: none.
 
 ## Tasks Completed
 
-1. Tightened `command_cli_contract()` so each `command_names()` canonical entry must appear as a canonical CLI token in catalog order. Demo-path mapping: strengthens `open project/document`, `retrieve relevant material`, and `preview/apply/reject patch` CLI entrypoint stability.
+1. Tightened `command_cli_contract()` so each `command_names()` canonical entry must appear as a canonical CLI token in catalog order. Demo-path mapping: advances `preview/apply/reject patch` CLI entrypoint stability.
 2. Added a regression test proving that removing canonical token `diff-preview` while keeping alias `diff` raises `ValueError`. Demo-path mapping: strengthens `preview/apply/reject patch` by preserving the canonical `diff-preview` parser surface.
 3. Added a regression test proving that alias `diff` cannot appear before canonical token `diff-preview`. Demo-path mapping: strengthens `preview/apply/reject patch` by preserving canonical-token precedence.
-4. Narrowed the corrected target to the command-catalog implementation slice: `src/qual/commands/catalog.py`, `tests/unit/test_commands_catalog.py`, and packet metadata only. Demo-path mapping: keeps this lane scoped to preserving the CLI surface for open/retrieve/patch/save loop execution.
-5. Regenerated `THREAD_PACKET.md` and `THREAD.md` so they describe the corrected branch-tip target and classify `ab96cb722094e821105d1cdfd3cae24f4b9184ef` as implementation. Demo-path mapping: keeps handoff evidence aligned with command-catalog work that supports preserving the CLI surface for open/retrieve/patch/save loop execution.
-6. Kept the unit test isolated to the catalog module so the corrected target does not require `src/qual/commands/__init__.py`. Demo-path mapping: limits validation to command-surface behavior used by `open project/document`, `retrieve relevant material`, and `preview/apply/reject patch`.
+4. Narrowed the corrected target to the command-catalog implementation slice: `src/qual/commands/catalog.py`, `tests/unit/test_commands_catalog.py`, and packet metadata only. Demo-path mapping: keeps this lane scoped to preserving the CLI surface for `preview/apply/reject patch`.
+5. Regenerated `THREAD_PACKET.md` and `THREAD.md` so they describe the corrected branch-tip target and classify `ab96cb722094e821105d1cdfd3cae24f4b9184ef` as implementation. Demo-path mapping: keeps handoff evidence aligned with command-catalog work that supports preserving the CLI surface for `preview/apply/reject patch`.
+6. Kept the unit test isolated to the catalog module so the corrected target does not require `src/qual/commands/__init__.py`. Demo-path mapping: limits validation to command-surface behavior used by `preview/apply/reject patch`.
 
 ## Complete Corrected File List
 
@@ -55,6 +55,7 @@ Actual corrected merge diff from `06cdebc2d5d53533b73f264a4bbf5a4b4daacb27` to t
 - Packet metadata files changed: `THREAD.md`, `THREAD_PACKET.md`.
 - Shared-by-approval files changed: approved exception for `tests/unit/test_commands_catalog.py` to cover the command-catalog alias-replacement regression.
 - Integrator-locked files changed: none in the corrected target.
+- Corrected ownership note: the reviewed implementation touched `src/qual/commands/catalog.py` plus approved shared test `tests/unit/test_commands_catalog.py`; no integrator-locked files were changed in the reviewed implementation commit.
 - Routing/provider impact: none.
 
 ## Commands Run
@@ -73,4 +74,4 @@ Actual corrected merge diff from `06cdebc2d5d53533b73f264a4bbf5a4b4daacb27` to t
 
 ## Final Readiness Statement
 
-This packet asks review of the corrected branch-tip target only: command catalog implementation, its unit tests, and accurate packet metadata. The corrected command-catalog work now makes preserving the CLI surface for open/retrieve/patch/save loop execution more real by preserving deterministic canonical CLI command names, parser tokens, and alias behavior for those steps.
+This packet asks review of the corrected branch-tip target only: command catalog implementation, its unit tests, and accurate packet metadata. The corrected command-catalog work now makes `preview/apply/reject patch` more real by preserving deterministic canonical CLI command names, parser tokens, and alias behavior for the patch-preview command surface.
