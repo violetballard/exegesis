@@ -2,9 +2,9 @@
 
 - Lane: `feat-commands`
 - Branch: `codex/feat-commands`
-- Review basis: actual `codex/feat-commands` branch tip after the `20260429T032544Z` reviewer-fix pass.
+- Review basis: actual `codex/feat-commands` branch tip after the `20260429T032835Z` reviewer-fix pass.
 - Previous implementation anchor: `f8d860ed9f6299f0169c4f21321ac5f37c949fd3`
-- Reviewer packet addressed: `20260429T032544Z`
+- Reviewer packet addressed: `20260429T032835Z`
 - Final verifier tip: the branch-tip reviewer-fix commit containing this packet restamp, with the actual `codex/feat-commands` branch tip as the only review basis.
 
 ## Packet Traceability Note
@@ -203,6 +203,14 @@
 3. Parser-surface validation: `command_cli_contract()` validates parser-visible token additions, removals, substitutions, ordering drift, grouped surface drift, lookup-table substitutions, lookup-table ordering, declared surface drift, and canonical-name ordering before returning the contract.
 4. Same-canonical drift coverage: tests cover `bootstrap` -> `open`, `diff-preview` -> `diff`, extra accepted alias drift, removed accepted alias drift, and reordered parser token drift.
 5. Ownership accounting: `tests/unit/test_commands_catalog.py` is marked as an approved shared-by-approval test edit, integrator-locked edits are `NO`, and `scripts/scope-check.sh` is separately accounted for as a cleanup-only gate-policy file.
+
+## Required Fixes Addressed From Reviewer Packet `20260429T032835Z`
+
+1. One review basis: this packet uses the actual final `codex/feat-commands` branch tip after this fixer pass, and does not treat implementation-bearing commits as metadata-only.
+2. Complete changed-file accounting: the effective review diff from `f8d860ed9f6299f0169c4f21321ac5f37c949fd3` through the final branch tip includes `THREAD.md`, `THREAD_PACKET.md`, `scripts/scope-check.sh`, `src/qual/commands/catalog.py`, and `tests/unit/test_commands_catalog.py`.
+3. Parser-surface validation: `command_cli_contract()` validates parser-visible token additions, removals, substitutions, ordering drift, grouped surface drift, lookup-table substitutions, lookup-table ordering, declared surface drift, and canonical-name ordering before returning the contract.
+4. Same-canonical drift coverage: tests cover `bootstrap` -> `open`, `diff-preview` -> `diff`, `diff` -> `diff_preview`, extra accepted alias drift, removed accepted alias drift, and reordered parser token drift.
+5. Demo-path mapping: every completed task names the canonical demo-path steps protected by this command-catalog work, including project/document open, retrieval/context basket, patch preview/apply/reject, save/continue support through the CLI operator surface, and export/handoff.
 
 ## Commands Run + Outcomes
 
