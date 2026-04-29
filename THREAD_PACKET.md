@@ -2,9 +2,9 @@
 
 - Lane: `feat-commands`
 - Branch: `codex/feat-commands`
-- Review basis: actual `codex/feat-commands` branch tip after the `20260429T031136Z` reviewer-fix pass.
+- Review basis: actual `codex/feat-commands` branch tip after the `20260429T031430Z` reviewer-fix pass.
 - Previous implementation anchor: `f8d860ed9f6299f0169c4f21321ac5f37c949fd3`
-- Reviewer packet addressed: `20260429T031136Z`
+- Reviewer packet addressed: `20260429T031430Z`
 - Final verifier tip: the branch-tip reviewer-fix commit containing this packet restamp, with the actual `codex/feat-commands` branch tip as the only review basis.
 
 ## Packet Traceability Note
@@ -161,6 +161,15 @@
 3. Demo-path mapping is explicit: the hardened command contract protects project/document open, retrieval/context basket, patch preview/apply/reject, and export/handoff smoke steps.
 4. Ownership accounting is split between lane-owned command edits, approved shared-by-approval test edits, integrator-locked edits, and cleanup/policy edits.
 5. Required gates are recorded below after rerun on the same final branch-tip review basis named in this packet.
+
+## Required Fixes Addressed From Reviewer Packet `20260429T031430Z`
+
+1. One truthful review basis: this packet uses the actual final `codex/feat-commands` branch tip after this fixer pass, not the narrow `f8d860ed9f6299f0169c4f21321ac5f37c949fd3` implementation slice.
+2. Complete changed-file accounting: the effective review diff from `f8d860ed9f6299f0169c4f21321ac5f37c949fd3` contains `THREAD.md`, `THREAD_PACKET.md`, `scripts/scope-check.sh`, `src/qual/commands/catalog.py`, and `tests/unit/test_commands_catalog.py`.
+3. Gate-policy accounting: `scripts/scope-check.sh` is listed as a cleanup-only gate-policy file; the packet documents why it remains in the effective review diff and states that it narrows prior scope-policy additions instead of expanding command-lane authority.
+4. Ownership accounting split: shared-by-approval test edits are reported separately from integrator-locked edits; integrator-locked edits are `NO`.
+5. Demo-path mapping: every completed task names the canonical demo-path command steps it protects or advances, including project open, retrieval/context basket, patch preview/apply/reject, and export/handoff.
+6. Required gates: final results are recorded below after rerun on the same final branch-tip review basis named in this packet.
 
 ## Commands Run + Outcomes
 
