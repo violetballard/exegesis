@@ -7111,6 +7111,48 @@ class A2UIFallbackSafetyTests(unittest.TestCase):
             ["project", "vault", "locked", "context_items", "context_preview"],
         )
 
+    def test_shell_ui_entrypoint_contract_rejects_duplicate_names(self) -> None:
+        duplicate_entrypoints = (
+            ("render_artifact", "ShellUI.render_artifact"),
+            ("render_artifact", "ShellUI.render_cli_fallback"),
+            ("render_startup", "ShellUI.render_startup"),
+        )
+
+        from src.qual.ui import shell as shell_module
+
+        shell_module._build_shell_ui_contract_manifest.cache_clear()
+        shell_module._describe_shell_ui_contract_fingerprints_cached.cache_clear()
+        try:
+            with patch("src.qual.ui.shell.SHELL_UI_ENTRYPOINTS", duplicate_entrypoints):
+                with self.assertRaisesRegex(ValueError, "Duplicate shell UI entrypoint: render_artifact"):
+                    describe_shell_ui_contract()
+                with self.assertRaisesRegex(ValueError, "Duplicate shell UI entrypoint: render_artifact"):
+                    describe_shell_ui_contract_fingerprints()
+        finally:
+            shell_module._build_shell_ui_contract_manifest.cache_clear()
+            shell_module._describe_shell_ui_contract_fingerprints_cached.cache_clear()
+
+    def test_shell_ui_entrypoint_contract_rejects_blank_names(self) -> None:
+        blank_entrypoints = (
+            ("render_artifact", "ShellUI.render_artifact"),
+            ("   ", "ShellUI.render_cli_fallback"),
+            ("render_startup", "ShellUI.render_startup"),
+        )
+
+        from src.qual.ui import shell as shell_module
+
+        shell_module._build_shell_ui_contract_manifest.cache_clear()
+        shell_module._describe_shell_ui_contract_fingerprints_cached.cache_clear()
+        try:
+            with patch("src.qual.ui.shell.SHELL_UI_ENTRYPOINTS", blank_entrypoints):
+                with self.assertRaisesRegex(ValueError, "Shell UI entrypoints must use non-empty string names"):
+                    describe_shell_ui_contract()
+                with self.assertRaisesRegex(ValueError, "Shell UI entrypoints must use non-empty string names"):
+                    describe_shell_ui_contract_fingerprints()
+        finally:
+            shell_module._build_shell_ui_contract_manifest.cache_clear()
+            shell_module._describe_shell_ui_contract_fingerprints_cached.cache_clear()
+
     def test_shell_ui_contract_snapshot_isolation_keeps_embedded_copy_stable(self) -> None:
         manifest = describe_shell_ui_contract()
         embedded = manifest["shell_ui_contract"]

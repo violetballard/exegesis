@@ -85,8 +85,22 @@ _OPAQUE_OBJECT_SORT_TIEBREAKERS: WeakKeyDictionary[object, int] = WeakKeyDiction
 _OPAQUE_OBJECT_SORT_TIEBREAKER_COUNTER = count()
 
 
+def _validate_shell_ui_entrypoint(entrypoint: object, renderer: object) -> tuple[str, str]:
+    if not isinstance(entrypoint, str) or not entrypoint.strip():
+        raise ValueError("Shell UI entrypoints must use non-empty string names.")
+    if not isinstance(renderer, str) or not renderer.strip():
+        raise ValueError("Shell UI entrypoint renderers must use non-empty string names.")
+    return entrypoint.strip(), renderer.strip()
+
+
 def _build_shell_ui_entrypoints() -> dict[str, str]:
-    return {entrypoint: renderer for entrypoint, renderer in SHELL_UI_ENTRYPOINTS}
+    entrypoints: dict[str, str] = {}
+    for entrypoint, renderer in SHELL_UI_ENTRYPOINTS:
+        validated_entrypoint, validated_renderer = _validate_shell_ui_entrypoint(entrypoint, renderer)
+        if validated_entrypoint in entrypoints:
+            raise ValueError(f"Duplicate shell UI entrypoint: {validated_entrypoint}")
+        entrypoints[validated_entrypoint] = validated_renderer
+    return entrypoints
 
 
 class ShellUI:
