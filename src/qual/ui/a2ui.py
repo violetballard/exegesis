@@ -4992,6 +4992,7 @@ def _canonicalize_supported_sequence(
     )
 
 
+@lru_cache(maxsize=None)
 def a2ui_contract_fingerprint(
     *,
     include_terminal_artifact_cli_fallback_route: bool = False,
@@ -5010,6 +5011,39 @@ def a2ui_contract_fingerprint(
     return _fingerprint_manifest_section(manifest)
 
 
+@lru_cache(maxsize=None)
+def _build_a2ui_engine_contract_manifest(
+    *,
+    include_terminal_artifact_cli_fallback_card_hint_recovery_policy: bool = False,
+    include_shell_ui_contract: bool = False,
+    include_contract_aliases: bool = False,
+) -> dict[str, Any]:
+    """Return the engine-facing A2UI contract snapshot.
+
+    This wrapper keeps the engine contract explicit: it always includes the
+    CLI fallback route, entrypoint, and wrapper contract slices that the
+    engine loop needs while leaving the shell UI snapshot opt-in.
+    """
+
+    manifest = describe_a2ui_contract(
+        include_terminal_artifact_cli_fallback_route=True,
+        include_terminal_artifact_cli_fallback_entrypoint=True,
+        include_terminal_artifact_cli_fallback_card_hint_recovery_policy=include_terminal_artifact_cli_fallback_card_hint_recovery_policy,
+        include_shell_ui_contract=include_shell_ui_contract,
+        include_contract_aliases=include_contract_aliases,
+    )
+    cli_fallback_contract = describe_terminal_artifact_cli_fallback_contract()
+    manifest["terminal_artifact_cli_fallback_contract"] = _snapshot_contract_section(cli_fallback_contract)
+    manifest["terminal_artifact_cli_fallback_contract_fingerprint"] = cli_fallback_contract["contract_fingerprint"]
+    manifest["terminal_artifact_cli_fallback_contract_manifest"] = _snapshot_contract_section(
+        cli_fallback_contract
+    )
+    manifest["terminal_artifact_cli_fallback_contract_manifest_fingerprint"] = cli_fallback_contract[
+        "contract_fingerprint"
+    ]
+    return manifest
+
+
 def describe_a2ui_engine_contract(
     *,
     include_terminal_artifact_cli_fallback_card_hint_recovery_policy: bool = False,
@@ -5019,19 +5053,20 @@ def describe_a2ui_engine_contract(
     """Return the engine-facing A2UI contract snapshot.
 
     This wrapper keeps the engine contract explicit: it always includes the
-    CLI fallback route and entrypoint slices that the engine loop needs while
-    leaving the shell UI snapshot opt-in.
+    CLI fallback route, entrypoint, and wrapper contract slices that the
+    engine loop needs while leaving the shell UI snapshot opt-in.
     """
 
-    return describe_a2ui_contract(
-        include_terminal_artifact_cli_fallback_route=True,
-        include_terminal_artifact_cli_fallback_entrypoint=True,
-        include_terminal_artifact_cli_fallback_card_hint_recovery_policy=include_terminal_artifact_cli_fallback_card_hint_recovery_policy,
-        include_shell_ui_contract=include_shell_ui_contract,
-        include_contract_aliases=include_contract_aliases,
+    return _snapshot_contract_section(
+        _build_a2ui_engine_contract_manifest(
+            include_terminal_artifact_cli_fallback_card_hint_recovery_policy=include_terminal_artifact_cli_fallback_card_hint_recovery_policy,
+            include_shell_ui_contract=include_shell_ui_contract,
+            include_contract_aliases=include_contract_aliases,
+        )
     )
 
 
+@lru_cache(maxsize=None)
 def a2ui_engine_contract_fingerprint(
     *,
     include_terminal_artifact_cli_fallback_card_hint_recovery_policy: bool = False,

@@ -801,6 +801,7 @@ class A2UIFallbackSafetyTests(unittest.TestCase):
             include_terminal_artifact_cli_fallback_card_hint_recovery_policy=True,
         )
         policy_manifest = describe_terminal_artifact_cli_fallback_card_hint_recovery_policy_contract()
+        cli_fallback_manifest = describe_terminal_artifact_cli_fallback_contract()
         engine_fingerprint = a2ui_engine_contract_fingerprint(
             include_terminal_artifact_cli_fallback_card_hint_recovery_policy=True,
         )
@@ -825,6 +826,22 @@ class A2UIFallbackSafetyTests(unittest.TestCase):
         self.assertEqual(
             engine_manifest["card_hint_recovery_policy_contract_manifest_fingerprint"],
             policy_manifest["contract_fingerprint"],
+        )
+        self.assertEqual(
+            engine_manifest["terminal_artifact_cli_fallback_contract"],
+            cli_fallback_manifest,
+        )
+        self.assertEqual(
+            engine_manifest["terminal_artifact_cli_fallback_contract_fingerprint"],
+            cli_fallback_manifest["contract_fingerprint"],
+        )
+        self.assertEqual(
+            engine_manifest["terminal_artifact_cli_fallback_contract_manifest"],
+            cli_fallback_manifest,
+        )
+        self.assertEqual(
+            engine_manifest["terminal_artifact_cli_fallback_contract_manifest_fingerprint"],
+            cli_fallback_manifest["contract_fingerprint"],
         )
         self.assertEqual(
             engine_manifest["contract_fingerprints"]["card_hint_recovery_policy"],
