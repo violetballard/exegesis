@@ -2,9 +2,9 @@
 
 - Lane: `feat-commands`
 - Branch: `codex/feat-commands`
-- Commit / review basis: actual `codex/feat-commands` branch tip for the `20260429T021108Z` fixer pass.
+- Commit / review basis: actual `codex/feat-commands` branch tip for the `20260429T021315Z` reviewer-fix pass.
 - Previous implementation anchor: `f8d860ed9f6299f0169c4f21321ac5f37c949fd3`
-- Reviewer packet addressed: `20260429T021108Z`
+- Reviewer packet addressed: `20260429T021315Z`
 
 ## Packet Traceability Note
 
@@ -142,11 +142,12 @@
 - `20260429T015948Z` fixer confirmation rerun: PASS for `make scope-check` and `make ci` after the approval-confirmation branch tip.
 - `20260429T020237Z` fixer approval-confirmation rerun: reviewer returned `APPROVED` with no required fixes; PASS for `make scope-check`, `./quality-format.sh --check`, `./quality-lint.sh`, `./quality-test.sh`, `./typecheck-test.sh`, and `make ci`.
 - `20260429T021108Z` fixer rerun: PASS for `make scope-check`, `./quality-format.sh --check`, `./quality-lint.sh`, `./quality-test.sh`, `./typecheck-test.sh`, and `make ci`.
+- `20260429T021315Z` fixer rerun: PASS for focused catalog coverage via `./quality-test.sh tests/unit/test_commands_catalog.py`, then PASS for `make scope-check`, `./quality-format.sh --check`, `./quality-lint.sh`, `./quality-test.sh`, `./typecheck-test.sh`, and `make ci`.
 
 ## Risks / Blockers
 
 - Risk: `HIGH`
-- Blockers: none for implementation. Pre-commit exact `make scope-check` and `make ci` stopped on the approved shared-test edit `tests/unit/test_commands_catalog.py`; all non-scope gates passed.
+- Blockers: none.
 
 ## Required Handoff Fields
 
@@ -307,3 +308,18 @@
 4. Required fix 4 remains satisfied by explicitly mapping this work to the protected CLI smoke path for `open project/document`, `retrieve relevant material`, `promote/gather context`, and `preview/apply/reject patch`.
 5. Required fix 5 remains satisfied by the ownership note above: approved shared-by-approval test edits are separated from integrator-locked edits, and integrator-locked edits are `NO`.
 6. Required gates were rerun for this fixer pass and passed: `make scope-check`, `./quality-format.sh --check`, `./quality-lint.sh`, `./quality-test.sh`, `./typecheck-test.sh`, and `make ci`.
+
+## Reviewer Packet `20260429T021315Z` Fix Satisfaction
+
+1. Required fix 1 is satisfied by the branch-tip `command_cli_contract()` implementation, which validates the full declared parser surface rather than only de-duplicated canonical names. It rejects token additions, removals, substitutions to aliases, token order drift, lookup-table drift, grouped parser-surface drift, declared-surface drift, and canonical command-order drift before returning `CommandCliContract`.
+2. Required fix 2 is satisfied by focused `_CLI_ENTRYPOINTS` regressions in `tests/unit/test_commands_catalog.py` for:
+   - canonical token replaced by alias: `bootstrap` -> `open`
+   - canonical token removed: removing `context-basket`
+   - extra parser token added: adding `open`
+   - parser token order changed: moving `context-basket` before `diff-preview` / `diff`
+   Existing same-canonical coverage also rejects `diff-preview` -> `diff`.
+3. Required fix 3 remains satisfied: this pass introduces only focused coverage in `tests/unit/test_commands_catalog.py` plus metadata updates in `THREAD.md` and `THREAD_PACKET.md`; no unrelated paths are introduced.
+4. Required fix 4 remains satisfied by the canonical demo-path mapping above: this keeps the CLI smoke route deterministic for `open project/document`, `retrieve relevant material`, `promote/gather context`, and `preview/apply/reject patch` while Textual lanes remain disabled.
+5. Required fix 5 remains satisfied by the ownership note above: approved shared-by-approval test edits are separated from integrator-locked edits, and integrator-locked edits are `NO`.
+6. Focused validation for this fixer pass: `./quality-test.sh tests/unit/test_commands_catalog.py` passed, including the requested parser-surface drift regressions.
+7. Required gates were rerun for this fixer pass and passed: `make scope-check`, `./quality-format.sh --check`, `./quality-lint.sh`, `./quality-test.sh`, `./typecheck-test.sh`, and `make ci`.

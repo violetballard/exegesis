@@ -6,7 +6,7 @@ Canonical handoff contract lives in `THREAD_PACKET.md`.
 
 - Lane: `feat-commands`
 - Branch: `codex/feat-commands`
-- Review basis: actual `codex/feat-commands` branch tip for the `20260429T015948Z` fixer confirmation.
+- Review basis: actual `codex/feat-commands` branch tip for the `20260429T021315Z` reviewer-fix pass.
 - Previous implementation anchor: `f8d860ed9f6299f0169c4f21321ac5f37c949fd3`
 - Scope: command-catalog contract hardening for the current engine-first MVP focus without starting `feat-console`.
 - Roadmap alignment: Milestone 3 CLI compatibility for the engine-first workflow loop, and `feat-commands` as the command-surface compatibility lane.
@@ -103,3 +103,12 @@ Canonical handoff contract lives in `THREAD_PACKET.md`.
 2. Required fixes before re-review: none.
 3. This fixer pass records the approval/no-fix outcome only; implementation scope remains unchanged.
 4. Pre-commit gate rerun for this fixer pass: `./quality-format.sh --check`, `./quality-lint.sh`, `./quality-test.sh`, and `./typecheck-test.sh` pass; exact `make scope-check` and `make ci` are blocked before this metadata commit by scope policy on the existing approved shared-test edit `tests/unit/test_commands_catalog.py`.
+
+## Reviewer Packet `20260429T021315Z` Fix Satisfaction
+
+1. Required fix 1 is satisfied by the branch-tip `command_cli_contract()` implementation validating the full parser-visible CLI surface: canonical parser tokens, lookup-table shape, grouped parser surface, declared surface, and canonical command order.
+2. Required fix 2 is satisfied by focused tests that patch `_CLI_ENTRYPOINTS` for `bootstrap` -> `open`, token removal, extra parser token addition, and parser token order drift, plus existing same-canonical `diff-preview` -> `diff` coverage.
+3. Required fix 3 remains satisfied because this pass stays scoped to focused command-catalog test coverage plus packet metadata; no unrelated paths are introduced.
+4. Required fix 4 remains satisfied by the canonical demo-path mapping in `THREAD_PACKET.md`, which names `open project/document`, `retrieve relevant material`, `promote/gather context`, and `preview/apply/reject patch`.
+5. Required fix 5 remains satisfied by separating approved shared-by-approval test edits from integrator-locked edits; integrator-locked edits remain `NO`.
+6. Required gates were rerun for this fixer pass and passed: `make scope-check`, `./quality-format.sh --check`, `./quality-lint.sh`, `./quality-test.sh`, `./typecheck-test.sh`, and `make ci`.
