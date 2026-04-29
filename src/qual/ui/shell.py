@@ -25,6 +25,7 @@ from .a2ui import (
     describe_terminal_artifact_cli_fallback_card_hint_recovery_policy_contract,
     describe_terminal_artifact_cli_fallback_target_contract,
     describe_terminal_artifact_cli_fallback_route_contract,
+    describe_terminal_artifact_cli_fallback_route_contract_manifest,
     describe_terminal_artifact_renderer_entrypoints_contract,
     describe_terminal_artifact_rendering_contract,
     describe_terminal_fallback_contract,
@@ -35,6 +36,7 @@ from .a2ui import (
     terminal_artifact_cli_fallback_entrypoint_contract_fingerprints_fingerprint,
     terminal_artifact_cli_fallback_target_contract_fingerprint,
     terminal_artifact_cli_fallback_route_contract_fingerprint,
+    terminal_artifact_cli_fallback_route_contract_manifest_fingerprint,
     terminal_artifact_renderer_entrypoints_contract_fingerprint,
     terminal_artifact_renderer_entrypoints_contract_manifest_fingerprint,
     terminal_artifact_rendering_contract_fingerprint,
@@ -1023,15 +1025,17 @@ def _describe_shell_ui_contract_fingerprints_cached(
             include_terminal_artifact_cli_fallback_route=include_terminal_artifact_cli_fallback_route,
         )
     )
-    terminal_artifact_cli_fallback_route_contract = describe_terminal_artifact_cli_fallback_route_contract()
+    terminal_artifact_cli_fallback_route_contract = describe_terminal_artifact_cli_fallback_route_contract_manifest()
     terminal_artifact_cli_fallback_route_contract_fingerprint_value = (
-        terminal_artifact_cli_fallback_route_contract_fingerprint()
+        terminal_artifact_cli_fallback_route_contract_manifest_fingerprint()
     )
     terminal_artifact_renderer_entrypoints_contract_fingerprint_value = (
         terminal_artifact_renderer_entrypoints_contract_fingerprint()
     )
     terminal_artifact_rendering_contract_fingerprint_value = terminal_artifact_rendering_contract_fingerprint()
-    route_precedence = list(describe_terminal_artifact_cli_fallback_route_contract()["route_precedence"])
+    route_precedence = list(
+        describe_terminal_artifact_cli_fallback_route_contract_manifest()["route_precedence"]
+    )
     shell_ui_contract_fingerprint_value = shell_ui_contract_fingerprint(
         include_terminal_artifact_cli_fallback_route=include_terminal_artifact_cli_fallback_route,
         include_contract_aliases=include_contract_aliases,

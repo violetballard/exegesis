@@ -2330,16 +2330,6 @@ def describe_terminal_artifact_cli_fallback_route_contract_manifest_fingerprints
     )
 
 
-def describe_terminal_artifact_cli_fallback_route_contract_manifest_fingerprints(
-    include_contract_aliases: bool = False,
-) -> dict[str, str]:
-    """Return the CLI fallback route fingerprints under a manifest-specific name."""
-
-    return describe_terminal_artifact_cli_fallback_route_contract_fingerprints(
-        include_contract_aliases=include_contract_aliases,
-    )
-
-
 def describe_terminal_artifact_cli_fallback_target_contract_fingerprints(
     include_terminal_artifact_cli_fallback_target: bool = False,
     include_terminal_artifact_cli_fallback_route: bool = False,

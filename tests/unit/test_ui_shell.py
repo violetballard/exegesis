@@ -5,6 +5,7 @@ from types import SimpleNamespace
 from unittest.mock import patch
 
 from src.qual.ui.a2ui import describe_terminal_artifact_cli_fallback_route_contract
+from src.qual.ui.a2ui import describe_terminal_artifact_cli_fallback_route_contract_manifest
 from src.qual.ui.shell import ShellUI, describe_shell_ui_contract
 
 
@@ -73,6 +74,19 @@ class ShellUITests(unittest.TestCase):
         self.assertEqual(
             shell_contract["route_precedence_contract_fingerprint"],
             route_contract["route_precedence_contract_fingerprint"],
+        )
+
+    def test_shell_contract_can_embed_the_canonical_route_manifest_snapshot(self) -> None:
+        shell_contract = describe_shell_ui_contract(include_terminal_artifact_cli_fallback_route=True)
+        route_manifest = describe_terminal_artifact_cli_fallback_route_contract_manifest()
+
+        self.assertEqual(
+            shell_contract["terminal_artifact_cli_fallback_route_contract_manifest"],
+            route_manifest,
+        )
+        self.assertEqual(
+            shell_contract["terminal_artifact_cli_fallback_route_contract_manifest_fingerprint"],
+            route_manifest["contract_fingerprint"],
         )
 
 
