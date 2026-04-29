@@ -2,14 +2,14 @@
 
 - Lane: `feat-commands`
 - Branch: `codex/feat-commands`
-- Commit: branch tip after fixer prompt `20260429T035313Z`
+- Commit: branch tip after fixer prompt `20260429T035558Z`
 - Review basis: branch tip after this fixer commit, not `f8d860ed9f6299f0169c4f21321ac5f37c949fd3` alone.
 - Prior implementation anchor: `f8d860ed9f6299f0169c4f21321ac5f37c949fd3`
 - Packet refresh role: reviewer-fix implementation and handoff correction
 
 ## Packet Traceability Note
 
-- Fixer prompt `20260429T035313Z` requested reviewer-required fixes for branch-tip review-basis traceability, canonical demo-path mapping, complete metadata file accounting, and gate reruns.
+- Fixer prompt `20260429T035558Z` requested reviewer-required fixes for exact parser-token validation, same-canonical drift coverage, complete metadata file accounting, and gate reruns.
 - The reviewable branch-tip implementation is narrowed to the command-catalog slice:
   - `src/qual/commands/catalog.py`
   - `tests/unit/test_commands_catalog.py`
@@ -18,15 +18,15 @@
 
 ## Branch-Tip Review Basis
 
-- Review target: branch tip after fixer prompt `20260429T035313Z`.
+- Review target: branch tip after fixer prompt `20260429T035558Z`.
 - Prior implementation anchor: `f8d860ed9f6299f0169c4f21321ac5f37c949fd3`.
 - Review range: `f8d860ed9f6299f0169c4f21321ac5f37c949fd3..HEAD`.
 - Matching `git diff --stat` scope:
   - `THREAD.md` - 50 changed lines
-  - `THREAD_PACKET.md` - 200 changed lines
+  - `THREAD_PACKET.md` - 199 changed lines
   - `src/qual/commands/catalog.py` - 135 changed lines
   - `tests/unit/test_commands_catalog.py` - 340 changed lines
-  - Total: 4 files changed, 656 insertions(+), 69 deletions(-)
+  - Total: 4 files changed, 655 insertions(+), 69 deletions(-)
 - Branch-tip implementation files:
   - `src/qual/commands/catalog.py`
   - `tests/unit/test_commands_catalog.py`
@@ -132,13 +132,12 @@
 - Metadata-only handoff edits: `THREAD.md`, `THREAD_PACKET.md`.
 - Shared/integrator-locked edits: `YES` only because the approved shared-test exception touches `tests/unit/test_commands_catalog.py`; no integrator-locked files are edited.
 
-## Required Fixes Addressed From Fixer Prompt `20260429T035313Z`
+## Required Fixes Addressed From Fixer Prompt `20260429T035558Z`
 
-1. Regenerated the handoff packet against the actual merge target: branch tip after this fixer commit.
-2. Listed every changed file in the final review basis, including `THREAD.md` and `THREAD_PACKET.md`.
-3. Replaced the stale `f8d860ed9f6299f0169c4f21321ac5f37c949fd3`-only review note with an unambiguous branch-tip review range and matching `git diff --stat` scope.
-4. Added canonical demo-path mapping for each completed task and stated the demo-path step made more real.
-5. Reran all required gates after the final packet and review-basis correction.
+1. Validated the full accepted parser token surface against the canonical CLI command surface instead of only checking deduplicated canonical names.
+2. Added focused tests for same-canonical parser drift, including extra aliases, removed expected tokens, token replacement, lookup-table drift, and declared-surface drift.
+3. Regenerated the handoff packet so the files changed list includes the implementation files plus both metadata files: `THREAD.md` and `THREAD_PACKET.md`.
+4. Reran all required gates after the parser-surface, test, and packet-accounting fixes.
 
 ## Commands Run + Outcomes
 

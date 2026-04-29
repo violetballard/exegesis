@@ -6,7 +6,7 @@ Canonical handoff contract lives in `THREAD_PACKET.md`.
 
 - Lane: `feat-commands`
 - Branch: `codex/feat-commands`
-- Implementation review target: branch tip after fixer prompt `20260429T035313Z`
+- Implementation review target: branch tip after fixer prompt `20260429T035558Z`
 - Prior implementation anchor: `f8d860ed9f6299f0169c4f21321ac5f37c949fd3`
 - Scope: command-catalog contract hardening for the current engine-first MVP focus without starting `feat-console`.
 - Roadmap alignment: Milestone 3 CLI compatibility for the engine-first workflow loop, and `feat-commands` as the command-surface compatibility lane.
@@ -42,9 +42,9 @@ Canonical handoff contract lives in `THREAD_PACKET.md`.
 - Integrator-locked edits: none.
 - Metadata-only handoff edits: `THREAD.md`, `THREAD_PACKET.md`.
 
-## Fixer Prompt `20260429T035313Z` Fix Satisfaction
+## Fixer Prompt `20260429T035558Z` Fix Satisfaction
 
-1. `THREAD_PACKET.md` is regenerated against the actual branch-tip merge target.
+1. `THREAD_PACKET.md` is regenerated against the actual branch-tip merge target for the `20260429T035558Z` reviewer-required fixes.
 2. The changed-file scope includes both metadata files plus the two command-catalog implementation/test files.
 3. The stale `f8d860ed9f6299f0169c4f21321ac5f37c949fd3`-only traceability note is replaced by a branch-tip review range.
 4. Canonical demo-path mapping and the demo-path step made more real are explicit in `THREAD_PACKET.md`.
