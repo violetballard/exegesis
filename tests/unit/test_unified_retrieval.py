@@ -1047,6 +1047,64 @@ class UnifiedRetrievalTests(unittest.TestCase):
         self.assertEqual(doc_hit["retrieval_mode"], "fts_first")
         self.assertEqual(doc_hit["retrieval_policy"]["deferred_strategy_ids"], ["pageindex", "embeddings"])
 
+    def test_retrieval_context_refs_have_stable_payload_shape(self) -> None:
+        result = self.service.retrieve_auto(
+            RetrievalQuery(
+                query_text="memo coding comparison",
+                scope="vault",
+                intent="compare",
+                constraints=RetrievalConstraints(max_results=4),
+                confidentiality_profile="confidential",
+            )
+        )
+
+        payload = result.to_downstream_payload()
+        source_bundle = result.source_bundle()
+        context_bundle = result.retrieval_context_bundle()
+        context_refs = payload["retrieval_context_refs"]
+        self.assertEqual(context_refs, source_bundle["retrieval_context_refs"])
+        self.assertEqual(context_refs, context_bundle["retrieval_context_refs"])
+        self.assertEqual(context_refs, context_bundle["retrieval_downstream_payload"]["retrieval_context_refs"])
+        self.assertEqual(context_refs, build_retrieval_downstream_payload_from_result(result)["retrieval_context_refs"])
+
+        self.assertTrue(context_refs)
+        first_ref = context_refs[0]
+        first_hit = result.hits[0]
+        self.assertEqual(
+            set(first_ref),
+            {
+                "context_ref_id",
+                "ref_type",
+                "doc_id",
+                "doc_type",
+                "title_hint",
+                "source_hash",
+                "doc_fingerprint",
+                "doc_identity_fingerprint",
+                "excerpt_id",
+                "excerpt_text",
+                "excerpt_fingerprint",
+                "excerpt_text_hash",
+                "span",
+                "rank",
+                "score",
+                "source_strategy",
+                "retrieval_backend",
+                "retrieval_mode",
+                "query_fingerprint",
+                "result_fingerprint",
+            },
+        )
+        self.assertEqual(first_ref["context_ref_id"], f"fts:{first_hit.provenance['excerpt_fingerprint']}")
+        self.assertEqual(first_ref["ref_type"], "retrieval_excerpt")
+        self.assertEqual(first_ref["doc_id"], first_hit.doc_id)
+        self.assertEqual(first_ref["excerpt_id"], first_hit.excerpt_id)
+        self.assertEqual(first_ref["source_strategy"], "fts")
+        self.assertEqual(first_ref["retrieval_backend"], "sqlite_fts")
+        self.assertEqual(first_ref["retrieval_mode"], "fts_first")
+        self.assertEqual(first_ref["query_fingerprint"], result.diagnostics["query_fingerprint"])
+        self.assertEqual(first_ref["result_fingerprint"], result.result_fingerprint)
+
     def test_retrieval_service_rejects_pageindex_excerpt_payloads(self) -> None:
         query_result = self.service._docindex.query(
             "doc-pdf-1",
@@ -1119,6 +1177,15 @@ class UnifiedRetrievalTests(unittest.TestCase):
                     },
                 ),
             },
+            "retrieval_context_refs": (
+                {
+                    "context_ref_id": "fts:excerpt-fingerprint",
+                    "ref_type": "retrieval_excerpt",
+                    "doc_id": "doc-1",
+                    "excerpt_id": "excerpt-1",
+                },
+                "not-a-ref",
+            ),
             "doc_hits": (
                 {"doc_id": "doc-1", "provenance": {"doc_fingerprint": "doc-fingerprint"}},
             ),
@@ -1143,6 +1210,17 @@ class UnifiedRetrievalTests(unittest.TestCase):
         self.assertEqual(source_bundle["query"]["constraints"]["date_range"], ["2026-01-01", "2026-01-31"])
         self.assertEqual(source_bundle["policy"]["active_strategy_ids"], ["fts"])
         self.assertEqual(source_bundle["policy"]["deferred_strategy_ids"], ["pageindex", "embeddings"])
+        self.assertEqual(
+            source_bundle["retrieval_context_refs"],
+            [
+                {
+                    "context_ref_id": "fts:excerpt-fingerprint",
+                    "ref_type": "retrieval_excerpt",
+                    "doc_id": "doc-1",
+                    "excerpt_id": "excerpt-1",
+                }
+            ],
+        )
         self.assertEqual(excerpt_bundle["doc_count"], 1)
         self.assertEqual(excerpt_bundle["excerpt_count"], 1)
         self.assertIsInstance(excerpt_bundle["excerpt_hits"], list)
@@ -1657,6 +1735,7 @@ class UnifiedRetrievalTests(unittest.TestCase):
         downstream_payload.pop("retrieval_citation_bundle", None)
         downstream_payload.pop("retrieval_doc_bundle", None)
         downstream_payload.pop("retrieval_excerpt_bundle", None)
+        downstream_payload.pop("retrieval_context_refs", None)
         downstream_payload.pop("retrieval_provenance", None)
         downstream_payload.pop("retrieval_source_bundle", None)
         downstream_payload.pop("retrieval_evidence", None)
@@ -1704,6 +1783,10 @@ class UnifiedRetrievalTests(unittest.TestCase):
             [item.excerpt_id for item in result.hits if item.excerpt_id is not None],
         )
         self.assertEqual(context_bundle["retrieval_downstream_payload"]["retrieval_citation_bundle"], result.citation_bundle())
+        self.assertEqual(
+            context_bundle["retrieval_downstream_payload"]["retrieval_context_refs"],
+            result.to_downstream_payload()["retrieval_context_refs"],
+        )
 
     def test_retrieve_auto_citation_bundle_matches_result_snapshot(self) -> None:
         query = RetrievalQuery(

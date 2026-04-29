@@ -474,6 +474,7 @@ def _build_retrieval_source_bundle_from_payload(payload: dict[str, object]) -> d
         "retrieval_summary": copy.deepcopy(payload.get("retrieval_summary", {})),
         "retrieval_doc_bundle": copy.deepcopy(retrieval_doc_bundle),
         "retrieval_excerpt_bundle": copy.deepcopy(retrieval_excerpt_bundle),
+        "retrieval_context_refs": _normalize_context_refs(payload.get("retrieval_context_refs", [])),
         "doc_hits": copy.deepcopy(payload.get("doc_hits", [])),
         "excerpt_hits": copy.deepcopy(payload.get("excerpt_hits", [])),
         "retrieval_manifest": copy.deepcopy(payload.get("retrieval_manifest", {})),
