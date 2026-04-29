@@ -4,7 +4,7 @@
 - Packet purpose: branch-tip re-review packet for the actual merge candidate, including FTS-first retrieval, basket-promotion reference plumbing, and FTS strategy snapshot isolation.
 - Merge candidate: the branch tip after this fixer commit.
 - Authoritative merge-review range: `378cf9a74a3658058079a32f186fcd254c4a4034..HEAD`.
-- Pre-fix packet HEAD: `6da82ca9157bb1b95cbdcd654df3d932eabf415b`.
+- Pre-fix packet HEAD: `4cbae7651bd22f3af732359418be6bef2d1b8ce3`.
 - Reviewed scope rule: review the full branch tip range above. Do not use `adfa8cdadd43747ffbcb612e4151e262b13e52ca` as the merge-candidate endpoint.
 
 ## Branch-Tip Scope Summary
@@ -23,6 +23,8 @@ This advances: retrieve relevant material. The FTS-only excerpt contract makes c
 
 Reviewer-required traceability fix: this packet intentionally reviews `f26b3a6de39492e288fbdf8c2338dab64a6e61e5` as implementation scope in the actual branch-tip merge candidate; it is not classified as a metadata-only packet refresh.
 
+Current fixer reconciliation: the reviewer packet named `d564761748b01f6b96e2bc3a329556032d604f5e` as the stale branch tip. This branch has since advanced through packet/evidence refresh commits, so this handoff regenerates against the actual branch tip after this fixer commit. The candidate range remains `378cf9a74a3658058079a32f186fcd254c4a4034..HEAD`, and the runtime retrieval delta in that range is still the full 7-file branch-tip delta listed below.
+
 ## Code-Bearing Commits In Reviewed Scope
 
 - `adfa8cdadd43747ffbcb612e4151e262b13e52ca`: FTS-only excerpt lookup and deterministic retrieval payload behavior.
@@ -31,6 +33,8 @@ Reviewer-required traceability fix: this packet intentionally reviews `f26b3a6de
 - `f26b3a6de39492e288fbdf8c2338dab64a6e61e5`: isolates FTS strategy hit snapshots with deep copies around runner output, cache storage, and returned `StrategyRun` hits.
 
 Packet/documentation commits after `f26b3a6de39492e288fbdf8c2338dab64a6e61e5`, including this fixer commit, update packet metadata only. Runtime code changes through `f26b3a6de39492e288fbdf8c2338dab64a6e61e5` remain inside the reviewed branch-tip range. The mirrored kickoff packet and lane metadata still contain stale narrowed-target language because this sandbox rejects writes to those packet mirrors; this `THREAD_PACKET.md` remains the authoritative regenerated packet for the actual branch-tip target.
+
+Current fixer note: write access to `.codex/kickoff_packets/feat-retrieval-fts.md` and `.codex/lane_meta/feat-retrieval-fts.json` is still blocked by the workspace sandbox. This packet therefore remains the in-worktree source of truth for the branch-tip candidate range, and the stale `adfa8cdadd43747ffbcb612e4151e262b13e52ca` endpoint in those mirrors must be ignored for review.
 
 ## Tasks Completed
 
@@ -86,6 +90,15 @@ Packet/documentation commits after `f26b3a6de39492e288fbdf8c2338dab64a6e61e5`, i
 
 ## Commands Run
 
+Current fixer rerun against pre-commit branch tip `4cbae7651bd22f3af732359418be6bef2d1b8ce3` plus the packet correction in this commit:
+
+- `make scope-check`: PASS; scope-check passed for branch `codex/feat-retrieval-fts`.
+- `./quality-format.sh --check`: PASS.
+- `./quality-lint.sh`: PASS; shell syntax and trailing whitespace checks passed.
+- `./quality-test.sh`: PASS; smoke plus 124 unit tests.
+- `./typecheck-test.sh`: PASS; Python sources in `src/` compile.
+- `make ci`: PASS; setup verification, scope-check, format, lint, compileall/typecheck, smoke, and 124 unit tests completed.
+
 Required gates rerun against the actual branch-tip merge candidate after this packet regeneration:
 
 - `make scope-check`: PASS; scope-check passed for branch `codex/feat-retrieval-fts`.
@@ -106,7 +119,7 @@ Fallback-review fixer gate rerun against pre-fix branch head `d564761748b01f6b96
 
 ## Risks / Blockers
 
-- `.codex/kickoff_packets/feat-retrieval-fts.md` and `.codex/lane_meta/feat-retrieval-fts.json` still contain stale `adfa8cd` endpoint language because this sandbox rejects writes to those packet mirrors. This `THREAD_PACKET.md` is the authoritative regenerated packet for the actual branch tip.
+- `.codex/kickoff_packets/feat-retrieval-fts.md` and `.codex/lane_meta/feat-retrieval-fts.json` still contain stale `adfa8cd` endpoint language because this sandbox rejects writes to those packet mirrors with `Operation not permitted`. This `THREAD_PACKET.md` is the authoritative regenerated packet for the actual branch tip.
 - Merge risk is high only because the handoff includes approved shared regression coverage; there are no integrator-locked file edits.
 - The branch intentionally does not add embeddings, PageIndex requirements, UI rendering behavior, alternate retrieval modes, routing changes, or provider changes.
 - Final HEAD SHA is reported in the fixer final response after commit creation.
