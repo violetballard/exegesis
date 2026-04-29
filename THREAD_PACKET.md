@@ -84,7 +84,7 @@ Fresh branch-tip fixer pass:
 - `./typecheck-test.sh` PASS.
 - `make ci` PASS (`124` tests).
 
-Validation fixer pass on `2026-04-29` against branch tip `8fc3b8786e5c407ba9ae8e97ad2081ad900bdb54`:
+Validation fixer pass on `2026-04-29` against the branch-tip working tree before this fixer commit, based on `1917cde3660bddb87a93a265de15197f07fff03b`:
 
 - `make scope-check` PASS.
 - `./quality-format.sh --check` PASS.
