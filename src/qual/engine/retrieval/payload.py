@@ -276,6 +276,26 @@ def _extract_context_refs_snapshot(payload: dict[str, object]) -> list[object]:
     return []
 
 
+def _extract_context_ref_fingerprints_snapshot(payload: dict[str, object]) -> list[object]:
+    fingerprints = payload.get("retrieval_context_ref_fingerprints")
+    if not _is_missing_snapshot_value(fingerprints):
+        return _normalize_list_like(fingerprints)
+
+    for bundle_key in (
+        "retrieval_source_bundle",
+        "source_bundle",
+        "retrieval_doc_bundle",
+        "retrieval_excerpt_bundle",
+    ):
+        bundle = payload.get(bundle_key)
+        if not isinstance(bundle, dict):
+            continue
+        nested_fingerprints = bundle.get("retrieval_context_ref_fingerprints")
+        if not _is_missing_snapshot_value(nested_fingerprints):
+            return _normalize_list_like(nested_fingerprints)
+    return []
+
+
 def _normalize_retrieval_source_bundle_snapshot(source_bundle: dict[str, object]) -> dict[str, object]:
     normalized = copy.deepcopy(source_bundle)
     if not isinstance(normalized, dict):
@@ -299,6 +319,13 @@ def _normalize_retrieval_source_bundle_snapshot(source_bundle: dict[str, object]
         normalized.get("retrieval_evidence", {})
     )
     normalized["retrieval_context_refs"] = _extract_context_refs_snapshot(normalized)
+    normalized["retrieval_context_ref_fingerprints"] = _extract_context_ref_fingerprints_snapshot(normalized)
+    normalized["primary_context_ref_fingerprint"] = _first_text_value(
+        normalized.get("primary_context_ref_fingerprint"),
+        normalized["retrieval_context_ref_fingerprints"][0]
+        if normalized["retrieval_context_ref_fingerprints"]
+        else None,
+    )
     normalized["retrieval_citation_bundle"] = _build_retrieval_citation_bundle_from_payload(normalized)
     normalized["retrieval_doc_bundle"] = _build_retrieval_doc_bundle_from_payload(normalized)
     normalized["retrieval_excerpt_bundle"] = _build_retrieval_excerpt_bundle_from_payload(normalized)
@@ -519,6 +546,8 @@ def _backfill_downstream_payload_from_context_bundle(
         "retrieval_source_bundle": context_bundle.get("retrieval_source_bundle"),
         "retrieval_evidence": context_bundle.get("retrieval_evidence"),
         "retrieval_context_refs": context_bundle.get("retrieval_context_refs"),
+        "retrieval_context_ref_fingerprints": context_bundle.get("retrieval_context_ref_fingerprints"),
+        "primary_context_ref_fingerprint": context_bundle.get("primary_context_ref_fingerprint"),
     }
     return _backfill_sparse_snapshot(
         merged,
@@ -554,6 +583,8 @@ def _build_retrieval_context_bundle_from_source_bundle(source_bundle: dict[str, 
         "retrieval_source_bundle": copy.deepcopy(source_bundle),
         "retrieval_evidence": copy.deepcopy(source_bundle.get("retrieval_evidence", {})),
         "retrieval_context_refs": copy.deepcopy(source_bundle.get("retrieval_context_refs", [])),
+        "retrieval_context_ref_fingerprints": copy.deepcopy(source_bundle.get("retrieval_context_ref_fingerprints", [])),
+        "primary_context_ref_fingerprint": source_bundle.get("primary_context_ref_fingerprint"),
     }
 
 
@@ -616,6 +647,8 @@ def _build_retrieval_bundle_context_from_payload(payload: dict[str, object]) -> 
         "retrieval_provenance": copy.deepcopy(provenance),
         "retrieval_evidence": copy.deepcopy(payload.get("retrieval_evidence", {})),
         "retrieval_context_refs": _extract_context_refs_snapshot(payload),
+        "retrieval_context_ref_fingerprints": _extract_context_ref_fingerprints_snapshot(payload),
+        "primary_context_ref_fingerprint": payload.get("primary_context_ref_fingerprint"),
     }
 
 
@@ -674,6 +707,8 @@ def _build_retrieval_context_bundle_from_payload(payload: dict[str, object]) -> 
         "retrieval_source_bundle": _build_retrieval_source_bundle_from_payload(payload),
         "retrieval_evidence": copy.deepcopy(payload.get("retrieval_evidence", {})),
         "retrieval_context_refs": _extract_context_refs_snapshot(payload),
+        "retrieval_context_ref_fingerprints": _extract_context_ref_fingerprints_snapshot(payload),
+        "primary_context_ref_fingerprint": payload.get("primary_context_ref_fingerprint"),
     }
 
 
@@ -910,6 +945,8 @@ class RetrievalDownstreamPayload:
     retrieval_evidence: dict[str, object]
     retrieval_provenance: dict[str, object]
     retrieval_context_refs: list[object]
+    retrieval_context_ref_fingerprints: list[object]
+    primary_context_ref_fingerprint: str | None
     source_bundle_fingerprint: str
     retrieval_source_bundle: dict[str, object]
 
@@ -941,6 +978,8 @@ class RetrievalDownstreamPayload:
             "retrieval_evidence": evidence,
             "retrieval_provenance": provenance,
             "retrieval_context_refs": _normalize_context_refs_snapshot(self.retrieval_context_refs),
+            "retrieval_context_ref_fingerprints": _normalize_list_like(self.retrieval_context_ref_fingerprints),
+            "primary_context_ref_fingerprint": self.primary_context_ref_fingerprint,
             "source_bundle_fingerprint": self.source_bundle_fingerprint,
             "retrieval_source_bundle": source_bundle,
         }
@@ -981,6 +1020,8 @@ def build_retrieval_downstream_payload(
     retrieval_evidence: dict[str, object],
     retrieval_provenance: dict[str, object],
     retrieval_context_refs: list[dict[str, object]],
+    retrieval_context_ref_fingerprints: list[str],
+    primary_context_ref_fingerprint: str | None,
     source_bundle_fingerprint: str,
     retrieval_source_bundle: dict[str, object],
 ) -> dict[str, object]:
@@ -1003,6 +1044,8 @@ def build_retrieval_downstream_payload(
         retrieval_evidence=retrieval_evidence,
         retrieval_provenance=retrieval_provenance,
         retrieval_context_refs=list(retrieval_context_refs),
+        retrieval_context_ref_fingerprints=list(retrieval_context_ref_fingerprints),
+        primary_context_ref_fingerprint=primary_context_ref_fingerprint,
         source_bundle_fingerprint=source_bundle_fingerprint,
         retrieval_source_bundle=retrieval_source_bundle,
     ).as_dict()
