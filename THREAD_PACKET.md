@@ -4,7 +4,7 @@
 - Merge candidate: current branch tip `HEAD`, including this packet-regeneration fixer commit.
 - Branch-tip SHA: reported in the final fixer response after commit creation.
 - Reviewed range for re-review: `378cf9a74a3658058079a32f186fcd254c4a4034..HEAD`
-- Reviewer trace anchor being corrected: `f137cfd00db49bb99790a5c6e82bd919a560a330`
+- Reviewer trace anchor being corrected: `34f872f117ccf231d4d0efa2a1a997dce94876ec`; packet-refresh pre-fix head: `610841a3c182167de3b0e09ccfe447e6e89d13bb`.
 - Handoff classification: high-risk/shared because the merge candidate includes approved shared regression coverage in `tests/unit/test_unified_retrieval.py`.
 - Canonical demo-path step advanced: `retrieve relevant material`.
 - Shared-file approval provenance: reviewer packet `fixer__feat-retrieval-fts__20260429T202122Z.prompt.txt`, finding 2, identifies `tests/unit/test_unified_retrieval.py` as the approved shared surface for `feat-retrieval-fts`; this packet records that approval as the shared-by-approval exception for the regression coverage.
@@ -14,7 +14,7 @@
 1. The handoff explicitly states the canonical demo-path step advanced by this work: `retrieve relevant material`.
 2. The completed retrieval implementation tasks and shared regression metadata refresh are tied to `retrieve relevant material`.
 3. The shared-file exception for `tests/unit/test_unified_retrieval.py` now names its approval provenance: reviewer packet `fixer__feat-retrieval-fts__20260429T202122Z.prompt.txt`, finding 2.
-4. This is a metadata-only handoff packet regeneration; no retrieval implementation files are changed by this fixer commit.
+4. This is a handoff packet regeneration against the actual branch-tip merge candidate; no retrieval implementation files are changed by this fixer commit, but the packet now includes the implementation files and tests already present after `adfa8cda`.
 
 ## Scope Completed
 
@@ -51,7 +51,7 @@ Implementation files in that range:
 - Risk: high/shared.
 - Task budget: `4/4`.
 - File budget: `6/8`.
-- Size accounting before this final packet-status commit for `378cf9a74a3658058079a32f186fcd254c4a4034..HEAD`: `6 files changed, 426 insertions(+), 118 deletions(-)`, net `308` LOC.
+- Size accounting before this final packet-status commit for `378cf9a74a3658058079a32f186fcd254c4a4034..HEAD`: `6 files changed, 427 insertions(+), 118 deletions(-)`, net `309` LOC.
 - This fixer commit changes editable packet metadata only and does not change retrieval implementation behavior.
 - Integrator-locked files: none.
 - Shared-by-approval files: `tests/unit/test_unified_retrieval.py`, used only for canonical retrieval regression coverage. Approval provenance: reviewer packet `fixer__feat-retrieval-fts__20260429T202122Z.prompt.txt`, finding 2, explicitly identifies this file as the approved shared surface for `feat-retrieval-fts`.
@@ -84,5 +84,5 @@ Fresh fixer pass on `2026-04-29` for the actual branch-tip merge candidate, reru
 ## Risks / Blockers
 
 - No implementation blockers are known.
-- `.codex/kickoff_packets/feat-retrieval-fts.md` and `.codex/lane_meta/feat-retrieval-fts.json` still contain stale packet text but are not writable in this sandbox: `test -w` reports not writable, `apply_patch` rejects edits under those paths, and removing `com.apple.provenance` fails with `Operation not permitted`.
+- `.codex/kickoff_packets/feat-retrieval-fts.md` and `.codex/lane_meta/feat-retrieval-fts.json` still contain stale packet text but are not editable through the available patch tool in this sandbox: `apply_patch` rejects edits under those paths as outside the project. Treat this `THREAD_PACKET.md` as the authoritative regenerated handoff packet.
 - Re-review should use this `THREAD_PACKET.md`, `378cf9a74a3658058079a32f186fcd254c4a4034..HEAD` as the reviewed merge-candidate range, and the final HEAD SHA reported by this fixer as the branch tip.
