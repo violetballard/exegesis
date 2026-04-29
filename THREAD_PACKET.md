@@ -2,21 +2,22 @@
 
 - Lane: `feat-commands`
 - Branch: `codex/feat-commands`
-- Corrected review target: the current branch tip after this fixer commit only, with the corrected four-file merge-target list below.
+- Corrected review target: the current branch tip after this packet refresh commit only, with the corrected four-file merge-target list below.
 - Integration instruction: review and merge the corrected branch tip only if its merge diff remains exactly `THREAD.md`, `THREAD_PACKET.md`, `src/qual/commands/catalog.py`, and `tests/unit/test_commands_catalog.py`; otherwise cherry-pick the final corrective commit target that preserves only that command-catalog slice.
-- Rejected packet reconciled: prior packet traceability incorrectly treated `ab96cb722094e821105d1cdfd3cae24f4b9184ef` as metadata-only while it modified `src/qual/commands/catalog.py` and `tests/unit/test_commands_catalog.py`. This packet classifies `ab96cb722094e821105d1cdfd3cae24f4b9184ef` as implementation and reviews it with this packet refresh.
+- Rejected packet reconciled: prior packet traceability incorrectly treated `ab96cb722094e821105d1cdfd3cae24f4b9184ef` and `2836f5f0e4e0e903acc0e3633e6204be3f982a5d` as metadata-only even though they modified implementation files. This packet classifies both commits as implementation and reviews them with this packet refresh.
 - Implementation commits under review:
   - `f8d860ed9f6299f0169c4f21321ac5f37c949fd3`: original command-catalog CLI contract implementation.
   - `ab96cb722094e821105d1cdfd3cae24f4b9184ef`: implementation fix for canonical-token drift, including alias-before-canonical regression coverage.
-  - This fixer commit: final command-catalog contract clarification plus handoff traceability refresh.
+  - `2836f5f0e4e0e903acc0e3633e6204be3f982a5d`: implementation fix that enforces canonical parser tokens in `src/qual/commands/catalog.py` and refreshes packet traceability.
+  - This packet refresh commit: metadata-only correction that makes the branch-tip review basis explicit.
 - Merge base used for file accounting: `06cdebc2d5d53533b73f264a4bbf5a4b4daacb27`.
 - Risk classification: low-risk lane-owned implementation plus one shared-by-approval unit-test exception and packet metadata; no integrator-locked files are changed.
 
 ## Required Handoff Fields
 
 - Branch name: `codex/feat-commands`
-- Scope completed: isolated the command catalog implementation slice from `f8d860ed9f6299f0169c4f21321ac5f37c949fd3`, included `ab96cb722094e821105d1cdfd3cae24f4b9184ef` as an implementation fix, and removed off-lane branch-tip changes from the corrected merge target.
-- Implementation review basis: the current branch tip after this fixer commit only. This tip includes the corrected command-catalog slice that tightens the CLI contract guard, rejects alias-replaces-canonical and alias-before-canonical parser drift, and refreshes packet metadata.
+- Scope completed: isolated the command catalog implementation slice from `f8d860ed9f6299f0169c4f21321ac5f37c949fd3`, included `ab96cb722094e821105d1cdfd3cae24f4b9184ef` and `2836f5f0e4e0e903acc0e3633e6204be3f982a5d` as implementation fixes, and removed off-lane branch-tip changes from the corrected merge target.
+- Implementation review basis: the current branch tip after this packet refresh commit only. This tip includes the corrected command-catalog slice that tightens the CLI contract guard, rejects alias-replaces-canonical and alias-before-canonical parser drift, and refreshes packet metadata.
 - Roadmap item(s) affected: active MVP `feat-commands`; Milestone 3 command surface stability while Textual remains disabled.
 - Vision capability affected: canonical engine contract and CLI compatibility through deterministic command catalog metadata.
 - Exact canonical demo-path step advanced: `preview/apply/reject patch`.
@@ -36,7 +37,7 @@
 2. Added a regression test proving that removing canonical token `diff-preview` while keeping alias `diff` raises `ValueError`. Demo-path mapping: strengthens `preview/apply/reject patch` by preserving the canonical `diff-preview` parser surface.
 3. Added a regression test proving that alias `diff` cannot appear before canonical token `diff-preview`. Demo-path mapping: strengthens `preview/apply/reject patch` by preserving canonical-token precedence.
 4. Narrowed the corrected target to the command-catalog implementation slice: `src/qual/commands/catalog.py`, `tests/unit/test_commands_catalog.py`, and packet metadata only. Demo-path mapping: keeps this lane scoped to preserving the CLI surface for `preview/apply/reject patch`.
-5. Regenerated `THREAD_PACKET.md` and `THREAD.md` so they describe the corrected branch-tip target and classify `ab96cb722094e821105d1cdfd3cae24f4b9184ef` as implementation. Demo-path mapping: keeps handoff evidence aligned with command-catalog work that supports preserving the CLI surface for `preview/apply/reject patch`.
+5. Regenerated `THREAD_PACKET.md` and `THREAD.md` so they describe the corrected branch-tip target and classify `ab96cb722094e821105d1cdfd3cae24f4b9184ef` and `2836f5f0e4e0e903acc0e3633e6204be3f982a5d` as implementation. Demo-path mapping: keeps handoff evidence aligned with command-catalog work that supports preserving the CLI surface for `preview/apply/reject patch`.
 6. Kept the unit test isolated to the catalog module so the corrected target does not require `src/qual/commands/__init__.py`. Demo-path mapping: limits validation to command-surface behavior used by `preview/apply/reject patch`.
 
 ## Complete Corrected File List
