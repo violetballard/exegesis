@@ -1,21 +1,22 @@
 ## Thread Handoff Packet
 
 - Branch/lane: `codex/feat-retrieval-fts` / `feat-retrieval-fts`
-- Selected merge candidate: actual branch-tip lineage, not the narrowed `adfa8cdadd43747ffbcb612e4151e262b13e52ca` slice.
-- Packet head before this metadata-only fixer commit: `ebbf24614e9dd84f25616a1a8e12b324ec37d905`
-- Reviewed merge-candidate range before this fixer commit: `378cf9a74a3658058079a32f186fcd254c4a4034..ebbf24614e9dd84f25616a1a8e12b324ec37d905`
+- Packet purpose: reviewer-fix re-review packet for the actual branch tip.
+- Review baseline from reviewer packet: `378cf9a74a3658058079a32f186fcd254c4a4034`
+- Reviewed implementation range before this metadata-only fixer commit: `378cf9a74a3658058079a32f186fcd254c4a4034..c11be4126a063df52096fc7a46c88c848fda69d3`
 - Runtime/test implementation head in that range: `e11cdde8610587c865afec904674f9366cbfa0cf`
+- Canonical demo-path step advanced: retrieve relevant material
 - Final reviewed head: reported in the fixer response after this metadata-only packet correction is committed.
 
 ## Scope Completed
 
-The full branch-tip lineage is the review surface. It implements the FTS-first retrieval MVP, deterministic source/context bundle snapshots for basket promotion, source-bundle fingerprints and citation status, and engine payload rehydration for compact downstream inputs. PageIndex-only excerpt IDs fail closed, and PageIndex/embeddings remain compatibility-only deferred paths.
+This re-review packet keeps the post-`378cf9a` scope tight to `feat-retrieval-fts`: FTS-only excerpt lookup, structured source/context/citation bundles for workflow-ready retrieval results, deterministic basket-promotion provenance, and payload rehydration from sparse source bundles. PageIndex-only excerpt IDs fail closed, and PageIndex/embeddings remain deferred compatibility paths rather than required retrieval paths.
 
 ## Tasks Completed
 
-1. Added FTS-only excerpt lookup and fail-closed PageIndex rejection for excerpt backfill.
-2. Added deterministic basket-promotion/source-bundle snapshots with stable IDs, fingerprints, citation status, query scope, intent, and date range.
-3. Added engine payload rehydration for compact source/context bundles so sparse downstream inputs can recover deterministic retrieval payloads.
+1. Added FTS-only excerpt lookup/backfill behavior and fail-closed handling for PageIndex-only excerpt IDs.
+2. Added deterministic source/context/citation bundle snapshots for basket promotion, including stable source IDs, fingerprints, citation status, query scope, intent, and date range.
+3. Added engine payload rehydration from compact source/context bundles so sparse downstream inputs recover deterministic retrieval payloads.
 4. Added shared regression coverage for excerpt backfill, facade exports, payload normalization, provenance helpers, and basket-promotion snapshots.
 
 ## Files Changed
@@ -32,7 +33,8 @@ The full branch-tip lineage is the review surface. It implements the FTS-first r
 - Risk: high, because approved shared regression coverage touches `tests/unit/test_unified_retrieval.py`.
 - Task budget: `4/4`.
 - File budget before this metadata-only fixer commit: `6/8`.
-- Size budget before this metadata-only fixer commit: `6 files changed, 474 insertions(+), 120 deletions(-)` for `378cf9a74a3658058079a32f186fcd254c4a4034..ebbf24614e9dd84f25616a1a8e12b324ec37d905`.
+- Size budget before this metadata-only fixer commit: `6 files changed, 474 insertions(+), 120 deletions(-)` for `378cf9a74a3658058079a32f186fcd254c4a4034..c11be4126a063df52096fc7a46c88c848fda69d3`.
+- Shared-file approval note: `tests/unit/test_unified_retrieval.py` is included as approved shared regression coverage for the retrieval lane; no integrator-locked files are edited in this re-review slice.
 
 ## Roadmap / Vision
 
@@ -42,11 +44,11 @@ The full branch-tip lineage is the review surface. It implements the FTS-first r
 
 ## Canonical Demo Path
 
-This branch advances the `retrieve relevant material` step. The FTS-only excerpt path retrieves relevant material without PageIndex/embeddings as required paths, and the deterministic basket-promotion/source-bundle payloads keep that retrieved material stable for later context assembly.
+This branch advances the canonical demo-path step `retrieve relevant material`. FTS-only `fetch_excerpt` makes retrieved material auditable and deterministic before basket/context promotion.
 
 ## Traceability Correction
 
-Earlier packet text incorrectly treated commits after `adfa8cdadd43747ffbcb612e4151e262b13e52ca` as metadata-only. That claim is withdrawn. This handoff chooses the actual branch-tip lineage. The review surface is the full merge-candidate range ending at `ebbf24614e9dd84f25616a1a8e12b324ec37d905` before this fixer commit, with runtime/test implementation through `e11cdde8610587c865afec904674f9366cbfa0cf`. That includes runtime/test changes after `adfa8cdadd43747ffbcb612e4151e262b13e52ca` in `src/qual/engine/retrieval/payload.py`, `src/qual/retrieval/service.py`, and `tests/unit/test_unified_retrieval.py`.
+Earlier packet text incorrectly treated commits after `adfa8cdadd43747ffbcb612e4151e262b13e52ca` as metadata-only. That claim is withdrawn. This handoff chooses the actual branch-tip lineage for the reviewer packet baseline and reviews `378cf9a74a3658058079a32f186fcd254c4a4034..c11be4126a063df52096fc7a46c88c848fda69d3` before this metadata-only fixer commit. That range includes runtime/test changes after `adfa8cdadd43747ffbcb612e4151e262b13e52ca` in `src/qual/engine/retrieval/payload.py`, `src/qual/retrieval/service.py`, and `tests/unit/test_unified_retrieval.py`.
 
 This fixer pass changes packet metadata only. It does not narrow, split, reset, or modify the reviewed runtime/test implementation. The final HEAD SHA and gate outcomes against that final branch tip are reported in the fixer response after commit.
 
@@ -64,4 +66,5 @@ Required gates are rerun after this packet correction and reported in the final 
 ## Risks / Blockers
 
 - Residual risk: broader retrieval orchestration beyond deterministic source/context bundles remains separate high-risk work.
-- Shared-file note: `tests/unit/test_unified_retrieval.py` is included as approved shared regression coverage for the retrieval lane; no other shared or integrator-locked runtime files are edited.
+- Scope risk: none identified in this re-review slice; changes remain FTS-first and deterministic.
+- Shared-file note: `tests/unit/test_unified_retrieval.py` is the only shared-by-approval file in this slice.
