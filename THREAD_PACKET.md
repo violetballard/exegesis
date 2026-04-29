@@ -3,7 +3,7 @@
 - Lane: `feat-commands`
 - Branch: `codex/feat-commands`
 - Corrected review target: the full current branch tip produced by this fixer pass, not the earlier `f8d860ed9f6299f0169c4f21321ac5f37c949fd3` slice.
-- Current fixer packet validated: `fixer__feat-commands__20260429T233847Z`.
+- Current fixer packet validated: `fixer__feat-commands__20260429T234430Z`.
 - Integration instruction: review the full branch-tip merge diff exactly as reported below. This packet no longer asks reviewers to treat `f8d860ed9f6299f0169c4f21321ac5f37c949fd3` as the only implementation commit.
 - Rejected packet reconciled: prior packet traceability incorrectly treated the branch-tip implementation basis as a four-commit slice. The actual implementation history for the branch tip is the full set of commits touching `src/qual/commands/catalog.py` or `tests/unit/test_commands_catalog.py` between `06cdebc2d5d53533b73f264a4bbf5a4b4daacb27` and this branch tip.
 - Accurate implementation commits under review: `git log --reverse --format='%H %s' main..HEAD -- src/qual/commands/catalog.py tests/unit/test_commands_catalog.py` reports `340` implementation commits for the current branch-tip review target. This includes `f8d860ed9f6299f0169c4f21321ac5f37c949fd3`, `ab96cb722094e821105d1cdfd3cae24f4b9184ef`, `2836f5f0e4e0e903acc0e3633e6204be3f982a5d`, `e72c69d75446e3ad10de3d3d0c7c30b4957c4baa`, and `594c21819dfa534f51eb2af784630e21b0acff48`, but is not limited to them. Reviewers should treat that generated command output as the implementation commit list for this over-budget branch-tip target.
@@ -39,7 +39,7 @@
 3. Added a regression test proving that alias `diff` cannot appear before canonical token `diff-preview`. Demo-path mapping: strengthens `preview and apply/reject patch` by preserving canonical-token precedence for the `diff-preview` / `patch-review` route.
 4. Exposed smoke-token contract fields on `CommandSurfaceContract` and `CommandCliRouteContract`, plus `command_flow_smoke_tokens()`, `command_demo_flow_smoke_tokens()`, and `command_mvp_flow_smoke_tokens()`. Demo-path mapping: gives smoke checks an exact deterministic token sequence for `preview and apply/reject patch` (`diff-preview` / `patch-review`) and the adjacent CLI-first MVP routes.
 5. Kept the corrected branch-tip merge diff to `src/qual/commands/catalog.py`, `tests/unit/test_commands_catalog.py`, and packet metadata only, while truthfully reporting that the history behind those files is over budget. Demo-path mapping: keeps this lane scoped to preserving the CLI surface for `preview and apply/reject patch`.
-6. Regenerated `THREAD_PACKET.md` and `THREAD.md` so they describe the full branch-tip target, classify implementation history by actual file touches, and record this final fixer pass as the review target for `fixer__feat-commands__20260429T233847Z`. Demo-path mapping: keeps handoff evidence aligned with `open project/document`, `retrieve relevant material`, `promote or gather context`, `preview and apply/reject patch`, and `save and continue` CLI routes.
+6. Regenerated `THREAD_PACKET.md` and `THREAD.md` so they describe the full branch-tip target, classify implementation history by actual file touches, and record this final fixer pass as the review target for `fixer__feat-commands__20260429T234430Z`. Demo-path mapping: keeps handoff evidence aligned with `open project/document`, `retrieve relevant material`, `promote or gather context`, `preview and apply/reject patch`, and `save and continue` CLI routes.
 7. Kept the unit test isolated to the catalog module so the corrected target does not require `src/qual/commands/__init__.py`. Demo-path mapping: limits validation to command-surface behavior used by `open project/document`, `retrieve relevant material`, `promote or gather context`, `preview and apply/reject patch`, and `save and continue` in the engine-first CLI fallback path.
 
 ## Complete Corrected File List
@@ -78,13 +78,13 @@ Exact final merge diff stat:
 
 ## Commands Run
 
-- `python -m unittest tests.unit.test_commands_catalog`: PASS on 2026-04-29 for `fixer__feat-commands__20260429T233847Z` (`45` tests).
-- `make scope-check`: PASS on 2026-04-29 for `fixer__feat-commands__20260429T233847Z`.
-- `./quality-format.sh --check`: PASS on 2026-04-29 for `fixer__feat-commands__20260429T233847Z`.
-- `./quality-lint.sh`: PASS on 2026-04-29 for `fixer__feat-commands__20260429T233847Z`.
-- `./quality-test.sh`: PASS on 2026-04-29 for `fixer__feat-commands__20260429T233847Z` (`116` tests).
-- `./typecheck-test.sh`: PASS on 2026-04-29 for `fixer__feat-commands__20260429T233847Z`.
-- `make ci`: PASS on 2026-04-29 for `fixer__feat-commands__20260429T233847Z`.
+- `python -m unittest tests.unit.test_commands_catalog`: PASS on 2026-04-29 for `fixer__feat-commands__20260429T234430Z` (`45` tests).
+- `make scope-check`: PASS on 2026-04-29 for `fixer__feat-commands__20260429T234430Z`.
+- `./quality-format.sh --check`: PASS on 2026-04-29 for `fixer__feat-commands__20260429T234430Z`.
+- `./quality-lint.sh`: PASS on 2026-04-29 for `fixer__feat-commands__20260429T234430Z`.
+- `./quality-test.sh`: PASS on 2026-04-29 for `fixer__feat-commands__20260429T234430Z` (`116` tests).
+- `./typecheck-test.sh`: PASS on 2026-04-29 for `fixer__feat-commands__20260429T234430Z`.
+- `make ci`: PASS on 2026-04-29 for `fixer__feat-commands__20260429T234430Z`.
 
 ## Risks And Blockers
 
