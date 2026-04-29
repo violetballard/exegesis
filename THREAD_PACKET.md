@@ -4,7 +4,7 @@
 - Merge candidate: current branch tip `HEAD`, including this packet-regeneration fixer commit.
 - Branch-tip SHA: final HEAD SHA reported by this fixer handoff; embedding a pre-commit SHA here would become stale as soon as this packet commit is created.
 - Reviewed range for re-review: `378cf9a74a3658058079a32f186fcd254c4a4034..HEAD`
-- Pre-fix reviewer trace anchor: `87f52bcb2b7b9b08a9b5febc325f90802c16aeef`
+- Pre-fix reviewer trace anchor: `f137cfd00f979d939a4ab8f5f64cfb9156e3c73e`
 - Handoff classification: high-risk/shared because the merge candidate includes approved shared regression coverage in `tests/unit/test_unified_retrieval.py`.
 - Canonical demo-path steps advanced: `retrieve relevant material` and `promote or gather context into the basket`.
 
@@ -50,8 +50,8 @@ Implementation files in that range:
 - Risk: high/shared.
 - Task budget: `4/4`.
 - File budget: `6/8`.
-- Size budget for `378cf9a74a3658058079a32f186fcd254c4a4034..87f52bcb2b7b9b08a9b5febc325f90802c16aeef` before this metadata-only fixer commit: `6 files changed, 415 insertions(+), 118 deletions(-)`, net `297` LOC, within the high-risk `<=300` net LOC cap.
-- This fixer commit changes packet metadata only and does not change retrieval implementation behavior; its final SHA is reported in the fixer handoff.
+- Size accounting for `378cf9a74a3658058079a32f186fcd254c4a4034..f137cfd00f979d939a4ab8f5f64cfb9156e3c73e` before this metadata-only fixer commit: `6 files changed, 425 insertions(+), 118 deletions(-)`, net `307` LOC. The implementation files account for `3 files changed, 179 insertions(+), 31 deletions(-)`, net `148` LOC; packet metadata accounts for the remaining net LOC.
+- This fixer commit changes editable packet metadata only and does not change retrieval implementation behavior; its final SHA is reported in the fixer handoff.
 - Integrator-locked files: none.
 - Shared-by-approval files: `tests/unit/test_unified_retrieval.py`, used only for canonical retrieval regression coverage.
 - Routing/provider impact: none. This branch does not change model routing, provider configuration, provider compatibility behavior, CLI entrypoints, or app entrypoints.
@@ -82,5 +82,5 @@ Fresh fixer pass on `2026-04-29` for the actual branch-tip merge candidate. Fina
 ## Risks / Blockers
 
 - No implementation blockers are known.
-- `.codex/kickoff_packets/feat-retrieval-fts.md` and `.codex/lane_meta/feat-retrieval-fts.json` could not be edited in this worktree: direct writes, directory write probes, and xattr removal all fail with `Operation not permitted`. `THREAD_PACKET.md` is the corrected editable handoff for this fixer pass.
+- `.codex/kickoff_packets/feat-retrieval-fts.md` and `.codex/lane_meta/feat-retrieval-fts.json` could not be edited in this worktree: direct writes fail with `Operation not permitted`. `THREAD_PACKET.md` is the corrected editable handoff for this fixer pass.
 - Re-review should use `378cf9a74a3658058079a32f186fcd254c4a4034..HEAD` as the reviewed merge-candidate range and the final HEAD SHA reported by this fixer as the branch tip.
