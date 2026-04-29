@@ -4,17 +4,16 @@
 - Purpose: authoritative re-review packet for the actual branch-tip merge candidate.
 - Reviewed range: `378cf9a7..HEAD`
 - Reviewed implementation range: `378cf9a7..HEAD`
-- Pre-fix rejected branch tip: `df6d2f3782b7c10f3949e9f7337eee6b68e463b0`.
+- Pre-fix rejected branch tip: `15b737eef`
 - Merge candidate: current branch tip after this fixer commit. Final SHA is reported in the fixer response.
 - Scope rule: review the full range above. Do not use `adfa8cdadd43747ffbcb612e4151e262b13e52ca` as the endpoint, and do not classify post-`adfa8cdadd43747ffbcb612e4151e262b13e52ca` retrieval-code changes as metadata-only.
 
 ## Required Fixes Addressed
 
 1. The handoff is regenerated against one source of truth: `378cf9a7..HEAD`.
-2. Runtime/test review scope includes `src/qual/engine/retrieval/fts_strategy.py`, `src/qual/engine/retrieval/payload.py`, `src/qual/retrieval/service.py`, and `tests/unit/test_unified_retrieval.py`, plus packet metadata files.
-3. High-risk budget accounting is recomputed against the same actual branch-tip range.
-4. Scope and task notes include FTS cache invalidation, FTS-first structured retrieval, basket/workflow promotion readiness, auditable provenance, and the canonical `context -> run` demo-path handoff.
-5. Required gates are rerun against the corrected branch-tip merge candidate.
+2. The intended merge target is current `codex/feat-retrieval-fts`, so all post-`adfa8cdadd43747ffbcb612e4151e262b13e52ca` implementation changes are included in the reviewed range and summarized below.
+3. Required gates are rerun against the exact branch-tip merge candidate for this fixer pass.
+4. The completed tasks map explicitly to the canonical demo-path step: `retrieve relevant material`.
 
 ## Scope Completed
 
@@ -48,7 +47,7 @@ The branch delivers the FTS-first retrieval slice needed for the current MVP eng
 - Risk: high/shared because `tests/unit/test_unified_retrieval.py` is approved shared regression coverage.
 - Task budget: `4/4`.
 - File budget: `7/8`.
-- Size budget: runtime/test scope is `4` files changed, 202 insertions, 43 deletions, net `+159` in `378cf9a7..HEAD` before this final packet correction; full packet-inclusive range is `7` files changed, 437 insertions, 130 deletions, net `+307`. The implementation/test scope remains under the high-risk `<=300` net LOC cap.
+- Size budget: runtime/test scope is `4` files changed, `204` insertions, `43` deletions, net `+161` in `378cf9a7..HEAD` before this packet correction; full packet-inclusive range is `7` files changed, `439` insertions, `130` deletions, net `+309`. The implementation/test scope remains under the high-risk `<=300` net LOC cap.
 - Integrator-locked files: none.
 
 ## Roadmap / Vision
@@ -60,16 +59,21 @@ The branch delivers the FTS-first retrieval slice needed for the current MVP eng
 
 ## Canonical Demo Path
 
-- Explicit AGENTS.md canonical demo-path step advanced: this work makes the “retrieve relevant material” step more real by enforcing FTS-only excerpt lookup/provenance.
+- Explicit AGENTS.md canonical demo-path step advanced: `retrieve relevant material`.
+- Task mapping: task 1 makes retrieval FTS-first and fail-closed; task 2 makes retrieved material deterministic for engine context; task 3 makes retrieved material promotable into basket/workflow state; task 4 locks the retrieval behavior with regression coverage and corrected handoff metadata.
 - Advances the canonical MVP flow `vault -> context -> run -> patch -> export` by making the `context -> run` retrieval handoff deterministic, structured, FTS-backed, and provenance-bearing.
-- Keeps retrieved chunks auditable for generation and promotion flows through stable source, excerpt, provenance, and basket/workflow promotion refs.
 
 ## Commands Run
 
-`make scope-check`: PASS. `./quality-format.sh --check`: PASS. `./quality-lint.sh`: PASS. `./quality-test.sh`: PASS (`124` tests). `./typecheck-test.sh`: PASS. `make ci`: PASS (`124` tests).
+- `make scope-check`: PASS. Output included `scope-check: no policy for branch 'codex/feat-retrieval-fts'; skipping` and `scope-check: passed`.
+- `./quality-format.sh --check`: PASS.
+- `./quality-lint.sh`: PASS.
+- `./quality-test.sh`: PASS (`124` tests).
+- `./typecheck-test.sh`: PASS.
+- `make ci`: PASS (`124` tests).
 
 ## Risks / Blockers
 
 - Merge risk remains high because the actual reviewed range includes approved shared regression coverage.
-- Blocker: required fixes cannot be mirrored into `.codex/kickoff_packets/feat-retrieval-fts.md` or `.codex/lane_meta/feat-retrieval-fts.json` from this fixer worktree because `.codex` writes are rejected by the workspace policy. Verified failed operation during this fixer pass: `apply_patch` rejected the `.codex/kickoff_packets/feat-retrieval-fts.md` and `.codex/lane_meta/feat-retrieval-fts.json` edits as outside the writable project.
-- `THREAD_PACKET.md` is the corrected writable source of truth for re-review: the reviewed range is `378cf9a7..HEAD`, post-`adfa8cdadd43747ffbcb612e4151e262b13e52ca` retrieval code is in scope, and the handoff is high-risk/shared under the 4-task cap. The tracked `.codex` mirrors still contain stale `adfa8cd` metadata and must not be used as the source of truth for this re-review.
+- Blocker for packet mirrors: `.codex/kickoff_packets/feat-retrieval-fts.md` and `.codex/lane_meta/feat-retrieval-fts.json` remain stale because this sandbox rejects writes to `.codex` paths with `Operation not permitted`.
+- `THREAD_PACKET.md` is the corrected writable source of truth for re-review: the reviewed range is `378cf9a7..HEAD`, post-`adfa8cdadd43747ffbcb612e4151e262b13e52ca` retrieval code is in scope, and the handoff is high-risk/shared under the 4-task cap.
