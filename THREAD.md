@@ -6,7 +6,7 @@ Canonical handoff contract lives in `THREAD_PACKET.md`.
 
 - Lane: `feat-commands`
 - Branch: `codex/feat-commands`
-- Review basis: current branch tip after this `20260429T012436Z` reviewer-fix commit.
+- Review basis: current branch tip after the `20260429T012712Z` approval-closeout commit.
 - Previous implementation anchor: `f8d860ed9f6299f0169c4f21321ac5f37c949fd3`
 - Scope: command-catalog contract hardening for the current engine-first MVP focus without starting `feat-console`.
 - Roadmap alignment: Milestone 3 CLI compatibility for the engine-first workflow loop, and `feat-commands` as the command-surface compatibility lane.
@@ -40,3 +40,9 @@ Canonical handoff contract lives in `THREAD_PACKET.md`.
 2. Post-`f8d860e` implementation and test commits are included in review rather than classified as metadata-only.
 3. Parser-surface drift coverage includes added aliases, removed aliases, same-canonical substitutions such as replacing `bootstrap` with `open` or `diff-preview` with `diff`, token reordering, lookup-table shape/order drift, and declared-surface drift.
 4. Ownership/accounting lists the approved shared test edits and keeps `scripts/scope-check.sh` out of the net `main...HEAD` review diff.
+
+## Reviewer Packet `20260429T012712Z` Approval Closeout
+
+1. Reviewer verdict: `APPROVED`.
+2. Required fixes before re-review: none.
+3. This closeout commit is metadata-only and keeps the current branch tip scope-clean while preserving the approved shared-test implementation history below it.
