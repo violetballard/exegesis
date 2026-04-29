@@ -6,7 +6,7 @@ Canonical handoff contract lives in `THREAD_PACKET.md`.
 
 - Lane: `feat-commands`
 - Branch: `codex/feat-commands`
-- Review basis: final branch tip after this fixer pass for reviewer packet `20260429T001026Z`; implementation, tests, scope-check support, and packet metadata are reviewed together.
+- Review basis: final branch tip after this fixer pass for reviewer packet `20260429T001414Z`; implementation, tests, scope-check support, and packet metadata are reviewed together.
 - Scope: CLI command-catalog contract hardening for the current engine-first MVP focus without starting `feat-console`.
 - Roadmap alignment: Milestone 3 CLI compatibility for the engine-first workflow loop, and `feat-commands` as the command-surface compatibility lane.
 - Vision alignment: canonical engine contract stability while the CLI remains the active operator surface.
@@ -40,7 +40,7 @@ Canonical handoff contract lives in `THREAD_PACKET.md`.
 - Added regression coverage for lookup-table removed-token drift where a parser row disappears from the lookup table while the accepted token tuple remains unchanged.
 - Added regression coverage for same-canonical alias order drift where `diff` and `diff-preview` are reordered within the accepted parser tokens or the declared `diff-preview` parser group.
 - Regenerated the packet from the actual branch tip and stopped classifying code-bearing command/test commits as metadata-only.
-- Reconfirmed the `20260429T001026Z` reviewer fixes against the branch-tip implementation and refreshed handoff metadata so the current review basis is no longer stale.
+- Reconfirmed the `20260429T001414Z` reviewer fixes against the branch-tip implementation and refreshed handoff metadata so the current review basis is no longer stale.
 
 ## Canonical Demo-Path Mapping
 
@@ -140,6 +140,15 @@ Canonical handoff contract lives in `THREAD_PACKET.md`.
 4. Ownership accounting: satisfied by listing lane-owned command files, approved shared-by-approval tests, `scripts/scope-check.sh` as shared gate support, metadata-only files, and `Integrator-locked edits: no`.
 5. Required gates: this fixer pass reruns and records `make scope-check`, `./quality-format.sh --check`, `./quality-lint.sh`, `./quality-test.sh`, `./typecheck-test.sh`, and `make ci`.
 
+## Reviewer Packet `20260429T001414Z` Fix Satisfaction
+
+1. Regenerate the packet from the actual merge candidate tip: satisfied by anchoring review to the final `codex/feat-commands` branch tip after this fixer pass, with implementation, tests, scope-check support, `THREAD.md`, and `THREAD_PACKET.md` reviewed together.
+2. Do not classify command-catalog implementation or test commits after `f8d860ed9f6299f0169c4f21321ac5f37c949fd3` as metadata-only: satisfied by submitting the full branch-tip implementation and listing command/test files as reviewed files.
+3. Full parser-surface drift rejection: satisfied by `command_cli_contract()` validating accepted tokens, declared canonical surface, grouped parser projection, lookup-table shape/order, canonical names, and explicit canonical token/lookup projections against `_CANONICAL_CLI_COMMAND_SURFACE`.
+4. Parser-surface drift regressions: satisfied by focused tests for added aliases, removed aliases, same-canonical substitutions, token reorder, declared-surface drift, grouped parser drift, lookup-table token substitution, lookup-table target substitution, lookup-table removed-token drift, lookup-table shape/order drift, and canonical token/lookup projection alignment.
+5. Files-changed and metadata-only accounting: satisfied by listing every branch-tip changed file and limiting metadata-only classification to `THREAD.md` and `THREAD_PACKET.md`.
+6. Required gates: this fixer pass reruns and records `make scope-check`, `./quality-format.sh --check`, `./quality-lint.sh`, `./quality-test.sh`, `./typecheck-test.sh`, and `make ci`.
+
 ## Verification
 
 - `python3 -m unittest tests.unit.test_commands_catalog -v`: PASS (60 tests)
@@ -149,4 +158,4 @@ Canonical handoff contract lives in `THREAD_PACKET.md`.
 - `./quality-test.sh`: PASS
 - `./typecheck-test.sh`: PASS
 - `make ci`: PASS
-- Final verification pass: `2026-04-29T00:15:36Z`
+- Final verification pass: `2026-04-29T00:17:13Z`
