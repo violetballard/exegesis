@@ -236,6 +236,14 @@ def _normalize_retrieval_evidence_snapshot(evidence: dict[str, object]) -> dict[
     normalized["deferred_strategy_ids"] = _normalize_list_like(normalized.get("deferred_strategy_ids"))
     normalized["doc_citations"] = _normalize_list_like(normalized.get("doc_citations"))
     normalized["excerpt_citations"] = _normalize_list_like(normalized.get("excerpt_citations"))
+    basket_promotion_refs = normalized.get("basket_promotion_refs")
+    if isinstance(basket_promotion_refs, dict):
+        basket_promotion_refs = copy.deepcopy(basket_promotion_refs)
+        basket_promotion_refs["doc_refs"] = _normalize_list_like(basket_promotion_refs.get("doc_refs"))
+        basket_promotion_refs["excerpt_refs"] = _normalize_list_like(basket_promotion_refs.get("excerpt_refs"))
+        normalized["basket_promotion_refs"] = basket_promotion_refs
+    elif "basket_promotion_refs" in normalized:
+        normalized["basket_promotion_refs"] = {"doc_refs": [], "excerpt_refs": []}
     retrieval_policy = normalized.get("retrieval_policy")
     if isinstance(retrieval_policy, dict):
         normalized["retrieval_policy"] = _normalize_policy_snapshot(retrieval_policy)

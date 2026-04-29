@@ -1411,7 +1411,51 @@ class RetrievalService:
             "excerpt_count": len(hits),
             "doc_citations": doc_citations,
             "excerpt_citations": excerpt_citations,
+            "basket_promotion_refs": self._build_basket_promotion_refs(
+                doc_hits=doc_hits,
+                hits=hits,
+            ),
             "retrieval_manifest": dict(retrieval_manifest),
+        }
+
+    @staticmethod
+    def _build_basket_promotion_refs(
+        *,
+        doc_hits: list[RetrievalDocHit],
+        hits: list[RetrievalHit],
+    ) -> dict[str, object]:
+        """Return stable doc/excerpt references suitable for basket promotion."""
+
+        return {
+            "doc_refs": [
+                {
+                    "doc_id": doc_hit.doc_id,
+                    "doc_fingerprint": doc_hit.provenance.get("doc_fingerprint"),
+                    "doc_identity_fingerprint": doc_hit.provenance.get("doc_identity_fingerprint"),
+                    "source_hash": doc_hit.source_hash,
+                    "top_excerpt_id": doc_hit.top_excerpt_id,
+                    "top_excerpt_fingerprint": doc_hit.provenance.get("top_excerpt_fingerprint"),
+                    "source_strategy": doc_hit.source_strategy,
+                    "retrieval_backend": doc_hit.provenance.get("retrieval_backend"),
+                    "retrieval_mode": doc_hit.provenance.get("retrieval_mode"),
+                }
+                for doc_hit in doc_hits
+            ],
+            "excerpt_refs": [
+                {
+                    "doc_id": hit.doc_id,
+                    "excerpt_id": hit.excerpt_id,
+                    "excerpt_fingerprint": hit.provenance.get("excerpt_fingerprint"),
+                    "excerpt_text_hash": hit.provenance.get("excerpt_text_hash") or hit.provenance.get("hash"),
+                    "span": copy.deepcopy(hit.provenance.get("span")),
+                    "source_hash": hit.provenance.get("source_hash"),
+                    "source_strategy": hit.source_strategy,
+                    "retrieval_backend": hit.provenance.get("retrieval_backend"),
+                    "retrieval_mode": hit.provenance.get("retrieval_mode"),
+                }
+                for hit in hits
+                if hit.excerpt_id is not None
+            ],
         }
 
     @staticmethod
