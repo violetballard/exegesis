@@ -61,8 +61,7 @@ def _minimal_local_config_text(root: str, source_text: str | None) -> str:
         }
 
     lines: list[str] = [
-        'model = "gpt-oss-20b"',
-        'model_reasoning_effort = "medium"',
+        'model = "gpt-oss-120b"',
         'oss_provider = "lmstudio"',
         "",
         f'[projects.{_toml_literal(repo_root)}]',

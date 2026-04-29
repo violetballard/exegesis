@@ -40,7 +40,7 @@ LOCAL_CLI_WORKER = Path(__file__).resolve().with_name("local_cli_worker.py")
 LOCAL_JOB_ROOT = ROUTER_ROOT / "local_jobs"
 
 VERDICT_INLINE_RE = re.compile(
-    r"^\s*(?:\*\*)?(?:\d+\.\s*)?(?:\*\*)?Verdict(?:\*\*)?:?\s*`?(APPROVED|CHANGES_REQUESTED|CHANGES REQUESTED)`?\s*$",
+    r"^\s*(?:#{1,6}\s*)?(?:\*\*)?(?:\d+\.\s*)?(?:\*\*)?Verdict(?:\*\*)?:?\s*`?(APPROVED|CHANGES_REQUESTED|CHANGES REQUESTED)`?\s*$",
     re.IGNORECASE,
 )
 VERDICT_ONLY_RE = re.compile(
@@ -1451,23 +1451,31 @@ def run_fixer(
             prof.codex_cmd,
             "exec",
             *prof.codex_args,
+            *(["--ignore-user-config"] if not runtime_local else []),
             *(["--skip-git-repo-check"] if runtime_local else []),
             *(["-m", prof.model] if prof.model else []),
             *prof.model_args,
             *(["--add-dir", str(prompt_path.parent.resolve())] if runtime_local else []),
             "-s",
             "workspace-write",
-            _prompt_file_bootstrap(prompt_path),
+            "-",
         ]
         proc = subprocess.Popen(
             cmd,
             cwd=(wt or repo_cwd),
             stdout=lf,
             stderr=subprocess.STDOUT,
-            stdin=subprocess.DEVNULL,
+            stdin=subprocess.PIPE,
             text=True,
             env=env,
+            start_new_session=True,
         )
+        if proc.stdin is not None:
+            try:
+                proc.stdin.write(_prompt_file_bootstrap(prompt_path))
+                proc.stdin.close()
+            except BrokenPipeError:
+                pass
     fallback = state.get("fixer_fallback_jobs") or {}
     fallback[lane] = {
         "log": str(logp),
@@ -1751,6 +1759,7 @@ def process_once(
                 reviewer_text = _run_cli_reviewer(
                     cfg, repo_cwd, pkt, "reviewer quota/rate-limit response", lane=lane
                 ) or _offline_reviewer_fallback(pkt, "reviewer quota/rate-limit response")
+            reviewer_text = _extract_final_verdict_packet(reviewer_text) or reviewer_text
             verdict = parse_verdict(reviewer_text)
 
             if verdict == "APPROVED":
@@ -1865,10 +1874,18 @@ def process_reviewer_backlog(
         notes = sorted((lane_dir / "inbox/reviewer").glob("*.md"), key=lambda p: p.stat().st_mtime)
         if not notes:
             continue
+        newest_note = notes[-1]
+        try:
+            note_text = newest_note.read_text(errors="ignore")
+        except Exception:
+            note_text = ""
+        if parse_verdict(note_text) == "APPROVED":
+            # Approved reviewer notes belong to the integrator path; they are
+            # not feature-fixer work and should not consume the one-kick budget.
+            continue
         feature_pkts = sorted((lane_dir / "inbox/feature").glob("*.md"), key=lambda p: p.stat().st_mtime)
         if feature_pkts:
             newest_feature = feature_pkts[-1]
-            newest_note = notes[-1]
             f_sha = _packet_sha(newest_feature.name)
             r_sha = _packet_sha(newest_note.name)
             stale_reemit = bool(
@@ -1905,7 +1922,6 @@ def process_reviewer_backlog(
                         default_seconds=cfg.fixer_quota_retry_cooldown_seconds,
                     )
                 continue
-        newest_note = notes[-1]
         branch = str((cfg.lanes.get(lane, {}) or {}).get("branch") or f"codex/{lane}")
         head_sha = _branch_head_sha(repo_cwd, branch)
         last_submitted_sha = infer_last_submitted_sha(lane_dir)

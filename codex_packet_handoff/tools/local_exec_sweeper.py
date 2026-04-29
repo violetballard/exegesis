@@ -11,7 +11,7 @@ from pathlib import Path
 from typing import Dict, Iterable, List
 
 CODEX_EXEC_RE = re.compile(r"\bcodex\b.*\bexec\b", re.IGNORECASE)
-LOCAL_EXEC_MARKERS = ("--skip-git-repo-check", "workspace-write", "model_provider=lms")
+LOCAL_EXEC_MARKERS = ("--skip-git-repo-check", "workspace-write", "--local-provider", "lmstudio")
 PROMPT_ROOT_SUFFIXES = (
     Path(".codex/feature_runner/prompts"),
     Path(".codex/packet_router/logs"),
@@ -76,6 +76,15 @@ def _is_repo_owned_prompt_path(repo_root: Path, prompt_path: str) -> bool:
     return False
 
 
+def _is_repo_owned_prompt_reference(repo_root: Path, cmd: str) -> bool:
+    if ".prompt." not in cmd:
+        return False
+    for root in _repo_prompt_roots(repo_root):
+        if str(root) in cmd:
+            return True
+    return False
+
+
 def find_repo_owned_local_exec_processes(repo_root: Path) -> Dict[int, Dict[str, str]]:
     try:
         proc = subprocess.run(
@@ -107,7 +116,10 @@ def find_repo_owned_local_exec_processes(repo_root: Path) -> Dict[int, Dict[str,
         if not all(marker in cmd for marker in LOCAL_EXEC_MARKERS):
             continue
         stdin_path = _stdin_path_for_pid(pid)
-        if not _is_repo_owned_prompt_path(repo_root, stdin_path):
+        if not (
+            _is_repo_owned_prompt_path(repo_root, stdin_path)
+            or _is_repo_owned_prompt_reference(repo_root, cmd)
+        ):
             continue
         owned[pid] = {"command": cmd, "stdin_path": stdin_path}
     return owned

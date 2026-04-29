@@ -276,7 +276,7 @@ def _spawn_direct_exec(
         min_age_seconds=FEATURE_LOG_MIN_AGE_SECONDS,
     )
     cmd_args = [str(x) for x in list(profile_cfg["cmd_args"])]
-    cmd: List[str] = [str(profile_cfg["cmd"]), *cmd_args, "exec"]
+    cmd: List[str] = [str(profile_cfg["cmd"]), "exec", *cmd_args]
     local_mode = str(profile_cfg.get("mode") or "") == "local_fallback"
     if local_mode:
         cmd.append("--skip-git-repo-check")
@@ -284,18 +284,27 @@ def _spawn_direct_exec(
     if model and "-m" not in cmd_args and "--model" not in cmd_args:
         cmd.extend(["-m", model])
     cmd.extend([str(x) for x in list(profile_cfg.get("model_args") or [])])
-    cmd.extend(["-s", "workspace-write", "-"])
     env = isolated_codex_env(str(REPO_ROOT)) if local_mode else None
     resolved_prompt_path = prompt_path or log_path.with_suffix(".prompt.md")
     resolved_prompt_path.parent.mkdir(parents=True, exist_ok=True)
     resolved_prompt_path.write_text(prompt)
-    with log_path.open("a") as lf, resolved_prompt_path.open("r", encoding="utf-8") as pf:
+    bootstrap = (
+        "Do not answer in prose first. Use the shell tool immediately.\n"
+        f"Your first shell command must be exactly: cat {resolved_prompt_path.resolve()}\n"
+        "After reading that file, treat its contents as the real user prompt and follow it exactly.\n"
+        "Begin real work immediately after reading the file.\n"
+        "If the file is missing, report that exact blocker and stop."
+    )
+    if local_mode:
+        cmd.extend(["--add-dir", str(resolved_prompt_path.parent.resolve())])
+    cmd.extend(["-s", "workspace-write", bootstrap])
+    with log_path.open("a") as lf:
         proc = subprocess.Popen(
             cmd,
             cwd=workdir,
             stdout=lf,
             stderr=subprocess.STDOUT,
-            stdin=pf,
+            stdin=subprocess.DEVNULL,
             text=True,
             env=env,
         )

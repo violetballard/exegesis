@@ -448,7 +448,9 @@ def _reconcile_router_state(coordinator_state: Optional[Dict[str, object]] = Non
                 stale.append(str(job_name))
                 continue
             lane = str(job.get("lane") or str(job_name).split(":", 1)[0] or "")
-            packet_name = str(job.get("packet_name") or str(job_name).split(":", 1)[-1] or "")
+            packet_name = str(job.get("packet_name") or "")
+            if not packet_name and ":" in str(job_name):
+                packet_name = str(job_name).split(":", 1)[-1]
             if packet_name and lane and not _packet_exists(lane, packet_name):
                 jobs.pop(job_name, None)
                 stale.append(str(job_name))
@@ -473,6 +475,11 @@ def _reconcile_router_state(coordinator_state: Optional[Dict[str, object]] = Non
     for key in ROUTER_RETRY_STATE_KEYS:
         retry_map = state.get(key)
         if not isinstance(retry_map, dict):
+            continue
+        if key == "reviewer_fixer_retry_ts":
+            # This map stores the last fixer kick time, not a future retry deadline.
+            # Expiring it immediately lets the daemon kick the same lane every cycle,
+            # starving later lanes in the reviewer backlog.
             continue
         stale: List[str] = []
         for retry_key, retry_at_raw in list(retry_map.items()):

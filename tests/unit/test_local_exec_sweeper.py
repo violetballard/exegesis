@@ -19,8 +19,8 @@ class LocalExecSweeperTests(unittest.TestCase):
             foreign_prompt.write_text("prompt", encoding="utf-8")
             ps_output = "\n".join(
                 [
-                    "101 /Applications/Codex.app/Contents/Resources/codex -c model_provider=lms exec --skip-git-repo-check -m gpt-oss-120b -s workspace-write -",
-                    "202 /Applications/Codex.app/Contents/Resources/codex -c model_provider=lms exec --skip-git-repo-check -m gpt-oss-20b -s workspace-write -",
+                    f"101 /Applications/Codex.app/Contents/Resources/codex --oss --local-provider lmstudio exec --skip-git-repo-check -m gpt-oss-120b -s workspace-write Read and follow the exact instructions in {owned_prompt}. Treat that file as the full user prompt and obey it completely.",
+                    "202 /Applications/Codex.app/Contents/Resources/codex --oss --local-provider lmstudio exec --skip-git-repo-check -m gpt-oss-20b -s workspace-write -",
                     "303 /Applications/Codex.app/Contents/Resources/codex exec hello",
                 ]
             )

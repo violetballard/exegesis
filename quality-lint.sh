@@ -17,6 +17,19 @@ list_repo_files() {
   done
 }
 
+lint_shell_syntax() {
+  file=$1
+  first_line=$(sed -n '1p' "$file")
+  case "$first_line" in
+    '#!'*bash*)
+      bash -n "$file"
+      ;;
+    *)
+      sh -n "$file"
+      ;;
+  esac
+}
+
 echo "[lint] shell syntax"
 tmp_files=$(mktemp)
 trap 'rm -f "$tmp_files"' EXIT INT TERM
@@ -24,7 +37,7 @@ list_repo_files > "$tmp_files"
 
 while IFS= read -r -d '' file; do
   case "$file" in
-    *.sh) sh -n "$file" ;;
+    *.sh) lint_shell_syntax "$file" ;;
   esac
 done < "$tmp_files"
 
