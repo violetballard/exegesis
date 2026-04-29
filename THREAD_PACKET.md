@@ -2,12 +2,13 @@
 
 - Lane: `feat-commands`
 - Branch: `codex/feat-commands`
-- Review target: current branch tip after fixer prompt `20260429T075238Z`
+- Review target: current branch tip after fixer prompt `20260429T080059Z`
 - Review basis: all branch-tip changes relative to merge base `06cdebc2d5d53533b73f264a4bbf5a4b4daacb27`
 - Review range command: `git diff 06cdebc2d5d53533b73f264a4bbf5a4b4daacb27..HEAD`
-- Current fixer pass: focused accepted parser-token regression coverage plus handoff correction in `THREAD.md` and `THREAD_PACKET.md`
+- Current fixer pass: handoff correction for the actual branch-tip review basis, commit classification, and demo-path accounting in `THREAD.md` and `THREAD_PACKET.md`
 - Prior implementation anchor referenced by earlier packets: `f8d860ed9f6299f0169c4f21321ac5f37c949fd3`
 - Important correction: `b9e1076e1fafac66a69b8916154db6e85c2bf7c4` is implementation/test-plus-metadata scope because it changes `src/qual/commands/catalog.py`, `tests/unit/test_commands_catalog.py`, `THREAD.md`, and `THREAD_PACKET.md`. It is not metadata-only.
+- Important correction: `396d1eeb3415d370306f367a704fe38431ee434c` is test-plus-metadata scope because it changes `tests/unit/test_commands_catalog.py`, `THREAD.md`, and `THREAD_PACKET.md`. It is not metadata-only.
 
 ## Scope Completed
 
@@ -41,7 +42,7 @@ Changed files against merge base `06cdebc2d5d53533b73f264a4bbf5a4b4daacb27`:
 - `tests/unit/test_commands_catalog.py`
 - `tests/unit/test_diff_preview.py`
 
-Size accounting against merge base after the final `20260429T075238Z` fixer pass:
+Size accounting against merge base after the final `20260429T080059Z` fixer pass:
 
 - `9 files changed, 3968 insertions(+), 42 deletions(-)`
 
