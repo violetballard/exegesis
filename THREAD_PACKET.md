@@ -84,5 +84,5 @@ Fresh fixer pass on `2026-04-29` for the actual branch-tip merge candidate, reru
 ## Risks / Blockers
 
 - No implementation blockers are known.
-- `.codex/kickoff_packets/feat-retrieval-fts.md` and `.codex/lane_meta/feat-retrieval-fts.json` remain stale because this sandbox rejects writes under `.codex` with `Operation not permitted`. This `THREAD_PACKET.md` is the regenerated handoff packet for the actual branch-tip merge candidate.
+- `.codex/kickoff_packets/feat-retrieval-fts.md` and `.codex/lane_meta/feat-retrieval-fts.json` remain stale because `apply_patch` rejects edits under `.codex` as outside the editable project. This `THREAD_PACKET.md` is the regenerated handoff packet for the actual branch-tip merge candidate.
 - Re-review should use this `THREAD_PACKET.md`, `378cf9a74a3658058079a32f186fcd254c4a4034..HEAD` as the reviewed merge-candidate range, and the final HEAD SHA reported by this fixer as the branch tip.
