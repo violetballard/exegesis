@@ -331,6 +331,19 @@ class CommandCatalogTests(unittest.TestCase):
             with self.assertRaisesRegex(ValueError, "Command CLI parser surface is inconsistent"):
                 command_catalog.command_cli_contract()
 
+    def test_command_cli_contract_rejects_lookup_mapping_drift_with_same_name_set(self) -> None:
+        self._clear_cli_caches()
+        drifted_lookup_table = (
+            ("bootstrap", "bootstrap"),
+            ("diff-preview", "diff-preview"),
+            ("diff", "context-basket"),
+            ("context-basket", "diff-preview"),
+            ("terminal", "terminal"),
+        )
+        with patch.object(command_catalog, "command_cli_lookup_table", return_value=drifted_lookup_table):
+            with self.assertRaisesRegex(ValueError, "Command CLI parser surface is inconsistent"):
+                command_catalog.command_cli_contract()
+
     def test_command_cli_contract_rejects_lookup_table_added_same_canonical_alias_drift(self) -> None:
         self._clear_cli_caches()
         drifted_lookup_table = (

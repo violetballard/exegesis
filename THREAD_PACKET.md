@@ -2,14 +2,14 @@
 
 - Lane: `feat-commands`
 - Branch: `codex/feat-commands`
-- Commit: branch tip after fixer prompt `20260429T035558Z`
+- Commit: branch tip after fixer prompt `20260429T035831Z`
 - Review basis: branch tip after this fixer commit, not `f8d860ed9f6299f0169c4f21321ac5f37c949fd3` alone.
 - Prior implementation anchor: `f8d860ed9f6299f0169c4f21321ac5f37c949fd3`
 - Packet refresh role: reviewer-fix implementation and handoff correction
 
 ## Packet Traceability Note
 
-- Fixer prompt `20260429T035558Z` requested reviewer-required fixes for exact parser-token validation, same-canonical drift coverage, complete metadata file accounting, and gate reruns.
+- Fixer prompt `20260429T035831Z` requested reviewer-required fixes for exact parser-token validation, same-canonical drift coverage, canonical demo-path handoff mapping, and gate reruns.
 - The reviewable branch-tip implementation is narrowed to the command-catalog slice:
   - `src/qual/commands/catalog.py`
   - `tests/unit/test_commands_catalog.py`
@@ -18,15 +18,14 @@
 
 ## Branch-Tip Review Basis
 
-- Review target: branch tip after fixer prompt `20260429T035558Z`.
+- Review target: branch tip after fixer prompt `20260429T035831Z`.
 - Prior implementation anchor: `f8d860ed9f6299f0169c4f21321ac5f37c949fd3`.
 - Review range: `f8d860ed9f6299f0169c4f21321ac5f37c949fd3..HEAD`.
-- Matching `git diff --stat` scope:
-  - `THREAD.md` - 50 changed lines
-  - `THREAD_PACKET.md` - 199 changed lines
-  - `src/qual/commands/catalog.py` - 135 changed lines
-  - `tests/unit/test_commands_catalog.py` - 340 changed lines
-  - Total: 4 files changed, 655 insertions(+), 69 deletions(-)
+- Matching changed-file scope:
+  - `THREAD.md`
+  - `THREAD_PACKET.md`
+  - `src/qual/commands/catalog.py`
+  - `tests/unit/test_commands_catalog.py`
 - Branch-tip implementation files:
   - `src/qual/commands/catalog.py`
   - `tests/unit/test_commands_catalog.py`
@@ -76,7 +75,7 @@
 ## Scope Completed
 
 - Strengthened `command_cli_contract()` so it validates the full parser token surface, lookup table, grouped canonical surface, and canonical name order against the declared canonical CLI command surface.
-- Added regression coverage for same-canonical drift, unexpected extra accepted aliases, removed expected tokens, token replacement, lookup-table substitution, and declared-surface drift.
+- Added regression coverage for same-canonical drift, unexpected extra accepted aliases, removed expected tokens, token replacement, lookup-table substitution including same-name-set mapping drift, and declared-surface drift.
 - Narrowed the branch-tip implementation basis by restoring unrelated `scripts/scope-check.sh` drift to baseline.
 - Regenerated `THREAD.md` and `THREAD_PACKET.md` so the review packet names the actual branch-tip basis and required-fix satisfaction.
 
@@ -93,7 +92,7 @@
 ## Tasks Completed
 
 1. Hardened the CLI contract against full parser-surface drift in `src/qual/commands/catalog.py`.
-2. Added focused tests in `tests/unit/test_commands_catalog.py` for same-canonical drift, missing expected tokens, extra accepted aliases, and lookup-table/declared-surface drift.
+2. Added focused tests in `tests/unit/test_commands_catalog.py` for same-canonical drift, missing expected tokens, extra accepted aliases, lookup-table substitutions that preserve the canonical-name set, and declared-surface drift.
 3. Narrowed the branch-tip review basis by restoring unrelated `scripts/scope-check.sh` drift to baseline and documenting only the remaining command-catalog implementation files.
 4. Regenerated the handoff packet with canonical demo-path mapping, complete metadata-only file accounting, and reran all required gates.
 
@@ -132,19 +131,19 @@
 - Metadata-only handoff edits: `THREAD.md`, `THREAD_PACKET.md`.
 - Shared/integrator-locked edits: `YES` only because the approved shared-test exception touches `tests/unit/test_commands_catalog.py`; no integrator-locked files are edited.
 
-## Required Fixes Addressed From Fixer Prompt `20260429T035558Z`
+## Required Fixes Addressed From Fixer Prompt `20260429T035831Z`
 
 1. Validated the full accepted parser token surface against the canonical CLI command surface instead of only checking deduplicated canonical names.
-2. Added focused tests for same-canonical parser drift, including extra aliases, removed expected tokens, token replacement, lookup-table drift, and declared-surface drift.
-3. Regenerated the handoff packet so the files changed list includes the implementation files plus both metadata files: `THREAD.md` and `THREAD_PACKET.md`.
-4. Reran all required gates after the parser-surface, test, and packet-accounting fixes.
+2. Added focused tests for same-canonical parser drift, including removed `diff`, added `open`, `diff_preview` replacement, lookup-table mapping drift that preserves the canonical-name set, and declared-surface drift.
+3. Regenerated the handoff packet with explicit canonical demo-path mapping for each completed task and a direct statement of which demo-path step is more real.
+4. Reran all required gates after the parser-surface, test, and handoff-packet fixes.
 
 ## Commands Run + Outcomes
 
 - `make scope-check`: PASS for branch `codex/feat-commands`.
 - `./quality-format.sh --check`: PASS.
 - `./quality-lint.sh`: PASS.
-- `./quality-test.sh`: PASS; ran smoke tests and 152 unit tests, including full command-catalog parser-surface drift coverage.
+- `./quality-test.sh`: PASS; ran smoke tests and 153 unit tests, including full command-catalog parser-surface drift coverage.
 - `./typecheck-test.sh`: PASS; compiled Python sources in `src/`.
 - `make ci`: PASS; ran scope-check, format, lint, compileall/typecheck, and full quality tests.
 
