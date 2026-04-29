@@ -359,3 +359,11 @@ Canonical handoff contract lives in `THREAD_PACKET.md`.
 3. Existing focused coverage includes the reviewer-required parser drift classes: same-canonical alias substitution, extra accepted alias, missing accepted alias, and parser-token order drift.
 4. `THREAD_PACKET.md` records refreshed changed-file, net LOC, task-count, risk-level, ownership-exception, and gate outcomes for the selected branch-tip review target.
 5. Required gates were rerun after this refresh and recorded in `THREAD_PACKET.md`.
+
+## Fixer Prompt `20260429T072617Z` Fix Satisfaction
+
+1. The handoff target is refreshed for prompt `20260429T072617Z`; review should use the current branch tip after this fixer commit, not `f8d860ed9f6299f0169c4f21321ac5f37c949fd3` alone.
+2. `THREAD_PACKET.md` states that later commits touching command implementation or tests are implementation/test scope, not metadata-only.
+3. `command_cli_contract()` continues to validate the exact parser-token surface before returning, including accepted token order, lookup-table order, grouped canonical surface, declared CLI surface, live parser projection, and canonical command order.
+4. Existing focused coverage includes the reviewer-required parser drift classes: `open` replacing `bootstrap`, extra accepted aliases, removed accepted aliases, and parser-token order drift.
+5. `THREAD_PACKET.md` records per-task canonical demo-path mapping, ownership categories, integrator-locked status, changed-file accounting, net LOC accounting, and latest gate outcomes for the selected branch-tip review target.

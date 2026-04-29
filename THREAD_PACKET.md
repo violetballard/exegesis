@@ -890,3 +890,41 @@
 - Metadata-only handoff files: `THREAD.md`, `THREAD_PACKET.md`.
 - Other branch diff file: `scripts/scope-check.sh`.
 - Risks/blockers: none open; merge risk remains high for CLI contract review.
+
+## Required Fixes Addressed From Fixer Prompt `20260429T072617Z`
+
+1. Regenerated this handoff with one review target only: the current branch tip after the `20260429T072617Z` fixer commit. The review target is not `f8d860ed9f6299f0169c4f21321ac5f37c949fd3` alone, and later implementation/test commits are not metadata-only.
+2. Selected the branch tip because it contains the parser-surface fixes. The branch-tip `command_cli_contract()` rejects exact parser-surface drift before returning by validating accepted parser-token order, token-to-canonical lookup order, grouped canonical surface, declared CLI surface, live parser projection, and canonical command order.
+3. Confirmed focused regression coverage includes the reviewer-required same-canonical parser drift examples: `open` replacing `bootstrap`, extra accepted `open` alias, removed accepted `diff` token, and parser-token order drift.
+4. Rewrote the completed task accounting for the selected branch-tip target so each task names the canonical demo-path step it advances:
+   - Task 1: project open - `bootstrap` remains the only accepted parser token for the `project-open` canonical demo-path step.
+   - Task 2: patch review - `diff-preview` / `diff` remain the only accepted parser tokens for the `patch-review` canonical demo-path step.
+   - Task 3: retrieval/basket - `context-basket` remains the accepted parser token for the `retrieval` canonical demo-path step.
+   - Task 4: export handoff - `terminal` remains the accepted parser token for the `export-handoff` canonical demo-path step.
+5. Corrected ownership/scope accounting for the branch-tip target:
+   - Lane-owned files: `src/qual/commands/__init__.py`, `src/qual/commands/canonical.py`, `src/qual/commands/catalog.py`, `src/qual/commands/diff_preview.py`.
+   - Approved shared-test edits: `tests/unit/test_commands_catalog.py`, `tests/unit/test_diff_preview.py`.
+   - Metadata-only handoff files: `THREAD.md`, `THREAD_PACKET.md`.
+   - Other non-owned support file in branch diff: `scripts/scope-check.sh`.
+   - Integrator-locked files edited: none.
+6. Recomputed branch-tip accounting against merge base `06cdebc2d5d53533b73f264a4bbf5a4b4daacb27`: 9 changed files, 5081 insertions, 42 deletions.
+7. Required gates were rerun after this `20260429T072617Z` fixer pass and recorded below.
+
+## Latest Commands Run + Outcomes For `20260429T072617Z`
+
+- `python -m unittest tests.unit.test_commands_catalog.CommandCatalogTests.test_command_cli_contract_rejects_open_replacing_bootstrap_from_review_packet tests.unit.test_commands_catalog.CommandCatalogTests.test_command_cli_contract_rejects_070743_exact_parser_surface_drift`: PASS; ran 2 focused parser-surface drift tests.
+- `make scope-check`: PASS for branch `codex/feat-commands`.
+- `./quality-format.sh --check`: PASS.
+- `./quality-lint.sh`: PASS.
+- `./quality-test.sh`: PASS; ran smoke tests and 178 unit tests, including the command parser-surface drift regressions.
+- `./typecheck-test.sh`: PASS; compiled Python sources in `src/`.
+- `make ci`: PASS; ran scope-check, format, lint, compileall/typecheck, and full quality tests.
+
+## Latest Review Target For `20260429T072617Z`
+
+- Branch: `codex/feat-commands`
+- Review target: current branch tip after the `20260429T072617Z` fixer commit.
+- Review basis: all branch-tip changes relative to merge base `06cdebc2d5d53533b73f264a4bbf5a4b4daacb27`.
+- Files changed: `THREAD.md`, `THREAD_PACKET.md`, `scripts/scope-check.sh`, `src/qual/commands/__init__.py`, `src/qual/commands/canonical.py`, `src/qual/commands/catalog.py`, `src/qual/commands/diff_preview.py`, `tests/unit/test_commands_catalog.py`, and `tests/unit/test_diff_preview.py`.
+- Size accounting: 9 files changed, 5081 insertions, 42 deletions after this metadata refresh.
+- Risks/blockers: none open; merge risk remains high because this review target covers the CLI command contract and approved shared command tests.
