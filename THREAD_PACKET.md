@@ -5,19 +5,20 @@
 - Review basis: actual `codex/feat-commands` branch tip after the `20260429T025923Z` reviewer-fix pass.
 - Previous implementation anchor: `f8d860ed9f6299f0169c4f21321ac5f37c949fd3`
 - Reviewer packet addressed: `20260429T025923Z`
-- Final verifier tip: reviewer-fix commit that restores the scope policy out of the effective diff, restamps this handoff metadata, reruns required gates, and uses the final branch tip as the only review basis.
+- Final verifier tip: reviewer-fix commit that removes prior scope-policy additions from the final branch state, restamps this handoff metadata, reruns required gates, and uses the final branch tip as the only review basis.
 
 ## Packet Traceability Note
 
 - Review the actual branch tip, not the narrow `f8d860ed9f6299f0169c4f21321ac5f37c949fd3` slice.
 - Commits after `f8d860ed9f6299f0169c4f21321ac5f37c949fd3` are implementation-bearing, test-bearing, and metadata-bearing; they are included in this review basis.
-- The effective changed-file list from `f8d860ed9f6299f0169c4f21321ac5f37c949fd3` to the final branch tip is the file list in this packet. `scripts/scope-check.sh` is restored to the anchor state and is not part of the effective review diff.
+- The effective changed-file list from `f8d860ed9f6299f0169c4f21321ac5f37c949fd3` to the final branch tip is the file list in this packet. `scripts/scope-check.sh` is included because this fixer pass removes the prior gate-policy additions from the final branch state.
 - The branch-tip review basis includes command-catalog contract validation, focused command-catalog tests, and this handoff metadata.
 
 ## Effective Review Diff From Previous Anchor
 
 - `THREAD.md`
 - `THREAD_PACKET.md`
+- `scripts/scope-check.sh`
 - `src/qual/commands/catalog.py`
 - `tests/unit/test_commands_catalog.py`
 
@@ -25,7 +26,7 @@
 
 - Implementation-bearing effective files after `f8d860ed9f6299f0169c4f21321ac5f37c949fd3`: `src/qual/commands/catalog.py`, `tests/unit/test_commands_catalog.py`.
 - Metadata-bearing effective files after `f8d860ed9f6299f0169c4f21321ac5f37c949fd3`: `THREAD.md`, `THREAD_PACKET.md`.
-- Removed from effective review diff for this pass: `scripts/scope-check.sh`; it has no remaining delta from the previous implementation anchor.
+- Scope-policy cleanup file after `f8d860ed9f6299f0169c4f21321ac5f37c949fd3`: `scripts/scope-check.sh`; the final branch state removes the prior gate-policy additions instead of relying on them for this lane.
 - Branch-tip commit list is intentionally reviewed through the effective diff above because the post-anchor history contains many repeated metadata restamps. The review basis is still the actual branch tip, and the changed-file list is complete for that basis.
 
 ## Current Program Focus
@@ -67,7 +68,7 @@
 - Preserved canonical command ordering by keeping `CommandCliContract.canonical_names` aligned with `command_names()`.
 - Rejected parser/catalog drift across canonical tokens, grouped parser surface, declared surface, lookup-table shape, lookup-table order, and canonical command order.
 - Added focused regression coverage in `tests/unit/test_commands_catalog.py` for same-canonical parser drift, including self-consistent parser replacements for `bootstrap` -> `open` and `diff-preview` -> `diff`, plus `diff` -> `diff_preview`.
-- Restored `scripts/scope-check.sh` to the previous implementation anchor state so no gate-policy edit remains in the reviewed diff.
+- Removed prior `scripts/scope-check.sh` gate-policy additions from the final branch state so the command lane no longer depends on a scope-policy expansion.
 - Kept review accounting on the actual branch tip and separated approved shared-by-approval test edits from integrator-locked edits.
 
 ## Canonical Demo-Path Step Advanced
@@ -98,13 +99,17 @@
 - `THREAD.md`
 - `THREAD_PACKET.md`
 
+### Scope-Policy Cleanup File
+
+- `scripts/scope-check.sh`
+
 ## Ownership Accounting
 
 - Lane-owned implementation edits: `src/qual/commands/**`.
 - Approved shared-by-approval test edits: `tests/unit/test_commands_catalog.py`.
 - Shared-by-approval edits: YES.
 - Integrator-locked edits: NO.
-- Gate-policy edits: NO.
+- Gate-policy cleanup edits: YES, limited to removing prior `scripts/scope-check.sh` additions from the final branch state; `scripts/scope-check.sh` is not listed as integrator-locked in `THREAD_OWNERSHIP.md`.
 
 ## Required Fixes Addressed From Reviewer Packet `20260429T025119Z`
 
@@ -118,8 +123,8 @@
 ## Required Fixes Addressed From Reviewer Packet `20260429T025923Z`
 
 1. One review basis: this packet uses the actual final `codex/feat-commands` branch tip.
-2. Complete changed-file accounting: the effective review diff from `f8d860ed9f6299f0169c4f21321ac5f37c949fd3` contains `THREAD.md`, `THREAD_PACKET.md`, `src/qual/commands/catalog.py`, and `tests/unit/test_commands_catalog.py`.
-3. Scope policy removal: `scripts/scope-check.sh` is restored to the previous implementation anchor state, so there is no remaining gate-policy edit to retain or justify.
+2. Complete changed-file accounting: the effective review diff from `f8d860ed9f6299f0169c4f21321ac5f37c949fd3` contains `THREAD.md`, `THREAD_PACKET.md`, `scripts/scope-check.sh`, `src/qual/commands/catalog.py`, and `tests/unit/test_commands_catalog.py`.
+3. Scope policy removal: `scripts/scope-check.sh` is listed as a scope-policy cleanup file because this fixer pass removes prior gate-policy additions from the final branch state.
 4. Demo-path mapping: every completed task names the canonical demo-path command steps it protects or advances.
 5. Required gates: final results are recorded below after rerun on the same final branch-tip review basis named in this packet.
 
