@@ -314,24 +314,15 @@ MVP_COMMAND_FLOW_STEPS: tuple[str, ...] = DEMO_COMMAND_FLOW_STEPS
 
 
 def _actual_cli_parser_surface() -> tuple[tuple[str, str], ...]:
-    from src.qual.cli import _build_parser, _command_subparser_action
+    from src.qual.cli import command_parser_lookup_table
 
-    parser = _build_parser()
-    subparser_action = _command_subparser_action(parser)
-    lookup_table: list[tuple[str, str]] = []
-    for token in subparser_action.choices:
-        spec = command_spec_for(COMMAND_SPECS, token)
-        if spec is None:
-            raise ValueError(f"Unknown CLI command entrypoint: {token}")
-        lookup_table.append((token, spec.name))
-    return tuple(lookup_table)
+    return command_parser_lookup_table()
 
 
 def _actual_cli_parser_tokens() -> tuple[str, ...]:
-    from src.qual.cli import _build_parser, _command_subparser_action
+    from src.qual.cli import command_parser_tokens
 
-    parser = _build_parser()
-    return tuple(_command_subparser_action(parser).choices)
+    return command_parser_tokens()
 
 
 def validate_command_catalog(specs: tuple[CommandSpec, ...] = COMMAND_SPECS) -> None:
