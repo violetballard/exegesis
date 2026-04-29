@@ -6,7 +6,7 @@ Canonical handoff contract lives in `THREAD_PACKET.md`.
 
 - Lane: `feat-commands`
 - Branch: `codex/feat-commands`
-- Review basis: actual `codex/feat-commands` branch tip for the `20260429T022017Z` reviewer-fix pass.
+- Review basis: actual `codex/feat-commands` branch tip for the `20260429T022329Z` reviewer-fix pass.
 - Previous implementation anchor: `f8d860ed9f6299f0169c4f21321ac5f37c949fd3`
 - Scope: command-catalog contract hardening for the current engine-first MVP focus without starting `feat-console`.
 - Roadmap alignment: Milestone 3 CLI compatibility for the engine-first workflow loop, and `feat-commands` as the command-surface compatibility lane.
@@ -128,4 +128,13 @@ Canonical handoff contract lives in `THREAD_PACKET.md`.
 3. `THREAD_PACKET.md` is regenerated against the actual branch tip and does not classify post-`f8d860ed9f6299f0169c4f21321ac5f37c949fd3` command/test commits as metadata-only.
 4. Ownership notes separate approved shared-by-approval test edits from integrator-locked edits; integrator-locked edits remain `NO`.
 5. The canonical demo-path mapping states that this keeps `open project/document`, `retrieve relevant material`, `promote/gather context`, and `preview/apply/reject patch` deterministic and drift-checked.
+6. Required gates were rerun for this fixer pass and passed: `make scope-check`, `./quality-format.sh --check`, `./quality-lint.sh`, `./quality-test.sh`, `./typecheck-test.sh`, and `make ci`.
+
+## Reviewer Packet `20260429T022329Z` Fix Satisfaction
+
+1. The review basis remains singular and true: review the actual `codex/feat-commands` branch tip for this fixer pass, including post-`f8d860ed9f6299f0169c4f21321ac5f37c949fd3` implementation and test commits.
+2. `command_cli_contract()` validates the full parser-visible CLI token surface before returning the contract, not just de-duplicated canonical names.
+3. Focused tests now include a same-canonical alias-substitution surface where canonical names still match, proving `bootstrap` -> `open` drift is rejected even when the canonical-name tuple is unchanged; existing tests cover token addition, token removal, and token reordering.
+4. The handoff packet maps each completed task to the protected demo-path steps: `open project/document`, `retrieve relevant material`, `promote/gather context`, and `preview/apply/reject patch`.
+5. Ownership notes continue to separate approved shared-by-approval test edits from integrator-locked edits; integrator-locked edits remain `NO`.
 6. Required gates were rerun for this fixer pass and passed: `make scope-check`, `./quality-format.sh --check`, `./quality-lint.sh`, `./quality-test.sh`, `./typecheck-test.sh`, and `make ci`.
