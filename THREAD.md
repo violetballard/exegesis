@@ -6,14 +6,15 @@ Canonical handoff contract lives in `THREAD_PACKET.md`.
 
 - Lane: `feat-commands`
 - Branch: `codex/feat-commands`
-- Review target: actual branch tip after the `20260429T094042Z` fixer pass
+- Review target: actual branch tip after the `20260429T094519Z` fixer pass
 - Review basis: `a6cf0fd59763be784dae53d1cf707938ef20c385..HEAD` after this fixer commit
 - Scope: command CLI contract hardening plus MVP smoke-contract public exports for the current Engine-first MVP focus without starting `feat-console`
-- Current fixer pass: regenerate traceability against the actual branch tip, keep `4eb2b622`, `3304c2871`, and `a3c3774` code/test work in scope, identify focused parser-drift and public export coverage, add actual `add_parser()` token-drift regression coverage, and rerun required gates.
+- Current fixer pass: prove the command contract rejects live argparse token drift, explicitly map the slice to CLI fallback command execution across the canonical demo path, and rerun required gates.
 
-## Fixer Prompt `20260429T094042Z` Fix Satisfaction
+## Fixer Prompt `20260429T094519Z` Fix Satisfaction
 
-1. `THREAD_PACKET.md` now covers the actual current branch-tip review basis and explicitly documents `3304c2871` as implementation work and `a3c3774` as test/handoff work, not metadata-only.
-2. Scope completed, files changed, ownership accounting, roadmap mapping, vision mapping, and canonical demo-path mapping include the smoke-contract API and `src/qual/commands/__init__.py` exports.
-3. `tests/unit/test_commands_catalog.py` includes focused coverage for same-canonical parser/token drift, actual top-level `add_parser()` token drift, and public smoke-contract exports.
-4. Required branch-tip gates are recorded in `THREAD_PACKET.md` after rerun.
+1. `src/qual/cli.py` builds the real argparse top-level parser from `command_cli_lookup_table()` and exposes live parser tokens through `command_parser_tokens()`.
+2. `command_cli_contract()` compares catalog tokens and lookup rows against the live argparse parser surface.
+3. `tests/unit/test_commands_catalog.py` proves same-canonical alias drift, missing/extra parser-token drift, parser-token reorder drift, and actual `add_parser()` rewrite drift are rejected.
+4. `THREAD_PACKET.md` names the canonical demo-path step advanced as CLI fallback command execution across `project-open` -> `retrieval` -> `patch-review` -> `export-handoff`.
+5. Required branch-tip gates are recorded in `THREAD_PACKET.md` after rerun.

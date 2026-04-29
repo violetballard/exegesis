@@ -231,6 +231,8 @@ class CommandCatalogTests(unittest.TestCase):
             with self.subTest(label=label):
                 self._clear_cli_caches()
                 with patch.object(cli, "_build_parser", return_value=build_parser_with_choices(parser_tokens)):
+                    self.assertEqual(cli.command_parser_tokens(), parser_tokens)
+                    self.assertNotEqual(cli.command_parser_tokens(), command_cli_tokens())
                     with self.assertRaisesRegex(ValueError, "Command CLI parser surface is inconsistent"):
                         command_catalog.command_cli_contract()
 
