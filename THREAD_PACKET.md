@@ -3,13 +3,16 @@
 - Branch/lane: `codex/feat-retrieval-fts` / `feat-retrieval-fts`
 - Packet purpose: reviewer-fix re-review packet after correcting branch-tip traceability.
 - Merge candidate: current branch tip after this metadata-only fixer commit.
-- Reviewer base/range: `378cf9a74a3658058079a32f186fcd254c4a4034..67b69048f`
-- Reviewed implementation head before this metadata-only fixer commit: `67b69048f`
+- Decision on reviewed branch tip: `67b69048f63bfd646611f97c92c2c9a9066d0479` is intentional and remains part of this handoff.
+- Branch-tip review range: `378cf9a74a3658058079a32f186fcd254c4a4034..FINAL_HEAD_REPORTED_BY_FIXER`
+- Reviewed implementation range: `378cf9a74a3658058079a32f186fcd254c4a4034..67b69048f63bfd646611f97c92c2c9a9066d0479`
+- Reviewed implementation head before this metadata-only fixer commit: `67b69048f63bfd646611f97c92c2c9a9066d0479`
 - Final proposed merge HEAD after this fixer commit: reported in the fixer response.
+- Packet source of truth: this `THREAD_PACKET.md` supersedes older packet-refresh wording in `.codex` mirrors if those mirrors still describe the earlier narrowed `adfa8cdadd43747ffbcb612e4151e262b13e52ca` slice.
 
 ## Scope Completed
 
-This handoff covers the full branch-tip implementation surface, not only the earlier narrowed `adfa8cdadd43747ffbcb612e4151e262b13e52ca` slice. The final code-bearing head is `67b69048f`, which includes the FTS-only excerpt lookup work, the `a983d89af` retrieval provenance payload backfill, and the later basket-promotion candidate payload/service additions.
+This handoff covers the full branch-tip implementation surface, not only the earlier narrowed `adfa8cdadd43747ffbcb612e4151e262b13e52ca` slice. The final code-bearing head is `67b69048f63bfd646611f97c92c2c9a9066d0479`, which includes the FTS-only excerpt lookup work, the `a983d89af` retrieval provenance payload backfill, and the later basket-promotion candidate payload/service additions.
 
 SQLite FTS remains the MVP-authoritative retrieval path. PageIndex and embeddings remain compatibility-only fallback shims and are not reintroduced as required retrieval paths. Retrieval payloads now carry deterministic provenance, citation, context-bundle, and basket-candidate snapshots so downstream engine and CLI/A2UI flows can retrieve relevant material and promote or gather context into the basket without relying on hidden fallback behavior.
 
@@ -56,7 +59,7 @@ No integrator-owned `README.md` changes are included.
 
 ## Reviewer Required Fixes Addressed
 
-1. The reviewed implementation range now includes every code-bearing commit through the actual branch-tip implementation head `67b69048f`, including `a983d89af`.
+1. The reviewed implementation range now includes every code-bearing commit through the actual branch-tip implementation head `67b69048f63bfd646611f97c92c2c9a9066d0479`, including `a983d89af`.
 2. Files changed are separated into code/test files and packet/metadata files.
 3. Task 2 explicitly covers the `src/qual/engine/retrieval/payload.py` provenance backfill change with roadmap and product vision mapping.
 4. Required gates are rerun after the final code-bearing commit and this metadata-only packet correction; outcomes are reported below.
@@ -76,4 +79,5 @@ Required gates rerun after correcting the handoff packet:
 ## Risks / Blockers
 
 - The branch history contains prior packet-refresh commits with stale descriptions. This packet supersedes those descriptions and should be reviewed against the actual branch-tip implementation range above.
+- The `.codex` packet mirror files are not the source of truth for this re-review if they still describe the earlier narrowed slice; this `THREAD_PACKET.md` is the regenerated branch-tip review packet.
 - No current blockers.
