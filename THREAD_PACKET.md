@@ -27,7 +27,7 @@ The remaining implementation makes excerpt lookup FTS-first and fail-closed for 
 
 - Risk: `HIGH`
 - Task count: `1` of `4`
-- Actual merge-candidate size before final commit: `5 files changed, 264 insertions(+), 114 deletions(-)` for `378cf9a74a3658058079a32f186fcd254c4a4034..working tree`; net LOC `+150`.
+- Actual merge-candidate size before final commit: `5 files changed, 267 insertions(+), 113 deletions(-)` for `378cf9a74a3658058079a32f186fcd254c4a4034..working tree`; net LOC `+154`.
 - Budget result: within high-risk limits (`<=8 files`, `<=300 net LOC`).
 - Owned runtime paths touched: `src/qual/retrieval/**`, `src/qual/engine/retrieval/**`
 - Approved shared-by-approval edit: `tests/unit/test_unified_retrieval.py`
