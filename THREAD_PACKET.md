@@ -33,7 +33,8 @@ This is a high-risk handoff because it changes command surface validation and in
 - Task budget: `4` completed tasks of `4` high-risk tasks allowed.
 - Time budget: original high-risk target `30m`; this fixer pass is documentation and gate-rerun work.
 - High-risk file budget: `6` files changed in the actual review range, within the `<=8` high-risk file limit.
-- High-risk net LOC budget: exceeded in the actual review range. Current branch-tip accounting for `f8d860ed9..HEAD` is `2024 insertions(+), 109 deletions(-)`. This is explicitly disclosed for reviewer/integrator handling instead of being presented as a narrow catalog-only slice.
+- High-risk net LOC budget: exceeded in the actual review range. Current branch-tip accounting for `f8d860ed9..HEAD` is `2034 insertions(+), 109 deletions(-)`. This is explicitly disclosed for reviewer/integrator handling instead of being presented as a narrow catalog-only slice.
+- Size-budget disposition: this handoff is not within the high-risk net LOC budget. Approval depends on explicit reviewer/integrator acceptance of the over-budget branch-tip range, or an integrator-directed split in a follow-up pass.
 - Shared-by-approval file: `src/qual/cli.py`.
 - Integrator-locked file: `src/qual/cli.py`.
 - Approval basis for `src/qual/cli.py`: reviewer-required parser-surface traceability fix for the real CLI parser entrypoint; no routing/provider/config behavior is changed.
@@ -71,33 +72,30 @@ Classification:
 
 ## Roadmap And Vision Mapping
 
-- Roadmap item affected: `ROADMAP.md` Milestone 1, Bootstrap Flow Stabilization, specifically command and diff-preview behavior hardening and manual CLI smoke-flow stability.
-- Roadmap item affected: `ROADMAP.md` Milestone 2, Test Hardening, specifically focused parser-edge and command-level probe coverage.
-- Roadmap item affected: `ROADMAP.md` Milestone 3, Product Readiness, specifically locking user-facing output/command contracts and CLI compatibility.
-- MVP focus alignment: `feat-commands` is listed under the active MVP implementation emphasis. This does not start `feat-console`.
-- Vision capability affected: `PRODUCT_VISION.md` capability 4, Operator-first control surface. The CLI remains a first-class, reliable fallback surface.
-- Vision capability affected: `PRODUCT_VISION.md` capability 5, Agent-to-UI protocol (`A2UI`), by preserving CLI fallback compatibility for structured output/client work.
+- Roadmap item affected: current Milestone 3, Real workflow loop, specifically the command-backed MVP loop from project bootstrap/open through context retrieval, diff preview, terminal continuation, and handoff/export fallback.
+- Active MVP note alignment: `AGENTS.md` says current MVP work should target Engine stability, FTS-first retrieval, and A2UI contracts with CLI fallback. This handoff affects Engine command stability and CLI fallback contracts only; it does not start `feat-console`.
+- Vision capability affected: `PRODUCT_VISION.md` capability 2, Retrieval-first context handling. The command smoke surface keeps retrieval-context commands stable for the FTS-first MVP path.
+- Vision capability affected: `PRODUCT_VISION.md` capability 4, Operator-first control surface. The CLI remains a first-class, reliable fallback surface for development, recovery, and repeatable workflow execution.
+- Vision capability affected: `PRODUCT_VISION.md` capability 5, Agent-to-UI protocol (`A2UI`). The CLI fallback remains aligned with structured output/client work without adding a console implementation.
 - Routing/provider impact: none. This handoff does not change model routing, provider configuration, endpoint policy, provider fallback behavior, or provider compatibility probing.
 - Proposed `README.md` patch text: none.
 
 ## Risks And Blockers
 
 - Risk level: high due to `src/qual/cli.py` shared/integrator-locked parser entrypoint changes and over-budget actual range size.
-- Remaining risk: the actual review range is larger than the high-risk net LOC limit and needs reviewer/integrator acceptance as an over-budget resubmission or follow-up split decision.
+- Remaining risk: the actual review range is larger than the high-risk net LOC limit. This handoff requires explicit reviewer/integrator acceptance as an over-budget branch-tip range, or an integrator-directed split before promotion.
 - Blockers: none known for local validation; approval depends on reviewer/integrator acceptance of the disclosed high-risk scope.
 
 ## Commands Run
 
 Required gates rerun for this branch-tip fixer pass:
 
-- `make scope-check` - failed on disclosed shared/integrator-locked `src/qual/cli.py`; this is expected for the actual branch-tip range without the documented shared-file approval flag.
-- `SCOPE_ALLOW_SHARED=1 make scope-check` - passed.
+- `make scope-check` - passed for branch `codex/feat-commands`.
 - `./quality-format.sh --check` - passed.
 - `./quality-lint.sh` - passed.
 - `./quality-test.sh` - passed, `187` tests.
 - `./typecheck-test.sh` - passed, Python sources compiled.
-- `make ci` - failed on strict scope-check for disclosed shared/integrator-locked `src/qual/cli.py`; this is expected without the documented shared-file approval flag.
-- `SCOPE_ALLOW_SHARED=1 make ci` - passed, including scope-check, format, lint, typecheck, and `187` tests.
+- `make ci` - passed, including scope-check, format, lint, typecheck, and `187` tests.
 
 Focused coverage also run previously in this branch:
 
@@ -111,6 +109,6 @@ Focused coverage also run previously in this branch:
 - Branch name: `codex/feat-commands`
 - Tasks completed: listed in Scope Completed
 - Files changed: listed above
-- Commands run and outcomes: required gates passed with `SCOPE_ALLOW_SHARED=1` for scope-gated commands; bare `make scope-check` and `make ci` fail on the disclosed `src/qual/cli.py` shared/integrator-locked edit.
+- Commands run and outcomes: required gates passed bare on the current branch tip, including `make scope-check` and `make ci`.
 - Risks/blockers: listed above
 - Required `INTEGRATION.md` fields: present
