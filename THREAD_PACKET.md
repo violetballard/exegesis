@@ -49,7 +49,7 @@ Actual corrected merge diff from `06cdebc2d5d53533b73f264a4bbf5a4b4daacb27` to t
 - `./quality-lint.sh`: pending rerun on the corrected target.
 - `./quality-test.sh`: pending rerun on the corrected target.
 - `./typecheck-test.sh`: pending rerun on the corrected target.
-- `make ci`: pending rerun on the corrected target.
+- `make ci`: pending rerun on the corrected target after this packet marker commit.
 
 ## Risks And Blockers
 
