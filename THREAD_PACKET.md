@@ -2,10 +2,10 @@
 
 - Branch/lane: `codex/feat-retrieval-fts` / `feat-retrieval-fts`
 - Packet purpose: authoritative branch-tip re-review packet for the actual merge candidate.
-- Merge candidate: `HEAD` after the fixer commit that updates this packet; final HEAD SHA is reported by the fixer.
+- Merge candidate: `HEAD` after this packet-only fixer commit; final HEAD SHA is reported by the fixer.
 - Authoritative reviewed range: `378cf9a74a3658058079a32f186fcd254c4a4034..HEAD`.
 - Scope rule: review the full range above. Do not use `adfa8cdadd43747ffbcb612e4151e262b13e52ca` as the endpoint, and do not treat later retrieval-code commits as metadata-only.
-- Packet mirror note: `.codex/kickoff_packets/feat-retrieval-fts.md` and `.codex/lane_meta/feat-retrieval-fts.json` are stale packet mirrors in this worktree and still contain older narrowed-slice wording. This fixer attempted to update them again, but the sandbox rejected writes to those `.codex` paths with `Operation not permitted`. Treat this `THREAD_PACKET.md` as the source of truth for re-review.
+- Packet mirror note: `.codex/kickoff_packets/feat-retrieval-fts.md` and `.codex/lane_meta/feat-retrieval-fts.json` are stale packet mirrors in this worktree and still contain older narrowed-slice wording. This fixer attempted to update them again, but the sandbox rejected writes to those `.codex` paths as outside the writable project scope. Treat this `THREAD_PACKET.md` as the source of truth for re-review.
 
 ## Required Reviewer Fixes Addressed
 
@@ -55,7 +55,8 @@ Runtime/test files in scope:
 - Risk: high/shared because the reviewed range includes approved shared regression coverage in `tests/unit/test_unified_retrieval.py`.
 - Task budget: `4/4` under the AGENTS high-risk/shared cap.
 - File budget: `7/8` high-risk files changed in the actual branch-tip range.
-- Size budget at handoff before this packet-only fixer edit: 7 files changed, 425 insertions, 130 deletions, net `+295`, within the `<=300` high-risk packet budget.
+- Size budget before this packet-only fixer edit: 7 files changed, 425 insertions, 130 deletions, net `+295`, within the `<=300` high-risk packet budget.
+- This final fixer edit is packet-only and records the current branch-tip review range plus the `.codex` mirror write blocker.
 - Runtime/test subset at pre-final tip: 4 files changed, 175 insertions, 43 deletions, net `+132`.
 - Shared-file edits: approved regression coverage in `tests/unit/test_unified_retrieval.py`.
 - Integrator-locked files: none.
