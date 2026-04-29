@@ -4,7 +4,7 @@
 - Branch: `codex/feat-commands`
 - Review target: current branch tip `codex/feat-commands`.
 - Review basis: `git diff --stat --name-status 06cdebc2d5d53533b73f264a4bbf5a4b4daacb27..HEAD`
-- Fixer prompts satisfied: `20260429T152044Z`, `20260429T152842Z`, `20260429T154016Z`, `20260429T154607Z`, `20260429T155155Z`, `20260429T155636Z`, `20260429T160222Z`, `20260429T161403Z`, `20260429T161853Z`, `20260429T162401Z`
+- Fixer prompts satisfied: `20260429T152044Z`, `20260429T152842Z`, `20260429T154016Z`, `20260429T154607Z`, `20260429T155155Z`, `20260429T155636Z`, `20260429T160222Z`, `20260429T161403Z`, `20260429T161853Z`, `20260429T162401Z`, `20260429T162824Z`
 
 This packet uses the current branch tip as the only review target. The review basis is the full diff from merge base `06cdebc2d5d53533b73f264a4bbf5a4b4daacb27` to `HEAD`; no implementation or test commits are excluded from the merge target. Commit `c2ff1842f5b1cd4c667814689fee116ef36d8cec` is not metadata-only: it changes `THREAD.md`, `THREAD_PACKET.md`, and `tests/unit/test_commands_catalog.py`.
 
@@ -129,6 +129,7 @@ Fresh fixer rerun for `20260429T160222Z` adds focused live-parser tests that pro
 Fresh fixer rerun for `20260429T161403Z` corrects traceability to the full current branch-tip diff from merge base, states that `c2ff1842f5b1cd4c667814689fee116ef36d8cec` changed tests, and lists every implementation and test file touched by the branch-tip diff.
 Fresh fixer rerun for `20260429T161853Z` keeps the current branch tip as the only review target, confirms the live argparse parser-surface implementation and tests are in the review target, and reruns the full required gate set after finalizing this packet correction.
 Fresh fixer rerun for `20260429T162401Z` routes `command_cli_contract()` through the exposed CLI parser helper surface, adds explicit alias-token rename drift coverage, corrects the approved shared-test exception wording, and reruns the full required gate set.
+Fresh fixer rerun for `20260429T162824Z` revalidates the live argparse parser-surface contract, confirms the required drift tests remain in the branch-tip review target, preserves the corrected ownership note, and reruns the full required gate set.
 
 ## Risks And Blockers
 
