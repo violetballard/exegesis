@@ -553,8 +553,9 @@ class CloudConcurrencyCapsTests(unittest.TestCase):
 
         self.assertEqual(updated["fixer_fallback_jobs"]["feat-commands"]["pid"], 12345)
         self.assertIn("prompt_path", updated["fixer_fallback_jobs"]["feat-commands"])
-        self.assertIn(".prompt.txt", popen_mock.call_args.args[0][-1])
-        self.assertIs(popen_mock.call_args.kwargs["stdin"], router.subprocess.DEVNULL)
+        self.assertEqual(popen_mock.call_args.args[0][-1], "-")
+        self.assertEqual(popen_mock.call_args.kwargs["stdin"], router.subprocess.PIPE)
+        self.assertTrue(popen_mock.call_args.kwargs["start_new_session"])
 
     def test_spawn_detached_cli_job_writes_prompt_to_spec_stdin_path(self) -> None:
         cfg = router.RouterConfig(
@@ -644,6 +645,7 @@ class CloudConcurrencyCapsTests(unittest.TestCase):
                 self.assertEqual(prompt_path.read_text(), "lane kickoff prompt")
                 self.assertIn(str(prompt_path), popen_mock.call_args.args[0][-1])
                 self.assertIs(popen_mock.call_args.kwargs["stdin"], launch_feature_lanes.subprocess.DEVNULL)
+                self.assertTrue(popen_mock.call_args.kwargs["start_new_session"])
 
     def test_materialize_reviewer_packet_uses_final_verdict_packet_for_huge_note(self) -> None:
         with tempfile.TemporaryDirectory() as tmp:

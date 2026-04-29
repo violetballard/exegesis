@@ -307,6 +307,7 @@ def _spawn_direct_exec(
             stdin=subprocess.DEVNULL,
             text=True,
             env=env,
+            start_new_session=True,
         )
     return proc.pid
 

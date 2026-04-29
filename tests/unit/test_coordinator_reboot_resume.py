@@ -155,7 +155,7 @@ class CoordinatorRebootResumeTests(unittest.TestCase):
                 patch.object(coordinator, "FEATURE_RUNNER_STATE_FILE", feature_state),
                 patch.object(coordinator, "ROUTER_STATE_FILE", router_state),
                 patch.object(coordinator, "_pid_alive", side_effect=lambda pid: pid == 56167),
-                patch.object(coordinator, "_terminate_pid") as terminate_mock,
+                patch.object(coordinator, "_terminate_pid_tree") as terminate_mock,
                 patch.object(coordinator, "_reconcile_lane_worktrees", return_value={
                     "gitdir_repaired": [],
                     "gitdir_backups": [],
@@ -228,7 +228,7 @@ class CoordinatorRebootResumeTests(unittest.TestCase):
                 patch.object(coordinator, "FEATURE_RUNNER_STATE_FILE", feature_state),
                 patch.object(coordinator, "ROUTER_STATE_FILE", router_state),
                 patch.object(coordinator, "_pid_alive", side_effect=lambda pid: pid == 24298),
-                patch.object(coordinator, "_terminate_pid") as terminate_mock,
+                patch.object(coordinator, "_terminate_pid_tree") as terminate_mock,
                 patch.object(coordinator, "_reconcile_lane_worktrees", return_value={
                     "gitdir_repaired": [],
                     "gitdir_backups": [],
@@ -298,7 +298,7 @@ class CoordinatorRebootResumeTests(unittest.TestCase):
                 patch.object(coordinator, "FEATURE_RUNNER_STATE_FILE", feature_state),
                 patch.object(coordinator, "ROUTER_STATE_FILE", router_state),
                 patch.object(coordinator, "_pid_alive", side_effect=lambda pid: pid == 9193),
-                patch.object(coordinator, "_terminate_pid") as terminate_mock,
+                patch.object(coordinator, "_terminate_pid_tree") as terminate_mock,
                 patch.object(coordinator, "_reconcile_lane_worktrees", return_value={
                     "gitdir_repaired": [],
                     "gitdir_backups": [],
@@ -418,12 +418,79 @@ class CoordinatorRebootResumeTests(unittest.TestCase):
 
         self.assertIn("feat-engine-runs:R__APPROVED__drop.md", removed["cloud_integrator_jobs"])
         self.assertIn("feat-engine-runs:R__APPROVED__drop.md", removed["cloud_integrator_retry_ts"])
-        self.assertIn("feat-commands", removed["reviewer_fixer_retry_ts"])
+        self.assertNotIn("feat-commands", removed.get("reviewer_fixer_retry_ts", []))
         self.assertEqual(removed["reviewer_quota_global_retry_ts"], ["expired"])
         self.assertIn("feat-engine-runs:R__APPROVED__keep.md", saved["cloud_integrator_jobs"])
         self.assertNotIn("feat-engine-runs:R__APPROVED__drop.md", saved["cloud_integrator_jobs"])
-        self.assertEqual(saved["reviewer_fixer_retry_ts"], {})
+        self.assertEqual(saved["reviewer_fixer_retry_ts"], {"feat-commands": 10.0})
         self.assertEqual(saved["reviewer_quota_global_retry_ts"], 0)
+
+    def test_reconcile_terminates_runaway_feature_child_process_tree(self) -> None:
+        from codex_packet_handoff.tools import agents_coordinator as coordinator
+
+        with tempfile.TemporaryDirectory() as tmp:
+            root = Path(tmp)
+            feature_state = root / "feature_runner_state.json"
+            router_state = root / "router_state.json"
+            feature_state.write_text(
+                json.dumps(
+                    {
+                        "lanes": {
+                            "feat-a2ui-contract": {
+                                "status": "direct_exec_running",
+                                "pid": 7000,
+                                "last_launch_at": "20260415T150000Z",
+                            },
+                        }
+                    }
+                ),
+                encoding="utf-8",
+            )
+            router_state.write_text(json.dumps({}), encoding="utf-8")
+            coordinator_state = {"lane_refill": {}}
+
+            with (
+                patch.object(coordinator, "FEATURE_RUNNER_STATE_FILE", feature_state),
+                patch.object(coordinator, "ROUTER_STATE_FILE", router_state),
+                patch.object(coordinator, "_pid_alive", side_effect=lambda pid: pid == 7000),
+                patch.object(
+                    coordinator,
+                    "_descendant_process_rows",
+                    return_value=[
+                        (
+                            7001,
+                            7000,
+                            7000,
+                            coordinator.FEATURE_CHILD_RSS_LIMIT_KB + 1,
+                            "Python -m unittest tests.unit.test_a2ui_contract",
+                        )
+                    ],
+                ),
+                patch.object(coordinator, "_terminate_pid_tree") as terminate_mock,
+                patch.object(coordinator, "_reconcile_lane_worktrees", return_value={
+                    "gitdir_repaired": [],
+                    "gitdir_backups": [],
+                    "artifacts_removed": {},
+                    "health_failures": {},
+                    "rebuilt": {},
+                    "rebuild_backups": {},
+                    "rebuild_failures": {},
+                }),
+                patch.object(coordinator, "run_hygiene", return_value={
+                    "stale_git_pids": [],
+                    "temp_worktrees_removed": [],
+                    "stale_commit_locks_removed": [],
+                    "stale_worktree_index_locks_removed": [],
+                }),
+                patch.object(coordinator, "time") as time_mod,
+            ):
+                time_mod.time.return_value = 1_776_272_400.0
+                time_mod.sleep.return_value = None
+                summary = coordinator._reconcile_control_plane_state(coordinator_state)
+
+        terminate_mock.assert_called_once_with(7000)
+        self.assertEqual(summary["feature_runner_removed"], ["feat-a2ui-contract"])
+        self.assertIn("runaway child process", summary["feature_runner_terminated"]["feat-a2ui-contract"])
 
     def test_reconcile_duplicate_feature_exec_processes_keeps_current_lane_pid(self) -> None:
         from codex_packet_handoff.tools import agents_coordinator as coordinator
@@ -459,7 +526,7 @@ class CoordinatorRebootResumeTests(unittest.TestCase):
                         "feat-a2ui-contract": [2001],
                     },
                 ),
-                patch.object(coordinator, "_terminate_pid") as terminate_mock,
+                patch.object(coordinator, "_terminate_pid_tree") as terminate_mock,
             ):
                 removed = coordinator._reconcile_duplicate_feature_exec_processes()
 

@@ -1470,10 +1470,11 @@ def run_fixer(
             env=env,
             start_new_session=True,
         )
-        if proc.stdin is not None:
+        proc_stdin = getattr(proc, "stdin", None)
+        if proc_stdin is not None:
             try:
-                proc.stdin.write(_prompt_file_bootstrap(prompt_path))
-                proc.stdin.close()
+                proc_stdin.write(_prompt_file_bootstrap(prompt_path))
+                proc_stdin.close()
             except BrokenPipeError:
                 pass
     fallback = state.get("fixer_fallback_jobs") or {}

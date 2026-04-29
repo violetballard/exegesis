@@ -72,6 +72,8 @@ FEATURE_LOOP_LOG_TAIL_BYTES = 32768
 FEATURE_LOOP_BAD_APPLYPATCH_THRESHOLD = 6
 FEATURE_LOOP_RECONNECT_THRESHOLD = 4
 FEATURE_LOOP_PARSE_ERROR_THRESHOLD = 2
+FEATURE_CHILD_RSS_LIMIT_KB = int(os.environ.get("FEATURE_CHILD_RSS_LIMIT_KB", "2500000"))
+FEATURE_TOTAL_CHILD_RSS_LIMIT_KB = int(os.environ.get("FEATURE_TOTAL_CHILD_RSS_LIMIT_KB", "8000000"))
 WORKTREE_RECOVERY_ROOT = REPO_ROOT / ".codex/worktree_recovery"
 ROUTER_JOB_STATE_KEYS = (
     "fixer_fallback_jobs",
@@ -314,7 +316,7 @@ def _reconcile_duplicate_feature_exec_processes() -> Dict[str, List[int]]:
         if not lane_pids:
             continue
         for pid in lane_pids:
-            _terminate_pid(pid)
+            _terminate_pid_tree(pid)
         removed[str(lane)] = sorted(lane_pids)
     return removed
 
@@ -356,10 +358,104 @@ def _terminate_pid(pid: int, *, grace_seconds: float = 1.0) -> None:
         os.kill(pid, signal.SIGKILL)
 
 
+def _process_rows() -> List[Tuple[int, int, int, int, str]]:
+    try:
+        proc = subprocess.run(
+            ["ps", "-axo", "pid=,ppid=,pgid=,rss=,command="],
+            stdout=subprocess.PIPE,
+            stderr=subprocess.DEVNULL,
+            text=True,
+            timeout=2.0,
+        )
+    except Exception:
+        return []
+    if proc.returncode != 0:
+        return []
+    rows: List[Tuple[int, int, int, int, str]] = []
+    for line in (proc.stdout or "").splitlines():
+        parts = line.strip().split(None, 4)
+        if len(parts) < 5:
+            continue
+        try:
+            rows.append((int(parts[0]), int(parts[1]), int(parts[2]), int(parts[3]), parts[4]))
+        except ValueError:
+            continue
+    return rows
+
+
+def _descendant_process_rows(root_pid: int) -> List[Tuple[int, int, int, int, str]]:
+    if root_pid <= 0:
+        return []
+    rows = _process_rows()
+    children: Dict[int, List[Tuple[int, int, int, int, str]]] = {}
+    for row in rows:
+        children.setdefault(row[1], []).append(row)
+    descendants: List[Tuple[int, int, int, int, str]] = []
+    stack = list(children.get(root_pid, []))
+    while stack:
+        row = stack.pop()
+        descendants.append(row)
+        stack.extend(children.get(row[0], []))
+    return descendants
+
+
+def _terminate_pid_tree(pid: int, *, grace_seconds: float = 1.0) -> None:
+    if pid <= 0:
+        return
+    rows = _process_rows()
+    root_pgid = next((pgid for row_pid, _ppid, pgid, _rss, _cmd in rows if row_pid == pid), 0)
+    if root_pgid == pid:
+        with contextlib.suppress(ProcessLookupError):
+            os.killpg(pid, signal.SIGTERM)
+    else:
+        for child_pid, _ppid, _pgid, _rss, _cmd in reversed(_descendant_process_rows(pid)):
+            with contextlib.suppress(ProcessLookupError):
+                os.kill(child_pid, signal.SIGTERM)
+        with contextlib.suppress(ProcessLookupError):
+            os.kill(pid, signal.SIGTERM)
+    deadline = time.time() + grace_seconds
+    while time.time() < deadline:
+        live_pids = [pid, *[row[0] for row in _descendant_process_rows(pid)]]
+        if not any(_pid_alive(live_pid) for live_pid in live_pids):
+            return
+        time.sleep(0.1)
+    if root_pgid == pid:
+        with contextlib.suppress(ProcessLookupError):
+            os.killpg(pid, signal.SIGKILL)
+    else:
+        for child_pid, _ppid, _pgid, _rss, _cmd in reversed(_descendant_process_rows(pid)):
+            with contextlib.suppress(ProcessLookupError):
+                os.kill(child_pid, signal.SIGKILL)
+        with contextlib.suppress(ProcessLookupError):
+            os.kill(pid, signal.SIGKILL)
+
+
+def _feature_runner_resource_reason(lane_state: Dict[str, object]) -> Optional[str]:
+    pid = int(lane_state.get("pid") or 0)
+    if pid <= 0 or not _pid_alive(pid):
+        return None
+    launched_at = _parse_feature_runner_ts(str(lane_state.get("last_launch_at") or ""))
+    if launched_at and (time.time() - launched_at) < FEATURE_LOOP_MIN_RUNTIME_SECONDS:
+        return None
+    descendants = _descendant_process_rows(pid)
+    if not descendants:
+        return None
+    total_rss = sum(row[3] for row in descendants)
+    largest = max(descendants, key=lambda row: row[3])
+    if largest[3] >= FEATURE_CHILD_RSS_LIMIT_KB:
+        return f"runaway child process rss={largest[3]}KB pid={largest[0]} command={largest[4][:120]}"
+    if total_rss >= FEATURE_TOTAL_CHILD_RSS_LIMIT_KB:
+        return f"runaway child process tree rss={total_rss}KB children={len(descendants)}"
+    return None
+
+
 def _feature_runner_loop_reason(lane_state: Dict[str, object]) -> Optional[str]:
     pid = int(lane_state.get("pid") or 0)
     if pid <= 0 or not _pid_alive(pid):
         return None
+    resource_reason = _feature_runner_resource_reason(lane_state)
+    if resource_reason:
+        return resource_reason
     launched_at = _parse_feature_runner_ts(str(lane_state.get("last_launch_at") or ""))
     if launched_at and (time.time() - launched_at) < FEATURE_LOOP_MIN_RUNTIME_SECONDS:
         return None
@@ -413,7 +509,7 @@ def _reconcile_feature_runner_state() -> Dict[str, object]:
         if _pid_alive(pid):
             loop_reason = _feature_runner_loop_reason(lane_state)
             if loop_reason:
-                _terminate_pid(pid)
+                _terminate_pid_tree(pid)
                 lanes.pop(lane, None)
                 removed.append(str(lane))
                 terminated[str(lane)] = loop_reason
