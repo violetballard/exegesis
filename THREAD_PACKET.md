@@ -627,6 +627,7 @@
 4. Kept each completed task mapped to the canonical demo path and retained the AGENTS.md final statement: the CLI-first parser surface for project open, retrieval/basket, patch review, and export handoff is more real because parser drift fails loudly before Textual is enabled.
 5. Kept the metadata-only file list complete (`THREAD.md`, `THREAD_PACKET.md`) and kept the review basis as branch tip rather than the original implementation anchor alone.
 6. Reran all required gates after this fixer pass and recorded the outcomes below.
+7. Finalized this packet in a dedicated `20260429T051633Z` fixer commit so the reviewer can use the final branch tip as the review target.
 
 ## Commands Run + Outcomes
 
