@@ -5,12 +5,13 @@
 - Reviewed range: `378cf9a7..HEAD`
 - Reviewed implementation range: `378cf9a7..HEAD`
 - Pre-fix rejected branch tip: `289f571e6`
+- Pre-fix reviewer-cited branch tip: `f69a8c15127dd48a6cb327b0ac3ee94b33c82d06`
 - Merge candidate: current branch tip after this fixer pass. Final SHA is reported in the fixer response.
 - Scope rule: review the full range above. Do not use `adfa8cdadd43747ffbcb612e4151e262b13e52ca` as the endpoint, and do not classify post-`adfa8cdadd43747ffbcb612e4151e262b13e52ca` retrieval-code changes as metadata-only.
 
 ## Required Fixes Addressed
 
-Scope is regenerated against one source of truth, `378cf9a7..HEAD`; all post-`adfa8cdadd43747ffbcb612e4151e262b13e52ca` implementation changes are in scope; files, size budget, and gates are recalculated for the branch-tip merge candidate; canonical demo-path step advanced is `retrieve relevant material`; `.codex` packet mirrors remain sandbox-blocked because `touch .codex/.write_test` fails with `Operation not permitted`.
+Scope is regenerated against one source of truth, `378cf9a7..HEAD`; all post-`adfa8cdadd43747ffbcb612e4151e262b13e52ca` implementation changes are in scope; files, size budget, and gates are recalculated for the branch-tip merge candidate; canonical demo-path steps advanced are `retrieve relevant material` and `promote/gather context into the basket`. `THREAD_PACKET.md` is the corrected handoff source of truth for this fixer pass.
 
 ## Scope Completed
 
@@ -51,7 +52,7 @@ Current MVP focus: engine stability, FTS-first retrieval, and A2UI contracts wit
 
 ## Canonical Demo Path
 
-- Explicit AGENTS.md canonical demo-path step advanced: `retrieve relevant material`.
+- Explicit AGENTS.md canonical demo-path steps advanced: `retrieve relevant material` and `promote/gather context into the basket`.
 - Task mapping: task 1 makes retrieval FTS-first and fail-closed; task 2 makes retrieved material deterministic for engine context; task 3 makes retrieved material promotable into basket/workflow state; task 4 locks behavior with regression coverage and corrected metadata.
 - Advances `vault -> context -> run -> patch -> export` by making the `context -> run` retrieval handoff deterministic, structured, FTS-backed, and provenance-bearing.
 
