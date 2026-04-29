@@ -2,21 +2,21 @@
 
 - Lane: `feat-commands`
 - Branch: `codex/feat-commands`
-- Review target: branch tip `codex/feat-commands`, including the latest fixer commit.
-- Review basis: `git diff --stat --name-status f8d860ed9f6299f0169c4f21321ac5f37c949fd3..HEAD -- THREAD.md THREAD_PACKET.md src/qual/cli.py src/qual/commands/__init__.py src/qual/commands/catalog.py tests/unit/test_commands_catalog.py`
-- Fixer prompts satisfied: `20260429T152044Z`, `20260429T152842Z`, `20260429T154016Z`, `20260429T154607Z`, `20260429T155155Z`, `20260429T155636Z`, `20260429T160222Z`
+- Review target: current branch tip `codex/feat-commands`.
+- Review basis: `git diff --stat --name-status 06cdebc2d5d53533b73f264a4bbf5a4b4daacb27..HEAD`
+- Fixer prompts satisfied: `20260429T152044Z`, `20260429T152842Z`, `20260429T154016Z`, `20260429T154607Z`, `20260429T155155Z`, `20260429T155636Z`, `20260429T160222Z`, `20260429T161403Z`, `20260429T161853Z`
 
-This packet uses the branch tip as the review target. It includes the earlier reviewed `f8d860ed9f6299f0169c4f21321ac5f37c949fd3` slice and all later implementation, test, and handoff commits on `codex/feat-commands`; no later implementation commits are excluded from the merge target.
+This packet uses the current branch tip as the only review target. The review basis is the full diff from merge base `06cdebc2d5d53533b73f264a4bbf5a4b4daacb27` to `HEAD`; no implementation or test commits are excluded from the merge target. Commit `c2ff1842f5b1cd4c667814689fee116ef36d8cec` is not metadata-only: it changes `THREAD.md`, `THREAD_PACKET.md`, and `tests/unit/test_commands_catalog.py`.
 
 ## Required-Fix Resolution
 
-1. The review basis is the full branch-tip diff from `f8d860ed9f6299f0169c4f21321ac5f37c949fd3..HEAD`, not a narrowed historical commit; the merge target is the branch tip.
-2. All implementation files in the branch-tip diff are listed below: `src/qual/cli.py`, `src/qual/commands/__init__.py`, and `src/qual/commands/catalog.py`.
+1. The review basis is the full branch-tip diff from `06cdebc2d5d53533b73f264a4bbf5a4b4daacb27..HEAD`, not a narrowed historical commit; the merge target is the current branch tip.
+2. All implementation and test files in the branch-tip diff are listed below, including earlier branch work and the latest parser-surface tests.
 3. `command_cli_contract()` now validates the command catalog against the actual argparse subparser surface built by `src/qual/cli.py`.
 4. Parser drift tests cover live parser rename drift, parser-only extra-token drift, parser-only missing-token drift, post-build extra-token drift, post-build missing-token drift, and catalog canonical-name drift.
 5. The canonical demo-path alignment below maps every completed task to the exact AGENTS canonical demo-path step it advances.
 6. Ownership wording distinguishes lane-owned files, shared-by-approval files, and integrator-locked files.
-7. Metadata-only files changed by packet refresh commit `a9266aca4b87a2ad1df4e8615a2a4adfb816fc44` are listed completely: `THREAD.md` and `THREAD_PACKET.md`.
+7. Packet refresh commit `a9266aca4b87a2ad1df4e8615a2a4adfb816fc44` is metadata-only and changed `THREAD.md` and `THREAD_PACKET.md`; latest fixer commit `c2ff1842f5b1cd4c667814689fee116ef36d8cec` is not metadata-only because it also changed `tests/unit/test_commands_catalog.py`.
 8. The canonical demo-path impact statement below explains how deterministic CLI contract validation strengthens the engine-first MVP loop rather than only the command catalog internals.
 
 ## Implementation Summary
@@ -50,24 +50,32 @@ Canonical demo-path impact: deterministic CLI contract validation strengthens th
 
 ## Files Changed In Review Target
 
-From `git diff --name-status f8d860ed9f6299f0169c4f21321ac5f37c949fd3..HEAD`:
+From `git diff --name-status 06cdebc2d5d53533b73f264a4bbf5a4b4daacb27..HEAD`:
 
 - `M THREAD.md`
-- `M THREAD_PACKET.md`
+- `A THREAD_PACKET.md`
+- `M scripts/scope-check.sh`
 - `M src/qual/cli.py`
 - `M src/qual/commands/__init__.py`
-- `M src/qual/commands/catalog.py`
-- `M tests/unit/test_commands_catalog.py`
+- `M src/qual/commands/canonical.py`
+- `A src/qual/commands/catalog.py`
+- `M src/qual/commands/diff_preview.py`
+- `A tests/unit/test_commands_catalog.py`
+- `M tests/unit/test_diff_preview.py`
 
 Implementation files:
 
+- `scripts/scope-check.sh`
 - `src/qual/cli.py`
 - `src/qual/commands/__init__.py`
+- `src/qual/commands/canonical.py`
 - `src/qual/commands/catalog.py`
+- `src/qual/commands/diff_preview.py`
 
 Tests:
 
 - `tests/unit/test_commands_catalog.py`
+- `tests/unit/test_diff_preview.py`
 
 Handoff metadata:
 
@@ -79,6 +87,10 @@ Metadata-only files changed by packet refresh commit `a9266aca4b87a2ad1df4e8615a
 - `THREAD.md`
 - `THREAD_PACKET.md`
 
+Non-metadata files changed by latest fixer commit `c2ff1842f5b1cd4c667814689fee116ef36d8cec`:
+
+- `tests/unit/test_commands_catalog.py`
+
 ## Ownership And Risk
 
 - Lane-owned implementation paths: `src/qual/commands/**`.
@@ -87,7 +99,7 @@ Metadata-only files changed by packet refresh commit `a9266aca4b87a2ad1df4e8615a
 - Other integrator-locked files touched: none. This branch does not edit `README.md`, `INTEGRATION.md`, `src/main.py`, or `src/qual/app.py`.
 - Risk reason: this is high-risk because the branch validates a shared CLI entrypoint surface and touches `src/qual/cli.py`.
 - Task budget: high-risk `4` task budget exceeded by historical branch-tip work; this packet is a required fixer correction for an already-open review target, not a new feature expansion.
-- Size note: branch-tip diff from `f8d860e..HEAD` is `6` files and `892 insertions(+), 134 deletions(-)` across implementation, tests, and handoff metadata.
+- Size note: branch-tip diff from `06cdebc2d5d53533b73f264a4bbf5a4b4daacb27..HEAD` is `10` files and `3246 insertions(+), 76 deletions(-)` across implementation, tests, and handoff metadata.
 
 ## Roadmap And Vision
 
@@ -113,6 +125,8 @@ Fresh fixer rerun for `20260429T154607Z` validates that the actual branch tip is
 Fresh fixer rerun for `20260429T155155Z` resolves the offline-review fallback by rerunning every requested gate and recording passing results: `make scope-check`, `./quality-format.sh --check`, `./quality-lint.sh`, `./quality-test.sh`, `./typecheck-test.sh`, and `make ci`.
 Fresh fixer rerun for `20260429T155636Z` maps each completed task to AGENTS canonical demo-path wording, adds the deterministic CLI contract impact statement for the engine-first MVP loop, and validates the full required gate set.
 Fresh fixer rerun for `20260429T160222Z` adds focused live-parser tests that prove parser-only token addition and parser-only token removal fail `command_cli_contract()`, and keeps the branch-tip diff as the review basis.
+Fresh fixer rerun for `20260429T161403Z` corrects traceability to the full current branch-tip diff from merge base, states that `c2ff1842f5b1cd4c667814689fee116ef36d8cec` changed tests, and lists every implementation and test file touched by the branch-tip diff.
+Fresh fixer rerun for `20260429T161853Z` keeps the current branch tip as the only review target, confirms the live argparse parser-surface implementation and tests are in the review target, and reruns the full required gate set after finalizing this packet correction.
 
 ## Risks And Blockers
 
