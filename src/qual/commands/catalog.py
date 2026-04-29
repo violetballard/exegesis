@@ -1145,6 +1145,18 @@ def _validate_command_smoke_contract(contract: CommandSmokeContract) -> None:
         raise ValueError("Command smoke argv is inconsistent")
     if contract.lookup_table != tuple(expected_lookup):
         raise ValueError("Command smoke lookup table is inconsistent")
+    _validate_command_smoke_argv(contract.steps)
+
+
+def _validate_command_smoke_argv(steps: tuple[CommandSmokeStep, ...]) -> None:
+    from src.qual.cli import parse_args
+
+    for step in steps:
+        parsed = parse_args(list(step.argv))
+        if parsed.command != step.name:
+            raise ValueError("Command smoke argv does not parse to the expected command")
+        if step.name == "context-basket" and parsed.basket_action != "list":
+            raise ValueError("Command smoke argv does not parse to the expected basket action")
 
 
 @lru_cache(maxsize=None)
