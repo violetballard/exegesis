@@ -584,6 +584,19 @@ class RetrievalResult:
                 "matched_terms": copy.deepcopy(hit.provenance.get("matched_terms", [])),
                 "match_count": hit.provenance.get("match_count"),
             }
+            citation_ref = {
+                "doc_id": hit.doc_id,
+                "doc_type": hit.provenance.get("doc_type"),
+                "excerpt_id": hit.excerpt_id,
+                "source_hash": hit.provenance.get("source_hash"),
+                "excerpt_fingerprint": hit.provenance.get("excerpt_fingerprint"),
+                "excerpt_text_hash": excerpt_text_hash,
+                "span": copy.deepcopy(hit.span),
+                "rank": hit.provenance.get("rank"),
+                "source_strategy": hit.source_strategy,
+                "retrieval_backend": hit.provenance.get("retrieval_backend"),
+                "retrieval_mode": hit.provenance.get("retrieval_mode"),
+            }
             context_ref = {
                 "ref_id": f"fts:{hit.excerpt_id}",
                 "doc_id": hit.doc_id,
@@ -604,6 +617,7 @@ class RetrievalResult:
                 "fts_rank": hit.provenance.get("fts_rank"),
                 "matched_terms": copy.deepcopy(hit.provenance.get("matched_terms", [])),
                 "match_count": hit.provenance.get("match_count"),
+                "citation_ref": citation_ref,
                 "provenance": provenance,
             }
             context_ref["context_ref_fingerprint"] = RetrievalService._stable_fingerprint(
