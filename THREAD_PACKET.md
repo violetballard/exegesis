@@ -2,9 +2,9 @@
 
 - Lane: `feat-commands`
 - Branch: `codex/feat-commands`
-- Commit / review basis: actual `codex/feat-commands` branch tip for the `20260429T023318Z` reviewer-fix pass.
+- Commit / review basis: actual `codex/feat-commands` branch tip for the `20260429T023547Z` reviewer-fix pass.
 - Previous implementation anchor: `f8d860ed9f6299f0169c4f21321ac5f37c949fd3`
-- Reviewer packet addressed: `20260429T023318Z`
+- Reviewer packet addressed: `20260429T023547Z`
 
 ## Packet Traceability Note
 
@@ -149,6 +149,7 @@
 - `20260429T022926Z` reviewer-fix rerun: PASS for focused `./quality-test.sh tests/unit/test_commands_catalog.py`; PASS for required gates `make scope-check`, `./quality-format.sh --check`, `./quality-lint.sh`, `./quality-test.sh`, `./typecheck-test.sh`, and `make ci`.
 - `20260429T023318Z` pre-commit validation: exact `make scope-check` initially BLOCKED on the prior implementation-bearing `HEAD` because it included the approved shared-test edit `tests/unit/test_commands_catalog.py`; this metadata-only fixer pass moves the branch tip before the required final gate rerun.
 - `20260429T023318Z` final gate rerun: PASS for `make scope-check`; PASS for `./quality-format.sh --check`; PASS for `./quality-lint.sh`; PASS for `./quality-test.sh` with 150 tests; PASS for `./typecheck-test.sh`; PASS for `make ci`, including scope-check, format, lint, compileall/typecheck, and 150 tests.
+- `20260429T023547Z` final gate rerun: PASS for `make scope-check`; PASS for `./quality-format.sh --check`; PASS for `./quality-lint.sh`; PASS for `./quality-test.sh` with 150 tests; PASS for `./typecheck-test.sh`; PASS for `make ci`, including scope-check, format, lint, compileall/typecheck, and 150 tests.
 
 ## Risks / Blockers
 
@@ -377,3 +378,12 @@
 
 1. Required fix 1 is addressed by recording the initial exact `make scope-check` failure against the prior implementation-bearing `HEAD`, then moving the branch tip to this metadata-only fixer pass so the recent-window scope gate can evaluate the current pass.
 2. Required fix 1 is satisfied by the final required gate rerun recorded in `Commands Run + Outcomes`: `make scope-check`, `./quality-format.sh --check`, `./quality-lint.sh`, `./quality-test.sh`, `./typecheck-test.sh`, and `make ci` all passed.
+
+## Reviewer Packet `20260429T023547Z` Fix Satisfaction
+
+1. Required fix 1 is satisfied by one truthful review basis: the actual `codex/feat-commands` branch tip for this reviewer-fix pass. Post-`f8d860ed9f6299f0169c4f21321ac5f37c949fd3` command and test commits are implementation-bearing and included in review.
+2. Required fix 2 is satisfied by the branch-tip `command_cli_contract()` implementation, which validates the full parser-visible CLI surface before returning `CommandCliContract`: exact token tuple, exact lookup-table shape and order, grouped parser surface, declared surface, and canonical command order.
+3. Required fix 3 is satisfied by focused tests for same-canonical parser drift, including `bootstrap` -> `open`, `diff-preview` -> `diff`, token addition, token removal, and token reordering cases.
+4. Required fix 4 is satisfied by the ownership notes above: shared-by-approval test edits are `YES` for `tests/unit/test_commands_catalog.py` and `tests/unit/test_diff_preview.py`, and integrator-locked edits are `NO`.
+5. Required fix 5 is satisfied by `Canonical Demo-Path Step Advanced`, which names the protected `open project/document`, `retrieve relevant material`, `promote/gather context`, and `preview/apply/reject patch` CLI smoke path.
+6. Required gates were rerun for this reviewer-fix pass and passed: `make scope-check`, `./quality-format.sh --check`, `./quality-lint.sh`, `./quality-test.sh`, `./typecheck-test.sh`, and `make ci`.

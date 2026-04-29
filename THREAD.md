@@ -151,3 +151,12 @@ Canonical handoff contract lives in `THREAD_PACKET.md`.
 
 1. Required fix 1 is addressed by moving the branch tip to this metadata-only fixer pass before rerunning gates, so the feature-branch `scope-check` recent-window policy no longer evaluates the prior implementation-bearing shared-test commit as `HEAD`.
 2. Final gate results for this pass are recorded in `THREAD_PACKET.md`: `make scope-check`, `./quality-format.sh --check`, `./quality-lint.sh`, `./quality-test.sh`, `./typecheck-test.sh`, and `make ci` all passed.
+
+## Reviewer Packet `20260429T023547Z` Fix Satisfaction
+
+1. The handoff uses one truthful review basis: the actual `codex/feat-commands` branch tip for this reviewer-fix pass.
+2. The command contract already validates the full parser-visible token surface, including token substitution, added/removed accepted aliases, token order drift, lookup-table order drift, and canonical-name drift.
+3. Focused tests cover same-canonical parser drift, including `bootstrap` -> `open` and `diff-preview` -> `diff`.
+4. Ownership accounting separates approved shared-by-approval tests from integrator-locked edits; integrator-locked edits remain `NO`.
+5. Demo-path mapping names the protected `open project/document`, `retrieve relevant material`, `promote/gather context`, and `preview/apply/reject patch` CLI smoke path.
+6. Required gates were rerun for this reviewer-fix pass and passed: `make scope-check`, `./quality-format.sh --check`, `./quality-lint.sh`, `./quality-test.sh`, `./typecheck-test.sh`, and `make ci`.
