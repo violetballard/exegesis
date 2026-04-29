@@ -2,28 +2,28 @@
 
 - Lane: `feat-commands`
 - Branch: `codex/feat-commands`
-- Review target: implementation commit `f8d860ed9f6299f0169c4f21321ac5f37c949fd3` plus metadata-only packet refresh commits through the final fixer commit.
-- Fixer correction: this refresh resolves reviewer packet `20260429T171312Z` by choosing the clean `f8d860ed9f6299f0169c4f21321ac5f37c949fd3` review basis, restoring later implementation drift out of the branch tip, and keeping only metadata changes after the reviewed implementation target.
+- Review target: implementation commit `f8d860ed9f6299f0169c4f21321ac5f37c949fd3` plus the final fixer commit for reviewer packet `20260429T172055Z`.
+- Fixer correction: this refresh resolves reviewer packet `20260429T172055Z` by tying the CLI parser surface to the command catalog contract, adding parser-drift regression coverage, and updating ownership/demo-path accounting.
 
 ## Required-Fix Resolution
 
-1. Review basis is clean and branch-matched: post-`f8d860ed9f6299f0169c4f21321ac5f37c949fd3` implementation drift in `src/qual/cli.py`, `src/qual/commands/__init__.py`, `src/qual/commands/catalog.py`, and `tests/unit/test_commands_catalog.py` has been restored back to `f8d860ed9f6299f0169c4f21321ac5f37c949fd3`. The diff after that implementation target is packet metadata only.
-2. The packet keeps every reviewed implementation file in scope for `f8d860ed9f6299f0169c4f21321ac5f37c949fd3`: `src/qual/commands/catalog.py` and `tests/unit/test_commands_catalog.py`.
-3. The integrator-locked `src/qual/cli.py` edit was removed from the final review basis. No explicit integrator approval is needed because no `src/qual/cli.py` diff remains after `f8d860ed9f6299f0169c4f21321ac5f37c949fd3`.
-4. Metadata file accounting is complete: post-target packet refresh changes include both `THREAD.md` and `THREAD_PACKET.md`.
-5. Gate results below are tied to the final branch tip after the drift-removal commit.
+1. `command_cli_contract()` now compares catalog-owned `command_cli_tokens()` to the live argparse subparser choices extracted from `src/qual/cli.py`, so parser-only added tokens, missing tokens, and alias renames fail fast.
+2. `src/qual/cli.py` now builds top-level parsers from `command_cli_tokens()` and `_normalize_argv()` uses the same catalog-owned token set, removing the separate hardcoded command-token duplication.
+3. `tests/unit/test_commands_catalog.py` now asserts the actual parser surface and includes focused parser-only added-token, missing-token, and alias-rename drift tests.
+4. Ownership accounting is corrected below: this fixer intentionally edits shared-by-approval/integrator-locked `src/qual/cli.py` to satisfy the reviewer-required parser contract fix, plus the approved shared test file.
+5. Gate results below are tied to the final branch tip after this fixer commit.
 
 ## Implementation Summary
 
-- `src/qual/commands/catalog.py` validates CLI canonical names against `command_names()` and returns the canonical command tuple.
-- `tests/unit/test_commands_catalog.py` covers command order alignment and rejects command catalog drift.
-- No implementation files remain changed after `f8d860ed9f6299f0169c4f21321ac5f37c949fd3`; this fixer restores later implementation drift and updates packet metadata.
+- `src/qual/commands/catalog.py` validates CLI canonical names against `command_names()` and validates catalog tokens against the live argparse parser surface.
+- `src/qual/cli.py` builds top-level command parsers from `command_cli_tokens()` and validates the CLI contract before parsing.
+- `tests/unit/test_commands_catalog.py` covers command order alignment, catalog drift, parser-only added-token drift, parser-only missing-token drift, and parser-only alias-rename drift.
 
 ## Canonical Demo-Path Mapping
 
 Canonical demo-path sequence: `open project/document`, `retrieve relevant material`, `gather context into basket`, `plan/revise`, `apply/reject patch`, `persist state`, `continue working`.
 
-This command-catalog work provides deterministic CLI command names for the CLI fallback surfaces used along that path:
+This command-catalog work provides deterministic CLI command names for the CLI fallback surfaces used along that path. This fixer specifically advances the `retrieve relevant material` and `gather context into basket` steps by making the `context-basket` retrieval command parser surface fail fast when it diverges from catalog metadata:
 
 1. `open project/document`: keeps open/document command surfaces discoverable through the catalog contract.
 2. `retrieve relevant material`: directly advances this step by proving retrieval command names cannot silently drift between catalog metadata and CLI-facing command names.
@@ -33,7 +33,7 @@ This command-catalog work provides deterministic CLI command names for the CLI f
 6. `persist state`: keeps terminal/export handoff command surfaces represented for persistence-oriented CLI fallback flows.
 7. `continue working`: keeps follow-on command surfaces stable so resumed CLI workflows use the same command tokens.
 
-The direct implementation effect is CLI contract stability, not new behavior for opening, retrieval, context storage, patch application, persistence, or resume flows.
+The direct implementation effect is parser/catalog contract stability for CLI fallback, not new behavior for opening, retrieval, context storage, patch application, persistence, or resume flows.
 
 ## Files Changed In Review Target
 
@@ -66,6 +66,14 @@ This fixer refresh for reviewer packet `20260429T171312Z`:
 - Restores `src/qual/commands/catalog.py` to `f8d860ed9f6299f0169c4f21321ac5f37c949fd3`.
 - Restores `tests/unit/test_commands_catalog.py` to `f8d860ed9f6299f0169c4f21321ac5f37c949fd3`.
 
+This fixer for reviewer packet `20260429T172055Z`:
+
+- `THREAD.md`
+- `THREAD_PACKET.md`
+- `src/qual/cli.py`
+- `src/qual/commands/catalog.py`
+- `tests/unit/test_commands_catalog.py`
+
 Branch-tip file list for this review basis as it would be merged after `f8d860ed9f6299f0169c4f21321ac5f37c949fd3`:
 
 - `THREAD.md`
@@ -85,12 +93,12 @@ Complete branch-tip file list for `codex/feat-commands` as it would actually be 
 
 ## Ownership And Scope
 
-- Lane-owned implementation file touched in reviewed implementation: `src/qual/commands/catalog.py`.
+- Lane-owned implementation file touched in reviewed implementation and this fixer: `src/qual/commands/catalog.py`.
 - Earlier branch implementation files already present in the clean `f8d860ed9f6299f0169c4f21321ac5f37c949fd3` basis: `src/qual/commands/__init__.py`, `src/qual/commands/canonical.py`, `src/qual/commands/diff_preview.py`, and `tests/unit/test_diff_preview.py`.
-- Approved shared-by-approval test file touched in reviewed implementation: `tests/unit/test_commands_catalog.py`.
-- Integrator-locked implementation files touched in reviewed implementation: none.
-- Shared/integrator-locked edits: no integrator-locked implementation edits remain in the final review basis. The prior post-target `src/qual/cli.py` drift was removed by restoring it to `f8d860ed9f6299f0169c4f21321ac5f37c949fd3`.
-- Shared test edit: `tests/unit/test_commands_catalog.py` is an approved test exception in the reviewed implementation target and is separate from the integrator-locked file list.
+- Approved shared-by-approval test file touched in reviewed implementation and this fixer: `tests/unit/test_commands_catalog.py`.
+- Shared-by-approval/integrator-locked implementation file touched in this fixer: `src/qual/cli.py`.
+- Shared/integrator-locked edits: YES, limited to `src/qual/cli.py` for the reviewer-required parser/catalog contract fix; no provider or routing files are edited.
+- Shared test edit: `tests/unit/test_commands_catalog.py` is an approved test exception and is separate from the `src/qual/cli.py` shared implementation edit.
 - Routing/provider impact: none.
 
 ## Commands Run
@@ -98,15 +106,16 @@ Complete branch-tip file list for `codex/feat-commands` as it would actually be 
 - `make scope-check`: PASS.
 - `./quality-format.sh --check`: PASS.
 - `./quality-lint.sh`: PASS.
-- `./quality-test.sh`: PASS, smoke plus 125 unit tests.
+- `python -m unittest tests.unit.test_commands_catalog`: PASS, 46 tests.
+- `./quality-test.sh`: PASS, smoke plus 128 unit tests.
 - `./typecheck-test.sh`: PASS.
 - `make ci`: PASS, including scope-check, format, lint, compile, smoke, and 125 unit tests.
 
 ## Risks And Blockers
 
-- Risk: the final packet intentionally chooses the clean `f8d860ed9f6299f0169c4f21321ac5f37c949fd3` review basis rather than the broader prior branch tip, so any later implementation work must be reviewed in a separate packet.
+- Risk: `src/qual/cli.py` is shared-by-approval/integrator-locked, but this edit is narrowly scoped to the reviewer-required parser/catalog validation path.
 - Blockers: none known.
 
 ## Final Readiness Statement
 
-This handoff packet now explicitly names the canonical demo-path steps advanced by the command-catalog slice, separates the approved shared test edit from integrator-locked implementation edits, removes the post-target `src/qual/cli.py` drift from the final review basis, and accounts for both metadata files changed after `f8d860ed9f6299f0169c4f21321ac5f37c949fd3`.
+This handoff packet now explicitly names the canonical demo-path steps advanced by the command-catalog slice, separates the approved shared test edit from the shared `src/qual/cli.py` implementation edit, and accounts for the parser/catalog drift fix requested by reviewer packet `20260429T172055Z`.

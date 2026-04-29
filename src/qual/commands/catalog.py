@@ -169,6 +169,12 @@ def _validate_cli_entrypoints() -> None:
             raise ValueError(f"Unknown CLI command entrypoint: {entrypoint}")
 
 
+def _live_parser_cli_tokens() -> tuple[str, ...]:
+    from src.qual.cli import parser_command_tokens
+
+    return parser_command_tokens()
+
+
 def _command_cli_tokens_by_name() -> dict[str, tuple[str, ...]]:
     tokens_by_name: dict[str, list[str]] = {}
     for token, canonical_name in command_cli_lookup_table():
@@ -486,6 +492,10 @@ def command_cli_lookup_table() -> tuple[tuple[str, str], ...]:
 
 @lru_cache(maxsize=None)
 def command_cli_contract() -> CommandCliContract:
+    tokens = command_cli_tokens()
+    live_parser_tokens = _live_parser_cli_tokens()
+    if live_parser_tokens != tokens:
+        raise ValueError("Command CLI parser tokens are inconsistent")
     lookup_table = command_cli_lookup_table()
     canonical_names = command_names()
     seen_canonical_names: set[str] = set()
@@ -498,7 +508,7 @@ def command_cli_contract() -> CommandCliContract:
     if tuple(lookup_canonical_names) != canonical_names:
         raise ValueError("Command CLI canonical names are inconsistent")
     return CommandCliContract(
-        tokens=command_cli_tokens(),
+        tokens=tokens,
         canonical_names=canonical_names,
         lookup_table=lookup_table,
     )

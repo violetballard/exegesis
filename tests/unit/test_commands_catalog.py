@@ -4,6 +4,7 @@ import unittest
 from unittest.mock import patch
 
 import src.qual.commands.catalog as command_catalog
+from src.qual.cli import _build_parser, parser_command_tokens
 from src.qual.commands import (
     CommandSpec,
     canonical_command,
@@ -102,6 +103,7 @@ class CommandCatalogTests(unittest.TestCase):
         self.assertEqual(command_lookup_tokens("missing"), ())
 
     def test_command_cli_lookup_table_exposes_the_parser_surface(self) -> None:
+        self.assertEqual(parser_command_tokens(_build_parser()), command_cli_tokens())
         self.assertEqual(
             command_cli_lookup_table(),
             (
@@ -123,6 +125,27 @@ class CommandCatalogTests(unittest.TestCase):
         command_catalog.command_cli_contract.cache_clear()
         with patch.object(command_catalog, "command_names", return_value=("bootstrap", "diff-preview")):
             with self.assertRaisesRegex(ValueError, "Command CLI canonical names are inconsistent"):
+                command_catalog.command_cli_contract()
+
+    def test_command_cli_contract_rejects_parser_only_added_token(self) -> None:
+        command_catalog.command_cli_contract.cache_clear()
+        parser_tokens = (*command_cli_tokens(), "experimental")
+        with patch("src.qual.cli.parser_command_tokens", return_value=parser_tokens):
+            with self.assertRaisesRegex(ValueError, "Command CLI parser tokens are inconsistent"):
+                command_catalog.command_cli_contract()
+
+    def test_command_cli_contract_rejects_parser_only_missing_token(self) -> None:
+        command_catalog.command_cli_contract.cache_clear()
+        parser_tokens = tuple(token for token in command_cli_tokens() if token != "terminal")
+        with patch("src.qual.cli.parser_command_tokens", return_value=parser_tokens):
+            with self.assertRaisesRegex(ValueError, "Command CLI parser tokens are inconsistent"):
+                command_catalog.command_cli_contract()
+
+    def test_command_cli_contract_rejects_parser_only_alias_rename(self) -> None:
+        command_catalog.command_cli_contract.cache_clear()
+        parser_tokens = tuple("diff-alias" if token == "diff" else token for token in command_cli_tokens())
+        with patch("src.qual.cli.parser_command_tokens", return_value=parser_tokens):
+            with self.assertRaisesRegex(ValueError, "Command CLI parser tokens are inconsistent"):
                 command_catalog.command_cli_contract()
 
     def test_command_cli_lookup_table_resolves_through_the_catalog(self) -> None:

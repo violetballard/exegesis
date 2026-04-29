@@ -4,7 +4,7 @@ import argparse
 import sys
 from dataclasses import dataclass
 
-from src.qual.commands.canonical import canonical_command
+from src.qual.commands.catalog import canonical_command, command_cli_contract, command_cli_tokens
 from src.qual.config import validate_project_name
 
 
@@ -33,7 +33,7 @@ def _normalize_argv(argv: list[str] | None) -> list[str]:
     if not raw:
         return ["bootstrap"]
 
-    known = {"bootstrap", "diff-preview", "diff", "context-basket", "terminal"}
+    known = set(command_cli_tokens())
     first = raw[0]
     # Backward compatibility: allow `--project ...` without explicit subcommand.
     if first.startswith("-"):
@@ -43,58 +43,62 @@ def _normalize_argv(argv: list[str] | None) -> list[str]:
     return raw
 
 
-def parse_args(argv: list[str] | None = None) -> CLIArgs:
+def _add_diff_parser(subparsers: argparse._SubParsersAction[argparse.ArgumentParser], token: str) -> None:
+    help_text = "Preview unified diff output" if token == "diff-preview" else "Alias for diff-preview"
+    parser = subparsers.add_parser(token, help=help_text)
+    parser.add_argument("--original", help="Original text")
+    parser.add_argument("--proposed", help="Proposed text")
+
+
+def _build_parser() -> argparse.ArgumentParser:
     parser = argparse.ArgumentParser(prog="qual-bootstrap")
     sub = parser.add_subparsers(dest="command")
 
-    p_bootstrap = sub.add_parser("bootstrap", help="Run bootstrap shell")
-    p_bootstrap.add_argument(
-        "--project",
-        type=validate_project_name,
-        help="Project name to bootstrap under local app data directory.",
-    )
+    for token in command_cli_tokens():
+        canonical = canonical_command(token)
+        if canonical == "bootstrap":
+            p_bootstrap = sub.add_parser(token, help="Run bootstrap shell")
+            p_bootstrap.add_argument(
+                "--project",
+                type=validate_project_name,
+                help="Project name to bootstrap under local app data directory.",
+            )
+        elif canonical == "diff-preview":
+            _add_diff_parser(sub, token)
+        elif canonical == "context-basket":
+            p_basket = sub.add_parser(token, help="Manage context basket items")
+            p_basket_sub = p_basket.add_subparsers(dest="basket_action", required=True)
 
-    p_diff = sub.add_parser("diff-preview", help="Preview unified diff output")
-    p_diff.add_argument("--original", help="Original text")
-    p_diff.add_argument("--proposed", help="Proposed text")
+            p_basket_add = p_basket_sub.add_parser("add", help="Add an item id to basket")
+            p_basket_add.add_argument("item_id", help="Context item id")
 
-    p_diff_alias = sub.add_parser("diff", help="Alias for diff-preview")
-    p_diff_alias.add_argument("--original", help="Original text")
-    p_diff_alias.add_argument("--proposed", help="Proposed text")
+            p_basket_remove = p_basket_sub.add_parser("remove", help="Remove an item id from basket")
+            p_basket_remove.add_argument("item_id", help="Context item id")
 
-    p_basket = sub.add_parser("context-basket", help="Manage context basket items")
-    p_basket_sub = p_basket.add_subparsers(dest="basket_action", required=True)
-
-    p_basket_add = p_basket_sub.add_parser("add", help="Add an item id to basket")
-    p_basket_add.add_argument("item_id", help="Context item id")
-
-    p_basket_remove = p_basket_sub.add_parser("remove", help="Remove an item id from basket")
-    p_basket_remove.add_argument("item_id", help="Context item id")
-
-    p_basket_sub.add_parser("list", help="List basket item ids")
-    p_basket_sub.add_parser("clear", help="Clear all basket item ids")
-
-    p_terminal = sub.add_parser("terminal", help="Run terminal routing scaffold")
-    p_terminal.add_argument("--message", help="User terminal input")
-    p_terminal.add_argument(
-        "--operation-kind",
-        choices=[
-            "terminal_chat",
-            "terminal_query",
-            "terminal_tool_orchestration",
-            "terminal_outline_request",
-            "terminal_synthesis_request",
-        ],
-        default="terminal_chat",
-    )
-    p_terminal.add_argument("--section-type", help="Optional section type context")
-    p_terminal.add_argument("--user-intent", help="Optional user intent label")
-    p_terminal.add_argument("--input-tokens", type=int, default=120)
-    p_terminal.add_argument("--constraints-count", type=int, default=0)
-    p_terminal.add_argument("--requires-multi-step-tools", action="store_true")
-    p_terminal.add_argument("--sku-gb", type=int, default=128)
-    p_terminal.add_argument("--qwen-available", action="store_true")
-    p_terminal.add_argument("--runtime-supports-qwen", action="store_true")
+            p_basket_sub.add_parser("list", help="List basket item ids")
+            p_basket_sub.add_parser("clear", help="Clear all basket item ids")
+        elif canonical == "terminal":
+            p_terminal = sub.add_parser(token, help="Run terminal routing scaffold")
+            p_terminal.add_argument("--message", help="User terminal input")
+            p_terminal.add_argument(
+                "--operation-kind",
+                choices=[
+                    "terminal_chat",
+                    "terminal_query",
+                    "terminal_tool_orchestration",
+                    "terminal_outline_request",
+                    "terminal_synthesis_request",
+                ],
+                default="terminal_chat",
+            )
+            p_terminal.add_argument("--section-type", help="Optional section type context")
+            p_terminal.add_argument("--user-intent", help="Optional user intent label")
+            p_terminal.add_argument("--input-tokens", type=int, default=120)
+            p_terminal.add_argument("--constraints-count", type=int, default=0)
+            p_terminal.add_argument("--requires-multi-step-tools", action="store_true")
+            p_terminal.add_argument("--sku-gb", type=int, default=128)
+            p_terminal.add_argument("--qwen-available", action="store_true")
+            p_terminal.add_argument("--runtime-supports-qwen", action="store_true")
 
     parser.set_defaults(
         command="bootstrap",
@@ -114,6 +118,20 @@ def parse_args(argv: list[str] | None = None) -> CLIArgs:
         qwen_available=False,
         runtime_supports_qwen=False,
     )
+    return parser
+
+
+def parser_command_tokens(parser: argparse.ArgumentParser | None = None) -> tuple[str, ...]:
+    resolved_parser = _build_parser() if parser is None else parser
+    for action in resolved_parser._actions:
+        if isinstance(action, argparse._SubParsersAction):
+            return tuple(action.choices)
+    return ()
+
+
+def parse_args(argv: list[str] | None = None) -> CLIArgs:
+    parser = _build_parser()
+    command_cli_contract()
     ns = parser.parse_args(_normalize_argv(argv))
     command = canonical_command(str(ns.command))
     return CLIArgs(
