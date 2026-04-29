@@ -4,10 +4,11 @@
 - Branch: `codex/feat-commands`
 - Review target: full branch tip of `codex/feat-commands`
 - Review basis: `git diff main...codex/feat-commands`
-- Review target implementation tip before this fixer pass: `894e6c128e4e2ece1406f4e95f5086b774955905`
-- Fixer prompt satisfied: `20260429T133117Z`
+- Review target tip before this fixer pass: `04974e20df08b704f39a065e6082194f9024fd26`
+- Latest implementation-bearing commit before this metadata-only fixer pass: `04974e20df08b704f39a065e6082194f9024fd26`
+- Fixer prompt satisfied: `20260429T134038Z`
 
-This packet supersedes all earlier packets and packet-refresh notes. No commit in the reviewed range is described as metadata-only; implementation and handoff edits are part of the branch-tip review target.
+This packet supersedes all earlier packets and packet-refresh notes. The selected review target is the full branch tip, not a narrowed `f8d860ed9` slice. Commit `04974e20df08b704f39a065e6082194f9024fd26` is included in implementation scope because it changes `tests/unit/test_commands_catalog.py` as well as handoff metadata; it is not described as metadata-only. This `20260429T134038Z` fixer pass is metadata-only and exists to correct review-target traceability.
 
 ## Required-Fix Resolution
 
@@ -21,21 +22,23 @@ This packet supersedes all earlier packets and packet-refresh notes. No commit i
 8. The final readiness statement names which canonical demo-path steps this command-catalog slice now makes more real.
 9. Ownership wording now distinguishes the approved shared-test exception from the earlier branch-tip integrator-locked parser exception.
 10. Fresh gate evidence is recorded for the `20260429T131636Z` offline-review fallback fix request; no source changes were required because all required gates passed on rerun.
-11. Intended review target is explicitly the current branch tip, including implementation commit `894e6c128e4e2ece1406f4e95f5086b774955905` (`Add MVP demo command lookup contract`).
+11. Intended review target is explicitly the current branch tip, including implementation commits `894e6c128e4e2ece1406f4e95f5086b774955905` (`Add MVP demo command lookup contract`) and `04974e20df08b704f39a065e6082194f9024fd26` (`fix(commands): satisfy branch tip lookup review`).
 12. The `894e6c128...` runtime API/export changes are listed as implementation scope: `CommandDemoPathLookupContract`, `command_mvp_demo_path_lookup_contract()`, `command_mvp_demo_path_lookup_table()`, `command_mvp_demo_path_command_lookup_table()`, `command_mvp_demo_path_cli_lookup_table()`, `command_mvp_demo_path_action_lookup_table()`, and `command_mvp_demo_path_handoff_lookup_table()`.
 13. The branch-tip demo lookup contract is mapped to the canonical demo path as a direct strengthening of `retrieve material`, `gather/promote context`, `preview/apply/reject patch`, `persist/save`, and `continue`, with `open document` retained in the ordered lookup surface.
-14. The current fixer pass updates packet traceability and keeps the public lookup-export test coverage visible; it does not hide `894e6c128...` or the shared-test delta behind a metadata-only label.
-15. Fresh `20260429T133117Z` gate evidence below is for the exact branch tip proposed for merge after this packet update.
+14. The `04974e20...` shared-test delta is explicitly in scope: `tests/unit/test_commands_catalog.py` keeps public demo-path lookup export regression coverage visible in the reviewed branch-tip diff.
+15. The current fixer pass updates packet traceability; it does not hide `894e6c128...`, `04974e20...`, or the shared-test delta behind a metadata-only label.
+16. Fresh `20260429T134038Z` gate evidence below is for the exact branch tip proposed for merge after this packet update.
 
 ## Implementation Commit List
 
-Current review target: full branch tip of `codex/feat-commands` after the `20260429T133117Z` fixer packet update.
+Current review target: full branch tip of `codex/feat-commands` after the `20260429T134038Z` fixer packet update.
 
 Implementation commits that must be reviewed as implementation scope include:
 
 - `f8d860ed9` - `feat(commands): lock CLI contract to command catalog`; modifies `src/qual/commands/catalog.py` and `tests/unit/test_commands_catalog.py` to lock parser/catalog drift coverage.
 - `894e6c128e4e2ece1406f4e95f5086b774955905` - `Add MVP demo command lookup contract`; modifies `src/qual/commands/__init__.py` and `src/qual/commands/catalog.py` to add the demo-path lookup contract and public exports.
-- This fixer commit - updates `THREAD.md`, `THREAD_PACKET.md`, and `tests/unit/test_commands_catalog.py`; it records the branch-tip review basis and keeps the public demo-path lookup export regression test in the reviewed diff.
+- `04974e20df08b704f39a065e6082194f9024fd26` - `fix(commands): satisfy branch tip lookup review`; modifies `THREAD.md`, `THREAD_PACKET.md`, and `tests/unit/test_commands_catalog.py`; it records the branch-tip review basis and keeps the public demo-path lookup export regression test in the reviewed diff.
+- This `20260429T134038Z` fixer commit - updates `THREAD.md` and `THREAD_PACKET.md` only; it corrects packet traceability for the full branch-tip review target.
 
 The branch also contains earlier command-catalog, CLI parser, diff-preview, scope-check, test, and packet-maintenance commits reflected by the full `git diff main...codex/feat-commands` file list below. Reviewers should use the full branch-tip diff, not an individual historical packet label, as the merge basis.
 
@@ -137,6 +140,8 @@ This is a high-risk branch-tip handoff because the full branch review target inc
 
 ## Commands Run
 
+- Fresh `20260429T134038Z` fixer rerun for the branch-tip traceability review request:
+  `make scope-check` passed; `./quality-format.sh --check` passed; `./quality-lint.sh` passed; `./quality-test.sh` passed with smoke tests and `133` unit tests; `./typecheck-test.sh` passed; `make ci` passed with scope-check, format, lint, typecheck, smoke tests, and `133` unit tests.
 - Fresh `20260429T133117Z` fixer rerun for the branch-tip lookup-contract review request:
   `make scope-check` passed; `./quality-format.sh --check` passed; `./quality-lint.sh` passed; `./quality-test.sh` passed with smoke tests and `133` unit tests; `./typecheck-test.sh` passed; `make ci` passed with scope-check, format, lint, typecheck, smoke tests, and `133` unit tests.
 - Fresh `20260429T131636Z` fixer rerun for offline-review fallback:
@@ -160,6 +165,7 @@ This is a high-risk branch-tip handoff because the full branch review target inc
 
 - Risk: `src/qual/cli.py` is integrator-locked, so review must include the explicit shared-file exception above.
 - Risk: `894e6c128...` expands the public command API/export surface from `src/qual/commands/__init__.py`; this is intentional branch-tip implementation scope and should be reviewed as such.
+- Risk: `04974e20...` changes `tests/unit/test_commands_catalog.py` and handoff metadata; this is intentional branch-tip implementation/test scope and should be reviewed as such.
 - Risk: this packet deliberately reviews the full branch tip instead of a narrowed implementation commit, so reviewers should ignore earlier packet wording and use the file list above.
 - Blockers: none known after gate rerun.
 
