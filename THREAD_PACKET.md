@@ -2,20 +2,22 @@
 
 - Lane: `feat-commands`
 - Branch: `codex/feat-commands`
-- Review target: actual branch tip after this fixer commit
+- Review target: actual branch tip after the `20260429T104933Z` fixer commit
 - Review basis: `f8d860ed9f6299f0169c4f21321ac5f37c949fd3..HEAD`
 - Review range command: `git diff f8d860ed9f6299f0169c4f21321ac5f37c949fd3..HEAD`
-- Fixer scope: satisfy fixer prompt `20260429T104143Z` by making `command_cli_contract()` consume the live argparse parser surface explicitly, preserving regression coverage for real parser token drift, naming the canonical demo-path steps advanced, and clarifying ownership for the current fixer slice versus the broader branch-tip range.
+- Fixer scope: satisfy fixer prompt `20260429T104933Z` by regenerating the packet against the real branch-tip range, correcting false metadata-only traceability, disclosing the live `src/qual/cli.py` parser binding and approval basis, stating the canonical demo-path steps advanced, and rerunning the required gates.
 
 ## Traceability Correction
 
 This packet intentionally uses the reviewer-observed actual branch range, `f8d860ed9f6299f0169c4f21321ac5f37c949fd3..HEAD`. The previous handoff was not traceable because it described a narrower command-catalog slice while the branch tip included additional code, test, and handoff commits.
 
-Commit `f8cfa2337f661b52511ab8dde84d9d7d72288738` is not metadata-only. It changes `tests/unit/test_commands_catalog.py` as well as `THREAD.md` and `THREAD_PACKET.md`, so it remains part of the review range as test work.
+Commit `f8cfa2337f661b52511ab8dde84d9d7d72288738` is not metadata-only. It changes `tests/unit/test_commands_catalog.py` as well as `THREAD.md` and `THREAD_PACKET.md`, so it remains part of the review range as test work plus handoff metadata.
 
 Commit `50921ba10fee9d5d3a8ef3c7ed34f02e0c710f5d` is also not metadata-only. It changes `src/qual/commands/catalog.py` by adding runtime validation that the MVP smoke argv token for each `CommandSmokeStep` starts with the smoke step's command. This runtime command-catalog validation is included in the reviewed implementation scope.
 
-The review target is the actual `codex/feat-commands` branch tip after this fixer commit, not `f8d860ed9f6299f0169c4f21321ac5f37c949fd3` and not `f8cfa2337f661b52511ab8dde84d9d7d72288738`.
+Commit `dd7880c4c114906b97afa9b5386f7c1a9efc7fbe` is not metadata-only. It changes `src/qual/commands/catalog.py` plus `THREAD.md` and `THREAD_PACKET.md`, so it is classified as implementation plus handoff metadata and remains in the branch-tip review range.
+
+The review target is the actual `codex/feat-commands` branch tip after the `20260429T104933Z` fixer commit, not `f8d860ed9f6299f0169c4f21321ac5f37c949fd3`, not `f8cfa2337f661b52511ab8dde84d9d7d72288738`, and not `dd7880c4c114906b97afa9b5386f7c1a9efc7fbe`.
 
 ## Scope Completed
 
@@ -34,7 +36,7 @@ The review target is the actual `codex/feat-commands` branch tip after this fixe
 This is a high-risk handoff because it changes command surface validation and includes `src/qual/cli.py`, which `THREAD_OWNERSHIP.md` marks as both shared-by-approval for `feat-commands` and integrator-locked.
 
 - Task budget: `4` completed tasks of `4` high-risk tasks allowed.
-- Time budget: original high-risk target `30m`; this fixer pass is documentation and gate-rerun work.
+- Time budget: original high-risk target `30m`; this fixer pass is handoff-regeneration and gate-rerun work.
 - High-risk file budget: `6` files changed in the actual review range, within the `<=8` high-risk file limit.
 - High-risk net LOC budget: exceeded in the actual review range. Current branch-tip accounting for `f8d860ed9..HEAD` including this fixer packet refresh is `2068 insertions(+), 109 deletions(-)`. This is explicitly disclosed for reviewer/integrator handling instead of being presented as a narrow catalog-only slice.
 - Current `git diff --stat f8d860ed9..HEAD` evidence including this fixer packet refresh:
@@ -53,10 +55,10 @@ This is a high-risk handoff because it changes command surface validation and in
   - `src/qual/commands/catalog.py`: `317` insertions, `16` deletions
   - `tests/unit/test_commands_catalog.py`: `1521` insertions, `1` deletion
 - Size-budget disposition: this handoff is not within the high-risk net LOC budget. Re-review must either explicitly accept the over-budget branch-tip range as an exception or send the lane back for an integrator-directed split; this packet does not claim pre-existing acceptance.
-- Current fixer-slice ownership: `src/qual/commands/catalog.py` is lane-owned command contract code; `THREAD.md` and `THREAD_PACKET.md` are handoff metadata. This fixer slice does not add a new integrator-locked implementation edit.
+- Current `20260429T104933Z` fixer-slice ownership: `THREAD.md` and `THREAD_PACKET.md` handoff metadata only. This fixer slice does not add a new shared or integrator-locked implementation edit.
 - Branch-tip shared-by-approval file already in the wider review range: `src/qual/cli.py`.
 - Branch-tip integrator-locked file already in the wider review range: `src/qual/cli.py`.
-- Approval basis for the existing `src/qual/cli.py` branch-tip edit: reviewer-required parser-surface traceability for the real CLI parser entrypoint; no routing/provider/config behavior is changed.
+- Approval basis for the existing `src/qual/cli.py` branch-tip edit: reviewer-required parser-surface traceability for the real CLI parser entrypoint and live parser-surface drift detection; no routing/provider/config behavior is changed.
 - Shared/integrator-locked disposition requested for the wider branch-tip range: approve the existing `src/qual/cli.py` exception because live argparse validation is required for the numbered reviewer fix. If that exception is not accepted, the required disposition is an integrator-directed split rather than promotion of this range.
 - Expected strict scope-check behavior: the required bare `make scope-check` gate must pass on this branch tip; if integrator reruns with stricter shared-file policy, `src/qual/cli.py` is the disclosed shared/integrator-locked exception and `SCOPE_ALLOW_SHARED=1 make scope-check` is the documented approval mode from `THREAD_OWNERSHIP.md`.
 
@@ -84,7 +86,15 @@ Classification:
 - Integrator-locked edits: `src/qual/cli.py`, disclosed here for explicit review/integration approval.
 - Test edits: `tests/unit/test_commands_catalog.py`, limited to command-contract and parser-surface regression coverage.
 - Non-owned support edits: none.
-- Current `20260429T104143Z` fixer slice: `src/qual/commands/catalog.py` lane-owned; `THREAD.md` and `THREAD_PACKET.md` handoff metadata; no new shared or integrator-locked implementation file in this fixer commit.
+- Current `20260429T104933Z` fixer slice: `THREAD.md` and `THREAD_PACKET.md` handoff metadata; no new shared or integrator-locked implementation file in this fixer commit.
+
+## Post-Base Commit Classification
+
+The actual review range is `f8d860ed9f6299f0169c4f21321ac5f37c949fd3..HEAD`.
+
+- Code commits are included in the review range, including `50921ba10fee9d5d3a8ef3c7ed34f02e0c710f5d` and `dd7880c4c114906b97afa9b5386f7c1a9efc7fbe`; neither is metadata-only.
+- Test commits are included in the review range, including `f8cfa2337f661b52511ab8dde84d9d7d72288738`; it is test work plus handoff metadata.
+- Handoff metadata commits are included in the review range; they update `THREAD.md` and `THREAD_PACKET.md` to keep the branch-tip handoff accurate.
 
 ## Regression Coverage
 
@@ -95,8 +105,11 @@ Classification:
 
 ## Roadmap And Vision Mapping
 
-- Roadmap item affected: current Milestone 3, Real workflow loop, specifically the command-backed MVP loop from project bootstrap/open through context retrieval, diff preview, terminal continuation, and handoff/export fallback.
+- Roadmap item affected: Milestone 1, Bootstrap Flow Stabilization, specifically command and diff-preview behavior hardening and manual CLI smoke flow stability.
+- Roadmap item affected: Milestone 2, Test Hardening, specifically parser edges and command-level probes for integration confidence.
+- Roadmap item affected: Milestone 5, A2UI Presentation Layer, specifically preserving CLI rendering fallback for the MVP flow while keeping dedicated `feat-console` work deferred.
 - Active MVP note alignment: `AGENTS.md` says current MVP work should target Engine stability, FTS-first retrieval, and A2UI contracts with CLI fallback. This handoff affects Engine command stability and CLI fallback contracts only; it does not start `feat-console`.
+- Exact canonical demo-path steps advanced, using `AGENTS.md` language: `open project/document`, `retrieve material`, `preview/apply/reject patch`, and `continue working`.
 - Vision capability affected: `PRODUCT_VISION.md` capability 2, Retrieval-first context handling. The command smoke surface keeps retrieval-context commands stable for the FTS-first MVP path.
 - Vision capability affected: `PRODUCT_VISION.md` capability 4, Operator-first control surface. The CLI remains a first-class, reliable fallback surface for development, recovery, and repeatable workflow execution.
 - Vision capability affected: `PRODUCT_VISION.md` capability 5, Agent-to-UI protocol (`A2UI`). The CLI fallback remains aligned with structured output/client work without adding a console implementation.
