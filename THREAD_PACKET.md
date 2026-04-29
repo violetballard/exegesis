@@ -2,9 +2,10 @@
 
 - Branch/lane: `codex/feat-retrieval-fts` / `feat-retrieval-fts`
 - Packet purpose: branch-tip re-review packet for the actual merge candidate, including FTS-first retrieval, basket-promotion reference plumbing, and FTS strategy snapshot isolation.
-- Merge candidate: the branch tip after this fixer commit.
+- Current branch-tip SHA before this fixer commit: `709d0f906e933ebb8528205fdb133b348a1e0786`.
+- Merge candidate: the branch tip after this fixer commit; final HEAD SHA is reported in the fixer final response.
 - Authoritative merge-review range: `378cf9a74a3658058079a32f186fcd254c4a4034..HEAD`.
-- Pre-fix packet HEAD: `4cbae7651bd22f3af732359418be6bef2d1b8ce3`.
+- Pre-fix packet HEAD: `709d0f906e933ebb8528205fdb133b348a1e0786`.
 - Reviewed scope rule: review the full branch tip range above. Do not use `adfa8cdadd43747ffbcb612e4151e262b13e52ca` as the merge-candidate endpoint.
 
 ## Branch-Tip Scope Summary
@@ -23,7 +24,7 @@ This advances: retrieve relevant material. The FTS-only excerpt contract makes c
 
 Reviewer-required traceability fix: this packet intentionally reviews `f26b3a6de39492e288fbdf8c2338dab64a6e61e5` as implementation scope in the actual branch-tip merge candidate; it is not classified as a metadata-only packet refresh.
 
-Current fixer reconciliation: the reviewer packet named `d564761748b01f6b96e2bc3a329556032d604f5e` as the stale branch tip. This branch has since advanced through packet/evidence refresh commits, so this handoff regenerates against the actual branch tip after this fixer commit. The candidate range remains `378cf9a74a3658058079a32f186fcd254c4a4034..HEAD`, and the runtime retrieval delta in that range is still the full 7-file branch-tip delta listed below.
+Current fixer reconciliation: the reviewer packet named `709d0f906e933ebb8528205fdb133b348a1e0786` as the stale branch tip. This handoff regenerates against the actual branch tip after this fixer commit. The candidate range remains `378cf9a74a3658058079a32f186fcd254c4a4034..HEAD`, and the runtime retrieval delta in that range is still the full 7-file branch-tip delta listed below.
 
 ## Code-Bearing Commits In Reviewed Scope
 
@@ -34,7 +35,7 @@ Current fixer reconciliation: the reviewer packet named `d564761748b01f6b96e2bc3
 
 Packet/documentation commits after `f26b3a6de39492e288fbdf8c2338dab64a6e61e5`, including this fixer commit, update packet metadata only. Runtime code changes through `f26b3a6de39492e288fbdf8c2338dab64a6e61e5` remain inside the reviewed branch-tip range. The mirrored kickoff packet and lane metadata still contain stale narrowed-target language because this sandbox rejects writes to those packet mirrors; this `THREAD_PACKET.md` remains the authoritative regenerated packet for the actual branch-tip target.
 
-Current fixer note: write access to `.codex/kickoff_packets/feat-retrieval-fts.md` and `.codex/lane_meta/feat-retrieval-fts.json` is still blocked by the workspace sandbox. This packet therefore remains the in-worktree source of truth for the branch-tip candidate range, and the stale `adfa8cdadd43747ffbcb612e4151e262b13e52ca` endpoint in those mirrors must be ignored for review.
+Current fixer note: write access to `.codex/kickoff_packets/feat-retrieval-fts.md` and `.codex/lane_meta/feat-retrieval-fts.json` is still blocked by the workspace sandbox. Attempting to patch `.codex/kickoff_packets/feat-retrieval-fts.md` failed with `writing outside of the project; rejected by user approval settings`. This packet therefore remains the in-worktree source of truth for the branch-tip candidate range, and the stale `adfa8cdadd43747ffbcb612e4151e262b13e52ca` endpoint in those mirrors must be ignored for review.
 
 ## Tasks Completed
 
@@ -90,7 +91,7 @@ Current fixer note: write access to `.codex/kickoff_packets/feat-retrieval-fts.m
 
 ## Commands Run
 
-Current fixer rerun against pre-commit branch tip `4cbae7651bd22f3af732359418be6bef2d1b8ce3` plus the packet correction in this commit:
+Current fixer rerun against pre-commit branch tip `709d0f906e933ebb8528205fdb133b348a1e0786` plus the packet correction in this commit:
 
 - `make scope-check`: PASS; scope-check passed for branch `codex/feat-retrieval-fts`.
 - `./quality-format.sh --check`: PASS.
