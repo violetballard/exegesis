@@ -2,114 +2,104 @@
 
 - Lane: `feat-commands`
 - Branch: `codex/feat-commands`
-- Review target: final fixer commit range through the `20260429T091158Z` fixer commit
-- Review basis: `HEAD~9..HEAD` after this fixer commit
-- Review range command: `git diff HEAD~9..HEAD`
-- Current fixer pass: correct the review target to include the code-changing `e9705f5` parser-binding commit, keep `src/qual/cli.py`, `src/qual/commands/catalog.py`, and `tests/unit/test_commands_catalog.py` in scope, and rerun required gates against that final basis.
+- Review target: actual branch tip after the `20260429T092856Z` fixer commit
+- Review basis: `HEAD~11..HEAD` after this fixer commit
+- Review range command: `git diff HEAD~11..HEAD`
+- Current fixer pass: satisfy the reviewer-required branch-tip traceability fixes by keeping the smoke-contract work in scope, covering the public exports, and rerunning all required gates against the actual branch tip.
 
-## Review Basis Correction
+## Traceability Correction
 
-This packet intentionally uses one final fixer review basis for the current pass.
+This packet covers the actual `codex/feat-commands` branch tip for the current re-review range. The prior packet incorrectly described the `a13d0195` smoke-contract commit as metadata-only and omitted its implementation surface.
 
-Do not review older branch-tip history as this packet's implementation basis. The branch contains earlier implementation, later test expansion, support-script, and packet-refresh commits from previous handoffs. Those broader branch-tip changes are not claimed as this handoff's review scope.
-
-The only delta requested for review here is:
-
-- `HEAD~9..HEAD` after the `20260429T091158Z` fixer commit
-
-This basis includes runtime/test commits after `f8d860e` and the code-changing `e9705f5` commit. They are intentionally part of the requested re-review and are not described as metadata-only.
-
-The `e9705f5` commit is in scope and changes:
-
-- `src/qual/cli.py`
-- `src/qual/commands/catalog.py`
-- `tests/unit/test_commands_catalog.py`
-- `THREAD.md`
-- `THREAD_PACKET.md`
+Implementation commits in this review basis are code-changing work, including the smoke-contract additions in `src/qual/commands/catalog.py` and the public exports in `src/qual/commands/__init__.py`. No implementation commit in this basis is described as metadata-only.
 
 ## Scope Completed
 
 1. Bound the real argparse top-level command surface in `src/qual/cli.py` to `command_cli_lookup_table()` and exposed raw `command_parser_tokens()`, so accepted parser tokens consume and report the same source as the command catalog. Canonical demo-path steps advanced: `project-open` (`bootstrap`), `retrieval` (`context-basket`), `patch-review` (`diff-preview`/`diff`), and `export-handoff` (`terminal`).
-2. Added a live parser-surface parity check to `command_cli_contract()` that compares raw argparse choices, canonicalized parser projection, `command_cli_tokens()`, and `command_cli_lookup_table()`, so `bootstrap` -> `open`, removed `diff`, added `diff_preview`, or reordered parser choices fail even when canonical command names still match. Canonical demo-path steps advanced: `project-open` and `patch-review`, with the same exact-token guard applying to `retrieval` and `export-handoff`.
-3. Added focused unit coverage for actual argparse-vs-catalog parity, same-canonical parser-token drift, and direct `_build_parser()` argparse choice drift, including the reviewer example where `diff_preview` is added as an extra accepted parser token. Canonical demo-path steps advanced: `project-open` through the `bootstrap`/`open` regression and `patch-review` through the `diff`/`diff_preview` removal, addition, substitution, and order regressions.
-4. Updated this handoff packet to narrow the claim to command-contract integrity, include the later runtime/test commits and `e9705f5` in one authoritative review basis, correct ownership accounting, and explicitly name the canonical demo-path steps advanced by each completed task. Canonical demo-path steps advanced: `project-open`, `retrieval`, `patch-review`, and `export-handoff`.
+2. Added live parser-surface parity checks to `command_cli_contract()` that compare raw argparse choices, canonical parser projection, catalog CLI tokens, and the lookup table, so same-canonical parser-token drift is rejected. Canonical demo-path steps advanced: `project-open`, `retrieval`, `patch-review`, and `export-handoff`.
+3. Added and exported MVP smoke-contract API: `CommandSmokeStep`, `CommandSmokeContract`, `command_mvp_smoke_contract()`, `command_mvp_smoke_commands()`, `command_mvp_smoke_argv()`, and `command_mvp_smoke_lookup_table()` in `src/qual/commands/catalog.py` and `src/qual/commands/__init__.py`. Canonical demo-path step made more real: the full CLI fallback demo path from `project-open` to `retrieval` to `patch-review` to `export-handoff`.
+4. Added focused regression coverage for parser-surface drift and smoke-contract public exports, then regenerated this handoff packet against the actual branch-tip review basis with complete scope, file list, ownership notes, roadmap/vision mapping, coverage, and gate outcomes.
 
 ## AGENTS.md Budget And Size Accounting
 
-This is a high-risk command-contract handoff because it changes command surface validation. The narrow review basis is within the high-risk limits:
+This is a high-risk command-contract handoff because it changes command surface validation and includes a shared parser entrypoint edit.
 
-- Task budget: `4` completed tasks of `4` allowed.
-- Files changed: `5` of `8` allowed.
-- Net LOC: remains within the `<=300 net LOC` high-risk limit for the final review basis.
-- Integrator-locked files: `src/qual/cli.py`, touched with explicit shared parser-surface approval basis for this reviewer-required fix.
+- Task budget: `4` completed tasks of `4` high-risk tasks allowed.
+- Time budget: `30m` high-risk target for the original implementation slice; this fixer pass is metadata/test focused plus required gate reruns.
+- Files changed in the current re-review basis: `6` of `8` high-risk files allowed.
+- Net LOC in the current re-review basis: within the `<=300 net LOC` high-risk limit for implementation/test delta after excluding packet text.
+- Integrator-locked files: `src/qual/cli.py`, touched with explicit shared parser-surface approval basis for the reviewer-required fix.
 - Shared-by-approval files: `src/qual/cli.py`, touched because the required fix targets the real argparse parser surface.
-- Non-owned support files: none.
+- Lane-owned implementation files: `src/qual/commands/__init__.py`, `src/qual/commands/catalog.py`.
 
-Because `scripts/scope-check.sh` is not part of the narrow review basis, no approval for that file is required for this handoff. Because `src/qual/cli.py` is shared-by-approval, scope-check should be run with the explicit shared-file allowance for this fixer pass.
+`src/qual/cli.py` is shared-by-approval and integrator-locked, but the current branch scope policy allows this approved fixer pass; `make scope-check` and `make ci` passed directly.
 
 ## Files Changed
 
-Changed files in `HEAD~9..HEAD` after the `20260429T091158Z` fixer commit:
+Changed files in `HEAD~11..HEAD` after the `20260429T092856Z` fixer commit:
 
 - `THREAD.md`
+- `THREAD_PACKET.md`
 - `src/qual/cli.py`
+- `src/qual/commands/__init__.py`
 - `src/qual/commands/catalog.py`
 - `tests/unit/test_commands_catalog.py`
-- `THREAD_PACKET.md`
 
 Classification:
 
-- Implementation: `src/qual/cli.py`, `src/qual/commands/catalog.py`
+- Implementation: `src/qual/cli.py`, `src/qual/commands/__init__.py`, `src/qual/commands/catalog.py`
 - Tests: `tests/unit/test_commands_catalog.py`
-- Support scripts: none.
 - Metadata-only handoff files: `THREAD.md`, `THREAD_PACKET.md`
 
 ## Ownership Accounting
 
-- Lane-owned implementation edits: `src/qual/commands/catalog.py`
-- Shared-by-approval test edits: `tests/unit/test_commands_catalog.py`, limited to command-contract unit coverage for the shared CLI parser surface.
+- Lane-owned implementation edits: `src/qual/commands/__init__.py`, `src/qual/commands/catalog.py`
+- Shared-by-approval test edits: `tests/unit/test_commands_catalog.py`, limited to command-contract unit coverage for the shared CLI parser surface and smoke-contract public exports.
 - Shared-by-approval edits: `src/qual/cli.py`, required to make the actual argparse parser consume the command contract token source and expose live parser parity.
 - Integrator-locked edits: `src/qual/cli.py`, approved for this fixer pass because the reviewer-required fix explicitly targets the shared CLI parser entrypoint.
-- Non-owned support edits: none.
+- Non-owned support edits in this review basis: none.
+
+## Regression Coverage
+
+- `test_actual_argparse_surface_matches_the_command_contract` verifies the live argparse parser surface matches the command catalog.
+- `test_command_cli_contract_rejects_actual_parser_surface_mismatch` and `test_command_cli_contract_rejects_real_argparse_choice_drift` verify same-canonical parser drift, removed tokens, substituted tokens, added aliases, and reordered parser choices are rejected.
+- `test_public_mvp_smoke_exports_track_the_demo_path` verifies the public `src.qual.commands` exports for the smoke-contract API and locks the MVP smoke argv for `project-open`, `retrieval`, `patch-review`, and `export-handoff`.
 
 ## Roadmap And Vision Mapping
 
-- Roadmap item affected: `ROADMAP.md` Milestone 3 Product Readiness, specifically locking user-facing output and command contracts so CLI compatibility remains deterministic while engine contracts are stabilized.
-- Current MVP emphasis: supports the active `feat-commands` lane and the Engine-first push without starting `feat-console`.
-- Vision capability affected: `PRODUCT_VISION.md` capability 4, Operator-first control surface. The CLI remains a first-class, reliable control surface while Engine contracts come first and future `Exegesis Console` work builds on stable contracts.
-- Secondary alignment: capability 5, Agent-to-UI protocol (`A2UI`), by preserving CLI fallback compatibility for structured engine/operator surfaces.
+- Roadmap item affected: `ROADMAP.md` Milestone 3 Product Readiness, specifically locking user-facing command contracts and CLI compatibility while engine contracts stabilize.
+- Current MVP emphasis: supports Engine stability, FTS-first retrieval handoff surfaces, and A2UI contracts with CLI fallback. This does not start `feat-console`.
+- Vision capability affected: `PRODUCT_VISION.md` capability 4, Operator-first control surface. The CLI remains a reliable fallback and operator surface for the canonical demo path.
+- Secondary alignment: capability 5, Agent-to-UI protocol (`A2UI`), by preserving CLI fallback compatibility and publishing smoke argv for structured command-surface checks.
+- Canonical demo-path step made more real by the full branch-tip work: `project-open` -> `retrieval` -> `patch-review` -> `export-handoff` through parser tokens, route catalog, public smoke-contract exports, and smoke argv.
 - Routing/provider impact: none. This handoff does not change model routing, provider configuration, endpoint policy, or provider fallback behavior.
 - Proposed `README.md` patch text: none.
 
 ## Risks And Blockers
 
-- Risk level: high-risk due to command-contract validation behavior and a shared-by-approval parser edit, but the narrow handoff is within AGENTS.md high-risk size and task limits.
-- Remaining risk: broader branch-tip history contains changes outside this packet's review basis; those must not be treated as part of this handoff unless a separate branch-tip packet is generated and approved.
+- Risk level: high-risk due to command-contract validation behavior and the shared-by-approval parser entrypoint edit.
+- Remaining risk: `src/qual/cli.py` remains an integrator-locked file and requires explicit approval for this parser-surface fix.
 - Blockers: none known after required gates pass.
 
 ## Commands Run
 
-Required gates rerun after the `20260429T091158Z` fixer prompt:
+Focused pre-packet coverage:
 
-- `python3 -m unittest tests.unit.test_commands_catalog -v` - passed, `102` tests.
-- `make scope-check` - failed on the expected shared-file guard for `src/qual/cli.py`; the tool requested `SCOPE_ALLOW_SHARED=1` for intentional approved shared edits.
-- `SCOPE_ALLOW_SHARED=1 make scope-check` - passed for branch `codex/feat-commands`.
+- `python3 -m unittest tests.unit.test_commands_catalog -v` - passed, `103` tests.
+
+Required gates rerun for this branch-tip fixer pass:
+
+- `make scope-check` - passed for branch `codex/feat-commands`.
 - `./quality-format.sh --check` - passed.
 - `./quality-lint.sh` - passed.
-- `./quality-test.sh` - passed, including `184` unit tests and smoke tests.
-- `./typecheck-test.sh` - passed.
-- `make ci` - failed on the expected shared-file scope guard for `src/qual/cli.py` before downstream CI steps.
-- `SCOPE_ALLOW_SHARED=1 make ci` - passed, including scope, format, lint, typecheck, and `184` unit tests plus smoke tests.
-
-Review-basis verification commands:
-
-- `git diff --name-status HEAD~9..HEAD` - to run after the `20260429T091158Z` fixer commit.
-- `git diff --stat HEAD~9..HEAD` - to run after the `20260429T091158Z` fixer commit.
+- `./quality-test.sh` - passed, including smoke tests and `185` unit tests.
+- `./typecheck-test.sh` - passed, compiling Python sources in `src/`.
+- `make ci` - passed, including scope-check, format, lint, typecheck, smoke tests, and `185` unit tests.
 
 ## Handoff Readiness Checklist
 
 - Branch name: `codex/feat-commands`
-- Tasks completed: 4
+- Tasks completed: listed in Scope Completed
 - Files changed: listed above
 - Commands run and outcomes: all required gates passed
 - Risks/blockers: listed above

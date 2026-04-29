@@ -50,6 +50,10 @@ from src.qual.commands import (
     command_mvp_flow_tokens,
     command_mvp_flow_sequence,
     command_mvp_flow_steps,
+    command_mvp_smoke_argv,
+    command_mvp_smoke_commands,
+    command_mvp_smoke_contract,
+    command_mvp_smoke_lookup_table,
     command_mvp_lookup_index,
     command_mvp_surface_contract,
     command_surface_contract,
@@ -1907,6 +1911,30 @@ class CommandCatalogTests(unittest.TestCase):
         self.assertEqual(mvp_contract.flow_catalog, command_mvp_flow_catalog())
         self.assertEqual(mvp_contract.lookup_surface, command_mvp_flow_lookup_surface())
         self.assertEqual(mvp_contract.flow_surface_tokens, command_mvp_flow_surface_tokens())
+
+    def test_public_mvp_smoke_exports_track_the_demo_path(self) -> None:
+        contract = command_mvp_smoke_contract()
+        self.assertEqual(
+            tuple((step.flow_step, step.name, step.cli_token, step.argv) for step in contract.steps),
+            (
+                ("project-open", "bootstrap", "bootstrap", ("bootstrap",)),
+                ("retrieval", "context-basket", "context-basket", ("context-basket", "list")),
+                ("patch-review", "diff-preview", "diff-preview", ("diff-preview",)),
+                ("export-handoff", "terminal", "terminal", ("terminal",)),
+            ),
+        )
+        self.assertEqual(command_mvp_smoke_commands(), contract.command_tokens)
+        self.assertEqual(command_mvp_smoke_argv(), contract.argv)
+        self.assertEqual(command_mvp_smoke_lookup_table(), contract.lookup_table)
+        self.assertEqual(
+            contract.lookup_table,
+            (
+                ("bootstrap", "project-open"),
+                ("context-basket", "retrieval"),
+                ("diff-preview", "patch-review"),
+                ("terminal", "export-handoff"),
+            ),
+        )
 
     def test_command_manifest_keeps_catalog_order(self) -> None:
         manifest = command_manifest()
