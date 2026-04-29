@@ -44,17 +44,17 @@ Actual corrected merge diff from `06cdebc2d5d53533b73f264a4bbf5a4b4daacb27` to t
 
 ## Commands Run
 
-- `make scope-check`: pending rerun on the corrected target.
-- `./quality-format.sh --check`: pending rerun on the corrected target.
-- `./quality-lint.sh`: pending rerun on the corrected target.
-- `./quality-test.sh`: pending rerun on the corrected target.
-- `./typecheck-test.sh`: pending rerun on the corrected target.
-- `make ci`: pending rerun on the corrected target after this packet marker commit.
+- `make scope-check`: PASS on the corrected target.
+- `./quality-format.sh --check`: PASS on the corrected target.
+- `./quality-lint.sh`: PASS on the corrected target.
+- `./quality-test.sh`: PASS on the corrected target.
+- `./typecheck-test.sh`: PASS on the corrected target.
+- `make ci`: PASS on the corrected target.
 
 ## Risks And Blockers
 
 - Risk: branch history still contains rejected broad-scope commits, but the corrected branch-tip merge diff is narrowed to the four-file target above.
-- Blockers: none known before gate rerun.
+- Blockers: none after required gates pass.
 
 ## Final Readiness Statement
 

@@ -11,4 +11,4 @@ Canonical handoff contract lives in `THREAD_PACKET.md`.
 - Risk classification: low-risk lane-owned implementation plus packet metadata; no shared or integrator-locked files are changed in the corrected target.
 - Complete corrected file list: `THREAD.md`, `THREAD_PACKET.md`, `src/qual/commands/catalog.py`, and `tests/unit/test_commands_catalog.py`.
 - Implementation slice: `src/qual/commands/catalog.py` and `tests/unit/test_commands_catalog.py` match reviewed commit `f8d860ed9f6299f0169c4f21321ac5f37c949fd3`.
-- Required gates for the exact corrected target: pending rerun after this metadata refresh.
+- Required gates for the exact corrected target: `make scope-check`, `./quality-format.sh --check`, `./quality-lint.sh`, `./quality-test.sh`, `./typecheck-test.sh`, and `make ci` all pass.
