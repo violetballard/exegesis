@@ -254,6 +254,49 @@ class CommandCatalogTests(unittest.TestCase):
             with self.assertRaisesRegex(ValueError, "Command CLI parser surface is inconsistent"):
                 command_catalog.command_cli_contract()
 
+    def test_command_cli_contract_rejects_mutated_real_argparse_choices(self) -> None:
+        drift_cases = (
+            (
+                "same-canonical bootstrap alias added",
+                "add-open",
+            ),
+            (
+                "diff alias removed",
+                "remove-diff",
+            ),
+            (
+                "same-canonical diff alias substituted",
+                "substitute-diff",
+            ),
+            (
+                "top-level parser choices reordered",
+                "reorder",
+            ),
+        )
+        for label, drift_kind in drift_cases:
+            with self.subTest(label=label):
+                self._clear_cli_caches()
+                parser = cli._build_parser()
+                choices = cli._command_subparser_action(parser).choices
+                if drift_kind == "add-open":
+                    choices["open"] = choices["bootstrap"]
+                elif drift_kind == "remove-diff":
+                    choices.pop("diff")
+                elif drift_kind == "substitute-diff":
+                    choices["diff_preview"] = choices.pop("diff")
+                elif drift_kind == "reorder":
+                    reordered = {
+                        token: choices[token]
+                        for token in ("bootstrap", "diff", "diff-preview", "context-basket", "terminal")
+                    }
+                    choices.clear()
+                    choices.update(reordered)
+                else:
+                    raise AssertionError(f"Unhandled drift kind: {drift_kind}")
+                with patch.object(cli, "_build_parser", return_value=parser):
+                    with self.assertRaisesRegex(ValueError, "Command CLI parser surface is inconsistent"):
+                        command_catalog.command_cli_contract()
+
     def test_actual_argparse_surface_rebuilds_from_catalog_tokens(self) -> None:
         self._clear_cli_caches()
         parser_surface = (

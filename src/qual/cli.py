@@ -150,12 +150,16 @@ def command_parser_lookup_table() -> tuple[tuple[str, str], ...]:
     return tuple((token, command_catalog.canonical_command(token)) for token in command_parser_tokens())
 
 
+def _command_subparser_action(parser: argparse.ArgumentParser) -> argparse._SubParsersAction:
+    for action in parser._actions:
+        if isinstance(action, argparse._SubParsersAction) and action.dest == "command":
+            return action
+    raise ValueError("Command CLI parser has no command subcommands")
+
+
 def command_parser_tokens() -> tuple[str, ...]:
     parser = _build_parser()
-    for action in parser._actions:
-        if isinstance(action, argparse._SubParsersAction):
-            return tuple(action.choices)
-    raise ValueError("Command CLI parser has no subcommands")
+    return tuple(_command_subparser_action(parser).choices)
 
 
 def parse_args(argv: list[str] | None = None) -> CLIArgs:
