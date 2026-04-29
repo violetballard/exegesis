@@ -775,6 +775,41 @@ class CommandCatalogTests(unittest.TestCase):
                     with self.assertRaisesRegex(ValueError, "Command CLI parser surface is inconsistent"):
                         command_catalog.command_cli_contract()
 
+    def test_command_cli_contract_rejects_073454_live_entrypoint_surface_drift(self) -> None:
+        drift_cases = (
+            (
+                "same-canonical token replacement",
+                ("open", "diff-preview", "diff", "context-basket", "terminal"),
+            ),
+            (
+                "extra same-canonical alias",
+                ("bootstrap", "open", "diff-preview", "diff", "context-basket", "terminal"),
+            ),
+            (
+                "missing same-canonical alias",
+                ("bootstrap", "diff-preview", "context-basket", "terminal"),
+            ),
+            (
+                "parser token order drift",
+                ("bootstrap", "diff", "diff-preview", "context-basket", "terminal"),
+            ),
+        )
+        for label, drifted_entrypoints in drift_cases:
+            with self.subTest(label=label):
+                self._clear_cli_caches()
+                with (
+                    patch.object(command_catalog, "_CLI_ENTRYPOINTS", drifted_entrypoints),
+                    patch.object(command_catalog, "command_cli_tokens", return_value=command_catalog._DECLARED_CLI_ENTRYPOINTS),
+                    patch.object(
+                        command_catalog,
+                        "command_cli_lookup_table",
+                        return_value=command_catalog._canonical_cli_lookup_table(),
+                    ),
+                    patch.object(command_catalog, "command_names", return_value=command_names()),
+                ):
+                    with self.assertRaisesRegex(ValueError, "Command CLI parser surface is inconsistent"):
+                        command_catalog.command_cli_contract()
+
     def test_command_cli_contract_rejects_053429_reviewer_entrypoint_drift_examples(self) -> None:
         drift_cases = (
             (

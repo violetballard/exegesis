@@ -928,3 +928,43 @@
 - Files changed: `THREAD.md`, `THREAD_PACKET.md`, `scripts/scope-check.sh`, `src/qual/commands/__init__.py`, `src/qual/commands/canonical.py`, `src/qual/commands/catalog.py`, `src/qual/commands/diff_preview.py`, `tests/unit/test_commands_catalog.py`, and `tests/unit/test_diff_preview.py`.
 - Size accounting: 9 files changed, 5081 insertions, 42 deletions after this metadata refresh.
 - Risks/blockers: none open; merge risk remains high because this review target covers the CLI command contract and approved shared command tests.
+
+## Required Fixes Addressed From Fixer Prompt `20260429T073454Z`
+
+1. Updated `command_cli_contract()` so the exact parser-surface validator receives the live `_CLI_ENTRYPOINTS` tuple directly, in addition to helper-returned CLI tokens and lookup table. This rejects same-canonical token replacement, extra accepted aliases, missing accepted tokens, and parser-token order drift before the contract is returned.
+2. Added `test_command_cli_contract_rejects_073454_live_entrypoint_surface_drift`, which patches `_CLI_ENTRYPOINTS` while patching helper-returned tokens, lookup table, and canonical names to the canonical values. The test proves the live parser surface itself is validated, not only deduped canonical names or helper projections.
+3. Regenerated this handoff with one review target only: the current branch tip after the `20260429T073454Z` fixer commit. The review target is not `f8d860ed9f6299f0169c4f21321ac5f37c949fd3` alone, and implementation/test commits are not metadata-only.
+4. Kept completed task accounting mapped to canonical demo-path steps:
+   - Task 1: project open - `bootstrap` remains the only accepted parser token for the `project-open` canonical demo-path step.
+   - Task 2: patch review - `diff-preview` / `diff` remain the only accepted parser tokens for the `patch-review` canonical demo-path step.
+   - Task 3: retrieval/basket - `context-basket` remains the accepted parser token for the `retrieval` canonical demo-path step.
+   - Task 4: export handoff - `terminal` remains the accepted parser token for the `export-handoff` canonical demo-path step.
+5. Explicit demo-path progress statement: the CLI-first parser surface for project open, retrieval/basket, patch review, and export handoff is now more real because live parser-token drift fails loudly before Textual is enabled.
+6. Corrected ownership/scope accounting for the branch-tip target:
+   - Lane-owned files: `src/qual/commands/__init__.py`, `src/qual/commands/canonical.py`, `src/qual/commands/catalog.py`, `src/qual/commands/diff_preview.py`.
+   - Approved shared-test edits: `tests/unit/test_commands_catalog.py`, `tests/unit/test_diff_preview.py`.
+   - Metadata-only handoff files: `THREAD.md`, `THREAD_PACKET.md`.
+   - Other non-owned support file in branch diff: `scripts/scope-check.sh`.
+   - Integrator-locked files edited: none.
+7. Recomputed branch-tip accounting against merge base `06cdebc2d5d53533b73f264a4bbf5a4b4daacb27`: 9 changed files, 5171 insertions, 42 deletions before this current fixer commit is created.
+8. Required gates were rerun after this `20260429T073454Z` fixer pass and recorded below.
+
+## Latest Commands Run + Outcomes For `20260429T073454Z`
+
+- `python -m unittest tests.unit.test_commands_catalog.CommandCatalogTests.test_command_cli_contract_rejects_073454_live_entrypoint_surface_drift tests.unit.test_commands_catalog.CommandCatalogTests.test_command_cli_contract_rejects_070743_exact_parser_surface_drift`: PASS; ran 2 focused parser-surface drift tests.
+- `make scope-check`: PASS for branch `codex/feat-commands`.
+- `./quality-format.sh --check`: PASS.
+- `./quality-lint.sh`: PASS.
+- `./quality-test.sh`: PASS; ran smoke tests and 179 unit tests, including the `073454` live-entrypoint parser-surface drift regression.
+- `./typecheck-test.sh`: PASS; compiled Python sources in `src/`.
+- `make ci`: PASS; ran scope-check, format, lint, compileall/typecheck, and full quality tests.
+
+## Latest Review Target For `20260429T073454Z`
+
+- Branch: `codex/feat-commands`
+- Review target: current branch tip after the `20260429T073454Z` fixer commit.
+- Review basis: all branch-tip changes relative to merge base `06cdebc2d5d53533b73f264a4bbf5a4b4daacb27`.
+- Files changed: `THREAD.md`, `THREAD_PACKET.md`, `scripts/scope-check.sh`, `src/qual/commands/__init__.py`, `src/qual/commands/canonical.py`, `src/qual/commands/catalog.py`, `src/qual/commands/diff_preview.py`, `tests/unit/test_commands_catalog.py`, and `tests/unit/test_diff_preview.py`.
+- Size accounting: 9 files changed, 5171 insertions, 42 deletions against merge base `06cdebc2d5d53533b73f264a4bbf5a4b4daacb27`.
+- Current fixer-pass files changed before commit: `src/qual/commands/catalog.py`, `tests/unit/test_commands_catalog.py`, `THREAD.md`, and `THREAD_PACKET.md` (91 insertions, 1 deletion).
+- Risks/blockers: none open; merge risk remains high because this review target covers the CLI command contract and approved shared command tests.
