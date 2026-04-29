@@ -14,6 +14,7 @@
 2. The intended merge target is current `codex/feat-retrieval-fts`, so all post-`adfa8cdadd43747ffbcb612e4151e262b13e52ca` implementation changes are included in the reviewed range and summarized below.
 3. Required gates are rerun against the exact branch-tip merge candidate for this fixer pass.
 4. The completed tasks map explicitly to the canonical demo-path step: `retrieve relevant material`.
+5. The `.codex` packet mirrors were rechecked during this fixer pass and remain blocked by the sandbox: even `touch .codex/.write_test` returns `Operation not permitted`, so this packet remains the writable review source of truth.
 
 ## Scope Completed
 
@@ -76,4 +77,5 @@ The branch delivers the FTS-first retrieval slice needed for the current MVP eng
 
 - Merge risk remains high because the actual reviewed range includes approved shared regression coverage.
 - Blocker for packet mirrors: `.codex/kickoff_packets/feat-retrieval-fts.md` and `.codex/lane_meta/feat-retrieval-fts.json` remain stale because this sandbox rejects writes to `.codex` paths as outside-project writes.
+- Confirmed blocker evidence: `touch .codex/.write_test` fails with `Operation not permitted`; both mirror files are tracked but carry `com.apple.provenance` attributes in this worktree.
 - `THREAD_PACKET.md` is the corrected writable source of truth for re-review: the reviewed range is `378cf9a7..HEAD`, post-`adfa8cdadd43747ffbcb612e4151e262b13e52ca` retrieval code is in scope, and the handoff is high-risk/shared under the 4-task cap.
