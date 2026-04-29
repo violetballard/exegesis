@@ -58,6 +58,14 @@ Earlier packet text incorrectly treated commits after `adfa8cdadd43747ffbcb612e4
 
 That range includes runtime and test changes after `adfa8cdadd43747ffbcb612e4151e262b13e52ca` in `src/qual/engine/retrieval/payload.py`, `src/qual/retrieval/service.py`, and `tests/unit/test_unified_retrieval.py`. This fixer pass changes packet metadata only; it does not narrow, split, reset, or modify the reviewed runtime/test implementation.
 
+## Reviewer Required Fixes Addressed
+
+1. The reviewed range is regenerated against the actual merge candidate that existed when this fixer started: `378cf9a74a3658058079a32f186fcd254c4a4034..f81b95e8f837bead6df9444e6891cc7cbbf64903`.
+2. The files-changed list separates metadata-only files from implementation/test files and identifies the implementation/test total separately.
+3. Required gates are rerun in this fixer pass and reported below.
+4. Completed tasks and the canonical demo-path step are restated for the actual branch-tip code delta, with scope limited to Milestone 3 FTS-first retrieval.
+5. Shared-file edits remain limited to the approved `tests/unit/test_unified_retrieval.py` exception; no integrator-locked files are changed in the reviewed range.
+
 ## Commands Run
 
 Required gates rerun in this fixer pass against the corrected packet state:
