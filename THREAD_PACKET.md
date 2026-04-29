@@ -16,7 +16,7 @@
   - `d020227ca44c691f2f8e655762b4465618f1faa5`: metadata-only packet correction that refreshed reviewer-fix traceability.
   - `19f037e38c13b9ae1891e3eb3d1a814663164f370`: metadata-only packet correction that validated the reviewer-fix packet without implementation changes.
   - `6201d051c5eaf86c35cfa123f7625bb9a874a112`: metadata-only packet correction that clarified the demo-path handoff in `THREAD.md` and `THREAD_PACKET.md`.
-  - Final fixer validation commit from this packet: packet-only metadata update confirming the corrected target, required-fix mapping, and green gates. The exact final HEAD SHA is reported by the fixer after commit creation.
+- Final fixer validation commit for reviewer packet `fixer__feat-commands__20260429T220646Z`: packet-only metadata update confirming the corrected target, required-fix mapping, and green gates. The exact final HEAD SHA is reported by the fixer after commit creation.
 - Merge base used for file accounting: `06cdebc2d5d53533b73f264a4bbf5a4b4daacb27`.
 - Risk classification: low-risk lane-owned implementation plus one shared-by-approval unit-test exception and packet metadata; no integrator-locked files are changed.
 
@@ -75,6 +75,7 @@ Actual corrected merge diff from `06cdebc2d5d53533b73f264a4bbf5a4b4daacb27` to t
 - `./quality-test.sh`: PASS on 2026-04-29 for the corrected target.
 - `./typecheck-test.sh`: PASS on 2026-04-29 for the corrected target.
 - `make ci`: PASS on 2026-04-29 for the corrected target.
+- `python -m unittest tests.unit.test_commands_catalog`: PASS on 2026-04-29 for the reviewer-required canonical parser-token drift regressions.
 
 ## Risks And Blockers
 
