@@ -5992,6 +5992,39 @@ class A2UIFallbackSafetyTests(unittest.TestCase):
             (selection, "card"),
         )
 
+    def test_terminal_artifact_cli_fallback_target_resolver_keeps_direct_typed_envelopes_on_card_path(
+        self,
+    ) -> None:
+        action_envelope = {
+            "type": "TerminalArtifact",
+            "kind": "action",
+            "artifact": {
+                "type": "ActionRef",
+                "id": "export_document",
+                "label": "Export",
+                "payload": {"format": "md"},
+            },
+        }
+        selection_envelope = {
+            "type": "TerminalArtifact",
+            "kind": "selection",
+            "artifact": {
+                "type": "SelectionRef",
+                "id": "choice-1",
+                "label": "Choice",
+                "payload": {"nested": {"items": [1, 2]}},
+            },
+        }
+
+        self.assertEqual(
+            resolve_terminal_artifact_cli_fallback_target(action_envelope, kind="card"),
+            (action_envelope, "card"),
+        )
+        self.assertEqual(
+            resolve_terminal_artifact_cli_fallback_target(selection_envelope, kind="card"),
+            (selection_envelope, "card"),
+        )
+
     def test_terminal_artifact_cli_fallback_entrypoint_rejects_explicit_typed_leaf_mappings_under_card_hints(
         self,
     ) -> None:
