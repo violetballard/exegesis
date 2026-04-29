@@ -5,7 +5,7 @@
 - Merge candidate: `HEAD` after the fixer commit that updates this packet; final HEAD SHA is reported by the fixer.
 - Authoritative reviewed range: `378cf9a74a3658058079a32f186fcd254c4a4034..HEAD`.
 - Scope rule: review the full range above. Do not use `adfa8cdadd43747ffbcb612e4151e262b13e52ca` as the endpoint, and do not treat later retrieval-code commits as metadata-only.
-- Packet mirror note: `.codex/kickoff_packets/feat-retrieval-fts.md` and `.codex/lane_meta/feat-retrieval-fts.json` are stale packet mirrors in this worktree and still contain older narrowed-slice wording. This fixer attempted to update them again, but the sandbox rejected writes to those `.codex` paths with `PermissionError: [Errno 1] Operation not permitted`. Treat this `THREAD_PACKET.md` as the source of truth for re-review.
+- Packet mirror note: `.codex/kickoff_packets/feat-retrieval-fts.md` and `.codex/lane_meta/feat-retrieval-fts.json` are stale packet mirrors in this worktree and still contain older narrowed-slice wording. This fixer attempted to update them again, but the sandbox rejected writes to those `.codex` paths with `Operation not permitted`. Treat this `THREAD_PACKET.md` as the source of truth for re-review.
 
 ## Required Reviewer Fixes Addressed
 
