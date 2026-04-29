@@ -1,9 +1,10 @@
 ## Thread Handoff Packet
 
 - Branch/lane: `codex/feat-retrieval-fts` / `feat-retrieval-fts`
-- Merge candidate: current branch tip, including this packet-refresh fixer commit.
+- Merge candidate: current branch tip `HEAD`, including this packet-regeneration fixer commit.
+- Branch-tip SHA: final HEAD SHA reported by this fixer handoff; embedding a pre-commit SHA here would become stale as soon as this packet commit is created.
 - Reviewed range for re-review: `378cf9a74a3658058079a32f186fcd254c4a4034..HEAD`
-- Pre-fix reviewer trace anchor: `af726ee0798cb210973489343693ba36be020429`
+- Pre-fix reviewer trace anchor: `87f52bcb2b7b9b08a9b5febc325f90802c16aeef`
 - Handoff classification: high-risk/shared because the merge candidate includes approved shared regression coverage in `tests/unit/test_unified_retrieval.py`.
 - Canonical demo-path steps advanced: `retrieve relevant material` and `promote or gather context into the basket`.
 
@@ -12,7 +13,7 @@
 1. The handoff is regenerated against the actual branch-tip merge candidate. It no longer asks review to stop at `adfa8cdadd43747ffbcb612e4151e262b13e52ca` or treats later branch-tip implementation commits as outside the packet.
 2. The reviewed range is the full branch-tip merge-candidate range `378cf9a74a3658058079a32f186fcd254c4a4034..HEAD`, which includes implementation commits after `adfa8cdadd43747ffbcb612e4151e262b13e52ca` such as `10a5fce539b4f090c03138856e3b6d721eb4ee39`.
 3. Scope, file list, budget, risk, and gate evidence below are reported for the actual branch-tip merge candidate.
-4. Every completed task names the canonical demo-path step it advances.
+4. Required gates are re-run on the corrected branch tip and reported below.
 
 ## Scope Completed
 
@@ -49,8 +50,8 @@ Implementation files in that range:
 - Risk: high/shared.
 - Task budget: `4/4`.
 - File budget: `6/8`.
-- Size budget for `378cf9a74a3658058079a32f186fcd254c4a4034..HEAD` before this metadata-only fixer commit: `6 files changed, 415 insertions(+), 118 deletions(-)`, net `297` LOC, within the high-risk `<=300` net LOC cap.
-- This fixer commit changes packet metadata only and does not change retrieval implementation behavior.
+- Size budget for `378cf9a74a3658058079a32f186fcd254c4a4034..87f52bcb2b7b9b08a9b5febc325f90802c16aeef` before this metadata-only fixer commit: `6 files changed, 415 insertions(+), 118 deletions(-)`, net `297` LOC, within the high-risk `<=300` net LOC cap.
+- This fixer commit changes packet metadata only and does not change retrieval implementation behavior; its final SHA is reported in the fixer handoff.
 - Integrator-locked files: none.
 - Shared-by-approval files: `tests/unit/test_unified_retrieval.py`, used only for canonical retrieval regression coverage.
 - Routing/provider impact: none. This branch does not change model routing, provider configuration, provider compatibility behavior, CLI entrypoints, or app entrypoints.
@@ -69,7 +70,7 @@ Implementation files in that range:
 
 ## Commands Run
 
-Fresh fixer pass on `2026-04-29` for the actual branch-tip merge candidate:
+Fresh fixer pass on `2026-04-29` for the actual branch-tip merge candidate. Final outcomes are reported after this packet-regeneration commit is created:
 
 - `make scope-check` PASS.
 - `./quality-format.sh --check` PASS.
