@@ -5,13 +5,15 @@
 - Review target: actual branch tip after this fixer commit
 - Review basis: `f8d860ed9f6299f0169c4f21321ac5f37c949fd3..HEAD`
 - Review range command: `git diff f8d860ed9f6299f0169c4f21321ac5f37c949fd3..HEAD`
-- Fixer scope: regenerate the handoff for the real branch tip and real review range named by the reviewer, stop treating code/test commits as metadata-only, disclose the shared/integrator-locked CLI parser edit, validate the live argparse parser choices directly, recompute branch-tip size accounting, map every completed task to canonical demo-path steps, and rerun the required gates.
+- Fixer scope: regenerate the handoff for the real branch tip and real review range named by the reviewer, stop treating code/test commits as metadata-only, disclose the shared/integrator-locked CLI parser edit, include commit `50921ba10fee9d5d3a8ef3c7ed34f02e0c710f5d` as a runtime catalog change, validate the live argparse parser choices directly, recompute branch-tip size accounting, map every completed task to canonical demo-path steps, and rerun the required gates.
 
 ## Traceability Correction
 
 This packet intentionally uses the reviewer-observed actual branch range, `f8d860ed9f6299f0169c4f21321ac5f37c949fd3..HEAD`. The previous handoff was not traceable because it described a narrower command-catalog slice while the branch tip included additional code, test, and handoff commits.
 
 Commit `f8cfa2337f661b52511ab8dde84d9d7d72288738` is not metadata-only. It changes `tests/unit/test_commands_catalog.py` as well as `THREAD.md` and `THREAD_PACKET.md`, so it remains part of the review range as test work.
+
+Commit `50921ba10fee9d5d3a8ef3c7ed34f02e0c710f5d` is also not metadata-only. It changes `src/qual/commands/catalog.py` by adding runtime validation that the MVP smoke argv token for each `CommandSmokeStep` starts with the smoke step's command. This runtime command-catalog validation is included in the reviewed implementation scope.
 
 The review target is the actual `codex/feat-commands` branch tip after this fixer commit, not `f8d860ed9f6299f0169c4f21321ac5f37c949fd3` and not `f8cfa2337f661b52511ab8dde84d9d7d72288738`.
 
@@ -22,6 +24,7 @@ The review target is the actual `codex/feat-commands` branch tip after this fixe
 2. Added live parser-surface parity checks to `command_cli_contract()` that compare raw argparse choices, canonical parser projection, catalog CLI tokens, and the lookup table, so same-canonical parser-token drift is rejected. This fixer pass also makes `src/qual/cli.py` locate the top-level argparse action by `dest="command"` before exposing parser tokens.
    Canonical demo-path steps advanced: `open project/document`, `retrieve material`, `preview/apply/reject patch`, and `continue working`, by preventing the CLI fallback command names for those steps from drifting away from the catalog.
 3. Added and exported the MVP smoke-contract API: `CommandSmokeStep`, `CommandSmokeContract`, `command_mvp_smoke_contract()`, `command_mvp_smoke_commands()`, `command_mvp_smoke_argv()`, and `command_mvp_smoke_lookup_table()` in `src/qual/commands/catalog.py` and `src/qual/commands/__init__.py`.
+   This includes the `50921ba10fee9d5d3a8ef3c7ed34f02e0c710f5d` runtime validation change in `src/qual/commands/catalog.py`, which rejects smoke steps whose argv no longer begins with the declared command.
    Canonical demo-path steps advanced: `open project/document` via `bootstrap`; `retrieve material` via `context-basket list`; `preview/apply/reject patch` via `diff-preview`; `continue working` via `terminal`.
 4. Added focused regression coverage in `tests/unit/test_commands_catalog.py` for parser-surface drift and smoke-contract public exports, including tests that mutate a real argparse parser's top-level `choices`, patch `_build_parser()` choices, and intercept `argparse._SubParsersAction.add_parser()` to rewrite the top-level `diff-preview` parser token.
    Canonical demo-path steps advanced: all command-backed fallback steps above, by proving the parser/catalog contract rejects live argparse token drift before integration.
@@ -38,6 +41,7 @@ This is a high-risk handoff because it changes command surface validation and in
 - Shared-by-approval file: `src/qual/cli.py`.
 - Integrator-locked file: `src/qual/cli.py`.
 - Approval basis for `src/qual/cli.py`: reviewer-required parser-surface traceability fix for the real CLI parser entrypoint; no routing/provider/config behavior is changed.
+- Expected strict scope-check behavior: the required bare `make scope-check` gate must pass on this branch tip; if integrator reruns with stricter shared-file policy, `src/qual/cli.py` is the disclosed shared/integrator-locked exception and `SCOPE_ALLOW_SHARED=1 make scope-check` is the documented approval mode from `THREAD_OWNERSHIP.md`.
 
 ## Files Changed
 
