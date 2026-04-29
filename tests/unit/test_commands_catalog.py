@@ -829,7 +829,7 @@ class CommandCatalogTests(unittest.TestCase):
                     with self.assertRaisesRegex(ValueError, "Command CLI tokens are inconsistent"):
                         command_catalog.command_cli_contract()
 
-    def test_command_cli_contract_rejects_reviewer_entrypoint_drift_examples(self) -> None:
+    def test_command_cli_contract_rejects_054027_reviewer_entrypoint_drift_examples(self) -> None:
         drift_cases = (
             ("open replaces bootstrap", ("open", "diff-preview", "diff", "context-basket", "terminal")),
             ("extra open", ("bootstrap", "open", "diff-preview", "diff", "context-basket", "terminal")),
@@ -843,7 +843,7 @@ class CommandCatalogTests(unittest.TestCase):
                     with self.assertRaisesRegex(ValueError, "Command CLI tokens are inconsistent"):
                         command_catalog.command_cli_contract()
 
-    def test_command_cli_contract_rejects_reviewer_parser_surface_examples(self) -> None:
+    def test_command_cli_contract_rejects_054027_reviewer_parser_surface_examples(self) -> None:
         drift_cases = (
             (
                 "open replaces bootstrap",
@@ -901,7 +901,7 @@ class CommandCatalogTests(unittest.TestCase):
                     with self.assertRaisesRegex(ValueError, "Command CLI parser surface is inconsistent"):
                         command_catalog.command_cli_contract()
 
-    def test_command_cli_contract_rejects_reviewer_exact_parser_projection_examples(self) -> None:
+    def test_command_cli_contract_rejects_054027_exact_parser_projection_examples(self) -> None:
         drift_cases = (
             (
                 "open replaces bootstrap while preserving bootstrap canonical name",
