@@ -8,7 +8,7 @@
 - Implementation commits under review:
   - `f8d860ed9f6299f0169c4f21321ac5f37c949fd3`: original command-catalog CLI contract implementation.
   - `ab96cb722094e821105d1cdfd3cae24f4b9184ef`: implementation fix for canonical-token drift, including alias-before-canonical regression coverage.
-  - This fixer commit: handoff traceability refresh only, unless the committed diff shows otherwise.
+  - This fixer commit: final command-catalog contract clarification plus handoff traceability refresh.
 - Merge base used for file accounting: `06cdebc2d5d53533b73f264a4bbf5a4b4daacb27`.
 - Risk classification: low-risk lane-owned implementation plus one shared-by-approval unit-test exception and packet metadata; no integrator-locked files are changed.
 
