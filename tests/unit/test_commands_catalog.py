@@ -122,7 +122,7 @@ class CommandCatalogTests(unittest.TestCase):
     def test_command_cli_contract_rejects_catalog_drift(self) -> None:
         command_catalog.command_cli_contract.cache_clear()
         with patch.object(command_catalog, "command_names", return_value=("bootstrap", "diff-preview")):
-            with self.assertRaisesRegex(ValueError, "Command CLI canonical names are inconsistent"):
+            with self.assertRaisesRegex(ValueError, "Command CLI canonical tokens are inconsistent"):
                 command_catalog.command_cli_contract()
 
     def test_command_cli_contract_rejects_alias_replacing_canonical_token(self) -> None:
@@ -133,6 +133,21 @@ class CommandCatalogTests(unittest.TestCase):
         command_catalog.command_cli_lookup_table.cache_clear()
         command_catalog.command_cli_tokens.cache_clear()
         with patch.object(command_catalog, "_CLI_ENTRYPOINTS", ("bootstrap", "diff", "context-basket", "terminal")):
+            with self.assertRaisesRegex(ValueError, "Command CLI canonical tokens are inconsistent"):
+                command_catalog.command_cli_contract()
+
+    def test_command_cli_contract_rejects_alias_before_canonical_token(self) -> None:
+        self.addCleanup(command_catalog.command_cli_contract.cache_clear)
+        self.addCleanup(command_catalog.command_cli_lookup_table.cache_clear)
+        self.addCleanup(command_catalog.command_cli_tokens.cache_clear)
+        command_catalog.command_cli_contract.cache_clear()
+        command_catalog.command_cli_lookup_table.cache_clear()
+        command_catalog.command_cli_tokens.cache_clear()
+        with patch.object(
+            command_catalog,
+            "_CLI_ENTRYPOINTS",
+            ("bootstrap", "diff", "diff-preview", "context-basket", "terminal"),
+        ):
             with self.assertRaisesRegex(ValueError, "Command CLI canonical tokens are inconsistent"):
                 command_catalog.command_cli_contract()
 
