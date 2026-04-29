@@ -1,18 +1,19 @@
 ## Thread Handoff Packet
 
 - Branch/lane: `codex/feat-retrieval-fts` / `feat-retrieval-fts`
-- Merge candidate: current branch tip after this retrieval payload hardening pass; final SHA is reported in the fixer handoff.
+- Merge candidate: current branch tip after this reviewer-fix packet refresh; final SHA is reported in the fixer handoff.
 - Reviewed range: `d7fd5d200358287fa42a18d39e2b277463b9b69f..HEAD`
 - Reviewed implementation range: `d7fd5d200358287fa42a18d39e2b277463b9b69f..HEAD`
-- Review choice: keep the current branch tip and regenerate the packet for the full branch-tip implementation range. The older narrowed `378cf9a74a3658058079a32f186fcd254c4a4034..adfa8cdadd43747ffbcb612e4151e262b13e52ca` slice is obsolete and must not be used for approval.
+- Review choice: this packet supersedes earlier narrowed-slice packets. Re-review must use the branch-tip range above, or a later split branch explicitly identified as the merge candidate.
 - Canonical demo-path step advanced: retrieve relevant material through the FTS-first retrieval service, then expose stable context/promotion refs for downstream basket and workflow use.
 
 ## Required Fixes Addressed
 
-1. The reviewable merge candidate is the branch tip. This packet uses `d7fd5d200358287fa42a18d39e2b277463b9b69f..HEAD`, the actual merge-base-to-tip range for `codex/feat-retrieval-fts`.
-2. The full implementation diff is in scope, including all post-`adfa8cdadd43747ffbcb612e4151e262b13e52ca` runtime retrieval and regression-test changes.
-3. Files changed, task count, line/file budget accounting, shared-file exception notes, roadmap/product vision mapping, and canonical demo-path mapping are regenerated for the actual branch tip.
-4. Gate results below are tied to this branch-tip merge candidate and were refreshed after the current retrieval payload hardening change.
+1. The reviewable branch-tip merge candidate is regenerated against `d7fd5d200358287fa42a18d39e2b277463b9b69f..HEAD`.
+2. The packet no longer asks reviewers to approve an older narrowed implementation slice. The branch-tip range is the only current merge-candidate range named for review.
+3. Budget accounting is explicit for the actual branch tip. The current full branch is high-risk/shared work and exceeds the AGENTS high-risk size and file caps; integration requires either a split into budget-compliant high-risk handoffs or explicit integrator approval for the exception before approval.
+4. Roadmap mapping is corrected to the reviewer-required current roadmap target: `ROADMAP.md` Milestone 3 Real workflow loop, specifically FTS-first structured retrieval suitable for basket promotion.
+5. Required gates are re-run and reported below for the final branch-tip range.
 
 ## Scope Completed
 
@@ -56,7 +57,9 @@ Matches `git diff --name-status d7fd5d200358287fa42a18d39e2b277463b9b69f..HEAD` 
 
 ## Budget / Risk
 
-Risk/budget: high/shared because shared regression coverage and runtime retrieval payload/service behavior are included in the reviewed range. Recomputed from `d7fd5d200358287fa42a18d39e2b277463b9b69f..HEAD` including this packet refresh: task budget `4/4`; file budget `13/8`; size budget `13 files changed, 1975 insertions(+), 265 deletions(-)`, which is `1710` net LOC and exceeds the high-risk `<=300` net LOC cap. Integrator-locked files: none. Shared-by-approval files: `tests/unit/test_unified_retrieval.py` and `tests/unit/test_packet_planner.py` as regression/packet coverage for this lane. Routing/provider/core entrypoint impact: none.
+Risk/budget: high/shared because shared regression coverage and runtime retrieval payload/service behavior are included in the reviewed range. Recomputed from `d7fd5d200358287fa42a18d39e2b277463b9b69f..HEAD` including this packet refresh: task budget `4/4`; file budget `13/8`; size budget `13 files changed, 1973 insertions(+), 264 deletions(-)`, which is `1709` net LOC and exceeds the high-risk `<=300` net LOC cap. Integrator-locked files: none. Shared-by-approval files: `tests/unit/test_unified_retrieval.py` and `tests/unit/test_packet_planner.py` as regression/packet coverage for this lane. Routing/provider/core entrypoint impact: none.
+
+Required budget disposition: do not approve the full branch tip under normal AGENTS high-risk enforcement unless the integrator grants an explicit budget exception. Without that exception, split the work into budget-compliant high-risk handoffs, each capped at `4` meaningful tasks, `<=8` files, and `<=300` net LOC, and regenerate each split packet against its intended merge-candidate range.
 
 ## FTS-First Alignment Proof
 
@@ -64,8 +67,7 @@ Risk/budget: high/shared because shared regression coverage and runtime retrieva
 
 ## Roadmap / Vision Mapping
 
-- Roadmap item affected: `ROADMAP.md` Milestone 4, Retrieval Layer: FTS-first ingestion/index path, retrieval orchestration before drafting/diff generation, source-attribution model, and auditable deterministic retrieval paths.
-- Roadmap item affected: `ROADMAP.md` Milestone 3, Product Readiness: generation provenance contract with retrieval evidence attached to outputs.
+- Roadmap item affected: `ROADMAP.md` Milestone 3 Real workflow loop: FTS-first structured retrieval suitable for basket promotion.
 - Vision capability affected: `PRODUCT_VISION.md` capability 2, Retrieval-first context handling: source documents are retrieved as chunks and SQLite FTS remains the current MVP retrieval path.
 - Vision capability affected: `PRODUCT_VISION.md` capability 3, Auditable generation: retrieved sources carry deterministic provenance, citation, fingerprint, and promotion references.
 - Routing/provider impact: none. This branch does not change model routing, provider configuration, or provider compatibility behavior.
@@ -75,8 +77,6 @@ Risk/budget: high/shared because shared regression coverage and runtime retrieva
 
 Fresh branch-tip fixer pass:
 
-- `python -m pytest tests/unit/test_unified_retrieval.py -q` BLOCKED because this Python environment has no `pytest` module.
-- `python -m unittest tests.unit.test_unified_retrieval` PASS (`55` tests).
 - `make scope-check` PASS.
 - `./quality-format.sh --check` PASS.
 - `./quality-lint.sh` PASS.
@@ -86,6 +86,5 @@ Fresh branch-tip fixer pass:
 
 ## Risks / Blockers
 
-- The branch-tip merge candidate now has truthful traceability, but it exceeds the high-risk AGENTS size/file budget for a single thread. This is an explicit integration risk for re-review rather than an underreported packet slice.
-- The `.codex/kickoff_packets/feat-retrieval-fts.md` and `.codex/lane_meta/feat-retrieval-fts.json` mirrors still contain stale narrowed-slice text because `apply_patch` rejected writes under `.codex` as outside the editable project boundary and direct filesystem write failed with `PermissionError: [Errno 1] Operation not permitted`. This `THREAD_PACKET.md` is the authoritative regenerated packet for re-review.
-- Reviewers should evaluate `d7fd5d200358287fa42a18d39e2b277463b9b69f..HEAD` as the merge candidate; any narrower `adfa8cd` or `378cf9a..adfa8cd` slice is obsolete.
+- The branch-tip merge candidate now has truthful traceability, but it exceeds the high-risk AGENTS size/file budget for a single handoff. This remains an integration blocker unless the integrator approves the exception or the branch is split into compliant handoffs.
+- Reviewers should evaluate `d7fd5d200358287fa42a18d39e2b277463b9b69f..HEAD` as the current branch-tip merge candidate. Earlier narrowed-slice packet ranges are superseded and are not approval candidates.
