@@ -68,6 +68,14 @@ def _optional_list_like(value: object) -> list[object] | None:
     return [value]
 
 
+def _optional_int(value: object) -> int | None:
+    if isinstance(value, bool):
+        return None
+    if isinstance(value, int):
+        return value
+    return None
+
+
 def _normalize_supported_value(value: object, *, field_name: str, allowed: set[str]) -> str:
     normalized = str(value).strip().casefold()
     if normalized not in allowed:
@@ -200,6 +208,9 @@ class RetrievalHit:
         excerpt_text_hash = self.provenance.get("excerpt_text_hash") or self.provenance.get("hash")
         if isinstance(excerpt_text_hash, str) and excerpt_text_hash:
             payload["excerpt_text_hash"] = excerpt_text_hash
+        excerpt_text_length = _optional_int(self.provenance.get("excerpt_text_length"))
+        if excerpt_text_length is not None:
+            payload["excerpt_text_length"] = excerpt_text_length
         rank = self.provenance.get("rank")
         if isinstance(rank, int):
             payload["rank"] = rank
@@ -1784,6 +1795,13 @@ class RetrievalService:
             if isinstance(text_value, str) and text_value:
                 text_hash = hashlib.sha256(text_value.encode("utf-8")).hexdigest()
         normalized["text_hash"] = text_hash
+        text_length = _optional_int(provenance.get("excerpt_text_length"))
+        if text_length is None:
+            text_value = normalized.get("text")
+            if isinstance(text_value, str):
+                text_length = len(text_value)
+        if text_length is not None:
+            normalized["excerpt_text_length"] = text_length
         doc_id_value = normalized.get("doc_id")
         if (not isinstance(doc_id_value, str) or not doc_id_value) and isinstance(provenance.get("doc_id"), str):
             doc_id_value = str(provenance["doc_id"])
@@ -1888,6 +1906,8 @@ class RetrievalService:
             if isinstance(text_hash, str) and text_hash:
                 normalized_provenance["hash"] = text_hash
                 normalized_provenance["excerpt_text_hash"] = text_hash
+            if text_length is not None:
+                normalized_provenance["excerpt_text_length"] = text_length
             normalized_provenance["excerpt_fingerprint"] = excerpt_fingerprint
             if isinstance(doc_identity_fingerprint, str) and doc_identity_fingerprint:
                 normalized_provenance["doc_identity_fingerprint"] = doc_identity_fingerprint
