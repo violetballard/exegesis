@@ -1787,6 +1787,32 @@ class CommandCatalogTests(unittest.TestCase):
             ("project-open", "retrieval", "patch-review", "export-handoff"),
         )
 
+    def test_command_cli_contract_rejects_070230_parser_token_surface_drift(self) -> None:
+        drift_cases = (
+            (
+                "substituted same-canonical alias",
+                ("open", "diff-preview", "diff", "context-basket", "terminal"),
+            ),
+            (
+                "extra accepted alias",
+                ("bootstrap", "open", "diff-preview", "diff", "context-basket", "terminal"),
+            ),
+            (
+                "missing accepted alias",
+                ("bootstrap", "diff-preview", "context-basket", "terminal"),
+            ),
+            (
+                "same-canonical token reorder",
+                ("bootstrap", "diff", "diff-preview", "context-basket", "terminal"),
+            ),
+        )
+        for label, drifted_entrypoints in drift_cases:
+            with self.subTest(label=label):
+                self._clear_cli_caches()
+                with patch.object(command_catalog, "_CLI_ENTRYPOINTS", drifted_entrypoints):
+                    with self.assertRaisesRegex(ValueError, "Command CLI tokens are inconsistent"):
+                        command_catalog.command_cli_contract()
+
     def test_validate_command_catalog_rejects_ambiguous_definitions(self) -> None:
         with self.assertRaisesRegex(ValueError, "Duplicate command name"):
             validate_command_catalog(
