@@ -26,7 +26,7 @@ This fixer removes the unreviewed post-`adfa8cda` branch-tip drift from the merg
 - High-risk reason: the reviewed range includes approved shared regression coverage in `tests/unit/test_unified_retrieval.py`.
 - Task count: `1`
 - Task budget: `4`
-- Size accounting for the corrected candidate against `378cf9a74`: `5 files changed, 272 insertions(+), 106 deletions(-)`.
+- Size accounting for the corrected candidate against `378cf9a74`: `5 files changed, 302 insertions(+), 112 deletions(-)`.
 - Owned runtime path touched: `src/qual/retrieval/service.py`
 - Approved shared-by-approval edit: `tests/unit/test_unified_retrieval.py`
 - Handoff metadata artifacts touched: `.codex/kickoff_packets/feat-retrieval-fts.md`, `.codex/lane_meta/feat-retrieval-fts.json`, `THREAD_PACKET.md`
@@ -87,7 +87,7 @@ Expected result after the fixer commit:
 THREAD_PACKET.md                             | 128 ++++++++++++----------
 src/qual/retrieval/service.py                |  21 ++------------------
 tests/unit/test_unified_retrieval.py         |  38 ++++++++++++++++++++++++------------
-5 files changed, 272 insertions(+), 106 deletions(-)
+5 files changed, 302 insertions(+), 112 deletions(-)
 ```
 
 ## Commands Run And Outcomes
