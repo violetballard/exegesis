@@ -3,65 +3,74 @@
 - Lane: `feat-commands`
 - Branch: `codex/feat-commands`
 - Review target: full current branch tip `HEAD`
-- Review basis: `f8d860ed9f6299f0169c4f21321ac5f37c949fd3^..HEAD`, including `f8d860ed9` and every later branch-tip implementation and handoff metadata commit.
-- Review command: `git diff f8d860ed9f6299f0169c4f21321ac5f37c949fd3^..HEAD -- THREAD.md THREAD_PACKET.md src/qual/cli.py src/qual/commands/__init__.py src/qual/commands/catalog.py tests/unit/test_commands_catalog.py`
-- Fixer prompt satisfied: `20260429T111645Z`
+- Review basis: actual merge diff from `main...codex/feat-commands`
+- Review command: `git diff main...codex/feat-commands`
+- Fixer prompt satisfied: `20260429T113003Z`
 
 ## Scope Completed
 
-1. Bound `src/qual/cli.py` top-level parser tokens to `command_cli_lookup_table()`.
-   Canonical demo-path step advanced: `open project/document`, because the bootstrap parser token remains catalog-owned.
-2. Added exact live parser-surface validation in `command_cli_contract()`, including raw argparse token order, parser choice mutation, and same-canonical alias drift.
-   Canonical demo-path step advanced: `continue working`, because the CLI fallback can resume through the same command surface without accepting stray aliases.
-3. Exported the MVP smoke-contract API from `src/qual/commands`.
-   Canonical demo-path step advanced: `retrieve relevant material`, because `context-basket` smoke argv keeps the retrieval/basket CLI path parser-ready.
-4. Kept focused regression coverage for live argparse drift, same-canonical alias drift, and smoke exports.
-   Canonical demo-path step advanced: `preview/apply/reject patch`, because `diff-preview` remains pinned to the reviewed parser token surface.
+1. Added the command catalog and canonical command helpers for CLI tokens, aliases, command lookup, flow lookup, demo-flow contracts, MVP-flow contracts, and smoke-route manifests.
+   Canonical demo-path step advanced: `open project/document`, because bootstrap and command aliases are catalog-owned and validated from one source.
+2. Bound the live `src/qual/cli.py` argparse surface to the command catalog, including parser-token introspection used by contract tests.
+   Canonical demo-path step advanced: `continue working`, because the CLI fallback now resumes through the same catalog-backed command surface.
+3. Exported command-catalog, flow-contract, MVP smoke-contract, route-summary, and canonical helper APIs from `src/qual/commands`.
+   Canonical demo-path step advanced: `retrieve relevant material`, because `context-basket` smoke argv remains exported and parser-ready.
+4. Hardened `diff-preview` behavior with JSON output, safe file labels, emitted-payload fingerprints, no-diff JSON shape, and matching focused regression tests.
+   Canonical demo-path step advanced: `preview/apply/reject patch`, because patch previews now have stable text and JSON contracts.
+5. Updated `scripts/scope-check.sh` lane policy for current feature lanes and the approved `feat-commands` catalog test surface.
+   Integration-readiness step advanced: the branch can report lane scope against the current MVP lane map.
+6. Added focused regression coverage for live parser-surface drift, same-canonical alias drift, MVP smoke exports, command flow contracts, and diff-preview JSON/fingerprint behavior.
 
 ## Files Changed
 
 - `THREAD.md`
 - `THREAD_PACKET.md`
+- `scripts/scope-check.sh`
 - `src/qual/cli.py`
 - `src/qual/commands/__init__.py`
+- `src/qual/commands/canonical.py`
 - `src/qual/commands/catalog.py`
+- `src/qual/commands/diff_preview.py`
 - `tests/unit/test_commands_catalog.py`
+- `tests/unit/test_diff_preview.py`
 
-Implementation files in scope: `src/qual/cli.py`, `src/qual/commands/__init__.py`, `src/qual/commands/catalog.py`.
-Tests in scope: `tests/unit/test_commands_catalog.py`.
+Implementation files in scope: `scripts/scope-check.sh`, `src/qual/cli.py`, `src/qual/commands/__init__.py`, `src/qual/commands/canonical.py`, `src/qual/commands/catalog.py`, `src/qual/commands/diff_preview.py`.
+Tests in scope: `tests/unit/test_commands_catalog.py`, `tests/unit/test_diff_preview.py`.
 Handoff metadata: `THREAD.md`, `THREAD_PACKET.md`.
-Ownership accounting: lane-owned implementation under `src/qual/commands/**`; shared/integrator-locked implementation file `src/qual/cli.py` is included in this branch-tip review under the explicit approval note below; shared test `tests/unit/test_commands_catalog.py` is included as the focused regression surface for the command contract.
 
-## High-Risk Disposition
+## Ownership And High-Risk Disposition
 
 This is high-risk because `src/qual/cli.py` is shared-by-approval for `feat-commands` and integrator-locked in `THREAD_OWNERSHIP.md`.
 
-- Task budget: `4` of `4`.
-- File budget: `6` files, within `<=8`.
-- Net LOC budget: resolved. Current branch-tip review range is `382 insertions(+), 111 deletions(-)`, net `271`, under the `<=300` high-risk net LOC cap.
-- Size evidence: `6 files changed, 382 insertions(+), 111 deletions(-)` for `f8d860ed9f6299f0169c4f21321ac5f37c949fd3^..HEAD`.
-- Numstat evidence: `THREAD.md` `8/2`; `THREAD_PACKET.md` `51/59`; `src/qual/cli.py` `84/34`; `src/qual/commands/__init__.py` `12/0`; `src/qual/commands/catalog.py` `140/16`; `tests/unit/test_commands_catalog.py` `87/0`.
-- Explicit integrator approval note for `src/qual/cli.py`: approve the locked-file exception for this branch-tip range because the reviewer-required live parser-surface check must inspect the real argparse entrypoint; no provider, routing, or config behavior changes.
+- Explicit integrator approval note for `src/qual/cli.py`: approve the locked-file exception for this branch-tip range because the canonical demo path must bind the real argparse entrypoint to the command catalog; the edit keeps Textual disabled, does not change provider/routing/config behavior, and is limited to parser construction plus parser-surface introspection.
+- Additional non-owned/shared accounting: `scripts/scope-check.sh` updates lane policy for the active MVP lanes and the `feat-commands` approved catalog test surface; `tests/unit/test_commands_catalog.py` and `tests/unit/test_diff_preview.py` are shared test files that cover this branch's command and diff-preview contracts.
+- Task budget: `6` meaningful tasks reported against the actual merge diff.
+- File count: `10` changed files in `main...codex/feat-commands`.
+- Net LOC: `2758 insertions(+), 76 deletions(-)`, net `2682`.
+- Budget status: this actual branch-tip merge diff exceeds the nominal high-risk limits of `4` tasks, `<=8` files, and `<=300` net LOC. Re-review should treat this as the true branch scope and require integrator acceptance of the documented over-budget high-risk packet, or request that the lane be split.
+- Numstat evidence from `git diff --numstat main...HEAD`: `THREAD.md` `8/2`; `THREAD_PACKET.md` `67/0`; `scripts/scope-check.sh` `35/4`; `src/qual/cli.py` `84/34`; `src/qual/commands/__init__.py` `214/0`; `src/qual/commands/canonical.py` `1/6`; `src/qual/commands/catalog.py` `1236/0`; `src/qual/commands/diff_preview.py` `214/30`; `tests/unit/test_commands_catalog.py` `726/0`; `tests/unit/test_diff_preview.py` `173/0`.
 
 ## Roadmap And Vision
 
-- Roadmap: Milestone 3 Product Readiness, specifically locking the user-facing CLI command output/input contract for engine-first CLI compatibility.
-- Product vision: operator-first control surface and A2UI CLI fallback compatibility, with retrieval-first context handling preserved through the `context-basket` smoke command path.
-- Routing/provider impact: none.
+- Roadmap: Milestone 3 Product Readiness, specifically command and diff-preview behavior hardening, stable manual CLI smoke flow, and command-level probes for integration confidence.
+- Roadmap adjacency: Milestone 5 A2UI Presentation Layer, specifically preserving CLI rendering fallback and the CLI-executable MVP flow while Textual remains disabled.
+- Product vision: CLI-first agent runtime, retrieval-first context handling through the `context-basket` command path, traceable draft/diff outputs, and structured artifacts consumable by CLI now and `Exegesis Console` later.
+- Routing/provider impact: none. This branch does not touch model routing or provider configuration.
 - Proposed `README.md` patch text: none.
 
 ## Commands Run
 
 - `python -m unittest tests.unit.test_commands_catalog` - passed, `48` tests.
 - `python -m pytest tests/unit/test_commands_catalog.py -q` - failed because `pytest` is not installed in the active Python.
-- `make scope-check` - passed.
+- `make scope-check` - passed for branch `codex/feat-commands`.
 - `./quality-format.sh --check` - passed.
 - `./quality-lint.sh` - passed.
-- `./quality-test.sh` - passed, `130` tests.
-- `./typecheck-test.sh` - passed.
-- `make ci` - passed, including scope-check, format, lint, typecheck, and `130` tests.
+- `./quality-test.sh` - passed, including smoke tests and `130` unit tests.
+- `./typecheck-test.sh` - passed, compiling Python sources in `src/`.
+- `make ci` - passed, including scope-check, format, lint, typecheck, smoke tests, and `130` unit tests.
 
 ## Risks And Blockers
 
-- Remaining risk: integration depends on accepting the explicit `src/qual/cli.py` locked-file exception disclosed above.
-- Blockers: none known.
+- Risk: the true merge diff is high-risk and over the AGENTS high-risk task/file/LOC budget; re-review should evaluate this disclosed scope rather than the earlier command-catalog-only packet.
+- Risk: integration depends on accepting the explicit `src/qual/cli.py` locked-file exception.
+- Blockers: none known for local gate execution.
