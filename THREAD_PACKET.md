@@ -4,7 +4,7 @@
 - Branch: `codex/feat-commands`
 - Review target: branch tip `codex/feat-commands`, including the latest fixer commit.
 - Review basis: `git diff --stat --name-status f8d860ed9f6299f0169c4f21321ac5f37c949fd3..HEAD -- THREAD.md THREAD_PACKET.md src/qual/cli.py src/qual/commands/__init__.py src/qual/commands/catalog.py tests/unit/test_commands_catalog.py`
-- Fixer prompts satisfied: `20260429T152044Z`, `20260429T152842Z`, `20260429T154016Z`, `20260429T154607Z`, `20260429T155155Z`, `20260429T155636Z`
+- Fixer prompts satisfied: `20260429T152044Z`, `20260429T152842Z`, `20260429T154016Z`, `20260429T154607Z`, `20260429T155155Z`, `20260429T155636Z`, `20260429T160222Z`
 
 This packet uses the branch tip as the review target. It includes the earlier reviewed `f8d860ed9f6299f0169c4f21321ac5f37c949fd3` slice and all later implementation, test, and handoff commits on `codex/feat-commands`; no later implementation commits are excluded from the merge target.
 
@@ -13,7 +13,7 @@ This packet uses the branch tip as the review target. It includes the earlier re
 1. The review basis is the full branch-tip diff from `f8d860ed9f6299f0169c4f21321ac5f37c949fd3..HEAD`, not a narrowed historical commit; the merge target is the branch tip.
 2. All implementation files in the branch-tip diff are listed below: `src/qual/cli.py`, `src/qual/commands/__init__.py`, and `src/qual/commands/catalog.py`.
 3. `command_cli_contract()` now validates the command catalog against the actual argparse subparser surface built by `src/qual/cli.py`.
-4. Parser drift tests cover live parser rename drift, extra-token drift, missing-token drift, and catalog canonical-name drift.
+4. Parser drift tests cover live parser rename drift, parser-only extra-token drift, parser-only missing-token drift, post-build extra-token drift, post-build missing-token drift, and catalog canonical-name drift.
 5. The canonical demo-path alignment below maps every completed task to the exact AGENTS canonical demo-path step it advances.
 6. Ownership wording distinguishes lane-owned files, shared-by-approval files, and integrator-locked files.
 7. Metadata-only files changed by packet refresh commit `a9266aca4b87a2ad1df4e8615a2a4adfb816fc44` are listed completely: `THREAD.md` and `THREAD_PACKET.md`.
@@ -23,7 +23,7 @@ This packet uses the branch tip as the review target. It includes the earlier re
 
 - `src/qual/cli.py` exposes the live argparse command token surface through `command_parser_tokens()` and `command_parser_lookup_table()`.
 - `src/qual/commands/catalog.py` imports the live parser surface lazily and rejects parser/catalog mismatch in `command_cli_contract()`.
-- `tests/unit/test_commands_catalog.py` patches the live parser construction path to prove rename, missing-token, and extra-token drift are rejected.
+- `tests/unit/test_commands_catalog.py` patches the live parser construction path to prove rename drift, parser-only missing-token drift, and parser-only extra-token drift are rejected.
 - `src/qual/commands/__init__.py` exports the command catalog helpers added on this branch.
 - `THREAD.md` and `THREAD_PACKET.md` now describe the branch-tip review target truthfully.
 
@@ -39,7 +39,7 @@ Canonical demo-path impact: deterministic CLI contract validation strengthens th
 2. Bound `command_cli_contract()` to the actual argparse subparser choices created by the CLI.
    Exact canonical demo-path step advanced: `retrieve relevant material`, because the CLI cannot reliably request relevant material if the parser accepts a token the catalog does not describe.
 
-3. Added live parser drift tests for renamed parser tokens, missing parser tokens, and extra parser tokens.
+3. Added live parser drift tests for renamed parser tokens, parser-only missing parser tokens, and parser-only extra parser tokens.
    Exact canonical demo-path step advanced: `promote or gather context into the basket`, because context basket operations depend on the parser and catalog agreeing on the `context-basket` command surface.
 
 4. Preserved alias and route-contract coverage for `diff-preview`/`diff`, terminal/export routing, and smoke argv helpers.
@@ -87,7 +87,7 @@ Metadata-only files changed by packet refresh commit `a9266aca4b87a2ad1df4e8615a
 - Other integrator-locked files touched: none. This branch does not edit `README.md`, `INTEGRATION.md`, `src/main.py`, or `src/qual/app.py`.
 - Risk reason: this is high-risk because the branch validates a shared CLI entrypoint surface and touches `src/qual/cli.py`.
 - Task budget: high-risk `4` task budget exceeded by historical branch-tip work; this packet is a required fixer correction for an already-open review target, not a new feature expansion.
-- Size note: branch-tip diff from `f8d860e..HEAD` is `6` files and `851 insertions(+), 134 deletions(-)` across implementation, tests, and handoff metadata.
+- Size note: branch-tip diff from `f8d860e..HEAD` is `6` files and `892 insertions(+), 134 deletions(-)` across implementation, tests, and handoff metadata.
 
 ## Roadmap And Vision
 
@@ -112,6 +112,7 @@ Fresh fixer rerun for `20260429T154016Z` validates that every completed task exp
 Fresh fixer rerun for `20260429T154607Z` validates that the actual branch tip is the review and merge target, all implementation files are in scope, live argparse parser-surface validation is claimed accurately, and each completed task names the exact canonical demo-path step it advances.
 Fresh fixer rerun for `20260429T155155Z` resolves the offline-review fallback by rerunning every requested gate and recording passing results: `make scope-check`, `./quality-format.sh --check`, `./quality-lint.sh`, `./quality-test.sh`, `./typecheck-test.sh`, and `make ci`.
 Fresh fixer rerun for `20260429T155636Z` maps each completed task to AGENTS canonical demo-path wording, adds the deterministic CLI contract impact statement for the engine-first MVP loop, and validates the full required gate set.
+Fresh fixer rerun for `20260429T160222Z` adds focused live-parser tests that prove parser-only token addition and parser-only token removal fail `command_cli_contract()`, and keeps the branch-tip diff as the review basis.
 
 ## Risks And Blockers
 
