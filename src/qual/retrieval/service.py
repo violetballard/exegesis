@@ -567,6 +567,9 @@ class RetrievalResult:
                 continue
             excerpt_text_hash = hit.provenance.get("excerpt_text_hash") or hit.provenance.get("hash")
             provenance = {
+                "ref_kind": "retrieval_excerpt",
+                "promotion_target": "context_basket",
+                "promotion_ready": True,
                 "doc_id": hit.doc_id,
                 "doc_type": hit.provenance.get("doc_type"),
                 "excerpt_id": hit.excerpt_id,
@@ -585,6 +588,9 @@ class RetrievalResult:
                 "match_count": hit.provenance.get("match_count"),
             }
             citation_ref = {
+                "ref_kind": "retrieval_excerpt",
+                "promotion_target": "context_basket",
+                "promotion_ready": True,
                 "doc_id": hit.doc_id,
                 "doc_type": hit.provenance.get("doc_type"),
                 "excerpt_id": hit.excerpt_id,
@@ -599,6 +605,9 @@ class RetrievalResult:
             }
             context_ref = {
                 "ref_id": f"fts:{hit.excerpt_id}",
+                "ref_kind": "retrieval_excerpt",
+                "promotion_target": "context_basket",
+                "promotion_ready": True,
                 "doc_id": hit.doc_id,
                 "doc_type": hit.provenance.get("doc_type"),
                 "title_hint": hit.title_hint,
