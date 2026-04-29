@@ -2,8 +2,8 @@
 
 - Branch: `codex/feat-retrieval-fts`
 - Lane: `feat-retrieval-fts`
-- Review target: final fixer commit reported in the fixer response.
-- Pre-fix branch tip: `0e934aa2f1743d360e3f0f5f97ff48731785f98f`
+- Review target: current branch tip after this fixer commit.
+- Pre-fix branch tip: `e5d0dd8d4121bec2b98c64d5c75409c9147cf708`
 - Actual merge candidate: final fixer commit reported in the fixer response.
 - Reviewed implementation range: `378cf9a74a3658058079a32f186fcd254c4a4034..final fixer commit reported in response`
 - Handoff type: high-risk retrieval fixer re-review with retained basket-promotion runtime scope.
@@ -21,8 +21,8 @@ This handoff includes the actual branch-tip retrieval runtime changes: FTS-only 
 ## Budget and ownership
 
 - Risk: `HIGH`
-- Task count: `2` of `4`
-- Actual merge-candidate size after final commit: `6 files changed, 406 insertions(+), 113 deletions(-)` for `378cf9a74a3658058079a32f186fcd254c4a4034..HEAD`; net LOC `+293`.
+- Task count: `4` of `4`
+- Actual merge-candidate size after this final metadata-only fixer commit: `6 files changed, 408 insertions(+), 113 deletions(-)` for `378cf9a74a3658058079a32f186fcd254c4a4034..final fixer commit reported in response`; net LOC `+295`.
 - Budget result: within high-risk limits (`<=8 files`, `<=300 net LOC`).
 - Owned runtime paths touched: `src/qual/retrieval/**`, `src/qual/engine/retrieval/**`
 - Approved shared-by-approval edit: `tests/unit/test_unified_retrieval.py`
@@ -31,7 +31,9 @@ This handoff includes the actual branch-tip retrieval runtime changes: FTS-only 
 ## Tasks completed
 
 1. Made excerpt lookup FTS-first and fail-closed for PageIndex-only excerpt IDs, with shared regression coverage.
-2. Added deterministic basket-promotion snapshots to retrieval context bundles and engine payload rehydration, including stable promotion fingerprints and query/context reference fields.
+2. Added deterministic basket-promotion snapshots to retrieval context bundles, including stable promotion IDs, fingerprints, query scope, intent, date range, citation status, and source-bundle fingerprints.
+3. Rehydrated basket-promotion context through engine retrieval payload helpers so downstream engine flows receive compact references.
+4. Regenerated the handoff packet for the actual branch-tip merge candidate and reran all required gates against that candidate.
 
 ## Files changed
 
@@ -71,11 +73,11 @@ None. This handoff does not touch model routing, provider configuration, or core
 
 ## Required Fix Reconciliation
 
-1. The reviewed implementation range now matches the actual merge candidate: `378cf9a74a3658058079a32f186fcd254c4a4034..final fixer commit reported in response`.
+1. The reviewed implementation range now matches the actual branch-tip merge candidate: `378cf9a74a3658058079a32f186fcd254c4a4034..final fixer commit reported in response`; the pre-fix branch-tip candidate was `e5d0dd8d4121bec2b98c64d5c75409c9147cf708`.
 2. Basket-promotion runtime changes are retained and included in scope completed, tasks completed, files changed, roadmap mapping, and vision mapping.
-3. `src/qual/engine/retrieval/payload.py` is included in reviewed implementation files.
+3. `src/qual/engine/retrieval/payload.py` and `src/qual/retrieval/service.py` are included in reviewed implementation files and scope.
 4. Required gates are rerun against the corrected final branch tip in this fixer pass.
-5. High-risk budget accounting includes the approved shared test exception and true changed-file/net-LOC counts.
+5. High-risk budget accounting includes the approved shared test exception, task count, true changed-file count, and true net-LOC count.
 
 ## Risks/blockers
 
