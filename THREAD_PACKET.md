@@ -4,9 +4,9 @@
 - Branch: `codex/feat-commands`
 - Review target: current branch tip `codex/feat-commands`.
 - Review basis: `git diff --stat --name-status 06cdebc2d5d53533b73f264a4bbf5a4b4daacb27..HEAD`
-- Fixer prompts satisfied: `20260429T152044Z`, `20260429T152842Z`, `20260429T154016Z`, `20260429T154607Z`, `20260429T155155Z`, `20260429T155636Z`, `20260429T160222Z`, `20260429T161403Z`, `20260429T161853Z`, `20260429T162401Z`, `20260429T162824Z`
+- Fixer prompts satisfied: `20260429T152044Z`, `20260429T152842Z`, `20260429T154016Z`, `20260429T154607Z`, `20260429T155155Z`, `20260429T155636Z`, `20260429T160222Z`, `20260429T161403Z`, `20260429T161853Z`, `20260429T162401Z`, `20260429T162824Z`, `20260429T163215Z`
 
-This packet uses the current branch tip as the only review target. The review basis is the full diff from merge base `06cdebc2d5d53533b73f264a4bbf5a4b4daacb27` to `HEAD`; no implementation or test commits are excluded from the merge target. Commit `c2ff1842f5b1cd4c667814689fee116ef36d8cec` is not metadata-only: it changes `THREAD.md`, `THREAD_PACKET.md`, and `tests/unit/test_commands_catalog.py`.
+This packet uses the current branch tip as the only review target. The review basis is the full diff from merge base `06cdebc2d5d53533b73f264a4bbf5a4b4daacb27` to `HEAD`; no implementation or test commits are excluded from the merge target. Commit `9d0c82ccdfa74d8daf33d98ce410fd599bf45609` is not metadata-only: it changes `src/qual/commands/catalog.py` and `tests/unit/test_commands_catalog.py` as well as `THREAD.md` and `THREAD_PACKET.md`. Commit `1269da599851c60b7428109f5ac2adf13dee430b` is metadata-only and changes `THREAD.md` and `THREAD_PACKET.md`.
 
 ## Required-Fix Resolution
 
@@ -16,7 +16,7 @@ This packet uses the current branch tip as the only review target. The review ba
 4. Parser drift tests cover live parser command-token rename drift, live parser alias-token rename drift, parser-only extra-token drift, parser-only missing-token drift, post-build extra-token drift, post-build missing-token drift, and catalog canonical-name drift.
 5. The canonical demo-path alignment below maps every completed task to the exact AGENTS canonical demo-path step it advances.
 6. Ownership wording distinguishes lane-owned files, shared-by-approval files, and integrator-locked files.
-7. Packet refresh commit `a9266aca4b87a2ad1df4e8615a2a4adfb816fc44` is metadata-only and changed `THREAD.md` and `THREAD_PACKET.md`; latest fixer commit `c2ff1842f5b1cd4c667814689fee116ef36d8cec` is not metadata-only because it also changed `tests/unit/test_commands_catalog.py`.
+7. Packet refresh commit `a9266aca4b87a2ad1df4e8615a2a4adfb816fc44` is metadata-only and changed `THREAD.md` and `THREAD_PACKET.md`; fixer commit `9d0c82ccdfa74d8daf33d98ce410fd599bf45609` is not metadata-only because it changed `src/qual/commands/catalog.py` and `tests/unit/test_commands_catalog.py`; latest committed packet refresh `1269da599851c60b7428109f5ac2adf13dee430b` is metadata-only.
 8. The canonical demo-path impact statement below explains how deterministic CLI contract validation strengthens the engine-first MVP loop rather than only the command catalog internals.
 
 ## Implementation Summary
@@ -87,8 +87,9 @@ Metadata-only files changed by packet refresh commit `a9266aca4b87a2ad1df4e8615a
 - `THREAD.md`
 - `THREAD_PACKET.md`
 
-Non-metadata files changed by latest fixer commit `c2ff1842f5b1cd4c667814689fee116ef36d8cec`:
+Non-metadata files changed by fixer commit `9d0c82ccdfa74d8daf33d98ce410fd599bf45609`:
 
+- `src/qual/commands/catalog.py`
 - `tests/unit/test_commands_catalog.py`
 
 ## Ownership And Risk
@@ -130,6 +131,7 @@ Fresh fixer rerun for `20260429T161403Z` corrects traceability to the full curre
 Fresh fixer rerun for `20260429T161853Z` keeps the current branch tip as the only review target, confirms the live argparse parser-surface implementation and tests are in the review target, and reruns the full required gate set after finalizing this packet correction.
 Fresh fixer rerun for `20260429T162401Z` routes `command_cli_contract()` through the exposed CLI parser helper surface, adds explicit alias-token rename drift coverage, corrects the approved shared-test exception wording, and reruns the full required gate set.
 Fresh fixer rerun for `20260429T162824Z` revalidates the live argparse parser-surface contract, confirms the required drift tests remain in the branch-tip review target, preserves the corrected ownership note, and reruns the full required gate set.
+Fresh fixer rerun for `20260429T163215Z` explicitly records that `9d0c82ccdfa74d8daf33d98ce410fd599bf45609` is an implementation/test commit, confirms `command_cli_contract()` is bound to the live argparse parser surface, verifies the focused parser-drift regression suite, and reruns the full required gate set.
 
 ## Risks And Blockers
 
