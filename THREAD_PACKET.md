@@ -39,9 +39,9 @@
 
 ### Tasks Completed
 
-1. Hardened `command_cli_contract()` to validate the full parser surface by comparing grouped parser projection, accepted token tuple, lookup table, canonical names, declared parser surface, and explicit canonical token/lookup projections against a separate canonical surface. Canonical demo-path steps protected: `open project/document`, `retrieve relevant material`, `promote or gather context into the basket`, `preview and apply or reject a patch`, and `continue working`.
+1. Hardened `command_cli_contract()` to validate the full parser surface by comparing grouped parser projection, accepted token tuple, lookup table, canonical names, declared parser surface, and explicit canonical surface/token/lookup projections against a separate canonical surface. Canonical demo-path steps protected: `open project/document`, `retrieve relevant material`, `promote or gather context into the basket`, `preview and apply or reject a patch`, and `continue working`.
 2. Preserved canonical command ordering in the CLI contract while rejecting added aliases, removed aliases, same-canonical alias substitutions, token reordering, and lookup-table shape/order drift. Canonical demo-path commands protected: `bootstrap`, `context-basket`, `diff-preview`, `diff`, and `terminal`.
-3. Added focused regression coverage in `tests/unit/test_commands_catalog.py` for extra accepted alias, removed accepted alias, substituted accepted alias, same-canonical `diff` to `diff_preview` substitution, same-canonical alias order drift in accepted tokens and declared surface, parser-token reorder, declared-surface alias drift, declared-surface order drift, self-consistent declared-surface drift, grouped parser drift, lookup-table token-substitution drift, lookup-table added same-canonical alias drift, lookup-table shape/order drift, and canonical token/lookup projection alignment. Canonical demo-path steps protected: open project/document, retrieve/context basket, patch preview, and continued CLI operation.
+3. Added focused regression coverage in `tests/unit/test_commands_catalog.py` for extra accepted alias, removed accepted alias, substituted accepted alias, same-canonical `diff` to `diff_preview` substitution, same-canonical alias order drift in accepted tokens and declared surface, parser-token reorder, declared-surface alias drift, declared-surface order drift, self-consistent declared-surface drift, grouped parser drift, lookup-table token-substitution drift, lookup-table target-substitution drift, lookup-table added same-canonical alias drift, lookup-table removed-token drift, lookup-table shape/order drift, and canonical token/lookup projection alignment. Canonical demo-path steps protected: open project/document, retrieve/context basket, patch preview, and continued CLI operation.
 4. Regenerated `THREAD.md` and `THREAD_PACKET.md` so the handoff claims match the final implementation, full branch-tip file range, test coverage, branch-tip review basis, canonical demo-path mapping, and ownership accounting. Canonical demo-path step protected: `continue working`.
 
 ### Canonical Demo-Path Mapping
@@ -66,14 +66,14 @@
 
 ### Commands Run + Outcomes
 
-- `python3 -m unittest tests.unit.test_commands_catalog -v`: PASS (59 tests)
+- `python3 -m unittest tests.unit.test_commands_catalog -v`: PASS (60 tests)
 - `make scope-check`: PASS
 - `./quality-format.sh --check`: PASS
 - `./quality-lint.sh`: PASS
 - `./quality-test.sh`: PASS
 - `./typecheck-test.sh`: PASS
 - `make ci`: PASS
-- Final verification pass: `2026-04-29T00:12:47Z`
+- Final verification pass: `2026-04-29T00:15:36Z`
 
 ### Risks / Blockers
 
@@ -184,10 +184,11 @@
 
 ### Reviewer Packet `20260429T001026Z` Fix Satisfaction
 
-1. Strengthen `command_cli_contract()` so it validates parser surface itself: satisfied by validating accepted tokens, declared canonical surface, grouped parser projection, lookup-table shape/order, canonical token/lookup projections, and canonical names against `_CANONICAL_CLI_COMMAND_SURFACE`.
-2. Add focused parser-surface drift tests: satisfied by tests covering added same-canonical alias `open`, same-canonical `diff` to `diff_preview` substitution, removed accepted token, token reorder, and lookup-table shape/order drift, plus declared-surface, grouped parser, and lookup-table token substitution drift.
+1. Strengthen `command_cli_contract()` so it validates parser surface itself: satisfied by comparing accepted tokens, declared canonical surface, grouped parser projection, lookup-table shape/order, canonical surface/token/lookup projections, and canonical names against `_CANONICAL_CLI_COMMAND_SURFACE`.
+2. Add focused parser-surface drift tests: satisfied by tests covering added same-canonical alias `open`, same-canonical `diff` to `diff_preview` substitution, removed accepted token, token reorder, and lookup-table shape/order drift, plus declared-surface, grouped parser, lookup-table token substitution, lookup-table target substitution, and lookup-table removed-token drift.
 3. Update handoff canonical demo-path mapping: satisfied in `Tasks Completed`, `Canonical Demo-Path Mapping`, and the final demo-path statement by naming open project/document, retrieve/context basket, patch preview, and continued CLI operation.
 4. Correct ownership accounting: satisfied by listing `tests/unit/test_commands_catalog.py` and `tests/unit/test_diff_preview.py` as approved shared-by-approval tests, `scripts/scope-check.sh` as shared gate support, and `Integrator-locked edits: no`.
+5. Required gates: this fixer pass reruns and records `make scope-check`, `./quality-format.sh --check`, `./quality-lint.sh`, `./quality-test.sh`, `./typecheck-test.sh`, and `make ci`.
 
 ### Reviewer Packet `20260428T234415Z` Fix Satisfaction
 

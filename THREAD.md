@@ -142,11 +142,11 @@ Canonical handoff contract lives in `THREAD_PACKET.md`.
 
 ## Verification
 
-- `python3 -m unittest tests.unit.test_commands_catalog -v`: PASS (59 tests)
+- `python3 -m unittest tests.unit.test_commands_catalog -v`: PASS (60 tests)
 - `make scope-check`: PASS
 - `./quality-format.sh --check`: PASS
 - `./quality-lint.sh`: PASS
 - `./quality-test.sh`: PASS
 - `./typecheck-test.sh`: PASS
 - `make ci`: PASS
-- Final verification pass: `2026-04-29T00:12:47Z`
+- Final verification pass: `2026-04-29T00:15:36Z`
