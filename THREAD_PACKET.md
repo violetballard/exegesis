@@ -4,20 +4,22 @@
 - Branch: `codex/feat-commands`
 - Review target: full branch tip of `codex/feat-commands`
 - Review basis: `git diff main...codex/feat-commands`
-- Pre-fixer branch-tip SHA before this packet regeneration: `5ca4e4533`
-- Fixer prompt satisfied: `20260429T130328Z`
+- Pre-fixer branch-tip SHA before this fixer pass: `fc6e67941`
+- Fixer prompt satisfied: `20260429T131018Z`
 
 This packet supersedes all earlier packets and packet-refresh notes. No commit in the reviewed range is described as metadata-only; implementation and handoff edits are part of the branch-tip review target.
 
 ## Required-Fix Resolution
 
-1. Review basis is unambiguous: review the full branch tip with `git diff main...codex/feat-commands`.
-2. Files changed are listed from that branch-tip review basis, including `src/qual/cli.py`, `src/qual/commands/__init__.py`, and all other files in `main...HEAD`.
-3. `src/qual/cli.py` is explicitly included as a shared/integrator-locked exception for this high-risk handoff because the parser must consume catalog-owned CLI tokens to keep the command contract enforceable.
-4. The false metadata-only label is removed.
-5. Every completed task below maps to the exact canonical MVP demo-path step it strengthens.
-6. The concrete blocker statement below explains why parser/catalog drift was direct loop breakage for the CLI-first Milestone 3 path.
-7. The final readiness statement names which canonical demo-path steps this command-catalog slice now makes more real.
+1. Parser drift coverage is enforceable against the live argparse surface: `command_cli_contract()` imports and compares `src.qual.cli.command_parser_lookup_table()` against the catalog-owned lookup table, and `tests/unit/test_commands_catalog.py` covers parser token rename, extra-token, and missing-token drift from the actual subparser choices.
+2. Review basis is unambiguous: review the full branch tip with `git diff main...codex/feat-commands`.
+3. Files changed are listed from that branch-tip review basis, including `src/qual/cli.py`, `src/qual/commands/__init__.py`, and all other files in `main...HEAD`.
+4. The earlier full-branch parser edit to `src/qual/cli.py` is explicitly included as an approved shared/integrator-locked exception because the parser must consume catalog-owned CLI tokens to keep the command contract enforceable; this `20260429T131018Z` fixer slice did not newly edit integrator-locked files.
+5. The false metadata-only label is removed.
+6. Every completed task below maps to the exact canonical MVP demo-path step it strengthens.
+7. The concrete blocker statement below explains why parser/catalog drift was direct loop breakage for the CLI-first Milestone 3 path.
+8. The final readiness statement names which canonical demo-path steps this command-catalog slice now makes more real.
+9. Ownership wording now distinguishes the approved shared-test exception from the earlier branch-tip integrator-locked parser exception.
 
 ## Canonical Demo-Path Alignment
 
@@ -89,11 +91,12 @@ Handoff metadata:
 
 ## Ownership And Risk
 
-This is a high-risk branch-tip handoff because it includes `src/qual/cli.py`, which is integrator-locked in `THREAD_OWNERSHIP.md`.
+This is a high-risk branch-tip handoff because the full branch review target includes an earlier approved edit to `src/qual/cli.py`, which is integrator-locked in `THREAD_OWNERSHIP.md`. The current `20260429T131018Z` fixer slice does not newly edit integrator-locked files.
 
 - Lane-owned command paths: `src/qual/commands/**`.
-- Explicit shared/integrator-locked exception: `src/qual/cli.py`, needed so the actual argparse parser consumes the command catalog token contract.
+- Earlier full-branch integrator-locked exception: `src/qual/cli.py`, needed so the actual argparse parser consumes the command catalog token contract.
 - Approved shared-test exception: `tests/unit/test_commands_catalog.py`, retained as the focused command-catalog regression surface.
+- Current fixer-slice ownership: handoff metadata only; no new integrator-locked implementation edit.
 - Scope-check exception behavior: full-window scope checks that include `src/qual/cli.py` require `SCOPE_ALLOW_SHARED=1`; the default recent scope check only validates the current metadata-fix commit.
 - Task budget: `4` high-risk tasks completed.
 - Budget status: within high-risk task budget; the branch-tip diff exceeds the default packet-only size limits because this review target intentionally includes all implementation commits.
@@ -108,6 +111,8 @@ This is a high-risk branch-tip handoff because it includes `src/qual/cli.py`, wh
 
 ## Commands Run
 
+- Fresh `20260429T131018Z` fixer rerun after live parser-surface and ownership-note updates:
+  `python -m unittest tests.unit.test_commands_catalog` passed with `50` tests; `make scope-check` passed; `./quality-format.sh --check` passed; `./quality-lint.sh` passed; `./quality-test.sh` passed with smoke tests and `132` unit tests; `./typecheck-test.sh` passed; `make ci` passed with scope-check, format, lint, typecheck, smoke tests, and `132` unit tests.
 - Fresh `20260429T130328Z` fixer rerun after canonical demo-path handoff updates:
   `make scope-check` passed; `./quality-format.sh --check` passed; `./quality-lint.sh` passed; `./quality-test.sh` passed with smoke tests and `132` unit tests; `./typecheck-test.sh` passed; `make ci` passed with scope-check, format, lint, typecheck, smoke tests, and `132` unit tests.
 - `make scope-check` - passed for branch `codex/feat-commands`.
