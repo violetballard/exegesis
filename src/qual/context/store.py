@@ -45,16 +45,26 @@ class ContextBasketStore:
         primary_missing = not self._path.exists()
         backup_missing = not self._backup_path.exists()
         primary_payload, primary_quarantined = self._load_payload(self._path)
-        tmp_payload, _ = self._load_payload(self._tmp_path())
-        backup_tmp_payload, _ = self._load_payload(self._backup_tmp_path())
+        tmp_payload, tmp_quarantined = self._load_payload(self._tmp_path())
+        backup_tmp_payload, backup_tmp_quarantined = self._load_payload(self._backup_tmp_path())
         backup_payload, backup_quarantined = self._load_payload(self._backup_path)
-        seed_tmp_payload, _ = self._load_payload(self._seed_tmp_path())
+        seed_tmp_payload, seed_tmp_quarantined = self._load_payload(self._seed_tmp_path())
         seed_payload, seed_quarantined = self._load_payload(self._seed_state_path())
-        self._quarantine_missing_item_ids_payload(self._tmp_path(), tmp_payload)
-        self._quarantine_missing_item_ids_payload(self._backup_tmp_path(), backup_tmp_payload)
+        preserve_temporary_corrupt = tmp_quarantined or backup_tmp_quarantined or seed_tmp_quarantined
+        tmp_missing_item_ids = self._quarantine_missing_item_ids_payload(self._tmp_path(), tmp_payload)
+        backup_tmp_missing_item_ids = self._quarantine_missing_item_ids_payload(
+            self._backup_tmp_path(),
+            backup_tmp_payload,
+        )
         preserve_backup_corrupt = self._quarantine_missing_item_ids_payload(self._backup_path, backup_payload)
-        self._quarantine_missing_item_ids_payload(self._seed_tmp_path(), seed_tmp_payload)
+        seed_tmp_missing_item_ids = self._quarantine_missing_item_ids_payload(self._seed_tmp_path(), seed_tmp_payload)
         preserve_seed_corrupt = self._quarantine_missing_item_ids_payload(self._seed_state_path(), seed_payload)
+        preserve_temporary_corrupt = (
+            preserve_temporary_corrupt
+            or tmp_missing_item_ids
+            or backup_tmp_missing_item_ids
+            or seed_tmp_missing_item_ids
+        )
         preserve_backup_corrupt = (
             self._quarantine_unrecoverable_list_payload(self._backup_path, backup_payload) or preserve_backup_corrupt
         )
@@ -162,6 +172,7 @@ class ContextBasketStore:
                     self._clear_quarantine_file(
                         preserve_backup_corrupt=preserve_backup_corrupt,
                         preserve_seed_corrupt=preserve_seed_corrupt,
+                        preserve_temporary=preserve_temporary_corrupt,
                     )
                     self._clear_temporary_files()
                     return ContextBasket()
@@ -169,6 +180,7 @@ class ContextBasketStore:
             self._clear_quarantine_file(
                 preserve_backup_corrupt=preserve_backup_corrupt,
                 preserve_seed_corrupt=preserve_seed_corrupt,
+                preserve_temporary=preserve_temporary_corrupt,
             )
             self._clear_temporary_files()
             return ContextBasket()
@@ -303,6 +315,13 @@ class ContextBasketStore:
             self._quarantine_invalid_seed()
             preserve_seed_corrupt = True
         if recovered_source is not None or should_rewrite:
+            if self._backup_needs_audit_quarantine(backup_payload):
+                self._quarantine_invalid_backup()
+                preserve_backup_corrupt = True
+            if self._backup_needs_audit_quarantine(seed_payload):
+                self._quarantine_invalid_seed()
+                preserve_seed_corrupt = True
+        if recovered_source is not None or should_rewrite:
             # Keep the backup aligned with the latest canonical basket whenever we
             # rewrite state during load, not only when we recover from tmp/backup.
             self.save(
@@ -313,6 +332,7 @@ class ContextBasketStore:
                 preserve_primary_corrupt=preserve_primary_corrupt,
                 preserve_backup_corrupt=preserve_backup_corrupt,
                 preserve_seed_corrupt=preserve_seed_corrupt,
+                preserve_temporary_corrupt=preserve_temporary_corrupt,
             )
         elif primary_payload is not None and (
             backup_payload is None
@@ -334,6 +354,7 @@ class ContextBasketStore:
                 preserve_seed=not backup_written,
                 preserve_backup_corrupt=preserve_backup_corrupt,
                 preserve_seed_corrupt=preserve_seed_corrupt,
+                preserve_temporary_corrupt=preserve_temporary_corrupt,
             )
             if not backup_written:
                 self._write_seed(self._backup_payload(payload))
@@ -351,6 +372,7 @@ class ContextBasketStore:
                 preserve_seed=not backup_written,
                 preserve_backup_corrupt=preserve_backup_corrupt,
                 preserve_seed_corrupt=preserve_seed_corrupt,
+                preserve_temporary_corrupt=preserve_temporary_corrupt,
             )
             if not backup_written:
                 self._write_seed(self._backup_payload(payload) if isinstance(payload, dict) else payload)
@@ -358,6 +380,7 @@ class ContextBasketStore:
             self._clear_recovery_artifacts(
                 preserve_backup_corrupt=preserve_backup_corrupt,
                 preserve_seed_corrupt=preserve_seed_corrupt,
+                preserve_temporary_corrupt=preserve_temporary_corrupt,
             )
         return basket
 
@@ -371,6 +394,7 @@ class ContextBasketStore:
         preserve_primary_corrupt: bool = False,
         preserve_backup_corrupt: bool = False,
         preserve_seed_corrupt: bool = False,
+        preserve_temporary_corrupt: bool = False,
     ) -> None:
         basket.normalize()
         self._path.parent.mkdir(parents=True, exist_ok=True)
@@ -410,7 +434,10 @@ class ContextBasketStore:
                 # rotation cannot be completed after the recovery marker is
                 # stripped from an otherwise canonical payload.
                 self._write_seed(backup_payload)
-            self._clear_recovery_artifacts(preserve_seed=not backup_written)
+            self._clear_recovery_artifacts(
+                preserve_seed=not backup_written,
+                preserve_temporary_corrupt=preserve_temporary_corrupt,
+            )
             return
         if (
             normalized_recovered_from is None
@@ -435,7 +462,10 @@ class ContextBasketStore:
                 # rotation cannot be completed after confirming the primary is
                 # already canonical.
                 self._write_seed(backup_payload)
-            self._clear_recovery_artifacts(preserve_seed=not backup_written)
+            self._clear_recovery_artifacts(
+                preserve_seed=not backup_written,
+                preserve_temporary_corrupt=preserve_temporary_corrupt,
+            )
             return
         payload = {
             "schema_version": _SCHEMA_VERSION,
@@ -468,6 +498,7 @@ class ContextBasketStore:
             preserve_primary_corrupt=preserve_primary_corrupt,
             preserve_backup_corrupt=preserve_backup_corrupt,
             preserve_seed_corrupt=preserve_seed_corrupt,
+            preserve_temporary_corrupt=preserve_temporary_corrupt,
         )
 
     def clear(self) -> None:
@@ -538,11 +569,13 @@ class ContextBasketStore:
         preserve_primary_corrupt: bool = False,
         preserve_backup_corrupt: bool = False,
         preserve_seed_corrupt: bool = False,
+        preserve_temporary_corrupt: bool = False,
     ) -> None:
         self._clear_quarantine_file(
             preserve_primary_corrupt=preserve_primary_corrupt,
             preserve_backup_corrupt=preserve_backup_corrupt,
             preserve_seed_corrupt=preserve_seed_corrupt,
+            preserve_temporary=preserve_temporary_corrupt,
         )
         self._clear_temporary_files()
         if not preserve_seed:
@@ -846,6 +879,8 @@ class ContextBasketStore:
             return True
         raw_item_ids = payload.get("item_ids")
         if isinstance(raw_item_ids, list) and self._legacy_list_payload_has_dropped_item_ids(raw_item_ids):
+            return True
+        if self._has_unknown_fields(payload):
             return True
         return not self._is_supported_payload(payload)
 

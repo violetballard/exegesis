@@ -5,14 +5,14 @@
     "Hardened vault recovery so malformed or incomplete persisted state is recovered or rewritten safely while preserving the safe lock default and local-first storage behavior.",
     "Kept regression coverage in tests/unit/test_context_storage_recovery.py under the approved shared-test exception for that one non-owned test file.",
     "Kept the reviewed implementation within owned runtime paths plus that approved shared-test exception, with no broader shared/integrator-locked runtime edits being claimed.",
-    "Reissued the handoff packet and lane metadata so the branch summary, roadmap mapping, and reviewed commit list stay aligned with implementation commit 47cda4df831ac41867a8792f40d720e0cb109514 and the current docs-only alignment commit c3b7ef981c399472b6a52aaad8dc6c5ce7276635."
+    "Reissued the handoff packet and lane metadata so the branch summary, roadmap mapping, and reviewed commit list stay aligned with implementation commit 47cda4df831ac41867a8792f40d720e0cb109514 and the current docs-only alignment commit 77dadce42c601dcac89558ca1ce3fc879f06a2f8."
   ],
   "tasks_completed": [
     "Hardened ContextBasketStore recovery so malformed basket payloads are quarantined, recovered_from cleanup timestamps are preserved, and rewritten state stays auditable.",
     "Hardened ContextSetStore recovery so malformed context-set payloads are quarantined, recovered_from cleanup timestamps are preserved, and rewritten state stays auditable.",
     "Hardened VaultService recovery so malformed vault state is recovered or rewritten safely while preserving the safe lock default.",
     "Kept regression coverage in tests/unit/test_context_storage_recovery.py under the approved shared-test exception.",
-    "Refreshed the handoff packet and lane metadata so the branch summary, roadmap mapping, and reviewed commit list point at implementation commit 47cda4df831ac41867a8792f40d720e0cb109514 and the current docs-only alignment commit c3b7ef981c399472b6a52aaad8dc6c5ce7276635, while keeping runtime edits in owned paths."
+    "Refreshed the handoff packet and lane metadata so the branch summary, roadmap mapping, and reviewed commit list point at implementation commit 47cda4df831ac41867a8792f40d720e0cb109514 and the current docs-only alignment commit 77dadce42c601dcac89558ca1ce3fc879f06a2f8, while keeping runtime edits in owned paths."
   ],
   "risk": "MEDIUM",
   "roadmap_items": [

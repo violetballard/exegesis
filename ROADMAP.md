@@ -14,16 +14,19 @@ The CLI remains first-class while Textual stays scaffolded and disabled.
 
 ## Milestone 1: Standing shell
 
-Status: planned
+Status: standing (mockup only)
 
 Scope:
 - define the 5-pane Textual shell
 - lock focus model and keyboard shortcuts
 - define shortcut bar and command palette scaffold
-- keep UI lanes disabled until the engine contract is ready
+- stand up the shell as a believable writing-environment mockup
+- keep UI lanes disabled for engine integration until the engine contract is ready
 
 Exit criteria:
 - shell boundaries are documented and scaffolded
+- the shell stands in Textual/browser as a stable mockup baseline
+- the shell is explicitly not yet wired to live engine state/actions
 - pane ownership is clear
 - UI lanes remain disabled until explicitly activated
 

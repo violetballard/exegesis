@@ -38,6 +38,7 @@ _FTS_SEGMENT_OVERLAP_CHARS = 80
 _FTS_BOUNDARY_SCAN_CHARS = 40
 _SUPPORTED_RETRIEVAL_INTENTS = {"lookup", "compare", "summarize", "quote_find", "outline_support"}
 _SUPPORTED_CONFIDENTIALITY_PROFILES = {"confidential", "standard"}
+_FTS_SOURCE_STRATEGY = "fts"
 
 
 def _canonicalize_doc_types(doc_types: tuple[str, ...]) -> tuple[str, ...]:
@@ -130,6 +131,10 @@ class RetrievalHit:
     node_path: list[dict[str, str]] | None
     provenance: dict[str, object]
 
+    def __post_init__(self) -> None:
+        if self.source_strategy != _FTS_SOURCE_STRATEGY:
+            raise ValueError("source_strategy must be fts for the FTS-first retrieval lane")
+
     def as_dict(self) -> dict[str, object]:
         payload = {
             "doc_id": self.doc_id,
@@ -216,6 +221,10 @@ class RetrievalDocHit:
     source_strategy: Literal["fts"]
     excerpt_count: int
     provenance: dict[str, object]
+
+    def __post_init__(self) -> None:
+        if self.source_strategy != _FTS_SOURCE_STRATEGY:
+            raise ValueError("source_strategy must be fts for the FTS-first retrieval lane")
 
     def as_dict(self) -> dict[str, object]:
         payload = {
@@ -408,6 +417,11 @@ class RetrievalResult:
 
         return self._retrieval_source_bundle_snapshot()
 
+    def retrieval_provenance_bundle(self) -> dict[str, object]:
+        """Return the deterministic retrieval provenance snapshot for downstream engine flows."""
+
+        return copy.deepcopy(self.to_downstream_payload()["retrieval_provenance"])
+
     def retrieval_doc_bundle(self) -> dict[str, object]:
         """Return the deterministic doc-focused snapshot for downstream engine flows."""
 
@@ -554,7 +568,15 @@ class RetrievalResult:
             "primary_doc_id": self.doc_hits[0].doc_id if self.doc_hits else None,
             "primary_excerpt_id": self.hits[0].excerpt_id if self.hits else None,
             "primary_doc_fingerprint": self.doc_hits[0].provenance.get("doc_fingerprint") if self.doc_hits else None,
+            "primary_doc_identity_fingerprint": self.doc_hits[0].provenance.get("doc_identity_fingerprint")
+            if self.doc_hits
+            else None,
             "primary_excerpt_fingerprint": self.hits[0].provenance.get("excerpt_fingerprint") if self.hits else None,
+            "primary_excerpt_text_hash": (
+                self.hits[0].provenance.get("excerpt_text_hash") or self.hits[0].provenance.get("hash")
+                if self.hits
+                else None
+            ),
             "doc_hits_fingerprint": self.diagnostics["doc_hits_fingerprint"],
             "excerpt_hits_fingerprint": self.diagnostics["excerpt_hits_fingerprint"],
             "active_strategy_ids": list(self.diagnostics["active_strategy_ids"]),
@@ -569,6 +591,8 @@ class RetrievalResult:
         citation_status: dict[str, object],
         retrieval_policy: dict[str, object],
     ) -> dict[str, object]:
+        primary_doc_hit = self.doc_hits[0] if self.doc_hits else None
+        primary_excerpt_hit = self.hits[0] if self.hits else None
         return {
             "query_fingerprint": self.diagnostics["query_fingerprint"],
             "query_scope": self.query.scope,
@@ -588,6 +612,20 @@ class RetrievalResult:
             "excerpt_hits_fingerprint": self.diagnostics["excerpt_hits_fingerprint"],
             "candidate_doc_count": self.diagnostics.get("candidate_doc_count"),
             "fts_shortlist_doc_ids": list(self.diagnostics.get("fts_shortlist_doc_ids", [])),
+            "primary_doc_id": primary_doc_hit.doc_id if primary_doc_hit is not None else None,
+            "primary_doc_fingerprint": primary_doc_hit.provenance.get("doc_fingerprint") if primary_doc_hit is not None else None,
+            "primary_doc_identity_fingerprint": primary_doc_hit.provenance.get("doc_identity_fingerprint")
+            if primary_doc_hit is not None
+            else None,
+            "primary_excerpt_id": primary_excerpt_hit.excerpt_id if primary_excerpt_hit is not None else None,
+            "primary_excerpt_fingerprint": primary_excerpt_hit.provenance.get("excerpt_fingerprint")
+            if primary_excerpt_hit is not None
+            else None,
+            "primary_excerpt_text_hash": (
+                primary_excerpt_hit.provenance.get("excerpt_text_hash") or primary_excerpt_hit.provenance.get("hash")
+                if primary_excerpt_hit is not None
+                else None
+            ),
             "citation_status": citation_status,
             "doc_count": citation_bundle["doc_count"],
             "excerpt_count": citation_bundle["excerpt_count"],
@@ -751,6 +789,11 @@ class RetrievalService:
 
         return self.retrieve_fts(query).source_bundle()
 
+    def retrieve_fts_provenance_bundle(self, query: RetrievalQuery) -> dict[str, object]:
+        """Return the canonical provenance bundle for a single FTS retrieval."""
+
+        return self.retrieve_fts(query).retrieval_provenance_bundle()
+
     def retrieve_fts_doc_bundle(self, query: RetrievalQuery) -> dict[str, object]:
         """Return the canonical doc-focused bundle for a single FTS retrieval."""
 
@@ -783,6 +826,11 @@ class RetrievalService:
         """Return the canonical retrieval source bundle for the FTS-first auto path."""
 
         return self.retrieve_auto(query).source_bundle()
+
+    def retrieve_auto_provenance_bundle(self, query: RetrievalQuery) -> dict[str, object]:
+        """Return the canonical provenance bundle for the FTS-first auto path."""
+
+        return self.retrieve_auto(query).retrieval_provenance_bundle()
 
     def retrieve_auto_doc_bundle(self, query: RetrievalQuery) -> dict[str, object]:
         """Return the canonical doc-focused bundle for the FTS-first auto path."""
@@ -973,22 +1021,9 @@ class RetrievalService:
         )
 
     def fetch_excerpt(self, excerpt_id: str) -> dict[str, object]:
-        """Return an excerpt payload, preferring FTS and falling back to PageIndex for compatibility."""
+        """Return an excerpt payload using the canonical FTS-only lookup path."""
 
-        try:
-            return self._lookup_fts_excerpt(excerpt_id, lookup_entrypoint="fetch_excerpt")
-        except KeyError:
-            pass
-        excerpt = self._docindex.fetch_excerpt(excerpt_id)
-        if isinstance(excerpt, dict):
-            normalized = self._normalize_excerpt_payload(excerpt, source_strategy="pageindex")
-            self._record_excerpt_lookup_audit(
-                normalized,
-                lookup_entrypoint="fetch_excerpt",
-                lookup_resolution="pageindex_fallback",
-            )
-            return normalized
-        return excerpt
+        return self._lookup_fts_excerpt(excerpt_id, lookup_entrypoint="fetch_excerpt")
 
     def _run_fts_hits(self, query: RetrievalQuery, candidate_doc_ids: tuple[str, ...]) -> list[RetrievalHit]:
         match_query, query_terms = self._build_fts_match_query(query.query_text)

@@ -30,12 +30,17 @@ class VaultService:
         project_root = root_dir / safe_project_name
         project_root.mkdir(parents=True, exist_ok=True)
         (project_root / "attachments").mkdir(exist_ok=True)
-        raw_state, recovered_source, primary_unavailable, preserve_backup_corrupt, preserve_seed_corrupt = self._read_state(
+        (
+            raw_state,
+            recovered_source,
+            primary_unavailable,
+            preserve_backup_corrupt,
+            preserve_seed_corrupt,
+            preserve_temporary_corrupt,
+        ) = self._read_state(
             project_root,
             safe_project_name,
         )
-        backup_payload = self._load_payload(self._backup_state_path(project_root))
-        seed_payload = self._load_payload(self._seed_state_path(project_root))
         state_path = self._state_path(project_root)
         raw_project_name = raw_state.get("project_name") if "project_name" in raw_state else None
         normalized_project_name = (
@@ -100,6 +105,7 @@ class VaultService:
                 preserve_primary_corrupt=preserve_primary_corrupt,
                 preserve_backup_corrupt=preserve_backup_corrupt,
                 preserve_seed_corrupt=preserve_seed_corrupt,
+                preserve_temporary_corrupt=preserve_temporary_corrupt,
             )
         else:
             backup_written = self._write_backup_payload(project_root, self._backup_payload(raw_state))
@@ -110,6 +116,7 @@ class VaultService:
                 preserve_seed=not backup_written,
                 preserve_backup_corrupt=preserve_backup_corrupt,
                 preserve_seed_corrupt=preserve_seed_corrupt,
+                preserve_temporary_corrupt=preserve_temporary_corrupt,
             )
         return state
 
@@ -168,24 +175,43 @@ class VaultService:
         self,
         root_dir: Path,
         expected_project_name: str,
-    ) -> tuple[dict[str, object], str | None, bool, bool, bool]:
+    ) -> tuple[dict[str, object], str | None, bool, bool, bool, bool]:
         state_path = self._state_path(root_dir)
         primary_missing = not state_path.exists()
         backup_present = self._backup_state_path(root_dir).exists()
         seed_present = self._seed_state_path(root_dir).exists()
-        primary_payload = self._load_payload(state_path)
-        tmp_payload = self._load_payload(self._tmp_state_path(root_dir))
-        backup_tmp_payload = self._load_payload(self._backup_tmp_state_path(root_dir))
-        backup_payload = self._load_payload(self._backup_state_path(root_dir))
-        seed_tmp_payload = self._load_payload(self._seed_tmp_state_path(root_dir))
-        seed_payload = self._load_payload(self._seed_state_path(root_dir))
+        primary_payload, _ = self._load_payload(state_path)
+        tmp_payload, tmp_quarantined = self._load_payload(self._tmp_state_path(root_dir))
+        backup_tmp_payload, backup_tmp_quarantined = self._load_payload(self._backup_tmp_state_path(root_dir))
+        backup_payload, _ = self._load_payload(self._backup_state_path(root_dir))
+        seed_tmp_payload, seed_tmp_quarantined = self._load_payload(self._seed_tmp_state_path(root_dir))
+        seed_payload, _ = self._load_payload(self._seed_state_path(root_dir))
+        preserve_temporary_corrupt = tmp_quarantined or backup_tmp_quarantined or seed_tmp_quarantined
+        tmp_missing_required_metadata = self._quarantine_missing_required_metadata(
+            self._tmp_state_path(root_dir),
+            tmp_payload,
+        )
+        backup_tmp_missing_required_metadata = self._quarantine_missing_required_metadata(
+            self._backup_tmp_state_path(root_dir),
+            backup_tmp_payload,
+        )
         preserve_backup_corrupt = self._quarantine_missing_required_metadata(
             self._backup_state_path(root_dir),
             backup_payload,
         )
+        seed_tmp_missing_required_metadata = self._quarantine_missing_required_metadata(
+            self._seed_tmp_state_path(root_dir),
+            seed_tmp_payload,
+        )
         preserve_seed_corrupt = self._quarantine_missing_required_metadata(
             self._seed_state_path(root_dir),
             seed_payload,
+        )
+        preserve_temporary_corrupt = (
+            preserve_temporary_corrupt
+            or tmp_missing_required_metadata
+            or backup_tmp_missing_required_metadata
+            or seed_tmp_missing_required_metadata
         )
         if preserve_backup_corrupt:
             backup_payload = None
@@ -215,6 +241,7 @@ class VaultService:
                 root_dir,
                 preserve_backup_corrupt=preserve_backup_corrupt,
                 preserve_seed_corrupt=preserve_seed_corrupt,
+                preserve_temporary_corrupt=preserve_temporary_corrupt,
             )
             self._clear_temporary_state(root_dir)
             self._clear_seed_state(root_dir)
@@ -238,6 +265,7 @@ class VaultService:
                         root_dir,
                         preserve_backup_corrupt=preserve_backup_corrupt,
                         preserve_seed_corrupt=preserve_seed_corrupt,
+                        preserve_temporary_corrupt=preserve_temporary_corrupt,
                     )
                     self._clear_temporary_state(root_dir)
                     return (
@@ -246,9 +274,10 @@ class VaultService:
                         primary_payload is None,
                         preserve_backup_corrupt,
                         preserve_seed_corrupt,
+                        preserve_temporary_corrupt,
                     )
         if not isinstance(payload, dict):
-            return {}, None, primary_payload is None, preserve_backup_corrupt, preserve_seed_corrupt
+            return {}, None, primary_payload is None, preserve_backup_corrupt, preserve_seed_corrupt, preserve_temporary_corrupt
         primary_unavailable = primary_payload is None
         if primary_needs_recovery and recovered_source is not None:
             primary_unavailable = True
@@ -260,7 +289,14 @@ class VaultService:
         if recovered_source == "seed" and self._needs_audit_quarantine(seed_payload):
             self._quarantine_invalid_seed(root_dir)
             preserve_seed_corrupt = True
-        return payload, recovered_source, primary_unavailable, preserve_backup_corrupt, preserve_seed_corrupt
+        return (
+            payload,
+            recovered_source,
+            primary_unavailable,
+            preserve_backup_corrupt,
+            preserve_seed_corrupt,
+            preserve_temporary_corrupt,
+        )
 
     def _write_state(
         self,
@@ -270,6 +306,7 @@ class VaultService:
         preserve_primary_corrupt: bool = False,
         preserve_backup_corrupt: bool = False,
         preserve_seed_corrupt: bool = False,
+        preserve_temporary_corrupt: bool = False,
     ) -> None:
         state.root_dir.mkdir(parents=True, exist_ok=True)
         payload = {
@@ -300,6 +337,7 @@ class VaultService:
             preserve_primary_corrupt=preserve_primary_corrupt,
             preserve_backup_corrupt=preserve_backup_corrupt,
             preserve_seed_corrupt=preserve_seed_corrupt,
+            preserve_temporary_corrupt=preserve_temporary_corrupt,
         )
 
     def _quarantine_invalid_state(self, root_dir: Path) -> None:
@@ -348,6 +386,7 @@ class VaultService:
         preserve_primary_corrupt: bool = False,
         preserve_backup_corrupt: bool = False,
         preserve_seed_corrupt: bool = False,
+        preserve_temporary_corrupt: bool = False,
     ) -> None:
         if not preserve_primary_corrupt:
             self._unlink_if_exists(self._corrupt_state_path(root_dir))
@@ -355,9 +394,10 @@ class VaultService:
             self._unlink_if_exists(self._corrupt_path_for(self._backup_state_path(root_dir)))
         if not preserve_seed_corrupt:
             self._unlink_if_exists(self._corrupt_path_for(self._seed_state_path(root_dir)))
-        self._unlink_if_exists(self._corrupt_path_for(self._tmp_state_path(root_dir)))
-        self._unlink_if_exists(self._corrupt_path_for(self._backup_tmp_state_path(root_dir)))
-        self._unlink_if_exists(self._corrupt_path_for(self._seed_tmp_state_path(root_dir)))
+        if not preserve_temporary_corrupt:
+            self._unlink_if_exists(self._corrupt_path_for(self._tmp_state_path(root_dir)))
+            self._unlink_if_exists(self._corrupt_path_for(self._backup_tmp_state_path(root_dir)))
+            self._unlink_if_exists(self._corrupt_path_for(self._seed_tmp_state_path(root_dir)))
 
     def _clear_temporary_state(self, root_dir: Path) -> None:
         self._unlink_if_exists(self._tmp_state_path(root_dir))
@@ -375,12 +415,14 @@ class VaultService:
         preserve_primary_corrupt: bool = False,
         preserve_backup_corrupt: bool = False,
         preserve_seed_corrupt: bool = False,
+        preserve_temporary_corrupt: bool = False,
     ) -> None:
         self._clear_quarantine_state(
             root_dir,
             preserve_primary_corrupt=preserve_primary_corrupt,
             preserve_backup_corrupt=preserve_backup_corrupt,
             preserve_seed_corrupt=preserve_seed_corrupt,
+            preserve_temporary_corrupt=preserve_temporary_corrupt,
         )
         self._clear_temporary_state(root_dir)
         if not preserve_seed:
@@ -393,9 +435,9 @@ class VaultService:
             return path.with_name(path.name[:-5] + ".corrupt.json")
         return path.with_name(f"{path.name}.corrupt")
 
-    def _load_payload(self, path: Path) -> dict[str, object] | None:
+    def _load_payload(self, path: Path) -> tuple[dict[str, object] | None, bool]:
         if not path.exists():
-            return None
+            return None, False
         try:
             payload = json.loads(path.read_text(encoding="utf-8"))
         except (json.JSONDecodeError, OSError):
@@ -407,7 +449,7 @@ class VaultService:
                 self._quarantine_invalid_backup(path.parent)
             elif path == self._seed_state_path(path.parent):
                 self._quarantine_invalid_seed(path.parent)
-            return None
+            return None, True
         if not self._is_loadable_payload(payload):
             if path.name == _STATE_FILE:
                 self._quarantine_invalid_state(path.parent)
@@ -417,8 +459,8 @@ class VaultService:
                 self._quarantine_invalid_backup(path.parent)
             elif path == self._seed_state_path(path.parent):
                 self._quarantine_invalid_seed(path.parent)
-            return None
-        return payload
+            return None, True
+        return payload, False
 
     def _write_backup(self, root_dir: Path) -> bool:
         state_path = self._state_path(root_dir)

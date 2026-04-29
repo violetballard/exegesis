@@ -10,6 +10,7 @@ from pathlib import Path
 
 _SCHEMA_VERSION = 1
 _CANONICAL_DICT_KEYS = {"schema_version", "updated_at", "context_sets", "recovered_from"}
+_CANONICAL_RECORD_KEYS = {"context_set_id", "name", "item_ids", "created_at", "updated_at"}
 
 
 @dataclass
@@ -156,16 +157,29 @@ class ContextSetStore:
         primary_missing = not self._path.exists()
         backup_missing = not self._backup_path.exists()
         primary_payload, primary_quarantined = self._load_payload(self._path)
-        tmp_payload, _ = self._load_payload(self._tmp_path())
-        backup_tmp_payload, _ = self._load_payload(self._backup_tmp_path())
+        tmp_payload, tmp_quarantined = self._load_payload(self._tmp_path())
+        backup_tmp_payload, backup_tmp_quarantined = self._load_payload(self._backup_tmp_path())
         backup_payload, backup_quarantined = self._load_payload(self._backup_path)
-        seed_tmp_payload, _ = self._load_payload(self._seed_tmp_path())
+        seed_tmp_payload, seed_tmp_quarantined = self._load_payload(self._seed_tmp_path())
         seed_payload, seed_quarantined = self._load_payload(self._seed_state_path())
-        self._quarantine_missing_context_sets_payload(self._tmp_path(), tmp_payload)
-        self._quarantine_missing_context_sets_payload(self._backup_tmp_path(), backup_tmp_payload)
+        preserve_temporary_corrupt = tmp_quarantined or backup_tmp_quarantined or seed_tmp_quarantined
+        tmp_missing_context_sets = self._quarantine_missing_context_sets_payload(self._tmp_path(), tmp_payload)
+        backup_tmp_missing_context_sets = self._quarantine_missing_context_sets_payload(
+            self._backup_tmp_path(),
+            backup_tmp_payload,
+        )
         preserve_backup_corrupt = self._quarantine_missing_context_sets_payload(self._backup_path, backup_payload)
-        self._quarantine_missing_context_sets_payload(self._seed_tmp_path(), seed_tmp_payload)
+        seed_tmp_missing_context_sets = self._quarantine_missing_context_sets_payload(
+            self._seed_tmp_path(),
+            seed_tmp_payload,
+        )
         preserve_seed_corrupt = self._quarantine_missing_context_sets_payload(self._seed_state_path(), seed_payload)
+        preserve_temporary_corrupt = (
+            preserve_temporary_corrupt
+            or tmp_missing_context_sets
+            or backup_tmp_missing_context_sets
+            or seed_tmp_missing_context_sets
+        )
         preserve_backup_corrupt = (
             self._quarantine_unrecoverable_list_payload(self._backup_path, backup_payload) or preserve_backup_corrupt
         )
@@ -308,6 +322,7 @@ class ContextSetStore:
                     self._clear_quarantine_file(
                         preserve_backup_corrupt=preserve_backup_corrupt,
                         preserve_seed_corrupt=preserve_seed_corrupt,
+                        preserve_temporary=preserve_temporary_corrupt,
                     )
                     self._clear_temporary_files()
                     return []
@@ -315,6 +330,7 @@ class ContextSetStore:
             self._clear_quarantine_file(
                 preserve_backup_corrupt=preserve_backup_corrupt,
                 preserve_seed_corrupt=preserve_seed_corrupt,
+                preserve_temporary=preserve_temporary_corrupt,
             )
             self._clear_temporary_files()
             return []
@@ -443,6 +459,13 @@ class ContextSetStore:
             self._quarantine_invalid_seed()
             preserve_seed_corrupt = True
         if recovered_source is not None or should_rewrite:
+            if self._backup_needs_audit_quarantine(backup_payload):
+                self._quarantine_invalid_backup()
+                preserve_backup_corrupt = True
+            if self._backup_needs_audit_quarantine(seed_payload):
+                self._quarantine_invalid_seed()
+                preserve_seed_corrupt = True
+        if recovered_source is not None or should_rewrite:
             self.save(
                 records,
                 recovered_from=recovered_from,
@@ -450,6 +473,7 @@ class ContextSetStore:
                 preserve_primary_corrupt=preserve_primary_corrupt,
                 preserve_backup_corrupt=preserve_backup_corrupt,
                 preserve_seed_corrupt=preserve_seed_corrupt,
+                preserve_temporary_corrupt=preserve_temporary_corrupt,
                 updated_at=rewrite_timestamp,
             )
         elif primary_payload is not None and (
@@ -470,6 +494,7 @@ class ContextSetStore:
                 preserve_seed=not backup_written,
                 preserve_backup_corrupt=preserve_backup_corrupt,
                 preserve_seed_corrupt=preserve_seed_corrupt,
+                preserve_temporary_corrupt=preserve_temporary_corrupt,
             )
             if not backup_written:
                 self._write_seed(self._backup_payload_from_records(records, payload if isinstance(payload, dict) else {}))
@@ -487,6 +512,7 @@ class ContextSetStore:
                 preserve_seed=not backup_written,
                 preserve_backup_corrupt=preserve_backup_corrupt,
                 preserve_seed_corrupt=preserve_seed_corrupt,
+                preserve_temporary_corrupt=preserve_temporary_corrupt,
             )
             if not backup_written:
                 self._write_seed(
@@ -496,6 +522,7 @@ class ContextSetStore:
             self._clear_recovery_artifacts(
                 preserve_backup_corrupt=preserve_backup_corrupt,
                 preserve_seed_corrupt=preserve_seed_corrupt,
+                preserve_temporary_corrupt=preserve_temporary_corrupt,
             )
         return records
 
@@ -507,6 +534,7 @@ class ContextSetStore:
         preserve_primary_corrupt: bool = False,
         preserve_backup_corrupt: bool = False,
         preserve_seed_corrupt: bool = False,
+        preserve_temporary_corrupt: bool = False,
         updated_at: str | None = None,
     ) -> None:
         normalized_records = self._normalize_records(records)
@@ -548,7 +576,10 @@ class ContextSetStore:
                 # backup rotation cannot be completed after the recovery
                 # marker is removed from an otherwise canonical payload.
                 self._write_seed(backup_payload)
-            self._clear_recovery_artifacts(preserve_seed=not backup_written)
+            self._clear_recovery_artifacts(
+                preserve_seed=not backup_written,
+                preserve_temporary_corrupt=preserve_temporary_corrupt,
+            )
             return
         if (
             normalized_recovered_from is None
@@ -571,7 +602,10 @@ class ContextSetStore:
                 backup_written = self._write_backup_payload(backup_payload)
             if not backup_written:
                 self._write_seed(backup_payload)
-            self._clear_recovery_artifacts(preserve_seed=not backup_written)
+            self._clear_recovery_artifacts(
+                preserve_seed=not backup_written,
+                preserve_temporary_corrupt=preserve_temporary_corrupt,
+            )
             return
         payload = {
             "schema_version": _SCHEMA_VERSION,
@@ -602,6 +636,7 @@ class ContextSetStore:
             preserve_primary_corrupt=preserve_primary_corrupt,
             preserve_backup_corrupt=preserve_backup_corrupt,
             preserve_seed_corrupt=preserve_seed_corrupt,
+            preserve_temporary_corrupt=preserve_temporary_corrupt,
         )
 
     def clear(self) -> None:
@@ -711,11 +746,13 @@ class ContextSetStore:
         preserve_primary_corrupt: bool = False,
         preserve_backup_corrupt: bool = False,
         preserve_seed_corrupt: bool = False,
+        preserve_temporary_corrupt: bool = False,
     ) -> None:
         self._clear_quarantine_file(
             preserve_primary_corrupt=preserve_primary_corrupt,
             preserve_backup_corrupt=preserve_backup_corrupt,
             preserve_seed_corrupt=preserve_seed_corrupt,
+            preserve_temporary=preserve_temporary_corrupt,
         )
         self._clear_temporary_files()
         if not preserve_seed:
@@ -1089,6 +1126,8 @@ class ContextSetStore:
         raw_context_sets = payload.get("context_sets")
         if isinstance(raw_context_sets, list) and self._list_payload_needs_audit_quarantine(raw_context_sets):
             return True
+        if self._has_unknown_fields(payload):
+            return True
         return not self._is_supported_payload(payload)
 
     def _has_unknown_fields(self, payload: dict[str, object]) -> bool:
@@ -1184,7 +1223,14 @@ class ContextSetStore:
             return False
         if len(parsed_records) < len(payload):
             return True
+        if any(self._record_has_unknown_fields(raw_record) for raw_record in payload):
+            return True
         return len(self._normalize_records(parsed_records)) < len(parsed_records)
+
+    def _record_has_unknown_fields(self, record: object) -> bool:
+        if not isinstance(record, dict):
+            return False
+        return any(key not in _CANONICAL_RECORD_KEYS for key in record)
 
     def _quarantine_unrecoverable_list_payload(self, path: Path, payload: object) -> bool:
         if path not in {self._backup_path, self._seed_state_path()}:

@@ -5,17 +5,18 @@ This file expands the canonical roadmap in `/Users/doctor-violet/Library/CloudSt
 ## Milestone 1: Standing shell
 
 Outcome:
-- A 5-pane Textual shell is defined and scaffolded, but the implementation lanes remain disabled until the engine contract is stable enough to consume.
+- A 5-pane Textual shell stands as a stable mockup baseline in Textual/browser, but it is not yet wired to live engine state or actions. The implementation lanes remain disabled until the engine contract is stable enough to consume.
 
 Deliverables:
+- standing shell mockup baseline
 - 3-column shell layout definition
 - Project / Document / Workflow / Context Basket / Inspector pane boundaries
 - Focus model and shortcut bar plan
 - Command palette scaffold plan
 
 Status:
-- Planned
-- Lane state: disabled (`feat-console-shell`, `feat-console-workflow`)
+- Standing (mockup only; not engine-wired)
+- Lane state: disabled for product-real integration (`feat-console-shell`, `feat-console-workflow`)
 
 ## Milestone 2: Core pane interactions
 

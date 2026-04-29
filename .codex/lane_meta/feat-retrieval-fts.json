@@ -1,30 +1,40 @@
 {
-  "approved_exception_note": "Approved shared retrieval regression coverage in tests/unit/test_unified_retrieval.py for the feat-retrieval-fts lane.",
-  "kickoff_budget_note": "This thread finished within the low-risk 8-task cap; no sprint-mode 10-task allowance or high-risk 4-task budget was used.",
-  "proposed_readme_patch": "",
-  "final_head_sha": "8de722f25d0ef3fd30b7b60646f683ab824c2057",
-  "risk": "LOW",
-  "packet_type": "metadata-only",
-  "reviewed_commits": [
-    "c92025af6e11c396f84356967cea704cadb20f5b",
-    "c4944661a0a682821c486810918c2c1fabac1a41",
-    "47b3977d271e3f7faacb6ba3082ab94a2d327fcb"
+  "scope_goal": "Complete the FTS-first retrieval MVP for engine flows with deterministic excerpt and provenance output.",
+  "scope_completed": [
+    "SQLite FTS remains the authoritative MVP retrieval path in this narrowed slice. The reviewed implementation commit makes excerpt lookup fail closed on the canonical FTS-only path by removing the PageIndex fallback from `fetch_excerpt`, while keeping approved shared regression coverage in `tests/unit/test_unified_retrieval.py` to prove PageIndex-only excerpt IDs now raise `KeyError`.",
+    "PageIndex and embeddings remain non-required compatibility paths in this slice; excerpt lookup no longer promotes PageIndex as a runtime fallback path for the MVP contract.",
+    "This re-review deliberately narrows scope from the earlier over-budget cumulative branch summary to the single implementation commit `adfa8cdadd43747ffbcb612e4151e262b13e52ca`, which stays within the high-risk size budget for shared-file work."
   ],
-  "roadmap_items": [
-    "ROADMAP.md: Milestone 3: Real workflow loop"
-  ],
-  "routing_provider_impact": "None",
-  "scope_goal": "Build the FTS-first retrieval MVP with deterministic excerpt and provenance output for engine generation flows, aligned to ROADMAP.md Milestone 3 and PRODUCT_VISION.md capability 2.",
-  "scope_completed": "Reviewed code commits c92025af6e11c396f84356967cea704cadb20f5b, c4944661a0a682821c486810918c2c1fabac1a41, and 47b3977d271e3f7faacb6ba3082ab94a2d327fcb add excerpt lookup audit context, deterministic excerpt payload rehydration, source-bundle context regression coverage, and canonical query constructor export through both retrieval facades; later lane-handoff commits are packet or metadata maintenance only and are excluded.",
-  "shared_file_exception": true,
+  "kickoff_budget_note": "This handoff includes approved shared regression coverage in `tests/unit/test_unified_retrieval.py`, so the packet is shared/high-risk work and should be read against the 4-task cap. The narrowed reviewed slice changes 2 files with 59 lines touched in `adfa8cdadd43747ffbcb612e4151e262b13e52ca`, which fits the shared/high-risk size budget.",
+  "approved_exception_note": "Approved shared regression coverage in `tests/unit/test_unified_retrieval.py` for the `feat-retrieval-fts` lane; it is the sole shared-by-approval regression surface for the lane and exercises the canonical retrieval contract.",
   "tasks_completed": [
-    "Added the excerpt lookup audit trail and deterministic rehydration path in the retrieval service.",
-    "Canonicalized excerpt provenance so downstream payloads carry stable hashes and fingerprints.",
-    "Kept retrieval FTS-first and left PageIndex/embeddings as fallback-only plumbing.",
-    "Exported the canonical retrieval query constructor through both retrieval facades and kept the auto path on the FTS-first implementation."
+    "Removed the PageIndex fallback from `fetch_excerpt` so the public excerpt lookup surface now resolves through the canonical FTS-only path.",
+    "Added approved shared regression coverage in `tests/unit/test_unified_retrieval.py` proving PageIndex-only excerpt IDs fail closed with `KeyError`."
+  ],
+  "risk": "HIGH",
+  "roadmap_items": [
+    "Milestone 3: Real workflow loop - FTS-first retrieval remains the authoritative context path for the engine loop.",
+    "feat-retrieval-fts - authoritative FTS-first retrieval feeding the engine loop."
   ],
   "vision_capabilities": [
-    "2. Retrieval-first context handling",
-    "6. Auditable state and workflow"
+    "Retrieval-first context handling",
+    "Auditable state and workflow"
+  ],
+  "routing_provider_impact": "None",
+  "shared_file_exception": true,
+  "reviewed_commit": "adfa8cdadd43747ffbcb612e4151e262b13e52ca",
+  "reviewed_commit_range": "378cf9a74a3658058079a32f186fcd254c4a4034..adfa8cdadd43747ffbcb612e4151e262b13e52ca",
+  "packet_head_role": "metadata-only reviewer-fix finalization",
+  "metadata_only_note": "The current branch tip is a packet-refresh commit. Review the narrowed retrieval implementation range `378cf9a74a3658058079a32f186fcd254c4a4034..adfa8cdadd43747ffbcb612e4151e262b13e52ca`; later packet-refresh commits remain metadata-only unless this handoff is regenerated.",
+  "reviewed_files": [
+    "src/qual/retrieval/service.py",
+    "tests/unit/test_unified_retrieval.py"
+  ],
+  "metadata_only_files": [
+    ".codex/kickoff_packets/feat-retrieval-fts.md",
+    ".codex/lane_meta/feat-retrieval-fts.json",
+    "THREAD_PACKET.md",
+    "codex_packet_handoff/tools/planner.py",
+    "tests/unit/test_packet_planner.py"
   ]
 }

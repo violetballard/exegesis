@@ -1,12 +1,40 @@
 {
-  "approved_exception_note": "",
-  "kickoff_budget_note": "",
-  "proposed_readme_patch": "",
+  "scope_goal": "Canonicalize materialized A2UI action order in `src/qual/ui/a2ui.py` so CLI fallback rendering stays deterministic, and align packet planner defaults and review-facing packet text with the current Milestone 3 / capability 4 canon.",
+  "scope_completed": [
+    "Canonicalized materialized A2UI action order in `src/qual/ui/a2ui.py` and covered it in `tests/unit/test_a2ui_contract.py` so CLI fallback rendering stays deterministic. Runtime change commit: `b929fe6c7a1159c7882acedd247aca31a93cd123`.",
+    "Canonicalized stale `feat-a2ui-contract` handoff fields in the packet planner to the current Milestone 3 / capability 4 canon, removed the packet-planner fallback that invented a synthetic handback note for missing `tasks_completed`, added explicit `Scope completed` packet support, and updated the packet-planner regression coverage to the current Milestone 3 / capability 4 mapping."
+  ],
+  "kickoff_budget_note": "The reviewed A2UI runtime slice stays narrow: one runtime file plus one focused contract test. The later packet/planner maintenance exists only to make re-review traceable against the current Milestone 3 / capability 4 canon.",
+  "approved_exception_note": "Approved shared regression coverage in `tests/unit/test_a2ui_contract.py` to prove deterministic CLI fallback action ordering.",
+  "tasks_completed": [
+    "Updated `src/qual/ui/a2ui.py` to sort filtered actions by canonical JSON before terminal rendering, preserving deterministic CLI fallback output.",
+    "Kept contract coverage in `tests/unit/test_a2ui_contract.py` for canonical action ordering and allowlisted fallback behavior.",
+    "Updated `codex_packet_handoff/tools/planner.py` so missing `tasks_completed` values are surfaced explicitly instead of backfilled with a synthetic handback note.",
+    "Added explicit `Scope completed` packet support and canonicalized the `feat-a2ui-contract` handoff mapping to Milestone 3 / capability 4.",
+    "Updated `tests/unit/test_packet_planner.py` to assert the current Milestone 3 / capability 4 mapping and the new `Scope completed` section.",
+    "Rewrote the handoff packet so the review trail shows the runtime A2UI delta and the packet-planner follow-up together."
+  ],
   "risk": "LOW",
-  "roadmap_items": [],
+  "roadmap_items": [
+    "Milestone 3: Real workflow loop - move A2UI contracts into shared while keeping renderers outside shared.",
+    "feat-a2ui-contract - shared card/action contracts and selection models for the engine loop."
+  ],
+  "vision_capabilities": [
+    "Shared UI contract (A2UI)",
+    "Canonical engine contract"
+  ],
   "routing_provider_impact": "None",
-  "scope_goal": "Stabilize the A2UI schema and CLI fallback rendering used by engine-driven MVP workflows.",
-  "shared_file_exception": false,
-  "tasks_completed": [],
-  "vision_capabilities": []
+  "shared_file_exception": true,
+  "reviewed_commit": "b929fe6c7a1159c7882acedd247aca31a93cd123",
+  "packet_head_role": "metadata-only reviewer-fix resubmission",
+  "metadata_only_note": "The current branch tip is a packet-refresh commit. Review the runtime A2UI implementation at `b929fe6c7a1159c7882acedd247aca31a93cd123`; later planner and handoff edits are metadata-only re-review support.",
+  "reviewed_files": [
+    "src/qual/ui/a2ui.py",
+    "tests/unit/test_a2ui_contract.py"
+  ],
+  "metadata_only_files": [
+    "codex_packet_handoff/tools/planner.py",
+    "tests/unit/test_packet_planner.py",
+    "THREAD_PACKET.md"
+  ]
 }

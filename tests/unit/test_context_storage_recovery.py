@@ -1086,6 +1086,18 @@ class ContextStoreRecoveryTests(unittest.TestCase):
         self.assertFalse(self.store._backup_tmp_path().with_name("context_basket.bak.tmp.corrupt.json").exists())
         self.assertFalse(self.store._seed_tmp_path().with_name("context_basket.seed.tmp.corrupt.json").exists())
 
+    def test_corrupt_temporary_backup_payload_is_preserved_for_audit(self) -> None:
+        self.store.save(ContextBasket(item_ids=["first"]))
+        self.store._backup_tmp_path().write_text("{bad", encoding="utf-8")
+
+        loaded = self.store.load()
+
+        self.assertEqual(loaded.item_ids, ["first"])
+        self.assertFalse(self.store._backup_tmp_path().exists())
+        self.assertTrue(
+            self.store._backup_tmp_path().with_name("context_basket.bak.tmp.corrupt.json").exists()
+        )
+
     def test_empty_load_clears_orphaned_quarantine_markers(self) -> None:
         self.root.mkdir(parents=True, exist_ok=True)
         self.store._path.with_suffix(".corrupt.json").write_text("{bad", encoding="utf-8")
@@ -2058,6 +2070,17 @@ class ContextSetStoreRecoveryTests(unittest.TestCase):
         self.assertEqual(second_payload.get("updated_at"), first_updated_at)
         self.assertFalse(self.store._seed_state_path().with_name("context_sets.seed.corrupt.json").exists())
 
+    def test_corrupt_temporary_seed_payload_is_preserved_for_audit(self) -> None:
+        record = self.store.create_context_set("Evidence", ["first"])
+        self.store._seed_tmp_path().write_text("{bad", encoding="utf-8")
+
+        loaded = self.store.load()
+
+        self.assertEqual(len(loaded), 1)
+        self.assertEqual(loaded[0].context_set_id, record.context_set_id)
+        self.assertFalse(self.store._seed_tmp_path().exists())
+        self.assertTrue(self.store._seed_tmp_path().with_name("context_sets.seed.tmp.corrupt.json").exists())
+
     def test_recovered_from_only_cleanup_preserves_existing_updated_at(self) -> None:
         self.root.mkdir(parents=True, exist_ok=True)
         original_updated_at = "2026-03-20T12:00:00+00:00"
@@ -2285,6 +2308,16 @@ class VaultRecoveryTests(unittest.TestCase):
         self.assertIsInstance(reopened.is_locked, bool)
         self.assertFalse((state.root_dir / ".vault_state.tmp.corrupt.json").exists())
         self.assertFalse((state.root_dir / ".vault_state.bak.tmp.corrupt.json").exists())
+
+    def test_corrupt_temporary_backup_payload_is_preserved_for_audit(self) -> None:
+        state = self.svc.create_or_open(self.root, "p2-temp-audit")
+        state.root_dir.joinpath(".vault_state.bak.tmp").write_text("{bad", encoding="utf-8")
+
+        reopened = self.svc.create_or_open(self.root, "p2-temp-audit")
+
+        self.assertIsInstance(reopened.is_locked, bool)
+        self.assertFalse((state.root_dir / ".vault_state.bak.tmp").exists())
+        self.assertTrue((state.root_dir / ".vault_state.bak.tmp.corrupt.json").exists())
 
     def test_empty_load_clears_orphaned_quarantine_and_temporary_files(self) -> None:
         state_root = self.root / "p2-empty"
