@@ -717,6 +717,64 @@ class CommandCatalogTests(unittest.TestCase):
             with self.assertRaisesRegex(ValueError, "Command CLI parser surface is inconsistent"):
                 command_catalog.command_cli_contract()
 
+    def test_command_cli_contract_rejects_070743_exact_parser_surface_drift(self) -> None:
+        drift_cases = (
+            (
+                "open replaces bootstrap while canonical names stay stable",
+                ("open", "diff-preview", "diff", "context-basket", "terminal"),
+                (
+                    ("open", "bootstrap"),
+                    ("diff-preview", "diff-preview"),
+                    ("diff", "diff-preview"),
+                    ("context-basket", "context-basket"),
+                    ("terminal", "terminal"),
+                ),
+            ),
+            (
+                "open is added alongside bootstrap",
+                ("bootstrap", "open", "diff-preview", "diff", "context-basket", "terminal"),
+                (
+                    ("bootstrap", "bootstrap"),
+                    ("open", "bootstrap"),
+                    ("diff-preview", "diff-preview"),
+                    ("diff", "diff-preview"),
+                    ("context-basket", "context-basket"),
+                    ("terminal", "terminal"),
+                ),
+            ),
+            (
+                "diff accepted alias is removed",
+                ("bootstrap", "diff-preview", "context-basket", "terminal"),
+                (
+                    ("bootstrap", "bootstrap"),
+                    ("diff-preview", "diff-preview"),
+                    ("context-basket", "context-basket"),
+                    ("terminal", "terminal"),
+                ),
+            ),
+            (
+                "diff is reordered before diff-preview",
+                ("bootstrap", "diff", "diff-preview", "context-basket", "terminal"),
+                (
+                    ("bootstrap", "bootstrap"),
+                    ("diff", "diff-preview"),
+                    ("diff-preview", "diff-preview"),
+                    ("context-basket", "context-basket"),
+                    ("terminal", "terminal"),
+                ),
+            ),
+        )
+        for label, drifted_tokens, drifted_lookup_table in drift_cases:
+            with self.subTest(label=label):
+                self._clear_cli_caches()
+                with (
+                    patch.object(command_catalog, "command_cli_tokens", return_value=drifted_tokens),
+                    patch.object(command_catalog, "command_cli_lookup_table", return_value=drifted_lookup_table),
+                    patch.object(command_catalog, "command_names", return_value=command_names()),
+                ):
+                    with self.assertRaisesRegex(ValueError, "Command CLI parser surface is inconsistent"):
+                        command_catalog.command_cli_contract()
+
     def test_command_cli_contract_rejects_053429_reviewer_entrypoint_drift_examples(self) -> None:
         drift_cases = (
             (

@@ -828,6 +828,15 @@
 
 - None. This change only affects local command contract validation and focused command-catalog test coverage.
 
+## Required Fixes Addressed From Fixer Prompt `20260429T070743Z`
+
+1. Regenerated this handoff packet with one unambiguous review target: the current branch tip after the `20260429T070743Z` fixer commit. Intermediate commits, including `f8d860ed9f6299f0169c4f21321ac5f37c949fd3` and `0899025ea`, are not standalone review targets.
+2. Updated `command_cli_contract()` to validate the exact accepted parser-token surface directly before returning: accepted token tuple, token-to-canonical lookup table, lookup token order, and live token projection must match the canonical CLI parser surface.
+3. Added focused regression coverage for the reviewer-required parser drift classes: same-canonical substitution (`open` replacing `bootstrap`), extra accepted alias (`open` alongside `bootstrap`), missing accepted alias (`diff` removed), and token-order drift (`diff` before `diff-preview`).
+4. Corrected handoff accounting for the selected branch-tip review target: implementation/test files are `src/qual/commands/catalog.py` and `tests/unit/test_commands_catalog.py`; metadata files are `THREAD.md` and `THREAD_PACKET.md`.
+5. Commit accounting rule for this review target: any commit that changes `src/qual/commands/catalog.py` or `tests/unit/test_commands_catalog.py` is implementation/test scope, not metadata-only.
+6. Reran all required gates after this fixer pass and recorded the outcomes below.
+
 ## Required Fixes Addressed From Fixer Prompt `20260429T070230Z`
 
 1. Regenerated this handoff packet with one unambiguous review target: the current branch tip after the `20260429T070230Z` fixer commit. Intermediate commits, including `f8d860ed9f6299f0169c4f21321ac5f37c949fd3` and `90817b02fb18084be7985a97f0119670ecbb6bf1`, are not standalone review targets.
@@ -840,17 +849,17 @@
 
 ## Latest Commands Run + Outcomes
 
-- `python -m unittest tests.unit.test_commands_catalog.CommandCatalogTests.test_command_cli_contract_rejects_070230_parser_token_surface_drift`: PASS; ran 1 focused parser-token drift test.
+- `python -m unittest tests.unit.test_commands_catalog.CommandCatalogTests.test_command_cli_contract_rejects_070743_exact_parser_surface_drift`: PASS; ran 1 focused parser-token drift test.
 - `make scope-check`: PASS for branch `codex/feat-commands`.
 - `./quality-format.sh --check`: PASS.
 - `./quality-lint.sh`: PASS.
-- `./quality-test.sh`: PASS; ran smoke tests and 177 unit tests, including `test_command_cli_contract_rejects_070230_parser_token_surface_drift`.
+- `./quality-test.sh`: PASS; ran smoke tests and 178 unit tests, including `test_command_cli_contract_rejects_070743_exact_parser_surface_drift`.
 - `./typecheck-test.sh`: PASS; compiled Python sources in `src/`.
 - `make ci`: PASS; ran scope-check, format, lint, compileall/typecheck, and full quality tests.
 
 ## Latest Review Target
 
 - Branch: `codex/feat-commands`
-- Review target: current branch tip after the `20260429T070230Z` fixer commit.
-- Files changed by this fixer pass: `tests/unit/test_commands_catalog.py`, `THREAD.md`, `THREAD_PACKET.md`.
+- Review target: current branch tip after the `20260429T070743Z` fixer commit.
+- Files changed by this fixer pass: `src/qual/commands/catalog.py`, `tests/unit/test_commands_catalog.py`, `THREAD.md`, `THREAD_PACKET.md`.
 - Risks/blockers: none.

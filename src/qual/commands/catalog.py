@@ -337,6 +337,23 @@ def _accepted_cli_parser_surface(
     return lookup_table
 
 
+def _validate_exact_cli_parser_token_surface(
+    *,
+    tokens: tuple[str, ...],
+    lookup_table: tuple[tuple[str, str], ...],
+) -> None:
+    expected_lookup_table = _expected_cli_parser_surface()
+    expected_tokens = tuple(token for token, _ in expected_lookup_table)
+    if tokens != expected_tokens:
+        raise ValueError("Command CLI parser surface is inconsistent")
+    if lookup_table != expected_lookup_table:
+        raise ValueError("Command CLI parser surface is inconsistent")
+    if tuple(token for token, _ in lookup_table) != tokens:
+        raise ValueError("Command CLI parser surface is inconsistent")
+    if _parser_projection_from_tokens(tokens) != expected_lookup_table:
+        raise ValueError("Command CLI parser surface is inconsistent")
+
+
 def _validate_cli_parser_surface(
     *,
     tokens: tuple[str, ...],
@@ -639,6 +656,7 @@ def command_cli_lookup_table() -> tuple[tuple[str, str], ...]:
 def command_cli_contract() -> CommandCliContract:
     tokens = command_cli_tokens()
     lookup_table = command_cli_lookup_table()
+    _validate_exact_cli_parser_token_surface(tokens=tokens, lookup_table=lookup_table)
     canonical_names = command_names()
     _validate_cli_parser_surface(
         tokens=tokens,

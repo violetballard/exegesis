@@ -6,8 +6,8 @@ Canonical handoff contract lives in `THREAD_PACKET.md`.
 
 - Lane: `feat-commands`
 - Branch: `codex/feat-commands`
-- Implementation review target: current branch tip after fixer prompt `20260429T065133Z`
-- Current handoff refresh: reviewer fix after prompt `20260429T065133Z`
+- Implementation review target: current branch tip after fixer prompt `20260429T070743Z`
+- Current handoff refresh: reviewer fix after prompt `20260429T070743Z`
 - Prior implementation anchor: `f8d860ed9f6299f0169c4f21321ac5f37c949fd3`
 - Scope: command-catalog contract hardening for the current engine-first MVP focus without starting `feat-console`.
 - Roadmap alignment: Milestone 3 CLI compatibility for the engine-first workflow loop, and `feat-commands` as the command-surface compatibility lane.
@@ -26,6 +26,14 @@ Canonical handoff contract lives in `THREAD_PACKET.md`.
 
 - `THREAD.md`
 - `THREAD_PACKET.md`
+
+## Fixer Prompt `20260429T070743Z` Fix Satisfaction
+
+1. The handoff target is refreshed for prompt `20260429T070743Z`; review should use the current branch tip after this fixer commit, not `f8d860ed9f6299f0169c4f21321ac5f37c949fd3`, `0899025ea`, or any intermediate commit alone.
+2. `command_cli_contract()` now directly validates the exact parser-token surface before returning: accepted tokens, token-to-canonical lookup order, lookup token order, and live token projection must match the canonical CLI parser surface.
+3. Regression coverage includes the four reviewer-required parser drift classes: same-canonical substitution (`open` replacing `bootstrap`), extra accepted alias (`open` alongside `bootstrap`), missing accepted alias (`diff` removed), and token-order drift (`diff` before `diff-preview`).
+4. Commit accounting is explicit: commits changing `src/qual/commands/catalog.py` or `tests/unit/test_commands_catalog.py` are implementation/test scope; `THREAD.md` and `THREAD_PACKET.md` are metadata-only.
+5. Required gates are rerun after this fixer pass and recorded in `THREAD_PACKET.md`.
 
 ## Fixer Prompt `20260429T065133Z` Fix Satisfaction
 
