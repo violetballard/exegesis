@@ -54,17 +54,18 @@ This fixer pass changes packet metadata only. It does not narrow, split, reset, 
 
 ## Commands Run
 
-Required gates are rerun after this packet correction and reported in the final fixer response against the exact final branch tip:
+Required gates rerun for this fixer pass against the exact pre-commit branch tip `c11be4126a063df52096fc7a46c88c848fda69d3`:
 
-- `make scope-check`
-- `./quality-format.sh --check`
-- `./quality-lint.sh`
-- `./quality-test.sh`
-- `./typecheck-test.sh`
-- `make ci`
+- `make scope-check`: PASS
+- `./quality-format.sh --check`: PASS
+- `./quality-lint.sh`: PASS
+- `./quality-test.sh`: PASS, including smoke plus 126 unit tests
+- `./typecheck-test.sh`: PASS
+- `make ci`: PASS, including scope-check, format, lint, compileall, and smoke plus 126 unit tests
 
 ## Risks / Blockers
 
 - Residual risk: broader retrieval orchestration beyond deterministic source/context bundles remains separate high-risk work.
 - Scope risk: none identified in this re-review slice; changes remain FTS-first and deterministic.
 - Shared-file note: `tests/unit/test_unified_retrieval.py` is the only shared-by-approval file in this slice.
+- Packet mirror blocker: this sandbox returned `Operation not permitted` when attempting to update `.codex/kickoff_packets/feat-retrieval-fts.md` and `.codex/lane_meta/feat-retrieval-fts.json`; `THREAD_PACKET.md` is the updated handoff packet for this fixer commit.
