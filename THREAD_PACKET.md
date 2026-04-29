@@ -26,7 +26,7 @@
 - Roadmap item(s) affected: active MVP `feat-commands`; Milestone 3 command surface stability while Textual remains disabled.
 - Vision capability affected: canonical engine contract and CLI compatibility through deterministic command catalog metadata.
 - Exact canonical demo-path step advanced: `preview/apply/reject patch`.
-- Canonical demo-path step advanced: this command-catalog hardening makes `preview/apply/reject patch` more real by preserving deterministic command tokens and canonical command names for the patch-preview command surface.
+- Canonical demo-path step advanced: this strengthens the open/retrieve/context-basket/patch-preview CLI control surface needed to execute the engine-first demo path while Textual remains disabled; the exact canonical step made more real by this command-catalog contract hardening is `preview/apply/reject patch`.
 - Per-task canonical demo-path mapping using current engine-first MVP language:
   1. Exact canonical CLI-token validation advances the engine-first path `Engine stability -> A2UI contracts with CLI fallback -> preview/apply/reject patch` by requiring each catalog command, including `diff-preview`, to remain present as its exact parser token.
   2. The `_CLI_ENTRYPOINTS` alias-replacement regression advances the engine-first path `Engine stability -> A2UI contracts with CLI fallback -> preview/apply/reject patch` by proving alias `diff` cannot replace canonical parser token `diff-preview`.
@@ -81,4 +81,4 @@ Actual corrected merge diff from `06cdebc2d5d53533b73f264a4bbf5a4b4daacb27` to t
 
 ## Final Readiness Statement
 
-This packet asks review of the corrected branch-tip target only: command catalog implementation, its unit tests, and accurate packet metadata. The corrected command-catalog work now makes `preview/apply/reject patch` more real by preserving deterministic canonical CLI command names, parser tokens, and alias behavior for the patch-preview command surface.
+This packet asks review of the corrected branch-tip target only: command catalog implementation, its unit tests, and accurate packet metadata. This strengthens the open/retrieve/context-basket/patch-preview CLI control surface needed to execute the engine-first demo path while Textual remains disabled; the corrected command-catalog work makes `preview/apply/reject patch` more real by preserving deterministic canonical CLI command names, parser tokens, and alias behavior for the patch-preview command surface.

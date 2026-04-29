@@ -13,7 +13,7 @@ Canonical handoff contract lives in `THREAD_PACKET.md`.
 - Complete corrected file list: `THREAD.md`, `THREAD_PACKET.md`, `src/qual/commands/catalog.py`, and `tests/unit/test_commands_catalog.py`.
 - Packet metadata files changed: `THREAD.md` and `THREAD_PACKET.md`.
 - Exact canonical demo-path step advanced: `preview/apply/reject patch`.
-- Canonical demo-path step advanced: command-catalog hardening makes `preview/apply/reject patch` more real by keeping patch-preview command tokens and canonical command names deterministic.
+- Canonical demo-path step advanced: this strengthens the open/retrieve/context-basket/patch-preview CLI control surface needed to execute the engine-first demo path while Textual remains disabled; the exact canonical step made more real by this command-catalog contract hardening is `preview/apply/reject patch`.
 - Per-task canonical demo-path mapping uses the current engine-first MVP path from `AGENTS.md`: `Engine stability -> A2UI contracts with CLI fallback -> preview/apply/reject patch`.
 - Implementation review basis: the branch tip produced by this fixer pass.
 - Implementation slice: `src/qual/commands/catalog.py` and shared-by-approval test exception `tests/unit/test_commands_catalog.py`; no integrator-locked files were changed in the reviewed implementation commits. The implementation fixes tighten the canonical CLI-token contract, add the `diff-preview` alias-replacement and alias-before-canonical regressions, and refresh packet metadata.
