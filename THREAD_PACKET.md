@@ -3,7 +3,8 @@
 - Branch/lane: `codex/feat-retrieval-fts` / `feat-retrieval-fts`
 - Purpose: authoritative re-review packet for the actual branch-tip merge candidate.
 - Reviewed range: `378cf9a7..HEAD`
-- Pre-fix rejected branch tip: `f29f2c672a16d8e9770e718237f147e37c12e04a`.
+- Reviewed implementation range: `378cf9a7..HEAD`
+- Pre-fix rejected branch tip: `0b7483e89`.
 - Merge candidate: current branch tip after this fixer commit. Final SHA is reported in the fixer response.
 - Scope rule: review the full range above. Do not use `adfa8cdadd43747ffbcb612e4151e262b13e52ca` as the endpoint, and do not classify post-`adfa8cdadd43747ffbcb612e4151e262b13e52ca` retrieval-code changes as metadata-only.
 
@@ -59,6 +60,7 @@ The branch delivers the FTS-first retrieval slice needed for the current MVP eng
 
 ## Canonical Demo Path
 
+- Explicit AGENTS.md canonical demo-path step advanced: this work makes the “retrieve relevant material” step more real by enforcing FTS-only excerpt lookup/provenance.
 - Advances the canonical MVP flow `vault -> context -> run -> patch -> export` by making the `context -> run` retrieval handoff deterministic, structured, FTS-backed, and provenance-bearing.
 - Keeps retrieved chunks auditable for generation and promotion flows through stable source, excerpt, provenance, and basket/workflow promotion refs.
 
