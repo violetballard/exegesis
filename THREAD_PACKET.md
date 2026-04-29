@@ -4,8 +4,8 @@
 - Branch: `codex/feat-retrieval-fts`
 - Review target: final fixer commit reported in the fixer response.
 - Pre-fix branch tip: `d8044a993d9d5e766181740acbeb39d2919394e6`
-- Corrected reviewed implementation head before this packet-only fixer: `d8044a993d9d5e766181740acbeb39d2919394e6`
-- Corrected reviewed implementation range: `d7fd5d200358287fa42a18d39e2b277463b9b69f..d8044a993d9d5e766181740acbeb39d2919394e6`
+- Corrected reviewed implementation head before this fixer: `d8044a993d9d5e766181740acbeb39d2919394e6`
+- Corrected reviewed implementation range: `d7fd5d200358287fa42a18d39e2b277463b9b69f..final fixer commit reported in response`
 - Post-`adfa8cda` code included in scope: yes.
 - Handoff type: high-risk retrieval fixer re-review.
 
@@ -15,7 +15,7 @@ Keep the canonical demo-path step tied to `retrieve relevant material` for baske
 
 ## Scope Completed
 
-This packet is regenerated against the actual merge candidate instead of the stale `adfa8cda` slice. The branch includes the original FTS-only excerpt lookup work plus later retrieval code through `d8044a993`: basket promotion snapshots, provenance/fingerprint normalization, deterministic policy/source/context bundles, and FTS-first lookup payloads in `src/qual/retrieval/service.py` and `src/qual/engine/retrieval/payload.py`. PageIndex and embeddings remain compatibility-only/deferred paths; they are not required runtime paths for the canonical retrieval flow.
+This packet is regenerated against the actual merge candidate instead of the stale `adfa8cda` slice. The branch includes the original FTS-only excerpt lookup work plus later retrieval code through `d8044a993`: basket promotion snapshots, provenance/fingerprint normalization, deterministic policy/source/context bundles, and FTS-first lookup payloads in `src/qual/retrieval/service.py` and `src/qual/engine/retrieval/payload.py`. This fixer adds focused basket-promotion regression coverage for deterministic service bundles and payload reconstruction helpers. PageIndex and embeddings remain compatibility-only/deferred paths; they are not required runtime paths for the canonical retrieval flow.
 
 ## Canonical Demo-Path Step Advanced
 
@@ -28,7 +28,7 @@ This packet is regenerated against the actual merge candidate instead of the sta
 - High-risk reason: the reviewed range includes approved shared regression coverage in `tests/unit/test_unified_retrieval.py` and packet/planner support files outside lane-owned runtime paths.
 - Task count: `4`
 - Task budget: `4`
-- Size accounting for actual merge candidate: `13 files changed, 1999 insertions(+), 259 deletions(-)` for `d7fd5d200358287fa42a18d39e2b277463b9b69f..d8044a993d9d5e766181740acbeb39d2919394e6`.
+- Size accounting for actual merge candidate before final commit: `13 files changed, 2116 insertions(+), 288 deletions(-)` for `d7fd5d200358287fa42a18d39e2b277463b9b69f..working tree`.
 - Size limit note: the cumulative branch exceeds the AGENTS size budget (`>12 files` and `>500` net LOC). This packet reports the actual state for re-review instead of falsely narrowing the range.
 - Owned runtime paths touched: `src/qual/retrieval/**`, `src/qual/engine/retrieval/**`
 - Approved shared-by-approval edit: `tests/unit/test_unified_retrieval.py`
@@ -40,11 +40,11 @@ This packet is regenerated against the actual merge candidate instead of the sta
 1. Made excerpt lookup FTS-first and fail-closed for PageIndex-only excerpt IDs, with shared regression coverage.
 2. Exported and stabilized canonical retrieval query/facade behavior for engine retrieval flows while keeping deferred strategies compatibility-only.
 3. Normalized retrieval payloads, source/context bundles, citations, provenance, policy snapshots, and sparse lookup reconstruction for deterministic downstream use.
-4. Added basket/workflow promotion provenance, snapshots, and fingerprints through the actual branch tip so promoted material can be audited as retrieved FTS-backed evidence.
+4. Added basket/workflow promotion provenance, snapshots, fingerprints, and focused deterministic reconstruction tests through the actual branch tip so promoted material can be audited as retrieved FTS-backed evidence.
 
 ## Complete Files Changed
 
-Actual merge-candidate diff `d7fd5d200358287fa42a18d39e2b277463b9b69f..d8044a993d9d5e766181740acbeb39d2919394e6`:
+Actual merge-candidate diff `d7fd5d200358287fa42a18d39e2b277463b9b69f..final fixer commit reported in response`:
 
 ```text
 .codex/kickoff_packets/feat-retrieval-fts.md
@@ -70,6 +70,7 @@ Post-`adfa8cda` files still included in the current branch tip:
 THREAD_PACKET.md
 src/qual/engine/retrieval/payload.py
 src/qual/retrieval/service.py
+tests/unit/test_unified_retrieval.py
 ```
 
 ## Merge-Facing Diff / Stat
@@ -77,7 +78,7 @@ src/qual/retrieval/service.py
 Actual candidate stat:
 
 ```text
-git diff --stat d7fd5d200358287fa42a18d39e2b277463b9b69f..d8044a993d9d5e766181740acbeb39d2919394e6
+git diff --stat d7fd5d200358287fa42a18d39e2b277463b9b69f
 ```
 
 Result:
@@ -85,7 +86,7 @@ Result:
 ```text
 .codex/kickoff_packets/feat-retrieval-fts.md     |  55 +-
 .codex/lane_meta/feat-retrieval-fts.json         | 162 ++++-
-THREAD_PACKET.md                                 | 169 +++--
+THREAD_PACKET.md                                 | 223 ++++---
 codex_packet_handoff/tools/planner.py            |  49 +-
 src/qual/engine/retrieval/__init__.py            |  56 +-
 src/qual/engine/retrieval/embeddings_strategy.py |  24 +
@@ -95,8 +96,8 @@ src/qual/engine/retrieval/payload.py             | 790 ++++++++++++++++++++---
 src/qual/retrieval/__init__.py                   |  94 ++-
 src/qual/retrieval/service.py                    | 208 ++++--
 tests/unit/test_packet_planner.py                |  72 +++
-tests/unit/test_unified_retrieval.py             | 489 +++++++++++++-
-13 files changed, 1999 insertions(+), 259 deletions(-)
+tests/unit/test_unified_retrieval.py             | 581 ++++++++++++++++-
+13 files changed, 2116 insertions(+), 288 deletions(-)
 ```
 
 ## Commands Run And Outcomes
@@ -104,7 +105,9 @@ tests/unit/test_unified_retrieval.py             | 489 +++++++++++++-
 - `make scope-check`: PASS.
 - `./quality-format.sh --check`: PASS.
 - `./quality-lint.sh`: PASS.
-- `./quality-test.sh`: PASS (`124` unit tests plus smoke).
+- `python -m pytest tests/unit/test_unified_retrieval.py -q`: not runnable in this environment (`No module named pytest`); reran focused coverage with unittest instead.
+- `python -m unittest tests.unit.test_unified_retrieval -q`: PASS (`57` retrieval tests).
+- `./quality-test.sh`: PASS (`126` unit tests plus smoke).
 - `./typecheck-test.sh`: PASS.
 - `make ci`: PASS.
 
@@ -124,7 +127,7 @@ None. This handoff does not touch model routing, provider configuration, or core
 
 ## Metadata-Only Claim Correction
 
-The previous packet’s metadata-only claim for `ed5d0450e236215a6e6f13ce3b2cbeb04cc6a70b` was false. That commit changes retrieval code in `src/qual/engine/retrieval/payload.py` and `src/qual/retrieval/service.py`; it is included in this corrected reviewed range through `d8044a993d9d5e766181740acbeb39d2919394e6`.
+The previous packet’s metadata-only claim for `ed5d0450e236215a6e6f13ce3b2cbeb04cc6a70b` was false. That commit changes retrieval code in `src/qual/engine/retrieval/payload.py` and `src/qual/retrieval/service.py`; it is included in this corrected reviewed range. The final fixer commit is also source/test changing and is included in the reviewed range reported above.
 
 ## Risks / Blockers
 

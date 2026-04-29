@@ -1,6 +1,7 @@
 from __future__ import annotations
 
 import json
+import hashlib
 import tempfile
 import unittest
 from pathlib import Path
@@ -1522,6 +1523,97 @@ class UnifiedRetrievalTests(unittest.TestCase):
             refreshed["retrieval_excerpt_bundle"]["excerpt_hits"][0]["provenance"]["doc_id"],
             "mutated-doc-id",
         )
+
+    def test_retrieval_context_bundle_includes_deterministic_basket_promotion(self) -> None:
+        query = RetrievalQuery(
+            query_text="memo coding comparison",
+            scope="vault",
+            intent="compare",
+            constraints=RetrievalConstraints(max_results=4),
+            confidentiality_profile="confidential",
+        )
+
+        first = self.service.retrieve_auto(query)
+        second = self.service.retrieve_auto(query)
+        first_bundle = first.retrieval_context_bundle()
+        second_bundle = second.retrieval_context_bundle()
+        promotion = first_bundle["retrieval_basket_promotion"]
+        self.assertIsInstance(promotion, dict)
+
+        self.assertEqual(promotion, second_bundle["retrieval_basket_promotion"])
+        self.assertEqual(
+            promotion,
+            engine_build_retrieval_context_bundle_from_result(first)["retrieval_basket_promotion"],
+        )
+        self.assertEqual(promotion["result_fingerprint"], first.result_fingerprint)
+        self.assertEqual(promotion["query_fingerprint"], first.diagnostics["query_fingerprint"])
+        self.assertEqual(promotion["retrieval_backend"], "sqlite_fts")
+        self.assertEqual(promotion["retrieval_mode"], "fts_first")
+        self.assertEqual(promotion["doc_ids"], [item.doc_id for item in first.doc_hits])
+        self.assertEqual(promotion["excerpt_ids"], [item.excerpt_id for item in first.hits if item.excerpt_id is not None])
+        self.assertEqual(
+            promotion["source_bundle_fingerprint"],
+            first.source_bundle()["source_bundle_fingerprint"],
+        )
+        fingerprint_payload = dict(promotion)
+        observed_fingerprint = fingerprint_payload.pop("basket_promotion_fingerprint")
+        expected_fingerprint = hashlib.sha256(
+            json.dumps(fingerprint_payload, sort_keys=True, separators=(",", ":"), ensure_ascii=True).encode("utf-8")
+        ).hexdigest()
+        self.assertEqual(observed_fingerprint, expected_fingerprint)
+
+        cast(list[object], promotion["doc_ids"]).append("mutated-doc-id")
+        refreshed = first.retrieval_context_bundle()
+        self.assertNotIn("mutated-doc-id", refreshed["retrieval_basket_promotion"]["doc_ids"])
+
+    def test_retrieval_basket_promotion_reconstructs_from_payload_helpers(self) -> None:
+        result = self.service.retrieve_auto(
+            RetrievalQuery(
+                query_text="memo coding comparison",
+                scope="vault",
+                intent="compare",
+                constraints=RetrievalConstraints(max_results=4),
+                confidentiality_profile="confidential",
+            )
+        )
+        expected = result.retrieval_context_bundle()["retrieval_basket_promotion"]
+
+        class _SourceBundleOnlySource:
+            def __init__(self, payload: dict[str, object]) -> None:
+                self._payload = payload
+
+            def source_bundle(self) -> dict[str, object]:
+                return self._payload
+
+        source_bundle_context = engine_build_retrieval_context_bundle_from_result(
+            _SourceBundleOnlySource(result.source_bundle())
+        )
+        self.assertEqual(source_bundle_context["retrieval_basket_promotion"], expected)
+
+        sparse_context_bundle = json.loads(json.dumps(result.retrieval_context_bundle()))
+        sparse_context_bundle.pop("retrieval_basket_promotion", None)
+        downstream_payload = sparse_context_bundle["retrieval_downstream_payload"]
+        self.assertIsInstance(downstream_payload, dict)
+        downstream_payload.pop("retrieval_source_bundle", None)
+
+        class _ContextBundleSource:
+            def __init__(self, payload: dict[str, object]) -> None:
+                self._payload = payload
+
+            def retrieval_context_bundle(self) -> dict[str, object]:
+                return self._payload
+
+        reconstructed_context = engine_build_retrieval_context_bundle_from_result(
+            _ContextBundleSource(sparse_context_bundle)
+        )
+        self.assertEqual(reconstructed_context["retrieval_basket_promotion"], expected)
+        reconstructed_payload = build_retrieval_downstream_payload_from_result(
+            _ContextBundleSource(sparse_context_bundle)
+        )
+        rebuilt_context = engine_build_retrieval_context_bundle_from_result(
+            _SourceBundleOnlySource(reconstructed_payload["retrieval_source_bundle"])
+        )
+        self.assertEqual(rebuilt_context["retrieval_basket_promotion"], expected)
 
     def test_retrieval_context_bundle_helper_reads_generic_sources_once(self) -> None:
         result = self.service.retrieve_auto(
