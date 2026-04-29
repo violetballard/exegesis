@@ -937,6 +937,17 @@ class CommandCatalogTests(unittest.TestCase):
                 ),
             ),
             (
+                "diff is replaced by another alias preserving diff-preview canonical name",
+                ("bootstrap", "diff-preview", "diff_preview", "context-basket", "terminal"),
+                (
+                    ("bootstrap", "bootstrap"),
+                    ("diff-preview", "diff-preview"),
+                    ("diff_preview", "diff-preview"),
+                    ("context-basket", "context-basket"),
+                    ("terminal", "terminal"),
+                ),
+            ),
+            (
                 "reordered diff and diff-preview preserve names but drift parser projection",
                 ("bootstrap", "diff", "diff-preview", "context-basket", "terminal"),
                 (

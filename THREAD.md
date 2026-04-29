@@ -6,8 +6,8 @@ Canonical handoff contract lives in `THREAD_PACKET.md`.
 
 - Lane: `feat-commands`
 - Branch: `codex/feat-commands`
-- Implementation review target: current branch tip after fixer prompt `20260429T054027Z`
-- Current handoff refresh: reviewer fix after prompt `20260429T054027Z`
+- Implementation review target: current branch tip after fixer prompt `20260429T061457Z`
+- Current handoff refresh: reviewer fix after prompt `20260429T061457Z`
 - Prior implementation anchor: `f8d860ed9f6299f0169c4f21321ac5f37c949fd3`
 - Scope: command-catalog contract hardening for the current engine-first MVP focus without starting `feat-console`.
 - Roadmap alignment: Milestone 3 CLI compatibility for the engine-first workflow loop, and `feat-commands` as the command-surface compatibility lane.
@@ -26,6 +26,15 @@ Canonical handoff contract lives in `THREAD_PACKET.md`.
 
 - `THREAD.md`
 - `THREAD_PACKET.md`
+
+## Fixer Prompt `20260429T061457Z` Fix Satisfaction
+
+1. The handoff target is refreshed for prompt `20260429T061457Z`; review should use the current branch tip after this fixer commit.
+2. `command_cli_contract()` validates the exact parser token surface before returning: `_CLI_ENTRYPOINTS`, accepted tokens, resolved parser projection, lookup-table order, grouped canonical surface, declared surface, and canonical-name order must match the canonical CLI command surface.
+3. Regression coverage now includes the reviewer-requested same-canonical `diff` replacement case where `diff_preview` still maps to `diff-preview`, plus the existing `open` replacing `bootstrap`, extra `open`, missing `diff`, and reordered `diff` / `diff-preview` cases.
+4. The review basis is unambiguous: the branch tip includes implementation and test changes in `src/qual/commands/catalog.py` and `tests/unit/test_commands_catalog.py`, while `THREAD.md` and `THREAD_PACKET.md` are handoff metadata.
+5. The AGENTS.md demo-path statement remains: the CLI-first command surface for project open, retrieval/basket, patch review, and export handoff is more real because parser drift fails loudly before Textual is enabled.
+6. Required gates are rerun after this fixer pass and recorded in `THREAD_PACKET.md`.
 
 ## Fixer Prompt `20260429T054027Z` Fix Satisfaction
 
