@@ -1,6 +1,7 @@
 from __future__ import annotations
 
 import re
+import shlex
 from dataclasses import dataclass
 from functools import lru_cache
 
@@ -123,6 +124,10 @@ class CommandSmokeStep:
     argv: tuple[str, ...]
     description: str
 
+    @property
+    def command_line(self) -> str:
+        return shlex.join(self.argv)
+
 
 @dataclass(frozen=True)
 class CommandSmokeContract:
@@ -130,6 +135,7 @@ class CommandSmokeContract:
     command_tokens: tuple[str, ...]
     argv: tuple[tuple[str, ...], ...]
     lookup_table: tuple[tuple[str, str], ...]
+    command_lines: tuple[str, ...] = ()
     route_summary: tuple[tuple[str, str, tuple[str, ...]], ...] = ()
     lookup_surface: tuple[tuple[str, str], ...] = ()
     flow_surface_tokens: tuple[tuple[str, ...], ...] = ()
@@ -990,6 +996,8 @@ def _validate_command_smoke_contract(
         raise ValueError("Command smoke tokens are inconsistent")
     if contract.argv != tuple(expected_argv):
         raise ValueError("Command smoke argv is inconsistent")
+    if contract.command_lines != tuple(shlex.join(argv) for argv in expected_argv):
+        raise ValueError("Command smoke command lines are inconsistent")
     if contract.lookup_table != tuple(expected_lookup):
         raise ValueError("Command smoke lookup table is inconsistent")
     expected_route_summary = tuple(
@@ -1187,6 +1195,7 @@ def command_mvp_smoke_contract() -> CommandSmokeContract:
         steps=steps,
         command_tokens=tuple(step.cli_token for step in steps),
         argv=tuple(step.argv for step in steps),
+        command_lines=tuple(step.command_line for step in steps),
         lookup_table=tuple((step.cli_token, step.flow_step) for step in steps),
         route_summary=tuple(
             (entry.flow_step, entry.name, entry.cli_tokens)
@@ -1211,6 +1220,10 @@ def command_mvp_smoke_commands() -> tuple[str, ...]:
 
 def command_mvp_smoke_argv() -> tuple[tuple[str, ...], ...]:
     return command_mvp_smoke_contract().argv
+
+
+def command_mvp_smoke_command_lines() -> tuple[str, ...]:
+    return command_mvp_smoke_contract().command_lines
 
 
 def command_mvp_smoke_lookup_table() -> tuple[tuple[str, str], ...]:
