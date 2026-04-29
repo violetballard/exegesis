@@ -138,11 +138,12 @@
 - `20260429T014718Z` fixer validation rerun: PASS for `make scope-check`, `./quality-format.sh --check`, `./quality-lint.sh`, `./quality-test.sh`, `./typecheck-test.sh`, and `make ci`.
 - `20260429T015007Z` fixer validation rerun: PASS for `make scope-check`, `./quality-format.sh --check`, `./quality-lint.sh`, `./quality-test.sh`, `./typecheck-test.sh`, and `make ci`.
 - `20260429T015322Z` fixer validation rerun: PASS for `make scope-check`, `./quality-format.sh --check`, `./quality-lint.sh`, `./quality-test.sh`, `./typecheck-test.sh`, and `make ci`.
+- `20260429T015856Z` fixer confirmation rerun: `./quality-format.sh --check`, `./quality-lint.sh`, `./quality-test.sh`, and `./typecheck-test.sh` PASS before the metadata commit; exact pre-commit `make scope-check` and `make ci` BLOCKED by scope policy on the existing approved shared-test edit `tests/unit/test_commands_catalog.py`.
 
 ## Risks / Blockers
 
 - Risk: `HIGH`
-- Blockers: none.
+- Blockers: none for implementation. Pre-commit exact `make scope-check` and `make ci` stopped on the approved shared-test edit `tests/unit/test_commands_catalog.py`; all non-scope gates passed.
 
 ## Required Handoff Fields
 
