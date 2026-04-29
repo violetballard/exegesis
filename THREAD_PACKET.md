@@ -2,15 +2,15 @@
 
 - Lane: `feat-commands`
 - Branch: `codex/feat-commands`
-- Commit / review basis: current branch tip after this reviewer-fix commit.
+- Commit / review basis: current branch tip after the `20260429T011323Z` reviewer-fix commit.
 - Previous implementation anchor: `f8d860ed9f6299f0169c4f21321ac5f37c949fd3`
-- Reviewer packet addressed: `20260429T011042Z`
+- Reviewer packet addressed: `20260429T011323Z` (review session `20260429T011137Z`)
 
 ## Packet Traceability Note
 
 - Review the actual `codex/feat-commands` branch tip. Do not treat commits after `f8d860ed9f6299f0169c4f21321ac5f37c949fd3` as metadata-only.
 - The branch-tip implementation includes command-catalog code and test changes after `f8d860e`.
-- This fixer pass removes the prior `scripts/scope-check.sh` scope-policy edit so no gate-policy file remains part of the net review diff.
+- This fixer pass restores the prior `scripts/scope-check.sh` scope-policy edit to the implementation anchor, so no gate-policy file remains part of the net review diff.
 
 ## Current Program Focus
 
@@ -78,7 +78,7 @@
   - `THREAD_PACKET.md`
   - `src/qual/commands/catalog.py`
   - `tests/unit/test_commands_catalog.py`
-- Removed from net review diff by this fixer pass:
+- Restored to the implementation anchor by this fixer pass and excluded from the net review diff:
   - `scripts/scope-check.sh`
 
 ## Approved Exception Note
@@ -94,7 +94,7 @@
 1. Hardened `command_cli_contract()` to verify the parser surface against the canonical CLI surface and reject parser/catalog drift for the `project-open`, `retrieval`, `patch-review`, and `export-handoff` CLI smoke path.
 2. Preserved canonical command ordering in the CLI contract by returning names aligned with `command_names()` for `bootstrap`, `diff-preview`, `context-basket`, and `terminal`.
 3. Added regression coverage for added aliases, removed aliases, same-canonical substitutions, token reordering, lookup-table shape/order drift, and declared-surface drift, including `open` for the `project-open` step and `diff_preview` for the `patch-review` step.
-4. Reconciled the branch-tip packet/accounting for `THREAD.md`, `THREAD_PACKET.md`, `src/qual/commands/catalog.py`, and `tests/unit/test_commands_catalog.py`, and removed the unrelated `scripts/scope-check.sh` scope-policy edit from the net diff.
+4. Reconciled the branch-tip packet/accounting for `THREAD.md`, `THREAD_PACKET.md`, `src/qual/commands/catalog.py`, and `tests/unit/test_commands_catalog.py`, and restored the unrelated `scripts/scope-check.sh` scope-policy edit out of the net diff.
 
 ## Files Changed
 
@@ -108,7 +108,7 @@
 - `THREAD.md`
 - `THREAD_PACKET.md`
 
-### Removed From Net Diff
+### Restored To Implementation Anchor / Excluded From Net Diff
 
 - `scripts/scope-check.sh`
 
@@ -169,7 +169,7 @@
 - Integrator-locked edits: NO.
 - Gate-policy edits: NO net change after this fixer pass.
 
-## Reviewer Packet `20260429T011042Z` Fix Satisfaction
+## Reviewer Packet `20260429T011323Z` Fix Satisfaction
 
 1. Parser-surface drift validation: satisfied by comparing CLI tokens, lookup table, grouped parser surface, declared surface, and canonical names against the explicit canonical CLI parser surface.
 2. Same-canonical parser drift coverage: satisfied by tests for replacing/adding `bootstrap` with `open` and replacing `diff` with `diff_preview`, plus lookup-table substitution coverage.
