@@ -27,7 +27,7 @@ The remaining implementation makes excerpt lookup FTS-first and fail-closed for 
 
 - Risk: `HIGH`
 - Task count: `1` of `4`
-- Actual merge-candidate size before final commit: `5 files changed, 258 insertions(+), 114 deletions(-)` for `378cf9a74a3658058079a32f186fcd254c4a4034..working tree`; net LOC `+144`.
+- Actual merge-candidate size before final commit: `5 files changed, 264 insertions(+), 114 deletions(-)` for `378cf9a74a3658058079a32f186fcd254c4a4034..working tree`; net LOC `+150`.
 - Budget result: within high-risk limits (`<=8 files`, `<=300 net LOC`).
 - Owned runtime paths touched: `src/qual/retrieval/**`, `src/qual/engine/retrieval/**`
 - Approved shared-by-approval edit: `tests/unit/test_unified_retrieval.py`
@@ -47,7 +47,7 @@ src/qual/retrieval/service.py
 tests/unit/test_unified_retrieval.py
 ```
 
-`src/qual/engine/retrieval/payload.py` is changed by this fixer commit only to remove post-`adfa8cda` drift; it is no longer part of the final reviewed range from `378cf9a`.
+`src/qual/engine/retrieval/payload.py` had post-`adfa8cda` basket-promotion drift on the pre-fix branch tip, but its retained changes are removed from the final reviewed range from `378cf9a`.
 
 `.codex/kickoff_packets/feat-retrieval-fts.md` and `.codex/lane_meta/feat-retrieval-fts.json` remain in the actual diff because this sandbox cannot rewrite those Box-backed packet mirrors (`Operation not permitted`). They are included in accounting above.
 
@@ -73,6 +73,10 @@ tests/unit/test_unified_retrieval.py
 ## Routing/provider impact
 
 None. This handoff does not touch model routing, provider configuration, or core provider entrypoints.
+
+## Metadata-only claim correction
+
+The previous metadata-only claim for `a28ccf520ea0983f538106f1bd418670d9cea73b` was false. That commit changed `tests/unit/test_unified_retrieval.py` as well as `THREAD_PACKET.md`. This fixer does not rely on that claim: `a28ccf5` and the previous branch tip `ba2f81e9` are treated as part of the pre-fix branch history, and the final reviewed range above is the authoritative merge candidate after the source/test narrowing.
 
 ## Risks/blockers
 
