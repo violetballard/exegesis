@@ -19,5 +19,5 @@ class RetrievalStrategy(Protocol):
     def supports(self, query: Any) -> bool:
         ...
 
-    def retrieve(self, query: Any, *, candidate_doc_ids: tuple[str, ...], use_cache: bool = True) -> StrategyRun:
+    def retrieve(self, query: Any, *, candidate_doc_ids: tuple[str, ...]) -> StrategyRun:
         ...

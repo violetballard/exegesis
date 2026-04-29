@@ -26,8 +26,7 @@ class PageIndexStrategy:
         # while the FTS-first retrieval lane is authoritative.
         return False
 
-    def retrieve(self, query: Any, *, candidate_doc_ids: tuple[str, ...], use_cache: bool = True) -> StrategyRun:
-        _ = (query, candidate_doc_ids, use_cache)
+    def retrieve(self, query: Any, *, candidate_doc_ids: tuple[str, ...]) -> StrategyRun:
         raise NotImplementedError("PageIndex retrieval is deferred in the FTS-first MVP lane")
 
 

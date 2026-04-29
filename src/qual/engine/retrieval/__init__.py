@@ -1,14 +1,10 @@
-from __future__ import annotations
-
 """Engine retrieval strategies.
 
 The retrieval lane keeps this package as the narrow public surface for the
 engine's retrieval orchestration code.
 """
 
-from collections.abc import Mapping
-from functools import lru_cache
-from importlib import import_module
+from collections.abc import Iterable, Mapping
 
 from src.qual.engine.retrieval.fts_strategy import FTSStrategy
 from src.qual.engine.retrieval.interface import RetrievalStrategy, StrategyRun
@@ -31,28 +27,82 @@ from src.qual.engine.retrieval.payload import (
 )
 
 
+def _normalize_constraint_values(value: object, *, field_name: str) -> tuple[str, ...]:
+    """Return a deterministic tuple for loose retrieval constraint payloads."""
+
+    if value is None:
+        return ()
+    if isinstance(value, str):
+        return (value,)
+    if isinstance(value, (bytes, bytearray)):
+        raise TypeError(f"{field_name} must be an iterable of text values")
+    if isinstance(value, Mapping):
+        raise TypeError(f"{field_name} must be an iterable of values, not a mapping")
+    if not isinstance(value, Iterable):
+        raise TypeError(f"{field_name} must be an iterable of values or None")
+    return tuple(str(item) for item in value if item is not None)
+
+
+def _normalize_optional_int(value: object, *, default: int) -> int:
+    if value is None:
+        return default
+    return int(value)
+
+
 def build_retrieval_query(
     *,
     query_text: str,
     scope: str,
     intent: str,
-    constraints: Mapping[str, object] | RetrievalConstraints | None = None,
+    constraints: object | None = None,
     confidentiality_profile: str = "confidential",
 ) -> RetrievalQuery:
     """Return the canonical FTS-first retrieval query object.
 
-    Delegate to the canonical retrieval package so engine callers share the same
-    normalization path as the retrieval-owned facade.
+    The helper normalizes the loose dict-shaped constraint payload used by the
+    engine and public retrieval facades into the stable dataclass contract that
+    the service layer consumes. Constraint payloads are mapping-shaped or
+    RetrievalConstraints objects, and iterable doc_types/date_range values are
+    normalized deterministically from those inputs.
     """
 
-    _ensure_runtime_types()
-    return _delegate_to_retrieval(
-        "build_retrieval_query",
+    from src.qual.retrieval.service import RetrievalConstraints, RetrievalQuery
+
+    if constraints is None:
+        payload: dict[str, object] = {}
+    elif isinstance(constraints, RetrievalConstraints):
+        payload = {
+            "max_results": constraints.max_results,
+            "doc_types": constraints.doc_types,
+            "date_range": constraints.date_range,
+            "require_citations": constraints.require_citations,
+            "section_hint": constraints.section_hint,
+            "prefer_exact_matches": constraints.prefer_exact_matches,
+        }
+    elif isinstance(constraints, Mapping):
+        payload = dict(constraints)
+    else:
+        raise TypeError("constraints must be a mapping or RetrievalConstraints")
+
+    doc_types = _normalize_constraint_values(payload.get("doc_types"), field_name="doc_types")
+    date_range = payload.get("date_range")
+    if isinstance(date_range, str):
+        date_range = (date_range,)
+    if date_range is not None:
+        date_range = _normalize_constraint_values(date_range, field_name="date_range")
+    return RetrievalQuery(
         query_text=query_text,
         scope=scope,
-        intent=intent,
-        constraints=constraints,
-        confidentiality_profile=confidentiality_profile,
+        intent=intent,  # type: ignore[arg-type]
+        constraints=RetrievalConstraints(
+            max_results=_normalize_optional_int(payload.get("max_results"), default=10),
+            doc_types=doc_types,
+            date_range=date_range,  # type: ignore[arg-type]
+            require_citations=bool(payload.get("require_citations", False)),
+            section_hint=payload.get("section_hint"),  # type: ignore[arg-type]
+            prefer_exact_matches=bool(payload.get("prefer_exact_matches", False)),
+        ),
+        confidentiality_profile=confidentiality_profile,  # type: ignore[arg-type]
     )
 
 ACTIVE_STRATEGY_IDS = _active_strategy_ids()
@@ -83,128 +133,119 @@ def primary_strategy_id() -> str:
     return _primary_strategy_id()
 
 
-@lru_cache(maxsize=1)
-def _retrieval_module():
-    """Resolve the canonical retrieval facade once for engine delegation."""
-
-    return import_module("src.qual.retrieval")
-
-
-def _bind_runtime_types() -> None:
-    """Populate annotation globals without creating an eager import cycle."""
-
-    service_module = import_module("src.qual.retrieval.service")
-    globals()["RetrievalConstraints"] = service_module.RetrievalConstraints
-    globals()["RetrievalQuery"] = service_module.RetrievalQuery
-
-
-def _ensure_runtime_types() -> None:
-    """Bind retrieval dataclasses once the retrieval service has finished importing."""
-
-    if "RetrievalConstraints" in globals() and "RetrievalQuery" in globals():
-        return
-    _bind_runtime_types()
-
-
-def __getattr__(name: str):
-    """Lazily expose canonical retrieval dataclasses on the engine surface."""
-
-    if name in {"RetrievalConstraints", "RetrievalQuery"}:
-        _ensure_runtime_types()
-        return globals()[name]
-    raise AttributeError(f"module {__name__!r} has no attribute {name!r}")
-
-
-def _delegate_to_retrieval(name: str, *args, **kwargs):
-    return getattr(_retrieval_module(), name)(*args, **kwargs)
-
-
 def retrieve_fts_context_bundle(*args, **kwargs):
-    return _delegate_to_retrieval("retrieve_fts_context_bundle", *args, **kwargs)
+    from src.qual.retrieval import retrieve_fts_context_bundle as _retrieve_fts_context_bundle
+
+    return _retrieve_fts_context_bundle(*args, **kwargs)
 
 
 def retrieve_fts_citation_bundle(*args, **kwargs):
-    return _delegate_to_retrieval("retrieve_fts_citation_bundle", *args, **kwargs)
+    from src.qual.retrieval import retrieve_fts_citation_bundle as _retrieve_fts_citation_bundle
+
+    return _retrieve_fts_citation_bundle(*args, **kwargs)
 
 
 def retrieve_fts_source_bundle(*args, **kwargs):
-    return _delegate_to_retrieval("retrieve_fts_source_bundle", *args, **kwargs)
+    from src.qual.retrieval import retrieve_fts_source_bundle as _retrieve_fts_source_bundle
+
+    return _retrieve_fts_source_bundle(*args, **kwargs)
 
 
 def retrieve_fts_provenance_bundle(*args, **kwargs):
-    return _delegate_to_retrieval("retrieve_fts_provenance_bundle", *args, **kwargs)
+    from src.qual.retrieval import retrieve_fts_provenance_bundle as _retrieve_fts_provenance_bundle
+
+    return _retrieve_fts_provenance_bundle(*args, **kwargs)
 
 
 def retrieve_fts_doc_bundle(*args, **kwargs):
-    return _delegate_to_retrieval("retrieve_fts_doc_bundle", *args, **kwargs)
+    from src.qual.retrieval import retrieve_fts_doc_bundle as _retrieve_fts_doc_bundle
+
+    return _retrieve_fts_doc_bundle(*args, **kwargs)
 
 
 def retrieve_fts_excerpt_bundle(*args, **kwargs):
-    return _delegate_to_retrieval("retrieve_fts_excerpt_bundle", *args, **kwargs)
+    from src.qual.retrieval import retrieve_fts_excerpt_bundle as _retrieve_fts_excerpt_bundle
+
+    return _retrieve_fts_excerpt_bundle(*args, **kwargs)
 
 
 def retrieve_fts_excerpt(*args, **kwargs):
-    return _delegate_to_retrieval("retrieve_fts_excerpt", *args, **kwargs)
+    from src.qual.retrieval import retrieve_fts_excerpt as _retrieve_fts_excerpt
+
+    return _retrieve_fts_excerpt(*args, **kwargs)
 
 
 def fetch_fts_excerpt(*args, **kwargs):
-    return _delegate_to_retrieval("fetch_fts_excerpt", *args, **kwargs)
+    from src.qual.retrieval import fetch_fts_excerpt as _fetch_fts_excerpt
 
-
-def fetch_excerpt(*args, **kwargs):
-    return _delegate_to_retrieval("fetch_excerpt", *args, **kwargs)
-
-
-def retrieve_auto_excerpt(*args, **kwargs):
-    return _delegate_to_retrieval("retrieve_auto_excerpt", *args, **kwargs)
+    return _fetch_fts_excerpt(*args, **kwargs)
 
 
 def retrieve_fts_payload(*args, **kwargs):
-    return _delegate_to_retrieval("retrieve_fts_payload", *args, **kwargs)
+    from src.qual.retrieval import retrieve_fts_payload as _retrieve_fts_payload
+
+    return _retrieve_fts_payload(*args, **kwargs)
 
 
 def retrieve_fts(*args, **kwargs):
-    return _delegate_to_retrieval("retrieve_fts", *args, **kwargs)
+    from src.qual.retrieval import retrieve_fts as _retrieve_fts
+
+    return _retrieve_fts(*args, **kwargs)
 
 
 def retrieve_auto(*args, **kwargs):
-    return _delegate_to_retrieval("retrieve_auto", *args, **kwargs)
+    from src.qual.retrieval import retrieve_auto as _retrieve_auto
+
+    return _retrieve_auto(*args, **kwargs)
 
 
 def retrieve_auto_context_bundle(*args, **kwargs):
-    return _delegate_to_retrieval("retrieve_auto_context_bundle", *args, **kwargs)
+    from src.qual.retrieval import retrieve_auto_context_bundle as _retrieve_auto_context_bundle
+
+    return _retrieve_auto_context_bundle(*args, **kwargs)
 
 
 def retrieve_auto_citation_bundle(*args, **kwargs):
-    return _delegate_to_retrieval("retrieve_auto_citation_bundle", *args, **kwargs)
+    from src.qual.retrieval import retrieve_auto_citation_bundle as _retrieve_auto_citation_bundle
+
+    return _retrieve_auto_citation_bundle(*args, **kwargs)
 
 
 def retrieve_auto_source_bundle(*args, **kwargs):
-    return _delegate_to_retrieval("retrieve_auto_source_bundle", *args, **kwargs)
+    from src.qual.retrieval import retrieve_auto_source_bundle as _retrieve_auto_source_bundle
+
+    return _retrieve_auto_source_bundle(*args, **kwargs)
 
 
 def retrieve_auto_provenance_bundle(*args, **kwargs):
-    return _delegate_to_retrieval("retrieve_auto_provenance_bundle", *args, **kwargs)
+    from src.qual.retrieval import retrieve_auto_provenance_bundle as _retrieve_auto_provenance_bundle
+
+    return _retrieve_auto_provenance_bundle(*args, **kwargs)
 
 
 def retrieve_auto_doc_bundle(*args, **kwargs):
-    return _delegate_to_retrieval("retrieve_auto_doc_bundle", *args, **kwargs)
+    from src.qual.retrieval import retrieve_auto_doc_bundle as _retrieve_auto_doc_bundle
+
+    return _retrieve_auto_doc_bundle(*args, **kwargs)
 
 
 def retrieve_auto_excerpt_bundle(*args, **kwargs):
-    return _delegate_to_retrieval("retrieve_auto_excerpt_bundle", *args, **kwargs)
+    from src.qual.retrieval import retrieve_auto_excerpt_bundle as _retrieve_auto_excerpt_bundle
+
+    return _retrieve_auto_excerpt_bundle(*args, **kwargs)
 
 
 def retrieve_auto_payload(*args, **kwargs):
-    return _delegate_to_retrieval("retrieve_auto_payload", *args, **kwargs)
+    from src.qual.retrieval import retrieve_auto_payload as _retrieve_auto_payload
+
+    return _retrieve_auto_payload(*args, **kwargs)
+
 
 __all__ = [
     "StrategyRun",
     "RetrievalStrategy",
     "FTSStrategy",
     "FTS_FIRST_POLICY",
-    "RetrievalConstraints",
-    "RetrievalQuery",
     "ACTIVE_STRATEGY_IDS",
     "DEFERRED_STRATEGY_IDS",
     "active_strategy_ids",
@@ -229,9 +270,7 @@ __all__ = [
     "retrieve_fts_excerpt_bundle",
     "retrieve_fts_excerpt",
     "fetch_fts_excerpt",
-    "fetch_excerpt",
     "retrieve_fts_payload",
-    "retrieve_auto_excerpt",
     "retrieve_auto",
     "retrieve_auto_context_bundle",
     "retrieve_auto_citation_bundle",

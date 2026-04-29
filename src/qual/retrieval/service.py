@@ -6,7 +6,6 @@ import json
 import re
 import sqlite3
 import uuid
-from collections.abc import Iterable, Mapping
 from contextlib import contextmanager
 from dataclasses import dataclass, field
 from datetime import UTC, date, datetime
@@ -29,7 +28,6 @@ from src.qual.metrics.crypto import decrypt_bytes, encrypt_bytes
 _RETRIEVAL_DIR = ".retrieval"
 _KEY_FILE = "retrieval_v1.key"
 _DOC_META_FILE = "doc_meta_v1.enc.json"
-_EXCERPT_CONTEXT_FILE = "excerpt_context_v1.enc.json"
 _FTS_DB_FILE = "fts_index_v1.enc.sqlite3"
 _DOC_BLOBS = "doc_blobs"
 _FTS_SEGMENT_CHARS = 400
@@ -37,29 +35,13 @@ _FTS_SEGMENT_OVERLAP_CHARS = 80
 _FTS_BOUNDARY_SCAN_CHARS = 40
 _SUPPORTED_RETRIEVAL_INTENTS = {"lookup", "compare", "summarize", "quote_find", "outline_support"}
 _SUPPORTED_CONFIDENTIALITY_PROFILES = {"confidential", "standard"}
-_SUPPORTED_LOOKUP_QUERY_CONTEXT_STATUSES = {"rehydrated", "missing", "stale_dropped"}
 _FTS_SOURCE_STRATEGY = "fts"
-_CANONICAL_RETRIEVAL_BACKEND = FTS_FIRST_POLICY.retrieval_backend
-_CANONICAL_RETRIEVAL_MODE = FTS_FIRST_POLICY.retrieval_mode
-_CANONICAL_ACTIVE_STRATEGY_IDS = list(FTS_FIRST_POLICY.active_strategy_ids)
-_CANONICAL_DEFERRED_STRATEGY_IDS = list(FTS_FIRST_POLICY.deferred_strategy_ids)
-_EXCERPT_QUERY_MIRROR_FIELDS = (
-    "query",
-    "query_constraints",
-    "query_max_results",
-    "query_doc_types",
-    "query_require_citations",
-    "query_section_hint",
-    "query_prefer_exact_matches",
-)
 
 
 def _canonicalize_doc_types(doc_types: tuple[str, ...]) -> tuple[str, ...]:
     seen: set[str] = set()
     normalized: list[str] = []
     for doc_type in doc_types:
-        if isinstance(doc_type, (bytes, bytearray)):
-            raise TypeError("doc_types entries must be text strings, not bytes")
         value = str(doc_type).strip().casefold()
         if not value or value in seen:
             continue
@@ -69,174 +51,11 @@ def _canonicalize_doc_types(doc_types: tuple[str, ...]) -> tuple[str, ...]:
 
 
 def _optional_text(value: object) -> str | None:
-    if isinstance(value, (bytes, bytearray)):
-        raise TypeError("text value must be a string, not bytes")
     if isinstance(value, str):
         text = value.strip()
         if text:
             return text
     return None
-
-
-def _normalized_text(value: object) -> str | None:
-    text = _optional_text(value)
-    if text is None:
-        return None
-    return " ".join(text.split())
-
-
-def _normalized_profile_text(value: object) -> str | None:
-    text = _normalized_text(value)
-    if text is None:
-        return None
-    return text.casefold()
-
-
-def _normalized_query_hint_text(value: object) -> str | None:
-    text = _normalized_text(value)
-    if text is None:
-        return None
-    return text.casefold()
-
-
-def _looks_like_redacted_title_hint(value: object) -> bool:
-    text = _optional_text(value)
-    if text is None:
-        return False
-    return bool(re.fullmatch(r"doc:[0-9a-f]{10}", text))
-
-
-def _normalize_doc_id(value: object) -> str:
-    doc_id = _optional_text(value)
-    if doc_id is None:
-        raise ValueError("doc_id must be a non-empty string")
-    return doc_id
-
-
-def _normalize_excerpt_id(value: object) -> str:
-    excerpt_id = _optional_text(value)
-    if excerpt_id is None:
-        raise ValueError("excerpt_id must be a non-empty string")
-    return excerpt_id
-
-
-def _normalize_doc_type(value: object) -> str:
-    doc_type = _normalized_profile_text(value)
-    if doc_type is None:
-        raise ValueError("doc_type must be a non-empty string")
-    return doc_type
-
-
-def _normalize_source_strategy(value: object) -> Literal["fts"]:
-    source_strategy = _normalized_profile_text(value)
-    if source_strategy != _FTS_SOURCE_STRATEGY:
-        raise ValueError("source_strategy must be fts for the FTS-first retrieval lane")
-    return _FTS_SOURCE_STRATEGY
-
-
-def _resolve_title_hint_confidentiality_profile(*values: object) -> str:
-    for value in values:
-        normalized = _normalized_profile_text(value)
-        if normalized in _SUPPORTED_CONFIDENTIALITY_PROFILES:
-            return normalized
-    # Fail closed so sparse excerpt rehydration never leaks a raw title hint
-    # when the original lookup confidentiality profile is absent.
-    return "confidential"
-
-
-def _optional_int(value: object) -> int | None:
-    if value is None or isinstance(value, bool):
-        return None
-    try:
-        return int(value)
-    except (TypeError, ValueError):
-        return None
-
-
-def _optional_float(value: object) -> float | None:
-    if value is None or isinstance(value, bool):
-        return None
-    try:
-        return float(value)
-    except (TypeError, ValueError):
-        return None
-
-
-def _optional_bool(value: object) -> bool | None:
-    if isinstance(value, bool):
-        return value
-    if value is None:
-        return None
-    if isinstance(value, (int, float)) and not isinstance(value, bool):
-        if value == 0:
-            return False
-        if value == 1:
-            return True
-        return None
-    if isinstance(value, str):
-        normalized = value.strip().casefold()
-        if normalized in {"true", "1", "yes", "on"}:
-            return True
-        if normalized in {"false", "0", "no", "off"}:
-            return False
-    return None
-
-
-def _parse_date_value(value: str) -> date | None:
-    try:
-        return datetime.fromisoformat(value).date()
-    except ValueError:
-        try:
-            return date.fromisoformat(value)
-        except ValueError:
-            return None
-
-
-def _normalize_date_range(value: tuple[str, str]) -> tuple[str, str]:
-    if any(isinstance(item, (bytes, bytearray)) for item in value):
-        raise TypeError("date_range values must be text strings, not bytes")
-    start_raw, end_raw = (str(item).strip() for item in value)
-    if not start_raw or not end_raw:
-        raise ValueError("date_range must contain exactly two non-empty values")
-
-    start_date = _parse_date_value(start_raw)
-    end_date = _parse_date_value(end_raw)
-    normalized_start = start_date.isoformat() if start_date is not None else start_raw
-    normalized_end = end_date.isoformat() if end_date is not None else end_raw
-    if start_date is not None and end_date is not None and start_date > end_date:
-        return (normalized_end, normalized_start)
-    return (normalized_start, normalized_end)
-
-
-def _normalize_scope(value: object) -> str:
-    if isinstance(value, (bytes, bytearray)):
-        raise TypeError("scope must be a text string, not bytes")
-    scope = str(value).strip()
-    if not scope:
-        raise ValueError("scope must be a non-empty string")
-
-    canonical_scope = scope.casefold()
-    if canonical_scope == "vault":
-        return "vault"
-
-    prefix, separator, remainder = scope.partition(":")
-    if not separator:
-        return scope
-    normalized_prefix = prefix.strip().casefold()
-    if normalized_prefix in {"doc", "collection", "section"}:
-        normalized_remainder = remainder.strip()
-        if not normalized_remainder:
-            raise ValueError(f"{normalized_prefix} scope must include a non-empty identifier")
-        return f"{normalized_prefix}:{normalized_remainder}"
-    return scope
-
-
-def _reject_deferred_scope(scope: str) -> str:
-    if scope.startswith("section:"):
-        raise ValueError("section scope is unsupported until FTS fallback can resolve section targets")
-    if scope.startswith("collection:"):
-        raise ValueError("collection scope is unsupported until the FTS lane can resolve collection targets")
-    return scope
 
 
 def _optional_list_like(value: object) -> list[object] | None:
@@ -245,398 +64,15 @@ def _optional_list_like(value: object) -> list[object] | None:
     if isinstance(value, list):
         return copy.deepcopy(value)
     if isinstance(value, tuple):
-        return [copy.deepcopy(item) for item in value]
-    if isinstance(value, (set, frozenset)):
-        return sorted((copy.deepcopy(item) for item in value), key=_stable_sort_key)
-    if isinstance(value, Iterable) and not isinstance(value, (str, bytes, bytearray, Mapping)):
-        return [copy.deepcopy(item) for item in value]
-    return [copy.deepcopy(value)]
-
-
-def _stable_sort_key(value: object) -> str:
-    return json.dumps(value, sort_keys=True, separators=(",", ":"), ensure_ascii=True)
-
-
-def _snapshot_mapping(value: Mapping[str, object]) -> dict[str, object]:
-    """Return a deep-copied mapping for engine-facing retrieval snapshots."""
-
-    return copy.deepcopy(dict(value))
+        return list(value)
+    return [value]
 
 
 def _normalize_supported_value(value: object, *, field_name: str, allowed: set[str]) -> str:
-    if isinstance(value, (bytes, bytearray)):
-        raise TypeError(f"{field_name} must be a text string, not bytes")
     normalized = str(value).strip().casefold()
     if normalized not in allowed:
         raise ValueError(f"unsupported {field_name}: {normalized}")
     return normalized
-
-
-def _normalize_matched_terms(value: object) -> list[str] | None:
-    raw_items = _optional_list_like(value)
-    if raw_items is None:
-        return None
-    normalized: list[str] = []
-    seen: set[str] = set()
-    for item in raw_items:
-        text = _normalized_profile_text(item)
-        if text is None or text in seen:
-            continue
-        seen.add(text)
-        normalized.append(text)
-    return normalized
-
-
-def _normalize_strategy_id_list_payload(value: object) -> list[str]:
-    raw_items = _optional_list_like(value)
-    if raw_items is None:
-        return []
-    normalized: list[str] = []
-    seen: set[str] = set()
-    for item in raw_items:
-        strategy_id = _normalized_profile_text(item)
-        if strategy_id is None or strategy_id in seen:
-            continue
-        seen.add(strategy_id)
-        normalized.append(strategy_id)
-    return normalized
-
-
-def _normalize_retrieval_policy_snapshot_payload(value: object) -> dict[str, object]:
-    if not isinstance(value, dict):
-        return {}
-    normalized = {
-        "retrieval_backend": _normalized_profile_text(value.get("retrieval_backend")),
-        "retrieval_mode": _normalized_profile_text(value.get("retrieval_mode")),
-        "active_strategy_ids": _normalize_strategy_id_list_payload(value.get("active_strategy_ids")),
-        "deferred_strategy_ids": _normalize_strategy_id_list_payload(value.get("deferred_strategy_ids")),
-    }
-    return {key: field_value for key, field_value in normalized.items() if field_value is not None}
-
-
-def _normalize_query_date_range_payload(value: object) -> list[str] | None:
-    raw_items = _optional_list_like(value)
-    if raw_items is None:
-        return None
-    normalized = [text for item in raw_items if (text := _optional_text(item)) is not None]
-    if not normalized:
-        return None
-    if len(normalized) != 2:
-        return normalized
-    return list(_normalize_date_range((normalized[0], normalized[1])))
-
-
-def _normalize_query_scope_payload(value: object) -> str | None:
-    scope = _optional_text(value)
-    if scope is None:
-        return None
-    try:
-        return _normalize_scope(scope)
-    except ValueError:
-        return scope
-
-
-def _normalize_query_intent_payload(value: object) -> str | None:
-    return _normalized_profile_text(value)
-
-
-def _normalize_query_text_payload(value: object) -> str | None:
-    text = _optional_text(value)
-    if text is None:
-        return None
-    return RetrievalService._normalized_query_text(text)
-
-
-def _normalize_query_doc_types_payload(value: object) -> list[str] | None:
-    raw_items = _optional_list_like(value)
-    if raw_items is None:
-        return None
-    normalized: list[str] = []
-    seen: set[str] = set()
-    for item in raw_items:
-        doc_type = _normalized_profile_text(item)
-        if doc_type is None or doc_type in seen:
-            continue
-        seen.add(doc_type)
-        normalized.append(doc_type)
-    return sorted(normalized)
-
-
-def _query_constraint_value_present(value: object) -> bool:
-    if value is None:
-        return False
-    if isinstance(value, str):
-        return bool(value.strip())
-    if isinstance(value, dict):
-        return bool(value)
-    if isinstance(value, (list, tuple, set, frozenset)):
-        return bool(value)
-    return True
-
-
-def _basket_promotion_query_constraint_snapshot(query: RetrievalQuery) -> dict[str, object]:
-    """Return the normalized retrieval constraints carried with basket promotion."""
-
-    constraints: dict[str, object] = {
-        "max_results": query.constraints.max_results,
-        "doc_types": list(query.constraints.doc_types),
-        "require_citations": query.constraints.require_citations,
-        "prefer_exact_matches": query.constraints.prefer_exact_matches,
-    }
-    if query.constraints.date_range is not None:
-        constraints["date_range"] = list(query.constraints.date_range)
-    if query.constraints.section_hint is not None:
-        constraints["section_hint"] = query.constraints.section_hint
-    return constraints
-
-
-def _canonical_query_constraint_snapshot_payload(constraints: object) -> dict[str, object]:
-    """Return the canonical query-constraint snapshot used by retrieval payloads.
-
-    Sparse excerpt lookup payloads may omit fields that were implicit in the
-    original query. Reconstruct the same default-bearing shape used by live
-    RetrievalQuery objects so basket promotion and provenance rebuilding remain
-    deterministic across sparse and non-sparse paths.
-    """
-
-    payload = constraints if isinstance(constraints, dict) else {}
-    snapshot: dict[str, object] = {
-        "max_results": _optional_int(payload.get("max_results")) or 10,
-        "doc_types": _normalize_query_doc_types_payload(payload.get("doc_types")) or [],
-        "require_citations": _optional_bool(payload.get("require_citations")) or False,
-        "prefer_exact_matches": _optional_bool(payload.get("prefer_exact_matches")) or False,
-    }
-    date_range = _normalize_query_date_range_payload(payload.get("date_range"))
-    if date_range is not None:
-        snapshot["date_range"] = date_range
-    section_hint = _normalized_query_hint_text(payload.get("section_hint"))
-    if section_hint is not None:
-        snapshot["section_hint"] = section_hint
-    return snapshot
-
-
-def _normalize_hit_shared_provenance_payload(provenance: object) -> dict[str, object]:
-    if not isinstance(provenance, dict):
-        return {}
-    normalized = copy.deepcopy(provenance)
-    query_fingerprint = _optional_text(normalized.get("query_fingerprint"))
-    if query_fingerprint is not None:
-        normalized["query_fingerprint"] = query_fingerprint
-    query_scope = _normalize_query_scope_payload(normalized.get("query_scope"))
-    if query_scope is not None:
-        normalized["query_scope"] = query_scope
-    query_intent = _normalize_query_intent_payload(normalized.get("query_intent"))
-    if query_intent is not None:
-        normalized["query_intent"] = query_intent
-    query_confidentiality_profile = _normalized_profile_text(
-        normalized.get("query_confidentiality_profile")
-    )
-    if query_confidentiality_profile is not None:
-        normalized["query_confidentiality_profile"] = query_confidentiality_profile
-    query_date_range = _normalize_query_date_range_payload(normalized.get("query_date_range"))
-    if query_date_range is not None:
-        normalized["query_date_range"] = query_date_range
-    candidate_doc_count = _optional_int(normalized.get("candidate_doc_count"))
-    if candidate_doc_count is not None:
-        normalized["candidate_doc_count"] = candidate_doc_count
-    fts_shortlist_doc_ids = _normalize_doc_id_list_payload(normalized.get("fts_shortlist_doc_ids"))
-    if fts_shortlist_doc_ids is not None:
-        normalized["fts_shortlist_doc_ids"] = fts_shortlist_doc_ids
-    # Hit-level provenance must always round-trip back to the active FTS-first
-    # contract even when sparse compatibility payloads carry stale strategy ids.
-    retrieval_policy = retrieval_policy_snapshot()
-    normalized["retrieval_backend"] = _CANONICAL_RETRIEVAL_BACKEND
-    normalized["retrieval_mode"] = _CANONICAL_RETRIEVAL_MODE
-    normalized["retrieval_policy"] = copy.deepcopy(retrieval_policy)
-    normalized["policy"] = copy.deepcopy(retrieval_policy)
-    normalized["active_strategy_ids"] = copy.deepcopy(_CANONICAL_ACTIVE_STRATEGY_IDS)
-    normalized["deferred_strategy_ids"] = copy.deepcopy(_CANONICAL_DEFERRED_STRATEGY_IDS)
-    normalized["strategies_used"] = _normalize_strategy_id_list_payload(
-        normalized.get("strategies_used")
-    )
-    retrieved_doc_ids = _normalize_doc_id_list_payload(normalized.get("retrieved_doc_ids"))
-    if retrieved_doc_ids is not None:
-        normalized["retrieved_doc_ids"] = retrieved_doc_ids
-    retrieved_excerpt_ids = _normalize_doc_id_list_payload(normalized.get("retrieved_excerpt_ids"))
-    if retrieved_excerpt_ids is not None:
-        normalized["retrieved_excerpt_ids"] = retrieved_excerpt_ids
-    return normalized
-
-
-def _normalize_excerpt_hit_provenance_payload(provenance: object) -> dict[str, object]:
-    normalized = _normalize_hit_shared_provenance_payload(provenance)
-    for field_name in (
-        "doc_id",
-        "excerpt_id",
-        "source_hash",
-        "doc_type",
-        "doc_fingerprint",
-        "doc_identity_fingerprint",
-        "excerpt_fingerprint",
-        "excerpt_provenance_fingerprint",
-    ):
-        field_value = _optional_text(normalized.get(field_name))
-        if field_value is not None:
-            normalized[field_name] = field_value
-    excerpt_text_hash = _optional_text(
-        normalized.get("excerpt_text_hash") or normalized.get("hash")
-    )
-    if excerpt_text_hash is not None:
-        normalized["excerpt_text_hash"] = excerpt_text_hash
-        normalized["hash"] = excerpt_text_hash
-    matched_terms = _normalize_matched_terms(normalized.get("matched_terms"))
-    if matched_terms is not None:
-        normalized["matched_terms"] = matched_terms
-        normalized["match_count"] = len(matched_terms)
-    match_count = _optional_int(normalized.get("match_count"))
-    if match_count is not None:
-        normalized["match_count"] = match_count
-    rank = _optional_int(normalized.get("rank"))
-    if rank is not None:
-        normalized["rank"] = rank
-    fts_rank = _optional_float(normalized.get("fts_rank"))
-    if fts_rank is not None:
-        normalized["fts_rank"] = fts_rank
-    doc_rank = _optional_int(normalized.get("doc_rank"))
-    if doc_rank is not None:
-        normalized["doc_rank"] = doc_rank
-    section_hint = _normalized_query_hint_text(normalized.get("section_hint"))
-    if section_hint is not None:
-        normalized["section_hint"] = section_hint
-    section_hint_rank = _optional_int(normalized.get("section_hint_rank"))
-    if section_hint_rank is not None:
-        normalized["section_hint_rank"] = section_hint_rank
-    normalized["source_strategy"] = _FTS_SOURCE_STRATEGY
-    normalized["retrieval_source_strategy"] = _FTS_SOURCE_STRATEGY
-    return normalized
-
-
-def _normalize_doc_hit_provenance_payload(provenance: object) -> dict[str, object]:
-    normalized = _normalize_hit_shared_provenance_payload(provenance)
-    for field_name in (
-        "doc_id",
-        "doc_type",
-        "doc_fingerprint",
-        "doc_identity_fingerprint",
-        "top_excerpt_id",
-        "top_excerpt_hash",
-        "top_excerpt_fingerprint",
-        "top_excerpt_provenance_fingerprint",
-        "top_excerpt_text_hash",
-    ):
-        field_value = _optional_text(normalized.get(field_name))
-        if field_value is not None:
-            normalized[field_name] = field_value
-    top_excerpt_text_hash = _optional_text(
-        normalized.get("top_excerpt_text_hash") or normalized.get("top_excerpt_hash")
-    )
-    if top_excerpt_text_hash is not None:
-        normalized["top_excerpt_text_hash"] = top_excerpt_text_hash
-        normalized["top_excerpt_hash"] = top_excerpt_text_hash
-    doc_rank = _optional_int(normalized.get("doc_rank"))
-    if doc_rank is not None:
-        normalized["doc_rank"] = doc_rank
-    top_excerpt_rank = _optional_int(normalized.get("top_excerpt_rank"))
-    if top_excerpt_rank is not None:
-        normalized["top_excerpt_rank"] = top_excerpt_rank
-    top_fts_rank = _optional_float(normalized.get("top_fts_rank"))
-    if top_fts_rank is not None:
-        normalized["top_fts_rank"] = top_fts_rank
-    top_excerpt_span = RetrievalService._canonicalize_span(normalized.get("top_excerpt_span"))
-    if top_excerpt_span is not None:
-        normalized["top_excerpt_span"] = top_excerpt_span
-    excerpt_ids = _normalize_doc_id_list_payload(normalized.get("excerpt_ids"))
-    if excerpt_ids is not None:
-        normalized["excerpt_ids"] = excerpt_ids
-    top_matched_terms = _normalize_matched_terms(
-        normalized.get("top_matched_terms") or normalized.get("matched_terms")
-    )
-    if top_matched_terms is not None:
-        normalized["top_matched_terms"] = top_matched_terms
-        normalized["top_match_count"] = len(top_matched_terms)
-    top_match_count = _optional_int(normalized.get("top_match_count"))
-    if top_match_count is not None:
-        normalized["top_match_count"] = top_match_count
-    section_hint = _normalized_query_hint_text(normalized.get("section_hint"))
-    if section_hint is not None:
-        normalized["section_hint"] = section_hint
-    top_section_hint_rank = _optional_int(normalized.get("top_section_hint_rank"))
-    if top_section_hint_rank is not None:
-        normalized["top_section_hint_rank"] = top_section_hint_rank
-    normalized["source_strategy"] = _FTS_SOURCE_STRATEGY
-    normalized["retrieval_source_strategy"] = _FTS_SOURCE_STRATEGY
-    return normalized
-
-
-def _normalize_lookup_resolution_payload(value: object) -> str | None:
-    return _normalized_profile_text(value)
-
-
-def _normalize_lookup_resolution(value: object) -> Literal["fts"]:
-    lookup_resolution = _normalize_lookup_resolution_payload(value)
-    if lookup_resolution != _FTS_SOURCE_STRATEGY:
-        raise ValueError("lookup_resolution must be fts for the FTS-first retrieval lane")
-    return _FTS_SOURCE_STRATEGY
-
-
-def _normalize_lookup_confidentiality_profile_payload(value: object) -> str | None:
-    return _normalized_profile_text(value)
-
-
-def _normalize_lookup_query_context_status_payload(value: object) -> str | None:
-    status = _normalized_profile_text(value)
-    if status in _SUPPORTED_LOOKUP_QUERY_CONTEXT_STATUSES:
-        return status
-    return None
-
-
-def _normalize_doc_id_list_payload(value: object) -> list[str] | None:
-    raw_items = _optional_list_like(value)
-    if raw_items is None:
-        return None
-    normalized: list[str] = []
-    seen: set[str] = set()
-    for item in raw_items:
-        doc_id = _optional_text(item)
-        if doc_id is None or doc_id in seen:
-            continue
-        seen.add(doc_id)
-        normalized.append(doc_id)
-    # Preserve the FTS shortlist order so excerpt lookups and basket promotion
-    # keep the same auditable candidate ordering as the canonical retrieval run.
-    return normalized
-
-
-def _normalized_doc_id_list_snapshot(value: object) -> list[str]:
-    normalized = _normalize_doc_id_list_payload(value)
-    if normalized is None:
-        return []
-    return normalized
-
-
-def _mirror_query_constraint_fields(
-    payload: dict[str, object],
-    *,
-    provenance: Mapping[str, object],
-) -> None:
-    query_constraints = provenance.get("query_constraints")
-    if isinstance(query_constraints, dict):
-        payload["query_constraints"] = copy.deepcopy(query_constraints)
-    query_max_results = _optional_int(provenance.get("query_max_results"))
-    if query_max_results is not None:
-        payload["query_max_results"] = query_max_results
-    query_doc_types = _normalize_query_doc_types_payload(provenance.get("query_doc_types"))
-    if query_doc_types is not None:
-        payload["query_doc_types"] = copy.deepcopy(query_doc_types)
-    query_require_citations = _optional_bool(provenance.get("query_require_citations"))
-    if query_require_citations is not None:
-        payload["query_require_citations"] = query_require_citations
-    query_section_hint = _normalized_query_hint_text(provenance.get("query_section_hint"))
-    if query_section_hint is not None:
-        payload["query_section_hint"] = query_section_hint
-    query_prefer_exact_matches = _optional_bool(provenance.get("query_prefer_exact_matches"))
-    if query_prefer_exact_matches is not None:
-        payload["query_prefer_exact_matches"] = query_prefer_exact_matches
 
 
 @dataclass(frozen=True)
@@ -649,31 +85,15 @@ class RetrievalConstraints:
     prefer_exact_matches: bool = False
 
     def __post_init__(self) -> None:
-        if isinstance(self.max_results, bool):
-            raise TypeError("max_results must not be a boolean")
         if self.max_results < 1:
             raise ValueError("max_results must be greater than zero")
         object.__setattr__(self, "doc_types", _canonicalize_doc_types(self.doc_types))
         if self.date_range is not None:
-            if any(isinstance(value, (bytes, bytearray)) for value in self.date_range):
-                raise TypeError("date_range values must be text strings, not bytes")
             normalized = tuple(str(value).strip() for value in self.date_range)
-            if len(normalized) != 2:
+            if len(normalized) != 2 or any(not value for value in normalized):
                 raise ValueError("date_range must contain exactly two non-empty values")
-            object.__setattr__(self, "date_range", _normalize_date_range(normalized))
-        # Normalize hint casing up front so engine-facing payloads, provenance,
-        # and fingerprints stay aligned for equivalent retrieval queries.
-        if isinstance(self.section_hint, (bytes, bytearray)):
-            raise TypeError("section_hint must be a text string, not bytes")
-        object.__setattr__(self, "section_hint", _normalized_query_hint_text(self.section_hint))
-        normalized_require_citations = _optional_bool(self.require_citations)
-        if normalized_require_citations is None:
-            raise ValueError(f"unsupported boolean value: {self.require_citations}")
-        object.__setattr__(self, "require_citations", normalized_require_citations)
-        normalized_prefer_exact_matches = _optional_bool(self.prefer_exact_matches)
-        if normalized_prefer_exact_matches is None:
-            raise ValueError(f"unsupported boolean value: {self.prefer_exact_matches}")
-        object.__setattr__(self, "prefer_exact_matches", normalized_prefer_exact_matches)
+            object.__setattr__(self, "date_range", normalized)
+        object.__setattr__(self, "section_hint", _optional_text(self.section_hint))
 
 
 @dataclass(frozen=True)
@@ -685,11 +105,6 @@ class RetrievalQuery:
     confidentiality_profile: Literal["confidential", "standard"] = "confidential"
 
     def __post_init__(self) -> None:
-        normalized_query_text = _normalized_text(self.query_text)
-        if normalized_query_text is None:
-            raise ValueError("query_text is required")
-        object.__setattr__(self, "query_text", normalized_query_text)
-        object.__setattr__(self, "scope", _reject_deferred_scope(_normalize_scope(self.scope)))
         object.__setattr__(
             self,
             "intent",
@@ -726,19 +141,6 @@ class RetrievalHit:
     def __post_init__(self) -> None:
         if self.source_strategy != _FTS_SOURCE_STRATEGY:
             raise ValueError("source_strategy must be fts for the FTS-first retrieval lane")
-        canonical_span = RetrievalService._canonicalize_span(self.span)
-        if canonical_span is None:
-            canonical_span = {"char_range": {"start": 0, "end": 0}}
-        # Snapshot mutable payload fields at construction time so downstream
-        # engine consumers cannot accidentally mutate the canonical retrieval
-        # result by holding on to caller-owned dict/list instances.
-        object.__setattr__(self, "span", copy.deepcopy(canonical_span))
-        object.__setattr__(self, "node_path", copy.deepcopy(self.node_path))
-        # Normalize loose dict-shaped provenance so compatibility shims and any
-        # hit rehydration still emit the canonical deterministic FTS contract.
-        normalized_provenance = _normalize_excerpt_hit_provenance_payload(self.provenance)
-        normalized_provenance["span"] = copy.deepcopy(canonical_span)
-        object.__setattr__(self, "provenance", normalized_provenance)
 
     def as_dict(self) -> dict[str, object]:
         payload = {
@@ -754,9 +156,6 @@ class RetrievalHit:
             "node_path": copy.deepcopy(self.node_path),
             "provenance": copy.deepcopy(self.provenance),
         }
-        query_text = _normalize_query_text_payload(self.provenance.get("query_text"))
-        if query_text is not None:
-            payload["query_text"] = query_text
         query_fingerprint = self.provenance.get("query_fingerprint")
         if isinstance(query_fingerprint, str) and query_fingerprint:
             payload["query_fingerprint"] = query_fingerprint
@@ -766,11 +165,6 @@ class RetrievalHit:
         query_intent = self.provenance.get("query_intent")
         if isinstance(query_intent, str) and query_intent:
             payload["query_intent"] = query_intent
-        query_confidentiality_profile = _normalized_profile_text(
-            self.provenance.get("query_confidentiality_profile")
-        )
-        if query_confidentiality_profile is not None:
-            payload["query_confidentiality_profile"] = query_confidentiality_profile
         query_date_range = self.provenance.get("query_date_range")
         normalized_query_date_range = _optional_list_like(query_date_range)
         if normalized_query_date_range is not None:
@@ -803,55 +197,27 @@ class RetrievalHit:
         excerpt_fingerprint = self.provenance.get("excerpt_fingerprint")
         if isinstance(excerpt_fingerprint, str) and excerpt_fingerprint:
             payload["excerpt_fingerprint"] = excerpt_fingerprint
-        excerpt_provenance_fingerprint = self.provenance.get("excerpt_provenance_fingerprint")
-        if isinstance(excerpt_provenance_fingerprint, str) and excerpt_provenance_fingerprint:
-            payload["excerpt_provenance_fingerprint"] = excerpt_provenance_fingerprint
         excerpt_text_hash = self.provenance.get("excerpt_text_hash") or self.provenance.get("hash")
         if isinstance(excerpt_text_hash, str) and excerpt_text_hash:
             payload["excerpt_text_hash"] = excerpt_text_hash
         rank = self.provenance.get("rank")
         if isinstance(rank, int):
             payload["rank"] = rank
-        fts_rank = self.provenance.get("fts_rank")
-        if isinstance(fts_rank, (int, float)):
-            payload["fts_rank"] = fts_rank
         matched_terms = self.provenance.get("matched_terms")
         if isinstance(matched_terms, list):
             payload["matched_terms"] = copy.deepcopy(matched_terms)
         match_count = self.provenance.get("match_count")
         if isinstance(match_count, int):
             payload["match_count"] = match_count
-        section_hint = self.provenance.get("section_hint")
-        if isinstance(section_hint, str) and section_hint:
-            payload["section_hint"] = section_hint
-        section_hint_rank = self.provenance.get("section_hint_rank")
-        if isinstance(section_hint_rank, int):
-            payload["section_hint_rank"] = section_hint_rank
         retrieval_backend = self.provenance.get("retrieval_backend")
         if isinstance(retrieval_backend, str) and retrieval_backend:
             payload["retrieval_backend"] = retrieval_backend
         retrieval_mode = self.provenance.get("retrieval_mode")
         if isinstance(retrieval_mode, str) and retrieval_mode:
             payload["retrieval_mode"] = retrieval_mode
-        retrieval_policy = self.provenance.get("retrieval_policy", self.provenance.get("policy"))
+        retrieval_policy = self.provenance.get("retrieval_policy")
         if isinstance(retrieval_policy, dict):
             payload["retrieval_policy"] = copy.deepcopy(retrieval_policy)
-        active_strategy_ids = _optional_list_like(self.provenance.get("active_strategy_ids"))
-        if active_strategy_ids is not None:
-            payload["active_strategy_ids"] = active_strategy_ids
-        deferred_strategy_ids = _optional_list_like(self.provenance.get("deferred_strategy_ids"))
-        if deferred_strategy_ids is not None:
-            payload["deferred_strategy_ids"] = deferred_strategy_ids
-        strategies_used = _optional_list_like(self.provenance.get("strategies_used"))
-        if strategies_used is not None:
-            payload["strategies_used"] = strategies_used
-        retrieved_doc_ids = _optional_list_like(self.provenance.get("retrieved_doc_ids"))
-        if retrieved_doc_ids is not None:
-            payload["retrieved_doc_ids"] = retrieved_doc_ids
-        retrieved_excerpt_ids = _optional_list_like(self.provenance.get("retrieved_excerpt_ids"))
-        if retrieved_excerpt_ids is not None:
-            payload["retrieved_excerpt_ids"] = retrieved_excerpt_ids
-        _mirror_query_constraint_fields(payload, provenance=self.provenance)
         return payload
 
 
@@ -869,7 +235,6 @@ class RetrievalDocHit:
     def __post_init__(self) -> None:
         if self.source_strategy != _FTS_SOURCE_STRATEGY:
             raise ValueError("source_strategy must be fts for the FTS-first retrieval lane")
-        object.__setattr__(self, "provenance", _normalize_doc_hit_provenance_payload(self.provenance))
 
     def as_dict(self) -> dict[str, object]:
         payload = {
@@ -883,9 +248,6 @@ class RetrievalDocHit:
             "excerpt_count": self.excerpt_count,
             "provenance": copy.deepcopy(self.provenance),
         }
-        query_text = _normalize_query_text_payload(self.provenance.get("query_text"))
-        if query_text is not None:
-            payload["query_text"] = query_text
         query_fingerprint = self.provenance.get("query_fingerprint")
         if isinstance(query_fingerprint, str) and query_fingerprint:
             payload["query_fingerprint"] = query_fingerprint
@@ -895,11 +257,6 @@ class RetrievalDocHit:
         query_intent = self.provenance.get("query_intent")
         if isinstance(query_intent, str) and query_intent:
             payload["query_intent"] = query_intent
-        query_confidentiality_profile = _normalized_profile_text(
-            self.provenance.get("query_confidentiality_profile")
-        )
-        if query_confidentiality_profile is not None:
-            payload["query_confidentiality_profile"] = query_confidentiality_profile
         query_date_range = self.provenance.get("query_date_range")
         normalized_query_date_range = _optional_list_like(query_date_range)
         if normalized_query_date_range is not None:
@@ -917,9 +274,6 @@ class RetrievalDocHit:
         retrieval_mode = self.provenance.get("retrieval_mode")
         if isinstance(retrieval_mode, str) and retrieval_mode:
             payload["retrieval_mode"] = retrieval_mode
-        doc_rank = self.provenance.get("doc_rank")
-        if isinstance(doc_rank, int):
-            payload["doc_rank"] = doc_rank
         doc_type = self.provenance.get("doc_type")
         if isinstance(doc_type, str) and doc_type:
             payload["doc_type"] = doc_type
@@ -932,33 +286,15 @@ class RetrievalDocHit:
         top_excerpt_fingerprint = self.provenance.get("top_excerpt_fingerprint")
         if isinstance(top_excerpt_fingerprint, str) and top_excerpt_fingerprint:
             payload["top_excerpt_fingerprint"] = top_excerpt_fingerprint
-        top_excerpt_provenance_fingerprint = self.provenance.get("top_excerpt_provenance_fingerprint")
-        if isinstance(top_excerpt_provenance_fingerprint, str) and top_excerpt_provenance_fingerprint:
-            payload["top_excerpt_provenance_fingerprint"] = top_excerpt_provenance_fingerprint
-        top_excerpt_text_hash = self.provenance.get("top_excerpt_text_hash") or self.provenance.get(
-            "top_excerpt_hash"
-        )
+        top_excerpt_text_hash = self.provenance.get("top_excerpt_text_hash")
         if isinstance(top_excerpt_text_hash, str) and top_excerpt_text_hash:
             payload["top_excerpt_text_hash"] = top_excerpt_text_hash
-            payload["top_excerpt_hash"] = top_excerpt_text_hash
         top_excerpt_span = self.provenance.get("top_excerpt_span")
         if isinstance(top_excerpt_span, dict):
             payload["top_excerpt_span"] = copy.deepcopy(top_excerpt_span)
         top_excerpt_rank = self.provenance.get("top_excerpt_rank")
         if isinstance(top_excerpt_rank, int):
             payload["top_excerpt_rank"] = top_excerpt_rank
-        top_matched_terms = self.provenance.get("top_matched_terms")
-        if isinstance(top_matched_terms, list):
-            payload["top_matched_terms"] = copy.deepcopy(top_matched_terms)
-        top_match_count = self.provenance.get("top_match_count")
-        if isinstance(top_match_count, int):
-            payload["top_match_count"] = top_match_count
-        section_hint = self.provenance.get("section_hint")
-        if isinstance(section_hint, str) and section_hint:
-            payload["section_hint"] = section_hint
-        top_section_hint_rank = self.provenance.get("top_section_hint_rank")
-        if isinstance(top_section_hint_rank, int):
-            payload["top_section_hint_rank"] = top_section_hint_rank
         top_fts_rank = self.provenance.get("top_fts_rank")
         if isinstance(top_fts_rank, (int, float)):
             payload["top_fts_rank"] = top_fts_rank
@@ -968,25 +304,9 @@ class RetrievalDocHit:
         retrieval_mode = self.provenance.get("retrieval_mode")
         if isinstance(retrieval_mode, str) and retrieval_mode:
             payload["retrieval_mode"] = retrieval_mode
-        retrieval_policy = self.provenance.get("retrieval_policy", self.provenance.get("policy"))
+        retrieval_policy = self.provenance.get("retrieval_policy")
         if isinstance(retrieval_policy, dict):
             payload["retrieval_policy"] = copy.deepcopy(retrieval_policy)
-        active_strategy_ids = _optional_list_like(self.provenance.get("active_strategy_ids"))
-        if active_strategy_ids is not None:
-            payload["active_strategy_ids"] = active_strategy_ids
-        deferred_strategy_ids = _optional_list_like(self.provenance.get("deferred_strategy_ids"))
-        if deferred_strategy_ids is not None:
-            payload["deferred_strategy_ids"] = deferred_strategy_ids
-        strategies_used = _optional_list_like(self.provenance.get("strategies_used"))
-        if strategies_used is not None:
-            payload["strategies_used"] = strategies_used
-        retrieved_doc_ids = _optional_list_like(self.provenance.get("retrieved_doc_ids"))
-        if retrieved_doc_ids is not None:
-            payload["retrieved_doc_ids"] = retrieved_doc_ids
-        retrieved_excerpt_ids = _optional_list_like(self.provenance.get("retrieved_excerpt_ids"))
-        if retrieved_excerpt_ids is not None:
-            payload["retrieved_excerpt_ids"] = retrieved_excerpt_ids
-        _mirror_query_constraint_fields(payload, provenance=self.provenance)
         return payload
 
 
@@ -999,15 +319,6 @@ class RetrievalResult:
     evidence: dict[str, object]
     audit_ref: str
     result_fingerprint: str
-
-    def __post_init__(self) -> None:
-        # Snapshot mutable collections at construction time so result-level
-        # fingerprints, provenance, and basket-promotion payloads stay stable
-        # even if the caller later mutates the objects originally passed in.
-        object.__setattr__(self, "doc_hits", copy.deepcopy(self.doc_hits))
-        object.__setattr__(self, "hits", copy.deepcopy(self.hits))
-        object.__setattr__(self, "diagnostics", copy.deepcopy(self.diagnostics))
-        object.__setattr__(self, "evidence", copy.deepcopy(self.evidence))
 
     def to_downstream_payload(self) -> dict[str, object]:
         """Return the stable retrieval contract for drafting/patching/research.
@@ -1031,19 +342,13 @@ class RetrievalResult:
             citation_status=citation_status,
             retrieval_policy=retrieval_policy,
         )
-        basket_promotion = self._basket_promotion_snapshot()
         retrieval_source_bundle = self._retrieval_source_bundle_snapshot(
             query=query,
             retrieval_policy=retrieval_policy,
             citation_bundle=citation_bundle,
             citation_status=citation_status,
             retrieval_summary=retrieval_summary,
-            retrieval_doc_bundle=retrieval_doc_bundle,
-            retrieval_excerpt_bundle=retrieval_excerpt_bundle,
-            retrieval_provenance=retrieval_provenance,
-            basket_promotion=basket_promotion,
         )
-        basket_promotion = copy.deepcopy(retrieval_source_bundle["basket_promotion"])
         return build_retrieval_downstream_payload(
             query=query,
             policy=retrieval_policy,
@@ -1058,11 +363,10 @@ class RetrievalResult:
             retrieval_summary=retrieval_summary,
             doc_hits=[doc_hit.as_dict() for doc_hit in self.doc_hits],
             excerpt_hits=[hit.as_dict() for hit in self.hits],
-            retrieval_diagnostics=self._public_diagnostics_snapshot(),
+            retrieval_diagnostics=dict(self.diagnostics),
             retrieval_manifest=dict(self.diagnostics["retrieval_manifest"]),
             retrieval_evidence=dict(self.evidence),
             retrieval_provenance=retrieval_provenance,
-            basket_promotion=basket_promotion,
             source_bundle_fingerprint=cast(str, retrieval_source_bundle["source_bundle_fingerprint"]),
             retrieval_source_bundle=retrieval_source_bundle,
         )
@@ -1077,19 +381,23 @@ class RetrievalResult:
             if self.query.constraints.date_range is not None
             else None
         )
-        fts_shortlist_doc_ids = _normalized_doc_id_list_snapshot(self.diagnostics.get("fts_shortlist_doc_ids"))
+        fts_shortlist_doc_ids = self.diagnostics.get("fts_shortlist_doc_ids", [])
+        if isinstance(fts_shortlist_doc_ids, list):
+            fts_shortlist_doc_ids = copy.deepcopy(fts_shortlist_doc_ids)
+        elif isinstance(fts_shortlist_doc_ids, tuple):
+            fts_shortlist_doc_ids = list(fts_shortlist_doc_ids)
+        else:
+            fts_shortlist_doc_ids = []
         return {
             "query_fingerprint": self.diagnostics["query_fingerprint"],
             "result_fingerprint": self.result_fingerprint,
             "query_scope": self.query.scope,
             "query_intent": self.query.intent,
-            "query_confidentiality_profile": self.query.confidentiality_profile,
             "query_date_range": query_date_range,
             "candidate_doc_count": self.diagnostics.get("candidate_doc_count"),
             "fts_shortlist_doc_ids": fts_shortlist_doc_ids,
             "retrieval_backend": self.diagnostics["retrieval_backend"],
             "retrieval_mode": self.diagnostics["retrieval_mode"],
-            "policy": copy.deepcopy(self.diagnostics["retrieval_policy"]),
             "retrieval_policy": copy.deepcopy(self.diagnostics["retrieval_policy"]),
             "active_strategy_ids": active_strategy_ids,
             "deferred_strategy_ids": deferred_strategy_ids,
@@ -1101,11 +409,6 @@ class RetrievalResult:
             "doc_citations": self._doc_citation_snapshots(),
             "excerpt_citations": self._excerpt_citation_snapshots(),
         }
-
-    def retrieval_citation_bundle(self) -> dict[str, object]:
-        """Return the canonical citation snapshot for downstream engine flows."""
-
-        return self.citation_bundle()
 
     def as_downstream_payload(self) -> dict[str, object]:
         """Return the canonical downstream payload using result-oriented naming."""
@@ -1135,15 +438,14 @@ class RetrievalResult:
 
     def retrieval_provenance_bundle(self) -> dict[str, object]:
         """Return the deterministic retrieval provenance snapshot for downstream engine flows."""
+
         citation_bundle = self.citation_bundle()
         citation_status = dict(citation_bundle["citation_status"])
-        basket_promotion = self._basket_promotion_snapshot()
         return copy.deepcopy(
             self._retrieval_provenance_snapshot(
                 citation_bundle=citation_bundle,
                 citation_status=citation_status,
                 retrieval_policy=self._retrieval_policy_snapshot(),
-                basket_promotion=basket_promotion,
             )
         )
 
@@ -1156,7 +458,6 @@ class RetrievalResult:
             "doc_count": len(self.doc_hits),
             "doc_hits": [doc_hit.as_dict() for doc_hit in self.doc_hits],
             "doc_citations": self._doc_citation_snapshots(),
-            "basket_promotion": copy.deepcopy(bundle_context["basket_promotion"]),
         }
 
     def retrieval_excerpt_bundle(self) -> dict[str, object]:
@@ -1169,45 +470,27 @@ class RetrievalResult:
             "excerpt_count": len(self.hits),
             "excerpt_hits": [hit.as_dict() for hit in self.hits],
             "excerpt_citations": self._excerpt_citation_snapshots(),
-            "basket_promotion": copy.deepcopy(bundle_context["basket_promotion"]),
         }
 
     def retrieval_context_bundle(self) -> dict[str, object]:
         """Return the canonical retrieval context for drafting, patching, and research flows."""
 
         downstream_payload = self.to_downstream_payload()
-        source_bundle_fingerprint = downstream_payload["source_bundle_fingerprint"]
         return {
             "audit_ref": self.audit_ref,
             "result_fingerprint": self.result_fingerprint,
-            "query_fingerprint": self.diagnostics["query_fingerprint"],
-            "source_bundle_fingerprint": source_bundle_fingerprint,
-            "query": copy.deepcopy(downstream_payload["query"]),
-            "policy": copy.deepcopy(downstream_payload["policy"]),
-            "retrieval_policy": copy.deepcopy(downstream_payload["retrieval_policy"]),
-            "retrieval_backend": self.diagnostics["retrieval_backend"],
-            "retrieval_mode": self.diagnostics["retrieval_mode"],
-            "citation_status": copy.deepcopy(downstream_payload["citation_status"]),
-            "retrieval_summary": copy.deepcopy(downstream_payload["retrieval_summary"]),
             "retrieval_downstream_payload": copy.deepcopy(downstream_payload),
             "retrieval_citation_bundle": copy.deepcopy(downstream_payload["retrieval_citation_bundle"]),
             "retrieval_doc_bundle": copy.deepcopy(downstream_payload["retrieval_doc_bundle"]),
             "retrieval_excerpt_bundle": copy.deepcopy(downstream_payload["retrieval_excerpt_bundle"]),
             "retrieval_provenance": copy.deepcopy(downstream_payload["retrieval_provenance"]),
-            "retrieval_provenance_bundle": copy.deepcopy(downstream_payload["retrieval_provenance"]),
             "retrieval_source_bundle": copy.deepcopy(downstream_payload["retrieval_source_bundle"]),
             "retrieval_evidence": copy.deepcopy(downstream_payload["retrieval_evidence"]),
-            # Promote the canonical basket-ready record to the top level so
-            # engine flows do not have to unpack the full downstream payload
-            # before pinning retrieved context into the basket.
-            "basket_promotion": copy.deepcopy(downstream_payload["basket_promotion"]),
         }
 
     def _query_snapshot(self) -> dict[str, object]:
         return {
-            # Keep exported retrieval snapshots stable across whitespace-only
-            # query variants that already share fingerprints and hit ordering.
-            "query_text": RetrievalService._normalized_query_text(self.query.query_text),
+            "query_text": self.query.query_text,
             "scope": self.query.scope,
             "intent": self.query.intent,
             "constraints": {
@@ -1224,20 +507,6 @@ class RetrievalResult:
     def _retrieval_policy_snapshot(self) -> dict[str, object]:
         return copy.deepcopy(self.diagnostics["retrieval_policy"])
 
-    def _public_diagnostics_snapshot(self) -> dict[str, object]:
-        diagnostics = copy.deepcopy(self.diagnostics)
-        strategies_used = diagnostics.get("strategies_used", [])
-        if not isinstance(strategies_used, list):
-            strategies_used = []
-        # Keep the downstream retrieval contract deterministic across repeated
-        # runs of the same query. Runtime timing stays available in audit
-        # events, but engine-facing payloads should not drift on wall-clock
-        # measurements alone.
-        diagnostics["elapsed_ms_by_strategy"] = {str(strategy_id): 0 for strategy_id in strategies_used}
-        diagnostics["elapsed_ms_total"] = 0
-        diagnostics["caches_used"] = {str(strategy_id): False for strategy_id in strategies_used}
-        return diagnostics
-
     def _citation_status_snapshot(self) -> dict[str, object]:
         return {
             "required": self.query.constraints.require_citations,
@@ -1248,11 +517,9 @@ class RetrievalResult:
         }
 
     def _doc_citation_snapshots(self) -> list[dict[str, object]]:
-        citations: list[dict[str, object]] = []
-        for doc_hit in self.doc_hits:
-            citation = {
+        return [
+            {
                 "doc_id": doc_hit.doc_id,
-                "doc_type": doc_hit.provenance.get("doc_type"),
                 "source_hash": doc_hit.source_hash,
                 "doc_fingerprint": doc_hit.provenance.get("doc_fingerprint"),
                 "doc_identity_fingerprint": doc_hit.provenance.get("doc_identity_fingerprint"),
@@ -1260,55 +527,32 @@ class RetrievalResult:
                 "top_excerpt_id": doc_hit.top_excerpt_id,
                 "top_excerpt_fingerprint": doc_hit.provenance.get("top_excerpt_fingerprint"),
                 "top_excerpt_text_hash": doc_hit.provenance.get("top_excerpt_text_hash"),
-                "top_excerpt_span": copy.deepcopy(doc_hit.provenance.get("top_excerpt_span")),
-                "top_excerpt_rank": doc_hit.provenance.get("top_excerpt_rank"),
-                "top_fts_rank": doc_hit.provenance.get("top_fts_rank"),
-                "excerpt_ids": copy.deepcopy(doc_hit.provenance.get("excerpt_ids")),
-                "excerpt_count": doc_hit.excerpt_count,
-                "matched_terms": copy.deepcopy(doc_hit.provenance.get("top_matched_terms")),
                 "source_strategy": doc_hit.provenance.get("source_strategy"),
-                "retrieval_backend": doc_hit.provenance.get("retrieval_backend"),
-                "retrieval_mode": doc_hit.provenance.get("retrieval_mode"),
             }
-            section_hint = doc_hit.provenance.get("section_hint")
-            if isinstance(section_hint, str) and section_hint:
-                citation["section_hint"] = section_hint
-            top_section_hint_rank = doc_hit.provenance.get("top_section_hint_rank")
-            if isinstance(top_section_hint_rank, int):
-                citation["top_section_hint_rank"] = top_section_hint_rank
-            citations.append(citation)
-        return citations
+            for doc_hit in self.doc_hits
+        ]
 
     def _excerpt_citation_snapshots(self) -> list[dict[str, object]]:
-        citations: list[dict[str, object]] = []
-        for hit in self.hits:
-            if hit.excerpt_id is None:
-                continue
-            citation = {
+        return [
+            {
                 "doc_id": hit.doc_id,
                 "excerpt_id": hit.excerpt_id,
                 "doc_type": hit.provenance.get("doc_type"),
                 "source_hash": hit.provenance.get("source_hash"),
                 "excerpt_fingerprint": hit.provenance.get("excerpt_fingerprint"),
-                "excerpt_provenance_fingerprint": hit.provenance.get("excerpt_provenance_fingerprint"),
                 "excerpt_text_hash": hit.provenance.get("excerpt_text_hash") or hit.provenance.get("hash"),
                 "match_count": hit.provenance.get("match_count"),
-                "matched_terms": copy.deepcopy(hit.provenance.get("matched_terms")),
+                "matched_terms": hit.provenance.get("matched_terms"),
                 "fts_rank": hit.provenance.get("fts_rank"),
                 "rank": hit.provenance.get("rank"),
-                "span": copy.deepcopy(hit.provenance.get("span")),
+                "span": hit.provenance.get("span"),
                 "source_strategy": hit.provenance.get("source_strategy"),
                 "retrieval_backend": hit.provenance.get("retrieval_backend"),
                 "retrieval_mode": hit.provenance.get("retrieval_mode"),
             }
-            section_hint = hit.provenance.get("section_hint")
-            if isinstance(section_hint, str) and section_hint:
-                citation["section_hint"] = section_hint
-            section_hint_rank = hit.provenance.get("section_hint_rank")
-            if isinstance(section_hint_rank, int):
-                citation["section_hint_rank"] = section_hint_rank
-            citations.append(citation)
-        return citations
+            for hit in self.hits
+            if hit.excerpt_id is not None
+        ]
 
     def _retrieval_summary_snapshot(
         self,
@@ -1334,55 +578,29 @@ class RetrievalResult:
             for hit in self.hits
             if hit.excerpt_id is not None
         ]
-        fts_shortlist_doc_ids = _normalized_doc_id_list_snapshot(self.diagnostics.get("fts_shortlist_doc_ids"))
         return {
             "query_fingerprint": self.diagnostics["query_fingerprint"],
             "result_fingerprint": self.result_fingerprint,
-            "query_scope": self.query.scope,
-            "query_intent": self.query.intent,
-            "query_confidentiality_profile": self.query.confidentiality_profile,
-            "query_date_range": (
-                list(self.query.constraints.date_range)
-                if self.query.constraints.date_range is not None
-                else None
-            ),
             "retrieval_backend": self.diagnostics["retrieval_backend"],
             "retrieval_mode": self.diagnostics["retrieval_mode"],
             "retrieval_policy": copy.deepcopy(retrieval_policy),
-            "candidate_doc_count": self.diagnostics.get("candidate_doc_count"),
-            "fts_shortlist_count": len(fts_shortlist_doc_ids),
-            "fts_shortlist_doc_ids": fts_shortlist_doc_ids,
             "doc_count": len(self.doc_hits),
             "excerpt_count": len(self.hits),
             "doc_ids": [doc_hit.doc_id for doc_hit in self.doc_hits],
-            # Mirror the ranked retrieval order under explicit keys so basket
-            # promotion and later workflow stages do not need to infer that
-            # ordering from the generic doc/excerpt ID lists.
-            "retrieved_doc_ids": [doc_hit.doc_id for doc_hit in self.doc_hits],
             "doc_fingerprints": doc_fingerprints,
             "doc_identity_fingerprints": doc_identity_fingerprints,
             "excerpt_ids": [hit.excerpt_id for hit in self.hits if hit.excerpt_id is not None],
-            "retrieved_excerpt_ids": [hit.excerpt_id for hit in self.hits if hit.excerpt_id is not None],
             "excerpt_fingerprints": excerpt_fingerprints,
             "excerpt_text_hashes": excerpt_text_hashes,
-            "top_excerpt_ids": [doc_hit.top_excerpt_id for doc_hit in self.doc_hits],
             "top_excerpt_fingerprints": top_excerpt_fingerprints,
             "top_excerpt_text_hashes": top_excerpt_text_hashes,
             "primary_doc_id": self.doc_hits[0].doc_id if self.doc_hits else None,
             "primary_excerpt_id": self.hits[0].excerpt_id if self.hits else None,
-            "primary_title_hint": (
-                self.hits[0].title_hint
-                if self.hits
-                else self.doc_hits[0].title_hint if self.doc_hits else None
-            ),
             "primary_doc_fingerprint": self.doc_hits[0].provenance.get("doc_fingerprint") if self.doc_hits else None,
             "primary_doc_identity_fingerprint": self.doc_hits[0].provenance.get("doc_identity_fingerprint")
             if self.doc_hits
             else None,
             "primary_excerpt_fingerprint": self.hits[0].provenance.get("excerpt_fingerprint") if self.hits else None,
-            "primary_excerpt_provenance_fingerprint": (
-                self.hits[0].provenance.get("excerpt_provenance_fingerprint") if self.hits else None
-            ),
             "primary_excerpt_text_hash": (
                 self.hits[0].provenance.get("excerpt_text_hash") or self.hits[0].provenance.get("hash")
                 if self.hits
@@ -1401,39 +619,13 @@ class RetrievalResult:
         citation_bundle: dict[str, object],
         citation_status: dict[str, object],
         retrieval_policy: dict[str, object],
-        basket_promotion: dict[str, object] | None = None,
     ) -> dict[str, object]:
         primary_doc_hit = self.doc_hits[0] if self.doc_hits else None
         primary_excerpt_hit = self.hits[0] if self.hits else None
-        primary_doc_provenance = primary_doc_hit.provenance if primary_doc_hit is not None else {}
-        primary_excerpt_provenance = primary_excerpt_hit.provenance if primary_excerpt_hit is not None else {}
-        basket_promotion_snapshot = (
-            copy.deepcopy(basket_promotion)
-            if basket_promotion is not None
-            else self._basket_promotion_snapshot()
-        )
-        primary_doc_citation = (
-            copy.deepcopy(citation_bundle["doc_citations"][0])
-            if citation_bundle["doc_citations"]
-            else None
-        )
-        primary_excerpt_citation = (
-            copy.deepcopy(citation_bundle["excerpt_citations"][0])
-            if citation_bundle["excerpt_citations"]
-            else None
-        )
         return {
-            "query": self._query_snapshot(),
             "query_fingerprint": self.diagnostics["query_fingerprint"],
             "query_scope": self.query.scope,
             "query_intent": self.query.intent,
-            "query_confidentiality_profile": self.query.confidentiality_profile,
-            "query_constraints": _basket_promotion_query_constraint_snapshot(self.query),
-            "query_max_results": self.query.constraints.max_results,
-            "query_doc_types": list(self.query.constraints.doc_types),
-            "query_require_citations": self.query.constraints.require_citations,
-            "query_section_hint": self.query.constraints.section_hint,
-            "query_prefer_exact_matches": self.query.constraints.prefer_exact_matches,
             "query_date_range": (
                 list(self.query.constraints.date_range)
                 if self.query.constraints.date_range is not None
@@ -1442,63 +634,32 @@ class RetrievalResult:
             "result_fingerprint": self.result_fingerprint,
             "retrieval_backend": self.diagnostics["retrieval_backend"],
             "retrieval_mode": self.diagnostics["retrieval_mode"],
-            "policy": copy.deepcopy(retrieval_policy),
-            "retrieval_policy": _snapshot_mapping(retrieval_policy),
+            "retrieval_policy": retrieval_policy,
             "active_strategy_ids": list(self.diagnostics["active_strategy_ids"]),
             "deferred_strategy_ids": list(self.diagnostics["deferred_strategy_ids"]),
             "doc_hits_fingerprint": self.diagnostics["doc_hits_fingerprint"],
             "excerpt_hits_fingerprint": self.diagnostics["excerpt_hits_fingerprint"],
             "candidate_doc_count": self.diagnostics.get("candidate_doc_count"),
-            "fts_shortlist_doc_ids": _normalized_doc_id_list_snapshot(self.diagnostics.get("fts_shortlist_doc_ids")),
+            "fts_shortlist_doc_ids": list(self.diagnostics.get("fts_shortlist_doc_ids", [])),
             "primary_doc_id": primary_doc_hit.doc_id if primary_doc_hit is not None else None,
-            "primary_doc_type": (
-                primary_doc_provenance.get("doc_type")
-                or primary_excerpt_provenance.get("doc_type")
-            ),
-            "primary_title_hint": (
-                primary_excerpt_hit.title_hint
-                if primary_excerpt_hit is not None
-                else primary_doc_hit.title_hint if primary_doc_hit is not None else None
-            ),
-            "primary_source_hash": (
-                primary_excerpt_provenance.get("source_hash")
-                or primary_doc_provenance.get("source_hash")
-            ),
-            "primary_doc_fingerprint": primary_doc_provenance.get("doc_fingerprint")
+            "primary_doc_fingerprint": primary_doc_hit.provenance.get("doc_fingerprint") if primary_doc_hit is not None else None,
+            "primary_doc_identity_fingerprint": primary_doc_hit.provenance.get("doc_identity_fingerprint")
             if primary_doc_hit is not None
-            else primary_excerpt_provenance.get("doc_fingerprint"),
-            "primary_doc_identity_fingerprint": primary_doc_provenance.get("doc_identity_fingerprint")
-            if primary_doc_hit is not None
-            else primary_excerpt_provenance.get("doc_identity_fingerprint"),
+            else None,
             "primary_excerpt_id": primary_excerpt_hit.excerpt_id if primary_excerpt_hit is not None else None,
             "primary_excerpt_fingerprint": primary_excerpt_hit.provenance.get("excerpt_fingerprint")
             if primary_excerpt_hit is not None
             else None,
-            "primary_excerpt_provenance_fingerprint": (
-                primary_excerpt_hit.provenance.get("excerpt_provenance_fingerprint")
-                if primary_excerpt_hit is not None
-                else None
-            ),
             "primary_excerpt_text_hash": (
                 primary_excerpt_hit.provenance.get("excerpt_text_hash") or primary_excerpt_hit.provenance.get("hash")
-                if primary_excerpt_hit is not None
-                else None
-            ),
-            "primary_excerpt_span": (
-                copy.deepcopy(primary_excerpt_provenance.get("span"))
                 if primary_excerpt_hit is not None
                 else None
             ),
             "citation_status": citation_status,
             "doc_count": citation_bundle["doc_count"],
             "excerpt_count": citation_bundle["excerpt_count"],
-            "retrieved_doc_ids": [doc_hit.doc_id for doc_hit in self.doc_hits],
-            "retrieved_excerpt_ids": [hit.excerpt_id for hit in self.hits if hit.excerpt_id is not None],
-            "primary_doc_citation": primary_doc_citation,
-            "primary_excerpt_citation": primary_excerpt_citation,
             "doc_citations": citation_bundle["doc_citations"],
             "excerpt_citations": citation_bundle["excerpt_citations"],
-            "basket_promotion": basket_promotion_snapshot,
         }
 
     def _retrieval_bundle_context_snapshot(self) -> dict[str, object]:
@@ -1512,171 +673,30 @@ class RetrievalResult:
         citation_bundle = self.citation_bundle()
         citation_status = dict(citation_bundle["citation_status"])
         retrieval_policy = self._retrieval_policy_snapshot()
-        basket_promotion = self._basket_promotion_snapshot()
         retrieval_provenance = self._retrieval_provenance_snapshot(
             citation_bundle=citation_bundle,
             citation_status=citation_status,
             retrieval_policy=retrieval_policy,
-            basket_promotion=basket_promotion,
         )
-        # Keep the ranked retrieval ids available directly on the narrower
-        # doc/excerpt bundles so callers that consume those snapshots do not
-        # have to unpack the larger summary payload just to preserve the
-        # authoritative FTS ordering for later basket/context promotion.
-        retrieved_doc_ids = [doc_hit.doc_id for doc_hit in self.doc_hits]
-        retrieved_excerpt_ids = [hit.excerpt_id for hit in self.hits if hit.excerpt_id is not None]
         return {
             "result_fingerprint": self.result_fingerprint,
             "query_fingerprint": self.diagnostics["query_fingerprint"],
-            "query": self._query_snapshot(),
             "query_scope": self.query.scope,
             "query_intent": self.query.intent,
-            "query_confidentiality_profile": self.query.confidentiality_profile,
             "query_date_range": query_date_range,
             "retrieval_backend": self.diagnostics["retrieval_backend"],
             "retrieval_mode": self.diagnostics["retrieval_mode"],
-            "policy": copy.deepcopy(retrieval_policy),
             "retrieval_policy": copy.deepcopy(retrieval_policy),
             "active_strategy_ids": list(self.diagnostics["active_strategy_ids"]),
             "deferred_strategy_ids": list(self.diagnostics["deferred_strategy_ids"]),
             "citation_status": citation_status,
-            "retrieved_doc_ids": retrieved_doc_ids,
-            "retrieved_excerpt_ids": retrieved_excerpt_ids,
             # Keep the citation bundle inline so doc/excerpt snapshots remain
             # self-contained for downstream drafting and patching flows.
             "retrieval_citation_bundle": copy.deepcopy(citation_bundle),
             "retrieval_manifest": copy.deepcopy(self.diagnostics["retrieval_manifest"]),
             "retrieval_provenance": copy.deepcopy(retrieval_provenance),
             "retrieval_evidence": copy.deepcopy(self.evidence),
-            # Keep the basket-ready promotion record next to the narrower
-            # doc/excerpt bundles so basket/context consumers do not need the
-            # larger downstream payload to pin retrieved material.
-            "basket_promotion": copy.deepcopy(basket_promotion),
         }
-
-    def _basket_promotion_snapshot(self) -> dict[str, object]:
-        primary_doc_hit = self.doc_hits[0] if self.doc_hits else None
-        primary_excerpt_hit = self.hits[0] if self.hits else None
-        primary_doc_provenance = primary_doc_hit.provenance if primary_doc_hit is not None else {}
-        primary_excerpt_provenance = primary_excerpt_hit.provenance if primary_excerpt_hit is not None else {}
-        retrieval_policy = copy.deepcopy(self.diagnostics["retrieval_policy"])
-        promotion_source = "none"
-        if primary_excerpt_hit is not None:
-            promotion_source = "primary_ranked_excerpt"
-        elif primary_doc_hit is not None:
-            promotion_source = "primary_ranked_doc"
-        promotion = {
-            "promotion_ready": primary_excerpt_hit is not None or primary_doc_hit is not None,
-            "promotion_source": promotion_source,
-            # Doc-ranked promotions still carry stable doc citations, so
-            # basket/context consumers should treat them as auditable too.
-            "citation_available": primary_excerpt_hit is not None or primary_doc_hit is not None,
-            # Keep the normalized query text inline so basket promotion can be
-            # replayed without unpacking the larger retrieval query payload.
-            "query_text": RetrievalService._normalized_query_text(self.query.query_text),
-            "query_fingerprint": self.diagnostics["query_fingerprint"],
-            "query_scope": self.diagnostics["query_scope"],
-            "query_intent": self.diagnostics["query_intent"],
-            "query_confidentiality_profile": self.diagnostics["query_confidentiality_profile"],
-            "query_constraints": _basket_promotion_query_constraint_snapshot(self.query),
-            "query_max_results": self.query.constraints.max_results,
-            "query_doc_types": list(self.query.constraints.doc_types),
-            "query_require_citations": self.query.constraints.require_citations,
-            "query_section_hint": self.query.constraints.section_hint,
-            "query_prefer_exact_matches": self.query.constraints.prefer_exact_matches,
-            "query_date_range": copy.deepcopy(self.diagnostics["date_range"]),
-            "candidate_doc_count": self.diagnostics["candidate_doc_count"],
-            "fts_shortlist_doc_ids": _normalized_doc_id_list_snapshot(self.diagnostics.get("fts_shortlist_doc_ids")),
-            "result_fingerprint": self.result_fingerprint,
-            "doc_id": (
-                primary_excerpt_hit.doc_id
-                if primary_excerpt_hit is not None
-                else primary_doc_hit.doc_id if primary_doc_hit is not None else None
-            ),
-            "doc_type": primary_excerpt_provenance.get("doc_type") or primary_doc_provenance.get("doc_type"),
-            "doc_fingerprint": primary_doc_provenance.get("doc_fingerprint")
-            or primary_excerpt_provenance.get("doc_fingerprint"),
-            "doc_identity_fingerprint": primary_doc_provenance.get("doc_identity_fingerprint")
-            or primary_excerpt_provenance.get("doc_identity_fingerprint"),
-            "source_hash": primary_excerpt_provenance.get("source_hash")
-            or primary_doc_provenance.get("source_hash"),
-            "title_hint": (
-                primary_excerpt_hit.title_hint
-                if primary_excerpt_hit is not None
-                else primary_doc_hit.title_hint if primary_doc_hit is not None else None
-            ),
-            "excerpt_id": primary_excerpt_hit.excerpt_id if primary_excerpt_hit is not None else None,
-            "excerpt_fingerprint": primary_excerpt_provenance.get("excerpt_fingerprint")
-            if primary_excerpt_hit is not None
-            else None,
-            "excerpt_provenance_fingerprint": (
-                primary_excerpt_provenance.get("excerpt_provenance_fingerprint")
-                if primary_excerpt_hit is not None
-                else primary_doc_provenance.get("top_excerpt_provenance_fingerprint")
-            ),
-            "excerpt_text_hash": (
-                primary_excerpt_provenance.get("excerpt_text_hash") or primary_excerpt_provenance.get("hash")
-                if primary_excerpt_hit is not None
-                else None
-            ),
-            "excerpt_text": primary_excerpt_hit.excerpt_text if primary_excerpt_hit is not None else None,
-            "span": copy.deepcopy(primary_excerpt_hit.span) if primary_excerpt_hit is not None else None,
-            "source_strategy": (
-                primary_excerpt_hit.source_strategy
-                if primary_excerpt_hit is not None
-                else primary_doc_hit.source_strategy if primary_doc_hit is not None else None
-            ),
-            "retrieval_source_strategy": (
-                primary_excerpt_hit.source_strategy
-                if primary_excerpt_hit is not None
-                else primary_doc_hit.source_strategy if primary_doc_hit is not None else None
-            ),
-            "matched_terms": copy.deepcopy(
-                primary_excerpt_provenance.get("matched_terms")
-                if primary_excerpt_hit is not None
-                else primary_doc_provenance.get("top_matched_terms")
-            ),
-            "match_count": (
-                primary_excerpt_provenance.get("match_count")
-                if primary_excerpt_hit is not None
-                else primary_doc_provenance.get("top_match_count")
-            ),
-            "rank": (
-                primary_excerpt_provenance.get("rank")
-                if primary_excerpt_hit is not None
-                else primary_doc_provenance.get("top_excerpt_rank")
-            ),
-            "fts_rank": (
-                primary_excerpt_provenance.get("fts_rank")
-                if primary_excerpt_hit is not None
-                else primary_doc_provenance.get("top_fts_rank")
-            ),
-            "doc_rank": primary_doc_provenance.get("doc_rank"),
-            "section_hint": (
-                primary_excerpt_provenance.get("section_hint")
-                if primary_excerpt_hit is not None
-                else primary_doc_provenance.get("section_hint")
-            ),
-            "section_hint_rank": (
-                primary_excerpt_provenance.get("section_hint_rank")
-                if primary_excerpt_hit is not None
-                else primary_doc_provenance.get("top_section_hint_rank")
-            ),
-            "retrieval_backend": self.diagnostics["retrieval_backend"],
-            "retrieval_mode": self.diagnostics["retrieval_mode"],
-            "policy": copy.deepcopy(retrieval_policy),
-            "retrieval_policy": _snapshot_mapping(retrieval_policy),
-            "active_strategy_ids": list(self.diagnostics["active_strategy_ids"]),
-            "deferred_strategy_ids": list(self.diagnostics["deferred_strategy_ids"]),
-            "strategies_used": list(self.diagnostics["strategies_used"]),
-            # Keep the ranked retrieval ids next to the primary promotion record
-            # so basket/context consumers can preserve the authoritative FTS
-            # ordering without unpacking the larger retrieval summary payload.
-            "retrieved_doc_ids": [doc_hit.doc_id for doc_hit in self.doc_hits],
-            "retrieved_excerpt_ids": [hit.excerpt_id for hit in self.hits if hit.excerpt_id is not None],
-        }
-        promotion["promotion_fingerprint"] = RetrievalService._build_basket_promotion_fingerprint(promotion)
-        return promotion
 
     def _retrieval_source_bundle_snapshot(
         self,
@@ -1686,10 +706,6 @@ class RetrievalResult:
         citation_bundle: dict[str, object] | None = None,
         citation_status: dict[str, object] | None = None,
         retrieval_summary: dict[str, object] | None = None,
-        retrieval_doc_bundle: dict[str, object] | None = None,
-        retrieval_excerpt_bundle: dict[str, object] | None = None,
-        retrieval_provenance: dict[str, object] | None = None,
-        basket_promotion: dict[str, object] | None = None,
     ) -> dict[str, object]:
         query_snapshot = query if query is not None else self._query_snapshot()
         retrieval_policy_snapshot = retrieval_policy if retrieval_policy is not None else self._retrieval_policy_snapshot()
@@ -1703,59 +719,34 @@ class RetrievalResult:
                 citation_status=citation_status_snapshot,
             )
         )
-        basket_promotion_snapshot = (
-            basket_promotion if basket_promotion is not None else self._basket_promotion_snapshot()
-        )
-        retrieval_doc_bundle_snapshot = (
-            copy.deepcopy(retrieval_doc_bundle)
-            if retrieval_doc_bundle is not None
-            else copy.deepcopy(self.retrieval_doc_bundle())
-        )
-        retrieval_excerpt_bundle_snapshot = (
-            copy.deepcopy(retrieval_excerpt_bundle)
-            if retrieval_excerpt_bundle is not None
-            else copy.deepcopy(self.retrieval_excerpt_bundle())
-        )
-        retrieval_provenance_snapshot = (
-            copy.deepcopy(retrieval_provenance)
-            if retrieval_provenance is not None
-            else copy.deepcopy(
-                self._retrieval_provenance_snapshot(
-                    citation_bundle=citation_bundle_snapshot,
-                    citation_status=citation_status_snapshot,
-                    retrieval_policy=retrieval_policy_snapshot,
-                    basket_promotion=basket_promotion_snapshot,
-                )
-            )
-        )
         source_bundle = {
             "result_fingerprint": self.result_fingerprint,
             "query_fingerprint": self.diagnostics["query_fingerprint"],
             "query": query_snapshot,
             "policy": copy.deepcopy(retrieval_policy_snapshot),
-            "retrieval_policy": copy.deepcopy(retrieval_policy_snapshot),
             "retrieval_backend": self.diagnostics["retrieval_backend"],
             "retrieval_mode": self.diagnostics["retrieval_mode"],
             "citation_status": copy.deepcopy(citation_status_snapshot),
             "retrieval_citation_bundle": copy.deepcopy(citation_bundle_snapshot),
             "retrieval_summary": retrieval_summary_snapshot,
-            # Keep every engine-facing nested retrieval snapshot sourced from
-            # the same canonical computation path so downstream consumers do
-            # not see drift between the payload and the source bundle.
-            "retrieval_doc_bundle": retrieval_doc_bundle_snapshot,
-            "retrieval_excerpt_bundle": retrieval_excerpt_bundle_snapshot,
+            "retrieval_doc_bundle": copy.deepcopy(self.retrieval_doc_bundle()),
+            "retrieval_excerpt_bundle": copy.deepcopy(self.retrieval_excerpt_bundle()),
             "doc_hits": [doc_hit.as_dict() for doc_hit in self.doc_hits],
             "excerpt_hits": [hit.as_dict() for hit in self.hits],
             "retrieval_manifest": copy.deepcopy(self.diagnostics["retrieval_manifest"]),
             "retrieval_evidence": copy.deepcopy(self.evidence),
-            "retrieval_provenance": retrieval_provenance_snapshot,
-            "basket_promotion": copy.deepcopy(basket_promotion_snapshot),
+            "retrieval_provenance": copy.deepcopy(
+                self._retrieval_provenance_snapshot(
+                    citation_bundle=citation_bundle_snapshot,
+                    citation_status=citation_status_snapshot,
+                    retrieval_policy=retrieval_policy_snapshot,
+                )
+            ),
         }
         # Fingerprint the source snapshot itself so copies can be verified deterministically.
         source_bundle["source_bundle_fingerprint"] = RetrievalService._stable_fingerprint(
             {key: value for key, value in source_bundle.items() if key != "source_bundle_fingerprint"}
         )
-        source_bundle["basket_promotion"]["source_bundle_fingerprint"] = source_bundle["source_bundle_fingerprint"]
         return source_bundle
 
 
@@ -1771,23 +762,6 @@ class RetrievalService:
         self._fts = FTSStrategy(self._run_fts_hits)
         self._retrieval_policy = FTS_FIRST_POLICY
 
-    @staticmethod
-    def _build_query_snapshot(query: RetrievalQuery) -> dict[str, object]:
-        return {
-            "query_text": RetrievalService._normalized_query_text(query.query_text),
-            "scope": query.scope,
-            "intent": query.intent,
-            "constraints": {
-                "max_results": query.constraints.max_results,
-                "doc_types": list(query.constraints.doc_types),
-                "date_range": list(query.constraints.date_range) if query.constraints.date_range is not None else None,
-                "require_citations": query.constraints.require_citations,
-                "section_hint": query.constraints.section_hint,
-                "prefer_exact_matches": query.constraints.prefer_exact_matches,
-            },
-            "confidentiality_profile": query.confidentiality_profile,
-        }
-
     def add_or_update_document(
         self,
         *,
@@ -1796,45 +770,27 @@ class RetrievalService:
         text: str,
         title_hint: str | None = None,
     ) -> None:
-        normalized_doc_id = _normalize_doc_id(doc_id)
-        normalized_doc_type = _normalize_doc_type(doc_type)
-        normalized_title_hint = _normalized_text(title_hint)
         content = text.encode("utf-8")
         source_hash = hashlib.sha256(content).hexdigest()
-        blob_path = self._root / _DOC_BLOBS / f"{normalized_doc_id}.enc"
+        blob_path = self._root / _DOC_BLOBS / f"{doc_id}.enc"
         blob_path.write_bytes(encrypt_bytes(content, self._key))
 
         meta = self._load_doc_meta()
-        raw_doc_id = str(doc_id)
-        if raw_doc_id != normalized_doc_id:
-            legacy_blob_path = self._root / _DOC_BLOBS / f"{raw_doc_id}.enc"
-            legacy_blob_path.unlink(missing_ok=True)
-            meta.pop(raw_doc_id, None)
-        self._prune_excerpt_contexts_for_doc_ids((raw_doc_id, normalized_doc_id))
-        meta[normalized_doc_id] = {
-            "doc_id": normalized_doc_id,
-            "doc_type": normalized_doc_type,
-            "title_hint": normalized_title_hint,
+        meta[doc_id] = {
+            "doc_id": doc_id,
+            "doc_type": doc_type,
+            "title_hint": title_hint,
             "source_hash": source_hash,
             "size_bytes": len(content),
             "updated_at": self._now_fn().isoformat(),
         }
         self._write_encrypted_json(self._root / _DOC_META_FILE, meta)
-        self._upsert_fts_entries(
-            doc_id=normalized_doc_id,
-            doc_type=normalized_doc_type,
-            title_hint=normalized_title_hint,
-            text=text,
-        )
-        if raw_doc_id != normalized_doc_id:
-            with self._connect_fts_db() as conn:
-                conn.execute("DELETE FROM fts_entries WHERE doc_id = ?", (raw_doc_id,))
-        self._fts.clear_cache()
+        self._upsert_fts_entries(doc_id=doc_id, doc_type=doc_type, title_hint=title_hint, text=text)
 
     def build_pageindex(self, *, doc_id: str, options: DocIndexBuildOptions | None = None) -> str:
         source = self._read_doc_text(doc_id)
         build_opts = options if options is not None else DocIndexBuildOptions()
-        job = self._docindex.build(_normalize_doc_id(doc_id), source.encode("utf-8"), build_opts)
+        job = self._docindex.build(doc_id, source.encode("utf-8"), build_opts)
         return job.status
 
     def retrieve_fts(self, query: RetrievalQuery) -> RetrievalResult:
@@ -1859,7 +815,7 @@ class RetrievalService:
     def retrieve_fts_citation_bundle(self, query: RetrievalQuery) -> dict[str, object]:
         """Return the canonical citation/provenance bundle for a single FTS retrieval."""
 
-        return self.retrieve_fts(query).retrieval_citation_bundle()
+        return self.retrieve_fts(query).citation_bundle()
 
     def retrieve_fts_source_bundle(self, query: RetrievalQuery) -> dict[str, object]:
         """Return the canonical retrieval source bundle for a single FTS retrieval."""
@@ -1897,7 +853,7 @@ class RetrievalService:
     def retrieve_auto_citation_bundle(self, query: RetrievalQuery) -> dict[str, object]:
         """Return the canonical citation/provenance bundle for the FTS-first auto path."""
 
-        return self.retrieve_auto(query).retrieval_citation_bundle()
+        return self.retrieve_auto(query).citation_bundle()
 
     def retrieve_auto_source_bundle(self, query: RetrievalQuery) -> dict[str, object]:
         """Return the canonical retrieval source bundle for the FTS-first auto path."""
@@ -1919,89 +875,30 @@ class RetrievalService:
 
         return self.retrieve_auto(query).retrieval_excerpt_bundle()
 
-    def retrieve_auto_excerpt(
-        self,
-        excerpt_id: str,
-        *,
-        confidentiality_profile: str = "confidential",
-    ) -> dict[str, object]:
-        """Return an excerpt payload using the FTS-first auto lookup path."""
-
-        return self._lookup_fts_excerpt(
-            excerpt_id,
-            lookup_entrypoint="retrieve_auto_excerpt",
-            confidentiality_profile=confidentiality_profile,
-        )
-
-    def fetch_fts_excerpt(
-        self,
-        excerpt_id: str,
-        *,
-        confidentiality_profile: str = "confidential",
-    ) -> dict[str, object]:
+    def fetch_fts_excerpt(self, excerpt_id: str) -> dict[str, object]:
         """Backward-compatible alias for the canonical FTS-only excerpt lookup path."""
 
-        return self._lookup_fts_excerpt(
-            excerpt_id,
-            lookup_entrypoint="fetch_fts_excerpt",
-            confidentiality_profile=confidentiality_profile,
-        )
+        return self._lookup_fts_excerpt(excerpt_id, lookup_entrypoint="fetch_fts_excerpt")
 
-    def retrieve_fts_excerpt(
-        self,
-        excerpt_id: str,
-        *,
-        confidentiality_profile: str = "confidential",
-    ) -> dict[str, object]:
+    def retrieve_fts_excerpt(self, excerpt_id: str) -> dict[str, object]:
         """Return an excerpt payload using the canonical FTS-only lookup path."""
 
-        return self._lookup_fts_excerpt(
-            excerpt_id,
-            lookup_entrypoint="retrieve_fts_excerpt",
-            confidentiality_profile=confidentiality_profile,
-        )
+        return self._lookup_fts_excerpt(excerpt_id, lookup_entrypoint="retrieve_fts_excerpt")
 
-    def _lookup_fts_excerpt(
-        self,
-        excerpt_id: str,
-        *,
-        lookup_entrypoint: str,
-        confidentiality_profile: str,
-    ) -> dict[str, object]:
-        normalized_excerpt_id = _normalize_excerpt_id(excerpt_id)
-        normalized_confidentiality_profile = _normalize_supported_value(
-            confidentiality_profile,
-            field_name="confidentiality_profile",
-            allowed=_SUPPORTED_CONFIDENTIALITY_PROFILES,
-        )
-        fts_excerpt = self._find_fts_excerpt(
-            normalized_excerpt_id,
-            confidentiality_profile=normalized_confidentiality_profile,
-        )
+    def _lookup_fts_excerpt(self, excerpt_id: str, *, lookup_entrypoint: str) -> dict[str, object]:
+        fts_excerpt = self._find_fts_excerpt(excerpt_id)
         if fts_excerpt is None:
-            self._record_excerpt_lookup_failure_audit(
-                excerpt_id=normalized_excerpt_id,
-                lookup_entrypoint=lookup_entrypoint,
-                lookup_resolution="fts",
-                lookup_confidentiality_profile=normalized_confidentiality_profile,
-            )
-            raise KeyError(f"unknown excerpt_id: {normalized_excerpt_id}")
-        normalized_excerpt = self._normalize_excerpt_payload(
+            raise KeyError(f"unknown excerpt_id: {excerpt_id}")
+        self._record_excerpt_lookup_audit(
+            fts_excerpt,
+            lookup_entrypoint=lookup_entrypoint,
+            lookup_resolution="fts",
+        )
+        return self._normalize_excerpt_payload(
             fts_excerpt,
             source_strategy="fts",
             lookup_resolution="fts",
-            lookup_confidentiality_profile=normalized_confidentiality_profile,
         )
-        # Audit the canonical excerpt payload rather than the sparse raw FTS row
-        # so basket promotion and provenance metadata stay aligned with the
-        # engine-facing payload returned to downstream callers.
-        self._record_excerpt_lookup_audit(
-            normalized_excerpt,
-            lookup_entrypoint=lookup_entrypoint,
-            lookup_resolution="fts",
-            lookup_confidentiality_profile=normalized_confidentiality_profile,
-        )
-        return normalized_excerpt
 
     def _record_excerpt_lookup_audit(
         self,
@@ -2009,24 +906,12 @@ class RetrievalService:
         *,
         lookup_entrypoint: str,
         lookup_resolution: str,
-        lookup_confidentiality_profile: str,
     ) -> None:
         """Record a compact audit trail for deterministic excerpt lookups."""
 
         span = excerpt.get("span")
         if not isinstance(span, dict):
             span = None
-        retrieval_policy = excerpt.get("retrieval_policy", excerpt.get("policy"))
-        if not isinstance(retrieval_policy, dict):
-            retrieval_policy = self._retrieval_policy.as_snapshot()
-        basket_promotion = excerpt.get("basket_promotion")
-        if not isinstance(basket_promotion, dict):
-            basket_promotion = None
-        else:
-            basket_promotion = copy.deepcopy(basket_promotion)
-            # Audit logs must stay auditable without persisting raw retrieval
-            # query text for confidential lookup flows.
-            basket_promotion.pop("query_text", None)
         self._audit.record(
             name="excerpt_lookup_completed",
             metadata={
@@ -2034,162 +919,15 @@ class RetrievalService:
                 "doc_id": excerpt.get("doc_id"),
                 "doc_type": excerpt.get("doc_type"),
                 "source_strategy": excerpt.get("source_strategy"),
-                "retrieval_source_strategy": excerpt.get("retrieval_source_strategy"),
                 "lookup_entrypoint": lookup_entrypoint,
                 "lookup_resolution": lookup_resolution,
-                "lookup_confidentiality_profile": lookup_confidentiality_profile,
-                "lookup_query_context_status": excerpt.get("lookup_query_context_status"),
-                "title_hint": excerpt.get("title_hint"),
                 "retrieval_backend": excerpt.get("retrieval_backend"),
                 "retrieval_mode": excerpt.get("retrieval_mode"),
-                "retrieval_policy": copy.deepcopy(retrieval_policy),
-                # Keep success and failure lookup audit payloads schema-aligned
-                # so downstream audit readers can consume one canonical alias.
-                "policy": copy.deepcopy(retrieval_policy),
-                "active_strategy_ids": copy.deepcopy(excerpt.get("active_strategy_ids")),
-                "deferred_strategy_ids": copy.deepcopy(excerpt.get("deferred_strategy_ids")),
-                "strategies_used": copy.deepcopy(excerpt.get("strategies_used")),
+                "retrieval_policy": copy.deepcopy(self._retrieval_policy.as_snapshot()),
                 "source_hash": excerpt.get("source_hash"),
-                "doc_fingerprint": excerpt.get("doc_fingerprint"),
-                "result_fingerprint": excerpt.get("result_fingerprint"),
                 "text_hash": excerpt.get("text_hash"),
-                "excerpt_text_hash": excerpt.get("excerpt_text_hash"),
                 "excerpt_fingerprint": excerpt.get("excerpt_fingerprint"),
-                "excerpt_provenance_fingerprint": excerpt.get("excerpt_provenance_fingerprint"),
-                "lookup_fingerprint": excerpt.get("lookup_fingerprint"),
-                # Keep the success/failure audit payloads aligned so audit
-                # consumers can key on one lookup-attempt fingerprint field.
-                "lookup_attempt_fingerprint": excerpt.get("lookup_fingerprint"),
-                "doc_identity_fingerprint": excerpt.get("doc_identity_fingerprint"),
-                "matched_terms": copy.deepcopy(excerpt.get("matched_terms")),
-                "match_count": excerpt.get("match_count"),
-                "rank": excerpt.get("rank"),
-                "fts_rank": excerpt.get("fts_rank"),
-                "doc_rank": excerpt.get("doc_rank"),
-                "section_hint": excerpt.get("section_hint"),
-                "section_hint_rank": excerpt.get("section_hint_rank"),
-                "query_fingerprint": excerpt.get("query_fingerprint"),
-                "query_scope": excerpt.get("query_scope"),
-                "query_intent": excerpt.get("query_intent"),
-                "query_confidentiality_profile": excerpt.get("query_confidentiality_profile"),
-                "query_constraints": copy.deepcopy(excerpt.get("query_constraints")),
-                "query_max_results": excerpt.get("query_max_results"),
-                "query_doc_types": copy.deepcopy(excerpt.get("query_doc_types")),
-                "query_require_citations": excerpt.get("query_require_citations"),
-                "query_section_hint": excerpt.get("query_section_hint"),
-                "query_prefer_exact_matches": excerpt.get("query_prefer_exact_matches"),
-                "query_date_range": copy.deepcopy(excerpt.get("query_date_range")),
-                "candidate_doc_count": excerpt.get("candidate_doc_count"),
-                "fts_shortlist_doc_ids": copy.deepcopy(excerpt.get("fts_shortlist_doc_ids")),
-                "retrieved_doc_ids": copy.deepcopy(excerpt.get("retrieved_doc_ids")),
-                "retrieved_excerpt_ids": copy.deepcopy(excerpt.get("retrieved_excerpt_ids")),
-                "promotion_fingerprint": (
-                    basket_promotion.get("promotion_fingerprint") if basket_promotion is not None else None
-                ),
-                "basket_promotion": basket_promotion,
                 "span": copy.deepcopy(span),
-            },
-        )
-
-    def _record_excerpt_lookup_failure_audit(
-        self,
-        *,
-        excerpt_id: str,
-        lookup_entrypoint: str,
-        lookup_resolution: str,
-        lookup_confidentiality_profile: str,
-    ) -> None:
-        """Record a deterministic audit trail for failed FTS-only excerpt lookups."""
-
-        retrieval_policy = self._retrieval_policy.as_snapshot()
-        active_strategy_ids = copy.deepcopy(retrieval_policy["active_strategy_ids"])
-        deferred_strategy_ids = copy.deepcopy(retrieval_policy["deferred_strategy_ids"])
-        # Direct excerpt lookup always executes against the canonical FTS path,
-        # even when the excerpt id is missing. Keep failure audits aligned with
-        # successful lookup payloads so audit consumers can treat both events as
-        # explicit FTS attempts instead of a strategy-less special case.
-        strategies_used = [_FTS_SOURCE_STRATEGY]
-        retrieved_doc_ids: list[str] = []
-        retrieved_excerpt_ids: list[str] = []
-        fts_shortlist_doc_ids: list[str] = []
-        attempt_fingerprint = RetrievalService._stable_fingerprint(
-            {
-                "excerpt_id": excerpt_id,
-                "lookup_entrypoint": lookup_entrypoint,
-                "lookup_resolution": lookup_resolution,
-                "lookup_confidentiality_profile": lookup_confidentiality_profile,
-                "lookup_query_context_status": "missing",
-                "retrieval_backend": retrieval_policy["retrieval_backend"],
-                "retrieval_mode": retrieval_policy["retrieval_mode"],
-                "active_strategy_ids": active_strategy_ids,
-                "deferred_strategy_ids": deferred_strategy_ids,
-                "strategies_used": strategies_used,
-                "source_strategy": _FTS_SOURCE_STRATEGY,
-                "retrieval_source_strategy": _FTS_SOURCE_STRATEGY,
-                "candidate_doc_count": 0,
-                "fts_shortlist_doc_ids": fts_shortlist_doc_ids,
-                "retrieved_doc_ids": retrieved_doc_ids,
-                "retrieved_excerpt_ids": retrieved_excerpt_ids,
-            }
-        )
-        self._audit.record(
-            name="excerpt_lookup_failed",
-            metadata={
-                "excerpt_id": excerpt_id,
-                "doc_id": None,
-                "doc_type": None,
-                "title_hint": None,
-                "lookup_entrypoint": lookup_entrypoint,
-                "lookup_resolution": lookup_resolution,
-                "lookup_confidentiality_profile": lookup_confidentiality_profile,
-                # Keep success and failure lookup audit payloads schema-aligned
-                # so downstream audit readers can treat both events uniformly.
-                "lookup_query_context_status": "missing",
-                "retrieval_backend": retrieval_policy["retrieval_backend"],
-                "retrieval_mode": retrieval_policy["retrieval_mode"],
-                "retrieval_policy": copy.deepcopy(retrieval_policy),
-                "policy": copy.deepcopy(retrieval_policy),
-                "active_strategy_ids": active_strategy_ids,
-                "deferred_strategy_ids": deferred_strategy_ids,
-                "strategies_used": strategies_used,
-                "source_strategy": _FTS_SOURCE_STRATEGY,
-                "retrieval_source_strategy": _FTS_SOURCE_STRATEGY,
-                "source_hash": None,
-                "doc_fingerprint": None,
-                "doc_identity_fingerprint": None,
-                "candidate_doc_count": 0,
-                "fts_shortlist_doc_ids": fts_shortlist_doc_ids,
-                "retrieved_doc_ids": retrieved_doc_ids,
-                "retrieved_excerpt_ids": retrieved_excerpt_ids,
-                "lookup_fingerprint": attempt_fingerprint,
-                "result_fingerprint": attempt_fingerprint,
-                "lookup_attempt_fingerprint": attempt_fingerprint,
-                "text_hash": None,
-                "excerpt_text_hash": None,
-                "excerpt_fingerprint": None,
-                "excerpt_provenance_fingerprint": None,
-                "matched_terms": [],
-                "match_count": None,
-                "rank": None,
-                "fts_rank": None,
-                "doc_rank": None,
-                "section_hint": None,
-                "section_hint_rank": None,
-                "query_fingerprint": None,
-                "query_scope": None,
-                "query_intent": None,
-                "query_confidentiality_profile": None,
-                "query_constraints": None,
-                "query_max_results": None,
-                "query_doc_types": [],
-                "query_require_citations": None,
-                "query_section_hint": None,
-                "query_prefer_exact_matches": None,
-                "query_date_range": None,
-                "promotion_fingerprint": None,
-                "basket_promotion": None,
-                "span": None,
-                "failure_reason": "unknown_excerpt_id",
             },
         )
 
@@ -2199,11 +937,7 @@ class RetrievalService:
         retrieval_policy = retrieval_policy_snapshot()
         fts_shortlist_limit = self._fts_shortlist_limit(query.constraints.max_results)
         date_range = query.constraints.date_range
-        fts_candidate_scan_limit = self._fts_candidate_scan_limit(
-            query,
-            fts_shortlist_limit,
-            date_range=date_range,
-        )
+        fts_candidate_scan_limit = self._fts_candidate_scan_limit(fts_shortlist_limit, date_range=date_range)
         fts_shortlist = (
             self._candidate_docs_from_fts(
                 query,
@@ -2219,23 +953,11 @@ class RetrievalService:
         candidate_doc_ids = self._candidate_docs_from_scope(query.scope, fallback=fts_shortlist)
         if date_range is not None:
             candidate_doc_ids = self._filter_candidate_doc_ids_by_date_range(candidate_doc_ids, date_range)
-        # Preserve the effective ordered candidate doc set even for doc-scoped
-        # queries so downstream basket promotion and provenance snapshots can
-        # audit the exact doc shortlist that fed the canonical FTS run.
-        shortlist_doc_ids = candidate_doc_ids if self._is_doc_scoped(query.scope) else fts_shortlist
         effective_candidate_doc_count = self._effective_candidate_doc_count(query.scope, candidate_doc_ids)
         if candidate_doc_ids or date_range is None:
             fts_run = self._fts.retrieve(query, candidate_doc_ids=candidate_doc_ids)
-            strategies_used = [fts_run.strategy_id]
-            elapsed_ms_by_strategy = {fts_run.strategy_id: fts_run.elapsed_ms}
-            caches_used = {fts_run.strategy_id: False}
-            audit_caches_used = {fts_run.strategy_id: fts_run.cache_used}
         else:
             fts_run = StrategyRun(strategy_id=self._fts.id, hits=[], elapsed_ms=0, cache_used=False)
-            strategies_used = []
-            elapsed_ms_by_strategy = {}
-            caches_used = {}
-            audit_caches_used = {}
         merged_hits = self._merge_hits([fts_run], max_results=query.constraints.max_results)
         doc_hits = self._build_doc_hits(
             query,
@@ -2243,24 +965,8 @@ class RetrievalService:
             query_fingerprint=query_fingerprint,
             retrieval_policy=retrieval_policy,
             candidate_doc_count=effective_candidate_doc_count,
-            fts_shortlist_doc_ids=shortlist_doc_ids,
+            fts_shortlist_doc_ids=fts_shortlist,
         )
-        retrieved_doc_ids = [doc_hit.doc_id for doc_hit in doc_hits]
-        retrieved_excerpt_ids = [hit.excerpt_id for hit in merged_hits if hit.excerpt_id is not None]
-        active_strategy_ids = list(cast(list[str], retrieval_policy["active_strategy_ids"]))
-        deferred_strategy_ids = list(cast(list[str], retrieval_policy["deferred_strategy_ids"]))
-        for hit in merged_hits:
-            hit.provenance["active_strategy_ids"] = list(active_strategy_ids)
-            hit.provenance["deferred_strategy_ids"] = list(deferred_strategy_ids)
-            hit.provenance["strategies_used"] = list(strategies_used)
-            hit.provenance["retrieved_doc_ids"] = list(retrieved_doc_ids)
-            hit.provenance["retrieved_excerpt_ids"] = list(retrieved_excerpt_ids)
-        for doc_hit in doc_hits:
-            doc_hit.provenance["active_strategy_ids"] = list(active_strategy_ids)
-            doc_hit.provenance["deferred_strategy_ids"] = list(deferred_strategy_ids)
-            doc_hit.provenance["strategies_used"] = list(strategies_used)
-            doc_hit.provenance["retrieved_doc_ids"] = list(retrieved_doc_ids)
-            doc_hit.provenance["retrieved_excerpt_ids"] = list(retrieved_excerpt_ids)
         citation_status = {
             "required": query.constraints.require_citations,
             "available": bool(merged_hits),
@@ -2282,8 +988,6 @@ class RetrievalService:
             retrieval_manifest=retrieval_manifest,
             query_fingerprint=query_fingerprint,
             retrieval_policy=retrieval_policy,
-            candidate_doc_count=effective_candidate_doc_count,
-            fts_shortlist_doc_ids=shortlist_doc_ids,
         )
         result_fingerprint = self._build_result_fingerprint(
             query_fingerprint=query_fingerprint,
@@ -2291,7 +995,7 @@ class RetrievalService:
         )
         elapsed_ms_total = max(0, int((self._now_fn() - started).total_seconds() * 1000))
         diagnostics = {
-            "retrieval_policy": _snapshot_mapping(retrieval_policy),
+            "retrieval_policy": retrieval_policy,
             "retrieval_backend": retrieval_policy["retrieval_backend"],
             "retrieval_mode": retrieval_policy["retrieval_mode"],
             "active_strategy_ids": list(retrieval_policy["active_strategy_ids"]),
@@ -2299,19 +1003,16 @@ class RetrievalService:
             "query_fingerprint": query_fingerprint,
             "query_scope": query.scope,
             "query_intent": query.intent,
-            "query_confidentiality_profile": query.confidentiality_profile,
             "doc_scope_id": self._doc_scope_id(query.scope),
             "date_range": list(date_range) if date_range is not None else None,
             "fts_shortlist_limit": fts_shortlist_limit,
             "fts_candidate_scan_limit": fts_candidate_scan_limit,
             "candidate_doc_count": effective_candidate_doc_count,
-            "fts_shortlist_count": len(shortlist_doc_ids),
-            "fts_shortlist_doc_ids": list(shortlist_doc_ids),
-            "strategies_used": list(strategies_used),
-            "elapsed_ms_by_strategy": elapsed_ms_by_strategy,
-            # Cache use is an internal optimization detail; keep the public
-            # diagnostics deterministic across equivalent retrieval calls.
-            "caches_used": caches_used,
+            "fts_shortlist_count": len(fts_shortlist),
+            "fts_shortlist_doc_ids": list(fts_shortlist),
+            "strategies_used": list(retrieval_policy["active_strategy_ids"]),
+            "elapsed_ms_by_strategy": {fts_run.strategy_id: fts_run.elapsed_ms},
+            "caches_used": {fts_run.strategy_id: fts_run.cache_used},
             "elapsed_ms_total": elapsed_ms_total,
             "doc_hits_count": len(doc_hits),
             "excerpt_hits_count": len(merged_hits),
@@ -2330,17 +1031,13 @@ class RetrievalService:
             metadata={
                 "query_hash": query_hash,
                 "query_fingerprint": query_fingerprint,
-                "retrieval_policy": _snapshot_mapping(retrieval_policy),
+                "retrieval_policy": retrieval_policy,
                 "retrieval_mode": diagnostics["retrieval_mode"],
                 "query_scope": query.scope,
-                "query_confidentiality_profile": query.confidentiality_profile,
                 "date_range": diagnostics["date_range"],
                 "active_strategy_ids": diagnostics["active_strategy_ids"],
                 "deferred_strategy_ids": diagnostics["deferred_strategy_ids"],
                 "strategies_used": diagnostics["strategies_used"],
-                # Keep runtime cache behavior in audit metadata even though the
-                # downstream contract masks it for deterministic payloads.
-                "caches_used": audit_caches_used,
                 "elapsed_ms_by_strategy": diagnostics["elapsed_ms_by_strategy"],
                 "doc_ids_count": len({hit.doc_id for hit in merged_hits}),
                 "hits_count": len(merged_hits),
@@ -2352,7 +1049,7 @@ class RetrievalService:
                 "result_fingerprint": result_fingerprint,
             },
         )
-        result = RetrievalResult(
+        return RetrievalResult(
             query=query,
             doc_hits=doc_hits,
             hits=merged_hits,
@@ -2361,35 +1058,11 @@ class RetrievalService:
             audit_ref=audit.event_id,
             result_fingerprint=result_fingerprint,
         )
-        self._remember_excerpt_contexts(
-            query=query,
-            hits=merged_hits,
-            query_fingerprint=query_fingerprint,
-            candidate_doc_count=effective_candidate_doc_count,
-            fts_shortlist_doc_ids=shortlist_doc_ids,
-            retrieved_doc_ids=retrieved_doc_ids,
-            retrieved_excerpt_ids=retrieved_excerpt_ids,
-        )
-        return result
 
-    def fetch_excerpt(
-        self,
-        excerpt_id: str,
-        *,
-        confidentiality_profile: str = "confidential",
-    ) -> dict[str, object]:
-        """Return an excerpt payload through the canonical FTS-only lookup path."""
+    def fetch_excerpt(self, excerpt_id: str) -> dict[str, object]:
+        """Return an excerpt payload using the canonical FTS-only lookup path."""
 
-        normalized_confidentiality_profile = _normalize_supported_value(
-            confidentiality_profile,
-            field_name="confidentiality_profile",
-            allowed=_SUPPORTED_CONFIDENTIALITY_PROFILES,
-        )
-        return self._lookup_fts_excerpt(
-            excerpt_id,
-            lookup_entrypoint="fetch_excerpt",
-            confidentiality_profile=normalized_confidentiality_profile,
-        )
+        return self._lookup_fts_excerpt(excerpt_id, lookup_entrypoint="fetch_excerpt")
 
     def _run_fts_hits(self, query: RetrievalQuery, candidate_doc_ids: tuple[str, ...]) -> list[RetrievalHit]:
         match_query, query_terms = self._build_fts_match_query(query.query_text)
@@ -2397,24 +1070,11 @@ class RetrievalService:
         scope_doc = self._doc_scope_id(query.scope)
         allowed_doc_types = self._normalized_doc_types(query.constraints.doc_types)
         effective_candidate_doc_count = self._effective_candidate_doc_count(query.scope, candidate_doc_ids)
-        select_exact_rank = (
-            "CASE WHEN instr(lower(text), ?) > 0 THEN 0 ELSE 1 END AS exact_rank"
-            if query.constraints.prefer_exact_matches
-            else "0 AS exact_rank"
-        )
-        section_hint = query.constraints.section_hint.casefold() if query.constraints.section_hint is not None else None
-        select_section_hint_rank = (
-            "CASE WHEN instr(lower(text), ?) > 0 OR instr(lower(coalesce(title_hint, '')), ?) > 0 "
-            "THEN 0 ELSE 1 END AS section_hint_rank"
-            if section_hint is not None
-            else "0 AS section_hint_rank"
-        )
+        select_exact_rank = "CASE WHEN instr(lower(text), ?) > 0 THEN 0 ELSE 1 END AS exact_rank" if query.constraints.prefer_exact_matches else "0 AS exact_rank"
         where_clauses = ["fts_entries MATCH ?"]
         params: list[object] = []
         if query.constraints.prefer_exact_matches:
             params.append(exact_phrase)
-        if section_hint is not None:
-            params.extend((section_hint, section_hint))
         params.append(match_query)
         if scope_doc is not None:
             where_clauses.append("doc_id = ?")
@@ -2431,11 +1091,10 @@ class RetrievalService:
         params.append(limit)
         sql = (
             f"SELECT rowid, doc_id, excerpt_id, doc_type, title_hint, char_start, char_end, text, "
-            f"bm25(fts_entries) AS fts_rank, {select_exact_rank}, {select_section_hint_rank} "
+            f"bm25(fts_entries) AS fts_rank, {select_exact_rank} "
             "FROM fts_entries "
             f"WHERE {' AND '.join(where_clauses)} "
-            "ORDER BY exact_rank ASC, section_hint_rank ASC, "
-            "fts_rank ASC, doc_id ASC, char_start ASC, char_end ASC, excerpt_id ASC "
+            "ORDER BY exact_rank ASC, fts_rank ASC, doc_id ASC, char_start ASC, char_end ASC, excerpt_id ASC "
             "LIMIT ?"
         )
         rows = self._query_fts_db(sql, tuple(params))
@@ -2453,20 +1112,11 @@ class RetrievalService:
                 matched_terms=matched_terms,
                 rank=rank,
                 fts_rank=float(row["fts_rank"]),
-                section_hint=query.constraints.section_hint,
-                query_text=query.query_text,
-                section_hint_rank=int(row["section_hint_rank"]) if section_hint is not None else None,
                 query_scope=query.scope,
                 query_intent=query.intent,
-                query_confidentiality_profile=query.confidentiality_profile,
                 query_fingerprint=self._query_fingerprint(query),
                 candidate_doc_count=effective_candidate_doc_count,
                 query_date_range=query.constraints.date_range,
-                query_constraints=_basket_promotion_query_constraint_snapshot(query),
-                query_max_results=query.constraints.max_results,
-                query_doc_types=query.constraints.doc_types,
-                query_require_citations=query.constraints.require_citations,
-                query_prefer_exact_matches=query.constraints.prefer_exact_matches,
             )
             hits.append(
                 RetrievalHit(
@@ -2474,10 +1124,7 @@ class RetrievalService:
                     excerpt_id=str(row["excerpt_id"]),
                     excerpt_text=excerpt_text,
                     span={"char_range": {"start": int(row["char_start"]), "end": int(row["char_end"])}},
-                    title_hint=self._safe_title_hint(
-                        str(row["title_hint"] or ""),
-                        confidentiality_profile=query.confidentiality_profile,
-                    ),
+                    title_hint=self._safe_title_hint(query, str(row["title_hint"] or "")),
                     score=round(1.0 / rank, 3),
                     source_strategy="fts",
                     rationale="sqlite_fts_match",
@@ -2583,21 +1230,16 @@ class RetrievalService:
                         "top_excerpt_text_hash": top_excerpt_text_hash,
                         "top_excerpt_text_length": top_excerpt_text_length,
                         "top_excerpt_fingerprint": top_excerpt_fingerprint,
-                        "top_excerpt_provenance_fingerprint": top_hit.provenance.get(
-                            "excerpt_provenance_fingerprint"
-                        ),
                         "top_excerpt_span": top_hit.provenance.get("span"),
                         "top_matched_terms": top_hit.provenance.get("matched_terms"),
                         "top_match_count": top_hit.provenance.get("match_count"),
                         "top_excerpt_rank": top_hit.provenance.get("rank"),
-                        "section_hint": query.constraints.section_hint,
-                        "top_section_hint_rank": top_hit.provenance.get("section_hint_rank"),
                         "top_fts_rank": top_hit.provenance.get("fts_rank"),
                         "retrieval_backend": top_hit.provenance.get(
                             "retrieval_backend",
                             cast(str, retrieval_policy["retrieval_backend"]),
                         ),
-                        "retrieval_policy": _snapshot_mapping(retrieval_policy),
+                        "retrieval_policy": dict(retrieval_policy),
                         "doc_rank": doc_rank,
                         "doc_identity_fingerprint": doc_identity_fingerprint,
                         "doc_fingerprint": self._stable_fingerprint(
@@ -2613,16 +1255,8 @@ class RetrievalService:
                         "excerpt_count": len(doc_hit_list),
                         "source_strategy": primary_strategy_id(),
                         "retrieval_mode": cast(str, retrieval_policy["retrieval_mode"]),
-                        "query_text": RetrievalService._normalized_query_text(query.query_text),
                         "query_scope": query.scope,
                         "query_intent": query.intent,
-                        "query_confidentiality_profile": query.confidentiality_profile,
-                        "query_constraints": _basket_promotion_query_constraint_snapshot(query),
-                        "query_max_results": query.constraints.max_results,
-                        "query_doc_types": list(query.constraints.doc_types),
-                        "query_require_citations": query.constraints.require_citations,
-                        "query_section_hint": query.constraints.section_hint,
-                        "query_prefer_exact_matches": query.constraints.prefer_exact_matches,
                         "query_date_range": list(query.constraints.date_range) if query.constraints.date_range is not None else None,
                         "candidate_doc_count": candidate_doc_count,
                         "fts_shortlist_doc_ids": list(fts_shortlist_doc_ids),
@@ -2650,11 +1284,6 @@ class RetrievalService:
         ]
         excerpt_fingerprints = [
             _optional_text(hit.provenance.get("excerpt_fingerprint")) for hit in hits if hit.excerpt_id is not None
-        ]
-        excerpt_provenance_fingerprints = [
-            _optional_text(hit.provenance.get("excerpt_provenance_fingerprint"))
-            for hit in hits
-            if hit.excerpt_id is not None
         ]
         excerpt_text_hashes = [
             _optional_text(hit.provenance.get("excerpt_text_hash") or hit.provenance.get("hash"))
@@ -2700,11 +1329,10 @@ class RetrievalService:
             "top_excerpt_text_hashes": top_excerpt_text_hashes,
             "excerpt_ids": [hit.excerpt_id for hit in hits if hit.excerpt_id is not None],
             "excerpt_fingerprints": excerpt_fingerprints,
-            "excerpt_provenance_fingerprints": excerpt_provenance_fingerprints,
             "excerpt_text_hashes": excerpt_text_hashes,
             "doc_hits_fingerprint": doc_hits_fingerprint,
             "excerpt_hits_fingerprint": excerpt_hits_fingerprint,
-            "retrieval_policy": _snapshot_mapping(retrieval_policy),
+            "retrieval_policy": dict(retrieval_policy),
             "active_strategy_ids": list(cast(list[str], retrieval_policy["active_strategy_ids"])),
             "deferred_strategy_ids": list(cast(list[str], retrieval_policy["deferred_strategy_ids"])),
         }
@@ -2718,85 +1346,58 @@ class RetrievalService:
         retrieval_manifest: dict[str, object],
         query_fingerprint: str,
         retrieval_policy: dict[str, object],
-        candidate_doc_count: int | None = None,
-        fts_shortlist_doc_ids: tuple[str, ...] = (),
     ) -> dict[str, object]:
         doc_citations: list[dict[str, object]] = []
         for doc_hit in doc_hits:
-            citation = {
-                "doc_id": doc_hit.doc_id,
-                "doc_type": doc_hit.provenance.get("doc_type"),
-                "source_hash": doc_hit.source_hash,
-                "doc_fingerprint": doc_hit.provenance.get("doc_fingerprint"),
-                "doc_identity_fingerprint": doc_hit.provenance.get("doc_identity_fingerprint"),
-                "doc_rank": doc_hit.provenance.get("doc_rank"),
-                "top_excerpt_id": doc_hit.top_excerpt_id,
-                "top_excerpt_fingerprint": doc_hit.provenance.get("top_excerpt_fingerprint"),
-                "top_excerpt_text_hash": doc_hit.provenance.get("top_excerpt_text_hash"),
-                "top_excerpt_span": copy.deepcopy(doc_hit.provenance.get("top_excerpt_span")),
-                "top_excerpt_rank": doc_hit.provenance.get("top_excerpt_rank"),
-                "top_fts_rank": doc_hit.provenance.get("top_fts_rank"),
-                "excerpt_ids": list(doc_hit.provenance.get("excerpt_ids", [])),
-                "excerpt_count": doc_hit.excerpt_count,
-                "matched_terms": copy.deepcopy(doc_hit.provenance.get("top_matched_terms")),
-                "source_strategy": doc_hit.provenance.get("source_strategy"),
-                "retrieval_backend": doc_hit.provenance.get("retrieval_backend"),
-                "retrieval_mode": doc_hit.provenance.get("retrieval_mode"),
-            }
-            section_hint = doc_hit.provenance.get("section_hint")
-            if isinstance(section_hint, str) and section_hint:
-                citation["section_hint"] = section_hint
-            top_section_hint_rank = doc_hit.provenance.get("top_section_hint_rank")
-            if isinstance(top_section_hint_rank, int):
-                citation["top_section_hint_rank"] = top_section_hint_rank
-            doc_citations.append(citation)
+            doc_citations.append(
+                {
+                    "doc_id": doc_hit.doc_id,
+                    "doc_type": doc_hit.provenance.get("doc_type"),
+                    "source_hash": doc_hit.source_hash,
+                    "doc_fingerprint": doc_hit.provenance.get("doc_fingerprint"),
+                    "doc_identity_fingerprint": doc_hit.provenance.get("doc_identity_fingerprint"),
+                    "top_excerpt_id": doc_hit.top_excerpt_id,
+                    "top_excerpt_fingerprint": doc_hit.provenance.get("top_excerpt_fingerprint"),
+                    "top_excerpt_text_hash": doc_hit.provenance.get("top_excerpt_text_hash"),
+                    "top_excerpt_span": doc_hit.provenance.get("top_excerpt_span"),
+                    "excerpt_ids": list(doc_hit.provenance.get("excerpt_ids", [])),
+                    "excerpt_count": doc_hit.excerpt_count,
+                    "matched_terms": doc_hit.provenance.get("top_matched_terms"),
+                }
+            )
 
         excerpt_citations: list[dict[str, object]] = []
         for hit in hits:
             if hit.excerpt_id is None:
                 continue
-            citation = {
-                "doc_id": hit.doc_id,
-                "excerpt_id": hit.excerpt_id,
-                "doc_type": hit.provenance.get("doc_type"),
-                "source_hash": hit.provenance.get("source_hash"),
-                "excerpt_fingerprint": hit.provenance.get("excerpt_fingerprint"),
-                "excerpt_provenance_fingerprint": hit.provenance.get("excerpt_provenance_fingerprint"),
-                "excerpt_text_hash": hit.provenance.get("excerpt_text_hash") or hit.provenance.get("hash"),
-                "span": copy.deepcopy(hit.provenance.get("span")),
-                "matched_terms": copy.deepcopy(hit.provenance.get("matched_terms")),
-                "match_count": hit.provenance.get("match_count"),
-                "rank": hit.provenance.get("rank"),
-                "fts_rank": hit.provenance.get("fts_rank"),
-                "source_strategy": hit.provenance.get("source_strategy"),
-                "retrieval_backend": hit.provenance.get("retrieval_backend"),
-                "retrieval_mode": hit.provenance.get("retrieval_mode"),
-            }
-            section_hint = hit.provenance.get("section_hint")
-            if isinstance(section_hint, str) and section_hint:
-                citation["section_hint"] = section_hint
-            section_hint_rank = hit.provenance.get("section_hint_rank")
-            if isinstance(section_hint_rank, int):
-                citation["section_hint_rank"] = section_hint_rank
-            excerpt_citations.append(citation)
+            excerpt_citations.append(
+                {
+                    "doc_id": hit.doc_id,
+                    "excerpt_id": hit.excerpt_id,
+                    "doc_type": hit.provenance.get("doc_type"),
+                    "source_hash": hit.provenance.get("source_hash"),
+                    "excerpt_fingerprint": hit.provenance.get("excerpt_fingerprint"),
+                    "excerpt_text_hash": hit.provenance.get("excerpt_text_hash") or hit.provenance.get("hash"),
+                    "span": hit.provenance.get("span"),
+                    "matched_terms": hit.provenance.get("matched_terms"),
+                    "match_count": hit.provenance.get("match_count"),
+                    "rank": hit.provenance.get("rank"),
+                    "fts_rank": hit.provenance.get("fts_rank"),
+                    "source_strategy": hit.provenance.get("source_strategy"),
+                    "retrieval_backend": hit.provenance.get("retrieval_backend"),
+                    "retrieval_mode": hit.provenance.get("retrieval_mode"),
+                }
+            )
 
         return {
             "query_fingerprint": query_fingerprint,
             "query_scope": query.scope,
             "query_intent": query.intent,
-            "query_confidentiality_profile": query.confidentiality_profile,
-            "query_date_range": (
-                list(query.constraints.date_range)
-                if query.constraints.date_range is not None
-                else None
-            ),
-            "retrieval_policy": _snapshot_mapping(retrieval_policy),
+            "retrieval_policy": dict(retrieval_policy),
             "retrieval_backend": cast(str, retrieval_policy["retrieval_backend"]),
             "retrieval_mode": cast(str, retrieval_policy["retrieval_mode"]),
             "active_strategy_ids": list(cast(list[str], retrieval_policy["active_strategy_ids"])),
             "deferred_strategy_ids": list(cast(list[str], retrieval_policy["deferred_strategy_ids"])),
-            "candidate_doc_count": candidate_doc_count,
-            "fts_shortlist_doc_ids": list(fts_shortlist_doc_ids),
             "doc_hits_fingerprint": retrieval_manifest.get("doc_hits_fingerprint"),
             "excerpt_hits_fingerprint": retrieval_manifest.get("excerpt_hits_fingerprint"),
             "citation_status": {
@@ -2810,7 +1411,7 @@ class RetrievalService:
             "excerpt_count": len(hits),
             "doc_citations": doc_citations,
             "excerpt_citations": excerpt_citations,
-            "retrieval_manifest": _snapshot_mapping(retrieval_manifest),
+            "retrieval_manifest": dict(retrieval_manifest),
         }
 
     @staticmethod
@@ -2825,9 +1426,6 @@ class RetrievalService:
             "doc_fingerprints": retrieval_manifest.get("doc_fingerprints", []),
             "top_excerpt_fingerprints": retrieval_manifest.get("top_excerpt_fingerprints", []),
             "excerpt_fingerprints": retrieval_manifest.get("excerpt_fingerprints", []),
-            # Keep provenance-sensitive result fingerprints stable for audit and
-            # basket promotion consumers even when excerpt text stays the same.
-            "excerpt_provenance_fingerprints": retrieval_manifest.get("excerpt_provenance_fingerprints", []),
             "top_excerpt_text_hashes": retrieval_manifest.get("top_excerpt_text_hashes", []),
             "excerpt_text_hashes": retrieval_manifest.get("excerpt_text_hashes", []),
             "active_strategy_ids": retrieval_manifest.get("active_strategy_ids", []),
@@ -2845,7 +1443,7 @@ class RetrievalService:
     ) -> tuple[str, ...]:
         shortlist_query = self._build_fts_shortlist_query(query, max_results=limit)
         if date_range is None:
-            run = self._fts.retrieve(shortlist_query, candidate_doc_ids=(), use_cache=False)
+            run = self._fts.retrieve(shortlist_query, candidate_doc_ids=())
             doc_ids: list[str] = []
             seen = set()
             for hit in run.hits:
@@ -2857,11 +1455,7 @@ class RetrievalService:
                     break
             return tuple(doc_ids)
 
-        effective_scan_limit = (
-            scan_limit
-            if scan_limit is not None
-            else self._fts_candidate_scan_limit(query, limit, date_range=date_range)
-        )
+        effective_scan_limit = scan_limit if scan_limit is not None else self._fts_candidate_scan_limit(limit, date_range=date_range)
         doc_ids: list[str] = []
         seen: set[str] = set()
         batch_limit = max(25, min(limit, effective_scan_limit))
@@ -2869,7 +1463,6 @@ class RetrievalService:
             run = self._fts.retrieve(
                 self._build_fts_shortlist_query(query, max_results=batch_limit),
                 candidate_doc_ids=(),
-                use_cache=False,
             )
             for hit in run.hits:
                 if hit.doc_id in seen:
@@ -2915,58 +1508,18 @@ class RetrievalService:
     def _fts_shortlist_limit(max_results: int) -> int:
         return max(25, max_results)
 
-    def _fts_candidate_scan_limit(
-        self,
-        query: RetrievalQuery,
-        limit: int,
-        *,
-        date_range: tuple[str, str] | None,
-    ) -> int:
+    @staticmethod
+    def _fts_candidate_scan_limit(limit: int, *, date_range: tuple[str, str] | None) -> int:
         if date_range is None:
             return limit
-        return max(limit, self._fts_matching_row_count(query))
-
-    def _fts_matching_row_count(self, query: RetrievalQuery) -> int:
-        match_query, _ = self._build_fts_match_query(query.query_text)
-        scope_doc = self._doc_scope_id(query.scope)
-        allowed_doc_types = self._normalized_doc_types(query.constraints.doc_types)
-        where_clauses = ["fts_entries MATCH ?"]
-        params: list[object] = []
-        params.append(match_query)
-        if scope_doc is not None:
-            where_clauses.append("doc_id = ?")
-            params.append(scope_doc)
-        if allowed_doc_types:
-            placeholders = ",".join("?" for _ in allowed_doc_types)
-            where_clauses.append(f"lower(doc_type) IN ({placeholders})")
-            params.extend(allowed_doc_types)
-
-        sql = (
-            "SELECT COUNT(*) AS row_count "
-            "FROM fts_entries "
-            f"WHERE {' AND '.join(where_clauses)}"
-        )
-        rows = self._query_fts_db(sql, tuple(params))
-        if not rows:
-            return 0
-        return max(0, int(rows[0]["row_count"]))
+        return max(limit, limit * 4, 100)
 
     @staticmethod
-    def _hit_sort_key(hit: RetrievalHit) -> tuple[int, float, float, str, str, int, int, str]:
+    def _hit_sort_key(hit: RetrievalHit) -> tuple[float, str, str, int, int, str]:
         char_range = hit.span.get("char_range", {}) if isinstance(hit.span, dict) else {}
         if not isinstance(char_range, dict):
             char_range = {}
-        rank = hit.provenance.get("rank")
-        canonical_rank = rank if isinstance(rank, int) and rank > 0 else 2**31 - 1
-        fts_rank = hit.provenance.get("fts_rank")
-        canonical_fts_rank = (
-            float(fts_rank)
-            if isinstance(fts_rank, (int, float)) and not isinstance(fts_rank, bool)
-            else float("inf")
-        )
         return (
-            canonical_rank,
-            canonical_fts_rank,
             -hit.score,
             hit.source_strategy,
             hit.doc_id,
@@ -2977,23 +1530,10 @@ class RetrievalService:
 
     def _candidate_docs_from_scope(self, scope: str, *, fallback: tuple[str, ...]) -> tuple[str, ...]:
         if scope.startswith("doc:"):
-            doc_id = scope.split(":", 1)[1]
-            return (doc_id,) if self._doc_exists(doc_id) else ()
+            return (scope.split(":", 1)[1],)
         if scope.startswith("collection:"):
             return fallback
         return fallback
-
-    def _doc_exists(self, doc_id: str) -> bool:
-        normalized_doc_id = _normalize_doc_id(doc_id)
-        if normalized_doc_id in self._load_doc_meta():
-            return True
-        if (self._root / _DOC_BLOBS / f"{normalized_doc_id}.enc").exists():
-            return True
-        rows = self._query_fts_db(
-            "SELECT 1 AS present FROM fts_entries WHERE doc_id = ? LIMIT 1",
-            (normalized_doc_id,),
-        )
-        return bool(rows)
 
     def _filter_candidate_doc_ids_by_date_range(
         self,
@@ -3040,7 +1580,13 @@ class RetrievalService:
 
     @staticmethod
     def _parse_date_value(value: str) -> date | None:
-        return _parse_date_value(value)
+        try:
+            return datetime.fromisoformat(value).date()
+        except ValueError:
+            try:
+                return date.fromisoformat(value)
+            except ValueError:
+                return None
 
     def _is_long_structured_doc(self, doc_id: str) -> bool:
         meta = self._load_doc_meta().get(doc_id)
@@ -3123,182 +1669,34 @@ class RetrievalService:
         payload = f"{doc_id}:{char_start}:{char_end}:{hashlib.sha256(text.encode('utf-8')).hexdigest()}"
         return f"fts_{hashlib.sha256(payload.encode('utf-8')).hexdigest()[:24]}"
 
-    def _find_fts_excerpt(
-        self,
-        excerpt_id: str,
-        *,
-        confidentiality_profile: str,
-    ) -> dict[str, object] | None:
+    def _find_fts_excerpt(self, excerpt_id: str) -> dict[str, object] | None:
         row = self._fetch_fts_row(excerpt_id)
         if row is not None:
             text = str(row["text"])
             text_hash = hashlib.sha256(text.encode("utf-8")).hexdigest()
             doc_id = str(row["doc_id"])
-            source_hash = self._doc_source_hash(doc_id)
-            excerpt_context, excerpt_context_is_stale = self._load_excerpt_context(excerpt_id, doc_id=doc_id)
-            if excerpt_context_is_stale:
-                lookup_query_context_status = "stale_dropped"
-            elif excerpt_context is not None:
-                lookup_query_context_status = "rehydrated"
-            else:
-                lookup_query_context_status = "missing"
-            provenance = self._build_fts_provenance(
-                doc_id=doc_id,
-                excerpt_id=excerpt_id,
-                char_start=int(row["char_start"]),
-                char_end=int(row["char_end"]),
-                text=text,
-            )
-            query_snapshot = None
-            if excerpt_context is not None:
-                query_snapshot = copy.deepcopy(excerpt_context.get("query"))
-                for key in (
-                    "query_text",
-                    "query_fingerprint",
-                    "query_scope",
-                    "query_intent",
-                    "query_confidentiality_profile",
-                    "query_date_range",
-                    "query_constraints",
-                    "query_max_results",
-                    "query_doc_types",
-                    "query_require_citations",
-                    "query_section_hint",
-                    "query_prefer_exact_matches",
-                    "candidate_doc_count",
-                    "fts_shortlist_doc_ids",
-                    "retrieved_doc_ids",
-                    "retrieved_excerpt_ids",
-                    "matched_terms",
-                    "match_count",
-                    "rank",
-                    "fts_rank",
-                    "section_hint",
-                    "section_hint_rank",
-                ):
-                    value = excerpt_context.get(key)
-                    if value is not None:
-                        provenance[key] = copy.deepcopy(value)
             return self._normalize_excerpt_payload(
                 {
                     "excerpt_id": excerpt_id,
                     "doc_id": doc_id,
                     "doc_type": str(row["doc_type"]),
-                    "title_hint": self._safe_title_hint(
-                        str(row["title_hint"] or ""),
-                        confidentiality_profile=confidentiality_profile,
-                    ),
-                    "source_hash": source_hash,
+                    "source_hash": self._doc_source_hash(doc_id),
                     "source_strategy": "fts",
                     "span": {"char_range": {"start": int(row["char_start"]), "end": int(row["char_end"])}},
                     "text": text,
                     "text_hash": text_hash,
-                    "query": query_snapshot,
-                    "provenance": provenance,
+                    "provenance": self._build_fts_provenance(
+                        doc_id=doc_id,
+                        excerpt_id=excerpt_id,
+                        char_start=int(row["char_start"]),
+                        char_end=int(row["char_end"]),
+                        text=text,
+                    ),
                 },
                 source_strategy="fts",
                 lookup_resolution="fts",
-                lookup_confidentiality_profile=confidentiality_profile,
-                lookup_query_context_status=lookup_query_context_status,
             )
         return None
-
-    def _remember_excerpt_contexts(
-        self,
-        *,
-        query: RetrievalQuery,
-        hits: list[RetrievalHit],
-        query_fingerprint: str,
-        candidate_doc_count: int,
-        fts_shortlist_doc_ids: tuple[str, ...],
-        retrieved_doc_ids: list[str],
-        retrieved_excerpt_ids: list[str],
-    ) -> None:
-        if not hits:
-            return
-        context_by_excerpt = self._load_excerpt_context_map()
-        query_snapshot = self._build_query_snapshot(query)
-        query_date_range = list(query.constraints.date_range) if query.constraints.date_range is not None else None
-        changed = False
-        for hit in hits:
-            if hit.excerpt_id is None:
-                continue
-            excerpt_context = {
-                "doc_id": hit.doc_id,
-                "query": copy.deepcopy(query_snapshot),
-                "query_text": query_snapshot["query_text"],
-                "query_fingerprint": query_fingerprint,
-                "query_scope": query.scope,
-                "query_intent": query.intent,
-                "query_confidentiality_profile": query.confidentiality_profile,
-                "query_date_range": copy.deepcopy(query_date_range),
-                "query_constraints": _basket_promotion_query_constraint_snapshot(query),
-                "query_max_results": query.constraints.max_results,
-                "query_doc_types": list(query.constraints.doc_types),
-                "query_require_citations": query.constraints.require_citations,
-                "query_section_hint": query.constraints.section_hint,
-                "query_prefer_exact_matches": query.constraints.prefer_exact_matches,
-                "candidate_doc_count": candidate_doc_count,
-                "source_hash": hit.provenance.get("source_hash") or self._doc_source_hash(hit.doc_id),
-                "fts_shortlist_doc_ids": list(fts_shortlist_doc_ids),
-                "retrieved_doc_ids": list(retrieved_doc_ids),
-                "retrieved_excerpt_ids": list(retrieved_excerpt_ids),
-                "matched_terms": copy.deepcopy(hit.provenance.get("matched_terms")),
-                "match_count": hit.provenance.get("match_count"),
-                "rank": hit.provenance.get("rank"),
-                "fts_rank": hit.provenance.get("fts_rank"),
-                "section_hint": query.constraints.section_hint,
-                "section_hint_rank": hit.provenance.get("section_hint_rank"),
-            }
-            if context_by_excerpt.get(hit.excerpt_id) == excerpt_context:
-                continue
-            context_by_excerpt[hit.excerpt_id] = excerpt_context
-            changed = True
-        if changed:
-            self._write_encrypted_json(self._root / _EXCERPT_CONTEXT_FILE, context_by_excerpt)
-
-    def _load_excerpt_context_map(self) -> dict[str, dict[str, object]]:
-        payload = self._read_encrypted_json(self._root / _EXCERPT_CONTEXT_FILE, default={})
-        if not isinstance(payload, dict):
-            return {}
-        normalized: dict[str, dict[str, object]] = {}
-        for excerpt_id, context in payload.items():
-            if not isinstance(excerpt_id, str) or not isinstance(context, dict):
-                continue
-            normalized[excerpt_id] = copy.deepcopy(context)
-        return normalized
-
-    def _load_excerpt_context(self, excerpt_id: str, *, doc_id: str) -> tuple[dict[str, object] | None, bool]:
-        context = self._load_excerpt_context_map().get(excerpt_id)
-        if not isinstance(context, dict):
-            return None, False
-        stored_doc_id = _optional_text(context.get("doc_id"))
-        if stored_doc_id is not None and stored_doc_id != doc_id:
-            return None, False
-        stored_source_hash = _optional_text(context.get("source_hash"))
-        if stored_source_hash is not None:
-            current_source_hash = self._doc_source_hash(doc_id)
-            if current_source_hash and current_source_hash != stored_source_hash:
-                return None, True
-        return copy.deepcopy(context), False
-
-    def _prune_excerpt_contexts_for_doc_ids(self, doc_ids: tuple[str, ...]) -> None:
-        normalized_doc_ids = {
-            normalized_doc_id
-            for doc_id in doc_ids
-            if (normalized_doc_id := _optional_text(doc_id)) is not None
-        }
-        if not normalized_doc_ids:
-            return
-        context_by_excerpt = self._load_excerpt_context_map()
-        kept_contexts = {
-            excerpt_id: context
-            for excerpt_id, context in context_by_excerpt.items()
-            if _optional_text(context.get("doc_id")) not in normalized_doc_ids
-        }
-        if len(kept_contexts) == len(context_by_excerpt):
-            return
-        self._write_encrypted_json(self._root / _EXCERPT_CONTEXT_FILE, kept_contexts)
 
     def _build_fts_provenance(
         self,
@@ -3311,18 +1709,9 @@ class RetrievalService:
         matched_terms: tuple[str, ...] = (),
         rank: int | None = None,
         fts_rank: float | None = None,
-        section_hint: str | None = None,
-        query_text: str | None = None,
-        section_hint_rank: int | None = None,
         query_scope: str | None = None,
         query_intent: str | None = None,
-        query_confidentiality_profile: str | None = None,
         query_date_range: tuple[str, str] | None = None,
-        query_constraints: dict[str, object] | None = None,
-        query_max_results: int | None = None,
-        query_doc_types: tuple[str, ...] = (),
-        query_require_citations: bool | None = None,
-        query_prefer_exact_matches: bool | None = None,
         query_fingerprint: str | None = None,
         candidate_doc_count: int | None = None,
     ) -> dict[str, object]:
@@ -3354,32 +1743,12 @@ class RetrievalService:
             "retrieval_policy": self._retrieval_policy.as_snapshot(),
             "doc_identity_fingerprint": doc_identity_fingerprint,
         }
-        if query_text is not None:
-            provenance["query_text"] = RetrievalService._normalized_query_text(query_text)
         if query_scope is not None:
             provenance["query_scope"] = query_scope
         if query_intent is not None:
             provenance["query_intent"] = query_intent
-        if query_confidentiality_profile is not None:
-            provenance["query_confidentiality_profile"] = query_confidentiality_profile
-        if section_hint is not None:
-            provenance["section_hint"] = section_hint
-        if section_hint_rank is not None:
-            provenance["section_hint_rank"] = section_hint_rank
         if query_date_range is not None:
             provenance["query_date_range"] = list(query_date_range)
-        if query_constraints is not None:
-            provenance["query_constraints"] = copy.deepcopy(query_constraints)
-        if query_max_results is not None:
-            provenance["query_max_results"] = query_max_results
-        if query_doc_types:
-            provenance["query_doc_types"] = list(query_doc_types)
-        if query_require_citations is not None:
-            provenance["query_require_citations"] = query_require_citations
-        if section_hint is not None:
-            provenance["query_section_hint"] = section_hint
-        if query_prefer_exact_matches is not None:
-            provenance["query_prefer_exact_matches"] = query_prefer_exact_matches
         if query_fingerprint is not None:
             provenance["query_fingerprint"] = query_fingerprint
         if candidate_doc_count is not None:
@@ -3393,95 +1762,36 @@ class RetrievalService:
                 "excerpt_text_hash": text_hash,
             }
         )
-        provenance["excerpt_provenance_fingerprint"] = self._build_excerpt_provenance_fingerprint(
-            doc_id=doc_id,
-            excerpt_id=excerpt_id,
-            doc_type=doc_type,
-            span=cast(dict[str, object], provenance["span"]),
-            source_hash=source_hash,
-            text_hash=text_hash,
-            doc_identity_fingerprint=doc_identity_fingerprint,
-        )
         return provenance
 
     def _normalize_excerpt_payload(
         self,
         excerpt: dict[str, object],
         *,
-        source_strategy: Literal["fts"],
+        source_strategy: Literal["fts", "pageindex"],
         lookup_resolution: str,
-        lookup_confidentiality_profile: str | None = None,
-        lookup_query_context_status: str | None = None,
     ) -> dict[str, object]:
-        source_strategy = _normalize_source_strategy(source_strategy)
         provenance = excerpt.get("provenance", {})
         if not isinstance(provenance, dict):
             provenance = {}
         normalized = dict(excerpt)
         normalized["source_strategy"] = source_strategy
         normalized["retrieval_source_strategy"] = source_strategy
-        canonical_lookup_resolution = _normalize_lookup_resolution(
-            normalized.get("lookup_resolution", provenance.get("lookup_resolution", lookup_resolution))
-        )
-        normalized["lookup_resolution"] = canonical_lookup_resolution
-        explicit_lookup_confidentiality_profile = _normalize_lookup_confidentiality_profile_payload(
-            normalized.get(
-                "lookup_confidentiality_profile",
-                provenance.get("lookup_confidentiality_profile", lookup_confidentiality_profile),
-            )
-        )
-        canonical_lookup_confidentiality_profile = explicit_lookup_confidentiality_profile
-        if canonical_lookup_confidentiality_profile is None:
-            # Fail closed so sparse lookup payloads always carry an explicit
-            # confidentiality contract for downstream promotion and audit
-            # consumers, even when the original lookup metadata is absent.
-            canonical_lookup_confidentiality_profile = "confidential"
-        normalized["lookup_confidentiality_profile"] = canonical_lookup_confidentiality_profile
-        canonical_lookup_query_context_status = _normalize_lookup_query_context_status_payload(
-            normalized.get(
-                "lookup_query_context_status",
-                provenance.get("lookup_query_context_status", lookup_query_context_status),
-            )
-        )
-        if canonical_lookup_query_context_status is None:
-            canonical_lookup_query_context_status = "missing"
-        normalized["lookup_query_context_status"] = canonical_lookup_query_context_status
-        excerpt_text = _optional_text(normalized.get("text")) or _optional_text(normalized.get("excerpt_text"))
-        if excerpt_text is not None:
-            # Keep lookup payloads aligned with excerpt-hit payload naming so
-            # basket promotion and downstream consumers can reuse one text field.
-            normalized["text"] = excerpt_text
-            normalized["excerpt_text"] = excerpt_text
-        elif "excerpt_text" in normalized:
-            normalized["excerpt_text"] = None
+        normalized["lookup_resolution"] = lookup_resolution
         text_hash = provenance.get("hash") or provenance.get("excerpt_text_hash") or normalized.get("text_hash")
         if not isinstance(text_hash, str) or not text_hash:
-            if excerpt_text is not None:
-                text_hash = hashlib.sha256(excerpt_text.encode("utf-8")).hexdigest()
+            text_value = normalized.get("text")
+            if isinstance(text_value, str) and text_value:
+                text_hash = hashlib.sha256(text_value.encode("utf-8")).hexdigest()
         normalized["text_hash"] = text_hash
         doc_id_value = normalized.get("doc_id")
         if (not isinstance(doc_id_value, str) or not doc_id_value) and isinstance(provenance.get("doc_id"), str):
             doc_id_value = str(provenance["doc_id"])
+            normalized["doc_id"] = doc_id_value
         elif isinstance(doc_id_value, str) and doc_id_value:
             doc_id_value = str(doc_id_value)
         else:
             doc_id_value = None
-        if doc_id_value is not None:
-            doc_id_value = _normalize_doc_id(doc_id_value)
-            normalized["doc_id"] = doc_id_value
-
-        excerpt_id_value = normalized.get("excerpt_id")
-        if (not isinstance(excerpt_id_value, str) or not excerpt_id_value) and isinstance(
-            provenance.get("excerpt_id"), str
-        ):
-            excerpt_id_value = str(provenance["excerpt_id"])
-        elif isinstance(excerpt_id_value, str) and excerpt_id_value:
-            excerpt_id_value = str(excerpt_id_value)
-        else:
-            excerpt_id_value = None
-        if excerpt_id_value is not None:
-            excerpt_id_value = _normalize_excerpt_id(excerpt_id_value)
-            normalized["excerpt_id"] = excerpt_id_value
 
         doc_meta = self._load_doc_meta().get(doc_id_value, {}) if doc_id_value is not None else {}
 
@@ -3492,8 +1802,6 @@ class RetrievalService:
                 source_hash = provenance_source_hash
             elif doc_id_value is not None:
                 source_hash = self._doc_source_hash(doc_id_value, doc_meta=doc_meta)
-        if isinstance(source_hash, str) and source_hash:
-            source_hash = source_hash.strip()
         if isinstance(source_hash, str) and source_hash:
             normalized["source_hash"] = source_hash
         else:
@@ -3509,49 +1817,9 @@ class RetrievalService:
                 if isinstance(meta_doc_type, str) and meta_doc_type:
                     doc_type = meta_doc_type
         if isinstance(doc_type, str) and doc_type:
-            doc_type = _normalize_doc_type(doc_type)
             normalized["doc_type"] = doc_type
         else:
             doc_type = None
-
-        title_hint_confidentiality_profile = _resolve_title_hint_confidentiality_profile(
-            canonical_lookup_confidentiality_profile,
-            normalized.get("query_confidentiality_profile"),
-            provenance.get("query_confidentiality_profile"),
-        )
-        explicit_title_hint_confidentiality_profile = (
-            explicit_lookup_confidentiality_profile
-            or _normalized_profile_text(normalized.get("query_confidentiality_profile"))
-            or _normalized_profile_text(provenance.get("query_confidentiality_profile"))
-        )
-        title_hint = _normalized_text(normalized.get("title_hint"))
-        if title_hint is None:
-            title_hint = _normalized_text(provenance.get("title_hint"))
-        if title_hint is not None:
-            if (
-                explicit_title_hint_confidentiality_profile is not None
-                and not (
-                    explicit_title_hint_confidentiality_profile == "confidential"
-                    and _looks_like_redacted_title_hint(title_hint)
-                )
-            ):
-                title_hint = self._safe_title_hint(
-                    title_hint,
-                    confidentiality_profile=explicit_title_hint_confidentiality_profile,
-                )
-        else:
-            doc_meta_title_hint = _normalized_text(doc_meta.get("title_hint"))
-            if doc_meta_title_hint is not None:
-                title_hint = self._safe_title_hint(
-                    doc_meta_title_hint,
-                    confidentiality_profile=title_hint_confidentiality_profile,
-                )
-        if title_hint is not None:
-            normalized["title_hint"] = title_hint
-            if _normalized_text(provenance.get("title_hint")) is None:
-                provenance = {**provenance, "title_hint": title_hint}
-        elif "title_hint" in normalized:
-            normalized["title_hint"] = None
 
         doc_identity_fingerprint = normalized.get("doc_identity_fingerprint")
         if not isinstance(doc_identity_fingerprint, str) or not doc_identity_fingerprint:
@@ -3575,28 +1843,20 @@ class RetrievalService:
             normalized["doc_identity_fingerprint"] = doc_identity_fingerprint
 
         canonical_span = RetrievalService._canonicalize_span(normalized.get("span"))
-        if canonical_span is None:
-            canonical_span = RetrievalService._canonicalize_span(provenance.get("span"))
-        # Fail closed on malformed span payloads so lookup provenance and basket
-        # promotion fingerprints stay deterministic across sparse rehydration.
+        if canonical_span is None and isinstance(normalized.get("span"), dict):
+            canonical_span = dict(normalized["span"])
+        if canonical_span is None and isinstance(provenance.get("span"), dict):
+            canonical_span = RetrievalService._canonicalize_span(provenance["span"])
+            if canonical_span is None:
+                canonical_span = dict(provenance["span"])
         if canonical_span is not None:
             normalized["span"] = canonical_span
         retrieval_policy = self._retrieval_policy.as_snapshot()
         retrieval_backend = cast(str, retrieval_policy["retrieval_backend"])
         retrieval_mode = cast(str, retrieval_policy["retrieval_mode"])
-        active_strategy_ids = list(cast(list[str], retrieval_policy["active_strategy_ids"]))
-        deferred_strategy_ids = list(cast(list[str], retrieval_policy["deferred_strategy_ids"]))
-        strategies_used = list(active_strategy_ids)
         normalized["retrieval_backend"] = retrieval_backend
         normalized["retrieval_mode"] = retrieval_mode
         normalized["retrieval_policy"] = copy.deepcopy(retrieval_policy)
-        # Keep excerpt lookup payloads aligned with the canonical engine
-        # retrieval surface so downstream promotion/revise flows do not need a
-        # separate lookup-only policy field branch.
-        normalized["policy"] = copy.deepcopy(retrieval_policy)
-        normalized["active_strategy_ids"] = list(active_strategy_ids)
-        normalized["deferred_strategy_ids"] = list(deferred_strategy_ids)
-        normalized["strategies_used"] = list(strategies_used)
         excerpt_fingerprint = normalized.get("excerpt_fingerprint")
         if not isinstance(excerpt_fingerprint, str) or not excerpt_fingerprint:
             provenance_excerpt_fingerprint = provenance.get("excerpt_fingerprint")
@@ -3611,810 +1871,33 @@ class RetrievalService:
                 source_hash=str(normalized.get("source_hash") or provenance.get("source_hash") or ""),
             )
         normalized["excerpt_fingerprint"] = excerpt_fingerprint
-        doc_fingerprint = normalized.get("doc_fingerprint")
-        if not isinstance(doc_fingerprint, str) or not doc_fingerprint:
-            provenance_doc_fingerprint = provenance.get("doc_fingerprint")
-            if isinstance(provenance_doc_fingerprint, str) and provenance_doc_fingerprint:
-                doc_fingerprint = provenance_doc_fingerprint
-        if (
-            (not isinstance(doc_fingerprint, str) or not doc_fingerprint)
-            and doc_id_value is not None
-            and isinstance(source_hash, str)
-            and source_hash
-            and isinstance(doc_type, str)
-            and doc_type
-        ):
-            doc_fingerprint = RetrievalService._build_lookup_doc_fingerprint(
-                doc_id=doc_id_value,
-                source_hash=source_hash,
-                doc_type=doc_type,
-                excerpt_id=str(normalized.get("excerpt_id") or provenance.get("excerpt_id") or ""),
-                excerpt_fingerprint=excerpt_fingerprint,
-                doc_identity_fingerprint=doc_identity_fingerprint,
-            )
-        if isinstance(doc_fingerprint, str) and doc_fingerprint:
-            normalized["doc_fingerprint"] = doc_fingerprint
-        excerpt_provenance_fingerprint = normalized.get("excerpt_provenance_fingerprint")
-        if not isinstance(excerpt_provenance_fingerprint, str) or not excerpt_provenance_fingerprint:
-            provenance_excerpt_provenance_fingerprint = provenance.get("excerpt_provenance_fingerprint")
-            if (
-                isinstance(provenance_excerpt_provenance_fingerprint, str)
-                and provenance_excerpt_provenance_fingerprint
-            ):
-                excerpt_provenance_fingerprint = provenance_excerpt_provenance_fingerprint
-        if not isinstance(excerpt_provenance_fingerprint, str) or not excerpt_provenance_fingerprint:
-            excerpt_provenance_fingerprint = RetrievalService._build_excerpt_provenance_fingerprint(
-                doc_id=doc_id_value,
-                excerpt_id=str(normalized.get("excerpt_id") or provenance.get("excerpt_id") or ""),
-                doc_type=doc_type,
-                span=canonical_span,
-                source_hash=source_hash,
-                text_hash=str(text_hash or ""),
-                doc_identity_fingerprint=doc_identity_fingerprint,
-            )
-        normalized["excerpt_provenance_fingerprint"] = excerpt_provenance_fingerprint
-        normalized_provenance = {
-            **provenance,
-            "source_strategy": source_strategy,
-        }
-        if isinstance(excerpt_id_value, str) and excerpt_id_value:
-            normalized_provenance["excerpt_id"] = excerpt_id_value
-        if doc_id_value is not None:
-            normalized_provenance["doc_id"] = doc_id_value
-        if isinstance(source_hash, str) and source_hash:
-            normalized_provenance["source_hash"] = source_hash
-        if isinstance(doc_type, str) and doc_type:
-            normalized_provenance["doc_type"] = doc_type
-        if canonical_span is not None:
-            normalized_provenance["span"] = canonical_span
-        normalized_provenance["text_hash"] = text_hash
-        if isinstance(text_hash, str) and text_hash:
-            normalized_provenance["hash"] = text_hash
-            normalized_provenance["excerpt_text_hash"] = text_hash
-        normalized_provenance["excerpt_fingerprint"] = excerpt_fingerprint
-        normalized_provenance["excerpt_provenance_fingerprint"] = excerpt_provenance_fingerprint
-        if isinstance(doc_identity_fingerprint, str) and doc_identity_fingerprint:
-            normalized_provenance["doc_identity_fingerprint"] = doc_identity_fingerprint
-        if isinstance(doc_fingerprint, str) and doc_fingerprint:
-            normalized_provenance["doc_fingerprint"] = doc_fingerprint
-        normalized_provenance["retrieval_backend"] = retrieval_backend
-        normalized_provenance["retrieval_mode"] = retrieval_mode
-        normalized_provenance["retrieval_policy"] = copy.deepcopy(retrieval_policy)
-        normalized_provenance["policy"] = copy.deepcopy(retrieval_policy)
-        normalized_provenance["active_strategy_ids"] = list(active_strategy_ids)
-        normalized_provenance["deferred_strategy_ids"] = list(deferred_strategy_ids)
-        normalized_provenance["strategies_used"] = list(strategies_used)
-        normalized_provenance["retrieval_source_strategy"] = source_strategy
-        normalized_provenance["lookup_resolution"] = canonical_lookup_resolution
-        if canonical_lookup_confidentiality_profile is not None:
-            normalized_provenance["lookup_confidentiality_profile"] = canonical_lookup_confidentiality_profile
-        normalized_provenance["lookup_query_context_status"] = canonical_lookup_query_context_status
-        top_level_query_fingerprint = _optional_text(normalized.get("query_fingerprint"))
-        if (
-            top_level_query_fingerprint is not None
-            and _optional_text(normalized_provenance.get("query_fingerprint")) is None
-        ):
-            normalized_provenance["query_fingerprint"] = top_level_query_fingerprint
-        top_level_query_text = _normalize_query_text_payload(normalized.get("query_text"))
-        if top_level_query_text is not None:
-            normalized["query_text"] = top_level_query_text
-        if (
-            top_level_query_text is not None
-            and _normalize_query_text_payload(normalized_provenance.get("query_text")) is None
-        ):
-            normalized_provenance["query_text"] = top_level_query_text
-        top_level_query_scope = _normalize_query_scope_payload(normalized.get("query_scope"))
-        if top_level_query_scope is not None and _normalize_query_scope_payload(
-            normalized_provenance.get("query_scope")
-        ) is None:
-            normalized_provenance["query_scope"] = top_level_query_scope
-        top_level_query_intent = _normalize_query_intent_payload(normalized.get("query_intent"))
-        if top_level_query_intent is not None and _normalize_query_intent_payload(
-            normalized_provenance.get("query_intent")
-        ) is None:
-            normalized_provenance["query_intent"] = top_level_query_intent
-        top_level_query_confidentiality_profile = _normalized_profile_text(
-            normalized.get("query_confidentiality_profile")
-        )
-        if (
-            top_level_query_confidentiality_profile is not None
-            and _normalized_profile_text(normalized_provenance.get("query_confidentiality_profile")) is None
-        ):
-            normalized_provenance["query_confidentiality_profile"] = top_level_query_confidentiality_profile
-        top_level_query_date_range = _normalize_query_date_range_payload(normalized.get("query_date_range"))
-        if (
-            top_level_query_date_range is not None
-            and _normalize_query_date_range_payload(normalized_provenance.get("query_date_range")) is None
-        ):
-            normalized_provenance["query_date_range"] = top_level_query_date_range
-        top_level_candidate_doc_count = _optional_int(normalized.get("candidate_doc_count"))
-        if (
-            top_level_candidate_doc_count is not None
-            and _optional_int(normalized_provenance.get("candidate_doc_count")) is None
-        ):
-            normalized_provenance["candidate_doc_count"] = top_level_candidate_doc_count
-        top_level_fts_shortlist_doc_ids = _normalize_doc_id_list_payload(normalized.get("fts_shortlist_doc_ids"))
-        if (
-            top_level_fts_shortlist_doc_ids is not None
-            and _normalize_doc_id_list_payload(normalized_provenance.get("fts_shortlist_doc_ids")) is None
-        ):
-            normalized_provenance["fts_shortlist_doc_ids"] = top_level_fts_shortlist_doc_ids
-        top_level_matched_terms = _normalize_matched_terms(normalized.get("matched_terms"))
-        if top_level_matched_terms is not None and _normalize_matched_terms(
-            normalized_provenance.get("matched_terms")
-        ) is None:
-            normalized_provenance["matched_terms"] = top_level_matched_terms
-        top_level_match_count = _optional_int(normalized.get("match_count"))
-        if (
-            top_level_match_count is not None
-            and _optional_int(normalized_provenance.get("match_count")) is None
-        ):
-            normalized_provenance["match_count"] = top_level_match_count
-        top_level_rank = _optional_int(normalized.get("rank"))
-        if top_level_rank is not None and _optional_int(normalized_provenance.get("rank")) is None:
-            normalized_provenance["rank"] = top_level_rank
-        top_level_fts_rank = _optional_float(normalized.get("fts_rank"))
-        if top_level_fts_rank is not None and _optional_float(normalized_provenance.get("fts_rank")) is None:
-            normalized_provenance["fts_rank"] = top_level_fts_rank
-        top_level_section_hint = _normalized_query_hint_text(normalized.get("section_hint"))
-        if (
-            top_level_section_hint is not None
-            and _normalized_query_hint_text(normalized_provenance.get("section_hint")) is None
-        ):
-            normalized_provenance["section_hint"] = top_level_section_hint
-        top_level_section_hint_rank = _optional_int(normalized.get("section_hint_rank"))
-        if (
-            top_level_section_hint_rank is not None
-            and _optional_int(normalized_provenance.get("section_hint_rank")) is None
-        ):
-            normalized_provenance["section_hint_rank"] = top_level_section_hint_rank
-        matched_terms = _normalize_matched_terms(normalized_provenance.get("matched_terms"))
-        if matched_terms is not None:
-            normalized_provenance["matched_terms"] = matched_terms
-            normalized_provenance["match_count"] = len(matched_terms)
-        query_date_range = _normalize_query_date_range_payload(normalized_provenance.get("query_date_range"))
-        if query_date_range is not None:
-            normalized_provenance["query_date_range"] = query_date_range
-        query_confidentiality_profile = _normalized_profile_text(
-            normalized_provenance.get("query_confidentiality_profile")
-        )
-        if query_confidentiality_profile is not None:
-            normalized_provenance["query_confidentiality_profile"] = query_confidentiality_profile
-        query_scope = _normalize_query_scope_payload(normalized_provenance.get("query_scope"))
-        if query_scope is not None:
-            normalized_provenance["query_scope"] = query_scope
-        query_intent = _normalize_query_intent_payload(normalized_provenance.get("query_intent"))
-        if query_intent is not None:
-            normalized_provenance["query_intent"] = query_intent
-        section_hint = _normalized_query_hint_text(normalized_provenance.get("section_hint"))
-        if section_hint is not None:
-            normalized_provenance["section_hint"] = section_hint
-        candidate_doc_count = _optional_int(normalized_provenance.get("candidate_doc_count"))
-        if candidate_doc_count is not None:
-            normalized_provenance["candidate_doc_count"] = candidate_doc_count
-        fts_shortlist_doc_ids = _normalize_doc_id_list_payload(
-            normalized_provenance.get("fts_shortlist_doc_ids")
-        )
-        if fts_shortlist_doc_ids is not None:
-            normalized_provenance["fts_shortlist_doc_ids"] = fts_shortlist_doc_ids
-        rank = _optional_int(normalized_provenance.get("rank"))
-        if rank is not None:
-            normalized_provenance["rank"] = rank
-        fts_rank = _optional_float(normalized_provenance.get("fts_rank"))
-        if fts_rank is not None:
-            normalized_provenance["fts_rank"] = fts_rank
-        doc_rank = _optional_int(normalized_provenance.get("doc_rank"))
-        if doc_rank is not None:
-            normalized_provenance["doc_rank"] = doc_rank
-        section_hint_rank = _optional_int(normalized_provenance.get("section_hint_rank"))
-        if section_hint_rank is not None:
-            normalized_provenance["section_hint_rank"] = section_hint_rank
-        explicit_retrieved_doc_ids = normalized.get("retrieved_doc_ids")
-        if explicit_retrieved_doc_ids is None:
-            explicit_retrieved_doc_ids = normalized_provenance.get("retrieved_doc_ids")
-        retrieved_doc_ids = _normalize_doc_id_list_payload(
-            explicit_retrieved_doc_ids or [doc_id_value]
-        )
-        if retrieved_doc_ids is not None:
-            normalized_provenance["retrieved_doc_ids"] = retrieved_doc_ids
-        explicit_retrieved_excerpt_ids = normalized.get("retrieved_excerpt_ids")
-        if explicit_retrieved_excerpt_ids is None:
-            explicit_retrieved_excerpt_ids = normalized_provenance.get("retrieved_excerpt_ids")
-        retrieved_excerpt_ids = _normalize_doc_id_list_payload(
-            explicit_retrieved_excerpt_ids or [excerpt_id_value]
-        )
-        if retrieved_excerpt_ids is not None:
-            normalized_provenance["retrieved_excerpt_ids"] = retrieved_excerpt_ids
-        query_snapshot = self._build_excerpt_query_snapshot(
-            excerpt=normalized,
-            provenance=normalized_provenance,
-        )
-        if query_snapshot is not None:
-            normalized["query"] = copy.deepcopy(query_snapshot)
-            normalized_provenance["query"] = copy.deepcopy(query_snapshot)
-            derived_query_fingerprint = self._query_fingerprint_from_snapshot(query_snapshot)
-            if derived_query_fingerprint is not None:
-                normalized["query_fingerprint"] = derived_query_fingerprint
-                normalized_provenance["query_fingerprint"] = derived_query_fingerprint
-            raw_query_constraints = query_snapshot.get("constraints", {})
-            if not isinstance(raw_query_constraints, dict):
-                raw_query_constraints = {}
-            # Mirror the canonical retrieval-result query constraint fields on
-            # excerpt lookups so direct promotion/audit callers do not need to
-            # unpack the nested query snapshot to recover the original contract.
-            normalized_query_constraints = _canonical_query_constraint_snapshot_payload(
-                raw_query_constraints
-            )
-            normalized["query_constraints"] = copy.deepcopy(normalized_query_constraints)
-            normalized_provenance["query_constraints"] = normalized_query_constraints
-            query_max_results = _optional_int(normalized_query_constraints.get("max_results"))
-            if query_max_results is not None:
-                normalized["query_max_results"] = query_max_results
-                normalized_provenance["query_max_results"] = query_max_results
-            else:
-                normalized.pop("query_max_results", None)
-                normalized_provenance.pop("query_max_results", None)
-            query_doc_types = _normalize_query_doc_types_payload(
-                normalized_query_constraints.get("doc_types")
-            )
-            if query_doc_types is not None:
-                normalized["query_doc_types"] = copy.deepcopy(query_doc_types)
-                normalized_provenance["query_doc_types"] = copy.deepcopy(query_doc_types)
-            else:
-                normalized.pop("query_doc_types", None)
-                normalized_provenance.pop("query_doc_types", None)
-            query_require_citations = _optional_bool(
-                normalized_query_constraints.get("require_citations")
-            )
-            if query_require_citations is not None:
-                normalized["query_require_citations"] = query_require_citations
-                normalized_provenance["query_require_citations"] = query_require_citations
-            else:
-                normalized.pop("query_require_citations", None)
-                normalized_provenance.pop("query_require_citations", None)
-            query_section_hint = _normalized_query_hint_text(
-                normalized_query_constraints.get("section_hint")
-            )
-            if query_section_hint is not None:
-                normalized["query_section_hint"] = query_section_hint
-                normalized_provenance["query_section_hint"] = query_section_hint
-            else:
-                normalized.pop("query_section_hint", None)
-                normalized_provenance.pop("query_section_hint", None)
-            query_prefer_exact_matches = _optional_bool(
-                normalized_query_constraints.get("prefer_exact_matches")
-            )
-            if query_prefer_exact_matches is not None:
-                normalized["query_prefer_exact_matches"] = query_prefer_exact_matches
-                normalized_provenance["query_prefer_exact_matches"] = query_prefer_exact_matches
-            else:
-                normalized.pop("query_prefer_exact_matches", None)
-                normalized_provenance.pop("query_prefer_exact_matches", None)
-            query_text = _normalize_query_text_payload(query_snapshot.get("query_text"))
-            if query_text is not None:
-                normalized["query_text"] = query_text
-                normalized_provenance["query_text"] = query_text
-            query_scope = _normalize_query_scope_payload(query_snapshot.get("scope"))
-            if query_scope is not None:
-                normalized["query_scope"] = query_scope
-                normalized_provenance["query_scope"] = query_scope
-            query_intent = _normalize_query_intent_payload(query_snapshot.get("intent"))
-            if query_intent is not None:
-                normalized["query_intent"] = query_intent
-                normalized_provenance["query_intent"] = query_intent
-            query_confidentiality_profile = _normalized_profile_text(
-                query_snapshot.get("confidentiality_profile")
-            )
-            if query_confidentiality_profile is not None:
-                normalized["query_confidentiality_profile"] = query_confidentiality_profile
-                normalized_provenance["query_confidentiality_profile"] = query_confidentiality_profile
-            query_date_range = _normalize_query_date_range_payload(
-                normalized_query_constraints.get("date_range")
-            )
-            if query_date_range is not None:
-                normalized["query_date_range"] = query_date_range
-                normalized_provenance["query_date_range"] = query_date_range
-            else:
-                normalized.pop("query_date_range", None)
-                normalized_provenance.pop("query_date_range", None)
-            section_hint = _normalized_query_hint_text(
-                normalized_query_constraints.get("section_hint")
-            )
-            if section_hint is not None:
-                normalized["section_hint"] = section_hint
-                normalized_provenance["section_hint"] = section_hint
-            else:
-                normalized.pop("section_hint", None)
-                normalized_provenance.pop("section_hint", None)
-        else:
-            # Fail closed across every mirrored query field when the sparse
-            # excerpt payload cannot reconstitute a canonical query snapshot.
-            for key in _EXCERPT_QUERY_MIRROR_FIELDS:
-                normalized.pop(key, None)
-                normalized_provenance.pop(key, None)
-            if (
-                _normalize_query_scope_payload(normalized_provenance.get("query_scope")) is None
-                or _normalize_query_intent_payload(normalized_provenance.get("query_intent")) is None
-            ):
-                normalized.pop("query_fingerprint", None)
-                normalized_provenance.pop("query_fingerprint", None)
-        lookup_fingerprint = RetrievalService._stable_fingerprint(
-            {
-                "doc_id": doc_id_value,
-                "excerpt_id": normalized.get("excerpt_id"),
+        if "provenance" in normalized:
+            normalized_provenance = {
+                **provenance,
                 "source_strategy": source_strategy,
-                "lookup_resolution": canonical_lookup_resolution,
-                "lookup_confidentiality_profile": canonical_lookup_confidentiality_profile,
-                "lookup_query_context_status": canonical_lookup_query_context_status,
-                # Include the canonical retrieval query context when it is
-                # present so excerpt promotion/audit records stay unique across
-                # materially different retrieval runs that land on the same
-                # excerpt id.
-                "query_fingerprint": normalized_provenance.get("query_fingerprint"),
-                "query_scope": normalized_provenance.get("query_scope"),
-                "query_intent": normalized_provenance.get("query_intent"),
-                "query_confidentiality_profile": normalized_provenance.get(
-                    "query_confidentiality_profile"
-                ),
-                "query_date_range": normalized_provenance.get("query_date_range"),
-                "candidate_doc_count": normalized_provenance.get("candidate_doc_count"),
-                "fts_shortlist_doc_ids": normalized_provenance.get("fts_shortlist_doc_ids"),
-                "retrieved_doc_ids": normalized_provenance.get("retrieved_doc_ids"),
-                "retrieved_excerpt_ids": normalized_provenance.get("retrieved_excerpt_ids"),
-                "retrieval_backend": retrieval_backend,
-                "retrieval_mode": retrieval_mode,
-                "active_strategy_ids": active_strategy_ids,
-                "deferred_strategy_ids": deferred_strategy_ids,
-                "excerpt_fingerprint": excerpt_fingerprint,
-                "excerpt_provenance_fingerprint": excerpt_provenance_fingerprint,
-                "doc_identity_fingerprint": doc_identity_fingerprint,
             }
-        )
-        result_fingerprint = RetrievalService._build_excerpt_lookup_result_fingerprint(
-            lookup_fingerprint=lookup_fingerprint,
-            retrieval_policy=retrieval_policy,
-            doc_fingerprint=doc_fingerprint,
-            excerpt_fingerprint=excerpt_fingerprint,
-            excerpt_provenance_fingerprint=excerpt_provenance_fingerprint,
-            excerpt_text_hash=text_hash,
-        )
-        normalized["result_fingerprint"] = result_fingerprint
-        normalized["lookup_fingerprint"] = lookup_fingerprint
-        normalized_provenance["result_fingerprint"] = result_fingerprint
-        normalized_provenance["lookup_fingerprint"] = lookup_fingerprint
-        normalized["excerpt_text_hash"] = text_hash
-        for key in (
-            "result_fingerprint",
-            "query_fingerprint",
-            "query_scope",
-            "query_intent",
-            "query_confidentiality_profile",
-            "query_date_range",
-            "candidate_doc_count",
-            "fts_shortlist_doc_ids",
-            "matched_terms",
-            "match_count",
-            "rank",
-            "fts_rank",
-            "section_hint",
-            "section_hint_rank",
-            "lookup_confidentiality_profile",
-            "retrieved_doc_ids",
-            "retrieved_excerpt_ids",
-        ):
-            value = normalized_provenance.get(key)
-            if value is not None:
-                normalized[key] = copy.deepcopy(value)
-        normalized["basket_promotion"] = self._build_excerpt_lookup_basket_promotion(
-            excerpt=normalized,
-            provenance=normalized_provenance,
-            lookup_fingerprint=lookup_fingerprint,
-        )
-        normalized["provenance"] = normalized_provenance
+            if doc_id_value is not None:
+                normalized_provenance["doc_id"] = doc_id_value
+            if isinstance(source_hash, str) and source_hash:
+                normalized_provenance["source_hash"] = source_hash
+            if isinstance(doc_type, str) and doc_type:
+                normalized_provenance["doc_type"] = doc_type
+            if canonical_span is not None:
+                normalized_provenance["span"] = canonical_span
+            normalized_provenance["text_hash"] = text_hash
+            if isinstance(text_hash, str) and text_hash:
+                normalized_provenance["hash"] = text_hash
+                normalized_provenance["excerpt_text_hash"] = text_hash
+            normalized_provenance["excerpt_fingerprint"] = excerpt_fingerprint
+            if isinstance(doc_identity_fingerprint, str) and doc_identity_fingerprint:
+                normalized_provenance["doc_identity_fingerprint"] = doc_identity_fingerprint
+            normalized_provenance["retrieval_backend"] = retrieval_backend
+            normalized_provenance["retrieval_mode"] = retrieval_mode
+            normalized_provenance["retrieval_policy"] = copy.deepcopy(retrieval_policy)
+            normalized_provenance["retrieval_source_strategy"] = source_strategy
+            normalized_provenance["lookup_resolution"] = lookup_resolution
+            normalized["provenance"] = normalized_provenance
         return normalized
-
-    def _build_excerpt_query_snapshot(
-        self,
-        *,
-        excerpt: dict[str, object],
-        provenance: dict[str, object],
-    ) -> dict[str, object] | None:
-        query_payload = excerpt.get("query")
-        if not isinstance(query_payload, dict):
-            query_payload = provenance.get("query")
-        query_payload_present = isinstance(query_payload, dict)
-        if not query_payload_present:
-            query_payload = {}
-
-        def _first_query_value(*values: object) -> object:
-            for value in values:
-                if value is not None:
-                    return value
-            return None
-
-        def _first_normalized_query_value(
-            normalizer,
-            *values: object,
-        ) -> object | None:
-            for value in values:
-                normalized = normalizer(value)
-                if normalized is not None:
-                    return normalized
-            return None
-
-        query_constraints_explicit = query_payload_present and "constraints" in query_payload
-        top_level_query_constraint_payloads: list[dict[str, object]] = []
-        for candidate in (
-            excerpt.get("query_constraints"),
-            provenance.get("query_constraints"),
-            excerpt.get("constraints"),
-            provenance.get("constraints"),
-        ):
-            if isinstance(candidate, dict):
-                top_level_query_constraint_payloads.append(candidate)
-        if query_payload_present:
-            query_constraints_payload = (
-                copy.deepcopy(query_payload.get("constraints"))
-                if isinstance(query_payload.get("constraints"), dict)
-                else {}
-            )
-            merged_query_constraints_payload = copy.deepcopy(query_constraints_payload)
-            for candidate in top_level_query_constraint_payloads:
-                for key, value in candidate.items():
-                    if (
-                        key not in merged_query_constraints_payload
-                        or not _query_constraint_value_present(merged_query_constraints_payload.get(key))
-                    ):
-                        merged_query_constraints_payload[key] = copy.deepcopy(value)
-            query_text = _first_normalized_query_value(
-                _normalize_query_text_payload,
-                query_payload.get("query_text"),
-                excerpt.get("query_text"),
-                provenance.get("query_text"),
-            )
-            query_scope = _first_normalized_query_value(
-                _normalize_query_scope_payload,
-                query_payload.get("scope"),
-                excerpt.get("query_scope"),
-                provenance.get("query_scope"),
-            )
-            query_intent = _first_normalized_query_value(
-                _normalize_query_intent_payload,
-                query_payload.get("intent"),
-                excerpt.get("query_intent"),
-                provenance.get("query_intent"),
-            )
-            query_confidentiality_profile = _first_normalized_query_value(
-                _normalized_profile_text,
-                query_payload.get("confidentiality_profile"),
-                excerpt.get("query_confidentiality_profile"),
-                provenance.get("query_confidentiality_profile"),
-            )
-        else:
-            query_constraints_payload = {}
-            for candidate in (
-                provenance.get("constraints"),
-                excerpt.get("constraints"),
-                provenance.get("query_constraints"),
-                excerpt.get("query_constraints"),
-            ):
-                if not isinstance(candidate, dict):
-                    continue
-                query_constraints_payload.update(candidate)
-            merged_query_constraints_payload = copy.deepcopy(query_constraints_payload)
-            query_text = _first_normalized_query_value(
-                _normalize_query_text_payload,
-                excerpt.get("query_text"),
-                provenance.get("query_text"),
-            )
-            query_scope = _first_normalized_query_value(
-                _normalize_query_scope_payload,
-                excerpt.get("query_scope"),
-                provenance.get("query_scope"),
-            )
-            query_intent = _first_normalized_query_value(
-                _normalize_query_intent_payload,
-                excerpt.get("query_intent"),
-                provenance.get("query_intent"),
-            )
-            query_confidentiality_profile = _first_normalized_query_value(
-                _normalized_profile_text,
-                excerpt.get("query_confidentiality_profile"),
-                provenance.get("query_confidentiality_profile"),
-            )
-        if query_constraints_explicit:
-            # Older sparse excerpt snapshots may carry a partial nested
-            # ``query.constraints`` object while the mirrored top-level query
-            # fields or ``query_constraints`` dict still hold the canonical
-            # values. Fall back field-by-field so lookup rehydration preserves
-            # the original auditable contract.
-            query_date_range_raw = _first_query_value(
-                merged_query_constraints_payload.get("date_range"),
-                excerpt.get("query_date_range"),
-                provenance.get("query_date_range"),
-            )
-            section_hint_raw = _first_query_value(
-                merged_query_constraints_payload.get("section_hint"),
-                excerpt.get("section_hint"),
-                provenance.get("section_hint"),
-            )
-            max_results_raw = _first_query_value(
-                merged_query_constraints_payload.get("max_results"),
-                excerpt.get("query_max_results"),
-                provenance.get("query_max_results"),
-                excerpt.get("max_results"),
-                provenance.get("max_results"),
-            )
-            doc_types_raw = _first_query_value(
-                merged_query_constraints_payload.get("doc_types"),
-                excerpt.get("query_doc_types"),
-                provenance.get("query_doc_types"),
-                excerpt.get("doc_types"),
-                provenance.get("doc_types"),
-            )
-            require_citations_raw = _first_query_value(
-                merged_query_constraints_payload.get("require_citations"),
-                excerpt.get("query_require_citations"),
-                provenance.get("query_require_citations"),
-                excerpt.get("require_citations"),
-                provenance.get("require_citations"),
-            )
-            prefer_exact_matches_raw = _first_query_value(
-                merged_query_constraints_payload.get("prefer_exact_matches"),
-                excerpt.get("query_prefer_exact_matches"),
-                provenance.get("query_prefer_exact_matches"),
-                excerpt.get("prefer_exact_matches"),
-                provenance.get("prefer_exact_matches"),
-            )
-        else:
-            query_date_range_raw = _first_query_value(
-                query_constraints_payload.get("date_range"),
-                excerpt.get("query_date_range"),
-                provenance.get("query_date_range"),
-            )
-            section_hint_raw = _first_query_value(
-                query_constraints_payload.get("section_hint"),
-                excerpt.get("section_hint"),
-                provenance.get("section_hint"),
-            )
-            max_results_raw = _first_query_value(
-                query_constraints_payload.get("max_results"),
-                excerpt.get("query_max_results"),
-                provenance.get("query_max_results"),
-                excerpt.get("max_results"),
-                provenance.get("max_results"),
-            )
-            doc_types_raw = _first_query_value(
-                query_constraints_payload.get("doc_types"),
-                excerpt.get("query_doc_types"),
-                provenance.get("query_doc_types"),
-                excerpt.get("doc_types"),
-                provenance.get("doc_types"),
-            )
-            require_citations_raw = _first_query_value(
-                query_constraints_payload.get("require_citations"),
-                excerpt.get("query_require_citations"),
-                provenance.get("query_require_citations"),
-                excerpt.get("require_citations"),
-                provenance.get("require_citations"),
-            )
-            prefer_exact_matches_raw = _first_query_value(
-                query_constraints_payload.get("prefer_exact_matches"),
-                excerpt.get("query_prefer_exact_matches"),
-                provenance.get("query_prefer_exact_matches"),
-                excerpt.get("prefer_exact_matches"),
-                provenance.get("prefer_exact_matches"),
-            )
-        query_date_range = _normalize_query_date_range_payload(query_date_range_raw)
-        section_hint = _normalized_query_hint_text(section_hint_raw)
-        max_results = _optional_int(max_results_raw)
-        doc_types = _normalize_query_doc_types_payload(doc_types_raw)
-        require_citations = _optional_bool(require_citations_raw)
-        prefer_exact_matches = _optional_bool(prefer_exact_matches_raw)
-        query_constraints = _canonical_query_constraint_snapshot_payload(
-            {
-                "max_results": max_results,
-                "doc_types": doc_types,
-                "date_range": query_date_range,
-                "require_citations": require_citations,
-                "section_hint": section_hint,
-                "prefer_exact_matches": prefer_exact_matches,
-            }
-        )
-        # Fail closed when sparse lookup context cannot identify the original
-        # retrieval contract. A partial ``query`` object looks canonical to
-        # downstream basket-promotion flows even though it cannot be
-        # fingerprinted or audited as a real retrieval request.
-        if query_text is None or query_scope is None or query_intent is None:
-            return None
-        query_snapshot: dict[str, object] = {
-            "query_text": query_text,
-            "scope": query_scope,
-            "intent": query_intent,
-        }
-        sparse_query_constraints = {
-            key: copy.deepcopy(value)
-            for key, value in query_constraints.items()
-            if key in {"date_range", "section_hint"} or value not in (10, [], False)
-        }
-        if sparse_query_constraints:
-            query_snapshot["constraints"] = sparse_query_constraints
-        query_snapshot["confidentiality_profile"] = query_confidentiality_profile or "confidential"
-        return query_snapshot
-
-    @staticmethod
-    def _query_fingerprint_from_snapshot(query_snapshot: object) -> str | None:
-        if not isinstance(query_snapshot, dict):
-            return None
-        query_text = _normalize_query_text_payload(query_snapshot.get("query_text"))
-        query_scope = _normalize_query_scope_payload(query_snapshot.get("scope"))
-        query_intent = _normalize_query_intent_payload(query_snapshot.get("intent"))
-        query_confidentiality_profile = _normalized_profile_text(
-            query_snapshot.get("confidentiality_profile")
-        ) or "confidential"
-        if (
-            query_text is None
-            or query_scope is None
-            or query_intent is None
-        ):
-            return None
-        query_constraints = query_snapshot.get("constraints", {})
-        if not isinstance(query_constraints, dict):
-            query_constraints = {}
-        normalized_constraints = {
-            "max_results": _optional_int(query_constraints.get("max_results")) or 10,
-            "doc_types": _normalize_query_doc_types_payload(query_constraints.get("doc_types")) or [],
-            "date_range": _normalize_query_date_range_payload(query_constraints.get("date_range")),
-            "require_citations": _optional_bool(query_constraints.get("require_citations")) or False,
-            "section_hint": _normalized_query_hint_text(query_constraints.get("section_hint")),
-            "prefer_exact_matches": _optional_bool(query_constraints.get("prefer_exact_matches")) or False,
-        }
-        return RetrievalService._stable_fingerprint(
-            {
-                "query_text": query_text,
-                "scope": query_scope,
-                "intent": query_intent,
-                "constraints": normalized_constraints,
-                "confidentiality_profile": query_confidentiality_profile,
-            }
-        )
-
-    def _build_excerpt_lookup_basket_promotion(
-        self,
-        *,
-        excerpt: dict[str, object],
-        provenance: dict[str, object],
-        lookup_fingerprint: str,
-    ) -> dict[str, object]:
-        query_snapshot = self._build_excerpt_query_snapshot(excerpt=excerpt, provenance=provenance)
-        query_fingerprint = self._query_fingerprint_from_snapshot(query_snapshot)
-        raw_query_constraints = query_snapshot.get("constraints", {}) if isinstance(query_snapshot, dict) else {}
-        if not isinstance(raw_query_constraints, dict):
-            raw_query_constraints = {}
-        query_constraints = _canonical_query_constraint_snapshot_payload(raw_query_constraints)
-        query_text = (
-            query_snapshot.get("query_text")
-            if isinstance(query_snapshot, dict)
-            else excerpt.get("query_text") or provenance.get("query_text")
-        )
-        query_scope = (
-            query_snapshot.get("scope")
-            if isinstance(query_snapshot, dict)
-            else provenance.get("query_scope")
-        )
-        query_intent = (
-            query_snapshot.get("intent")
-            if isinstance(query_snapshot, dict)
-            else provenance.get("query_intent")
-        )
-        query_confidentiality_profile = (
-            query_snapshot.get("confidentiality_profile")
-            if isinstance(query_snapshot, dict)
-            else provenance.get("query_confidentiality_profile")
-        )
-        # Direct excerpt lookup is always the canonical FTS-only path. Do not
-        # trust any sparse legacy strategy metadata carried on the excerpt or
-        # provenance payload when reconstructing basket-promotion state.
-        retrieval_policy = _normalize_retrieval_policy_snapshot_payload(
-            self._retrieval_policy.as_snapshot()
-        )
-        active_strategy_ids = _normalize_strategy_id_list_payload(retrieval_policy.get("active_strategy_ids", []))
-        deferred_strategy_ids = _normalize_strategy_id_list_payload(
-            retrieval_policy.get("deferred_strategy_ids", [])
-        )
-        promotion = {
-            "promotion_ready": True,
-            "promotion_source": "lookup_excerpt",
-            "citation_available": True,
-            "query_text": _normalize_query_text_payload(query_text),
-            "query_fingerprint": query_fingerprint or _optional_text(provenance.get("query_fingerprint")),
-            "query_scope": _normalize_query_scope_payload(query_scope),
-            "query_intent": _normalize_query_intent_payload(query_intent),
-            "query_confidentiality_profile": _normalized_profile_text(query_confidentiality_profile),
-            "query_constraints": copy.deepcopy(query_constraints),
-            "query_max_results": _optional_int(query_constraints.get("max_results")),
-            "query_doc_types": _normalize_query_doc_types_payload(query_constraints.get("doc_types")),
-            "query_require_citations": _optional_bool(query_constraints.get("require_citations")),
-            "query_section_hint": _normalized_query_hint_text(query_constraints.get("section_hint")),
-            "query_prefer_exact_matches": _optional_bool(query_constraints.get("prefer_exact_matches")),
-            "lookup_resolution": _FTS_SOURCE_STRATEGY,
-            "lookup_confidentiality_profile": _normalize_lookup_confidentiality_profile_payload(
-                excerpt.get("lookup_confidentiality_profile")
-                or provenance.get("lookup_confidentiality_profile")
-            ),
-            "lookup_query_context_status": _normalize_lookup_query_context_status_payload(
-                excerpt.get("lookup_query_context_status")
-                or provenance.get("lookup_query_context_status")
-            ),
-            "query_date_range": _normalize_query_date_range_payload(
-                query_constraints.get("date_range", provenance.get("query_date_range"))
-            ),
-            "candidate_doc_count": _optional_int(provenance.get("candidate_doc_count")),
-            "fts_shortlist_doc_ids": _normalize_doc_id_list_payload(provenance.get("fts_shortlist_doc_ids")),
-            "result_fingerprint": _optional_text(excerpt.get("result_fingerprint"))
-            or _optional_text(provenance.get("result_fingerprint"))
-            or lookup_fingerprint,
-            "lookup_fingerprint": lookup_fingerprint,
-            "doc_id": _optional_text(excerpt.get("doc_id")) or _optional_text(provenance.get("doc_id")),
-            "doc_type": _optional_text(excerpt.get("doc_type")) or _optional_text(provenance.get("doc_type")),
-            "doc_fingerprint": _optional_text(excerpt.get("doc_fingerprint"))
-            or _optional_text(provenance.get("doc_fingerprint")),
-            "doc_identity_fingerprint": _optional_text(excerpt.get("doc_identity_fingerprint"))
-            or _optional_text(provenance.get("doc_identity_fingerprint")),
-            "source_hash": _optional_text(excerpt.get("source_hash")) or _optional_text(provenance.get("source_hash")),
-            "title_hint": _optional_text(excerpt.get("title_hint")),
-            "excerpt_id": _optional_text(excerpt.get("excerpt_id")) or _optional_text(provenance.get("excerpt_id")),
-            "excerpt_fingerprint": _optional_text(excerpt.get("excerpt_fingerprint"))
-            or _optional_text(provenance.get("excerpt_fingerprint")),
-            "excerpt_provenance_fingerprint": _optional_text(excerpt.get("excerpt_provenance_fingerprint"))
-            or _optional_text(provenance.get("excerpt_provenance_fingerprint")),
-            "excerpt_text_hash": _optional_text(excerpt.get("excerpt_text_hash"))
-            or _optional_text(provenance.get("excerpt_text_hash"))
-            or _optional_text(provenance.get("hash")),
-            "excerpt_text": _optional_text(excerpt.get("excerpt_text")) or _optional_text(excerpt.get("text")),
-            "span": copy.deepcopy(RetrievalService._canonicalize_span(excerpt.get("span"))),
-            "source_strategy": _FTS_SOURCE_STRATEGY,
-            "retrieval_source_strategy": _FTS_SOURCE_STRATEGY,
-            "matched_terms": copy.deepcopy(_normalize_matched_terms(provenance.get("matched_terms"))),
-            "match_count": _optional_int(provenance.get("match_count")),
-            "rank": _optional_int(provenance.get("rank")),
-            "fts_rank": _optional_float(provenance.get("fts_rank")),
-            "doc_rank": _optional_int(provenance.get("doc_rank")),
-            "section_hint": _normalized_query_hint_text(provenance.get("section_hint")),
-            "section_hint_rank": _optional_int(provenance.get("section_hint_rank")),
-            "retrieval_backend": retrieval_policy["retrieval_backend"],
-            "retrieval_mode": retrieval_policy["retrieval_mode"],
-            "policy": copy.deepcopy(retrieval_policy),
-            "retrieval_policy": _snapshot_mapping(retrieval_policy),
-            "active_strategy_ids": active_strategy_ids,
-            "deferred_strategy_ids": deferred_strategy_ids,
-            "strategies_used": [_FTS_SOURCE_STRATEGY],
-            "retrieved_doc_ids": _normalize_doc_id_list_payload(
-                excerpt.get("retrieved_doc_ids")
-                or provenance.get("retrieved_doc_ids")
-                or [
-                    _optional_text(excerpt.get("doc_id"))
-                    or _optional_text(provenance.get("doc_id"))
-                ]
-            ),
-            "retrieved_excerpt_ids": _normalize_doc_id_list_payload(
-                excerpt.get("retrieved_excerpt_ids")
-                or provenance.get("retrieved_excerpt_ids")
-                or [
-                    _optional_text(excerpt.get("excerpt_id"))
-                    or _optional_text(provenance.get("excerpt_id"))
-                ]
-            ),
-        }
-        promotion["promotion_fingerprint"] = self._build_basket_promotion_fingerprint(promotion)
-        return promotion
-
-    @staticmethod
-    def _build_basket_promotion_fingerprint(payload: dict[str, object]) -> str:
-        fingerprint_payload = copy.deepcopy(payload)
-        fingerprint_payload.pop("promotion_fingerprint", None)
-        fingerprint_payload.pop("source_bundle_fingerprint", None)
-        return RetrievalService._stable_fingerprint(fingerprint_payload)
 
     @staticmethod
     def _build_doc_identity_fingerprint(
@@ -4432,27 +1915,6 @@ class RetrievalService:
         )
 
     @staticmethod
-    def _build_lookup_doc_fingerprint(
-        *,
-        doc_id: str,
-        source_hash: str,
-        doc_type: str,
-        excerpt_id: str,
-        excerpt_fingerprint: str | None,
-        doc_identity_fingerprint: str | None,
-    ) -> str:
-        return RetrievalService._stable_fingerprint(
-            {
-                "doc_id": doc_id,
-                "source_hash": source_hash,
-                "doc_type": doc_type,
-                "excerpt_id": excerpt_id,
-                "excerpt_fingerprint": excerpt_fingerprint,
-                "doc_identity_fingerprint": doc_identity_fingerprint,
-            }
-        )
-
-    @staticmethod
     def _canonicalize_span(span: object) -> dict[str, object] | None:
         if not isinstance(span, dict):
             return None
@@ -4461,21 +1923,10 @@ class RetrievalService:
             return None
         if "start" not in char_range or "end" not in char_range:
             return None
-        start_raw = char_range["start"]
-        end_raw = char_range["end"]
-        if isinstance(start_raw, bool) or isinstance(end_raw, bool):
-            return None
-        try:
-            start = int(start_raw)
-            end = int(end_raw)
-        except (TypeError, ValueError):
-            return None
-        if start > end:
-            start, end = end, start
         return {
             "char_range": {
-                "start": start,
-                "end": end,
+                "start": int(char_range["start"]),
+                "end": int(char_range["end"]),
             }
         }
 
@@ -4496,49 +1947,6 @@ class RetrievalService:
             "source_hash": source_hash,
         }
         return RetrievalService._stable_fingerprint(payload)
-
-    @staticmethod
-    def _build_excerpt_provenance_fingerprint(
-        *,
-        doc_id: str | None,
-        excerpt_id: str | None,
-        doc_type: str | None,
-        span: dict[str, object] | None,
-        source_hash: str | None,
-        text_hash: str | None,
-        doc_identity_fingerprint: str | None,
-    ) -> str:
-        payload = {
-            "doc_id": doc_id,
-            "excerpt_id": excerpt_id,
-            "doc_type": doc_type,
-            "span": span,
-            "source_hash": source_hash,
-            "text_hash": text_hash,
-            "doc_identity_fingerprint": doc_identity_fingerprint,
-        }
-        return RetrievalService._stable_fingerprint(payload)
-
-    @staticmethod
-    def _build_excerpt_lookup_result_fingerprint(
-        *,
-        lookup_fingerprint: str,
-        retrieval_policy: dict[str, object],
-        doc_fingerprint: str | None,
-        excerpt_fingerprint: str,
-        excerpt_provenance_fingerprint: str,
-        excerpt_text_hash: str,
-    ) -> str:
-        return RetrievalService._stable_fingerprint(
-            {
-                "lookup_fingerprint": lookup_fingerprint,
-                "retrieval_policy": _snapshot_mapping(retrieval_policy),
-                "doc_fingerprint": doc_fingerprint,
-                "excerpt_fingerprint": excerpt_fingerprint,
-                "excerpt_provenance_fingerprint": excerpt_provenance_fingerprint,
-                "excerpt_text_hash": excerpt_text_hash,
-            }
-        )
 
     @staticmethod
     def _query_fingerprint(query: RetrievalQuery) -> str:
@@ -4576,7 +1984,7 @@ class RetrievalService:
         return out
 
     def _read_doc_text(self, doc_id: str) -> str:
-        blob = self._root / _DOC_BLOBS / f"{_normalize_doc_id(doc_id)}.enc"
+        blob = self._root / _DOC_BLOBS / f"{doc_id}.enc"
         if not blob.exists():
             raise KeyError(f"unknown doc_id: {doc_id}")
         return decrypt_bytes(blob.read_bytes(), self._key).decode("utf-8")
@@ -4600,8 +2008,9 @@ class RetrievalService:
             raise ValueError("query_text must contain at least one searchable term")
         if query.constraints.max_results < 1:
             raise ValueError("max_results must be greater than zero")
-        _reject_deferred_scope(query.scope)
-        if query.scope != "vault" and not any(query.scope.startswith(prefix) for prefix in ("collection:", "doc:")):
+        if query.scope.startswith("section:"):
+            raise ValueError("section scope is unsupported until FTS fallback can resolve section targets")
+        if query.scope not in {"vault"} and not any(query.scope.startswith(prefix) for prefix in ("collection:", "doc:")):
             raise ValueError("unsupported scope")
         if query.intent not in _SUPPORTED_RETRIEVAL_INTENTS:
             raise ValueError(f"unsupported intent: {query.intent}")
@@ -4612,10 +2021,10 @@ class RetrievalService:
             pass
 
     @staticmethod
-    def _safe_title_hint(value: str, *, confidentiality_profile: str) -> str | None:
+    def _safe_title_hint(query: RetrievalQuery, value: str) -> str | None:
         if not value:
             return None
-        if confidentiality_profile == "confidential":
+        if query.confidentiality_profile == "confidential":
             return f"doc:{hashlib.sha256(value.encode('utf-8')).hexdigest()[:10]}"
         return value[:80]
 
@@ -4644,7 +2053,7 @@ class RetrievalService:
         return raw
 
     @contextmanager
-    def _connect_fts_db(self, *, read_only: bool = False) -> Iterator[sqlite3.Connection]:
+    def _connect_fts_db(self) -> Iterator[sqlite3.Connection]:
         with NamedTemporaryFile(prefix="retrieval_fts_", suffix=".sqlite3", delete=False) as tmp:
             tmp_path = Path(tmp.name)
         try:
@@ -4657,15 +2066,13 @@ class RetrievalService:
             try:
                 self._initialize_fts_schema(conn)
                 yield conn
-                if not read_only:
-                    conn.commit()
+                conn.commit()
             finally:
                 conn.close()
-            if not read_only:
-                encrypted = encrypt_bytes(tmp_path.read_bytes(), self._key)
-                out_tmp = db_path.with_suffix(".tmp")
-                out_tmp.write_bytes(encrypted)
-                out_tmp.replace(db_path)
+            encrypted = encrypt_bytes(tmp_path.read_bytes(), self._key)
+            out_tmp = db_path.with_suffix(".tmp")
+            out_tmp.write_bytes(encrypted)
+            out_tmp.replace(db_path)
         finally:
             tmp_path.unlink(missing_ok=True)
 
@@ -4686,16 +2093,15 @@ class RetrievalService:
         )
 
     def _query_fts_db(self, sql: str, params: tuple[object, ...]) -> list[sqlite3.Row]:
-        with self._connect_fts_db(read_only=True) as conn:
+        with self._connect_fts_db() as conn:
             rows = conn.execute(sql, params).fetchall()
         return rows
 
     def _fetch_fts_row(self, excerpt_id: str) -> sqlite3.Row | None:
-        normalized_excerpt_id = _normalize_excerpt_id(excerpt_id)
         rows = self._query_fts_db(
             "SELECT doc_id, excerpt_id, doc_type, title_hint, char_start, char_end, text FROM fts_entries "
             "WHERE excerpt_id = ? LIMIT 1",
-            (normalized_excerpt_id,),
+            (excerpt_id,),
         )
         return rows[0] if rows else None
 
