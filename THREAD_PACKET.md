@@ -2,9 +2,9 @@
 
 - Lane: `feat-commands`
 - Branch: `codex/feat-commands`
-- Commit / review basis: actual `codex/feat-commands` branch tip for the `20260429T021315Z` reviewer-fix pass.
+- Commit / review basis: actual `codex/feat-commands` branch tip for the `20260429T021537Z` reviewer-fix pass.
 - Previous implementation anchor: `f8d860ed9f6299f0169c4f21321ac5f37c949fd3`
-- Reviewer packet addressed: `20260429T021315Z`
+- Reviewer packet addressed: `20260429T021537Z`
 
 ## Packet Traceability Note
 
@@ -143,7 +143,7 @@
 - `20260429T015948Z` fixer confirmation rerun: PASS for `make scope-check` and `make ci` after the approval-confirmation branch tip.
 - `20260429T020237Z` fixer approval-confirmation rerun: reviewer returned `APPROVED` with no required fixes; PASS for `make scope-check`, `./quality-format.sh --check`, `./quality-lint.sh`, `./quality-test.sh`, `./typecheck-test.sh`, and `make ci`.
 - `20260429T021108Z` fixer rerun: PASS for `make scope-check`, `./quality-format.sh --check`, `./quality-lint.sh`, `./quality-test.sh`, `./typecheck-test.sh`, and `make ci`.
-- `20260429T021537Z` reviewer-fix rerun: PASS for focused catalog coverage via `./quality-test.sh tests/unit/test_commands_catalog.py`, then PASS for `make scope-check`, `./quality-format.sh --check`, `./quality-lint.sh`, `./quality-test.sh`, `./typecheck-test.sh`, and `make ci`.
+- `20260429T021537Z` reviewer-fix rerun: PASS for `make scope-check`, `./quality-format.sh --check`, `./quality-lint.sh`, `./quality-test.sh`, `./typecheck-test.sh`, and `make ci`.
 
 ## Risks / Blockers
 
@@ -331,3 +331,4 @@
 2. Required fix 2 is satisfied by the concise statement in `Canonical Demo-Path Step Advanced`: this work makes `open project/document`, `retrieve relevant material`, `promote/gather context`, and `preview/apply/reject patch` more real by guaranteeing the parser-visible CLI tokens stay aligned with the command catalog before the contract is returned.
 3. Required fix 3 is satisfied by the ownership notes above: shared-by-approval test edits are `YES` for `tests/unit/test_commands_catalog.py` and `tests/unit/test_diff_preview.py`, and integrator-locked edits are `NO`.
 4. Required fix 4 is satisfied by regenerating the packet against the actual `codex/feat-commands` branch tip for this reviewer-fix pass; post-`f8d860ed9f6299f0169c4f21321ac5f37c949fd3` command/test commits remain implementation-bearing and included in the review basis.
+5. Required gates were rerun for this fixer pass and passed: `make scope-check`, `./quality-format.sh --check`, `./quality-lint.sh`, `./quality-test.sh`, `./typecheck-test.sh`, and `make ci`.
