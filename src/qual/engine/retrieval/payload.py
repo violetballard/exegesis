@@ -165,6 +165,10 @@ def _normalize_doc_bundle_snapshot(doc_bundle: dict[str, object]) -> dict[str, o
         normalized["citation_status"] = copy.deepcopy(citation_status)
     elif "citation_status" in normalized:
         normalized["citation_status"] = {}
+    if "retrieval_basket_promotion_refs" in normalized:
+        normalized["retrieval_basket_promotion_refs"] = _normalize_basket_promotion_refs_snapshot(
+            normalized.get("retrieval_basket_promotion_refs")
+        )
     return normalized
 
 
@@ -183,6 +187,10 @@ def _normalize_excerpt_bundle_snapshot(excerpt_bundle: dict[str, object]) -> dic
         normalized["citation_status"] = copy.deepcopy(citation_status)
     elif "citation_status" in normalized:
         normalized["citation_status"] = {}
+    if "retrieval_basket_promotion_refs" in normalized:
+        normalized["retrieval_basket_promotion_refs"] = _normalize_basket_promotion_refs_snapshot(
+            normalized.get("retrieval_basket_promotion_refs")
+        )
     return normalized
 
 

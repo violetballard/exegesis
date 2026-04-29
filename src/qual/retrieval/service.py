@@ -703,6 +703,9 @@ class RetrievalResult:
             "retrieval_manifest": copy.deepcopy(self.diagnostics["retrieval_manifest"]),
             "retrieval_provenance": copy.deepcopy(retrieval_provenance),
             "retrieval_evidence": copy.deepcopy(self.evidence),
+            "retrieval_basket_promotion_refs": copy.deepcopy(
+                self.evidence.get("basket_promotion_refs", {"doc_refs": [], "excerpt_refs": []})
+            ),
         }
 
     def _retrieval_source_bundle_snapshot(
