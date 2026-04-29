@@ -43,7 +43,7 @@ The branch delivers the FTS-first retrieval slice for the MVP engine workflow lo
 - Risk: high/shared because `tests/unit/test_unified_retrieval.py` is approved shared regression coverage.
 - Task budget: `4/4`.
 - File budget: `7/8`.
-- Size budget: `7` files, `444` insertions, `143` deletions, net `+301` in `378cf9a7..HEAD`; this exceeds the high-risk `<=300` net LOC cap by `1` line and is called out for reviewer/integrator disposition.
+- Size budget: `7` files, `438` insertions, `143` deletions, net `+295` in `378cf9a7..HEAD`; within the high-risk `<=300` net LOC cap.
 - Integrator-locked files: none.
 
 ## Canonical Demo Path
