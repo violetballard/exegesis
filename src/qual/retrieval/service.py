@@ -758,6 +758,9 @@ class RetrievalResult:
         summary = payload.get("retrieval_summary", {})
         if not isinstance(summary, dict):
             summary = {}
+        manifest = payload.get("retrieval_manifest", {})
+        if not isinstance(manifest, dict):
+            manifest = {}
         citation_status = payload.get("citation_status", summary.get("citation_status", {}))
         if not isinstance(citation_status, dict):
             citation_status = {}
@@ -777,9 +780,17 @@ class RetrievalResult:
             "doc_identity_fingerprints": copy.deepcopy(summary.get("doc_identity_fingerprints", [])),
             "excerpt_fingerprints": copy.deepcopy(summary.get("excerpt_fingerprints", [])),
             "excerpt_text_hashes": copy.deepcopy(summary.get("excerpt_text_hashes", [])),
+            "top_excerpt_ids": copy.deepcopy(manifest.get("top_excerpt_ids", [])),
+            "top_excerpt_fingerprints": copy.deepcopy(
+                summary.get("top_excerpt_fingerprints", manifest.get("top_excerpt_fingerprints", []))
+            ),
+            "top_excerpt_text_hashes": copy.deepcopy(
+                summary.get("top_excerpt_text_hashes", manifest.get("top_excerpt_text_hashes", []))
+            ),
             "primary_doc_id": summary.get("primary_doc_id"),
             "primary_excerpt_id": summary.get("primary_excerpt_id"),
             "primary_doc_fingerprint": summary.get("primary_doc_fingerprint"),
+            "primary_doc_identity_fingerprint": summary.get("primary_doc_identity_fingerprint"),
             "primary_excerpt_fingerprint": summary.get("primary_excerpt_fingerprint"),
             "primary_excerpt_text_hash": summary.get("primary_excerpt_text_hash"),
             "citation_status": copy.deepcopy(citation_status),
