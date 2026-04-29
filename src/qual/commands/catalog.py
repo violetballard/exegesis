@@ -278,6 +278,10 @@ def _canonical_cli_lookup_table() -> tuple[tuple[str, str], ...]:
     )
 
 
+def _canonical_cli_grouped_surface() -> tuple[tuple[str, tuple[str, ...]], ...]:
+    return tuple((canonical_name, tuple(tokens)) for canonical_name, tokens in _CANONICAL_CLI_COMMAND_SURFACE)
+
+
 def _declared_cli_canonical_names() -> tuple[str, ...]:
     return tuple(canonical_name for canonical_name, _ in _declared_cli_surface_projection())
 
@@ -569,11 +573,13 @@ def command_cli_contract() -> CommandCliContract:
     lookup_table = command_cli_lookup_table()
     canonical_names = command_names()
     declared_surface = _declared_cli_surface_projection()
+    grouped_lookup_table = _group_cli_lookup_table(lookup_table)
     expected_tokens = _canonical_cli_tokens()
     expected_lookup_table = _canonical_cli_lookup_table()
-    if declared_surface != _CANONICAL_CLI_COMMAND_SURFACE:
+    expected_surface = _canonical_cli_grouped_surface()
+    if declared_surface != expected_surface:
         raise ValueError("Command CLI declared surface is inconsistent")
-    if _group_cli_lookup_table(lookup_table) != declared_surface:
+    if grouped_lookup_table != expected_surface or grouped_lookup_table != declared_surface:
         raise ValueError("Command CLI parser surface is inconsistent")
     if tokens != expected_tokens or tokens != _declared_cli_tokens():
         raise ValueError("Command CLI tokens are inconsistent")
