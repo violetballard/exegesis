@@ -2,10 +2,10 @@
 
 - Lane: `feat-commands`
 - Branch: `codex/feat-commands`
-- Commit: branch tip after fixer prompt `20260429T040701Z`
+- Commit: branch tip after fixer prompt `20260429T040923Z`
 - Review basis: branch tip after this fixer commit, not `f8d860ed9f6299f0169c4f21321ac5f37c949fd3` alone.
 - Prior implementation anchor: `f8d860ed9f6299f0169c4f21321ac5f37c949fd3`
-- Packet refresh role: reviewer-fix handoff correction after prompt `20260429T040701Z`
+- Packet refresh role: reviewer-fix handoff correction after prompt `20260429T040923Z`
 
 ## Packet Traceability Note
 
@@ -13,6 +13,7 @@
 - Fixer prompt `20260429T040101Z` requested a metadata-only handoff refresh so every completed task names the canonical demo-path step it supports and states the concrete blocker removed by the command-catalog work.
 - Fixer prompt `20260429T040347Z` requested the same reviewer-required fixes against the actual branch tip, including current review-basis accounting, exact parser-surface validation, same-canonical drift coverage, demo-path mapping, gate reruns, and a new commit.
 - Fixer prompt `20260429T040701Z` requested the reviewer-required fixes again with emphasis on full parser-surface drift rejection, regression coverage for extra/missing/substituted/ordered same-canonical drift, exact review-basis accounting, and complete metadata file listing.
+- Fixer prompt `20260429T040923Z` requested the same reviewer-required fixes against the current branch tip and requires a new commit with refreshed gate evidence.
 - The reviewable branch-tip implementation is narrowed to the command-catalog slice:
   - `src/qual/commands/catalog.py`
   - `tests/unit/test_commands_catalog.py`
@@ -21,7 +22,7 @@
 
 ## Branch-Tip Review Basis
 
-- Review target: branch tip after fixer prompt `20260429T040701Z`.
+- Review target: branch tip after fixer prompt `20260429T040923Z`.
 - Prior implementation anchor: `f8d860ed9f6299f0169c4f21321ac5f37c949fd3`.
 - Review range: `f8d860ed9f6299f0169c4f21321ac5f37c949fd3..HEAD`.
 - Matching changed-file scope:
@@ -167,6 +168,14 @@
 2. Confirmed regression coverage includes extra known alias drift, missing alias/token drift, substituted same-canonical aliases, parser token ordering drift, lookup-table ordering drift, and declared-surface ordering drift.
 3. Regenerated this handoff packet against the current branch-tip review target after prompt `20260429T040701Z`, with `THREAD.md` and `THREAD_PACKET.md` listed as metadata-only files.
 4. Kept scope narrowed to `src/qual/commands/**` plus the approved shared test file `tests/unit/test_commands_catalog.py`; no additional shared-path exception is needed.
+
+## Required Fixes Addressed From Fixer Prompt `20260429T040923Z`
+
+1. Confirmed the branch-tip `command_cli_contract()` validates the exact parser surface, including accepted parser tokens, lookup-table order, grouped canonical surface, declared CLI surface, and canonical command order before returning `CommandCliContract`.
+2. Confirmed focused regression coverage remains in `tests/unit/test_commands_catalog.py` for added known aliases, removed tokens, replacement aliases, lookup-table substitutions that preserve the canonical-name set, parser token ordering drift, and declared-surface drift.
+3. Refreshed `THREAD.md` and this packet so the reviewer can evaluate the current branch tip after prompt `20260429T040923Z` instead of the earlier implementation anchor alone.
+4. Retained the canonical demo-path mapping and concrete-blocker statement: the CLI-first parser surface for project open, retrieval/basket, patch review, and export handoff now fails loudly if it drifts before Textual is enabled.
+5. Reran all required gates after this refresh and recorded the outcomes below.
 
 ## Commands Run + Outcomes
 
