@@ -1,15 +1,15 @@
 ## Thread Handoff Packet
 
 - Branch/lane: `codex/feat-retrieval-fts` / `feat-retrieval-fts`
-- Packet purpose: branch-tip re-review packet for the actual merge candidate, including FTS-first retrieval and basket-promotion reference plumbing.
+- Packet purpose: branch-tip re-review packet for the actual merge candidate, including FTS-first retrieval, basket-promotion reference plumbing, and FTS strategy snapshot isolation.
 - Merge candidate: the branch tip after this fixer commit.
 - Authoritative merge-review range: `378cf9a74a3658058079a32f186fcd254c4a4034..HEAD`.
-- Pre-fix packet HEAD: `495364e82967882497edd13a1d1cac061f88bf77`.
+- Pre-fix packet HEAD: `f26b3a6de39492e288fbdf8c2338dab64a6e61e5`.
 - Reviewed scope rule: review the full branch tip range above. Do not use `adfa8cdadd43747ffbcb612e4151e262b13e52ca` as the merge-candidate endpoint.
 
 ## Branch-Tip Scope Summary
 
-The branch keeps SQLite FTS as the MVP retrieval authority, removes the PageIndex fallback from canonical excerpt lookup, and preserves deterministic retrieval payloads for downstream engine flows. It also keeps the post-`adfa8cd` basket-promotion reference work in reviewed scope: retrieval evidence now carries stable document and excerpt refs, source/context bundles normalize `retrieval_basket_promotion_refs`, and downstream payload reconstruction rehydrates those refs for the context basket path.
+The branch keeps SQLite FTS as the MVP retrieval authority, removes the PageIndex fallback from canonical excerpt lookup, and preserves deterministic retrieval payloads for downstream engine flows. It also keeps the post-`adfa8cd` implementation work in reviewed scope: retrieval evidence now carries stable document and excerpt refs, source/context bundles normalize `retrieval_basket_promotion_refs`, downstream payload reconstruction rehydrates those refs for the context basket path, and FTS strategy hits are deep-copied around cache storage and return paths so callers cannot mutate cached retrieval evidence.
 
 PageIndex and embeddings remain deferred/fallback-only compatibility surfaces. No routing, provider, CLI entrypoint, `README.md`, `INTEGRATION.md`, `src/main.py`, `src/qual/cli.py`, or `src/qual/app.py` changes are included.
 
@@ -19,13 +19,16 @@ The canonical demo path advanced by this range is:
 2. Promote or gather retrieved docs/excerpts into the basket using stable refs.
 3. Carry retrieved context forward to later draft/revise/apply steps through deterministic payloads.
 
+This advances: retrieve relevant material. The FTS-only excerpt contract makes canonical retrieval evidence deterministic and fail-closed, while stable basket-promotion refs let downstream workflow steps promote the retrieved docs/excerpts without relying on PageIndex-only fallbacks or mutable hit snapshots.
+
 ## Code-Bearing Commits In Reviewed Scope
 
 - `adfa8cdadd43747ffbcb612e4151e262b13e52ca`: FTS-only excerpt lookup and deterministic retrieval payload behavior.
 - `6d3ca5d75d517b508fd6dfb954ac83bcc8c85591`: stable document and excerpt references for basket promotion in retrieval evidence.
 - `3f09ca2f4132eff22bd3faa0e8a3e1f5411482f5`: exposes normalized basket-promotion refs through retrieval source/context/downstream payload reconstruction.
+- `f26b3a6de39492e288fbdf8c2338dab64a6e61e5`: isolates FTS strategy hit snapshots with deep copies around runner output, cache storage, and returned `StrategyRun` hits.
 
-Packet/documentation commits after `3f09ca2f4132eff22bd3faa0e8a3e1f5411482f5`, including this fixer commit, update packet metadata only. Runtime code changes through `3f09ca2f4132eff22bd3faa0e8a3e1f5411482f5` remain inside the reviewed branch-tip range.
+Packet/documentation commits after `f26b3a6de39492e288fbdf8c2338dab64a6e61e5`, including this fixer commit, update packet metadata only. Runtime code changes through `f26b3a6de39492e288fbdf8c2338dab64a6e61e5` remain inside the reviewed branch-tip range.
 
 ## Tasks Completed
 
@@ -41,7 +44,7 @@ Packet/documentation commits after `3f09ca2f4132eff22bd3faa0e8a3e1f5411482f5`, i
    - Canonical demo-path step: promote or gather retrieved docs/excerpts into the basket.
    - Roadmap mapping: `ROADMAP.md` Milestone 3 generation provenance contract and Milestone 4 source-attribution model for retrieved chunks.
    - Vision mapping: capability 2, Retrieval-first context handling, and capability 3, Auditable generation.
-4. Added and maintained approved shared regression coverage in `tests/unit/test_unified_retrieval.py` for the FTS-first retrieval contract, sparse payload reconstruction, citation/provenance helpers, and FTS-only excerpt behavior.
+4. Added and maintained approved shared regression coverage in `tests/unit/test_unified_retrieval.py` for the FTS-first retrieval contract, sparse payload reconstruction, citation/provenance helpers, FTS-only excerpt behavior, and FTS strategy snapshot isolation.
    - Canonical demo-path step: verify the FTS-first retrieval and basket-context payload path is reproducible for the canonical demo.
    - Roadmap mapping: MVP engine stability and retrieval contract readiness.
    - Vision mapping: auditable, deterministic workflow state.
@@ -51,6 +54,7 @@ Packet/documentation commits after `3f09ca2f4132eff22bd3faa0e8a3e1f5411482f5`, i
 - `.codex/kickoff_packets/feat-retrieval-fts.md`
 - `.codex/lane_meta/feat-retrieval-fts.json`
 - `THREAD_PACKET.md`
+- `src/qual/engine/retrieval/fts_strategy.py`
 - `src/qual/engine/retrieval/payload.py`
 - `src/qual/retrieval/service.py`
 - `tests/unit/test_unified_retrieval.py`
@@ -59,7 +63,7 @@ Packet/documentation commits after `3f09ca2f4132eff22bd3faa0e8a3e1f5411482f5`, i
 
 - Risk: high/shared because the reviewed range includes approved shared regression coverage in `tests/unit/test_unified_retrieval.py`.
 - Task budget: `4/4` under the AGENTS high-risk/shared cap.
-- File budget: `6/8` high-risk files changed in the actual branch-tip range.
+- File budget: `7/8` high-risk files changed in the actual branch-tip range.
 - Shared-file edits: approved regression coverage in `tests/unit/test_unified_retrieval.py`.
 - Integrator-locked files: none.
 - Scope remains tight to Milestone 3/4 retrieval: FTS-first retrieval, structured/auditable basket promotion refs, and no required PageIndex/embeddings path.
