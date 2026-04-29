@@ -21,11 +21,10 @@ Canonical handoff contract lives in `THREAD_PACKET.md`.
 
 - `THREAD.md`
 - `THREAD_PACKET.md`
-- `scripts/scope-check.sh`
 - `src/qual/commands/catalog.py`
 - `tests/unit/test_commands_catalog.py`
 
-`scripts/scope-check.sh` is included as a scope-policy cleanup file because this fixer pass removes prior gate-policy additions from the final branch state.
+`scripts/scope-check.sh` is restored to the previous implementation anchor state, so it is not part of the effective review diff for this reviewer-fix pass.
 
 ## Shared / Approval Notes
 
@@ -33,7 +32,7 @@ Canonical handoff contract lives in `THREAD_PACKET.md`.
 - Approved shared-by-approval test edits: `tests/unit/test_commands_catalog.py`.
 - Shared-by-approval edits: YES.
 - Integrator-locked edits: NO.
-- Gate-policy cleanup edits: YES, limited to removing prior `scripts/scope-check.sh` additions from the final branch state; `scripts/scope-check.sh` is not listed as integrator-locked in `THREAD_OWNERSHIP.md`.
+- Gate-policy edits: NO.
 - Metadata-only handoff files: `THREAD.md`, `THREAD_PACKET.md`.
 
 ## Canonical Demo-Path Mapping
@@ -43,7 +42,7 @@ Canonical handoff contract lives in `THREAD_PACKET.md`.
 ## Reviewer Packet `20260429T025923Z` Fix Satisfaction
 
 1. The handoff uses one truthful review basis: the actual branch tip after this fixer pass.
-2. The effective changed-file list from the previous implementation anchor is complete and names all five effective review files.
-3. `scripts/scope-check.sh` is listed as a scope-policy cleanup file; no integrator-locked edit remains.
+2. The effective changed-file list from the previous implementation anchor is complete and names all four reviewed files.
+3. `scripts/scope-check.sh` has been restored out of the effective review diff; no integrator-locked gate-policy edit remains.
 4. The task list in `THREAD_PACKET.md` maps each completed task to protected canonical demo-path command steps.
 5. Final required gate results for the current reviewer packet are recorded in `THREAD_PACKET.md`.
