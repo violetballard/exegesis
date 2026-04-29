@@ -3,7 +3,8 @@
 - Lane: `feat-retrieval-fts`
 - Branch: `codex/feat-retrieval-fts`
 - Review target: current branch tip for `codex/feat-retrieval-fts`; final SHA is reported in the fixer handoff.
-- Authoritative reviewed range: `378cf9a7..HEAD`
+- Merge-facing base: `d7fd5d200358287fa42a18d39e2b277463b9b69f`
+- Intended implementation anchor: `378cf9a7..adfa8cdadd43747ffbcb612e4151e262b13e52ca`
 - Handoff type: high-risk retrieval fixer re-review.
 
 ## Scope Goal
@@ -25,12 +26,13 @@ The branch tip now contains only the narrowed retrieval slice plus handoff packe
 - High-risk reason: the reviewed range includes approved shared regression coverage in `tests/unit/test_unified_retrieval.py`.
 - Task count: `1`
 - Task budget: `4`
-- Size accounting: `5 files changed, 251 insertions(+), 106 deletions(-)` in `378cf9a7..HEAD` after this packet rewrite, within the `<=8 files` and `<=300 net LOC` high-risk caps.
+- Size accounting: `5 files changed, 281 insertions(+), 118 deletions(-)` in the merge-facing branch-tip diff before the final fixer commit is created.
 - Owned runtime path touched: `src/qual/retrieval/service.py`
 - Approved shared-by-approval edit: `tests/unit/test_unified_retrieval.py`
 - Handoff metadata artifacts touched: `.codex/kickoff_packets/feat-retrieval-fts.md`, `.codex/lane_meta/feat-retrieval-fts.json`, `THREAD_PACKET.md`
 - Integrator-locked files touched: none
 - Removed from the branch-tip merge result: retrieval engine facade/payload drift, packet planner/tooling drift, and packet-planner test drift after `adfa8cda`.
+- Packet-refresh note: code-touching commits are not described as metadata-only. Packet-only commits are metadata-only only when their diff is limited to packet metadata.
 
 ## Tasks Completed
 
@@ -44,6 +46,25 @@ The branch tip now contains only the narrowed retrieval slice plus handoff packe
 THREAD_PACKET.md
 src/qual/retrieval/service.py
 tests/unit/test_unified_retrieval.py
+```
+
+## Merge-Facing Diff / Stat
+
+Command used for the corrected worktree scope before the final fixer commit:
+
+```text
+git diff --stat d7fd5d200358287fa42a18d39e2b277463b9b69f
+```
+
+Result:
+
+```text
+.codex/kickoff_packets/feat-retrieval-fts.md |  55 ++++++---
+.codex/lane_meta/feat-retrieval-fts.json     | 162 ++++++++++++++++++++++++---
+THREAD_PACKET.md                             | 127 +++++++++++----------
+src/qual/retrieval/service.py                |  17 +--
+tests/unit/test_unified_retrieval.py         |  38 +++++--
+5 files changed, 281 insertions(+), 118 deletions(-)
 ```
 
 ## Commands Run And Outcomes

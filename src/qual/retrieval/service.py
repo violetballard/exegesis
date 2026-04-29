@@ -19,6 +19,9 @@ from src.qual.engine.retrieval import (
     FTS_FIRST_POLICY,
     FTSStrategy,
     build_retrieval_downstream_payload,
+    build_retrieval_excerpt_bundle_from_result,
+    build_retrieval_provenance_from_result,
+    build_retrieval_source_bundle_from_result,
     primary_strategy_id,
     retrieval_policy_snapshot,
 )
@@ -35,7 +38,6 @@ _FTS_SEGMENT_OVERLAP_CHARS = 80
 _FTS_BOUNDARY_SCAN_CHARS = 40
 _SUPPORTED_RETRIEVAL_INTENTS = {"lookup", "compare", "summarize", "quote_find", "outline_support"}
 _SUPPORTED_CONFIDENTIALITY_PROFILES = {"confidential", "standard"}
-_FTS_SOURCE_STRATEGY = "fts"
 
 
 def _canonicalize_doc_types(doc_types: tuple[str, ...]) -> tuple[str, ...]:
@@ -56,16 +58,6 @@ def _optional_text(value: object) -> str | None:
         if text:
             return text
     return None
-
-
-def _optional_list_like(value: object) -> list[object] | None:
-    if value is None:
-        return None
-    if isinstance(value, list):
-        return copy.deepcopy(value)
-    if isinstance(value, tuple):
-        return list(value)
-    return [value]
 
 
 def _normalize_supported_value(value: object, *, field_name: str, allowed: set[str]) -> str:
@@ -138,10 +130,6 @@ class RetrievalHit:
     node_path: list[dict[str, str]] | None
     provenance: dict[str, object]
 
-    def __post_init__(self) -> None:
-        if self.source_strategy != _FTS_SOURCE_STRATEGY:
-            raise ValueError("source_strategy must be fts for the FTS-first retrieval lane")
-
     def as_dict(self) -> dict[str, object]:
         payload = {
             "doc_id": self.doc_id,
@@ -151,7 +139,6 @@ class RetrievalHit:
             "title_hint": self.title_hint,
             "score": self.score,
             "source_strategy": self.source_strategy,
-            "retrieval_source_strategy": self.source_strategy,
             "rationale": self.rationale,
             "node_path": copy.deepcopy(self.node_path),
             "provenance": copy.deepcopy(self.provenance),
@@ -166,9 +153,8 @@ class RetrievalHit:
         if isinstance(query_intent, str) and query_intent:
             payload["query_intent"] = query_intent
         query_date_range = self.provenance.get("query_date_range")
-        normalized_query_date_range = _optional_list_like(query_date_range)
-        if normalized_query_date_range is not None:
-            payload["query_date_range"] = normalized_query_date_range
+        if isinstance(query_date_range, list):
+            payload["query_date_range"] = copy.deepcopy(query_date_range)
         source_hash = self.provenance.get("source_hash")
         if isinstance(source_hash, str) and source_hash:
             payload["source_hash"] = source_hash
@@ -179,9 +165,8 @@ class RetrievalHit:
         if isinstance(candidate_doc_count, int):
             payload["candidate_doc_count"] = candidate_doc_count
         fts_shortlist_doc_ids = self.provenance.get("fts_shortlist_doc_ids")
-        normalized_fts_shortlist_doc_ids = _optional_list_like(fts_shortlist_doc_ids)
-        if normalized_fts_shortlist_doc_ids is not None:
-            payload["fts_shortlist_doc_ids"] = normalized_fts_shortlist_doc_ids
+        if isinstance(fts_shortlist_doc_ids, list):
+            payload["fts_shortlist_doc_ids"] = copy.deepcopy(fts_shortlist_doc_ids)
         retrieval_backend = self.provenance.get("retrieval_backend")
         if isinstance(retrieval_backend, str) and retrieval_backend:
             payload["retrieval_backend"] = retrieval_backend
@@ -232,10 +217,6 @@ class RetrievalDocHit:
     excerpt_count: int
     provenance: dict[str, object]
 
-    def __post_init__(self) -> None:
-        if self.source_strategy != _FTS_SOURCE_STRATEGY:
-            raise ValueError("source_strategy must be fts for the FTS-first retrieval lane")
-
     def as_dict(self) -> dict[str, object]:
         payload = {
             "doc_id": self.doc_id,
@@ -244,7 +225,6 @@ class RetrievalDocHit:
             "top_excerpt_id": self.top_excerpt_id,
             "top_score": self.top_score,
             "source_strategy": self.source_strategy,
-            "retrieval_source_strategy": self.source_strategy,
             "excerpt_count": self.excerpt_count,
             "provenance": copy.deepcopy(self.provenance),
         }
@@ -258,16 +238,14 @@ class RetrievalDocHit:
         if isinstance(query_intent, str) and query_intent:
             payload["query_intent"] = query_intent
         query_date_range = self.provenance.get("query_date_range")
-        normalized_query_date_range = _optional_list_like(query_date_range)
-        if normalized_query_date_range is not None:
-            payload["query_date_range"] = normalized_query_date_range
+        if isinstance(query_date_range, list):
+            payload["query_date_range"] = copy.deepcopy(query_date_range)
         candidate_doc_count = self.provenance.get("candidate_doc_count")
         if isinstance(candidate_doc_count, int):
             payload["candidate_doc_count"] = candidate_doc_count
         fts_shortlist_doc_ids = self.provenance.get("fts_shortlist_doc_ids")
-        normalized_fts_shortlist_doc_ids = _optional_list_like(fts_shortlist_doc_ids)
-        if normalized_fts_shortlist_doc_ids is not None:
-            payload["fts_shortlist_doc_ids"] = normalized_fts_shortlist_doc_ids
+        if isinstance(fts_shortlist_doc_ids, list):
+            payload["fts_shortlist_doc_ids"] = copy.deepcopy(fts_shortlist_doc_ids)
         retrieval_backend = self.provenance.get("retrieval_backend")
         if isinstance(retrieval_backend, str) and retrieval_backend:
             payload["retrieval_backend"] = retrieval_backend
@@ -367,7 +345,6 @@ class RetrievalResult:
             retrieval_manifest=dict(self.diagnostics["retrieval_manifest"]),
             retrieval_evidence=dict(self.evidence),
             retrieval_provenance=retrieval_provenance,
-            source_bundle_fingerprint=cast(str, retrieval_source_bundle["source_bundle_fingerprint"]),
             retrieval_source_bundle=retrieval_source_bundle,
         )
 
@@ -431,24 +408,6 @@ class RetrievalResult:
 
         return self._retrieval_source_bundle_snapshot()
 
-    def retrieval_source_bundle(self) -> dict[str, object]:
-        """Return the canonical retrieval source snapshot for downstream engine flows."""
-
-        return self.source_bundle()
-
-    def retrieval_provenance_bundle(self) -> dict[str, object]:
-        """Return the deterministic retrieval provenance snapshot for downstream engine flows."""
-
-        citation_bundle = self.citation_bundle()
-        citation_status = dict(citation_bundle["citation_status"])
-        return copy.deepcopy(
-            self._retrieval_provenance_snapshot(
-                citation_bundle=citation_bundle,
-                citation_status=citation_status,
-                retrieval_policy=self._retrieval_policy_snapshot(),
-            )
-        )
-
     def retrieval_doc_bundle(self) -> dict[str, object]:
         """Return the deterministic doc-focused snapshot for downstream engine flows."""
 
@@ -475,17 +434,16 @@ class RetrievalResult:
     def retrieval_context_bundle(self) -> dict[str, object]:
         """Return the canonical retrieval context for drafting, patching, and research flows."""
 
-        downstream_payload = self.to_downstream_payload()
         return {
             "audit_ref": self.audit_ref,
             "result_fingerprint": self.result_fingerprint,
-            "retrieval_downstream_payload": copy.deepcopy(downstream_payload),
-            "retrieval_citation_bundle": copy.deepcopy(downstream_payload["retrieval_citation_bundle"]),
-            "retrieval_doc_bundle": copy.deepcopy(downstream_payload["retrieval_doc_bundle"]),
-            "retrieval_excerpt_bundle": copy.deepcopy(downstream_payload["retrieval_excerpt_bundle"]),
-            "retrieval_provenance": copy.deepcopy(downstream_payload["retrieval_provenance"]),
-            "retrieval_source_bundle": copy.deepcopy(downstream_payload["retrieval_source_bundle"]),
-            "retrieval_evidence": copy.deepcopy(downstream_payload["retrieval_evidence"]),
+            "retrieval_downstream_payload": copy.deepcopy(self.to_downstream_payload()),
+            "retrieval_citation_bundle": copy.deepcopy(self.citation_bundle()),
+            "retrieval_doc_bundle": copy.deepcopy(self.retrieval_doc_bundle()),
+            "retrieval_excerpt_bundle": copy.deepcopy(self.retrieval_excerpt_bundle()),
+            "retrieval_provenance": copy.deepcopy(build_retrieval_provenance_from_result(self)),
+            "retrieval_source_bundle": copy.deepcopy(self.source_bundle()),
+            "retrieval_evidence": copy.deepcopy(self.evidence),
         }
 
     def _query_snapshot(self) -> dict[str, object]:
@@ -527,7 +485,6 @@ class RetrievalResult:
                 "top_excerpt_id": doc_hit.top_excerpt_id,
                 "top_excerpt_fingerprint": doc_hit.provenance.get("top_excerpt_fingerprint"),
                 "top_excerpt_text_hash": doc_hit.provenance.get("top_excerpt_text_hash"),
-                "source_strategy": doc_hit.provenance.get("source_strategy"),
             }
             for doc_hit in self.doc_hits
         ]
@@ -597,15 +554,7 @@ class RetrievalResult:
             "primary_doc_id": self.doc_hits[0].doc_id if self.doc_hits else None,
             "primary_excerpt_id": self.hits[0].excerpt_id if self.hits else None,
             "primary_doc_fingerprint": self.doc_hits[0].provenance.get("doc_fingerprint") if self.doc_hits else None,
-            "primary_doc_identity_fingerprint": self.doc_hits[0].provenance.get("doc_identity_fingerprint")
-            if self.doc_hits
-            else None,
             "primary_excerpt_fingerprint": self.hits[0].provenance.get("excerpt_fingerprint") if self.hits else None,
-            "primary_excerpt_text_hash": (
-                self.hits[0].provenance.get("excerpt_text_hash") or self.hits[0].provenance.get("hash")
-                if self.hits
-                else None
-            ),
             "doc_hits_fingerprint": self.diagnostics["doc_hits_fingerprint"],
             "excerpt_hits_fingerprint": self.diagnostics["excerpt_hits_fingerprint"],
             "active_strategy_ids": list(self.diagnostics["active_strategy_ids"]),
@@ -620,8 +569,6 @@ class RetrievalResult:
         citation_status: dict[str, object],
         retrieval_policy: dict[str, object],
     ) -> dict[str, object]:
-        primary_doc_hit = self.doc_hits[0] if self.doc_hits else None
-        primary_excerpt_hit = self.hits[0] if self.hits else None
         return {
             "query_fingerprint": self.diagnostics["query_fingerprint"],
             "query_scope": self.query.scope,
@@ -641,20 +588,6 @@ class RetrievalResult:
             "excerpt_hits_fingerprint": self.diagnostics["excerpt_hits_fingerprint"],
             "candidate_doc_count": self.diagnostics.get("candidate_doc_count"),
             "fts_shortlist_doc_ids": list(self.diagnostics.get("fts_shortlist_doc_ids", [])),
-            "primary_doc_id": primary_doc_hit.doc_id if primary_doc_hit is not None else None,
-            "primary_doc_fingerprint": primary_doc_hit.provenance.get("doc_fingerprint") if primary_doc_hit is not None else None,
-            "primary_doc_identity_fingerprint": primary_doc_hit.provenance.get("doc_identity_fingerprint")
-            if primary_doc_hit is not None
-            else None,
-            "primary_excerpt_id": primary_excerpt_hit.excerpt_id if primary_excerpt_hit is not None else None,
-            "primary_excerpt_fingerprint": primary_excerpt_hit.provenance.get("excerpt_fingerprint")
-            if primary_excerpt_hit is not None
-            else None,
-            "primary_excerpt_text_hash": (
-                primary_excerpt_hit.provenance.get("excerpt_text_hash") or primary_excerpt_hit.provenance.get("hash")
-                if primary_excerpt_hit is not None
-                else None
-            ),
             "citation_status": citation_status,
             "doc_count": citation_bundle["doc_count"],
             "excerpt_count": citation_bundle["excerpt_count"],
@@ -719,7 +652,7 @@ class RetrievalResult:
                 citation_status=citation_status_snapshot,
             )
         )
-        source_bundle = {
+        return {
             "result_fingerprint": self.result_fingerprint,
             "query_fingerprint": self.diagnostics["query_fingerprint"],
             "query": query_snapshot,
@@ -743,11 +676,6 @@ class RetrievalResult:
                 )
             ),
         }
-        # Fingerprint the source snapshot itself so copies can be verified deterministically.
-        source_bundle["source_bundle_fingerprint"] = RetrievalService._stable_fingerprint(
-            {key: value for key, value in source_bundle.items() if key != "source_bundle_fingerprint"}
-        )
-        return source_bundle
 
 
 class RetrievalService:
@@ -820,12 +748,7 @@ class RetrievalService:
     def retrieve_fts_source_bundle(self, query: RetrievalQuery) -> dict[str, object]:
         """Return the canonical retrieval source bundle for a single FTS retrieval."""
 
-        return self.retrieve_fts(query).retrieval_source_bundle()
-
-    def retrieve_fts_provenance_bundle(self, query: RetrievalQuery) -> dict[str, object]:
-        """Return the canonical provenance bundle for a single FTS retrieval."""
-
-        return self.retrieve_fts(query).retrieval_provenance_bundle()
+        return self.retrieve_fts(query).source_bundle()
 
     def retrieve_fts_doc_bundle(self, query: RetrievalQuery) -> dict[str, object]:
         """Return the canonical doc-focused bundle for a single FTS retrieval."""
@@ -858,12 +781,7 @@ class RetrievalService:
     def retrieve_auto_source_bundle(self, query: RetrievalQuery) -> dict[str, object]:
         """Return the canonical retrieval source bundle for the FTS-first auto path."""
 
-        return self.retrieve_auto(query).retrieval_source_bundle()
-
-    def retrieve_auto_provenance_bundle(self, query: RetrievalQuery) -> dict[str, object]:
-        """Return the canonical provenance bundle for the FTS-first auto path."""
-
-        return self.retrieve_auto(query).retrieval_provenance_bundle()
+        return self.retrieve_auto(query).source_bundle()
 
     def retrieve_auto_doc_bundle(self, query: RetrievalQuery) -> dict[str, object]:
         """Return the canonical doc-focused bundle for the FTS-first auto path."""
@@ -894,11 +812,7 @@ class RetrievalService:
             lookup_entrypoint=lookup_entrypoint,
             lookup_resolution="fts",
         )
-        return self._normalize_excerpt_payload(
-            fts_excerpt,
-            source_strategy="fts",
-            lookup_resolution="fts",
-        )
+        return self._normalize_excerpt_payload(fts_excerpt, source_strategy="fts")
 
     def _record_excerpt_lookup_audit(
         self,
@@ -1023,9 +937,7 @@ class RetrievalService:
             "retrieval_evidence": retrieval_evidence,
             "result_fingerprint": result_fingerprint,
         }
-        # Hash the canonical query text so audit keys stay stable across whitespace variants.
-        normalized_query_text = self._normalized_query_text(query.query_text)
-        query_hash = hashlib.sha256(normalized_query_text.encode("utf-8")).hexdigest()
+        query_hash = hashlib.sha256(query.query_text.encode("utf-8")).hexdigest()
         audit = self._audit.record(
             name="retrieval_executed",
             metadata={
@@ -1694,7 +1606,6 @@ class RetrievalService:
                     ),
                 },
                 source_strategy="fts",
-                lookup_resolution="fts",
             )
         return None
 
@@ -1769,7 +1680,6 @@ class RetrievalService:
         excerpt: dict[str, object],
         *,
         source_strategy: Literal["fts", "pageindex"],
-        lookup_resolution: str,
     ) -> dict[str, object]:
         provenance = excerpt.get("provenance", {})
         if not isinstance(provenance, dict):
@@ -1777,7 +1687,6 @@ class RetrievalService:
         normalized = dict(excerpt)
         normalized["source_strategy"] = source_strategy
         normalized["retrieval_source_strategy"] = source_strategy
-        normalized["lookup_resolution"] = lookup_resolution
         text_hash = provenance.get("hash") or provenance.get("excerpt_text_hash") or normalized.get("text_hash")
         if not isinstance(text_hash, str) or not text_hash:
             text_value = normalized.get("text")
@@ -1895,7 +1804,6 @@ class RetrievalService:
             normalized_provenance["retrieval_mode"] = retrieval_mode
             normalized_provenance["retrieval_policy"] = copy.deepcopy(retrieval_policy)
             normalized_provenance["retrieval_source_strategy"] = source_strategy
-            normalized_provenance["lookup_resolution"] = lookup_resolution
             normalized["provenance"] = normalized_provenance
         return normalized
 

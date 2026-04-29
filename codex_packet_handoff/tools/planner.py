@@ -123,34 +123,16 @@ def apply_meta_defaults(meta: Json, missing: List[str]) -> Json:
         out["routing_provider_impact"] = "None"
     return out
 
-def resolve_reviewed_head_sha(meta: Json, fallback_sha: str) -> str:
-    final_head_sha = str(meta.get("final_head_sha", "")).strip()
-    if final_head_sha:
-        return final_head_sha
-    reviewed_range = str(meta.get("reviewed_implementation_range", "")).strip()
-    if reviewed_range:
-        reviewed_head_sha = reviewed_range.rsplit("..", 1)[-1].strip()
-        if reviewed_head_sha:
-            return reviewed_head_sha
-    return fallback_sha
-
-def compute_changed_files(cwd: str, base_ref: str, head_ref: str) -> List[str]:
-    out = git(f"diff --name-only {base_ref}...{head_ref}", cwd=cwd)
+def compute_changed_files(cwd: str, base_ref: str) -> List[str]:
+    out = git(f"diff --name-only {base_ref}...HEAD", cwd=cwd)
     return [ln.strip() for ln in out.splitlines() if ln.strip()]
 
 def build_packet(lane: str, branch: str, sha: str, meta: Json, files: List[str], gate_results: List[Tuple[str,int]]) -> str:
     def rcstr(rc:int)->str: return "PASS" if rc==0 else f"FAIL ({rc})"
-    reviewed_range = str(meta.get("reviewed_implementation_range", "")).strip()
-    scope_completed = str(meta.get("scope_completed", "")).strip()
-    is_cumulative = bool(reviewed_range or scope_completed)
     lines=[]
     lines += ["# Feature → Review Packet",""]
     lines += [f"- Lane: `{lane}`", f"- Branch: `{branch}`", f"- Commit: `{sha}`",""]
-    if reviewed_range:
-        lines += [f"- Reviewed implementation range: `{reviewed_range}`"]
     lines += ["## Scope goal", f"- {str(meta.get('scope_goal','')).strip() or '(missing)'}", ""]
-    if scope_completed:
-        lines += ["## Scope completed", f"- {scope_completed}", ""]
     lines += ["## Lane/owned paths"] + [f"- `{p}`" for p in LANE_OWNED_PATHS.get(lane,[])] + [""]
     if str(meta.get("kickoff_budget_note","")).strip():
         lines += ["## Kickoff budget/limits compliance", f"- {meta['kickoff_budget_note'].strip()}", ""]
@@ -159,7 +141,7 @@ def build_packet(lane: str, branch: str, sha: str, meta: Json, files: List[str],
     lines += ["## Tasks completed (numbered)"]
     tasks=list(meta.get("tasks_completed") or [])
     lines += [f"{i+1}. {str(t).strip()}" for i,t in enumerate(tasks)] if tasks else ["1. (missing)"]
-    lines += ["", "## Files changed (cumulative range)" if is_cumulative else "## Files changed"]
+    lines += ["","## Files changed"]
     lines += [f"- `{f}`" for f in files] if files else ["- (none detected)"]
     lines += ["","## Commands run and outcomes"]
     for cmd,rc in gate_results:
@@ -230,22 +212,21 @@ def main()->None:
             print(f"[planner] {lane}: unable to resolve HEAD in {active_repo}: {e}")
             continue
         prev_lane_state = lane_state.get(lane) or {}
+        last_submitted_sha = prev_lane_state.get("last_submitted_sha")
+        # Reviewer notes should block new packets until lane HEAD advances.
+        # This allows one-at-a-time re-review submissions from the feature lane.
+        if has_reviewer_notes and (not last_submitted_sha or last_submitted_sha == sha):
+            continue
+        if last_submitted_sha == sha:
+            continue
+        fast_reemit = bool(has_reviewer_notes and last_submitted_sha and last_submitted_sha != sha)
         meta=read_lane_meta(lane)
         miss=validate_meta(meta)
         if miss:
             print(f"[planner] {lane}: lane_meta missing: {miss} (using auto defaults)")
             meta = apply_meta_defaults(meta, miss)
-        packet_sha = resolve_reviewed_head_sha(meta, sha)
-        last_submitted_sha = prev_lane_state.get("last_submitted_sha")
-        # Reviewer notes should block new packets until the reviewed head advances.
-        # This allows one-at-a-time re-review submissions from the feature lane.
-        if has_reviewer_notes and (not last_submitted_sha or last_submitted_sha == packet_sha):
-            continue
-        if last_submitted_sha == packet_sha:
-            continue
-        fast_reemit = bool(has_reviewer_notes and last_submitted_sha and last_submitted_sha != packet_sha)
         try:
-            files=compute_changed_files(active_repo, base_ref, packet_sha)
+            files=compute_changed_files(active_repo, base_ref)
         except Exception as e:
             print(f"[planner] {lane}: diff failed vs {base_ref}: {e}")
             continue
@@ -277,12 +258,12 @@ def main()->None:
             if not ok:
                 continue
         ts=datetime.now(timezone.utc).strftime("%Y%m%dT%H%M%SZ")
-        fn=f"F__{branch.replace('/','-')}__{packet_sha}__{ts}.md"
+        fn=f"F__{branch.replace('/','-')}__{sha}__{ts}.md"
         outp=PACKETS_ROOT/lane/"inbox/feature"/fn
-        outp.write_text(build_packet(lane,branch,packet_sha,meta,files,results))
+        outp.write_text(build_packet(lane,branch,sha,meta,files,results))
         print(f"[planner] emitted {outp}")
         lane_state[lane]={
-            "last_submitted_sha":packet_sha,
+            "last_submitted_sha":sha,
             "last_emitted_packet":fn,
             "last_gate_results":[[cmd, rc] for cmd, rc in results],
         }
