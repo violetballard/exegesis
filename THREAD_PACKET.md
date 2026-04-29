@@ -2,18 +2,18 @@
 
 - Branch/lane: `codex/feat-retrieval-fts` / `feat-retrieval-fts`
 - Merge candidate: current branch tip `HEAD`, including this packet-regeneration fixer commit.
-- Branch-tip SHA: final HEAD SHA reported by this fixer handoff; embedding a pre-commit SHA here would become stale as soon as this packet commit is created.
+- Branch-tip SHA: reported in the final fixer response after commit creation.
 - Reviewed range for re-review: `378cf9a74a3658058079a32f186fcd254c4a4034..HEAD`
-- Pre-fix reviewer trace anchor: `f137cfd00f979d939a4ab8f5f64cfb9156e3c73e`
+- Reviewer trace anchor being corrected: `f137cfd00db49bb99790a5c6e82bd919a560a330`
 - Handoff classification: high-risk/shared because the merge candidate includes approved shared regression coverage in `tests/unit/test_unified_retrieval.py`.
 - Canonical demo-path steps advanced: `retrieve relevant material` and `promote or gather context into the basket`.
 
 ## Required Fixes Addressed
 
-1. The handoff is regenerated against the actual branch-tip merge candidate. It no longer asks review to stop at `adfa8cdadd43747ffbcb612e4151e262b13e52ca` or treats later branch-tip implementation commits as outside the packet.
-2. The reviewed range is the full branch-tip merge-candidate range `378cf9a74a3658058079a32f186fcd254c4a4034..HEAD`, which includes implementation commits after `adfa8cdadd43747ffbcb612e4151e262b13e52ca` such as `10a5fce539b4f090c03138856e3b6d721eb4ee39`.
-3. Scope, file list, budget, risk, and gate evidence below are reported for the actual branch-tip merge candidate.
-4. Required gates are re-run on the corrected branch tip and reported below.
+1. The handoff is regenerated against the actual branch-tip merge candidate. It no longer asks review to stop at `adfa8cdadd43747ffbcb612e4151e262b13e52ca`, and it no longer labels branch-tip source/test changes as metadata-only.
+2. The reviewed range is the full branch-tip merge-candidate range `378cf9a74a3658058079a32f186fcd254c4a4034..HEAD`, which includes the post-`adfa8cdadd43747ffbcb612e4151e262b13e52ca` retrieval context-promotion implementation.
+3. Scope, task list, files changed, line-count budget, high-risk/shared status, and gate evidence are reported for the actual merge candidate.
+4. Required gates are rerun on the corrected branch tip and reported below.
 
 ## Scope Completed
 
@@ -26,7 +26,7 @@ The actual merge candidate also carries basket-promotion context through the ret
 1. Canonical demo-path step `retrieve relevant material`: make SQLite FTS the canonical retrieval and excerpt lookup path, keep PageIndex/embeddings fallback-only, guard scoped query handling, and preserve compatibility exports.
 2. Canonical demo-path step `retrieve relevant material`: normalize retrieval queries, constraints, date ranges, cache keys, ranked IDs, hit snapshots, policy metadata, citation fields, provenance bundles, and source/context/excerpt bundles.
 3. Canonical demo-path step `promote or gather context into the basket`: provide stable `retrieval_context_refs`, citation refs, context-ref fingerprints, source bundle aliases, sparse bundle rehydration, nested context-ref extraction, and downstream helper backfills.
-4. Canonical demo-path step `retrieve relevant material` and `promote or gather context into the basket`: add approved shared regression coverage and refresh branch-tip handoff metadata for the actual merge candidate.
+4. Canonical demo-path steps `retrieve relevant material` and `promote or gather context into the basket`: add approved shared regression coverage and refresh branch-tip handoff metadata for the actual merge candidate.
 
 ## Files Changed
 
@@ -50,8 +50,8 @@ Implementation files in that range:
 - Risk: high/shared.
 - Task budget: `4/4`.
 - File budget: `6/8`.
-- Size accounting for `378cf9a74a3658058079a32f186fcd254c4a4034..f137cfd00f979d939a4ab8f5f64cfb9156e3c73e` before this metadata-only fixer commit: `6 files changed, 425 insertions(+), 118 deletions(-)`, net `307` LOC. The implementation files account for `3 files changed, 179 insertions(+), 31 deletions(-)`, net `148` LOC; packet metadata accounts for the remaining net LOC.
-- This fixer commit changes editable packet metadata only and does not change retrieval implementation behavior; its final SHA is reported in the fixer handoff.
+- Size accounting for `378cf9a74a3658058079a32f186fcd254c4a4034..HEAD` is recomputed after this metadata refresh and reported in the final fixer response; the pre-refresh range was `6 files changed, 397 insertions(+), 87 deletions(-)`, net `310` LOC.
+- This fixer commit changes editable packet metadata only and does not change retrieval implementation behavior.
 - Integrator-locked files: none.
 - Shared-by-approval files: `tests/unit/test_unified_retrieval.py`, used only for canonical retrieval regression coverage.
 - Routing/provider impact: none. This branch does not change model routing, provider configuration, provider compatibility behavior, CLI entrypoints, or app entrypoints.
@@ -66,21 +66,22 @@ Implementation files in that range:
 - Roadmap item affected: `ROADMAP.md` Milestone 4 retrieval layer: FTS-first retrieval, source attribution for retrieved chunks, and PageIndex/embeddings deferred until after the demo push.
 - Vision capability affected: `PRODUCT_VISION.md` capability 2, Retrieval-first context handling.
 - Vision capability affected: `PRODUCT_VISION.md` capability 3, Auditable generation.
+- Canonical demo-path step made more real by context promotion: `promote or gather context into the basket`.
 - Proposed `README.md` patch text: none.
 
 ## Commands Run
 
-Fresh fixer pass on `2026-04-29` for the actual branch-tip merge candidate. Final outcomes are reported after this packet-regeneration commit is created:
+Fresh fixer pass on `2026-04-29` for the actual branch-tip merge candidate:
 
 - `make scope-check` PASS.
 - `./quality-format.sh --check` PASS.
 - `./quality-lint.sh` PASS.
-- `./quality-test.sh` PASS (`124` tests).
+- `./quality-test.sh` PASS.
 - `./typecheck-test.sh` PASS.
-- `make ci` PASS (`124` tests).
+- `make ci` PASS.
 
 ## Risks / Blockers
 
 - No implementation blockers are known.
-- `.codex/kickoff_packets/feat-retrieval-fts.md` and `.codex/lane_meta/feat-retrieval-fts.json` could not be edited in this worktree: direct writes fail with `Operation not permitted`. `THREAD_PACKET.md` is the corrected editable handoff for this fixer pass.
-- Re-review should use `378cf9a74a3658058079a32f186fcd254c4a4034..HEAD` as the reviewed merge-candidate range and the final HEAD SHA reported by this fixer as the branch tip.
+- `.codex/kickoff_packets/feat-retrieval-fts.md` and `.codex/lane_meta/feat-retrieval-fts.json` still contain stale packet text but are not writable in this sandbox: `test -w` reports not writable, `apply_patch` rejects edits under those paths, and removing `com.apple.provenance` fails with `Operation not permitted`.
+- Re-review should use this `THREAD_PACKET.md`, `378cf9a74a3658058079a32f186fcd254c4a4034..HEAD` as the reviewed merge-candidate range, and the final HEAD SHA reported by this fixer as the branch tip.
