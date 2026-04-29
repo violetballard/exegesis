@@ -22,7 +22,7 @@ This handoff includes the actual branch-tip retrieval runtime changes: FTS-only 
 
 - Risk: `HIGH`
 - Task count: `2` of `4`
-- Actual merge-candidate size before final commit: `6 files changed, 406 insertions(+), 113 deletions(-)` for `378cf9a74a3658058079a32f186fcd254c4a4034..working tree`; net LOC `+293`.
+- Actual merge-candidate size after final commit: `6 files changed, 406 insertions(+), 113 deletions(-)` for `378cf9a74a3658058079a32f186fcd254c4a4034..HEAD`; net LOC `+293`.
 - Budget result: within high-risk limits (`<=8 files`, `<=300 net LOC`).
 - Owned runtime paths touched: `src/qual/retrieval/**`, `src/qual/engine/retrieval/**`
 - Approved shared-by-approval edit: `tests/unit/test_unified_retrieval.py`
@@ -44,7 +44,7 @@ src/qual/retrieval/service.py
 tests/unit/test_unified_retrieval.py
 ```
 
-The Box-backed `.codex` packet mirrors rejected writes from this sandbox, so `THREAD_PACKET.md` is the authoritative corrected handoff packet for this fixer pass.
+The Box-backed `.codex` packet mirrors remain changed in the cumulative reviewed range but rejected writes from this sandbox during this fixer pass, so `THREAD_PACKET.md` is the authoritative corrected handoff packet.
 
 ## Commands run
 
