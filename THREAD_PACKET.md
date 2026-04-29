@@ -2,9 +2,9 @@
 
 - Lane: `feat-commands`
 - Branch: `codex/feat-commands`
-- Review basis: actual `codex/feat-commands` branch tip after the `20260429T025623Z` reviewer-fix pass.
+- Review basis: actual `codex/feat-commands` branch tip after the `20260429T025923Z` reviewer-fix pass.
 - Previous implementation anchor: `f8d860ed9f6299f0169c4f21321ac5f37c949fd3`
-- Reviewer packet addressed: `20260429T025623Z`
+- Reviewer packet addressed: `20260429T025923Z`
 - Final verifier tip: reviewer-fix commit that restores the scope policy out of the effective diff, restamps this handoff metadata, reruns required gates, and uses the final branch tip as the only review basis.
 
 ## Packet Traceability Note
@@ -115,7 +115,7 @@
 5. Ownership fields: approved shared-by-approval test edits are separated from integrator-locked edits, and integrator-locked edits are `NO`.
 6. Required gates: final results are recorded below after rerun on this branch-tip state for the current reviewer packet.
 
-## Required Fixes Addressed From Reviewer Packet `20260429T025623Z`
+## Required Fixes Addressed From Reviewer Packet `20260429T025923Z`
 
 1. One review basis: this packet uses the actual final `codex/feat-commands` branch tip.
 2. Complete changed-file accounting: the effective review diff from `f8d860ed9f6299f0169c4f21321ac5f37c949fd3` contains `THREAD.md`, `THREAD_PACKET.md`, `src/qual/commands/catalog.py`, and `tests/unit/test_commands_catalog.py`.

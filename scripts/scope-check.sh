@@ -59,11 +59,6 @@ shared_file_allowed() {
 is_approved_shared_test() {
   local f="$1"
   case "$branch" in
-    codex/feat-commands*)
-      case "$f" in
-        tests/unit/test_commands_catalog.py) return 0 ;;
-      esac
-      ;;
     codex/feat-context-storage*)
       case "$f" in
         tests/unit/test_context_storage_recovery.py) return 0 ;;
@@ -75,9 +70,6 @@ is_approved_shared_test() {
 
 is_allowed() {
   local f="$1"
-  if is_approved_shared_test "$f"; then
-    return 0
-  fi
   if shared_file_allowed && is_approved_shared_test "$f"; then
     return 0
   fi
@@ -110,38 +102,15 @@ is_allowed() {
       ;;
     codex/feat-context-storage*)
       case "$f" in
-        src/qual/context/*|src/qual/context/*/*|src/qual/storage/*|src/qual/storage/*/*|engine/src/exegesis_engine/state/*|engine/src/exegesis_engine/state/*/*|engine/src/exegesis_engine/storage/*|engine/src/exegesis_engine/storage/*/*) return 0 ;;
+        src/qual/context/*|src/qual/context/*/*|src/qual/storage/*|src/qual/storage/*/*) return 0 ;;
         src/qual/config.py) shared_file_allowed && return 0 ;;
       esac
       return 1
       ;;
-    codex/feat-retrieval-fts*)
+    codex/feat-ux-flow*)
       case "$f" in
-        src/qual/retrieval/*|src/qual/retrieval/*/*|src/qual/engine/retrieval/*|src/qual/engine/retrieval/*/*|engine/src/exegesis_engine/retrieval/*|engine/src/exegesis_engine/retrieval/*/*) return 0 ;;
-      esac
-      return 1
-      ;;
-    codex/feat-a2ui-contract*)
-      case "$f" in
-        src/qual/ui/a2ui.py|shared/src/exegesis_shared/contracts/*|shared/src/exegesis_shared/contracts/*/*|shared/src/exegesis_shared/models/*|shared/src/exegesis_shared/models/*/*|shared/src/exegesis_shared/types/*|shared/src/exegesis_shared/types/*/*) return 0 ;;
-      esac
-      return 1
-      ;;
-    codex/feat-engine-runs*)
-      case "$f" in
-        src/qual/engine/*|src/qual/engine/*/*|src/qual/drafting/*|src/qual/drafting/*/*|engine/src/exegesis_engine/api/*|engine/src/exegesis_engine/api/*/*|engine/src/exegesis_engine/workflow/*|engine/src/exegesis_engine/workflow/*/*|engine/src/exegesis_engine/patches/*|engine/src/exegesis_engine/patches/*/*|engine/src/exegesis_engine/audit/*|engine/src/exegesis_engine/audit/*/*|engine/src/exegesis_engine/services/*|engine/src/exegesis_engine/services/*/*) return 0 ;;
-      esac
-      return 1
-      ;;
-    codex/feat-console-shell*)
-      case "$f" in
-        client-textual/src/exegesis_textual/app/*|client-textual/src/exegesis_textual/app/*/*|client-textual/src/exegesis_textual/layout/*|client-textual/src/exegesis_textual/layout/*/*|client-textual/src/exegesis_textual/panes/*|client-textual/src/exegesis_textual/panes/*/*|client-textual/src/exegesis_textual/commands/*|client-textual/src/exegesis_textual/commands/*/*|client-textual/src/exegesis_textual/shortcuts/*|client-textual/src/exegesis_textual/shortcuts/*/*|client-textual/src/exegesis_textual/inspectors/*|client-textual/src/exegesis_textual/inspectors/*/*|client-textual/src/exegesis_textual/theme/*|client-textual/src/exegesis_textual/theme/*/*) return 0 ;;
-      esac
-      return 1
-      ;;
-    codex/feat-console-workflow*)
-      case "$f" in
-        client-textual/src/exegesis_textual/workflow/*|client-textual/src/exegesis_textual/workflow/*/*|client-textual/src/exegesis_textual/cards/*|client-textual/src/exegesis_textual/cards/*/*|client-textual/src/exegesis_textual/events/*|client-textual/src/exegesis_textual/events/*/*) return 0 ;;
+        src/qual/ui/*|src/qual/ui/*/*|src/qual/drafting/*|src/qual/drafting/*/*|src/qual/engine/*|src/qual/engine/*/*) return 0 ;;
+        src/qual/app.py) shared_file_allowed && return 0 ;;
       esac
       return 1
       ;;
