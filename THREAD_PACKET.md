@@ -274,3 +274,19 @@
 2. Required fixes before re-review: none.
 3. No implementation files changed for this confirmation pass; the existing command contract and focused tests remain the review basis.
 4. Required gates were rerun for this fixer pass after the approval-confirmation branch tip: `make scope-check`, `./quality-format.sh --check`, `./quality-lint.sh`, `./quality-test.sh`, `./typecheck-test.sh`, and `make ci` pass.
+
+## Reviewer Packet `20260429T020441Z` Fix Satisfaction
+
+1. Required fix 1 is satisfied by the branch-tip `command_cli_contract()` implementation, which validates the full parser-visible CLI surface before returning `CommandCliContract`: token order, canonical lookup-table shape, grouped parser surface, declared surface, and canonical command order.
+2. Required fix 2 is satisfied by focused regressions for same-canonical parser drift, including reordered `diff-preview` / `diff`, replacing `diff-preview` with `diff`, adding `open`, and removing `diff`.
+3. Required fix 3 is satisfied by lookup-table drift regressions where the token sequence remains parser-shaped but a token maps to the wrong canonical command.
+4. Required fix 4 is satisfied by using the actual `codex/feat-commands` branch tip as the review basis and treating post-`f8d860ed9f6299f0169c4f21321ac5f37c949fd3` command/test commits as implementation-bearing.
+5. Required fix 5 remains satisfied by the canonical demo-path statement above: this strengthens the `open project/document` -> `retrieve relevant material` -> `promote/gather context` -> `preview/apply/reject patch` CLI smoke path while Textual lanes remain disabled.
+6. Required gates were rerun for this fixer pass and passed: `make scope-check`, `./quality-format.sh --check`, `./quality-lint.sh`, `./quality-test.sh`, `./typecheck-test.sh`, and `make ci`.
+
+## Reviewer Packet `20260429T020653Z` Approval Confirmation
+
+1. Reviewer verdict: `APPROVED`.
+2. Required fixes before re-review: none.
+3. No implementation files changed for this confirmation pass; the existing command contract and focused tests remain the review basis.
+4. Required gates were rerun for this fixer pass after the approval-confirmation branch tip: `make scope-check`, `./quality-format.sh --check`, `./quality-lint.sh`, `./quality-test.sh`, `./typecheck-test.sh`, and `make ci` pass.
