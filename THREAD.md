@@ -32,6 +32,7 @@ Canonical handoff contract lives in `THREAD_PACKET.md`.
 
 ## Canonical Demo-Path Mapping
 
+- This command contract hardening strengthens the CLI surface for `open project/document`, `retrieve relevant material`, `promote/gather context`, and `preview/apply/reject patch` by keeping those parser routes deterministic and drift-checked.
 - This makes the open/retrieve/basket/patch-review CLI smoke path more real by keeping the parser-visible command contract deterministic and failing fast when parser tokens drift from the command catalog.
 
 ## Reviewer Packet `20260429T012436Z` Fix Satisfaction
@@ -48,3 +49,9 @@ Canonical handoff contract lives in `THREAD_PACKET.md`.
 3. The handoff basis now points at the actual branch tip and does not classify test-changing commits as metadata-only.
 4. Ownership accounting identifies `tests/unit/test_commands_catalog.py` and `tests/unit/test_diff_preview.py` as approved shared-by-approval test edits, with no integrator-locked edits.
 5. The canonical demo-path mapping explicitly names the protected `project-open`, `retrieval`, `patch-review`, and `export-handoff` command steps.
+
+## Reviewer Packet `20260429T013535Z` Fix Satisfaction
+
+1. Demo-path alignment now states that this command contract hardening strengthens `open project/document`, `retrieve relevant material`, `promote/gather context`, and `preview/apply/reject patch` by keeping those parser routes deterministic and drift-checked.
+2. Metadata-only handoff files include both `THREAD.md` and `THREAD_PACKET.md`.
+3. Implementation scope is unchanged by this reviewer-fix pass.

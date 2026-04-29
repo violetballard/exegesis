@@ -61,6 +61,7 @@
 
 ## Canonical Demo-Path Step Advanced
 
+- This command contract hardening strengthens the CLI surface for `open project/document`, `retrieve relevant material`, `promote/gather context`, and `preview/apply/reject patch` by keeping those parser routes deterministic and drift-checked.
 - This makes the open/retrieve/basket/patch-review CLI smoke path more real by keeping the parser-visible command contract deterministic and failing fast when parser tokens drift from the command catalog.
 - Protected command steps:
   - `project-open`: `bootstrap` remains the only parser-visible project-open token.
@@ -193,3 +194,9 @@
 3. The packet is regenerated against the actual branch tip and does not classify test-changing commits as metadata-only.
 4. Ownership accounting identifies `tests/unit/test_commands_catalog.py` and `tests/unit/test_diff_preview.py` as approved shared-by-approval test edits. Integrator-locked edits: NO.
 5. The canonical demo-path step mapping explicitly names the protected `project-open`, `retrieval`, `patch-review`, and `export-handoff` command steps.
+
+## Reviewer Packet `20260429T013535Z` Fix Satisfaction
+
+1. Demo-path alignment now states that this command contract hardening strengthens `open project/document`, `retrieve relevant material`, `promote/gather context`, and `preview/apply/reject patch` by keeping those parser routes deterministic and drift-checked.
+2. Metadata-only files changed lists both `THREAD.md` and `THREAD_PACKET.md`, matching the packet refresh file set.
+3. Implementation scope remains unchanged: no files beyond the command package files and focused command tests listed above are newly introduced by this reviewer-fix pass.
