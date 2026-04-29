@@ -1454,7 +1454,7 @@ class RetrievalService:
         """Return stable doc/excerpt references suitable for basket promotion."""
 
         query_date_range_snapshot = list(query_date_range) if query_date_range is not None else None
-        return {
+        refs: dict[str, object] = {
             "doc_refs": [
                 {
                     "doc_id": doc_hit.doc_id,
@@ -1502,6 +1502,8 @@ class RetrievalService:
                 if hit.excerpt_id is not None
             ],
         }
+        refs["basket_promotion_fingerprint"] = RetrievalService._stable_fingerprint(refs)
+        return refs
 
     @staticmethod
     def _build_result_fingerprint(
