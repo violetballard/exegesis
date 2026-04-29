@@ -4,7 +4,7 @@
 - Packet purpose: branch-tip retrieval feature handoff for FTS-first retrieval and basket-promotion provenance.
 - Merge candidate: the current branch tip after this fixer commit.
 - Authoritative merge-review range: `378cf9a74a3658058079a32f186fcd254c4a4034..HEAD` on `codex/feat-retrieval-fts`.
-- Code-bearing commits included in the range: includes `adfa8cdadd43747ffbcb612e4151e262b13e52ca` and `22d0836acc27cb8b1718b3099a0d981468867b06`; no code-bearing branch-tip commit is excluded.
+- Code-bearing commits included in the range: all retrieval code and shared regression commits after `378cf9a74a3658058079a32f186fcd254c4a4034`, including the FTS-only excerpt contract at `adfa8cdadd43747ffbcb612e4151e262b13e52ca`, the basket candidate/provenance work through `cd9b940636674db4c97c811a5c31ba21e5b2a1ac`, and the later retrieval evidence traceability change at `3a03c2a15f675c690fe42f89a5692c5b3f258315`.
 - Final proposed merge HEAD SHA: reported in the final fixer response after commit creation.
 
 ## Scope Completed
@@ -54,7 +54,9 @@ No integrator-owned `README.md`, `INTEGRATION.md`, `src/main.py`, `src/qual/cli.
 - Risk: high/shared because the actual merge-review range includes the approved shared regression file `tests/unit/test_unified_retrieval.py`.
 - Task budget: `4/4` under the AGENTS high-risk/shared cap.
 - File budget: `6/8` high-risk files changed.
-- Net LOC for the final authoritative range after packet regeneration: `508 insertions(+), 175 deletions(-)` across 6 files.
+- Implementation-only delta, excluding packet metadata files: `3 files changed, 344 insertions(+), 89 deletions(-)`.
+- Packet-inclusive delta before this final metadata refresh: `6 files changed, 601 insertions(+), 179 deletions(-)`.
+- This final fixer commit changes packet metadata only; the final packet-inclusive shortstat is reported with the final HEAD SHA after commit creation.
 - Shared-file edits: approved regression coverage in `tests/unit/test_unified_retrieval.py`.
 - Integrator-locked files: none.
 
