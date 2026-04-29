@@ -12813,6 +12813,33 @@ class A2UIFallbackSafetyTests(unittest.TestCase):
         self.assertIn("- source_card_type: FutureCard", text)
         self.assertIn("- Copy JSON (copy_to_clipboard)", text)
 
+    def test_terminal_renderer_infers_generic_fallback_for_generator_actions(self) -> None:
+        def action_stream():
+            yield {
+                "id": "copy_to_clipboard",
+                "label": "Copy JSON",
+                "payload": {"text": "{}"},
+            }
+
+        text = render_terminal_card(
+            {
+                "type": "GenericCard",
+                "title": "Fallback view for FutureCard",
+                "blocks": [],
+                "actions": action_stream(),
+            }
+        )
+
+        self.assertIn("[GenericCard] Fallback view for FutureCard", text)
+        self.assertIn(GENERIC_FALLBACK_SUBTITLE, text)
+        self.assertIn("Fallback: generic from FutureCard", text)
+        self.assertIn("Action policy: client_allowlist", text)
+        self.assertIn("Debug:", text)
+        self.assertIn("- contract_version: 2", text)
+        self.assertIn("- fallback_kind: generic", text)
+        self.assertIn("- source_card_type: FutureCard", text)
+        self.assertIn("- Copy JSON (copy_to_clipboard)", text)
+
     def test_terminal_renderer_treats_generic_fallback_subtitle_as_a_fallback_signal(self) -> None:
         text = render_terminal_card(
             {

@@ -5325,7 +5325,8 @@ def render_terminal_card(card: Any) -> str:
         raw_title = _normalize_card_title(normalized_card)
         title = _render_terminal_inline_text(raw_title)
         rendered_card_type = _render_terminal_inline_text(card_type)
-        actions = normalized_card.get("actions")
+        raw_actions = normalized_card.get("actions")
+        actions = _materialize_card_actions(raw_actions)
         subtitle = normalized_card.get("subtitle")
         generic_fallback_source = _resolve_generic_fallback_source(
             raw_title,
@@ -5388,8 +5389,8 @@ def render_terminal_card(card: Any) -> str:
             actions,
             supported_actions={FALLBACK_COPY_ACTION_ID} if card_type == UNKNOWN_CARD_TYPE else _ALLOWED_ACTION_SET,
         )
-        actions_present = actions is not None
-        actions_are_list = isinstance(actions, (list, tuple))
+        actions_present = raw_actions is not None
+        actions_are_list = isinstance(raw_actions, (list, tuple))
         filtered_actions = actions_are_list and len(rendered_actions) < len(actions)
         if rendered_actions:
             lines.append("Actions:")
@@ -7483,6 +7484,12 @@ def _iter_card_entries(entries: Any) -> list[Any]:
     if not isinstance(entries, (list, tuple)):
         return []
     return list(entries)
+
+
+def _materialize_card_actions(actions: Any) -> list[Any]:
+    if not isinstance(actions, Iterable) or isinstance(actions, (str, bytes, bytearray, Mapping)):
+        return []
+    return list(actions)
 
 
 def _normalize_card_type(card: dict[str, Any]) -> str:
