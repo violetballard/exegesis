@@ -2,9 +2,10 @@
 
 - Branch/lane: `codex/feat-retrieval-fts` / `feat-retrieval-fts`
 - Merge candidate: current branch tip after this metadata-only fixer commit; final HEAD SHA is reported in the fixer response.
-- Pre-fixer branch-tip SHA: `cd9b8fce5102e04dc41a62a1d824251eb8e7042b`
+- Pre-fixer branch-tip SHA: `b928010d2c392205e40bbd04977cdd1fc5da69b7`
 - Reviewed implementation head: `cd9b8fce5102e04dc41a62a1d824251eb8e7042b`
 - Reviewed implementation range: `378cf9a74a3658058079a32f186fcd254c4a4034..cd9b8fce5102e04dc41a62a1d824251eb8e7042b`
+- Actual requested merge range: `378cf9a74a3658058079a32f186fcd254c4a4034..HEAD`, where commits after `cd9b8fce5102e04dc41a62a1d824251eb8e7042b` are packet metadata only.
 - Handoff classification: high-risk/shared because the range includes approved shared regression coverage in `tests/unit/test_unified_retrieval.py`.
 - Shared-file approval provenance: reviewer packet `fixer__feat-retrieval-fts__20260429T202122Z.prompt.txt`, finding 2, identifies `tests/unit/test_unified_retrieval.py` as the approved shared surface for `feat-retrieval-fts`.
 
@@ -29,15 +30,15 @@ The branch keeps SQLite FTS as the authoritative retrieval path for the MVP. It 
 
 ## Files Changed
 
-Reviewed implementation range:
+Generated from `git diff --name-status 378cf9a74a3658058079a32f186fcd254c4a4034..HEAD` before this fixer commit:
 
-- `.codex/kickoff_packets/feat-retrieval-fts.md`
-- `.codex/lane_meta/feat-retrieval-fts.json`
-- `THREAD_PACKET.md`
-- `src/qual/engine/retrieval/fts_strategy.py`
-- `src/qual/engine/retrieval/payload.py`
-- `src/qual/retrieval/service.py`
-- `tests/unit/test_unified_retrieval.py`
+- `M	.codex/kickoff_packets/feat-retrieval-fts.md`
+- `M	.codex/lane_meta/feat-retrieval-fts.json`
+- `M	THREAD_PACKET.md`
+- `M	src/qual/engine/retrieval/fts_strategy.py`
+- `M	src/qual/engine/retrieval/payload.py`
+- `M	src/qual/retrieval/service.py`
+- `M	tests/unit/test_unified_retrieval.py`
 
 Runtime/test implementation files in `378cf9a7..cd9b8fce5`:
 
@@ -46,7 +47,7 @@ Runtime/test implementation files in `378cf9a7..cd9b8fce5`:
 - `src/qual/retrieval/service.py`
 - `tests/unit/test_unified_retrieval.py`
 
-Current metadata-only fixer files: `THREAD_PACKET.md`.
+Current metadata-only fixer files: `THREAD_PACKET.md`. The tracked mirror packet files under `.codex/` remain stale because this sandbox rejects writes to those paths with `Operation not permitted`.
 
 ## Budget / Risk
 
