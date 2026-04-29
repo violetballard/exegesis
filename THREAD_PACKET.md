@@ -6,7 +6,7 @@
 - Review basis: `git diff main...codex/feat-commands`
 - Review command: `git diff main...codex/feat-commands`
 - Prior packet supersession: this `THREAD_PACKET.md` replaces all earlier packet text, packet-refresh notes, and review-scope claims that named `f8d860ed9f6299f0169c4f21321ac5f37c949fd3` as the submitted target.
-- Fixer prompt satisfied: `20260429T114445Z`
+- Fixer prompt satisfied: `20260429T115031Z`
 
 ## Demo-Path Mapping
 
@@ -61,9 +61,9 @@ This is high-risk because `src/qual/cli.py` is shared-by-approval for `feat-comm
 - Additional non-owned/shared accounting: `scripts/scope-check.sh` updates lane policy for the active MVP lanes and the `feat-commands` approved catalog test surface; `tests/unit/test_commands_catalog.py` and `tests/unit/test_diff_preview.py` are shared test files that cover this branch's command and diff-preview contracts.
 - Task budget: `6` meaningful tasks reported against the actual merge diff.
 - File count: `10` changed files in `main...codex/feat-commands`.
-- Net LOC: `2782 insertions(+), 76 deletions(-)`, net `2706`.
+- Net LOC: `2802 insertions(+), 76 deletions(-)`, net `2726`.
 - Budget status: this actual branch-tip merge diff exceeds the nominal high-risk limits of `4` tasks, `<=8` files, and `<=300` net LOC. Re-review should treat this as the true branch scope and require integrator acceptance of the documented over-budget high-risk packet, or request that the lane be split.
-- Numstat evidence from `git diff --numstat main...HEAD`: `THREAD.md` `8/2`; `THREAD_PACKET.md` `91/0`; `scripts/scope-check.sh` `35/4`; `src/qual/cli.py` `84/34`; `src/qual/commands/__init__.py` `214/0`; `src/qual/commands/canonical.py` `1/6`; `src/qual/commands/catalog.py` `1236/0`; `src/qual/commands/diff_preview.py` `214/30`; `tests/unit/test_commands_catalog.py` `726/0`; `tests/unit/test_diff_preview.py` `173/0`.
+- Numstat evidence from `git diff --numstat main...HEAD`: `THREAD.md` `8/2`; `THREAD_PACKET.md` `93/0`; `scripts/scope-check.sh` `35/4`; `src/qual/cli.py` `84/34`; `src/qual/commands/__init__.py` `214/0`; `src/qual/commands/canonical.py` `1/6`; `src/qual/commands/catalog.py` `1243/0`; `src/qual/commands/diff_preview.py` `214/30`; `tests/unit/test_commands_catalog.py` `737/0`; `tests/unit/test_diff_preview.py` `173/0`.
 
 ## Roadmap And Vision
 
@@ -75,10 +75,10 @@ This is high-risk because `src/qual/cli.py` is shared-by-approval for `feat-comm
 
 ## Commands Run
 
-- Fresh `20260429T114445Z` fixer rerun against corrected full branch-tip review target:
+- Fresh `20260429T115031Z` fixer rerun against corrected full branch-tip review target:
   `make scope-check` passed; `./quality-format.sh --check` passed; `./quality-lint.sh` passed; `./quality-test.sh` passed with smoke tests and `131` unit tests; `./typecheck-test.sh` passed; `make ci` passed with scope-check, format, lint, typecheck, smoke tests, and `131` unit tests.
-- `python -m unittest tests.unit.test_commands_catalog` - passed, `48` tests.
-- `python -m pytest tests/unit/test_commands_catalog.py -q` - failed because `pytest` is not installed in the active Python.
+- `python -m unittest tests.unit.test_commands_catalog` - passed, `49` tests.
+- `python -m pytest tests/unit/test_commands_catalog.py` - failed because `pytest` is not installed in the active Python.
 - `make scope-check` - passed for branch `codex/feat-commands`.
 - `./quality-format.sh --check` - passed.
 - `./quality-lint.sh` - passed.
