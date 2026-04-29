@@ -2,75 +2,106 @@
 
 - Branch/lane: `codex/feat-retrieval-fts` / `feat-retrieval-fts`
 - Packet purpose: reviewer-fix re-review packet for the actual branch tip proposed for merge.
-- Review baseline from reviewer packet: `378cf9a74a3658058079a32f186fcd254c4a4034`
-- Actual branch tip reviewed before this metadata-only fixer commit: `662069cf53967e9507d19a8433a72182d98e706a`
-- Reviewed branch-tip range: `378cf9a74a3658058079a32f186fcd254c4a4034..662069cf53967e9507d19a8433a72182d98e706a`
+- Merge base used for the current merge-candidate range: `d7fd5d200358287fa42a18d39e2b277463b9b69f`
+- Actual branch tip reviewed before this metadata-only fixer commit: `3ff1e2477a8a33ee6a673d8d3ac9db0669b60169`
+- Actual reviewed branch-tip range: `d7fd5d200358287fa42a18d39e2b277463b9b69f..3ff1e2477a8a33ee6a673d8d3ac9db0669b60169`
+- Reviewer-referenced implementation anchor: `adfa8cdadd43747ffbcb612e4151e262b13e52ca`
+- Post-`adfa8c` delta requiring explicit review: `adfa8cdadd43747ffbcb612e4151e262b13e52ca..3ff1e2477a8a33ee6a673d8d3ac9db0669b60169`
 - Final proposed merge HEAD after this metadata-only fixer commit: reported in the fixer response.
-- Canonical demo-path step advanced: retrieve relevant material and promote or gather context into the basket.
 
 ## Scope Completed
 
-This handoff covers the real branch-tip Milestone 3 retrieval objective: FTS-first structured retrieval for basket and workflow use. SQLite FTS remains the authoritative path for document and excerpt lookup, PageIndex-only excerpt IDs fail closed, sparse source/context bundles rehydrate deterministic retrieval payloads, and retrieval responses now include compact basket-promotion snapshots with stable source IDs, fingerprints, query scope, citation status, section hints, and date-range metadata. PageIndex and embeddings remain compatibility-only fallback shims. No Textual/UI work, provider routing, or speculative alternate retrieval-mode expansion is included.
+This handoff covers the real branch-tip Milestone 3 retrieval objective: FTS-first structured retrieval for basket and workflow use. SQLite FTS remains the authoritative MVP retrieval path. PageIndex and embeddings remain compatibility-only fallback shims and are not reintroduced as required paths. Retrieval payloads now carry deterministic source, context, citation, query-scope, section-hint, date-range, fingerprint, and basket-promotion metadata so downstream workflow outputs can preserve auditable provenance.
+
+No Textual/UI work, provider routing change, command surface expansion, hidden alternate retrieval mode, or PageIndex/embedding-first path is included.
 
 ## Tasks Completed
 
-1. Added FTS-only excerpt lookup/backfill behavior and fail-closed handling for PageIndex-only excerpt IDs.
-2. Added deterministic source/context/citation bundle snapshots for basket promotion, including stable source IDs, fingerprints, citation status, query scope, intent, doc type, section hints, and date range.
-3. Added engine payload rehydration from compact source/context bundles so sparse downstream inputs recover deterministic retrieval payloads.
-4. Added shared regression coverage for excerpt backfill, facade exports, payload normalization, provenance helpers, and basket-promotion snapshots.
+1. Added FTS-first retrieval facade/export behavior, canonical query construction, and deterministic excerpt/provenance output while keeping PageIndex and embeddings fallback-only.
+2. Added engine retrieval strategy/payload support for normalized query, policy, provenance, hit, source, and context snapshots.
+3. Added branch-tip basket-promotion/context-bundle behavior after `adfa8c`, including stable source IDs, fingerprints, citation status, query scope, intent, doc type, section hints, date-range metadata, and sparse bundle rehydration.
+4. Added shared regression coverage for packet planning, facade exports, payload normalization, provenance helpers, FTS-only excerpt backfill, and basket-promotion snapshots.
 
 ## Files Changed
 
-The actual reviewed range `378cf9a74a3658058079a32f186fcd254c4a4034..662069cf53967e9507d19a8433a72182d98e706a` changes:
+The actual reviewed range `d7fd5d200358287fa42a18d39e2b277463b9b69f..3ff1e2477a8a33ee6a673d8d3ac9db0669b60169` changes:
+
+- `.codex/kickoff_packets/feat-retrieval-fts.md` (`42` insertions, `13` deletions)
+- `.codex/lane_meta/feat-retrieval-fts.json` (`146` insertions, `16` deletions)
+- `THREAD_PACKET.md` (`58` insertions, `65` deletions)
+- `codex_packet_handoff/tools/planner.py` (`34` insertions, `15` deletions)
+- `src/qual/engine/retrieval/__init__.py` (`48` insertions, `8` deletions)
+- `src/qual/engine/retrieval/embeddings_strategy.py` (`24` insertions, `0` deletions)
+- `src/qual/engine/retrieval/fts_strategy.py` (`57` insertions, `0` deletions)
+- `src/qual/engine/retrieval/pageindex_strategy.py` (`33` insertions, `0` deletions)
+- `src/qual/engine/retrieval/payload.py` (`716` insertions, `77` deletions)
+- `src/qual/retrieval/__init__.py` (`76` insertions, `18` deletions)
+- `src/qual/retrieval/service.py` (`200` insertions, `38` deletions)
+- `tests/unit/test_packet_planner.py` (`72` insertions, `0` deletions)
+- `tests/unit/test_unified_retrieval.py` (`552` insertions, `13` deletions)
+
+Range total before this metadata-only fixer commit: `13 files changed, 2058 insertions(+), 263 deletions(-)`.
+
+Runtime/test files in the actual reviewed range:
+
+- `codex_packet_handoff/tools/planner.py`
+- `src/qual/engine/retrieval/__init__.py`
+- `src/qual/engine/retrieval/embeddings_strategy.py`
+- `src/qual/engine/retrieval/fts_strategy.py`
+- `src/qual/engine/retrieval/pageindex_strategy.py`
+- `src/qual/engine/retrieval/payload.py`
+- `src/qual/retrieval/__init__.py`
+- `src/qual/retrieval/service.py`
+- `tests/unit/test_packet_planner.py`
+- `tests/unit/test_unified_retrieval.py`
+
+Files changed after `adfa8cdadd43747ffbcb612e4151e262b13e52ca`:
 
 - `.codex/kickoff_packets/feat-retrieval-fts.md` (`34` insertions, `2` deletions)
 - `.codex/lane_meta/feat-retrieval-fts.json` (`141` insertions, `14` deletions)
-- `THREAD_PACKET.md` (`63` insertions, `64` deletions)
+- `THREAD_PACKET.md` (`62` insertions, `62` deletions)
 - `src/qual/engine/retrieval/payload.py` (`58` insertions, `0` deletions)
-- `src/qual/retrieval/service.py` (`85` insertions, `19` deletions)
-- `tests/unit/test_unified_retrieval.py` (`102` insertions, `12` deletions)
+- `src/qual/retrieval/service.py` (`83` insertions, `0` deletions)
+- `tests/unit/test_unified_retrieval.py` (`76` insertions, `0` deletions)
 
-Range total before this metadata-only fixer commit: `6 files changed, 483 insertions(+), 111 deletions(-)`.
+Post-`adfa8c` total before this metadata-only fixer commit: `6 files changed, 454 insertions(+), 78 deletions(-)`.
 
-Implementation/test files in the reviewed range:
+## Post-`adfa8c` Behavior Added
 
-- `src/qual/engine/retrieval/payload.py`
-- `src/qual/retrieval/service.py`
-- `tests/unit/test_unified_retrieval.py`
+The post-`adfa8c` runtime/test changes are not metadata-only. They add basket-promotion and context-bundle behavior to the retrieval payload path: compact source/context snapshots can rehydrate deterministic payloads, source references expose stable IDs and fingerprints, retrieval responses carry query scope and citation status, and sparse downstream basket-promotion inputs retain section hints and date-range constraints. The shared regression coverage in `tests/unit/test_unified_retrieval.py` verifies those branch-tip behaviors.
 
 ## Budget
 
-- Risk: high, because the reviewed range touches shared retrieval payload behavior and the shared-by-approval regression file `tests/unit/test_unified_retrieval.py`.
+- Risk: high, because the actual reviewed range touches retrieval payload behavior, packet planner behavior, and shared-by-approval test files.
 - Task budget: `4/4` under AGENTS high-risk rules.
-- File budget before this metadata-only fixer commit: `6/8`.
-- Strict AGENTS size accounting before this metadata-only fixer commit: `483 insertions, 111 deletions` (`+372` net LOC), which exceeds the high-risk `<=300` net LOC guideline.
-- Implementation/test size accounting if packet metadata is excluded: runtime/test files are `245 insertions, 31 deletions` (`+214` net LOC), within the high-risk `<=300` net LOC guideline. This exclusion covers only handoff metadata files because they do not change runtime behavior or tests.
-- Shared-file approval note: `tests/unit/test_unified_retrieval.py` is included as approved shared regression coverage for the retrieval lane; no integrator-locked files are edited in the reviewed range.
+- File budget for the actual reviewed range before this metadata-only fixer commit: `13/8`, exceeding the high-risk `<=8 files` guide.
+- Strict AGENTS size accounting for the actual reviewed range before this metadata-only fixer commit: `2058 insertions, 263 deletions` (`+1795` net LOC), exceeding the high-risk `<=300` net LOC guide.
+- Post-`adfa8c` size accounting before this metadata-only fixer commit: `454 insertions, 78 deletions` (`+376` net LOC), also exceeding the high-risk `<=300` net LOC guide.
+- Shared-file approval note: `tests/unit/test_unified_retrieval.py` and `tests/unit/test_packet_planner.py` are shared regression coverage in this branch-tip range; no integrator-locked files are edited.
+
+This packet does not claim budget compliance through a narrowed slice. The actual branch-tip range is intentionally exposed for reviewer/integrator decision.
 
 ## Roadmap / Vision
 
 - Roadmap item: `ROADMAP.md` Milestone 3 Product Readiness, specifically generation provenance and retrieval evidence attached to workflow outputs.
-- Vision capabilities: `PRODUCT_VISION.md` retrieval-backed context, context basket support, and auditable state/workflow.
-- Canonical demo-path mapping: the basket-promotion snapshots explicitly support the step "promote or gather context into the basket."
+- Vision capabilities: `PRODUCT_VISION.md` retrieval-first context handling, auditable generation, and auditable state/workflow.
+- Milestone 3 mapping: FTS-first retrieval is the MVP evidence path; structured retrieval results support basket promotion; provenance fields make workflow outputs auditable.
 - Routing/provider impact: none.
+- Textual/UI impact: none.
+- Alternate retrieval-mode impact: none; PageIndex and embeddings stay fallback-only and deferred for the MVP.
 - Proposed `README.md` patch text: none.
-
-## Traceability Correction
-
-Earlier packet text incorrectly treated commits after `adfa8cdadd43747ffbcb612e4151e262b13e52ca` as metadata-only. That claim is withdrawn. The actual branch tip presented to this fixer was `662069cf53967e9507d19a8433a72182d98e706a`, and the truthful reviewed range is `378cf9a74a3658058079a32f186fcd254c4a4034..662069cf53967e9507d19a8433a72182d98e706a`.
-
-That range includes runtime and test changes after `adfa8cdadd43747ffbcb612e4151e262b13e52ca` in `src/qual/engine/retrieval/payload.py`, `src/qual/retrieval/service.py`, and `tests/unit/test_unified_retrieval.py`. This fixer pass changes packet metadata only; it does not narrow, split, reset, or modify the reviewed runtime/test implementation.
 
 ## Reviewer Required Fixes Addressed
 
-1. The reviewed range is regenerated against the actual merge candidate that existed when this fixer started: `378cf9a74a3658058079a32f186fcd254c4a4034..662069cf53967e9507d19a8433a72182d98e706a`.
-2. The basket-promotion behavior is listed as a completed high-risk task and mapped to the canonical demo-path step "promote or gather context into the basket."
-3. All changed production/test files are included in the handoff, with high-risk budget compliance restated against the actual diff.
+1. The handoff is regenerated against the actual merge candidate present when this fixer started: `d7fd5d200358287fa42a18d39e2b277463b9b69f..3ff1e2477a8a33ee6a673d8d3ac9db0669b60169`.
+2. Every branch-tip runtime/test file is listed, and all post-`adfa8c` basket-promotion/context-bundle retrieval payload behavior is summarized.
+3. High-risk budget and size accounting are recomputed for the actual branch-tip range and the post-`adfa8c` delta, including shared-by-approval test edits.
 4. Required gates are rerun in this fixer pass and reported below.
+5. Roadmap/vision mapping is restated in Milestone 3 terms: FTS-first retrieval, structured results for basket promotion, and auditable provenance, with no hidden Textual/UI or alternate retrieval-mode expansion.
 
 ## Commands Run
 
-Required gates rerun in this fixer pass against the exact merge candidate after the metadata update:
+Required gates rerun in this fixer pass against the exact merge-candidate content after the metadata update:
 
 - `make scope-check`: PASS
 - `./quality-format.sh --check`: PASS
@@ -81,6 +112,6 @@ Required gates rerun in this fixer pass against the exact merge candidate after 
 
 ## Risks / Blockers
 
-- Residual risk: broader retrieval orchestration beyond deterministic source/context bundles remains separate high-risk work.
-- Budget risk: the actual base-to-tip range exceeds the high-risk net LOC guideline when packet metadata is counted; reviewer should evaluate that explicitly instead of relying on a narrowed packet slice.
-- Shared-file note: `tests/unit/test_unified_retrieval.py` is the only shared-by-approval file in this slice.
+- Budget risk: the actual branch-tip range exceeds high-risk file and net LOC guides. This is now explicitly disclosed instead of hidden behind a narrowed packet slice.
+- Review risk: the post-`adfa8c` basket-promotion/context-bundle changes require explicit review as runtime/test behavior.
+- Shared-file note: shared regression files are limited to `tests/unit/test_unified_retrieval.py` and `tests/unit/test_packet_planner.py`.
