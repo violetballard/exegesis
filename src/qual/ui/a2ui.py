@@ -2175,6 +2175,11 @@ def describe_terminal_artifact_cli_fallback_target_contract(
     manifest["terminal_artifact_renderer_entrypoints_contract_manifest_fingerprint"] = (
         terminal_artifact_renderer_entrypoints_contract_manifest_fingerprint()
     )
+    manifest["leaf_renderers_fingerprint"] = _fingerprint_manifest_section(manifest["leaf_renderers"])
+    manifest["leaf_renderers_contract_fingerprint"] = manifest["leaf_renderers_fingerprint"]
+    manifest["leaf_renderers_contract"] = _snapshot_contract_section(manifest["leaf_renderers"])
+    manifest["leaf_renderers_contract_manifest"] = _snapshot_contract_section(manifest["leaf_renderers"])
+    manifest["leaf_renderers_contract_manifest_fingerprint"] = manifest["leaf_renderers_fingerprint"]
     manifest["terminal_artifact_cli_fallback_target_contract_manifest"] = _snapshot_contract_section(
         manifest
     )
@@ -2902,6 +2907,9 @@ def _build_terminal_artifact_cli_fallback_target_contract_fingerprints(
         "raw_leaf_card_default_policy_contract": terminal_artifact_raw_leaf_card_default_policy_contract_fingerprint(),
         "kind_resolution": terminal_artifact_kind_resolution_fingerprint(),
         "fallback_recovery": terminal_artifact_fallback_recovery_fingerprint(),
+        "leaf_renderers": _fingerprint_manifest_section(
+            _build_terminal_artifact_cli_fallback_resolver_failure_policy_manifest()["leaf_renderers"]
+        ),
         "kind_policy": kind_policy_contract_fingerprint_value,
     }
     _add_contract_alias_fingerprints(
@@ -2928,6 +2936,18 @@ def _build_terminal_artifact_cli_fallback_target_contract_fingerprints(
         (
             "kind_policy_contract_manifest",
             kind_policy_contract_fingerprint_value,
+        ),
+        (
+            "leaf_renderers_contract",
+            _fingerprint_manifest_section(
+                _build_terminal_artifact_cli_fallback_resolver_failure_policy_manifest()["leaf_renderers"]
+            ),
+        ),
+        (
+            "leaf_renderers_contract_manifest",
+            _fingerprint_manifest_section(
+                _build_terminal_artifact_cli_fallback_resolver_failure_policy_manifest()["leaf_renderers"]
+            ),
         ),
     )
     if include_terminal_artifact_cli_fallback_target:
@@ -4189,6 +4209,7 @@ def _build_terminal_artifact_cli_fallback_target_contract_manifest(
     raw_leaf_card_default_contract = describe_terminal_artifact_raw_leaf_card_default_contract()
     raw_leaf_card_default_policy_contract = describe_terminal_artifact_raw_leaf_card_default_policy_contract()
     card_hint_recovery_policy_contract = describe_terminal_artifact_cli_fallback_card_hint_recovery_policy_contract()
+    resolver_failure_policy = _build_terminal_artifact_cli_fallback_resolver_failure_policy_manifest()
     terminal_artifact_cli_fallback_entrypoint = "render_terminal_cli_fallback"
     terminal_artifact_cli_fallback_entrypoint_contract = (
         describe_terminal_artifact_cli_fallback_entrypoint_contract()
@@ -4255,6 +4276,7 @@ def _build_terminal_artifact_cli_fallback_target_contract_manifest(
             "invalid_kind_treated_as_absent": True,
             "refine_card_underflow": True,
         },
+        "leaf_renderers": copy.deepcopy(resolver_failure_policy["leaf_renderers"]),
         "card_hint_recovery_policy": _snapshot_contract_section(card_hint_recovery_policy_contract),
         "card_hint_recovery_policy_fingerprint": card_hint_recovery_policy_contract["contract_fingerprint"],
         "card_hint_recovery_policy_contract": _snapshot_contract_section(card_hint_recovery_policy_contract),

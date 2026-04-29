@@ -945,6 +945,9 @@ class A2UIFallbackSafetyTests(unittest.TestCase):
         raw_leaf_card_default_policy_contract = describe_terminal_artifact_raw_leaf_card_default_policy_contract()
         entrypoint_contract = describe_terminal_artifact_cli_fallback_entrypoint_contract()
         renderer_entrypoints_contract = describe_terminal_artifact_renderer_entrypoints_contract()
+        aliased_fingerprints = describe_terminal_artifact_cli_fallback_target_contract_fingerprints(
+            include_contract_aliases=True,
+        )
 
         self.assertEqual(manifest["contract_version"], 2)
         self.assertEqual(manifest["a2ui_version"], 1)
@@ -1043,9 +1046,47 @@ class A2UIFallbackSafetyTests(unittest.TestCase):
             manifest["contract_fingerprints"]["raw_leaf_card_default_contract"],
             terminal_artifact_raw_leaf_card_default_contract_fingerprint(),
         )
+        self.assertEqual(
+            manifest["contract_fingerprints"]["leaf_renderers"],
+            _fingerprint_manifest_section(manifest["leaf_renderers"]),
+        )
+        self.assertEqual(
+            aliased_fingerprints["leaf_renderers"],
+            _fingerprint_manifest_section(manifest["leaf_renderers"]),
+        )
+        self.assertEqual(
+            aliased_fingerprints["leaf_renderers_contract"],
+            _fingerprint_manifest_section(manifest["leaf_renderers"]),
+        )
+        self.assertEqual(
+            aliased_fingerprints["leaf_renderers_contract_manifest"],
+            _fingerprint_manifest_section(manifest["leaf_renderers"]),
+        )
         self.assertEqual(manifest["render_target_contract"], render_target_contract)
         self.assertEqual(manifest["terminal_artifact_render_target"], render_target_contract)
         self.assertEqual(manifest["terminal_artifact_render_target_contract"], render_target_contract)
+        self.assertEqual(
+            manifest["leaf_renderers"],
+            {
+                "card": "render_terminal_card",
+                "action": "render_terminal_action",
+                "selection": "render_terminal_selection",
+            },
+        )
+        self.assertEqual(
+            manifest["leaf_renderers_fingerprint"],
+            _fingerprint_manifest_section(manifest["leaf_renderers"]),
+        )
+        self.assertEqual(
+            manifest["leaf_renderers_contract_fingerprint"],
+            manifest["leaf_renderers_fingerprint"],
+        )
+        self.assertEqual(manifest["leaf_renderers_contract"], manifest["leaf_renderers"])
+        self.assertEqual(manifest["leaf_renderers_contract_manifest"], manifest["leaf_renderers"])
+        self.assertEqual(
+            manifest["leaf_renderers_contract_manifest_fingerprint"],
+            manifest["leaf_renderers_fingerprint"],
+        )
         self.assertEqual(
             manifest["terminal_artifact_cli_fallback_target_contract_manifest"]["contract_fingerprint"],
             manifest["contract_fingerprint"],
@@ -1137,6 +1178,10 @@ class A2UIFallbackSafetyTests(unittest.TestCase):
         self.assertEqual(
             manifest["terminal_artifact_cli_fallback_target_contract_fingerprints"],
             describe_terminal_artifact_cli_fallback_target_contract_fingerprints(),
+        )
+        self.assertEqual(
+            manifest["terminal_artifact_cli_fallback_target_contract_fingerprints"]["leaf_renderers"],
+            _fingerprint_manifest_section(manifest["leaf_renderers"]),
         )
         self.assertEqual(
             manifest["contract_fingerprints_fingerprint"],
