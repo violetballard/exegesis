@@ -5,7 +5,7 @@
 - Review target: actual branch tip after this fixer commit
 - Review basis: `f8d860ed9f6299f0169c4f21321ac5f37c949fd3..HEAD`
 - Review range command: `git diff f8d860ed9f6299f0169c4f21321ac5f37c949fd3..HEAD`
-- Fixer scope: regenerate the handoff for the real branch tip and real review range named by the reviewer, stop treating code/test commits as metadata-only, disclose the shared/integrator-locked CLI parser edit, include commit `50921ba10fee9d5d3a8ef3c7ed34f02e0c710f5d` as a runtime catalog change, validate the live argparse parser choices directly, recompute branch-tip size accounting, map every completed task to canonical demo-path steps, and rerun the required gates.
+- Fixer scope: satisfy fixer prompt `20260429T102201Z` by regenerating the handoff for the real branch tip and real review range named by the reviewer, stopping treatment of code/test commits as metadata-only, disclosing the shared/integrator-locked CLI parser edit, including commit `50921ba10fee9d5d3a8ef3c7ed34f02e0c710f5d` as a runtime catalog change, validating the live argparse parser choices directly, recomputing branch-tip size accounting, mapping every completed task to canonical demo-path steps, and rerunning the required gates.
 
 ## Traceability Correction
 
