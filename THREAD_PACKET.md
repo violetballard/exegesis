@@ -5,7 +5,8 @@
 - Reviewed range: `378cf9a7..HEAD`
 - Merge candidate: current `HEAD` after this packet-fixer commit; final SHA is reported by the fixer.
 - Scope rule: review the full range above. Do not use `adfa8cdadd43747ffbcb612e4151e262b13e52ca` as the endpoint, and do not call post-`adfa8cdadd43747ffbcb612e4151e262b13e52ca` retrieval-code commits metadata-only.
-- Mirror blocker: this sandbox rejects writes to `.codex/kickoff_packets/feat-retrieval-fts.md` and `.codex/lane_meta/feat-retrieval-fts.json`; this file is the corrected source of truth.
+- Merge-safety rule: this branch-tip packet intentionally includes all retrieval implementation, tests, and packet metadata in `378cf9a7..HEAD`.
+- Mirror blocker: this sandbox rejects writes to `.codex/kickoff_packets/feat-retrieval-fts.md` and `.codex/lane_meta/feat-retrieval-fts.json`; `THREAD_PACKET.md` is the corrected source of truth for re-review.
 
 ## Required Fixes
 
@@ -13,7 +14,7 @@
 2. Runtime/test files in that range are listed below and included in review scope.
 3. Budget numbers are recomputed from the actual branch-tip range. This packet trim brings the expected final net LOC below the high-risk `<=300` limit.
 4. Required gates are re-run against the corrected branch-tip merge candidate.
-5. Roadmap/vision mapping is limited to Milestone 3 FTS-first retrieval, basket promotion, and downstream engine use.
+5. Roadmap/vision mapping is limited to Milestone 4 FTS-first retrieval, basket promotion, downstream engine context use, and the MVP demo path below.
 
 ## Scope And Tasks
 
@@ -53,21 +54,26 @@ Runtime/test files:
 
 ## Roadmap / Vision
 
-- Roadmap: `ROADMAP.md` Milestone 3 FTS-first retrieval, basket promotion, and downstream engine context use.
+- Roadmap: `ROADMAP.md` Milestone 4 Retrieval Layer: FTS-first ingestion/index path, retrieval orchestration before drafting/diff generation, source-attribution model, and PageIndex/embeddings deferred until after the demo push.
 - Vision: retrieval-first context handling, auditable generation, and A2UI-compatible stable retrieval payloads.
 - Routing/provider/UI/alternate retrieval impact: none; PageIndex and embeddings remain deferred/fallback-only.
+
+## Canonical Demo Path
+
+- Advances the `ROADMAP.md` MVP flow step `vault -> context -> run -> patch -> export` by making the `context -> run` retrieval handoff deterministic and FTS-backed.
+- This candidate keeps retrieved chunks auditable for generation flows through stable source, excerpt, provenance, and basket-promotion refs.
 
 ## Commands Run
 
 - `make scope-check`: PASS.
 - `./quality-format.sh --check`: PASS.
 - `./quality-lint.sh`: PASS.
-- `./quality-test.sh`: PASS.
+- `./quality-test.sh`: PASS (`124` tests).
 - `./typecheck-test.sh`: PASS.
 - `make ci`: PASS.
 
 ## Risks / Blockers
 
 - Merge risk remains high because the actual range includes approved shared regression coverage.
-- The `.codex` mirror files remain stale because writes are sandbox-blocked; use this packet as authoritative.
+- The `.codex` mirror files are stale because direct overwrite and temp-file writes are denied for those paths in this sandbox; use `THREAD_PACKET.md` as authoritative.
 - Final HEAD SHA is reported by the fixer after commit creation.
