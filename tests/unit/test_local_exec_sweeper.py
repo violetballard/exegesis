@@ -39,6 +39,68 @@ class LocalExecSweeperTests(unittest.TestCase):
 
         self.assertEqual(orphaned, [101])
 
+    def test_find_stale_repo_test_runner_pids_filters_by_repo_cwd_and_age(self) -> None:
+        with tempfile.TemporaryDirectory() as tmp:
+            repo_root = Path(tmp) / "qual"
+            repo_root.mkdir()
+            foreign_root = Path(tmp) / "other"
+            foreign_root.mkdir()
+            ps_output = "\n".join(
+                [
+                    "101 1 101 40:00 12000 /bin/sh ./quality-test.sh",
+                    "202 1 202 01:00 12000 /bin/sh ./quality-test.sh",
+                    "303 1 303 45:00 12000 /bin/sh ./quality-test.sh",
+                    "404 1 404 02:00 2000000 python -m unittest discover -s tests/unit -p test_*.py -v",
+                ]
+            )
+
+            def fake_run(args, **kwargs):
+                if args[:2] == ["ps", "-axo"]:
+                    return mock.Mock(returncode=0, stdout=ps_output)
+                if args[:3] == ["lsof", "-a", "-p"] and args[3] == "101":
+                    return mock.Mock(returncode=0, stdout=f"p101\nfcwd\nn{repo_root}\n")
+                if args[:3] == ["lsof", "-a", "-p"] and args[3] == "202":
+                    return mock.Mock(returncode=0, stdout=f"p202\nfcwd\nn{repo_root}\n")
+                if args[:3] == ["lsof", "-a", "-p"] and args[3] == "303":
+                    return mock.Mock(returncode=0, stdout=f"p303\nfcwd\nn{foreign_root}\n")
+                if args[:3] == ["lsof", "-a", "-p"] and args[3] == "404":
+                    return mock.Mock(returncode=0, stdout=f"p404\nfcwd\nn{repo_root / 'tests'}\n")
+                return mock.Mock(returncode=1, stdout="")
+
+            with (
+                mock.patch.object(local_exec_sweeper.subprocess, "run", side_effect=fake_run),
+                mock.patch.object(local_exec_sweeper, "ORPHAN_TEST_RUNNER_MIN_AGE_SECONDS", 1800),
+                mock.patch.object(local_exec_sweeper, "ORPHAN_TEST_RUNNER_RSS_LIMIT_KB", 1500000),
+            ):
+                stale = local_exec_sweeper.find_stale_repo_test_runner_pids(repo_root, tracked_pids=[])
+
+        self.assertEqual(stale, [101, 404])
+
+    def test_find_stale_repo_test_runner_pids_accepts_managed_worktree_cwd(self) -> None:
+        with tempfile.TemporaryDirectory() as tmp:
+            repo_root = Path(tmp) / "qual"
+            repo_root.mkdir()
+            worktree_root = Path(tmp) / "worktrees"
+            managed_cwd = worktree_root / "feat-retrieval-fts" / "qual"
+            managed_cwd.mkdir(parents=True)
+            ps_output = "505 1 505 35:00 12000 /bin/sh /tmp/qual/quality-test.sh"
+
+            def fake_run(args, **kwargs):
+                if args[:2] == ["ps", "-axo"]:
+                    return mock.Mock(returncode=0, stdout=ps_output)
+                if args[:3] == ["lsof", "-a", "-p"] and args[3] == "505":
+                    return mock.Mock(returncode=0, stdout=f"p505\nfcwd\nn{managed_cwd}\n")
+                return mock.Mock(returncode=1, stdout="")
+
+            with (
+                mock.patch.object(local_exec_sweeper.subprocess, "run", side_effect=fake_run),
+                mock.patch.object(local_exec_sweeper, "MANAGED_WORKTREE_ROOT", worktree_root),
+                mock.patch.object(local_exec_sweeper, "ORPHAN_TEST_RUNNER_MIN_AGE_SECONDS", 1800),
+            ):
+                stale = local_exec_sweeper.find_stale_repo_test_runner_pids(repo_root, tracked_pids=[])
+
+        self.assertEqual(stale, [505])
+
 
 if __name__ == "__main__":
     unittest.main()

@@ -23,11 +23,21 @@ from typing import Dict, List, Optional, Tuple
 try:
     from git_ops import run_git
     from git_hygiene import run_hygiene
-    from local_exec_sweeper import find_orphaned_repo_local_exec_pids, terminate_local_exec_pids
+    from local_exec_sweeper import (
+        find_orphaned_repo_local_exec_pids,
+        find_stale_repo_test_runner_pids,
+        terminate_local_exec_pids,
+        terminate_process_groups,
+    )
 except ImportError:  # pragma: no cover - package execution fallback
     from .git_ops import run_git
     from .git_hygiene import run_hygiene
-    from .local_exec_sweeper import find_orphaned_repo_local_exec_pids, terminate_local_exec_pids
+    from .local_exec_sweeper import (
+        find_orphaned_repo_local_exec_pids,
+        find_stale_repo_test_runner_pids,
+        terminate_local_exec_pids,
+        terminate_process_groups,
+    )
 
 if hasattr(sys.stdout, "reconfigure"):
     sys.stdout.reconfigure(line_buffering=True, write_through=True)
@@ -547,6 +557,8 @@ def _reconcile_router_state(coordinator_state: Optional[Dict[str, object]] = Non
             packet_name = str(job.get("packet_name") or "")
             if not packet_name and ":" in str(job_name):
                 packet_name = str(job_name).split(":", 1)[-1]
+            if _job_result_exists(job):
+                continue
             if packet_name and lane and not _packet_exists(lane, packet_name):
                 jobs.pop(job_name, None)
                 stale.append(str(job_name))
@@ -555,8 +567,6 @@ def _reconcile_router_state(coordinator_state: Optional[Dict[str, object]] = Non
             if job_epoch and current_epoch and job_epoch != current_epoch and not _pid_alive(int(job.get("pid") or 0)):
                 jobs.pop(job_name, None)
                 stale.append(str(job_name))
-                continue
-            if _job_result_exists(job):
                 continue
             pid = int(job.get("pid") or 0)
             if _pid_alive(pid):
@@ -651,6 +661,13 @@ def _reconcile_orphan_local_exec_processes() -> List[int]:
     return orphaned
 
 
+def _reconcile_stale_test_runner_processes() -> List[int]:
+    stale = find_stale_repo_test_runner_pids(REPO_ROOT, _tracked_local_exec_pids())
+    if stale:
+        terminate_process_groups(stale)
+    return stale
+
+
 def _update_git_hygiene_status(coordinator_state: Dict[str, object], git_hygiene: Dict[str, object]) -> Dict[str, object]:
     status = dict(coordinator_state.get("git_hygiene_status") or {})
     stale_count = len(list(git_hygiene.get("stale_git_pids") or []))
@@ -674,6 +691,7 @@ def _reconcile_control_plane_state(coordinator_state: Dict[str, object]) -> Dict
     duplicate_feature_pids_removed = _reconcile_duplicate_feature_exec_processes()
     router_removed = _reconcile_router_state(coordinator_state)
     orphan_local_exec_pids_removed = _reconcile_orphan_local_exec_processes()
+    stale_test_runner_pids_removed = _reconcile_stale_test_runner_processes()
     worktree_reconcile = _reconcile_lane_worktrees()
     git_hygiene = run_hygiene(REPO_ROOT)
     git_hygiene_status = _update_git_hygiene_status(coordinator_state, git_hygiene)
@@ -707,6 +725,11 @@ def _reconcile_control_plane_state(coordinator_state: Dict[str, object]) -> Dict
             "[reconcile] terminated orphan local exec processes: "
             + ", ".join(str(pid) for pid in orphan_local_exec_pids_removed)
         )
+    if stale_test_runner_pids_removed:
+        print(
+            "[reconcile] terminated stale repo test runners: "
+            + ", ".join(str(pid) for pid in stale_test_runner_pids_removed)
+        )
     for repaired in worktree_reconcile["gitdir_repaired"]:
         print(f"[reconcile] restored shared gitdir for {repaired}")
     for backup in worktree_reconcile["gitdir_backups"]:
@@ -736,6 +759,7 @@ def _reconcile_control_plane_state(coordinator_state: Dict[str, object]) -> Dict
         "router_removed": router_removed,
         "duplicate_feature_pids_removed": duplicate_feature_pids_removed,
         "orphan_local_exec_pids_removed": orphan_local_exec_pids_removed,
+        "stale_test_runner_pids_removed": stale_test_runner_pids_removed,
         "worktree_reconcile": worktree_reconcile,
         "git_hygiene": git_hygiene,
         "git_hygiene_status": git_hygiene_status,

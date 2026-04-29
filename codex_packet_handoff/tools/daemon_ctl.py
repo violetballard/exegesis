@@ -14,10 +14,20 @@ from typing import Optional
 
 try:
     from log_maintenance import compact_log_file
-    from local_exec_sweeper import find_orphaned_repo_local_exec_pids, terminate_local_exec_pids
+    from local_exec_sweeper import (
+        find_orphaned_repo_local_exec_pids,
+        find_stale_repo_test_runner_pids,
+        terminate_local_exec_pids,
+        terminate_process_groups,
+    )
 except ImportError:  # pragma: no cover - package execution fallback
     from .log_maintenance import compact_log_file
-    from .local_exec_sweeper import find_orphaned_repo_local_exec_pids, terminate_local_exec_pids
+    from .local_exec_sweeper import (
+        find_orphaned_repo_local_exec_pids,
+        find_stale_repo_test_runner_pids,
+        terminate_local_exec_pids,
+        terminate_process_groups,
+    )
 
 COORD_DIR = Path(".codex/packet_coordinator")
 PID_FILE = COORD_DIR / "daemon.pid"
@@ -332,6 +342,11 @@ def _stop() -> int:
     orphaned_local_exec_pids = find_orphaned_repo_local_exec_pids(REPO_ROOT, tracked_local_exec_pids)
     if orphaned_local_exec_pids:
         terminate_local_exec_pids(orphaned_local_exec_pids)
+        stopped_any = True
+
+    stale_test_runner_pids = find_stale_repo_test_runner_pids(REPO_ROOT, tracked_local_exec_pids)
+    if stale_test_runner_pids:
+        terminate_process_groups(stale_test_runner_pids)
         stopped_any = True
 
     try:
