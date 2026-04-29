@@ -80,6 +80,8 @@ from src.qual.ui.a2ui import (
     describe_terminal_fallback_contract,
     build_terminal_artifact_envelope,
     normalize_capabilities,
+    normalize_action_ref,
+    normalize_selection_ref,
     normalize_terminal_artifact_payload,
     engine_prepare_card,
     render_terminal_action,
@@ -11083,6 +11085,51 @@ class A2UIFallbackSafetyTests(unittest.TestCase):
             ],
         )
         self.assertEqual(action_contract_fingerprint(), manifest["contract_fingerprint"])
+
+    def test_action_and_selection_refs_round_trip_version_metadata(self) -> None:
+        action = normalize_action_ref(
+            {
+                "id": "export_document",
+                "label": "Export",
+                "payload": {"format": "md"},
+                "schema_version": A2UI_ACTION_SCHEMA_VERSION,
+                "a2ui_version": 1,
+            }
+        )
+        selection = normalize_selection_ref(
+            {
+                "id": "choice-1",
+                "label": "Choice",
+                "payload": {"nested": {"items": [1, 2]}},
+                "schema_version": SELECTION_SCHEMA_VERSION,
+                "a2ui_version": 1,
+            }
+        )
+
+        self.assertEqual(action.schema_version, A2UI_ACTION_SCHEMA_VERSION)
+        self.assertEqual(action.a2ui_version, 1)
+        self.assertEqual(selection.schema_version, SELECTION_SCHEMA_VERSION)
+        self.assertEqual(selection.a2ui_version, 1)
+        self.assertEqual(
+            action,
+            ActionRef(
+                id="export_document",
+                label="Export",
+                payload={"format": "md"},
+                schema_version=A2UI_ACTION_SCHEMA_VERSION,
+                a2ui_version=1,
+            ),
+        )
+        self.assertEqual(
+            selection,
+            SelectionRef(
+                id="choice-1",
+                label="Choice",
+                payload={"nested": {"items": [1, 2]}},
+                schema_version=SELECTION_SCHEMA_VERSION,
+                a2ui_version=1,
+            ),
+        )
 
     def test_terminal_renderer_renders_canonical_actionref_and_invalid_fallback(self) -> None:
         text = render_terminal_action(

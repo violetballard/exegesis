@@ -157,6 +157,8 @@ class ActionRef:
     payload: dict[str, Any]
     confirm: dict[str, str] | None = None
     policy_sensitive: bool = False
+    schema_version: int = A2UI_ACTION_SCHEMA_VERSION
+    a2ui_version: int = A2UI_VERSION
 
 
 @dataclass(frozen=True)
@@ -166,6 +168,8 @@ class SelectionRef:
     payload: dict[str, Any]
     selected: bool = False
     disabled: bool = False
+    schema_version: int = SELECTION_SCHEMA_VERSION
+    a2ui_version: int = A2UI_VERSION
 
 
 class PolicyGate(Protocol):
@@ -5264,6 +5268,8 @@ def normalize_action_ref(action: ActionRef | Mapping[str, Any]) -> ActionRef:
         payload=_copy_action_payload(normalized["payload"]),
         confirm=dict(normalized["confirm"]) if "confirm" in normalized else None,
         policy_sensitive=bool(normalized.get("policy_sensitive", False)),
+        schema_version=int(normalized["schema_version"]),
+        a2ui_version=int(normalized["a2ui_version"]),
     )
 
 
@@ -5275,6 +5281,8 @@ def normalize_selection_ref(selection: SelectionRef | Mapping[str, Any]) -> Sele
         payload=_copy_selection_payload(normalized["payload"]),
         selected=bool(normalized.get("selected", False)),
         disabled=bool(normalized.get("disabled", False)),
+        schema_version=int(normalized["schema_version"]),
+        a2ui_version=int(normalized["a2ui_version"]),
     )
 
 
@@ -6754,6 +6762,7 @@ def _filter_supported_actions(actions: Any, *, supported_actions: set[str]) -> l
             normalized = _normalize_action(action, supported_actions=supported_actions)
         except ValueError:
             continue
+        normalized = _strip_action_contract_metadata(normalized)
         action_key = _canonical_action_snapshot_key(normalized)
         if action_key in seen:
             continue
@@ -6863,7 +6872,15 @@ def _normalize_action(action: ActionRef | Mapping[str, Any], *, supported_action
     action = _action_ref_to_dict(action)
     if not isinstance(action, Mapping):
         raise ValueError("ActionRef must be an object")
-    extra_keys = set(action) - {"id", "label", "payload", "confirm", "policy_sensitive"}
+    extra_keys = set(action) - {
+        "id",
+        "label",
+        "payload",
+        "confirm",
+        "policy_sensitive",
+        "schema_version",
+        "a2ui_version",
+    }
     if extra_keys:
         extras = ", ".join(sorted(extra_keys))
         raise ValueError(f"Unexpected action field(s): {extras}")
@@ -6896,13 +6913,33 @@ def _normalize_action(action: ActionRef | Mapping[str, Any], *, supported_action
         raise ValueError("Action policy_sensitive must be a bool")
     if policy_sensitive:
         normalized["policy_sensitive"] = True
+    schema_version = action.get("schema_version", A2UI_ACTION_SCHEMA_VERSION)
+    if type(schema_version) is not int:
+        raise ValueError("Action schema_version must be an int")
+    if schema_version != A2UI_ACTION_SCHEMA_VERSION:
+        raise ValueError("Unsupported ActionRef schema_version")
+    normalized["schema_version"] = schema_version
+    a2ui_version = action.get("a2ui_version", A2UI_VERSION)
+    if type(a2ui_version) is not int:
+        raise ValueError("Action a2ui_version must be an int")
+    if a2ui_version != A2UI_VERSION:
+        raise ValueError("Unsupported ActionRef a2ui_version")
+    normalized["a2ui_version"] = a2ui_version
     return normalized
 
 
 def _normalize_selection(selection: Any) -> dict[str, Any]:
     if not isinstance(selection, Mapping):
         raise ValueError("SelectionRef must be an object")
-    extra_keys = set(selection) - {"id", "label", "payload", "selected", "disabled"}
+    extra_keys = set(selection) - {
+        "id",
+        "label",
+        "payload",
+        "selected",
+        "disabled",
+        "schema_version",
+        "a2ui_version",
+    }
     if extra_keys:
         extras = ", ".join(sorted(extra_keys))
         raise ValueError(f"Unexpected selection field(s): {extras}")
@@ -6934,6 +6971,18 @@ def _normalize_selection(selection: Any) -> dict[str, Any]:
         raise ValueError("Selection disabled must be a bool")
     if disabled:
         normalized["disabled"] = True
+    schema_version = selection.get("schema_version", SELECTION_SCHEMA_VERSION)
+    if type(schema_version) is not int:
+        raise ValueError("Selection schema_version must be an int")
+    if schema_version != SELECTION_SCHEMA_VERSION:
+        raise ValueError("Unsupported SelectionRef schema_version")
+    normalized["schema_version"] = schema_version
+    a2ui_version = selection.get("a2ui_version", A2UI_VERSION)
+    if type(a2ui_version) is not int:
+        raise ValueError("Selection a2ui_version must be an int")
+    if a2ui_version != A2UI_VERSION:
+        raise ValueError("Unsupported SelectionRef a2ui_version")
+    normalized["a2ui_version"] = a2ui_version
     return normalized
 
 
@@ -6948,6 +6997,8 @@ def _selection_ref_to_dict(selection: SelectionRef | Mapping[str, Any]) -> dict[
             selection_dict["selected"] = selection.selected
         if selection.disabled:
             selection_dict["disabled"] = selection.disabled
+        selection_dict["schema_version"] = selection.schema_version
+        selection_dict["a2ui_version"] = selection.a2ui_version
         return selection_dict
     if isinstance(selection, Mapping):
         selection_dict = dict(selection)
@@ -6969,6 +7020,8 @@ def _action_ref_to_dict(action: ActionRef | Mapping[str, Any]) -> dict[str, Any]
             action_dict["confirm"] = action.confirm
         if action.policy_sensitive:
             action_dict["policy_sensitive"] = action.policy_sensitive
+        action_dict["schema_version"] = action.schema_version
+        action_dict["a2ui_version"] = action.a2ui_version
         return action_dict
     if isinstance(action, Mapping):
         action_dict = dict(action)
@@ -6977,6 +7030,13 @@ def _action_ref_to_dict(action: ActionRef | Mapping[str, Any]) -> dict[str, Any]
             action_dict.pop("type", None)
         return action_dict
     raise ValueError("ActionRef must be an object")
+
+
+def _strip_action_contract_metadata(action: dict[str, Any]) -> dict[str, Any]:
+    stripped = dict(action)
+    stripped.pop("schema_version", None)
+    stripped.pop("a2ui_version", None)
+    return stripped
 
 
 def _normalize_confirm(confirm: Any) -> dict[str, str]:
@@ -7259,13 +7319,15 @@ def _render_payload_preview(
 
 
 def _build_copy_to_clipboard_action(text: str) -> dict[str, Any]:
-    return _normalize_action(
-        {
-            "id": FALLBACK_COPY_ACTION_ID,
-            "label": "Copy JSON",
-            "payload": {"text": text},
-        },
-        supported_actions={FALLBACK_COPY_ACTION_ID},
+    return _strip_action_contract_metadata(
+        _normalize_action(
+            {
+                "id": FALLBACK_COPY_ACTION_ID,
+                "label": "Copy JSON",
+                "payload": {"text": text},
+            },
+            supported_actions={FALLBACK_COPY_ACTION_ID},
+        )
     )
 
 
