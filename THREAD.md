@@ -15,5 +15,5 @@ Canonical handoff contract lives in `THREAD_PACKET.md`.
 - Shared-by-approval files: `src/qual/cli.py`.
 - Integrator-locked files touched: `src/qual/cli.py` only; this file is part of the actual branch-tip merge target and needs explicit review/approval.
 - Implementation/test traceability: `9d0c82ccdfa74d8daf33d98ce410fd599bf45609` changed `src/qual/commands/catalog.py` and `tests/unit/test_commands_catalog.py` as well as handoff metadata; it is not a metadata-only commit.
-- Latest metadata-only traceability: `1269da599851c60b7428109f5ac2adf13dee430b` changed `THREAD.md` and `THREAD_PACKET.md` only.
-- Fixer prompts satisfied: `20260429T152044Z`, `20260429T152842Z`, `20260429T154016Z`, `20260429T154607Z`, `20260429T155155Z`, `20260429T155636Z`, `20260429T160222Z`, `20260429T161403Z`, `20260429T161853Z`, `20260429T162401Z`, `20260429T162824Z`, `20260429T163215Z`; canonical packet details live in `THREAD_PACKET.md`.
+- Previous metadata-only traceability: `c65bfe07cc2b48aa35b3552774da12178d0e51bc4` changed `THREAD.md` and `THREAD_PACKET.md` only.
+- Fixer prompts satisfied: `20260429T152044Z`, `20260429T152842Z`, `20260429T154016Z`, `20260429T154607Z`, `20260429T155155Z`, `20260429T155636Z`, `20260429T160222Z`, `20260429T161403Z`, `20260429T161853Z`, `20260429T162401Z`, `20260429T162824Z`, `20260429T163215Z`, `20260429T163501Z`; canonical packet details live in `THREAD_PACKET.md`.
