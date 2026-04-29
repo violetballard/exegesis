@@ -1,16 +1,16 @@
 ## Thread Handoff Packet
 
 - Branch/lane: `codex/feat-retrieval-fts` / `feat-retrieval-fts`
-- Packet purpose: reviewer-fix re-review packet for the actual branch tip.
+- Packet purpose: reviewer-fix re-review packet for the actual branch tip proposed for merge.
 - Review baseline from reviewer packet: `378cf9a74a3658058079a32f186fcd254c4a4034`
-- Reviewed implementation range before this metadata-only fixer commit: `378cf9a74a3658058079a32f186fcd254c4a4034..c11be4126a063df52096fc7a46c88c848fda69d3`
-- Runtime/test implementation head in that range: `e11cdde8610587c865afec904674f9366cbfa0cf`
-- Canonical demo-path step advanced: retrieve relevant material
-- Final reviewed head: reported in the fixer response after this metadata-only packet correction is committed.
+- Actual branch tip reviewed before this metadata-only fixer commit: `1621961a4c9ec03e342c7452eae9c36bf13b2eff`
+- Reviewed branch-tip range: `378cf9a74a3658058079a32f186fcd254c4a4034..1621961a4c9ec03e342c7452eae9c36bf13b2eff`
+- Final proposed merge HEAD after this metadata-only fixer commit: reported in the fixer response.
+- Canonical demo-path step advanced: retrieve relevant material for basket/workflow use.
 
 ## Scope Completed
 
-This re-review packet keeps the post-`378cf9a` scope tight to `feat-retrieval-fts`: FTS-only excerpt lookup, structured source/context/citation bundles for workflow-ready retrieval results, deterministic basket-promotion provenance, and payload rehydration from sparse source bundles. PageIndex-only excerpt IDs fail closed, and PageIndex/embeddings remain deferred compatibility paths rather than required retrieval paths.
+This handoff is limited to the Milestone 3 retrieval objective: FTS-first structured retrieval for basket and workflow use. It keeps SQLite FTS as the authoritative path for document and excerpt lookup, returns deterministic source/context/citation bundles for workflow promotion, and rehydrates sparse retrieval payloads for downstream engine flows. PageIndex-only excerpt IDs fail closed, and PageIndex/embeddings remain deferred compatibility paths rather than required retrieval paths. No Textual/UI work or speculative alternate retrieval-mode expansion is included.
 
 ## Tasks Completed
 
@@ -21,40 +21,45 @@ This re-review packet keeps the post-`378cf9a` scope tight to `feat-retrieval-ft
 
 ## Files Changed
 
-- `.codex/kickoff_packets/feat-retrieval-fts.md`
-- `.codex/lane_meta/feat-retrieval-fts.json`
-- `THREAD_PACKET.md`
-- `src/qual/engine/retrieval/payload.py`
-- `src/qual/retrieval/service.py`
-- `tests/unit/test_unified_retrieval.py`
+The actual reviewed range `378cf9a74a3658058079a32f186fcd254c4a4034..1621961a4c9ec03e342c7452eae9c36bf13b2eff` changes:
+
+- `.codex/kickoff_packets/feat-retrieval-fts.md` (`34` insertions, `2` deletions)
+- `.codex/lane_meta/feat-retrieval-fts.json` (`141` insertions, `14` deletions)
+- `THREAD_PACKET.md` (`52` insertions, `67` deletions)
+- `src/qual/engine/retrieval/payload.py` (`58` insertions, `0` deletions)
+- `src/qual/retrieval/service.py` (`85` insertions, `19` deletions)
+- `tests/unit/test_unified_retrieval.py` (`102` insertions, `12` deletions)
+
+Range total before this metadata-only fixer commit: `6 files changed, 472 insertions(+), 114 deletions(-)`.
 
 ## Budget
 
-- Risk: high, because approved shared regression coverage touches `tests/unit/test_unified_retrieval.py`.
-- Task budget: `4/4`.
+- Risk: high, because the actual branch-tip range touches shared-by-approval regression file `tests/unit/test_unified_retrieval.py`.
+- Task budget: `4/4` under AGENTS high-risk rules.
 - File budget before this metadata-only fixer commit: `6/8`.
-- Size budget before this metadata-only fixer commit: `6 files changed, 474 insertions(+), 120 deletions(-)` for `378cf9a74a3658058079a32f186fcd254c4a4034..c11be4126a063df52096fc7a46c88c848fda69d3`.
-- Shared-file approval note: `tests/unit/test_unified_retrieval.py` is included as approved shared regression coverage for the retrieval lane; no integrator-locked files are edited in this re-review slice.
+- Size budget before this metadata-only fixer commit: `472 insertions, 114 deletions` (`+358` net LOC), within the high-risk `<=300` net LOC guideline only if packet metadata is excluded; including packet metadata exceeds that guideline and is called out for reviewer judgment.
+- Shared-file approval note: `tests/unit/test_unified_retrieval.py` is included as approved shared regression coverage for the retrieval lane; no integrator-locked files are edited in the reviewed range.
 
 ## Roadmap / Vision
 
-- Roadmap items: `ROADMAP.md` Milestone 3 Product Readiness and Milestone 4 Retrieval Layer.
-- Vision capabilities: `PRODUCT_VISION.md` capability 2 retrieval-first context handling and capability 6 auditable state/workflow.
+- Roadmap item: `ROADMAP.md` Milestone 3 Product Readiness, specifically generation provenance and retrieval evidence attached to workflow outputs.
+- Vision capabilities: `PRODUCT_VISION.md` retrieval-backed context (FTS-first for the current MVP), auditable state/workflow.
 - Routing/provider impact: none.
+- Proposed `README.md` patch text: none.
 
 ## Canonical Demo Path
 
-This branch advances the canonical demo-path step `retrieve relevant material`. FTS-only `fetch_excerpt` makes retrieved material auditable and deterministic before basket/context promotion.
+This branch makes the canonical demo-path step `retrieve relevant material` more real by letting FTS-backed retrieval produce deterministic material bundles that can be promoted into basket/workflow state with provenance and citations. It does not add UI, Textual, provider routing, or alternate retrieval-mode behavior.
 
 ## Traceability Correction
 
-Earlier packet text incorrectly treated commits after `adfa8cdadd43747ffbcb612e4151e262b13e52ca` as metadata-only. That claim is withdrawn. This handoff chooses the actual branch-tip lineage for the reviewer packet baseline and reviews `378cf9a74a3658058079a32f186fcd254c4a4034..c11be4126a063df52096fc7a46c88c848fda69d3` before this metadata-only fixer commit. That range includes runtime/test changes after `adfa8cdadd43747ffbcb612e4151e262b13e52ca` in `src/qual/engine/retrieval/payload.py`, `src/qual/retrieval/service.py`, and `tests/unit/test_unified_retrieval.py`.
+Earlier packet text incorrectly treated commits after `adfa8cdadd43747ffbcb612e4151e262b13e52ca` as metadata-only. That claim is withdrawn. The actual branch tip presented to the reviewer was `1621961a4c9ec03e342c7452eae9c36bf13b2eff`, and the truthful reviewed range is `378cf9a74a3658058079a32f186fcd254c4a4034..1621961a4c9ec03e342c7452eae9c36bf13b2eff`.
 
-This fixer pass changes packet metadata only. It does not narrow, split, reset, or modify the reviewed runtime/test implementation. The final HEAD SHA and gate outcomes against that final branch tip are reported in the fixer response after commit.
+That range includes runtime and test changes after `adfa8cdadd43747ffbcb612e4151e262b13e52ca` in `src/qual/engine/retrieval/payload.py`, `src/qual/retrieval/service.py`, and `tests/unit/test_unified_retrieval.py`. This fixer pass changes packet metadata only; it does not narrow, split, reset, or modify the reviewed runtime/test implementation.
 
 ## Commands Run
 
-Required gates rerun for this fixer pass against the exact pre-commit branch tip `c11be4126a063df52096fc7a46c88c848fda69d3`:
+Required gates rerun in this fixer pass against the corrected packet state:
 
 - `make scope-check`: PASS
 - `./quality-format.sh --check`: PASS
@@ -66,6 +71,6 @@ Required gates rerun for this fixer pass against the exact pre-commit branch tip
 ## Risks / Blockers
 
 - Residual risk: broader retrieval orchestration beyond deterministic source/context bundles remains separate high-risk work.
-- Scope risk: none identified in this re-review slice; changes remain FTS-first and deterministic.
+- Budget risk: the actual base-to-tip range exceeds the high-risk net LOC guideline when packet metadata is counted; reviewer should evaluate that explicitly instead of relying on a narrowed packet slice.
 - Shared-file note: `tests/unit/test_unified_retrieval.py` is the only shared-by-approval file in this slice.
-- Packet mirror blocker: this sandbox returned `Operation not permitted` when attempting to update `.codex/kickoff_packets/feat-retrieval-fts.md` and `.codex/lane_meta/feat-retrieval-fts.json`; `THREAD_PACKET.md` is the updated handoff packet for this fixer commit.
+- Packet mirror blocker: this sandbox returns `Operation not permitted` for writes/removal under `.codex/kickoff_packets/feat-retrieval-fts.md` and `.codex/lane_meta/feat-retrieval-fts.json`, so `THREAD_PACKET.md` is the corrected handoff packet for this fixer commit.
