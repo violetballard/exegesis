@@ -49,7 +49,7 @@ Implementation files in that range:
 - Risk: high/shared.
 - Task budget: `4/4`.
 - File budget: `6/8`.
-- Size budget for `378cf9a74a3658058079a32f186fcd254c4a4034..HEAD` before this metadata-only fixer commit: `6 files changed, 413 insertions(+), 118 deletions(-)`, net `295` LOC, within the high-risk `<=300` net LOC cap.
+- Size budget for `378cf9a74a3658058079a32f186fcd254c4a4034..HEAD` before this metadata-only fixer commit: `6 files changed, 415 insertions(+), 118 deletions(-)`, net `297` LOC, within the high-risk `<=300` net LOC cap.
 - This fixer commit changes packet metadata only and does not change retrieval implementation behavior.
 - Integrator-locked files: none.
 - Shared-by-approval files: `tests/unit/test_unified_retrieval.py`, used only for canonical retrieval regression coverage.
