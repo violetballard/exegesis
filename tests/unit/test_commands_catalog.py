@@ -225,6 +225,25 @@ class CommandCatalogTests(unittest.TestCase):
             with self.assertRaisesRegex(ValueError, "Command CLI parser surface is inconsistent"):
                 command_catalog.command_cli_contract()
 
+    def test_command_cli_contract_rejects_added_alias_even_when_names_match(self) -> None:
+        self._clear_cli_caches()
+        drifted_tokens = ("bootstrap", "open", "diff-preview", "diff", "context-basket", "terminal")
+        drifted_lookup_table = (
+            ("bootstrap", "bootstrap"),
+            ("open", "bootstrap"),
+            ("diff-preview", "diff-preview"),
+            ("diff", "diff-preview"),
+            ("context-basket", "context-basket"),
+            ("terminal", "terminal"),
+        )
+        with (
+            patch.object(command_catalog, "command_cli_tokens", return_value=drifted_tokens),
+            patch.object(command_catalog, "command_cli_lookup_table", return_value=drifted_lookup_table),
+            patch.object(command_catalog, "command_names", return_value=command_names()),
+        ):
+            with self.assertRaisesRegex(ValueError, "Command CLI parser surface is inconsistent"):
+                command_catalog.command_cli_contract()
+
     def test_command_cli_contract_rejects_diff_preview_replacement_even_when_names_match(self) -> None:
         self._clear_cli_caches()
         drifted_tokens = ("bootstrap", "diff", "context-basket", "terminal")
@@ -461,6 +480,80 @@ class CommandCatalogTests(unittest.TestCase):
         ):
             with self.assertRaisesRegex(ValueError, "Command CLI tokens are inconsistent"):
                 command_catalog.command_cli_contract()
+
+    def test_command_cli_contract_rejects_reviewed_parser_surface_drift_examples(self) -> None:
+        drift_cases = (
+            (
+                "added known alias",
+                ("bootstrap", "open", "diff-preview", "diff", "context-basket", "terminal"),
+                (
+                    ("bootstrap", "bootstrap"),
+                    ("open", "bootstrap"),
+                    ("diff-preview", "diff-preview"),
+                    ("diff", "diff-preview"),
+                    ("context-basket", "context-basket"),
+                    ("terminal", "terminal"),
+                ),
+                "Command CLI parser surface is inconsistent",
+            ),
+            (
+                "removed expected token",
+                ("bootstrap", "diff-preview", "context-basket", "terminal"),
+                (
+                    ("bootstrap", "bootstrap"),
+                    ("diff-preview", "diff-preview"),
+                    ("context-basket", "context-basket"),
+                    ("terminal", "terminal"),
+                ),
+                "Command CLI parser surface is inconsistent",
+            ),
+            (
+                "substituted same-canonical alias",
+                ("bootstrap", "diff-preview", "diff_preview", "context-basket", "terminal"),
+                (
+                    ("bootstrap", "bootstrap"),
+                    ("diff-preview", "diff-preview"),
+                    ("diff_preview", "diff-preview"),
+                    ("context-basket", "context-basket"),
+                    ("terminal", "terminal"),
+                ),
+                "Command CLI parser surface is inconsistent",
+            ),
+            (
+                "ordering drift",
+                ("bootstrap", "context-basket", "diff-preview", "diff", "terminal"),
+                (
+                    ("bootstrap", "bootstrap"),
+                    ("context-basket", "context-basket"),
+                    ("diff-preview", "diff-preview"),
+                    ("diff", "diff-preview"),
+                    ("terminal", "terminal"),
+                ),
+                "Command CLI parser surface is inconsistent",
+            ),
+            (
+                "lookup-table substitution",
+                ("bootstrap", "diff-preview", "diff", "context-basket", "terminal"),
+                (
+                    ("bootstrap", "bootstrap"),
+                    ("diff-preview", "diff-preview"),
+                    ("diff", "context-basket"),
+                    ("context-basket", "diff-preview"),
+                    ("terminal", "terminal"),
+                ),
+                "Command CLI parser surface is inconsistent",
+            ),
+        )
+        for label, drifted_tokens, drifted_lookup_table, expected_error in drift_cases:
+            with self.subTest(label=label):
+                self._clear_cli_caches()
+                with (
+                    patch.object(command_catalog, "command_cli_tokens", return_value=drifted_tokens),
+                    patch.object(command_catalog, "command_cli_lookup_table", return_value=drifted_lookup_table),
+                    patch.object(command_catalog, "command_names", return_value=command_names()),
+                ):
+                    with self.assertRaisesRegex(ValueError, expected_error):
+                        command_catalog.command_cli_contract()
 
     def test_command_cli_lookup_table_resolves_through_the_catalog(self) -> None:
         self.assertEqual(
