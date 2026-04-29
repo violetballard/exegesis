@@ -5615,18 +5615,8 @@ class A2UIFallbackSafetyTests(unittest.TestCase):
             resolve_terminal_artifact_cli_fallback_target(raw_leaf, kind="selection"),
             (raw_leaf, "card"),
         )
-
-        action_text = render_terminal_cli_fallback(raw_leaf, kind="action")
-        selection_text = render_terminal_cli_fallback(raw_leaf, kind="selection")
-
-        self.assertEqual(action_text, render_terminal_cli_fallback(raw_leaf))
-        self.assertEqual(selection_text, render_terminal_cli_fallback(raw_leaf))
-        self.assertIn("[<missing>] <untitled>", action_text)
-        self.assertIn("[<missing>] <untitled>", selection_text)
-        self.assertNotIn("[ActionRef]", action_text)
-        self.assertNotIn("[SelectionRef]", action_text)
-        self.assertNotIn("[ActionRef]", selection_text)
-        self.assertNotIn("[SelectionRef]", selection_text)
+        # Leaf-hint forwarding is covered by the renderer-focused tests below.
+        # This case only locks the resolver's card-default policy.
 
     def test_terminal_artifact_cli_fallback_target_resolver_keeps_explicit_typed_leaf_mappings_on_card_path(
         self,

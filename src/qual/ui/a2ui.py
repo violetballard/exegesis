@@ -5572,12 +5572,18 @@ def render_terminal_cli_fallback(artifact: Any, *, kind: str | None = None) -> s
     """
 
     requested_kind = _normalize_terminal_artifact_kind_hint(kind)
+    preserve_raw_leaf_card_default = _should_preserve_raw_leaf_card_default(artifact)
     if requested_kind == "card" and isinstance(artifact, (ActionRef, SelectionRef)):
         # Keep direct leaf objects on the safe invalid-card path when the
         # caller explicitly asked for card rendering. Typed mapping payloads
         # still recover through the shared fallback resolver below.
         return _render_invalid_terminal_card(artifact)
     if requested_kind == "action":
+        if preserve_raw_leaf_card_default:
+            try:
+                resolve_terminal_artifact_cli_fallback_target(artifact, kind=requested_kind)
+            except Exception:
+                return render_terminal_cli_fallback(artifact)
         try:
             rendered_action = render_terminal_action(artifact)
         except Exception:
@@ -5586,6 +5592,11 @@ def render_terminal_cli_fallback(artifact: Any, *, kind: str | None = None) -> s
             return rendered_action
         return _render_invalid_terminal_action(artifact)
     if requested_kind == "selection":
+        if preserve_raw_leaf_card_default:
+            try:
+                resolve_terminal_artifact_cli_fallback_target(artifact, kind=requested_kind)
+            except Exception:
+                return render_terminal_cli_fallback(artifact)
         try:
             rendered_selection = render_terminal_selection(artifact)
         except Exception:
