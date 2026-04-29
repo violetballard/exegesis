@@ -165,10 +165,6 @@ def _normalize_doc_bundle_snapshot(doc_bundle: dict[str, object]) -> dict[str, o
         normalized["citation_status"] = copy.deepcopy(citation_status)
     elif "citation_status" in normalized:
         normalized["citation_status"] = {}
-    if "retrieval_basket_promotion_refs" in normalized:
-        normalized["retrieval_basket_promotion_refs"] = _normalize_basket_promotion_refs_snapshot(
-            normalized.get("retrieval_basket_promotion_refs")
-        )
     return normalized
 
 
@@ -187,10 +183,6 @@ def _normalize_excerpt_bundle_snapshot(excerpt_bundle: dict[str, object]) -> dic
         normalized["citation_status"] = copy.deepcopy(citation_status)
     elif "citation_status" in normalized:
         normalized["citation_status"] = {}
-    if "retrieval_basket_promotion_refs" in normalized:
-        normalized["retrieval_basket_promotion_refs"] = _normalize_basket_promotion_refs_snapshot(
-            normalized.get("retrieval_basket_promotion_refs")
-        )
     return normalized
 
 
@@ -244,14 +236,6 @@ def _normalize_retrieval_evidence_snapshot(evidence: dict[str, object]) -> dict[
     normalized["deferred_strategy_ids"] = _normalize_list_like(normalized.get("deferred_strategy_ids"))
     normalized["doc_citations"] = _normalize_list_like(normalized.get("doc_citations"))
     normalized["excerpt_citations"] = _normalize_list_like(normalized.get("excerpt_citations"))
-    basket_promotion_refs = normalized.get("basket_promotion_refs")
-    if isinstance(basket_promotion_refs, dict):
-        basket_promotion_refs = copy.deepcopy(basket_promotion_refs)
-        basket_promotion_refs["doc_refs"] = _normalize_list_like(basket_promotion_refs.get("doc_refs"))
-        basket_promotion_refs["excerpt_refs"] = _normalize_list_like(basket_promotion_refs.get("excerpt_refs"))
-        normalized["basket_promotion_refs"] = basket_promotion_refs
-    elif "basket_promotion_refs" in normalized:
-        normalized["basket_promotion_refs"] = {"doc_refs": [], "excerpt_refs": []}
     retrieval_policy = normalized.get("retrieval_policy")
     if isinstance(retrieval_policy, dict):
         normalized["retrieval_policy"] = _normalize_policy_snapshot(retrieval_policy)
@@ -263,15 +247,6 @@ def _normalize_retrieval_evidence_snapshot(evidence: dict[str, object]) -> dict[
         normalized["citation_status"] = copy.deepcopy(citation_status)
     elif "citation_status" in normalized:
         normalized["citation_status"] = {}
-    return normalized
-
-
-def _normalize_basket_promotion_refs_snapshot(refs: object) -> dict[str, object]:
-    if not isinstance(refs, dict):
-        return {"doc_refs": [], "excerpt_refs": []}
-    normalized = copy.deepcopy(refs)
-    normalized["doc_refs"] = _normalize_list_like(normalized.get("doc_refs"))
-    normalized["excerpt_refs"] = _normalize_list_like(normalized.get("excerpt_refs"))
     return normalized
 
 
@@ -296,13 +271,6 @@ def _normalize_retrieval_source_bundle_snapshot(source_bundle: dict[str, object]
     )
     normalized["retrieval_evidence"] = _normalize_retrieval_evidence_snapshot(
         normalized.get("retrieval_evidence", {})
-    )
-    evidence = normalized.get("retrieval_evidence", {})
-    normalized["retrieval_basket_promotion_refs"] = _normalize_basket_promotion_refs_snapshot(
-        normalized.get(
-            "retrieval_basket_promotion_refs",
-            evidence.get("basket_promotion_refs", {}) if isinstance(evidence, dict) else {},
-        )
     )
     normalized["retrieval_citation_bundle"] = _build_retrieval_citation_bundle_from_payload(normalized)
     normalized["retrieval_doc_bundle"] = _build_retrieval_doc_bundle_from_payload(normalized)
@@ -498,14 +466,6 @@ def _build_retrieval_source_bundle_from_payload(payload: dict[str, object]) -> d
         "excerpt_hits": copy.deepcopy(payload.get("excerpt_hits", [])),
         "retrieval_manifest": copy.deepcopy(payload.get("retrieval_manifest", {})),
         "retrieval_evidence": copy.deepcopy(payload.get("retrieval_evidence", {})),
-        "retrieval_basket_promotion_refs": _normalize_basket_promotion_refs_snapshot(
-            payload.get(
-                "retrieval_basket_promotion_refs",
-                payload.get("retrieval_evidence", {}).get("basket_promotion_refs", {})
-                if isinstance(payload.get("retrieval_evidence"), dict)
-                else {},
-            )
-        ),
         "retrieval_provenance": copy.deepcopy(payload.get("retrieval_provenance", {})),
     })
 
@@ -530,7 +490,6 @@ def _backfill_downstream_payload_from_context_bundle(
         "retrieval_provenance": context_bundle.get("retrieval_provenance"),
         "retrieval_source_bundle": context_bundle.get("retrieval_source_bundle"),
         "retrieval_evidence": context_bundle.get("retrieval_evidence"),
-        "retrieval_basket_promotion_refs": context_bundle.get("retrieval_basket_promotion_refs"),
     }
     return _backfill_sparse_snapshot(
         merged,
@@ -565,9 +524,6 @@ def _build_retrieval_context_bundle_from_source_bundle(source_bundle: dict[str, 
         "retrieval_provenance": copy.deepcopy(retrieval_provenance),
         "retrieval_source_bundle": copy.deepcopy(source_bundle),
         "retrieval_evidence": copy.deepcopy(source_bundle.get("retrieval_evidence", {})),
-        "retrieval_basket_promotion_refs": _normalize_basket_promotion_refs_snapshot(
-            source_bundle.get("retrieval_basket_promotion_refs")
-        ),
     }
 
 
@@ -629,14 +585,6 @@ def _build_retrieval_bundle_context_from_payload(payload: dict[str, object]) -> 
         "retrieval_manifest": copy.deepcopy(payload.get("retrieval_manifest", {})),
         "retrieval_provenance": copy.deepcopy(provenance),
         "retrieval_evidence": copy.deepcopy(payload.get("retrieval_evidence", {})),
-        "retrieval_basket_promotion_refs": _normalize_basket_promotion_refs_snapshot(
-            payload.get(
-                "retrieval_basket_promotion_refs",
-                payload.get("retrieval_evidence", {}).get("basket_promotion_refs", {})
-                if isinstance(payload.get("retrieval_evidence"), dict)
-                else {},
-            )
-        ),
     }
 
 
@@ -694,14 +642,6 @@ def _build_retrieval_context_bundle_from_payload(payload: dict[str, object]) -> 
         "retrieval_provenance": _build_retrieval_provenance_from_payload(payload),
         "retrieval_source_bundle": _build_retrieval_source_bundle_from_payload(payload),
         "retrieval_evidence": copy.deepcopy(payload.get("retrieval_evidence", {})),
-        "retrieval_basket_promotion_refs": _normalize_basket_promotion_refs_snapshot(
-            payload.get(
-                "retrieval_basket_promotion_refs",
-                payload.get("retrieval_evidence", {}).get("basket_promotion_refs", {})
-                if isinstance(payload.get("retrieval_evidence"), dict)
-                else {},
-            )
-        ),
     }
 
 
@@ -897,21 +837,21 @@ def _build_retrieval_provenance_from_payload(payload: dict[str, object]) -> dict
         normalized["excerpt_citations"] = copy.deepcopy(excerpt_citations)
     else:
         normalized["excerpt_citations"] = _normalize_list_like(normalized["excerpt_citations"])
-    if _is_missing_snapshot_value(normalized.get("primary_doc_id")) and doc_citations:
+    if "primary_doc_id" not in normalized and doc_citations:
         first_doc_citation = doc_citations[0]
         if isinstance(first_doc_citation, dict):
             normalized["primary_doc_id"] = first_doc_citation.get("doc_id")
-            if _is_missing_snapshot_value(normalized.get("primary_doc_fingerprint")):
+            if "primary_doc_fingerprint" not in normalized:
                 normalized["primary_doc_fingerprint"] = first_doc_citation.get("doc_fingerprint")
-            if _is_missing_snapshot_value(normalized.get("primary_doc_identity_fingerprint")):
+            if "primary_doc_identity_fingerprint" not in normalized:
                 normalized["primary_doc_identity_fingerprint"] = first_doc_citation.get("doc_identity_fingerprint")
-    if _is_missing_snapshot_value(normalized.get("primary_excerpt_id")) and excerpt_citations:
+    if "primary_excerpt_id" not in normalized and excerpt_citations:
         first_excerpt_citation = excerpt_citations[0]
         if isinstance(first_excerpt_citation, dict):
             normalized["primary_excerpt_id"] = first_excerpt_citation.get("excerpt_id")
-            if _is_missing_snapshot_value(normalized.get("primary_excerpt_fingerprint")):
+            if "primary_excerpt_fingerprint" not in normalized:
                 normalized["primary_excerpt_fingerprint"] = first_excerpt_citation.get("excerpt_fingerprint")
-            if _is_missing_snapshot_value(normalized.get("primary_excerpt_text_hash")):
+            if "primary_excerpt_text_hash" not in normalized:
                 normalized["primary_excerpt_text_hash"] = first_excerpt_citation.get("excerpt_text_hash")
     return normalized
 
@@ -937,7 +877,6 @@ class RetrievalDownstreamPayload:
     retrieval_manifest: dict[str, object]
     retrieval_evidence: dict[str, object]
     retrieval_provenance: dict[str, object]
-    retrieval_basket_promotion_refs: dict[str, object]
     source_bundle_fingerprint: str
     retrieval_source_bundle: dict[str, object]
 
@@ -947,9 +886,6 @@ class RetrievalDownstreamPayload:
         manifest = copy.deepcopy(self.retrieval_manifest)
         evidence = copy.deepcopy(self.retrieval_evidence)
         provenance = copy.deepcopy(self.retrieval_provenance)
-        basket_promotion_refs = _normalize_basket_promotion_refs_snapshot(
-            self.retrieval_basket_promotion_refs
-        )
         summary = copy.deepcopy(self.retrieval_summary)
         source_bundle = copy.deepcopy(self.retrieval_source_bundle)
         return {
@@ -971,7 +907,6 @@ class RetrievalDownstreamPayload:
             "retrieval_manifest": manifest,
             "retrieval_evidence": evidence,
             "retrieval_provenance": provenance,
-            "retrieval_basket_promotion_refs": basket_promotion_refs,
             "source_bundle_fingerprint": self.source_bundle_fingerprint,
             "retrieval_source_bundle": source_bundle,
         }
@@ -1011,7 +946,6 @@ def build_retrieval_downstream_payload(
     retrieval_manifest: dict[str, object],
     retrieval_evidence: dict[str, object],
     retrieval_provenance: dict[str, object],
-    retrieval_basket_promotion_refs: dict[str, object],
     source_bundle_fingerprint: str,
     retrieval_source_bundle: dict[str, object],
 ) -> dict[str, object]:
@@ -1033,7 +967,6 @@ def build_retrieval_downstream_payload(
         retrieval_manifest=retrieval_manifest,
         retrieval_evidence=retrieval_evidence,
         retrieval_provenance=retrieval_provenance,
-        retrieval_basket_promotion_refs=retrieval_basket_promotion_refs,
         source_bundle_fingerprint=source_bundle_fingerprint,
         retrieval_source_bundle=retrieval_source_bundle,
     ).as_dict()

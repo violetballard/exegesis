@@ -349,9 +349,6 @@ class RetrievalResult:
             citation_status=citation_status,
             retrieval_summary=retrieval_summary,
         )
-        basket_promotion_refs = self.evidence.get("basket_promotion_refs", {})
-        if not isinstance(basket_promotion_refs, dict):
-            basket_promotion_refs = {"doc_refs": [], "excerpt_refs": []}
         return build_retrieval_downstream_payload(
             query=query,
             policy=retrieval_policy,
@@ -370,7 +367,6 @@ class RetrievalResult:
             retrieval_manifest=dict(self.diagnostics["retrieval_manifest"]),
             retrieval_evidence=dict(self.evidence),
             retrieval_provenance=retrieval_provenance,
-            retrieval_basket_promotion_refs=copy.deepcopy(basket_promotion_refs),
             source_bundle_fingerprint=cast(str, retrieval_source_bundle["source_bundle_fingerprint"]),
             retrieval_source_bundle=retrieval_source_bundle,
         )
@@ -490,9 +486,6 @@ class RetrievalResult:
             "retrieval_provenance": copy.deepcopy(downstream_payload["retrieval_provenance"]),
             "retrieval_source_bundle": copy.deepcopy(downstream_payload["retrieval_source_bundle"]),
             "retrieval_evidence": copy.deepcopy(downstream_payload["retrieval_evidence"]),
-            "retrieval_basket_promotion_refs": copy.deepcopy(
-                downstream_payload["retrieval_basket_promotion_refs"]
-            ),
         }
 
     def _query_snapshot(self) -> dict[str, object]:
@@ -703,9 +696,6 @@ class RetrievalResult:
             "retrieval_manifest": copy.deepcopy(self.diagnostics["retrieval_manifest"]),
             "retrieval_provenance": copy.deepcopy(retrieval_provenance),
             "retrieval_evidence": copy.deepcopy(self.evidence),
-            "retrieval_basket_promotion_refs": copy.deepcopy(
-                self.evidence.get("basket_promotion_refs", {"doc_refs": [], "excerpt_refs": []})
-            ),
         }
 
     def _retrieval_source_bundle_snapshot(
@@ -745,9 +735,6 @@ class RetrievalResult:
             "excerpt_hits": [hit.as_dict() for hit in self.hits],
             "retrieval_manifest": copy.deepcopy(self.diagnostics["retrieval_manifest"]),
             "retrieval_evidence": copy.deepcopy(self.evidence),
-            "retrieval_basket_promotion_refs": copy.deepcopy(
-                self.evidence.get("basket_promotion_refs", {"doc_refs": [], "excerpt_refs": []})
-            ),
             "retrieval_provenance": copy.deepcopy(
                 self._retrieval_provenance_snapshot(
                     citation_bundle=citation_bundle_snapshot,
@@ -799,7 +786,6 @@ class RetrievalService:
         }
         self._write_encrypted_json(self._root / _DOC_META_FILE, meta)
         self._upsert_fts_entries(doc_id=doc_id, doc_type=doc_type, title_hint=title_hint, text=text)
-        self._fts.clear_cache()
 
     def build_pageindex(self, *, doc_id: str, options: DocIndexBuildOptions | None = None) -> str:
         source = self._read_doc_text(doc_id)
@@ -995,20 +981,17 @@ class RetrievalService:
             merged_hits,
             retrieval_policy=retrieval_policy,
         )
-        result_fingerprint = self._build_result_fingerprint(
-            query_fingerprint=query_fingerprint,
-            retrieval_manifest=retrieval_manifest,
-        )
         retrieval_evidence = self._build_retrieval_evidence(
             query=query,
             doc_hits=doc_hits,
             hits=merged_hits,
             retrieval_manifest=retrieval_manifest,
             query_fingerprint=query_fingerprint,
-            result_fingerprint=result_fingerprint,
             retrieval_policy=retrieval_policy,
-            candidate_doc_count=effective_candidate_doc_count,
-            fts_shortlist_doc_ids=fts_shortlist,
+        )
+        result_fingerprint = self._build_result_fingerprint(
+            query_fingerprint=query_fingerprint,
+            retrieval_manifest=retrieval_manifest,
         )
         elapsed_ms_total = max(0, int((self._now_fn() - started).total_seconds() * 1000))
         diagnostics = {
@@ -1362,10 +1345,7 @@ class RetrievalService:
         hits: list[RetrievalHit],
         retrieval_manifest: dict[str, object],
         query_fingerprint: str,
-        result_fingerprint: str,
         retrieval_policy: dict[str, object],
-        candidate_doc_count: int | None,
-        fts_shortlist_doc_ids: tuple[str, ...],
     ) -> dict[str, object]:
         doc_citations: list[dict[str, object]] = []
         for doc_hit in doc_hits:
@@ -1411,16 +1391,8 @@ class RetrievalService:
 
         return {
             "query_fingerprint": query_fingerprint,
-            "result_fingerprint": result_fingerprint,
             "query_scope": query.scope,
             "query_intent": query.intent,
-            "query_date_range": (
-                list(query.constraints.date_range)
-                if query.constraints.date_range is not None
-                else None
-            ),
-            "candidate_doc_count": candidate_doc_count,
-            "fts_shortlist_doc_ids": list(fts_shortlist_doc_ids),
             "retrieval_policy": dict(retrieval_policy),
             "retrieval_backend": cast(str, retrieval_policy["retrieval_backend"]),
             "retrieval_mode": cast(str, retrieval_policy["retrieval_mode"]),
@@ -1439,82 +1411,8 @@ class RetrievalService:
             "excerpt_count": len(hits),
             "doc_citations": doc_citations,
             "excerpt_citations": excerpt_citations,
-            "basket_promotion_refs": self._build_basket_promotion_refs(
-                doc_hits=doc_hits,
-                hits=hits,
-                query_fingerprint=query_fingerprint,
-                result_fingerprint=result_fingerprint,
-                query_scope=query.scope,
-                query_intent=query.intent,
-                query_date_range=query.constraints.date_range,
-            ),
             "retrieval_manifest": dict(retrieval_manifest),
         }
-
-    @staticmethod
-    def _build_basket_promotion_refs(
-        *,
-        doc_hits: list[RetrievalDocHit],
-        hits: list[RetrievalHit],
-        query_fingerprint: str,
-        result_fingerprint: str,
-        query_scope: str,
-        query_intent: str,
-        query_date_range: tuple[str, str] | None,
-    ) -> dict[str, object]:
-        """Return stable doc/excerpt references suitable for basket promotion."""
-
-        query_date_range_snapshot = list(query_date_range) if query_date_range is not None else None
-        refs: dict[str, object] = {
-            "doc_refs": [
-                {
-                    "doc_id": doc_hit.doc_id,
-                    "doc_type": doc_hit.provenance.get("doc_type"),
-                    "query_fingerprint": query_fingerprint,
-                    "query_scope": query_scope,
-                    "query_intent": query_intent,
-                    "query_date_range": query_date_range_snapshot,
-                    "result_fingerprint": result_fingerprint,
-                    "doc_fingerprint": doc_hit.provenance.get("doc_fingerprint"),
-                    "doc_identity_fingerprint": doc_hit.provenance.get("doc_identity_fingerprint"),
-                    "doc_rank": doc_hit.provenance.get("doc_rank"),
-                    "source_hash": doc_hit.source_hash,
-                    "top_excerpt_id": doc_hit.top_excerpt_id,
-                    "top_excerpt_fingerprint": doc_hit.provenance.get("top_excerpt_fingerprint"),
-                    "top_excerpt_text_hash": doc_hit.provenance.get("top_excerpt_text_hash"),
-                    "source_strategy": doc_hit.source_strategy,
-                    "retrieval_backend": doc_hit.provenance.get("retrieval_backend"),
-                    "retrieval_mode": doc_hit.provenance.get("retrieval_mode"),
-                }
-                for doc_hit in doc_hits
-            ],
-            "excerpt_refs": [
-                {
-                    "doc_id": hit.doc_id,
-                    "excerpt_id": hit.excerpt_id,
-                    "doc_type": hit.provenance.get("doc_type"),
-                    "query_fingerprint": query_fingerprint,
-                    "query_scope": query_scope,
-                    "query_intent": query_intent,
-                    "query_date_range": query_date_range_snapshot,
-                    "result_fingerprint": result_fingerprint,
-                    "excerpt_fingerprint": hit.provenance.get("excerpt_fingerprint"),
-                    "excerpt_text_hash": hit.provenance.get("excerpt_text_hash") or hit.provenance.get("hash"),
-                    "span": copy.deepcopy(hit.provenance.get("span")),
-                    "source_hash": hit.provenance.get("source_hash"),
-                    "rank": hit.provenance.get("rank"),
-                    "match_count": hit.provenance.get("match_count"),
-                    "matched_terms": copy.deepcopy(hit.provenance.get("matched_terms")),
-                    "source_strategy": hit.source_strategy,
-                    "retrieval_backend": hit.provenance.get("retrieval_backend"),
-                    "retrieval_mode": hit.provenance.get("retrieval_mode"),
-                }
-                for hit in hits
-                if hit.excerpt_id is not None
-            ],
-        }
-        refs["basket_promotion_fingerprint"] = RetrievalService._stable_fingerprint(refs)
-        return refs
 
     @staticmethod
     def _build_result_fingerprint(

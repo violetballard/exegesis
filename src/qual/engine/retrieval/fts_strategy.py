@@ -36,12 +36,6 @@ class FTSStrategy:
     def supports(self, query: Any) -> bool:
         return True
 
-    def clear_cache(self) -> None:
-        """Drop cached hits after the backing FTS index changes."""
-
-        self._cache_key = None
-        self._cache_hits = None
-
     def retrieve(self, query: Any, *, candidate_doc_ids: tuple[str, ...]) -> StrategyRun:
         """Execute the underlying ``runner`` or return a cached result.
 
@@ -62,14 +56,14 @@ class FTSStrategy:
             )
 
         started = int(self._now_fn())
-        hits = copy.deepcopy(self._runner(query, candidate_doc_ids))
+        hits = self._runner(query, candidate_doc_ids)
         # Update the one‑slot cache with the fresh result.
         self._cache_key = cache_key
         self._cache_hits = copy.deepcopy(hits)
 
         elapsed_ns = max(0, int(self._now_fn()) - started)
         elapsed_ms = elapsed_ns // 1_000_000
-        return StrategyRun(strategy_id=self.id, hits=copy.deepcopy(hits), elapsed_ms=elapsed_ms, cache_used=False)
+        return StrategyRun(strategy_id=self.id, hits=hits, elapsed_ms=elapsed_ms, cache_used=False)
 
     @staticmethod
     def _make_cache_key(query: Any, candidate_doc_ids: tuple[str, ...]) -> tuple[Any, tuple[str, ...]]:
