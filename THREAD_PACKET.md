@@ -4,7 +4,7 @@
 - Branch: `codex/feat-commands`
 - Review target: branch tip `codex/feat-commands`, including the latest fixer commit.
 - Review basis: `git diff --stat --name-status f8d860ed9f6299f0169c4f21321ac5f37c949fd3..HEAD -- THREAD.md THREAD_PACKET.md src/qual/cli.py src/qual/commands/__init__.py src/qual/commands/catalog.py tests/unit/test_commands_catalog.py`
-- Fixer prompts satisfied: `20260429T152044Z`, `20260429T152842Z`, `20260429T154016Z`, `20260429T154607Z`, `20260429T155155Z`
+- Fixer prompts satisfied: `20260429T152044Z`, `20260429T152842Z`, `20260429T154016Z`, `20260429T154607Z`, `20260429T155155Z`, `20260429T155636Z`
 
 This packet uses the branch tip as the review target. It includes the earlier reviewed `f8d860ed9f6299f0169c4f21321ac5f37c949fd3` slice and all later implementation, test, and handoff commits on `codex/feat-commands`; no later implementation commits are excluded from the merge target.
 
@@ -14,9 +14,10 @@ This packet uses the branch tip as the review target. It includes the earlier re
 2. All implementation files in the branch-tip diff are listed below: `src/qual/cli.py`, `src/qual/commands/__init__.py`, and `src/qual/commands/catalog.py`.
 3. `command_cli_contract()` now validates the command catalog against the actual argparse subparser surface built by `src/qual/cli.py`.
 4. Parser drift tests cover live parser rename drift, extra-token drift, missing-token drift, and catalog canonical-name drift.
-5. The canonical demo-path alignment below states the exact canonical demo-path step advanced by every completed task.
+5. The canonical demo-path alignment below maps every completed task to the exact AGENTS canonical demo-path step it advances.
 6. Ownership wording distinguishes lane-owned files, shared-by-approval files, and integrator-locked files.
 7. Metadata-only files changed by packet refresh commit `a9266aca4b87a2ad1df4e8615a2a4adfb816fc44` are listed completely: `THREAD.md` and `THREAD_PACKET.md`.
+8. The canonical demo-path impact statement below explains how deterministic CLI contract validation strengthens the engine-first MVP loop rather than only the command catalog internals.
 
 ## Implementation Summary
 
@@ -28,9 +29,9 @@ This packet uses the branch tip as the review target. It includes the earlier re
 
 ## Canonical Demo-Path Alignment
 
-Canonical demo-path sequence: `open project/document`, `retrieve relevant material`, `gather context into basket`, `preview/apply/reject patch`, `persist session state`.
+Canonical demo-path sequence from AGENTS: `open project/document`, `retrieve relevant material`, `promote or gather context into the basket`, `preview and apply or reject a patch`, `persist session state`.
 
-This command-catalog slice makes the `retrieve relevant material` step more real directly, and keeps adjacent command surfaces discoverable for `open project/document`, `gather context into basket`, `preview/apply/reject patch`, and `persist session state`. The concrete blocker removed is parser/catalog drift: before this contract check, the live CLI parser could accept a command token that the catalog did not describe, or the catalog could advertise a token the parser could not parse. This fix does not implement revise/save/apply behavior; it only validates the command discovery and parser contract for the command surfaces already present in this branch.
+Canonical demo-path impact: deterministic CLI contract validation strengthens the engine-first MVP loop by making the CLI fallback a trustworthy way to drive the same demo-path operations that A2UI will later call. The engine loop depends on stable command tokens to open inputs, request retrieval, gather context, and preview patch work; parser/catalog drift would break that loop before the engine receives the intended operation. This branch therefore makes `retrieve relevant material` more real directly and keeps adjacent command surfaces discoverable for `open project/document`, `promote or gather context into the basket`, `preview and apply or reject a patch`, and `persist session state`. It does not implement revise/save/apply behavior; it validates the command discovery and parser contract for the command surfaces already present in this branch.
 
 1. Added and exported deterministic command catalog helpers for CLI command tokens and route metadata.
    Exact canonical demo-path step advanced: `retrieve relevant material`, because retrieval starts from stable parser tokens and catalog metadata.
@@ -39,13 +40,13 @@ This command-catalog slice makes the `retrieve relevant material` step more real
    Exact canonical demo-path step advanced: `retrieve relevant material`, because the CLI cannot reliably request relevant material if the parser accepts a token the catalog does not describe.
 
 3. Added live parser drift tests for renamed parser tokens, missing parser tokens, and extra parser tokens.
-   Exact canonical demo-path step advanced: `gather context into basket`, because context basket operations depend on the parser and catalog agreeing on the `context-basket` command surface.
+   Exact canonical demo-path step advanced: `promote or gather context into the basket`, because context basket operations depend on the parser and catalog agreeing on the `context-basket` command surface.
 
 4. Preserved alias and route-contract coverage for `diff-preview`/`diff`, terminal/export routing, and smoke argv helpers.
-   Exact canonical demo-path steps advanced: `preview/apply/reject patch` through `diff-preview`/`diff` command metadata, and `persist session state` through `terminal` export-handoff metadata. This branch validates command surfaces only; it does not add apply/reject or persistence behavior.
+   Exact canonical demo-path steps advanced: `preview and apply or reject a patch` through `diff-preview`/`diff` command metadata, and `persist session state` through `terminal` export-handoff metadata. This branch validates command surfaces only; it does not add apply/reject or persistence behavior.
 
 5. Refreshed the handoff packet with the complete branch-tip diff, changed-file list, ownership/risk note, and gate evidence.
-   Exact canonical demo-path step advanced: `retrieve relevant material`, because the handoff now names how parser/catalog drift blocked reliable retrieval command discovery and parsing. It also states the adjacent `open project/document`, `gather context into basket`, `preview/apply/reject patch`, and `persist session state` surfaces kept discoverable, and names every metadata file changed by packet refresh commit `a9266aca4b87a2ad1df4e8615a2a4adfb816fc44`.
+   Exact canonical demo-path step advanced: `retrieve relevant material`, because the handoff now names how parser/catalog drift blocked reliable retrieval command discovery and parsing. It also states the adjacent `open project/document`, `promote or gather context into the basket`, `preview and apply or reject a patch`, and `persist session state` surfaces kept discoverable, and names every metadata file changed by packet refresh commit `a9266aca4b87a2ad1df4e8615a2a4adfb816fc44`.
 
 ## Files Changed In Review Target
 
@@ -110,6 +111,7 @@ Fresh fixer rerun for `20260429T152842Z` validates the canonical demo-path and m
 Fresh fixer rerun for `20260429T154016Z` validates that every completed task explicitly names the canonical demo-path step it advances.
 Fresh fixer rerun for `20260429T154607Z` validates that the actual branch tip is the review and merge target, all implementation files are in scope, live argparse parser-surface validation is claimed accurately, and each completed task names the exact canonical demo-path step it advances.
 Fresh fixer rerun for `20260429T155155Z` resolves the offline-review fallback by rerunning every requested gate and recording passing results: `make scope-check`, `./quality-format.sh --check`, `./quality-lint.sh`, `./quality-test.sh`, `./typecheck-test.sh`, and `make ci`.
+Fresh fixer rerun for `20260429T155636Z` maps each completed task to AGENTS canonical demo-path wording, adds the deterministic CLI contract impact statement for the engine-first MVP loop, and validates the full required gate set.
 
 ## Risks And Blockers
 
@@ -119,6 +121,6 @@ Fresh fixer rerun for `20260429T155155Z` resolves the offline-review fallback by
 
 ## Final Readiness Statement
 
-This branch-tip command contract work makes `retrieve relevant material` more real by ensuring the live CLI parser and command catalog cannot silently drift apart. That parser/catalog drift was a direct blocker because the demo path begins with concrete command tokens; if the parser and catalog disagree, the CLI cannot reliably discover and parse the retrieval command surface. Adjacent catalog entries also keep the existing `open project/document`, `gather context into basket`, `preview/apply/reject patch`, and `persist session state` command surfaces discoverable, without claiming new revise/save/apply behavior.
+This branch-tip command contract work makes `retrieve relevant material` more real by ensuring the live CLI parser and command catalog cannot silently drift apart. That parser/catalog drift was a direct blocker because the demo path begins with concrete command tokens; if the parser and catalog disagree, the CLI cannot reliably discover and parse the retrieval command surface. Adjacent catalog entries also keep the existing `open project/document`, `promote or gather context into the basket`, `preview and apply or reject a patch`, and `persist session state` command surfaces discoverable, without claiming new revise/save/apply behavior.
 
 This work makes `retrieve relevant material` more real by enforcing one shared parser/catalog contract for the CLI retrieval command surface.
