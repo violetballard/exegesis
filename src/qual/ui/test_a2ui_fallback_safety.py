@@ -2397,6 +2397,68 @@ class A2UIFallbackSafetyTests(unittest.TestCase):
             terminal_artifact_raw_leaf_card_default_contract_fingerprint(),
         )
 
+    def test_terminal_artifact_cli_fallback_target_contract_fingerprints_expose_nested_aliases_when_requested(
+        self,
+    ) -> None:
+        fingerprints = describe_terminal_artifact_cli_fallback_target_contract_fingerprints(
+            include_terminal_artifact_cli_fallback_route=True,
+            include_contract_aliases=True,
+        )
+
+        self.assertEqual(
+            fingerprints["terminal_artifact_cli_fallback_entrypoint_contract_fingerprints"],
+            terminal_artifact_cli_fallback_entrypoint_contract_fingerprints_fingerprint(),
+        )
+        self.assertEqual(
+            fingerprints["terminal_artifact_cli_fallback_entrypoint_contract_fingerprints_fingerprint"],
+            terminal_artifact_cli_fallback_entrypoint_contract_fingerprints_fingerprint(),
+        )
+        self.assertEqual(
+            fingerprints["terminal_artifact_cli_fallback_target_contract_fingerprints"],
+            terminal_artifact_cli_fallback_target_contract_fingerprints_fingerprint(
+                include_terminal_artifact_cli_fallback_route=True,
+            ),
+        )
+        self.assertEqual(
+            fingerprints["terminal_artifact_cli_fallback_target_contract_fingerprints_fingerprint"],
+            terminal_artifact_cli_fallback_target_contract_fingerprints_fingerprint(
+                include_terminal_artifact_cli_fallback_route=True,
+            ),
+        )
+        self.assertEqual(
+            fingerprints["terminal_artifact_cli_fallback_route_contract_fingerprints"],
+            terminal_artifact_cli_fallback_route_contract_fingerprints_fingerprint(),
+        )
+        self.assertEqual(
+            fingerprints["terminal_artifact_cli_fallback_route_contract_fingerprints_fingerprint"],
+            terminal_artifact_cli_fallback_route_contract_fingerprints_fingerprint(),
+        )
+
+    def test_terminal_artifact_cli_fallback_contract_fingerprints_propagate_nested_target_aliases(
+        self,
+    ) -> None:
+        fingerprints = describe_terminal_artifact_cli_fallback_contract_fingerprints(
+            include_terminal_artifact_cli_fallback=True,
+            include_terminal_artifact_cli_fallback_route=True,
+            include_contract_aliases=True,
+        )
+        target_fingerprints = fingerprints["terminal_artifact_cli_fallback_target_contract_fingerprints"]
+
+        self.assertEqual(
+            target_fingerprints["terminal_artifact_cli_fallback_entrypoint_contract_fingerprints"],
+            terminal_artifact_cli_fallback_entrypoint_contract_fingerprints_fingerprint(),
+        )
+        self.assertEqual(
+            target_fingerprints["terminal_artifact_cli_fallback_target_contract_fingerprints"],
+            terminal_artifact_cli_fallback_target_contract_fingerprints_fingerprint(
+                include_terminal_artifact_cli_fallback_route=True,
+            ),
+        )
+        self.assertEqual(
+            target_fingerprints["terminal_artifact_cli_fallback_route_contract_fingerprints"],
+            terminal_artifact_cli_fallback_route_contract_fingerprints_fingerprint(),
+        )
+
     def test_terminal_artifact_cli_fallback_target_contract_exposes_raw_leaf_policy_contract_aliases(self) -> None:
         manifest = describe_terminal_artifact_cli_fallback_target_contract()
         policy_contract = describe_terminal_artifact_raw_leaf_card_default_policy_contract()
