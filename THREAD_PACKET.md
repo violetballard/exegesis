@@ -2,9 +2,9 @@
 
 - Lane: `feat-commands`
 - Branch: `codex/feat-commands`
-- Review basis: actual `codex/feat-commands` branch tip after the `20260429T031430Z` reviewer-fix pass.
+- Review basis: actual `codex/feat-commands` branch tip after the `20260429T031719Z` reviewer-fix pass.
 - Previous implementation anchor: `f8d860ed9f6299f0169c4f21321ac5f37c949fd3`
-- Reviewer packet addressed: `20260429T031430Z`
+- Reviewer packet addressed: `20260429T031719Z`
 - Final verifier tip: the branch-tip reviewer-fix commit containing this packet restamp, with the actual `codex/feat-commands` branch tip as the only review basis.
 
 ## Packet Traceability Note
@@ -171,12 +171,20 @@
 5. Demo-path mapping: every completed task names the canonical demo-path command steps it protects or advances, including project open, retrieval/context basket, patch preview/apply/reject, and export/handoff.
 6. Required gates: final results are recorded below after rerun on the same final branch-tip review basis named in this packet.
 
+## Required Fixes Addressed From Reviewer Packet `20260429T031719Z`
+
+1. One truthful review basis: this packet uses the actual final `codex/feat-commands` branch tip after this fixer pass, not the narrow `f8d860ed9f6299f0169c4f21321ac5f37c949fd3` implementation slice.
+2. Exact parser-visible validation: `command_cli_contract()` validates expected CLI tokens, lookup-table shape/order, grouped canonical surface, declared grouped surface, and canonical-name order before returning the contract.
+3. Regression coverage: tests include same-canonical parser drift for `bootstrap` -> `open`, `diff-preview` -> `diff`, and `diff` -> `diff_preview`, plus token removal, addition, reordering, lookup-table substitution, and lookup-table ordering drift.
+4. Demo-path mapping: every completed task names the canonical demo-path command steps it protects or advances, including project open, retrieval/context basket, patch preview/apply/reject, and export/handoff.
+5. Required gates: final results are recorded below after rerun on the same final branch-tip review basis named in this packet.
+
 ## Commands Run + Outcomes
 
 - `make scope-check`: PASS for branch `codex/feat-commands`.
 - `./quality-format.sh --check`: PASS.
 - `./quality-lint.sh`: PASS.
-- `./quality-test.sh`: PASS; ran smoke tests and 151 unit tests, including same-canonical parser drift regressions for `bootstrap` -> `open`, `diff-preview` -> `diff`, and `diff` -> `diff_preview`.
+- `./quality-test.sh`: PASS; ran smoke tests and 152 unit tests, including same-canonical parser drift regressions for `bootstrap` -> `open`, `diff-preview` -> `diff`, and `diff` -> `diff_preview`.
 - `./typecheck-test.sh`: PASS; compiled Python sources in `src/`.
 - `make ci`: PASS; ran scope-check, format, lint, compileall/typecheck, and full quality tests.
 
