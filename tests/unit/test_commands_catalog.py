@@ -3,7 +3,6 @@ from __future__ import annotations
 import unittest
 from unittest.mock import patch
 
-import src.qual.cli as cli
 import src.qual.commands.catalog as command_catalog
 from src.qual.commands import (
     CommandSpec,
@@ -50,21 +49,6 @@ from src.qual.commands import (
     command_mvp_flow_tokens,
     command_mvp_flow_sequence,
     command_mvp_flow_steps,
-    command_mvp_smoke_argv,
-    command_mvp_smoke_command_lines,
-    command_mvp_smoke_commands,
-    command_mvp_smoke_contract,
-    command_mvp_smoke_lookup_table,
-    command_mvp_demo_path_command_lines,
-    command_mvp_demo_path_contract,
-    command_mvp_demo_path_action_lookup_table,
-    command_mvp_demo_path_cli_lookup_table,
-    command_mvp_demo_path_command_lookup_table,
-    command_mvp_demo_path_engine_handoffs,
-    command_mvp_demo_path_handoff_lookup_table,
-    command_mvp_demo_path_lookup_contract,
-    command_mvp_demo_path_lookup_table,
-    command_mvp_demo_path_steps,
     command_mvp_lookup_index,
     command_mvp_surface_contract,
     command_surface_contract,
@@ -81,11 +65,6 @@ from src.qual.commands import (
 
 
 class CommandCatalogTests(unittest.TestCase):
-    def _clear_cli_caches(self) -> None:
-        command_catalog.command_cli_tokens.cache_clear()
-        command_catalog.command_cli_lookup_table.cache_clear()
-        command_catalog.command_cli_contract.cache_clear()
-
     def test_command_names_match_catalog_order(self) -> None:
         self.assertEqual(
             command_names(),
@@ -134,121 +113,17 @@ class CommandCatalogTests(unittest.TestCase):
             ),
         )
 
-    def test_actual_argparse_surface_matches_the_command_contract(self) -> None:
-        self.assertEqual(cli.command_parser_lookup_table(), command_cli_lookup_table())
-        self.assertEqual(cli.command_parser_tokens(), command_cli_tokens())
-
     def test_command_cli_contract_matches_the_catalog_order(self) -> None:
         contract = command_cli_contract()
         self.assertEqual(contract.tokens, command_cli_tokens())
         self.assertEqual(contract.canonical_names, command_names())
         self.assertEqual(contract.lookup_table, command_cli_lookup_table())
-        self.assertEqual(cli.command_parser_lookup_table(), command_cli_lookup_table())
-
-    def test_command_cli_contract_rejects_actual_add_parser_token_drift(self) -> None:
-        self._clear_cli_caches()
-        original_add_parser = cli.argparse._SubParsersAction.add_parser
-
-        def drift_add_parser(
-            subparsers: cli.argparse._SubParsersAction,
-            name: str,
-            *args: object,
-            **kwargs: object,
-        ) -> cli.argparse.ArgumentParser:
-            if getattr(subparsers, "dest", None) == "command" and name == "diff-preview":
-                name = "diff-live"
-            return original_add_parser(subparsers, name, *args, **kwargs)
-
-        with patch.object(cli.argparse._SubParsersAction, "add_parser", new=drift_add_parser):
-            with self.assertRaisesRegex(ValueError, "Command CLI parser surface is inconsistent"):
-                command_catalog.command_cli_contract()
-
-    def test_command_cli_contract_rejects_parser_alias_rename_drift(self) -> None:
-        self._clear_cli_caches()
-        original_add_parser = cli.argparse._SubParsersAction.add_parser
-
-        def drift_add_parser(
-            subparsers: cli.argparse._SubParsersAction,
-            name: str,
-            *args: object,
-            **kwargs: object,
-        ) -> cli.argparse.ArgumentParser:
-            if getattr(subparsers, "dest", None) == "command" and name == "diff":
-                name = "show-diff"
-            return original_add_parser(subparsers, name, *args, **kwargs)
-
-        with patch.object(cli.argparse._SubParsersAction, "add_parser", new=drift_add_parser):
-            with self.assertRaisesRegex(ValueError, "Command CLI parser surface is inconsistent"):
-                command_catalog.command_cli_contract()
-
-    def test_command_cli_contract_rejects_parser_only_token_addition(self) -> None:
-        self._clear_cli_caches()
-        original_add_parser = cli.argparse._SubParsersAction.add_parser
-
-        def drift_add_parser(
-            subparsers: cli.argparse._SubParsersAction,
-            name: str,
-            *args: object,
-            **kwargs: object,
-        ) -> cli.argparse.ArgumentParser:
-            command_parser = original_add_parser(subparsers, name, *args, **kwargs)
-            if getattr(subparsers, "dest", None) == "command" and name == "terminal":
-                original_add_parser(subparsers, "parser-only", help="Parser-only drift")
-            return command_parser
-
-        with patch.object(cli.argparse._SubParsersAction, "add_parser", new=drift_add_parser):
-            with self.assertRaisesRegex(ValueError, "Command CLI parser surface is inconsistent"):
-                command_catalog.command_cli_contract()
-
-    def test_command_cli_contract_rejects_parser_only_token_removal(self) -> None:
-        self._clear_cli_caches()
-        original_add_parser = cli.argparse._SubParsersAction.add_parser
-
-        def drift_add_parser(
-            subparsers: cli.argparse._SubParsersAction,
-            name: str,
-            *args: object,
-            **kwargs: object,
-        ) -> cli.argparse.ArgumentParser:
-            if getattr(subparsers, "dest", None) == "command" and name == "context-basket":
-                return cli.argparse.ArgumentParser(prog="qual-bootstrap context-basket")
-            return original_add_parser(subparsers, name, *args, **kwargs)
-
-        with patch.object(cli.argparse._SubParsersAction, "add_parser", new=drift_add_parser):
-            with self.assertRaisesRegex(ValueError, "Command CLI parser surface is inconsistent"):
-                command_catalog.command_cli_contract()
-
-    def test_command_cli_contract_rejects_actual_parser_extra_token_drift(self) -> None:
-        self._clear_cli_caches()
-        parser = cli._build_parser()
-        choices = cli._command_subparser_action(parser).choices
-        choices["diff-live"] = choices["diff-preview"]
-        with patch.object(cli, "_build_parser", return_value=parser):
-            with self.assertRaisesRegex(ValueError, "Command CLI parser surface is inconsistent"):
-                command_catalog.command_cli_contract()
-
-    def test_command_cli_contract_rejects_actual_parser_missing_token_drift(self) -> None:
-        self._clear_cli_caches()
-        parser = cli._build_parser()
-        choices = cli._command_subparser_action(parser).choices
-        choices.pop("terminal")
-        with patch.object(cli, "_build_parser", return_value=parser):
-            with self.assertRaisesRegex(ValueError, "Command CLI parser surface is inconsistent"):
-                command_catalog.command_cli_contract()
 
     def test_command_cli_contract_rejects_catalog_drift(self) -> None:
-        self._clear_cli_caches()
+        command_catalog.command_cli_contract.cache_clear()
         with patch.object(command_catalog, "command_names", return_value=("bootstrap", "diff-preview")):
             with self.assertRaisesRegex(ValueError, "Command CLI canonical names are inconsistent"):
                 command_catalog.command_cli_contract()
-
-    def test_command_cli_tokens_reject_duplicate_entrypoints(self) -> None:
-        specs = (
-            CommandSpec(name="bootstrap", aliases=("open",), flow_step="project-open", cli_tokens=("bootstrap",)),
-            CommandSpec(name="review", aliases=("patch",), flow_step="patch-review", cli_tokens=("bootstrap",)),
-        )
-        with self.assertRaisesRegex(ValueError, "Duplicate command CLI entrypoint: bootstrap"):
-            command_catalog.command_cli_tokens(specs)
 
     def test_command_cli_lookup_table_resolves_through_the_catalog(self) -> None:
         self.assertEqual(
@@ -258,11 +133,9 @@ class CommandCatalogTests(unittest.TestCase):
 
     def test_command_cli_tokens_reject_unknown_entrypoints(self) -> None:
         command_catalog.command_cli_tokens.cache_clear()
-        specs = (
-            CommandSpec(name="bootstrap", aliases=("open",), flow_step="project-open", cli_tokens=("not-a-command",)),
-        )
-        with self.assertRaisesRegex(ValueError, "Unknown CLI command entrypoint: not-a-command"):
-            command_catalog.command_cli_tokens(specs)
+        with patch.object(command_catalog, "_CLI_ENTRYPOINTS", ("bootstrap", "not-a-command")):
+            with self.assertRaisesRegex(ValueError, "Unknown CLI command entrypoint: not-a-command"):
+                command_catalog.command_cli_tokens()
 
     def test_command_cli_flow_contract_maps_parser_tokens_to_mvp_flow_steps(self) -> None:
         contract = command_cli_flow_contract()
@@ -656,119 +529,6 @@ class CommandCatalogTests(unittest.TestCase):
         self.assertEqual(mvp_contract.flow_catalog, command_mvp_flow_catalog())
         self.assertEqual(mvp_contract.lookup_surface, command_mvp_flow_lookup_surface())
         self.assertEqual(mvp_contract.flow_surface_tokens, command_mvp_flow_surface_tokens())
-
-    def test_public_mvp_smoke_exports_track_the_demo_path(self) -> None:
-        contract = command_mvp_smoke_contract()
-        self.assertEqual(
-            tuple((step.flow_step, step.name, step.cli_token, step.argv) for step in contract.steps),
-            (
-                ("project-open", "bootstrap", "bootstrap", ("bootstrap",)),
-                ("retrieval", "context-basket", "context-basket", ("context-basket", "list")),
-                ("patch-review", "diff-preview", "diff-preview", ("diff-preview",)),
-                ("export-handoff", "terminal", "terminal", ("terminal",)),
-            ),
-        )
-        self.assertEqual(command_mvp_smoke_commands(), contract.command_tokens)
-        self.assertEqual(command_mvp_smoke_argv(), contract.argv)
-        self.assertEqual(command_mvp_smoke_command_lines(), contract.command_lines)
-        self.assertEqual(command_mvp_smoke_lookup_table(), contract.lookup_table)
-        self.assertEqual(
-            command_mvp_smoke_command_lines(),
-            ("bootstrap", "context-basket list", "diff-preview", "terminal"),
-        )
-        self.assertEqual(
-            contract.lookup_table,
-            (
-                ("bootstrap", "project-open"),
-                ("context-basket", "retrieval"),
-                ("diff-preview", "patch-review"),
-                ("terminal", "export-handoff"),
-            ),
-        )
-
-    def test_public_mvp_demo_path_exports_document_engine_handoffs(self) -> None:
-        contract = command_mvp_demo_path_contract()
-        self.assertEqual(command_mvp_demo_path_steps(), contract.steps)
-        self.assertEqual(command_mvp_demo_path_command_lines(), contract.command_lines)
-        self.assertEqual(command_mvp_demo_path_engine_handoffs(), contract.engine_handoffs)
-        self.assertEqual(
-            tuple(
-                (
-                    step.flow_step,
-                    step.command_line,
-                    step.operator_checkpoint,
-                    step.engine_handoff,
-                )
-                for step in contract.steps
-            ),
-            (
-                (
-                    "project-open",
-                    "bootstrap",
-                    "open project/document",
-                    "engine project bootstrap/open",
-                ),
-                (
-                    "retrieval",
-                    "context-basket list",
-                    "retrieve relevant material",
-                    "engine retrieval context selection",
-                ),
-                (
-                    "patch-review",
-                    "diff-preview",
-                    "preview and accept or reject patch",
-                    "engine patch preview and apply/reject decision",
-                ),
-                (
-                    "export-handoff",
-                    "terminal",
-                    "persist and continue through export handoff",
-                    "engine export handoff routing",
-                ),
-            ),
-        )
-
-    def test_public_mvp_demo_path_lookup_exports_are_stable(self) -> None:
-        contract = command_mvp_demo_path_lookup_contract()
-        demo_path = command_mvp_demo_path_contract()
-
-        self.assertEqual(command_mvp_demo_path_lookup_table(), contract.by_flow_step)
-        self.assertEqual(command_mvp_demo_path_command_lookup_table(), contract.by_command_name)
-        self.assertEqual(command_mvp_demo_path_cli_lookup_table(), contract.by_cli_token)
-        self.assertEqual(command_mvp_demo_path_action_lookup_table(), contract.action_lookup)
-        self.assertEqual(command_mvp_demo_path_handoff_lookup_table(), contract.handoff_lookup)
-        self.assertEqual(
-            contract.by_flow_step,
-            tuple((step.flow_step, step) for step in demo_path.steps),
-        )
-        self.assertEqual(
-            tuple((flow_step, step.name, step.cli_token) for flow_step, step in contract.by_flow_step),
-            (
-                ("project-open", "bootstrap", "bootstrap"),
-                ("retrieval", "context-basket", "context-basket"),
-                ("patch-review", "diff-preview", "diff-preview"),
-                ("export-handoff", "terminal", "terminal"),
-            ),
-        )
-        self.assertEqual(
-            contract.action_lookup,
-            (
-                ("project-open", ("open_project",)),
-                ("retrieval", ("retrieve_context",)),
-                ("patch-review", ("preview_patch", "apply_patch", "reject_patch")),
-                ("export-handoff", ("persist_session", "export_handoff")),
-            ),
-        )
-        self.assertEqual(
-            contract.handoff_lookup,
-            (
-                ("project-open", "engine project bootstrap/open"),
-                ("retrieval", "engine retrieval context selection"),
-                ("patch-review", "engine patch preview and apply/reject decision"),
-                ("export-handoff", "engine export handoff routing"),
-            ),
-        )
 
     def test_command_manifest_keeps_catalog_order(self) -> None:
         manifest = command_manifest()

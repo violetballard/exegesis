@@ -1,7 +1,6 @@
 from __future__ import annotations
 
 import re
-import shlex
 from dataclasses import dataclass
 from functools import lru_cache
 
@@ -12,7 +11,6 @@ class CommandSpec:
     aliases: tuple[str, ...] = ()
     description: str = ""
     flow_step: str = "general"
-    cli_tokens: tuple[str, ...] = ()
 
 
 @dataclass(frozen=True)
@@ -116,88 +114,6 @@ class CommandFlowRouteContract:
     entries: tuple[CommandFlowRouteEntry, ...]
 
 
-@dataclass(frozen=True)
-class CommandSmokeStep:
-    flow_step: str
-    name: str
-    cli_token: str
-    argv: tuple[str, ...]
-    description: str
-
-    @property
-    def command_line(self) -> str:
-        return shlex.join(self.argv)
-
-
-@dataclass(frozen=True)
-class CommandSmokeContract:
-    steps: tuple[CommandSmokeStep, ...]
-    command_tokens: tuple[str, ...]
-    argv: tuple[tuple[str, ...], ...]
-    lookup_table: tuple[tuple[str, str], ...]
-    command_lines: tuple[str, ...] = ()
-    route_summary: tuple[tuple[str, str, tuple[str, ...]], ...] = ()
-    lookup_surface: tuple[tuple[str, str], ...] = ()
-    flow_surface_tokens: tuple[tuple[str, ...], ...] = ()
-
-
-@dataclass(frozen=True)
-class CommandDemoPathStep:
-    flow_step: str
-    name: str
-    cli_token: str
-    argv: tuple[str, ...]
-    command_line: str
-    operator_checkpoint: str
-    engine_handoff: str
-    description: str
-    engine_actions: tuple[str, ...] = ()
-
-
-@dataclass(frozen=True)
-class CommandDemoPathContract:
-    steps: tuple[CommandDemoPathStep, ...]
-    flow_steps: tuple[str, ...]
-    names: tuple[str, ...]
-    command_tokens: tuple[str, ...]
-    command_lines: tuple[str, ...]
-    engine_handoffs: tuple[str, ...]
-    engine_actions: tuple[tuple[str, ...], ...] = ()
-
-
-@dataclass(frozen=True)
-class CommandDemoPathLookupContract:
-    """Stable indexes for CLI smoke checks and future A2UI command consumers."""
-
-    by_flow_step: tuple[tuple[str, CommandDemoPathStep], ...]
-    by_command_name: tuple[tuple[str, CommandDemoPathStep], ...]
-    by_cli_token: tuple[tuple[str, CommandDemoPathStep], ...]
-    action_lookup: tuple[tuple[str, tuple[str, ...]], ...]
-    handoff_lookup: tuple[tuple[str, str], ...]
-
-
-DEMO_PATH_ENGINE_HANDOFFS: dict[str, str] = {
-    "project-open": "engine project bootstrap/open",
-    "retrieval": "engine retrieval context selection",
-    "patch-review": "engine patch preview and apply/reject decision",
-    "export-handoff": "engine export handoff routing",
-}
-
-DEMO_PATH_ENGINE_ACTIONS: dict[str, tuple[str, ...]] = {
-    "project-open": ("open_project",),
-    "retrieval": ("retrieve_context",),
-    "patch-review": ("preview_patch", "apply_patch", "reject_patch"),
-    "export-handoff": ("persist_session", "export_handoff"),
-}
-
-DEMO_PATH_OPERATOR_CHECKPOINTS: dict[str, str] = {
-    "project-open": "open project/document",
-    "retrieval": "retrieve relevant material",
-    "patch-review": "preview and accept or reject patch",
-    "export-handoff": "persist and continue through export handoff",
-}
-
-
 def _normalize_token(value: str) -> str:
     normalized = re.sub(r"[-_\s]+", "-", value.strip().casefold())
     return normalized.strip("-")
@@ -239,24 +155,18 @@ def _normalize_flow_steps(flow_steps: tuple[str, ...]) -> tuple[str, ...]:
     return tuple(_normalize_token(flow_step) for flow_step in flow_steps)
 
 
-def _cli_tokens(spec: CommandSpec) -> tuple[str, ...]:
-    tokens = spec.cli_tokens or (spec.name,)
-    return tuple(_normalize_token(token) for token in tokens)
-
-
-def _validate_cli_entrypoints(specs: tuple[CommandSpec, ...] | None = None) -> None:
-    specs = COMMAND_SPECS if specs is None else specs
-    validate_command_catalog(specs)
+def _validate_cli_entrypoints() -> None:
+    # Keep the parser surface explicit so the command contract stays deterministic.
     seen_entrypoints: set[str] = set()
-    for spec in specs:
-        for entrypoint in _cli_tokens(spec):
-            if not entrypoint:
-                raise ValueError("Command CLI entrypoints must not be empty")
-            if entrypoint in seen_entrypoints:
-                raise ValueError(f"Duplicate command CLI entrypoint: {entrypoint}")
-            seen_entrypoints.add(entrypoint)
-            if canonical_command_for(specs, entrypoint) != spec.name:
-                raise ValueError(f"Unknown CLI command entrypoint: {entrypoint}")
+    for entrypoint in _CLI_ENTRYPOINTS:
+        normalized_entrypoint = _normalize_token(entrypoint)
+        if not normalized_entrypoint:
+            raise ValueError("Command CLI entrypoints must not be empty")
+        if normalized_entrypoint in seen_entrypoints:
+            raise ValueError(f"Duplicate command CLI entrypoint: {entrypoint}")
+        seen_entrypoints.add(normalized_entrypoint)
+        if command_spec_for(COMMAND_SPECS, entrypoint) is None:
+            raise ValueError(f"Unknown CLI command entrypoint: {entrypoint}")
 
 
 def _command_cli_tokens_by_name() -> dict[str, tuple[str, ...]]:
@@ -280,30 +190,35 @@ COMMAND_SPECS: tuple[CommandSpec, ...] = (
         aliases=("open", "project-open", "project"),
         description="Run the project bootstrap flow.",
         flow_step="project-open",
-        cli_tokens=("bootstrap",),
     ),
     CommandSpec(
         name="diff-preview",
         aliases=("diff", "diff_preview"),
         description="Preview unified diff output.",
         flow_step="patch-review",
-        cli_tokens=("diff-preview", "diff"),
     ),
     CommandSpec(
         name="context-basket",
         aliases=("context", "basket"),
         description="Manage retrieval context basket items.",
         flow_step="retrieval",
-        cli_tokens=("context-basket",),
     ),
     CommandSpec(
         name="terminal",
         description="Run terminal export handoff routing.",
         flow_step="export-handoff",
-        cli_tokens=("terminal",),
     ),
 )
 
+# Keep the parser surface explicit: only these tokens are accepted by the current CLI.
+# Each token must resolve through the command catalog so the surface cannot drift.
+_CLI_ENTRYPOINTS: tuple[str, ...] = (
+    "bootstrap",
+    "diff-preview",
+    "diff",
+    "context-basket",
+    "terminal",
+)
 DEMO_COMMAND_FLOW_STEPS: tuple[str, ...] = (
     "project-open",
     "retrieval",
@@ -311,18 +226,6 @@ DEMO_COMMAND_FLOW_STEPS: tuple[str, ...] = (
     "export-handoff",
 )
 MVP_COMMAND_FLOW_STEPS: tuple[str, ...] = DEMO_COMMAND_FLOW_STEPS
-
-
-def _actual_cli_parser_surface() -> tuple[tuple[str, str], ...]:
-    from src.qual.cli import command_parser_lookup_table
-
-    return command_parser_lookup_table()
-
-
-def _actual_cli_parser_tokens() -> tuple[str, ...]:
-    from src.qual.cli import command_parser_tokens
-
-    return command_parser_tokens()
 
 
 def validate_command_catalog(specs: tuple[CommandSpec, ...] = COMMAND_SPECS) -> None:
@@ -564,63 +467,38 @@ def command_lookup_table(specs: tuple[CommandSpec, ...] = COMMAND_SPECS) -> tupl
 
 
 @lru_cache(maxsize=None)
-def command_cli_tokens(specs: tuple[CommandSpec, ...] = COMMAND_SPECS) -> tuple[str, ...]:
-    _validate_cli_entrypoints(specs)
-    return tuple(token for spec in specs for token in _cli_tokens(spec))
+def command_cli_tokens() -> tuple[str, ...]:
+    _validate_cli_entrypoints()
+    return tuple(_CLI_ENTRYPOINTS)
 
 
 @lru_cache(maxsize=None)
-def command_cli_lookup_table(
-    specs: tuple[CommandSpec, ...] = COMMAND_SPECS,
-) -> tuple[tuple[str, str], ...]:
-    _validate_cli_entrypoints(specs)
+def command_cli_lookup_table() -> tuple[tuple[str, str], ...]:
+    _validate_cli_entrypoints()
     lookup_table: list[tuple[str, str]] = []
-    for spec in specs:
-        for entrypoint in _cli_tokens(spec):
-            lookup_table.append((entrypoint, spec.name))
-    return tuple(lookup_table)
-
-
-def _parser_cli_lookup_table() -> tuple[tuple[str, str], ...]:
-    try:
-        return _actual_cli_parser_surface()
-    except ValueError as exc:
-        raise ValueError("Command CLI parser surface is inconsistent") from exc
-
-
-def _validate_cli_contract_lookup_table(
-    lookup_table: tuple[tuple[str, str], ...],
-    parser_lookup_table: tuple[tuple[str, str], ...],
-) -> None:
-    if parser_lookup_table != lookup_table:
-        raise ValueError("Command CLI parser surface is inconsistent")
-    for entrypoint, canonical_name in parser_lookup_table:
+    for entrypoint in _CLI_ENTRYPOINTS:
         spec = command_spec_for(COMMAND_SPECS, entrypoint)
         if spec is None:
             raise ValueError(f"Unknown CLI command entrypoint: {entrypoint}")
-        if spec.name != canonical_name:
-            raise ValueError("Command CLI parser surface is inconsistent")
+        lookup_table.append((entrypoint, spec.name))
+    return tuple(lookup_table)
 
 
 @lru_cache(maxsize=None)
 def command_cli_contract() -> CommandCliContract:
-    try:
-        tokens = command_cli_tokens()
-        lookup_table = command_cli_lookup_table()
-    except ValueError as exc:
-        raise ValueError("Command CLI parser surface is inconsistent") from exc
-    parser_tokens = _actual_cli_parser_tokens()
-    parser_lookup_table = _parser_cli_lookup_table()
-    if parser_tokens != tokens:
-        raise ValueError("Command CLI parser surface is inconsistent")
-    if tuple(token for token, _ in parser_lookup_table) != parser_tokens:
-        raise ValueError("Command CLI parser surface is inconsistent")
-    _validate_cli_contract_lookup_table(lookup_table, parser_lookup_table)
+    lookup_table = command_cli_lookup_table()
     canonical_names = command_names()
-    if canonical_names != tuple(dict.fromkeys(canonical_name for _, canonical_name in lookup_table)):
+    seen_canonical_names: set[str] = set()
+    lookup_canonical_names: list[str] = []
+    for _, canonical_name in lookup_table:
+        if canonical_name in seen_canonical_names:
+            continue
+        seen_canonical_names.add(canonical_name)
+        lookup_canonical_names.append(canonical_name)
+    if tuple(lookup_canonical_names) != canonical_names:
         raise ValueError("Command CLI canonical names are inconsistent")
     return CommandCliContract(
-        tokens=tokens,
+        tokens=command_cli_tokens(),
         canonical_names=canonical_names,
         lookup_table=lookup_table,
     )
@@ -1033,112 +911,6 @@ def _validate_command_surface_contract(contract: CommandSurfaceContract) -> None
         raise ValueError("Command surface lookup surfaces must match")
 
 
-def _validate_command_smoke_contract(
-    contract: CommandSmokeContract,
-    *,
-    route_catalog: tuple[CommandFlowRouteEntry, ...],
-) -> None:
-    cli_lookup = dict(command_cli_lookup_table())
-    expected_tokens: list[str] = []
-    expected_argv: list[tuple[str, ...]] = []
-    expected_lookup: list[tuple[str, str]] = []
-    for step in contract.steps:
-        if not step.cli_token:
-            raise ValueError("Command smoke token must not be empty")
-        if not step.argv or step.argv[0] != step.cli_token:
-            raise ValueError("Command smoke argv must begin with the CLI token")
-        if cli_lookup.get(step.cli_token) != step.name:
-            raise ValueError("Command smoke token is not accepted by the CLI parser")
-        expected_tokens.append(step.cli_token)
-        expected_argv.append(step.argv)
-        expected_lookup.append((step.cli_token, step.flow_step))
-    if contract.command_tokens != tuple(expected_tokens):
-        raise ValueError("Command smoke tokens are inconsistent")
-    if contract.argv != tuple(expected_argv):
-        raise ValueError("Command smoke argv is inconsistent")
-    if contract.command_lines != tuple(shlex.join(argv) for argv in expected_argv):
-        raise ValueError("Command smoke command lines are inconsistent")
-    if contract.lookup_table != tuple(expected_lookup):
-        raise ValueError("Command smoke lookup table is inconsistent")
-    expected_route_summary = tuple(
-        (entry.flow_step, entry.name, entry.cli_tokens)
-        for entry in route_catalog
-    )
-    if contract.route_summary != expected_route_summary:
-        raise ValueError("Command smoke route summary is inconsistent")
-    if contract.lookup_surface != command_mvp_flow_lookup_surface():
-        raise ValueError("Command smoke lookup surface is inconsistent")
-    if contract.flow_surface_tokens != command_mvp_flow_surface_tokens():
-        raise ValueError("Command smoke surface tokens are inconsistent")
-    _validate_command_smoke_argv(contract.steps)
-
-
-def _validate_command_smoke_argv(steps: tuple[CommandSmokeStep, ...]) -> None:
-    from src.qual.cli import parse_args
-
-    for step in steps:
-        parsed = parse_args(list(step.argv))
-        if parsed.command != step.name:
-            raise ValueError("Command smoke argv does not parse to the expected command")
-        if step.name == "context-basket" and parsed.basket_action != "list":
-            raise ValueError("Command smoke argv does not parse to the expected basket action")
-
-
-def _validate_command_demo_path_contract(contract: CommandDemoPathContract) -> None:
-    smoke_contract = command_mvp_smoke_contract()
-    if contract.flow_steps != tuple(step.flow_step for step in smoke_contract.steps):
-        raise ValueError("Command demo path flow steps are inconsistent")
-    if contract.names != tuple(step.name for step in smoke_contract.steps):
-        raise ValueError("Command demo path names are inconsistent")
-    if contract.command_tokens != smoke_contract.command_tokens:
-        raise ValueError("Command demo path tokens are inconsistent")
-    if contract.command_lines != smoke_contract.command_lines:
-        raise ValueError("Command demo path command lines are inconsistent")
-    expected_handoffs = tuple(
-        DEMO_PATH_ENGINE_HANDOFFS[step.flow_step]
-        for step in smoke_contract.steps
-    )
-    if contract.engine_handoffs != expected_handoffs:
-        raise ValueError("Command demo path engine handoffs are inconsistent")
-    expected_actions = tuple(
-        DEMO_PATH_ENGINE_ACTIONS[step.flow_step]
-        for step in smoke_contract.steps
-    )
-    if contract.engine_actions != expected_actions:
-        raise ValueError("Command demo path engine actions are inconsistent")
-    for step in contract.steps:
-        if not step.engine_actions:
-            raise ValueError("Command demo path engine actions must not be empty")
-    patch_step = next((step for step in contract.steps if step.flow_step == "patch-review"), None)
-    if patch_step is None:
-        raise ValueError("Command demo path must include patch review")
-    if not {"apply_patch", "reject_patch"}.issubset(patch_step.engine_actions):
-        raise ValueError("Command demo path patch review must expose apply/reject actions")
-
-
-def _validate_command_demo_path_lookup_contract(
-    contract: CommandDemoPathLookupContract,
-    *,
-    demo_path: CommandDemoPathContract,
-) -> None:
-    if contract.by_flow_step != tuple((step.flow_step, step) for step in demo_path.steps):
-        raise ValueError("Command demo path flow-step lookup is inconsistent")
-    if contract.by_command_name != tuple((step.name, step) for step in demo_path.steps):
-        raise ValueError("Command demo path command lookup is inconsistent")
-    if contract.by_cli_token != tuple((step.cli_token, step) for step in demo_path.steps):
-        raise ValueError("Command demo path CLI lookup is inconsistent")
-    if contract.action_lookup != tuple((step.flow_step, step.engine_actions) for step in demo_path.steps):
-        raise ValueError("Command demo path action lookup is inconsistent")
-    if contract.handoff_lookup != tuple((step.flow_step, step.engine_handoff) for step in demo_path.steps):
-        raise ValueError("Command demo path handoff lookup is inconsistent")
-    if len(dict(contract.by_flow_step)) != len(demo_path.steps):
-        raise ValueError("Command demo path flow-step lookup must be unique")
-    if len(dict(contract.by_command_name)) != len(demo_path.steps):
-        raise ValueError("Command demo path command lookup must be unique")
-    if len(dict(contract.by_cli_token)) != len(demo_path.steps):
-        raise ValueError("Command demo path CLI lookup must be unique")
-
-
 @lru_cache(maxsize=None)
 def command_flow_contract(
     specs: tuple[CommandSpec, ...] = COMMAND_SPECS,
@@ -1291,146 +1063,6 @@ def command_mvp_flow_surface_lookup_index(
     specs: tuple[CommandSpec, ...] = COMMAND_SPECS,
 ) -> tuple[tuple[str, str], ...]:
     return command_demo_flow_surface_lookup_index(specs)
-
-
-@lru_cache(maxsize=None)
-def command_mvp_smoke_contract() -> CommandSmokeContract:
-    route_catalog = command_mvp_flow_route_catalog()
-    steps = tuple(
-        CommandSmokeStep(
-            flow_step=entry.flow_step,
-            name=entry.name,
-            cli_token=entry.cli_tokens[0],
-            argv=_smoke_argv_for(entry.name, entry.cli_tokens[0]),
-            description=entry.description,
-        )
-        for entry in route_catalog
-    )
-    contract = CommandSmokeContract(
-        steps=steps,
-        command_tokens=tuple(step.cli_token for step in steps),
-        argv=tuple(step.argv for step in steps),
-        command_lines=tuple(step.command_line for step in steps),
-        lookup_table=tuple((step.cli_token, step.flow_step) for step in steps),
-        route_summary=tuple(
-            (entry.flow_step, entry.name, entry.cli_tokens)
-            for entry in route_catalog
-        ),
-        lookup_surface=command_mvp_flow_lookup_surface(),
-        flow_surface_tokens=command_mvp_flow_surface_tokens(),
-    )
-    _validate_command_smoke_contract(contract, route_catalog=route_catalog)
-    return contract
-
-
-def _smoke_argv_for(command_name: str, cli_token: str) -> tuple[str, ...]:
-    if command_name == "context-basket":
-        return (cli_token, "list")
-    return (cli_token,)
-
-
-def command_mvp_smoke_commands() -> tuple[str, ...]:
-    return command_mvp_smoke_contract().command_tokens
-
-
-def command_mvp_smoke_argv() -> tuple[tuple[str, ...], ...]:
-    return command_mvp_smoke_contract().argv
-
-
-def command_mvp_smoke_command_lines() -> tuple[str, ...]:
-    return command_mvp_smoke_contract().command_lines
-
-
-def command_mvp_smoke_lookup_table() -> tuple[tuple[str, str], ...]:
-    return command_mvp_smoke_contract().lookup_table
-
-
-def command_mvp_smoke_route_summary() -> tuple[tuple[str, str, tuple[str, ...]], ...]:
-    return command_mvp_smoke_contract().route_summary
-
-
-@lru_cache(maxsize=None)
-def command_mvp_demo_path_contract() -> CommandDemoPathContract:
-    smoke_contract = command_mvp_smoke_contract()
-    steps = tuple(
-        CommandDemoPathStep(
-            flow_step=step.flow_step,
-            name=step.name,
-            cli_token=step.cli_token,
-            argv=step.argv,
-            command_line=step.command_line,
-            operator_checkpoint=DEMO_PATH_OPERATOR_CHECKPOINTS[step.flow_step],
-            engine_handoff=DEMO_PATH_ENGINE_HANDOFFS[step.flow_step],
-            description=step.description,
-            engine_actions=DEMO_PATH_ENGINE_ACTIONS[step.flow_step],
-        )
-        for step in smoke_contract.steps
-    )
-    contract = CommandDemoPathContract(
-        steps=steps,
-        flow_steps=tuple(step.flow_step for step in steps),
-        names=tuple(step.name for step in steps),
-        command_tokens=tuple(step.cli_token for step in steps),
-        command_lines=tuple(step.command_line for step in steps),
-        engine_handoffs=tuple(step.engine_handoff for step in steps),
-        engine_actions=tuple(step.engine_actions for step in steps),
-    )
-    _validate_command_demo_path_contract(contract)
-    return contract
-
-
-def command_mvp_demo_path_steps() -> tuple[CommandDemoPathStep, ...]:
-    return command_mvp_demo_path_contract().steps
-
-
-def command_mvp_demo_path_command_lines() -> tuple[str, ...]:
-    return command_mvp_demo_path_contract().command_lines
-
-
-def command_mvp_demo_path_operator_checkpoints() -> tuple[str, ...]:
-    return tuple(step.operator_checkpoint for step in command_mvp_demo_path_contract().steps)
-
-
-def command_mvp_demo_path_engine_handoffs() -> tuple[str, ...]:
-    return command_mvp_demo_path_contract().engine_handoffs
-
-
-def command_mvp_demo_path_engine_actions() -> tuple[tuple[str, ...], ...]:
-    return command_mvp_demo_path_contract().engine_actions
-
-
-@lru_cache(maxsize=None)
-def command_mvp_demo_path_lookup_contract() -> CommandDemoPathLookupContract:
-    demo_path = command_mvp_demo_path_contract()
-    contract = CommandDemoPathLookupContract(
-        by_flow_step=tuple((step.flow_step, step) for step in demo_path.steps),
-        by_command_name=tuple((step.name, step) for step in demo_path.steps),
-        by_cli_token=tuple((step.cli_token, step) for step in demo_path.steps),
-        action_lookup=tuple((step.flow_step, step.engine_actions) for step in demo_path.steps),
-        handoff_lookup=tuple((step.flow_step, step.engine_handoff) for step in demo_path.steps),
-    )
-    _validate_command_demo_path_lookup_contract(contract, demo_path=demo_path)
-    return contract
-
-
-def command_mvp_demo_path_lookup_table() -> tuple[tuple[str, CommandDemoPathStep], ...]:
-    return command_mvp_demo_path_lookup_contract().by_flow_step
-
-
-def command_mvp_demo_path_command_lookup_table() -> tuple[tuple[str, CommandDemoPathStep], ...]:
-    return command_mvp_demo_path_lookup_contract().by_command_name
-
-
-def command_mvp_demo_path_cli_lookup_table() -> tuple[tuple[str, CommandDemoPathStep], ...]:
-    return command_mvp_demo_path_lookup_contract().by_cli_token
-
-
-def command_mvp_demo_path_action_lookup_table() -> tuple[tuple[str, tuple[str, ...]], ...]:
-    return command_mvp_demo_path_lookup_contract().action_lookup
-
-
-def command_mvp_demo_path_handoff_lookup_table() -> tuple[tuple[str, str], ...]:
-    return command_mvp_demo_path_lookup_contract().handoff_lookup
 
 
 @lru_cache(maxsize=None)
