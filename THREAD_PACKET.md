@@ -4,11 +4,11 @@
 - Branch: `codex/feat-commands`
 - Review target: full branch tip of `codex/feat-commands`
 - Review basis: `git diff main...codex/feat-commands`
-- Review target tip before this fixer pass: `ff9daee75117bd7886e7f7a9a95494060573e185`
-- Latest implementation-bearing commit before this fixer pass: `c0b5392d4d327d9d8778911d3ba98cf5e5b82ecc`
-- Fixer prompt satisfied: `20260429T145659Z`
+- Review target tip before this fixer pass: `8b56b5a1307b9e5e6c8971f74a89d2e35f903056`
+- Latest implementation-bearing commit before this fixer pass: `8b56b5a1307b9e5e6c8971f74a89d2e35f903056`
+- Fixer prompt satisfied: `20260429T150703Z`
 
-This packet supersedes all earlier packets and packet-refresh notes. The selected review target is the full branch tip, not a narrowed `f8d860ed9` slice. Commits after `f8d860ed9f6299f0169c4f21321ac5f37c949fd3` are in review scope when they affect the final branch-tip implementation/test diff. Commit `04974e20df08b704f39a065e6082194f9024fd26` is included in implementation/test scope because it changes `tests/unit/test_commands_catalog.py` as well as handoff metadata; it is not described as metadata-only. Commit `c0b5392d4d327d9d8778911d3ba98cf5e5b82ecc` is included in implementation/test scope because it changes `src/qual/commands/catalog.py` and `tests/unit/test_commands_catalog.py` as well as handoff metadata; it is not described as metadata-only. Commits `e19ff6362a4b6f9cae64810dca7414b1c526ed99`, `9a476b0ad862d2770f9cd32c549b5a6fa2e33ba5`, `5d7be3a50fb969469450437f476c19bca07b7240`, `5a2aee24dcac591d69943275dc4ac97d28a2d0da`, `6f0c7ebd627e0ff1de2738672bb0af1a06b0e93d`, and `ff9daee75117bd7886e7f7a9a95494060573e185` are packet-correction commits and remain in review scope. This `20260429T145659Z` fixer pass makes `command_cli_contract()` compare catalog tokens to the raw live argparse subparser token tuple before lookup validation, tightens the live parser drift tests so they mutate the actual argparse surface without patching the CLI lookup helper, and refreshes handoff traceability for the current reviewer packet.
+This packet supersedes all earlier packets and packet-refresh notes. The selected review target is the full branch tip, not a narrowed `f8d860ed9` slice. Commits after `f8d860ed9f6299f0169c4f21321ac5f37c949fd3` are in review scope when they affect the final branch-tip implementation/test diff. Commit `04974e20df08b704f39a065e6082194f9024fd26` is included in implementation/test scope because it changes `tests/unit/test_commands_catalog.py` as well as handoff metadata; it is not described as metadata-only. Commit `c0b5392d4d327d9d8778911d3ba98cf5e5b82ecc` is included in implementation/test scope because it changes `src/qual/commands/catalog.py` and `tests/unit/test_commands_catalog.py` as well as handoff metadata; it is not described as metadata-only. Commit `8b56b5a1307b9e5e6c8971f74a89d2e35f903056` is included in implementation/test scope because it changes `src/qual/commands/catalog.py` and `tests/unit/test_commands_catalog.py` as well as handoff metadata; it is not metadata-only. Commits `e19ff6362a4b6f9cae64810dca7414b1c526ed99`, `9a476b0ad862d2770f9cd32c549b5a6fa2e33ba5`, `5d7be3a50fb969469450437f476c19bca07b7240`, `5a2aee24dcac591d69943275dc4ac97d28a2d0da`, `6f0c7ebd627e0ff1de2738672bb0af1a06b0e93d`, and `ff9daee75117bd7886e7f7a9a95494060573e185` are packet-correction commits and remain in review scope. The current `20260429T150703Z` fixer pass corrects packet traceability for `8b56b5a13`, preserves the live argparse parser-surface drift guard from branch tip, and does not edit integrator-locked files.
 
 ## Required-Fix Resolution
 
@@ -26,23 +26,24 @@ This packet supersedes all earlier packets and packet-refresh notes. The selecte
 12. The `894e6c128...` runtime API/export changes are listed as implementation scope: `CommandDemoPathLookupContract`, `command_mvp_demo_path_lookup_contract()`, `command_mvp_demo_path_lookup_table()`, `command_mvp_demo_path_command_lookup_table()`, `command_mvp_demo_path_cli_lookup_table()`, `command_mvp_demo_path_action_lookup_table()`, and `command_mvp_demo_path_handoff_lookup_table()`.
 13. The branch-tip demo lookup contract is mapped to the canonical demo path as a direct strengthening of `retrieve material`, `gather/promote context`, `preview/apply/reject patch`, `persist/save`, and `continue`, with `open document` retained in the ordered lookup surface.
 14. The `04974e20...` shared-test delta is explicitly in scope: `tests/unit/test_commands_catalog.py` keeps public demo-path lookup export regression coverage visible in the reviewed branch-tip diff.
-15. The current fixer pass updates packet traceability; it does not hide `894e6c128...`, `04974e20...`, or the shared-test delta behind a metadata-only label.
-16. Fresh `20260429T145659Z` gate evidence below is for the exact branch tip proposed for merge after this packet update.
-17. This packet now explicitly names the exact `f8d860ed9..c0b5392d4` comparison that triggered re-review: `git diff --name-status f8d860ed9f6299f0169c4f21321ac5f37c949fd3..c0b5392d4d327d9d8778911d3ba98cf5e5b82ecc` changes `THREAD.md`, `THREAD_PACKET.md`, `src/qual/cli.py`, `src/qual/commands/__init__.py`, `src/qual/commands/catalog.py`, and `tests/unit/test_commands_catalog.py`.
-18. The complete post-`f8d860e` implementation-bearing commit list for the final branch-tip code/test delta is the set returned by `git log --oneline --reverse f8d860ed9f6299f0169c4f21321ac5f37c949fd3..c0b5392d4d327d9d8778911d3ba98cf5e5b82ecc -- src/qual/cli.py src/qual/commands/__init__.py src/qual/commands/catalog.py tests/unit/test_commands_catalog.py`; no later packet-refresh commit is treated as a substitute review basis.
-19. The current fixer pass makes raw parser token comparison explicit in `command_cli_contract()` and removes the stale `command_parser_lookup_table()` patch from parser-drift tests, so rename, extra-token, and missing-token coverage now depends only on the actual `_build_parser()` argparse choices consumed by the catalog contract.
+15. The current fixer pass updates packet traceability; it does not hide `894e6c128...`, `04974e20...`, `8b56b5a13...`, or the shared-test delta behind a metadata-only label.
+16. Fresh `20260429T150703Z` gate evidence below is for the exact branch tip proposed for merge after this packet update.
+17. This packet now explicitly names the exact `f8d860ed9..8b56b5a13` comparison that triggered re-review: `git diff --name-status f8d860ed9f6299f0169c4f21321ac5f37c949fd3..8b56b5a1307b9e5e6c8971f74a89d2e35f903056` changes `THREAD.md`, `THREAD_PACKET.md`, `src/qual/cli.py`, `src/qual/commands/__init__.py`, `src/qual/commands/catalog.py`, and `tests/unit/test_commands_catalog.py`.
+18. The complete post-`f8d860e` implementation-bearing commit list for the final branch-tip code/test delta is the set returned by `git log --oneline --reverse f8d860ed9f6299f0169c4f21321ac5f37c949fd3..8b56b5a1307b9e5e6c8971f74a89d2e35f903056 -- src/qual/cli.py src/qual/commands/__init__.py src/qual/commands/catalog.py tests/unit/test_commands_catalog.py`; no packet-refresh commit is treated as a substitute review basis.
+19. Commit `8b56b5a13` makes raw parser token comparison explicit in `command_cli_contract()` and removes the stale `command_parser_lookup_table()` patch from parser-drift tests, so rename, extra-token, and missing-token coverage now depends only on the actual `_build_parser()` argparse choices consumed by the catalog contract.
+20. The current `20260429T150703Z` fixer commit is metadata-only and corrects the handoff packet so `8b56b5a13` is reviewed as implementation/test scope.
 
 ## Implementation Commit List
 
-Current review target: full branch tip of `codex/feat-commands` after the `20260429T145659Z` fixer update.
+Current review target: full branch tip of `codex/feat-commands` after the `20260429T150703Z` fixer update.
 
-Implementation commits that must be reviewed as implementation scope include every code/test-bearing commit in `f8d860ed9f6299f0169c4f21321ac5f37c949fd3..c0b5392d4d327d9d8778911d3ba98cf5e5b82ecc` that touches `src/qual/cli.py`, `src/qual/commands/__init__.py`, `src/qual/commands/catalog.py`, or `tests/unit/test_commands_catalog.py`. The exact audit command is:
+Implementation commits that must be reviewed as implementation scope include every code/test-bearing commit in `f8d860ed9f6299f0169c4f21321ac5f37c949fd3..8b56b5a1307b9e5e6c8971f74a89d2e35f903056` that touches `src/qual/cli.py`, `src/qual/commands/__init__.py`, `src/qual/commands/catalog.py`, or `tests/unit/test_commands_catalog.py`. The exact audit command is:
 
 ```sh
-git log --oneline --reverse f8d860ed9f6299f0169c4f21321ac5f37c949fd3..c0b5392d4d327d9d8778911d3ba98cf5e5b82ecc -- src/qual/cli.py src/qual/commands/__init__.py src/qual/commands/catalog.py tests/unit/test_commands_catalog.py
+git log --oneline --reverse f8d860ed9f6299f0169c4f21321ac5f37c949fd3..8b56b5a1307b9e5e6c8971f74a89d2e35f903056 -- src/qual/cli.py src/qual/commands/__init__.py src/qual/commands/catalog.py tests/unit/test_commands_catalog.py
 ```
 
-That command currently returns 243 commits. The following commits are the non-metadata branch-tip implementation commits that materially define the final public command contract and test surface and therefore must not be hidden behind packet-refresh labels:
+That command currently returns 245 commits. The following commits are the non-metadata branch-tip implementation commits that materially define the final public command contract and test surface and therefore must not be hidden behind packet-refresh labels:
 
 - `f8d860ed9` - `feat(commands): lock CLI contract to command catalog`; modifies `src/qual/commands/catalog.py` and `tests/unit/test_commands_catalog.py` to lock parser/catalog drift coverage.
 - `2f9eb28ca` - `fix(commands): derive cli surface from catalog specs`; modifies `src/qual/cli.py`, `src/qual/commands/catalog.py`, and `tests/unit/test_commands_catalog.py` so the live parser consumes catalog-owned command specs.
@@ -59,13 +60,15 @@ That command currently returns 243 commits. The following commits are the non-me
 - `5a2aee24dcac591d69943275dc4ac97d28a2d0da` - `fix(commands): refresh review packet`; updates `THREAD.md` and `THREAD_PACKET.md` only; it corrects packet traceability for the full branch-tip review target.
 - `6f0c7ebd627e0ff1de2738672bb0af1a06b0e93d` - `fix(commands): refresh branch tip review packet`; updates `THREAD.md` and `THREAD_PACKET.md` only; it corrects packet traceability for the full branch-tip review target.
 - `c0b5392d4d327d9d8778911d3ba98cf5e5b82ecc` - `fix(commands): enforce live parser drift guard`; modifies `THREAD.md`, `THREAD_PACKET.md`, `src/qual/commands/catalog.py`, and `tests/unit/test_commands_catalog.py`; it adds the live argparse parser-surface guard and parser-drift tests. It is not metadata-only.
-- This `20260429T145659Z` fixer commit - modifies `src/qual/commands/catalog.py`, `tests/unit/test_commands_catalog.py`, `THREAD.md`, and `THREAD_PACKET.md`; it reinforces raw argparse token validation, removes helper-lookup patching from parser drift tests, and refreshes the handoff packet for the current reviewer request.
+- `ff9daee75117bd7886e7f7a9a95494060573e185` - `fix(commands): refresh parser guard handoff traceability`; updates `THREAD.md` and `THREAD_PACKET.md` only; it is metadata-only but included in the branch-tip review target.
+- `8b56b5a1307b9e5e6c8971f74a89d2e35f903056` - `fix(commands): tighten live parser drift guard`; modifies `THREAD.md`, `THREAD_PACKET.md`, `src/qual/commands/catalog.py`, and `tests/unit/test_commands_catalog.py`; it reinforces raw argparse token validation and removes helper-lookup patching from parser drift tests. It is not metadata-only.
+- This `20260429T150703Z` fixer commit - modifies `THREAD.md` and `THREAD_PACKET.md` only; it corrects the handoff packet for the current reviewer request and keeps `8b56b5a13` in implementation/test review scope.
 
 The branch also contains earlier command-catalog, CLI parser, diff-preview, scope-check, test, and packet-maintenance commits reflected by the full `git diff main...codex/feat-commands` file list below. Reviewers should use the full branch-tip diff, not an individual historical packet label, as the merge basis.
 
 ## Post-f8 Delta Called Out By Reviewer
 
-The exact `f8d860e..5a2aee24` diff that was missing from the prior packet is:
+The exact `f8d860e..8b56b5a13` diff that was missing from the prior packet is:
 
 - `THREAD.md`
 - `THREAD_PACKET.md`
@@ -74,7 +77,7 @@ The exact `f8d860e..5a2aee24` diff that was missing from the prior packet is:
 - `src/qual/commands/catalog.py`
 - `tests/unit/test_commands_catalog.py`
 
-Shortstat for that comparison: `6 files changed, 943 insertions(+), 139 deletions(-)`.
+Shortstat for that comparison: `6 files changed, 980 insertions(+), 139 deletions(-)`.
 
 Implementation/test files changed in that comparison:
 
@@ -172,13 +175,13 @@ Handoff metadata:
 
 ## Ownership And Risk
 
-This is a high-risk branch-tip handoff because the full branch review target includes an earlier approved edit to `src/qual/cli.py`, which is integrator-locked in `THREAD_OWNERSHIP.md`. The current `20260429T145659Z` fixer slice does not edit integrator-locked files.
+This is a high-risk branch-tip handoff because the full branch review target includes an earlier approved edit to `src/qual/cli.py`, which is integrator-locked in `THREAD_OWNERSHIP.md`. The current `20260429T150703Z` fixer slice does not edit integrator-locked files.
 
 - Lane-owned command paths: `src/qual/commands/**`.
 - Earlier full-branch integrator-locked exception: `src/qual/cli.py`, needed so the actual argparse parser consumes the command catalog token contract. Public command-contract impact: no new provider/routing behavior; the public CLI parser surface is bound to catalog-owned tokens and aliases so `context-basket`, `diff-preview`/`diff`, `terminal`, and related demo-path commands parse through the same contract exported by `src/qual/commands`.
 - Approved shared-test exception: `tests/unit/test_commands_catalog.py`, retained as the focused command-catalog regression surface.
 - `20260429T143425Z` fixer-slice ownership: lane-owned implementation in `src/qual/commands/catalog.py`, approved shared test coverage in `tests/unit/test_commands_catalog.py`, and handoff metadata in `THREAD.md`/`THREAD_PACKET.md`.
-- Current `20260429T145659Z` fixer-slice ownership: lane-owned implementation in `src/qual/commands/catalog.py`, approved shared test coverage in `tests/unit/test_commands_catalog.py`, and handoff metadata in `THREAD.md`/`THREAD_PACKET.md`.
+- Current `20260429T150703Z` fixer-slice ownership: handoff metadata in `THREAD.md`/`THREAD_PACKET.md`; no implementation file edit in this slice.
 - Current fixer-slice shared/integrator-locked edits: NO integrator-locked file edits; no `src/qual/cli.py` edit in this slice. `tests/unit/test_commands_catalog.py` remains the approved focused command-catalog regression surface.
 - Scope-check exception behavior: full-window scope checks that include `src/qual/cli.py` require `SCOPE_ALLOW_SHARED=1`; the default recent scope check only validates the current metadata-fix commit.
 - Task budget: `4` high-risk tasks completed.
@@ -194,6 +197,8 @@ This is a high-risk branch-tip handoff because the full branch review target inc
 
 ## Commands Run
 
+- Fresh `20260429T150703Z` fixer rerun after correcting branch-tip review traceability for `8b56b5a13`:
+  `make scope-check` passed for branch `codex/feat-commands`; `./quality-format.sh --check` passed; `./quality-lint.sh` passed; `./quality-test.sh` passed with smoke tests and `133` unit tests, including live argparse token rename, extra-token, and missing-token drift coverage; `./typecheck-test.sh` passed by compiling Python sources in `src/`; `make ci` passed with scope-check, format, lint, typecheck, smoke tests, and `133` unit tests.
 - Fresh `20260429T145659Z` fixer rerun after raw parser-token validation and drift-test reinforcement:
   `python -m unittest tests.unit.test_commands_catalog` passed with `51` tests; `make scope-check` passed; `./quality-format.sh --check` passed; `./quality-lint.sh` passed; `./quality-test.sh` passed with smoke tests and `133` unit tests, including live argparse token rename, extra-token, and missing-token drift coverage without CLI helper lookup patching; `./typecheck-test.sh` passed; `make ci` passed with scope-check, format, lint, typecheck, smoke tests, and `133` unit tests.
 - Fresh `20260429T144911Z` fixer rerun after packet traceability updates for `c0b5392d4d327d9d8778911d3ba98cf5e5b82ecc`:
