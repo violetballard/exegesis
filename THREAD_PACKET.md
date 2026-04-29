@@ -21,6 +21,8 @@ The canonical demo path advanced by this range is:
 
 This advances: retrieve relevant material. The FTS-only excerpt contract makes canonical retrieval evidence deterministic and fail-closed, while stable basket-promotion refs let downstream workflow steps promote the retrieved docs/excerpts without relying on PageIndex-only fallbacks or mutable hit snapshots.
 
+Reviewer-required traceability fix: this packet intentionally reviews `f26b3a6de39492e288fbdf8c2338dab64a6e61e5` as implementation scope in the actual branch-tip merge candidate; it is not classified as a metadata-only packet refresh.
+
 ## Code-Bearing Commits In Reviewed Scope
 
 - `adfa8cdadd43747ffbcb612e4151e262b13e52ca`: FTS-only excerpt lookup and deterministic retrieval payload behavior.
