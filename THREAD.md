@@ -193,3 +193,4 @@ Canonical handoff contract lives in `THREAD_PACKET.md`.
 - `./typecheck-test.sh`: PASS
 - `make ci`: PASS
 - Final verification pass: PASS in final gate rerun for reviewer packet `20260429T002758Z`.
+- Exact-tip fixer verification: PASS after the `20260429T002758Z` handoff metadata refresh.
