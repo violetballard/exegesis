@@ -2,14 +2,14 @@
 
 - Lane: `feat-commands`
 - Branch: `codex/feat-commands`
-- Commit / review basis: current branch tip after the `20260429T011323Z` reviewer-fix commit.
+- Commit / review basis: current branch tip after this `20260429T011857Z` reviewer-fix commit.
 - Previous implementation anchor: `f8d860ed9f6299f0169c4f21321ac5f37c949fd3`
-- Reviewer packet addressed: `20260429T011323Z` (review session `20260429T011137Z`)
+- Reviewer packet addressed: `20260429T011857Z`
 
 ## Packet Traceability Note
 
 - Review the actual `codex/feat-commands` branch tip. Do not treat commits after `f8d860ed9f6299f0169c4f21321ac5f37c949fd3` as metadata-only.
-- The branch-tip implementation includes command-catalog code and test changes after `f8d860e`.
+- The branch-tip implementation includes command package, command-catalog, diff-preview command, and focused test changes after `f8d860e`.
 - This fixer pass restores the prior `scripts/scope-check.sh` scope-policy edit to the implementation anchor, so no gate-policy file remains part of the net review diff.
 
 ## Current Program Focus
@@ -76,16 +76,21 @@
 - Net reviewed files after this fixer pass:
   - `THREAD.md`
   - `THREAD_PACKET.md`
+  - `src/qual/commands/__init__.py`
+  - `src/qual/commands/canonical.py`
   - `src/qual/commands/catalog.py`
+  - `src/qual/commands/diff_preview.py`
   - `tests/unit/test_commands_catalog.py`
+  - `tests/unit/test_diff_preview.py`
 - Restored to the implementation anchor by this fixer pass and excluded from the net review diff:
   - `scripts/scope-check.sh`
 
 ## Approved Exception Note
 
 - Lane-owned implementation edit: `src/qual/commands/catalog.py`.
-- Approved shared-test exception: `tests/unit/test_commands_catalog.py`.
-- Shared-by-approval edits: YES, `tests/unit/test_commands_catalog.py` under approved exception.
+- Other lane-owned command edits: `src/qual/commands/__init__.py`, `src/qual/commands/canonical.py`, `src/qual/commands/diff_preview.py`.
+- Approved shared-test exceptions: `tests/unit/test_commands_catalog.py`, `tests/unit/test_diff_preview.py`.
+- Shared-by-approval edits: YES, `tests/unit/test_commands_catalog.py` and `tests/unit/test_diff_preview.py` under approved exception.
 - Integrator-locked edits: NO.
 - Gate-policy edits: NO net change after this fixer pass.
 
@@ -94,14 +99,18 @@
 1. Hardened `command_cli_contract()` to verify the parser surface against the canonical CLI surface and reject parser/catalog drift for the `project-open`, `retrieval`, `patch-review`, and `export-handoff` CLI smoke path.
 2. Preserved canonical command ordering in the CLI contract by returning names aligned with `command_names()` for `bootstrap`, `diff-preview`, `context-basket`, and `terminal`.
 3. Added regression coverage for added aliases, removed aliases, same-canonical substitutions, token reordering, lookup-table shape/order drift, and declared-surface drift, including `open` for the `project-open` step and `diff_preview` for the `patch-review` step.
-4. Reconciled the branch-tip packet/accounting for `THREAD.md`, `THREAD_PACKET.md`, `src/qual/commands/catalog.py`, and `tests/unit/test_commands_catalog.py`, and restored the unrelated `scripts/scope-check.sh` scope-policy edit out of the net diff.
+4. Reconciled the branch-tip packet/accounting for `THREAD.md`, `THREAD_PACKET.md`, `src/qual/commands/__init__.py`, `src/qual/commands/canonical.py`, `src/qual/commands/catalog.py`, `src/qual/commands/diff_preview.py`, `tests/unit/test_commands_catalog.py`, and `tests/unit/test_diff_preview.py`, and restored the unrelated `scripts/scope-check.sh` scope-policy edit out of the net diff.
 
 ## Files Changed
 
 ### Reviewed Implementation Files
 
 - `src/qual/commands/catalog.py`
+- `src/qual/commands/__init__.py`
+- `src/qual/commands/canonical.py`
+- `src/qual/commands/diff_preview.py`
 - `tests/unit/test_commands_catalog.py`
+- `tests/unit/test_diff_preview.py`
 
 ### Metadata-Only Handoff Files
 
@@ -115,12 +124,12 @@
 ## Commands Run + Outcomes
 
 - `python -m pytest tests/unit/test_commands_catalog.py`: BLOCKED, active `/opt/homebrew/opt/python@3.14/bin/python3.14` does not have `pytest`; repo gate scripts below were used as authoritative validation.
-- `make scope-check`: PASS
-- `./quality-format.sh --check`: PASS
-- `./quality-lint.sh`: PASS
-- `./quality-test.sh`: PASS (144 tests)
-- `./typecheck-test.sh`: PASS
-- `make ci`: PASS (scope-check, format, lint, compile/typecheck, and quality-test)
+- `make scope-check`: PASS after scope cleanup.
+- `./quality-format.sh --check`: PASS after scope cleanup.
+- `./quality-lint.sh`: PASS after scope cleanup.
+- `./quality-test.sh`: PASS after scope cleanup.
+- `./typecheck-test.sh`: PASS after scope cleanup.
+- `make ci`: PASS after scope cleanup.
 
 ## Risks / Blockers
 
@@ -165,15 +174,14 @@
 
 ## Scope-Check / Ownership Note
 
-- Shared-by-approval edits: YES, `tests/unit/test_commands_catalog.py` under approved exception.
+- Shared-by-approval edits: YES, `tests/unit/test_commands_catalog.py` and `tests/unit/test_diff_preview.py` under approved exception.
 - Integrator-locked edits: NO.
 - Gate-policy edits: NO net change after this fixer pass.
 
-## Reviewer Packet `20260429T011323Z` Fix Satisfaction
+## Reviewer Packet `20260429T011857Z` Fix Satisfaction
 
-1. Parser-surface drift validation: satisfied by comparing CLI tokens, lookup table, grouped parser surface, declared surface, and canonical names against the explicit canonical CLI parser surface.
-2. Same-canonical parser drift coverage: satisfied by tests for replacing/adding `bootstrap` with `open` and replacing `diff` with `diff_preview`, plus lookup-table substitution coverage.
-3. Branch-tip packet accounting: satisfied by listing `THREAD.md` and `THREAD_PACKET.md` as metadata-only handoff files and the command catalog/test files as reviewed implementation files.
+1. Actual branch-tip review basis: satisfied by removing the metadata-only post-`f8d860e` framing and listing the current branch-tip diff.
+2. Gate-policy diff: satisfied by restoring `scripts/scope-check.sh` to match `main`, leaving no net gate-policy change for review.
+3. Files changed and ownership accounting: satisfied by listing the command package files, both focused tests, and metadata handoff files in the branch-tip review basis.
 4. Demo-path mapping: satisfied by naming the protected `project-open`, `retrieval`, `patch-review`, and `export-handoff` steps in the task list and demo-path section.
-5. Scope discipline: satisfied by keeping the net review scope to `src/qual/commands/catalog.py`, `tests/unit/test_commands_catalog.py`, `THREAD.md`, and `THREAD_PACKET.md`; no provider/routing/Textual behavior is added.
-6. Required gates: satisfied by rerunning `make scope-check`, `./quality-format.sh --check`, `./quality-lint.sh`, `./quality-test.sh`, `./typecheck-test.sh`, and `make ci` against this reviewer-fix worktree state.
+5. Required gates: satisfied by rerunning `make scope-check`, `./quality-format.sh --check`, `./quality-lint.sh`, `./quality-test.sh`, `./typecheck-test.sh`, and `make ci` against this reviewer-fix worktree state.
