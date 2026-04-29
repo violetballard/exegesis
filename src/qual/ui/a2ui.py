@@ -1888,6 +1888,12 @@ def describe_terminal_artifact_cli_fallback_resolver_failure_policy_contract() -
     return manifest
 
 
+def describe_terminal_artifact_cli_fallback_resolver_failure_policy_contract_manifest() -> dict[str, Any]:
+    """Return the resolver failure policy under a manifest-specific name."""
+
+    return describe_terminal_artifact_cli_fallback_resolver_failure_policy_contract()
+
+
 def describe_terminal_artifact_cli_fallback_card_hint_recovery_policy_contract() -> dict[str, Any]:
     """Return the stable card-hint recovery policy used by the CLI fallback path."""
 
@@ -1909,6 +1915,12 @@ def terminal_artifact_cli_fallback_resolver_failure_policy_contract_fingerprint(
     """Return a stable fingerprint for the resolver failure policy contract."""
 
     return _fingerprint_manifest_section(_build_terminal_artifact_cli_fallback_resolver_failure_policy_manifest())
+
+
+def terminal_artifact_cli_fallback_resolver_failure_policy_contract_manifest_fingerprint() -> str:
+    """Return the resolver failure policy manifest fingerprint under a manifest-specific name."""
+
+    return terminal_artifact_cli_fallback_resolver_failure_policy_contract_fingerprint()
 
 
 def terminal_artifact_cli_fallback_card_hint_recovery_policy_contract_fingerprint() -> str:

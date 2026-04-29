@@ -51,6 +51,7 @@ from src.qual.ui.a2ui import (
     describe_terminal_artifact_cli_fallback_card_hint_recovery_policy_contract,
     describe_terminal_artifact_cli_fallback_shell_refinement_policy_contract,
     describe_terminal_artifact_cli_fallback_resolver_failure_policy_contract,
+    describe_terminal_artifact_cli_fallback_resolver_failure_policy_contract_manifest,
     describe_terminal_artifact_cli_fallback_target_contract,
     describe_terminal_artifact_cli_fallback_target_contract_manifest,
     describe_terminal_artifact_cli_fallback_target_contract_fingerprints,
@@ -106,6 +107,7 @@ from src.qual.ui.a2ui import (
     terminal_artifact_cli_fallback_card_hint_recovery_policy_contract_fingerprint,
     terminal_artifact_cli_fallback_shell_refinement_policy_contract_fingerprint,
     terminal_artifact_cli_fallback_resolver_failure_policy_contract_fingerprint,
+    terminal_artifact_cli_fallback_resolver_failure_policy_contract_manifest_fingerprint,
     terminal_artifact_cli_fallback_target_contract_fingerprint,
     terminal_artifact_cli_fallback_target_contract_manifest_fingerprint,
     terminal_artifact_cli_fallback_target_contract_fingerprints_fingerprint,
@@ -315,6 +317,10 @@ class A2UIFallbackSafetyTests(unittest.TestCase):
             describe_terminal_artifact_cli_fallback_resolver_failure_policy_contract,
         )
         self.assertIs(
+            public_ui.describe_terminal_artifact_cli_fallback_resolver_failure_policy_contract_manifest,
+            describe_terminal_artifact_cli_fallback_resolver_failure_policy_contract_manifest,
+        )
+        self.assertIs(
             public_ui.terminal_artifact_cli_fallback_entrypoint_contract_fingerprint,
             terminal_artifact_cli_fallback_entrypoint_contract_fingerprint,
         )
@@ -341,6 +347,10 @@ class A2UIFallbackSafetyTests(unittest.TestCase):
         self.assertIs(
             public_ui.terminal_artifact_cli_fallback_resolver_failure_policy_contract_fingerprint,
             terminal_artifact_cli_fallback_resolver_failure_policy_contract_fingerprint,
+        )
+        self.assertIs(
+            public_ui.terminal_artifact_cli_fallback_resolver_failure_policy_contract_manifest_fingerprint,
+            terminal_artifact_cli_fallback_resolver_failure_policy_contract_manifest_fingerprint,
         )
         self.assertIs(
             public_ui.terminal_artifact_cli_fallback_route_contract_fingerprint,
@@ -1543,6 +1553,20 @@ class A2UIFallbackSafetyTests(unittest.TestCase):
         self.assertEqual(manifest["card_hint_recovery_policy_fingerprint"], fingerprint)
         self.assertEqual(manifest["card_hint_recovery_policy_contract_fingerprint"], fingerprint)
         self.assertEqual(manifest["contract_fingerprint"], fingerprint)
+
+    def test_terminal_artifact_cli_fallback_resolver_failure_policy_contract_is_public_and_canonical(
+        self,
+    ) -> None:
+        manifest = describe_terminal_artifact_cli_fallback_resolver_failure_policy_contract()
+        manifest_alias = describe_terminal_artifact_cli_fallback_resolver_failure_policy_contract_manifest()
+        fingerprint = terminal_artifact_cli_fallback_resolver_failure_policy_contract_fingerprint()
+        manifest_fingerprint = terminal_artifact_cli_fallback_resolver_failure_policy_contract_manifest_fingerprint()
+
+        self.assertEqual(manifest_alias, manifest)
+        self.assertEqual(manifest["resolver_failure_policy_fingerprint"], fingerprint)
+        self.assertEqual(manifest["resolver_failure_policy_contract_fingerprint"], fingerprint)
+        self.assertEqual(manifest["contract_fingerprint"], fingerprint)
+        self.assertEqual(manifest_fingerprint, fingerprint)
 
     def test_a2ui_contract_can_opt_into_terminal_artifact_cli_fallback_entrypoint_contract_slice(self) -> None:
         default_manifest = describe_a2ui_contract()
