@@ -51,9 +51,14 @@ from src.qual.commands import (
     command_mvp_flow_sequence,
     command_mvp_flow_steps,
     command_mvp_smoke_argv,
+    command_mvp_smoke_command_lines,
     command_mvp_smoke_commands,
     command_mvp_smoke_contract,
     command_mvp_smoke_lookup_table,
+    command_mvp_demo_path_command_lines,
+    command_mvp_demo_path_contract,
+    command_mvp_demo_path_engine_handoffs,
+    command_mvp_demo_path_steps,
     command_mvp_lookup_index,
     command_mvp_surface_contract,
     command_surface_contract,
@@ -604,7 +609,12 @@ class CommandCatalogTests(unittest.TestCase):
         )
         self.assertEqual(command_mvp_smoke_commands(), contract.command_tokens)
         self.assertEqual(command_mvp_smoke_argv(), contract.argv)
+        self.assertEqual(command_mvp_smoke_command_lines(), contract.command_lines)
         self.assertEqual(command_mvp_smoke_lookup_table(), contract.lookup_table)
+        self.assertEqual(
+            command_mvp_smoke_command_lines(),
+            ("bootstrap", "context-basket list", "diff-preview", "terminal"),
+        )
         self.assertEqual(
             contract.lookup_table,
             (
@@ -612,6 +622,49 @@ class CommandCatalogTests(unittest.TestCase):
                 ("context-basket", "retrieval"),
                 ("diff-preview", "patch-review"),
                 ("terminal", "export-handoff"),
+            ),
+        )
+
+    def test_public_mvp_demo_path_exports_document_engine_handoffs(self) -> None:
+        contract = command_mvp_demo_path_contract()
+        self.assertEqual(command_mvp_demo_path_steps(), contract.steps)
+        self.assertEqual(command_mvp_demo_path_command_lines(), contract.command_lines)
+        self.assertEqual(command_mvp_demo_path_engine_handoffs(), contract.engine_handoffs)
+        self.assertEqual(
+            tuple(
+                (
+                    step.flow_step,
+                    step.command_line,
+                    step.operator_checkpoint,
+                    step.engine_handoff,
+                )
+                for step in contract.steps
+            ),
+            (
+                (
+                    "project-open",
+                    "bootstrap",
+                    "open project/document",
+                    "engine project bootstrap/open",
+                ),
+                (
+                    "retrieval",
+                    "context-basket list",
+                    "retrieve relevant material",
+                    "engine retrieval context selection",
+                ),
+                (
+                    "patch-review",
+                    "diff-preview",
+                    "preview and accept or reject patch",
+                    "engine patch preview and apply/reject decision",
+                ),
+                (
+                    "export-handoff",
+                    "terminal",
+                    "persist and continue through export handoff",
+                    "engine export handoff routing",
+                ),
             ),
         )
 
