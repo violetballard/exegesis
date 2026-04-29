@@ -6,7 +6,7 @@ Canonical handoff contract lives in `THREAD_PACKET.md`.
 
 - Lane: `feat-commands`
 - Branch: `codex/feat-commands`
-- Review basis: final branch tip after this fixer pass for reviewer packet `20260429T003118Z`; implementation, tests, scope-check support, and packet metadata are reviewed together.
+- Review basis: final branch tip after this fixer pass for reviewer packet `20260429T003451Z`; implementation, tests, scope-check support, and packet metadata are reviewed together.
 - Scope: CLI command-catalog contract hardening for the current engine-first MVP focus without starting `feat-console`.
 - Roadmap alignment: Milestone 3 CLI compatibility for the engine-first workflow loop, and `feat-commands` as the command-surface compatibility lane.
 - Vision alignment: canonical engine contract stability while the CLI remains the active operator surface.
@@ -43,7 +43,7 @@ Canonical handoff contract lives in `THREAD_PACKET.md`.
 - Added regression coverage for same-canonical alias order drift where `diff` and `diff-preview` are reordered within the accepted parser tokens or the declared `diff-preview` parser group.
 - Added regression coverage for canonical command order drift where `command_names()` returns the right command set in the wrong order.
 - Regenerated the packet from the actual branch tip and stopped classifying code-bearing command/test commits as metadata-only.
-- Reconfirmed the `20260429T003118Z` reviewer fixes against the branch-tip implementation and refreshed handoff metadata so the current review basis is no longer stale.
+- Reconfirmed the `20260429T003451Z` reviewer fixes against the branch-tip implementation and refreshed handoff metadata so the current review basis is no longer stale.
 
 ## Canonical Demo-Path Mapping
 
@@ -191,6 +191,14 @@ Canonical handoff contract lives in `THREAD_PACKET.md`.
 4. Cover parser-surface drift regressions: satisfied by tests for same-canonical token substitution, accepted-token removal, accepted-token reorder, lookup-table drift, declared-surface drift, and canonical command order drift.
 5. Correct ownership accounting: satisfied by listing command files as lane-owned, tests as approved shared-by-approval, `scripts/scope-check.sh` as shared gate support, metadata files as metadata-only, and integrator-locked edits as `no`.
 
+## Reviewer Packet `20260429T003451Z` Fix Satisfaction
+
+1. Regenerate the handoff packet from the actual branch tip: satisfied by anchoring review to the final `codex/feat-commands` branch tip after this fixer pass, with implementation, tests, scope-check support, `THREAD.md`, and `THREAD_PACKET.md` reviewed together.
+2. Stop treating code-bearing commits after `f8d860ed9f6299f0169c4f21321ac5f37c949fd3` as metadata-only: satisfied by submitting the full branch-tip implementation and limiting metadata-only classification to `THREAD.md` and `THREAD_PACKET.md`.
+3. Complete changed-file and ownership accounting: satisfied by listing all nine changed files and separating lane-owned command files, approved shared-by-approval tests, `scripts/scope-check.sh` shared gate support, metadata-only files, and integrator-locked edits as `no`.
+4. Canonical demo-path mapping: satisfied by naming open project/document, retrieve/context basket, patch preview, and continued CLI operation in the task list, mapping section, and final demo-path statement.
+5. Required gates: this fixer pass reruns and records `make scope-check`, `./quality-format.sh --check`, `./quality-lint.sh`, `./quality-test.sh`, `./typecheck-test.sh`, and `make ci`.
+
 ## Verification
 
 - `python3 -m unittest tests.unit.test_commands_catalog -v`: PASS (62 tests)
@@ -200,5 +208,5 @@ Canonical handoff contract lives in `THREAD_PACKET.md`.
 - `./quality-test.sh`: PASS
 - `./typecheck-test.sh`: PASS
 - `make ci`: PASS
-- Final verification pass: PASS in final gate rerun for reviewer packet `20260429T003118Z`.
-- Exact-tip fixer verification: PASS after the `20260429T003118Z` handoff metadata refresh.
+- Final verification pass: PASS in final gate rerun for reviewer packet `20260429T003451Z`.
+- Exact-tip fixer verification: PASS after the `20260429T003451Z` handoff metadata refresh.
