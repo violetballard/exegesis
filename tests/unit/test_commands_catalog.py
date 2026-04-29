@@ -321,6 +321,24 @@ class CommandCatalogTests(unittest.TestCase):
             with self.assertRaisesRegex(ValueError, "Command CLI tokens are inconsistent"):
                 command_catalog.command_cli_contract()
 
+    def test_command_cli_contract_rejects_self_consistent_parser_projection_order_drift(self) -> None:
+        self._clear_cli_caches()
+        drifted_tokens = ("bootstrap", "context-basket", "diff-preview", "diff", "terminal")
+        drifted_lookup_table = (
+            ("bootstrap", "bootstrap"),
+            ("context-basket", "context-basket"),
+            ("diff-preview", "diff-preview"),
+            ("diff", "diff-preview"),
+            ("terminal", "terminal"),
+        )
+        with (
+            patch.object(command_catalog, "command_cli_tokens", return_value=drifted_tokens),
+            patch.object(command_catalog, "command_cli_lookup_table", return_value=drifted_lookup_table),
+            patch.object(command_catalog, "command_names", return_value=command_names()),
+        ):
+            with self.assertRaisesRegex(ValueError, "Command CLI parser surface is inconsistent"):
+                command_catalog.command_cli_contract()
+
     def test_command_cli_contract_rejects_grouped_parser_surface_drift(self) -> None:
         self._clear_cli_caches()
         drifted_lookup_table = (
