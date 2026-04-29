@@ -6,8 +6,8 @@ Canonical handoff contract lives in `THREAD_PACKET.md`.
 
 - Lane: `feat-commands`
 - Branch: `codex/feat-commands`
-- Implementation review target: branch tip after fixer prompt `20260429T044433Z`
-- Current handoff refresh: reviewer fix after prompt `20260429T044433Z`
+- Implementation review target: branch tip after fixer prompt `20260429T044747Z`
+- Current handoff refresh: reviewer fix after prompt `20260429T044747Z`
 - Prior implementation anchor: `f8d860ed9f6299f0169c4f21321ac5f37c949fd3`
 - Scope: command-catalog contract hardening for the current engine-first MVP focus without starting `feat-console`.
 - Roadmap alignment: Milestone 3 CLI compatibility for the engine-first workflow loop, and `feat-commands` as the command-surface compatibility lane.
@@ -182,5 +182,13 @@ Canonical handoff contract lives in `THREAD_PACKET.md`.
 1. The handoff target is refreshed for prompt `20260429T044433Z`; review should use the current branch tip after this fixer commit.
 2. The branch-tip command-catalog implementation validates exact accepted parser tokens, lookup-table order, grouped canonical surface, declared CLI surface, and canonical command order before returning `CommandCliContract`.
 3. Regression coverage includes a self-consistent reordered parser projection with matching lookup-table order, plus the reviewer-requested added alias, removed token, substituted same-canonical alias, token order, and lookup-table substitution drift cases.
+4. `THREAD_PACKET.md` keeps one branch-tip review basis, the post-anchor implementation ledger, final implementation file set, metadata-only file accounting, shared-test approval basis, and canonical demo-path mapping.
+5. Required gates are rerun after this refresh and recorded in `THREAD_PACKET.md`.
+
+## Fixer Prompt `20260429T044747Z` Fix Satisfaction
+
+1. The handoff target is refreshed for prompt `20260429T044747Z`; review should use the current branch tip after this fixer commit.
+2. The branch-tip command-catalog implementation continues to validate exact accepted parser tokens, lookup-table order, grouped canonical surface, declared CLI surface, and canonical command order before returning `CommandCliContract`.
+3. Focused command-catalog coverage remains green for added aliases, missing tokens, substituted same-canonical aliases, token order drift, lookup-table substitution drift, and self-consistent parser projection drift.
 4. `THREAD_PACKET.md` keeps one branch-tip review basis, the post-anchor implementation ledger, final implementation file set, metadata-only file accounting, shared-test approval basis, and canonical demo-path mapping.
 5. Required gates are rerun after this refresh and recorded in `THREAD_PACKET.md`.
