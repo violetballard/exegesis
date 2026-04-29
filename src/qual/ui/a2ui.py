@@ -2094,6 +2094,10 @@ def describe_terminal_artifact_cli_fallback_contract(
     manifest["terminal_artifact_render_target_contract_fingerprint"] = (
         terminal_artifact_render_target_contract_fingerprint()
     )
+    manifest["contract_manifest"] = _snapshot_contract_section(
+        manifest["terminal_artifact_cli_fallback_contract_manifest"]
+    )
+    manifest["contract_manifest_fingerprint"] = fingerprint
     manifest["allowed_actions_fingerprint"] = _fingerprint_manifest_section(manifest["allowed_actions"])
     manifest["renderer_entrypoints_fingerprint"] = _fingerprint_manifest_section(manifest["renderer_entrypoints"])
     renderer_entrypoints_contract = describe_terminal_artifact_renderer_entrypoints_contract()
@@ -2156,6 +2160,10 @@ def describe_terminal_artifact_cli_fallback_target_contract(
         manifest
     )
     manifest["terminal_artifact_cli_fallback_target_contract_manifest_fingerprint"] = fingerprint
+    manifest["contract_manifest"] = _snapshot_contract_section(
+        manifest["terminal_artifact_cli_fallback_target_contract_manifest"]
+    )
+    manifest["contract_manifest_fingerprint"] = fingerprint
     return manifest
 
 
@@ -2190,6 +2198,10 @@ def describe_terminal_artifact_cli_fallback_route_contract() -> dict[str, Any]:
     manifest["contract_fingerprint"] = fingerprint
     manifest["terminal_artifact_cli_fallback_route_contract_manifest"] = _snapshot_contract_section(manifest)
     manifest["terminal_artifact_cli_fallback_route_contract_manifest_fingerprint"] = fingerprint
+    manifest["contract_manifest"] = _snapshot_contract_section(
+        manifest["terminal_artifact_cli_fallback_route_contract_manifest"]
+    )
+    manifest["contract_manifest_fingerprint"] = fingerprint
     return manifest
 
 
@@ -2220,6 +2232,8 @@ def describe_terminal_artifact_cli_fallback_target_contract_fingerprints(
     if include_contract_aliases:
         _add_contract_alias_fingerprints(
             fingerprints,
+            ("contract_manifest", terminal_artifact_cli_fallback_target_contract_fingerprint()),
+            ("contract_manifest_fingerprint", terminal_artifact_cli_fallback_target_contract_fingerprint()),
             (
                 "terminal_artifact_cli_fallback_entrypoint",
                 _fingerprint_manifest_section("render_terminal_cli_fallback"),
@@ -2490,6 +2504,8 @@ def _terminal_artifact_cli_fallback_contract_fingerprints_snapshot(
         )
         _add_contract_alias_fingerprints(
             fingerprints,
+            ("contract_manifest", terminal_artifact_cli_fallback_contract_fingerprint()),
+            ("contract_manifest_fingerprint", terminal_artifact_cli_fallback_contract_fingerprint()),
             ("allowed_actions", _fingerprint_manifest_section(sorted(ALLOWED_ACTION_IDS))),
             ("terminal_fallback", terminal_fallback_contract_fingerprint()),
             ("terminal_fallback_contract", terminal_fallback_contract_fingerprint()),
@@ -2699,6 +2715,8 @@ def _terminal_artifact_cli_fallback_route_contract_fingerprints_snapshot(
     if include_contract_aliases:
         _add_contract_alias_fingerprints(
             fingerprints,
+            ("contract_manifest", terminal_artifact_cli_fallback_route_contract_fingerprint()),
+            ("contract_manifest_fingerprint", terminal_artifact_cli_fallback_route_contract_fingerprint()),
             ("terminal_fallback", terminal_fallback_contract_fingerprint()),
             ("terminal_fallback_contract", terminal_fallback_contract_fingerprint()),
             (
