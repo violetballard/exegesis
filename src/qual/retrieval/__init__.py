@@ -1,5 +1,8 @@
 from __future__ import annotations
 
+from collections.abc import Mapping
+from typing import TypeAlias
+
 from src.qual.engine.retrieval import build_retrieval_query as engine_build_retrieval_query
 from src.qual.retrieval.service import (
     RetrievalConstraints,
@@ -10,13 +13,15 @@ from src.qual.retrieval.service import (
     RetrievalService,
 )
 
+RetrievalConstraintInput: TypeAlias = Mapping[str, object] | RetrievalConstraints | None
+
 
 def _build_retrieval_query(
     *,
     query_text: str,
     scope: str,
     intent: str,
-    constraints: dict[str, object] | RetrievalConstraints | None = None,
+    constraints: RetrievalConstraintInput = None,
     confidentiality_profile: str = "confidential",
 ) -> RetrievalQuery:
     return engine_build_retrieval_query(
@@ -33,10 +38,16 @@ def build_retrieval_query(
     query_text: str,
     scope: str,
     intent: str,
-    constraints: dict[str, object] | RetrievalConstraints | None = None,
+    constraints: RetrievalConstraintInput = None,
     confidentiality_profile: str = "confidential",
 ) -> RetrievalQuery:
-    """Return the canonical retrieval query used by both facades."""
+    """Return the canonical retrieval query used by both facades.
+
+    Constraint payloads are accepted as mapping-shaped payloads or
+    RetrievalConstraints objects and normalized into the engine query
+    dataclass. Iterable doc_types/date_range values are normalized
+    deterministically from those inputs.
+    """
 
     return engine_build_retrieval_query(
         query_text=query_text,
@@ -54,7 +65,7 @@ def _call_fts_retrieval(
     query_text: str,
     scope: str,
     intent: str,
-    constraints: dict[str, object] | None = None,
+    constraints: RetrievalConstraintInput = None,
     confidentiality_profile: str = "confidential",
 ):
     query = _build_retrieval_query(
@@ -73,7 +84,7 @@ def retrieve_fts(
     query_text: str,
     scope: str,
     intent: str,
-    constraints: dict[str, object] | None = None,
+    constraints: RetrievalConstraintInput = None,
     confidentiality_profile: str = "confidential",
 ):
     return _call_fts_retrieval(
@@ -93,7 +104,7 @@ def retrieve_fts_payload(
     query_text: str,
     scope: str,
     intent: str,
-    constraints: dict[str, object] | None = None,
+    constraints: RetrievalConstraintInput = None,
     confidentiality_profile: str = "confidential",
 ) -> dict[str, object]:
     """Return the canonical downstream payload for FTS-first retrieval."""
@@ -115,7 +126,7 @@ def retrieve_fts_context_bundle(
     query_text: str,
     scope: str,
     intent: str,
-    constraints: dict[str, object] | None = None,
+    constraints: RetrievalConstraintInput = None,
     confidentiality_profile: str = "confidential",
 ) -> dict[str, object]:
     """Return the canonical retrieval context bundle for a single FTS retrieval."""
@@ -137,7 +148,7 @@ def retrieve_fts_citation_bundle(
     query_text: str,
     scope: str,
     intent: str,
-    constraints: dict[str, object] | None = None,
+    constraints: RetrievalConstraintInput = None,
     confidentiality_profile: str = "confidential",
 ) -> dict[str, object]:
     """Return the canonical citation/provenance bundle for a single FTS retrieval."""
@@ -159,7 +170,7 @@ def retrieve_fts_source_bundle(
     query_text: str,
     scope: str,
     intent: str,
-    constraints: dict[str, object] | None = None,
+    constraints: RetrievalConstraintInput = None,
     confidentiality_profile: str = "confidential",
 ) -> dict[str, object]:
     """Return the canonical source bundle for a single FTS retrieval."""
@@ -175,13 +186,35 @@ def retrieve_fts_source_bundle(
     )
 
 
+def retrieve_fts_provenance_bundle(
+    service: RetrievalService,
+    *,
+    query_text: str,
+    scope: str,
+    intent: str,
+    constraints: RetrievalConstraintInput = None,
+    confidentiality_profile: str = "confidential",
+) -> dict[str, object]:
+    """Return the canonical provenance bundle for a single FTS retrieval."""
+
+    return _call_fts_retrieval(
+        service,
+        query_text=query_text,
+        scope=scope,
+        intent=intent,
+        constraints=constraints,
+        confidentiality_profile=confidentiality_profile,
+        method_name="retrieve_fts_provenance_bundle",
+    )
+
+
 def retrieve_fts_doc_bundle(
     service: RetrievalService,
     *,
     query_text: str,
     scope: str,
     intent: str,
-    constraints: dict[str, object] | None = None,
+    constraints: RetrievalConstraintInput = None,
     confidentiality_profile: str = "confidential",
 ) -> dict[str, object]:
     """Return the canonical doc-focused bundle for a single FTS retrieval."""
@@ -203,7 +236,7 @@ def retrieve_fts_excerpt_bundle(
     query_text: str,
     scope: str,
     intent: str,
-    constraints: dict[str, object] | None = None,
+    constraints: RetrievalConstraintInput = None,
     confidentiality_profile: str = "confidential",
 ) -> dict[str, object]:
     """Return the canonical excerpt-focused bundle for a single FTS retrieval."""
@@ -245,7 +278,7 @@ def retrieve_auto(
     query_text: str,
     scope: str,
     intent: str,
-    constraints: dict[str, object] | None = None,
+    constraints: RetrievalConstraintInput = None,
     confidentiality_profile: str = "confidential",
 ):
     return _call_fts_retrieval(
@@ -265,7 +298,7 @@ def retrieve_auto_context_bundle(
     query_text: str,
     scope: str,
     intent: str,
-    constraints: dict[str, object] | None = None,
+    constraints: RetrievalConstraintInput = None,
     confidentiality_profile: str = "confidential",
 ) -> dict[str, object]:
     """Return the canonical retrieval context bundle for the FTS-first auto path."""
@@ -287,7 +320,7 @@ def retrieve_auto_citation_bundle(
     query_text: str,
     scope: str,
     intent: str,
-    constraints: dict[str, object] | None = None,
+    constraints: RetrievalConstraintInput = None,
     confidentiality_profile: str = "confidential",
 ) -> dict[str, object]:
     """Return the canonical citation/provenance bundle for the FTS-first auto path."""
@@ -309,7 +342,7 @@ def retrieve_auto_source_bundle(
     query_text: str,
     scope: str,
     intent: str,
-    constraints: dict[str, object] | None = None,
+    constraints: RetrievalConstraintInput = None,
     confidentiality_profile: str = "confidential",
 ) -> dict[str, object]:
     """Return the canonical source bundle for the FTS-first auto path."""
@@ -325,13 +358,35 @@ def retrieve_auto_source_bundle(
     )
 
 
+def retrieve_auto_provenance_bundle(
+    service: RetrievalService,
+    *,
+    query_text: str,
+    scope: str,
+    intent: str,
+    constraints: RetrievalConstraintInput = None,
+    confidentiality_profile: str = "confidential",
+) -> dict[str, object]:
+    """Return the canonical provenance bundle for the FTS-first auto path."""
+
+    return _call_fts_retrieval(
+        service,
+        query_text=query_text,
+        scope=scope,
+        intent=intent,
+        constraints=constraints,
+        confidentiality_profile=confidentiality_profile,
+        method_name="retrieve_auto_provenance_bundle",
+    )
+
+
 def retrieve_auto_doc_bundle(
     service: RetrievalService,
     *,
     query_text: str,
     scope: str,
     intent: str,
-    constraints: dict[str, object] | None = None,
+    constraints: RetrievalConstraintInput = None,
     confidentiality_profile: str = "confidential",
 ) -> dict[str, object]:
     """Return the canonical doc-focused bundle for the FTS-first auto path."""
@@ -353,7 +408,7 @@ def retrieve_auto_excerpt_bundle(
     query_text: str,
     scope: str,
     intent: str,
-    constraints: dict[str, object] | None = None,
+    constraints: RetrievalConstraintInput = None,
     confidentiality_profile: str = "confidential",
 ) -> dict[str, object]:
     """Return the canonical excerpt-focused bundle for the FTS-first auto path."""
@@ -375,7 +430,7 @@ def retrieve_auto_payload(
     query_text: str,
     scope: str,
     intent: str,
-    constraints: dict[str, object] | None = None,
+    constraints: RetrievalConstraintInput = None,
     confidentiality_profile: str = "confidential",
 ) -> dict[str, object]:
     """Return the canonical downstream payload for FTS-first retrieval.
@@ -406,14 +461,17 @@ __all__ = [
     "retrieve_fts_payload",
     "retrieve_fts_context_bundle",
     "retrieve_fts_source_bundle",
+    "retrieve_fts_provenance_bundle",
     "retrieve_fts_doc_bundle",
     "retrieve_fts_excerpt_bundle",
     "retrieve_fts_excerpt",
     "fetch_fts_excerpt",
+    "retrieve_fts_citation_bundle",
     "retrieve_auto",
     "retrieve_auto_context_bundle",
     "retrieve_auto_citation_bundle",
     "retrieve_auto_source_bundle",
+    "retrieve_auto_provenance_bundle",
     "retrieve_auto_doc_bundle",
     "retrieve_auto_excerpt_bundle",
     "retrieve_auto_payload",
