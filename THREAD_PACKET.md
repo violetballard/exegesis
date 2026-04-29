@@ -4,8 +4,8 @@
 - Branch: `codex/feat-commands`
 - Review target: full branch tip of `codex/feat-commands`
 - Review basis: `git diff main...codex/feat-commands`
-- Pre-fixer branch-tip SHA before this fixer pass: `fc6e67941`
-- Fixer prompt satisfied: `20260429T131636Z`
+- Review target implementation tip before this fixer pass: `894e6c128e4e2ece1406f4e95f5086b774955905`
+- Fixer prompt satisfied: `20260429T133117Z`
 
 This packet supersedes all earlier packets and packet-refresh notes. No commit in the reviewed range is described as metadata-only; implementation and handoff edits are part of the branch-tip review target.
 
@@ -21,6 +21,23 @@ This packet supersedes all earlier packets and packet-refresh notes. No commit i
 8. The final readiness statement names which canonical demo-path steps this command-catalog slice now makes more real.
 9. Ownership wording now distinguishes the approved shared-test exception from the earlier branch-tip integrator-locked parser exception.
 10. Fresh gate evidence is recorded for the `20260429T131636Z` offline-review fallback fix request; no source changes were required because all required gates passed on rerun.
+11. Intended review target is explicitly the current branch tip, including implementation commit `894e6c128e4e2ece1406f4e95f5086b774955905` (`Add MVP demo command lookup contract`).
+12. The `894e6c128...` runtime API/export changes are listed as implementation scope: `CommandDemoPathLookupContract`, `command_mvp_demo_path_lookup_contract()`, `command_mvp_demo_path_lookup_table()`, `command_mvp_demo_path_command_lookup_table()`, `command_mvp_demo_path_cli_lookup_table()`, `command_mvp_demo_path_action_lookup_table()`, and `command_mvp_demo_path_handoff_lookup_table()`.
+13. The branch-tip demo lookup contract is mapped to the canonical demo path as a direct strengthening of `retrieve material`, `gather/promote context`, `preview/apply/reject patch`, `persist/save`, and `continue`, with `open document` retained in the ordered lookup surface.
+14. The current fixer pass updates packet traceability and keeps the public lookup-export test coverage visible; it does not hide `894e6c128...` or the shared-test delta behind a metadata-only label.
+15. Fresh `20260429T133117Z` gate evidence below is for the exact branch tip proposed for merge after this packet update.
+
+## Implementation Commit List
+
+Current review target: full branch tip of `codex/feat-commands` after the `20260429T133117Z` fixer packet update.
+
+Implementation commits that must be reviewed as implementation scope include:
+
+- `f8d860ed9` - `feat(commands): lock CLI contract to command catalog`; modifies `src/qual/commands/catalog.py` and `tests/unit/test_commands_catalog.py` to lock parser/catalog drift coverage.
+- `894e6c128e4e2ece1406f4e95f5086b774955905` - `Add MVP demo command lookup contract`; modifies `src/qual/commands/__init__.py` and `src/qual/commands/catalog.py` to add the demo-path lookup contract and public exports.
+- This fixer commit - updates `THREAD.md`, `THREAD_PACKET.md`, and `tests/unit/test_commands_catalog.py`; it records the branch-tip review basis and keeps the public demo-path lookup export regression test in the reviewed diff.
+
+The branch also contains earlier command-catalog, CLI parser, diff-preview, scope-check, test, and packet-maintenance commits reflected by the full `git diff main...codex/feat-commands` file list below. Reviewers should use the full branch-tip diff, not an individual historical packet label, as the merge basis.
 
 ## Canonical Demo-Path Alignment
 
@@ -47,7 +64,15 @@ Parser/catalog drift was a concrete blocker for the CLI-first Milestone 3 loop b
    Canonical demo-path step advanced: `preview/apply/reject patch`, through exported patch-review command lines plus `preview_patch`, `apply_patch`, and `reject_patch` actions.
    Canonical demo-path step advanced: `persist/save`, through exported terminal/export-handoff command lines and `persist_session` action.
    Canonical demo-path step advanced: `continue`, through exported terminal/export-handoff routing after persistence.
-4. Added unit coverage for catalog determinism, parser drift detection, smoke command lines, demo-path checkpoints, diff-preview rendering, and public command exports.
+4. Added branch-tip demo-path lookup contract APIs and exports for ordered lookup by flow step, command name, CLI token, engine action, and engine handoff.
+   API/export changes: `CommandDemoPathLookupContract`, `command_mvp_demo_path_lookup_contract()`, `command_mvp_demo_path_lookup_table()`, `command_mvp_demo_path_command_lookup_table()`, `command_mvp_demo_path_cli_lookup_table()`, `command_mvp_demo_path_action_lookup_table()`, and `command_mvp_demo_path_handoff_lookup_table()` are public through `src/qual/commands/__init__.py`.
+   Canonical demo-path step advanced: `open document`, by keeping the bootstrap/open step addressable in the ordered flow-step and CLI-token lookup surfaces.
+   Canonical demo-path step advanced: `retrieve material`, by giving retrieval consumers a stable lookup from flow step, command name, CLI token, engine action, and engine handoff.
+   Canonical demo-path step advanced: `gather/promote context`, by giving context-basket promotion a stable command/demo-path lookup record for future CLI and A2UI consumers.
+   Canonical demo-path step advanced: `preview/apply/reject patch`, by exposing patch-review actions and handoff labels through validated lookup tables.
+   Canonical demo-path step advanced: `persist/save`, by exposing terminal/export-handoff persistence actions and labels through the handoff/action lookup tables.
+   Canonical demo-path step advanced: `continue`, by keeping the terminal/export-handoff continuation route stable in the command-name, CLI-token, and handoff lookup surfaces.
+5. Added unit coverage for catalog determinism, parser drift detection, smoke command lines, demo-path checkpoints, diff-preview rendering, and public command exports.
    Canonical demo-path step advanced: `retrieve material`, by guarding retrieval command tokens against catalog/parser drift.
    Canonical demo-path step advanced: `gather/promote context`, by testing context-basket visibility in the command contract.
    Canonical demo-path step advanced: `preview/apply/reject patch`, by testing diff-preview rendering and patch-review command exports.
@@ -92,12 +117,12 @@ Handoff metadata:
 
 ## Ownership And Risk
 
-This is a high-risk branch-tip handoff because the full branch review target includes an earlier approved edit to `src/qual/cli.py`, which is integrator-locked in `THREAD_OWNERSHIP.md`. The current `20260429T131018Z` fixer slice does not newly edit integrator-locked files.
+This is a high-risk branch-tip handoff because the full branch review target includes an earlier approved edit to `src/qual/cli.py`, which is integrator-locked in `THREAD_OWNERSHIP.md`. The current `20260429T133117Z` fixer slice does not newly edit integrator-locked files.
 
 - Lane-owned command paths: `src/qual/commands/**`.
 - Earlier full-branch integrator-locked exception: `src/qual/cli.py`, needed so the actual argparse parser consumes the command catalog token contract.
 - Approved shared-test exception: `tests/unit/test_commands_catalog.py`, retained as the focused command-catalog regression surface.
-- Current fixer-slice ownership: handoff metadata only; no new integrator-locked implementation edit.
+- Current fixer-slice ownership: `tests/unit/test_commands_catalog.py` plus handoff metadata only; no new integrator-locked implementation edit.
 - Scope-check exception behavior: full-window scope checks that include `src/qual/cli.py` require `SCOPE_ALLOW_SHARED=1`; the default recent scope check only validates the current metadata-fix commit.
 - Task budget: `4` high-risk tasks completed.
 - Budget status: within high-risk task budget; the branch-tip diff exceeds the default packet-only size limits because this review target intentionally includes all implementation commits.
@@ -112,6 +137,8 @@ This is a high-risk branch-tip handoff because the full branch review target inc
 
 ## Commands Run
 
+- Fresh `20260429T133117Z` fixer rerun for the branch-tip lookup-contract review request:
+  `make scope-check` passed; `./quality-format.sh --check` passed; `./quality-lint.sh` passed; `./quality-test.sh` passed with smoke tests and `133` unit tests; `./typecheck-test.sh` passed; `make ci` passed with scope-check, format, lint, typecheck, smoke tests, and `133` unit tests.
 - Fresh `20260429T131636Z` fixer rerun for offline-review fallback:
   `make scope-check` passed; `./quality-format.sh --check` passed; `./quality-lint.sh` passed; `./quality-test.sh` passed with smoke tests and `132` unit tests; `./typecheck-test.sh` passed; `make ci` passed with scope-check, format, lint, typecheck, smoke tests, and `132` unit tests.
 - Fresh `20260429T131018Z` fixer rerun after live parser-surface and ownership-note updates:
@@ -132,6 +159,7 @@ This is a high-risk branch-tip handoff because the full branch review target inc
 ## Risks And Blockers
 
 - Risk: `src/qual/cli.py` is integrator-locked, so review must include the explicit shared-file exception above.
+- Risk: `894e6c128...` expands the public command API/export surface from `src/qual/commands/__init__.py`; this is intentional branch-tip implementation scope and should be reviewed as such.
 - Risk: this packet deliberately reviews the full branch tip instead of a narrowed implementation commit, so reviewers should ignore earlier packet wording and use the file list above.
 - Blockers: none known after gate rerun.
 

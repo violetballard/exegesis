@@ -57,7 +57,13 @@ from src.qual.commands import (
     command_mvp_smoke_lookup_table,
     command_mvp_demo_path_command_lines,
     command_mvp_demo_path_contract,
+    command_mvp_demo_path_action_lookup_table,
+    command_mvp_demo_path_cli_lookup_table,
+    command_mvp_demo_path_command_lookup_table,
     command_mvp_demo_path_engine_handoffs,
+    command_mvp_demo_path_handoff_lookup_table,
+    command_mvp_demo_path_lookup_contract,
+    command_mvp_demo_path_lookup_table,
     command_mvp_demo_path_steps,
     command_mvp_lookup_index,
     command_mvp_surface_contract,
@@ -665,6 +671,47 @@ class CommandCatalogTests(unittest.TestCase):
                     "persist and continue through export handoff",
                     "engine export handoff routing",
                 ),
+            ),
+        )
+
+    def test_public_mvp_demo_path_lookup_exports_are_stable(self) -> None:
+        contract = command_mvp_demo_path_lookup_contract()
+        demo_path = command_mvp_demo_path_contract()
+
+        self.assertEqual(command_mvp_demo_path_lookup_table(), contract.by_flow_step)
+        self.assertEqual(command_mvp_demo_path_command_lookup_table(), contract.by_command_name)
+        self.assertEqual(command_mvp_demo_path_cli_lookup_table(), contract.by_cli_token)
+        self.assertEqual(command_mvp_demo_path_action_lookup_table(), contract.action_lookup)
+        self.assertEqual(command_mvp_demo_path_handoff_lookup_table(), contract.handoff_lookup)
+        self.assertEqual(
+            contract.by_flow_step,
+            tuple((step.flow_step, step) for step in demo_path.steps),
+        )
+        self.assertEqual(
+            tuple((flow_step, step.name, step.cli_token) for flow_step, step in contract.by_flow_step),
+            (
+                ("project-open", "bootstrap", "bootstrap"),
+                ("retrieval", "context-basket", "context-basket"),
+                ("patch-review", "diff-preview", "diff-preview"),
+                ("export-handoff", "terminal", "terminal"),
+            ),
+        )
+        self.assertEqual(
+            contract.action_lookup,
+            (
+                ("project-open", ("open_project",)),
+                ("retrieval", ("retrieve_context",)),
+                ("patch-review", ("preview_patch", "apply_patch", "reject_patch")),
+                ("export-handoff", ("persist_session", "export_handoff")),
+            ),
+        )
+        self.assertEqual(
+            contract.handoff_lookup,
+            (
+                ("project-open", "engine project bootstrap/open"),
+                ("retrieval", "engine retrieval context selection"),
+                ("patch-review", "engine patch preview and apply/reject decision"),
+                ("export-handoff", "engine export handoff routing"),
             ),
         )
 
