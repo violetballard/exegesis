@@ -6594,11 +6594,11 @@ def _build_read_only_fallback_actions(
 
 
 def _filter_supported_actions(actions: Any, *, supported_actions: set[str]) -> list[dict[str, Any]]:
-    if not isinstance(actions, (list, tuple)):
+    if not isinstance(actions, Iterable) or isinstance(actions, (str, bytes, bytearray, Mapping)):
         return []
     filtered: list[dict[str, Any]] = []
     seen: set[str] = set()
-    for action in actions:
+    for action in list(actions):
         try:
             normalized = _normalize_action(action, supported_actions=supported_actions)
         except ValueError:

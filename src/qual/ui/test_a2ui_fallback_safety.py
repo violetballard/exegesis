@@ -12750,6 +12750,27 @@ class A2UIFallbackSafetyTests(unittest.TestCase):
     def test_shell_ui_truncates_without_splitting_unicode_escape_sequences(self) -> None:
         self.assertEqual(ShellUI._format_item_id("x" * 18 + "\u202e" + "yz"), "xxxxxxxxxxxxxxxxxx...")
 
+    def test_engine_prepare_card_accepts_iterable_actions_for_rendering(self) -> None:
+        card = engine_prepare_card(
+            {
+                "type": "ProposedEditCard",
+                "title": "Patch",
+                "blocks": [{"type": "MarkdownBlock", "markdown": "Safe content"}],
+                "actions": (
+                    action
+                    for action in [
+                        {"id": "copy_to_clipboard", "label": "Copy", "payload": {"text": "alpha"}},
+                        {"id": "copy_to_clipboard", "label": "Copy", "payload": {"text": "alpha"}},
+                    ]
+                ),
+            },
+            _capabilities(),
+        )
+
+        self.assertEqual([action["id"] for action in card["actions"]], ["copy_to_clipboard"])
+        self.assertEqual(card["actions"][0]["label"], "Copy JSON")
+        self.assertIn("Safe content", render_terminal_card(card))
+
 
 if __name__ == "__main__":
     unittest.main()
