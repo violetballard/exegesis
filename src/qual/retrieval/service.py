@@ -68,14 +68,6 @@ def _optional_list_like(value: object) -> list[object] | None:
     return [value]
 
 
-def _optional_int(value: object) -> int | None:
-    if isinstance(value, bool):
-        return None
-    if isinstance(value, int):
-        return value
-    return None
-
-
 def _normalize_supported_value(value: object, *, field_name: str, allowed: set[str]) -> str:
     normalized = str(value).strip().casefold()
     if normalized not in allowed:
@@ -208,9 +200,6 @@ class RetrievalHit:
         excerpt_text_hash = self.provenance.get("excerpt_text_hash") or self.provenance.get("hash")
         if isinstance(excerpt_text_hash, str) and excerpt_text_hash:
             payload["excerpt_text_hash"] = excerpt_text_hash
-        excerpt_text_length = _optional_int(self.provenance.get("excerpt_text_length"))
-        if excerpt_text_length is not None:
-            payload["excerpt_text_length"] = excerpt_text_length
         rank = self.provenance.get("rank")
         if isinstance(rank, int):
             payload["rank"] = rank
@@ -487,7 +476,6 @@ class RetrievalResult:
         """Return the canonical retrieval context for drafting, patching, and research flows."""
 
         downstream_payload = self.to_downstream_payload()
-        basket_promotion = self._basket_promotion_snapshot(downstream_payload)
         return {
             "audit_ref": self.audit_ref,
             "result_fingerprint": self.result_fingerprint,
@@ -498,7 +486,6 @@ class RetrievalResult:
             "retrieval_provenance": copy.deepcopy(downstream_payload["retrieval_provenance"]),
             "retrieval_source_bundle": copy.deepcopy(downstream_payload["retrieval_source_bundle"]),
             "retrieval_evidence": copy.deepcopy(downstream_payload["retrieval_evidence"]),
-            "retrieval_basket_promotion": basket_promotion,
         }
 
     def _query_snapshot(self) -> dict[str, object]:
@@ -593,13 +580,6 @@ class RetrievalResult:
         ]
         return {
             "query_fingerprint": self.diagnostics["query_fingerprint"],
-            "query_scope": self.query.scope,
-            "query_intent": self.query.intent,
-            "query_date_range": (
-                list(self.query.constraints.date_range)
-                if self.query.constraints.date_range is not None
-                else None
-            ),
             "result_fingerprint": self.result_fingerprint,
             "retrieval_backend": self.diagnostics["retrieval_backend"],
             "retrieval_mode": self.diagnostics["retrieval_mode"],
@@ -768,60 +748,6 @@ class RetrievalResult:
             {key: value for key, value in source_bundle.items() if key != "source_bundle_fingerprint"}
         )
         return source_bundle
-
-    @staticmethod
-    def _basket_promotion_snapshot(payload: dict[str, object]) -> dict[str, object]:
-        """Return the deterministic retrieval references needed for basket promotion."""
-
-        summary = payload.get("retrieval_summary", {})
-        if not isinstance(summary, dict):
-            summary = {}
-        manifest = payload.get("retrieval_manifest", {})
-        if not isinstance(manifest, dict):
-            manifest = {}
-        citation_status = payload.get("citation_status", summary.get("citation_status", {}))
-        if not isinstance(citation_status, dict):
-            citation_status = {}
-        source_bundle = payload.get("retrieval_source_bundle", {})
-        if not isinstance(source_bundle, dict):
-            source_bundle = {}
-        promotion = {
-            "result_fingerprint": payload.get("result_fingerprint"),
-            "query_fingerprint": summary.get("query_fingerprint"),
-            "query_scope": summary.get("query_scope"),
-            "query_intent": summary.get("query_intent"),
-            "query_date_range": copy.deepcopy(summary.get("query_date_range")),
-            "retrieval_backend": payload.get("retrieval_backend", summary.get("retrieval_backend")),
-            "retrieval_mode": payload.get("retrieval_mode", summary.get("retrieval_mode")),
-            "doc_count": summary.get("doc_count"),
-            "excerpt_count": summary.get("excerpt_count"),
-            "doc_ids": copy.deepcopy(summary.get("doc_ids", [])),
-            "excerpt_ids": copy.deepcopy(summary.get("excerpt_ids", [])),
-            "doc_fingerprints": copy.deepcopy(summary.get("doc_fingerprints", [])),
-            "doc_identity_fingerprints": copy.deepcopy(summary.get("doc_identity_fingerprints", [])),
-            "excerpt_fingerprints": copy.deepcopy(summary.get("excerpt_fingerprints", [])),
-            "excerpt_text_hashes": copy.deepcopy(summary.get("excerpt_text_hashes", [])),
-            "top_excerpt_ids": copy.deepcopy(manifest.get("top_excerpt_ids", [])),
-            "top_excerpt_fingerprints": copy.deepcopy(
-                summary.get("top_excerpt_fingerprints", manifest.get("top_excerpt_fingerprints", []))
-            ),
-            "top_excerpt_text_hashes": copy.deepcopy(
-                summary.get("top_excerpt_text_hashes", manifest.get("top_excerpt_text_hashes", []))
-            ),
-            "primary_doc_id": summary.get("primary_doc_id"),
-            "primary_excerpt_id": summary.get("primary_excerpt_id"),
-            "primary_doc_fingerprint": summary.get("primary_doc_fingerprint"),
-            "primary_doc_identity_fingerprint": summary.get("primary_doc_identity_fingerprint"),
-            "primary_excerpt_fingerprint": summary.get("primary_excerpt_fingerprint"),
-            "primary_excerpt_text_hash": summary.get("primary_excerpt_text_hash"),
-            "citation_status": copy.deepcopy(citation_status),
-            "source_bundle_fingerprint": source_bundle.get(
-                "source_bundle_fingerprint",
-                payload.get("source_bundle_fingerprint"),
-            ),
-        }
-        promotion["basket_promotion_fingerprint"] = RetrievalService._stable_fingerprint(promotion)
-        return promotion
 
 
 class RetrievalService:
@@ -1858,13 +1784,6 @@ class RetrievalService:
             if isinstance(text_value, str) and text_value:
                 text_hash = hashlib.sha256(text_value.encode("utf-8")).hexdigest()
         normalized["text_hash"] = text_hash
-        text_length = _optional_int(provenance.get("excerpt_text_length"))
-        if text_length is None:
-            text_value = normalized.get("text")
-            if isinstance(text_value, str):
-                text_length = len(text_value)
-        if text_length is not None:
-            normalized["excerpt_text_length"] = text_length
         doc_id_value = normalized.get("doc_id")
         if (not isinstance(doc_id_value, str) or not doc_id_value) and isinstance(provenance.get("doc_id"), str):
             doc_id_value = str(provenance["doc_id"])
@@ -1969,8 +1888,6 @@ class RetrievalService:
             if isinstance(text_hash, str) and text_hash:
                 normalized_provenance["hash"] = text_hash
                 normalized_provenance["excerpt_text_hash"] = text_hash
-            if text_length is not None:
-                normalized_provenance["excerpt_text_length"] = text_length
             normalized_provenance["excerpt_fingerprint"] = excerpt_fingerprint
             if isinstance(doc_identity_fingerprint, str) and doc_identity_fingerprint:
                 normalized_provenance["doc_identity_fingerprint"] = doc_identity_fingerprint
