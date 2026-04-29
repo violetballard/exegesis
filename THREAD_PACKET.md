@@ -2,10 +2,10 @@
 
 - Branch/lane: `codex/feat-retrieval-fts` / `feat-retrieval-fts`
 - Merge candidate: current branch tip `HEAD` after this fixer metadata commit.
-- Branch-tip SHA before this metadata fix: `c6302e9e4c74bb24ba45752424ec6bea12cd4c0b`
+- Branch-tip SHA before this metadata fix: `ab9046726ee4f7f0a6c2ef12552e3528a7accc69`
 - Reviewed implementation head: `c6302e9e4c74bb24ba45752424ec6bea12cd4c0b`
 - Reviewed implementation range: `d7fd5d200358287fa42a18d39e2b277463b9b69f..c6302e9e4c74bb24ba45752424ec6bea12cd4c0b`
-- Packet refresh note: this fixer commit only regenerates handoff metadata. The reviewed material code/test range now includes every runtime and test change through branch tip `c6302e9e4c74bb24ba45752424ec6bea12cd4c0b`.
+- Packet refresh note: this fixer commit only regenerates handoff metadata. The reviewed material code/test range includes every runtime and test change through branch tip `c6302e9e4c74bb24ba45752424ec6bea12cd4c0b`; subsequent branch-tip commits, including `ab9046726ee4f7f0a6c2ef12552e3528a7accc69`, are packet-only refreshes.
 - Handoff classification: high-risk/shared because the reviewed implementation includes approved shared regression coverage in `tests/unit/test_unified_retrieval.py`.
 - Shared-file approval provenance: reviewer packet `fixer__feat-retrieval-fts__20260429T202122Z.prompt.txt`, finding 2, identifies `tests/unit/test_unified_retrieval.py` as the approved shared surface for `feat-retrieval-fts`.
 
@@ -68,6 +68,10 @@ Metadata-only fixer commit after `c6302e9e4c74bb24ba45752424ec6bea12cd4c0b`:
 - `.codex/lane_meta/feat-retrieval-fts.json`
 - `THREAD_PACKET.md`
 
+Current metadata-only fixer commit after `ab9046726ee4f7f0a6c2ef12552e3528a7accc69`:
+
+- `THREAD_PACKET.md`
+
 ## Budget / Risk
 
 - Risk: high/shared.
@@ -101,6 +105,6 @@ Fresh fixer pass on `2026-04-29` after regenerating the reviewed range through `
 ## Risks / Blockers
 
 - No implementation blockers are known.
-- `.codex/kickoff_packets/feat-retrieval-fts.md` and `.codex/lane_meta/feat-retrieval-fts.json` are tracked packet mirrors but are not writable in this sandbox (`EPERM` on direct write, temp-file creation, and xattr removal), so `THREAD_PACKET.md` is the corrected source-of-truth packet for this fixer pass.
+- `.codex/kickoff_packets/feat-retrieval-fts.md` and `.codex/lane_meta/feat-retrieval-fts.json` are tracked packet mirrors but are not writable in this sandbox (`EPERM` on direct write, temp-file creation, temp-name creation during in-place edit, and xattr removal), so `THREAD_PACKET.md` is the corrected source-of-truth packet for this fixer pass.
 - This metadata-only fixer commit intentionally changes only packet metadata after reviewed implementation head `c6302e9e4c74bb24ba45752424ec6bea12cd4c0b`.
 - Re-review should use reviewed implementation range `d7fd5d200358287fa42a18d39e2b277463b9b69f..c6302e9e4c74bb24ba45752424ec6bea12cd4c0b` and the final HEAD SHA reported by this fixer as the branch tip.
