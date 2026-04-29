@@ -2,9 +2,9 @@
 
 - Lane: `feat-commands`
 - Branch: `codex/feat-commands`
-- Review basis: actual `codex/feat-commands` branch tip after the `20260429T024425Z` reviewer-fix pass.
+- Review basis: actual `codex/feat-commands` branch tip after the `20260429T024711Z` reviewer-fix pass.
 - Previous implementation anchor: `f8d860ed9f6299f0169c4f21321ac5f37c949fd3`
-- Reviewer packet addressed: `20260429T024425Z`
+- Reviewer packet addressed: `20260429T024711Z`
 
 ## Packet Traceability Note
 
@@ -50,7 +50,7 @@
 - Hardened `command_cli_contract()` in `src/qual/commands/catalog.py` so it validates the exact parser-visible CLI token surface before returning the contract.
 - Preserved canonical command ordering by keeping `CommandCliContract.canonical_names` aligned with `command_names()`.
 - Rejected parser/catalog drift across canonical tokens, grouped parser surface, declared surface, lookup-table shape, lookup-table order, and canonical command order.
-- Added focused regression coverage in `tests/unit/test_commands_catalog.py` for same-canonical parser drift, including `bootstrap` -> `open`, `diff-preview` -> `diff`, and `diff` -> `diff_preview`.
+- Added focused regression coverage in `tests/unit/test_commands_catalog.py` for same-canonical parser drift, including self-consistent parser replacements for `bootstrap` -> `open` and `diff-preview` -> `diff`, plus `diff` -> `diff_preview`.
 - Kept review accounting on the actual branch tip and separated approved shared-by-approval test edits from integrator-locked edits.
 
 ## Canonical Demo-Path Step Advanced
@@ -66,7 +66,7 @@
 
 1. Hardened `command_cli_contract()` to validate exact parser-visible tokens, grouped parser surface, declared surface, lookup-table shape/order, and canonical command order; this protects `open project/document`, `retrieve relevant material`, `promote/gather context`, and `preview/apply/reject patch`.
 2. Preserved canonical command ordering by returning names aligned with `command_names()` for `bootstrap`, `diff-preview`, `context-basket`, and `terminal`; this protects deterministic CLI smoke execution for the same demo path.
-3. Added regression coverage for same-canonical parser drift, including `bootstrap` -> `open`, `diff-preview` -> `diff`, and `diff` -> `diff_preview`, plus token additions, removals, ordering drift, and lookup-table drift; this protects the `project-open` and `patch-review` command routes from silent parser drift.
+3. Added regression coverage for same-canonical parser drift, including self-consistent parser replacements for `bootstrap` -> `open` and `diff-preview` -> `diff`, plus `diff` -> `diff_preview`, token additions, removals, ordering drift, and lookup-table drift; this protects the `project-open` and `patch-review` command routes from silent parser drift.
 4. Regenerated this handoff packet with one branch-tip review basis, explicit demo-path mapping, and unambiguous ownership accounting for shared-by-approval tests versus integrator-locked files.
 
 ## Files Changed
@@ -93,11 +93,11 @@
 - Integrator-locked edits: NO.
 - Gate-policy edits: NO.
 
-## Required Fixes Addressed From Reviewer Packet `20260429T024425Z`
+## Required Fixes Addressed From Reviewer Packet `20260429T024711Z`
 
 1. One review basis: this packet uses the actual `codex/feat-commands` branch tip and includes post-`f8d860ed9f6299f0169c4f21321ac5f37c949fd3` implementation/test commits.
 2. Parser-surface validation: `command_cli_contract()` validates exact parser-visible tokens and lookup-table shape/order, not only de-duplicated canonical names.
-3. Same-canonical regressions: tests cover accepted alias substitution including `diff-preview` -> `diff`, `bootstrap` -> `open`, and `diff` -> `diff_preview`.
+3. Same-canonical regressions: tests cover accepted alias substitution including self-consistent `diff-preview` -> `diff` and `bootstrap` -> `open` replacements, plus `diff` -> `diff_preview`.
 4. Demo-path mapping: every completed task names the canonical demo-path command steps it protects or advances.
 5. Ownership fields: approved shared-by-approval test edits are separated from integrator-locked edits, and integrator-locked edits are `NO`.
 6. Required gates: final results are recorded below after rerun on this branch-tip state.
@@ -107,7 +107,7 @@
 - `make scope-check`: PASS for branch `codex/feat-commands`.
 - `./quality-format.sh --check`: PASS.
 - `./quality-lint.sh`: PASS.
-- `./quality-test.sh`: PASS; ran smoke tests and 150 unit tests, including same-canonical parser drift regressions for `bootstrap` -> `open`, `diff-preview` -> `diff`, and `diff` -> `diff_preview`.
+- `./quality-test.sh`: PASS; ran smoke tests and 151 unit tests, including same-canonical parser drift regressions for `bootstrap` -> `open`, `diff-preview` -> `diff`, and `diff` -> `diff_preview`.
 - `./typecheck-test.sh`: PASS; compiled Python sources in `src/`.
 - `make ci`: PASS; ran scope-check, format, lint, compileall/typecheck, and full quality tests.
 
