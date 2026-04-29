@@ -136,6 +136,7 @@
 - `20260429T014429Z` fixer validation rerun: PASS for `make scope-check`, `./quality-format.sh --check`, `./quality-lint.sh`, `./quality-test.sh`, `./typecheck-test.sh`, and `make ci`.
 - `20260429T014718Z` fixer validation rerun: PASS for `make scope-check`, `./quality-format.sh --check`, `./quality-lint.sh`, `./quality-test.sh`, `./typecheck-test.sh`, and `make ci`.
 - `20260429T015007Z` fixer validation rerun: PASS for `make scope-check`, `./quality-format.sh --check`, `./quality-lint.sh`, `./quality-test.sh`, `./typecheck-test.sh`, and `make ci`.
+- `20260429T015322Z` fixer validation rerun: PASS for `make scope-check`, `./quality-format.sh --check`, `./quality-lint.sh`, `./quality-test.sh`, `./typecheck-test.sh`, and `make ci`.
 
 ## Risks / Blockers
 
@@ -245,3 +246,12 @@
 3. Required fix 3 remains satisfied by this packet naming the actual branch tip as review basis and listing branch-tip implementation files rather than treating post-`f8d860e` code/test changes as metadata-only.
 4. Required fixes 4 and 5 remain satisfied by the files-changed and ownership accounting above, plus the canonical demo-path mapping for `open project/document`, `retrieve relevant material`, `promote/gather context`, and `preview/apply/reject patch`.
 5. Required fix 6 is satisfied by the fresh validation rerun: `make scope-check`, `./quality-format.sh --check`, `./quality-lint.sh`, `./quality-test.sh`, `./typecheck-test.sh`, and `make ci` all passed.
+
+## Reviewer Packet `20260429T015322Z` Fix Satisfaction
+
+1. Required fix 1 remains satisfied by `command_cli_contract()` validating the full parser-visible CLI surface, not just de-duplicated canonical names. It rejects token additions, removals, same-canonical substitutions, token reordering, grouped lookup-table drift, lookup-table order drift, and declared-surface drift.
+2. Required fix 2 is covered by focused `_CLI_ENTRYPOINTS` regressions for `bootstrap` -> `open` and `diff-preview` -> `diff`, plus the existing `diff` -> `diff_preview` same-canonical substitution coverage.
+3. Required fix 3 is covered by the positive contract test proving `tokens`, `canonical_names`, `lookup_table`, `_DECLARED_CLI_ENTRYPOINTS`, and the canonical grouped parser surface stay aligned.
+4. Required fix 4 remains satisfied by the task list and canonical demo-path mapping above, which name `open project/document`, `retrieve relevant material`, `promote/gather context`, and `preview/apply/reject patch`.
+5. Required fix 5 remains satisfied by the ownership note above: approved shared-by-approval test edits are separated from integrator-locked edits, and integrator-locked edits are `NO`.
+6. Required gates were rerun for this fixer pass and passed: `make scope-check`, `./quality-format.sh --check`, `./quality-lint.sh`, `./quality-test.sh`, `./typecheck-test.sh`, and `make ci`.

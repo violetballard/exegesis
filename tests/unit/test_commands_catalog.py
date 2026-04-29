@@ -123,8 +123,13 @@ class CommandCatalogTests(unittest.TestCase):
         self.assertEqual(contract.tokens, command_cli_tokens())
         self.assertEqual(contract.canonical_names, command_names())
         self.assertEqual(contract.lookup_table, command_cli_lookup_table())
+        self.assertEqual(contract.tokens, command_catalog._DECLARED_CLI_ENTRYPOINTS)
         self.assertEqual(contract.tokens, command_catalog._canonical_cli_tokens())
         self.assertEqual(contract.lookup_table, command_catalog._canonical_cli_lookup_table())
+        self.assertEqual(
+            tuple((canonical_name, tokens) for canonical_name, tokens in command_catalog._CLI_COMMAND_SURFACE),
+            command_catalog._canonical_cli_grouped_surface(),
+        )
 
     def test_command_cli_contract_rejects_catalog_drift(self) -> None:
         self._clear_cli_caches()
@@ -178,6 +183,26 @@ class CommandCatalogTests(unittest.TestCase):
             command_catalog,
             "_CLI_ENTRYPOINTS",
             ("open", "diff-preview", "diff", "context-basket", "terminal"),
+        ):
+            with self.assertRaisesRegex(ValueError, "Command CLI tokens are inconsistent"):
+                command_catalog.command_cli_contract()
+
+    def test_command_cli_contract_rejects_bootstrap_to_open_same_canonical_drift(self) -> None:
+        self._clear_cli_caches()
+        with patch.object(
+            command_catalog,
+            "_CLI_ENTRYPOINTS",
+            ("open", "diff-preview", "diff", "context-basket", "terminal"),
+        ):
+            with self.assertRaisesRegex(ValueError, "Command CLI tokens are inconsistent"):
+                command_catalog.command_cli_contract()
+
+    def test_command_cli_contract_rejects_diff_preview_to_diff_same_canonical_drift(self) -> None:
+        self._clear_cli_caches()
+        with patch.object(
+            command_catalog,
+            "_CLI_ENTRYPOINTS",
+            ("bootstrap", "diff", "context-basket", "terminal"),
         ):
             with self.assertRaisesRegex(ValueError, "Command CLI tokens are inconsistent"):
                 command_catalog.command_cli_contract()
