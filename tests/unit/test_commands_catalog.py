@@ -583,6 +583,32 @@ class CommandCatalogTests(unittest.TestCase):
                     with self.assertRaisesRegex(ValueError, expected_error):
                         command_catalog.command_cli_contract()
 
+    def test_command_cli_contract_rejects_reviewed_entrypoint_drift_examples(self) -> None:
+        drift_cases = (
+            (
+                "extra same-canonical token",
+                ("bootstrap", "open", "diff-preview", "diff", "context-basket", "terminal"),
+            ),
+            (
+                "substituted same-canonical token",
+                ("open", "diff-preview", "diff", "context-basket", "terminal"),
+            ),
+            (
+                "missing parser token",
+                ("bootstrap", "diff-preview", "context-basket", "terminal"),
+            ),
+            (
+                "reordered parser token surface",
+                ("bootstrap", "context-basket", "diff-preview", "diff", "terminal"),
+            ),
+        )
+        for label, drifted_entrypoints in drift_cases:
+            with self.subTest(label=label):
+                self._clear_cli_caches()
+                with patch.object(command_catalog, "_CLI_ENTRYPOINTS", drifted_entrypoints):
+                    with self.assertRaisesRegex(ValueError, "Command CLI tokens are inconsistent"):
+                        command_catalog.command_cli_contract()
+
     def test_command_cli_lookup_table_resolves_through_the_catalog(self) -> None:
         self.assertEqual(
             command_cli_lookup_table(),
