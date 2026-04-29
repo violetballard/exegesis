@@ -2,10 +2,10 @@
 
 - Lane: `feat-commands`
 - Branch: `codex/feat-commands`
-- Review basis: actual `codex/feat-commands` branch tip after the `20260429T024711Z` reviewer-fix pass.
+- Review basis: actual `codex/feat-commands` branch tip after the `20260429T025119Z` reviewer-fix pass.
 - Previous implementation anchor: `f8d860ed9f6299f0169c4f21321ac5f37c949fd3`
-- Reviewer packet addressed: `20260429T024711Z`
-- Final verifier tip: metadata-only handoff refresh so the repo's recent-HEAD scope gate reviews lane-owned docs while the test-bearing reviewer fix remains in branch history.
+- Reviewer packet addressed: `20260429T025119Z`
+- Final verifier tip: metadata-only handoff refresh for the current reviewer packet so the repo's recent-HEAD scope gate reviews lane-owned docs while the test-bearing reviewer fix remains in branch history.
 
 ## Packet Traceability Note
 
@@ -94,14 +94,14 @@
 - Integrator-locked edits: NO.
 - Gate-policy edits: NO.
 
-## Required Fixes Addressed From Reviewer Packet `20260429T024711Z`
+## Required Fixes Addressed From Reviewer Packet `20260429T025119Z`
 
 1. One review basis: this packet uses the actual `codex/feat-commands` branch tip and includes post-`f8d860ed9f6299f0169c4f21321ac5f37c949fd3` implementation/test commits.
 2. Parser-surface validation: `command_cli_contract()` validates exact parser-visible tokens and lookup-table shape/order, not only de-duplicated canonical names.
 3. Same-canonical regressions: tests cover accepted alias substitution including self-consistent `diff-preview` -> `diff` and `bootstrap` -> `open` replacements, plus `diff` -> `diff_preview`.
 4. Demo-path mapping: every completed task names the canonical demo-path command steps it protects or advances.
 5. Ownership fields: approved shared-by-approval test edits are separated from integrator-locked edits, and integrator-locked edits are `NO`.
-6. Required gates: final results are recorded below after rerun on this branch-tip state.
+6. Required gates: final results are recorded below after rerun on this branch-tip state for the current reviewer packet.
 
 ## Commands Run + Outcomes
 
