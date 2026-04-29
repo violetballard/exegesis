@@ -38,18 +38,18 @@ This is a high-risk handoff because it changes command surface validation and in
 - Task budget: `4` completed tasks of `4` high-risk tasks allowed.
 - Time budget: original high-risk target `30m`; this fixer pass is handoff-regeneration and gate-rerun work.
 - High-risk file budget: `6` files changed in the actual review range, within the `<=8` high-risk file limit.
-- High-risk net LOC budget: exceeded in the actual review range. Current branch-tip accounting for `f8d860ed9..HEAD` including this fixer packet refresh is `2068 insertions(+), 109 deletions(-)`. This is explicitly disclosed for reviewer/integrator handling instead of being presented as a narrow catalog-only slice.
+- High-risk net LOC budget: exceeded in the actual review range. Current branch-tip accounting for `f8d860ed9..HEAD` including this fixer packet refresh is `2082 insertions(+), 109 deletions(-)`. This is explicitly disclosed for reviewer/integrator handling instead of being presented as a narrow catalog-only slice.
 - Current `git diff --stat f8d860ed9..HEAD` evidence including this fixer packet refresh:
-  - `THREAD.md`: `18` lines changed
-  - `THREAD_PACKET.md`: `174` lines changed
+  - `THREAD.md`: `19` lines changed
+  - `THREAD_PACKET.md`: `187` lines changed
   - `src/qual/cli.py`: `118` lines changed
   - `src/qual/commands/__init__.py`: `12` lines changed
   - `src/qual/commands/catalog.py`: `333` lines changed
   - `tests/unit/test_commands_catalog.py`: `1522` lines changed
-  - Total: `6 files changed, 2068 insertions(+), 109 deletions(-)`
+  - Total: `6 files changed, 2082 insertions(+), 109 deletions(-)`
 - Current `git diff --numstat f8d860ed9..HEAD` evidence including this fixer packet refresh:
-  - `THREAD.md`: `16` insertions, `2` deletions
-  - `THREAD_PACKET.md`: `118` insertions, `56` deletions
+  - `THREAD.md`: `17` insertions, `2` deletions
+  - `THREAD_PACKET.md`: `131` insertions, `56` deletions
   - `src/qual/cli.py`: `84` insertions, `34` deletions
   - `src/qual/commands/__init__.py`: `12` insertions, `0` deletions
   - `src/qual/commands/catalog.py`: `317` insertions, `16` deletions
