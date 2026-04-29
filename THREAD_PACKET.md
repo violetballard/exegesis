@@ -57,7 +57,7 @@ Current MVP focus: engine stability, FTS-first retrieval, and A2UI contracts wit
 
 ## Commands Run
 
-`make scope-check`, `./quality-format.sh --check`, `./quality-lint.sh`, `./quality-test.sh` (`124` tests), `./typecheck-test.sh`, and `make ci` (`124` tests): PASS.
+Fresh fixer pass on the corrected branch-tip merge candidate: `make scope-check`, `./quality-format.sh --check`, `./quality-lint.sh`, `./quality-test.sh` (`124` tests), `./typecheck-test.sh`, and `make ci` (`124` tests): PASS.
 
 ## Risks / Blockers
 
