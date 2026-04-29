@@ -6,6 +6,7 @@
 - Pre-fix branch tip: `ba2f81e91f6d2fd05a0c8a6cd0d803c0d016e4f3`
 - Actual merge candidate: final fixer commit reported in the fixer response.
 - Reviewed range: `378cf9a74a3658058079a32f186fcd254c4a4034..final fixer commit reported in response`
+- Scope choice: option 1, narrowed excerpt-only implementation; the later basket-promotion runtime/test work from the pre-fix branch tip is excluded from the retained merge payload.
 - `a28ccf520ea0983f538106f1bd418670d9cea73b` scope: not metadata-only; it changed shared regression tests and packet text, and its retained effects are accounted for or reverted in the final reviewed range.
 - `ba2f81e91f6d2fd05a0c8a6cd0d803c0d016e4f3` scope: the pre-fix branch tip whose retained effects are accounted for or reverted by the final fixer commit.
 - Handoff type: high-risk retrieval fixer re-review.
@@ -27,7 +28,7 @@ The remaining implementation makes excerpt lookup FTS-first and fail-closed for 
 
 - Risk: `HIGH`
 - Task count: `1` of `4`
-- Actual merge-candidate size before final commit: `5 files changed, 267 insertions(+), 113 deletions(-)` for `378cf9a74a3658058079a32f186fcd254c4a4034..working tree`; net LOC `+154`.
+- Actual merge-candidate size before final commit: `5 files changed, 276 insertions(+), 113 deletions(-)` for `378cf9a74a3658058079a32f186fcd254c4a4034..working tree`; net LOC `+163`.
 - Budget result: within high-risk limits (`<=8 files`, `<=300 net LOC`).
 - Owned runtime paths touched: `src/qual/retrieval/**`, `src/qual/engine/retrieval/**`
 - Approved shared-by-approval edit: `tests/unit/test_unified_retrieval.py`
@@ -74,7 +75,15 @@ tests/unit/test_unified_retrieval.py
 
 None. This handoff does not touch model routing, provider configuration, or core provider entrypoints.
 
-## Metadata-only claim correction
+## Required Fix Reconciliation
+
+1. Scope choice: use the narrowed excerpt-only implementation and exclude the later basket-promotion runtime/test payload from the retained merge candidate.
+2. Full-branch-tip alternative rejected: the handoff does not keep the full `ba2f81e91` basket-promotion implementation payload, so `src/qual/engine/retrieval/payload.py` is explicitly called out as pre-fix drift rather than a retained merge file.
+3. Budget accounting is recomputed against the actual reviewed range above: 1 task, 5 files, net `+163`.
+4. Required gates are rerun against the final branch tip in this fixer pass.
+5. Canonical demo-path step advanced: `retrieve relevant material`.
+
+## Metadata-only Claim Correction
 
 The previous metadata-only claim for `a28ccf520ea0983f538106f1bd418670d9cea73b` was false. That commit changed `tests/unit/test_unified_retrieval.py` as well as `THREAD_PACKET.md`. This fixer does not rely on that claim: `a28ccf5` and the previous branch tip `ba2f81e9` are treated as part of the pre-fix branch history, and the final reviewed range above is the authoritative merge candidate after the source/test narrowing.
 
