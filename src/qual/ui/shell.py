@@ -55,7 +55,6 @@ from .a2ui import (
     _render_invalid_terminal_action,
     _render_invalid_terminal_card,
     _render_invalid_terminal_selection,
-    _TERMINAL_ARTIFACT_CLI_FALLBACK_ROUTE_PRECEDENCE,
     _should_force_invalid_terminal_card_for_card_hinted_leaf,
     _is_malformed_terminal_artifact_envelope,
     _extract_terminal_artifact_envelope,
@@ -788,13 +787,14 @@ def _build_shell_ui_contract_manifest(
     )
     terminal_artifact_rendering_contract = copy.deepcopy(describe_terminal_artifact_rendering_contract())
     entrypoints = _build_shell_ui_entrypoints()
-    route_precedence = list(_TERMINAL_ARTIFACT_CLI_FALLBACK_ROUTE_PRECEDENCE)
     startup_fields = list(SHELL_UI_STARTUP_FIELDS)
     startup_preview = {
         "empty_value": SHELL_UI_STARTUP_EMPTY_PREVIEW,
         "limit": SHELL_UI_STARTUP_PREVIEW_LIMIT,
         "source_field": "basket.item_ids",
     }
+    route_precedence_contract = describe_terminal_artifact_cli_fallback_route_contract()
+    route_precedence = list(route_precedence_contract["route_precedence"])
     manifest = {
         "contract_version": A2UI_CONTRACT_VERSION,
         "a2ui_version": A2UI_VERSION,
@@ -1010,7 +1010,7 @@ def _describe_shell_ui_contract_fingerprints_cached(
         terminal_artifact_renderer_entrypoints_contract_fingerprint()
     )
     terminal_artifact_rendering_contract_fingerprint_value = terminal_artifact_rendering_contract_fingerprint()
-    route_precedence = list(_TERMINAL_ARTIFACT_CLI_FALLBACK_ROUTE_PRECEDENCE)
+    route_precedence = list(describe_terminal_artifact_cli_fallback_route_contract()["route_precedence"])
     shell_ui_contract_fingerprint_value = shell_ui_contract_fingerprint(
         include_terminal_artifact_cli_fallback_route=include_terminal_artifact_cli_fallback_route,
         include_contract_aliases=include_contract_aliases,

@@ -4,7 +4,8 @@ import unittest
 from types import SimpleNamespace
 from unittest.mock import patch
 
-from src.qual.ui.shell import ShellUI
+from src.qual.ui.a2ui import describe_terminal_artifact_cli_fallback_route_contract
+from src.qual.ui.shell import ShellUI, describe_shell_ui_contract
 
 
 class ShellUITests(unittest.TestCase):
@@ -59,6 +60,20 @@ class ShellUITests(unittest.TestCase):
         self.assertEqual(text, "cli-fallback")
         resolver.assert_called_once_with(artifact, kind="card")
         cli_fallback.assert_called_once_with(artifact, kind="card")
+
+    def test_shell_contract_route_precedence_matches_the_public_route_contract_snapshot(self) -> None:
+        shell_contract = describe_shell_ui_contract()
+        route_contract = describe_terminal_artifact_cli_fallback_route_contract()
+
+        self.assertEqual(shell_contract["route_precedence"], route_contract["route_precedence"])
+        self.assertEqual(
+            shell_contract["route_precedence_contract"],
+            route_contract["route_precedence_contract"],
+        )
+        self.assertEqual(
+            shell_contract["route_precedence_contract_fingerprint"],
+            route_contract["route_precedence_contract_fingerprint"],
+        )
 
 
 if __name__ == "__main__":
