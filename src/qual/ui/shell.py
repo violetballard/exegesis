@@ -966,7 +966,7 @@ def _build_shell_ui_contract_manifest(
 
 
 @lru_cache(maxsize=None)
-def describe_shell_ui_contract_fingerprints(
+def _describe_shell_ui_contract_fingerprints_cached(
     include_terminal_artifact_cli_fallback_route: bool = False,
     include_contract_aliases: bool = False,
 ) -> dict[str, str]:
@@ -1143,6 +1143,24 @@ def describe_shell_ui_contract_fingerprints(
             ),
         )
     return fingerprints
+
+
+def describe_shell_ui_contract_fingerprints(
+    include_terminal_artifact_cli_fallback_route: bool = False,
+    include_contract_aliases: bool = False,
+) -> dict[str, str]:
+    """Return stable fingerprints for the shell UI contract sections.
+
+    The public helper returns a fresh snapshot so callers cannot mutate the
+    cached fingerprint map that backs contract negotiation.
+    """
+
+    return dict(
+        _describe_shell_ui_contract_fingerprints_cached(
+            include_terminal_artifact_cli_fallback_route=include_terminal_artifact_cli_fallback_route,
+            include_contract_aliases=include_contract_aliases,
+        )
+    )
 
 
 def describe_shell_ui_contract(

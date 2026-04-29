@@ -580,6 +580,33 @@ class A2UIFallbackSafetyTests(unittest.TestCase):
             first["shell_ui_contract_manifest_fingerprint"],
         )
 
+    def test_a2ui_fingerprint_snapshots_do_not_leak_mutations_between_calls(self) -> None:
+        first = describe_a2ui_contract_fingerprints(
+            include_shell_ui_contract=True,
+            include_contract_aliases=True,
+        )
+        first["shell_ui_contract"] = "mutated"
+        first["contract"] = "mutated"
+
+        second = describe_a2ui_contract_fingerprints(
+            include_shell_ui_contract=True,
+            include_contract_aliases=True,
+        )
+
+        self.assertNotEqual(first["shell_ui_contract"], second["shell_ui_contract"])
+        self.assertNotEqual(first["contract"], second["contract"])
+        self.assertEqual(
+            second["shell_ui_contract"],
+            second["shell_ui_contract_fingerprint"],
+        )
+        self.assertEqual(
+            second["contract"],
+            describe_a2ui_contract(
+                include_shell_ui_contract=True,
+                include_contract_aliases=True,
+            )["contract_fingerprint"],
+        )
+
     def test_shell_ui_contract_exposes_the_cli_fallback_wrapper_manifest_by_default(self) -> None:
         shell_contract = describe_shell_ui_contract()
         cli_fallback_contract = describe_terminal_artifact_cli_fallback_contract()
@@ -590,6 +617,23 @@ class A2UIFallbackSafetyTests(unittest.TestCase):
         self.assertEqual(
             shell_contract["terminal_artifact_cli_fallback_contract_manifest_fingerprint"],
             cli_fallback_contract["contract_fingerprint"],
+        )
+
+    def test_shell_ui_fingerprint_snapshots_do_not_leak_mutations_between_calls(self) -> None:
+        first = describe_shell_ui_contract_fingerprints(include_contract_aliases=True)
+        first["shell_ui_contract"] = "mutated"
+        first["terminal_artifact_cli_fallback_contract_manifest"] = "mutated"
+
+        second = describe_shell_ui_contract_fingerprints(include_contract_aliases=True)
+
+        self.assertNotEqual(first["shell_ui_contract"], second["shell_ui_contract"])
+        self.assertNotEqual(
+            first["terminal_artifact_cli_fallback_contract_manifest"],
+            second["terminal_artifact_cli_fallback_contract_manifest"],
+        )
+        self.assertEqual(
+            second["shell_ui_contract"],
+            second["shell_ui_contract_fingerprint"],
         )
 
     def test_a2ui_contract_exposes_leaf_contract_manifest_aliases(self) -> None:

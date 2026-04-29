@@ -600,7 +600,7 @@ def normalize_capabilities(capabilities: A2UICapabilities) -> A2UICapabilities:
 
 
 @lru_cache(maxsize=None)
-def describe_a2ui_contract_fingerprints(
+def _describe_a2ui_contract_fingerprints_cached(
     include_terminal_artifact: bool = False,
     include_action: bool = False,
     include_terminal_artifact_render_target: bool = False,
@@ -1239,6 +1239,46 @@ def describe_a2ui_contract_fingerprints(
     return fingerprints
 
 
+def describe_a2ui_contract_fingerprints(
+    include_terminal_artifact: bool = False,
+    include_action: bool = False,
+    include_terminal_artifact_render_target: bool = False,
+    include_terminal_artifact_rendering: bool = False,
+    include_terminal_artifact_cli_fallback: bool = False,
+    include_terminal_artifact_cli_fallback_target: bool = False,
+    include_terminal_artifact_raw_leaf_card_default: bool = False,
+    include_terminal_artifact_raw_leaf_card_default_policy: bool = False,
+    include_contract_aliases: bool = False,
+    include_terminal_artifact_cli_fallback_route: bool = False,
+    include_terminal_artifact_cli_fallback_entrypoint: bool = False,
+    include_terminal_artifact_cli_fallback_card_hint_recovery_policy: bool = False,
+    include_shell_ui_contract: bool = False,
+) -> dict[str, str]:
+    """Return stable fingerprints for the contract sections and embedded contracts.
+
+    The public helper returns a fresh snapshot so callers cannot mutate the
+    cached fingerprint map that backs contract negotiation.
+    """
+
+    return dict(
+        _describe_a2ui_contract_fingerprints_cached(
+            include_terminal_artifact=include_terminal_artifact,
+            include_action=include_action,
+            include_terminal_artifact_render_target=include_terminal_artifact_render_target,
+            include_terminal_artifact_rendering=include_terminal_artifact_rendering,
+            include_terminal_artifact_cli_fallback=include_terminal_artifact_cli_fallback,
+            include_terminal_artifact_cli_fallback_target=include_terminal_artifact_cli_fallback_target,
+            include_terminal_artifact_raw_leaf_card_default=include_terminal_artifact_raw_leaf_card_default,
+            include_terminal_artifact_raw_leaf_card_default_policy=include_terminal_artifact_raw_leaf_card_default_policy,
+            include_contract_aliases=include_contract_aliases,
+            include_terminal_artifact_cli_fallback_route=include_terminal_artifact_cli_fallback_route,
+            include_terminal_artifact_cli_fallback_entrypoint=include_terminal_artifact_cli_fallback_entrypoint,
+            include_terminal_artifact_cli_fallback_card_hint_recovery_policy=include_terminal_artifact_cli_fallback_card_hint_recovery_policy,
+            include_shell_ui_contract=include_shell_ui_contract,
+        )
+    )
+
+
 def _build_a2ui_contract_fingerprint_summary(
     *,
     include_terminal_artifact_cli_fallback_route: bool = False,
@@ -1247,7 +1287,7 @@ def _build_a2ui_contract_fingerprint_summary(
     include_shell_ui_contract: bool = False,
     include_contract_aliases: bool = False,
 ) -> dict[str, str]:
-    return describe_a2ui_contract_fingerprints(
+    return _describe_a2ui_contract_fingerprints_cached(
         include_terminal_artifact=True,
         include_action=True,
         include_terminal_artifact_render_target=True,
