@@ -564,6 +564,18 @@ class A2UIFallbackSafetyTests(unittest.TestCase):
             first["shell_ui_contract_manifest_fingerprint"],
         )
 
+    def test_shell_ui_contract_exposes_the_cli_fallback_wrapper_manifest_by_default(self) -> None:
+        shell_contract = describe_shell_ui_contract()
+        cli_fallback_contract = describe_terminal_artifact_cli_fallback_contract()
+        a2ui_shell_contract = describe_a2ui_contract(include_shell_ui_contract=True)["shell_ui_contract"]
+
+        self.assertEqual(shell_contract["terminal_artifact_cli_fallback_contract_manifest"], cli_fallback_contract)
+        self.assertEqual(a2ui_shell_contract["terminal_artifact_cli_fallback_contract_manifest"], cli_fallback_contract)
+        self.assertEqual(
+            shell_contract["terminal_artifact_cli_fallback_contract_manifest_fingerprint"],
+            cli_fallback_contract["contract_fingerprint"],
+        )
+
     def test_a2ui_contract_exposes_leaf_contract_manifest_aliases(self) -> None:
         manifest = describe_a2ui_contract()
         fingerprints = describe_a2ui_contract_fingerprints(include_contract_aliases=True)

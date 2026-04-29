@@ -906,6 +906,12 @@ def _build_shell_ui_contract_manifest(
         ),
         "terminal_artifact_cli_fallback_contract": describe_terminal_artifact_cli_fallback_contract(),
         "terminal_artifact_cli_fallback_contract_fingerprint": terminal_artifact_cli_fallback_contract_fingerprint(),
+        "terminal_artifact_cli_fallback_contract_manifest": copy.deepcopy(
+            describe_terminal_artifact_cli_fallback_contract()
+        ),
+        "terminal_artifact_cli_fallback_contract_manifest_fingerprint": (
+            terminal_artifact_cli_fallback_contract_fingerprint()
+        ),
         "terminal_artifact_renderer_entrypoints_contract": copy.deepcopy(
             terminal_artifact_renderer_entrypoints_contract
         ),
