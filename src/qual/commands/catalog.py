@@ -311,6 +311,29 @@ def _group_cli_lookup_table(
     return tuple((canonical_name, tuple(grouped_tokens[canonical_name])) for canonical_name in canonical_order)
 
 
+def _validate_cli_parser_surface(
+    *,
+    tokens: tuple[str, ...],
+    lookup_table: tuple[tuple[str, str], ...],
+    canonical_names: tuple[str, ...],
+) -> None:
+    declared_surface = _declared_cli_surface_projection()
+    grouped_lookup_table = _group_cli_lookup_table(lookup_table)
+    expected_tokens = _canonical_cli_tokens()
+    expected_lookup_table = _canonical_cli_lookup_table()
+    expected_surface = _canonical_cli_grouped_surface()
+    if declared_surface != expected_surface:
+        raise ValueError("Command CLI declared surface is inconsistent")
+    if grouped_lookup_table != expected_surface or grouped_lookup_table != declared_surface:
+        raise ValueError("Command CLI parser surface is inconsistent")
+    if tokens != expected_tokens or tokens != _declared_cli_tokens():
+        raise ValueError("Command CLI tokens are inconsistent")
+    if lookup_table != expected_lookup_table or lookup_table != _declared_cli_lookup_table():
+        raise ValueError("Command CLI lookup table is inconsistent")
+    if _declared_cli_canonical_names() != canonical_names:
+        raise ValueError("Command CLI canonical names are inconsistent")
+
+
 def validate_command_catalog(specs: tuple[CommandSpec, ...] = COMMAND_SPECS) -> None:
     seen_names: set[str] = set()
     seen_flow_steps: set[str] = set()
@@ -572,21 +595,11 @@ def command_cli_contract() -> CommandCliContract:
     tokens = command_cli_tokens()
     lookup_table = command_cli_lookup_table()
     canonical_names = command_names()
-    declared_surface = _declared_cli_surface_projection()
-    grouped_lookup_table = _group_cli_lookup_table(lookup_table)
-    expected_tokens = _canonical_cli_tokens()
-    expected_lookup_table = _canonical_cli_lookup_table()
-    expected_surface = _canonical_cli_grouped_surface()
-    if declared_surface != expected_surface:
-        raise ValueError("Command CLI declared surface is inconsistent")
-    if grouped_lookup_table != expected_surface or grouped_lookup_table != declared_surface:
-        raise ValueError("Command CLI parser surface is inconsistent")
-    if tokens != expected_tokens or tokens != _declared_cli_tokens():
-        raise ValueError("Command CLI tokens are inconsistent")
-    if lookup_table != expected_lookup_table or lookup_table != _declared_cli_lookup_table():
-        raise ValueError("Command CLI lookup table is inconsistent")
-    if _declared_cli_canonical_names() != canonical_names:
-        raise ValueError("Command CLI canonical names are inconsistent")
+    _validate_cli_parser_surface(
+        tokens=tokens,
+        lookup_table=lookup_table,
+        canonical_names=canonical_names,
+    )
     return CommandCliContract(
         tokens=tokens,
         canonical_names=canonical_names,

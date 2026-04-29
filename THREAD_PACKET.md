@@ -3,7 +3,7 @@
 ## Thread Kickoff (High-Risk)
 
 - Branch: `codex/feat-commands`
-- Review basis: final branch tip after this fixer pass for reviewer packet `20260429T002214Z`; implementation, tests, scope-check support, and handoff metadata are reviewed together.
+- Review basis: final branch tip after this fixer pass for reviewer packet `20260429T002514Z`; implementation, tests, scope-check support, and handoff metadata are reviewed together.
 - Lane/owned paths: `src/qual/commands/**`
 - Scope goal: harden `command_cli_contract()` so the CLI contract stays deterministic, follows canonical command order, and fails fast when the parser surface drifts from the command catalog.
 - Risk reason: this changes the command contract used by the active CLI operator surface while Textual lanes remain disabled.
@@ -20,8 +20,8 @@
 - This packet submits the full branch-tip implementation for review.
 - No commit that modifies `src/qual/commands/catalog.py` or `tests/unit/test_commands_catalog.py` is classified as metadata-only.
 - Previous stale review basis `f8d860ed9f6299f0169c4f21321ac5f37c949fd3` is superseded because later branch commits changed command-catalog implementation and tests.
-- Previous branch-tip review basis `96b4b4339` is superseded by this reviewer-fix pass; the actual merge candidate is the final `codex/feat-commands` branch tip after the `20260429T002214Z` fixes and gate rerun.
-- This fixer pass also satisfies reviewer packet `20260429T002214Z`; no command-catalog implementation or test commits after `f8d860ed9f6299f0169c4f21321ac5f37c949fd3` are classified as metadata-only.
+- Previous branch-tip review basis `96b4b4339` is superseded by this reviewer-fix pass; the actual merge candidate is the final `codex/feat-commands` branch tip after the `20260429T002514Z` fixes and gate rerun.
+- This fixer pass also satisfies reviewer packet `20260429T002514Z`; no command-catalog implementation or test commits after `f8d860ed9f6299f0169c4f21321ac5f37c949fd3` are classified as metadata-only.
 - Metadata-only handoff files are limited to `THREAD.md` and `THREAD_PACKET.md`.
 
 ### Shared / Integrator-Locked Accounting
@@ -34,14 +34,14 @@
 
 - Task budget: `4`
 - Time budget: `30m`
-- Size limits: this reviewer-fix pass stays narrow: one focused shared-by-approval test addition plus handoff metadata updates. The full branch-tip merge range remains over the high-risk size budget and is submitted explicitly below for review rather than hidden behind a stale narrow basis.
+- Size limits: this reviewer-fix pass stays narrow: one focused command-catalog validation refactor, one focused shared-by-approval test addition, and handoff metadata updates. The full branch-tip merge range remains over the high-risk size budget and is submitted explicitly below for review rather than hidden behind a stale narrow basis.
 - Max fix attempts per failing gate: `2`
 
 ### Tasks Completed
 
-1. Hardened `command_cli_contract()` to validate the full parser surface by comparing grouped parser projection, accepted token tuple, lookup table, canonical names, declared parser surface, and explicit canonical surface/token/lookup projections against a separate canonical surface. Canonical demo-path steps protected: `open project/document`, `retrieve relevant material`, `promote or gather context into the basket`, `preview and apply or reject a patch`, and `continue working`.
+1. Hardened `command_cli_contract()` to validate the full parser surface through `_validate_cli_parser_surface()`, comparing grouped parser projection, accepted token tuple, lookup table, canonical names, declared parser surface, and explicit canonical surface/token/lookup projections against a separate canonical surface. Canonical demo-path steps protected: `open project/document`, `retrieve relevant material`, `promote or gather context into the basket`, `preview and apply or reject a patch`, and `continue working`.
 2. Preserved canonical command ordering in the CLI contract while rejecting added aliases, removed aliases, same-canonical alias substitutions, token reordering, and lookup-table shape/order drift. Canonical demo-path commands protected: `bootstrap`, `context-basket`, `diff-preview`, `diff`, and `terminal`.
-3. Added focused regression coverage in `tests/unit/test_commands_catalog.py` for extra accepted alias, removed accepted alias, substituted accepted alias, same-canonical `diff` to `diff_preview` substitution, same-canonical alias order drift in accepted tokens and declared surface, canonical command order drift, parser-token reorder, declared-surface alias drift, declared-surface order drift, self-consistent declared-surface drift, grouped parser drift, lookup-table token-substitution drift, lookup-table target-substitution drift, lookup-table added same-canonical alias drift, lookup-table removed-token drift, lookup-table shape/order drift, and canonical token/lookup projection alignment. Canonical demo-path steps protected: open project/document, retrieve/context basket, patch preview, and continued CLI operation.
+3. Added focused regression coverage in `tests/unit/test_commands_catalog.py` for extra accepted alias, removed accepted alias, substituted accepted alias, same-canonical `diff` to `diff_preview` substitution in accepted and declared parser surfaces, same-canonical alias order drift in accepted tokens and declared surface, canonical command order drift, parser-token reorder, declared-surface alias drift, declared-surface order drift, self-consistent declared-surface drift, grouped parser drift, lookup-table token-substitution drift, lookup-table target-substitution drift, lookup-table added same-canonical alias drift, lookup-table removed-token drift, lookup-table shape/order drift, and canonical token/lookup projection alignment. Canonical demo-path steps protected: open project/document, retrieve/context basket, patch preview, and continued CLI operation.
 4. Regenerated `THREAD.md` and `THREAD_PACKET.md` so the handoff claims match the final implementation, full branch-tip file range, test coverage, branch-tip review basis, canonical demo-path mapping, and ownership accounting. Canonical demo-path step protected: `continue working`.
 
 ### Canonical Demo-Path Mapping
@@ -66,14 +66,14 @@
 
 ### Commands Run + Outcomes
 
-- `python3 -m unittest tests.unit.test_commands_catalog -v`: PASS (61 tests)
+- `python3 -m unittest tests.unit.test_commands_catalog -v`: PASS (62 tests)
 - `make scope-check`: PASS
 - `./quality-format.sh --check`: PASS
 - `./quality-lint.sh`: PASS
 - `./quality-test.sh`: PASS
 - `./typecheck-test.sh`: PASS
 - `make ci`: PASS
-- Final verification pass: `2026-04-29T00:25:10Z`
+- Final verification pass: PASS in final gate rerun for reviewer packet `20260429T002514Z`.
 
 ### Risks / Blockers
 
@@ -215,6 +215,13 @@
 3. Strengthen `command_cli_contract()` so it rejects parser-surface drift directly: satisfied by validating accepted tokens, declared canonical surface, grouped parser projection, lookup-table shape/order, canonical names, and explicit canonical token/lookup projections against `_CANONICAL_CLI_COMMAND_SURFACE`.
 4. Add focused regression tests for parser-surface drift classes: satisfied by tests covering added accepted aliases, removed accepted aliases, substituted accepted aliases, same-canonical substitutions such as `diff` to `diff_preview`, parser-token reorder, declared-surface drift, grouped parser drift, lookup-table target drift, lookup-table removed-token drift, lookup-table shape/order drift, and canonical command order drift.
 5. Regenerate the handoff packet with accurate accounting and fresh gates: satisfied by listing the complete branch-tip file range, limiting metadata-only classification to `THREAD.md` and `THREAD_PACKET.md`, distinguishing shared-by-approval tests from integrator-locked edits, naming concrete canonical demo-path steps, and rerunning all required gates.
+
+### Reviewer Packet `20260429T002514Z` Fix Satisfaction
+
+1. Strengthen `command_cli_contract()` so it validates the parser surface itself: already satisfied at this branch tip by comparing accepted tokens, declared canonical surface, grouped parser projection, lookup-table shape/order, canonical names, and explicit canonical token/lookup projections against `_CANONICAL_CLI_COMMAND_SURFACE`.
+2. Add focused regression tests for same-canonical parser drift and token removal/reorder: satisfied by tests covering extra same-canonical accepted alias `open`, same-canonical `diff` to `diff_preview` substitution, removed accepted token, parser-token reorder, lookup-table added same-canonical alias drift, lookup-table removed-token drift, and lookup-table shape/order drift.
+3. Update handoff tasks with exact canonical demo-path steps: satisfied in `Tasks Completed`, `Canonical Demo-Path Mapping`, and the final demo-path statement by naming open project/document, retrieve/context basket, patch preview, and continued CLI operation.
+4. Correct ownership note: satisfied by separating lane-owned command files, approved shared-by-approval tests, scope-check support, metadata-only handoff files, and `Integrator-locked edits: no`.
 
 ### Reviewer Packet `20260428T234415Z` Fix Satisfaction
 
