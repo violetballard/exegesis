@@ -4,16 +4,13 @@ Canonical handoff contract lives in `THREAD_PACKET.md`.
 
 - Lane: `feat-commands`
 - Branch: `codex/feat-commands`
-- Review target: full branch tip of `codex/feat-commands`; the immediately prior reviewed tip was `8b56b5a1307b9e5e6c8971f74a89d2e35f903056`.
-- Review basis: `git diff main...codex/feat-commands`, with the reviewer-called-out post-`f8d860e` delta explicitly recorded in `THREAD_PACKET.md`.
-- Scope: deterministic MVP command contract for the current command catalog, parser surface, smoke command lines, and demo-path checkpoints.
-- Branch-tip implementation scope: includes `894e6c128e4e2ece1406f4e95f5086b774955905` (`Add MVP demo command lookup contract`), which adds `CommandDemoPathLookupContract` and public demo-path lookup exports in `src/qual/commands/__init__.py` and `src/qual/commands/catalog.py`.
-- Branch-tip test/handoff scope: includes `04974e20df08b704f39a065e6082194f9024fd26` (`fix(commands): satisfy branch tip lookup review`), which changes `tests/unit/test_commands_catalog.py`, `THREAD.md`, and `THREAD_PACKET.md`; it is not metadata-only.
-- Branch-tip parser-guard scope: includes `c0b5392d4d327d9d8778911d3ba98cf5e5b82ecc` (`fix(commands): enforce live parser drift guard`) and `8b56b5a1307b9e5e6c8971f74a89d2e35f903056` (`fix(commands): tighten live parser drift guard`), which change `src/qual/commands/catalog.py`, `tests/unit/test_commands_catalog.py`, `THREAD.md`, and `THREAD_PACKET.md`; they are not metadata-only.
-- Demo-path mapping: task-by-task details in `THREAD_PACKET.md` explicitly use the canonical steps `open document`, `retrieve material`, `gather/promote context`, `preview/apply/reject patch`, `persist/save`, and `continue`; this slice does not claim direct `plan/revise` implementation.
-- Final readiness: the command-catalog slice now makes `retrieve material` and `gather/promote context` more real for the CLI-first Milestone 3 loop, while locking adjacent patch-review, persistence, and continuation handoffs.
-- Shared-file exception: `src/qual/cli.py` is included in the full branch-tip review target because the actual argparse parser consumes catalog-owned CLI tokens; this remains an earlier full-branch exception, not a current fixer edit.
-- Shared-test exception: `tests/unit/test_commands_catalog.py` remains in the reviewed diff as the approved focused command-catalog regression surface.
-- Current fixer slice: `20260429T150703Z`; corrects handoff metadata for the current reviewer packet and keeps `8b56b5a13` in code/test review scope.
-- Current fixer shared/integrator-locked edits: NO integrator-locked file edits; no `src/qual/cli.py` edit in this slice.
-- Fixer prompt satisfied: `20260429T150703Z`; canonical packet details live in `THREAD_PACKET.md`.
+- Review target: `f8d860ed9f6299f0169c4f21321ac5f37c949fd3`.
+- Review basis: `git show --stat --oneline --name-status f8d860ed9f6299f0169c4f21321ac5f37c949fd3`.
+- Scope: deterministic MVP command catalog coverage for parser/catalog compatibility.
+- Demo-path mapping: task-by-task details in `THREAD_PACKET.md` explicitly use the canonical steps `retrieve material`, `gather/promote context`, `preview/apply/reject patch`, and `persist/save`.
+- Final readiness: this slice makes `retrieve material` more real because retrieval command parsing and catalog metadata can no longer silently drift.
+- Lane-owned file in reviewed slice: `src/qual/commands/catalog.py`.
+- Shared-by-approval test exception in reviewed slice: `tests/unit/test_commands_catalog.py`.
+- Integrator-locked edits in reviewed slice: none.
+- Current fixer slice: `20260429T151533Z`; corrects handoff metadata only.
+- Fixer prompt satisfied: `20260429T151533Z`; canonical packet details live in `THREAD_PACKET.md`.
