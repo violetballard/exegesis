@@ -6,7 +6,7 @@ Canonical handoff contract lives in `THREAD_PACKET.md`.
 
 - Lane: `feat-commands`
 - Branch: `codex/feat-commands`
-- Review basis: current branch tip after the `20260429T013303Z` reviewer-fix commit.
+- Review basis: current branch tip after the `20260429T013834Z` fixer validation commit.
 - Previous implementation anchor: `f8d860ed9f6299f0169c4f21321ac5f37c949fd3`
 - Scope: command-catalog contract hardening for the current engine-first MVP focus without starting `feat-console`.
 - Roadmap alignment: Milestone 3 CLI compatibility for the engine-first workflow loop, and `feat-commands` as the command-surface compatibility lane.
@@ -55,3 +55,9 @@ Canonical handoff contract lives in `THREAD_PACKET.md`.
 1. Demo-path alignment now states that this command contract hardening strengthens `open project/document`, `retrieve relevant material`, `promote/gather context`, and `preview/apply/reject patch` by keeping those parser routes deterministic and drift-checked.
 2. Metadata-only handoff files include both `THREAD.md` and `THREAD_PACKET.md`.
 3. Implementation scope is unchanged by this reviewer-fix pass.
+
+## Fixer Packet `20260429T013834Z` Validation
+
+1. The branch already contains the required parser-surface drift guard and focused same-canonical alias drift tests.
+2. Required gates were rerun for this fixer pass: `make scope-check`, `./quality-format.sh --check`, `./quality-lint.sh`, `./quality-test.sh`, `./typecheck-test.sh`, and `make ci`.
+3. This pass is metadata-only; implementation scope remains unchanged.

@@ -2,9 +2,9 @@
 
 - Lane: `feat-commands`
 - Branch: `codex/feat-commands`
-- Commit / review basis: current branch tip after the `20260429T013303Z` reviewer-fix commit.
+- Commit / review basis: current branch tip after the `20260429T013834Z` fixer validation commit.
 - Previous implementation anchor: `f8d860ed9f6299f0169c4f21321ac5f37c949fd3`
-- Reviewer packet addressed: `20260429T013303Z`
+- Reviewer packet addressed: `20260429T013834Z`
 
 ## Packet Traceability Note
 
@@ -131,6 +131,7 @@
 - `./quality-test.sh`: PASS; ran 145 unit tests, including same-canonical parser drift regressions for `bootstrap` -> `open`, `diff-preview` -> `diff`, and `diff` -> `diff_preview`.
 - `./typecheck-test.sh`: PASS.
 - `make ci`: PASS; reran scope-check, format, lint, compileall, and the 145-test suite.
+- `20260429T013834Z` fixer validation rerun: PASS for `make scope-check`, `./quality-format.sh --check`, `./quality-lint.sh`, `./quality-test.sh`, `./typecheck-test.sh`, and `make ci`.
 
 ## Risks / Blockers
 
@@ -200,3 +201,10 @@
 1. Demo-path alignment now states that this command contract hardening strengthens `open project/document`, `retrieve relevant material`, `promote/gather context`, and `preview/apply/reject patch` by keeping those parser routes deterministic and drift-checked.
 2. Metadata-only files changed lists both `THREAD.md` and `THREAD_PACKET.md`, matching the packet refresh file set.
 3. Implementation scope remains unchanged: no files beyond the command package files and focused command tests listed above are newly introduced by this reviewer-fix pass.
+
+## Fixer Packet `20260429T013834Z` Validation
+
+1. Required fix 1 remains satisfied by `command_cli_contract()` validating canonical parser tokens, lookup-table shape, grouped parser surface, declared surface, and canonical command order.
+2. Required fixes 2 and 3 remain satisfied by focused tests for same-canonical substitutions, additions, removals, and reordering across `_CLI_ENTRYPOINTS`, declared surface, and lookup-table drift.
+3. Required fix 4 remains satisfied by listing both metadata files and naming the canonical demo-path steps advanced by the work.
+4. Required gates were rerun and passed for this fixer pass.
