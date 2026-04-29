@@ -6,7 +6,7 @@ Canonical handoff contract lives in `THREAD_PACKET.md`.
 
 - Lane: `feat-commands`
 - Branch: `codex/feat-commands`
-- Review basis: actual `codex/feat-commands` branch tip for the `20260429T021537Z` reviewer-fix pass.
+- Review basis: actual `codex/feat-commands` branch tip for the `20260429T022017Z` reviewer-fix pass.
 - Previous implementation anchor: `f8d860ed9f6299f0169c4f21321ac5f37c949fd3`
 - Scope: command-catalog contract hardening for the current engine-first MVP focus without starting `feat-console`.
 - Roadmap alignment: Milestone 3 CLI compatibility for the engine-first workflow loop, and `feat-commands` as the command-surface compatibility lane.
@@ -120,3 +120,12 @@ Canonical handoff contract lives in `THREAD_PACKET.md`.
 3. The ownership note separates approved shared-by-approval test edits from integrator-locked edits; integrator-locked edits remain `NO`.
 4. The packet keeps the review basis on the actual branch tip because post-`f8d860ed9f6299f0169c4f21321ac5f37c949fd3` command/test commits are implementation-bearing.
 5. Required gates were rerun for this fixer pass and passed: `make scope-check`, `./quality-format.sh --check`, `./quality-lint.sh`, `./quality-test.sh`, `./typecheck-test.sh`, and `make ci`.
+
+## Reviewer Packet `20260429T022017Z` Fix Satisfaction
+
+1. `command_cli_contract()` validates the parser-visible token surface against the canonical CLI surface before returning `CommandCliContract`; it checks tokens, lookup table shape, grouped surface, declared surface, and canonical command order.
+2. Focused `_CLI_ENTRYPOINTS` tests cover token substitution, removal, addition, and ordering drift, including same-canonical alias cases such as `bootstrap` -> `open` and `diff-preview` -> `diff`.
+3. `THREAD_PACKET.md` is regenerated against the actual branch tip and does not classify post-`f8d860ed9f6299f0169c4f21321ac5f37c949fd3` command/test commits as metadata-only.
+4. Ownership notes separate approved shared-by-approval test edits from integrator-locked edits; integrator-locked edits remain `NO`.
+5. The canonical demo-path mapping states that this keeps `open project/document`, `retrieve relevant material`, `promote/gather context`, and `preview/apply/reject patch` deterministic and drift-checked.
+6. Required gates were rerun for this fixer pass and passed: `make scope-check`, `./quality-format.sh --check`, `./quality-lint.sh`, `./quality-test.sh`, `./typecheck-test.sh`, and `make ci`.

@@ -2,9 +2,9 @@
 
 - Lane: `feat-commands`
 - Branch: `codex/feat-commands`
-- Commit / review basis: actual `codex/feat-commands` branch tip for the `20260429T021537Z` reviewer-fix pass.
+- Commit / review basis: actual `codex/feat-commands` branch tip for the `20260429T022017Z` reviewer-fix pass.
 - Previous implementation anchor: `f8d860ed9f6299f0169c4f21321ac5f37c949fd3`
-- Reviewer packet addressed: `20260429T021537Z`
+- Reviewer packet addressed: `20260429T022017Z`
 
 ## Packet Traceability Note
 
@@ -332,3 +332,12 @@
 3. Required fix 3 is satisfied by the ownership notes above: shared-by-approval test edits are `YES` for `tests/unit/test_commands_catalog.py` and `tests/unit/test_diff_preview.py`, and integrator-locked edits are `NO`.
 4. Required fix 4 is satisfied by regenerating the packet against the actual `codex/feat-commands` branch tip for this reviewer-fix pass; post-`f8d860ed9f6299f0169c4f21321ac5f37c949fd3` command/test commits remain implementation-bearing and included in the review basis.
 5. Required gates were rerun for this fixer pass and passed: `make scope-check`, `./quality-format.sh --check`, `./quality-lint.sh`, `./quality-test.sh`, `./typecheck-test.sh`, and `make ci`.
+
+## Reviewer Packet `20260429T022017Z` Fix Satisfaction
+
+1. Required fix 1 is satisfied by the branch-tip `command_cli_contract()` implementation in `src/qual/commands/catalog.py`: it validates the declared parser-visible token surface before returning `CommandCliContract`, including canonical tokens, lookup-table shape, grouped parser surface, declared surface, and canonical command order.
+2. Required fix 2 is satisfied by focused tests in `tests/unit/test_commands_catalog.py` that patch `_CLI_ENTRYPOINTS` for token substitution, removal, addition, and order drift. Same-canonical alias cases include replacing `bootstrap` with `open`, replacing `diff-preview` with `diff`, and replacing `diff` with `diff_preview`.
+3. Required fix 3 is satisfied by using the actual `codex/feat-commands` branch tip as the review basis. Post-`f8d860ed9f6299f0169c4f21321ac5f37c949fd3` command and test commits are implementation-bearing and are included in the packet rather than described as metadata-only.
+4. Required fix 4 is satisfied by the ownership notes above: approved shared-by-approval test edits are `YES` for `tests/unit/test_commands_catalog.py` and `tests/unit/test_diff_preview.py`, while integrator-locked edits are `NO`.
+5. Required fix 5 is satisfied by `Canonical Demo-Path Step Advanced`: this work makes `open project/document`, `retrieve relevant material`, `promote/gather context`, and `preview/apply/reject patch` more real by guaranteeing parser-visible CLI tokens stay aligned with the command catalog before the contract is returned.
+6. Required fix 6 is satisfied by the fresh validation rerun for this reviewer-fix pass: `make scope-check`, `./quality-format.sh --check`, `./quality-lint.sh`, `./quality-test.sh`, `./typecheck-test.sh`, and `make ci` all passed.
