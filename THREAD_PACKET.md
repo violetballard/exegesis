@@ -2,9 +2,9 @@
 
 - Branch/lane: `codex/feat-retrieval-fts` / `feat-retrieval-fts`
 - Merge candidate: current branch tip `HEAD`, including this packet-regeneration fixer commit.
-- Branch-tip SHA: reported in the final fixer response after commit creation.
+- Branch-tip SHA: reported in the final fixer response after this packet-regeneration fixer commit is created.
 - Reviewed range for re-review: `378cf9a74a3658058079a32f186fcd254c4a4034..HEAD`
-- Reviewer trace anchor being corrected: `34f872f117ccf231d4d0efa2a1a997dce94876ec`; packet-refresh pre-fix head: `610841a3c182167de3b0e09ccfe447e6e89d13bb`.
+- Reviewer trace anchor being corrected: `94686f3a6`; packet-refresh pre-fix head for this pass: `863ebce72`.
 - Handoff classification: high-risk/shared because the merge candidate includes approved shared regression coverage in `tests/unit/test_unified_retrieval.py`.
 - Canonical demo-path steps advanced: `retrieve relevant material`; `promote or gather retrieved context into the basket`.
 - Shared-file approval provenance: reviewer packet `fixer__feat-retrieval-fts__20260429T202122Z.prompt.txt`, finding 2, identifies `tests/unit/test_unified_retrieval.py` as the approved shared surface for `feat-retrieval-fts`; this packet records that approval as the shared-by-approval exception for the regression coverage.
@@ -14,19 +14,19 @@
 1. The handoff explicitly states the canonical demo-path steps advanced by this work: `retrieve relevant material`; `promote or gather retrieved context into the basket`.
 2. The completed retrieval implementation tasks and shared regression metadata refresh are tied to `retrieve relevant material` and the retrieval-context promotion path.
 3. The shared-file exception for `tests/unit/test_unified_retrieval.py` now names its approval provenance: reviewer packet `fixer__feat-retrieval-fts__20260429T202122Z.prompt.txt`, finding 2.
-4. This is a handoff packet regeneration against the actual branch-tip merge candidate; no retrieval implementation files are changed by this fixer commit, but the packet now includes the implementation files and tests already present after `adfa8cda`.
+4. This is a handoff packet regeneration against the actual branch-tip merge candidate. It intentionally includes the retrieval implementation files and tests present after `adfa8cda`, including the `94686f3a6` context-ref work and the `863ebce72` context-ref fingerprint work, instead of describing those commits as metadata-only.
 
 ## Scope Completed
 
 The branch delivers the cumulative Milestone 3 FTS-first retrieval slice for the MVP. SQLite FTS is the authoritative retrieval and excerpt lookup path; PageIndex and embeddings remain compatibility/fallback surfaces rather than required paths. Retrieval query construction, payload normalization, provenance bundles, citation bundles, source bundles, excerpt bundles, cache snapshots, and downstream context bundles are deterministic for engine orchestration.
 
-The actual merge candidate also carries retrieval context through the retrieval flow so retrieved context can be promoted or gathered into the basket without losing source provenance. `retrieval_context_refs` and citation refs are derived from FTS hits and preserved through source bundles, downstream payloads, sparse bundle reconstruction, and nested payload normalization. These refs make retrieved material stable and auditable by including excerpt IDs, source strategy, FTS provenance, query/result fingerprints, span data, matched-term metadata, stable context-ref fingerprints, and citation identifiers.
+The actual merge candidate also carries retrieval context through the retrieval flow so retrieved context can be promoted or gathered into the basket without losing source provenance. `retrieval_context_refs`, `retrieval_context_ref_fingerprints`, primary context-ref fingerprints, and citation refs are derived from FTS hits and preserved through source bundles, downstream payloads, sparse bundle reconstruction, nested payload normalization, summaries, provenance, and context bundles. These refs make retrieved material stable and auditable by including excerpt IDs, source strategy, FTS provenance, query/result fingerprints, span data, matched-term metadata, stable context-ref fingerprints, and citation identifiers.
 
 ## Tasks Completed
 
 1. Canonical demo-path step `retrieve relevant material`: make SQLite FTS the canonical retrieval and excerpt lookup path, keep PageIndex/embeddings fallback-only, guard scoped query handling, and preserve compatibility exports.
 2. Canonical demo-path step `retrieve relevant material`: normalize retrieval queries, constraints, date ranges, cache keys, ranked IDs, hit snapshots, policy metadata, citation fields, provenance bundles, and source/context/excerpt bundles.
-3. Canonical demo-path step `promote or gather retrieved context into the basket`: provide stable `retrieval_context_refs`, citation refs, context-ref fingerprints, source bundle aliases, sparse bundle rehydration, nested context-ref extraction, and downstream helper backfills so retrieved material can be promoted or gathered without losing provenance.
+3. Canonical demo-path step `promote or gather retrieved context into the basket`: provide stable `retrieval_context_refs`, `retrieval_context_ref_fingerprints`, primary context-ref fingerprints, citation refs, source bundle aliases, sparse bundle rehydration, nested context-ref and fingerprint extraction, and downstream helper backfills so retrieved material can be promoted or gathered without losing provenance.
 4. Canonical demo-path step `retrieve relevant material`: add approved shared regression coverage and refresh branch-tip handoff metadata for the actual merge candidate.
 
 ## Files Changed
@@ -42,8 +42,8 @@ Reviewed merge-candidate range `378cf9a74a3658058079a32f186fcd254c4a4034..HEAD`:
 
 Implementation files in that range:
 
-- `src/qual/retrieval/service.py`: adds promotion-ready `retrieval_context_refs` and citation refs to retrieval results, source bundles, downstream payloads, and context bundles; keeps `fetch_excerpt` on the FTS-first path.
-- `src/qual/engine/retrieval/payload.py`: preserves and rehydrates `retrieval_context_refs` from top-level and nested source/doc/excerpt/context snapshots.
+- `src/qual/retrieval/service.py`: adds promotion-ready `retrieval_context_refs`, `retrieval_context_ref_fingerprints`, primary context-ref fingerprints, and citation refs to retrieval results, summaries, provenance, source bundles, downstream payloads, and context bundles; keeps `fetch_excerpt` on the FTS-first path.
+- `src/qual/engine/retrieval/payload.py`: preserves and rehydrates `retrieval_context_refs`, `retrieval_context_ref_fingerprints`, and primary context-ref fingerprints from top-level and nested source/doc/excerpt/context snapshots.
 - `tests/unit/test_unified_retrieval.py`: verifies FTS-only excerpt lookup, rejection of PageIndex-only excerpt IDs, context-ref fields/fingerprints, citation ref propagation, defensive copies, and sparse payload rehydration.
 
 ## Budget / Risk
@@ -51,7 +51,7 @@ Implementation files in that range:
 - Risk: high/shared.
 - Task budget: `4/4`.
 - File budget: `6/8`.
-- Size accounting before this final packet-status commit for `378cf9a74a3658058079a32f186fcd254c4a4034..HEAD`: `6 files changed, 427 insertions(+), 118 deletions(-)`, net `309` LOC.
+- Size accounting before this final packet-status commit for `378cf9a74a3658058079a32f186fcd254c4a4034..HEAD`: `6 files changed, 507 insertions(+), 118 deletions(-)`, net `389` LOC.
 - This fixer commit changes editable packet metadata only and does not change retrieval implementation behavior.
 - Integrator-locked files: none.
 - Shared-by-approval files: `tests/unit/test_unified_retrieval.py`, used only for canonical retrieval regression coverage. Approval provenance: reviewer packet `fixer__feat-retrieval-fts__20260429T202122Z.prompt.txt`, finding 2, explicitly identifies this file as the approved shared surface for `feat-retrieval-fts`.
@@ -84,5 +84,5 @@ Fresh fixer pass on `2026-04-29` for the actual branch-tip merge candidate, reru
 ## Risks / Blockers
 
 - No implementation blockers are known.
-- `.codex/kickoff_packets/feat-retrieval-fts.md` and `.codex/lane_meta/feat-retrieval-fts.json` still contain stale packet text but are not editable through the available patch tool in this sandbox: `apply_patch` rejects edits under those paths as outside the project. Treat this `THREAD_PACKET.md` as the authoritative regenerated handoff packet.
+- `.codex/kickoff_packets/feat-retrieval-fts.md` and `.codex/lane_meta/feat-retrieval-fts.json` remain stale because this sandbox rejects writes under `.codex` with `Operation not permitted`. This `THREAD_PACKET.md` is the regenerated handoff packet for the actual branch-tip merge candidate.
 - Re-review should use this `THREAD_PACKET.md`, `378cf9a74a3658058079a32f186fcd254c4a4034..HEAD` as the reviewed merge-candidate range, and the final HEAD SHA reported by this fixer as the branch tip.
