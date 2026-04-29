@@ -342,12 +342,14 @@ class RetrievalResult:
             citation_status=citation_status,
             retrieval_policy=retrieval_policy,
         )
+        retrieval_context_refs = self._retrieval_context_refs_snapshot()
         retrieval_source_bundle = self._retrieval_source_bundle_snapshot(
             query=query,
             retrieval_policy=retrieval_policy,
             citation_bundle=citation_bundle,
             citation_status=citation_status,
             retrieval_summary=retrieval_summary,
+            retrieval_context_refs=retrieval_context_refs,
         )
         return build_retrieval_downstream_payload(
             query=query,
@@ -367,6 +369,7 @@ class RetrievalResult:
             retrieval_manifest=dict(self.diagnostics["retrieval_manifest"]),
             retrieval_evidence=dict(self.evidence),
             retrieval_provenance=retrieval_provenance,
+            retrieval_context_refs=retrieval_context_refs,
             source_bundle_fingerprint=cast(str, retrieval_source_bundle["source_bundle_fingerprint"]),
             retrieval_source_bundle=retrieval_source_bundle,
         )
@@ -486,6 +489,7 @@ class RetrievalResult:
             "retrieval_provenance": copy.deepcopy(downstream_payload["retrieval_provenance"]),
             "retrieval_source_bundle": copy.deepcopy(downstream_payload["retrieval_source_bundle"]),
             "retrieval_evidence": copy.deepcopy(downstream_payload["retrieval_evidence"]),
+            "retrieval_context_refs": copy.deepcopy(downstream_payload["retrieval_context_refs"]),
         }
 
     def _query_snapshot(self) -> dict[str, object]:
@@ -553,6 +557,37 @@ class RetrievalResult:
             for hit in self.hits
             if hit.excerpt_id is not None
         ]
+
+    def _retrieval_context_refs_snapshot(self) -> list[dict[str, object]]:
+        """Return promotion-ready FTS excerpt refs for basket/context flows."""
+
+        refs: list[dict[str, object]] = []
+        for hit in self.hits:
+            if hit.excerpt_id is None:
+                continue
+            excerpt_text_hash = hit.provenance.get("excerpt_text_hash") or hit.provenance.get("hash")
+            refs.append(
+                {
+                    "ref_id": f"fts:{hit.excerpt_id}",
+                    "doc_id": hit.doc_id,
+                    "title_hint": hit.title_hint,
+                    "excerpt_id": hit.excerpt_id,
+                    "excerpt_text": hit.excerpt_text,
+                    "span": copy.deepcopy(hit.span),
+                    "source_hash": hit.provenance.get("source_hash"),
+                    "source_strategy": hit.source_strategy,
+                    "retrieval_backend": hit.provenance.get("retrieval_backend"),
+                    "retrieval_mode": hit.provenance.get("retrieval_mode"),
+                    "query_fingerprint": self.diagnostics["query_fingerprint"],
+                    "result_fingerprint": self.result_fingerprint,
+                    "excerpt_fingerprint": hit.provenance.get("excerpt_fingerprint"),
+                    "excerpt_text_hash": excerpt_text_hash,
+                    "rank": hit.provenance.get("rank"),
+                    "matched_terms": copy.deepcopy(hit.provenance.get("matched_terms", [])),
+                    "match_count": hit.provenance.get("match_count"),
+                }
+            )
+        return refs
 
     def _retrieval_summary_snapshot(
         self,
@@ -696,6 +731,7 @@ class RetrievalResult:
             "retrieval_manifest": copy.deepcopy(self.diagnostics["retrieval_manifest"]),
             "retrieval_provenance": copy.deepcopy(retrieval_provenance),
             "retrieval_evidence": copy.deepcopy(self.evidence),
+            "retrieval_context_refs": self._retrieval_context_refs_snapshot(),
         }
 
     def _retrieval_source_bundle_snapshot(
@@ -706,6 +742,7 @@ class RetrievalResult:
         citation_bundle: dict[str, object] | None = None,
         citation_status: dict[str, object] | None = None,
         retrieval_summary: dict[str, object] | None = None,
+        retrieval_context_refs: list[dict[str, object]] | None = None,
     ) -> dict[str, object]:
         query_snapshot = query if query is not None else self._query_snapshot()
         retrieval_policy_snapshot = retrieval_policy if retrieval_policy is not None else self._retrieval_policy_snapshot()
@@ -718,6 +755,11 @@ class RetrievalResult:
                 retrieval_policy=retrieval_policy_snapshot,
                 citation_status=citation_status_snapshot,
             )
+        )
+        context_refs_snapshot = (
+            copy.deepcopy(retrieval_context_refs)
+            if retrieval_context_refs is not None
+            else self._retrieval_context_refs_snapshot()
         )
         source_bundle = {
             "result_fingerprint": self.result_fingerprint,
@@ -742,6 +784,7 @@ class RetrievalResult:
                     retrieval_policy=retrieval_policy_snapshot,
                 )
             ),
+            "retrieval_context_refs": context_refs_snapshot,
         }
         # Fingerprint the source snapshot itself so copies can be verified deterministically.
         source_bundle["source_bundle_fingerprint"] = RetrievalService._stable_fingerprint(

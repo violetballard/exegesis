@@ -250,6 +250,10 @@ def _normalize_retrieval_evidence_snapshot(evidence: dict[str, object]) -> dict[
     return normalized
 
 
+def _normalize_context_refs_snapshot(refs: object) -> list[object]:
+    return _normalize_list_like(refs)
+
+
 def _normalize_retrieval_source_bundle_snapshot(source_bundle: dict[str, object]) -> dict[str, object]:
     normalized = copy.deepcopy(source_bundle)
     if not isinstance(normalized, dict):
@@ -271,6 +275,9 @@ def _normalize_retrieval_source_bundle_snapshot(source_bundle: dict[str, object]
     )
     normalized["retrieval_evidence"] = _normalize_retrieval_evidence_snapshot(
         normalized.get("retrieval_evidence", {})
+    )
+    normalized["retrieval_context_refs"] = _normalize_context_refs_snapshot(
+        normalized.get("retrieval_context_refs", [])
     )
     normalized["retrieval_citation_bundle"] = _build_retrieval_citation_bundle_from_payload(normalized)
     normalized["retrieval_doc_bundle"] = _build_retrieval_doc_bundle_from_payload(normalized)
@@ -467,6 +474,7 @@ def _build_retrieval_source_bundle_from_payload(payload: dict[str, object]) -> d
         "retrieval_manifest": copy.deepcopy(payload.get("retrieval_manifest", {})),
         "retrieval_evidence": copy.deepcopy(payload.get("retrieval_evidence", {})),
         "retrieval_provenance": copy.deepcopy(payload.get("retrieval_provenance", {})),
+        "retrieval_context_refs": _normalize_context_refs_snapshot(payload.get("retrieval_context_refs", [])),
     })
 
 
@@ -490,6 +498,7 @@ def _backfill_downstream_payload_from_context_bundle(
         "retrieval_provenance": context_bundle.get("retrieval_provenance"),
         "retrieval_source_bundle": context_bundle.get("retrieval_source_bundle"),
         "retrieval_evidence": context_bundle.get("retrieval_evidence"),
+        "retrieval_context_refs": context_bundle.get("retrieval_context_refs"),
     }
     return _backfill_sparse_snapshot(
         merged,
@@ -524,6 +533,7 @@ def _build_retrieval_context_bundle_from_source_bundle(source_bundle: dict[str, 
         "retrieval_provenance": copy.deepcopy(retrieval_provenance),
         "retrieval_source_bundle": copy.deepcopy(source_bundle),
         "retrieval_evidence": copy.deepcopy(source_bundle.get("retrieval_evidence", {})),
+        "retrieval_context_refs": copy.deepcopy(source_bundle.get("retrieval_context_refs", [])),
     }
 
 
@@ -585,6 +595,7 @@ def _build_retrieval_bundle_context_from_payload(payload: dict[str, object]) -> 
         "retrieval_manifest": copy.deepcopy(payload.get("retrieval_manifest", {})),
         "retrieval_provenance": copy.deepcopy(provenance),
         "retrieval_evidence": copy.deepcopy(payload.get("retrieval_evidence", {})),
+        "retrieval_context_refs": _normalize_context_refs_snapshot(payload.get("retrieval_context_refs", [])),
     }
 
 
@@ -642,6 +653,7 @@ def _build_retrieval_context_bundle_from_payload(payload: dict[str, object]) -> 
         "retrieval_provenance": _build_retrieval_provenance_from_payload(payload),
         "retrieval_source_bundle": _build_retrieval_source_bundle_from_payload(payload),
         "retrieval_evidence": copy.deepcopy(payload.get("retrieval_evidence", {})),
+        "retrieval_context_refs": _normalize_context_refs_snapshot(payload.get("retrieval_context_refs", [])),
     }
 
 
@@ -877,6 +889,7 @@ class RetrievalDownstreamPayload:
     retrieval_manifest: dict[str, object]
     retrieval_evidence: dict[str, object]
     retrieval_provenance: dict[str, object]
+    retrieval_context_refs: list[object]
     source_bundle_fingerprint: str
     retrieval_source_bundle: dict[str, object]
 
@@ -907,6 +920,7 @@ class RetrievalDownstreamPayload:
             "retrieval_manifest": manifest,
             "retrieval_evidence": evidence,
             "retrieval_provenance": provenance,
+            "retrieval_context_refs": _normalize_context_refs_snapshot(self.retrieval_context_refs),
             "source_bundle_fingerprint": self.source_bundle_fingerprint,
             "retrieval_source_bundle": source_bundle,
         }
@@ -946,6 +960,7 @@ def build_retrieval_downstream_payload(
     retrieval_manifest: dict[str, object],
     retrieval_evidence: dict[str, object],
     retrieval_provenance: dict[str, object],
+    retrieval_context_refs: list[dict[str, object]],
     source_bundle_fingerprint: str,
     retrieval_source_bundle: dict[str, object],
 ) -> dict[str, object]:
@@ -967,6 +982,7 @@ def build_retrieval_downstream_payload(
         retrieval_manifest=retrieval_manifest,
         retrieval_evidence=retrieval_evidence,
         retrieval_provenance=retrieval_provenance,
+        retrieval_context_refs=list(retrieval_context_refs),
         source_bundle_fingerprint=source_bundle_fingerprint,
         retrieval_source_bundle=retrieval_source_bundle,
     ).as_dict()
