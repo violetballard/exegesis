@@ -371,10 +371,10 @@ def _validate_exact_cli_parser_token_surface(
     entrypoints: tuple[str, ...],
     tokens: tuple[str, ...],
     lookup_table: tuple[tuple[str, str], ...],
+    actual_lookup_table: tuple[tuple[str, str], ...],
+    raw_parser_tokens: tuple[str, ...],
 ) -> None:
     expected_lookup_table = _expected_cli_parser_surface()
-    actual_lookup_table = _actual_cli_parser_surface()
-    raw_parser_tokens = _actual_cli_parser_tokens()
     expected_tokens = tuple(token for token, _ in expected_lookup_table)
     actual_tokens = tuple(token for token, _ in actual_lookup_table)
     if actual_lookup_table != expected_lookup_table:
@@ -402,6 +402,8 @@ def _validate_cli_parser_surface(
     tokens: tuple[str, ...],
     lookup_table: tuple[tuple[str, str], ...],
     canonical_names: tuple[str, ...],
+    actual_lookup_table: tuple[tuple[str, str], ...],
+    raw_parser_tokens: tuple[str, ...],
 ) -> None:
     declared_surface = _declared_cli_surface_projection()
     grouped_lookup_table = _group_cli_lookup_table(lookup_table)
@@ -413,7 +415,12 @@ def _validate_cli_parser_surface(
     expected_canonical_names = tuple(canonical_name for canonical_name, _ in expected_surface)
     accepted_parser_surface = _accepted_cli_parser_surface(tokens=tokens, lookup_table=lookup_table)
     live_parser_projection = _parser_projection_from_tokens(tokens)
+    actual_tokens = tuple(token for token, _ in actual_lookup_table)
     if expected_lookup_table != expected_parser_projection:
+        raise ValueError("Command CLI parser surface is inconsistent")
+    if actual_lookup_table != expected_lookup_table:
+        raise ValueError("Command CLI parser surface is inconsistent")
+    if raw_parser_tokens != expected_tokens or actual_tokens != expected_tokens:
         raise ValueError("Command CLI parser surface is inconsistent")
     if declared_surface != expected_surface:
         raise ValueError("Command CLI declared surface is inconsistent")
@@ -699,16 +706,22 @@ def command_cli_lookup_table() -> tuple[tuple[str, str], ...]:
 def command_cli_contract() -> CommandCliContract:
     tokens = command_cli_tokens()
     lookup_table = command_cli_lookup_table()
+    actual_lookup_table = _actual_cli_parser_surface()
+    raw_parser_tokens = _actual_cli_parser_tokens()
     _validate_exact_cli_parser_token_surface(
         entrypoints=tuple(_CLI_ENTRYPOINTS),
         tokens=tokens,
         lookup_table=lookup_table,
+        actual_lookup_table=actual_lookup_table,
+        raw_parser_tokens=raw_parser_tokens,
     )
     canonical_names = command_names()
     _validate_cli_parser_surface(
         tokens=tokens,
         lookup_table=lookup_table,
         canonical_names=canonical_names,
+        actual_lookup_table=actual_lookup_table,
+        raw_parser_tokens=raw_parser_tokens,
     )
     return CommandCliContract(
         tokens=tokens,

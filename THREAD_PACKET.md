@@ -5,7 +5,7 @@
 - Review target: actual branch tip after this fixer commit
 - Review basis: `f8d860ed9f6299f0169c4f21321ac5f37c949fd3..HEAD`
 - Review range command: `git diff f8d860ed9f6299f0169c4f21321ac5f37c949fd3..HEAD`
-- Fixer scope: satisfy fixer prompt `20260429T103311Z` by regenerating the handoff for the real branch tip and real review range named by the reviewer, stopping treatment of code/test commits as metadata-only, disclosing the shared/integrator-locked CLI parser edit, including commit `50921ba10fee9d5d3a8ef3c7ed34f02e0c710f5d` as a runtime catalog change, validating the live argparse parser choices directly, recomputing branch-tip size accounting, mapping every completed task to canonical demo-path steps, and rerunning the required gates.
+- Fixer scope: satisfy fixer prompt `20260429T104143Z` by making `command_cli_contract()` consume the live argparse parser surface explicitly, preserving regression coverage for real parser token drift, naming the canonical demo-path steps advanced, and clarifying ownership for the current fixer slice versus the broader branch-tip range.
 
 ## Traceability Correction
 
@@ -21,7 +21,7 @@ The review target is the actual `codex/feat-commands` branch tip after this fixe
 
 1. Bound the real argparse top-level command surface in `src/qual/cli.py` to `command_cli_lookup_table()` and exposed raw `command_parser_tokens()`, so accepted parser tokens consume and report the same source as the command catalog.
    Canonical demo-path steps advanced: `open project/document` through `bootstrap`; `retrieve material` through `context-basket`; `preview/apply/reject patch` through `diff-preview` and `diff`; `continue working` through `terminal`.
-2. Added live parser-surface parity checks to `command_cli_contract()` that call the real `src.qual.cli._build_parser()` path through `command_parser_tokens()` and `command_parser_lookup_table()`, then compare raw argparse choices, canonical parser projection, catalog CLI tokens, and the lookup table. Same-canonical parser-token drift is rejected even when the canonical command names still match. This fixer pass also makes `src/qual/cli.py` locate the top-level argparse action by `dest="command"` before exposing parser tokens.
+2. Added live parser-surface parity checks to `command_cli_contract()` that explicitly capture the real `src.qual.cli._build_parser()` path through `command_parser_tokens()` and `command_parser_lookup_table()`, then compare raw argparse choices, canonical parser projection, catalog CLI tokens, and the lookup table. Same-canonical parser-token drift is rejected even when the canonical command names still match. This fixer pass also makes the validator inputs easy to audit at the `command_cli_contract()` call site.
    Canonical demo-path steps advanced: `open project/document`, `retrieve material`, `preview/apply/reject patch`, and `continue working`, by preventing the CLI fallback command names for those steps from drifting away from the catalog.
 3. Added and exported the MVP smoke-contract API: `CommandSmokeStep`, `CommandSmokeContract`, `command_mvp_smoke_contract()`, `command_mvp_smoke_commands()`, `command_mvp_smoke_argv()`, and `command_mvp_smoke_lookup_table()` in `src/qual/commands/catalog.py` and `src/qual/commands/__init__.py`.
    This includes the `50921ba10fee9d5d3a8ef3c7ed34f02e0c710f5d` runtime validation change in `src/qual/commands/catalog.py`, which rejects smoke steps whose argv no longer begins with the declared command.
@@ -36,27 +36,28 @@ This is a high-risk handoff because it changes command surface validation and in
 - Task budget: `4` completed tasks of `4` high-risk tasks allowed.
 - Time budget: original high-risk target `30m`; this fixer pass is documentation and gate-rerun work.
 - High-risk file budget: `6` files changed in the actual review range, within the `<=8` high-risk file limit.
-- High-risk net LOC budget: exceeded in the actual review range. Current branch-tip accounting for `f8d860ed9..HEAD` including this fixer packet refresh is `2055 insertions(+), 109 deletions(-)`. This is explicitly disclosed for reviewer/integrator handling instead of being presented as a narrow catalog-only slice.
+- High-risk net LOC budget: exceeded in the actual review range. Current branch-tip accounting for `f8d860ed9..HEAD` including this fixer packet refresh is `2068 insertions(+), 109 deletions(-)`. This is explicitly disclosed for reviewer/integrator handling instead of being presented as a narrow catalog-only slice.
 - Current `git diff --stat f8d860ed9..HEAD` evidence including this fixer packet refresh:
-  - `THREAD.md`: `20` lines changed
-  - `THREAD_PACKET.md`: `172` lines changed
+  - `THREAD.md`: `18` lines changed
+  - `THREAD_PACKET.md`: `174` lines changed
   - `src/qual/cli.py`: `118` lines changed
   - `src/qual/commands/__init__.py`: `12` lines changed
-  - `src/qual/commands/catalog.py`: `320` lines changed
+  - `src/qual/commands/catalog.py`: `333` lines changed
   - `tests/unit/test_commands_catalog.py`: `1522` lines changed
-  - Total: `6 files changed, 2055 insertions(+), 109 deletions(-)`
+  - Total: `6 files changed, 2068 insertions(+), 109 deletions(-)`
 - Current `git diff --numstat f8d860ed9..HEAD` evidence including this fixer packet refresh:
-  - `THREAD.md`: `18` insertions, `2` deletions
-  - `THREAD_PACKET.md`: `116` insertions, `56` deletions
+  - `THREAD.md`: `16` insertions, `2` deletions
+  - `THREAD_PACKET.md`: `118` insertions, `56` deletions
   - `src/qual/cli.py`: `84` insertions, `34` deletions
   - `src/qual/commands/__init__.py`: `12` insertions, `0` deletions
-  - `src/qual/commands/catalog.py`: `304` insertions, `16` deletions
+  - `src/qual/commands/catalog.py`: `317` insertions, `16` deletions
   - `tests/unit/test_commands_catalog.py`: `1521` insertions, `1` deletion
 - Size-budget disposition: this handoff is not within the high-risk net LOC budget. Re-review must either explicitly accept the over-budget branch-tip range as an exception or send the lane back for an integrator-directed split; this packet does not claim pre-existing acceptance.
-- Shared-by-approval file: `src/qual/cli.py`.
-- Integrator-locked file: `src/qual/cli.py`.
-- Approval basis for `src/qual/cli.py`: reviewer-required parser-surface traceability fix for the real CLI parser entrypoint; no routing/provider/config behavior is changed.
-- Shared/integrator-locked disposition requested: approve the `src/qual/cli.py` exception for this branch-tip review because the numbered reviewer fix requires validating the live argparse parser surface. If that exception is not accepted, the required disposition is an integrator-directed split rather than promotion of this range.
+- Current fixer-slice ownership: `src/qual/commands/catalog.py` is lane-owned command contract code; `THREAD.md` and `THREAD_PACKET.md` are handoff metadata. This fixer slice does not add a new integrator-locked implementation edit.
+- Branch-tip shared-by-approval file already in the wider review range: `src/qual/cli.py`.
+- Branch-tip integrator-locked file already in the wider review range: `src/qual/cli.py`.
+- Approval basis for the existing `src/qual/cli.py` branch-tip edit: reviewer-required parser-surface traceability for the real CLI parser entrypoint; no routing/provider/config behavior is changed.
+- Shared/integrator-locked disposition requested for the wider branch-tip range: approve the existing `src/qual/cli.py` exception because live argparse validation is required for the numbered reviewer fix. If that exception is not accepted, the required disposition is an integrator-directed split rather than promotion of this range.
 - Expected strict scope-check behavior: the required bare `make scope-check` gate must pass on this branch tip; if integrator reruns with stricter shared-file policy, `src/qual/cli.py` is the disclosed shared/integrator-locked exception and `SCOPE_ALLOW_SHARED=1 make scope-check` is the documented approval mode from `THREAD_OWNERSHIP.md`.
 
 ## Files Changed
@@ -83,6 +84,7 @@ Classification:
 - Integrator-locked edits: `src/qual/cli.py`, disclosed here for explicit review/integration approval.
 - Test edits: `tests/unit/test_commands_catalog.py`, limited to command-contract and parser-surface regression coverage.
 - Non-owned support edits: none.
+- Current `20260429T104143Z` fixer slice: `src/qual/commands/catalog.py` lane-owned; `THREAD.md` and `THREAD_PACKET.md` handoff metadata; no new shared or integrator-locked implementation file in this fixer commit.
 
 ## Regression Coverage
 
