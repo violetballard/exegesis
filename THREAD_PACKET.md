@@ -2,9 +2,9 @@
 
 - Lane: `feat-commands`
 - Branch: `codex/feat-commands`
-- Review basis: actual `codex/feat-commands` branch tip after the `20260429T031719Z` reviewer-fix pass.
+- Review basis: actual `codex/feat-commands` branch tip after the `20260429T032011Z` reviewer-fix pass.
 - Previous implementation anchor: `f8d860ed9f6299f0169c4f21321ac5f37c949fd3`
-- Reviewer packet addressed: `20260429T031719Z`
+- Reviewer packet addressed: `20260429T032011Z`
 - Final verifier tip: the branch-tip reviewer-fix commit containing this packet restamp, with the actual `codex/feat-commands` branch tip as the only review basis.
 
 ## Packet Traceability Note
@@ -178,6 +178,15 @@
 3. Regression coverage: tests include same-canonical parser drift for `bootstrap` -> `open`, `diff-preview` -> `diff`, and `diff` -> `diff_preview`, plus token removal, addition, reordering, lookup-table substitution, and lookup-table ordering drift.
 4. Demo-path mapping: every completed task names the canonical demo-path command steps it protects or advances, including project open, retrieval/context basket, patch preview/apply/reject, and export/handoff.
 5. Required gates: final results are recorded below after rerun on the same final branch-tip review basis named in this packet.
+
+## Required Fixes Addressed From Reviewer Packet `20260429T032011Z`
+
+1. One truthful review basis: this packet uses the actual final `codex/feat-commands` branch tip after this fixer pass, not the narrow `f8d860ed9f6299f0169c4f21321ac5f37c949fd3` implementation slice.
+2. Complete effective changed-file accounting: the review diff from `f8d860ed9f6299f0169c4f21321ac5f37c949fd3` through the final branch tip includes `THREAD.md`, `THREAD_PACKET.md`, `scripts/scope-check.sh`, `src/qual/commands/catalog.py`, and `tests/unit/test_commands_catalog.py`.
+3. Gate-policy accounting: `scripts/scope-check.sh` is documented as a cleanup-only gate-policy file because the final branch state removes prior scope-policy additions instead of expanding command-lane authority.
+4. Ownership accounting: shared-by-approval test edits are separated from integrator-locked edits, and integrator-locked edits are `NO`.
+5. Demo-path mapping: every completed task stays scoped to Milestone 3 CLI compatibility and names the canonical demo-path command steps it protects, including project/document open, retrieval/context basket, patch preview/apply/reject, and save/continue support through the CLI operator surface.
+6. Required gates: final results are recorded below after rerun on the same final branch-tip review basis named in this packet.
 
 ## Commands Run + Outcomes
 
