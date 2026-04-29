@@ -129,6 +129,9 @@ class CommandSmokeContract:
     command_tokens: tuple[str, ...]
     argv: tuple[tuple[str, ...], ...]
     lookup_table: tuple[tuple[str, str], ...]
+    route_summary: tuple[tuple[str, str, tuple[str, ...]], ...] = ()
+    lookup_surface: tuple[tuple[str, str], ...] = ()
+    flow_surface_tokens: tuple[tuple[str, ...], ...] = ()
 
 
 def _normalize_token(value: str) -> str:
@@ -957,7 +960,11 @@ def _validate_command_surface_contract(contract: CommandSurfaceContract) -> None
         raise ValueError("Command surface lookup surfaces must match")
 
 
-def _validate_command_smoke_contract(contract: CommandSmokeContract) -> None:
+def _validate_command_smoke_contract(
+    contract: CommandSmokeContract,
+    *,
+    route_catalog: tuple[CommandFlowRouteEntry, ...],
+) -> None:
     cli_lookup = dict(command_cli_lookup_table())
     expected_tokens: list[str] = []
     expected_argv: list[tuple[str, ...]] = []
@@ -978,6 +985,16 @@ def _validate_command_smoke_contract(contract: CommandSmokeContract) -> None:
         raise ValueError("Command smoke argv is inconsistent")
     if contract.lookup_table != tuple(expected_lookup):
         raise ValueError("Command smoke lookup table is inconsistent")
+    expected_route_summary = tuple(
+        (entry.flow_step, entry.name, entry.cli_tokens)
+        for entry in route_catalog
+    )
+    if contract.route_summary != expected_route_summary:
+        raise ValueError("Command smoke route summary is inconsistent")
+    if contract.lookup_surface != command_mvp_flow_lookup_surface():
+        raise ValueError("Command smoke lookup surface is inconsistent")
+    if contract.flow_surface_tokens != command_mvp_flow_surface_tokens():
+        raise ValueError("Command smoke surface tokens are inconsistent")
     _validate_command_smoke_argv(contract.steps)
 
 
@@ -1148,6 +1165,7 @@ def command_mvp_flow_surface_lookup_index(
 
 @lru_cache(maxsize=None)
 def command_mvp_smoke_contract() -> CommandSmokeContract:
+    route_catalog = command_mvp_flow_route_catalog()
     steps = tuple(
         CommandSmokeStep(
             flow_step=entry.flow_step,
@@ -1156,15 +1174,21 @@ def command_mvp_smoke_contract() -> CommandSmokeContract:
             argv=_smoke_argv_for(entry.name, entry.cli_tokens[0]),
             description=entry.description,
         )
-        for entry in command_mvp_flow_route_catalog()
+        for entry in route_catalog
     )
     contract = CommandSmokeContract(
         steps=steps,
         command_tokens=tuple(step.cli_token for step in steps),
         argv=tuple(step.argv for step in steps),
         lookup_table=tuple((step.cli_token, step.flow_step) for step in steps),
+        route_summary=tuple(
+            (entry.flow_step, entry.name, entry.cli_tokens)
+            for entry in route_catalog
+        ),
+        lookup_surface=command_mvp_flow_lookup_surface(),
+        flow_surface_tokens=command_mvp_flow_surface_tokens(),
     )
-    _validate_command_smoke_contract(contract)
+    _validate_command_smoke_contract(contract, route_catalog=route_catalog)
     return contract
 
 
@@ -1184,6 +1208,10 @@ def command_mvp_smoke_argv() -> tuple[tuple[str, ...], ...]:
 
 def command_mvp_smoke_lookup_table() -> tuple[tuple[str, str], ...]:
     return command_mvp_smoke_contract().lookup_table
+
+
+def command_mvp_smoke_route_summary() -> tuple[tuple[str, str, tuple[str, ...]], ...]:
+    return command_mvp_smoke_contract().route_summary
 
 
 @lru_cache(maxsize=None)
