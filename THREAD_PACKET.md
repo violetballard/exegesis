@@ -5,7 +5,7 @@
 - Review target: full current branch tip `HEAD`
 - Review basis: actual merge diff from `main...codex/feat-commands`
 - Review command: `git diff main...codex/feat-commands`
-- Fixer prompt satisfied: `20260429T113003Z`
+- Fixer prompt satisfied: `20260429T113429Z`
 
 ## Scope Completed
 
@@ -38,6 +38,14 @@ Implementation files in scope: `scripts/scope-check.sh`, `src/qual/cli.py`, `src
 Tests in scope: `tests/unit/test_commands_catalog.py`, `tests/unit/test_diff_preview.py`.
 Handoff metadata: `THREAD.md`, `THREAD_PACKET.md`.
 
+## Implementation Commit Traceability
+
+This packet submits the full current branch tip, not the historical `f8d860ed9f6299f0169c4f21321ac5f37c949fd3` slice. Review should use `git diff main...codex/feat-commands`; the stale `f8d860e` baseline is not the submitted review target.
+
+Non-metadata changes after `f8d860e` are intentionally included in this handoff. In particular, `a6a2235801def1e9b303a1f8c5938f8da538d379` is an implementation commit, not metadata-only: it changes `src/qual/commands/__init__.py` and `src/qual/commands/catalog.py` to harden the command MVP smoke contract. Later runtime/test commits in the submitted branch tip also touch `src/qual/cli.py`, `src/qual/commands/__init__.py`, `src/qual/commands/catalog.py`, and `tests/unit/test_commands_catalog.py`; those changes are represented by the branch-tip file list and gate evidence above.
+
+Commits after `f8d860e` that affect the disputed branch-tip slice are therefore classified as implementation/test when they touch `src/qual/**`, `scripts/**`, or `tests/**`, and as metadata-only only when they touch `THREAD.md` or `THREAD_PACKET.md`.
+
 ## Ownership And High-Risk Disposition
 
 This is high-risk because `src/qual/cli.py` is shared-by-approval for `feat-commands` and integrator-locked in `THREAD_OWNERSHIP.md`.
@@ -60,6 +68,8 @@ This is high-risk because `src/qual/cli.py` is shared-by-approval for `feat-comm
 
 ## Commands Run
 
+- Fresh `20260429T113429Z` fixer rerun against corrected full branch-tip review target:
+  `make scope-check` passed; `./quality-format.sh --check` passed; `./quality-lint.sh` passed; `./quality-test.sh` passed with smoke tests and `130` unit tests; `./typecheck-test.sh` passed; `make ci` passed with scope-check, format, lint, typecheck, smoke tests, and `130` unit tests.
 - `python -m unittest tests.unit.test_commands_catalog` - passed, `48` tests.
 - `python -m pytest tests/unit/test_commands_catalog.py -q` - failed because `pytest` is not installed in the active Python.
 - `make scope-check` - passed for branch `codex/feat-commands`.
