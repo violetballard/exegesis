@@ -24,6 +24,7 @@ from src.qual.ui.a2ui import (
     describe_selection_contract,
     describe_terminal_artifact_cli_fallback_contract,
     describe_terminal_artifact_cli_fallback_contract_fingerprints,
+    describe_terminal_artifact_cli_fallback_entrypoint_contract,
     describe_terminal_artifact_cli_fallback_target_contract,
     GENERIC_FALLBACK_SUBTITLE,
     engine_prepare_card,
@@ -516,9 +517,31 @@ class A2UIContractTests(unittest.TestCase):
         fingerprints = describe_a2ui_contract_fingerprints(
             include_terminal_artifact_cli_fallback_entrypoint=True,
         )
+        entrypoint_contract = describe_terminal_artifact_cli_fallback_entrypoint_contract()
         target_contract = describe_terminal_artifact_cli_fallback_target_contract()
+        target_fingerprints = target_contract["contract_fingerprints"]
         target_fingerprint = terminal_artifact_cli_fallback_target_contract_fingerprint()
 
+        self.assertEqual(
+            target_contract["terminal_artifact_cli_fallback_entrypoint_contract"],
+            entrypoint_contract,
+        )
+        self.assertEqual(
+            target_contract["terminal_artifact_cli_fallback_entrypoint_contract_manifest"],
+            entrypoint_contract,
+        )
+        self.assertEqual(
+            target_contract["terminal_artifact_cli_fallback_entrypoint_contract_manifest_fingerprint"],
+            entrypoint_contract["contract_fingerprint"],
+        )
+        self.assertEqual(
+            target_fingerprints["terminal_artifact_cli_fallback_entrypoint_contract"],
+            entrypoint_contract["contract_fingerprint"],
+        )
+        self.assertEqual(
+            target_fingerprints["terminal_artifact_cli_fallback_entrypoint_contract_manifest"],
+            entrypoint_contract["contract_fingerprint"],
+        )
         self.assertEqual(manifest["terminal_artifact_cli_fallback_target"], target_contract)
         self.assertEqual(manifest["terminal_artifact_cli_fallback_target_fingerprint"], target_fingerprint)
         self.assertEqual(manifest["terminal_artifact_cli_fallback_target_contract"], target_contract)
