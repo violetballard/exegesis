@@ -33,7 +33,7 @@ This is a high-risk handoff because it changes command surface validation and in
 - Task budget: `4` completed tasks of `4` high-risk tasks allowed.
 - Time budget: original high-risk target `30m`; this fixer pass is documentation and gate-rerun work.
 - High-risk file budget: `6` files changed in the actual review range, within the `<=8` high-risk file limit.
-- High-risk net LOC budget: exceeded in the actual review range. Current branch-tip accounting for `f8d860ed9..HEAD` is `2022 insertions(+), 109 deletions(-)`. This is explicitly disclosed for reviewer/integrator handling instead of being presented as a narrow catalog-only slice.
+- High-risk net LOC budget: exceeded in the actual review range. Current branch-tip accounting for `f8d860ed9..HEAD` is `2024 insertions(+), 109 deletions(-)`. This is explicitly disclosed for reviewer/integrator handling instead of being presented as a narrow catalog-only slice.
 - Shared-by-approval file: `src/qual/cli.py`.
 - Integrator-locked file: `src/qual/cli.py`.
 - Approval basis for `src/qual/cli.py`: reviewer-required parser-surface traceability fix for the real CLI parser entrypoint; no routing/provider/config behavior is changed.
