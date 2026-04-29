@@ -2,7 +2,7 @@
 
 - Branch/lane: `codex/feat-retrieval-fts` / `feat-retrieval-fts`
 - Merge candidate: current branch tip after this fixer pass; final SHA is reported in the fixer handoff.
-- Reviewed range: `d7fd5d200358287fa42a18d39e2b277463b9b69f..adfa8cdadd43747ffbcb612e4151e262b13e52ca`
+- Reviewed range: `378cf9a7..HEAD`
 - Reviewed implementation range: `d7fd5d200358287fa42a18d39e2b277463b9b69f..adfa8cdadd43747ffbcb612e4151e262b13e52ca`
 - Review choice: make the branch-tip implementation match the reviewed `adfa8cdadd43747ffbcb612e4151e262b13e52ca` slice; later commits are metadata-only for runtime code.
 - Pre-fix reviewer-cited branch tip: `343757023`
