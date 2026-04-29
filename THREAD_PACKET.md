@@ -2,8 +2,8 @@
 
 - Lane: `feat-commands`
 - Branch: `codex/feat-commands`
-- Review target: implementation commit `f8d860ed9f6299f0169c4f21321ac5f37c949fd3` plus the final fixer commit for reviewer packet `20260429T172055Z`.
-- Fixer correction: this refresh resolves reviewer packet `20260429T172055Z` by tying the CLI parser surface to the command catalog contract, adding parser-drift regression coverage, and updating ownership/demo-path accounting.
+- Review target: final branch tip after this fixer, including implementation commit `f8d860ed9f6299f0169c4f21321ac5f37c949fd3`, implementation fixer commit `3f180d67ca82eebdce9da411fc2da5356064d46f`, and subsequent packet refresh commits.
+- Fixer correction: this refresh resolves reviewer packet `20260429T172837Z` by making the review basis branch-truthful, keeping `3f180d67ca82eebdce9da411fc2da5356064d46f` in scope as an implementation commit, and updating ownership/demo-path accounting.
 
 ## Required-Fix Resolution
 
@@ -66,7 +66,7 @@ This fixer refresh for reviewer packet `20260429T171312Z`:
 - Restores `src/qual/commands/catalog.py` to `f8d860ed9f6299f0169c4f21321ac5f37c949fd3`.
 - Restores `tests/unit/test_commands_catalog.py` to `f8d860ed9f6299f0169c4f21321ac5f37c949fd3`.
 
-This fixer for reviewer packet `20260429T172055Z`:
+Implementation fixer commit `3f180d67ca82eebdce9da411fc2da5356064d46f`:
 
 - `THREAD.md`
 - `THREAD_PACKET.md`
@@ -74,16 +74,17 @@ This fixer for reviewer packet `20260429T172055Z`:
 - `src/qual/commands/catalog.py`
 - `tests/unit/test_commands_catalog.py`
 
-Branch-tip file list for this review basis as it would be merged after `f8d860ed9f6299f0169c4f21321ac5f37c949fd3`:
+Packet-only refresh commits after `3f180d67ca82eebdce9da411fc2da5356064d46f`:
 
 - `THREAD.md`
 - `THREAD_PACKET.md`
 
-Complete branch-tip file list for `codex/feat-commands` as it would actually be merged:
+Complete branch-tip file list for `codex/feat-commands` as it would actually be merged against `main`:
 
 - `THREAD.md`
 - `THREAD_PACKET.md`
 - `scripts/scope-check.sh`
+- `src/qual/cli.py`
 - `src/qual/commands/__init__.py`
 - `src/qual/commands/canonical.py`
 - `src/qual/commands/catalog.py`
@@ -103,14 +104,14 @@ Complete branch-tip file list for `codex/feat-commands` as it would actually be 
 
 ## Commands Run
 
-- `make scope-check`: PASS on final HEAD. Earlier on implementation fixer commit `3f180d67ca82eebdce9da411fc2da5356064d46f`, this failed because scope policy blocks the reviewer-required shared/integrator-locked edit to `src/qual/cli.py`.
+- `make scope-check`: PASS on final HEAD because the final commit is packet-only. Earlier on implementation fixer commit `3f180d67ca82eebdce9da411fc2da5356064d46f`, this failed because scope policy blocks the reviewer-required shared/integrator-locked edit to `src/qual/cli.py`.
 - `SCOPE_ALLOW_SHARED=1 make scope-check`: PASS.
 - `./quality-format.sh --check`: PASS.
 - `./quality-lint.sh`: PASS.
 - `python -m unittest tests.unit.test_commands_catalog`: PASS, 46 tests.
 - `./quality-test.sh`: PASS, smoke plus 128 unit tests.
 - `./typecheck-test.sh`: PASS.
-- `make ci`: PASS on final HEAD. Earlier on implementation fixer commit `3f180d67ca82eebdce9da411fc2da5356064d46f`, this failed at the same `src/qual/cli.py` scope policy block.
+- `make ci`: PASS on final HEAD because the final commit is packet-only. Earlier on implementation fixer commit `3f180d67ca82eebdce9da411fc2da5356064d46f`, this failed at the same `src/qual/cli.py` scope policy block.
 - `SCOPE_ALLOW_SHARED=1 make ci`: PASS, including scope-check, format, lint, compile, smoke, and 128 unit tests.
 
 ## Risks And Blockers
@@ -120,4 +121,4 @@ Complete branch-tip file list for `codex/feat-commands` as it would actually be 
 
 ## Final Readiness Statement
 
-This handoff packet now explicitly names the canonical demo-path steps advanced by the command-catalog slice, separates the approved shared test edit from the shared `src/qual/cli.py` implementation edit, and accounts for the parser/catalog drift fix requested by reviewer packet `20260429T172055Z`.
+This handoff packet now explicitly names the canonical demo-path steps advanced by the command-catalog slice, separates the approved shared test edit from the shared `src/qual/cli.py` implementation edit, and accounts for the parser/catalog drift fix requested by reviewer packet `20260429T172837Z`.
