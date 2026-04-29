@@ -1,73 +1,70 @@
 ## Thread Handoff Packet
 
 - Branch/lane: `codex/feat-retrieval-fts` / `feat-retrieval-fts`
-- Packet purpose: reviewer-fix re-review packet after correcting the merge candidate scope.
-- Merge candidate: current branch tip after this fixer commit.
-- Reviewer base/range: `378cf9a74a3658058079a32f186fcd254c4a4034..adfa8cdadd43747ffbcb612e4151e262b13e52ca`
-- Reviewed implementation head: `adfa8cdadd43747ffbcb612e4151e262b13e52ca`
+- Packet purpose: reviewer-fix re-review packet after correcting branch-tip traceability.
+- Merge candidate: current branch tip after this metadata-only fixer commit.
+- Reviewer base/range: `378cf9a74a3658058079a32f186fcd254c4a4034..67b69048f`
+- Reviewed implementation head before this metadata-only fixer commit: `67b69048f`
 - Final proposed merge HEAD after this fixer commit: reported in the fixer response.
 
 ## Scope Completed
 
-This handoff intentionally narrows the merge candidate back to the previously reviewed implementation slice: FTS excerpt lookup now uses the canonical SQLite FTS path only, and PageIndex-only excerpt IDs fail closed. PageIndex and embeddings remain compatibility-only fallback shims and are not reintroduced as excerpt lookup fallbacks.
+This handoff covers the full branch-tip implementation surface, not only the earlier narrowed `adfa8cdadd43747ffbcb612e4151e262b13e52ca` slice. The final code-bearing head is `67b69048f`, which includes the FTS-only excerpt lookup work, the `a983d89af` retrieval provenance payload backfill, and the later basket-promotion candidate payload/service additions.
 
-The post-`adfa8cdadd43747ffbcb612e4151e262b13e52ca` runtime/test changes previously present at `5e3df62f6` have been removed from the final branch-tip content. The remaining post-`adfa8cd` changes are packet metadata only.
-
-No Textual/UI work, provider routing change, command surface expansion, hidden alternate retrieval mode, payload expansion, basket-promotion behavior, or context-bundle rehydration change is included in this corrected merge candidate.
+SQLite FTS remains the MVP-authoritative retrieval path. PageIndex and embeddings remain compatibility-only fallback shims and are not reintroduced as required retrieval paths. Retrieval payloads now carry deterministic provenance, citation, context-bundle, and basket-candidate snapshots so downstream engine and CLI/A2UI flows can retrieve relevant material and promote or gather context into the basket without relying on hidden fallback behavior.
 
 ## Tasks Completed
 
-1. Changed `RetrievalService.fetch_excerpt` to use `_lookup_fts_excerpt` directly and fail closed for unknown or non-FTS excerpt IDs.
-2. Added shared regression coverage proving PageIndex-only excerpt IDs are rejected by the canonical `fetch_excerpt` path.
-3. Updated the existing excerpt payload regression from PageIndex normalization to PageIndex rejection.
-4. Corrected packet traceability so branch-tip scope, files changed, task accounting, and budget status match the narrowed merge candidate.
+1. Changed `RetrievalService.fetch_excerpt` to use the canonical FTS excerpt lookup path and fail closed for unknown or non-FTS excerpt IDs, with shared regression coverage in `tests/unit/test_unified_retrieval.py`.
+2. Stabilized retrieval provenance and payload backfill in `src/qual/engine/retrieval/payload.py`, including deterministic query, policy, citation, doc-hit, excerpt-hit, context-bundle, and retrieval-summary snapshots. Roadmap mapping: `ROADMAP.md` Milestone 3 generation provenance contract and Milestone 4 auditable deterministic retrieval. Product vision mapping: Retrieval-first context handling and auditable generation.
+3. Exposed retrieval basket-promotion candidates from `src/qual/retrieval/service.py` and normalized them in `src/qual/engine/retrieval/payload.py`, advancing the canonical demo path steps "retrieve relevant material" and "promote or gather context into the basket."
+4. Corrected the handoff packet so reviewed implementation range, files changed, task accounting, roadmap/product-vision mapping, and gate reporting match the actual code-bearing branch tip.
 
 ## Files Changed
 
-Corrected final branch-tip content versus reviewer base `378cf9a74a3658058079a32f186fcd254c4a4034`:
+Code and test files in the reviewed implementation range:
+
+- `src/qual/engine/retrieval/payload.py`
+- `src/qual/retrieval/service.py`
+- `tests/unit/test_unified_retrieval.py`
+
+Packet/metadata files in the reviewed range:
 
 - `.codex/kickoff_packets/feat-retrieval-fts.md`
 - `.codex/lane_meta/feat-retrieval-fts.json`
 - `THREAD_PACKET.md`
-- `src/qual/retrieval/service.py`
-- `tests/unit/test_unified_retrieval.py`
 
-Implementation/test content in the reviewed slice:
-
-- `src/qual/retrieval/service.py`
-- `tests/unit/test_unified_retrieval.py`
-
-The corrected final branch-tip diff removes `src/qual/engine/retrieval/payload.py` from the merge candidate content. That file was part of the unreviewed post-`adfa8cd` expansion and is deferred.
+No integrator-owned `README.md` changes are included.
 
 ## Budget
 
-- Risk: high, because the implementation slice touches shared regression coverage in `tests/unit/test_unified_retrieval.py`.
+- Risk: high, because the handoff includes approved shared regression coverage in `tests/unit/test_unified_retrieval.py`.
 - Task budget: `4/4` under AGENTS high-risk rules.
-- File budget for corrected final branch-tip content: `5/8`.
-- Net LOC budget for corrected final branch-tip content: within `<=300` net LOC.
-- Implementation/test slice size: `2 files changed, 28 insertions(+), 31 deletions(-)`.
-- Shared-file approval note: `tests/unit/test_unified_retrieval.py` is the only shared-by-approval regression surface in the implementation slice; no integrator-locked files are edited.
+- File budget for the true branch-tip diff versus reviewer base: `6/8`.
+- Shared-file approval note: `tests/unit/test_unified_retrieval.py` is the only shared-by-approval regression surface in this handoff.
+- Integrator-locked files: none.
 
 ## Roadmap / Vision
 
-- Roadmap item: `ROADMAP.md` Milestone 3 Product Readiness, specifically retrieval evidence attached to workflow outputs.
-- Vision capabilities: retrieval-first context handling and auditable workflow behavior.
-- Exact mapping: canonical FTS-backed excerpt lookup is now the only supported `fetch_excerpt` path, so excerpt provenance remains tied to SQLite FTS rather than PageIndex fallback behavior.
+- Roadmap items: `ROADMAP.md` Milestone 3 Product Readiness generation provenance contract; `ROADMAP.md` Milestone 4 Retrieval Layer FTS-first ingestion/retrieval orchestration/source attribution.
+- Vision capabilities: Product Vision capability 2, Retrieval-first context handling; Product Vision capability 3, Auditable generation.
+- Canonical demo-path step advanced: "retrieve relevant material" and "promote or gather context into the basket."
 - Routing/provider impact: none.
 - Textual/UI impact: none.
-- Alternate retrieval-mode impact: none.
+- Alternate retrieval-mode impact: none. PageIndex and embeddings remain deferred/fallback-only.
 - Proposed `README.md` patch text: none.
 
 ## Reviewer Required Fixes Addressed
 
-1. The actual merge candidate is the current branch tip after this fixer commit, whose implementation content is narrowed back to `378cf9a74a3658058079a32f186fcd254c4a4034..adfa8cdadd43747ffbcb612e4151e262b13e52ca` plus packet metadata only.
-2. The `5e3df62f6` branch-tip expansion is no longer the merge-candidate content; its post-`adfa8cd` source/test changes were removed from the final branch-tip tree.
-3. The unreviewed `src/qual/engine/retrieval/payload.py`, `src/qual/retrieval/service.py`, and `tests/unit/test_unified_retrieval.py` post-`adfa8cd` additions were split out/deferred by reverting their final content.
-4. Required gates are rerun against the corrected branch tip and reported below.
+1. The reviewed implementation range now includes every code-bearing commit through the actual branch-tip implementation head `67b69048f`, including `a983d89af`.
+2. Files changed are separated into code/test files and packet/metadata files.
+3. Task 2 explicitly covers the `src/qual/engine/retrieval/payload.py` provenance backfill change with roadmap and product vision mapping.
+4. Required gates are rerun after the final code-bearing commit and this metadata-only packet correction; outcomes are reported below.
+5. The canonical demo-path step is explicitly stated as "retrieve relevant material" and "promote or gather context into the basket."
 
 ## Commands Run
 
-Required gates rerun after correcting the branch-tip content:
+Required gates rerun after correcting the handoff packet:
 
 - `make scope-check`: PASS
 - `./quality-format.sh --check`: PASS
@@ -78,5 +75,5 @@ Required gates rerun after correcting the branch-tip content:
 
 ## Risks / Blockers
 
-- The branch history still contains earlier commits that temporarily expanded runtime/test scope, but the final merge-candidate tree no longer contains those post-`adfa8cd` source/test changes.
-- Review should be based on the corrected final branch-tip diff against `378cf9a74a3658058079a32f186fcd254c4a4034`, not the superseded `5e3df62f6` content snapshot.
+- The branch history contains prior packet-refresh commits with stale descriptions. This packet supersedes those descriptions and should be reviewed against the actual branch-tip implementation range above.
+- No current blockers.
