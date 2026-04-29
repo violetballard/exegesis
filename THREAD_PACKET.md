@@ -3,8 +3,8 @@
 - Lane: `feat-commands`
 - Branch: `codex/feat-commands`
 - Review target: current branch tip `codex/feat-commands`.
-- Review basis: `git diff --stat --name-status 06cdebc2d5d53533b73f264a4bbf5a4b4daacb27..HEAD`
-- Fixer prompts satisfied: `20260429T152044Z`, `20260429T152842Z`, `20260429T154016Z`, `20260429T154607Z`, `20260429T155155Z`, `20260429T155636Z`, `20260429T160222Z`, `20260429T161403Z`, `20260429T161853Z`, `20260429T162401Z`, `20260429T162824Z`, `20260429T163215Z`, `20260429T163501Z`, `20260429T164041Z`
+- Review basis: full branch-tip diff from merge base `06cdebc2d5d53533b73f264a4bbf5a4b4daacb27..HEAD` (`git diff --name-status` and `git diff --stat`).
+- Fixer prompts satisfied: `20260429T152044Z`, `20260429T152842Z`, `20260429T154016Z`, `20260429T154607Z`, `20260429T155155Z`, `20260429T155636Z`, `20260429T160222Z`, `20260429T161403Z`, `20260429T161853Z`, `20260429T162401Z`, `20260429T162824Z`, `20260429T163215Z`, `20260429T163501Z`, `20260429T164041Z`, `20260429T164708Z`, `20260429T164803Z`
 
 This packet uses the current branch tip as the only review target. The review basis is the full diff from merge base `06cdebc2d5d53533b73f264a4bbf5a4b4daacb27` to `HEAD`; no implementation or test commits are excluded from the merge target. Commit `9d0c82ccdfa74d8daf33d98ce410fd599bf45609` is not metadata-only: it changes `src/qual/commands/catalog.py` and `tests/unit/test_commands_catalog.py` as well as `THREAD.md` and `THREAD_PACKET.md`. The previous packet refresh commit `c65bfe07cc2b48aa35b3552774da12178d0e51bc4` and reviewed-tip refresh `e233e4733c186a4843c4c1b4cd90a20c860f7118` are metadata-only and change `THREAD.md` and `THREAD_PACKET.md`.
 
@@ -19,6 +19,8 @@ This packet uses the current branch tip as the only review target. The review ba
 7. Packet refresh commit `a9266aca4b87a2ad1df4e8615a2a4adfb816fc44` is metadata-only and changed `THREAD.md` and `THREAD_PACKET.md`; fixer commit `9d0c82ccdfa74d8daf33d98ce410fd599bf45609` is not metadata-only because it changed `src/qual/commands/catalog.py` and `tests/unit/test_commands_catalog.py`; previous packet refresh `c65bfe07cc2b48aa35b3552774da12178d0e51bc4` and reviewed-tip refresh `e233e4733c186a4843c4c1b4cd90a20c860f7118` are metadata-only.
 8. The canonical demo-path impact statement below explains how deterministic CLI contract validation strengthens the engine-first MVP loop rather than only the command catalog internals.
 9. The `20260429T164041Z` reviewer packet is satisfied against the current branch tip: the review target is not narrowed to `f8d860ed9f6299f0169c4f21321ac5f37c949fd3`, and the post-`f8d860e` delta is explicitly accounted for below.
+10. The `20260429T164708Z` reviewer packet is satisfied by keeping the current branch tip as the review target, listing every post-`f8d860e` implementation/test file, adding an explicit `src/qual/cli.py` shared-file approval note, restating the canonical demo-path impact, and rerunning the required gates against this exact branch tip.
+11. The `20260429T164803Z` reviewer packet repeats the branch-tip traceability requirements; this packet keeps the current branch tip as the submitted merge target, retains the post-`f8d860e` file list and `src/qual/cli.py` approval note, restates that this work makes `retrieve relevant material` more real, and records a fresh full gate rerun against this exact tip.
 
 ## Implementation Summary
 
@@ -126,10 +128,11 @@ Metadata-only files changed by reviewed-tip refresh `e233e4733c186a4843c4c1b4cd9
 - Lane-owned implementation paths: `src/qual/commands/**`.
 - Approved shared-test exception touched: `tests/unit/test_commands_catalog.py`.
 - Shared-by-approval and integrator-locked file touched: `src/qual/cli.py`; this file is part of the actual branch-tip merge target and is listed for explicit review/approval.
+- Shared-file approval note: the `src/qual/cli.py` edit is intentional, limited to exposing the live argparse command-token lookup surface for catalog validation, and is submitted in this handoff for explicit integrator approval before merge.
 - Other integrator-locked files touched: none. This branch does not edit `README.md`, `INTEGRATION.md`, `src/main.py`, or `src/qual/app.py`.
 - Risk reason: this is high-risk because the branch validates a shared CLI entrypoint surface and touches `src/qual/cli.py`.
 - Task budget: high-risk `4` task budget exceeded by historical branch-tip work; this packet is a required fixer correction for an already-open review target, not a new feature expansion.
-- Size note: branch-tip diff from `06cdebc2d5d53533b73f264a4bbf5a4b4daacb27..HEAD` is `10` files and `3257 insertions(+), 76 deletions(-)` across implementation, tests, and handoff metadata.
+- Size note: branch-tip diff from `06cdebc2d5d53533b73f264a4bbf5a4b4daacb27..HEAD` is `10` files and `3295 insertions(+), 76 deletions(-)` across implementation, tests, and handoff metadata.
 
 ## Roadmap And Vision
 
@@ -163,10 +166,12 @@ Fresh fixer rerun for `20260429T162824Z` revalidates the live argparse parser-su
 Fresh fixer rerun for `20260429T163215Z` explicitly records that `9d0c82ccdfa74d8daf33d98ce410fd599bf45609` is an implementation/test commit, confirms `command_cli_contract()` is bound to the live argparse parser surface, verifies the focused parser-drift regression suite, and reruns the full required gate set.
 Fresh fixer rerun for `20260429T163501Z` keeps the current branch tip as the single review target, confirms the exact merge base and complete branch-tip file list, records `src/qual/cli.py` as shared-by-approval and integrator-locked, maps every completed task to the AGENTS canonical demo-path wording, and reruns the full required gate set after this packet correction.
 Fresh fixer rerun for `20260429T164041Z` keeps the current branch tip as the single review target, records the post-`f8d860e` branch-tip delta, names the recent non-metadata parser-surface commits, preserves the explicit `src/qual/cli.py` shared/integrator approval note, and reruns the full required gate set after this packet correction.
+Fresh fixer rerun for `20260429T164708Z` keeps the current branch tip as the single review target, lists every implementation/test file changed after `f8d860e`, adds the explicit `src/qual/cli.py` shared-file approval note, restates that this work makes `retrieve relevant material` more real, and reruns the full required gate set after this packet correction.
+Fresh fixer rerun for `20260429T164803Z` keeps the current branch tip as the single review target, confirms every post-`f8d860e` implementation/test file is listed, preserves the explicit `src/qual/cli.py` shared-file approval note, restates that this work makes `retrieve relevant material` more real, and reruns the full required gate set after this packet correction.
 
 ## Risks And Blockers
 
-- Risk: `src/qual/cli.py` is both shared-by-approval and integrator-locked per `THREAD_OWNERSHIP.md`; the packet identifies that separately from the approved shared-test exception `tests/unit/test_commands_catalog.py`.
+- Risk: `src/qual/cli.py` is both shared-by-approval and integrator-locked per `THREAD_OWNERSHIP.md`; the packet identifies that separately from the approved shared-test exception `tests/unit/test_commands_catalog.py`, and the handoff includes the explicit shared-file approval note above.
 - Risk: historical branch-tip work exceeds the normal high-risk task budget, so review should use the branch-tip basis above instead of a narrowed historical slice.
 - Blockers: none known after the fresh gate rerun.
 
