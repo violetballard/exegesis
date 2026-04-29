@@ -6,10 +6,10 @@ Canonical handoff contract lives in `THREAD_PACKET.md`.
 
 - Lane: `feat-commands`
 - Branch: `codex/feat-commands`
-- Review target: final fixer commit range from this pass
-- Review basis: `HEAD~8..HEAD` after the `20260429T090331Z` fixer commit
+- Review target: final fixer commit range through the `20260429T091158Z` fixer commit
+- Review basis: `HEAD~9..HEAD` after this fixer commit
 - Scope: command CLI contract hardening for the current Engine-first MVP focus without starting `feat-console`
-- Current fixer pass: reconcile the review basis, raw argparse parser-token validation, shared CLI ownership accounting, shared test accounting, and canonical demo-path reporting.
+- Current fixer pass: reconcile the review basis to include the code-changing `e9705f5` parser-binding commit, keep shared CLI ownership accounting explicit, and rerun required gates against the final review basis.
 
 ## Fixer Prompt `20260429T083033Z` Fix Satisfaction
 
@@ -37,3 +37,9 @@ Canonical handoff contract lives in `THREAD_PACKET.md`.
 1. `src/qual/cli.py` now exposes raw `command_parser_tokens()` from the actual argparse subparser choices, and `src/qual/commands/catalog.py` compares those raw choices exactly to the catalog CLI tokens.
 2. `tests/unit/test_commands_catalog.py` includes direct `_build_parser()` argparse-choice drift coverage for `open` replacing `bootstrap`, `diff` removal, `diff_preview` substitution, added `diff_preview`, and parser token reordering.
 3. `THREAD_PACKET.md` maps each completed task to canonical demo-path steps and distinguishes `tests/unit/test_commands_catalog.py` as shared-by-approval test coverage from `src/qual/cli.py` as the approved integrator-locked parser entrypoint edit.
+
+## Fixer Prompt `20260429T091158Z` Fix Satisfaction
+
+1. `THREAD_PACKET.md` now uses the final review basis `HEAD~9..HEAD` after this fixer commit and explicitly includes `e9705f5` as a code-changing parser-binding commit, not metadata-only work.
+2. The reviewed files and ownership accounting include `src/qual/cli.py`, `src/qual/commands/catalog.py`, and `tests/unit/test_commands_catalog.py`.
+3. The intended fix remains the branch-tip parser binding: `command_cli_contract()` validates the live argparse token surface through `command_parser_tokens()` and `command_parser_lookup_table()`.
