@@ -143,6 +143,14 @@ class ShellUI:
                 fallback_kind = normalized_kind
                 if fallback_kind is None:
                     fallback_kind = self._infer_fallback_kind(artifact)
+            else:
+                if (
+                    normalized_kind in {"action", "selection"}
+                    and fallback_kind != normalized_kind
+                    and not _should_preserve_raw_leaf_card_default(artifact)
+                ):
+                    fallback_artifact = artifact
+                    fallback_kind = normalized_kind
             if (
                 kind is None
                 and fallback_kind == "card"
@@ -190,6 +198,13 @@ class ShellUI:
             fallback_target = (artifact, "card")
         else:
             fallback_target = self._resolve_fallback_artifact(artifact, kind=normalized_kind)
+        if (
+            normalized_kind in {"action", "selection"}
+            and fallback_target is not None
+            and fallback_target[1] != normalized_kind
+            and not _should_preserve_raw_leaf_card_default(artifact)
+        ):
+            fallback_target = (artifact, normalized_kind)
         if (
             normalized_kind == "card"
             and fallback_target is not None

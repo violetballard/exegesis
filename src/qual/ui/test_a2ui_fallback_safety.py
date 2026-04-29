@@ -11034,6 +11034,40 @@ class A2UIFallbackSafetyTests(unittest.TestCase):
         self.assertEqual(shell.render_cli_fallback(action_payload, kind="selection"), action_as_selection)
         self.assertEqual(shell.render_cli_fallback(selection_payload, kind="action"), selection_as_action)
 
+    def test_terminal_artifact_malformed_envelope_leaf_hints_stay_kind_authoritative(self) -> None:
+        malformed_action_envelope = {
+            "type": "TerminalArtifact",
+            "kind": "dialog",
+            "artifact": {
+                "type": "ActionRef",
+                "id": "export_document",
+                "label": "Export",
+                "payload": {"format": "md"},
+                "confirm": {"title": "Approve", "message": "Proceed?"},
+            },
+        }
+        shell = ShellUI()
+
+        action_text = render_terminal_cli_fallback(malformed_action_envelope, kind="action")
+        selection_text = render_terminal_cli_fallback(malformed_action_envelope, kind="selection")
+        shell_action_text = shell.render_artifact(malformed_action_envelope, kind="action")
+        shell_selection_text = shell.render_artifact(malformed_action_envelope, kind="selection")
+        shell_cli_action_text = shell.render_cli_fallback(malformed_action_envelope, kind="action")
+        shell_cli_selection_text = shell.render_cli_fallback(malformed_action_envelope, kind="selection")
+
+        self.assertIn("[ActionRef] Export", action_text)
+        self.assertIn("- confirm:", action_text)
+        self.assertIn("[ActionRef] Export", shell_action_text)
+        self.assertIn("- confirm:", shell_action_text)
+        self.assertIn("[ActionRef] Export", shell_cli_action_text)
+        self.assertIn("- confirm:", shell_cli_action_text)
+        self.assertIn("[SelectionRef] <invalid selection>", selection_text)
+        self.assertIn("[SelectionRef] <invalid selection>", shell_selection_text)
+        self.assertIn("[SelectionRef] <invalid selection>", shell_cli_selection_text)
+        self.assertNotIn("[ActionRef]", selection_text)
+        self.assertNotIn("[ActionRef]", shell_selection_text)
+        self.assertNotIn("[ActionRef]", shell_cli_selection_text)
+
     def test_terminal_card_renderer_rejects_explicit_action_and_selection_payloads(self) -> None:
         action = {
             "type": "ActionRef",

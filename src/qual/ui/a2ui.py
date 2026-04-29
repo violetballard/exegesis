@@ -5579,31 +5579,17 @@ def render_terminal_cli_fallback(artifact: Any, *, kind: str | None = None) -> s
         # still recover through the shared fallback resolver below.
         return _render_invalid_terminal_card(artifact)
     if requested_kind == "action":
-        if preserve_raw_leaf_card_default:
-            try:
-                resolve_terminal_artifact_cli_fallback_target(artifact, kind=requested_kind)
-            except Exception:
-                return render_terminal_cli_fallback(artifact)
-        try:
-            rendered_action = render_terminal_action(artifact)
-        except Exception:
-            return _render_invalid_terminal_action(artifact)
-        if _is_nonempty_terminal_rendered_text(rendered_action):
-            return rendered_action
-        return _render_invalid_terminal_action(artifact)
+        return _render_terminal_cli_fallback_leaf(
+            artifact,
+            requested_kind=requested_kind,
+            preserve_raw_leaf_card_default=preserve_raw_leaf_card_default,
+        )
     if requested_kind == "selection":
-        if preserve_raw_leaf_card_default:
-            try:
-                resolve_terminal_artifact_cli_fallback_target(artifact, kind=requested_kind)
-            except Exception:
-                return render_terminal_cli_fallback(artifact)
-        try:
-            rendered_selection = render_terminal_selection(artifact)
-        except Exception:
-            return _render_invalid_terminal_selection(artifact)
-        if _is_nonempty_terminal_rendered_text(rendered_selection):
-            return rendered_selection
-        return _render_invalid_terminal_selection(artifact)
+        return _render_terminal_cli_fallback_leaf(
+            artifact,
+            requested_kind=requested_kind,
+            preserve_raw_leaf_card_default=preserve_raw_leaf_card_default,
+        )
     malformed_envelope = _is_malformed_terminal_artifact_envelope(artifact)
     envelope_kind = None
     if isinstance(artifact, Mapping):
@@ -5769,6 +5755,51 @@ def render_terminal_cli_fallback(artifact: Any, *, kind: str | None = None) -> s
     if _is_nonempty_terminal_rendered_text(rendered_artifact):
         return rendered_artifact
     return _render_terminal_artifact_cli_fallback_failure(artifact, requested_kind=requested_kind)
+
+
+def _render_terminal_cli_fallback_leaf(
+    artifact: Any,
+    *,
+    requested_kind: str,
+    preserve_raw_leaf_card_default: bool,
+) -> str:
+    """Render an explicit action/selection fallback target or fail safely.
+
+    Raw leaf card-default payloads stay on the direct leaf render path so the
+    explicit CLI fallback can still honor a valid leaf hint. For everything
+    else, only a matching recovered target may render as the requested leaf
+    kind; cross-kind recovery falls back to the invalid leaf view.
+    """
+
+    fallback_artifact = artifact
+    if not preserve_raw_leaf_card_default:
+        try:
+            fallback_artifact, fallback_kind = resolve_terminal_artifact_cli_fallback_target(
+                artifact,
+                kind=requested_kind,
+            )
+        except Exception:
+            fallback_kind = None
+        else:
+            if fallback_kind != requested_kind:
+                if requested_kind == "action":
+                    return _render_invalid_terminal_action(artifact)
+                return _render_invalid_terminal_selection(artifact)
+    if requested_kind == "action":
+        try:
+            rendered_action = render_terminal_action(fallback_artifact)
+        except Exception:
+            return _render_invalid_terminal_action(artifact)
+        if _is_nonempty_terminal_rendered_text(rendered_action):
+            return rendered_action
+        return _render_invalid_terminal_action(artifact)
+    try:
+        rendered_selection = render_terminal_selection(fallback_artifact)
+    except Exception:
+        return _render_invalid_terminal_selection(artifact)
+    if _is_nonempty_terminal_rendered_text(rendered_selection):
+        return rendered_selection
+    return _render_invalid_terminal_selection(artifact)
 
 
 def _is_current_terminal_artifact_cli_fallback_hint(
