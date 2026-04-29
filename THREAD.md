@@ -6,8 +6,8 @@ Canonical handoff contract lives in `THREAD_PACKET.md`.
 
 - Lane: `feat-commands`
 - Branch: `codex/feat-commands`
-- Implementation review target: current branch tip after fixer prompt `20260429T045321Z`
-- Current handoff refresh: reviewer fix after prompt `20260429T045321Z`
+- Implementation review target: current branch tip after fixer prompt `20260429T045635Z`
+- Current handoff refresh: reviewer fix after prompt `20260429T045635Z`
 - Prior implementation anchor: `f8d860ed9f6299f0169c4f21321ac5f37c949fd3`
 - Scope: command-catalog contract hardening for the current engine-first MVP focus without starting `feat-console`.
 - Roadmap alignment: Milestone 3 CLI compatibility for the engine-first workflow loop, and `feat-commands` as the command-surface compatibility lane.
@@ -207,3 +207,10 @@ Canonical handoff contract lives in `THREAD_PACKET.md`.
 2. `THREAD_PACKET.md` keeps each completed task mapped to the canonical demo-path steps it supports and keeps the AGENTS.md final demo-path statement explicit.
 3. Ownership accounting now states that no integrator-locked files were edited and that the only non-owned path is the approved shared-test exception `tests/unit/test_commands_catalog.py`.
 4. Required gates are rerun after this refresh and recorded in `THREAD_PACKET.md`.
+
+## Fixer Prompt `20260429T045635Z` Fix Satisfaction
+
+1. The handoff target is refreshed for prompt `20260429T045635Z`; review should use the current branch tip after this fixer commit, not the original `f8d860ed9f6299f0169c4f21321ac5f37c949fd3` anchor alone.
+2. `command_cli_contract()` now also checks the returned canonical-name tuple directly against the canonical parser-surface projection, while preserving the exact token, lookup-table, grouped-surface, and declared-surface drift checks.
+3. The approved shared command-catalog tests still cover added same-canonical aliases, removed tokens, substituted aliases, token order drift, lookup-table order/substitution drift, and declared-surface drift.
+4. `THREAD_PACKET.md` keeps each completed task mapped to the canonical demo-path steps it supports, names the blocker removed, and records the latest required gate run.
