@@ -904,6 +904,12 @@ def _build_shell_ui_contract_manifest(
         "terminal_artifact_cli_fallback_target_contract_fingerprints_fingerprint": (
             terminal_artifact_cli_fallback_target_contract["contract_fingerprints_fingerprint"]
         ),
+        "terminal_artifact_cli_fallback_target_contract_manifest_fingerprints": dict(
+            terminal_artifact_cli_fallback_target_contract["contract_fingerprints"]
+        ),
+        "terminal_artifact_cli_fallback_target_contract_manifest_fingerprints_fingerprint": (
+            terminal_artifact_cli_fallback_target_contract["contract_fingerprints_fingerprint"]
+        ),
         "terminal_artifact_cli_fallback_contract": describe_terminal_artifact_cli_fallback_contract(),
         "terminal_artifact_cli_fallback_contract_fingerprint": terminal_artifact_cli_fallback_contract_fingerprint(),
         "terminal_artifact_cli_fallback_contract_manifest": copy.deepcopy(
@@ -1051,6 +1057,8 @@ def _describe_shell_ui_contract_fingerprints_cached(
         "terminal_artifact_cli_fallback_route_contract_fingerprints": terminal_artifact_cli_fallback_route_contract["contract_fingerprints_fingerprint"],
         "terminal_artifact_cli_fallback_target_contract_fingerprints_fingerprint": terminal_artifact_cli_fallback_target_contract["contract_fingerprints_fingerprint"],
         "terminal_artifact_cli_fallback_target_contract_fingerprints": terminal_artifact_cli_fallback_target_contract["contract_fingerprints_fingerprint"],
+        "terminal_artifact_cli_fallback_target_contract_manifest_fingerprints_fingerprint": terminal_artifact_cli_fallback_target_contract["contract_fingerprints_fingerprint"],
+        "terminal_artifact_cli_fallback_target_contract_manifest_fingerprints": terminal_artifact_cli_fallback_target_contract["contract_fingerprints_fingerprint"],
         "terminal_artifact_cli_fallback": terminal_artifact_cli_fallback_contract_fingerprint_value,
         "terminal_artifact_cli_fallback_contract": terminal_artifact_cli_fallback_contract_fingerprint_value,
         "terminal_artifact_renderer_entrypoints": terminal_artifact_renderer_entrypoints_contract_fingerprint_value,
@@ -1099,6 +1107,10 @@ def _describe_shell_ui_contract_fingerprints_cached(
         (
             "terminal_artifact_cli_fallback_target_contract_manifest",
             terminal_artifact_cli_fallback_target_contract_fingerprint_value,
+        ),
+        (
+            "terminal_artifact_cli_fallback_target_contract_manifest_fingerprints",
+            terminal_artifact_cli_fallback_target_contract["contract_fingerprints_fingerprint"],
         ),
         (
             "terminal_artifact_cli_fallback_route_contract_manifest",

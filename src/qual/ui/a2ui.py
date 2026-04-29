@@ -2163,6 +2163,12 @@ def describe_terminal_artifact_cli_fallback_target_contract(
     manifest["contract_fingerprints"] = describe_terminal_artifact_cli_fallback_target_contract_fingerprints(
         include_terminal_artifact_cli_fallback_route=include_terminal_artifact_cli_fallback_route,
     )
+    manifest["terminal_artifact_cli_fallback_target_contract_manifest_fingerprints"] = copy.deepcopy(
+        manifest["contract_fingerprints"]
+    )
+    manifest["terminal_artifact_cli_fallback_target_contract_manifest_fingerprints_fingerprint"] = (
+        _fingerprint_manifest_section(manifest["contract_fingerprints"])
+    )
     manifest["renderer_entrypoints_fingerprint"] = _fingerprint_manifest_section(
         manifest["renderer_entrypoints"]
     )
@@ -2188,6 +2194,12 @@ def describe_terminal_artifact_cli_fallback_target_contract(
         manifest["terminal_artifact_cli_fallback_target_contract_manifest"]
     )
     manifest["contract_manifest_fingerprint"] = fingerprint
+    manifest["contract_manifest_fingerprints"] = copy.deepcopy(
+        manifest["terminal_artifact_cli_fallback_target_contract_manifest_fingerprints"]
+    )
+    manifest["contract_manifest_fingerprints_fingerprint"] = (
+        manifest["terminal_artifact_cli_fallback_target_contract_manifest_fingerprints_fingerprint"]
+    )
     return manifest
 
 
@@ -2198,6 +2210,18 @@ def describe_terminal_artifact_cli_fallback_target_contract_manifest(
 
     return describe_terminal_artifact_cli_fallback_target_contract(
         include_terminal_artifact_cli_fallback_route=include_terminal_artifact_cli_fallback_route,
+    )
+
+
+def describe_terminal_artifact_cli_fallback_target_contract_manifest_fingerprints(
+    include_terminal_artifact_cli_fallback_route: bool = False,
+    include_contract_aliases: bool = False,
+) -> dict[str, str]:
+    """Return the CLI fallback target fingerprints under a manifest-specific name."""
+
+    return describe_terminal_artifact_cli_fallback_target_contract_fingerprints(
+        include_terminal_artifact_cli_fallback_route=include_terminal_artifact_cli_fallback_route,
+        include_contract_aliases=include_contract_aliases,
     )
 
 
@@ -2340,6 +2364,16 @@ def terminal_artifact_cli_fallback_target_contract_fingerprints_fingerprint(
         include_terminal_artifact_cli_fallback_route=include_terminal_artifact_cli_fallback_route,
     )
     return _fingerprint_manifest_section(fingerprints)
+
+
+def terminal_artifact_cli_fallback_target_contract_manifest_fingerprints_fingerprint(
+    include_terminal_artifact_cli_fallback_route: bool = False,
+) -> str:
+    """Return the CLI fallback target fingerprint-map fingerprint under a manifest-specific name."""
+
+    return terminal_artifact_cli_fallback_target_contract_fingerprints_fingerprint(
+        include_terminal_artifact_cli_fallback_route=include_terminal_artifact_cli_fallback_route,
+    )
 
 
 def terminal_artifact_cli_fallback_route_contract_fingerprint() -> str:
