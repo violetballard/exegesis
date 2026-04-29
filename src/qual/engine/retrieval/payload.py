@@ -664,7 +664,7 @@ def _build_retrieval_basket_promotion_from_payload(payload: dict[str, object]) -
         source_bundle = payload.get("source_bundle", {})
     if not isinstance(source_bundle, dict):
         source_bundle = {}
-    return {
+    promotion = {
         "result_fingerprint": payload.get("result_fingerprint"),
         "query_fingerprint": summary.get("query_fingerprint"),
         "retrieval_backend": payload.get("retrieval_backend", summary.get("retrieval_backend")),
@@ -696,6 +696,8 @@ def _build_retrieval_basket_promotion_from_payload(payload: dict[str, object]) -
             payload.get("source_bundle_fingerprint"),
         ),
     }
+    promotion["basket_promotion_fingerprint"] = _stable_fingerprint(promotion)
+    return promotion
 
 
 def _build_retrieval_diagnostics_from_source_bundle(source_bundle: dict[str, object]) -> dict[str, object]:

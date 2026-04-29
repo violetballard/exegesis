@@ -767,7 +767,7 @@ class RetrievalResult:
         source_bundle = payload.get("retrieval_source_bundle", {})
         if not isinstance(source_bundle, dict):
             source_bundle = {}
-        return {
+        promotion = {
             "result_fingerprint": payload.get("result_fingerprint"),
             "query_fingerprint": summary.get("query_fingerprint"),
             "retrieval_backend": payload.get("retrieval_backend", summary.get("retrieval_backend")),
@@ -799,6 +799,8 @@ class RetrievalResult:
                 payload.get("source_bundle_fingerprint"),
             ),
         }
+        promotion["basket_promotion_fingerprint"] = RetrievalService._stable_fingerprint(promotion)
+        return promotion
 
 
 class RetrievalService:
