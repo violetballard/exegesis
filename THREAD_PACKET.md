@@ -64,6 +64,7 @@
 
 - This command contract hardening strengthens the CLI surface for `open project/document`, `retrieve relevant material`, `promote/gather context`, and `preview/apply/reject patch` by keeping those parser routes deterministic and drift-checked.
 - This makes the open/retrieve/basket/patch-review CLI smoke path more real by keeping the parser-visible command contract deterministic and failing fast when parser tokens drift from the command catalog.
+- This work makes `open project/document`, `retrieve relevant material`, `promote/gather context`, and `preview/apply/reject patch` more real by guaranteeing the parser-visible CLI tokens stay aligned with the command catalog before the contract is returned.
 - Protected command steps:
   - `project-open`: `bootstrap` remains the only parser-visible project-open token.
   - `retrieval`: `context-basket` remains the parser-visible basket/retrieval token.
@@ -142,7 +143,7 @@
 - `20260429T015948Z` fixer confirmation rerun: PASS for `make scope-check` and `make ci` after the approval-confirmation branch tip.
 - `20260429T020237Z` fixer approval-confirmation rerun: reviewer returned `APPROVED` with no required fixes; PASS for `make scope-check`, `./quality-format.sh --check`, `./quality-lint.sh`, `./quality-test.sh`, `./typecheck-test.sh`, and `make ci`.
 - `20260429T021108Z` fixer rerun: PASS for `make scope-check`, `./quality-format.sh --check`, `./quality-lint.sh`, `./quality-test.sh`, `./typecheck-test.sh`, and `make ci`.
-- `20260429T021315Z` fixer rerun: PASS for focused catalog coverage via `./quality-test.sh tests/unit/test_commands_catalog.py`, then PASS for `make scope-check`, `./quality-format.sh --check`, `./quality-lint.sh`, `./quality-test.sh`, `./typecheck-test.sh`, and `make ci`.
+- `20260429T021537Z` reviewer-fix rerun: PASS for focused catalog coverage via `./quality-test.sh tests/unit/test_commands_catalog.py`, then PASS for `make scope-check`, `./quality-format.sh --check`, `./quality-lint.sh`, `./quality-test.sh`, `./typecheck-test.sh`, and `make ci`.
 
 ## Risks / Blockers
 
@@ -323,3 +324,10 @@
 5. Required fix 5 remains satisfied by the ownership note above: approved shared-by-approval test edits are separated from integrator-locked edits, and integrator-locked edits are `NO`.
 6. Focused validation for this fixer pass: `./quality-test.sh tests/unit/test_commands_catalog.py` passed, including the requested parser-surface drift regressions.
 7. Required gates were rerun for this fixer pass and passed: `make scope-check`, `./quality-format.sh --check`, `./quality-lint.sh`, `./quality-test.sh`, `./typecheck-test.sh`, and `make ci`.
+
+## Reviewer Packet `20260429T021537Z` Fix Satisfaction
+
+1. Required fix 1 is satisfied by the task list above: each completed task now names the protected canonical demo-path command steps, including `project-open`, `retrieval`, `patch-review`, and `export-handoff`.
+2. Required fix 2 is satisfied by the canonical demo-path statement above: this work makes the open/retrieve/basket/patch-review CLI smoke path more real by keeping the parser-visible command contract deterministic and failing fast on parser/catalog drift.
+3. Required fix 3 is satisfied by the ownership note above: approved shared-by-approval test edits are listed separately, and integrator-locked edits are `NO`.
+4. Required fix 4 is satisfied by regenerating the handoff packet against the actual branch tip because later command/test commits are implementation-bearing.
