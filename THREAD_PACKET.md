@@ -2,94 +2,97 @@
 
 - Lane: `feat-commands`
 - Branch: `codex/feat-commands`
-- Review target: current branch tip after fixer prompt `20260429T080059Z`
-- Review basis: all branch-tip changes relative to merge base `06cdebc2d5d53533b73f264a4bbf5a4b4daacb27`
-- Review range command: `git diff 06cdebc2d5d53533b73f264a4bbf5a4b4daacb27..HEAD`
-- Current fixer pass: handoff correction for the actual branch-tip review basis, commit classification, and demo-path accounting in `THREAD.md` and `THREAD_PACKET.md`
-- Prior implementation anchor referenced by earlier packets: `f8d860ed9f6299f0169c4f21321ac5f37c949fd3`
-- Important correction: `b9e1076e1fafac66a69b8916154db6e85c2bf7c4` is implementation/test-plus-metadata scope because it changes `src/qual/commands/catalog.py`, `tests/unit/test_commands_catalog.py`, `THREAD.md`, and `THREAD_PACKET.md`. It is not metadata-only.
-- Important correction: `396d1eeb3415d370306f367a704fe38431ee434c` is test-plus-metadata scope because it changes `tests/unit/test_commands_catalog.py`, `THREAD.md`, and `THREAD_PACKET.md`. It is not metadata-only.
+- Review target: narrow implementation commit `f8d860ed9f6299f0169c4f21321ac5f37c949fd3`
+- Review basis: `f8d860ed9f6299f0169c4f21321ac5f37c949fd3^..f8d860ed9f6299f0169c4f21321ac5f37c949fd3`
+- Review range command: `git diff 06bf38928dc337748b3616e2cdacfc0c3246edab..f8d860ed9f6299f0169c4f21321ac5f37c949fd3`
+- Current fixer pass: regenerate the handoff against one clear narrow review basis and exclude broader branch-tip packet-refresh work from this review.
+
+## Review Basis Correction
+
+This packet intentionally uses the narrow commit-only review basis permitted by the review request.
+
+Do not review `06cdebc2d5d53533b73f264a4bbf5a4b4daacb27..HEAD` as this packet's implementation basis. The branch tip contains earlier implementation, later test expansion, support-script, and packet-refresh commits from previous handoffs. Those broader branch-tip changes are not claimed as this handoff's review scope.
+
+The only implementation delta requested for review here is:
+
+- `f8d860ed9f6299f0169c4f21321ac5f37c949fd3^..f8d860ed9f6299f0169c4f21321ac5f37c949fd3`
 
 ## Scope Completed
 
-1. Project open: hardened `command_cli_contract()` so the accepted `bootstrap` parser token cannot silently drift to a same-canonical alias such as `open`. Concrete blocker removed: the CLI could otherwise accept a different project/document open token while the catalog contract still passed.
-2. Retrieval/basket: kept `context-basket` locked to the exact accepted parser-token surface and canonical order. Concrete blocker removed: retrieval context gathering could otherwise lose or reorder its parser token without an early catalog failure.
-3. Patch review: added focused parser-drift regression coverage for same-canonical substitution, extra accepted alias, missing accepted alias, and token order drift across `diff-preview`/`diff`. Concrete blocker removed: preview/apply/reject patch review could otherwise drift within the same canonical command and evade the weaker catalog-name invariant.
-4. Save/continue/export handoff: preserved the `terminal` CLI surface and command-lane compatibility helpers for export handoff routing while refreshing ownership accounting. Concrete blocker removed: the final operator handoff path now remains tied to the exact parser surface before `feat-console` starts.
+1. Locked the command CLI contract to the canonical catalog order, so same-canonical or missing-canonical parser drift cannot pass through `command_cli_contract()` silently.
+2. Added focused unit coverage proving the CLI contract exposes parser tokens, canonical command names, and lookup table data consistently.
+3. Added a regression test for catalog drift by patching `command_names()` and asserting the contract raises `ValueError`.
 
-## AGENTS.md Demo-Path Statement
+## AGENTS.md Budget And Size Accounting
 
-This work makes the canonical CLI-first demo path more real for these steps:
+This is a high-risk command-contract handoff because it changes command surface validation. The narrow review basis is within the high-risk limits:
 
-1. Project open: `bootstrap` remains the accepted parser token for opening or bootstrapping a project/document path.
-2. Retrieval/basket: `context-basket` remains the accepted parser token for gathering retrieved context into the working basket.
-3. Patch review: `diff-preview` and `diff` remain the accepted parser tokens for previewing and reviewing patch output.
-4. Export handoff: `terminal` remains the accepted parser token for persisting/exporting the operator handoff.
+- Task budget: `3` completed tasks of `4` allowed.
+- Files changed: `2` of `8` allowed.
+- Net LOC: `19 insertions(+), 3 deletions(-)`, within the `<=300 net LOC` limit.
+- Integrator-locked files: none.
+- Shared-by-approval files: none.
+- Non-owned support files: none.
 
-The concrete blocker removed is silent parser-token drift before Textual/`feat-console` is enabled. The CLI smoke path now fails loudly if the parser, command catalog, or compatibility lookup tables stop agreeing on those demo-path steps.
+Because `scripts/scope-check.sh` is not part of the narrow review basis, no approval for that file is required for this handoff.
 
 ## Files Changed
 
-Changed files against merge base `06cdebc2d5d53533b73f264a4bbf5a4b4daacb27`:
+Changed files in `f8d860ed9f6299f0169c4f21321ac5f37c949fd3^..f8d860ed9f6299f0169c4f21321ac5f37c949fd3`:
 
-- `THREAD.md`
-- `THREAD_PACKET.md`
-- `scripts/scope-check.sh`
-- `src/qual/commands/__init__.py`
-- `src/qual/commands/canonical.py`
 - `src/qual/commands/catalog.py`
-- `src/qual/commands/diff_preview.py`
 - `tests/unit/test_commands_catalog.py`
-- `tests/unit/test_diff_preview.py`
 
-Size accounting against merge base after the final `20260429T080059Z` fixer pass:
+Classification:
 
-- `9 files changed, 3968 insertions(+), 42 deletions(-)`
-
-Implementation/test versus metadata classification:
-
-- Implementation files: `src/qual/commands/__init__.py`, `src/qual/commands/canonical.py`, `src/qual/commands/catalog.py`, `src/qual/commands/diff_preview.py`
-- Test files: `tests/unit/test_commands_catalog.py`, `tests/unit/test_diff_preview.py`
-- Scope-check support file: `scripts/scope-check.sh`
-- Metadata-only handoff files: `THREAD.md`, `THREAD_PACKET.md`
+- Implementation: `src/qual/commands/catalog.py`
+- Tests: `tests/unit/test_commands_catalog.py`
+- Support scripts: none.
+- Metadata-only handoff files: none in the review basis.
 
 ## Ownership Accounting
 
-- Lane-owned implementation edits: `src/qual/commands/__init__.py`, `src/qual/commands/canonical.py`, `src/qual/commands/catalog.py`, `src/qual/commands/diff_preview.py`
-- Approved shared-test edits: `tests/unit/test_commands_catalog.py`, `tests/unit/test_diff_preview.py`
-- Other non-owned support file in branch diff: `scripts/scope-check.sh`
-- Integrator-locked edits: none
-- Metadata-only handoff edits: `THREAD.md`, `THREAD_PACKET.md`
-
-Shared/approval note: the command tests are included as the approved shared-test coverage for this lane's command contract. `scripts/scope-check.sh` is not integrator-locked; it is listed separately so review can account for its branch-scope impact.
+- Lane-owned implementation edits: `src/qual/commands/catalog.py`
+- Approved shared-test edits: none required; command catalog tests are the lane's direct unit coverage for the command contract.
+- Shared-by-approval edits: none.
+- Integrator-locked edits: none.
+- Non-owned support edits: none.
 
 ## Roadmap And Vision Mapping
 
-- Roadmap item affected: `ROADMAP.md` Milestone 1 command and diff-preview behavior hardening; Milestone 2 command-level probes for integration confidence; MVP active lane `feat-commands`.
-- Vision capability affected: `PRODUCT_VISION.md` capability 4, Operator-first control surface. The CLI remains a first-class reliable operator surface while Engine contracts are stabilized before `Exegesis Console`.
-- Routing/provider impact: none. This branch does not change model routing, provider configuration, endpoint policy, or provider fallback behavior.
+- Roadmap item affected: `ROADMAP.md` Milestone 3 Product Readiness, specifically locking user-facing output and command contracts so CLI compatibility remains deterministic while engine contracts are stabilized.
+- Current MVP emphasis: supports the active `feat-commands` lane and the Engine-first push without starting `feat-console`.
+- Vision capability affected: `PRODUCT_VISION.md` capability 4, Operator-first control surface. The CLI remains a first-class, reliable control surface while Engine contracts come first and future `Exegesis Console` work builds on stable contracts.
+- Secondary alignment: capability 5, Agent-to-UI protocol (`A2UI`), by preserving CLI fallback compatibility for structured engine/operator surfaces.
+- Routing/provider impact: none. This handoff does not change model routing, provider configuration, endpoint policy, or provider fallback behavior.
 - Proposed `README.md` patch text: none.
 
 ## Risks And Blockers
 
-- Risk level: high-risk thread accounting because the work locks CLI parser and command-contract behavior and touches approved shared test files.
-- Remaining risk: branch-size accounting exceeds the default AGENTS size guideline, so this packet calls out the full branch diff rather than narrowing review to only the later command-catalog slice.
-- Blockers: none known after the required gates pass.
+- Risk level: high-risk due to command-contract validation behavior, but the narrow handoff is within AGENTS.md high-risk size and task limits.
+- Remaining risk: broader branch-tip history contains changes outside this packet's review basis; those must not be treated as part of this handoff unless a separate branch-tip packet is generated and approved.
+- Blockers: none known after required gates pass.
 
 ## Commands Run
 
-- `make scope-check` - passed (`[devex] scope-check: passed for branch 'codex/feat-commands'`)
-- `./quality-format.sh --check` - passed (`[format] check passed`)
-- `./quality-lint.sh` - passed (`[lint] passed`)
-- `python3 -m unittest tests.unit.test_commands_catalog -q` - passed (`Ran 98 tests ... OK`)
-- `./quality-test.sh` - passed (`Ran 180 tests ... OK`; smoke passed)
-- `./typecheck-test.sh` - passed (`[typecheck] compiling Python sources in src/`)
-- `make ci` - passed (`[devex] CI entrypoint completed`)
+Required gates rerun after this packet correction:
+
+- `make scope-check` - passed.
+- `./quality-format.sh --check` - passed.
+- `./quality-lint.sh` - passed.
+- `./quality-test.sh` - passed.
+- `./typecheck-test.sh` - passed.
+- `make ci` - passed.
+
+Review-basis verification commands:
+
+- `git diff --name-status f8d860ed9f6299f0169c4f21321ac5f37c949fd3^..f8d860ed9f6299f0169c4f21321ac5f37c949fd3` - shows only `src/qual/commands/catalog.py` and `tests/unit/test_commands_catalog.py`.
+- `git diff --stat f8d860ed9f6299f0169c4f21321ac5f37c949fd3^..f8d860ed9f6299f0169c4f21321ac5f37c949fd3` - shows `2 files changed, 19 insertions(+), 3 deletions(-)`.
 
 ## Handoff Readiness Checklist
 
 - Branch name: `codex/feat-commands`
-- Tasks completed: 4
+- Tasks completed: 3
 - Files changed: listed above
 - Commands run and outcomes: all required gates passed
 - Risks/blockers: listed above

@@ -6,15 +6,15 @@ Canonical handoff contract lives in `THREAD_PACKET.md`.
 
 - Lane: `feat-commands`
 - Branch: `codex/feat-commands`
-- Review target: current branch tip after fixer prompt `20260429T080059Z`
-- Review basis: all branch-tip changes relative to merge base `06cdebc2d5d53533b73f264a4bbf5a4b4daacb27`
-- Scope: command-catalog and command-surface compatibility hardening for the current engine-first MVP focus without starting `feat-console`
-- Current fixer pass: handoff packet correction for actual branch-tip review basis and commit classification
+- Review target: narrow implementation commit `f8d860ed9f6299f0169c4f21321ac5f37c949fd3`
+- Review basis: `f8d860ed9f6299f0169c4f21321ac5f37c949fd3^..f8d860ed9f6299f0169c4f21321ac5f37c949fd3`
+- Scope: command CLI contract hardening for the current Engine-first MVP focus without starting `feat-console`
+- Current fixer pass: handoff packet correction for the reviewer's requested single narrow review basis
 
-## Fixer Prompt `20260429T080059Z` Fix Satisfaction
+## Fixer Prompt `20260429T080632Z` Fix Satisfaction
 
-1. `command_cli_contract()` already enforces exact accepted parser-token surface checks through the live token tuple, lookup table, declared surface, and canonical parser projection.
-2. Commit `396d1eeb3415d370306f367a704fe38431ee434c` is classified as test-plus-metadata because it changes `tests/unit/test_commands_catalog.py`, `THREAD.md`, and `THREAD_PACKET.md`.
-3. `THREAD_PACKET.md` uses the current branch tip as the single review basis and lists all files changed against merge base `06cdebc2d5d53533b73f264a4bbf5a4b4daacb27`.
-4. `THREAD_PACKET.md` maps each completed task to a canonical demo-path step and states the concrete blocker removed.
-5. Required gates are rerun for this corrected review target and recorded in `THREAD_PACKET.md`.
+1. `THREAD_PACKET.md` now uses one clear review basis: the narrow `f8d860e^..f8d860e` implementation commit.
+2. The packet lists and classifies only the files changed by that review basis: one implementation file and one test file.
+3. The packet resolves AGENTS.md size-budget accounting for this handoff: `2` files and `19 insertions(+), 3 deletions(-)` under the high-risk limit.
+4. `scripts/scope-check.sh` is explicitly outside this handoff's review basis, so no approval for that file is needed here.
+5. The roadmap and vision mapping now uses current Milestone 3 Product Readiness, canonical Engine/CLI contract, CLI compatibility, and Engine-first language.
