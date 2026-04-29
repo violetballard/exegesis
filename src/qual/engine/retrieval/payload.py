@@ -180,6 +180,22 @@ def _normalize_excerpt_bundle_snapshot(excerpt_bundle: dict[str, object]) -> dic
     normalized["deferred_strategy_ids"] = _normalize_list_like(normalized.get("deferred_strategy_ids"))
     normalized["excerpt_hits"] = _normalize_list_like(normalized.get("excerpt_hits"))
     normalized["excerpt_citations"] = _normalize_list_like(normalized.get("excerpt_citations"))
+    normalized["basket_candidates"] = _normalize_list_like(
+        normalized.get(
+            "basket_candidates",
+            _build_basket_candidates_from_excerpt_hits(normalized["excerpt_hits"]),
+        )
+    )
+    normalized["basket_candidate_item_ids"] = _normalize_list_like(
+        normalized.get(
+            "basket_candidate_item_ids",
+            [
+                candidate.get("item_id")
+                for candidate in normalized["basket_candidates"]
+                if isinstance(candidate, dict) and candidate.get("item_id") is not None
+            ],
+        )
+    )
     retrieval_policy = normalized.get("retrieval_policy")
     if isinstance(retrieval_policy, dict):
         normalized["retrieval_policy"] = _normalize_policy_snapshot(retrieval_policy)
@@ -189,6 +205,44 @@ def _normalize_excerpt_bundle_snapshot(excerpt_bundle: dict[str, object]) -> dic
     elif "citation_status" in normalized:
         normalized["citation_status"] = {}
     return normalized
+
+
+def _build_basket_candidates_from_excerpt_hits(excerpt_hits: list[object]) -> list[dict[str, object]]:
+    """Return deterministic context-basket promotion candidates from excerpt hits."""
+
+    candidates: list[dict[str, object]] = []
+    for hit in excerpt_hits:
+        if not isinstance(hit, dict):
+            continue
+        excerpt_id = _normalize_optional_text(hit.get("excerpt_id"))
+        if excerpt_id is None:
+            continue
+        provenance = hit.get("provenance", {})
+        if not isinstance(provenance, dict):
+            provenance = {}
+        candidates.append(
+            {
+                "item_id": excerpt_id,
+                "kind": "excerpt",
+                "doc_id": hit.get("doc_id", provenance.get("doc_id")),
+                "source_strategy": hit.get("source_strategy", provenance.get("source_strategy")),
+                "retrieval_backend": hit.get("retrieval_backend", provenance.get("retrieval_backend")),
+                "retrieval_mode": hit.get("retrieval_mode", provenance.get("retrieval_mode")),
+                "rank": hit.get("rank", provenance.get("rank")),
+                "score": hit.get("score"),
+                "span": copy.deepcopy(hit.get("span", provenance.get("span"))),
+                "source_hash": hit.get("source_hash", provenance.get("source_hash")),
+                "excerpt_fingerprint": hit.get(
+                    "excerpt_fingerprint",
+                    provenance.get("excerpt_fingerprint"),
+                ),
+                "excerpt_text_hash": hit.get(
+                    "excerpt_text_hash",
+                    provenance.get("excerpt_text_hash", provenance.get("hash")),
+                ),
+            }
+        )
+    return candidates
 
 
 def _normalize_retrieval_summary_snapshot(summary: dict[str, object]) -> dict[str, object]:

@@ -464,12 +464,15 @@ class RetrievalResult:
         """Return the deterministic excerpt-focused snapshot for downstream engine flows."""
 
         bundle_context = self._retrieval_bundle_context_snapshot()
+        basket_candidates = self._basket_candidate_snapshots()
         return {
             **bundle_context,
             "doc_count": len(self.doc_hits),
             "excerpt_count": len(self.hits),
             "excerpt_hits": [hit.as_dict() for hit in self.hits],
             "excerpt_citations": self._excerpt_citation_snapshots(),
+            "basket_candidate_item_ids": [candidate["item_id"] for candidate in basket_candidates],
+            "basket_candidates": basket_candidates,
         }
 
     def retrieval_context_bundle(self) -> dict[str, object]:
@@ -748,6 +751,31 @@ class RetrievalResult:
             {key: value for key, value in source_bundle.items() if key != "source_bundle_fingerprint"}
         )
         return source_bundle
+
+    def _basket_candidate_snapshots(self) -> list[dict[str, object]]:
+        """Return deterministic excerpt IDs ready for context basket promotion."""
+
+        candidates: list[dict[str, object]] = []
+        for hit in self.hits:
+            if hit.excerpt_id is None:
+                continue
+            candidates.append(
+                {
+                    "item_id": hit.excerpt_id,
+                    "kind": "excerpt",
+                    "doc_id": hit.doc_id,
+                    "source_strategy": hit.source_strategy,
+                    "retrieval_backend": hit.provenance.get("retrieval_backend"),
+                    "retrieval_mode": hit.provenance.get("retrieval_mode"),
+                    "rank": hit.provenance.get("rank"),
+                    "score": hit.score,
+                    "span": copy.deepcopy(hit.provenance.get("span", hit.span)),
+                    "source_hash": hit.provenance.get("source_hash"),
+                    "excerpt_fingerprint": hit.provenance.get("excerpt_fingerprint"),
+                    "excerpt_text_hash": hit.provenance.get("excerpt_text_hash") or hit.provenance.get("hash"),
+                }
+            )
+        return candidates
 
 
 class RetrievalService:
