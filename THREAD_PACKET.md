@@ -12,6 +12,7 @@
 
 - Branch name: `codex/feat-commands`
 - Scope completed: isolated the command catalog implementation slice from `f8d860ed9f6299f0169c4f21321ac5f37c949fd3` and removed off-lane branch-tip changes from the corrected merge target.
+- Implementation review basis: pinned to `f8d860ed9f6299f0169c4f21321ac5f37c949fd3`; this fixer adds handoff metadata only and no new implementation changes.
 - Roadmap item(s) affected: active MVP `feat-commands`; Milestone 3 command surface stability while Textual remains disabled.
 - Vision capability affected: canonical engine contract and CLI compatibility through deterministic command catalog metadata.
 - Canonical demo-path step advanced: this command-catalog hardening strengthens the CLI path for `open project/document`, `retrieve relevant material`, and `preview and apply or reject a patch` by keeping command tokens and canonical command names deterministic.
