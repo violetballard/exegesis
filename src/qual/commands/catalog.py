@@ -322,12 +322,15 @@ def _validate_cli_parser_surface(
     expected_tokens = _canonical_cli_tokens()
     expected_lookup_table = _canonical_cli_lookup_table()
     expected_surface = _canonical_cli_grouped_surface()
+    resolved_lookup_table = tuple((token, canonical_command(token)) for token in tokens)
     if declared_surface != expected_surface:
         raise ValueError("Command CLI declared surface is inconsistent")
     if grouped_lookup_table != expected_surface or grouped_lookup_table != declared_surface:
         raise ValueError("Command CLI parser surface is inconsistent")
     if tokens != expected_tokens or tokens != _declared_cli_tokens():
         raise ValueError("Command CLI tokens are inconsistent")
+    if lookup_table != resolved_lookup_table:
+        raise ValueError("Command CLI lookup table is inconsistent")
     if lookup_table != expected_lookup_table or lookup_table != _declared_cli_lookup_table():
         raise ValueError("Command CLI lookup table is inconsistent")
     if _declared_cli_canonical_names() != canonical_names:
