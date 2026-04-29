@@ -156,8 +156,10 @@ from src.qual.ui.shell import (
     describe_shell_ui_contract,
     describe_shell_ui_contract_manifest,
     describe_shell_ui_contract_fingerprints,
+    describe_shell_ui_contract_manifest_fingerprints,
     shell_ui_contract_fingerprint,
     shell_ui_contract_manifest_fingerprint,
+    shell_ui_contract_manifest_fingerprints_fingerprint,
 )
 
 
@@ -634,6 +636,25 @@ class A2UIFallbackSafetyTests(unittest.TestCase):
         self.assertEqual(
             second["shell_ui_contract"],
             second["shell_ui_contract_fingerprint"],
+        )
+
+    def test_shell_ui_contract_manifest_fingerprint_aliases_match_the_base_fingerprints(self) -> None:
+        manifest_fingerprints = describe_shell_ui_contract_manifest_fingerprints(include_contract_aliases=True)
+        base_fingerprints = describe_shell_ui_contract_fingerprints(include_contract_aliases=True)
+
+        self.assertEqual(manifest_fingerprints, base_fingerprints)
+        self.assertEqual(
+            shell_ui_contract_manifest_fingerprints_fingerprint(include_contract_aliases=True),
+            _fingerprint_manifest_section(base_fingerprints),
+        )
+        manifest = describe_shell_ui_contract(include_contract_aliases=True)
+        self.assertEqual(
+            manifest["shell_ui_contract_manifest_fingerprints"],
+            base_fingerprints,
+        )
+        self.assertEqual(
+            manifest["shell_ui_contract_manifest_fingerprints_fingerprint"],
+            _fingerprint_manifest_section(base_fingerprints),
         )
 
     def test_a2ui_contract_exposes_leaf_contract_manifest_aliases(self) -> None:

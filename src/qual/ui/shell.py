@@ -1163,6 +1163,18 @@ def describe_shell_ui_contract_fingerprints(
     )
 
 
+def describe_shell_ui_contract_manifest_fingerprints(
+    include_terminal_artifact_cli_fallback_route: bool = False,
+    include_contract_aliases: bool = False,
+) -> dict[str, str]:
+    """Return the shell UI contract fingerprints under a manifest-specific name."""
+
+    return describe_shell_ui_contract_fingerprints(
+        include_terminal_artifact_cli_fallback_route=include_terminal_artifact_cli_fallback_route,
+        include_contract_aliases=include_contract_aliases,
+    )
+
+
 def describe_shell_ui_contract(
     *,
     include_terminal_artifact_cli_fallback_route: bool = False,
@@ -1187,6 +1199,8 @@ def describe_shell_ui_contract(
     manifest["contract_fingerprints_contract_fingerprint"] = manifest["contract_fingerprints_fingerprint"]
     manifest["shell_ui_contract_fingerprints"] = copy.deepcopy(manifest["contract_fingerprints"])
     manifest["shell_ui_contract_fingerprints_fingerprint"] = manifest["contract_fingerprints_fingerprint"]
+    manifest["shell_ui_contract_manifest_fingerprints"] = copy.deepcopy(manifest["contract_fingerprints"])
+    manifest["shell_ui_contract_manifest_fingerprints_fingerprint"] = manifest["contract_fingerprints_fingerprint"]
     # Snapshot the manifest deeply so embedded contract views do not alias the
     # live manifest's nested entrypoint and preview structures.
     manifest["shell_ui_contract"] = copy.deepcopy(manifest)
@@ -1240,4 +1254,19 @@ def shell_ui_contract_manifest_fingerprint(
     return shell_ui_contract_fingerprint(
         include_terminal_artifact_cli_fallback_route=include_terminal_artifact_cli_fallback_route,
         include_contract_aliases=include_contract_aliases,
+    )
+
+
+def shell_ui_contract_manifest_fingerprints_fingerprint(
+    *,
+    include_terminal_artifact_cli_fallback_route: bool = False,
+    include_contract_aliases: bool = False,
+) -> str:
+    """Return the fingerprint for the shell UI contract fingerprint manifest."""
+
+    return _fingerprint_manifest_section(
+        describe_shell_ui_contract_manifest_fingerprints(
+            include_terminal_artifact_cli_fallback_route=include_terminal_artifact_cli_fallback_route,
+            include_contract_aliases=include_contract_aliases,
+        )
     )

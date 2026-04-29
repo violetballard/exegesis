@@ -158,8 +158,10 @@ from .shell import (
     describe_shell_ui_contract,
     describe_shell_ui_contract_manifest,
     describe_shell_ui_contract_fingerprints,
+    describe_shell_ui_contract_manifest_fingerprints,
     shell_ui_contract_fingerprint,
     shell_ui_contract_manifest_fingerprint,
+    shell_ui_contract_manifest_fingerprints_fingerprint,
 )
 
 __all__ = [
@@ -262,6 +264,7 @@ __all__ = [
     "describe_shell_ui_contract",
     "describe_shell_ui_contract_manifest",
     "describe_shell_ui_contract_fingerprints",
+    "describe_shell_ui_contract_manifest_fingerprints",
     "build_terminal_artifact_envelope",
     "normalize_capabilities",
     "normalize_terminal_artifact_payload",
@@ -298,6 +301,7 @@ __all__ = [
     "terminal_artifact_kind_contracts_fingerprint",
     "shell_ui_contract_fingerprint",
     "shell_ui_contract_manifest_fingerprint",
+    "shell_ui_contract_manifest_fingerprints_fingerprint",
     "engine_prepare_card",
     "execute_action_with_policy_gate",
     "normalize_action_ref",
