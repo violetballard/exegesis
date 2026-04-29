@@ -7,7 +7,7 @@ Canonical handoff contract lives in `THREAD_PACKET.md`.
 - Lane: `feat-commands`
 - Branch: `codex/feat-commands`
 - Review target: final fixer commit range from this pass
-- Review basis: `HEAD~3..HEAD` after the final fixer commit
+- Review basis: `HEAD~4..HEAD` after the final gate-evidence fixer commit
 - Scope: command CLI contract hardening for the current Engine-first MVP focus without starting `feat-console`
 - Current fixer pass: reconcile the review basis, real argparse parser-surface validation, shared CLI ownership accounting, and canonical demo-path reporting.
 
@@ -18,3 +18,8 @@ Canonical handoff contract lives in `THREAD_PACKET.md`.
 3. The implementation verifies the real argparse parser surface through `src.qual.cli.command_parser_lookup_table()`, not catalog-internal tables alone.
 4. The packet records `src/qual/cli.py` as a shared-by-approval and integrator-locked parser-surface edit required by the reviewer fix.
 5. The packet names the canonical demo-path steps strengthened by the work: `project-open`, `retrieval`, `patch-review`, and `export-handoff`.
+
+## Fixer Prompt `20260429T084441Z` Fix Satisfaction
+
+1. Required gates were rerun directly in this worktree and now pass without fallback allowances: `make scope-check`, `./quality-format.sh --check`, `./quality-lint.sh`, `./quality-test.sh`, `./typecheck-test.sh`, and `make ci`.
+2. `THREAD_PACKET.md` records the passing gate results for re-review, including `183` passing unit tests plus smoke tests through `./quality-test.sh`.

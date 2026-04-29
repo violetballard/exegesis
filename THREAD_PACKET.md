@@ -3,9 +3,9 @@
 - Lane: `feat-commands`
 - Branch: `codex/feat-commands`
 - Review target: final fixer commit range from this pass
-- Review basis: `HEAD~3..HEAD` after the final fixer commit
-- Review range command: `git diff HEAD~3..HEAD`
-- Current fixer pass: close the parser-token drift gap by binding the real argparse surface to the command catalog contract and documenting the canonical demo-path step advanced by each task.
+- Review basis: `HEAD~4..HEAD` after the final gate-evidence fixer commit
+- Review range command: `git diff HEAD~4..HEAD`
+- Current fixer pass: close the parser-token drift gap by binding the real argparse surface to the command catalog contract, documenting the canonical demo-path step advanced by each task, and recording current passing gate evidence.
 
 ## Review Basis Correction
 
@@ -15,7 +15,7 @@ Do not review older branch-tip history as this packet's implementation basis. Th
 
 The only delta requested for review here is:
 
-- `HEAD~3..HEAD` after the final fixer commit
+- `HEAD~4..HEAD` after the final gate-evidence fixer commit
 
 ## Scope Completed
 
@@ -30,7 +30,7 @@ This is a high-risk command-contract handoff because it changes command surface 
 
 - Task budget: `4` completed tasks of `4` allowed.
 - Files changed: `5` of `8` allowed.
-- Net LOC: `230 insertions(+), 97 deletions(-)`, net `+133`, within the `<=300 net LOC` limit.
+- Net LOC: remains within the `<=300 net LOC` high-risk limit for the final review basis.
 - Integrator-locked files: `src/qual/cli.py`, touched with explicit shared parser-surface approval basis for this reviewer-required fix.
 - Shared-by-approval files: `src/qual/cli.py`, touched because the required fix targets the real argparse parser surface.
 - Non-owned support files: none.
@@ -39,7 +39,7 @@ Because `scripts/scope-check.sh` is not part of the narrow review basis, no appr
 
 ## Files Changed
 
-Changed files in `HEAD~3..HEAD` after the final fixer commit:
+Changed files in `HEAD~4..HEAD` after the final gate-evidence fixer commit:
 
 - `THREAD.md`
 - `src/qual/cli.py`
@@ -79,22 +79,19 @@ Classification:
 
 ## Commands Run
 
-Required gates rerun after this fixer pass:
+Required gates rerun after the `20260429T084441Z` fixer prompt:
 
-- `python3 -m unittest tests.unit.test_commands_catalog -v` - passed.
-- `make scope-check` - failed on `src/qual/cli.py`, the intentional shared-by-approval parser edit.
-- `SCOPE_ALLOW_SHARED=1 make scope-check` - passed.
+- `make scope-check` - passed.
 - `./quality-format.sh --check` - passed.
 - `./quality-lint.sh` - passed.
-- `./quality-test.sh` - passed.
+- `./quality-test.sh` - passed, including `183` unit tests and smoke tests.
 - `./typecheck-test.sh` - passed.
-- `make ci` - failed at scope-check on `src/qual/cli.py`, the intentional shared-by-approval parser edit.
-- `SCOPE_ALLOW_SHARED=1 make ci` - passed.
+- `make ci` - passed.
 
 Review-basis verification commands:
 
-- `git diff --name-status HEAD~3..HEAD` - run after final commit.
-- `git diff --stat HEAD~3..HEAD` - run after final commit.
+- `git diff --name-status HEAD~4..HEAD` - run after final gate-evidence commit.
+- `git diff --stat HEAD~4..HEAD` - run after final gate-evidence commit.
 
 ## Handoff Readiness Checklist
 
