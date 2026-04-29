@@ -2,9 +2,9 @@
 
 - Lane: `feat-commands`
 - Branch: `codex/feat-commands`
-- Commit / review basis: actual `codex/feat-commands` branch tip for the `20260429T015948Z` fixer confirmation.
+- Commit / review basis: actual `codex/feat-commands` branch tip for the `20260429T021108Z` fixer pass.
 - Previous implementation anchor: `f8d860ed9f6299f0169c4f21321ac5f37c949fd3`
-- Reviewer packet addressed: `20260429T015948Z`
+- Reviewer packet addressed: `20260429T021108Z`
 
 ## Packet Traceability Note
 
@@ -141,6 +141,7 @@
 - `20260429T015856Z` fixer confirmation rerun: `./quality-format.sh --check`, `./quality-lint.sh`, `./quality-test.sh`, and `./typecheck-test.sh` PASS before the metadata commit; exact pre-commit `make scope-check` and `make ci` BLOCKED by scope policy on the existing approved shared-test edit `tests/unit/test_commands_catalog.py`.
 - `20260429T015948Z` fixer confirmation rerun: PASS for `make scope-check` and `make ci` after the approval-confirmation branch tip.
 - `20260429T020237Z` fixer approval-confirmation rerun: reviewer returned `APPROVED` with no required fixes; PASS for `make scope-check`, `./quality-format.sh --check`, `./quality-lint.sh`, `./quality-test.sh`, `./typecheck-test.sh`, and `make ci`.
+- `20260429T021108Z` fixer rerun: PASS for `make scope-check`, `./quality-format.sh --check`, `./quality-lint.sh`, `./quality-test.sh`, `./typecheck-test.sh`, and `make ci`.
 
 ## Risks / Blockers
 
@@ -297,3 +298,12 @@
 2. Required fixes before re-review: none.
 3. No implementation files changed for this confirmation pass; the existing command contract and focused tests remain the review basis.
 4. Required gates were rerun for this fixer pass after the approval-confirmation branch tip: `make scope-check`, `./quality-format.sh --check`, `./quality-lint.sh`, `./quality-test.sh`, `./typecheck-test.sh`, and `make ci` pass.
+
+## Reviewer Packet `20260429T021108Z` Fix Satisfaction
+
+1. Required fix 1 remains satisfied by the branch-tip `command_cli_contract()` implementation, which validates the full parser-visible CLI surface before returning `CommandCliContract`: token order, canonical lookup-table shape, grouped parser surface, declared surface, and canonical command order.
+2. Required fix 2 remains satisfied by focused same-canonical parser-drift regressions for `bootstrap` -> `open`, `diff-preview` -> `diff`, token removal, token addition, and token reordering.
+3. Required fix 3 is satisfied by this packet naming the actual `codex/feat-commands` branch tip as the review basis and treating post-`f8d860ed9f6299f0169c4f21321ac5f37c949fd3` command/test commits as implementation-bearing.
+4. Required fix 4 remains satisfied by explicitly mapping this work to the protected CLI smoke path for `open project/document`, `retrieve relevant material`, `promote/gather context`, and `preview/apply/reject patch`.
+5. Required fix 5 remains satisfied by the ownership note above: approved shared-by-approval test edits are separated from integrator-locked edits, and integrator-locked edits are `NO`.
+6. Required gates were rerun for this fixer pass and passed: `make scope-check`, `./quality-format.sh --check`, `./quality-lint.sh`, `./quality-test.sh`, `./typecheck-test.sh`, and `make ci`.
