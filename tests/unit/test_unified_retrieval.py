@@ -1510,28 +1510,9 @@ class UnifiedRetrievalTests(unittest.TestCase):
         self.assertEqual(bundle["retrieval_excerpt_bundle"], result.retrieval_excerpt_bundle())
         self.assertEqual(bundle["retrieval_provenance"], result.to_downstream_payload()["retrieval_provenance"])
         self.assertEqual(bundle["retrieval_source_bundle"], result.source_bundle())
-        self.assertEqual(bundle["retrieval_context_refs"], result.to_downstream_payload()["retrieval_context_refs"])
-        self.assertEqual(
-            bundle["retrieval_context_refs"],
-            result.source_bundle()["retrieval_context_refs"],
-        )
-        context_ref = bundle["retrieval_context_refs"][0]
-        self.assertEqual(context_ref["ref_id"], f"fts:{result.hits[0].excerpt_id}")
-        self.assertEqual(context_ref["source_strategy"], "fts")
-        self.assertEqual(context_ref["retrieval_backend"], "sqlite_fts")
-        self.assertEqual(context_ref["retrieval_mode"], "fts_first")
-        self.assertEqual(context_ref["result_fingerprint"], result.result_fingerprint)
-        self.assertEqual(context_ref["query_fingerprint"], result.diagnostics["query_fingerprint"])
-        self.assertEqual(context_ref["excerpt_fingerprint"], result.hits[0].provenance["excerpt_fingerprint"])
-        self.assertEqual(context_ref["provenance"]["excerpt_id"], context_ref["excerpt_id"])
-        self.assertEqual(context_ref["provenance"]["result_fingerprint"], result.result_fingerprint)
-        self.assertIn("context_ref_fingerprint", context_ref)
         bundle["retrieval_downstream_payload"]["retrieval_summary"]["doc_ids"].append("mutated-doc-id")
         refreshed = engine_build_retrieval_context_bundle_from_result(result)
         self.assertNotIn("mutated-doc-id", refreshed["retrieval_downstream_payload"]["retrieval_summary"]["doc_ids"])
-        bundle["retrieval_context_refs"][0]["doc_id"] = "mutated-doc-id"
-        refreshed = engine_build_retrieval_context_bundle_from_result(result)
-        self.assertNotEqual(refreshed["retrieval_context_refs"][0]["doc_id"], "mutated-doc-id")
         bundle["retrieval_doc_bundle"]["doc_hits"][0]["provenance"]["doc_id"] = "mutated-doc-id"
         refreshed = engine_build_retrieval_context_bundle_from_result(result)
         self.assertNotEqual(refreshed["retrieval_doc_bundle"]["doc_hits"][0]["provenance"]["doc_id"], "mutated-doc-id")
@@ -1680,7 +1661,6 @@ class UnifiedRetrievalTests(unittest.TestCase):
         downstream_payload.pop("retrieval_source_bundle", None)
         downstream_payload.pop("retrieval_evidence", None)
         downstream_payload.pop("retrieval_manifest", None)
-        downstream_payload.pop("retrieval_context_refs", None)
         retrieval_summary = downstream_payload.get("retrieval_summary")
         self.assertIsInstance(retrieval_summary, dict)
         retrieval_summary.pop("doc_ids", None)
@@ -1715,11 +1695,6 @@ class UnifiedRetrievalTests(unittest.TestCase):
         context_bundle = engine_build_retrieval_context_bundle_from_result(source)
         self.assertEqual(context_bundle["result_fingerprint"], result.result_fingerprint)
         self.assertEqual(context_bundle["retrieval_source_bundle"], result.source_bundle())
-        self.assertEqual(context_bundle["retrieval_context_refs"], result.to_downstream_payload()["retrieval_context_refs"])
-        self.assertEqual(
-            context_bundle["retrieval_downstream_payload"]["retrieval_context_refs"],
-            result.to_downstream_payload()["retrieval_context_refs"],
-        )
         self.assertEqual(
             context_bundle["retrieval_downstream_payload"]["retrieval_summary"]["doc_ids"],
             [item.doc_id for item in result.doc_hits],

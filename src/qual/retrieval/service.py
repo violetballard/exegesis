@@ -330,21 +330,17 @@ class RetrievalResult:
         query = self._query_snapshot()
         retrieval_policy = self._retrieval_policy_snapshot()
         citation_bundle = self.citation_bundle()
-        retrieval_context_refs = self._retrieval_context_refs_snapshot()
-        context_ref_fingerprints = self._retrieval_context_ref_fingerprints(retrieval_context_refs)
         retrieval_doc_bundle = self.retrieval_doc_bundle()
         retrieval_excerpt_bundle = self.retrieval_excerpt_bundle()
         citation_status = dict(citation_bundle["citation_status"])
         retrieval_summary = self._retrieval_summary_snapshot(
             retrieval_policy=retrieval_policy,
             citation_status=citation_status,
-            retrieval_context_refs=retrieval_context_refs,
         )
         retrieval_provenance = self._retrieval_provenance_snapshot(
             citation_bundle=citation_bundle,
             citation_status=citation_status,
             retrieval_policy=retrieval_policy,
-            retrieval_context_refs=retrieval_context_refs,
         )
         retrieval_source_bundle = self._retrieval_source_bundle_snapshot(
             query=query,
@@ -352,7 +348,6 @@ class RetrievalResult:
             citation_bundle=citation_bundle,
             citation_status=citation_status,
             retrieval_summary=retrieval_summary,
-            retrieval_context_refs=retrieval_context_refs,
         )
         return build_retrieval_downstream_payload(
             query=query,
@@ -372,9 +367,6 @@ class RetrievalResult:
             retrieval_manifest=dict(self.diagnostics["retrieval_manifest"]),
             retrieval_evidence=dict(self.evidence),
             retrieval_provenance=retrieval_provenance,
-            retrieval_context_refs=retrieval_context_refs,
-            retrieval_context_ref_fingerprints=context_ref_fingerprints,
-            primary_context_ref_fingerprint=context_ref_fingerprints[0] if context_ref_fingerprints else None,
             source_bundle_fingerprint=cast(str, retrieval_source_bundle["source_bundle_fingerprint"]),
             retrieval_source_bundle=retrieval_source_bundle,
         )
@@ -484,7 +476,6 @@ class RetrievalResult:
         """Return the canonical retrieval context for drafting, patching, and research flows."""
 
         downstream_payload = self.to_downstream_payload()
-        context_ref_fingerprints = list(downstream_payload["retrieval_context_ref_fingerprints"])
         return {
             "audit_ref": self.audit_ref,
             "result_fingerprint": self.result_fingerprint,
@@ -495,9 +486,6 @@ class RetrievalResult:
             "retrieval_provenance": copy.deepcopy(downstream_payload["retrieval_provenance"]),
             "retrieval_source_bundle": copy.deepcopy(downstream_payload["retrieval_source_bundle"]),
             "retrieval_evidence": copy.deepcopy(downstream_payload["retrieval_evidence"]),
-            "retrieval_context_refs": copy.deepcopy(downstream_payload["retrieval_context_refs"]),
-            "retrieval_context_ref_fingerprints": context_ref_fingerprints,
-            "primary_context_ref_fingerprint": context_ref_fingerprints[0] if context_ref_fingerprints else None,
         }
 
     def _query_snapshot(self) -> dict[str, object]:
@@ -566,103 +554,12 @@ class RetrievalResult:
             if hit.excerpt_id is not None
         ]
 
-    def _retrieval_context_refs_snapshot(self) -> list[dict[str, object]]:
-        """Return promotion-ready FTS excerpt refs for basket/context flows."""
-
-        refs: list[dict[str, object]] = []
-        for hit in self.hits:
-            if hit.excerpt_id is None:
-                continue
-            excerpt_text_hash = hit.provenance.get("excerpt_text_hash") or hit.provenance.get("hash")
-            provenance = {
-                "ref_kind": "retrieval_excerpt",
-                "promotion_target": "context_basket",
-                "promotion_ready": True,
-                "doc_id": hit.doc_id,
-                "doc_type": hit.provenance.get("doc_type"),
-                "excerpt_id": hit.excerpt_id,
-                "source_hash": hit.provenance.get("source_hash"),
-                "source_strategy": hit.source_strategy,
-                "retrieval_backend": hit.provenance.get("retrieval_backend"),
-                "retrieval_mode": hit.provenance.get("retrieval_mode"),
-                "query_fingerprint": self.diagnostics["query_fingerprint"],
-                "result_fingerprint": self.result_fingerprint,
-                "excerpt_fingerprint": hit.provenance.get("excerpt_fingerprint"),
-                "excerpt_text_hash": excerpt_text_hash,
-                "span": copy.deepcopy(hit.span),
-                "rank": hit.provenance.get("rank"),
-                "fts_rank": hit.provenance.get("fts_rank"),
-                "matched_terms": copy.deepcopy(hit.provenance.get("matched_terms", [])),
-                "match_count": hit.provenance.get("match_count"),
-            }
-            citation_ref = {
-                "ref_kind": "retrieval_excerpt",
-                "promotion_target": "context_basket",
-                "promotion_ready": True,
-                "doc_id": hit.doc_id,
-                "doc_type": hit.provenance.get("doc_type"),
-                "excerpt_id": hit.excerpt_id,
-                "source_hash": hit.provenance.get("source_hash"),
-                "excerpt_fingerprint": hit.provenance.get("excerpt_fingerprint"),
-                "excerpt_text_hash": excerpt_text_hash,
-                "span": copy.deepcopy(hit.span),
-                "rank": hit.provenance.get("rank"),
-                "source_strategy": hit.source_strategy,
-                "retrieval_backend": hit.provenance.get("retrieval_backend"),
-                "retrieval_mode": hit.provenance.get("retrieval_mode"),
-            }
-            context_ref = {
-                "ref_id": f"fts:{hit.excerpt_id}",
-                "ref_kind": "retrieval_excerpt",
-                "promotion_target": "context_basket",
-                "promotion_ready": True,
-                "doc_id": hit.doc_id,
-                "doc_type": hit.provenance.get("doc_type"),
-                "title_hint": hit.title_hint,
-                "excerpt_id": hit.excerpt_id,
-                "excerpt_text": hit.excerpt_text,
-                "span": copy.deepcopy(hit.span),
-                "source_hash": hit.provenance.get("source_hash"),
-                "source_strategy": hit.source_strategy,
-                "retrieval_backend": hit.provenance.get("retrieval_backend"),
-                "retrieval_mode": hit.provenance.get("retrieval_mode"),
-                "query_fingerprint": self.diagnostics["query_fingerprint"],
-                "result_fingerprint": self.result_fingerprint,
-                "excerpt_fingerprint": hit.provenance.get("excerpt_fingerprint"),
-                "excerpt_text_hash": excerpt_text_hash,
-                "rank": hit.provenance.get("rank"),
-                "fts_rank": hit.provenance.get("fts_rank"),
-                "matched_terms": copy.deepcopy(hit.provenance.get("matched_terms", [])),
-                "match_count": hit.provenance.get("match_count"),
-                "citation_ref": citation_ref,
-                "provenance": provenance,
-            }
-            context_ref_fingerprint = RetrievalService._stable_fingerprint(context_ref)
-            context_ref["context_ref_fingerprint"] = context_ref_fingerprint
-            citation_ref["context_ref_fingerprint"] = context_ref_fingerprint
-            provenance["context_ref_fingerprint"] = context_ref_fingerprint
-            refs.append(context_ref)
-        return refs
-
-    @staticmethod
-    def _retrieval_context_ref_fingerprints(refs: list[dict[str, object]]) -> list[str]:
-        fingerprints: list[str] = []
-        for ref in refs:
-            fingerprint = ref.get("context_ref_fingerprint")
-            if isinstance(fingerprint, str) and fingerprint:
-                fingerprints.append(fingerprint)
-        return fingerprints
-
     def _retrieval_summary_snapshot(
         self,
         *,
         retrieval_policy: dict[str, object],
         citation_status: dict[str, object],
-        retrieval_context_refs: list[dict[str, object]] | None = None,
     ) -> dict[str, object]:
-        context_ref_fingerprints = self._retrieval_context_ref_fingerprints(
-            retrieval_context_refs if retrieval_context_refs is not None else self._retrieval_context_refs_snapshot()
-        )
         doc_fingerprints = [_optional_text(doc_hit.provenance.get("doc_fingerprint")) for doc_hit in self.doc_hits]
         doc_identity_fingerprints = [
             _optional_text(doc_hit.provenance.get("doc_identity_fingerprint")) for doc_hit in self.doc_hits
@@ -709,8 +606,6 @@ class RetrievalResult:
                 if self.hits
                 else None
             ),
-            "context_ref_fingerprints": context_ref_fingerprints,
-            "primary_context_ref_fingerprint": context_ref_fingerprints[0] if context_ref_fingerprints else None,
             "doc_hits_fingerprint": self.diagnostics["doc_hits_fingerprint"],
             "excerpt_hits_fingerprint": self.diagnostics["excerpt_hits_fingerprint"],
             "active_strategy_ids": list(self.diagnostics["active_strategy_ids"]),
@@ -724,13 +619,9 @@ class RetrievalResult:
         citation_bundle: dict[str, object],
         citation_status: dict[str, object],
         retrieval_policy: dict[str, object],
-        retrieval_context_refs: list[dict[str, object]] | None = None,
     ) -> dict[str, object]:
         primary_doc_hit = self.doc_hits[0] if self.doc_hits else None
         primary_excerpt_hit = self.hits[0] if self.hits else None
-        context_ref_fingerprints = self._retrieval_context_ref_fingerprints(
-            retrieval_context_refs if retrieval_context_refs is not None else self._retrieval_context_refs_snapshot()
-        )
         return {
             "query_fingerprint": self.diagnostics["query_fingerprint"],
             "query_scope": self.query.scope,
@@ -764,8 +655,6 @@ class RetrievalResult:
                 if primary_excerpt_hit is not None
                 else None
             ),
-            "context_ref_fingerprints": context_ref_fingerprints,
-            "primary_context_ref_fingerprint": context_ref_fingerprints[0] if context_ref_fingerprints else None,
             "citation_status": citation_status,
             "doc_count": citation_bundle["doc_count"],
             "excerpt_count": citation_bundle["excerpt_count"],
@@ -784,12 +673,10 @@ class RetrievalResult:
         citation_bundle = self.citation_bundle()
         citation_status = dict(citation_bundle["citation_status"])
         retrieval_policy = self._retrieval_policy_snapshot()
-        retrieval_context_refs = self._retrieval_context_refs_snapshot()
         retrieval_provenance = self._retrieval_provenance_snapshot(
             citation_bundle=citation_bundle,
             citation_status=citation_status,
             retrieval_policy=retrieval_policy,
-            retrieval_context_refs=retrieval_context_refs,
         )
         return {
             "result_fingerprint": self.result_fingerprint,
@@ -809,8 +696,6 @@ class RetrievalResult:
             "retrieval_manifest": copy.deepcopy(self.diagnostics["retrieval_manifest"]),
             "retrieval_provenance": copy.deepcopy(retrieval_provenance),
             "retrieval_evidence": copy.deepcopy(self.evidence),
-            "retrieval_context_refs": retrieval_context_refs,
-            "retrieval_context_ref_fingerprints": self._retrieval_context_ref_fingerprints(retrieval_context_refs),
         }
 
     def _retrieval_source_bundle_snapshot(
@@ -821,7 +706,6 @@ class RetrievalResult:
         citation_bundle: dict[str, object] | None = None,
         citation_status: dict[str, object] | None = None,
         retrieval_summary: dict[str, object] | None = None,
-        retrieval_context_refs: list[dict[str, object]] | None = None,
     ) -> dict[str, object]:
         query_snapshot = query if query is not None else self._query_snapshot()
         retrieval_policy_snapshot = retrieval_policy if retrieval_policy is not None else self._retrieval_policy_snapshot()
@@ -833,15 +717,8 @@ class RetrievalResult:
             else self._retrieval_summary_snapshot(
                 retrieval_policy=retrieval_policy_snapshot,
                 citation_status=citation_status_snapshot,
-                retrieval_context_refs=retrieval_context_refs,
             )
         )
-        context_refs_snapshot = (
-            copy.deepcopy(retrieval_context_refs)
-            if retrieval_context_refs is not None
-            else self._retrieval_context_refs_snapshot()
-        )
-        context_ref_fingerprints = self._retrieval_context_ref_fingerprints(context_refs_snapshot)
         source_bundle = {
             "result_fingerprint": self.result_fingerprint,
             "query_fingerprint": self.diagnostics["query_fingerprint"],
@@ -863,12 +740,8 @@ class RetrievalResult:
                     citation_bundle=citation_bundle_snapshot,
                     citation_status=citation_status_snapshot,
                     retrieval_policy=retrieval_policy_snapshot,
-                    retrieval_context_refs=context_refs_snapshot,
                 )
             ),
-            "retrieval_context_refs": context_refs_snapshot,
-            "retrieval_context_ref_fingerprints": context_ref_fingerprints,
-            "primary_context_ref_fingerprint": context_ref_fingerprints[0] if context_ref_fingerprints else None,
         }
         # Fingerprint the source snapshot itself so copies can be verified deterministically.
         source_bundle["source_bundle_fingerprint"] = RetrievalService._stable_fingerprint(
