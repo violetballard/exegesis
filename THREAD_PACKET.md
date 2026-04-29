@@ -2,9 +2,18 @@
 
 - Lane: `feat-commands`
 - Branch: `codex/feat-commands`
-- Review target: final branch tip after the `20260429T174006Z` fixer, including implementation commit `f8d860ed9f6299f0169c4f21321ac5f37c949fd3`, implementation fixer commit `3f180d67ca82eebdce9da411fc2da5356064d46f`, and subsequent packet refresh commits.
+- Review target: final branch tip after the `20260429T175200Z` fixer, including implementation commit `f8d860ed9f6299f0169c4f21321ac5f37c949fd3`, implementation fixer commit `3f180d67ca82eebdce9da411fc2da5356064d46f`, packet refresh commits through `b67a7c87ca5c899909758ade80da79821ce0d772`, and this required-fix commit.
 - Merge target: `codex/feat-commands` branch tip as merged against `main`.
-- Fixer correction: this refresh resolves reviewer packet `20260429T174006Z` by keeping one branch-truthful review basis, keeping `3f180d67ca82eebdce9da411fc2da5356064d46f` in scope as an implementation commit, explicitly accounting for `src/qual/cli.py` as shared-by-approval/integrator-locked implementation work, and reporting normal gate results from the actual branch tip.
+- Fixer correction: this refresh resolves reviewer packet `20260429T175200Z` by keeping one branch-truthful review basis at the actual merge scope, keeping `3f180d67ca82eebdce9da411fc2da5356064d46f` in scope as an implementation commit, explicitly accounting for `src/qual/cli.py` as shared-by-approval/integrator-locked implementation work, and reporting required gate results from the same branch tip.
+
+## Required Handoff Fields
+
+- Branch name: `codex/feat-commands`
+- Scope completed: command catalog metadata now has a live argparse parser-surface contract, deterministic CLI token lookup, route/flow metadata for MVP command discovery, and regression tests for parser/catalog drift.
+- Roadmap item(s) affected: `Milestone 1: Bootstrap Flow Stabilization`, `Milestone 2: Test Hardening`, and MVP active implementation emphasis for `feat-commands`.
+- Vision capability affected: `Operator-first control surface`, because CLI remains a first-class reliable surface, and `Retrieval-first context handling`, because retrieval/context-basket command parsing is kept deterministic for CLI fallback flows.
+- Routing/provider impact note: no model routing or provider configuration touched.
+- Proposed README.md patch text: none.
 
 ## Required-Fix Resolution
 
@@ -12,7 +21,7 @@
 2. `src/qual/cli.py` now builds top-level parsers from `command_cli_tokens()` and `_normalize_argv()` uses the same catalog-owned token set, removing the separate hardcoded command-token duplication.
 3. `tests/unit/test_commands_catalog.py` now asserts the actual parser surface and includes focused parser-only added-token, missing-token, and alias-rename drift tests.
 4. Ownership accounting is corrected below: this fixer intentionally keeps shared-by-approval/integrator-locked `src/qual/cli.py` in scope to satisfy the reviewer-required parser contract fix, plus the approved shared test file.
-5. Gate results below are tied to the actual branch tip after the `20260429T173336Z` fixer commit; normal scope-check and normal CI both pass without `SCOPE_ALLOW_SHARED=1`.
+5. Gate results below are tied to the actual branch tip after this `20260429T175200Z` fixer commit; normal scope-check and normal CI both pass without `SCOPE_ALLOW_SHARED=1`.
 
 ## Implementation Summary
 
@@ -33,6 +42,8 @@ This command-catalog work provides deterministic CLI command names for the CLI f
 5. `apply/reject patch`: keeps patch preview/apply/reject-adjacent command surfaces discoverable through canonical metadata.
 6. `persist state`: keeps terminal/export handoff command surfaces represented for persistence-oriented CLI fallback flows.
 7. `continue working`: keeps follow-on command surfaces stable so resumed CLI workflows use the same command tokens.
+
+Explicit canonical demo-path step advanced: this slice makes `retrieve relevant material` and `gather context into basket` more real by keeping retrieval and `context-basket` command parsing stable against parser/catalog drift.
 
 The direct implementation effect is parser/catalog contract stability for CLI fallback, not new behavior for opening, retrieval, context storage, patch application, persistence, or resume flows.
 
@@ -58,14 +69,12 @@ This fixer refresh for reviewer packet `20260429T170759Z`:
 - `THREAD.md`
 - `THREAD_PACKET.md`
 
-This fixer refresh for reviewer packet `20260429T171312Z`:
+Historical fixer refresh for reviewer packet `20260429T171312Z`:
 
 - `THREAD.md`
 - `THREAD_PACKET.md`
-- Restores `src/qual/cli.py` to `f8d860ed9f6299f0169c4f21321ac5f37c949fd3`.
-- Restores `src/qual/commands/__init__.py` to `f8d860ed9f6299f0169c4f21321ac5f37c949fd3`.
-- Restores `src/qual/commands/catalog.py` to `f8d860ed9f6299f0169c4f21321ac5f37c949fd3`.
-- Restores `tests/unit/test_commands_catalog.py` to `f8d860ed9f6299f0169c4f21321ac5f37c949fd3`.
+
+This historical packet refresh was superseded by the later branch-tip implementation fixer below; it is not a request to exclude later implementation commits from review scope.
 
 Implementation fixer commit `3f180d67ca82eebdce9da411fc2da5356064d46f`:
 
@@ -86,6 +95,11 @@ This fixer refresh for reviewer packet `20260429T173336Z`:
 - `THREAD_PACKET.md`
 
 This fixer refresh for reviewer packet `20260429T174006Z`:
+
+- `THREAD.md`
+- `THREAD_PACKET.md`
+
+This fixer refresh for reviewer packet `20260429T175200Z`:
 
 - `THREAD.md`
 - `THREAD_PACKET.md`
@@ -115,21 +129,21 @@ Complete branch-tip file list for `codex/feat-commands` as it would actually be 
 
 ## Commands Run
 
-- `make scope-check`: PASS on the actual branch tip after the `20260429T174006Z` fixer. No `SCOPE_ALLOW_SHARED=1` override was required for this run.
+- `make scope-check`: PASS on the actual branch tip after the `20260429T175200Z` fixer. No `SCOPE_ALLOW_SHARED=1` override was required for this run.
 - `SCOPE_ALLOW_SHARED=1 make scope-check`: not rerun for this fixer because the normal gate passed; earlier packet-refresh history recorded this override path as PASS when the shared `src/qual/cli.py` implementation edit first needed explicit scope approval.
 - `./quality-format.sh --check`: PASS.
 - `./quality-lint.sh`: PASS.
 - `python -m unittest tests.unit.test_commands_catalog`: PASS, 46 tests.
 - `./quality-test.sh`: PASS, smoke plus 128 unit tests, including parser-only added-token, missing-token, and alias-rename drift coverage.
 - `./typecheck-test.sh`: PASS.
-- `make ci`: PASS on the actual branch tip after the `20260429T174006Z` fixer, including normal scope-check, format, lint, compile, smoke, and 128 unit tests. No `SCOPE_ALLOW_SHARED=1` override was required for this run.
+- `make ci`: PASS on the actual branch tip after the `20260429T175200Z` fixer, including normal scope-check, format, lint, compile, smoke, and 128 unit tests. No `SCOPE_ALLOW_SHARED=1` override was required for this run.
 - `SCOPE_ALLOW_SHARED=1 make ci`: not rerun for this fixer because normal CI passed; earlier packet-refresh history recorded this override path as PASS.
 
 ## Risks And Blockers
 
 - Risk: `src/qual/cli.py` is shared-by-approval/integrator-locked, but this edit is narrowly scoped to the reviewer-required parser/catalog validation path.
-- Blocker: `src/qual/cli.py` remains a shared-by-approval/integrator-locked implementation edit and requires integrator approval. Normal scope-check and normal CI pass at the actual branch tip after the `20260429T174006Z` fixer.
+- Blocker: `src/qual/cli.py` remains a shared-by-approval/integrator-locked implementation edit and requires integrator approval. Normal scope-check and normal CI pass at the actual branch tip after the `20260429T175200Z` fixer.
 
 ## Final Readiness Statement
 
-This handoff packet now explicitly names the narrow canonical demo-path step advanced by the command-catalog slice, separates the approved shared test edit from the shared `src/qual/cli.py` implementation edit, and accounts for the parser/catalog drift fix requested by reviewer packet `20260429T174006Z`.
+This handoff packet now explicitly names the narrow canonical demo-path step advanced by the command-catalog slice, separates the approved shared test edit from the shared `src/qual/cli.py` implementation edit, and accounts for the parser/catalog drift fix requested by reviewer packet `20260429T175200Z`.
