@@ -43,6 +43,7 @@ from src.qual.ui.a2ui import (
     describe_selection_contract,
     describe_selection_contract_manifest,
     describe_terminal_artifact_envelope_contract,
+    describe_terminal_artifact_kind_contracts_manifest,
     describe_terminal_artifact_cli_fallback_contract,
     describe_terminal_artifact_cli_fallback_contract_manifest,
     describe_terminal_artifact_cli_fallback_contract_fingerprints,
@@ -118,6 +119,7 @@ from src.qual.ui.a2ui import (
     terminal_artifact_cli_fallback_route_contract_fingerprint,
     terminal_artifact_cli_fallback_route_contract_manifest_fingerprint,
     terminal_artifact_cli_fallback_route_contract_fingerprints_fingerprint,
+    terminal_artifact_kind_contracts_manifest_fingerprint,
     _fingerprint_manifest_section,
     terminal_artifact_raw_leaf_card_default_contract_fingerprint,
     terminal_artifact_raw_leaf_card_default_policy_contract_fingerprint,
@@ -331,6 +333,10 @@ class A2UIFallbackSafetyTests(unittest.TestCase):
             describe_terminal_artifact_cli_fallback_resolver_failure_policy_contract_manifest,
         )
         self.assertIs(
+            public_ui.describe_terminal_artifact_kind_contracts_manifest,
+            describe_terminal_artifact_kind_contracts_manifest,
+        )
+        self.assertIs(
             public_ui.terminal_artifact_cli_fallback_entrypoint_contract_fingerprint,
             terminal_artifact_cli_fallback_entrypoint_contract_fingerprint,
         )
@@ -361,6 +367,10 @@ class A2UIFallbackSafetyTests(unittest.TestCase):
         self.assertIs(
             public_ui.terminal_artifact_cli_fallback_resolver_failure_policy_contract_manifest_fingerprint,
             terminal_artifact_cli_fallback_resolver_failure_policy_contract_manifest_fingerprint,
+        )
+        self.assertIs(
+            public_ui.terminal_artifact_kind_contracts_manifest_fingerprint,
+            terminal_artifact_kind_contracts_manifest_fingerprint,
         )
         self.assertIs(
             public_ui.terminal_artifact_cli_fallback_route_contract_fingerprint,
@@ -4414,6 +4424,34 @@ class A2UIFallbackSafetyTests(unittest.TestCase):
         )
         self.assertNotIn("terminal_artifact", describe_terminal_artifact_contract_fingerprints())
         self.assertNotIn("kind_contracts", describe_terminal_artifact_contract_fingerprints())
+
+    def test_terminal_artifact_kind_contracts_manifest_is_versioned_and_fingerprintable(self) -> None:
+        kind_contracts = describe_terminal_artifact_kind_contracts()
+        manifest = describe_terminal_artifact_kind_contracts_manifest()
+        fingerprint = terminal_artifact_kind_contracts_manifest_fingerprint()
+
+        self.assertEqual(manifest["contract_version"], 2)
+        self.assertEqual(manifest["a2ui_version"], 1)
+        self.assertEqual(manifest["terminal_artifact_schema_version"], 1)
+        self.assertEqual(manifest["terminal_artifact_kind_contracts_schema_version"], 1)
+        self.assertEqual(manifest["terminal_artifact_kind_contracts_version"], 1)
+        self.assertEqual(manifest["type"], "TerminalArtifactKindContractsContract")
+        self.assertEqual(manifest["kind_contracts"], kind_contracts)
+        self.assertEqual(manifest["terminal_artifact_kind_contracts"], kind_contracts)
+        self.assertEqual(manifest["kind_contracts_fingerprint"], terminal_artifact_kind_contracts_fingerprint())
+        self.assertEqual(
+            manifest["terminal_artifact_kind_contracts_fingerprint"],
+            terminal_artifact_kind_contracts_fingerprint(),
+        )
+        self.assertEqual(manifest["contract_fingerprint"], fingerprint)
+        self.assertEqual(manifest["contract_manifest"]["kind_contracts"], kind_contracts)
+        self.assertEqual(manifest["contract_manifest"]["contract_fingerprint"], fingerprint)
+        self.assertEqual(manifest["contract_manifest_fingerprint"], fingerprint)
+        self.assertEqual(
+            manifest["contract_fingerprints"]["kind_contracts"],
+            terminal_artifact_kind_contracts_fingerprint(),
+        )
+        self.assertEqual(len(fingerprint), 64)
 
     def test_terminal_artifact_contract_fingerprint_map_can_opt_into_self_fingerprint(self) -> None:
         fingerprints = describe_terminal_artifact_contract_fingerprints(include_terminal_artifact=True)

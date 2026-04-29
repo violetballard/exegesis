@@ -27,6 +27,7 @@ TERMINAL_ARTIFACT_CLI_FALLBACK_ENTRYPOINT_SCHEMA_VERSION = 1
 TERMINAL_ARTIFACT_CLI_FALLBACK_TARGET_SCHEMA_VERSION = 1
 TERMINAL_ARTIFACT_CLI_FALLBACK_ROUTE_SCHEMA_VERSION = 1
 TERMINAL_ARTIFACT_RAW_LEAF_CARD_DEFAULT_SCHEMA_VERSION = 1
+TERMINAL_ARTIFACT_KIND_CONTRACTS_SCHEMA_VERSION = 1
 _TERMINAL_ARTIFACT_ENVELOPE_TYPE = "TerminalArtifact"
 GENERIC_CARD_TYPE = "GenericCard"
 UNKNOWN_CARD_TYPE = "UnknownCard"
@@ -2402,6 +2403,37 @@ def describe_terminal_artifact_kind_contracts() -> dict[str, dict[str, str]]:
     return _build_terminal_artifact_kind_contracts()
 
 
+def _build_terminal_artifact_kind_contracts_manifest() -> dict[str, Any]:
+    kind_contracts = _build_terminal_artifact_kind_contracts()
+    kind_contracts_fingerprint = terminal_artifact_kind_contracts_fingerprint()
+    return {
+        "contract_version": A2UI_CONTRACT_VERSION,
+        "a2ui_version": A2UI_VERSION,
+        "terminal_artifact_schema_version": TERMINAL_ARTIFACT_SCHEMA_VERSION,
+        "terminal_artifact_kind_contracts_schema_version": TERMINAL_ARTIFACT_KIND_CONTRACTS_SCHEMA_VERSION,
+        "terminal_artifact_kind_contracts_version": TERMINAL_ARTIFACT_KIND_CONTRACTS_SCHEMA_VERSION,
+        "type": "TerminalArtifactKindContractsContract",
+        "kind_contracts": _snapshot_contract_section(kind_contracts),
+        "terminal_artifact_kind_contracts": _snapshot_contract_section(kind_contracts),
+        "kind_contracts_fingerprint": kind_contracts_fingerprint,
+        "terminal_artifact_kind_contracts_fingerprint": kind_contracts_fingerprint,
+        "contract_fingerprints": {
+            "kind_contracts": kind_contracts_fingerprint,
+        },
+    }
+
+
+def describe_terminal_artifact_kind_contracts_manifest() -> dict[str, Any]:
+    """Return the versioned manifest wrapper for the shared kind contracts."""
+
+    manifest = _build_terminal_artifact_kind_contracts_manifest()
+    fingerprint = terminal_artifact_kind_contracts_manifest_fingerprint()
+    manifest["contract_fingerprint"] = fingerprint
+    manifest["contract_manifest"] = _snapshot_contract_section(manifest)
+    manifest["contract_manifest_fingerprint"] = fingerprint
+    return manifest
+
+
 def describe_terminal_artifact_contract_fingerprints(
     include_terminal_artifact: bool = False,
     include_kind_contracts: bool = False,
@@ -4642,6 +4674,12 @@ def terminal_artifact_kind_contracts_fingerprint() -> str:
 
     manifest = describe_terminal_artifact_kind_contracts()
     return _fingerprint_manifest_section(manifest)
+
+
+def terminal_artifact_kind_contracts_manifest_fingerprint() -> str:
+    """Return a stable fingerprint for the versioned kind-contract manifest."""
+
+    return _fingerprint_manifest_section(_build_terminal_artifact_kind_contracts_manifest())
 
 
 def _build_read_only_fallback_action_manifest() -> list[dict[str, Any]]:
