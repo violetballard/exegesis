@@ -5,15 +5,16 @@
 - Merge candidate: current `HEAD` after this packet-only fixer commit; final HEAD SHA is reported by the fixer.
 - Authoritative reviewed range: `378cf9a74a3658058079a32f186fcd254c4a4034..HEAD`.
 - Scope rule: review the full range above. Do not use `adfa8cdadd43747ffbcb612e4151e262b13e52ca` as the endpoint, and do not treat later retrieval-code commits as metadata-only.
-- Packet mirror note: `.codex/kickoff_packets/feat-retrieval-fts.md` and `.codex/lane_meta/feat-retrieval-fts.json` still contain older narrowed-slice wording. This fixer attempted to update them again, but the sandbox rejected writes to those `.codex` paths as outside the writable project scope. Treat this `THREAD_PACKET.md` as the source of truth for re-review.
+- Packet mirror note: `.codex/kickoff_packets/feat-retrieval-fts.md` and `.codex/lane_meta/feat-retrieval-fts.json` still contain older narrowed-slice wording. This fixer attempted to update them again with both `apply_patch` and a direct file rewrite, but the sandbox rejected those `.codex` writes as outside the writable project scope / operation not permitted. Treat this `THREAD_PACKET.md` as the source of truth for re-review.
 
 ## Required Reviewer Fixes Addressed
 
 1. Regenerated the review packet against the actual merge candidate range, `378cf9a74a3658058079a32f186fcd254c4a4034..HEAD`.
 2. Removed the stale claim that post-`adfa8cd` commits are metadata-only. Post-`adfa8cd` runtime changes in retrieval code and tests are part of this merge candidate.
-3. Included every runtime/test file changed in the actual range: `src/qual/engine/retrieval/fts_strategy.py`, `src/qual/engine/retrieval/payload.py`, `src/qual/retrieval/service.py`, and `tests/unit/test_unified_retrieval.py`.
-4. Recomputed task count, file count, net LOC, shared/high-risk budget status, and roadmap/vision/demo-path mapping from the actual branch-tip range.
-5. Re-ran the required gates against the corrected merge candidate; outcomes are recorded below.
+3. Corrected the packet refresh metadata for `2ed6d48bc399a84a851e29684e48178dd4470103`; it changes `src/qual/retrieval/service.py` and is implementation scope, not metadata-only scope.
+4. Included every runtime/test file changed after `adfa8cdadd43747ffbcb612e4151e262b13e52ca`: `src/qual/engine/retrieval/fts_strategy.py`, `src/qual/engine/retrieval/payload.py`, `src/qual/retrieval/service.py`, and `tests/unit/test_unified_retrieval.py`.
+5. Recomputed task count, file count, net LOC, shared/high-risk budget status, and roadmap/vision/demo-path mapping from the actual branch-tip range.
+6. Re-ran the required gates against the corrected merge candidate; outcomes are recorded below.
 
 ## Scope Completed
 
@@ -21,7 +22,7 @@ The branch keeps SQLite FTS as the MVP retrieval authority, removes PageIndex fa
 
 Canonical demo path advanced:
 
-1. Retrieve relevant material through the FTS-first retrieval path.
+1. This makes `retrieve relevant material` more real by enforcing FTS-only excerpt lookup provenance for retrieval results used by basket promotion.
 2. Promote or gather retrieved docs/excerpts into the basket using stable refs.
 3. Carry retrieved context forward to later draft/revise/apply steps through deterministic payloads and auditable promotion fingerprints.
 
