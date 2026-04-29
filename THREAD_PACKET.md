@@ -2,9 +2,9 @@
 
 - Lane: `feat-commands`
 - Branch: `codex/feat-commands`
-- Commit / review basis: actual `codex/feat-commands` branch tip for the `20260429T023547Z` reviewer-fix pass.
+- Commit / review basis: actual `codex/feat-commands` branch tip for the `20260429T023816Z` reviewer-fix pass.
 - Previous implementation anchor: `f8d860ed9f6299f0169c4f21321ac5f37c949fd3`
-- Reviewer packet addressed: `20260429T023547Z`
+- Reviewer packet addressed: `20260429T023816Z`
 
 ## Packet Traceability Note
 
@@ -150,6 +150,7 @@
 - `20260429T023318Z` pre-commit validation: exact `make scope-check` initially BLOCKED on the prior implementation-bearing `HEAD` because it included the approved shared-test edit `tests/unit/test_commands_catalog.py`; this metadata-only fixer pass moves the branch tip before the required final gate rerun.
 - `20260429T023318Z` final gate rerun: PASS for `make scope-check`; PASS for `./quality-format.sh --check`; PASS for `./quality-lint.sh`; PASS for `./quality-test.sh` with 150 tests; PASS for `./typecheck-test.sh`; PASS for `make ci`, including scope-check, format, lint, compileall/typecheck, and 150 tests.
 - `20260429T023547Z` final gate rerun: PASS for `make scope-check`; PASS for `./quality-format.sh --check`; PASS for `./quality-lint.sh`; PASS for `./quality-test.sh` with 150 tests; PASS for `./typecheck-test.sh`; PASS for `make ci`, including scope-check, format, lint, compileall/typecheck, and 150 tests.
+- `20260429T023816Z` final gate rerun: PASS for `make scope-check`; PASS for `./quality-format.sh --check`; PASS for `./quality-lint.sh`; PASS for `./quality-test.sh` with 150 tests; PASS for `./typecheck-test.sh`; PASS for `make ci`, including scope-check, format, lint, compileall/typecheck, and 150 tests.
 
 ## Risks / Blockers
 
@@ -387,3 +388,12 @@
 4. Required fix 4 is satisfied by the ownership notes above: shared-by-approval test edits are `YES` for `tests/unit/test_commands_catalog.py` and `tests/unit/test_diff_preview.py`, and integrator-locked edits are `NO`.
 5. Required fix 5 is satisfied by `Canonical Demo-Path Step Advanced`, which names the protected `open project/document`, `retrieve relevant material`, `promote/gather context`, and `preview/apply/reject patch` CLI smoke path.
 6. Required gates were rerun for this reviewer-fix pass and passed: `make scope-check`, `./quality-format.sh --check`, `./quality-lint.sh`, `./quality-test.sh`, `./typecheck-test.sh`, and `make ci`.
+
+## Reviewer Packet `20260429T023816Z` Fix Satisfaction
+
+1. Required fix 1 remains satisfied by the branch-tip `command_cli_contract()` implementation validating the exact parser-visible CLI token surface: canonical tokens, canonical lookup-table shape and order, grouped parser surface, declared surface, and canonical command order.
+2. Required fix 2 remains satisfied by focused tests that reject same-canonical parser drift, including `bootstrap` -> `open`, `diff-preview` -> `diff`, and `diff` -> `diff_preview` substitution surfaces, plus token addition, token removal, and token ordering drift.
+3. Required fix 3 is satisfied by using one review basis: the actual `codex/feat-commands` branch tip for this fixer pass, with files changed and gate results aligned to that basis.
+4. Required fix 4 remains satisfied by mapping the completed tasks to the protected canonical demo-path steps: `open project/document`, `retrieve relevant material`, `promote/gather context`, and `preview/apply/reject patch`.
+5. Required fix 5 remains satisfied by separating approved shared-by-approval test edits from integrator-locked edits; integrator-locked edits remain `NO`.
+6. Required gates were rerun for this fixer pass and passed: `make scope-check`, `./quality-format.sh --check`, `./quality-lint.sh`, `./quality-test.sh`, `./typecheck-test.sh`, and `make ci`.
