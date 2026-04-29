@@ -2,7 +2,7 @@
 
 - Branch/lane: `codex/feat-retrieval-fts` / `feat-retrieval-fts`
 - Packet purpose: branch-tip re-review packet for the actual merge candidate, including FTS-first retrieval, basket-promotion reference plumbing, and FTS strategy snapshot isolation.
-- Current branch-tip SHA before this fixer commit: `709d0f906e933ebb8528205fdb133b348a1e0786`.
+- Current branch-tip SHA before this fixer commit: `9be62f12dabd4d6aeb98c345f90b20deba4fb0da`.
 - Merge candidate: the branch tip after this fixer commit; final HEAD SHA is reported in the fixer final response.
 - Authoritative merge-review range: `378cf9a74a3658058079a32f186fcd254c4a4034..HEAD`.
 - Pre-fix packet HEAD: `709d0f906e933ebb8528205fdb133b348a1e0786`.
@@ -25,6 +25,8 @@ This advances: retrieve relevant material. The FTS-only excerpt contract makes c
 Reviewer-required traceability fix: this packet intentionally reviews `f26b3a6de39492e288fbdf8c2338dab64a6e61e5` as implementation scope in the actual branch-tip merge candidate; it is not classified as a metadata-only packet refresh.
 
 Current fixer reconciliation: the reviewer packet named `709d0f906e933ebb8528205fdb133b348a1e0786` as the stale branch tip. This handoff regenerates against the actual branch tip after this fixer commit. The candidate range remains `378cf9a74a3658058079a32f186fcd254c4a4034..HEAD`, and the runtime retrieval delta in that range is still the full 7-file branch-tip delta listed below.
+
+Fallback-review reconciliation: the reviewer fallback for `20260429T142935Z` requested resolution of missing failing-gate output and passing results. No code failure reproduced. The required gates were rerun against pre-fix branch head `9be62f12dabd4d6aeb98c345f90b20deba4fb0da`, all passed, and this packet records those results as the reviewer-required evidence for re-review.
 
 ## Code-Bearing Commits In Reviewed Scope
 
@@ -110,6 +112,15 @@ Required gates rerun against the actual branch-tip merge candidate after this pa
 - `make ci`: PASS; setup verification, scope-check, format, lint, compileall/typecheck, smoke, and 124 unit tests completed.
 
 Fallback-review fixer gate rerun against pre-fix branch head `d564761748b01f6b96e2bc3a329556032d604f5e`:
+
+- `make scope-check`: PASS; scope-check passed for branch `codex/feat-retrieval-fts`.
+- `./quality-format.sh --check`: PASS.
+- `./quality-lint.sh`: PASS; shell syntax and trailing whitespace checks passed.
+- `./quality-test.sh`: PASS; smoke plus 124 unit tests.
+- `./typecheck-test.sh`: PASS; Python sources in `src/` compile.
+- `make ci`: PASS; setup verification, scope-check, format, lint, compileall/typecheck, smoke, and 124 unit tests completed.
+
+Fallback-review fixer gate rerun against pre-fix branch head `9be62f12dabd4d6aeb98c345f90b20deba4fb0da`:
 
 - `make scope-check`: PASS; scope-check passed for branch `codex/feat-retrieval-fts`.
 - `./quality-format.sh --check`: PASS.
