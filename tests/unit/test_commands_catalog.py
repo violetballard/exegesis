@@ -168,6 +168,13 @@ class CommandCatalogTests(unittest.TestCase):
             with self.assertRaisesRegex(ValueError, "Command CLI canonical names are inconsistent"):
                 command_catalog.command_cli_contract()
 
+    def test_command_cli_contract_rejects_same_canonical_alias_drift(self) -> None:
+        self._clear_cli_caches()
+        drifted_entrypoints = ("bootstrap", "open", "diff-preview", "diff", "context-basket", "terminal")
+        with patch.object(command_catalog, "_CLI_ENTRYPOINTS", drifted_entrypoints):
+            with self.assertRaisesRegex(ValueError, "Command CLI parser surface is inconsistent"):
+                command_catalog.command_cli_contract()
+
     def test_command_cli_lookup_table_resolves_through_the_catalog(self) -> None:
         self.assertEqual(
             command_cli_lookup_table(),

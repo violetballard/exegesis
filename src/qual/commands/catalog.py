@@ -525,8 +525,11 @@ def command_cli_lookup_table() -> tuple[tuple[str, str], ...]:
 
 @lru_cache(maxsize=None)
 def command_cli_contract() -> CommandCliContract:
-    tokens = command_cli_tokens()
-    lookup_table = command_cli_lookup_table()
+    try:
+        tokens = command_cli_tokens()
+        lookup_table = command_cli_lookup_table()
+    except ValueError as exc:
+        raise ValueError("Command CLI parser surface is inconsistent") from exc
     actual_lookup_table = _actual_cli_parser_surface()
     raw_parser_tokens = _actual_cli_parser_tokens()
     expected_tokens = _DECLARED_CLI_ENTRYPOINTS
