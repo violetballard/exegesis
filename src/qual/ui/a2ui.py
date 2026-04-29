@@ -958,6 +958,7 @@ def _describe_a2ui_contract_fingerprints_cached(
             include_terminal_artifact_cli_fallback_route=include_terminal_artifact_cli_fallback_route,
             include_contract_aliases=include_contract_aliases,
         )
+        route_contract = describe_terminal_artifact_cli_fallback_route_contract()
         shell_ui_contract_fingerprint_value = shell_ui_contract_fingerprint(
             include_terminal_artifact_cli_fallback_route=include_terminal_artifact_cli_fallback_route,
             include_contract_aliases=include_contract_aliases,
@@ -1053,6 +1054,20 @@ def _describe_a2ui_contract_fingerprints_cached(
                 shell_ui_contract_fingerprints["terminal_artifact_cli_fallback_target_contract_fingerprint"],
             ),
         )
+        fingerprints["terminal_artifact_cli_fallback_route"] = route_contract["contract_fingerprint"]
+        fingerprints["terminal_artifact_cli_fallback_route_contract"] = route_contract["contract_fingerprint"]
+        fingerprints["terminal_artifact_cli_fallback_route_fingerprint"] = route_contract["contract_fingerprint"]
+        fingerprints["terminal_artifact_cli_fallback_route_contract_fingerprint"] = route_contract["contract_fingerprint"]
+        fingerprints["terminal_artifact_cli_fallback_route_contract_manifest"] = route_contract["contract_fingerprint"]
+        fingerprints["terminal_artifact_cli_fallback_route_contract_manifest_fingerprint"] = route_contract[
+            "contract_fingerprint"
+        ]
+        fingerprints["terminal_artifact_cli_fallback_route_contract_fingerprints"] = route_contract[
+            "contract_fingerprints_fingerprint"
+        ]
+        fingerprints["terminal_artifact_cli_fallback_route_contract_fingerprints_fingerprint"] = route_contract[
+            "contract_fingerprints_fingerprint"
+        ]
         fingerprints["terminal_artifact_cli_fallback_entrypoint"] = shell_ui_contract_fingerprints[
             "terminal_artifact_cli_fallback_entrypoint_fingerprint"
         ]
@@ -3574,6 +3589,31 @@ def _build_a2ui_contract_manifest(
         manifest["terminal_artifact_cli_fallback_target_contract_fingerprints_fingerprint"] = shell_ui_contract[
             "terminal_artifact_cli_fallback_target_contract_fingerprints_fingerprint"
         ]
+        if include_shell_ui_contract:
+            manifest["terminal_artifact_cli_fallback_route"] = _snapshot_contract_section(
+                shell_ui_contract["terminal_artifact_cli_fallback_route"]
+            )
+            manifest["terminal_artifact_cli_fallback_route_contract"] = _snapshot_contract_section(
+                shell_ui_contract["terminal_artifact_cli_fallback_route_contract"]
+            )
+            manifest["terminal_artifact_cli_fallback_route_contract_manifest"] = _snapshot_contract_section(
+                shell_ui_contract["terminal_artifact_cli_fallback_route_contract_manifest"]
+            )
+            manifest["terminal_artifact_cli_fallback_route_fingerprint"] = shell_ui_contract[
+                "terminal_artifact_cli_fallback_route_fingerprint"
+            ]
+            manifest["terminal_artifact_cli_fallback_route_contract_fingerprint"] = shell_ui_contract[
+                "terminal_artifact_cli_fallback_route_contract_fingerprint"
+            ]
+            manifest["terminal_artifact_cli_fallback_route_contract_manifest_fingerprint"] = shell_ui_contract[
+                "terminal_artifact_cli_fallback_route_contract_manifest_fingerprint"
+            ]
+            manifest["terminal_artifact_cli_fallback_route_contract_fingerprints"] = _snapshot_contract_section(
+                shell_ui_contract["terminal_artifact_cli_fallback_route_contract_fingerprints"]
+            )
+            manifest["terminal_artifact_cli_fallback_route_contract_fingerprints_fingerprint"] = shell_ui_contract[
+                "terminal_artifact_cli_fallback_route_contract_fingerprints_fingerprint"
+            ]
         terminal_artifact_cli_fallback_contract = _snapshot_contract_section(
             describe_terminal_artifact_cli_fallback_contract()
         )
@@ -3663,6 +3703,31 @@ def _build_a2ui_contract_manifest(
         manifest["terminal_artifact_cli_fallback_target_contract_fingerprints_fingerprint"] = (
             terminal_artifact_cli_fallback_target_contract["contract_fingerprints_fingerprint"]
         )
+        if include_shell_ui_contract:
+            manifest["terminal_artifact_cli_fallback_route"] = _snapshot_contract_section(
+                shell_ui_contract["terminal_artifact_cli_fallback_route"]
+            )
+            manifest["terminal_artifact_cli_fallback_route_contract"] = _snapshot_contract_section(
+                shell_ui_contract["terminal_artifact_cli_fallback_route_contract"]
+            )
+            manifest["terminal_artifact_cli_fallback_route_contract_manifest"] = _snapshot_contract_section(
+                shell_ui_contract["terminal_artifact_cli_fallback_route_contract_manifest"]
+            )
+            manifest["terminal_artifact_cli_fallback_route_fingerprint"] = shell_ui_contract[
+                "terminal_artifact_cli_fallback_route_fingerprint"
+            ]
+            manifest["terminal_artifact_cli_fallback_route_contract_fingerprint"] = shell_ui_contract[
+                "terminal_artifact_cli_fallback_route_contract_fingerprint"
+            ]
+            manifest["terminal_artifact_cli_fallback_route_contract_manifest_fingerprint"] = shell_ui_contract[
+                "terminal_artifact_cli_fallback_route_contract_manifest_fingerprint"
+            ]
+            manifest["terminal_artifact_cli_fallback_route_contract_fingerprints"] = _snapshot_contract_section(
+                shell_ui_contract["terminal_artifact_cli_fallback_route_contract_fingerprints"]
+            )
+            manifest["terminal_artifact_cli_fallback_route_contract_fingerprints_fingerprint"] = shell_ui_contract[
+                "terminal_artifact_cli_fallback_route_contract_fingerprints_fingerprint"
+            ]
     if include_terminal_artifact_cli_fallback_route:
         route_contract = describe_terminal_artifact_cli_fallback_route_contract()
         route_contract_snapshot = _snapshot_contract_section(route_contract)

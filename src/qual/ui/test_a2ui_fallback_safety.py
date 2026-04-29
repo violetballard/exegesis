@@ -3414,6 +3414,38 @@ class A2UIFallbackSafetyTests(unittest.TestCase):
             terminal_artifact_cli_fallback_contract_fingerprint(),
         )
         self.assertEqual(
+            manifest["terminal_artifact_cli_fallback_route"],
+            route_manifest,
+        )
+        self.assertEqual(
+            manifest["terminal_artifact_cli_fallback_route_contract"],
+            route_manifest,
+        )
+        self.assertEqual(
+            manifest["terminal_artifact_cli_fallback_route_contract_manifest"],
+            route_manifest,
+        )
+        self.assertEqual(
+            manifest["terminal_artifact_cli_fallback_route_fingerprint"],
+            route_manifest["contract_fingerprint"],
+        )
+        self.assertEqual(
+            manifest["terminal_artifact_cli_fallback_route_contract_fingerprint"],
+            route_manifest["contract_fingerprint"],
+        )
+        self.assertEqual(
+            manifest["terminal_artifact_cli_fallback_route_contract_manifest_fingerprint"],
+            route_manifest["contract_fingerprint"],
+        )
+        self.assertEqual(
+            manifest["terminal_artifact_cli_fallback_route_contract_fingerprints"],
+            route_manifest["contract_fingerprints"],
+        )
+        self.assertEqual(
+            manifest["terminal_artifact_cli_fallback_route_contract_fingerprints_fingerprint"],
+            route_manifest["contract_fingerprints_fingerprint"],
+        )
+        self.assertEqual(
             aliased_fingerprints["renderer_entrypoints_contract_manifest"],
             terminal_artifact_renderer_entrypoints_contract_fingerprint(),
         )
@@ -3780,6 +3812,26 @@ class A2UIFallbackSafetyTests(unittest.TestCase):
         self.assertEqual(
             aliased_fingerprints["card_hint_recovery_policy"],
             shell_manifest["contract_fingerprints"]["card_hint_recovery_policy"],
+        )
+        self.assertEqual(
+            aliased_fingerprints["terminal_artifact_cli_fallback_route"],
+            route_manifest["contract_fingerprint"],
+        )
+        self.assertEqual(
+            aliased_fingerprints["terminal_artifact_cli_fallback_route_contract"],
+            route_manifest["contract_fingerprint"],
+        )
+        self.assertEqual(
+            aliased_fingerprints["terminal_artifact_cli_fallback_route_contract_manifest"],
+            route_manifest["contract_fingerprint"],
+        )
+        self.assertEqual(
+            aliased_fingerprints["terminal_artifact_cli_fallback_route_contract_fingerprints"],
+            route_manifest["contract_fingerprints_fingerprint"],
+        )
+        self.assertEqual(
+            aliased_fingerprints["terminal_artifact_cli_fallback_route_contract_fingerprints_fingerprint"],
+            route_manifest["contract_fingerprints_fingerprint"],
         )
         self.assertEqual(
             manifest["contract_fingerprints"]["terminal_artifact_cli_fallback_route"],
