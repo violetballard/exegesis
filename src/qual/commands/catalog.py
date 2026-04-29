@@ -165,6 +165,17 @@ class CommandDemoPathContract:
     engine_actions: tuple[tuple[str, ...], ...] = ()
 
 
+@dataclass(frozen=True)
+class CommandDemoPathLookupContract:
+    """Stable indexes for CLI smoke checks and future A2UI command consumers."""
+
+    by_flow_step: tuple[tuple[str, CommandDemoPathStep], ...]
+    by_command_name: tuple[tuple[str, CommandDemoPathStep], ...]
+    by_cli_token: tuple[tuple[str, CommandDemoPathStep], ...]
+    action_lookup: tuple[tuple[str, tuple[str, ...]], ...]
+    handoff_lookup: tuple[tuple[str, str], ...]
+
+
 DEMO_PATH_ENGINE_HANDOFFS: dict[str, str] = {
     "project-open": "engine project bootstrap/open",
     "retrieval": "engine retrieval context selection",
@@ -1102,6 +1113,29 @@ def _validate_command_demo_path_contract(contract: CommandDemoPathContract) -> N
         raise ValueError("Command demo path patch review must expose apply/reject actions")
 
 
+def _validate_command_demo_path_lookup_contract(
+    contract: CommandDemoPathLookupContract,
+    *,
+    demo_path: CommandDemoPathContract,
+) -> None:
+    if contract.by_flow_step != tuple((step.flow_step, step) for step in demo_path.steps):
+        raise ValueError("Command demo path flow-step lookup is inconsistent")
+    if contract.by_command_name != tuple((step.name, step) for step in demo_path.steps):
+        raise ValueError("Command demo path command lookup is inconsistent")
+    if contract.by_cli_token != tuple((step.cli_token, step) for step in demo_path.steps):
+        raise ValueError("Command demo path CLI lookup is inconsistent")
+    if contract.action_lookup != tuple((step.flow_step, step.engine_actions) for step in demo_path.steps):
+        raise ValueError("Command demo path action lookup is inconsistent")
+    if contract.handoff_lookup != tuple((step.flow_step, step.engine_handoff) for step in demo_path.steps):
+        raise ValueError("Command demo path handoff lookup is inconsistent")
+    if len(dict(contract.by_flow_step)) != len(demo_path.steps):
+        raise ValueError("Command demo path flow-step lookup must be unique")
+    if len(dict(contract.by_command_name)) != len(demo_path.steps):
+        raise ValueError("Command demo path command lookup must be unique")
+    if len(dict(contract.by_cli_token)) != len(demo_path.steps):
+        raise ValueError("Command demo path CLI lookup must be unique")
+
+
 @lru_cache(maxsize=None)
 def command_flow_contract(
     specs: tuple[CommandSpec, ...] = COMMAND_SPECS,
@@ -1360,6 +1394,40 @@ def command_mvp_demo_path_engine_handoffs() -> tuple[str, ...]:
 
 def command_mvp_demo_path_engine_actions() -> tuple[tuple[str, ...], ...]:
     return command_mvp_demo_path_contract().engine_actions
+
+
+@lru_cache(maxsize=None)
+def command_mvp_demo_path_lookup_contract() -> CommandDemoPathLookupContract:
+    demo_path = command_mvp_demo_path_contract()
+    contract = CommandDemoPathLookupContract(
+        by_flow_step=tuple((step.flow_step, step) for step in demo_path.steps),
+        by_command_name=tuple((step.name, step) for step in demo_path.steps),
+        by_cli_token=tuple((step.cli_token, step) for step in demo_path.steps),
+        action_lookup=tuple((step.flow_step, step.engine_actions) for step in demo_path.steps),
+        handoff_lookup=tuple((step.flow_step, step.engine_handoff) for step in demo_path.steps),
+    )
+    _validate_command_demo_path_lookup_contract(contract, demo_path=demo_path)
+    return contract
+
+
+def command_mvp_demo_path_lookup_table() -> tuple[tuple[str, CommandDemoPathStep], ...]:
+    return command_mvp_demo_path_lookup_contract().by_flow_step
+
+
+def command_mvp_demo_path_command_lookup_table() -> tuple[tuple[str, CommandDemoPathStep], ...]:
+    return command_mvp_demo_path_lookup_contract().by_command_name
+
+
+def command_mvp_demo_path_cli_lookup_table() -> tuple[tuple[str, CommandDemoPathStep], ...]:
+    return command_mvp_demo_path_lookup_contract().by_cli_token
+
+
+def command_mvp_demo_path_action_lookup_table() -> tuple[tuple[str, tuple[str, ...]], ...]:
+    return command_mvp_demo_path_lookup_contract().action_lookup
+
+
+def command_mvp_demo_path_handoff_lookup_table() -> tuple[tuple[str, str], ...]:
+    return command_mvp_demo_path_lookup_contract().handoff_lookup
 
 
 @lru_cache(maxsize=None)
