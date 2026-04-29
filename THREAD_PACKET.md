@@ -2,19 +2,37 @@
 
 - Lane: `feat-commands`
 - Branch: `codex/feat-commands`
-- Commit: branch tip after fixer prompt `20260429T035003Z`
+- Commit: branch tip after fixer prompt `20260429T035313Z`
 - Review basis: branch tip after this fixer commit, not `f8d860ed9f6299f0169c4f21321ac5f37c949fd3` alone.
 - Prior implementation anchor: `f8d860ed9f6299f0169c4f21321ac5f37c949fd3`
 - Packet refresh role: reviewer-fix implementation and handoff correction
 
 ## Packet Traceability Note
 
-- Fixer prompt `20260429T035003Z` requested packet-only reviewer fixes for canonical demo-path mapping and complete metadata file accounting.
+- Fixer prompt `20260429T035313Z` requested reviewer-required fixes for branch-tip review-basis traceability, canonical demo-path mapping, complete metadata file accounting, and gate reruns.
 - The reviewable branch-tip implementation is narrowed to the command-catalog slice:
   - `src/qual/commands/catalog.py`
   - `tests/unit/test_commands_catalog.py`
 - `scripts/scope-check.sh` had drifted after `f8d860ed9f6299f0169c4f21321ac5f37c949fd3`; this fixer restores it to the submitted baseline so it is no longer a branch-tip implementation change.
 - `THREAD.md` and `THREAD_PACKET.md` are metadata-only handoff files.
+
+## Branch-Tip Review Basis
+
+- Review target: branch tip after fixer prompt `20260429T035313Z`.
+- Prior implementation anchor: `f8d860ed9f6299f0169c4f21321ac5f37c949fd3`.
+- Review range: `f8d860ed9f6299f0169c4f21321ac5f37c949fd3..HEAD`.
+- Matching `git diff --stat` scope:
+  - `THREAD.md` - 50 changed lines
+  - `THREAD_PACKET.md` - 200 changed lines
+  - `src/qual/commands/catalog.py` - 135 changed lines
+  - `tests/unit/test_commands_catalog.py` - 340 changed lines
+  - Total: 4 files changed, 656 insertions(+), 69 deletions(-)
+- Branch-tip implementation files:
+  - `src/qual/commands/catalog.py`
+  - `tests/unit/test_commands_catalog.py`
+- Branch-tip metadata-only files:
+  - `THREAD.md`
+  - `THREAD_PACKET.md`
 
 ## Current Program Focus
 
@@ -114,12 +132,13 @@
 - Metadata-only handoff edits: `THREAD.md`, `THREAD_PACKET.md`.
 - Shared/integrator-locked edits: `YES` only because the approved shared-test exception touches `tests/unit/test_commands_catalog.py`; no integrator-locked files are edited.
 
-## Required Fixes Addressed From Fixer Prompt `20260429T035003Z`
+## Required Fixes Addressed From Fixer Prompt `20260429T035313Z`
 
-1. Added explicit canonical demo-path mapping and stated which demo-path step is now more real.
-2. Updated the metadata-only files changed list to include both `THREAD.md` and `THREAD_PACKET.md`.
-3. Kept the reviewed implementation scope unchanged from the command-catalog slice.
-4. Reran all required gates after the packet correction.
+1. Regenerated the handoff packet against the actual merge target: branch tip after this fixer commit.
+2. Listed every changed file in the final review basis, including `THREAD.md` and `THREAD_PACKET.md`.
+3. Replaced the stale `f8d860ed9f6299f0169c4f21321ac5f37c949fd3`-only review note with an unambiguous branch-tip review range and matching `git diff --stat` scope.
+4. Added canonical demo-path mapping for each completed task and stated the demo-path step made more real.
+5. Reran all required gates after the final packet and review-basis correction.
 
 ## Commands Run + Outcomes
 
