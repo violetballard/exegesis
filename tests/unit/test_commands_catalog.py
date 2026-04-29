@@ -132,7 +132,6 @@ class CommandCatalogTests(unittest.TestCase):
         self.assertEqual(contract.tokens, command_cli_tokens())
         self.assertEqual(contract.canonical_names, command_names())
         self.assertEqual(contract.lookup_table, command_cli_lookup_table())
-        self.assertEqual(contract.tokens, command_catalog._DECLARED_CLI_ENTRYPOINTS)
         self.assertEqual(cli.command_parser_lookup_table(), command_cli_lookup_table())
 
     def test_command_cli_contract_rejects_actual_add_parser_token_drift(self) -> None:
@@ -153,11 +152,20 @@ class CommandCatalogTests(unittest.TestCase):
             with self.assertRaisesRegex(ValueError, "Command CLI parser surface is inconsistent"):
                 command_catalog.command_cli_contract()
 
-    def test_command_cli_contract_rejects_mutated_real_argparse_choices(self) -> None:
+    def test_command_cli_contract_rejects_actual_parser_extra_token_drift(self) -> None:
         self._clear_cli_caches()
         parser = cli._build_parser()
         choices = cli._command_subparser_action(parser).choices
-        choices["diff_preview"] = choices.pop("diff")
+        choices["diff-live"] = choices["diff-preview"]
+        with patch.object(cli, "_build_parser", return_value=parser):
+            with self.assertRaisesRegex(ValueError, "Command CLI parser surface is inconsistent"):
+                command_catalog.command_cli_contract()
+
+    def test_command_cli_contract_rejects_actual_parser_missing_token_drift(self) -> None:
+        self._clear_cli_caches()
+        parser = cli._build_parser()
+        choices = cli._command_subparser_action(parser).choices
+        choices.pop("terminal")
         with patch.object(cli, "_build_parser", return_value=parser):
             with self.assertRaisesRegex(ValueError, "Command CLI parser surface is inconsistent"):
                 command_catalog.command_cli_contract()
@@ -168,12 +176,13 @@ class CommandCatalogTests(unittest.TestCase):
             with self.assertRaisesRegex(ValueError, "Command CLI canonical names are inconsistent"):
                 command_catalog.command_cli_contract()
 
-    def test_command_cli_contract_rejects_same_canonical_alias_drift(self) -> None:
-        self._clear_cli_caches()
-        drifted_entrypoints = ("bootstrap", "open", "diff-preview", "diff", "context-basket", "terminal")
-        with patch.object(command_catalog, "_CLI_ENTRYPOINTS", drifted_entrypoints):
-            with self.assertRaisesRegex(ValueError, "Command CLI parser surface is inconsistent"):
-                command_catalog.command_cli_contract()
+    def test_command_cli_tokens_reject_duplicate_entrypoints(self) -> None:
+        specs = (
+            CommandSpec(name="bootstrap", aliases=("open",), flow_step="project-open", cli_tokens=("bootstrap",)),
+            CommandSpec(name="review", aliases=("patch",), flow_step="patch-review", cli_tokens=("bootstrap",)),
+        )
+        with self.assertRaisesRegex(ValueError, "Duplicate command CLI entrypoint: bootstrap"):
+            command_catalog.command_cli_tokens(specs)
 
     def test_command_cli_lookup_table_resolves_through_the_catalog(self) -> None:
         self.assertEqual(
@@ -183,9 +192,11 @@ class CommandCatalogTests(unittest.TestCase):
 
     def test_command_cli_tokens_reject_unknown_entrypoints(self) -> None:
         command_catalog.command_cli_tokens.cache_clear()
-        with patch.object(command_catalog, "_CLI_ENTRYPOINTS", ("bootstrap", "not-a-command")):
-            with self.assertRaisesRegex(ValueError, "Unknown CLI command entrypoint: not-a-command"):
-                command_catalog.command_cli_tokens()
+        specs = (
+            CommandSpec(name="bootstrap", aliases=("open",), flow_step="project-open", cli_tokens=("not-a-command",)),
+        )
+        with self.assertRaisesRegex(ValueError, "Unknown CLI command entrypoint: not-a-command"):
+            command_catalog.command_cli_tokens(specs)
 
     def test_command_cli_flow_contract_maps_parser_tokens_to_mvp_flow_steps(self) -> None:
         contract = command_cli_flow_contract()

@@ -16,7 +16,7 @@ Canonical demo-path step advanced: preserving the command surface that keeps `op
 
 1. Added the command catalog and canonical command helpers for CLI tokens, aliases, command lookup, flow lookup, demo-flow contracts, MVP-flow contracts, and smoke-route manifests.
    Canonical demo-path step advanced: `open project/document`, because bootstrap and command aliases are catalog-owned and validated from one source.
-2. Bound the live `src/qual/cli.py` argparse surface to the command catalog, including parser-token introspection used by contract tests.
+2. Bound the live `src/qual/cli.py` argparse surface to the command catalog, with parser construction and `command_cli_contract()` now sharing the catalog-owned `CommandSpec.cli_tokens` source and validating the real argparse choices.
    Canonical demo-path step advanced: `continue working`, because the CLI fallback now resumes through the same catalog-backed command surface.
 3. Exported command-catalog, flow-contract, MVP smoke-contract, route-summary, and canonical helper APIs from `src/qual/commands`.
    Canonical demo-path step advanced: `retrieve relevant material`, because `context-basket` smoke argv remains exported and parser-ready.
@@ -24,7 +24,9 @@ Canonical demo-path step advanced: preserving the command surface that keeps `op
    Canonical demo-path step advanced: `preview/apply/reject patch`, because patch previews now have stable text and JSON contracts.
 5. Updated `scripts/scope-check.sh` lane policy for current feature lanes and the approved `feat-commands` catalog test surface.
    Integration-readiness step advanced: the branch can report lane scope against the current MVP lane map.
-6. Added focused regression coverage for live parser-surface drift, same-canonical alias drift, MVP smoke exports, command flow contracts, and diff-preview JSON/fingerprint behavior.
+6. Added focused regression coverage for live parser-surface drift in both directions, duplicate CLI entrypoint rejection, MVP smoke exports, command flow contracts, and diff-preview JSON/fingerprint behavior.
+
+Fixer-required demo-path narrowing statement: this correction advances the CLI-first MVP loop by keeping `open project/document`, `retrieve/context basket`, `preview/apply/reject patch`, and `continue working` reachable from the actual argparse surface, not only from a duplicate catalog-side tuple.
 
 ## Files Changed
 
@@ -74,15 +76,15 @@ This is high-risk because `src/qual/cli.py` is shared-by-approval for `feat-comm
 ## Commands Run
 
 - Fresh `20260429T114445Z` fixer rerun against corrected full branch-tip review target:
-  `make scope-check` passed; `./quality-format.sh --check` passed; `./quality-lint.sh` passed; `./quality-test.sh` passed with smoke tests and `130` unit tests; `./typecheck-test.sh` passed; `make ci` passed with scope-check, format, lint, typecheck, smoke tests, and `130` unit tests.
+  `make scope-check` passed; `./quality-format.sh --check` passed; `./quality-lint.sh` passed; `./quality-test.sh` passed with smoke tests and `131` unit tests; `./typecheck-test.sh` passed; `make ci` passed with scope-check, format, lint, typecheck, smoke tests, and `131` unit tests.
 - `python -m unittest tests.unit.test_commands_catalog` - passed, `48` tests.
 - `python -m pytest tests/unit/test_commands_catalog.py -q` - failed because `pytest` is not installed in the active Python.
 - `make scope-check` - passed for branch `codex/feat-commands`.
 - `./quality-format.sh --check` - passed.
 - `./quality-lint.sh` - passed.
-- `./quality-test.sh` - passed, including smoke tests and `130` unit tests.
+- `./quality-test.sh` - passed, including smoke tests and `131` unit tests.
 - `./typecheck-test.sh` - passed, compiling Python sources in `src/`.
-- `make ci` - passed, including scope-check, format, lint, typecheck, smoke tests, and `130` unit tests.
+- `make ci` - passed, including scope-check, format, lint, typecheck, smoke tests, and `131` unit tests.
 
 ## Risks And Blockers
 

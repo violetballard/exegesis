@@ -11,6 +11,7 @@ class CommandSpec:
     aliases: tuple[str, ...] = ()
     description: str = ""
     flow_step: str = "general"
+    cli_tokens: tuple[str, ...] = ()
 
 
 @dataclass(frozen=True)
@@ -175,20 +176,24 @@ def _normalize_flow_steps(flow_steps: tuple[str, ...]) -> tuple[str, ...]:
     return tuple(_normalize_token(flow_step) for flow_step in flow_steps)
 
 
-def _validate_cli_entrypoints() -> None:
-    # Keep the parser surface explicit so the command contract stays deterministic.
+def _cli_tokens(spec: CommandSpec) -> tuple[str, ...]:
+    tokens = spec.cli_tokens or (spec.name,)
+    return tuple(_normalize_token(token) for token in tokens)
+
+
+def _validate_cli_entrypoints(specs: tuple[CommandSpec, ...] | None = None) -> None:
+    specs = COMMAND_SPECS if specs is None else specs
+    validate_command_catalog(specs)
     seen_entrypoints: set[str] = set()
-    for entrypoint in _CLI_ENTRYPOINTS:
-        normalized_entrypoint = _normalize_token(entrypoint)
-        if not normalized_entrypoint:
-            raise ValueError("Command CLI entrypoints must not be empty")
-        if normalized_entrypoint in seen_entrypoints:
-            raise ValueError(f"Duplicate command CLI entrypoint: {entrypoint}")
-        seen_entrypoints.add(normalized_entrypoint)
-        if command_spec_for(COMMAND_SPECS, entrypoint) is None:
-            raise ValueError(f"Unknown CLI command entrypoint: {entrypoint}")
-    if tuple(_CLI_ENTRYPOINTS) != _DECLARED_CLI_ENTRYPOINTS:
-        raise ValueError("Command CLI tokens are inconsistent")
+    for spec in specs:
+        for entrypoint in _cli_tokens(spec):
+            if not entrypoint:
+                raise ValueError("Command CLI entrypoints must not be empty")
+            if entrypoint in seen_entrypoints:
+                raise ValueError(f"Duplicate command CLI entrypoint: {entrypoint}")
+            seen_entrypoints.add(entrypoint)
+            if canonical_command_for(specs, entrypoint) != spec.name:
+                raise ValueError(f"Unknown CLI command entrypoint: {entrypoint}")
 
 
 def _command_cli_tokens_by_name() -> dict[str, tuple[str, ...]]:
@@ -212,43 +217,30 @@ COMMAND_SPECS: tuple[CommandSpec, ...] = (
         aliases=("open", "project-open", "project"),
         description="Run the project bootstrap flow.",
         flow_step="project-open",
+        cli_tokens=("bootstrap",),
     ),
     CommandSpec(
         name="diff-preview",
         aliases=("diff", "diff_preview"),
         description="Preview unified diff output.",
         flow_step="patch-review",
+        cli_tokens=("diff-preview", "diff"),
     ),
     CommandSpec(
         name="context-basket",
         aliases=("context", "basket"),
         description="Manage retrieval context basket items.",
         flow_step="retrieval",
+        cli_tokens=("context-basket",),
     ),
     CommandSpec(
         name="terminal",
         description="Run terminal export handoff routing.",
         flow_step="export-handoff",
+        cli_tokens=("terminal",),
     ),
 )
 
-# Keep the parser surface explicit: only these tokens are accepted by the current CLI.
-# Each token must resolve through the command catalog so the surface cannot drift.
-_CANONICAL_CLI_COMMAND_SURFACE: tuple[tuple[str, tuple[str, ...]], ...] = (
-    ("bootstrap", ("bootstrap",)),
-    ("diff-preview", ("diff-preview", "diff")),
-    ("context-basket", ("context-basket",)),
-    ("terminal", ("terminal",)),
-)
-_DECLARED_CLI_ENTRYPOINTS: tuple[str, ...] = tuple(
-    entrypoint for _, entrypoints in _CANONICAL_CLI_COMMAND_SURFACE for entrypoint in entrypoints
-)
-_CANONICAL_CLI_PARSER_SURFACE: tuple[tuple[str, str], ...] = tuple(
-    (entrypoint, canonical_name)
-    for canonical_name, entrypoints in _CANONICAL_CLI_COMMAND_SURFACE
-    for entrypoint in entrypoints
-)
-_CLI_ENTRYPOINTS: tuple[str, ...] = _DECLARED_CLI_ENTRYPOINTS
 DEMO_COMMAND_FLOW_STEPS: tuple[str, ...] = (
     "project-open",
     "retrieval",
@@ -509,21 +501,42 @@ def command_lookup_table(specs: tuple[CommandSpec, ...] = COMMAND_SPECS) -> tupl
 
 
 @lru_cache(maxsize=None)
-def command_cli_tokens() -> tuple[str, ...]:
-    _validate_cli_entrypoints()
-    return tuple(_CLI_ENTRYPOINTS)
+def command_cli_tokens(specs: tuple[CommandSpec, ...] = COMMAND_SPECS) -> tuple[str, ...]:
+    _validate_cli_entrypoints(specs)
+    return tuple(token for spec in specs for token in _cli_tokens(spec))
 
 
 @lru_cache(maxsize=None)
-def command_cli_lookup_table() -> tuple[tuple[str, str], ...]:
-    _validate_cli_entrypoints()
+def command_cli_lookup_table(
+    specs: tuple[CommandSpec, ...] = COMMAND_SPECS,
+) -> tuple[tuple[str, str], ...]:
+    _validate_cli_entrypoints(specs)
     lookup_table: list[tuple[str, str]] = []
-    for entrypoint in _CLI_ENTRYPOINTS:
+    for spec in specs:
+        for entrypoint in _cli_tokens(spec):
+            lookup_table.append((entrypoint, spec.name))
+    return tuple(lookup_table)
+
+
+def _parser_cli_lookup_table() -> tuple[tuple[str, str], ...]:
+    try:
+        return _actual_cli_parser_surface()
+    except ValueError as exc:
+        raise ValueError("Command CLI parser surface is inconsistent") from exc
+
+
+def _validate_cli_contract_lookup_table(
+    lookup_table: tuple[tuple[str, str], ...],
+    parser_lookup_table: tuple[tuple[str, str], ...],
+) -> None:
+    if parser_lookup_table != lookup_table:
+        raise ValueError("Command CLI parser surface is inconsistent")
+    for entrypoint, canonical_name in parser_lookup_table:
         spec = command_spec_for(COMMAND_SPECS, entrypoint)
         if spec is None:
             raise ValueError(f"Unknown CLI command entrypoint: {entrypoint}")
-        lookup_table.append((entrypoint, spec.name))
-    return tuple(lookup_table)
+        if spec.name != canonical_name:
+            raise ValueError("Command CLI parser surface is inconsistent")
 
 
 @lru_cache(maxsize=None)
@@ -533,18 +546,12 @@ def command_cli_contract() -> CommandCliContract:
         lookup_table = command_cli_lookup_table()
     except ValueError as exc:
         raise ValueError("Command CLI parser surface is inconsistent") from exc
-    actual_lookup_table = _actual_cli_parser_surface()
-    raw_parser_tokens = _actual_cli_parser_tokens()
-    expected_tokens = _DECLARED_CLI_ENTRYPOINTS
-    expected_lookup_table = _CANONICAL_CLI_PARSER_SURFACE
-    if tokens != expected_tokens or tuple(_CLI_ENTRYPOINTS) != expected_tokens:
+    parser_lookup_table = _parser_cli_lookup_table()
+    if tuple(token for token, _ in parser_lookup_table) != tokens:
         raise ValueError("Command CLI parser surface is inconsistent")
-    if lookup_table != expected_lookup_table:
-        raise ValueError("Command CLI parser surface is inconsistent")
-    if actual_lookup_table != expected_lookup_table or raw_parser_tokens != expected_tokens:
-        raise ValueError("Command CLI parser surface is inconsistent")
+    _validate_cli_contract_lookup_table(lookup_table, parser_lookup_table)
     canonical_names = command_names()
-    if canonical_names != tuple(canonical_name for canonical_name, _ in _CANONICAL_CLI_COMMAND_SURFACE):
+    if canonical_names != tuple(dict.fromkeys(canonical_name for _, canonical_name in lookup_table)):
         raise ValueError("Command CLI canonical names are inconsistent")
     return CommandCliContract(
         tokens=tokens,
