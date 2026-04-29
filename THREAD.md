@@ -27,7 +27,7 @@ Canonical handoff contract lives in `THREAD_PACKET.md`.
 - Approved shared-by-approval test edits: `tests/unit/test_commands_catalog.py`, `tests/unit/test_diff_preview.py`.
 - Shared-by-approval edits: yes, `tests/unit/test_commands_catalog.py` and `tests/unit/test_diff_preview.py` under approved exception.
 - Integrator-locked edits: no.
-- Gate-policy edits: no net review change after this fixer pass; `scripts/scope-check.sh` matches the current `main` scope-policy baseline.
+- Gate-policy edits: no net review change after this fixer pass; `scripts/scope-check.sh` matches the branch review baseline and is absent from the net `main...HEAD` review diff.
 - Metadata-only handoff files: `THREAD.md`, `THREAD_PACKET.md`.
 
 ## Canonical Demo-Path Mapping
@@ -39,4 +39,4 @@ Canonical handoff contract lives in `THREAD_PACKET.md`.
 1. Review basis now points to the current branch tip instead of a stale `f8d860e` slice.
 2. Post-`f8d860e` implementation and test commits are included in review rather than classified as metadata-only.
 3. Parser-surface drift coverage includes added aliases, removed aliases, same-canonical substitutions, token reordering, lookup-table shape/order drift, and declared-surface drift.
-4. Ownership/accounting lists the approved shared test edits and keeps `scripts/scope-check.sh` out of the net review diff against the current `main` baseline.
+4. Ownership/accounting lists the approved shared test edits and keeps `scripts/scope-check.sh` out of the net `main...HEAD` review diff.
