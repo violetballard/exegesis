@@ -99,10 +99,10 @@
 
 ## Tasks Completed
 
-1. Hardened `command_cli_contract()` to verify the parser surface against the canonical CLI surface and reject parser/catalog drift for the `project-open`, `retrieval`, `patch-review`, and `export-handoff` CLI smoke path.
-2. Preserved canonical command ordering in the CLI contract by returning names aligned with `command_names()` for `bootstrap`, `diff-preview`, `context-basket`, and `terminal`.
-3. Added regression coverage for added aliases, removed aliases, same-canonical substitutions, token reordering, lookup-table shape/order drift, and declared-surface drift, including `open` for the `project-open` step and both `diff` and `diff_preview` replacement drift for the `patch-review` step.
-4. Reconciled the branch-tip packet/accounting for `THREAD.md`, `THREAD_PACKET.md`, `src/qual/commands/__init__.py`, `src/qual/commands/canonical.py`, `src/qual/commands/catalog.py`, `src/qual/commands/diff_preview.py`, `tests/unit/test_commands_catalog.py`, and `tests/unit/test_diff_preview.py`, and kept the unrelated `scripts/scope-check.sh` scope-policy edit out of the net `main...HEAD` review diff.
+1. Hardened `command_cli_contract()` to verify the parser surface against the canonical CLI surface and reject parser/catalog drift for the `project-open`, `retrieval`, `patch-review`, and `export-handoff` CLI smoke path; this protects `open project/document`, `retrieve relevant material`, `promote/gather context`, and `preview/apply/reject patch`.
+2. Preserved canonical command ordering in the CLI contract by returning names aligned with `command_names()` for `bootstrap`, `diff-preview`, `context-basket`, and `terminal`; this protects deterministic CLI smoke execution for `open project/document`, `retrieve relevant material`, `promote/gather context`, and `preview/apply/reject patch`.
+3. Added regression coverage for added aliases, removed aliases, same-canonical substitutions, token reordering, lookup-table shape/order drift, and declared-surface drift, including `open` for the `project-open` step and both `diff` and `diff_preview` replacement drift for the `patch-review` step; this protects the `open project/document` and `preview/apply/reject patch` demo-path command routes from silent parser drift.
+4. Reconciled the branch-tip packet/accounting for `THREAD.md`, `THREAD_PACKET.md`, `src/qual/commands/__init__.py`, `src/qual/commands/canonical.py`, `src/qual/commands/catalog.py`, `src/qual/commands/diff_preview.py`, `tests/unit/test_commands_catalog.py`, and `tests/unit/test_diff_preview.py`, and kept the unrelated `scripts/scope-check.sh` scope-policy edit out of the net `main...HEAD` review diff; this protects review traceability for the canonical demo-path steps named above.
 
 ## Files Changed
 
@@ -327,7 +327,7 @@
 
 ## Reviewer Packet `20260429T021537Z` Fix Satisfaction
 
-1. Required fix 1 is satisfied by the task list above: each completed task now names the protected canonical demo-path command steps, including `project-open`, `retrieval`, `patch-review`, and `export-handoff`.
-2. Required fix 2 is satisfied by the canonical demo-path statement above: this work makes the open/retrieve/basket/patch-review CLI smoke path more real by keeping the parser-visible command contract deterministic and failing fast on parser/catalog drift.
-3. Required fix 3 is satisfied by the ownership note above: approved shared-by-approval test edits are listed separately, and integrator-locked edits are `NO`.
-4. Required fix 4 is satisfied by regenerating the handoff packet against the actual branch tip because later command/test commits are implementation-bearing.
+1. Required fix 1 is satisfied by the `Tasks Completed` list above: every completed task now names the canonical demo-path step it protects or advances.
+2. Required fix 2 is satisfied by the concise statement in `Canonical Demo-Path Step Advanced`: this work makes `open project/document`, `retrieve relevant material`, `promote/gather context`, and `preview/apply/reject patch` more real by guaranteeing the parser-visible CLI tokens stay aligned with the command catalog before the contract is returned.
+3. Required fix 3 is satisfied by the ownership notes above: shared-by-approval test edits are `YES` for `tests/unit/test_commands_catalog.py` and `tests/unit/test_diff_preview.py`, and integrator-locked edits are `NO`.
+4. Required fix 4 is satisfied by regenerating the packet against the actual `codex/feat-commands` branch tip for this reviewer-fix pass; post-`f8d860ed9f6299f0169c4f21321ac5f37c949fd3` command/test commits remain implementation-bearing and included in the review basis.

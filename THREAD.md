@@ -6,7 +6,7 @@ Canonical handoff contract lives in `THREAD_PACKET.md`.
 
 - Lane: `feat-commands`
 - Branch: `codex/feat-commands`
-- Review basis: actual `codex/feat-commands` branch tip for the `20260429T021315Z` reviewer-fix pass.
+- Review basis: actual `codex/feat-commands` branch tip for the `20260429T021537Z` reviewer-fix pass.
 - Previous implementation anchor: `f8d860ed9f6299f0169c4f21321ac5f37c949fd3`
 - Scope: command-catalog contract hardening for the current engine-first MVP focus without starting `feat-console`.
 - Roadmap alignment: Milestone 3 CLI compatibility for the engine-first workflow loop, and `feat-commands` as the command-surface compatibility lane.
@@ -112,3 +112,10 @@ Canonical handoff contract lives in `THREAD_PACKET.md`.
 4. Required fix 4 remains satisfied by the canonical demo-path mapping in `THREAD_PACKET.md`, which names `open project/document`, `retrieve relevant material`, `promote/gather context`, and `preview/apply/reject patch`.
 5. Required fix 5 remains satisfied by separating approved shared-by-approval test edits from integrator-locked edits; integrator-locked edits remain `NO`.
 6. Required gates were rerun for this fixer pass and passed: `make scope-check`, `./quality-format.sh --check`, `./quality-lint.sh`, `./quality-test.sh`, `./typecheck-test.sh`, and `make ci`.
+
+## Reviewer Packet `20260429T021537Z` Fix Satisfaction
+
+1. `THREAD_PACKET.md` now maps each completed task to the protected canonical demo-path command steps: `project-open`, `retrieval`, `patch-review`, and `export-handoff`.
+2. The packet includes the concise statement that this work makes `open project/document`, `retrieve relevant material`, `promote/gather context`, and `preview/apply/reject patch` more real by guaranteeing parser-visible CLI tokens stay aligned with the command catalog.
+3. The ownership note separates approved shared-by-approval test edits from integrator-locked edits; integrator-locked edits remain `NO`.
+4. The packet keeps the review basis on the actual branch tip because post-`f8d860ed9f6299f0169c4f21321ac5f37c949fd3` command/test commits are implementation-bearing.
