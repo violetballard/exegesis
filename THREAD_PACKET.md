@@ -4,7 +4,7 @@
 - Branch: `codex/feat-commands`
 - Review target: current branch tip `codex/feat-commands`.
 - Review basis: full branch-tip diff from merge base `06cdebc2d5d53533b73f264a4bbf5a4b4daacb27..HEAD` (`git diff --name-status` and `git diff --stat`).
-- Fixer prompts satisfied: `20260429T152044Z`, `20260429T152842Z`, `20260429T154016Z`, `20260429T154607Z`, `20260429T155155Z`, `20260429T155636Z`, `20260429T160222Z`, `20260429T161403Z`, `20260429T161853Z`, `20260429T162401Z`, `20260429T162824Z`, `20260429T163215Z`, `20260429T163501Z`, `20260429T164041Z`, `20260429T164708Z`, `20260429T164803Z`
+- Fixer prompts satisfied: `20260429T152044Z`, `20260429T152842Z`, `20260429T154016Z`, `20260429T154607Z`, `20260429T155155Z`, `20260429T155636Z`, `20260429T160222Z`, `20260429T161403Z`, `20260429T161853Z`, `20260429T162401Z`, `20260429T162824Z`, `20260429T163215Z`, `20260429T163501Z`, `20260429T164041Z`, `20260429T164708Z`, `20260429T164803Z`, `20260429T165418Z`
 
 This packet uses the current branch tip as the only review target. The review basis is the full diff from merge base `06cdebc2d5d53533b73f264a4bbf5a4b4daacb27` to `HEAD`; no implementation or test commits are excluded from the merge target. Commit `9d0c82ccdfa74d8daf33d98ce410fd599bf45609` is not metadata-only: it changes `src/qual/commands/catalog.py` and `tests/unit/test_commands_catalog.py` as well as `THREAD.md` and `THREAD_PACKET.md`. The previous packet refresh commit `c65bfe07cc2b48aa35b3552774da12178d0e51bc4` and reviewed-tip refresh `e233e4733c186a4843c4c1b4cd90a20c860f7118` are metadata-only and change `THREAD.md` and `THREAD_PACKET.md`.
 
@@ -21,6 +21,7 @@ This packet uses the current branch tip as the only review target. The review ba
 9. The `20260429T164041Z` reviewer packet is satisfied against the current branch tip: the review target is not narrowed to `f8d860ed9f6299f0169c4f21321ac5f37c949fd3`, and the post-`f8d860e` delta is explicitly accounted for below.
 10. The `20260429T164708Z` reviewer packet is satisfied by keeping the current branch tip as the review target, listing every post-`f8d860e` implementation/test file, adding an explicit `src/qual/cli.py` shared-file approval note, restating the canonical demo-path impact, and rerunning the required gates against this exact branch tip.
 11. The `20260429T164803Z` reviewer packet repeats the branch-tip traceability requirements; this packet keeps the current branch tip as the submitted merge target, retains the post-`f8d860e` file list and `src/qual/cli.py` approval note, restates that this work makes `retrieve relevant material` more real, and records a fresh full gate rerun against this exact tip.
+12. The `20260429T165418Z` reviewer packet is satisfied against the actual `codex/feat-commands` branch tip, not the historical `f8d860e` slice. The packet lists every post-`f8d860e` implementation/test file, names `src/qual/cli.py` as shared-by-approval and integrator-locked, maps each completed task to AGENTS canonical demo-path wording, and records the required gates for this submitted target.
 
 ## Implementation Summary
 
@@ -168,6 +169,7 @@ Fresh fixer rerun for `20260429T163501Z` keeps the current branch tip as the sin
 Fresh fixer rerun for `20260429T164041Z` keeps the current branch tip as the single review target, records the post-`f8d860e` branch-tip delta, names the recent non-metadata parser-surface commits, preserves the explicit `src/qual/cli.py` shared/integrator approval note, and reruns the full required gate set after this packet correction.
 Fresh fixer rerun for `20260429T164708Z` keeps the current branch tip as the single review target, lists every implementation/test file changed after `f8d860e`, adds the explicit `src/qual/cli.py` shared-file approval note, restates that this work makes `retrieve relevant material` more real, and reruns the full required gate set after this packet correction.
 Fresh fixer rerun for `20260429T164803Z` keeps the current branch tip as the single review target, confirms every post-`f8d860e` implementation/test file is listed, preserves the explicit `src/qual/cli.py` shared-file approval note, restates that this work makes `retrieve relevant material` more real, and reruns the full required gate set after this packet correction.
+Fresh fixer rerun for `20260429T165418Z` keeps the actual branch tip as the sole review target, explicitly includes `src/qual/cli.py`, `src/qual/commands/__init__.py`, `src/qual/commands/catalog.py`, and `tests/unit/test_commands_catalog.py` in the post-`f8d860e` implementation/test file list, preserves the `src/qual/cli.py` shared/integrator-locked approval rationale, maps each numbered task to the AGENTS canonical demo path, and reruns `make scope-check`, `./quality-format.sh --check`, `./quality-lint.sh`, `./quality-test.sh`, `./typecheck-test.sh`, and `make ci` against this exact submitted branch-tip target.
 
 ## Risks And Blockers
 
