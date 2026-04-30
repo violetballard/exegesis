@@ -142,6 +142,20 @@ def _stable_fingerprint(payload: object) -> str:
     return hashlib.sha256(serialized.encode("utf-8")).hexdigest()
 
 
+def _context_bundle_fingerprint(bundle: dict[str, object]) -> str:
+    payload = copy.deepcopy(bundle)
+    payload.pop("context_bundle_fingerprint", None)
+    payload.pop("audit_ref", None)
+    downstream_payload = payload.get("retrieval_downstream_payload")
+    if isinstance(downstream_payload, dict):
+        downstream_payload.pop("audit_ref", None)
+        diagnostics = downstream_payload.get("retrieval_diagnostics")
+        if isinstance(diagnostics, dict):
+            diagnostics.pop("elapsed_ms_total", None)
+            diagnostics.pop("elapsed_ms_by_strategy", None)
+    return _stable_fingerprint(payload)
+
+
 def _normalized_query_text(value: object) -> str | None:
     text = _normalize_optional_text(value)
     if text is None:
@@ -680,7 +694,7 @@ def _build_retrieval_context_bundle_from_source_bundle(source_bundle: dict[str, 
     if not isinstance(retrieval_provenance, dict):
         retrieval_provenance = _build_retrieval_provenance_from_payload(source_bundle)
     basket_promotion_items = _basket_promotion_items_from_snapshot(source_bundle)
-    return {
+    bundle = {
         # Source-bundle-only reconstruction keeps the top-level context auditless.
         "audit_ref": None,
         "result_fingerprint": source_bundle.get("result_fingerprint"),
@@ -697,6 +711,8 @@ def _build_retrieval_context_bundle_from_source_bundle(source_bundle: dict[str, 
             basket_promotion_items=basket_promotion_items,
         ),
     }
+    bundle["context_bundle_fingerprint"] = _context_bundle_fingerprint(bundle)
+    return bundle
 
 
 def _build_retrieval_bundle_context_from_payload(payload: dict[str, object]) -> dict[str, object]:
@@ -813,7 +829,7 @@ def _build_retrieval_context_bundle_from_payload(payload: dict[str, object]) -> 
         payload,
         basket_promotion_items=basket_promotion_items,
     )
-    return {
+    bundle = {
         "audit_ref": payload.get("audit_ref"),
         "result_fingerprint": payload.get("result_fingerprint"),
         "retrieval_downstream_payload": copy.deepcopy(payload),
@@ -826,6 +842,8 @@ def _build_retrieval_context_bundle_from_payload(payload: dict[str, object]) -> 
         "basket_promotion_items": basket_promotion_items,
         "basket_item_ids": basket_item_ids,
     }
+    bundle["context_bundle_fingerprint"] = _context_bundle_fingerprint(bundle)
+    return bundle
 
 
 def _build_retrieval_diagnostics_from_source_bundle(source_bundle: dict[str, object]) -> dict[str, object]:

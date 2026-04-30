@@ -23,6 +23,7 @@ from src.qual.engine.retrieval import (
     retrieval_policy_snapshot,
 )
 from src.qual.engine.retrieval.interface import StrategyRun
+from src.qual.engine.retrieval.payload import _context_bundle_fingerprint
 from src.qual.metrics.crypto import decrypt_bytes, encrypt_bytes
 
 _RETRIEVAL_DIR = ".retrieval"
@@ -490,7 +491,7 @@ class RetrievalResult:
 
         downstream_payload = self.to_downstream_payload()
         basket_promotion_items = self.basket_promotion_items()
-        return {
+        bundle = {
             "audit_ref": self.audit_ref,
             "result_fingerprint": self.result_fingerprint,
             "retrieval_downstream_payload": copy.deepcopy(downstream_payload),
@@ -503,6 +504,8 @@ class RetrievalResult:
             "basket_promotion_items": copy.deepcopy(basket_promotion_items),
             "basket_item_ids": [str(item["item_id"]) for item in basket_promotion_items],
         }
+        bundle["context_bundle_fingerprint"] = _context_bundle_fingerprint(bundle)
+        return bundle
 
     def basket_promotion_items(self) -> list[dict[str, object]]:
         """Return deterministic excerpt references ready for context-basket promotion."""

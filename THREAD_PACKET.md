@@ -4,13 +4,13 @@
 - Lane: `feat-retrieval-fts`
 - Merge target: current `main`
 - Merge-base for re-review: `fd2ab6ca65ec2f93d1334c9b7df8512439725be4`
-- Branch tip before this required-fixes packet edit: `2ad0e2489a4e8eab6f81d07f335c65f3bfd65838`
-- Prior fixer branch tip before this required-fixes pass: `2ad0e2489a4e8eab6f81d07f335c65f3bfd65838`
+- Branch tip before this context-fingerprint pass: `667ebceeec02188105ccfe4def172740f836f483`
+- Prior fixer branch tip before this required-fixes pass: `667ebceeec02188105ccfe4def172740f836f483`
 - Final branch tip: reported in the fixer deliverable after this packet commit is created.
 - Authoritative reviewed range / complete merge candidate: `fd2ab6ca65ec2f93d1334c9b7df8512439725be4..HEAD`
 - Reviewer-reported stale reviewed range: `378cf9a74..adfa8cdadd43747ffbcb612e4151e262b13e52ca`
 - Full post-stale-anchor delta classified by this packet: `adfa8cdadd43747ffbcb612e4151e262b13e52ca..HEAD`
-- Current required-fixes packet delta covered by this packet: `2ad0e2489a4e8eab6f81d07f335c65f3bfd65838..HEAD`
+- Current context-fingerprint delta covered by this packet: `667ebceeec02188105ccfe4def172740f836f483..HEAD`
 - Scope classification: high-risk retrieval work because approved shared regression coverage in `tests/unit/test_unified_retrieval.py` is part of the reviewed candidate.
 
 ## Scope Completed
@@ -33,7 +33,7 @@ The reviewer-cited commit `c2741f8e58b59e8e37240b2271b9b68bbf6141ec` is therefor
 - `src/qual/retrieval/service.py`
 - `tests/unit/test_unified_retrieval.py`
 
-The merge candidate advances FTS-first retrieval by normalizing engine retrieval boolean constraints and query text/scope snapshots, keeping FTS cache and query snapshots deterministic, carrying date-range constraints into derived FTS shortlist queries and basket-promotion refs, preserving basket-promotion references and provenance, carrying promotion-ready excerpt text/title hints and query context into retrieval evidence fallbacks, deriving missing query fingerprints from canonical query snapshots during sparse payload reconstruction, normalizing sparse source-bundle query snapshots with the same text, scope, intent, confidentiality, max-results, doc-type, citation, section-hint, and exact-match rules used by canonical query fingerprints, adding query/result fingerprints to standalone doc and excerpt citation rows, invalidating stale FTS cache state on document updates, falling back from invalid direct context snapshots to canonical source/payload reconstruction, normalizing reconstructed basket item IDs to stable text IDs for downstream basket gathering, and falling back to excerpt IDs for sparse promotion refs that do not carry item IDs.
+The merge candidate advances FTS-first retrieval by normalizing engine retrieval boolean constraints and query text/scope snapshots, keeping FTS cache and query snapshots deterministic, carrying date-range constraints into derived FTS shortlist queries and basket-promotion refs, preserving basket-promotion references and provenance, carrying promotion-ready excerpt text/title hints and query context into retrieval evidence fallbacks, deriving missing query fingerprints from canonical query snapshots during sparse payload reconstruction, normalizing sparse source-bundle query snapshots with the same text, scope, intent, confidentiality, max-results, doc-type, citation, section-hint, and exact-match rules used by canonical query fingerprints, adding query/result fingerprints to standalone doc and excerpt citation rows, invalidating stale FTS cache state on document updates, falling back from invalid direct context snapshots to canonical source/payload reconstruction, normalizing reconstructed basket item IDs to stable text IDs for downstream basket gathering, falling back to excerpt IDs for sparse promotion refs that do not carry item IDs, and adding deterministic context-bundle fingerprints for live and reconstructed retrieval context snapshots.
 
 The candidate stays inside the active MVP note: FTS-first retrieval, deterministic provenance/excerpts, and basket/workflow-ready structured payloads. It does not include packet-tooling changes, router/provider changes, or Textual UI console work.
 
@@ -41,7 +41,7 @@ The candidate stays inside the active MVP note: FTS-first retrieval, determinist
 
 1. Canonical demo-path step advanced: `retrieve relevant material`. Normalize engine facade query constraints, boolean flags, date ranges, doc types, required query text/scope snapshots, and derived FTS shortlist snapshots so repeated FTS retrieval is deterministic without cached hit reuse.
 2. Canonical demo-path step advanced: `retrieve relevant material`. Keep SQLite FTS authoritative for excerpt lookup, reject non-FTS excerpt normalization, preserve ranked IDs, document identities, confidentiality profiles, section hints, and excerpt provenance.
-3. Canonical demo-path step advanced: `retrieve relevant material`; supports `promote or gather context into the basket`. Preserve basket-promotion refs, stable text item IDs, citation refs, provenance fingerprints, source/context bundles, excerpt text, title hints, normalized loose query snapshots, date-range context, query fingerprints, and result fingerprints during sparse payload, provenance, citation, and context-bundle reconstruction so retrieved material stays stable for downstream basket gathering, including sparse excerpt promotion refs that omit `item_id`.
+3. Canonical demo-path step advanced: `retrieve relevant material`; supports `promote or gather context into the basket`. Preserve basket-promotion refs, stable text item IDs, citation refs, provenance fingerprints, source/context bundle fingerprints, excerpt text, title hints, normalized loose query snapshots, date-range context, query fingerprints, and result fingerprints during sparse payload, provenance, citation, and context-bundle reconstruction so retrieved material stays stable for downstream basket gathering, including sparse excerpt promotion refs that omit `item_id`.
 4. Canonical demo-path step advanced: `retrieve relevant material`; supports `promote or gather context into the basket`. Harden cache invalidation and fallback reconstruction for document updates, sparse direct context snapshots, and generic context-bundle helpers while keeping PageIndex and embeddings fallback-only. Identical queries after `add_or_update_document` now retrieve updated FTS material rather than stale cached excerpts.
 
 ## Canonical Demo Path
@@ -56,12 +56,12 @@ Complete source/test implementation files for `fd2ab6ca65ec2f93d1334c9b7df851243
 
 - `src/qual/engine/retrieval/__init__.py` - lane-owned retrieval facade/export behavior via `src/qual/engine/retrieval/**`; maps to `retrieve relevant material`.
 - `src/qual/engine/retrieval/fts_strategy.py` - lane-owned FTS retrieval strategy and cache behavior via `src/qual/engine/retrieval/**`; maps to `retrieve relevant material`.
-- `src/qual/engine/retrieval/payload.py` - lane-owned retrieval payload construction, sparse query fingerprint derivation, and sparse basket item ID reconstruction via `src/qual/engine/retrieval/**`; maps to `retrieve relevant material` and `promote or gather context into the basket`.
-- `src/qual/retrieval/service.py` - lane-owned retrieval service behavior and standalone citation fingerprints via `src/qual/retrieval/**`; maps to `retrieve relevant material`.
+- `src/qual/engine/retrieval/payload.py` - lane-owned retrieval payload construction, sparse query fingerprint derivation, sparse basket item ID reconstruction, and reconstructed context-bundle fingerprinting via `src/qual/engine/retrieval/**`; maps to `retrieve relevant material` and `promote or gather context into the basket`.
+- `src/qual/retrieval/service.py` - lane-owned retrieval service behavior, standalone citation fingerprints, and live context-bundle fingerprinting via `src/qual/retrieval/**`; maps to `retrieve relevant material`.
 - `tests/unit/test_unified_retrieval.py` - shared-by-approval regression coverage for the canonical retrieval contract; maps to `retrieve relevant material` and `promote or gather context into the basket`.
 - `THREAD_PACKET.md` - authoritative handoff packet required by `INTEGRATION.md`.
 
-Source/test implementation stat for `fd2ab6ca65ec2f93d1334c9b7df8512439725be4..HEAD`: `5 files changed, 440 insertions(+), 85 deletions(-)`.
+Source/test implementation stat for `fd2ab6ca65ec2f93d1334c9b7df8512439725be4..HEAD`: `5 files changed, 397 insertions(+), 100 deletions(-)`.
 
 Reviewer-required post-stale-anchor source/test implementation stat for `adfa8cdadd43747ffbcb612e4151e262b13e52ca..HEAD`: `5 files changed, 440 insertions(+), 85 deletions(-)`.
 
@@ -71,7 +71,7 @@ Post-`adfa8cdadd43747ffbcb612e4151e262b13e52ca` commit classification for the ac
 - Packet metadata-only commits are every post-`adfa8cdadd43747ffbcb612e4151e262b13e52ca` commit whose changed paths are limited to `THREAD_PACKET.md`, `.codex/kickoff_packets/feat-retrieval-fts.md`, or `.codex/lane_meta/feat-retrieval-fts.json`.
 - Out-of-scope transient commits are any post-`adfa8cdadd43747ffbcb612e4151e262b13e52ca` commits that touched `codex_packet_handoff/**` or `tests/unit/test_packet_planner.py`; those paths are absent from the final reviewed candidate and are not part of this merge request.
 - The reviewer-cited `c2741f8e58b59e8e37240b2271b9b68bbf6141ec` commit modifies retrieval implementation and shared regression coverage, so it is source/test implementation, not metadata-only.
-- The current `2ad0e2489a4e8eab6f81d07f335c65f3bfd65838..HEAD` required-fixes delta is packet metadata only until the final commit is created.
+- The current `667ebceeec02188105ccfe4def172740f836f483..HEAD` context-fingerprint delta is lane-owned retrieval implementation plus this packet update.
 
 Lane-owned source/test files in the reviewed candidate:
 
@@ -110,8 +110,9 @@ Merge-conflict resolution status for this required-fixes pass:
 
 - Task budget: `4/4` high-risk tasks.
 - File budget: `5/8` high-risk source/test files plus packet metadata files.
-- Net LOC budget: source/test implementation changes are `5 files changed, 440 insertions(+), 85 deletions(-)`, or +355 net LOC, which exceeds the `<=300` high-risk net LOC limit after cumulative reviewer-fix implementation commits. Packet metadata is accounted separately.
-- Size exception required: yes; re-review should explicitly accept the +355 source/test net LOC candidate or request a split.
+- Net LOC budget: source/test implementation changes are `5 files changed, 397 insertions(+), 100 deletions(-)`, or +297 net LOC, within the `<=300` high-risk net LOC limit. Packet metadata is accounted separately.
+- Current-pass source delta: `src/qual/engine/retrieval/payload.py` and `src/qual/retrieval/service.py`, `27 insertions(+), 3 deletions(-)`.
+- Size exception required: no for the complete merge-base-to-HEAD source/test candidate.
 - Shared-by-approval files: `tests/unit/test_unified_retrieval.py` only.
 - Integrator-locked files: none.
 - Routing/provider impact: none.
@@ -128,6 +129,9 @@ Merge-conflict resolution status for this required-fixes pass:
 
 Required gates re-run for this corrected actual-tip merge candidate:
 
+- `python -m pytest tests/unit/test_unified_retrieval.py` BLOCKED: `/opt/homebrew/opt/python@3.14/bin/python3.14: No module named pytest`; repo gate scripts below were used for validation.
+- `./quality-test.sh` first run FAIL, 124/125 tests passed; `test_engine_retrieval_package_reexports_canonical_payload_helpers` showed the initial context fingerprint included per-run audit/timing fields. Fixed in this pass by hashing the stable reusable context snapshot.
+- `./quality-test.sh` second run PASS, 125 tests.
 - `make scope-check` PASS for branch `codex/feat-retrieval-fts`; no branch policy was configured, so scope-check skipped policy enforcement and passed.
 - `./quality-format.sh --check` PASS.
 - `./quality-lint.sh` PASS.
