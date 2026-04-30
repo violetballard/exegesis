@@ -213,6 +213,21 @@ class CommandDemoActionRouteContract:
     entries: tuple[CommandDemoActionRouteEntry, ...]
 
 
+@dataclass(frozen=True)
+class CommandDemoActionSmokeArgvEntry:
+    engine_action: str
+    flow_step: str
+    name: str
+    argv: tuple[str, ...]
+    smoke_token: str
+    demo_path_step: str
+
+
+@dataclass(frozen=True)
+class CommandDemoActionSmokeArgvContract:
+    entries: tuple[CommandDemoActionSmokeArgvEntry, ...]
+
+
 def _normalize_token(value: str) -> str:
     normalized = re.sub(r"[-_\s]+", "-", value.strip().casefold())
     return normalized.strip("-")
@@ -1394,6 +1409,81 @@ def command_demo_action_cli_smoke_lookup_table(
 
 
 @lru_cache(maxsize=None)
+def command_demo_action_smoke_argv_contract(
+    specs: tuple[CommandSpec, ...] = COMMAND_SPECS,
+) -> CommandDemoActionSmokeArgvContract:
+    route_contract = command_demo_action_route_contract(specs)
+    argv_by_flow_step = dict(command_demo_smoke_argv_lookup_table(specs))
+    entries = tuple(
+        CommandDemoActionSmokeArgvEntry(
+            engine_action=route_entry.engine_action,
+            flow_step=route_entry.flow_step,
+            name=route_entry.name,
+            argv=argv_by_flow_step[route_entry.flow_step],
+            smoke_token=route_entry.smoke_token,
+            demo_path_step=route_entry.demo_path_step,
+        )
+        for route_entry in route_contract.entries
+    )
+    contract = CommandDemoActionSmokeArgvContract(entries=entries)
+    _validate_command_demo_action_smoke_argv_contract(contract, route_contract, specs=specs)
+    return contract
+
+
+def _validate_command_demo_action_smoke_argv_contract(
+    contract: CommandDemoActionSmokeArgvContract,
+    route_contract: CommandDemoActionRouteContract,
+    *,
+    specs: tuple[CommandSpec, ...],
+) -> None:
+    if tuple(entry.engine_action for entry in contract.entries) != tuple(
+        route_entry.engine_action for route_entry in route_contract.entries
+    ):
+        raise ValueError("Command demo action smoke argv actions are inconsistent")
+    if tuple(entry.flow_step for entry in contract.entries) != tuple(
+        route_entry.flow_step for route_entry in route_contract.entries
+    ):
+        raise ValueError("Command demo action smoke argv flow steps are inconsistent")
+    if tuple(entry.name for entry in contract.entries) != tuple(
+        route_entry.name for route_entry in route_contract.entries
+    ):
+        raise ValueError("Command demo action smoke argv command names are inconsistent")
+    if tuple(entry.smoke_token for entry in contract.entries) != tuple(
+        route_entry.smoke_token for route_entry in route_contract.entries
+    ):
+        raise ValueError("Command demo action smoke argv tokens are inconsistent")
+    if tuple(entry.demo_path_step for entry in contract.entries) != tuple(
+        route_entry.demo_path_step for route_entry in route_contract.entries
+    ):
+        raise ValueError("Command demo action smoke argv path steps are inconsistent")
+
+    route_tokens_by_action = {
+        route_entry.engine_action: route_entry.cli_tokens
+        for route_entry in route_contract.entries
+    }
+    cli_lookup = dict(command_cli_lookup_table()) if specs == COMMAND_SPECS else dict(command_lookup_index(specs))
+    for entry in contract.entries:
+        if not entry.argv:
+            raise ValueError(f"Command demo action smoke argv must not be empty: {entry.engine_action}")
+        argv_command = _normalize_token(entry.argv[0])
+        if argv_command != entry.smoke_token:
+            raise ValueError(f"Command demo action smoke argv token mismatch: {entry.engine_action}")
+        if argv_command not in route_tokens_by_action[entry.engine_action]:
+            raise ValueError(f"Command demo action smoke argv is outside route tokens: {entry.engine_action}")
+        if cli_lookup.get(argv_command) != entry.name:
+            raise ValueError(f"Command demo action smoke argv routes to the wrong command: {entry.engine_action}")
+
+
+def command_demo_action_smoke_argv_lookup_table(
+    specs: tuple[CommandSpec, ...] = COMMAND_SPECS,
+) -> tuple[tuple[str, tuple[str, ...]], ...]:
+    return tuple(
+        (entry.engine_action, entry.argv)
+        for entry in command_demo_action_smoke_argv_contract(specs).entries
+    )
+
+
+@lru_cache(maxsize=None)
 def command_demo_action_index(
     specs: tuple[CommandSpec, ...] = COMMAND_SPECS,
 ) -> tuple[tuple[str, CommandDemoActionEntry], ...]:
@@ -1474,6 +1564,18 @@ def command_mvp_demo_action_cli_smoke_lookup_table(
     specs: tuple[CommandSpec, ...] = COMMAND_SPECS,
 ) -> tuple[tuple[str, str], ...]:
     return command_demo_action_cli_smoke_lookup_table(specs)
+
+
+def command_mvp_demo_action_smoke_argv_contract(
+    specs: tuple[CommandSpec, ...] = COMMAND_SPECS,
+) -> CommandDemoActionSmokeArgvContract:
+    return command_demo_action_smoke_argv_contract(specs)
+
+
+def command_mvp_demo_action_smoke_argv_lookup_table(
+    specs: tuple[CommandSpec, ...] = COMMAND_SPECS,
+) -> tuple[tuple[str, tuple[str, ...]], ...]:
+    return command_demo_action_smoke_argv_lookup_table(specs)
 
 
 def command_mvp_demo_action_index(
