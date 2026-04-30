@@ -80,6 +80,7 @@ Those paths are not present in `fd2ab6ca65ec2f93d1334c9b7df8512439725be4..5a8878
 
 Current fixer pass gate evidence:
 
+- Gates below were re-run after the reviewer-required packet scope and demo-path corrections were verified in `THREAD_PACKET.md`.
 - `make scope-check` PASS.
 - `./quality-format.sh --check` PASS.
 - `./quality-lint.sh` PASS.
