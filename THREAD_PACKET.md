@@ -36,7 +36,7 @@ Authoritative files-changed list for `fd2ab6ca65ec2f93d1334c9b7df8512439725be4..
 - `src/qual/retrieval/service.py` - lane-owned retrieval service behavior via `src/qual/retrieval/**`.
 - `tests/unit/test_unified_retrieval.py` - shared-by-approval regression coverage for the canonical retrieval contract.
 
-The candidate shortstat is `6 files changed, 270 insertions(+), 116 deletions(-)`.
+The candidate shortstat is `6 files changed, 263 insertions(+), 118 deletions(-)`.
 
 Files not present in this authoritative candidate range and not part of this handoff:
 
