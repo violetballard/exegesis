@@ -2,6 +2,7 @@
 
 - Branch/lane: `codex/feat-retrieval-fts` / `feat-retrieval-fts`
 - Merge target: actual branch tip after this fixer commit.
+- Authoritative artifact: `THREAD_PACKET.md`. Attempts to update `.codex/kickoff_packets/feat-retrieval-fts.md` and `.codex/lane_meta/feat-retrieval-fts.json` from this worktree were rejected by the filesystem sandbox, so those mirrors must not be used as source of truth for this re-review.
 - Reviewed merge-candidate range: `fd2ab6ca65ec2f93d1334c9b7df8512439725be4..HEAD`, where `fd2ab6ca65ec2f93d1334c9b7df8512439725be4` is the current `main...HEAD` merge base.
 - Reviewed implementation range: `adfa8cdadd43747ffbcb612e4151e262b13e52ca..HEAD`; review must include all implementation, test, packet, and fixer changes through the final branch tip.
 - Reviewer trace range: `adfa8cdadd43747ffbcb612e4151e262b13e52ca..HEAD`; this range includes the post-`adfa8cd` retrieval source/test changes that must be reviewed, including the reviewer-cited `0e86dfbb83606b30814de4cc2f30234867ebeda9` payload change and `b65733d6ffb0b78532478db3d4b4853f49248c4a` source/test change.
@@ -46,6 +47,10 @@ Additional files present in the reviewer trace range `adfa8cdadd43747ffbcb612e41
 - `.codex/kickoff_packets/feat-retrieval-fts.md`: stale packet mirror from earlier packet-refresh commits; not authoritative for this fixer pass because the sandbox rejects edits under `.codex` from this worktree.
 - `.codex/lane_meta/feat-retrieval-fts.json`: stale lane metadata mirror from earlier packet-refresh commits; not authoritative for this fixer pass because the sandbox rejects edits under `.codex` from this worktree.
 
+The attempted regeneration of those `.codex` mirror files failed before any file content changed:
+
+- `apply_patch` targeting `.codex/kickoff_packets/feat-retrieval-fts.md` and `.codex/lane_meta/feat-retrieval-fts.json`: FAIL, `patch rejected: writing outside of the project; rejected by user approval settings`.
+
 Packet refresh commits in the trace range are reviewed as packet changes only when they touch packet files only. Commits that touch retrieval source or tests, including `0e86dfbb83606b30814de4cc2f30234867ebeda9` and `b65733d6ffb0b78532478db3d4b4853f49248c4a`, are part of the reviewed source/test trace and are not classified as metadata-only.
 
 ## Budget / Risk
@@ -53,9 +58,9 @@ Packet refresh commits in the trace range are reviewed as packet changes only wh
 - Risk: high/shared.
 - Task budget: `4/4`; the branch-tip work is folded into four meaningful tasks under the high-risk cap.
 - Changed files in reviewed merge-candidate range after this fixer commit: `5`.
-- Net LOC in reviewed merge-candidate range after this fixer commit: `179 insertions(+), 76 deletions(-)`, net `103`.
+- Net LOC in reviewed merge-candidate range after this fixer commit: `182 insertions(+), 74 deletions(-)`, net `108`.
 - Changed files in reviewer trace range after this fixer commit: `7`.
-- Net LOC in reviewer trace range after this fixer commit: `462 insertions(+), 108 deletions(-)`, net `354`.
+- Net LOC in reviewer trace range after this fixer commit: `467 insertions(+), 108 deletions(-)`, net `359`.
 - Integrator-locked files touched: none.
 - Shared-by-approval files touched: `tests/unit/test_unified_retrieval.py`.
 - Lane-owned implementation files touched: `src/qual/retrieval/**`, `src/qual/engine/retrieval/**`.
