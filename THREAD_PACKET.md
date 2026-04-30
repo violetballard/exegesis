@@ -55,6 +55,8 @@ Packet mirror files that still contain historical trace notes and are not author
 
 Treat `THREAD_PACKET.md` as the authoritative corrected handoff packet for this re-review.
 
+Reviewer-required packet fixes addressed in this metadata-only pass: every completed task names the canonical demo-path step `retrieve relevant material`, and `codex_packet_handoff/tools/planner.py` plus `tests/unit/test_packet_planner.py` remain listed only as out-of-scope files absent from the authoritative reviewed implementation range.
+
 Integrator-locked files: none.
 
 Out-of-scope files not present in the authoritative reviewed implementation range:
