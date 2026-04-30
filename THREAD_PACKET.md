@@ -1,13 +1,13 @@
 ## Thread Handoff Packet
 
 - Branch/lane: `codex/feat-retrieval-fts` / `feat-retrieval-fts`
-- Merge target: actual branch tip after this fixer commit.
+- Merge target: actual branch tip after the new fixer commit from this pass.
 - Authoritative artifact: `THREAD_PACKET.md`. Attempts to update `.codex/kickoff_packets/feat-retrieval-fts.md` and `.codex/lane_meta/feat-retrieval-fts.json` from this worktree are blocked by OS-level permissions on `.codex`, so those mirrors must not be used as source of truth for this re-review.
 - Reviewed merge-candidate range: `fd2ab6ca65ec2f93d1334c9b7df8512439725be4..HEAD`, where `fd2ab6ca65ec2f93d1334c9b7df8512439725be4` is the current `main...HEAD` merge base.
 - Reviewed implementation range: `adfa8cdadd43747ffbcb612e4151e262b13e52ca..HEAD`; review must include all implementation, test, packet, and fixer changes through the final branch tip.
-- Reviewer trace range: `adfa8cdadd43747ffbcb612e4151e262b13e52ca..HEAD`; this range includes the post-`adfa8cd` retrieval source/test changes that must be reviewed, including `0e86dfbb83606b30814de4cc2f30234867ebeda9`, `b65733d6ffb0b78532478db3d4b4853f49248c4a`, the reviewer-cited `6bd4f5c67b38cff4de9e19e2fcef4cea5c4d2296` FTS cache-key implementation commit, and `c620f6c716f7af17fb7d88c10dd93c6b58f9fe89`.
-- Pre-fixer branch-tip SHA: `c620f6c716f7af17fb7d88c10dd93c6b58f9fe89`.
-- Reviewer-cited stale packet tip: `6bd4f5c67b38cff4de9e19e2fcef4cea5c4d2296`; this is implementation scope because it changes `src/qual/engine/retrieval/fts_strategy.py`.
+- Reviewer trace range: `adfa8cdadd43747ffbcb612e4151e262b13e52ca..HEAD`; this range includes the post-`adfa8cd` retrieval source/test changes that must be reviewed, including `0e86dfbb83606b30814de4cc2f30234867ebeda9`, `b65733d6ffb0b78532478db3d4b4853f49248c4a`, the `6bd4f5c67b38cff4de9e19e2fcef4cea5c4d2296` FTS cache-key implementation commit, and the reviewer-cited `c620f6c716f7af17fb7d88c10dd93c6b58f9fe89` payload implementation commit.
+- Pre-fixer branch-tip SHA for this pass: `d975d60ff1e2e4a4149eebbd70c23fd498bff0c7`.
+- Reviewer-cited submitted packet tip: `c620f6c716086af10693500e4d7eb8da9245473e`; this is implementation scope because it changes `src/qual/engine/retrieval/payload.py`.
 - Final HEAD SHA: reported in the fixer final response because a commit cannot contain its own SHA.
 - Handoff classification: high-risk/shared because the corrected reviewed range includes approved shared regression coverage in `tests/unit/test_unified_retrieval.py`.
 
@@ -18,8 +18,9 @@
 3. Removed the stale claim that branch-tip packet-refresh commits are metadata-only when they touch retrieval source or tests; `b65733d6ffb0b78532478db3d4b4853f49248c4a`, `6bd4f5c67b38cff4de9e19e2fcef4cea5c4d2296`, and `c620f6c716f7af17fb7d88c10dd93c6b58f9fe89` are implementation/test scope, not metadata-only scope.
 4. Made `Scope Completed`, `Tasks Completed`, `Files Changed`, and command results all refer to the same `HEAD` merge candidate.
 5. Updated each completed task to name the canonical demo-path step it advances.
-6. Re-ran and reported the required gates on the corrected merge candidate.
-7. Preserved sparse source-bundle basket promotion references when those refs are carried under `retrieval_evidence`, so source-bundle-only reconstruction remains promotable into the context basket.
+6. Verified the current checkout is clean and `src/qual/engine/retrieval/payload.py` contains no conflict markers.
+7. Re-ran and reported the required gates on the corrected merge candidate.
+8. Preserved sparse source-bundle basket promotion references when those refs are carried under `retrieval_evidence`, so source-bundle-only reconstruction remains promotable into the context basket.
 
 ## Scope Completed
 
@@ -81,6 +82,17 @@ Packet refresh commits in the trace range are reviewed as packet changes only wh
 
 Required scope and integration gates for this corrected merge candidate, re-run after this fixer metadata correction:
 
+- `make scope-check`: PASS.
+- `./quality-format.sh --check`: PASS.
+- `./quality-lint.sh`: PASS.
+- `./quality-test.sh`: PASS, 125 tests.
+- `./typecheck-test.sh`: PASS.
+- `make ci`: PASS, includes scope-check, format, lint, compileall/typecheck, and 125 tests.
+- `rg -n "<<<<<<<|=======|>>>>>>>" src/qual/engine/retrieval/payload.py THREAD_PACKET.md`: PASS, no conflict markers found.
+- `git status --porcelain=v1 -uall`: PASS, clean before this packet edit.
+
+Earlier retained verification from this branch-tip fixer sequence:
+
 - `python -m unittest tests.unit.test_unified_retrieval`: PASS, 56 tests.
 - `python -m unittest tests.unit.test_unified_retrieval`: PASS, 56 tests after preserving evidence-carried basket refs in source-bundle normalization.
 - `python -m py_compile src/qual/engine/retrieval/fts_strategy.py && python -m unittest tests.unit.test_unified_retrieval`: PASS, 56 tests.
@@ -99,6 +111,7 @@ Additional focused check retained from the retrieval thread:
 ## Risks / Blockers
 
 - No implementation blocker is known.
+- The reviewer-reported unresolved conflict in `src/qual/engine/retrieval/payload.py` is not present in this checkout; conflict-marker scan is clean and the worktree was clean before this packet edit.
 - `.codex/kickoff_packets/feat-retrieval-fts.md` and `.codex/lane_meta/feat-retrieval-fts.json` remain stale because writes under `.codex` are OS-blocked in this worktree. `THREAD_PACKET.md` is the corrected authoritative handoff artifact for this fixer pass.
 - This packet uses `HEAD` for the reviewed merge candidate so the final fixer commit can be included without embedding a self-referential SHA. The final fixer response reports the exact final HEAD SHA.
 - The corrected post-`adfa8cd` reviewer trace range exceeds the high-risk `<=300` net LOC guidance; this is explicitly surfaced for reviewer risk assessment.
