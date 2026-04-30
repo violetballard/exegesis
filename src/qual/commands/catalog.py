@@ -116,6 +116,20 @@ class CommandFlowRouteContract:
     entries: tuple[CommandFlowRouteEntry, ...]
 
 
+@dataclass(frozen=True)
+class CommandDemoPathEntry:
+    flow_step: str
+    name: str
+    cli_tokens: tuple[str, ...]
+    engine_actions: tuple[str, ...]
+    demo_path_step: str
+
+
+@dataclass(frozen=True)
+class CommandDemoPathContract:
+    entries: tuple[CommandDemoPathEntry, ...]
+
+
 def _normalize_token(value: str) -> str:
     normalized = re.sub(r"[-_\s]+", "-", value.strip().casefold())
     return normalized.strip("-")
@@ -229,6 +243,32 @@ DEMO_COMMAND_FLOW_STEPS: tuple[str, ...] = (
     "export-handoff",
 )
 MVP_COMMAND_FLOW_STEPS: tuple[str, ...] = DEMO_COMMAND_FLOW_STEPS
+_DEMO_PATH_STEP_BY_FLOW_STEP: tuple[tuple[str, str, tuple[str, ...]], ...] = (
+    (
+        "project-open",
+        "open project/document",
+        ("ExegesisAppService.open_project", "ExegesisAppService.open_document"),
+    ),
+    (
+        "retrieval",
+        "retrieve relevant material and gather context",
+        ("ExegesisAppService.search_project", "ExegesisAppService.add_basket_item"),
+    ),
+    (
+        "patch-review",
+        "preview and apply or reject a patch",
+        (
+            "ExegesisAppService.revise_selection",
+            "ExegesisAppService.apply_patch",
+            "ExegesisAppService.reject_patch",
+        ),
+    ),
+    (
+        "export-handoff",
+        "persist and continue",
+        ("ExegesisAppService.save_document",),
+    ),
+)
 
 
 def validate_command_catalog(specs: tuple[CommandSpec, ...] = COMMAND_SPECS) -> None:
@@ -673,6 +713,36 @@ def command_flow_route_contract(
     specs: tuple[CommandSpec, ...] = COMMAND_SPECS,
 ) -> CommandFlowRouteContract:
     return CommandFlowRouteContract(entries=command_flow_route_catalog(flow_steps, specs))
+
+
+@lru_cache(maxsize=None)
+def command_demo_path_contract(
+    specs: tuple[CommandSpec, ...] = COMMAND_SPECS,
+) -> CommandDemoPathContract:
+    route_catalog = command_flow_route_catalog(flow_steps=command_demo_flow_steps(), specs=specs)
+    path_steps = {
+        _normalize_token(flow_step): (demo_path_step, engine_actions)
+        for flow_step, demo_path_step, engine_actions in _DEMO_PATH_STEP_BY_FLOW_STEP
+    }
+    entries: list[CommandDemoPathEntry] = []
+    for route in route_catalog:
+        demo_path_step, engine_actions = path_steps[route.flow_step]
+        entries.append(
+            CommandDemoPathEntry(
+                flow_step=route.flow_step,
+                name=route.name,
+                cli_tokens=route.cli_tokens,
+                engine_actions=engine_actions,
+                demo_path_step=demo_path_step,
+            )
+        )
+    return CommandDemoPathContract(entries=tuple(entries))
+
+
+def command_mvp_demo_path_contract(
+    specs: tuple[CommandSpec, ...] = COMMAND_SPECS,
+) -> CommandDemoPathContract:
+    return command_demo_path_contract(specs)
 
 
 def command_demo_flow_route_catalog() -> tuple[CommandFlowRouteEntry, ...]:
