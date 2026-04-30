@@ -1,6 +1,8 @@
 from __future__ import annotations
 
 import copy
+import hashlib
+import json
 from dataclasses import dataclass
 from typing import Protocol
 
@@ -56,6 +58,54 @@ def _normalize_optional_list_like(value: object) -> list[object] | None:
     return _normalize_list_like(value)
 
 
+def _normalize_optional_text(value: object) -> str | None:
+    if isinstance(value, str):
+        text = value.strip()
+        if text:
+            return text
+    return None
+
+
+def _first_text_value(*values: object) -> str | None:
+    for value in values:
+        text = _normalize_optional_text(value)
+        if text is not None:
+            return text
+    return None
+
+
+def _stable_fingerprint(payload: object) -> str:
+    serialized = json.dumps(payload, sort_keys=True, separators=(",", ":"), ensure_ascii=True)
+    return hashlib.sha256(serialized.encode("utf-8")).hexdigest()
+
+
+def _is_missing_snapshot_value(value: object) -> bool:
+    if value is None:
+        return True
+    if isinstance(value, str):
+        return value == ""
+    if isinstance(value, (dict, list, tuple, set)):
+        return len(value) == 0
+    return False
+
+
+def _backfill_sparse_snapshot(primary: dict[str, object], fallback: dict[str, object]) -> dict[str, object]:
+    merged = copy.deepcopy(primary)
+    for key, fallback_value in fallback.items():
+        if key not in merged:
+            merged[key] = copy.deepcopy(fallback_value)
+            continue
+
+        primary_value = merged[key]
+        if isinstance(primary_value, dict) and isinstance(fallback_value, dict):
+            merged[key] = _backfill_sparse_snapshot(primary_value, fallback_value)
+            continue
+
+        if _is_missing_snapshot_value(primary_value) and not _is_missing_snapshot_value(fallback_value):
+            merged[key] = copy.deepcopy(fallback_value)
+    return merged
+
+
 def _normalize_query_snapshot(query: object) -> dict[str, object]:
     if not isinstance(query, dict):
         return {}
@@ -67,6 +117,7 @@ def _normalize_query_snapshot(query: object) -> dict[str, object]:
         constraints = copy.deepcopy(constraints)
     constraints["doc_types"] = _normalize_list_like(constraints.get("doc_types"))
     constraints["date_range"] = _normalize_optional_list_like(constraints.get("date_range"))
+    constraints["section_hint"] = _normalize_optional_text(constraints.get("section_hint"))
     normalized["constraints"] = constraints
     return normalized
 
@@ -394,12 +445,7 @@ def _build_retrieval_source_bundle_from_payload(payload: dict[str, object]) -> d
     if not isinstance(source_bundle, dict):
         source_bundle = payload.get("source_bundle")
     if isinstance(source_bundle, dict):
-        normalized_source_bundle = copy.deepcopy(source_bundle)
-        normalized_source_bundle["query"] = _normalize_query_snapshot(normalized_source_bundle.get("query", {}))
-        normalized_source_bundle["policy"] = _normalize_policy_snapshot(
-            normalized_source_bundle.get("policy", normalized_source_bundle.get("retrieval_policy", {}))
-        )
-        return normalized_source_bundle
+        return _normalize_retrieval_source_bundle_snapshot(source_bundle)
     retrieval_doc_bundle = payload.get("retrieval_doc_bundle")
     if not isinstance(retrieval_doc_bundle, dict):
         retrieval_doc_bundle = _build_retrieval_doc_bundle_from_payload(payload)
@@ -408,7 +454,7 @@ def _build_retrieval_source_bundle_from_payload(payload: dict[str, object]) -> d
         retrieval_excerpt_bundle = _build_retrieval_excerpt_bundle_from_payload(payload)
     query_snapshot = _normalize_query_snapshot(payload.get("query", {}))
     policy_snapshot = _normalize_policy_snapshot(payload.get("policy", payload.get("retrieval_policy", {})))
-    return {
+    return _normalize_retrieval_source_bundle_snapshot({
         "result_fingerprint": payload.get("result_fingerprint"),
         "query_fingerprint": payload.get("query_fingerprint"),
         "query": query_snapshot,
@@ -451,14 +497,16 @@ def _backfill_downstream_payload_from_context_bundle(
         "basket_promotion_items": context_bundle.get("basket_promotion_items"),
         "basket_item_ids": context_bundle.get("basket_item_ids"),
     }
+    return _backfill_sparse_snapshot(
+        merged,
+        {key: value for key, value in context_backfill.items() if value is not None},
+    )
 
 
 def _build_retrieval_context_bundle_from_source_bundle(source_bundle: dict[str, object]) -> dict[str, object]:
     """Return the deterministic retrieval context bundle from a source-bundle snapshot."""
 
-    source_bundle = copy.deepcopy(source_bundle)
-    if not isinstance(source_bundle, dict):
-        source_bundle = {}
+    source_bundle = _normalize_retrieval_source_bundle_snapshot(source_bundle)
     retrieval_citation_bundle = source_bundle.get("retrieval_citation_bundle", {})
     if not isinstance(retrieval_citation_bundle, dict):
         retrieval_citation_bundle = _build_retrieval_citation_bundle_from_payload(source_bundle)
@@ -472,7 +520,8 @@ def _build_retrieval_context_bundle_from_source_bundle(source_bundle: dict[str, 
     if not isinstance(retrieval_provenance, dict):
         retrieval_provenance = _build_retrieval_provenance_from_payload(source_bundle)
     return {
-        "audit_ref": source_bundle.get("audit_ref"),
+        # Source-bundle-only reconstruction keeps the top-level context auditless.
+        "audit_ref": None,
         "result_fingerprint": source_bundle.get("result_fingerprint"),
         "retrieval_downstream_payload": copy.deepcopy(source_bundle),
         "retrieval_citation_bundle": copy.deepcopy(retrieval_citation_bundle),

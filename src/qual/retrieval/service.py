@@ -755,6 +755,11 @@ class RetrievalResult:
                 )
             ),
         }
+        # Fingerprint the source snapshot itself so copies can be verified deterministically.
+        source_bundle["source_bundle_fingerprint"] = RetrievalService._stable_fingerprint(
+            {key: value for key, value in source_bundle.items() if key != "source_bundle_fingerprint"}
+        )
+        return source_bundle
 
 
 class RetrievalService:
