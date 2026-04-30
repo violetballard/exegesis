@@ -3669,12 +3669,17 @@ def command_demo_readiness_shell_script(
     command_lines = tuple(step.command_line for step in smoke_plan.steps)
     action_lines = tuple(action_line for step in smoke_plan.steps for action_line in step.action_lines)
     lines: list[str] = ["set -euo pipefail"]
+    emitted_command_lines = {"set -euo pipefail"}
     for step in smoke_plan.steps:
         lines.append(f"# {step.ordinal}. {step.demo_path_step} [{step.flow_step}/{step.name}]")
-        lines.append(step.command_line)
+        if step.command_line not in emitted_command_lines:
+            emitted_command_lines.add(step.command_line)
+            lines.append(step.command_line)
         for engine_action, command_line in step.action_lines:
             lines.append(f"# action: {engine_action}")
-            lines.append(command_line)
+            if command_line not in emitted_command_lines:
+                emitted_command_lines.add(command_line)
+                lines.append(command_line)
     script = CommandDemoReadinessShellScript(
         lines=tuple(lines),
         command_lines=command_lines,
@@ -3704,20 +3709,33 @@ def _validate_command_demo_readiness_shell_script(
     if any(not line.strip() for line in script.lines):
         raise ValueError("Command demo readiness shell script lines must not be empty")
     executable_lines = tuple(line for line in script.lines if not line.startswith("#"))
-    expected_executable_lines = tuple(
-        line
-        for grouped_lines in (
-            ("set -euo pipefail",),
-            *(
-                (step.command_line, *(command_line for _, command_line in step.action_lines))
-                for step in smoke_plan.steps
-            ),
+    expected_executable_lines = _dedupe_command_lines(
+        tuple(
+            line
+            for grouped_lines in (
+                ("set -euo pipefail",),
+                *(
+                    (step.command_line, *(command_line for _, command_line in step.action_lines))
+                    for step in smoke_plan.steps
+                ),
+            )
+            for line in grouped_lines
         )
-        for line in grouped_lines
     )
     if executable_lines != expected_executable_lines:
         raise ValueError("Command demo readiness shell script executable lines are inconsistent")
     _validate_command_demo_readiness_shell_routes(script, smoke_plan)
+
+
+def _dedupe_command_lines(lines: tuple[str, ...]) -> tuple[str, ...]:
+    seen_lines: set[str] = set()
+    deduped_lines: list[str] = []
+    for line in lines:
+        if line in seen_lines:
+            continue
+        seen_lines.add(line)
+        deduped_lines.append(line)
+    return tuple(deduped_lines)
 
 
 def _validate_command_demo_readiness_shell_routes(
