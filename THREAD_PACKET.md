@@ -6,7 +6,7 @@
 - Reviewed merge-candidate range: `fd2ab6ca65ec2f93d1334c9b7df8512439725be4..HEAD`, where `fd2ab6ca65ec2f93d1334c9b7df8512439725be4` is the current `main...HEAD` merge base.
 - Reviewed implementation range: `adfa8cdadd43747ffbcb612e4151e262b13e52ca..HEAD`; review must include all implementation, test, packet, and fixer changes through the final branch tip.
 - Reviewer trace range: `adfa8cdadd43747ffbcb612e4151e262b13e52ca..HEAD`; this range includes the post-`adfa8cd` retrieval source/test changes that must be reviewed, including `0e86dfbb83606b30814de4cc2f30234867ebeda9`, `b65733d6ffb0b78532478db3d4b4853f49248c4a`, the `6bd4f5c67b38cff4de9e19e2fcef4cea5c4d2296` FTS cache-key implementation commit, and the reviewer-cited `c620f6c716f7af17fb7d88c10dd93c6b58f9fe89` payload implementation commit.
-- Pre-fixer branch-tip SHA for this pass: `d975d60ff1e2e4a4149eebbd70c23fd498bff0c7`.
+- Pre-fixer branch-tip SHA for this pass: `d62a85de9bea9f092a142fe5681c7f2211d6066c`.
 - Reviewer-cited submitted packet tip: `c620f6c716086af10693500e4d7eb8da9245473e`; this is implementation scope because it changes `src/qual/engine/retrieval/payload.py`.
 - Final HEAD SHA: reported in the fixer final response because a commit cannot contain its own SHA.
 - Handoff classification: high-risk/shared because the corrected reviewed range includes approved shared regression coverage in `tests/unit/test_unified_retrieval.py`.
@@ -27,6 +27,8 @@
 The corrected merge candidate advances the canonical demo-path step `retrieve relevant material`. SQLite FTS remains the authoritative MVP retrieval path, repeated retrieval calls use an immutable cache-key snapshot, document updates invalidate cached FTS search state, excerpt lookup fails closed for PageIndex-only IDs, and sparse retrieval payload reconstruction preserves deterministic document IDs, citation refs, ranks, fingerprints, primary-source provenance, basket promotion items, and basket item IDs.
 
 Sparse context-reference preservation also advances `promote or gather context into the basket`: source-bundle-only context reconstruction now carries a canonical downstream retrieval payload while preserving the source bundle and basket references separately, including basket promotion refs that arrive under `retrieval_evidence` in sparse source snapshots. PageIndex and embeddings remain compatibility-only fallback shims and are not required paths for branch-tip retrieval behavior.
+
+Final handoff statement: This work makes the `retrieve relevant material` step more real by ensuring retrieval excerpts are FTS-only, deterministic, provenance-bearing, and suitable for basket/workflow promotion.
 
 ## Tasks Completed
 
