@@ -3,30 +3,23 @@
 - Branch name: `codex/feat-retrieval-fts`
 - Lane: `feat-retrieval-fts`
 - Merge target: current `main`
-- Reviewed source/test implementation range: `378cf9a74a3658058079a32f186fcd254c4a4034..38955f1ed`
-- Reviewed source/test implementation head: `38955f1ed`
-- Authoritative branch-tip merge/review range: `378cf9a74a3658058079a32f186fcd254c4a4034..FINAL_HEAD_SHA_REPORTED_BY_FIXER_DELIVERABLE`
-- Pre-fix packet head: `537c7538b3d489abe54e5c730f4cd8a52e7318f5`.
-- Final branch tip: reported in the fixer deliverable after this packet-only commit is created; this final commit updates handoff metadata files only.
-- Scope classification: high-risk because this branch-tip packet includes approved shared regression coverage in `tests/unit/test_unified_retrieval.py`.
-- Packet type: branch-tip re-review packet for the FTS-first retrieval lane.
+- Reviewed source implementation range for this fixer pass: `e4f835c50..53829ae98`
+- Reviewed source implementation head for this fixer pass: `53829ae98955c738d1fb3e8d16d3e8a6c853e840`
+- Pre-fix packet head: `e4f835c50`
+- Final branch tip: reported in the fixer deliverable after this packet-only commit is created.
+- Scope classification: high-risk budget retained from the kickoff packet; this fixer pass itself changes only lane-owned retrieval paths.
+- Packet type: retrieval feature handoff for the FTS-first retrieval lane.
 
 ## Scope Completed
 
-This packet has been regenerated against the actual source/test implementation head to be submitted, not the earlier narrowed `378cf9a..adfa8cd` range. The corrected reviewed source/test implementation range is `378cf9a74a3658058079a32f186fcd254c4a4034..38955f1ed`, which includes the runtime retrieval and shared regression changes the reviewer identified. Later commits through the final fixer HEAD update packet metadata files only, and the authoritative merge/review range for the branch tip is the full base-to-final-HEAD range reported in the fixer deliverable.
+This fixer pass adds stable basket-promotion fingerprints to the FTS-first retrieval payload surface. Retrieval-owned basket promotion refs now carry a deterministic `basket_item_fingerprint` derived from the excerpt identity, source hash, span, retrieval mode, query fingerprint, and result fingerprint. Sparse downstream/source-bundle reconstruction backfills the same fingerprint when only excerpt-hit snapshots survive.
 
-The reviewed branch-tip work strengthens the active MVP target of FTS-first retrieval. SQLite FTS remains the canonical retrieval path; engine and service facades expose canonical query construction, `retrieve_auto`, and excerpt lookup; retrieval payload snapshots, sparse source/context bundles, provenance, fingerprints, and basket-promotion references are normalized deterministically for downstream engine flows; sparse excerpt-hit snapshots now rehydrate deterministic basket-promotion refs when explicit promotion metadata is absent; and PageIndex-only excerpt IDs fail closed instead of backfilling through non-FTS paths.
-
-Canonical demo-path step advanced: this makes `retrieve relevant material` and `promote/gather context into the basket` more real by returning deterministic FTS-backed excerpts, provenance, and retrieval-owned context references suitable for basket promotion. Basket promotion/gathering is represented only as retrieval-owned payload/context metadata in this branch-tip packet; Textual console work remains out of scope.
-
-Packet mirror note: `.codex/kickoff_packets/feat-retrieval-fts.md` and `.codex/lane_meta/feat-retrieval-fts.json` are write-blocked in this sandbox (`Operation not permitted` under `.codex`). Treat this `THREAD_PACKET.md` plus the final fixer deliverable as the authoritative handoff packet for this re-review; the blocked mirror files remain stale and are listed as a residual blocker.
+The change keeps SQLite FTS as the only active retrieval path. It does not reintroduce PageIndex, embeddings, alternate routing, provider behavior, or Textual UI work. The demo-path improvement is narrow: retrieved excerpts promoted or gathered into context now have an auditable per-item fingerprint that downstream basket/revise/apply flows can compare without rehydrating the original retrieval result.
 
 ## Tasks Completed
 
-1. Exported the canonical FTS retrieval surface through the service and engine facades, including query construction, `retrieve_auto`, excerpt lookup, rank fields, and query type exports.
-2. Hardened deterministic retrieval payloads by normalizing query snapshots, constraints, dates, booleans, sparse source/context bundles, citation backfills, provenance fingerprints, basket-promotion fallback refs, and copy-safe snapshot reconstruction.
-3. Kept retrieval FTS-first by tightening cache scope invalidation, candidate document handling, section/date/confidentiality filtering, FTS-only excerpt resolution, and fail-closed PageIndex/embedding compatibility behavior.
-4. Added approved shared regression coverage in `tests/unit/test_unified_retrieval.py` for facade exports, normalized payload snapshots, source/context bundle rehydration, citation/provenance helpers, basket-promotion/context references, cache behavior, and FTS-only excerpt lookup.
+1. Added deterministic basket-promotion item fingerprints to service-generated FTS retrieval context/source/evidence payload refs.
+2. Added matching fingerprint backfill for sparse payload reconstruction from excerpt-hit snapshots.
 
 ## Canonical Demo Path
 
@@ -36,69 +29,61 @@ Packet mirror note: `.codex/kickoff_packets/feat-retrieval-fts.md` and `.codex/l
 
 ## Files Changed
 
-Reviewed source/test implementation files for `378cf9a74a3658058079a32f186fcd254c4a4034..38955f1ed`:
+Reviewed source implementation files for `e4f835c50..53829ae98`:
 
-- `src/qual/engine/retrieval/__init__.py` - engine retrieval facade exports for canonical query, auto retrieval, excerpt lookup, payload, and ranking surfaces.
-- `src/qual/engine/retrieval/fts_strategy.py` - FTS strategy snapshot normalization and deterministic hit/ranking behavior.
-- `src/qual/engine/retrieval/payload.py` - deterministic payload, provenance, sparse bundle, citation, fingerprint, and basket-promotion/context reference helpers, including excerpt-hit fallback reconstruction for sparse snapshots.
-- `src/qual/retrieval/service.py` - canonical FTS-first retrieval service behavior, excerpt lookup, cache scope normalization, filtering, and fail-closed compatibility paths.
-- `tests/unit/test_unified_retrieval.py` - approved shared-by-approval regression coverage for the branch-tip retrieval contract.
+- `src/qual/retrieval/service.py` - emits `basket_item_fingerprint` on canonical FTS basket-promotion refs and retrieval evidence refs.
+- `src/qual/engine/retrieval/payload.py` - reconstructs the same fingerprint when sparse snapshots only preserve excerpt-hit payloads.
 
-Reviewed source/test stat: `5 files changed, 632 insertions(+), 119 deletions(-)`.
+Reviewed source stat for this fixer pass: `2 files changed, 81 insertions(+), 30 deletions(-)`.
 
-Full branch-tip reviewed file surface, including packet metadata files, is the 8 paths shown by `git diff --name-status 378cf9a74a3658058079a32f186fcd254c4a4034..HEAD`: `.codex/kickoff_packets/feat-retrieval-fts.md`, `.codex/lane_meta/feat-retrieval-fts.json`, `THREAD_PACKET.md`, `src/qual/engine/retrieval/__init__.py`, `src/qual/engine/retrieval/fts_strategy.py`, `src/qual/engine/retrieval/payload.py`, `src/qual/retrieval/service.py`, and `tests/unit/test_unified_retrieval.py`. Before this final packet-only commit, that full range is `8 files changed, 897 insertions(+), 207 deletions(-)`; the final fixer deliverable reports the final HEAD SHA and final branch-tip range stat after this packet update commit.
+Lane-owned source files in this fixer pass:
 
-Lane-owned source/test files in the reviewed implementation range:
-
-- `src/qual/engine/retrieval/__init__.py`
-- `src/qual/engine/retrieval/fts_strategy.py`
-- `src/qual/engine/retrieval/payload.py`
 - `src/qual/retrieval/service.py`
+- `src/qual/engine/retrieval/payload.py`
 
-Shared-by-approval files in the reviewed implementation range:
-
-- `tests/unit/test_unified_retrieval.py`
-
-Out-of-lane tooling files in the reviewed branch-tip range:
+Shared-by-approval files in this fixer pass:
 
 - None.
-- `codex_packet_handoff/tools/planner.py` is excluded from this retrieval handoff.
-- `tests/unit/test_packet_planner.py` is excluded from this retrieval handoff.
 
-Integrator-locked files in the reviewed branch-tip range:
+Out-of-lane tooling files in this fixer pass:
+
+- None.
+
+Integrator-locked files in this fixer pass:
 
 - None.
 
 ## Budget/Risk
 
-- Task budget: `4/4` high-risk tasks; this fixer pass extends task 2 with a lane-owned sparse basket-promotion fallback.
-- File budget: `5/8` high-risk source/test files.
-- Net source/test LOC budget: `+513` net LOC, above the default `<=300` high-risk size guideline because this packet now truthfully covers all branch-tip retrieval implementation work requested by the reviewer.
-- Full branch-tip packet LOC: exceeds the high-risk metadata-inclusive size guideline because the branch includes packet regeneration commits; the merge surface is listed explicitly above.
-- Size exception required: yes; this branch-tip re-review packet corrects prior traceability drift instead of narrowing away source/test changes that are already present on the branch tip. No integrator-approved exception is recorded in this worktree, so re-review should treat this as an explicit requested exception for the truthful branch-tip surface rather than as a claimed in-budget high-risk handoff.
-- Shared-file approval note: Approved shared regression coverage in `tests/unit/test_unified_retrieval.py` for the `feat-retrieval-fts` lane; it exercises the canonical retrieval contract.
+- Task budget: `2/4` high-risk tasks.
+- File budget: `2/8` high-risk files.
+- Net source LOC budget: `+51` net LOC, within the `<=300` high-risk size guideline.
+- Size exception required: no for this fixer pass.
+- Shared-file approval note: no shared-by-approval files changed in this fixer pass.
 - Routing/provider impact: none.
-- PageIndex/embeddings impact: PageIndex and embeddings remain compatibility-only fallback shims; PageIndex-only excerpt IDs fail closed for the canonical excerpt lookup path.
-- Merge risk: high because the corrected packet now exposes all branch-tip retrieval source/test changes for re-review.
+- PageIndex/embeddings impact: none; PageIndex and embeddings remain deferred/compatibility-only and are not active retrieval paths.
+- Merge risk: low for this fixer pass; it is confined to retrieval-owned payload metadata and preserves existing contract tests.
 
 ## Roadmap/Vision
 
-- Roadmap items affected: MVP focus for FTS-first retrieval.
-- Vision capabilities affected: Retrieval-first context handling; auditable state and workflow.
+- Roadmap items affected: Milestone 4 retrieval layer; MVP focus for FTS-first retrieval.
+- Vision capabilities affected: Retrieval-first context handling; auditable generation.
+- Routing/provider impact note: none.
 - Proposed `README.md` patch text: none.
 
 ## Commands Run
 
-Required gates for this fixer pass against the corrected `378cf9a74a3658058079a32f186fcd254c4a4034..HEAD` candidate:
+Required and focused gates for this fixer pass:
 
-- `make scope-check` PASS for branch `codex/feat-retrieval-fts`.
+- `python -m unittest tests.unit.test_unified_retrieval` initially failed after the first edit because `RetrievalResult` called the new fingerprint helper as an instance method; fixed in the first focused attempt.
+- `python -m unittest tests.unit.test_unified_retrieval` PASS, 57 tests.
 - `./quality-format.sh --check` PASS.
+- `git diff --check` PASS.
 - `./quality-lint.sh` PASS.
 - `./quality-test.sh` PASS, 126 tests.
 - `./typecheck-test.sh` PASS, Python sources under `src/` compile.
 - `make ci` PASS, 126 tests; includes scope-check, format, lint, typecheck, and test gates.
-- `python -m unittest tests.unit.test_unified_retrieval` PASS, 57 tests.
 
 ## Risks/Blockers
 
-Remaining risk is review scope size: this corrected packet intentionally includes every branch-tip source/test change through the final fixer HEAD reported in the deliverable. The `.codex` mirror packet files are stale because this sandbox rejects writes inside `.codex`; `THREAD_PACKET.md` is authoritative for this fixer pass. The candidate does not touch model routing/provider configuration and does not include Textual UI console work.
+No remaining blocker for this fixer pass. The packet mirror files under `.codex` were not updated in this pass; `THREAD_PACKET.md` and the final fixer deliverable are the handoff record.
