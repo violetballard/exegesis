@@ -15,6 +15,7 @@ from src.qual.commands.catalog import (
     command_mvp_demo_action_flow_lookup_table as _action_flow_lookup_table,
     command_mvp_demo_action_flow_step as _action_flow_step,
     command_mvp_demo_command_action_lookup_table as _command_action_lookup_table,
+    command_mvp_demo_readiness_action_line_lookup_table as _readiness_action_line_lookup_table,
     command_mvp_demo_readiness_action_argv_lookup_table as _readiness_action_argv_lookup_table,
     command_mvp_demo_readiness_action_summary as _readiness_action_summary,
     command_mvp_demo_readiness_argv_for_command as _readiness_argv_for_command,
@@ -42,6 +43,7 @@ __all__ = [
     "canonical_command_action_demo_path_lookup_table",
     "canonical_command_action_lookup_table",
     "canonical_command_action_readiness_summary",
+    "canonical_command_action_line_lookup_table",
     "canonical_command_action_flow_lookup_table",
     "canonical_command_demo_path_step_for_engine_action",
     "canonical_command_action_smoke_cli_argv",
@@ -140,6 +142,10 @@ def canonical_command_action_smoke_cli_argv(ordinal: int) -> tuple[str, ...]:
 
 def canonical_command_action_argv_lookup_table() -> tuple[tuple[str, tuple[str, ...]], ...]:
     return _readiness_action_argv_lookup_table()
+
+
+def canonical_command_action_line_lookup_table() -> tuple[tuple[str, str], ...]:
+    return _readiness_action_line_lookup_table()
 
 
 def canonical_command_action_lookup_table() -> tuple[tuple[str, tuple[str, ...]], ...]:
