@@ -338,6 +338,22 @@ class CommandDemoReadinessSmokePlan:
 
 
 @dataclass(frozen=True)
+class CommandDemoPathReadinessStep:
+    ordinal: int
+    demo_path_step: str
+    flow_step: str
+    name: str
+    command_line: str
+    engine_actions: tuple[str, ...]
+    action_lines: tuple[tuple[str, str], ...]
+
+
+@dataclass(frozen=True)
+class CommandDemoPathReadinessContract:
+    steps: tuple[CommandDemoPathReadinessStep, ...]
+
+
+@dataclass(frozen=True)
 class CommandDemoReadinessGate:
     is_complete: bool
     missing_engine_actions: tuple[str, ...]
@@ -2728,6 +2744,84 @@ def command_demo_readiness_smoke_plan_summary(
 
 
 @lru_cache(maxsize=None)
+def command_demo_path_readiness_contract(
+    specs: tuple[CommandSpec, ...] = COMMAND_SPECS,
+    launcher_argv: tuple[str, ...] = COMMAND_SMOKE_CLI_LAUNCHER_ARGV,
+) -> CommandDemoPathReadinessContract:
+    readiness_entries = {
+        entry.ordinal: entry
+        for entry in command_demo_readiness_contract(specs, launcher_argv).entries
+    }
+    smoke_plan = command_demo_readiness_smoke_plan(specs, launcher_argv)
+    contract = CommandDemoPathReadinessContract(
+        steps=tuple(
+            CommandDemoPathReadinessStep(
+                ordinal=step.ordinal,
+                demo_path_step=step.demo_path_step,
+                flow_step=step.flow_step,
+                name=step.name,
+                command_line=step.command_line,
+                engine_actions=readiness_entries[step.ordinal].engine_actions,
+                action_lines=step.action_lines,
+            )
+            for step in smoke_plan.steps
+        )
+    )
+    _validate_command_demo_path_readiness_contract(contract, smoke_plan, readiness_entries)
+    return contract
+
+
+def _validate_command_demo_path_readiness_contract(
+    contract: CommandDemoPathReadinessContract,
+    smoke_plan: CommandDemoReadinessSmokePlan,
+    readiness_entries: dict[int, CommandDemoReadinessEntry],
+) -> None:
+    if tuple(step.ordinal for step in contract.steps) != tuple(step.ordinal for step in smoke_plan.steps):
+        raise ValueError("Command demo path readiness ordinals are inconsistent")
+    if tuple(step.demo_path_step for step in contract.steps) != tuple(
+        step.demo_path_step for step in smoke_plan.steps
+    ):
+        raise ValueError("Command demo path readiness path steps are inconsistent")
+    if tuple(step.flow_step for step in contract.steps) != tuple(step.flow_step for step in smoke_plan.steps):
+        raise ValueError("Command demo path readiness flow steps are inconsistent")
+    if tuple(step.name for step in contract.steps) != tuple(step.name for step in smoke_plan.steps):
+        raise ValueError("Command demo path readiness command names are inconsistent")
+    if tuple(step.command_line for step in contract.steps) != tuple(
+        step.command_line for step in smoke_plan.steps
+    ):
+        raise ValueError("Command demo path readiness command lines are inconsistent")
+    for step in contract.steps:
+        readiness_entry = readiness_entries.get(step.ordinal)
+        if readiness_entry is None:
+            raise ValueError(f"Command demo path readiness missing step: {step.ordinal}")
+        if step.engine_actions != readiness_entry.engine_actions:
+            raise ValueError(f"Command demo path readiness actions are inconsistent: {step.flow_step}")
+        if step.action_lines != tuple(
+            (engine_action, _shell_join(action_argv))
+            for engine_action, action_argv in readiness_entry.action_command_argv
+        ):
+            raise ValueError(f"Command demo path readiness action lines are inconsistent: {step.flow_step}")
+
+
+def command_demo_path_readiness_summary(
+    specs: tuple[CommandSpec, ...] = COMMAND_SPECS,
+    launcher_argv: tuple[str, ...] = COMMAND_SMOKE_CLI_LAUNCHER_ARGV,
+) -> tuple[tuple[int, str, str, str, str, tuple[str, ...], tuple[tuple[str, str], ...]], ...]:
+    return tuple(
+        (
+            step.ordinal,
+            step.demo_path_step,
+            step.flow_step,
+            step.name,
+            step.command_line,
+            step.engine_actions,
+            step.action_lines,
+        )
+        for step in command_demo_path_readiness_contract(specs, launcher_argv).steps
+    )
+
+
+@lru_cache(maxsize=None)
 def command_demo_readiness_gate(
     specs: tuple[CommandSpec, ...] = COMMAND_SPECS,
     launcher_argv: tuple[str, ...] = COMMAND_SMOKE_CLI_LAUNCHER_ARGV,
@@ -3700,6 +3794,20 @@ def command_mvp_demo_readiness_smoke_plan_summary(
     launcher_argv: tuple[str, ...] = COMMAND_SMOKE_CLI_LAUNCHER_ARGV,
 ) -> tuple[tuple[int, str, str, str, str, tuple[tuple[str, str], ...]], ...]:
     return command_demo_readiness_smoke_plan_summary(specs, launcher_argv)
+
+
+def command_mvp_demo_path_readiness_contract(
+    specs: tuple[CommandSpec, ...] = COMMAND_SPECS,
+    launcher_argv: tuple[str, ...] = COMMAND_SMOKE_CLI_LAUNCHER_ARGV,
+) -> CommandDemoPathReadinessContract:
+    return command_demo_path_readiness_contract(specs, launcher_argv)
+
+
+def command_mvp_demo_path_readiness_summary(
+    specs: tuple[CommandSpec, ...] = COMMAND_SPECS,
+    launcher_argv: tuple[str, ...] = COMMAND_SMOKE_CLI_LAUNCHER_ARGV,
+) -> tuple[tuple[int, str, str, str, str, tuple[str, ...], tuple[tuple[str, str], ...]], ...]:
+    return command_demo_path_readiness_summary(specs, launcher_argv)
 
 
 def command_mvp_demo_readiness_gate(
