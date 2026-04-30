@@ -634,9 +634,13 @@ _CANONICAL_CLI_ENTRYPOINTS: tuple[str, ...] = (
 _CLI_ENTRYPOINTS: tuple[str, ...] = _CANONICAL_CLI_ENTRYPOINTS
 COMMAND_SMOKE_CLI_LAUNCHER_ARGV: tuple[str, ...] = ("python", "-m", "src.main")
 COMMAND_SMOKE_SCRIPT_LAUNCHER_ARGV: tuple[str, ...] = ("python", "src/main.py")
+COMMAND_SMOKE_CLI_PYTHON3_LAUNCHER_ARGV: tuple[str, ...] = ("python3", "-m", "src.main")
+COMMAND_SMOKE_SCRIPT_PYTHON3_LAUNCHER_ARGV: tuple[str, ...] = ("python3", "src/main.py")
 COMMAND_SMOKE_SUPPORTED_LAUNCHER_ARGV: tuple[tuple[str, ...], ...] = (
     COMMAND_SMOKE_CLI_LAUNCHER_ARGV,
     COMMAND_SMOKE_SCRIPT_LAUNCHER_ARGV,
+    COMMAND_SMOKE_CLI_PYTHON3_LAUNCHER_ARGV,
+    COMMAND_SMOKE_SCRIPT_PYTHON3_LAUNCHER_ARGV,
 )
 COMMAND_SMOKE_SUPPORTED_LAUNCHER_TAILS: tuple[tuple[str, ...], ...] = (
     ("-m", "src.main"),
