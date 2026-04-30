@@ -1246,7 +1246,6 @@ def build_retrieval_context_bundle_from_result(
             source_bundle = context_bundle.get("retrieval_source_bundle")
             if isinstance(source_bundle, dict):
                 return _build_retrieval_context_bundle_from_source_bundle(copy.deepcopy(source_bundle))
-        return copy.deepcopy(context_bundle)
     source_bundle = _build_retrieval_source_bundle_from_result_source(result)
     if source_bundle is not None:
         return _build_retrieval_context_bundle_from_source_bundle(copy.deepcopy(source_bundle))
