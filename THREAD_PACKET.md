@@ -54,17 +54,15 @@
 ## Commands Run
 
 - `python -m unittest tests.unit.test_commands_catalog`: passed; 46 tests.
-- `make scope-check`: failed as expected for the approved shared test file until explicit shared-file approval was supplied.
-  - Failure: `tests/unit/test_commands_catalog.py` is disallowed without `SCOPE_ALLOW_SHARED=1`.
-- `SCOPE_ALLOW_SHARED=1 make scope-check`: passed.
+- `python -m unittest tests.unit.test_commands_catalog.CommandCatalogTests.test_command_cli_contract_rejects_unapproved_alias_to_existing_command tests.unit.test_commands_catalog.CommandCatalogTests.test_command_cli_contract_rejects_alias_replacing_canonical_token tests.unit.test_commands_catalog.CommandCatalogTests.test_command_cli_contract_matches_the_catalog_order`: passed; 3 tests.
+- `make scope-check`: passed.
 - `./quality-format.sh --check`: passed.
 - `./quality-lint.sh`: passed.
 - `./quality-test.sh`: failed outside the command-catalog slice.
   - `tests/unit/test_mvp_migration.py` and `tests/unit/test_unified_retrieval.py` fail importing `src/qual/engine/retrieval/payload.py` because that file has `SyntaxError: unmatched ')'` at line 428.
   - `tests/unit/test_offline_handoff.py::OfflineHandoffConfigTests.test_live_router_config_uses_explicit_lms_provider` fails because protected local `.codex/packet_router/config.json` still has `["-p", "gpt-oss-120b-lms"]` instead of `["--oss", "--local-provider", "lmstudio"]`.
 - `./typecheck-test.sh`: failed outside the command-catalog slice on the same `src/qual/engine/retrieval/payload.py` syntax error at line 428.
-- `make ci`: failed at scope-check because `tests/unit/test_commands_catalog.py` requires explicit shared-file approval.
-- `SCOPE_ALLOW_SHARED=1 make ci`: failed after passing scope, format, and lint; `python3 -m compileall -q src` stops on the same `src/qual/engine/retrieval/payload.py` syntax error at line 428.
+- `make ci`: failed after passing scope, format, and lint; `python3 -m compileall -q src` stops on the same `src/qual/engine/retrieval/payload.py` syntax error at line 428.
 
 ## Risks And Blockers
 
