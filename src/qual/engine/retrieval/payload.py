@@ -332,12 +332,11 @@ def _normalize_retrieval_source_bundle_snapshot(source_bundle: dict[str, object]
     normalized["retrieval_provenance"] = _build_retrieval_provenance_from_payload(normalized)
     normalized["doc_hits"] = _normalize_list_like(normalized.get("doc_hits", []))
     normalized["excerpt_hits"] = _normalize_list_like(normalized.get("excerpt_hits", []))
-    normalized["basket_promotion_items"] = _normalize_list_like(
-        normalized.get("basket_promotion_items", [])
+    normalized["basket_promotion_items"] = _basket_promotion_items_from_snapshot(normalized)
+    normalized["basket_item_ids"] = _basket_item_ids_from_snapshot(
+        normalized,
+        basket_promotion_items=normalized["basket_promotion_items"],
     )
-    normalized["basket_item_ids"] = _normalize_list_like(normalized.get("basket_item_ids", []))
-    if not normalized["basket_item_ids"]:
-        normalized["basket_item_ids"] = _basket_item_ids_from_items(normalized["basket_promotion_items"])
     retrieval_summary = normalized.get("retrieval_summary", {})
     if not isinstance(retrieval_summary, dict):
         retrieval_summary = {}
