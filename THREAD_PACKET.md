@@ -2,11 +2,12 @@
 
 - Branch/lane: `codex/feat-retrieval-fts` / `feat-retrieval-fts`
 - Merge target: actual branch tip after this fixer commit.
-- Authoritative artifact: `THREAD_PACKET.md`. Attempts to update `.codex/kickoff_packets/feat-retrieval-fts.md` and `.codex/lane_meta/feat-retrieval-fts.json` from this worktree were rejected by the filesystem sandbox, so those mirrors must not be used as source of truth for this re-review.
+- Authoritative artifact: `THREAD_PACKET.md`. Attempts to update `.codex/kickoff_packets/feat-retrieval-fts.md` and `.codex/lane_meta/feat-retrieval-fts.json` from this worktree are blocked by OS-level permissions on `.codex`, so those mirrors must not be used as source of truth for this re-review.
 - Reviewed merge-candidate range: `fd2ab6ca65ec2f93d1334c9b7df8512439725be4..HEAD`, where `fd2ab6ca65ec2f93d1334c9b7df8512439725be4` is the current `main...HEAD` merge base.
 - Reviewed implementation range: `adfa8cdadd43747ffbcb612e4151e262b13e52ca..HEAD`; review must include all implementation, test, packet, and fixer changes through the final branch tip.
-- Reviewer trace range: `adfa8cdadd43747ffbcb612e4151e262b13e52ca..HEAD`; this range includes the post-`adfa8cd` retrieval source/test changes that must be reviewed, including the reviewer-cited `0e86dfbb83606b30814de4cc2f30234867ebeda9` payload change and `b65733d6ffb0b78532478db3d4b4853f49248c4a` source/test change.
-- Pre-fixer branch-tip SHA: `6bd4f5c67b38cff4de9e19e2fcef4cea5c4d2296`.
+- Reviewer trace range: `adfa8cdadd43747ffbcb612e4151e262b13e52ca..HEAD`; this range includes the post-`adfa8cd` retrieval source/test changes that must be reviewed, including `0e86dfbb83606b30814de4cc2f30234867ebeda9`, `b65733d6ffb0b78532478db3d4b4853f49248c4a`, the reviewer-cited `6bd4f5c67b38cff4de9e19e2fcef4cea5c4d2296` FTS cache-key implementation commit, and `c620f6c716f7af17fb7d88c10dd93c6b58f9fe89`.
+- Pre-fixer branch-tip SHA: `c620f6c716f7af17fb7d88c10dd93c6b58f9fe89`.
+- Reviewer-cited stale packet tip: `6bd4f5c67b38cff4de9e19e2fcef4cea5c4d2296`; this is implementation scope because it changes `src/qual/engine/retrieval/fts_strategy.py`.
 - Final HEAD SHA: reported in the fixer final response because a commit cannot contain its own SHA.
 - Handoff classification: high-risk/shared because the corrected reviewed range includes approved shared regression coverage in `tests/unit/test_unified_retrieval.py`.
 
@@ -14,7 +15,7 @@
 
 1. Regenerated this handoff against the actual branch tip intended for merge.
 2. Included post-`adfa8cd` source/test changes in the reviewed trace range and file list, including changes to `src/qual/engine/retrieval/payload.py` and `tests/unit/test_unified_retrieval.py`.
-3. Removed the stale claim that branch-tip packet-refresh commits are metadata-only when they touch retrieval source or tests; `b65733d6ffb0b78532478db3d4b4853f49248c4a` is implementation/test scope, not metadata-only scope.
+3. Removed the stale claim that branch-tip packet-refresh commits are metadata-only when they touch retrieval source or tests; `b65733d6ffb0b78532478db3d4b4853f49248c4a`, `6bd4f5c67b38cff4de9e19e2fcef4cea5c4d2296`, and `c620f6c716f7af17fb7d88c10dd93c6b58f9fe89` are implementation/test scope, not metadata-only scope.
 4. Made `Scope Completed`, `Tasks Completed`, `Files Changed`, and command results all refer to the same `HEAD` merge candidate.
 5. Updated each completed task to name the canonical demo-path step it advances.
 6. Re-ran and reported the required gates on the corrected merge candidate.
@@ -45,23 +46,24 @@ Files changed in the reviewed merge-candidate range `fd2ab6ca65ec2f93d1334c9b7df
 
 Additional files present in the reviewer trace range `adfa8cdadd43747ffbcb612e4151e262b13e52ca..HEAD`:
 
-- `.codex/kickoff_packets/feat-retrieval-fts.md`: stale packet mirror from earlier packet-refresh commits; not authoritative for this fixer pass because the sandbox rejects edits under `.codex` from this worktree.
-- `.codex/lane_meta/feat-retrieval-fts.json`: stale lane metadata mirror from earlier packet-refresh commits; not authoritative for this fixer pass because the sandbox rejects edits under `.codex` from this worktree.
+- `.codex/kickoff_packets/feat-retrieval-fts.md`: stale packet mirror from earlier packet-refresh commits; not authoritative for this fixer pass because writes under `.codex` are blocked in this worktree.
+- `.codex/lane_meta/feat-retrieval-fts.json`: stale lane metadata mirror from earlier packet-refresh commits; not authoritative for this fixer pass because writes under `.codex` are blocked in this worktree.
 
 The attempted regeneration of those `.codex` mirror files failed before any file content changed:
 
 - `apply_patch` targeting `.codex/kickoff_packets/feat-retrieval-fts.md` and `.codex/lane_meta/feat-retrieval-fts.json`: FAIL, `patch rejected: writing outside of the project; rejected by user approval settings`.
+- `touch .codex/.write_test`: FAIL, `Operation not permitted`.
 
-Packet refresh commits in the trace range are reviewed as packet changes only when they touch packet files only. Commits that touch retrieval source or tests, including `0e86dfbb83606b30814de4cc2f30234867ebeda9` and `b65733d6ffb0b78532478db3d4b4853f49248c4a`, are part of the reviewed source/test trace and are not classified as metadata-only.
+Packet refresh commits in the trace range are reviewed as packet changes only when they touch packet files only. Commits that touch retrieval source or tests, including `0e86dfbb83606b30814de4cc2f30234867ebeda9`, `b65733d6ffb0b78532478db3d4b4853f49248c4a`, `6bd4f5c67b38cff4de9e19e2fcef4cea5c4d2296`, and `c620f6c716f7af17fb7d88c10dd93c6b58f9fe89`, are part of the reviewed source/test trace and are not classified as metadata-only.
 
 ## Budget / Risk
 
 - Risk: high/shared.
 - Task budget: `4/4`; the branch-tip work is folded into four meaningful tasks under the high-risk cap.
-- Changed files in reviewed merge-candidate range after this fixer commit: `5`.
-- Net LOC in reviewed merge-candidate range after this fixer commit: `230 insertions(+), 90 deletions(-)`, net `140`.
-- Changed files in reviewer trace range after this fixer commit: `7`.
-- Net LOC in reviewer trace range after this fixer commit: `511 insertions(+), 120 deletions(-)`, net `391`.
+- Changed files in reviewed merge-candidate range after this fixer metadata correction: `5`.
+- Net LOC in reviewed merge-candidate range after this fixer metadata correction: `232 insertions(+), 90 deletions(-)`, net `142`.
+- Changed files in reviewer trace range after this fixer metadata correction: `7`.
+- Net LOC in reviewer trace range after this fixer metadata correction: `513 insertions(+), 120 deletions(-)`, net `393`.
 - Integrator-locked files touched: none.
 - Shared-by-approval files touched: `tests/unit/test_unified_retrieval.py`.
 - Lane-owned implementation files touched: `src/qual/retrieval/**`, `src/qual/engine/retrieval/**`.
@@ -77,7 +79,7 @@ Packet refresh commits in the trace range are reviewed as packet changes only wh
 
 ## Commands Run
 
-Required scope and integration gates for this corrected merge candidate:
+Required scope and integration gates for this corrected merge candidate, re-run after this fixer metadata correction:
 
 - `python -m unittest tests.unit.test_unified_retrieval`: PASS, 56 tests.
 - `python -m unittest tests.unit.test_unified_retrieval`: PASS, 56 tests after preserving evidence-carried basket refs in source-bundle normalization.
@@ -97,6 +99,6 @@ Additional focused check retained from the retrieval thread:
 ## Risks / Blockers
 
 - No implementation blocker is known.
-- `.codex/kickoff_packets/feat-retrieval-fts.md` and `.codex/lane_meta/feat-retrieval-fts.json` remain stale because the sandbox rejected edits under `.codex` from this worktree during this fixer pass. `THREAD_PACKET.md` is the corrected authoritative handoff artifact for this fixer pass.
+- `.codex/kickoff_packets/feat-retrieval-fts.md` and `.codex/lane_meta/feat-retrieval-fts.json` remain stale because writes under `.codex` are OS-blocked in this worktree. `THREAD_PACKET.md` is the corrected authoritative handoff artifact for this fixer pass.
 - This packet uses `HEAD` for the reviewed merge candidate so the final fixer commit can be included without embedding a self-referential SHA. The final fixer response reports the exact final HEAD SHA.
 - The corrected post-`adfa8cd` reviewer trace range exceeds the high-risk `<=300` net LOC guidance; this is explicitly surfaced for reviewer risk assessment.
