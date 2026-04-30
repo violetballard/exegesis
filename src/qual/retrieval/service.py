@@ -1485,6 +1485,11 @@ class RetrievalService:
                     "source_strategy": item["source_strategy"],
                     "retrieval_backend": item["retrieval_backend"],
                     "retrieval_mode": item["retrieval_mode"],
+                    "query_scope": query.scope,
+                    "query_intent": query.intent,
+                    "query_date_range": list(query.constraints.date_range)
+                    if query.constraints.date_range is not None
+                    else None,
                     "query_fingerprint": query_fingerprint,
                     "result_fingerprint": result_fingerprint,
                 }
