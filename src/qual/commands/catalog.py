@@ -724,6 +724,10 @@ _DEMO_ACTION_SMOKE_ARGV_BY_ENGINE_ACTION: tuple[tuple[str, tuple[str, ...]], ...
         ),
     ),
 )
+_SMOKE_VALUE_AGNOSTIC_OPTIONS_BY_COMMAND: tuple[tuple[str, tuple[str, ...]], ...] = (
+    ("diff-preview", ("--original", "--proposed")),
+    ("terminal", ("--message",)),
+)
 
 
 def _demo_smoke_argv_by_flow_step() -> dict[str, tuple[str, ...]]:
@@ -4364,7 +4368,23 @@ def _smoke_option_argv_matches(
         return False
     if len({option for option, _ in expected_options}) != len(expected_options):
         return False
-    return dict(requested_options) == dict(expected_options)
+    value_agnostic_options = _smoke_value_agnostic_options_for_command(expected_command)
+    requested_by_option = dict(requested_options)
+    expected_by_option = dict(expected_options)
+    if requested_by_option.keys() != expected_by_option.keys():
+        return False
+    return all(
+        option in value_agnostic_options
+        or requested_by_option[option] == expected_by_option[option]
+        for option in expected_by_option
+    )
+
+
+@lru_cache(maxsize=None)
+def _smoke_value_agnostic_options_for_command(command: str) -> tuple[str, ...]:
+    command_name = _normalize_token(command)
+    option_rows = dict(_SMOKE_VALUE_AGNOSTIC_OPTIONS_BY_COMMAND)
+    return option_rows.get(command_name, ())
 
 
 def _smoke_argv_matches(
