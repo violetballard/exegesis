@@ -8,6 +8,7 @@
 - Reviewed branch-tip packet range for this reviewer-required correction: `adfa8cdadd43747ffbcb612e4151e262b13e52ca..faba2c65c1c6d231bda95cfd64a12169b9a41a1a`, plus this metadata-only fixer commit.
 - Handoff classification: high-risk/shared because the reviewed range includes approved shared regression coverage in `tests/unit/test_unified_retrieval.py`.
 - Shared-file approval provenance: reviewer packets for `feat-retrieval-fts` required the packet to cover every branch-tip source/test change, including the retrieval implementation commits after `adfa8cdadd43747ffbcb612e4151e262b13e52ca`.
+- Current fixer note: this metadata-only pass preserves the corrected `adfa8cd..faba2c65` branch-tip packet boundary and re-runs the required gates before creating a new fixer commit.
 
 ## Required Fixes Addressed
 
@@ -15,7 +16,7 @@
 2. Updated the reviewed implementation range to include `adfa8cdadd43747ffbcb612e4151e262b13e52ca..faba2c65c1c6d231bda95cfd64a12169b9a41a1a` and listed every code/test/packet file changed in that range.
 3. Recast the task list as four high-risk tasks that describe only the branch-tip code and packet changes under review.
 4. Added explicit canonical demo-path mapping: the branch-tip changes primarily advance `retrieve relevant material`, with sparse context-reference preservation also advancing `promote or gather context into the basket`.
-5. Re-ran and reported all required gates on the corrected review target.
+5. Re-ran and reported `make scope-check` plus all required integration gates on the corrected review target.
 
 ## Scope Completed
 
@@ -83,7 +84,7 @@ Packet refresh commits in this range are reviewed as metadata changes. They are 
 
 ## Commands Run
 
-Required gates for this corrected merge candidate:
+Required scope and integration gates for this corrected merge candidate:
 
 - `make scope-check`: PASS.
 - `./quality-format.sh --check`: PASS.
