@@ -24,6 +24,8 @@ from src.qual.commands.catalog import (
     command_mvp_demo_readiness_action_argv_lookup_table as _readiness_action_argv_lookup_table,
     command_mvp_demo_readiness_action_entry as _readiness_action_entry,
     command_mvp_demo_readiness_action_summary as _readiness_action_summary,
+    command_mvp_demo_readiness_is_complete as _readiness_is_complete,
+    command_mvp_demo_readiness_missing_engine_actions as _readiness_missing_engine_actions,
     command_mvp_demo_readiness_entry_for_argv as _readiness_entry_for_argv,
     command_mvp_demo_readiness_entry_for_command as _readiness_entry_for_command,
     command_mvp_demo_readiness_entry_for_demo_path_step as _readiness_entry_for_demo_path_step,
@@ -62,6 +64,8 @@ __all__ = [
     "canonical_command_action_readiness_entry_for_engine_action",
     "canonical_command_action_readiness_summary",
     "canonical_command_action_line_lookup_table",
+    "canonical_command_readiness_is_complete",
+    "canonical_command_readiness_missing_engine_actions",
     "canonical_command_action_flow_lookup_table",
     "canonical_command_demo_path_step_for_engine_action",
     "canonical_command_action_smoke_cli_argv",
@@ -126,6 +130,14 @@ def canonical_command_action_readiness_summary() -> tuple[
     ...,
 ]:
     return _readiness_action_summary()
+
+
+def canonical_command_readiness_missing_engine_actions() -> tuple[str, ...]:
+    return _readiness_missing_engine_actions()
+
+
+def canonical_command_readiness_is_complete() -> bool:
+    return _readiness_is_complete()
 
 
 def canonical_command_readiness_entry_for_flow_step(flow_step: str) -> CommandDemoReadinessEntry | None:

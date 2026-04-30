@@ -2407,6 +2407,28 @@ def command_demo_readiness_action_argv_lookup_table(
     )
 
 
+def command_demo_readiness_missing_engine_actions(
+    specs: tuple[CommandSpec, ...] = COMMAND_SPECS,
+    launcher_argv: tuple[str, ...] = COMMAND_SMOKE_CLI_LAUNCHER_ARGV,
+) -> tuple[str, ...]:
+    covered_actions = {
+        engine_action
+        for engine_action, _ in command_demo_readiness_action_argv_lookup_table(specs, launcher_argv)
+    }
+    return tuple(
+        engine_action
+        for engine_action in command_demo_engine_actions(specs)
+        if engine_action not in covered_actions
+    )
+
+
+def command_demo_readiness_is_complete(
+    specs: tuple[CommandSpec, ...] = COMMAND_SPECS,
+    launcher_argv: tuple[str, ...] = COMMAND_SMOKE_CLI_LAUNCHER_ARGV,
+) -> bool:
+    return not command_demo_readiness_missing_engine_actions(specs, launcher_argv)
+
+
 def command_demo_readiness_action_line_lookup_table(
     specs: tuple[CommandSpec, ...] = COMMAND_SPECS,
     launcher_argv: tuple[str, ...] = COMMAND_SMOKE_CLI_LAUNCHER_ARGV,
@@ -3351,6 +3373,20 @@ def command_mvp_demo_readiness_action_argv_lookup_table(
     launcher_argv: tuple[str, ...] = COMMAND_SMOKE_CLI_LAUNCHER_ARGV,
 ) -> tuple[tuple[str, tuple[str, ...]], ...]:
     return command_demo_readiness_action_argv_lookup_table(specs, launcher_argv)
+
+
+def command_mvp_demo_readiness_missing_engine_actions(
+    specs: tuple[CommandSpec, ...] = COMMAND_SPECS,
+    launcher_argv: tuple[str, ...] = COMMAND_SMOKE_CLI_LAUNCHER_ARGV,
+) -> tuple[str, ...]:
+    return command_demo_readiness_missing_engine_actions(specs, launcher_argv)
+
+
+def command_mvp_demo_readiness_is_complete(
+    specs: tuple[CommandSpec, ...] = COMMAND_SPECS,
+    launcher_argv: tuple[str, ...] = COMMAND_SMOKE_CLI_LAUNCHER_ARGV,
+) -> bool:
+    return command_demo_readiness_is_complete(specs, launcher_argv)
 
 
 def command_mvp_demo_readiness_action_line_lookup_table(
