@@ -4,13 +4,15 @@
 - Lane: `feat-retrieval-fts`
 - Merge target: current `main`
 - Merge-base for re-review: `fd2ab6ca65ec2f93d1334c9b7df8512439725be4`
-- Pre-fixer branch tip for this required-fixes pass: `28b0309be1fb348aaf0e61daf6b9214600c26bee`
+- Actual branch tip reviewed by the CHANGES_REQUESTED packet: `a12ff6ce00468b15876cdda70eb722da218e4d66`
+- Pre-fixer branch tip for this required-fixes pass: `a12ff6ce00468b15876cdda70eb722da218e4d66`
 - Final branch tip: reported in the fixer deliverable after this packet commit is created.
 - Authoritative reviewed range / complete merge candidate: `fd2ab6ca65ec2f93d1334c9b7df8512439725be4..HEAD`
 - Reviewer-reported stale reviewed range: `378cf9a74..adfa8cdadd43747ffbcb612e4151e262b13e52ca`
 - Reviewer-required supplemental implementation delta now covered by this packet: `adfa8cdadd43747ffbcb612e4151e262b13e52ca..e99593b66e`
 - Prior packet-metadata refresh delta covered by this packet: `e99593b66e..28b0309be1fb348aaf0e61daf6b9214600c26bee`
-- Current fixer packet-metadata delta covered by this packet: `28b0309be1fb348aaf0e61daf6b9214600c26bee..HEAD`
+- Prior conflict-resolution/packet delta covered by this packet: `28b0309be1fb348aaf0e61daf6b9214600c26bee..a12ff6ce00468b15876cdda70eb722da218e4d66`
+- Current fixer packet-metadata delta covered by this packet: `a12ff6ce00468b15876cdda70eb722da218e4d66..HEAD`
 - Scope classification: high-risk retrieval work because approved shared regression coverage in `tests/unit/test_unified_retrieval.py` is part of the reviewed candidate.
 
 ## Scope Completed
@@ -61,7 +63,9 @@ Reviewer-required supplemental source/test implementation stat for `adfa8cdadd43
 
 Prior packet-metadata refresh delta for `e99593b66e..28b0309be1fb348aaf0e61daf6b9214600c26bee`: packet metadata only; no source/test implementation files.
 
-Current fixer packet-metadata delta for `28b0309be1fb348aaf0e61daf6b9214600c26bee..HEAD`: packet metadata only; no source/test implementation files.
+Prior conflict-resolution/packet delta for `28b0309be1fb348aaf0e61daf6b9214600c26bee..a12ff6ce00468b15876cdda70eb722da218e4d66`: packet metadata and conflict-resolution state only; no source/test implementation files.
+
+Current fixer packet-metadata delta for `a12ff6ce00468b15876cdda70eb722da218e4d66..HEAD`: packet metadata only; no source/test implementation files.
 
 Lane-owned source/test files in the reviewed candidate:
 
@@ -93,6 +97,13 @@ Stale locked mirror paths:
 - `.codex/lane_meta/feat-retrieval-fts.json`
 
 `THREAD_PACKET.md` is the authoritative handoff packet for this re-review.
+
+Merge-conflict resolution status for this required-fixes pass:
+
+- `git status --short --branch` reported a clean `codex/feat-retrieval-fts` worktree before this packet edit.
+- `git diff --name-only --diff-filter=U` reported no unresolved paths.
+- `rg -n "<<<<<<<|=======|>>>>>>>" src/qual/engine/retrieval src/qual/retrieval/service.py tests/unit/test_unified_retrieval.py THREAD_PACKET.md` reported no conflict markers.
+- The reviewer-cited conflicts in `src/qual/engine/retrieval/__init__.py`, `src/qual/engine/retrieval/fts_strategy.py`, `src/qual/engine/retrieval/payload.py`, and `src/qual/retrieval/service.py` are resolved in the actual branch tip and remain part of the complete `fd2ab6ca65ec2f93d1334c9b7df8512439725be4..HEAD` review range.
 
 ## Budget/Risk
 
