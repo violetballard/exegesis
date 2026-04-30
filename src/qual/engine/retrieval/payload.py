@@ -97,6 +97,7 @@ def _basket_item_fingerprint(item: dict[str, object]) -> str:
             "source_strategy": item.get("source_strategy"),
             "retrieval_backend": item.get("retrieval_backend"),
             "retrieval_mode": item.get("retrieval_mode"),
+            "retrieval_policy": item.get("retrieval_policy"),
             "query_fingerprint": item.get("query_fingerprint"),
             "result_fingerprint": item.get("result_fingerprint"),
         }
@@ -209,6 +210,9 @@ def _basket_promotion_items_from_excerpt_hits(
                 "retrieval_mode": _first_text_value(
                     hit.get("retrieval_mode"),
                     provenance.get("retrieval_mode"),
+                ),
+                "retrieval_policy": copy.deepcopy(
+                    hit.get("retrieval_policy", provenance.get("retrieval_policy"))
                 ),
                 "query_scope": _first_text_value(provenance.get("query_scope"), query_scope),
                 "query_intent": _first_text_value(provenance.get("query_intent"), query_intent),

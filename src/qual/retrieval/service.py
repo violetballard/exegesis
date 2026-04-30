@@ -530,6 +530,7 @@ class RetrievalResult:
                 "source_strategy": hit.source_strategy,
                 "retrieval_backend": hit.provenance.get("retrieval_backend"),
                 "retrieval_mode": hit.provenance.get("retrieval_mode"),
+                "retrieval_policy": copy.deepcopy(hit.provenance.get("retrieval_policy")),
                 "query_scope": self.query.scope,
                 "query_intent": self.query.intent,
                 "query_date_range": list(self.query.constraints.date_range)
@@ -1499,6 +1500,7 @@ class RetrievalService:
                     "source_strategy": item["source_strategy"],
                     "retrieval_backend": item["retrieval_backend"],
                     "retrieval_mode": item["retrieval_mode"],
+                    "retrieval_policy": copy.deepcopy(retrieval_policy),
                     "query_scope": query.scope,
                     "query_intent": query.intent,
                     "query_date_range": list(query.constraints.date_range)
@@ -1551,6 +1553,7 @@ class RetrievalService:
                 "source_strategy": item.get("source_strategy"),
                 "retrieval_backend": item.get("retrieval_backend"),
                 "retrieval_mode": item.get("retrieval_mode"),
+                "retrieval_policy": item.get("retrieval_policy"),
                 "query_fingerprint": item.get("query_fingerprint"),
                 "result_fingerprint": item.get("result_fingerprint"),
             }
