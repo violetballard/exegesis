@@ -473,14 +473,46 @@ class UnifiedRetrievalTests(unittest.TestCase):
             result.result_fingerprint,
         )
         self.assertEqual(payload["retrieval_citation_bundle"]["doc_citations"][0]["source_hash"], result.doc_hits[0].source_hash)
+        self.assertEqual(
+            payload["retrieval_citation_bundle"]["doc_citations"][0]["query_fingerprint"],
+            result.diagnostics["query_fingerprint"],
+        )
+        self.assertEqual(
+            payload["retrieval_citation_bundle"]["doc_citations"][0]["result_fingerprint"],
+            result.result_fingerprint,
+        )
         self.assertEqual(payload["retrieval_doc_bundle"], result.retrieval_doc_bundle())
         self.assertEqual(
             payload["retrieval_citation_bundle"]["excerpt_citations"][0]["source_hash"],
             result.hits[0].provenance["source_hash"],
         )
         self.assertEqual(
+            payload["retrieval_citation_bundle"]["excerpt_citations"][0]["query_fingerprint"],
+            result.diagnostics["query_fingerprint"],
+        )
+        self.assertEqual(
+            payload["retrieval_citation_bundle"]["excerpt_citations"][0]["result_fingerprint"],
+            result.result_fingerprint,
+        )
+        self.assertEqual(
             payload["retrieval_evidence"]["excerpt_citations"][0]["source_hash"],
             result.hits[0].provenance["source_hash"],
+        )
+        self.assertEqual(
+            payload["retrieval_evidence"]["doc_citations"][0]["query_fingerprint"],
+            result.diagnostics["query_fingerprint"],
+        )
+        self.assertEqual(
+            payload["retrieval_evidence"]["doc_citations"][0]["result_fingerprint"],
+            result.result_fingerprint,
+        )
+        self.assertEqual(
+            payload["retrieval_evidence"]["excerpt_citations"][0]["query_fingerprint"],
+            result.diagnostics["query_fingerprint"],
+        )
+        self.assertEqual(
+            payload["retrieval_evidence"]["excerpt_citations"][0]["result_fingerprint"],
+            result.result_fingerprint,
         )
         self.assertEqual(payload["retrieval_citation_bundle"], result.citation_bundle())
         self.assertEqual(
@@ -1966,6 +1998,8 @@ class UnifiedRetrievalTests(unittest.TestCase):
                     "source_hash": item["source_hash"],
                     "doc_fingerprint": item["provenance"]["doc_fingerprint"],
                     "doc_identity_fingerprint": item["provenance"]["doc_identity_fingerprint"],
+                    "query_fingerprint": payload["retrieval_summary"]["query_fingerprint"],
+                    "result_fingerprint": payload["retrieval_summary"]["result_fingerprint"],
                     "doc_rank": item["provenance"]["doc_rank"],
                     "top_excerpt_id": item["top_excerpt_id"],
                     "top_excerpt_fingerprint": item["provenance"]["top_excerpt_fingerprint"],
@@ -1985,6 +2019,8 @@ class UnifiedRetrievalTests(unittest.TestCase):
                     "source_hash": item["source_hash"],
                     "excerpt_fingerprint": item["provenance"]["excerpt_fingerprint"],
                     "excerpt_text_hash": item["provenance"]["excerpt_text_hash"],
+                    "query_fingerprint": payload["retrieval_summary"]["query_fingerprint"],
+                    "result_fingerprint": payload["retrieval_summary"]["result_fingerprint"],
                     "rank": item["provenance"]["rank"],
                     "span": item["provenance"]["span"],
                     "match_count": item["provenance"]["match_count"],
