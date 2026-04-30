@@ -300,7 +300,7 @@ def canonical_command_readiness_entry_for_demo_path_step(
     return _readiness_entry_for_demo_path_step(demo_path_step)
 
 
-def canonical_command_readiness_entry_for_argv(argv: Sequence[str]) -> CommandDemoReadinessEntry | None:
+def canonical_command_readiness_entry_for_argv(argv: Sequence[str] | str) -> CommandDemoReadinessEntry | None:
     return _readiness_entry_for_argv(argv)
 
 
@@ -440,27 +440,27 @@ def canonical_command_demo_path_step_for_engine_action(engine_action: str) -> st
     return _action_demo_path_step(engine_action)
 
 
-def canonical_command_flow_step_for_argv(argv: Sequence[str]) -> str | None:
+def canonical_command_flow_step_for_argv(argv: Sequence[str] | str) -> str | None:
     return _readiness_flow_step_for_argv(argv)
 
 
-def canonical_command_command_for_argv(argv: Sequence[str]) -> str | None:
+def canonical_command_command_for_argv(argv: Sequence[str] | str) -> str | None:
     return _readiness_command_for_argv(argv)
 
 
-def canonical_command_demo_path_step_for_argv(argv: Sequence[str]) -> str | None:
+def canonical_command_demo_path_step_for_argv(argv: Sequence[str] | str) -> str | None:
     return _readiness_demo_path_step_for_argv(argv)
 
 
-def canonical_command_engine_actions_for_argv(argv: Sequence[str]) -> tuple[str, ...]:
+def canonical_command_engine_actions_for_argv(argv: Sequence[str] | str) -> tuple[str, ...]:
     return _readiness_engine_actions_for_argv(argv)
 
 
-def canonical_command_line_for_argv(argv: Sequence[str]) -> str:
+def canonical_command_line_for_argv(argv: Sequence[str] | str) -> str:
     return _readiness_line_for_argv(argv)
 
 
-def canonical_command_argv_for_argv(argv: Sequence[str]) -> tuple[str, ...]:
+def canonical_command_argv_for_argv(argv: Sequence[str] | str) -> tuple[str, ...]:
     return _readiness_argv_for_argv(argv)
 
 

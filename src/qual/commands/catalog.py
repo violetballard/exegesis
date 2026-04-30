@@ -3585,7 +3585,9 @@ def _normalize_smoke_argv(argv: tuple[str, ...]) -> tuple[str, ...]:
     return tuple(token.strip() for token in argv if token.strip())
 
 
-def _coerce_smoke_argv(argv: Sequence[str]) -> tuple[str, ...]:
+def _coerce_smoke_argv(argv: Sequence[str] | str) -> tuple[str, ...]:
+    if isinstance(argv, str):
+        return tuple(shlex.split(argv))
     return tuple(argv)
 
 
@@ -3665,7 +3667,7 @@ def _command_demo_readiness_canonical_argv_for_argv(
 
 
 def command_demo_readiness_entry_for_argv(
-    argv: Sequence[str],
+    argv: Sequence[str] | str,
     specs: tuple[CommandSpec, ...] = COMMAND_SPECS,
     launcher_argv: tuple[str, ...] = COMMAND_SMOKE_CLI_LAUNCHER_ARGV,
 ) -> CommandDemoReadinessEntry | None:
@@ -3673,7 +3675,7 @@ def command_demo_readiness_entry_for_argv(
 
 
 def command_demo_readiness_flow_step_for_argv(
-    argv: Sequence[str],
+    argv: Sequence[str] | str,
     specs: tuple[CommandSpec, ...] = COMMAND_SPECS,
     launcher_argv: tuple[str, ...] = COMMAND_SMOKE_CLI_LAUNCHER_ARGV,
 ) -> str | None:
@@ -3684,7 +3686,7 @@ def command_demo_readiness_flow_step_for_argv(
 
 
 def command_demo_readiness_command_for_argv(
-    argv: Sequence[str],
+    argv: Sequence[str] | str,
     specs: tuple[CommandSpec, ...] = COMMAND_SPECS,
     launcher_argv: tuple[str, ...] = COMMAND_SMOKE_CLI_LAUNCHER_ARGV,
 ) -> str | None:
@@ -3695,7 +3697,7 @@ def command_demo_readiness_command_for_argv(
 
 
 def command_demo_readiness_demo_path_step_for_argv(
-    argv: Sequence[str],
+    argv: Sequence[str] | str,
     specs: tuple[CommandSpec, ...] = COMMAND_SPECS,
     launcher_argv: tuple[str, ...] = COMMAND_SMOKE_CLI_LAUNCHER_ARGV,
 ) -> str | None:
@@ -3706,7 +3708,7 @@ def command_demo_readiness_demo_path_step_for_argv(
 
 
 def command_demo_readiness_engine_actions_for_argv(
-    argv: Sequence[str],
+    argv: Sequence[str] | str,
     specs: tuple[CommandSpec, ...] = COMMAND_SPECS,
     launcher_argv: tuple[str, ...] = COMMAND_SMOKE_CLI_LAUNCHER_ARGV,
 ) -> tuple[str, ...]:
@@ -3717,7 +3719,7 @@ def command_demo_readiness_engine_actions_for_argv(
 
 
 def command_demo_readiness_line_for_argv(
-    argv: Sequence[str],
+    argv: Sequence[str] | str,
     specs: tuple[CommandSpec, ...] = COMMAND_SPECS,
     launcher_argv: tuple[str, ...] = COMMAND_SMOKE_CLI_LAUNCHER_ARGV,
 ) -> str:
@@ -3732,7 +3734,7 @@ def command_demo_readiness_line_for_argv(
 
 
 def command_demo_readiness_argv_for_argv(
-    argv: Sequence[str],
+    argv: Sequence[str] | str,
     specs: tuple[CommandSpec, ...] = COMMAND_SPECS,
     launcher_argv: tuple[str, ...] = COMMAND_SMOKE_CLI_LAUNCHER_ARGV,
 ) -> tuple[str, ...]:
@@ -3744,7 +3746,7 @@ def command_demo_readiness_argv_for_argv(
 
 
 def command_mvp_demo_readiness_entry_for_argv(
-    argv: Sequence[str],
+    argv: Sequence[str] | str,
     specs: tuple[CommandSpec, ...] = COMMAND_SPECS,
     launcher_argv: tuple[str, ...] = COMMAND_SMOKE_CLI_LAUNCHER_ARGV,
 ) -> CommandDemoReadinessEntry | None:
@@ -3752,7 +3754,7 @@ def command_mvp_demo_readiness_entry_for_argv(
 
 
 def command_mvp_demo_readiness_flow_step_for_argv(
-    argv: Sequence[str],
+    argv: Sequence[str] | str,
     specs: tuple[CommandSpec, ...] = COMMAND_SPECS,
     launcher_argv: tuple[str, ...] = COMMAND_SMOKE_CLI_LAUNCHER_ARGV,
 ) -> str | None:
@@ -3760,7 +3762,7 @@ def command_mvp_demo_readiness_flow_step_for_argv(
 
 
 def command_mvp_demo_readiness_command_for_argv(
-    argv: Sequence[str],
+    argv: Sequence[str] | str,
     specs: tuple[CommandSpec, ...] = COMMAND_SPECS,
     launcher_argv: tuple[str, ...] = COMMAND_SMOKE_CLI_LAUNCHER_ARGV,
 ) -> str | None:
@@ -3768,7 +3770,7 @@ def command_mvp_demo_readiness_command_for_argv(
 
 
 def command_mvp_demo_readiness_demo_path_step_for_argv(
-    argv: Sequence[str],
+    argv: Sequence[str] | str,
     specs: tuple[CommandSpec, ...] = COMMAND_SPECS,
     launcher_argv: tuple[str, ...] = COMMAND_SMOKE_CLI_LAUNCHER_ARGV,
 ) -> str | None:
@@ -3776,7 +3778,7 @@ def command_mvp_demo_readiness_demo_path_step_for_argv(
 
 
 def command_mvp_demo_readiness_engine_actions_for_argv(
-    argv: Sequence[str],
+    argv: Sequence[str] | str,
     specs: tuple[CommandSpec, ...] = COMMAND_SPECS,
     launcher_argv: tuple[str, ...] = COMMAND_SMOKE_CLI_LAUNCHER_ARGV,
 ) -> tuple[str, ...]:
@@ -3784,7 +3786,7 @@ def command_mvp_demo_readiness_engine_actions_for_argv(
 
 
 def command_mvp_demo_readiness_line_for_argv(
-    argv: Sequence[str],
+    argv: Sequence[str] | str,
     specs: tuple[CommandSpec, ...] = COMMAND_SPECS,
     launcher_argv: tuple[str, ...] = COMMAND_SMOKE_CLI_LAUNCHER_ARGV,
 ) -> str:
@@ -3792,7 +3794,7 @@ def command_mvp_demo_readiness_line_for_argv(
 
 
 def command_mvp_demo_readiness_argv_for_argv(
-    argv: Sequence[str],
+    argv: Sequence[str] | str,
     specs: tuple[CommandSpec, ...] = COMMAND_SPECS,
     launcher_argv: tuple[str, ...] = COMMAND_SMOKE_CLI_LAUNCHER_ARGV,
 ) -> tuple[str, ...]:
