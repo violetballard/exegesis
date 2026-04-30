@@ -39,7 +39,7 @@ Complete files-changed list for `fd2ab6ca65ec2f93d1334c9b7df8512439725be4..HEAD`
 - `src/qual/retrieval/service.py` - lane-owned retrieval service behavior via `src/qual/retrieval/**`.
 - `tests/unit/test_unified_retrieval.py` - shared-by-approval regression coverage for the canonical retrieval contract.
 
-The reviewed candidate reports `6 files changed, 270 insertions(+), 116 deletions(-)` from merge-base to the corrected working tree before this fixer commit is created.
+The final reviewed candidate reports `6 files changed, 270 insertions(+), 116 deletions(-)` from merge-base through this fixer commit.
 
 Out-of-scope files absent from the actual reviewed candidate range:
 
@@ -59,7 +59,7 @@ Treat `THREAD_PACKET.md` as the authoritative corrected handoff packet for this 
 
 - Task budget: `4/4` high-risk tasks.
 - File budget: `6/8` high-risk files.
-- Net LOC budget: source/test implementation changes are `5 files changed, 214 insertions(+), 49 deletions(-)` from merge-base to the corrected working tree before this fixer commit is created, within `<=300` high-risk net LOC; packet metadata accounts for the remaining documentation churn.
+- Net LOC budget: source/test implementation changes are `5 files changed, 214 insertions(+), 49 deletions(-)` from merge-base through this fixer commit, within `<=300` high-risk net LOC; packet metadata accounts for the remaining documentation churn.
 - Shared-by-approval files: `tests/unit/test_unified_retrieval.py` only.
 - Integrator-locked files: none.
 - Routing/provider impact: none.
