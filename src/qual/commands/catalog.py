@@ -273,6 +273,21 @@ class CommandDemoActionSmokeCliArgvContract:
     entries: tuple[CommandDemoActionSmokeCliArgvEntry, ...]
 
 
+@dataclass(frozen=True)
+class CommandDemoCommandActionEntry:
+    flow_step: str
+    name: str
+    cli_tokens: tuple[str, ...]
+    smoke_token: str
+    demo_path_step: str
+    engine_actions: tuple[str, ...]
+
+
+@dataclass(frozen=True)
+class CommandDemoCommandActionContract:
+    entries: tuple[CommandDemoCommandActionEntry, ...]
+
+
 def _normalize_token(value: str) -> str:
     normalized = re.sub(r"[-_\s]+", "-", value.strip().casefold())
     return normalized.strip("-")
@@ -2012,6 +2027,100 @@ def command_demo_action_smoke_cli_argv(
 
 
 @lru_cache(maxsize=None)
+def command_demo_command_action_contract(
+    specs: tuple[CommandSpec, ...] = COMMAND_SPECS,
+) -> CommandDemoCommandActionContract:
+    demo_path_contract = command_demo_path_contract(specs)
+    contract = CommandDemoCommandActionContract(
+        entries=tuple(
+            CommandDemoCommandActionEntry(
+                flow_step=entry.flow_step,
+                name=entry.name,
+                cli_tokens=entry.cli_tokens,
+                smoke_token=entry.cli_tokens[0],
+                demo_path_step=entry.demo_path_step,
+                engine_actions=entry.engine_actions,
+            )
+            for entry in demo_path_contract.entries
+        )
+    )
+    _validate_command_demo_command_action_contract(contract, demo_path_contract, specs=specs)
+    return contract
+
+
+def _validate_command_demo_command_action_contract(
+    contract: CommandDemoCommandActionContract,
+    demo_path_contract: CommandDemoPathContract,
+    *,
+    specs: tuple[CommandSpec, ...],
+) -> None:
+    if tuple(entry.flow_step for entry in contract.entries) != tuple(
+        path_entry.flow_step for path_entry in demo_path_contract.entries
+    ):
+        raise ValueError("Command demo command action flow steps are inconsistent")
+    if tuple(entry.name for entry in contract.entries) != tuple(
+        path_entry.name for path_entry in demo_path_contract.entries
+    ):
+        raise ValueError("Command demo command action names are inconsistent")
+    if tuple(entry.cli_tokens for entry in contract.entries) != tuple(
+        path_entry.cli_tokens for path_entry in demo_path_contract.entries
+    ):
+        raise ValueError("Command demo command action CLI tokens are inconsistent")
+    if tuple(entry.smoke_token for entry in contract.entries) != tuple(
+        path_entry.cli_tokens[0] for path_entry in demo_path_contract.entries
+    ):
+        raise ValueError("Command demo command action smoke tokens are inconsistent")
+    if tuple(entry.demo_path_step for entry in contract.entries) != tuple(
+        path_entry.demo_path_step for path_entry in demo_path_contract.entries
+    ):
+        raise ValueError("Command demo command action path steps are inconsistent")
+    if tuple(entry.engine_actions for entry in contract.entries) != tuple(
+        path_entry.engine_actions for path_entry in demo_path_contract.entries
+    ):
+        raise ValueError("Command demo command action engine actions are inconsistent")
+
+    action_routes_by_name: dict[str, list[CommandDemoActionRouteEntry]] = {}
+    for route_entry in command_demo_action_route_contract(specs).entries:
+        action_routes_by_name.setdefault(route_entry.name, []).append(route_entry)
+
+    for entry in contract.entries:
+        route_entries = tuple(action_routes_by_name.get(entry.name, ()))
+        if tuple(route_entry.engine_action for route_entry in route_entries) != entry.engine_actions:
+            raise ValueError(f"Command demo command action route actions are inconsistent: {entry.name}")
+        if any(route_entry.flow_step != entry.flow_step for route_entry in route_entries):
+            raise ValueError(f"Command demo command action route flow step is inconsistent: {entry.name}")
+        if any(route_entry.cli_tokens != entry.cli_tokens for route_entry in route_entries):
+            raise ValueError(f"Command demo command action route CLI tokens are inconsistent: {entry.name}")
+        if any(route_entry.smoke_token != entry.smoke_token for route_entry in route_entries):
+            raise ValueError(f"Command demo command action route smoke token is inconsistent: {entry.name}")
+
+
+def command_demo_command_action_summary(
+    specs: tuple[CommandSpec, ...] = COMMAND_SPECS,
+) -> tuple[tuple[str, str, tuple[str, ...], str, tuple[str, ...]], ...]:
+    contract = command_demo_command_action_contract(specs)
+    return tuple(
+        (
+            entry.flow_step,
+            entry.name,
+            entry.cli_tokens,
+            entry.demo_path_step,
+            entry.engine_actions,
+        )
+        for entry in contract.entries
+    )
+
+
+def command_demo_command_action_lookup_table(
+    specs: tuple[CommandSpec, ...] = COMMAND_SPECS,
+) -> tuple[tuple[str, tuple[str, ...]], ...]:
+    return tuple(
+        (entry.name, entry.engine_actions)
+        for entry in command_demo_command_action_contract(specs).entries
+    )
+
+
+@lru_cache(maxsize=None)
 def command_demo_action_index(
     specs: tuple[CommandSpec, ...] = COMMAND_SPECS,
 ) -> tuple[tuple[str, CommandDemoActionEntry], ...]:
@@ -2161,6 +2270,24 @@ def command_mvp_demo_action_smoke_cli_argv(
     launcher_argv: tuple[str, ...] = COMMAND_SMOKE_CLI_LAUNCHER_ARGV,
 ) -> tuple[str, ...]:
     return command_demo_action_smoke_cli_argv(engine_action, specs, launcher_argv)
+
+
+def command_mvp_demo_command_action_contract(
+    specs: tuple[CommandSpec, ...] = COMMAND_SPECS,
+) -> CommandDemoCommandActionContract:
+    return command_demo_command_action_contract(specs)
+
+
+def command_mvp_demo_command_action_summary(
+    specs: tuple[CommandSpec, ...] = COMMAND_SPECS,
+) -> tuple[tuple[str, str, tuple[str, ...], str, tuple[str, ...]], ...]:
+    return command_demo_command_action_summary(specs)
+
+
+def command_mvp_demo_command_action_lookup_table(
+    specs: tuple[CommandSpec, ...] = COMMAND_SPECS,
+) -> tuple[tuple[str, tuple[str, ...]], ...]:
+    return command_demo_command_action_lookup_table(specs)
 
 
 def command_mvp_demo_action_index(
