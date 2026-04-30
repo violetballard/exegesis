@@ -4,7 +4,7 @@
 - Lane: `feat-retrieval-fts`
 - Merge target: current `main`
 - Merge-base for this re-review: `fd2ab6ca65ec2f93d1334c9b7df8512439725be4`
-- Branch tip before this fixer commit: `ae0b81b372f49d5987d4a3c03c824da0bc10213d`
+- Branch tip before this fixer commit: `2a7382df1ac4a167c59ef9a04fee0275ac2198fe`
 - Final HEAD SHA: reported in this fixer deliverable after commit creation.
 - Authoritative reviewed range / merge candidate: `fd2ab6ca65ec2f93d1334c9b7df8512439725be4..HEAD`
 - Scope classification: high-risk retrieval work because approved shared regression coverage in `tests/unit/test_unified_retrieval.py` is part of the reviewed range.
@@ -13,7 +13,7 @@
 
 This packet regenerates the handoff against one merge candidate: the complete branch diff from merge-base `fd2ab6ca65ec2f93d1334c9b7df8512439725be4` through the final fixer commit recorded above. It includes every source, test, and packet metadata change present at that candidate tip; no source or test file is classified as metadata-only.
 
-This fixer pass keeps `THREAD_PACKET.md` as the authoritative handoff surface because the `.codex` lane metadata files are not part of the corrected merge-base-to-HEAD candidate and are listed below as absent from the reviewed range.
+This fixer pass keeps `THREAD_PACKET.md` as the authoritative handoff surface because the `.codex` lane metadata files are not part of the corrected merge-base-to-HEAD candidate.
 
 The stale reviewer ranges `378cf9a74..adfa8cdadd43747ffbcb612e4151e262b13e52ca`, `d7fd5d200358287fa42a18d39e2b277463b9b69f..adfa8cdadd43747ffbcb612e4151e262b13e52ca`, and `adfa8cdadd43747ffbcb612e4151e262b13e52ca..3753d4baf4f9f98eb58615fc0e7f45be9ffdf24a` are not used for this re-review. The current merge candidate is `fd2ab6ca65ec2f93d1334c9b7df8512439725be4..HEAD`; work outside that range is intentionally excluded because `fd2ab6ca65ec2f93d1334c9b7df8512439725be4` is the merge-base with current `main`.
 
@@ -67,8 +67,6 @@ Files absent from the reviewed candidate:
 - `tests/unit/test_packet_planner.py`
 - `src/qual/engine/retrieval/embeddings_strategy.py`
 - `src/qual/engine/retrieval/pageindex_strategy.py`
-- `.codex/kickoff_packets/feat-retrieval-fts.md`
-- `.codex/lane_meta/feat-retrieval-fts.json`
 
 ## Budget/Risk
 
