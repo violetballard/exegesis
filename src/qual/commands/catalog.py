@@ -274,6 +274,22 @@ class CommandDemoActionSmokeCliArgvContract:
 
 
 @dataclass(frozen=True)
+class CommandDemoActionSmokeScriptStep:
+    ordinal: int
+    engine_action: str
+    flow_step: str
+    name: str
+    command_argv: tuple[str, ...]
+    smoke_token: str
+    demo_path_step: str
+
+
+@dataclass(frozen=True)
+class CommandDemoActionSmokeScriptContract:
+    steps: tuple[CommandDemoActionSmokeScriptStep, ...]
+
+
+@dataclass(frozen=True)
 class CommandDemoCommandActionEntry:
     flow_step: str
     name: str
@@ -2053,6 +2069,122 @@ def command_demo_action_smoke_cli_argv(
 
 
 @lru_cache(maxsize=None)
+def command_demo_action_smoke_script_contract(
+    specs: tuple[CommandSpec, ...] = COMMAND_SPECS,
+    launcher_argv: tuple[str, ...] = COMMAND_SMOKE_CLI_LAUNCHER_ARGV,
+) -> CommandDemoActionSmokeScriptContract:
+    argv_contract = command_demo_action_smoke_cli_argv_contract(specs, launcher_argv)
+    contract = CommandDemoActionSmokeScriptContract(
+        steps=tuple(
+            CommandDemoActionSmokeScriptStep(
+                ordinal=ordinal,
+                engine_action=entry.engine_action,
+                flow_step=entry.flow_step,
+                name=entry.name,
+                command_argv=entry.command_argv,
+                smoke_token=entry.smoke_token,
+                demo_path_step=entry.demo_path_step,
+            )
+            for ordinal, entry in enumerate(argv_contract.entries, start=1)
+        )
+    )
+    _validate_command_demo_action_smoke_script_contract(contract, argv_contract)
+    return contract
+
+
+def _validate_command_demo_action_smoke_script_contract(
+    contract: CommandDemoActionSmokeScriptContract,
+    argv_contract: CommandDemoActionSmokeCliArgvContract,
+) -> None:
+    expected_ordinals = tuple(range(1, len(argv_contract.entries) + 1))
+    if tuple(step.ordinal for step in contract.steps) != expected_ordinals:
+        raise ValueError("Command demo action smoke script ordinals are inconsistent")
+    if tuple(step.engine_action for step in contract.steps) != tuple(
+        entry.engine_action for entry in argv_contract.entries
+    ):
+        raise ValueError("Command demo action smoke script actions are inconsistent")
+    if tuple(step.flow_step for step in contract.steps) != tuple(
+        entry.flow_step for entry in argv_contract.entries
+    ):
+        raise ValueError("Command demo action smoke script flow steps are inconsistent")
+    if tuple(step.name for step in contract.steps) != tuple(entry.name for entry in argv_contract.entries):
+        raise ValueError("Command demo action smoke script command names are inconsistent")
+    if tuple(step.command_argv for step in contract.steps) != tuple(
+        entry.command_argv for entry in argv_contract.entries
+    ):
+        raise ValueError("Command demo action smoke script argv values are inconsistent")
+    if tuple(step.smoke_token for step in contract.steps) != tuple(
+        entry.smoke_token for entry in argv_contract.entries
+    ):
+        raise ValueError("Command demo action smoke script tokens are inconsistent")
+    if tuple(step.demo_path_step for step in contract.steps) != tuple(
+        entry.demo_path_step for entry in argv_contract.entries
+    ):
+        raise ValueError("Command demo action smoke script path steps are inconsistent")
+
+
+def command_demo_action_smoke_script_summary(
+    specs: tuple[CommandSpec, ...] = COMMAND_SPECS,
+    launcher_argv: tuple[str, ...] = COMMAND_SMOKE_CLI_LAUNCHER_ARGV,
+) -> tuple[tuple[int, str, str, str, tuple[str, ...], str], ...]:
+    contract = command_demo_action_smoke_script_contract(specs, launcher_argv)
+    return tuple(
+        (
+            step.ordinal,
+            step.engine_action,
+            step.flow_step,
+            step.name,
+            step.command_argv,
+            step.demo_path_step,
+        )
+        for step in contract.steps
+    )
+
+
+def command_demo_action_smoke_script_lookup_table(
+    specs: tuple[CommandSpec, ...] = COMMAND_SPECS,
+    launcher_argv: tuple[str, ...] = COMMAND_SMOKE_CLI_LAUNCHER_ARGV,
+) -> tuple[tuple[int, str, tuple[str, ...]], ...]:
+    return tuple(
+        (step.ordinal, step.engine_action, step.command_argv)
+        for step in command_demo_action_smoke_script_contract(specs, launcher_argv).steps
+    )
+
+
+@lru_cache(maxsize=None)
+def _command_demo_action_smoke_script_step_for_ordinal(
+    specs: tuple[CommandSpec, ...],
+    launcher_argv: tuple[str, ...],
+    ordinal: int,
+) -> CommandDemoActionSmokeScriptStep | None:
+    if ordinal <= 0:
+        return None
+    return {
+        step.ordinal: step
+        for step in command_demo_action_smoke_script_contract(specs, launcher_argv).steps
+    }.get(ordinal)
+
+
+def command_demo_action_smoke_script_step(
+    ordinal: int,
+    specs: tuple[CommandSpec, ...] = COMMAND_SPECS,
+    launcher_argv: tuple[str, ...] = COMMAND_SMOKE_CLI_LAUNCHER_ARGV,
+) -> CommandDemoActionSmokeScriptStep | None:
+    return _command_demo_action_smoke_script_step_for_ordinal(specs, launcher_argv, ordinal)
+
+
+def command_demo_action_smoke_script_argv(
+    ordinal: int,
+    specs: tuple[CommandSpec, ...] = COMMAND_SPECS,
+    launcher_argv: tuple[str, ...] = COMMAND_SMOKE_CLI_LAUNCHER_ARGV,
+) -> tuple[str, ...]:
+    step = command_demo_action_smoke_script_step(ordinal, specs, launcher_argv)
+    if step is None:
+        return ()
+    return step.command_argv
+
+
+@lru_cache(maxsize=None)
 def command_demo_command_action_contract(
     specs: tuple[CommandSpec, ...] = COMMAND_SPECS,
 ) -> CommandDemoCommandActionContract:
@@ -2296,6 +2428,43 @@ def command_mvp_demo_action_smoke_cli_argv(
     launcher_argv: tuple[str, ...] = COMMAND_SMOKE_CLI_LAUNCHER_ARGV,
 ) -> tuple[str, ...]:
     return command_demo_action_smoke_cli_argv(engine_action, specs, launcher_argv)
+
+
+def command_mvp_demo_action_smoke_script_contract(
+    specs: tuple[CommandSpec, ...] = COMMAND_SPECS,
+    launcher_argv: tuple[str, ...] = COMMAND_SMOKE_CLI_LAUNCHER_ARGV,
+) -> CommandDemoActionSmokeScriptContract:
+    return command_demo_action_smoke_script_contract(specs, launcher_argv)
+
+
+def command_mvp_demo_action_smoke_script_summary(
+    specs: tuple[CommandSpec, ...] = COMMAND_SPECS,
+    launcher_argv: tuple[str, ...] = COMMAND_SMOKE_CLI_LAUNCHER_ARGV,
+) -> tuple[tuple[int, str, str, str, tuple[str, ...], str], ...]:
+    return command_demo_action_smoke_script_summary(specs, launcher_argv)
+
+
+def command_mvp_demo_action_smoke_script_lookup_table(
+    specs: tuple[CommandSpec, ...] = COMMAND_SPECS,
+    launcher_argv: tuple[str, ...] = COMMAND_SMOKE_CLI_LAUNCHER_ARGV,
+) -> tuple[tuple[int, str, tuple[str, ...]], ...]:
+    return command_demo_action_smoke_script_lookup_table(specs, launcher_argv)
+
+
+def command_mvp_demo_action_smoke_script_step(
+    ordinal: int,
+    specs: tuple[CommandSpec, ...] = COMMAND_SPECS,
+    launcher_argv: tuple[str, ...] = COMMAND_SMOKE_CLI_LAUNCHER_ARGV,
+) -> CommandDemoActionSmokeScriptStep | None:
+    return command_demo_action_smoke_script_step(ordinal, specs, launcher_argv)
+
+
+def command_mvp_demo_action_smoke_script_argv(
+    ordinal: int,
+    specs: tuple[CommandSpec, ...] = COMMAND_SPECS,
+    launcher_argv: tuple[str, ...] = COMMAND_SMOKE_CLI_LAUNCHER_ARGV,
+) -> tuple[str, ...]:
+    return command_demo_action_smoke_script_argv(ordinal, specs, launcher_argv)
 
 
 def command_mvp_demo_command_action_contract(
