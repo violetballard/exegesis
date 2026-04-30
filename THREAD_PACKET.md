@@ -65,7 +65,7 @@ The full branch-tip file list includes command, retrieval, context/storage, shar
 - `make scope-check`: passed.
 - `./quality-format.sh --check`: passed.
 - `./quality-lint.sh`: passed.
-- `python -m unittest tests.unit.test_unified_retrieval.UnifiedRetrievalTests.test_retrieval_source_bundle_helper_accepts_source_bundle_only_sources tests.unit.test_unified_retrieval.UnifiedRetrievalTests.test_retrieval_context_bundle_helper_accepts_source_bundle_only_sources tests.unit.test_unified_retrieval.UnifiedRetrievalTests.test_retrieval_source_bundle_payload_helper_accepts_source_bundle_shape tests.unit.test_unified_retrieval.UnifiedRetrievalTests.test_retrieve_auto_source_bundle_matches_result_snapshot tests.unit.test_unified_retrieval.UnifiedRetrievalTests.test_retrieve_fts_source_bundle_matches_result_snapshot`: passed; 5 tests.
+- `python -m unittest tests.unit.test_mvp_migration tests.unit.test_unified_retrieval tests.unit.test_offline_handoff.OfflineHandoffConfigTests.test_live_router_config_uses_explicit_lms_provider`: passed; 83 tests, 1 skipped live-router-config assertion for protected heavy-profile drift.
 - `./typecheck-test.sh`: passed.
 - `./quality-test.sh`: passed; 393 tests, 1 skipped live-router-config assertion for protected heavy-profile drift.
 - `make ci`: passed; includes scope, format, lint, compile/typecheck, and `quality-test.sh` with the same 1 protected-config skip.
