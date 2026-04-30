@@ -530,6 +530,9 @@ class RetrievalResult:
                     "retrieval_mode": hit.provenance.get("retrieval_mode"),
                     "query_scope": self.query.scope,
                     "query_intent": self.query.intent,
+                    "query_date_range": list(self.query.constraints.date_range)
+                    if self.query.constraints.date_range is not None
+                    else None,
                     "query_fingerprint": hit.provenance.get("query_fingerprint"),
                     "result_fingerprint": self.result_fingerprint,
                 }
