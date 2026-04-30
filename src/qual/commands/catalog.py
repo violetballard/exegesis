@@ -471,6 +471,21 @@ class CommandDemoReadinessTraceContract:
 
 
 @dataclass(frozen=True)
+class CommandDemoReadinessCommandTraceEntry:
+    ordinal: int
+    demo_path_step: str
+    flow_step: str
+    name: str
+    command_line: str
+    action_lines: tuple[tuple[str, str], ...]
+
+
+@dataclass(frozen=True)
+class CommandDemoReadinessCommandTraceContract:
+    entries: tuple[CommandDemoReadinessCommandTraceEntry, ...]
+
+
+@dataclass(frozen=True)
 class CommandDemoCommandActionEntry:
     flow_step: str
     name: str
@@ -3700,6 +3715,96 @@ def command_demo_readiness_trace_lookup_table(
 
 
 @lru_cache(maxsize=None)
+def command_demo_readiness_command_trace_contract(
+    specs: tuple[CommandSpec, ...] = COMMAND_SPECS,
+    launcher_argv: tuple[str, ...] = COMMAND_SMOKE_CLI_LAUNCHER_ARGV,
+) -> CommandDemoReadinessCommandTraceContract:
+    handoff_contract = command_demo_readiness_handoff_contract(specs, launcher_argv)
+    contract = CommandDemoReadinessCommandTraceContract(
+        entries=tuple(
+            CommandDemoReadinessCommandTraceEntry(
+                ordinal=entry.ordinal,
+                demo_path_step=entry.demo_path_step,
+                flow_step=entry.flow_step,
+                name=entry.name,
+                command_line=entry.command_line,
+                action_lines=entry.action_lines,
+            )
+            for entry in handoff_contract.entries
+        )
+    )
+    _validate_command_demo_readiness_command_trace_contract(
+        contract,
+        handoff_contract,
+        specs=specs,
+    )
+    return contract
+
+
+def _validate_command_demo_readiness_command_trace_contract(
+    contract: CommandDemoReadinessCommandTraceContract,
+    handoff_contract: CommandDemoReadinessHandoffContract,
+    *,
+    specs: tuple[CommandSpec, ...],
+) -> None:
+    if tuple(entry.ordinal for entry in contract.entries) != tuple(
+        entry.ordinal for entry in handoff_contract.entries
+    ):
+        raise ValueError("Command demo readiness command trace ordinals are inconsistent")
+    if tuple(entry.demo_path_step for entry in contract.entries) != tuple(
+        entry.demo_path_step for entry in handoff_contract.entries
+    ):
+        raise ValueError("Command demo readiness command trace path steps are inconsistent")
+    if tuple(entry.flow_step for entry in contract.entries) != tuple(
+        entry.flow_step for entry in handoff_contract.entries
+    ):
+        raise ValueError("Command demo readiness command trace flow steps are inconsistent")
+    if tuple(entry.name for entry in contract.entries) != tuple(
+        entry.name for entry in handoff_contract.entries
+    ):
+        raise ValueError("Command demo readiness command trace names are inconsistent")
+    if tuple(entry.command_line for entry in contract.entries) != tuple(
+        entry.command_line for entry in handoff_contract.entries
+    ):
+        raise ValueError("Command demo readiness command trace command lines are inconsistent")
+    if tuple(entry.action_lines for entry in contract.entries) != tuple(
+        entry.action_lines for entry in handoff_contract.entries
+    ):
+        raise ValueError("Command demo readiness command trace action lines are inconsistent")
+    if tuple(entry.name for entry in contract.entries) != command_mvp_flow_names(specs):
+        raise ValueError("Command demo readiness command trace command order is inconsistent")
+    if any(not entry.command_line or not entry.action_lines for entry in contract.entries):
+        raise ValueError("Command demo readiness command trace lines must not be empty")
+
+
+def command_demo_readiness_command_trace_summary(
+    specs: tuple[CommandSpec, ...] = COMMAND_SPECS,
+    launcher_argv: tuple[str, ...] = COMMAND_SMOKE_CLI_LAUNCHER_ARGV,
+) -> tuple[tuple[int, str, str, str, str, tuple[tuple[str, str], ...]], ...]:
+    return tuple(
+        (
+            entry.ordinal,
+            entry.demo_path_step,
+            entry.flow_step,
+            entry.name,
+            entry.command_line,
+            entry.action_lines,
+        )
+        for entry in command_demo_readiness_command_trace_contract(specs, launcher_argv).entries
+    )
+
+
+def command_demo_readiness_command_trace_lookup_table(
+    specs: tuple[CommandSpec, ...] = COMMAND_SPECS,
+    launcher_argv: tuple[str, ...] = COMMAND_SMOKE_CLI_LAUNCHER_ARGV,
+) -> tuple[tuple[str, tuple[tuple[str, str], ...]], ...]:
+    return tuple(
+        (entry.name, entry.action_lines)
+        for entry in command_demo_readiness_command_trace_contract(specs, launcher_argv).entries
+    )
+
+
+@lru_cache(maxsize=None)
 def command_demo_readiness_action_index(
     specs: tuple[CommandSpec, ...] = COMMAND_SPECS,
     launcher_argv: tuple[str, ...] = COMMAND_SMOKE_CLI_LAUNCHER_ARGV,
@@ -4873,6 +4978,27 @@ def command_mvp_demo_readiness_trace_lookup_table(
     launcher_argv: tuple[str, ...] = COMMAND_SMOKE_CLI_LAUNCHER_ARGV,
 ) -> tuple[tuple[str, str], ...]:
     return command_demo_readiness_trace_lookup_table(specs, launcher_argv)
+
+
+def command_mvp_demo_readiness_command_trace_contract(
+    specs: tuple[CommandSpec, ...] = COMMAND_SPECS,
+    launcher_argv: tuple[str, ...] = COMMAND_SMOKE_CLI_LAUNCHER_ARGV,
+) -> CommandDemoReadinessCommandTraceContract:
+    return command_demo_readiness_command_trace_contract(specs, launcher_argv)
+
+
+def command_mvp_demo_readiness_command_trace_summary(
+    specs: tuple[CommandSpec, ...] = COMMAND_SPECS,
+    launcher_argv: tuple[str, ...] = COMMAND_SMOKE_CLI_LAUNCHER_ARGV,
+) -> tuple[tuple[int, str, str, str, str, tuple[tuple[str, str], ...]], ...]:
+    return command_demo_readiness_command_trace_summary(specs, launcher_argv)
+
+
+def command_mvp_demo_readiness_command_trace_lookup_table(
+    specs: tuple[CommandSpec, ...] = COMMAND_SPECS,
+    launcher_argv: tuple[str, ...] = COMMAND_SMOKE_CLI_LAUNCHER_ARGV,
+) -> tuple[tuple[str, tuple[tuple[str, str], ...]], ...]:
+    return command_demo_readiness_command_trace_lookup_table(specs, launcher_argv)
 
 
 def require_command_mvp_demo_readiness_complete(

@@ -6,6 +6,7 @@ from src.qual.commands.catalog import (
     CommandDemoReadinessGate,
     CommandDemoReadinessActionEntry,
     CommandDemoReadinessCliContract,
+    CommandDemoReadinessCommandTraceContract,
     CommandDemoReadinessEntry,
     CommandDemoReadinessHandoffChecklistContract,
     CommandDemoReadinessHandoffContract,
@@ -33,6 +34,9 @@ from src.qual.commands.catalog import (
     command_mvp_demo_readiness_shell_script_lines as _readiness_shell_script_lines,
     command_mvp_demo_readiness_shell_script_text as _readiness_shell_script_text,
     command_mvp_demo_readiness_trace_contract as _readiness_trace_contract,
+    command_mvp_demo_readiness_command_trace_contract as _readiness_command_trace_contract,
+    command_mvp_demo_readiness_command_trace_lookup_table as _readiness_command_trace_lookup_table,
+    command_mvp_demo_readiness_command_trace_summary as _readiness_command_trace_summary,
     command_mvp_demo_readiness_trace_lookup_table as _readiness_trace_lookup_table,
     command_mvp_demo_readiness_trace_summary as _readiness_trace_summary,
     command_mvp_demo_action_smoke_script_argv as _action_smoke_script_argv,
@@ -129,6 +133,9 @@ __all__ = [
     "canonical_command_readiness_shell_script_lines",
     "canonical_command_readiness_shell_script_text",
     "canonical_command_readiness_trace_contract",
+    "canonical_command_readiness_command_trace_contract",
+    "canonical_command_readiness_command_trace_lookup_table",
+    "canonical_command_readiness_command_trace_summary",
     "canonical_command_readiness_trace_lookup_table",
     "canonical_command_readiness_trace_summary",
     "canonical_command_readiness_handoff_summary",
@@ -312,6 +319,24 @@ def canonical_command_readiness_trace_summary() -> tuple[tuple[int, str, str, st
 
 def canonical_command_readiness_trace_lookup_table() -> tuple[tuple[str, str], ...]:
     return _readiness_trace_lookup_table()
+
+
+def canonical_command_readiness_command_trace_contract() -> CommandDemoReadinessCommandTraceContract:
+    return _readiness_command_trace_contract()
+
+
+def canonical_command_readiness_command_trace_summary() -> tuple[
+    tuple[int, str, str, str, str, tuple[tuple[str, str], ...]],
+    ...,
+]:
+    return _readiness_command_trace_summary()
+
+
+def canonical_command_readiness_command_trace_lookup_table() -> tuple[
+    tuple[str, tuple[tuple[str, str], ...]],
+    ...,
+]:
+    return _readiness_command_trace_lookup_table()
 
 
 def canonical_command_readiness_handoff_summary() -> tuple[
