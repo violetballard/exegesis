@@ -17,6 +17,7 @@ from src.qual.commands.catalog import (
     CommandDemoReadinessRouteContract,
     CommandDemoReadinessShellScript,
     CommandDemoReadinessSmokePlanStep,
+    CommandDemoSupportedLauncherReadinessContract,
     CommandDemoReadinessTraceContract,
     CommandDemoSmokeMatrixContract,
     canonical_command as _canonical_command,
@@ -43,6 +44,10 @@ from src.qual.commands.catalog import (
     command_mvp_demo_readiness_command_trace_entry_for_argv as _readiness_command_trace_entry_for_argv,
     command_mvp_demo_readiness_command_trace_lookup_table as _readiness_command_trace_lookup_table,
     command_mvp_demo_readiness_command_trace_summary as _readiness_command_trace_summary,
+    command_mvp_demo_supported_launcher_argv as _supported_launcher_argv,
+    command_mvp_demo_supported_launcher_readiness_contract as _supported_launcher_readiness_contract,
+    command_mvp_demo_supported_launcher_readiness_lookup_table as _supported_launcher_readiness_lookup_table,
+    command_mvp_demo_supported_launcher_readiness_summary as _supported_launcher_readiness_summary,
     command_mvp_demo_readiness_trace_lookup_table as _readiness_trace_lookup_table,
     command_mvp_demo_readiness_trace_summary as _readiness_trace_summary,
     command_mvp_demo_action_smoke_script_argv as _action_smoke_script_argv,
@@ -162,6 +167,10 @@ __all__ = [
     "canonical_command_readiness_command_trace_entry_for_argv",
     "canonical_command_readiness_command_trace_lookup_table",
     "canonical_command_readiness_command_trace_summary",
+    "canonical_command_supported_launcher_argv",
+    "canonical_command_supported_launcher_readiness_contract",
+    "canonical_command_supported_launcher_readiness_lookup_table",
+    "canonical_command_supported_launcher_readiness_summary",
     "canonical_command_readiness_trace_lookup_table",
     "canonical_command_readiness_trace_summary",
     "canonical_command_readiness_validate_argv",
@@ -372,6 +381,28 @@ def canonical_command_readiness_command_trace_lookup_table() -> tuple[
     ...,
 ]:
     return _readiness_command_trace_lookup_table()
+
+
+def canonical_command_supported_launcher_argv() -> tuple[tuple[str, ...], ...]:
+    return _supported_launcher_argv()
+
+
+def canonical_command_supported_launcher_readiness_contract() -> CommandDemoSupportedLauncherReadinessContract:
+    return _supported_launcher_readiness_contract()
+
+
+def canonical_command_supported_launcher_readiness_summary() -> tuple[
+    tuple[tuple[str, ...], bool, tuple[str, ...], tuple[str, ...], tuple[tuple[str, str], ...]],
+    ...,
+]:
+    return _supported_launcher_readiness_summary()
+
+
+def canonical_command_supported_launcher_readiness_lookup_table() -> tuple[
+    tuple[tuple[str, ...], tuple[str, ...]],
+    ...,
+]:
+    return _supported_launcher_readiness_lookup_table()
 
 
 def canonical_command_readiness_command_trace_entry_for_engine_action(

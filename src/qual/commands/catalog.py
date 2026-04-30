@@ -487,6 +487,20 @@ class CommandDemoReadinessCommandTraceContract:
 
 
 @dataclass(frozen=True)
+class CommandDemoSupportedLauncherReadinessEntry:
+    launcher_argv: tuple[str, ...]
+    is_complete: bool
+    missing_engine_actions: tuple[str, ...]
+    command_lines: tuple[str, ...]
+    action_lines: tuple[tuple[str, str], ...]
+
+
+@dataclass(frozen=True)
+class CommandDemoSupportedLauncherReadinessContract:
+    entries: tuple[CommandDemoSupportedLauncherReadinessEntry, ...]
+
+
+@dataclass(frozen=True)
 class CommandDemoReadinessArgvValidation:
     requested_argv: tuple[str, ...]
     canonical_argv: tuple[str, ...]
@@ -1727,6 +1741,14 @@ def command_demo_smoke_script_lookup_table(
 def _validate_command_smoke_cli_launcher(launcher_argv: tuple[str, ...]) -> None:
     if not launcher_argv or any(not token.strip() for token in launcher_argv):
         raise ValueError("Command smoke CLI launcher argv must not be empty")
+
+
+def command_demo_supported_launcher_argv() -> tuple[tuple[str, ...], ...]:
+    return COMMAND_SMOKE_SUPPORTED_LAUNCHER_ARGV
+
+
+def command_mvp_demo_supported_launcher_argv() -> tuple[tuple[str, ...], ...]:
+    return command_demo_supported_launcher_argv()
 
 
 @lru_cache(maxsize=None)
@@ -3977,6 +3999,98 @@ def command_demo_readiness_command_trace_lookup_table(
         (entry.name, entry.action_lines)
         for entry in command_demo_readiness_command_trace_contract(specs, launcher_argv).entries
     )
+
+
+@lru_cache(maxsize=None)
+def command_demo_supported_launcher_readiness_contract(
+    specs: tuple[CommandSpec, ...] = COMMAND_SPECS,
+) -> CommandDemoSupportedLauncherReadinessContract:
+    entries: list[CommandDemoSupportedLauncherReadinessEntry] = []
+    for launcher_argv in command_demo_supported_launcher_argv():
+        gate = command_demo_readiness_gate(specs, launcher_argv)
+        entries.append(
+            CommandDemoSupportedLauncherReadinessEntry(
+                launcher_argv=launcher_argv,
+                is_complete=gate.is_complete,
+                missing_engine_actions=gate.missing_engine_actions,
+                command_lines=gate.command_lines,
+                action_lines=gate.action_lines,
+            )
+        )
+    contract = CommandDemoSupportedLauncherReadinessContract(
+        entries=tuple(entries)
+    )
+    _validate_command_demo_supported_launcher_readiness_contract(contract, specs)
+    return contract
+
+
+def _validate_command_demo_supported_launcher_readiness_contract(
+    contract: CommandDemoSupportedLauncherReadinessContract,
+    specs: tuple[CommandSpec, ...],
+) -> None:
+    if tuple(entry.launcher_argv for entry in contract.entries) != command_demo_supported_launcher_argv():
+        raise ValueError("Command demo supported launcher order is inconsistent")
+    for entry in contract.entries:
+        _validate_command_smoke_cli_launcher(entry.launcher_argv)
+        gate = require_command_demo_readiness_complete(specs, entry.launcher_argv)
+        if not entry.is_complete:
+            raise ValueError("Command demo supported launcher readiness must be complete")
+        if entry.missing_engine_actions:
+            raise ValueError("Command demo supported launcher actions must not be missing")
+        if entry.is_complete != gate.is_complete:
+            raise ValueError("Command demo supported launcher readiness is inconsistent")
+        if entry.missing_engine_actions != gate.missing_engine_actions:
+            raise ValueError("Command demo supported launcher missing actions are inconsistent")
+        if entry.command_lines != gate.command_lines:
+            raise ValueError("Command demo supported launcher commands are inconsistent")
+        if entry.action_lines != gate.action_lines:
+            raise ValueError("Command demo supported launcher actions are inconsistent")
+        if not entry.command_lines:
+            raise ValueError("Command demo supported launcher commands must not be empty")
+        if not entry.action_lines:
+            raise ValueError("Command demo supported launcher actions must not be empty")
+
+
+def command_demo_supported_launcher_readiness_summary(
+    specs: tuple[CommandSpec, ...] = COMMAND_SPECS,
+) -> tuple[tuple[tuple[str, ...], bool, tuple[str, ...], tuple[str, ...], tuple[tuple[str, str], ...]], ...]:
+    return tuple(
+        (
+            entry.launcher_argv,
+            entry.is_complete,
+            entry.missing_engine_actions,
+            entry.command_lines,
+            entry.action_lines,
+        )
+        for entry in command_demo_supported_launcher_readiness_contract(specs).entries
+    )
+
+
+def command_demo_supported_launcher_readiness_lookup_table(
+    specs: tuple[CommandSpec, ...] = COMMAND_SPECS,
+) -> tuple[tuple[tuple[str, ...], tuple[str, ...]], ...]:
+    return tuple(
+        (entry.launcher_argv, entry.command_lines)
+        for entry in command_demo_supported_launcher_readiness_contract(specs).entries
+    )
+
+
+def command_mvp_demo_supported_launcher_readiness_contract(
+    specs: tuple[CommandSpec, ...] = COMMAND_SPECS,
+) -> CommandDemoSupportedLauncherReadinessContract:
+    return command_demo_supported_launcher_readiness_contract(specs)
+
+
+def command_mvp_demo_supported_launcher_readiness_summary(
+    specs: tuple[CommandSpec, ...] = COMMAND_SPECS,
+) -> tuple[tuple[tuple[str, ...], bool, tuple[str, ...], tuple[str, ...], tuple[tuple[str, str], ...]], ...]:
+    return command_demo_supported_launcher_readiness_summary(specs)
+
+
+def command_mvp_demo_supported_launcher_readiness_lookup_table(
+    specs: tuple[CommandSpec, ...] = COMMAND_SPECS,
+) -> tuple[tuple[tuple[str, ...], tuple[str, ...]], ...]:
+    return command_demo_supported_launcher_readiness_lookup_table(specs)
 
 
 def command_demo_readiness_command_trace_entry_for_engine_action(
