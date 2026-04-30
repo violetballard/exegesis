@@ -407,6 +407,22 @@ def _demo_smoke_argv_by_flow_step() -> dict[str, tuple[str, ...]]:
     return argv_by_flow_step
 
 
+def _validate_demo_smoke_argv_coverage(flow_steps: tuple[str, ...]) -> None:
+    argv_by_flow_step = _demo_smoke_argv_by_flow_step()
+    expected_flow_steps = set(_normalize_flow_steps(flow_steps))
+    configured_flow_steps = set(argv_by_flow_step)
+    missing_flow_steps = tuple(
+        flow_step for flow_step in flow_steps if _normalize_token(flow_step) not in configured_flow_steps
+    )
+    if missing_flow_steps:
+        raise ValueError(f"Missing command demo smoke argv flow steps: {', '.join(missing_flow_steps)}")
+    extra_flow_steps = tuple(
+        flow_step for flow_step, _ in _DEMO_SMOKE_ARGV_BY_FLOW_STEP if _normalize_token(flow_step) not in expected_flow_steps
+    )
+    if extra_flow_steps:
+        raise ValueError(f"Unknown command demo smoke argv flow steps: {', '.join(extra_flow_steps)}")
+
+
 def validate_command_catalog(specs: tuple[CommandSpec, ...] = COMMAND_SPECS) -> None:
     seen_names: set[str] = set()
     seen_flow_steps: set[str] = set()
@@ -1012,6 +1028,9 @@ def command_demo_smoke_command_contract(
     specs: tuple[CommandSpec, ...] = COMMAND_SPECS,
 ) -> CommandDemoSmokeCommandContract:
     smoke_contract = command_demo_smoke_contract(specs)
+    _validate_demo_smoke_argv_coverage(
+        tuple(entry.flow_step for entry in smoke_contract.entries)
+    )
     argv_by_flow_step = _demo_smoke_argv_by_flow_step()
     entries = tuple(
         CommandDemoSmokeCommandEntry(
@@ -1130,6 +1149,24 @@ def command_demo_smoke_argv_lookup_table(
     return tuple((entry.flow_step, entry.argv) for entry in command_demo_smoke_argv_contract(specs).entries)
 
 
+@lru_cache(maxsize=None)
+def _command_demo_smoke_argv_for_flow_step(
+    specs: tuple[CommandSpec, ...],
+    flow_step: str,
+) -> tuple[str, ...]:
+    requested_flow_step = _normalize_token(flow_step)
+    if not requested_flow_step:
+        return ()
+    return dict(command_demo_smoke_argv_lookup_table(specs)).get(requested_flow_step, ())
+
+
+def command_demo_smoke_argv_for_flow_step(
+    flow_step: str,
+    specs: tuple[CommandSpec, ...] = COMMAND_SPECS,
+) -> tuple[str, ...]:
+    return _command_demo_smoke_argv_for_flow_step(specs, flow_step)
+
+
 def command_mvp_demo_smoke_argv_contract(
     specs: tuple[CommandSpec, ...] = COMMAND_SPECS,
 ) -> CommandDemoSmokeArgvContract:
@@ -1140,6 +1177,13 @@ def command_mvp_demo_smoke_argv_lookup_table(
     specs: tuple[CommandSpec, ...] = COMMAND_SPECS,
 ) -> tuple[tuple[str, tuple[str, ...]], ...]:
     return command_demo_smoke_argv_lookup_table(specs)
+
+
+def command_mvp_demo_smoke_argv_for_flow_step(
+    flow_step: str,
+    specs: tuple[CommandSpec, ...] = COMMAND_SPECS,
+) -> tuple[str, ...]:
+    return command_demo_smoke_argv_for_flow_step(flow_step, specs)
 
 
 @lru_cache(maxsize=None)
