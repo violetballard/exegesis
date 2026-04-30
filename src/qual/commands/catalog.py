@@ -2581,6 +2581,17 @@ def command_demo_readiness_action_entry(
     return dict(command_demo_readiness_action_index(specs, launcher_argv)).get(requested_action)
 
 
+def command_demo_readiness_entry_for_engine_action(
+    engine_action: str,
+    specs: tuple[CommandSpec, ...] = COMMAND_SPECS,
+    launcher_argv: tuple[str, ...] = COMMAND_SMOKE_CLI_LAUNCHER_ARGV,
+) -> CommandDemoReadinessEntry | None:
+    action_entry = command_demo_readiness_action_entry(engine_action, specs, launcher_argv)
+    if action_entry is None:
+        return None
+    return command_demo_readiness_entry_for_flow_step(action_entry.flow_step, specs, launcher_argv)
+
+
 @lru_cache(maxsize=None)
 def command_demo_readiness_index(
     specs: tuple[CommandSpec, ...] = COMMAND_SPECS,
@@ -3454,6 +3465,14 @@ def command_mvp_demo_readiness_action_entry(
     launcher_argv: tuple[str, ...] = COMMAND_SMOKE_CLI_LAUNCHER_ARGV,
 ) -> CommandDemoReadinessActionEntry | None:
     return command_demo_readiness_action_entry(engine_action, specs, launcher_argv)
+
+
+def command_mvp_demo_readiness_entry_for_engine_action(
+    engine_action: str,
+    specs: tuple[CommandSpec, ...] = COMMAND_SPECS,
+    launcher_argv: tuple[str, ...] = COMMAND_SMOKE_CLI_LAUNCHER_ARGV,
+) -> CommandDemoReadinessEntry | None:
+    return command_demo_readiness_entry_for_engine_action(engine_action, specs, launcher_argv)
 
 
 def command_mvp_demo_readiness_index(
