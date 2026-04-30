@@ -83,6 +83,32 @@ def _basket_item_ids_from_items(items: list[object]) -> list[str]:
     return item_ids
 
 
+def _basket_item_fingerprint(item: dict[str, object]) -> str:
+    return _stable_fingerprint(
+        {
+            "item_id": item.get("item_id"),
+            "item_type": item.get("item_type"),
+            "doc_id": item.get("doc_id"),
+            "source_hash": item.get("source_hash"),
+            "excerpt_id": item.get("excerpt_id"),
+            "excerpt_fingerprint": item.get("excerpt_fingerprint"),
+            "excerpt_text_hash": item.get("excerpt_text_hash"),
+            "span": item.get("span"),
+            "source_strategy": item.get("source_strategy"),
+            "retrieval_backend": item.get("retrieval_backend"),
+            "retrieval_mode": item.get("retrieval_mode"),
+            "query_fingerprint": item.get("query_fingerprint"),
+            "result_fingerprint": item.get("result_fingerprint"),
+        }
+    )
+
+
+def _with_basket_item_fingerprint(item: dict[str, object]) -> dict[str, object]:
+    if _normalize_optional_text(item.get("basket_item_fingerprint")) is None:
+        item["basket_item_fingerprint"] = _basket_item_fingerprint(item)
+    return item
+
+
 def _basket_promotion_items_from_snapshot(snapshot: dict[str, object]) -> list[object]:
     """Return basket promotion refs from a sparse retrieval snapshot."""
 
@@ -152,7 +178,7 @@ def _basket_promotion_items_from_excerpt_hits(
         if not isinstance(provenance, dict):
             provenance = {}
         items.append(
-            {
+            _with_basket_item_fingerprint({
                 "item_id": excerpt_id,
                 "item_type": "excerpt",
                 "doc_id": _first_text_value(hit.get("doc_id"), provenance.get("doc_id")),
@@ -197,7 +223,7 @@ def _basket_promotion_items_from_excerpt_hits(
                     provenance.get("result_fingerprint"),
                     result_fingerprint,
                 ),
-            }
+            })
         )
     return items
 
