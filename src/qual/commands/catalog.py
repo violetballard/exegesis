@@ -174,6 +174,17 @@ class CommandDemoSmokeMatrixContract:
 
 
 @dataclass(frozen=True)
+class CommandDemoSmokeArgvEntry:
+    flow_step: str
+    argv: tuple[str, ...]
+
+
+@dataclass(frozen=True)
+class CommandDemoSmokeArgvContract:
+    entries: tuple[CommandDemoSmokeArgvEntry, ...]
+
+
+@dataclass(frozen=True)
 class CommandDemoActionEntry:
     engine_action: str
     flow_step: str
@@ -365,6 +376,20 @@ _DEMO_SMOKE_ARGV_BY_FLOW_STEP: tuple[tuple[str, tuple[str, ...]], ...] = (
         ),
     ),
 )
+
+
+def _demo_smoke_argv_by_flow_step() -> dict[str, tuple[str, ...]]:
+    argv_by_flow_step: dict[str, tuple[str, ...]] = {}
+    for flow_step, argv in _DEMO_SMOKE_ARGV_BY_FLOW_STEP:
+        normalized_flow_step = _normalize_token(flow_step)
+        if not normalized_flow_step:
+            raise ValueError("Command demo smoke argv flow step must not be empty")
+        if normalized_flow_step in argv_by_flow_step:
+            raise ValueError(f"Duplicate command demo smoke argv flow step: {flow_step}")
+        if not argv or any(not token.strip() for token in argv):
+            raise ValueError(f"Command demo smoke argv must not be empty: {flow_step}")
+        argv_by_flow_step[normalized_flow_step] = argv
+    return argv_by_flow_step
 
 
 def validate_command_catalog(specs: tuple[CommandSpec, ...] = COMMAND_SPECS) -> None:
@@ -972,10 +997,7 @@ def command_demo_smoke_command_contract(
     specs: tuple[CommandSpec, ...] = COMMAND_SPECS,
 ) -> CommandDemoSmokeCommandContract:
     smoke_contract = command_demo_smoke_contract(specs)
-    argv_by_flow_step = {
-        _normalize_token(flow_step): argv
-        for flow_step, argv in _DEMO_SMOKE_ARGV_BY_FLOW_STEP
-    }
+    argv_by_flow_step = _demo_smoke_argv_by_flow_step()
     entries = tuple(
         CommandDemoSmokeCommandEntry(
             flow_step=smoke_entry.flow_step,
@@ -1053,6 +1075,56 @@ def command_mvp_demo_smoke_command_summary(
     specs: tuple[CommandSpec, ...] = COMMAND_SPECS,
 ) -> tuple[tuple[str, str, tuple[str, ...], str, tuple[str, ...]], ...]:
     return command_demo_smoke_command_summary(specs)
+
+
+@lru_cache(maxsize=None)
+def command_demo_smoke_argv_contract(
+    specs: tuple[CommandSpec, ...] = COMMAND_SPECS,
+) -> CommandDemoSmokeArgvContract:
+    command_contract = command_demo_smoke_command_contract(specs)
+    contract = CommandDemoSmokeArgvContract(
+        entries=tuple(
+            CommandDemoSmokeArgvEntry(
+                flow_step=entry.flow_step,
+                argv=entry.argv,
+            )
+            for entry in command_contract.entries
+        )
+    )
+    _validate_command_demo_smoke_argv_contract(contract, command_contract)
+    return contract
+
+
+def _validate_command_demo_smoke_argv_contract(
+    contract: CommandDemoSmokeArgvContract,
+    command_contract: CommandDemoSmokeCommandContract,
+) -> None:
+    if tuple(entry.flow_step for entry in contract.entries) != tuple(
+        command_entry.flow_step for command_entry in command_contract.entries
+    ):
+        raise ValueError("Command demo smoke argv contract flow steps are inconsistent")
+    if tuple(entry.argv for entry in contract.entries) != tuple(
+        command_entry.argv for command_entry in command_contract.entries
+    ):
+        raise ValueError("Command demo smoke argv contract commands are inconsistent")
+
+
+def command_demo_smoke_argv_lookup_table(
+    specs: tuple[CommandSpec, ...] = COMMAND_SPECS,
+) -> tuple[tuple[str, tuple[str, ...]], ...]:
+    return tuple((entry.flow_step, entry.argv) for entry in command_demo_smoke_argv_contract(specs).entries)
+
+
+def command_mvp_demo_smoke_argv_contract(
+    specs: tuple[CommandSpec, ...] = COMMAND_SPECS,
+) -> CommandDemoSmokeArgvContract:
+    return command_demo_smoke_argv_contract(specs)
+
+
+def command_mvp_demo_smoke_argv_lookup_table(
+    specs: tuple[CommandSpec, ...] = COMMAND_SPECS,
+) -> tuple[tuple[str, tuple[str, ...]], ...]:
+    return command_demo_smoke_argv_lookup_table(specs)
 
 
 @lru_cache(maxsize=None)
