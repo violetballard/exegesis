@@ -133,7 +133,7 @@ class CommandCatalogTests(unittest.TestCase):
         command_catalog.command_cli_lookup_table.cache_clear()
         command_catalog.command_cli_tokens.cache_clear()
         with patch.object(command_catalog, "_CLI_ENTRYPOINTS", ("bootstrap", "diff", "context-basket", "terminal")):
-            with self.assertRaisesRegex(ValueError, "Command CLI canonical tokens are inconsistent"):
+            with self.assertRaisesRegex(ValueError, "Command CLI parser surface is inconsistent"):
                 command_catalog.command_cli_contract()
 
     def test_command_cli_contract_rejects_alias_before_canonical_token(self) -> None:
@@ -148,7 +148,22 @@ class CommandCatalogTests(unittest.TestCase):
             "_CLI_ENTRYPOINTS",
             ("bootstrap", "diff", "diff-preview", "context-basket", "terminal"),
         ):
-            with self.assertRaisesRegex(ValueError, "Command CLI canonical tokens are inconsistent"):
+            with self.assertRaisesRegex(ValueError, "Command CLI parser surface is inconsistent"):
+                command_catalog.command_cli_contract()
+
+    def test_command_cli_contract_rejects_unapproved_alias_to_existing_command(self) -> None:
+        self.addCleanup(command_catalog.command_cli_contract.cache_clear)
+        self.addCleanup(command_catalog.command_cli_lookup_table.cache_clear)
+        self.addCleanup(command_catalog.command_cli_tokens.cache_clear)
+        command_catalog.command_cli_contract.cache_clear()
+        command_catalog.command_cli_lookup_table.cache_clear()
+        command_catalog.command_cli_tokens.cache_clear()
+        with patch.object(
+            command_catalog,
+            "_CLI_ENTRYPOINTS",
+            ("bootstrap", "open", "diff-preview", "diff", "context-basket", "terminal"),
+        ):
+            with self.assertRaisesRegex(ValueError, "Command CLI parser surface is inconsistent"):
                 command_catalog.command_cli_contract()
 
     def test_command_cli_lookup_table_resolves_through_the_catalog(self) -> None:

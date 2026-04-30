@@ -214,13 +214,21 @@ COMMAND_SPECS: tuple[CommandSpec, ...] = (
 
 # Keep the parser surface explicit: only these tokens are accepted by the current CLI.
 # Each token must resolve through the command catalog so the surface cannot drift.
-_CLI_ENTRYPOINTS: tuple[str, ...] = (
+_CANONICAL_CLI_ENTRYPOINTS: tuple[str, ...] = (
     "bootstrap",
     "diff-preview",
     "diff",
     "context-basket",
     "terminal",
 )
+_CANONICAL_CLI_LOOKUP_TABLE: tuple[tuple[str, str], ...] = (
+    ("bootstrap", "bootstrap"),
+    ("diff-preview", "diff-preview"),
+    ("diff", "diff-preview"),
+    ("context-basket", "context-basket"),
+    ("terminal", "terminal"),
+)
+_CLI_ENTRYPOINTS: tuple[str, ...] = _CANONICAL_CLI_ENTRYPOINTS
 DEMO_COMMAND_FLOW_STEPS: tuple[str, ...] = (
     "project-open",
     "retrieval",
@@ -488,8 +496,13 @@ def command_cli_lookup_table() -> tuple[tuple[str, str], ...]:
 
 @lru_cache(maxsize=None)
 def command_cli_contract() -> CommandCliContract:
+    tokens = command_cli_tokens()
     lookup_table = command_cli_lookup_table()
     canonical_names = command_names()
+    if tokens != _CANONICAL_CLI_ENTRYPOINTS:
+        raise ValueError("Command CLI parser surface is inconsistent")
+    if lookup_table != _CANONICAL_CLI_LOOKUP_TABLE:
+        raise ValueError("Command CLI parser surface is inconsistent")
     expected_canonical_index = 0
     canonical_positions: dict[str, int] = {}
     for index, (token, canonical_name) in enumerate(lookup_table):
@@ -507,7 +520,7 @@ def command_cli_contract() -> CommandCliContract:
     if expected_canonical_index != len(canonical_names):
         raise ValueError("Command CLI canonical tokens are inconsistent")
     return CommandCliContract(
-        tokens=command_cli_tokens(),
+        tokens=tokens,
         canonical_names=canonical_names,
         lookup_table=lookup_table,
     )
