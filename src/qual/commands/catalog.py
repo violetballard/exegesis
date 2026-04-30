@@ -607,6 +607,11 @@ _CANONICAL_CLI_ENTRYPOINTS: tuple[str, ...] = (
 )
 _CLI_ENTRYPOINTS: tuple[str, ...] = _CANONICAL_CLI_ENTRYPOINTS
 COMMAND_SMOKE_CLI_LAUNCHER_ARGV: tuple[str, ...] = ("python", "-m", "src.main")
+COMMAND_SMOKE_SCRIPT_LAUNCHER_ARGV: tuple[str, ...] = ("python", "src/main.py")
+COMMAND_SMOKE_SUPPORTED_LAUNCHER_ARGV: tuple[tuple[str, ...], ...] = (
+    COMMAND_SMOKE_CLI_LAUNCHER_ARGV,
+    COMMAND_SMOKE_SCRIPT_LAUNCHER_ARGV,
+)
 DEMO_COMMAND_FLOW_STEPS: tuple[str, ...] = (
     "project-open",
     "retrieval",
@@ -4191,6 +4196,9 @@ def _coerce_smoke_argv(argv: Sequence[str] | str) -> tuple[str, ...]:
 def _argv_without_launcher(argv: tuple[str, ...], launcher_argv: tuple[str, ...]) -> tuple[str, ...]:
     if argv[: len(launcher_argv)] == launcher_argv:
         return argv[len(launcher_argv) :]
+    for supported_launcher_argv in COMMAND_SMOKE_SUPPORTED_LAUNCHER_ARGV:
+        if argv[: len(supported_launcher_argv)] == supported_launcher_argv:
+            return argv[len(supported_launcher_argv) :]
     return argv
 
 
