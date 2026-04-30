@@ -306,6 +306,21 @@ class CommandDemoReadinessContract:
 
 
 @dataclass(frozen=True)
+class CommandDemoReadinessActionEntry:
+    engine_action: str
+    flow_step: str
+    name: str
+    command_argv: tuple[str, ...]
+    action_command_argv: tuple[str, ...]
+    demo_path_step: str
+
+
+@dataclass(frozen=True)
+class CommandDemoReadinessActionContract:
+    entries: tuple[CommandDemoReadinessActionEntry, ...]
+
+
+@dataclass(frozen=True)
 class CommandDemoCommandActionEntry:
     flow_step: str
     name: str
@@ -2303,9 +2318,8 @@ def command_demo_readiness_action_lookup_table(
     launcher_argv: tuple[str, ...] = COMMAND_SMOKE_CLI_LAUNCHER_ARGV,
 ) -> tuple[tuple[str, str, tuple[str, ...]], ...]:
     return tuple(
-        (entry.flow_step, engine_action, action_argv)
-        for entry in command_demo_readiness_contract(specs, launcher_argv).entries
-        for engine_action, action_argv in entry.action_command_argv
+        (entry.flow_step, entry.engine_action, entry.action_command_argv)
+        for entry in command_demo_readiness_action_contract(specs, launcher_argv).entries
     )
 
 
@@ -2314,11 +2328,8 @@ def command_demo_readiness_action_argv_lookup_table(
     launcher_argv: tuple[str, ...] = COMMAND_SMOKE_CLI_LAUNCHER_ARGV,
 ) -> tuple[tuple[str, tuple[str, ...]], ...]:
     return tuple(
-        (engine_action, action_argv)
-        for _, engine_action, action_argv in command_demo_readiness_action_lookup_table(
-            specs,
-            launcher_argv,
-        )
+        (entry.engine_action, entry.action_command_argv)
+        for entry in command_demo_readiness_action_contract(specs, launcher_argv).entries
     )
 
 
@@ -2339,6 +2350,107 @@ def command_demo_readiness_argv_for_engine_action(
     if not requested_action:
         return ()
     return dict(command_demo_readiness_action_argv_index(specs, launcher_argv)).get(requested_action, ())
+
+
+@lru_cache(maxsize=None)
+def command_demo_readiness_action_contract(
+    specs: tuple[CommandSpec, ...] = COMMAND_SPECS,
+    launcher_argv: tuple[str, ...] = COMMAND_SMOKE_CLI_LAUNCHER_ARGV,
+) -> CommandDemoReadinessActionContract:
+    readiness_contract = command_demo_readiness_contract(specs, launcher_argv)
+    entries = tuple(
+        CommandDemoReadinessActionEntry(
+            engine_action=engine_action,
+            flow_step=readiness_entry.flow_step,
+            name=readiness_entry.name,
+            command_argv=readiness_entry.command_argv,
+            action_command_argv=action_command_argv,
+            demo_path_step=readiness_entry.demo_path_step,
+        )
+        for readiness_entry in readiness_contract.entries
+        for engine_action, action_command_argv in readiness_entry.action_command_argv
+    )
+    contract = CommandDemoReadinessActionContract(entries=entries)
+    _validate_command_demo_readiness_action_contract(contract, readiness_contract, launcher_argv)
+    return contract
+
+
+def _validate_command_demo_readiness_action_contract(
+    contract: CommandDemoReadinessActionContract,
+    readiness_contract: CommandDemoReadinessContract,
+    launcher_argv: tuple[str, ...],
+) -> None:
+    expected_entries = tuple(
+        (
+            engine_action,
+            readiness_entry.flow_step,
+            readiness_entry.name,
+            readiness_entry.command_argv,
+            action_command_argv,
+            readiness_entry.demo_path_step,
+        )
+        for readiness_entry in readiness_contract.entries
+        for engine_action, action_command_argv in readiness_entry.action_command_argv
+    )
+    actual_entries = tuple(
+        (
+            entry.engine_action,
+            entry.flow_step,
+            entry.name,
+            entry.command_argv,
+            entry.action_command_argv,
+            entry.demo_path_step,
+        )
+        for entry in contract.entries
+    )
+    if actual_entries != expected_entries:
+        raise ValueError("Command demo readiness action entries are inconsistent")
+    if len({entry.engine_action for entry in contract.entries}) != len(contract.entries):
+        raise ValueError("Command demo readiness action entries must be unique")
+    for entry in contract.entries:
+        if not entry.action_command_argv:
+            raise ValueError(f"Command demo readiness action argv must not be empty: {entry.engine_action}")
+        if entry.action_command_argv[: len(launcher_argv)] != launcher_argv:
+            raise ValueError(f"Command demo readiness action launcher is inconsistent: {entry.engine_action}")
+
+
+def command_demo_readiness_action_summary(
+    specs: tuple[CommandSpec, ...] = COMMAND_SPECS,
+    launcher_argv: tuple[str, ...] = COMMAND_SMOKE_CLI_LAUNCHER_ARGV,
+) -> tuple[tuple[str, str, str, tuple[str, ...], tuple[str, ...], str], ...]:
+    return tuple(
+        (
+            entry.engine_action,
+            entry.flow_step,
+            entry.name,
+            entry.command_argv,
+            entry.action_command_argv,
+            entry.demo_path_step,
+        )
+        for entry in command_demo_readiness_action_contract(specs, launcher_argv).entries
+    )
+
+
+@lru_cache(maxsize=None)
+def command_demo_readiness_action_index(
+    specs: tuple[CommandSpec, ...] = COMMAND_SPECS,
+    launcher_argv: tuple[str, ...] = COMMAND_SMOKE_CLI_LAUNCHER_ARGV,
+) -> tuple[tuple[str, CommandDemoReadinessActionEntry], ...]:
+    return tuple(
+        (entry.engine_action, entry)
+        for entry in command_demo_readiness_action_contract(specs, launcher_argv).entries
+    )
+
+
+def command_demo_readiness_action_entry(
+    engine_action: str,
+    specs: tuple[CommandSpec, ...] = COMMAND_SPECS,
+    launcher_argv: tuple[str, ...] = COMMAND_SMOKE_CLI_LAUNCHER_ARGV,
+) -> CommandDemoReadinessActionEntry | None:
+    requested_action = engine_action.strip()
+    if not requested_action:
+        return None
+    return dict(command_demo_readiness_action_index(specs, launcher_argv)).get(requested_action)
 
 
 @lru_cache(maxsize=None)
@@ -2714,6 +2826,35 @@ def command_mvp_demo_readiness_argv_for_engine_action(
     launcher_argv: tuple[str, ...] = COMMAND_SMOKE_CLI_LAUNCHER_ARGV,
 ) -> tuple[str, ...]:
     return command_demo_readiness_argv_for_engine_action(engine_action, specs, launcher_argv)
+
+
+def command_mvp_demo_readiness_action_contract(
+    specs: tuple[CommandSpec, ...] = COMMAND_SPECS,
+    launcher_argv: tuple[str, ...] = COMMAND_SMOKE_CLI_LAUNCHER_ARGV,
+) -> CommandDemoReadinessActionContract:
+    return command_demo_readiness_action_contract(specs, launcher_argv)
+
+
+def command_mvp_demo_readiness_action_summary(
+    specs: tuple[CommandSpec, ...] = COMMAND_SPECS,
+    launcher_argv: tuple[str, ...] = COMMAND_SMOKE_CLI_LAUNCHER_ARGV,
+) -> tuple[tuple[str, str, str, tuple[str, ...], tuple[str, ...], str], ...]:
+    return command_demo_readiness_action_summary(specs, launcher_argv)
+
+
+def command_mvp_demo_readiness_action_index(
+    specs: tuple[CommandSpec, ...] = COMMAND_SPECS,
+    launcher_argv: tuple[str, ...] = COMMAND_SMOKE_CLI_LAUNCHER_ARGV,
+) -> tuple[tuple[str, CommandDemoReadinessActionEntry], ...]:
+    return command_demo_readiness_action_index(specs, launcher_argv)
+
+
+def command_mvp_demo_readiness_action_entry(
+    engine_action: str,
+    specs: tuple[CommandSpec, ...] = COMMAND_SPECS,
+    launcher_argv: tuple[str, ...] = COMMAND_SMOKE_CLI_LAUNCHER_ARGV,
+) -> CommandDemoReadinessActionEntry | None:
+    return command_demo_readiness_action_entry(engine_action, specs, launcher_argv)
 
 
 def command_mvp_demo_readiness_index(
