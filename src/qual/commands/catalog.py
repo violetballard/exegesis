@@ -3686,6 +3686,28 @@ def _validate_command_demo_readiness_shell_script(
     )
     if executable_lines != expected_executable_lines:
         raise ValueError("Command demo readiness shell script executable lines are inconsistent")
+    _validate_command_demo_readiness_shell_routes(script, smoke_plan)
+
+
+def _validate_command_demo_readiness_shell_routes(
+    script: CommandDemoReadinessShellScript,
+    smoke_plan: CommandDemoReadinessSmokePlan,
+) -> None:
+    for step in smoke_plan.steps:
+        if command_demo_readiness_entry_for_argv(step.command_line) is None:
+            raise ValueError(
+                f"Command demo readiness shell command is not routeable: {step.flow_step}"
+            )
+        for engine_action, action_line in step.action_lines:
+            entry = command_demo_readiness_entry_for_argv(action_line)
+            if entry is None:
+                raise ValueError(
+                    f"Command demo readiness shell action is not routeable: {engine_action}"
+                )
+            if engine_action not in entry.engine_actions:
+                raise ValueError(
+                    f"Command demo readiness shell action routes to the wrong step: {engine_action}"
+                )
 
 
 def command_demo_readiness_shell_script_lines(
