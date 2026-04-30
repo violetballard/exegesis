@@ -2,7 +2,7 @@
 
 - Branch/lane: `codex/feat-retrieval-fts` / `feat-retrieval-fts`
 - Merge target: actual branch tip after this fixer commit.
-- Merge-candidate comparison range: `fd2ab6ca65ec2f93d1334c9b7df8512439725be4..HEAD`, where `fd2ab6ca65ec2f93d1334c9b7df8512439725be4` is the current `main...HEAD` merge base.
+- Reviewed merge-candidate range: `fd2ab6ca65ec2f93d1334c9b7df8512439725be4..HEAD`, where `fd2ab6ca65ec2f93d1334c9b7df8512439725be4` is the current `main...HEAD` merge base.
 - Reviewed implementation range: `adfa8cdadd43747ffbcb612e4151e262b13e52ca..HEAD`; review must include all implementation, test, packet, and fixer changes through the final branch tip.
 - Reviewer trace range: `adfa8cdadd43747ffbcb612e4151e262b13e52ca..HEAD`; this range includes the post-`adfa8cd` retrieval source/test changes that must be reviewed, including the reviewer-cited `0e86dfbb83606b30814de4cc2f30234867ebeda9` payload change.
 - Pre-fixer branch-tip SHA: `a17c2943e4937ad627ae099f1fb0592f77610c40`.
@@ -33,7 +33,7 @@ Sparse context-reference preservation also advances `promote or gather context i
 
 ## Files Changed
 
-Files changed in the actual merge-candidate comparison range `fd2ab6ca65ec2f93d1334c9b7df8512439725be4..HEAD`:
+Files changed in the reviewed merge-candidate range `fd2ab6ca65ec2f93d1334c9b7df8512439725be4..HEAD`:
 
 - `THREAD_PACKET.md`: authoritative corrected handoff packet.
 - `src/qual/engine/retrieval/fts_strategy.py`: adds explicit cache invalidation support for the FTS strategy.
@@ -43,8 +43,8 @@ Files changed in the actual merge-candidate comparison range `fd2ab6ca65ec2f93d1
 
 Additional files present in the reviewer trace range `adfa8cdadd43747ffbcb612e4151e262b13e52ca..HEAD`:
 
-- `.codex/kickoff_packets/feat-retrieval-fts.md`: stale packet mirror from earlier packet-refresh commits; not authoritative for this fixer pass because this worktree denies writes to this file.
-- `.codex/lane_meta/feat-retrieval-fts.json`: stale lane metadata mirror from earlier packet-refresh commits; not authoritative for this fixer pass because this worktree denies writes to this file.
+- `.codex/kickoff_packets/feat-retrieval-fts.md`: stale packet mirror from earlier packet-refresh commits; not authoritative for this fixer pass because the sandbox rejects edits to this file as outside the writable project.
+- `.codex/lane_meta/feat-retrieval-fts.json`: stale lane metadata mirror from earlier packet-refresh commits; not authoritative for this fixer pass because the sandbox rejects edits to this file as outside the writable project.
 
 Packet refresh commits in the trace range are reviewed as packet changes only when they touch packet files only. Commits that touch retrieval source or tests, including `0e86dfbb83606b30814de4cc2f30234867ebeda9`, are part of the reviewed source/test trace and are not classified as metadata-only.
 
@@ -52,10 +52,10 @@ Packet refresh commits in the trace range are reviewed as packet changes only wh
 
 - Risk: high/shared.
 - Task budget: `4/4`; the branch-tip work is folded into four meaningful tasks under the high-risk cap.
-- Changed files in actual merge-candidate range before this fixer commit: `5`.
-- Net LOC in actual merge-candidate range before this fixer commit: `161 insertions(+), 75 deletions(-)`, net `86`.
-- Changed files in reviewer trace range before this fixer commit: `7`.
-- Net LOC in reviewer trace range before this fixer commit: `443 insertions(+), 106 deletions(-)`, net `337`.
+- Changed files in reviewed merge-candidate range after this fixer commit: `5`.
+- Net LOC in reviewed merge-candidate range after this fixer commit: `167 insertions(+), 73 deletions(-)`, net `94`.
+- Changed files in reviewer trace range after this fixer commit: `7`.
+- Net LOC in reviewer trace range after this fixer commit: `451 insertions(+), 106 deletions(-)`, net `345`.
 - Integrator-locked files touched: none.
 - Shared-by-approval files touched: `tests/unit/test_unified_retrieval.py`.
 - Lane-owned implementation files touched: `src/qual/retrieval/**`, `src/qual/engine/retrieval/**`.
@@ -87,6 +87,6 @@ Additional focused check retained from the retrieval thread:
 ## Risks / Blockers
 
 - No implementation blocker is known.
-- `.codex/kickoff_packets/feat-retrieval-fts.md` and `.codex/lane_meta/feat-retrieval-fts.json` remain stale because this worktree denies writes to those files with `Operation not permitted`, and removing their `com.apple.provenance` xattr is also denied. `THREAD_PACKET.md` is the corrected authoritative handoff artifact for this fixer pass.
+- `.codex/kickoff_packets/feat-retrieval-fts.md` and `.codex/lane_meta/feat-retrieval-fts.json` remain stale because the sandbox rejected edits to those paths as outside the writable project. `THREAD_PACKET.md` is the corrected authoritative handoff artifact for this fixer pass.
 - This packet uses `HEAD` for the reviewed merge candidate so the final fixer commit can be included without embedding a self-referential SHA. The final fixer response reports the exact final HEAD SHA.
 - The corrected post-`adfa8cd` reviewer trace range exceeds the high-risk `<=300` net LOC guidance; this is explicitly surfaced for reviewer risk assessment.
