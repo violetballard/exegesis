@@ -3,15 +3,15 @@
 - Branch name: `codex/feat-retrieval-fts`
 - Lane: `feat-retrieval-fts`
 - Merge target: current `main`
-- Reviewed implementation range: `378cf9a74a3658058079a32f186fcd254c4a4034..cc084f05c9cd4bfb6207c49f5dd275e3ac49489a`
-- Reviewed implementation head: `cc084f05c9cd4bfb6207c49f5dd275e3ac49489a`
+- Reviewed implementation range: `378cf9a74a3658058079a32f186fcd254c4a4034..cc084f05c58c8c3c0613dded69109fdf7ce03708`
+- Reviewed implementation head: `cc084f05c58c8c3c0613dded69109fdf7ce03708`
 - Final branch tip: reported in the fixer deliverable after this packet commit is created.
 - Scope classification: high-risk because this branch-tip packet includes approved shared regression coverage in `tests/unit/test_unified_retrieval.py`.
 - Packet type: branch-tip re-review packet for the FTS-first retrieval lane.
 
 ## Scope Completed
 
-This packet has been regenerated for the actual branch-tip implementation range `378cf9a74a3658058079a32f186fcd254c4a4034..cc084f05c9cd4bfb6207c49f5dd275e3ac49489a`.
+This packet has been regenerated for the actual branch-tip implementation range `378cf9a74a3658058079a32f186fcd254c4a4034..cc084f05c58c8c3c0613dded69109fdf7ce03708`.
 
 The reviewed branch-tip work strengthens the active MVP target of FTS-first retrieval. SQLite FTS remains the canonical retrieval path; engine and service facades expose canonical query construction, `retrieve_auto`, and excerpt lookup; retrieval payload snapshots, sparse source/context bundles, provenance, fingerprints, and basket-promotion references are normalized deterministically for downstream engine flows; and PageIndex-only excerpt IDs fail closed instead of backfilling through non-FTS paths.
 
@@ -32,7 +32,7 @@ Canonical demo-path step advanced: this makes `retrieve relevant material` more 
 
 ## Files Changed
 
-Reviewed implementation files for `378cf9a74a3658058079a32f186fcd254c4a4034..cc084f05c9cd4bfb6207c49f5dd275e3ac49489a`:
+Reviewed implementation files for `378cf9a74a3658058079a32f186fcd254c4a4034..cc084f05c58c8c3c0613dded69109fdf7ce03708`:
 
 - `src/qual/engine/retrieval/__init__.py` - engine retrieval facade exports for canonical query, auto retrieval, excerpt lookup, payload, and ranking surfaces.
 - `src/qual/engine/retrieval/fts_strategy.py` - FTS strategy snapshot normalization and deterministic hit/ranking behavior.
@@ -89,4 +89,4 @@ Required gates for this fixer pass:
 
 ## Risks/Blockers
 
-Remaining risk is review scope size: this corrected packet intentionally includes every branch-tip source/test change through `cc084f05c9cd4bfb6207c49f5dd275e3ac49489a`. It does not touch model routing/provider configuration and does not include Textual UI console work.
+Remaining risk is review scope size: this corrected packet intentionally includes every branch-tip source/test change through `cc084f05c58c8c3c0613dded69109fdf7ce03708`. It does not touch model routing/provider configuration and does not include Textual UI console work.
