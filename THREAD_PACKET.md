@@ -4,13 +4,13 @@
 - Lane: `feat-retrieval-fts`
 - Merge target: current `main`
 - Merge-base for re-review: `fd2ab6ca65ec2f93d1334c9b7df8512439725be4`
-- Branch tip before this context-fingerprint pass: `667ebceeec02188105ccfe4def172740f836f483`
-- Prior fixer branch tip before this required-fixes pass: `667ebceeec02188105ccfe4def172740f836f483`
+- Branch tip before this packet-only required-fixes pass: `f8619c2808e7d0744563edbb430ff96e36e62ca4`
+- Prior implementation branch tip before this required-fixes pass: `f8619c2808e7d0744563edbb430ff96e36e62ca4`
 - Final branch tip: reported in the fixer deliverable after this packet commit is created.
 - Authoritative reviewed range / complete merge candidate: `fd2ab6ca65ec2f93d1334c9b7df8512439725be4..HEAD`
 - Reviewer-reported stale reviewed range: `378cf9a74..adfa8cdadd43747ffbcb612e4151e262b13e52ca`
-- Full post-stale-anchor delta classified by this packet: `adfa8cdadd43747ffbcb612e4151e262b13e52ca..HEAD`
-- Current context-fingerprint delta covered by this packet: `667ebceeec02188105ccfe4def172740f836f483..HEAD`
+- Full post-stale-anchor delta classified by this packet: `adfa8cdadd43747ffbcb612e4151e262b13e52ca..f8619c2808e7d0744563edbb430ff96e36e62ca4`, plus this packet-only fixer commit.
+- Latest implementation delta covered by this packet: `667ebceeec02188105ccfe4def172740f836f483..f8619c2808e7d0744563edbb430ff96e36e62ca4`.
 - Scope classification: high-risk retrieval work because approved shared regression coverage in `tests/unit/test_unified_retrieval.py` is part of the reviewed candidate.
 
 ## Scope Completed
@@ -63,15 +63,17 @@ Complete source/test implementation files for `fd2ab6ca65ec2f93d1334c9b7df851243
 
 Source/test implementation stat for `fd2ab6ca65ec2f93d1334c9b7df8512439725be4..HEAD`: `5 files changed, 397 insertions(+), 100 deletions(-)`.
 
-Reviewer-required post-stale-anchor source/test implementation stat for `adfa8cdadd43747ffbcb612e4151e262b13e52ca..HEAD`: `5 files changed, 440 insertions(+), 85 deletions(-)`.
+Reviewer-required post-stale-anchor source/test implementation stat for `adfa8cdadd43747ffbcb612e4151e262b13e52ca..f8619c2808e7d0744563edbb430ff96e36e62ca4`: `5 files changed, 464 insertions(+), 88 deletions(-)`.
 
-Post-`adfa8cdadd43747ffbcb612e4151e262b13e52ca` commit classification for the actual merge candidate:
+Reviewer-cited stale review-anchor source/test implementation stat for `378cf9a74a3658058079a32f186fcd254c4a4034..f8619c2808e7d0744563edbb430ff96e36e62ca4`: `5 files changed, 492 insertions(+), 119 deletions(-)`.
 
-- Source/test implementation commits are every post-`adfa8cdadd43747ffbcb612e4151e262b13e52ca` commit returned by `git log adfa8cdadd43747ffbcb612e4151e262b13e52ca..HEAD -- src/qual/engine/retrieval src/qual/retrieval/service.py tests/unit/test_unified_retrieval.py`. These commits are implementation/test work and must not be reviewed as metadata-only.
+Post-`adfa8cdadd43747ffbcb612e4151e262b13e52ca` commit classification for the actual merge candidate through `f8619c2808e7d0744563edbb430ff96e36e62ca4`:
+
+- Source/test implementation commits are every post-`adfa8cdadd43747ffbcb612e4151e262b13e52ca` commit returned by `git log adfa8cdadd43747ffbcb612e4151e262b13e52ca..f8619c2808e7d0744563edbb430ff96e36e62ca4 -- src/qual/engine/retrieval src/qual/retrieval/service.py tests/unit/test_unified_retrieval.py`. These commits are implementation/test work and must not be reviewed as metadata-only.
 - Packet metadata-only commits are every post-`adfa8cdadd43747ffbcb612e4151e262b13e52ca` commit whose changed paths are limited to `THREAD_PACKET.md`, `.codex/kickoff_packets/feat-retrieval-fts.md`, or `.codex/lane_meta/feat-retrieval-fts.json`.
 - Out-of-scope transient commits are any post-`adfa8cdadd43747ffbcb612e4151e262b13e52ca` commits that touched `codex_packet_handoff/**` or `tests/unit/test_packet_planner.py`; those paths are absent from the final reviewed candidate and are not part of this merge request.
 - The reviewer-cited `c2741f8e58b59e8e37240b2271b9b68bbf6141ec` commit modifies retrieval implementation and shared regression coverage, so it is source/test implementation, not metadata-only.
-- The current `667ebceeec02188105ccfe4def172740f836f483..HEAD` context-fingerprint delta is lane-owned retrieval implementation plus this packet update.
+- The latest `667ebceeec02188105ccfe4def172740f836f483..f8619c2808e7d0744563edbb430ff96e36e62ca4` context-fingerprint delta is lane-owned retrieval implementation. This required-fixes commit is packet metadata only.
 
 Lane-owned source/test files in the reviewed candidate:
 
@@ -101,7 +103,7 @@ Attempted mirror update during this required-fixes pass was blocked by the files
 
 Merge-conflict resolution status for this required-fixes pass:
 
-- `git status --short --branch` reported a clean `codex/feat-retrieval-fts` worktree at `2ad0e2489a4e8eab6f81d07f335c65f3bfd65838` before this packet edit.
+- `git status --short --branch` reported a clean `codex/feat-retrieval-fts` worktree at `f8619c2808e7d0744563edbb430ff96e36e62ca4` before this packet edit.
 - `git diff --name-only --diff-filter=U` reported no unresolved paths.
 - `rg -n "^<{7}|^={7}|^>{7}" src/qual/engine/retrieval src/qual/retrieval/service.py tests/unit/test_unified_retrieval.py THREAD_PACKET.md` reported no conflict markers.
 - The reviewer-cited conflicts in `src/qual/engine/retrieval/__init__.py`, `src/qual/engine/retrieval/fts_strategy.py`, `src/qual/engine/retrieval/payload.py`, and `src/qual/retrieval/service.py` are resolved in the actual branch tip and remain part of the complete `fd2ab6ca65ec2f93d1334c9b7df8512439725be4..HEAD` review range.
@@ -111,7 +113,7 @@ Merge-conflict resolution status for this required-fixes pass:
 - Task budget: `4/4` high-risk tasks.
 - File budget: `5/8` high-risk source/test files plus packet metadata files.
 - Net LOC budget: source/test implementation changes are `5 files changed, 397 insertions(+), 100 deletions(-)`, or +297 net LOC, within the `<=300` high-risk net LOC limit. Packet metadata is accounted separately.
-- Current-pass source delta: `src/qual/engine/retrieval/payload.py` and `src/qual/retrieval/service.py`, `27 insertions(+), 3 deletions(-)`.
+- Latest implementation source delta after `667ebceeec02188105ccfe4def172740f836f483`: `src/qual/engine/retrieval/payload.py` and `src/qual/retrieval/service.py`, `24 insertions(+), 3 deletions(-)`.
 - Size exception required: no for the complete merge-base-to-HEAD source/test candidate.
 - Shared-by-approval files: `tests/unit/test_unified_retrieval.py` only.
 - Integrator-locked files: none.
