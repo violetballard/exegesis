@@ -95,4 +95,4 @@ Required gates for this corrected merge candidate:
 
 - No implementation blocker is known.
 - Protected `.codex` mirror files could not be updated in this lane worktree: writes under `.codex/kickoff_packets` and `.codex/lane_meta` return `EPERM`, so `THREAD_PACKET.md` remains the authoritative corrected handoff artifact.
-- The packet now exposes the actual branch-tip implementation boundary and complete file list instead of preserving stale `adfa8cd` or `c2f87101` review anchors.
+- The packet now exposes the actual branch-tip implementation boundary and complete file list instead of preserving stale `adfa8cd`, `c2f87101`, or `25d4f4fda` review anchors.
