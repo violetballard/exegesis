@@ -1,6 +1,8 @@
 from __future__ import annotations
 
 import copy
+from collections.abc import Mapping
+from dataclasses import asdict, is_dataclass
 import time
 from typing import Any, Callable
 
@@ -12,11 +14,10 @@ class FTSStrategy:
 
     # NOTE: ``FTSStrategy`` is the canonical entry‑point for FTS‑first retrieval.
     # It previously executed the supplied ``runner`` on every call without any
-    # caching. For many interactive workloads the same query (including the
-    # candidate doc set) can be issued repeatedly – e.g. a UI that polls for new
-    # results while the user is typing. Adding a tiny in‑memory cache reduces the
-    # number of expensive SQLite look‑ups while keeping the implementation simple
-    # and deterministic.
+    # caching. Engine flows can ask for the same query and candidate doc set
+    # repeatedly while building payload, provenance, and context views. Adding a
+    # tiny in-memory cache reduces redundant SQLite lookups while keeping the
+    # implementation simple and deterministic.
     #
     # The cache stores **one** recent request – the most recent ``(query,
     # candidate_doc_ids)`` tuple and its resulting hits. If a subsequent call
@@ -72,16 +73,43 @@ class FTSStrategy:
         return StrategyRun(strategy_id=self.id, hits=hits, elapsed_ms=elapsed_ms, cache_used=False)
 
     @staticmethod
-    def _make_cache_key(query: Any, candidate_doc_ids: tuple[str, ...]) -> tuple[Any, tuple[str, ...]]:
+    def _make_cache_key(query: Any, candidate_doc_ids: tuple[str, ...]) -> tuple[object, tuple[str, ...]]:
         """Return a defensive snapshot for the one-entry cache key.
 
         Retrieval queries are usually immutable dataclasses, but some callers may
-        still hand in mutable query-shaped objects. Snapshotting the query keeps
-        later caller mutations from silently altering the cached key.
+        still hand in mutable query-shaped objects. Freezing the query snapshot
+        keeps later caller mutations from silently altering the cached key.
         """
 
-        try:
-            query_snapshot = copy.deepcopy(query)
-        except Exception:
-            query_snapshot = query
+        query_snapshot = FTSStrategy._freeze_for_cache(query)
         return query_snapshot, tuple(candidate_doc_ids)
+
+    @staticmethod
+    def _freeze_for_cache(value: Any) -> object:
+        """Return an immutable, equality-stable snapshot for cache matching."""
+
+        if is_dataclass(value) and not isinstance(value, type):
+            return (
+                value.__class__.__module__,
+                value.__class__.__qualname__,
+                FTSStrategy._freeze_for_cache(asdict(value)),
+            )
+        if isinstance(value, Mapping):
+            items = (
+                (
+                    FTSStrategy._freeze_for_cache(key),
+                    FTSStrategy._freeze_for_cache(item),
+                )
+                for key, item in value.items()
+            )
+            return tuple(sorted(items, key=repr))
+        if isinstance(value, (list, tuple)):
+            return tuple(FTSStrategy._freeze_for_cache(item) for item in value)
+        if isinstance(value, set):
+            return tuple(sorted((FTSStrategy._freeze_for_cache(item) for item in value), key=repr))
+        if isinstance(value, (str, bytes, int, float, bool, type(None))):
+            return value
+        try:
+            return FTSStrategy._freeze_for_cache(vars(value))
+        except TypeError:
+            return repr(value)
