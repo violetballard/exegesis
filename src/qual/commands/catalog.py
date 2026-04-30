@@ -990,6 +990,41 @@ def command_demo_action_route_summary(
     )
 
 
+@lru_cache(maxsize=None)
+def command_demo_action_index(
+    specs: tuple[CommandSpec, ...] = COMMAND_SPECS,
+) -> tuple[tuple[str, CommandDemoActionEntry], ...]:
+    return tuple((entry.engine_action, entry) for entry in command_demo_action_contract(specs).entries)
+
+
+@lru_cache(maxsize=None)
+def _command_demo_action_entry_for(
+    specs: tuple[CommandSpec, ...],
+    engine_action: str,
+) -> CommandDemoActionEntry | None:
+    requested_action = engine_action.strip()
+    if not requested_action:
+        return None
+    return dict(command_demo_action_index(specs)).get(requested_action)
+
+
+def command_demo_action_entry(
+    engine_action: str,
+    specs: tuple[CommandSpec, ...] = COMMAND_SPECS,
+) -> CommandDemoActionEntry | None:
+    return _command_demo_action_entry_for(specs, engine_action)
+
+
+def command_demo_action_cli_token(
+    engine_action: str,
+    specs: tuple[CommandSpec, ...] = COMMAND_SPECS,
+) -> str | None:
+    entry = command_demo_action_entry(engine_action, specs)
+    if entry is None:
+        return None
+    return entry.smoke_token
+
+
 def command_mvp_demo_action_contract(
     specs: tuple[CommandSpec, ...] = COMMAND_SPECS,
 ) -> CommandDemoActionContract:
@@ -1018,6 +1053,26 @@ def command_mvp_demo_action_route_summary(
     specs: tuple[CommandSpec, ...] = COMMAND_SPECS,
 ) -> tuple[tuple[str, str, str, str], ...]:
     return command_demo_action_route_summary(specs)
+
+
+def command_mvp_demo_action_index(
+    specs: tuple[CommandSpec, ...] = COMMAND_SPECS,
+) -> tuple[tuple[str, CommandDemoActionEntry], ...]:
+    return command_demo_action_index(specs)
+
+
+def command_mvp_demo_action_entry(
+    engine_action: str,
+    specs: tuple[CommandSpec, ...] = COMMAND_SPECS,
+) -> CommandDemoActionEntry | None:
+    return command_demo_action_entry(engine_action, specs)
+
+
+def command_mvp_demo_action_cli_token(
+    engine_action: str,
+    specs: tuple[CommandSpec, ...] = COMMAND_SPECS,
+) -> str | None:
+    return command_demo_action_cli_token(engine_action, specs)
 
 
 def command_demo_flow_route_catalog() -> tuple[CommandFlowRouteEntry, ...]:
