@@ -88,7 +88,7 @@ Required scope and integration gates for this corrected merge candidate, re-run 
 - `./quality-test.sh`: PASS, 125 tests.
 - `./typecheck-test.sh`: PASS.
 - `make ci`: PASS, includes scope-check, format, lint, compileall/typecheck, and 125 tests.
-- `rg -n "<<<<<<<|=======|>>>>>>>" src/qual/engine/retrieval/payload.py THREAD_PACKET.md`: PASS, no conflict markers found.
+- `rg -n <conflict-marker-pattern> src/qual/engine/retrieval/payload.py`: PASS, no conflict markers found.
 - `git status --porcelain=v1 -uall`: PASS, clean before this packet edit.
 
 Earlier retained verification from this branch-tip fixer sequence:
