@@ -825,16 +825,25 @@ def _build_retrieval_provenance_from_payload(payload: dict[str, object]) -> dict
         summary = {}
     if not isinstance(diagnostics, dict):
         diagnostics = {}
+    query = payload.get("query", {})
+    if not isinstance(query, dict):
+        query = {}
+    query_constraints = query.get("constraints", {})
+    if not isinstance(query_constraints, dict):
+        query_constraints = {}
     query_date_range = _normalize_optional_list_like(normalized.get("query_date_range"))
     if "query_fingerprint" not in normalized:
         normalized["query_fingerprint"] = summary.get("query_fingerprint", diagnostics.get("query_fingerprint"))
     if "query_scope" not in normalized:
-        normalized["query_scope"] = summary.get("query_scope", diagnostics.get("query_scope"))
+        normalized["query_scope"] = summary.get("query_scope", diagnostics.get("query_scope", query.get("scope")))
     if "query_intent" not in normalized:
-        normalized["query_intent"] = summary.get("query_intent", diagnostics.get("query_intent"))
+        normalized["query_intent"] = summary.get("query_intent", diagnostics.get("query_intent", query.get("intent")))
     if "query_date_range" not in normalized:
         normalized["query_date_range"] = _normalize_optional_list_like(
-            summary.get("query_date_range", diagnostics.get("date_range"))
+            summary.get(
+                "query_date_range",
+                diagnostics.get("date_range", query_constraints.get("date_range")),
+            )
         )
     else:
         normalized["query_date_range"] = query_date_range
