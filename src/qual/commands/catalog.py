@@ -2352,6 +2352,17 @@ def command_demo_readiness_argv_for_engine_action(
     return dict(command_demo_readiness_action_argv_index(specs, launcher_argv)).get(requested_action, ())
 
 
+def command_demo_readiness_command_for_engine_action(
+    engine_action: str,
+    specs: tuple[CommandSpec, ...] = COMMAND_SPECS,
+    launcher_argv: tuple[str, ...] = COMMAND_SMOKE_CLI_LAUNCHER_ARGV,
+) -> str | None:
+    entry = command_demo_readiness_action_entry(engine_action, specs, launcher_argv)
+    if entry is None:
+        return None
+    return entry.name
+
+
 @lru_cache(maxsize=None)
 def command_demo_readiness_action_contract(
     specs: tuple[CommandSpec, ...] = COMMAND_SPECS,
@@ -2826,6 +2837,14 @@ def command_mvp_demo_readiness_argv_for_engine_action(
     launcher_argv: tuple[str, ...] = COMMAND_SMOKE_CLI_LAUNCHER_ARGV,
 ) -> tuple[str, ...]:
     return command_demo_readiness_argv_for_engine_action(engine_action, specs, launcher_argv)
+
+
+def command_mvp_demo_readiness_command_for_engine_action(
+    engine_action: str,
+    specs: tuple[CommandSpec, ...] = COMMAND_SPECS,
+    launcher_argv: tuple[str, ...] = COMMAND_SMOKE_CLI_LAUNCHER_ARGV,
+) -> str | None:
+    return command_demo_readiness_command_for_engine_action(engine_action, specs, launcher_argv)
 
 
 def command_mvp_demo_readiness_action_contract(
