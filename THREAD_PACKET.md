@@ -3,17 +3,17 @@
 - Branch name: `codex/feat-retrieval-fts`
 - Lane: `feat-retrieval-fts`
 - Merge target: current `main`
-- Reviewed implementation range: `378cf9a74a3658058079a32f186fcd254c4a4034..cc084f05c58c8c3c0613dded69109fdf7ce03708`
-- Reviewed implementation head: `cc084f05c58c8c3c0613dded69109fdf7ce03708`
-- Authoritative merge/review range: `378cf9a74a3658058079a32f186fcd254c4a4034..FINAL_HEAD_SHA_REPORTED_BY_FIXER_DELIVERABLE`
-- Pre-fix packet refresh tip: `abb10fbbd` (`THREAD_PACKET.md` only after `cc084f05c58c8c3c0613dded69109fdf7ce03708`).
-- Final branch tip: reported in the fixer deliverable after this packet commit is created; this packet commit is metadata-only.
+- Reviewed source/test implementation range: `378cf9a74a3658058079a32f186fcd254c4a4034..cc084f05c58c8c3c0613dded69109fdf7ce03708`
+- Reviewed source/test implementation head: `cc084f05c58c8c3c0613dded69109fdf7ce03708`
+- Authoritative branch-tip merge/review range: `378cf9a74a3658058079a32f186fcd254c4a4034..FINAL_HEAD_SHA_REPORTED_BY_FIXER_DELIVERABLE`
+- Pre-fix packet refresh tip: `c5118be74` (`THREAD_PACKET.md` only after `cc084f05c58c8c3c0613dded69109fdf7ce03708`).
+- Final branch tip: reported in the fixer deliverable after this packet commit is created; this final fixer commit is metadata-only.
 - Scope classification: high-risk because this branch-tip packet includes approved shared regression coverage in `tests/unit/test_unified_retrieval.py`.
 - Packet type: branch-tip re-review packet for the FTS-first retrieval lane.
 
 ## Scope Completed
 
-This packet has been regenerated for the actual branch-tip implementation range `378cf9a74a3658058079a32f186fcd254c4a4034..cc084f05c58c8c3c0613dded69109fdf7ce03708`.
+This packet has been regenerated against the actual branch tip to be submitted. The source/test implementation surface is `378cf9a74a3658058079a32f186fcd254c4a4034..cc084f05c58c8c3c0613dded69109fdf7ce03708`; every commit after `cc084f05c58c8c3c0613dded69109fdf7ce03708` through the final fixer HEAD changes packet metadata only. The authoritative merge/review range for re-review is therefore the full base-to-final-HEAD range reported in the fixer deliverable, with the source/test implementation files listed below.
 
 The reviewed branch-tip work strengthens the active MVP target of FTS-first retrieval. SQLite FTS remains the canonical retrieval path; engine and service facades expose canonical query construction, `retrieve_auto`, and excerpt lookup; retrieval payload snapshots, sparse source/context bundles, provenance, fingerprints, and basket-promotion references are normalized deterministically for downstream engine flows; and PageIndex-only excerpt IDs fail closed instead of backfilling through non-FTS paths.
 
@@ -36,7 +36,7 @@ Packet mirror note: `.codex/kickoff_packets/feat-retrieval-fts.md` and `.codex/l
 
 ## Files Changed
 
-Reviewed implementation files for `378cf9a74a3658058079a32f186fcd254c4a4034..cc084f05c58c8c3c0613dded69109fdf7ce03708`:
+Reviewed source/test implementation files for `378cf9a74a3658058079a32f186fcd254c4a4034..cc084f05c58c8c3c0613dded69109fdf7ce03708`:
 
 - `src/qual/engine/retrieval/__init__.py` - engine retrieval facade exports for canonical query, auto retrieval, excerpt lookup, payload, and ranking surfaces.
 - `src/qual/engine/retrieval/fts_strategy.py` - FTS strategy snapshot normalization and deterministic hit/ranking behavior.
@@ -46,7 +46,7 @@ Reviewed implementation files for `378cf9a74a3658058079a32f186fcd254c4a4034..cc0
 
 Reviewed source/test stat: `5 files changed, 492 insertions(+), 119 deletions(-)`.
 
-Full reviewed packet stat, including packet metadata files: `8 files changed, 739 insertions(+), 210 deletions(-)`.
+Full branch-tip reviewed file surface, including packet metadata files, is the same 8 paths shown by `git diff --name-status 378cf9a74a3658058079a32f186fcd254c4a4034..HEAD`: `.codex/kickoff_packets/feat-retrieval-fts.md`, `.codex/lane_meta/feat-retrieval-fts.json`, `THREAD_PACKET.md`, `src/qual/engine/retrieval/__init__.py`, `src/qual/engine/retrieval/fts_strategy.py`, `src/qual/engine/retrieval/payload.py`, `src/qual/retrieval/service.py`, and `tests/unit/test_unified_retrieval.py`. At pre-fix tip `c5118be74`, that full range was `8 files changed, 755 insertions(+), 207 deletions(-)`; the final fixer deliverable reports the final HEAD SHA after this metadata-only packet update.
 
 Lane-owned source/test files in the reviewed implementation range:
 
@@ -59,13 +59,13 @@ Shared-by-approval files in the reviewed implementation range:
 
 - `tests/unit/test_unified_retrieval.py`
 
-Out-of-lane tooling files in the reviewed implementation range:
+Out-of-lane tooling files in the reviewed branch-tip range:
 
 - None.
 - `codex_packet_handoff/tools/planner.py` is excluded from this retrieval handoff.
 - `tests/unit/test_packet_planner.py` is excluded from this retrieval handoff.
 
-Integrator-locked files in the reviewed implementation range:
+Integrator-locked files in the reviewed branch-tip range:
 
 - None.
 
@@ -74,7 +74,8 @@ Integrator-locked files in the reviewed implementation range:
 - Task budget: `4/4` high-risk tasks.
 - File budget: `5/8` high-risk source/test files.
 - Net source/test LOC budget: `+373` net LOC, above the default `<=300` high-risk size guideline because this packet now truthfully covers all branch-tip retrieval implementation work requested by the reviewer.
-- Size exception required: yes; this branch-tip re-review packet corrects prior traceability drift instead of narrowing away source/test changes that are already present on the branch tip.
+- Full branch-tip packet LOC: exceeds the high-risk metadata-inclusive size guideline because the branch includes packet regeneration commits; the merge surface is listed explicitly above.
+- Size exception required: yes; this branch-tip re-review packet corrects prior traceability drift instead of narrowing away source/test changes that are already present on the branch tip. No integrator-approved exception is recorded in this worktree, so re-review should treat this as an explicit requested exception for the truthful branch-tip surface rather than as a claimed in-budget high-risk handoff.
 - Shared-file approval note: Approved shared regression coverage in `tests/unit/test_unified_retrieval.py` for the `feat-retrieval-fts` lane; it exercises the canonical retrieval contract.
 - Routing/provider impact: none.
 - PageIndex/embeddings impact: PageIndex and embeddings remain compatibility-only fallback shims; PageIndex-only excerpt IDs fail closed for the canonical excerpt lookup path.
