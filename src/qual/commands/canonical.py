@@ -24,6 +24,7 @@ from src.qual.commands.catalog import (
     command_mvp_demo_readiness_action_line_lookup_table as _readiness_action_line_lookup_table,
     command_mvp_demo_readiness_action_argv_lookup_table as _readiness_action_argv_lookup_table,
     command_mvp_demo_readiness_action_entry as _readiness_action_entry,
+    command_mvp_demo_readiness_action_smoke_summary as _readiness_action_smoke_summary,
     command_mvp_demo_readiness_action_summary as _readiness_action_summary,
     command_mvp_demo_readiness_gate as _readiness_gate,
     command_mvp_demo_readiness_gate_summary as _readiness_gate_summary,
@@ -74,6 +75,7 @@ __all__ = [
     "canonical_command_readiness_smoke_plan_summary",
     "canonical_command_require_readiness_complete",
     "canonical_command_action_line_lookup_table",
+    "canonical_command_action_smoke_summary",
     "canonical_command_readiness_is_complete",
     "canonical_command_readiness_missing_engine_actions",
     "canonical_command_action_flow_lookup_table",
@@ -141,6 +143,10 @@ def canonical_command_action_readiness_summary() -> tuple[
     ...,
 ]:
     return _readiness_action_summary()
+
+
+def canonical_command_action_smoke_summary() -> tuple[tuple[str, str, str, str, str], ...]:
+    return _readiness_action_smoke_summary()
 
 
 def canonical_command_readiness_gate() -> CommandDemoReadinessGate:

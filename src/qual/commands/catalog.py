@@ -2582,6 +2582,22 @@ def command_demo_readiness_action_summary(
     )
 
 
+def command_demo_readiness_action_smoke_summary(
+    specs: tuple[CommandSpec, ...] = COMMAND_SPECS,
+    launcher_argv: tuple[str, ...] = COMMAND_SMOKE_CLI_LAUNCHER_ARGV,
+) -> tuple[tuple[str, str, str, str, str], ...]:
+    return tuple(
+        (
+            entry.engine_action,
+            entry.flow_step,
+            entry.name,
+            _shell_join(entry.action_command_argv),
+            entry.demo_path_step,
+        )
+        for entry in command_demo_readiness_action_contract(specs, launcher_argv).entries
+    )
+
+
 @lru_cache(maxsize=None)
 def command_demo_readiness_smoke_plan(
     specs: tuple[CommandSpec, ...] = COMMAND_SPECS,
@@ -3610,6 +3626,13 @@ def command_mvp_demo_readiness_action_summary(
     launcher_argv: tuple[str, ...] = COMMAND_SMOKE_CLI_LAUNCHER_ARGV,
 ) -> tuple[tuple[str, str, str, tuple[str, ...], tuple[str, ...], str], ...]:
     return command_demo_readiness_action_summary(specs, launcher_argv)
+
+
+def command_mvp_demo_readiness_action_smoke_summary(
+    specs: tuple[CommandSpec, ...] = COMMAND_SPECS,
+    launcher_argv: tuple[str, ...] = COMMAND_SMOKE_CLI_LAUNCHER_ARGV,
+) -> tuple[tuple[str, str, str, str, str], ...]:
+    return command_demo_readiness_action_smoke_summary(specs, launcher_argv)
 
 
 def command_mvp_demo_readiness_smoke_plan(
