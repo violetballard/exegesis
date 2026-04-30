@@ -1352,6 +1352,39 @@ def command_demo_smoke_script_summary(
     )
 
 
+def command_demo_smoke_script_lookup_table(
+    specs: tuple[CommandSpec, ...] = COMMAND_SPECS,
+) -> tuple[tuple[int, tuple[str, ...]], ...]:
+    return tuple((step.ordinal, step.argv) for step in command_demo_smoke_script_contract(specs).steps)
+
+
+@lru_cache(maxsize=None)
+def _command_demo_smoke_script_step_for_ordinal(
+    specs: tuple[CommandSpec, ...],
+    ordinal: int,
+) -> CommandDemoSmokeScriptStep | None:
+    if ordinal <= 0:
+        return None
+    return {step.ordinal: step for step in command_demo_smoke_script_contract(specs).steps}.get(ordinal)
+
+
+def command_demo_smoke_script_step(
+    ordinal: int,
+    specs: tuple[CommandSpec, ...] = COMMAND_SPECS,
+) -> CommandDemoSmokeScriptStep | None:
+    return _command_demo_smoke_script_step_for_ordinal(specs, ordinal)
+
+
+def command_demo_smoke_script_argv(
+    ordinal: int,
+    specs: tuple[CommandSpec, ...] = COMMAND_SPECS,
+) -> tuple[str, ...]:
+    step = command_demo_smoke_script_step(ordinal, specs)
+    if step is None:
+        return ()
+    return step.argv
+
+
 def command_mvp_demo_smoke_matrix_contract(
     specs: tuple[CommandSpec, ...] = COMMAND_SPECS,
 ) -> CommandDemoSmokeMatrixContract:
@@ -1374,6 +1407,26 @@ def command_mvp_demo_smoke_script_summary(
     specs: tuple[CommandSpec, ...] = COMMAND_SPECS,
 ) -> tuple[tuple[int, str, str, tuple[str, ...], str, tuple[str, ...]], ...]:
     return command_demo_smoke_script_summary(specs)
+
+
+def command_mvp_demo_smoke_script_lookup_table(
+    specs: tuple[CommandSpec, ...] = COMMAND_SPECS,
+) -> tuple[tuple[int, tuple[str, ...]], ...]:
+    return command_demo_smoke_script_lookup_table(specs)
+
+
+def command_mvp_demo_smoke_script_step(
+    ordinal: int,
+    specs: tuple[CommandSpec, ...] = COMMAND_SPECS,
+) -> CommandDemoSmokeScriptStep | None:
+    return command_demo_smoke_script_step(ordinal, specs)
+
+
+def command_mvp_demo_smoke_script_argv(
+    ordinal: int,
+    specs: tuple[CommandSpec, ...] = COMMAND_SPECS,
+) -> tuple[str, ...]:
+    return command_demo_smoke_script_argv(ordinal, specs)
 
 
 @lru_cache(maxsize=None)
