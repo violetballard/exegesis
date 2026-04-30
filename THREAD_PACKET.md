@@ -19,7 +19,7 @@ The reviewed branch-tip work strengthens the active MVP target of FTS-first retr
 
 Canonical demo-path step advanced: this makes `retrieve relevant material` and `promote/gather context into the basket` more real by returning deterministic FTS-backed excerpts, provenance, and retrieval-owned context references suitable for basket promotion. Basket promotion/gathering is represented only as retrieval-owned payload/context metadata in this branch-tip packet; Textual console work remains out of scope.
 
-Packet mirror note: `.codex/kickoff_packets/feat-retrieval-fts.md` and `.codex/lane_meta/feat-retrieval-fts.json` still contain older packet text in this sandbox, but attempts to edit them in this fixer pass were rejected as outside the writable project boundary. Treat this writable `THREAD_PACKET.md` plus the final fixer deliverable as the authoritative handoff packet for this re-review.
+Packet mirror note: `.codex/kickoff_packets/feat-retrieval-fts.md` and `.codex/lane_meta/feat-retrieval-fts.json` still contain older packet text in this worktree. Treat this `THREAD_PACKET.md` plus the final fixer deliverable as the authoritative handoff packet for this re-review.
 
 ## Tasks Completed
 
