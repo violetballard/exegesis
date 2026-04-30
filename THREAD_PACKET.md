@@ -5,8 +5,8 @@
 - Merge target: current `main`
 - Merge-base for this re-review: `fd2ab6ca65ec2f93d1334c9b7df8512439725be4`
 - Branch tip before this fixer commit: `0d265542daed9bb36f1b631c90c9b588e07b39ab`
-- Final HEAD SHA: `FINAL_HEAD_PENDING`
-- Authoritative reviewed range / merge candidate: `fd2ab6ca65ec2f93d1334c9b7df8512439725be4..FINAL_HEAD_PENDING`
+- Final HEAD SHA: reported in this fixer deliverable after commit creation.
+- Authoritative reviewed range / merge candidate: `fd2ab6ca65ec2f93d1334c9b7df8512439725be4..HEAD`
 - Scope classification: high-risk retrieval work because approved shared regression coverage in `tests/unit/test_unified_retrieval.py` is part of the reviewed range.
 
 ## Scope Completed
@@ -29,7 +29,7 @@ The merge candidate advances FTS-first retrieval by normalizing engine retrieval
 
 ## Files Changed
 
-Complete files-changed list for `fd2ab6ca65ec2f93d1334c9b7df8512439725be4..FINAL_HEAD_PENDING`:
+Complete files-changed list for `fd2ab6ca65ec2f93d1334c9b7df8512439725be4..HEAD`:
 
 - `THREAD_PACKET.md` - authoritative handoff packet required by `INTEGRATION.md`; this is the only metadata-only file in the reviewed candidate.
 - `src/qual/engine/retrieval/__init__.py` - lane-owned retrieval facade/export behavior via `src/qual/engine/retrieval/**`.
