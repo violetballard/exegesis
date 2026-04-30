@@ -4215,15 +4215,22 @@ def _split_smoke_option_argv(
     while index < len(argv):
         token = argv[index]
         if token.startswith("--"):
-            value: str | None = None
-            if index + 1 < len(argv) and not argv[index + 1].startswith("--"):
+            option, value = _split_smoke_long_option(token)
+            if value is None and index + 1 < len(argv) and not argv[index + 1].startswith("--"):
                 value = argv[index + 1]
                 index += 1
-            options.append((token, value))
+            options.append((option, value))
         else:
             positionals.append(token)
         index += 1
     return command, tuple(positionals), tuple(options)
+
+
+def _split_smoke_long_option(token: str) -> tuple[str, str | None]:
+    if "=" not in token:
+        return token, None
+    option, value = token.split("=", 1)
+    return option, value
 
 
 def _smoke_option_argv_matches(
