@@ -525,7 +525,50 @@ _DEMO_SMOKE_ARGV_BY_FLOW_STEP: tuple[tuple[str, tuple[str, ...]], ...] = (
     ),
 )
 _DEMO_ACTION_SMOKE_ARGV_BY_ENGINE_ACTION: tuple[tuple[str, tuple[str, ...]], ...] = (
+    ("ExegesisAppService.open_project", ("bootstrap",)),
+    ("ExegesisAppService.open_document", ("bootstrap",)),
+    ("ExegesisAppService.search_project", ("context-basket", "list")),
     ("ExegesisAppService.add_basket_item", ("context-basket", "add", "demo-retrieval-result")),
+    (
+        "ExegesisAppService.revise_selection",
+        (
+            "diff-preview",
+            "--original",
+            "draft text",
+            "--proposed",
+            "revised draft text",
+        ),
+    ),
+    (
+        "ExegesisAppService.apply_patch",
+        (
+            "diff-preview",
+            "--original",
+            "draft text",
+            "--proposed",
+            "revised draft text",
+        ),
+    ),
+    (
+        "ExegesisAppService.reject_patch",
+        (
+            "diff-preview",
+            "--original",
+            "draft text",
+            "--proposed",
+            "revised draft text",
+        ),
+    ),
+    (
+        "ExegesisAppService.save_document",
+        (
+            "terminal",
+            "--operation-kind",
+            "terminal_synthesis_request",
+            "--message",
+            "persist and continue",
+        ),
+    ),
 )
 
 
@@ -556,14 +599,24 @@ def _demo_action_smoke_argv_by_engine_action() -> dict[str, tuple[str, ...]]:
     return argv_by_action
 
 
-def _demo_action_smoke_argv_for(
-    route_entry: CommandDemoActionRouteEntry,
-    argv_by_flow_step: dict[str, tuple[str, ...]],
-) -> tuple[str, ...]:
+def _demo_action_smoke_argv_for(route_entry: CommandDemoActionRouteEntry) -> tuple[str, ...]:
     action_argv = _demo_action_smoke_argv_by_engine_action().get(route_entry.engine_action)
-    if action_argv is not None:
-        return action_argv
-    return argv_by_flow_step[route_entry.flow_step]
+    if action_argv is None:
+        raise ValueError(f"Missing command demo action smoke argv: {route_entry.engine_action}")
+    return action_argv
+
+
+def _validate_demo_action_smoke_argv_coverage(
+    route_contract: CommandDemoActionRouteContract,
+) -> None:
+    expected_actions = tuple(entry.engine_action for entry in route_contract.entries)
+    configured_actions = tuple(engine_action for engine_action, _ in _DEMO_ACTION_SMOKE_ARGV_BY_ENGINE_ACTION)
+    missing_actions = tuple(engine_action for engine_action in expected_actions if engine_action not in configured_actions)
+    if missing_actions:
+        raise ValueError(f"Missing command demo action smoke argv: {', '.join(missing_actions)}")
+    extra_actions = tuple(engine_action for engine_action in configured_actions if engine_action not in expected_actions)
+    if extra_actions:
+        raise ValueError(f"Unknown command demo action smoke argv: {', '.join(extra_actions)}")
 
 
 def _validate_demo_smoke_argv_coverage(flow_steps: tuple[str, ...]) -> None:
@@ -1957,13 +2010,13 @@ def command_demo_action_smoke_argv_contract(
     specs: tuple[CommandSpec, ...] = COMMAND_SPECS,
 ) -> CommandDemoActionSmokeArgvContract:
     route_contract = command_demo_action_route_contract(specs)
-    argv_by_flow_step = dict(command_demo_smoke_argv_lookup_table(specs))
+    _validate_demo_action_smoke_argv_coverage(route_contract)
     entries = tuple(
         CommandDemoActionSmokeArgvEntry(
             engine_action=route_entry.engine_action,
             flow_step=route_entry.flow_step,
             name=route_entry.name,
-            argv=_demo_action_smoke_argv_for(route_entry, argv_by_flow_step),
+            argv=_demo_action_smoke_argv_for(route_entry),
             smoke_token=route_entry.smoke_token,
             demo_path_step=route_entry.demo_path_step,
         )
