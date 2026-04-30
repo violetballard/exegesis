@@ -456,12 +456,17 @@ class UnifiedRetrievalTests(unittest.TestCase):
         self.assertEqual(payload["retrieval_diagnostics"]["retrieval_evidence"], result.diagnostics["retrieval_evidence"])
         self.assertEqual(payload["retrieval_manifest"], result.diagnostics["retrieval_manifest"])
         self.assertEqual(payload["retrieval_evidence"], result.evidence)
+        self.assertEqual(payload["retrieval_evidence"]["result_fingerprint"], result.result_fingerprint)
         self.assertEqual(payload["retrieval_provenance"]["citation_status"], payload["retrieval_summary"]["citation_status"])
         self.assertEqual(payload["retrieval_provenance"]["doc_count"], len(result.doc_hits))
         self.assertEqual(payload["retrieval_provenance"]["excerpt_count"], len(result.hits))
         self.assertEqual(payload["retrieval_evidence"]["citation_status"], payload["retrieval_summary"]["citation_status"])
         self.assertEqual(payload["retrieval_evidence"]["doc_count"], len(result.doc_hits))
         self.assertEqual(payload["retrieval_evidence"]["excerpt_count"], len(result.hits))
+        self.assertEqual(
+            payload["retrieval_evidence"]["basket_promotion_items"][0]["result_fingerprint"],
+            result.result_fingerprint,
+        )
         self.assertEqual(payload["retrieval_citation_bundle"]["doc_citations"][0]["source_hash"], result.doc_hits[0].source_hash)
         self.assertEqual(payload["retrieval_doc_bundle"], result.retrieval_doc_bundle())
         self.assertEqual(

@@ -12,25 +12,11 @@ from src.qual.engine.retrieval.interface import StrategyRun
 class FTSStrategy:
     id = "fts"
 
-    # NOTE: ``FTSStrategy`` is the canonical entry‑point for FTS‑first retrieval.
-    # It previously executed the supplied ``runner`` on every call without any
-    # caching. Engine flows can ask for the same query and candidate doc set
-    # repeatedly while building payload, provenance, and context views. Adding a
-    # tiny in-memory cache reduces redundant SQLite lookups while keeping the
-    # implementation simple and deterministic.
-    #
-    # The cache stores **one** recent request – the most recent ``(query,
-    # candidate_doc_ids)`` tuple and its resulting hits. If a subsequent call
-    # provides an identical query object (equality is based on ``==`` for the
-    # supplied type) and the same ordered ``candidate_doc_ids``, we return the
-    # cached hits and set ``cache_used=True`` in the ``StrategyRun`` payload.
-    # The cache is deliberately tiny to avoid unbounded memory growth and to keep
-    # the behaviour easy to reason about for tests.
+    # Keep one immutable request snapshot so repeated engine calls can reuse
+    # the latest FTS result without growing memory or changing ordering.
     def __init__(self, runner: Callable[[Any, tuple[str, ...]], list[Any]], *, now_fn=None) -> None:
         self._runner = runner
         self._now_fn = now_fn or time.perf_counter_ns
-        # Simple one‑entry cache – ``_cache_key`` stores a (query, candidate_doc_ids)
-        # pair and ``_cache_hits`` the corresponding list of hits.
         self._cache_key: tuple[Any, tuple[str, ...]] | None = None
         self._cache_hits: list[Any] | None = None
 
