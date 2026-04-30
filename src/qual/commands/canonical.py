@@ -5,6 +5,7 @@ from collections.abc import Sequence
 from src.qual.commands.catalog import (
     CommandDemoReadinessGate,
     CommandDemoReadinessActionEntry,
+    CommandDemoReadinessArgvValidation,
     CommandDemoReadinessCliContract,
     CommandDemoReadinessCommandTraceEntry,
     CommandDemoReadinessCommandTraceContract,
@@ -72,6 +73,7 @@ from src.qual.commands.catalog import (
     command_mvp_demo_readiness_action_lines_for_argv as _readiness_action_lines_for_argv,
     command_mvp_demo_readiness_action_smoke_summary as _readiness_action_smoke_summary,
     command_mvp_demo_readiness_action_summary as _readiness_action_summary,
+    command_mvp_demo_readiness_validate_argv as _readiness_validate_argv,
     command_mvp_demo_readiness_gate as _readiness_gate,
     command_mvp_demo_readiness_gate_summary as _readiness_gate_summary,
     command_mvp_demo_readiness_smoke_plan_argv as _readiness_smoke_plan_argv,
@@ -162,6 +164,7 @@ __all__ = [
     "canonical_command_readiness_command_trace_summary",
     "canonical_command_readiness_trace_lookup_table",
     "canonical_command_readiness_trace_summary",
+    "canonical_command_readiness_validate_argv",
     "canonical_command_readiness_handoff_summary",
     "canonical_command_readiness_smoke_plan_argv",
     "canonical_command_readiness_smoke_plan_argv_for_flow_step",
@@ -667,6 +670,10 @@ def canonical_command_demo_path_step_for_argv(argv: Sequence[str] | str) -> str 
 
 def canonical_command_engine_actions_for_argv(argv: Sequence[str] | str) -> tuple[str, ...]:
     return _readiness_engine_actions_for_argv(argv)
+
+
+def canonical_command_readiness_validate_argv(argv: Sequence[str] | str) -> CommandDemoReadinessArgvValidation:
+    return _readiness_validate_argv(argv)
 
 
 def canonical_command_line_for_argv(argv: Sequence[str] | str) -> str:

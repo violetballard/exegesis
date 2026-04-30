@@ -487,6 +487,17 @@ class CommandDemoReadinessCommandTraceContract:
 
 
 @dataclass(frozen=True)
+class CommandDemoReadinessArgvValidation:
+    requested_argv: tuple[str, ...]
+    canonical_argv: tuple[str, ...]
+    command_line: str
+    flow_step: str | None
+    name: str | None
+    demo_path_step: str | None
+    engine_actions: tuple[str, ...]
+
+
+@dataclass(frozen=True)
 class CommandDemoCommandActionEntry:
     flow_step: str
     name: str
@@ -4632,6 +4643,43 @@ def command_mvp_demo_readiness_argv_for_argv(
     launcher_argv: tuple[str, ...] = COMMAND_SMOKE_CLI_LAUNCHER_ARGV,
 ) -> tuple[str, ...]:
     return command_demo_readiness_argv_for_argv(argv, specs, launcher_argv)
+
+
+def command_demo_readiness_validate_argv(
+    argv: Sequence[str] | str,
+    specs: tuple[CommandSpec, ...] = COMMAND_SPECS,
+    launcher_argv: tuple[str, ...] = COMMAND_SMOKE_CLI_LAUNCHER_ARGV,
+) -> CommandDemoReadinessArgvValidation:
+    requested_argv = _normalize_smoke_argv(_coerce_smoke_argv(argv))
+    entry = command_demo_readiness_entry_for_argv(requested_argv, specs, launcher_argv)
+    canonical_argv = command_demo_readiness_argv_for_argv(requested_argv, specs, launcher_argv)
+    if entry is None:
+        return CommandDemoReadinessArgvValidation(
+            requested_argv=requested_argv,
+            canonical_argv=(),
+            command_line="",
+            flow_step=None,
+            name=None,
+            demo_path_step=None,
+            engine_actions=(),
+        )
+    return CommandDemoReadinessArgvValidation(
+        requested_argv=requested_argv,
+        canonical_argv=canonical_argv,
+        command_line=_shell_join(canonical_argv),
+        flow_step=entry.flow_step,
+        name=entry.name,
+        demo_path_step=entry.demo_path_step,
+        engine_actions=entry.engine_actions,
+    )
+
+
+def command_mvp_demo_readiness_validate_argv(
+    argv: Sequence[str] | str,
+    specs: tuple[CommandSpec, ...] = COMMAND_SPECS,
+    launcher_argv: tuple[str, ...] = COMMAND_SMOKE_CLI_LAUNCHER_ARGV,
+) -> CommandDemoReadinessArgvValidation:
+    return command_demo_readiness_validate_argv(argv, specs, launcher_argv)
 
 
 @lru_cache(maxsize=None)
