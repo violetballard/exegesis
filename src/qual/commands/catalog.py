@@ -964,6 +964,32 @@ def command_demo_action_summary(
     )
 
 
+def command_demo_action_lookup_table(
+    specs: tuple[CommandSpec, ...] = COMMAND_SPECS,
+) -> tuple[tuple[str, str], ...]:
+    return tuple((entry.engine_action, entry.name) for entry in command_demo_action_contract(specs).entries)
+
+
+def command_demo_action_flow_lookup_table(
+    specs: tuple[CommandSpec, ...] = COMMAND_SPECS,
+) -> tuple[tuple[str, str], ...]:
+    return tuple((entry.engine_action, entry.flow_step) for entry in command_demo_action_contract(specs).entries)
+
+
+def command_demo_action_route_summary(
+    specs: tuple[CommandSpec, ...] = COMMAND_SPECS,
+) -> tuple[tuple[str, str, str, str], ...]:
+    return tuple(
+        (
+            entry.engine_action,
+            entry.flow_step,
+            entry.name,
+            entry.smoke_token,
+        )
+        for entry in command_demo_action_contract(specs).entries
+    )
+
+
 def command_mvp_demo_action_contract(
     specs: tuple[CommandSpec, ...] = COMMAND_SPECS,
 ) -> CommandDemoActionContract:
@@ -974,6 +1000,24 @@ def command_mvp_demo_action_summary(
     specs: tuple[CommandSpec, ...] = COMMAND_SPECS,
 ) -> tuple[tuple[str, str, str, str, str], ...]:
     return command_demo_action_summary(specs)
+
+
+def command_mvp_demo_action_lookup_table(
+    specs: tuple[CommandSpec, ...] = COMMAND_SPECS,
+) -> tuple[tuple[str, str], ...]:
+    return command_demo_action_lookup_table(specs)
+
+
+def command_mvp_demo_action_flow_lookup_table(
+    specs: tuple[CommandSpec, ...] = COMMAND_SPECS,
+) -> tuple[tuple[str, str], ...]:
+    return command_demo_action_flow_lookup_table(specs)
+
+
+def command_mvp_demo_action_route_summary(
+    specs: tuple[CommandSpec, ...] = COMMAND_SPECS,
+) -> tuple[tuple[str, str, str, str], ...]:
+    return command_demo_action_route_summary(specs)
 
 
 def command_demo_flow_route_catalog() -> tuple[CommandFlowRouteEntry, ...]:
