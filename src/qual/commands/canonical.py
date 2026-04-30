@@ -16,6 +16,7 @@ from src.qual.commands.catalog import (
     CommandDemoReadinessShellScript,
     CommandDemoReadinessSmokePlanStep,
     CommandDemoReadinessTraceContract,
+    CommandDemoSmokeMatrixContract,
     canonical_command as _canonical_command,
     command_mvp_demo_path_readiness_contract as _path_readiness_contract,
     command_mvp_demo_path_readiness_summary as _path_readiness_summary,
@@ -47,6 +48,8 @@ from src.qual.commands.catalog import (
     command_mvp_demo_smoke_cli_script_lines as _smoke_cli_script_lines,
     command_mvp_demo_smoke_cli_script_lookup_table as _smoke_cli_script_lookup_table,
     command_mvp_demo_smoke_cli_script_summary as _smoke_cli_script_summary,
+    command_mvp_demo_smoke_matrix_contract as _smoke_matrix_contract,
+    command_mvp_demo_smoke_matrix_summary as _smoke_matrix_summary,
     command_mvp_demo_action_demo_path_lookup_table as _action_demo_path_lookup_table,
     command_mvp_demo_action_demo_path_step as _action_demo_path_step,
     command_mvp_demo_action_flow_lookup_table as _action_flow_lookup_table,
@@ -162,6 +165,8 @@ __all__ = [
     "canonical_command_demo_smoke_cli_lines",
     "canonical_command_demo_smoke_cli_lookup_table",
     "canonical_command_demo_smoke_cli_summary",
+    "canonical_command_demo_smoke_matrix_contract",
+    "canonical_command_demo_smoke_matrix_summary",
     "canonical_command_demo_engine_actions",
     "canonical_command_demo_path_step_for_argv",
     "canonical_command_argv",
@@ -455,6 +460,17 @@ def canonical_command_demo_smoke_cli_summary() -> tuple[
     ...,
 ]:
     return _smoke_cli_script_summary()
+
+
+def canonical_command_demo_smoke_matrix_contract() -> CommandDemoSmokeMatrixContract:
+    return _smoke_matrix_contract()
+
+
+def canonical_command_demo_smoke_matrix_summary() -> tuple[
+    tuple[str, str, tuple[str, ...], tuple[str, ...], str, tuple[str, ...]],
+    ...,
+]:
+    return _smoke_matrix_summary()
 
 
 def canonical_command_demo_smoke_cli_lookup_table() -> tuple[tuple[int, tuple[str, ...]], ...]:
