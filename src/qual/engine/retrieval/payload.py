@@ -66,9 +66,9 @@ def _normalize_optional_text(value: object) -> str | None:
     return None
 
 
-def _basket_item_ids_from_items(items: list[object]) -> list[object]:
+def _basket_item_ids_from_items(items: list[object]) -> list[str]:
     return [
-        item.get("item_id")
+        str(item["item_id"])
         for item in items
         if isinstance(item, dict) and item.get("item_id") is not None
     ]
@@ -108,14 +108,14 @@ def _basket_item_ids_from_snapshot(
 ) -> list[object]:
     basket_item_ids = _normalize_list_like(snapshot.get("basket_item_ids", []))
     if basket_item_ids:
-        return basket_item_ids
+        return [str(item_id) for item_id in basket_item_ids if item_id is not None]
 
     for bundle_key in ("retrieval_source_bundle", "source_bundle"):
         source_bundle = snapshot.get(bundle_key)
         if isinstance(source_bundle, dict):
             basket_item_ids = _normalize_list_like(source_bundle.get("basket_item_ids", []))
             if basket_item_ids:
-                return basket_item_ids
+                return [str(item_id) for item_id in basket_item_ids if item_id is not None]
 
     return _basket_item_ids_from_items(basket_promotion_items)
 
@@ -582,6 +582,7 @@ def _build_retrieval_context_bundle_from_source_bundle(source_bundle: dict[str, 
     retrieval_provenance = source_bundle.get("retrieval_provenance", {})
     if not isinstance(retrieval_provenance, dict):
         retrieval_provenance = _build_retrieval_provenance_from_payload(source_bundle)
+    basket_promotion_items = _basket_promotion_items_from_snapshot(source_bundle)
     return {
         # Source-bundle-only reconstruction keeps the top-level context auditless.
         "audit_ref": None,
@@ -593,8 +594,11 @@ def _build_retrieval_context_bundle_from_source_bundle(source_bundle: dict[str, 
         "retrieval_provenance": copy.deepcopy(retrieval_provenance),
         "retrieval_source_bundle": copy.deepcopy(source_bundle),
         "retrieval_evidence": copy.deepcopy(source_bundle.get("retrieval_evidence", {})),
-        "basket_promotion_items": _normalize_list_like(source_bundle.get("basket_promotion_items", [])),
-        "basket_item_ids": _normalize_list_like(source_bundle.get("basket_item_ids", [])),
+        "basket_promotion_items": basket_promotion_items,
+        "basket_item_ids": _basket_item_ids_from_snapshot(
+            source_bundle,
+            basket_promotion_items=basket_promotion_items,
+        ),
     }
 
 
