@@ -3491,6 +3491,33 @@ def _validate_command_demo_readiness_route_contract(
             raise ValueError(f"Command demo readiness route command must not be empty: {entry.flow_step}")
         if not entry.action_lines:
             raise ValueError(f"Command demo readiness route action lines must not be empty: {entry.flow_step}")
+        _validate_command_demo_readiness_route_lines(entry)
+
+
+def _validate_command_demo_readiness_route_lines(
+    entry: CommandDemoReadinessRouteEntry,
+) -> None:
+    command_entry = command_demo_readiness_entry_for_argv(entry.command_line)
+    if command_entry is None:
+        raise ValueError(f"Command demo readiness route command is not routeable: {entry.flow_step}")
+    if command_entry.flow_step != entry.flow_step or command_entry.name != entry.name:
+        raise ValueError(f"Command demo readiness route command target is inconsistent: {entry.flow_step}")
+
+    seen_actions: list[str] = []
+    for engine_action, action_line in entry.action_lines:
+        action_entries = command_demo_readiness_action_entries_for_argv(action_line)
+        if not any(action_entry.engine_action == engine_action for action_entry in action_entries):
+            raise ValueError(f"Command demo readiness route action is not routeable: {engine_action}")
+        if any(
+            action_entry.flow_step != entry.flow_step or action_entry.name != entry.name
+            for action_entry in action_entries
+            if action_entry.engine_action == engine_action
+        ):
+            raise ValueError(f"Command demo readiness route action target is inconsistent: {engine_action}")
+        seen_actions.append(engine_action)
+
+    if tuple(seen_actions) != entry.engine_actions:
+        raise ValueError(f"Command demo readiness route action coverage is inconsistent: {entry.flow_step}")
 
 
 def command_demo_readiness_route_summary(
