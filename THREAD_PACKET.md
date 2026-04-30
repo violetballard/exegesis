@@ -4,17 +4,17 @@
 - Lane: `feat-retrieval-fts`
 - Merge target: current `main`
 - Merge-base for this re-review: `fd2ab6ca65ec2f93d1334c9b7df8512439725be4`
-- Branch tip before this fixer commit: `49733b03d21aa770df11be19d95d9c26b01f08f29`
-- Final reviewed commit: the HEAD commit containing this cache-invalidation re-review update; final SHA is reported in the fixer deliverable after commit creation.
+- Branch tip before this packet-only fixer commit: `5a3e75759750676f71e8b23b3d8eeff28dde90e5`
+- Final reviewed commit: the HEAD commit containing this packet-regeneration update; final SHA is reported in the fixer deliverable after commit creation.
 - Authoritative reviewed range / complete merge candidate: `fd2ab6ca65ec2f93d1334c9b7df8512439725be4..HEAD`
-- Authoritative implementation candidate before this packet-only fixer commit: `fd2ab6ca65ec2f93d1334c9b7df8512439725be4..b9eb058137a0bad5b4c68688000d26dbb77b9763`
+- Authoritative implementation candidate before this packet-only fixer commit: `fd2ab6ca65ec2f93d1334c9b7df8512439725be4..5a3e75759750676f71e8b23b3d8eeff28dde90e5`
 - Scope classification: high-risk retrieval work because approved shared regression coverage in `tests/unit/test_unified_retrieval.py` is part of the reviewed range.
 
 ## Scope Completed
 
-This packet regenerates the handoff against one merge candidate: the complete branch diff from merge-base `fd2ab6ca65ec2f93d1334c9b7df8512439725be4` through the final packet-only fixer commit recorded above. It includes every source, test, and packet metadata change present at that candidate tip; no source or test file is classified as metadata-only. The implementation candidate before this packet-only correction is `fd2ab6ca65ec2f93d1334c9b7df8512439725be4..b9eb058137a0bad5b4c68688000d26dbb77b9763`. The earlier packet refresh commit `a5587120382486c956382fa8cf6741e79c134f46` is part of the implementation candidate because it modifies `src/qual/engine/retrieval/payload.py`; it is not treated as metadata-only.
+This packet regenerates the handoff against one merge candidate: the complete branch diff from merge-base `fd2ab6ca65ec2f93d1334c9b7df8512439725be4` through the final packet-only fixer commit recorded above. It includes every source, test, and packet metadata change present at that candidate tip; no source or test file is classified as metadata-only. The implementation candidate before this packet-only correction is `fd2ab6ca65ec2f93d1334c9b7df8512439725be4..5a3e75759750676f71e8b23b3d8eeff28dde90e5`, explicitly including the cache-invalidation runtime/test changes in `5a3e75759750676f71e8b23b3d8eeff28dde90e5`. Earlier packet refresh commits that modify runtime or test files, including `a5587120382486c956382fa8cf6741e79c134f46` and `5a3e75759750676f71e8b23b3d8eeff28dde90e5`, are part of the implementation candidate; they are not treated as metadata-only.
 
-This fixer pass keeps `THREAD_PACKET.md` as the authoritative handoff surface because the `.codex` lane metadata files are not part of the corrected merge-base-to-HEAD candidate.
+This fixer pass keeps `THREAD_PACKET.md` as the authoritative handoff packet required by `INTEGRATION.md`. The tracked `.codex` lane metadata files are unchanged in the corrected merge-base-to-HEAD candidate and are not approval targets for this re-review.
 
 This re-review fixer pass specifically satisfies the required stale-cache fix: `FTSStrategy` no longer stores a one-entry hit cache, `clear_cache` remains only as a mutation hook while retrieval is uncached, and `test_document_update_invalidates_fts_cache` proves that identical queries before and after a document update read the current SQLite FTS index with `cache_used=False` instead of a stale cached hit.
 
@@ -76,8 +76,8 @@ Files absent from the reviewed candidate:
 ## Budget/Risk
 
 - Task budget: `4/4` high-risk tasks.
-- File budget: `6/8` high-risk files.
-- Net LOC budget: source/test implementation changes are `5 files changed, 254 insertions(+), 54 deletions(-)`, or +200 net LOC, which remains within the `<=300` high-risk net LOC limit. Packet metadata accounts for the remaining documentation churn.
+- File budget: `5/8` high-risk source/test files plus packet metadata files.
+- Net LOC budget: source/test implementation changes are `5 files changed, 219 insertions(+), 86 deletions(-)`, or +133 net LOC, which remains within the `<=300` high-risk net LOC limit. Packet metadata accounts for the remaining documentation churn.
 - Shared-by-approval files: `tests/unit/test_unified_retrieval.py` only.
 - Integrator-locked files: none.
 - Routing/provider impact: none.
