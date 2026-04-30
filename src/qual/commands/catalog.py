@@ -130,6 +130,20 @@ class CommandDemoPathContract:
     entries: tuple[CommandDemoPathEntry, ...]
 
 
+@dataclass(frozen=True)
+class CommandDemoSmokeEntry:
+    smoke_token: str
+    name: str
+    flow_step: str
+    demo_path_step: str
+    engine_actions: tuple[str, ...]
+
+
+@dataclass(frozen=True)
+class CommandDemoSmokeContract:
+    entries: tuple[CommandDemoSmokeEntry, ...]
+
+
 def _normalize_token(value: str) -> str:
     normalized = re.sub(r"[-_\s]+", "-", value.strip().casefold())
     return normalized.strip("-")
@@ -797,6 +811,78 @@ def command_mvp_demo_path_summary(
     specs: tuple[CommandSpec, ...] = COMMAND_SPECS,
 ) -> tuple[tuple[str, str, tuple[str, ...], str, tuple[str, ...]], ...]:
     return command_demo_path_summary(specs)
+
+
+@lru_cache(maxsize=None)
+def command_demo_smoke_contract(
+    specs: tuple[CommandSpec, ...] = COMMAND_SPECS,
+) -> CommandDemoSmokeContract:
+    demo_path_contract = command_demo_path_contract(specs)
+    entries = tuple(
+        CommandDemoSmokeEntry(
+            smoke_token=path_entry.cli_tokens[0],
+            name=path_entry.name,
+            flow_step=path_entry.flow_step,
+            demo_path_step=path_entry.demo_path_step,
+            engine_actions=path_entry.engine_actions,
+        )
+        for path_entry in demo_path_contract.entries
+    )
+    contract = CommandDemoSmokeContract(entries=entries)
+    _validate_command_demo_smoke_contract(contract, demo_path_contract, specs=specs)
+    return contract
+
+
+def _validate_command_demo_smoke_contract(
+    contract: CommandDemoSmokeContract,
+    demo_path_contract: CommandDemoPathContract,
+    *,
+    specs: tuple[CommandSpec, ...],
+) -> None:
+    if tuple(entry.smoke_token for entry in contract.entries) != command_demo_flow_smoke_tokens(specs):
+        raise ValueError("Command demo smoke tokens are inconsistent")
+    if tuple(entry.name for entry in contract.entries) != tuple(
+        entry.name for entry in demo_path_contract.entries
+    ):
+        raise ValueError("Command demo smoke names are inconsistent")
+    if tuple(entry.flow_step for entry in contract.entries) != command_demo_flow_steps():
+        raise ValueError("Command demo smoke flow steps are inconsistent")
+    if tuple(entry.demo_path_step for entry in contract.entries) != tuple(
+        entry.demo_path_step for entry in demo_path_contract.entries
+    ):
+        raise ValueError("Command demo smoke path steps are inconsistent")
+    if tuple(entry.engine_actions for entry in contract.entries) != tuple(
+        entry.engine_actions for entry in demo_path_contract.entries
+    ):
+        raise ValueError("Command demo smoke engine actions are inconsistent")
+
+
+def command_demo_smoke_summary(
+    specs: tuple[CommandSpec, ...] = COMMAND_SPECS,
+) -> tuple[tuple[str, str, str, str, tuple[str, ...]], ...]:
+    contract = command_demo_smoke_contract(specs)
+    return tuple(
+        (
+            entry.smoke_token,
+            entry.name,
+            entry.flow_step,
+            entry.demo_path_step,
+            entry.engine_actions,
+        )
+        for entry in contract.entries
+    )
+
+
+def command_mvp_demo_smoke_contract(
+    specs: tuple[CommandSpec, ...] = COMMAND_SPECS,
+) -> CommandDemoSmokeContract:
+    return command_demo_smoke_contract(specs)
+
+
+def command_mvp_demo_smoke_summary(
+    specs: tuple[CommandSpec, ...] = COMMAND_SPECS,
+) -> tuple[tuple[str, str, str, str, tuple[str, ...]], ...]:
+    return command_demo_smoke_summary(specs)
 
 
 def command_demo_flow_route_catalog() -> tuple[CommandFlowRouteEntry, ...]:
