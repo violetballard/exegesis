@@ -145,6 +145,20 @@ class CommandDemoSmokeContract:
 
 
 @dataclass(frozen=True)
+class CommandDemoSmokeCommandEntry:
+    flow_step: str
+    name: str
+    argv: tuple[str, ...]
+    demo_path_step: str
+    engine_actions: tuple[str, ...]
+
+
+@dataclass(frozen=True)
+class CommandDemoSmokeCommandContract:
+    entries: tuple[CommandDemoSmokeCommandEntry, ...]
+
+
+@dataclass(frozen=True)
 class CommandDemoActionEntry:
     engine_action: str
     flow_step: str
@@ -310,6 +324,30 @@ _DEMO_PATH_STEP_BY_FLOW_STEP: tuple[tuple[str, str, tuple[str, ...]], ...] = (
         "export-handoff",
         "persist and continue",
         ("ExegesisAppService.save_document",),
+    ),
+)
+_DEMO_SMOKE_ARGV_BY_FLOW_STEP: tuple[tuple[str, tuple[str, ...]], ...] = (
+    ("project-open", ("bootstrap",)),
+    ("retrieval", ("context-basket", "list")),
+    (
+        "patch-review",
+        (
+            "diff-preview",
+            "--original",
+            "draft text",
+            "--proposed",
+            "revised draft text",
+        ),
+    ),
+    (
+        "export-handoff",
+        (
+            "terminal",
+            "--operation-kind",
+            "terminal_synthesis_request",
+            "--message",
+            "persist and continue",
+        ),
     ),
 )
 
@@ -912,6 +950,94 @@ def command_mvp_demo_smoke_summary(
     specs: tuple[CommandSpec, ...] = COMMAND_SPECS,
 ) -> tuple[tuple[str, str, str, str, tuple[str, ...]], ...]:
     return command_demo_smoke_summary(specs)
+
+
+@lru_cache(maxsize=None)
+def command_demo_smoke_command_contract(
+    specs: tuple[CommandSpec, ...] = COMMAND_SPECS,
+) -> CommandDemoSmokeCommandContract:
+    smoke_contract = command_demo_smoke_contract(specs)
+    argv_by_flow_step = {
+        _normalize_token(flow_step): argv
+        for flow_step, argv in _DEMO_SMOKE_ARGV_BY_FLOW_STEP
+    }
+    entries = tuple(
+        CommandDemoSmokeCommandEntry(
+            flow_step=smoke_entry.flow_step,
+            name=smoke_entry.name,
+            argv=argv_by_flow_step[smoke_entry.flow_step],
+            demo_path_step=smoke_entry.demo_path_step,
+            engine_actions=smoke_entry.engine_actions,
+        )
+        for smoke_entry in smoke_contract.entries
+    )
+    contract = CommandDemoSmokeCommandContract(entries=entries)
+    _validate_command_demo_smoke_command_contract(contract, smoke_contract, specs=specs)
+    return contract
+
+
+def _validate_command_demo_smoke_command_contract(
+    contract: CommandDemoSmokeCommandContract,
+    smoke_contract: CommandDemoSmokeContract,
+    *,
+    specs: tuple[CommandSpec, ...],
+) -> None:
+    if tuple(entry.flow_step for entry in contract.entries) != tuple(
+        smoke_entry.flow_step for smoke_entry in smoke_contract.entries
+    ):
+        raise ValueError("Command demo smoke argv flow steps are inconsistent")
+    if tuple(entry.name for entry in contract.entries) != tuple(
+        smoke_entry.name for smoke_entry in smoke_contract.entries
+    ):
+        raise ValueError("Command demo smoke argv names are inconsistent")
+    if tuple(entry.demo_path_step for entry in contract.entries) != tuple(
+        smoke_entry.demo_path_step for smoke_entry in smoke_contract.entries
+    ):
+        raise ValueError("Command demo smoke argv path steps are inconsistent")
+    if tuple(entry.engine_actions for entry in contract.entries) != tuple(
+        smoke_entry.engine_actions for smoke_entry in smoke_contract.entries
+    ):
+        raise ValueError("Command demo smoke argv engine actions are inconsistent")
+
+    cli_lookup = dict(command_cli_lookup_table()) if specs == COMMAND_SPECS else dict(command_lookup_index(specs))
+    seen_flow_steps = set()
+    for entry in contract.entries:
+        if entry.flow_step in seen_flow_steps:
+            raise ValueError(f"Duplicate command demo smoke argv flow step: {entry.flow_step}")
+        seen_flow_steps.add(entry.flow_step)
+        if not entry.argv or any(not token.strip() for token in entry.argv):
+            raise ValueError(f"Command demo smoke argv must not be empty: {entry.flow_step}")
+        canonical_name = cli_lookup.get(_normalize_token(entry.argv[0]))
+        if canonical_name != entry.name:
+            raise ValueError(f"Command demo smoke argv does not route to {entry.name}: {entry.flow_step}")
+
+
+def command_demo_smoke_command_summary(
+    specs: tuple[CommandSpec, ...] = COMMAND_SPECS,
+) -> tuple[tuple[str, str, tuple[str, ...], str, tuple[str, ...]], ...]:
+    contract = command_demo_smoke_command_contract(specs)
+    return tuple(
+        (
+            entry.flow_step,
+            entry.name,
+            entry.argv,
+            entry.demo_path_step,
+            entry.engine_actions,
+        )
+        for entry in contract.entries
+    )
+
+
+def command_mvp_demo_smoke_command_contract(
+    specs: tuple[CommandSpec, ...] = COMMAND_SPECS,
+) -> CommandDemoSmokeCommandContract:
+    return command_demo_smoke_command_contract(specs)
+
+
+def command_mvp_demo_smoke_command_summary(
+    specs: tuple[CommandSpec, ...] = COMMAND_SPECS,
+) -> tuple[tuple[str, str, tuple[str, ...], str, tuple[str, ...]], ...]:
+    return command_demo_smoke_command_summary(specs)
 
 
 @lru_cache(maxsize=None)
