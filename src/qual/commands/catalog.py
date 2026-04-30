@@ -4168,7 +4168,7 @@ def command_demo_readiness_engine_actions_for_demo_path_step(
 
 
 def _normalize_smoke_argv(argv: tuple[str, ...]) -> tuple[str, ...]:
-    return tuple(token.strip() for token in argv if token.strip())
+    return tuple(token for token in argv if token.strip())
 
 
 def _coerce_smoke_argv(argv: Sequence[str] | str) -> tuple[str, ...]:
