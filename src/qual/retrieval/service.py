@@ -58,6 +58,15 @@ def _optional_text(value: object) -> str | None:
     return None
 
 
+def _required_compact_text(value: object, *, field_name: str) -> str:
+    if not isinstance(value, str):
+        raise TypeError(f"{field_name} must be text")
+    text = " ".join(value.split())
+    if not text:
+        raise ValueError(f"{field_name} is required")
+    return text
+
+
 def _optional_list_like(value: object) -> list[object] | None:
     if value is None:
         return None
@@ -105,6 +114,8 @@ class RetrievalQuery:
     confidentiality_profile: Literal["confidential", "standard"] = "confidential"
 
     def __post_init__(self) -> None:
+        object.__setattr__(self, "query_text", _required_compact_text(self.query_text, field_name="query_text"))
+        object.__setattr__(self, "scope", _required_compact_text(self.scope, field_name="scope"))
         object.__setattr__(
             self,
             "intent",
