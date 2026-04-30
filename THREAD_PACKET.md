@@ -15,11 +15,11 @@
 2. The reviewed range now includes all source/test changes through `25d4f4fdae66c3008a1b4c3d96ece7887dbd6103`, including post-`adfa8cd` changes in retrieval strategy, payload reconstruction, retrieval service, and shared regression tests.
 3. `Files Changed` includes all metadata, source, and test files changed in the reviewed merge-candidate range.
 4. Completed tasks are restated as four meaningful high-risk tasks under the AGENTS.md cap.
-5. Final gates are re-run against the exact submitted branch tip after this packet refresh.
+5. Final gates are re-run against the exact submitted branch tip after this packet refresh, and each completed task is mapped to the AGENTS canonical demo path.
 
 ## Scope Completed
 
-The current merge candidate advances the canonical demo-path step `retrieve relevant material`. SQLite FTS remains the authoritative retrieval path for MVP flows, document updates invalidate cached FTS search state, excerpt lookup fails closed for PageIndex-only IDs, and sparse retrieval payload reconstruction preserves deterministic document IDs, citation refs, ranks, fingerprints, primary sources, and basket promotion context references.
+The current merge candidate advances the canonical demo-path step `retrieve relevant material`. SQLite FTS remains the authoritative retrieval path for MVP flows, document updates invalidate cached FTS search state, excerpt lookup fails closed for PageIndex-only IDs, and sparse retrieval payload reconstruction preserves deterministic document IDs, citation refs, ranks, fingerprints, primary sources, and basket promotion context references. The sparse provenance and context-reference work also advances `promote or gather context into the basket`.
 
 PageIndex and embeddings remain compatibility-only fallback shims. They are not required paths for the branch-tip retrieval behavior.
 
@@ -27,8 +27,8 @@ PageIndex and embeddings remain compatibility-only fallback shims. They are not 
 
 1. Canonical demo-path step `retrieve relevant material`: keep excerpt lookup on the canonical FTS-first path so PageIndex-only excerpt IDs fail closed under regression coverage.
 2. Canonical demo-path step `retrieve relevant material`: invalidate FTS search cache after document updates so retrieval results do not reuse stale search state.
-3. Canonical demo-path step `retrieve relevant material`: preserve deterministic sparse retrieval payload reconstruction, including basket promotion context references and primary-source provenance.
-4. Handoff traceability: regenerate packet metadata so review covers the implementation that will merge, including all branch-tip code/test changes after `adfa8cdadd43747ffbcb612e4151e262b13e52ca`.
+3. Canonical demo-path steps `retrieve relevant material` and `promote or gather context into the basket`: preserve deterministic sparse retrieval payload reconstruction, including basket promotion context references and primary-source provenance.
+4. Handoff traceability for canonical demo-path step `retrieve relevant material`: regenerate packet metadata so review covers the implementation that will merge, including all branch-tip code/test changes after `adfa8cdadd43747ffbcb612e4151e262b13e52ca`.
 
 ## Files Changed
 
@@ -64,7 +64,7 @@ Packet refresh commits after those implementation commits are reviewed as metada
 
 - Roadmap items affected: `ROADMAP.md` Milestone 3 Real workflow loop, with Milestone 4 Retrieval Layer groundwork.
 - Vision capabilities affected: `PRODUCT_VISION.md` capability 2, Retrieval-first context handling, and capability 6, Auditable state and workflow.
-- Canonical demo-path step advanced: `retrieve relevant material`.
+- Canonical demo-path step advanced: `retrieve relevant material`. Sparse context-reference preservation also advances `promote or gather context into the basket`.
 - FTS-first mapping: SQLite FTS remains the required retrieval path; PageIndex and embeddings remain fallback-only compatibility shims.
 - Proposed `README.md` patch text: none.
 
@@ -80,4 +80,5 @@ Packet refresh commits after those implementation commits are reviewed as metada
 ## Risks / Blockers
 
 - No implementation blocker is known.
+- Protected `.codex` mirror files could not be updated in this lane worktree: writes under `.codex/kickoff_packets` and `.codex/lane_meta` return `EPERM`, so `THREAD_PACKET.md` remains the authoritative corrected handoff artifact.
 - The packet now exposes the actual branch-tip implementation boundary and complete file list instead of preserving stale `adfa8cd` or `c2f87101` review anchors.
