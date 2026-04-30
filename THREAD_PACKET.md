@@ -58,7 +58,7 @@
 - `make scope-check`: passed.
 - `./quality-format.sh --check`: passed.
 - `./quality-lint.sh`: passed.
-- `./quality-test.sh`: failed outside the command-catalog slice.
+- `./quality-test.sh`: failed outside the command-catalog slice after `tests/smoke.sh` passed; `tests/unit.sh` ran 313 tests with 1 failure and 2 import errors.
   - `tests/unit/test_mvp_migration.py` and `tests/unit/test_unified_retrieval.py` fail importing `src/qual/engine/retrieval/payload.py` because that file has `SyntaxError: unmatched ')'` at line 428.
   - `tests/unit/test_offline_handoff.py::OfflineHandoffConfigTests.test_live_router_config_uses_explicit_lms_provider` fails because protected local `.codex/packet_router/config.json` still has `["-p", "gpt-oss-120b-lms"]` instead of `["--oss", "--local-provider", "lmstudio"]`.
 - `./typecheck-test.sh`: failed outside the command-catalog slice on the same `src/qual/engine/retrieval/payload.py` syntax error at line 428.
@@ -67,7 +67,7 @@
 ## Risks And Blockers
 
 - Residual risk: full gates are red due off-lane retrieval syntax in `src/qual/engine/retrieval/payload.py` and protected local router config drift, both outside the command-catalog review surface.
-- Blocker: `./quality-test.sh`, `./typecheck-test.sh`, and `SCOPE_ALLOW_SHARED=1 make ci` cannot pass in this worktree until the off-lane retrieval syntax error at `src/qual/engine/retrieval/payload.py:428` is fixed. `./quality-test.sh` also observes protected router config drift in `.codex/packet_router/config.json`.
+- Blocker: `./quality-test.sh`, `./typecheck-test.sh`, and `make ci` cannot pass in this worktree until the off-lane retrieval syntax error at `src/qual/engine/retrieval/payload.py:428` is fixed. `./quality-test.sh` also observes protected router config drift in `.codex/packet_router/config.json`.
 - Blocker: `.codex/packet_planner/state.json` remains protected from overwrite in this sandbox, so this fixer could not remove that prior protected metadata delta from the branch history.
 
 ## Final Readiness Statement
