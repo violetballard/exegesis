@@ -383,6 +383,20 @@ class CommandDemoReadinessHandoffLineContract:
 
 
 @dataclass(frozen=True)
+class CommandDemoReadinessHandoffChecklistLine:
+    ordinal: int
+    demo_path_step: str
+    flow_step: str
+    name: str
+    line: str
+
+
+@dataclass(frozen=True)
+class CommandDemoReadinessHandoffChecklistContract:
+    lines: tuple[CommandDemoReadinessHandoffChecklistLine, ...]
+
+
+@dataclass(frozen=True)
 class CommandDemoReadinessGate:
     is_complete: bool
     missing_engine_actions: tuple[str, ...]
@@ -2998,6 +3012,91 @@ def command_demo_readiness_handoff_lines(
     )
 
 
+def _format_command_demo_readiness_handoff_checklist_line(
+    entry: CommandDemoReadinessHandoffEntry,
+) -> str:
+    action_lines = ", ".join(
+        f"{engine_action} -> `{command_line}`"
+        for engine_action, command_line in entry.action_lines
+    )
+    return (
+        f"- [ ] {entry.ordinal}. {entry.demo_path_step} "
+        f"({entry.flow_step}/{entry.name}): `{entry.command_line}`; "
+        f"actions: {action_lines}"
+    )
+
+
+@lru_cache(maxsize=None)
+def command_demo_readiness_handoff_checklist_contract(
+    specs: tuple[CommandSpec, ...] = COMMAND_SPECS,
+    launcher_argv: tuple[str, ...] = COMMAND_SMOKE_CLI_LAUNCHER_ARGV,
+) -> CommandDemoReadinessHandoffChecklistContract:
+    handoff_contract = command_demo_readiness_handoff_contract(specs, launcher_argv)
+    contract = CommandDemoReadinessHandoffChecklistContract(
+        lines=tuple(
+            CommandDemoReadinessHandoffChecklistLine(
+                ordinal=entry.ordinal,
+                demo_path_step=entry.demo_path_step,
+                flow_step=entry.flow_step,
+                name=entry.name,
+                line=_format_command_demo_readiness_handoff_checklist_line(entry),
+            )
+            for entry in handoff_contract.entries
+        )
+    )
+    _validate_command_demo_readiness_handoff_checklist_contract(contract, handoff_contract)
+    return contract
+
+
+def _validate_command_demo_readiness_handoff_checklist_contract(
+    contract: CommandDemoReadinessHandoffChecklistContract,
+    handoff_contract: CommandDemoReadinessHandoffContract,
+) -> None:
+    if tuple(line.ordinal for line in contract.lines) != tuple(
+        entry.ordinal for entry in handoff_contract.entries
+    ):
+        raise ValueError("Command demo readiness handoff checklist ordinals are inconsistent")
+    if tuple(line.demo_path_step for line in contract.lines) != tuple(
+        entry.demo_path_step for entry in handoff_contract.entries
+    ):
+        raise ValueError("Command demo readiness handoff checklist path steps are inconsistent")
+    if tuple(line.flow_step for line in contract.lines) != tuple(
+        entry.flow_step for entry in handoff_contract.entries
+    ):
+        raise ValueError("Command demo readiness handoff checklist flow steps are inconsistent")
+    if tuple(line.name for line in contract.lines) != tuple(
+        entry.name for entry in handoff_contract.entries
+    ):
+        raise ValueError("Command demo readiness handoff checklist names are inconsistent")
+    expected_lines = tuple(
+        _format_command_demo_readiness_handoff_checklist_line(entry)
+        for entry in handoff_contract.entries
+    )
+    if tuple(line.line for line in contract.lines) != expected_lines:
+        raise ValueError("Command demo readiness handoff checklist lines are inconsistent")
+    if any(not line.line for line in contract.lines):
+        raise ValueError("Command demo readiness handoff checklist lines must not be empty")
+    if any(not line.line.startswith("- [ ] ") for line in contract.lines):
+        raise ValueError("Command demo readiness handoff checklist lines must be checklist items")
+
+
+def command_demo_readiness_handoff_checklist_lines(
+    specs: tuple[CommandSpec, ...] = COMMAND_SPECS,
+    launcher_argv: tuple[str, ...] = COMMAND_SMOKE_CLI_LAUNCHER_ARGV,
+) -> tuple[str, ...]:
+    return tuple(
+        line.line
+        for line in command_demo_readiness_handoff_checklist_contract(specs, launcher_argv).lines
+    )
+
+
+def command_demo_readiness_handoff_markdown(
+    specs: tuple[CommandSpec, ...] = COMMAND_SPECS,
+    launcher_argv: tuple[str, ...] = COMMAND_SMOKE_CLI_LAUNCHER_ARGV,
+) -> str:
+    return "\n".join(command_demo_readiness_handoff_checklist_lines(specs, launcher_argv))
+
+
 @lru_cache(maxsize=None)
 def command_demo_readiness_gate(
     specs: tuple[CommandSpec, ...] = COMMAND_SPECS,
@@ -4013,6 +4112,27 @@ def command_mvp_demo_readiness_handoff_lines(
     launcher_argv: tuple[str, ...] = COMMAND_SMOKE_CLI_LAUNCHER_ARGV,
 ) -> tuple[str, ...]:
     return command_demo_readiness_handoff_lines(specs, launcher_argv)
+
+
+def command_mvp_demo_readiness_handoff_checklist_contract(
+    specs: tuple[CommandSpec, ...] = COMMAND_SPECS,
+    launcher_argv: tuple[str, ...] = COMMAND_SMOKE_CLI_LAUNCHER_ARGV,
+) -> CommandDemoReadinessHandoffChecklistContract:
+    return command_demo_readiness_handoff_checklist_contract(specs, launcher_argv)
+
+
+def command_mvp_demo_readiness_handoff_checklist_lines(
+    specs: tuple[CommandSpec, ...] = COMMAND_SPECS,
+    launcher_argv: tuple[str, ...] = COMMAND_SMOKE_CLI_LAUNCHER_ARGV,
+) -> tuple[str, ...]:
+    return command_demo_readiness_handoff_checklist_lines(specs, launcher_argv)
+
+
+def command_mvp_demo_readiness_handoff_markdown(
+    specs: tuple[CommandSpec, ...] = COMMAND_SPECS,
+    launcher_argv: tuple[str, ...] = COMMAND_SMOKE_CLI_LAUNCHER_ARGV,
+) -> str:
+    return command_demo_readiness_handoff_markdown(specs, launcher_argv)
 
 
 def command_mvp_demo_readiness_gate(
