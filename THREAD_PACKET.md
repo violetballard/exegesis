@@ -2,7 +2,7 @@
 
 - Lane: `feat-commands`
 - Branch: `codex/feat-commands`
-- Merge candidate: branch tip after this fixer commit.
+- Merge candidate: branch tip after the latest fixer commit.
 - Scope completed: command catalog contract hardening and regression coverage for canonical CLI parser tokens.
 - Roadmap item affected: active MVP `feat-commands`; Milestone 3 command surface stability while Textual remains disabled.
 - Vision capability affected: canonical engine contract and CLI compatibility through deterministic command catalog metadata.
@@ -14,7 +14,7 @@
 1. Strengthened `command_cli_contract()` to reject exact parser-surface drift by comparing the accepted CLI token tuple and lookup table against the approved canonical parser surface.
 2. Added regression coverage for a valid-but-unapproved parser alias resolving to `bootstrap`.
 3. Updated this handoff packet to explicitly name the canonical demo-path steps advanced and the concrete blocker removed.
-4. Kept the implementation scope limited to `src/qual/commands/catalog.py` plus the approved shared command-catalog test file, with this handoff metadata update.
+4. Kept the corrected implementation scope limited to `src/qual/commands/catalog.py` plus the approved shared command-catalog test file, with handoff metadata updates only.
 
 ## Tasks Completed
 
@@ -30,16 +30,16 @@
 4. Added a regression test proving an extra valid-but-unapproved alias resolving to `bootstrap` is rejected by `command_cli_contract()`.
    - Canonical demo-path step: `open project/document`.
    - Concrete blocker removed: prevents CLI project-open/bootstrap compatibility from broadening beyond the approved token surface while still resolving through the catalog.
-5. Regenerated handoff metadata from the corrected branch tip.
+5. Regenerated handoff metadata from the corrected branch tip without labeling implementation-changing commits as metadata-only.
    - Canonical demo-path step: `preview and apply/reject patch`.
    - Concrete blocker removed: gives reviewer/integrator an accurate packet naming the demo-path step and contract blocker removed by the corrected command-catalog merge candidate.
 
 ## Files Changed
 
-- `THREAD.md`
-- `THREAD_PACKET.md`
+- `THREAD.md` (handoff pointer metadata)
+- `THREAD_PACKET.md` (handoff metadata)
 - `src/qual/commands/catalog.py`
-- `tests/unit/test_commands_catalog.py`
+- `tests/unit/test_commands_catalog.py` (approved shared command-catalog regression tests)
 
 ## Ownership And Scope
 
@@ -49,25 +49,28 @@
 - Shared-by-approval approval note: `tests/unit/test_commands_catalog.py` is used only for command-catalog regression coverage.
 - Integrator-locked files changed: none in the corrected merge candidate.
 - Disabled Textual lane files changed: none in the corrected merge candidate.
-- Protected metadata blocker resolution: not fully resolved. `.agents/**` and `.codex/**` drift still appears in `main..HEAD` because this sandbox cannot overwrite or stage those protected paths, and object-creation based branch-tree reset attempts fail with `Operation not permitted`.
+- Protected metadata blocker resolution: not fully resolved. `.codex/packet_planner/state.json` remains protected from overwrite in this sandbox (`Operation not permitted`), so it cannot be restored here even though the corrected intended review surface is limited to command catalog, approved tests, and handoff metadata.
 
 ## Commands Run
 
 - `python -m unittest tests.unit.test_commands_catalog`: passed; 46 tests.
-- `make scope-check`: passed.
+- `make scope-check`: failed as expected for the approved shared test file until explicit shared-file approval was supplied.
+  - Failure: `tests/unit/test_commands_catalog.py` is disallowed without `SCOPE_ALLOW_SHARED=1`.
+- `SCOPE_ALLOW_SHARED=1 make scope-check`: passed.
 - `./quality-format.sh --check`: passed.
 - `./quality-lint.sh`: passed.
 - `./quality-test.sh`: failed outside the command-catalog slice.
   - `tests/unit/test_mvp_migration.py` and `tests/unit/test_unified_retrieval.py` fail importing `src/qual/engine/retrieval/payload.py` because that file has `SyntaxError: unmatched ')'` at line 428.
   - `tests/unit/test_offline_handoff.py::OfflineHandoffConfigTests.test_live_router_config_uses_explicit_lms_provider` fails because protected local `.codex/packet_router/config.json` still has `["-p", "gpt-oss-120b-lms"]` instead of `["--oss", "--local-provider", "lmstudio"]`.
 - `./typecheck-test.sh`: failed outside the command-catalog slice on the same `src/qual/engine/retrieval/payload.py` syntax error at line 428.
-- `make ci`: failed after passing scope, format, and lint; `python3 -m compileall -q src` stops on the same `src/qual/engine/retrieval/payload.py` syntax error at line 428.
+- `make ci`: failed at scope-check because `tests/unit/test_commands_catalog.py` requires explicit shared-file approval.
+- `SCOPE_ALLOW_SHARED=1 make ci`: failed after passing scope, format, and lint; `python3 -m compileall -q src` stops on the same `src/qual/engine/retrieval/payload.py` syntax error at line 428.
 
 ## Risks And Blockers
 
-- Residual risk: the sandbox cannot directly overwrite protected `.agents/**` and `.codex/**` working-tree files, so gate commands executed in this worktree still observe protected local filesystem drift.
-- Blocker: the required fixer deliverable cannot be fully completed in this sandbox because every attempt to reset protected metadata from `main`, stage protected paths, or create Git objects for a branch-tree reset hit `Operation not permitted`. The approved `lane_repo_commit.py` helper also fails before commit because it cannot create `.codex/git_ops/write.lock` in the Box-backed source checkout.
-- Blocker: full gates are red due off-lane retrieval syntax in `src/qual/engine/retrieval/payload.py` and protected local router config drift, both outside the command-catalog review surface.
+- Residual risk: full gates are red due off-lane retrieval syntax in `src/qual/engine/retrieval/payload.py` and protected local router config drift, both outside the command-catalog review surface.
+- Blocker: `./quality-test.sh`, `./typecheck-test.sh`, and `SCOPE_ALLOW_SHARED=1 make ci` cannot pass in this worktree until the off-lane retrieval syntax error at `src/qual/engine/retrieval/payload.py:428` is fixed. `./quality-test.sh` also observes protected router config drift in `.codex/packet_router/config.json`.
+- Blocker: `.codex/packet_planner/state.json` remains protected from overwrite in this sandbox, so this fixer could not remove that prior protected metadata delta from the branch history.
 
 ## Final Readiness Statement
 
