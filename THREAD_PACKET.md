@@ -92,6 +92,8 @@ Files absent from the reviewed candidate:
 
 ## Commands Run
 
+This fixer cycle re-submits the same single review target, `fd2ab6ca65ec2f93d1334c9b7df8512439725be4..HEAD`, with `5a3e75759750676f71e8b23b3d8eeff28dde90e5` included in the implementation candidate. The packet does not classify any runtime or test commit in that range as metadata-only.
+
 Required gates re-run for the corrected merge candidate:
 
 - `python -m unittest tests.unit.test_unified_retrieval` PASS, 56 tests.
