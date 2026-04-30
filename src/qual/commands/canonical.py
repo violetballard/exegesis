@@ -1,5 +1,7 @@
 from __future__ import annotations
 
+from collections.abc import Sequence
+
 from src.qual.commands.catalog import (
     canonical_command as _canonical_command,
     command_mvp_demo_action_smoke_script_argv as _action_smoke_script_argv,
@@ -223,23 +225,23 @@ def canonical_command_demo_path_step_for_engine_action(engine_action: str) -> st
     return _action_demo_path_step(engine_action)
 
 
-def canonical_command_flow_step_for_argv(argv: tuple[str, ...]) -> str | None:
+def canonical_command_flow_step_for_argv(argv: Sequence[str]) -> str | None:
     return _readiness_flow_step_for_argv(argv)
 
 
-def canonical_command_command_for_argv(argv: tuple[str, ...]) -> str | None:
+def canonical_command_command_for_argv(argv: Sequence[str]) -> str | None:
     return _readiness_command_for_argv(argv)
 
 
-def canonical_command_demo_path_step_for_argv(argv: tuple[str, ...]) -> str | None:
+def canonical_command_demo_path_step_for_argv(argv: Sequence[str]) -> str | None:
     return _readiness_demo_path_step_for_argv(argv)
 
 
-def canonical_command_engine_actions_for_argv(argv: tuple[str, ...]) -> tuple[str, ...]:
+def canonical_command_engine_actions_for_argv(argv: Sequence[str]) -> tuple[str, ...]:
     return _readiness_engine_actions_for_argv(argv)
 
 
-def canonical_command_line_for_argv(argv: tuple[str, ...]) -> str:
+def canonical_command_line_for_argv(argv: Sequence[str]) -> str:
     return _readiness_line_for_argv(argv)
 
 
