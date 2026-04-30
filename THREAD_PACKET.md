@@ -4,7 +4,7 @@
 - Lane: `feat-retrieval-fts`
 - Merge target: current `main`
 - Merge-base for this re-review: `fd2ab6ca65ec2f93d1334c9b7df8512439725be4`
-- Branch tip before this fixer commit: `bcc371674b84725085f5fccd2d1c31d712343ab0`
+- Branch tip before this fixer commit: `8a637b0c369b5a7e4e915798bbdfbe2fb9e99c35`
 - Final HEAD SHA: reported in this fixer deliverable after commit creation.
 - Authoritative reviewed range / merge candidate: `fd2ab6ca65ec2f93d1334c9b7df8512439725be4..HEAD`
 - Scope classification: high-risk retrieval work because approved shared regression coverage in `tests/unit/test_unified_retrieval.py` is part of the reviewed range.
@@ -15,11 +15,11 @@ This packet regenerates the handoff against one merge candidate: the complete br
 
 The stale reviewer ranges `378cf9a74..adfa8cdadd43747ffbcb612e4151e262b13e52ca`, `d7fd5d200358287fa42a18d39e2b277463b9b69f..adfa8cdadd43747ffbcb612e4151e262b13e52ca`, and `adfa8cdadd43747ffbcb612e4151e262b13e52ca..3753d4baf4f9f98eb58615fc0e7f45be9ffdf24a` are not used for this re-review. The current merge candidate is `fd2ab6ca65ec2f93d1334c9b7df8512439725be4..HEAD`; work outside that range is intentionally excluded because `fd2ab6ca65ec2f93d1334c9b7df8512439725be4` is the merge-base with current `main`.
 
-The merge candidate advances FTS-first retrieval by normalizing engine retrieval boolean constraints and required query text/scope snapshots, keeping FTS cache and query snapshots deterministic, preserving basket-promotion references and provenance, carrying promotion-ready excerpt text/title hints and query context into retrieval evidence fallbacks, invalidating stale FTS cache state on document updates, and falling back from invalid direct context snapshots to canonical source/payload reconstruction.
+The merge candidate advances FTS-first retrieval by normalizing engine retrieval boolean constraints and required query text/scope snapshots, keeping FTS cache and query snapshots deterministic, carrying date-range constraints into derived FTS shortlist queries, preserving basket-promotion references and provenance, carrying promotion-ready excerpt text/title hints and query context into retrieval evidence fallbacks, invalidating stale FTS cache state on document updates, and falling back from invalid direct context snapshots to canonical source/payload reconstruction.
 
 ## Tasks Completed
 
-1. `retrieve relevant material`: normalize engine facade query constraints, boolean flags, date ranges, doc types, required query text/scope snapshots, and cache keys so repeated FTS retrieval is deterministic.
+1. `retrieve relevant material`: normalize engine facade query constraints, boolean flags, date ranges, doc types, required query text/scope snapshots, derived FTS shortlist snapshots, and cache keys so repeated FTS retrieval is deterministic.
 2. `retrieve relevant material`: keep SQLite FTS authoritative for excerpt lookup, reject non-FTS excerpt normalization, preserve ranked IDs, document identities, confidentiality profiles, section hints, and excerpt provenance.
 3. `retrieve relevant material`; supports `promote or gather context into the basket`: preserve basket-promotion refs, item IDs, citation refs, provenance fingerprints, source/context bundles, excerpt text, title hints, and query context during sparse payload and context-bundle reconstruction so retrieved material stays stable for downstream basket gathering.
 4. `retrieve relevant material`; supports `promote or gather context into the basket`: harden cache invalidation and fallback reconstruction for document updates, sparse direct context snapshots, and generic context-bundle helpers while keeping PageIndex and embeddings fallback-only.
@@ -72,7 +72,7 @@ Files absent from the reviewed candidate:
 
 - Task budget: `4/4` high-risk tasks.
 - File budget: `6/8` high-risk files.
-- Net LOC budget: source/test implementation changes are `5 files changed, 223 insertions(+), 49 deletions(-)`, or 272 net LOC, which remains within the `<=300` high-risk net LOC limit. Packet metadata accounts for the remaining documentation churn.
+- Net LOC budget: source/test implementation changes are `5 files changed, 224 insertions(+), 49 deletions(-)`, or 273 net LOC, which remains within the `<=300` high-risk net LOC limit. Packet metadata accounts for the remaining documentation churn.
 - Shared-by-approval files: `tests/unit/test_unified_retrieval.py` only.
 - Integrator-locked files: none.
 - Routing/provider impact: none.
@@ -82,7 +82,7 @@ Files absent from the reviewed candidate:
 ## Roadmap/Vision
 
 - Roadmap items affected: `ROADMAP.md` MVP focus for FTS-first retrieval and Milestone 3 product-readiness provenance/output-contract work.
-- Vision capabilities affected: `PRODUCT_VISION.md` capability 2 Retrieval-first context handling and capability 6 Auditable state and workflow.
+- Vision capabilities affected: `PRODUCT_VISION.md` capability 2 Retrieval-first context handling and capability 3 Auditable generation.
 - Proposed `README.md` patch text: none.
 
 ## Commands Run

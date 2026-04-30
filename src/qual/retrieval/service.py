@@ -1581,6 +1581,7 @@ class RetrievalService:
             constraints=RetrievalConstraints(
                 max_results=max_results,
                 doc_types=query.constraints.doc_types,
+                date_range=query.constraints.date_range,
                 require_citations=query.constraints.require_citations,
                 section_hint=query.constraints.section_hint,
                 prefer_exact_matches=query.constraints.prefer_exact_matches,
