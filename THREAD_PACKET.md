@@ -6,20 +6,20 @@
 - Reviewed source/test implementation range: `378cf9a74a3658058079a32f186fcd254c4a4034..38955f1ed`
 - Reviewed source/test implementation head: `38955f1ed`
 - Authoritative branch-tip merge/review range: `378cf9a74a3658058079a32f186fcd254c4a4034..FINAL_HEAD_SHA_REPORTED_BY_FIXER_DELIVERABLE`
-- Pre-fix packet refresh tip: `59131cb7b` (metadata-only after `cc084f05c58c8c3c0613dded69109fdf7ce03708`).
-- Final branch tip: reported in the fixer deliverable after this packet commit is created; this final commit updates handoff metadata only.
+- Pre-fix packet head: `537c7538b3d489abe54e5c730f4cd8a52e7318f5`.
+- Final branch tip: reported in the fixer deliverable after this packet-only commit is created; this final commit updates handoff metadata files only.
 - Scope classification: high-risk because this branch-tip packet includes approved shared regression coverage in `tests/unit/test_unified_retrieval.py`.
 - Packet type: branch-tip re-review packet for the FTS-first retrieval lane.
 
 ## Scope Completed
 
-This packet has been regenerated against the actual source/test implementation head to be submitted. The prior implementation surface was `378cf9a74a3658058079a32f186fcd254c4a4034..cc084f05c58c8c3c0613dded69109fdf7ce03708`; this fixer pass adds lane-owned sparse basket-promotion fallback handling in `src/qual/engine/retrieval/payload.py` at `d6383475d` and shared regression coverage in `tests/unit/test_unified_retrieval.py` at `38955f1ed`. The corrected reviewed source/test implementation range is `378cf9a74a3658058079a32f186fcd254c4a4034..38955f1ed`, and the authoritative merge/review range for the branch tip is the full base-to-final-HEAD range reported in the fixer deliverable.
+This packet has been regenerated against the actual source/test implementation head to be submitted, not the earlier narrowed `378cf9a..adfa8cd` range. The corrected reviewed source/test implementation range is `378cf9a74a3658058079a32f186fcd254c4a4034..38955f1ed`, which includes the runtime retrieval and shared regression changes the reviewer identified. Later commits through the final fixer HEAD update packet metadata files only, and the authoritative merge/review range for the branch tip is the full base-to-final-HEAD range reported in the fixer deliverable.
 
 The reviewed branch-tip work strengthens the active MVP target of FTS-first retrieval. SQLite FTS remains the canonical retrieval path; engine and service facades expose canonical query construction, `retrieve_auto`, and excerpt lookup; retrieval payload snapshots, sparse source/context bundles, provenance, fingerprints, and basket-promotion references are normalized deterministically for downstream engine flows; sparse excerpt-hit snapshots now rehydrate deterministic basket-promotion refs when explicit promotion metadata is absent; and PageIndex-only excerpt IDs fail closed instead of backfilling through non-FTS paths.
 
 Canonical demo-path step advanced: this makes `retrieve relevant material` and `promote/gather context into the basket` more real by returning deterministic FTS-backed excerpts, provenance, and retrieval-owned context references suitable for basket promotion. Basket promotion/gathering is represented only as retrieval-owned payload/context metadata in this branch-tip packet; Textual console work remains out of scope.
 
-Packet mirror note: `.codex/kickoff_packets/feat-retrieval-fts.md` and `.codex/lane_meta/feat-retrieval-fts.json` still contain older packet text in this worktree. Treat this `THREAD_PACKET.md` plus the final fixer deliverable as the authoritative handoff packet for this re-review.
+Packet mirror note: `.codex/kickoff_packets/feat-retrieval-fts.md` and `.codex/lane_meta/feat-retrieval-fts.json` are write-blocked in this sandbox (`Operation not permitted` under `.codex`). Treat this `THREAD_PACKET.md` plus the final fixer deliverable as the authoritative handoff packet for this re-review; the blocked mirror files remain stale and are listed as a residual blocker.
 
 ## Tasks Completed
 
@@ -46,7 +46,7 @@ Reviewed source/test implementation files for `378cf9a74a3658058079a32f186fcd254
 
 Reviewed source/test stat: `5 files changed, 632 insertions(+), 119 deletions(-)`.
 
-Full branch-tip reviewed file surface, including packet metadata files, is the 8 paths shown by `git diff --name-status 378cf9a74a3658058079a32f186fcd254c4a4034..HEAD`: `.codex/kickoff_packets/feat-retrieval-fts.md`, `.codex/lane_meta/feat-retrieval-fts.json`, `THREAD_PACKET.md`, `src/qual/engine/retrieval/__init__.py`, `src/qual/engine/retrieval/fts_strategy.py`, `src/qual/engine/retrieval/payload.py`, `src/qual/retrieval/service.py`, and `tests/unit/test_unified_retrieval.py`. Before this final metadata-only packet commit, that full range is `8 files changed, 897 insertions(+), 207 deletions(-)`; the final fixer deliverable reports the final HEAD SHA and final branch-tip range stat after this packet update commit.
+Full branch-tip reviewed file surface, including packet metadata files, is the 8 paths shown by `git diff --name-status 378cf9a74a3658058079a32f186fcd254c4a4034..HEAD`: `.codex/kickoff_packets/feat-retrieval-fts.md`, `.codex/lane_meta/feat-retrieval-fts.json`, `THREAD_PACKET.md`, `src/qual/engine/retrieval/__init__.py`, `src/qual/engine/retrieval/fts_strategy.py`, `src/qual/engine/retrieval/payload.py`, `src/qual/retrieval/service.py`, and `tests/unit/test_unified_retrieval.py`. Before this final packet-only commit, that full range is `8 files changed, 897 insertions(+), 207 deletions(-)`; the final fixer deliverable reports the final HEAD SHA and final branch-tip range stat after this packet update commit.
 
 Lane-owned source/test files in the reviewed implementation range:
 
@@ -89,7 +89,7 @@ Integrator-locked files in the reviewed branch-tip range:
 
 ## Commands Run
 
-Required gates for this fixer pass:
+Required gates for this fixer pass against the corrected `378cf9a74a3658058079a32f186fcd254c4a4034..HEAD` candidate:
 
 - `make scope-check` PASS for branch `codex/feat-retrieval-fts`.
 - `./quality-format.sh --check` PASS.
@@ -101,4 +101,4 @@ Required gates for this fixer pass:
 
 ## Risks/Blockers
 
-Remaining risk is review scope size: this corrected packet intentionally includes every branch-tip source/test change through the final fixer HEAD reported in the deliverable. It does not touch model routing/provider configuration and does not include Textual UI console work.
+Remaining risk is review scope size: this corrected packet intentionally includes every branch-tip source/test change through the final fixer HEAD reported in the deliverable. The `.codex` mirror packet files are stale because this sandbox rejects writes inside `.codex`; `THREAD_PACKET.md` is authoritative for this fixer pass. The candidate does not touch model routing/provider configuration and does not include Textual UI console work.
