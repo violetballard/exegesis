@@ -4,9 +4,8 @@
 - Lane: `feat-retrieval-fts`
 - Merge target: current `main`
 - Merge-base for this re-review: `fd2ab6ca65ec2f93d1334c9b7df8512439725be4`
-- Branch tip before this fixer commit: `397997acbe5282b5e56d76d0ae6fae8db6a61547`
+- Branch tip before this fixer commit: `d20afc89e8d25c0127eb9e2c31df00cdb09d8f19`
 - Final HEAD SHA: reported in this fixer deliverable after commit creation.
-- Reviewed implementation range before packet-only fixer commits: `fd2ab6ca65ec2f93d1334c9b7df8512439725be4..0d265542d99ec986d4fd6bc0209aee466f127ccc`
 - Authoritative reviewed range / merge candidate: `fd2ab6ca65ec2f93d1334c9b7df8512439725be4..HEAD`
 - Scope classification: high-risk retrieval work because approved shared regression coverage in `tests/unit/test_unified_retrieval.py` is part of the reviewed range.
 
@@ -14,7 +13,7 @@
 
 This packet regenerates the handoff against one merge candidate: the complete branch diff from merge-base `fd2ab6ca65ec2f93d1334c9b7df8512439725be4` through the final fixer commit recorded above. It includes every source, test, and packet metadata change present at that candidate tip; no source or test file is classified as metadata-only.
 
-The reviewed implementation range expands beyond stale `adfa8cdadd43747ffbcb612e4151e262b13e52ca` packet text and covers all non-metadata changes through `0d265542d99ec986d4fd6bc0209aee466f127ccc`, including `src/qual/engine/retrieval/__init__.py`, `src/qual/engine/retrieval/fts_strategy.py`, `src/qual/engine/retrieval/payload.py`, `src/qual/retrieval/service.py`, and `tests/unit/test_unified_retrieval.py`. Commits after `0d265542d99ec986d4fd6bc0209aee466f127ccc` are packet-only fixes to make this handoff match the actual merge candidate.
+The stale reviewer ranges `378cf9a74..adfa8cdadd43747ffbcb612e4151e262b13e52ca` and `d7fd5d200358287fa42a18d39e2b277463b9b69f..adfa8cdadd43747ffbcb612e4151e262b13e52ca` are not used for this re-review. The current merge candidate is `fd2ab6ca65ec2f93d1334c9b7df8512439725be4..HEAD`; work outside that range is intentionally excluded because `fd2ab6ca65ec2f93d1334c9b7df8512439725be4` is the merge-base with current `main`.
 
 The merge candidate advances FTS-first retrieval by normalizing engine retrieval boolean constraints and required query text/scope snapshots, keeping FTS cache and query snapshots deterministic, preserving basket-promotion references and provenance, invalidating stale FTS cache state on document updates, and falling back from invalid direct context snapshots to canonical source/payload reconstruction.
 
@@ -34,20 +33,27 @@ The merge candidate advances FTS-first retrieval by normalizing engine retrieval
 
 Complete files-changed list for `fd2ab6ca65ec2f93d1334c9b7df8512439725be4..HEAD`:
 
-- `THREAD_PACKET.md` - authoritative handoff packet required by `INTEGRATION.md`; this is the only metadata-only file in the reviewed candidate.
 - `src/qual/engine/retrieval/__init__.py` - lane-owned retrieval facade/export behavior via `src/qual/engine/retrieval/**`.
 - `src/qual/engine/retrieval/fts_strategy.py` - lane-owned FTS retrieval strategy behavior via `src/qual/engine/retrieval/**`.
 - `src/qual/engine/retrieval/payload.py` - lane-owned retrieval payload construction via `src/qual/engine/retrieval/**`.
 - `src/qual/retrieval/service.py` - lane-owned retrieval service behavior via `src/qual/retrieval/**`.
 - `tests/unit/test_unified_retrieval.py` - shared-by-approval regression coverage for the canonical retrieval contract.
+- `THREAD_PACKET.md` - authoritative handoff packet required by `INTEGRATION.md`; this is the only metadata-only file in the reviewed candidate.
 
-Source/test files in the reviewed candidate:
+Lane-owned source/test files in the reviewed candidate:
 
 - `src/qual/engine/retrieval/__init__.py`
 - `src/qual/engine/retrieval/fts_strategy.py`
 - `src/qual/engine/retrieval/payload.py`
 - `src/qual/retrieval/service.py`
+
+Shared-by-approval source/test files in the reviewed candidate:
+
 - `tests/unit/test_unified_retrieval.py`
+
+Integrator-locked files in the reviewed candidate:
+
+- None.
 
 Metadata-only handoff files in the reviewed candidate:
 
