@@ -11,6 +11,7 @@ from src.qual.commands.catalog import (
     CommandDemoReadinessHandoffContract,
     CommandDemoReadinessHandoffLineContract,
     CommandDemoReadinessReport,
+    CommandDemoReadinessSmokePlanStep,
     canonical_command as _canonical_command,
     command_mvp_demo_path_readiness_contract as _path_readiness_contract,
     command_mvp_demo_path_readiness_summary as _path_readiness_summary,
@@ -44,6 +45,8 @@ from src.qual.commands.catalog import (
     command_mvp_demo_readiness_action_summary as _readiness_action_summary,
     command_mvp_demo_readiness_gate as _readiness_gate,
     command_mvp_demo_readiness_gate_summary as _readiness_gate_summary,
+    command_mvp_demo_readiness_smoke_plan_argv as _readiness_smoke_plan_argv,
+    command_mvp_demo_readiness_smoke_plan_step as _readiness_smoke_plan_step,
     command_mvp_demo_readiness_smoke_plan_summary as _readiness_smoke_plan_summary,
     command_mvp_demo_readiness_is_complete as _readiness_is_complete,
     command_mvp_demo_readiness_missing_engine_actions as _readiness_missing_engine_actions,
@@ -105,6 +108,8 @@ __all__ = [
     "canonical_command_readiness_report",
     "canonical_command_readiness_report_summary",
     "canonical_command_readiness_handoff_summary",
+    "canonical_command_readiness_smoke_plan_argv",
+    "canonical_command_readiness_smoke_plan_step",
     "canonical_command_readiness_smoke_plan_summary",
     "canonical_command_require_readiness_complete",
     "canonical_command_action_line_lookup_table",
@@ -276,6 +281,16 @@ def canonical_command_readiness_smoke_plan_summary() -> tuple[
     ...,
 ]:
     return _readiness_smoke_plan_summary()
+
+
+def canonical_command_readiness_smoke_plan_step(
+    ordinal: int,
+) -> CommandDemoReadinessSmokePlanStep | None:
+    return _readiness_smoke_plan_step(ordinal)
+
+
+def canonical_command_readiness_smoke_plan_argv(ordinal: int) -> tuple[str, ...]:
+    return _readiness_smoke_plan_argv(ordinal)
 
 
 def canonical_command_readiness_missing_engine_actions() -> tuple[str, ...]:
