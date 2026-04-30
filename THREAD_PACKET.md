@@ -3,22 +3,29 @@
 - Branch name: `codex/feat-retrieval-fts`
 - Lane: `feat-retrieval-fts`
 - Merge target: current `main`
-- Merge-base for this re-review: `fd2ab6ca65ec2f93d1334c9b7df8512439725be4`
-- Branch tip before this fixer commit: `1ea30e71f3c429c58a8f6230945f465a208a650e`
-- Final reviewed commit: the HEAD commit containing this packet-regeneration update; final SHA is reported in the fixer deliverable after commit creation.
+- Merge-base for re-review: `fd2ab6ca65ec2f93d1334c9b7df8512439725be4`
+- Pre-fixer branch tip under review: `39e12de630b493c200b6747e5b853d875c5b1d5f`
+- Final branch tip: reported in the fixer deliverable after this packet commit is created.
 - Authoritative reviewed range / complete merge candidate: `fd2ab6ca65ec2f93d1334c9b7df8512439725be4..HEAD`
-- Authoritative pre-fixer merge candidate: `fd2ab6ca65ec2f93d1334c9b7df8512439725be4..1ea30e71f3c429c58a8f6230945f465a208a650e`
-- Scope classification: high-risk retrieval work because approved shared regression coverage in `tests/unit/test_unified_retrieval.py` is part of the reviewed range.
+- Reviewer-reported stale reviewed range: `378cf9a74..adfa8cdadd43747ffbcb612e4151e262b13e52ca`
+- Reviewer-required supplemental implementation delta now covered by this packet: `adfa8cdadd43747ffbcb612e4151e262b13e52ca..39e12de630b493c200b6747e5b853d875c5b1d5f`
+- Scope classification: high-risk retrieval work because approved shared regression coverage in `tests/unit/test_unified_retrieval.py` is part of the reviewed candidate.
 
 ## Scope Completed
 
-This packet regenerates the handoff against one merge candidate: the complete branch diff from merge-base `fd2ab6ca65ec2f93d1334c9b7df8512439725be4` through the final fixer commit recorded above. It includes every source, test, and packet metadata change present at that candidate tip; no source or test file is classified as metadata-only. The pre-fixer merge candidate is `fd2ab6ca65ec2f93d1334c9b7df8512439725be4..1ea30e71f3c429c58a8f6230945f465a208a650e`, explicitly including all retrieval implementation changes that landed after the stale `adfa8cdadd43747ffbcb612e4151e262b13e52ca` review anchor. The reviewer-cited non-metadata changes in `adfa8cdadd43747ffbcb612e4151e262b13e52ca..1ea30e71f3c429c58a8f6230945f465a208a650e` are therefore inside the submitted merge candidate and are not excluded from review.
+This packet chooses the actual branch tip as the merge candidate. The approval target is the complete merge-base-to-HEAD range, not the stale `378cf9a74..adfa8cdadd43747ffbcb612e4151e262b13e52ca` slice and not a metadata-only refresh chain.
 
-This fixer pass keeps `THREAD_PACKET.md` as the authoritative handoff packet required by `INTEGRATION.md`. The authoritative approval target is the merge-base-to-HEAD candidate, not any historical packet range.
+The reviewer-cited `adfa8cdadd43747ffbcb612e4151e262b13e52ca..39e12de630b493c200b6747e5b853d875c5b1d5f` delta is intentionally included for re-review. It contains retrieval implementation and shared regression changes in:
 
-Historical-only ranges from prior packets are not submitted for approval: `378cf9a74..adfa8cdadd43747ffbcb612e4151e262b13e52ca`, `d7fd5d200358287fa42a18d39e2b277463b9b69f..adfa8cdadd43747ffbcb612e4151e262b13e52ca`, and `adfa8cdadd43747ffbcb612e4151e262b13e52ca..3753d4baf4f9f98eb58615fc0e7f45be9ffdf24a`. They are stale review artifacts only and are not approval targets. The current merge candidate is `fd2ab6ca65ec2f93d1334c9b7df8512439725be4..HEAD`; the pre-fixer branch-tip candidate is `fd2ab6ca65ec2f93d1334c9b7df8512439725be4..1ea30e71f3c429c58a8f6230945f465a208a650e`. Work outside that merge-base-to-HEAD range is intentionally excluded because `fd2ab6ca65ec2f93d1334c9b7df8512439725be4` is the merge-base with current `main`.
+- `src/qual/engine/retrieval/__init__.py`
+- `src/qual/engine/retrieval/fts_strategy.py`
+- `src/qual/engine/retrieval/payload.py`
+- `src/qual/retrieval/service.py`
+- `tests/unit/test_unified_retrieval.py`
 
-The merge candidate advances FTS-first retrieval by normalizing engine retrieval boolean constraints and required query text/scope snapshots, keeping FTS cache and query snapshots deterministic, carrying date-range constraints into derived FTS shortlist queries and basket-promotion refs, preserving basket-promotion references and provenance, carrying promotion-ready excerpt text/title hints and query context into retrieval evidence fallbacks, deriving missing query fingerprints from canonical query snapshots during sparse payload reconstruction, invalidating stale FTS cache state on document updates, falling back from invalid direct context snapshots to canonical source/payload reconstruction, normalizing reconstructed basket item IDs to stable text IDs for downstream basket gathering, and falling back to excerpt IDs for sparse promotion refs that do not carry item IDs.
+The merge candidate advances FTS-first retrieval by normalizing engine retrieval boolean constraints and query text/scope snapshots, keeping FTS cache and query snapshots deterministic, carrying date-range constraints into derived FTS shortlist queries and basket-promotion refs, preserving basket-promotion references and provenance, carrying promotion-ready excerpt text/title hints and query context into retrieval evidence fallbacks, deriving missing query fingerprints from canonical query snapshots during sparse payload reconstruction, invalidating stale FTS cache state on document updates, falling back from invalid direct context snapshots to canonical source/payload reconstruction, normalizing reconstructed basket item IDs to stable text IDs for downstream basket gathering, and falling back to excerpt IDs for sparse promotion refs that do not carry item IDs.
+
+The candidate stays inside the active MVP note: FTS-first retrieval, deterministic provenance/excerpts, and basket/workflow-ready structured payloads. It does not include packet-tooling changes, router/provider changes, or Textual UI console work.
 
 ## Tasks Completed
 
@@ -34,7 +41,7 @@ The merge candidate advances FTS-first retrieval by normalizing engine retrieval
 
 ## Files Changed
 
-Complete files-changed list for `fd2ab6ca65ec2f93d1334c9b7df8512439725be4..HEAD`:
+Complete source/test implementation files for `fd2ab6ca65ec2f93d1334c9b7df8512439725be4..HEAD`:
 
 - `src/qual/engine/retrieval/__init__.py` - lane-owned retrieval facade/export behavior via `src/qual/engine/retrieval/**`; maps to `retrieve relevant material`.
 - `src/qual/engine/retrieval/fts_strategy.py` - lane-owned FTS retrieval strategy and cache behavior via `src/qual/engine/retrieval/**`; maps to `retrieve relevant material`.
@@ -42,6 +49,12 @@ Complete files-changed list for `fd2ab6ca65ec2f93d1334c9b7df8512439725be4..HEAD`
 - `src/qual/retrieval/service.py` - lane-owned retrieval service behavior via `src/qual/retrieval/**`; maps to `retrieve relevant material`.
 - `tests/unit/test_unified_retrieval.py` - shared-by-approval regression coverage for the canonical retrieval contract; maps to `retrieve relevant material` and `promote or gather context into the basket`.
 - `THREAD_PACKET.md` - authoritative handoff packet required by `INTEGRATION.md`.
+- `.codex/kickoff_packets/feat-retrieval-fts.md` - packet metadata mirror aligned to this actual branch-tip candidate.
+- `.codex/lane_meta/feat-retrieval-fts.json` - lane metadata aligned to this actual branch-tip candidate.
+
+Source/test implementation stat for `fd2ab6ca65ec2f93d1334c9b7df8512439725be4..HEAD`: `5 files changed, 313 insertions(+), 96 deletions(-)`.
+
+Reviewer-required supplemental source/test implementation stat for `adfa8cdadd43747ffbcb612e4151e262b13e52ca..39e12de630b493c200b6747e5b853d875c5b1d5f`: `5 files changed, 380 insertions(+), 84 deletions(-)`.
 
 Lane-owned source/test files in the reviewed candidate:
 
@@ -58,11 +71,7 @@ Integrator-locked files in the reviewed candidate:
 
 - None.
 
-Metadata-only handoff files in the reviewed candidate:
-
-- `THREAD_PACKET.md`
-
-Files absent from the reviewed candidate:
+Out-of-scope files absent from the reviewed candidate:
 
 - `codex_packet_handoff/tools/planner.py`
 - `tests/unit/test_packet_planner.py`
@@ -73,13 +82,13 @@ Files absent from the reviewed candidate:
 
 - Task budget: `4/4` high-risk tasks.
 - File budget: `5/8` high-risk source/test files plus packet metadata files.
-- Net LOC budget: source/test implementation changes are `5 files changed, 313 insertions(+), 96 deletions(-)`, or +217 net LOC, which remains within the `<=300` high-risk net LOC limit. Packet metadata accounts for the remaining documentation churn.
-- Size exception required: none. The authoritative reviewed implementation range is within the high-risk limits when applying the file and net LOC budgets to source/test implementation files, and metadata-only handoff files are accounted separately.
+- Net LOC budget: source/test implementation changes are `5 files changed, 313 insertions(+), 96 deletions(-)`, or +217 net LOC, which remains within the `<=300` high-risk net LOC limit. Packet metadata is accounted separately.
+- Size exception required: none.
 - Shared-by-approval files: `tests/unit/test_unified_retrieval.py` only.
 - Integrator-locked files: none.
 - Routing/provider impact: none.
 - PageIndex/embeddings impact: fallback-only; neither is reintroduced as a required retrieval path.
-- Approval note: shared regression coverage in `tests/unit/test_unified_retrieval.py` is approved for this lane and applies to the full reviewed range because it exercises the canonical retrieval contract.
+- Merge risk: high until this corrected actual-tip packet is reviewed, because the branch tip includes implementation beyond the stale `adfa8cdad` anchor.
 
 ## Roadmap/Vision
 
@@ -89,9 +98,7 @@ Files absent from the reviewed candidate:
 
 ## Commands Run
 
-This fixer cycle re-submits the same single review target, `fd2ab6ca65ec2f93d1334c9b7df8512439725be4..HEAD`, with `1ea30e71f3c429c58a8f6230945f465a208a650e` as the pre-fixer branch-tip candidate. The packet does not classify any runtime or test commit in that range as metadata-only.
-
-Required gates re-run for the corrected merge candidate:
+Required gates re-run for this actual branch-tip merge candidate:
 
 - `make scope-check` PASS for branch `codex/feat-retrieval-fts`.
 - `./quality-format.sh --check` PASS.
@@ -100,10 +107,14 @@ Required gates re-run for the corrected merge candidate:
 - `./typecheck-test.sh` PASS, Python sources under `src/` compile.
 - `make ci` PASS, 125 tests; includes scope-check, format, lint, typecheck, and test gates.
 
-Additional diagnostic commands:
+Earlier branch-tip gate evidence preserved from the pre-fixer packet:
 
-- `python - <<'PY' ...` query fingerprint parity probe PASS; sparse payload fingerprint derivation matches `RetrievalService._query_fingerprint` for canonical query snapshots.
-- `python -m pytest tests/unit/test_unified_retrieval.py` not run because the selected Python interpreter has no `pytest` module; required repo test gates above were used instead and passed.
+- `make scope-check` PASS for branch `codex/feat-retrieval-fts`.
+- `./quality-format.sh --check` PASS.
+- `./quality-lint.sh` PASS.
+- `./quality-test.sh` PASS, 125 tests.
+- `./typecheck-test.sh` PASS, Python sources under `src/` compile.
+- `make ci` PASS, 125 tests; includes scope-check, format, lint, typecheck, and test gates.
 
 ## Risks/Blockers
 
