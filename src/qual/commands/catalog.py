@@ -4307,7 +4307,13 @@ def _canonicalize_smoke_command_argv(
 ) -> tuple[str, ...]:
     if not argv:
         return ()
-    return (canonical_command_for(specs, argv[0]), *argv[1:])
+    return (canonical_command_for(specs, _strip_command_palette_prefix(argv[0])), *argv[1:])
+
+
+def _strip_command_palette_prefix(command_token: str) -> str:
+    if command_token.startswith("/") and not command_token.startswith("//"):
+        return command_token[1:]
+    return command_token
 
 
 def _split_smoke_option_argv(
