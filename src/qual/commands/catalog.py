@@ -158,6 +158,21 @@ class CommandDemoActionContract:
     entries: tuple[CommandDemoActionEntry, ...]
 
 
+@dataclass(frozen=True)
+class CommandDemoActionRouteEntry:
+    engine_action: str
+    flow_step: str
+    name: str
+    cli_tokens: tuple[str, ...]
+    smoke_token: str
+    demo_path_step: str
+
+
+@dataclass(frozen=True)
+class CommandDemoActionRouteContract:
+    entries: tuple[CommandDemoActionRouteEntry, ...]
+
+
 def _normalize_token(value: str) -> str:
     normalized = re.sub(r"[-_\s]+", "-", value.strip().casefold())
     return normalized.strip("-")
@@ -991,6 +1006,82 @@ def command_demo_action_route_summary(
 
 
 @lru_cache(maxsize=None)
+def command_demo_action_route_contract(
+    specs: tuple[CommandSpec, ...] = COMMAND_SPECS,
+) -> CommandDemoActionRouteContract:
+    demo_path_contract = command_demo_path_contract(specs)
+    entries = tuple(
+        CommandDemoActionRouteEntry(
+            engine_action=engine_action,
+            flow_step=path_entry.flow_step,
+            name=path_entry.name,
+            cli_tokens=path_entry.cli_tokens,
+            smoke_token=path_entry.cli_tokens[0],
+            demo_path_step=path_entry.demo_path_step,
+        )
+        for path_entry in demo_path_contract.entries
+        for engine_action in path_entry.engine_actions
+    )
+    contract = CommandDemoActionRouteContract(entries=entries)
+    _validate_command_demo_action_route_contract(contract, demo_path_contract, specs=specs)
+    return contract
+
+
+def _validate_command_demo_action_route_contract(
+    contract: CommandDemoActionRouteContract,
+    demo_path_contract: CommandDemoPathContract,
+    *,
+    specs: tuple[CommandSpec, ...],
+) -> None:
+    action_contract = command_demo_action_contract(specs)
+    if tuple(entry.engine_action for entry in contract.entries) != tuple(
+        entry.engine_action for entry in action_contract.entries
+    ):
+        raise ValueError("Command demo action route actions are inconsistent")
+    if tuple(entry.flow_step for entry in contract.entries) != tuple(
+        entry.flow_step for entry in action_contract.entries
+    ):
+        raise ValueError("Command demo action route flow steps are inconsistent")
+    if tuple(entry.name for entry in contract.entries) != tuple(
+        entry.name for entry in action_contract.entries
+    ):
+        raise ValueError("Command demo action route command names are inconsistent")
+    if tuple(entry.smoke_token for entry in contract.entries) != tuple(
+        entry.smoke_token for entry in action_contract.entries
+    ):
+        raise ValueError("Command demo action route smoke tokens are inconsistent")
+    if tuple(entry.demo_path_step for entry in contract.entries) != tuple(
+        entry.demo_path_step for entry in action_contract.entries
+    ):
+        raise ValueError("Command demo action route path steps are inconsistent")
+    cli_tokens_by_action = {
+        engine_action: path_entry.cli_tokens
+        for path_entry in demo_path_contract.entries
+        for engine_action in path_entry.engine_actions
+    }
+    if any(entry.cli_tokens != cli_tokens_by_action[entry.engine_action] for entry in contract.entries):
+        raise ValueError("Command demo action route CLI tokens are inconsistent")
+
+
+def command_demo_action_cli_lookup_table(
+    specs: tuple[CommandSpec, ...] = COMMAND_SPECS,
+) -> tuple[tuple[str, tuple[str, ...]], ...]:
+    return tuple(
+        (entry.engine_action, entry.cli_tokens)
+        for entry in command_demo_action_route_contract(specs).entries
+    )
+
+
+def command_demo_action_cli_smoke_lookup_table(
+    specs: tuple[CommandSpec, ...] = COMMAND_SPECS,
+) -> tuple[tuple[str, str], ...]:
+    return tuple(
+        (entry.engine_action, entry.smoke_token)
+        for entry in command_demo_action_route_contract(specs).entries
+    )
+
+
+@lru_cache(maxsize=None)
 def command_demo_action_index(
     specs: tuple[CommandSpec, ...] = COMMAND_SPECS,
 ) -> tuple[tuple[str, CommandDemoActionEntry], ...]:
@@ -1053,6 +1144,24 @@ def command_mvp_demo_action_route_summary(
     specs: tuple[CommandSpec, ...] = COMMAND_SPECS,
 ) -> tuple[tuple[str, str, str, str], ...]:
     return command_demo_action_route_summary(specs)
+
+
+def command_mvp_demo_action_route_contract(
+    specs: tuple[CommandSpec, ...] = COMMAND_SPECS,
+) -> CommandDemoActionRouteContract:
+    return command_demo_action_route_contract(specs)
+
+
+def command_mvp_demo_action_cli_lookup_table(
+    specs: tuple[CommandSpec, ...] = COMMAND_SPECS,
+) -> tuple[tuple[str, tuple[str, ...]], ...]:
+    return command_demo_action_cli_lookup_table(specs)
+
+
+def command_mvp_demo_action_cli_smoke_lookup_table(
+    specs: tuple[CommandSpec, ...] = COMMAND_SPECS,
+) -> tuple[tuple[str, str], ...]:
+    return command_demo_action_cli_smoke_lookup_table(specs)
 
 
 def command_mvp_demo_action_index(
