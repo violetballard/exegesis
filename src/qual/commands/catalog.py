@@ -2934,6 +2934,18 @@ def command_demo_readiness_line_for_argv(
     return _shell_join(command_argv)
 
 
+def command_demo_readiness_argv_for_argv(
+    argv: Sequence[str],
+    specs: tuple[CommandSpec, ...] = COMMAND_SPECS,
+    launcher_argv: tuple[str, ...] = COMMAND_SMOKE_CLI_LAUNCHER_ARGV,
+) -> tuple[str, ...]:
+    return _command_demo_readiness_canonical_argv_for_argv(
+        specs,
+        launcher_argv,
+        _coerce_smoke_argv(argv),
+    )
+
+
 def command_mvp_demo_readiness_entry_for_argv(
     argv: Sequence[str],
     specs: tuple[CommandSpec, ...] = COMMAND_SPECS,
@@ -2980,6 +2992,14 @@ def command_mvp_demo_readiness_line_for_argv(
     launcher_argv: tuple[str, ...] = COMMAND_SMOKE_CLI_LAUNCHER_ARGV,
 ) -> str:
     return command_demo_readiness_line_for_argv(argv, specs, launcher_argv)
+
+
+def command_mvp_demo_readiness_argv_for_argv(
+    argv: Sequence[str],
+    specs: tuple[CommandSpec, ...] = COMMAND_SPECS,
+    launcher_argv: tuple[str, ...] = COMMAND_SMOKE_CLI_LAUNCHER_ARGV,
+) -> tuple[str, ...]:
+    return command_demo_readiness_argv_for_argv(argv, specs, launcher_argv)
 
 
 @lru_cache(maxsize=None)
