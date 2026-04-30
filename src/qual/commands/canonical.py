@@ -33,6 +33,7 @@ from src.qual.commands.catalog import (
     command_mvp_demo_readiness_report as _readiness_report,
     command_mvp_demo_readiness_report_summary as _readiness_report_summary,
     command_mvp_demo_readiness_shell_script as _readiness_shell_script,
+    command_mvp_demo_readiness_shell_executable_lines as _readiness_shell_executable_lines,
     command_mvp_demo_readiness_shell_script_lines as _readiness_shell_script_lines,
     command_mvp_demo_readiness_shell_script_text as _readiness_shell_script_text,
     command_mvp_demo_readiness_trace_contract as _readiness_trace_contract,
@@ -145,6 +146,7 @@ __all__ = [
     "canonical_command_readiness_report",
     "canonical_command_readiness_report_summary",
     "canonical_command_readiness_shell_script",
+    "canonical_command_readiness_shell_executable_lines",
     "canonical_command_readiness_shell_script_lines",
     "canonical_command_readiness_shell_script_text",
     "canonical_command_readiness_trace_contract",
@@ -317,6 +319,10 @@ def canonical_command_readiness_report_summary() -> tuple[
 
 def canonical_command_readiness_shell_script() -> CommandDemoReadinessShellScript:
     return _readiness_shell_script()
+
+
+def canonical_command_readiness_shell_executable_lines() -> tuple[str, ...]:
+    return _readiness_shell_executable_lines()
 
 
 def canonical_command_readiness_shell_script_lines() -> tuple[str, ...]:

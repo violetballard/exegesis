@@ -3643,6 +3643,17 @@ def command_demo_readiness_shell_script_lines(
     return command_demo_readiness_shell_script(specs, launcher_argv).lines
 
 
+def command_demo_readiness_shell_executable_lines(
+    specs: tuple[CommandSpec, ...] = COMMAND_SPECS,
+    launcher_argv: tuple[str, ...] = COMMAND_SMOKE_CLI_LAUNCHER_ARGV,
+) -> tuple[str, ...]:
+    return tuple(
+        line
+        for line in command_demo_readiness_shell_script_lines(specs, launcher_argv)
+        if not line.startswith("#")
+    )
+
+
 def command_demo_readiness_shell_script_text(
     specs: tuple[CommandSpec, ...] = COMMAND_SPECS,
     launcher_argv: tuple[str, ...] = COMMAND_SMOKE_CLI_LAUNCHER_ARGV,
@@ -4168,7 +4179,7 @@ def command_demo_readiness_engine_actions_for_demo_path_step(
 
 
 def _normalize_smoke_argv(argv: tuple[str, ...]) -> tuple[str, ...]:
-    return tuple(token for token in argv if token.strip())
+    return tuple(stripped for token in argv for stripped in (token.strip(),) if stripped)
 
 
 def _coerce_smoke_argv(argv: Sequence[str] | str) -> tuple[str, ...]:
@@ -5049,6 +5060,13 @@ def command_mvp_demo_readiness_shell_script_lines(
     launcher_argv: tuple[str, ...] = COMMAND_SMOKE_CLI_LAUNCHER_ARGV,
 ) -> tuple[str, ...]:
     return command_demo_readiness_shell_script_lines(specs, launcher_argv)
+
+
+def command_mvp_demo_readiness_shell_executable_lines(
+    specs: tuple[CommandSpec, ...] = COMMAND_SPECS,
+    launcher_argv: tuple[str, ...] = COMMAND_SMOKE_CLI_LAUNCHER_ARGV,
+) -> tuple[str, ...]:
+    return command_demo_readiness_shell_executable_lines(specs, launcher_argv)
 
 
 def command_mvp_demo_readiness_shell_script_text(
