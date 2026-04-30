@@ -88,6 +88,7 @@ from src.qual.commands.catalog import (
     command_mvp_demo_readiness_line_for_engine_action as _readiness_line_for_engine_action,
     command_mvp_demo_readiness_line_for_flow_step as _readiness_line_for_flow_step,
     command_mvp_demo_readiness_lookup_table as _readiness_lookup_table,
+    command_mvp_demo_readiness_command_line_lookup_table as _readiness_command_line_lookup_table,
     command_mvp_demo_readiness_summary as _readiness_summary,
 )
 
@@ -170,6 +171,7 @@ __all__ = [
     "canonical_command_readiness_entry_for_engine_action",
     "canonical_command_readiness_entry_for_flow_step",
     "canonical_command_readiness_lookup_table",
+    "canonical_command_readiness_command_line_lookup_table",
     "canonical_command_readiness_summary",
 ]
 
@@ -187,6 +189,10 @@ def canonical_command_readiness_summary() -> tuple[
 
 def canonical_command_readiness_lookup_table() -> tuple[tuple[str, tuple[str, ...]], ...]:
     return _readiness_lookup_table()
+
+
+def canonical_command_readiness_command_line_lookup_table() -> tuple[tuple[str, str], ...]:
+    return _readiness_command_line_lookup_table()
 
 
 def canonical_command_action_readiness_summary() -> tuple[

@@ -2564,6 +2564,16 @@ def command_demo_readiness_lookup_table(
     )
 
 
+def command_demo_readiness_command_line_lookup_table(
+    specs: tuple[CommandSpec, ...] = COMMAND_SPECS,
+    launcher_argv: tuple[str, ...] = COMMAND_SMOKE_CLI_LAUNCHER_ARGV,
+) -> tuple[tuple[str, str], ...]:
+    return tuple(
+        (entry.flow_step, _shell_join(entry.command_argv))
+        for entry in command_demo_readiness_contract(specs, launcher_argv).entries
+    )
+
+
 @lru_cache(maxsize=None)
 def command_demo_readiness_cli_contract(
     specs: tuple[CommandSpec, ...] = COMMAND_SPECS,
@@ -4368,6 +4378,13 @@ def command_mvp_demo_readiness_lookup_table(
     launcher_argv: tuple[str, ...] = COMMAND_SMOKE_CLI_LAUNCHER_ARGV,
 ) -> tuple[tuple[str, tuple[str, ...]], ...]:
     return command_demo_readiness_lookup_table(specs, launcher_argv)
+
+
+def command_mvp_demo_readiness_command_line_lookup_table(
+    specs: tuple[CommandSpec, ...] = COMMAND_SPECS,
+    launcher_argv: tuple[str, ...] = COMMAND_SMOKE_CLI_LAUNCHER_ARGV,
+) -> tuple[tuple[str, str], ...]:
+    return command_demo_readiness_command_line_lookup_table(specs, launcher_argv)
 
 
 def command_mvp_demo_readiness_cli_contract(
