@@ -455,6 +455,22 @@ class CommandDemoReadinessShellScript:
 
 
 @dataclass(frozen=True)
+class CommandDemoReadinessTraceEntry:
+    ordinal: int
+    engine_action: str
+    demo_path_step: str
+    flow_step: str
+    name: str
+    command_line: str
+    action_line: str
+
+
+@dataclass(frozen=True)
+class CommandDemoReadinessTraceContract:
+    entries: tuple[CommandDemoReadinessTraceEntry, ...]
+
+
+@dataclass(frozen=True)
 class CommandDemoCommandActionEntry:
     flow_step: str
     name: str
@@ -3590,6 +3606,100 @@ def command_demo_readiness_shell_script_text(
 
 
 @lru_cache(maxsize=None)
+def command_demo_readiness_trace_contract(
+    specs: tuple[CommandSpec, ...] = COMMAND_SPECS,
+    launcher_argv: tuple[str, ...] = COMMAND_SMOKE_CLI_LAUNCHER_ARGV,
+) -> CommandDemoReadinessTraceContract:
+    handoff_contract = command_demo_readiness_handoff_contract(specs, launcher_argv)
+    contract = CommandDemoReadinessTraceContract(
+        entries=tuple(
+            CommandDemoReadinessTraceEntry(
+                ordinal=entry.ordinal,
+                engine_action=engine_action,
+                demo_path_step=entry.demo_path_step,
+                flow_step=entry.flow_step,
+                name=entry.name,
+                command_line=entry.command_line,
+                action_line=action_line,
+            )
+            for entry in handoff_contract.entries
+            for engine_action, action_line in entry.action_lines
+        )
+    )
+    _validate_command_demo_readiness_trace_contract(contract, handoff_contract, specs=specs)
+    return contract
+
+
+def _validate_command_demo_readiness_trace_contract(
+    contract: CommandDemoReadinessTraceContract,
+    handoff_contract: CommandDemoReadinessHandoffContract,
+    *,
+    specs: tuple[CommandSpec, ...],
+) -> None:
+    expected_entries = tuple(
+        (
+            entry.ordinal,
+            engine_action,
+            entry.demo_path_step,
+            entry.flow_step,
+            entry.name,
+            entry.command_line,
+            action_line,
+        )
+        for entry in handoff_contract.entries
+        for engine_action, action_line in entry.action_lines
+    )
+    actual_entries = tuple(
+        (
+            entry.ordinal,
+            entry.engine_action,
+            entry.demo_path_step,
+            entry.flow_step,
+            entry.name,
+            entry.command_line,
+            entry.action_line,
+        )
+        for entry in contract.entries
+    )
+    if actual_entries != expected_entries:
+        raise ValueError("Command demo readiness trace entries are inconsistent")
+    if tuple(entry.engine_action for entry in contract.entries) != command_demo_engine_actions(specs):
+        raise ValueError("Command demo readiness trace action coverage is inconsistent")
+    if len({entry.engine_action for entry in contract.entries}) != len(contract.entries):
+        raise ValueError("Command demo readiness trace actions must be unique")
+    if any(not entry.command_line or not entry.action_line for entry in contract.entries):
+        raise ValueError("Command demo readiness trace lines must not be empty")
+
+
+def command_demo_readiness_trace_summary(
+    specs: tuple[CommandSpec, ...] = COMMAND_SPECS,
+    launcher_argv: tuple[str, ...] = COMMAND_SMOKE_CLI_LAUNCHER_ARGV,
+) -> tuple[tuple[int, str, str, str, str, str, str], ...]:
+    return tuple(
+        (
+            entry.ordinal,
+            entry.engine_action,
+            entry.demo_path_step,
+            entry.flow_step,
+            entry.name,
+            entry.command_line,
+            entry.action_line,
+        )
+        for entry in command_demo_readiness_trace_contract(specs, launcher_argv).entries
+    )
+
+
+def command_demo_readiness_trace_lookup_table(
+    specs: tuple[CommandSpec, ...] = COMMAND_SPECS,
+    launcher_argv: tuple[str, ...] = COMMAND_SMOKE_CLI_LAUNCHER_ARGV,
+) -> tuple[tuple[str, str], ...]:
+    return tuple(
+        (entry.engine_action, entry.action_line)
+        for entry in command_demo_readiness_trace_contract(specs, launcher_argv).entries
+    )
+
+
+@lru_cache(maxsize=None)
 def command_demo_readiness_action_index(
     specs: tuple[CommandSpec, ...] = COMMAND_SPECS,
     launcher_argv: tuple[str, ...] = COMMAND_SMOKE_CLI_LAUNCHER_ARGV,
@@ -4742,6 +4852,27 @@ def command_mvp_demo_readiness_shell_script_text(
     launcher_argv: tuple[str, ...] = COMMAND_SMOKE_CLI_LAUNCHER_ARGV,
 ) -> str:
     return command_demo_readiness_shell_script_text(specs, launcher_argv)
+
+
+def command_mvp_demo_readiness_trace_contract(
+    specs: tuple[CommandSpec, ...] = COMMAND_SPECS,
+    launcher_argv: tuple[str, ...] = COMMAND_SMOKE_CLI_LAUNCHER_ARGV,
+) -> CommandDemoReadinessTraceContract:
+    return command_demo_readiness_trace_contract(specs, launcher_argv)
+
+
+def command_mvp_demo_readiness_trace_summary(
+    specs: tuple[CommandSpec, ...] = COMMAND_SPECS,
+    launcher_argv: tuple[str, ...] = COMMAND_SMOKE_CLI_LAUNCHER_ARGV,
+) -> tuple[tuple[int, str, str, str, str, str, str], ...]:
+    return command_demo_readiness_trace_summary(specs, launcher_argv)
+
+
+def command_mvp_demo_readiness_trace_lookup_table(
+    specs: tuple[CommandSpec, ...] = COMMAND_SPECS,
+    launcher_argv: tuple[str, ...] = COMMAND_SMOKE_CLI_LAUNCHER_ARGV,
+) -> tuple[tuple[str, str], ...]:
+    return command_demo_readiness_trace_lookup_table(specs, launcher_argv)
 
 
 def require_command_mvp_demo_readiness_complete(
