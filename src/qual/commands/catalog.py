@@ -3478,6 +3478,8 @@ def command_demo_readiness_route_contract(
         contract,
         readiness_contract,
         routes_by_flow_step,
+        specs=specs,
+        launcher_argv=launcher_argv,
     )
     return contract
 
@@ -3486,6 +3488,9 @@ def _validate_command_demo_readiness_route_contract(
     contract: CommandDemoReadinessRouteContract,
     readiness_contract: CommandDemoPathReadinessContract,
     routes_by_flow_step: dict[str, CommandDemoPathEntry],
+    *,
+    specs: tuple[CommandSpec, ...],
+    launcher_argv: tuple[str, ...],
 ) -> None:
     if tuple(entry.ordinal for entry in contract.entries) != tuple(
         step.ordinal for step in readiness_contract.steps
@@ -3528,13 +3533,15 @@ def _validate_command_demo_readiness_route_contract(
             raise ValueError(f"Command demo readiness route command must not be empty: {entry.flow_step}")
         if not entry.action_lines:
             raise ValueError(f"Command demo readiness route action lines must not be empty: {entry.flow_step}")
-        _validate_command_demo_readiness_route_lines(entry)
+        _validate_command_demo_readiness_route_lines(entry, specs, launcher_argv)
 
 
 def _validate_command_demo_readiness_route_lines(
     entry: CommandDemoReadinessRouteEntry,
+    specs: tuple[CommandSpec, ...],
+    launcher_argv: tuple[str, ...],
 ) -> None:
-    command_entry = command_demo_readiness_entry_for_argv(entry.command_line)
+    command_entry = command_demo_readiness_entry_for_argv(entry.command_line, specs, launcher_argv)
     if command_entry is None:
         raise ValueError(f"Command demo readiness route command is not routeable: {entry.flow_step}")
     if command_entry.flow_step != entry.flow_step or command_entry.name != entry.name:
@@ -3542,7 +3549,7 @@ def _validate_command_demo_readiness_route_lines(
 
     seen_actions: list[str] = []
     for engine_action, action_line in entry.action_lines:
-        action_entries = command_demo_readiness_action_entries_for_argv(action_line)
+        action_entries = command_demo_readiness_action_entries_for_argv(action_line, specs, launcher_argv)
         if not any(action_entry.engine_action == engine_action for action_entry in action_entries):
             raise ValueError(f"Command demo readiness route action is not routeable: {engine_action}")
         if any(
@@ -3723,13 +3730,15 @@ def command_demo_readiness_shell_script(
         action_lines=action_lines,
         text="\n".join(lines),
     )
-    _validate_command_demo_readiness_shell_script(script, smoke_plan)
+    _validate_command_demo_readiness_shell_script(script, smoke_plan, specs, launcher_argv)
     return script
 
 
 def _validate_command_demo_readiness_shell_script(
     script: CommandDemoReadinessShellScript,
     smoke_plan: CommandDemoReadinessSmokePlan,
+    specs: tuple[CommandSpec, ...],
+    launcher_argv: tuple[str, ...],
 ) -> None:
     expected_command_lines = tuple(step.command_line for step in smoke_plan.steps)
     expected_action_lines = tuple(
@@ -3761,7 +3770,7 @@ def _validate_command_demo_readiness_shell_script(
     )
     if executable_lines != expected_executable_lines:
         raise ValueError("Command demo readiness shell script executable lines are inconsistent")
-    _validate_command_demo_readiness_shell_routes(script, smoke_plan)
+    _validate_command_demo_readiness_shell_routes(script, smoke_plan, specs, launcher_argv)
 
 
 def _dedupe_command_lines(lines: tuple[str, ...]) -> tuple[str, ...]:
@@ -3778,14 +3787,16 @@ def _dedupe_command_lines(lines: tuple[str, ...]) -> tuple[str, ...]:
 def _validate_command_demo_readiness_shell_routes(
     script: CommandDemoReadinessShellScript,
     smoke_plan: CommandDemoReadinessSmokePlan,
+    specs: tuple[CommandSpec, ...],
+    launcher_argv: tuple[str, ...],
 ) -> None:
     for step in smoke_plan.steps:
-        if command_demo_readiness_entry_for_argv(step.command_line) is None:
+        if command_demo_readiness_entry_for_argv(step.command_line, specs, launcher_argv) is None:
             raise ValueError(
                 f"Command demo readiness shell command is not routeable: {step.flow_step}"
             )
         for engine_action, action_line in step.action_lines:
-            entry = command_demo_readiness_entry_for_argv(action_line)
+            entry = command_demo_readiness_entry_for_argv(action_line, specs, launcher_argv)
             if entry is None:
                 raise ValueError(
                     f"Command demo readiness shell action is not routeable: {engine_action}"
