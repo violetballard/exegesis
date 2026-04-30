@@ -24,6 +24,7 @@ from src.qual.commands.catalog import (
     command_mvp_demo_readiness_action_argv_lookup_table as _readiness_action_argv_lookup_table,
     command_mvp_demo_readiness_action_entry as _readiness_action_entry,
     command_mvp_demo_readiness_action_summary as _readiness_action_summary,
+    command_mvp_demo_readiness_smoke_plan_summary as _readiness_smoke_plan_summary,
     command_mvp_demo_readiness_is_complete as _readiness_is_complete,
     command_mvp_demo_readiness_missing_engine_actions as _readiness_missing_engine_actions,
     command_mvp_demo_readiness_entry_for_argv as _readiness_entry_for_argv,
@@ -64,6 +65,7 @@ __all__ = [
     "canonical_command_action_readiness_entry",
     "canonical_command_action_readiness_entry_for_engine_action",
     "canonical_command_action_readiness_summary",
+    "canonical_command_readiness_smoke_plan_summary",
     "canonical_command_action_line_lookup_table",
     "canonical_command_readiness_is_complete",
     "canonical_command_readiness_missing_engine_actions",
@@ -132,6 +134,13 @@ def canonical_command_action_readiness_summary() -> tuple[
     ...,
 ]:
     return _readiness_action_summary()
+
+
+def canonical_command_readiness_smoke_plan_summary() -> tuple[
+    tuple[int, str, str, str, str, tuple[tuple[str, str], ...]],
+    ...,
+]:
+    return _readiness_smoke_plan_summary()
 
 
 def canonical_command_readiness_missing_engine_actions() -> tuple[str, ...]:
