@@ -6,9 +6,12 @@ from src.qual.commands.catalog import (
     CommandDemoReadinessGate,
     CommandDemoReadinessActionEntry,
     CommandDemoReadinessEntry,
+    CommandDemoReadinessHandoffContract,
     canonical_command as _canonical_command,
     command_mvp_demo_path_readiness_contract as _path_readiness_contract,
     command_mvp_demo_path_readiness_summary as _path_readiness_summary,
+    command_mvp_demo_readiness_handoff_contract as _readiness_handoff_contract,
+    command_mvp_demo_readiness_handoff_summary as _readiness_handoff_summary,
     command_mvp_demo_action_smoke_script_argv as _action_smoke_script_argv,
     command_mvp_demo_action_smoke_script_lines as _action_smoke_script_lines,
     command_mvp_demo_action_smoke_script_lookup_table as _action_smoke_script_lookup_table,
@@ -76,6 +79,8 @@ __all__ = [
     "canonical_command_readiness_gate_summary",
     "canonical_command_demo_path_readiness_contract",
     "canonical_command_demo_path_readiness_summary",
+    "canonical_command_readiness_handoff_contract",
+    "canonical_command_readiness_handoff_summary",
     "canonical_command_readiness_smoke_plan_summary",
     "canonical_command_require_readiness_complete",
     "canonical_command_action_line_lookup_table",
@@ -175,6 +180,17 @@ def canonical_command_demo_path_readiness_summary() -> tuple[
     ...,
 ]:
     return _path_readiness_summary()
+
+
+def canonical_command_readiness_handoff_contract() -> CommandDemoReadinessHandoffContract:
+    return _readiness_handoff_contract()
+
+
+def canonical_command_readiness_handoff_summary() -> tuple[
+    tuple[int, str, str, str, str, tuple[tuple[str, str], ...]],
+    ...,
+]:
+    return _readiness_handoff_summary()
 
 
 def canonical_command_require_readiness_complete() -> CommandDemoReadinessGate:
