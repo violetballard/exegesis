@@ -6,7 +6,7 @@
 - Reviewed merge-candidate range: `fd2ab6ca65ec2f93d1334c9b7df8512439725be4..HEAD`, where `fd2ab6ca65ec2f93d1334c9b7df8512439725be4` is the current `main...HEAD` merge base.
 - Reviewed implementation range: `adfa8cdadd43747ffbcb612e4151e262b13e52ca..HEAD`; review must include all implementation, test, packet, and fixer changes through the final branch tip.
 - Reviewer trace range: `adfa8cdadd43747ffbcb612e4151e262b13e52ca..HEAD`; this range includes the post-`adfa8cd` retrieval source/test changes that must be reviewed, including `0e86dfbb83606b30814de4cc2f30234867ebeda9`, `b65733d6ffb0b78532478db3d4b4853f49248c4a`, the `6bd4f5c67b38cff4de9e19e2fcef4cea5c4d2296` FTS cache-key implementation commit, and the reviewer-cited `c620f6c716f7af17fb7d88c10dd93c6b58f9fe89` payload implementation commit.
-- Pre-fixer branch-tip SHA for this pass: `d62a85de9bea9f092a142fe5681c7f2211d6066c`.
+- Pre-fixer branch-tip SHA for this pass: `3eb70a253ed127ff340b84a0882657b78fd5243c`.
 - Reviewer-cited submitted packet tip: `c620f6c716086af10693500e4d7eb8da9245473e`; this is implementation scope because it changes `src/qual/engine/retrieval/payload.py`.
 - Final HEAD SHA: reported in the fixer final response because a commit cannot contain its own SHA.
 - Handoff classification: high-risk/shared because the corrected reviewed range includes approved shared regression coverage in `tests/unit/test_unified_retrieval.py`.
@@ -52,9 +52,10 @@ Additional files present in the reviewer trace range `adfa8cdadd43747ffbcb612e41
 - `.codex/kickoff_packets/feat-retrieval-fts.md`: stale packet mirror from earlier packet-refresh commits; not authoritative for this fixer pass because writes under `.codex` are blocked in this worktree.
 - `.codex/lane_meta/feat-retrieval-fts.json`: stale lane metadata mirror from earlier packet-refresh commits; not authoritative for this fixer pass because writes under `.codex` are blocked in this worktree.
 
-The attempted regeneration of those `.codex` mirror files failed before any file content changed:
+The attempted regeneration of those `.codex` mirror files failed before any file content changed. This was rechecked in the current fixer pass:
 
 - `apply_patch` targeting `.codex/kickoff_packets/feat-retrieval-fts.md` and `.codex/lane_meta/feat-retrieval-fts.json`: FAIL, `patch rejected: writing outside of the project; rejected by user approval settings`.
+- `apply_patch` targeting `.codex/kickoff_packets/feat-retrieval-fts.md`, `.codex/lane_meta/feat-retrieval-fts.json`, and `THREAD_PACKET.md`: FAIL, `patch rejected: writing outside of the project; rejected by user approval settings`.
 - `touch .codex/.write_test`: FAIL, `Operation not permitted`.
 
 Packet refresh commits in the trace range are reviewed as packet changes only when they touch packet files only. Commits that touch retrieval source or tests, including `0e86dfbb83606b30814de4cc2f30234867ebeda9`, `b65733d6ffb0b78532478db3d4b4853f49248c4a`, `6bd4f5c67b38cff4de9e19e2fcef4cea5c4d2296`, and `c620f6c716f7af17fb7d88c10dd93c6b58f9fe89`, are part of the reviewed source/test trace and are not classified as metadata-only.
