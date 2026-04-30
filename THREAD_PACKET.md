@@ -5,7 +5,7 @@
 - Merge target: current `main`
 - Merge-base for re-review: `fd2ab6ca65ec2f93d1334c9b7df8512439725be4`
 - Actual branch tip reviewed by the CHANGES_REQUESTED packet: `a12ff6ce00468b15876cdda70eb722da218e4d66`
-- Prior fixer branch tip before this required-fixes pass: `e6f04ffa4dc0a5106e44caf40527eeb47f7e3e17`
+- Prior fixer branch tip before this required-fixes pass: `4f6c5646eeacecfbbfa25a72d90435e895792a39`
 - Final branch tip: reported in the fixer deliverable after this packet commit is created.
 - Authoritative reviewed range / complete merge candidate: `fd2ab6ca65ec2f93d1334c9b7df8512439725be4..HEAD`
 - Reviewer-reported stale reviewed range: `378cf9a74..adfa8cdadd43747ffbcb612e4151e262b13e52ca`
@@ -13,7 +13,8 @@
 - Prior packet-metadata refresh delta covered by this packet: `e99593b66e..28b0309be1fb348aaf0e61daf6b9214600c26bee`
 - Prior conflict-resolution/packet delta covered by this packet: `28b0309be1fb348aaf0e61daf6b9214600c26bee..a12ff6ce00468b15876cdda70eb722da218e4d66`
 - Prior fixer packet-metadata delta covered by this packet: `a12ff6ce00468b15876cdda70eb722da218e4d66..e6f04ffa4dc0a5106e44caf40527eeb47f7e3e17`
-- Current fixer packet-metadata delta covered by this packet: `e6f04ffa4dc0a5106e44caf40527eeb47f7e3e17..HEAD`
+- Prior fixer packet-metadata delta covered by this packet: `e6f04ffa4dc0a5106e44caf40527eeb47f7e3e17..4f6c5646eeacecfbbfa25a72d90435e895792a39`
+- Current required-fixes packet delta covered by this packet: `4f6c5646eeacecfbbfa25a72d90435e895792a39..HEAD`
 - Scope classification: high-risk retrieval work because approved shared regression coverage in `tests/unit/test_unified_retrieval.py` is part of the reviewed candidate.
 
 ## Scope Completed
@@ -62,13 +63,23 @@ Source/test implementation stat for `fd2ab6ca65ec2f93d1334c9b7df8512439725be4..H
 
 Reviewer-required supplemental source/test implementation stat for `adfa8cdadd43747ffbcb612e4151e262b13e52ca..e99593b66e`: `5 files changed, 424 insertions(+), 84 deletions(-)`.
 
+Post-`adfa8cdadd43747ffbcb612e4151e262b13e52ca` commit classification for the actual merge candidate:
+
+- Retrieval implementation/test commits in the final `fd2ab6ca65ec2f93d1334c9b7df8512439725be4..HEAD` candidate are: `bd44dd163`, `c573b77fd`, `02c1833d2`, `d276ca07a`, `0e86dfbb8`, `b65733d6f`, `6bd4f5c67`, `c620f6c71`, `22fbd1236`, `74e550e2b`, `8608095c1`, `5a88788b7`, `a84e12ada`, `8a637b0c3`, `0aea8aed6`, `bf75a8d52`, `a55871203`, `6af5013f0`, `b9eb05813`, `5a3e75759`, `1ea30e71f`, and `c2741f8e5`. These are implementation/test work, not metadata-only.
+- `c2741f8e5` is the reviewer-cited post-`adfa8cdadd43747ffbcb612e4151e262b13e52ca` implementation/test commit and remains included in the reviewed candidate.
+- Packet-only commits from `e99593b66e` through the pre-fixer tip, plus `e6f04ffa4dc0a5106e44caf40527eeb47f7e3e17..4f6c5646eeacecfbbfa25a72d90435e895792a39`, are metadata-only because their effective diff is limited to `THREAD_PACKET.md` and locked `.codex` packet mirrors.
+- Any transient post-`adfa8cdadd43747ffbcb612e4151e262b13e52ca` packet-tooling changes are absent from the actual reviewed candidate; `git diff --name-status fd2ab6ca65ec2f93d1334c9b7df8512439725be4..HEAD` contains no `codex_packet_handoff/**` or `tests/unit/test_packet_planner.py` entries.
+- The current `4f6c5646eeacecfbbfa25a72d90435e895792a39..HEAD` required-fixes delta is packet metadata only.
+
 Prior packet-metadata refresh delta for `e99593b66e..28b0309be1fb348aaf0e61daf6b9214600c26bee`: packet metadata only; no source/test implementation files.
 
 Prior conflict-resolution/packet delta for `28b0309be1fb348aaf0e61daf6b9214600c26bee..a12ff6ce00468b15876cdda70eb722da218e4d66`: packet metadata and conflict-resolution state only; no source/test implementation files.
 
 Prior fixer packet-metadata delta for `a12ff6ce00468b15876cdda70eb722da218e4d66..e6f04ffa4dc0a5106e44caf40527eeb47f7e3e17`: packet metadata only; no source/test implementation files.
 
-Current fixer packet-metadata delta for `e6f04ffa4dc0a5106e44caf40527eeb47f7e3e17..HEAD`: packet metadata only; no source/test implementation files.
+Prior fixer packet-metadata delta for `e6f04ffa4dc0a5106e44caf40527eeb47f7e3e17..4f6c5646eeacecfbbfa25a72d90435e895792a39`: packet metadata only; no source/test implementation files.
+
+Current required-fixes packet delta for `4f6c5646eeacecfbbfa25a72d90435e895792a39..HEAD`: packet metadata only; no source/test implementation files.
 
 Lane-owned source/test files in the reviewed candidate:
 
@@ -103,9 +114,9 @@ Stale locked mirror paths:
 
 Merge-conflict resolution status for this required-fixes pass:
 
-- `git status --short --branch` reported a clean `codex/feat-retrieval-fts` worktree at `e6f04ffa4dc0a5106e44caf40527eeb47f7e3e17` before this packet edit.
+- `git status --short --branch` reported a clean `codex/feat-retrieval-fts` worktree at `4f6c5646eeacecfbbfa25a72d90435e895792a39` before this packet edit.
 - `git diff --name-only --diff-filter=U` reported no unresolved paths.
-- `rg -n "<<<<<<<|=======|>>>>>>>" src/qual/engine/retrieval src/qual/retrieval/service.py tests/unit/test_unified_retrieval.py THREAD_PACKET.md` reported no conflict markers.
+- `rg -n "^<{7}|^={7}|^>{7}" src/qual/engine/retrieval src/qual/retrieval/service.py tests/unit/test_unified_retrieval.py THREAD_PACKET.md` reported no conflict markers.
 - The reviewer-cited conflicts in `src/qual/engine/retrieval/__init__.py`, `src/qual/engine/retrieval/fts_strategy.py`, `src/qual/engine/retrieval/payload.py`, and `src/qual/retrieval/service.py` are resolved in the actual branch tip and remain part of the complete `fd2ab6ca65ec2f93d1334c9b7df8512439725be4..HEAD` review range.
 
 ## Budget/Risk
