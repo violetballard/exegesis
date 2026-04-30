@@ -2,6 +2,9 @@ from __future__ import annotations
 
 from src.qual.commands.catalog import (
     canonical_command as _canonical_command,
+    command_mvp_demo_smoke_cli_script_argv as _smoke_cli_script_argv,
+    command_mvp_demo_smoke_cli_script_lookup_table as _smoke_cli_script_lookup_table,
+    command_mvp_demo_smoke_cli_script_summary as _smoke_cli_script_summary,
     command_mvp_demo_action_demo_path_lookup_table as _action_demo_path_lookup_table,
     command_mvp_demo_action_demo_path_step as _action_demo_path_step,
     command_mvp_demo_action_flow_lookup_table as _action_flow_lookup_table,
@@ -25,6 +28,9 @@ __all__ = [
     "canonical_command_action_readiness_summary",
     "canonical_command_action_flow_lookup_table",
     "canonical_command_demo_path_step_for_engine_action",
+    "canonical_command_demo_smoke_cli_argv",
+    "canonical_command_demo_smoke_cli_lookup_table",
+    "canonical_command_demo_smoke_cli_summary",
     "canonical_command_argv_for_engine_action",
     "canonical_command_argv_for_flow_step",
     "canonical_command_engine_actions",
@@ -57,6 +63,21 @@ def canonical_command_action_readiness_summary() -> tuple[
     ...,
 ]:
     return _readiness_action_summary()
+
+
+def canonical_command_demo_smoke_cli_summary() -> tuple[
+    tuple[int, str, str, tuple[str, ...], str, tuple[str, ...]],
+    ...,
+]:
+    return _smoke_cli_script_summary()
+
+
+def canonical_command_demo_smoke_cli_lookup_table() -> tuple[tuple[int, tuple[str, ...]], ...]:
+    return _smoke_cli_script_lookup_table()
+
+
+def canonical_command_demo_smoke_cli_argv(ordinal: int) -> tuple[str, ...]:
+    return _smoke_cli_script_argv(ordinal)
 
 
 def canonical_command_action_argv_lookup_table() -> tuple[tuple[str, tuple[str, ...]], ...]:
