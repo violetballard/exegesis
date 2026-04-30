@@ -2658,6 +2658,15 @@ def _argv_without_launcher(argv: tuple[str, ...], launcher_argv: tuple[str, ...]
     return argv
 
 
+def _canonicalize_smoke_command_argv(
+    specs: tuple[CommandSpec, ...],
+    argv: tuple[str, ...],
+) -> tuple[str, ...]:
+    if not argv:
+        return ()
+    return (canonical_command_for(specs, argv[0]), *argv[1:])
+
+
 @lru_cache(maxsize=None)
 def _command_demo_readiness_entry_for_argv(
     specs: tuple[CommandSpec, ...],
@@ -2668,13 +2677,22 @@ def _command_demo_readiness_entry_for_argv(
     if not requested_argv:
         return None
     requested_command_argv = _argv_without_launcher(requested_argv, launcher_argv)
+    requested_canonical_command_argv = _canonicalize_smoke_command_argv(specs, requested_command_argv)
     for entry in command_demo_readiness_contract(specs, launcher_argv).entries:
         entry_command_argv = _argv_without_launcher(entry.command_argv, launcher_argv)
-        if requested_argv == entry.command_argv or requested_command_argv == entry_command_argv:
+        if (
+            requested_argv == entry.command_argv
+            or requested_command_argv == entry_command_argv
+            or requested_canonical_command_argv == entry_command_argv
+        ):
             return entry
         for _, action_command_argv in entry.action_command_argv:
             action_argv = _argv_without_launcher(action_command_argv, launcher_argv)
-            if requested_argv == action_command_argv or requested_command_argv == action_argv:
+            if (
+                requested_argv == action_command_argv
+                or requested_command_argv == action_argv
+                or requested_canonical_command_argv == action_argv
+            ):
                 return entry
     return None
 
