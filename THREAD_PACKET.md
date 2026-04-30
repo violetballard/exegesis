@@ -49,8 +49,6 @@ Complete source/test implementation files for `fd2ab6ca65ec2f93d1334c9b7df851243
 - `src/qual/retrieval/service.py` - lane-owned retrieval service behavior via `src/qual/retrieval/**`; maps to `retrieve relevant material`.
 - `tests/unit/test_unified_retrieval.py` - shared-by-approval regression coverage for the canonical retrieval contract; maps to `retrieve relevant material` and `promote or gather context into the basket`.
 - `THREAD_PACKET.md` - authoritative handoff packet required by `INTEGRATION.md`.
-- `.codex/kickoff_packets/feat-retrieval-fts.md` - packet metadata mirror aligned to this actual branch-tip candidate.
-- `.codex/lane_meta/feat-retrieval-fts.json` - lane metadata aligned to this actual branch-tip candidate.
 
 Source/test implementation stat for `fd2ab6ca65ec2f93d1334c9b7df8512439725be4..HEAD`: `5 files changed, 313 insertions(+), 96 deletions(-)`.
 
@@ -78,6 +76,8 @@ Out-of-scope files absent from the reviewed candidate:
 - `src/qual/engine/retrieval/embeddings_strategy.py`
 - `src/qual/engine/retrieval/pageindex_strategy.py`
 
+Packet mirror files intentionally not updated in this fixer commit because this sandbox reports `Operation not permitted` when writing `.codex/kickoff_packets/feat-retrieval-fts.md` and `.codex/lane_meta/feat-retrieval-fts.json`. `THREAD_PACKET.md` is the authoritative handoff packet for this re-review.
+
 ## Budget/Risk
 
 - Task budget: `4/4` high-risk tasks.
@@ -98,16 +98,7 @@ Out-of-scope files absent from the reviewed candidate:
 
 ## Commands Run
 
-Required gates re-run for this actual branch-tip merge candidate:
-
-- `make scope-check` PASS for branch `codex/feat-retrieval-fts`.
-- `./quality-format.sh --check` PASS.
-- `./quality-lint.sh` PASS.
-- `./quality-test.sh` PASS, 125 tests.
-- `./typecheck-test.sh` PASS, Python sources under `src/` compile.
-- `make ci` PASS, 125 tests; includes scope-check, format, lint, typecheck, and test gates.
-
-Earlier branch-tip gate evidence preserved from the pre-fixer packet:
+Required gates re-run for this corrected actual-tip merge candidate:
 
 - `make scope-check` PASS for branch `codex/feat-retrieval-fts`.
 - `./quality-format.sh --check` PASS.
