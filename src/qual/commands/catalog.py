@@ -3889,9 +3889,9 @@ def _command_demo_readiness_action_entries_for_argv(
     for entry in command_demo_readiness_action_contract(specs, launcher_argv).entries:
         action_argv = _argv_without_launcher(entry.action_command_argv, launcher_argv)
         if (
-            requested_argv == entry.action_command_argv
-            or requested_command_argv == action_argv
-            or requested_canonical_command_argv == action_argv
+            _smoke_argv_matches(requested_argv, entry.action_command_argv)
+            or _smoke_argv_matches(requested_command_argv, action_argv)
+            or _smoke_argv_matches(requested_canonical_command_argv, action_argv)
         ):
             matches.append(entry)
     return tuple(matches)
@@ -4192,6 +4192,57 @@ def _canonicalize_smoke_command_argv(
     return (canonical_command_for(specs, argv[0]), *argv[1:])
 
 
+def _split_smoke_option_argv(
+    argv: tuple[str, ...],
+) -> tuple[str, tuple[str, ...], tuple[tuple[str, str | None], ...]] | None:
+    if not argv:
+        return None
+    command = argv[0]
+    positionals: list[str] = []
+    options: list[tuple[str, str | None]] = []
+    index = 1
+    while index < len(argv):
+        token = argv[index]
+        if token.startswith("--"):
+            value: str | None = None
+            if index + 1 < len(argv) and not argv[index + 1].startswith("--"):
+                value = argv[index + 1]
+                index += 1
+            options.append((token, value))
+        else:
+            positionals.append(token)
+        index += 1
+    return command, tuple(positionals), tuple(options)
+
+
+def _smoke_option_argv_matches(
+    requested_argv: tuple[str, ...],
+    expected_argv: tuple[str, ...],
+) -> bool:
+    requested = _split_smoke_option_argv(requested_argv)
+    expected = _split_smoke_option_argv(expected_argv)
+    if requested is None or expected is None:
+        return False
+    requested_command, requested_positionals, requested_options = requested
+    expected_command, expected_positionals, expected_options = expected
+    if requested_command != expected_command or requested_positionals != expected_positionals:
+        return False
+    if not expected_options:
+        return False
+    if len({option for option, _ in requested_options}) != len(requested_options):
+        return False
+    if len({option for option, _ in expected_options}) != len(expected_options):
+        return False
+    return dict(requested_options) == dict(expected_options)
+
+
+def _smoke_argv_matches(
+    requested_argv: tuple[str, ...],
+    expected_argv: tuple[str, ...],
+) -> bool:
+    return requested_argv == expected_argv or _smoke_option_argv_matches(requested_argv, expected_argv)
+
+
 @lru_cache(maxsize=None)
 def _command_demo_readiness_entry_for_argv(
     specs: tuple[CommandSpec, ...],
@@ -4206,17 +4257,17 @@ def _command_demo_readiness_entry_for_argv(
     for entry in command_demo_readiness_contract(specs, launcher_argv).entries:
         entry_command_argv = _argv_without_launcher(entry.command_argv, launcher_argv)
         if (
-            requested_argv == entry.command_argv
-            or requested_command_argv == entry_command_argv
-            or requested_canonical_command_argv == entry_command_argv
+            _smoke_argv_matches(requested_argv, entry.command_argv)
+            or _smoke_argv_matches(requested_command_argv, entry_command_argv)
+            or _smoke_argv_matches(requested_canonical_command_argv, entry_command_argv)
         ):
             return entry
         for _, action_command_argv in entry.action_command_argv:
             action_argv = _argv_without_launcher(action_command_argv, launcher_argv)
             if (
-                requested_argv == action_command_argv
-                or requested_command_argv == action_argv
-                or requested_canonical_command_argv == action_argv
+                _smoke_argv_matches(requested_argv, action_command_argv)
+                or _smoke_argv_matches(requested_command_argv, action_argv)
+                or _smoke_argv_matches(requested_canonical_command_argv, action_argv)
             ):
                 return entry
     return None
@@ -4236,17 +4287,17 @@ def _command_demo_readiness_canonical_argv_for_argv(
     for entry in command_demo_readiness_contract(specs, launcher_argv).entries:
         entry_command_argv = _argv_without_launcher(entry.command_argv, launcher_argv)
         if (
-            requested_argv == entry.command_argv
-            or requested_command_argv == entry_command_argv
-            or requested_canonical_command_argv == entry_command_argv
+            _smoke_argv_matches(requested_argv, entry.command_argv)
+            or _smoke_argv_matches(requested_command_argv, entry_command_argv)
+            or _smoke_argv_matches(requested_canonical_command_argv, entry_command_argv)
         ):
             return entry.command_argv
         for _, action_command_argv in entry.action_command_argv:
             action_argv = _argv_without_launcher(action_command_argv, launcher_argv)
             if (
-                requested_argv == action_command_argv
-                or requested_command_argv == action_argv
-                or requested_canonical_command_argv == action_argv
+                _smoke_argv_matches(requested_argv, action_command_argv)
+                or _smoke_argv_matches(requested_command_argv, action_argv)
+                or _smoke_argv_matches(requested_canonical_command_argv, action_argv)
             ):
                 return action_command_argv
     return ()
