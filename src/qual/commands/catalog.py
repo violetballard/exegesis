@@ -412,6 +412,23 @@ class CommandDemoReadinessHandoffChecklistContract:
 
 
 @dataclass(frozen=True)
+class CommandDemoReadinessRouteEntry:
+    ordinal: int
+    demo_path_step: str
+    flow_step: str
+    name: str
+    cli_tokens: tuple[str, ...]
+    command_line: str
+    engine_actions: tuple[str, ...]
+    action_lines: tuple[tuple[str, str], ...]
+
+
+@dataclass(frozen=True)
+class CommandDemoReadinessRouteContract:
+    entries: tuple[CommandDemoReadinessRouteEntry, ...]
+
+
+@dataclass(frozen=True)
 class CommandDemoReadinessGate:
     is_complete: bool
     missing_engine_actions: tuple[str, ...]
@@ -3260,6 +3277,106 @@ def command_demo_readiness_handoff_checklist_lines(
     )
 
 
+@lru_cache(maxsize=None)
+def command_demo_readiness_route_contract(
+    specs: tuple[CommandSpec, ...] = COMMAND_SPECS,
+    launcher_argv: tuple[str, ...] = COMMAND_SMOKE_CLI_LAUNCHER_ARGV,
+) -> CommandDemoReadinessRouteContract:
+    readiness_contract = command_demo_path_readiness_contract(specs, launcher_argv)
+    routes_by_flow_step = {
+        entry.flow_step: entry
+        for entry in command_demo_path_contract(specs).entries
+    }
+    contract = CommandDemoReadinessRouteContract(
+        entries=tuple(
+            CommandDemoReadinessRouteEntry(
+                ordinal=step.ordinal,
+                demo_path_step=step.demo_path_step,
+                flow_step=step.flow_step,
+                name=step.name,
+                cli_tokens=routes_by_flow_step[step.flow_step].cli_tokens,
+                command_line=step.command_line,
+                engine_actions=step.engine_actions,
+                action_lines=step.action_lines,
+            )
+            for step in readiness_contract.steps
+        )
+    )
+    _validate_command_demo_readiness_route_contract(
+        contract,
+        readiness_contract,
+        routes_by_flow_step,
+    )
+    return contract
+
+
+def _validate_command_demo_readiness_route_contract(
+    contract: CommandDemoReadinessRouteContract,
+    readiness_contract: CommandDemoPathReadinessContract,
+    routes_by_flow_step: dict[str, CommandDemoPathEntry],
+) -> None:
+    if tuple(entry.ordinal for entry in contract.entries) != tuple(
+        step.ordinal for step in readiness_contract.steps
+    ):
+        raise ValueError("Command demo readiness route ordinals are inconsistent")
+    if tuple(entry.demo_path_step for entry in contract.entries) != tuple(
+        step.demo_path_step for step in readiness_contract.steps
+    ):
+        raise ValueError("Command demo readiness route path steps are inconsistent")
+    if tuple(entry.flow_step for entry in contract.entries) != tuple(
+        step.flow_step for step in readiness_contract.steps
+    ):
+        raise ValueError("Command demo readiness route flow steps are inconsistent")
+    if tuple(entry.name for entry in contract.entries) != tuple(
+        step.name for step in readiness_contract.steps
+    ):
+        raise ValueError("Command demo readiness route names are inconsistent")
+    if tuple(entry.command_line for entry in contract.entries) != tuple(
+        step.command_line for step in readiness_contract.steps
+    ):
+        raise ValueError("Command demo readiness route command lines are inconsistent")
+    if tuple(entry.engine_actions for entry in contract.entries) != tuple(
+        step.engine_actions for step in readiness_contract.steps
+    ):
+        raise ValueError("Command demo readiness route actions are inconsistent")
+    if tuple(entry.action_lines for entry in contract.entries) != tuple(
+        step.action_lines for step in readiness_contract.steps
+    ):
+        raise ValueError("Command demo readiness route action lines are inconsistent")
+
+    for entry in contract.entries:
+        route = routes_by_flow_step.get(entry.flow_step)
+        if route is None:
+            raise ValueError(f"Command demo readiness route is missing: {entry.flow_step}")
+        if entry.cli_tokens != route.cli_tokens:
+            raise ValueError(f"Command demo readiness route CLI tokens are inconsistent: {entry.flow_step}")
+        if not entry.cli_tokens or any(not token.strip() for token in entry.cli_tokens):
+            raise ValueError(f"Command demo readiness route CLI tokens must not be empty: {entry.flow_step}")
+        if not entry.command_line:
+            raise ValueError(f"Command demo readiness route command must not be empty: {entry.flow_step}")
+        if not entry.action_lines:
+            raise ValueError(f"Command demo readiness route action lines must not be empty: {entry.flow_step}")
+
+
+def command_demo_readiness_route_summary(
+    specs: tuple[CommandSpec, ...] = COMMAND_SPECS,
+    launcher_argv: tuple[str, ...] = COMMAND_SMOKE_CLI_LAUNCHER_ARGV,
+) -> tuple[tuple[int, str, str, str, tuple[str, ...], str, tuple[str, ...], tuple[tuple[str, str], ...]], ...]:
+    return tuple(
+        (
+            entry.ordinal,
+            entry.demo_path_step,
+            entry.flow_step,
+            entry.name,
+            entry.cli_tokens,
+            entry.command_line,
+            entry.engine_actions,
+            entry.action_lines,
+        )
+        for entry in command_demo_readiness_route_contract(specs, launcher_argv).entries
+    )
+
+
 def command_demo_readiness_handoff_markdown(
     specs: tuple[CommandSpec, ...] = COMMAND_SPECS,
     launcher_argv: tuple[str, ...] = COMMAND_SMOKE_CLI_LAUNCHER_ARGV,
@@ -4400,6 +4517,20 @@ def command_mvp_demo_readiness_handoff_checklist_lines(
     launcher_argv: tuple[str, ...] = COMMAND_SMOKE_CLI_LAUNCHER_ARGV,
 ) -> tuple[str, ...]:
     return command_demo_readiness_handoff_checklist_lines(specs, launcher_argv)
+
+
+def command_mvp_demo_readiness_route_contract(
+    specs: tuple[CommandSpec, ...] = COMMAND_SPECS,
+    launcher_argv: tuple[str, ...] = COMMAND_SMOKE_CLI_LAUNCHER_ARGV,
+) -> CommandDemoReadinessRouteContract:
+    return command_demo_readiness_route_contract(specs, launcher_argv)
+
+
+def command_mvp_demo_readiness_route_summary(
+    specs: tuple[CommandSpec, ...] = COMMAND_SPECS,
+    launcher_argv: tuple[str, ...] = COMMAND_SMOKE_CLI_LAUNCHER_ARGV,
+) -> tuple[tuple[int, str, str, str, tuple[str, ...], str, tuple[str, ...], tuple[tuple[str, str], ...]], ...]:
+    return command_demo_readiness_route_summary(specs, launcher_argv)
 
 
 def command_mvp_demo_readiness_handoff_markdown(

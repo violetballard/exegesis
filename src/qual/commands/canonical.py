@@ -11,6 +11,7 @@ from src.qual.commands.catalog import (
     CommandDemoReadinessHandoffContract,
     CommandDemoReadinessHandoffLineContract,
     CommandDemoReadinessReport,
+    CommandDemoReadinessRouteContract,
     CommandDemoReadinessSmokePlanStep,
     canonical_command as _canonical_command,
     command_mvp_demo_path_readiness_contract as _path_readiness_contract,
@@ -21,6 +22,8 @@ from src.qual.commands.catalog import (
     command_mvp_demo_readiness_handoff_line_contract as _readiness_handoff_line_contract,
     command_mvp_demo_readiness_handoff_lines as _readiness_handoff_lines,
     command_mvp_demo_readiness_handoff_markdown as _readiness_handoff_markdown,
+    command_mvp_demo_readiness_route_contract as _readiness_route_contract,
+    command_mvp_demo_readiness_route_summary as _readiness_route_summary,
     command_mvp_demo_readiness_handoff_summary as _readiness_handoff_summary,
     command_mvp_demo_readiness_report as _readiness_report,
     command_mvp_demo_readiness_report_summary as _readiness_report_summary,
@@ -106,6 +109,8 @@ __all__ = [
     "canonical_command_readiness_handoff_line_contract",
     "canonical_command_readiness_handoff_lines",
     "canonical_command_readiness_handoff_markdown",
+    "canonical_command_readiness_route_contract",
+    "canonical_command_readiness_route_summary",
     "canonical_command_readiness_report",
     "canonical_command_readiness_report_summary",
     "canonical_command_readiness_handoff_summary",
@@ -272,6 +277,17 @@ def canonical_command_readiness_handoff_line_contract() -> CommandDemoReadinessH
 
 def canonical_command_readiness_handoff_lines() -> tuple[str, ...]:
     return _readiness_handoff_lines()
+
+
+def canonical_command_readiness_route_contract() -> CommandDemoReadinessRouteContract:
+    return _readiness_route_contract()
+
+
+def canonical_command_readiness_route_summary() -> tuple[
+    tuple[int, str, str, str, tuple[str, ...], str, tuple[str, ...], tuple[tuple[str, str], ...]],
+    ...,
+]:
+    return _readiness_route_summary()
 
 
 def canonical_command_require_readiness_complete() -> CommandDemoReadinessGate:
