@@ -14,7 +14,8 @@
 - Prior conflict-resolution/packet delta covered by this packet: `28b0309be1fb348aaf0e61daf6b9214600c26bee..a12ff6ce00468b15876cdda70eb722da218e4d66`
 - Prior fixer packet-metadata delta covered by this packet: `a12ff6ce00468b15876cdda70eb722da218e4d66..e6f04ffa4dc0a5106e44caf40527eeb47f7e3e17`
 - Prior fixer packet-metadata delta covered by this packet: `e6f04ffa4dc0a5106e44caf40527eeb47f7e3e17..4f6c5646eeacecfbbfa25a72d90435e895792a39`
-- Current required-fixes packet delta covered by this packet: `4f6c5646eeacecfbbfa25a72d90435e895792a39..HEAD`
+- Prior required-fixes packet delta covered by this packet: `4f6c5646eeacecfbbfa25a72d90435e895792a39..d070ec12fb796af2a582e03ac73c34b33c3855d5`
+- Current feature-lane implementation delta covered by this packet: `d070ec12fb796af2a582e03ac73c34b33c3855d5..HEAD`
 - Scope classification: high-risk retrieval work because approved shared regression coverage in `tests/unit/test_unified_retrieval.py` is part of the reviewed candidate.
 
 ## Scope Completed
@@ -31,7 +32,7 @@ The reviewer-cited commit `c2741f8e58b59e8e37240b2271b9b68bbf6141ec` is therefor
 - `src/qual/retrieval/service.py`
 - `tests/unit/test_unified_retrieval.py`
 
-The merge candidate advances FTS-first retrieval by normalizing engine retrieval boolean constraints and query text/scope snapshots, keeping FTS cache and query snapshots deterministic, carrying date-range constraints into derived FTS shortlist queries and basket-promotion refs, preserving basket-promotion references and provenance, carrying promotion-ready excerpt text/title hints and query context into retrieval evidence fallbacks, deriving missing query fingerprints from canonical query snapshots during sparse payload reconstruction, adding query/result fingerprints to standalone doc and excerpt citation rows, invalidating stale FTS cache state on document updates, falling back from invalid direct context snapshots to canonical source/payload reconstruction, normalizing reconstructed basket item IDs to stable text IDs for downstream basket gathering, and falling back to excerpt IDs for sparse promotion refs that do not carry item IDs.
+The merge candidate advances FTS-first retrieval by normalizing engine retrieval boolean constraints and query text/scope snapshots, keeping FTS cache and query snapshots deterministic, carrying date-range constraints into derived FTS shortlist queries and basket-promotion refs, preserving basket-promotion references and provenance, carrying promotion-ready excerpt text/title hints and query context into retrieval evidence fallbacks, deriving missing query fingerprints from canonical query snapshots during sparse payload reconstruction, normalizing sparse source-bundle query snapshots with the same text, scope, intent, confidentiality, max-results, doc-type, citation, section-hint, and exact-match rules used by canonical query fingerprints, adding query/result fingerprints to standalone doc and excerpt citation rows, invalidating stale FTS cache state on document updates, falling back from invalid direct context snapshots to canonical source/payload reconstruction, normalizing reconstructed basket item IDs to stable text IDs for downstream basket gathering, and falling back to excerpt IDs for sparse promotion refs that do not carry item IDs.
 
 The candidate stays inside the active MVP note: FTS-first retrieval, deterministic provenance/excerpts, and basket/workflow-ready structured payloads. It does not include packet-tooling changes, router/provider changes, or Textual UI console work.
 
@@ -39,7 +40,7 @@ The candidate stays inside the active MVP note: FTS-first retrieval, determinist
 
 1. Canonical demo-path step advanced: `retrieve relevant material`. Normalize engine facade query constraints, boolean flags, date ranges, doc types, required query text/scope snapshots, and derived FTS shortlist snapshots so repeated FTS retrieval is deterministic without cached hit reuse.
 2. Canonical demo-path step advanced: `retrieve relevant material`. Keep SQLite FTS authoritative for excerpt lookup, reject non-FTS excerpt normalization, preserve ranked IDs, document identities, confidentiality profiles, section hints, and excerpt provenance.
-3. Canonical demo-path step advanced: `retrieve relevant material`; supports `promote or gather context into the basket`. Preserve basket-promotion refs, stable text item IDs, citation refs, provenance fingerprints, source/context bundles, excerpt text, title hints, query context, date-range context, query fingerprints, and result fingerprints during sparse payload, provenance, citation, and context-bundle reconstruction so retrieved material stays stable for downstream basket gathering, including sparse excerpt promotion refs that omit `item_id`.
+3. Canonical demo-path step advanced: `retrieve relevant material`; supports `promote or gather context into the basket`. Preserve basket-promotion refs, stable text item IDs, citation refs, provenance fingerprints, source/context bundles, excerpt text, title hints, normalized loose query snapshots, date-range context, query fingerprints, and result fingerprints during sparse payload, provenance, citation, and context-bundle reconstruction so retrieved material stays stable for downstream basket gathering, including sparse excerpt promotion refs that omit `item_id`.
 4. Canonical demo-path step advanced: `retrieve relevant material`; supports `promote or gather context into the basket`. Harden cache invalidation and fallback reconstruction for document updates, sparse direct context snapshots, and generic context-bundle helpers while keeping PageIndex and embeddings fallback-only. Identical queries after `add_or_update_document` now retrieve updated FTS material rather than stale cached excerpts.
 
 ## Canonical Demo Path
@@ -59,7 +60,7 @@ Complete source/test implementation files for `fd2ab6ca65ec2f93d1334c9b7df851243
 - `tests/unit/test_unified_retrieval.py` - shared-by-approval regression coverage for the canonical retrieval contract; maps to `retrieve relevant material` and `promote or gather context into the basket`.
 - `THREAD_PACKET.md` - authoritative handoff packet required by `INTEGRATION.md`.
 
-Source/test implementation stat for `fd2ab6ca65ec2f93d1334c9b7df8512439725be4..HEAD`: `5 files changed, 357 insertions(+), 96 deletions(-)`.
+Source/test implementation stat for `fd2ab6ca65ec2f93d1334c9b7df8512439725be4..HEAD`: `5 files changed, 373 insertions(+), 97 deletions(-)`.
 
 Reviewer-required supplemental source/test implementation stat for `adfa8cdadd43747ffbcb612e4151e262b13e52ca..e99593b66e`: `5 files changed, 424 insertions(+), 84 deletions(-)`.
 
@@ -69,7 +70,8 @@ Post-`adfa8cdadd43747ffbcb612e4151e262b13e52ca` commit classification for the ac
 - `c2741f8e5` is the reviewer-cited post-`adfa8cdadd43747ffbcb612e4151e262b13e52ca` implementation/test commit and remains included in the reviewed candidate.
 - Packet-only commits from `e99593b66e` through the pre-fixer tip, plus `e6f04ffa4dc0a5106e44caf40527eeb47f7e3e17..4f6c5646eeacecfbbfa25a72d90435e895792a39`, are metadata-only because their effective diff is limited to `THREAD_PACKET.md` and locked `.codex` packet mirrors.
 - Any transient post-`adfa8cdadd43747ffbcb612e4151e262b13e52ca` packet-tooling changes are absent from the actual reviewed candidate; `git diff --name-status fd2ab6ca65ec2f93d1334c9b7df8512439725be4..HEAD` contains no `codex_packet_handoff/**` or `tests/unit/test_packet_planner.py` entries.
-- The current `4f6c5646eeacecfbbfa25a72d90435e895792a39..HEAD` required-fixes delta is packet metadata only.
+- The prior `4f6c5646eeacecfbbfa25a72d90435e895792a39..d070ec12fb796af2a582e03ac73c34b33c3855d5` required-fixes delta is packet metadata only.
+- The current `d070ec12fb796af2a582e03ac73c34b33c3855d5..HEAD` feature-lane delta is retrieval implementation plus packet metadata. It normalizes sparse source-bundle query snapshots in `src/qual/engine/retrieval/payload.py` and updates this handoff packet.
 
 Prior packet-metadata refresh delta for `e99593b66e..28b0309be1fb348aaf0e61daf6b9214600c26bee`: packet metadata only; no source/test implementation files.
 
@@ -79,7 +81,9 @@ Prior fixer packet-metadata delta for `a12ff6ce00468b15876cdda70eb722da218e4d66.
 
 Prior fixer packet-metadata delta for `e6f04ffa4dc0a5106e44caf40527eeb47f7e3e17..4f6c5646eeacecfbbfa25a72d90435e895792a39`: packet metadata only; no source/test implementation files.
 
-Current required-fixes packet delta for `4f6c5646eeacecfbbfa25a72d90435e895792a39..HEAD`: packet metadata only; no source/test implementation files.
+Prior required-fixes packet delta for `4f6c5646eeacecfbbfa25a72d90435e895792a39..d070ec12fb796af2a582e03ac73c34b33c3855d5`: packet metadata only; no source/test implementation files.
+
+Current feature-lane delta for `d070ec12fb796af2a582e03ac73c34b33c3855d5..HEAD`: retrieval implementation and packet metadata; source/test implementation files are limited to `src/qual/engine/retrieval/payload.py`.
 
 Lane-owned source/test files in the reviewed candidate:
 
@@ -123,7 +127,7 @@ Merge-conflict resolution status for this required-fixes pass:
 
 - Task budget: `4/4` high-risk tasks.
 - File budget: `5/8` high-risk source/test files plus packet metadata files.
-- Net LOC budget: source/test implementation changes are `5 files changed, 357 insertions(+), 96 deletions(-)`, or +261 net LOC, which remains within the `<=300` high-risk net LOC limit. Packet metadata is accounted separately.
+- Net LOC budget: source/test implementation changes are `5 files changed, 373 insertions(+), 97 deletions(-)`, or +276 net LOC, which remains within the `<=300` high-risk net LOC limit. Packet metadata is accounted separately.
 - Size exception required: none.
 - Shared-by-approval files: `tests/unit/test_unified_retrieval.py` only.
 - Integrator-locked files: none.
@@ -141,6 +145,7 @@ Merge-conflict resolution status for this required-fixes pass:
 
 Required gates re-run for this corrected actual-tip merge candidate:
 
+- `python -m compileall -q src/qual/engine/retrieval/payload.py` PASS.
 - `make scope-check` PASS for branch `codex/feat-retrieval-fts`.
 - `./quality-format.sh --check` PASS.
 - `./quality-lint.sh` PASS.

@@ -243,14 +243,29 @@ def _normalize_query_snapshot(query: object) -> dict[str, object]:
     if not isinstance(query, dict):
         return {}
     normalized = copy.deepcopy(query)
+    query_text = _normalize_optional_text(normalized.get("query_text"))
+    if query_text is not None:
+        normalized["query_text"] = " ".join(query_text.split())
+    scope = _normalize_optional_text(normalized.get("scope"))
+    if scope is not None:
+        normalized["scope"] = " ".join(scope.split())
+    intent = _normalize_optional_text(normalized.get("intent"))
+    if intent is not None:
+        normalized["intent"] = intent.casefold()
+    confidentiality_profile = _normalize_optional_text(normalized.get("confidentiality_profile"))
+    if confidentiality_profile is not None:
+        normalized["confidentiality_profile"] = confidentiality_profile.casefold()
     constraints = normalized.get("constraints", {})
     if not isinstance(constraints, dict):
         constraints = {}
     else:
         constraints = copy.deepcopy(constraints)
-    constraints["doc_types"] = _normalize_list_like(constraints.get("doc_types"))
+    constraints["max_results"] = _normalize_query_max_results(constraints.get("max_results"))
+    constraints["doc_types"] = _canonical_query_doc_types(constraints.get("doc_types"))
     constraints["date_range"] = _normalize_optional_list_like(constraints.get("date_range"))
+    constraints["require_citations"] = _normalize_query_bool(constraints.get("require_citations"))
     constraints["section_hint"] = _normalize_optional_text(constraints.get("section_hint"))
+    constraints["prefer_exact_matches"] = _normalize_query_bool(constraints.get("prefer_exact_matches"))
     normalized["constraints"] = constraints
     return normalized
 
