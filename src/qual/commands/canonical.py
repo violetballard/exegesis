@@ -18,6 +18,7 @@ from src.qual.commands.catalog import (
     command_mvp_demo_action_demo_path_step as _action_demo_path_step,
     command_mvp_demo_action_flow_lookup_table as _action_flow_lookup_table,
     command_mvp_demo_action_flow_step as _action_flow_step,
+    command_mvp_demo_engine_actions as _demo_engine_actions,
     command_mvp_demo_command_action_lookup_table as _command_action_lookup_table,
     command_mvp_demo_readiness_action_line_lookup_table as _readiness_action_line_lookup_table,
     command_mvp_demo_readiness_action_argv_lookup_table as _readiness_action_argv_lookup_table,
@@ -71,6 +72,7 @@ __all__ = [
     "canonical_command_demo_smoke_cli_lines",
     "canonical_command_demo_smoke_cli_lookup_table",
     "canonical_command_demo_smoke_cli_summary",
+    "canonical_command_demo_engine_actions",
     "canonical_command_demo_path_step_for_argv",
     "canonical_command_argv",
     "canonical_command_argv_for_demo_path_step",
@@ -205,6 +207,10 @@ def canonical_command_action_line_lookup_table() -> tuple[tuple[str, str], ...]:
 
 def canonical_command_action_lookup_table() -> tuple[tuple[str, tuple[str, ...]], ...]:
     return _command_action_lookup_table()
+
+
+def canonical_command_demo_engine_actions() -> tuple[str, ...]:
+    return _demo_engine_actions()
 
 
 def canonical_command_action_flow_lookup_table() -> tuple[tuple[str, str], ...]:

@@ -1798,6 +1798,12 @@ def command_demo_action_lookup_table(
     return tuple((entry.engine_action, entry.name) for entry in command_demo_action_contract(specs).entries)
 
 
+def command_demo_engine_actions(
+    specs: tuple[CommandSpec, ...] = COMMAND_SPECS,
+) -> tuple[str, ...]:
+    return tuple(entry.engine_action for entry in command_demo_action_contract(specs).entries)
+
+
 def command_demo_action_flow_lookup_table(
     specs: tuple[CommandSpec, ...] = COMMAND_SPECS,
 ) -> tuple[tuple[str, str], ...]:
@@ -3121,6 +3127,12 @@ def command_mvp_demo_action_lookup_table(
     specs: tuple[CommandSpec, ...] = COMMAND_SPECS,
 ) -> tuple[tuple[str, str], ...]:
     return command_demo_action_lookup_table(specs)
+
+
+def command_mvp_demo_engine_actions(
+    specs: tuple[CommandSpec, ...] = COMMAND_SPECS,
+) -> tuple[str, ...]:
+    return command_demo_engine_actions(specs)
 
 
 def command_mvp_demo_action_flow_lookup_table(
