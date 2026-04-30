@@ -36,6 +36,7 @@ CURSOR_FILE = ROUTER_ROOT / "cursor.json"
 LEASE_FILE = ROUTER_ROOT / "lease.json"
 REPO_ROOT = Path(__file__).resolve().parents[2]
 COORD_STATE_FILE = REPO_ROOT / ".codex/packet_coordinator/state.json"
+FEATURE_RUNNER_STATE_FILE = REPO_ROOT / ".codex/feature_runner/state.json"
 LOCAL_CLI_WORKER = Path(__file__).resolve().with_name("local_cli_worker.py")
 LOCAL_JOB_ROOT = ROUTER_ROOT / "local_jobs"
 
@@ -121,6 +122,7 @@ class RouterConfig:
     profiles: Dict[str, "LaunchProfile"]
     role_profiles: Dict[str, str]
     lanes: Dict[str, Dict[str, Any]]
+    max_total_local_lms_jobs: int = 1
 
 
 @dataclass
@@ -267,6 +269,7 @@ def load_cfg() -> RouterConfig:
         max_local_fixer_kicks_per_run=int(cfg.get("max_local_fixer_kicks_per_run", 1)),
         max_cloud_fixer_jobs=int(cfg.get("max_cloud_fixer_jobs", 2)),
         max_local_fixer_jobs=int(cfg.get("max_local_fixer_jobs", 2)),
+        max_total_local_lms_jobs=int(cfg.get("max_total_local_lms_jobs", 1)),
         prefer_cli_fixer=bool(cfg.get("prefer_cli_fixer", True)),
         prefer_cli_reviewer=bool(cfg.get("prefer_cli_reviewer", True)),
         prefer_cli_integrator=bool(cfg.get("prefer_cli_integrator", True)),
@@ -879,6 +882,38 @@ def _count_active_pid_jobs(job_map: Dict[str, Dict[str, Any]], *, local: Optiona
     return active
 
 
+def _count_active_feature_local_jobs() -> int:
+    feature_state = load_json(FEATURE_RUNNER_STATE_FILE, {})
+    lanes = feature_state.get("lanes") if isinstance(feature_state, dict) else {}
+    if not isinstance(lanes, dict):
+        return 0
+    active = 0
+    for lane_state in lanes.values():
+        if not isinstance(lane_state, dict):
+            continue
+        if str(lane_state.get("mode") or "") != "local_fallback":
+            continue
+        pid = int(lane_state.get("pid") or 0)
+        if _pid_alive(pid):
+            active += 1
+    return active
+
+
+def _count_active_local_lms_jobs(state: Dict[str, Any]) -> int:
+    active = _count_active_feature_local_jobs()
+    active += _count_active_local_jobs(_local_job_map(state, "local_reviewer_jobs"))
+    active += _count_active_local_jobs(_local_job_map(state, "local_integrator_jobs"))
+    active += _count_active_pid_jobs(_local_job_map(state, "fixer_fallback_jobs"), local=True)
+    return active
+
+
+def _local_lms_slot_available(cfg: RouterConfig, state: Dict[str, Any]) -> bool:
+    cap = int(getattr(cfg, "max_total_local_lms_jobs", 1) or 0)
+    if cap <= 0:
+        return True
+    return _count_active_local_lms_jobs(state) < cap
+
+
 def _build_cli_exec_cmd(
     profile: LaunchProfile,
     *,
@@ -1068,6 +1103,9 @@ def _prepare_local_reviewer_result(
     if _count_active_local_jobs(jobs) >= LOCAL_REVIEWER_MAX_ACTIVE:
         state["local_reviewer_jobs"] = jobs
         return False, "", state
+    if not _local_lms_slot_available(cfg, state):
+        state["local_reviewer_jobs"] = jobs
+        return False, "", state
 
     jobs[lane] = _spawn_detached_local_cli_job(
         role="reviewer",
@@ -1123,6 +1161,9 @@ def _prepare_local_integrator_result(
         state["local_integrator_retry_ts"] = retry_ts
         return False, "", state
     if _count_active_local_jobs(jobs) >= LOCAL_INTEGRATOR_MAX_ACTIVE:
+        state["local_integrator_jobs"] = jobs
+        return False, "", state
+    if not _local_lms_slot_available(cfg, state):
         state["local_integrator_jobs"] = jobs
         return False, "", state
 
@@ -1275,6 +1316,9 @@ def _prepare_cli_integrator_result(
         state[retry_key] = retry_ts
         return False, "", state
     if _count_active_local_jobs(jobs) >= max_active:
+        state[jobs_key] = jobs
+        return False, "", state
+    if local and not _local_lms_slot_available(cfg, state):
         state[jobs_key] = jobs
         return False, "", state
 
@@ -1431,6 +1475,10 @@ def run_fixer(
             pass
 
     # Fallback: detached CLI fixer so router ticks don't deadlock on MCP stalls.
+    if runtime_local and not _local_lms_slot_available(cfg, state):
+        print(f"[router] local fixer for {lane} deferred; LMS local job cap reached")
+        return state
+
     prof = _profile_for_role(cfg, "fixer", local=runtime_local, lane=lane)
     logs = ROUTER_ROOT / "logs"
     logs.mkdir(parents=True, exist_ok=True)

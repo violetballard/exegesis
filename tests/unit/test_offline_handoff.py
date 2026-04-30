@@ -221,6 +221,73 @@ class LocalFallbackDetachedJobTests(unittest.TestCase):
         self.assertEqual(new_state["local_reviewer_jobs"]["feat-commands"]["packet_name"], pkt.name)
         archive_mock.assert_not_called()
 
+    def test_process_once_defers_local_reviewer_when_global_lms_cap_reached(self) -> None:
+        with tempfile.TemporaryDirectory() as tmp:
+            root = Path(tmp)
+            lane_dir = root / "lane"
+            pkt = lane_dir / "inbox" / "feature" / "F__codex-feat-commands__abc1234__20260328T000000Z.md"
+            pkt.parent.mkdir(parents=True, exist_ok=True)
+            pkt.write_text("Feature packet body\n", encoding="utf-8")
+            feature_state = root / "feature_state.json"
+            feature_state.write_text(
+                json.dumps(
+                    {
+                        "lanes": {
+                            "feat-context-storage": {
+                                "mode": "local_fallback",
+                                "status": "direct_exec_running",
+                                "pid": 999,
+                            }
+                        }
+                    }
+                ),
+                encoding="utf-8",
+            )
+
+            cfg = SimpleNamespace(
+                lanes={"feat-commands": {}},
+                max_packets_per_run=1,
+                max_total_local_lms_jobs=1,
+                auto_switch_to_local_on_quota=True,
+                reviewer_timeout=30,
+                integrator_timeout=30,
+                inline_fixer=False,
+                prefer_cli_reviewer=True,
+                prefer_cli_integrator=True,
+            )
+            state = {"runtime_mode": "local_fallback"}
+            real_load_json = router.load_json
+
+            def fake_load_json(path, default=None):
+                if Path(path) == feature_state:
+                    return real_load_json(path, default)
+                return {}
+
+            with (
+                patch.object(router, "FEATURE_RUNNER_STATE_FILE", feature_state),
+                patch.object(router, "ensure_lane_dirs", return_value=lane_dir),
+                patch.object(router, "list_new", return_value=[pkt]),
+                patch.object(router, "load_json", side_effect=fake_load_json),
+                patch.object(router, "save_json"),
+                patch.object(router, "_maybe_restore_cloud", side_effect=lambda cfg, state, cwd: state),
+                patch.object(router, "_runtime_mode", return_value="local_fallback"),
+                patch.object(router, "_pid_alive", side_effect=lambda pid: pid == 999),
+                patch.object(router, "_spawn_detached_local_cli_job") as spawn_mock,
+            ):
+                processed, new_state, _reviewer_threads, _integrator_tid = router.process_once(
+                    SimpleNamespace(),
+                    SimpleNamespace(),
+                    cfg,
+                    state,
+                    "/repo",
+                    {},
+                    "",
+                )
+
+        self.assertEqual(processed, 0)
+        self.assertEqual(new_state.get("local_reviewer_jobs"), {})
+        spawn_mock.assert_not_called()
+
     def test_process_once_completes_detached_local_reviewer_job_on_later_tick(self) -> None:
         with tempfile.TemporaryDirectory() as tmp:
             lane_dir = Path(tmp)

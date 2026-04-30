@@ -19,9 +19,9 @@ class LocalExecSweeperTests(unittest.TestCase):
             foreign_prompt.write_text("prompt", encoding="utf-8")
             ps_output = "\n".join(
                 [
-                    f"101 /Applications/Codex.app/Contents/Resources/codex --oss --local-provider lmstudio exec --skip-git-repo-check -m gpt-oss-120b -s workspace-write Read and follow the exact instructions in {owned_prompt}. Treat that file as the full user prompt and obey it completely.",
-                    "202 /Applications/Codex.app/Contents/Resources/codex --oss --local-provider lmstudio exec --skip-git-repo-check -m gpt-oss-20b -s workspace-write -",
-                    "303 /Applications/Codex.app/Contents/Resources/codex exec hello",
+                    f"101 77 101 /Applications/Codex.app/Contents/Resources/codex --oss --local-provider lmstudio exec --skip-git-repo-check -m gpt-oss-120b -s workspace-write Read and follow the exact instructions in {owned_prompt}. Treat that file as the full user prompt and obey it completely.",
+                    "202 77 202 /Applications/Codex.app/Contents/Resources/codex --oss --local-provider lmstudio exec --skip-git-repo-check -m gpt-oss-20b -s workspace-write -",
+                    "303 77 303 /Applications/Codex.app/Contents/Resources/codex exec hello",
                 ]
             )
 
@@ -38,6 +38,31 @@ class LocalExecSweeperTests(unittest.TestCase):
                 orphaned = local_exec_sweeper.find_orphaned_repo_local_exec_pids(repo_root, tracked_pids=[303])
 
         self.assertEqual(orphaned, [101])
+
+    def test_find_stale_repo_local_exec_pids_includes_tracked_reparented_jobs(self) -> None:
+        with tempfile.TemporaryDirectory() as tmp:
+            repo_root = Path(tmp)
+            (repo_root / ".codex/packet_router/logs").mkdir(parents=True, exist_ok=True)
+            prompt = repo_root / ".codex/packet_router/logs" / "fixer.prompt.txt"
+            prompt.write_text("prompt", encoding="utf-8")
+            ps_output = "\n".join(
+                [
+                    f"101 1 101 /Applications/Codex.app/Contents/Resources/codex --oss --local-provider lmstudio exec --skip-git-repo-check -m gpt-oss-120b -s workspace-write Read and follow the exact instructions in {prompt}.",
+                    f"202 77 202 /Applications/Codex.app/Contents/Resources/codex --oss --local-provider lmstudio exec --skip-git-repo-check -m gpt-oss-120b -s workspace-write Read and follow the exact instructions in {prompt}.",
+                ]
+            )
+
+            def fake_run(args, **kwargs):
+                if args[:2] == ["ps", "-axo"]:
+                    return mock.Mock(returncode=0, stdout=ps_output)
+                if args[:3] == ["lsof", "-a", "-p"]:
+                    return mock.Mock(returncode=0, stdout=f"p{args[3]}\nf0\nn{prompt}\n")
+                return mock.Mock(returncode=1, stdout="")
+
+            with mock.patch.object(local_exec_sweeper.subprocess, "run", side_effect=fake_run):
+                stale = local_exec_sweeper.find_stale_repo_local_exec_pids(repo_root, tracked_pids=[101, 202])
+
+        self.assertEqual(stale, [101])
 
     def test_find_stale_repo_test_runner_pids_filters_by_repo_cwd_and_age(self) -> None:
         with tempfile.TemporaryDirectory() as tmp:

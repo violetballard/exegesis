@@ -123,7 +123,8 @@ def write_example_config():
         "cloud_probe_timeout_seconds": 30,
         "feature_launch_timeout_seconds": 300,
         "max_parallel_feature_lanes_cloud": 2,
-        "max_parallel_feature_lanes_local": 2,
+        "max_parallel_feature_lanes_local": 1,
+        "max_total_local_lms_jobs": 1,
         "prefer_direct_exec_feature_cloud": True,
         "prefer_cli_reviewer": True,
         "prefer_cli_integrator": True,
@@ -135,7 +136,7 @@ def write_example_config():
         "max_cloud_fixer_kicks_per_run": 1,
         "max_local_fixer_kicks_per_run": 1,
         "max_cloud_fixer_jobs": 2,
-        "max_local_fixer_jobs": 2,
+        "max_local_fixer_jobs": 1,
         "lanes": lanes_cfg,
         "planner": {
             "base_ref": "codex/integrator",

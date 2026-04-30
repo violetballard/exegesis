@@ -178,7 +178,7 @@ def _is_repo_or_managed_worktree_cwd(repo_root: Path, cwd_path: str) -> bool:
 def find_repo_owned_local_exec_processes(repo_root: Path) -> Dict[int, Dict[str, str]]:
     try:
         proc = subprocess.run(
-            ["ps", "-axo", "pid=,command="],
+            ["ps", "-axo", "pid=,ppid=,pgid=,command="],
             stdout=subprocess.PIPE,
             stderr=subprocess.DEVNULL,
             text=True,
@@ -194,11 +194,13 @@ def find_repo_owned_local_exec_processes(repo_root: Path) -> Dict[int, Dict[str,
         row = raw.strip()
         if not row:
             continue
-        parts = row.split(None, 1)
-        if len(parts) != 2 or not parts[0].isdigit():
+        parts = row.split(None, 3)
+        if len(parts) != 4 or not parts[0].isdigit():
             continue
         pid = int(parts[0])
-        cmd = parts[1]
+        ppid = parts[1]
+        pgid = parts[2]
+        cmd = parts[3]
         if pid == os.getpid():
             continue
         if not CODEX_EXEC_RE.search(cmd):
@@ -211,8 +213,17 @@ def find_repo_owned_local_exec_processes(repo_root: Path) -> Dict[int, Dict[str,
             or _is_repo_owned_prompt_reference(repo_root, cmd)
         ):
             continue
-        owned[pid] = {"command": cmd, "stdin_path": stdin_path}
+        owned[pid] = {
+            "command": cmd,
+            "stdin_path": stdin_path,
+            "ppid": ppid,
+            "pgid": pgid,
+        }
     return owned
+
+
+def find_repo_owned_local_exec_pids(repo_root: Path) -> List[int]:
+    return sorted(find_repo_owned_local_exec_processes(repo_root))
 
 
 def find_stale_repo_test_runner_pids(repo_root: Path, tracked_pids: Iterable[int]) -> List[int]:
@@ -267,12 +278,39 @@ def find_orphaned_repo_local_exec_pids(repo_root: Path, tracked_pids: Iterable[i
     return sorted(pid for pid in owned if pid not in tracked)
 
 
+def find_stale_repo_local_exec_pids(repo_root: Path, tracked_pids: Iterable[int]) -> List[int]:
+    """Find repo-owned local Codex execs that should not keep consuming LMS slots.
+
+    A tracked local exec whose parent has become PID 1 is stale for this daemon:
+    it can keep a prompt queued in LM Studio while router/feature state still
+    prevents the older orphan-only sweep from touching it.
+    """
+    tracked = {int(pid) for pid in tracked_pids if int(pid) > 0}
+    owned = find_repo_owned_local_exec_processes(repo_root)
+    stale: List[int] = []
+    for pid, meta in owned.items():
+        try:
+            ppid = int(meta.get("ppid") or 0)
+        except ValueError:
+            ppid = 0
+        if pid not in tracked or ppid == 1:
+            stale.append(pid)
+    return sorted(stale)
+
+
 def terminate_local_exec_pids(pids: Iterable[int], *, grace_seconds: float = 1.0) -> List[int]:
     target_pids = sorted({int(pid) for pid in pids if int(pid) > 0})
     terminated: List[int] = []
     for pid in target_pids:
         try:
-            os.kill(pid, signal.SIGTERM)
+            pgid = os.getpgid(pid)
+        except OSError:
+            pgid = 0
+        try:
+            if pgid > 0 and pgid != os.getpgrp():
+                os.killpg(pgid, signal.SIGTERM)
+            else:
+                os.kill(pid, signal.SIGTERM)
             terminated.append(pid)
         except OSError:
             continue
@@ -286,7 +324,14 @@ def terminate_local_exec_pids(pids: Iterable[int], *, grace_seconds: float = 1.0
         if not _pid_alive(pid):
             continue
         try:
-            os.kill(pid, signal.SIGKILL)
+            pgid = os.getpgid(pid)
+        except OSError:
+            pgid = 0
+        try:
+            if pgid > 0 and pgid != os.getpgrp():
+                os.killpg(pgid, signal.SIGKILL)
+            else:
+                os.kill(pid, signal.SIGKILL)
         except OSError:
             pass
     return terminated

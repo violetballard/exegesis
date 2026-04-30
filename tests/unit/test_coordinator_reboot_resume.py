@@ -357,7 +357,7 @@ class CoordinatorRebootResumeTests(unittest.TestCase):
                     "stale_commit_locks_removed": [],
                     "stale_worktree_index_locks_removed": [],
                 }),
-                patch.object(coordinator, "find_orphaned_repo_local_exec_pids", return_value=[111, 222]),
+                patch.object(coordinator, "find_stale_repo_local_exec_pids", return_value=[111, 222]),
                 patch.object(coordinator, "terminate_local_exec_pids", return_value=[111, 222]) as terminate_mock,
                 patch.object(coordinator, "find_stale_repo_test_runner_pids", return_value=[]),
             ):
@@ -395,7 +395,7 @@ class CoordinatorRebootResumeTests(unittest.TestCase):
                     "stale_commit_locks_removed": [],
                     "stale_worktree_index_locks_removed": [],
                 }),
-                patch.object(coordinator, "find_orphaned_repo_local_exec_pids", return_value=[]),
+                patch.object(coordinator, "find_stale_repo_local_exec_pids", return_value=[]),
                 patch.object(coordinator, "find_stale_repo_test_runner_pids", return_value=[333, 444]),
                 patch.object(coordinator, "terminate_process_groups", return_value=[333, 444]) as terminate_mock,
             ):

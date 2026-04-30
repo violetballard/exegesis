@@ -24,7 +24,8 @@ try:
     from git_ops import run_git
     from git_hygiene import run_hygiene
     from local_exec_sweeper import (
-        find_orphaned_repo_local_exec_pids,
+        find_repo_owned_local_exec_pids,
+        find_stale_repo_local_exec_pids,
         find_stale_repo_test_runner_pids,
         terminate_local_exec_pids,
         terminate_process_groups,
@@ -33,7 +34,8 @@ except ImportError:  # pragma: no cover - package execution fallback
     from .git_ops import run_git
     from .git_hygiene import run_hygiene
     from .local_exec_sweeper import (
-        find_orphaned_repo_local_exec_pids,
+        find_repo_owned_local_exec_pids,
+        find_stale_repo_local_exec_pids,
         find_stale_repo_test_runner_pids,
         terminate_local_exec_pids,
         terminate_process_groups,
@@ -655,7 +657,7 @@ def _tracked_local_exec_pids() -> List[int]:
 
 
 def _reconcile_orphan_local_exec_processes() -> List[int]:
-    orphaned = find_orphaned_repo_local_exec_pids(REPO_ROOT, _tracked_local_exec_pids())
+    orphaned = find_stale_repo_local_exec_pids(REPO_ROOT, _tracked_local_exec_pids())
     if orphaned:
         terminate_local_exec_pids(orphaned)
     return orphaned
@@ -1427,6 +1429,19 @@ def _lane_has_active_feature_session(
     return False
 
 
+def _local_lms_feature_launch_slots() -> int:
+    router_state = load_json(ROUTER_STATE_FILE, {})
+    router_cfg = load_json(ROUTER_CONFIG_FILE, {})
+    mode = str(router_state.get("runtime_mode") or router_cfg.get("runtime_mode_default") or "cloud_primary")
+    if mode != "local_fallback":
+        return 999999
+    cap = int(router_cfg.get("max_total_local_lms_jobs", 1) or 1)
+    if cap <= 0:
+        return 999999
+    active = len(find_repo_owned_local_exec_pids(REPO_ROOT))
+    return max(0, cap - active)
+
+
 def _launch_free_lanes(state_doc: Dict[str, object]) -> List[str]:
     lane_refill = state_doc.setdefault("lane_refill", {})
     if not isinstance(lane_refill, dict):
@@ -1471,6 +1486,12 @@ def _launch_free_lanes(state_doc: Dict[str, object]) -> List[str]:
 
     if not to_launch:
         return []
+
+    slots = _local_lms_feature_launch_slots()
+    if slots <= 0:
+        print("[coordinator] local LMS job cap reached; deferring feature lane launch")
+        return []
+    to_launch = to_launch[:slots]
 
     rc, out = run_cmd(LAUNCH_FEATURE_LANES_CMD + ["--lanes", *to_launch])
     if rc != 0:
