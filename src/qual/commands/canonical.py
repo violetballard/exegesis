@@ -43,7 +43,9 @@ from src.qual.commands.catalog import (
     command_mvp_demo_command_action_lookup_table as _command_action_lookup_table,
     command_mvp_demo_readiness_action_line_lookup_table as _readiness_action_line_lookup_table,
     command_mvp_demo_readiness_action_argv_lookup_table as _readiness_action_argv_lookup_table,
+    command_mvp_demo_readiness_action_entries_for_argv as _readiness_action_entries_for_argv,
     command_mvp_demo_readiness_action_entry as _readiness_action_entry,
+    command_mvp_demo_readiness_action_lines_for_argv as _readiness_action_lines_for_argv,
     command_mvp_demo_readiness_action_smoke_summary as _readiness_action_smoke_summary,
     command_mvp_demo_readiness_action_summary as _readiness_action_summary,
     command_mvp_demo_readiness_gate as _readiness_gate,
@@ -78,6 +80,7 @@ from src.qual.commands.catalog import (
     command_mvp_demo_readiness_flow_step_for_command as _readiness_flow_step_for_command,
     command_mvp_demo_readiness_flow_step_for_demo_path_step as _readiness_flow_step_for_demo_path_step,
     command_mvp_demo_readiness_flow_step_for_argv as _readiness_flow_step_for_argv,
+    command_mvp_demo_readiness_engine_action_matches_for_argv as _readiness_engine_action_matches_for_argv,
     command_mvp_demo_readiness_argv_for_argv as _readiness_argv_for_argv,
     command_mvp_demo_readiness_line_for_argv as _readiness_line_for_argv,
     command_mvp_demo_readiness_line_for_command as _readiness_line_for_command,
@@ -120,7 +123,10 @@ __all__ = [
     "canonical_command_readiness_smoke_plan_summary",
     "canonical_command_require_readiness_complete",
     "canonical_command_action_line_lookup_table",
+    "canonical_command_action_lines_for_argv",
+    "canonical_command_action_readiness_entries_for_argv",
     "canonical_command_action_smoke_summary",
+    "canonical_command_engine_action_matches_for_argv",
     "canonical_command_readiness_is_complete",
     "canonical_command_readiness_missing_engine_actions",
     "canonical_command_action_flow_lookup_table",
@@ -353,6 +359,20 @@ def canonical_command_action_readiness_entry(
     engine_action: str,
 ) -> CommandDemoReadinessActionEntry | None:
     return canonical_command_action_readiness_entry_for_engine_action(engine_action)
+
+
+def canonical_command_action_readiness_entries_for_argv(
+    argv: Sequence[str] | str,
+) -> tuple[CommandDemoReadinessActionEntry, ...]:
+    return _readiness_action_entries_for_argv(argv)
+
+
+def canonical_command_engine_action_matches_for_argv(argv: Sequence[str] | str) -> tuple[str, ...]:
+    return _readiness_engine_action_matches_for_argv(argv)
+
+
+def canonical_command_action_lines_for_argv(argv: Sequence[str] | str) -> tuple[tuple[str, str], ...]:
+    return _readiness_action_lines_for_argv(argv)
 
 
 def canonical_command_readiness_entry_for_engine_action(
