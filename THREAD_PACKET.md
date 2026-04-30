@@ -5,7 +5,9 @@
 - Merge target: current `main`
 - Reviewed implementation range: `378cf9a74a3658058079a32f186fcd254c4a4034..cc084f05c58c8c3c0613dded69109fdf7ce03708`
 - Reviewed implementation head: `cc084f05c58c8c3c0613dded69109fdf7ce03708`
-- Final branch tip: reported in the fixer deliverable after this packet commit is created.
+- Authoritative merge/review range: `378cf9a74a3658058079a32f186fcd254c4a4034..FINAL_HEAD_SHA_REPORTED_BY_FIXER_DELIVERABLE`
+- Pre-fix packet refresh tip: `abb10fbbd` (`THREAD_PACKET.md` only after `cc084f05c58c8c3c0613dded69109fdf7ce03708`).
+- Final branch tip: reported in the fixer deliverable after this packet commit is created; this packet commit is metadata-only.
 - Scope classification: high-risk because this branch-tip packet includes approved shared regression coverage in `tests/unit/test_unified_retrieval.py`.
 - Packet type: branch-tip re-review packet for the FTS-first retrieval lane.
 
@@ -15,7 +17,9 @@ This packet has been regenerated for the actual branch-tip implementation range 
 
 The reviewed branch-tip work strengthens the active MVP target of FTS-first retrieval. SQLite FTS remains the canonical retrieval path; engine and service facades expose canonical query construction, `retrieve_auto`, and excerpt lookup; retrieval payload snapshots, sparse source/context bundles, provenance, fingerprints, and basket-promotion references are normalized deterministically for downstream engine flows; and PageIndex-only excerpt IDs fail closed instead of backfilling through non-FTS paths.
 
-Canonical demo-path step advanced: this makes `retrieve relevant material` more real by ensuring the demo path gathers relevant material through the canonical FTS-first retrieval surface with stable provenance, excerpt lookup, and context-promotion metadata. Basket promotion/gathering is represented only as retrieval-owned payload/context metadata in this branch-tip packet; Textual console work remains out of scope.
+Canonical demo-path step advanced: this makes `retrieve relevant material` and `promote/gather context into the basket` more real by returning deterministic FTS-backed excerpts, provenance, and retrieval-owned context references suitable for basket promotion. Basket promotion/gathering is represented only as retrieval-owned payload/context metadata in this branch-tip packet; Textual console work remains out of scope.
+
+Packet mirror note: `.codex/kickoff_packets/feat-retrieval-fts.md` and `.codex/lane_meta/feat-retrieval-fts.json` still contain older packet text in this sandbox, but attempts to edit them in this fixer pass were rejected as outside the writable project boundary. Treat this writable `THREAD_PACKET.md` plus the final fixer deliverable as the authoritative handoff packet for this re-review.
 
 ## Tasks Completed
 
@@ -26,7 +30,7 @@ Canonical demo-path step advanced: this makes `retrieve relevant material` more 
 
 ## Canonical Demo Path
 
-- Primary canonical demo-path step advanced: `retrieve relevant material`.
+- Primary canonical demo-path step advanced: `retrieve relevant material` and `promote/gather context into the basket`.
 - AGENTS.md narrowing language: this work targets the active MVP note for `FTS-first retrieval`.
 - Basket promotion/gathering: limited to retrieval-owned payload/context metadata that supports later engine/demo gathering; no `feat-console` work is included.
 
@@ -54,6 +58,12 @@ Lane-owned source/test files in the reviewed implementation range:
 Shared-by-approval files in the reviewed implementation range:
 
 - `tests/unit/test_unified_retrieval.py`
+
+Out-of-lane tooling files in the reviewed implementation range:
+
+- None.
+- `codex_packet_handoff/tools/planner.py` is excluded from this retrieval handoff.
+- `tests/unit/test_packet_planner.py` is excluded from this retrieval handoff.
 
 Integrator-locked files in the reviewed implementation range:
 
