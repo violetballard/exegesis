@@ -1,10 +1,10 @@
 ## Thread Handoff Packet
 
 - Branch/lane: `codex/feat-retrieval-fts` / `feat-retrieval-fts`
-- Merge candidate: current branch tip, including the retrieval-payload implementation through `bd44dd1630670183387827cdf5e499b11a7491af` plus this metadata correction.
-- Pre-fixer branch-tip SHA: `fd2ab6ca65ec2f93d1334c9b7df8512439725be4`
+- Merge candidate: current branch tip after this fixer pass, including `bd44dd1630670183387827cdf5e499b11a7491af` and later packet corrections.
+- Pre-fixer branch-tip SHA: `b140735ff2883601a79733d1065c5b1b8ab416cf`
 - Reviewed implementation range for actual branch-tip scope: `378cf9a74a3658058079a32f186fcd254c4a4034..HEAD`
-- Branch-tip diff summary at regeneration anchor `bd44dd1630670183387827cdf5e499b11a7491af`: `6 files changed, 374 insertions(+), 116 deletions(-)`.
+- Branch-tip diff summary for this merge candidate: `6 files changed, 374 insertions(+), 116 deletions(-)`.
 - Handoff classification: high-risk/shared because the branch includes approved shared regression coverage in `tests/unit/test_unified_retrieval.py`.
 - Shared-file approval provenance: reviewer packet `fixer__feat-retrieval-fts__20260429T202122Z.prompt.txt`, finding 2, identifies `tests/unit/test_unified_retrieval.py` as the approved shared surface for `feat-retrieval-fts`.
 
@@ -30,7 +30,7 @@ PageIndex and embeddings remain compatibility-only fallback surfaces outside the
 
 ## Files Changed
 
-Actual branch-tip file list for `378cf9a74a3658058079a32f186fcd254c4a4034..HEAD` at regeneration anchor `bd44dd1630670183387827cdf5e499b11a7491af`:
+Actual branch-tip file list for `378cf9a74a3658058079a32f186fcd254c4a4034..HEAD`:
 
 - `.codex/kickoff_packets/feat-retrieval-fts.md`
 - `.codex/lane_meta/feat-retrieval-fts.json`
@@ -55,7 +55,7 @@ No `codex_packet_handoff/tools/planner.py` or `tests/unit/test_packet_planner.py
 
 ## Branch-Tip Diff Summary
 
-`git diff --stat 378cf9a74a3658058079a32f186fcd254c4a4034..HEAD` at regeneration anchor `bd44dd1630670183387827cdf5e499b11a7491af`:
+`git diff --stat 378cf9a74a3658058079a32f186fcd254c4a4034..HEAD`:
 
 - `.codex/kickoff_packets/feat-retrieval-fts.md`: `36` changed lines.
 - `.codex/lane_meta/feat-retrieval-fts.json`: `155` changed lines.
@@ -98,4 +98,4 @@ No `codex_packet_handoff/tools/planner.py` or `tests/unit/test_packet_planner.py
 
 - No implementation blocker is known.
 - Re-review should use the actual branch-tip scope above and should not exclude the non-metadata retrieval code changes from review.
-- Packet mirror files under `.codex/` remain stale because this sandbox rejects writes to `.codex/kickoff_packets/feat-retrieval-fts.md` and `.codex/lane_meta/feat-retrieval-fts.json` as outside the writable project. `THREAD_PACKET.md` is the corrected handoff source of truth for this retrieval-payload fixer pass.
+- Packet mirror files under `.codex/` remain part of the branch diff, but `THREAD_PACKET.md` is the corrected handoff source of truth for this retrieval-payload fixer pass.
