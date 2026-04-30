@@ -4,18 +4,18 @@
 - Lane: `feat-retrieval-fts`
 - Merge target: current `main`
 - Merge-base for re-review: `fd2ab6ca65ec2f93d1334c9b7df8512439725be4`
-- Pre-fixer branch tip under review: `39e12de630b493c200b6747e5b853d875c5b1d5f`
+- Pre-fixer branch tip under review: `8c838dda19a82f994864ea6cb5b31bcf46415971`
 - Final branch tip: reported in the fixer deliverable after this packet commit is created.
 - Authoritative reviewed range / complete merge candidate: `fd2ab6ca65ec2f93d1334c9b7df8512439725be4..HEAD`
 - Reviewer-reported stale reviewed range: `378cf9a74..adfa8cdadd43747ffbcb612e4151e262b13e52ca`
-- Reviewer-required supplemental implementation delta now covered by this packet: `adfa8cdadd43747ffbcb612e4151e262b13e52ca..39e12de630b493c200b6747e5b853d875c5b1d5f`
+- Reviewer-required supplemental implementation delta now covered by this packet: `adfa8cdadd43747ffbcb612e4151e262b13e52ca..8c838dda19a82f994864ea6cb5b31bcf46415971`
 - Scope classification: high-risk retrieval work because approved shared regression coverage in `tests/unit/test_unified_retrieval.py` is part of the reviewed candidate.
 
 ## Scope Completed
 
 This packet chooses the actual branch tip as the merge candidate. The approval target is the complete merge-base-to-HEAD range, not the stale `378cf9a74..adfa8cdadd43747ffbcb612e4151e262b13e52ca` slice and not a metadata-only refresh chain.
 
-The reviewer-cited `adfa8cdadd43747ffbcb612e4151e262b13e52ca..39e12de630b493c200b6747e5b853d875c5b1d5f` delta is intentionally included for re-review. It contains retrieval implementation and shared regression changes in:
+The reviewer-cited post-`adfa8cdadd43747ffbcb612e4151e262b13e52ca` delta is intentionally included for re-review when it modifies retrieval implementation and shared regression tests. Those changes are not classified as metadata-only. It contains retrieval implementation and shared regression changes in:
 
 - `src/qual/engine/retrieval/__init__.py`
 - `src/qual/engine/retrieval/fts_strategy.py`
@@ -52,7 +52,7 @@ Complete source/test implementation files for `fd2ab6ca65ec2f93d1334c9b7df851243
 
 Source/test implementation stat for `fd2ab6ca65ec2f93d1334c9b7df8512439725be4..HEAD`: `5 files changed, 313 insertions(+), 96 deletions(-)`.
 
-Reviewer-required supplemental source/test implementation stat for `adfa8cdadd43747ffbcb612e4151e262b13e52ca..39e12de630b493c200b6747e5b853d875c5b1d5f`: `5 files changed, 380 insertions(+), 84 deletions(-)`.
+Reviewer-required supplemental source/test implementation stat for `adfa8cdadd43747ffbcb612e4151e262b13e52ca..8c838dda19a82f994864ea6cb5b31bcf46415971`: `5 files changed, 380 insertions(+), 84 deletions(-)`.
 
 Lane-owned source/test files in the reviewed candidate:
 
@@ -76,7 +76,14 @@ Out-of-scope files absent from the reviewed candidate:
 - `src/qual/engine/retrieval/embeddings_strategy.py`
 - `src/qual/engine/retrieval/pageindex_strategy.py`
 
-Packet mirror files intentionally not updated in this fixer commit because this sandbox reports `Operation not permitted` when writing `.codex/kickoff_packets/feat-retrieval-fts.md` and `.codex/lane_meta/feat-retrieval-fts.json`. `THREAD_PACKET.md` is the authoritative handoff packet for this re-review.
+Packet mirror files could not be updated in this fixer commit because this sandbox returns `Operation not permitted` for writes under `.codex/kickoff_packets/` and `.codex/lane_meta/`. The stale `.codex` mirrors still refer to the older `adfa8cdadd43747ffbcb612e4151e262b13e52ca` boundary and must not be used for this re-review.
+
+Stale locked mirror paths:
+
+- `.codex/kickoff_packets/feat-retrieval-fts.md`
+- `.codex/lane_meta/feat-retrieval-fts.json`
+
+`THREAD_PACKET.md` is the authoritative handoff packet for this re-review.
 
 ## Budget/Risk
 
