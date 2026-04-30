@@ -66,13 +66,14 @@ Those paths are not present in `fd2ab6ca65ec2f93d1334c9b7df8512439725be4..5a8878
 - Shared-by-approval files: `tests/unit/test_unified_retrieval.py` only.
 - Integrator-locked files: none.
 - Routing/provider impact: none.
-- Approval note: shared regression coverage in `tests/unit/test_unified_retrieval.py` is approved for this lane because it exercises the canonical retrieval contract. The packet metadata file is required handoff documentation, not runtime scope.
+- Approval note: shared regression coverage in `tests/unit/test_unified_retrieval.py` is approved for this lane and applies to the full authoritative reviewed implementation range `fd2ab6ca65ec2f93d1334c9b7df8512439725be4..5a88788b77e5fa04eacd3f681047cfa72b4e6d37` because it exercises the canonical retrieval contract. The packet metadata file is required handoff documentation, not runtime scope.
 
 ## Roadmap/Vision
 
 - Roadmap item affected: `ROADMAP.md` MVP focus for FTS-first retrieval and Milestone 3 product-readiness provenance/output-contract work.
 - Vision capability affected: `PRODUCT_VISION.md` capability 2 Retrieval-first context handling and capability 6 Auditable state and workflow.
-- Canonical demo-path step made more real: `retrieve relevant material`, with basket/workflow promotion readiness through stable provenance and context refs.
+- Canonical demo-path step made more real: `retrieve relevant material`.
+- Canonical demo-path basket step made more real where structured payloads support it: `promote or gather context into the basket`, through stable provenance, source/context refs, citation refs, basket-promotion item refs, and deterministic payload reconstruction.
 - Proposed `README.md` patch text: none.
 
 ## Commands Run
