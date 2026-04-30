@@ -2546,6 +2546,70 @@ def command_demo_readiness_command_for_flow_step(
     return entry.name
 
 
+@lru_cache(maxsize=None)
+def command_demo_readiness_index_by_command(
+    specs: tuple[CommandSpec, ...] = COMMAND_SPECS,
+    launcher_argv: tuple[str, ...] = COMMAND_SMOKE_CLI_LAUNCHER_ARGV,
+) -> tuple[tuple[str, CommandDemoReadinessEntry], ...]:
+    return tuple(
+        (entry.name, entry)
+        for entry in command_demo_readiness_contract(specs, launcher_argv).entries
+    )
+
+
+@lru_cache(maxsize=None)
+def _command_demo_readiness_entry_for_command(
+    specs: tuple[CommandSpec, ...],
+    launcher_argv: tuple[str, ...],
+    command_name: str,
+) -> CommandDemoReadinessEntry | None:
+    requested_command = canonical_command_for(specs, command_name)
+    if not requested_command:
+        return None
+    return dict(command_demo_readiness_index_by_command(specs, launcher_argv)).get(requested_command)
+
+
+def command_demo_readiness_entry_for_command(
+    command_name: str,
+    specs: tuple[CommandSpec, ...] = COMMAND_SPECS,
+    launcher_argv: tuple[str, ...] = COMMAND_SMOKE_CLI_LAUNCHER_ARGV,
+) -> CommandDemoReadinessEntry | None:
+    return _command_demo_readiness_entry_for_command(specs, launcher_argv, command_name)
+
+
+def command_demo_readiness_argv_for_command(
+    command_name: str,
+    specs: tuple[CommandSpec, ...] = COMMAND_SPECS,
+    launcher_argv: tuple[str, ...] = COMMAND_SMOKE_CLI_LAUNCHER_ARGV,
+) -> tuple[str, ...]:
+    entry = command_demo_readiness_entry_for_command(command_name, specs, launcher_argv)
+    if entry is None:
+        return ()
+    return entry.command_argv
+
+
+def command_demo_readiness_flow_step_for_command(
+    command_name: str,
+    specs: tuple[CommandSpec, ...] = COMMAND_SPECS,
+    launcher_argv: tuple[str, ...] = COMMAND_SMOKE_CLI_LAUNCHER_ARGV,
+) -> str | None:
+    entry = command_demo_readiness_entry_for_command(command_name, specs, launcher_argv)
+    if entry is None:
+        return None
+    return entry.flow_step
+
+
+def command_demo_readiness_demo_path_step_for_command(
+    command_name: str,
+    specs: tuple[CommandSpec, ...] = COMMAND_SPECS,
+    launcher_argv: tuple[str, ...] = COMMAND_SMOKE_CLI_LAUNCHER_ARGV,
+) -> str | None:
+    entry = command_demo_readiness_entry_for_command(command_name, specs, launcher_argv)
+    if entry is None:
+        return None
+    return entry.demo_path_step
+
+
 def _normalize_smoke_argv(argv: tuple[str, ...]) -> tuple[str, ...]:
     return tuple(token.strip() for token in argv if token.strip())
 
@@ -3088,6 +3152,45 @@ def command_mvp_demo_readiness_command_for_flow_step(
     launcher_argv: tuple[str, ...] = COMMAND_SMOKE_CLI_LAUNCHER_ARGV,
 ) -> str | None:
     return command_demo_readiness_command_for_flow_step(flow_step, specs, launcher_argv)
+
+
+def command_mvp_demo_readiness_index_by_command(
+    specs: tuple[CommandSpec, ...] = COMMAND_SPECS,
+    launcher_argv: tuple[str, ...] = COMMAND_SMOKE_CLI_LAUNCHER_ARGV,
+) -> tuple[tuple[str, CommandDemoReadinessEntry], ...]:
+    return command_demo_readiness_index_by_command(specs, launcher_argv)
+
+
+def command_mvp_demo_readiness_entry_for_command(
+    command_name: str,
+    specs: tuple[CommandSpec, ...] = COMMAND_SPECS,
+    launcher_argv: tuple[str, ...] = COMMAND_SMOKE_CLI_LAUNCHER_ARGV,
+) -> CommandDemoReadinessEntry | None:
+    return command_demo_readiness_entry_for_command(command_name, specs, launcher_argv)
+
+
+def command_mvp_demo_readiness_argv_for_command(
+    command_name: str,
+    specs: tuple[CommandSpec, ...] = COMMAND_SPECS,
+    launcher_argv: tuple[str, ...] = COMMAND_SMOKE_CLI_LAUNCHER_ARGV,
+) -> tuple[str, ...]:
+    return command_demo_readiness_argv_for_command(command_name, specs, launcher_argv)
+
+
+def command_mvp_demo_readiness_flow_step_for_command(
+    command_name: str,
+    specs: tuple[CommandSpec, ...] = COMMAND_SPECS,
+    launcher_argv: tuple[str, ...] = COMMAND_SMOKE_CLI_LAUNCHER_ARGV,
+) -> str | None:
+    return command_demo_readiness_flow_step_for_command(command_name, specs, launcher_argv)
+
+
+def command_mvp_demo_readiness_demo_path_step_for_command(
+    command_name: str,
+    specs: tuple[CommandSpec, ...] = COMMAND_SPECS,
+    launcher_argv: tuple[str, ...] = COMMAND_SMOKE_CLI_LAUNCHER_ARGV,
+) -> str | None:
+    return command_demo_readiness_demo_path_step_for_command(command_name, specs, launcher_argv)
 
 
 def command_mvp_demo_command_action_contract(
