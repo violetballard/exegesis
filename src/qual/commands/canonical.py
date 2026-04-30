@@ -3,6 +3,8 @@ from __future__ import annotations
 from collections.abc import Sequence
 
 from src.qual.commands.catalog import (
+    CommandDemoReadinessActionEntry,
+    CommandDemoReadinessEntry,
     canonical_command as _canonical_command,
     command_mvp_demo_action_smoke_script_argv as _action_smoke_script_argv,
     command_mvp_demo_action_smoke_script_lines as _action_smoke_script_lines,
@@ -19,7 +21,12 @@ from src.qual.commands.catalog import (
     command_mvp_demo_command_action_lookup_table as _command_action_lookup_table,
     command_mvp_demo_readiness_action_line_lookup_table as _readiness_action_line_lookup_table,
     command_mvp_demo_readiness_action_argv_lookup_table as _readiness_action_argv_lookup_table,
+    command_mvp_demo_readiness_action_entry as _readiness_action_entry,
     command_mvp_demo_readiness_action_summary as _readiness_action_summary,
+    command_mvp_demo_readiness_entry_for_argv as _readiness_entry_for_argv,
+    command_mvp_demo_readiness_entry_for_command as _readiness_entry_for_command,
+    command_mvp_demo_readiness_entry_for_demo_path_step as _readiness_entry_for_demo_path_step,
+    command_mvp_demo_readiness_entry_for_flow_step as _readiness_entry_for_flow_step,
     command_mvp_demo_readiness_argv_for_command as _readiness_argv_for_command,
     command_mvp_demo_readiness_argv_for_demo_path_step as _readiness_argv_for_demo_path_step,
     command_mvp_demo_readiness_argv_for_engine_action as _readiness_argv_for_engine_action,
@@ -49,6 +56,8 @@ __all__ = [
     "canonical_command_action_argv_lookup_table",
     "canonical_command_action_demo_path_lookup_table",
     "canonical_command_action_lookup_table",
+    "canonical_command_action_readiness_entry",
+    "canonical_command_action_readiness_entry_for_engine_action",
     "canonical_command_action_readiness_summary",
     "canonical_command_action_line_lookup_table",
     "canonical_command_action_flow_lookup_table",
@@ -84,6 +93,10 @@ __all__ = [
     "canonical_command_line_for_argv",
     "canonical_command_line_for_engine_action",
     "canonical_command_line_for_flow_step",
+    "canonical_command_readiness_entry_for_argv",
+    "canonical_command_readiness_entry_for_command",
+    "canonical_command_readiness_entry_for_demo_path_step",
+    "canonical_command_readiness_entry_for_flow_step",
     "canonical_command_readiness_lookup_table",
     "canonical_command_readiness_summary",
 ]
@@ -109,6 +122,36 @@ def canonical_command_action_readiness_summary() -> tuple[
     ...,
 ]:
     return _readiness_action_summary()
+
+
+def canonical_command_readiness_entry_for_flow_step(flow_step: str) -> CommandDemoReadinessEntry | None:
+    return _readiness_entry_for_flow_step(flow_step)
+
+
+def canonical_command_readiness_entry_for_command(command_name: str) -> CommandDemoReadinessEntry | None:
+    return _readiness_entry_for_command(command_name)
+
+
+def canonical_command_readiness_entry_for_demo_path_step(
+    demo_path_step: str,
+) -> CommandDemoReadinessEntry | None:
+    return _readiness_entry_for_demo_path_step(demo_path_step)
+
+
+def canonical_command_readiness_entry_for_argv(argv: Sequence[str]) -> CommandDemoReadinessEntry | None:
+    return _readiness_entry_for_argv(argv)
+
+
+def canonical_command_action_readiness_entry_for_engine_action(
+    engine_action: str,
+) -> CommandDemoReadinessActionEntry | None:
+    return _readiness_action_entry(engine_action)
+
+
+def canonical_command_action_readiness_entry(
+    engine_action: str,
+) -> CommandDemoReadinessActionEntry | None:
+    return canonical_command_action_readiness_entry_for_engine_action(engine_action)
 
 
 def canonical_command_demo_smoke_cli_summary() -> tuple[
