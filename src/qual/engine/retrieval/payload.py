@@ -66,6 +66,14 @@ def _normalize_optional_text(value: object) -> str | None:
     return None
 
 
+def _basket_item_ids_from_items(items: list[object]) -> list[object]:
+    return [
+        item.get("item_id")
+        for item in items
+        if isinstance(item, dict) and item.get("item_id") is not None
+    ]
+
+
 def _first_text_value(*values: object) -> str | None:
     for value in values:
         text = _normalize_optional_text(value)
@@ -283,11 +291,7 @@ def _normalize_retrieval_source_bundle_snapshot(source_bundle: dict[str, object]
     )
     normalized["basket_item_ids"] = _normalize_list_like(normalized.get("basket_item_ids", []))
     if not normalized["basket_item_ids"]:
-        normalized["basket_item_ids"] = [
-            item.get("item_id")
-            for item in normalized["basket_promotion_items"]
-            if isinstance(item, dict) and item.get("item_id") is not None
-        ]
+        normalized["basket_item_ids"] = _basket_item_ids_from_items(normalized["basket_promotion_items"])
     retrieval_summary = normalized.get("retrieval_summary", {})
     if not isinstance(retrieval_summary, dict):
         retrieval_summary = {}
@@ -648,6 +652,10 @@ def _build_retrieval_excerpt_bundle_from_payload(payload: dict[str, object]) -> 
 def _build_retrieval_context_bundle_from_payload(payload: dict[str, object]) -> dict[str, object]:
     """Return the deterministic retrieval context bundle from a downstream payload snapshot."""
 
+    basket_promotion_items = _normalize_list_like(payload.get("basket_promotion_items", []))
+    basket_item_ids = _normalize_list_like(payload.get("basket_item_ids", []))
+    if not basket_item_ids:
+        basket_item_ids = _basket_item_ids_from_items(basket_promotion_items)
     return {
         "audit_ref": payload.get("audit_ref"),
         "result_fingerprint": payload.get("result_fingerprint"),
@@ -658,8 +666,8 @@ def _build_retrieval_context_bundle_from_payload(payload: dict[str, object]) -> 
         "retrieval_provenance": _build_retrieval_provenance_from_payload(payload),
         "retrieval_source_bundle": _build_retrieval_source_bundle_from_payload(payload),
         "retrieval_evidence": copy.deepcopy(payload.get("retrieval_evidence", {})),
-        "basket_promotion_items": _normalize_list_like(payload.get("basket_promotion_items", [])),
-        "basket_item_ids": _normalize_list_like(payload.get("basket_item_ids", [])),
+        "basket_promotion_items": basket_promotion_items,
+        "basket_item_ids": basket_item_ids,
     }
 
 
@@ -930,11 +938,7 @@ class RetrievalDownstreamPayload:
             "source_bundle_fingerprint": self.source_bundle_fingerprint,
             "retrieval_source_bundle": source_bundle,
             "basket_promotion_items": basket_promotion_items,
-            "basket_item_ids": [
-                item.get("item_id")
-                for item in basket_promotion_items
-                if isinstance(item, dict) and item.get("item_id") is not None
-            ],
+            "basket_item_ids": _basket_item_ids_from_items(basket_promotion_items),
         }
 
 
