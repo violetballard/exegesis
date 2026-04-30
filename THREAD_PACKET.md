@@ -12,18 +12,20 @@
 
 ## Reviewer Required Fixes
 
-1. Regenerated this handoff against the actual branch tip instead of the stale `f8d860e...` slice.
-2. Included implementation-changing commits after `f8d860e...` explicitly in the reviewed range instead of labeling them metadata-only.
-3. Re-ran the required gates and reported their actual outcomes below.
-4. Resolved the reported `src/qual/engine/retrieval/payload.py:428` syntax failure and the follow-on retrieval source-bundle `None` return exposed after syntax was fixed.
-5. Updated the router config/test isolation, file list, and risks/blockers to match the actual branch tip and current worktree state.
+1. Tightened `command_cli_contract()` so it compares `command_cli_tokens()` and `command_cli_lookup_table()` against the exact approved parser-surface expectation derived from the canonical CLI token tuple and command catalog resolution.
+2. Added/kept explicit regressions for all requested parser drift modes: extra valid-but-unapproved alias, canonical parser token replacement by an alias, and parser-token reordering that preserves the same resolved canonical names.
+3. Regenerated this handoff against the actual branch tip instead of the stale `f8d860e...` slice.
+4. Included implementation-changing commits after `f8d860e...` explicitly in the reviewed range instead of labeling them metadata-only.
+5. Re-ran the required gates and reported their actual outcomes below.
+6. Resolved the reported `src/qual/engine/retrieval/payload.py:428` syntax failure and the follow-on retrieval source-bundle `None` return exposed after syntax was fixed.
+7. Updated the router config/test isolation, file list, and risks/blockers to match the actual branch tip and current worktree state.
 
 ## Tasks Completed
 
-1. Tightened `command_cli_contract()` so the exact approved CLI parser token tuple and lookup table must match the canonical parser surface, in addition to requiring every canonical `command_names()` entry to appear as a canonical CLI parser token in catalog order.
+1. Tightened `command_cli_contract()` so the exact approved CLI parser token tuple and the derived catalog lookup table must match the runtime parser surface, in addition to requiring the canonical command names to match the approved canonical parser tokens.
    - Canonical demo-path step: `preview and apply/reject patch`.
    - Concrete blocker removed: unapproved aliases can no longer silently expand or reorder the parser surface while still resolving to an existing command, preserving `diff-preview` as the stable CLI fallback token for patch preview/review.
-2. Added regression coverage for alias drift around `diff-preview` and a valid-but-unapproved alias resolving to `bootstrap`.
+2. Added regression coverage for all reviewed parser drift modes: alias replacement of a canonical token, alias reordering around `diff-preview`, and a valid-but-unapproved alias resolving to `bootstrap`.
    - Canonical demo-path steps: `open project/document`; `preview and apply/reject patch`.
 3. Fixed the off-lane retrieval payload syntax error at `src/qual/engine/retrieval/payload.py:428` so Python compilation and retrieval tests can import the module.
    - Canonical demo-path step: `retrieve relevant material`.
@@ -65,6 +67,7 @@ The full branch-tip file list includes command, retrieval, context/storage, shar
 - `make scope-check`: passed.
 - `./quality-format.sh --check`: passed.
 - `./quality-lint.sh`: passed.
+- `python -m unittest tests.unit.test_commands_catalog.CommandCatalogTests.test_command_cli_contract_matches_the_catalog_order tests.unit.test_commands_catalog.CommandCatalogTests.test_command_cli_contract_rejects_catalog_drift tests.unit.test_commands_catalog.CommandCatalogTests.test_command_cli_contract_rejects_alias_replacing_canonical_token tests.unit.test_commands_catalog.CommandCatalogTests.test_command_cli_contract_rejects_parser_token_reordering tests.unit.test_commands_catalog.CommandCatalogTests.test_command_cli_contract_rejects_unapproved_alias_to_existing_command`: passed; 5 tests.
 - `python -m unittest tests.unit.test_mvp_migration tests.unit.test_unified_retrieval tests.unit.test_offline_handoff.OfflineHandoffConfigTests.test_live_router_config_uses_explicit_lms_provider`: passed; 83 tests, 1 skipped live-router-config assertion for protected heavy-profile drift.
 - `./typecheck-test.sh`: passed.
 - `./quality-test.sh`: passed; 393 tests, 1 skipped live-router-config assertion for protected heavy-profile drift.

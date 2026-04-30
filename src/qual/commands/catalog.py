@@ -221,13 +221,6 @@ _CANONICAL_CLI_ENTRYPOINTS: tuple[str, ...] = (
     "context-basket",
     "terminal",
 )
-_CANONICAL_CLI_LOOKUP_TABLE: tuple[tuple[str, str], ...] = (
-    ("bootstrap", "bootstrap"),
-    ("diff-preview", "diff-preview"),
-    ("diff", "diff-preview"),
-    ("context-basket", "context-basket"),
-    ("terminal", "terminal"),
-)
 _CLI_ENTRYPOINTS: tuple[str, ...] = _CANONICAL_CLI_ENTRYPOINTS
 DEMO_COMMAND_FLOW_STEPS: tuple[str, ...] = (
     "project-open",
@@ -494,30 +487,38 @@ def command_cli_lookup_table() -> tuple[tuple[str, str], ...]:
     return tuple(lookup_table)
 
 
+def _approved_cli_tokens() -> tuple[str, ...]:
+    return _CANONICAL_CLI_ENTRYPOINTS
+
+
+def _approved_cli_lookup_table() -> tuple[tuple[str, str], ...]:
+    lookup_table: list[tuple[str, str]] = []
+    for entrypoint in _approved_cli_tokens():
+        spec = command_spec_for(COMMAND_SPECS, entrypoint)
+        if spec is None:
+            raise ValueError(f"Unknown approved CLI command entrypoint: {entrypoint}")
+        lookup_table.append((entrypoint, spec.name))
+    return tuple(lookup_table)
+
+
+def _approved_cli_canonical_names() -> tuple[str, ...]:
+    return tuple(
+        canonical_name
+        for token, canonical_name in _approved_cli_lookup_table()
+        if token == canonical_name
+    )
+
+
 @lru_cache(maxsize=None)
 def command_cli_contract() -> CommandCliContract:
     tokens = command_cli_tokens()
     lookup_table = command_cli_lookup_table()
     canonical_names = command_names()
-    if tokens != _CANONICAL_CLI_ENTRYPOINTS:
+    if tokens != _approved_cli_tokens():
         raise ValueError("Command CLI parser surface is inconsistent")
-    if lookup_table != _CANONICAL_CLI_LOOKUP_TABLE:
+    if lookup_table != _approved_cli_lookup_table():
         raise ValueError("Command CLI parser surface is inconsistent")
-    expected_canonical_index = 0
-    canonical_positions: dict[str, int] = {}
-    for index, (token, canonical_name) in enumerate(lookup_table):
-        if token == canonical_name:
-            if (
-                expected_canonical_index >= len(canonical_names)
-                or token != canonical_names[expected_canonical_index]
-            ):
-                raise ValueError("Command CLI canonical tokens are inconsistent")
-            canonical_positions[token] = index
-            expected_canonical_index += 1
-            continue
-        if canonical_name not in canonical_positions:
-            raise ValueError("Command CLI canonical tokens are inconsistent")
-    if expected_canonical_index != len(canonical_names):
+    if canonical_names != _approved_cli_canonical_names():
         raise ValueError("Command CLI canonical tokens are inconsistent")
     return CommandCliContract(
         tokens=tokens,

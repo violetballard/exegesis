@@ -132,11 +132,15 @@ class CommandCatalogTests(unittest.TestCase):
         command_catalog.command_cli_contract.cache_clear()
         command_catalog.command_cli_lookup_table.cache_clear()
         command_catalog.command_cli_tokens.cache_clear()
-        with patch.object(command_catalog, "_CLI_ENTRYPOINTS", ("bootstrap", "diff", "context-basket", "terminal")):
+        with patch.object(
+            command_catalog,
+            "_CLI_ENTRYPOINTS",
+            ("open", "diff-preview", "diff", "context-basket", "terminal"),
+        ):
             with self.assertRaisesRegex(ValueError, "Command CLI parser surface is inconsistent"):
                 command_catalog.command_cli_contract()
 
-    def test_command_cli_contract_rejects_alias_before_canonical_token(self) -> None:
+    def test_command_cli_contract_rejects_parser_token_reordering(self) -> None:
         self.addCleanup(command_catalog.command_cli_contract.cache_clear)
         self.addCleanup(command_catalog.command_cli_lookup_table.cache_clear)
         self.addCleanup(command_catalog.command_cli_tokens.cache_clear)
