@@ -74,6 +74,52 @@ def _basket_item_ids_from_items(items: list[object]) -> list[object]:
     ]
 
 
+def _basket_promotion_items_from_snapshot(snapshot: dict[str, object]) -> list[object]:
+    """Return basket promotion refs from a sparse retrieval snapshot."""
+
+    basket_promotion_items = _normalize_list_like(snapshot.get("basket_promotion_items", []))
+    if basket_promotion_items:
+        return basket_promotion_items
+
+    retrieval_evidence = snapshot.get("retrieval_evidence")
+    if isinstance(retrieval_evidence, dict):
+        basket_promotion_items = _normalize_list_like(
+            retrieval_evidence.get("basket_promotion_items", [])
+        )
+        if basket_promotion_items:
+            return basket_promotion_items
+
+    for bundle_key in ("retrieval_source_bundle", "source_bundle"):
+        source_bundle = snapshot.get(bundle_key)
+        if isinstance(source_bundle, dict):
+            basket_promotion_items = _normalize_list_like(
+                source_bundle.get("basket_promotion_items", [])
+            )
+            if basket_promotion_items:
+                return basket_promotion_items
+
+    return []
+
+
+def _basket_item_ids_from_snapshot(
+    snapshot: dict[str, object],
+    *,
+    basket_promotion_items: list[object],
+) -> list[object]:
+    basket_item_ids = _normalize_list_like(snapshot.get("basket_item_ids", []))
+    if basket_item_ids:
+        return basket_item_ids
+
+    for bundle_key in ("retrieval_source_bundle", "source_bundle"):
+        source_bundle = snapshot.get(bundle_key)
+        if isinstance(source_bundle, dict):
+            basket_item_ids = _normalize_list_like(source_bundle.get("basket_item_ids", []))
+            if basket_item_ids:
+                return basket_item_ids
+
+    return _basket_item_ids_from_items(basket_promotion_items)
+
+
 def _first_text_value(*values: object) -> str | None:
     for value in values:
         text = _normalize_optional_text(value)
@@ -464,6 +510,11 @@ def _build_retrieval_source_bundle_from_payload(payload: dict[str, object]) -> d
         retrieval_excerpt_bundle = _build_retrieval_excerpt_bundle_from_payload(payload)
     query_snapshot = _normalize_query_snapshot(payload.get("query", {}))
     policy_snapshot = _normalize_policy_snapshot(payload.get("policy", payload.get("retrieval_policy", {})))
+    basket_promotion_items = _basket_promotion_items_from_snapshot(payload)
+    basket_item_ids = _basket_item_ids_from_snapshot(
+        payload,
+        basket_promotion_items=basket_promotion_items,
+    )
     return _normalize_retrieval_source_bundle_snapshot({
         "result_fingerprint": payload.get("result_fingerprint"),
         "query_fingerprint": payload.get("query_fingerprint"),
@@ -481,8 +532,8 @@ def _build_retrieval_source_bundle_from_payload(payload: dict[str, object]) -> d
         "retrieval_manifest": copy.deepcopy(payload.get("retrieval_manifest", {})),
         "retrieval_evidence": copy.deepcopy(payload.get("retrieval_evidence", {})),
         "retrieval_provenance": copy.deepcopy(payload.get("retrieval_provenance", {})),
-        "basket_promotion_items": copy.deepcopy(payload.get("basket_promotion_items", [])),
-        "basket_item_ids": copy.deepcopy(payload.get("basket_item_ids", [])),
+        "basket_promotion_items": copy.deepcopy(basket_promotion_items),
+        "basket_item_ids": copy.deepcopy(basket_item_ids),
     })
 
 
@@ -652,10 +703,11 @@ def _build_retrieval_excerpt_bundle_from_payload(payload: dict[str, object]) -> 
 def _build_retrieval_context_bundle_from_payload(payload: dict[str, object]) -> dict[str, object]:
     """Return the deterministic retrieval context bundle from a downstream payload snapshot."""
 
-    basket_promotion_items = _normalize_list_like(payload.get("basket_promotion_items", []))
-    basket_item_ids = _normalize_list_like(payload.get("basket_item_ids", []))
-    if not basket_item_ids:
-        basket_item_ids = _basket_item_ids_from_items(basket_promotion_items)
+    basket_promotion_items = _basket_promotion_items_from_snapshot(payload)
+    basket_item_ids = _basket_item_ids_from_snapshot(
+        payload,
+        basket_promotion_items=basket_promotion_items,
+    )
     return {
         "audit_ref": payload.get("audit_ref"),
         "result_fingerprint": payload.get("result_fingerprint"),
