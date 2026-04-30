@@ -4,7 +4,7 @@
 - Lane: `feat-retrieval-fts`
 - Merge target: current `main`
 - Merge-base for this re-review: `fd2ab6ca65ec2f93d1334c9b7df8512439725be4`
-- Branch tip before this fixer commit: `0aea8aed679b4068f0b288fc434f466278288ee6`
+- Branch tip before this fixer commit: `ae0b81b372f49d5987d4a3c03c824da0bc10213d`
 - Final HEAD SHA: reported in this fixer deliverable after commit creation.
 - Authoritative reviewed range / merge candidate: `fd2ab6ca65ec2f93d1334c9b7df8512439725be4..HEAD`
 - Scope classification: high-risk retrieval work because approved shared regression coverage in `tests/unit/test_unified_retrieval.py` is part of the reviewed range.
@@ -65,12 +65,14 @@ Files absent from the reviewed candidate:
 - `tests/unit/test_packet_planner.py`
 - `src/qual/engine/retrieval/embeddings_strategy.py`
 - `src/qual/engine/retrieval/pageindex_strategy.py`
+- `.codex/kickoff_packets/feat-retrieval-fts.md`
+- `.codex/lane_meta/feat-retrieval-fts.json`
 
 ## Budget/Risk
 
 - Task budget: `4/4` high-risk tasks.
 - File budget: `6/8` high-risk files.
-- Net LOC budget: source/test implementation changes are `5 files changed, 224 insertions(+), 49 deletions(-)`, or 273 net LOC, which remains within the `<=300` high-risk net LOC limit. Packet metadata accounts for the remaining documentation churn.
+- Net LOC budget: source/test implementation changes are `5 files changed, 224 insertions(+), 49 deletions(-)`, or 273 lines of implementation churn (+175 net LOC), which remains within the `<=300` high-risk net LOC limit. Packet metadata accounts for the remaining documentation churn.
 - Shared-by-approval files: `tests/unit/test_unified_retrieval.py` only.
 - Integrator-locked files: none.
 - Routing/provider impact: none.
