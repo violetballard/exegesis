@@ -67,11 +67,20 @@ def _normalize_optional_text(value: object) -> str | None:
 
 
 def _basket_item_ids_from_items(items: list[object]) -> list[str]:
-    return [
-        str(item["item_id"])
-        for item in items
-        if isinstance(item, dict) and item.get("item_id") is not None
-    ]
+    item_ids: list[str] = []
+    seen: set[str] = set()
+    for item in items:
+        if not isinstance(item, dict):
+            continue
+        item_id = item.get("item_id", item.get("excerpt_id"))
+        if item_id is None:
+            continue
+        normalized = str(item_id)
+        if not normalized or normalized in seen:
+            continue
+        seen.add(normalized)
+        item_ids.append(normalized)
+    return item_ids
 
 
 def _basket_promotion_items_from_snapshot(snapshot: dict[str, object]) -> list[object]:

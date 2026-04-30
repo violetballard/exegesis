@@ -4,7 +4,7 @@
 - Lane: `feat-retrieval-fts`
 - Merge target: current `main`
 - Merge-base for this re-review: `fd2ab6ca65ec2f93d1334c9b7df8512439725be4`
-- Branch tip before this fixer commit: `6af5013f0eae72968ccd1c3e49de055067505753`
+- Branch tip before this fixer commit: `2357a33dbbfc9e32622af8b40fe951ad21a231d6`
 - Final HEAD SHA: reported in this fixer deliverable after commit creation.
 - Authoritative reviewed range / merge candidate: `fd2ab6ca65ec2f93d1334c9b7df8512439725be4..HEAD`
 - Scope classification: high-risk retrieval work because approved shared regression coverage in `tests/unit/test_unified_retrieval.py` is part of the reviewed range.
@@ -17,13 +17,15 @@ This fixer pass keeps `THREAD_PACKET.md` as the authoritative handoff surface be
 
 The stale reviewer ranges `378cf9a74..adfa8cdadd43747ffbcb612e4151e262b13e52ca`, `d7fd5d200358287fa42a18d39e2b277463b9b69f..adfa8cdadd43747ffbcb612e4151e262b13e52ca`, and `adfa8cdadd43747ffbcb612e4151e262b13e52ca..3753d4baf4f9f98eb58615fc0e7f45be9ffdf24a` are not used for this re-review. The current merge candidate is `fd2ab6ca65ec2f93d1334c9b7df8512439725be4..HEAD`; work outside that range is intentionally excluded because `fd2ab6ca65ec2f93d1334c9b7df8512439725be4` is the merge-base with current `main`.
 
-The merge candidate advances FTS-first retrieval by normalizing engine retrieval boolean constraints and required query text/scope snapshots, keeping FTS cache and query snapshots deterministic, carrying date-range constraints into derived FTS shortlist queries and basket-promotion refs, preserving basket-promotion references and provenance, carrying promotion-ready excerpt text/title hints and query context into retrieval evidence fallbacks, backfilling sparse provenance from the canonical query snapshot, invalidating stale FTS cache state on document updates, falling back from invalid direct context snapshots to canonical source/payload reconstruction, and normalizing reconstructed basket item IDs to stable text IDs for downstream basket gathering.
+This fixer pass adds one retrieval-owned source correction: sparse basket-promotion reconstruction now derives stable basket item IDs from `excerpt_id` when `item_id` is absent, while preserving order and deduplicating repeated references. That keeps sparse source/evidence bundles promotion-ready for downstream basket gathering without depending on PageIndex or embeddings.
+
+The merge candidate advances FTS-first retrieval by normalizing engine retrieval boolean constraints and required query text/scope snapshots, keeping FTS cache and query snapshots deterministic, carrying date-range constraints into derived FTS shortlist queries and basket-promotion refs, preserving basket-promotion references and provenance, carrying promotion-ready excerpt text/title hints and query context into retrieval evidence fallbacks, backfilling sparse provenance from the canonical query snapshot, invalidating stale FTS cache state on document updates, falling back from invalid direct context snapshots to canonical source/payload reconstruction, normalizing reconstructed basket item IDs to stable text IDs for downstream basket gathering, and falling back to excerpt IDs for sparse promotion refs that do not carry item IDs.
 
 ## Tasks Completed
 
 1. `retrieve relevant material`: normalize engine facade query constraints, boolean flags, date ranges, doc types, required query text/scope snapshots, derived FTS shortlist snapshots, and cache keys so repeated FTS retrieval is deterministic.
 2. `retrieve relevant material`: keep SQLite FTS authoritative for excerpt lookup, reject non-FTS excerpt normalization, preserve ranked IDs, document identities, confidentiality profiles, section hints, and excerpt provenance.
-3. `retrieve relevant material`; supports `promote or gather context into the basket`: preserve basket-promotion refs, stable text item IDs, citation refs, provenance fingerprints, source/context bundles, excerpt text, title hints, query context, and date-range context during sparse payload, provenance, and context-bundle reconstruction so retrieved material stays stable for downstream basket gathering.
+3. `retrieve relevant material`; supports `promote or gather context into the basket`: preserve basket-promotion refs, stable text item IDs, citation refs, provenance fingerprints, source/context bundles, excerpt text, title hints, query context, and date-range context during sparse payload, provenance, and context-bundle reconstruction so retrieved material stays stable for downstream basket gathering, including sparse excerpt promotion refs that omit `item_id`.
 4. `retrieve relevant material`; supports `promote or gather context into the basket`: harden cache invalidation and fallback reconstruction for document updates, sparse direct context snapshots, and generic context-bundle helpers while keeping PageIndex and embeddings fallback-only.
 
 ## Canonical Demo Path
@@ -37,7 +39,7 @@ Complete files-changed list for `fd2ab6ca65ec2f93d1334c9b7df8512439725be4..HEAD`
 
 - `src/qual/engine/retrieval/__init__.py` - lane-owned retrieval facade/export behavior via `src/qual/engine/retrieval/**`.
 - `src/qual/engine/retrieval/fts_strategy.py` - lane-owned FTS retrieval strategy behavior via `src/qual/engine/retrieval/**`.
-- `src/qual/engine/retrieval/payload.py` - lane-owned retrieval payload construction via `src/qual/engine/retrieval/**`.
+- `src/qual/engine/retrieval/payload.py` - lane-owned retrieval payload construction and sparse basket item ID reconstruction via `src/qual/engine/retrieval/**`.
 - `src/qual/retrieval/service.py` - lane-owned retrieval service behavior via `src/qual/retrieval/**`.
 - `tests/unit/test_unified_retrieval.py` - shared-by-approval regression coverage for the canonical retrieval contract.
 - `THREAD_PACKET.md` - authoritative handoff packet required by `INTEGRATION.md`.
@@ -72,7 +74,7 @@ Files absent from the reviewed candidate:
 
 - Task budget: `4/4` high-risk tasks.
 - File budget: `6/8` high-risk files.
-- Net LOC budget: source/test implementation changes are `5 files changed, 245 insertions(+), 54 deletions(-)`, or 299 lines of implementation churn (+191 net LOC), which remains within the `<=300` high-risk net LOC limit. Packet metadata accounts for the remaining documentation churn.
+- Net LOC budget: source/test implementation changes are `5 files changed, 254 insertions(+), 54 deletions(-)`, or +200 net LOC, which remains within the `<=300` high-risk net LOC limit. Packet metadata accounts for the remaining documentation churn.
 - Shared-by-approval files: `tests/unit/test_unified_retrieval.py` only.
 - Integrator-locked files: none.
 - Routing/provider impact: none.
@@ -90,12 +92,12 @@ Files absent from the reviewed candidate:
 Required gates re-run for the corrected merge candidate:
 
 - `python -m unittest tests.unit.test_unified_retrieval` PASS, 56 tests.
-- `make scope-check` PASS; no branch policy for `codex/feat-retrieval-fts`, skipped policy enforcement, then passed.
+- `make scope-check` PASS for branch `codex/feat-retrieval-fts`.
 - `./quality-format.sh --check` PASS.
 - `./quality-lint.sh` PASS.
 - `./quality-test.sh` PASS, 125 tests.
 - `./typecheck-test.sh` PASS.
-- `make ci` PASS, 125 tests; includes scope-check, format, lint, typecheck, and test gates. Scope-check reported no branch policy for `codex/feat-retrieval-fts`, skipped policy enforcement, then passed.
+- `make ci` PASS, 125 tests; includes scope-check, format, lint, typecheck, and test gates. Scope-check passed for branch `codex/feat-retrieval-fts`.
 
 ## Risks/Blockers
 
