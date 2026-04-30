@@ -12,6 +12,7 @@ from src.qual.commands.catalog import (
     CommandDemoReadinessHandoffLineContract,
     CommandDemoReadinessReport,
     CommandDemoReadinessRouteContract,
+    CommandDemoReadinessShellScript,
     CommandDemoReadinessSmokePlanStep,
     canonical_command as _canonical_command,
     command_mvp_demo_path_readiness_contract as _path_readiness_contract,
@@ -27,6 +28,9 @@ from src.qual.commands.catalog import (
     command_mvp_demo_readiness_handoff_summary as _readiness_handoff_summary,
     command_mvp_demo_readiness_report as _readiness_report,
     command_mvp_demo_readiness_report_summary as _readiness_report_summary,
+    command_mvp_demo_readiness_shell_script as _readiness_shell_script,
+    command_mvp_demo_readiness_shell_script_lines as _readiness_shell_script_lines,
+    command_mvp_demo_readiness_shell_script_text as _readiness_shell_script_text,
     command_mvp_demo_action_smoke_script_argv as _action_smoke_script_argv,
     command_mvp_demo_action_smoke_script_lines as _action_smoke_script_lines,
     command_mvp_demo_action_smoke_script_lookup_table as _action_smoke_script_lookup_table,
@@ -117,6 +121,9 @@ __all__ = [
     "canonical_command_readiness_route_summary",
     "canonical_command_readiness_report",
     "canonical_command_readiness_report_summary",
+    "canonical_command_readiness_shell_script",
+    "canonical_command_readiness_shell_script_lines",
+    "canonical_command_readiness_shell_script_text",
     "canonical_command_readiness_handoff_summary",
     "canonical_command_readiness_smoke_plan_argv",
     "canonical_command_readiness_smoke_plan_step",
@@ -274,6 +281,18 @@ def canonical_command_readiness_report_summary() -> tuple[
     str,
 ]:
     return _readiness_report_summary()
+
+
+def canonical_command_readiness_shell_script() -> CommandDemoReadinessShellScript:
+    return _readiness_shell_script()
+
+
+def canonical_command_readiness_shell_script_lines() -> tuple[str, ...]:
+    return _readiness_shell_script_lines()
+
+
+def canonical_command_readiness_shell_script_text() -> str:
+    return _readiness_shell_script_text()
 
 
 def canonical_command_readiness_handoff_summary() -> tuple[
