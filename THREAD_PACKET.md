@@ -68,9 +68,11 @@ Packet refresh commits in this range are reviewed as metadata changes. They are 
 Required scope and integration gates for this corrected merge candidate:
 
 - `make scope-check`: PASS.
+- `python -m pytest tests/unit/test_unified_retrieval.py`: not run; the active Python 3.14 interpreter does not have `pytest` installed.
+- `python3 -m unittest tests.unit.test_unified_retrieval -v`: PASS, 56 tests.
 - `./quality-format.sh --check`: PASS.
 - `./quality-lint.sh`: PASS.
-- `./quality-test.sh`: PASS.
+- `./quality-test.sh`: PASS, smoke plus 125 unit tests.
 - `./typecheck-test.sh`: PASS.
 - `make ci`: PASS.
 
