@@ -51,16 +51,20 @@
 
 ## Commands Run
 
-- `make scope-check`: pending rerun after branch-tree correction.
-- `./quality-format.sh --check`: pending rerun after branch-tree correction.
-- `./quality-lint.sh`: pending rerun after branch-tree correction.
-- `./quality-test.sh`: pending rerun after branch-tree correction.
-- `./typecheck-test.sh`: pending rerun after branch-tree correction.
-- `make ci`: pending rerun after branch-tree correction.
+- `make scope-check`: passed.
+- `./quality-format.sh --check`: passed.
+- `./quality-lint.sh`: passed.
+- `./quality-test.sh`: failed outside the command-catalog slice.
+  - `tests/unit/test_mvp_migration.py` and `tests/unit/test_unified_retrieval.py` fail importing `src/qual/engine/retrieval/payload.py` because that file has `SyntaxError: unmatched ')'` at line 428.
+  - `tests/unit/test_offline_handoff.py::OfflineHandoffConfigTests.test_live_router_config_uses_explicit_lms_provider` fails because protected local `.codex/packet_router/config.json` still has `["-p", "gpt-oss-120b-lms"]` instead of `["--oss", "--local-provider", "lmstudio"]`.
+- `./typecheck-test.sh`: failed outside the command-catalog slice on the same `src/qual/engine/retrieval/payload.py` syntax error at line 428.
+- `make ci`: failed after passing scope, format, and lint; `python3 -m compileall -q src` stops on the same `src/qual/engine/retrieval/payload.py` syntax error at line 428.
 
 ## Risks And Blockers
 
-- Residual risk: the sandbox cannot directly overwrite protected `.agents/**` and `.codex/**` working-tree files, so gate commands executed in this worktree may still observe protected local filesystem drift even after the branch-tip tree is corrected.
+- Residual risk: the sandbox cannot directly overwrite protected `.agents/**` and `.codex/**` working-tree files, so gate commands executed in this worktree still observe protected local filesystem drift.
+- Blocker: the required fixer deliverable cannot be fully completed in this sandbox because every attempt to reset protected metadata from `main`, stage protected paths, or create Git objects for a branch-tree reset hit `Operation not permitted`. The approved `lane_repo_commit.py` helper also fails before commit because it cannot create `.codex/git_ops/write.lock` in the Box-backed source checkout.
+- Blocker: full gates are red due off-lane retrieval syntax in `src/qual/engine/retrieval/payload.py` and protected local router config drift, both outside the command-catalog review surface.
 
 ## Final Readiness Statement
 
