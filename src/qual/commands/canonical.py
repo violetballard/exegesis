@@ -1,8 +1,9 @@
 from __future__ import annotations
 
+from src.qual.commands.catalog import canonical_command as _canonical_command
+
+__all__ = ["canonical_command"]
+
 
 def canonical_command(name: str) -> str:
-    aliases = {
-        "diff": "diff-preview",
-    }
-    return aliases.get(name, name)
+    return _canonical_command(name)
