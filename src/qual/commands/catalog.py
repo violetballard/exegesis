@@ -1,6 +1,7 @@
 from __future__ import annotations
 
 import re
+import shlex
 from dataclasses import dataclass
 from functools import lru_cache
 
@@ -1563,6 +1564,20 @@ def command_demo_smoke_cli_script_lookup_table(
     )
 
 
+def _shell_join(argv: tuple[str, ...]) -> str:
+    return shlex.join(argv)
+
+
+def command_demo_smoke_cli_script_lines(
+    specs: tuple[CommandSpec, ...] = COMMAND_SPECS,
+    launcher_argv: tuple[str, ...] = COMMAND_SMOKE_CLI_LAUNCHER_ARGV,
+) -> tuple[tuple[int, str, str, str], ...]:
+    return tuple(
+        (step.ordinal, step.flow_step, step.demo_path_step, _shell_join(step.command_argv))
+        for step in command_demo_smoke_cli_script_contract(specs, launcher_argv).steps
+    )
+
+
 @lru_cache(maxsize=None)
 def _command_demo_smoke_script_step_for_ordinal(
     specs: tuple[CommandSpec, ...],
@@ -1672,6 +1687,13 @@ def command_mvp_demo_smoke_cli_script_lookup_table(
     launcher_argv: tuple[str, ...] = COMMAND_SMOKE_CLI_LAUNCHER_ARGV,
 ) -> tuple[tuple[int, tuple[str, ...]], ...]:
     return command_demo_smoke_cli_script_lookup_table(specs, launcher_argv)
+
+
+def command_mvp_demo_smoke_cli_script_lines(
+    specs: tuple[CommandSpec, ...] = COMMAND_SPECS,
+    launcher_argv: tuple[str, ...] = COMMAND_SMOKE_CLI_LAUNCHER_ARGV,
+) -> tuple[tuple[int, str, str, str], ...]:
+    return command_demo_smoke_cli_script_lines(specs, launcher_argv)
 
 
 def command_mvp_demo_smoke_script_step(
@@ -2207,6 +2229,22 @@ def command_demo_action_smoke_script_lookup_table(
 ) -> tuple[tuple[int, str, tuple[str, ...]], ...]:
     return tuple(
         (step.ordinal, step.engine_action, step.command_argv)
+        for step in command_demo_action_smoke_script_contract(specs, launcher_argv).steps
+    )
+
+
+def command_demo_action_smoke_script_lines(
+    specs: tuple[CommandSpec, ...] = COMMAND_SPECS,
+    launcher_argv: tuple[str, ...] = COMMAND_SMOKE_CLI_LAUNCHER_ARGV,
+) -> tuple[tuple[int, str, str, str, str], ...]:
+    return tuple(
+        (
+            step.ordinal,
+            step.engine_action,
+            step.flow_step,
+            step.demo_path_step,
+            _shell_join(step.command_argv),
+        )
         for step in command_demo_action_smoke_script_contract(specs, launcher_argv).steps
     )
 
@@ -3018,6 +3056,13 @@ def command_mvp_demo_action_smoke_script_lookup_table(
     launcher_argv: tuple[str, ...] = COMMAND_SMOKE_CLI_LAUNCHER_ARGV,
 ) -> tuple[tuple[int, str, tuple[str, ...]], ...]:
     return command_demo_action_smoke_script_lookup_table(specs, launcher_argv)
+
+
+def command_mvp_demo_action_smoke_script_lines(
+    specs: tuple[CommandSpec, ...] = COMMAND_SPECS,
+    launcher_argv: tuple[str, ...] = COMMAND_SMOKE_CLI_LAUNCHER_ARGV,
+) -> tuple[tuple[int, str, str, str, str], ...]:
+    return command_demo_action_smoke_script_lines(specs, launcher_argv)
 
 
 def command_mvp_demo_action_smoke_script_step(
