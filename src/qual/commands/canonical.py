@@ -28,6 +28,10 @@ from src.qual.commands.catalog import (
     command_mvp_demo_readiness_engine_actions_for_argv as _readiness_engine_actions_for_argv,
     command_mvp_demo_readiness_flow_step_for_command as _readiness_flow_step_for_command,
     command_mvp_demo_readiness_flow_step_for_argv as _readiness_flow_step_for_argv,
+    command_mvp_demo_readiness_line_for_argv as _readiness_line_for_argv,
+    command_mvp_demo_readiness_line_for_command as _readiness_line_for_command,
+    command_mvp_demo_readiness_line_for_engine_action as _readiness_line_for_engine_action,
+    command_mvp_demo_readiness_line_for_flow_step as _readiness_line_for_flow_step,
     command_mvp_demo_readiness_lookup_table as _readiness_lookup_table,
     command_mvp_demo_readiness_summary as _readiness_summary,
 )
@@ -62,6 +66,10 @@ __all__ = [
     "canonical_command_flow_step_for_engine_action",
     "canonical_command_for_engine_action",
     "canonical_command_for_flow_step",
+    "canonical_command_line",
+    "canonical_command_line_for_argv",
+    "canonical_command_line_for_engine_action",
+    "canonical_command_line_for_flow_step",
     "canonical_command_readiness_lookup_table",
     "canonical_command_readiness_summary",
 ]
@@ -155,6 +163,10 @@ def canonical_command_argv(command_name: str) -> tuple[str, ...]:
     return _readiness_argv_for_command(command_name)
 
 
+def canonical_command_line(command_name: str) -> str:
+    return _readiness_line_for_command(command_name)
+
+
 def canonical_command_flow_step(command_name: str) -> str | None:
     return _readiness_flow_step_for_command(command_name)
 
@@ -169,6 +181,10 @@ def canonical_command_for_engine_action(engine_action: str) -> str | None:
 
 def canonical_command_argv_for_engine_action(engine_action: str) -> tuple[str, ...]:
     return _readiness_argv_for_engine_action(engine_action)
+
+
+def canonical_command_line_for_engine_action(engine_action: str) -> str:
+    return _readiness_line_for_engine_action(engine_action)
 
 
 def canonical_command_flow_step_for_engine_action(engine_action: str) -> str | None:
@@ -195,12 +211,20 @@ def canonical_command_engine_actions_for_argv(argv: tuple[str, ...]) -> tuple[st
     return _readiness_engine_actions_for_argv(argv)
 
 
+def canonical_command_line_for_argv(argv: tuple[str, ...]) -> str:
+    return _readiness_line_for_argv(argv)
+
+
 def canonical_command_for_flow_step(flow_step: str) -> str | None:
     return _readiness_command_for_flow_step(flow_step)
 
 
 def canonical_command_argv_for_flow_step(flow_step: str) -> tuple[str, ...]:
     return _readiness_argv_for_flow_step(flow_step)
+
+
+def canonical_command_line_for_flow_step(flow_step: str) -> str:
+    return _readiness_line_for_flow_step(flow_step)
 
 
 def canonical_command_engine_actions_for_flow_step(flow_step: str) -> tuple[str, ...]:
