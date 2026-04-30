@@ -282,6 +282,12 @@ def _normalize_retrieval_source_bundle_snapshot(source_bundle: dict[str, object]
         normalized.get("basket_promotion_items", [])
     )
     normalized["basket_item_ids"] = _normalize_list_like(normalized.get("basket_item_ids", []))
+    if not normalized["basket_item_ids"]:
+        normalized["basket_item_ids"] = [
+            item.get("item_id")
+            for item in normalized["basket_promotion_items"]
+            if isinstance(item, dict) and item.get("item_id") is not None
+        ]
     retrieval_summary = normalized.get("retrieval_summary", {})
     if not isinstance(retrieval_summary, dict):
         retrieval_summary = {}
@@ -471,6 +477,8 @@ def _build_retrieval_source_bundle_from_payload(payload: dict[str, object]) -> d
         "retrieval_manifest": copy.deepcopy(payload.get("retrieval_manifest", {})),
         "retrieval_evidence": copy.deepcopy(payload.get("retrieval_evidence", {})),
         "retrieval_provenance": copy.deepcopy(payload.get("retrieval_provenance", {})),
+        "basket_promotion_items": copy.deepcopy(payload.get("basket_promotion_items", [])),
+        "basket_item_ids": copy.deepcopy(payload.get("basket_item_ids", [])),
     })
 
 
