@@ -107,7 +107,99 @@ def _basket_promotion_items_from_snapshot(snapshot: dict[str, object]) -> list[o
             if basket_promotion_items:
                 return basket_promotion_items
 
+    excerpt_hits = _normalize_list_like(snapshot.get("excerpt_hits", []))
+    if not excerpt_hits:
+        excerpt_bundle = snapshot.get("retrieval_excerpt_bundle")
+        if isinstance(excerpt_bundle, dict):
+            excerpt_hits = _normalize_list_like(excerpt_bundle.get("excerpt_hits", []))
+    if excerpt_hits:
+        return _basket_promotion_items_from_excerpt_hits(snapshot, excerpt_hits)
+
     return []
+
+
+def _basket_promotion_items_from_excerpt_hits(
+    snapshot: dict[str, object],
+    excerpt_hits: list[object],
+) -> list[object]:
+    """Rebuild deterministic basket refs when only excerpt-hit snapshots survive."""
+
+    result_fingerprint = _first_text_value(snapshot.get("result_fingerprint"))
+    query = snapshot.get("query")
+    if not isinstance(query, dict):
+        query = {}
+    query_constraints = query.get("constraints", {})
+    if not isinstance(query_constraints, dict):
+        query_constraints = {}
+    query_fingerprint = _first_text_value(snapshot.get("query_fingerprint"))
+    if query_fingerprint is None:
+        query_fingerprint = _query_fingerprint_from_query_snapshot(query)
+    query_scope = _first_text_value(query.get("scope"))
+    query_intent = _first_text_value(query.get("intent"))
+    query_date_range = _normalize_optional_list_like(query_constraints.get("date_range"))
+
+    items: list[object] = []
+    seen: set[str] = set()
+    for hit in excerpt_hits:
+        if not isinstance(hit, dict):
+            continue
+        excerpt_id = _first_text_value(hit.get("excerpt_id"))
+        if excerpt_id is None or excerpt_id in seen:
+            continue
+        seen.add(excerpt_id)
+
+        provenance = hit.get("provenance")
+        if not isinstance(provenance, dict):
+            provenance = {}
+        items.append(
+            {
+                "item_id": excerpt_id,
+                "item_type": "excerpt",
+                "doc_id": _first_text_value(hit.get("doc_id"), provenance.get("doc_id")),
+                "doc_type": _first_text_value(hit.get("doc_type"), provenance.get("doc_type")),
+                "title_hint": _first_text_value(hit.get("title_hint")),
+                "source_hash": _first_text_value(hit.get("source_hash"), provenance.get("source_hash")),
+                "excerpt_id": excerpt_id,
+                "excerpt_text": hit.get("excerpt_text"),
+                "excerpt_fingerprint": _first_text_value(
+                    hit.get("excerpt_fingerprint"),
+                    provenance.get("excerpt_fingerprint"),
+                ),
+                "excerpt_text_hash": _first_text_value(
+                    hit.get("excerpt_text_hash"),
+                    provenance.get("excerpt_text_hash"),
+                    provenance.get("hash"),
+                ),
+                "span": copy.deepcopy(hit.get("span", provenance.get("span"))),
+                "rank": hit.get("rank", provenance.get("rank")),
+                "source_strategy": _first_text_value(
+                    hit.get("source_strategy"),
+                    provenance.get("source_strategy"),
+                ),
+                "retrieval_backend": _first_text_value(
+                    hit.get("retrieval_backend"),
+                    provenance.get("retrieval_backend"),
+                ),
+                "retrieval_mode": _first_text_value(
+                    hit.get("retrieval_mode"),
+                    provenance.get("retrieval_mode"),
+                ),
+                "query_scope": _first_text_value(provenance.get("query_scope"), query_scope),
+                "query_intent": _first_text_value(provenance.get("query_intent"), query_intent),
+                "query_date_range": _normalize_optional_list_like(
+                    provenance.get("query_date_range", query_date_range)
+                ),
+                "query_fingerprint": _first_text_value(
+                    provenance.get("query_fingerprint"),
+                    query_fingerprint,
+                ),
+                "result_fingerprint": _first_text_value(
+                    provenance.get("result_fingerprint"),
+                    result_fingerprint,
+                ),
+            }
+        )
+    return items
 
 
 def _basket_item_ids_from_snapshot(
