@@ -49,6 +49,23 @@ def _normalize_optional_int(value: object, *, default: int) -> int:
     return int(value)
 
 
+def _normalize_optional_bool(value: object, *, default: bool) -> bool:
+    if value is None:
+        return default
+    if isinstance(value, bool):
+        return value
+    if isinstance(value, str):
+        normalized = value.strip().casefold()
+        if normalized in {"1", "true", "yes", "on"}:
+            return True
+        if normalized in {"0", "false", "no", "off", ""}:
+            return False
+        raise ValueError(f"unsupported boolean constraint value: {value}")
+    if isinstance(value, (int, float)):
+        return bool(value)
+    raise TypeError("boolean retrieval constraints must be bool, number, text, or None")
+
+
 def build_retrieval_query(
     *,
     query_text: str,
@@ -98,9 +115,15 @@ def build_retrieval_query(
             max_results=_normalize_optional_int(payload.get("max_results"), default=10),
             doc_types=doc_types,
             date_range=date_range,  # type: ignore[arg-type]
-            require_citations=bool(payload.get("require_citations", False)),
+            require_citations=_normalize_optional_bool(
+                payload.get("require_citations"),
+                default=False,
+            ),
             section_hint=payload.get("section_hint"),  # type: ignore[arg-type]
-            prefer_exact_matches=bool(payload.get("prefer_exact_matches", False)),
+            prefer_exact_matches=_normalize_optional_bool(
+                payload.get("prefer_exact_matches"),
+                default=False,
+            ),
         ),
         confidentiality_profile=confidentiality_profile,  # type: ignore[arg-type]
     )
