@@ -14,8 +14,12 @@ from src.qual.commands.catalog import (
     command_mvp_demo_readiness_action_summary as _readiness_action_summary,
     command_mvp_demo_readiness_argv_for_engine_action as _readiness_argv_for_engine_action,
     command_mvp_demo_readiness_argv_for_flow_step as _readiness_argv_for_flow_step,
+    command_mvp_demo_readiness_command_for_argv as _readiness_command_for_argv,
     command_mvp_demo_readiness_command_for_engine_action as _readiness_command_for_engine_action,
     command_mvp_demo_readiness_command_for_flow_step as _readiness_command_for_flow_step,
+    command_mvp_demo_readiness_demo_path_step_for_argv as _readiness_demo_path_step_for_argv,
+    command_mvp_demo_readiness_engine_actions_for_argv as _readiness_engine_actions_for_argv,
+    command_mvp_demo_readiness_flow_step_for_argv as _readiness_flow_step_for_argv,
     command_mvp_demo_readiness_lookup_table as _readiness_lookup_table,
     command_mvp_demo_readiness_summary as _readiness_summary,
 )
@@ -31,10 +35,14 @@ __all__ = [
     "canonical_command_demo_smoke_cli_argv",
     "canonical_command_demo_smoke_cli_lookup_table",
     "canonical_command_demo_smoke_cli_summary",
+    "canonical_command_demo_path_step_for_argv",
     "canonical_command_argv_for_engine_action",
     "canonical_command_argv_for_flow_step",
+    "canonical_command_command_for_argv",
     "canonical_command_engine_actions",
+    "canonical_command_engine_actions_for_argv",
     "canonical_command_engine_actions_for_flow_step",
+    "canonical_command_flow_step_for_argv",
     "canonical_command_flow_step_for_engine_action",
     "canonical_command_for_engine_action",
     "canonical_command_for_flow_step",
@@ -115,6 +123,22 @@ def canonical_command_flow_step_for_engine_action(engine_action: str) -> str | N
 
 def canonical_command_demo_path_step_for_engine_action(engine_action: str) -> str | None:
     return _action_demo_path_step(engine_action)
+
+
+def canonical_command_flow_step_for_argv(argv: tuple[str, ...]) -> str | None:
+    return _readiness_flow_step_for_argv(argv)
+
+
+def canonical_command_command_for_argv(argv: tuple[str, ...]) -> str | None:
+    return _readiness_command_for_argv(argv)
+
+
+def canonical_command_demo_path_step_for_argv(argv: tuple[str, ...]) -> str | None:
+    return _readiness_demo_path_step_for_argv(argv)
+
+
+def canonical_command_engine_actions_for_argv(argv: tuple[str, ...]) -> tuple[str, ...]:
+    return _readiness_engine_actions_for_argv(argv)
 
 
 def canonical_command_for_flow_step(flow_step: str) -> str | None:
