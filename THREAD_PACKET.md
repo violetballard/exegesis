@@ -4,7 +4,7 @@
 - Lane: `feat-retrieval-fts`
 - Merge target: current `main`
 - Merge-base for this re-review: `fd2ab6ca65ec2f93d1334c9b7df8512439725be4`
-- Branch tip before this fixer commit: `8a637b0c369b5a7e4e915798bbdfbe2fb9e99c35`
+- Branch tip before this fixer commit: `0aea8aed679b4068f0b288fc434f466278288ee6`
 - Final HEAD SHA: reported in this fixer deliverable after commit creation.
 - Authoritative reviewed range / merge candidate: `fd2ab6ca65ec2f93d1334c9b7df8512439725be4..HEAD`
 - Scope classification: high-risk retrieval work because approved shared regression coverage in `tests/unit/test_unified_retrieval.py` is part of the reviewed range.
@@ -38,7 +38,7 @@ Complete files-changed list for `fd2ab6ca65ec2f93d1334c9b7df8512439725be4..HEAD`
 - `src/qual/engine/retrieval/payload.py` - lane-owned retrieval payload construction via `src/qual/engine/retrieval/**`.
 - `src/qual/retrieval/service.py` - lane-owned retrieval service behavior via `src/qual/retrieval/**`.
 - `tests/unit/test_unified_retrieval.py` - shared-by-approval regression coverage for the canonical retrieval contract.
-- `THREAD_PACKET.md` - authoritative handoff packet required by `INTEGRATION.md`; this is the only metadata-only file in the reviewed candidate.
+- `THREAD_PACKET.md` - authoritative handoff packet required by `INTEGRATION.md`.
 
 Lane-owned source/test files in the reviewed candidate:
 
@@ -65,8 +65,6 @@ Files absent from the reviewed candidate:
 - `tests/unit/test_packet_planner.py`
 - `src/qual/engine/retrieval/embeddings_strategy.py`
 - `src/qual/engine/retrieval/pageindex_strategy.py`
-- `.codex/kickoff_packets/feat-retrieval-fts.md`
-- `.codex/lane_meta/feat-retrieval-fts.json`
 
 ## Budget/Risk
 
