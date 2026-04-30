@@ -4,18 +4,19 @@
 - Lane: `feat-retrieval-fts`
 - Merge target: current `main`
 - Merge-base for this re-review: `fd2ab6ca65ec2f93d1334c9b7df8512439725be4`
-- Branch tip before this fixer commit: `2357a33dbbfc9e32622af8b40fe951ad21a231d6`
-- Final HEAD SHA: reported in this fixer deliverable after commit creation.
-- Authoritative reviewed range / merge candidate: `fd2ab6ca65ec2f93d1334c9b7df8512439725be4..HEAD`
+- Branch tip before this packet-only fixer commit: `b9eb058137a0bad5b4c68688000d26dbb77b9763`
+- Final reviewed commit: the HEAD commit containing this packet-only fixer update; final SHA is reported in the fixer deliverable after commit creation.
+- Authoritative reviewed range / complete merge candidate: `fd2ab6ca65ec2f93d1334c9b7df8512439725be4..HEAD`
+- Authoritative implementation candidate before this packet-only fixer commit: `fd2ab6ca65ec2f93d1334c9b7df8512439725be4..b9eb058137a0bad5b4c68688000d26dbb77b9763`
 - Scope classification: high-risk retrieval work because approved shared regression coverage in `tests/unit/test_unified_retrieval.py` is part of the reviewed range.
 
 ## Scope Completed
 
-This packet regenerates the handoff against one merge candidate: the complete branch diff from merge-base `fd2ab6ca65ec2f93d1334c9b7df8512439725be4` through the final fixer commit recorded above. It includes every source, test, and packet metadata change present at that candidate tip; no source or test file is classified as metadata-only. The earlier packet refresh commit `a5587120382486c956382fa8cf6741e79c134f46` is part of the implementation candidate because it modifies `src/qual/engine/retrieval/payload.py`; it is not treated as metadata-only.
+This packet regenerates the handoff against one merge candidate: the complete branch diff from merge-base `fd2ab6ca65ec2f93d1334c9b7df8512439725be4` through the final packet-only fixer commit recorded above. It includes every source, test, and packet metadata change present at that candidate tip; no source or test file is classified as metadata-only. The implementation candidate before this packet-only correction is `fd2ab6ca65ec2f93d1334c9b7df8512439725be4..b9eb058137a0bad5b4c68688000d26dbb77b9763`. The earlier packet refresh commit `a5587120382486c956382fa8cf6741e79c134f46` is part of the implementation candidate because it modifies `src/qual/engine/retrieval/payload.py`; it is not treated as metadata-only.
 
 This fixer pass keeps `THREAD_PACKET.md` as the authoritative handoff surface because the `.codex` lane metadata files are not part of the corrected merge-base-to-HEAD candidate.
 
-The stale reviewer ranges `378cf9a74..adfa8cdadd43747ffbcb612e4151e262b13e52ca`, `d7fd5d200358287fa42a18d39e2b277463b9b69f..adfa8cdadd43747ffbcb612e4151e262b13e52ca`, and `adfa8cdadd43747ffbcb612e4151e262b13e52ca..3753d4baf4f9f98eb58615fc0e7f45be9ffdf24a` are not used for this re-review. The current merge candidate is `fd2ab6ca65ec2f93d1334c9b7df8512439725be4..HEAD`; work outside that range is intentionally excluded because `fd2ab6ca65ec2f93d1334c9b7df8512439725be4` is the merge-base with current `main`.
+Historical-only ranges from prior packets are not submitted for approval: `378cf9a74..adfa8cdadd43747ffbcb612e4151e262b13e52ca`, `d7fd5d200358287fa42a18d39e2b277463b9b69f..adfa8cdadd43747ffbcb612e4151e262b13e52ca`, and `adfa8cdadd43747ffbcb612e4151e262b13e52ca..3753d4baf4f9f98eb58615fc0e7f45be9ffdf24a`. They are stale review artifacts only and are not approval targets. The current merge candidate is `fd2ab6ca65ec2f93d1334c9b7df8512439725be4..HEAD`; work outside that range is intentionally excluded because `fd2ab6ca65ec2f93d1334c9b7df8512439725be4` is the merge-base with current `main`.
 
 This fixer pass adds one retrieval-owned source correction: sparse basket-promotion reconstruction now derives stable basket item IDs from `excerpt_id` when `item_id` is absent, while preserving order and deduplicating repeated references. That keeps sparse source/evidence bundles promotion-ready for downstream basket gathering without depending on PageIndex or embeddings.
 
