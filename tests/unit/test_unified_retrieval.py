@@ -208,6 +208,36 @@ class UnifiedRetrievalTests(unittest.TestCase):
         self.assertEqual(first.diagnostics["fts_shortlist_doc_ids"], second.diagnostics["fts_shortlist_doc_ids"])
         self.assertIn("doc-pdf-1", first.diagnostics["fts_shortlist_doc_ids"])
 
+    def test_document_update_invalidates_fts_cache(self) -> None:
+        query = RetrievalQuery(
+            query_text="theory implications",
+            scope="doc:doc-pdf-1",
+            intent="lookup",
+            constraints=RetrievalConstraints(max_results=2),
+            confidentiality_profile="confidential",
+        )
+
+        first = self.service.retrieve_fts(query)
+        self.assertTrue(first.hits)
+        self.assertFalse(first.diagnostics["caches_used"]["fts"])
+        self.assertIn("Discussion includes theory implications", first.hits[0].excerpt_text or "")
+
+        self.service.add_or_update_document(
+            doc_id="doc-pdf-1",
+            doc_type="pdf",
+            title_hint="Interview Packet",
+            text=(
+                "Updated theory implications now cite member checking and a revised audit trail. "
+                "Methods notes were rewritten for the second draft."
+            ),
+        )
+
+        second = self.service.retrieve_fts(query)
+        self.assertTrue(second.hits)
+        self.assertFalse(second.diagnostics["caches_used"]["fts"])
+        self.assertIn("Updated theory implications now cite member checking", second.hits[0].excerpt_text or "")
+        self.assertNotEqual(first.hits[0].excerpt_text, second.hits[0].excerpt_text)
+
     def test_retrieval_hits_reject_non_fts_source_strategies(self) -> None:
         with self.assertRaisesRegex(ValueError, "source_strategy must be fts"):
             RetrievalHit(
