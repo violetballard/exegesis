@@ -4,7 +4,7 @@
 - Lane: `feat-retrieval-fts`
 - Merge target: current `main`
 - Merge-base for this re-review: `fd2ab6ca65ec2f93d1334c9b7df8512439725be4`
-- Branch tip before this fixer commit: `d20afc89e8d25c0127eb9e2c31df00cdb09d8f19`
+- Branch tip before this fixer commit: `3753d4baf4f9f98eb58615fc0e7f45be9ffdf24a`
 - Final HEAD SHA: reported in this fixer deliverable after commit creation.
 - Authoritative reviewed range / merge candidate: `fd2ab6ca65ec2f93d1334c9b7df8512439725be4..HEAD`
 - Scope classification: high-risk retrieval work because approved shared regression coverage in `tests/unit/test_unified_retrieval.py` is part of the reviewed range.
@@ -15,13 +15,13 @@ This packet regenerates the handoff against one merge candidate: the complete br
 
 The stale reviewer ranges `378cf9a74..adfa8cdadd43747ffbcb612e4151e262b13e52ca` and `d7fd5d200358287fa42a18d39e2b277463b9b69f..adfa8cdadd43747ffbcb612e4151e262b13e52ca` are not used for this re-review. The current merge candidate is `fd2ab6ca65ec2f93d1334c9b7df8512439725be4..HEAD`; work outside that range is intentionally excluded because `fd2ab6ca65ec2f93d1334c9b7df8512439725be4` is the merge-base with current `main`.
 
-The merge candidate advances FTS-first retrieval by normalizing engine retrieval boolean constraints and required query text/scope snapshots, keeping FTS cache and query snapshots deterministic, preserving basket-promotion references and provenance, invalidating stale FTS cache state on document updates, and falling back from invalid direct context snapshots to canonical source/payload reconstruction.
+The merge candidate advances FTS-first retrieval by normalizing engine retrieval boolean constraints and required query text/scope snapshots, keeping FTS cache and query snapshots deterministic, preserving basket-promotion references and provenance, carrying promotion-ready excerpt text/title hints into retrieval evidence fallbacks, invalidating stale FTS cache state on document updates, and falling back from invalid direct context snapshots to canonical source/payload reconstruction.
 
 ## Tasks Completed
 
 1. `retrieve relevant material`: normalize engine facade query constraints, boolean flags, date ranges, doc types, required query text/scope snapshots, and cache keys so repeated FTS retrieval is deterministic.
 2. `retrieve relevant material`: keep SQLite FTS authoritative for excerpt lookup, reject non-FTS excerpt normalization, preserve ranked IDs, document identities, confidentiality profiles, section hints, and excerpt provenance.
-3. `retrieve relevant material`; supports `promote or gather context into the basket`: preserve basket-promotion refs, item IDs, citation refs, provenance fingerprints, and source/context bundles during sparse payload and context-bundle reconstruction so retrieved material stays stable for downstream basket gathering.
+3. `retrieve relevant material`; supports `promote or gather context into the basket`: preserve basket-promotion refs, item IDs, citation refs, provenance fingerprints, source/context bundles, excerpt text, and title hints during sparse payload and context-bundle reconstruction so retrieved material stays stable for downstream basket gathering.
 4. `retrieve relevant material`; supports `promote or gather context into the basket`: harden cache invalidation and fallback reconstruction for document updates, sparse direct context snapshots, and generic context-bundle helpers while keeping PageIndex and embeddings fallback-only.
 
 ## Canonical Demo Path
@@ -72,7 +72,7 @@ Files absent from the reviewed candidate:
 
 - Task budget: `4/4` high-risk tasks.
 - File budget: `6/8` high-risk files.
-- Net LOC budget: source/test implementation changes are `5 files changed, 214 insertions(+), 49 deletions(-)` from merge-base through the final fixer commit, within `<=300` high-risk net LOC; packet metadata accounts for the remaining documentation churn.
+- Net LOC budget: source/test implementation changes remain within the `<=300` high-risk net LOC limit; this fixer adds `4 insertions(+)` in `src/qual/retrieval/service.py` for promotion-ready retrieval evidence fields, and packet metadata accounts for the remaining documentation churn.
 - Shared-by-approval files: `tests/unit/test_unified_retrieval.py` only.
 - Integrator-locked files: none.
 - Routing/provider impact: none.
@@ -89,6 +89,8 @@ Files absent from the reviewed candidate:
 
 Required gates re-run on the exact final candidate after this packet correction:
 
+- `python -m pytest tests/unit/test_unified_retrieval.py` BLOCKED because `/opt/homebrew/opt/python@3.14/bin/python3.14` has no `pytest` module installed; switched to repo-supported test commands.
+- `python3 -m unittest tests.unit.test_unified_retrieval -v` PASS, 56 tests.
 - `make scope-check` PASS.
 - `./quality-format.sh --check` PASS.
 - `./quality-lint.sh` PASS.
