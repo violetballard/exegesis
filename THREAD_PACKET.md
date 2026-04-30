@@ -110,7 +110,7 @@ Integrator-locked files:
 
 ## Commands Run
 
-Required gates for the corrected candidate:
+Required gates for the corrected candidate, rerun on 2026-04-30 for this fixer pass:
 
 - `python -m unittest tests.unit.test_unified_retrieval` PASS, 57 tests.
 - `make scope-check` PASS.
