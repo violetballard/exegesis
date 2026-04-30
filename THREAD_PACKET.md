@@ -3,13 +3,15 @@
 - Branch/lane: `codex/feat-retrieval-fts` / `feat-retrieval-fts`
 - Merge target: current `main`
 - Merge-base for this re-review: `fd2ab6ca65ec2f93d1334c9b7df8512439725be4`
-- Authoritative merge candidate before this packet-fix commit: `5a88788b77e5fa04eacd3f681047cfa72b4e6d37`
-- Candidate range for implementation review: `fd2ab6ca65ec2f93d1334c9b7df8512439725be4..5a88788b77e5fa04eacd3f681047cfa72b4e6d37`
-- Scope classification: high-risk retrieval work because engine retrieval behavior and approved shared regression coverage are in scope.
+- Branch tip before this fixer packet commit: `6c4beb2ef43c4230f19b0546c0d4ca996d3db9b9`
+- Branch-tip classification before this fixer packet commit: packet metadata only; it changes `THREAD_PACKET.md` and contains no source or test implementation changes.
+- Authoritative reviewed implementation head: `5a88788b77e5fa04eacd3f681047cfa72b4e6d37`
+- Authoritative reviewed implementation range: `fd2ab6ca65ec2f93d1334c9b7df8512439725be4..5a88788b77e5fa04eacd3f681047cfa72b4e6d37`
+- Scope classification: high-risk retrieval work because approved shared regression coverage is in scope.
 
 ## Scope Completed
 
-This packet replaces the stale `adfa8cda` review boundary with the actual branch-tip implementation range. All commits in the candidate range that touch retrieval code or shared retrieval tests are implementation commits, including commits after `adfa8cdadd43747ffbcb612e4151e262b13e52ca`; they are not classified as metadata-only. The only metadata-only content in this handoff is packet documentation.
+This packet chooses one review scope and replaces the stale `378cf9a74a3658058079a32f186fcd254c4a4034..adfa8cdadd43747ffbcb612e4151e262b13e52ca` review boundary with one authoritative cumulative implementation range: `fd2ab6ca65ec2f93d1334c9b7df8512439725be4..5a88788b77e5fa04eacd3f681047cfa72b4e6d37`. The older cumulative boundary `d7fd5d200358287fa42a18d39e2b277463b9b69f..adfa8cdadd43747ffbcb612e4151e262b13e52ca` is historical only and is not requested for this re-review. Every non-metadata source or test change intended to merge is included in the authoritative range. The commit `5a88788b77e5fa04eacd3f681047cfa72b4e6d37` is explicitly an implementation commit because it normalizes `RetrievalQuery.query_text` and `scope` snapshots in `src/qual/retrieval/service.py`.
 
 The merge candidate advances FTS-first retrieval by normalizing engine retrieval boolean constraints and required query text/scope snapshots, keeping FTS cache and query snapshots deterministic, preserving basket-promotion references and provenance, invalidating stale FTS cache state on document updates, and falling back from invalid direct context snapshots to canonical source/payload reconstruction.
 
@@ -28,54 +30,48 @@ Basket/workflow promotion readiness: retrieval output now carries deterministic 
 
 ## Merge Scope Accounting
 
-Files in the authoritative implementation candidate:
+Files in the authoritative reviewed implementation range:
 
-- `THREAD_PACKET.md`
-- `src/qual/engine/retrieval/__init__.py`
-- `src/qual/engine/retrieval/fts_strategy.py`
-- `src/qual/engine/retrieval/payload.py`
-- `src/qual/retrieval/service.py`
-- `tests/unit/test_unified_retrieval.py`
-
-Retrieval implementation files in scope:
-
-- `src/qual/engine/retrieval/__init__.py`
-- `src/qual/engine/retrieval/fts_strategy.py`
-- `src/qual/engine/retrieval/payload.py`
-- `src/qual/retrieval/service.py`
-
-Approved shared regression coverage in scope:
-
-- `tests/unit/test_unified_retrieval.py`
-
-Packet metadata updated by this fixer pass:
-
-- `THREAD_PACKET.md`
+- `THREAD_PACKET.md` - packet metadata; out-of-lane handoff documentation required by `INTEGRATION.md`.
+- `src/qual/engine/retrieval/__init__.py` - lane-owned via `src/qual/engine/retrieval/**`.
+- `src/qual/engine/retrieval/fts_strategy.py` - lane-owned via `src/qual/engine/retrieval/**`.
+- `src/qual/engine/retrieval/payload.py` - lane-owned via `src/qual/engine/retrieval/**`.
+- `src/qual/retrieval/service.py` - lane-owned via `src/qual/retrieval/**`.
+- `tests/unit/test_unified_retrieval.py` - shared-by-approval regression coverage for the canonical retrieval contract.
 
 Protected packet mirrors that could not be updated from this sandbox:
 
 - `.codex/kickoff_packets/feat-retrieval-fts.md`
 - `.codex/lane_meta/feat-retrieval-fts.json`
 
-Explicitly excluded from this retrieval merge candidate:
+Those mirror files are write-protected in this worktree. Treat `THREAD_PACKET.md` as the corrected handoff packet for this re-review.
+
+Integrator-locked files: none.
+
+Out-of-scope files not present in the authoritative reviewed implementation range:
 
 - `codex_packet_handoff/tools/planner.py`
 - `tests/unit/test_packet_planner.py`
+- `src/qual/engine/retrieval/embeddings_strategy.py`
+- `src/qual/engine/retrieval/pageindex_strategy.py`
 
-Those packet-planner/tooling paths are not present in `main...HEAD` for this branch and must not be reviewed or integrated as part of `feat-retrieval-fts`. If further planner/tooling work is needed, it should be submitted through the appropriate tooling/integrator path with explicit approval.
+Those paths are not present in `fd2ab6ca65ec2f93d1334c9b7df8512439725be4..5a88788b77e5fa04eacd3f681047cfa72b4e6d37` and must not be reviewed or integrated as part of this `feat-retrieval-fts` handoff.
 
 ## Budget/Risk
 
 - Task budget: `4/4` high-risk tasks.
-- Size before this packet-fix commit: `6 files changed, 256 insertions(+), 112 deletions(-)` for `fd2ab6ca65ec2f93d1334c9b7df8512439725be4..5a88788b77e5fa04eacd3f681047cfa72b4e6d37`.
-- Integrator-locked files: none.
+- Size for authoritative reviewed implementation range: `6 files changed, 256 insertions(+), 112 deletions(-)`.
+- File budget: `6/8` high-risk files.
+- Net LOC budget: `+144/300` high-risk net LOC.
 - Shared-by-approval files: `tests/unit/test_unified_retrieval.py` only.
+- Integrator-locked files: none.
 - Routing/provider impact: none.
+- Approval note: shared regression coverage in `tests/unit/test_unified_retrieval.py` is approved for this lane because it exercises the canonical retrieval contract. The packet metadata file is required handoff documentation, not runtime scope.
 
 ## Roadmap/Vision
 
 - Roadmap item affected: `ROADMAP.md` MVP focus for FTS-first retrieval and Milestone 3 product-readiness provenance/output-contract work.
-- Vision capability affected: `PRODUCT_VISION.md` capability 2 Retrieval-first context handling and capability 3 Auditable generation.
+- Vision capability affected: `PRODUCT_VISION.md` capability 2 Retrieval-first context handling and capability 6 Auditable state and workflow.
 - Canonical demo-path step made more real: `retrieve relevant material`, with basket/workflow promotion readiness through stable provenance and context refs.
 - Proposed `README.md` patch text: none.
 
