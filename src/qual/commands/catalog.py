@@ -338,6 +338,14 @@ class CommandDemoReadinessSmokePlan:
 
 
 @dataclass(frozen=True)
+class CommandDemoReadinessGate:
+    is_complete: bool
+    missing_engine_actions: tuple[str, ...]
+    command_lines: tuple[str, ...]
+    action_lines: tuple[tuple[str, str], ...]
+
+
+@dataclass(frozen=True)
 class CommandDemoCommandActionEntry:
     flow_step: str
     name: str
@@ -2651,6 +2659,67 @@ def command_demo_readiness_smoke_plan_summary(
 
 
 @lru_cache(maxsize=None)
+def command_demo_readiness_gate(
+    specs: tuple[CommandSpec, ...] = COMMAND_SPECS,
+    launcher_argv: tuple[str, ...] = COMMAND_SMOKE_CLI_LAUNCHER_ARGV,
+) -> CommandDemoReadinessGate:
+    missing_engine_actions = command_demo_readiness_missing_engine_actions(specs, launcher_argv)
+    smoke_plan = command_demo_readiness_smoke_plan(specs, launcher_argv)
+    gate = CommandDemoReadinessGate(
+        is_complete=not missing_engine_actions,
+        missing_engine_actions=missing_engine_actions,
+        command_lines=tuple(step.command_line for step in smoke_plan.steps),
+        action_lines=tuple(action_line for step in smoke_plan.steps for action_line in step.action_lines),
+    )
+    _validate_command_demo_readiness_gate(gate, smoke_plan, specs=specs)
+    return gate
+
+
+def _validate_command_demo_readiness_gate(
+    gate: CommandDemoReadinessGate,
+    smoke_plan: CommandDemoReadinessSmokePlan,
+    *,
+    specs: tuple[CommandSpec, ...],
+) -> None:
+    expected_command_lines = tuple(step.command_line for step in smoke_plan.steps)
+    expected_action_lines = tuple(
+        action_line for step in smoke_plan.steps for action_line in step.action_lines
+    )
+    if gate.command_lines != expected_command_lines:
+        raise ValueError("Command demo readiness gate command lines are inconsistent")
+    if gate.action_lines != expected_action_lines:
+        raise ValueError("Command demo readiness gate action lines are inconsistent")
+    if tuple(engine_action for engine_action, _ in gate.action_lines) != command_demo_engine_actions(specs):
+        raise ValueError("Command demo readiness gate action coverage is inconsistent")
+    if gate.is_complete != (not gate.missing_engine_actions):
+        raise ValueError("Command demo readiness gate completeness is inconsistent")
+
+
+def command_demo_readiness_gate_summary(
+    specs: tuple[CommandSpec, ...] = COMMAND_SPECS,
+    launcher_argv: tuple[str, ...] = COMMAND_SMOKE_CLI_LAUNCHER_ARGV,
+) -> tuple[bool, tuple[str, ...], tuple[str, ...], tuple[tuple[str, str], ...]]:
+    gate = command_demo_readiness_gate(specs, launcher_argv)
+    return (
+        gate.is_complete,
+        gate.missing_engine_actions,
+        gate.command_lines,
+        gate.action_lines,
+    )
+
+
+def require_command_demo_readiness_complete(
+    specs: tuple[CommandSpec, ...] = COMMAND_SPECS,
+    launcher_argv: tuple[str, ...] = COMMAND_SMOKE_CLI_LAUNCHER_ARGV,
+) -> CommandDemoReadinessGate:
+    gate = command_demo_readiness_gate(specs, launcher_argv)
+    if not gate.is_complete:
+        missing = ", ".join(gate.missing_engine_actions)
+        raise ValueError(f"Command demo readiness is incomplete: {missing}")
+    return gate
+
+
+@lru_cache(maxsize=None)
 def command_demo_readiness_action_index(
     specs: tuple[CommandSpec, ...] = COMMAND_SPECS,
     launcher_argv: tuple[str, ...] = COMMAND_SMOKE_CLI_LAUNCHER_ARGV,
@@ -3555,6 +3624,27 @@ def command_mvp_demo_readiness_smoke_plan_summary(
     launcher_argv: tuple[str, ...] = COMMAND_SMOKE_CLI_LAUNCHER_ARGV,
 ) -> tuple[tuple[int, str, str, str, str, tuple[tuple[str, str], ...]], ...]:
     return command_demo_readiness_smoke_plan_summary(specs, launcher_argv)
+
+
+def command_mvp_demo_readiness_gate(
+    specs: tuple[CommandSpec, ...] = COMMAND_SPECS,
+    launcher_argv: tuple[str, ...] = COMMAND_SMOKE_CLI_LAUNCHER_ARGV,
+) -> CommandDemoReadinessGate:
+    return command_demo_readiness_gate(specs, launcher_argv)
+
+
+def command_mvp_demo_readiness_gate_summary(
+    specs: tuple[CommandSpec, ...] = COMMAND_SPECS,
+    launcher_argv: tuple[str, ...] = COMMAND_SMOKE_CLI_LAUNCHER_ARGV,
+) -> tuple[bool, tuple[str, ...], tuple[str, ...], tuple[tuple[str, str], ...]]:
+    return command_demo_readiness_gate_summary(specs, launcher_argv)
+
+
+def require_command_mvp_demo_readiness_complete(
+    specs: tuple[CommandSpec, ...] = COMMAND_SPECS,
+    launcher_argv: tuple[str, ...] = COMMAND_SMOKE_CLI_LAUNCHER_ARGV,
+) -> CommandDemoReadinessGate:
+    return require_command_demo_readiness_complete(specs, launcher_argv)
 
 
 def command_mvp_demo_readiness_action_index(
