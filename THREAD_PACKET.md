@@ -2,84 +2,60 @@
 
 - Lane: `feat-commands`
 - Branch: `codex/feat-commands`
-- Merge candidate: branch tip after this fixer commit.
-- Reviewed implementation range: full branch tip relative to `codex/integrator` merge-base `d08afc7f52467ea10f78a5eccff79b4e54b619eb`; not the stale `f8d860e...` slice. Implementation-changing commits after `f8d860e...`, including `eecfc9e98`, are included in scope.
-- Scope completed: command catalog contract hardening and regression coverage for canonical CLI parser tokens, plus fixer isolation of the off-lane retrieval payload syntax/source-bundle blocker found by required gates.
+- Merge candidate: branch tip after this fixer packet refresh.
+- Reviewed implementation range: command-catalog fixer scope at branch tip, centered on `src/qual/commands/catalog.py` and `tests/unit/test_commands_catalog.py`.
+- Scope completed: command catalog contract hardening and regression coverage for the approved CLI parser token surface.
 - Roadmap item affected: active MVP `feat-commands`; Milestone 3 command surface stability while Textual remains disabled.
 - Vision capability affected: canonical engine contract and CLI compatibility through deterministic command catalog metadata.
-- Routing/provider impact note: live router config fallback args/model were updated from the stale profile alias to explicit `--oss --local-provider lmstudio` plus `gpt-oss-120b`; remaining heavy-profile assertions are isolated when the protected worktree config cannot be completed.
+- Routing/provider impact note: none for this command-catalog review packet.
 - Proposed `README.md` patch text: none.
 
 ## Reviewer Required Fixes
 
-1. Tightened `command_cli_contract()` so it compares `command_cli_tokens()` and `command_cli_lookup_table()` against the exact approved parser-surface expectation derived from the canonical CLI token tuple and command catalog resolution.
-2. Added/kept explicit regressions for all requested parser drift modes: extra valid-but-unapproved alias, canonical parser token replacement by an alias, and parser-token reordering that preserves the same resolved canonical names.
-3. Regenerated this handoff against the actual branch tip instead of the stale `f8d860e...` slice.
-4. Included implementation-changing commits after `f8d860e...` explicitly in the reviewed range instead of labeling them metadata-only.
-5. Re-ran the required gates and reported their actual outcomes below.
-6. Resolved the reported `src/qual/engine/retrieval/payload.py:428` syntax failure and the follow-on retrieval source-bundle `None` return exposed after syntax was fixed.
-7. Updated the router config/test isolation, file list, and risks/blockers to match the actual branch tip and current worktree state.
+1. Regenerated this handoff around one real scope: the command-catalog parser-surface guard and its shared unit-test coverage.
+2. Tightened `command_cli_contract()` so it validates the exact approved parser tokens and derived lookup table, not only the unique canonical command sequence.
+3. Added regression coverage for alias replacement of canonical parser tokens, valid-but-unapproved aliases resolving to existing commands, and parser-token reordering that preserves canonical names.
+4. Kept off-lane retrieval/router/config work out of this packet's reviewed command scope.
+5. Re-ran the required gates and reported the current sandbox blocker accurately below.
 
 ## Tasks Completed
 
-1. Tightened `command_cli_contract()` so the exact approved CLI parser token tuple and the derived catalog lookup table must match the runtime parser surface, in addition to requiring the canonical command names to match the approved canonical parser tokens.
-   - Canonical demo-path step: `preview and apply/reject patch`.
-   - Concrete blocker removed: unapproved aliases can no longer silently expand or reorder the parser surface while still resolving to an existing command, preserving `diff-preview` as the stable CLI fallback token for patch preview/review.
-2. Added regression coverage for all reviewed parser drift modes: alias replacement of a canonical token, alias reordering around `diff-preview`, and a valid-but-unapproved alias resolving to `bootstrap`.
-   - Canonical demo-path steps: `open project/document`; `preview and apply/reject patch`.
-3. Fixed the off-lane retrieval payload syntax error at `src/qual/engine/retrieval/payload.py:428` so Python compilation and retrieval tests can import the module.
-   - Canonical demo-path step: `retrieve relevant material`.
-4. Fixed `RetrievalResult._retrieval_source_bundle_snapshot()` to return the source bundle it builds, resolving the source-bundle helper failures that surfaced once the syntax error was fixed.
-   - Canonical demo-path step: `retrieve relevant material`.
-5. Updated the live router config fallback args/model and isolated the remaining protected heavy-profile drift in the live-config assertion.
-   - Canonical demo-path step: `retrieve relevant material`; `preview and apply/reject patch`.
-6. Re-ran the required gates and recorded the protected-config skip truthfully.
-   - Canonical demo-path step: `retrieve relevant material`; `preview and apply/reject patch`.
+1. Locked the approved CLI parser token tuple in `src/qual/commands/catalog.py` and made `command_cli_contract()` compare both live tokens and live lookup-table entries against that approved surface.
+2. Preserved canonical-name validation so catalog drift is still rejected after parser-surface validation succeeds.
+3. Added focused regressions in `tests/unit/test_commands_catalog.py` for canonical token replacement by alias, unapproved alias insertion, and token reordering that otherwise resolves to the same canonical names.
+4. Refreshed this packet so the reviewed files, risks, and gate outcomes match the command-catalog scope.
 
-## Files Changed
+## Files Changed For This Scope
 
-Actual full branch-tip diff relative to `codex/integrator...HEAD` contains `185` files. The relevant implementation and handoff files for this fixer/re-review are:
-
-- `THREAD.md` (handoff pointer metadata from prior branch work)
-- `THREAD_PACKET.md` (this regenerated handoff metadata)
+- `THREAD_PACKET.md`
 - `src/qual/commands/catalog.py`
 - `tests/unit/test_commands_catalog.py`
-- `src/qual/engine/retrieval/payload.py`
-- `src/qual/retrieval/service.py`
-- `.codex/packet_router/config.json`
-- `tests/unit/test_offline_handoff.py`
-- `tests/unit/test_mvp_migration.py`
-
-The full branch-tip file list includes command, retrieval, context/storage, shared/client package, packet-router, and metadata deltas already present on this branch. Review should treat the actual branch tip as the merge candidate, not the stale `f8d860e...` slice.
 
 ## Ownership And Scope
 
 - Lane-owned implementation path changed: `src/qual/commands/catalog.py`.
 - Shared-by-approval test path changed: `tests/unit/test_commands_catalog.py`.
-- Off-lane gate-isolation fixes: `src/qual/engine/retrieval/payload.py`, `src/qual/retrieval/service.py`.
-- Packet metadata files changed: `THREAD.md`, `THREAD_PACKET.md`.
-- Integrator-locked files changed by this fixer: none.
-- Disabled Textual lane files changed by this fixer: none.
-- Protected router config note: `.codex/packet_router/config.json` accepted the fallback args/model update but remains protected from completing the heavy-profile update in this worktree, so the live-config assertion skips only when that protected state is detected.
+- Packet metadata changed: `THREAD_PACKET.md`.
+- Integrator-locked files changed by this packet refresh: none.
+- Routing/provider/config files changed by this packet refresh: none.
 
 ## Commands Run
 
 - `make scope-check`: passed.
 - `./quality-format.sh --check`: passed.
 - `./quality-lint.sh`: passed.
-- `python -m unittest tests.unit.test_commands_catalog.CommandCatalogTests.test_command_cli_contract_matches_the_catalog_order tests.unit.test_commands_catalog.CommandCatalogTests.test_command_cli_contract_rejects_catalog_drift tests.unit.test_commands_catalog.CommandCatalogTests.test_command_cli_contract_rejects_alias_replacing_canonical_token tests.unit.test_commands_catalog.CommandCatalogTests.test_command_cli_contract_rejects_parser_token_reordering tests.unit.test_commands_catalog.CommandCatalogTests.test_command_cli_contract_rejects_unapproved_alias_to_existing_command`: passed; 5 tests.
-- `python -m unittest tests.unit.test_mvp_migration tests.unit.test_unified_retrieval tests.unit.test_offline_handoff.OfflineHandoffConfigTests.test_live_router_config_uses_explicit_lms_provider`: passed; 83 tests, 1 skipped live-router-config assertion for protected heavy-profile drift.
+- `python -m unittest tests.unit.test_commands_catalog`: passed; 46 tests.
+- `./quality-test.sh`: passed; 393 tests, 1 skipped live-router-config assertion for protected worktree config.
 - `./typecheck-test.sh`: passed.
-- `./quality-test.sh`: passed; 393 tests, 1 skipped live-router-config assertion for protected heavy-profile drift.
-- `make ci`: passed; includes scope, format, lint, compile/typecheck, and `quality-test.sh` with the same 1 protected-config skip.
+- `make ci`: failed at embedded scope-check because `tests/unit/test_commands_catalog.py` is a shared-by-approval test file and CI requires `SCOPE_ALLOW_SHARED=1`.
+- `SCOPE_ALLOW_SHARED=1 make ci`: failed in packet-router/worktree-recovery tests with sandbox `PermissionError` writing to protected `.codex/packet_router/logs/...` and `.codex/worktree_recovery/...`; command-catalog tests in the same run passed.
+- `python -m unittest tests.unit.test_cloud_concurrency_caps.CloudConcurrencyCapsTests.test_run_fixer_detached_cli_streams_prompt_via_stdin_for_local_mode tests.unit.test_packet_progress.WorktreeCleanupTests.test_repair_shadow_gitdir_repoints_worktree_and_preserves_backup`: reproduced the same protected `.codex` write errors.
 
 ## Risks And Blockers
 
-- Resolved: the reported `src/qual/engine/retrieval/payload.py:428` syntax failure no longer blocks compile/typecheck.
-- Resolved: retrieval source-bundle helpers no longer return `None`; the targeted retrieval regression slice passes.
-- Remaining risk: the live router config test skips in this worktree when protected heavy-profile fields are absent; fallback args/model drift is corrected, but the protected heavy-profile profile/lane entries still require integrator attention if the target config must contain them before merge.
-- Remaining risk: the branch-tip diff is broad (`185` files relative to `codex/integrator...HEAD`), so reviewer/integrator should review the actual branch tip rather than any stale partial slice.
+- Remaining blocker: full `make ci` cannot complete in this sandbox because two packet-router/worktree-recovery tests attempt to write under protected `.codex` paths. This is outside the command-catalog scope.
+- Remaining risk: branch history contains broader work outside this packet's reviewed command-catalog scope. This packet intentionally asks for re-review of the command-catalog fixer scope only.
 
 ## Final Readiness Statement
 
-This work makes the canonical demo-path steps `open project/document`, `retrieve relevant material`, and `preview and apply/reject patch` more real by preserving deterministic CLI parser tokens and restoring retrieval payload/source-bundle helpers needed by engine-side context gathering. Required gates are green in this worktree; the only noted residual risk is the protected live-router heavy-profile config skip.
+The command-catalog parser surface now rejects accepted-token drift that preserves canonical command names, including alias replacement, unapproved alias insertion, and parser-token reordering. Focused command-catalog tests and the required non-CI gates are green; aggregate CI is blocked by protected `.codex` writes in off-scope packet-router tests.
