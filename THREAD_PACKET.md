@@ -3,17 +3,17 @@
 - Branch name: `codex/feat-retrieval-fts`
 - Lane: `feat-retrieval-fts`
 - Merge target: current `main`
-- Reviewed source/test implementation range: `378cf9a74a3658058079a32f186fcd254c4a4034..cc084f05c58c8c3c0613dded69109fdf7ce03708`
-- Reviewed source/test implementation head: `cc084f05c58c8c3c0613dded69109fdf7ce03708`
+- Reviewed source/test implementation range: `378cf9a74a3658058079a32f186fcd254c4a4034..38955f1ed`
+- Reviewed source/test implementation head: `38955f1ed`
 - Authoritative branch-tip merge/review range: `378cf9a74a3658058079a32f186fcd254c4a4034..FINAL_HEAD_SHA_REPORTED_BY_FIXER_DELIVERABLE`
 - Pre-fix packet refresh tip: `59131cb7b` (metadata-only after `cc084f05c58c8c3c0613dded69109fdf7ce03708`).
-- Final branch tip: reported in the fixer deliverable after this packet commit is created.
+- Final branch tip: reported in the fixer deliverable after this packet commit is created; this final commit updates handoff metadata only.
 - Scope classification: high-risk because this branch-tip packet includes approved shared regression coverage in `tests/unit/test_unified_retrieval.py`.
 - Packet type: branch-tip re-review packet for the FTS-first retrieval lane.
 
 ## Scope Completed
 
-This packet has been regenerated against the actual branch tip to be submitted. The prior source/test implementation surface was `378cf9a74a3658058079a32f186fcd254c4a4034..cc084f05c58c8c3c0613dded69109fdf7ce03708`; this fixer pass adds one lane-owned source change after pre-fix packet tip `59131cb7b` in `src/qual/engine/retrieval/payload.py`. The final source/test implementation surface for re-review is the full base-to-final-HEAD range reported in the fixer deliverable, with the source/test implementation files listed below.
+This packet has been regenerated against the actual source/test implementation head to be submitted. The prior implementation surface was `378cf9a74a3658058079a32f186fcd254c4a4034..cc084f05c58c8c3c0613dded69109fdf7ce03708`; this fixer pass adds lane-owned sparse basket-promotion fallback handling in `src/qual/engine/retrieval/payload.py` at `d6383475d` and shared regression coverage in `tests/unit/test_unified_retrieval.py` at `38955f1ed`. The corrected reviewed source/test implementation range is `378cf9a74a3658058079a32f186fcd254c4a4034..38955f1ed`, and the authoritative merge/review range for the branch tip is the full base-to-final-HEAD range reported in the fixer deliverable.
 
 The reviewed branch-tip work strengthens the active MVP target of FTS-first retrieval. SQLite FTS remains the canonical retrieval path; engine and service facades expose canonical query construction, `retrieve_auto`, and excerpt lookup; retrieval payload snapshots, sparse source/context bundles, provenance, fingerprints, and basket-promotion references are normalized deterministically for downstream engine flows; sparse excerpt-hit snapshots now rehydrate deterministic basket-promotion refs when explicit promotion metadata is absent; and PageIndex-only excerpt IDs fail closed instead of backfilling through non-FTS paths.
 
@@ -36,7 +36,7 @@ Packet mirror note: `.codex/kickoff_packets/feat-retrieval-fts.md` and `.codex/l
 
 ## Files Changed
 
-Reviewed source/test implementation files for `378cf9a74a3658058079a32f186fcd254c4a4034..cc084f05c58c8c3c0613dded69109fdf7ce03708`:
+Reviewed source/test implementation files for `378cf9a74a3658058079a32f186fcd254c4a4034..38955f1ed`:
 
 - `src/qual/engine/retrieval/__init__.py` - engine retrieval facade exports for canonical query, auto retrieval, excerpt lookup, payload, and ranking surfaces.
 - `src/qual/engine/retrieval/fts_strategy.py` - FTS strategy snapshot normalization and deterministic hit/ranking behavior.
@@ -44,9 +44,9 @@ Reviewed source/test implementation files for `378cf9a74a3658058079a32f186fcd254
 - `src/qual/retrieval/service.py` - canonical FTS-first retrieval service behavior, excerpt lookup, cache scope normalization, filtering, and fail-closed compatibility paths.
 - `tests/unit/test_unified_retrieval.py` - approved shared-by-approval regression coverage for the branch-tip retrieval contract.
 
-Reviewed source/test stat: `5 files changed, 584 insertions(+), 119 deletions(-)`.
+Reviewed source/test stat: `5 files changed, 632 insertions(+), 119 deletions(-)`.
 
-Full branch-tip reviewed file surface, including packet metadata files, is the same 8 paths shown by `git diff --name-status 378cf9a74a3658058079a32f186fcd254c4a4034..HEAD`: `.codex/kickoff_packets/feat-retrieval-fts.md`, `.codex/lane_meta/feat-retrieval-fts.json`, `THREAD_PACKET.md`, `src/qual/engine/retrieval/__init__.py`, `src/qual/engine/retrieval/fts_strategy.py`, `src/qual/engine/retrieval/payload.py`, `src/qual/retrieval/service.py`, and `tests/unit/test_unified_retrieval.py`. At pre-fix tip `1483db4a5bfe8a71906d65e33c97e3224bdaf5fe`, that full range was `8 files changed, 756 insertions(+), 207 deletions(-)`; the final fixer deliverable reports the final HEAD SHA after this metadata-only packet update.
+Full branch-tip reviewed file surface, including packet metadata files, is the same 8 paths shown by `git diff --name-status 378cf9a74a3658058079a32f186fcd254c4a4034..HEAD`: `.codex/kickoff_packets/feat-retrieval-fts.md`, `.codex/lane_meta/feat-retrieval-fts.json`, `THREAD_PACKET.md`, `src/qual/engine/retrieval/__init__.py`, `src/qual/engine/retrieval/fts_strategy.py`, `src/qual/engine/retrieval/payload.py`, `src/qual/retrieval/service.py`, and `tests/unit/test_unified_retrieval.py`. With this fixer pass included, that full range is `8 files changed, 897 insertions(+), 207 deletions(-)`; the final fixer deliverable reports the final HEAD SHA after this packet update commit.
 
 Lane-owned source/test files in the reviewed implementation range:
 
@@ -73,7 +73,7 @@ Integrator-locked files in the reviewed branch-tip range:
 
 - Task budget: `4/4` high-risk tasks; this fixer pass extends task 2 with a lane-owned sparse basket-promotion fallback.
 - File budget: `5/8` high-risk source/test files.
-- Net source/test LOC budget: `+373` net LOC, above the default `<=300` high-risk size guideline because this packet now truthfully covers all branch-tip retrieval implementation work requested by the reviewer.
+- Net source/test LOC budget: `+513` net LOC, above the default `<=300` high-risk size guideline because this packet now truthfully covers all branch-tip retrieval implementation work requested by the reviewer.
 - Full branch-tip packet LOC: exceeds the high-risk metadata-inclusive size guideline because the branch includes packet regeneration commits; the merge surface is listed explicitly above.
 - Size exception required: yes; this branch-tip re-review packet corrects prior traceability drift instead of narrowing away source/test changes that are already present on the branch tip. No integrator-approved exception is recorded in this worktree, so re-review should treat this as an explicit requested exception for the truthful branch-tip surface rather than as a claimed in-budget high-risk handoff.
 - Shared-file approval note: Approved shared regression coverage in `tests/unit/test_unified_retrieval.py` for the `feat-retrieval-fts` lane; it exercises the canonical retrieval contract.
@@ -92,14 +92,13 @@ Integrator-locked files in the reviewed branch-tip range:
 Required gates for this fixer pass:
 
 - `make scope-check` PASS for branch `codex/feat-retrieval-fts`.
-- `python -m unittest tests.unit.test_unified_retrieval` PASS, 56 tests.
 - `./quality-format.sh --check` PASS.
-- `make scope-check` PASS for branch `codex/feat-retrieval-fts`.
 - `./quality-lint.sh` PASS.
-- `./quality-test.sh` PASS, 125 tests.
+- `./quality-test.sh` PASS, 126 tests.
 - `./typecheck-test.sh` PASS, Python sources under `src/` compile.
-- `make ci` PASS, 125 tests; includes scope-check, format, lint, typecheck, and test gates.
+- `make ci` PASS, 126 tests; includes scope-check, format, lint, typecheck, and test gates.
+- `python -m unittest tests.unit.test_unified_retrieval` PASS, 57 tests.
 
 ## Risks/Blockers
 
-Remaining risk is review scope size: this corrected packet intentionally includes every branch-tip source/test change through `cc084f05c58c8c3c0613dded69109fdf7ce03708`. It does not touch model routing/provider configuration and does not include Textual UI console work.
+Remaining risk is review scope size: this corrected packet intentionally includes every branch-tip source/test change through the final fixer HEAD reported in the deliverable. It does not touch model routing/provider configuration and does not include Textual UI console work.
