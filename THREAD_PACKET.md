@@ -3,16 +3,16 @@
 - Branch/lane: `codex/feat-retrieval-fts` / `feat-retrieval-fts`
 - Merge target: current `main`
 - Merge-base for this re-review: `fd2ab6ca65ec2f93d1334c9b7df8512439725be4`
-- Current branch tip before this fixer packet commit: `80e6c6f32db8cd541fd4f06bcec1ebf6066114c4`
-- Authoritative reviewed branch range: `fd2ab6ca65ec2f93d1334c9b7df8512439725be4..80e6c6f32db8cd541fd4f06bcec1ebf6066114c4`
+- Current branch tip before this fixer packet commit: `871f69bfb`
+- Authoritative reviewed branch range before this fixer packet commit: `fd2ab6ca65ec2f93d1334c9b7df8512439725be4..871f69bfb`
 - Authoritative reviewed implementation head: `5a88788b77e5fa04eacd3f681047cfa72b4e6d37`
 - Authoritative reviewed implementation range: `fd2ab6ca65ec2f93d1334c9b7df8512439725be4..5a88788b77e5fa04eacd3f681047cfa72b4e6d37`
-- Commits after the implementation head are packet metadata only: `6c4beb2ef`, `dd22dfdb9`, `877367dca`, and `80e6c6f32` each modify only `THREAD_PACKET.md` and contain no source or test implementation changes.
+- Commits after the implementation head are packet metadata only: `6c4beb2ef`, `dd22dfdb9`, `877367dca`, `80e6c6f32`, and `871f69bfb` each modify only `THREAD_PACKET.md` and contain no source or test implementation changes.
 - Scope classification: high-risk retrieval work because approved shared regression coverage is in scope.
 
 ## Scope Completed
 
-This packet chooses one review scope and replaces the stale `378cf9a74a3658058079a32f186fcd254c4a4034..adfa8cdadd43747ffbcb612e4151e262b13e52ca` review boundary with one authoritative current branch range: `fd2ab6ca65ec2f93d1334c9b7df8512439725be4..80e6c6f32db8cd541fd4f06bcec1ebf6066114c4`. Within that branch range, every non-metadata source or test change intended to merge is contained in the implementation range `fd2ab6ca65ec2f93d1334c9b7df8512439725be4..5a88788b77e5fa04eacd3f681047cfa72b4e6d37`. The later commits `6c4beb2ef`, `dd22dfdb9`, `877367dca`, and `80e6c6f32` are explicitly excluded from implementation review because `git log --name-only 5a88788b77e5fa04eacd3f681047cfa72b4e6d37..80e6c6f32db8cd541fd4f06bcec1ebf6066114c4` shows only `THREAD_PACKET.md`. The older cumulative boundary `d7fd5d200358287fa42a18d39e2b277463b9b69f..adfa8cdadd43747ffbcb612e4151e262b13e52ca` is historical only and is not requested for this re-review. The commit `5a88788b77e5fa04eacd3f681047cfa72b4e6d37` is explicitly an implementation commit because it normalizes `RetrievalQuery.query_text` and `scope` snapshots in `src/qual/retrieval/service.py`.
+This packet chooses one review scope and replaces the stale `378cf9a74a3658058079a32f186fcd254c4a4034..adfa8cdadd43747ffbcb612e4151e262b13e52ca` and `d7fd5d200358287fa42a18d39e2b277463b9b69f..adfa8cdadd43747ffbcb612e4151e262b13e52ca` review boundaries with one authoritative current implementation range: `fd2ab6ca65ec2f93d1334c9b7df8512439725be4..5a88788b77e5fa04eacd3f681047cfa72b4e6d37`. Within the current branch range before this fixer packet commit, every non-metadata source or test change intended to merge is contained in that implementation range. The later commits `6c4beb2ef`, `dd22dfdb9`, `877367dca`, `80e6c6f32`, and `871f69bfb` are explicitly excluded from implementation review because `git log --name-only 5a88788b77e5fa04eacd3f681047cfa72b4e6d37..871f69bfb` shows only `THREAD_PACKET.md`. The older cumulative boundary `d7fd5d200358287fa42a18d39e2b277463b9b69f..adfa8cdadd43747ffbcb612e4151e262b13e52ca` is historical only and is not requested for this re-review. The commit `5a88788b77e5fa04eacd3f681047cfa72b4e6d37` is explicitly an implementation commit because it normalizes `RetrievalQuery.query_text` and `scope` snapshots in `src/qual/retrieval/service.py`.
 
 The merge candidate advances FTS-first retrieval by normalizing engine retrieval boolean constraints and required query text/scope snapshots, keeping FTS cache and query snapshots deterministic, preserving basket-promotion references and provenance, invalidating stale FTS cache state on document updates, and falling back from invalid direct context snapshots to canonical source/payload reconstruction.
 
@@ -48,12 +48,12 @@ Non-metadata source/test implementation files in `fd2ab6ca65ec2f93d1334c9b7df851
 - `src/qual/retrieval/service.py`
 - `tests/unit/test_unified_retrieval.py`
 
-Protected packet mirrors that could not be updated from this sandbox:
+Protected packet mirrors that remain stale because this sandbox rejected writes to them:
 
 - `.codex/kickoff_packets/feat-retrieval-fts.md`
 - `.codex/lane_meta/feat-retrieval-fts.json`
 
-Those mirror files are write-protected in this worktree. Treat `THREAD_PACKET.md` as the corrected handoff packet for this re-review.
+Treat `THREAD_PACKET.md` as the corrected handoff packet for this re-review. Those mirror files still contain historical ranges and are not the authoritative packet for this fixer pass.
 
 Integrator-locked files: none.
 
