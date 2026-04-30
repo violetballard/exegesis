@@ -144,6 +144,20 @@ class CommandDemoSmokeContract:
     entries: tuple[CommandDemoSmokeEntry, ...]
 
 
+@dataclass(frozen=True)
+class CommandDemoActionEntry:
+    engine_action: str
+    flow_step: str
+    name: str
+    smoke_token: str
+    demo_path_step: str
+
+
+@dataclass(frozen=True)
+class CommandDemoActionContract:
+    entries: tuple[CommandDemoActionEntry, ...]
+
+
 def _normalize_token(value: str) -> str:
     normalized = re.sub(r"[-_\s]+", "-", value.strip().casefold())
     return normalized.strip("-")
@@ -883,6 +897,83 @@ def command_mvp_demo_smoke_summary(
     specs: tuple[CommandSpec, ...] = COMMAND_SPECS,
 ) -> tuple[tuple[str, str, str, str, tuple[str, ...]], ...]:
     return command_demo_smoke_summary(specs)
+
+
+@lru_cache(maxsize=None)
+def command_demo_action_contract(
+    specs: tuple[CommandSpec, ...] = COMMAND_SPECS,
+) -> CommandDemoActionContract:
+    smoke_contract = command_demo_smoke_contract(specs)
+    entries = tuple(
+        CommandDemoActionEntry(
+            engine_action=engine_action,
+            flow_step=smoke_entry.flow_step,
+            name=smoke_entry.name,
+            smoke_token=smoke_entry.smoke_token,
+            demo_path_step=smoke_entry.demo_path_step,
+        )
+        for smoke_entry in smoke_contract.entries
+        for engine_action in smoke_entry.engine_actions
+    )
+    contract = CommandDemoActionContract(entries=entries)
+    _validate_command_demo_action_contract(contract, smoke_contract)
+    return contract
+
+
+def _validate_command_demo_action_contract(
+    contract: CommandDemoActionContract,
+    smoke_contract: CommandDemoSmokeContract,
+) -> None:
+    expected_actions = tuple(
+        engine_action
+        for smoke_entry in smoke_contract.entries
+        for engine_action in smoke_entry.engine_actions
+    )
+    if tuple(entry.engine_action for entry in contract.entries) != expected_actions:
+        raise ValueError("Command demo action engine actions are inconsistent")
+    if len(set(expected_actions)) != len(expected_actions):
+        raise ValueError("Command demo action engine actions must be unique")
+    smoke_by_action = {
+        engine_action: smoke_entry
+        for smoke_entry in smoke_contract.entries
+        for engine_action in smoke_entry.engine_actions
+    }
+    if any(entry.flow_step != smoke_by_action[entry.engine_action].flow_step for entry in contract.entries):
+        raise ValueError("Command demo action flow steps are inconsistent")
+    if any(entry.name != smoke_by_action[entry.engine_action].name for entry in contract.entries):
+        raise ValueError("Command demo action command names are inconsistent")
+    if any(entry.smoke_token != smoke_by_action[entry.engine_action].smoke_token for entry in contract.entries):
+        raise ValueError("Command demo action smoke tokens are inconsistent")
+    if any(entry.demo_path_step != smoke_by_action[entry.engine_action].demo_path_step for entry in contract.entries):
+        raise ValueError("Command demo action path steps are inconsistent")
+
+
+def command_demo_action_summary(
+    specs: tuple[CommandSpec, ...] = COMMAND_SPECS,
+) -> tuple[tuple[str, str, str, str, str], ...]:
+    contract = command_demo_action_contract(specs)
+    return tuple(
+        (
+            entry.engine_action,
+            entry.flow_step,
+            entry.name,
+            entry.smoke_token,
+            entry.demo_path_step,
+        )
+        for entry in contract.entries
+    )
+
+
+def command_mvp_demo_action_contract(
+    specs: tuple[CommandSpec, ...] = COMMAND_SPECS,
+) -> CommandDemoActionContract:
+    return command_demo_action_contract(specs)
+
+
+def command_mvp_demo_action_summary(
+    specs: tuple[CommandSpec, ...] = COMMAND_SPECS,
+) -> tuple[tuple[str, str, str, str, str], ...]:
+    return command_demo_action_summary(specs)
 
 
 def command_demo_flow_route_catalog() -> tuple[CommandFlowRouteEntry, ...]:
