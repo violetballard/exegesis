@@ -4,21 +4,21 @@
 - Lane: `feat-retrieval-fts`
 - Merge target: current `main`
 - Merge-base for this re-review: `fd2ab6ca65ec2f93d1334c9b7df8512439725be4`
-- Branch tip before this packet-only fixer commit: `8052fb6093a70d08a0f65a6d920a7f9486de876f`
+- Branch tip before this packet-only fixer commit: `7e29e06368fbc9300bc0deaf66e8fe1a6b1da26d`
 - Final reviewed commit: the HEAD commit containing this packet-regeneration update; final SHA is reported in the fixer deliverable after commit creation.
 - Authoritative reviewed range / complete merge candidate: `fd2ab6ca65ec2f93d1334c9b7df8512439725be4..HEAD`
-- Authoritative pre-fixer merge candidate: `fd2ab6ca65ec2f93d1334c9b7df8512439725be4..8052fb6093a70d08a0f65a6d920a7f9486de876f`
+- Authoritative pre-fixer merge candidate: `fd2ab6ca65ec2f93d1334c9b7df8512439725be4..7e29e06368fbc9300bc0deaf66e8fe1a6b1da26d`
 - Scope classification: high-risk retrieval work because approved shared regression coverage in `tests/unit/test_unified_retrieval.py` is part of the reviewed range.
 
 ## Scope Completed
 
-This packet regenerates the handoff against one merge candidate: the complete branch diff from merge-base `fd2ab6ca65ec2f93d1334c9b7df8512439725be4` through the final packet-only fixer commit recorded above. It includes every source, test, and packet metadata change present at that candidate tip; no source or test file is classified as metadata-only. The pre-fixer merge candidate is `fd2ab6ca65ec2f93d1334c9b7df8512439725be4..8052fb6093a70d08a0f65a6d920a7f9486de876f`, explicitly including all retrieval implementation changes that landed after the stale `adfa8cdadd43747ffbcb612e4151e262b13e52ca` review anchor. Earlier packet refresh commits that modify runtime or test files, including `a5587120382486c956382fa8cf6741e79c134f46`, `b9eb05813e54c32638b0905b677e403df61b8d16`, and `5a3e75759750676f71e8b23b3d8eeff28dde90e5`, are part of the implementation candidate; they are not treated as metadata-only.
+This packet regenerates the handoff against one merge candidate: the complete branch diff from merge-base `fd2ab6ca65ec2f93d1334c9b7df8512439725be4` through the final packet-only fixer commit recorded above. It includes every source, test, and packet metadata change present at that candidate tip; no source or test file is classified as metadata-only. The pre-fixer merge candidate is `fd2ab6ca65ec2f93d1334c9b7df8512439725be4..7e29e06368fbc9300bc0deaf66e8fe1a6b1da26d`, explicitly including all retrieval implementation changes that landed after the stale `adfa8cdadd43747ffbcb612e4151e262b13e52ca` review anchor. The reviewer-cited non-metadata changes in `adfa8cdadd43747ffbcb612e4151e262b13e52ca..7e29e06368fbc9300bc0deaf66e8fe1a6b1da26d` are therefore inside the submitted merge candidate and are not excluded from review. Earlier packet refresh commits that modify runtime or test files, including `a5587120382486c956382fa8cf6741e79c134f46`, `b9eb05813e54c32638b0905b677e403df61b8d16`, and `5a3e75759750676f71e8b23b3d8eeff28dde90e5`, are part of the implementation candidate; they are not treated as metadata-only.
 
-This fixer pass keeps `THREAD_PACKET.md` as the authoritative handoff packet required by `INTEGRATION.md`. The tracked `.codex` lane metadata files are unchanged in the corrected merge-base-to-HEAD candidate and are not approval targets for this re-review; older `.codex` trace anchors are stale historical lane state, not the authoritative handoff packet.
+This fixer pass keeps `THREAD_PACKET.md` as the authoritative handoff packet required by `INTEGRATION.md`. The authoritative approval target is the merge-base-to-HEAD candidate, not any historical packet range.
 
 This re-review fixer pass specifically satisfies the required stale-cache fix: `FTSStrategy` no longer stores a one-entry hit cache, `clear_cache` remains only as a mutation hook while retrieval is uncached, and `test_document_update_invalidates_fts_cache` proves that identical queries before and after a document update read the current SQLite FTS index with `cache_used=False` instead of a stale cached hit.
 
-Historical-only ranges from prior packets are not submitted for approval: `378cf9a74..adfa8cdadd43747ffbcb612e4151e262b13e52ca`, `d7fd5d200358287fa42a18d39e2b277463b9b69f..adfa8cdadd43747ffbcb612e4151e262b13e52ca`, and `adfa8cdadd43747ffbcb612e4151e262b13e52ca..3753d4baf4f9f98eb58615fc0e7f45be9ffdf24a`. They are stale review artifacts only and are not approval targets. The current merge candidate is `fd2ab6ca65ec2f93d1334c9b7df8512439725be4..HEAD`; the pre-fixer branch-tip candidate is `fd2ab6ca65ec2f93d1334c9b7df8512439725be4..8052fb6093a70d08a0f65a6d920a7f9486de876f`. Work outside that merge-base-to-HEAD range is intentionally excluded because `fd2ab6ca65ec2f93d1334c9b7df8512439725be4` is the merge-base with current `main`.
+Historical-only ranges from prior packets are not submitted for approval: `378cf9a74..adfa8cdadd43747ffbcb612e4151e262b13e52ca`, `d7fd5d200358287fa42a18d39e2b277463b9b69f..adfa8cdadd43747ffbcb612e4151e262b13e52ca`, and `adfa8cdadd43747ffbcb612e4151e262b13e52ca..3753d4baf4f9f98eb58615fc0e7f45be9ffdf24a`. They are stale review artifacts only and are not approval targets. The current merge candidate is `fd2ab6ca65ec2f93d1334c9b7df8512439725be4..HEAD`; the pre-fixer branch-tip candidate is `fd2ab6ca65ec2f93d1334c9b7df8512439725be4..7e29e06368fbc9300bc0deaf66e8fe1a6b1da26d`. Work outside that merge-base-to-HEAD range is intentionally excluded because `fd2ab6ca65ec2f93d1334c9b7df8512439725be4` is the merge-base with current `main`.
 
 This fixer pass adds one retrieval-owned source correction: sparse basket-promotion reconstruction now derives stable basket item IDs from `excerpt_id` when `item_id` is absent, while preserving order and deduplicating repeated references. That keeps sparse source/evidence bundles promotion-ready for downstream basket gathering without depending on PageIndex or embeddings.
 
@@ -76,8 +76,9 @@ Files absent from the reviewed candidate:
 ## Budget/Risk
 
 - Task budget: `4/4` high-risk tasks.
-- File budget: `5/8` high-risk source/test files plus packet metadata files.
+- File budget: `5/8` high-risk source/test files plus packet metadata file (`THREAD_PACKET.md`).
 - Net LOC budget: source/test implementation changes are `5 files changed, 219 insertions(+), 86 deletions(-)`, or +133 net LOC, which remains within the `<=300` high-risk net LOC limit. Packet metadata accounts for the remaining documentation churn.
+- Size exception required: none. The authoritative reviewed implementation range is within the high-risk limits when applying the file and net LOC budgets to source/test implementation files, and metadata-only handoff files are accounted separately.
 - Shared-by-approval files: `tests/unit/test_unified_retrieval.py` only.
 - Integrator-locked files: none.
 - Routing/provider impact: none.
@@ -92,7 +93,7 @@ Files absent from the reviewed candidate:
 
 ## Commands Run
 
-This fixer cycle re-submits the same single review target, `fd2ab6ca65ec2f93d1334c9b7df8512439725be4..HEAD`, with `8052fb6093a70d08a0f65a6d920a7f9486de876f` as the pre-fixer branch-tip candidate. The packet does not classify any runtime or test commit in that range as metadata-only.
+This fixer cycle re-submits the same single review target, `fd2ab6ca65ec2f93d1334c9b7df8512439725be4..HEAD`, with `7e29e06368fbc9300bc0deaf66e8fe1a6b1da26d` as the pre-fixer branch-tip candidate. The packet does not classify any runtime or test commit in that range as metadata-only.
 
 Required gates re-run for the corrected merge candidate:
 
