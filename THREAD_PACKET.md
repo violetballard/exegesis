@@ -49,7 +49,7 @@ Packet refresh commits in this range are reviewed as metadata changes. They are 
 - Risk: high/shared.
 - Task budget: `4/4`; the branch-tip work is folded into four meaningful tasks under the high-risk cap.
 - Changed files in corrected reviewed range: `7`.
-- Net LOC in corrected reviewed range before commit: `441 insertions(+), 106 deletions(-)`, net `335`, across the 7 files above.
+- Net LOC in corrected reviewed range: `443 insertions(+), 106 deletions(-)`, net `337`, across the 7 files above.
 - Integrator-locked files touched: none.
 - Shared-by-approval files touched: `tests/unit/test_unified_retrieval.py`.
 - Lane-owned implementation files touched: `src/qual/retrieval/**`, `src/qual/engine/retrieval/**`.
