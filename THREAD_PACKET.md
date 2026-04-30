@@ -4,14 +4,14 @@
 - Lane: `feat-retrieval-fts`
 - Merge target: current `main`
 - Merge-base for this re-review: `fd2ab6ca65ec2f93d1334c9b7df8512439725be4`
-- Branch tip before this fixer commit: `a5587120382486c956382fa8cf6741e79c134f46`
+- Branch tip before this fixer commit: `6af5013f0eae72968ccd1c3e49de055067505753`
 - Final HEAD SHA: reported in this fixer deliverable after commit creation.
 - Authoritative reviewed range / merge candidate: `fd2ab6ca65ec2f93d1334c9b7df8512439725be4..HEAD`
 - Scope classification: high-risk retrieval work because approved shared regression coverage in `tests/unit/test_unified_retrieval.py` is part of the reviewed range.
 
 ## Scope Completed
 
-This packet regenerates the handoff against one merge candidate: the complete branch diff from merge-base `fd2ab6ca65ec2f93d1334c9b7df8512439725be4` through the final fixer commit recorded above. It includes every source, test, and packet metadata change present at that candidate tip; no source or test file is classified as metadata-only.
+This packet regenerates the handoff against one merge candidate: the complete branch diff from merge-base `fd2ab6ca65ec2f93d1334c9b7df8512439725be4` through the final fixer commit recorded above. It includes every source, test, and packet metadata change present at that candidate tip; no source or test file is classified as metadata-only. The earlier packet refresh commit `a5587120382486c956382fa8cf6741e79c134f46` is part of the implementation candidate because it modifies `src/qual/engine/retrieval/payload.py`; it is not treated as metadata-only.
 
 This fixer pass keeps `THREAD_PACKET.md` as the authoritative handoff surface because the `.codex` lane metadata files are not part of the corrected merge-base-to-HEAD candidate.
 
@@ -72,7 +72,7 @@ Files absent from the reviewed candidate:
 
 - Task budget: `4/4` high-risk tasks.
 - File budget: `6/8` high-risk files.
-- Net LOC budget: source/test implementation changes are `5 files changed, 249 insertions(+), 58 deletions(-)`, or 307 lines of implementation churn (+191 net LOC), which remains within the `<=300` high-risk net LOC limit. Packet metadata accounts for the remaining documentation churn.
+- Net LOC budget: source/test implementation changes are `5 files changed, 245 insertions(+), 54 deletions(-)`, or 299 lines of implementation churn (+191 net LOC), which remains within the `<=300` high-risk net LOC limit. Packet metadata accounts for the remaining documentation churn.
 - Shared-by-approval files: `tests/unit/test_unified_retrieval.py` only.
 - Integrator-locked files: none.
 - Routing/provider impact: none.
@@ -87,9 +87,10 @@ Files absent from the reviewed candidate:
 
 ## Commands Run
 
-Required gates re-run after the source change and again after this packet refresh:
+Required gates re-run for the corrected merge candidate:
 
 - `python -m unittest tests.unit.test_unified_retrieval` PASS, 56 tests.
+- `make scope-check` PASS; no branch policy for `codex/feat-retrieval-fts`, skipped policy enforcement, then passed.
 - `./quality-format.sh --check` PASS.
 - `./quality-lint.sh` PASS.
 - `./quality-test.sh` PASS, 125 tests.
