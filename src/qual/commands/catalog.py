@@ -174,6 +174,21 @@ class CommandDemoSmokeMatrixContract:
 
 
 @dataclass(frozen=True)
+class CommandDemoSmokeScriptStep:
+    ordinal: int
+    flow_step: str
+    name: str
+    argv: tuple[str, ...]
+    demo_path_step: str
+    engine_actions: tuple[str, ...]
+
+
+@dataclass(frozen=True)
+class CommandDemoSmokeScriptContract:
+    steps: tuple[CommandDemoSmokeScriptStep, ...]
+
+
+@dataclass(frozen=True)
 class CommandDemoSmokeArgvEntry:
     flow_step: str
     argv: tuple[str, ...]
@@ -1273,6 +1288,70 @@ def command_demo_smoke_matrix_summary(
     )
 
 
+@lru_cache(maxsize=None)
+def command_demo_smoke_script_contract(
+    specs: tuple[CommandSpec, ...] = COMMAND_SPECS,
+) -> CommandDemoSmokeScriptContract:
+    matrix_contract = command_demo_smoke_matrix_contract(specs)
+    contract = CommandDemoSmokeScriptContract(
+        steps=tuple(
+            CommandDemoSmokeScriptStep(
+                ordinal=ordinal,
+                flow_step=entry.flow_step,
+                name=entry.name,
+                argv=entry.argv,
+                demo_path_step=entry.demo_path_step,
+                engine_actions=entry.engine_actions,
+            )
+            for ordinal, entry in enumerate(matrix_contract.entries, start=1)
+        )
+    )
+    _validate_command_demo_smoke_script_contract(contract, matrix_contract)
+    return contract
+
+
+def _validate_command_demo_smoke_script_contract(
+    contract: CommandDemoSmokeScriptContract,
+    matrix_contract: CommandDemoSmokeMatrixContract,
+) -> None:
+    expected_ordinals = tuple(range(1, len(matrix_contract.entries) + 1))
+    if tuple(step.ordinal for step in contract.steps) != expected_ordinals:
+        raise ValueError("Command demo smoke script ordinals are inconsistent")
+    if tuple(step.flow_step for step in contract.steps) != tuple(
+        entry.flow_step for entry in matrix_contract.entries
+    ):
+        raise ValueError("Command demo smoke script flow steps are inconsistent")
+    if tuple(step.name for step in contract.steps) != tuple(entry.name for entry in matrix_contract.entries):
+        raise ValueError("Command demo smoke script names are inconsistent")
+    if tuple(step.argv for step in contract.steps) != tuple(entry.argv for entry in matrix_contract.entries):
+        raise ValueError("Command demo smoke script argv values are inconsistent")
+    if tuple(step.demo_path_step for step in contract.steps) != tuple(
+        entry.demo_path_step for entry in matrix_contract.entries
+    ):
+        raise ValueError("Command demo smoke script path steps are inconsistent")
+    if tuple(step.engine_actions for step in contract.steps) != tuple(
+        entry.engine_actions for entry in matrix_contract.entries
+    ):
+        raise ValueError("Command demo smoke script engine actions are inconsistent")
+
+
+def command_demo_smoke_script_summary(
+    specs: tuple[CommandSpec, ...] = COMMAND_SPECS,
+) -> tuple[tuple[int, str, str, tuple[str, ...], str, tuple[str, ...]], ...]:
+    contract = command_demo_smoke_script_contract(specs)
+    return tuple(
+        (
+            step.ordinal,
+            step.flow_step,
+            step.name,
+            step.argv,
+            step.demo_path_step,
+            step.engine_actions,
+        )
+        for step in contract.steps
+    )
+
+
 def command_mvp_demo_smoke_matrix_contract(
     specs: tuple[CommandSpec, ...] = COMMAND_SPECS,
 ) -> CommandDemoSmokeMatrixContract:
@@ -1283,6 +1362,18 @@ def command_mvp_demo_smoke_matrix_summary(
     specs: tuple[CommandSpec, ...] = COMMAND_SPECS,
 ) -> tuple[tuple[str, str, tuple[str, ...], tuple[str, ...], str, tuple[str, ...]], ...]:
     return command_demo_smoke_matrix_summary(specs)
+
+
+def command_mvp_demo_smoke_script_contract(
+    specs: tuple[CommandSpec, ...] = COMMAND_SPECS,
+) -> CommandDemoSmokeScriptContract:
+    return command_demo_smoke_script_contract(specs)
+
+
+def command_mvp_demo_smoke_script_summary(
+    specs: tuple[CommandSpec, ...] = COMMAND_SPECS,
+) -> tuple[tuple[int, str, str, tuple[str, ...], str, tuple[str, ...]], ...]:
+    return command_demo_smoke_script_summary(specs)
 
 
 @lru_cache(maxsize=None)
