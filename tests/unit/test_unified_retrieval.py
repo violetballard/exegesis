@@ -1785,6 +1785,54 @@ class UnifiedRetrievalTests(unittest.TestCase):
         )
         self.assertEqual(context_bundle["retrieval_downstream_payload"]["retrieval_citation_bundle"], result.citation_bundle())
 
+    def test_retrieval_context_bundle_helper_rebuilds_sparse_basket_refs_from_excerpt_hits(self) -> None:
+        result = self.service.retrieve_auto(
+            RetrievalQuery(
+                query_text="memo coding comparison",
+                scope="vault",
+                intent="compare",
+                constraints=RetrievalConstraints(max_results=4),
+                confidentiality_profile="confidential",
+            )
+        )
+
+        sparse_context_bundle = json.loads(json.dumps(result.retrieval_context_bundle()))
+        sparse_context_bundle.pop("basket_promotion_items", None)
+        sparse_context_bundle.pop("basket_item_ids", None)
+        source_bundle = sparse_context_bundle.get("retrieval_source_bundle")
+        self.assertIsInstance(source_bundle, dict)
+        source_bundle.pop("basket_promotion_items", None)
+        source_bundle.pop("basket_item_ids", None)
+        evidence = sparse_context_bundle.get("retrieval_evidence")
+        self.assertIsInstance(evidence, dict)
+        evidence.pop("basket_promotion_items", None)
+        downstream_payload = sparse_context_bundle.get("retrieval_downstream_payload")
+        self.assertIsInstance(downstream_payload, dict)
+        downstream_payload.pop("basket_promotion_items", None)
+        downstream_payload.pop("basket_item_ids", None)
+        downstream_evidence = downstream_payload.get("retrieval_evidence")
+        self.assertIsInstance(downstream_evidence, dict)
+        downstream_evidence.pop("basket_promotion_items", None)
+
+        class _SparseContextBundleSource:
+            def __init__(self, payload: dict[str, object]) -> None:
+                self._payload = payload
+
+            def retrieval_context_bundle(self) -> dict[str, object]:
+                return self._payload
+
+        context_bundle = engine_build_retrieval_context_bundle_from_result(
+            _SparseContextBundleSource(sparse_context_bundle)
+        )
+        expected_excerpt_ids = [item.excerpt_id for item in result.hits if item.excerpt_id is not None]
+        basket_items = context_bundle["basket_promotion_items"]
+        self.assertEqual([item["item_id"] for item in basket_items], expected_excerpt_ids)
+        self.assertEqual(context_bundle["basket_item_ids"], expected_excerpt_ids)
+        self.assertEqual(basket_items[0]["doc_id"], result.hits[0].doc_id)
+        self.assertEqual(basket_items[0]["query_scope"], "vault")
+        self.assertEqual(basket_items[0]["query_intent"], "compare")
+        self.assertEqual(basket_items[0]["result_fingerprint"], result.result_fingerprint)
+
     def test_retrieve_auto_citation_bundle_matches_result_snapshot(self) -> None:
         query = RetrievalQuery(
             query_text="memo coding comparison",
