@@ -405,6 +405,16 @@ class CommandDemoReadinessGate:
 
 
 @dataclass(frozen=True)
+class CommandDemoReadinessReport:
+    is_complete: bool
+    missing_engine_actions: tuple[str, ...]
+    command_lines: tuple[str, ...]
+    action_lines: tuple[tuple[str, str], ...]
+    checklist_lines: tuple[str, ...]
+    markdown: str
+
+
+@dataclass(frozen=True)
 class CommandDemoCommandActionEntry:
     flow_step: str
     name: str
@@ -3159,6 +3169,59 @@ def require_command_demo_readiness_complete(
 
 
 @lru_cache(maxsize=None)
+def command_demo_readiness_report(
+    specs: tuple[CommandSpec, ...] = COMMAND_SPECS,
+    launcher_argv: tuple[str, ...] = COMMAND_SMOKE_CLI_LAUNCHER_ARGV,
+) -> CommandDemoReadinessReport:
+    gate = command_demo_readiness_gate(specs, launcher_argv)
+    checklist_lines = command_demo_readiness_handoff_checklist_lines(specs, launcher_argv)
+    report = CommandDemoReadinessReport(
+        is_complete=gate.is_complete,
+        missing_engine_actions=gate.missing_engine_actions,
+        command_lines=gate.command_lines,
+        action_lines=gate.action_lines,
+        checklist_lines=checklist_lines,
+        markdown="\n".join(checklist_lines),
+    )
+    _validate_command_demo_readiness_report(report, gate, checklist_lines)
+    return report
+
+
+def _validate_command_demo_readiness_report(
+    report: CommandDemoReadinessReport,
+    gate: CommandDemoReadinessGate,
+    checklist_lines: tuple[str, ...],
+) -> None:
+    if report.is_complete != gate.is_complete:
+        raise ValueError("Command demo readiness report completeness is inconsistent")
+    if report.missing_engine_actions != gate.missing_engine_actions:
+        raise ValueError("Command demo readiness report missing actions are inconsistent")
+    if report.command_lines != gate.command_lines:
+        raise ValueError("Command demo readiness report command lines are inconsistent")
+    if report.action_lines != gate.action_lines:
+        raise ValueError("Command demo readiness report action lines are inconsistent")
+    if report.checklist_lines != checklist_lines:
+        raise ValueError("Command demo readiness report checklist lines are inconsistent")
+    if report.markdown != "\n".join(checklist_lines):
+        raise ValueError("Command demo readiness report markdown is inconsistent")
+
+
+def command_demo_readiness_report_summary(
+    specs: tuple[CommandSpec, ...] = COMMAND_SPECS,
+    launcher_argv: tuple[str, ...] = COMMAND_SMOKE_CLI_LAUNCHER_ARGV,
+) -> tuple[bool, tuple[str, ...], tuple[str, ...], tuple[tuple[str, str], ...], tuple[str, ...], str]:
+    report = command_demo_readiness_report(specs, launcher_argv)
+    return (
+        report.is_complete,
+        report.missing_engine_actions,
+        report.command_lines,
+        report.action_lines,
+        report.checklist_lines,
+        report.markdown,
+    )
+
+
+@lru_cache(maxsize=None)
 def command_demo_readiness_action_index(
     specs: tuple[CommandSpec, ...] = COMMAND_SPECS,
     launcher_argv: tuple[str, ...] = COMMAND_SMOKE_CLI_LAUNCHER_ARGV,
@@ -4147,6 +4210,20 @@ def command_mvp_demo_readiness_gate_summary(
     launcher_argv: tuple[str, ...] = COMMAND_SMOKE_CLI_LAUNCHER_ARGV,
 ) -> tuple[bool, tuple[str, ...], tuple[str, ...], tuple[tuple[str, str], ...]]:
     return command_demo_readiness_gate_summary(specs, launcher_argv)
+
+
+def command_mvp_demo_readiness_report(
+    specs: tuple[CommandSpec, ...] = COMMAND_SPECS,
+    launcher_argv: tuple[str, ...] = COMMAND_SMOKE_CLI_LAUNCHER_ARGV,
+) -> CommandDemoReadinessReport:
+    return command_demo_readiness_report(specs, launcher_argv)
+
+
+def command_mvp_demo_readiness_report_summary(
+    specs: tuple[CommandSpec, ...] = COMMAND_SPECS,
+    launcher_argv: tuple[str, ...] = COMMAND_SMOKE_CLI_LAUNCHER_ARGV,
+) -> tuple[bool, tuple[str, ...], tuple[str, ...], tuple[tuple[str, str], ...], tuple[str, ...], str]:
+    return command_demo_readiness_report_summary(specs, launcher_argv)
 
 
 def require_command_mvp_demo_readiness_complete(

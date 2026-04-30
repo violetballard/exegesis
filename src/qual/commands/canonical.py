@@ -9,6 +9,7 @@ from src.qual.commands.catalog import (
     CommandDemoReadinessHandoffChecklistContract,
     CommandDemoReadinessHandoffContract,
     CommandDemoReadinessHandoffLineContract,
+    CommandDemoReadinessReport,
     canonical_command as _canonical_command,
     command_mvp_demo_path_readiness_contract as _path_readiness_contract,
     command_mvp_demo_path_readiness_summary as _path_readiness_summary,
@@ -19,6 +20,8 @@ from src.qual.commands.catalog import (
     command_mvp_demo_readiness_handoff_lines as _readiness_handoff_lines,
     command_mvp_demo_readiness_handoff_markdown as _readiness_handoff_markdown,
     command_mvp_demo_readiness_handoff_summary as _readiness_handoff_summary,
+    command_mvp_demo_readiness_report as _readiness_report,
+    command_mvp_demo_readiness_report_summary as _readiness_report_summary,
     command_mvp_demo_action_smoke_script_argv as _action_smoke_script_argv,
     command_mvp_demo_action_smoke_script_lines as _action_smoke_script_lines,
     command_mvp_demo_action_smoke_script_lookup_table as _action_smoke_script_lookup_table,
@@ -92,6 +95,8 @@ __all__ = [
     "canonical_command_readiness_handoff_line_contract",
     "canonical_command_readiness_handoff_lines",
     "canonical_command_readiness_handoff_markdown",
+    "canonical_command_readiness_report",
+    "canonical_command_readiness_report_summary",
     "canonical_command_readiness_handoff_summary",
     "canonical_command_readiness_smoke_plan_summary",
     "canonical_command_require_readiness_complete",
@@ -208,6 +213,21 @@ def canonical_command_readiness_handoff_checklist_lines() -> tuple[str, ...]:
 
 def canonical_command_readiness_handoff_markdown() -> str:
     return _readiness_handoff_markdown()
+
+
+def canonical_command_readiness_report() -> CommandDemoReadinessReport:
+    return _readiness_report()
+
+
+def canonical_command_readiness_report_summary() -> tuple[
+    bool,
+    tuple[str, ...],
+    tuple[str, ...],
+    tuple[tuple[str, str], ...],
+    tuple[str, ...],
+    str,
+]:
+    return _readiness_report_summary()
 
 
 def canonical_command_readiness_handoff_summary() -> tuple[
