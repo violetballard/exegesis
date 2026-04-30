@@ -18,6 +18,7 @@ TEST_RUNNER_RE = re.compile(
 )
 PROMPT_ROOT_SUFFIXES = (
     Path(".codex/feature_runner/prompts"),
+    Path(".codex/feature_runner/logs"),
     Path(".codex/packet_router/logs"),
     Path(".codex/packet_router/local_jobs"),
 )
@@ -278,14 +279,21 @@ def find_orphaned_repo_local_exec_pids(repo_root: Path, tracked_pids: Iterable[i
     return sorted(pid for pid in owned if pid not in tracked)
 
 
-def find_stale_repo_local_exec_pids(repo_root: Path, tracked_pids: Iterable[int]) -> List[int]:
+def find_stale_repo_local_exec_pids(
+    repo_root: Path,
+    tracked_pids: Iterable[int],
+    *,
+    detached_ok_pids: Iterable[int] = (),
+) -> List[int]:
     """Find repo-owned local Codex execs that should not keep consuming LMS slots.
 
-    A tracked local exec whose parent has become PID 1 is stale for this daemon:
-    it can keep a prompt queued in LM Studio while router/feature state still
-    prevents the older orphan-only sweep from touching it.
+    Feature direct-exec jobs are launched by a short-lived helper, so they may
+    normally be reparented to PID 1 while still being the current tracked lane
+    worker. Router-owned local jobs should stay parented to the daemon; if one
+    becomes reparented, it is stale and can keep an LMS prompt queued forever.
     """
     tracked = {int(pid) for pid in tracked_pids if int(pid) > 0}
+    detached_ok = {int(pid) for pid in detached_ok_pids if int(pid) > 0}
     owned = find_repo_owned_local_exec_processes(repo_root)
     stale: List[int] = []
     for pid, meta in owned.items():
@@ -293,7 +301,7 @@ def find_stale_repo_local_exec_pids(repo_root: Path, tracked_pids: Iterable[int]
             ppid = int(meta.get("ppid") or 0)
         except ValueError:
             ppid = 0
-        if pid not in tracked or ppid == 1:
+        if pid not in tracked or (ppid == 1 and pid not in detached_ok):
             stale.append(pid)
     return sorted(stale)
 

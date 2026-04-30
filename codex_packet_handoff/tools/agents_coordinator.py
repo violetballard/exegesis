@@ -632,15 +632,7 @@ def _reconcile_router_state(coordinator_state: Optional[Dict[str, object]] = Non
 
 def _tracked_local_exec_pids() -> List[int]:
     tracked: List[int] = []
-    feature_state = load_json(FEATURE_RUNNER_STATE_FILE, {})
-    lanes = feature_state.get("lanes") if isinstance(feature_state, dict) else {}
-    if isinstance(lanes, dict):
-        for lane_state in lanes.values():
-            if not isinstance(lane_state, dict):
-                continue
-            pid = int(lane_state.get("pid") or 0)
-            if pid > 0:
-                tracked.append(pid)
+    tracked.extend(_tracked_feature_exec_pids())
     router_state = load_json(ROUTER_STATE_FILE, {})
     if isinstance(router_state, dict):
         for key in ROUTER_JOB_STATE_KEYS:
@@ -656,8 +648,26 @@ def _tracked_local_exec_pids() -> List[int]:
     return sorted(set(tracked))
 
 
+def _tracked_feature_exec_pids() -> List[int]:
+    tracked: List[int] = []
+    feature_state = load_json(FEATURE_RUNNER_STATE_FILE, {})
+    lanes = feature_state.get("lanes") if isinstance(feature_state, dict) else {}
+    if isinstance(lanes, dict):
+        for lane_state in lanes.values():
+            if not isinstance(lane_state, dict):
+                continue
+            pid = int(lane_state.get("pid") or 0)
+            if pid > 0:
+                tracked.append(pid)
+    return sorted(set(tracked))
+
+
 def _reconcile_orphan_local_exec_processes() -> List[int]:
-    orphaned = find_stale_repo_local_exec_pids(REPO_ROOT, _tracked_local_exec_pids())
+    orphaned = find_stale_repo_local_exec_pids(
+        REPO_ROOT,
+        _tracked_local_exec_pids(),
+        detached_ok_pids=_tracked_feature_exec_pids(),
+    )
     if orphaned:
         terminate_local_exec_pids(orphaned)
     return orphaned
@@ -1438,7 +1448,10 @@ def _local_lms_feature_launch_slots() -> int:
     cap = int(router_cfg.get("max_total_local_lms_jobs", 1) or 1)
     if cap <= 0:
         return 999999
-    active = len(find_repo_owned_local_exec_pids(REPO_ROOT))
+    active = len(
+        set(find_repo_owned_local_exec_pids(REPO_ROOT))
+        | {pid for pid in _tracked_feature_exec_pids() if _pid_alive(pid)}
+    )
     return max(0, cap - active)
 
 
