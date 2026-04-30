@@ -1,10 +1,10 @@
 ## Thread Handoff Packet
 
 - Branch/lane: `codex/feat-retrieval-fts` / `feat-retrieval-fts`
-- Merge candidate: current branch tip after this fixer pass, including `63e3d50a9109edb0d28119a318989ad90a22ef62` and the sparse basket-ID payload backfill.
-- Pre-fixer branch-tip SHA: `63e3d50a9109edb0d28119a318989ad90a22ef62`
+- Merge candidate: current branch tip after this fixer pass; review scope includes the reviewer-referenced `63e3d50a9109edb0d28119a318989ad90a22ef62` tip, `c573b77fdb1d5e8582045d02297137586d551809`, and the sparse basket-ID payload backfill.
+- Pre-fixer branch-tip SHA for this reviewer-fix pass: `c573b77fdb1d5e8582045d02297137586d551809`
 - Reviewed implementation range for actual branch-tip scope: `378cf9a74a3658058079a32f186fcd254c4a4034..HEAD`
-- Branch-tip diff summary for this merge candidate before the final commit: `6 files changed, 377 insertions(+), 116 deletions(-)`.
+- Branch-tip diff summary for this merge candidate before this packet-only final commit: `6 files changed, 377 insertions(+), 116 deletions(-)`.
 - Handoff classification: high-risk/shared because the branch includes approved shared regression coverage in `tests/unit/test_unified_retrieval.py`.
 - Shared-file approval provenance: reviewer packet `fixer__feat-retrieval-fts__20260429T202122Z.prompt.txt`, finding 2, identifies `tests/unit/test_unified_retrieval.py` as the approved shared surface for `feat-retrieval-fts`.
 
@@ -17,7 +17,7 @@
 
 ## Scope Completed
 
-The actual merge candidate keeps the FTS-first excerpt lookup work and adds implementation scope for promotion-ready retrieval payloads. SQLite FTS remains authoritative for excerpt lookup. Retrieval results now expose deterministic basket-promotion excerpt references through downstream payloads, retrieval source bundles, retrieval context bundles, sparse payload/context reconstruction helpers, and source-bundle reconstruction helpers so the canonical demo path can promote retrieved excerpts into later context-basket workflows without re-querying or rebuilding provenance.
+The actual merge candidate is the reviewable slice `378cf9a74a3658058079a32f186fcd254c4a4034..HEAD`, which keeps the FTS-first excerpt lookup work and adds implementation scope for promotion-ready retrieval payloads. SQLite FTS remains authoritative for excerpt lookup. Retrieval results now expose deterministic basket-promotion excerpt references through downstream payloads, retrieval source bundles, retrieval context bundles, sparse payload/context reconstruction helpers, and source-bundle reconstruction helpers so the canonical demo path can promote retrieved excerpts into later context-basket workflows without re-querying or rebuilding provenance.
 
 PageIndex and embeddings remain compatibility-only fallback surfaces outside the required excerpt path. Unsupported excerpt scopes still fail closed.
 
@@ -30,7 +30,7 @@ PageIndex and embeddings remain compatibility-only fallback surfaces outside the
 
 ## Files Changed
 
-Actual branch-tip file list for `378cf9a74a3658058079a32f186fcd254c4a4034..HEAD`:
+Actual reviewed file list for `378cf9a74a3658058079a32f186fcd254c4a4034..HEAD` before this packet-only final commit:
 
 - `.codex/kickoff_packets/feat-retrieval-fts.md`
 - `.codex/lane_meta/feat-retrieval-fts.json`
@@ -65,12 +65,19 @@ No `codex_packet_handoff/tools/planner.py` or `tests/unit/test_packet_planner.py
 - `tests/unit/test_unified_retrieval.py`: `38` changed lines.
 - Total before final commit: `6 files changed, 377 insertions(+), 116 deletions(-)`.
 
+
+## Handoff Split / Budget Resolution
+
+The oversized historical branch range `d7fd5d200358287fa42a18d39e2b277463b9b69f..HEAD` is not presented as this high-risk handoff. That cumulative history changes 13 files and exceeds the high-risk size guideline, so it must be split for review. This re-review packet narrows the merge-candidate handoff to `378cf9a74a3658058079a32f186fcd254c4a4034..HEAD`, which includes every non-metadata change after the reviewer-referenced `adfa8cdadd43747ffbcb612e4151e262b13e52ca` branch point and remains within the 4-task, 8-file, <=300 net LOC high-risk limits before this packet-only final commit.
+
+Non-metadata changes after `adfa8cdadd43747ffbcb612e4151e262b13e52ca` are implementation scope: `src/qual/retrieval/service.py` exposes basket-promotion items through retrieval result/source/context bundles, and `src/qual/engine/retrieval/payload.py` backfills sparse basket-promotion fields and derives `basket_item_ids`. They are not metadata-only packet refreshes.
+
 ## Budget / Risk
 
 - Risk: high/shared.
 - Task budget: `4/4`; within the high-risk task cap.
-- Actual branch-tip file count: `6`; within the high-risk 8-file guideline.
-- Actual branch-tip size before final commit: `377 insertions(+), 116 deletions(-)`, net `+261`; within the high-risk `<=300` net LOC guideline.
+- Actual reviewed slice file count before this packet-only final commit: `6`; within the high-risk 8-file guideline.
+- Actual reviewed slice size before this packet-only final commit: `377 insertions(+), 116 deletions(-)`, net `+261`; within the high-risk `<=300` net LOC guideline. This packet-only commit updates handoff text after the compliant slice and should be evaluated as metadata, not as an added retrieval implementation task.
 - Integrator-locked files: none.
 - Shared-by-approval files: `tests/unit/test_unified_retrieval.py`.
 - Routing/provider impact: none.
@@ -85,16 +92,15 @@ No `codex_packet_handoff/tools/planner.py` or `tests/unit/test_packet_planner.py
 
 ## Commands Run
 
-- `python -m pytest tests/unit/test_unified_retrieval.py`: BLOCKED; active Python does not have `pytest` installed.
-- `python - <<'PY' ...`: PASS; sparse payload probe derived `['fts_1', 'fts_2']` from `basket_promotion_items`.
+- `make scope-check`: PASS; no branch policy configured, skipped policy body, then passed for `codex/feat-retrieval-fts`.
 - `./quality-format.sh --check`: PASS.
 - `./quality-lint.sh`: PASS.
 - `./quality-test.sh`: PASS; smoke passed and 124 unit tests passed.
 - `./typecheck-test.sh`: PASS; Python sources under `src/` compile.
-- `make ci`: PASS; scope-check, format, lint, typecheck, smoke, and 124 unit tests completed successfully.
+- `make ci`: PASS; setup, scope-check, format, lint, compile/typecheck, smoke, and 124 unit tests completed successfully.
 
 ## Risks / Blockers
 
 - No implementation blocker is known.
 - Re-review should use the actual branch-tip scope above and should not exclude the non-metadata retrieval code changes from review.
-- Packet mirror files under `.codex/` remain part of the branch diff, but `THREAD_PACKET.md` is the corrected handoff source of truth for this retrieval-payload fixer pass.
+- Packet mirror files under `.codex/` remain part of the branch diff, but this worktree rejects writes to `.codex/kickoff_packets/feat-retrieval-fts.md` with `PermissionError: [Errno 1] Operation not permitted`; `THREAD_PACKET.md` is therefore the corrected handoff source of truth for this retrieval-payload fixer pass.
