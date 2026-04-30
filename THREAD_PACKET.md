@@ -131,6 +131,13 @@ Merge-conflict resolution status for this required-fixes pass:
 
 Required gates re-run for this corrected actual-tip merge candidate:
 
+- Current required-fixes pass: `.codex/kickoff_packets/feat-retrieval-fts.md` and `.codex/lane_meta/feat-retrieval-fts.json` mirror updates were attempted but blocked by the sandbox as outside the writable project, so `THREAD_PACKET.md` remains the authoritative corrected packet.
+- Current required-fixes pass: `make scope-check` PASS for branch `codex/feat-retrieval-fts`.
+- Current required-fixes pass: `./quality-format.sh --check` PASS.
+- Current required-fixes pass: `./quality-lint.sh` PASS.
+- Current required-fixes pass: `./quality-test.sh` PASS, 125 tests.
+- Current required-fixes pass: `./typecheck-test.sh` PASS, Python sources under `src/` compile.
+- Current required-fixes pass: `make ci` PASS, 125 tests; includes scope-check, format, lint, typecheck, and test gates.
 - `python -m pytest tests/unit/test_unified_retrieval.py` BLOCKED: `/opt/homebrew/opt/python@3.14/bin/python3.14: No module named pytest`; repo gate scripts below were used for validation.
 - `./quality-test.sh` first run FAIL, 124/125 tests passed; `test_engine_retrieval_package_reexports_canonical_payload_helpers` showed the initial context fingerprint included per-run audit/timing fields. Fixed in this pass by hashing the stable reusable context snapshot.
 - `./quality-test.sh` second run PASS, 125 tests.
