@@ -3080,6 +3080,36 @@ def _validate_command_demo_path_readiness_contract(
             for engine_action, action_argv in readiness_entry.action_command_argv
         ):
             raise ValueError(f"Command demo path readiness action lines are inconsistent: {step.flow_step}")
+        _validate_command_demo_path_readiness_cli_lines(step, readiness_entry)
+
+
+def _validate_command_demo_path_readiness_cli_lines(
+    step: CommandDemoPathReadinessStep,
+    readiness_entry: CommandDemoReadinessEntry,
+) -> None:
+    try:
+        command_argv = tuple(shlex.split(step.command_line))
+    except ValueError as exc:
+        raise ValueError(
+            f"Command demo path readiness command line is not parseable: {step.flow_step}"
+        ) from exc
+    if command_argv != readiness_entry.command_argv:
+        raise ValueError(
+            f"Command demo path readiness command line argv is inconsistent: {step.flow_step}"
+        )
+
+    action_argv_by_action = dict(readiness_entry.action_command_argv)
+    for engine_action, action_line in step.action_lines:
+        try:
+            action_argv = tuple(shlex.split(action_line))
+        except ValueError as exc:
+            raise ValueError(
+                f"Command demo path readiness action line is not parseable: {engine_action}"
+            ) from exc
+        if action_argv != action_argv_by_action.get(engine_action):
+            raise ValueError(
+                f"Command demo path readiness action line argv is inconsistent: {engine_action}"
+            )
 
 
 def command_demo_path_readiness_summary(
