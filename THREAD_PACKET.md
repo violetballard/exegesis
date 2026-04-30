@@ -4,8 +4,8 @@
 - Lane: `feat-retrieval-fts`
 - Merge target: current `main`
 - Merge-base for this re-review: `fd2ab6ca65ec2f93d1334c9b7df8512439725be4`
-- Branch tip before this packet-only fixer commit: `b9eb058137a0bad5b4c68688000d26dbb77b9763`
-- Final reviewed commit: the HEAD commit containing this packet-only fixer update; final SHA is reported in the fixer deliverable after commit creation.
+- Branch tip before this fixer commit: `49733b03d21aa770df11be19d95d9c26b01f08f29`
+- Final reviewed commit: the HEAD commit containing this cache-invalidation re-review update; final SHA is reported in the fixer deliverable after commit creation.
 - Authoritative reviewed range / complete merge candidate: `fd2ab6ca65ec2f93d1334c9b7df8512439725be4..HEAD`
 - Authoritative implementation candidate before this packet-only fixer commit: `fd2ab6ca65ec2f93d1334c9b7df8512439725be4..b9eb058137a0bad5b4c68688000d26dbb77b9763`
 - Scope classification: high-risk retrieval work because approved shared regression coverage in `tests/unit/test_unified_retrieval.py` is part of the reviewed range.
@@ -16,6 +16,8 @@ This packet regenerates the handoff against one merge candidate: the complete br
 
 This fixer pass keeps `THREAD_PACKET.md` as the authoritative handoff surface because the `.codex` lane metadata files are not part of the corrected merge-base-to-HEAD candidate.
 
+This re-review fixer pass specifically satisfies the required stale-cache fix: `FTSStrategy` no longer stores a one-entry hit cache, `clear_cache` remains only as a mutation hook while retrieval is uncached, and `test_document_update_invalidates_fts_cache` proves that identical queries before and after a document update read the current SQLite FTS index with `cache_used=False` instead of a stale cached hit.
+
 Historical-only ranges from prior packets are not submitted for approval: `378cf9a74..adfa8cdadd43747ffbcb612e4151e262b13e52ca`, `d7fd5d200358287fa42a18d39e2b277463b9b69f..adfa8cdadd43747ffbcb612e4151e262b13e52ca`, and `adfa8cdadd43747ffbcb612e4151e262b13e52ca..3753d4baf4f9f98eb58615fc0e7f45be9ffdf24a`. They are stale review artifacts only and are not approval targets. The current merge candidate is `fd2ab6ca65ec2f93d1334c9b7df8512439725be4..HEAD`; work outside that range is intentionally excluded because `fd2ab6ca65ec2f93d1334c9b7df8512439725be4` is the merge-base with current `main`.
 
 This fixer pass adds one retrieval-owned source correction: sparse basket-promotion reconstruction now derives stable basket item IDs from `excerpt_id` when `item_id` is absent, while preserving order and deduplicating repeated references. That keeps sparse source/evidence bundles promotion-ready for downstream basket gathering without depending on PageIndex or embeddings.
@@ -24,10 +26,10 @@ The merge candidate advances FTS-first retrieval by normalizing engine retrieval
 
 ## Tasks Completed
 
-1. `retrieve relevant material`: normalize engine facade query constraints, boolean flags, date ranges, doc types, required query text/scope snapshots, derived FTS shortlist snapshots, and cache keys so repeated FTS retrieval is deterministic.
+1. `retrieve relevant material`: normalize engine facade query constraints, boolean flags, date ranges, doc types, required query text/scope snapshots, and derived FTS shortlist snapshots so repeated FTS retrieval is deterministic without cached hit reuse.
 2. `retrieve relevant material`: keep SQLite FTS authoritative for excerpt lookup, reject non-FTS excerpt normalization, preserve ranked IDs, document identities, confidentiality profiles, section hints, and excerpt provenance.
 3. `retrieve relevant material`; supports `promote or gather context into the basket`: preserve basket-promotion refs, stable text item IDs, citation refs, provenance fingerprints, source/context bundles, excerpt text, title hints, query context, and date-range context during sparse payload, provenance, and context-bundle reconstruction so retrieved material stays stable for downstream basket gathering, including sparse excerpt promotion refs that omit `item_id`.
-4. `retrieve relevant material`; supports `promote or gather context into the basket`: harden cache invalidation and fallback reconstruction for document updates, sparse direct context snapshots, and generic context-bundle helpers while keeping PageIndex and embeddings fallback-only.
+4. `retrieve relevant material`; supports `promote or gather context into the basket`: harden cache invalidation and fallback reconstruction for document updates, sparse direct context snapshots, and generic context-bundle helpers while keeping PageIndex and embeddings fallback-only. Identical queries after `add_or_update_document` now retrieve updated FTS material rather than stale cached excerpts.
 
 ## Canonical Demo Path
 

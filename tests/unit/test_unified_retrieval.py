@@ -222,6 +222,11 @@ class UnifiedRetrievalTests(unittest.TestCase):
         self.assertFalse(first.diagnostics["caches_used"]["fts"])
         self.assertIn("Discussion includes theory implications", first.hits[0].excerpt_text or "")
 
+        repeated = self.service.retrieve_fts(query)
+        self.assertTrue(repeated.hits)
+        self.assertFalse(repeated.diagnostics["caches_used"]["fts"])
+        self.assertEqual(first.hits[0].excerpt_text, repeated.hits[0].excerpt_text)
+
         self.service.add_or_update_document(
             doc_id="doc-pdf-1",
             doc_type="pdf",
