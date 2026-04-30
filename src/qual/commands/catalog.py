@@ -159,6 +159,21 @@ class CommandDemoSmokeCommandContract:
 
 
 @dataclass(frozen=True)
+class CommandDemoSmokeMatrixEntry:
+    flow_step: str
+    name: str
+    argv: tuple[str, ...]
+    cli_tokens: tuple[str, ...]
+    demo_path_step: str
+    engine_actions: tuple[str, ...]
+
+
+@dataclass(frozen=True)
+class CommandDemoSmokeMatrixContract:
+    entries: tuple[CommandDemoSmokeMatrixEntry, ...]
+
+
+@dataclass(frozen=True)
 class CommandDemoActionEntry:
     engine_action: str
     flow_step: str
@@ -1038,6 +1053,105 @@ def command_mvp_demo_smoke_command_summary(
     specs: tuple[CommandSpec, ...] = COMMAND_SPECS,
 ) -> tuple[tuple[str, str, tuple[str, ...], str, tuple[str, ...]], ...]:
     return command_demo_smoke_command_summary(specs)
+
+
+@lru_cache(maxsize=None)
+def command_demo_smoke_matrix_contract(
+    specs: tuple[CommandSpec, ...] = COMMAND_SPECS,
+) -> CommandDemoSmokeMatrixContract:
+    path_contract = command_demo_path_contract(specs)
+    command_contract = command_demo_smoke_command_contract(specs)
+    routes_by_flow_step = {entry.flow_step: entry for entry in path_contract.entries}
+    entries = tuple(
+        CommandDemoSmokeMatrixEntry(
+            flow_step=command_entry.flow_step,
+            name=command_entry.name,
+            argv=command_entry.argv,
+            cli_tokens=routes_by_flow_step[command_entry.flow_step].cli_tokens,
+            demo_path_step=command_entry.demo_path_step,
+            engine_actions=command_entry.engine_actions,
+        )
+        for command_entry in command_contract.entries
+    )
+    contract = CommandDemoSmokeMatrixContract(entries=entries)
+    _validate_command_demo_smoke_matrix_contract(
+        contract,
+        path_contract,
+        command_contract,
+        specs=specs,
+    )
+    return contract
+
+
+def _validate_command_demo_smoke_matrix_contract(
+    contract: CommandDemoSmokeMatrixContract,
+    path_contract: CommandDemoPathContract,
+    command_contract: CommandDemoSmokeCommandContract,
+    *,
+    specs: tuple[CommandSpec, ...],
+) -> None:
+    if tuple(entry.flow_step for entry in contract.entries) != tuple(
+        entry.flow_step for entry in command_contract.entries
+    ):
+        raise ValueError("Command demo smoke matrix flow steps are inconsistent")
+    if tuple(entry.name for entry in contract.entries) != tuple(entry.name for entry in command_contract.entries):
+        raise ValueError("Command demo smoke matrix names are inconsistent")
+    if tuple(entry.argv for entry in contract.entries) != tuple(entry.argv for entry in command_contract.entries):
+        raise ValueError("Command demo smoke matrix argv values are inconsistent")
+    if tuple(entry.demo_path_step for entry in contract.entries) != tuple(
+        entry.demo_path_step for entry in command_contract.entries
+    ):
+        raise ValueError("Command demo smoke matrix path steps are inconsistent")
+    if tuple(entry.engine_actions for entry in contract.entries) != tuple(
+        entry.engine_actions for entry in command_contract.entries
+    ):
+        raise ValueError("Command demo smoke matrix engine actions are inconsistent")
+
+    routes_by_flow_step = {entry.flow_step: entry for entry in path_contract.entries}
+    cli_lookup = dict(command_cli_flow_lookup_table()) if specs == COMMAND_SPECS else dict(
+        command_flow_lookup_table(specs)
+    )
+    for entry in contract.entries:
+        route = routes_by_flow_step.get(entry.flow_step)
+        if route is None:
+            raise ValueError(f"Command demo smoke matrix missing route: {entry.flow_step}")
+        if entry.cli_tokens != route.cli_tokens:
+            raise ValueError("Command demo smoke matrix CLI tokens are inconsistent")
+        normalized_argv_command = _normalize_token(entry.argv[0])
+        if normalized_argv_command not in entry.cli_tokens:
+            raise ValueError(f"Command demo smoke matrix argv is outside route tokens: {entry.flow_step}")
+        routed_flow_step = cli_lookup.get(normalized_argv_command)
+        if routed_flow_step is not None and routed_flow_step != entry.flow_step:
+            raise ValueError(f"Command demo smoke matrix argv routes to the wrong flow step: {entry.flow_step}")
+
+
+def command_demo_smoke_matrix_summary(
+    specs: tuple[CommandSpec, ...] = COMMAND_SPECS,
+) -> tuple[tuple[str, str, tuple[str, ...], tuple[str, ...], str, tuple[str, ...]], ...]:
+    contract = command_demo_smoke_matrix_contract(specs)
+    return tuple(
+        (
+            entry.flow_step,
+            entry.name,
+            entry.argv,
+            entry.cli_tokens,
+            entry.demo_path_step,
+            entry.engine_actions,
+        )
+        for entry in contract.entries
+    )
+
+
+def command_mvp_demo_smoke_matrix_contract(
+    specs: tuple[CommandSpec, ...] = COMMAND_SPECS,
+) -> CommandDemoSmokeMatrixContract:
+    return command_demo_smoke_matrix_contract(specs)
+
+
+def command_mvp_demo_smoke_matrix_summary(
+    specs: tuple[CommandSpec, ...] = COMMAND_SPECS,
+) -> tuple[tuple[str, str, tuple[str, ...], tuple[str, ...], str, tuple[str, ...]], ...]:
+    return command_demo_smoke_matrix_summary(specs)
 
 
 @lru_cache(maxsize=None)
