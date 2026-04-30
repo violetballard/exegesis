@@ -75,9 +75,16 @@ def _pid_matches_daemon(pid: int) -> bool:
             text=True,
         )
     except Exception:
-        return False
+        # Restricted runners can deny process-table inspection even when
+        # kill(0) can prove the process exists. Treat this as unknown and let
+        # the fresh daemon lease decide instead of reporting a false stop.
+        return True
     if p.returncode != 0:
-        return False
+        # The pid may still be alive while ps is restricted or races with
+        # platform-specific reporting. A fresh lease is the stronger daemon
+        # liveness signal; only veto below when ps gives us a mismatched
+        # command line.
+        return True
     cmd = (p.stdout or "").strip()
     return bool(cmd and PROC_MATCH in cmd)
 

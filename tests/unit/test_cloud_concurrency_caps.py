@@ -6,7 +6,7 @@ from pathlib import Path
 from types import SimpleNamespace
 from unittest import mock
 
-from codex_packet_handoff.tools import launch_feature_lanes, router
+from codex_packet_handoff.tools import agents_coordinator, launch_feature_lanes, router
 
 
 class CloudConcurrencyCapsTests(unittest.TestCase):
@@ -214,6 +214,60 @@ class CloudConcurrencyCapsTests(unittest.TestCase):
         profile = router._profile_for_role(cfg, "reviewer", local=True, lane="feat-engine-runs")
 
         self.assertEqual(profile.model, "gpt-oss-120b")
+
+    def test_local_lms_cap_allows_feature_and_one_router_role(self) -> None:
+        cfg = SimpleNamespace(max_total_local_lms_jobs=3)
+        state = {
+            "local_integrator_jobs": {"feat-a:packet.md": {"pid": 1001, "result_path": "/tmp/missing-integrator.json"}},
+        }
+
+        with mock.patch.object(router, "_count_active_feature_local_jobs", return_value=1), mock.patch.object(
+            router, "_pid_alive", return_value=True
+        ):
+            self.assertTrue(router._local_lms_slot_available(cfg, state))
+
+    def test_local_lms_cap_blocks_fourth_local_job(self) -> None:
+        cfg = SimpleNamespace(max_total_local_lms_jobs=3)
+        state = {
+            "local_reviewer_jobs": {"feat-a": {"pid": 1001, "result_path": "/tmp/missing-reviewer.json"}},
+            "local_integrator_jobs": {"feat-b:packet.md": {"pid": 1002, "result_path": "/tmp/missing-integrator.json"}},
+            "fixer_fallback_jobs": {"feat-c": {"pid": 1003, "local": True}},
+        }
+
+        with mock.patch.object(router, "_count_active_feature_local_jobs", return_value=0), mock.patch.object(
+            router, "_pid_alive", return_value=True
+        ):
+            self.assertFalse(router._local_lms_slot_available(cfg, state))
+
+    def test_coordinator_local_feature_slots_respect_three_job_cap(self) -> None:
+        with (
+            mock.patch.object(
+                agents_coordinator,
+                "load_json",
+                side_effect=[
+                    {"runtime_mode": "local_fallback"},
+                    {"max_total_local_lms_jobs": 3},
+                ],
+            ),
+            mock.patch.object(agents_coordinator, "find_repo_owned_local_exec_pids", return_value=[1001, 1002]),
+            mock.patch.object(agents_coordinator, "_tracked_feature_exec_pids", return_value=[]),
+        ):
+            self.assertEqual(agents_coordinator._local_lms_feature_launch_slots(), 1)
+
+    def test_coordinator_local_feature_slots_block_when_three_jobs_active(self) -> None:
+        with (
+            mock.patch.object(
+                agents_coordinator,
+                "load_json",
+                side_effect=[
+                    {"runtime_mode": "local_fallback"},
+                    {"max_total_local_lms_jobs": 3},
+                ],
+            ),
+            mock.patch.object(agents_coordinator, "find_repo_owned_local_exec_pids", return_value=[1001, 1002, 1003]),
+            mock.patch.object(agents_coordinator, "_tracked_feature_exec_pids", return_value=[]),
+        ):
+            self.assertEqual(agents_coordinator._local_lms_feature_launch_slots(), 0)
 
     def test_process_reviewer_backlog_respects_cloud_kick_limit(self) -> None:
         with tempfile.TemporaryDirectory() as tmpdir:

@@ -124,7 +124,7 @@ def write_example_config():
         "feature_launch_timeout_seconds": 300,
         "max_parallel_feature_lanes_cloud": 2,
         "max_parallel_feature_lanes_local": 1,
-        "max_total_local_lms_jobs": 1,
+        "max_total_local_lms_jobs": 3,
         "prefer_direct_exec_feature_cloud": True,
         "prefer_cli_reviewer": True,
         "prefer_cli_integrator": True,

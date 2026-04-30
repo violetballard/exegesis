@@ -1445,7 +1445,7 @@ def _local_lms_feature_launch_slots() -> int:
     mode = str(router_state.get("runtime_mode") or router_cfg.get("runtime_mode_default") or "cloud_primary")
     if mode != "local_fallback":
         return 999999
-    cap = int(router_cfg.get("max_total_local_lms_jobs", 1) or 1)
+    cap = int(router_cfg.get("max_total_local_lms_jobs", 3) or 3)
     if cap <= 0:
         return 999999
     active = len(
