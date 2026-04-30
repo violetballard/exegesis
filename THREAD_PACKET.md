@@ -4,7 +4,7 @@
 - Lane: `feat-retrieval-fts`
 - Merge target: current `main`
 - Authoritative merge/review range for the actual integration candidate: `378cf9a74a3658058079a32f186fcd254c4a4034..HEAD`
-- Current pre-fix branch tip audited for source/test surface: `f41fe11745941383c52bb5d9d171b51be95c49e0`
+- Current pre-fix branch tip audited for source/test surface: `f41fe1174027363b03d0197fd4a2a8b44522f658`
 - Merge candidate: the branch tip after this reviewer-fix commit. It is not `adfa8cdadd43747ffbcb612e4151e262b13e52ca`, `e4f835c50`, or `43654937a196977d7cd53c4e355b4f8ea7fb93b7`.
 - Scope classification: high-risk/shared because the candidate includes approved shared regression coverage in `tests/unit/test_unified_retrieval.py`.
 - Packet type: retrieval feature handoff for the full branch-tip FTS-first retrieval candidate.
@@ -53,7 +53,7 @@ Authoritative candidate files changed for `378cf9a74a3658058079a32f186fcd254c4a4
 - `src/qual/retrieval/service.py` - keeps FTS as the authoritative lookup path and emits deterministic result/query/policy-bound basket fingerprints.
 - `tests/unit/test_unified_retrieval.py` - approved shared regression coverage for cache invalidation, deterministic payloads, facade exports, basket refs, and FTS-only excerpt lookup.
 
-Full candidate stat before this reviewer-fix commit: `8 files changed, 959 insertions(+), 207 deletions(-)`.
+Full corrected candidate stat including this reviewer-fix packet refresh: `8 files changed, 980 insertions(+), 207 deletions(-)`.
 
 Source/test surface included for review:
 
@@ -63,7 +63,7 @@ Source/test surface included for review:
 - `src/qual/retrieval/service.py`
 - `tests/unit/test_unified_retrieval.py`
 
-Source/test stat before this reviewer-fix packet refresh: `5 files changed, 690 insertions(+), 119 deletions(-)`.
+Source/test stat included for implementation review: `5 files changed, 690 insertions(+), 119 deletions(-)`.
 
 Lane-owned source files:
 
@@ -87,10 +87,10 @@ Integrator-locked files:
 ## Budget/Risk
 
 - Task budget: `4/4` high-risk tasks.
-- File budget: `8/8` high-risk files before this reviewer-fix commit.
+- File budget: `8/8` high-risk files in the corrected candidate.
 - Source/test file count: `5` files.
-- Full candidate net LOC before this reviewer-fix commit: `+752`.
-- Source/test net LOC before this reviewer-fix packet refresh: `+571`.
+- Full corrected candidate net LOC including this reviewer-fix packet refresh: `+773`.
+- Source/test net LOC included for implementation review: `+571`.
 - Size exception required: yes. The candidate exceeds the AGENTS.md high-risk `<=300` net LOC guideline because the actual branch-tip surface includes the full retrieval payload/service/test implementation, not only the earlier narrowed packet slice.
 - Explicit size exception request: approve review of the full `378cf9a74a3658058079a32f186fcd254c4a4034..HEAD` candidate as a single high-risk retrieval handoff because splitting the already-committed branch tip would reintroduce the traceability gap the reviewer flagged.
 - Shared-file approval note: `tests/unit/test_unified_retrieval.py` is included as the approved shared-by-approval regression surface for the retrieval lane.
