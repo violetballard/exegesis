@@ -452,6 +452,9 @@ _DEMO_SMOKE_ARGV_BY_FLOW_STEP: tuple[tuple[str, tuple[str, ...]], ...] = (
         ),
     ),
 )
+_DEMO_ACTION_SMOKE_ARGV_BY_ENGINE_ACTION: tuple[tuple[str, tuple[str, ...]], ...] = (
+    ("ExegesisAppService.add_basket_item", ("context-basket", "add", "demo-retrieval-result")),
+)
 
 
 def _demo_smoke_argv_by_flow_step() -> dict[str, tuple[str, ...]]:
@@ -466,6 +469,29 @@ def _demo_smoke_argv_by_flow_step() -> dict[str, tuple[str, ...]]:
             raise ValueError(f"Command demo smoke argv must not be empty: {flow_step}")
         argv_by_flow_step[normalized_flow_step] = argv
     return argv_by_flow_step
+
+
+def _demo_action_smoke_argv_by_engine_action() -> dict[str, tuple[str, ...]]:
+    argv_by_action: dict[str, tuple[str, ...]] = {}
+    for engine_action, argv in _DEMO_ACTION_SMOKE_ARGV_BY_ENGINE_ACTION:
+        if not engine_action.strip():
+            raise ValueError("Command demo action smoke argv action must not be empty")
+        if engine_action in argv_by_action:
+            raise ValueError(f"Duplicate command demo action smoke argv action: {engine_action}")
+        if not argv or any(not token.strip() for token in argv):
+            raise ValueError(f"Command demo action smoke argv must not be empty: {engine_action}")
+        argv_by_action[engine_action] = argv
+    return argv_by_action
+
+
+def _demo_action_smoke_argv_for(
+    route_entry: CommandDemoActionRouteEntry,
+    argv_by_flow_step: dict[str, tuple[str, ...]],
+) -> tuple[str, ...]:
+    action_argv = _demo_action_smoke_argv_by_engine_action().get(route_entry.engine_action)
+    if action_argv is not None:
+        return action_argv
+    return argv_by_flow_step[route_entry.flow_step]
 
 
 def _validate_demo_smoke_argv_coverage(flow_steps: tuple[str, ...]) -> None:
@@ -1809,7 +1835,7 @@ def command_demo_action_smoke_argv_contract(
             engine_action=route_entry.engine_action,
             flow_step=route_entry.flow_step,
             name=route_entry.name,
-            argv=argv_by_flow_step[route_entry.flow_step],
+            argv=_demo_action_smoke_argv_for(route_entry, argv_by_flow_step),
             smoke_token=route_entry.smoke_token,
             demo_path_step=route_entry.demo_path_step,
         )
