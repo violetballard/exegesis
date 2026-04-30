@@ -6,14 +6,14 @@
 - Reviewed source/test implementation range: `378cf9a74a3658058079a32f186fcd254c4a4034..cc084f05c58c8c3c0613dded69109fdf7ce03708`
 - Reviewed source/test implementation head: `cc084f05c58c8c3c0613dded69109fdf7ce03708`
 - Authoritative branch-tip merge/review range: `378cf9a74a3658058079a32f186fcd254c4a4034..FINAL_HEAD_SHA_REPORTED_BY_FIXER_DELIVERABLE`
-- Pre-fix packet refresh tip: `c5118be74` (`THREAD_PACKET.md` only after `cc084f05c58c8c3c0613dded69109fdf7ce03708`).
+- Pre-fix packet refresh tip: `1483db4a5bfe8a71906d65e33c97e3224bdaf5fe` (metadata-only after `cc084f05c58c8c3c0613dded69109fdf7ce03708`).
 - Final branch tip: reported in the fixer deliverable after this packet commit is created; this final fixer commit is metadata-only.
 - Scope classification: high-risk because this branch-tip packet includes approved shared regression coverage in `tests/unit/test_unified_retrieval.py`.
 - Packet type: branch-tip re-review packet for the FTS-first retrieval lane.
 
 ## Scope Completed
 
-This packet has been regenerated against the actual branch tip to be submitted. The source/test implementation surface is `378cf9a74a3658058079a32f186fcd254c4a4034..cc084f05c58c8c3c0613dded69109fdf7ce03708`; every commit after `cc084f05c58c8c3c0613dded69109fdf7ce03708` through the final fixer HEAD changes packet metadata only. The authoritative merge/review range for re-review is therefore the full base-to-final-HEAD range reported in the fixer deliverable, with the source/test implementation files listed below.
+This packet has been regenerated against the actual branch tip to be submitted. The source/test implementation surface is `378cf9a74a3658058079a32f186fcd254c4a4034..cc084f05c58c8c3c0613dded69109fdf7ce03708`; every commit after `cc084f05c58c8c3c0613dded69109fdf7ce03708` through the final fixer HEAD changes packet metadata only. `git diff --name-status cc084f05c58c8c3c0613dded69109fdf7ce03708..1483db4a5bfe8a71906d65e33c97e3224bdaf5fe -- src/qual/engine/retrieval src/qual/retrieval/service.py tests/unit/test_unified_retrieval.py` is empty, so this source/test range covers every retrieval implementation and test change present at the pre-fix branch tip. The authoritative merge/review range for re-review is therefore the full base-to-final-HEAD range reported in the fixer deliverable, with the source/test implementation files listed below.
 
 The reviewed branch-tip work strengthens the active MVP target of FTS-first retrieval. SQLite FTS remains the canonical retrieval path; engine and service facades expose canonical query construction, `retrieve_auto`, and excerpt lookup; retrieval payload snapshots, sparse source/context bundles, provenance, fingerprints, and basket-promotion references are normalized deterministically for downstream engine flows; and PageIndex-only excerpt IDs fail closed instead of backfilling through non-FTS paths.
 
@@ -46,7 +46,7 @@ Reviewed source/test implementation files for `378cf9a74a3658058079a32f186fcd254
 
 Reviewed source/test stat: `5 files changed, 492 insertions(+), 119 deletions(-)`.
 
-Full branch-tip reviewed file surface, including packet metadata files, is the same 8 paths shown by `git diff --name-status 378cf9a74a3658058079a32f186fcd254c4a4034..HEAD`: `.codex/kickoff_packets/feat-retrieval-fts.md`, `.codex/lane_meta/feat-retrieval-fts.json`, `THREAD_PACKET.md`, `src/qual/engine/retrieval/__init__.py`, `src/qual/engine/retrieval/fts_strategy.py`, `src/qual/engine/retrieval/payload.py`, `src/qual/retrieval/service.py`, and `tests/unit/test_unified_retrieval.py`. At pre-fix tip `c5118be74`, that full range was `8 files changed, 755 insertions(+), 207 deletions(-)`; the final fixer deliverable reports the final HEAD SHA after this metadata-only packet update.
+Full branch-tip reviewed file surface, including packet metadata files, is the same 8 paths shown by `git diff --name-status 378cf9a74a3658058079a32f186fcd254c4a4034..HEAD`: `.codex/kickoff_packets/feat-retrieval-fts.md`, `.codex/lane_meta/feat-retrieval-fts.json`, `THREAD_PACKET.md`, `src/qual/engine/retrieval/__init__.py`, `src/qual/engine/retrieval/fts_strategy.py`, `src/qual/engine/retrieval/payload.py`, `src/qual/retrieval/service.py`, and `tests/unit/test_unified_retrieval.py`. At pre-fix tip `1483db4a5bfe8a71906d65e33c97e3224bdaf5fe`, that full range was `8 files changed, 756 insertions(+), 207 deletions(-)`; the final fixer deliverable reports the final HEAD SHA after this metadata-only packet update.
 
 Lane-owned source/test files in the reviewed implementation range:
 
