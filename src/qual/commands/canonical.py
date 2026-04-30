@@ -74,8 +74,12 @@ from src.qual.commands.catalog import (
     command_mvp_demo_readiness_gate as _readiness_gate,
     command_mvp_demo_readiness_gate_summary as _readiness_gate_summary,
     command_mvp_demo_readiness_smoke_plan_argv as _readiness_smoke_plan_argv,
+    command_mvp_demo_readiness_smoke_plan_argv_for_flow_step
+    as _readiness_smoke_plan_argv_for_flow_step,
     command_mvp_demo_readiness_smoke_plan_step as _readiness_smoke_plan_step,
     command_mvp_demo_readiness_smoke_plan_step_for_demo_path_step as _readiness_smoke_plan_step_for_demo_path_step,
+    command_mvp_demo_readiness_smoke_plan_step_for_flow_step
+    as _readiness_smoke_plan_step_for_flow_step,
     command_mvp_demo_readiness_smoke_plan_summary as _readiness_smoke_plan_summary,
     command_mvp_demo_readiness_is_complete as _readiness_is_complete,
     command_mvp_demo_readiness_missing_engine_actions as _readiness_missing_engine_actions,
@@ -158,8 +162,10 @@ __all__ = [
     "canonical_command_readiness_trace_summary",
     "canonical_command_readiness_handoff_summary",
     "canonical_command_readiness_smoke_plan_argv",
+    "canonical_command_readiness_smoke_plan_argv_for_flow_step",
     "canonical_command_readiness_smoke_plan_step",
     "canonical_command_readiness_smoke_plan_step_for_demo_path_step",
+    "canonical_command_readiness_smoke_plan_step_for_flow_step",
     "canonical_command_readiness_smoke_plan_summary",
     "canonical_command_require_readiness_complete",
     "canonical_command_action_line_lookup_table",
@@ -418,8 +424,18 @@ def canonical_command_readiness_smoke_plan_step_for_demo_path_step(
     return _readiness_smoke_plan_step_for_demo_path_step(demo_path_step)
 
 
+def canonical_command_readiness_smoke_plan_step_for_flow_step(
+    flow_step: str,
+) -> CommandDemoReadinessSmokePlanStep | None:
+    return _readiness_smoke_plan_step_for_flow_step(flow_step)
+
+
 def canonical_command_readiness_smoke_plan_argv(ordinal: int) -> tuple[str, ...]:
     return _readiness_smoke_plan_argv(ordinal)
+
+
+def canonical_command_readiness_smoke_plan_argv_for_flow_step(flow_step: str) -> tuple[str, ...]:
+    return _readiness_smoke_plan_argv_for_flow_step(flow_step)
 
 
 def canonical_command_readiness_missing_engine_actions() -> tuple[str, ...]:
