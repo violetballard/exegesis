@@ -6,7 +6,10 @@ from unittest.mock import patch
 
 from src.qual.ui.a2ui import describe_terminal_artifact_cli_fallback_route_contract
 from src.qual.ui.a2ui import describe_terminal_artifact_cli_fallback_route_contract_manifest
+from src.qual.ui.a2ui import describe_terminal_artifact_cli_fallback_route_contract_manifest_fingerprints
+from src.qual.ui.a2ui import terminal_artifact_cli_fallback_route_contract_manifest_fingerprints_fingerprint
 from src.qual.ui.shell import ShellUI, describe_shell_ui_contract
+from src.qual.ui.shell import describe_shell_ui_contract_fingerprints
 
 
 class ShellUITests(unittest.TestCase):
@@ -87,6 +90,30 @@ class ShellUITests(unittest.TestCase):
         self.assertEqual(
             shell_contract["terminal_artifact_cli_fallback_route_contract_manifest_fingerprint"],
             route_manifest["contract_fingerprint"],
+        )
+
+    def test_shell_contract_mirrors_the_route_manifest_fingerprints_slice(self) -> None:
+        shell_contract = describe_shell_ui_contract(include_terminal_artifact_cli_fallback_route=True)
+        shell_fingerprints = describe_shell_ui_contract_fingerprints(
+            include_terminal_artifact_cli_fallback_route=True,
+        )
+        route_manifest_fingerprints = describe_terminal_artifact_cli_fallback_route_contract_manifest_fingerprints()
+
+        self.assertEqual(
+            shell_contract["terminal_artifact_cli_fallback_route_contract_manifest_fingerprints"],
+            route_manifest_fingerprints,
+        )
+        self.assertEqual(
+            shell_contract["terminal_artifact_cli_fallback_route_contract_manifest_fingerprints_fingerprint"],
+            terminal_artifact_cli_fallback_route_contract_manifest_fingerprints_fingerprint(),
+        )
+        self.assertEqual(
+            shell_fingerprints["terminal_artifact_cli_fallback_route_contract_manifest_fingerprints"],
+            terminal_artifact_cli_fallback_route_contract_manifest_fingerprints_fingerprint(),
+        )
+        self.assertEqual(
+            shell_fingerprints["terminal_artifact_cli_fallback_route_contract_manifest_fingerprints_fingerprint"],
+            terminal_artifact_cli_fallback_route_contract_manifest_fingerprints_fingerprint(),
         )
 
 

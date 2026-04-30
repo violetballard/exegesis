@@ -1662,6 +1662,7 @@ def describe_terminal_artifact_contract(
     """Return the stable terminal artifact dispatch contract manifest."""
 
     manifest = _build_terminal_artifact_contract_manifest(
+        include_contract_fingerprints=False,
         include_terminal_artifact_cli_fallback_route=include_terminal_artifact_cli_fallback_route,
     )
     fingerprint = terminal_artifact_contract_fingerprint(
@@ -1679,6 +1680,14 @@ def describe_terminal_artifact_contract(
     manifest["allowed_actions_contract_fingerprint"] = manifest["allowed_actions_fingerprint"]
     manifest["allowed_actions_contract_manifest"] = _snapshot_contract_section(manifest["allowed_actions"])
     manifest["allowed_actions_contract_manifest_fingerprint"] = manifest["allowed_actions_fingerprint"]
+    contract_fingerprints = describe_terminal_artifact_contract_fingerprints(
+        include_terminal_artifact=True,
+        include_terminal_artifact_cli_fallback_route=include_terminal_artifact_cli_fallback_route,
+    )
+    manifest["contract_fingerprints"] = _snapshot_contract_section(contract_fingerprints)
+    manifest["contract_fingerprints_fingerprint"] = _fingerprint_manifest_section(contract_fingerprints)
+    manifest["contract_fingerprints_contract"] = _snapshot_contract_section(manifest["contract_fingerprints"])
+    manifest["contract_fingerprints_contract_fingerprint"] = manifest["contract_fingerprints_fingerprint"]
     manifest["raw_leaf_card_default_contract_fingerprint"] = manifest["raw_leaf_card_default_contract"][
         "contract_fingerprint"
     ]
@@ -5805,8 +5814,7 @@ def render_terminal_card(card: Any) -> str:
             supported_actions={FALLBACK_COPY_ACTION_ID} if card_type == UNKNOWN_CARD_TYPE else _ALLOWED_ACTION_SET,
         )
         actions_present = raw_actions is not None
-        actions_are_list = isinstance(raw_actions, (list, tuple))
-        filtered_actions = actions_are_list and len(rendered_actions) < len(actions)
+        filtered_actions = actions_present and len(rendered_actions) < len(actions)
         if rendered_actions:
             lines.append("Actions:")
             lines.extend(rendered_actions)
@@ -5814,9 +5822,7 @@ def render_terminal_card(card: Any) -> str:
                 lines.append("Some actions filtered out by allowlist or validation")
         elif actions_present:
             lines.append("Actions: none available")
-            if actions_are_list and actions:
-                lines.append("Actions filtered out by allowlist or validation")
-            elif not actions_are_list:
+            if actions:
                 lines.append("Actions filtered out by allowlist or validation")
         return "\n".join(lines)
     except Exception:

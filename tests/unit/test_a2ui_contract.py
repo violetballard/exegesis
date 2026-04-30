@@ -22,6 +22,7 @@ from src.qual.ui.a2ui import (
     describe_a2ui_contract_fingerprints,
     describe_a2ui_capabilities_contract,
     describe_selection_contract,
+    describe_terminal_artifact_contract,
     describe_terminal_artifact_cli_fallback_contract,
     describe_terminal_artifact_cli_fallback_contract_fingerprints,
     describe_terminal_artifact_cli_fallback_entrypoint_contract,
@@ -466,6 +467,27 @@ class A2UIContractTests(unittest.TestCase):
         self.assertEqual(
             manifest["contract_fingerprints"]["terminal_artifact_cli_fallback_entrypoint"],
             _fingerprint_manifest_section("render_terminal_cli_fallback"),
+        )
+
+    def test_terminal_artifact_contract_manifest_exposes_fingerprint_slices_without_recursing(self) -> None:
+        manifest = describe_terminal_artifact_contract()
+
+        self.assertIn("contract_fingerprints", manifest)
+        self.assertEqual(
+            manifest["contract_fingerprints"]["terminal_artifact"],
+            terminal_artifact_contract_fingerprint(),
+        )
+        self.assertEqual(
+            manifest["contract_fingerprints_fingerprint"],
+            _fingerprint_manifest_section(manifest["contract_fingerprints"]),
+        )
+        self.assertEqual(
+            manifest["contract_fingerprints_contract"],
+            manifest["contract_fingerprints"],
+        )
+        self.assertEqual(
+            manifest["contract_fingerprints_contract_fingerprint"],
+            manifest["contract_fingerprints_fingerprint"],
         )
 
     def test_contract_fingerprint_alias_mode_exposes_terminal_artifact_field_names(self) -> None:

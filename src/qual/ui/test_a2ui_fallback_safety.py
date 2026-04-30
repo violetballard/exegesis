@@ -711,16 +711,39 @@ class A2UIFallbackSafetyTests(unittest.TestCase):
             )["contract_fingerprint"],
         )
 
-    def test_shell_ui_contract_exposes_the_cli_fallback_wrapper_manifest_by_default(self) -> None:
-        shell_contract = describe_shell_ui_contract()
+    def test_shell_ui_contract_exposes_the_cli_fallback_wrapper_manifest_aliases(self) -> None:
+        shell_contract = describe_shell_ui_contract(include_contract_aliases=True)
         cli_fallback_contract = describe_terminal_artifact_cli_fallback_contract()
-        a2ui_shell_contract = describe_a2ui_contract(include_shell_ui_contract=True)["shell_ui_contract"]
+        cli_fallback_fingerprints = describe_terminal_artifact_cli_fallback_contract_fingerprints(
+            include_terminal_artifact_cli_fallback=True,
+            include_contract_aliases=True,
+        )
+        a2ui_shell_contract = describe_a2ui_contract(
+            include_shell_ui_contract=True,
+            include_contract_aliases=True,
+        )["shell_ui_contract"]
 
         self.assertEqual(shell_contract["terminal_artifact_cli_fallback_contract_manifest"], cli_fallback_contract)
         self.assertEqual(a2ui_shell_contract["terminal_artifact_cli_fallback_contract_manifest"], cli_fallback_contract)
         self.assertEqual(
             shell_contract["terminal_artifact_cli_fallback_contract_manifest_fingerprint"],
             cli_fallback_contract["contract_fingerprint"],
+        )
+        self.assertEqual(
+            shell_contract["terminal_artifact_cli_fallback_contract_fingerprints"],
+            cli_fallback_fingerprints,
+        )
+        self.assertEqual(
+            shell_contract["terminal_artifact_cli_fallback_contract_fingerprints_fingerprint"],
+            _fingerprint_manifest_section(cli_fallback_fingerprints),
+        )
+        self.assertEqual(
+            a2ui_shell_contract["terminal_artifact_cli_fallback_contract_fingerprints"],
+            cli_fallback_fingerprints,
+        )
+        self.assertEqual(
+            a2ui_shell_contract["terminal_artifact_cli_fallback_contract_fingerprints_fingerprint"],
+            _fingerprint_manifest_section(cli_fallback_fingerprints),
         )
         self.assertEqual(
             shell_contract["terminal_artifact_cli_fallback_target_contract_manifest_fingerprints"],
@@ -7868,6 +7891,14 @@ class A2UIFallbackSafetyTests(unittest.TestCase):
             default_manifest["terminal_artifact_cli_fallback_route_contract_fingerprints_fingerprint"],
             route_manifest["contract_fingerprints_fingerprint"],
         )
+        self.assertEqual(
+            default_manifest["terminal_artifact_cli_fallback_route_contract_manifest_fingerprints"],
+            describe_terminal_artifact_cli_fallback_route_contract_manifest_fingerprints(),
+        )
+        self.assertEqual(
+            default_manifest["terminal_artifact_cli_fallback_route_contract_manifest_fingerprints_fingerprint"],
+            terminal_artifact_cli_fallback_route_contract_manifest_fingerprints_fingerprint(),
+        )
         self.assertEqual(manifest["terminal_artifact_cli_fallback_target"], target_manifest)
         self.assertEqual(manifest["terminal_artifact_cli_fallback_target_contract"], target_manifest)
         self.assertEqual(
@@ -7899,6 +7930,14 @@ class A2UIFallbackSafetyTests(unittest.TestCase):
         self.assertEqual(
             manifest["terminal_artifact_cli_fallback_route_contract_manifest"],
             route_manifest,
+        )
+        self.assertEqual(
+            manifest["terminal_artifact_cli_fallback_route_contract_manifest_fingerprints"],
+            describe_terminal_artifact_cli_fallback_route_contract_manifest_fingerprints(),
+        )
+        self.assertEqual(
+            manifest["terminal_artifact_cli_fallback_route_contract_manifest_fingerprints_fingerprint"],
+            terminal_artifact_cli_fallback_route_contract_manifest_fingerprints_fingerprint(),
         )
         self.assertEqual(
             manifest["terminal_artifact_cli_fallback_route_contract_fingerprint"],
@@ -13395,6 +13434,48 @@ class A2UIFallbackSafetyTests(unittest.TestCase):
 
         self.assertIn("- Copy JSON (copy_to_clipboard)", text)
         self.assertIn("- Export (export_document)", text)
+
+    def test_terminal_renderer_reports_filtered_actions_from_generator_streams(self) -> None:
+        def action_stream():
+            yield {
+                "id": "copy_to_clipboard",
+                "label": "Copy JSON",
+                "payload": {"text": "safe"},
+            }
+            yield {
+                "id": "not_supported",
+                "label": "Broken",
+                "payload": {"text": "ignored"},
+            }
+
+        text = render_terminal_card(
+            {
+                "type": "GenericCard",
+                "title": "Run Log",
+                "blocks": [{"type": "MarkdownBlock", "markdown": "safe"}],
+                "actions": action_stream(),
+            }
+        )
+
+        self.assertIn("- Copy JSON (copy_to_clipboard)", text)
+        self.assertIn("Some actions filtered out by allowlist or validation", text)
+
+    def test_terminal_renderer_does_not_mislabel_empty_generator_actions_as_filtered(self) -> None:
+        def action_stream():
+            if False:
+                yield {"id": "copy_to_clipboard", "label": "Copy JSON", "payload": {"text": "safe"}}
+
+        text = render_terminal_card(
+            {
+                "type": "GenericCard",
+                "title": "Run Log",
+                "blocks": [{"type": "MarkdownBlock", "markdown": "safe"}],
+                "actions": action_stream(),
+            }
+        )
+
+        self.assertIn("Actions: none available", text)
+        self.assertNotIn("Actions filtered out by allowlist or validation", text)
 
     def test_terminal_renderer_infers_generic_fallback_when_actions_are_missing(self) -> None:
         text = render_terminal_card(
