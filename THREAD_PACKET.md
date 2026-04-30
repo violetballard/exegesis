@@ -4,12 +4,13 @@
 - Lane: `feat-retrieval-fts`
 - Merge target: current `main`
 - Merge-base for re-review: `fd2ab6ca65ec2f93d1334c9b7df8512439725be4`
-- Pre-fixer branch tip under packet regeneration: `e99593b66e`
+- Pre-fixer branch tip for this required-fixes pass: `28b0309be1fb348aaf0e61daf6b9214600c26bee`
 - Final branch tip: reported in the fixer deliverable after this packet commit is created.
 - Authoritative reviewed range / complete merge candidate: `fd2ab6ca65ec2f93d1334c9b7df8512439725be4..HEAD`
 - Reviewer-reported stale reviewed range: `378cf9a74..adfa8cdadd43747ffbcb612e4151e262b13e52ca`
 - Reviewer-required supplemental implementation delta now covered by this packet: `adfa8cdadd43747ffbcb612e4151e262b13e52ca..e99593b66e`
-- Current fixer packet-metadata delta now covered by this packet: `e99593b66e..HEAD`
+- Prior packet-metadata refresh delta covered by this packet: `e99593b66e..28b0309be1fb348aaf0e61daf6b9214600c26bee`
+- Current fixer packet-metadata delta covered by this packet: `28b0309be1fb348aaf0e61daf6b9214600c26bee..HEAD`
 - Scope classification: high-risk retrieval work because approved shared regression coverage in `tests/unit/test_unified_retrieval.py` is part of the reviewed candidate.
 
 ## Scope Completed
@@ -58,7 +59,9 @@ Source/test implementation stat for `fd2ab6ca65ec2f93d1334c9b7df8512439725be4..H
 
 Reviewer-required supplemental source/test implementation stat for `adfa8cdadd43747ffbcb612e4151e262b13e52ca..e99593b66e`: `5 files changed, 424 insertions(+), 84 deletions(-)`.
 
-Current fixer packet-metadata delta for `e99593b66e..HEAD`: packet metadata only; no source/test implementation files.
+Prior packet-metadata refresh delta for `e99593b66e..28b0309be1fb348aaf0e61daf6b9214600c26bee`: packet metadata only; no source/test implementation files.
+
+Current fixer packet-metadata delta for `28b0309be1fb348aaf0e61daf6b9214600c26bee..HEAD`: packet metadata only; no source/test implementation files.
 
 Lane-owned source/test files in the reviewed candidate:
 
