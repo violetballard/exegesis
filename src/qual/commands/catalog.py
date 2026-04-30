@@ -2298,6 +2298,49 @@ def command_demo_readiness_lookup_table(
     )
 
 
+def command_demo_readiness_action_lookup_table(
+    specs: tuple[CommandSpec, ...] = COMMAND_SPECS,
+    launcher_argv: tuple[str, ...] = COMMAND_SMOKE_CLI_LAUNCHER_ARGV,
+) -> tuple[tuple[str, str, tuple[str, ...]], ...]:
+    return tuple(
+        (entry.flow_step, engine_action, action_argv)
+        for entry in command_demo_readiness_contract(specs, launcher_argv).entries
+        for engine_action, action_argv in entry.action_command_argv
+    )
+
+
+def command_demo_readiness_action_argv_lookup_table(
+    specs: tuple[CommandSpec, ...] = COMMAND_SPECS,
+    launcher_argv: tuple[str, ...] = COMMAND_SMOKE_CLI_LAUNCHER_ARGV,
+) -> tuple[tuple[str, tuple[str, ...]], ...]:
+    return tuple(
+        (engine_action, action_argv)
+        for _, engine_action, action_argv in command_demo_readiness_action_lookup_table(
+            specs,
+            launcher_argv,
+        )
+    )
+
+
+@lru_cache(maxsize=None)
+def command_demo_readiness_action_argv_index(
+    specs: tuple[CommandSpec, ...] = COMMAND_SPECS,
+    launcher_argv: tuple[str, ...] = COMMAND_SMOKE_CLI_LAUNCHER_ARGV,
+) -> tuple[tuple[str, tuple[str, ...]], ...]:
+    return command_demo_readiness_action_argv_lookup_table(specs, launcher_argv)
+
+
+def command_demo_readiness_argv_for_engine_action(
+    engine_action: str,
+    specs: tuple[CommandSpec, ...] = COMMAND_SPECS,
+    launcher_argv: tuple[str, ...] = COMMAND_SMOKE_CLI_LAUNCHER_ARGV,
+) -> tuple[str, ...]:
+    requested_action = engine_action.strip()
+    if not requested_action:
+        return ()
+    return dict(command_demo_readiness_action_argv_index(specs, launcher_argv)).get(requested_action, ())
+
+
 @lru_cache(maxsize=None)
 def command_demo_readiness_index(
     specs: tuple[CommandSpec, ...] = COMMAND_SPECS,
@@ -2642,6 +2685,35 @@ def command_mvp_demo_readiness_lookup_table(
     launcher_argv: tuple[str, ...] = COMMAND_SMOKE_CLI_LAUNCHER_ARGV,
 ) -> tuple[tuple[str, tuple[str, ...]], ...]:
     return command_demo_readiness_lookup_table(specs, launcher_argv)
+
+
+def command_mvp_demo_readiness_action_lookup_table(
+    specs: tuple[CommandSpec, ...] = COMMAND_SPECS,
+    launcher_argv: tuple[str, ...] = COMMAND_SMOKE_CLI_LAUNCHER_ARGV,
+) -> tuple[tuple[str, str, tuple[str, ...]], ...]:
+    return command_demo_readiness_action_lookup_table(specs, launcher_argv)
+
+
+def command_mvp_demo_readiness_action_argv_lookup_table(
+    specs: tuple[CommandSpec, ...] = COMMAND_SPECS,
+    launcher_argv: tuple[str, ...] = COMMAND_SMOKE_CLI_LAUNCHER_ARGV,
+) -> tuple[tuple[str, tuple[str, ...]], ...]:
+    return command_demo_readiness_action_argv_lookup_table(specs, launcher_argv)
+
+
+def command_mvp_demo_readiness_action_argv_index(
+    specs: tuple[CommandSpec, ...] = COMMAND_SPECS,
+    launcher_argv: tuple[str, ...] = COMMAND_SMOKE_CLI_LAUNCHER_ARGV,
+) -> tuple[tuple[str, tuple[str, ...]], ...]:
+    return command_demo_readiness_action_argv_index(specs, launcher_argv)
+
+
+def command_mvp_demo_readiness_argv_for_engine_action(
+    engine_action: str,
+    specs: tuple[CommandSpec, ...] = COMMAND_SPECS,
+    launcher_argv: tuple[str, ...] = COMMAND_SMOKE_CLI_LAUNCHER_ARGV,
+) -> tuple[str, ...]:
+    return command_demo_readiness_argv_for_engine_action(engine_action, specs, launcher_argv)
 
 
 def command_mvp_demo_readiness_index(
