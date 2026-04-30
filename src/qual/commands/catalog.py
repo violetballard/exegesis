@@ -1484,6 +1484,44 @@ def command_demo_action_smoke_argv_lookup_table(
 
 
 @lru_cache(maxsize=None)
+def command_demo_action_smoke_argv_index(
+    specs: tuple[CommandSpec, ...] = COMMAND_SPECS,
+) -> tuple[tuple[str, CommandDemoActionSmokeArgvEntry], ...]:
+    return tuple(
+        (entry.engine_action, entry)
+        for entry in command_demo_action_smoke_argv_contract(specs).entries
+    )
+
+
+@lru_cache(maxsize=None)
+def _command_demo_action_smoke_argv_entry_for(
+    specs: tuple[CommandSpec, ...],
+    engine_action: str,
+) -> CommandDemoActionSmokeArgvEntry | None:
+    requested_action = engine_action.strip()
+    if not requested_action:
+        return None
+    return dict(command_demo_action_smoke_argv_index(specs)).get(requested_action)
+
+
+def command_demo_action_smoke_argv_entry(
+    engine_action: str,
+    specs: tuple[CommandSpec, ...] = COMMAND_SPECS,
+) -> CommandDemoActionSmokeArgvEntry | None:
+    return _command_demo_action_smoke_argv_entry_for(specs, engine_action)
+
+
+def command_demo_action_smoke_argv(
+    engine_action: str,
+    specs: tuple[CommandSpec, ...] = COMMAND_SPECS,
+) -> tuple[str, ...]:
+    entry = command_demo_action_smoke_argv_entry(engine_action, specs)
+    if entry is None:
+        return ()
+    return entry.argv
+
+
+@lru_cache(maxsize=None)
 def command_demo_action_index(
     specs: tuple[CommandSpec, ...] = COMMAND_SPECS,
 ) -> tuple[tuple[str, CommandDemoActionEntry], ...]:
@@ -1576,6 +1614,26 @@ def command_mvp_demo_action_smoke_argv_lookup_table(
     specs: tuple[CommandSpec, ...] = COMMAND_SPECS,
 ) -> tuple[tuple[str, tuple[str, ...]], ...]:
     return command_demo_action_smoke_argv_lookup_table(specs)
+
+
+def command_mvp_demo_action_smoke_argv_index(
+    specs: tuple[CommandSpec, ...] = COMMAND_SPECS,
+) -> tuple[tuple[str, CommandDemoActionSmokeArgvEntry], ...]:
+    return command_demo_action_smoke_argv_index(specs)
+
+
+def command_mvp_demo_action_smoke_argv_entry(
+    engine_action: str,
+    specs: tuple[CommandSpec, ...] = COMMAND_SPECS,
+) -> CommandDemoActionSmokeArgvEntry | None:
+    return command_demo_action_smoke_argv_entry(engine_action, specs)
+
+
+def command_mvp_demo_action_smoke_argv(
+    engine_action: str,
+    specs: tuple[CommandSpec, ...] = COMMAND_SPECS,
+) -> tuple[str, ...]:
+    return command_demo_action_smoke_argv(engine_action, specs)
 
 
 def command_mvp_demo_action_index(
