@@ -726,7 +726,7 @@ def command_demo_path_contract(
     }
     entries: list[CommandDemoPathEntry] = []
     for route in route_catalog:
-        demo_path_step, engine_actions = path_steps[route.flow_step]
+        demo_path_step, engine_actions = _demo_path_metadata_for_route(route.flow_step, path_steps)
         entries.append(
             CommandDemoPathEntry(
                 flow_step=route.flow_step,
@@ -736,13 +736,67 @@ def command_demo_path_contract(
                 demo_path_step=demo_path_step,
             )
         )
-    return CommandDemoPathContract(entries=tuple(entries))
+    contract = CommandDemoPathContract(entries=tuple(entries))
+    _validate_command_demo_path_contract(contract, route_catalog)
+    return contract
+
+
+def _demo_path_metadata_for_route(
+    flow_step: str,
+    path_steps: dict[str, tuple[str, tuple[str, ...]]],
+) -> tuple[str, tuple[str, ...]]:
+    try:
+        demo_path_step, engine_actions = path_steps[flow_step]
+    except KeyError as exc:
+        raise ValueError(f"Missing command demo path metadata: {flow_step}") from exc
+    if not demo_path_step.strip():
+        raise ValueError(f"Command demo path step must not be empty: {flow_step}")
+    if not engine_actions or any(not action.strip() for action in engine_actions):
+        raise ValueError(f"Command demo path engine actions must not be empty: {flow_step}")
+    return demo_path_step, engine_actions
+
+
+def _validate_command_demo_path_contract(
+    contract: CommandDemoPathContract,
+    route_catalog: tuple[CommandFlowRouteEntry, ...],
+) -> None:
+    if tuple(entry.flow_step for entry in contract.entries) != tuple(route.flow_step for route in route_catalog):
+        raise ValueError("Command demo path route steps are inconsistent")
+    if tuple(entry.name for entry in contract.entries) != tuple(route.name for route in route_catalog):
+        raise ValueError("Command demo path route names are inconsistent")
+    if tuple(entry.cli_tokens for entry in contract.entries) != tuple(route.cli_tokens for route in route_catalog):
+        raise ValueError("Command demo path route tokens are inconsistent")
+    if tuple(entry.flow_step for entry in contract.entries) != command_demo_flow_steps():
+        raise ValueError("Command demo path steps are inconsistent")
+
+
+@lru_cache(maxsize=None)
+def command_demo_path_summary(
+    specs: tuple[CommandSpec, ...] = COMMAND_SPECS,
+) -> tuple[tuple[str, str, tuple[str, ...], str, tuple[str, ...]], ...]:
+    contract = command_demo_path_contract(specs)
+    return tuple(
+        (
+            entry.flow_step,
+            entry.name,
+            entry.cli_tokens,
+            entry.demo_path_step,
+            entry.engine_actions,
+        )
+        for entry in contract.entries
+    )
 
 
 def command_mvp_demo_path_contract(
     specs: tuple[CommandSpec, ...] = COMMAND_SPECS,
 ) -> CommandDemoPathContract:
     return command_demo_path_contract(specs)
+
+
+def command_mvp_demo_path_summary(
+    specs: tuple[CommandSpec, ...] = COMMAND_SPECS,
+) -> tuple[tuple[str, str, tuple[str, ...], str, tuple[str, ...]], ...]:
+    return command_demo_path_summary(specs)
 
 
 def command_demo_flow_route_catalog() -> tuple[CommandFlowRouteEntry, ...]:
