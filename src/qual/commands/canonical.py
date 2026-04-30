@@ -54,8 +54,13 @@ from src.qual.commands.catalog import (
     command_mvp_demo_smoke_matrix_summary as _smoke_matrix_summary,
     command_mvp_demo_action_demo_path_lookup_table as _action_demo_path_lookup_table,
     command_mvp_demo_action_demo_path_step as _action_demo_path_step,
+    command_mvp_demo_action_cli_lookup_table as _action_cli_lookup_table,
+    command_mvp_demo_action_cli_smoke_lookup_table as _action_cli_smoke_lookup_table,
     command_mvp_demo_action_flow_lookup_table as _action_flow_lookup_table,
     command_mvp_demo_action_flow_step as _action_flow_step,
+    command_mvp_demo_action_route_summary as _action_route_summary,
+    command_mvp_demo_action_smoke_argv as _action_smoke_argv,
+    command_mvp_demo_action_smoke_argv_lookup_table as _action_smoke_argv_lookup_table,
     command_mvp_demo_engine_actions as _demo_engine_actions,
     command_mvp_demo_command_action_lookup_table as _command_action_lookup_table,
     command_mvp_demo_readiness_action_line_lookup_table as _readiness_action_line_lookup_table,
@@ -113,9 +118,14 @@ __all__ = [
     "canonical_command",
     "canonical_command_action_argv_lookup_table",
     "canonical_command_action_demo_path_lookup_table",
+    "canonical_command_action_cli_lookup_table",
+    "canonical_command_action_cli_smoke_lookup_table",
     "canonical_command_action_lookup_table",
     "canonical_command_action_readiness_entry",
     "canonical_command_action_readiness_entry_for_engine_action",
+    "canonical_command_action_route_summary",
+    "canonical_command_action_smoke_argv",
+    "canonical_command_action_smoke_argv_lookup_table",
     "canonical_command_action_readiness_summary",
     "canonical_command_readiness_gate",
     "canonical_command_readiness_gate_summary",
@@ -526,6 +536,26 @@ def canonical_command_action_line_lookup_table() -> tuple[tuple[str, str], ...]:
 
 def canonical_command_action_lookup_table() -> tuple[tuple[str, tuple[str, ...]], ...]:
     return _command_action_lookup_table()
+
+
+def canonical_command_action_route_summary() -> tuple[tuple[str, str, str, str], ...]:
+    return _action_route_summary()
+
+
+def canonical_command_action_cli_lookup_table() -> tuple[tuple[str, tuple[str, ...]], ...]:
+    return _action_cli_lookup_table()
+
+
+def canonical_command_action_cli_smoke_lookup_table() -> tuple[tuple[str, str], ...]:
+    return _action_cli_smoke_lookup_table()
+
+
+def canonical_command_action_smoke_argv_lookup_table() -> tuple[tuple[str, tuple[str, ...]], ...]:
+    return _action_smoke_argv_lookup_table()
+
+
+def canonical_command_action_smoke_argv(engine_action: str) -> tuple[str, ...]:
+    return _action_smoke_argv(engine_action)
 
 
 def canonical_command_demo_engine_actions() -> tuple[str, ...]:
