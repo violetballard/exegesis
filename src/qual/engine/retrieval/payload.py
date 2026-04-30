@@ -142,6 +142,76 @@ def _stable_fingerprint(payload: object) -> str:
     return hashlib.sha256(serialized.encode("utf-8")).hexdigest()
 
 
+def _normalized_query_text(value: object) -> str | None:
+    text = _normalize_optional_text(value)
+    if text is None:
+        return None
+    return " ".join(text.casefold().split())
+
+
+def _canonical_query_doc_types(value: object) -> list[str]:
+    seen: set[str] = set()
+    normalized: list[str] = []
+    for item in _normalize_list_like(value):
+        doc_type = str(item).strip().casefold()
+        if not doc_type or doc_type in seen:
+            continue
+        seen.add(doc_type)
+        normalized.append(doc_type)
+    return sorted(normalized)
+
+
+def _normalize_query_bool(value: object) -> bool:
+    if value is None:
+        return False
+    if isinstance(value, bool):
+        return value
+    if isinstance(value, str):
+        normalized = value.strip().casefold()
+        if normalized in {"1", "true", "yes", "on"}:
+            return True
+        if normalized in {"0", "false", "no", "off", ""}:
+            return False
+    if isinstance(value, (int, float)):
+        return bool(value)
+    return False
+
+
+def _normalize_query_max_results(value: object) -> int:
+    try:
+        max_results = int(value) if value is not None else 10
+    except (TypeError, ValueError):
+        return 10
+    return max(1, max_results)
+
+
+def _query_fingerprint_from_query_snapshot(query: dict[str, object]) -> str | None:
+    query_text = _normalized_query_text(query.get("query_text"))
+    scope = _normalize_optional_text(query.get("scope"))
+    intent = _normalize_optional_text(query.get("intent"))
+    if query_text is None or scope is None or intent is None:
+        return None
+
+    constraints = query.get("constraints", {})
+    if not isinstance(constraints, dict):
+        constraints = {}
+    payload = {
+        "query_text": query_text,
+        "scope": scope,
+        "intent": intent.casefold(),
+        "constraints": {
+            "max_results": _normalize_query_max_results(constraints.get("max_results")),
+            "doc_types": _canonical_query_doc_types(constraints.get("doc_types")),
+            "date_range": _normalize_optional_list_like(constraints.get("date_range")),
+            "require_citations": _normalize_query_bool(constraints.get("require_citations")),
+            "section_hint": _normalize_optional_text(constraints.get("section_hint")),
+            "prefer_exact_matches": _normalize_query_bool(constraints.get("prefer_exact_matches")),
+        },
+        "confidentiality_profile": str(query.get("confidentiality_profile", "confidential")).strip().casefold(),
+    }
+    return _stable_fingerprint(payload)
+
+
 def _is_missing_snapshot_value(value: object) -> bool:
     if value is None:
         return True
@@ -413,6 +483,7 @@ def _build_retrieval_citation_bundle_from_payload(payload: dict[str, object]) ->
     query = payload.get("query", {})
     if not isinstance(query, dict):
         query = {}
+    query_fingerprint = _query_fingerprint_from_query_snapshot(query)
     query_constraints = query.get("constraints", {})
     if not isinstance(query_constraints, dict):
         query_constraints = {}
@@ -458,9 +529,11 @@ def _build_retrieval_citation_bundle_from_payload(payload: dict[str, object]) ->
         )
     )
     return _normalize_citation_bundle_snapshot({
-        "query_fingerprint": provenance.get(
-            "query_fingerprint",
-            summary.get("query_fingerprint", diagnostics.get("query_fingerprint")),
+        "query_fingerprint": _first_text_value(
+            provenance.get("query_fingerprint"),
+            summary.get("query_fingerprint"),
+            diagnostics.get("query_fingerprint"),
+            query_fingerprint,
         ),
         "result_fingerprint": provenance.get(
             "result_fingerprint",
@@ -626,6 +699,7 @@ def _build_retrieval_bundle_context_from_payload(payload: dict[str, object]) -> 
     query = payload.get("query", {})
     if not isinstance(query, dict):
         query = {}
+    query_fingerprint = _query_fingerprint_from_query_snapshot(query)
     query_constraints = query.get("constraints", {})
     if not isinstance(query_constraints, dict):
         query_constraints = {}
@@ -640,9 +714,12 @@ def _build_retrieval_bundle_context_from_payload(payload: dict[str, object]) -> 
     )
     return {
         "result_fingerprint": payload.get("result_fingerprint"),
-        "query_fingerprint": payload.get(
-            "query_fingerprint",
-            provenance.get("query_fingerprint", summary.get("query_fingerprint", diagnostics.get("query_fingerprint"))),
+        "query_fingerprint": _first_text_value(
+            payload.get("query_fingerprint"),
+            provenance.get("query_fingerprint"),
+            summary.get("query_fingerprint"),
+            diagnostics.get("query_fingerprint"),
+            query_fingerprint,
         ),
         "query_scope": query.get(
             "scope",
@@ -747,6 +824,7 @@ def _build_retrieval_diagnostics_from_source_bundle(source_bundle: dict[str, obj
     query = normalized.get("query", {})
     if not isinstance(query, dict):
         query = {}
+    query_fingerprint = _query_fingerprint_from_query_snapshot(query)
     query_constraints = query.get("constraints", {})
     if not isinstance(query_constraints, dict):
         query_constraints = {}
@@ -791,9 +869,10 @@ def _build_retrieval_diagnostics_from_source_bundle(source_bundle: dict[str, obj
         ),
         "active_strategy_ids": strategies_used,
         "deferred_strategy_ids": deferred_strategy_ids,
-        "query_fingerprint": citation_bundle.get(
-            "query_fingerprint",
+        "query_fingerprint": _first_text_value(
+            citation_bundle.get("query_fingerprint"),
             normalized.get("query_fingerprint"),
+            query_fingerprint,
         ),
         "query_scope": query_scope,
         "query_intent": query_intent,
@@ -841,12 +920,17 @@ def _build_retrieval_provenance_from_payload(payload: dict[str, object]) -> dict
     query = payload.get("query", {})
     if not isinstance(query, dict):
         query = {}
+    query_fingerprint = _query_fingerprint_from_query_snapshot(query)
     query_constraints = query.get("constraints", {})
     if not isinstance(query_constraints, dict):
         query_constraints = {}
     query_date_range = _normalize_optional_list_like(normalized.get("query_date_range"))
-    if "query_fingerprint" not in normalized:
-        normalized["query_fingerprint"] = summary.get("query_fingerprint", diagnostics.get("query_fingerprint"))
+    if _is_missing_snapshot_value(normalized.get("query_fingerprint")):
+        normalized["query_fingerprint"] = _first_text_value(
+            summary.get("query_fingerprint"),
+            diagnostics.get("query_fingerprint"),
+            query_fingerprint,
+        )
     if "query_scope" not in normalized:
         normalized["query_scope"] = summary.get("query_scope", diagnostics.get("query_scope", query.get("scope")))
     if "query_intent" not in normalized:
