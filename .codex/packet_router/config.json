@@ -1,11 +1,12 @@
 {
   "model": "gpt-5.1-codex",
   "codex_cmd": "codex",
-  "fallback_model": "",
+  "fallback_model": "gpt-oss-120b",
   "fallback_codex_cmd": "codex",
   "fallback_codex_args": [
-    "-p",
-    "gpt-oss-120b-lms"
+    "--oss",
+    "--local-provider",
+    "lmstudio"
   ],
   "fallback_model_args": [],
   "profiles": {
@@ -27,10 +28,11 @@
     "worker_local": {
       "codex_cmd": "codex",
       "codex_args": [
-        "-p",
-        "gpt-oss-120b-lms"
+        "--oss",
+        "--local-provider",
+        "lmstudio"
       ],
-      "model": "",
+      "model": "gpt-oss-120b",
       "model_args": []
     }
   },

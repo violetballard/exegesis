@@ -755,6 +755,7 @@ class RetrievalResult:
                 )
             ),
         }
+        return source_bundle
 
 
 class RetrievalService:

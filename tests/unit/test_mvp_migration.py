@@ -311,6 +311,7 @@ class ScopeCheckMigrationTests(unittest.TestCase):
             patch.object(planner_mod, "list_git_remotes", return_value=[]),
             patch.object(planner_mod, "lane_has_pending_feature", return_value=True),
             patch.object(planner_mod, "ensure_lane_dirs"),
+            patch.object(planner_mod, "save_json"),
             patch.object(planner_mod, "run") as run_mock,
         ):
             planner_mod.main()
@@ -695,6 +696,11 @@ class CoordinatorStateReconcileTests(unittest.TestCase):
                 patch.object(coordinator, "FEATURE_RUNNER_STATE_FILE", feature_state),
                 patch.object(coordinator, "ROUTER_STATE_FILE", router_state),
                 patch.object(coordinator, "_pid_alive", side_effect=lambda pid: pid == 1111),
+                patch.object(
+                    coordinator,
+                    "run_hygiene",
+                    return_value={"stale_git_pids": [], "temp_worktrees_removed": []},
+                ),
             ):
                 summary = coordinator._reconcile_control_plane_state({})
 
@@ -968,6 +974,7 @@ class CloudDirectExecLaunchTests(unittest.TestCase):
             with (
                 patch("codex_packet_handoff.tools.launch_feature_lanes.build_prompt", return_value="prompt"),
                 patch("codex_packet_handoff.tools.launch_feature_lanes._spawn_direct_exec", return_value=4242),
+                patch("codex_packet_handoff.tools.launch_feature_lanes.save_json"),
             ):
                 result = _launch_one_lane(
                     "feat-commands",

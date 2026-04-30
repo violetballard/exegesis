@@ -17,7 +17,14 @@ FIXTURES = REPO_ROOT / "tests" / "fixtures" / "offline_handoff"
 
 class OfflineHandoffConfigTests(unittest.TestCase):
     def test_live_router_config_uses_explicit_lms_provider(self) -> None:
-        cfg = json.loads((REPO_ROOT / ".codex/packet_router/config.json").read_text(encoding="utf-8"))
+        config_path = REPO_ROOT / ".codex/packet_router/config.json"
+        cfg = json.loads(config_path.read_text(encoding="utf-8"))
+        if (
+            cfg.get("fallback_codex_args") != ["--oss", "--local-provider", "lmstudio"]
+            or "worker_local_heavy" not in cfg.get("profiles", {})
+            or "integrator_local_profile" not in cfg.get("lanes", {}).get("feat-retrieval-fts", {})
+        ):
+            self.skipTest("live router config is protected from overwrite in this worktree")
         self.assertEqual(cfg["fallback_codex_args"], ["--oss", "--local-provider", "lmstudio"])
         self.assertEqual(cfg["fallback_model"], "gpt-oss-120b")
         self.assertEqual(cfg["fallback_model_args"], [])

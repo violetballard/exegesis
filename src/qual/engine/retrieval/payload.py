@@ -425,7 +425,7 @@ def _build_retrieval_source_bundle_from_payload(payload: dict[str, object]) -> d
         "retrieval_manifest": copy.deepcopy(payload.get("retrieval_manifest", {})),
         "retrieval_evidence": copy.deepcopy(payload.get("retrieval_evidence", {})),
         "retrieval_provenance": copy.deepcopy(payload.get("retrieval_provenance", {})),
-    })
+    }
 
 
 def _backfill_downstream_payload_from_context_bundle(
