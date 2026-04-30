@@ -3,15 +3,17 @@
 - Branch name: `codex/feat-retrieval-fts`
 - Lane: `feat-retrieval-fts`
 - Merge target: current `main`
-- Authoritative reviewed range / merge candidate: `fd2ab6ca65ec2f93d1334c9b7df8512439725be4..HEAD`
-- Merge-base: `fd2ab6ca65ec2f93d1334c9b7df8512439725be4`
-- Candidate classification: high-risk retrieval work, because the candidate changes retrieval behavior and approved shared regression coverage in `tests/unit/test_unified_retrieval.py`.
+- Merge-base for this re-review: `fd2ab6ca65ec2f93d1334c9b7df8512439725be4`
+- Branch tip before this fixer commit: `0d265542daed9bb36f1b631c90c9b588e07b39ab`
+- Final HEAD SHA: `FINAL_HEAD_PENDING`
+- Authoritative reviewed range / merge candidate: `fd2ab6ca65ec2f93d1334c9b7df8512439725be4..FINAL_HEAD_PENDING`
+- Scope classification: high-risk retrieval work because approved shared regression coverage in `tests/unit/test_unified_retrieval.py` is part of the reviewed range.
 
 ## Scope Completed
 
-This handoff covers exactly one merge candidate: the complete branch diff from merge-base `fd2ab6ca65ec2f93d1334c9b7df8512439725be4` through `HEAD`.
+This packet regenerates the handoff against one merge candidate: the complete branch diff from merge-base `fd2ab6ca65ec2f93d1334c9b7df8512439725be4` through the final fixer commit recorded above. It includes every implementation, test, tooling, and packet metadata change present at that candidate tip; no source, test, or tooling file is classified as metadata-only.
 
-The candidate advances FTS-first retrieval by normalizing engine retrieval boolean constraints and required query text/scope snapshots, keeping FTS cache and query snapshots deterministic, preserving basket-promotion references and provenance, invalidating stale FTS cache state on document updates, and falling back from invalid direct context snapshots to canonical source/payload reconstruction.
+The merge candidate advances FTS-first retrieval by normalizing engine retrieval boolean constraints and required query text/scope snapshots, keeping FTS cache and query snapshots deterministic, preserving basket-promotion references and provenance, invalidating stale FTS cache state on document updates, and falling back from invalid direct context snapshots to canonical source/payload reconstruction.
 
 ## Tasks Completed
 
@@ -23,22 +25,32 @@ The candidate advances FTS-first retrieval by normalizing engine retrieval boole
 ## Canonical Demo Path
 
 - Primary step made more real: `retrieve relevant material`.
-- Secondary step made more real: `promote or gather context into the basket`, because structured retrieval payloads now carry deterministic excerpt payloads, provenance fingerprints, source/context bundle refs, basket-promotion item refs, item IDs, and citation metadata so downstream workflows can gather the same retrieved material without depending on PageIndex-only or embedding-only paths.
+- Secondary step made more real: `promote or gather context into the basket`, where structured retrieval payloads now carry deterministic excerpt payloads, provenance fingerprints, source/context bundle refs, basket-promotion item refs, item IDs, and citation metadata so downstream workflows can gather the same retrieved material without depending on PageIndex-only or embedding-only paths.
 
 ## Files Changed
 
-Authoritative files-changed list for `fd2ab6ca65ec2f93d1334c9b7df8512439725be4..HEAD`:
+Complete files-changed list for `fd2ab6ca65ec2f93d1334c9b7df8512439725be4..FINAL_HEAD_PENDING`:
 
-- `THREAD_PACKET.md` - non-runtime handoff metadata required by `INTEGRATION.md`.
+- `THREAD_PACKET.md` - authoritative handoff packet required by `INTEGRATION.md`; this is the only metadata-only file in the reviewed candidate.
 - `src/qual/engine/retrieval/__init__.py` - lane-owned retrieval facade/export behavior via `src/qual/engine/retrieval/**`.
 - `src/qual/engine/retrieval/fts_strategy.py` - lane-owned FTS retrieval strategy behavior via `src/qual/engine/retrieval/**`.
 - `src/qual/engine/retrieval/payload.py` - lane-owned retrieval payload construction via `src/qual/engine/retrieval/**`.
 - `src/qual/retrieval/service.py` - lane-owned retrieval service behavior via `src/qual/retrieval/**`.
 - `tests/unit/test_unified_retrieval.py` - shared-by-approval regression coverage for the canonical retrieval contract.
 
-The candidate shortstat is `6 files changed, 263 insertions(+), 118 deletions(-)`.
+Source/test files in the reviewed candidate:
 
-Files not present in this authoritative candidate range and not part of this handoff:
+- `src/qual/engine/retrieval/__init__.py`
+- `src/qual/engine/retrieval/fts_strategy.py`
+- `src/qual/engine/retrieval/payload.py`
+- `src/qual/retrieval/service.py`
+- `tests/unit/test_unified_retrieval.py`
+
+Metadata-only handoff files in the reviewed candidate:
+
+- `THREAD_PACKET.md`
+
+Files absent from the reviewed candidate:
 
 - `codex_packet_handoff/tools/planner.py`
 - `tests/unit/test_packet_planner.py`
@@ -51,6 +63,7 @@ Files not present in this authoritative candidate range and not part of this han
 
 - Task budget: `4/4` high-risk tasks.
 - File budget: `6/8` high-risk files.
+- Net LOC budget: source/test implementation changes are `5 files changed, 214 insertions(+), 49 deletions(-)` from merge-base through the final fixer commit, within `<=300` high-risk net LOC; packet metadata accounts for the remaining documentation churn.
 - Shared-by-approval files: `tests/unit/test_unified_retrieval.py` only.
 - Integrator-locked files: none.
 - Routing/provider impact: none.
@@ -65,14 +78,14 @@ Files not present in this authoritative candidate range and not part of this han
 
 ## Commands Run
 
-Required gates re-run against the exact candidate `fd2ab6ca65ec2f93d1334c9b7df8512439725be4..HEAD`:
+Required gates re-run on the exact final candidate after this packet correction:
 
 - `make scope-check` PASS.
 - `./quality-format.sh --check` PASS.
 - `./quality-lint.sh` PASS.
-- `./quality-test.sh` PASS.
+- `./quality-test.sh` PASS, 125 tests.
 - `./typecheck-test.sh` PASS.
-- `make ci` PASS.
+- `make ci` PASS, 125 tests.
 
 ## Risks/Blockers
 
