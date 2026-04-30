@@ -5,6 +5,7 @@ import shlex
 from collections.abc import Sequence
 from dataclasses import dataclass
 from functools import lru_cache
+from pathlib import PurePath
 
 
 @dataclass(frozen=True)
@@ -611,6 +612,14 @@ COMMAND_SMOKE_SCRIPT_LAUNCHER_ARGV: tuple[str, ...] = ("python", "src/main.py")
 COMMAND_SMOKE_SUPPORTED_LAUNCHER_ARGV: tuple[tuple[str, ...], ...] = (
     COMMAND_SMOKE_CLI_LAUNCHER_ARGV,
     COMMAND_SMOKE_SCRIPT_LAUNCHER_ARGV,
+)
+COMMAND_SMOKE_SUPPORTED_LAUNCHER_TAILS: tuple[tuple[str, ...], ...] = (
+    ("-m", "src.main"),
+    ("src/main.py",),
+)
+COMMAND_SMOKE_SUPPORTED_PYTHON_LAUNCHERS: tuple[str, ...] = (
+    "python",
+    "python3",
 )
 DEMO_COMMAND_FLOW_STEPS: tuple[str, ...] = (
     "project-open",
@@ -4199,7 +4208,19 @@ def _argv_without_launcher(argv: tuple[str, ...], launcher_argv: tuple[str, ...]
     for supported_launcher_argv in COMMAND_SMOKE_SUPPORTED_LAUNCHER_ARGV:
         if argv[: len(supported_launcher_argv)] == supported_launcher_argv:
             return argv[len(supported_launcher_argv) :]
+    for launcher_tail in COMMAND_SMOKE_SUPPORTED_LAUNCHER_TAILS:
+        launcher_len = 1 + len(launcher_tail)
+        if (
+            len(argv) >= launcher_len
+            and _is_supported_python_launcher(argv[0])
+            and argv[1:launcher_len] == launcher_tail
+        ):
+            return argv[launcher_len:]
     return argv
+
+
+def _is_supported_python_launcher(token: str) -> bool:
+    return PurePath(token).name in COMMAND_SMOKE_SUPPORTED_PYTHON_LAUNCHERS
 
 
 def _canonicalize_smoke_command_argv(
