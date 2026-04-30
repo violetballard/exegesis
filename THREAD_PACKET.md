@@ -4,12 +4,12 @@
 - Lane: `feat-retrieval-fts`
 - Merge target: current `main`
 - Merge-base for re-review: `fd2ab6ca65ec2f93d1334c9b7df8512439725be4`
-- Pre-fixer branch tip under review: `12226cfd71fc166e1d1e43d25b26eb2f4e4872ab`
+- Pre-fixer branch tip under packet regeneration: `e99593b66e`
 - Final branch tip: reported in the fixer deliverable after this packet commit is created.
 - Authoritative reviewed range / complete merge candidate: `fd2ab6ca65ec2f93d1334c9b7df8512439725be4..HEAD`
 - Reviewer-reported stale reviewed range: `378cf9a74..adfa8cdadd43747ffbcb612e4151e262b13e52ca`
-- Reviewer-required supplemental implementation delta now covered by this packet: `adfa8cdadd43747ffbcb612e4151e262b13e52ca..8c838dda19a82f994864ea6cb5b31bcf46415971`
-- Current fixer implementation delta now covered by this packet: `12226cfd71fc166e1d1e43d25b26eb2f4e4872ab..HEAD`
+- Reviewer-required supplemental implementation delta now covered by this packet: `adfa8cdadd43747ffbcb612e4151e262b13e52ca..e99593b66e`
+- Current fixer packet-metadata delta now covered by this packet: `e99593b66e..HEAD`
 - Scope classification: high-risk retrieval work because approved shared regression coverage in `tests/unit/test_unified_retrieval.py` is part of the reviewed candidate.
 
 ## Scope Completed
@@ -17,6 +17,8 @@
 This packet chooses the actual branch tip as the merge candidate. The approval target is the complete merge-base-to-HEAD range, not the stale `378cf9a74..adfa8cdadd43747ffbcb612e4151e262b13e52ca` slice and not a metadata-only refresh chain.
 
 The reviewer-cited post-`adfa8cdadd43747ffbcb612e4151e262b13e52ca` delta is intentionally included for re-review when it modifies retrieval implementation and shared regression tests. Those changes are not classified as metadata-only. It contains retrieval implementation and shared regression changes in:
+
+The reviewer-cited commit `c2741f8e58b59e8e37240b2271b9b68bbf6141ec` is therefore treated as retrieval implementation, not metadata-only packet refresh work.
 
 - `src/qual/engine/retrieval/__init__.py`
 - `src/qual/engine/retrieval/fts_strategy.py`
@@ -54,9 +56,9 @@ Complete source/test implementation files for `fd2ab6ca65ec2f93d1334c9b7df851243
 
 Source/test implementation stat for `fd2ab6ca65ec2f93d1334c9b7df8512439725be4..HEAD`: `5 files changed, 357 insertions(+), 96 deletions(-)`.
 
-Reviewer-required supplemental source/test implementation stat for `adfa8cdadd43747ffbcb612e4151e262b13e52ca..8c838dda19a82f994864ea6cb5b31bcf46415971`: `5 files changed, 380 insertions(+), 84 deletions(-)`.
+Reviewer-required supplemental source/test implementation stat for `adfa8cdadd43747ffbcb612e4151e262b13e52ca..e99593b66e`: `5 files changed, 424 insertions(+), 84 deletions(-)`.
 
-Current fixer source/test implementation stat for `12226cfd71fc166e1d1e43d25b26eb2f4e4872ab..HEAD`: `2 files changed, 44 insertions(+)`.
+Current fixer packet-metadata delta for `e99593b66e..HEAD`: packet metadata only; no source/test implementation files.
 
 Lane-owned source/test files in the reviewed candidate:
 
