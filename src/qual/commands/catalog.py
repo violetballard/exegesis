@@ -308,6 +308,21 @@ class CommandDemoReadinessContract:
 
 
 @dataclass(frozen=True)
+class CommandDemoReadinessCliEntry:
+    cli_token: str
+    flow_step: str
+    name: str
+    command_argv: tuple[str, ...]
+    demo_path_step: str
+    engine_actions: tuple[str, ...]
+
+
+@dataclass(frozen=True)
+class CommandDemoReadinessCliContract:
+    entries: tuple[CommandDemoReadinessCliEntry, ...]
+
+
+@dataclass(frozen=True)
 class CommandDemoReadinessActionEntry:
     engine_action: str
     flow_step: str
@@ -2532,6 +2547,93 @@ def command_demo_readiness_lookup_table(
     )
 
 
+@lru_cache(maxsize=None)
+def command_demo_readiness_cli_contract(
+    specs: tuple[CommandSpec, ...] = COMMAND_SPECS,
+    launcher_argv: tuple[str, ...] = COMMAND_SMOKE_CLI_LAUNCHER_ARGV,
+) -> CommandDemoReadinessCliContract:
+    readiness_by_name = {
+        entry.name: entry
+        for entry in command_demo_readiness_contract(specs, launcher_argv).entries
+    }
+    cli_lookup = command_cli_lookup_table() if specs == COMMAND_SPECS else command_lookup_index(specs)
+    contract = CommandDemoReadinessCliContract(
+        entries=tuple(
+            CommandDemoReadinessCliEntry(
+                cli_token=cli_token,
+                flow_step=readiness_entry.flow_step,
+                name=readiness_entry.name,
+                command_argv=readiness_entry.command_argv,
+                demo_path_step=readiness_entry.demo_path_step,
+                engine_actions=readiness_entry.engine_actions,
+            )
+            for cli_token, canonical_name in cli_lookup
+            for readiness_entry in (readiness_by_name.get(canonical_name),)
+            if readiness_entry is not None
+        )
+    )
+    _validate_command_demo_readiness_cli_contract(
+        contract,
+        readiness_by_name,
+        cli_lookup,
+    )
+    return contract
+
+
+def _validate_command_demo_readiness_cli_contract(
+    contract: CommandDemoReadinessCliContract,
+    readiness_by_name: dict[str, CommandDemoReadinessEntry],
+    cli_lookup: tuple[tuple[str, str], ...],
+) -> None:
+    if tuple(entry.cli_token for entry in contract.entries) != tuple(token for token, _ in cli_lookup):
+        raise ValueError("Command demo readiness CLI tokens are inconsistent")
+    if tuple(entry.name for entry in contract.entries) != tuple(name for _, name in cli_lookup):
+        raise ValueError("Command demo readiness CLI names are inconsistent")
+    if len({entry.cli_token for entry in contract.entries}) != len(contract.entries):
+        raise ValueError("Command demo readiness CLI tokens must be unique")
+    for entry in contract.entries:
+        readiness_entry = readiness_by_name.get(entry.name)
+        if readiness_entry is None:
+            raise ValueError(f"Command demo readiness CLI route is missing: {entry.cli_token}")
+        if not entry.cli_token.strip():
+            raise ValueError("Command demo readiness CLI token must not be empty")
+        if entry.flow_step != readiness_entry.flow_step:
+            raise ValueError(f"Command demo readiness CLI flow step is inconsistent: {entry.cli_token}")
+        if entry.command_argv != readiness_entry.command_argv:
+            raise ValueError(f"Command demo readiness CLI argv is inconsistent: {entry.cli_token}")
+        if entry.demo_path_step != readiness_entry.demo_path_step:
+            raise ValueError(f"Command demo readiness CLI path step is inconsistent: {entry.cli_token}")
+        if entry.engine_actions != readiness_entry.engine_actions:
+            raise ValueError(f"Command demo readiness CLI actions are inconsistent: {entry.cli_token}")
+
+
+def command_demo_readiness_cli_summary(
+    specs: tuple[CommandSpec, ...] = COMMAND_SPECS,
+    launcher_argv: tuple[str, ...] = COMMAND_SMOKE_CLI_LAUNCHER_ARGV,
+) -> tuple[tuple[str, str, str, tuple[str, ...], str, tuple[str, ...]], ...]:
+    return tuple(
+        (
+            entry.cli_token,
+            entry.flow_step,
+            entry.name,
+            entry.command_argv,
+            entry.demo_path_step,
+            entry.engine_actions,
+        )
+        for entry in command_demo_readiness_cli_contract(specs, launcher_argv).entries
+    )
+
+
+def command_demo_readiness_cli_lookup_table(
+    specs: tuple[CommandSpec, ...] = COMMAND_SPECS,
+    launcher_argv: tuple[str, ...] = COMMAND_SMOKE_CLI_LAUNCHER_ARGV,
+) -> tuple[tuple[str, str, str], ...]:
+    return tuple(
+        (entry.cli_token, entry.flow_step, entry.name)
+        for entry in command_demo_readiness_cli_contract(specs, launcher_argv).entries
+    )
+
+
 def command_demo_readiness_action_lookup_table(
     specs: tuple[CommandSpec, ...] = COMMAND_SPECS,
     launcher_argv: tuple[str, ...] = COMMAND_SMOKE_CLI_LAUNCHER_ARGV,
@@ -4032,6 +4134,27 @@ def command_mvp_demo_readiness_lookup_table(
     launcher_argv: tuple[str, ...] = COMMAND_SMOKE_CLI_LAUNCHER_ARGV,
 ) -> tuple[tuple[str, tuple[str, ...]], ...]:
     return command_demo_readiness_lookup_table(specs, launcher_argv)
+
+
+def command_mvp_demo_readiness_cli_contract(
+    specs: tuple[CommandSpec, ...] = COMMAND_SPECS,
+    launcher_argv: tuple[str, ...] = COMMAND_SMOKE_CLI_LAUNCHER_ARGV,
+) -> CommandDemoReadinessCliContract:
+    return command_demo_readiness_cli_contract(specs, launcher_argv)
+
+
+def command_mvp_demo_readiness_cli_summary(
+    specs: tuple[CommandSpec, ...] = COMMAND_SPECS,
+    launcher_argv: tuple[str, ...] = COMMAND_SMOKE_CLI_LAUNCHER_ARGV,
+) -> tuple[tuple[str, str, str, tuple[str, ...], str, tuple[str, ...]], ...]:
+    return command_demo_readiness_cli_summary(specs, launcher_argv)
+
+
+def command_mvp_demo_readiness_cli_lookup_table(
+    specs: tuple[CommandSpec, ...] = COMMAND_SPECS,
+    launcher_argv: tuple[str, ...] = COMMAND_SMOKE_CLI_LAUNCHER_ARGV,
+) -> tuple[tuple[str, str, str], ...]:
+    return command_demo_readiness_cli_lookup_table(specs, launcher_argv)
 
 
 def command_mvp_demo_readiness_action_lookup_table(

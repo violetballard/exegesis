@@ -5,6 +5,7 @@ from collections.abc import Sequence
 from src.qual.commands.catalog import (
     CommandDemoReadinessGate,
     CommandDemoReadinessActionEntry,
+    CommandDemoReadinessCliContract,
     CommandDemoReadinessEntry,
     CommandDemoReadinessHandoffChecklistContract,
     CommandDemoReadinessHandoffContract,
@@ -56,6 +57,9 @@ from src.qual.commands.catalog import (
     command_mvp_demo_readiness_argv_for_demo_path_step as _readiness_argv_for_demo_path_step,
     command_mvp_demo_readiness_argv_for_engine_action as _readiness_argv_for_engine_action,
     command_mvp_demo_readiness_argv_for_flow_step as _readiness_argv_for_flow_step,
+    command_mvp_demo_readiness_cli_contract as _readiness_cli_contract,
+    command_mvp_demo_readiness_cli_lookup_table as _readiness_cli_lookup_table,
+    command_mvp_demo_readiness_cli_summary as _readiness_cli_summary,
     command_mvp_demo_readiness_command_for_argv as _readiness_command_for_argv,
     command_mvp_demo_readiness_command_for_demo_path_step as _readiness_command_for_demo_path_step,
     command_mvp_demo_readiness_command_for_engine_action as _readiness_command_for_engine_action,
@@ -89,6 +93,9 @@ __all__ = [
     "canonical_command_readiness_gate_summary",
     "canonical_command_demo_path_readiness_contract",
     "canonical_command_demo_path_readiness_summary",
+    "canonical_command_readiness_cli_contract",
+    "canonical_command_readiness_cli_lookup_table",
+    "canonical_command_readiness_cli_summary",
     "canonical_command_readiness_handoff_contract",
     "canonical_command_readiness_handoff_checklist_contract",
     "canonical_command_readiness_handoff_checklist_lines",
@@ -197,6 +204,21 @@ def canonical_command_demo_path_readiness_summary() -> tuple[
     ...,
 ]:
     return _path_readiness_summary()
+
+
+def canonical_command_readiness_cli_contract() -> CommandDemoReadinessCliContract:
+    return _readiness_cli_contract()
+
+
+def canonical_command_readiness_cli_summary() -> tuple[
+    tuple[str, str, str, tuple[str, ...], str, tuple[str, ...]],
+    ...,
+]:
+    return _readiness_cli_summary()
+
+
+def canonical_command_readiness_cli_lookup_table() -> tuple[tuple[str, str, str], ...]:
+    return _readiness_cli_lookup_table()
 
 
 def canonical_command_readiness_handoff_contract() -> CommandDemoReadinessHandoffContract:
