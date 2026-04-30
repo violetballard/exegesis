@@ -46,7 +46,7 @@ Reviewed source/test implementation files for `378cf9a74a3658058079a32f186fcd254
 
 Reviewed source/test stat: `5 files changed, 632 insertions(+), 119 deletions(-)`.
 
-Full branch-tip reviewed file surface, including packet metadata files, is the same 8 paths shown by `git diff --name-status 378cf9a74a3658058079a32f186fcd254c4a4034..HEAD`: `.codex/kickoff_packets/feat-retrieval-fts.md`, `.codex/lane_meta/feat-retrieval-fts.json`, `THREAD_PACKET.md`, `src/qual/engine/retrieval/__init__.py`, `src/qual/engine/retrieval/fts_strategy.py`, `src/qual/engine/retrieval/payload.py`, `src/qual/retrieval/service.py`, and `tests/unit/test_unified_retrieval.py`. With this fixer pass included, that full range is `8 files changed, 897 insertions(+), 207 deletions(-)`; the final fixer deliverable reports the final HEAD SHA after this packet update commit.
+Full branch-tip reviewed file surface, including packet metadata files, is the 8 paths shown by `git diff --name-status 378cf9a74a3658058079a32f186fcd254c4a4034..HEAD`: `.codex/kickoff_packets/feat-retrieval-fts.md`, `.codex/lane_meta/feat-retrieval-fts.json`, `THREAD_PACKET.md`, `src/qual/engine/retrieval/__init__.py`, `src/qual/engine/retrieval/fts_strategy.py`, `src/qual/engine/retrieval/payload.py`, `src/qual/retrieval/service.py`, and `tests/unit/test_unified_retrieval.py`. Before this final metadata-only packet commit, that full range is `8 files changed, 897 insertions(+), 207 deletions(-)`; the final fixer deliverable reports the final HEAD SHA and final branch-tip range stat after this packet update commit.
 
 Lane-owned source/test files in the reviewed implementation range:
 
