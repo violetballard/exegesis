@@ -4,17 +4,17 @@
 - Lane: `feat-retrieval-fts`
 - Merge target: current `main`
 - Merge-base for this re-review: `fd2ab6ca65ec2f93d1334c9b7df8512439725be4`
-- Branch tip before this fixer commit: `0d265542d99ec986d4fd6bc0209aee466f127ccc`
+- Branch tip before this fixer commit: `397997acbe5282b5e56d76d0ae6fae8db6a61547`
 - Final HEAD SHA: reported in this fixer deliverable after commit creation.
-- Reviewed implementation range before metadata-only packet fixes: `fd2ab6ca65ec2f93d1334c9b7df8512439725be4..0d265542d99ec986d4fd6bc0209aee466f127ccc`
+- Reviewed implementation range before packet-only fixer commits: `fd2ab6ca65ec2f93d1334c9b7df8512439725be4..0d265542d99ec986d4fd6bc0209aee466f127ccc`
 - Authoritative reviewed range / merge candidate: `fd2ab6ca65ec2f93d1334c9b7df8512439725be4..HEAD`
 - Scope classification: high-risk retrieval work because approved shared regression coverage in `tests/unit/test_unified_retrieval.py` is part of the reviewed range.
 
 ## Scope Completed
 
-This packet regenerates the handoff against one merge candidate: the complete branch diff from merge-base `fd2ab6ca65ec2f93d1334c9b7df8512439725be4` through the final fixer commit recorded above. It includes every implementation, test, tooling, and packet metadata change present at that candidate tip; no source, test, or tooling file is classified as metadata-only.
+This packet regenerates the handoff against one merge candidate: the complete branch diff from merge-base `fd2ab6ca65ec2f93d1334c9b7df8512439725be4` through the final fixer commit recorded above. It includes every source, test, and packet metadata change present at that candidate tip; no source or test file is classified as metadata-only.
 
-The reviewed implementation range expands beyond stale `adfa8cdadd43747ffbcb612e4151e262b13e52ca` packet text and covers all non-metadata commits after `adfa8cd`, including `src/qual/engine/retrieval/__init__.py`, `src/qual/engine/retrieval/fts_strategy.py`, `src/qual/engine/retrieval/payload.py`, `src/qual/retrieval/service.py`, and `tests/unit/test_unified_retrieval.py`.
+The reviewed implementation range expands beyond stale `adfa8cdadd43747ffbcb612e4151e262b13e52ca` packet text and covers all non-metadata changes through `0d265542d99ec986d4fd6bc0209aee466f127ccc`, including `src/qual/engine/retrieval/__init__.py`, `src/qual/engine/retrieval/fts_strategy.py`, `src/qual/engine/retrieval/payload.py`, `src/qual/retrieval/service.py`, and `tests/unit/test_unified_retrieval.py`. Commits after `0d265542d99ec986d4fd6bc0209aee466f127ccc` are packet-only fixes to make this handoff match the actual merge candidate.
 
 The merge candidate advances FTS-first retrieval by normalizing engine retrieval boolean constraints and required query text/scope snapshots, keeping FTS cache and query snapshots deterministic, preserving basket-promotion references and provenance, invalidating stale FTS cache state on document updates, and falling back from invalid direct context snapshots to canonical source/payload reconstruction.
 
