@@ -2506,6 +2506,17 @@ def command_demo_readiness_argv_for_flow_step(
     return entry.command_argv
 
 
+def command_demo_readiness_command_for_flow_step(
+    flow_step: str,
+    specs: tuple[CommandSpec, ...] = COMMAND_SPECS,
+    launcher_argv: tuple[str, ...] = COMMAND_SMOKE_CLI_LAUNCHER_ARGV,
+) -> str | None:
+    entry = command_demo_readiness_entry_for_flow_step(flow_step, specs, launcher_argv)
+    if entry is None:
+        return None
+    return entry.name
+
+
 @lru_cache(maxsize=None)
 def command_demo_command_action_contract(
     specs: tuple[CommandSpec, ...] = COMMAND_SPECS,
@@ -2897,6 +2908,14 @@ def command_mvp_demo_readiness_argv_for_flow_step(
     launcher_argv: tuple[str, ...] = COMMAND_SMOKE_CLI_LAUNCHER_ARGV,
 ) -> tuple[str, ...]:
     return command_demo_readiness_argv_for_flow_step(flow_step, specs, launcher_argv)
+
+
+def command_mvp_demo_readiness_command_for_flow_step(
+    flow_step: str,
+    specs: tuple[CommandSpec, ...] = COMMAND_SPECS,
+    launcher_argv: tuple[str, ...] = COMMAND_SMOKE_CLI_LAUNCHER_ARGV,
+) -> str | None:
+    return command_demo_readiness_command_for_flow_step(flow_step, specs, launcher_argv)
 
 
 def command_mvp_demo_command_action_contract(
