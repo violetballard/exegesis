@@ -3915,6 +3915,24 @@ def command_demo_readiness_command_trace_entry_for_engine_action(
     )
 
 
+def command_demo_readiness_command_trace_entry_for_argv(
+    argv: Sequence[str] | str,
+    specs: tuple[CommandSpec, ...] = COMMAND_SPECS,
+    launcher_argv: tuple[str, ...] = COMMAND_SMOKE_CLI_LAUNCHER_ARGV,
+) -> CommandDemoReadinessCommandTraceEntry | None:
+    readiness_entry = command_demo_readiness_entry_for_argv(argv, specs, launcher_argv)
+    if readiness_entry is None:
+        return None
+    return next(
+        (
+            entry
+            for entry in command_demo_readiness_command_trace_contract(specs, launcher_argv).entries
+            if entry.flow_step == readiness_entry.flow_step
+        ),
+        None,
+    )
+
+
 @lru_cache(maxsize=None)
 def command_demo_readiness_action_index(
     specs: tuple[CommandSpec, ...] = COMMAND_SPECS,
@@ -5219,6 +5237,18 @@ def command_mvp_demo_readiness_command_trace_entry_for_engine_action(
 ) -> CommandDemoReadinessCommandTraceEntry | None:
     return command_demo_readiness_command_trace_entry_for_engine_action(
         engine_action,
+        specs,
+        launcher_argv,
+    )
+
+
+def command_mvp_demo_readiness_command_trace_entry_for_argv(
+    argv: Sequence[str] | str,
+    specs: tuple[CommandSpec, ...] = COMMAND_SPECS,
+    launcher_argv: tuple[str, ...] = COMMAND_SMOKE_CLI_LAUNCHER_ARGV,
+) -> CommandDemoReadinessCommandTraceEntry | None:
+    return command_demo_readiness_command_trace_entry_for_argv(
+        argv,
         specs,
         launcher_argv,
     )
