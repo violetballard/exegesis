@@ -216,7 +216,7 @@ class CloudConcurrencyCapsTests(unittest.TestCase):
         self.assertEqual(profile.model, "gpt-oss-120b")
 
     def test_local_lms_cap_allows_feature_and_one_router_role(self) -> None:
-        cfg = SimpleNamespace(max_total_local_lms_jobs=3)
+        cfg = SimpleNamespace(max_total_local_lms_jobs=4)
         state = {
             "local_integrator_jobs": {"feat-a:packet.md": {"pid": 1001, "result_path": "/tmp/missing-integrator.json"}},
         }
@@ -226,8 +226,8 @@ class CloudConcurrencyCapsTests(unittest.TestCase):
         ):
             self.assertTrue(router._local_lms_slot_available(cfg, state))
 
-    def test_local_lms_cap_blocks_fourth_local_job(self) -> None:
-        cfg = SimpleNamespace(max_total_local_lms_jobs=3)
+    def test_local_lms_cap_blocks_fifth_local_job(self) -> None:
+        cfg = SimpleNamespace(max_total_local_lms_jobs=4)
         state = {
             "local_reviewer_jobs": {"feat-a": {"pid": 1001, "result_path": "/tmp/missing-reviewer.json"}},
             "local_integrator_jobs": {"feat-b:packet.md": {"pid": 1002, "result_path": "/tmp/missing-integrator.json"}},
@@ -237,34 +237,39 @@ class CloudConcurrencyCapsTests(unittest.TestCase):
         with mock.patch.object(router, "_count_active_feature_local_jobs", return_value=0), mock.patch.object(
             router, "_pid_alive", return_value=True
         ):
+            self.assertTrue(router._local_lms_slot_available(cfg, state))
+
+        with mock.patch.object(router, "_count_active_feature_local_jobs", return_value=1), mock.patch.object(
+            router, "_pid_alive", return_value=True
+        ):
             self.assertFalse(router._local_lms_slot_available(cfg, state))
 
-    def test_coordinator_local_feature_slots_respect_three_job_cap(self) -> None:
+    def test_coordinator_local_feature_slots_respect_four_job_cap(self) -> None:
         with (
             mock.patch.object(
                 agents_coordinator,
                 "load_json",
                 side_effect=[
                     {"runtime_mode": "local_fallback"},
-                    {"max_total_local_lms_jobs": 3},
+                    {"max_total_local_lms_jobs": 4},
                 ],
             ),
             mock.patch.object(agents_coordinator, "find_repo_owned_local_exec_pids", return_value=[1001, 1002]),
             mock.patch.object(agents_coordinator, "_tracked_feature_exec_pids", return_value=[]),
         ):
-            self.assertEqual(agents_coordinator._local_lms_feature_launch_slots(), 1)
+            self.assertEqual(agents_coordinator._local_lms_feature_launch_slots(), 2)
 
-    def test_coordinator_local_feature_slots_block_when_three_jobs_active(self) -> None:
+    def test_coordinator_local_feature_slots_block_when_four_jobs_active(self) -> None:
         with (
             mock.patch.object(
                 agents_coordinator,
                 "load_json",
                 side_effect=[
                     {"runtime_mode": "local_fallback"},
-                    {"max_total_local_lms_jobs": 3},
+                    {"max_total_local_lms_jobs": 4},
                 ],
             ),
-            mock.patch.object(agents_coordinator, "find_repo_owned_local_exec_pids", return_value=[1001, 1002, 1003]),
+            mock.patch.object(agents_coordinator, "find_repo_owned_local_exec_pids", return_value=[1001, 1002, 1003, 1004]),
             mock.patch.object(agents_coordinator, "_tracked_feature_exec_pids", return_value=[]),
         ):
             self.assertEqual(agents_coordinator._local_lms_feature_launch_slots(), 0)
@@ -593,6 +598,7 @@ class CloudConcurrencyCapsTests(unittest.TestCase):
                 mock.patch.object(router, "isolated_codex_env", return_value={"CODEX_HOME": "/tmp/codex"}),
                 mock.patch.object(router, "fixer_prompt", return_value="Prompt"),
                 mock.patch.object(router, "prune_log_dir"),
+                mock.patch.object(router, "_count_active_feature_local_jobs", return_value=0),
                 mock.patch.object(router.subprocess, "Popen", return_value=proc) as popen_mock,
             ):
                 updated = router.run_fixer(

@@ -122,7 +122,7 @@ class RouterConfig:
     profiles: Dict[str, "LaunchProfile"]
     role_profiles: Dict[str, str]
     lanes: Dict[str, Dict[str, Any]]
-    max_total_local_lms_jobs: int = 3
+    max_total_local_lms_jobs: int = 4
 
 
 @dataclass
@@ -269,7 +269,7 @@ def load_cfg() -> RouterConfig:
         max_local_fixer_kicks_per_run=int(cfg.get("max_local_fixer_kicks_per_run", 1)),
         max_cloud_fixer_jobs=int(cfg.get("max_cloud_fixer_jobs", 2)),
         max_local_fixer_jobs=int(cfg.get("max_local_fixer_jobs", 2)),
-        max_total_local_lms_jobs=int(cfg.get("max_total_local_lms_jobs", 3)),
+        max_total_local_lms_jobs=int(cfg.get("max_total_local_lms_jobs", 4)),
         prefer_cli_fixer=bool(cfg.get("prefer_cli_fixer", True)),
         prefer_cli_reviewer=bool(cfg.get("prefer_cli_reviewer", True)),
         prefer_cli_integrator=bool(cfg.get("prefer_cli_integrator", True)),
@@ -908,7 +908,7 @@ def _count_active_local_lms_jobs(state: Dict[str, Any]) -> int:
 
 
 def _local_lms_slot_available(cfg: RouterConfig, state: Dict[str, Any]) -> bool:
-    cap = int(getattr(cfg, "max_total_local_lms_jobs", 3) or 0)
+    cap = int(getattr(cfg, "max_total_local_lms_jobs", 4) or 0)
     if cap <= 0:
         return True
     return _count_active_local_lms_jobs(state) < cap
