@@ -82,6 +82,7 @@ class CoordinatorRebootResumeTests(unittest.TestCase):
             patch.object(coordinator, "_enabled_lanes", return_value=["feat-commands"]),
             patch.object(coordinator, "_lane_queue_empty", return_value=True),
             patch.object(coordinator, "_lane_has_active_feature_session", return_value=False),
+            patch.object(coordinator, "_has_reviewer_notes_backlog", return_value=False),
             patch.object(coordinator, "run_cmd", side_effect=fake_run_cmd),
         ):
             launched = coordinator._launch_free_lanes(state_doc)
@@ -118,6 +119,24 @@ class CoordinatorRebootResumeTests(unittest.TestCase):
         lane_state = state_doc["lane_refill"]["feat-commands"]
         self.assertNotIn("force_resume_once", lane_state)
         self.assertIn("force_resume_cleared_at", lane_state)
+
+    def test_launch_free_lanes_reserves_last_local_slot_for_reviewer_fixers(self) -> None:
+        from codex_packet_handoff.tools import agents_coordinator as coordinator
+
+        state_doc = {"lane_refill": {"feat-commands": {"queue_empty": True}}}
+
+        with (
+            patch.object(coordinator, "_enabled_lanes", return_value=["feat-commands"]),
+            patch.object(coordinator, "_lane_queue_empty", return_value=True),
+            patch.object(coordinator, "_lane_has_active_feature_session", return_value=False),
+            patch.object(coordinator, "_local_lms_feature_launch_slots", return_value=1),
+            patch.object(coordinator, "_has_reviewer_notes_backlog", return_value=True),
+            patch.object(coordinator, "run_cmd") as run_cmd,
+        ):
+            launched = coordinator._launch_free_lanes(state_doc)
+
+        self.assertEqual(launched, [])
+        run_cmd.assert_not_called()
 
     def test_reconcile_terminates_malformed_apply_patch_loop(self) -> None:
         from codex_packet_handoff.tools import agents_coordinator as coordinator

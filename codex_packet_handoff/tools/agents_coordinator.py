@@ -1501,6 +1501,11 @@ def _launch_free_lanes(state_doc: Dict[str, object]) -> List[str]:
         return []
 
     slots = _local_lms_feature_launch_slots()
+    if _has_reviewer_notes_backlog():
+        # Reviewer handbacks are higher priority than speculative feature
+        # refills. Keep one local LMS slot open so the router can kick a fixer
+        # instead of letting free-lane launches continually steal capacity.
+        slots = max(0, slots - 1)
     if slots <= 0:
         print("[coordinator] local LMS job cap reached; deferring feature lane launch")
         return []
@@ -1525,6 +1530,15 @@ def _has_lane_backlog() -> bool:
         if int(d.get("reviewer_notes", 0)) > 0:
             return True
         if int(d.get("approved", 0)) > 0:
+            return True
+    return False
+
+
+def _has_reviewer_notes_backlog() -> bool:
+    """Return True when any enabled lane is waiting on reviewer-requested fixes."""
+    for lane in _enabled_lanes():
+        d = _lane_digest(lane)
+        if int(d.get("reviewer_notes", 0)) > 0:
             return True
     return False
 
