@@ -194,6 +194,7 @@ def runtime_launch_config(lane: str | None = None) -> Dict[str, object]:
         "launch_timeout_seconds": float(cfg.get("feature_launch_timeout_seconds", 120)),
         "max_parallel_feature_lanes_cloud": int(cfg.get("max_parallel_feature_lanes_cloud", 2)),
         "max_parallel_feature_lanes_local": int(cfg.get("max_parallel_feature_lanes_local", 1)),
+        "max_total_local_lms_jobs": int(cfg.get("max_total_local_lms_jobs", 4)),
         "disable_local_fallback_on_cloud_timeout": bool(cfg.get("disable_local_fallback_on_cloud_timeout", False)),
         "prefer_direct_exec_cloud": bool(cfg.get("prefer_direct_exec_feature_cloud", True)),
         "local_profile_name": local_profile_name,
@@ -259,6 +260,53 @@ def _write_log(log_path: Path, header: Dict[str, Any], content: str) -> None:
     )
     lines = [json.dumps(header, sort_keys=True), "", content.strip(), ""]
     log_path.write_text("\n".join(lines))
+
+
+def _active_local_feature_jobs(feature_state: Dict[str, Any]) -> int:
+    lanes = feature_state.get("lanes") if isinstance(feature_state, dict) else {}
+    if not isinstance(lanes, dict):
+        return 0
+    active = 0
+    for lane_state in lanes.values():
+        if not isinstance(lane_state, dict):
+            continue
+        if str(lane_state.get("mode") or "") != "local_fallback":
+            continue
+        if _pid_alive(int(lane_state.get("pid") or 0)):
+            active += 1
+    return active
+
+
+def _active_local_router_jobs(router_state: Dict[str, Any]) -> int:
+    active = 0
+    for key in ("local_reviewer_jobs", "local_integrator_jobs"):
+        jobs = router_state.get(key) if isinstance(router_state, dict) else {}
+        if not isinstance(jobs, dict):
+            continue
+        for job in jobs.values():
+            if isinstance(job, dict) and _pid_alive(int(job.get("pid") or 0)):
+                active += 1
+    fixer_jobs = router_state.get("fixer_fallback_jobs") if isinstance(router_state, dict) else {}
+    if isinstance(fixer_jobs, dict):
+        for job in fixer_jobs.values():
+            if not isinstance(job, dict):
+                continue
+            if not bool(job.get("local", True)):
+                continue
+            if _pid_alive(int(job.get("pid") or 0)):
+                active += 1
+    return active
+
+
+def _local_lms_launch_slots(launch_cfg: Dict[str, object], feature_state: Dict[str, Any]) -> int:
+    if str(launch_cfg.get("mode") or "") != "local_fallback":
+        return 999999
+    cap = int(launch_cfg.get("max_total_local_lms_jobs") or 0)
+    if cap <= 0:
+        return 999999
+    router_state = load_json(STATE_FILE, {})
+    active = _active_local_feature_jobs(feature_state) + _active_local_router_jobs(router_state)
+    return max(0, cap - active)
 
 
 def _spawn_direct_exec(
@@ -882,10 +930,12 @@ def main() -> int:
 
     if str(launch_cfg["mode"]) == "local_fallback":
         parallel_limit = int(launch_cfg.get("max_parallel_feature_lanes_local", 1))
+        parallel_limit = min(parallel_limit, _local_lms_launch_slots(launch_cfg, feature_state))
     else:
         parallel_limit = int(launch_cfg.get("max_parallel_feature_lanes_cloud", 2))
     if parallel_limit <= 0:
-        parallel_limit = 1
+        print(json.dumps({"runtime_mode": launch_cfg["mode"], "launched": []}, indent=2))
+        return 0
     lanes_to_launch = list(args.lanes)[:parallel_limit]
     max_workers = min(len(lanes_to_launch), parallel_limit)
     with ThreadPoolExecutor(max_workers=max_workers) as executor:

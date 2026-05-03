@@ -1323,8 +1323,12 @@ def _refresh_direct_router_clients(ctx: DirectRouterCtx) -> None:
 
 def _run_router_direct_once(ctx: DirectRouterCtx) -> Tuple[int, str]:
     try:
+        # The daemon can run alongside one-off router invocations. Reloading
+        # here prevents stale in-memory state from double-kicking local fixers
+        # after an operator manually clears or restarts a stuck job.
+        ctx.state = ctx.router_mod.load_json(ctx.router_mod.STATE_FILE, {})
         _refresh_direct_router_clients(ctx)
-        n, ctx.state, ctx.reviewer_thread_ids, ctx.integrator_tid = ctx.router_mod.process_once(
+        n, kicked, integrated, ctx.state, ctx.reviewer_thread_ids, ctx.integrator_tid = ctx.router_mod._process_router_tick(
             ctx.reviewer_client,
             ctx.integrator_client,
             ctx.cfg,
@@ -1333,27 +1337,6 @@ def _run_router_direct_once(ctx: DirectRouterCtx) -> Tuple[int, str]:
             ctx.reviewer_thread_ids,
             ctx.integrator_tid,
         )
-        kicked, ctx.state = ctx.router_mod.process_reviewer_backlog(
-            ctx.reviewer_client,
-            ctx.cfg,
-            ctx.state,
-            ctx.repo_cwd,
-        )
-        integrated, ctx.state, ctx.integrator_tid = ctx.router_mod.process_integrator_backlog(
-            ctx.integrator_client,
-            ctx.cfg,
-            ctx.state,
-            ctx.repo_cwd,
-            ctx.integrator_tid,
-        )
-        ctx.state["reviewer_thread_ids"] = ctx.reviewer_thread_ids
-        if ctx.reviewer_thread_ids:
-            first_lane = sorted(ctx.reviewer_thread_ids.keys())[0]
-            ctx.state["reviewer_thread_id"] = ctx.reviewer_thread_ids.get(first_lane)
-        else:
-            ctx.state["reviewer_thread_id"] = None
-        ctx.state["integrator_thread_id"] = ctx.integrator_tid
-        ctx.router_mod.save_json(ctx.router_mod.STATE_FILE, ctx.state)
         out = f"[router] processed {n} packet(s), kicked {kicked} reviewer-fixer task(s), integrated {integrated} approval packet(s)\n"
         print(out, end="")
         return 0, out
@@ -1455,6 +1438,22 @@ def _local_lms_feature_launch_slots() -> int:
     return max(0, cap - active)
 
 
+def _active_local_fixer_jobs() -> int:
+    router_state = load_json(ROUTER_STATE_FILE, {})
+    jobs = router_state.get("fixer_fallback_jobs") or {}
+    if not isinstance(jobs, dict):
+        return 0
+    active = 0
+    for job in jobs.values():
+        if not isinstance(job, dict):
+            continue
+        if not bool(job.get("local", True)):
+            continue
+        if _pid_alive(int(job.get("pid") or 0)):
+            active += 1
+    return active
+
+
 def _launch_free_lanes(state_doc: Dict[str, object]) -> List[str]:
     lane_refill = state_doc.setdefault("lane_refill", {})
     if not isinstance(lane_refill, dict):
@@ -1501,7 +1500,8 @@ def _launch_free_lanes(state_doc: Dict[str, object]) -> List[str]:
         return []
 
     slots = _local_lms_feature_launch_slots()
-    if _has_reviewer_notes_backlog():
+    active_fixers = _active_local_fixer_jobs()
+    if _has_reviewer_notes_backlog() and active_fixers <= 0:
         # Reviewer handbacks are higher priority than speculative feature
         # refills. Keep one local LMS slot open so the router can kick a fixer
         # instead of letting free-lane launches continually steal capacity.

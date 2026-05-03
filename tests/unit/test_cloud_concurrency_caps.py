@@ -27,6 +27,7 @@ class CloudConcurrencyCapsTests(unittest.TestCase):
             },
             "max_parallel_feature_lanes_cloud": 2,
             "max_parallel_feature_lanes_local": 2,
+            "max_total_local_lms_jobs": 4,
         }
         state = {"runtime_mode": "cloud_primary"}
         with mock.patch.object(launch_feature_lanes, "load_json", side_effect=[cfg, state]):
@@ -34,6 +35,7 @@ class CloudConcurrencyCapsTests(unittest.TestCase):
 
         self.assertEqual(launch_cfg["max_parallel_feature_lanes_cloud"], 2)
         self.assertEqual(launch_cfg["max_parallel_feature_lanes_local"], 2)
+        self.assertEqual(launch_cfg["max_total_local_lms_jobs"], 4)
 
     def test_runtime_launch_config_honors_lane_cloud_profile_override(self) -> None:
         cfg = {
@@ -273,6 +275,94 @@ class CloudConcurrencyCapsTests(unittest.TestCase):
             mock.patch.object(agents_coordinator, "_tracked_feature_exec_pids", return_value=[]),
         ):
             self.assertEqual(agents_coordinator._local_lms_feature_launch_slots(), 0)
+
+    def test_coordinator_counts_active_local_fixer_jobs(self) -> None:
+        router_state = {
+            "fixer_fallback_jobs": {
+                "feat-retrieval-fts": {"pid": 1234, "local": True},
+                "feat-cloud": {"pid": 5678, "local": False},
+                "feat-stale": {"pid": 9999, "local": True},
+            }
+        }
+
+        def fake_pid_alive(pid: int) -> bool:
+            return pid == 1234
+
+        with (
+            mock.patch.object(agents_coordinator, "load_json", return_value=router_state),
+            mock.patch.object(agents_coordinator, "_pid_alive", side_effect=fake_pid_alive),
+        ):
+            self.assertEqual(agents_coordinator._active_local_fixer_jobs(), 1)
+
+    def test_feature_launcher_bounds_local_launches_by_total_lms_cap(self) -> None:
+        launch_cfg = {"mode": "local_fallback", "max_total_local_lms_jobs": 4}
+        feature_state = {
+            "lanes": {
+                "feat-context-storage": {"mode": "local_fallback", "pid": 1111},
+                "feat-cloud": {"mode": "cloud_primary", "pid": 2222},
+                "feat-stale": {"mode": "local_fallback", "pid": 3333},
+            }
+        }
+        router_state = {
+            "fixer_fallback_jobs": {
+                "feat-retrieval-fts": {"pid": 4444, "local": True},
+                "feat-cloud": {"pid": 5555, "local": False},
+            },
+            "local_integrator_jobs": {"feat-engine-runs:packet": {"pid": 6666}},
+        }
+
+        def fake_pid_alive(pid: int) -> bool:
+            return pid in {1111, 4444, 6666}
+
+        with (
+            mock.patch.object(launch_feature_lanes, "load_json", return_value=router_state),
+            mock.patch.object(launch_feature_lanes, "_pid_alive", side_effect=fake_pid_alive),
+        ):
+            self.assertEqual(launch_feature_lanes._local_lms_launch_slots(launch_cfg, feature_state), 1)
+
+    def test_coordinator_refills_features_around_active_fixer(self) -> None:
+        state_doc: dict[str, object] = {}
+        launched: list[str] = []
+
+        def fake_run_cmd(cmd: list[str]) -> tuple[int, str]:
+            launched.extend(cmd[cmd.index("--lanes") + 1 :])
+            return 0, ""
+
+        with (
+            mock.patch.object(agents_coordinator, "_enabled_lanes", return_value=["feat-a", "feat-b", "feat-c"]),
+            mock.patch.object(agents_coordinator, "_lane_queue_empty", return_value=True),
+            mock.patch.object(agents_coordinator, "_lane_has_active_feature_session", return_value=False),
+            mock.patch.object(agents_coordinator, "_feature_thread_state", return_value={}),
+            mock.patch.object(agents_coordinator, "_local_lms_feature_launch_slots", return_value=3),
+            mock.patch.object(agents_coordinator, "_active_local_fixer_jobs", return_value=1),
+            mock.patch.object(agents_coordinator, "_has_reviewer_notes_backlog", return_value=True),
+            mock.patch.object(agents_coordinator, "run_cmd", side_effect=fake_run_cmd),
+        ):
+            self.assertEqual(agents_coordinator._launch_free_lanes(state_doc), ["feat-a", "feat-b", "feat-c"])
+
+        self.assertEqual(launched, ["feat-a", "feat-b", "feat-c"])
+
+    def test_coordinator_reserves_slot_for_unstarted_fixer_backlog(self) -> None:
+        state_doc: dict[str, object] = {}
+        launched: list[str] = []
+
+        def fake_run_cmd(cmd: list[str]) -> tuple[int, str]:
+            launched.extend(cmd[cmd.index("--lanes") + 1 :])
+            return 0, ""
+
+        with (
+            mock.patch.object(agents_coordinator, "_enabled_lanes", return_value=["feat-a", "feat-b", "feat-c"]),
+            mock.patch.object(agents_coordinator, "_lane_queue_empty", return_value=True),
+            mock.patch.object(agents_coordinator, "_lane_has_active_feature_session", return_value=False),
+            mock.patch.object(agents_coordinator, "_feature_thread_state", return_value={}),
+            mock.patch.object(agents_coordinator, "_local_lms_feature_launch_slots", return_value=3),
+            mock.patch.object(agents_coordinator, "_active_local_fixer_jobs", return_value=0),
+            mock.patch.object(agents_coordinator, "_has_reviewer_notes_backlog", return_value=True),
+            mock.patch.object(agents_coordinator, "run_cmd", side_effect=fake_run_cmd),
+        ):
+            self.assertEqual(agents_coordinator._launch_free_lanes(state_doc), ["feat-a", "feat-b"])
+
+        self.assertEqual(launched, ["feat-a", "feat-b"])
 
     def test_router_tick_prioritizes_integrator_before_reviewer_fixer(self) -> None:
         cfg = SimpleNamespace(lanes={"feat-a": {}, "feat-b": {}})

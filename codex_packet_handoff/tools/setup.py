@@ -123,7 +123,7 @@ def write_example_config():
         "cloud_probe_timeout_seconds": 30,
         "feature_launch_timeout_seconds": 300,
         "max_parallel_feature_lanes_cloud": 2,
-        "max_parallel_feature_lanes_local": 1,
+        "max_parallel_feature_lanes_local": 3,
         "max_total_local_lms_jobs": 4,
         "prefer_direct_exec_feature_cloud": True,
         "prefer_cli_reviewer": True,
