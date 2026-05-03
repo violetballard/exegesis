@@ -274,6 +274,50 @@ class CloudConcurrencyCapsTests(unittest.TestCase):
         ):
             self.assertEqual(agents_coordinator._local_lms_feature_launch_slots(), 0)
 
+    def test_router_tick_prioritizes_integrator_before_reviewer_fixer(self) -> None:
+        cfg = SimpleNamespace(lanes={"feat-a": {}, "feat-b": {}})
+        state = {}
+        calls: list[str] = []
+
+        def fake_process_once(reviewer_client, integrator_client, cfg, state, repo_cwd, reviewer_thread_ids, integrator_tid):
+            calls.append("review")
+            return 0, state, reviewer_thread_ids, integrator_tid
+
+        def fake_process_integrator_backlog(integrator_client, cfg, state, repo_cwd, integrator_tid):
+            calls.append("integrator")
+            state["integrator_started"] = True
+            return 1, state, "integrator-thread"
+
+        def fake_process_reviewer_backlog(reviewer_client, cfg, state, repo_cwd):
+            calls.append("fixer")
+            state["fixer_saw_integrator_started"] = bool(state.get("integrator_started"))
+            return 1, state
+
+        with (
+            mock.patch.object(router, "process_once", side_effect=fake_process_once),
+            mock.patch.object(router, "process_integrator_backlog", side_effect=fake_process_integrator_backlog),
+            mock.patch.object(router, "process_reviewer_backlog", side_effect=fake_process_reviewer_backlog),
+            mock.patch.object(router, "save_json"),
+        ):
+            n, kicked, integrated, updated, reviewer_threads, integrator_tid = router._process_router_tick(
+                object(),
+                object(),
+                cfg,
+                state,
+                "/repo",
+                {"feat-a": "reviewer-thread"},
+                None,
+            )
+
+        self.assertEqual(calls, ["review", "integrator", "fixer"])
+        self.assertEqual((n, kicked, integrated), (0, 1, 1))
+        self.assertTrue(updated["fixer_saw_integrator_started"])
+        self.assertEqual(reviewer_threads, {"feat-a": "reviewer-thread"})
+        self.assertEqual(updated["reviewer_thread_id"], "reviewer-thread")
+        self.assertEqual(updated["reviewer_thread_missing_lanes"], ["feat-b"])
+        self.assertEqual(integrator_tid, "integrator-thread")
+        self.assertEqual(updated["integrator_thread_id"], "integrator-thread")
+
     def test_process_reviewer_backlog_respects_cloud_kick_limit(self) -> None:
         with tempfile.TemporaryDirectory() as tmpdir:
             packet_root = Path(tmpdir) / "packets"

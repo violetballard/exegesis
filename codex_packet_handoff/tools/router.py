@@ -2076,6 +2076,45 @@ def process_integrator_backlog(
             processed += 1
     return processed, state, integrator_tid
 
+
+def _process_router_tick(
+    reviewer_client: CodexMcpClient,
+    integrator_client: CodexMcpClient,
+    cfg: RouterConfig,
+    state: dict,
+    repo_cwd: str,
+    reviewer_thread_ids: dict,
+    integrator_tid: str,
+) -> Tuple[int, int, int, dict, dict, str]:
+    """Run one router cycle with deterministic scarce-worker priority.
+
+    Ordering matters in local fallback mode where all roles share the same LMS
+    worker cap: approvals unblock integration, fixers unblock reviewer notes,
+    and speculative feature refill is handled by the coordinator after router
+    work. Keep the precedence explicit here so fixers cannot steal the last
+    slot from an integrator backlog.
+    """
+    n, state, reviewer_thread_ids, integrator_tid = process_once(
+        reviewer_client, integrator_client, cfg, state, repo_cwd, reviewer_thread_ids, integrator_tid
+    )
+    integrated, state, integrator_tid = process_integrator_backlog(
+        integrator_client, cfg, state, repo_cwd, integrator_tid
+    )
+    kicked, state = process_reviewer_backlog(reviewer_client, cfg, state, repo_cwd)
+    state["reviewer_thread_ids"] = reviewer_thread_ids
+    state["reviewer_thread_missing_lanes"] = [
+        lane for lane in cfg.lanes.keys() if lane not in reviewer_thread_ids
+    ]
+    if reviewer_thread_ids:
+        first_lane = sorted(reviewer_thread_ids.keys())[0]
+        state["reviewer_thread_id"] = reviewer_thread_ids.get(first_lane)
+    else:
+        state["reviewer_thread_id"] = None
+    state["integrator_thread_id"] = integrator_tid
+    save_json(STATE_FILE, state)
+    return n, kicked, integrated, state, reviewer_thread_ids, integrator_tid
+
+
 def main() -> None:
     ap = argparse.ArgumentParser()
     ap.add_argument("--daemon", action="store_true")
@@ -2131,24 +2170,15 @@ def main() -> None:
         if not args.daemon:
             if acquire_lease():
                 try:
-                    n, state, reviewer_thread_ids, integrator_tid = process_once(
-                        reviewer_client, integrator_client, cfg, state, repo_cwd, reviewer_thread_ids, integrator_tid
+                    n, kicked, integrated, state, reviewer_thread_ids, integrator_tid = _process_router_tick(
+                        reviewer_client,
+                        integrator_client,
+                        cfg,
+                        state,
+                        repo_cwd,
+                        reviewer_thread_ids,
+                        integrator_tid,
                     )
-                    kicked, state = process_reviewer_backlog(reviewer_client, cfg, state, repo_cwd)
-                    integrated, state, integrator_tid = process_integrator_backlog(
-                        integrator_client, cfg, state, repo_cwd, integrator_tid
-                    )
-                    state["reviewer_thread_ids"] = reviewer_thread_ids
-                    state["reviewer_thread_missing_lanes"] = [
-                        lane for lane in cfg.lanes.keys() if lane not in reviewer_thread_ids
-                    ]
-                    if reviewer_thread_ids:
-                        first_lane = sorted(reviewer_thread_ids.keys())[0]
-                        state["reviewer_thread_id"] = reviewer_thread_ids.get(first_lane)
-                    else:
-                        state["reviewer_thread_id"] = None
-                    state["integrator_thread_id"] = integrator_tid
-                    save_json(STATE_FILE, state)
                     print(f"[router] processed {n} packet(s), kicked {kicked} reviewer-fixer task(s), integrated {integrated} approval packet(s)")
                 finally:
                     release_lease()
@@ -2158,24 +2188,15 @@ def main() -> None:
         while True:
             if acquire_lease():
                 try:
-                    n, state, reviewer_thread_ids, integrator_tid = process_once(
-                        reviewer_client, integrator_client, cfg, state, repo_cwd, reviewer_thread_ids, integrator_tid
+                    n, kicked, integrated, state, reviewer_thread_ids, integrator_tid = _process_router_tick(
+                        reviewer_client,
+                        integrator_client,
+                        cfg,
+                        state,
+                        repo_cwd,
+                        reviewer_thread_ids,
+                        integrator_tid,
                     )
-                    kicked, state = process_reviewer_backlog(reviewer_client, cfg, state, repo_cwd)
-                    integrated, state, integrator_tid = process_integrator_backlog(
-                        integrator_client, cfg, state, repo_cwd, integrator_tid
-                    )
-                    state["reviewer_thread_ids"] = reviewer_thread_ids
-                    state["reviewer_thread_missing_lanes"] = [
-                        lane for lane in cfg.lanes.keys() if lane not in reviewer_thread_ids
-                    ]
-                    if reviewer_thread_ids:
-                        first_lane = sorted(reviewer_thread_ids.keys())[0]
-                        state["reviewer_thread_id"] = reviewer_thread_ids.get(first_lane)
-                    else:
-                        state["reviewer_thread_id"] = None
-                    state["integrator_thread_id"] = integrator_tid
-                    save_json(STATE_FILE, state)
                     if n or kicked or integrated:
                         print(f"[router] processed {n} packet(s), kicked {kicked} reviewer-fixer task(s), integrated {integrated} approval packet(s)")
                 finally:
