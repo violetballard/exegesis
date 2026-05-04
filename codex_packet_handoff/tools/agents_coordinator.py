@@ -1286,6 +1286,8 @@ def _run_planner_subprocess(retries: int) -> Tuple[int, str, int]:
         rc, out = run_cmd(PLANNER_CMD, timeout=PLANNER_SUBPROCESS_TIMEOUT_SECONDS)
         if rc == 0:
             return rc, out, attempts
+        if rc == 124:
+            return rc, out, attempts
         if "Missing .codex/lane_meta/" in out:
             run_cmd(INIT_META_CMD, timeout=ROUTER_SUBPROCESS_TIMEOUT_SECONDS)
         if attempts > retries + 1:
