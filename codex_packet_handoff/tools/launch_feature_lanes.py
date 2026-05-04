@@ -94,11 +94,13 @@ def _normalize_profile(raw: Dict[str, object], fallback_cmd: str, fallback_model
         model = str(raw.get("model") or "")
     else:
         model = fallback_model
+    cmd = str(raw.get("codex_cmd") or fallback_cmd or "codex")
     return {
-        "cmd": str(raw.get("codex_cmd") or fallback_cmd or "codex"),
+        "cmd": cmd,
         "cmd_args": [str(x) for x in cmd_args],
         "model": model,
         "model_args": [str(x) for x in list(raw.get("model_args") or [])],
+        "harness": str(raw.get("harness") or ("opencode" if Path(cmd).name == "opencode" else "codex")),
     }
 
 
@@ -108,12 +110,15 @@ def _resolved_profiles(cfg: Dict[str, object]) -> Dict[str, Dict[str, object]]:
         "cmd_args": [],
         "model": str(cfg.get("model") or ""),
         "model_args": [],
+        "harness": "codex",
     }
+    local_cmd = str(cfg.get("fallback_codex_cmd") or cfg.get("codex_cmd") or "codex")
     local = {
-        "cmd": str(cfg.get("fallback_codex_cmd") or cfg.get("codex_cmd") or "codex"),
+        "cmd": local_cmd,
         "cmd_args": [str(x) for x in list(cfg.get("fallback_codex_args") or [])],
         "model": str(cfg.get("fallback_model") or ""),
         "model_args": [str(x) for x in list(cfg.get("fallback_model_args") or [])],
+        "harness": "opencode" if Path(local_cmd).name == "opencode" else "codex",
     }
     out = {
         "orchestrator": cloud,
@@ -324,14 +329,9 @@ def _spawn_direct_exec(
         min_age_seconds=FEATURE_LOG_MIN_AGE_SECONDS,
     )
     cmd_args = [str(x) for x in list(profile_cfg["cmd_args"])]
-    cmd: List[str] = [str(profile_cfg["cmd"]), "exec", *cmd_args]
     local_mode = str(profile_cfg.get("mode") or "") == "local_fallback"
-    if local_mode:
-        cmd.append("--skip-git-repo-check")
+    harness = str(profile_cfg.get("harness") or "codex")
     model = str(profile_cfg.get("model") or "")
-    if model and "-m" not in cmd_args and "--model" not in cmd_args:
-        cmd.extend(["-m", model])
-    cmd.extend([str(x) for x in list(profile_cfg.get("model_args") or [])])
     env = isolated_codex_env(str(REPO_ROOT)) if local_mode else None
     resolved_prompt_path = prompt_path or log_path.with_suffix(".prompt.md")
     resolved_prompt_path.parent.mkdir(parents=True, exist_ok=True)
@@ -343,9 +343,24 @@ def _spawn_direct_exec(
         "Begin real work immediately after reading the file.\n"
         "If the file is missing, report that exact blocker and stop."
     )
-    if local_mode:
-        cmd.extend(["--add-dir", str(resolved_prompt_path.parent.resolve())])
-    cmd.extend(["-s", "workspace-write", bootstrap])
+    if harness == "opencode":
+        cmd = [str(profile_cfg["cmd"]), "run", *cmd_args]
+        if model:
+            opencode_model = model if "/" in model else f"lmstudio/{model}"
+            cmd.extend(["--model", opencode_model])
+        cmd.extend(["--dir", workdir, "--dangerously-skip-permissions"])
+        cmd.extend([str(x) for x in list(profile_cfg.get("model_args") or [])])
+        cmd.append(bootstrap)
+    else:
+        cmd = [str(profile_cfg["cmd"]), "exec", *cmd_args]
+        if local_mode:
+            cmd.append("--skip-git-repo-check")
+        if model and "-m" not in cmd_args and "--model" not in cmd_args:
+            cmd.extend(["-m", model])
+        cmd.extend([str(x) for x in list(profile_cfg.get("model_args") or [])])
+        if local_mode:
+            cmd.extend(["--add-dir", str(resolved_prompt_path.parent.resolve())])
+        cmd.extend(["-s", "workspace-write", bootstrap])
     with log_path.open("a") as lf:
         proc = subprocess.Popen(
             cmd,

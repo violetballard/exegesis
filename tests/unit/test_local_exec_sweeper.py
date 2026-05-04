@@ -116,6 +116,29 @@ class LocalExecSweeperTests(unittest.TestCase):
 
         self.assertEqual(stale, [404])
 
+    def test_find_stale_repo_local_exec_pids_recognizes_opencode_prompts(self) -> None:
+        with tempfile.TemporaryDirectory() as tmp:
+            repo_root = Path(tmp)
+            (repo_root / ".codex/feature_runner/logs").mkdir(parents=True, exist_ok=True)
+            prompt = repo_root / ".codex/feature_runner/logs" / "feat-commands.prompt.md"
+            prompt.write_text("prompt", encoding="utf-8")
+            ps_output = (
+                "505 1 505 /opt/homebrew/bin/opencode run --model lmstudio/qwen3.6-27b "
+                f"--dir {repo_root} --dangerously-skip-permissions Read {prompt.resolve()}."
+            )
+
+            def fake_run(args, **kwargs):
+                if args[:2] == ["ps", "-axo"]:
+                    return mock.Mock(returncode=0, stdout=ps_output)
+                if args[:3] == ["lsof", "-a", "-p"]:
+                    return mock.Mock(returncode=1, stdout="")
+                return mock.Mock(returncode=1, stdout="")
+
+            with mock.patch.object(local_exec_sweeper.subprocess, "run", side_effect=fake_run):
+                stale = local_exec_sweeper.find_stale_repo_local_exec_pids(repo_root, tracked_pids=[505])
+
+        self.assertEqual(stale, [505])
+
     def test_find_stale_repo_test_runner_pids_filters_by_repo_cwd_and_age(self) -> None:
         with tempfile.TemporaryDirectory() as tmp:
             repo_root = Path(tmp) / "qual"

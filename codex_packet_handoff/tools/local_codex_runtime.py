@@ -56,12 +56,14 @@ def _minimal_local_config_text(root: str, source_text: str | None) -> str:
 
     if not local_profiles:
         local_profiles = {
-            "gpt-oss-20b-lms": {"model_provider": "lms", "model": "gpt-oss-20b"},
+            "qwen3.6-27b-lms": {"model_provider": "lms", "model": "qwen3.6-27b"},
             "gpt-oss-120b-lms": {"model_provider": "lms", "model": "gpt-oss-120b"},
         }
+    else:
+        local_profiles.setdefault("qwen3.6-27b-lms", {"model_provider": "lms", "model": "qwen3.6-27b"})
 
     lines: list[str] = [
-        'model = "gpt-oss-120b"',
+        'model = "qwen3.6-27b"',
         'oss_provider = "lmstudio"',
         "",
         f'[projects.{_toml_literal(repo_root)}]',

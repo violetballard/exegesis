@@ -10,8 +10,9 @@ import time
 from pathlib import Path
 from typing import Dict, Iterable, List
 
-CODEX_EXEC_RE = re.compile(r"\bcodex\b.*\bexec\b", re.IGNORECASE)
+LOCAL_AGENT_RE = re.compile(r"(?:\bcodex\b.*\bexec\b|\bopencode\b.*\brun\b)", re.IGNORECASE)
 LOCAL_EXEC_MARKERS = ("--skip-git-repo-check", "workspace-write", "--local-provider", "lmstudio")
+OPENCODE_LOCAL_MARKERS = ("--model", "lmstudio/qwen3.6-27b", "--dir")
 TEST_RUNNER_RE = re.compile(
     r"(^|/|\s)(quality-test\.sh|typecheck-test\.sh|python(?:\d+(?:\.\d+)?)?\s+-m\s+(unittest|pytest)\b|pytest\b)",
     re.IGNORECASE,
@@ -204,9 +205,11 @@ def find_repo_owned_local_exec_processes(repo_root: Path) -> Dict[int, Dict[str,
         cmd = parts[3]
         if pid == os.getpid():
             continue
-        if not CODEX_EXEC_RE.search(cmd):
+        if not LOCAL_AGENT_RE.search(cmd):
             continue
-        if not all(marker in cmd for marker in LOCAL_EXEC_MARKERS):
+        is_codex_local = all(marker in cmd for marker in LOCAL_EXEC_MARKERS)
+        is_opencode_local = all(marker in cmd for marker in OPENCODE_LOCAL_MARKERS)
+        if not (is_codex_local or is_opencode_local):
             continue
         stdin_path = _stdin_path_for_pid(pid)
         if not (

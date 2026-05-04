@@ -18,14 +18,16 @@ FIXTURES = REPO_ROOT / "tests" / "fixtures" / "offline_handoff"
 class OfflineHandoffConfigTests(unittest.TestCase):
     def test_live_router_config_uses_explicit_lms_provider(self) -> None:
         cfg = json.loads((REPO_ROOT / ".codex/packet_router/config.json").read_text(encoding="utf-8"))
-        self.assertEqual(cfg["fallback_codex_args"], ["--oss", "--local-provider", "lmstudio"])
-        self.assertEqual(cfg["fallback_model"], "gpt-oss-120b")
+        self.assertEqual(cfg["fallback_codex_args"], [])
+        self.assertEqual(cfg["fallback_model"], "qwen3.6-27b")
         self.assertEqual(cfg["fallback_model_args"], [])
-        self.assertEqual(cfg["profiles"]["worker_local"]["codex_args"], ["--oss", "--local-provider", "lmstudio"])
-        self.assertEqual(cfg["profiles"]["worker_local"]["model"], "gpt-oss-120b")
+        self.assertEqual(cfg["profiles"]["worker_local"]["harness"], "opencode")
+        self.assertEqual(cfg["profiles"]["worker_local"]["codex_args"], [])
+        self.assertEqual(cfg["profiles"]["worker_local"]["model"], "qwen3.6-27b")
         self.assertEqual(cfg["profiles"]["worker_local"]["model_args"], [])
         self.assertEqual(cfg["profiles"]["orchestrator"]["model_args"], [])
-        self.assertEqual(cfg["profiles"]["worker_local_heavy"]["model"], "gpt-oss-120b")
+        self.assertEqual(cfg["profiles"]["worker_local_heavy"]["harness"], "opencode")
+        self.assertEqual(cfg["profiles"]["worker_local_heavy"]["model"], "qwen3.6-27b")
         self.assertEqual(cfg["role_profiles"]["integrator_local"], "worker_local")
         self.assertEqual(cfg["lanes"]["feat-retrieval-fts"]["integrator_local_profile"], "worker_local_heavy")
         self.assertEqual(cfg["lanes"]["feat-a2ui-contract"]["fixer_local_profile"], "worker_local_heavy")
@@ -42,14 +44,16 @@ class OfflineHandoffConfigTests(unittest.TestCase):
             finally:
                 os.chdir(prev_cwd)
 
-        self.assertEqual(cfg["fallback_codex_args"], ["--oss", "--local-provider", "lmstudio"])
-        self.assertEqual(cfg["fallback_model"], "gpt-oss-120b")
+        self.assertEqual(cfg["fallback_codex_args"], [])
+        self.assertEqual(cfg["fallback_model"], "qwen3.6-27b")
         self.assertEqual(cfg["fallback_model_args"], [])
-        self.assertEqual(cfg["profiles"]["worker_local"]["codex_args"], ["--oss", "--local-provider", "lmstudio"])
-        self.assertEqual(cfg["profiles"]["worker_local"]["model"], "gpt-oss-120b")
+        self.assertEqual(cfg["profiles"]["worker_local"]["harness"], "opencode")
+        self.assertEqual(cfg["profiles"]["worker_local"]["codex_args"], [])
+        self.assertEqual(cfg["profiles"]["worker_local"]["model"], "qwen3.6-27b")
         self.assertEqual(cfg["profiles"]["worker_local"]["model_args"], [])
         self.assertEqual(cfg["profiles"]["orchestrator"]["model_args"], [])
-        self.assertEqual(cfg["profiles"]["worker_local_heavy"]["model"], "gpt-oss-120b")
+        self.assertEqual(cfg["profiles"]["worker_local_heavy"]["harness"], "opencode")
+        self.assertEqual(cfg["profiles"]["worker_local_heavy"]["model"], "qwen3.6-27b")
         self.assertEqual(cfg["role_profiles"]["integrator_local"], "worker_local")
         self.assertEqual(cfg["lanes"]["feat-retrieval-fts"]["integrator_local_profile"], "worker_local_heavy")
         self.assertEqual(cfg["lanes"]["feat-a2ui-contract"]["fixer_local_profile"], "worker_local_heavy")
@@ -132,6 +136,28 @@ class OfflineReviewerGuardTests(unittest.TestCase):
             )
 
         self.assertEqual((rc, out), (0, "ok"))
+        self.assertIs(run_mock.call_args.kwargs["stdin"], router.subprocess.DEVNULL)
+
+    def test_run_cli_opencode_uses_provider_prefixed_qwen_model(self) -> None:
+        completed = SimpleNamespace(returncode=0, stdout="ok")
+        with patch.object(router.subprocess, "run", return_value=completed) as run_mock:
+            rc, out = router._run_cli_codex(
+                "opencode",
+                [],
+                "qwen3.6-27b",
+                [],
+                "read-only",
+                "/repo",
+                "Prompt",
+                30,
+                harness="opencode",
+            )
+
+        self.assertEqual((rc, out), (0, "ok"))
+        self.assertEqual(
+            run_mock.call_args.args[0],
+            ["opencode", "run", "--model", "lmstudio/qwen3.6-27b", "--dir", "/repo", "Prompt"],
+        )
         self.assertIs(run_mock.call_args.kwargs["stdin"], router.subprocess.DEVNULL)
 
     def test_expired_explicit_quota_retry_distinguishes_past_from_future(self) -> None:
@@ -711,7 +737,8 @@ class LocalCodexRuntimeTests(unittest.TestCase):
 
             target_home = Path(env["CODEX_HOME"])
             written = (target_home / "config.toml").read_text(encoding="utf-8")
-            self.assertIn('model = "gpt-oss-120b"', written)
+            self.assertIn('model = "qwen3.6-27b"', written)
+            self.assertIn("[profiles.qwen3.6-27b-lms]", written)
             self.assertIn('oss_provider = "lmstudio"', written)
             self.assertIn('[model_providers.lms]', written)
             self.assertIn('base_url = "http://127.0.0.1:1234/v1"', written)

@@ -4,6 +4,8 @@ from pathlib import Path
 import json
 
 APP_CODEX_CMD = "/Applications/Codex.app/Contents/Resources/codex"
+APP_OPENCODE_CMD = "/opt/homebrew/bin/opencode"
+LOCAL_QWEN_MODEL = "qwen3.6-27b"
 
 LANES = [
     'feat-context-storage',
@@ -38,7 +40,7 @@ def write_example_config():
                 "feature_cloud_profile": "worker_cloud_standard_medium",
                 "reviewer_cloud_profile": "worker_cloud_standard_medium",
                 "fixer_cloud_profile": "worker_cloud_standard_medium",
-                "integrator_cloud_profile": "worker_cloud_standard_medium",
+                "integrator_cloud_profile": "integrator_cloud",
             }
         )
     lanes_cfg["feat-retrieval-fts"].update(
@@ -61,9 +63,9 @@ def write_example_config():
     example = {
         "model": "gpt-5.1-codex",
         "codex_cmd": APP_CODEX_CMD,
-        "fallback_model": "gpt-oss-120b",
-        "fallback_codex_cmd": APP_CODEX_CMD,
-        "fallback_codex_args": ["--oss", "--local-provider", "lmstudio"],
+        "fallback_model": LOCAL_QWEN_MODEL,
+        "fallback_codex_cmd": APP_OPENCODE_CMD,
+        "fallback_codex_args": [],
         "fallback_model_args": [],
         "profiles": {
             "orchestrator": {
@@ -75,8 +77,8 @@ def write_example_config():
             "worker_cloud": {
                 "codex_cmd": APP_CODEX_CMD,
                 "codex_args": [],
-                "model": "gpt-5.4-mini",
-                "model_args": ["-c", "model_reasoning_effort=medium"],
+                "model": "gpt-5.5",
+                "model_args": ["-c", "model_reasoning_effort=low"],
             },
             "worker_cloud_standard_medium": {
                 "codex_cmd": APP_CODEX_CMD,
@@ -88,18 +90,20 @@ def write_example_config():
                 "codex_cmd": APP_CODEX_CMD,
                 "codex_args": [],
                 "model": "gpt-5.5",
-                "model_args": ["-c", "model_reasoning_effort=medium"],
+                "model_args": ["-c", "model_reasoning_effort=high"],
             },
             "worker_local": {
-                "codex_cmd": APP_CODEX_CMD,
-                "codex_args": ["--oss", "--local-provider", "lmstudio"],
-                "model": "gpt-oss-120b",
+                "harness": "opencode",
+                "codex_cmd": APP_OPENCODE_CMD,
+                "codex_args": [],
+                "model": LOCAL_QWEN_MODEL,
                 "model_args": [],
             },
             "worker_local_heavy": {
-                "codex_cmd": APP_CODEX_CMD,
-                "codex_args": ["--oss", "--local-provider", "lmstudio"],
-                "model": "gpt-oss-120b",
+                "harness": "opencode",
+                "codex_cmd": APP_OPENCODE_CMD,
+                "codex_args": [],
+                "model": LOCAL_QWEN_MODEL,
                 "model_args": [],
             },
         },

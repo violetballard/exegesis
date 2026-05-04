@@ -131,6 +131,7 @@ class LaunchProfile:
     codex_args: List[str]
     model: str
     model_args: List[str]
+    harness: str = "codex"
 
 def load_json(p: Path, default: Any) -> Any:
     try:
@@ -172,7 +173,8 @@ def _normalize_profile(raw: Dict[str, Any], *, fallback_cmd: str = "codex", fall
     else:
         model = str(fallback_model or "")
     model_args = [str(x) for x in list(raw.get("model_args") or [])]
-    return LaunchProfile(codex_cmd=cmd, codex_args=cmd_args, model=model, model_args=model_args)
+    harness = str(raw.get("harness") or ("opencode" if Path(cmd).name == "opencode" else "codex"))
+    return LaunchProfile(codex_cmd=cmd, codex_args=cmd_args, model=model, model_args=model_args, harness=harness)
 
 
 def _default_profiles(cfg: Dict[str, Any]) -> Dict[str, LaunchProfile]:
@@ -184,10 +186,11 @@ def _default_profiles(cfg: Dict[str, Any]) -> Dict[str, LaunchProfile]:
     fallback_model_args = [str(x) for x in list(cfg.get("fallback_model_args") or [])]
     if "--oss" in fallback_cmd_args and fallback_model == cloud_model:
         fallback_model = ""
+    fallback_harness = "opencode" if Path(fallback_cmd).name == "opencode" else "codex"
     return {
         "orchestrator": LaunchProfile(cloud_cmd, [], cloud_model, []),
         "worker_cloud": LaunchProfile(cloud_cmd, [], cloud_model, []),
-        "worker_local": LaunchProfile(fallback_cmd, fallback_cmd_args, fallback_model, fallback_model_args),
+        "worker_local": LaunchProfile(fallback_cmd, fallback_cmd_args, fallback_model, fallback_model_args, fallback_harness),
     }
 
 
@@ -546,7 +549,54 @@ def _profile_for_role(
 
 
 def _build_mcp_client(profile: LaunchProfile, approval: ApprovalPolicy) -> CodexMcpClient:
+    if profile.harness != "codex":
+        raise RuntimeError(f"{profile.harness} profiles do not support Codex MCP sessions")
     return CodexMcpClient(approval=approval, codex_cmd=profile.codex_cmd, codex_args=profile.codex_args)
+
+
+def _build_cli_command(
+    profile: LaunchProfile,
+    *,
+    sandbox: str,
+    prompt: str,
+    local: bool,
+    add_dirs: Optional[List[str]] = None,
+    cwd: Optional[str] = None,
+    ignore_user_config: bool = False,
+    stdin_prompt: bool = False,
+) -> List[str]:
+    if profile.harness == "opencode":
+        cmd = [profile.codex_cmd, "run", *profile.codex_args]
+        if profile.model:
+            model = profile.model if "/" in profile.model else f"lmstudio/{profile.model}"
+            cmd.extend(["--model", model])
+        if cwd:
+            cmd.extend(["--dir", cwd])
+        if sandbox != "read-only":
+            cmd.append("--dangerously-skip-permissions")
+        cmd.extend(profile.model_args)
+        if stdin_prompt:
+            cmd.append("-")
+        else:
+            cmd.append(prompt)
+        return [str(x) for x in cmd]
+
+    cmd = [profile.codex_cmd, "exec", *profile.codex_args]
+    if ignore_user_config:
+        cmd.append("--ignore-user-config")
+    if local:
+        cmd.append("--skip-git-repo-check")
+    if profile.model:
+        cmd.extend(["-m", profile.model])
+    cmd.extend(profile.model_args)
+    for add_dir in add_dirs or []:
+        if add_dir:
+            cmd.extend(["--add-dir", str(add_dir)])
+    if stdin_prompt:
+        cmd.extend(["-s", sandbox, "-"])
+    else:
+        cmd.extend(["-s", sandbox, prompt])
+    return [str(x) for x in cmd]
 
 
 def _set_runtime_mode(
@@ -603,6 +653,7 @@ def _maybe_restore_cloud(
             repo_cwd,
             "Reply with OK only.",
             cfg.cloud_probe_timeout_seconds,
+            harness=probe.harness,
         )
         if rc != 0:
             return _switch_to_local_fallback(cfg, state, f"cloud probe exited {rc}")
@@ -729,15 +780,15 @@ def _run_cli_codex(
     *,
     env: Optional[Dict[str, str]] = None,
     skip_git_repo_check: bool = False,
+    harness: str = "codex",
 ) -> Tuple[int, str]:
-    cmd = [codex_cmd, "exec", *codex_args]
-    if skip_git_repo_check:
-        cmd.append("--skip-git-repo-check")
-    if model:
-        cmd.extend(["-m", model])
-    if model_args:
-        cmd.extend(model_args)
-    cmd.extend(["-s", sandbox, prompt])
+    cmd = _build_cli_command(
+        LaunchProfile(codex_cmd, codex_args, model, model_args, harness=harness),
+        sandbox=sandbox,
+        prompt=prompt,
+        local=skip_git_repo_check,
+        cwd=cwd,
+    )
     p = subprocess.run(
         cmd,
         cwd=cwd,
@@ -777,6 +828,7 @@ def _run_cli_reviewer(
             cfg.reviewer_timeout,
             env=env,
             skip_git_repo_check=runtime_local,
+            harness=prof.harness,
         )
     except Exception:
         return None
@@ -818,6 +870,7 @@ def _run_cli_integrator(
             cfg.integrator_timeout,
             env=env,
             skip_git_repo_check=runtime_local,
+            harness=prof.harness,
         )
     except Exception:
         return None
@@ -922,18 +975,13 @@ def _build_cli_exec_cmd(
     local: bool,
     add_dirs: Optional[List[str]] = None,
 ) -> List[str]:
-    cmd = [profile.codex_cmd, "exec", *profile.codex_args]
-    if local:
-        cmd.append("--skip-git-repo-check")
-    if profile.model:
-        cmd.extend(["-m", profile.model])
-    if profile.model_args:
-        cmd.extend(profile.model_args)
-    for add_dir in add_dirs or []:
-        if add_dir:
-            cmd.extend(["--add-dir", str(add_dir)])
-    cmd.extend(["-s", sandbox, prompt])
-    return [str(x) for x in cmd]
+    return _build_cli_command(
+        profile,
+        sandbox=sandbox,
+        prompt=prompt,
+        local=local,
+        add_dirs=add_dirs,
+    )
 
 
 def _prompt_file_bootstrap(prompt_path: Path) -> str:
@@ -1495,25 +1543,22 @@ def run_fixer(
         prompt_text = fixer_prompt(lane, branch, reviewer_packet, wt)
         prompt_path = logs / f"fixer__{lane}__{ts}.prompt.txt"
         write_text(prompt_path, prompt_text)
-        cmd = [
-            prof.codex_cmd,
-            "exec",
-            *prof.codex_args,
-            *(["--ignore-user-config"] if not runtime_local else []),
-            *(["--skip-git-repo-check"] if runtime_local else []),
-            *(["-m", prof.model] if prof.model else []),
-            *prof.model_args,
-            *(["--add-dir", str(prompt_path.parent.resolve())] if runtime_local else []),
-            "-s",
-            "workspace-write",
-            "-",
-        ]
+        cmd = _build_cli_command(
+            prof,
+            sandbox="workspace-write",
+            prompt=_prompt_file_bootstrap(prompt_path),
+            local=runtime_local,
+            add_dirs=[str(prompt_path.parent.resolve())] if runtime_local else None,
+            cwd=(wt or repo_cwd),
+            ignore_user_config=not runtime_local,
+            stdin_prompt=prof.harness == "codex",
+        )
         proc = subprocess.Popen(
             cmd,
             cwd=(wt or repo_cwd),
             stdout=lf,
             stderr=subprocess.STDOUT,
-            stdin=subprocess.PIPE,
+            stdin=subprocess.PIPE if prof.harness == "codex" else subprocess.DEVNULL,
             text=True,
             env=env,
             start_new_session=True,
