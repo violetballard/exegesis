@@ -554,6 +554,17 @@ def _build_mcp_client(profile: LaunchProfile, approval: ApprovalPolicy) -> Codex
     return CodexMcpClient(approval=approval, codex_cmd=profile.codex_cmd, codex_args=profile.codex_args)
 
 
+class _CliOnlyMcpClient:
+    def codex(self, *args: Any, **kwargs: Any) -> Any:
+        raise RuntimeError("CLI-only router profile cannot start Codex MCP sessions")
+
+    def codex_reply(self, *args: Any, **kwargs: Any) -> Any:
+        raise RuntimeError("CLI-only router profile cannot use Codex MCP sessions")
+
+    def close(self) -> None:
+        return None
+
+
 def _build_cli_command(
     profile: LaunchProfile,
     *,
@@ -2171,8 +2182,22 @@ def main() -> None:
     state = _maybe_restore_cloud(cfg, state, repo_cwd)
     local_mode = _runtime_mode(cfg, state) == "local_fallback"
 
-    reviewer_client = _build_mcp_client(_profile_for_role(cfg, "reviewer", local=local_mode), ApprovalPolicy(True, True))
-    integrator_client = _build_mcp_client(_profile_for_role(cfg, "integrator", local=local_mode), ApprovalPolicy(True, True))
+    reviewer_profile = _profile_for_role(cfg, "reviewer", local=local_mode)
+    integrator_profile = _profile_for_role(cfg, "integrator", local=local_mode)
+    cli_only_harnesses = sorted(
+        {
+            profile.harness
+            for profile in (reviewer_profile, integrator_profile)
+            if profile.harness != "codex"
+        }
+    )
+    if cli_only_harnesses:
+        print(f"[router] using CLI-only profiles: {', '.join(cli_only_harnesses)}")
+        reviewer_client = _CliOnlyMcpClient()
+        integrator_client = reviewer_client
+    else:
+        reviewer_client = _build_mcp_client(reviewer_profile, ApprovalPolicy(True, True))
+        integrator_client = _build_mcp_client(integrator_profile, ApprovalPolicy(True, True))
 
     reviewer_thread_ids = state.get("reviewer_thread_ids") or {}
     if not isinstance(reviewer_thread_ids, dict):
