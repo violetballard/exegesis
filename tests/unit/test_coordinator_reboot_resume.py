@@ -541,6 +541,49 @@ class CoordinatorRebootResumeTests(unittest.TestCase):
         self.assertIn("feat-retrieval-fts", removed["fixer_fallback_jobs"][0])
         self.assertEqual(saved["fixer_fallback_jobs"], {})
 
+    def test_reconcile_router_state_terminates_reparented_router_job(self) -> None:
+        from codex_packet_handoff.tools import agents_coordinator as coordinator
+
+        with tempfile.TemporaryDirectory() as tmp:
+            root = Path(tmp)
+            router_state = root / "router_state.json"
+            packets_root = root / "packets"
+            reviewer_dir = packets_root / "feat-retrieval-fts" / "inbox" / "reviewer"
+            reviewer_dir.mkdir(parents=True, exist_ok=True)
+            (reviewer_dir / "R__CHANGES__keep.md").write_text("changes", encoding="utf-8")
+            router_state.write_text(
+                json.dumps(
+                    {
+                        "fixer_fallback_jobs": {
+                            "feat-retrieval-fts": {
+                                "lane": "feat-retrieval-fts",
+                                "packet_name": "R__CHANGES__keep.md",
+                                "pid": 55357,
+                                "local": True,
+                                "log": str(root / "fixer.log"),
+                                "ts": "20260504T041021Z",
+                            },
+                        }
+                    }
+                ),
+                encoding="utf-8",
+            )
+
+            with (
+                patch.object(coordinator, "ROUTER_STATE_FILE", router_state),
+                patch.object(coordinator, "PACKETS_ROOT", packets_root),
+                patch.object(coordinator, "_pid_alive", side_effect=lambda pid: pid == 55357),
+                patch.object(coordinator, "_parent_pid", return_value=1),
+                patch.object(coordinator, "_terminate_pid_tree") as terminate_mock,
+            ):
+                removed = coordinator._reconcile_router_state({"current_resume_epoch": ""})
+
+            saved = json.loads(router_state.read_text())
+
+        terminate_mock.assert_called_once_with(55357)
+        self.assertIn("reparented router job", removed["fixer_fallback_jobs"][0])
+        self.assertEqual(saved["fixer_fallback_jobs"], {})
+
     def test_reconcile_terminates_runaway_feature_child_process_tree(self) -> None:
         from codex_packet_handoff.tools import agents_coordinator as coordinator
 
