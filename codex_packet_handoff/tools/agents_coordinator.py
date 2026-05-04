@@ -160,6 +160,10 @@ class DirectRouterCtx:
     local_mode: bool
 
 
+class DirectRouterUnsupported(RuntimeError):
+    """Raised when the current runtime cannot use Codex MCP direct routing."""
+
+
 def _bootstrap_direct_integrator_thread(
     router_mod: object,
     cfg: object,
@@ -191,12 +195,26 @@ def _bootstrap_direct_integrator_thread(
 
 def _build_direct_router_clients(router_mod: object, cfg: object, state: Dict) -> Tuple[bool, object, object]:
     local_mode = router_mod._runtime_mode(cfg, state) == "local_fallback"
+    reviewer_profile = router_mod._profile_for_role(cfg, "reviewer", local=local_mode)
+    integrator_profile = router_mod._profile_for_role(cfg, "integrator", local=local_mode)
+    unsupported = sorted(
+        {
+            str(getattr(profile, "harness", "codex"))
+            for profile in (reviewer_profile, integrator_profile)
+            if str(getattr(profile, "harness", "codex")) != "codex"
+        }
+    )
+    if unsupported:
+        raise DirectRouterUnsupported(
+            "direct router requires Codex MCP profiles; "
+            f"current runtime uses {', '.join(unsupported)}"
+        )
     reviewer_client = router_mod._build_mcp_client(
-        router_mod._profile_for_role(cfg, "reviewer", local=local_mode),
+        reviewer_profile,
         router_mod.ApprovalPolicy(True, True),
     )
     integrator_client = router_mod._build_mcp_client(
-        router_mod._profile_for_role(cfg, "integrator", local=local_mode),
+        integrator_profile,
         router_mod.ApprovalPolicy(True, True),
     )
     return local_mode, reviewer_client, integrator_client
@@ -1715,6 +1733,10 @@ def main() -> int:
         if args.execution_mode == "direct":
             try:
                 direct_ctx = _init_direct_router_ctx()
+            except DirectRouterUnsupported as exc:
+                print(f"[coordinator] direct router unavailable; using subprocess mode: {exc}")
+                args.execution_mode = "subprocess"
+                direct_ctx = None
             except Exception as exc:
                 print(f"[coordinator] direct router init failed; falling back to subprocess mode: {exc}")
                 args.execution_mode = "subprocess"
