@@ -83,6 +83,7 @@ FEATURE_LOOP_MIN_RUNTIME_SECONDS = 300.0
 FEATURE_LOOP_LOG_TAIL_BYTES = 32768
 FEATURE_LOOP_BAD_APPLYPATCH_THRESHOLD = 6
 FEATURE_LOOP_RECONNECT_THRESHOLD = 4
+ROUTER_JOB_LOOP_MIN_RUNTIME_SECONDS = 300.0
 FEATURE_LOOP_PARSE_ERROR_THRESHOLD = 2
 FEATURE_CHILD_RSS_LIMIT_KB = int(os.environ.get("FEATURE_CHILD_RSS_LIMIT_KB", "2500000"))
 FEATURE_TOTAL_CHILD_RSS_LIMIT_KB = int(os.environ.get("FEATURE_TOTAL_CHILD_RSS_LIMIT_KB", "8000000"))
@@ -494,7 +495,43 @@ def _feature_runner_loop_reason(lane_state: Dict[str, object]) -> Optional[str]:
         )
     reconnects = text.count("stream disconnected - retrying sampling request")
     idle_timeouts = text.count("idle timeout waiting for SSE")
-    if reconnects >= FEATURE_LOOP_RECONNECT_THRESHOLD and idle_timeouts > 0:
+    if reconnects >= FEATURE_LOOP_RECONNECT_THRESHOLD:
+        return (
+            "reconnect timeout loop "
+            f"({reconnects} reconnect retries, {idle_timeouts} idle timeouts)"
+        )
+    return None
+
+
+def _router_job_loop_reason(job: Dict[str, object]) -> Optional[str]:
+    pid = int(job.get("pid") or 0)
+    if pid <= 0 or not _pid_alive(pid):
+        return None
+    started_at = float(job.get("started_at") or 0)
+    if not started_at:
+        ts = str(job.get("ts") or "").strip()
+        if ts:
+            try:
+                started_at = datetime.strptime(ts, "%Y%m%dT%H%M%SZ").replace(tzinfo=timezone.utc).timestamp()
+            except ValueError:
+                started_at = 0
+    if started_at and (time.time() - started_at) < ROUTER_JOB_LOOP_MIN_RUNTIME_SECONDS:
+        return None
+
+    text = ""
+    for key in ("log", "output_path"):
+        raw_path = str(job.get(key) or "").strip()
+        if not raw_path:
+            continue
+        path = Path(raw_path)
+        if not path.is_absolute():
+            path = REPO_ROOT / path
+        text += "\n" + _read_text_tail(path)
+    if not text.strip():
+        return None
+    reconnects = text.count("stream disconnected - retrying sampling request")
+    idle_timeouts = text.count("idle timeout waiting for SSE")
+    if reconnects >= FEATURE_LOOP_RECONNECT_THRESHOLD:
         return (
             "reconnect timeout loop "
             f"({reconnects} reconnect retries, {idle_timeouts} idle timeouts)"
@@ -572,6 +609,12 @@ def _reconcile_router_state(coordinator_state: Optional[Dict[str, object]] = Non
                 continue
             pid = int(job.get("pid") or 0)
             if _pid_alive(pid):
+                loop_reason = _router_job_loop_reason(job)
+                if not loop_reason:
+                    continue
+                _terminate_pid_tree(pid)
+                jobs.pop(job_name, None)
+                stale.append(f"{job_name} ({loop_reason})")
                 continue
             jobs.pop(job_name, None)
             stale.append(str(job_name))

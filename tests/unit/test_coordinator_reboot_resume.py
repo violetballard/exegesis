@@ -130,6 +130,7 @@ class CoordinatorRebootResumeTests(unittest.TestCase):
             patch.object(coordinator, "_lane_queue_empty", return_value=True),
             patch.object(coordinator, "_lane_has_active_feature_session", return_value=False),
             patch.object(coordinator, "_local_lms_feature_launch_slots", return_value=1),
+            patch.object(coordinator, "_active_local_fixer_jobs", return_value=0),
             patch.object(coordinator, "_has_reviewer_notes_backlog", return_value=True),
             patch.object(coordinator, "run_cmd") as run_cmd,
         ):
@@ -482,6 +483,63 @@ class CoordinatorRebootResumeTests(unittest.TestCase):
         self.assertNotIn("feat-engine-runs:R__APPROVED__drop.md", saved["cloud_integrator_jobs"])
         self.assertEqual(saved["reviewer_fixer_retry_ts"], {"feat-commands": 10.0})
         self.assertEqual(saved["reviewer_quota_global_retry_ts"], 0)
+
+    def test_reconcile_router_state_terminates_reconnect_looping_fixer(self) -> None:
+        from codex_packet_handoff.tools import agents_coordinator as coordinator
+
+        with tempfile.TemporaryDirectory() as tmp:
+            root = Path(tmp)
+            router_state = root / "router_state.json"
+            packets_root = root / "packets"
+            reviewer_dir = packets_root / "feat-retrieval-fts" / "inbox" / "reviewer"
+            reviewer_dir.mkdir(parents=True, exist_ok=True)
+            (reviewer_dir / "R__CHANGES__keep.md").write_text("changes", encoding="utf-8")
+            log_path = root / "fixer.log"
+            log_path.write_text(
+                "\n".join(
+                    [
+                        "WARN codex_core::session::turn: stream disconnected - retrying sampling request (1/5 in 200ms)...",
+                        "WARN codex_core::session::turn: stream disconnected - retrying sampling request (2/5 in 400ms)...",
+                        "WARN codex_core::session::turn: stream disconnected - retrying sampling request (3/5 in 800ms)...",
+                        "WARN codex_core::session::turn: stream disconnected - retrying sampling request (4/5 in 1600ms)...",
+                    ]
+                )
+                + "\n",
+                encoding="utf-8",
+            )
+            router_state.write_text(
+                json.dumps(
+                    {
+                        "fixer_fallback_jobs": {
+                            "feat-retrieval-fts": {
+                                "lane": "feat-retrieval-fts",
+                                "packet_name": "R__CHANGES__keep.md",
+                                "pid": 27223,
+                                "local": True,
+                                "log": str(log_path),
+                                "ts": "20260415T150000Z",
+                            },
+                        }
+                    }
+                ),
+                encoding="utf-8",
+            )
+
+            with (
+                patch.object(coordinator, "ROUTER_STATE_FILE", router_state),
+                patch.object(coordinator, "PACKETS_ROOT", packets_root),
+                patch.object(coordinator, "_pid_alive", side_effect=lambda pid: pid == 27223),
+                patch.object(coordinator, "_terminate_pid_tree") as terminate_mock,
+                patch.object(coordinator, "time") as time_mod,
+            ):
+                time_mod.time.return_value = 1_776_272_400.0
+                removed = coordinator._reconcile_router_state({"current_resume_epoch": ""})
+
+            saved = json.loads(router_state.read_text())
+
+        terminate_mock.assert_called_once_with(27223)
+        self.assertIn("feat-retrieval-fts", removed["fixer_fallback_jobs"][0])
+        self.assertEqual(saved["fixer_fallback_jobs"], {})
 
     def test_reconcile_terminates_runaway_feature_child_process_tree(self) -> None:
         from codex_packet_handoff.tools import agents_coordinator as coordinator
