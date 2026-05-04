@@ -56,6 +56,8 @@ LAUNCH_FEATURE_LANES_PATH = REPO_ROOT / "codex_packet_handoff/tools/launch_featu
 PLANNER_CMD = [sys.executable, str(PLANNER_PATH)]
 ROUTER_CMD = [sys.executable, str(ROUTER_PATH)]
 INIT_META_CMD = [sys.executable, str(INIT_META_PATH)]
+PLANNER_SUBPROCESS_TIMEOUT_SECONDS = 60.0
+ROUTER_SUBPROCESS_TIMEOUT_SECONDS = 120.0
 LAUNCH_FEATURE_LANES_CMD = [sys.executable, str(LAUNCH_FEATURE_LANES_PATH)]
 
 EMITTED_RE = re.compile(r"\[planner\] emitted (?P<path>\S+)")
@@ -224,8 +226,26 @@ def utc_now() -> str:
     return datetime.now(timezone.utc).strftime("%Y-%m-%dT%H:%M:%SZ")
 
 
-def run_cmd(cmd: List[str]) -> Tuple[int, str]:
-    p = subprocess.run(cmd, stdout=subprocess.PIPE, stderr=subprocess.STDOUT, text=True, cwd=str(REPO_ROOT))
+def run_cmd(cmd: List[str], *, timeout: float | None = None) -> Tuple[int, str]:
+    try:
+        p = subprocess.run(
+            cmd,
+            stdout=subprocess.PIPE,
+            stderr=subprocess.STDOUT,
+            text=True,
+            cwd=str(REPO_ROOT),
+            timeout=timeout,
+        )
+    except subprocess.TimeoutExpired as exc:
+        out = exc.stdout or ""
+        if isinstance(out, bytes):
+            out = out.decode(errors="replace")
+        err = exc.stderr or ""
+        if isinstance(err, bytes):
+            err = err.decode(errors="replace")
+        combined = f"{out}{err}\n[TIMEOUT after {timeout:g}s]"
+        print(combined, end="" if combined.endswith("\n") else "\n")
+        return 124, combined
     out = p.stdout or ""
     if out:
         print(out, end="" if out.endswith("\n") else "\n")
@@ -1263,11 +1283,11 @@ def _run_planner_subprocess(retries: int) -> Tuple[int, str, int]:
     attempts = 0
     while True:
         attempts += 1
-        rc, out = run_cmd(PLANNER_CMD)
+        rc, out = run_cmd(PLANNER_CMD, timeout=PLANNER_SUBPROCESS_TIMEOUT_SECONDS)
         if rc == 0:
             return rc, out, attempts
         if "Missing .codex/lane_meta/" in out:
-            run_cmd(INIT_META_CMD)
+            run_cmd(INIT_META_CMD, timeout=ROUTER_SUBPROCESS_TIMEOUT_SECONDS)
         if attempts > retries + 1:
             return rc, out, attempts
         print(f"[planner] retry attempt {attempts}/{retries + 1}")
@@ -1278,7 +1298,7 @@ def _run_router_subprocess(retries: int) -> Tuple[int, str, int]:
     attempts = 0
     while True:
         attempts += 1
-        rc, out = run_cmd(ROUTER_CMD)
+        rc, out = run_cmd(ROUTER_CMD, timeout=ROUTER_SUBPROCESS_TIMEOUT_SECONDS)
         if rc == 0:
             return rc, out, attempts
         if attempts > retries + 1:
