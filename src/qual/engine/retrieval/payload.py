@@ -133,6 +133,7 @@ def _basket_item_fingerprint(item: dict[str, object]) -> str:
             "item_type": item.get("item_type"),
             "doc_id": item.get("doc_id"),
             "source_hash": item.get("source_hash"),
+            "doc_identity_fingerprint": item.get("doc_identity_fingerprint"),
             "excerpt_id": item.get("excerpt_id"),
             "excerpt_fingerprint": item.get("excerpt_fingerprint"),
             "excerpt_text_hash": item.get("excerpt_text_hash"),
@@ -239,6 +240,10 @@ def _basket_promotion_items_from_excerpt_hits(
                 "doc_type": _first_text_value(hit.get("doc_type"), provenance.get("doc_type")),
                 "title_hint": _first_text_value(hit.get("title_hint")),
                 "source_hash": _first_text_value(hit.get("source_hash"), provenance.get("source_hash")),
+                "doc_identity_fingerprint": _first_text_value(
+                    hit.get("doc_identity_fingerprint"),
+                    provenance.get("doc_identity_fingerprint"),
+                ),
                 "excerpt_id": excerpt_id,
                 "excerpt_text": hit.get("excerpt_text"),
                 "excerpt_fingerprint": _first_text_value(

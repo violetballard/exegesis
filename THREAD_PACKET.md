@@ -12,9 +12,9 @@
 
 ## Scope Completed
 
-This re-review packet covers the complete actual merge candidate from `378cf9a74a3658058079a32f186fcd254c4a4034..HEAD`, including the original FTS-only excerpt implementation, branch-tip retrieval facade and payload work, the later basket promotion metadata changes through `10272337c899350ff4e8ee74ba44e77ed6f1be38`, and this final owned-path evidence normalization fix. No source-bearing commit after `378cf9a74a3658058079a32f186fcd254c4a4034` is hidden behind metadata-only wording.
+This re-review packet covers the complete actual merge candidate from `378cf9a74a3658058079a32f186fcd254c4a4034..HEAD`, including the original FTS-only excerpt implementation, branch-tip retrieval facade and payload work, the later basket promotion metadata changes through `10272337c899350ff4e8ee74ba44e77ed6f1be38`, and this final owned-path basket provenance normalization fix. No source-bearing commit after `378cf9a74a3658058079a32f186fcd254c4a4034` is hidden behind metadata-only wording.
 
-The implementation keeps SQLite FTS as the authoritative retrieval path. It exports canonical FTS excerpt fetch helpers through retrieval facades, normalizes FTS strategy hit snapshots, stabilizes payload and provenance reconstruction, exposes deterministic excerpt fingerprints, and carries basket promotion IDs, counts, and fingerprints through canonical excerpt bundles, retrieval evidence, retrieval summaries, provenance snapshots, and sparse engine payload backfills.
+The implementation keeps SQLite FTS as the authoritative retrieval path. It exports canonical FTS excerpt fetch helpers through retrieval facades, normalizes FTS strategy hit snapshots, stabilizes payload and provenance reconstruction, exposes deterministic excerpt fingerprints, and carries basket promotion IDs, counts, fingerprints, and doc identity fingerprints through canonical excerpt bundles, retrieval evidence, retrieval summaries, provenance snapshots, and sparse engine payload backfills.
 
 Focused regression coverage verifies canonical FTS excerpt lookup, PageIndex fail-closed behavior, facade exports, excerpt bundle basket metadata, retrieval summary basket references, and engine payload reconstruction from compact/sparse retrieval summary snapshots.
 
@@ -24,7 +24,7 @@ PageIndex and embeddings remain deferred/compatibility-only paths and are not in
 
 1. Made canonical excerpt lookup FTS-only, including stable excerpt lookup fingerprints, PageIndex fail-closed behavior, and retrieval facade exports for the canonical excerpt fetch path.
 2. Normalized retrieval strategy, query, payload, source bundle, provenance, citation, and cache snapshots so downstream engine flows receive deterministic FTS-first retrieval evidence.
-3. Propagated basket promotion metadata through canonical FTS excerpt lookup, excerpt bundles, retrieval evidence, retrieval summaries, provenance snapshots, context/source bundles, and engine payload reconstruction, including basket item IDs, promotion counts, and fingerprints.
+3. Propagated basket promotion metadata through canonical FTS excerpt lookup, excerpt bundles, retrieval evidence, retrieval summaries, provenance snapshots, context/source bundles, and engine payload reconstruction, including basket item IDs, promotion counts, fingerprints, and doc identity fingerprints.
 4. Updated approved shared unified retrieval regression coverage and refreshed handoff metadata so the reviewed range, file list, gate evidence, and canonical demo-path mapping cover the actual branch-tip merge candidate.
 
 ## Files Changed
@@ -34,9 +34,9 @@ PageIndex and embeddings remain deferred/compatibility-only paths and are not in
 - `THREAD_PACKET.md` - updates this handoff packet for the complete reviewed implementation range.
 - `src/qual/engine/retrieval/__init__.py` - exposes canonical retrieval query and excerpt fetch surfaces through the engine retrieval facade.
 - `src/qual/engine/retrieval/fts_strategy.py` - keeps FTS strategy hit snapshots deterministic and FTS-first.
-- `src/qual/engine/retrieval/payload.py` - reconstructs and preserves deterministic query, provenance, source bundle, citation, evidence, basket promotion ID/count, and fingerprint metadata from direct or sparse retrieval snapshots.
+- `src/qual/engine/retrieval/payload.py` - reconstructs and preserves deterministic query, provenance, source bundle, citation, evidence, basket promotion ID/count, fingerprint, and doc identity metadata from direct or sparse retrieval snapshots.
 - `src/qual/retrieval/__init__.py` - exposes canonical retrieval query and excerpt fetch helpers through the retrieval facade.
-- `src/qual/retrieval/service.py` - implements canonical FTS excerpt lookup, deterministic retrieval/provenance snapshots, FTS cache normalization, and basket promotion metadata on canonical evidence, summaries, and provenance.
+- `src/qual/retrieval/service.py` - implements canonical FTS excerpt lookup, deterministic retrieval/provenance snapshots, FTS cache normalization, and basket promotion metadata on canonical evidence, summaries, provenance, and lookup payloads.
 - `tests/unit/test_unified_retrieval.py` - verifies canonical FTS excerpt lookup, facade exports, deterministic payload/provenance normalization, basket metadata, and payload reconstruction.
 
 Lane-owned source files:
@@ -67,13 +67,13 @@ Integrator-locked files: none.
 
 - Roadmap items affected: `ROADMAP.md` active MVP focus for `feat-retrieval-fts`; Milestone 3/4 retrieval layer support for retrieving relevant material and promoting or gathering context into basket flows.
 - Vision capabilities affected: `PRODUCT_VISION.md` retrieval-first context handling and auditable generation/state.
-- Canonical demo-path mapping: this final reviewed work advances the AGENTS active MVP canonical demo-path step `retrieve relevant material`; it also supports basket/context promotion by making canonical FTS excerpt, evidence, summary, provenance, and payload snapshots expose deterministic promotion counts, item IDs, and item fingerprints.
+- Canonical demo-path mapping: this final reviewed work advances the AGENTS active MVP canonical demo-path step `retrieve relevant material`; it also supports basket/context promotion by making canonical FTS excerpt, evidence, summary, provenance, and payload snapshots expose deterministic promotion counts, item IDs, item fingerprints, and doc identity fingerprints.
 - Routing/provider impact note: none.
 - Proposed `README.md` patch text: none.
 
 ## Commands Run
 
-These gates were run for the actual branch-tip merge candidate after the final owned-path retrieval evidence normalization fix:
+These gates were run for the actual branch-tip merge candidate after the final owned-path basket provenance normalization fix:
 
 - `python -m pytest tests/unit/test_unified_retrieval.py` - failed before gate execution because the default Python environment does not have `pytest` installed (`No module named pytest`).
 - `make scope-check` - passed for branch `codex/feat-retrieval-fts`.
