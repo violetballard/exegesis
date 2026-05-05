@@ -3935,11 +3935,36 @@ def command_demo_action_coverage_contract(
                 action_line=action_line,
             )
             for step in execution_plan.steps
-            for engine_action, action_line in step.action_lines
+            for engine_action, fallback_action_line in step.action_lines
+            for action_line in (
+                _command_demo_action_coverage_line(
+                    engine_action,
+                    fallback_action_line,
+                    specs,
+                    launcher_argv,
+                ),
+            )
         )
     )
     _validate_command_demo_action_coverage_contract(contract, execution_plan, specs)
     return contract
+
+
+def _command_demo_action_coverage_line(
+    engine_action: str,
+    fallback_action_line: str,
+    specs: tuple[CommandSpec, ...],
+    launcher_argv: tuple[str, ...],
+) -> str:
+    try:
+        exact_line = command_demo_readiness_exact_line_for_engine_action(
+            engine_action,
+            specs,
+            launcher_argv,
+        )
+    except ValueError:
+        exact_line = ""
+    return exact_line or fallback_action_line
 
 
 def _validate_command_demo_action_coverage_contract(
@@ -3953,10 +3978,16 @@ def _validate_command_demo_action_coverage_contract(
 
     entries_by_action = {entry.engine_action: entry for entry in contract.entries}
     for step in execution_plan.steps:
-        for engine_action, action_line in step.action_lines:
+        for engine_action, fallback_action_line in step.action_lines:
             entry = entries_by_action.get(engine_action)
             if entry is None:
                 raise ValueError(f"Command demo action coverage is missing: {engine_action}")
+            action_line = _command_demo_action_coverage_line(
+                engine_action,
+                fallback_action_line,
+                specs,
+                execution_plan.launcher_argv,
+            )
             if entry.demo_path_step != step.demo_path_step:
                 raise ValueError(f"Command demo action coverage path step is inconsistent: {engine_action}")
             if entry.flow_step != step.flow_step:
@@ -3995,7 +4026,7 @@ def command_demo_action_coverage_lookup_table(
     launcher_argv: tuple[str, ...] = COMMAND_SMOKE_CLI_LAUNCHER_ARGV,
 ) -> tuple[tuple[str, str], ...]:
     return tuple(
-        (entry.engine_action, entry.command_line)
+        (entry.engine_action, entry.action_line)
         for entry in command_demo_action_coverage_contract(specs, launcher_argv).entries
     )
 
