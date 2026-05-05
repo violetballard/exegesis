@@ -541,10 +541,18 @@ def _normalize_retrieval_manifest_snapshot(manifest: dict[str, object]) -> dict[
 
 def _normalize_retrieval_evidence_snapshot(evidence: dict[str, object]) -> dict[str, object]:
     normalized = copy.deepcopy(evidence)
-    normalized["active_strategy_ids"] = _normalize_list_like(normalized.get("active_strategy_ids"))
-    normalized["deferred_strategy_ids"] = _normalize_list_like(normalized.get("deferred_strategy_ids"))
-    normalized["doc_citations"] = _normalize_list_like(normalized.get("doc_citations"))
-    normalized["excerpt_citations"] = _normalize_list_like(normalized.get("excerpt_citations"))
+    if "query_date_range" in normalized:
+        normalized["query_date_range"] = _normalize_optional_list_like(normalized.get("query_date_range"))
+    if "fts_shortlist_doc_ids" in normalized:
+        normalized["fts_shortlist_doc_ids"] = _normalize_list_like(normalized.get("fts_shortlist_doc_ids"))
+    if "active_strategy_ids" in normalized:
+        normalized["active_strategy_ids"] = _normalize_list_like(normalized.get("active_strategy_ids"))
+    if "deferred_strategy_ids" in normalized:
+        normalized["deferred_strategy_ids"] = _normalize_list_like(normalized.get("deferred_strategy_ids"))
+    if "doc_citations" in normalized:
+        normalized["doc_citations"] = _normalize_list_like(normalized.get("doc_citations"))
+    if "excerpt_citations" in normalized:
+        normalized["excerpt_citations"] = _normalize_list_like(normalized.get("excerpt_citations"))
     retrieval_policy = normalized.get("retrieval_policy")
     if isinstance(retrieval_policy, dict):
         normalized["retrieval_policy"] = _normalize_policy_snapshot(retrieval_policy)
