@@ -21,6 +21,12 @@ class OfflineHandoffConfigTests(unittest.TestCase):
         self.assertEqual(cfg["fallback_codex_args"], [])
         self.assertEqual(cfg["fallback_model"], "qwen3.6-27b")
         self.assertEqual(cfg["fallback_model_args"], [])
+        self.assertEqual(cfg["profiles"]["worker_cloud"]["codex_args"], ["-c", "model_context_window=256000"])
+        self.assertEqual(
+            cfg["profiles"]["worker_cloud_standard_medium"]["codex_args"],
+            ["-c", "model_context_window=256000"],
+        )
+        self.assertEqual(cfg["profiles"]["integrator_cloud"]["codex_args"], ["-c", "model_context_window=256000"])
         self.assertEqual(cfg["profiles"]["worker_local"]["harness"], "opencode")
         self.assertEqual(cfg["profiles"]["worker_local"]["codex_args"], [])
         self.assertEqual(cfg["profiles"]["worker_local"]["model"], "qwen3.6-27b")
@@ -47,6 +53,12 @@ class OfflineHandoffConfigTests(unittest.TestCase):
         self.assertEqual(cfg["fallback_codex_args"], [])
         self.assertEqual(cfg["fallback_model"], "qwen3.6-27b")
         self.assertEqual(cfg["fallback_model_args"], [])
+        self.assertEqual(cfg["profiles"]["worker_cloud"]["codex_args"], ["-c", "model_context_window=256000"])
+        self.assertEqual(
+            cfg["profiles"]["worker_cloud_standard_medium"]["codex_args"],
+            ["-c", "model_context_window=256000"],
+        )
+        self.assertEqual(cfg["profiles"]["integrator_cloud"]["codex_args"], ["-c", "model_context_window=256000"])
         self.assertEqual(cfg["profiles"]["worker_local"]["harness"], "opencode")
         self.assertEqual(cfg["profiles"]["worker_local"]["codex_args"], [])
         self.assertEqual(cfg["profiles"]["worker_local"]["model"], "qwen3.6-27b")

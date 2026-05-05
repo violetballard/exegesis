@@ -18,7 +18,10 @@
     },
     "worker_cloud": {
       "codex_cmd": "/Applications/Codex.app/Contents/Resources/codex",
-      "codex_args": [],
+      "codex_args": [
+        "-c",
+        "model_context_window=256000"
+      ],
       "model": "gpt-5.5",
       "model_args": [
         "-c",
@@ -27,7 +30,10 @@
     },
     "worker_cloud_standard_medium": {
       "codex_cmd": "/Applications/Codex.app/Contents/Resources/codex",
-      "codex_args": [],
+      "codex_args": [
+        "-c",
+        "model_context_window=256000"
+      ],
       "model": "gpt-5.5",
       "model_args": [
         "-c",
@@ -36,7 +42,10 @@
     },
     "integrator_cloud": {
       "codex_cmd": "/Applications/Codex.app/Contents/Resources/codex",
-      "codex_args": [],
+      "codex_args": [
+        "-c",
+        "model_context_window=256000"
+      ],
       "model": "gpt-5.5",
       "model_args": [
         "-c",

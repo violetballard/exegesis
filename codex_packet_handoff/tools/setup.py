@@ -6,6 +6,7 @@ import json
 APP_CODEX_CMD = "/Applications/Codex.app/Contents/Resources/codex"
 APP_OPENCODE_CMD = "/opt/homebrew/bin/opencode"
 LOCAL_QWEN_MODEL = "qwen3.6-27b"
+CODEX_CLOUD_CONTEXT_ARGS = ["-c", "model_context_window=256000"]
 
 LANES = [
     'feat-context-storage',
@@ -76,19 +77,19 @@ def write_example_config():
             },
             "worker_cloud": {
                 "codex_cmd": APP_CODEX_CMD,
-                "codex_args": [],
+                "codex_args": CODEX_CLOUD_CONTEXT_ARGS,
                 "model": "gpt-5.5",
                 "model_args": ["-c", "model_reasoning_effort=low"],
             },
             "worker_cloud_standard_medium": {
                 "codex_cmd": APP_CODEX_CMD,
-                "codex_args": [],
+                "codex_args": CODEX_CLOUD_CONTEXT_ARGS,
                 "model": "gpt-5.5",
                 "model_args": ["-c", "model_reasoning_effort=medium"],
             },
             "integrator_cloud": {
                 "codex_cmd": APP_CODEX_CMD,
-                "codex_args": [],
+                "codex_args": CODEX_CLOUD_CONTEXT_ARGS,
                 "model": "gpt-5.5",
                 "model_args": ["-c", "model_reasoning_effort=high"],
             },

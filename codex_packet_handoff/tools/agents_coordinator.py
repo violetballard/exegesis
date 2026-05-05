@@ -1659,19 +1659,11 @@ def _launch_free_lanes(state_doc: Dict[str, object]) -> List[str]:
     if local_slots <= 0 and cloud_slots <= 0:
         print("[coordinator] local/cloud feature caps reached; deferring feature lane launch")
         return []
-    local_lanes = to_launch[:local_slots]
-    remaining = [lane for lane in to_launch if lane not in set(local_lanes)]
-    cloud_lanes = remaining[:cloud_slots]
+    cloud_lanes = to_launch[:cloud_slots]
+    remaining = [lane for lane in to_launch if lane not in set(cloud_lanes)]
+    local_lanes = remaining[:local_slots]
 
     launched: List[str] = []
-    if local_lanes:
-        rc, out = run_cmd(LAUNCH_FEATURE_LANES_CMD + ["--provider", "local", "--lanes", *local_lanes])
-        if rc != 0:
-            print(f"[coordinator] local feature lane launch failed for {local_lanes}: rc={rc}")
-            if out:
-                print(out, end="" if out.endswith("\n") else "\n")
-        else:
-            launched.extend(local_lanes)
     if cloud_lanes:
         rc, out = run_cmd(LAUNCH_FEATURE_LANES_CMD + ["--provider", "cloud", "--lanes", *cloud_lanes])
         if rc != 0:
@@ -1680,6 +1672,14 @@ def _launch_free_lanes(state_doc: Dict[str, object]) -> List[str]:
                 print(out, end="" if out.endswith("\n") else "\n")
         else:
             launched.extend(cloud_lanes)
+    if local_lanes:
+        rc, out = run_cmd(LAUNCH_FEATURE_LANES_CMD + ["--provider", "local", "--lanes", *local_lanes])
+        if rc != 0:
+            print(f"[coordinator] local feature lane launch failed for {local_lanes}: rc={rc}")
+            if out:
+                print(out, end="" if out.endswith("\n") else "\n")
+        else:
+            launched.extend(local_lanes)
     if launched:
         print(f"[coordinator] launched free lanes: {', '.join(launched)}")
     return launched

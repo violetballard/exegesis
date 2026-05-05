@@ -585,6 +585,37 @@ class CoordinatorDaemonBehaviorTests(unittest.TestCase):
         self.assertEqual(launched, ["feat-commands"])
         self.assertEqual(commands[0][-2:], ["--lanes", "feat-commands"])
 
+    def test_launch_free_lanes_fills_cloud_before_local(self) -> None:
+        from codex_packet_handoff.tools.agents_coordinator import _launch_free_lanes
+
+        commands: list[list[str]] = []
+
+        def fake_run_cmd(cmd: list[str]) -> tuple[int, str]:
+            commands.append(cmd)
+            return 0, ""
+
+        lanes = ["feat-commands", "feat-retrieval-fts", "feat-a2ui-contract"]
+        state_doc = {"lane_refill": {lane: {"queue_empty": True} for lane in lanes}}
+        with (
+            patch("codex_packet_handoff.tools.agents_coordinator._enabled_lanes", return_value=lanes),
+            patch("codex_packet_handoff.tools.agents_coordinator._lane_queue_empty", return_value=True),
+            patch("codex_packet_handoff.tools.agents_coordinator._lane_has_active_feature_session", return_value=False),
+            patch("codex_packet_handoff.tools.agents_coordinator._cloud_feature_launch_slots", return_value=1),
+            patch("codex_packet_handoff.tools.agents_coordinator._local_lms_feature_launch_slots", return_value=2),
+            patch("codex_packet_handoff.tools.agents_coordinator._active_local_fixer_jobs", return_value=0),
+            patch("codex_packet_handoff.tools.agents_coordinator._has_reviewer_notes_backlog", return_value=False),
+            patch("codex_packet_handoff.tools.agents_coordinator._has_router_priority_backlog", return_value=False),
+            patch("codex_packet_handoff.tools.agents_coordinator.run_cmd", side_effect=fake_run_cmd),
+        ):
+            launched = _launch_free_lanes(state_doc)
+
+        self.assertEqual(launched, lanes)
+        self.assertIn("--provider", commands[0])
+        self.assertEqual(commands[0][commands[0].index("--provider") + 1], "cloud")
+        self.assertEqual(commands[0][-2:], ["--lanes", "feat-commands"])
+        self.assertEqual(commands[1][commands[1].index("--provider") + 1], "local")
+        self.assertEqual(commands[1][-3:], ["--lanes", "feat-retrieval-fts", "feat-a2ui-contract"])
+
     def test_launch_free_lanes_skips_idle_lane_with_active_feature_session(self) -> None:
         from codex_packet_handoff.tools.agents_coordinator import _launch_free_lanes
 
