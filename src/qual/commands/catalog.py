@@ -512,6 +512,7 @@ class CommandDemoReadinessArgvValidation:
     name: str | None
     demo_path_step: str | None
     engine_actions: tuple[str, ...]
+    exact_engine_action: str | None = None
 
 
 @dataclass(frozen=True)
@@ -525,6 +526,7 @@ class CommandDemoReadinessCliArgvValidation:
     name: str | None
     demo_path_step: str | None
     engine_actions: tuple[str, ...]
+    exact_engine_action: str | None = None
 
 
 @dataclass(frozen=True)
@@ -5745,6 +5747,11 @@ def command_demo_readiness_validate_argv(
     requested_argv = _normalize_smoke_argv(_coerce_smoke_argv(argv))
     entry = command_demo_readiness_entry_for_argv(requested_argv, specs, launcher_argv)
     canonical_argv = command_demo_readiness_argv_for_argv(requested_argv, specs, launcher_argv)
+    exact_engine_action = command_demo_readiness_exact_action_for_argv(
+        requested_argv,
+        specs,
+        launcher_argv,
+    )
     if entry is None:
         return CommandDemoReadinessArgvValidation(
             requested_argv=requested_argv,
@@ -5763,6 +5770,7 @@ def command_demo_readiness_validate_argv(
         name=entry.name,
         demo_path_step=entry.demo_path_step,
         engine_actions=entry.engine_actions,
+        exact_engine_action=exact_engine_action,
     )
 
 
@@ -5819,6 +5827,7 @@ def command_demo_readiness_validate_cli_argv(
         name=compatibility_validation.name,
         demo_path_step=compatibility_validation.demo_path_step,
         engine_actions=compatibility_validation.engine_actions,
+        exact_engine_action=compatibility_validation.exact_engine_action,
     )
 
 
