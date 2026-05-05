@@ -515,6 +515,19 @@ class CommandDemoReadinessArgvValidation:
 
 
 @dataclass(frozen=True)
+class CommandDemoReadinessCliArgvValidation:
+    requested_argv: tuple[str, ...]
+    canonical_argv: tuple[str, ...]
+    command_line: str
+    parser_token: str | None
+    is_cli_entrypoint: bool
+    flow_step: str | None
+    name: str | None
+    demo_path_step: str | None
+    engine_actions: tuple[str, ...]
+
+
+@dataclass(frozen=True)
 class CommandDemoReadinessScriptValidation:
     requested_argv: tuple[tuple[str, ...], ...]
     canonical_argv: tuple[tuple[str, ...], ...]
@@ -5503,12 +5516,76 @@ def command_demo_readiness_validate_argv(
     )
 
 
+def _cli_parser_token_for_requested_argv(
+    argv: tuple[str, ...],
+    launcher_argv: tuple[str, ...],
+) -> str | None:
+    requested_command_argv = _argv_without_launcher(argv, launcher_argv)
+    if not requested_command_argv:
+        return None
+    token = _normalize_token(requested_command_argv[0])
+    if not token:
+        return None
+    return token
+
+
+def command_demo_readiness_validate_cli_argv(
+    argv: Sequence[str] | str,
+    specs: tuple[CommandSpec, ...] = COMMAND_SPECS,
+    launcher_argv: tuple[str, ...] = COMMAND_SMOKE_CLI_LAUNCHER_ARGV,
+) -> CommandDemoReadinessCliArgvValidation:
+    requested_argv = _normalize_smoke_argv(_coerce_smoke_argv(argv))
+    parser_token = _cli_parser_token_for_requested_argv(requested_argv, launcher_argv)
+    compatibility_validation = command_demo_readiness_validate_argv(
+        requested_argv,
+        specs,
+        launcher_argv,
+    )
+    is_cli_entrypoint = (
+        specs == COMMAND_SPECS
+        and parser_token is not None
+        and parser_token in dict(command_cli_lookup_table())
+        and compatibility_validation.name is not None
+    )
+    if not is_cli_entrypoint:
+        return CommandDemoReadinessCliArgvValidation(
+            requested_argv=requested_argv,
+            canonical_argv=(),
+            command_line="",
+            parser_token=parser_token,
+            is_cli_entrypoint=False,
+            flow_step=None,
+            name=None,
+            demo_path_step=None,
+            engine_actions=(),
+        )
+    return CommandDemoReadinessCliArgvValidation(
+        requested_argv=compatibility_validation.requested_argv,
+        canonical_argv=compatibility_validation.canonical_argv,
+        command_line=compatibility_validation.command_line,
+        parser_token=parser_token,
+        is_cli_entrypoint=True,
+        flow_step=compatibility_validation.flow_step,
+        name=compatibility_validation.name,
+        demo_path_step=compatibility_validation.demo_path_step,
+        engine_actions=compatibility_validation.engine_actions,
+    )
+
+
 def command_mvp_demo_readiness_validate_argv(
     argv: Sequence[str] | str,
     specs: tuple[CommandSpec, ...] = COMMAND_SPECS,
     launcher_argv: tuple[str, ...] = COMMAND_SMOKE_CLI_LAUNCHER_ARGV,
 ) -> CommandDemoReadinessArgvValidation:
     return command_demo_readiness_validate_argv(argv, specs, launcher_argv)
+
+
+def command_mvp_demo_readiness_validate_cli_argv(
+    argv: Sequence[str] | str,
+    specs: tuple[CommandSpec, ...] = COMMAND_SPECS,
+    launcher_argv: tuple[str, ...] = COMMAND_SMOKE_CLI_LAUNCHER_ARGV,
+) -> CommandDemoReadinessCliArgvValidation:
+    return command_demo_readiness_validate_cli_argv(argv, specs, launcher_argv)
 
 
 def command_demo_readiness_validate_script(
