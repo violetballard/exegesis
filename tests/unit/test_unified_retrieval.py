@@ -26,6 +26,7 @@ from src.qual.engine.retrieval.payload import _build_retrieval_source_bundle_fro
 from src.qual.engine.retrieval.payload import _build_retrieval_provenance_from_payload
 from src.qual.engine.retrieval.interface import StrategyRun
 import src.qual.retrieval as package_retrieval
+from src.qual.retrieval import fetch_excerpt as engine_fetch_excerpt
 from src.qual.retrieval import retrieve_auto as engine_retrieve_auto
 from src.qual.retrieval import retrieve_auto_citation_bundle as engine_retrieve_auto_citation_bundle
 from src.qual.retrieval import retrieve_auto_doc_bundle as engine_retrieve_auto_doc_bundle
@@ -1173,7 +1174,12 @@ class UnifiedRetrievalTests(unittest.TestCase):
 
         canonical = self.service.retrieve_fts_excerpt(excerpt_id or "")
         alias = self.service.fetch_fts_excerpt(excerpt_id or "")
+        generic_alias = self.service.fetch_excerpt(excerpt_id or "")
         helper = engine_retrieval.retrieve_fts_excerpt(
+            self.service,
+            excerpt_id=excerpt_id or "",
+        )
+        engine_fetch_helper = engine_retrieval.fetch_excerpt(
             self.service,
             excerpt_id=excerpt_id or "",
         )
@@ -1181,10 +1187,17 @@ class UnifiedRetrievalTests(unittest.TestCase):
             self.service,
             excerpt_id=excerpt_id or "",
         )
+        package_fetch_helper = engine_fetch_excerpt(
+            self.service,
+            excerpt_id=excerpt_id or "",
+        )
 
         self.assertEqual(canonical, alias)
+        self.assertEqual(generic_alias, canonical)
         self.assertEqual(helper, canonical)
+        self.assertEqual(engine_fetch_helper, canonical)
         self.assertEqual(package_helper, canonical)
+        self.assertEqual(package_fetch_helper, canonical)
         self.assertEqual(canonical["source_strategy"], "fts")
         self.assertEqual(canonical["retrieval_backend"], "sqlite_fts")
         self.assertEqual(canonical["retrieval_mode"], "fts_first")
@@ -1198,6 +1211,8 @@ class UnifiedRetrievalTests(unittest.TestCase):
         self.assertEqual(canonical["provenance"]["title_hint"], result.hits[0].title_hint)
         self.assertEqual(canonical["provenance"]["excerpt_fingerprint"], result.hits[0].provenance["excerpt_fingerprint"])
         self.assertEqual(canonical["provenance"]["hash"], result.hits[0].provenance["hash"])
+        self.assertEqual(canonical["excerpt_text"], result.hits[0].excerpt_text)
+        self.assertEqual(canonical["text"], canonical["excerpt_text"])
         self.assertEqual(canonical["text_hash"], result.hits[0].provenance["excerpt_text_hash"])
         self.assertTrue(canonical["excerpt_lookup_fingerprint"])
         self.assertEqual(
@@ -1433,6 +1448,7 @@ class UnifiedRetrievalTests(unittest.TestCase):
                 "retrieve_fts_excerpt_bundle",
                 "retrieve_fts_excerpt",
                 "fetch_fts_excerpt",
+                "fetch_excerpt",
                 "retrieve_fts_payload",
                 "retrieve_auto",
                 "retrieve_auto_context_bundle",
@@ -1470,6 +1486,7 @@ class UnifiedRetrievalTests(unittest.TestCase):
         self.assertTrue(hasattr(engine_retrieval, "retrieve_fts_excerpt_bundle"))
         self.assertTrue(hasattr(engine_retrieval, "retrieve_fts_excerpt"))
         self.assertTrue(hasattr(engine_retrieval, "fetch_fts_excerpt"))
+        self.assertTrue(hasattr(engine_retrieval, "fetch_excerpt"))
         self.assertTrue(hasattr(engine_retrieval, "retrieve_fts_payload"))
         self.assertTrue(hasattr(engine_retrieval, "retrieve_auto_context_bundle"))
         self.assertTrue(hasattr(engine_retrieval, "retrieve_auto_source_bundle"))

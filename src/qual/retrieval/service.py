@@ -2084,6 +2084,12 @@ class RetrievalService:
         normalized["retrieval_backend"] = retrieval_backend
         normalized["retrieval_mode"] = retrieval_mode
         normalized["retrieval_policy"] = copy.deepcopy(retrieval_policy)
+        text_value = normalized.get("text")
+        excerpt_text_value = normalized.get("excerpt_text")
+        if not isinstance(excerpt_text_value, str) and isinstance(text_value, str):
+            normalized["excerpt_text"] = text_value
+        elif not isinstance(text_value, str) and isinstance(excerpt_text_value, str):
+            normalized["text"] = excerpt_text_value
         excerpt_fingerprint = normalized.get("excerpt_fingerprint")
         if not isinstance(excerpt_fingerprint, str) or not excerpt_fingerprint:
             provenance_excerpt_fingerprint = provenance.get("excerpt_fingerprint")
