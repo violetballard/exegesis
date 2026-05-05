@@ -223,6 +223,9 @@ class RetrievalHit:
         excerpt_fingerprint = self.provenance.get("excerpt_fingerprint")
         if isinstance(excerpt_fingerprint, str) and excerpt_fingerprint:
             payload["excerpt_fingerprint"] = excerpt_fingerprint
+        excerpt_lookup_fingerprint = self.provenance.get("excerpt_lookup_fingerprint")
+        if isinstance(excerpt_lookup_fingerprint, str) and excerpt_lookup_fingerprint:
+            payload["excerpt_lookup_fingerprint"] = excerpt_lookup_fingerprint
         excerpt_text_hash = self.provenance.get("excerpt_text_hash") or self.provenance.get("hash")
         if isinstance(excerpt_text_hash, str) and excerpt_text_hash:
             payload["excerpt_text_hash"] = excerpt_text_hash
@@ -554,6 +557,7 @@ class RetrievalResult:
                 "excerpt_id": hit.excerpt_id,
                 "excerpt_text": hit.excerpt_text,
                 "excerpt_fingerprint": hit.provenance.get("excerpt_fingerprint"),
+                "excerpt_lookup_fingerprint": hit.provenance.get("excerpt_lookup_fingerprint"),
                 "excerpt_text_hash": hit.provenance.get("excerpt_text_hash") or hit.provenance.get("hash"),
                 "span": copy.deepcopy(hit.provenance.get("span")),
                 "rank": hit.provenance.get("rank"),
@@ -2023,6 +2027,17 @@ class RetrievalService:
             "retrieval_policy": self._retrieval_policy.as_snapshot(),
             "doc_identity_fingerprint": doc_identity_fingerprint,
         }
+        provenance["excerpt_lookup_fingerprint"] = self._build_excerpt_lookup_fingerprint(
+            excerpt_id=excerpt_id,
+            doc_id=doc_id,
+            source_hash=source_hash,
+            span=cast(dict[str, object], provenance["span"]),
+            text_hash=text_hash,
+            source_strategy="fts",
+            retrieval_backend=self._retrieval_policy.retrieval_backend,
+            retrieval_mode=self._retrieval_policy.retrieval_mode,
+            lookup_resolution="fts",
+        )
         if query_scope is not None:
             provenance["query_scope"] = query_scope
         if query_intent is not None:

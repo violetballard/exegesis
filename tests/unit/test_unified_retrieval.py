@@ -1168,6 +1168,14 @@ class UnifiedRetrievalTests(unittest.TestCase):
         self.assertEqual(excerpt["provenance"]["title_hint"], result.hits[0].title_hint)
         self.assertEqual(excerpt["provenance"]["hash"], result.hits[0].provenance["hash"])
         self.assertEqual(excerpt["provenance"]["excerpt_fingerprint"], result.hits[0].provenance["excerpt_fingerprint"])
+        self.assertEqual(
+            excerpt["excerpt_lookup_fingerprint"],
+            result.hits[0].provenance["excerpt_lookup_fingerprint"],
+        )
+        self.assertEqual(
+            result.hits[0].as_dict()["excerpt_lookup_fingerprint"],
+            excerpt["excerpt_lookup_fingerprint"],
+        )
         self.assertTrue(excerpt["text"])
 
     def test_fetch_excerpt_requires_an_fts_lookup_hit(self) -> None:
@@ -1273,6 +1281,15 @@ class UnifiedRetrievalTests(unittest.TestCase):
         self.assertEqual(basket_item["lookup_resolution"], "fts")
         self.assertEqual(
             basket_item["excerpt_lookup_fingerprint"],
+            canonical["excerpt_lookup_fingerprint"],
+        )
+        result_basket_item = result.basket_promotion_items()[0]
+        self.assertEqual(
+            result_basket_item["excerpt_lookup_fingerprint"],
+            canonical["excerpt_lookup_fingerprint"],
+        )
+        self.assertEqual(
+            result.to_downstream_payload()["basket_promotion_items"][0]["excerpt_lookup_fingerprint"],
             canonical["excerpt_lookup_fingerprint"],
         )
         self.assertEqual(
