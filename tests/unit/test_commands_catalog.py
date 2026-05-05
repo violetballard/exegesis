@@ -63,6 +63,7 @@ from src.qual.commands.catalog import (
     validate_command_catalog,
     command_demo_readiness_command_for_argv,
     command_demo_readiness_entry_for_argv,
+    command_demo_readiness_validate_shell_script_lines,
     COMMAND_SMOKE_CLI_LAUNCHER_ARGV,
 )
 
@@ -694,6 +695,28 @@ class CommandCatalogTests(unittest.TestCase):
                     CommandSpec(name="project-open", flow_step="retrieval"),
                 )
             )
+
+    def test_shell_script_validation_keeps_commands_after_setup_chains(self) -> None:
+        script = """
+        set -euo pipefail
+        cd /tmp/example && python -m src.main bootstrap
+        export QUAL_DEMO=1 && python -m src.main context-basket list
+        pwd && python -m src.main context-basket add demo-retrieval-result
+        pwd && python -m src.main diff-preview --original draft --proposed revised
+        python -m src.main terminal --operation-kind terminal_synthesis_request --message done
+        """
+
+        validation = command_demo_readiness_validate_shell_script_lines(script)
+
+        self.assertTrue(validation.is_complete)
+        self.assertEqual(validation.invalid_argv, ())
+        self.assertEqual(validation.missing_flow_steps, ())
+        self.assertEqual(validation.missing_engine_actions, ())
+        self.assertEqual(
+            validation.covered_flow_steps,
+            ("project-open", "retrieval", "patch-review", "export-handoff"),
+        )
+
     def test_versioned_python_launchers_are_recognized(self) -> None:
         """Versioned Python binaries (python3.12, python3.13.1, etc.) must be treated
         as supported launchers so readiness lookups strip them correctly."""

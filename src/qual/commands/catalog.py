@@ -5601,11 +5601,27 @@ def _shell_script_executable_argv(lines: Sequence[str] | str) -> tuple[tuple[str
         except ValueError:
             executable_argv.append((line,))
             continue
-        if _is_shell_script_setup_argv(argv):
-            continue
-        if argv:
-            executable_argv.append(argv)
+        for segment_argv in _split_shell_script_command_segments(argv):
+            if _is_shell_script_setup_argv(segment_argv):
+                continue
+            if segment_argv:
+                executable_argv.append(segment_argv)
     return tuple(executable_argv)
+
+
+def _split_shell_script_command_segments(argv: tuple[str, ...]) -> tuple[tuple[str, ...], ...]:
+    segments: list[tuple[str, ...]] = []
+    current_segment: list[str] = []
+    for token in argv:
+        if token == "&&":
+            if current_segment:
+                segments.append(tuple(current_segment))
+                current_segment = []
+            continue
+        current_segment.append(token)
+    if current_segment:
+        segments.append(tuple(current_segment))
+    return tuple(segments)
 
 
 def _is_shell_script_setup_argv(argv: tuple[str, ...]) -> bool:
