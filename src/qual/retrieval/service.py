@@ -492,12 +492,21 @@ class RetrievalResult:
         """Return the deterministic excerpt-focused snapshot for downstream engine flows."""
 
         bundle_context = self._retrieval_bundle_context_snapshot()
+        basket_promotion_items = self.basket_promotion_items()
+        basket_item_fingerprints = [
+            str(item["basket_item_fingerprint"])
+            for item in basket_promotion_items
+        ]
         return {
             **bundle_context,
             "doc_count": len(self.doc_hits),
             "excerpt_count": len(self.hits),
             "excerpt_hits": [hit.as_dict() for hit in self.hits],
             "excerpt_citations": self._excerpt_citation_snapshots(),
+            "basket_promotion_items": copy.deepcopy(basket_promotion_items),
+            "basket_promotion_count": len(basket_promotion_items),
+            "basket_item_ids": [str(item["item_id"]) for item in basket_promotion_items],
+            "basket_item_fingerprints": basket_item_fingerprints,
         }
 
     def retrieval_context_bundle(self) -> dict[str, object]:
