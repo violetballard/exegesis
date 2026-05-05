@@ -117,6 +117,7 @@ class RouterConfig:
     max_cloud_feature_jobs: int
     max_cloud_reviewer_jobs: int
     max_cloud_integrator_jobs: int
+    max_total_cloud_jobs: int
     prefer_cli_fixer: bool
     prefer_cli_reviewer: bool
     prefer_cli_integrator: bool
@@ -273,11 +274,12 @@ def load_cfg() -> RouterConfig:
         fixer_quota_retry_cooldown_seconds=float(cfg.get("fixer_quota_retry_cooldown_seconds", 3600)),
         max_cloud_fixer_kicks_per_run=int(cfg.get("max_cloud_fixer_kicks_per_run", 1)),
         max_local_fixer_kicks_per_run=int(cfg.get("max_local_fixer_kicks_per_run", 1)),
-        max_cloud_fixer_jobs=int(cfg.get("max_cloud_fixer_jobs", 2)),
+        max_cloud_fixer_jobs=int(cfg.get("max_cloud_fixer_jobs", 4)),
         max_local_fixer_jobs=int(cfg.get("max_local_fixer_jobs", 2)),
-        max_cloud_feature_jobs=int(cfg.get("max_cloud_feature_jobs", 1)),
-        max_cloud_reviewer_jobs=int(cfg.get("max_cloud_reviewer_jobs", 1)),
-        max_cloud_integrator_jobs=int(cfg.get("max_cloud_integrator_jobs", 1)),
+        max_cloud_feature_jobs=int(cfg.get("max_cloud_feature_jobs", 4)),
+        max_cloud_reviewer_jobs=int(cfg.get("max_cloud_reviewer_jobs", 4)),
+        max_cloud_integrator_jobs=int(cfg.get("max_cloud_integrator_jobs", 4)),
+        max_total_cloud_jobs=int(cfg.get("max_total_cloud_jobs", 4)),
         max_total_local_lms_jobs=int(cfg.get("max_total_local_lms_jobs", 4)),
         prefer_cli_fixer=bool(cfg.get("prefer_cli_fixer", True)),
         prefer_cli_reviewer=bool(cfg.get("prefer_cli_reviewer", True)),
@@ -1030,25 +1032,35 @@ def _count_active_feature_cloud_jobs() -> int:
     return active
 
 
+def _count_active_cloud_jobs(state: Dict[str, Any]) -> int:
+    active = _count_active_feature_cloud_jobs()
+    active += _count_active_local_jobs(_local_job_map(state, "cloud_integrator_jobs"))
+    active += _count_active_pid_jobs(_local_job_map(state, "fixer_fallback_jobs"), local=False)
+    return active
+
+
 def _cloud_role_slot_available(cfg: RouterConfig, state: Dict[str, Any], role: str) -> bool:
     if not _cloud_available(cfg, state):
         return False
     if role == "feature":
-        cap = int(getattr(cfg, "max_cloud_feature_jobs", 1) or 0)
+        cap = int(getattr(cfg, "max_cloud_feature_jobs", 4) or 0)
         active = _count_active_feature_cloud_jobs()
     elif role == "reviewer":
-        cap = int(getattr(cfg, "max_cloud_reviewer_jobs", 1) or 0)
+        cap = int(getattr(cfg, "max_cloud_reviewer_jobs", 4) or 0)
         active = 0
     elif role == "integrator":
-        cap = int(getattr(cfg, "max_cloud_integrator_jobs", CLOUD_INTEGRATOR_MAX_ACTIVE) or 0)
+        cap = int(getattr(cfg, "max_cloud_integrator_jobs", 4) or 0)
         active = _count_active_local_jobs(_local_job_map(state, "cloud_integrator_jobs"))
     elif role == "fixer":
-        cap = int(getattr(cfg, "max_cloud_fixer_jobs", 1) or 0)
+        cap = int(getattr(cfg, "max_cloud_fixer_jobs", 4) or 0)
         active = _count_active_pid_jobs(_local_job_map(state, "fixer_fallback_jobs"), local=False)
     else:
         cap = 1
         active = 0
     if cap <= 0:
+        return False
+    total_cap = int(getattr(cfg, "max_total_cloud_jobs", 4) or 0)
+    if total_cap > 0 and _count_active_cloud_jobs(state) >= total_cap:
         return False
     return active < cap
 
@@ -1472,6 +1484,9 @@ def _prepare_cli_integrator_result(
         state[jobs_key] = jobs
         return False, "", state
     if local and not _local_lms_slot_available(cfg, state):
+        state[jobs_key] = jobs
+        return False, "", state
+    if not local and not _cloud_role_slot_available(cfg, state, "integrator"):
         state[jobs_key] = jobs
         return False, "", state
 

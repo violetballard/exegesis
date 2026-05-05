@@ -27,6 +27,7 @@ class CloudConcurrencyCapsTests(unittest.TestCase):
             },
             "max_parallel_feature_lanes_cloud": 2,
             "max_parallel_feature_lanes_local": 2,
+            "max_total_cloud_jobs": 4,
             "max_total_local_lms_jobs": 4,
         }
         state = {"runtime_mode": "cloud_primary"}
@@ -35,6 +36,7 @@ class CloudConcurrencyCapsTests(unittest.TestCase):
 
         self.assertEqual(launch_cfg["max_parallel_feature_lanes_cloud"], 2)
         self.assertEqual(launch_cfg["max_parallel_feature_lanes_local"], 2)
+        self.assertEqual(launch_cfg["max_total_cloud_jobs"], 4)
         self.assertEqual(launch_cfg["max_total_local_lms_jobs"], 4)
 
     def test_runtime_launch_config_honors_lane_cloud_profile_override(self) -> None:
@@ -165,6 +167,7 @@ class CloudConcurrencyCapsTests(unittest.TestCase):
             max_cloud_feature_jobs=1,
             max_cloud_reviewer_jobs=1,
             max_cloud_integrator_jobs=1,
+            max_total_cloud_jobs=4,
             prefer_cli_fixer=True,
             prefer_cli_reviewer=True,
             prefer_cli_integrator=True,
@@ -225,6 +228,7 @@ class CloudConcurrencyCapsTests(unittest.TestCase):
             max_cloud_feature_jobs=1,
             max_cloud_reviewer_jobs=1,
             max_cloud_integrator_jobs=1,
+            max_total_cloud_jobs=4,
             prefer_cli_fixer=True,
             prefer_cli_reviewer=True,
             prefer_cli_integrator=True,
@@ -354,6 +358,56 @@ class CloudConcurrencyCapsTests(unittest.TestCase):
         ):
             self.assertEqual(launch_feature_lanes._local_lms_launch_slots(launch_cfg, feature_state), 1)
 
+    def test_feature_launcher_bounds_cloud_launches_by_total_cloud_cap(self) -> None:
+        launch_cfg = {"mode": "cloud_primary", "max_cloud_feature_jobs": 4, "max_total_cloud_jobs": 4}
+        feature_state = {
+            "lanes": {
+                "feat-engine": {"mode": "cloud_primary", "pid": 1111},
+                "feat-context": {"mode": "local_fallback", "pid": 2222},
+            }
+        }
+        router_state = {
+            "cloud_integrator_jobs": {"feat-retrieval:packet": {"pid": 3333}},
+            "fixer_fallback_jobs": {
+                "feat-a": {"pid": 4444, "local": False},
+                "feat-b": {"pid": 5555, "local": True},
+            },
+        }
+
+        def fake_pid_alive(pid: int) -> bool:
+            return pid in {1111, 3333, 4444, 5555}
+
+        with (
+            mock.patch.object(launch_feature_lanes, "load_json", return_value=router_state),
+            mock.patch.object(launch_feature_lanes, "_pid_alive", side_effect=fake_pid_alive),
+        ):
+            self.assertEqual(launch_feature_lanes._cloud_feature_launch_slots(launch_cfg, feature_state), 1)
+
+    def test_router_cloud_role_slots_share_total_cloud_cap(self) -> None:
+        cfg = SimpleNamespace(
+            max_cloud_feature_jobs=4,
+            max_cloud_reviewer_jobs=4,
+            max_cloud_integrator_jobs=4,
+            max_cloud_fixer_jobs=4,
+            max_total_cloud_jobs=4,
+            runtime_mode_default="hybrid",
+        )
+        state = {
+            "runtime_mode": "hybrid",
+            "cloud_available": True,
+            "cloud_integrator_jobs": {"feat-a:packet": {"pid": 1111, "result_path": "/tmp/missing-cloud-integrator-result"}},
+            "fixer_fallback_jobs": {
+                "feat-b": {"pid": 2222, "local": False},
+                "feat-local": {"pid": 3333, "local": True},
+            },
+        }
+
+        with (
+            mock.patch.object(router, "_count_active_feature_cloud_jobs", return_value=2),
+            mock.patch.object(router, "_pid_alive", side_effect=lambda pid: pid in {1111, 2222, 3333}),
+        ):
+            self.assertFalse(router._cloud_role_slot_available(cfg, state, "integrator"))
+
     def test_coordinator_refills_features_around_active_fixer(self) -> None:
         state_doc: dict[str, object] = {}
         launched: list[str] = []
@@ -481,6 +535,7 @@ class CloudConcurrencyCapsTests(unittest.TestCase):
             max_cloud_feature_jobs=1,
             max_cloud_reviewer_jobs=1,
             max_cloud_integrator_jobs=1,
+            max_total_cloud_jobs=4,
                 prefer_cli_fixer=True,
                 prefer_cli_reviewer=True,
                 prefer_cli_integrator=True,
@@ -554,6 +609,7 @@ class CloudConcurrencyCapsTests(unittest.TestCase):
             max_cloud_feature_jobs=1,
             max_cloud_reviewer_jobs=1,
             max_cloud_integrator_jobs=1,
+            max_total_cloud_jobs=4,
                 prefer_cli_fixer=True,
                 prefer_cli_reviewer=True,
                 prefer_cli_integrator=True,
@@ -581,6 +637,7 @@ class CloudConcurrencyCapsTests(unittest.TestCase):
             with (
                 mock.patch.object(router, "ensure_lane_dirs", side_effect=fake_ensure_lane_dirs),
                 mock.patch.object(router, "_latest_fixer_log", return_value=quota_log),
+                mock.patch.object(router, "_local_lms_slot_available", return_value=True),
                 mock.patch.object(router, "_maybe_restore_cloud", side_effect=lambda cfg, state, repo_cwd: state),
                 mock.patch.object(router, "_materialize_reviewer_packet", return_value="review packet"),
                 mock.patch.object(router, "run_fixer", side_effect=fake_run_fixer),
@@ -629,6 +686,7 @@ class CloudConcurrencyCapsTests(unittest.TestCase):
             max_cloud_feature_jobs=1,
             max_cloud_reviewer_jobs=1,
             max_cloud_integrator_jobs=1,
+            max_total_cloud_jobs=4,
                 prefer_cli_fixer=True,
                 prefer_cli_reviewer=True,
                 prefer_cli_integrator=True,
@@ -696,6 +754,7 @@ class CloudConcurrencyCapsTests(unittest.TestCase):
             max_cloud_feature_jobs=1,
             max_cloud_reviewer_jobs=1,
             max_cloud_integrator_jobs=1,
+            max_total_cloud_jobs=4,
                 prefer_cli_fixer=True,
                 prefer_cli_reviewer=True,
                 prefer_cli_integrator=True,
@@ -760,6 +819,7 @@ class CloudConcurrencyCapsTests(unittest.TestCase):
             max_cloud_feature_jobs=1,
             max_cloud_reviewer_jobs=1,
             max_cloud_integrator_jobs=1,
+            max_total_cloud_jobs=4,
             prefer_cli_fixer=True,
             prefer_cli_reviewer=True,
             prefer_cli_integrator=True,
@@ -836,6 +896,7 @@ class CloudConcurrencyCapsTests(unittest.TestCase):
             max_cloud_feature_jobs=1,
             max_cloud_reviewer_jobs=1,
             max_cloud_integrator_jobs=1,
+            max_total_cloud_jobs=4,
             prefer_cli_fixer=True,
             prefer_cli_reviewer=True,
             prefer_cli_integrator=True,

@@ -38,6 +38,7 @@ def _router_cfg() -> RouterConfig:
         max_cloud_feature_jobs=1,
         max_cloud_reviewer_jobs=1,
         max_cloud_integrator_jobs=1,
+        max_total_cloud_jobs=4,
         prefer_cli_fixer=True,
         prefer_cli_reviewer=True,
         prefer_cli_integrator=True,

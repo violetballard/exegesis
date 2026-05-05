@@ -1546,7 +1546,7 @@ def _cloud_feature_launch_slots() -> int:
     if not _cloud_available_for_feature_launch():
         return 0
     router_cfg = load_json(ROUTER_CONFIG_FILE, {})
-    cap = int(router_cfg.get("max_cloud_feature_jobs", 1) or 0)
+    cap = int(router_cfg.get("max_cloud_feature_jobs", 4) or 0)
     if cap <= 0:
         return 0
     active = 0
@@ -1557,7 +1557,31 @@ def _cloud_feature_launch_slots() -> int:
             continue
         if _pid_alive(int(lane_state.get("pid") or 0)):
             active += 1
-    return max(0, cap - active)
+    feature_slots = max(0, cap - active)
+    total_cap = int(router_cfg.get("max_total_cloud_jobs", 4) or 0)
+    if total_cap <= 0:
+        return feature_slots
+    return min(feature_slots, max(0, total_cap - active - _active_cloud_router_jobs()))
+
+
+def _active_cloud_router_jobs() -> int:
+    router_state = load_json(ROUTER_STATE_FILE, {})
+    active = 0
+    jobs = router_state.get("cloud_integrator_jobs") or {}
+    if isinstance(jobs, dict):
+        for job in jobs.values():
+            if isinstance(job, dict) and _pid_alive(int(job.get("pid") or 0)):
+                active += 1
+    fixer_jobs = router_state.get("fixer_fallback_jobs") or {}
+    if isinstance(fixer_jobs, dict):
+        for job in fixer_jobs.values():
+            if not isinstance(job, dict):
+                continue
+            if bool(job.get("local", True)):
+                continue
+            if _pid_alive(int(job.get("pid") or 0)):
+                active += 1
+    return active
 
 
 def _active_local_fixer_jobs() -> int:

@@ -218,9 +218,10 @@ def runtime_launch_config(lane: str | None = None, *, provider: str = "auto") ->
         "mode": mode,
         "profile_name": profile_name,
         "launch_timeout_seconds": float(cfg.get("feature_launch_timeout_seconds", 120)),
-        "max_parallel_feature_lanes_cloud": int(cfg.get("max_parallel_feature_lanes_cloud", 2)),
+        "max_parallel_feature_lanes_cloud": int(cfg.get("max_parallel_feature_lanes_cloud", 4)),
         "max_parallel_feature_lanes_local": int(cfg.get("max_parallel_feature_lanes_local", 1)),
-        "max_cloud_feature_jobs": int(cfg.get("max_cloud_feature_jobs", 1)),
+        "max_cloud_feature_jobs": int(cfg.get("max_cloud_feature_jobs", 4)),
+        "max_total_cloud_jobs": int(cfg.get("max_total_cloud_jobs", 4)),
         "max_total_local_lms_jobs": int(cfg.get("max_total_local_lms_jobs", 4)),
         "provider": "local" if mode == "local_fallback" else "cloud",
         "disable_local_fallback_on_cloud_timeout": bool(cfg.get("disable_local_fallback_on_cloud_timeout", False)),
@@ -321,6 +322,25 @@ def _active_cloud_feature_jobs(feature_state: Dict[str, Any]) -> int:
     return active
 
 
+def _active_cloud_router_jobs(router_state: Dict[str, Any]) -> int:
+    active = 0
+    jobs = router_state.get("cloud_integrator_jobs") if isinstance(router_state, dict) else {}
+    if isinstance(jobs, dict):
+        for job in jobs.values():
+            if isinstance(job, dict) and _pid_alive(int(job.get("pid") or 0)):
+                active += 1
+    fixer_jobs = router_state.get("fixer_fallback_jobs") if isinstance(router_state, dict) else {}
+    if isinstance(fixer_jobs, dict):
+        for job in fixer_jobs.values():
+            if not isinstance(job, dict):
+                continue
+            if bool(job.get("local", True)):
+                continue
+            if _pid_alive(int(job.get("pid") or 0)):
+                active += 1
+    return active
+
+
 def _active_local_router_jobs(router_state: Dict[str, Any]) -> int:
     active = 0
     for key in ("local_reviewer_jobs", "local_integrator_jobs"):
@@ -357,7 +377,13 @@ def _cloud_feature_launch_slots(launch_cfg: Dict[str, object], feature_state: Di
     cap = int(launch_cfg.get("max_cloud_feature_jobs") or 0)
     if cap <= 0:
         return 0
-    return max(0, cap - _active_cloud_feature_jobs(feature_state))
+    router_state = load_json(STATE_FILE, {})
+    total_cap = int(launch_cfg.get("max_total_cloud_jobs") or 0)
+    feature_slots = max(0, cap - _active_cloud_feature_jobs(feature_state))
+    if total_cap <= 0:
+        return feature_slots
+    active_total = _active_cloud_feature_jobs(feature_state) + _active_cloud_router_jobs(router_state)
+    return min(feature_slots, max(0, total_cap - active_total))
 
 
 def _spawn_direct_exec(
@@ -993,7 +1019,7 @@ def main() -> int:
         parallel_limit = int(launch_cfg.get("max_parallel_feature_lanes_local", 1))
         parallel_limit = min(parallel_limit, _local_lms_launch_slots(launch_cfg, feature_state))
     else:
-        parallel_limit = int(launch_cfg.get("max_parallel_feature_lanes_cloud", 2))
+        parallel_limit = int(launch_cfg.get("max_parallel_feature_lanes_cloud", 4))
         parallel_limit = min(parallel_limit, _cloud_feature_launch_slots(launch_cfg, feature_state))
     if parallel_limit <= 0:
         print(json.dumps({"runtime_mode": launch_cfg["mode"], "launched": []}, indent=2))

@@ -1111,12 +1111,15 @@ def main() -> None:
     cloud_integrator_jobs = _count_active_pid_jobs(router_state.get("cloud_integrator_jobs") or {})
     cloud_fixer_jobs = _count_active_pid_jobs(router_state.get("fixer_fallback_jobs") or {}, local=False)
     cfg_for_caps = _load_json(ROUTER_CFG, {}) or {}
+    cloud_total_jobs = cloud_feature_jobs + cloud_reviewer_jobs + cloud_integrator_jobs + cloud_fixer_jobs
+    cloud_total_cap = int(cfg_for_caps.get("max_total_cloud_jobs", 4) or 4)
     print(
         "cloud_jobs="
-        f"features {cloud_feature_jobs}/{int(cfg_for_caps.get('max_cloud_feature_jobs', 1) or 1)}, "
-        f"reviewer {cloud_reviewer_jobs}/{int(cfg_for_caps.get('max_cloud_reviewer_jobs', 1) or 1)}, "
-        f"integrator {cloud_integrator_jobs}/{int(cfg_for_caps.get('max_cloud_integrator_jobs', 1) or 1)}, "
-        f"fixer {cloud_fixer_jobs}/{int(cfg_for_caps.get('max_cloud_fixer_jobs', 1) or 1)}"
+        f"{cloud_total_jobs}/{cloud_total_cap} total "
+        f"(features {cloud_feature_jobs}, "
+        f"reviewer {cloud_reviewer_jobs}, "
+        f"integrator {cloud_integrator_jobs}, "
+        f"fixer {cloud_fixer_jobs})"
     )
     reviewer_map = router_state.get("reviewer_thread_ids") or {}
     if isinstance(reviewer_map, dict) and reviewer_map:
