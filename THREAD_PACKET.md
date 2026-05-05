@@ -3,10 +3,10 @@
 - Branch name: `codex/feat-retrieval-fts`
 - Lane: `feat-retrieval-fts`
 - Merge target: current `main`
-- Merge candidate: actual branch tip after this sparse basket-reference normalization commit; final SHA is reported in the fixer deliverable.
+- Merge candidate: current branch tip `68b43026c91102dc3adbdc542bf0449101d8acb7` before this packet correction commit; the final post-commit SHA is reported in the fixer deliverable.
 - Reviewed implementation range for re-review: `378cf9a74a3658058079a32f186fcd254c4a4034..HEAD`
 - Current merge-base before this fixer pass: `b402b065618b5ad383c527c30b677f03c03a8c88`
-- Traceability correction: the branch-tip implementation after `adfa8cdadd43747ffbcb612e4151e262b13e52ca` is part of the merge candidate. The prior claim that `10272337c899350ff4e8ee74ba44e77ed6f1be38` was metadata-only is false and is replaced by this packet. This pass adds a source-bearing sparse basket-reference normalization commit and keeps the reviewed range as `378cf9a74a3658058079a32f186fcd254c4a4034..HEAD`.
+- Traceability correction: all implementation after `adfa8cdadd43747ffbcb612e4151e262b13e52ca` through `68b43026c91102dc3adbdc542bf0449101d8acb7` is part of the merge candidate. The prior packet wording that treated branch-tip commits after `adfa8cdadd43747ffbcb612e4151e262b13e52ca` as metadata-only was materially incorrect and is replaced by this packet. No source-bearing commit in `378cf9a74a3658058079a32f186fcd254c4a4034..HEAD` is excluded from re-review.
 - Scope classification: high-risk fixer under the 4-task cap because this reviewed range includes approved shared regression coverage in `tests/unit/test_unified_retrieval.py`.
 - Handoff type: retrieval feature fixer handoff for the FTS-first retrieval lane.
 
@@ -56,12 +56,12 @@ Integrator-locked files: none.
 ## Budget/Risk
 
 - Task budget: `4/4` high-risk tasks.
-- File budget: `9/12` changed files for the full `378cf9a...HEAD` branch-tip review range; `5` source files, `1` approved shared test file, `3` handoff/metadata files.
-- Net LOC for this final sparse basket-reference normalization pass before commit: `+97/-23` across `2` files before this packet refresh. Full `378cf9a...HEAD` branch-tip review range remains the merge-candidate range for re-review after this commit.
+- File budget: `9/12` changed files for the full `378cf9a74a3658058079a32f186fcd254c4a4034..68b43026c91102dc3adbdc542bf0449101d8acb7` pre-fixer branch-tip review range; `5` source files, `1` approved shared test file, `3` handoff/metadata files.
+- Net LOC for the full pre-fixer branch-tip review range: `+1913/-228` across `9` files. This exceeds the standard `<=500` net LOC budget and the high-risk `<=300` net LOC budget, so this packet explicitly reports a budget overrun for re-review instead of claiming compliance.
 - Shared-file approval note: `tests/unit/test_unified_retrieval.py` is the approved shared-by-approval regression file for this lane.
 - Routing/provider impact: none.
 - PageIndex/embeddings impact: none; both remain deferred/compatibility-only.
-- Remaining risk: moderate traceability/review risk due to the large historical branch-tip range, now mitigated by making the actual merge candidate, full changed file list, branch-tip implementation surface, and this final sparse-source-strategy guard explicit for re-review.
+- Remaining risk: high traceability/review risk due to the large historical branch-tip range and explicit AGENTS size-budget overrun, now mitigated only by making the actual merge candidate, full changed file list, branch-tip implementation surface, and canonical demo-path mapping explicit for re-review.
 
 ## Roadmap/Vision
 
@@ -73,13 +73,12 @@ Integrator-locked files: none.
 
 ## Commands Run
 
-These gates were run for the actual branch-tip merge candidate after sparse basket-reference normalization:
+These gates were re-run by this fixer for the actual branch-tip merge candidate after packet correction:
 
-- `make scope-check` - passed for branch `codex/feat-retrieval-fts`.
+- `make scope-check` - passed for branch `codex/feat-retrieval-fts`; the scope checker reported no explicit policy for the branch and exited green.
 - `./quality-format.sh --check` - passed.
 - `./quality-lint.sh` - passed.
-- `./quality-test.sh tests/unit/test_unified_retrieval.py` - passed after sparse basket-reference normalization; ran smoke plus 135 unit tests, including `test_retrieval_context_bundle_helper_deduplicates_sparse_basket_refs`.
-- `./quality-test.sh` - passed after sparse basket-reference normalization; ran smoke plus 135 unit tests, including unified retrieval.
+- `./quality-test.sh` - passed after packet correction; ran smoke plus 135 unit tests, including unified retrieval and `test_retrieval_context_bundle_helper_deduplicates_sparse_basket_refs`.
 - `./typecheck-test.sh` - passed; compiled Python sources in `src/`.
 - `make ci` - passed; reran setup, scope-check, format, lint, typecheck, and quality tests.
 
@@ -87,4 +86,4 @@ The final fixer deliverable restates the exact post-commit SHA and gate outcomes
 
 ## Risks/Blockers
 
-The `.codex` kickoff and lane metadata mirrors could not be rewritten from this sandbox because writes to those paths returned `EPERM`; `THREAD_PACKET.md` is the corrected handoff source of truth. Re-review should inspect `378cf9a74a3658058079a32f186fcd254c4a4034..HEAD` as the actual merge candidate, including all retrieval facade, FTS strategy, payload, service, and approved shared regression changes after `adfa8cdadd43747ffbcb612e4151e262b13e52ca`.
+The `.codex` kickoff and lane metadata mirrors still contain stale historical packet wording. This fixer attempted to update `.codex/kickoff_packets/feat-retrieval-fts.md`, but the sandbox rejected the write as outside the project; `THREAD_PACKET.md` is therefore the corrected source of truth for re-review. Re-review should inspect `378cf9a74a3658058079a32f186fcd254c4a4034..HEAD` as the actual merge candidate, including all retrieval facade, FTS strategy, payload, service, and approved shared regression changes after `adfa8cdadd43747ffbcb612e4151e262b13e52ca`. The branch intentionally keeps those post-`adfa8cda` implementation changes in the submitted tip; they advance the canonical demo-path step `retrieve relevant material` by making FTS evidence, basket promotion references, provenance, query context, and sparse payload reconstruction deterministic and fail-closed.
