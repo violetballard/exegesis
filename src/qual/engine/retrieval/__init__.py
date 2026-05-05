@@ -33,14 +33,22 @@ def _normalize_constraint_values(value: object, *, field_name: str) -> tuple[str
     if value is None:
         return ()
     if isinstance(value, str):
-        return (value,)
+        normalized = value.strip()
+        return (normalized,) if normalized else ()
     if isinstance(value, (bytes, bytearray)):
         raise TypeError(f"{field_name} must be an iterable of text values")
     if isinstance(value, Mapping):
         raise TypeError(f"{field_name} must be an iterable of values, not a mapping")
     if not isinstance(value, Iterable):
         raise TypeError(f"{field_name} must be an iterable of values or None")
-    return tuple(str(item) for item in value if item is not None)
+    normalized_values: list[str] = []
+    for item in value:
+        if item is None:
+            continue
+        normalized = str(item).strip()
+        if normalized:
+            normalized_values.append(normalized)
+    return tuple(normalized_values)
 
 
 def _normalize_optional_int(value: object, *, default: int) -> int:
