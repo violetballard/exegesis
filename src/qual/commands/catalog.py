@@ -5253,8 +5253,9 @@ def _split_supported_launcher_prefix(argv: tuple[str, ...]) -> tuple[tuple[str, 
     if uv_python_prefix:
         return uv_python_prefix, uv_python_unwrapped_argv
     for launcher_prefix in COMMAND_SMOKE_SUPPORTED_LAUNCHER_PREFIXES:
-        if argv[: len(launcher_prefix)] == launcher_prefix:
-            return launcher_prefix, argv[len(launcher_prefix) :]
+        requested_prefix = argv[: len(launcher_prefix)]
+        if _launcher_prefix_matches(requested_prefix, launcher_prefix):
+            return requested_prefix, argv[len(launcher_prefix) :]
     return (), argv
 
 
@@ -5276,17 +5277,44 @@ def _split_env_launcher_prefix(argv: tuple[str, ...]) -> tuple[tuple[str, ...], 
 
 
 def _split_uv_python_launcher_prefix(argv: tuple[str, ...]) -> tuple[tuple[str, ...], tuple[str, ...]]:
-    if len(argv) < 4 or argv[:3] != ("uv", "run", "--python"):
+    if len(argv) < 3 or not _is_supported_uv_launcher(argv[0]) or argv[1] != "run":
         return (), argv
-    python_launcher = argv[3]
+    python_option = argv[2]
+    if python_option == "--python":
+        if len(argv) < 4:
+            return (), argv
+        python_launcher = argv[3]
+        prefix = argv[:4]
+        unwrapped_argv = argv[4:]
+    elif python_option.startswith("--python="):
+        python_launcher = python_option.split("=", 1)[1]
+        prefix = argv[:3]
+        unwrapped_argv = argv[3:]
+    else:
+        return (), argv
     if not python_launcher.strip() or not _is_supported_python_launcher(python_launcher):
         return (), argv
-    prefix = argv[:4]
-    unwrapped_argv = argv[4:]
     if unwrapped_argv[:1] == ("--",):
         prefix = (*prefix, "--")
         unwrapped_argv = unwrapped_argv[1:]
     return prefix, unwrapped_argv
+
+
+def _launcher_prefix_matches(
+    requested_prefix: tuple[str, ...],
+    expected_prefix: tuple[str, ...],
+) -> bool:
+    if requested_prefix == expected_prefix:
+        return True
+    if not requested_prefix or not expected_prefix:
+        return False
+    if expected_prefix[0] != "uv":
+        return False
+    return _is_supported_uv_launcher(requested_prefix[0]) and requested_prefix[1:] == expected_prefix[1:]
+
+
+def _is_supported_uv_launcher(token: str) -> bool:
+    return PurePath(token).name == "uv"
 
 
 def _canonical_argv_with_requested_launcher(
