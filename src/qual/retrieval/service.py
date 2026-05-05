@@ -7,7 +7,7 @@ import re
 import sqlite3
 import uuid
 from contextlib import contextmanager
-from dataclasses import dataclass, field
+from dataclasses import dataclass, field, replace
 from datetime import UTC, date, datetime
 from pathlib import Path
 from tempfile import NamedTemporaryFile
@@ -223,6 +223,9 @@ class RetrievalHit:
         excerpt_fingerprint = self.provenance.get("excerpt_fingerprint")
         if isinstance(excerpt_fingerprint, str) and excerpt_fingerprint:
             payload["excerpt_fingerprint"] = excerpt_fingerprint
+        excerpt_lookup_fingerprint = self.provenance.get("excerpt_lookup_fingerprint")
+        if isinstance(excerpt_lookup_fingerprint, str) and excerpt_lookup_fingerprint:
+            payload["excerpt_lookup_fingerprint"] = excerpt_lookup_fingerprint
         excerpt_text_hash = self.provenance.get("excerpt_text_hash") or self.provenance.get("hash")
         if isinstance(excerpt_text_hash, str) and excerpt_text_hash:
             payload["excerpt_text_hash"] = excerpt_text_hash
@@ -537,6 +540,7 @@ class RetrievalResult:
                 "excerpt_id": hit.excerpt_id,
                 "excerpt_text": hit.excerpt_text,
                 "excerpt_fingerprint": hit.provenance.get("excerpt_fingerprint"),
+                "excerpt_lookup_fingerprint": hit.provenance.get("excerpt_lookup_fingerprint"),
                 "excerpt_text_hash": hit.provenance.get("excerpt_text_hash") or hit.provenance.get("hash"),
                 "span": copy.deepcopy(hit.provenance.get("span")),
                 "rank": hit.provenance.get("rank"),
@@ -907,7 +911,7 @@ class RetrievalService:
         downstream engine callers can depend on a single auditable strategy.
         """
         self._validate_query(query)
-        return self._run_fts_first_retrieval(query)
+        return self._run_fts_first_retrieval(self._canonicalize_query_scope(query))
 
     def retrieve_fts_payload(self, query: RetrievalQuery) -> dict[str, object]:
         """Return the canonical downstream payload for a single FTS retrieval."""
@@ -1072,6 +1076,11 @@ class RetrievalService:
         if date_range is not None:
             candidate_doc_ids = self._filter_candidate_doc_ids_by_date_range(candidate_doc_ids, date_range)
         effective_candidate_doc_count = self._effective_candidate_doc_count(query.scope, candidate_doc_ids)
+        candidate_resolution = self._candidate_resolution_snapshot(
+            query.scope,
+            candidate_doc_ids=candidate_doc_ids,
+            fts_shortlist_doc_ids=fts_shortlist,
+        )
         if candidate_doc_ids or date_range is None:
             fts_run = self._fts.retrieve(query, candidate_doc_ids=candidate_doc_ids)
         else:
@@ -1083,6 +1092,7 @@ class RetrievalService:
             query_fingerprint=query_fingerprint,
             retrieval_policy=retrieval_policy,
             candidate_doc_count=effective_candidate_doc_count,
+            candidate_resolution=candidate_resolution,
             fts_shortlist_doc_ids=fts_shortlist,
         )
         citation_status = {
@@ -1112,6 +1122,7 @@ class RetrievalService:
             result_fingerprint=result_fingerprint,
             retrieval_policy=retrieval_policy,
             candidate_doc_count=effective_candidate_doc_count,
+            candidate_resolution=candidate_resolution,
             fts_shortlist_doc_ids=fts_shortlist,
         )
         elapsed_ms_total = max(0, int((self._now_fn() - started).total_seconds() * 1000))
@@ -1129,6 +1140,8 @@ class RetrievalService:
             "fts_shortlist_limit": fts_shortlist_limit,
             "fts_candidate_scan_limit": fts_candidate_scan_limit,
             "candidate_doc_count": effective_candidate_doc_count,
+            "candidate_doc_ids": list(candidate_doc_ids),
+            "candidate_resolution": candidate_resolution,
             "fts_shortlist_count": len(fts_shortlist),
             "fts_shortlist_doc_ids": list(fts_shortlist),
             "strategies_used": list(retrieval_policy["active_strategy_ids"]),
@@ -1160,6 +1173,7 @@ class RetrievalService:
                 "elapsed_ms_by_strategy": diagnostics["elapsed_ms_by_strategy"],
                 "doc_ids_count": len({hit.doc_id for hit in merged_hits}),
                 "hits_count": len(merged_hits),
+                "candidate_resolution": candidate_resolution,
                 "fts_shortlist_doc_ids": diagnostics["fts_shortlist_doc_ids"],
                 "retrieval_manifest": retrieval_manifest,
                 "retrieval_evidence": retrieval_evidence,
@@ -1318,6 +1332,7 @@ class RetrievalService:
         query_fingerprint: str | None,
         retrieval_policy: dict[str, object],
         candidate_doc_count: int | None = None,
+        candidate_resolution: dict[str, object] | None = None,
         fts_shortlist_doc_ids: tuple[str, ...] = (),
     ) -> list[RetrievalDocHit]:
         meta = self._load_doc_meta()
@@ -1395,6 +1410,7 @@ class RetrievalService:
                         "query_intent": query.intent,
                         "query_date_range": list(query.constraints.date_range) if query.constraints.date_range is not None else None,
                         "candidate_doc_count": candidate_doc_count,
+                        "candidate_resolution": copy.deepcopy(candidate_resolution),
                         "fts_shortlist_doc_ids": list(fts_shortlist_doc_ids),
                     },
                 )
@@ -1484,6 +1500,7 @@ class RetrievalService:
         result_fingerprint: str,
         retrieval_policy: dict[str, object],
         candidate_doc_count: int | None = None,
+        candidate_resolution: dict[str, object] | None = None,
         fts_shortlist_doc_ids: tuple[str, ...] = (),
     ) -> dict[str, object]:
         doc_citations: list[dict[str, object]] = []
@@ -1580,6 +1597,7 @@ class RetrievalService:
             if query.constraints.date_range is not None
             else None,
             "candidate_doc_count": candidate_doc_count,
+            "candidate_resolution": copy.deepcopy(candidate_resolution),
             "fts_shortlist_doc_ids": list(fts_shortlist_doc_ids),
             "retrieval_policy": dict(retrieval_policy),
             "retrieval_backend": cast(str, retrieval_policy["retrieval_backend"]),
@@ -1758,6 +1776,29 @@ class RetrievalService:
         if scope.startswith("collection:"):
             return fallback
         return fallback
+
+    @staticmethod
+    def _candidate_resolution_snapshot(
+        scope: str,
+        *,
+        candidate_doc_ids: tuple[str, ...],
+        fts_shortlist_doc_ids: tuple[str, ...],
+    ) -> dict[str, object]:
+        scope_doc_id = RetrievalService._doc_scope_id(scope)
+        if scope_doc_id is not None:
+            resolution_source = "doc_scope"
+        elif scope.startswith("collection:"):
+            resolution_source = "collection_scope"
+        else:
+            resolution_source = "fts_shortlist"
+        return {
+            "scope": scope,
+            "resolution_source": resolution_source,
+            "candidate_doc_ids": list(candidate_doc_ids),
+            "candidate_doc_count": len(candidate_doc_ids),
+            "fts_shortlist_doc_ids": list(fts_shortlist_doc_ids),
+            "fts_shortlist_count": len(fts_shortlist_doc_ids),
+        }
 
     def _filter_candidate_doc_ids_by_date_range(
         self,
@@ -1968,6 +2009,17 @@ class RetrievalService:
             "retrieval_policy": self._retrieval_policy.as_snapshot(),
             "doc_identity_fingerprint": doc_identity_fingerprint,
         }
+        provenance["excerpt_lookup_fingerprint"] = self._build_excerpt_lookup_fingerprint(
+            excerpt_id=excerpt_id,
+            doc_id=doc_id,
+            source_hash=source_hash,
+            span=cast(dict[str, object], provenance["span"]),
+            text_hash=text_hash,
+            source_strategy="fts",
+            retrieval_backend=self._retrieval_policy.retrieval_backend,
+            retrieval_mode=self._retrieval_policy.retrieval_mode,
+            lookup_resolution="fts",
+        )
         if query_scope is not None:
             provenance["query_scope"] = query_scope
         if query_intent is not None:
@@ -2370,8 +2422,12 @@ class RetrievalService:
             raise ValueError("max_results must be greater than zero")
         if query.scope.startswith("section:"):
             raise ValueError("section scope is unsupported until FTS fallback can resolve section targets")
-        if query.scope.startswith("doc:") and not self._doc_scope_id(query.scope):
-            raise ValueError("doc scope must include a document id")
+        if query.scope.startswith("doc:"):
+            doc_scope_id = self._doc_scope_id(query.scope)
+            if not doc_scope_id:
+                raise ValueError("doc scope must include a document id")
+            if doc_scope_id not in self._load_doc_meta():
+                raise ValueError(f"unknown doc scope: {doc_scope_id}")
         if query.scope.startswith("collection:"):
             collection_id = query.scope.split(":", 1)[1].strip()
             if not collection_id:
@@ -2386,6 +2442,21 @@ class RetrievalService:
         if query.confidentiality_profile == "confidential":
             # No network strategies are enabled in this retrieval implementation.
             pass
+
+    @staticmethod
+    def _canonicalize_query_scope(query: RetrievalQuery) -> RetrievalQuery:
+        scope = query.scope
+        if scope.startswith("doc:"):
+            doc_id = scope.split(":", 1)[1].strip()
+            canonical_scope = f"doc:{doc_id}"
+        elif scope.startswith("collection:"):
+            collection_id = scope.split(":", 1)[1].strip()
+            canonical_scope = f"collection:{collection_id}"
+        else:
+            canonical_scope = scope
+        if canonical_scope == query.scope:
+            return query
+        return replace(query, scope=canonical_scope)
 
     @staticmethod
     def _safe_title_hint(query: RetrievalQuery, value: str) -> str | None:

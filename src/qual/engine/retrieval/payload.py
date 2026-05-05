@@ -118,6 +118,10 @@ def _basket_promotion_count_from_snapshot(
     *,
     basket_promotion_items: list[object],
 ) -> int:
+    item_count = _basket_promotion_count_from_items(basket_promotion_items)
+    if item_count:
+        return item_count
+
     count = snapshot.get("basket_promotion_count")
     if isinstance(count, int) and count >= 0:
         return count
@@ -379,6 +383,10 @@ def _basket_item_ids_from_snapshot(
     *,
     basket_promotion_items: list[object],
 ) -> list[object]:
+    item_ids = _basket_item_ids_from_items(basket_promotion_items)
+    if item_ids:
+        return item_ids
+
     basket_item_ids = _stable_text_values(snapshot.get("basket_item_ids", []))
     if basket_item_ids:
         return basket_item_ids
@@ -396,7 +404,7 @@ def _basket_item_ids_from_snapshot(
         if basket_item_ids:
             return basket_item_ids
 
-    return _basket_item_ids_from_items(basket_promotion_items)
+    return []
 
 
 def _basket_item_fingerprints_from_snapshot(
@@ -404,6 +412,10 @@ def _basket_item_fingerprints_from_snapshot(
     *,
     basket_promotion_items: list[object],
 ) -> list[object]:
+    item_fingerprints = _basket_item_fingerprints_from_items(basket_promotion_items)
+    if item_fingerprints:
+        return item_fingerprints
+
     basket_item_fingerprints = _stable_text_values(snapshot.get("basket_item_fingerprints", []))
     if basket_item_fingerprints:
         return basket_item_fingerprints
@@ -423,7 +435,7 @@ def _basket_item_fingerprints_from_snapshot(
         if basket_item_fingerprints:
             return basket_item_fingerprints
 
-    return _basket_item_fingerprints_from_items(basket_promotion_items)
+    return []
 
 
 def _first_text_value(*values: object) -> str | None:
@@ -511,7 +523,7 @@ def _normalize_query_max_results(value: object) -> int:
 
 def _query_fingerprint_from_query_snapshot(query: dict[str, object]) -> str | None:
     query_text = _normalized_query_text(query.get("query_text"))
-    scope = _normalize_optional_text(query.get("scope"))
+    scope = _normalize_query_scope(query.get("scope"))
     intent = _normalize_optional_text(query.get("intent"))
     if query_text is None or scope is None or intent is None:
         return None
@@ -536,6 +548,19 @@ def _query_fingerprint_from_query_snapshot(query: dict[str, object]) -> str | No
         ),
     }
     return _stable_fingerprint(payload)
+
+
+def _normalize_query_scope(value: object) -> str | None:
+    scope = _normalize_optional_text(value)
+    if scope is None:
+        return None
+    if scope.startswith("doc:"):
+        doc_id = scope.split(":", 1)[1].strip()
+        return f"doc:{doc_id}" if doc_id else scope
+    if scope.startswith("collection:"):
+        collection_id = scope.split(":", 1)[1].strip()
+        return f"collection:{collection_id}" if collection_id else scope
+    return " ".join(scope.split())
 
 
 def _is_missing_snapshot_value(value: object) -> bool:
@@ -572,9 +597,9 @@ def _normalize_query_snapshot(query: object) -> dict[str, object]:
     query_text = _normalize_optional_text(normalized.get("query_text"))
     if query_text is not None:
         normalized["query_text"] = " ".join(query_text.split())
-    scope = _normalize_optional_text(normalized.get("scope"))
+    scope = _normalize_query_scope(normalized.get("scope"))
     if scope is not None:
-        normalized["scope"] = " ".join(scope.split())
+        normalized["scope"] = scope
     intent = _normalize_optional_text(normalized.get("intent"))
     if intent is not None:
         normalized["intent"] = intent.casefold()
@@ -1277,6 +1302,9 @@ def _build_retrieval_diagnostics_from_source_bundle(source_bundle: dict[str, obj
     query_date_range = _normalize_optional_list_like(
         citation_bundle.get("query_date_range", query_constraints.get("date_range"))
     )
+    retrieval_evidence = normalized.get("retrieval_evidence", {})
+    if not isinstance(retrieval_evidence, dict):
+        retrieval_evidence = {}
     max_results = query_constraints.get("max_results", citation_bundle.get("doc_count", 10))
     try:
         max_results_int = int(max_results)
@@ -1289,6 +1317,17 @@ def _build_retrieval_diagnostics_from_source_bundle(source_bundle: dict[str, obj
         else max(fts_shortlist_limit, fts_shortlist_limit * 4, 100)
     )
     fts_shortlist_doc_ids = _normalize_list_like(citation_bundle.get("fts_shortlist_doc_ids", []))
+    candidate_resolution = retrieval_evidence.get("candidate_resolution")
+    if isinstance(candidate_resolution, dict):
+        candidate_resolution = copy.deepcopy(candidate_resolution)
+    else:
+        candidate_resolution = None
+    candidate_doc_ids = _normalize_list_like(
+        retrieval_evidence.get(
+            "candidate_doc_ids",
+            candidate_resolution.get("candidate_doc_ids") if isinstance(candidate_resolution, dict) else [],
+        )
+    )
     strategies_used = list(active_strategy_ids)
 
     return {
@@ -1315,6 +1354,8 @@ def _build_retrieval_diagnostics_from_source_bundle(source_bundle: dict[str, obj
         "fts_shortlist_limit": fts_shortlist_limit,
         "fts_candidate_scan_limit": fts_candidate_scan_limit,
         "candidate_doc_count": citation_bundle.get("candidate_doc_count"),
+        "candidate_doc_ids": candidate_doc_ids,
+        "candidate_resolution": candidate_resolution,
         "fts_shortlist_count": len(fts_shortlist_doc_ids),
         "fts_shortlist_doc_ids": fts_shortlist_doc_ids,
         "strategies_used": strategies_used,
