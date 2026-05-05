@@ -2116,6 +2116,25 @@ class RetrievalService:
             lookup_resolution=lookup_resolution,
         )
         normalized["excerpt_lookup_fingerprint"] = excerpt_lookup_fingerprint
+        basket_promotion_item = self._excerpt_lookup_basket_promotion_item(
+            normalized,
+            doc_id=doc_id_value,
+            doc_type=doc_type,
+            title_hint=title_hint,
+            source_hash=source_hash,
+            span=canonical_span,
+            text_hash=text_hash,
+            source_strategy=source_strategy,
+            retrieval_backend=retrieval_backend,
+            retrieval_mode=retrieval_mode,
+            retrieval_policy=retrieval_policy,
+            lookup_resolution=lookup_resolution,
+            excerpt_lookup_fingerprint=excerpt_lookup_fingerprint,
+        )
+        if basket_promotion_item is not None:
+            normalized["basket_promotion_item"] = basket_promotion_item
+            normalized["basket_item_id"] = basket_promotion_item["item_id"]
+            normalized["basket_item_fingerprint"] = basket_promotion_item["basket_item_fingerprint"]
         if "provenance" in normalized:
             normalized_provenance = {
                 **provenance,
@@ -2144,8 +2163,51 @@ class RetrievalService:
             normalized_provenance["retrieval_source_strategy"] = source_strategy
             normalized_provenance["lookup_resolution"] = lookup_resolution
             normalized_provenance["excerpt_lookup_fingerprint"] = excerpt_lookup_fingerprint
+            if isinstance(normalized.get("basket_item_fingerprint"), str):
+                normalized_provenance["basket_item_fingerprint"] = normalized["basket_item_fingerprint"]
             normalized["provenance"] = normalized_provenance
         return normalized
+
+    def _excerpt_lookup_basket_promotion_item(
+        self,
+        excerpt: dict[str, object],
+        *,
+        doc_id: str | None,
+        doc_type: str | None,
+        title_hint: str | None,
+        source_hash: str | None,
+        span: dict[str, object] | None,
+        text_hash: object,
+        source_strategy: Literal["fts", "pageindex"],
+        retrieval_backend: str,
+        retrieval_mode: str,
+        retrieval_policy: dict[str, object],
+        lookup_resolution: str,
+        excerpt_lookup_fingerprint: str,
+    ) -> dict[str, object] | None:
+        excerpt_id = excerpt.get("excerpt_id")
+        if not isinstance(excerpt_id, str) or not excerpt_id:
+            return None
+        item = {
+            "item_id": excerpt_id,
+            "item_type": "excerpt",
+            "doc_id": doc_id,
+            "doc_type": doc_type,
+            "title_hint": title_hint,
+            "source_hash": source_hash,
+            "excerpt_id": excerpt_id,
+            "excerpt_text": excerpt.get("excerpt_text"),
+            "excerpt_fingerprint": excerpt.get("excerpt_fingerprint"),
+            "excerpt_text_hash": text_hash,
+            "span": copy.deepcopy(span),
+            "source_strategy": source_strategy,
+            "retrieval_backend": retrieval_backend,
+            "retrieval_mode": retrieval_mode,
+            "retrieval_policy": copy.deepcopy(retrieval_policy),
+            "lookup_resolution": lookup_resolution,
+            "excerpt_lookup_fingerprint": excerpt_lookup_fingerprint,
+        }
+        return self._with_basket_item_fingerprint(item)
 
     @staticmethod
     def _build_doc_identity_fingerprint(
