@@ -330,6 +330,30 @@ class UnifiedRetrievalTests(unittest.TestCase):
             self.assertEqual(hit_payload["match_count"], hit.provenance["match_count"])
             self.assertEqual(hit_payload["matched_terms"], hit.provenance["matched_terms"])
 
+    def test_fts_matched_terms_are_token_exact_for_provenance(self) -> None:
+        self.service.add_or_update_document(
+            doc_id="doc-token-boundary",
+            doc_type="memo",
+            title_hint="Token Boundary Memo",
+            text="Theory coding memo avoids substring traps.",
+        )
+
+        result = self.service.retrieve_auto(
+            RetrievalQuery(
+                query_text="the coding",
+                scope="doc:doc-token-boundary",
+                intent="lookup",
+                constraints=RetrievalConstraints(max_results=3),
+                confidentiality_profile="confidential",
+            )
+        )
+
+        self.assertTrue(result.hits)
+        hit = result.hits[0]
+        self.assertEqual(hit.provenance["matched_terms"], ["coding"])
+        self.assertEqual(hit.provenance["match_count"], 1)
+        self.assertEqual(hit.as_dict()["matched_terms"], ["coding"])
+
     def test_doc_scope_falls_back_to_fts_when_pageindex_missing(self) -> None:
         result = self.service.retrieve_auto(
             RetrievalQuery(
