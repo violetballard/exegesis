@@ -4,7 +4,7 @@ The retrieval lane keeps this package as the narrow public surface for the
 engine's retrieval orchestration code.
 """
 
-from collections.abc import Mapping
+from collections.abc import Iterable, Mapping
 
 from src.qual.engine.retrieval.fts_strategy import FTSStrategy
 from src.qual.engine.retrieval.interface import RetrievalStrategy, StrategyRun
@@ -25,6 +25,45 @@ from src.qual.engine.retrieval.payload import (
     build_retrieval_provenance_from_result,
     build_retrieval_source_bundle_from_result,
 )
+
+def _normalize_constraint_values(value: object, *, field_name: str) -> tuple[str, ...]:
+    """Return a deterministic tuple for loose retrieval constraint payloads."""
+
+    if value is None:
+        return ()
+    if isinstance(value, str):
+        return (value,)
+    if isinstance(value, (bytes, bytearray)):
+        raise TypeError(f"{field_name} must be an iterable of text values")
+    if isinstance(value, Mapping):
+        raise TypeError(f"{field_name} must be an iterable of values, not a mapping")
+    if not isinstance(value, Iterable):
+        raise TypeError(f"{field_name} must be an iterable of values or None")
+    return tuple(str(item) for item in value if item is not None)
+
+
+def _normalize_optional_int(value: object, *, default: int) -> int:
+    if value is None:
+        return default
+    return int(value)
+
+
+def _normalize_optional_bool(value: object, *, default: bool) -> bool:
+    if value is None:
+        return default
+    if isinstance(value, bool):
+        return value
+    if isinstance(value, str):
+        normalized = value.strip().casefold()
+        if normalized in {"1", "true", "yes", "on"}:
+            return True
+        if normalized in {"0", "false", "no", "off", ""}:
+            return False
+        raise ValueError(f"unsupported boolean constraint value: {value}")
+    if isinstance(value, (int, float)):
+        return bool(value)
+    raise TypeError("boolean retrieval constraints must be bool, number, text, or None")
+
 
 def build_retrieval_query(
     *,
@@ -59,25 +98,29 @@ def build_retrieval_query(
     else:
         raise TypeError("constraints must be a mapping or RetrievalConstraints")
 
-    doc_types = payload.get("doc_types", ())
-    if isinstance(doc_types, str):
-        doc_types = (doc_types,)
+    doc_types = _normalize_constraint_values(payload.get("doc_types"), field_name="doc_types")
     date_range = payload.get("date_range")
     if isinstance(date_range, str):
         date_range = (date_range,)
     if date_range is not None:
-        date_range = tuple(str(value) for value in date_range)
+        date_range = _normalize_constraint_values(date_range, field_name="date_range")
     return RetrievalQuery(
         query_text=query_text,
         scope=scope,
         intent=intent,  # type: ignore[arg-type]
         constraints=RetrievalConstraints(
-            max_results=int(payload.get("max_results", 10)),
-            doc_types=tuple(str(value) for value in doc_types),
+            max_results=_normalize_optional_int(payload.get("max_results"), default=10),
+            doc_types=doc_types,
             date_range=date_range,  # type: ignore[arg-type]
-            require_citations=bool(payload.get("require_citations", False)),
+            require_citations=_normalize_optional_bool(
+                payload.get("require_citations"),
+                default=False,
+            ),
             section_hint=payload.get("section_hint"),  # type: ignore[arg-type]
-            prefer_exact_matches=bool(payload.get("prefer_exact_matches", False)),
+            prefer_exact_matches=_normalize_optional_bool(
+                payload.get("prefer_exact_matches"),
+                default=False,
+            ),
         ),
         confidentiality_profile=confidentiality_profile,  # type: ignore[arg-type]
     )

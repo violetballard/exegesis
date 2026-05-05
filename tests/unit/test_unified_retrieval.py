@@ -208,6 +208,41 @@ class UnifiedRetrievalTests(unittest.TestCase):
         self.assertEqual(first.diagnostics["fts_shortlist_doc_ids"], second.diagnostics["fts_shortlist_doc_ids"])
         self.assertIn("doc-pdf-1", first.diagnostics["fts_shortlist_doc_ids"])
 
+    def test_document_update_invalidates_fts_cache(self) -> None:
+        query = RetrievalQuery(
+            query_text="theory implications",
+            scope="doc:doc-pdf-1",
+            intent="lookup",
+            constraints=RetrievalConstraints(max_results=2),
+            confidentiality_profile="confidential",
+        )
+
+        first = self.service.retrieve_fts(query)
+        self.assertTrue(first.hits)
+        self.assertFalse(first.diagnostics["caches_used"]["fts"])
+        self.assertIn("Discussion includes theory implications", first.hits[0].excerpt_text or "")
+
+        repeated = self.service.retrieve_fts(query)
+        self.assertTrue(repeated.hits)
+        self.assertFalse(repeated.diagnostics["caches_used"]["fts"])
+        self.assertEqual(first.hits[0].excerpt_text, repeated.hits[0].excerpt_text)
+
+        self.service.add_or_update_document(
+            doc_id="doc-pdf-1",
+            doc_type="pdf",
+            title_hint="Interview Packet",
+            text=(
+                "Updated theory implications now cite member checking and a revised audit trail. "
+                "Methods notes were rewritten for the second draft."
+            ),
+        )
+
+        second = self.service.retrieve_fts(query)
+        self.assertTrue(second.hits)
+        self.assertFalse(second.diagnostics["caches_used"]["fts"])
+        self.assertIn("Updated theory implications now cite member checking", second.hits[0].excerpt_text or "")
+        self.assertNotEqual(first.hits[0].excerpt_text, second.hits[0].excerpt_text)
+
     def test_retrieval_hits_reject_non_fts_source_strategies(self) -> None:
         with self.assertRaisesRegex(ValueError, "source_strategy must be fts"):
             RetrievalHit(
@@ -426,12 +461,17 @@ class UnifiedRetrievalTests(unittest.TestCase):
         self.assertEqual(payload["retrieval_diagnostics"]["retrieval_evidence"], result.diagnostics["retrieval_evidence"])
         self.assertEqual(payload["retrieval_manifest"], result.diagnostics["retrieval_manifest"])
         self.assertEqual(payload["retrieval_evidence"], result.evidence)
+        self.assertEqual(payload["retrieval_evidence"]["result_fingerprint"], result.result_fingerprint)
         self.assertEqual(payload["retrieval_provenance"]["citation_status"], payload["retrieval_summary"]["citation_status"])
         self.assertEqual(payload["retrieval_provenance"]["doc_count"], len(result.doc_hits))
         self.assertEqual(payload["retrieval_provenance"]["excerpt_count"], len(result.hits))
         self.assertEqual(payload["retrieval_evidence"]["citation_status"], payload["retrieval_summary"]["citation_status"])
         self.assertEqual(payload["retrieval_evidence"]["doc_count"], len(result.doc_hits))
         self.assertEqual(payload["retrieval_evidence"]["excerpt_count"], len(result.hits))
+        self.assertEqual(
+            payload["retrieval_evidence"]["basket_promotion_items"][0]["result_fingerprint"],
+            result.result_fingerprint,
+        )
         self.assertEqual(payload["retrieval_citation_bundle"]["doc_citations"][0]["source_hash"], result.doc_hits[0].source_hash)
         self.assertEqual(payload["retrieval_doc_bundle"], result.retrieval_doc_bundle())
         self.assertEqual(
@@ -607,7 +647,15 @@ class UnifiedRetrievalTests(unittest.TestCase):
         bundle = engine_build_retrieval_context_bundle_from_result(_SourceBundleOnlySource(source_bundle))
         self.assertIsNone(bundle["audit_ref"])
         self.assertEqual(bundle["result_fingerprint"], result.result_fingerprint)
-        self.assertEqual(bundle["retrieval_downstream_payload"], source_bundle)
+        downstream_payload = json.loads(json.dumps(bundle["retrieval_downstream_payload"]))
+        expected = json.loads(json.dumps(result.to_downstream_payload()))
+        downstream_payload.pop("audit_ref", None)
+        expected.pop("audit_ref", None)
+        downstream_payload["retrieval_diagnostics"].pop("elapsed_ms_total", None)
+        expected["retrieval_diagnostics"].pop("elapsed_ms_total", None)
+        downstream_payload["retrieval_diagnostics"].pop("elapsed_ms_by_strategy", None)
+        expected["retrieval_diagnostics"].pop("elapsed_ms_by_strategy", None)
+        self.assertEqual(downstream_payload, expected)
         self.assertEqual(bundle["retrieval_source_bundle"], source_bundle)
         self.assertEqual(bundle["retrieval_citation_bundle"], result.citation_bundle())
         self.assertEqual(bundle["retrieval_doc_bundle"], result.retrieval_doc_bundle())

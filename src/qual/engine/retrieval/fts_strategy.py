@@ -16,7 +16,12 @@ class FTSStrategy:
     def supports(self, query: Any) -> bool:
         return True
 
+    def clear_cache(self) -> None:
+        """Preserve the old mutation hook while FTS retrieval remains uncached."""
+
     def retrieve(self, query: Any, *, candidate_doc_ids: tuple[str, ...]) -> StrategyRun:
+        """Execute the underlying ``runner`` against the current FTS index."""
+
         started = int(self._now_fn())
         hits = self._runner(query, candidate_doc_ids)
         elapsed_ns = max(0, int(self._now_fn()) - started)

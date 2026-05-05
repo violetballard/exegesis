@@ -1,99 +1,112 @@
 # Thread Handoff Packet
 
-- Branch/lane: `codex/feat-retrieval-fts` / `feat-retrieval-fts`
-- Merge candidate: current branch tip after this packet-fix commit.
-- Pre-fixer branch-tip SHA: `798639e001a074a4a369149ca67f8b5c02175fc9`
-- Reviewed implementation range for actual branch-tip scope: `378cf9a74a3658058079a32f186fcd254c4a4034..798639e001a074a4a369149ca67f8b5c02175fc9`
-- Branch-tip diff summary after this packet-fix commit: `6 files changed, 364 insertions(+), 116 deletions(-)`.
-- Handoff classification: high-risk/shared because the branch includes approved shared regression coverage in `tests/unit/test_unified_retrieval.py`.
-- Shared-file approval provenance: reviewer packet `fixer__feat-retrieval-fts__20260429T202122Z.prompt.txt`, finding 2, identifies `tests/unit/test_unified_retrieval.py` as the approved shared surface for `feat-retrieval-fts`.
-
-## Required Fixes Addressed
-
-1. This packet is regenerated against the actual branch tip `798639e001a074a4a369149ca67f8b5c02175fc9`, not the stale narrowed `adfa8cd` slice.
-2. The post-`adfa8cd` retrieval payload and basket-promotion work is described below as implementation scope, with tasks, files, roadmap mapping, vision mapping, canonical demo-path step, and risk assessment.
-3. Required gates are re-run against the branch-tip merge candidate after this packet is corrected and recorded below.
-4. The file list and diff summary match `git diff 378cf9a74a3658058079a32f186fcd254c4a4034..HEAD`; non-metadata retrieval changes are included for review.
+- Branch name: `codex/feat-retrieval-fts`
+- Lane: `feat-retrieval-fts`
+- Merge target: current `main`
+- Merge-base for re-review: `fd2ab6ca65ec2f93d1334c9b7df8512439725be4`
+- Pre-fixer branch tip under review: `39e12de630b493c200b6747e5b853d875c5b1d5f`
+- Final branch tip: reported in the fixer deliverable after this packet commit is created.
+- Authoritative reviewed range / complete merge candidate: `fd2ab6ca65ec2f93d1334c9b7df8512439725be4..HEAD`
+- Reviewer-reported stale reviewed range: `378cf9a74..adfa8cdadd43747ffbcb612e4151e262b13e52ca`
+- Reviewer-required supplemental implementation delta now covered by this packet: `adfa8cdadd43747ffbcb612e4151e262b13e52ca..39e12de630b493c200b6747e5b853d875c5b1d5f`
+- Scope classification: high-risk retrieval work because approved shared regression coverage in `tests/unit/test_unified_retrieval.py` is part of the reviewed candidate.
 
 ## Scope Completed
 
-The actual merge candidate keeps the FTS-first excerpt lookup work and adds implementation scope for promotion-ready retrieval payloads. SQLite FTS remains authoritative for excerpt lookup. Retrieval results now expose deterministic basket-promotion excerpt references through downstream payloads, retrieval source bundles, and retrieval context bundles so the canonical demo path can promote retrieved excerpts into later context-basket workflows without re-querying or rebuilding provenance.
+This packet chooses the actual branch tip as the merge candidate. The approval target is the complete merge-base-to-HEAD range, not the stale `378cf9a74..adfa8cdadd43747ffbcb612e4151e262b13e52ca` slice and not a metadata-only refresh chain.
 
-PageIndex and embeddings remain compatibility-only fallback surfaces outside the required excerpt path. Unsupported excerpt scopes still fail closed.
+The reviewer-cited `adfa8cdadd43747ffbcb612e4151e262b13e52ca..39e12de630b493c200b6747e5b853d875c5b1d5f` delta is intentionally included for re-review. It contains retrieval implementation and shared regression changes in:
 
-## Tasks Completed
-
-1. Canonical demo-path step `retrieve relevant material`: make document excerpt lookup use FTS lookup results only and fail closed for unsupported document scopes.
-2. Canonical demo-path step `retrieve relevant material`: normalize document IDs, query text, max-result handling, and shared regression coverage for FTS-only excerpt behavior.
-3. Canonical demo-path step `promote retrieved material into context basket`: add deterministic `basket_promotion_items` and `basket_item_ids` to retrieval result context/source/downstream payloads.
-4. Canonical demo-path step `promote retrieved material into context basket`: backfill basket-promotion fields through sparse retrieval source/context bundles while preserving excerpt provenance, ranks, hashes, spans, query scope, and result fingerprints.
-
-## Files Changed
-
-Actual branch-tip file list for `378cf9a74a3658058079a32f186fcd254c4a4034..798639e001a074a4a369149ca67f8b5c02175fc9`:
-
-- `.codex/kickoff_packets/feat-retrieval-fts.md`
-- `.codex/lane_meta/feat-retrieval-fts.json`
-- `THREAD_PACKET.md`
+- `src/qual/engine/retrieval/__init__.py`
+- `src/qual/engine/retrieval/fts_strategy.py`
 - `src/qual/engine/retrieval/payload.py`
 - `src/qual/retrieval/service.py`
 - `tests/unit/test_unified_retrieval.py`
 
-Implementation files in the actual branch-tip diff:
+The merge candidate advances FTS-first retrieval by normalizing engine retrieval boolean constraints and query text/scope snapshots, keeping FTS cache and query snapshots deterministic, carrying date-range constraints into derived FTS shortlist queries and basket-promotion refs, preserving basket-promotion references and provenance, carrying promotion-ready excerpt text/title hints and query context into retrieval evidence fallbacks, deriving missing query fingerprints from canonical query snapshots during sparse payload reconstruction, invalidating stale FTS cache state on document updates, falling back from invalid direct context snapshots to canonical source/payload reconstruction, normalizing reconstructed basket item IDs to stable text IDs for downstream basket gathering, and falling back to excerpt IDs for sparse promotion refs that do not carry item IDs.
 
-- `src/qual/retrieval/service.py`: FTS-only excerpt lookup hardening plus basket-promotion item construction on retrieval results, source bundles, and context bundles.
-- `src/qual/engine/retrieval/payload.py`: downstream payload normalization/backfill for `basket_promotion_items` and `basket_item_ids`.
-- `tests/unit/test_unified_retrieval.py`: approved shared regression coverage for FTS-only excerpt behavior.
+The candidate stays inside the active MVP note: FTS-first retrieval, deterministic provenance/excerpts, and basket/workflow-ready structured payloads. It does not include packet-tooling changes, router/provider changes, or Textual UI console work.
 
-Metadata/handoff files in the actual branch-tip diff:
+## Tasks Completed
 
-- `.codex/kickoff_packets/feat-retrieval-fts.md`
-- `.codex/lane_meta/feat-retrieval-fts.json`
-- `THREAD_PACKET.md`
+1. `retrieve relevant material`: normalize engine facade query constraints, boolean flags, date ranges, doc types, required query text/scope snapshots, and derived FTS shortlist snapshots so repeated FTS retrieval is deterministic without cached hit reuse.
+2. `retrieve relevant material`: keep SQLite FTS authoritative for excerpt lookup, reject non-FTS excerpt normalization, preserve ranked IDs, document identities, confidentiality profiles, section hints, and excerpt provenance.
+3. `retrieve relevant material`; supports `promote or gather context into the basket`: preserve basket-promotion refs, stable text item IDs, citation refs, provenance fingerprints, source/context bundles, excerpt text, title hints, query context, date-range context, and query fingerprints during sparse payload, provenance, and context-bundle reconstruction so retrieved material stays stable for downstream basket gathering, including sparse excerpt promotion refs that omit `item_id`.
+4. `retrieve relevant material`; supports `promote or gather context into the basket`: harden cache invalidation and fallback reconstruction for document updates, sparse direct context snapshots, and generic context-bundle helpers while keeping PageIndex and embeddings fallback-only. Identical queries after `add_or_update_document` now retrieve updated FTS material rather than stale cached excerpts.
 
-No `codex_packet_handoff/tools/planner.py` or `tests/unit/test_packet_planner.py` changes are part of this actual branch-tip diff.
+## Canonical Demo Path
 
-## Branch-Tip Diff Summary
+- Primary step made more real: `retrieve relevant material`.
+- Secondary step made more real: `promote or gather context into the basket`, where structured retrieval payloads now carry deterministic excerpt payloads, provenance fingerprints, source/context bundle refs, basket-promotion item refs, stable text item IDs, query context, date-range context, derived query fingerprints, and citation metadata so downstream workflows can gather the same retrieved material without depending on PageIndex-only or embedding-only paths.
 
-`git diff --stat 378cf9a74a3658058079a32f186fcd254c4a4034..HEAD`:
+## Files Changed
 
-- `.codex/kickoff_packets/feat-retrieval-fts.md`: `36` changed lines.
-- `.codex/lane_meta/feat-retrieval-fts.json`: `155` changed lines.
-- `THREAD_PACKET.md`: `151` changed lines.
-- `src/qual/engine/retrieval/payload.py`: `20` insertions.
-- `src/qual/retrieval/service.py`: `80` changed lines.
-- `tests/unit/test_unified_retrieval.py`: `38` changed lines.
-- Total: `6 files changed, 364 insertions(+), 116 deletions(-)`.
+Complete source/test implementation files for `fd2ab6ca65ec2f93d1334c9b7df8512439725be4..HEAD`:
 
-## Budget / Risk
+- `src/qual/engine/retrieval/__init__.py` - lane-owned retrieval facade/export behavior via `src/qual/engine/retrieval/**`; maps to `retrieve relevant material`.
+- `src/qual/engine/retrieval/fts_strategy.py` - lane-owned FTS retrieval strategy and cache behavior via `src/qual/engine/retrieval/**`; maps to `retrieve relevant material`.
+- `src/qual/engine/retrieval/payload.py` - lane-owned retrieval payload construction, sparse query fingerprint derivation, and sparse basket item ID reconstruction via `src/qual/engine/retrieval/**`; maps to `retrieve relevant material` and `promote or gather context into the basket`.
+- `src/qual/retrieval/service.py` - lane-owned retrieval service behavior via `src/qual/retrieval/**`; maps to `retrieve relevant material`.
+- `tests/unit/test_unified_retrieval.py` - shared-by-approval regression coverage for the canonical retrieval contract; maps to `retrieve relevant material` and `promote or gather context into the basket`.
+- `THREAD_PACKET.md` - authoritative handoff packet required by `INTEGRATION.md`.
 
-- Risk: high/shared.
-- Task budget: `4/4`; within the high-risk task cap.
-- Actual branch-tip file count: `6`; within the high-risk 8-file guideline.
-- Actual branch-tip size: `364 insertions(+), 116 deletions(-)`, net `+248`; within the high-risk `<=300` net LOC guideline.
+Source/test implementation stat for `fd2ab6ca65ec2f93d1334c9b7df8512439725be4..HEAD`: `5 files changed, 313 insertions(+), 96 deletions(-)`.
+
+Reviewer-required supplemental source/test implementation stat for `adfa8cdadd43747ffbcb612e4151e262b13e52ca..39e12de630b493c200b6747e5b853d875c5b1d5f`: `5 files changed, 380 insertions(+), 84 deletions(-)`.
+
+Lane-owned source/test files in the reviewed candidate:
+
+- `src/qual/engine/retrieval/__init__.py`
+- `src/qual/engine/retrieval/fts_strategy.py`
+- `src/qual/engine/retrieval/payload.py`
+- `src/qual/retrieval/service.py`
+
+Shared-by-approval source/test files in the reviewed candidate:
+
+- `tests/unit/test_unified_retrieval.py`
+
+Integrator-locked files in the reviewed candidate:
+
+- None.
+
+Out-of-scope files absent from the reviewed candidate:
+
+- `codex_packet_handoff/tools/planner.py`
+- `tests/unit/test_packet_planner.py`
+- `src/qual/engine/retrieval/embeddings_strategy.py`
+- `src/qual/engine/retrieval/pageindex_strategy.py`
+
+Packet mirror files intentionally not updated in this fixer commit because this sandbox reports `Operation not permitted` when writing `.codex/kickoff_packets/feat-retrieval-fts.md` and `.codex/lane_meta/feat-retrieval-fts.json`. `THREAD_PACKET.md` is the authoritative handoff packet for this re-review.
+
+## Budget/Risk
+
+- Task budget: `4/4` high-risk tasks.
+- File budget: `5/8` high-risk source/test files plus packet metadata files.
+- Net LOC budget: source/test implementation changes are `5 files changed, 313 insertions(+), 96 deletions(-)`, or +217 net LOC, which remains within the `<=300` high-risk net LOC limit. Packet metadata is accounted separately.
+- Size exception required: none.
+- Shared-by-approval files: `tests/unit/test_unified_retrieval.py` only.
 - Integrator-locked files: none.
-- Shared-by-approval files: `tests/unit/test_unified_retrieval.py`.
 - Routing/provider impact: none.
-- Risk assessment: basket-promotion fields expand retrieval payload shape and are live implementation scope. Risk is bounded to retrieval-owned modules plus the already-approved shared retrieval regression file; downstream consumers receive additive fields and existing PageIndex/embedding fallback posture is unchanged.
+- PageIndex/embeddings impact: fallback-only; neither is reintroduced as a required retrieval path.
+- Merge risk: high until this corrected actual-tip packet is reviewed, because the branch tip includes implementation beyond the stale `adfa8cdad` anchor.
 
-## Roadmap / Vision Mapping
+## Roadmap/Vision
 
-- Roadmap items affected: `ROADMAP.md` Milestone 3 Product Readiness and Milestone 4 Retrieval Layer.
-- Vision capabilities affected: `PRODUCT_VISION.md` capability 2, Retrieval-first context handling, and capability 6, Auditable state and workflow.
-- Canonical demo-path step advanced: `retrieve relevant material` and `promote retrieved material into context basket`.
+- Roadmap items affected: `ROADMAP.md` MVP focus for FTS-first retrieval and Milestone 3 product-readiness provenance/output-contract work.
+- Vision capabilities affected: `PRODUCT_VISION.md` capability 2 Retrieval-first context handling and capability 3 Auditable generation.
 - Proposed `README.md` patch text: none.
 
 ## Commands Run
 
-- `make scope-check`: PASS.
-- `./quality-format.sh --check`: PASS.
-- `./quality-lint.sh`: PASS.
-- `./quality-test.sh`: PASS; smoke passed and 124 unit tests passed.
-- `./typecheck-test.sh`: PASS; Python sources under `src/` compile.
-- `make ci`: PASS; scope-check, format, lint, typecheck, smoke, and 124 unit tests completed successfully.
+Required gates re-run for this corrected actual-tip merge candidate:
 
-## Risks / Blockers
+- `make scope-check` PASS for branch `codex/feat-retrieval-fts`.
+- `./quality-format.sh --check` PASS.
+- `./quality-lint.sh` PASS.
+- `./quality-test.sh` PASS, 125 tests.
+- `./typecheck-test.sh` PASS, Python sources under `src/` compile.
+- `make ci` PASS, 125 tests; includes scope-check, format, lint, typecheck, and test gates.
 
-- No implementation blocker is known.
-- Re-review should use the actual branch-tip scope above and should not exclude the non-metadata retrieval code changes from review.
-- Packet mirror files under `.codex/` remain stale because this sandbox rejects writes to `.codex/kickoff_packets/feat-retrieval-fts.md` with `PermissionError: [Errno 1] Operation not permitted`. `THREAD_PACKET.md` is the corrected handoff source of truth for this fixer pass.
+## Risks/Blockers
+
+Remaining risk is review risk from high-risk retrieval scope and approved shared test coverage. The candidate does not widen retrieval strategy scope, does not make PageIndex or embeddings required paths, does not touch model routing/provider configuration, and keeps Textual UI lanes disabled.

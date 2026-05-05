@@ -61,6 +61,25 @@ def _optional_text(value: object) -> str | None:
     return None
 
 
+def _required_compact_text(value: object, *, field_name: str) -> str:
+    if not isinstance(value, str):
+        raise TypeError(f"{field_name} must be text")
+    text = " ".join(value.split())
+    if not text:
+        raise ValueError(f"{field_name} is required")
+    return text
+
+
+def _optional_list_like(value: object) -> list[object] | None:
+    if value is None:
+        return None
+    if isinstance(value, list):
+        return copy.deepcopy(value)
+    if isinstance(value, tuple):
+        return list(value)
+    return [value]
+
+
 def _normalize_supported_value(value: object, *, field_name: str, allowed: set[str]) -> str:
     normalized = str(value).strip().casefold()
     if normalized not in allowed:
@@ -98,6 +117,8 @@ class RetrievalQuery:
     confidentiality_profile: Literal["confidential", "standard"] = "confidential"
 
     def __post_init__(self) -> None:
+        object.__setattr__(self, "query_text", _required_compact_text(self.query_text, field_name="query_text"))
+        object.__setattr__(self, "scope", _required_compact_text(self.scope, field_name="scope"))
         object.__setattr__(
             self,
             "intent",
@@ -492,6 +513,9 @@ class RetrievalResult:
                     "retrieval_mode": hit.provenance.get("retrieval_mode"),
                     "query_scope": self.query.scope,
                     "query_intent": self.query.intent,
+                    "query_date_range": list(self.query.constraints.date_range)
+                    if self.query.constraints.date_range is not None
+                    else None,
                     "query_fingerprint": hit.provenance.get("query_fingerprint"),
                     "result_fingerprint": self.result_fingerprint,
                 }
@@ -799,6 +823,7 @@ class RetrievalService:
         }
         self._write_encrypted_json(self._root / _DOC_META_FILE, meta)
         self._upsert_fts_entries(doc_id=doc_id, doc_type=doc_type, title_hint=title_hint, text=text)
+        self._fts.clear_cache()
 
     def build_pageindex(self, *, doc_id: str, options: DocIndexBuildOptions | None = None) -> str:
         source = self._read_doc_text(doc_id)
@@ -990,17 +1015,18 @@ class RetrievalService:
             merged_hits,
             retrieval_policy=retrieval_policy,
         )
+        result_fingerprint = self._build_result_fingerprint(
+            query_fingerprint=query_fingerprint,
+            retrieval_manifest=retrieval_manifest,
+        )
         retrieval_evidence = self._build_retrieval_evidence(
             query=query,
             doc_hits=doc_hits,
             hits=merged_hits,
             retrieval_manifest=retrieval_manifest,
             query_fingerprint=query_fingerprint,
+            result_fingerprint=result_fingerprint,
             retrieval_policy=retrieval_policy,
-        )
-        result_fingerprint = self._build_result_fingerprint(
-            query_fingerprint=query_fingerprint,
-            retrieval_manifest=retrieval_manifest,
         )
         elapsed_ms_total = max(0, int((self._now_fn() - started).total_seconds() * 1000))
         diagnostics = {
@@ -1352,6 +1378,7 @@ class RetrievalService:
         hits: list[RetrievalHit],
         retrieval_manifest: dict[str, object],
         query_fingerprint: str,
+        result_fingerprint: str,
         retrieval_policy: dict[str, object],
     ) -> dict[str, object]:
         doc_citations: list[dict[str, object]] = []
@@ -1382,7 +1409,9 @@ class RetrievalService:
                     "doc_id": hit.doc_id,
                     "excerpt_id": hit.excerpt_id,
                     "doc_type": hit.provenance.get("doc_type"),
+                    "title_hint": hit.title_hint,
                     "source_hash": hit.provenance.get("source_hash"),
+                    "excerpt_text": hit.excerpt_text,
                     "excerpt_fingerprint": hit.provenance.get("excerpt_fingerprint"),
                     "excerpt_text_hash": hit.provenance.get("excerpt_text_hash") or hit.provenance.get("hash"),
                     "span": hit.provenance.get("span"),
@@ -1398,6 +1427,7 @@ class RetrievalService:
 
         return {
             "query_fingerprint": query_fingerprint,
+            "result_fingerprint": result_fingerprint,
             "query_scope": query.scope,
             "query_intent": query.intent,
             "retrieval_policy": dict(retrieval_policy),
@@ -1424,8 +1454,10 @@ class RetrievalService:
                     "item_type": "excerpt",
                     "doc_id": item["doc_id"],
                     "doc_type": item["doc_type"],
+                    "title_hint": item.get("title_hint"),
                     "source_hash": item["source_hash"],
                     "excerpt_id": item["excerpt_id"],
+                    "excerpt_text": item.get("excerpt_text"),
                     "excerpt_fingerprint": item["excerpt_fingerprint"],
                     "excerpt_text_hash": item["excerpt_text_hash"],
                     "span": copy.deepcopy(item["span"]),
@@ -1433,7 +1465,13 @@ class RetrievalService:
                     "source_strategy": item["source_strategy"],
                     "retrieval_backend": item["retrieval_backend"],
                     "retrieval_mode": item["retrieval_mode"],
+                    "query_scope": query.scope,
+                    "query_intent": query.intent,
+                    "query_date_range": list(query.constraints.date_range)
+                    if query.constraints.date_range is not None
+                    else None,
                     "query_fingerprint": query_fingerprint,
+                    "result_fingerprint": result_fingerprint,
                 }
                 for item in excerpt_citations
             ],
@@ -1523,6 +1561,7 @@ class RetrievalService:
             constraints=RetrievalConstraints(
                 max_results=max_results,
                 doc_types=query.constraints.doc_types,
+                date_range=query.constraints.date_range,
                 require_citations=query.constraints.require_citations,
                 section_hint=query.constraints.section_hint,
                 prefer_exact_matches=query.constraints.prefer_exact_matches,
