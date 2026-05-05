@@ -148,6 +148,17 @@ def _basket_item_fingerprint(item: dict[str, object]) -> str:
     )
 
 
+def _fts_source_strategy_from_values(*values: object, context: str) -> str:
+    for value in values:
+        source_strategy = _normalize_optional_text(value)
+        if source_strategy is None:
+            continue
+        if source_strategy != "fts":
+            raise ValueError(f"{context} must use fts source_strategy for the MVP")
+        return source_strategy
+    return "fts"
+
+
 def _with_basket_item_fingerprint(item: dict[str, object]) -> dict[str, object]:
     if _normalize_optional_text(item.get("basket_item_fingerprint")) is None:
         item["basket_item_fingerprint"] = _basket_item_fingerprint(item)
@@ -158,7 +169,13 @@ def _normalize_basket_promotion_items(items: list[object]) -> list[object]:
     normalized: list[object] = []
     for item in items:
         if isinstance(item, dict):
-            normalized.append(_with_basket_item_fingerprint(copy.deepcopy(item)))
+            item_snapshot = copy.deepcopy(item)
+            item_snapshot["source_strategy"] = _fts_source_strategy_from_values(
+                item_snapshot.get("source_strategy"),
+                item_snapshot.get("retrieval_source_strategy"),
+                context="basket promotion item",
+            )
+            normalized.append(_with_basket_item_fingerprint(item_snapshot))
         else:
             normalized.append(copy.deepcopy(item))
     return normalized
@@ -283,6 +300,13 @@ def _basket_promotion_items_from_excerpt_hits(
         provenance = hit.get("provenance")
         if not isinstance(provenance, dict):
             provenance = {}
+        source_strategy = _fts_source_strategy_from_values(
+            hit.get("source_strategy"),
+            hit.get("retrieval_source_strategy"),
+            provenance.get("source_strategy"),
+            provenance.get("retrieval_source_strategy"),
+            context="sparse excerpt hit",
+        )
         items.append(
             _with_basket_item_fingerprint({
                 "item_id": excerpt_id,
@@ -308,10 +332,7 @@ def _basket_promotion_items_from_excerpt_hits(
                 ),
                 "span": copy.deepcopy(hit.get("span", provenance.get("span"))),
                 "rank": hit.get("rank", provenance.get("rank")),
-                "source_strategy": _first_text_value(
-                    hit.get("source_strategy"),
-                    provenance.get("source_strategy"),
-                ),
+                "source_strategy": source_strategy,
                 "retrieval_backend": _first_text_value(
                     hit.get("retrieval_backend"),
                     provenance.get("retrieval_backend"),

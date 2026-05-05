@@ -1435,6 +1435,42 @@ class UnifiedRetrievalTests(unittest.TestCase):
         self.assertIsInstance(excerpt_bundle["excerpt_citations"], list)
         self.assertEqual(excerpt_bundle["excerpt_hits"][0]["excerpt_id"], "excerpt-1")
         self.assertEqual(excerpt_bundle["excerpt_citations"][0]["excerpt_id"], "excerpt-1")
+        self.assertEqual(excerpt_bundle["basket_promotion_items"][0]["source_strategy"], "fts")
+
+    def test_sparse_excerpt_basket_rehydration_rejects_non_fts_strategy(self) -> None:
+        payload = {
+            "query": {
+                "query_text": "memo comparison",
+                "scope": "vault",
+                "intent": "compare",
+                "constraints": {"max_results": 4},
+            },
+            "policy": {
+                "retrieval_backend": "sqlite_fts",
+                "retrieval_mode": "fts_first",
+                "active_strategy_ids": ("fts",),
+                "deferred_strategy_ids": ("pageindex", "embeddings"),
+            },
+            "retrieval_backend": "sqlite_fts",
+            "retrieval_mode": "fts_first",
+            "excerpt_hits": (
+                {
+                    "doc_id": "doc-1",
+                    "excerpt_id": "excerpt-1",
+                    "source_strategy": "pageindex",
+                    "provenance": {
+                        "excerpt_fingerprint": "excerpt-fingerprint",
+                        "source_strategy": "pageindex",
+                    },
+                },
+            ),
+        }
+
+        with self.assertRaisesRegex(
+            ValueError,
+            "sparse excerpt hit must use fts source_strategy for the MVP",
+        ):
+            _build_retrieval_excerpt_bundle_from_payload(payload)
 
     def test_sparse_query_snapshots_reject_unsupported_confidentiality_profiles(self) -> None:
         base_payload = {
