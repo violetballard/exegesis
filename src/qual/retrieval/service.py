@@ -1770,8 +1770,9 @@ class RetrievalService:
         )
 
     def _candidate_docs_from_scope(self, scope: str, *, fallback: tuple[str, ...]) -> tuple[str, ...]:
-        if scope.startswith("doc:"):
-            return (scope.split(":", 1)[1],)
+        scope_doc_id = self._doc_scope_id(scope)
+        if scope_doc_id is not None:
+            return (scope_doc_id,)
         if scope.startswith("collection:"):
             return fallback
         return fallback
@@ -1800,7 +1801,7 @@ class RetrievalService:
     @staticmethod
     def _doc_scope_id(scope: str) -> str | None:
         if scope.startswith("doc:"):
-            return scope.split(":", 1)[1]
+            return scope.split(":", 1)[1].strip()
         return None
 
     def _doc_matches_date_range(self, doc_id: str, date_range: tuple[str, str]) -> bool:
@@ -2387,6 +2388,10 @@ class RetrievalService:
             raise ValueError("max_results must be greater than zero")
         if query.scope.startswith("section:"):
             raise ValueError("section scope is unsupported until FTS fallback can resolve section targets")
+        if query.scope.startswith("doc:") and not self._doc_scope_id(query.scope):
+            raise ValueError("doc scope must include a document id")
+        if query.scope.startswith("collection:") and not query.scope.split(":", 1)[1].strip():
+            raise ValueError("collection scope must include a collection id")
         if query.scope not in {"vault"} and not any(query.scope.startswith(prefix) for prefix in ("collection:", "doc:")):
             raise ValueError("unsupported scope")
         if query.intent not in _SUPPORTED_RETRIEVAL_INTENTS:
