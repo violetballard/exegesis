@@ -167,6 +167,16 @@ class DirectRouterUnsupported(RuntimeError):
     """Raised when the current runtime cannot use Codex MCP direct routing."""
 
 
+def _direct_router_cloud_available(router_mod: object, cfg: object, state: Dict) -> bool:
+    cloud_available = getattr(router_mod, "_cloud_available", None)
+    if callable(cloud_available):
+        return bool(cloud_available(cfg, state))
+    runtime_mode = getattr(router_mod, "_runtime_mode", None)
+    if callable(runtime_mode):
+        return str(runtime_mode(cfg, state)) != "local_fallback"
+    return True
+
+
 def _bootstrap_direct_integrator_thread(
     router_mod: object,
     cfg: object,
@@ -177,7 +187,7 @@ def _bootstrap_direct_integrator_thread(
 ) -> str:
     if integrator_tid:
         return integrator_tid
-    if not router_mod._cloud_available(cfg, state):
+    if not _direct_router_cloud_available(router_mod, cfg, state):
         return integrator_tid
     if bool(getattr(cfg, "prefer_cli_integrator", False)):
         return integrator_tid
@@ -197,7 +207,7 @@ def _bootstrap_direct_integrator_thread(
 
 
 def _build_direct_router_clients(router_mod: object, cfg: object, state: Dict) -> Tuple[bool, object, object]:
-    local_mode = not router_mod._cloud_available(cfg, state)
+    local_mode = not _direct_router_cloud_available(router_mod, cfg, state)
     reviewer_profile = router_mod._profile_for_role(cfg, "reviewer", local=local_mode)
     integrator_profile = router_mod._profile_for_role(cfg, "integrator", local=local_mode)
     unsupported = sorted(
@@ -1390,7 +1400,7 @@ def _init_direct_router_ctx() -> DirectRouterCtx:
 
 def _refresh_direct_router_clients(ctx: DirectRouterCtx) -> None:
     ctx.state = ctx.router_mod._maybe_restore_cloud(ctx.cfg, ctx.state, ctx.repo_cwd)
-    desired_local_mode = not ctx.router_mod._cloud_available(ctx.cfg, ctx.state)
+    desired_local_mode = not _direct_router_cloud_available(ctx.router_mod, ctx.cfg, ctx.state)
     if desired_local_mode == ctx.local_mode:
         return
 
@@ -1423,17 +1433,33 @@ def _run_router_direct_once(ctx: DirectRouterCtx) -> Tuple[int, str]:
         # The daemon can run alongside one-off router invocations. Reloading
         # here prevents stale in-memory state from double-kicking local fixers
         # after an operator manually clears or restarts a stuck job.
-        ctx.state = ctx.router_mod.load_json(ctx.router_mod.STATE_FILE, {})
+        load_json_fn = getattr(ctx.router_mod, "load_json", None)
+        if callable(load_json_fn):
+            ctx.state = load_json_fn(ctx.router_mod.STATE_FILE, {})
         _refresh_direct_router_clients(ctx)
-        n, kicked, integrated, ctx.state, ctx.reviewer_thread_ids, ctx.integrator_tid = ctx.router_mod._process_router_tick(
-            ctx.reviewer_client,
-            ctx.integrator_client,
-            ctx.cfg,
-            ctx.state,
-            ctx.repo_cwd,
-            ctx.reviewer_thread_ids,
-            ctx.integrator_tid,
-        )
+        process_tick = getattr(ctx.router_mod, "_process_router_tick", None)
+        if callable(process_tick):
+            n, kicked, integrated, ctx.state, ctx.reviewer_thread_ids, ctx.integrator_tid = process_tick(
+                ctx.reviewer_client,
+                ctx.integrator_client,
+                ctx.cfg,
+                ctx.state,
+                ctx.repo_cwd,
+                ctx.reviewer_thread_ids,
+                ctx.integrator_tid,
+            )
+        else:
+            n, ctx.state, ctx.reviewer_thread_ids, ctx.integrator_tid = ctx.router_mod.process_once(
+                ctx.reviewer_client,
+                ctx.integrator_client,
+                ctx.cfg,
+                ctx.state,
+                ctx.repo_cwd,
+                ctx.reviewer_thread_ids,
+                ctx.integrator_tid,
+            )
+            kicked = 0
+            integrated = 0
         out = f"[router] processed {n} packet(s), kicked {kicked} reviewer-fixer task(s), integrated {integrated} approval packet(s)\n"
         print(out, end="")
         return 0, out

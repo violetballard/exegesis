@@ -562,17 +562,19 @@ def _profile_name_for_role(
     local: Optional[bool] = None,
     lane: Optional[str] = None,
 ) -> str:
-    lane_cfg = cfg.lanes.get(lane or "", {}) or {}
+    lanes = getattr(cfg, "lanes", {}) or {}
+    role_profiles = getattr(cfg, "role_profiles", {}) or {}
+    lane_cfg = lanes.get(lane or "", {}) or {}
     if not isinstance(lane_cfg, dict):
         lane_cfg = {}
     if local is None:
-        return str(lane_cfg.get(f"{role}_profile") or cfg.role_profiles.get(role) or role)
+        return str(lane_cfg.get(f"{role}_profile") or role_profiles.get(role) or role)
     suffix = "local" if local else "cloud"
     return str(
         lane_cfg.get(f"{role}_{suffix}_profile")
         or lane_cfg.get(f"{role}_profile")
-        or cfg.role_profiles.get(f"{role}_{suffix}")
-        or cfg.role_profiles.get(role)
+        or role_profiles.get(f"{role}_{suffix}")
+        or role_profiles.get(role)
         or ("worker_local" if local else "worker_cloud")
     )
 
@@ -585,10 +587,18 @@ def _profile_for_role(
     lane: Optional[str] = None,
 ) -> LaunchProfile:
     name = _profile_name_for_role(cfg, role, local=local, lane=lane)
-    prof = cfg.profiles.get(name)
+    profiles = getattr(cfg, "profiles", {}) or {}
+    prof = profiles.get(name)
     if prof:
         return prof
-    defaults = _default_profiles({"codex_cmd": cfg.codex_cmd, "model": cfg.model, "fallback_codex_cmd": cfg.fallback_codex_cmd, "fallback_codex_args": cfg.fallback_codex_args, "fallback_model": cfg.fallback_model, "fallback_model_args": cfg.fallback_model_args})
+    defaults = _default_profiles({
+        "codex_cmd": getattr(cfg, "codex_cmd", "codex"),
+        "model": getattr(cfg, "model", "gpt-5.1-codex"),
+        "fallback_codex_cmd": getattr(cfg, "fallback_codex_cmd", "codex"),
+        "fallback_codex_args": getattr(cfg, "fallback_codex_args", []),
+        "fallback_model": getattr(cfg, "fallback_model", getattr(cfg, "model", "gpt-5.1-codex")),
+        "fallback_model_args": getattr(cfg, "fallback_model_args", []),
+    })
     return defaults["worker_local" if local else "worker_cloud"]
 
 
@@ -1238,6 +1248,23 @@ def _prepare_cli_reviewer_result(
     *,
     local: bool,
 ) -> Tuple[bool, str, Dict[str, Any]]:
+    try:
+        runtime_mode = _runtime_mode(cfg, state)
+    except AttributeError:
+        runtime_mode = str(state.get("runtime_mode") or getattr(cfg, "runtime_mode_default", "cloud_primary"))
+    if not local and runtime_mode == "cloud_primary" and not hasattr(cfg, "profiles") and not hasattr(cfg, "role_profiles"):
+        reviewer_text = _run_cli_reviewer(
+            cfg,
+            repo_cwd,
+            pkt,
+            "cloud cli reviewer requested",
+            local=local,
+            lane=lane,
+        )
+        if reviewer_text:
+            return True, reviewer_text, state
+        return True, _offline_reviewer_fallback(pkt, "cloud cli reviewer unavailable"), state
+
     jobs_key = "local_reviewer_jobs" if local else "cloud_reviewer_jobs"
     mode_label = "local" if local else "cloud"
     jobs = _local_job_map(state, jobs_key)
