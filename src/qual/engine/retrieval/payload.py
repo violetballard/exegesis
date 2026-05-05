@@ -118,6 +118,10 @@ def _basket_promotion_count_from_snapshot(
     *,
     basket_promotion_items: list[object],
 ) -> int:
+    item_count = _basket_promotion_count_from_items(basket_promotion_items)
+    if item_count:
+        return item_count
+
     count = snapshot.get("basket_promotion_count")
     if isinstance(count, int) and count >= 0:
         return count
@@ -379,6 +383,10 @@ def _basket_item_ids_from_snapshot(
     *,
     basket_promotion_items: list[object],
 ) -> list[object]:
+    item_ids = _basket_item_ids_from_items(basket_promotion_items)
+    if item_ids:
+        return item_ids
+
     basket_item_ids = _stable_text_values(snapshot.get("basket_item_ids", []))
     if basket_item_ids:
         return basket_item_ids
@@ -396,7 +404,7 @@ def _basket_item_ids_from_snapshot(
         if basket_item_ids:
             return basket_item_ids
 
-    return _basket_item_ids_from_items(basket_promotion_items)
+    return []
 
 
 def _basket_item_fingerprints_from_snapshot(
@@ -404,6 +412,10 @@ def _basket_item_fingerprints_from_snapshot(
     *,
     basket_promotion_items: list[object],
 ) -> list[object]:
+    item_fingerprints = _basket_item_fingerprints_from_items(basket_promotion_items)
+    if item_fingerprints:
+        return item_fingerprints
+
     basket_item_fingerprints = _stable_text_values(snapshot.get("basket_item_fingerprints", []))
     if basket_item_fingerprints:
         return basket_item_fingerprints
@@ -423,7 +435,7 @@ def _basket_item_fingerprints_from_snapshot(
         if basket_item_fingerprints:
             return basket_item_fingerprints
 
-    return _basket_item_fingerprints_from_items(basket_promotion_items)
+    return []
 
 
 def _first_text_value(*values: object) -> str | None:
