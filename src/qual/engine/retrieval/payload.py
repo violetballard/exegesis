@@ -1290,6 +1290,9 @@ def _build_retrieval_diagnostics_from_source_bundle(source_bundle: dict[str, obj
     query_date_range = _normalize_optional_list_like(
         citation_bundle.get("query_date_range", query_constraints.get("date_range"))
     )
+    retrieval_evidence = normalized.get("retrieval_evidence", {})
+    if not isinstance(retrieval_evidence, dict):
+        retrieval_evidence = {}
     max_results = query_constraints.get("max_results", citation_bundle.get("doc_count", 10))
     try:
         max_results_int = int(max_results)
@@ -1302,6 +1305,17 @@ def _build_retrieval_diagnostics_from_source_bundle(source_bundle: dict[str, obj
         else max(fts_shortlist_limit, fts_shortlist_limit * 4, 100)
     )
     fts_shortlist_doc_ids = _normalize_list_like(citation_bundle.get("fts_shortlist_doc_ids", []))
+    candidate_resolution = retrieval_evidence.get("candidate_resolution")
+    if isinstance(candidate_resolution, dict):
+        candidate_resolution = copy.deepcopy(candidate_resolution)
+    else:
+        candidate_resolution = None
+    candidate_doc_ids = _normalize_list_like(
+        retrieval_evidence.get(
+            "candidate_doc_ids",
+            candidate_resolution.get("candidate_doc_ids") if isinstance(candidate_resolution, dict) else [],
+        )
+    )
     strategies_used = list(active_strategy_ids)
 
     return {
@@ -1328,6 +1342,8 @@ def _build_retrieval_diagnostics_from_source_bundle(source_bundle: dict[str, obj
         "fts_shortlist_limit": fts_shortlist_limit,
         "fts_candidate_scan_limit": fts_candidate_scan_limit,
         "candidate_doc_count": citation_bundle.get("candidate_doc_count"),
+        "candidate_doc_ids": candidate_doc_ids,
+        "candidate_resolution": candidate_resolution,
         "fts_shortlist_count": len(fts_shortlist_doc_ids),
         "fts_shortlist_doc_ids": fts_shortlist_doc_ids,
         "strategies_used": strategies_used,

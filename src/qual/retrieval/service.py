@@ -1088,6 +1088,11 @@ class RetrievalService:
         if date_range is not None:
             candidate_doc_ids = self._filter_candidate_doc_ids_by_date_range(candidate_doc_ids, date_range)
         effective_candidate_doc_count = self._effective_candidate_doc_count(query.scope, candidate_doc_ids)
+        candidate_resolution = self._candidate_resolution_snapshot(
+            query.scope,
+            candidate_doc_ids=candidate_doc_ids,
+            fts_shortlist_doc_ids=fts_shortlist,
+        )
         if candidate_doc_ids or date_range is None:
             fts_run = self._fts.retrieve(query, candidate_doc_ids=candidate_doc_ids)
         else:
@@ -1099,6 +1104,7 @@ class RetrievalService:
             query_fingerprint=query_fingerprint,
             retrieval_policy=retrieval_policy,
             candidate_doc_count=effective_candidate_doc_count,
+            candidate_resolution=candidate_resolution,
             fts_shortlist_doc_ids=fts_shortlist,
         )
         citation_status = {
@@ -1128,6 +1134,7 @@ class RetrievalService:
             result_fingerprint=result_fingerprint,
             retrieval_policy=retrieval_policy,
             candidate_doc_count=effective_candidate_doc_count,
+            candidate_resolution=candidate_resolution,
             fts_shortlist_doc_ids=fts_shortlist,
         )
         elapsed_ms_total = max(0, int((self._now_fn() - started).total_seconds() * 1000))
@@ -1145,6 +1152,8 @@ class RetrievalService:
             "fts_shortlist_limit": fts_shortlist_limit,
             "fts_candidate_scan_limit": fts_candidate_scan_limit,
             "candidate_doc_count": effective_candidate_doc_count,
+            "candidate_doc_ids": list(candidate_doc_ids),
+            "candidate_resolution": candidate_resolution,
             "fts_shortlist_count": len(fts_shortlist),
             "fts_shortlist_doc_ids": list(fts_shortlist),
             "strategies_used": list(retrieval_policy["active_strategy_ids"]),
@@ -1178,6 +1187,7 @@ class RetrievalService:
                 "elapsed_ms_by_strategy": diagnostics["elapsed_ms_by_strategy"],
                 "doc_ids_count": len({hit.doc_id for hit in merged_hits}),
                 "hits_count": len(merged_hits),
+                "candidate_resolution": candidate_resolution,
                 "fts_shortlist_doc_ids": diagnostics["fts_shortlist_doc_ids"],
                 "retrieval_manifest": retrieval_manifest,
                 "retrieval_evidence": retrieval_evidence,
@@ -1336,6 +1346,7 @@ class RetrievalService:
         query_fingerprint: str | None,
         retrieval_policy: dict[str, object],
         candidate_doc_count: int | None = None,
+        candidate_resolution: dict[str, object] | None = None,
         fts_shortlist_doc_ids: tuple[str, ...] = (),
     ) -> list[RetrievalDocHit]:
         meta = self._load_doc_meta()
@@ -1413,6 +1424,7 @@ class RetrievalService:
                         "query_intent": query.intent,
                         "query_date_range": list(query.constraints.date_range) if query.constraints.date_range is not None else None,
                         "candidate_doc_count": candidate_doc_count,
+                        "candidate_resolution": copy.deepcopy(candidate_resolution),
                         "fts_shortlist_doc_ids": list(fts_shortlist_doc_ids),
                     },
                 )
@@ -1502,6 +1514,7 @@ class RetrievalService:
         result_fingerprint: str,
         retrieval_policy: dict[str, object],
         candidate_doc_count: int | None = None,
+        candidate_resolution: dict[str, object] | None = None,
         fts_shortlist_doc_ids: tuple[str, ...] = (),
     ) -> dict[str, object]:
         doc_citations: list[dict[str, object]] = []
@@ -1598,6 +1611,7 @@ class RetrievalService:
             if query.constraints.date_range is not None
             else None,
             "candidate_doc_count": candidate_doc_count,
+            "candidate_resolution": copy.deepcopy(candidate_resolution),
             "fts_shortlist_doc_ids": list(fts_shortlist_doc_ids),
             "retrieval_policy": dict(retrieval_policy),
             "retrieval_backend": cast(str, retrieval_policy["retrieval_backend"]),
@@ -1776,6 +1790,29 @@ class RetrievalService:
         if scope.startswith("collection:"):
             return fallback
         return fallback
+
+    @staticmethod
+    def _candidate_resolution_snapshot(
+        scope: str,
+        *,
+        candidate_doc_ids: tuple[str, ...],
+        fts_shortlist_doc_ids: tuple[str, ...],
+    ) -> dict[str, object]:
+        scope_doc_id = RetrievalService._doc_scope_id(scope)
+        if scope_doc_id is not None:
+            resolution_source = "doc_scope"
+        elif scope.startswith("collection:"):
+            resolution_source = "collection_scope"
+        else:
+            resolution_source = "fts_shortlist"
+        return {
+            "scope": scope,
+            "resolution_source": resolution_source,
+            "candidate_doc_ids": list(candidate_doc_ids),
+            "candidate_doc_count": len(candidate_doc_ids),
+            "fts_shortlist_doc_ids": list(fts_shortlist_doc_ids),
+            "fts_shortlist_count": len(fts_shortlist_doc_ids),
+        }
 
     def _filter_candidate_doc_ids_by_date_range(
         self,
