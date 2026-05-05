@@ -5466,6 +5466,24 @@ def command_demo_readiness_exact_action_argv_lookup_table(
     )
 
 
+def command_demo_readiness_cli_exact_action_argv_lookup_table(
+    specs: tuple[CommandSpec, ...] = COMMAND_SPECS,
+    launcher_argv: tuple[str, ...] = COMMAND_SMOKE_CLI_LAUNCHER_ARGV,
+) -> tuple[tuple[tuple[str, ...], str], ...]:
+    lookup = command_demo_readiness_exact_action_argv_lookup_table(specs, launcher_argv)
+    invalid_entries: list[str] = []
+    for argv, engine_action in lookup:
+        validation = command_demo_readiness_validate_cli_argv(argv, specs, launcher_argv)
+        if not validation.is_cli_entrypoint or validation.exact_engine_action != engine_action:
+            invalid_entries.append(_shell_join(argv))
+    if invalid_entries:
+        raise ValueError(
+            "Command demo CLI exact action argv are inconsistent: "
+            + "; ".join(invalid_entries)
+        )
+    return lookup
+
+
 def command_demo_readiness_exact_action_line_lookup_table(
     specs: tuple[CommandSpec, ...] = COMMAND_SPECS,
     launcher_argv: tuple[str, ...] = COMMAND_SMOKE_CLI_LAUNCHER_ARGV,
@@ -5473,6 +5491,19 @@ def command_demo_readiness_exact_action_line_lookup_table(
     return tuple(
         (engine_action, _shell_join(argv))
         for argv, engine_action in command_demo_readiness_exact_action_argv_lookup_table(
+            specs,
+            launcher_argv,
+        )
+    )
+
+
+def command_demo_readiness_cli_exact_action_line_lookup_table(
+    specs: tuple[CommandSpec, ...] = COMMAND_SPECS,
+    launcher_argv: tuple[str, ...] = COMMAND_SMOKE_CLI_LAUNCHER_ARGV,
+) -> tuple[tuple[str, str], ...]:
+    return tuple(
+        (engine_action, _shell_join(argv))
+        for argv, engine_action in command_demo_readiness_cli_exact_action_argv_lookup_table(
             specs,
             launcher_argv,
         )
@@ -5516,7 +5547,13 @@ def command_demo_readiness_cli_exact_action_shell_script_lines(
     specs: tuple[CommandSpec, ...] = COMMAND_SPECS,
     launcher_argv: tuple[str, ...] = COMMAND_SMOKE_CLI_LAUNCHER_ARGV,
 ) -> tuple[str, ...]:
-    lines = command_demo_readiness_exact_action_shell_script_lines(specs, launcher_argv)
+    lines = tuple(
+        line
+        for _, line in command_demo_readiness_cli_exact_action_line_lookup_table(
+            specs,
+            launcher_argv,
+        )
+    )
     validation = command_demo_readiness_validate_cli_exact_action_shell_script_lines(
         lines,
         specs,
@@ -7926,11 +7963,25 @@ def command_mvp_demo_readiness_exact_action_argv_lookup_table(
     return command_demo_readiness_exact_action_argv_lookup_table(specs, launcher_argv)
 
 
+def command_mvp_demo_readiness_cli_exact_action_argv_lookup_table(
+    specs: tuple[CommandSpec, ...] = COMMAND_SPECS,
+    launcher_argv: tuple[str, ...] = COMMAND_SMOKE_CLI_LAUNCHER_ARGV,
+) -> tuple[tuple[tuple[str, ...], str], ...]:
+    return command_demo_readiness_cli_exact_action_argv_lookup_table(specs, launcher_argv)
+
+
 def command_mvp_demo_readiness_exact_action_line_lookup_table(
     specs: tuple[CommandSpec, ...] = COMMAND_SPECS,
     launcher_argv: tuple[str, ...] = COMMAND_SMOKE_CLI_LAUNCHER_ARGV,
 ) -> tuple[tuple[str, str], ...]:
     return command_demo_readiness_exact_action_line_lookup_table(specs, launcher_argv)
+
+
+def command_mvp_demo_readiness_cli_exact_action_line_lookup_table(
+    specs: tuple[CommandSpec, ...] = COMMAND_SPECS,
+    launcher_argv: tuple[str, ...] = COMMAND_SMOKE_CLI_LAUNCHER_ARGV,
+) -> tuple[tuple[str, str], ...]:
+    return command_demo_readiness_cli_exact_action_line_lookup_table(specs, launcher_argv)
 
 
 def command_mvp_demo_readiness_exact_action_contract(
