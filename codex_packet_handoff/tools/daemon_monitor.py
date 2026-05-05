@@ -291,6 +291,36 @@ def _active_local_worker_count(router_state: Dict[str, Any]) -> int:
     return active
 
 
+def _active_cloud_reviewer_count() -> int:
+    daemon_pid = _read_pid() or 0
+    if daemon_pid <= 0:
+        return 0
+    try:
+        proc = subprocess.run(
+            ["ps", "-axo", "pid=,ppid=,command="],
+            stdout=subprocess.PIPE,
+            stderr=subprocess.DEVNULL,
+            text=True,
+            timeout=PROC_TIMEOUT_SECONDS,
+        )
+    except Exception:
+        return 0
+    active = 0
+    for line in (proc.stdout or "").splitlines():
+        parts = line.strip().split(None, 2)
+        if len(parts) < 3:
+            continue
+        try:
+            pid = int(parts[0])
+            ppid = int(parts[1])
+        except ValueError:
+            continue
+        cmd = parts[2]
+        if ppid == daemon_pid and _pid_alive(pid) and "codex exec" in cmd and "REVIEWER" in cmd:
+            active += 1
+    return active
+
+
 def _latest_run() -> Dict[str, Any] | None:
     state = _load_json(COORD_STATE, {})
     run_file = state.get("last_run_file")
@@ -1077,12 +1107,14 @@ def main() -> None:
     print(f"last_quota_reason={runtime['reason']}")
     print(f"local_lms_jobs={_active_local_worker_count(router_state)} / {int((_load_json(ROUTER_CFG, {}) or {}).get('max_total_local_lms_jobs', 4) or 4)}")
     cloud_feature_jobs = _active_feature_mode_count("cloud_primary")
+    cloud_reviewer_jobs = _active_cloud_reviewer_count()
     cloud_integrator_jobs = _count_active_pid_jobs(router_state.get("cloud_integrator_jobs") or {})
     cloud_fixer_jobs = _count_active_pid_jobs(router_state.get("fixer_fallback_jobs") or {}, local=False)
     cfg_for_caps = _load_json(ROUTER_CFG, {}) or {}
     print(
         "cloud_jobs="
         f"features {cloud_feature_jobs}/{int(cfg_for_caps.get('max_cloud_feature_jobs', 1) or 1)}, "
+        f"reviewer {cloud_reviewer_jobs}/{int(cfg_for_caps.get('max_cloud_reviewer_jobs', 1) or 1)}, "
         f"integrator {cloud_integrator_jobs}/{int(cfg_for_caps.get('max_cloud_integrator_jobs', 1) or 1)}, "
         f"fixer {cloud_fixer_jobs}/{int(cfg_for_caps.get('max_cloud_fixer_jobs', 1) or 1)}"
     )
