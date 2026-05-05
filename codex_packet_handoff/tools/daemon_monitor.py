@@ -271,6 +271,26 @@ def _feature_thread_state() -> Dict[str, Dict[str, Any]]:
     return lanes if isinstance(lanes, dict) else {}
 
 
+def _active_feature_mode_count(mode: str) -> int:
+    active = 0
+    for lane_state in _feature_thread_state().values():
+        if not isinstance(lane_state, dict):
+            continue
+        if str(lane_state.get("mode") or "") != mode:
+            continue
+        if _pid_alive(int(lane_state.get("pid") or 0)):
+            active += 1
+    return active
+
+
+def _active_local_worker_count(router_state: Dict[str, Any]) -> int:
+    active = _active_feature_mode_count("local_fallback")
+    active += _count_active_pid_jobs(router_state.get("local_reviewer_jobs") or {})
+    active += _count_active_pid_jobs(router_state.get("local_integrator_jobs") or {})
+    active += _count_active_pid_jobs(router_state.get("fixer_fallback_jobs") or {}, local=True)
+    return active
+
+
 def _latest_run() -> Dict[str, Any] | None:
     state = _load_json(COORD_STATE, {})
     run_file = state.get("last_run_file")
@@ -349,8 +369,16 @@ def _runtime_state() -> Dict[str, Any]:
     retry_at = float((state or {}).get("cloud_retry_at") or 0)
     now = time.time()
     retry_in = int(max(0, retry_at - now)) if retry_at else 0
+    mode = str((state or {}).get("runtime_mode") or (cfg or {}).get("runtime_mode_default") or "cloud_primary")
+    if mode == "local_fallback":
+        cloud_available = False
+    elif mode == "cloud_primary":
+        cloud_available = True
+    else:
+        cloud_available = bool((state or {}).get("cloud_available", True))
     return {
-        "mode": str((state or {}).get("runtime_mode") or (cfg or {}).get("runtime_mode_default") or "cloud_primary"),
+        "mode": mode,
+        "cloud_available": cloud_available,
         "retry_at": retry_at,
         "retry_in": retry_in,
         "reason": str((state or {}).get("last_quota_reason") or "-"),
@@ -1044,8 +1072,20 @@ def main() -> None:
 
     print("CONTROL PLANE")
     print(f"runtime_mode={runtime['mode']}")
+    print(f"cloud_available={runtime['cloud_available']}")
     print(f"cloud_retry_in_seconds={runtime['retry_in']}")
     print(f"last_quota_reason={runtime['reason']}")
+    print(f"local_lms_jobs={_active_local_worker_count(router_state)} / {int((_load_json(ROUTER_CFG, {}) or {}).get('max_total_local_lms_jobs', 4) or 4)}")
+    cloud_feature_jobs = _active_feature_mode_count("cloud_primary")
+    cloud_integrator_jobs = _count_active_pid_jobs(router_state.get("cloud_integrator_jobs") or {})
+    cloud_fixer_jobs = _count_active_pid_jobs(router_state.get("fixer_fallback_jobs") or {}, local=False)
+    cfg_for_caps = _load_json(ROUTER_CFG, {}) or {}
+    print(
+        "cloud_jobs="
+        f"features {cloud_feature_jobs}/{int(cfg_for_caps.get('max_cloud_feature_jobs', 1) or 1)}, "
+        f"integrator {cloud_integrator_jobs}/{int(cfg_for_caps.get('max_cloud_integrator_jobs', 1) or 1)}, "
+        f"fixer {cloud_fixer_jobs}/{int(cfg_for_caps.get('max_cloud_fixer_jobs', 1) or 1)}"
+    )
     reviewer_map = router_state.get("reviewer_thread_ids") or {}
     if isinstance(reviewer_map, dict) and reviewer_map:
         print(f"reviewer_thread_count={len(reviewer_map)}")

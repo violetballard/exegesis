@@ -35,6 +35,9 @@ def _router_cfg() -> RouterConfig:
         max_local_fixer_kicks_per_run=1,
         max_cloud_fixer_jobs=1,
         max_local_fixer_jobs=1,
+        max_cloud_feature_jobs=1,
+        max_cloud_reviewer_jobs=1,
+        max_cloud_integrator_jobs=1,
         prefer_cli_fixer=True,
         prefer_cli_reviewer=True,
         prefer_cli_integrator=True,
@@ -89,6 +92,24 @@ class RouterQuotaFallbackTests(unittest.TestCase):
 
         self.assertEqual(updated["runtime_mode"], "local_fallback")
         self.assertEqual(updated["last_quota_reason"], "fixer log quota text on lane feat-commands")
+        self.assertGreater(updated["cloud_retry_at"], time.time())
+
+    def test_real_quota_text_marks_cloud_unavailable_in_hybrid_mode(self) -> None:
+        cfg = _router_cfg()
+        cfg.runtime_mode_default = "hybrid"
+        state = {"runtime_mode": "hybrid", "cloud_available": True}
+
+        updated = _apply_quota_text_safeguard(
+            cfg,
+            state,
+            "You've hit your usage limit. Try again at Mar 21, 2026 4:10 PM.",
+            reason="reviewer quota/rate-limit response",
+            default_seconds=300,
+        )
+
+        self.assertEqual(updated["runtime_mode"], "hybrid")
+        self.assertFalse(updated["cloud_available"])
+        self.assertEqual(updated["last_quota_reason"], "reviewer quota/rate-limit response")
         self.assertGreater(updated["cloud_retry_at"], time.time())
 
     def test_code_like_quota_text_does_not_flip_runtime_mode(self) -> None:

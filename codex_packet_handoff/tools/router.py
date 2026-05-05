@@ -114,6 +114,9 @@ class RouterConfig:
     max_local_fixer_kicks_per_run: int
     max_cloud_fixer_jobs: int
     max_local_fixer_jobs: int
+    max_cloud_feature_jobs: int
+    max_cloud_reviewer_jobs: int
+    max_cloud_integrator_jobs: int
     prefer_cli_fixer: bool
     prefer_cli_reviewer: bool
     prefer_cli_integrator: bool
@@ -272,6 +275,9 @@ def load_cfg() -> RouterConfig:
         max_local_fixer_kicks_per_run=int(cfg.get("max_local_fixer_kicks_per_run", 1)),
         max_cloud_fixer_jobs=int(cfg.get("max_cloud_fixer_jobs", 2)),
         max_local_fixer_jobs=int(cfg.get("max_local_fixer_jobs", 2)),
+        max_cloud_feature_jobs=int(cfg.get("max_cloud_feature_jobs", 1)),
+        max_cloud_reviewer_jobs=int(cfg.get("max_cloud_reviewer_jobs", 1)),
+        max_cloud_integrator_jobs=int(cfg.get("max_cloud_integrator_jobs", 1)),
         max_total_local_lms_jobs=int(cfg.get("max_total_local_lms_jobs", 4)),
         prefer_cli_fixer=bool(cfg.get("prefer_cli_fixer", True)),
         prefer_cli_reviewer=bool(cfg.get("prefer_cli_reviewer", True)),
@@ -508,7 +514,43 @@ def _is_reviewer_quota_output(text: str) -> bool:
 
 def _runtime_mode(cfg: RouterConfig, state: Dict[str, Any]) -> str:
     mode = str(state.get("runtime_mode") or cfg.runtime_mode_default or "cloud_primary")
-    return mode if mode in ("cloud_primary", "local_fallback") else "cloud_primary"
+    return mode if mode in ("cloud_primary", "local_fallback", "hybrid") else "cloud_primary"
+
+
+def _hybrid_mode(cfg: RouterConfig, state: Dict[str, Any]) -> bool:
+    return _runtime_mode(cfg, state) == "hybrid"
+
+
+def _cloud_available(cfg: RouterConfig, state: Dict[str, Any]) -> bool:
+    mode = _runtime_mode(cfg, state)
+    if mode == "local_fallback":
+        return False
+    if mode == "cloud_primary":
+        return True
+    return bool(state.get("cloud_available", True))
+
+
+def _use_local_provider(cfg: RouterConfig, state: Dict[str, Any]) -> bool:
+    return not _cloud_available(cfg, state)
+
+
+def _mark_cloud_unavailable(
+    cfg: RouterConfig,
+    state: Dict[str, Any],
+    reason: str,
+    retry_at: Optional[float] = None,
+) -> Dict[str, Any]:
+    if retry_at is None or retry_at <= time.time():
+        retry_at = time.time() + cfg.cloud_probe_cooldown_seconds
+    if _hybrid_mode(cfg, state) or str(cfg.runtime_mode_default) == "hybrid":
+        state["runtime_mode"] = "hybrid"
+        state["cloud_available"] = False
+        state["cloud_retry_at"] = retry_at
+        state["last_mode_switch_at"] = time.time()
+        if reason:
+            state["last_quota_reason"] = reason
+        return state
+    return _set_runtime_mode(cfg, state, "local_fallback", reason=reason, retry_at=retry_at)
 
 
 def _profile_name_for_role(
@@ -624,8 +666,10 @@ def _set_runtime_mode(
         state["last_quota_reason"] = reason
     if retry_at is not None:
         state["cloud_retry_at"] = retry_at
-    elif mode == "cloud_primary":
+    elif mode in ("cloud_primary", "hybrid"):
         state["cloud_retry_at"] = 0
+    if mode in ("cloud_primary", "hybrid"):
+        state["cloud_available"] = True
     return state
 
 
@@ -637,6 +681,8 @@ def _switch_to_local_fallback(
 ) -> Dict[str, Any]:
     if retry_at is None or retry_at <= time.time():
         retry_at = time.time() + cfg.cloud_probe_cooldown_seconds
+    if _hybrid_mode(cfg, state) or str(cfg.runtime_mode_default) == "hybrid":
+        return _mark_cloud_unavailable(cfg, state, reason, retry_at)
     return _set_runtime_mode(cfg, state, "local_fallback", reason=reason, retry_at=retry_at)
 
 
@@ -645,7 +691,10 @@ def _maybe_restore_cloud(
     state: Dict[str, Any],
     repo_cwd: str,
 ) -> Dict[str, Any]:
-    if _runtime_mode(cfg, state) != "local_fallback":
+    mode = _runtime_mode(cfg, state)
+    if mode not in ("local_fallback", "hybrid"):
+        return state
+    if mode == "hybrid" and _cloud_available(cfg, state):
         return state
     if not cfg.auto_probe_cloud_recovery:
         return state
@@ -670,7 +719,8 @@ def _maybe_restore_cloud(
             return _switch_to_local_fallback(cfg, state, f"cloud probe exited {rc}")
         text = (out or "").strip()
         if text and not _is_reviewer_quota_output(text) and not _invalid_reviewer_output(text):
-            return _set_runtime_mode(cfg, state, "cloud_primary", reason="cloud probe succeeded", retry_at=0)
+            restore_mode = "hybrid" if mode == "hybrid" or str(cfg.runtime_mode_default) == "hybrid" else "cloud_primary"
+            return _set_runtime_mode(cfg, state, restore_mode, reason="cloud probe succeeded", retry_at=0)
     except Exception as exc:
         return _switch_to_local_fallback(cfg, state, f"cloud probe failed: {exc}")
     return _switch_to_local_fallback(cfg, state, "cloud probe returned invalid/empty output")
@@ -961,6 +1011,46 @@ def _count_active_feature_local_jobs() -> int:
         if _pid_alive(pid):
             active += 1
     return active
+
+
+def _count_active_feature_cloud_jobs() -> int:
+    feature_state = load_json(FEATURE_RUNNER_STATE_FILE, {})
+    lanes = feature_state.get("lanes") if isinstance(feature_state, dict) else {}
+    if not isinstance(lanes, dict):
+        return 0
+    active = 0
+    for lane_state in lanes.values():
+        if not isinstance(lane_state, dict):
+            continue
+        if str(lane_state.get("mode") or "") != "cloud_primary":
+            continue
+        pid = int(lane_state.get("pid") or 0)
+        if _pid_alive(pid):
+            active += 1
+    return active
+
+
+def _cloud_role_slot_available(cfg: RouterConfig, state: Dict[str, Any], role: str) -> bool:
+    if not _cloud_available(cfg, state):
+        return False
+    if role == "feature":
+        cap = int(getattr(cfg, "max_cloud_feature_jobs", 1) or 0)
+        active = _count_active_feature_cloud_jobs()
+    elif role == "reviewer":
+        cap = int(getattr(cfg, "max_cloud_reviewer_jobs", 1) or 0)
+        active = 0
+    elif role == "integrator":
+        cap = int(getattr(cfg, "max_cloud_integrator_jobs", CLOUD_INTEGRATOR_MAX_ACTIVE) or 0)
+        active = _count_active_local_jobs(_local_job_map(state, "cloud_integrator_jobs"))
+    elif role == "fixer":
+        cap = int(getattr(cfg, "max_cloud_fixer_jobs", 1) or 0)
+        active = _count_active_pid_jobs(_local_job_map(state, "fixer_fallback_jobs"), local=False)
+    else:
+        cap = 1
+        active = 0
+    if cap <= 0:
+        return False
+    return active < cap
 
 
 def _count_active_local_lms_jobs(state: Dict[str, Any]) -> int:
@@ -1322,7 +1412,11 @@ def _prepare_cli_integrator_result(
 ) -> Tuple[bool, str, Dict[str, Any]]:
     jobs_key = "local_integrator_jobs" if local else "cloud_integrator_jobs"
     retry_key = "local_integrator_retry_ts" if local else "cloud_integrator_retry_ts"
-    max_active = LOCAL_INTEGRATOR_MAX_ACTIVE if local else CLOUD_INTEGRATOR_MAX_ACTIVE
+    max_active = (
+        LOCAL_INTEGRATOR_MAX_ACTIVE
+        if local
+        else int(getattr(cfg, "max_cloud_integrator_jobs", CLOUD_INTEGRATOR_MAX_ACTIVE) or CLOUD_INTEGRATOR_MAX_ACTIVE)
+    )
     mode_label = "local" if local else "cloud"
     jobs = _local_job_map(state, jobs_key)
     retry_ts = state.get(retry_key)
@@ -1355,7 +1449,7 @@ def _prepare_cli_integrator_result(
             )
             retry_ts.pop(job_key, None)
             state[retry_key] = retry_ts
-            print(f"[router] cloud integrator job for {lane} hit quota; switching to local fallback: {reason}")
+            print(f"[router] cloud integrator job for {lane} hit quota; cloud pool unavailable, local work continues: {reason}")
             return False, "", state
         lane_dir = pkt.parents[2] if len(pkt.parents) > 2 else ensure_lane_dirs(lane)
         note = _write_integrator_failure_handback(
@@ -1508,7 +1602,7 @@ def run_fixer(
     wt = _find_worktree_for_branch(repo_cwd, branch)
     _sync_lane_runbook_files(repo_cwd, wt)
     prune_stale_index_locks(Path(repo_cwd))
-    runtime_local = _runtime_mode(cfg, state) == "local_fallback" if local_mode is None else bool(local_mode)
+    runtime_local = _use_local_provider(cfg, state) if local_mode is None else bool(local_mode)
     if not runtime_local and not cfg.prefer_cli_fixer:
         fixer_map = state.get("fixer_thread_ids") or {}
         tid = fixer_map.get(lane)
@@ -1703,7 +1797,7 @@ def ensure_all_reviewer_threads(
     state: Dict[str, Any],
     reviewer_thread_ids: Dict[str, str],
 ) -> Dict[str, str]:
-    local_mode = _runtime_mode(cfg, state) == "local_fallback"
+    local_mode = _use_local_provider(cfg, state)
     if local_mode or cfg.prefer_cli_reviewer:
         return reviewer_thread_ids
     for lane in cfg.lanes.keys():
@@ -1747,7 +1841,7 @@ def process_once(
             reviewer_text = ""
             now = time.time()
             quota_retry_at = float(reviewer_quota_retry_ts.get(lane, 0) or 0)
-            runtime_local = _runtime_mode(cfg, state) == "local_fallback"
+            runtime_local = _use_local_provider(cfg, state)
             if runtime_local:
                 ready, reviewer_text, state = _prepare_local_reviewer_result(
                     cfg,
@@ -1768,7 +1862,7 @@ def process_once(
                     f"reviewer quota cooldown active ({wait_s}s remaining)"
                 )
                 reviewer_text = _run_cli_reviewer(
-                    cfg, repo_cwd, pkt, reason, lane=lane
+                    cfg, repo_cwd, pkt, reason, local=True, lane=lane
                 ) or _offline_reviewer_fallback(
                     pkt, reason
                 )
@@ -1806,8 +1900,9 @@ def process_once(
                     global_quota_retry_ts = max(global_quota_retry_ts, retry_until)
                     if cfg.auto_switch_to_local_on_quota:
                         state = _switch_to_local_fallback(cfg, state, f"reviewer call failed/timed out: {exc}", retry_until)
+                        runtime_local = _use_local_provider(cfg, state)
                         reviewer_text = _run_cli_reviewer(
-                            cfg, repo_cwd, pkt, f"reviewer call failed/timed out: {exc}", lane=lane
+                            cfg, repo_cwd, pkt, f"reviewer call failed/timed out: {exc}", local=runtime_local, lane=lane
                         ) or _offline_reviewer_fallback(pkt, f"reviewer call failed/timed out: {exc}")
             state = _apply_quota_text_safeguard(
                 cfg,
@@ -1848,12 +1943,13 @@ def process_once(
                         global_quota_retry_ts = max(global_quota_retry_ts, retry_until)
                         if cfg.auto_switch_to_local_on_quota:
                             state = _switch_to_local_fallback(cfg, state, f"reviewer retry failed/timed out: {exc}", retry_until)
+                        runtime_local = _use_local_provider(cfg, state)
                         reviewer_text = _run_cli_reviewer(
-                            cfg, repo_cwd, pkt, f"reviewer retry failed/timed out: {exc}", lane=lane
+                            cfg, repo_cwd, pkt, f"reviewer retry failed/timed out: {exc}", local=runtime_local, lane=lane
                         ) or _offline_reviewer_fallback(pkt, f"reviewer retry failed/timed out: {exc}")
                 if _invalid_reviewer_output(reviewer_text):
                     reviewer_text = _run_cli_reviewer(
-                        cfg, repo_cwd, pkt, "reviewer output invalid/unavailable", lane=lane
+                        cfg, repo_cwd, pkt, "reviewer output invalid/unavailable", local=runtime_local, lane=lane
                     ) or _offline_reviewer_fallback(pkt, "reviewer output invalid/unavailable")
             elif _is_reviewer_quota_output(reviewer_text):
                 retry_until = time.time() + 900
@@ -1861,8 +1957,9 @@ def process_once(
                 global_quota_retry_ts = max(global_quota_retry_ts, retry_until)
                 if cfg.auto_switch_to_local_on_quota:
                     state = _switch_to_local_fallback(cfg, state, "reviewer quota/rate-limit response", retry_until)
+                runtime_local = _use_local_provider(cfg, state)
                 reviewer_text = _run_cli_reviewer(
-                    cfg, repo_cwd, pkt, "reviewer quota/rate-limit response", lane=lane
+                    cfg, repo_cwd, pkt, "reviewer quota/rate-limit response", local=runtime_local, lane=lane
                 ) or _offline_reviewer_fallback(pkt, "reviewer quota/rate-limit response")
             reviewer_text = _extract_final_verdict_packet(reviewer_text) or reviewer_text
             verdict = parse_verdict(reviewer_text)
@@ -1872,7 +1969,7 @@ def process_once(
                 archive_reviewer_notes(lane_dir)
                 write_text(lane_dir/"outbox/integrator"/pkt_path.name.replace("F__","R__APPROVED__"), reviewer_text)
                 integ = ""
-                runtime_local = _runtime_mode(cfg, state) == "local_fallback"
+                runtime_local = _use_local_provider(cfg, state)
                 if runtime_local:
                     integ = ""
                 elif not cfg.prefer_cli_integrator and integrator_tid:
@@ -1957,7 +2054,9 @@ def process_reviewer_backlog(
     cursor = state.get("reviewer_fixer_cursor") or {}
     retry_ts = state.get("reviewer_fixer_retry_ts") or {}
     quota_retry_ts = state.get("fixer_quota_retry_ts") or {}
-    local_mode = _runtime_mode(cfg, state) == "local_fallback"
+    local_mode = True
+    if not _local_lms_slot_available(cfg, state) and _cloud_role_slot_available(cfg, state, "fixer"):
+        local_mode = False
     kick_limit = cfg.max_local_fixer_kicks_per_run if local_mode else cfg.max_cloud_fixer_kicks_per_run
     max_active = cfg.max_local_fixer_jobs if local_mode else cfg.max_cloud_fixer_jobs
     kicked = 0
@@ -2039,6 +2138,11 @@ def process_reviewer_backlog(
             if last_kick > 0 and (now - last_kick) < cfg.reviewer_fixer_retry_cooldown_seconds:
                 continue
         state = _maybe_restore_cloud(cfg, state, repo_cwd)
+        local_mode = True
+        if not _local_lms_slot_available(cfg, state) and _cloud_role_slot_available(cfg, state, "fixer"):
+            local_mode = False
+        if local_mode and not _local_lms_slot_available(cfg, state):
+            break
         reviewer_packet = _materialize_reviewer_packet(lane_dir, newest_note)
         state = run_fixer(
             reviewer_client,
@@ -2084,7 +2188,7 @@ def process_integrator_backlog(
             archive(pkt, lane_dir)
             processed += 1
             continue
-        runtime_local = _runtime_mode(cfg, state) == "local_fallback"
+        runtime_local = _use_local_provider(cfg, state)
         if runtime_local:
             ready, integ, state = _prepare_cli_integrator_result(
                 cfg,
@@ -2115,7 +2219,7 @@ def process_integrator_backlog(
                     integrator_tid, integrator_prompt(approved_text), timeout=cfg.integrator_timeout
                 )
             except Exception as exc:
-                runtime_local = _runtime_mode(cfg, state) == "local_fallback"
+                runtime_local = _use_local_provider(cfg, state)
                 if cfg.auto_switch_to_local_on_quota and REVIEWER_QUOTA_RE.search(str(exc)):
                     state = _switch_to_local_fallback(cfg, state, f"integrator backlog call failed/timed out: {exc}")
                     runtime_local = True
@@ -2180,7 +2284,7 @@ def main() -> None:
     state = load_json(STATE_FILE, {})
     repo_cwd = str(Path.cwd())
     state = _maybe_restore_cloud(cfg, state, repo_cwd)
-    local_mode = _runtime_mode(cfg, state) == "local_fallback"
+    local_mode = _use_local_provider(cfg, state)
 
     reviewer_profile = _profile_for_role(cfg, "reviewer", local=local_mode)
     integrator_profile = _profile_for_role(cfg, "integrator", local=local_mode)
@@ -2207,7 +2311,7 @@ def main() -> None:
 
     if (
         not integrator_tid
-        and _runtime_mode(cfg, state) != "local_fallback"
+        and _cloud_available(cfg, state)
         and not cfg.prefer_cli_integrator
     ):
         integrator_profile = _profile_for_role(cfg, "integrator", local=False)

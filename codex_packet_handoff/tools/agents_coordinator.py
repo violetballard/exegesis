@@ -176,7 +176,7 @@ def _bootstrap_direct_integrator_thread(
 ) -> str:
     if integrator_tid:
         return integrator_tid
-    if router_mod._runtime_mode(cfg, state) == "local_fallback":
+    if not router_mod._cloud_available(cfg, state):
         return integrator_tid
     if bool(getattr(cfg, "prefer_cli_integrator", False)):
         return integrator_tid
@@ -196,7 +196,7 @@ def _bootstrap_direct_integrator_thread(
 
 
 def _build_direct_router_clients(router_mod: object, cfg: object, state: Dict) -> Tuple[bool, object, object]:
-    local_mode = router_mod._runtime_mode(cfg, state) == "local_fallback"
+    local_mode = not router_mod._cloud_available(cfg, state)
     reviewer_profile = router_mod._profile_for_role(cfg, "reviewer", local=local_mode)
     integrator_profile = router_mod._profile_for_role(cfg, "integrator", local=local_mode)
     unsupported = sorted(
@@ -1389,7 +1389,7 @@ def _init_direct_router_ctx() -> DirectRouterCtx:
 
 def _refresh_direct_router_clients(ctx: DirectRouterCtx) -> None:
     ctx.state = ctx.router_mod._maybe_restore_cloud(ctx.cfg, ctx.state, ctx.repo_cwd)
-    desired_local_mode = ctx.router_mod._runtime_mode(ctx.cfg, ctx.state) == "local_fallback"
+    desired_local_mode = not ctx.router_mod._cloud_available(ctx.cfg, ctx.state)
     if desired_local_mode == ctx.local_mode:
         return
 
@@ -1521,9 +1521,6 @@ def _lane_has_active_feature_session(
 def _local_lms_feature_launch_slots() -> int:
     router_state = load_json(ROUTER_STATE_FILE, {})
     router_cfg = load_json(ROUTER_CONFIG_FILE, {})
-    mode = str(router_state.get("runtime_mode") or router_cfg.get("runtime_mode_default") or "cloud_primary")
-    if mode != "local_fallback":
-        return 999999
     cap = int(router_cfg.get("max_total_local_lms_jobs", 4) or 4)
     if cap <= 0:
         return 999999
@@ -1531,6 +1528,35 @@ def _local_lms_feature_launch_slots() -> int:
         set(find_repo_owned_local_exec_pids(REPO_ROOT))
         | {pid for pid in _tracked_feature_exec_pids() if _pid_alive(pid)}
     )
+    return max(0, cap - active)
+
+
+def _cloud_available_for_feature_launch() -> bool:
+    router_state = load_json(ROUTER_STATE_FILE, {})
+    router_cfg = load_json(ROUTER_CONFIG_FILE, {})
+    mode = str(router_state.get("runtime_mode") or router_cfg.get("runtime_mode_default") or "cloud_primary")
+    if mode == "local_fallback":
+        return False
+    if mode == "cloud_primary":
+        return True
+    return bool(router_state.get("cloud_available", True))
+
+
+def _cloud_feature_launch_slots() -> int:
+    if not _cloud_available_for_feature_launch():
+        return 0
+    router_cfg = load_json(ROUTER_CONFIG_FILE, {})
+    cap = int(router_cfg.get("max_cloud_feature_jobs", 1) or 0)
+    if cap <= 0:
+        return 0
+    active = 0
+    for lane_state in _feature_thread_state().values():
+        if not isinstance(lane_state, dict):
+            continue
+        if str(lane_state.get("mode") or "") != "cloud_primary":
+            continue
+        if _pid_alive(int(lane_state.get("pid") or 0)):
+            active += 1
     return max(0, cap - active)
 
 
@@ -1595,26 +1621,42 @@ def _launch_free_lanes(state_doc: Dict[str, object]) -> List[str]:
     if not to_launch:
         return []
 
-    slots = _local_lms_feature_launch_slots()
+    local_slots = _local_lms_feature_launch_slots()
     active_fixers = _active_local_fixer_jobs()
-    if _has_reviewer_notes_backlog() and active_fixers <= 0:
+    reviewer_backlog = _has_reviewer_notes_backlog()
+    if reviewer_backlog and active_fixers <= 0:
         # Reviewer handbacks are higher priority than speculative feature
         # refills. Keep one local LMS slot open so the router can kick a fixer
         # instead of letting free-lane launches continually steal capacity.
-        slots = max(0, slots - 1)
-    if slots <= 0:
-        print("[coordinator] local LMS job cap reached; deferring feature lane launch")
+        local_slots = max(0, local_slots - 1)
+    cloud_slots = 0 if (reviewer_backlog or _has_router_priority_backlog()) else _cloud_feature_launch_slots()
+    if local_slots <= 0 and cloud_slots <= 0:
+        print("[coordinator] local/cloud feature caps reached; deferring feature lane launch")
         return []
-    to_launch = to_launch[:slots]
+    local_lanes = to_launch[:local_slots]
+    remaining = [lane for lane in to_launch if lane not in set(local_lanes)]
+    cloud_lanes = remaining[:cloud_slots]
 
-    rc, out = run_cmd(LAUNCH_FEATURE_LANES_CMD + ["--lanes", *to_launch])
-    if rc != 0:
-        print(f"[coordinator] feature lane launch failed for {to_launch}: rc={rc}")
-        if out:
-            print(out, end="" if out.endswith("\n") else "\n")
-        return []
-    print(f"[coordinator] launched free lanes: {', '.join(to_launch)}")
-    return to_launch
+    launched: List[str] = []
+    if local_lanes:
+        rc, out = run_cmd(LAUNCH_FEATURE_LANES_CMD + ["--provider", "local", "--lanes", *local_lanes])
+        if rc != 0:
+            print(f"[coordinator] local feature lane launch failed for {local_lanes}: rc={rc}")
+            if out:
+                print(out, end="" if out.endswith("\n") else "\n")
+        else:
+            launched.extend(local_lanes)
+    if cloud_lanes:
+        rc, out = run_cmd(LAUNCH_FEATURE_LANES_CMD + ["--provider", "cloud", "--lanes", *cloud_lanes])
+        if rc != 0:
+            print(f"[coordinator] cloud feature lane launch failed for {cloud_lanes}: rc={rc}")
+            if out:
+                print(out, end="" if out.endswith("\n") else "\n")
+        else:
+            launched.extend(cloud_lanes)
+    if launched:
+        print(f"[coordinator] launched free lanes: {', '.join(launched)}")
+    return launched
 
 
 def _has_lane_backlog() -> bool:
@@ -1635,6 +1677,15 @@ def _has_reviewer_notes_backlog() -> bool:
     for lane in _enabled_lanes():
         d = _lane_digest(lane)
         if int(d.get("reviewer_notes", 0)) > 0:
+            return True
+    return False
+
+
+def _has_router_priority_backlog() -> bool:
+    """Return True when cloud capacity should be reserved for review/integration."""
+    for lane in _enabled_lanes():
+        d = _lane_digest(lane)
+        if int(d.get("reviewer_notes", 0)) > 0 or int(d.get("approved", 0)) > 0:
             return True
     return False
 

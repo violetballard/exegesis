@@ -70,7 +70,7 @@
     "fixer_cloud": "worker_cloud",
     "fixer_local": "worker_local"
   },
-  "runtime_mode_default": "cloud_primary",
+  "runtime_mode_default": "hybrid",
   "auto_switch_to_local_on_quota": true,
   "auto_probe_cloud_recovery": true,
   "disable_local_fallback_on_cloud_timeout": true,
@@ -79,6 +79,9 @@
   "feature_launch_timeout_seconds": 300,
   "max_parallel_feature_lanes_cloud": 2,
   "max_parallel_feature_lanes_local": 1,
+  "max_cloud_feature_jobs": 1,
+  "max_cloud_reviewer_jobs": 1,
+  "max_cloud_integrator_jobs": 1,
   "max_total_local_lms_jobs": 4,
   "prefer_direct_exec_feature_cloud": true,
   "prefer_cli_reviewer": true,
@@ -90,7 +93,7 @@
   "integrator_timeout": 900,
   "max_cloud_fixer_kicks_per_run": 1,
   "max_local_fixer_kicks_per_run": 1,
-  "max_cloud_fixer_jobs": 2,
+  "max_cloud_fixer_jobs": 1,
   "max_local_fixer_jobs": 1,
   "lanes": {
     "feat-context-storage": {

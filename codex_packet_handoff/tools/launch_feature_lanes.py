@@ -135,6 +135,7 @@ def _resolved_profiles(cfg: Dict[str, object]) -> Dict[str, Dict[str, object]]:
 def parse_args() -> argparse.Namespace:
     ap = argparse.ArgumentParser(description="Launch or resume feature lane managed Codex sessions.")
     ap.add_argument("--lanes", nargs="*", default=None, help="Lane names to launch")
+    ap.add_argument("--provider", choices=["auto", "local", "cloud"], default="auto", help="Worker provider pool to launch into")
     ap.add_argument("--restart-existing", action="store_true", help="Start a fresh managed session even if lane state exists")
     ap.add_argument("--dry-run", action="store_true", help="Print resolved launch plan without starting managed sessions")
     return ap.parse_args()
@@ -178,10 +179,30 @@ def _lane_profile_name(
     return str(override or default_name)
 
 
-def runtime_launch_config(lane: str | None = None) -> Dict[str, object]:
+def _cloud_available(cfg: Dict[str, object], state: Dict[str, object]) -> bool:
+    mode = str(state.get("runtime_mode") or cfg.get("runtime_mode_default") or "cloud_primary")
+    if mode == "local_fallback":
+        return False
+    if mode == "cloud_primary":
+        return True
+    return bool(state.get("cloud_available", True))
+
+
+def _launch_mode_for_provider(cfg: Dict[str, object], state: Dict[str, object], provider: str) -> str:
+    if provider == "local":
+        return "local_fallback"
+    if provider == "cloud":
+        return "cloud_primary"
+    mode = str(state.get("runtime_mode") or cfg.get("runtime_mode_default") or "cloud_primary")
+    if mode == "hybrid":
+        return "cloud_primary" if _cloud_available(cfg, state) else "local_fallback"
+    return mode if mode in {"cloud_primary", "local_fallback"} else "cloud_primary"
+
+
+def runtime_launch_config(lane: str | None = None, *, provider: str = "auto") -> Dict[str, object]:
     cfg = load_json(CONFIG_FILE, {})
     state = load_json(STATE_FILE, {})
-    mode = str(state.get("runtime_mode") or cfg.get("runtime_mode_default") or "cloud_primary")
+    mode = _launch_mode_for_provider(cfg, state, provider)
     role_profiles = {
         "feature_cloud": "worker_cloud",
         "feature_local": "worker_local",
@@ -199,7 +220,9 @@ def runtime_launch_config(lane: str | None = None) -> Dict[str, object]:
         "launch_timeout_seconds": float(cfg.get("feature_launch_timeout_seconds", 120)),
         "max_parallel_feature_lanes_cloud": int(cfg.get("max_parallel_feature_lanes_cloud", 2)),
         "max_parallel_feature_lanes_local": int(cfg.get("max_parallel_feature_lanes_local", 1)),
+        "max_cloud_feature_jobs": int(cfg.get("max_cloud_feature_jobs", 1)),
         "max_total_local_lms_jobs": int(cfg.get("max_total_local_lms_jobs", 4)),
+        "provider": "local" if mode == "local_fallback" else "cloud",
         "disable_local_fallback_on_cloud_timeout": bool(cfg.get("disable_local_fallback_on_cloud_timeout", False)),
         "prefer_direct_exec_cloud": bool(cfg.get("prefer_direct_exec_feature_cloud", True)),
         "local_profile_name": local_profile_name,
@@ -283,6 +306,21 @@ def _active_local_feature_jobs(feature_state: Dict[str, Any]) -> int:
     return active
 
 
+def _active_cloud_feature_jobs(feature_state: Dict[str, Any]) -> int:
+    lanes = feature_state.get("lanes") if isinstance(feature_state, dict) else {}
+    if not isinstance(lanes, dict):
+        return 0
+    active = 0
+    for lane_state in lanes.values():
+        if not isinstance(lane_state, dict):
+            continue
+        if str(lane_state.get("mode") or "") != "cloud_primary":
+            continue
+        if _pid_alive(int(lane_state.get("pid") or 0)):
+            active += 1
+    return active
+
+
 def _active_local_router_jobs(router_state: Dict[str, Any]) -> int:
     active = 0
     for key in ("local_reviewer_jobs", "local_integrator_jobs"):
@@ -313,6 +351,13 @@ def _local_lms_launch_slots(launch_cfg: Dict[str, object], feature_state: Dict[s
     router_state = load_json(STATE_FILE, {})
     active = _active_local_feature_jobs(feature_state) + _active_local_router_jobs(router_state)
     return max(0, cap - active)
+
+
+def _cloud_feature_launch_slots(launch_cfg: Dict[str, object], feature_state: Dict[str, Any]) -> int:
+    cap = int(launch_cfg.get("max_cloud_feature_jobs") or 0)
+    if cap <= 0:
+        return 0
+    return max(0, cap - _active_cloud_feature_jobs(feature_state))
 
 
 def _spawn_direct_exec(
@@ -914,8 +959,8 @@ def main() -> int:
     args = parse_args()
     if args.lanes is None:
         args.lanes = _enabled_lanes()
-    launch_cfg = runtime_launch_config()
-    lane_launch_cfgs = {lane: runtime_launch_config(lane) for lane in args.lanes}
+    launch_cfg = runtime_launch_config(provider=args.provider)
+    lane_launch_cfgs = {lane: runtime_launch_config(lane, provider=args.provider) for lane in args.lanes}
     worktrees = branch_worktrees()
     prompts_dir = FEATURE_ROOT / "prompts"
     logs_dir = FEATURE_ROOT / "logs"
@@ -949,6 +994,7 @@ def main() -> int:
         parallel_limit = min(parallel_limit, _local_lms_launch_slots(launch_cfg, feature_state))
     else:
         parallel_limit = int(launch_cfg.get("max_parallel_feature_lanes_cloud", 2))
+        parallel_limit = min(parallel_limit, _cloud_feature_launch_slots(launch_cfg, feature_state))
     if parallel_limit <= 0:
         print(json.dumps({"runtime_mode": launch_cfg["mode"], "launched": []}, indent=2))
         return 0
