@@ -4486,6 +4486,31 @@ def _argv_without_launcher(argv: tuple[str, ...], launcher_argv: tuple[str, ...]
     return argv
 
 
+def _detected_launcher_argv(argv: tuple[str, ...]) -> tuple[str, ...]:
+    for supported_launcher_argv in COMMAND_SMOKE_SUPPORTED_LAUNCHER_ARGV:
+        if argv[: len(supported_launcher_argv)] == supported_launcher_argv:
+            return supported_launcher_argv
+    for launcher_tail in COMMAND_SMOKE_SUPPORTED_LAUNCHER_TAILS:
+        launcher_len = 1 + len(launcher_tail)
+        if (
+            len(argv) >= launcher_len
+            and _is_supported_python_launcher(argv[0])
+            and _launcher_tail_matches(argv[1:launcher_len], launcher_tail)
+        ):
+            return argv[:launcher_len]
+    return ()
+
+
+def _canonical_argv_with_requested_launcher(
+    canonical_argv: tuple[str, ...],
+    requested_launcher_argv: tuple[str, ...],
+) -> tuple[str, ...]:
+    if not requested_launcher_argv:
+        return canonical_argv
+    command_argv = _argv_without_launcher(canonical_argv, requested_launcher_argv)
+    return (*requested_launcher_argv, *command_argv)
+
+
 def _strip_launcher_separator(argv: tuple[str, ...]) -> tuple[str, ...]:
     if argv[:1] == ("--",):
         return argv[1:]
@@ -4636,6 +4661,7 @@ def _command_demo_readiness_canonical_argv_for_argv(
     requested_argv = _normalize_smoke_argv(argv)
     if not requested_argv:
         return ()
+    requested_launcher_argv = _detected_launcher_argv(requested_argv)
     requested_command_argv = _argv_without_launcher(requested_argv, launcher_argv)
     requested_canonical_command_argv = _canonicalize_smoke_command_argv(specs, requested_command_argv)
     for entry in command_demo_readiness_contract(specs, launcher_argv).entries:
@@ -4645,7 +4671,7 @@ def _command_demo_readiness_canonical_argv_for_argv(
             or _smoke_argv_matches(requested_command_argv, entry_command_argv)
             or _smoke_argv_matches(requested_canonical_command_argv, entry_command_argv)
         ):
-            return entry.command_argv
+            return _canonical_argv_with_requested_launcher(entry.command_argv, requested_launcher_argv)
         for _, action_command_argv in entry.action_command_argv:
             action_argv = _argv_without_launcher(action_command_argv, launcher_argv)
             if (
@@ -4653,7 +4679,7 @@ def _command_demo_readiness_canonical_argv_for_argv(
                 or _smoke_argv_matches(requested_command_argv, action_argv)
                 or _smoke_argv_matches(requested_canonical_command_argv, action_argv)
             ):
-                return action_command_argv
+                return _canonical_argv_with_requested_launcher(action_command_argv, requested_launcher_argv)
     return ()
 
 
