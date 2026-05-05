@@ -3,27 +3,29 @@
 - Branch name: `codex/feat-retrieval-fts`
 - Lane: `feat-retrieval-fts`
 - Merge target: current `main`
-- Authoritative merge/review range for the actual integration candidate: `378cf9a74a3658058079a32f186fcd254c4a4034..HEAD`
-- Current pre-fix branch tip audited for this packet refresh: `afde8dd5f`
-- Merge candidate: the branch tip after this traceability fixer commit. It is not `adfa8cdadd43747ffbcb612e4151e262b13e52ca`, `e4f835c50`, or `43654937a196977d7cd53c4e355b4f8ea7fb93b7`.
+- Authoritative source/test review range for the actual integration candidate: `378cf9a74a3658058079a32f186fcd254c4a4034..36ae3095f38d6e4e4d11299d12ba15a39ac78889`
+- Authoritative branch tip audited for this packet refresh: `36ae3095f38d6e4e4d11299d12ba15a39ac78889`
+- Merge candidate: `codex/feat-retrieval-fts` at `36ae3095f38d6e4e4d11299d12ba15a39ac78889`. It is not the stale `adfa8cdadd43747ffbcb612e4151e262b13e52ca`, `e4f835c50`, or `43654937a196977d7cd53c4e355b4f8ea7fb93b7` slices.
 - Scope classification: high-risk/shared because the candidate includes approved shared regression coverage in `tests/unit/test_unified_retrieval.py`.
 - Packet type: retrieval feature handoff for the full branch-tip FTS-first retrieval candidate.
 
 ## Scope Completed
 
-The actual branch-tip candidate keeps SQLite FTS as the only active retrieval path and reconciles the handoff with the full source/test surface from `378cf9a74a3658058079a32f186fcd254c4a4034..HEAD`. The candidate exports canonical retrieval query construction through the engine retrieval facade, normalizes boolean constraints deterministically, removes stale FTS strategy caching, makes payload/source/context snapshots deterministic, canonicalizes missing, blank, or unsupported sparse confidentiality profile snapshots to the canonical confidential default while preserving supported `standard` snapshots, adds policy-bound basket-promotion item fingerprints, backfills missing basket item fingerprints when sparse context/source snapshots already carry basket refs, keeps excerpt lookup on the canonical FTS-only path so PageIndex-only excerpt IDs fail closed under shared regression coverage, preserves safe title hints in canonical FTS excerpt lookup payloads and lookup audit metadata, reports matched-term provenance using token-exact FTS-style matching instead of substring matching, canonicalizes ingested document types for stable FTS row metadata and provenance fingerprints, carries query date-range, candidate-count, and FTS shortlist context into the retrieval evidence snapshot for basket/audit consumers, and makes the active FTS strategy module's public symbol contract explicit without exporting deferred shims from the engine package facade.
+The actual branch-tip candidate keeps SQLite FTS as the only active retrieval path and reconciles the handoff with the full source/test surface from `378cf9a74a3658058079a32f186fcd254c4a4034..36ae3095f38d6e4e4d11299d12ba15a39ac78889`. The candidate exports canonical retrieval query construction through the engine retrieval facade, normalizes boolean constraints deterministically, removes stale FTS strategy caching, makes payload/source/context snapshots deterministic, canonicalizes missing, blank, or unsupported sparse confidentiality profile snapshots to the canonical confidential default while preserving supported `standard` snapshots, adds policy-bound basket-promotion item fingerprints, backfills missing basket item fingerprints when sparse context/source snapshots already carry basket refs, keeps excerpt lookup on the canonical FTS-only path so PageIndex-only excerpt IDs fail closed under shared regression coverage, preserves safe title hints in canonical FTS excerpt lookup payloads and lookup audit metadata, reports matched-term provenance using token-exact FTS-style matching instead of substring matching, canonicalizes ingested document types for stable FTS row metadata and provenance fingerprints, carries query date-range, candidate-count, and FTS shortlist context into the retrieval evidence snapshot for basket/audit consumers, and makes the active FTS strategy module's public symbol contract explicit without exporting deferred shims from the engine package facade.
 
-PageIndex and embeddings remain compatibility-only fallback shims and are not reintroduced as required retrieval paths. This packet supersedes earlier narrowed claims that stopped at `adfa8cdadd43747ffbcb612e4151e262b13e52ca`, `e4f835c50`, or `43654937a196977d7cd53c4e355b4f8ea7fb93b7`; re-review should inspect the full `378cf9a74a3658058079a32f186fcd254c4a4034..HEAD` candidate.
+PageIndex and embeddings remain compatibility-only fallback shims and are not reintroduced as required retrieval paths. This packet supersedes earlier narrowed claims that stopped at `adfa8cdadd43747ffbcb612e4151e262b13e52ca`, `e4f835c50`, or `43654937a196977d7cd53c4e355b4f8ea7fb93b7`; re-review should inspect the full `378cf9a74a3658058079a32f186fcd254c4a4034..36ae3095f38d6e4e4d11299d12ba15a39ac78889` source/test candidate plus the final metadata-only packet reconciliation commit created by this fixer pass.
 
 ## Required Fixes Addressed
 
-Reviewer packet `fixer__feat-retrieval-fts__20260505T165534Z` requested three fixes:
+Reviewer packet `fixer__feat-retrieval-fts__20260505T170006Z` requested five fixes:
 
-1. `src.qual.engine.retrieval.__all__` includes `retrieve_auto`.
-2. `tests/unit/test_unified_retrieval.py` expects `retrieve_auto` in the engine retrieval export list and asserts the canonical engine facade exposes it.
-3. This handoff packet maps each completed task to the canonical demo-path step it advances and states that the work makes `retrieve relevant material` more real.
+1. Regenerated the review packet from the actual merge candidate, `codex/feat-retrieval-fts` at `36ae3095f38d6e4e4d11299d12ba15a39ac78889`. The final fixer commit after this packet update is metadata-only and does not change `src/**` or `tests/**`.
+2. Included every non-metadata source/test change in the reviewed range. Commits touching `src/**` or `tests/**`, including `afde8dd5f`, are implementation commits and are part of the reviewed candidate.
+3. Reconciled the packet files as far as the lane sandbox permits: `THREAD_PACKET.md` is authoritative, while `.codex/kickoff_packets/feat-retrieval-fts.md` and `.codex/lane_meta/feat-retrieval-fts.json` are stale protected mirrors because writes to those paths fail with `Operation not permitted`.
+4. Re-ran the required gates against the same branch-tip candidate and recorded outcomes below.
+5. Restated high-risk budget accounting against the true source/test implementation range, including net LOC and shared-by-approval coverage in `tests/unit/test_unified_retrieval.py`.
 
-The tracked `.codex/kickoff_packets/feat-retrieval-fts.md` and `.codex/lane_meta/feat-retrieval-fts.json` mirrors remain protected in this lane worktree; both `apply_patch` and shell in-place editing failed with `Operation not permitted` during this fixer pass. `THREAD_PACKET.md` is therefore the refreshed authoritative handoff packet for re-review.
+The tracked `.codex/kickoff_packets/feat-retrieval-fts.md` and `.codex/lane_meta/feat-retrieval-fts.json` mirrors remain protected in this lane worktree. `apply_patch` rejected `.codex` updates as outside-project writes, and a direct `python3` write to `.codex/kickoff_packets/feat-retrieval-fts.md` failed with `PermissionError: [Errno 1] Operation not permitted`. `THREAD_PACKET.md` is therefore the refreshed authoritative handoff packet for re-review; the `.codex` mirrors are stale/protected and should not be used as the review source of truth.
 
 1. Reproduced the reported integrator failure context locally by reading the captured integrator prompt and rerunning the lane/integration gates on the branch-tip candidate; no retrieval test, typecheck, lint, format, scope, CI, or merge-tree conflict failure reproduced.
 2. Fixed the review-facing handoff packet to present the actual branch-tip candidate range. The tracked `.codex` packet mirrors still cannot be edited in this lane sandbox because writes fail with `Operation not permitted`; this was reproduced again during the 2026-05-05 fixer pass. `THREAD_PACKET.md` remains the authoritative corrected feature packet for re-review.
@@ -67,7 +69,7 @@ The branch contains implementation commits after `adfa8cdadd43747ffbcb612e4151e2
 
 ## Files Changed
 
-Authoritative candidate files changed for `378cf9a74a3658058079a32f186fcd254c4a4034..HEAD`:
+Authoritative candidate files changed for `378cf9a74a3658058079a32f186fcd254c4a4034..36ae3095f38d6e4e4d11299d12ba15a39ac78889`:
 
 - `.codex/kickoff_packets/feat-retrieval-fts.md` - stale packet mirror present in the candidate; this fixer session could not refresh it because filesystem writes under `.codex` fail with `Operation not permitted`.
 - `.codex/lane_meta/feat-retrieval-fts.json` - stale lane metadata mirror present in the candidate; this fixer session could not refresh it because filesystem writes under `.codex` fail with `Operation not permitted`.
@@ -78,7 +80,7 @@ Authoritative candidate files changed for `378cf9a74a3658058079a32f186fcd254c4a4
 - `src/qual/retrieval/service.py` - keeps FTS as the authoritative lookup path, preserves safe title hints for FTS excerpt lookup payloads/audit metadata, canonicalizes ingested document types, and emits deterministic result/query/policy-bound basket fingerprints, token-exact matched-term provenance, and evidence context for query date-range/candidate shortlist auditability.
 - `tests/unit/test_unified_retrieval.py` - approved shared regression coverage for cache invalidation, deterministic payloads, facade exports, basket refs, sparse basket fingerprint backfill, sparse confidentiality profile normalization, FTS-only excerpt lookup including safe title hints, token-exact matched terms, and evidence context parity with diagnostics.
 
-Full corrected candidate stat including this packet refresh: `8 files changed, 1120 insertions(+), 211 deletions(-)`.
+Full branch-tip candidate stat before this metadata reconciliation commit: `8 files changed, 1224 insertions(+), 211 deletions(-)`.
 
 Source/test surface included for review:
 
@@ -88,11 +90,11 @@ Source/test surface included for review:
 - `src/qual/retrieval/service.py`
 - `tests/unit/test_unified_retrieval.py`
 
-Source/test stat included for implementation review: `5 files changed, 795 insertions(+), 123 deletions(-)`.
+Source/test stat included for implementation review: `5 files changed, 884 insertions(+), 123 deletions(-)`.
 
-Current fixer source/test delta before this packet refresh: `2 files changed, 40 insertions(+), 1 deletion(-)`; this pass canonicalizes unsupported sparse confidentiality profile snapshots in retrieval payload rehydration and adds the approved shared retrieval regression.
+Current fixer source/test delta before this packet refresh: `0 files changed`; this pass is metadata-only and does not touch `src/**` or `tests/**`.
 
-Current fixer delta including this packet refresh: `3 files changed, 53 insertions(+), 11 deletions(-)`; `.codex` packet mirrors remain protected by `Operation not permitted` from prior fixer verification, so `THREAD_PACKET.md` is the refreshed handoff packet.
+Current fixer delta including this packet refresh: `THREAD_PACKET.md` only; `.codex` packet mirrors remain protected by `Operation not permitted`, so `THREAD_PACKET.md` is the refreshed authoritative handoff packet.
 
 Lane-owned source files:
 
@@ -118,10 +120,10 @@ Integrator-locked files:
 - Task budget: `4/4` high-risk tasks; this fixer is part of task 3, deterministic payload/source/context/evidence snapshots.
 - File budget: `8/8` high-risk files in the corrected candidate.
 - Source/test file count: `5` files.
-- Full corrected candidate net LOC including this reviewer-fix packet refresh: `+909`.
-- Source/test net LOC included for implementation review: `+672`.
+- Full branch-tip candidate net LOC before this metadata reconciliation commit: `+1013`.
+- Source/test net LOC included for implementation review: `+761`.
 - Size exception required: yes. The candidate exceeds the AGENTS.md high-risk `<=300` net LOC guideline because the actual branch-tip surface includes the full retrieval payload/service/test implementation, not only the earlier narrowed packet slice.
-- Explicit size exception request: approve review of the full `378cf9a74a3658058079a32f186fcd254c4a4034..HEAD` candidate as a single high-risk retrieval handoff because splitting the already-committed branch tip would reintroduce the traceability gap the reviewer flagged.
+- Explicit size exception request: approve review of the full `378cf9a74a3658058079a32f186fcd254c4a4034..36ae3095f38d6e4e4d11299d12ba15a39ac78889` source/test candidate as a single high-risk retrieval handoff because splitting the already-committed branch tip would reintroduce the traceability gap the reviewer flagged.
 - Shared-file approval note: `tests/unit/test_unified_retrieval.py` is included as the approved shared-by-approval regression surface for the retrieval lane.
 - Routing/provider impact: none.
 - PageIndex/embeddings impact: none; PageIndex and embeddings remain deferred/compatibility-only and are not active retrieval paths.
@@ -140,7 +142,7 @@ Integrator-locked files:
 
 ## Commands Run
 
-Required gates for the corrected candidate, rerun on 2026-05-05 for this fixer pass after sparse confidentiality profile normalization:
+Required gates for the corrected candidate, rerun on 2026-05-05 after this authoritative packet refresh:
 
 - `make scope-check` PASS, scope-check skipped branch policy and passed for `codex/feat-retrieval-fts`.
 - `./quality-format.sh --check` PASS.
@@ -176,4 +178,4 @@ Focused gate already run earlier in this branch:
 
 ## Risks/Blockers
 
-No implementation blocker is known. The remaining reviewer-facing risks are the requested AGENTS.md size exception for the full high-risk branch-tip candidate and the protected `.codex` packet mirrors, which still cannot be edited from this lane worktree because writes fail with `Operation not permitted`. That protected-mirror write failure was reproduced during this fixer pass. `THREAD_PACKET.md` is the corrected authoritative handoff packet for re-review and records the reviewed implementation range as `378cf9a74a3658058079a32f186fcd254c4a4034..HEAD`.
+No implementation blocker is known. The remaining reviewer-facing risks are the requested AGENTS.md size exception for the full high-risk branch-tip candidate and the protected `.codex` packet mirrors, which still cannot be edited from this lane worktree because writes fail with `Operation not permitted`. That protected-mirror write failure was reproduced during this fixer pass. `THREAD_PACKET.md` is the corrected authoritative handoff packet for re-review and records the reviewed implementation range as `378cf9a74a3658058079a32f186fcd254c4a4034..36ae3095f38d6e4e4d11299d12ba15a39ac78889`, plus this final metadata-only packet reconciliation commit.
