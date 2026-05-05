@@ -3,7 +3,7 @@
 - Branch name: `codex/feat-retrieval-fts`
 - Lane: `feat-retrieval-fts`
 - Merge target: current `main`
-- Merge candidate for re-review: branch tip `HEAD` on `codex/feat-retrieval-fts` after this packet traceability correction commit; before this fixer the branch tip was `b6e026a0adf4137108b2388b88a630f902ab8b9f`, and the exact final SHA is reported in the fixer deliverable.
+- Merge candidate for re-review: branch tip `HEAD` on `codex/feat-retrieval-fts` after this packet traceability correction commit; before this fixer the branch tip was `b4ca0dd3ea81042f9aec63782695cf83678fc6b1`, and the exact final SHA is reported in the fixer deliverable.
 - Actual merge-candidate diff against `main`: `main...HEAD`, currently anchored at merge-base `dc8db42ddd554e38c1d390a089eac26ae8a16aa7`.
 - Reviewer-requested traceability range: `adfa8cdadd43747ffbcb612e4151e262b13e52ca..HEAD`. This is the historical range that includes every source/test change after the earlier reviewed implementation head, including changes that are already reachable from current `main`.
 - Current merge-base before this fixer pass: `dc8db42ddd554e38c1d390a089eac26ae8a16aa7`
@@ -79,7 +79,7 @@ Integrator-locked files: none.
 
 - Task budget: `4/4` high-risk tasks.
 - File budget: before this packet edit, the actual merge-candidate diff `main...HEAD` changes `4` files, within the high-risk `<=8 files` limit. The reviewer-requested historical traceability range `adfa8cdadd43747ffbcb612e4151e262b13e52ca..HEAD` changes `9` files, which is over the high-risk file budget and is called out here for re-review instead of being narrowed or hidden.
-- Net LOC: before this packet edit, `git diff --shortstat main...HEAD` reports `4 files changed, 82 insertions(+), 21 deletions(-)`, for `+61` net LOC in the actual merge candidate. The reviewer-requested historical traceability range reports `9 files changed, 2203 insertions(+), 204 deletions(-)`, for `+1999` net LOC, which is explicitly disclosed for traceability.
+- Net LOC: before this packet edit, `git diff --shortstat main...HEAD` reports `4 files changed, 98 insertions(+), 23 deletions(-)`, for `+75` net LOC in the actual merge candidate. The reviewer-requested historical traceability range reports `9 files changed, 2217 insertions(+), 204 deletions(-)`, for `+2013` net LOC, which is explicitly disclosed for traceability.
 - Shared-file approval note: `tests/unit/test_unified_retrieval.py` is the approved shared-by-approval regression file for this lane.
 - Routing/provider impact: none.
 - PageIndex/embeddings impact: none; both remain deferred/compatibility-only.
