@@ -511,7 +511,7 @@ def _normalize_query_max_results(value: object) -> int:
 
 def _query_fingerprint_from_query_snapshot(query: dict[str, object]) -> str | None:
     query_text = _normalized_query_text(query.get("query_text"))
-    scope = _normalize_optional_text(query.get("scope"))
+    scope = _normalize_query_scope(query.get("scope"))
     intent = _normalize_optional_text(query.get("intent"))
     if query_text is None or scope is None or intent is None:
         return None
@@ -536,6 +536,19 @@ def _query_fingerprint_from_query_snapshot(query: dict[str, object]) -> str | No
         ),
     }
     return _stable_fingerprint(payload)
+
+
+def _normalize_query_scope(value: object) -> str | None:
+    scope = _normalize_optional_text(value)
+    if scope is None:
+        return None
+    if scope.startswith("doc:"):
+        doc_id = scope.split(":", 1)[1].strip()
+        return f"doc:{doc_id}" if doc_id else scope
+    if scope.startswith("collection:"):
+        collection_id = scope.split(":", 1)[1].strip()
+        return f"collection:{collection_id}" if collection_id else scope
+    return " ".join(scope.split())
 
 
 def _is_missing_snapshot_value(value: object) -> bool:
@@ -572,9 +585,9 @@ def _normalize_query_snapshot(query: object) -> dict[str, object]:
     query_text = _normalize_optional_text(normalized.get("query_text"))
     if query_text is not None:
         normalized["query_text"] = " ".join(query_text.split())
-    scope = _normalize_optional_text(normalized.get("scope"))
+    scope = _normalize_query_scope(normalized.get("scope"))
     if scope is not None:
-        normalized["scope"] = " ".join(scope.split())
+        normalized["scope"] = scope
     intent = _normalize_optional_text(normalized.get("intent"))
     if intent is not None:
         normalized["intent"] = intent.casefold()

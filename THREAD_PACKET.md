@@ -13,11 +13,11 @@
 
 ## Scope Completed
 
-This re-review packet covers the complete current merge candidate from `main...HEAD`, including the sparse basket-reference normalization already on this branch, packet-accounting refreshes, the owned-path malformed retrieval-scope guard, the collection-scope fail-closed guard, and the owned-path canonical doc-scope normalization added by this fixer pass. No source-bearing commit after merge-base `20e79e4e2984b6cbf19fc81139a0ed012ecd141c` is hidden behind metadata-only wording.
+This re-review packet covers the complete current merge candidate from `main...HEAD`, including the sparse basket-reference normalization already on this branch, packet-accounting refreshes, the owned-path malformed retrieval-scope guard, the collection-scope fail-closed guard, the owned-path canonical doc-scope normalization, and the owned-path sparse query scope canonicalization added by this fixer pass. No source-bearing commit after merge-base `20e79e4e2984b6cbf19fc81139a0ed012ecd141c` is hidden behind metadata-only wording.
 
 The implementation keeps SQLite FTS as the authoritative retrieval path. It exports canonical FTS excerpt fetch helpers through retrieval facades, normalizes FTS strategy hit snapshots, stabilizes payload and provenance reconstruction, exposes deterministic excerpt fingerprints, fails closed if internal excerpt payload normalization or sparse basket-promotion rehydration is asked to accept a non-FTS source strategy, and carries canonical basket promotion IDs, counts, fingerprints, query/result fingerprints, query context, and doc identity fingerprints through canonical excerpt bundles, retrieval evidence, retrieval summaries, provenance snapshots, and sparse engine payload backfills.
 
-This fixer also keeps retrieval scopes fail-closed by rejecting malformed empty `doc:` and `collection:` scope values before the FTS candidate set is built. Doc-scoped retrieval now trims and canonicalizes the document identifier before applying the FTS filter and before building query fingerprints, evidence, provenance, and basket-promotion metadata, so whitespace-padded document scopes resolve to the same deterministic document candidate and the same auditable output contract. Non-empty `collection:` scopes now fail closed until the FTS path has an authoritative collection resolver, instead of silently falling back to vault-wide retrieval.
+This fixer also keeps retrieval scopes fail-closed by rejecting malformed empty `doc:` and `collection:` scope values before the FTS candidate set is built. Doc-scoped retrieval now trims and canonicalizes the document identifier before applying the FTS filter and before building query fingerprints, evidence, provenance, and basket-promotion metadata, so whitespace-padded document scopes resolve to the same deterministic document candidate and the same auditable output contract. Sparse engine payload reconstruction now applies the same canonical `doc:<id>` and `collection:<id>` scope shape before normalizing query snapshots or rebuilding sparse query fingerprints, so downstream context/source bundle backfills do not drift from the service-side retrieval contract. Non-empty `collection:` scopes now fail closed until the FTS path has an authoritative collection resolver, instead of silently falling back to vault-wide retrieval.
 
 Focused regression coverage verifies canonical FTS excerpt lookup, PageIndex fail-closed behavior, facade exports, excerpt bundle basket metadata, retrieval summary basket references, sparse non-FTS excerpt rehydration rejection, sparse duplicate/empty basket reference normalization, unresolved collection-scope rejection, and engine payload reconstruction from compact/sparse retrieval summary snapshots.
 
@@ -26,14 +26,14 @@ PageIndex and embeddings remain deferred/compatibility-only paths and are not in
 ## Tasks Completed
 
 1. Made canonical excerpt lookup and excerpt payload normalization FTS-only, including stable excerpt lookup fingerprints, PageIndex fail-closed behavior, and retrieval facade exports for the canonical excerpt fetch path.
-2. Normalized retrieval strategy, query, payload, source bundle, provenance, citation, and cache snapshots so downstream engine flows receive deterministic FTS-first retrieval evidence.
+2. Normalized retrieval strategy, query, payload, source bundle, provenance, citation, and cache snapshots so downstream engine flows receive deterministic FTS-first retrieval evidence, including canonical scope normalization for sparse query snapshots reconstructed by engine payload helpers.
 3. Propagated basket promotion metadata through canonical FTS excerpt lookup, excerpt bundles, retrieval evidence, retrieval summaries, provenance snapshots, context/source bundles, and engine payload reconstruction, including canonical basket item IDs, promotion counts, fingerprints, query/result fingerprints, canonical doc-scope query context, doc identity fingerprints, duplicate/empty sparse-reference normalization, fail-closed handling for explicit non-FTS source strategies during sparse basket rehydration, and fail-closed validation for malformed empty retrieval scopes plus unresolved collection scopes.
 4. Updated approved shared unified retrieval regression coverage and refreshed handoff metadata so the reviewed range, file list, gate evidence, and canonical demo-path mapping cover the actual branch-tip merge candidate.
 
 ## Files Changed
 
 - `THREAD_PACKET.md` - updates this handoff packet for the complete reviewed implementation range and explicitly classifies packet-only versus implementation commits.
-- `src/qual/engine/retrieval/payload.py` - reconstructs and preserves deterministic query, provenance, source bundle, citation, evidence, basket promotion ID/count, fingerprint, query/result fingerprint, query context, and doc identity metadata from direct or sparse retrieval snapshots, canonicalizes sparse basket item ID/fingerprint lists, and rejects explicit non-FTS source strategies during sparse basket promotion rehydration.
+- `src/qual/engine/retrieval/payload.py` - reconstructs and preserves deterministic query, provenance, source bundle, citation, evidence, basket promotion ID/count, fingerprint, query/result fingerprint, query context, and doc identity metadata from direct or sparse retrieval snapshots, canonicalizes sparse query scopes and sparse basket item ID/fingerprint lists, and rejects explicit non-FTS source strategies during sparse basket promotion rehydration.
 - `src/qual/retrieval/service.py` - implements canonical FTS excerpt lookup, FTS-only excerpt payload normalization, deterministic retrieval/provenance snapshots, FTS cache normalization, basket promotion metadata on canonical evidence, summaries, provenance, and lookup payloads, fail-closed validation for empty `doc:`/`collection:` scopes plus unresolved collection scopes, and canonical doc-scope normalization before query fingerprints and downstream payloads are built.
 - `tests/unit/test_unified_retrieval.py` - verifies canonical FTS excerpt lookup, facade exports, deterministic payload/provenance normalization, basket metadata, sparse non-FTS excerpt rejection, sparse duplicate/empty basket reference normalization, unresolved collection-scope rejection, and payload reconstruction.
 
@@ -52,7 +52,7 @@ Integrator-locked files: none.
 
 - Task budget: `4/4` high-risk tasks.
 - File budget: the complete branch-tip review range changes `4` files, within the high-risk `<=8 files` limit.
-- Net LOC: after this fixer pass, `git diff --shortstat main...HEAD` reports `4 files changed, 166 insertions(+), 59 deletions(-)`, for `+107` net LOC, within the high-risk `<=300 net LOC` limit.
+- Net LOC: after this fixer pass, `git diff --shortstat $(git merge-base main HEAD) -- THREAD_PACKET.md src/qual/engine/retrieval/payload.py src/qual/retrieval/service.py tests/unit/test_unified_retrieval.py` reports `4 files changed, 182 insertions(+), 62 deletions(-)`, for `+120` net LOC, within the high-risk `<=300 net LOC` limit.
 - Shared-file approval note: `tests/unit/test_unified_retrieval.py` is the approved shared-by-approval regression file for this lane.
 - Routing/provider impact: none.
 - PageIndex/embeddings impact: none; both remain deferred/compatibility-only.
@@ -68,7 +68,7 @@ Integrator-locked files: none.
 
 ## Commands Run
 
-These gates were re-run by this fixer after the collection-scope guard, doc-scope canonicalization, and packet refresh:
+These gates were re-run by this fixer after the collection-scope guard, doc-scope canonicalization, sparse query scope canonicalization, and packet refresh:
 
 - `make scope-check` - passed for branch `codex/feat-retrieval-fts`; the scope checker reported no explicit policy for the branch and exited green.
 - `./quality-format.sh --check` - passed.
@@ -78,7 +78,9 @@ These gates were re-run by this fixer after the collection-scope guard, doc-scop
 - `make ci` - passed; reran setup, scope-check, format, lint, typecheck, and quality tests, including smoke plus 136 unit tests.
 - `python - <<'PY' ...` malformed retrieval-scope smoke check - passed; verified empty `doc:` and `collection:` scopes fail closed.
 - `python3 - <<'PY' ...` canonical doc-scope smoke check - passed; verified `doc:doc-pdf-1` and `doc:  doc-pdf-1  ` produce the same canonical scope, query fingerprint, result fingerprint, and excerpt IDs.
+- `python - <<'PY' ...` sparse query scope canonicalization smoke check - passed; verified sparse payload query snapshots canonicalize `doc:  doc-pdf-1  ` to `doc:doc-pdf-1` and rebuild the same query fingerprint as the compact scope.
 - `python -m unittest tests.unit.test_unified_retrieval.UnifiedRetrievalTests.test_collection_scope_is_rejected_until_fts_can_resolve_it tests.unit.test_unified_retrieval.UnifiedRetrievalTests.test_section_scope_is_rejected_until_pageindex_can_resolve_it tests.unit.test_unified_retrieval.UnifiedRetrievalTests.test_doc_scope_falls_back_to_fts_when_pageindex_missing` - passed.
+- `python -m unittest tests.unit.test_unified_retrieval.UnifiedRetrievalTests.test_doc_scope_falls_back_to_fts_when_pageindex_missing tests.unit.test_unified_retrieval.UnifiedRetrievalTests.test_retrieval_downstream_payload_helper_backfills_sparse_source_bundle_fields tests.unit.test_unified_retrieval.UnifiedRetrievalTests.test_retrieval_context_bundle_helper_rebuilds_sparse_basket_refs_from_excerpt_hits` - passed.
 - `python3 -m unittest tests.unit.test_unified_retrieval` - passed; ran 67 unified retrieval tests.
 
 The final fixer deliverable restates the exact post-commit SHA and these fresh required gate outcomes.
