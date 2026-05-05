@@ -4451,7 +4451,12 @@ def require_command_demo_readiness_complete(
 ) -> CommandDemoReadinessGate:
     gate = command_demo_readiness_gate(specs, launcher_argv)
     if not gate.is_complete:
-        missing = ", ".join(gate.missing_engine_actions)
+        missing_parts: list[str] = []
+        if gate.missing_engine_actions:
+            missing_parts.append(f"engine actions: {', '.join(gate.missing_engine_actions)}")
+        if gate.missing_flow_steps:
+            missing_parts.append(f"flow steps: {', '.join(gate.missing_flow_steps)}")
+        missing = "; ".join(missing_parts)
         raise ValueError(f"Command demo readiness is incomplete: {missing}")
     return gate
 
