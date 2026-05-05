@@ -782,6 +782,12 @@ COMMAND_SMOKE_SHELL_PROBE_FLAGS: tuple[str, ...] = (
     "-v",
     "-V",
 )
+COMMAND_SMOKE_SHELL_WRAPPER_COMMANDS: tuple[str, ...] = (
+    "time",
+)
+COMMAND_SMOKE_SHELL_WRAPPER_FLAGS: tuple[str, ...] = (
+    "-p",
+)
 DEMO_COMMAND_FLOW_STEPS: tuple[str, ...] = (
     "project-open",
     "retrieval",
@@ -5338,6 +5344,7 @@ def _strip_shell_env_assignments(argv: tuple[str, ...]) -> tuple[str, ...]:
 
 def _argv_without_launcher(argv: tuple[str, ...], launcher_argv: tuple[str, ...]) -> tuple[str, ...]:
     argv = _strip_shell_env_assignments(argv)
+    argv = _strip_shell_command_wrappers(argv)
     if launcher_argv and argv[: len(launcher_argv)] == launcher_argv:
         return _strip_launcher_separator(argv[len(launcher_argv) :])
     for supported_launcher_argv in COMMAND_SMOKE_SUPPORTED_LAUNCHER_ARGV:
@@ -5364,6 +5371,7 @@ def _argv_without_launcher(argv: tuple[str, ...], launcher_argv: tuple[str, ...]
 
 def _detected_launcher_argv(argv: tuple[str, ...]) -> tuple[str, ...]:
     argv = _strip_shell_env_assignments(argv)
+    argv = _strip_shell_command_wrappers(argv)
     for supported_launcher_argv in COMMAND_SMOKE_SUPPORTED_LAUNCHER_ARGV:
         if argv[: len(supported_launcher_argv)] == supported_launcher_argv:
             return supported_launcher_argv
@@ -5432,6 +5440,17 @@ def _split_env_launcher_prefix(argv: tuple[str, ...]) -> tuple[tuple[str, ...], 
     if index >= len(argv):
         return (), argv
     return argv[:index], argv[index:]
+
+
+def _strip_shell_command_wrappers(argv: tuple[str, ...]) -> tuple[str, ...]:
+    tokens = argv
+    while tokens and PurePath(tokens[0]).name in COMMAND_SMOKE_SHELL_WRAPPER_COMMANDS:
+        index = 1
+        while index < len(tokens) and tokens[index] in COMMAND_SMOKE_SHELL_WRAPPER_FLAGS:
+            index += 1
+        tokens = tokens[index:]
+        tokens = _strip_shell_env_assignments(tokens)
+    return tokens
 
 
 def _split_uv_python_launcher_prefix(argv: tuple[str, ...]) -> tuple[tuple[str, ...], tuple[str, ...]]:
