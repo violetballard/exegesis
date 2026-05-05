@@ -4871,6 +4871,38 @@ def command_demo_readiness_exact_action_for_argv(
     return None
 
 
+def command_demo_readiness_exact_argv_for_engine_action(
+    engine_action: str,
+    specs: tuple[CommandSpec, ...] = COMMAND_SPECS,
+    launcher_argv: tuple[str, ...] = COMMAND_SMOKE_CLI_LAUNCHER_ARGV,
+) -> tuple[str, ...]:
+    requested_action = engine_action.strip()
+    if not requested_action:
+        return ()
+    return {
+        action: argv
+        for argv, action in command_demo_readiness_exact_action_argv_lookup_table(
+            specs,
+            launcher_argv,
+        )
+    }.get(requested_action, ())
+
+
+def command_demo_readiness_exact_line_for_engine_action(
+    engine_action: str,
+    specs: tuple[CommandSpec, ...] = COMMAND_SPECS,
+    launcher_argv: tuple[str, ...] = COMMAND_SMOKE_CLI_LAUNCHER_ARGV,
+) -> str:
+    argv = command_demo_readiness_exact_argv_for_engine_action(
+        engine_action,
+        specs,
+        launcher_argv,
+    )
+    if not argv:
+        return ""
+    return _shell_join(argv)
+
+
 def command_demo_readiness_engine_action_matches_for_argv(
     argv: Sequence[str] | str,
     specs: tuple[CommandSpec, ...] = COMMAND_SPECS,
@@ -6727,6 +6759,30 @@ def command_mvp_demo_readiness_exact_action_for_argv(
     launcher_argv: tuple[str, ...] = COMMAND_SMOKE_CLI_LAUNCHER_ARGV,
 ) -> str | None:
     return command_demo_readiness_exact_action_for_argv(argv, specs, launcher_argv)
+
+
+def command_mvp_demo_readiness_exact_argv_for_engine_action(
+    engine_action: str,
+    specs: tuple[CommandSpec, ...] = COMMAND_SPECS,
+    launcher_argv: tuple[str, ...] = COMMAND_SMOKE_CLI_LAUNCHER_ARGV,
+) -> tuple[str, ...]:
+    return command_demo_readiness_exact_argv_for_engine_action(
+        engine_action,
+        specs,
+        launcher_argv,
+    )
+
+
+def command_mvp_demo_readiness_exact_line_for_engine_action(
+    engine_action: str,
+    specs: tuple[CommandSpec, ...] = COMMAND_SPECS,
+    launcher_argv: tuple[str, ...] = COMMAND_SMOKE_CLI_LAUNCHER_ARGV,
+) -> str:
+    return command_demo_readiness_exact_line_for_engine_action(
+        engine_action,
+        specs,
+        launcher_argv,
+    )
 
 
 def command_mvp_demo_readiness_action_entries_for_argv(

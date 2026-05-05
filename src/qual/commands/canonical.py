@@ -96,6 +96,8 @@ from src.qual.commands.catalog import (
     command_mvp_demo_readiness_action_entry as _readiness_action_entry,
     command_mvp_demo_readiness_exact_action_argv_lookup_table as _readiness_exact_action_argv_lookup_table,
     command_mvp_demo_readiness_exact_action_for_argv as _readiness_exact_action_for_argv,
+    command_mvp_demo_readiness_exact_argv_for_engine_action as _readiness_exact_argv_for_engine_action,
+    command_mvp_demo_readiness_exact_line_for_engine_action as _readiness_exact_line_for_engine_action,
     command_mvp_demo_readiness_action_lines_for_argv as _readiness_action_lines_for_argv,
     command_mvp_demo_readiness_action_smoke_summary as _readiness_action_smoke_summary,
     command_mvp_demo_readiness_action_summary as _readiness_action_summary,
@@ -168,6 +170,8 @@ __all__ = [
     "canonical_command_action_route_summary",
     "canonical_command_action_exact_argv_lookup_table",
     "canonical_command_action_exact_for_argv",
+    "canonical_command_action_exact_argv_for_engine_action",
+    "canonical_command_action_exact_line_for_engine_action",
     "canonical_command_action_smoke_argv",
     "canonical_command_action_smoke_argv_lookup_table",
     "canonical_command_action_readiness_summary",
@@ -649,6 +653,14 @@ def canonical_command_action_exact_argv_lookup_table() -> tuple[tuple[tuple[str,
 
 def canonical_command_action_exact_for_argv(argv: Sequence[str] | str) -> str | None:
     return _readiness_exact_action_for_argv(argv)
+
+
+def canonical_command_action_exact_argv_for_engine_action(engine_action: str) -> tuple[str, ...]:
+    return _readiness_exact_argv_for_engine_action(engine_action)
+
+
+def canonical_command_action_exact_line_for_engine_action(engine_action: str) -> str:
+    return _readiness_exact_line_for_engine_action(engine_action)
 
 
 def canonical_command_engine_action_matches_for_argv(argv: Sequence[str] | str) -> tuple[str, ...]:
