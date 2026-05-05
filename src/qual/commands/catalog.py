@@ -4677,6 +4677,9 @@ def _argv_without_launcher(argv: tuple[str, ...], launcher_argv: tuple[str, ...]
         unwrapped_without_launcher = _argv_without_launcher(unwrapped_argv, ())
         if unwrapped_without_launcher != unwrapped_argv:
             return unwrapped_without_launcher
+        unwrapped_without_implicit_python = _argv_without_implicit_python_launcher_tail(unwrapped_argv)
+        if unwrapped_without_implicit_python != unwrapped_argv:
+            return unwrapped_without_implicit_python
     for launcher_tail in COMMAND_SMOKE_SUPPORTED_LAUNCHER_TAILS:
         launcher_len = 1 + len(launcher_tail)
         if (
@@ -4697,6 +4700,9 @@ def _detected_launcher_argv(argv: tuple[str, ...]) -> tuple[str, ...]:
         detected_argv = _detected_launcher_argv(unwrapped_argv)
         if detected_argv:
             return (*launcher_prefix, *detected_argv)
+        implicit_python_tail = _detected_implicit_python_launcher_tail(unwrapped_argv)
+        if implicit_python_tail:
+            return (*launcher_prefix, *implicit_python_tail)
     for launcher_tail in COMMAND_SMOKE_SUPPORTED_LAUNCHER_TAILS:
         launcher_len = 1 + len(launcher_tail)
         if (
@@ -4705,6 +4711,20 @@ def _detected_launcher_argv(argv: tuple[str, ...]) -> tuple[str, ...]:
             and _launcher_tail_matches(argv[1:launcher_len], launcher_tail)
         ):
             return argv[:launcher_len]
+    return ()
+
+
+def _argv_without_implicit_python_launcher_tail(argv: tuple[str, ...]) -> tuple[str, ...]:
+    for launcher_tail in COMMAND_SMOKE_SUPPORTED_LAUNCHER_TAILS:
+        if _launcher_tail_matches(argv[: len(launcher_tail)], launcher_tail):
+            return _strip_launcher_separator(argv[len(launcher_tail) :])
+    return argv
+
+
+def _detected_implicit_python_launcher_tail(argv: tuple[str, ...]) -> tuple[str, ...]:
+    for launcher_tail in COMMAND_SMOKE_SUPPORTED_LAUNCHER_TAILS:
+        if _launcher_tail_matches(argv[: len(launcher_tail)], launcher_tail):
+            return launcher_tail
     return ()
 
 
