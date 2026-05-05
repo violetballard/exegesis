@@ -48,6 +48,8 @@ class CoordinatorRebootResumeTests(unittest.TestCase):
                     "stale_commit_locks_removed": [],
                     "stale_worktree_index_locks_removed": [],
                 }),
+                patch.object(coordinator, "find_stale_repo_local_exec_pids", return_value=[]),
+                patch.object(coordinator, "find_stale_repo_test_runner_pids", return_value=[]),
             ):
                 summary = coordinator._reconcile_control_plane_state(coordinator_state)
 
@@ -82,6 +84,7 @@ class CoordinatorRebootResumeTests(unittest.TestCase):
             patch.object(coordinator, "_enabled_lanes", return_value=["feat-commands"]),
             patch.object(coordinator, "_lane_queue_empty", return_value=True),
             patch.object(coordinator, "_lane_has_active_feature_session", return_value=False),
+            patch.object(coordinator, "_local_lms_feature_launch_slots", return_value=1),
             patch.object(coordinator, "_has_reviewer_notes_backlog", return_value=False),
             patch.object(coordinator, "run_cmd", side_effect=fake_run_cmd),
         ):
@@ -191,6 +194,8 @@ class CoordinatorRebootResumeTests(unittest.TestCase):
                     "stale_commit_locks_removed": [],
                     "stale_worktree_index_locks_removed": [],
                 }),
+                patch.object(coordinator, "find_stale_repo_local_exec_pids", return_value=[]),
+                patch.object(coordinator, "find_stale_repo_test_runner_pids", return_value=[]),
                 patch.object(coordinator, "time") as time_mod,
             ):
                 time_mod.time.return_value = 1_776_272_400.0
@@ -264,6 +269,8 @@ class CoordinatorRebootResumeTests(unittest.TestCase):
                     "stale_commit_locks_removed": [],
                     "stale_worktree_index_locks_removed": [],
                 }),
+                patch.object(coordinator, "find_stale_repo_local_exec_pids", return_value=[]),
+                patch.object(coordinator, "find_stale_repo_test_runner_pids", return_value=[]),
                 patch.object(coordinator, "time") as time_mod,
             ):
                 time_mod.time.return_value = 1_776_272_400.0
@@ -334,6 +341,8 @@ class CoordinatorRebootResumeTests(unittest.TestCase):
                     "stale_commit_locks_removed": [],
                     "stale_worktree_index_locks_removed": [],
                 }),
+                patch.object(coordinator, "find_stale_repo_local_exec_pids", return_value=[]),
+                patch.object(coordinator, "find_stale_repo_test_runner_pids", return_value=[]),
                 patch.object(coordinator, "time") as time_mod,
             ):
                 time_mod.time.return_value = 1_776_272_400.0
@@ -541,7 +550,7 @@ class CoordinatorRebootResumeTests(unittest.TestCase):
         self.assertIn("feat-retrieval-fts", removed["fixer_fallback_jobs"][0])
         self.assertEqual(saved["fixer_fallback_jobs"], {})
 
-    def test_reconcile_router_state_terminates_reparented_router_job(self) -> None:
+    def test_reconcile_router_state_keeps_reparented_tracked_router_job(self) -> None:
         from codex_packet_handoff.tools import agents_coordinator as coordinator
 
         with tempfile.TemporaryDirectory() as tmp:
@@ -580,9 +589,9 @@ class CoordinatorRebootResumeTests(unittest.TestCase):
 
             saved = json.loads(router_state.read_text())
 
-        terminate_mock.assert_called_once_with(55357)
-        self.assertIn("reparented router job", removed["fixer_fallback_jobs"][0])
-        self.assertEqual(saved["fixer_fallback_jobs"], {})
+        terminate_mock.assert_not_called()
+        self.assertNotIn("fixer_fallback_jobs", removed)
+        self.assertIn("feat-retrieval-fts", saved["fixer_fallback_jobs"])
 
     def test_reconcile_terminates_runaway_feature_child_process_tree(self) -> None:
         from codex_packet_handoff.tools import agents_coordinator as coordinator
@@ -641,6 +650,8 @@ class CoordinatorRebootResumeTests(unittest.TestCase):
                     "stale_commit_locks_removed": [],
                     "stale_worktree_index_locks_removed": [],
                 }),
+                patch.object(coordinator, "find_stale_repo_local_exec_pids", return_value=[]),
+                patch.object(coordinator, "find_stale_repo_test_runner_pids", return_value=[]),
                 patch.object(coordinator, "time") as time_mod,
             ):
                 time_mod.time.return_value = 1_776_272_400.0

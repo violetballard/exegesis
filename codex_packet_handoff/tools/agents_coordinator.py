@@ -656,11 +656,6 @@ def _reconcile_router_state(coordinator_state: Optional[Dict[str, object]] = Non
                 continue
             pid = int(job.get("pid") or 0)
             if _pid_alive(pid):
-                if _parent_pid(pid) == 1:
-                    _terminate_pid_tree(pid)
-                    jobs.pop(job_name, None)
-                    stale.append(f"{job_name} (reparented router job pid {pid})")
-                    continue
                 loop_reason = _router_job_loop_reason(job)
                 if not loop_reason:
                     continue
@@ -758,10 +753,14 @@ def _tracked_feature_exec_pids() -> List[int]:
 
 
 def _reconcile_orphan_local_exec_processes() -> List[int]:
+    # Feature and router direct-exec jobs are intentionally detached by
+    # short-lived launcher processes. As long as they remain tracked in state,
+    # PID 1 reparenting alone is not evidence that they are orphaned.
+    tracked = _tracked_local_exec_pids()
     orphaned = find_stale_repo_local_exec_pids(
         REPO_ROOT,
-        _tracked_local_exec_pids(),
-        detached_ok_pids=_tracked_feature_exec_pids(),
+        tracked,
+        detached_ok_pids=tracked,
     )
     if orphaned:
         terminate_local_exec_pids(orphaned)
