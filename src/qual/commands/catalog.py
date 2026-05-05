@@ -3737,11 +3737,11 @@ def command_demo_readiness_handoff_lines(
 
 
 def _format_command_demo_readiness_handoff_checklist_line(
-    entry: CommandDemoReadinessHandoffEntry,
+    entry: CommandDemoReadinessHandoffActionStep,
 ) -> str:
     action_lines = ", ".join(
         f"{engine_action} -> `{command_line}`"
-        for engine_action, command_line in entry.action_lines
+        for engine_action, command_line in entry.exact_action_lines
     )
     return (
         f"- [ ] {entry.ordinal}. {entry.demo_path_step} "
@@ -3755,7 +3755,7 @@ def command_demo_readiness_handoff_checklist_contract(
     specs: tuple[CommandSpec, ...] = COMMAND_SPECS,
     launcher_argv: tuple[str, ...] = COMMAND_SMOKE_CLI_LAUNCHER_ARGV,
 ) -> CommandDemoReadinessHandoffChecklistContract:
-    handoff_contract = command_demo_readiness_handoff_contract(specs, launcher_argv)
+    handoff_contract = command_demo_readiness_handoff_action_contract(specs, launcher_argv)
     contract = CommandDemoReadinessHandoffChecklistContract(
         lines=tuple(
             CommandDemoReadinessHandoffChecklistLine(
@@ -3765,7 +3765,7 @@ def command_demo_readiness_handoff_checklist_contract(
                 name=entry.name,
                 line=_format_command_demo_readiness_handoff_checklist_line(entry),
             )
-            for entry in handoff_contract.entries
+            for entry in handoff_contract.steps
         )
     )
     _validate_command_demo_readiness_handoff_checklist_contract(contract, handoff_contract)
@@ -3774,27 +3774,27 @@ def command_demo_readiness_handoff_checklist_contract(
 
 def _validate_command_demo_readiness_handoff_checklist_contract(
     contract: CommandDemoReadinessHandoffChecklistContract,
-    handoff_contract: CommandDemoReadinessHandoffContract,
+    handoff_contract: CommandDemoReadinessHandoffActionContract,
 ) -> None:
     if tuple(line.ordinal for line in contract.lines) != tuple(
-        entry.ordinal for entry in handoff_contract.entries
+        entry.ordinal for entry in handoff_contract.steps
     ):
         raise ValueError("Command demo readiness handoff checklist ordinals are inconsistent")
     if tuple(line.demo_path_step for line in contract.lines) != tuple(
-        entry.demo_path_step for entry in handoff_contract.entries
+        entry.demo_path_step for entry in handoff_contract.steps
     ):
         raise ValueError("Command demo readiness handoff checklist path steps are inconsistent")
     if tuple(line.flow_step for line in contract.lines) != tuple(
-        entry.flow_step for entry in handoff_contract.entries
+        entry.flow_step for entry in handoff_contract.steps
     ):
         raise ValueError("Command demo readiness handoff checklist flow steps are inconsistent")
     if tuple(line.name for line in contract.lines) != tuple(
-        entry.name for entry in handoff_contract.entries
+        entry.name for entry in handoff_contract.steps
     ):
         raise ValueError("Command demo readiness handoff checklist names are inconsistent")
     expected_lines = tuple(
         _format_command_demo_readiness_handoff_checklist_line(entry)
-        for entry in handoff_contract.entries
+        for entry in handoff_contract.steps
     )
     if tuple(line.line for line in contract.lines) != expected_lines:
         raise ValueError("Command demo readiness handoff checklist lines are inconsistent")
