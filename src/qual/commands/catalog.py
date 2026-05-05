@@ -6533,9 +6533,14 @@ def command_demo_readiness_validate_argv(
 ) -> CommandDemoReadinessArgvValidation:
     requested_argv = _normalize_smoke_argv(_coerce_smoke_argv(argv))
     entry = command_demo_readiness_entry_for_argv(requested_argv, specs, launcher_argv)
-    canonical_argv = command_demo_readiness_argv_for_argv(requested_argv, specs, launcher_argv)
     exact_engine_action = command_demo_readiness_exact_action_for_argv(
         requested_argv,
+        specs,
+        launcher_argv,
+    )
+    canonical_argv = _validation_canonical_argv(
+        requested_argv,
+        exact_engine_action,
         specs,
         launcher_argv,
     )
@@ -6559,6 +6564,25 @@ def command_demo_readiness_validate_argv(
         engine_actions=entry.engine_actions,
         exact_engine_action=exact_engine_action,
     )
+
+
+def _validation_canonical_argv(
+    requested_argv: tuple[str, ...],
+    exact_engine_action: str | None,
+    specs: tuple[CommandSpec, ...],
+    launcher_argv: tuple[str, ...],
+) -> tuple[str, ...]:
+    if exact_engine_action is None:
+        return command_demo_readiness_argv_for_argv(requested_argv, specs, launcher_argv)
+    exact_argv = command_demo_readiness_exact_argv_for_engine_action(
+        exact_engine_action,
+        specs,
+        launcher_argv,
+    )
+    if not exact_argv:
+        return command_demo_readiness_argv_for_argv(requested_argv, specs, launcher_argv)
+    requested_launcher_argv = _detected_launcher_argv(requested_argv)
+    return _canonical_argv_with_requested_launcher(exact_argv, requested_launcher_argv)
 
 
 def _cli_parser_token_for_requested_argv(
