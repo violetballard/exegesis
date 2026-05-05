@@ -5596,11 +5596,7 @@ def _shell_script_executable_argv(lines: Sequence[str] | str) -> tuple[tuple[str
         line = raw_line.strip()
         if not line or line.startswith("#") or line == "set -euo pipefail":
             continue
-        try:
-            argv = tuple(shlex.split(line))
-        except ValueError:
-            executable_argv.append((line,))
-            continue
+        argv = _split_shell_script_line(line)
         for segment_argv in _split_shell_script_command_segments(argv):
             if _is_shell_script_setup_argv(segment_argv):
                 continue
@@ -5609,11 +5605,21 @@ def _shell_script_executable_argv(lines: Sequence[str] | str) -> tuple[tuple[str
     return tuple(executable_argv)
 
 
+def _split_shell_script_line(line: str) -> tuple[str, ...]:
+    lexer = shlex.shlex(line, posix=True, punctuation_chars=";&")
+    lexer.whitespace_split = True
+    lexer.commenters = "#"
+    try:
+        return tuple(lexer)
+    except ValueError:
+        return (line,)
+
+
 def _split_shell_script_command_segments(argv: tuple[str, ...]) -> tuple[tuple[str, ...], ...]:
     segments: list[tuple[str, ...]] = []
     current_segment: list[str] = []
     for token in argv:
-        if token == "&&":
+        if token in {"&&", ";"}:
             if current_segment:
                 segments.append(tuple(current_segment))
                 current_segment = []
