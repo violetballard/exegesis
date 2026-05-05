@@ -5910,16 +5910,52 @@ def _split_shell_script_line(line: str) -> tuple[str, ...]:
 def _split_shell_script_command_segments(argv: tuple[str, ...]) -> tuple[tuple[str, ...], ...]:
     segments: list[tuple[str, ...]] = []
     current_segment: list[str] = []
+    opened_groups = 0
     for token in argv:
         if token in {"&&", ";"}:
             if current_segment:
-                segments.append(tuple(current_segment))
+                segment, opened_groups = _normalize_shell_script_segment_argv(
+                    tuple(current_segment),
+                    opened_groups,
+                )
+                if segment:
+                    segments.append(segment)
                 current_segment = []
             continue
         current_segment.append(token)
     if current_segment:
-        segments.append(tuple(current_segment))
+        segment, opened_groups = _normalize_shell_script_segment_argv(
+            tuple(current_segment),
+            opened_groups,
+        )
+        if segment:
+            segments.append(segment)
     return tuple(segments)
+
+
+def _normalize_shell_script_segment_argv(
+    argv: tuple[str, ...],
+    opened_groups: int,
+) -> tuple[tuple[str, ...], int]:
+    tokens = list(argv)
+
+    while tokens and tokens[0] in {"(", "{"}:
+        opened_groups += 1
+        tokens.pop(0)
+    while tokens and tokens[-1] in {")", "}"} and opened_groups:
+        opened_groups -= 1
+        tokens.pop()
+
+    if tokens and tokens[0].startswith(("(", "{")):
+        stripped = tokens[0].lstrip("({")
+        opened_groups += len(tokens[0]) - len(stripped)
+        tokens[0] = stripped
+    if opened_groups and tokens and tokens[-1].endswith((")", "}")):
+        stripped = tokens[-1].rstrip(")}")
+        opened_groups = max(0, opened_groups - (len(tokens[-1]) - len(stripped)))
+        tokens[-1] = stripped
+
+    return tuple(token for token in tokens if token), opened_groups
 
 
 def _is_shell_strict_mode_setup_line(line: str) -> bool:
