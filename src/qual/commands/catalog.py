@@ -5332,11 +5332,11 @@ def command_demo_readiness_validate_script(
     covered_flow_steps = tuple(flow_step for flow_step in expected_flow_steps if flow_step in covered_flow_step_set)
     missing_flow_steps = tuple(flow_step for flow_step in expected_flow_steps if flow_step not in covered_flow_step_set)
 
-    covered_action_set = {
-        engine_action
-        for validation in validations
-        for engine_action in validation.engine_actions
-    }
+    covered_action_set = _covered_demo_readiness_engine_actions(
+        tuple(validation.requested_argv for validation in validations),
+        specs,
+        launcher_argv,
+    )
     expected_actions = command_demo_engine_actions(specs)
     covered_engine_actions = tuple(action for action in expected_actions if action in covered_action_set)
     missing_engine_actions = tuple(action for action in expected_actions if action not in covered_action_set)
@@ -5353,6 +5353,24 @@ def command_demo_readiness_validate_script(
         invalid_argv=invalid_argv,
         is_complete=not missing_flow_steps and not missing_engine_actions and not invalid_argv,
     )
+
+
+def _covered_demo_readiness_engine_actions(
+    requested_argv: tuple[tuple[str, ...], ...],
+    specs: tuple[CommandSpec, ...],
+    launcher_argv: tuple[str, ...],
+) -> set[str]:
+    covered_actions: set[str] = set()
+    for argv in requested_argv:
+        covered_actions.update(
+            action_entry.engine_action
+            for action_entry in command_demo_readiness_action_entries_for_argv(
+                argv,
+                specs,
+                launcher_argv,
+            )
+        )
+    return covered_actions
 
 
 def _coerce_shell_script_lines(lines: Sequence[str] | str) -> tuple[str, ...]:
