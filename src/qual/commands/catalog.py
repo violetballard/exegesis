@@ -4480,14 +4480,26 @@ def _argv_without_launcher(argv: tuple[str, ...], launcher_argv: tuple[str, ...]
         if (
             len(argv) >= launcher_len
             and _is_supported_python_launcher(argv[0])
-            and argv[1:launcher_len] == launcher_tail
+            and _launcher_tail_matches(argv[1:launcher_len], launcher_tail)
         ):
             return argv[launcher_len:]
     return argv
 
 
 def _is_supported_python_launcher(token: str) -> bool:
-    return PurePath(token).name in COMMAND_SMOKE_SUPPORTED_PYTHON_LAUNCHERS
+    launcher_name = PurePath(token).name
+    if launcher_name in COMMAND_SMOKE_SUPPORTED_PYTHON_LAUNCHERS:
+        return True
+    return re.fullmatch(r"python\d+(?:\.\d+)*", launcher_name) is not None
+
+
+def _launcher_tail_matches(argv_tail: tuple[str, ...], expected_tail: tuple[str, ...]) -> bool:
+    if argv_tail == expected_tail:
+        return True
+    if expected_tail == ("src/main.py",) and len(argv_tail) == 1:
+        path_parts = PurePath(argv_tail[0]).parts
+        return len(path_parts) >= 2 and path_parts[-2:] == ("src", "main.py")
+    return False
 
 
 def _canonicalize_smoke_command_argv(

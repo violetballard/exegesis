@@ -61,6 +61,9 @@ from src.qual.commands.catalog import (
     command_tokens,
     command_flow_tokens,
     validate_command_catalog,
+    command_demo_readiness_command_for_argv,
+    command_demo_readiness_entry_for_argv,
+    COMMAND_SMOKE_CLI_LAUNCHER_ARGV,
 )
 
 
@@ -691,6 +694,32 @@ class CommandCatalogTests(unittest.TestCase):
                     CommandSpec(name="project-open", flow_step="retrieval"),
                 )
             )
+    def test_versioned_python_launchers_are_recognized(self) -> None:
+        """Versioned Python binaries (python3.12, python3.13.1, etc.) must be treated
+        as supported launchers so readiness lookups strip them correctly."""
+
+        versioned_launchers = [
+            ("python3.12", "-m", "src.main", "bootstrap"),
+            ("python3.13", "-m", "src.main", "bootstrap"),
+            ("python3.13.1", "-m", "src.main", "bootstrap"),
+            ("python3.12", "src/main.py", "context-basket", "list"),
+        ]
+        for argv in versioned_launchers:
+            command = command_demo_readiness_command_for_argv(argv)
+            self.assertIsNotNone(
+                command,
+                f"Expected command resolution for argv={argv}",
+            )
+
+    def test_versioned_python_launcher_entry_resolution(self) -> None:
+        """Readiness entry lookup must resolve through versioned Python launchers."""
+
+        entry = command_demo_readiness_entry_for_argv(
+            ("python3.12", "-m", "src.main", "bootstrap")
+        )
+        self.assertIsNotNone(entry)
+        self.assertEqual(entry.name, "bootstrap")
+        self.assertEqual(entry.flow_step, "project-open")
 
 
 if __name__ == "__main__":
