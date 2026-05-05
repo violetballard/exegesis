@@ -697,6 +697,13 @@ COMMAND_SMOKE_SUPPORTED_PYTHON_LAUNCHERS: tuple[str, ...] = (
     "python",
     "python3",
 )
+COMMAND_SMOKE_ENV_LAUNCHERS: tuple[str, ...] = (
+    "env",
+)
+COMMAND_SMOKE_ENV_FLAGS: tuple[str, ...] = (
+    "-i",
+    "--ignore-environment",
+)
 DEMO_COMMAND_FLOW_STEPS: tuple[str, ...] = (
     "project-open",
     "retrieval",
@@ -4917,6 +4924,9 @@ def _detected_implicit_python_launcher_tail(argv: tuple[str, ...]) -> tuple[str,
 
 
 def _split_supported_launcher_prefix(argv: tuple[str, ...]) -> tuple[tuple[str, ...], tuple[str, ...]]:
+    env_prefix, env_unwrapped_argv = _split_env_launcher_prefix(argv)
+    if env_prefix:
+        return env_prefix, env_unwrapped_argv
     uv_python_prefix, uv_python_unwrapped_argv = _split_uv_python_launcher_prefix(argv)
     if uv_python_prefix:
         return uv_python_prefix, uv_python_unwrapped_argv
@@ -4924,6 +4934,21 @@ def _split_supported_launcher_prefix(argv: tuple[str, ...]) -> tuple[tuple[str, 
         if argv[: len(launcher_prefix)] == launcher_prefix:
             return launcher_prefix, argv[len(launcher_prefix) :]
     return (), argv
+
+
+def _split_env_launcher_prefix(argv: tuple[str, ...]) -> tuple[tuple[str, ...], tuple[str, ...]]:
+    if not argv or PurePath(argv[0]).name not in COMMAND_SMOKE_ENV_LAUNCHERS:
+        return (), argv
+    index = 1
+    while index < len(argv):
+        token = argv[index]
+        if token in COMMAND_SMOKE_ENV_FLAGS or SHELL_ENV_ASSIGNMENT_RE.fullmatch(token):
+            index += 1
+            continue
+        break
+    if index >= len(argv):
+        return (), argv
+    return argv[:index], argv[index:]
 
 
 def _split_uv_python_launcher_prefix(argv: tuple[str, ...]) -> tuple[tuple[str, ...], tuple[str, ...]]:
