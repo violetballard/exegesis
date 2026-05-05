@@ -547,6 +547,22 @@ class CommandDemoExecutionPlanContract:
 
 
 @dataclass(frozen=True)
+class CommandDemoActionCoverageEntry:
+    engine_action: str
+    demo_path_step: str
+    flow_step: str
+    name: str
+    command_argv: tuple[str, ...]
+    command_line: str
+    action_line: str
+
+
+@dataclass(frozen=True)
+class CommandDemoActionCoverageContract:
+    entries: tuple[CommandDemoActionCoverageEntry, ...]
+
+
+@dataclass(frozen=True)
 class CommandDemoCommandActionEntry:
     flow_step: str
     name: str
@@ -3768,6 +3784,116 @@ def command_demo_execution_plan_lookup_table(
 
 
 @lru_cache(maxsize=None)
+def command_demo_action_coverage_contract(
+    specs: tuple[CommandSpec, ...] = COMMAND_SPECS,
+    launcher_argv: tuple[str, ...] = COMMAND_SMOKE_CLI_LAUNCHER_ARGV,
+) -> CommandDemoActionCoverageContract:
+    execution_plan = command_demo_execution_plan_contract(specs, launcher_argv)
+    contract = CommandDemoActionCoverageContract(
+        entries=tuple(
+            CommandDemoActionCoverageEntry(
+                engine_action=engine_action,
+                demo_path_step=step.demo_path_step,
+                flow_step=step.flow_step,
+                name=step.name,
+                command_argv=step.command_argv,
+                command_line=step.command_line,
+                action_line=action_line,
+            )
+            for step in execution_plan.steps
+            for engine_action, action_line in step.action_lines
+        )
+    )
+    _validate_command_demo_action_coverage_contract(contract, execution_plan, specs)
+    return contract
+
+
+def _validate_command_demo_action_coverage_contract(
+    contract: CommandDemoActionCoverageContract,
+    execution_plan: CommandDemoExecutionPlanContract,
+    specs: tuple[CommandSpec, ...],
+) -> None:
+    expected_actions = command_demo_engine_actions(specs)
+    if tuple(entry.engine_action for entry in contract.entries) != expected_actions:
+        raise ValueError("Command demo action coverage actions are inconsistent")
+
+    entries_by_action = {entry.engine_action: entry for entry in contract.entries}
+    for step in execution_plan.steps:
+        for engine_action, action_line in step.action_lines:
+            entry = entries_by_action.get(engine_action)
+            if entry is None:
+                raise ValueError(f"Command demo action coverage is missing: {engine_action}")
+            if entry.demo_path_step != step.demo_path_step:
+                raise ValueError(f"Command demo action coverage path step is inconsistent: {engine_action}")
+            if entry.flow_step != step.flow_step:
+                raise ValueError(f"Command demo action coverage flow step is inconsistent: {engine_action}")
+            if entry.name != step.name:
+                raise ValueError(f"Command demo action coverage command name is inconsistent: {engine_action}")
+            if entry.command_argv != step.command_argv:
+                raise ValueError(f"Command demo action coverage argv is inconsistent: {engine_action}")
+            if entry.command_line != step.command_line:
+                raise ValueError(f"Command demo action coverage command line is inconsistent: {engine_action}")
+            if entry.action_line != action_line:
+                raise ValueError(f"Command demo action coverage action line is inconsistent: {engine_action}")
+            if not entry.command_line or not entry.action_line:
+                raise ValueError(f"Command demo action coverage line must not be empty: {engine_action}")
+
+
+def command_demo_action_coverage_summary(
+    specs: tuple[CommandSpec, ...] = COMMAND_SPECS,
+    launcher_argv: tuple[str, ...] = COMMAND_SMOKE_CLI_LAUNCHER_ARGV,
+) -> tuple[tuple[str, str, str, str, str, str], ...]:
+    return tuple(
+        (
+            entry.engine_action,
+            entry.demo_path_step,
+            entry.flow_step,
+            entry.name,
+            entry.command_line,
+            entry.action_line,
+        )
+        for entry in command_demo_action_coverage_contract(specs, launcher_argv).entries
+    )
+
+
+def command_demo_action_coverage_lookup_table(
+    specs: tuple[CommandSpec, ...] = COMMAND_SPECS,
+    launcher_argv: tuple[str, ...] = COMMAND_SMOKE_CLI_LAUNCHER_ARGV,
+) -> tuple[tuple[str, str], ...]:
+    return tuple(
+        (entry.engine_action, entry.command_line)
+        for entry in command_demo_action_coverage_contract(specs, launcher_argv).entries
+    )
+
+
+@lru_cache(maxsize=None)
+def _command_demo_action_coverage_entry(
+    specs: tuple[CommandSpec, ...],
+    launcher_argv: tuple[str, ...],
+    engine_action: str,
+) -> CommandDemoActionCoverageEntry | None:
+    requested_action = engine_action.strip()
+    if not requested_action:
+        return None
+    return next(
+        (
+            entry
+            for entry in command_demo_action_coverage_contract(specs, launcher_argv).entries
+            if entry.engine_action == requested_action
+        ),
+        None,
+    )
+
+
+def command_demo_action_coverage_entry(
+    engine_action: str,
+    specs: tuple[CommandSpec, ...] = COMMAND_SPECS,
+    launcher_argv: tuple[str, ...] = COMMAND_SMOKE_CLI_LAUNCHER_ARGV,
+) -> CommandDemoActionCoverageEntry | None:
+    return _command_demo_action_coverage_entry(specs, launcher_argv, engine_action)
+
+
+@lru_cache(maxsize=None)
 def _command_demo_execution_plan_step_for_flow_step(
     specs: tuple[CommandSpec, ...],
     launcher_argv: tuple[str, ...],
@@ -3916,6 +4042,35 @@ def command_mvp_demo_execution_plan_lookup_table(
     launcher_argv: tuple[str, ...] = COMMAND_SMOKE_CLI_LAUNCHER_ARGV,
 ) -> tuple[tuple[str, tuple[str, ...]], ...]:
     return command_demo_execution_plan_lookup_table(specs, launcher_argv)
+
+
+def command_mvp_demo_action_coverage_contract(
+    specs: tuple[CommandSpec, ...] = COMMAND_SPECS,
+    launcher_argv: tuple[str, ...] = COMMAND_SMOKE_CLI_LAUNCHER_ARGV,
+) -> CommandDemoActionCoverageContract:
+    return command_demo_action_coverage_contract(specs, launcher_argv)
+
+
+def command_mvp_demo_action_coverage_summary(
+    specs: tuple[CommandSpec, ...] = COMMAND_SPECS,
+    launcher_argv: tuple[str, ...] = COMMAND_SMOKE_CLI_LAUNCHER_ARGV,
+) -> tuple[tuple[str, str, str, str, str, str], ...]:
+    return command_demo_action_coverage_summary(specs, launcher_argv)
+
+
+def command_mvp_demo_action_coverage_lookup_table(
+    specs: tuple[CommandSpec, ...] = COMMAND_SPECS,
+    launcher_argv: tuple[str, ...] = COMMAND_SMOKE_CLI_LAUNCHER_ARGV,
+) -> tuple[tuple[str, str], ...]:
+    return command_demo_action_coverage_lookup_table(specs, launcher_argv)
+
+
+def command_mvp_demo_action_coverage_entry(
+    engine_action: str,
+    specs: tuple[CommandSpec, ...] = COMMAND_SPECS,
+    launcher_argv: tuple[str, ...] = COMMAND_SMOKE_CLI_LAUNCHER_ARGV,
+) -> CommandDemoActionCoverageEntry | None:
+    return command_demo_action_coverage_entry(engine_action, specs, launcher_argv)
 
 
 def command_mvp_demo_execution_plan_step_for_flow_step(

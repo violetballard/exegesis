@@ -10,6 +10,8 @@ from src.qual.commands.catalog import (
     CommandDemoReadinessCommandTraceEntry,
     CommandDemoReadinessCommandTraceContract,
     CommandDemoReadinessEntry,
+    CommandDemoActionCoverageContract,
+    CommandDemoActionCoverageEntry,
     CommandDemoExecutionPlanContract,
     CommandDemoExecutionPlanStep,
     CommandDemoReadinessHandoffChecklistContract,
@@ -50,6 +52,10 @@ from src.qual.commands.catalog import (
     command_mvp_demo_execution_plan_contract as _execution_plan_contract,
     command_mvp_demo_execution_plan_lookup_table as _execution_plan_lookup_table,
     command_mvp_demo_execution_plan_summary as _execution_plan_summary,
+    command_mvp_demo_action_coverage_contract as _action_coverage_contract,
+    command_mvp_demo_action_coverage_entry as _action_coverage_entry,
+    command_mvp_demo_action_coverage_lookup_table as _action_coverage_lookup_table,
+    command_mvp_demo_action_coverage_summary as _action_coverage_summary,
     command_mvp_demo_execution_plan_step_for_argv as _execution_plan_step_for_argv,
     command_mvp_demo_execution_plan_step_for_command as _execution_plan_step_for_command,
     command_mvp_demo_execution_plan_step_for_demo_path_step
@@ -184,6 +190,10 @@ __all__ = [
     "canonical_command_readiness_command_trace_lookup_table",
     "canonical_command_readiness_command_trace_summary",
     "canonical_command_execution_plan_contract",
+    "canonical_command_action_coverage_contract",
+    "canonical_command_action_coverage_entry",
+    "canonical_command_action_coverage_lookup_table",
+    "canonical_command_action_coverage_summary",
     "canonical_command_execution_plan_lookup_table",
     "canonical_command_execution_plan_step_for_argv",
     "canonical_command_execution_plan_step_for_command",
@@ -424,6 +434,22 @@ def canonical_command_execution_plan_summary() -> tuple[
 
 def canonical_command_execution_plan_lookup_table() -> tuple[tuple[str, tuple[str, ...]], ...]:
     return _execution_plan_lookup_table()
+
+
+def canonical_command_action_coverage_contract() -> CommandDemoActionCoverageContract:
+    return _action_coverage_contract()
+
+
+def canonical_command_action_coverage_summary() -> tuple[tuple[str, str, str, str, str, str], ...]:
+    return _action_coverage_summary()
+
+
+def canonical_command_action_coverage_lookup_table() -> tuple[tuple[str, str], ...]:
+    return _action_coverage_lookup_table()
+
+
+def canonical_command_action_coverage_entry(engine_action: str) -> CommandDemoActionCoverageEntry | None:
+    return _action_coverage_entry(engine_action)
 
 
 def canonical_command_execution_plan_step_for_flow_step(
