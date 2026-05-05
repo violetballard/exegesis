@@ -4,14 +4,14 @@
 - Lane: `feat-retrieval-fts`
 - Merge target: current `main`
 - Authoritative merge/review range for the actual integration candidate: `378cf9a74a3658058079a32f186fcd254c4a4034..HEAD`
-- Current pre-fix branch tip audited for this source/test surface: `35129fc47`
+- Current pre-fix branch tip audited for this source/test surface: `768ea1a80`
 - Merge candidate: the branch tip after this traceability fixer commit. It is not `adfa8cdadd43747ffbcb612e4151e262b13e52ca`, `e4f835c50`, or `43654937a196977d7cd53c4e355b4f8ea7fb93b7`.
 - Scope classification: high-risk/shared because the candidate includes approved shared regression coverage in `tests/unit/test_unified_retrieval.py`.
 - Packet type: retrieval feature handoff for the full branch-tip FTS-first retrieval candidate.
 
 ## Scope Completed
 
-The actual branch-tip candidate keeps SQLite FTS as the only active retrieval path and reconciles the handoff with the full source/test surface from `378cf9a74a3658058079a32f186fcd254c4a4034..HEAD`. The candidate exports canonical retrieval query construction through the engine retrieval facade, normalizes boolean constraints deterministically, removes stale FTS strategy caching, makes payload/source/context snapshots deterministic, adds policy-bound basket-promotion item fingerprints, keeps excerpt lookup on the canonical FTS-only path so PageIndex-only excerpt IDs fail closed under shared regression coverage, reports matched-term provenance using token-exact FTS-style matching instead of substring matching, and makes the active FTS strategy module's public symbol contract explicit without exporting deferred shims from the engine package facade.
+The actual branch-tip candidate keeps SQLite FTS as the only active retrieval path and reconciles the handoff with the full source/test surface from `378cf9a74a3658058079a32f186fcd254c4a4034..HEAD`. The candidate exports canonical retrieval query construction through the engine retrieval facade, normalizes boolean constraints deterministically, removes stale FTS strategy caching, makes payload/source/context snapshots deterministic, adds policy-bound basket-promotion item fingerprints, keeps excerpt lookup on the canonical FTS-only path so PageIndex-only excerpt IDs fail closed under shared regression coverage, reports matched-term provenance using token-exact FTS-style matching instead of substring matching, canonicalizes ingested document types for stable FTS row metadata and provenance fingerprints, and makes the active FTS strategy module's public symbol contract explicit without exporting deferred shims from the engine package facade.
 
 PageIndex and embeddings remain compatibility-only fallback shims and are not reintroduced as required retrieval paths. This packet supersedes earlier narrowed claims that stopped at `adfa8cdadd43747ffbcb612e4151e262b13e52ca`, `e4f835c50`, or `43654937a196977d7cd53c4e355b4f8ea7fb93b7`; re-review should inspect the full `378cf9a74a3658058079a32f186fcd254c4a4034..HEAD` candidate.
 
@@ -23,7 +23,8 @@ PageIndex and embeddings remain compatibility-only fallback shims and are not re
 4. Tightened FTS matched-term provenance to use token-exact matches, preventing partial substrings such as `the` in `theory` from being reported as retrieval evidence.
 5. Preserved the engine retrieval package's FTS-only export contract after a focused regression rejected exporting deferred shim classes from `src.qual.engine.retrieval`.
 6. Made `src.qual.engine.retrieval.fts_strategy` explicitly export only `FTSStrategy`, matching the active FTS-first public module contract without reintroducing PageIndex or embeddings as active paths.
-7. Rerun results for `make scope-check`, `./quality-format.sh --check`, `./quality-lint.sh`, `./quality-test.sh`, `./typecheck-test.sh`, and `make ci` are recorded below against the corrected branch-tip candidate for fresh re-review.
+7. Canonicalized ingested `doc_type` values before persisting metadata or FTS rows so semantically identical document types produce stable filters, source bundles, and provenance fingerprints.
+8. Rerun results for `make scope-check`, `./quality-format.sh --check`, `./quality-lint.sh`, `./quality-test.sh`, `./typecheck-test.sh`, and `make ci` are recorded below against the corrected branch-tip candidate for fresh re-review.
 
 ## Integrator Failure Reproduction
 
@@ -36,7 +37,7 @@ PageIndex and embeddings remain compatibility-only fallback shims and are not re
 
 1. Canonical demo-path step `retrieve relevant material`: kept retrieval FTS-first by making excerpt lookup require an FTS excerpt hit, removing stale FTS strategy caching, and keeping PageIndex/embeddings fallback-only.
 2. Canonical demo-path step `retrieve relevant material`: exported and normalized canonical retrieval query construction through the engine retrieval facade, including deterministic boolean and date constraint handling.
-3. Canonical demo-path step `retrieve relevant material`: made retrieval payloads, matched-term provenance snapshots, citation bundles, and sparse source/context rehydration deterministic for downstream engine flows.
+3. Canonical demo-path step `retrieve relevant material`: made retrieval payloads, matched-term provenance snapshots, citation bundles, doc-type metadata, and sparse source/context rehydration deterministic for downstream engine flows.
 4. Canonical demo-path step `promote or gather context into the basket`: added deterministic basket-promotion refs, item IDs, context-bundle fingerprints, policy snapshots on basket refs, and `basket_item_fingerprint` backfill for sparse excerpt-hit snapshots.
 
 ## Post-`adfa8cd` Classification
@@ -46,7 +47,7 @@ The branch contains implementation commits after `adfa8cdadd43747ffbcb612e4151e2
 - `src/qual/engine/retrieval/__init__.py`: post-`adfa8cd` retrieval facade export and constraint-normalization commits are implementation.
 - `src/qual/engine/retrieval/fts_strategy.py`: post-`adfa8cd` cache invalidation/removal, hit snapshot commits, and the explicit FTS-only module export are implementation.
 - `src/qual/engine/retrieval/payload.py`: post-`adfa8cd` payload, context bundle, basket ref, fingerprint, and sparse rehydration commits are implementation.
-- `src/qual/retrieval/service.py`: post-`adfa8cd` FTS service, citation, evidence context, basket promotion, query snapshot, and policy-bound fingerprint commits are implementation.
+- `src/qual/retrieval/service.py`: post-`adfa8cd` FTS service, citation, evidence context, basket promotion, query snapshot, canonical doc-type ingestion, and policy-bound fingerprint commits are implementation.
 - `tests/unit/test_unified_retrieval.py`: post-`adfa8cd` shared regression coverage commits are implementation-test commits under the approved shared-file exception.
 - `THREAD_PACKET.md`, `.codex/kickoff_packets/feat-retrieval-fts.md`, and `.codex/lane_meta/feat-retrieval-fts.json`: packet and lane metadata refresh commits are metadata.
 - Current fixer commit makes the active FTS strategy module's `__all__` explicit and does not change the engine package facade's FTS-only export list.
@@ -61,10 +62,10 @@ Authoritative candidate files changed for `378cf9a74a3658058079a32f186fcd254c4a4
 - `src/qual/engine/retrieval/__init__.py` - exports canonical query construction with strict optional-boolean normalization.
 - `src/qual/engine/retrieval/fts_strategy.py` - removes stale result caching while preserving the compatibility `clear_cache` hook and explicitly exports only `FTSStrategy`.
 - `src/qual/engine/retrieval/payload.py` - normalizes deterministic retrieval payloads, source/context bundles, policy-bound basket-promotion items, and sparse snapshot backfill.
-- `src/qual/retrieval/service.py` - keeps FTS as the authoritative lookup path and emits deterministic result/query/policy-bound basket fingerprints and token-exact matched-term provenance.
+- `src/qual/retrieval/service.py` - keeps FTS as the authoritative lookup path, canonicalizes ingested document types, and emits deterministic result/query/policy-bound basket fingerprints and token-exact matched-term provenance.
 - `tests/unit/test_unified_retrieval.py` - approved shared regression coverage for cache invalidation, deterministic payloads, facade exports, basket refs, FTS-only excerpt lookup, and token-exact matched terms.
 
-Full corrected candidate stat including this packet refresh: `8 files changed, 1024 insertions(+), 207 deletions(-)`.
+Full corrected candidate stat including this packet refresh: `8 files changed, 1028 insertions(+), 209 deletions(-)`.
 
 Source/test surface included for review:
 
@@ -74,9 +75,9 @@ Source/test surface included for review:
 - `src/qual/retrieval/service.py`
 - `tests/unit/test_unified_retrieval.py`
 
-Source/test stat included for implementation review: `5 files changed, 716 insertions(+), 121 deletions(-)`.
+Source/test stat included for implementation review: `5 files changed, 720 insertions(+), 121 deletions(-)`.
 
-Current fixer delta including this packet refresh: `2 files changed, 16 insertions(+), 8 deletions(-)`.
+Current fixer delta including this packet refresh: `2 files changed, 16 insertions(+), 13 deletions(-)`.
 
 Lane-owned source files:
 
@@ -102,8 +103,8 @@ Integrator-locked files:
 - Task budget: `4/4` high-risk tasks; this fixer is part of task 3, deterministic retrieval provenance.
 - File budget: `8/8` high-risk files in the corrected candidate.
 - Source/test file count: `5` files.
-- Full corrected candidate net LOC including this reviewer-fix packet refresh: `+773`.
-- Source/test net LOC included for implementation review: `+571`.
+- Full corrected candidate net LOC including this reviewer-fix packet refresh: `+819`.
+- Source/test net LOC included for implementation review: `+599`.
 - Size exception required: yes. The candidate exceeds the AGENTS.md high-risk `<=300` net LOC guideline because the actual branch-tip surface includes the full retrieval payload/service/test implementation, not only the earlier narrowed packet slice.
 - Explicit size exception request: approve review of the full `378cf9a74a3658058079a32f186fcd254c4a4034..HEAD` candidate as a single high-risk retrieval handoff because splitting the already-committed branch tip would reintroduce the traceability gap the reviewer flagged.
 - Shared-file approval note: `tests/unit/test_unified_retrieval.py` is included as the approved shared-by-approval regression surface for the retrieval lane.
@@ -128,6 +129,7 @@ Required gates for the corrected candidate, rerun on 2026-05-05 for this fixer p
 - `pytest tests/unit/test_unified_retrieval.py` FAIL, `pytest` executable unavailable in this shell.
 - `python -m pytest tests/unit/test_unified_retrieval.py` FAIL, active Python has no `pytest` module.
 - `python3 -m unittest tests.unit.test_unified_retrieval -v` PASS, 58 tests, after reverting an attempted deferred-shim facade export that the focused regression correctly rejected.
+- `python3 -m unittest tests.unit.test_unified_retrieval -v` PASS, 58 tests, after canonicalizing ingested document types for stable retrieval provenance.
 - `make scope-check` PASS.
 - `./quality-format.sh --check` PASS.
 - `./quality-lint.sh` PASS.

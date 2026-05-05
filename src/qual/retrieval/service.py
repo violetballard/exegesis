@@ -832,6 +832,7 @@ class RetrievalService:
         text: str,
         title_hint: str | None = None,
     ) -> None:
+        normalized_doc_type = _required_compact_text(doc_type, field_name="doc_type").casefold()
         content = text.encode("utf-8")
         source_hash = hashlib.sha256(content).hexdigest()
         blob_path = self._root / _DOC_BLOBS / f"{doc_id}.enc"
@@ -840,14 +841,14 @@ class RetrievalService:
         meta = self._load_doc_meta()
         meta[doc_id] = {
             "doc_id": doc_id,
-            "doc_type": doc_type,
+            "doc_type": normalized_doc_type,
             "title_hint": title_hint,
             "source_hash": source_hash,
             "size_bytes": len(content),
             "updated_at": self._now_fn().isoformat(),
         }
         self._write_encrypted_json(self._root / _DOC_META_FILE, meta)
-        self._upsert_fts_entries(doc_id=doc_id, doc_type=doc_type, title_hint=title_hint, text=text)
+        self._upsert_fts_entries(doc_id=doc_id, doc_type=normalized_doc_type, title_hint=title_hint, text=text)
         self._fts.clear_cache()
 
     def build_pageindex(self, *, doc_id: str, options: DocIndexBuildOptions | None = None) -> str:
