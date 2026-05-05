@@ -5157,9 +5157,28 @@ def _coerce_shell_script_lines(lines: Sequence[str] | str) -> tuple[str, ...]:
     return tuple(str(line) for line in lines)
 
 
+def _logical_shell_script_lines(lines: Sequence[str] | str) -> tuple[str, ...]:
+    logical_lines: list[str] = []
+    pending_parts: list[str] = []
+    for raw_line in _coerce_shell_script_lines(lines):
+        line = raw_line.rstrip()
+        if line.endswith("\\"):
+            pending_parts.append(line[:-1].rstrip())
+            continue
+        if pending_parts:
+            pending_parts.append(line.lstrip())
+            logical_lines.append(" ".join(part for part in pending_parts if part))
+            pending_parts = []
+            continue
+        logical_lines.append(line)
+    if pending_parts:
+        logical_lines.append(" ".join(part for part in pending_parts if part))
+    return tuple(logical_lines)
+
+
 def _shell_script_executable_argv(lines: Sequence[str] | str) -> tuple[tuple[str, ...], ...]:
     executable_argv: list[tuple[str, ...]] = []
-    for raw_line in _coerce_shell_script_lines(lines):
+    for raw_line in _logical_shell_script_lines(lines):
         line = raw_line.strip()
         if not line or line.startswith("#") or line == "set -euo pipefail":
             continue
