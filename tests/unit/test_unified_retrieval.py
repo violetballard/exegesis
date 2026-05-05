@@ -1219,6 +1219,56 @@ class UnifiedRetrievalTests(unittest.TestCase):
             canonical["provenance"]["excerpt_lookup_fingerprint"],
             canonical["excerpt_lookup_fingerprint"],
         )
+        basket_item = canonical["basket_promotion_item"]
+        self.assertEqual(canonical["basket_item_id"], excerpt_id)
+        self.assertEqual(basket_item["item_id"], excerpt_id)
+        self.assertEqual(basket_item["item_type"], "excerpt")
+        self.assertEqual(basket_item["doc_id"], canonical["doc_id"])
+        self.assertEqual(basket_item["doc_type"], canonical["doc_type"])
+        self.assertEqual(basket_item["title_hint"], canonical["title_hint"])
+        self.assertEqual(basket_item["source_hash"], canonical["source_hash"])
+        self.assertEqual(basket_item["excerpt_id"], canonical["excerpt_id"])
+        self.assertEqual(basket_item["excerpt_text"], canonical["excerpt_text"])
+        self.assertEqual(basket_item["excerpt_fingerprint"], canonical["excerpt_fingerprint"])
+        self.assertEqual(basket_item["excerpt_text_hash"], canonical["text_hash"])
+        self.assertEqual(basket_item["span"], canonical["span"])
+        self.assertEqual(basket_item["source_strategy"], "fts")
+        self.assertEqual(basket_item["retrieval_backend"], "sqlite_fts")
+        self.assertEqual(basket_item["retrieval_mode"], "fts_first")
+        self.assertEqual(basket_item["retrieval_policy"], canonical["retrieval_policy"])
+        self.assertEqual(basket_item["lookup_resolution"], "fts")
+        self.assertEqual(
+            basket_item["excerpt_lookup_fingerprint"],
+            canonical["excerpt_lookup_fingerprint"],
+        )
+        self.assertEqual(
+            canonical["basket_item_fingerprint"],
+            basket_item["basket_item_fingerprint"],
+        )
+        self.assertEqual(
+            canonical["provenance"]["basket_item_fingerprint"],
+            canonical["basket_item_fingerprint"],
+        )
+        self.assertEqual(canonical["basket_promotion_items"], [basket_item])
+        self.assertEqual(canonical["basket_item_ids"], [canonical["basket_item_id"]])
+        self.assertEqual(
+            canonical["basket_item_fingerprints"],
+            [canonical["basket_item_fingerprint"]],
+        )
+
+        repeated = self.service.fetch_fts_excerpt(f"  {excerpt_id}  ")
+        self.assertEqual(
+            repeated["basket_item_fingerprint"],
+            canonical["basket_item_fingerprint"],
+        )
+        self.assertEqual(
+            repeated["basket_promotion_item"]["basket_item_fingerprint"],
+            canonical["basket_promotion_item"]["basket_item_fingerprint"],
+        )
+        self.assertEqual(
+            repeated["provenance"]["basket_item_fingerprint"],
+            canonical["provenance"]["basket_item_fingerprint"],
+        )
 
     def test_retrieve_fts_excerpt_normalizes_lookup_ids(self) -> None:
         result = self.service.retrieve_auto(
