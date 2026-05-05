@@ -2098,6 +2098,18 @@ class RetrievalService:
                 source_hash=str(normalized.get("source_hash") or provenance.get("source_hash") or ""),
             )
         normalized["excerpt_fingerprint"] = excerpt_fingerprint
+        excerpt_lookup_fingerprint = self._build_excerpt_lookup_fingerprint(
+            excerpt_id=normalized.get("excerpt_id"),
+            doc_id=doc_id_value,
+            source_hash=source_hash,
+            span=canonical_span,
+            text_hash=text_hash,
+            source_strategy=source_strategy,
+            retrieval_backend=retrieval_backend,
+            retrieval_mode=retrieval_mode,
+            lookup_resolution=lookup_resolution,
+        )
+        normalized["excerpt_lookup_fingerprint"] = excerpt_lookup_fingerprint
         if "provenance" in normalized:
             normalized_provenance = {
                 **provenance,
@@ -2125,6 +2137,7 @@ class RetrievalService:
             normalized_provenance["retrieval_policy"] = copy.deepcopy(retrieval_policy)
             normalized_provenance["retrieval_source_strategy"] = source_strategy
             normalized_provenance["lookup_resolution"] = lookup_resolution
+            normalized_provenance["excerpt_lookup_fingerprint"] = excerpt_lookup_fingerprint
             normalized["provenance"] = normalized_provenance
         return normalized
 
@@ -2176,6 +2189,33 @@ class RetrievalService:
             "source_hash": source_hash,
         }
         return RetrievalService._stable_fingerprint(payload)
+
+    @staticmethod
+    def _build_excerpt_lookup_fingerprint(
+        *,
+        excerpt_id: object,
+        doc_id: object,
+        source_hash: object,
+        span: dict[str, object] | None,
+        text_hash: object,
+        source_strategy: str,
+        retrieval_backend: str,
+        retrieval_mode: str,
+        lookup_resolution: str,
+    ) -> str:
+        return RetrievalService._stable_fingerprint(
+            {
+                "excerpt_id": excerpt_id,
+                "doc_id": doc_id,
+                "source_hash": source_hash,
+                "span": span,
+                "text_hash": text_hash,
+                "source_strategy": source_strategy,
+                "retrieval_backend": retrieval_backend,
+                "retrieval_mode": retrieval_mode,
+                "lookup_resolution": lookup_resolution,
+            }
+        )
 
     @staticmethod
     def _query_fingerprint(query: RetrievalQuery) -> str:

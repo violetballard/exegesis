@@ -1199,6 +1199,11 @@ class UnifiedRetrievalTests(unittest.TestCase):
         self.assertEqual(canonical["provenance"]["excerpt_fingerprint"], result.hits[0].provenance["excerpt_fingerprint"])
         self.assertEqual(canonical["provenance"]["hash"], result.hits[0].provenance["hash"])
         self.assertEqual(canonical["text_hash"], result.hits[0].provenance["excerpt_text_hash"])
+        self.assertTrue(canonical["excerpt_lookup_fingerprint"])
+        self.assertEqual(
+            canonical["provenance"]["excerpt_lookup_fingerprint"],
+            canonical["excerpt_lookup_fingerprint"],
+        )
 
     def test_retrieve_fts_excerpt_normalizes_lookup_ids(self) -> None:
         result = self.service.retrieve_auto(
@@ -1219,6 +1224,27 @@ class UnifiedRetrievalTests(unittest.TestCase):
         self.assertEqual(engine_retrieve_fts_excerpt(self.service, excerpt_id=f"\n{excerpt_id}\t"), canonical)
         with self.assertRaisesRegex(ValueError, "excerpt_id is required"):
             self.service.retrieve_fts_excerpt("  ")
+
+    def test_retrieve_fts_excerpt_lookup_fingerprint_is_stable(self) -> None:
+        result = self.service.retrieve_auto(
+            RetrievalQuery(
+                query_text="memo coding comparison",
+                scope="vault",
+                intent="compare",
+                constraints=RetrievalConstraints(max_results=4),
+                confidentiality_profile="confidential",
+            )
+        )
+
+        excerpt_id = result.hits[0].excerpt_id
+        self.assertIsNotNone(excerpt_id)
+        first = self.service.retrieve_fts_excerpt(excerpt_id or "")
+        second = self.service.fetch_fts_excerpt(f"  {excerpt_id}  ")
+
+        self.assertEqual(first["excerpt_lookup_fingerprint"], second["excerpt_lookup_fingerprint"])
+        self.assertEqual(first["provenance"]["excerpt_lookup_fingerprint"], first["excerpt_lookup_fingerprint"])
+        self.assertEqual(first["source_strategy"], "fts")
+        self.assertEqual(first["lookup_resolution"], "fts")
 
     def test_retrieval_hits_surface_top_level_retrieval_context(self) -> None:
         result = self.service.retrieve_auto(
