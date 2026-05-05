@@ -4,7 +4,7 @@
 - Lane: `feat-retrieval-fts`
 - Merge target: current `main`
 - Authoritative merge/review range for the actual integration candidate: `378cf9a74a3658058079a32f186fcd254c4a4034..HEAD`
-- Current pre-fix branch tip audited for source/test surface: `f41fe1174027363b03d0197fd4a2a8b44522f658`
+- Current pre-fix branch tip audited for source/test surface: `0e0f34cf763a26a2c21eb5813bf4d16227be96d5`
 - Merge candidate: the branch tip after this reviewer-fix commit. It is not `adfa8cdadd43747ffbcb612e4151e262b13e52ca`, `e4f835c50`, or `43654937a196977d7cd53c4e355b4f8ea7fb93b7`.
 - Scope classification: high-risk/shared because the candidate includes approved shared regression coverage in `tests/unit/test_unified_retrieval.py`.
 - Packet type: retrieval feature handoff for the full branch-tip FTS-first retrieval candidate.
@@ -17,10 +17,17 @@ PageIndex and embeddings remain compatibility-only fallback shims and are not re
 
 ## Required Fixes Addressed
 
-1. Regenerated the handoff around the actual branch tip intended for merge: `378cf9a74a3658058079a32f186fcd254c4a4034..HEAD`.
-2. Reclassified post-`adfa8cdadd43747ffbcb612e4151e262b13e52ca` commits accurately: commits touching `src/qual/engine/retrieval/**`, `src/qual/retrieval/**`, or `tests/unit/test_unified_retrieval.py` are implementation commits, not metadata-only commits.
-3. Updated completed tasks, changed files, risks, roadmap/vision mapping, and canonical demo-path mapping for the full reviewed branch-tip range.
-4. Rerun results for `make scope-check`, `./quality-format.sh --check`, `./quality-lint.sh`, `./quality-test.sh`, `./typecheck-test.sh`, and `make ci` are recorded below against the corrected candidate.
+1. Reproduced the reported integrator failure context locally by reading the captured integrator prompt and rerunning the lane/integration gates on the branch-tip candidate; no retrieval test, typecheck, lint, format, scope, CI, or merge-tree conflict failure reproduced.
+2. Fixed the review-facing handoff packet to present the actual branch-tip candidate range. The tracked `.codex` packet mirrors still cannot be edited in this lane sandbox because writes fail with `Operation not permitted`, so `THREAD_PACKET.md` remains the authoritative corrected feature packet for re-review.
+3. Kept post-`adfa8cdadd43747ffbcb612e4151e262b13e52ca` commits classified accurately: commits touching `src/qual/engine/retrieval/**`, `src/qual/retrieval/**`, or `tests/unit/test_unified_retrieval.py` are implementation commits, not metadata-only commits.
+4. Rerun results for `make scope-check`, `./quality-format.sh --check`, `./quality-lint.sh`, `./quality-test.sh`, `./typecheck-test.sh`, and `make ci` are recorded below against the corrected branch-tip candidate for fresh re-review.
+
+## Integrator Failure Reproduction
+
+- Referenced integrator prompt existed and contained an approved fallback packet with no requested code fixes.
+- Local branch-tip gates all pass on this lane worktree.
+- `git merge-tree $(git merge-base codex/integrator HEAD) codex/integrator HEAD` reports a clean textual merge for the candidate files; no conflict marker output was produced.
+- The actionable integration blocker found in-lane was stale packet metadata that could cause automation to re-submit or review the old narrowed implementation head instead of the actual branch tip. The corrected branch-tip packet is recorded in `THREAD_PACKET.md`.
 
 ## Tasks Completed
 
@@ -110,7 +117,7 @@ Integrator-locked files:
 
 ## Commands Run
 
-Required gates for the corrected candidate, rerun on 2026-04-30 for this fixer pass:
+Required gates for the corrected candidate, rerun on 2026-05-05 for this fixer pass:
 
 - `python -m unittest tests.unit.test_unified_retrieval` PASS, 57 tests.
 - `make scope-check` PASS.
@@ -119,6 +126,7 @@ Required gates for the corrected candidate, rerun on 2026-04-30 for this fixer p
 - `./quality-test.sh` PASS, smoke plus 126 unit tests.
 - `./typecheck-test.sh` PASS, Python sources under `src/` compile.
 - `make ci` PASS, includes scope-check, format, lint, typecheck, and 126 unit tests.
+- `git merge-tree $(git merge-base codex/integrator HEAD) codex/integrator HEAD` PASS, clean textual merge with no conflict output.
 
 Focused gate already run earlier in this branch:
 
@@ -126,4 +134,4 @@ Focused gate already run earlier in this branch:
 
 ## Risks/Blockers
 
-No implementation blocker is known. The remaining reviewer-facing risks are the requested AGENTS.md size exception for the full high-risk branch-tip candidate and the protected `.codex` packet mirrors, which still contain stale pre-review wording because both `apply_patch` and direct file writes fail with `Operation not permitted`. `THREAD_PACKET.md` is the corrected authoritative handoff packet for re-review.
+No implementation blocker is known. The remaining reviewer-facing risks are the requested AGENTS.md size exception for the full high-risk branch-tip candidate and the protected `.codex` packet mirrors, which still cannot be edited from this lane worktree because writes fail with `Operation not permitted`. `THREAD_PACKET.md` is the corrected authoritative handoff packet for re-review.
