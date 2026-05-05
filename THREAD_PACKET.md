@@ -81,7 +81,7 @@ Source/test stat included for implementation review: `5 files changed, 795 inser
 
 Current fixer source/test delta before this packet refresh: `0 files changed`; this pass is metadata-only and does not alter retrieval source or tests.
 
-Current fixer delta including this packet refresh: `1 file changed, 16 insertions(+), 6 deletions(-)`; only `THREAD_PACKET.md` is updated because `.codex` packet mirrors remain protected by `Operation not permitted`.
+Current fixer delta including this packet refresh: `1 file changed, 21 insertions(+), 11 deletions(-)`; only `THREAD_PACKET.md` is updated because `.codex` packet mirrors remain protected by `Operation not permitted`.
 
 Lane-owned source files:
 
