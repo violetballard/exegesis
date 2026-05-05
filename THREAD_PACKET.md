@@ -3,11 +3,11 @@
 - Branch name: `codex/feat-retrieval-fts`
 - Lane: `feat-retrieval-fts`
 - Merge target: current `main`
-- Merge candidate for re-review: branch tip `HEAD` on `codex/feat-retrieval-fts` after this sparse date-range reconstruction finalization commit; before this fixer the branch tip was `b8416aba3589ded2e2b0882a8d00a6ad8ee8ab17`, and the exact final SHA is reported in the fixer deliverable.
-- Actual merge-candidate diff against `main`: `main...HEAD`, currently anchored at merge-base `dc8db42ddd554e38c1d390a089eac26ae8a16aa7`.
+- Merge candidate for re-review: branch tip `HEAD` on `codex/feat-retrieval-fts`, including this packet traceability refresh. Before the reviewer-required fixer sequence, the branch tip was `b8416aba3589ded2e2b0882a8d00a6ad8ee8ab17`; the final post-commit SHA is reported in the fixer deliverable.
+- Actual merge-candidate diff against `main`: `main...HEAD`, currently anchored at merge-base `b4ca0dd3ea81042f9aec63782695cf83678fc6b1`.
 - Reviewer-requested traceability range: `adfa8cdadd43747ffbcb612e4151e262b13e52ca..HEAD`. This is the historical range that includes every source/test change after the earlier reviewed implementation head, including changes that are already reachable from current `main`.
-- Current merge-base before this fixer pass: `dc8db42ddd554e38c1d390a089eac26ae8a16aa7`
-- Traceability correction: the current merge candidate is branch tip `HEAD`, not `adfa8cdadd43747ffbcb612e4151e262b13e52ca`, not `3fa8b5edfd7dac6eb22715eeed64ac8a3325ad52`, not `b6e026a0adf4137108b2388b88a630f902ab8b9f`, not `36080d74a5792e5387b3f68e39ff99c41467b191`, and not `b8416aba3589ded2e2b0882a8d00a6ad8ee8ab17` after this fixer commit is created. Earlier packet wording about `378cf9a74a3658058079a32f186fcd254c4a4034..adfa8cdadd43747ffbcb612e4151e262b13e52ca` and about post-`adfa8cdadd43747ffbcb612e4151e262b13e52ca` metadata-only commits is superseded. No commit with source or test changes in `adfa8cdadd43747ffbcb612e4151e262b13e52ca..HEAD` is described as metadata-only in this packet.
+- Current merge-base before this packet refresh commit: `b4ca0dd3ea81042f9aec63782695cf83678fc6b1`.
+- Traceability correction: the current merge candidate is branch tip `HEAD`, not `adfa8cdadd43747ffbcb612e4151e262b13e52ca`, not `3fa8b5edfd7dac6eb22715eeed64ac8a3325ad52`, not `b6e026a0adf4137108b2388b88a630f902ab8b9f`, not `36080d74a5792e5387b3f68e39ff99c41467b191`, not `b8416aba3589ded2e2b0882a8d00a6ad8ee8ab17`, and not the pre-refresh tip `519082d6605a4eb1dc2171507769ecee3617767c`. Earlier packet wording about `378cf9a74a3658058079a32f186fcd254c4a4034..adfa8cdadd43747ffbcb612e4151e262b13e52ca` and about post-`adfa8cdadd43747ffbcb612e4151e262b13e52ca` metadata-only commits is superseded. No commit with source or test changes in `adfa8cdadd43747ffbcb612e4151e262b13e52ca..HEAD` is described as metadata-only in this packet.
 - Implementation commit classification: `19b99a7034e28aadba7ddc7ef20fdf9a2fcbae2a` (`Fail closed on unresolved FTS collection scopes`) changes `src/qual/retrieval/service.py` and `tests/unit/test_unified_retrieval.py`; `d00ee5c38a6b8a49ae0c343a97bc11796b1bac81` (`Expose retrieval candidate resolution`) changes `src/qual/retrieval/service.py` and `src/qual/engine/retrieval/payload.py`; `3fa8b5edfd7dac6eb22715eeed64ac8a3325ad52` (`Keep sparse basket items authoritative`) changes `src/qual/engine/retrieval/payload.py` and `tests/unit/test_unified_retrieval.py`; `b6e026a0adf4137108b2388b88a630f902ab8b9f` (`Expose excerpt lookup fingerprints in citations`) changes `src/qual/retrieval/service.py` and `tests/unit/test_unified_retrieval.py` as well as `THREAD_PACKET.md`. These are implementation commits, not metadata-only commits, and they are included in the reviewer-requested traceability range.
 - Scope classification: high-risk fixer under the 4-task cap because this reviewed range includes approved shared regression coverage in `tests/unit/test_unified_retrieval.py`.
 - Handoff type: retrieval feature fixer handoff for the FTS-first retrieval lane.
@@ -84,8 +84,8 @@ Integrator-locked files: none.
 ## Budget/Risk
 
 - Task budget: `4/4` high-risk tasks.
-- File budget: before this packet edit, the actual merge-candidate diff `main...HEAD` changes `4` files, within the high-risk `<=8 files` limit. The reviewer-requested historical traceability range `adfa8cdadd43747ffbcb612e4151e262b13e52ca..HEAD` changes `9` files, which is over the high-risk file budget and is called out here for re-review instead of being narrowed or hidden.
-- Net LOC: before this packet edit, the prior committed branch-tip merge candidate was `b8416aba3589ded2e2b0882a8d00a6ad8ee8ab17`. This fixer adds a narrow owned-path source change in `src/qual/engine/retrieval/payload.py`, focused shared regression coverage in `tests/unit/test_unified_retrieval.py`, and this handoff packet refresh; the final post-commit SHA and gate results are reported in the fixer deliverable. The reviewer-requested historical traceability range remains larger and is explicitly disclosed for traceability.
+- File budget: before this packet refresh commit, the actual merge-candidate diff `main...HEAD` changes `5` files: `THREAD_PACKET.md`, `src/qual/engine/retrieval/__init__.py`, `src/qual/engine/retrieval/payload.py`, `src/qual/retrieval/service.py`, and `tests/unit/test_unified_retrieval.py`. This remains within the high-risk `<=8 files` limit. The reviewer-requested historical traceability range `adfa8cdadd43747ffbcb612e4151e262b13e52ca..HEAD` changes `9` files, which is over the high-risk file budget and is called out here for re-review instead of being narrowed or hidden.
+- Net LOC: before this packet refresh commit, the actual merge-candidate diff `main...HEAD` was `118` insertions and `23` deletions across the `5` files above. This fixer sequence adds owned-path source changes in `src/qual/engine/retrieval/__init__.py`, `src/qual/engine/retrieval/payload.py`, and `src/qual/retrieval/service.py`, focused shared regression coverage in `tests/unit/test_unified_retrieval.py`, and this handoff packet refresh; the final post-commit SHA and gate results are reported in the fixer deliverable. The reviewer-requested historical traceability range remains larger and is explicitly disclosed for traceability.
 - Shared-file approval note: `tests/unit/test_unified_retrieval.py` is the approved shared-by-approval regression file for this lane.
 - Routing/provider impact: none.
 - PageIndex/embeddings impact: none; both remain deferred/compatibility-only.
@@ -151,6 +151,15 @@ Current ordered date-range finalization required gates:
 - `./quality-format.sh --check` - passed.
 - `./quality-lint.sh` - passed.
 - `./quality-test.sh` - passed; ran smoke plus 140 unit tests, including the unified retrieval suite.
+- `./typecheck-test.sh` - passed; compiled Python sources in `src/`.
+- `make ci` - passed; reran setup, scope-check, format, lint, typecheck, and quality tests, including smoke plus 140 unit tests.
+
+Reviewer-required packet traceability fixer gates for this packet refresh:
+
+- `make scope-check` - passed for branch `codex/feat-retrieval-fts`; scope checker reported no explicit policy for the branch and exited green.
+- `./quality-format.sh --check` - passed.
+- `./quality-lint.sh` - passed.
+- `./quality-test.sh` - passed; ran smoke plus 140 unit tests, including ordered `date_range` regression coverage in the unified retrieval suite.
 - `./typecheck-test.sh` - passed; compiled Python sources in `src/`.
 - `make ci` - passed; reran setup, scope-check, format, lint, typecheck, and quality tests, including smoke plus 140 unit tests.
 
