@@ -635,6 +635,7 @@ def _normalize_flow_steps(flow_steps: tuple[str, ...]) -> tuple[str, ...]:
 
 def _validate_cli_entrypoints() -> None:
     # Keep the parser surface explicit so the command contract stays deterministic.
+    command_lookup = _COMMAND_SPEC_BY_ALIAS
     seen_entrypoints: set[str] = set()
     for entrypoint in _CLI_ENTRYPOINTS:
         normalized_entrypoint = _normalize_token(entrypoint)
@@ -643,7 +644,7 @@ def _validate_cli_entrypoints() -> None:
         if normalized_entrypoint in seen_entrypoints:
             raise ValueError(f"Duplicate command CLI entrypoint: {entrypoint}")
         seen_entrypoints.add(normalized_entrypoint)
-        if command_spec_for(COMMAND_SPECS, entrypoint) is None:
+        if normalized_entrypoint not in command_lookup:
             raise ValueError(f"Unknown CLI command entrypoint: {entrypoint}")
 
 
