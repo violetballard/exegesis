@@ -4876,6 +4876,26 @@ def _validate_command_demo_readiness_seal(
         raise ValueError("Command demo readiness seal commands are inconsistent")
     if seal.engine_actions != command_demo_engine_actions(specs):
         raise ValueError("Command demo readiness seal actions are inconsistent")
+    expected_exact_action_lines = command_demo_readiness_exact_action_shell_script_lines(
+        specs,
+        launcher_argv,
+    )
+    if seal.exact_action_lines != expected_exact_action_lines:
+        raise ValueError("Command demo readiness seal exact action lines are inconsistent")
+    expected_cli_exact_action_lines = command_demo_readiness_cli_exact_action_shell_script_lines(
+        specs,
+        launcher_argv,
+    )
+    if seal.cli_exact_action_lines != expected_cli_exact_action_lines:
+        raise ValueError("Command demo readiness seal CLI exact action lines are inconsistent")
+    expected_executable_lines = _dedupe_command_lines(
+        ("set -euo pipefail", *seal.command_lines, *seal.exact_action_lines)
+    )
+    shell_executable_lines = command_demo_readiness_shell_executable_lines(specs, launcher_argv)
+    if tuple(line for line in expected_executable_lines if line not in shell_executable_lines):
+        raise ValueError("Command demo readiness seal shell script lines are incomplete")
+    if tuple(line for line in shell_executable_lines if line not in expected_executable_lines):
+        raise ValueError("Command demo readiness seal shell script lines are inconsistent")
     exact_validation = command_demo_readiness_validate_exact_action_shell_script_lines(
         seal.exact_action_lines,
         specs,
