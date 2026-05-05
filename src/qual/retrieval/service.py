@@ -2010,9 +2010,11 @@ class RetrievalService:
         self,
         excerpt: dict[str, object],
         *,
-        source_strategy: Literal["fts", "pageindex"],
+        source_strategy: Literal["fts"],
         lookup_resolution: str,
     ) -> dict[str, object]:
+        if source_strategy != "fts":
+            raise ValueError("excerpt payload normalization is FTS-only for the MVP")
         provenance = excerpt.get("provenance", {})
         if not isinstance(provenance, dict):
             provenance = {}
@@ -2215,7 +2217,7 @@ class RetrievalService:
         source_hash: str | None,
         span: dict[str, object] | None,
         text_hash: object,
-        source_strategy: Literal["fts", "pageindex"],
+        source_strategy: Literal["fts"],
         retrieval_backend: str,
         retrieval_mode: str,
         retrieval_policy: dict[str, object],

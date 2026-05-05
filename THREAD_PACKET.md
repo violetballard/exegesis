@@ -12,9 +12,9 @@
 
 ## Scope Completed
 
-This re-review packet covers the complete actual merge candidate from `378cf9a74a3658058079a32f186fcd254c4a4034..HEAD`, including the original FTS-only excerpt implementation, branch-tip retrieval facade and payload work, the later basket promotion metadata changes through `10272337c899350ff4e8ee74ba44e77ed6f1be38`, and this final owned-path sparse basket provenance normalization fix. No source-bearing commit after `378cf9a74a3658058079a32f186fcd254c4a4034` is hidden behind metadata-only wording.
+This re-review packet covers the complete actual merge candidate from `378cf9a74a3658058079a32f186fcd254c4a4034..HEAD`, including the original FTS-only excerpt implementation, branch-tip retrieval facade and payload work, the later basket promotion metadata changes through `10272337c899350ff4e8ee74ba44e77ed6f1be38`, the owned-path sparse basket provenance normalization fix, and this final owned-path excerpt payload normalization guard. No source-bearing commit after `378cf9a74a3658058079a32f186fcd254c4a4034` is hidden behind metadata-only wording.
 
-The implementation keeps SQLite FTS as the authoritative retrieval path. It exports canonical FTS excerpt fetch helpers through retrieval facades, normalizes FTS strategy hit snapshots, stabilizes payload and provenance reconstruction, exposes deterministic excerpt fingerprints, and carries basket promotion IDs, counts, fingerprints, query/result fingerprints, query context, and doc identity fingerprints through canonical excerpt bundles, retrieval evidence, retrieval summaries, provenance snapshots, and sparse engine payload backfills.
+The implementation keeps SQLite FTS as the authoritative retrieval path. It exports canonical FTS excerpt fetch helpers through retrieval facades, normalizes FTS strategy hit snapshots, stabilizes payload and provenance reconstruction, exposes deterministic excerpt fingerprints, fails closed if internal excerpt payload normalization is asked to accept a non-FTS source strategy, and carries basket promotion IDs, counts, fingerprints, query/result fingerprints, query context, and doc identity fingerprints through canonical excerpt bundles, retrieval evidence, retrieval summaries, provenance snapshots, and sparse engine payload backfills.
 
 Focused regression coverage verifies canonical FTS excerpt lookup, PageIndex fail-closed behavior, facade exports, excerpt bundle basket metadata, retrieval summary basket references, and engine payload reconstruction from compact/sparse retrieval summary snapshots.
 
@@ -22,7 +22,7 @@ PageIndex and embeddings remain deferred/compatibility-only paths and are not in
 
 ## Tasks Completed
 
-1. Made canonical excerpt lookup FTS-only, including stable excerpt lookup fingerprints, PageIndex fail-closed behavior, and retrieval facade exports for the canonical excerpt fetch path.
+1. Made canonical excerpt lookup and excerpt payload normalization FTS-only, including stable excerpt lookup fingerprints, PageIndex fail-closed behavior, and retrieval facade exports for the canonical excerpt fetch path.
 2. Normalized retrieval strategy, query, payload, source bundle, provenance, citation, and cache snapshots so downstream engine flows receive deterministic FTS-first retrieval evidence.
 3. Propagated basket promotion metadata through canonical FTS excerpt lookup, excerpt bundles, retrieval evidence, retrieval summaries, provenance snapshots, context/source bundles, and engine payload reconstruction, including basket item IDs, promotion counts, fingerprints, query/result fingerprints, query context, and doc identity fingerprints.
 4. Updated approved shared unified retrieval regression coverage and refreshed handoff metadata so the reviewed range, file list, gate evidence, and canonical demo-path mapping cover the actual branch-tip merge candidate.
@@ -36,7 +36,7 @@ PageIndex and embeddings remain deferred/compatibility-only paths and are not in
 - `src/qual/engine/retrieval/fts_strategy.py` - keeps FTS strategy hit snapshots deterministic and FTS-first.
 - `src/qual/engine/retrieval/payload.py` - reconstructs and preserves deterministic query, provenance, source bundle, citation, evidence, basket promotion ID/count, fingerprint, query/result fingerprint, query context, and doc identity metadata from direct or sparse retrieval snapshots.
 - `src/qual/retrieval/__init__.py` - exposes canonical retrieval query and excerpt fetch helpers through the retrieval facade.
-- `src/qual/retrieval/service.py` - implements canonical FTS excerpt lookup, deterministic retrieval/provenance snapshots, FTS cache normalization, and basket promotion metadata on canonical evidence, summaries, provenance, and lookup payloads.
+- `src/qual/retrieval/service.py` - implements canonical FTS excerpt lookup, FTS-only excerpt payload normalization, deterministic retrieval/provenance snapshots, FTS cache normalization, and basket promotion metadata on canonical evidence, summaries, provenance, and lookup payloads.
 - `tests/unit/test_unified_retrieval.py` - verifies canonical FTS excerpt lookup, facade exports, deterministic payload/provenance normalization, basket metadata, and payload reconstruction.
 
 Lane-owned source files:
@@ -57,7 +57,7 @@ Integrator-locked files: none.
 
 - Task budget: `4/4` high-risk tasks.
 - File budget: `9/12` changed files for the full `378cf9a...HEAD` branch-tip review range; `5` source files, `1` approved shared test file, `3` handoff/metadata files.
-- Net LOC for the full `378cf9a...HEAD` branch-tip review range before this packet refresh: `+1719/-218`.
+- Net LOC for the full `378cf9a...HEAD` branch-tip review range at this branch tip: `+1774/-219`.
 - Shared-file approval note: `tests/unit/test_unified_retrieval.py` is the approved shared-by-approval regression file for this lane.
 - Routing/provider impact: none.
 - PageIndex/embeddings impact: none; both remain deferred/compatibility-only.
@@ -73,9 +73,10 @@ Integrator-locked files: none.
 
 ## Commands Run
 
-These gates were run for the actual branch-tip merge candidate after the final owned-path sparse basket provenance normalization fix:
+These gates were run for the actual branch-tip merge candidate after the final owned-path excerpt payload normalization guard:
 
 - `python -m pytest tests/unit/test_unified_retrieval.py` - failed before gate execution because the default Python environment does not have `pytest` installed (`No module named pytest`).
+- `./quality-test.sh tests/unit/test_unified_retrieval.py` - passed before and after the final owned-path excerpt payload normalization guard; the script ran smoke plus all 133 unit tests, including unified retrieval.
 - `./quality-test.sh` - passed before the final full gate run; ran smoke plus 133 unit tests, including unified retrieval.
 - `make scope-check` - passed for branch `codex/feat-retrieval-fts`.
 - `./quality-format.sh --check` - passed.
