@@ -1057,6 +1057,8 @@ class RetrievalService:
             query_fingerprint=query_fingerprint,
             result_fingerprint=result_fingerprint,
             retrieval_policy=retrieval_policy,
+            candidate_doc_count=effective_candidate_doc_count,
+            fts_shortlist_doc_ids=fts_shortlist,
         )
         elapsed_ms_total = max(0, int((self._now_fn() - started).total_seconds() * 1000))
         diagnostics = {
@@ -1412,6 +1414,8 @@ class RetrievalService:
         query_fingerprint: str,
         result_fingerprint: str,
         retrieval_policy: dict[str, object],
+        candidate_doc_count: int | None = None,
+        fts_shortlist_doc_ids: tuple[str, ...] = (),
     ) -> dict[str, object]:
         doc_citations: list[dict[str, object]] = []
         for doc_hit in doc_hits:
@@ -1466,6 +1470,11 @@ class RetrievalService:
             "result_fingerprint": result_fingerprint,
             "query_scope": query.scope,
             "query_intent": query.intent,
+            "query_date_range": list(query.constraints.date_range)
+            if query.constraints.date_range is not None
+            else None,
+            "candidate_doc_count": candidate_doc_count,
+            "fts_shortlist_doc_ids": list(fts_shortlist_doc_ids),
             "retrieval_policy": dict(retrieval_policy),
             "retrieval_backend": cast(str, retrieval_policy["retrieval_backend"]),
             "retrieval_mode": cast(str, retrieval_policy["retrieval_mode"]),

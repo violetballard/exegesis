@@ -486,6 +486,17 @@ class UnifiedRetrievalTests(unittest.TestCase):
         self.assertEqual(payload["retrieval_manifest"], result.diagnostics["retrieval_manifest"])
         self.assertEqual(payload["retrieval_evidence"], result.evidence)
         self.assertEqual(payload["retrieval_evidence"]["result_fingerprint"], result.result_fingerprint)
+        self.assertEqual(payload["retrieval_evidence"]["query_scope"], "vault")
+        self.assertEqual(payload["retrieval_evidence"]["query_intent"], "compare")
+        self.assertIsNone(payload["retrieval_evidence"]["query_date_range"])
+        self.assertEqual(
+            payload["retrieval_evidence"]["candidate_doc_count"],
+            result.diagnostics["candidate_doc_count"],
+        )
+        self.assertEqual(
+            payload["retrieval_evidence"]["fts_shortlist_doc_ids"],
+            result.diagnostics["fts_shortlist_doc_ids"],
+        )
         self.assertEqual(payload["retrieval_provenance"]["citation_status"], payload["retrieval_summary"]["citation_status"])
         self.assertEqual(payload["retrieval_provenance"]["doc_count"], len(result.doc_hits))
         self.assertEqual(payload["retrieval_provenance"]["excerpt_count"], len(result.hits))
