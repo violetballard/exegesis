@@ -2213,6 +2213,8 @@ class UnifiedRetrievalTests(unittest.TestCase):
             [
                 {
                     "doc_id": item["doc_id"],
+                    "doc_type": item["provenance"]["doc_type"],
+                    "title_hint": item["title_hint"],
                     "source_hash": item["source_hash"],
                     "doc_fingerprint": item["provenance"]["doc_fingerprint"],
                     "doc_identity_fingerprint": item["provenance"]["doc_identity_fingerprint"],
@@ -2222,6 +2224,11 @@ class UnifiedRetrievalTests(unittest.TestCase):
                     "top_excerpt_id": item["top_excerpt_id"],
                     "top_excerpt_fingerprint": item["provenance"]["top_excerpt_fingerprint"],
                     "top_excerpt_text_hash": item["provenance"]["top_excerpt_text_hash"],
+                    "top_excerpt_span": item["provenance"]["top_excerpt_span"],
+                    "top_matched_terms": item["provenance"]["top_matched_terms"],
+                    "top_match_count": item["provenance"]["top_match_count"],
+                    "retrieval_backend": item["provenance"]["retrieval_backend"],
+                    "retrieval_mode": item["provenance"]["retrieval_mode"],
                     "source_strategy": item["provenance"]["source_strategy"],
                 }
                 for item in payload["doc_hits"]
