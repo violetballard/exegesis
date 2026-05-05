@@ -295,6 +295,13 @@ def _normalized_query_text(value: object) -> str | None:
     return " ".join(text.casefold().split())
 
 
+def _normalize_confidentiality_profile(value: object) -> str:
+    text = _normalize_optional_text(value)
+    if text is None:
+        return "confidential"
+    return text.casefold()
+
+
 def _canonical_query_doc_types(value: object) -> list[str]:
     seen: set[str] = set()
     normalized: list[str] = []
@@ -353,7 +360,9 @@ def _query_fingerprint_from_query_snapshot(query: dict[str, object]) -> str | No
             "section_hint": _normalize_optional_text(constraints.get("section_hint")),
             "prefer_exact_matches": _normalize_query_bool(constraints.get("prefer_exact_matches")),
         },
-        "confidentiality_profile": str(query.get("confidentiality_profile", "confidential")).strip().casefold(),
+        "confidentiality_profile": _normalize_confidentiality_profile(
+            query.get("confidentiality_profile")
+        ),
     }
     return _stable_fingerprint(payload)
 
@@ -398,9 +407,9 @@ def _normalize_query_snapshot(query: object) -> dict[str, object]:
     intent = _normalize_optional_text(normalized.get("intent"))
     if intent is not None:
         normalized["intent"] = intent.casefold()
-    confidentiality_profile = _normalize_optional_text(normalized.get("confidentiality_profile"))
-    if confidentiality_profile is not None:
-        normalized["confidentiality_profile"] = confidentiality_profile.casefold()
+    normalized["confidentiality_profile"] = _normalize_confidentiality_profile(
+        normalized.get("confidentiality_profile")
+    )
     constraints = normalized.get("constraints", {})
     if not isinstance(constraints, dict):
         constraints = {}
