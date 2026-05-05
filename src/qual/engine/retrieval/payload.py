@@ -83,6 +83,20 @@ def _basket_item_ids_from_items(items: list[object]) -> list[str]:
     return item_ids
 
 
+def _basket_item_fingerprints_from_items(items: list[object]) -> list[str]:
+    item_fingerprints: list[str] = []
+    seen: set[str] = set()
+    for item in items:
+        if not isinstance(item, dict):
+            continue
+        item_fingerprint = _normalize_optional_text(item.get("basket_item_fingerprint"))
+        if item_fingerprint is None or item_fingerprint in seen:
+            continue
+        seen.add(item_fingerprint)
+        item_fingerprints.append(item_fingerprint)
+    return item_fingerprints
+
+
 def _basket_item_fingerprint(item: dict[str, object]) -> str:
     return _stable_fingerprint(
         {
@@ -259,6 +273,25 @@ def _basket_item_ids_from_snapshot(
                 return [str(item_id) for item_id in basket_item_ids if item_id is not None]
 
     return _basket_item_ids_from_items(basket_promotion_items)
+
+
+def _basket_item_fingerprints_from_snapshot(
+    snapshot: dict[str, object],
+    *,
+    basket_promotion_items: list[object],
+) -> list[object]:
+    basket_item_fingerprints = _normalize_list_like(snapshot.get("basket_item_fingerprints", []))
+    if basket_item_fingerprints:
+        return [str(item_fingerprint) for item_fingerprint in basket_item_fingerprints if item_fingerprint is not None]
+
+    for bundle_key in ("retrieval_source_bundle", "source_bundle"):
+        source_bundle = snapshot.get(bundle_key)
+        if isinstance(source_bundle, dict):
+            basket_item_fingerprints = _normalize_list_like(source_bundle.get("basket_item_fingerprints", []))
+            if basket_item_fingerprints:
+                return [str(item_fingerprint) for item_fingerprint in basket_item_fingerprints if item_fingerprint is not None]
+
+    return _basket_item_fingerprints_from_items(basket_promotion_items)
 
 
 def _first_text_value(*values: object) -> str | None:
@@ -600,6 +633,10 @@ def _normalize_retrieval_source_bundle_snapshot(source_bundle: dict[str, object]
         normalized,
         basket_promotion_items=normalized["basket_promotion_items"],
     )
+    normalized["basket_item_fingerprints"] = _basket_item_fingerprints_from_snapshot(
+        normalized,
+        basket_promotion_items=normalized["basket_promotion_items"],
+    )
     retrieval_summary = normalized.get("retrieval_summary", {})
     if not isinstance(retrieval_summary, dict):
         retrieval_summary = {}
@@ -780,6 +817,10 @@ def _build_retrieval_source_bundle_from_payload(payload: dict[str, object]) -> d
         payload,
         basket_promotion_items=basket_promotion_items,
     )
+    basket_item_fingerprints = _basket_item_fingerprints_from_snapshot(
+        payload,
+        basket_promotion_items=basket_promotion_items,
+    )
     return _normalize_retrieval_source_bundle_snapshot({
         "result_fingerprint": payload.get("result_fingerprint"),
         "query_fingerprint": payload.get("query_fingerprint"),
@@ -799,6 +840,7 @@ def _build_retrieval_source_bundle_from_payload(payload: dict[str, object]) -> d
         "retrieval_provenance": copy.deepcopy(payload.get("retrieval_provenance", {})),
         "basket_promotion_items": copy.deepcopy(basket_promotion_items),
         "basket_item_ids": copy.deepcopy(basket_item_ids),
+        "basket_item_fingerprints": copy.deepcopy(basket_item_fingerprints),
     })
 
 
@@ -824,6 +866,7 @@ def _backfill_downstream_payload_from_context_bundle(
         "retrieval_evidence": context_bundle.get("retrieval_evidence"),
         "basket_promotion_items": context_bundle.get("basket_promotion_items"),
         "basket_item_ids": context_bundle.get("basket_item_ids"),
+        "basket_item_fingerprints": context_bundle.get("basket_item_fingerprints"),
     }
     return _backfill_sparse_snapshot(
         merged,
@@ -849,6 +892,10 @@ def _build_retrieval_context_bundle_from_source_bundle(source_bundle: dict[str, 
     if not isinstance(retrieval_provenance, dict):
         retrieval_provenance = _build_retrieval_provenance_from_payload(source_bundle)
     basket_promotion_items = _basket_promotion_items_from_snapshot(source_bundle)
+    basket_item_fingerprints = _basket_item_fingerprints_from_snapshot(
+        source_bundle,
+        basket_promotion_items=basket_promotion_items,
+    )
     bundle = {
         # Source-bundle-only reconstruction keeps the top-level context auditless.
         "audit_ref": None,
@@ -865,6 +912,7 @@ def _build_retrieval_context_bundle_from_source_bundle(source_bundle: dict[str, 
             source_bundle,
             basket_promotion_items=basket_promotion_items,
         ),
+        "basket_item_fingerprints": basket_item_fingerprints,
     }
     bundle["context_bundle_fingerprint"] = _context_bundle_fingerprint(bundle)
     return bundle
@@ -984,6 +1032,10 @@ def _build_retrieval_context_bundle_from_payload(payload: dict[str, object]) -> 
         payload,
         basket_promotion_items=basket_promotion_items,
     )
+    basket_item_fingerprints = _basket_item_fingerprints_from_snapshot(
+        payload,
+        basket_promotion_items=basket_promotion_items,
+    )
     bundle = {
         "audit_ref": payload.get("audit_ref"),
         "result_fingerprint": payload.get("result_fingerprint"),
@@ -996,6 +1048,7 @@ def _build_retrieval_context_bundle_from_payload(payload: dict[str, object]) -> 
         "retrieval_evidence": copy.deepcopy(payload.get("retrieval_evidence", {})),
         "basket_promotion_items": basket_promotion_items,
         "basket_item_ids": basket_item_ids,
+        "basket_item_fingerprints": basket_item_fingerprints,
     }
     bundle["context_bundle_fingerprint"] = _context_bundle_fingerprint(bundle)
     return bundle
@@ -1285,6 +1338,7 @@ class RetrievalDownstreamPayload:
             "retrieval_source_bundle": source_bundle,
             "basket_promotion_items": basket_promotion_items,
             "basket_item_ids": _basket_item_ids_from_items(basket_promotion_items),
+            "basket_item_fingerprints": _basket_item_fingerprints_from_items(basket_promotion_items),
         }
 
 
