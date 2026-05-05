@@ -2136,6 +2136,7 @@ class RetrievalService:
             normalized["basket_item_id"] = basket_promotion_item["item_id"]
             normalized["basket_item_fingerprint"] = basket_promotion_item["basket_item_fingerprint"]
             normalized["basket_promotion_items"] = [copy.deepcopy(basket_promotion_item)]
+            normalized["basket_promotion_count"] = 1
             normalized["basket_item_ids"] = [basket_promotion_item["item_id"]]
             normalized["basket_item_fingerprints"] = [basket_promotion_item["basket_item_fingerprint"]]
         if "provenance" in normalized:
@@ -2166,6 +2167,8 @@ class RetrievalService:
             normalized_provenance["retrieval_source_strategy"] = source_strategy
             normalized_provenance["lookup_resolution"] = lookup_resolution
             normalized_provenance["excerpt_lookup_fingerprint"] = excerpt_lookup_fingerprint
+            if isinstance(normalized.get("basket_promotion_count"), int):
+                normalized_provenance["basket_promotion_count"] = normalized["basket_promotion_count"]
             if isinstance(normalized.get("basket_item_fingerprint"), str):
                 normalized_provenance["basket_item_fingerprint"] = normalized["basket_item_fingerprint"]
             normalized["provenance"] = normalized_provenance

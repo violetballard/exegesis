@@ -1250,6 +1250,8 @@ class UnifiedRetrievalTests(unittest.TestCase):
             canonical["basket_item_fingerprint"],
         )
         self.assertEqual(canonical["basket_promotion_items"], [basket_item])
+        self.assertEqual(canonical["basket_promotion_count"], 1)
+        self.assertEqual(canonical["provenance"]["basket_promotion_count"], 1)
         self.assertEqual(canonical["basket_item_ids"], [canonical["basket_item_id"]])
         self.assertEqual(
             canonical["basket_item_fingerprints"],
