@@ -3,7 +3,7 @@
 - Branch name: `codex/feat-retrieval-fts`
 - Lane: `feat-retrieval-fts`
 - Merge target: current `main`
-- Merge candidate: current branch tip `b7dd965faac7bff6802226b2a76724630ed67af7` before this collection-scope fail-closed commit; the final post-commit SHA is reported in the fixer deliverable.
+- Merge candidate before this packet-only fixer commit: `19b99a7034e28aadba7ddc7ef20fdf9a2fcbae2a`; the final post-commit SHA is reported in the fixer deliverable.
 - Reviewed implementation range for re-review: `20e79e4e2984b6cbf19fc81139a0ed012ecd141c..HEAD`
 - Current merge-base before this fixer pass: `20e79e4e2984b6cbf19fc81139a0ed012ecd141c`
 - Traceability correction: the current re-review range is anchored to the merge-base `20e79e4e2984b6cbf19fc81139a0ed012ecd141c`; no source-bearing commit in `20e79e4e2984b6cbf19fc81139a0ed012ecd141c..HEAD` is excluded from re-review. Earlier packet wording about post-`adfa8cdadd43747ffbcb612e4151e262b13e52ca` metadata-only commits remains superseded for this branch tip.
@@ -31,22 +31,14 @@ PageIndex and embeddings remain deferred/compatibility-only paths and are not in
 
 ## Files Changed
 
-- `.codex/kickoff_packets/feat-retrieval-fts.md` - historical lane kickoff metadata changed earlier in the full branch range; this sandbox returned `EPERM` when this fixer attempted to update the mirror, so `THREAD_PACKET.md` is the corrected source of truth for re-review.
-- `.codex/lane_meta/feat-retrieval-fts.json` - historical lane metadata changed earlier in the full branch range; this sandbox returned `EPERM` when this fixer attempted to update the mirror, so `THREAD_PACKET.md` is the corrected source of truth for re-review.
 - `THREAD_PACKET.md` - updates this handoff packet for the complete reviewed implementation range.
-- `src/qual/engine/retrieval/__init__.py` - exposes canonical retrieval query and excerpt fetch surfaces through the engine retrieval facade.
-- `src/qual/engine/retrieval/fts_strategy.py` - keeps FTS strategy hit snapshots deterministic and FTS-first.
 - `src/qual/engine/retrieval/payload.py` - reconstructs and preserves deterministic query, provenance, source bundle, citation, evidence, basket promotion ID/count, fingerprint, query/result fingerprint, query context, and doc identity metadata from direct or sparse retrieval snapshots, canonicalizes sparse basket item ID/fingerprint lists, and rejects explicit non-FTS source strategies during sparse basket promotion rehydration.
-- `src/qual/retrieval/__init__.py` - exposes canonical retrieval query and excerpt fetch helpers through the retrieval facade.
 - `src/qual/retrieval/service.py` - implements canonical FTS excerpt lookup, FTS-only excerpt payload normalization, deterministic retrieval/provenance snapshots, FTS cache normalization, basket promotion metadata on canonical evidence, summaries, provenance, and lookup payloads, and fail-closed validation for empty `doc:`/`collection:` scopes plus unresolved collection scopes.
 - `tests/unit/test_unified_retrieval.py` - verifies canonical FTS excerpt lookup, facade exports, deterministic payload/provenance normalization, basket metadata, sparse non-FTS excerpt rejection, sparse duplicate/empty basket reference normalization, unresolved collection-scope rejection, and payload reconstruction.
 
 Lane-owned source files:
 
-- `src/qual/retrieval/__init__.py`
 - `src/qual/retrieval/service.py`
-- `src/qual/engine/retrieval/__init__.py`
-- `src/qual/engine/retrieval/fts_strategy.py`
 - `src/qual/engine/retrieval/payload.py`
 
 Shared-by-approval files:
@@ -58,8 +50,8 @@ Integrator-locked files: none.
 ## Budget/Risk
 
 - Task budget: `4/4` high-risk tasks.
-- File budget: this fixer changes `2` files (`src/qual/retrieval/service.py` and approved shared regression coverage in `tests/unit/test_unified_retrieval.py`) and keeps the complete branch-tip review range explicit for `20e79e4e2984b6cbf19fc81139a0ed012ecd141c..HEAD`.
-- Net LOC for this fixer before packet refresh accounting is `+17/-2`; cumulative historical retrieval scope still includes the approved shared regression surface and the AGENTS size-budget overrun already disclosed for re-review.
+- File budget: the complete branch-tip review range changes `4` files, within the high-risk `<=8 files` limit.
+- Net LOC: before this packet-only fixer commit, `git diff --shortstat 20e79e4e2984b6cbf19fc81139a0ed012ecd141c..19b99a7034e28aadba7ddc7ef20fdf9a2fcbae2a` reported `4 files changed, 146 insertions(+), 48 deletions(-)`, for `+98` net LOC, within the high-risk `<=300 net LOC` limit. This packet-only commit updates review metadata and keeps the range inside the high-risk file and LOC limits.
 - Shared-file approval note: `tests/unit/test_unified_retrieval.py` is the approved shared-by-approval regression file for this lane.
 - Routing/provider impact: none.
 - PageIndex/embeddings impact: none; both remain deferred/compatibility-only.
