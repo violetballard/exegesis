@@ -13,6 +13,7 @@ from src.qual.commands.catalog import (
     CommandDemoReadinessEntry,
     CommandDemoActionCoverageContract,
     CommandDemoActionCoverageEntry,
+    CommandDemoCommandActionContract,
     CommandDemoExecutionPlanContract,
     CommandDemoExecutionPlanStep,
     CommandDemoReadinessHandoffChecklistContract,
@@ -89,7 +90,9 @@ from src.qual.commands.catalog import (
     command_mvp_demo_action_smoke_argv as _action_smoke_argv,
     command_mvp_demo_action_smoke_argv_lookup_table as _action_smoke_argv_lookup_table,
     command_mvp_demo_engine_actions as _demo_engine_actions,
+    command_mvp_demo_command_action_contract as _command_action_contract,
     command_mvp_demo_command_action_lookup_table as _command_action_lookup_table,
+    command_mvp_demo_command_action_summary as _command_action_summary,
     command_mvp_demo_readiness_action_line_lookup_table as _readiness_action_line_lookup_table,
     command_mvp_demo_readiness_action_argv_lookup_table as _readiness_action_argv_lookup_table,
     command_mvp_demo_readiness_action_entries_for_argv as _readiness_action_entries_for_argv,
@@ -266,8 +269,10 @@ __all__ = [
     "canonical_command_require_readiness_complete",
     "canonical_command_action_line_lookup_table",
     "canonical_command_action_lines_for_argv",
+    "canonical_command_action_contract",
     "canonical_command_action_readiness_entries_for_argv",
     "canonical_command_action_smoke_summary",
+    "canonical_command_action_summary",
     "canonical_command_engine_action_matches_for_argv",
     "canonical_command_readiness_is_complete",
     "canonical_command_readiness_missing_engine_actions",
@@ -791,6 +796,17 @@ def canonical_command_action_line_lookup_table() -> tuple[tuple[str, str], ...]:
 
 def canonical_command_action_lookup_table() -> tuple[tuple[str, tuple[str, ...]], ...]:
     return _command_action_lookup_table()
+
+
+def canonical_command_action_contract() -> CommandDemoCommandActionContract:
+    return _command_action_contract()
+
+
+def canonical_command_action_summary() -> tuple[
+    tuple[str, str, tuple[str, ...], str, tuple[str, ...]],
+    ...,
+]:
+    return _command_action_summary()
 
 
 def canonical_command_action_route_summary() -> tuple[tuple[str, str, str, str], ...]:
