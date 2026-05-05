@@ -791,6 +791,28 @@ class CommandCatalogTests(unittest.TestCase):
             "diff-preview",
         )
 
+    def test_exact_action_lookup_rejects_non_parser_compatibility_aliases(self) -> None:
+        self.assertIsNone(
+            command_demo_readiness_exact_action_for_argv(
+                "python -m src.main open --project demo-project"
+            )
+        )
+        self.assertEqual(
+            command_demo_readiness_command_for_argv(
+                "python -m src.main open --project demo-project"
+            ),
+            "bootstrap",
+        )
+
+    def test_exact_action_lookup_accepts_approved_parser_aliases(self) -> None:
+        self.assertEqual(
+            command_demo_readiness_exact_action_for_argv(
+                "python -m src.main diff --original 'draft text before apply' "
+                "--proposed 'applied draft text'"
+            ),
+            "ExegesisAppService.apply_patch",
+        )
+
 
 if __name__ == "__main__":
     unittest.main()

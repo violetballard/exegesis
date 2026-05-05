@@ -5550,7 +5550,10 @@ def command_demo_readiness_exact_action_for_argv(
     requested_launcher_argv = _detected_launcher_argv(requested_argv)
     requested_command_argv = _argv_without_launcher(requested_argv, launcher_argv)
     requested_command_argv = _normalize_implicit_bootstrap_argv(specs, requested_command_argv)
-    requested_canonical_command_argv = _canonicalize_smoke_command_argv(specs, requested_command_argv)
+    requested_canonical_command_argv = _canonicalize_exact_action_command_argv(
+        specs,
+        requested_command_argv,
+    )
     lookup = dict(command_demo_readiness_exact_action_argv_lookup_table(specs, launcher_argv))
     for action_argv, engine_action in lookup.items():
         action_command_argv = _argv_without_launcher(action_argv, launcher_argv)
@@ -5560,6 +5563,20 @@ def command_demo_readiness_exact_action_for_argv(
         if requested_canonical_command_argv == action_command_argv:
             return engine_action
     return None
+
+
+def _canonicalize_exact_action_command_argv(
+    specs: tuple[CommandSpec, ...],
+    argv: tuple[str, ...],
+) -> tuple[str, ...]:
+    if specs != COMMAND_SPECS:
+        return _canonicalize_smoke_command_argv(specs, argv)
+    if not argv:
+        return ()
+    parser_token = _normalize_token(_strip_command_palette_prefix(argv[0]))
+    if parser_token not in dict(command_cli_lookup_table()):
+        return ()
+    return _canonicalize_smoke_command_argv(specs, argv)
 
 
 def command_demo_readiness_exact_argv_for_engine_action(
