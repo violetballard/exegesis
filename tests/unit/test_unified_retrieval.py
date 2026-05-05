@@ -1856,6 +1856,52 @@ class UnifiedRetrievalTests(unittest.TestCase):
         self.assertEqual(basket_items[0]["query_scope"], "vault")
         self.assertEqual(basket_items[0]["query_intent"], "compare")
         self.assertEqual(basket_items[0]["result_fingerprint"], result.result_fingerprint)
+        self.assertTrue(basket_items[0]["basket_item_fingerprint"])
+
+    def test_retrieval_context_bundle_helper_backfills_sparse_basket_fingerprints(self) -> None:
+        result = self.service.retrieve_auto(
+            RetrievalQuery(
+                query_text="memo coding comparison",
+                scope="vault",
+                intent="compare",
+                constraints=RetrievalConstraints(max_results=4),
+                confidentiality_profile="confidential",
+            )
+        )
+
+        sparse_context_bundle = json.loads(json.dumps(result.retrieval_context_bundle()))
+        baseline_items = result.basket_promotion_items()
+        for item in sparse_context_bundle["basket_promotion_items"]:
+            item.pop("basket_item_fingerprint", None)
+        source_bundle = sparse_context_bundle["retrieval_source_bundle"]
+        for item in source_bundle["basket_promotion_items"]:
+            item.pop("basket_item_fingerprint", None)
+        downstream_payload = sparse_context_bundle["retrieval_downstream_payload"]
+        for item in downstream_payload["basket_promotion_items"]:
+            item.pop("basket_item_fingerprint", None)
+
+        class _SparseContextBundleSource:
+            def __init__(self, payload: dict[str, object]) -> None:
+                self._payload = payload
+
+            def retrieval_context_bundle(self) -> dict[str, object]:
+                return self._payload
+
+        context_bundle = engine_build_retrieval_context_bundle_from_result(
+            _SparseContextBundleSource(sparse_context_bundle)
+        )
+        basket_items = context_bundle["basket_promotion_items"]
+        self.assertEqual(
+            [item["basket_item_fingerprint"] for item in basket_items],
+            [item["basket_item_fingerprint"] for item in baseline_items],
+        )
+        self.assertEqual(
+            [
+                item["basket_item_fingerprint"]
+                for item in context_bundle["retrieval_source_bundle"]["basket_promotion_items"]
+            ],
+            [item["basket_item_fingerprint"] for item in baseline_items],
+        )
 
     def test_retrieve_auto_citation_bundle_matches_result_snapshot(self) -> None:
         query = RetrievalQuery(

@@ -110,12 +110,22 @@ def _with_basket_item_fingerprint(item: dict[str, object]) -> dict[str, object]:
     return item
 
 
+def _normalize_basket_promotion_items(items: list[object]) -> list[object]:
+    normalized: list[object] = []
+    for item in items:
+        if isinstance(item, dict):
+            normalized.append(_with_basket_item_fingerprint(copy.deepcopy(item)))
+        else:
+            normalized.append(copy.deepcopy(item))
+    return normalized
+
+
 def _basket_promotion_items_from_snapshot(snapshot: dict[str, object]) -> list[object]:
     """Return basket promotion refs from a sparse retrieval snapshot."""
 
     basket_promotion_items = _normalize_list_like(snapshot.get("basket_promotion_items", []))
     if basket_promotion_items:
-        return basket_promotion_items
+        return _normalize_basket_promotion_items(basket_promotion_items)
 
     retrieval_evidence = snapshot.get("retrieval_evidence")
     if isinstance(retrieval_evidence, dict):
@@ -123,7 +133,7 @@ def _basket_promotion_items_from_snapshot(snapshot: dict[str, object]) -> list[o
             retrieval_evidence.get("basket_promotion_items", [])
         )
         if basket_promotion_items:
-            return basket_promotion_items
+            return _normalize_basket_promotion_items(basket_promotion_items)
 
     for bundle_key in ("retrieval_source_bundle", "source_bundle"):
         source_bundle = snapshot.get(bundle_key)
@@ -132,7 +142,7 @@ def _basket_promotion_items_from_snapshot(snapshot: dict[str, object]) -> list[o
                 source_bundle.get("basket_promotion_items", [])
             )
             if basket_promotion_items:
-                return basket_promotion_items
+                return _normalize_basket_promotion_items(basket_promotion_items)
 
     excerpt_hits = _normalize_list_like(snapshot.get("excerpt_hits", []))
     if not excerpt_hits:
