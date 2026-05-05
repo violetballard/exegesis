@@ -722,6 +722,42 @@ COMMAND_SMOKE_SUPPORTED_LAUNCHER_PREFIXES: tuple[tuple[str, ...], ...] = (
     ("uv", "run", "--"),
     ("uv", "run"),
 )
+COMMAND_SMOKE_UV_RUN_VALUE_OPTIONS: tuple[str, ...] = (
+    "--config-file",
+    "--directory",
+    "--env-file",
+    "--extra",
+    "--index",
+    "--index-url",
+    "--keyring-provider",
+    "--link-mode",
+    "--project",
+    "--python",
+    "--refresh-package",
+    "--resolution",
+    "--upgrade-package",
+    "--with",
+    "--with-editable",
+    "--with-requirements",
+)
+COMMAND_SMOKE_UV_RUN_FLAG_OPTIONS: tuple[str, ...] = (
+    "--active",
+    "--all-extras",
+    "--frozen",
+    "--isolated",
+    "--locked",
+    "--managed-python",
+    "--no-build",
+    "--no-build-isolation",
+    "--no-dev",
+    "--no-editable",
+    "--no-index",
+    "--no-managed-python",
+    "--no-project",
+    "--no-sources",
+    "--refresh",
+    "--upgrade",
+)
 COMMAND_SMOKE_SUPPORTED_PYTHON_LAUNCHERS: tuple[str, ...] = (
     "python",
     "python3",
@@ -5252,6 +5288,9 @@ def _split_supported_launcher_prefix(argv: tuple[str, ...]) -> tuple[tuple[str, 
     uv_python_prefix, uv_python_unwrapped_argv = _split_uv_python_launcher_prefix(argv)
     if uv_python_prefix:
         return uv_python_prefix, uv_python_unwrapped_argv
+    uv_run_prefix, uv_run_unwrapped_argv = _split_uv_run_option_prefix(argv)
+    if uv_run_prefix:
+        return uv_run_prefix, uv_run_unwrapped_argv
     for launcher_prefix in COMMAND_SMOKE_SUPPORTED_LAUNCHER_PREFIXES:
         requested_prefix = argv[: len(launcher_prefix)]
         if _launcher_prefix_matches(requested_prefix, launcher_prefix):
@@ -5298,6 +5337,41 @@ def _split_uv_python_launcher_prefix(argv: tuple[str, ...]) -> tuple[tuple[str, 
         prefix = (*prefix, "--")
         unwrapped_argv = unwrapped_argv[1:]
     return prefix, unwrapped_argv
+
+
+def _split_uv_run_option_prefix(argv: tuple[str, ...]) -> tuple[tuple[str, ...], tuple[str, ...]]:
+    if len(argv) < 4 or not _is_supported_uv_launcher(argv[0]) or argv[1] != "run":
+        return (), argv
+    index = 2
+    while index < len(argv):
+        token = argv[index]
+        if token == "--":
+            return argv[: index + 1], argv[index + 1 :]
+        if not token.startswith("-") or token == "-":
+            break
+        option, has_inline_value = _split_uv_run_option(token)
+        if option in COMMAND_SMOKE_UV_RUN_FLAG_OPTIONS:
+            if has_inline_value:
+                return (), argv
+            index += 1
+            continue
+        if option not in COMMAND_SMOKE_UV_RUN_VALUE_OPTIONS:
+            return (), argv
+        index += 1
+        if not has_inline_value:
+            if index >= len(argv):
+                return (), argv
+            index += 1
+    if index <= 2 or index >= len(argv):
+        return (), argv
+    return argv[:index], argv[index:]
+
+
+def _split_uv_run_option(token: str) -> tuple[str, bool]:
+    if "=" not in token:
+        return token, False
+    option, _value = token.split("=", 1)
+    return option, True
 
 
 def _launcher_prefix_matches(
