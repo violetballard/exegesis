@@ -5232,6 +5232,8 @@ def _split_env_launcher_prefix(argv: tuple[str, ...]) -> tuple[tuple[str, ...], 
     index = 1
     while index < len(argv):
         token = argv[index]
+        if token == "--":
+            return argv[: index + 1], argv[index + 1 :]
         if token in COMMAND_SMOKE_ENV_FLAGS or SHELL_ENV_ASSIGNMENT_RE.fullmatch(token):
             index += 1
             continue
