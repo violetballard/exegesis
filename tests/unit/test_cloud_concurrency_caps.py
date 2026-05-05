@@ -409,6 +409,89 @@ class CloudConcurrencyCapsTests(unittest.TestCase):
         ):
             self.assertFalse(router._cloud_role_slot_available(cfg, state, "integrator"))
 
+    def test_cloud_reviewers_can_share_total_cloud_cap(self) -> None:
+        cfg = SimpleNamespace(
+            max_cloud_feature_jobs=4,
+            max_cloud_reviewer_jobs=1,
+            max_cloud_integrator_jobs=4,
+            max_cloud_fixer_jobs=4,
+            max_total_cloud_jobs=4,
+            runtime_mode_default="hybrid",
+        )
+        state = {
+            "runtime_mode": "hybrid",
+            "cloud_available": True,
+            "cloud_reviewer_jobs": {
+                "feat-a": {"pid": 1111, "result_path": "/tmp/missing-a"},
+                "feat-b": {"pid": 2222, "result_path": "/tmp/missing-b"},
+            },
+        }
+
+        with (
+            mock.patch.object(router, "_count_active_feature_cloud_jobs", return_value=1),
+            mock.patch.object(router, "_pid_alive", side_effect=lambda pid: pid in {1111, 2222}),
+        ):
+            self.assertTrue(router._cloud_role_slot_available(cfg, state, "reviewer"))
+
+        state["cloud_reviewer_jobs"]["feat-c"] = {"pid": 3333, "result_path": "/tmp/missing-c"}
+        with (
+            mock.patch.object(router, "_count_active_feature_cloud_jobs", return_value=1),
+            mock.patch.object(router, "_pid_alive", side_effect=lambda pid: pid in {1111, 2222, 3333}),
+        ):
+            self.assertFalse(router._cloud_role_slot_available(cfg, state, "reviewer"))
+
+    def test_prepare_cloud_reviewer_uses_shared_total_cap(self) -> None:
+        cfg = SimpleNamespace(
+            runtime_mode_default="hybrid",
+            auto_switch_to_local_on_quota=True,
+            reviewer_timeout=180.0,
+            max_cloud_feature_jobs=4,
+            max_cloud_reviewer_jobs=1,
+            max_cloud_integrator_jobs=4,
+            max_cloud_fixer_jobs=4,
+            max_total_cloud_jobs=4,
+        )
+        state = {
+            "runtime_mode": "hybrid",
+            "cloud_available": True,
+            "cloud_reviewer_jobs": {
+                "feat-a": {
+                    "packet_name": "F__feat-a.md",
+                    "pid": 1111,
+                    "result_path": "/tmp/missing-a",
+                }
+            },
+        }
+
+        with tempfile.TemporaryDirectory() as tmpdir:
+            pkt_path = Path(tmpdir) / "F__feat-b.md"
+            pkt_path.write_text("feature packet", encoding="utf-8")
+            queued_job = {
+                "packet_name": pkt_path.name,
+                "pid": 2222,
+                "result_path": str(Path(tmpdir) / "missing-b"),
+            }
+
+            with (
+                mock.patch.object(router, "_pid_alive", side_effect=lambda pid: pid == 1111),
+                mock.patch.object(router, "_count_active_feature_cloud_jobs", return_value=1),
+                mock.patch.object(router, "_spawn_detached_cli_job", return_value=queued_job) as spawn_mock,
+            ):
+                ready, text, updated = router._prepare_cli_reviewer_result(
+                    cfg,
+                    state,
+                    str(Path(tmpdir)),
+                    "feat-b",
+                    pkt_path,
+                    "feature packet",
+                    local=False,
+                )
+
+        self.assertFalse(ready)
+        self.assertEqual(text, "")
+        self.assertIn("feat-b", updated["cloud_reviewer_jobs"])
+        spawn_mock.assert_called_once()
+
     def test_coordinator_refills_features_around_active_fixer(self) -> None:
         state_doc: dict[str, object] = {}
         launched: list[str] = []

@@ -1057,7 +1057,10 @@ def _cloud_role_slot_available(cfg: RouterConfig, state: Dict[str, Any], role: s
         cap = int(getattr(cfg, "max_cloud_feature_jobs", 4) or 0)
         active = _count_active_feature_cloud_jobs()
     elif role == "reviewer":
-        cap = int(getattr(cfg, "max_cloud_reviewer_jobs", 4) or 0)
+        # Reviewers are high-value cloud work; let them consume spare capacity
+        # from the shared cloud pool instead of forcing a single reviewer lane.
+        total_cap = int(getattr(cfg, "max_total_cloud_jobs", 4) or 0)
+        cap = total_cap if total_cap > 0 else int(getattr(cfg, "max_cloud_reviewer_jobs", 4) or 0)
         active = _count_active_local_jobs(_local_job_map(state, "cloud_reviewer_jobs"))
     elif role == "integrator":
         cap = int(getattr(cfg, "max_cloud_integrator_jobs", 4) or 0)
@@ -1303,8 +1306,7 @@ def _prepare_cli_reviewer_result(
         print(f"[router] {mode_label} reviewer job for {lane} failed, using offline fallback: {reason}")
         return True, _offline_reviewer_fallback(pkt, reason), state
 
-    max_active = LOCAL_REVIEWER_MAX_ACTIVE if local else int(getattr(cfg, "max_cloud_reviewer_jobs", 4) or 4)
-    if _count_active_local_jobs(jobs) >= max_active:
+    if local and _count_active_local_jobs(jobs) >= LOCAL_REVIEWER_MAX_ACTIVE:
         state[jobs_key] = jobs
         return False, "", state
     if local and not _local_lms_slot_available(cfg, state):
