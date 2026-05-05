@@ -438,6 +438,8 @@ class CommandDemoReadinessGate:
     missing_engine_actions: tuple[str, ...]
     command_lines: tuple[str, ...]
     action_lines: tuple[tuple[str, str], ...]
+    covered_flow_steps: tuple[str, ...] = ()
+    missing_flow_steps: tuple[str, ...] = ()
 
 
 @dataclass(frozen=True)
@@ -4370,11 +4372,20 @@ def command_demo_readiness_gate(
 ) -> CommandDemoReadinessGate:
     missing_engine_actions = command_demo_readiness_missing_engine_actions(specs, launcher_argv)
     smoke_plan = command_demo_readiness_smoke_plan(specs, launcher_argv)
+    covered_flow_steps = tuple(step.flow_step for step in smoke_plan.steps)
+    expected_flow_steps = command_demo_flow_steps() if specs is COMMAND_SPECS else command_flow_steps(specs)
+    missing_flow_steps = tuple(
+        flow_step
+        for flow_step in expected_flow_steps
+        if flow_step not in covered_flow_steps
+    )
     gate = CommandDemoReadinessGate(
-        is_complete=not missing_engine_actions,
+        is_complete=not missing_engine_actions and not missing_flow_steps,
         missing_engine_actions=missing_engine_actions,
         command_lines=tuple(step.command_line for step in smoke_plan.steps),
         action_lines=tuple(action_line for step in smoke_plan.steps for action_line in step.action_lines),
+        covered_flow_steps=covered_flow_steps,
+        missing_flow_steps=missing_flow_steps,
     )
     _validate_command_demo_readiness_gate(gate, smoke_plan, specs=specs)
     return gate
@@ -4394,9 +4405,18 @@ def _validate_command_demo_readiness_gate(
         raise ValueError("Command demo readiness gate command lines are inconsistent")
     if gate.action_lines != expected_action_lines:
         raise ValueError("Command demo readiness gate action lines are inconsistent")
+    if gate.covered_flow_steps != tuple(step.flow_step for step in smoke_plan.steps):
+        raise ValueError("Command demo readiness gate flow coverage is inconsistent")
+    expected_flow_steps = command_demo_flow_steps() if specs is COMMAND_SPECS else command_flow_steps(specs)
+    if gate.missing_flow_steps != tuple(
+        flow_step
+        for flow_step in expected_flow_steps
+        if flow_step not in gate.covered_flow_steps
+    ):
+        raise ValueError("Command demo readiness gate missing flow steps are inconsistent")
     if tuple(engine_action for engine_action, _ in gate.action_lines) != command_demo_engine_actions(specs):
         raise ValueError("Command demo readiness gate action coverage is inconsistent")
-    if gate.is_complete != (not gate.missing_engine_actions):
+    if gate.is_complete != (not gate.missing_engine_actions and not gate.missing_flow_steps):
         raise ValueError("Command demo readiness gate completeness is inconsistent")
 
 
@@ -4410,6 +4430,18 @@ def command_demo_readiness_gate_summary(
         gate.missing_engine_actions,
         gate.command_lines,
         gate.action_lines,
+    )
+
+
+def command_demo_readiness_flow_gate_summary(
+    specs: tuple[CommandSpec, ...] = COMMAND_SPECS,
+    launcher_argv: tuple[str, ...] = COMMAND_SMOKE_CLI_LAUNCHER_ARGV,
+) -> tuple[bool, tuple[str, ...], tuple[str, ...]]:
+    gate = command_demo_readiness_gate(specs, launcher_argv)
+    return (
+        gate.is_complete,
+        gate.covered_flow_steps,
+        gate.missing_flow_steps,
     )
 
 
@@ -7131,6 +7163,13 @@ def command_mvp_demo_readiness_gate_summary(
     launcher_argv: tuple[str, ...] = COMMAND_SMOKE_CLI_LAUNCHER_ARGV,
 ) -> tuple[bool, tuple[str, ...], tuple[str, ...], tuple[tuple[str, str], ...]]:
     return command_demo_readiness_gate_summary(specs, launcher_argv)
+
+
+def command_mvp_demo_readiness_flow_gate_summary(
+    specs: tuple[CommandSpec, ...] = COMMAND_SPECS,
+    launcher_argv: tuple[str, ...] = COMMAND_SMOKE_CLI_LAUNCHER_ARGV,
+) -> tuple[bool, tuple[str, ...], tuple[str, ...]]:
+    return command_demo_readiness_flow_gate_summary(specs, launcher_argv)
 
 
 def command_mvp_demo_readiness_report(
