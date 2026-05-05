@@ -4,8 +4,8 @@
 - Lane: `feat-retrieval-fts`
 - Merge target: current `main`
 - Authoritative merge/review range for the actual integration candidate: `378cf9a74a3658058079a32f186fcd254c4a4034..HEAD`
-- Current pre-fix branch tip audited for this source/test surface: `0712ee396`
-- Merge candidate: the branch tip after this token-exact provenance fixer commit. It is not `adfa8cdadd43747ffbcb612e4151e262b13e52ca`, `e4f835c50`, or `43654937a196977d7cd53c4e355b4f8ea7fb93b7`.
+- Current pre-fix branch tip audited for this source/test surface: `d66c5f4154ee84ec5f9069e267f8a1e9ef9000d7`
+- Merge candidate: the branch tip after this traceability fixer commit. It is not `adfa8cdadd43747ffbcb612e4151e262b13e52ca`, `e4f835c50`, or `43654937a196977d7cd53c4e355b4f8ea7fb93b7`.
 - Scope classification: high-risk/shared because the candidate includes approved shared regression coverage in `tests/unit/test_unified_retrieval.py`.
 - Packet type: retrieval feature handoff for the full branch-tip FTS-first retrieval candidate.
 
@@ -62,7 +62,7 @@ Authoritative candidate files changed for `378cf9a74a3658058079a32f186fcd254c4a4
 - `src/qual/retrieval/service.py` - keeps FTS as the authoritative lookup path and emits deterministic result/query/policy-bound basket fingerprints and token-exact matched-term provenance.
 - `tests/unit/test_unified_retrieval.py` - approved shared regression coverage for cache invalidation, deterministic payloads, facade exports, basket refs, FTS-only excerpt lookup, and token-exact matched terms.
 
-Full corrected candidate stat including this reviewer-fix packet refresh: `8 files changed, 980 insertions(+), 207 deletions(-)`.
+Full corrected candidate stat including this reviewer-fix packet refresh: `8 files changed, 1018 insertions(+), 209 deletions(-)`.
 
 Source/test surface included for review:
 
@@ -72,7 +72,7 @@ Source/test surface included for review:
 - `src/qual/retrieval/service.py`
 - `tests/unit/test_unified_retrieval.py`
 
-Source/test stat included for implementation review: `5 files changed, 690 insertions(+), 119 deletions(-)`.
+Source/test stat included for implementation review: `5 files changed, 716 insertions(+), 121 deletions(-)`.
 
 Current fixer source/test delta: `2 files changed, 26 insertions(+), 2 deletions(-)`.
 
@@ -138,4 +138,4 @@ Focused gate already run earlier in this branch:
 
 ## Risks/Blockers
 
-No implementation blocker is known. The remaining reviewer-facing risks are the requested AGENTS.md size exception for the full high-risk branch-tip candidate and the protected `.codex` packet mirrors, which still cannot be edited from this lane worktree because writes fail with `Operation not permitted`. `THREAD_PACKET.md` is the corrected authoritative handoff packet for re-review.
+No implementation blocker is known. The remaining reviewer-facing risks are the requested AGENTS.md size exception for the full high-risk branch-tip candidate and the protected `.codex` packet mirrors, which still cannot be edited from this lane worktree because writes fail with `Operation not permitted`. `THREAD_PACKET.md` is the corrected authoritative handoff packet for re-review and records the reviewed implementation range as `378cf9a74a3658058079a32f186fcd254c4a4034..HEAD`.
