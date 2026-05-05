@@ -1616,6 +1616,7 @@ class RetrievalService:
             "doc_citations": doc_citations,
             "excerpt_citations": excerpt_citations,
             "basket_promotion_items": basket_promotion_items,
+            "basket_promotion_count": len(basket_promotion_items),
             "basket_item_ids": [str(item["item_id"]) for item in basket_promotion_items],
             "basket_item_fingerprints": [
                 str(item["basket_item_fingerprint"])
