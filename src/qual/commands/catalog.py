@@ -6131,6 +6131,68 @@ def command_demo_readiness_validate_exact_action_shell_script_lines(
     )
 
 
+def command_demo_readiness_validate_cli_exact_action_script(
+    argvs: Sequence[Sequence[str] | str],
+    specs: tuple[CommandSpec, ...] = COMMAND_SPECS,
+    launcher_argv: tuple[str, ...] = COMMAND_SMOKE_CLI_LAUNCHER_ARGV,
+) -> CommandDemoReadinessScriptValidation:
+    validations = tuple(command_demo_readiness_validate_cli_argv(argv, specs, launcher_argv) for argv in argvs)
+    requested_argv = tuple(validation.requested_argv for validation in validations)
+    exact_action_by_argv = tuple(
+        (validation.requested_argv, validation.exact_engine_action)
+        for validation in validations
+        if validation.is_cli_entrypoint
+    )
+    exact_action_set = {
+        exact_engine_action
+        for _, exact_engine_action in exact_action_by_argv
+        if exact_engine_action is not None
+    }
+    expected_actions = command_demo_engine_actions(specs)
+    covered_engine_actions = tuple(action for action in expected_actions if action in exact_action_set)
+    missing_engine_actions = tuple(action for action in expected_actions if action not in exact_action_set)
+    invalid_argv = tuple(
+        validation.requested_argv
+        for validation in validations
+        if not validation.is_cli_entrypoint or validation.exact_engine_action is None
+    )
+    canonical_argv = tuple(
+        command_demo_readiness_exact_argv_for_engine_action(action, specs, launcher_argv)
+        for action in covered_engine_actions
+    )
+    covered_flow_step_set = {
+        command_demo_readiness_flow_step_for_argv(argv, specs, launcher_argv)
+        for argv in canonical_argv
+    }
+    expected_flow_steps = command_demo_flow_steps()
+    covered_flow_steps = tuple(flow_step for flow_step in expected_flow_steps if flow_step in covered_flow_step_set)
+    missing_flow_steps = tuple(flow_step for flow_step in expected_flow_steps if flow_step not in covered_flow_step_set)
+
+    return CommandDemoReadinessScriptValidation(
+        requested_argv=requested_argv,
+        canonical_argv=canonical_argv,
+        command_lines=tuple(_shell_join(argv) for argv in canonical_argv),
+        covered_flow_steps=covered_flow_steps,
+        missing_flow_steps=missing_flow_steps,
+        covered_engine_actions=covered_engine_actions,
+        missing_engine_actions=missing_engine_actions,
+        invalid_argv=invalid_argv,
+        is_complete=not missing_flow_steps and not missing_engine_actions and not invalid_argv,
+    )
+
+
+def command_demo_readiness_validate_cli_exact_action_shell_script_lines(
+    lines: Sequence[str] | str,
+    specs: tuple[CommandSpec, ...] = COMMAND_SPECS,
+    launcher_argv: tuple[str, ...] = COMMAND_SMOKE_CLI_LAUNCHER_ARGV,
+) -> CommandDemoReadinessScriptValidation:
+    return command_demo_readiness_validate_cli_exact_action_script(
+        _shell_script_executable_argv(lines),
+        specs,
+        launcher_argv,
+    )
+
+
 def command_mvp_demo_readiness_validate_argv(
     argv: Sequence[str] | str,
     specs: tuple[CommandSpec, ...] = COMMAND_SPECS,
@@ -6177,6 +6239,22 @@ def command_mvp_demo_readiness_validate_exact_action_shell_script_lines(
     launcher_argv: tuple[str, ...] = COMMAND_SMOKE_CLI_LAUNCHER_ARGV,
 ) -> CommandDemoReadinessScriptValidation:
     return command_demo_readiness_validate_exact_action_shell_script_lines(lines, specs, launcher_argv)
+
+
+def command_mvp_demo_readiness_validate_cli_exact_action_script(
+    argvs: Sequence[Sequence[str] | str],
+    specs: tuple[CommandSpec, ...] = COMMAND_SPECS,
+    launcher_argv: tuple[str, ...] = COMMAND_SMOKE_CLI_LAUNCHER_ARGV,
+) -> CommandDemoReadinessScriptValidation:
+    return command_demo_readiness_validate_cli_exact_action_script(argvs, specs, launcher_argv)
+
+
+def command_mvp_demo_readiness_validate_cli_exact_action_shell_script_lines(
+    lines: Sequence[str] | str,
+    specs: tuple[CommandSpec, ...] = COMMAND_SPECS,
+    launcher_argv: tuple[str, ...] = COMMAND_SMOKE_CLI_LAUNCHER_ARGV,
+) -> CommandDemoReadinessScriptValidation:
+    return command_demo_readiness_validate_cli_exact_action_shell_script_lines(lines, specs, launcher_argv)
 
 
 def command_demo_readiness_validate_script(

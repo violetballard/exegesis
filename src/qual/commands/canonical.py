@@ -115,6 +115,10 @@ from src.qual.commands.catalog import (
     as _readiness_validate_exact_action_script,
     command_mvp_demo_readiness_validate_exact_action_shell_script_lines
     as _readiness_validate_exact_action_shell_script_lines,
+    command_mvp_demo_readiness_validate_cli_exact_action_script
+    as _readiness_validate_cli_exact_action_script,
+    command_mvp_demo_readiness_validate_cli_exact_action_shell_script_lines
+    as _readiness_validate_cli_exact_action_shell_script_lines,
     command_mvp_demo_readiness_validate_script as _readiness_validate_script,
     command_mvp_demo_readiness_validate_shell_script_lines as _readiness_validate_shell_script_lines,
     command_mvp_demo_readiness_gate as _readiness_gate,
@@ -238,6 +242,8 @@ __all__ = [
     "canonical_command_readiness_validate_cli_shell_script_lines",
     "canonical_command_readiness_validate_exact_action_script",
     "canonical_command_readiness_validate_exact_action_shell_script_lines",
+    "canonical_command_readiness_validate_cli_exact_action_script",
+    "canonical_command_readiness_validate_cli_exact_action_shell_script_lines",
     "canonical_command_readiness_validate_script",
     "canonical_command_readiness_validate_shell_script_lines",
     "canonical_command_readiness_handoff_summary",
@@ -900,6 +906,18 @@ def canonical_command_readiness_validate_exact_action_shell_script_lines(
     lines: Sequence[str] | str,
 ) -> CommandDemoReadinessScriptValidation:
     return _readiness_validate_exact_action_shell_script_lines(lines)
+
+
+def canonical_command_readiness_validate_cli_exact_action_script(
+    argvs: Sequence[Sequence[str] | str],
+) -> CommandDemoReadinessScriptValidation:
+    return _readiness_validate_cli_exact_action_script(argvs)
+
+
+def canonical_command_readiness_validate_cli_exact_action_shell_script_lines(
+    lines: Sequence[str] | str,
+) -> CommandDemoReadinessScriptValidation:
+    return _readiness_validate_cli_exact_action_shell_script_lines(lines)
 
 
 def canonical_command_readiness_validate_script(
