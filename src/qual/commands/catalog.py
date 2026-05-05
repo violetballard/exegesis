@@ -8,6 +8,9 @@ from functools import lru_cache
 from pathlib import PurePath
 
 
+SHELL_ENV_ASSIGNMENT_RE = re.compile(r"[A-Za-z_][A-Za-z0-9_]*=.*")
+
+
 @dataclass(frozen=True)
 class CommandSpec:
     name: str
@@ -4842,7 +4845,15 @@ def _coerce_smoke_argv(argv: Sequence[str] | str) -> tuple[str, ...]:
     return tuple(argv)
 
 
+def _strip_shell_env_assignments(argv: tuple[str, ...]) -> tuple[str, ...]:
+    index = 0
+    while index < len(argv) and SHELL_ENV_ASSIGNMENT_RE.fullmatch(argv[index]):
+        index += 1
+    return argv[index:]
+
+
 def _argv_without_launcher(argv: tuple[str, ...], launcher_argv: tuple[str, ...]) -> tuple[str, ...]:
+    argv = _strip_shell_env_assignments(argv)
     if launcher_argv and argv[: len(launcher_argv)] == launcher_argv:
         return _strip_launcher_separator(argv[len(launcher_argv) :])
     for supported_launcher_argv in COMMAND_SMOKE_SUPPORTED_LAUNCHER_ARGV:
@@ -4868,6 +4879,7 @@ def _argv_without_launcher(argv: tuple[str, ...], launcher_argv: tuple[str, ...]
 
 
 def _detected_launcher_argv(argv: tuple[str, ...]) -> tuple[str, ...]:
+    argv = _strip_shell_env_assignments(argv)
     for supported_launcher_argv in COMMAND_SMOKE_SUPPORTED_LAUNCHER_ARGV:
         if argv[: len(supported_launcher_argv)] == supported_launcher_argv:
             return supported_launcher_argv
