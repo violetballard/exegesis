@@ -5688,6 +5688,57 @@ def command_demo_readiness_validate_cli_argv(
     )
 
 
+def command_demo_readiness_validate_cli_script(
+    argvs: Sequence[Sequence[str] | str],
+    specs: tuple[CommandSpec, ...] = COMMAND_SPECS,
+    launcher_argv: tuple[str, ...] = COMMAND_SMOKE_CLI_LAUNCHER_ARGV,
+) -> CommandDemoReadinessScriptValidation:
+    validations = tuple(command_demo_readiness_validate_cli_argv(argv, specs, launcher_argv) for argv in argvs)
+    requested_argv = tuple(validation.requested_argv for validation in validations)
+    canonical_argv = tuple(validation.canonical_argv for validation in validations if validation.canonical_argv)
+    covered_flow_step_set = {validation.flow_step for validation in validations if validation.flow_step is not None}
+    expected_flow_steps = command_demo_flow_steps()
+    covered_flow_steps = tuple(flow_step for flow_step in expected_flow_steps if flow_step in covered_flow_step_set)
+    missing_flow_steps = tuple(flow_step for flow_step in expected_flow_steps if flow_step not in covered_flow_step_set)
+
+    valid_requested_argv = tuple(
+        validation.requested_argv for validation in validations if validation.is_cli_entrypoint
+    )
+    covered_action_set = _covered_demo_readiness_engine_actions(
+        valid_requested_argv,
+        specs,
+        launcher_argv,
+    )
+    expected_actions = command_demo_engine_actions(specs)
+    covered_engine_actions = tuple(action for action in expected_actions if action in covered_action_set)
+    missing_engine_actions = tuple(action for action in expected_actions if action not in covered_action_set)
+    invalid_argv = tuple(validation.requested_argv for validation in validations if not validation.is_cli_entrypoint)
+
+    return CommandDemoReadinessScriptValidation(
+        requested_argv=requested_argv,
+        canonical_argv=canonical_argv,
+        command_lines=tuple(_shell_join(argv) for argv in canonical_argv),
+        covered_flow_steps=covered_flow_steps,
+        missing_flow_steps=missing_flow_steps,
+        covered_engine_actions=covered_engine_actions,
+        missing_engine_actions=missing_engine_actions,
+        invalid_argv=invalid_argv,
+        is_complete=not missing_flow_steps and not missing_engine_actions and not invalid_argv,
+    )
+
+
+def command_demo_readiness_validate_cli_shell_script_lines(
+    lines: Sequence[str] | str,
+    specs: tuple[CommandSpec, ...] = COMMAND_SPECS,
+    launcher_argv: tuple[str, ...] = COMMAND_SMOKE_CLI_LAUNCHER_ARGV,
+) -> CommandDemoReadinessScriptValidation:
+    return command_demo_readiness_validate_cli_script(
+        _shell_script_executable_argv(lines),
+        specs,
+        launcher_argv,
+    )
+
+
 def command_mvp_demo_readiness_validate_argv(
     argv: Sequence[str] | str,
     specs: tuple[CommandSpec, ...] = COMMAND_SPECS,
@@ -5702,6 +5753,22 @@ def command_mvp_demo_readiness_validate_cli_argv(
     launcher_argv: tuple[str, ...] = COMMAND_SMOKE_CLI_LAUNCHER_ARGV,
 ) -> CommandDemoReadinessCliArgvValidation:
     return command_demo_readiness_validate_cli_argv(argv, specs, launcher_argv)
+
+
+def command_mvp_demo_readiness_validate_cli_script(
+    argvs: Sequence[Sequence[str] | str],
+    specs: tuple[CommandSpec, ...] = COMMAND_SPECS,
+    launcher_argv: tuple[str, ...] = COMMAND_SMOKE_CLI_LAUNCHER_ARGV,
+) -> CommandDemoReadinessScriptValidation:
+    return command_demo_readiness_validate_cli_script(argvs, specs, launcher_argv)
+
+
+def command_mvp_demo_readiness_validate_cli_shell_script_lines(
+    lines: Sequence[str] | str,
+    specs: tuple[CommandSpec, ...] = COMMAND_SPECS,
+    launcher_argv: tuple[str, ...] = COMMAND_SMOKE_CLI_LAUNCHER_ARGV,
+) -> CommandDemoReadinessScriptValidation:
+    return command_demo_readiness_validate_cli_shell_script_lines(lines, specs, launcher_argv)
 
 
 def command_demo_readiness_validate_script(
