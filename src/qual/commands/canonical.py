@@ -90,6 +90,8 @@ from src.qual.commands.catalog import (
     command_mvp_demo_readiness_smoke_plan_argv as _readiness_smoke_plan_argv,
     command_mvp_demo_readiness_smoke_plan_argv_for_flow_step
     as _readiness_smoke_plan_argv_for_flow_step,
+    command_mvp_demo_readiness_required_argv as _readiness_required_argv,
+    command_mvp_demo_readiness_required_argv_lookup_table as _readiness_required_argv_lookup_table,
     command_mvp_demo_readiness_smoke_plan_step as _readiness_smoke_plan_step,
     command_mvp_demo_readiness_smoke_plan_step_for_demo_path_step as _readiness_smoke_plan_step_for_demo_path_step,
     command_mvp_demo_readiness_smoke_plan_step_for_flow_step
@@ -187,6 +189,8 @@ __all__ = [
     "canonical_command_readiness_handoff_summary",
     "canonical_command_readiness_smoke_plan_argv",
     "canonical_command_readiness_smoke_plan_argv_for_flow_step",
+    "canonical_command_readiness_required_argv",
+    "canonical_command_readiness_required_argv_lookup_table",
     "canonical_command_readiness_smoke_plan_step",
     "canonical_command_readiness_smoke_plan_step_for_demo_path_step",
     "canonical_command_readiness_smoke_plan_step_for_flow_step",
@@ -503,6 +507,14 @@ def canonical_command_readiness_smoke_plan_argv(ordinal: int) -> tuple[str, ...]
 
 def canonical_command_readiness_smoke_plan_argv_for_flow_step(flow_step: str) -> tuple[str, ...]:
     return _readiness_smoke_plan_argv_for_flow_step(flow_step)
+
+
+def canonical_command_readiness_required_argv() -> tuple[tuple[str, ...], ...]:
+    return _readiness_required_argv()
+
+
+def canonical_command_readiness_required_argv_lookup_table() -> tuple[tuple[str, tuple[str, ...]], ...]:
+    return _readiness_required_argv_lookup_table()
 
 
 def canonical_command_readiness_missing_engine_actions() -> tuple[str, ...]:

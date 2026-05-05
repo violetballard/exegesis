@@ -3159,6 +3159,23 @@ def command_demo_readiness_smoke_plan_argv_for_flow_step(
     return tuple(shlex.split(step.command_line))
 
 
+def command_demo_readiness_required_argv(
+    specs: tuple[CommandSpec, ...] = COMMAND_SPECS,
+    launcher_argv: tuple[str, ...] = COMMAND_SMOKE_CLI_LAUNCHER_ARGV,
+) -> tuple[tuple[str, ...], ...]:
+    return tuple(entry.command_argv for entry in command_demo_readiness_contract(specs, launcher_argv).entries)
+
+
+def command_demo_readiness_required_argv_lookup_table(
+    specs: tuple[CommandSpec, ...] = COMMAND_SPECS,
+    launcher_argv: tuple[str, ...] = COMMAND_SMOKE_CLI_LAUNCHER_ARGV,
+) -> tuple[tuple[str, tuple[str, ...]], ...]:
+    return tuple(
+        (entry.flow_step, entry.command_argv)
+        for entry in command_demo_readiness_contract(specs, launcher_argv).entries
+    )
+
+
 @lru_cache(maxsize=None)
 def command_demo_path_readiness_contract(
     specs: tuple[CommandSpec, ...] = COMMAND_SPECS,
@@ -5625,6 +5642,20 @@ def command_mvp_demo_readiness_smoke_plan_argv_for_flow_step(
     launcher_argv: tuple[str, ...] = COMMAND_SMOKE_CLI_LAUNCHER_ARGV,
 ) -> tuple[str, ...]:
     return command_demo_readiness_smoke_plan_argv_for_flow_step(flow_step, specs, launcher_argv)
+
+
+def command_mvp_demo_readiness_required_argv(
+    specs: tuple[CommandSpec, ...] = COMMAND_SPECS,
+    launcher_argv: tuple[str, ...] = COMMAND_SMOKE_CLI_LAUNCHER_ARGV,
+) -> tuple[tuple[str, ...], ...]:
+    return command_demo_readiness_required_argv(specs, launcher_argv)
+
+
+def command_mvp_demo_readiness_required_argv_lookup_table(
+    specs: tuple[CommandSpec, ...] = COMMAND_SPECS,
+    launcher_argv: tuple[str, ...] = COMMAND_SMOKE_CLI_LAUNCHER_ARGV,
+) -> tuple[tuple[str, tuple[str, ...]], ...]:
+    return command_demo_readiness_required_argv_lookup_table(specs, launcher_argv)
 
 
 def command_mvp_demo_path_readiness_contract(
