@@ -525,6 +525,25 @@ class CommandDemoReadinessScriptValidation:
 
 
 @dataclass(frozen=True)
+class CommandDemoExecutionPlanStep:
+    ordinal: int
+    demo_path_step: str
+    flow_step: str
+    name: str
+    launcher_argv: tuple[str, ...]
+    command_argv: tuple[str, ...]
+    command_line: str
+    engine_actions: tuple[str, ...]
+    action_lines: tuple[tuple[str, str], ...]
+
+
+@dataclass(frozen=True)
+class CommandDemoExecutionPlanContract:
+    launcher_argv: tuple[str, ...]
+    steps: tuple[CommandDemoExecutionPlanStep, ...]
+
+
+@dataclass(frozen=True)
 class CommandDemoCommandActionEntry:
     flow_step: str
     name: str
@@ -3606,6 +3625,139 @@ def command_demo_readiness_route_summary(
         )
         for entry in command_demo_readiness_route_contract(specs, launcher_argv).entries
     )
+
+
+@lru_cache(maxsize=None)
+def command_demo_execution_plan_contract(
+    specs: tuple[CommandSpec, ...] = COMMAND_SPECS,
+    launcher_argv: tuple[str, ...] = COMMAND_SMOKE_CLI_LAUNCHER_ARGV,
+) -> CommandDemoExecutionPlanContract:
+    readiness_contract = command_demo_readiness_contract(specs, launcher_argv)
+    contract = CommandDemoExecutionPlanContract(
+        launcher_argv=launcher_argv,
+        steps=tuple(
+            CommandDemoExecutionPlanStep(
+                ordinal=entry.ordinal,
+                demo_path_step=entry.demo_path_step,
+                flow_step=entry.flow_step,
+                name=entry.name,
+                launcher_argv=launcher_argv,
+                command_argv=entry.command_argv,
+                command_line=_shell_join(entry.command_argv),
+                engine_actions=entry.engine_actions,
+                action_lines=tuple(
+                    (engine_action, _shell_join(action_argv))
+                    for engine_action, action_argv in entry.action_command_argv
+                ),
+            )
+            for entry in readiness_contract.entries
+        ),
+    )
+    _validate_command_demo_execution_plan_contract(contract, readiness_contract, launcher_argv)
+    return contract
+
+
+def _validate_command_demo_execution_plan_contract(
+    contract: CommandDemoExecutionPlanContract,
+    readiness_contract: CommandDemoReadinessContract,
+    launcher_argv: tuple[str, ...],
+) -> None:
+    _validate_command_smoke_cli_launcher(launcher_argv)
+    if contract.launcher_argv != launcher_argv:
+        raise ValueError("Command demo execution plan launcher is inconsistent")
+    if tuple(step.ordinal for step in contract.steps) != tuple(
+        entry.ordinal for entry in readiness_contract.entries
+    ):
+        raise ValueError("Command demo execution plan ordinals are inconsistent")
+    if tuple(step.demo_path_step for step in contract.steps) != tuple(
+        entry.demo_path_step for entry in readiness_contract.entries
+    ):
+        raise ValueError("Command demo execution plan path steps are inconsistent")
+    if tuple(step.flow_step for step in contract.steps) != tuple(
+        entry.flow_step for entry in readiness_contract.entries
+    ):
+        raise ValueError("Command demo execution plan flow steps are inconsistent")
+    if tuple(step.name for step in contract.steps) != tuple(
+        entry.name for entry in readiness_contract.entries
+    ):
+        raise ValueError("Command demo execution plan command names are inconsistent")
+
+    for step, entry in zip(contract.steps, readiness_contract.entries, strict=True):
+        if step.launcher_argv != launcher_argv:
+            raise ValueError(f"Command demo execution plan step launcher is inconsistent: {step.flow_step}")
+        if step.command_argv != entry.command_argv:
+            raise ValueError(f"Command demo execution plan argv is inconsistent: {step.flow_step}")
+        if step.command_argv[: len(launcher_argv)] != launcher_argv:
+            raise ValueError(f"Command demo execution plan argv launcher is inconsistent: {step.flow_step}")
+        if step.command_line != _shell_join(entry.command_argv):
+            raise ValueError(f"Command demo execution plan command line is inconsistent: {step.flow_step}")
+        if step.engine_actions != entry.engine_actions:
+            raise ValueError(f"Command demo execution plan actions are inconsistent: {step.flow_step}")
+        expected_action_lines = tuple(
+            (engine_action, _shell_join(action_argv))
+            for engine_action, action_argv in entry.action_command_argv
+        )
+        if step.action_lines != expected_action_lines:
+            raise ValueError(f"Command demo execution plan action lines are inconsistent: {step.flow_step}")
+        if not step.command_line or not step.action_lines:
+            raise ValueError(f"Command demo execution plan step must be smoke-testable: {step.flow_step}")
+
+
+def command_demo_execution_plan_summary(
+    specs: tuple[CommandSpec, ...] = COMMAND_SPECS,
+    launcher_argv: tuple[str, ...] = COMMAND_SMOKE_CLI_LAUNCHER_ARGV,
+) -> tuple[
+    tuple[int, str, str, str, tuple[str, ...], tuple[str, ...], str, tuple[str, ...], tuple[tuple[str, str], ...]],
+    ...,
+]:
+    return tuple(
+        (
+            step.ordinal,
+            step.demo_path_step,
+            step.flow_step,
+            step.name,
+            step.launcher_argv,
+            step.command_argv,
+            step.command_line,
+            step.engine_actions,
+            step.action_lines,
+        )
+        for step in command_demo_execution_plan_contract(specs, launcher_argv).steps
+    )
+
+
+def command_demo_execution_plan_lookup_table(
+    specs: tuple[CommandSpec, ...] = COMMAND_SPECS,
+    launcher_argv: tuple[str, ...] = COMMAND_SMOKE_CLI_LAUNCHER_ARGV,
+) -> tuple[tuple[str, tuple[str, ...]], ...]:
+    return tuple(
+        (step.flow_step, step.command_argv)
+        for step in command_demo_execution_plan_contract(specs, launcher_argv).steps
+    )
+
+
+def command_mvp_demo_execution_plan_contract(
+    specs: tuple[CommandSpec, ...] = COMMAND_SPECS,
+    launcher_argv: tuple[str, ...] = COMMAND_SMOKE_CLI_LAUNCHER_ARGV,
+) -> CommandDemoExecutionPlanContract:
+    return command_demo_execution_plan_contract(specs, launcher_argv)
+
+
+def command_mvp_demo_execution_plan_summary(
+    specs: tuple[CommandSpec, ...] = COMMAND_SPECS,
+    launcher_argv: tuple[str, ...] = COMMAND_SMOKE_CLI_LAUNCHER_ARGV,
+) -> tuple[
+    tuple[int, str, str, str, tuple[str, ...], tuple[str, ...], str, tuple[str, ...], tuple[tuple[str, str], ...]],
+    ...,
+]:
+    return command_demo_execution_plan_summary(specs, launcher_argv)
+
+
+def command_mvp_demo_execution_plan_lookup_table(
+    specs: tuple[CommandSpec, ...] = COMMAND_SPECS,
+    launcher_argv: tuple[str, ...] = COMMAND_SMOKE_CLI_LAUNCHER_ARGV,
+) -> tuple[tuple[str, tuple[str, ...]], ...]:
+    return command_demo_execution_plan_lookup_table(specs, launcher_argv)
 
 
 def command_demo_readiness_handoff_markdown(

@@ -10,6 +10,7 @@ from src.qual.commands.catalog import (
     CommandDemoReadinessCommandTraceEntry,
     CommandDemoReadinessCommandTraceContract,
     CommandDemoReadinessEntry,
+    CommandDemoExecutionPlanContract,
     CommandDemoReadinessHandoffChecklistContract,
     CommandDemoReadinessHandoffContract,
     CommandDemoReadinessHandoffLineContract,
@@ -45,6 +46,9 @@ from src.qual.commands.catalog import (
     command_mvp_demo_readiness_command_trace_entry_for_argv as _readiness_command_trace_entry_for_argv,
     command_mvp_demo_readiness_command_trace_lookup_table as _readiness_command_trace_lookup_table,
     command_mvp_demo_readiness_command_trace_summary as _readiness_command_trace_summary,
+    command_mvp_demo_execution_plan_contract as _execution_plan_contract,
+    command_mvp_demo_execution_plan_lookup_table as _execution_plan_lookup_table,
+    command_mvp_demo_execution_plan_summary as _execution_plan_summary,
     command_mvp_demo_supported_launcher_argv as _supported_launcher_argv,
     command_mvp_demo_supported_launcher_readiness_contract as _supported_launcher_readiness_contract,
     command_mvp_demo_supported_launcher_readiness_lookup_table as _supported_launcher_readiness_lookup_table,
@@ -169,6 +173,9 @@ __all__ = [
     "canonical_command_readiness_command_trace_entry_for_argv",
     "canonical_command_readiness_command_trace_lookup_table",
     "canonical_command_readiness_command_trace_summary",
+    "canonical_command_execution_plan_contract",
+    "canonical_command_execution_plan_lookup_table",
+    "canonical_command_execution_plan_summary",
     "canonical_command_supported_launcher_argv",
     "canonical_command_supported_launcher_readiness_contract",
     "canonical_command_supported_launcher_readiness_lookup_table",
@@ -384,6 +391,21 @@ def canonical_command_readiness_command_trace_lookup_table() -> tuple[
     ...,
 ]:
     return _readiness_command_trace_lookup_table()
+
+
+def canonical_command_execution_plan_contract() -> CommandDemoExecutionPlanContract:
+    return _execution_plan_contract()
+
+
+def canonical_command_execution_plan_summary() -> tuple[
+    tuple[int, str, str, str, tuple[str, ...], tuple[str, ...], str, tuple[str, ...], tuple[tuple[str, str], ...]],
+    ...,
+]:
+    return _execution_plan_summary()
+
+
+def canonical_command_execution_plan_lookup_table() -> tuple[tuple[str, tuple[str, ...]], ...]:
+    return _execution_plan_lookup_table()
 
 
 def canonical_command_supported_launcher_argv() -> tuple[tuple[str, ...], ...]:
