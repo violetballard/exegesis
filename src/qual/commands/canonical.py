@@ -85,6 +85,7 @@ from src.qual.commands.catalog import (
     command_mvp_demo_readiness_action_summary as _readiness_action_summary,
     command_mvp_demo_readiness_validate_argv as _readiness_validate_argv,
     command_mvp_demo_readiness_validate_script as _readiness_validate_script,
+    command_mvp_demo_readiness_validate_shell_script_lines as _readiness_validate_shell_script_lines,
     command_mvp_demo_readiness_gate as _readiness_gate,
     command_mvp_demo_readiness_gate_summary as _readiness_gate_summary,
     command_mvp_demo_readiness_smoke_plan_argv as _readiness_smoke_plan_argv,
@@ -186,6 +187,7 @@ __all__ = [
     "canonical_command_readiness_trace_summary",
     "canonical_command_readiness_validate_argv",
     "canonical_command_readiness_validate_script",
+    "canonical_command_readiness_validate_shell_script_lines",
     "canonical_command_readiness_handoff_summary",
     "canonical_command_readiness_smoke_plan_argv",
     "canonical_command_readiness_smoke_plan_argv_for_flow_step",
@@ -748,6 +750,12 @@ def canonical_command_readiness_validate_script(
     argvs: Sequence[Sequence[str] | str],
 ) -> CommandDemoReadinessScriptValidation:
     return _readiness_validate_script(argvs)
+
+
+def canonical_command_readiness_validate_shell_script_lines(
+    lines: Sequence[str] | str,
+) -> CommandDemoReadinessScriptValidation:
+    return _readiness_validate_shell_script_lines(lines)
 
 
 def canonical_command_line_for_argv(argv: Sequence[str] | str) -> str:

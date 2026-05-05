@@ -3965,6 +3965,15 @@ def _validate_command_demo_readiness_shell_script(
     if executable_lines != expected_executable_lines:
         raise ValueError("Command demo readiness shell script executable lines are inconsistent")
     _validate_command_demo_readiness_shell_routes(script, smoke_plan, specs, launcher_argv)
+    validation = command_demo_readiness_validate_shell_script_lines(
+        script.lines,
+        specs,
+        launcher_argv,
+    )
+    if not validation.is_complete:
+        raise ValueError("Command demo readiness shell script does not cover the MVP route")
+    if validation.command_lines != expected_executable_lines[1:]:
+        raise ValueError("Command demo readiness shell script validation lines are inconsistent")
 
 
 def _dedupe_command_lines(lines: tuple[str, ...]) -> tuple[str, ...]:
@@ -5142,12 +5151,54 @@ def command_demo_readiness_validate_script(
     )
 
 
+def _coerce_shell_script_lines(lines: Sequence[str] | str) -> tuple[str, ...]:
+    if isinstance(lines, str):
+        return tuple(lines.splitlines())
+    return tuple(str(line) for line in lines)
+
+
+def _shell_script_executable_argv(lines: Sequence[str] | str) -> tuple[tuple[str, ...], ...]:
+    executable_argv: list[tuple[str, ...]] = []
+    for raw_line in _coerce_shell_script_lines(lines):
+        line = raw_line.strip()
+        if not line or line.startswith("#") or line == "set -euo pipefail":
+            continue
+        try:
+            argv = tuple(shlex.split(line))
+        except ValueError:
+            executable_argv.append((line,))
+            continue
+        if argv:
+            executable_argv.append(argv)
+    return tuple(executable_argv)
+
+
+def command_demo_readiness_validate_shell_script_lines(
+    lines: Sequence[str] | str,
+    specs: tuple[CommandSpec, ...] = COMMAND_SPECS,
+    launcher_argv: tuple[str, ...] = COMMAND_SMOKE_CLI_LAUNCHER_ARGV,
+) -> CommandDemoReadinessScriptValidation:
+    return command_demo_readiness_validate_script(
+        _shell_script_executable_argv(lines),
+        specs,
+        launcher_argv,
+    )
+
+
 def command_mvp_demo_readiness_validate_script(
     argvs: Sequence[Sequence[str] | str],
     specs: tuple[CommandSpec, ...] = COMMAND_SPECS,
     launcher_argv: tuple[str, ...] = COMMAND_SMOKE_CLI_LAUNCHER_ARGV,
 ) -> CommandDemoReadinessScriptValidation:
     return command_demo_readiness_validate_script(argvs, specs, launcher_argv)
+
+
+def command_mvp_demo_readiness_validate_shell_script_lines(
+    lines: Sequence[str] | str,
+    specs: tuple[CommandSpec, ...] = COMMAND_SPECS,
+    launcher_argv: tuple[str, ...] = COMMAND_SMOKE_CLI_LAUNCHER_ARGV,
+) -> CommandDemoReadinessScriptValidation:
+    return command_demo_readiness_validate_shell_script_lines(lines, specs, launcher_argv)
 
 
 @lru_cache(maxsize=None)
