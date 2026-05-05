@@ -27,3 +27,6 @@ class FTSStrategy:
         elapsed_ns = max(0, int(self._now_fn()) - started)
         elapsed_ms = elapsed_ns // 1_000_000
         return StrategyRun(strategy_id=self.id, hits=hits, elapsed_ms=elapsed_ms, cache_used=False)
+
+
+__all__ = ["FTSStrategy"]
