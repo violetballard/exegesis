@@ -2135,6 +2135,9 @@ class RetrievalService:
             normalized["basket_promotion_item"] = basket_promotion_item
             normalized["basket_item_id"] = basket_promotion_item["item_id"]
             normalized["basket_item_fingerprint"] = basket_promotion_item["basket_item_fingerprint"]
+            normalized["basket_promotion_items"] = [copy.deepcopy(basket_promotion_item)]
+            normalized["basket_item_ids"] = [basket_promotion_item["item_id"]]
+            normalized["basket_item_fingerprints"] = [basket_promotion_item["basket_item_fingerprint"]]
         if "provenance" in normalized:
             normalized_provenance = {
                 **provenance,
