@@ -704,6 +704,10 @@ COMMAND_SMOKE_ENV_FLAGS: tuple[str, ...] = (
     "-i",
     "--ignore-environment",
 )
+COMMAND_SMOKE_SHELL_SETUP_COMMANDS: tuple[str, ...] = (
+    "cd",
+    "pwd",
+)
 DEMO_COMMAND_FLOW_STEPS: tuple[str, ...] = (
     "project-open",
     "retrieval",
@@ -5409,9 +5413,18 @@ def _shell_script_executable_argv(lines: Sequence[str] | str) -> tuple[tuple[str
         except ValueError:
             executable_argv.append((line,))
             continue
+        if _is_shell_script_setup_argv(argv):
+            continue
         if argv:
             executable_argv.append(argv)
     return tuple(executable_argv)
+
+
+def _is_shell_script_setup_argv(argv: tuple[str, ...]) -> bool:
+    if not argv:
+        return False
+    command = PurePath(argv[0]).name
+    return command in COMMAND_SMOKE_SHELL_SETUP_COMMANDS
 
 
 def command_demo_readiness_validate_shell_script_lines(
