@@ -19,6 +19,7 @@ from src.qual.commands.catalog import (
     CommandDemoReadinessHandoffChecklistContract,
     CommandDemoReadinessHandoffContract,
     CommandDemoReadinessHandoffLineContract,
+    CommandDemoReadinessHandoffPacket,
     CommandDemoReadinessReport,
     CommandDemoReadinessRouteContract,
     CommandDemoReadinessSeal,
@@ -37,6 +38,8 @@ from src.qual.commands.catalog import (
     command_mvp_demo_readiness_handoff_line_contract as _readiness_handoff_line_contract,
     command_mvp_demo_readiness_handoff_lines as _readiness_handoff_lines,
     command_mvp_demo_readiness_handoff_markdown as _readiness_handoff_markdown,
+    command_mvp_demo_readiness_handoff_packet as _readiness_handoff_packet,
+    command_mvp_demo_readiness_handoff_packet_summary as _readiness_handoff_packet_summary,
     command_mvp_demo_readiness_route_contract as _readiness_route_contract,
     command_mvp_demo_readiness_route_summary as _readiness_route_summary,
     command_mvp_demo_readiness_handoff_summary as _readiness_handoff_summary,
@@ -217,6 +220,8 @@ __all__ = [
     "canonical_command_readiness_handoff_line_contract",
     "canonical_command_readiness_handoff_lines",
     "canonical_command_readiness_handoff_markdown",
+    "canonical_command_readiness_handoff_packet",
+    "canonical_command_readiness_handoff_packet_summary",
     "canonical_command_readiness_route_contract",
     "canonical_command_readiness_route_summary",
     "canonical_command_readiness_report",
@@ -431,6 +436,27 @@ def canonical_command_readiness_report_summary() -> tuple[
     str,
 ]:
     return _readiness_report_summary()
+
+
+def canonical_command_readiness_handoff_packet() -> CommandDemoReadinessHandoffPacket:
+    return _readiness_handoff_packet()
+
+
+def canonical_command_readiness_handoff_packet_summary() -> tuple[
+    str,
+    tuple[str, ...],
+    tuple[str, ...],
+    str,
+    tuple[str, ...],
+    tuple[str, ...],
+    tuple[str, ...],
+    tuple[str, ...],
+    bool,
+    tuple[str, ...],
+    tuple[str, ...],
+    tuple[tuple[str, ...], ...],
+]:
+    return _readiness_handoff_packet_summary()
 
 
 def canonical_command_readiness_seal() -> CommandDemoReadinessSeal:

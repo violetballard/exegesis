@@ -453,6 +453,22 @@ class CommandDemoReadinessReport:
 
 
 @dataclass(frozen=True)
+class CommandDemoReadinessHandoffPacket:
+    scope_completed: str
+    roadmap_items: tuple[str, ...]
+    vision_capabilities: tuple[str, ...]
+    routing_provider_impact: str
+    canonical_demo_path_steps: tuple[str, ...]
+    command_lines: tuple[str, ...]
+    exact_action_lines: tuple[str, ...]
+    checklist_lines: tuple[str, ...]
+    is_complete: bool
+    missing_flow_steps: tuple[str, ...]
+    missing_engine_actions: tuple[str, ...]
+    invalid_argv: tuple[tuple[str, ...], ...]
+
+
+@dataclass(frozen=True)
 class CommandDemoReadinessSeal:
     is_complete: bool
     flow_steps: tuple[str, ...]
@@ -4537,6 +4553,116 @@ def command_demo_readiness_report_summary(
 
 
 @lru_cache(maxsize=None)
+def command_demo_readiness_handoff_packet(
+    specs: tuple[CommandSpec, ...] = COMMAND_SPECS,
+    launcher_argv: tuple[str, ...] = COMMAND_SMOKE_CLI_LAUNCHER_ARGV,
+) -> CommandDemoReadinessHandoffPacket:
+    seal = command_demo_readiness_seal(specs, launcher_argv)
+    checklist_lines = command_demo_readiness_handoff_checklist_lines(specs, launcher_argv)
+    packet = CommandDemoReadinessHandoffPacket(
+        scope_completed=(
+            "CLI compatibility and migration-safe entrypoints for the engine-first "
+            "open, retrieval, patch-review, and persist demo loop."
+        ),
+        roadmap_items=(
+            "Milestone 3: Real workflow loop",
+            "feat-commands: CLI compatibility and migration-safe entrypoints",
+        ),
+        vision_capabilities=(
+            "Required capability 1: Writing-centered workflow",
+            "Required capability 2: Retrieval-first context handling",
+            "Required capability 3: Canonical engine contract",
+            "Required capability 6: Auditable state and workflow",
+        ),
+        routing_provider_impact="None: command readiness metadata does not touch model routing or providers.",
+        canonical_demo_path_steps=tuple(
+            step.demo_path_step
+            for step in command_demo_path_readiness_contract(specs, launcher_argv).steps
+        ),
+        command_lines=seal.command_lines,
+        exact_action_lines=seal.exact_action_lines,
+        checklist_lines=checklist_lines,
+        is_complete=seal.is_complete,
+        missing_flow_steps=seal.missing_flow_steps,
+        missing_engine_actions=seal.missing_engine_actions,
+        invalid_argv=seal.invalid_argv,
+    )
+    _validate_command_demo_readiness_handoff_packet(packet, seal, checklist_lines, specs, launcher_argv)
+    return packet
+
+
+def _validate_command_demo_readiness_handoff_packet(
+    packet: CommandDemoReadinessHandoffPacket,
+    seal: CommandDemoReadinessSeal,
+    checklist_lines: tuple[str, ...],
+    specs: tuple[CommandSpec, ...],
+    launcher_argv: tuple[str, ...],
+) -> None:
+    if not packet.scope_completed.strip():
+        raise ValueError("Command demo readiness handoff packet scope must not be empty")
+    if not packet.roadmap_items:
+        raise ValueError("Command demo readiness handoff packet roadmap items must not be empty")
+    if not packet.vision_capabilities:
+        raise ValueError("Command demo readiness handoff packet vision capabilities must not be empty")
+    if not packet.routing_provider_impact.strip():
+        raise ValueError("Command demo readiness handoff packet provider impact must not be empty")
+    expected_demo_steps = tuple(
+        step.demo_path_step
+        for step in command_demo_path_readiness_contract(specs, launcher_argv).steps
+    )
+    if packet.canonical_demo_path_steps != expected_demo_steps:
+        raise ValueError("Command demo readiness handoff packet demo path steps are inconsistent")
+    if packet.command_lines != seal.command_lines:
+        raise ValueError("Command demo readiness handoff packet command lines are inconsistent")
+    if packet.exact_action_lines != seal.exact_action_lines:
+        raise ValueError("Command demo readiness handoff packet exact action lines are inconsistent")
+    if packet.checklist_lines != checklist_lines:
+        raise ValueError("Command demo readiness handoff packet checklist lines are inconsistent")
+    if packet.is_complete != seal.is_complete:
+        raise ValueError("Command demo readiness handoff packet completeness is inconsistent")
+    if packet.missing_flow_steps != seal.missing_flow_steps:
+        raise ValueError("Command demo readiness handoff packet missing flow steps are inconsistent")
+    if packet.missing_engine_actions != seal.missing_engine_actions:
+        raise ValueError("Command demo readiness handoff packet missing actions are inconsistent")
+    if packet.invalid_argv != seal.invalid_argv:
+        raise ValueError("Command demo readiness handoff packet invalid argv are inconsistent")
+
+
+def command_demo_readiness_handoff_packet_summary(
+    specs: tuple[CommandSpec, ...] = COMMAND_SPECS,
+    launcher_argv: tuple[str, ...] = COMMAND_SMOKE_CLI_LAUNCHER_ARGV,
+) -> tuple[
+    str,
+    tuple[str, ...],
+    tuple[str, ...],
+    str,
+    tuple[str, ...],
+    tuple[str, ...],
+    tuple[str, ...],
+    tuple[str, ...],
+    bool,
+    tuple[str, ...],
+    tuple[str, ...],
+    tuple[tuple[str, ...], ...],
+]:
+    packet = command_demo_readiness_handoff_packet(specs, launcher_argv)
+    return (
+        packet.scope_completed,
+        packet.roadmap_items,
+        packet.vision_capabilities,
+        packet.routing_provider_impact,
+        packet.canonical_demo_path_steps,
+        packet.command_lines,
+        packet.exact_action_lines,
+        packet.checklist_lines,
+        packet.is_complete,
+        packet.missing_flow_steps,
+        packet.missing_engine_actions,
+        packet.invalid_argv,
+    )
+
+
+@lru_cache(maxsize=None)
 def command_demo_readiness_seal(
     specs: tuple[CommandSpec, ...] = COMMAND_SPECS,
     launcher_argv: tuple[str, ...] = COMMAND_SMOKE_CLI_LAUNCHER_ARGV,
@@ -7367,6 +7493,33 @@ def command_mvp_demo_readiness_report_summary(
     launcher_argv: tuple[str, ...] = COMMAND_SMOKE_CLI_LAUNCHER_ARGV,
 ) -> tuple[bool, tuple[str, ...], tuple[str, ...], tuple[tuple[str, str], ...], tuple[str, ...], str]:
     return command_demo_readiness_report_summary(specs, launcher_argv)
+
+
+def command_mvp_demo_readiness_handoff_packet(
+    specs: tuple[CommandSpec, ...] = COMMAND_SPECS,
+    launcher_argv: tuple[str, ...] = COMMAND_SMOKE_CLI_LAUNCHER_ARGV,
+) -> CommandDemoReadinessHandoffPacket:
+    return command_demo_readiness_handoff_packet(specs, launcher_argv)
+
+
+def command_mvp_demo_readiness_handoff_packet_summary(
+    specs: tuple[CommandSpec, ...] = COMMAND_SPECS,
+    launcher_argv: tuple[str, ...] = COMMAND_SMOKE_CLI_LAUNCHER_ARGV,
+) -> tuple[
+    str,
+    tuple[str, ...],
+    tuple[str, ...],
+    str,
+    tuple[str, ...],
+    tuple[str, ...],
+    tuple[str, ...],
+    tuple[str, ...],
+    bool,
+    tuple[str, ...],
+    tuple[str, ...],
+    tuple[tuple[str, ...], ...],
+]:
+    return command_demo_readiness_handoff_packet_summary(specs, launcher_argv)
 
 
 def command_mvp_demo_readiness_seal(
