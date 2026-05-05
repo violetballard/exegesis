@@ -453,6 +453,19 @@ class CommandDemoReadinessReport:
 
 
 @dataclass(frozen=True)
+class CommandDemoReadinessSeal:
+    is_complete: bool
+    flow_steps: tuple[str, ...]
+    command_lines: tuple[str, ...]
+    exact_action_lines: tuple[str, ...]
+    cli_exact_action_lines: tuple[str, ...]
+    engine_actions: tuple[str, ...]
+    missing_flow_steps: tuple[str, ...]
+    missing_engine_actions: tuple[str, ...]
+    invalid_argv: tuple[tuple[str, ...], ...]
+
+
+@dataclass(frozen=True)
 class CommandDemoReadinessShellScript:
     lines: tuple[str, ...]
     command_lines: tuple[str, ...]
@@ -4524,6 +4537,140 @@ def command_demo_readiness_report_summary(
 
 
 @lru_cache(maxsize=None)
+def command_demo_readiness_seal(
+    specs: tuple[CommandSpec, ...] = COMMAND_SPECS,
+    launcher_argv: tuple[str, ...] = COMMAND_SMOKE_CLI_LAUNCHER_ARGV,
+) -> CommandDemoReadinessSeal:
+    gate = require_command_demo_readiness_complete(specs, launcher_argv)
+    exact_action_lines = command_demo_readiness_exact_action_shell_script_lines(specs, launcher_argv)
+    exact_validation = command_demo_readiness_validate_exact_action_shell_script_lines(
+        exact_action_lines,
+        specs,
+        launcher_argv,
+    )
+    cli_exact_action_lines = command_demo_readiness_cli_exact_action_shell_script_lines(specs, launcher_argv)
+    cli_validation = command_demo_readiness_validate_cli_exact_action_shell_script_lines(
+        cli_exact_action_lines,
+        specs,
+        launcher_argv,
+    )
+    missing_flow_steps = _ordered_unique_tokens(
+        *exact_validation.missing_flow_steps,
+        *cli_validation.missing_flow_steps,
+    )
+    missing_engine_actions = _ordered_unique_tokens(
+        *gate.missing_engine_actions,
+        *exact_validation.missing_engine_actions,
+        *cli_validation.missing_engine_actions,
+    )
+    invalid_argv = _ordered_unique_argv(
+        *exact_validation.invalid_argv,
+        *cli_validation.invalid_argv,
+    )
+    seal = CommandDemoReadinessSeal(
+        is_complete=(
+            gate.is_complete
+            and exact_validation.is_complete
+            and cli_validation.is_complete
+            and not missing_flow_steps
+            and not missing_engine_actions
+            and not invalid_argv
+        ),
+        flow_steps=command_demo_flow_steps(),
+        command_lines=gate.command_lines,
+        exact_action_lines=exact_action_lines,
+        cli_exact_action_lines=cli_exact_action_lines,
+        engine_actions=command_demo_engine_actions(specs),
+        missing_flow_steps=missing_flow_steps,
+        missing_engine_actions=missing_engine_actions,
+        invalid_argv=invalid_argv,
+    )
+    _validate_command_demo_readiness_seal(seal, specs, launcher_argv)
+    return seal
+
+
+def _ordered_unique_tokens(*values: str) -> tuple[str, ...]:
+    seen_values: set[str] = set()
+    ordered_values: list[str] = []
+    for value in values:
+        if value in seen_values:
+            continue
+        seen_values.add(value)
+        ordered_values.append(value)
+    return tuple(ordered_values)
+
+
+def _ordered_unique_argv(*values: tuple[str, ...]) -> tuple[tuple[str, ...], ...]:
+    seen_values: set[tuple[str, ...]] = set()
+    ordered_values: list[tuple[str, ...]] = []
+    for value in values:
+        if value in seen_values:
+            continue
+        seen_values.add(value)
+        ordered_values.append(value)
+    return tuple(ordered_values)
+
+
+def _validate_command_demo_readiness_seal(
+    seal: CommandDemoReadinessSeal,
+    specs: tuple[CommandSpec, ...],
+    launcher_argv: tuple[str, ...],
+) -> None:
+    if seal.flow_steps != command_demo_flow_steps():
+        raise ValueError("Command demo readiness seal flow steps are inconsistent")
+    if seal.command_lines != require_command_demo_readiness_complete(specs, launcher_argv).command_lines:
+        raise ValueError("Command demo readiness seal commands are inconsistent")
+    if seal.engine_actions != command_demo_engine_actions(specs):
+        raise ValueError("Command demo readiness seal actions are inconsistent")
+    exact_validation = command_demo_readiness_validate_exact_action_shell_script_lines(
+        seal.exact_action_lines,
+        specs,
+        launcher_argv,
+    )
+    cli_validation = command_demo_readiness_validate_cli_exact_action_shell_script_lines(
+        seal.cli_exact_action_lines,
+        specs,
+        launcher_argv,
+    )
+    if not exact_validation.is_complete:
+        raise ValueError("Command demo readiness seal exact action script is incomplete")
+    if not cli_validation.is_complete:
+        raise ValueError("Command demo readiness seal CLI exact action script is incomplete")
+    if seal.missing_flow_steps or seal.missing_engine_actions or seal.invalid_argv:
+        raise ValueError("Command demo readiness seal must not report missing coverage")
+    if not seal.is_complete:
+        raise ValueError("Command demo readiness seal must be complete")
+
+
+def command_demo_readiness_seal_summary(
+    specs: tuple[CommandSpec, ...] = COMMAND_SPECS,
+    launcher_argv: tuple[str, ...] = COMMAND_SMOKE_CLI_LAUNCHER_ARGV,
+) -> tuple[
+    bool,
+    tuple[str, ...],
+    tuple[str, ...],
+    tuple[str, ...],
+    tuple[str, ...],
+    tuple[str, ...],
+    tuple[str, ...],
+    tuple[str, ...],
+    tuple[tuple[str, ...], ...],
+]:
+    seal = command_demo_readiness_seal(specs, launcher_argv)
+    return (
+        seal.is_complete,
+        seal.flow_steps,
+        seal.command_lines,
+        seal.exact_action_lines,
+        seal.cli_exact_action_lines,
+        seal.engine_actions,
+        seal.missing_flow_steps,
+        seal.missing_engine_actions,
+        seal.invalid_argv,
+    )
+
+
+@lru_cache(maxsize=None)
 def command_demo_readiness_shell_script(
     specs: tuple[CommandSpec, ...] = COMMAND_SPECS,
     launcher_argv: tuple[str, ...] = COMMAND_SMOKE_CLI_LAUNCHER_ARGV,
@@ -7220,6 +7367,30 @@ def command_mvp_demo_readiness_report_summary(
     launcher_argv: tuple[str, ...] = COMMAND_SMOKE_CLI_LAUNCHER_ARGV,
 ) -> tuple[bool, tuple[str, ...], tuple[str, ...], tuple[tuple[str, str], ...], tuple[str, ...], str]:
     return command_demo_readiness_report_summary(specs, launcher_argv)
+
+
+def command_mvp_demo_readiness_seal(
+    specs: tuple[CommandSpec, ...] = COMMAND_SPECS,
+    launcher_argv: tuple[str, ...] = COMMAND_SMOKE_CLI_LAUNCHER_ARGV,
+) -> CommandDemoReadinessSeal:
+    return command_demo_readiness_seal(specs, launcher_argv)
+
+
+def command_mvp_demo_readiness_seal_summary(
+    specs: tuple[CommandSpec, ...] = COMMAND_SPECS,
+    launcher_argv: tuple[str, ...] = COMMAND_SMOKE_CLI_LAUNCHER_ARGV,
+) -> tuple[
+    bool,
+    tuple[str, ...],
+    tuple[str, ...],
+    tuple[str, ...],
+    tuple[str, ...],
+    tuple[str, ...],
+    tuple[str, ...],
+    tuple[str, ...],
+    tuple[tuple[str, ...], ...],
+]:
+    return command_demo_readiness_seal_summary(specs, launcher_argv)
 
 
 def command_mvp_demo_readiness_shell_script(
