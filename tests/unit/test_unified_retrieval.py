@@ -1705,6 +1705,51 @@ class UnifiedRetrievalTests(unittest.TestCase):
         self.assertEqual(engine_query.constraints.section_hint, "discussion")
         self.assertEqual(engine_query.confidentiality_profile, "standard")
 
+    def test_retrieval_query_date_range_rejects_unordered_sets(self) -> None:
+        constraints = {
+            "doc_types": {"Memo", "pdf", "memo"},
+            "date_range": {"2026-01-01", "2026-01-31"},
+        }
+
+        for constructor in (engine_retrieval.build_retrieval_query, package_retrieval.build_retrieval_query):
+            with self.subTest(constructor=constructor.__module__):
+                with self.assertRaisesRegex(TypeError, "date_range must be an ordered iterable"):
+                    constructor(
+                        query_text="memo comparison",
+                        scope="vault",
+                        intent="compare",
+                        constraints=constraints,
+                        confidentiality_profile="standard",
+                    )
+
+    def test_sparse_retrieval_payload_date_range_rejects_unordered_sets(self) -> None:
+        payload = {
+            "query": {
+                "query_text": "memo comparison",
+                "scope": "vault",
+                "intent": "compare",
+                "constraints": {
+                    "doc_types": {"Memo", "pdf", "memo"},
+                    "date_range": {"2026-01-01", "2026-01-31"},
+                },
+            },
+            "policy": {
+                "retrieval_backend": "sqlite_fts",
+                "retrieval_mode": "fts_first",
+                "active_strategy_ids": ("fts",),
+                "deferred_strategy_ids": ("pageindex", "embeddings"),
+            },
+            "retrieval_backend": "sqlite_fts",
+            "retrieval_mode": "fts_first",
+            "retrieval_summary": {
+                "query_fingerprint": "query-fingerprint",
+                "citation_status": {"required": False, "available": False, "satisfied": True},
+            },
+        }
+
+        with self.assertRaisesRegex(TypeError, "date_range must be an ordered iterable"):
+            _build_retrieval_source_bundle_from_payload(payload)
+
     def test_retrieval_query_constructor_accepts_constraints_dataclass(self) -> None:
         constraints = RetrievalConstraints(
             max_results=7,
