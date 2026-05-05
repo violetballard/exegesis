@@ -7,7 +7,7 @@ import re
 import sqlite3
 import uuid
 from contextlib import contextmanager
-from dataclasses import dataclass, field
+from dataclasses import dataclass, field, replace
 from datetime import UTC, date, datetime
 from pathlib import Path
 from tempfile import NamedTemporaryFile
@@ -923,7 +923,7 @@ class RetrievalService:
         downstream engine callers can depend on a single auditable strategy.
         """
         self._validate_query(query)
-        return self._run_fts_first_retrieval(query)
+        return self._run_fts_first_retrieval(self._canonicalize_query_scope(query))
 
     def retrieve_fts_payload(self, query: RetrievalQuery) -> dict[str, object]:
         """Return the canonical downstream payload for a single FTS retrieval."""
@@ -2404,6 +2404,21 @@ class RetrievalService:
         if query.confidentiality_profile == "confidential":
             # No network strategies are enabled in this retrieval implementation.
             pass
+
+    @staticmethod
+    def _canonicalize_query_scope(query: RetrievalQuery) -> RetrievalQuery:
+        scope = query.scope
+        if scope.startswith("doc:"):
+            doc_id = scope.split(":", 1)[1].strip()
+            canonical_scope = f"doc:{doc_id}"
+        elif scope.startswith("collection:"):
+            collection_id = scope.split(":", 1)[1].strip()
+            canonical_scope = f"collection:{collection_id}"
+        else:
+            canonical_scope = scope
+        if canonical_scope == query.scope:
+            return query
+        return replace(query, scope=canonical_scope)
 
     @staticmethod
     def _safe_title_hint(query: RetrievalQuery, value: str) -> str | None:
