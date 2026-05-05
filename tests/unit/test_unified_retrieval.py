@@ -574,6 +574,27 @@ class UnifiedRetrievalTests(unittest.TestCase):
             payload["retrieval_evidence"]["doc_citations"][0]["result_fingerprint"],
             result.result_fingerprint,
         )
+        evidence_doc_citation = payload["retrieval_evidence"]["doc_citations"][0]
+        provenance_doc_citation = payload["retrieval_provenance"]["doc_citations"][0]
+        for field_name in (
+            "title_hint",
+            "doc_rank",
+            "top_excerpt_span",
+            "top_matched_terms",
+            "top_match_count",
+            "retrieval_backend",
+            "retrieval_mode",
+            "source_strategy",
+        ):
+            self.assertEqual(evidence_doc_citation[field_name], provenance_doc_citation[field_name])
+        self.assertEqual(
+            evidence_doc_citation["top_excerpt_fingerprint"],
+            provenance_doc_citation["top_excerpt_fingerprint"],
+        )
+        self.assertEqual(
+            evidence_doc_citation["top_excerpt_text_hash"],
+            provenance_doc_citation["top_excerpt_text_hash"],
+        )
         self.assertEqual(
             payload["retrieval_evidence"]["excerpt_citations"][0]["query_fingerprint"],
             result.diagnostics["query_fingerprint"],

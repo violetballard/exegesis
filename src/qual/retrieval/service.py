@@ -1482,18 +1482,25 @@ class RetrievalService:
                 {
                     "doc_id": doc_hit.doc_id,
                     "doc_type": doc_hit.provenance.get("doc_type"),
+                    "title_hint": doc_hit.title_hint,
                     "source_hash": doc_hit.source_hash,
                     "doc_fingerprint": doc_hit.provenance.get("doc_fingerprint"),
                     "doc_identity_fingerprint": doc_hit.provenance.get("doc_identity_fingerprint"),
                     "query_fingerprint": query_fingerprint,
                     "result_fingerprint": result_fingerprint,
+                    "doc_rank": doc_hit.provenance.get("doc_rank"),
                     "top_excerpt_id": doc_hit.top_excerpt_id,
                     "top_excerpt_fingerprint": doc_hit.provenance.get("top_excerpt_fingerprint"),
                     "top_excerpt_text_hash": doc_hit.provenance.get("top_excerpt_text_hash"),
                     "top_excerpt_span": doc_hit.provenance.get("top_excerpt_span"),
+                    "top_matched_terms": doc_hit.provenance.get("top_matched_terms"),
+                    "top_match_count": doc_hit.provenance.get("top_match_count"),
                     "excerpt_ids": list(doc_hit.provenance.get("excerpt_ids", [])),
                     "excerpt_count": doc_hit.excerpt_count,
                     "matched_terms": doc_hit.provenance.get("top_matched_terms"),
+                    "retrieval_backend": doc_hit.provenance.get("retrieval_backend"),
+                    "retrieval_mode": doc_hit.provenance.get("retrieval_mode"),
+                    "source_strategy": doc_hit.provenance.get("source_strategy"),
                 }
             )
 
