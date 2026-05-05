@@ -3891,6 +3891,26 @@ def _validate_command_demo_readiness_handoff_action_contract(
                 )
 
 
+def command_demo_readiness_handoff_action_summary(
+    specs: tuple[CommandSpec, ...] = COMMAND_SPECS,
+    launcher_argv: tuple[str, ...] = COMMAND_SMOKE_CLI_LAUNCHER_ARGV,
+) -> tuple[tuple[int, str, str, str, str, tuple[tuple[str, str], ...]], ...]:
+    return tuple(
+        (
+            step.ordinal,
+            step.demo_path_step,
+            step.flow_step,
+            step.name,
+            step.command_line,
+            step.exact_action_lines,
+        )
+        for step in command_demo_readiness_handoff_action_contract(
+            specs,
+            launcher_argv,
+        ).steps
+    )
+
+
 @lru_cache(maxsize=None)
 def command_demo_readiness_route_contract(
     specs: tuple[CommandSpec, ...] = COMMAND_SPECS,
@@ -7757,6 +7777,20 @@ def command_mvp_demo_readiness_handoff_checklist_lines(
     launcher_argv: tuple[str, ...] = COMMAND_SMOKE_CLI_LAUNCHER_ARGV,
 ) -> tuple[str, ...]:
     return command_demo_readiness_handoff_checklist_lines(specs, launcher_argv)
+
+
+def command_mvp_demo_readiness_handoff_action_contract(
+    specs: tuple[CommandSpec, ...] = COMMAND_SPECS,
+    launcher_argv: tuple[str, ...] = COMMAND_SMOKE_CLI_LAUNCHER_ARGV,
+) -> CommandDemoReadinessHandoffActionContract:
+    return command_demo_readiness_handoff_action_contract(specs, launcher_argv)
+
+
+def command_mvp_demo_readiness_handoff_action_summary(
+    specs: tuple[CommandSpec, ...] = COMMAND_SPECS,
+    launcher_argv: tuple[str, ...] = COMMAND_SMOKE_CLI_LAUNCHER_ARGV,
+) -> tuple[tuple[int, str, str, str, str, tuple[tuple[str, str], ...]], ...]:
+    return command_demo_readiness_handoff_action_summary(specs, launcher_argv)
 
 
 def command_mvp_demo_readiness_route_contract(

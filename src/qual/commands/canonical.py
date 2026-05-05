@@ -43,6 +43,7 @@ from src.qual.commands.catalog import (
     command_mvp_demo_readiness_handoff_packet as _readiness_handoff_packet,
     command_mvp_demo_readiness_handoff_packet_summary as _readiness_handoff_packet_summary,
     command_demo_readiness_handoff_action_contract as _readiness_handoff_action_contract,
+    command_mvp_demo_readiness_handoff_action_summary as _readiness_handoff_action_summary,
     command_mvp_demo_readiness_route_contract as _readiness_route_contract,
     command_mvp_demo_readiness_route_summary as _readiness_route_summary,
     command_mvp_demo_readiness_handoff_summary as _readiness_handoff_summary,
@@ -236,6 +237,7 @@ __all__ = [
     "canonical_command_readiness_handoff_packet",
     "canonical_command_readiness_handoff_packet_summary",
     "canonical_command_readiness_handoff_action_contract",
+    "canonical_command_readiness_handoff_action_summary",
     "canonical_command_readiness_route_contract",
     "canonical_command_readiness_route_summary",
     "canonical_command_readiness_report",
@@ -458,6 +460,13 @@ def canonical_command_readiness_handoff_packet() -> CommandDemoReadinessHandoffP
 
 def canonical_command_readiness_handoff_action_contract() -> CommandDemoReadinessHandoffActionContract:
     return _readiness_handoff_action_contract()
+
+
+def canonical_command_readiness_handoff_action_summary() -> tuple[
+    tuple[int, str, str, str, str, tuple[tuple[str, str], ...]],
+    ...,
+]:
+    return _readiness_handoff_action_summary()
 
 
 def canonical_command_readiness_handoff_packet_summary() -> tuple[
