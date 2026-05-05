@@ -5785,7 +5785,7 @@ def _shell_script_executable_argv(lines: Sequence[str] | str) -> tuple[tuple[str
     executable_argv: list[tuple[str, ...]] = []
     for raw_line in _logical_shell_script_lines(lines):
         line = raw_line.strip()
-        if not line or line.startswith("#") or line == "set -euo pipefail":
+        if not line or line.startswith("#") or _is_shell_strict_mode_setup_line(line):
             continue
         argv = _split_shell_script_line(line)
         for segment_argv in _split_shell_script_command_segments(argv):
@@ -5819,6 +5819,30 @@ def _split_shell_script_command_segments(argv: tuple[str, ...]) -> tuple[tuple[s
     if current_segment:
         segments.append(tuple(current_segment))
     return tuple(segments)
+
+
+def _is_shell_strict_mode_setup_line(line: str) -> bool:
+    argv = _split_shell_script_line(line)
+    if len(argv) < 2 or argv[0] != "set":
+        return False
+    index = 1
+    while index < len(argv):
+        token = argv[index]
+        if token == "-o":
+            if index + 1 >= len(argv) or argv[index + 1] != "pipefail":
+                return False
+            index += 2
+            continue
+        if token.startswith("-") and token[1:] and set(token[1:]).issubset({"e", "u", "o"}):
+            if "o" in token:
+                if index + 1 >= len(argv) or argv[index + 1] != "pipefail":
+                    return False
+                index += 2
+                continue
+            index += 1
+            continue
+        return False
+    return True
 
 
 def _is_shell_script_setup_argv(argv: tuple[str, ...]) -> bool:
