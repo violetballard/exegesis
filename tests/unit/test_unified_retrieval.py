@@ -401,6 +401,28 @@ class UnifiedRetrievalTests(unittest.TestCase):
         self.assertTrue(result.hits)
         self.assertEqual({hit.source_strategy for hit in result.hits}, {"fts"})
 
+    def test_unknown_doc_scope_is_rejected_before_retrieval_evidence(self) -> None:
+        with self.assertRaisesRegex(ValueError, "unknown doc scope: doc-missing"):
+            self.service.retrieve_auto(
+                RetrievalQuery(
+                    query_text="coding comparison",
+                    scope="doc:doc-missing",
+                    intent="lookup",
+                    constraints=RetrievalConstraints(max_results=4),
+                    confidentiality_profile="confidential",
+                )
+            )
+
+        with self.assertRaisesRegex(ValueError, "unknown doc scope: doc-missing"):
+            engine_retrieve_auto(
+                self.service,
+                query_text="coding comparison",
+                scope="doc:  doc-missing  ",
+                intent="lookup",
+                constraints={"max_results": 4},
+                confidentiality_profile="confidential",
+            )
+
     def test_section_scope_is_rejected_until_pageindex_can_resolve_it(self) -> None:
         with self.assertRaisesRegex(ValueError, "section scope is unsupported"):
             self.service.retrieve_auto(

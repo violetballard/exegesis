@@ -2388,8 +2388,12 @@ class RetrievalService:
             raise ValueError("max_results must be greater than zero")
         if query.scope.startswith("section:"):
             raise ValueError("section scope is unsupported until FTS fallback can resolve section targets")
-        if query.scope.startswith("doc:") and not self._doc_scope_id(query.scope):
-            raise ValueError("doc scope must include a document id")
+        if query.scope.startswith("doc:"):
+            doc_scope_id = self._doc_scope_id(query.scope)
+            if not doc_scope_id:
+                raise ValueError("doc scope must include a document id")
+            if doc_scope_id not in self._load_doc_meta():
+                raise ValueError(f"unknown doc scope: {doc_scope_id}")
         if query.scope.startswith("collection:"):
             collection_id = query.scope.split(":", 1)[1].strip()
             if not collection_id:
