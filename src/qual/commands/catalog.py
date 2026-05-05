@@ -4471,10 +4471,10 @@ def _coerce_smoke_argv(argv: Sequence[str] | str) -> tuple[str, ...]:
 
 def _argv_without_launcher(argv: tuple[str, ...], launcher_argv: tuple[str, ...]) -> tuple[str, ...]:
     if argv[: len(launcher_argv)] == launcher_argv:
-        return argv[len(launcher_argv) :]
+        return _strip_launcher_separator(argv[len(launcher_argv) :])
     for supported_launcher_argv in COMMAND_SMOKE_SUPPORTED_LAUNCHER_ARGV:
         if argv[: len(supported_launcher_argv)] == supported_launcher_argv:
-            return argv[len(supported_launcher_argv) :]
+            return _strip_launcher_separator(argv[len(supported_launcher_argv) :])
     for launcher_tail in COMMAND_SMOKE_SUPPORTED_LAUNCHER_TAILS:
         launcher_len = 1 + len(launcher_tail)
         if (
@@ -4482,7 +4482,13 @@ def _argv_without_launcher(argv: tuple[str, ...], launcher_argv: tuple[str, ...]
             and _is_supported_python_launcher(argv[0])
             and _launcher_tail_matches(argv[1:launcher_len], launcher_tail)
         ):
-            return argv[launcher_len:]
+            return _strip_launcher_separator(argv[launcher_len:])
+    return argv
+
+
+def _strip_launcher_separator(argv: tuple[str, ...]) -> tuple[str, ...]:
+    if argv[:1] == ("--",):
+        return argv[1:]
     return argv
 
 
