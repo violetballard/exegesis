@@ -4,7 +4,7 @@
 - Lane: `feat-retrieval-fts`
 - Merge target: current `main`
 - Authoritative merge/review range for the actual integration candidate: `378cf9a74a3658058079a32f186fcd254c4a4034..HEAD`
-- Current pre-fix branch tip audited for this packet refresh: `101619b6`
+- Current pre-fix branch tip audited for this packet refresh: `afde8dd5f`
 - Merge candidate: the branch tip after this traceability fixer commit. It is not `adfa8cdadd43747ffbcb612e4151e262b13e52ca`, `e4f835c50`, or `43654937a196977d7cd53c4e355b4f8ea7fb93b7`.
 - Scope classification: high-risk/shared because the candidate includes approved shared regression coverage in `tests/unit/test_unified_retrieval.py`.
 - Packet type: retrieval feature handoff for the full branch-tip FTS-first retrieval candidate.
@@ -16,6 +16,14 @@ The actual branch-tip candidate keeps SQLite FTS as the only active retrieval pa
 PageIndex and embeddings remain compatibility-only fallback shims and are not reintroduced as required retrieval paths. This packet supersedes earlier narrowed claims that stopped at `adfa8cdadd43747ffbcb612e4151e262b13e52ca`, `e4f835c50`, or `43654937a196977d7cd53c4e355b4f8ea7fb93b7`; re-review should inspect the full `378cf9a74a3658058079a32f186fcd254c4a4034..HEAD` candidate.
 
 ## Required Fixes Addressed
+
+Reviewer packet `fixer__feat-retrieval-fts__20260505T165534Z` requested three fixes:
+
+1. `src.qual.engine.retrieval.__all__` includes `retrieve_auto`.
+2. `tests/unit/test_unified_retrieval.py` expects `retrieve_auto` in the engine retrieval export list and asserts the canonical engine facade exposes it.
+3. This handoff packet maps each completed task to the canonical demo-path step it advances and states that the work makes `retrieve relevant material` more real.
+
+The tracked `.codex/kickoff_packets/feat-retrieval-fts.md` and `.codex/lane_meta/feat-retrieval-fts.json` mirrors remain protected in this lane worktree; both `apply_patch` and shell in-place editing failed with `Operation not permitted` during this fixer pass. `THREAD_PACKET.md` is therefore the refreshed authoritative handoff packet for re-review.
 
 1. Reproduced the reported integrator failure context locally by reading the captured integrator prompt and rerunning the lane/integration gates on the branch-tip candidate; no retrieval test, typecheck, lint, format, scope, CI, or merge-tree conflict failure reproduced.
 2. Fixed the review-facing handoff packet to present the actual branch-tip candidate range. The tracked `.codex` packet mirrors still cannot be edited in this lane sandbox because writes fail with `Operation not permitted`; this was reproduced again during the 2026-05-05 fixer pass. `THREAD_PACKET.md` remains the authoritative corrected feature packet for re-review.
