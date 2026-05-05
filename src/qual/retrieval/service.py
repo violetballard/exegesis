@@ -68,6 +68,16 @@ def _required_compact_text(value: object, *, field_name: str) -> str:
     return text
 
 
+def _parse_date_constraint_value(value: str, *, field_name: str) -> date:
+    try:
+        return datetime.fromisoformat(value).date()
+    except ValueError:
+        try:
+            return date.fromisoformat(value)
+        except ValueError as exc:
+            raise ValueError(f"{field_name} must contain ISO date values") from exc
+
+
 def _optional_list_like(value: object) -> list[object] | None:
     if value is None:
         return None
@@ -102,6 +112,10 @@ class RetrievalConstraints:
             normalized = tuple(str(value).strip() for value in self.date_range)
             if len(normalized) != 2 or any(not value for value in normalized):
                 raise ValueError("date_range must contain exactly two non-empty values")
+            start_date = _parse_date_constraint_value(normalized[0], field_name="date_range")
+            end_date = _parse_date_constraint_value(normalized[1], field_name="date_range")
+            if start_date > end_date:
+                raise ValueError("date_range start must be on or before end")
             object.__setattr__(self, "date_range", normalized)
         object.__setattr__(self, "section_hint", _optional_text(self.section_hint))
 

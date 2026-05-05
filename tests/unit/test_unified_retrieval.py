@@ -196,6 +196,13 @@ class UnifiedRetrievalTests(unittest.TestCase):
         self.assertEqual(compact.to_downstream_payload()["query"]["constraints"]["section_hint"], "discussion")
         self.assertEqual(spaced.to_downstream_payload()["query"]["constraints"]["section_hint"], "discussion")
 
+    def test_retrieval_constraints_reject_invalid_date_ranges(self) -> None:
+        with self.assertRaisesRegex(ValueError, "date_range must contain ISO date values"):
+            RetrievalConstraints(date_range=("2026-01-01", "not-a-date"))
+
+        with self.assertRaisesRegex(ValueError, "date_range start must be on or before end"):
+            RetrievalConstraints(date_range=("2026-02-01", "2026-01-01"))
+
     def test_retrieve_auto_reports_stable_fts_shortlist_doc_ids(self) -> None:
         query = RetrievalQuery(
             query_text="theory implications",
