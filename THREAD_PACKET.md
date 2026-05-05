@@ -3,17 +3,18 @@
 - Branch name: `codex/feat-retrieval-fts`
 - Lane: `feat-retrieval-fts`
 - Merge target: current `main`
-- Merge candidate for re-review: branch tip `HEAD` on `codex/feat-retrieval-fts` after this packet traceability fixer commit; the exact final SHA is reported in the fixer deliverable.
-- Reviewed implementation range for re-review: `main...HEAD`, currently anchored at merge-base `20e79e4e2984b6cbf19fc81139a0ed012ecd141c`.
+- Merge candidate for re-review: branch tip `HEAD` on `codex/feat-retrieval-fts` after this packet traceability fixer commit; before this fixer the branch tip was `ab8bdf5bc718a13ec5062dd5bcf83640297b8e6b`, and the exact final SHA is reported in the fixer deliverable.
+- Actual merge-candidate diff against `main`: `main...HEAD`, currently anchored at merge-base `20e79e4e2984b6cbf19fc81139a0ed012ecd141c`.
+- Reviewer-requested traceability range: `adfa8cdadd43747ffbcb612e4151e262b13e52ca..HEAD`. This is the historical range that includes every source/test change after the earlier reviewed implementation head, including changes that are already reachable from current `main`.
 - Current merge-base before this fixer pass: `20e79e4e2984b6cbf19fc81139a0ed012ecd141c`
-- Traceability correction: the current re-review range is anchored to the merge-base `20e79e4e2984b6cbf19fc81139a0ed012ecd141c`; no source-bearing commit in `main...HEAD` is excluded from re-review. Earlier packet wording about `378cf9a74a3658058079a32f186fcd254c4a4034..adfa8cdadd43747ffbcb612e4151e262b13e52ca` and about post-`adfa8cdadd43747ffbcb612e4151e262b13e52ca` metadata-only commits is superseded for this branch tip. The reviewer-cited packet refresh commit `d00ee5c38a6b8a49ae0c343a97bc11796b1bac81` is included in `main...HEAD` and is source-bearing implementation work.
-- Implementation commit classification: `19b99a7034e28aadba7ddc7ef20fdf9a2fcbae2a` (`Fail closed on unresolved FTS collection scopes`) changes `src/qual/retrieval/service.py` and `tests/unit/test_unified_retrieval.py`; `d00ee5c38a6b8a49ae0c343a97bc11796b1bac81` (`Expose retrieval candidate resolution`) changes `src/qual/retrieval/service.py` and `src/qual/engine/retrieval/payload.py`. Both are implementation work, not metadata-only work, and both are included in the reviewed implementation range.
+- Traceability correction: the current merge candidate is branch tip `HEAD`, not `adfa8cdadd43747ffbcb612e4151e262b13e52ca` and not `3fa8b5edfd7dac6eb22715eeed64ac8a3325ad52`. Earlier packet wording about `378cf9a74a3658058079a32f186fcd254c4a4034..adfa8cdadd43747ffbcb612e4151e262b13e52ca` and about post-`adfa8cdadd43747ffbcb612e4151e262b13e52ca` metadata-only commits is superseded. No commit with source or test changes in `adfa8cdadd43747ffbcb612e4151e262b13e52ca..HEAD` is described as metadata-only in this packet.
+- Implementation commit classification: `19b99a7034e28aadba7ddc7ef20fdf9a2fcbae2a` (`Fail closed on unresolved FTS collection scopes`) changes `src/qual/retrieval/service.py` and `tests/unit/test_unified_retrieval.py`; `d00ee5c38a6b8a49ae0c343a97bc11796b1bac81` (`Expose retrieval candidate resolution`) changes `src/qual/retrieval/service.py` and `src/qual/engine/retrieval/payload.py`; `3fa8b5edfd7dac6eb22715eeed64ac8a3325ad52` (`Keep sparse basket items authoritative`) changes `src/qual/engine/retrieval/payload.py` and `tests/unit/test_unified_retrieval.py` as well as `THREAD_PACKET.md`. These are implementation commits, not metadata-only commits, and they are included in the reviewer-requested traceability range.
 - Scope classification: high-risk fixer under the 4-task cap because this reviewed range includes approved shared regression coverage in `tests/unit/test_unified_retrieval.py`.
 - Handoff type: retrieval feature fixer handoff for the FTS-first retrieval lane.
 
 ## Scope Completed
 
-This re-review packet covers the complete current merge candidate from `main...HEAD`, including the sparse basket-reference normalization already on this branch, packet-accounting refreshes, the owned-path malformed retrieval-scope guard, the collection-scope fail-closed guard, the owned-path canonical doc-scope normalization, the owned-path sparse query scope canonicalization, the unknown doc-scope fail-closed guard, the candidate-resolution implementation in `d00ee5c38a6b8a49ae0c343a97bc11796b1bac81`, the sparse basket item authority fix, and this packet traceability refresh. No source-bearing commit after merge-base `20e79e4e2984b6cbf19fc81139a0ed012ecd141c` is hidden behind metadata-only wording.
+This re-review packet covers the complete current merge candidate from `main...HEAD` and the reviewer-requested historical traceability range `adfa8cdadd43747ffbcb612e4151e262b13e52ca..HEAD`. That range includes sparse basket-reference normalization, packet-accounting refreshes, the owned-path malformed retrieval-scope guard, the collection-scope fail-closed guard, the owned-path canonical doc-scope normalization, the owned-path sparse query scope canonicalization, the unknown doc-scope fail-closed guard, the candidate-resolution implementation in `d00ee5c38a6b8a49ae0c343a97bc11796b1bac81`, the sparse basket item authority fix in `3fa8b5edfd7dac6eb22715eeed64ac8a3325ad52`, and this packet traceability refresh. No source-bearing commit after `adfa8cdadd43747ffbcb612e4151e262b13e52ca` is hidden behind metadata-only wording.
 
 The implementation keeps SQLite FTS as the authoritative retrieval path. It exports canonical FTS excerpt fetch helpers through retrieval facades, normalizes FTS strategy hit snapshots, stabilizes payload and provenance reconstruction, exposes deterministic excerpt fingerprints, fails closed if internal excerpt payload normalization or sparse basket-promotion rehydration is asked to accept a non-FTS source strategy, and carries canonical basket promotion IDs, counts, fingerprints, query/result fingerprints, query context, and doc identity fingerprints through canonical excerpt bundles, retrieval evidence, retrieval summaries, provenance snapshots, and sparse engine payload backfills.
 
@@ -36,7 +37,7 @@ PageIndex and embeddings remain deferred/compatibility-only paths and are not in
 
 ## Files Changed
 
-- `THREAD_PACKET.md` - updates this handoff packet for the complete reviewed implementation range and explicitly classifies packet-only versus implementation commits, including the reviewer-cited source-bearing `d00ee5c38a6b8a49ae0c343a97bc11796b1bac81` packet refresh commit.
+- `THREAD_PACKET.md` - updates this handoff packet for the complete branch-tip merge candidate and the reviewer-requested post-`adfa8cdadd43747ffbcb612e4151e262b13e52ca` traceability range, explicitly classifying packet-only versus implementation commits, including source-bearing commits `d00ee5c38a6b8a49ae0c343a97bc11796b1bac81` and `3fa8b5edfd7dac6eb22715eeed64ac8a3325ad52`.
 - `src/qual/engine/retrieval/payload.py` - reconstructs and preserves deterministic query, provenance, source bundle, citation, evidence, basket promotion ID/count, fingerprint, query/result fingerprint, query context, doc identity, and candidate-resolution metadata from direct or sparse retrieval snapshots, canonicalizes sparse query scopes and sparse basket item ID/fingerprint lists, treats full basket promotion items as authoritative over stale summary metadata, and rejects explicit non-FTS source strategies during sparse basket promotion rehydration.
 - `src/qual/retrieval/service.py` - implements canonical FTS excerpt lookup, FTS-only excerpt payload normalization, deterministic retrieval/provenance snapshots, FTS cache normalization, basket promotion metadata on canonical evidence, summaries, provenance, and lookup payloads, fail-closed validation for empty `doc:`/`collection:` scopes plus unknown doc scopes and unresolved collection scopes, canonical doc-scope normalization before query fingerprints and downstream payloads are built, and deterministic candidate-resolution snapshots for diagnostics/evidence/audit/doc-hit provenance.
 - `tests/unit/test_unified_retrieval.py` - verifies canonical FTS excerpt lookup, facade exports, deterministic payload/provenance normalization, basket metadata, sparse non-FTS excerpt rejection, sparse duplicate/empty basket reference normalization, sparse basket item authority over stale summary metadata, unknown doc-scope rejection, unresolved collection-scope rejection, and payload reconstruction.
@@ -50,13 +51,25 @@ Shared-by-approval files:
 
 - `tests/unit/test_unified_retrieval.py` - approved shared regression surface for the retrieval lane canonical contract.
 
+Historical post-`adfa8cdadd43747ffbcb612e4151e262b13e52ca` traceability files:
+
+- `.codex/kickoff_packets/feat-retrieval-fts.md` - packet mirror metadata from earlier handoff accounting.
+- `.codex/lane_meta/feat-retrieval-fts.json` - lane metadata from earlier handoff accounting.
+- `THREAD_PACKET.md` - handoff packet updates across the historical range and this fixer.
+- `src/qual/engine/retrieval/__init__.py` - engine retrieval facade exports for canonical excerpt helpers.
+- `src/qual/engine/retrieval/fts_strategy.py` - FTS strategy hit snapshot normalization.
+- `src/qual/engine/retrieval/payload.py` - engine retrieval payload reconstruction, sparse snapshot canonicalization, candidate-resolution backfill, and sparse basket item authority.
+- `src/qual/retrieval/__init__.py` - retrieval facade exports for canonical excerpt helpers.
+- `src/qual/retrieval/service.py` - FTS-only excerpt lookup, scope fail-closed behavior, candidate resolution, basket metadata, and deterministic payload/provenance snapshots.
+- `tests/unit/test_unified_retrieval.py` - approved shared regression coverage for the canonical FTS retrieval contract.
+
 Integrator-locked files: none.
 
 ## Budget/Risk
 
 - Task budget: `4/4` high-risk tasks.
-- File budget: the complete branch-tip review range changes `4` files, within the high-risk `<=8 files` limit.
-- Net LOC: after this fixer pass, `git diff --shortstat $(git merge-base main HEAD) -- THREAD_PACKET.md src/qual/engine/retrieval/payload.py src/qual/retrieval/service.py tests/unit/test_unified_retrieval.py` reports `4 files changed, 342 insertions(+), 67 deletions(-)`, for `+275` net LOC, within the high-risk `<=300 net LOC` limit.
+- File budget: the actual merge-candidate diff `main...HEAD` changes `4` files, within the high-risk `<=8 files` limit. The reviewer-requested historical traceability range `adfa8cdadd43747ffbcb612e4151e262b13e52ca..HEAD` changes `9` files, which is over the high-risk file budget and is called out here for re-review instead of being narrowed or hidden.
+- Net LOC: after this fixer packet edit, `git diff --shortstat $(git merge-base main HEAD)` reports `4 files changed, 355 insertions(+), 67 deletions(-)`, for `+288` net LOC in the actual merge candidate. The reviewer-requested historical traceability range `adfa8cdadd43747ffbcb612e4151e262b13e52ca..HEAD` reports `9 files changed, 2106 insertions(+), 204 deletions(-)`, for `+1902` net LOC, which is over the high-risk LOC budget and is explicitly disclosed for traceability.
 - Shared-file approval note: `tests/unit/test_unified_retrieval.py` is the approved shared-by-approval regression file for this lane.
 - Routing/provider impact: none.
 - PageIndex/embeddings impact: none; both remain deferred/compatibility-only.
