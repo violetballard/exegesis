@@ -840,6 +840,52 @@ _DEMO_ACTION_SMOKE_ARGV_BY_ENGINE_ACTION: tuple[tuple[str, tuple[str, ...]], ...
         ),
     ),
 )
+_DEMO_EXACT_ACTION_SMOKE_ARGV_BY_ENGINE_ACTION: tuple[tuple[str, tuple[str, ...]], ...] = (
+    ("ExegesisAppService.open_project", ("bootstrap", "--project", "demo-project")),
+    ("ExegesisAppService.open_document", ("bootstrap", "--project", "demo-document")),
+    ("ExegesisAppService.search_project", ("context-basket", "list")),
+    ("ExegesisAppService.add_basket_item", ("context-basket", "add", "demo-retrieval-result")),
+    (
+        "ExegesisAppService.revise_selection",
+        (
+            "diff-preview",
+            "--original",
+            "draft text before revision",
+            "--proposed",
+            "revised draft text",
+        ),
+    ),
+    (
+        "ExegesisAppService.apply_patch",
+        (
+            "diff-preview",
+            "--original",
+            "draft text before apply",
+            "--proposed",
+            "applied draft text",
+        ),
+    ),
+    (
+        "ExegesisAppService.reject_patch",
+        (
+            "diff-preview",
+            "--original",
+            "draft text before reject",
+            "--proposed",
+            "rejected draft text",
+        ),
+    ),
+    (
+        "ExegesisAppService.save_document",
+        (
+            "terminal",
+            "--operation-kind",
+            "terminal_synthesis_request",
+            "--message",
+            "persist and continue",
+        ),
+    ),
+)
 _SMOKE_VALUE_AGNOSTIC_OPTIONS_BY_COMMAND: tuple[tuple[str, tuple[str, ...]], ...] = (
     ("bootstrap", ("--project",)),
     ("diff-preview", ("--original", "--proposed")),
@@ -882,6 +928,33 @@ def _demo_action_smoke_argv_for(route_entry: CommandDemoActionRouteEntry) -> tup
     if action_argv is None:
         raise ValueError(f"Missing command demo action smoke argv: {route_entry.engine_action}")
     return action_argv
+
+
+def _demo_exact_action_smoke_argv_by_engine_action(
+    specs: tuple[CommandSpec, ...],
+) -> dict[str, tuple[str, ...]]:
+    expected_actions = set(command_demo_engine_actions(specs))
+    argv_by_action: dict[str, tuple[str, ...]] = {}
+    seen_argv: set[tuple[str, ...]] = set()
+    for engine_action, argv in _DEMO_EXACT_ACTION_SMOKE_ARGV_BY_ENGINE_ACTION:
+        if engine_action not in expected_actions:
+            raise ValueError(f"Unknown command demo exact action smoke argv: {engine_action}")
+        if engine_action in argv_by_action:
+            raise ValueError(f"Duplicate command demo exact action smoke argv action: {engine_action}")
+        if not argv or any(not token.strip() for token in argv):
+            raise ValueError(f"Command demo exact action smoke argv must not be empty: {engine_action}")
+        if argv in seen_argv:
+            raise ValueError(f"Duplicate command demo exact action smoke argv: {engine_action}")
+        seen_argv.add(argv)
+        argv_by_action[engine_action] = argv
+    missing_actions = tuple(
+        engine_action
+        for engine_action in command_demo_engine_actions(specs)
+        if engine_action not in argv_by_action
+    )
+    if missing_actions:
+        raise ValueError(f"Missing command demo exact action smoke argv: {', '.join(missing_actions)}")
+    return argv_by_action
 
 
 def _validate_demo_action_smoke_argv_coverage(
@@ -3000,7 +3073,6 @@ def _validate_command_demo_readiness_action_contract(
         if entry.action_command_argv[: len(launcher_argv)] != launcher_argv:
             raise ValueError(f"Command demo readiness action launcher is inconsistent: {entry.engine_action}")
 
-
 def command_demo_readiness_action_summary(
     specs: tuple[CommandSpec, ...] = COMMAND_SPECS,
     launcher_argv: tuple[str, ...] = COMMAND_SMOKE_CLI_LAUNCHER_ARGV,
@@ -4757,6 +4829,41 @@ def command_demo_readiness_action_entries_for_argv(
     )
 
 
+@lru_cache(maxsize=None)
+def command_demo_readiness_exact_action_argv_lookup_table(
+    specs: tuple[CommandSpec, ...] = COMMAND_SPECS,
+    launcher_argv: tuple[str, ...] = COMMAND_SMOKE_CLI_LAUNCHER_ARGV,
+) -> tuple[tuple[tuple[str, ...], str], ...]:
+    _validate_command_smoke_cli_launcher(launcher_argv)
+    exact_argv_by_action = _demo_exact_action_smoke_argv_by_engine_action(specs)
+    return tuple(
+        ((*launcher_argv, *exact_argv_by_action[engine_action]), engine_action)
+        for engine_action in command_demo_engine_actions(specs)
+    )
+
+
+def command_demo_readiness_exact_action_for_argv(
+    argv: Sequence[str] | str,
+    specs: tuple[CommandSpec, ...] = COMMAND_SPECS,
+    launcher_argv: tuple[str, ...] = COMMAND_SMOKE_CLI_LAUNCHER_ARGV,
+) -> str | None:
+    requested_argv = _normalize_smoke_argv(_coerce_smoke_argv(argv))
+    if not requested_argv:
+        return None
+    requested_launcher_argv = _detected_launcher_argv(requested_argv)
+    requested_command_argv = _argv_without_launcher(requested_argv, launcher_argv)
+    requested_canonical_command_argv = _canonicalize_smoke_command_argv(specs, requested_command_argv)
+    lookup = dict(command_demo_readiness_exact_action_argv_lookup_table(specs, launcher_argv))
+    for action_argv, engine_action in lookup.items():
+        action_command_argv = _argv_without_launcher(action_argv, launcher_argv)
+        canonical_action_argv = _canonical_argv_with_requested_launcher(action_argv, requested_launcher_argv)
+        if requested_argv in {action_argv, action_command_argv, canonical_action_argv}:
+            return engine_action
+        if requested_canonical_command_argv == action_command_argv:
+            return engine_action
+    return None
+
+
 def command_demo_readiness_engine_action_matches_for_argv(
     argv: Sequence[str] | str,
     specs: tuple[CommandSpec, ...] = COMMAND_SPECS,
@@ -6494,6 +6601,21 @@ def command_mvp_demo_readiness_action_entry(
     launcher_argv: tuple[str, ...] = COMMAND_SMOKE_CLI_LAUNCHER_ARGV,
 ) -> CommandDemoReadinessActionEntry | None:
     return command_demo_readiness_action_entry(engine_action, specs, launcher_argv)
+
+
+def command_mvp_demo_readiness_exact_action_argv_lookup_table(
+    specs: tuple[CommandSpec, ...] = COMMAND_SPECS,
+    launcher_argv: tuple[str, ...] = COMMAND_SMOKE_CLI_LAUNCHER_ARGV,
+) -> tuple[tuple[tuple[str, ...], str], ...]:
+    return command_demo_readiness_exact_action_argv_lookup_table(specs, launcher_argv)
+
+
+def command_mvp_demo_readiness_exact_action_for_argv(
+    argv: Sequence[str] | str,
+    specs: tuple[CommandSpec, ...] = COMMAND_SPECS,
+    launcher_argv: tuple[str, ...] = COMMAND_SMOKE_CLI_LAUNCHER_ARGV,
+) -> str | None:
+    return command_demo_readiness_exact_action_for_argv(argv, specs, launcher_argv)
 
 
 def command_mvp_demo_readiness_action_entries_for_argv(

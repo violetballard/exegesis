@@ -63,6 +63,8 @@ from src.qual.commands.catalog import (
     validate_command_catalog,
     command_demo_readiness_command_for_argv,
     command_demo_readiness_entry_for_argv,
+    command_demo_readiness_exact_action_for_argv,
+    command_demo_readiness_exact_action_argv_lookup_table,
     command_demo_readiness_validate_shell_script_lines,
     COMMAND_SMOKE_CLI_LAUNCHER_ARGV,
 )
@@ -743,6 +745,51 @@ class CommandCatalogTests(unittest.TestCase):
         self.assertIsNotNone(entry)
         self.assertEqual(entry.name, "bootstrap")
         self.assertEqual(entry.flow_step, "project-open")
+
+    def test_demo_action_readiness_has_exact_action_smoke_argv(self) -> None:
+        lookup = command_demo_readiness_exact_action_argv_lookup_table()
+        self.assertEqual(len({argv for argv, _ in lookup}), len(lookup))
+
+        cases = {
+            "python -m src.main bootstrap --project demo-project": "ExegesisAppService.open_project",
+            "python -m src.main bootstrap --project demo-document": "ExegesisAppService.open_document",
+            "python -m src.main context-basket list": "ExegesisAppService.search_project",
+            "python -m src.main context-basket add demo-retrieval-result": (
+                "ExegesisAppService.add_basket_item"
+            ),
+            (
+                "python -m src.main diff-preview --original 'draft text before revision' "
+                "--proposed 'revised draft text'"
+            ): "ExegesisAppService.revise_selection",
+            (
+                "python -m src.main diff-preview --original 'draft text before apply' "
+                "--proposed 'applied draft text'"
+            ): "ExegesisAppService.apply_patch",
+            (
+                "python -m src.main diff-preview --original 'draft text before reject' "
+                "--proposed 'rejected draft text'"
+            ): "ExegesisAppService.reject_patch",
+            (
+                "python -m src.main terminal --operation-kind terminal_synthesis_request "
+                "--message 'persist and continue'"
+            ): "ExegesisAppService.save_document",
+        }
+        for argv, expected_action in cases.items():
+            with self.subTest(argv=argv):
+                self.assertEqual(command_demo_readiness_exact_action_for_argv(argv), expected_action)
+
+    def test_exact_action_lookup_preserves_broad_compatibility_matching(self) -> None:
+        self.assertIsNone(
+            command_demo_readiness_exact_action_for_argv(
+                "python -m src.main diff-preview --original draft --proposed revised"
+            )
+        )
+        self.assertEqual(
+            command_demo_readiness_command_for_argv(
+                "python -m src.main diff-preview --original draft --proposed revised"
+            ),
+            "diff-preview",
+        )
 
 
 if __name__ == "__main__":
