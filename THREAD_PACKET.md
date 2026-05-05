@@ -4,7 +4,7 @@
 - Lane: `feat-retrieval-fts`
 - Merge target: current `main`
 - Authoritative merge/review range for the actual integration candidate: `378cf9a74a3658058079a32f186fcd254c4a4034..HEAD`
-- Current pre-fix branch tip audited for this source/test surface: `c3ae564a7`
+- Current pre-fix branch tip audited for this packet refresh: `0c1b4f7d7`
 - Merge candidate: the branch tip after this traceability fixer commit. It is not `adfa8cdadd43747ffbcb612e4151e262b13e52ca`, `e4f835c50`, or `43654937a196977d7cd53c4e355b4f8ea7fb93b7`.
 - Scope classification: high-risk/shared because the candidate includes approved shared regression coverage in `tests/unit/test_unified_retrieval.py`.
 - Packet type: retrieval feature handoff for the full branch-tip FTS-first retrieval candidate.
@@ -18,7 +18,7 @@ PageIndex and embeddings remain compatibility-only fallback shims and are not re
 ## Required Fixes Addressed
 
 1. Reproduced the reported integrator failure context locally by reading the captured integrator prompt and rerunning the lane/integration gates on the branch-tip candidate; no retrieval test, typecheck, lint, format, scope, CI, or merge-tree conflict failure reproduced.
-2. Fixed the review-facing handoff packet to present the actual branch-tip candidate range. The tracked `.codex` packet mirrors still cannot be edited in this lane sandbox because writes fail with `Operation not permitted`, so `THREAD_PACKET.md` remains the authoritative corrected feature packet for re-review.
+2. Fixed the review-facing handoff packet to present the actual branch-tip candidate range. The tracked `.codex` packet mirrors still cannot be edited in this lane sandbox because writes fail with `Operation not permitted`; this was reproduced again during the 2026-05-05 fixer pass. `THREAD_PACKET.md` remains the authoritative corrected feature packet for re-review.
 3. Kept post-`adfa8cdadd43747ffbcb612e4151e262b13e52ca` commits classified accurately: commits touching `src/qual/engine/retrieval/**`, `src/qual/retrieval/**`, or `tests/unit/test_unified_retrieval.py` are implementation commits, not metadata-only commits.
 4. Tightened FTS matched-term provenance to use token-exact matches, preventing partial substrings such as `the` in `theory` from being reported as retrieval evidence.
 5. Preserved the engine retrieval package's FTS-only export contract after a focused regression rejected exporting deferred shim classes from `src.qual.engine.retrieval`.
@@ -52,7 +52,7 @@ The branch contains implementation commits after `adfa8cdadd43747ffbcb612e4151e2
 - `src/qual/retrieval/service.py`: post-`adfa8cd` FTS service, citation, evidence context, basket promotion, query snapshot, canonical doc-type ingestion, and policy-bound fingerprint commits are implementation.
 - `tests/unit/test_unified_retrieval.py`: post-`adfa8cd` shared regression coverage commits are implementation-test commits under the approved shared-file exception.
 - `THREAD_PACKET.md`, `.codex/kickoff_packets/feat-retrieval-fts.md`, and `.codex/lane_meta/feat-retrieval-fts.json`: packet and lane metadata refresh commits are metadata.
-- Current fixer commit canonicalizes sparse confidentiality profile snapshots in retrieval payload rehydration and does not change the engine package facade's FTS-only export list.
+- The pre-refresh branch tip `0c1b4f7d7` canonicalizes sparse confidentiality profile snapshots in retrieval payload rehydration and does not change the engine package facade's FTS-only export list.
 
 ## Files Changed
 
@@ -67,7 +67,7 @@ Authoritative candidate files changed for `378cf9a74a3658058079a32f186fcd254c4a4
 - `src/qual/retrieval/service.py` - keeps FTS as the authoritative lookup path, canonicalizes ingested document types, and emits deterministic result/query/policy-bound basket fingerprints and token-exact matched-term provenance.
 - `tests/unit/test_unified_retrieval.py` - approved shared regression coverage for cache invalidation, deterministic payloads, facade exports, basket refs, sparse basket fingerprint backfill, FTS-only excerpt lookup, and token-exact matched terms.
 
-Full corrected candidate stat including this packet refresh: `8 files changed, 1088 insertions(+), 209 deletions(-)`.
+Full corrected candidate stat including this packet refresh: `8 files changed, 1120 insertions(+), 211 deletions(-)`.
 
 Source/test surface included for review:
 
@@ -77,11 +77,11 @@ Source/test surface included for review:
 - `src/qual/retrieval/service.py`
 - `tests/unit/test_unified_retrieval.py`
 
-Source/test stat included for implementation review: `5 files changed, 776 insertions(+), 121 deletions(-)`.
+Source/test stat included for implementation review: `5 files changed, 795 insertions(+), 123 deletions(-)`.
 
-Current fixer source/test delta before this packet refresh: `1 file changed, 9 insertions(+), 3 deletions(-)`.
+Current fixer source/test delta before this packet refresh: `0 files changed`; this pass is metadata-only and does not alter retrieval source or tests.
 
-Current fixer delta including this packet refresh: `2 files changed, 25 insertions(+), 13 deletions(-)`.
+Current fixer delta including this packet refresh: `1 file changed, 16 insertions(+), 6 deletions(-)`; only `THREAD_PACKET.md` is updated because `.codex` packet mirrors remain protected by `Operation not permitted`.
 
 Lane-owned source files:
 
@@ -107,8 +107,8 @@ Integrator-locked files:
 - Task budget: `4/4` high-risk tasks; this fixer is part of task 3, deterministic payload/source/context snapshots.
 - File budget: `8/8` high-risk files in the corrected candidate.
 - Source/test file count: `5` files.
-- Full corrected candidate net LOC including this reviewer-fix packet refresh: `+879`.
-- Source/test net LOC included for implementation review: `+655`.
+- Full corrected candidate net LOC including this reviewer-fix packet refresh: `+909`.
+- Source/test net LOC included for implementation review: `+672`.
 - Size exception required: yes. The candidate exceeds the AGENTS.md high-risk `<=300` net LOC guideline because the actual branch-tip surface includes the full retrieval payload/service/test implementation, not only the earlier narrowed packet slice.
 - Explicit size exception request: approve review of the full `378cf9a74a3658058079a32f186fcd254c4a4034..HEAD` candidate as a single high-risk retrieval handoff because splitting the already-committed branch tip would reintroduce the traceability gap the reviewer flagged.
 - Shared-file approval note: `tests/unit/test_unified_retrieval.py` is included as the approved shared-by-approval regression surface for the retrieval lane.
@@ -123,12 +123,22 @@ Integrator-locked files:
 - Canonical demo-path mapping:
   - `retrieve relevant material`: tasks 1, 2, and 3 keep FTS authoritative, deterministic, and promotion-ready for engine retrieval.
   - `promote or gather context into the basket`: task 4 makes retrieved evidence traceable through deterministic basket refs and policy-bound item fingerprints.
+- Final canonical demo-path statement: FTS-first retrieval now makes `retrieve relevant material` more real by returning deterministic, auditable FTS excerpts and failing closed for PageIndex-only excerpt IDs.
 - Routing/provider impact note: none.
 - Proposed `README.md` patch text: none.
 
 ## Commands Run
 
-Required gates for the corrected candidate, rerun on 2026-05-05 for this fixer pass:
+Required gates for the corrected candidate, rerun on 2026-05-05 for this fixer pass after the packet traceability refresh:
+
+- `make scope-check` PASS, scope-check skipped branch policy and passed for `codex/feat-retrieval-fts`.
+- `./quality-format.sh --check` PASS.
+- `./quality-lint.sh` PASS.
+- `./quality-test.sh` PASS, smoke plus 128 unit tests.
+- `./typecheck-test.sh` PASS, Python sources under `src/` compile.
+- `make ci` PASS, includes scope-check, format, lint, typecheck, and 128 unit tests.
+
+Earlier focused evidence preserved from prior branch-tip fixer work:
 
 - `pytest tests/unit/test_unified_retrieval.py` FAIL, `pytest` executable unavailable in this shell.
 - `python -m pytest tests/unit/test_unified_retrieval.py` FAIL, active Python has no `pytest` module.
@@ -151,4 +161,4 @@ Focused gate already run earlier in this branch:
 
 ## Risks/Blockers
 
-No implementation blocker is known. The remaining reviewer-facing risks are the requested AGENTS.md size exception for the full high-risk branch-tip candidate and the protected `.codex` packet mirrors, which still cannot be edited from this lane worktree because writes fail with `Operation not permitted`. `THREAD_PACKET.md` is the corrected authoritative handoff packet for re-review and records the reviewed implementation range as `378cf9a74a3658058079a32f186fcd254c4a4034..HEAD`.
+No implementation blocker is known. The remaining reviewer-facing risks are the requested AGENTS.md size exception for the full high-risk branch-tip candidate and the protected `.codex` packet mirrors, which still cannot be edited from this lane worktree because writes fail with `Operation not permitted`. That protected-mirror write failure was reproduced during this fixer pass. `THREAD_PACKET.md` is the corrected authoritative handoff packet for re-review and records the reviewed implementation range as `378cf9a74a3658058079a32f186fcd254c4a4034..HEAD`.
