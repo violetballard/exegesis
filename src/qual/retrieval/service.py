@@ -988,6 +988,7 @@ class RetrievalService:
                 "retrieval_backend": excerpt.get("retrieval_backend"),
                 "retrieval_mode": excerpt.get("retrieval_mode"),
                 "retrieval_policy": copy.deepcopy(self._retrieval_policy.as_snapshot()),
+                "title_hint": excerpt.get("title_hint"),
                 "source_hash": excerpt.get("source_hash"),
                 "text_hash": excerpt.get("text_hash"),
                 "excerpt_fingerprint": excerpt.get("excerpt_fingerprint"),
@@ -1817,6 +1818,7 @@ class RetrievalService:
                     "excerpt_id": excerpt_id,
                     "doc_id": doc_id,
                     "doc_type": str(row["doc_type"]),
+                    "title_hint": self._safe_lookup_title_hint(str(row["title_hint"] or "")),
                     "source_hash": self._doc_source_hash(doc_id),
                     "source_strategy": "fts",
                     "span": {"char_range": {"start": int(row["char_start"]), "end": int(row["char_end"])}},
@@ -1958,6 +1960,22 @@ class RetrievalService:
         else:
             doc_type = None
 
+        title_hint = normalized.get("title_hint")
+        if isinstance(title_hint, str):
+            title_hint = title_hint.strip() or None
+        else:
+            title_hint = None
+        if title_hint is None:
+            provenance_title_hint = provenance.get("title_hint")
+            if isinstance(provenance_title_hint, str):
+                title_hint = provenance_title_hint.strip() or None
+        if title_hint is None:
+            meta_title_hint = doc_meta.get("title_hint")
+            if isinstance(meta_title_hint, str):
+                title_hint = meta_title_hint.strip() or None
+        if title_hint is not None:
+            normalized["title_hint"] = title_hint
+
         doc_identity_fingerprint = normalized.get("doc_identity_fingerprint")
         if not isinstance(doc_identity_fingerprint, str) or not doc_identity_fingerprint:
             provenance_doc_identity_fingerprint = provenance.get("doc_identity_fingerprint")
@@ -2019,6 +2037,8 @@ class RetrievalService:
                 normalized_provenance["source_hash"] = source_hash
             if isinstance(doc_type, str) and doc_type:
                 normalized_provenance["doc_type"] = doc_type
+            if title_hint is not None:
+                normalized_provenance["title_hint"] = title_hint
             if canonical_span is not None:
                 normalized_provenance["span"] = canonical_span
             normalized_provenance["text_hash"] = text_hash
@@ -2164,6 +2184,12 @@ class RetrievalService:
         if query.confidentiality_profile == "confidential":
             return f"doc:{hashlib.sha256(value.encode('utf-8')).hexdigest()[:10]}"
         return value[:80]
+
+    @staticmethod
+    def _safe_lookup_title_hint(value: str) -> str | None:
+        if not value:
+            return None
+        return f"doc:{hashlib.sha256(value.encode('utf-8')).hexdigest()[:10]}"
 
     def _read_encrypted_json(self, path: Path, *, default: object) -> object:
         if not path.exists():

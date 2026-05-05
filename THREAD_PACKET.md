@@ -4,14 +4,14 @@
 - Lane: `feat-retrieval-fts`
 - Merge target: current `main`
 - Authoritative merge/review range for the actual integration candidate: `378cf9a74a3658058079a32f186fcd254c4a4034..HEAD`
-- Current pre-fix branch tip audited for this packet refresh: `45871fe6d`
+- Current pre-fix branch tip audited for this packet refresh: `2c5da4866`
 - Merge candidate: the branch tip after this traceability fixer commit. It is not `adfa8cdadd43747ffbcb612e4151e262b13e52ca`, `e4f835c50`, or `43654937a196977d7cd53c4e355b4f8ea7fb93b7`.
 - Scope classification: high-risk/shared because the candidate includes approved shared regression coverage in `tests/unit/test_unified_retrieval.py`.
 - Packet type: retrieval feature handoff for the full branch-tip FTS-first retrieval candidate.
 
 ## Scope Completed
 
-The actual branch-tip candidate keeps SQLite FTS as the only active retrieval path and reconciles the handoff with the full source/test surface from `378cf9a74a3658058079a32f186fcd254c4a4034..HEAD`. The candidate exports canonical retrieval query construction through the engine retrieval facade, normalizes boolean constraints deterministically, removes stale FTS strategy caching, makes payload/source/context snapshots deterministic, canonicalizes missing or blank sparse confidentiality profile snapshots to the canonical confidential default, adds policy-bound basket-promotion item fingerprints, backfills missing basket item fingerprints when sparse context/source snapshots already carry basket refs, keeps excerpt lookup on the canonical FTS-only path so PageIndex-only excerpt IDs fail closed under shared regression coverage, reports matched-term provenance using token-exact FTS-style matching instead of substring matching, canonicalizes ingested document types for stable FTS row metadata and provenance fingerprints, carries query date-range, candidate-count, and FTS shortlist context into the retrieval evidence snapshot for basket/audit consumers, and makes the active FTS strategy module's public symbol contract explicit without exporting deferred shims from the engine package facade.
+The actual branch-tip candidate keeps SQLite FTS as the only active retrieval path and reconciles the handoff with the full source/test surface from `378cf9a74a3658058079a32f186fcd254c4a4034..HEAD`. The candidate exports canonical retrieval query construction through the engine retrieval facade, normalizes boolean constraints deterministically, removes stale FTS strategy caching, makes payload/source/context snapshots deterministic, canonicalizes missing or blank sparse confidentiality profile snapshots to the canonical confidential default, adds policy-bound basket-promotion item fingerprints, backfills missing basket item fingerprints when sparse context/source snapshots already carry basket refs, keeps excerpt lookup on the canonical FTS-only path so PageIndex-only excerpt IDs fail closed under shared regression coverage, preserves safe title hints in canonical FTS excerpt lookup payloads and lookup audit metadata, reports matched-term provenance using token-exact FTS-style matching instead of substring matching, canonicalizes ingested document types for stable FTS row metadata and provenance fingerprints, carries query date-range, candidate-count, and FTS shortlist context into the retrieval evidence snapshot for basket/audit consumers, and makes the active FTS strategy module's public symbol contract explicit without exporting deferred shims from the engine package facade.
 
 PageIndex and embeddings remain compatibility-only fallback shims and are not reintroduced as required retrieval paths. This packet supersedes earlier narrowed claims that stopped at `adfa8cdadd43747ffbcb612e4151e262b13e52ca`, `e4f835c50`, or `43654937a196977d7cd53c4e355b4f8ea7fb93b7`; re-review should inspect the full `378cf9a74a3658058079a32f186fcd254c4a4034..HEAD` candidate.
 
@@ -27,7 +27,8 @@ PageIndex and embeddings remain compatibility-only fallback shims and are not re
 8. Backfilled deterministic `basket_item_fingerprint` values when sparse retrieval context/source snapshots preserve basket promotion refs but lose their fingerprint field.
 9. Canonicalized missing or blank sparse `confidentiality_profile` query snapshots to `confidential` so reconstructed retrieval payload fingerprints do not drift from the default query contract.
 10. Added retrieval evidence context fields for query date-range, effective candidate count, and FTS shortlist IDs so downstream basket/audit consumers do not have to reconstruct that context from diagnostics.
-11. Rerun results for `make scope-check`, `./quality-format.sh --check`, `./quality-lint.sh`, `./quality-test.sh`, `./typecheck-test.sh`, and `make ci` are recorded below against the corrected branch-tip candidate for fresh re-review.
+11. Preserved confidential-safe title hints in canonical FTS-only excerpt lookup payloads, provenance, and lookup audit metadata so basket/context consumers can keep the same document anchor after rehydrating an excerpt ID.
+12. Rerun results for `make scope-check`, `./quality-format.sh --check`, `./quality-lint.sh`, `./quality-test.sh`, `./typecheck-test.sh`, and `make ci` are recorded below against the corrected branch-tip candidate for fresh re-review.
 
 ## Integrator Failure Reproduction
 
@@ -65,8 +66,8 @@ Authoritative candidate files changed for `378cf9a74a3658058079a32f186fcd254c4a4
 - `src/qual/engine/retrieval/__init__.py` - exports canonical query construction with strict optional-boolean normalization.
 - `src/qual/engine/retrieval/fts_strategy.py` - removes stale result caching while preserving the compatibility `clear_cache` hook and explicitly exports only `FTSStrategy`.
 - `src/qual/engine/retrieval/payload.py` - normalizes deterministic retrieval payloads, source/context bundles, sparse query confidentiality profiles, policy-bound basket-promotion items, and sparse snapshot backfill, including missing basket item fingerprints on preserved basket refs.
-- `src/qual/retrieval/service.py` - keeps FTS as the authoritative lookup path, canonicalizes ingested document types, and emits deterministic result/query/policy-bound basket fingerprints, token-exact matched-term provenance, and evidence context for query date-range/candidate shortlist auditability.
-- `tests/unit/test_unified_retrieval.py` - approved shared regression coverage for cache invalidation, deterministic payloads, facade exports, basket refs, sparse basket fingerprint backfill, FTS-only excerpt lookup, token-exact matched terms, and evidence context parity with diagnostics.
+- `src/qual/retrieval/service.py` - keeps FTS as the authoritative lookup path, preserves safe title hints for FTS excerpt lookup payloads/audit metadata, canonicalizes ingested document types, and emits deterministic result/query/policy-bound basket fingerprints, token-exact matched-term provenance, and evidence context for query date-range/candidate shortlist auditability.
+- `tests/unit/test_unified_retrieval.py` - approved shared regression coverage for cache invalidation, deterministic payloads, facade exports, basket refs, sparse basket fingerprint backfill, FTS-only excerpt lookup including safe title hints, token-exact matched terms, and evidence context parity with diagnostics.
 
 Full corrected candidate stat including this packet refresh: `8 files changed, 1120 insertions(+), 211 deletions(-)`.
 
@@ -80,9 +81,9 @@ Source/test surface included for review:
 
 Source/test stat included for implementation review: `5 files changed, 795 insertions(+), 123 deletions(-)`.
 
-Current fixer source/test delta before this packet refresh: `2 files changed, 20 insertions(+)`; this pass updates retrieval evidence context and the approved shared retrieval regression.
+Current fixer source/test delta before this packet refresh: `2 files changed, 30 insertions(+)`; this pass preserves safe FTS lookup title hints in retrieval service payloads/audit metadata and the approved shared retrieval regression.
 
-Current fixer delta including this packet refresh: `3 files changed, 33 insertions(+), 11 deletions(-)`; `.codex` packet mirrors remain protected by `Operation not permitted` from prior fixer verification, so `THREAD_PACKET.md` is the refreshed handoff packet.
+Current fixer delta including this packet refresh: `3 files changed, 40 insertions(+), 8 deletions(-)`; `.codex` packet mirrors remain protected by `Operation not permitted` from prior fixer verification, so `THREAD_PACKET.md` is the refreshed handoff packet.
 
 Lane-owned source files:
 
@@ -130,7 +131,7 @@ Integrator-locked files:
 
 ## Commands Run
 
-Required gates for the corrected candidate, rerun on 2026-05-05 for this fixer pass after the retrieval evidence context refresh:
+Required gates for the corrected candidate, rerun on 2026-05-05 for this fixer pass after the safe FTS lookup title-hint refresh:
 
 - `make scope-check` PASS, scope-check skipped branch policy and passed for `codex/feat-retrieval-fts`.
 - `./quality-format.sh --check` PASS.
@@ -143,6 +144,7 @@ Earlier focused evidence preserved from prior branch-tip fixer work:
 
 - `pytest tests/unit/test_unified_retrieval.py` FAIL, `pytest` executable unavailable in this shell.
 - `python -m pytest tests/unit/test_unified_retrieval.py` FAIL, active Python 3.14 has no `pytest` module.
+- `python3 -m unittest tests.unit.test_unified_retrieval -v` PASS, 59 tests, after preserving confidential-safe title hints through canonical FTS excerpt lookup payloads and provenance.
 - `python3 -m unittest tests.unit.test_unified_retrieval -v` PASS, 59 tests, after adding query date-range, candidate-count, and FTS shortlist context to retrieval evidence snapshots.
 - `python3 -m unittest tests.unit.test_unified_retrieval.UnifiedRetrievalTests.test_retrieval_context_bundle_helper_backfills_sparse_basket_fingerprints tests.unit.test_unified_retrieval.UnifiedRetrievalTests.test_retrieval_context_bundle_helper_rebuilds_sparse_basket_refs_from_excerpt_hits -v` PASS, 2 focused tests, after backfilling missing basket item fingerprints on sparse preserved basket refs.
 - `python3 -m unittest tests.unit.test_unified_retrieval -v` PASS, 58 tests, after reverting an attempted deferred-shim facade export that the focused regression correctly rejected.
