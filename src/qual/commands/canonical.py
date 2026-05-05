@@ -11,6 +11,7 @@ from src.qual.commands.catalog import (
     CommandDemoReadinessCommandTraceContract,
     CommandDemoReadinessEntry,
     CommandDemoExecutionPlanContract,
+    CommandDemoExecutionPlanStep,
     CommandDemoReadinessHandoffChecklistContract,
     CommandDemoReadinessHandoffContract,
     CommandDemoReadinessHandoffLineContract,
@@ -49,6 +50,12 @@ from src.qual.commands.catalog import (
     command_mvp_demo_execution_plan_contract as _execution_plan_contract,
     command_mvp_demo_execution_plan_lookup_table as _execution_plan_lookup_table,
     command_mvp_demo_execution_plan_summary as _execution_plan_summary,
+    command_mvp_demo_execution_plan_step_for_argv as _execution_plan_step_for_argv,
+    command_mvp_demo_execution_plan_step_for_command as _execution_plan_step_for_command,
+    command_mvp_demo_execution_plan_step_for_demo_path_step
+    as _execution_plan_step_for_demo_path_step,
+    command_mvp_demo_execution_plan_step_for_engine_action as _execution_plan_step_for_engine_action,
+    command_mvp_demo_execution_plan_step_for_flow_step as _execution_plan_step_for_flow_step,
     command_mvp_demo_supported_launcher_argv as _supported_launcher_argv,
     command_mvp_demo_supported_launcher_readiness_contract as _supported_launcher_readiness_contract,
     command_mvp_demo_supported_launcher_readiness_lookup_table as _supported_launcher_readiness_lookup_table,
@@ -178,6 +185,11 @@ __all__ = [
     "canonical_command_readiness_command_trace_summary",
     "canonical_command_execution_plan_contract",
     "canonical_command_execution_plan_lookup_table",
+    "canonical_command_execution_plan_step_for_argv",
+    "canonical_command_execution_plan_step_for_command",
+    "canonical_command_execution_plan_step_for_demo_path_step",
+    "canonical_command_execution_plan_step_for_engine_action",
+    "canonical_command_execution_plan_step_for_flow_step",
     "canonical_command_execution_plan_summary",
     "canonical_command_supported_launcher_argv",
     "canonical_command_supported_launcher_readiness_contract",
@@ -412,6 +424,36 @@ def canonical_command_execution_plan_summary() -> tuple[
 
 def canonical_command_execution_plan_lookup_table() -> tuple[tuple[str, tuple[str, ...]], ...]:
     return _execution_plan_lookup_table()
+
+
+def canonical_command_execution_plan_step_for_flow_step(
+    flow_step: str,
+) -> CommandDemoExecutionPlanStep | None:
+    return _execution_plan_step_for_flow_step(flow_step)
+
+
+def canonical_command_execution_plan_step_for_demo_path_step(
+    demo_path_step: str,
+) -> CommandDemoExecutionPlanStep | None:
+    return _execution_plan_step_for_demo_path_step(demo_path_step)
+
+
+def canonical_command_execution_plan_step_for_command(
+    command_name: str,
+) -> CommandDemoExecutionPlanStep | None:
+    return _execution_plan_step_for_command(command_name)
+
+
+def canonical_command_execution_plan_step_for_engine_action(
+    engine_action: str,
+) -> CommandDemoExecutionPlanStep | None:
+    return _execution_plan_step_for_engine_action(engine_action)
+
+
+def canonical_command_execution_plan_step_for_argv(
+    argv: Sequence[str] | str,
+) -> CommandDemoExecutionPlanStep | None:
+    return _execution_plan_step_for_argv(argv)
 
 
 def canonical_command_supported_launcher_argv() -> tuple[tuple[str, ...], ...]:

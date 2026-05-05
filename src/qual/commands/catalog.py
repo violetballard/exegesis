@@ -3753,6 +3753,133 @@ def command_demo_execution_plan_lookup_table(
     )
 
 
+@lru_cache(maxsize=None)
+def _command_demo_execution_plan_step_for_flow_step(
+    specs: tuple[CommandSpec, ...],
+    launcher_argv: tuple[str, ...],
+    flow_step: str,
+) -> CommandDemoExecutionPlanStep | None:
+    requested_flow_step = _normalize_token(flow_step)
+    if not requested_flow_step:
+        return None
+    return next(
+        (
+            step
+            for step in command_demo_execution_plan_contract(specs, launcher_argv).steps
+            if step.flow_step == requested_flow_step
+        ),
+        None,
+    )
+
+
+def command_demo_execution_plan_step_for_flow_step(
+    flow_step: str,
+    specs: tuple[CommandSpec, ...] = COMMAND_SPECS,
+    launcher_argv: tuple[str, ...] = COMMAND_SMOKE_CLI_LAUNCHER_ARGV,
+) -> CommandDemoExecutionPlanStep | None:
+    return _command_demo_execution_plan_step_for_flow_step(specs, launcher_argv, flow_step)
+
+
+@lru_cache(maxsize=None)
+def _command_demo_execution_plan_step_for_demo_path_step(
+    specs: tuple[CommandSpec, ...],
+    launcher_argv: tuple[str, ...],
+    demo_path_step: str,
+) -> CommandDemoExecutionPlanStep | None:
+    requested_demo_path_step = _normalize_token(demo_path_step)
+    if not requested_demo_path_step:
+        return None
+    return next(
+        (
+            step
+            for step in command_demo_execution_plan_contract(specs, launcher_argv).steps
+            if _normalize_token(step.demo_path_step) == requested_demo_path_step
+        ),
+        None,
+    )
+
+
+def command_demo_execution_plan_step_for_demo_path_step(
+    demo_path_step: str,
+    specs: tuple[CommandSpec, ...] = COMMAND_SPECS,
+    launcher_argv: tuple[str, ...] = COMMAND_SMOKE_CLI_LAUNCHER_ARGV,
+) -> CommandDemoExecutionPlanStep | None:
+    return _command_demo_execution_plan_step_for_demo_path_step(
+        specs,
+        launcher_argv,
+        demo_path_step,
+    )
+
+
+@lru_cache(maxsize=None)
+def _command_demo_execution_plan_step_for_command(
+    specs: tuple[CommandSpec, ...],
+    launcher_argv: tuple[str, ...],
+    command_name: str,
+) -> CommandDemoExecutionPlanStep | None:
+    requested_command = canonical_command_for(specs, command_name)
+    if not requested_command:
+        return None
+    return next(
+        (
+            step
+            for step in command_demo_execution_plan_contract(specs, launcher_argv).steps
+            if step.name == requested_command
+        ),
+        None,
+    )
+
+
+def command_demo_execution_plan_step_for_command(
+    command_name: str,
+    specs: tuple[CommandSpec, ...] = COMMAND_SPECS,
+    launcher_argv: tuple[str, ...] = COMMAND_SMOKE_CLI_LAUNCHER_ARGV,
+) -> CommandDemoExecutionPlanStep | None:
+    return _command_demo_execution_plan_step_for_command(specs, launcher_argv, command_name)
+
+
+@lru_cache(maxsize=None)
+def _command_demo_execution_plan_step_for_engine_action(
+    specs: tuple[CommandSpec, ...],
+    launcher_argv: tuple[str, ...],
+    engine_action: str,
+) -> CommandDemoExecutionPlanStep | None:
+    requested_engine_action = engine_action.strip()
+    if not requested_engine_action:
+        return None
+    return next(
+        (
+            step
+            for step in command_demo_execution_plan_contract(specs, launcher_argv).steps
+            if requested_engine_action in step.engine_actions
+        ),
+        None,
+    )
+
+
+def command_demo_execution_plan_step_for_engine_action(
+    engine_action: str,
+    specs: tuple[CommandSpec, ...] = COMMAND_SPECS,
+    launcher_argv: tuple[str, ...] = COMMAND_SMOKE_CLI_LAUNCHER_ARGV,
+) -> CommandDemoExecutionPlanStep | None:
+    return _command_demo_execution_plan_step_for_engine_action(specs, launcher_argv, engine_action)
+
+
+def command_demo_execution_plan_step_for_argv(
+    argv: Sequence[str] | str,
+    specs: tuple[CommandSpec, ...] = COMMAND_SPECS,
+    launcher_argv: tuple[str, ...] = COMMAND_SMOKE_CLI_LAUNCHER_ARGV,
+) -> CommandDemoExecutionPlanStep | None:
+    readiness_entry = command_demo_readiness_entry_for_argv(argv, specs, launcher_argv)
+    if readiness_entry is None:
+        return None
+    return command_demo_execution_plan_step_for_flow_step(
+        readiness_entry.flow_step,
+        specs,
+        launcher_argv,
+    )
+
+
 def command_mvp_demo_execution_plan_contract(
     specs: tuple[CommandSpec, ...] = COMMAND_SPECS,
     launcher_argv: tuple[str, ...] = COMMAND_SMOKE_CLI_LAUNCHER_ARGV,
@@ -3775,6 +3902,46 @@ def command_mvp_demo_execution_plan_lookup_table(
     launcher_argv: tuple[str, ...] = COMMAND_SMOKE_CLI_LAUNCHER_ARGV,
 ) -> tuple[tuple[str, tuple[str, ...]], ...]:
     return command_demo_execution_plan_lookup_table(specs, launcher_argv)
+
+
+def command_mvp_demo_execution_plan_step_for_flow_step(
+    flow_step: str,
+    specs: tuple[CommandSpec, ...] = COMMAND_SPECS,
+    launcher_argv: tuple[str, ...] = COMMAND_SMOKE_CLI_LAUNCHER_ARGV,
+) -> CommandDemoExecutionPlanStep | None:
+    return command_demo_execution_plan_step_for_flow_step(flow_step, specs, launcher_argv)
+
+
+def command_mvp_demo_execution_plan_step_for_demo_path_step(
+    demo_path_step: str,
+    specs: tuple[CommandSpec, ...] = COMMAND_SPECS,
+    launcher_argv: tuple[str, ...] = COMMAND_SMOKE_CLI_LAUNCHER_ARGV,
+) -> CommandDemoExecutionPlanStep | None:
+    return command_demo_execution_plan_step_for_demo_path_step(demo_path_step, specs, launcher_argv)
+
+
+def command_mvp_demo_execution_plan_step_for_command(
+    command_name: str,
+    specs: tuple[CommandSpec, ...] = COMMAND_SPECS,
+    launcher_argv: tuple[str, ...] = COMMAND_SMOKE_CLI_LAUNCHER_ARGV,
+) -> CommandDemoExecutionPlanStep | None:
+    return command_demo_execution_plan_step_for_command(command_name, specs, launcher_argv)
+
+
+def command_mvp_demo_execution_plan_step_for_engine_action(
+    engine_action: str,
+    specs: tuple[CommandSpec, ...] = COMMAND_SPECS,
+    launcher_argv: tuple[str, ...] = COMMAND_SMOKE_CLI_LAUNCHER_ARGV,
+) -> CommandDemoExecutionPlanStep | None:
+    return command_demo_execution_plan_step_for_engine_action(engine_action, specs, launcher_argv)
+
+
+def command_mvp_demo_execution_plan_step_for_argv(
+    argv: Sequence[str] | str,
+    specs: tuple[CommandSpec, ...] = COMMAND_SPECS,
+    launcher_argv: tuple[str, ...] = COMMAND_SMOKE_CLI_LAUNCHER_ARGV,
+) -> CommandDemoExecutionPlanStep | None:
+    return command_demo_execution_plan_step_for_argv(argv, specs, launcher_argv)
 
 
 def command_demo_readiness_handoff_markdown(
