@@ -737,6 +737,13 @@ COMMAND_SMOKE_SHELL_SETUP_COMMANDS: tuple[str, ...] = (
     "cd",
     "pwd",
 )
+COMMAND_SMOKE_SHELL_PROBE_COMMANDS: tuple[str, ...] = (
+    "command",
+)
+COMMAND_SMOKE_SHELL_PROBE_FLAGS: tuple[str, ...] = (
+    "-v",
+    "-V",
+)
 DEMO_COMMAND_FLOW_STEPS: tuple[str, ...] = (
     "project-open",
     "retrieval",
@@ -5823,7 +5830,18 @@ def _is_shell_script_setup_argv(argv: tuple[str, ...]) -> bool:
     command = PurePath(argv[0]).name
     if command == "export":
         return all(SHELL_ENV_ASSIGNMENT_RE.fullmatch(token) for token in argv[1:])
+    if command in COMMAND_SMOKE_SHELL_PROBE_COMMANDS:
+        return _is_shell_script_probe_setup_argv(argv[1:])
     return command in COMMAND_SMOKE_SHELL_SETUP_COMMANDS
+
+
+def _is_shell_script_probe_setup_argv(argv: tuple[str, ...]) -> bool:
+    if not argv:
+        return False
+    index = 0
+    while index < len(argv) and argv[index] in COMMAND_SMOKE_SHELL_PROBE_FLAGS:
+        index += 1
+    return index > 0 and index < len(argv) and all(not token.startswith("-") for token in argv[index:])
 
 
 def command_demo_readiness_validate_shell_script_lines(
