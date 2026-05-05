@@ -828,8 +828,12 @@ _DEMO_ACTION_SMOKE_ARGV_BY_ENGINE_ACTION: tuple[tuple[str, tuple[str, ...]], ...
     ),
 )
 _SMOKE_VALUE_AGNOSTIC_OPTIONS_BY_COMMAND: tuple[tuple[str, tuple[str, ...]], ...] = (
+    ("bootstrap", ("--project",)),
     ("diff-preview", ("--original", "--proposed")),
     ("terminal", ("--message",)),
+)
+_SMOKE_VALUE_AGNOSTIC_POSITIONALS_BY_COMMAND: tuple[tuple[str, tuple[int, ...]], ...] = (
+    ("context-basket", (1,)),
 )
 
 
@@ -5211,15 +5215,21 @@ def _smoke_option_argv_matches(
         return False
     requested_command, requested_positionals, requested_options = requested
     expected_command, expected_positionals, expected_options = expected
-    if requested_command != expected_command or requested_positionals != expected_positionals:
+    if requested_command != expected_command:
         return False
-    if not expected_options:
+    if not _smoke_positionals_match(
+        requested_command,
+        requested_positionals,
+        expected_positionals,
+    ):
         return False
     if len({option for option, _ in requested_options}) != len(requested_options):
         return False
     if len({option for option, _ in expected_options}) != len(expected_options):
         return False
     value_agnostic_options = _smoke_value_agnostic_options_for_command(expected_command)
+    if not expected_options:
+        return all(option in value_agnostic_options and value is not None for option, value in requested_options)
     requested_by_option = dict(requested_options)
     expected_by_option = dict(expected_options)
     if requested_by_option.keys() != expected_by_option.keys():
@@ -5236,6 +5246,29 @@ def _smoke_value_agnostic_options_for_command(command: str) -> tuple[str, ...]:
     command_name = _normalize_token(command)
     option_rows = dict(_SMOKE_VALUE_AGNOSTIC_OPTIONS_BY_COMMAND)
     return option_rows.get(command_name, ())
+
+
+@lru_cache(maxsize=None)
+def _smoke_value_agnostic_positionals_for_command(command: str) -> tuple[int, ...]:
+    command_name = _normalize_token(command)
+    positional_rows = dict(_SMOKE_VALUE_AGNOSTIC_POSITIONALS_BY_COMMAND)
+    return positional_rows.get(command_name, ())
+
+
+def _smoke_positionals_match(
+    command: str,
+    requested_positionals: tuple[str, ...],
+    expected_positionals: tuple[str, ...],
+) -> bool:
+    if len(requested_positionals) != len(expected_positionals):
+        return False
+    value_agnostic_indexes = set(_smoke_value_agnostic_positionals_for_command(command))
+    return all(
+        index in value_agnostic_indexes or requested_value == expected_value
+        for index, (requested_value, expected_value) in enumerate(
+            zip(requested_positionals, expected_positionals, strict=True)
+        )
+    )
 
 
 def _smoke_argv_matches(
