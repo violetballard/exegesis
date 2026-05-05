@@ -4465,7 +4465,10 @@ def _normalize_smoke_argv(argv: tuple[str, ...]) -> tuple[str, ...]:
 
 def _coerce_smoke_argv(argv: Sequence[str] | str) -> tuple[str, ...]:
     if isinstance(argv, str):
-        return tuple(shlex.split(argv))
+        try:
+            return tuple(shlex.split(argv))
+        except ValueError:
+            return ()
     return tuple(argv)
 
 
