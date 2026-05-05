@@ -413,6 +413,18 @@ class UnifiedRetrievalTests(unittest.TestCase):
                 )
             )
 
+    def test_collection_scope_is_rejected_until_fts_can_resolve_it(self) -> None:
+        with self.assertRaisesRegex(ValueError, "collection scope is unsupported"):
+            self.service.retrieve_auto(
+                RetrievalQuery(
+                    query_text="discussion theory",
+                    scope="collection:field-notes",
+                    intent="lookup",
+                    constraints=RetrievalConstraints(max_results=4),
+                    confidentiality_profile="confidential",
+                )
+            )
+
     def test_retrieve_auto_returns_stable_doc_hits_for_downstream_consumers(self) -> None:
         result = self.service.retrieve_auto(
             RetrievalQuery(

@@ -2390,8 +2390,11 @@ class RetrievalService:
             raise ValueError("section scope is unsupported until FTS fallback can resolve section targets")
         if query.scope.startswith("doc:") and not self._doc_scope_id(query.scope):
             raise ValueError("doc scope must include a document id")
-        if query.scope.startswith("collection:") and not query.scope.split(":", 1)[1].strip():
-            raise ValueError("collection scope must include a collection id")
+        if query.scope.startswith("collection:"):
+            collection_id = query.scope.split(":", 1)[1].strip()
+            if not collection_id:
+                raise ValueError("collection scope must include a collection id")
+            raise ValueError("collection scope is unsupported until FTS fallback can resolve collection targets")
         if query.scope not in {"vault"} and not any(query.scope.startswith(prefix) for prefix in ("collection:", "doc:")):
             raise ValueError("unsupported scope")
         if query.intent not in _SUPPORTED_RETRIEVAL_INTENTS:
