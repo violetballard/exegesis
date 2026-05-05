@@ -590,6 +590,10 @@ class UnifiedRetrievalTests(unittest.TestCase):
             result.hits[0].provenance["source_hash"],
         )
         self.assertEqual(
+            payload["retrieval_citation_bundle"]["excerpt_citations"][0]["excerpt_lookup_fingerprint"],
+            result.hits[0].provenance["excerpt_lookup_fingerprint"],
+        )
+        self.assertEqual(
             payload["retrieval_citation_bundle"]["excerpt_citations"][0]["query_fingerprint"],
             result.diagnostics["query_fingerprint"],
         )
@@ -600,6 +604,10 @@ class UnifiedRetrievalTests(unittest.TestCase):
         self.assertEqual(
             payload["retrieval_evidence"]["excerpt_citations"][0]["source_hash"],
             result.hits[0].provenance["source_hash"],
+        )
+        self.assertEqual(
+            payload["retrieval_evidence"]["excerpt_citations"][0]["excerpt_lookup_fingerprint"],
+            result.hits[0].provenance["excerpt_lookup_fingerprint"],
         )
         self.assertEqual(
             payload["retrieval_evidence"]["doc_citations"][0]["query_fingerprint"],
@@ -2487,6 +2495,7 @@ class UnifiedRetrievalTests(unittest.TestCase):
                     "doc_type": item["provenance"]["doc_type"],
                     "source_hash": item["source_hash"],
                     "excerpt_fingerprint": item["provenance"]["excerpt_fingerprint"],
+                    "excerpt_lookup_fingerprint": item["provenance"]["excerpt_lookup_fingerprint"],
                     "excerpt_text_hash": item["provenance"]["excerpt_text_hash"],
                     "query_fingerprint": payload["retrieval_summary"]["query_fingerprint"],
                     "result_fingerprint": payload["retrieval_summary"]["result_fingerprint"],

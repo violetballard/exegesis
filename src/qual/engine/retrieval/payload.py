@@ -113,6 +113,10 @@ def _basket_promotion_count_from_items(items: list[object]) -> int:
     return len(_basket_item_ids_from_items(items))
 
 
+def _basket_promotion_ready_from_count(count: object) -> bool:
+    return isinstance(count, int) and count > 0
+
+
 def _basket_promotion_count_from_snapshot(
     snapshot: dict[str, object],
     *,
@@ -687,6 +691,9 @@ def _normalize_excerpt_bundle_snapshot(excerpt_bundle: dict[str, object]) -> dic
         normalized,
         basket_promotion_items=normalized["basket_promotion_items"],
     )
+    normalized["basket_promotion_ready"] = _basket_promotion_ready_from_count(
+        normalized["basket_promotion_count"]
+    )
     retrieval_policy = normalized.get("retrieval_policy")
     if isinstance(retrieval_policy, dict):
         normalized["retrieval_policy"] = _normalize_policy_snapshot(retrieval_policy)
@@ -719,6 +726,9 @@ def _normalize_retrieval_summary_snapshot(summary: dict[str, object]) -> dict[st
     count = normalized.get("basket_promotion_count")
     if not isinstance(count, int) or count < 0:
         normalized["basket_promotion_count"] = len(normalized["basket_item_ids"])
+    normalized["basket_promotion_ready"] = _basket_promotion_ready_from_count(
+        normalized["basket_promotion_count"]
+    )
     retrieval_policy = normalized.get("retrieval_policy")
     if isinstance(retrieval_policy, dict):
         normalized["retrieval_policy"] = _normalize_policy_snapshot(retrieval_policy)
@@ -776,6 +786,9 @@ def _normalize_retrieval_evidence_snapshot(evidence: dict[str, object]) -> dict[
         normalized,
         basket_promotion_items=normalized["basket_promotion_items"],
     )
+    normalized["basket_promotion_ready"] = _basket_promotion_ready_from_count(
+        normalized["basket_promotion_count"]
+    )
     retrieval_policy = normalized.get("retrieval_policy")
     if isinstance(retrieval_policy, dict):
         normalized["retrieval_policy"] = _normalize_policy_snapshot(retrieval_policy)
@@ -830,6 +843,9 @@ def _normalize_retrieval_source_bundle_snapshot(source_bundle: dict[str, object]
     normalized["basket_promotion_count"] = _basket_promotion_count_from_snapshot(
         normalized,
         basket_promotion_items=normalized["basket_promotion_items"],
+    )
+    normalized["basket_promotion_ready"] = _basket_promotion_ready_from_count(
+        normalized["basket_promotion_count"]
     )
     retrieval_summary = normalized.get("retrieval_summary", {})
     if not isinstance(retrieval_summary, dict):
@@ -1038,6 +1054,7 @@ def _build_retrieval_source_bundle_from_payload(payload: dict[str, object]) -> d
         "retrieval_provenance": copy.deepcopy(payload.get("retrieval_provenance", {})),
         "basket_promotion_items": copy.deepcopy(basket_promotion_items),
         "basket_promotion_count": basket_promotion_count,
+        "basket_promotion_ready": _basket_promotion_ready_from_count(basket_promotion_count),
         "basket_item_ids": copy.deepcopy(basket_item_ids),
         "basket_item_fingerprints": copy.deepcopy(basket_item_fingerprints),
     })
@@ -1065,6 +1082,7 @@ def _backfill_downstream_payload_from_context_bundle(
         "retrieval_evidence": context_bundle.get("retrieval_evidence"),
         "basket_promotion_items": context_bundle.get("basket_promotion_items"),
         "basket_promotion_count": context_bundle.get("basket_promotion_count"),
+        "basket_promotion_ready": context_bundle.get("basket_promotion_ready"),
         "basket_item_ids": context_bundle.get("basket_item_ids"),
         "basket_item_fingerprints": context_bundle.get("basket_item_fingerprints"),
     }
@@ -1113,6 +1131,7 @@ def _build_retrieval_context_bundle_from_source_bundle(source_bundle: dict[str, 
         "retrieval_evidence": copy.deepcopy(source_bundle.get("retrieval_evidence", {})),
         "basket_promotion_items": basket_promotion_items,
         "basket_promotion_count": basket_promotion_count,
+        "basket_promotion_ready": _basket_promotion_ready_from_count(basket_promotion_count),
         "basket_item_ids": _basket_item_ids_from_snapshot(
             source_bundle,
             basket_promotion_items=basket_promotion_items,
@@ -1253,6 +1272,9 @@ def _build_retrieval_context_bundle_from_payload(payload: dict[str, object]) -> 
     normalized_payload["basket_item_ids"] = copy.deepcopy(basket_item_ids)
     normalized_payload["basket_item_fingerprints"] = copy.deepcopy(basket_item_fingerprints)
     normalized_payload["basket_promotion_count"] = basket_promotion_count
+    normalized_payload["basket_promotion_ready"] = _basket_promotion_ready_from_count(
+        basket_promotion_count
+    )
     bundle = {
         "audit_ref": normalized_payload.get("audit_ref"),
         "result_fingerprint": normalized_payload.get("result_fingerprint"),
@@ -1265,6 +1287,7 @@ def _build_retrieval_context_bundle_from_payload(payload: dict[str, object]) -> 
         "retrieval_evidence": copy.deepcopy(normalized_payload.get("retrieval_evidence", {})),
         "basket_promotion_items": basket_promotion_items,
         "basket_promotion_count": basket_promotion_count,
+        "basket_promotion_ready": _basket_promotion_ready_from_count(basket_promotion_count),
         "basket_item_ids": basket_item_ids,
         "basket_item_fingerprints": basket_item_fingerprints,
     }
@@ -1547,6 +1570,7 @@ class RetrievalDownstreamPayload:
         source_bundle = copy.deepcopy(self.retrieval_source_bundle)
         basket_promotion_items = _normalize_list_like(self.basket_promotion_items)
         basket_promotion_count = _basket_promotion_count_from_items(basket_promotion_items)
+        basket_promotion_ready = _basket_promotion_ready_from_count(basket_promotion_count)
         return {
             "query": copy.deepcopy(self.query),
             "policy": policy,
@@ -1569,6 +1593,7 @@ class RetrievalDownstreamPayload:
             "retrieval_source_bundle": source_bundle,
             "basket_promotion_items": basket_promotion_items,
             "basket_promotion_count": basket_promotion_count,
+            "basket_promotion_ready": basket_promotion_ready,
             "basket_item_ids": _basket_item_ids_from_items(basket_promotion_items),
             "basket_item_fingerprints": _basket_item_fingerprints_from_items(basket_promotion_items),
         }
