@@ -295,11 +295,17 @@ def _normalized_query_text(value: object) -> str | None:
     return " ".join(text.casefold().split())
 
 
+_SUPPORTED_CONFIDENTIALITY_PROFILES = {"confidential", "standard"}
+
+
 def _normalize_confidentiality_profile(value: object) -> str:
     text = _normalize_optional_text(value)
     if text is None:
         return "confidential"
-    return text.casefold()
+    normalized = text.casefold()
+    if normalized not in _SUPPORTED_CONFIDENTIALITY_PROFILES:
+        return "confidential"
+    return normalized
 
 
 def _canonical_query_doc_types(value: object) -> list[str]:

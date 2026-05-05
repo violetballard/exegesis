@@ -1,5 +1,6 @@
 from __future__ import annotations
 
+import copy
 import json
 import tempfile
 import unittest
@@ -1268,6 +1269,38 @@ class UnifiedRetrievalTests(unittest.TestCase):
         self.assertIsInstance(excerpt_bundle["excerpt_citations"], list)
         self.assertEqual(excerpt_bundle["excerpt_hits"][0]["excerpt_id"], "excerpt-1")
         self.assertEqual(excerpt_bundle["excerpt_citations"][0]["excerpt_id"], "excerpt-1")
+
+    def test_sparse_query_snapshots_reject_unsupported_confidentiality_profiles(self) -> None:
+        base_payload = {
+            "query": {
+                "query_text": "memo comparison",
+                "scope": "vault",
+                "intent": "compare",
+                "constraints": {"max_results": 4},
+            },
+            "policy": {
+                "retrieval_backend": "sqlite_fts",
+                "retrieval_mode": "fts_first",
+                "active_strategy_ids": ("fts",),
+                "deferred_strategy_ids": ("pageindex", "embeddings"),
+            },
+            "retrieval_backend": "sqlite_fts",
+            "retrieval_mode": "fts_first",
+        }
+        unsupported_payload = copy.deepcopy(base_payload)
+        unsupported_payload["query"]["confidentiality_profile"] = "online"
+        standard_payload = copy.deepcopy(base_payload)
+        standard_payload["query"]["confidentiality_profile"] = "  STANDARD  "
+
+        default_bundle = _build_retrieval_source_bundle_from_payload(base_payload)
+        unsupported_bundle = _build_retrieval_source_bundle_from_payload(unsupported_payload)
+        standard_bundle = _build_retrieval_source_bundle_from_payload(standard_payload)
+
+        self.assertEqual(default_bundle["query"]["confidentiality_profile"], "confidential")
+        self.assertEqual(unsupported_bundle["query"]["confidentiality_profile"], "confidential")
+        self.assertEqual(standard_bundle["query"]["confidentiality_profile"], "standard")
+        self.assertEqual(default_bundle["query_fingerprint"], unsupported_bundle["query_fingerprint"])
+        self.assertNotEqual(default_bundle["query_fingerprint"], standard_bundle["query_fingerprint"])
 
     def test_engine_retrieval_package_exports_are_fts_only(self) -> None:
         self.assertEqual(
