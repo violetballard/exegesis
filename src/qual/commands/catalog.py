@@ -448,6 +448,21 @@ class CommandDemoReadinessRouteContract:
 
 
 @dataclass(frozen=True)
+class CommandDemoReadinessHandoffActionStep:
+    ordinal: int
+    demo_path_step: str
+    flow_step: str
+    name: str
+    command_line: str
+    exact_action_lines: tuple[tuple[str, str], ...]
+
+
+@dataclass(frozen=True)
+class CommandDemoReadinessHandoffActionContract:
+    steps: tuple[CommandDemoReadinessHandoffActionStep, ...]
+
+
+@dataclass(frozen=True)
 class CommandDemoReadinessGate:
     is_complete: bool
     missing_engine_actions: tuple[str, ...]
@@ -481,6 +496,7 @@ class CommandDemoReadinessHandoffPacket:
     missing_flow_steps: tuple[str, ...]
     missing_engine_actions: tuple[str, ...]
     invalid_argv: tuple[tuple[str, ...], ...]
+    action_steps: tuple[CommandDemoReadinessHandoffActionStep, ...] = ()
 
 
 @dataclass(frozen=True)
@@ -3799,6 +3815,83 @@ def command_demo_readiness_handoff_checklist_lines(
 
 
 @lru_cache(maxsize=None)
+def command_demo_readiness_handoff_action_contract(
+    specs: tuple[CommandSpec, ...] = COMMAND_SPECS,
+    launcher_argv: tuple[str, ...] = COMMAND_SMOKE_CLI_LAUNCHER_ARGV,
+) -> CommandDemoReadinessHandoffActionContract:
+    readiness_steps = command_demo_path_readiness_contract(specs, launcher_argv)
+    exact_action_lines = command_demo_readiness_exact_action_line_lookup_table(specs, launcher_argv)
+    exact_action_lines_by_flow_step: dict[str, list[tuple[str, str]]] = {}
+    for engine_action, command_line in exact_action_lines:
+        flow_step = command_demo_readiness_flow_step_for_argv(command_line, specs, launcher_argv)
+        if flow_step is None:
+            raise ValueError(f"Command demo readiness handoff action is not routeable: {engine_action}")
+        exact_action_lines_by_flow_step.setdefault(flow_step, []).append((engine_action, command_line))
+
+    contract = CommandDemoReadinessHandoffActionContract(
+        steps=tuple(
+            CommandDemoReadinessHandoffActionStep(
+                ordinal=step.ordinal,
+                demo_path_step=step.demo_path_step,
+                flow_step=step.flow_step,
+                name=step.name,
+                command_line=step.command_line,
+                exact_action_lines=tuple(exact_action_lines_by_flow_step.get(step.flow_step, ())),
+            )
+            for step in readiness_steps.steps
+        )
+    )
+    _validate_command_demo_readiness_handoff_action_contract(
+        contract,
+        readiness_steps,
+        exact_action_lines,
+        specs,
+        launcher_argv,
+    )
+    return contract
+
+
+def _validate_command_demo_readiness_handoff_action_contract(
+    contract: CommandDemoReadinessHandoffActionContract,
+    readiness_steps: CommandDemoPathReadinessContract,
+    exact_action_lines: tuple[tuple[str, str], ...],
+    specs: tuple[CommandSpec, ...],
+    launcher_argv: tuple[str, ...],
+) -> None:
+    if tuple(step.ordinal for step in contract.steps) != tuple(step.ordinal for step in readiness_steps.steps):
+        raise ValueError("Command demo readiness handoff action ordinals are inconsistent")
+    if tuple(step.demo_path_step for step in contract.steps) != tuple(
+        step.demo_path_step for step in readiness_steps.steps
+    ):
+        raise ValueError("Command demo readiness handoff action path steps are inconsistent")
+    if tuple(step.flow_step for step in contract.steps) != tuple(step.flow_step for step in readiness_steps.steps):
+        raise ValueError("Command demo readiness handoff action flow steps are inconsistent")
+    if tuple(step.name for step in contract.steps) != tuple(step.name for step in readiness_steps.steps):
+        raise ValueError("Command demo readiness handoff action names are inconsistent")
+    if tuple(step.command_line for step in contract.steps) != tuple(
+        step.command_line for step in readiness_steps.steps
+    ):
+        raise ValueError("Command demo readiness handoff action command lines are inconsistent")
+
+    flattened_action_lines = tuple(
+        action_line
+        for step in contract.steps
+        for action_line in step.exact_action_lines
+    )
+    if flattened_action_lines != exact_action_lines:
+        raise ValueError("Command demo readiness handoff action exact lines are inconsistent")
+    if any(not step.exact_action_lines for step in contract.steps):
+        raise ValueError("Command demo readiness handoff action steps must include exact action lines")
+    for step in contract.steps:
+        for engine_action, command_line in step.exact_action_lines:
+            action_flow_step = command_demo_readiness_flow_step_for_argv(command_line, specs, launcher_argv)
+            if action_flow_step != step.flow_step:
+                raise ValueError(
+                    f"Command demo readiness handoff action line is attached to the wrong flow step: {engine_action}"
+                )
+
+
+@lru_cache(maxsize=None)
 def command_demo_readiness_route_contract(
     specs: tuple[CommandSpec, ...] = COMMAND_SPECS,
     launcher_argv: tuple[str, ...] = COMMAND_SMOKE_CLI_LAUNCHER_ARGV,
@@ -4574,6 +4667,7 @@ def command_demo_readiness_handoff_packet(
 ) -> CommandDemoReadinessHandoffPacket:
     seal = command_demo_readiness_seal(specs, launcher_argv)
     checklist_lines = command_demo_readiness_handoff_checklist_lines(specs, launcher_argv)
+    action_steps = command_demo_readiness_handoff_action_contract(specs, launcher_argv).steps
     packet = CommandDemoReadinessHandoffPacket(
         scope_completed=(
             "CLI compatibility and migration-safe entrypoints for the engine-first "
@@ -4601,8 +4695,16 @@ def command_demo_readiness_handoff_packet(
         missing_flow_steps=seal.missing_flow_steps,
         missing_engine_actions=seal.missing_engine_actions,
         invalid_argv=seal.invalid_argv,
+        action_steps=action_steps,
     )
-    _validate_command_demo_readiness_handoff_packet(packet, seal, checklist_lines, specs, launcher_argv)
+    _validate_command_demo_readiness_handoff_packet(
+        packet,
+        seal,
+        checklist_lines,
+        action_steps,
+        specs,
+        launcher_argv,
+    )
     return packet
 
 
@@ -4610,6 +4712,7 @@ def _validate_command_demo_readiness_handoff_packet(
     packet: CommandDemoReadinessHandoffPacket,
     seal: CommandDemoReadinessSeal,
     checklist_lines: tuple[str, ...],
+    action_steps: tuple[CommandDemoReadinessHandoffActionStep, ...],
     specs: tuple[CommandSpec, ...],
     launcher_argv: tuple[str, ...],
 ) -> None:
@@ -4641,6 +4744,16 @@ def _validate_command_demo_readiness_handoff_packet(
         raise ValueError("Command demo readiness handoff packet missing actions are inconsistent")
     if packet.invalid_argv != seal.invalid_argv:
         raise ValueError("Command demo readiness handoff packet invalid argv are inconsistent")
+    if packet.action_steps != action_steps:
+        raise ValueError("Command demo readiness handoff packet action steps are inconsistent")
+    if tuple(step.command_line for step in packet.action_steps) != packet.command_lines:
+        raise ValueError("Command demo readiness handoff packet action step commands are inconsistent")
+    if tuple(
+        line
+        for step in packet.action_steps
+        for _, line in step.exact_action_lines
+    ) != packet.exact_action_lines:
+        raise ValueError("Command demo readiness handoff packet action step exact lines are inconsistent")
 
 
 def command_demo_readiness_handoff_packet_summary(
