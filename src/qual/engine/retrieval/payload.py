@@ -205,19 +205,70 @@ def _basket_promotion_items_from_excerpt_hits(
 ) -> list[object]:
     """Rebuild deterministic basket refs when only excerpt-hit snapshots survive."""
 
-    result_fingerprint = _first_text_value(snapshot.get("result_fingerprint"))
+    retrieval_summary = snapshot.get("retrieval_summary")
+    if not isinstance(retrieval_summary, dict):
+        retrieval_summary = {}
+    retrieval_provenance = snapshot.get("retrieval_provenance")
+    if not isinstance(retrieval_provenance, dict):
+        retrieval_provenance = {}
+    retrieval_citation_bundle = snapshot.get("retrieval_citation_bundle")
+    if not isinstance(retrieval_citation_bundle, dict):
+        retrieval_citation_bundle = {}
+    retrieval_evidence = snapshot.get("retrieval_evidence")
+    if not isinstance(retrieval_evidence, dict):
+        retrieval_evidence = {}
+
+    result_fingerprint = _first_text_value(
+        snapshot.get("result_fingerprint"),
+        retrieval_summary.get("result_fingerprint"),
+        retrieval_provenance.get("result_fingerprint"),
+        retrieval_citation_bundle.get("result_fingerprint"),
+        retrieval_evidence.get("result_fingerprint"),
+    )
     query = snapshot.get("query")
     if not isinstance(query, dict):
         query = {}
     query_constraints = query.get("constraints", {})
     if not isinstance(query_constraints, dict):
         query_constraints = {}
-    query_fingerprint = _first_text_value(snapshot.get("query_fingerprint"))
+    query_fingerprint = _first_text_value(
+        snapshot.get("query_fingerprint"),
+        retrieval_summary.get("query_fingerprint"),
+        retrieval_provenance.get("query_fingerprint"),
+        retrieval_citation_bundle.get("query_fingerprint"),
+        retrieval_evidence.get("query_fingerprint"),
+    )
     if query_fingerprint is None:
         query_fingerprint = _query_fingerprint_from_query_snapshot(query)
-    query_scope = _first_text_value(query.get("scope"))
-    query_intent = _first_text_value(query.get("intent"))
-    query_date_range = _normalize_optional_list_like(query_constraints.get("date_range"))
+    query_scope = _first_text_value(
+        query.get("scope"),
+        retrieval_summary.get("query_scope"),
+        retrieval_provenance.get("query_scope"),
+        retrieval_citation_bundle.get("query_scope"),
+        retrieval_evidence.get("query_scope"),
+    )
+    query_intent = _first_text_value(
+        query.get("intent"),
+        retrieval_summary.get("query_intent"),
+        retrieval_provenance.get("query_intent"),
+        retrieval_citation_bundle.get("query_intent"),
+        retrieval_evidence.get("query_intent"),
+    )
+    query_date_range = _normalize_optional_list_like(
+        query_constraints.get(
+            "date_range",
+            retrieval_summary.get(
+                "query_date_range",
+                retrieval_provenance.get(
+                    "query_date_range",
+                    retrieval_citation_bundle.get(
+                        "query_date_range",
+                        retrieval_evidence.get("query_date_range"),
+                    ),
+                ),
+            ),
+        )
+    )
 
     items: list[object] = []
     seen: set[str] = set()
