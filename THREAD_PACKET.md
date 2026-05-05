@@ -56,8 +56,8 @@ Integrator-locked files: none.
 ## Budget/Risk
 
 - Task budget: `4/4` high-risk tasks.
-- File budget: `9/12` changed files for the full `378cf9a74a3658058079a32f186fcd254c4a4034..68b43026c91102dc3adbdc542bf0449101d8acb7` pre-fixer branch-tip review range; `5` source files, `1` approved shared test file, `3` handoff/metadata files.
-- Net LOC for the full pre-fixer branch-tip review range: `+1913/-228` across `9` files. This exceeds the standard `<=500` net LOC budget and the high-risk `<=300` net LOC budget, so this packet explicitly reports a budget overrun for re-review instead of claiming compliance.
+- File budget: `9/12` changed files for the full `378cf9a74a3658058079a32f186fcd254c4a4034..HEAD` branch-tip review range; `5` source files, `1` approved shared test file, `3` handoff/metadata files.
+- Net LOC for the full branch-tip review range after this packet correction: `+1912/-228` across `9` files. This exceeds the standard `<=500` net LOC budget and the high-risk `<=300` net LOC budget, so this packet explicitly reports a budget overrun for re-review instead of claiming compliance.
 - Shared-file approval note: `tests/unit/test_unified_retrieval.py` is the approved shared-by-approval regression file for this lane.
 - Routing/provider impact: none.
 - PageIndex/embeddings impact: none; both remain deferred/compatibility-only.
