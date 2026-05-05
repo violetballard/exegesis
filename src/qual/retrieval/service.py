@@ -520,6 +520,7 @@ class RetrievalResult:
             "retrieval_source_bundle": copy.deepcopy(downstream_payload["retrieval_source_bundle"]),
             "retrieval_evidence": copy.deepcopy(downstream_payload["retrieval_evidence"]),
             "basket_promotion_items": copy.deepcopy(basket_promotion_items),
+            "basket_promotion_count": len(basket_promotion_items),
             "basket_item_ids": [str(item["item_id"]) for item in basket_promotion_items],
             "basket_item_fingerprints": basket_item_fingerprints,
         }
@@ -826,6 +827,7 @@ class RetrievalResult:
             "retrieval_manifest": copy.deepcopy(self.diagnostics["retrieval_manifest"]),
             "retrieval_evidence": copy.deepcopy(self.evidence),
             "basket_promotion_items": copy.deepcopy(basket_promotion_items),
+            "basket_promotion_count": len(basket_promotion_items),
             "basket_item_ids": [str(item["item_id"]) for item in basket_promotion_items],
             "basket_item_fingerprints": basket_item_fingerprints,
             "retrieval_provenance": copy.deepcopy(

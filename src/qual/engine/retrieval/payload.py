@@ -97,6 +97,29 @@ def _basket_item_fingerprints_from_items(items: list[object]) -> list[str]:
     return item_fingerprints
 
 
+def _basket_promotion_count_from_items(items: list[object]) -> int:
+    return len(_basket_item_ids_from_items(items))
+
+
+def _basket_promotion_count_from_snapshot(
+    snapshot: dict[str, object],
+    *,
+    basket_promotion_items: list[object],
+) -> int:
+    count = snapshot.get("basket_promotion_count")
+    if isinstance(count, int) and count >= 0:
+        return count
+
+    for bundle_key in ("retrieval_source_bundle", "source_bundle"):
+        source_bundle = snapshot.get(bundle_key)
+        if isinstance(source_bundle, dict):
+            count = source_bundle.get("basket_promotion_count")
+            if isinstance(count, int) and count >= 0:
+                return count
+
+    return _basket_promotion_count_from_items(basket_promotion_items)
+
+
 def _basket_item_fingerprint(item: dict[str, object]) -> str:
     return _stable_fingerprint(
         {
@@ -637,6 +660,10 @@ def _normalize_retrieval_source_bundle_snapshot(source_bundle: dict[str, object]
         normalized,
         basket_promotion_items=normalized["basket_promotion_items"],
     )
+    normalized["basket_promotion_count"] = _basket_promotion_count_from_snapshot(
+        normalized,
+        basket_promotion_items=normalized["basket_promotion_items"],
+    )
     retrieval_summary = normalized.get("retrieval_summary", {})
     if not isinstance(retrieval_summary, dict):
         retrieval_summary = {}
@@ -821,6 +848,10 @@ def _build_retrieval_source_bundle_from_payload(payload: dict[str, object]) -> d
         payload,
         basket_promotion_items=basket_promotion_items,
     )
+    basket_promotion_count = _basket_promotion_count_from_snapshot(
+        payload,
+        basket_promotion_items=basket_promotion_items,
+    )
     return _normalize_retrieval_source_bundle_snapshot({
         "result_fingerprint": payload.get("result_fingerprint"),
         "query_fingerprint": payload.get("query_fingerprint"),
@@ -839,6 +870,7 @@ def _build_retrieval_source_bundle_from_payload(payload: dict[str, object]) -> d
         "retrieval_evidence": copy.deepcopy(payload.get("retrieval_evidence", {})),
         "retrieval_provenance": copy.deepcopy(payload.get("retrieval_provenance", {})),
         "basket_promotion_items": copy.deepcopy(basket_promotion_items),
+        "basket_promotion_count": basket_promotion_count,
         "basket_item_ids": copy.deepcopy(basket_item_ids),
         "basket_item_fingerprints": copy.deepcopy(basket_item_fingerprints),
     })
@@ -865,6 +897,7 @@ def _backfill_downstream_payload_from_context_bundle(
         "retrieval_source_bundle": context_bundle.get("retrieval_source_bundle"),
         "retrieval_evidence": context_bundle.get("retrieval_evidence"),
         "basket_promotion_items": context_bundle.get("basket_promotion_items"),
+        "basket_promotion_count": context_bundle.get("basket_promotion_count"),
         "basket_item_ids": context_bundle.get("basket_item_ids"),
         "basket_item_fingerprints": context_bundle.get("basket_item_fingerprints"),
     }
@@ -896,6 +929,10 @@ def _build_retrieval_context_bundle_from_source_bundle(source_bundle: dict[str, 
         source_bundle,
         basket_promotion_items=basket_promotion_items,
     )
+    basket_promotion_count = _basket_promotion_count_from_snapshot(
+        source_bundle,
+        basket_promotion_items=basket_promotion_items,
+    )
     bundle = {
         # Source-bundle-only reconstruction keeps the top-level context auditless.
         "audit_ref": None,
@@ -908,6 +945,7 @@ def _build_retrieval_context_bundle_from_source_bundle(source_bundle: dict[str, 
         "retrieval_source_bundle": copy.deepcopy(source_bundle),
         "retrieval_evidence": copy.deepcopy(source_bundle.get("retrieval_evidence", {})),
         "basket_promotion_items": basket_promotion_items,
+        "basket_promotion_count": basket_promotion_count,
         "basket_item_ids": _basket_item_ids_from_snapshot(
             source_bundle,
             basket_promotion_items=basket_promotion_items,
@@ -1036,6 +1074,10 @@ def _build_retrieval_context_bundle_from_payload(payload: dict[str, object]) -> 
         payload,
         basket_promotion_items=basket_promotion_items,
     )
+    basket_promotion_count = _basket_promotion_count_from_snapshot(
+        payload,
+        basket_promotion_items=basket_promotion_items,
+    )
     bundle = {
         "audit_ref": payload.get("audit_ref"),
         "result_fingerprint": payload.get("result_fingerprint"),
@@ -1047,6 +1089,7 @@ def _build_retrieval_context_bundle_from_payload(payload: dict[str, object]) -> 
         "retrieval_source_bundle": _build_retrieval_source_bundle_from_payload(payload),
         "retrieval_evidence": copy.deepcopy(payload.get("retrieval_evidence", {})),
         "basket_promotion_items": basket_promotion_items,
+        "basket_promotion_count": basket_promotion_count,
         "basket_item_ids": basket_item_ids,
         "basket_item_fingerprints": basket_item_fingerprints,
     }
@@ -1315,6 +1358,7 @@ class RetrievalDownstreamPayload:
         summary = copy.deepcopy(self.retrieval_summary)
         source_bundle = copy.deepcopy(self.retrieval_source_bundle)
         basket_promotion_items = _normalize_list_like(self.basket_promotion_items)
+        basket_promotion_count = _basket_promotion_count_from_items(basket_promotion_items)
         return {
             "query": copy.deepcopy(self.query),
             "policy": policy,
@@ -1337,6 +1381,7 @@ class RetrievalDownstreamPayload:
             "source_bundle_fingerprint": self.source_bundle_fingerprint,
             "retrieval_source_bundle": source_bundle,
             "basket_promotion_items": basket_promotion_items,
+            "basket_promotion_count": basket_promotion_count,
             "basket_item_ids": _basket_item_ids_from_items(basket_promotion_items),
             "basket_item_fingerprints": _basket_item_fingerprints_from_items(basket_promotion_items),
         }
