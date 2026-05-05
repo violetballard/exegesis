@@ -4372,6 +4372,7 @@ def command_demo_readiness_gate(
 ) -> CommandDemoReadinessGate:
     missing_engine_actions = command_demo_readiness_missing_engine_actions(specs, launcher_argv)
     smoke_plan = command_demo_readiness_smoke_plan(specs, launcher_argv)
+    exact_action_lines = command_demo_readiness_exact_action_line_lookup_table(specs, launcher_argv)
     covered_flow_steps = tuple(step.flow_step for step in smoke_plan.steps)
     expected_flow_steps = command_demo_flow_steps() if specs is COMMAND_SPECS else command_flow_steps(specs)
     missing_flow_steps = tuple(
@@ -4383,11 +4384,16 @@ def command_demo_readiness_gate(
         is_complete=not missing_engine_actions and not missing_flow_steps,
         missing_engine_actions=missing_engine_actions,
         command_lines=tuple(step.command_line for step in smoke_plan.steps),
-        action_lines=tuple(action_line for step in smoke_plan.steps for action_line in step.action_lines),
+        action_lines=exact_action_lines,
         covered_flow_steps=covered_flow_steps,
         missing_flow_steps=missing_flow_steps,
     )
-    _validate_command_demo_readiness_gate(gate, smoke_plan, specs=specs)
+    _validate_command_demo_readiness_gate(
+        gate,
+        smoke_plan,
+        specs=specs,
+        launcher_argv=launcher_argv,
+    )
     return gate
 
 
@@ -4396,11 +4402,10 @@ def _validate_command_demo_readiness_gate(
     smoke_plan: CommandDemoReadinessSmokePlan,
     *,
     specs: tuple[CommandSpec, ...],
+    launcher_argv: tuple[str, ...],
 ) -> None:
     expected_command_lines = tuple(step.command_line for step in smoke_plan.steps)
-    expected_action_lines = tuple(
-        action_line for step in smoke_plan.steps for action_line in step.action_lines
-    )
+    expected_action_lines = command_demo_readiness_exact_action_line_lookup_table(specs, launcher_argv)
     if gate.command_lines != expected_command_lines:
         raise ValueError("Command demo readiness gate command lines are inconsistent")
     if gate.action_lines != expected_action_lines:
@@ -4416,6 +4421,10 @@ def _validate_command_demo_readiness_gate(
         raise ValueError("Command demo readiness gate missing flow steps are inconsistent")
     if tuple(engine_action for engine_action, _ in gate.action_lines) != command_demo_engine_actions(specs):
         raise ValueError("Command demo readiness gate action coverage is inconsistent")
+    for engine_action, action_line in gate.action_lines:
+        exact_action = command_demo_readiness_exact_action_for_argv(action_line, specs, launcher_argv)
+        if exact_action != engine_action:
+            raise ValueError(f"Command demo readiness gate exact action is inconsistent: {engine_action}")
     if gate.is_complete != (not gate.missing_engine_actions and not gate.missing_flow_steps):
         raise ValueError("Command demo readiness gate completeness is inconsistent")
 
@@ -4521,7 +4530,14 @@ def command_demo_readiness_shell_script(
 ) -> CommandDemoReadinessShellScript:
     smoke_plan = command_demo_readiness_smoke_plan(specs, launcher_argv)
     command_lines = tuple(step.command_line for step in smoke_plan.steps)
-    action_lines = tuple(action_line for step in smoke_plan.steps for action_line in step.action_lines)
+    exact_action_lines = command_demo_readiness_exact_action_line_lookup_table(specs, launcher_argv)
+    exact_action_lines_by_flow_step: dict[str, list[tuple[str, str]]] = {}
+    for engine_action, command_line in exact_action_lines:
+        flow_step = command_demo_readiness_flow_step_for_argv(command_line, specs, launcher_argv)
+        if flow_step is None:
+            raise ValueError(f"Command demo readiness shell exact action is not routeable: {engine_action}")
+        exact_action_lines_by_flow_step.setdefault(flow_step, []).append((engine_action, command_line))
+    action_lines = exact_action_lines
     lines: list[str] = ["set -euo pipefail"]
     emitted_command_lines = {"set -euo pipefail"}
     for step in smoke_plan.steps:
@@ -4529,7 +4545,7 @@ def command_demo_readiness_shell_script(
         if step.command_line not in emitted_command_lines:
             emitted_command_lines.add(step.command_line)
             lines.append(step.command_line)
-        for engine_action, command_line in step.action_lines:
+        for engine_action, command_line in exact_action_lines_by_flow_step.get(step.flow_step, ()):
             lines.append(f"# action: {engine_action}")
             if command_line not in emitted_command_lines:
                 emitted_command_lines.add(command_line)
@@ -4551,9 +4567,7 @@ def _validate_command_demo_readiness_shell_script(
     launcher_argv: tuple[str, ...],
 ) -> None:
     expected_command_lines = tuple(step.command_line for step in smoke_plan.steps)
-    expected_action_lines = tuple(
-        action_line for step in smoke_plan.steps for action_line in step.action_lines
-    )
+    expected_action_lines = command_demo_readiness_exact_action_line_lookup_table(specs, launcher_argv)
     if script.command_lines != expected_command_lines:
         raise ValueError("Command demo readiness shell script command lines are inconsistent")
     if script.action_lines != expected_action_lines:
@@ -4571,7 +4585,19 @@ def _validate_command_demo_readiness_shell_script(
             for grouped_lines in (
                 ("set -euo pipefail",),
                 *(
-                    (step.command_line, *(command_line for _, command_line in step.action_lines))
+                    (
+                        step.command_line,
+                        *(
+                            command_line
+                            for _, command_line in expected_action_lines
+                            if command_demo_readiness_flow_step_for_argv(
+                                command_line,
+                                specs,
+                                launcher_argv,
+                            )
+                            == step.flow_step
+                        ),
+                    )
                     for step in smoke_plan.steps
                 ),
             )
@@ -4588,8 +4614,13 @@ def _validate_command_demo_readiness_shell_script(
     )
     if not validation.is_complete:
         raise ValueError("Command demo readiness shell script does not cover the MVP route")
-    if validation.command_lines != expected_executable_lines[1:]:
-        raise ValueError("Command demo readiness shell script validation lines are inconsistent")
+    exact_validation = command_demo_readiness_validate_cli_exact_action_shell_script_lines(
+        tuple(command_line for _, command_line in expected_action_lines),
+        specs,
+        launcher_argv,
+    )
+    if not exact_validation.is_complete:
+        raise ValueError("Command demo readiness shell script does not cover exact MVP actions")
 
 
 def _dedupe_command_lines(lines: tuple[str, ...]) -> tuple[str, ...]:
