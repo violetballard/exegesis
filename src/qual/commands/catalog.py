@@ -4511,7 +4511,7 @@ def command_demo_readiness_gate(
     smoke_plan = command_demo_readiness_smoke_plan(specs, launcher_argv)
     exact_action_lines = command_demo_readiness_exact_action_line_lookup_table(specs, launcher_argv)
     covered_flow_steps = tuple(step.flow_step for step in smoke_plan.steps)
-    expected_flow_steps = command_demo_flow_steps() if specs is COMMAND_SPECS else command_flow_steps(specs)
+    expected_flow_steps = _expected_command_demo_flow_steps(specs)
     missing_flow_steps = tuple(
         flow_step
         for flow_step in expected_flow_steps
@@ -4549,7 +4549,7 @@ def _validate_command_demo_readiness_gate(
         raise ValueError("Command demo readiness gate action lines are inconsistent")
     if gate.covered_flow_steps != tuple(step.flow_step for step in smoke_plan.steps):
         raise ValueError("Command demo readiness gate flow coverage is inconsistent")
-    expected_flow_steps = command_demo_flow_steps() if specs is COMMAND_SPECS else command_flow_steps(specs)
+    expected_flow_steps = _expected_command_demo_flow_steps(specs)
     if gate.missing_flow_steps != tuple(
         flow_step
         for flow_step in expected_flow_steps
@@ -6710,7 +6710,7 @@ def command_demo_readiness_validate_cli_script(
     requested_argv = tuple(validation.requested_argv for validation in validations)
     canonical_argv = tuple(validation.canonical_argv for validation in validations if validation.canonical_argv)
     covered_flow_step_set = {validation.flow_step for validation in validations if validation.flow_step is not None}
-    expected_flow_steps = command_demo_flow_steps()
+    expected_flow_steps = _expected_command_demo_flow_steps(specs)
     covered_flow_steps = tuple(flow_step for flow_step in expected_flow_steps if flow_step in covered_flow_step_set)
     missing_flow_steps = tuple(flow_step for flow_step in expected_flow_steps if flow_step not in covered_flow_step_set)
 
@@ -6784,7 +6784,7 @@ def command_demo_readiness_validate_exact_action_script(
         command_demo_readiness_flow_step_for_argv(argv, specs, launcher_argv)
         for argv in canonical_argv
     }
-    expected_flow_steps = command_demo_flow_steps()
+    expected_flow_steps = _expected_command_demo_flow_steps(specs)
     covered_flow_steps = tuple(flow_step for flow_step in expected_flow_steps if flow_step in covered_flow_step_set)
     missing_flow_steps = tuple(flow_step for flow_step in expected_flow_steps if flow_step not in covered_flow_step_set)
 
@@ -6846,7 +6846,7 @@ def command_demo_readiness_validate_cli_exact_action_script(
         command_demo_readiness_flow_step_for_argv(argv, specs, launcher_argv)
         for argv in canonical_argv
     }
-    expected_flow_steps = command_demo_flow_steps()
+    expected_flow_steps = _expected_command_demo_flow_steps(specs)
     covered_flow_steps = tuple(flow_step for flow_step in expected_flow_steps if flow_step in covered_flow_step_set)
     missing_flow_steps = tuple(flow_step for flow_step in expected_flow_steps if flow_step not in covered_flow_step_set)
 
@@ -6948,7 +6948,7 @@ def command_demo_readiness_validate_script(
     requested_argv = tuple(validation.requested_argv for validation in validations)
     canonical_argv = tuple(validation.canonical_argv for validation in validations if validation.canonical_argv)
     covered_flow_step_set = {validation.flow_step for validation in validations if validation.flow_step is not None}
-    expected_flow_steps = command_demo_flow_steps()
+    expected_flow_steps = _expected_command_demo_flow_steps(specs)
     covered_flow_steps = tuple(flow_step for flow_step in expected_flow_steps if flow_step in covered_flow_step_set)
     missing_flow_steps = tuple(flow_step for flow_step in expected_flow_steps if flow_step not in covered_flow_step_set)
 
@@ -6973,6 +6973,12 @@ def command_demo_readiness_validate_script(
         invalid_argv=invalid_argv,
         is_complete=not missing_flow_steps and not missing_engine_actions and not invalid_argv,
     )
+
+
+def _expected_command_demo_flow_steps(specs: tuple[CommandSpec, ...]) -> tuple[str, ...]:
+    if specs is COMMAND_SPECS:
+        return command_demo_flow_steps()
+    return command_flow_steps(specs)
 
 
 def _covered_demo_readiness_engine_actions(
