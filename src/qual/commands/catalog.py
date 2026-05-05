@@ -5043,6 +5043,33 @@ def command_demo_readiness_exact_action_shell_script_text(
     )
 
 
+def command_demo_readiness_cli_exact_action_shell_script_lines(
+    specs: tuple[CommandSpec, ...] = COMMAND_SPECS,
+    launcher_argv: tuple[str, ...] = COMMAND_SMOKE_CLI_LAUNCHER_ARGV,
+) -> tuple[str, ...]:
+    lines = command_demo_readiness_exact_action_shell_script_lines(specs, launcher_argv)
+    validation = command_demo_readiness_validate_cli_exact_action_shell_script_lines(
+        lines,
+        specs,
+        launcher_argv,
+    )
+    if not validation.is_complete:
+        raise ValueError("Command demo CLI exact action script does not cover the MVP loop")
+    return lines
+
+
+def command_demo_readiness_cli_exact_action_shell_script_text(
+    specs: tuple[CommandSpec, ...] = COMMAND_SPECS,
+    launcher_argv: tuple[str, ...] = COMMAND_SMOKE_CLI_LAUNCHER_ARGV,
+) -> str:
+    return "\n".join(
+        command_demo_readiness_cli_exact_action_shell_script_lines(
+            specs,
+            launcher_argv,
+        )
+    )
+
+
 def command_demo_readiness_exact_action_for_argv(
     argv: Sequence[str] | str,
     specs: tuple[CommandSpec, ...] = COMMAND_SPECS,
@@ -7262,6 +7289,20 @@ def command_mvp_demo_readiness_exact_action_shell_script_text(
     launcher_argv: tuple[str, ...] = COMMAND_SMOKE_CLI_LAUNCHER_ARGV,
 ) -> str:
     return command_demo_readiness_exact_action_shell_script_text(specs, launcher_argv)
+
+
+def command_mvp_demo_readiness_cli_exact_action_shell_script_lines(
+    specs: tuple[CommandSpec, ...] = COMMAND_SPECS,
+    launcher_argv: tuple[str, ...] = COMMAND_SMOKE_CLI_LAUNCHER_ARGV,
+) -> tuple[str, ...]:
+    return command_demo_readiness_cli_exact_action_shell_script_lines(specs, launcher_argv)
+
+
+def command_mvp_demo_readiness_cli_exact_action_shell_script_text(
+    specs: tuple[CommandSpec, ...] = COMMAND_SPECS,
+    launcher_argv: tuple[str, ...] = COMMAND_SMOKE_CLI_LAUNCHER_ARGV,
+) -> str:
+    return command_demo_readiness_cli_exact_action_shell_script_text(specs, launcher_argv)
 
 
 def command_mvp_demo_readiness_exact_action_for_argv(
