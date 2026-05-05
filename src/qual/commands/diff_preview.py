@@ -169,7 +169,7 @@ def _truncate_diff(diff: str, max_chars: int) -> str:
     strategy = _truncation_strategy()
     if strategy == "tail":
         omitted = len(diff) - max_chars
-        return f"{diff[:max_chars]}\n{_truncation_marker(omitted)}"
+        return f"{_truncation_marker(omitted)}\n{diff[-max_chars:]}"
 
     head_chars = max_chars // 2
     tail_chars = max_chars - head_chars
