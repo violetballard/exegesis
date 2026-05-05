@@ -5423,7 +5423,12 @@ def _shell_script_executable_argv(lines: Sequence[str] | str) -> tuple[tuple[str
 def _is_shell_script_setup_argv(argv: tuple[str, ...]) -> bool:
     if not argv:
         return False
+    argv = _strip_shell_env_assignments(argv)
+    if not argv:
+        return True
     command = PurePath(argv[0]).name
+    if command == "export":
+        return all(SHELL_ENV_ASSIGNMENT_RE.fullmatch(token) for token in argv[1:])
     return command in COMMAND_SMOKE_SHELL_SETUP_COMMANDS
 
 
