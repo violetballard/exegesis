@@ -5781,7 +5781,7 @@ def _cli_parser_token_for_requested_argv(
     requested_command_argv = _argv_without_launcher(argv, launcher_argv)
     if not requested_command_argv:
         return None
-    token = _normalize_token(_strip_command_palette_prefix(requested_command_argv[0]))
+    token = _normalize_token(requested_command_argv[0])
     if not token:
         return None
     return token
