@@ -230,7 +230,7 @@ class LocalFallbackDetachedJobTests(unittest.TestCase):
                 patch.object(router, "save_json"),
                 patch.object(router, "_maybe_restore_cloud", side_effect=lambda cfg, state, cwd: state),
                 patch.object(router, "_runtime_mode", return_value="local_fallback"),
-                patch.object(router, "_spawn_detached_local_cli_job", return_value=queued_job),
+                patch.object(router, "_spawn_detached_cli_job", return_value=queued_job),
                 patch.object(router, "archive") as archive_mock,
             ):
                 processed, new_state, _reviewer_threads, _integrator_tid = router.process_once(
@@ -245,6 +245,55 @@ class LocalFallbackDetachedJobTests(unittest.TestCase):
 
         self.assertEqual(processed, 0)
         self.assertEqual(new_state["local_reviewer_jobs"]["feat-commands"]["packet_name"], pkt.name)
+        archive_mock.assert_not_called()
+
+    def test_process_once_queues_detached_cloud_reviewer_job(self) -> None:
+        with tempfile.TemporaryDirectory() as tmp:
+            lane_dir = Path(tmp)
+            pkt = lane_dir / "inbox" / "feature" / "F__codex-feat-commands__abc1234__20260328T000000Z.md"
+            pkt.parent.mkdir(parents=True, exist_ok=True)
+            pkt.write_text("Feature packet body\n", encoding="utf-8")
+
+            cfg = SimpleNamespace(
+                lanes={"feat-commands": {}},
+                max_packets_per_run=1,
+                max_cloud_reviewer_jobs=4,
+                max_total_cloud_jobs=4,
+                auto_switch_to_local_on_quota=True,
+                reviewer_timeout=30,
+                integrator_timeout=30,
+                inline_fixer=False,
+                prefer_cli_reviewer=True,
+                prefer_cli_integrator=True,
+            )
+            state = {"runtime_mode": "hybrid", "cloud_available": True}
+            queued_job = {"packet_name": pkt.name, "pid": 123, "result_path": str(lane_dir / "reviewer.result.json")}
+
+            with (
+                patch.object(router, "ensure_lane_dirs", return_value=lane_dir),
+                patch.object(router, "list_new", return_value=[pkt]),
+                patch.object(router, "load_json", return_value={}),
+                patch.object(router, "save_json"),
+                patch.object(router, "_maybe_restore_cloud", side_effect=lambda cfg, state, cwd: state),
+                patch.object(router, "_count_active_feature_cloud_jobs", return_value=0),
+                patch.object(router, "_spawn_detached_cli_job", return_value=queued_job) as spawn_mock,
+                patch.object(router, "archive") as archive_mock,
+            ):
+                processed, new_state, _reviewer_threads, _integrator_tid = router.process_once(
+                    SimpleNamespace(),
+                    SimpleNamespace(),
+                    cfg,
+                    state,
+                    "/repo",
+                    {},
+                    "",
+                )
+
+        self.assertEqual(processed, 0)
+        self.assertEqual(new_state["cloud_reviewer_jobs"]["feat-commands"]["packet_name"], pkt.name)
+        self.assertFalse(new_state.get("local_reviewer_jobs"))
+        spawn_mock.assert_called_once()
+        self.assertFalse(spawn_mock.call_args.kwargs["local"])
         archive_mock.assert_not_called()
 
     def test_process_once_defers_local_reviewer_when_global_lms_cap_reached(self) -> None:
@@ -298,7 +347,7 @@ class LocalFallbackDetachedJobTests(unittest.TestCase):
                 patch.object(router, "_maybe_restore_cloud", side_effect=lambda cfg, state, cwd: state),
                 patch.object(router, "_runtime_mode", return_value="local_fallback"),
                 patch.object(router, "_pid_alive", side_effect=lambda pid: pid == 999),
-                patch.object(router, "_spawn_detached_local_cli_job") as spawn_mock,
+                patch.object(router, "_spawn_detached_cli_job") as spawn_mock,
             ):
                 processed, new_state, _reviewer_threads, _integrator_tid = router.process_once(
                     SimpleNamespace(),
@@ -395,6 +444,7 @@ class LocalFallbackDetachedJobTests(unittest.TestCase):
                 patch.object(router, "ensure_lane_dirs", return_value=lane_dir),
                 patch.object(router, "_maybe_restore_cloud", side_effect=lambda cfg, state, cwd: state),
                 patch.object(router, "_runtime_mode", return_value="local_fallback"),
+                patch.object(router, "_local_lms_slot_available", return_value=True),
                 patch.object(router, "_spawn_detached_cli_job", return_value=queued_job),
                 patch.object(router, "archive") as archive_mock,
             ):
@@ -444,6 +494,7 @@ class LocalFallbackDetachedJobTests(unittest.TestCase):
                 patch.object(router, "ensure_lane_dirs", return_value=lane_dir),
                 patch.object(router, "_maybe_restore_cloud", side_effect=lambda cfg, state, cwd: state),
                 patch.object(router, "_runtime_mode", return_value="local_fallback"),
+                patch.object(router, "_local_lms_slot_available", return_value=True),
                 patch.object(router, "_spawn_detached_cli_job", return_value=queued_job) as spawn_mock,
                 patch.object(router, "archive") as archive_mock,
             ):

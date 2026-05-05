@@ -367,6 +367,7 @@ class CloudConcurrencyCapsTests(unittest.TestCase):
             }
         }
         router_state = {
+            "cloud_reviewer_jobs": {"feat-review:packet": {"pid": 6666}},
             "cloud_integrator_jobs": {"feat-retrieval:packet": {"pid": 3333}},
             "fixer_fallback_jobs": {
                 "feat-a": {"pid": 4444, "local": False},
@@ -375,13 +376,13 @@ class CloudConcurrencyCapsTests(unittest.TestCase):
         }
 
         def fake_pid_alive(pid: int) -> bool:
-            return pid in {1111, 3333, 4444, 5555}
+            return pid in {1111, 3333, 4444, 5555, 6666}
 
         with (
             mock.patch.object(launch_feature_lanes, "load_json", return_value=router_state),
             mock.patch.object(launch_feature_lanes, "_pid_alive", side_effect=fake_pid_alive),
         ):
-            self.assertEqual(launch_feature_lanes._cloud_feature_launch_slots(launch_cfg, feature_state), 1)
+            self.assertEqual(launch_feature_lanes._cloud_feature_launch_slots(launch_cfg, feature_state), 0)
 
     def test_router_cloud_role_slots_share_total_cloud_cap(self) -> None:
         cfg = SimpleNamespace(

@@ -292,33 +292,8 @@ def _active_local_worker_count(router_state: Dict[str, Any]) -> int:
 
 
 def _active_cloud_reviewer_count() -> int:
-    daemon_pid = _read_pid() or 0
-    if daemon_pid <= 0:
-        return 0
-    try:
-        proc = subprocess.run(
-            ["ps", "-axo", "pid=,ppid=,command="],
-            stdout=subprocess.PIPE,
-            stderr=subprocess.DEVNULL,
-            text=True,
-            timeout=PROC_TIMEOUT_SECONDS,
-        )
-    except Exception:
-        return 0
-    active = 0
-    for line in (proc.stdout or "").splitlines():
-        parts = line.strip().split(None, 2)
-        if len(parts) < 3:
-            continue
-        try:
-            pid = int(parts[0])
-            ppid = int(parts[1])
-        except ValueError:
-            continue
-        cmd = parts[2]
-        if ppid == daemon_pid and _pid_alive(pid) and "codex exec" in cmd and "REVIEWER" in cmd:
-            active += 1
-    return active
+    router_state = _load_json(ROUTER_STATE, {}) or {}
+    return _count_active_pid_jobs(router_state.get("cloud_reviewer_jobs") or {})
 
 
 def _latest_run() -> Dict[str, Any] | None:
@@ -1136,6 +1111,8 @@ def main() -> None:
     print(f"fixer_fallback_jobs={_count_active_pid_jobs(fallback_jobs)}")
     local_reviewer_jobs = router_state.get("local_reviewer_jobs") or {}
     print(f"local_reviewer_jobs={_count_active_pid_jobs(local_reviewer_jobs)}")
+    cloud_reviewer_jobs = router_state.get("cloud_reviewer_jobs") or {}
+    print(f"cloud_reviewer_jobs={_count_active_pid_jobs(cloud_reviewer_jobs)}")
     local_integrator_jobs = router_state.get("local_integrator_jobs") or {}
     print(f"local_integrator_jobs={_count_active_pid_jobs(local_integrator_jobs)}")
     print()

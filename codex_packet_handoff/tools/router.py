@@ -1034,6 +1034,7 @@ def _count_active_feature_cloud_jobs() -> int:
 
 def _count_active_cloud_jobs(state: Dict[str, Any]) -> int:
     active = _count_active_feature_cloud_jobs()
+    active += _count_active_local_jobs(_local_job_map(state, "cloud_reviewer_jobs"))
     active += _count_active_local_jobs(_local_job_map(state, "cloud_integrator_jobs"))
     active += _count_active_pid_jobs(_local_job_map(state, "fixer_fallback_jobs"), local=False)
     return active
@@ -1047,7 +1048,7 @@ def _cloud_role_slot_available(cfg: RouterConfig, state: Dict[str, Any], role: s
         active = _count_active_feature_cloud_jobs()
     elif role == "reviewer":
         cap = int(getattr(cfg, "max_cloud_reviewer_jobs", 4) or 0)
-        active = 0
+        active = _count_active_local_jobs(_local_job_map(state, "cloud_reviewer_jobs"))
     elif role == "integrator":
         cap = int(getattr(cfg, "max_cloud_integrator_jobs", 4) or 0)
         active = _count_active_local_jobs(_local_job_map(state, "cloud_integrator_jobs"))
@@ -1227,15 +1228,19 @@ def _poll_detached_local_cli_job(job: Dict[str, Any]) -> Dict[str, Any]:
     }
 
 
-def _prepare_local_reviewer_result(
+def _prepare_cli_reviewer_result(
     cfg: RouterConfig,
     state: Dict[str, Any],
     repo_cwd: str,
     lane: str,
     pkt_path: Path,
     pkt: str,
+    *,
+    local: bool,
 ) -> Tuple[bool, str, Dict[str, Any]]:
-    jobs = _local_job_map(state, "local_reviewer_jobs")
+    jobs_key = "local_reviewer_jobs" if local else "cloud_reviewer_jobs"
+    mode_label = "local" if local else "cloud"
+    jobs = _local_job_map(state, jobs_key)
     packet_name = pkt_path.name
     job = jobs.get(lane)
     if isinstance(job, dict) and str(job.get("packet_name") or "") != packet_name:
@@ -1243,32 +1248,46 @@ def _prepare_local_reviewer_result(
             jobs.pop(lane, None)
             job = None
         else:
-            state["local_reviewer_jobs"] = jobs
+            state[jobs_key] = jobs
             return False, "", state
 
     if isinstance(job, dict):
         polled = _poll_detached_local_cli_job(job)
         if not polled["done"]:
-            state["local_reviewer_jobs"] = jobs
+            state[jobs_key] = jobs
             return False, "", state
         jobs.pop(lane, None)
-        state["local_reviewer_jobs"] = jobs
+        state[jobs_key] = jobs
         text = str(polled.get("output") or "").strip()
         rejection = _local_cli_output_rejection_reason(text, require_verdict=True)
         if polled.get("status") == "ok" and not rejection:
             return True, text, state
-        reason = str(polled.get("error") or rejection or "local reviewer job failed")
-        print(f"[router] local reviewer job for {lane} failed, using offline fallback: {reason}")
+        reason = str(polled.get("error") or rejection or f"{mode_label} reviewer job failed")
+        quota_text = "\n".join(part for part in (text, reason) if part)
+        if not local and cfg.auto_switch_to_local_on_quota and _has_real_quota_signal(quota_text):
+            state = _switch_to_local_fallback(
+                cfg,
+                state,
+                f"cloud reviewer job failed/timed out: {reason}",
+                _quota_retry_epoch(cfg, quota_text),
+            )
+            print(f"[router] cloud reviewer job for {lane} hit quota; cloud pool unavailable, local work continues: {reason}")
+            return False, "", state
+        print(f"[router] {mode_label} reviewer job for {lane} failed, using offline fallback: {reason}")
         return True, _offline_reviewer_fallback(pkt, reason), state
 
-    if _count_active_local_jobs(jobs) >= LOCAL_REVIEWER_MAX_ACTIVE:
-        state["local_reviewer_jobs"] = jobs
+    max_active = LOCAL_REVIEWER_MAX_ACTIVE if local else int(getattr(cfg, "max_cloud_reviewer_jobs", 4) or 4)
+    if _count_active_local_jobs(jobs) >= max_active:
+        state[jobs_key] = jobs
         return False, "", state
-    if not _local_lms_slot_available(cfg, state):
-        state["local_reviewer_jobs"] = jobs
+    if local and not _local_lms_slot_available(cfg, state):
+        state[jobs_key] = jobs
+        return False, "", state
+    if not local and not _cloud_role_slot_available(cfg, state, "reviewer"):
+        state[jobs_key] = jobs
         return False, "", state
 
-    jobs[lane] = _spawn_detached_local_cli_job(
+    jobs[lane] = _spawn_detached_cli_job(
         role="reviewer",
         cfg=cfg,
         repo_cwd=repo_cwd,
@@ -1277,10 +1296,22 @@ def _prepare_local_reviewer_result(
         prompt=reviewer_prompt(pkt),
         sandbox="read-only",
         timeout_seconds=cfg.reviewer_timeout,
+        local=local,
     )
-    state["local_reviewer_jobs"] = jobs
-    print(f"[router] queued local reviewer job for {lane} ({packet_name})")
+    state[jobs_key] = jobs
+    print(f"[router] queued {mode_label} reviewer job for {lane} ({packet_name})")
     return False, "", state
+
+
+def _prepare_local_reviewer_result(
+    cfg: RouterConfig,
+    state: Dict[str, Any],
+    repo_cwd: str,
+    lane: str,
+    pkt_path: Path,
+    pkt: str,
+) -> Tuple[bool, str, Dict[str, Any]]:
+    return _prepare_cli_reviewer_result(cfg, state, repo_cwd, lane, pkt_path, pkt, local=True)
 
 
 def _prepare_local_integrator_result(
@@ -1876,25 +1907,29 @@ def process_once(
                 reason = (
                     f"reviewer quota cooldown active ({wait_s}s remaining)"
                 )
-                reviewer_text = _run_cli_reviewer(
-                    cfg, repo_cwd, pkt, reason, local=True, lane=lane
-                ) or _offline_reviewer_fallback(
-                    pkt, reason
-                )
-            elif not runtime_local and cfg.prefer_cli_reviewer:
-                reviewer_text = _run_cli_reviewer(
+                ready, reviewer_text, state = _prepare_cli_reviewer_result(
                     cfg,
+                    state,
                     repo_cwd,
+                    lane,
+                    pkt_path,
                     pkt,
-                    "cloud direct exec reviewer",
-                    local=runtime_local,
-                    lane=lane,
-                ) or ""
-                if not reviewer_text:
-                    reviewer_text = _offline_reviewer_fallback(
-                        pkt,
-                        "reviewer direct exec failed/timed out",
-                    )
+                    local=True,
+                )
+                if not ready:
+                    continue
+            elif not runtime_local and cfg.prefer_cli_reviewer:
+                ready, reviewer_text, state = _prepare_cli_reviewer_result(
+                    cfg,
+                    state,
+                    repo_cwd,
+                    lane,
+                    pkt_path,
+                    pkt,
+                    local=False,
+                )
+                if not ready:
+                    continue
             else:
                 try:
                     reviewer_tid = _ensure_lane_reviewer_thread(

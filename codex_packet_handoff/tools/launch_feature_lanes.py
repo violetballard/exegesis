@@ -324,11 +324,12 @@ def _active_cloud_feature_jobs(feature_state: Dict[str, Any]) -> int:
 
 def _active_cloud_router_jobs(router_state: Dict[str, Any]) -> int:
     active = 0
-    jobs = router_state.get("cloud_integrator_jobs") if isinstance(router_state, dict) else {}
-    if isinstance(jobs, dict):
-        for job in jobs.values():
-            if isinstance(job, dict) and _pid_alive(int(job.get("pid") or 0)):
-                active += 1
+    for key in ("cloud_reviewer_jobs", "cloud_integrator_jobs"):
+        jobs = router_state.get(key) if isinstance(router_state, dict) else {}
+        if isinstance(jobs, dict):
+            for job in jobs.values():
+                if isinstance(job, dict) and _pid_alive(int(job.get("pid") or 0)):
+                    active += 1
     fixer_jobs = router_state.get("fixer_fallback_jobs") if isinstance(router_state, dict) else {}
     if isinstance(fixer_jobs, dict):
         for job in fixer_jobs.values():

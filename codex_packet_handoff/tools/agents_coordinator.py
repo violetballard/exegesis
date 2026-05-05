@@ -93,6 +93,7 @@ WORKTREE_RECOVERY_ROOT = REPO_ROOT / ".codex/worktree_recovery"
 ROUTER_JOB_STATE_KEYS = (
     "fixer_fallback_jobs",
     "local_reviewer_jobs",
+    "cloud_reviewer_jobs",
     "local_integrator_jobs",
     "cloud_integrator_jobs",
 )
@@ -1567,11 +1568,12 @@ def _cloud_feature_launch_slots() -> int:
 def _active_cloud_router_jobs() -> int:
     router_state = load_json(ROUTER_STATE_FILE, {})
     active = 0
-    jobs = router_state.get("cloud_integrator_jobs") or {}
-    if isinstance(jobs, dict):
-        for job in jobs.values():
-            if isinstance(job, dict) and _pid_alive(int(job.get("pid") or 0)):
-                active += 1
+    for key in ("cloud_reviewer_jobs", "cloud_integrator_jobs"):
+        jobs = router_state.get(key) or {}
+        if isinstance(jobs, dict):
+            for job in jobs.values():
+                if isinstance(job, dict) and _pid_alive(int(job.get("pid") or 0)):
+                    active += 1
     fixer_jobs = router_state.get("fixer_fallback_jobs") or {}
     if isinstance(fixer_jobs, dict):
         for job in fixer_jobs.values():

@@ -161,7 +161,13 @@ def _feature_runner_pids() -> list[int]:
 def _router_job_pids() -> list[int]:
     state = _load_json(ROUTER_STATE_FILE)
     pids: list[int] = []
-    for key in ("fixer_fallback_jobs", "local_reviewer_jobs", "local_integrator_jobs", "cloud_integrator_jobs"):
+    for key in (
+        "fixer_fallback_jobs",
+        "local_reviewer_jobs",
+        "cloud_reviewer_jobs",
+        "local_integrator_jobs",
+        "cloud_integrator_jobs",
+    ):
         jobs = state.get(key) if isinstance(state, dict) else {}
         if not isinstance(jobs, dict):
             continue
