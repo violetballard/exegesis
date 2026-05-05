@@ -5235,7 +5235,7 @@ def _smoke_option_argv_matches(
     if requested_by_option.keys() != expected_by_option.keys():
         return False
     return all(
-        option in value_agnostic_options
+        (option in value_agnostic_options and requested_by_option[option] is not None)
         or requested_by_option[option] == expected_by_option[option]
         for option in expected_by_option
     )
