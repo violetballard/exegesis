@@ -1031,6 +1031,74 @@ def _validate_demo_smoke_argv_coverage(flow_steps: tuple[str, ...]) -> None:
         raise ValueError(f"Unknown command demo smoke argv flow steps: {', '.join(extra_flow_steps)}")
 
 
+def _validate_smoke_matching_policy(specs: tuple[CommandSpec, ...]) -> None:
+    command_names = {_normalize_token(spec.name) for spec in specs}
+    option_commands = set(
+        _validate_smoke_value_agnostic_options(command_names)
+    )
+    positional_commands = set(
+        _validate_smoke_value_agnostic_positionals(command_names)
+    )
+    unknown_policy_commands = tuple(
+        command_name
+        for command_name in (*option_commands, *positional_commands)
+        if command_name not in command_names
+    )
+    if unknown_policy_commands:
+        raise ValueError(
+            "Command smoke matching policy references unknown commands: "
+            + ", ".join(unknown_policy_commands)
+        )
+
+
+def _validate_smoke_value_agnostic_options(
+    command_names: set[str],
+) -> tuple[str, ...]:
+    seen_commands: set[str] = set()
+    normalized_commands: list[str] = []
+    for command_name, options in _SMOKE_VALUE_AGNOSTIC_OPTIONS_BY_COMMAND:
+        normalized_command = _normalize_token(command_name)
+        if not normalized_command:
+            raise ValueError("Command smoke value-agnostic option command must not be empty")
+        if normalized_command in seen_commands:
+            raise ValueError(f"Duplicate command smoke value-agnostic option command: {command_name}")
+        seen_commands.add(normalized_command)
+        normalized_commands.append(normalized_command)
+        if normalized_command not in command_names:
+            continue
+        if not options:
+            raise ValueError(f"Command smoke value-agnostic options must not be empty: {command_name}")
+        if len(set(options)) != len(options):
+            raise ValueError(f"Duplicate command smoke value-agnostic option: {command_name}")
+        if any(not option.startswith("--") or option == "--" for option in options):
+            raise ValueError(f"Invalid command smoke value-agnostic option: {command_name}")
+    return tuple(normalized_commands)
+
+
+def _validate_smoke_value_agnostic_positionals(
+    command_names: set[str],
+) -> tuple[str, ...]:
+    seen_commands: set[str] = set()
+    normalized_commands: list[str] = []
+    for command_name, positional_indexes in _SMOKE_VALUE_AGNOSTIC_POSITIONALS_BY_COMMAND:
+        normalized_command = _normalize_token(command_name)
+        if not normalized_command:
+            raise ValueError("Command smoke value-agnostic positional command must not be empty")
+        if normalized_command in seen_commands:
+            raise ValueError(f"Duplicate command smoke value-agnostic positional command: {command_name}")
+        seen_commands.add(normalized_command)
+        normalized_commands.append(normalized_command)
+        if normalized_command not in command_names:
+            continue
+        if not positional_indexes:
+            raise ValueError(f"Command smoke value-agnostic positionals must not be empty: {command_name}")
+        if len(set(positional_indexes)) != len(positional_indexes):
+            raise ValueError(f"Duplicate command smoke value-agnostic positional: {command_name}")
+        if any(index < 0 for index in positional_indexes):
+            raise ValueError(f"Invalid command smoke value-agnostic positional: {command_name}")
+    return tuple(normalized_commands)
+
+
 def validate_command_catalog(specs: tuple[CommandSpec, ...] = COMMAND_SPECS) -> None:
     seen_names: set[str] = set()
     seen_flow_steps: set[str] = set()
@@ -1074,6 +1142,9 @@ def validate_command_catalog(specs: tuple[CommandSpec, ...] = COMMAND_SPECS) -> 
             if normalized_alias in seen_lookup_tokens and seen_lookup_tokens[normalized_alias] != spec.name:
                 raise ValueError(f"Duplicate command lookup token: {alias}")
             seen_lookup_tokens[normalized_alias] = spec.name
+
+    if specs == COMMAND_SPECS:
+        _validate_smoke_matching_policy(specs)
 
 
 @lru_cache(maxsize=None)
