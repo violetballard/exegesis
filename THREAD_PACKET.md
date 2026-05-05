@@ -52,7 +52,7 @@ Integrator-locked files: none.
 
 - Task budget: `4/4` high-risk tasks.
 - File budget: the complete branch-tip review range changes `4` files, within the high-risk `<=8 files` limit.
-- Net LOC: after this fixer pass, `git diff --shortstat main...HEAD` reports `4 files changed, 148 insertions(+), 57 deletions(-)`, for `+91` net LOC, within the high-risk `<=300 net LOC` limit.
+- Net LOC: after this fixer pass, `git diff --shortstat main...HEAD` reports `4 files changed, 166 insertions(+), 59 deletions(-)`, for `+107` net LOC, within the high-risk `<=300 net LOC` limit.
 - Shared-file approval note: `tests/unit/test_unified_retrieval.py` is the approved shared-by-approval regression file for this lane.
 - Routing/provider impact: none.
 - PageIndex/embeddings impact: none; both remain deferred/compatibility-only.
