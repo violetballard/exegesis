@@ -117,6 +117,12 @@ def _basket_promotion_count_from_snapshot(
             if isinstance(count, int) and count >= 0:
                 return count
 
+    retrieval_summary = snapshot.get("retrieval_summary")
+    if isinstance(retrieval_summary, dict):
+        count = retrieval_summary.get("basket_promotion_count")
+        if isinstance(count, int) and count >= 0:
+            return count
+
     return _basket_promotion_count_from_items(basket_promotion_items)
 
 
@@ -295,6 +301,12 @@ def _basket_item_ids_from_snapshot(
             if basket_item_ids:
                 return [str(item_id) for item_id in basket_item_ids if item_id is not None]
 
+    retrieval_summary = snapshot.get("retrieval_summary")
+    if isinstance(retrieval_summary, dict):
+        basket_item_ids = _normalize_list_like(retrieval_summary.get("basket_item_ids", []))
+        if basket_item_ids:
+            return [str(item_id) for item_id in basket_item_ids if item_id is not None]
+
     return _basket_item_ids_from_items(basket_promotion_items)
 
 
@@ -313,6 +325,14 @@ def _basket_item_fingerprints_from_snapshot(
             basket_item_fingerprints = _normalize_list_like(source_bundle.get("basket_item_fingerprints", []))
             if basket_item_fingerprints:
                 return [str(item_fingerprint) for item_fingerprint in basket_item_fingerprints if item_fingerprint is not None]
+
+    retrieval_summary = snapshot.get("retrieval_summary")
+    if isinstance(retrieval_summary, dict):
+        basket_item_fingerprints = _normalize_list_like(
+            retrieval_summary.get("basket_item_fingerprints", [])
+        )
+        if basket_item_fingerprints:
+            return [str(item_fingerprint) for item_fingerprint in basket_item_fingerprints if item_fingerprint is not None]
 
     return _basket_item_fingerprints_from_items(basket_promotion_items)
 
@@ -578,6 +598,13 @@ def _normalize_retrieval_summary_snapshot(summary: dict[str, object]) -> dict[st
     normalized["top_excerpt_text_hashes"] = _normalize_list_like(normalized.get("top_excerpt_text_hashes"))
     normalized["active_strategy_ids"] = _normalize_list_like(normalized.get("active_strategy_ids"))
     normalized["deferred_strategy_ids"] = _normalize_list_like(normalized.get("deferred_strategy_ids"))
+    normalized["basket_item_ids"] = _normalize_list_like(normalized.get("basket_item_ids"))
+    normalized["basket_item_fingerprints"] = _normalize_list_like(
+        normalized.get("basket_item_fingerprints")
+    )
+    count = normalized.get("basket_promotion_count")
+    if not isinstance(count, int) or count < 0:
+        normalized["basket_promotion_count"] = len(normalized["basket_item_ids"])
     retrieval_policy = normalized.get("retrieval_policy")
     if isinstance(retrieval_policy, dict):
         normalized["retrieval_policy"] = _normalize_policy_snapshot(retrieval_policy)

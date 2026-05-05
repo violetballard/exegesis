@@ -11,25 +11,25 @@
 
 ## Scope Completed
 
-This pass extends deterministic basket promotion metadata into the excerpt-focused retrieval bundle itself. Engine consumers that receive only the excerpt bundle now get `basket_promotion_items`, `basket_promotion_count`, `basket_item_ids`, and `basket_item_fingerprints` alongside the canonical excerpt hits and excerpt citations.
+This pass extends deterministic basket promotion metadata into the compact retrieval summary and provenance snapshots. Engine consumers that inspect summary/provenance before promotion now get `basket_promotion_count`, `basket_item_ids`, and `basket_item_fingerprints` without having to traverse the full excerpt payload.
 
-The engine payload helpers now reconstruct those same promotion fields from sparse excerpt-bundle snapshots, including snapshots that only preserve `excerpt_hits`. This keeps basket promotion ready for downstream drafting, revise, and apply flows without requiring callers to hold the full downstream payload or source bundle.
+The engine payload helpers now preserve and recover those same promotion IDs, counts, and fingerprints from sparse retrieval-summary snapshots. This keeps basket promotion auditable for downstream drafting, revise, and apply flows when compact summary payloads survive independently from the full source bundle.
 
-Focused regression coverage was re-run against the existing unified retrieval contract to verify the new excerpt-bundle promotion metadata does not drift from the canonical service result shape.
+Focused regression coverage was re-run against the existing unified retrieval contract to verify the retrieval payload helpers still reconstruct the canonical service result shape.
 
 The change keeps SQLite FTS as the authoritative retrieval path. PageIndex and embeddings remain deferred/compatibility-only paths and are not introduced as active retrieval strategies.
 
 ## Tasks Completed
 
-1. Added deterministic basket promotion refs, IDs, fingerprints, and count to canonical retrieval excerpt bundles.
-2. Added deterministic basket promotion reconstruction to engine excerpt-bundle normalization for sparse snapshots.
+1. Added deterministic basket promotion IDs, fingerprints, and count to canonical retrieval summary and provenance snapshots.
+2. Added deterministic basket promotion ID/count/fingerprint recovery to engine payload normalization for sparse retrieval-summary snapshots.
 3. Re-ran focused unified retrieval regression coverage and full local handoff gates.
 4. Refreshed the handoff packet for this source-bearing fixer pass.
 
 ## Files Changed
 
-- `src/qual/retrieval/service.py` - carries deterministic basket promotion metadata on canonical retrieval excerpt bundle snapshots.
-- `src/qual/engine/retrieval/payload.py` - reconstructs and preserves deterministic basket promotion metadata when normalizing direct or sparse excerpt bundle snapshots.
+- `src/qual/retrieval/service.py` - carries deterministic basket promotion metadata on canonical retrieval summary and provenance snapshots.
+- `src/qual/engine/retrieval/payload.py` - reconstructs and preserves deterministic basket promotion IDs, counts, and fingerprints from direct or sparse retrieval summary snapshots.
 - `THREAD_PACKET.md` - updates the handoff packet for this fixer pass.
 
 Lane-owned source files:
@@ -58,13 +58,14 @@ Integrator-locked files: none.
 
 - Roadmap items affected: `ROADMAP.md` active MVP focus for `feat-retrieval-fts`; Milestone 3/4 retrieval layer support for retrieving relevant material and promoting or gathering context into basket flows.
 - Vision capabilities affected: `PRODUCT_VISION.md` retrieval-first context handling and auditable generation/state.
-- Canonical demo-path mapping: this work advances `retrieve relevant material` and supports basket/context promotion by making excerpt-focused retrieval snapshots expose deterministic promotion refs with the promotion item list, promotion count, item IDs, and item fingerprints.
+- Canonical demo-path mapping: this work advances `retrieve relevant material` and supports basket/context promotion by making compact retrieval summary/provenance snapshots expose deterministic promotion counts, item IDs, and item fingerprints.
 - Routing/provider impact note: none.
 - Proposed `README.md` patch text: none.
 
 ## Commands Run
 
-- `python -m unittest tests.unit.test_unified_retrieval -q` PASS, 64 tests.
+- `python -m pytest tests/unit/test_unified_retrieval.py` BLOCKED, local Python 3.14 reports `No module named pytest`.
+- `python3 -m unittest tests.unit.test_unified_retrieval` PASS, 64 tests.
 - `./quality-format.sh --check` PASS.
 - `./quality-lint.sh` PASS.
 - `./quality-test.sh` PASS, including smoke and 133 unit tests.

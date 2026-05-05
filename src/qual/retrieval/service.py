@@ -655,6 +655,11 @@ class RetrievalResult:
         retrieval_policy: dict[str, object],
         citation_status: dict[str, object],
     ) -> dict[str, object]:
+        basket_promotion_items = self.basket_promotion_items()
+        basket_item_fingerprints = [
+            str(item["basket_item_fingerprint"])
+            for item in basket_promotion_items
+        ]
         doc_fingerprints = [_optional_text(doc_hit.provenance.get("doc_fingerprint")) for doc_hit in self.doc_hits]
         doc_identity_fingerprints = [
             _optional_text(doc_hit.provenance.get("doc_identity_fingerprint")) for doc_hit in self.doc_hits
@@ -681,6 +686,9 @@ class RetrievalResult:
             "retrieval_policy": copy.deepcopy(retrieval_policy),
             "doc_count": len(self.doc_hits),
             "excerpt_count": len(self.hits),
+            "basket_promotion_count": len(basket_promotion_items),
+            "basket_item_ids": [str(item["item_id"]) for item in basket_promotion_items],
+            "basket_item_fingerprints": basket_item_fingerprints,
             "doc_ids": [doc_hit.doc_id for doc_hit in self.doc_hits],
             "doc_fingerprints": doc_fingerprints,
             "doc_identity_fingerprints": doc_identity_fingerprints,
@@ -717,6 +725,11 @@ class RetrievalResult:
     ) -> dict[str, object]:
         primary_doc_hit = self.doc_hits[0] if self.doc_hits else None
         primary_excerpt_hit = self.hits[0] if self.hits else None
+        basket_promotion_items = self.basket_promotion_items()
+        basket_item_fingerprints = [
+            str(item["basket_item_fingerprint"])
+            for item in basket_promotion_items
+        ]
         return {
             "query_fingerprint": self.diagnostics["query_fingerprint"],
             "query_scope": self.query.scope,
@@ -750,6 +763,9 @@ class RetrievalResult:
                 if primary_excerpt_hit is not None
                 else None
             ),
+            "basket_promotion_count": len(basket_promotion_items),
+            "basket_item_ids": [str(item["item_id"]) for item in basket_promotion_items],
+            "basket_item_fingerprints": basket_item_fingerprints,
             "citation_status": citation_status,
             "doc_count": citation_bundle["doc_count"],
             "excerpt_count": citation_bundle["excerpt_count"],
