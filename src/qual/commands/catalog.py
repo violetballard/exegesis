@@ -4751,7 +4751,7 @@ def _split_uv_python_launcher_prefix(argv: tuple[str, ...]) -> tuple[tuple[str, 
     if len(argv) < 4 or argv[:3] != ("uv", "run", "--python"):
         return (), argv
     python_launcher = argv[3]
-    if not python_launcher.strip():
+    if not python_launcher.strip() or not _is_supported_python_launcher(python_launcher):
         return (), argv
     prefix = argv[:4]
     unwrapped_argv = argv[4:]
