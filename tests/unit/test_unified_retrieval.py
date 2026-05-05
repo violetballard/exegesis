@@ -24,6 +24,7 @@ from src.qual.engine.retrieval.payload import build_retrieval_provenance_from_re
 from src.qual.engine.retrieval.payload import _build_retrieval_excerpt_bundle_from_payload
 from src.qual.engine.retrieval.payload import _build_retrieval_source_bundle_from_payload
 from src.qual.engine.retrieval.payload import _build_retrieval_provenance_from_payload
+from src.qual.engine.retrieval.interface import StrategyRun
 import src.qual.retrieval as package_retrieval
 from src.qual.retrieval import retrieve_auto as engine_retrieve_auto
 from src.qual.retrieval import retrieve_auto_citation_bundle as engine_retrieve_auto_citation_bundle
@@ -277,6 +278,30 @@ class UnifiedRetrievalTests(unittest.TestCase):
                 excerpt_count=1,
                 provenance={},
             )
+
+    def test_merge_hits_rejects_non_fts_provenance_strategy(self) -> None:
+        run = StrategyRun(
+            strategy_id="fts",
+            hits=[
+                {
+                    "doc_id": "doc-1",
+                    "excerpt_id": "excerpt-1",
+                    "excerpt_text": "PageIndex-shaped payload",
+                    "span": {"char_range": {"start": 0, "end": 24}},
+                    "title_hint": "Title",
+                    "score": 1.0,
+                    "source_strategy": "fts",
+                    "rationale": "compat_payload",
+                    "node_path": None,
+                    "provenance": {"source_strategy": "pageindex"},
+                }
+            ],
+            elapsed_ms=0,
+            cache_used=False,
+        )
+
+        with self.assertRaisesRegex(ValueError, "unsupported retrieval provenance strategy: pageindex"):
+            self.service._merge_hits([run], max_results=1)
 
     def test_retrieve_auto_canonicalizes_doc_type_filters_in_fingerprints(self) -> None:
         first = self.service.retrieve_auto(

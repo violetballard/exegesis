@@ -1234,9 +1234,26 @@ class RetrievalService:
                     combined.append(hit)
                     continue
                 if isinstance(hit, dict):
-                    source_strategy = str(hit.get("source_strategy", "fts"))
+                    provenance = hit.get("provenance", {})
+                    if not isinstance(provenance, dict):
+                        provenance = {}
+                    source_strategy = str(
+                        hit.get(
+                            "source_strategy",
+                            hit.get(
+                                "retrieval_source_strategy",
+                                provenance.get("source_strategy", provenance.get("retrieval_source_strategy", "fts")),
+                            ),
+                        )
+                    )
                     if source_strategy != "fts":
                         raise ValueError(f"unsupported retrieval strategy: {source_strategy}")
+                    provenance_source_strategy = provenance.get(
+                        "source_strategy",
+                        provenance.get("retrieval_source_strategy", "fts"),
+                    )
+                    if provenance_source_strategy != "fts":
+                        raise ValueError(f"unsupported retrieval provenance strategy: {provenance_source_strategy}")
                     combined.append(
                         RetrievalHit(
                             doc_id=str(hit["doc_id"]),
@@ -1248,7 +1265,7 @@ class RetrievalService:
                             source_strategy="fts",
                             rationale=hit.get("rationale"),
                             node_path=hit.get("node_path"),
-                            provenance=dict(hit.get("provenance", {})),
+                            provenance=dict(provenance),
                         )
                     )
         with_excerpt = [hit for hit in combined if hit.excerpt_id is not None]
