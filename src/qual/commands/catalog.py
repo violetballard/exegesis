@@ -649,15 +649,27 @@ COMMAND_SMOKE_CLI_LAUNCHER_ARGV: tuple[str, ...] = ("python", "-m", "src.main")
 COMMAND_SMOKE_SCRIPT_LAUNCHER_ARGV: tuple[str, ...] = ("python", "src/main.py")
 COMMAND_SMOKE_CLI_PYTHON3_LAUNCHER_ARGV: tuple[str, ...] = ("python3", "-m", "src.main")
 COMMAND_SMOKE_SCRIPT_PYTHON3_LAUNCHER_ARGV: tuple[str, ...] = ("python3", "src/main.py")
+COMMAND_SMOKE_UV_CLI_LAUNCHER_ARGV: tuple[str, ...] = ("uv", "run", "python", "-m", "src.main")
+COMMAND_SMOKE_UV_SCRIPT_LAUNCHER_ARGV: tuple[str, ...] = ("uv", "run", "python", "src/main.py")
+COMMAND_SMOKE_UV_CLI_PYTHON3_LAUNCHER_ARGV: tuple[str, ...] = ("uv", "run", "python3", "-m", "src.main")
+COMMAND_SMOKE_UV_SCRIPT_PYTHON3_LAUNCHER_ARGV: tuple[str, ...] = ("uv", "run", "python3", "src/main.py")
 COMMAND_SMOKE_SUPPORTED_LAUNCHER_ARGV: tuple[tuple[str, ...], ...] = (
     COMMAND_SMOKE_CLI_LAUNCHER_ARGV,
     COMMAND_SMOKE_SCRIPT_LAUNCHER_ARGV,
     COMMAND_SMOKE_CLI_PYTHON3_LAUNCHER_ARGV,
     COMMAND_SMOKE_SCRIPT_PYTHON3_LAUNCHER_ARGV,
+    COMMAND_SMOKE_UV_CLI_LAUNCHER_ARGV,
+    COMMAND_SMOKE_UV_SCRIPT_LAUNCHER_ARGV,
+    COMMAND_SMOKE_UV_CLI_PYTHON3_LAUNCHER_ARGV,
+    COMMAND_SMOKE_UV_SCRIPT_PYTHON3_LAUNCHER_ARGV,
 )
 COMMAND_SMOKE_SUPPORTED_LAUNCHER_TAILS: tuple[tuple[str, ...], ...] = (
     ("-m", "src.main"),
     ("src/main.py",),
+)
+COMMAND_SMOKE_SUPPORTED_LAUNCHER_PREFIXES: tuple[tuple[str, ...], ...] = (
+    ("uv", "run", "--"),
+    ("uv", "run"),
 )
 COMMAND_SMOKE_SUPPORTED_PYTHON_LAUNCHERS: tuple[str, ...] = (
     "python",
@@ -4486,11 +4498,16 @@ def _coerce_smoke_argv(argv: Sequence[str] | str) -> tuple[str, ...]:
 
 
 def _argv_without_launcher(argv: tuple[str, ...], launcher_argv: tuple[str, ...]) -> tuple[str, ...]:
-    if argv[: len(launcher_argv)] == launcher_argv:
+    if launcher_argv and argv[: len(launcher_argv)] == launcher_argv:
         return _strip_launcher_separator(argv[len(launcher_argv) :])
     for supported_launcher_argv in COMMAND_SMOKE_SUPPORTED_LAUNCHER_ARGV:
         if argv[: len(supported_launcher_argv)] == supported_launcher_argv:
             return _strip_launcher_separator(argv[len(supported_launcher_argv) :])
+    launcher_prefix, unwrapped_argv = _split_supported_launcher_prefix(argv)
+    if launcher_prefix:
+        unwrapped_without_launcher = _argv_without_launcher(unwrapped_argv, ())
+        if unwrapped_without_launcher != unwrapped_argv:
+            return unwrapped_without_launcher
     for launcher_tail in COMMAND_SMOKE_SUPPORTED_LAUNCHER_TAILS:
         launcher_len = 1 + len(launcher_tail)
         if (
@@ -4506,6 +4523,11 @@ def _detected_launcher_argv(argv: tuple[str, ...]) -> tuple[str, ...]:
     for supported_launcher_argv in COMMAND_SMOKE_SUPPORTED_LAUNCHER_ARGV:
         if argv[: len(supported_launcher_argv)] == supported_launcher_argv:
             return supported_launcher_argv
+    launcher_prefix, unwrapped_argv = _split_supported_launcher_prefix(argv)
+    if launcher_prefix:
+        detected_argv = _detected_launcher_argv(unwrapped_argv)
+        if detected_argv:
+            return (*launcher_prefix, *detected_argv)
     for launcher_tail in COMMAND_SMOKE_SUPPORTED_LAUNCHER_TAILS:
         launcher_len = 1 + len(launcher_tail)
         if (
@@ -4515,6 +4537,13 @@ def _detected_launcher_argv(argv: tuple[str, ...]) -> tuple[str, ...]:
         ):
             return argv[:launcher_len]
     return ()
+
+
+def _split_supported_launcher_prefix(argv: tuple[str, ...]) -> tuple[tuple[str, ...], tuple[str, ...]]:
+    for launcher_prefix in COMMAND_SMOKE_SUPPORTED_LAUNCHER_PREFIXES:
+        if argv[: len(launcher_prefix)] == launcher_prefix:
+            return launcher_prefix, argv[len(launcher_prefix) :]
+    return (), argv
 
 
 def _canonical_argv_with_requested_launcher(
