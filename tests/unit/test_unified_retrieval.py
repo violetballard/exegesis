@@ -1147,6 +1147,26 @@ class UnifiedRetrievalTests(unittest.TestCase):
         self.assertEqual(canonical["provenance"]["hash"], result.hits[0].provenance["hash"])
         self.assertEqual(canonical["text_hash"], result.hits[0].provenance["excerpt_text_hash"])
 
+    def test_retrieve_fts_excerpt_normalizes_lookup_ids(self) -> None:
+        result = self.service.retrieve_auto(
+            RetrievalQuery(
+                query_text="memo coding comparison",
+                scope="vault",
+                intent="compare",
+                constraints=RetrievalConstraints(max_results=4),
+                confidentiality_profile="confidential",
+            )
+        )
+
+        excerpt_id = result.hits[0].excerpt_id
+        self.assertIsNotNone(excerpt_id)
+        canonical = self.service.retrieve_fts_excerpt(excerpt_id or "")
+
+        self.assertEqual(self.service.retrieve_fts_excerpt(f"  {excerpt_id}  "), canonical)
+        self.assertEqual(engine_retrieve_fts_excerpt(self.service, excerpt_id=f"\n{excerpt_id}\t"), canonical)
+        with self.assertRaisesRegex(ValueError, "excerpt_id is required"):
+            self.service.retrieve_fts_excerpt("  ")
+
     def test_retrieval_hits_surface_top_level_retrieval_context(self) -> None:
         result = self.service.retrieve_auto(
             RetrievalQuery(

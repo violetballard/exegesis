@@ -950,6 +950,7 @@ class RetrievalService:
         return self._lookup_fts_excerpt(excerpt_id, lookup_entrypoint="retrieve_fts_excerpt")
 
     def _lookup_fts_excerpt(self, excerpt_id: str, *, lookup_entrypoint: str) -> dict[str, object]:
+        excerpt_id = self._normalize_excerpt_id(excerpt_id)
         fts_excerpt = self._find_fts_excerpt(excerpt_id)
         if fts_excerpt is None:
             raise KeyError(f"unknown excerpt_id: {excerpt_id}")
@@ -963,6 +964,15 @@ class RetrievalService:
             source_strategy="fts",
             lookup_resolution="fts",
         )
+
+    @staticmethod
+    def _normalize_excerpt_id(excerpt_id: str) -> str:
+        if not isinstance(excerpt_id, str):
+            raise TypeError("excerpt_id must be text")
+        normalized = excerpt_id.strip()
+        if not normalized:
+            raise ValueError("excerpt_id is required")
+        return normalized
 
     def _record_excerpt_lookup_audit(
         self,
