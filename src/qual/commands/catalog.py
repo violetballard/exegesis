@@ -4951,6 +4951,7 @@ def _command_demo_readiness_action_entries_for_argv(
     if not requested_argv:
         return ()
     requested_command_argv = _argv_without_launcher(requested_argv, launcher_argv)
+    requested_command_argv = _normalize_implicit_bootstrap_argv(specs, requested_command_argv)
     requested_canonical_command_argv = _canonicalize_smoke_command_argv(specs, requested_command_argv)
     matches: list[CommandDemoReadinessActionEntry] = []
     for entry in command_demo_readiness_action_contract(specs, launcher_argv).entries:
@@ -4999,6 +5000,7 @@ def command_demo_readiness_exact_action_for_argv(
         return None
     requested_launcher_argv = _detected_launcher_argv(requested_argv)
     requested_command_argv = _argv_without_launcher(requested_argv, launcher_argv)
+    requested_command_argv = _normalize_implicit_bootstrap_argv(specs, requested_command_argv)
     requested_canonical_command_argv = _canonicalize_smoke_command_argv(specs, requested_command_argv)
     lookup = dict(command_demo_readiness_exact_action_argv_lookup_table(specs, launcher_argv))
     for action_argv, engine_action in lookup.items():
@@ -5531,9 +5533,23 @@ def _canonicalize_smoke_command_argv(
     specs: tuple[CommandSpec, ...],
     argv: tuple[str, ...],
 ) -> tuple[str, ...]:
+    argv = _normalize_implicit_bootstrap_argv(specs, argv)
     if not argv:
         return ()
     return (canonical_command_for(specs, _strip_command_palette_prefix(argv[0])), *argv[1:])
+
+
+def _normalize_implicit_bootstrap_argv(
+    specs: tuple[CommandSpec, ...],
+    argv: tuple[str, ...],
+) -> tuple[str, ...]:
+    if command_spec_for(specs, "bootstrap") is None:
+        return argv
+    if not argv:
+        return ("bootstrap",)
+    if argv[0].startswith("-"):
+        return ("bootstrap", *argv)
+    return argv
 
 
 def _strip_command_palette_prefix(command_token: str) -> str:
@@ -5655,6 +5671,7 @@ def _command_demo_readiness_entry_for_argv(
     if not requested_argv:
         return None
     requested_command_argv = _argv_without_launcher(requested_argv, launcher_argv)
+    requested_command_argv = _normalize_implicit_bootstrap_argv(specs, requested_command_argv)
     requested_canonical_command_argv = _canonicalize_smoke_command_argv(specs, requested_command_argv)
     for entry in command_demo_readiness_contract(specs, launcher_argv).entries:
         entry_command_argv = _argv_without_launcher(entry.command_argv, launcher_argv)
@@ -5686,6 +5703,7 @@ def _command_demo_readiness_canonical_argv_for_argv(
         return ()
     requested_launcher_argv = _detected_launcher_argv(requested_argv)
     requested_command_argv = _argv_without_launcher(requested_argv, launcher_argv)
+    requested_command_argv = _normalize_implicit_bootstrap_argv(specs, requested_command_argv)
     requested_canonical_command_argv = _canonicalize_smoke_command_argv(specs, requested_command_argv)
     for entry in command_demo_readiness_contract(specs, launcher_argv).entries:
         entry_command_argv = _argv_without_launcher(entry.command_argv, launcher_argv)
@@ -5877,10 +5895,12 @@ def command_demo_readiness_validate_argv(
 
 
 def _cli_parser_token_for_requested_argv(
+    specs: tuple[CommandSpec, ...],
     argv: tuple[str, ...],
     launcher_argv: tuple[str, ...],
 ) -> str | None:
     requested_command_argv = _argv_without_launcher(argv, launcher_argv)
+    requested_command_argv = _normalize_implicit_bootstrap_argv(specs, requested_command_argv)
     if not requested_command_argv:
         return None
     token = _normalize_token(requested_command_argv[0])
@@ -5895,7 +5915,7 @@ def command_demo_readiness_validate_cli_argv(
     launcher_argv: tuple[str, ...] = COMMAND_SMOKE_CLI_LAUNCHER_ARGV,
 ) -> CommandDemoReadinessCliArgvValidation:
     requested_argv = _normalize_smoke_argv(_coerce_smoke_argv(argv))
-    parser_token = _cli_parser_token_for_requested_argv(requested_argv, launcher_argv)
+    parser_token = _cli_parser_token_for_requested_argv(specs, requested_argv, launcher_argv)
     compatibility_validation = command_demo_readiness_validate_argv(
         requested_argv,
         specs,
