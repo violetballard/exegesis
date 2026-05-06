@@ -1538,6 +1538,34 @@ class UnifiedRetrievalTests(unittest.TestCase):
         self.assertEqual(excerpt_bundle["excerpt_citations"][0]["excerpt_id"], "excerpt-1")
         self.assertEqual(excerpt_bundle["basket_promotion_items"][0]["source_strategy"], "fts")
 
+    def test_sparse_retrieval_payload_defaults_to_fts_first_policy(self) -> None:
+        payload = {
+            "query": {
+                "query_text": "memo comparison",
+                "scope": "vault",
+                "intent": "compare",
+                "constraints": {"max_results": 4},
+            },
+            "retrieval_backend": "sqlite_fts",
+            "retrieval_mode": "fts_first",
+            "retrieval_summary": {
+                "query_fingerprint": "query-fingerprint",
+                "citation_status": {"required": False, "available": False, "satisfied": True},
+            },
+        }
+
+        source_bundle = _build_retrieval_source_bundle_from_payload(payload)
+        provenance = _build_retrieval_provenance_from_payload(source_bundle)
+
+        self.assertEqual(source_bundle["policy"]["retrieval_backend"], "sqlite_fts")
+        self.assertEqual(source_bundle["policy"]["retrieval_mode"], "fts_first")
+        self.assertEqual(source_bundle["policy"]["active_strategy_ids"], ["fts"])
+        self.assertEqual(source_bundle["policy"]["deferred_strategy_ids"], ["pageindex", "embeddings"])
+        self.assertEqual(source_bundle["retrieval_summary"]["retrieval_policy"], source_bundle["policy"])
+        self.assertEqual(provenance["retrieval_policy"], source_bundle["policy"])
+        self.assertEqual(provenance["active_strategy_ids"], ["fts"])
+        self.assertEqual(provenance["deferred_strategy_ids"], ["pageindex", "embeddings"])
+
     def test_sparse_excerpt_basket_rehydration_rejects_non_fts_strategy(self) -> None:
         payload = {
             "query": {

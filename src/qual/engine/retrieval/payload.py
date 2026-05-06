@@ -648,16 +648,22 @@ def _normalize_query_snapshot(query: object) -> dict[str, object]:
 
 def _normalize_policy_snapshot(policy: object) -> dict[str, object]:
     if not isinstance(policy, dict):
-        return {}
+        policy = {}
     normalized = copy.deepcopy(policy)
-    normalized["active_strategy_ids"] = _normalize_list_like(normalized.get("active_strategy_ids"))
-    normalized["deferred_strategy_ids"] = _normalize_list_like(normalized.get("deferred_strategy_ids"))
+    normalized["active_strategy_ids"] = _normalize_list_like(
+        normalized.get("active_strategy_ids", _MVP_ACTIVE_STRATEGY_IDS)
+    )
+    normalized["deferred_strategy_ids"] = _normalize_list_like(
+        normalized.get("deferred_strategy_ids", ["pageindex", "embeddings"])
+    )
     retrieval_backend = _normalize_optional_text(normalized.get("retrieval_backend"))
     if retrieval_backend is not None and retrieval_backend != _MVP_RETRIEVAL_BACKEND:
         raise ValueError("retrieval_policy must use sqlite_fts backend for the MVP")
+    normalized["retrieval_backend"] = retrieval_backend or _MVP_RETRIEVAL_BACKEND
     retrieval_mode = _normalize_optional_text(normalized.get("retrieval_mode"))
     if retrieval_mode is not None and retrieval_mode != _MVP_RETRIEVAL_MODE:
         raise ValueError("retrieval_policy must use fts_first mode for the MVP")
+    normalized["retrieval_mode"] = retrieval_mode or _MVP_RETRIEVAL_MODE
     if normalized["active_strategy_ids"] and normalized["active_strategy_ids"] != _MVP_ACTIVE_STRATEGY_IDS:
         raise ValueError("retrieval_policy active strategies must be fts-only for the MVP")
     return normalized
@@ -667,13 +673,18 @@ def _normalize_citation_bundle_snapshot(citation_bundle: dict[str, object]) -> d
     normalized = copy.deepcopy(citation_bundle)
     normalized["query_date_range"] = _normalize_optional_list_like(normalized.get("query_date_range"))
     normalized["fts_shortlist_doc_ids"] = _normalize_list_like(normalized.get("fts_shortlist_doc_ids"))
-    normalized["active_strategy_ids"] = _normalize_list_like(normalized.get("active_strategy_ids"))
-    normalized["deferred_strategy_ids"] = _normalize_list_like(normalized.get("deferred_strategy_ids"))
+    normalized["active_strategy_ids"] = _normalize_list_like(
+        normalized.get("active_strategy_ids", _MVP_ACTIVE_STRATEGY_IDS)
+    )
+    normalized["deferred_strategy_ids"] = _normalize_list_like(
+        normalized.get("deferred_strategy_ids", ["pageindex", "embeddings"])
+    )
     normalized["doc_citations"] = _normalize_list_like(normalized.get("doc_citations"))
     normalized["excerpt_citations"] = _normalize_list_like(normalized.get("excerpt_citations"))
     retrieval_policy = normalized.get("retrieval_policy")
-    if isinstance(retrieval_policy, dict):
-        normalized["retrieval_policy"] = _normalize_policy_snapshot(retrieval_policy)
+    normalized["retrieval_policy"] = _normalize_policy_snapshot(
+        retrieval_policy if isinstance(retrieval_policy, dict) else {}
+    )
     citation_status = normalized.get("citation_status")
     if isinstance(citation_status, dict):
         normalized["citation_status"] = copy.deepcopy(citation_status)
@@ -685,13 +696,18 @@ def _normalize_citation_bundle_snapshot(citation_bundle: dict[str, object]) -> d
 def _normalize_doc_bundle_snapshot(doc_bundle: dict[str, object]) -> dict[str, object]:
     normalized = copy.deepcopy(doc_bundle)
     normalized["query_date_range"] = _normalize_optional_list_like(normalized.get("query_date_range"))
-    normalized["active_strategy_ids"] = _normalize_list_like(normalized.get("active_strategy_ids"))
-    normalized["deferred_strategy_ids"] = _normalize_list_like(normalized.get("deferred_strategy_ids"))
+    normalized["active_strategy_ids"] = _normalize_list_like(
+        normalized.get("active_strategy_ids", _MVP_ACTIVE_STRATEGY_IDS)
+    )
+    normalized["deferred_strategy_ids"] = _normalize_list_like(
+        normalized.get("deferred_strategy_ids", ["pageindex", "embeddings"])
+    )
     normalized["doc_hits"] = _normalize_list_like(normalized.get("doc_hits"))
     normalized["doc_citations"] = _normalize_list_like(normalized.get("doc_citations"))
     retrieval_policy = normalized.get("retrieval_policy")
-    if isinstance(retrieval_policy, dict):
-        normalized["retrieval_policy"] = _normalize_policy_snapshot(retrieval_policy)
+    normalized["retrieval_policy"] = _normalize_policy_snapshot(
+        retrieval_policy if isinstance(retrieval_policy, dict) else {}
+    )
     citation_status = normalized.get("citation_status")
     if isinstance(citation_status, dict):
         normalized["citation_status"] = copy.deepcopy(citation_status)
@@ -749,8 +765,12 @@ def _normalize_retrieval_summary_snapshot(summary: dict[str, object]) -> dict[st
         normalized.get("top_excerpt_lookup_fingerprints")
     )
     normalized["top_excerpt_text_hashes"] = _normalize_list_like(normalized.get("top_excerpt_text_hashes"))
-    normalized["active_strategy_ids"] = _normalize_list_like(normalized.get("active_strategy_ids"))
-    normalized["deferred_strategy_ids"] = _normalize_list_like(normalized.get("deferred_strategy_ids"))
+    normalized["active_strategy_ids"] = _normalize_list_like(
+        normalized.get("active_strategy_ids", _MVP_ACTIVE_STRATEGY_IDS)
+    )
+    normalized["deferred_strategy_ids"] = _normalize_list_like(
+        normalized.get("deferred_strategy_ids", ["pageindex", "embeddings"])
+    )
     normalized["basket_item_ids"] = _stable_text_values(normalized.get("basket_item_ids"))
     normalized["basket_item_fingerprints"] = _stable_text_values(
         normalized.get("basket_item_fingerprints")
@@ -762,8 +782,9 @@ def _normalize_retrieval_summary_snapshot(summary: dict[str, object]) -> dict[st
         normalized["basket_promotion_count"]
     )
     retrieval_policy = normalized.get("retrieval_policy")
-    if isinstance(retrieval_policy, dict):
-        normalized["retrieval_policy"] = _normalize_policy_snapshot(retrieval_policy)
+    normalized["retrieval_policy"] = _normalize_policy_snapshot(
+        retrieval_policy if isinstance(retrieval_policy, dict) else {}
+    )
     citation_status = normalized.get("citation_status")
     if isinstance(citation_status, dict):
         normalized["citation_status"] = copy.deepcopy(citation_status)
