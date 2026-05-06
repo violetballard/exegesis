@@ -642,6 +642,29 @@ class CommandDemoReadinessHandoffStepStatusContract:
 
 
 @dataclass(frozen=True)
+class CommandDemoTrustedLoopStep:
+    ordinal: int
+    demo_path_step: str
+    flow_step: str
+    name: str
+    command_line: str
+    engine_actions: tuple[str, ...]
+    exact_action_lines: tuple[tuple[str, str], ...]
+    ready: bool
+
+
+@dataclass(frozen=True)
+class CommandDemoTrustedLoopContract:
+    fingerprint_algorithm: str
+    fingerprint_digest: str
+    is_complete: bool
+    steps: tuple[CommandDemoTrustedLoopStep, ...]
+    missing_flow_steps: tuple[str, ...]
+    missing_engine_actions: tuple[str, ...]
+    invalid_argv: tuple[tuple[str, ...], ...]
+
+
+@dataclass(frozen=True)
 class CommandDemoReadinessHandoffAudit:
     is_complete: bool
     fingerprint_digest: str
@@ -6629,6 +6652,92 @@ def command_demo_readiness_handoff_step_status_summary(
             )
             for step in contract.steps
         ),
+    )
+
+
+def command_demo_trusted_loop_contract(
+    specs: tuple[CommandSpec, ...] = COMMAND_SPECS,
+    launcher_argv: tuple[str, ...] = COMMAND_SMOKE_CLI_LAUNCHER_ARGV,
+) -> CommandDemoTrustedLoopContract:
+    packet = command_demo_readiness_handoff_packet(specs, launcher_argv)
+    status_contract = command_demo_readiness_handoff_step_status_contract(specs, launcher_argv)
+    steps = tuple(
+        CommandDemoTrustedLoopStep(
+            ordinal=step.ordinal,
+            demo_path_step=step.demo_path_step,
+            flow_step=step.flow_step,
+            name=step.name,
+            command_line=step.command_line,
+            engine_actions=step.engine_actions,
+            exact_action_lines=step.exact_action_lines,
+            ready=step.is_complete,
+        )
+        for step in status_contract.steps
+    )
+    contract = CommandDemoTrustedLoopContract(
+        fingerprint_algorithm=status_contract.fingerprint_algorithm,
+        fingerprint_digest=status_contract.fingerprint_digest,
+        is_complete=(
+            packet.is_complete
+            and status_contract.is_complete
+            and not packet.invalid_argv
+            and all(step.ready for step in steps)
+        ),
+        steps=steps,
+        missing_flow_steps=packet.missing_flow_steps,
+        missing_engine_actions=packet.missing_engine_actions,
+        invalid_argv=packet.invalid_argv,
+    )
+    if tuple(step.flow_step for step in contract.steps) != DEMO_COMMAND_FLOW_STEPS:
+        raise ValueError("Command demo trusted loop flow order is inconsistent")
+    if tuple(step.demo_path_step for step in contract.steps) != packet.canonical_demo_path_steps:
+        raise ValueError("Command demo trusted loop path steps are inconsistent")
+    if tuple(step.command_line for step in contract.steps) != packet.command_lines:
+        raise ValueError("Command demo trusted loop command lines are inconsistent")
+    expected_complete = (
+        packet.is_complete
+        and status_contract.is_complete
+        and not packet.invalid_argv
+        and all(step.ready for step in contract.steps)
+    )
+    if contract.is_complete != expected_complete:
+        raise ValueError("Command demo trusted loop completeness is inconsistent")
+    return contract
+
+
+def command_demo_trusted_loop_summary(
+    specs: tuple[CommandSpec, ...] = COMMAND_SPECS,
+    launcher_argv: tuple[str, ...] = COMMAND_SMOKE_CLI_LAUNCHER_ARGV,
+) -> tuple[
+    str,
+    str,
+    bool,
+    tuple[tuple[int, str, str, str, str, tuple[str, ...], tuple[tuple[str, str], ...], bool], ...],
+    tuple[str, ...],
+    tuple[str, ...],
+    tuple[tuple[str, ...], ...],
+]:
+    contract = command_demo_trusted_loop_contract(specs, launcher_argv)
+    return (
+        contract.fingerprint_algorithm,
+        contract.fingerprint_digest,
+        contract.is_complete,
+        tuple(
+            (
+                step.ordinal,
+                step.demo_path_step,
+                step.flow_step,
+                step.name,
+                step.command_line,
+                step.engine_actions,
+                step.exact_action_lines,
+                step.ready,
+            )
+            for step in contract.steps
+        ),
+        contract.missing_flow_steps,
+        contract.missing_engine_actions,
+        contract.invalid_argv,
     )
 
 
@@ -13894,6 +14003,28 @@ def command_mvp_demo_readiness_handoff_step_status_summary(
     tuple[tuple[int, str, str, str, str, str, tuple[str, ...], tuple[tuple[str, str], ...], bool, bool], ...],
 ]:
     return command_demo_readiness_handoff_step_status_summary(specs, launcher_argv)
+
+
+def command_mvp_demo_trusted_loop_contract(
+    specs: tuple[CommandSpec, ...] = COMMAND_SPECS,
+    launcher_argv: tuple[str, ...] = COMMAND_SMOKE_CLI_LAUNCHER_ARGV,
+) -> CommandDemoTrustedLoopContract:
+    return command_demo_trusted_loop_contract(specs, launcher_argv)
+
+
+def command_mvp_demo_trusted_loop_summary(
+    specs: tuple[CommandSpec, ...] = COMMAND_SPECS,
+    launcher_argv: tuple[str, ...] = COMMAND_SMOKE_CLI_LAUNCHER_ARGV,
+) -> tuple[
+    str,
+    str,
+    bool,
+    tuple[tuple[int, str, str, str, str, tuple[str, ...], tuple[tuple[str, str], ...], bool], ...],
+    tuple[str, ...],
+    tuple[str, ...],
+    tuple[tuple[str, ...], ...],
+]:
+    return command_demo_trusted_loop_summary(specs, launcher_argv)
 
 
 def command_mvp_demo_readiness_handoff_step_status_payload(

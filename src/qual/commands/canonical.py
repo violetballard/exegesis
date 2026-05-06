@@ -38,6 +38,7 @@ from src.qual.commands.catalog import (
     CommandDemoReadinessHandoffLineContract,
     CommandDemoReadinessHandoffPacket,
     CommandDemoReadinessHandoffStepStatusContract,
+    CommandDemoTrustedLoopContract,
     CommandDemoReadinessFingerprint,
     CommandDemoReadinessReport,
     CommandDemoReadinessRouteContract,
@@ -87,6 +88,8 @@ from src.qual.commands.catalog import (
     as _readiness_handoff_step_status_payload,
     command_mvp_demo_readiness_handoff_step_status_summary
     as _readiness_handoff_step_status_summary,
+    command_mvp_demo_trusted_loop_contract as _trusted_loop_contract,
+    command_mvp_demo_trusted_loop_summary as _trusted_loop_summary,
     command_demo_readiness_handoff_action_contract as _readiness_handoff_action_contract,
     command_mvp_demo_readiness_handoff_action_summary as _readiness_handoff_action_summary,
     command_mvp_demo_readiness_handoff_map_contract as _readiness_handoff_map_contract,
@@ -452,6 +455,8 @@ __all__ = [
     "canonical_command_readiness_handoff_step_status_summary",
     "canonical_command_readiness_handoff_step_status_payload",
     "canonical_command_readiness_handoff_step_status_json",
+    "canonical_command_trusted_loop_contract",
+    "canonical_command_trusted_loop_summary",
     "canonical_command_surface_readiness_contract",
     "canonical_command_surface_readiness_json",
     "canonical_command_surface_readiness_payload",
@@ -1099,6 +1104,22 @@ def canonical_command_readiness_handoff_step_status_summary() -> tuple[
     tuple[tuple[int, str, str, str, str, str, tuple[str, ...], tuple[tuple[str, str], ...], bool, bool], ...],
 ]:
     return _readiness_handoff_step_status_summary()
+
+
+def canonical_command_trusted_loop_contract() -> CommandDemoTrustedLoopContract:
+    return _trusted_loop_contract()
+
+
+def canonical_command_trusted_loop_summary() -> tuple[
+    str,
+    str,
+    bool,
+    tuple[tuple[int, str, str, str, str, tuple[str, ...], tuple[tuple[str, str], ...], bool], ...],
+    tuple[str, ...],
+    tuple[str, ...],
+    tuple[tuple[str, ...], ...],
+]:
+    return _trusted_loop_summary()
 
 
 def canonical_command_readiness_handoff_step_status_payload() -> dict[str, object]:
