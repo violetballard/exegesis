@@ -1180,6 +1180,7 @@ class RetrievalService:
                 "basket_item_ids": copy.deepcopy(excerpt.get("basket_item_ids", [])),
                 "basket_item_fingerprint": excerpt.get("basket_item_fingerprint"),
                 "basket_item_fingerprints": copy.deepcopy(excerpt.get("basket_item_fingerprints", [])),
+                "basket_promotion_source": excerpt.get("basket_promotion_source"),
                 "basket_promotion_count": excerpt.get("basket_promotion_count"),
                 "basket_promotion_ready": excerpt.get("basket_promotion_ready"),
                 "span": copy.deepcopy(span),

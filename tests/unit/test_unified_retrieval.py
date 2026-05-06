@@ -1660,6 +1660,10 @@ class UnifiedRetrievalTests(unittest.TestCase):
             metadata["basket_item_fingerprints"],
             [excerpt["basket_item_fingerprint"]],
         )
+        self.assertEqual(metadata["basket_promotion_source"], "fts_excerpt_lookup")
+        self.assertEqual(metadata["basket_promotion_source"], excerpt["basket_promotion_source"])
+        self.assertEqual(metadata["basket_promotion_count"], 1)
+        self.assertTrue(metadata["basket_promotion_ready"])
 
     def test_retrieval_hits_surface_top_level_retrieval_context(self) -> None:
         result = self.service.retrieve_auto(
