@@ -535,43 +535,54 @@ class RetrievalResult:
         for hit in self.hits:
             if hit.excerpt_id is None:
                 continue
-            promotion_items.append(
-                {
-                    "doc_id": hit.doc_id,
-                    "excerpt_id": hit.excerpt_id,
-                    "title_hint": hit.title_hint,
-                    "excerpt_text": hit.excerpt_text,
-                    "span": copy.deepcopy(hit.span),
-                    "score": hit.score,
-                    "rank": hit.provenance.get("rank"),
-                    "source_strategy": hit.source_strategy,
-                    "result_fingerprint": self.result_fingerprint,
-                    "query_fingerprint": hit.provenance.get(
-                        "query_fingerprint",
-                        bundle_context["query_fingerprint"],
-                    ),
-                    "query_scope": hit.provenance.get("query_scope", bundle_context["query_scope"]),
-                    "query_intent": hit.provenance.get("query_intent", bundle_context["query_intent"]),
-                    "query_date_range": copy.deepcopy(
-                        hit.provenance.get("query_date_range", bundle_context["query_date_range"])
-                    ),
-                    "retrieval_backend": hit.provenance.get("retrieval_backend"),
-                    "retrieval_mode": hit.provenance.get("retrieval_mode"),
-                    "source_hash": hit.provenance.get("source_hash"),
-                    "doc_type": hit.provenance.get("doc_type"),
-                    "doc_fingerprint": hit.provenance.get("doc_fingerprint"),
-                    "doc_identity_fingerprint": hit.provenance.get("doc_identity_fingerprint"),
-                    "excerpt_fingerprint": hit.provenance.get("excerpt_fingerprint"),
-                    "excerpt_text_hash": hit.provenance.get("excerpt_text_hash") or hit.provenance.get("hash"),
-                    "matched_terms": copy.deepcopy(hit.provenance.get("matched_terms")),
-                    "match_count": hit.provenance.get("match_count"),
-                }
-            )
+            promotion_item = {
+                "doc_id": hit.doc_id,
+                "excerpt_id": hit.excerpt_id,
+                "title_hint": hit.title_hint,
+                "excerpt_text": hit.excerpt_text,
+                "span": copy.deepcopy(hit.span),
+                "score": hit.score,
+                "rank": hit.provenance.get("rank"),
+                "source_strategy": hit.source_strategy,
+                "result_fingerprint": self.result_fingerprint,
+                "query_fingerprint": hit.provenance.get(
+                    "query_fingerprint",
+                    bundle_context["query_fingerprint"],
+                ),
+                "query_scope": hit.provenance.get("query_scope", bundle_context["query_scope"]),
+                "query_intent": hit.provenance.get("query_intent", bundle_context["query_intent"]),
+                "query_date_range": copy.deepcopy(
+                    hit.provenance.get("query_date_range", bundle_context["query_date_range"])
+                ),
+                "retrieval_backend": hit.provenance.get("retrieval_backend"),
+                "retrieval_mode": hit.provenance.get("retrieval_mode"),
+                "source_hash": hit.provenance.get("source_hash"),
+                "doc_type": hit.provenance.get("doc_type"),
+                "doc_fingerprint": hit.provenance.get("doc_fingerprint"),
+                "doc_identity_fingerprint": hit.provenance.get("doc_identity_fingerprint"),
+                "excerpt_fingerprint": hit.provenance.get("excerpt_fingerprint"),
+                "excerpt_text_hash": hit.provenance.get("excerpt_text_hash") or hit.provenance.get("hash"),
+                "matched_terms": copy.deepcopy(hit.provenance.get("matched_terms")),
+                "match_count": hit.provenance.get("match_count"),
+            }
+            promotion_item["promotion_item_fingerprint"] = RetrievalService._stable_fingerprint(promotion_item)
+            promotion_items.append(promotion_item)
+        promotion_bundle_fingerprint = RetrievalService._stable_fingerprint(
+            {
+                "promotion_target": "context_basket",
+                "result_fingerprint": self.result_fingerprint,
+                "query_fingerprint": bundle_context["query_fingerprint"],
+                "promotion_item_fingerprints": [
+                    item["promotion_item_fingerprint"] for item in promotion_items
+                ],
+            }
+        )
         return {
             **bundle_context,
             "promotion_target": "context_basket",
             "promotion_item_count": len(promotion_items),
             "promotion_items": promotion_items,
+            "promotion_bundle_fingerprint": promotion_bundle_fingerprint,
         }
 
     def _query_snapshot(self) -> dict[str, object]:

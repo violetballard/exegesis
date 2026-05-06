@@ -309,9 +309,30 @@ def _normalize_basket_promotion_bundle_snapshot(bundle: dict[str, object]) -> di
         for key, fallback_value in item_fallbacks.items():
             if _is_missing_snapshot_value(normalized_item.get(key)) and not _is_missing_snapshot_value(fallback_value):
                 normalized_item[key] = copy.deepcopy(fallback_value)
+        if _is_missing_snapshot_value(normalized_item.get("promotion_item_fingerprint")):
+            normalized_item["promotion_item_fingerprint"] = _stable_fingerprint(
+                {
+                    key: value
+                    for key, value in normalized_item.items()
+                    if key != "promotion_item_fingerprint"
+                }
+            )
         promotion_items.append(normalized_item)
     normalized["promotion_items"] = promotion_items
     normalized["promotion_item_count"] = len(normalized["promotion_items"])
+    if _is_missing_snapshot_value(normalized.get("promotion_bundle_fingerprint")):
+        normalized["promotion_bundle_fingerprint"] = _stable_fingerprint(
+            {
+                "promotion_target": normalized.get("promotion_target"),
+                "result_fingerprint": normalized.get("result_fingerprint"),
+                "query_fingerprint": normalized.get("query_fingerprint"),
+                "promotion_item_fingerprints": [
+                    item.get("promotion_item_fingerprint")
+                    for item in promotion_items
+                    if isinstance(item, dict)
+                ],
+            }
+        )
     retrieval_policy = normalized.get("retrieval_policy")
     if isinstance(retrieval_policy, dict):
         normalized["retrieval_policy"] = _normalize_policy_snapshot(retrieval_policy)
@@ -737,50 +758,50 @@ def _build_retrieval_basket_promotion_bundle_from_payload(payload: dict[str, obj
         provenance = hit.get("provenance", {})
         if not isinstance(provenance, dict):
             provenance = {}
-        promotion_items.append(
-            {
-                "doc_id": hit.get("doc_id"),
-                "excerpt_id": excerpt_id,
-                "title_hint": hit.get("title_hint"),
-                "excerpt_text": hit.get("excerpt_text"),
-                "span": copy.deepcopy(hit.get("span", provenance.get("span", {}))),
-                "score": hit.get("score"),
-                "rank": provenance.get("rank", hit.get("rank")),
-                "source_strategy": hit.get("source_strategy", provenance.get("source_strategy")),
-                "result_fingerprint": hit.get(
-                    "result_fingerprint",
-                    provenance.get("result_fingerprint", bundle_context["result_fingerprint"]),
-                ),
-                "query_fingerprint": hit.get(
-                    "query_fingerprint",
-                    provenance.get("query_fingerprint", bundle_context["query_fingerprint"]),
-                ),
-                "query_scope": hit.get("query_scope", provenance.get("query_scope", bundle_context["query_scope"])),
-                "query_intent": hit.get("query_intent", provenance.get("query_intent", bundle_context["query_intent"])),
-                "query_date_range": copy.deepcopy(
-                    hit.get(
-                        "query_date_range",
-                        provenance.get("query_date_range", bundle_context["query_date_range"]),
-                    )
-                ),
-                "retrieval_backend": hit.get("retrieval_backend", provenance.get("retrieval_backend")),
-                "retrieval_mode": hit.get("retrieval_mode", provenance.get("retrieval_mode")),
-                "source_hash": hit.get("source_hash", provenance.get("source_hash")),
-                "doc_type": hit.get("doc_type", provenance.get("doc_type")),
-                "doc_fingerprint": hit.get("doc_fingerprint", provenance.get("doc_fingerprint")),
-                "doc_identity_fingerprint": hit.get(
-                    "doc_identity_fingerprint",
-                    provenance.get("doc_identity_fingerprint"),
-                ),
-                "excerpt_fingerprint": hit.get("excerpt_fingerprint", provenance.get("excerpt_fingerprint")),
-                "excerpt_text_hash": hit.get(
-                    "excerpt_text_hash",
-                    provenance.get("excerpt_text_hash", provenance.get("hash")),
-                ),
-                "matched_terms": copy.deepcopy(hit.get("matched_terms", provenance.get("matched_terms"))),
-                "match_count": hit.get("match_count", provenance.get("match_count")),
-            }
-        )
+        promotion_item = {
+            "doc_id": hit.get("doc_id"),
+            "excerpt_id": excerpt_id,
+            "title_hint": hit.get("title_hint"),
+            "excerpt_text": hit.get("excerpt_text"),
+            "span": copy.deepcopy(hit.get("span", provenance.get("span", {}))),
+            "score": hit.get("score"),
+            "rank": provenance.get("rank", hit.get("rank")),
+            "source_strategy": hit.get("source_strategy", provenance.get("source_strategy")),
+            "result_fingerprint": hit.get(
+                "result_fingerprint",
+                provenance.get("result_fingerprint", bundle_context["result_fingerprint"]),
+            ),
+            "query_fingerprint": hit.get(
+                "query_fingerprint",
+                provenance.get("query_fingerprint", bundle_context["query_fingerprint"]),
+            ),
+            "query_scope": hit.get("query_scope", provenance.get("query_scope", bundle_context["query_scope"])),
+            "query_intent": hit.get("query_intent", provenance.get("query_intent", bundle_context["query_intent"])),
+            "query_date_range": copy.deepcopy(
+                hit.get(
+                    "query_date_range",
+                    provenance.get("query_date_range", bundle_context["query_date_range"]),
+                )
+            ),
+            "retrieval_backend": hit.get("retrieval_backend", provenance.get("retrieval_backend")),
+            "retrieval_mode": hit.get("retrieval_mode", provenance.get("retrieval_mode")),
+            "source_hash": hit.get("source_hash", provenance.get("source_hash")),
+            "doc_type": hit.get("doc_type", provenance.get("doc_type")),
+            "doc_fingerprint": hit.get("doc_fingerprint", provenance.get("doc_fingerprint")),
+            "doc_identity_fingerprint": hit.get(
+                "doc_identity_fingerprint",
+                provenance.get("doc_identity_fingerprint"),
+            ),
+            "excerpt_fingerprint": hit.get("excerpt_fingerprint", provenance.get("excerpt_fingerprint")),
+            "excerpt_text_hash": hit.get(
+                "excerpt_text_hash",
+                provenance.get("excerpt_text_hash", provenance.get("hash")),
+            ),
+            "matched_terms": copy.deepcopy(hit.get("matched_terms", provenance.get("matched_terms"))),
+            "match_count": hit.get("match_count", provenance.get("match_count")),
+        }
+        promotion_item["promotion_item_fingerprint"] = _stable_fingerprint(promotion_item)
+        promotion_items.append(promotion_item)
     return _normalize_basket_promotion_bundle_snapshot(
         {
             **bundle_context,

@@ -10,8 +10,8 @@
 - Integrator-locked files changed: none.
 - Authoritative reviewed implementation base: `378cf9a74a3658058079a32f186fcd254c4a4034`.
 - Authoritative reviewed implementation range for re-review: `378cf9a74a3658058079a32f186fcd254c4a4034..HEAD`, where `HEAD` is the final branch tip reported with this fixer response.
-- Actual source-bearing branch tip covered by this packet before this metadata refresh: `8f83865802014488613c6cc1d9f04abb6cb76b12`.
-- Metadata-only claim correction: `8f83865802014488613c6cc1d9f04abb6cb76b12` is source-bearing, not metadata-only. It changes `src/qual/retrieval/service.py`, `src/qual/engine/retrieval/payload.py`, and `THREAD_PACKET.md`; the source changes are included in the reviewed implementation range.
+- Actual source-bearing branch tip covered by this packet: final `HEAD` reported with this handoff response.
+- Source-bearing update note: this final pass changes `src/qual/retrieval/service.py`, `src/qual/engine/retrieval/payload.py`, and `THREAD_PACKET.md`; the retrieval source changes are included in the reviewed implementation range.
 
 ## Traceability Correction
 
@@ -19,7 +19,7 @@ This packet supersedes stale narrow-range handoffs that described `adfa8cdadd437
 
 `378cf9a74a3658058079a32f186fcd254c4a4034..HEAD`
 
-That range includes every source-bearing retrieval commit through `8f83865802014488613c6cc1d9f04abb6cb76b12`, including the reviewer-cited source changes after `adfa8cdadd43747ffbcb612e4151e262b13e52ca`.
+That range includes every source-bearing retrieval commit through the final `HEAD` reported with this handoff response, including the reviewer-cited source changes after `adfa8cdadd43747ffbcb612e4151e262b13e52ca`.
 
 The source/test implementation surface in the corrected range is:
 
@@ -34,13 +34,13 @@ The full changed-file surface in the corrected range is:
 
 - `D .codex/kickoff_packets/feat-retrieval-fts.md`
 - `D .codex/lane_meta/feat-retrieval-fts.json`
-- `M THREAD_PACKET.md`
 - `M src/qual/engine/retrieval/__init__.py`
 - `M src/qual/engine/retrieval/fts_strategy.py`
 - `M src/qual/engine/retrieval/payload.py`
 - `M src/qual/retrieval/__init__.py`
 - `M src/qual/retrieval/service.py`
 - `M tests/unit/test_unified_retrieval.py`
+- `M THREAD_PACKET.md`
 
 Diff size for `378cf9a74a3658058079a32f186fcd254c4a4034..8f83865802014488613c6cc1d9f04abb6cb76b12` is `9 files changed, 1121 insertions(+), 192 deletions(-)`. Excluding `THREAD_PACKET.md`, the source/artifact/test portion is `8 files changed, 774 insertions(+), 129 deletions(-)`.
 
@@ -50,7 +50,7 @@ The protected `.codex/kickoff_packets/feat-retrieval-fts.md` and `.codex/lane_me
 
 SQLite FTS remains the required MVP retrieval path. PageIndex and embeddings remain deferred or compatibility-only surfaces and are not reintroduced as required paths.
 
-The branch hardens deterministic FTS retrieval behavior across cache keys, fresh-run cache snapshots, query snapshots, result payloads, excerpt lookup, citation/provenance bundles, evidence snapshots, sparse bundle rehydration, date-range propagation, shortlist query fingerprints, matched-term provenance, result fingerprints, doc identity, doc rank, doc type, strategy aliases, query constraints, and context basket promotion evidence.
+The branch hardens deterministic FTS retrieval behavior across cache keys, fresh-run cache snapshots, query snapshots, result payloads, excerpt lookup, citation/provenance bundles, evidence snapshots, sparse bundle rehydration, date-range propagation, shortlist query fingerprints, matched-term provenance, result fingerprints, doc identity, doc rank, doc type, strategy aliases, query constraints, and context basket promotion evidence. The final source-bearing update adds deterministic promotion-item and promotion-bundle fingerprints so basket promotion can audit exact FTS evidence items without rehydrating the whole retrieval result.
 
 Canonical demo path: `vault/context material -> FTS retrieval -> retrieval evidence -> context basket promotion -> engine revise/apply`.
 
@@ -60,7 +60,7 @@ Canonical demo path: `vault/context material -> FTS retrieval -> retrieval evide
    Canonical demo-path step advanced: `FTS retrieval`.
 2. Stabilized FTS cache and query normalization for query-shaped objects, dataclasses, mappings, iterables, date ranges, shortlist queries, fingerprints, doc types, scopes, boolean constraints, fresh runner output, cache invalidation, and cache audit metadata.
    Canonical demo-path step advanced: `FTS retrieval`.
-3. Normalized retrieval payload, provenance, citation, source-bundle, context-bundle, basket-promotion, and evidence snapshots so sparse downstream helpers can rehydrate FTS-first payloads without losing constraints, fingerprints, ranks, identities, policies, section hints, promotion items, doc type, matched terms, or confidentiality profile metadata.
+3. Normalized retrieval payload, provenance, citation, source-bundle, context-bundle, basket-promotion, and evidence snapshots so sparse downstream helpers can rehydrate FTS-first payloads without losing constraints, fingerprints, ranks, identities, policies, section hints, promotion items, promotion fingerprints, doc type, matched terms, or confidentiality profile metadata.
    Canonical demo-path steps advanced: `retrieval evidence` and `context basket promotion`.
 4. Added fail-closed retrieval boundary coverage for malformed or reversed date ranges, empty query/scope inputs, unresolved `doc:` and `collection:` scopes, FTS-only excerpt lookup, excerpt lookup fingerprints, cache/query snapshot behavior, and facade/export availability for basket-promotion helpers.
    Canonical demo-path steps advanced: `FTS retrieval` and `engine revise/apply` through stable retrieval facade contracts.
@@ -85,8 +85,9 @@ Task accounting: `4` high-risk task groups completed, matching the high-risk cap
 
 ## Commands Run
 
-Required gates rerun after the actual final source-bearing commit `8f83865802014488613c6cc1d9f04abb6cb76b12` and this packet refresh:
+Required gates rerun after the final source-bearing update and this packet refresh:
 
+- `python -m unittest tests.unit.test_unified_retrieval` - passed 61 retrieval tests.
 - `make scope-check` - passed for branch `codex/feat-retrieval-fts`; no branch-specific policy was configured.
 - `./quality-format.sh --check` - passed.
 - `./quality-lint.sh` - passed shell syntax and trailing whitespace checks.
