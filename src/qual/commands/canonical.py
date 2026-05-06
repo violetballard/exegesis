@@ -14,6 +14,7 @@ from src.qual.commands.catalog import (
     CommandDemoReadinessEntry,
     CommandDemoReadinessExactActionEntry,
     CommandDemoReadinessExactActionContract,
+    CommandDemoReadinessExactActionScriptContract,
     CommandDemoReadinessHandoffActionContract,
     CommandDemoActionCoverageContract,
     CommandDemoActionCoverageEntry,
@@ -140,6 +141,10 @@ from src.qual.commands.catalog import (
     command_mvp_demo_readiness_exact_action_entry_for_argv as _readiness_exact_action_entry_for_argv,
     command_mvp_demo_readiness_exact_action_contract as _readiness_exact_action_contract,
     command_mvp_demo_readiness_exact_action_summary as _readiness_exact_action_summary,
+    command_mvp_demo_readiness_exact_action_script_contract
+    as _readiness_exact_action_script_contract,
+    command_mvp_demo_readiness_exact_action_script_summary
+    as _readiness_exact_action_script_summary,
     command_mvp_demo_readiness_exact_argv_for_engine_action as _readiness_exact_argv_for_engine_action,
     command_mvp_demo_readiness_exact_line_for_engine_action as _readiness_exact_line_for_engine_action,
     command_mvp_demo_readiness_action_lines_for_argv as _readiness_action_lines_for_argv,
@@ -235,6 +240,8 @@ __all__ = [
     "canonical_command_action_exact_shell_script_text",
     "canonical_command_action_exact_contract",
     "canonical_command_action_exact_summary",
+    "canonical_command_action_exact_script_contract",
+    "canonical_command_action_exact_script_summary",
     "canonical_command_action_cli_exact_shell_script_lines",
     "canonical_command_action_cli_exact_shell_script_text",
     "canonical_command_action_smoke_argv",
@@ -874,6 +881,14 @@ def canonical_command_action_exact_contract() -> CommandDemoReadinessExactAction
 
 def canonical_command_action_exact_summary() -> tuple[tuple[str, str, str, str, str], ...]:
     return _readiness_exact_action_summary()
+
+
+def canonical_command_action_exact_script_contract() -> CommandDemoReadinessExactActionScriptContract:
+    return _readiness_exact_action_script_contract()
+
+
+def canonical_command_action_exact_script_summary() -> tuple[tuple[int, str, str, str, str, str], ...]:
+    return _readiness_exact_action_script_summary()
 
 
 def canonical_command_action_cli_exact_shell_script_lines() -> tuple[str, ...]:
