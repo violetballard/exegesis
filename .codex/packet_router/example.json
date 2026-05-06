@@ -153,6 +153,42 @@
     "feat-console-workflow": {
       "branch": "codex/feat-console-workflow",
       "enabled": false
+    },
+    "feat-ocr-import": {
+      "branch": "codex/feat-ocr-import",
+      "enabled": false
+    },
+    "feat-literature-import": {
+      "branch": "codex/feat-literature-import",
+      "enabled": false
+    },
+    "feat-rag-index": {
+      "branch": "codex/feat-rag-index",
+      "enabled": false
+    },
+    "feat-qual-coding": {
+      "branch": "codex/feat-qual-coding",
+      "enabled": false
+    },
+    "feat-editor-basics": {
+      "branch": "codex/feat-editor-basics",
+      "enabled": false
+    },
+    "feat-citations": {
+      "branch": "codex/feat-citations",
+      "enabled": false
+    },
+    "feat-export": {
+      "branch": "codex/feat-export",
+      "enabled": false
+    },
+    "feat-zotero-import": {
+      "branch": "codex/feat-zotero-import",
+      "enabled": false
+    },
+    "feat-formatting-bar": {
+      "branch": "codex/feat-formatting-bar",
+      "enabled": false
     }
   },
   "planner": {

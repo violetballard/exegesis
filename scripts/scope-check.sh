@@ -147,6 +147,60 @@ is_allowed() {
       esac
       return 1
       ;;
+    codex/feat-ocr-import*)
+      case "$f" in
+        src/qual/imports/*|src/qual/imports/*/*|src/qual/ocr/*|src/qual/ocr/*/*|engine/src/exegesis_engine/imports/*|engine/src/exegesis_engine/imports/*/*|engine/src/exegesis_engine/ocr/*|engine/src/exegesis_engine/ocr/*/*) return 0 ;;
+      esac
+      return 1
+      ;;
+    codex/feat-literature-import*)
+      case "$f" in
+        src/qual/literature/*|src/qual/literature/*/*|engine/src/exegesis_engine/literature/*|engine/src/exegesis_engine/literature/*/*) return 0 ;;
+      esac
+      return 1
+      ;;
+    codex/feat-rag-index*)
+      case "$f" in
+        src/qual/rag/*|src/qual/rag/*/*|engine/src/exegesis_engine/rag/*|engine/src/exegesis_engine/rag/*/*|engine/src/exegesis_engine/retrieval/rag/*|engine/src/exegesis_engine/retrieval/rag/*/*) return 0 ;;
+      esac
+      return 1
+      ;;
+    codex/feat-qual-coding*)
+      case "$f" in
+        src/qual/coding/*|src/qual/coding/*/*|src/qual/project_folders/*|src/qual/project_folders/*/*|engine/src/exegesis_engine/coding/*|engine/src/exegesis_engine/coding/*/*|engine/src/exegesis_engine/project_folders/*|engine/src/exegesis_engine/project_folders/*/*|client-textual/src/exegesis_textual/coding/*|client-textual/src/exegesis_textual/coding/*/*) return 0 ;;
+      esac
+      return 1
+      ;;
+    codex/feat-editor-basics*)
+      case "$f" in
+        src/qual/editor/*|src/qual/editor/*/*|engine/src/exegesis_engine/editor/*|engine/src/exegesis_engine/editor/*/*|client-textual/src/exegesis_textual/editor/*|client-textual/src/exegesis_textual/editor/*/*|client-textual/src/exegesis_textual/shortcuts/editor/*|client-textual/src/exegesis_textual/shortcuts/editor/*/*) return 0 ;;
+      esac
+      return 1
+      ;;
+    codex/feat-citations*)
+      case "$f" in
+        src/qual/citations/*|src/qual/citations/*/*|engine/src/exegesis_engine/citations/*|engine/src/exegesis_engine/citations/*/*|shared/src/exegesis_shared/citations/*|shared/src/exegesis_shared/citations/*/*|client-textual/src/exegesis_textual/citations/*|client-textual/src/exegesis_textual/citations/*/*) return 0 ;;
+      esac
+      return 1
+      ;;
+    codex/feat-export*)
+      case "$f" in
+        src/qual/export/*|src/qual/export/*/*|engine/src/exegesis_engine/export/*|engine/src/exegesis_engine/export/*/*|client-textual/src/exegesis_textual/export/*|client-textual/src/exegesis_textual/export/*/*) return 0 ;;
+      esac
+      return 1
+      ;;
+    codex/feat-zotero-import*)
+      case "$f" in
+        src/qual/zotero/*|src/qual/zotero/*/*|engine/src/exegesis_engine/zotero/*|engine/src/exegesis_engine/zotero/*/*|client-textual/src/exegesis_textual/zotero/*|client-textual/src/exegesis_textual/zotero/*/*) return 0 ;;
+      esac
+      return 1
+      ;;
+    codex/feat-formatting-bar*)
+      case "$f" in
+        src/qual/formatting/*|src/qual/formatting/*/*|engine/src/exegesis_engine/formatting/*|engine/src/exegesis_engine/formatting/*/*|client-textual/src/exegesis_textual/formatting/*|client-textual/src/exegesis_textual/formatting/*/*) return 0 ;;
+      esac
+      return 1
+      ;;
     *)
       log "scope-check: no policy for branch '$branch'; skipping"
       return 0

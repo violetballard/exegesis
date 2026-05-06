@@ -39,6 +39,15 @@ DEFAULT_LANES = [
     "feat-engine-runs",
     "feat-console-shell",
     "feat-console-workflow",
+    "feat-ocr-import",
+    "feat-literature-import",
+    "feat-rag-index",
+    "feat-qual-coding",
+    "feat-editor-basics",
+    "feat-citations",
+    "feat-export",
+    "feat-zotero-import",
+    "feat-formatting-bar",
 ]
 VERDICT_RE = re.compile(
     r"(?:\*\*Verdict\*\*|Verdict:)\s*`?(APPROVED|CHANGES_REQUESTED|CHANGES REQUESTED)`?",

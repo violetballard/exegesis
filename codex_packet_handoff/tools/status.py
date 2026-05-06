@@ -151,7 +151,7 @@ def main() -> None:
     lane_cfg_map = (cfg.get("lanes") or {}) if isinstance(cfg, dict) else {}
     configured_names = list(lane_cfg_map.keys()) if isinstance(lane_cfg_map, dict) and lane_cfg_map else []
     if configured_names:
-        lanes = [ROOT / name for name in configured_names if (ROOT / name).exists()]
+        lanes = [ROOT / name for name in configured_names]
     else:
         lanes = sorted([p for p in ROOT.iterdir() if p.is_dir()], key=lambda p: p.name)
     if not lanes:

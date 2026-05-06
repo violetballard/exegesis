@@ -72,6 +72,84 @@ Detailed task breakdown lives in `/Users/doctor-violet/Library/CloudStorage/Box-
   - Current status:
     - disabled until the Textual dependency is intentionally added
 
+## Defined but disabled future feature lanes
+
+- `codex/feat-ocr-import*`
+  - Owned paths:
+    - `src/qual/imports/**`
+    - `src/qual/ocr/**`
+    - `engine/src/exegesis_engine/imports/**`
+    - `engine/src/exegesis_engine/ocr/**`
+  - Current status:
+    - disabled until OCR import is intentionally activated
+
+- `codex/feat-literature-import*`
+  - Owned paths:
+    - `src/qual/literature/**`
+    - `engine/src/exegesis_engine/literature/**`
+  - Current status:
+    - disabled until literature metadata import is intentionally activated
+
+- `codex/feat-rag-index*`
+  - Owned paths:
+    - `src/qual/rag/**`
+    - `engine/src/exegesis_engine/rag/**`
+    - `engine/src/exegesis_engine/retrieval/rag/**`
+  - Current status:
+    - disabled until RAG indexing and vector retrieval are intentionally activated
+
+- `codex/feat-qual-coding*`
+  - Owned paths:
+    - `src/qual/coding/**`
+    - `src/qual/project_folders/**`
+    - `engine/src/exegesis_engine/coding/**`
+    - `engine/src/exegesis_engine/project_folders/**`
+    - `client-textual/src/exegesis_textual/coding/**`
+  - Current status:
+    - disabled until qualitative coding is intentionally activated
+
+- `codex/feat-editor-basics*`
+  - Owned paths:
+    - `src/qual/editor/**`
+    - `engine/src/exegesis_engine/editor/**`
+    - `client-textual/src/exegesis_textual/editor/**`
+    - `client-textual/src/exegesis_textual/shortcuts/editor/**`
+  - Current status:
+    - disabled until editor basics are intentionally activated
+
+- `codex/feat-citations*`
+  - Owned paths:
+    - `src/qual/citations/**`
+    - `engine/src/exegesis_engine/citations/**`
+    - `shared/src/exegesis_shared/citations/**`
+    - `client-textual/src/exegesis_textual/citations/**`
+  - Current status:
+    - disabled until citation support is intentionally activated
+
+- `codex/feat-export*`
+  - Owned paths:
+    - `src/qual/export/**`
+    - `engine/src/exegesis_engine/export/**`
+    - `client-textual/src/exegesis_textual/export/**`
+  - Current status:
+    - disabled until export support is intentionally activated
+
+- `codex/feat-zotero-import*`
+  - Owned paths:
+    - `src/qual/zotero/**`
+    - `engine/src/exegesis_engine/zotero/**`
+    - `client-textual/src/exegesis_textual/zotero/**`
+  - Current status:
+    - disabled until Zotero import is intentionally activated
+
+- `codex/feat-formatting-bar*`
+  - Owned paths:
+    - `src/qual/formatting/**`
+    - `engine/src/exegesis_engine/formatting/**`
+    - `client-textual/src/exegesis_textual/formatting/**`
+  - Current status:
+    - disabled until formatting bar work is intentionally activated
+
 ## Retired planning targets
 
 - `codex/feat-ux-flow*`

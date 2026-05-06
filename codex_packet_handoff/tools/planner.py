@@ -87,6 +87,55 @@ LANE_OWNED_PATHS = {
         "client-textual/src/exegesis_textual/cards/**",
         "client-textual/src/exegesis_textual/events/**",
     ],
+    "feat-ocr-import": [
+        "src/qual/imports/**",
+        "src/qual/ocr/**",
+        "engine/src/exegesis_engine/imports/**",
+        "engine/src/exegesis_engine/ocr/**",
+    ],
+    "feat-literature-import": [
+        "src/qual/literature/**",
+        "engine/src/exegesis_engine/literature/**",
+    ],
+    "feat-rag-index": [
+        "src/qual/rag/**",
+        "engine/src/exegesis_engine/rag/**",
+        "engine/src/exegesis_engine/retrieval/rag/**",
+    ],
+    "feat-qual-coding": [
+        "src/qual/coding/**",
+        "src/qual/project_folders/**",
+        "engine/src/exegesis_engine/coding/**",
+        "engine/src/exegesis_engine/project_folders/**",
+        "client-textual/src/exegesis_textual/coding/**",
+    ],
+    "feat-editor-basics": [
+        "src/qual/editor/**",
+        "engine/src/exegesis_engine/editor/**",
+        "client-textual/src/exegesis_textual/editor/**",
+        "client-textual/src/exegesis_textual/shortcuts/editor/**",
+    ],
+    "feat-citations": [
+        "src/qual/citations/**",
+        "engine/src/exegesis_engine/citations/**",
+        "shared/src/exegesis_shared/citations/**",
+        "client-textual/src/exegesis_textual/citations/**",
+    ],
+    "feat-export": [
+        "src/qual/export/**",
+        "engine/src/exegesis_engine/export/**",
+        "client-textual/src/exegesis_textual/export/**",
+    ],
+    "feat-zotero-import": [
+        "src/qual/zotero/**",
+        "engine/src/exegesis_engine/zotero/**",
+        "client-textual/src/exegesis_textual/zotero/**",
+    ],
+    "feat-formatting-bar": [
+        "src/qual/formatting/**",
+        "engine/src/exegesis_engine/formatting/**",
+        "client-textual/src/exegesis_textual/formatting/**",
+    ],
 }
 
 Json = Dict[str, Any]

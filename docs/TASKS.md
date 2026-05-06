@@ -47,8 +47,138 @@ Own later:
 - `client-textual/src/exegesis_textual/cards/**`
 - `client-textual/src/exegesis_textual/events/**`
 
+### `feat-ocr-import`
+Own later:
+- OCR import specs and contracts for Markdown-direct and OCR-backed imports
+- source-format allowlist for future import filtering
+- OCR provenance shape for normalized Markdown outputs
+- online target: Nanonets OCR-3
+- local/offline target: Nanonets OCR2
+
+Activation rule:
+- disabled until explicitly enabled after the current engine/demo loop is stable
+
+### `feat-literature-import`
+Own later:
+- literature import type semantics inside the import modal
+- metadata extraction contract for Markdown and OCR-derived literature
+- editable metadata approval modal spec
+- inspector metadata editing spec
+- literature metadata fields and uncertainty handling
+
+Activation rule:
+- disabled until `feat-ocr-import` is specified and explicitly enabled for implementation
+
+### `feat-rag-index`
+Own later:
+- Markdown-aware chunking and chunk metadata contract
+- FTS-plus-vector retrieval design
+- retrieval-card payloads suitable for basket promotion
+- online embeddings with Mistral `mistral-embed`
+- local embeddings with Qwen3-Embedding-0.6B
+
+Activation rule:
+- disabled until OCR/import normalization and literature metadata specs are ready for implementation
+
+### `feat-qual-coding`
+Own later:
+- qualitative code project/database model
+- single-code selected-text highlight contract
+- project-browser `New Folder` behavior for document organization and parent codes
+- drag-and-drop behavior for folders and codes
+- inspector code details, frequencies, parent/child info, and clickable appearances
+- code-focused document view with summaries and document excerpts
+- coding shortcut row and command-palette entries
+
+Activation rule:
+- disabled until the current engine/demo loop is stable enough to expand into real coding workflows
+
+Implementation batches:
+- use `docs/FUTURE_MVP_FEATURES_SPEC.md` as the lane-ready build sheet
+
+### `feat-editor-basics`
+Own later:
+- copy, paste, undo, and redo editor contracts
+- editor history and clipboard interaction boundaries
+- copy/paste/undo/redo shortcut row
+- command-palette entries for editor basics
+
+Activation rule:
+- disabled until qualitative coding and client/editor ownership are explicitly ready for implementation
+
+Implementation batches:
+- use `docs/FUTURE_MVP_FEATURES_SPEC.md` as the lane-ready build sheet
+
+### `feat-citations`
+Own later:
+- manual literature citation insertion
+- optional page number or locator entry
+- Pandoc-compatible citation storage
+- citation rendering as document-pane links to literature
+- LLM-used literature citation requirements
+- citation top-row button and command-palette entries
+
+Activation rule:
+- disabled until literature metadata import is specified enough to provide citable literature records
+
+Implementation batches:
+- use `docs/FUTURE_MVP_FEATURES_SPEC.md` as the lane-ready build sheet
+
+### `feat-export`
+Own later:
+- raw Markdown export
+- APA PDF and DOCX export
+- reference-list generation from cited literature
+- draft author/institution metadata capture on draft create/import
+- inspector and export-modal editing for APA identity metadata
+- CSL/Pandoc scaffolding for future MLA, Chicago, and institution-specific formats
+
+Activation rule:
+- disabled until citation support and draft metadata contracts are ready
+
+Implementation batches:
+- use `docs/FUTURE_MVP_FEATURES_SPEC.md` as the lane-ready build sheet
+
+### `feat-zotero-import`
+Own later:
+- Zotero as a literature import source
+- Zotero browser/login or API-key workflow
+- secure credential storage requirements
+- Zotero metadata import into literature metadata
+- attached-file import through the literature/OCR pipeline
+
+Activation rule:
+- disabled until literature import and OCR import contracts are ready
+
+Implementation batches:
+- use `docs/FUTURE_MVP_FEATURES_SPEC.md` as the lane-ready build sheet
+
+### `feat-formatting-bar`
+Own later:
+- formatting bar for bold, italic, underline where supported, and heading levels
+- Markdown syntax insertion/wrapping behavior
+- semantic heading preference for export/retrieval compatibility
+- formatting shortcut row and command-palette entries
+
+Activation rule:
+- disabled until editor/client implementation lanes are explicitly activated
+
+Implementation batches:
+- use `docs/FUTURE_MVP_FEATURES_SPEC.md` as the lane-ready build sheet
+
 ## Explicitly not now
 - Textual dependency installation
 - Textual widget implementation
+- runtime OCR implementation
+- runtime literature metadata extraction
+- runtime RAG indexing or vector retrieval
+- runtime qualitative coding behavior
+- runtime editor copy/paste/undo/redo behavior
+- runtime citation behavior
+- runtime export behavior
+- runtime Zotero import behavior
+- runtime formatting bar behavior
+- shell import filtering changes
+- inspector metadata editing behavior
 - tabs, live preview, collaboration, sync, drag-and-drop
 - native workstation shell work

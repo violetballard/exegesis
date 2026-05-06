@@ -16,6 +16,15 @@ LANES = [
     'feat-engine-runs',
     'feat-console-shell',
     'feat-console-workflow',
+    'feat-ocr-import',
+    'feat-literature-import',
+    'feat-rag-index',
+    'feat-qual-coding',
+    'feat-editor-basics',
+    'feat-citations',
+    'feat-export',
+    'feat-zotero-import',
+    'feat-formatting-bar',
 ]
 
 def ensure_dirs():
@@ -35,6 +44,15 @@ def write_example_config():
         lanes_cfg[lane] = {"branch": f"codex/{lane}", "enabled": True}
     lanes_cfg["feat-console-shell"]["enabled"] = False
     lanes_cfg["feat-console-workflow"]["enabled"] = False
+    lanes_cfg["feat-ocr-import"]["enabled"] = False
+    lanes_cfg["feat-literature-import"]["enabled"] = False
+    lanes_cfg["feat-rag-index"]["enabled"] = False
+    lanes_cfg["feat-qual-coding"]["enabled"] = False
+    lanes_cfg["feat-editor-basics"]["enabled"] = False
+    lanes_cfg["feat-citations"]["enabled"] = False
+    lanes_cfg["feat-export"]["enabled"] = False
+    lanes_cfg["feat-zotero-import"]["enabled"] = False
+    lanes_cfg["feat-formatting-bar"]["enabled"] = False
     for lane in ("feat-commands", "feat-retrieval-fts"):
         lanes_cfg[lane].update(
             {

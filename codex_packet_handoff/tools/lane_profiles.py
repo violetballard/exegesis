@@ -206,6 +206,220 @@ LANE_PROFILES: Dict[str, Json] = {
         "vision_capabilities": ["5. Agent-to-UI protocol (A2UI)"],
         "routing_provider_impact": "None",
     },
+    "feat-ocr-import": {
+        "scope_goal": "Disabled future lane for Markdown-direct and OCR-backed typed import specs.",
+        "priority_summary": "Disabled OCR import lane.",
+        "priority_outcomes": [
+            "Keep Markdown import direct without OCR.",
+            "Specify non-Markdown OCR normalization into editable Markdown.",
+            "Preserve OCR provenance for audit, metadata extraction, and RAG indexing.",
+        ],
+        "definition_of_done": [
+            "Supported import formats are specified.",
+            "Online and local OCR model targets are specified.",
+            "OCR provenance fields are specified.",
+            "No runtime OCR behavior is active until the lane is enabled.",
+        ],
+        "do_not_spend_time_on": [
+            "Runtime OCR implementation before explicit activation.",
+            "Shell import filtering behavior before explicit activation.",
+            "RAG indexing before normalized import exists.",
+        ],
+        "risk": "MEDIUM",
+        "roadmap_items": ["ROADMAP.md: Milestone 6: OCR import"],
+        "vision_capabilities": ["2. Retrieval-first context handling", "6. Auditable state and workflow"],
+        "routing_provider_impact": "None while disabled.",
+    },
+    "feat-literature-import": {
+        "scope_goal": "Disabled future lane for literature import metadata extraction and editing specs.",
+        "priority_summary": "Disabled literature import lane.",
+        "priority_outcomes": [
+            "Treat literature as an import type selected in the import modal.",
+            "Specify metadata extraction for Markdown and OCR-derived literature.",
+            "Keep detected metadata editable before save and later in the inspector.",
+        ],
+        "definition_of_done": [
+            "Literature metadata fields are specified.",
+            "Deterministic and model-assisted extraction order is specified.",
+            "Metadata approval and inspector editing flows are specified.",
+            "No runtime metadata extraction behavior is active until the lane is enabled.",
+        ],
+        "do_not_spend_time_on": [
+            "Runtime metadata extraction before explicit activation.",
+            "Separate literature import UI outside the typed import modal.",
+            "Inventing metadata values without editable uncertainty.",
+        ],
+        "risk": "MEDIUM",
+        "roadmap_items": ["ROADMAP.md: Milestone 7: Literature import"],
+        "vision_capabilities": ["2. Retrieval-first context handling", "6. Auditable state and workflow"],
+        "routing_provider_impact": "None while disabled.",
+    },
+    "feat-rag-index": {
+        "scope_goal": "Disabled future lane for Markdown-aware chunking, embeddings, and additive vector retrieval specs.",
+        "priority_summary": "Disabled RAG indexing lane.",
+        "priority_outcomes": [
+            "Specify chunk records over normalized Markdown.",
+            "Keep FTS as the retrieval baseline while vector retrieval is additive.",
+            "Specify online Mistral and local Qwen embedding targets.",
+        ],
+        "definition_of_done": [
+            "Chunking defaults and metadata are specified.",
+            "Embedding targets are specified.",
+            "FTS-plus-vector retrieval behavior is specified.",
+            "No runtime RAG behavior is active until the lane is enabled.",
+        ],
+        "do_not_spend_time_on": [
+            "Runtime vector indexing before explicit activation.",
+            "Replacing the current FTS-first retrieval path.",
+            "RAG UI behavior before retrieval contracts are stable.",
+        ],
+        "risk": "MEDIUM",
+        "roadmap_items": ["ROADMAP.md: Milestone 8: RAG indexing and retrieval"],
+        "vision_capabilities": ["2. Retrieval-first context handling", "6. Auditable state and workflow"],
+        "routing_provider_impact": "None while disabled.",
+    },
+    "feat-qual-coding": {
+        "scope_goal": "Disabled future lane for basic qualitative coding, code folders, and code-focused inspection specs.",
+        "priority_summary": "Disabled qualitative coding lane.",
+        "priority_outcomes": [
+            "Specify one-code selected-text highlighting.",
+            "Specify project/browser folder semantics for document folders and parent codes.",
+            "Specify code inspector and code-focused document views with frequencies and appearances.",
+        ],
+        "definition_of_done": [
+            "Code project/database model is specified.",
+            "Folder and parent-code drag-and-drop semantics are specified.",
+            "Inspector and code view contracts are specified.",
+            "No runtime coding behavior is active until the lane is enabled.",
+        ],
+        "do_not_spend_time_on": [
+            "Runtime coding implementation before explicit activation.",
+            "Multi-level code hierarchy beyond one parent level for MVP.",
+            "Full qualitative analysis dashboards beyond the code view contract.",
+        ],
+        "risk": "MEDIUM",
+        "roadmap_items": ["ROADMAP.md: Milestone 9: Basic qualitative coding"],
+        "vision_capabilities": ["2. Retrieval-first context handling", "6. Auditable state and workflow"],
+        "routing_provider_impact": "None while disabled.",
+    },
+    "feat-editor-basics": {
+        "scope_goal": "Disabled future lane for copy, paste, undo, and redo editor primitive specs.",
+        "priority_summary": "Disabled editor basics lane.",
+        "priority_outcomes": [
+            "Specify copy and paste behavior over the document editor.",
+            "Specify undo and redo behavior over document edits.",
+            "Specify shortcut and command-palette coverage for editor basics.",
+        ],
+        "definition_of_done": [
+            "Copy/paste/undo/redo contracts are specified.",
+            "Shortcut row behavior is specified.",
+            "No runtime editor basics behavior is active until the lane is enabled.",
+        ],
+        "do_not_spend_time_on": [
+            "Runtime editor implementation before explicit activation.",
+            "Project taxonomy or coding behavior.",
+            "WYSIWYG editing surfaces.",
+        ],
+        "risk": "LOW",
+        "roadmap_items": ["ROADMAP.md: Milestone 10: Editor basics"],
+        "vision_capabilities": ["1. Writer-first workspace"],
+        "routing_provider_impact": "None while disabled.",
+    },
+    "feat-citations": {
+        "scope_goal": "Disabled future lane for Pandoc-compatible citation insertion and literature-link rendering specs.",
+        "priority_summary": "Disabled citation support lane.",
+        "priority_outcomes": [
+            "Specify manual literature citation insertion with optional locators.",
+            "Specify LLM-used literature citation requirements.",
+            "Specify Pandoc-compatible storage and document-pane link rendering.",
+        ],
+        "definition_of_done": [
+            "Citation storage/rendering contract is specified.",
+            "Manual and model-used citation behavior is specified.",
+            "Document top-row placement is specified.",
+            "No runtime citation behavior is active until the lane is enabled.",
+        ],
+        "do_not_spend_time_on": [
+            "Runtime citation insertion before explicit activation.",
+            "Export/reference-list generation, which belongs to feat-export.",
+            "Non-literature citation systems before literature records exist.",
+        ],
+        "risk": "MEDIUM",
+        "roadmap_items": ["ROADMAP.md: Milestone 11: Citation support"],
+        "vision_capabilities": ["6. Auditable state and workflow"],
+        "routing_provider_impact": "None while disabled.",
+    },
+    "feat-export": {
+        "scope_goal": "Disabled future lane for raw Markdown, APA PDF, APA DOCX, and CSL/Pandoc export specs.",
+        "priority_summary": "Disabled export support lane.",
+        "priority_outcomes": [
+            "Specify raw Markdown, PDF, and DOCX export behavior.",
+            "Specify APA identity metadata capture and editing.",
+            "Specify CSL/Pandoc scaffolding for future citation styles.",
+        ],
+        "definition_of_done": [
+            "Export format contract is specified.",
+            "APA metadata and reference-list requirements are specified.",
+            "Export modal behavior is specified.",
+            "No runtime export behavior is active until the lane is enabled.",
+        ],
+        "do_not_spend_time_on": [
+            "Runtime Pandoc export before explicit activation.",
+            "Citation insertion behavior, which belongs to feat-citations.",
+            "Future styles beyond the CSL/Pandoc extension scaffold.",
+        ],
+        "risk": "MEDIUM",
+        "roadmap_items": ["ROADMAP.md: Milestone 12: Export support"],
+        "vision_capabilities": ["1. Writer-first workspace", "6. Auditable state and workflow"],
+        "routing_provider_impact": "None while disabled.",
+    },
+    "feat-zotero-import": {
+        "scope_goal": "Disabled future lane for Zotero literature import, auth, metadata, and attached-file pipeline specs.",
+        "priority_summary": "Disabled Zotero import lane.",
+        "priority_outcomes": [
+            "Specify Zotero as a literature import source.",
+            "Specify browser/login or API-key workflow and secure credential storage.",
+            "Specify metadata and attached-file import through the literature/OCR pipeline.",
+        ],
+        "definition_of_done": [
+            "Zotero import/auth contract is specified.",
+            "Zotero metadata mapping is specified.",
+            "Attached-file pipeline behavior is specified.",
+            "No runtime Zotero behavior is active until the lane is enabled.",
+        ],
+        "do_not_spend_time_on": [
+            "Runtime Zotero API integration before explicit activation.",
+            "Bypassing the literature/OCR import pipeline.",
+            "Reference-manager sync beyond import.",
+        ],
+        "risk": "MEDIUM",
+        "roadmap_items": ["ROADMAP.md: Milestone 13: Zotero import"],
+        "vision_capabilities": ["2. Retrieval-first context handling", "6. Auditable state and workflow"],
+        "routing_provider_impact": "None while disabled.",
+    },
+    "feat-formatting-bar": {
+        "scope_goal": "Disabled future lane for Markdown formatting bar and formatting shortcut specs.",
+        "priority_summary": "Disabled formatting bar lane.",
+        "priority_outcomes": [
+            "Specify basic formatting controls for bold, italic, underline where supported, and headings.",
+            "Specify direct Markdown syntax insertion/wrapping.",
+            "Specify semantic heading preference for export and retrieval compatibility.",
+        ],
+        "definition_of_done": [
+            "Formatting bar contract is specified.",
+            "Formatting shortcuts and command-palette entries are specified.",
+            "No runtime formatting behavior is active until the lane is enabled.",
+        ],
+        "do_not_spend_time_on": [
+            "Runtime formatting bar implementation before explicit activation.",
+            "WYSIWYG state models.",
+            "Manual heading styling that bypasses Markdown headings.",
+        ],
+        "risk": "LOW",
+        "roadmap_items": ["ROADMAP.md: Milestone 14: Formatting bar"],
+        "vision_capabilities": ["1. Writer-first workspace"],
+        "routing_provider_impact": "None while disabled.",
+    },
 }
 
 
@@ -242,4 +456,3 @@ def engine_priority_lines() -> List[str]:
         else:
             lines.append(f"{index}. `{lane}`")
     return lines
-

@@ -90,3 +90,166 @@ Current operating rule:
   - persist updated document/session state
   - continue working
 - Code churn, contract cleanup, or infra work do not count toward this milestone unless they directly unblock or harden that specific path.
+
+## Milestone 6: OCR import
+
+Outcome:
+- The project can eventually import non-Markdown source files by OCR-normalizing them into editable Markdown, while Markdown import remains direct.
+
+Deliverables:
+- Markdown direct-import contract
+- OCR-backed import contract for PDF, image, document, spreadsheet, and text formats
+- online OCR target: Nanonets OCR-3
+- local/offline OCR target: Nanonets OCR2
+- OCR provenance model for source file, provider/model, page or sheet, content hash, and confidence when available
+
+Status:
+- Planned and disabled
+- Lane state: disabled (`feat-ocr-import`)
+- This milestone is spec scaffolding only until explicitly activated
+
+## Milestone 7: Literature import
+
+Outcome:
+- Literature can eventually be selected as an import type and saved with editable metadata, regardless of whether the source was Markdown or OCR-derived.
+
+Deliverables:
+- import-modal type selection for literature
+- metadata extraction contract for Markdown literature
+- metadata extraction contract for OCR-derived literature
+- editable metadata approval modal before save
+- inspector editing contract for saved literature metadata
+- metadata fields for title, authors, venue/publication, year/date, DOI, URL, abstract, and citation string
+
+Status:
+- Planned and disabled
+- Lane state: disabled (`feat-literature-import`)
+- This milestone is spec scaffolding only until explicitly activated
+
+## Milestone 8: RAG indexing and retrieval
+
+Outcome:
+- The project can eventually index normalized Markdown, including OCR-derived documents, and retrieve relevant chunks through FTS plus additive vector search.
+
+Deliverables:
+- Markdown-aware chunking contract
+- chunk metadata for document ID, document type, literature metadata reference, heading path, offsets, token estimate, content hash, and chunk text
+- online embedding target: Mistral `mistral-embed`
+- local embedding target: Qwen3-Embedding-0.6B
+- retrieval-card contract for basket promotion
+
+Status:
+- Planned and disabled
+- Lane state: disabled (`feat-rag-index`)
+- This milestone is spec scaffolding only until explicitly activated
+
+## Milestone 9: Basic qualitative coding
+
+Outcome:
+- The project can eventually support one-code-at-a-time qualitative coding over selected document text, with simple highlights and navigable code summaries.
+
+Deliverables:
+- code type in project state and storage/database models
+- single-code selection highlight behavior
+- `New Folder` support in the project browser
+- organizational folders under document sections
+- parent-code folders under the code section
+- drag-and-drop for folders and codes
+- one level of parent/child codes
+- inspector code details for selected coded text
+- code-focused document view with summary, frequencies, parent/child info, and document excerpts
+- coding shortcut row for add/delete code and folder-related coding actions
+
+Status:
+- Planned and disabled
+- Lane state: disabled (`feat-qual-coding`)
+- This milestone is spec scaffolding only until explicitly activated
+
+## Milestone 10: Editor basics
+
+Outcome:
+- The document editor can eventually provide expected text-editing primitives without mixing them into coding or project taxonomy work.
+
+Deliverables:
+- copy selected text
+- paste clipboard text
+- undo document edits
+- redo document edits
+- shortcut row for copy, paste, undo, and redo
+- command-palette entries for editor basics
+
+Status:
+- Planned and disabled
+- Lane state: disabled (`feat-editor-basics`)
+- This milestone is spec scaffolding only until explicitly activated
+
+## Milestone 11: Citation support
+
+Outcome:
+- Drafts can eventually cite literature manually or through model-assisted writing while preserving Pandoc-compatible source citations.
+
+Deliverables:
+- manual literature citation insertion
+- optional page number or locator entry
+- LLM-used literature citation requirement
+- Pandoc-compatible citation storage
+- document-pane citation rendering as links to literature
+- citation action in the document top row next to basket commands and before export
+
+Status:
+- Planned and disabled
+- Lane state: disabled (`feat-citations`)
+- This milestone is spec scaffolding only until explicitly activated
+
+## Milestone 12: Export support
+
+Outcome:
+- Drafts can eventually export raw Markdown, APA PDF, and APA DOCX with generated reference lists.
+
+Deliverables:
+- raw Markdown export
+- APA PDF export
+- APA DOCX export
+- reference list generated from cited literature
+- draft author/institution metadata captured on create/import
+- APA metadata editing in inspector and export confirmation modal
+- CSL/Pandoc scaffolding for MLA, Chicago, and institution-specific formats later
+
+Status:
+- Planned and disabled
+- Lane state: disabled (`feat-export`)
+- This milestone is spec scaffolding only until explicitly activated
+
+## Milestone 13: Zotero import
+
+Outcome:
+- Literature can eventually be imported from Zotero while still flowing through Exegesis literature metadata and OCR import contracts.
+
+Deliverables:
+- Zotero import option for literature
+- in-app or browser-based Zotero login/key workflow
+- secure credential storage requirement
+- Zotero metadata import into literature metadata
+- Zotero attached-file import through the standard literature/OCR pipeline
+
+Status:
+- Planned and disabled
+- Lane state: disabled (`feat-zotero-import`)
+- This milestone is spec scaffolding only until explicitly activated
+
+## Milestone 14: Formatting bar
+
+Outcome:
+- The editor can eventually offer familiar formatting controls while still writing semantic Markdown.
+
+Deliverables:
+- formatting bar for bold, italic, underline where supported, and heading levels
+- direct Markdown syntax insertion/wrapping
+- semantic heading controls preferred over manual styling
+- formatting shortcut row
+- command-palette entries for formatting actions
+
+Status:
+- Planned and disabled
+- Lane state: disabled (`feat-formatting-bar`)
+- This milestone is spec scaffolding only until explicitly activated

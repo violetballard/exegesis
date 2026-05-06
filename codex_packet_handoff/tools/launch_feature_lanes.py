@@ -39,6 +39,15 @@ DEFAULT_LANES = [
     "feat-engine-runs",
     "feat-console-shell",
     "feat-console-workflow",
+    "feat-ocr-import",
+    "feat-literature-import",
+    "feat-rag-index",
+    "feat-qual-coding",
+    "feat-editor-basics",
+    "feat-citations",
+    "feat-export",
+    "feat-zotero-import",
+    "feat-formatting-bar",
 ]
 STATE_LOCK = threading.Lock()
 STALE_THREAD_RE = "session not found for thread_id"
