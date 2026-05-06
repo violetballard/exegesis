@@ -47,6 +47,8 @@ The branch makes FTS retrieval deterministic and auditable across query construc
 
 The branch also carries deterministic retrieval evidence fingerprints into diagnostics, provenance, source bundles, promotion bundles, and promotion items so downstream basket/revise/apply flows can audit the exact FTS evidence snapshot attached to promoted excerpts without rehydrating the whole retrieval result.
 
+This final delta tightens the canonical excerpt payload normalizer so PageIndex-sourced excerpt payloads fail closed before they can be normalized into engine-facing retrieval context. The guard keeps excerpt lookup and basket-promotion inputs FTS-only while preserving the existing canonical FTS lookup payload shape.
+
 Canonical demo path advanced: `vault/context material -> FTS retrieval -> retrieval evidence -> context basket promotion -> engine revise/apply`.
 
 ## Tasks Completed
@@ -54,7 +56,7 @@ Canonical demo path advanced: `vault/context material -> FTS retrieval -> retrie
 1. Made SQLite FTS the authoritative MVP retrieval path while keeping PageIndex and embeddings fallback-only/deferred.
 2. Stabilized FTS query, cache, constraint, date-range, shortlist, doc-type, scope, and fresh-run behavior for deterministic retrieval.
 3. Normalized retrieval payloads, provenance, citation/source/context bundles, evidence snapshots, sparse bundle rehydration, and basket-promotion evidence so downstream helpers preserve ranks, identities, policies, fingerprints, matched terms, and confidentiality profile metadata.
-4. Added fail-closed and audit-focused shared regression coverage for malformed/reversed date ranges, empty inputs, unresolved `doc:` and `collection:` scopes, FTS-only excerpt lookup, excerpt lookup fingerprints, cache/query snapshots, facade/export availability, and basket-promotion fingerprint propagation.
+4. Added fail-closed and audit-focused shared regression coverage for malformed/reversed date ranges, empty inputs, unresolved `doc:` and `collection:` scopes, FTS-only excerpt lookup and payload normalization, excerpt lookup fingerprints, cache/query snapshots, facade/export availability, and basket-promotion fingerprint propagation.
 
 Task accounting: `4` high-risk task groups completed, matching the high-risk task cap.
 
@@ -73,6 +75,7 @@ Task accounting: `4` high-risk task groups completed, matching the high-risk tas
 2. Updated files changed, tasks completed, scope completed, and kickoff budget/limits compliance to match the actual implementation being submitted.
 3. Re-ran the required gates on the exact branch tip intended for re-review; current outcomes are listed below.
 4. Documented that the branch still exceeds the high-risk size limit and that no explicit integrator-approved size exception is present.
+5. Added a final fail-closed guard so excerpt payload normalization cannot accept PageIndex resolution as a compatibility path.
 
 ## Commands Run
 
@@ -81,12 +84,14 @@ Required gates for this final fixer state:
 - `make scope-check` - passed for branch `codex/feat-retrieval-fts`; no branch-specific policy was configured.
 - `./quality-format.sh --check` - passed.
 - `./quality-lint.sh` - passed shell syntax and trailing whitespace checks.
-- `./quality-test.sh` - passed smoke tests and 130 unit tests.
+- `./quality-test.sh` - passed smoke tests and 131 unit tests.
 - `./typecheck-test.sh` - passed Python source compilation under `src/`.
-- `make ci` - passed setup, scope-check, format, lint, compile/typecheck, smoke tests, and 130 unit tests.
+- `make ci` - passed setup, scope-check, format, lint, compile/typecheck, smoke tests, and 131 unit tests.
 
 Additional focused retrieval checks run earlier in this lane:
 
+- `python -m pytest tests/unit/test_unified_retrieval.py` - blocked because the active Python interpreter has no `pytest` module installed.
+- `python3 -m unittest tests.unit.test_unified_retrieval` - passed 62 retrieval tests after the final FTS-only excerpt payload normalization guard.
 - `python -m unittest tests.unit.test_unified_retrieval` - passed 61 retrieval tests after retrieval evidence fingerprint hardening.
 - `python -m unittest tests.unit.test_unified_retrieval.UnifiedRetrievalTests.test_downstream_payload_exposes_policy_and_diagnostics_snapshot tests.unit.test_unified_retrieval.UnifiedRetrievalTests.test_basket_promotion_items_backfill_query_context_from_bundle` - passed.
 

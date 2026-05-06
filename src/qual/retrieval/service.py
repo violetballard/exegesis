@@ -1934,9 +1934,11 @@ class RetrievalService:
         self,
         excerpt: dict[str, object],
         *,
-        source_strategy: Literal["fts", "pageindex"],
+        source_strategy: Literal["fts"],
         lookup_resolution: str,
     ) -> dict[str, object]:
+        if source_strategy != "fts":
+            raise ValueError("excerpt lookup payloads must use the canonical FTS strategy")
         provenance = excerpt.get("provenance", {})
         if not isinstance(provenance, dict):
             provenance = {}

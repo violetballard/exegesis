@@ -1141,6 +1141,19 @@ class UnifiedRetrievalTests(unittest.TestCase):
         with self.assertRaisesRegex(KeyError, "unknown excerpt_id"):
             self.service.fetch_excerpt(str(excerpt_id))
 
+    def test_excerpt_payload_normalization_rejects_pageindex_resolution(self) -> None:
+        with self.assertRaisesRegex(ValueError, "canonical FTS strategy"):
+            self.service._normalize_excerpt_payload(
+                {
+                    "excerpt_id": "pageindex-excerpt",
+                    "doc_id": "doc-pdf-1",
+                    "text": "PageIndex-only excerpt text",
+                    "provenance": {"source_strategy": "pageindex"},
+                },
+                source_strategy="pageindex",  # type: ignore[arg-type]
+                lookup_resolution="pageindex",
+            )
+
     def test_retrieve_fts_excerpt_returns_canonical_fts_payload(self) -> None:
         result = self.service.retrieve_auto(
             RetrievalQuery(
