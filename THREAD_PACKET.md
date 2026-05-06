@@ -31,11 +31,13 @@ This finalization pass after `c15473477f3b0469775183f36b970828b02be7ccc` adds th
 
 This finalization pass after `5e1bf46c0` adds a deterministic `query_constraints_fingerprint` beside the normalized query-constraint snapshot in retrieval diagnostics, citation bundles, provenance bundles, doc/excerpt bundles, source bundles, retrieval evidence, and retrieval audit metadata. Sparse source/context bundle rehydration now preserves that fingerprint without leaking it into the stable top-level downstream payload shape.
 
+This finalization pass after `1bd6935e88dec29b34f6a38fcbaf55081a028e07` canonicalizes doc-type filters inside downstream query-constraint snapshots and retrieval evidence. Semantically identical caller filters now produce stable constraint payloads and fingerprints across citation, provenance, source-bundle, and evidence surfaces used for basket/context promotion.
+
 ## Tasks Completed
 
 1. Made SQLite FTS the primary retrieval path for document and excerpt retrieval, with PageIndex and embeddings retained as compatibility-only fallback/deferred surfaces.
 2. Stabilized FTS retrieval cache behavior, including cache invalidation on document updates and cache audit metadata for payload/provenance consumers.
-3. Normalized retrieval payloads, query snapshots, constraints, provenance fingerprints, source bundles, and basket/context promotion metadata for deterministic downstream engine use, including explicit query-constraint snapshots in bundle/provenance surfaces.
+3. Normalized retrieval payloads, query snapshots, constraints, provenance fingerprints, source bundles, and basket/context promotion metadata for deterministic downstream engine use, including canonical doc-type filters and explicit query-constraint snapshots in bundle/provenance surfaces.
 4. Validated date-range constraints and canonical query text/scope constraints at the retrieval boundary, preserved normalized query constraints during sparse citation/source/context-bundle rehydration, added stable FTS excerpt lookup fingerprints to payload/provenance/audit snapshots, and exposed normalized query constraints plus their deterministic fingerprint in retrieval evidence for basket/context promotion, with approved shared regression coverage in `tests/unit/test_unified_retrieval.py` for the FTS-first retrieval behavior, payload normalization, cache metadata, facade exports, citation/provenance helpers, excerpt lookup, and date-range validation included in this task group.
 
 ## Files Changed
@@ -71,6 +73,11 @@ Additional current finalization diff after `5e1bf46c0`:
 - `M src/qual/retrieval/service.py` - emits deterministic query-constraint fingerprints in diagnostics, evidence, provenance, citation, doc/excerpt, source-bundle, and audit snapshots.
 - `M tests/unit/test_unified_retrieval.py` - covers the new fingerprint across canonical payload surfaces and sparse source-bundle helper rehydration.
 
+Additional current finalization diff after `1bd6935e88dec29b34f6a38fcbaf55081a028e07`:
+
+- `M THREAD_PACKET.md` - handoff packet restamp.
+- `M src/qual/retrieval/service.py` - canonicalizes doc-type filters in query-constraint snapshots and retrieval evidence before computing downstream fingerprints.
+
 From `git diff --stat 378cf9a74a3658058079a32f186fcd254c4a4034..FINAL_FIXER_HEAD_REPORTED_IN_RESPONSE`:
 
 - `.codex/kickoff_packets/feat-retrieval-fts.md` - 36 lines changed.
@@ -93,7 +100,7 @@ From `git diff --stat 378cf9a74a3658058079a32f186fcd254c4a4034..FINAL_FIXER_HEAD
 - PageIndex/embeddings impact: no PageIndex, embeddings, hybrid, or alternate retrieval path was added as a required MVP path.
 - Remaining risks/blockers: sandbox blocks writes under `.codex/kickoff_packets` and `.codex/lane_meta` with `Operation not permitted`, so this fixer commit updates `THREAD_PACKET.md`, the writable handoff packet. The stale hidden metadata paths still require an environment with `.codex` write permission if reviewers require those artifacts to be restamped too.
 
-Current finalization remains low blast radius: the final fixer commit updates FTS query-constraint fingerprint propagation, the approved shared retrieval regression file, and this handoff packet. No integrator-locked file edits are added by this fixer pass.
+Current finalization remains low blast radius: the final fixer commit updates FTS query-constraint snapshot canonicalization in `src/qual/retrieval/service.py` and this handoff packet. No integrator-locked file edits are added by this fixer pass, and no new shared regression files are edited.
 
 ## Traceability Correction
 
@@ -106,7 +113,7 @@ This handoff has one authoritative reviewed implementation range: `378cf9a74a365
 - Roadmap items affected: `ROADMAP.md` Milestone 3 retrieval/search readiness and real workflow loop support.
 - Product Vision capability affected: retrieval-first context handling.
 - Architecture alignment: FTS remains the required local retrieval path. PageIndex and embeddings stay compatibility-only/deferred.
-- Canonical demo-path mapping: advances `retrieve relevant material` by preventing invalid date filters and whitespace-only retrieval queries from producing misleading or unstable retrieval evidence, by making the normalized retrieval constraints visible, fingerprinted, and rehydratable in bundle/provenance/citation/evidence snapshots used for basket/context promotion, and by making fetched FTS excerpt payloads auditable through stable lookup fingerprints.
+- Canonical demo-path mapping: advances `retrieve relevant material` by preventing invalid date filters and whitespace-only retrieval queries from producing misleading or unstable retrieval evidence, by making normalized retrieval constraints and canonical doc-type filters visible, fingerprinted, and rehydratable in bundle/provenance/citation/evidence snapshots used for basket/context promotion, and by making fetched FTS excerpt payloads auditable through stable lookup fingerprints.
 - Routing/provider impact note: none.
 - Proposed `README.md` patch text: none.
 
@@ -114,6 +121,12 @@ This handoff has one authoritative reviewed implementation range: `378cf9a74a365
 
 Commands run for this corrected packet on the branch-tip worktree state:
 
+- `python -m unittest tests.unit.test_unified_retrieval` - passed 58 retrieval unit tests after canonicalizing doc-type filters in downstream query-constraint snapshots and retrieval evidence.
+- `./quality-format.sh --check` - passed after canonicalizing doc-type filters in downstream query-constraint snapshots and retrieval evidence.
+- `./quality-lint.sh` - passed shell syntax and trailing whitespace checks after canonicalizing doc-type filters in downstream query-constraint snapshots and retrieval evidence.
+- `./quality-test.sh` - passed smoke tests and 127 unit tests after canonicalizing doc-type filters in downstream query-constraint snapshots and retrieval evidence.
+- `./typecheck-test.sh` - passed Python source compilation under `src/` after canonicalizing doc-type filters in downstream query-constraint snapshots and retrieval evidence.
+- `make ci` - passed setup, scope-check, format, lint, compile/typecheck, smoke tests, and 127 unit tests after canonicalizing doc-type filters in downstream query-constraint snapshots and retrieval evidence.
 - `python -m unittest tests.unit.test_unified_retrieval` - passed 58 retrieval unit tests after adding query-constraint snapshots to retrieval evidence.
 - `./quality-format.sh --check` - passed after adding query-constraint snapshots to retrieval evidence.
 - `./quality-lint.sh` - passed shell syntax and trailing whitespace checks after adding query-constraint snapshots to retrieval evidence.

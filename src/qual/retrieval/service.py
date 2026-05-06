@@ -533,7 +533,7 @@ class RetrievalResult:
     def _query_constraints_snapshot(self) -> dict[str, object]:
         return {
             "max_results": self.query.constraints.max_results,
-            "doc_types": list(self.query.constraints.doc_types),
+            "doc_types": list(RetrievalService._normalized_doc_types(self.query.constraints.doc_types)),
             "date_range": list(self.query.constraints.date_range) if self.query.constraints.date_range is not None else None,
             "require_citations": self.query.constraints.require_citations,
             "section_hint": self.query.constraints.section_hint,
@@ -1446,7 +1446,7 @@ class RetrievalService:
 
         query_constraints = {
             "max_results": query.constraints.max_results,
-            "doc_types": list(query.constraints.doc_types),
+            "doc_types": list(RetrievalService._normalized_doc_types(query.constraints.doc_types)),
             "date_range": list(query.constraints.date_range)
             if query.constraints.date_range is not None
             else None,
