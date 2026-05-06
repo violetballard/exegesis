@@ -470,6 +470,8 @@ class CommandDemoReadinessGate:
     action_lines: tuple[tuple[str, str], ...]
     covered_flow_steps: tuple[str, ...] = ()
     missing_flow_steps: tuple[str, ...] = ()
+    cli_command_lines: tuple[str, ...] = ()
+    invalid_cli_argv: tuple[tuple[str, ...], ...] = ()
 
 
 @dataclass(frozen=True)
@@ -4533,6 +4535,11 @@ def command_demo_readiness_gate(
     exact_action_lines = command_demo_readiness_exact_action_line_lookup_table(specs, launcher_argv)
     covered_flow_steps = tuple(step.flow_step for step in smoke_plan.steps)
     expected_flow_steps = _expected_command_demo_flow_steps(specs)
+    cli_validation = command_demo_readiness_validate_cli_script(
+        tuple(step.command_line for step in smoke_plan.steps),
+        specs,
+        launcher_argv,
+    )
     missing_flow_steps = tuple(
         flow_step
         for flow_step in expected_flow_steps
@@ -4545,6 +4552,8 @@ def command_demo_readiness_gate(
         action_lines=exact_action_lines,
         covered_flow_steps=covered_flow_steps,
         missing_flow_steps=missing_flow_steps,
+        cli_command_lines=cli_validation.command_lines,
+        invalid_cli_argv=cli_validation.invalid_argv,
     )
     _validate_command_demo_readiness_gate(
         gate,
@@ -4564,10 +4573,21 @@ def _validate_command_demo_readiness_gate(
 ) -> None:
     expected_command_lines = tuple(step.command_line for step in smoke_plan.steps)
     expected_action_lines = command_demo_readiness_exact_action_line_lookup_table(specs, launcher_argv)
+    cli_validation = command_demo_readiness_validate_cli_script(
+        expected_command_lines,
+        specs,
+        launcher_argv,
+    )
     if gate.command_lines != expected_command_lines:
         raise ValueError("Command demo readiness gate command lines are inconsistent")
     if gate.action_lines != expected_action_lines:
         raise ValueError("Command demo readiness gate action lines are inconsistent")
+    if gate.cli_command_lines != cli_validation.command_lines:
+        raise ValueError("Command demo readiness gate CLI command lines are inconsistent")
+    if gate.invalid_cli_argv != cli_validation.invalid_argv:
+        raise ValueError("Command demo readiness gate invalid CLI argv are inconsistent")
+    if gate.invalid_cli_argv:
+        raise ValueError("Command demo readiness gate includes unsupported CLI argv")
     if gate.covered_flow_steps != tuple(step.flow_step for step in smoke_plan.steps):
         raise ValueError("Command demo readiness gate flow coverage is inconsistent")
     expected_flow_steps = _expected_command_demo_flow_steps(specs)
