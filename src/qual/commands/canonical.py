@@ -249,8 +249,12 @@ from src.qual.commands.catalog import (
     command_mvp_demo_readiness_shell_progress_summary as _readiness_shell_progress_summary,
     command_mvp_demo_readiness_next_action as _readiness_next_action,
     command_mvp_demo_readiness_next_action_summary as _readiness_next_action_summary,
+    command_mvp_demo_readiness_next_command_argv as _readiness_next_command_argv,
+    command_mvp_demo_readiness_next_exact_action_argv as _readiness_next_exact_action_argv,
     command_mvp_demo_readiness_shell_next_action as _readiness_shell_next_action,
     command_mvp_demo_readiness_shell_next_action_summary as _readiness_shell_next_action_summary,
+    command_mvp_demo_readiness_shell_next_command_argv as _readiness_shell_next_command_argv,
+    command_mvp_demo_readiness_shell_next_exact_action_argv as _readiness_shell_next_exact_action_argv,
     command_mvp_demo_readiness_validate_cli_shell_script_lines
     as _readiness_validate_cli_shell_script_lines,
     command_mvp_demo_readiness_validate_exact_action_script
@@ -478,8 +482,12 @@ __all__ = [
     "canonical_command_readiness_shell_progress_summary",
     "canonical_command_readiness_next_action",
     "canonical_command_readiness_next_action_summary",
+    "canonical_command_readiness_next_command_argv",
+    "canonical_command_readiness_next_exact_action_argv",
     "canonical_command_readiness_shell_next_action",
     "canonical_command_readiness_shell_next_action_summary",
+    "canonical_command_readiness_shell_next_command_argv",
+    "canonical_command_readiness_shell_next_exact_action_argv",
     "canonical_command_readiness_validate_cli_shell_script_lines",
     "canonical_command_readiness_validate_exact_action_script",
     "canonical_command_readiness_validate_exact_action_shell_script_lines",
@@ -1650,6 +1658,18 @@ def canonical_command_readiness_next_action_summary(
     return _readiness_next_action_summary(argvs)
 
 
+def canonical_command_readiness_next_command_argv(
+    argvs: Sequence[Sequence[str] | str],
+) -> tuple[str, ...]:
+    return _readiness_next_command_argv(argvs)
+
+
+def canonical_command_readiness_next_exact_action_argv(
+    argvs: Sequence[Sequence[str] | str],
+) -> tuple[str, ...]:
+    return _readiness_next_exact_action_argv(argvs)
+
+
 def canonical_command_readiness_shell_next_action(
     lines: Sequence[str] | str,
 ) -> CommandDemoReadinessNextAction:
@@ -1670,6 +1690,18 @@ def canonical_command_readiness_shell_next_action_summary(
     tuple[tuple[str, ...], ...],
 ]:
     return _readiness_shell_next_action_summary(lines)
+
+
+def canonical_command_readiness_shell_next_command_argv(
+    lines: Sequence[str] | str,
+) -> tuple[str, ...]:
+    return _readiness_shell_next_command_argv(lines)
+
+
+def canonical_command_readiness_shell_next_exact_action_argv(
+    lines: Sequence[str] | str,
+) -> tuple[str, ...]:
+    return _readiness_shell_next_exact_action_argv(lines)
 
 
 def canonical_command_readiness_validate_cli_shell_script_lines(

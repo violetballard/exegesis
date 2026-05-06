@@ -10943,6 +10943,36 @@ def command_demo_readiness_next_action_summary(
     )
 
 
+def command_demo_readiness_next_command_argv(
+    argvs: Sequence[Sequence[str] | str],
+    specs: tuple[CommandSpec, ...] = COMMAND_SPECS,
+    launcher_argv: tuple[str, ...] = COMMAND_SMOKE_CLI_LAUNCHER_ARGV,
+) -> tuple[str, ...]:
+    next_action = command_demo_readiness_next_action(argvs, specs, launcher_argv)
+    if next_action.next_flow_step is None:
+        return ()
+    return command_demo_readiness_argv_for_flow_step(
+        next_action.next_flow_step,
+        specs,
+        launcher_argv,
+    )
+
+
+def command_demo_readiness_next_exact_action_argv(
+    argvs: Sequence[Sequence[str] | str],
+    specs: tuple[CommandSpec, ...] = COMMAND_SPECS,
+    launcher_argv: tuple[str, ...] = COMMAND_SMOKE_CLI_LAUNCHER_ARGV,
+) -> tuple[str, ...]:
+    next_action = command_demo_readiness_next_action(argvs, specs, launcher_argv)
+    if next_action.next_engine_action is None:
+        return ()
+    return command_demo_readiness_exact_argv_for_engine_action(
+        next_action.next_engine_action,
+        specs,
+        launcher_argv,
+    )
+
+
 def command_demo_readiness_shell_next_action(
     lines: Sequence[str] | str,
     specs: tuple[CommandSpec, ...] = COMMAND_SPECS,
@@ -10971,6 +11001,30 @@ def command_demo_readiness_shell_next_action_summary(
     tuple[tuple[str, ...], ...],
 ]:
     return command_demo_readiness_next_action_summary(
+        _shell_script_executable_argv(lines),
+        specs,
+        launcher_argv,
+    )
+
+
+def command_demo_readiness_shell_next_command_argv(
+    lines: Sequence[str] | str,
+    specs: tuple[CommandSpec, ...] = COMMAND_SPECS,
+    launcher_argv: tuple[str, ...] = COMMAND_SMOKE_CLI_LAUNCHER_ARGV,
+) -> tuple[str, ...]:
+    return command_demo_readiness_next_command_argv(
+        _shell_script_executable_argv(lines),
+        specs,
+        launcher_argv,
+    )
+
+
+def command_demo_readiness_shell_next_exact_action_argv(
+    lines: Sequence[str] | str,
+    specs: tuple[CommandSpec, ...] = COMMAND_SPECS,
+    launcher_argv: tuple[str, ...] = COMMAND_SMOKE_CLI_LAUNCHER_ARGV,
+) -> tuple[str, ...]:
+    return command_demo_readiness_next_exact_action_argv(
         _shell_script_executable_argv(lines),
         specs,
         launcher_argv,
@@ -11226,6 +11280,22 @@ def command_mvp_demo_readiness_next_action_summary(
     return command_demo_readiness_next_action_summary(argvs, specs, launcher_argv)
 
 
+def command_mvp_demo_readiness_next_command_argv(
+    argvs: Sequence[Sequence[str] | str],
+    specs: tuple[CommandSpec, ...] = COMMAND_SPECS,
+    launcher_argv: tuple[str, ...] = COMMAND_SMOKE_CLI_LAUNCHER_ARGV,
+) -> tuple[str, ...]:
+    return command_demo_readiness_next_command_argv(argvs, specs, launcher_argv)
+
+
+def command_mvp_demo_readiness_next_exact_action_argv(
+    argvs: Sequence[Sequence[str] | str],
+    specs: tuple[CommandSpec, ...] = COMMAND_SPECS,
+    launcher_argv: tuple[str, ...] = COMMAND_SMOKE_CLI_LAUNCHER_ARGV,
+) -> tuple[str, ...]:
+    return command_demo_readiness_next_exact_action_argv(argvs, specs, launcher_argv)
+
+
 def command_mvp_demo_readiness_shell_next_action(
     lines: Sequence[str] | str,
     specs: tuple[CommandSpec, ...] = COMMAND_SPECS,
@@ -11250,6 +11320,22 @@ def command_mvp_demo_readiness_shell_next_action_summary(
     tuple[tuple[str, ...], ...],
 ]:
     return command_demo_readiness_shell_next_action_summary(lines, specs, launcher_argv)
+
+
+def command_mvp_demo_readiness_shell_next_command_argv(
+    lines: Sequence[str] | str,
+    specs: tuple[CommandSpec, ...] = COMMAND_SPECS,
+    launcher_argv: tuple[str, ...] = COMMAND_SMOKE_CLI_LAUNCHER_ARGV,
+) -> tuple[str, ...]:
+    return command_demo_readiness_shell_next_command_argv(lines, specs, launcher_argv)
+
+
+def command_mvp_demo_readiness_shell_next_exact_action_argv(
+    lines: Sequence[str] | str,
+    specs: tuple[CommandSpec, ...] = COMMAND_SPECS,
+    launcher_argv: tuple[str, ...] = COMMAND_SMOKE_CLI_LAUNCHER_ARGV,
+) -> tuple[str, ...]:
+    return command_demo_readiness_shell_next_exact_action_argv(lines, specs, launcher_argv)
 
 
 def command_mvp_demo_readiness_validate_exact_action_script(
