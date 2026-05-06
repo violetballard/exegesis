@@ -2616,6 +2616,34 @@ class UnifiedRetrievalTests(unittest.TestCase):
             result.hits[0].provenance["excerpt_lookup_fingerprint"],
         )
 
+    def test_sparse_provenance_backfills_primary_excerpt_lookup_when_id_survives(self) -> None:
+        result = self.service.retrieve_auto(
+            RetrievalQuery(
+                query_text="memo comparison",
+                scope="vault",
+                intent="compare",
+                constraints=RetrievalConstraints(max_results=4),
+                confidentiality_profile="confidential",
+            )
+        )
+
+        payload = json.loads(json.dumps(result.to_downstream_payload()))
+        summary = payload["retrieval_summary"]
+        provenance = payload["retrieval_provenance"]
+        self.assertIsInstance(summary, dict)
+        self.assertIsInstance(provenance, dict)
+        summary.pop("primary_excerpt_lookup_fingerprint", None)
+        provenance.pop("primary_excerpt_lookup_fingerprint", None)
+        self.assertEqual(provenance["primary_excerpt_id"], result.hits[0].excerpt_id)
+
+        rebuilt = _build_retrieval_provenance_from_payload(payload)
+
+        self.assertEqual(rebuilt["primary_excerpt_id"], result.hits[0].excerpt_id)
+        self.assertEqual(
+            rebuilt["primary_excerpt_lookup_fingerprint"],
+            result.hits[0].provenance["excerpt_lookup_fingerprint"],
+        )
+
     def test_engine_retrieval_tool_returns_canonical_downstream_payload(self) -> None:
         payload = engine_retrieve_auto_payload(
             self.service,
