@@ -1305,6 +1305,11 @@ def _build_retrieval_context_bundle_from_payload(payload: dict[str, object]) -> 
     normalized_payload["basket_promotion_ready"] = _basket_promotion_ready_from_count(
         basket_promotion_count
     )
+    source_bundle = _build_retrieval_source_bundle_from_payload(normalized_payload)
+    normalized_payload = _backfill_sparse_snapshot(
+        normalized_payload,
+        _build_retrieval_downstream_payload_from_source_bundle(source_bundle),
+    )
     bundle = {
         "audit_ref": normalized_payload.get("audit_ref"),
         "result_fingerprint": normalized_payload.get("result_fingerprint"),
@@ -1313,7 +1318,7 @@ def _build_retrieval_context_bundle_from_payload(payload: dict[str, object]) -> 
         "retrieval_doc_bundle": _build_retrieval_doc_bundle_from_payload(normalized_payload),
         "retrieval_excerpt_bundle": _build_retrieval_excerpt_bundle_from_payload(normalized_payload),
         "retrieval_provenance": _build_retrieval_provenance_from_payload(normalized_payload),
-        "retrieval_source_bundle": _build_retrieval_source_bundle_from_payload(normalized_payload),
+        "retrieval_source_bundle": source_bundle,
         "retrieval_evidence": copy.deepcopy(normalized_payload.get("retrieval_evidence", {})),
         "basket_promotion_items": basket_promotion_items,
         "basket_promotion_count": basket_promotion_count,

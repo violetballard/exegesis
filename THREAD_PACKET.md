@@ -5,7 +5,7 @@
 - Merge target: current `main`
 - Reviewed implementation head: `ff2c849ff66d0f67799ce20b70d251f7fdfe54d6`
 - Reviewed implementation range: `d7fd5d200358287fa42a18d39e2b277463b9b69f..ff2c849ff66d0f67799ce20b70d251f7fdfe54d6`
-- Packet refresh note: this fixer commit updates handoff metadata only; re-review should inspect the full range above and use the final fixer HEAD SHA as the branch tip.
+- Packet refresh note: this fixer commit adds one owned-path retrieval payload hardening change and refreshes handoff metadata; re-review should inspect the full range above plus the final fixer HEAD SHA reported with this handoff.
 - Handoff type: high-risk retrieval feature handoff for the FTS-first retrieval lane.
 - Scope classification: high-risk because the full range includes approved shared regression coverage in `tests/unit/test_unified_retrieval.py` plus packet-planner metadata support.
 - Approved shared-file note: `tests/unit/test_unified_retrieval.py` is approved shared-by-approval regression coverage for this retrieval lane. `codex_packet_handoff/tools/planner.py` and `tests/unit/test_packet_planner.py` are included because earlier packet traceability fixes changed the handoff tooling/tests that generated this lane packet.
@@ -16,12 +16,14 @@ The regenerated handoff covers every retrieval source/test change through `ff2c8
 
 The complete range also hardens basket/workflow promotion evidence. It preserves canonical source bundles, context bundles, basket refs, excerpt lookup fingerprints, date ranges, doc scopes, and doc-hit top-excerpt lookup fingerprints through canonical retrieval results and engine-side sparse payload reconstruction.
 
+This branch-tip fixer additionally hardens sparse context-bundle reconstruction so source-bundle identity backfills into the packaged downstream payload before later engine steps consume the context bundle.
+
 Canonical demo-path step advanced: `retrieve relevant material` for basket/workflow promotion. The branch makes that step more real by giving downstream engine and basket flows deterministic FTS doc/excerpt evidence, lookup fingerprints, and promotion-ready refs instead of ambiguous PageIndex or embedding fallbacks.
 
 ## Tasks Completed
 
 1. Made FTS the authoritative retrieval path, kept PageIndex/embeddings as fail-closed compatibility shims, and exported the canonical query builder, `retrieve_auto`, excerpt lookup helpers, and retrieval facades through engine and package surfaces.
-2. Canonicalized retrieval payload reconstruction for sparse source/context bundles, query constraints, date ranges, doc scopes, basket refs, and policy/provenance snapshots.
+2. Canonicalized retrieval payload reconstruction for sparse source/context bundles, query constraints, date ranges, doc scopes, basket refs, source-bundle identity backfill, and policy/provenance snapshots.
 3. Propagated deterministic excerpt/doc lookup fingerprints, basket promotion refs, doc citation/evidence fields, summary/manifest snapshots, and result fingerprint inputs.
 4. Added and expanded approved shared regression coverage for the canonical retrieval contract, FTS-only excerpt backfills, sparse payload rehydration, facade exports, and packet-planner handoff traceability.
 
@@ -35,7 +37,7 @@ Canonical demo-path step advanced: `retrieve relevant material` for basket/workf
 - `src/qual/engine/retrieval/embeddings_strategy.py` - deferred/fail-closed embeddings compatibility shim.
 - `src/qual/engine/retrieval/fts_strategy.py` - FTS cache isolation and scope/query normalization.
 - `src/qual/engine/retrieval/pageindex_strategy.py` - deferred/fail-closed PageIndex compatibility shim.
-- `src/qual/engine/retrieval/payload.py` - sparse retrieval payload, source/context bundle, basket, policy, query, and provenance normalization.
+- `src/qual/engine/retrieval/payload.py` - sparse retrieval payload, source/context bundle, basket, policy, query, provenance normalization, and context-bundle source identity backfill.
 - `src/qual/retrieval/__init__.py` - package retrieval facade exports and canonical helper surface.
 - `src/qual/retrieval/service.py` - FTS retrieval service, excerpt lookup, evidence, citation, manifest, and basket promotion provenance.
 - `tests/unit/test_packet_planner.py` - packet traceability metadata tests.
@@ -63,6 +65,7 @@ Integrator-locked files: none identified in this packet. Shared-by-approval file
 ## Commands Run
 
 - `make scope-check` - passed for branch `codex/feat-retrieval-fts`.
+- `python -m unittest tests.unit.test_unified_retrieval` - passed 71 unified retrieval tests.
 - `./quality-format.sh --check` - passed.
 - `./quality-lint.sh` - passed shell syntax and trailing whitespace checks.
 - `./quality-test.sh` - passed smoke plus 140 unit tests, including unified retrieval and packet planner coverage.
@@ -71,4 +74,4 @@ Integrator-locked files: none identified in this packet. Shared-by-approval file
 
 ## Risks/Blockers
 
-The sandbox denies writes under `.codex/**` in this worktree (`Operation not permitted` on `.codex/kickoff_packets/feat-retrieval-fts.md`), so the regenerated packet is recorded in the writable `THREAD_PACKET.md` handoff surface. Re-review should inspect `d7fd5d200358287fa42a18d39e2b277463b9b69f..ff2c849ff66d0f67799ce20b70d251f7fdfe54d6` for retrieval implementation and then use the final fixer HEAD SHA for the packet-only branch tip.
+No current blockers. This branch-tip fixer stays in the owned retrieval payload path plus the `THREAD_PACKET.md` handoff surface. Re-review should inspect `d7fd5d200358287fa42a18d39e2b277463b9b69f..ff2c849ff66d0f67799ce20b70d251f7fdfe54d6` for the prior cumulative retrieval implementation, then include the final fixer HEAD SHA for the new sparse context-bundle reconstruction hardening and refreshed packet.
