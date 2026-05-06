@@ -65,6 +65,8 @@ from src.qual.commands.catalog import (
     CommandDemoSupportedLauncherReadinessContract,
     CommandDemoReadinessTraceContract,
     CommandDemoSmokeMatrixContract,
+    CommandHandlerActionRouteContract,
+    CommandHandlerActionRouteEntry,
     CommandHandlerDemoPathContract,
     CommandHandlerDemoPathEntry,
     canonical_command as _canonical_command,
@@ -435,6 +437,11 @@ from src.qual.commands.catalog import (
     command_mvp_demo_readiness_lookup_table as _readiness_lookup_table,
     command_mvp_demo_readiness_command_line_lookup_table as _readiness_command_line_lookup_table,
     command_mvp_demo_readiness_summary as _readiness_summary,
+    command_mvp_handler_action_route_contract as _handler_action_route_contract,
+    command_mvp_handler_action_route_entry_for_engine_action
+    as _handler_action_route_entry_for_engine_action,
+    command_mvp_handler_action_route_lookup_table as _handler_action_route_lookup_table,
+    command_mvp_handler_action_route_summary as _handler_action_route_summary,
     command_mvp_handler_demo_path_contract as _handler_demo_path_contract,
     command_mvp_handler_demo_path_entry_for_command as _handler_demo_path_entry_for_command,
     command_mvp_handler_demo_path_lookup_table as _handler_demo_path_lookup_table,
@@ -798,6 +805,10 @@ __all__ = [
     "canonical_command_readiness_lookup_table",
     "canonical_command_readiness_command_line_lookup_table",
     "canonical_command_readiness_summary",
+    "canonical_command_handler_action_route_contract",
+    "canonical_command_handler_action_route_entry_for_engine_action",
+    "canonical_command_handler_action_route_lookup_table",
+    "canonical_command_handler_action_route_summary",
     "canonical_command_handler_demo_path_contract",
     "canonical_command_handler_demo_path_entry_for_command",
     "canonical_command_handler_demo_path_lookup_table",
@@ -846,6 +857,30 @@ def canonical_command_handler_demo_path_entry_for_command(
     command_name: str,
 ) -> CommandHandlerDemoPathEntry | None:
     return _handler_demo_path_entry_for_command(command_name)
+
+
+def canonical_command_handler_action_route_contract() -> CommandHandlerActionRouteContract:
+    return _handler_action_route_contract()
+
+
+def canonical_command_handler_action_route_summary() -> tuple[
+    tuple[str, str, str, str, str, str, tuple[str, ...], str],
+    ...,
+]:
+    return _handler_action_route_summary()
+
+
+def canonical_command_handler_action_route_lookup_table() -> tuple[
+    tuple[str, tuple[str, str, tuple[str, ...]]],
+    ...,
+]:
+    return _handler_action_route_lookup_table()
+
+
+def canonical_command_handler_action_route_entry_for_engine_action(
+    engine_action: str,
+) -> CommandHandlerActionRouteEntry | None:
+    return _handler_action_route_entry_for_engine_action(engine_action)
 
 
 def _readiness_status(

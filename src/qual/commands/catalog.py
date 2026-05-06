@@ -270,6 +270,23 @@ class CommandHandlerDemoPathContract:
 
 
 @dataclass(frozen=True)
+class CommandHandlerActionRouteEntry:
+    engine_action: str
+    demo_path_step: str
+    flow_step: str
+    name: str
+    handler: str
+    delegated_to: str
+    command_argv: tuple[str, ...]
+    command_line: str
+
+
+@dataclass(frozen=True)
+class CommandHandlerActionRouteContract:
+    entries: tuple[CommandHandlerActionRouteEntry, ...]
+
+
+@dataclass(frozen=True)
 class CommandDemoActionRouteEntry:
     engine_action: str
     flow_step: str
@@ -2512,6 +2529,135 @@ def command_mvp_handler_demo_path_entry_for_command(
     launcher_argv: tuple[str, ...] = COMMAND_SMOKE_CLI_LAUNCHER_ARGV,
 ) -> CommandHandlerDemoPathEntry | None:
     return command_handler_demo_path_entry_for_command(command_name, specs, launcher_argv)
+
+
+def command_handler_action_route_contract(
+    specs: tuple[CommandSpec, ...] = COMMAND_SPECS,
+    launcher_argv: tuple[str, ...] = COMMAND_SMOKE_CLI_LAUNCHER_ARGV,
+) -> CommandHandlerActionRouteContract:
+    handlers_by_name = {
+        entry.name: entry
+        for entry in command_handler_demo_path_contract(specs, launcher_argv).entries
+    }
+    entries = tuple(
+        CommandHandlerActionRouteEntry(
+            engine_action=entry.engine_action,
+            demo_path_step=entry.demo_path_step,
+            flow_step=entry.flow_step,
+            name=entry.name,
+            handler=handlers_by_name[entry.name].handler,
+            delegated_to=handlers_by_name[entry.name].delegated_to,
+            command_argv=entry.command_argv,
+            command_line=entry.command_line,
+        )
+        for entry in command_demo_readiness_exact_action_route_contract(specs, launcher_argv).entries
+    )
+    contract = CommandHandlerActionRouteContract(entries=entries)
+    _validate_command_handler_action_route_contract(contract, specs=specs, launcher_argv=launcher_argv)
+    return contract
+
+
+def _validate_command_handler_action_route_contract(
+    contract: CommandHandlerActionRouteContract,
+    *,
+    specs: tuple[CommandSpec, ...],
+    launcher_argv: tuple[str, ...],
+) -> None:
+    exact_routes = command_demo_readiness_exact_action_route_contract(specs, launcher_argv).entries
+    if tuple(entry.engine_action for entry in contract.entries) != tuple(
+        entry.engine_action for entry in exact_routes
+    ):
+        raise ValueError("Command handler action route engine actions are inconsistent")
+    handlers_by_name = {
+        entry.name: entry
+        for entry in command_handler_demo_path_contract(specs, launcher_argv).entries
+    }
+    for entry, exact_route in zip(contract.entries, exact_routes, strict=True):
+        handler_entry = handlers_by_name.get(entry.name)
+        if handler_entry is None:
+            raise ValueError(f"Command handler action route is missing handler: {entry.name}")
+        if (
+            entry.demo_path_step != exact_route.demo_path_step
+            or entry.flow_step != exact_route.flow_step
+            or entry.name != exact_route.name
+            or entry.command_argv != exact_route.command_argv
+            or entry.command_line != exact_route.command_line
+        ):
+            raise ValueError(f"Command handler action route drifted: {entry.engine_action}")
+        if entry.handler != handler_entry.handler or entry.delegated_to != handler_entry.delegated_to:
+            raise ValueError(f"Command handler action route delegation drifted: {entry.engine_action}")
+
+
+def command_handler_action_route_summary(
+    specs: tuple[CommandSpec, ...] = COMMAND_SPECS,
+    launcher_argv: tuple[str, ...] = COMMAND_SMOKE_CLI_LAUNCHER_ARGV,
+) -> tuple[tuple[str, str, str, str, str, str, tuple[str, ...], str], ...]:
+    return tuple(
+        (
+            entry.engine_action,
+            entry.demo_path_step,
+            entry.flow_step,
+            entry.name,
+            entry.handler,
+            entry.delegated_to,
+            entry.command_argv,
+            entry.command_line,
+        )
+        for entry in command_handler_action_route_contract(specs, launcher_argv).entries
+    )
+
+
+def command_handler_action_route_lookup_table(
+    specs: tuple[CommandSpec, ...] = COMMAND_SPECS,
+    launcher_argv: tuple[str, ...] = COMMAND_SMOKE_CLI_LAUNCHER_ARGV,
+) -> tuple[tuple[str, tuple[str, str, tuple[str, ...]]], ...]:
+    return tuple(
+        (entry.engine_action, (entry.handler, entry.delegated_to, entry.command_argv))
+        for entry in command_handler_action_route_contract(specs, launcher_argv).entries
+    )
+
+
+def command_handler_action_route_entry_for_engine_action(
+    engine_action: str,
+    specs: tuple[CommandSpec, ...] = COMMAND_SPECS,
+    launcher_argv: tuple[str, ...] = COMMAND_SMOKE_CLI_LAUNCHER_ARGV,
+) -> CommandHandlerActionRouteEntry | None:
+    requested_action = engine_action.strip()
+    if not requested_action:
+        return None
+    for entry in command_handler_action_route_contract(specs, launcher_argv).entries:
+        if entry.engine_action == requested_action:
+            return entry
+    return None
+
+
+def command_mvp_handler_action_route_contract(
+    specs: tuple[CommandSpec, ...] = COMMAND_SPECS,
+    launcher_argv: tuple[str, ...] = COMMAND_SMOKE_CLI_LAUNCHER_ARGV,
+) -> CommandHandlerActionRouteContract:
+    return command_handler_action_route_contract(specs, launcher_argv)
+
+
+def command_mvp_handler_action_route_summary(
+    specs: tuple[CommandSpec, ...] = COMMAND_SPECS,
+    launcher_argv: tuple[str, ...] = COMMAND_SMOKE_CLI_LAUNCHER_ARGV,
+) -> tuple[tuple[str, str, str, str, str, str, tuple[str, ...], str], ...]:
+    return command_handler_action_route_summary(specs, launcher_argv)
+
+
+def command_mvp_handler_action_route_lookup_table(
+    specs: tuple[CommandSpec, ...] = COMMAND_SPECS,
+    launcher_argv: tuple[str, ...] = COMMAND_SMOKE_CLI_LAUNCHER_ARGV,
+) -> tuple[tuple[str, tuple[str, str, tuple[str, ...]]], ...]:
+    return command_handler_action_route_lookup_table(specs, launcher_argv)
+
+
+def command_mvp_handler_action_route_entry_for_engine_action(
+    engine_action: str,
+    specs: tuple[CommandSpec, ...] = COMMAND_SPECS,
+    launcher_argv: tuple[str, ...] = COMMAND_SMOKE_CLI_LAUNCHER_ARGV,
+) -> CommandHandlerActionRouteEntry | None:
+    return command_handler_action_route_entry_for_engine_action(engine_action, specs, launcher_argv)
 
 
 @lru_cache(maxsize=None)
