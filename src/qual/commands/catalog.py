@@ -8610,6 +8610,38 @@ def command_demo_readiness_exact_action_entries_for_demo_path_step(
 
 
 @lru_cache(maxsize=None)
+def command_demo_readiness_exact_action_index_by_command(
+    specs: tuple[CommandSpec, ...] = COMMAND_SPECS,
+    launcher_argv: tuple[str, ...] = COMMAND_SMOKE_CLI_LAUNCHER_ARGV,
+) -> tuple[tuple[str, tuple[CommandDemoReadinessExactActionEntry, ...]], ...]:
+    entries_by_command: dict[str, list[CommandDemoReadinessExactActionEntry]] = {}
+    command_order: list[str] = []
+    for entry in command_demo_readiness_exact_action_contract(specs, launcher_argv).entries:
+        command_name = canonical_command_for(specs, entry.name)
+        if not command_name:
+            raise ValueError("Command demo exact action command must not be empty")
+        if command_name not in entries_by_command:
+            entries_by_command[command_name] = []
+            command_order.append(command_name)
+        entries_by_command[command_name].append(entry)
+    return tuple((command_name, tuple(entries_by_command[command_name])) for command_name in command_order)
+
+
+def command_demo_readiness_exact_action_entries_for_command(
+    command_name: str,
+    specs: tuple[CommandSpec, ...] = COMMAND_SPECS,
+    launcher_argv: tuple[str, ...] = COMMAND_SMOKE_CLI_LAUNCHER_ARGV,
+) -> tuple[CommandDemoReadinessExactActionEntry, ...]:
+    requested_command = canonical_command_for(specs, command_name)
+    if not requested_command:
+        return ()
+    return dict(command_demo_readiness_exact_action_index_by_command(specs, launcher_argv)).get(
+        requested_command,
+        (),
+    )
+
+
+@lru_cache(maxsize=None)
 def command_demo_readiness_exact_cli_audit_contract(
     specs: tuple[CommandSpec, ...] = COMMAND_SPECS,
     launcher_argv: tuple[str, ...] = COMMAND_SMOKE_CLI_LAUNCHER_ARGV,
@@ -9074,6 +9106,21 @@ def command_demo_readiness_exact_action_lines_for_demo_path_step(
     )
 
 
+def command_demo_readiness_exact_action_lines_for_command(
+    command_name: str,
+    specs: tuple[CommandSpec, ...] = COMMAND_SPECS,
+    launcher_argv: tuple[str, ...] = COMMAND_SMOKE_CLI_LAUNCHER_ARGV,
+) -> tuple[tuple[str, str], ...]:
+    return tuple(
+        (entry.engine_action, entry.command_line)
+        for entry in command_demo_readiness_exact_action_entries_for_command(
+            command_name,
+            specs,
+            launcher_argv,
+        )
+    )
+
+
 def command_demo_readiness_cli_exact_action_lines_for_demo_path_step(
     demo_path_step: str,
     specs: tuple[CommandSpec, ...] = COMMAND_SPECS,
@@ -9089,6 +9136,28 @@ def command_demo_readiness_cli_exact_action_lines_for_demo_path_step(
         (engine_action, cli_exact_action_lines[engine_action])
         for engine_action, _command_line in command_demo_readiness_exact_action_lines_for_demo_path_step(
             requested_step,
+            specs,
+            launcher_argv,
+        )
+        if engine_action in cli_exact_action_lines
+    )
+
+
+def command_demo_readiness_cli_exact_action_lines_for_command(
+    command_name: str,
+    specs: tuple[CommandSpec, ...] = COMMAND_SPECS,
+    launcher_argv: tuple[str, ...] = COMMAND_SMOKE_CLI_LAUNCHER_ARGV,
+) -> tuple[tuple[str, str], ...]:
+    requested_command = canonical_command_for(specs, command_name)
+    if not requested_command:
+        return ()
+    cli_exact_action_lines = dict(
+        command_demo_readiness_cli_exact_action_line_lookup_table(specs, launcher_argv)
+    )
+    return tuple(
+        (engine_action, cli_exact_action_lines[engine_action])
+        for engine_action, _command_line in command_demo_readiness_exact_action_lines_for_command(
+            requested_command,
             specs,
             launcher_argv,
         )
@@ -11701,6 +11770,25 @@ def command_mvp_demo_readiness_exact_action_entries_for_demo_path_step(
     )
 
 
+def command_mvp_demo_readiness_exact_action_index_by_command(
+    specs: tuple[CommandSpec, ...] = COMMAND_SPECS,
+    launcher_argv: tuple[str, ...] = COMMAND_SMOKE_CLI_LAUNCHER_ARGV,
+) -> tuple[tuple[str, tuple[CommandDemoReadinessExactActionEntry, ...]], ...]:
+    return command_demo_readiness_exact_action_index_by_command(specs, launcher_argv)
+
+
+def command_mvp_demo_readiness_exact_action_entries_for_command(
+    command_name: str,
+    specs: tuple[CommandSpec, ...] = COMMAND_SPECS,
+    launcher_argv: tuple[str, ...] = COMMAND_SMOKE_CLI_LAUNCHER_ARGV,
+) -> tuple[CommandDemoReadinessExactActionEntry, ...]:
+    return command_demo_readiness_exact_action_entries_for_command(
+        command_name,
+        specs,
+        launcher_argv,
+    )
+
+
 def command_mvp_demo_readiness_exact_cli_audit_contract(
     specs: tuple[CommandSpec, ...] = COMMAND_SPECS,
     launcher_argv: tuple[str, ...] = COMMAND_SMOKE_CLI_LAUNCHER_ARGV,
@@ -11990,6 +12078,18 @@ def command_mvp_demo_readiness_exact_action_lines_for_demo_path_step(
     )
 
 
+def command_mvp_demo_readiness_exact_action_lines_for_command(
+    command_name: str,
+    specs: tuple[CommandSpec, ...] = COMMAND_SPECS,
+    launcher_argv: tuple[str, ...] = COMMAND_SMOKE_CLI_LAUNCHER_ARGV,
+) -> tuple[tuple[str, str], ...]:
+    return command_demo_readiness_exact_action_lines_for_command(
+        command_name,
+        specs,
+        launcher_argv,
+    )
+
+
 def command_mvp_demo_readiness_cli_exact_action_lines_for_demo_path_step(
     demo_path_step: str,
     specs: tuple[CommandSpec, ...] = COMMAND_SPECS,
@@ -11997,6 +12097,18 @@ def command_mvp_demo_readiness_cli_exact_action_lines_for_demo_path_step(
 ) -> tuple[tuple[str, str], ...]:
     return command_demo_readiness_cli_exact_action_lines_for_demo_path_step(
         demo_path_step,
+        specs,
+        launcher_argv,
+    )
+
+
+def command_mvp_demo_readiness_cli_exact_action_lines_for_command(
+    command_name: str,
+    specs: tuple[CommandSpec, ...] = COMMAND_SPECS,
+    launcher_argv: tuple[str, ...] = COMMAND_SMOKE_CLI_LAUNCHER_ARGV,
+) -> tuple[tuple[str, str], ...]:
+    return command_demo_readiness_cli_exact_action_lines_for_command(
+        command_name,
         specs,
         launcher_argv,
     )
