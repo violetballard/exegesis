@@ -8,7 +8,7 @@
 - Reviewed implementation head: current fixer commit; final SHA is reported in the fixer response after commit.
 - Reviewed implementation range for re-review: `378cf9a74a3658058079a32f186fcd254c4a4034..HEAD`.
 - Previous branch-tip implementation head: `fe78e95674d1072675294ad0d003c4c36e4b0cce`.
-- Current fixer commit: branch-tip implementation refresh for normalized retrieval query-constraint evidence/provenance snapshots; final SHA is reported in the fixer response after commit.
+- Current fixer commit: branch-tip implementation refresh for normalized retrieval query-constraint citation/provenance snapshots; final SHA is reported in the fixer response after commit.
 - Scope classification: high-risk because this lane touches retrieval core/facade behavior and approved shared regression coverage in `tests/unit/test_unified_retrieval.py`.
 - Lane-owned paths: `src/qual/retrieval/**`, `src/qual/engine/retrieval/**`.
 - Approved shared regression path: `tests/unit/test_unified_retrieval.py`.
@@ -18,14 +18,14 @@
 
 This branch-tip handoff covers the full retrieval implementation currently present on `codex/feat-retrieval-fts` through this fixer commit, including all production and test changes after `adfa8cdadd43747ffbcb612e4151e262b13e52ca`. SQLite FTS remains the authoritative retrieval path for MVP flows. PageIndex and embeddings remain compatibility-only/deferred surfaces that fail closed when they cannot be resolved through the canonical FTS path.
 
-The branch hardens deterministic retrieval payloads, FTS candidate strategy identity, sparse-policy rehydration, sparse candidate-resolution rehydration, excerpt lookup provenance, bundle identity validation, final hit rank/score ordering, basket-promotion strategy aliases, basket-promotion match evidence, direct excerpt lookup promotion-source markers, normalized query-constraint evidence/provenance snapshots, and citation strategy aliases. Doc/excerpt hit provenance now records `retrieval_source_strategy: fts` at provenance creation time, and result-derived citation snapshots plus basket promotion refs read that canonical alias directly while preserving the existing `source_strategy: fts` fallback. Direct FTS excerpt lookups expose `basket_promotion_source: fts_excerpt_lookup` on the canonical payload, provenance, promotion item, and compact audit event so downstream basket/context consumers can audit how a promotion-ready excerpt was obtained. Retrieval evidence and provenance now also carry the canonical query constraint snapshot directly so basket, revise, and apply consumers can audit retrieval limits and filters without reconstructing them from the source query object.
+The branch hardens deterministic retrieval payloads, FTS candidate strategy identity, sparse-policy rehydration, sparse candidate-resolution rehydration, excerpt lookup provenance, bundle identity validation, final hit rank/score ordering, basket-promotion strategy aliases, basket-promotion match evidence, direct excerpt lookup promotion-source markers, normalized query-constraint evidence/citation/provenance snapshots, and citation strategy aliases. Doc/excerpt hit provenance now records `retrieval_source_strategy: fts` at provenance creation time, and result-derived citation snapshots plus basket promotion refs read that canonical alias directly while preserving the existing `source_strategy: fts` fallback. Direct FTS excerpt lookups expose `basket_promotion_source: fts_excerpt_lookup` on the canonical payload, provenance, promotion item, and compact audit event so downstream basket/context consumers can audit how a promotion-ready excerpt was obtained. Retrieval evidence, citation bundles, bundle context, and provenance now also carry the canonical query constraint snapshot directly so basket, revise, and apply consumers can audit retrieval limits and filters without reconstructing them from the source query object.
 
 Canonical demo-path step advanced: `retrieve relevant material`. This work makes that step more real by making FTS excerpt lookup deterministic, provenance-backed, and fail-closed for PageIndex-only IDs. It also supports later `promote or gather context into the basket` by keeping excerpt provenance, citation snapshots, matched-term evidence, and basket promotion metadata deterministic.
 
 ## Tasks Completed
 
 1. FTS-first retrieval and excerpt lookup: kept SQLite FTS authoritative, exported the canonical retrieval facades, removed PageIndex fallback from excerpt fetching, and enforced fail-closed behavior for PageIndex-only or non-FTS excerpt identifiers.
-2. Deterministic retrieval payloads and provenance: normalized query snapshots, constraints, query-constraint evidence/provenance snapshots, candidate/document identities, candidate-resolution snapshots, source bundles, context bundles, citation backfills, lookup fingerprints, excerpt lookup audit hashes and promotion-source audit metadata, canonical provenance-level `retrieval_source_strategy` aliases, and basket promotion metadata, including direct excerpt lookup `basket_promotion_source` plus `matched_terms`/`match_count` evidence on result promotion refs.
+2. Deterministic retrieval payloads and provenance: normalized query snapshots, constraints, query-constraint evidence/citation/provenance snapshots, candidate/document identities, candidate-resolution snapshots, source bundles, context bundles, citation backfills, lookup fingerprints, excerpt lookup audit hashes and promotion-source audit metadata, canonical provenance-level `retrieval_source_strategy` aliases, and basket promotion metadata, including direct excerpt lookup `basket_promotion_source` plus `matched_terms`/`match_count` evidence on result promotion refs.
 3. Retrieval policy and strategy hardening: preserved sparse retrieval policy identity, guarded deferred backend policy, validated bundle identity, stabilized FTS merge strategy identity, and kept engine retrieval exports aligned with the canonical retrieval implementation.
 4. Final result ordering and regression coverage: re-ranked final deduplicated FTS hits after truncation so score/provenance rank match output order, and expanded approved shared regression coverage in `tests/unit/test_unified_retrieval.py` for FTS-only behavior, payload identity, provenance, citation strategy aliases, and promotion-ready outputs.
 
@@ -38,10 +38,10 @@ Reviewed implementation range for re-review: `378cf9a74a3658058079a32f186fcd254c
 - `THREAD_PACKET.md` - authoritative handoff packet regenerated for the actual branch-tip implementation scope through this fixer commit.
 - `src/qual/engine/retrieval/__init__.py` - aligned engine retrieval exports and compatibility facade wiring with the FTS-first retrieval surface.
 - `src/qual/engine/retrieval/fts_strategy.py` - hardened FTS strategy identity and candidate/provenance behavior.
-- `src/qual/engine/retrieval/payload.py` - normalized retrieval payload snapshots, source/context bundles, citation backfills, candidate-resolution rehydration, basket promotion metadata, FTS strategy aliases, matched-term promotion fingerprints, and identifier/fingerprint fields.
+- `src/qual/engine/retrieval/payload.py` - normalized retrieval payload snapshots, source/context bundles, query-constraint citation/provenance rehydration, citation backfills, candidate-resolution rehydration, basket promotion metadata, FTS strategy aliases, matched-term promotion fingerprints, and identifier/fingerprint fields.
 - `src/qual/retrieval/__init__.py` - exported canonical retrieval helpers through the public retrieval facade.
-- `src/qual/retrieval/service.py` - implemented FTS-only excerpt fetching, deterministic query/constraint/cache handling, sparse policy reconstruction, final hit re-ranking, explicit FTS strategy aliases, provenance-level `retrieval_source_strategy` aliases, direct excerpt lookup promotion-source metadata, normalized query-constraint snapshots in retrieval evidence/provenance, matched-term evidence for basket promotion items, canonical `excerpt_text_hash` audit recording, and `basket_promotion_source` audit recording for excerpt lookups.
-- `tests/unit/test_unified_retrieval.py` - expanded approved shared regression coverage for FTS-first retrieval, fail-closed fallback behavior, payload/provenance normalization, candidate-resolution rehydration, branch-tip hardening, direct excerpt lookup promotion-source metadata, matched-term basket promotion evidence, citation strategy aliases, canonical excerpt lookup audit identity, and promotion-source audit metadata.
+- `src/qual/retrieval/service.py` - implemented FTS-only excerpt fetching, deterministic query/constraint/cache handling, sparse policy reconstruction, final hit re-ranking, explicit FTS strategy aliases, provenance-level `retrieval_source_strategy` aliases, direct excerpt lookup promotion-source metadata, normalized query-constraint snapshots in retrieval evidence/citation/provenance bundles, matched-term evidence for basket promotion items, canonical `excerpt_text_hash` audit recording, and `basket_promotion_source` audit recording for excerpt lookups.
+- `tests/unit/test_unified_retrieval.py` - expanded approved shared regression coverage for FTS-first retrieval, fail-closed fallback behavior, payload/provenance normalization, query-constraint citation bundle normalization, candidate-resolution rehydration, branch-tip hardening, direct excerpt lookup promotion-source metadata, matched-term basket promotion evidence, citation strategy aliases, canonical excerpt lookup audit identity, and promotion-source audit metadata.
 
 ## Traceability Corrections
 
@@ -62,7 +62,7 @@ Reviewed implementation range for re-review: `378cf9a74a3658058079a32f186fcd254c
 - This packet does not describe any production/test commit after `adfa8cdadd43747ffbcb612e4151e262b13e52ca` as metadata-only.
 - This fixer pass updates direct FTS excerpt lookup audit events in `src/qual/retrieval/service.py` to carry the same `basket_promotion_source: fts_excerpt_lookup` marker already present on the canonical payload, provenance, and basket promotion item; final commit SHA is reported in the fixer response.
 - `fe78e95674d1072675294ad0d003c4c36e4b0cce` is the previous branch-tip implementation commit.
-- This fixer pass updates `src/qual/retrieval/service.py` to derive query snapshots, fingerprints, candidate-resolution filters, retrieval provenance, and retrieval evidence from the same canonical query-constraint snapshot helper; final commit SHA is reported in the fixer response.
+- This fixer pass updates `src/qual/retrieval/service.py` and `src/qual/engine/retrieval/payload.py` to carry normalized query-constraint snapshots through citation bundles, sparse source-bundle rehydration, bundle context, and retrieval provenance; final commit SHA is reported in the fixer response.
 
 ## Diff Evidence
 
@@ -116,7 +116,7 @@ M	tests/unit/test_unified_retrieval.py
 - File count for reviewed implementation handoff: `9 files changed`.
 - Size accounting for reviewed implementation handoff: `3860 insertions(+), 430 deletions(-)`, net `3430 LOC`.
 - Post-`adfa8cd` implementation delta now includes this fixer pass for direct FTS excerpt lookup promotion-source audit metadata.
-- Post-`fe78e95674d1072675294ad0d003c4c36e4b0cce` implementation delta is limited to `src/qual/retrieval/service.py` and `THREAD_PACKET.md`.
+- Post-`2ef3ec843fbe7ab56c32e02f7617879bab34c6a1` implementation delta is limited to `src/qual/retrieval/service.py`, `src/qual/engine/retrieval/payload.py`, `tests/unit/test_unified_retrieval.py`, and `THREAD_PACKET.md`.
 - AGENTS file/size status: exceeds high-risk size limits of `<=8 files` and `<=300 net LOC`.
 - Budget exception status: the worktree contains an approved shared-file exception for `tests/unit/test_unified_retrieval.py`; no explicit integrator-approved exception for the high-risk file/LOC overage is present in the worktree evidence. The overage is intentional and is disclosed here for reviewer/integrator decision instead of being hidden behind metadata-only wording.
 - Shared/integrator exception status: `tests/unit/test_unified_retrieval.py` is approved shared regression coverage for the retrieval lane; no integrator-locked files changed.
@@ -176,6 +176,15 @@ Commands re-run for this query-constraint snapshot fixer pass:
 - `./typecheck-test.sh` - passed Python source compilation under `src/`.
 - `make ci` - passed setup, scope-check, format, lint, compile/typecheck, smoke tests, and 151 unit tests.
 - `make scope-check` - passed; script reported no policy for branch `codex/feat-retrieval-fts`, then passed.
+
+Commands re-run for this query-constraint citation snapshot fixer pass:
+
+- `python3 -m unittest tests.unit.test_unified_retrieval -v` - passed 82 focused retrieval tests after adding citation-bundle query constraint snapshots and sparse rehydration coverage.
+- `./quality-format.sh --check` - passed.
+- `./quality-lint.sh` - passed shell syntax and trailing whitespace checks.
+- `./quality-test.sh` - passed smoke tests and 151 unit tests.
+- `./typecheck-test.sh` - passed Python source compilation under `src/`.
+- `make ci` - passed setup, scope-check, format, lint, compile/typecheck, smoke tests, and 151 unit tests.
 
 ## Metadata Note
 

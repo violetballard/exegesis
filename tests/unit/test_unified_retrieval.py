@@ -627,6 +627,8 @@ class UnifiedRetrievalTests(unittest.TestCase):
         self.assertEqual(payload["retrieval_evidence"]["query_scope"], "vault")
         self.assertEqual(payload["retrieval_evidence"]["query_intent"], "compare")
         self.assertIsNone(payload["retrieval_evidence"]["query_date_range"])
+        self.assertEqual(payload["retrieval_citation_bundle"]["query_constraints"], payload["query"]["constraints"])
+        self.assertEqual(payload["retrieval_provenance"]["query_constraints"], payload["query"]["constraints"])
         self.assertEqual(
             payload["retrieval_evidence"]["candidate_doc_count"],
             result.diagnostics["candidate_doc_count"],
@@ -1774,9 +1776,19 @@ class UnifiedRetrievalTests(unittest.TestCase):
         excerpt_bundle = _build_retrieval_excerpt_bundle_from_payload(payload)
 
         self.assertEqual(provenance["query_date_range"], ["2026-01-01", "2026-01-31"])
+        self.assertEqual(provenance["query_constraints"]["doc_types"], ["memo", "pdf"])
+        self.assertEqual(provenance["query_constraints"]["date_range"], ["2026-01-01", "2026-01-31"])
         self.assertEqual(provenance["active_strategy_ids"], ["fts"])
         self.assertEqual(provenance["deferred_strategy_ids"], ["pageindex", "embeddings"])
         self.assertEqual(provenance["fts_shortlist_doc_ids"], ["doc-1", "doc-2"])
+        self.assertEqual(
+            source_bundle["retrieval_citation_bundle"]["query_constraints"]["doc_types"],
+            ["memo", "pdf"],
+        )
+        self.assertEqual(
+            source_bundle["retrieval_citation_bundle"]["query_constraints"]["date_range"],
+            ["2026-01-01", "2026-01-31"],
+        )
         self.assertEqual(source_bundle["query"]["constraints"]["doc_types"], ["memo", "pdf"])
         self.assertEqual(source_bundle["query"]["constraints"]["date_range"], ["2026-01-01", "2026-01-31"])
         self.assertEqual(source_bundle["policy"]["active_strategy_ids"], ["fts"])
