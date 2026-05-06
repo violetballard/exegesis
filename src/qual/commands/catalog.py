@@ -1173,6 +1173,7 @@ COMMAND_SMOKE_SHELL_SETUP_COMMANDS: tuple[str, ...] = (
 COMMAND_SMOKE_SHELL_STATUS_COMMANDS: tuple[str, ...] = (
     "exit",
     "return",
+    "wait",
 )
 COMMAND_SMOKE_SHELL_PROBE_COMMANDS: tuple[str, ...] = (
     "command",
@@ -10818,7 +10819,7 @@ def _split_shell_script_command_segments(argv: tuple[str, ...]) -> tuple[tuple[s
     current_segment: list[str] = []
     opened_groups = 0
     for token in argv:
-        if token in {"&&", "||", ";", "|"}:
+        if token in {"&&", "||", ";", "|", "&"}:
             if current_segment:
                 segment, opened_groups = _normalize_shell_script_segment_argv(
                     tuple(current_segment),
