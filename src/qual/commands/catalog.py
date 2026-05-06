@@ -4614,15 +4614,16 @@ def command_demo_readiness_gate(
         for flow_step in expected_flow_steps
         if flow_step not in covered_flow_steps
     )
+    invalid_cli_argv = cli_validation.invalid_argv
     gate = CommandDemoReadinessGate(
-        is_complete=not missing_engine_actions and not missing_flow_steps,
+        is_complete=not missing_engine_actions and not missing_flow_steps and not invalid_cli_argv,
         missing_engine_actions=missing_engine_actions,
         command_lines=tuple(step.command_line for step in smoke_plan.steps),
         action_lines=exact_action_lines,
         covered_flow_steps=covered_flow_steps,
         missing_flow_steps=missing_flow_steps,
         cli_command_lines=cli_validation.command_lines,
-        invalid_cli_argv=cli_validation.invalid_argv,
+        invalid_cli_argv=invalid_cli_argv,
     )
     _validate_command_demo_readiness_gate(
         gate,
@@ -4672,7 +4673,11 @@ def _validate_command_demo_readiness_gate(
         exact_action = command_demo_readiness_exact_action_for_argv(action_line, specs, launcher_argv)
         if exact_action != engine_action:
             raise ValueError(f"Command demo readiness gate exact action is inconsistent: {engine_action}")
-    if gate.is_complete != (not gate.missing_engine_actions and not gate.missing_flow_steps):
+    if gate.is_complete != (
+        not gate.missing_engine_actions
+        and not gate.missing_flow_steps
+        and not gate.invalid_cli_argv
+    ):
         raise ValueError("Command demo readiness gate completeness is inconsistent")
 
 
@@ -4712,6 +4717,9 @@ def require_command_demo_readiness_complete(
             missing_parts.append(f"engine actions: {', '.join(gate.missing_engine_actions)}")
         if gate.missing_flow_steps:
             missing_parts.append(f"flow steps: {', '.join(gate.missing_flow_steps)}")
+        if gate.invalid_cli_argv:
+            invalid_lines = ", ".join(_shell_join(argv) for argv in gate.invalid_cli_argv)
+            missing_parts.append(f"invalid CLI argv: {invalid_lines}")
         missing = "; ".join(missing_parts)
         raise ValueError(f"Command demo readiness is incomplete: {missing}")
     return gate
