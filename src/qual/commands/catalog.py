@@ -558,6 +558,7 @@ class CommandDemoSupportedLauncherReadinessEntry:
     missing_engine_actions: tuple[str, ...]
     command_lines: tuple[str, ...]
     action_lines: tuple[tuple[str, str], ...]
+    exact_action_lines: tuple[tuple[str, str], ...] = ()
 
 
 @dataclass(frozen=True)
@@ -5314,6 +5315,10 @@ def command_demo_supported_launcher_readiness_contract(
     entries: list[CommandDemoSupportedLauncherReadinessEntry] = []
     for launcher_argv in command_demo_supported_launcher_argv():
         gate = command_demo_readiness_gate(specs, launcher_argv)
+        exact_action_lines = command_demo_readiness_exact_action_line_lookup_table(
+            specs,
+            launcher_argv,
+        )
         entries.append(
             CommandDemoSupportedLauncherReadinessEntry(
                 launcher_argv=launcher_argv,
@@ -5321,6 +5326,7 @@ def command_demo_supported_launcher_readiness_contract(
                 missing_engine_actions=gate.missing_engine_actions,
                 command_lines=gate.command_lines,
                 action_lines=gate.action_lines,
+                exact_action_lines=exact_action_lines,
             )
         )
     contract = CommandDemoSupportedLauncherReadinessContract(
@@ -5351,10 +5357,23 @@ def _validate_command_demo_supported_launcher_readiness_contract(
             raise ValueError("Command demo supported launcher commands are inconsistent")
         if entry.action_lines != gate.action_lines:
             raise ValueError("Command demo supported launcher actions are inconsistent")
+        expected_exact_action_lines = command_demo_readiness_exact_action_line_lookup_table(
+            specs,
+            entry.launcher_argv,
+        )
+        if entry.exact_action_lines != expected_exact_action_lines:
+            raise ValueError("Command demo supported launcher exact actions are inconsistent")
         if not entry.command_lines:
             raise ValueError("Command demo supported launcher commands must not be empty")
         if not entry.action_lines:
             raise ValueError("Command demo supported launcher actions must not be empty")
+        exact_validation = command_demo_readiness_validate_cli_exact_action_shell_script_lines(
+            tuple(line for _, line in entry.exact_action_lines),
+            specs,
+            entry.launcher_argv,
+        )
+        if not exact_validation.is_complete:
+            raise ValueError("Command demo supported launcher exact actions must cover the MVP loop")
 
 
 def command_demo_supported_launcher_readiness_summary(
