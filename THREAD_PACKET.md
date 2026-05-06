@@ -19,7 +19,7 @@ This branch-tip handoff covers the full retrieval implementation currently prese
 
 The branch hardens deterministic retrieval payloads, FTS candidate strategy identity, sparse-policy rehydration, sparse candidate-resolution rehydration, excerpt lookup provenance, bundle identity validation, final hit rank/score ordering, and basket-promotion strategy aliases. Downstream citation bundles, context bundles, and basket promotion payloads now receive normalized, auditable retrieval snapshots tied to the FTS-first result order and candidate set the engine consumes.
 
-Canonical demo-path step advanced: `retrieve relevant material`. This also supports `promote or gather context into the basket` because source bundles, context bundles, citations, and basket promotion items carry deterministic retrieval provenance.
+Canonical demo-path step advanced: `retrieve relevant material`. This makes the `retrieve relevant material` step more real by making excerpt lookup FTS-only and fail-closed for PageIndex-only IDs; it also supports later `promote or gather context into the basket` by keeping excerpt provenance deterministic.
 
 ## Tasks Completed
 
