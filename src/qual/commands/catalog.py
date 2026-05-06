@@ -1,5 +1,7 @@
 from __future__ import annotations
 
+import hashlib
+import json
 import re
 import shlex
 from collections.abc import Sequence
@@ -528,6 +530,17 @@ class CommandDemoReadinessSeal:
     missing_flow_steps: tuple[str, ...]
     missing_engine_actions: tuple[str, ...]
     invalid_argv: tuple[tuple[str, ...], ...]
+
+
+@dataclass(frozen=True)
+class CommandDemoReadinessFingerprint:
+    algorithm: str
+    digest: str
+    flow_steps: tuple[str, ...]
+    engine_actions: tuple[str, ...]
+    command_lines: tuple[str, ...]
+    exact_action_lines: tuple[str, ...]
+    cli_exact_action_lines: tuple[str, ...]
 
 
 @dataclass(frozen=True)
@@ -5095,6 +5108,80 @@ def command_demo_readiness_seal_summary(
     )
 
 
+def _command_demo_readiness_fingerprint_payload(seal: CommandDemoReadinessSeal) -> dict[str, object]:
+    return {
+        "flow_steps": seal.flow_steps,
+        "engine_actions": seal.engine_actions,
+        "command_lines": seal.command_lines,
+        "exact_action_lines": seal.exact_action_lines,
+        "cli_exact_action_lines": seal.cli_exact_action_lines,
+    }
+
+
+@lru_cache(maxsize=None)
+def command_demo_readiness_fingerprint(
+    specs: tuple[CommandSpec, ...] = COMMAND_SPECS,
+    launcher_argv: tuple[str, ...] = COMMAND_SMOKE_CLI_LAUNCHER_ARGV,
+) -> CommandDemoReadinessFingerprint:
+    seal = command_demo_readiness_seal(specs, launcher_argv)
+    payload = _command_demo_readiness_fingerprint_payload(seal)
+    digest_input = json.dumps(payload, sort_keys=True, separators=(",", ":")).encode("utf-8")
+    fingerprint = CommandDemoReadinessFingerprint(
+        algorithm="sha256",
+        digest=hashlib.sha256(digest_input).hexdigest(),
+        flow_steps=seal.flow_steps,
+        engine_actions=seal.engine_actions,
+        command_lines=seal.command_lines,
+        exact_action_lines=seal.exact_action_lines,
+        cli_exact_action_lines=seal.cli_exact_action_lines,
+    )
+    _validate_command_demo_readiness_fingerprint(fingerprint, seal)
+    return fingerprint
+
+
+def _validate_command_demo_readiness_fingerprint(
+    fingerprint: CommandDemoReadinessFingerprint,
+    seal: CommandDemoReadinessSeal,
+) -> None:
+    if fingerprint.algorithm != "sha256":
+        raise ValueError("Command demo readiness fingerprint algorithm is inconsistent")
+    if fingerprint.flow_steps != seal.flow_steps:
+        raise ValueError("Command demo readiness fingerprint flow steps are inconsistent")
+    if fingerprint.engine_actions != seal.engine_actions:
+        raise ValueError("Command demo readiness fingerprint actions are inconsistent")
+    if fingerprint.command_lines != seal.command_lines:
+        raise ValueError("Command demo readiness fingerprint commands are inconsistent")
+    if fingerprint.exact_action_lines != seal.exact_action_lines:
+        raise ValueError("Command demo readiness fingerprint exact actions are inconsistent")
+    if fingerprint.cli_exact_action_lines != seal.cli_exact_action_lines:
+        raise ValueError("Command demo readiness fingerprint CLI exact actions are inconsistent")
+    expected_digest = hashlib.sha256(
+        json.dumps(
+            _command_demo_readiness_fingerprint_payload(seal),
+            sort_keys=True,
+            separators=(",", ":"),
+        ).encode("utf-8")
+    ).hexdigest()
+    if fingerprint.digest != expected_digest:
+        raise ValueError("Command demo readiness fingerprint digest is inconsistent")
+
+
+def command_demo_readiness_fingerprint_summary(
+    specs: tuple[CommandSpec, ...] = COMMAND_SPECS,
+    launcher_argv: tuple[str, ...] = COMMAND_SMOKE_CLI_LAUNCHER_ARGV,
+) -> tuple[str, str, tuple[str, ...], tuple[str, ...], tuple[str, ...], tuple[str, ...], tuple[str, ...]]:
+    fingerprint = command_demo_readiness_fingerprint(specs, launcher_argv)
+    return (
+        fingerprint.algorithm,
+        fingerprint.digest,
+        fingerprint.flow_steps,
+        fingerprint.engine_actions,
+        fingerprint.command_lines,
+        fingerprint.exact_action_lines,
+        fingerprint.cli_exact_action_lines,
+    )
+
+
 @lru_cache(maxsize=None)
 def command_demo_readiness_shell_script(
     specs: tuple[CommandSpec, ...] = COMMAND_SPECS,
@@ -8179,6 +8266,20 @@ def command_mvp_demo_readiness_seal_summary(
     tuple[tuple[str, ...], ...],
 ]:
     return command_demo_readiness_seal_summary(specs, launcher_argv)
+
+
+def command_mvp_demo_readiness_fingerprint(
+    specs: tuple[CommandSpec, ...] = COMMAND_SPECS,
+    launcher_argv: tuple[str, ...] = COMMAND_SMOKE_CLI_LAUNCHER_ARGV,
+) -> CommandDemoReadinessFingerprint:
+    return command_demo_readiness_fingerprint(specs, launcher_argv)
+
+
+def command_mvp_demo_readiness_fingerprint_summary(
+    specs: tuple[CommandSpec, ...] = COMMAND_SPECS,
+    launcher_argv: tuple[str, ...] = COMMAND_SMOKE_CLI_LAUNCHER_ARGV,
+) -> tuple[str, str, tuple[str, ...], tuple[str, ...], tuple[str, ...], tuple[str, ...], tuple[str, ...]]:
+    return command_demo_readiness_fingerprint_summary(specs, launcher_argv)
 
 
 def command_mvp_demo_readiness_shell_script(
