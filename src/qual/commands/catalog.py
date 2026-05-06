@@ -463,6 +463,21 @@ class CommandDemoReadinessHandoffActionContract:
 
 
 @dataclass(frozen=True)
+class CommandDemoReadinessActionSequenceStep:
+    ordinal: int
+    engine_action: str
+    demo_path_step: str
+    flow_step: str
+    name: str
+    command_line: str
+
+
+@dataclass(frozen=True)
+class CommandDemoReadinessActionSequenceContract:
+    steps: tuple[CommandDemoReadinessActionSequenceStep, ...]
+
+
+@dataclass(frozen=True)
 class CommandDemoReadinessGate:
     is_complete: bool
     missing_engine_actions: tuple[str, ...]
@@ -4832,6 +4847,86 @@ def command_demo_readiness_handoff_packet_summary(
 
 
 @lru_cache(maxsize=None)
+def command_demo_readiness_action_sequence_contract(
+    specs: tuple[CommandSpec, ...] = COMMAND_SPECS,
+    launcher_argv: tuple[str, ...] = COMMAND_SMOKE_CLI_LAUNCHER_ARGV,
+) -> CommandDemoReadinessActionSequenceContract:
+    exact_actions = command_demo_readiness_exact_action_line_lookup_table(specs, launcher_argv)
+    steps: list[CommandDemoReadinessActionSequenceStep] = []
+    for ordinal, (engine_action, command_line) in enumerate(exact_actions, start=1):
+        action_entry = command_demo_readiness_action_entry(engine_action, specs, launcher_argv)
+        if action_entry is None:
+            raise ValueError(f"Command demo readiness action sequence is not routeable: {engine_action}")
+        steps.append(
+            CommandDemoReadinessActionSequenceStep(
+                ordinal=ordinal,
+                engine_action=engine_action,
+                demo_path_step=action_entry.demo_path_step,
+                flow_step=action_entry.flow_step,
+                name=action_entry.name,
+                command_line=command_line,
+            )
+        )
+    contract = CommandDemoReadinessActionSequenceContract(steps=tuple(steps))
+    _validate_command_demo_readiness_action_sequence_contract(
+        contract,
+        specs,
+        launcher_argv,
+    )
+    return contract
+
+
+def _validate_command_demo_readiness_action_sequence_contract(
+    contract: CommandDemoReadinessActionSequenceContract,
+    specs: tuple[CommandSpec, ...],
+    launcher_argv: tuple[str, ...],
+) -> None:
+    expected_actions = command_demo_engine_actions(specs)
+    if tuple(step.ordinal for step in contract.steps) != tuple(range(1, len(contract.steps) + 1)):
+        raise ValueError("Command demo readiness action sequence ordinals are inconsistent")
+    if tuple(step.engine_action for step in contract.steps) != expected_actions:
+        raise ValueError("Command demo readiness action sequence actions are inconsistent")
+    if tuple(step.command_line for step in contract.steps) != command_demo_readiness_exact_action_shell_script_lines(
+        specs,
+        launcher_argv,
+    ):
+        raise ValueError("Command demo readiness action sequence lines are inconsistent")
+    handoff_action_lines = tuple(
+        (engine_action, command_line)
+        for handoff_step in command_demo_readiness_handoff_action_contract(specs, launcher_argv).steps
+        for engine_action, command_line in handoff_step.exact_action_lines
+    )
+    sequence_action_lines = tuple((step.engine_action, step.command_line) for step in contract.steps)
+    if sequence_action_lines != handoff_action_lines:
+        raise ValueError("Command demo readiness action sequence handoff lines are inconsistent")
+    for step in contract.steps:
+        exact_action = command_demo_readiness_exact_action_for_argv(
+            step.command_line,
+            specs,
+            launcher_argv,
+        )
+        if exact_action != step.engine_action:
+            raise ValueError(f"Command demo readiness action sequence exact action is inconsistent: {step.engine_action}")
+
+
+def command_demo_readiness_action_sequence_summary(
+    specs: tuple[CommandSpec, ...] = COMMAND_SPECS,
+    launcher_argv: tuple[str, ...] = COMMAND_SMOKE_CLI_LAUNCHER_ARGV,
+) -> tuple[tuple[int, str, str, str, str, str], ...]:
+    return tuple(
+        (
+            step.ordinal,
+            step.engine_action,
+            step.demo_path_step,
+            step.flow_step,
+            step.name,
+            step.command_line,
+        )
+        for step in command_demo_readiness_action_sequence_contract(specs, launcher_argv).steps
+    )
+
+
+@lru_cache(maxsize=None)
 def command_demo_readiness_seal(
     specs: tuple[CommandSpec, ...] = COMMAND_SPECS,
     launcher_argv: tuple[str, ...] = COMMAND_SMOKE_CLI_LAUNCHER_ARGV,
@@ -7861,6 +7956,20 @@ def command_mvp_demo_readiness_handoff_action_summary(
     launcher_argv: tuple[str, ...] = COMMAND_SMOKE_CLI_LAUNCHER_ARGV,
 ) -> tuple[tuple[int, str, str, str, str, tuple[tuple[str, str], ...]], ...]:
     return command_demo_readiness_handoff_action_summary(specs, launcher_argv)
+
+
+def command_mvp_demo_readiness_action_sequence_contract(
+    specs: tuple[CommandSpec, ...] = COMMAND_SPECS,
+    launcher_argv: tuple[str, ...] = COMMAND_SMOKE_CLI_LAUNCHER_ARGV,
+) -> CommandDemoReadinessActionSequenceContract:
+    return command_demo_readiness_action_sequence_contract(specs, launcher_argv)
+
+
+def command_mvp_demo_readiness_action_sequence_summary(
+    specs: tuple[CommandSpec, ...] = COMMAND_SPECS,
+    launcher_argv: tuple[str, ...] = COMMAND_SMOKE_CLI_LAUNCHER_ARGV,
+) -> tuple[tuple[int, str, str, str, str, str], ...]:
+    return command_demo_readiness_action_sequence_summary(specs, launcher_argv)
 
 
 def command_mvp_demo_readiness_route_contract(

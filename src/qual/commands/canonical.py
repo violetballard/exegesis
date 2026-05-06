@@ -5,6 +5,7 @@ from collections.abc import Sequence
 from src.qual.commands.catalog import (
     CommandDemoReadinessGate,
     CommandDemoReadinessActionEntry,
+    CommandDemoReadinessActionSequenceContract,
     CommandDemoReadinessArgvValidation,
     CommandDemoReadinessCliArgvValidation,
     CommandDemoReadinessCliContract,
@@ -45,6 +46,8 @@ from src.qual.commands.catalog import (
     command_mvp_demo_readiness_handoff_packet_summary as _readiness_handoff_packet_summary,
     command_demo_readiness_handoff_action_contract as _readiness_handoff_action_contract,
     command_mvp_demo_readiness_handoff_action_summary as _readiness_handoff_action_summary,
+    command_mvp_demo_readiness_action_sequence_contract as _readiness_action_sequence_contract,
+    command_mvp_demo_readiness_action_sequence_summary as _readiness_action_sequence_summary,
     command_mvp_demo_readiness_route_contract as _readiness_route_contract,
     command_mvp_demo_readiness_route_summary as _readiness_route_summary,
     command_mvp_demo_readiness_handoff_summary as _readiness_handoff_summary,
@@ -241,6 +244,8 @@ __all__ = [
     "canonical_command_readiness_handoff_packet_summary",
     "canonical_command_readiness_handoff_action_contract",
     "canonical_command_readiness_handoff_action_summary",
+    "canonical_command_readiness_action_sequence_contract",
+    "canonical_command_readiness_action_sequence_summary",
     "canonical_command_readiness_route_contract",
     "canonical_command_readiness_route_summary",
     "canonical_command_readiness_report",
@@ -470,6 +475,17 @@ def canonical_command_readiness_handoff_action_summary() -> tuple[
     ...,
 ]:
     return _readiness_handoff_action_summary()
+
+
+def canonical_command_readiness_action_sequence_contract() -> CommandDemoReadinessActionSequenceContract:
+    return _readiness_action_sequence_contract()
+
+
+def canonical_command_readiness_action_sequence_summary() -> tuple[
+    tuple[int, str, str, str, str, str],
+    ...,
+]:
+    return _readiness_action_sequence_summary()
 
 
 def canonical_command_readiness_handoff_packet_summary() -> tuple[
