@@ -5444,6 +5444,30 @@ def require_command_demo_readiness_complete(
     return gate
 
 
+def require_command_demo_readiness_handoff_complete(
+    specs: tuple[CommandSpec, ...] = COMMAND_SPECS,
+    launcher_argv: tuple[str, ...] = COMMAND_SMOKE_CLI_LAUNCHER_ARGV,
+) -> CommandDemoReadinessHandoffPacket:
+    packet = command_demo_readiness_handoff_packet(specs, launcher_argv)
+    if not packet.is_complete:
+        issues = _command_demo_readiness_gate_issues(command_demo_readiness_gate(specs, launcher_argv))
+        missing = "; ".join(issues)
+        raise ValueError(f"Command demo readiness handoff is incomplete: {missing}")
+    if any(not step.is_cli_entrypoint for step in packet.cli_step_validations):
+        invalid_steps = tuple(
+            step.command_line
+            for step in packet.cli_step_validations
+            if not step.is_cli_entrypoint
+        )
+        raise ValueError(
+            "Command demo readiness handoff includes unsupported CLI steps: "
+            + "; ".join(invalid_steps)
+        )
+    if not packet.fingerprint_digest.strip():
+        raise ValueError("Command demo readiness handoff fingerprint must not be empty")
+    return packet
+
+
 @lru_cache(maxsize=None)
 def command_demo_readiness_report(
     specs: tuple[CommandSpec, ...] = COMMAND_SPECS,
@@ -11990,6 +12014,13 @@ def command_mvp_demo_readiness_handoff_packet(
     launcher_argv: tuple[str, ...] = COMMAND_SMOKE_CLI_LAUNCHER_ARGV,
 ) -> CommandDemoReadinessHandoffPacket:
     return command_demo_readiness_handoff_packet(specs, launcher_argv)
+
+
+def require_command_mvp_demo_readiness_handoff_complete(
+    specs: tuple[CommandSpec, ...] = COMMAND_SPECS,
+    launcher_argv: tuple[str, ...] = COMMAND_SMOKE_CLI_LAUNCHER_ARGV,
+) -> CommandDemoReadinessHandoffPacket:
+    return require_command_demo_readiness_handoff_complete(specs, launcher_argv)
 
 
 def command_mvp_demo_readiness_handoff_packet_payload(

@@ -279,6 +279,8 @@ from src.qual.commands.catalog import (
     command_mvp_demo_readiness_is_complete as _readiness_is_complete,
     command_mvp_demo_readiness_missing_engine_actions as _readiness_missing_engine_actions,
     require_command_mvp_demo_readiness_complete as _require_readiness_complete,
+    require_command_mvp_demo_readiness_handoff_complete
+    as _require_readiness_handoff_complete,
     command_mvp_demo_readiness_entry_for_argv as _readiness_entry_for_argv,
     command_mvp_demo_readiness_entry_for_command as _readiness_entry_for_command,
     command_mvp_demo_readiness_entry_for_demo_path_step as _readiness_entry_for_demo_path_step,
@@ -361,6 +363,7 @@ __all__ = [
     "canonical_command_readiness_gate",
     "canonical_command_readiness_gate_issues",
     "canonical_command_readiness_gate_summary",
+    "canonical_command_require_readiness_handoff_complete",
     "canonical_command_demo_path_readiness_contract",
     "canonical_command_demo_path_action_coverage_summary",
     "canonical_command_demo_path_readiness_summary",
@@ -1152,6 +1155,10 @@ def canonical_command_readiness_route_json() -> str:
 
 def canonical_command_require_readiness_complete() -> CommandDemoReadinessGate:
     return _require_readiness_complete()
+
+
+def canonical_command_require_readiness_handoff_complete() -> CommandDemoReadinessHandoffPacket:
+    return _require_readiness_handoff_complete()
 
 
 def canonical_command_readiness_smoke_plan_summary() -> tuple[
