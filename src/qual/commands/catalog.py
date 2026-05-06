@@ -6225,6 +6225,7 @@ def _validate_command_demo_readiness_handoff_packet(
 def _command_demo_readiness_handoff_packet_payload(
     packet: CommandDemoReadinessHandoffPacket,
 ) -> dict[str, object]:
+    risks = _command_demo_readiness_handoff_packet_risks(packet)
     return {
         "branch_name": packet.branch_name,
         "scope_completed": packet.scope_completed,
@@ -6259,7 +6260,9 @@ def _command_demo_readiness_handoff_packet_payload(
         "exact_action_lines": list(packet.exact_action_lines),
         "cli_exact_action_lines": list(packet.cli_exact_action_lines),
         "checklist_lines": list(packet.checklist_lines),
+        "readiness_complete": packet.is_complete,
         "is_complete": packet.is_complete,
+        "risks_blockers": list(risks),
         "missing_flow_steps": list(packet.missing_flow_steps),
         "missing_engine_actions": list(packet.missing_engine_actions),
         "invalid_argv": [list(argv) for argv in packet.invalid_argv],
@@ -6321,6 +6324,10 @@ def _validate_command_demo_readiness_handoff_packet_payload(
 ) -> None:
     if payload != _command_demo_readiness_handoff_packet_payload(packet):
         raise ValueError("Command demo readiness handoff packet payload is inconsistent")
+    if payload["readiness_complete"] != packet.is_complete:
+        raise ValueError("Command demo readiness handoff packet payload readiness is inconsistent")
+    if payload["risks_blockers"] != list(_command_demo_readiness_handoff_packet_risks(packet)):
+        raise ValueError("Command demo readiness handoff packet payload risks are inconsistent")
     json.dumps(payload, sort_keys=True, separators=(",", ":"))
 
 
