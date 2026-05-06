@@ -2695,6 +2695,69 @@ class UnifiedRetrievalTests(unittest.TestCase):
             [item["basket_item_fingerprint"] for item in baseline_items],
         )
 
+    def test_retrieval_context_bundle_helper_backfills_sparse_basket_query_context(self) -> None:
+        result = self.service.retrieve_auto(
+            RetrievalQuery(
+                query_text="memo coding comparison",
+                scope="vault",
+                intent="compare",
+                constraints=RetrievalConstraints(
+                    max_results=4,
+                    doc_types=("memo",),
+                    section_hint="discussion",
+                    prefer_exact_matches=True,
+                ),
+                confidentiality_profile="confidential",
+            )
+        )
+
+        sparse_context_bundle = json.loads(json.dumps(result.retrieval_context_bundle()))
+        expected_constraints = result.to_downstream_payload()["query"]["constraints"]
+        for snapshot in (
+            sparse_context_bundle,
+            sparse_context_bundle["retrieval_source_bundle"],
+            sparse_context_bundle["retrieval_downstream_payload"],
+            sparse_context_bundle["retrieval_downstream_payload"]["retrieval_evidence"],
+        ):
+            for item in snapshot["basket_promotion_items"]:
+                item.pop("query_constraints", None)
+                item.pop("query_scope", None)
+                item.pop("query_intent", None)
+                item.pop("query_fingerprint", None)
+                item.pop("result_fingerprint", None)
+                item.pop("basket_item_fingerprint", None)
+            snapshot.pop("basket_item_fingerprints", None)
+
+        class _SparseContextBundleSource:
+            def __init__(self, payload: dict[str, object]) -> None:
+                self._payload = payload
+
+            def retrieval_context_bundle(self) -> dict[str, object]:
+                return self._payload
+
+        context_bundle = engine_build_retrieval_context_bundle_from_result(
+            _SparseContextBundleSource(sparse_context_bundle)
+        )
+        basket_item = context_bundle["basket_promotion_items"][0]
+        self.assertEqual(basket_item["query_constraints"], expected_constraints)
+        self.assertEqual(basket_item["query_scope"], "vault")
+        self.assertEqual(basket_item["query_intent"], "compare")
+        self.assertEqual(basket_item["query_fingerprint"], result.diagnostics["query_fingerprint"])
+        self.assertEqual(basket_item["result_fingerprint"], result.result_fingerprint)
+        self.assertEqual(
+            context_bundle["retrieval_source_bundle"]["basket_promotion_items"][0]["query_constraints"],
+            expected_constraints,
+        )
+        self.assertEqual(
+            context_bundle["retrieval_downstream_payload"]["basket_promotion_items"][0]["query_constraints"],
+            expected_constraints,
+        )
+        self.assertEqual(
+            context_bundle["retrieval_excerpt_bundle"]["basket_promotion_items"][0]["query_constraints"],
+            expected_constraints,
+        )
+        self.assertTrue(basket_item["basket_item_fingerprint"])
+
     def test_retrieval_context_bundle_helper_deduplicates_sparse_basket_refs(self) -> None:
         result = self.service.retrieve_auto(
             RetrievalQuery(

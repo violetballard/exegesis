@@ -205,9 +205,90 @@ def _with_basket_item_fingerprint(item: dict[str, object]) -> dict[str, object]:
     return item
 
 
-def _normalize_basket_promotion_items(items: list[object]) -> list[object]:
+def _basket_promotion_item_context(snapshot: dict[str, object]) -> dict[str, object]:
+    retrieval_summary = snapshot.get("retrieval_summary")
+    if not isinstance(retrieval_summary, dict):
+        retrieval_summary = {}
+    retrieval_provenance = snapshot.get("retrieval_provenance")
+    if not isinstance(retrieval_provenance, dict):
+        retrieval_provenance = {}
+    retrieval_citation_bundle = snapshot.get("retrieval_citation_bundle")
+    if not isinstance(retrieval_citation_bundle, dict):
+        retrieval_citation_bundle = {}
+    retrieval_evidence = snapshot.get("retrieval_evidence")
+    if not isinstance(retrieval_evidence, dict):
+        retrieval_evidence = {}
+    query = snapshot.get("query")
+    if not isinstance(query, dict):
+        query = {}
+    query_constraints = query.get("constraints", {})
+    if not isinstance(query_constraints, dict):
+        query_constraints = {}
+    normalized_query_constraints = _normalize_query_constraints_snapshot(
+        retrieval_provenance.get(
+            "query_constraints",
+            retrieval_citation_bundle.get(
+                "query_constraints",
+                retrieval_evidence.get("query_constraints", query_constraints),
+            ),
+        )
+    )
+    return {
+        "query_constraints": normalized_query_constraints,
+        "query_scope": _first_text_value(
+            query.get("scope"),
+            retrieval_summary.get("query_scope"),
+            retrieval_provenance.get("query_scope"),
+            retrieval_citation_bundle.get("query_scope"),
+            retrieval_evidence.get("query_scope"),
+        ),
+        "query_intent": _first_text_value(
+            query.get("intent"),
+            retrieval_summary.get("query_intent"),
+            retrieval_provenance.get("query_intent"),
+            retrieval_citation_bundle.get("query_intent"),
+            retrieval_evidence.get("query_intent"),
+        ),
+        "query_date_range": _normalize_optional_list_like(
+            normalized_query_constraints.get(
+                "date_range",
+                retrieval_summary.get(
+                    "query_date_range",
+                    retrieval_provenance.get(
+                        "query_date_range",
+                        retrieval_citation_bundle.get(
+                            "query_date_range",
+                            retrieval_evidence.get("query_date_range"),
+                        ),
+                    ),
+                ),
+            )
+        ),
+        "query_fingerprint": _first_text_value(
+            snapshot.get("query_fingerprint"),
+            retrieval_summary.get("query_fingerprint"),
+            retrieval_provenance.get("query_fingerprint"),
+            retrieval_citation_bundle.get("query_fingerprint"),
+            retrieval_evidence.get("query_fingerprint"),
+        ),
+        "result_fingerprint": _first_text_value(
+            snapshot.get("result_fingerprint"),
+            retrieval_summary.get("result_fingerprint"),
+            retrieval_provenance.get("result_fingerprint"),
+            retrieval_citation_bundle.get("result_fingerprint"),
+            retrieval_evidence.get("result_fingerprint"),
+        ),
+    }
+
+
+def _normalize_basket_promotion_items(
+    items: list[object],
+    *,
+    item_context: dict[str, object] | None = None,
+) -> list[object]:
     normalized: list[object] = []
     seen_item_ids: set[str] = set()
+    item_context = item_context or {}
     for item in items:
         if isinstance(item, dict):
             item_snapshot = copy.deepcopy(item)
@@ -224,6 +305,16 @@ def _normalize_basket_promotion_items(items: list[object]) -> list[object]:
                 context="basket promotion item",
             )
             item_snapshot["retrieval_source_strategy"] = item_snapshot["source_strategy"]
+            for field_name in (
+                "query_scope",
+                "query_intent",
+                "query_date_range",
+                "query_constraints",
+                "query_fingerprint",
+                "result_fingerprint",
+            ):
+                if field_name not in item_snapshot and field_name in item_context:
+                    item_snapshot[field_name] = copy.deepcopy(item_context[field_name])
             normalized.append(_with_basket_item_fingerprint(item_snapshot))
         else:
             normalized.append(copy.deepcopy(item))
@@ -235,7 +326,10 @@ def _basket_promotion_items_from_snapshot(snapshot: dict[str, object]) -> list[o
 
     basket_promotion_items = _normalize_list_like(snapshot.get("basket_promotion_items", []))
     if basket_promotion_items:
-        return _normalize_basket_promotion_items(basket_promotion_items)
+        return _normalize_basket_promotion_items(
+            basket_promotion_items,
+            item_context=_basket_promotion_item_context(snapshot),
+        )
 
     retrieval_evidence = snapshot.get("retrieval_evidence")
     if isinstance(retrieval_evidence, dict):
@@ -243,7 +337,10 @@ def _basket_promotion_items_from_snapshot(snapshot: dict[str, object]) -> list[o
             retrieval_evidence.get("basket_promotion_items", [])
         )
         if basket_promotion_items:
-            return _normalize_basket_promotion_items(basket_promotion_items)
+            return _normalize_basket_promotion_items(
+                basket_promotion_items,
+                item_context=_basket_promotion_item_context(snapshot),
+            )
 
     for bundle_key in ("retrieval_source_bundle", "source_bundle"):
         source_bundle = snapshot.get(bundle_key)
@@ -252,7 +349,10 @@ def _basket_promotion_items_from_snapshot(snapshot: dict[str, object]) -> list[o
                 source_bundle.get("basket_promotion_items", [])
             )
             if basket_promotion_items:
-                return _normalize_basket_promotion_items(basket_promotion_items)
+                return _normalize_basket_promotion_items(
+                    basket_promotion_items,
+                    item_context=_basket_promotion_item_context(source_bundle),
+                )
 
     excerpt_hits = _normalize_list_like(snapshot.get("excerpt_hits", []))
     if not excerpt_hits:
