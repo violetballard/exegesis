@@ -436,8 +436,18 @@ class CommandCanonicalReadinessStatus:
     ready: bool
 
 
+@dataclass(frozen=True)
+class CommandCanonicalReadinessSnapshot:
+    completed: tuple[CommandCanonicalReadinessStatus, ...]
+    remaining: tuple[CommandCanonicalReadinessStatus, ...]
+    next_status: CommandCanonicalReadinessStatus
+    invalid_argv: tuple[tuple[str, ...], ...]
+    complete: bool
+
+
 __all__ = [
     "CommandCanonicalReadinessStatus",
+    "CommandCanonicalReadinessSnapshot",
     "canonical_command",
     "canonical_command_action_argv_lookup_table",
     "canonical_command_action_demo_path_lookup_table",
@@ -734,6 +744,8 @@ __all__ = [
     "canonical_command_readiness_remaining_statuses",
     "canonical_command_readiness_shell_statuses",
     "canonical_command_readiness_shell_remaining_statuses",
+    "canonical_command_readiness_snapshot",
+    "canonical_command_readiness_shell_snapshot",
     "canonical_command_readiness_lookup_table",
     "canonical_command_readiness_command_line_lookup_table",
     "canonical_command_readiness_summary",
@@ -929,6 +941,27 @@ def canonical_command_readiness_remaining_statuses(
     )
 
 
+def canonical_command_readiness_snapshot(
+    argvs: Sequence[Sequence[str] | str],
+) -> CommandCanonicalReadinessSnapshot:
+    """Bundle covered, remaining, and next demo-path command status for smoke checks."""
+
+    validation = canonical_command_readiness_validate_script(argvs)
+    return CommandCanonicalReadinessSnapshot(
+        completed=tuple(
+            canonical_command_readiness_status_for_argv(argv)
+            for argv in validation.canonical_argv
+        ),
+        remaining=tuple(
+            canonical_command_readiness_status_for_flow_step(flow_step)
+            for flow_step in validation.missing_flow_steps
+        ),
+        next_status=canonical_command_readiness_next_status(validation.canonical_argv),
+        invalid_argv=validation.invalid_argv,
+        complete=validation.is_complete,
+    )
+
+
 def canonical_command_demo_transcript_contract() -> CommandDemoCommandTranscriptContract:
     """Return the canonical full CLI transcript for the Milestone 3 demo loop."""
 
@@ -976,6 +1009,27 @@ def canonical_command_readiness_shell_remaining_statuses(
     return tuple(
         canonical_command_readiness_status_for_flow_step(flow_step)
         for flow_step in validation.missing_flow_steps
+    )
+
+
+def canonical_command_readiness_shell_snapshot(
+    lines: Sequence[str] | str,
+) -> CommandCanonicalReadinessSnapshot:
+    """Bundle covered, remaining, and next demo-path status for shell smoke lines."""
+
+    validation = canonical_command_readiness_validate_shell_script_lines(lines)
+    return CommandCanonicalReadinessSnapshot(
+        completed=tuple(
+            canonical_command_readiness_status_for_argv(argv)
+            for argv in validation.canonical_argv
+        ),
+        remaining=tuple(
+            canonical_command_readiness_status_for_flow_step(flow_step)
+            for flow_step in validation.missing_flow_steps
+        ),
+        next_status=canonical_command_readiness_next_status(validation.canonical_argv),
+        invalid_argv=validation.invalid_argv,
+        complete=validation.is_complete,
     )
 
 
