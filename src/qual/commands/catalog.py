@@ -7576,6 +7576,32 @@ def command_demo_supported_launcher_readiness_summary(
     )
 
 
+def command_demo_supported_launcher_readiness_audit_summary(
+    specs: tuple[CommandSpec, ...] = COMMAND_SPECS,
+) -> tuple[
+    tuple[
+        tuple[str, ...],
+        bool,
+        tuple[str, ...],
+        tuple[str, ...],
+        tuple[tuple[str, str], ...],
+        tuple[str, ...],
+    ],
+    ...,
+]:
+    return tuple(
+        (
+            entry.launcher_argv,
+            entry.is_complete,
+            entry.missing_engine_actions,
+            entry.command_lines,
+            entry.exact_action_lines,
+            entry.cli_smoke_lines,
+        )
+        for entry in command_demo_supported_launcher_readiness_contract(specs).entries
+    )
+
+
 def command_demo_supported_launcher_readiness_lookup_table(
     specs: tuple[CommandSpec, ...] = COMMAND_SPECS,
 ) -> tuple[tuple[tuple[str, ...], tuple[str, ...]], ...]:
@@ -7613,6 +7639,22 @@ def command_mvp_demo_supported_launcher_readiness_summary(
     specs: tuple[CommandSpec, ...] = COMMAND_SPECS,
 ) -> tuple[tuple[tuple[str, ...], bool, tuple[str, ...], tuple[str, ...], tuple[tuple[str, str], ...]], ...]:
     return command_demo_supported_launcher_readiness_summary(specs)
+
+
+def command_mvp_demo_supported_launcher_readiness_audit_summary(
+    specs: tuple[CommandSpec, ...] = COMMAND_SPECS,
+) -> tuple[
+    tuple[
+        tuple[str, ...],
+        bool,
+        tuple[str, ...],
+        tuple[str, ...],
+        tuple[tuple[str, str], ...],
+        tuple[str, ...],
+    ],
+    ...,
+]:
+    return command_demo_supported_launcher_readiness_audit_summary(specs)
 
 
 def command_mvp_demo_supported_launcher_readiness_lookup_table(
