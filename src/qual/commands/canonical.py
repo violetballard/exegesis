@@ -122,6 +122,8 @@ from src.qual.commands.catalog import (
     command_mvp_demo_readiness_command_trace_lookup_table as _readiness_command_trace_lookup_table,
     command_mvp_demo_readiness_command_trace_summary as _readiness_command_trace_summary,
     command_mvp_demo_readiness_command_audit_contract as _readiness_command_audit_contract,
+    command_mvp_demo_readiness_command_audit_json as _readiness_command_audit_json,
+    command_mvp_demo_readiness_command_audit_payload as _readiness_command_audit_payload,
     command_mvp_demo_readiness_command_audit_summary as _readiness_command_audit_summary,
     command_mvp_demo_execution_plan_contract as _execution_plan_contract,
     command_mvp_demo_execution_plan_lookup_table as _execution_plan_lookup_table,
@@ -394,6 +396,8 @@ __all__ = [
     "canonical_command_readiness_index_payload",
     "canonical_command_readiness_index_json",
     "canonical_command_readiness_command_audit_contract",
+    "canonical_command_readiness_command_audit_json",
+    "canonical_command_readiness_command_audit_payload",
     "canonical_command_readiness_command_audit_summary",
     "canonical_command_readiness_shell_script",
     "canonical_command_readiness_cli_smoke_lines",
@@ -1644,6 +1648,14 @@ def canonical_command_readiness_command_audit_summary() -> tuple[
     ...,
 ]:
     return _readiness_command_audit_summary()
+
+
+def canonical_command_readiness_command_audit_payload() -> dict[str, object]:
+    return _readiness_command_audit_payload()
+
+
+def canonical_command_readiness_command_audit_json() -> str:
+    return _readiness_command_audit_json()
 
 
 def canonical_command_exact_action_route_summary() -> tuple[

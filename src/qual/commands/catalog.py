@@ -5979,6 +5979,53 @@ def command_demo_readiness_command_audit_summary(
     )
 
 
+def command_demo_readiness_command_audit_payload(
+    specs: tuple[CommandSpec, ...] = COMMAND_SPECS,
+    launcher_argv: tuple[str, ...] = COMMAND_SMOKE_CLI_LAUNCHER_ARGV,
+) -> dict[str, object]:
+    contract = command_demo_readiness_command_audit_contract(specs, launcher_argv)
+    payload: dict[str, object] = {
+        "fingerprint": {
+            "algorithm": contract.fingerprint_algorithm,
+            "digest": contract.fingerprint_digest,
+        },
+        "is_complete": contract.is_complete,
+        "entries": [
+            {
+                "ordinal": entry.ordinal,
+                "demo_path_step": entry.demo_path_step,
+                "flow_step": entry.flow_step,
+                "command": entry.name,
+                "command_line": entry.command_line,
+                "engine_actions": list(entry.engine_actions),
+                "exact_action_lines": [
+                    {
+                        "engine_action": engine_action,
+                        "command_line": command_line,
+                    }
+                    for engine_action, command_line in entry.exact_action_lines
+                ],
+                "is_cli_entrypoint": entry.is_cli_entrypoint,
+                "is_complete": entry.is_complete,
+            }
+            for entry in contract.entries
+        ],
+    }
+    json.dumps(payload, sort_keys=True, separators=(",", ":"))
+    return payload
+
+
+def command_demo_readiness_command_audit_json(
+    specs: tuple[CommandSpec, ...] = COMMAND_SPECS,
+    launcher_argv: tuple[str, ...] = COMMAND_SMOKE_CLI_LAUNCHER_ARGV,
+) -> str:
+    return json.dumps(
+        command_demo_readiness_command_audit_payload(specs, launcher_argv),
+        sort_keys=True,
+        separators=(",", ":"),
+    )
+
+
 def command_mvp_demo_readiness_command_audit_contract(
     specs: tuple[CommandSpec, ...] = COMMAND_SPECS,
     launcher_argv: tuple[str, ...] = COMMAND_SMOKE_CLI_LAUNCHER_ARGV,
@@ -5991,6 +6038,20 @@ def command_mvp_demo_readiness_command_audit_summary(
     launcher_argv: tuple[str, ...] = COMMAND_SMOKE_CLI_LAUNCHER_ARGV,
 ) -> tuple[tuple[str, str, str, bool, tuple[str, ...]], ...]:
     return command_demo_readiness_command_audit_summary(specs, launcher_argv)
+
+
+def command_mvp_demo_readiness_command_audit_payload(
+    specs: tuple[CommandSpec, ...] = COMMAND_SPECS,
+    launcher_argv: tuple[str, ...] = COMMAND_SMOKE_CLI_LAUNCHER_ARGV,
+) -> dict[str, object]:
+    return command_demo_readiness_command_audit_payload(specs, launcher_argv)
+
+
+def command_mvp_demo_readiness_command_audit_json(
+    specs: tuple[CommandSpec, ...] = COMMAND_SPECS,
+    launcher_argv: tuple[str, ...] = COMMAND_SMOKE_CLI_LAUNCHER_ARGV,
+) -> str:
+    return command_demo_readiness_command_audit_json(specs, launcher_argv)
 
 
 def command_demo_readiness_handoff_step_status_payload(
@@ -6999,9 +7060,7 @@ def command_demo_readiness_shell_script(
             lines.append(step.command_line)
         for engine_action, command_line in cli_exact_action_lines_by_flow_step.get(step.flow_step, ()):
             lines.append(f"# action: {engine_action}")
-            if command_line not in emitted_command_lines:
-                emitted_command_lines.add(command_line)
-                lines.append(command_line)
+            lines.append(command_line)
     script = CommandDemoReadinessShellScript(
         lines=tuple(lines),
         command_lines=command_lines,
@@ -7034,30 +7093,28 @@ def _validate_command_demo_readiness_shell_script(
     if any(not line.strip() for line in script.lines):
         raise ValueError("Command demo readiness shell script lines must not be empty")
     executable_lines = tuple(line for line in script.lines if not line.startswith("#"))
-    expected_executable_lines = _dedupe_command_lines(
-        tuple(
-            line
-            for grouped_lines in (
-                ("set -euo pipefail",),
-                *(
-                    (
-                        step.command_line,
-                        *(
-                            command_line
-                            for _, command_line in expected_action_lines
-                            if command_demo_readiness_flow_step_for_argv(
-                                command_line,
-                                specs,
-                                launcher_argv,
-                            )
-                            == step.flow_step
-                        ),
-                    )
-                    for step in smoke_plan.steps
-                ),
-            )
-            for line in grouped_lines
+    expected_executable_lines = tuple(
+        line
+        for grouped_lines in (
+            ("set -euo pipefail",),
+            *(
+                (
+                    step.command_line,
+                    *(
+                        command_line
+                        for _, command_line in expected_action_lines
+                        if command_demo_readiness_flow_step_for_argv(
+                            command_line,
+                            specs,
+                            launcher_argv,
+                        )
+                        == step.flow_step
+                    ),
+                )
+                for step in smoke_plan.steps
+            ),
         )
+        for line in grouped_lines
     )
     if executable_lines != expected_executable_lines:
         raise ValueError("Command demo readiness shell script executable lines are inconsistent")
