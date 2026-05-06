@@ -786,6 +786,7 @@ class RetrievalService:
         }
         self._write_encrypted_json(self._root / _DOC_META_FILE, meta)
         self._upsert_fts_entries(doc_id=doc_id, doc_type=doc_type, title_hint=title_hint, text=text)
+        self._fts.clear_cache()
 
     def build_pageindex(self, *, doc_id: str, options: DocIndexBuildOptions | None = None) -> str:
         source = self._read_doc_text(doc_id)

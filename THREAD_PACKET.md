@@ -3,10 +3,10 @@
 - Branch name: `codex/feat-retrieval-fts`
 - Lane: `feat-retrieval-fts`
 - Merge target: current `main`
-- Handoff type: high-risk retrieval fixer handoff for the FTS-first retrieval lane.
-- Reviewed implementation base: `36c5d7554b5ebcfaf5ddc59856618a3b3acd05c9`.
+- Handoff type: high-risk retrieval cache invalidation fixer handoff for the FTS-first retrieval lane.
+- Reviewed implementation base: `1696a088d5c3c83de861d9b8b3e9bafafddd27ac`.
 - Reviewed implementation head: `HEAD` after this fixer commit; final SHA is reported in the fixer response.
-- Reviewed implementation range for re-review: `36c5d7554b5ebcfaf5ddc59856618a3b3acd05c9..HEAD`.
+- Reviewed implementation range for re-review: `1696a088d5c3c83de861d9b8b3e9bafafddd27ac..HEAD`.
 - Scope classification: high-risk because this lane includes the approved shared regression surface `tests/unit/test_unified_retrieval.py`.
 - Lane-owned paths: `src/qual/retrieval/**`, `src/qual/engine/retrieval/**`.
 - Approved shared regression path: `tests/unit/test_unified_retrieval.py`.
@@ -14,32 +14,31 @@
 
 ## Scope Completed
 
-This fixer keeps SQLite FTS as the authoritative MVP retrieval path and adds auditable cache-use reporting for repeated FTS retrieval runs. Retrieval diagnostics already exposed `caches_used`; this pass records the same execution metadata in the `retrieval_executed` audit event so downstream engine runs can distinguish a fresh FTS execution from a cache-backed FTS execution without changing deterministic citation/source bundle equality.
+This fixer keeps SQLite FTS as the authoritative MVP retrieval path and makes the one-entry FTS strategy cache safe across document updates. `add_or_update_document` now clears cached FTS hits after the encrypted metadata and SQLite FTS entries are updated, so a repeated query cannot reuse stale excerpts from the pre-update index.
 
-Payload reconstruction now preserves optional `caches_used` maps when external or older source-bundle-shaped snapshots already contain them, while keeping cache use out of canonical result fingerprints and deterministic citation/source bundles. That keeps basket promotion and later revise/apply steps anchored to stable retrieved evidence while still making FTS execution provenance auditable.
+The cache remains narrow and deterministic for repeated unchanged retrieval runs, but index mutation now invalidates it explicitly. That keeps basket promotion and later revise/apply steps anchored to current FTS evidence while preserving the existing payload, provenance, and citation bundle shapes.
 
 ## Tasks Completed
 
-1. Canonical demo-path step advanced: `retrieve relevant material`. FTS retrieval audit events now include per-strategy cache-use metadata alongside strategies used and elapsed timings.
-2. Canonical demo-path step supported: `promote or gather context into the basket`. Payload helpers normalize optional cache-use maps from source-bundle-shaped snapshots without making cache hits part of deterministic citation/source equality.
-3. Approved shared regression coverage verifies repeated doc-scoped FTS retrieval reports `{"fts": true}` in diagnostics and audit metadata while preserving the stable result fingerprint.
+1. Canonical demo-path step advanced: `retrieve relevant material`. FTS retrieval now invalidates cached hits immediately after document text updates rebuild the FTS index.
+2. Canonical demo-path step supported: `promote or gather context into the basket`. Repeated queries after document mutation now gather current excerpts instead of stale cache-backed excerpts.
+3. Existing retrieval regression coverage was re-run without widening PageIndex, embeddings, hybrid, or alternate retrieval behavior.
 
 ## Files Changed
 
-Reviewed implementation range for re-review: `36c5d7554b5ebcfaf5ddc59856618a3b3acd05c9..HEAD`.
+Reviewed implementation range for re-review: `1696a088d5c3c83de861d9b8b3e9bafafddd27ac..HEAD`.
 
 - `THREAD_PACKET.md` - authoritative handoff packet for this fixer pass.
-- `src/qual/retrieval/service.py` - records `caches_used` in retrieval audit metadata.
-- `src/qual/engine/retrieval/payload.py` - normalizes optional cache-use maps from reconstructed retrieval snapshots.
-- `tests/unit/test_unified_retrieval.py` - approved shared regression coverage for FTS cache-use diagnostics and audit metadata.
+- `src/qual/retrieval/service.py` - clears the FTS strategy cache after document text/index updates.
+- `src/qual/engine/retrieval/fts_strategy.py` - exposes an explicit `clear_cache` hook for FTS index mutation.
 
 ## Budget/Risk
 
 - Task budget: `3/4` high-risk task groups.
-- File count for reviewed implementation handoff: `4 files changed`.
-- Size accounting before packet rewrite: `52 insertions(+), 1 deletion(-)` across code and test files.
+- File count for reviewed implementation handoff: `3 files changed`.
+- Size accounting before packet rewrite: `7 insertions(+)` across production retrieval files.
 - AGENTS file/size status: fits high-risk size limits of `<=8 files` and `<=300 net LOC`.
-- Shared/integrator exception status: `tests/unit/test_unified_retrieval.py` is approved shared regression coverage for the retrieval lane; no integrator-locked files changed.
+- Shared/integrator exception status: no shared-by-approval or integrator-locked files changed in this fixer pass. Earlier approved shared regression coverage in `tests/unit/test_unified_retrieval.py` remains part of the lane history.
 - Routing/provider impact: none.
 - PageIndex/embeddings impact: no PageIndex, embeddings, hybrid, or alternate retrieval path was added as a required MVP path.
 - Remaining risks/blockers: none.
@@ -49,15 +48,14 @@ Reviewed implementation range for re-review: `36c5d7554b5ebcfaf5ddc59856618a3b3a
 - Roadmap items affected: `ROADMAP.md` Milestone 4 FTS-first retrieval orchestration/source-attribution/auditable deterministic retrieval.
 - Vision capability affected: retrieval-backed context, retrieval-first context handling, auditable outputs, and reliable local-first state.
 - Architecture alignment: FTS remains the required local retrieval path. PageIndex and embeddings stay compatibility-only/deferred.
-- Canonical demo-path mapping: advances `retrieve relevant material` and supports `promote or gather context into the basket`.
+- Canonical demo-path mapping: advances `retrieve relevant material` and supports `promote or gather context into the basket` by keeping cache-backed retrieval current after source updates.
 - Routing/provider impact note: none.
 - Proposed `README.md` patch text: none.
 
 ## Commands Run
 
-Commands run for this corrected branch-tip packet on the exact worktree state committed by this fixer pass:
+Commands run for this corrected branch-tip packet on the exact worktree state to be committed by this fixer pass:
 
-- `python -m pytest tests/unit/test_unified_retrieval.py` - blocked because this Python environment has no `pytest` module installed.
 - `python -m unittest tests.unit.test_unified_retrieval` - passed 56 retrieval tests.
 - `./quality-format.sh --check` - passed.
 - `./quality-lint.sh` - passed shell syntax and trailing whitespace checks.
@@ -67,4 +65,4 @@ Commands run for this corrected branch-tip packet on the exact worktree state co
 
 ## Metadata Note
 
-The root `THREAD_PACKET.md` is the authoritative regenerated handoff packet for this fixer pass. The reviewed implementation range intentionally covers `36c5d7554b5ebcfaf5ddc59856618a3b3acd05c9..HEAD` so all production and test changes present at the branch tip are traceable.
+The root `THREAD_PACKET.md` is the authoritative regenerated handoff packet for this fixer pass. The reviewed implementation range intentionally covers `1696a088d5c3c83de861d9b8b3e9bafafddd27ac..HEAD` so this production retrieval cache-invalidation change is traceable from the prior branch tip.
