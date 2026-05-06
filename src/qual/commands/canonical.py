@@ -643,6 +643,7 @@ __all__ = [
     "canonical_command_readiness_entry_for_engine_action",
     "canonical_command_readiness_entry_for_flow_step",
     "canonical_command_readiness_status_for_argv",
+    "canonical_command_readiness_status_for_cli_argv",
     "canonical_command_readiness_status_for_command",
     "canonical_command_readiness_status_for_demo_path_step",
     "canonical_command_readiness_status_for_engine_action",
@@ -719,6 +720,20 @@ def canonical_command_readiness_status_for_argv(
         argv=canonical_command_argv_for_argv(argv),
         command_line=canonical_command_line_for_argv(argv),
         engine_actions=canonical_command_engine_actions_for_argv(argv),
+    )
+
+
+def canonical_command_readiness_status_for_cli_argv(
+    argv: Sequence[str] | str,
+) -> CommandCanonicalReadinessStatus:
+    validation = canonical_command_readiness_validate_cli_argv(argv)
+    return _readiness_status(
+        command=validation.name,
+        flow_step=validation.flow_step,
+        demo_path_step=validation.demo_path_step,
+        argv=validation.canonical_argv,
+        command_line=validation.command_line,
+        engine_actions=validation.engine_actions,
     )
 
 
