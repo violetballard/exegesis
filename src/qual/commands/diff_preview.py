@@ -377,6 +377,11 @@ def _patch_review_action_routes_for_decision(
     )
 
 
+def _patch_review_command_ready(decision: PatchReviewDecision) -> bool:
+    routes = _patch_review_action_routes_for_decision(decision)
+    return bool(routes) and all(action and engine_action for action, engine_action in routes)
+
+
 def build_patch_review_decision(payload: DiffPreviewInput) -> PatchReviewDecision:
     result = build_diff_preview_result(payload)
     if result.has_changes:
@@ -409,7 +414,7 @@ def build_patch_review_command_status(payload: DiffPreviewInput) -> PatchReviewC
         decision_status=decision.status,
         next_actions=decision.next_actions,
         engine_actions=decision.engine_actions,
-        ready=bool(decision.next_actions and decision.engine_actions),
+        ready=_patch_review_command_ready(decision),
     )
 
 
@@ -426,7 +431,7 @@ def build_patch_review_command_status_payload(
         decision=decision.status,
         next_actions=decision.next_actions,
         engine_actions=decision.engine_actions,
-        ready=bool(decision.next_actions and decision.engine_actions),
+        ready=_patch_review_command_ready(decision),
         has_changes=decision.has_changes,
         normalized_equal=decision.normalized_equal,
         truncated=decision.truncated,
