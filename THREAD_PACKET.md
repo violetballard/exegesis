@@ -174,6 +174,22 @@ Current basket promotion doc-type finalizer task count: `1` meaningful task grou
 Current basket promotion doc-type finalizer source/test size before this packet update: `3 files changed, 4 insertions(+)`.
 Shared/integrator-locked impact this basket promotion doc-type finalizer pass: approved shared regression coverage in `tests/unit/test_unified_retrieval.py`; no provider routing, UI, or integrator-locked files were edited.
 
+## Basket Promotion Result-Fingerprint Finalizer Addendum
+
+This source-bearing finalizer keeps retrieval FTS-first and tightens context-basket promotion auditability without adding PageIndex, embeddings, provider routing, UI, shared regression edits, or integrator-locked behavior. Promotion items now preserve `result_fingerprint` in both direct `RetrievalResult.retrieval_basket_promotion_bundle()` output and sparse downstream payload rehydration.
+
+This lets downstream basket, revise, and apply consumers audit an individual promoted evidence item back to the exact deterministic retrieval result even when that item is consumed apart from the enclosing retrieval bundle.
+
+Current basket promotion result-fingerprint finalizer files changed:
+
+- `M src/qual/retrieval/service.py`
+- `M src/qual/engine/retrieval/payload.py`
+- `M THREAD_PACKET.md`
+
+Current basket promotion result-fingerprint finalizer task count: `1` meaningful task group, within the high-risk `4` task cap for this finalizer pass.
+Current basket promotion result-fingerprint finalizer source size before this packet update: `2 files changed, 6 insertions(+)`.
+Shared/integrator-locked impact this basket promotion result-fingerprint finalizer pass: none; no shared regression, provider routing, UI, or integrator-locked files were edited.
+
 ## Tasks Completed
 
 1. Made SQLite FTS the authoritative MVP retrieval path while keeping PageIndex and embeddings fallback-only/deferred.
@@ -309,6 +325,24 @@ Required gates rerun after the matched-term provenance finalizer:
 - `make ci` - passed setup, scope-check, format, lint, compile/typecheck, smoke tests, and 130 unit tests.
 
 Final required gates rerun after the matched-term packet refresh:
+
+- `./quality-format.sh --check` - passed.
+- `./quality-lint.sh` - passed shell syntax and trailing whitespace checks.
+- `./quality-test.sh` - passed smoke tests and 130 unit tests.
+- `./typecheck-test.sh` - passed Python source compilation under `src/`.
+- `make ci` - passed setup, scope-check, format, lint, compile/typecheck, smoke tests, and 130 unit tests.
+
+Required gates rerun after the basket promotion result-fingerprint finalizer:
+
+- `python -m pytest tests/unit/test_unified_retrieval.py` - blocked; active Python has no `pytest` module.
+- `python -m unittest tests.unit.test_unified_retrieval` - passed 61 retrieval tests.
+- `./quality-format.sh --check` - passed.
+- `./quality-lint.sh` - passed shell syntax and trailing whitespace checks.
+- `./quality-test.sh` - passed smoke tests and 130 unit tests.
+- `./typecheck-test.sh` - passed Python source compilation under `src/`.
+- `make ci` - passed setup, scope-check, format, lint, compile/typecheck, smoke tests, and 130 unit tests.
+
+Final required gates rerun after the result-fingerprint packet refresh:
 
 - `./quality-format.sh --check` - passed.
 - `./quality-lint.sh` - passed shell syntax and trailing whitespace checks.

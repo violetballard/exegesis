@@ -545,6 +545,7 @@ class RetrievalResult:
                     "score": hit.score,
                     "rank": hit.provenance.get("rank"),
                     "source_strategy": hit.source_strategy,
+                    "result_fingerprint": self.result_fingerprint,
                     "query_fingerprint": hit.provenance.get(
                         "query_fingerprint",
                         bundle_context["query_fingerprint"],

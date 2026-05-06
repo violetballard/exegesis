@@ -298,6 +298,7 @@ def _normalize_basket_promotion_bundle_snapshot(bundle: dict[str, object]) -> di
             continue
         normalized_item = copy.deepcopy(item)
         item_fallbacks = {
+            "result_fingerprint": normalized.get("result_fingerprint"),
             "query_fingerprint": normalized.get("query_fingerprint"),
             "query_scope": normalized.get("query_scope"),
             "query_intent": normalized.get("query_intent"),
@@ -746,6 +747,10 @@ def _build_retrieval_basket_promotion_bundle_from_payload(payload: dict[str, obj
                 "score": hit.get("score"),
                 "rank": provenance.get("rank", hit.get("rank")),
                 "source_strategy": hit.get("source_strategy", provenance.get("source_strategy")),
+                "result_fingerprint": hit.get(
+                    "result_fingerprint",
+                    provenance.get("result_fingerprint", bundle_context["result_fingerprint"]),
+                ),
                 "query_fingerprint": hit.get(
                     "query_fingerprint",
                     provenance.get("query_fingerprint", bundle_context["query_fingerprint"]),
