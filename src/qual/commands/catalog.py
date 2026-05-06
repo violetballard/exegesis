@@ -4282,6 +4282,17 @@ def _validate_command_demo_action_coverage_contract(
                 raise ValueError(f"Command demo action coverage action line is inconsistent: {engine_action}")
             if not entry.command_line or not entry.action_line:
                 raise ValueError(f"Command demo action coverage line must not be empty: {engine_action}")
+            resolved_action = command_demo_readiness_exact_action_for_argv(
+                entry.action_line,
+                specs,
+                execution_plan.launcher_argv,
+            )
+            if resolved_action != engine_action:
+                raise ValueError(f"Command demo action coverage exact route is inconsistent: {engine_action}")
+
+    action_lines = tuple(entry.action_line for entry in contract.entries)
+    if len(set(action_lines)) != len(action_lines):
+        raise ValueError("Command demo action coverage lines must be exact and unique")
 
 
 def command_demo_action_coverage_summary(
