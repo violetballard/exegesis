@@ -18,9 +18,7 @@ This branch-tip handoff covers the full retrieval implementation currently prese
 
 The branch hardens deterministic retrieval payloads, FTS candidate strategy identity, sparse-policy rehydration, sparse candidate-resolution rehydration, excerpt lookup provenance, bundle identity validation, final hit rank/score ordering, basket-promotion strategy aliases, basket-promotion match evidence, basket-promotion query-constraint snapshots, sparse basket-promotion query-context rehydration, direct excerpt lookup promotion-source markers, normalized query-constraint evidence/citation/provenance snapshots, and citation strategy aliases. Doc/excerpt hit provenance records `retrieval_source_strategy: fts` at provenance creation time, result-derived citation snapshots and basket promotion refs read that canonical alias directly while preserving the existing `source_strategy: fts` fallback, and direct FTS excerpt lookups expose `basket_promotion_source: fts_excerpt_lookup` on the canonical payload, provenance, promotion item, and compact audit event. Retrieval evidence, citation bundles, bundle context, provenance, and promoted basket refs also carry or rehydrate the canonical query constraint snapshot directly so basket, revise, and apply consumers can audit retrieval limits and filters without reconstructing them from the source query object. This fixer pass additionally surfaces the selected top excerpt's matched terms and match count on doc-hit snapshots so downstream basket/revise consumers can audit document selection evidence without digging into nested provenance.
 
-Canonical demo-path step advanced: `retrieve relevant material`. This work makes that step more real by making FTS retrieval and excerpt lookup deterministic, provenance-backed, query-constraint-aware, and fail-closed for PageIndex-only IDs. It also supports later `promote or gather context into the basket` by keeping excerpt provenance, citation snapshots, matched-term evidence, and basket promotion metadata deterministic.
-
-Canonical demo-path step advanced: retrieve relevant material, with deterministic excerpt/provenance output suitable for basket promotion.
+Before re-review: this work makes `retrieve relevant material` more real by making excerpt lookup FTS-only, deterministic, provenance-backed, query-constraint-aware, and fail-closed for PageIndex-only IDs. It makes `promote or gather context into the basket` more real by preserving deterministic excerpt/provenance payloads, citation snapshots, matched-term evidence, and basket promotion metadata.
 
 ## Tasks Completed
 
@@ -49,7 +47,7 @@ Reviewed implementation range for re-review: `378cf9a74a3658058079a32f186fcd254c
 Latest metadata-only reviewer fixes:
 
 1. Updated each completed task so it explicitly names the canonical demo-path step it advances.
-2. Added the final canonical demo-path sentence required by the reviewer: `Canonical demo-path step advanced: retrieve relevant material, with deterministic excerpt/provenance output suitable for basket promotion.`
+2. Added the explicit before-re-review statement required by the reviewer: this work makes `retrieve relevant material` more real by making excerpt lookup FTS-only and makes `promote or gather context into the basket` more real by preserving deterministic excerpt/provenance payloads.
 3. This packet is ready for reviewer packet refresh after the metadata-only handoff fix.
 
 Prior reviewer traceability fixes:
