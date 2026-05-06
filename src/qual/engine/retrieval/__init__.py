@@ -4,7 +4,7 @@ The retrieval lane keeps this package as the narrow public surface for the
 engine's retrieval orchestration code.
 """
 
-from collections.abc import Iterable, Mapping
+from collections.abc import Iterable, Mapping, Set
 
 from src.qual.engine.retrieval.fts_strategy import FTSStrategy
 from src.qual.engine.retrieval.interface import RetrievalStrategy, StrategyRun
@@ -26,7 +26,12 @@ from src.qual.engine.retrieval.payload import (
     build_retrieval_source_bundle_from_result,
 )
 
-def _normalize_constraint_values(value: object, *, field_name: str) -> tuple[str, ...]:
+def _normalize_constraint_values(
+    value: object,
+    *,
+    field_name: str,
+    allow_unordered: bool = True,
+) -> tuple[str, ...]:
     """Return a deterministic tuple for loose retrieval constraint payloads."""
 
     if value is None:
@@ -38,6 +43,8 @@ def _normalize_constraint_values(value: object, *, field_name: str) -> tuple[str
         raise TypeError(f"{field_name} must be an iterable of text values")
     if isinstance(value, Mapping):
         raise TypeError(f"{field_name} must be an iterable of values, not a mapping")
+    if not allow_unordered and isinstance(value, Set):
+        raise TypeError(f"{field_name} must be an ordered iterable of values")
     if not isinstance(value, Iterable):
         raise TypeError(f"{field_name} must be an iterable of values or None")
     normalized_values: list[str] = []
@@ -111,7 +118,11 @@ def build_retrieval_query(
     if isinstance(date_range, str):
         date_range = (date_range,)
     if date_range is not None:
-        date_range = _normalize_constraint_values(date_range, field_name="date_range")
+        date_range = _normalize_constraint_values(
+            date_range,
+            field_name="date_range",
+            allow_unordered=False,
+        )
     return RetrievalQuery(
         query_text=query_text,
         scope=scope,

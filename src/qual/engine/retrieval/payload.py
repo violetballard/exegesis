@@ -3,6 +3,7 @@ from __future__ import annotations
 import copy
 import hashlib
 import json
+from collections.abc import Set
 from dataclasses import dataclass
 from typing import Protocol
 
@@ -56,6 +57,12 @@ def _normalize_optional_list_like(value: object) -> list[object] | None:
     if value is None:
         return None
     return _normalize_list_like(value)
+
+
+def _normalize_ordered_optional_list_like(value: object, *, field_name: str) -> list[object] | None:
+    if isinstance(value, Set):
+        raise TypeError(f"{field_name} must be an ordered iterable of values")
+    return _normalize_optional_list_like(value)
 
 
 def _normalize_optional_text(value: object) -> str | None:
@@ -542,7 +549,10 @@ def _query_fingerprint_from_query_snapshot(query: dict[str, object]) -> str | No
         "constraints": {
             "max_results": _normalize_query_max_results(constraints.get("max_results")),
             "doc_types": _canonical_query_doc_types(constraints.get("doc_types")),
-            "date_range": _normalize_optional_list_like(constraints.get("date_range")),
+            "date_range": _normalize_ordered_optional_list_like(
+                constraints.get("date_range"),
+                field_name="date_range",
+            ),
             "require_citations": _normalize_query_bool(constraints.get("require_citations")),
             "section_hint": _normalize_optional_text(constraints.get("section_hint")),
             "prefer_exact_matches": _normalize_query_bool(constraints.get("prefer_exact_matches")),
@@ -617,7 +627,10 @@ def _normalize_query_snapshot(query: object) -> dict[str, object]:
         constraints = copy.deepcopy(constraints)
     constraints["max_results"] = _normalize_query_max_results(constraints.get("max_results"))
     constraints["doc_types"] = _canonical_query_doc_types(constraints.get("doc_types"))
-    constraints["date_range"] = _normalize_optional_list_like(constraints.get("date_range"))
+    constraints["date_range"] = _normalize_ordered_optional_list_like(
+        constraints.get("date_range"),
+        field_name="date_range",
+    )
     constraints["require_citations"] = _normalize_query_bool(constraints.get("require_citations"))
     constraints["section_hint"] = _normalize_optional_text(constraints.get("section_hint"))
     constraints["prefer_exact_matches"] = _normalize_query_bool(constraints.get("prefer_exact_matches"))

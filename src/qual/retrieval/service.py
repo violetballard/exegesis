@@ -1012,16 +1012,17 @@ class RetrievalService:
         fts_excerpt = self._find_fts_excerpt(excerpt_id)
         if fts_excerpt is None:
             raise KeyError(f"unknown excerpt_id: {excerpt_id}")
-        self._record_excerpt_lookup_audit(
-            fts_excerpt,
-            lookup_entrypoint=lookup_entrypoint,
-            lookup_resolution="fts",
-        )
-        return self._normalize_excerpt_payload(
+        normalized_excerpt = self._normalize_excerpt_payload(
             fts_excerpt,
             source_strategy="fts",
             lookup_resolution="fts",
         )
+        self._record_excerpt_lookup_audit(
+            normalized_excerpt,
+            lookup_entrypoint=lookup_entrypoint,
+            lookup_resolution="fts",
+        )
+        return normalized_excerpt
 
     @staticmethod
     def _normalize_excerpt_id(excerpt_id: str) -> str:
@@ -1060,6 +1061,11 @@ class RetrievalService:
                 "source_hash": excerpt.get("source_hash"),
                 "text_hash": excerpt.get("text_hash"),
                 "excerpt_fingerprint": excerpt.get("excerpt_fingerprint"),
+                "excerpt_lookup_fingerprint": excerpt.get("excerpt_lookup_fingerprint"),
+                "basket_item_id": excerpt.get("basket_item_id"),
+                "basket_item_fingerprint": excerpt.get("basket_item_fingerprint"),
+                "basket_promotion_count": excerpt.get("basket_promotion_count"),
+                "basket_promotion_ready": excerpt.get("basket_promotion_ready"),
                 "span": copy.deepcopy(span),
             },
         )
