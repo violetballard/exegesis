@@ -837,6 +837,8 @@ def integrator_prompt(approved: str) -> str:
     return (
         "You are the INTEGRATOR. You may write to the workspace.\n"
         "Consume this APPROVED packet, perform merge order + post-merge checks, report blockers.\n\n"
+        "Do not run broad recursive searches over `.codex` or `.agents`; those directories contain large historical logs. "
+        "If packet evidence is needed, read the specific packet path or use targeted `ls`, `cat`, `tail`, or `rg` commands against named files only.\n\n"
         f"{packet}\n"
     )
 
