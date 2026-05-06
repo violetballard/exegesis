@@ -2270,6 +2270,7 @@ class RetrievalService:
             if isinstance(text_value, str) and text_value:
                 text_hash = hashlib.sha256(text_value.encode("utf-8")).hexdigest()
         normalized["text_hash"] = text_hash
+        normalized["excerpt_text_hash"] = text_hash
         doc_id_value = normalized.get("doc_id")
         if (not isinstance(doc_id_value, str) or not doc_id_value) and isinstance(provenance.get("doc_id"), str):
             doc_id_value = str(provenance["doc_id"])
