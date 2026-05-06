@@ -1139,6 +1139,18 @@ COMMAND_SMOKE_SHELL_OUTPUT_SINK_FLAGS: tuple[str, ...] = (
     "-a",
     "--append",
 )
+COMMAND_SMOKE_SHELL_CONTROL_KEYWORDS: tuple[str, ...] = (
+    "if",
+    "then",
+    "else",
+    "elif",
+    "fi",
+    "for",
+    "while",
+    "until",
+    "do",
+    "done",
+)
 DEMO_COMMAND_FLOW_STEPS: tuple[str, ...] = (
     "project-open",
     "retrieval",
@@ -8649,13 +8661,14 @@ def _split_env_split_string_argv(value: str) -> tuple[str, ...]:
 
 
 def _strip_shell_command_wrappers(argv: tuple[str, ...]) -> tuple[str, ...]:
-    tokens = argv
+    tokens = _strip_shell_control_keywords(argv)
     while tokens and PurePath(tokens[0]).name in COMMAND_SMOKE_SHELL_WRAPPER_COMMANDS:
         index = 1
         while index < len(tokens) and tokens[index] in COMMAND_SMOKE_SHELL_WRAPPER_FLAGS:
             index += 1
         tokens = tokens[index:]
         tokens = _strip_shell_env_assignments(tokens)
+        tokens = _strip_shell_control_keywords(tokens)
     return tokens
 
 
@@ -9665,7 +9678,19 @@ def _normalize_shell_script_segment_argv(
         opened_groups = max(0, opened_groups - (len(tokens[-1]) - len(stripped)))
         tokens[-1] = stripped
 
-    return _strip_shell_redirections(tuple(token for token in tokens if token)), opened_groups
+    return (
+        _strip_shell_control_keywords(
+            _strip_shell_redirections(tuple(token for token in tokens if token))
+        ),
+        opened_groups,
+    )
+
+
+def _strip_shell_control_keywords(argv: tuple[str, ...]) -> tuple[str, ...]:
+    index = 0
+    while index < len(argv) and argv[index] in COMMAND_SMOKE_SHELL_CONTROL_KEYWORDS:
+        index += 1
+    return argv[index:]
 
 
 def _strip_shell_redirections(argv: tuple[str, ...]) -> tuple[str, ...]:
