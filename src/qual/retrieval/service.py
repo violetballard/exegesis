@@ -433,6 +433,11 @@ class RetrievalResult:
             fts_shortlist_doc_ids = list(fts_shortlist_doc_ids)
         else:
             fts_shortlist_doc_ids = []
+        candidate_resolution = self.diagnostics.get("candidate_resolution")
+        if isinstance(candidate_resolution, dict):
+            candidate_resolution = copy.deepcopy(candidate_resolution)
+        else:
+            candidate_resolution = None
         return {
             "query_fingerprint": self.diagnostics["query_fingerprint"],
             "result_fingerprint": self.result_fingerprint,
@@ -440,6 +445,7 @@ class RetrievalResult:
             "query_intent": self.query.intent,
             "query_date_range": query_date_range,
             "candidate_doc_count": self.diagnostics.get("candidate_doc_count"),
+            "candidate_resolution": candidate_resolution,
             "fts_shortlist_doc_ids": fts_shortlist_doc_ids,
             "retrieval_backend": self.diagnostics["retrieval_backend"],
             "retrieval_mode": self.diagnostics["retrieval_mode"],
@@ -802,6 +808,7 @@ class RetrievalResult:
             "doc_hits_fingerprint": self.diagnostics["doc_hits_fingerprint"],
             "excerpt_hits_fingerprint": self.diagnostics["excerpt_hits_fingerprint"],
             "candidate_doc_count": self.diagnostics.get("candidate_doc_count"),
+            "candidate_resolution": copy.deepcopy(self.diagnostics.get("candidate_resolution")),
             "fts_shortlist_doc_ids": list(self.diagnostics.get("fts_shortlist_doc_ids", [])),
             "primary_doc_id": primary_doc_hit.doc_id if primary_doc_hit is not None else None,
             "primary_doc_fingerprint": primary_doc_hit.provenance.get("doc_fingerprint") if primary_doc_hit is not None else None,

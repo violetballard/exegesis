@@ -6,7 +6,7 @@
 - Handoff type: high-risk retrieval feature handoff for the FTS-first retrieval lane.
 - Scope classification: high-risk because this branch edits engine retrieval entrypoints/facades and approved shared regression coverage in `tests/unit/test_unified_retrieval.py`.
 - Authoritative reviewed implementation range for re-review: `378cf9a7..HEAD` on `codex/feat-retrieval-fts`.
-- Evidence branch tip before this fixer commit: `ce1cbbbea0abc97b6960fac26853b6d039c750dd` (`fix(retrieval): expose context bundle snapshots`).
+- Evidence branch tip before this fixer commit: `4ca1c6b0c8e6bd1bbf2fb27ec3ed5f60729bac52`.
 - Final HEAD SHA: reported in the final response after this fixer commit is created.
 - Approved shared-file note: `tests/unit/test_unified_retrieval.py` is approved shared-by-approval regression coverage for this retrieval lane. No integrator-locked files are edited in this handoff.
 
@@ -18,15 +18,15 @@ Prior packet text incorrectly excluded code after `adfa8cd` and incorrectly impl
 
 Out-of-lane packet tooling scope: `codex_packet_handoff/tools/planner.py` and `tests/unit/test_packet_planner.py` are not part of this retrieval handoff. They appear in older cumulative accounting from `d7fd5d2..adfa8cd`, but the regenerated authoritative review range is `378cf9a7..HEAD`; `git diff --name-status 378cf9a7..HEAD` does not include either file. This retrieval handoff requests review only for the files listed below.
 
-The branch implements the FTS-first retrieval MVP path. SQLite FTS remains the deterministic retrieval source of truth. PageIndex and embeddings remain compatibility-only fallback shims that fail closed and are not reintroduced as required retrieval paths. The final work hardens stable retrieval identity by preserving ordered excerpt lookup fingerprints, document and excerpt provenance, sparse context payload snapshots, citations, basket summaries, top-level context query/policy/manifest/summary snapshots, and fail-closed compatibility behavior.
+The branch implements the FTS-first retrieval MVP path. SQLite FTS remains the deterministic retrieval source of truth. PageIndex and embeddings remain compatibility-only fallback shims that fail closed and are not reintroduced as required retrieval paths. The final work hardens stable retrieval identity by preserving ordered excerpt lookup fingerprints, document and excerpt provenance, sparse context payload snapshots, citations, basket summaries, candidate-resolution snapshots, top-level context query/policy/manifest/summary snapshots, and fail-closed compatibility behavior.
 
-Canonical demo-path step advanced: `retrieve relevant material`. The work makes that step more real by constructing deterministic FTS-first queries, returning document and excerpt hits with stable provenance, reconstructing sparse payload snapshots, and exposing ordered excerpt lookup fingerprints alongside excerpt IDs, text hashes, citations, and basket item fingerprints. It also supports the next demo-path step, `promote or gather context into the basket`, because basket-facing summaries preserve auditable FTS lookup identity.
+Canonical demo-path step advanced: `retrieve relevant material`. The work makes that step more real by constructing deterministic FTS-first queries, returning document and excerpt hits with stable provenance, reconstructing sparse payload snapshots, and exposing ordered excerpt lookup fingerprints alongside excerpt IDs, text hashes, citations, candidate-resolution snapshots, and basket item fingerprints. It also supports the next demo-path step, `promote or gather context into the basket`, because basket-facing summaries preserve auditable FTS lookup identity and candidate-set provenance.
 
 ## Tasks Completed
 
 1. Canonical FTS retrieval path: added and exported the canonical retrieval query constructor, `retrieve_auto` helper, and FTS-first service behavior through both retrieval facades.
    Canonical demo-path step advanced: `retrieve relevant material`.
-2. Stable retrieval provenance: emitted deterministic document/excerpt hits, citations, basket summaries, primary lookup fingerprints, and ordered `excerpt_lookup_fingerprints` in manifests, summaries, evidence, and result fingerprint payloads.
+2. Stable retrieval provenance: emitted deterministic document/excerpt hits, citations, basket summaries, candidate-resolution snapshots, primary lookup fingerprints, and ordered `excerpt_lookup_fingerprints` in manifests, summaries, evidence, and result fingerprint payloads.
    Canonical demo-path step advanced: `retrieve relevant material`; supports `promote or gather context into the basket` by preserving promotion-ready provenance.
 3. Engine payload compatibility: normalized sparse retrieval source, summary, manifest, policy, provenance, excerpt identity, ordered identifier lists, and context payload snapshots for downstream engine flows, including top-level context bundle query, policy, manifest, summary, and citation status fields.
    Canonical demo-path step advanced: `retrieve relevant material`.
@@ -38,7 +38,7 @@ AGENTS.md narrowing statement: this work makes the `retrieve relevant material` 
 ## Files Changed
 
 Authoritative reviewed implementation range for re-review: `378cf9a7..HEAD` on `codex/feat-retrieval-fts`.
-Evidence range before this fixer commit: `378cf9a7..ce1cbbbea0abc97b6960fac26853b6d039c750dd`
+Evidence range before this fixer commit: `378cf9a7..4ca1c6b0c8e6bd1bbf2fb27ec3ed5f60729bac52`
 
 - `.codex/kickoff_packets/feat-retrieval-fts.md` - lane kickoff metadata corrected during earlier packet refreshes.
 - `.codex/lane_meta/feat-retrieval-fts.json` - lane metadata corrected during earlier packet refreshes.
@@ -47,7 +47,7 @@ Evidence range before this fixer commit: `378cf9a7..ce1cbbbea0abc97b6960fac26853
 - `src/qual/engine/retrieval/fts_strategy.py` - FTS strategy integration behavior.
 - `src/qual/engine/retrieval/payload.py` - deterministic retrieval payload, sparse snapshot normalization, and top-level context bundle reconstruction.
 - `src/qual/retrieval/__init__.py` - retrieval facade exports.
-- `src/qual/retrieval/service.py` - canonical FTS-first retrieval service, provenance, citation, lookup fingerprint behavior, and context bundle packaging.
+- `src/qual/retrieval/service.py` - canonical FTS-first retrieval service, provenance, candidate-resolution citation snapshots, lookup fingerprint behavior, and context bundle packaging.
 - `tests/unit/test_unified_retrieval.py` - approved shared-by-approval regression coverage for the retrieval contract and context bundle copy safety.
 
 Integrator-locked files: none.
@@ -60,14 +60,14 @@ Command: `git diff --stat 378cf9a7..HEAD`
 ```text
  .codex/kickoff_packets/feat-retrieval-fts.md |   36 +-
  .codex/lane_meta/feat-retrieval-fts.json     |  155 +++-
- THREAD_PACKET.md                             |  198 ++---
+ THREAD_PACKET.md                             |  200 +++--
  src/qual/engine/retrieval/__init__.py        |   63 +-
  src/qual/engine/retrieval/fts_strategy.py    |   59 +-
- src/qual/engine/retrieval/payload.py         | 1036 +++++++++++++++++++++++---
+ src/qual/engine/retrieval/payload.py         | 1145 +++++++++++++++++++++++---
  src/qual/retrieval/__init__.py               |   11 +
- src/qual/retrieval/service.py                |  684 +++++++++++++++--
+ src/qual/retrieval/service.py                |  691 ++++++++++++++--
  tests/unit/test_unified_retrieval.py         |  920 ++++++++++++++++++++++-
- 9 files changed, 2828 insertions(+), 334 deletions(-)
+ 9 files changed, 2930 insertions(+), 350 deletions(-)
 ```
 
 Command: `git diff --name-status 378cf9a7..HEAD`
@@ -88,12 +88,12 @@ M	tests/unit/test_unified_retrieval.py
 
 - Task budget: `4/4` high-risk task groups.
 - File count for authoritative reviewed implementation range: `9 files changed`.
-- Size accounting for authoritative reviewed implementation range: `2828 insertions(+), 334 deletions(-)`.
+- Size accounting for authoritative reviewed implementation range: `2930 insertions(+), 350 deletions(-)`.
 - AGENTS high-risk file/size status: exceeds `<=8 files` and `<=300 net LOC`.
 - Integrator exception status: explicit high-risk size/file exception is required for approval of this branch-tip range. This packet does not claim high-risk size compliance.
 - Routing/provider impact: none.
 - PageIndex/embeddings impact: remain compatibility-only fallback behavior; no active non-FTS retrieval path is introduced.
-- Current fixer impact: refreshes handoff range, budget accounting, files changed, canonical demo-path mapping, and gate reporting for re-review.
+- Current fixer impact: adds candidate-resolution snapshots to citation/provenance bundles, refreshes handoff range, budget accounting, files changed, canonical demo-path mapping, and gate reporting for re-review.
 - Remaining risk: integration approval depends on accepting the documented high-risk size/file-count exception or requesting a split.
 
 ## Roadmap/Vision
@@ -106,10 +106,12 @@ M	tests/unit/test_unified_retrieval.py
 
 ## Commands Run
 
-- `make scope-check` - passed for branch `codex/feat-retrieval-fts`.
+- `python -m pytest tests/unit/test_unified_retrieval.py` - blocked because pytest is not installed in this environment (`No module named pytest`).
+- `python -m unittest tests.unit.test_unified_retrieval` - passed 75 focused retrieval tests.
+- `make scope-check` - passed for branch `codex/feat-retrieval-fts`; no branch policy was configured, so scope-check reported skip then pass.
 - `./quality-format.sh --check` - passed.
 - `./quality-lint.sh` - passed shell syntax and trailing whitespace checks.
-- `./quality-test.sh` - passed smoke tests and 144 unit tests after the context bundle hardening change.
+- `./quality-test.sh` - passed smoke tests and 144 unit tests.
 - `./typecheck-test.sh` - passed Python source compilation under `src/`.
 - `make ci` - passed setup, scope-check, format, lint, typecheck, smoke tests, and 144 unit tests.
 
