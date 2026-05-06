@@ -599,6 +599,8 @@ __all__ = [
     "canonical_command_demo_smoke_matrix_contract",
     "canonical_command_demo_smoke_matrix_summary",
     "canonical_command_demo_engine_actions",
+    "canonical_command_demo_readiness_ready",
+    "canonical_command_demo_readiness_statuses",
     "canonical_command_demo_path_step_for_argv",
     "canonical_command_argv",
     "canonical_command_argv_for_demo_path_step",
@@ -756,6 +758,18 @@ def canonical_command_readiness_status_for_engine_action(
         command_line=canonical_command_line_for_engine_action(engine_action),
         engine_actions=(engine_action,) if command else (),
     )
+
+
+def canonical_command_demo_readiness_statuses() -> tuple[CommandCanonicalReadinessStatus, ...]:
+    return tuple(
+        canonical_command_readiness_status_for_flow_step(flow_step)
+        for flow_step, _ in canonical_command_readiness_lookup_table()
+    )
+
+
+def canonical_command_demo_readiness_ready() -> bool:
+    statuses = canonical_command_demo_readiness_statuses()
+    return bool(statuses) and all(status.ready for status in statuses)
 
 
 def canonical_command_action_readiness_summary() -> tuple[
