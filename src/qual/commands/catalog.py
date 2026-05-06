@@ -620,6 +620,17 @@ class CommandDemoReadinessHandoffPacket:
 
 
 @dataclass(frozen=True)
+class CommandDemoReadinessHandoffFieldEntry:
+    field_name: str
+    value: str
+
+
+@dataclass(frozen=True)
+class CommandDemoReadinessHandoffFieldContract:
+    entries: tuple[CommandDemoReadinessHandoffFieldEntry, ...]
+
+
+@dataclass(frozen=True)
 class CommandDemoReadinessHandoffStepStatus:
     ordinal: int
     demo_path_step: str
@@ -6228,6 +6239,99 @@ def command_demo_readiness_handoff_packet_json(
         command_demo_readiness_handoff_packet_payload(specs, launcher_argv),
         sort_keys=True,
         separators=(",", ":"),
+    )
+
+
+COMMAND_DEMO_READINESS_HANDOFF_FIELD_NAMES: tuple[str, ...] = (
+    "scope_completed",
+    "roadmap_items",
+    "vision_capabilities",
+    "routing_provider_impact",
+    "canonical_demo_path_step_advanced",
+    "command_lines",
+    "exact_action_lines",
+    "readiness_fingerprint",
+    "readiness_complete",
+    "risks_blockers",
+)
+
+
+def _command_demo_readiness_handoff_field_entries(
+    packet: CommandDemoReadinessHandoffPacket,
+) -> tuple[CommandDemoReadinessHandoffFieldEntry, ...]:
+    risks = _command_demo_readiness_handoff_packet_risks(packet)
+    return (
+        CommandDemoReadinessHandoffFieldEntry("scope_completed", packet.scope_completed),
+        CommandDemoReadinessHandoffFieldEntry("roadmap_items", "; ".join(packet.roadmap_items)),
+        CommandDemoReadinessHandoffFieldEntry(
+            "vision_capabilities",
+            "; ".join(packet.vision_capabilities),
+        ),
+        CommandDemoReadinessHandoffFieldEntry(
+            "routing_provider_impact",
+            packet.routing_provider_impact,
+        ),
+        CommandDemoReadinessHandoffFieldEntry(
+            "canonical_demo_path_step_advanced",
+            packet.canonical_demo_path_step_advanced,
+        ),
+        CommandDemoReadinessHandoffFieldEntry("command_lines", "; ".join(packet.command_lines)),
+        CommandDemoReadinessHandoffFieldEntry(
+            "exact_action_lines",
+            "; ".join(packet.exact_action_lines),
+        ),
+        CommandDemoReadinessHandoffFieldEntry(
+            "readiness_fingerprint",
+            f"{packet.fingerprint_algorithm}:{packet.fingerprint_digest}",
+        ),
+        CommandDemoReadinessHandoffFieldEntry(
+            "readiness_complete",
+            str(packet.is_complete).lower(),
+        ),
+        CommandDemoReadinessHandoffFieldEntry("risks_blockers", "; ".join(risks)),
+    )
+
+
+def _validate_command_demo_readiness_handoff_field_contract(
+    contract: CommandDemoReadinessHandoffFieldContract,
+    packet: CommandDemoReadinessHandoffPacket,
+) -> None:
+    if tuple(entry.field_name for entry in contract.entries) != COMMAND_DEMO_READINESS_HANDOFF_FIELD_NAMES:
+        raise ValueError("Command demo readiness handoff fields are inconsistent")
+    if any(not entry.value.strip() for entry in contract.entries):
+        raise ValueError("Command demo readiness handoff field values must not be empty")
+    values_by_name = {entry.field_name: entry.value for entry in contract.entries}
+    if values_by_name["scope_completed"] != packet.scope_completed:
+        raise ValueError("Command demo readiness handoff scope field is inconsistent")
+    if values_by_name["canonical_demo_path_step_advanced"] != packet.canonical_demo_path_step_advanced:
+        raise ValueError("Command demo readiness handoff demo path field is inconsistent")
+    if values_by_name["readiness_complete"] != str(packet.is_complete).lower():
+        raise ValueError("Command demo readiness handoff completeness field is inconsistent")
+    expected_fingerprint = f"{packet.fingerprint_algorithm}:{packet.fingerprint_digest}"
+    if values_by_name["readiness_fingerprint"] != expected_fingerprint:
+        raise ValueError("Command demo readiness handoff fingerprint field is inconsistent")
+
+
+@lru_cache(maxsize=None)
+def command_demo_readiness_handoff_field_contract(
+    specs: tuple[CommandSpec, ...] = COMMAND_SPECS,
+    launcher_argv: tuple[str, ...] = COMMAND_SMOKE_CLI_LAUNCHER_ARGV,
+) -> CommandDemoReadinessHandoffFieldContract:
+    packet = command_demo_readiness_handoff_packet(specs, launcher_argv)
+    contract = CommandDemoReadinessHandoffFieldContract(
+        entries=_command_demo_readiness_handoff_field_entries(packet)
+    )
+    _validate_command_demo_readiness_handoff_field_contract(contract, packet)
+    return contract
+
+
+def command_demo_readiness_handoff_field_summary(
+    specs: tuple[CommandSpec, ...] = COMMAND_SPECS,
+    launcher_argv: tuple[str, ...] = COMMAND_SMOKE_CLI_LAUNCHER_ARGV,
+) -> tuple[tuple[str, str], ...]:
+    return tuple(
+        (entry.field_name, entry.value)
+        for entry in command_demo_readiness_handoff_field_contract(specs, launcher_argv).entries
     )
 
 
@@ -14077,6 +14181,20 @@ def command_mvp_demo_readiness_handoff_packet_json(
     launcher_argv: tuple[str, ...] = COMMAND_SMOKE_CLI_LAUNCHER_ARGV,
 ) -> str:
     return command_demo_readiness_handoff_packet_json(specs, launcher_argv)
+
+
+def command_mvp_demo_readiness_handoff_field_contract(
+    specs: tuple[CommandSpec, ...] = COMMAND_SPECS,
+    launcher_argv: tuple[str, ...] = COMMAND_SMOKE_CLI_LAUNCHER_ARGV,
+) -> CommandDemoReadinessHandoffFieldContract:
+    return command_demo_readiness_handoff_field_contract(specs, launcher_argv)
+
+
+def command_mvp_demo_readiness_handoff_field_summary(
+    specs: tuple[CommandSpec, ...] = COMMAND_SPECS,
+    launcher_argv: tuple[str, ...] = COMMAND_SMOKE_CLI_LAUNCHER_ARGV,
+) -> tuple[tuple[str, str], ...]:
+    return command_demo_readiness_handoff_field_summary(specs, launcher_argv)
 
 
 def command_mvp_demo_surface_readiness_contract(
