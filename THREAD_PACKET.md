@@ -62,7 +62,7 @@ Task accounting: `4` high-risk task groups completed, matching the high-risk tas
 
 - Task budget: `4` high-risk task groups; completed as the four groups above.
 - File count: the corrected implementation submission uses `6` source/test files plus `3` packet/artifact files.
-- Size limit: exceeds the high-risk `<=300 net LOC` limit. The pre-fix actual range through `0c94bac5fd9b9f2eede94d1d1f04634b79e03b5b` was `9 files changed, 1042 insertions(+), 199 deletions(-)`. This packet refresh keeps that overage explicit for reviewer/integrator disposition.
+- Size limit: exceeds the high-risk `<=300 net LOC` limit. The corrected final range `378cf9a74a3658058079a32f186fcd254c4a4034..HEAD` is `9 files changed, 1006 insertions(+), 198 deletions(-)`. This packet refresh keeps that overage explicit for reviewer/integrator disposition.
 - Explicit exception status: no integrator-approved size exception is recorded in the worktree. Re-review should treat the size overage as a known blocker unless the integrator grants an exception or requests a split.
 - Shared-file exception status: `tests/unit/test_unified_retrieval.py` is the sole approved shared regression surface; no integrator-locked files changed.
 - Routing/provider impact: none.
