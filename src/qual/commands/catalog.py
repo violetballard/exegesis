@@ -12038,6 +12038,31 @@ def command_demo_readiness_command_progress_contract(
     launcher_argv: tuple[str, ...] = COMMAND_SMOKE_CLI_LAUNCHER_ARGV,
 ) -> CommandDemoReadinessCommandProgressContract:
     progress = command_demo_readiness_progress(argvs, specs, launcher_argv)
+    return _command_demo_readiness_command_progress_contract_for_progress(
+        progress,
+        specs,
+        launcher_argv,
+    )
+
+
+def command_demo_readiness_handoff_command_progress_contract(
+    argvs: Sequence[Sequence[str] | str],
+    specs: tuple[CommandSpec, ...] = COMMAND_SPECS,
+    launcher_argv: tuple[str, ...] = COMMAND_SMOKE_CLI_LAUNCHER_ARGV,
+) -> CommandDemoReadinessCommandProgressContract:
+    progress = command_demo_readiness_handoff_progress(argvs, specs, launcher_argv)
+    return _command_demo_readiness_command_progress_contract_for_progress(
+        progress,
+        specs,
+        launcher_argv,
+    )
+
+
+def _command_demo_readiness_command_progress_contract_for_progress(
+    progress: CommandDemoReadinessProgress,
+    specs: tuple[CommandSpec, ...],
+    launcher_argv: tuple[str, ...],
+) -> CommandDemoReadinessCommandProgressContract:
     covered_flow_steps = set(progress.validation.covered_flow_steps)
     missing_engine_actions = set(progress.validation.missing_engine_actions)
     contract = CommandDemoReadinessCommandProgressContract(
@@ -12081,6 +12106,39 @@ def command_demo_readiness_command_progress_summary(
     tuple[tuple[str, ...], ...],
 ]:
     contract = command_demo_readiness_command_progress_contract(argvs, specs, launcher_argv)
+    return _command_demo_readiness_command_progress_summary(contract)
+
+
+def command_demo_readiness_handoff_command_progress_summary(
+    argvs: Sequence[Sequence[str] | str],
+    specs: tuple[CommandSpec, ...] = COMMAND_SPECS,
+    launcher_argv: tuple[str, ...] = COMMAND_SMOKE_CLI_LAUNCHER_ARGV,
+) -> tuple[
+    bool,
+    str | None,
+    str,
+    str,
+    tuple[tuple[int, str, str, str, str, bool, tuple[str, ...]], ...],
+    tuple[tuple[str, ...], ...],
+]:
+    contract = command_demo_readiness_handoff_command_progress_contract(
+        argvs,
+        specs,
+        launcher_argv,
+    )
+    return _command_demo_readiness_command_progress_summary(contract)
+
+
+def _command_demo_readiness_command_progress_summary(
+    contract: CommandDemoReadinessCommandProgressContract,
+) -> tuple[
+    bool,
+    str | None,
+    str,
+    str,
+    tuple[tuple[int, str, str, str, str, bool, tuple[str, ...]], ...],
+    tuple[tuple[str, ...], ...],
+]:
     return (
         contract.is_complete,
         contract.next_flow_step,
@@ -12108,6 +12166,25 @@ def command_demo_readiness_command_progress_payload(
     launcher_argv: tuple[str, ...] = COMMAND_SMOKE_CLI_LAUNCHER_ARGV,
 ) -> dict[str, object]:
     contract = command_demo_readiness_command_progress_contract(argvs, specs, launcher_argv)
+    return _command_demo_readiness_command_progress_payload(contract)
+
+
+def command_demo_readiness_handoff_command_progress_payload(
+    argvs: Sequence[Sequence[str] | str],
+    specs: tuple[CommandSpec, ...] = COMMAND_SPECS,
+    launcher_argv: tuple[str, ...] = COMMAND_SMOKE_CLI_LAUNCHER_ARGV,
+) -> dict[str, object]:
+    contract = command_demo_readiness_handoff_command_progress_contract(
+        argvs,
+        specs,
+        launcher_argv,
+    )
+    return _command_demo_readiness_command_progress_payload(contract)
+
+
+def _command_demo_readiness_command_progress_payload(
+    contract: CommandDemoReadinessCommandProgressContract,
+) -> dict[str, object]:
     return {
         "is_complete": contract.is_complete,
         "next_flow_step": contract.next_flow_step,
@@ -12137,6 +12214,18 @@ def command_demo_readiness_command_progress_json(
 ) -> str:
     return json.dumps(
         command_demo_readiness_command_progress_payload(argvs, specs, launcher_argv),
+        sort_keys=True,
+        separators=(",", ":"),
+    )
+
+
+def command_demo_readiness_handoff_command_progress_json(
+    argvs: Sequence[Sequence[str] | str],
+    specs: tuple[CommandSpec, ...] = COMMAND_SPECS,
+    launcher_argv: tuple[str, ...] = COMMAND_SMOKE_CLI_LAUNCHER_ARGV,
+) -> str:
+    return json.dumps(
+        command_demo_readiness_handoff_command_progress_payload(argvs, specs, launcher_argv),
         sort_keys=True,
         separators=(",", ":"),
     )
@@ -12207,6 +12296,18 @@ def command_demo_readiness_shell_command_progress_contract(
     )
 
 
+def command_demo_readiness_shell_handoff_command_progress_contract(
+    lines: Sequence[str] | str,
+    specs: tuple[CommandSpec, ...] = COMMAND_SPECS,
+    launcher_argv: tuple[str, ...] = COMMAND_SMOKE_CLI_LAUNCHER_ARGV,
+) -> CommandDemoReadinessCommandProgressContract:
+    return command_demo_readiness_handoff_command_progress_contract(
+        _shell_script_executable_argv(lines),
+        specs,
+        launcher_argv,
+    )
+
+
 def command_demo_readiness_shell_command_progress_summary(
     lines: Sequence[str] | str,
     specs: tuple[CommandSpec, ...] = COMMAND_SPECS,
@@ -12226,6 +12327,25 @@ def command_demo_readiness_shell_command_progress_summary(
     )
 
 
+def command_demo_readiness_shell_handoff_command_progress_summary(
+    lines: Sequence[str] | str,
+    specs: tuple[CommandSpec, ...] = COMMAND_SPECS,
+    launcher_argv: tuple[str, ...] = COMMAND_SMOKE_CLI_LAUNCHER_ARGV,
+) -> tuple[
+    bool,
+    str | None,
+    str,
+    str,
+    tuple[tuple[int, str, str, str, str, bool, tuple[str, ...]], ...],
+    tuple[tuple[str, ...], ...],
+]:
+    return command_demo_readiness_handoff_command_progress_summary(
+        _shell_script_executable_argv(lines),
+        specs,
+        launcher_argv,
+    )
+
+
 def command_demo_readiness_shell_command_progress_payload(
     lines: Sequence[str] | str,
     specs: tuple[CommandSpec, ...] = COMMAND_SPECS,
@@ -12238,12 +12358,36 @@ def command_demo_readiness_shell_command_progress_payload(
     )
 
 
+def command_demo_readiness_shell_handoff_command_progress_payload(
+    lines: Sequence[str] | str,
+    specs: tuple[CommandSpec, ...] = COMMAND_SPECS,
+    launcher_argv: tuple[str, ...] = COMMAND_SMOKE_CLI_LAUNCHER_ARGV,
+) -> dict[str, object]:
+    return command_demo_readiness_handoff_command_progress_payload(
+        _shell_script_executable_argv(lines),
+        specs,
+        launcher_argv,
+    )
+
+
 def command_demo_readiness_shell_command_progress_json(
     lines: Sequence[str] | str,
     specs: tuple[CommandSpec, ...] = COMMAND_SPECS,
     launcher_argv: tuple[str, ...] = COMMAND_SMOKE_CLI_LAUNCHER_ARGV,
 ) -> str:
     return command_demo_readiness_command_progress_json(
+        _shell_script_executable_argv(lines),
+        specs,
+        launcher_argv,
+    )
+
+
+def command_demo_readiness_shell_handoff_command_progress_json(
+    lines: Sequence[str] | str,
+    specs: tuple[CommandSpec, ...] = COMMAND_SPECS,
+    launcher_argv: tuple[str, ...] = COMMAND_SMOKE_CLI_LAUNCHER_ARGV,
+) -> str:
+    return command_demo_readiness_handoff_command_progress_json(
         _shell_script_executable_argv(lines),
         specs,
         launcher_argv,
@@ -12806,6 +12950,14 @@ def command_mvp_demo_readiness_command_progress_contract(
     return command_demo_readiness_command_progress_contract(argvs, specs, launcher_argv)
 
 
+def command_mvp_demo_readiness_handoff_command_progress_contract(
+    argvs: Sequence[Sequence[str] | str],
+    specs: tuple[CommandSpec, ...] = COMMAND_SPECS,
+    launcher_argv: tuple[str, ...] = COMMAND_SMOKE_CLI_LAUNCHER_ARGV,
+) -> CommandDemoReadinessCommandProgressContract:
+    return command_demo_readiness_handoff_command_progress_contract(argvs, specs, launcher_argv)
+
+
 def command_mvp_demo_readiness_command_progress_summary(
     argvs: Sequence[Sequence[str] | str],
     specs: tuple[CommandSpec, ...] = COMMAND_SPECS,
@@ -12821,6 +12973,21 @@ def command_mvp_demo_readiness_command_progress_summary(
     return command_demo_readiness_command_progress_summary(argvs, specs, launcher_argv)
 
 
+def command_mvp_demo_readiness_handoff_command_progress_summary(
+    argvs: Sequence[Sequence[str] | str],
+    specs: tuple[CommandSpec, ...] = COMMAND_SPECS,
+    launcher_argv: tuple[str, ...] = COMMAND_SMOKE_CLI_LAUNCHER_ARGV,
+) -> tuple[
+    bool,
+    str | None,
+    str,
+    str,
+    tuple[tuple[int, str, str, str, str, bool, tuple[str, ...]], ...],
+    tuple[tuple[str, ...], ...],
+]:
+    return command_demo_readiness_handoff_command_progress_summary(argvs, specs, launcher_argv)
+
+
 def command_mvp_demo_readiness_command_progress_payload(
     argvs: Sequence[Sequence[str] | str],
     specs: tuple[CommandSpec, ...] = COMMAND_SPECS,
@@ -12829,12 +12996,28 @@ def command_mvp_demo_readiness_command_progress_payload(
     return command_demo_readiness_command_progress_payload(argvs, specs, launcher_argv)
 
 
+def command_mvp_demo_readiness_handoff_command_progress_payload(
+    argvs: Sequence[Sequence[str] | str],
+    specs: tuple[CommandSpec, ...] = COMMAND_SPECS,
+    launcher_argv: tuple[str, ...] = COMMAND_SMOKE_CLI_LAUNCHER_ARGV,
+) -> dict[str, object]:
+    return command_demo_readiness_handoff_command_progress_payload(argvs, specs, launcher_argv)
+
+
 def command_mvp_demo_readiness_command_progress_json(
     argvs: Sequence[Sequence[str] | str],
     specs: tuple[CommandSpec, ...] = COMMAND_SPECS,
     launcher_argv: tuple[str, ...] = COMMAND_SMOKE_CLI_LAUNCHER_ARGV,
 ) -> str:
     return command_demo_readiness_command_progress_json(argvs, specs, launcher_argv)
+
+
+def command_mvp_demo_readiness_handoff_command_progress_json(
+    argvs: Sequence[Sequence[str] | str],
+    specs: tuple[CommandSpec, ...] = COMMAND_SPECS,
+    launcher_argv: tuple[str, ...] = COMMAND_SMOKE_CLI_LAUNCHER_ARGV,
+) -> str:
+    return command_demo_readiness_handoff_command_progress_json(argvs, specs, launcher_argv)
 
 
 def command_mvp_demo_readiness_validate_cli_shell_script_lines(
@@ -12885,6 +13068,14 @@ def command_mvp_demo_readiness_shell_command_progress_contract(
     return command_demo_readiness_shell_command_progress_contract(lines, specs, launcher_argv)
 
 
+def command_mvp_demo_readiness_shell_handoff_command_progress_contract(
+    lines: Sequence[str] | str,
+    specs: tuple[CommandSpec, ...] = COMMAND_SPECS,
+    launcher_argv: tuple[str, ...] = COMMAND_SMOKE_CLI_LAUNCHER_ARGV,
+) -> CommandDemoReadinessCommandProgressContract:
+    return command_demo_readiness_shell_handoff_command_progress_contract(lines, specs, launcher_argv)
+
+
 def command_mvp_demo_readiness_shell_command_progress_summary(
     lines: Sequence[str] | str,
     specs: tuple[CommandSpec, ...] = COMMAND_SPECS,
@@ -12900,6 +13091,21 @@ def command_mvp_demo_readiness_shell_command_progress_summary(
     return command_demo_readiness_shell_command_progress_summary(lines, specs, launcher_argv)
 
 
+def command_mvp_demo_readiness_shell_handoff_command_progress_summary(
+    lines: Sequence[str] | str,
+    specs: tuple[CommandSpec, ...] = COMMAND_SPECS,
+    launcher_argv: tuple[str, ...] = COMMAND_SMOKE_CLI_LAUNCHER_ARGV,
+) -> tuple[
+    bool,
+    str | None,
+    str,
+    str,
+    tuple[tuple[int, str, str, str, str, bool, tuple[str, ...]], ...],
+    tuple[tuple[str, ...], ...],
+]:
+    return command_demo_readiness_shell_handoff_command_progress_summary(lines, specs, launcher_argv)
+
+
 def command_mvp_demo_readiness_shell_command_progress_payload(
     lines: Sequence[str] | str,
     specs: tuple[CommandSpec, ...] = COMMAND_SPECS,
@@ -12908,12 +13114,28 @@ def command_mvp_demo_readiness_shell_command_progress_payload(
     return command_demo_readiness_shell_command_progress_payload(lines, specs, launcher_argv)
 
 
+def command_mvp_demo_readiness_shell_handoff_command_progress_payload(
+    lines: Sequence[str] | str,
+    specs: tuple[CommandSpec, ...] = COMMAND_SPECS,
+    launcher_argv: tuple[str, ...] = COMMAND_SMOKE_CLI_LAUNCHER_ARGV,
+) -> dict[str, object]:
+    return command_demo_readiness_shell_handoff_command_progress_payload(lines, specs, launcher_argv)
+
+
 def command_mvp_demo_readiness_shell_command_progress_json(
     lines: Sequence[str] | str,
     specs: tuple[CommandSpec, ...] = COMMAND_SPECS,
     launcher_argv: tuple[str, ...] = COMMAND_SMOKE_CLI_LAUNCHER_ARGV,
 ) -> str:
     return command_demo_readiness_shell_command_progress_json(lines, specs, launcher_argv)
+
+
+def command_mvp_demo_readiness_shell_handoff_command_progress_json(
+    lines: Sequence[str] | str,
+    specs: tuple[CommandSpec, ...] = COMMAND_SPECS,
+    launcher_argv: tuple[str, ...] = COMMAND_SMOKE_CLI_LAUNCHER_ARGV,
+) -> str:
+    return command_demo_readiness_shell_handoff_command_progress_json(lines, specs, launcher_argv)
 
 
 def command_mvp_demo_readiness_next_action(

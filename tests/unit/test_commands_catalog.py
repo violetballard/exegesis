@@ -68,6 +68,8 @@ from src.qual.commands.catalog import (
     command_demo_readiness_entry_for_argv,
     command_demo_readiness_exact_action_for_argv,
     command_demo_readiness_exact_action_argv_lookup_table,
+    command_demo_readiness_handoff_command_progress_contract,
+    command_demo_readiness_handoff_command_progress_summary,
     command_demo_readiness_cli_exact_action_lines_for_demo_path_step,
     command_demo_readiness_exact_action_lines_for_demo_path_step,
     command_demo_readiness_validate_shell_script_lines,
@@ -898,6 +900,152 @@ class CommandCatalogTests(unittest.TestCase):
             command_demo_readiness_cli_exact_action_lines_for_demo_path_step("missing"),
             (),
         )
+
+    def test_handoff_command_progress_requires_exact_demo_actions(self) -> None:
+        broad_smoke_argv = (
+            ("bootstrap",),
+            ("context-basket", "list"),
+            (
+                "diff-preview",
+                "--original",
+                "draft text",
+                "--proposed",
+                "revised draft text",
+            ),
+            (
+                "terminal",
+                "--operation-kind",
+                "terminal_synthesis_request",
+                "--message",
+                "persist and continue",
+            ),
+        )
+
+        contract = command_demo_readiness_handoff_command_progress_contract(broad_smoke_argv)
+
+        self.assertFalse(contract.is_complete)
+        self.assertEqual(contract.next_flow_step, "project-open")
+        self.assertEqual(
+            contract.next_exact_action_line,
+            "python -m src.main bootstrap --project demo-project",
+        )
+        self.assertEqual(
+            tuple(
+                (entry.flow_step, entry.is_covered, entry.remaining_engine_actions)
+                for entry in contract.entries
+            ),
+            (
+                (
+                    "project-open",
+                    False,
+                    (
+                        "ExegesisAppService.open_project",
+                        "ExegesisAppService.open_document",
+                    ),
+                ),
+                (
+                    "retrieval",
+                    True,
+                    ("ExegesisAppService.add_basket_item",),
+                ),
+                (
+                    "patch-review",
+                    False,
+                    (
+                        "ExegesisAppService.revise_selection",
+                        "ExegesisAppService.apply_patch",
+                        "ExegesisAppService.reject_patch",
+                    ),
+                ),
+                ("export-handoff", True, ()),
+            ),
+        )
+
+    def test_handoff_command_progress_summarizes_exact_completion(self) -> None:
+        lines = command_demo_readiness_cli_exact_action_lines_for_demo_path_step(
+            "open project/document"
+        )
+        open_step_argv = tuple(line for _, line in lines)
+
+        summary = command_demo_readiness_handoff_command_progress_summary(open_step_argv)
+
+        self.assertFalse(summary[0])
+        self.assertEqual(summary[1], "retrieval")
+        self.assertEqual(summary[3], "python -m src.main context-basket list")
+        self.assertEqual(
+            summary[4],
+            (
+                (
+                    1,
+                    "open project/document",
+                    "project-open",
+                    "bootstrap",
+                    "python -m src.main bootstrap",
+                    True,
+                    (),
+                ),
+                (
+                    2,
+                    "retrieve relevant material and gather context",
+                    "retrieval",
+                    "context-basket",
+                    "python -m src.main context-basket list",
+                    False,
+                    (
+                        "ExegesisAppService.search_project",
+                        "ExegesisAppService.add_basket_item",
+                    ),
+                ),
+                (
+                    3,
+                    "preview and apply or reject a patch",
+                    "patch-review",
+                    "diff-preview",
+                    (
+                        "python -m src.main diff-preview --original 'draft text' "
+                        "--proposed 'revised draft text'"
+                    ),
+                    False,
+                    (
+                        "ExegesisAppService.revise_selection",
+                        "ExegesisAppService.apply_patch",
+                        "ExegesisAppService.reject_patch",
+                    ),
+                ),
+                (
+                    4,
+                    "persist and continue",
+                    "export-handoff",
+                    "terminal",
+                    (
+                        "python -m src.main terminal --operation-kind "
+                        "terminal_synthesis_request --message 'persist and continue'"
+                    ),
+                    False,
+                    ("ExegesisAppService.save_document",),
+                ),
+            ),
+        )
+
+    def test_canonical_handoff_command_progress_exports_strict_contract(self) -> None:
+        from src.qual.commands.canonical import (
+            canonical_command_readiness_handoff_command_progress_contract,
+        )
+
+        lines = tuple(
+            line
+            for _, line in command_demo_readiness_cli_exact_action_lines_for_demo_path_step(
+                "preview and apply or reject a patch"
+            )
+        )
+
+        contract = canonical_command_readiness_handoff_command_progress_contract(lines)
+
+        self.assertFalse(contract.is_complete)
+        self.assertEqual(contract.next_flow_step, "project-open")
+        self.assertEqual(contract.entries[2].flow_step, "patch-review")
+        self.assertTrue(contract.entries[2].is_covered)
+        self.assertEqual(contract.entries[2].remaining_engine_actions, ())
 
 
 class Milestone3DemoLoopTests(unittest.TestCase):

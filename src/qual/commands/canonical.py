@@ -281,6 +281,14 @@ from src.qual.commands.catalog import (
     command_mvp_demo_readiness_command_progress_json as _readiness_command_progress_json,
     command_mvp_demo_readiness_command_progress_payload as _readiness_command_progress_payload,
     command_mvp_demo_readiness_command_progress_summary as _readiness_command_progress_summary,
+    command_mvp_demo_readiness_handoff_command_progress_contract
+    as _readiness_handoff_command_progress_contract,
+    command_mvp_demo_readiness_handoff_command_progress_json
+    as _readiness_handoff_command_progress_json,
+    command_mvp_demo_readiness_handoff_command_progress_payload
+    as _readiness_handoff_command_progress_payload,
+    command_mvp_demo_readiness_handoff_command_progress_summary
+    as _readiness_handoff_command_progress_summary,
     command_mvp_demo_readiness_shell_progress as _readiness_shell_progress,
     command_mvp_demo_readiness_shell_progress_summary as _readiness_shell_progress_summary,
     command_mvp_demo_readiness_shell_handoff_progress as _readiness_shell_handoff_progress,
@@ -294,6 +302,14 @@ from src.qual.commands.catalog import (
     as _readiness_shell_command_progress_payload,
     command_mvp_demo_readiness_shell_command_progress_summary
     as _readiness_shell_command_progress_summary,
+    command_mvp_demo_readiness_shell_handoff_command_progress_contract
+    as _readiness_shell_handoff_command_progress_contract,
+    command_mvp_demo_readiness_shell_handoff_command_progress_json
+    as _readiness_shell_handoff_command_progress_json,
+    command_mvp_demo_readiness_shell_handoff_command_progress_payload
+    as _readiness_shell_handoff_command_progress_payload,
+    command_mvp_demo_readiness_shell_handoff_command_progress_summary
+    as _readiness_shell_handoff_command_progress_summary,
     command_mvp_demo_readiness_next_action as _readiness_next_action,
     command_mvp_demo_readiness_next_action_json as _readiness_next_action_json,
     command_mvp_demo_readiness_next_action_payload as _readiness_next_action_payload,
@@ -2059,6 +2075,37 @@ def canonical_command_readiness_command_progress_summary(
     return _readiness_command_progress_summary(argvs)
 
 
+def canonical_command_readiness_handoff_command_progress_contract(
+    argvs: Sequence[Sequence[str] | str],
+) -> CommandDemoReadinessCommandProgressContract:
+    return _readiness_handoff_command_progress_contract(argvs)
+
+
+def canonical_command_readiness_handoff_command_progress_payload(
+    argvs: Sequence[Sequence[str] | str],
+) -> dict[str, object]:
+    return _readiness_handoff_command_progress_payload(argvs)
+
+
+def canonical_command_readiness_handoff_command_progress_json(
+    argvs: Sequence[Sequence[str] | str],
+) -> str:
+    return _readiness_handoff_command_progress_json(argvs)
+
+
+def canonical_command_readiness_handoff_command_progress_summary(
+    argvs: Sequence[Sequence[str] | str],
+) -> tuple[
+    bool,
+    str | None,
+    str,
+    str,
+    tuple[tuple[int, str, str, str, str, bool, tuple[str, ...]], ...],
+    tuple[tuple[str, ...], ...],
+]:
+    return _readiness_handoff_command_progress_summary(argvs)
+
+
 def canonical_command_readiness_shell_progress(
     lines: Sequence[str] | str,
 ) -> CommandDemoReadinessProgress:
@@ -2112,6 +2159,37 @@ def canonical_command_readiness_shell_command_progress_summary(
     tuple[tuple[str, ...], ...],
 ]:
     return _readiness_shell_command_progress_summary(lines)
+
+
+def canonical_command_readiness_shell_handoff_command_progress_contract(
+    lines: Sequence[str] | str,
+) -> CommandDemoReadinessCommandProgressContract:
+    return _readiness_shell_handoff_command_progress_contract(lines)
+
+
+def canonical_command_readiness_shell_handoff_command_progress_payload(
+    lines: Sequence[str] | str,
+) -> dict[str, object]:
+    return _readiness_shell_handoff_command_progress_payload(lines)
+
+
+def canonical_command_readiness_shell_handoff_command_progress_json(
+    lines: Sequence[str] | str,
+) -> str:
+    return _readiness_shell_handoff_command_progress_json(lines)
+
+
+def canonical_command_readiness_shell_handoff_command_progress_summary(
+    lines: Sequence[str] | str,
+) -> tuple[
+    bool,
+    str | None,
+    str,
+    str,
+    tuple[tuple[int, str, str, str, str, bool, tuple[str, ...]], ...],
+    tuple[tuple[str, ...], ...],
+]:
+    return _readiness_shell_handoff_command_progress_summary(lines)
 
 
 def canonical_command_readiness_next_action(
