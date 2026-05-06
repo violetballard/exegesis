@@ -195,9 +195,17 @@ def _with_basket_item_fingerprint(item: dict[str, object]) -> dict[str, object]:
 
 def _normalize_basket_promotion_items(items: list[object]) -> list[object]:
     normalized: list[object] = []
+    seen_item_ids: set[str] = set()
     for item in items:
         if isinstance(item, dict):
             item_snapshot = copy.deepcopy(item)
+            item_id = _normalize_optional_text(
+                item_snapshot.get("item_id", item_snapshot.get("excerpt_id"))
+            )
+            if item_id is not None:
+                if item_id in seen_item_ids:
+                    continue
+                seen_item_ids.add(item_id)
             item_snapshot["source_strategy"] = _fts_source_strategy_from_values(
                 item_snapshot.get("source_strategy"),
                 item_snapshot.get("retrieval_source_strategy"),
@@ -1483,6 +1491,7 @@ def _build_retrieval_context_bundle_from_payload(payload: dict[str, object]) -> 
     retrieval_summary = normalized_payload.get("retrieval_summary")
     if isinstance(retrieval_summary, dict):
         normalized_payload["retrieval_summary"] = _normalize_retrieval_summary_snapshot(retrieval_summary)
+    normalized_payload["basket_promotion_items"] = copy.deepcopy(basket_promotion_items)
     normalized_payload["basket_item_ids"] = copy.deepcopy(basket_item_ids)
     normalized_payload["basket_item_fingerprints"] = copy.deepcopy(basket_item_fingerprints)
     normalized_payload["basket_promotion_count"] = basket_promotion_count
