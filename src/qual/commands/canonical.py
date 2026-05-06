@@ -539,12 +539,14 @@ __all__ = [
     "canonical_command_readiness_next_action_summary",
     "canonical_command_readiness_next_command_argv",
     "canonical_command_readiness_next_exact_action_argv",
+    "canonical_command_readiness_next_status",
     "canonical_command_readiness_shell_next_action",
     "canonical_command_readiness_shell_next_action_json",
     "canonical_command_readiness_shell_next_action_payload",
     "canonical_command_readiness_shell_next_action_summary",
     "canonical_command_readiness_shell_next_command_argv",
     "canonical_command_readiness_shell_next_exact_action_argv",
+    "canonical_command_readiness_shell_next_status",
     "canonical_command_readiness_validate_cli_shell_script_lines",
     "canonical_command_readiness_validate_exact_action_script",
     "canonical_command_readiness_validate_exact_action_shell_script_lines",
@@ -1945,6 +1947,38 @@ def canonical_command_readiness_next_exact_action_argv(
     return _readiness_next_exact_action_argv(argvs)
 
 
+def _readiness_status_for_next_action(
+    next_action: CommandDemoReadinessNextAction,
+) -> CommandCanonicalReadinessStatus:
+    argv = (
+        next_action.remaining_exact_action_lines
+        and canonical_command_action_cli_exact_argv_for_engine_action(
+            next_action.remaining_engine_actions[0]
+        )
+    ) or ()
+    return _readiness_status(
+        command=next_action.next_engine_action
+        and canonical_command_for_engine_action(next_action.next_engine_action),
+        flow_step=next_action.next_flow_step,
+        demo_path_step=next_action.next_demo_path_step,
+        argv=argv,
+        command_line=next_action.next_exact_action_line,
+        engine_actions=(
+            (next_action.next_engine_action,)
+            if next_action.next_engine_action is not None
+            else ()
+        ),
+    )
+
+
+def canonical_command_readiness_next_status(
+    argvs: Sequence[Sequence[str] | str],
+) -> CommandCanonicalReadinessStatus:
+    """Return the next canonical demo-path command/action after a partial CLI transcript."""
+
+    return _readiness_status_for_next_action(_readiness_next_action(argvs))
+
+
 def canonical_command_readiness_shell_next_action(
     lines: Sequence[str] | str,
 ) -> CommandDemoReadinessNextAction:
@@ -1989,6 +2023,14 @@ def canonical_command_readiness_shell_next_exact_action_argv(
     lines: Sequence[str] | str,
 ) -> tuple[str, ...]:
     return _readiness_shell_next_exact_action_argv(lines)
+
+
+def canonical_command_readiness_shell_next_status(
+    lines: Sequence[str] | str,
+) -> CommandCanonicalReadinessStatus:
+    """Return the next canonical demo-path command/action after shell smoke lines."""
+
+    return _readiness_status_for_next_action(_readiness_shell_next_action(lines))
 
 
 def canonical_command_readiness_validate_cli_shell_script_lines(
