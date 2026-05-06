@@ -257,6 +257,10 @@ def _basket_promotion_items_from_snapshot(snapshot: dict[str, object]) -> list[o
     if excerpt_hits:
         return _basket_promotion_items_from_excerpt_hits(snapshot, excerpt_hits)
 
+    excerpt_citations = _normalize_list_like(snapshot.get("excerpt_citations", []))
+    if excerpt_citations:
+        return _basket_promotion_items_from_excerpt_hits(snapshot, excerpt_citations)
+
     return []
 
 
@@ -354,6 +358,7 @@ def _basket_promotion_items_from_excerpt_hits(
         items.append(
             _with_basket_item_fingerprint({
                 "item_id": excerpt_id,
+                "basket_item_id": excerpt_id,
                 "item_type": "excerpt",
                 "doc_id": _first_text_value(hit.get("doc_id"), provenance.get("doc_id")),
                 "doc_type": _first_text_value(hit.get("doc_type"), provenance.get("doc_type")),
@@ -720,6 +725,22 @@ def _normalize_citation_bundle_snapshot(citation_bundle: dict[str, object]) -> d
     )
     normalized["doc_citations"] = _normalize_list_like(normalized.get("doc_citations"))
     normalized["excerpt_citations"] = _normalize_list_like(normalized.get("excerpt_citations"))
+    normalized["basket_promotion_items"] = _basket_promotion_items_from_snapshot(normalized)
+    normalized["basket_item_ids"] = _basket_item_ids_from_snapshot(
+        normalized,
+        basket_promotion_items=normalized["basket_promotion_items"],
+    )
+    normalized["basket_item_fingerprints"] = _basket_item_fingerprints_from_snapshot(
+        normalized,
+        basket_promotion_items=normalized["basket_promotion_items"],
+    )
+    normalized["basket_promotion_count"] = _basket_promotion_count_from_snapshot(
+        normalized,
+        basket_promotion_items=normalized["basket_promotion_items"],
+    )
+    normalized["basket_promotion_ready"] = _basket_promotion_ready_from_count(
+        normalized["basket_promotion_count"]
+    )
     retrieval_policy = normalized.get("retrieval_policy")
     normalized["retrieval_policy"] = _normalize_policy_snapshot(
         retrieval_policy if isinstance(retrieval_policy, dict) else {}
@@ -1209,6 +1230,7 @@ def _build_retrieval_citation_bundle_from_payload(payload: dict[str, object]) ->
         ),
         "doc_citations": copy.deepcopy(doc_citations),
         "excerpt_citations": copy.deepcopy(excerpt_citations),
+        "basket_promotion_items": _basket_promotion_items_from_snapshot(payload),
     })
 
 
