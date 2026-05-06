@@ -5,7 +5,7 @@
 - Merge target: current `main`
 - Handoff type: high-risk branch-tip retrieval handoff for the FTS-first retrieval lane.
 - Reviewed implementation base: `378cf9a74a3658058079a32f186fcd254c4a4034`.
-- Actual merge candidate before this packet fix: `d79154202cfd9b40ef16054af2eb7d5b0fddf0386`.
+- Actual merge candidate before this packet fix: `b44a4cd1ed2fa32d36f52d8cca11f4fc8f72ff4e`.
 - Reviewed implementation range for re-review: `378cf9a74a3658058079a32f186fcd254c4a4034..FINAL_BRANCH_TIP`.
 - Final branch tip: reported in the final fixer response after commit creation.
 - Scope classification: high-risk because this lane touches retrieval core/facade behavior and approved shared regression coverage in `tests/unit/test_unified_retrieval.py`.
@@ -34,8 +34,8 @@ Required before-handoff demo-path statement: this work now makes the canonical d
 
 Reviewed implementation range for re-review: `378cf9a74a3658058079a32f186fcd254c4a4034..FINAL_BRANCH_TIP`.
 
-- `.codex/kickoff_packets/feat-retrieval-fts.md` - branch-tip range includes stale lane metadata from earlier commits; the integration-facing root packet is the regenerated source of truth for re-review.
-- `.codex/lane_meta/feat-retrieval-fts.json` - branch-tip range includes stale lane metadata from earlier commits; the integration-facing root packet is the regenerated source of truth for re-review.
+- `.codex/kickoff_packets/feat-retrieval-fts.md` - branch-tip range includes stale lane metadata from earlier commits; sandbox permissions rejected direct `.codex/**` edits in this fixer pass, so the integration-facing root packet is the regenerated source of truth for re-review.
+- `.codex/lane_meta/feat-retrieval-fts.json` - branch-tip range includes stale lane metadata from earlier commits; sandbox permissions rejected direct `.codex/**` edits in this fixer pass, so the integration-facing root packet is the regenerated source of truth for re-review.
 - `THREAD_PACKET.md` - regenerated this authoritative handoff packet for the actual branch-tip scope.
 - `src/qual/engine/retrieval/__init__.py` - aligned engine retrieval exports and compatibility facade wiring with the FTS-first retrieval surface.
 - `src/qual/engine/retrieval/fts_strategy.py` - hardened FTS strategy identity and candidate/provenance behavior.
@@ -51,14 +51,14 @@ Command: `git diff --stat 378cf9a74a3658058079a32f186fcd254c4a4034 --`
 ```text
  .codex/kickoff_packets/feat-retrieval-fts.md |   36 +-
  .codex/lane_meta/feat-retrieval-fts.json     |  155 ++-
- THREAD_PACKET.md                             |  205 ++--
+ THREAD_PACKET.md                             |  203 ++--
  src/qual/engine/retrieval/__init__.py        |   86 +-
  src/qual/engine/retrieval/fts_strategy.py    |   59 +-
- src/qual/engine/retrieval/payload.py         | 1418 +++++++++++++++++++++++---
+ src/qual/engine/retrieval/payload.py         | 1424 +++++++++++++++++++++++---
  src/qual/retrieval/__init__.py               |   11 +
- src/qual/retrieval/service.py                |  844 ++++++++++++++--
+ src/qual/retrieval/service.py                |  845 +++++++++++++--
  tests/unit/test_unified_retrieval.py         | 1203 +++++++++++++++++++++-
- 9 files changed, 3633 insertions(+), 384 deletions(-)
+ 9 files changed, 3636 insertions(+), 386 deletions(-)
 ```
 
 Command: `git diff --stat adfa8cdadd43747ffbcb612e4151e262b13e52ca --`
@@ -66,30 +66,29 @@ Command: `git diff --stat adfa8cdadd43747ffbcb612e4151e262b13e52ca --`
 ```text
  .codex/kickoff_packets/feat-retrieval-fts.md |   36 +-
  .codex/lane_meta/feat-retrieval-fts.json     |  155 ++-
- THREAD_PACKET.md                             |  205 ++--
+ THREAD_PACKET.md                             |  203 ++--
  src/qual/engine/retrieval/__init__.py        |   86 +-
  src/qual/engine/retrieval/fts_strategy.py    |   59 +-
- src/qual/engine/retrieval/payload.py         | 1418 +++++++++++++++++++++++---
+ src/qual/engine/retrieval/payload.py         | 1424 +++++++++++++++++++++++---
  src/qual/retrieval/__init__.py               |   11 +
- src/qual/retrieval/service.py                |  823 ++++++++++++++-
+ src/qual/retrieval/service.py                |  824 ++++++++++++++-
  tests/unit/test_unified_retrieval.py         | 1181 +++++++++++++++++++++-
- 9 files changed, 3613 insertions(+), 361 deletions(-)
+ 9 files changed, 3616 insertions(+), 363 deletions(-)
 ```
 
-Command: `git show --name-status --oneline bbdab95619a69e962c548b844d9d8e68f25a65cb`
+Command: `git show --name-status --oneline 7124a25d35c390ee27d0ea07865323b6916ca5d4`
 
 ```text
-bbdab9561 Harden retrieval candidate resolution rehydration
+7124a25d3 fix(retrieval): backfill sparse excerpt policy
 M	src/qual/engine/retrieval/payload.py
-M	tests/unit/test_unified_retrieval.py
 ```
 
 ## Budget/Risk
 
 - Task budget: `4/4` high-risk task groups.
 - File count for branch-tip handoff including this packet fix: `9 files changed`.
-- Size accounting for branch-tip handoff including this packet fix: `3633 insertions(+), 384 deletions(-)`, net `3249 LOC`.
-- Post-`adfa8cd` branch delta including this packet fix: `9 files changed, 3613 insertions(+), 361 deletions(-)`.
+- Size accounting for branch-tip handoff before this packet fix: `3636 insertions(+), 386 deletions(-)`, net `3250 LOC`.
+- Post-`adfa8cd` branch delta before this packet fix: `9 files changed, 3616 insertions(+), 363 deletions(-)`.
 - AGENTS file/size status: exceeds high-risk size limits of `<=8 files` and `<=300 net LOC`; this is now explicitly disclosed for reviewer/integrator judgment instead of being hidden behind metadata-only wording.
 - Shared/integrator exception status: `tests/unit/test_unified_retrieval.py` is approved shared regression coverage for the retrieval lane; no integrator-locked files changed.
 - Routing/provider impact: none.
@@ -120,4 +119,4 @@ M	tests/unit/test_unified_retrieval.py
 
 The root `THREAD_PACKET.md` is the authoritative regenerated handoff packet. No commit after `adfa8cdadd43747ffbcb612e4151e262b13e52ca` is described here as metadata-only unless `git show --name-status` for that commit contains only packet or lane metadata files. The reviewed implementation range intentionally covers `378cf9a74a3658058079a32f186fcd254c4a4034..FINAL_BRANCH_TIP` so the actual merge candidate is traceable.
 
-The `.codex` lane metadata files are included in the branch-tip diff because earlier packet refresh commits changed them, but their stale narrow-range wording is superseded by this root packet for re-review. Reviewers should use this root packet plus the final fixer response HEAD SHA as the source of truth for the merge candidate.
+The `.codex` lane metadata files are included in the branch-tip diff because earlier packet refresh commits changed them, but their stale narrow-range wording is superseded by this root packet for re-review. This fixer attempted to regenerate those `.codex` copies too; the sandbox rejected writes to `.codex/**` with `Operation not permitted`, while allowing this root packet update. Reviewers should use this root packet plus the final fixer response HEAD SHA as the source of truth for the merge candidate.
