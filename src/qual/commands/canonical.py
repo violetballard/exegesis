@@ -616,6 +616,12 @@ __all__ = [
     "canonical_command_readiness_command_progress_json",
     "canonical_command_readiness_command_progress_payload",
     "canonical_command_readiness_command_progress_summary",
+    "canonical_command_readiness_handoff_remaining_statuses",
+    "canonical_command_readiness_handoff_snapshot",
+    "canonical_command_readiness_handoff_snapshot_json",
+    "canonical_command_readiness_handoff_snapshot_payload",
+    "canonical_command_readiness_handoff_snapshot_summary",
+    "canonical_command_readiness_handoff_statuses",
     "canonical_command_readiness_shell_progress",
     "canonical_command_readiness_shell_progress_summary",
     "canonical_command_readiness_shell_handoff_progress",
@@ -628,6 +634,12 @@ __all__ = [
     "canonical_command_readiness_shell_handoff_command_progress_json",
     "canonical_command_readiness_shell_handoff_command_progress_payload",
     "canonical_command_readiness_shell_handoff_command_progress_summary",
+    "canonical_command_readiness_shell_handoff_remaining_statuses",
+    "canonical_command_readiness_shell_handoff_snapshot",
+    "canonical_command_readiness_shell_handoff_snapshot_json",
+    "canonical_command_readiness_shell_handoff_snapshot_payload",
+    "canonical_command_readiness_shell_handoff_snapshot_summary",
+    "canonical_command_readiness_shell_handoff_statuses",
     "canonical_command_readiness_next_action",
     "canonical_command_readiness_next_action_json",
     "canonical_command_readiness_next_action_payload",
@@ -1079,6 +1091,99 @@ def canonical_command_readiness_snapshot_json(
     )
 
 
+def _canonical_command_handoff_snapshot_for_validation(
+    validation: CommandDemoReadinessScriptValidation,
+    next_action: CommandDemoReadinessNextAction,
+) -> CommandCanonicalReadinessSnapshot:
+    return CommandCanonicalReadinessSnapshot(
+        completed=tuple(
+            canonical_command_readiness_status_for_engine_action(engine_action)
+            for engine_action in validation.covered_engine_actions
+        ),
+        remaining=tuple(
+            canonical_command_readiness_status_for_engine_action(engine_action)
+            for engine_action in validation.missing_engine_actions
+        ),
+        next_status=_readiness_status_for_next_action(next_action),
+        invalid_argv=validation.invalid_argv,
+        complete=validation.is_complete,
+    )
+
+
+def canonical_command_readiness_handoff_statuses(
+    argvs: Sequence[Sequence[str] | str],
+) -> tuple[CommandCanonicalReadinessStatus, ...]:
+    """Return exact engine-action statuses covered by a handoff smoke transcript."""
+
+    validation = canonical_command_readiness_validate_handoff_script(argvs)
+    return tuple(
+        canonical_command_readiness_status_for_engine_action(engine_action)
+        for engine_action in validation.covered_engine_actions
+    )
+
+
+def canonical_command_readiness_handoff_remaining_statuses(
+    argvs: Sequence[Sequence[str] | str],
+) -> tuple[CommandCanonicalReadinessStatus, ...]:
+    """Return exact engine-action statuses still required for handoff readiness."""
+
+    validation = canonical_command_readiness_validate_handoff_script(argvs)
+    return tuple(
+        canonical_command_readiness_status_for_engine_action(engine_action)
+        for engine_action in validation.missing_engine_actions
+    )
+
+
+def canonical_command_readiness_handoff_snapshot(
+    argvs: Sequence[Sequence[str] | str],
+) -> CommandCanonicalReadinessSnapshot:
+    """Bundle exact action coverage for strict Milestone 3 handoff smoke checks."""
+
+    validation = canonical_command_readiness_validate_handoff_script(argvs)
+    return _canonical_command_handoff_snapshot_for_validation(
+        validation,
+        _readiness_next_action(argvs),
+    )
+
+
+def canonical_command_readiness_handoff_snapshot_summary(
+    argvs: Sequence[Sequence[str] | str],
+) -> tuple[
+    bool,
+    tuple[tuple[str | None, str | None, str | None, bool], ...],
+    tuple[tuple[str | None, str | None, str | None, bool], ...],
+    tuple[str | None, str | None, str | None, tuple[str, ...], bool],
+    tuple[tuple[str, ...], ...],
+]:
+    """Return a compact exact-action snapshot for handoff smoke checks."""
+
+    return _canonical_command_readiness_snapshot_summary(
+        canonical_command_readiness_handoff_snapshot(argvs)
+    )
+
+
+def canonical_command_readiness_handoff_snapshot_payload(
+    argvs: Sequence[Sequence[str] | str],
+) -> dict[str, object]:
+    """Return a JSON-ready exact-action handoff readiness snapshot."""
+
+    return _canonical_command_readiness_snapshot_payload(
+        canonical_command_readiness_handoff_snapshot(argvs)
+    )
+
+
+def canonical_command_readiness_handoff_snapshot_json(
+    argvs: Sequence[Sequence[str] | str],
+) -> str:
+    """Return deterministic JSON for exact-action handoff readiness."""
+
+    return json.dumps(
+        canonical_command_readiness_handoff_snapshot_payload(argvs),
+        sort_keys=True,
+        separators=(",", ":"),
+    )
+
+
 def canonical_command_demo_transcript_contract() -> CommandDemoCommandTranscriptContract:
     """Return the canonical full CLI transcript for the Milestone 3 demo loop."""
 
@@ -1183,6 +1288,80 @@ def canonical_command_readiness_shell_snapshot_json(
 
     return json.dumps(
         canonical_command_readiness_shell_snapshot_payload(lines),
+        sort_keys=True,
+        separators=(",", ":"),
+    )
+
+
+def canonical_command_readiness_shell_handoff_statuses(
+    lines: Sequence[str] | str,
+) -> tuple[CommandCanonicalReadinessStatus, ...]:
+    """Return exact engine-action statuses covered by handoff shell smoke lines."""
+
+    validation = canonical_command_readiness_validate_handoff_shell_script_lines(lines)
+    return tuple(
+        canonical_command_readiness_status_for_engine_action(engine_action)
+        for engine_action in validation.covered_engine_actions
+    )
+
+
+def canonical_command_readiness_shell_handoff_remaining_statuses(
+    lines: Sequence[str] | str,
+) -> tuple[CommandCanonicalReadinessStatus, ...]:
+    """Return exact engine-action statuses still required after handoff shell lines."""
+
+    validation = canonical_command_readiness_validate_handoff_shell_script_lines(lines)
+    return tuple(
+        canonical_command_readiness_status_for_engine_action(engine_action)
+        for engine_action in validation.missing_engine_actions
+    )
+
+
+def canonical_command_readiness_shell_handoff_snapshot(
+    lines: Sequence[str] | str,
+) -> CommandCanonicalReadinessSnapshot:
+    """Bundle exact action coverage for strict handoff shell smoke checks."""
+
+    validation = canonical_command_readiness_validate_handoff_shell_script_lines(lines)
+    return _canonical_command_handoff_snapshot_for_validation(
+        validation,
+        _readiness_shell_next_action(lines),
+    )
+
+
+def canonical_command_readiness_shell_handoff_snapshot_summary(
+    lines: Sequence[str] | str,
+) -> tuple[
+    bool,
+    tuple[tuple[str | None, str | None, str | None, bool], ...],
+    tuple[tuple[str | None, str | None, str | None, bool], ...],
+    tuple[str | None, str | None, str | None, tuple[str, ...], bool],
+    tuple[tuple[str, ...], ...],
+]:
+    """Return a compact exact-action snapshot for handoff shell smoke lines."""
+
+    return _canonical_command_readiness_snapshot_summary(
+        canonical_command_readiness_shell_handoff_snapshot(lines)
+    )
+
+
+def canonical_command_readiness_shell_handoff_snapshot_payload(
+    lines: Sequence[str] | str,
+) -> dict[str, object]:
+    """Return a JSON-ready exact-action handoff snapshot for shell smoke lines."""
+
+    return _canonical_command_readiness_snapshot_payload(
+        canonical_command_readiness_shell_handoff_snapshot(lines)
+    )
+
+
+def canonical_command_readiness_shell_handoff_snapshot_json(
+    lines: Sequence[str] | str,
+) -> str:
+    """Return deterministic JSON for exact-action handoff shell readiness."""
+
+    return json.dumps(
+        canonical_command_readiness_shell_handoff_snapshot_payload(lines),
         sort_keys=True,
         separators=(",", ":"),
     )
