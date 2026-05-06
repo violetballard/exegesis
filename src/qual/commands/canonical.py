@@ -16,6 +16,7 @@ from src.qual.commands.catalog import (
     CommandDemoReadinessEntry,
     CommandDemoReadinessExactActionEntry,
     CommandDemoReadinessExactActionContract,
+    CommandDemoReadinessExactActionRouteContract,
     CommandDemoReadinessExactCliAuditContract,
     CommandDemoReadinessExactActionScriptContract,
     CommandDemoReadinessHandoffActionContract,
@@ -208,6 +209,8 @@ from src.qual.commands.catalog import (
     command_mvp_demo_readiness_exact_action_summary as _readiness_exact_action_summary,
     command_mvp_demo_readiness_exact_cli_audit_contract as _readiness_exact_cli_audit_contract,
     command_mvp_demo_readiness_exact_cli_audit_summary as _readiness_exact_cli_audit_summary,
+    command_mvp_demo_readiness_exact_action_route_contract
+    as _readiness_exact_action_route_contract,
     command_mvp_demo_readiness_exact_action_route_lookup_table
     as _readiness_exact_action_route_lookup_table,
     command_mvp_demo_readiness_exact_action_route_summary
@@ -508,6 +511,7 @@ __all__ = [
     "canonical_command_cli_exact_action_lines_for_command",
     "canonical_command_cli_exact_action_lines_for_demo_path_step",
     "canonical_command_cli_exact_action_lines_for_flow_step",
+    "canonical_command_exact_action_route_contract",
     "canonical_command_exact_action_route_lookup_table",
     "canonical_command_exact_action_route_summary",
     "canonical_command_flow_step",
@@ -1665,6 +1669,10 @@ def canonical_command_readiness_command_audit_payload() -> dict[str, object]:
 
 def canonical_command_readiness_command_audit_json() -> str:
     return _readiness_command_audit_json()
+
+
+def canonical_command_exact_action_route_contract() -> CommandDemoReadinessExactActionRouteContract:
+    return _readiness_exact_action_route_contract()
 
 
 def canonical_command_exact_action_route_summary() -> tuple[
