@@ -25,6 +25,9 @@ ANSI_ESCAPE_RE = re.compile(r"\x1B\[[0-?]*[ -/]*[@-~]")
 PATCH_REVIEW_APPLY_ENGINE_ACTION = "ExegesisAppService.apply_patch"
 PATCH_REVIEW_REJECT_ENGINE_ACTION = "ExegesisAppService.reject_patch"
 PATCH_REVIEW_CONTINUE_ENGINE_ACTION = "ExegesisAppService.save_document"
+PATCH_REVIEW_COMMAND_NAME = "diff-preview"
+PATCH_REVIEW_FLOW_STEP = "patch-review"
+PATCH_REVIEW_DEMO_PATH_STEP = "preview and apply or reject a patch"
 
 
 @dataclass(frozen=True)
@@ -51,6 +54,17 @@ class PatchReviewDecision:
     normalized_equal: bool
     truncated: bool
     engine_actions: tuple[str, ...] = ()
+
+
+@dataclass(frozen=True)
+class PatchReviewCommandStatus:
+    command: str
+    flow_step: str
+    demo_path_step: str
+    decision_status: str
+    next_actions: tuple[str, ...]
+    engine_actions: tuple[str, ...]
+    ready: bool
 
 
 def _normalize_text(value: str) -> str:
@@ -336,6 +350,19 @@ def build_patch_review_decision(payload: DiffPreviewInput) -> PatchReviewDecisio
     )
 
 
+def build_patch_review_command_status(payload: DiffPreviewInput) -> PatchReviewCommandStatus:
+    decision = build_patch_review_decision(payload)
+    return PatchReviewCommandStatus(
+        command=PATCH_REVIEW_COMMAND_NAME,
+        flow_step=PATCH_REVIEW_FLOW_STEP,
+        demo_path_step=PATCH_REVIEW_DEMO_PATH_STEP,
+        decision_status=decision.status,
+        next_actions=decision.next_actions,
+        engine_actions=decision.engine_actions,
+        ready=bool(decision.next_actions and decision.engine_actions),
+    )
+
+
 def run_patch_review_decision(payload: DiffPreviewInput) -> str:
     decision = build_patch_review_decision(payload)
     return (
@@ -344,4 +371,17 @@ def run_patch_review_decision(payload: DiffPreviewInput) -> str:
         f"engine-actions={','.join(decision.engine_actions)}; "
         f"truncated={str(decision.truncated).lower()}; "
         f"{decision.summary}"
+    )
+
+
+def run_patch_review_command_status(payload: DiffPreviewInput) -> str:
+    status = build_patch_review_command_status(payload)
+    return (
+        f"command={status.command}; "
+        f"flow-step={status.flow_step}; "
+        f"demo-path-step={status.demo_path_step}; "
+        f"decision={status.decision_status}; "
+        f"next-actions={','.join(status.next_actions)}; "
+        f"engine-actions={','.join(status.engine_actions)}; "
+        f"ready={str(status.ready).lower()}"
     )
