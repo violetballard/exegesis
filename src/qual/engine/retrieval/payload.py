@@ -1567,11 +1567,9 @@ def _build_retrieval_diagnostics_from_source_bundle(source_bundle: dict[str, obj
     retrieval_evidence = normalized.get("retrieval_evidence", {})
     if not isinstance(retrieval_evidence, dict):
         retrieval_evidence = {}
-    max_results = query_constraints.get("max_results", citation_bundle.get("doc_count", 10))
-    try:
-        max_results_int = int(max_results)
-    except (TypeError, ValueError):
-        max_results_int = 10
+    max_results_int = _normalize_query_max_results(
+        query_constraints.get("max_results", citation_bundle.get("doc_count", 10))
+    )
     fts_shortlist_limit = max(25, max_results_int)
     fts_candidate_scan_limit = (
         fts_shortlist_limit
