@@ -31,6 +31,7 @@ from src.qual.commands.catalog import (
     CommandDemoCommandCoverageContract,
     CommandDemoCommandReadinessContract,
     CommandDemoCommandSurfaceContract,
+    CommandDemoCommandTranscriptContract,
     CommandDemoExecutionPlanContract,
     CommandDemoExecutionPlanStep,
     CommandDemoReadinessHandoffChecklistContract,
@@ -141,6 +142,11 @@ from src.qual.commands.catalog import (
     command_mvp_demo_readiness_next_index_entry as _readiness_next_index_entry,
     command_mvp_demo_readiness_index_payload as _readiness_index_payload,
     command_mvp_demo_readiness_index_summary as _readiness_index_summary,
+    command_mvp_demo_command_transcript_contract as _command_transcript_contract,
+    command_mvp_demo_command_transcript_json as _command_transcript_json,
+    command_mvp_demo_command_transcript_lines as _command_transcript_lines,
+    command_mvp_demo_command_transcript_payload as _command_transcript_payload,
+    command_mvp_demo_command_transcript_summary as _command_transcript_summary,
     command_mvp_demo_readiness_shell_script as _readiness_shell_script,
     command_mvp_demo_readiness_cli_smoke_lines as _readiness_cli_smoke_lines,
     command_mvp_demo_readiness_cli_smoke_script_text as _readiness_cli_smoke_script_text,
@@ -846,6 +852,32 @@ def canonical_command_readiness_remaining_statuses(
         canonical_command_readiness_status_for_flow_step(flow_step)
         for flow_step in validation.missing_flow_steps
     )
+
+
+def canonical_command_demo_transcript_contract() -> CommandDemoCommandTranscriptContract:
+    """Return the canonical full CLI transcript for the Milestone 3 demo loop."""
+
+    return _command_transcript_contract()
+
+
+def canonical_command_demo_transcript_summary() -> tuple[
+    str,
+    str,
+    tuple[tuple[int, str, str, str, str, tuple[str, ...]], ...],
+]:
+    return _command_transcript_summary()
+
+
+def canonical_command_demo_transcript_lines() -> tuple[str, ...]:
+    return _command_transcript_lines()
+
+
+def canonical_command_demo_transcript_payload() -> dict[str, object]:
+    return _command_transcript_payload()
+
+
+def canonical_command_demo_transcript_json() -> str:
+    return _command_transcript_json()
 
 
 def canonical_command_readiness_shell_statuses(
