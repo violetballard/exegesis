@@ -8250,6 +8250,38 @@ def command_demo_readiness_cli_exact_action_line_lookup_table(
     )
 
 
+def command_demo_readiness_cli_exact_argv_for_engine_action(
+    engine_action: str,
+    specs: tuple[CommandSpec, ...] = COMMAND_SPECS,
+    launcher_argv: tuple[str, ...] = COMMAND_SMOKE_CLI_LAUNCHER_ARGV,
+) -> tuple[str, ...]:
+    requested_action = engine_action.strip()
+    if not requested_action:
+        return ()
+    return {
+        action: argv
+        for argv, action in command_demo_readiness_cli_exact_action_argv_lookup_table(
+            specs,
+            launcher_argv,
+        )
+    }.get(requested_action, ())
+
+
+def command_demo_readiness_cli_exact_line_for_engine_action(
+    engine_action: str,
+    specs: tuple[CommandSpec, ...] = COMMAND_SPECS,
+    launcher_argv: tuple[str, ...] = COMMAND_SMOKE_CLI_LAUNCHER_ARGV,
+) -> str:
+    argv = command_demo_readiness_cli_exact_argv_for_engine_action(
+        engine_action,
+        specs,
+        launcher_argv,
+    )
+    if not argv:
+        return ""
+    return _shell_join(argv)
+
+
 def command_demo_readiness_exact_action_shell_script_lines(
     specs: tuple[CommandSpec, ...] = COMMAND_SPECS,
     launcher_argv: tuple[str, ...] = COMMAND_SMOKE_CLI_LAUNCHER_ARGV,
@@ -11436,6 +11468,30 @@ def command_mvp_demo_readiness_cli_exact_action_line_lookup_table(
     launcher_argv: tuple[str, ...] = COMMAND_SMOKE_CLI_LAUNCHER_ARGV,
 ) -> tuple[tuple[str, str], ...]:
     return command_demo_readiness_cli_exact_action_line_lookup_table(specs, launcher_argv)
+
+
+def command_mvp_demo_readiness_cli_exact_argv_for_engine_action(
+    engine_action: str,
+    specs: tuple[CommandSpec, ...] = COMMAND_SPECS,
+    launcher_argv: tuple[str, ...] = COMMAND_SMOKE_CLI_LAUNCHER_ARGV,
+) -> tuple[str, ...]:
+    return command_demo_readiness_cli_exact_argv_for_engine_action(
+        engine_action,
+        specs,
+        launcher_argv,
+    )
+
+
+def command_mvp_demo_readiness_cli_exact_line_for_engine_action(
+    engine_action: str,
+    specs: tuple[CommandSpec, ...] = COMMAND_SPECS,
+    launcher_argv: tuple[str, ...] = COMMAND_SMOKE_CLI_LAUNCHER_ARGV,
+) -> str:
+    return command_demo_readiness_cli_exact_line_for_engine_action(
+        engine_action,
+        specs,
+        launcher_argv,
+    )
 
 
 def command_mvp_demo_readiness_exact_action_contract(

@@ -212,6 +212,10 @@ from src.qual.commands.catalog import (
     as _readiness_exact_action_script_summary,
     command_mvp_demo_readiness_exact_argv_for_engine_action as _readiness_exact_argv_for_engine_action,
     command_mvp_demo_readiness_exact_line_for_engine_action as _readiness_exact_line_for_engine_action,
+    command_mvp_demo_readiness_cli_exact_argv_for_engine_action
+    as _readiness_cli_exact_argv_for_engine_action,
+    command_mvp_demo_readiness_cli_exact_line_for_engine_action
+    as _readiness_cli_exact_line_for_engine_action,
     command_mvp_demo_readiness_action_lines_for_argv as _readiness_action_lines_for_argv,
     command_mvp_demo_readiness_action_smoke_summary as _readiness_action_smoke_summary,
     command_mvp_demo_readiness_action_summary as _readiness_action_summary,
@@ -308,6 +312,8 @@ __all__ = [
     "canonical_command_action_exact_entry_for_argv",
     "canonical_command_action_exact_argv_for_engine_action",
     "canonical_command_action_exact_line_for_engine_action",
+    "canonical_command_action_cli_exact_argv_for_engine_action",
+    "canonical_command_action_cli_exact_line_for_engine_action",
     "canonical_command_action_exact_shell_script_lines",
     "canonical_command_action_exact_shell_script_text",
     "canonical_command_action_exact_contract",
@@ -1208,6 +1214,14 @@ def canonical_command_action_exact_argv_for_engine_action(engine_action: str) ->
 
 def canonical_command_action_exact_line_for_engine_action(engine_action: str) -> str:
     return _readiness_exact_line_for_engine_action(engine_action)
+
+
+def canonical_command_action_cli_exact_argv_for_engine_action(engine_action: str) -> tuple[str, ...]:
+    return _readiness_cli_exact_argv_for_engine_action(engine_action)
+
+
+def canonical_command_action_cli_exact_line_for_engine_action(engine_action: str) -> str:
+    return _readiness_cli_exact_line_for_engine_action(engine_action)
 
 
 def canonical_command_engine_action_matches_for_argv(argv: Sequence[str] | str) -> tuple[str, ...]:
