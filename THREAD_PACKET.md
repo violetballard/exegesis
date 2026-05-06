@@ -15,6 +15,7 @@
 - Traceability correction: no source/test-changing commit after `adfa8cda` is classified as metadata-only. Commits including `2114d026ad9bd68cea6fb63a538771a21d17f816`, `9ca591791ae84e4f86d0b4b3e37b5bffbce09913`, `9609b4cc7d53d03668b96117ed4db1bb14f5ea4f`, `340b2b1f445391cf424f9a73bb1b7abc5fa07102`, `e746e57856d91c90b13207365a232401e4a65500`, `5cc7a8c7bc203f089927b9556c2075251c048899`, `4c748b49a7fa631dd338661802cde03fd93091f7`, `e09c3be72e65f399889512a1914f719d670c6da8`, `9dc7ed4f55fbb3d487d47a91171e8255fed29c82`, and `8a3fbcfc5` are implementation commits and are included in the reviewed range above.
 - This packet-only fixer pass changes the root handoff packet only. It does not classify any source/test-changing commit after `adfa8cda` as metadata-only.
 - Approved shared-file note: `tests/unit/test_unified_retrieval.py` is approved shared-by-approval regression coverage for this retrieval lane. No integrator-locked files are edited in this handoff.
+- AGENTS.md Active MVP canonical demo-path step: `retrieve relevant material`. This packet-only fixer makes the handoff metadata explicit that the lane advances `retrieve relevant material`, with every completed task below mapped to that step.
 
 ## Scope Completed
 
