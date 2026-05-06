@@ -22,6 +22,9 @@ IGNORE_EDGE_BLANK_LINES_ENV = "QUAL_DIFF_IGNORE_EDGE_BLANK_LINES"
 IGNORE_ALL_BLANK_LINES_ENV = "QUAL_DIFF_IGNORE_ALL_BLANK_LINES"
 TRUNCATION_MARKER_ENV = "QUAL_DIFF_TRUNCATION_MARKER"
 ANSI_ESCAPE_RE = re.compile(r"\x1B\[[0-?]*[ -/]*[@-~]")
+PATCH_REVIEW_APPLY_ENGINE_ACTION = "ExegesisAppService.apply_patch"
+PATCH_REVIEW_REJECT_ENGINE_ACTION = "ExegesisAppService.reject_patch"
+PATCH_REVIEW_CONTINUE_ENGINE_ACTION = "ExegesisAppService.save_document"
 
 
 @dataclass(frozen=True)
@@ -47,6 +50,7 @@ class PatchReviewDecision:
     has_changes: bool
     normalized_equal: bool
     truncated: bool
+    engine_actions: tuple[str, ...] = ()
 
 
 def _normalize_text(value: str) -> str:
@@ -309,12 +313,18 @@ def build_patch_review_decision(payload: DiffPreviewInput) -> PatchReviewDecisio
     if result.has_changes:
         status = "changes-detected"
         next_actions = ("apply", "reject")
+        engine_actions = (
+            PATCH_REVIEW_APPLY_ENGINE_ACTION,
+            PATCH_REVIEW_REJECT_ENGINE_ACTION,
+        )
     elif result.normalized_equal:
         status = "no-op"
         next_actions = ("continue",)
+        engine_actions = (PATCH_REVIEW_CONTINUE_ENGINE_ACTION,)
     else:
         status = "no-diff"
         next_actions = ("continue",)
+        engine_actions = (PATCH_REVIEW_CONTINUE_ENGINE_ACTION,)
     return PatchReviewDecision(
         status=status,
         next_actions=next_actions,
@@ -322,6 +332,7 @@ def build_patch_review_decision(payload: DiffPreviewInput) -> PatchReviewDecisio
         has_changes=result.has_changes,
         normalized_equal=result.normalized_equal,
         truncated=result.truncated,
+        engine_actions=engine_actions,
     )
 
 
@@ -330,6 +341,7 @@ def run_patch_review_decision(payload: DiffPreviewInput) -> str:
     return (
         f"patch-review: {decision.status}; "
         f"next-actions={','.join(decision.next_actions)}; "
+        f"engine-actions={','.join(decision.engine_actions)}; "
         f"truncated={str(decision.truncated).lower()}; "
         f"{decision.summary}"
     )
