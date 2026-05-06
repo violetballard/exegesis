@@ -1540,7 +1540,7 @@ class UnifiedRetrievalTests(unittest.TestCase):
         self.assertEqual(metadata["retrieval_backend"], "sqlite_fts")
         self.assertEqual(metadata["retrieval_mode"], "fts_first")
         self.assertEqual(metadata["doc_identity_fingerprint"], excerpt["doc_identity_fingerprint"])
-        self.assertEqual(metadata["excerpt_text_hash"], excerpt["text_hash"])
+        self.assertEqual(metadata["excerpt_text_hash"], excerpt["excerpt_text_hash"])
         self.assertEqual(metadata["excerpt_lookup_fingerprint"], excerpt["excerpt_lookup_fingerprint"])
         self.assertEqual(metadata["basket_item_id"], excerpt_id)
         self.assertEqual(metadata["basket_item_ids"], [excerpt_id])

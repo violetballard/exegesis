@@ -1144,7 +1144,7 @@ class RetrievalService:
                 "source_hash": excerpt.get("source_hash"),
                 "doc_identity_fingerprint": excerpt.get("doc_identity_fingerprint"),
                 "text_hash": excerpt.get("text_hash"),
-                "excerpt_text_hash": excerpt.get("text_hash"),
+                "excerpt_text_hash": excerpt.get("excerpt_text_hash"),
                 "excerpt_fingerprint": excerpt.get("excerpt_fingerprint"),
                 "excerpt_lookup_fingerprint": excerpt.get("excerpt_lookup_fingerprint"),
                 "basket_item_id": excerpt.get("basket_item_id"),
