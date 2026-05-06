@@ -345,6 +345,23 @@ class UnifiedRetrievalTests(unittest.TestCase):
                 )
             )
 
+    def test_retrieve_auto_rejects_invalid_date_range_constraints(self) -> None:
+        for date_range, message in (
+            (("not-a-date", "2026-01-31"), "date_range values must be ISO dates or datetimes"),
+            (("2026-02-01", "2026-01-31"), "date_range start must be on or before end"),
+        ):
+            with self.subTest(date_range=date_range):
+                with self.assertRaisesRegex(ValueError, message):
+                    self.service.retrieve_auto(
+                        RetrievalQuery(
+                            query_text="discussion theory",
+                            scope="vault",
+                            intent="lookup",
+                            constraints=RetrievalConstraints(max_results=4, date_range=date_range),
+                            confidentiality_profile="confidential",
+                        )
+                    )
+
     def test_retrieve_auto_returns_stable_doc_hits_for_downstream_consumers(self) -> None:
         result = self.service.retrieve_auto(
             RetrievalQuery(

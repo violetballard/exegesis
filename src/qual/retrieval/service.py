@@ -2010,6 +2010,13 @@ class RetrievalService:
             raise ValueError("query_text must contain at least one searchable term")
         if query.constraints.max_results < 1:
             raise ValueError("max_results must be greater than zero")
+        if query.constraints.date_range is not None:
+            start_date = self._parse_date_value(query.constraints.date_range[0])
+            end_date = self._parse_date_value(query.constraints.date_range[1])
+            if start_date is None or end_date is None:
+                raise ValueError("date_range values must be ISO dates or datetimes")
+            if start_date > end_date:
+                raise ValueError("date_range start must be on or before end")
         if query.scope.startswith("section:"):
             raise ValueError("section scope is unsupported until FTS fallback can resolve section targets")
         if query.scope not in {"vault"} and not any(query.scope.startswith(prefix) for prefix in ("collection:", "doc:")):
