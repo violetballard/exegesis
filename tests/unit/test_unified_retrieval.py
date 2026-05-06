@@ -582,6 +582,10 @@ class UnifiedRetrievalTests(unittest.TestCase):
             payload["retrieval_summary"]["primary_excerpt_id"],
             result.hits[0].excerpt_id if result.hits else None,
         )
+        self.assertEqual(
+            payload["retrieval_summary"]["primary_excerpt_lookup_fingerprint"],
+            result.hits[0].provenance["excerpt_lookup_fingerprint"] if result.hits else None,
+        )
         self.assertEqual(payload["retrieval_diagnostics"]["result_fingerprint"], result.result_fingerprint)
         self.assertEqual(payload["retrieval_diagnostics"]["retrieval_manifest"], result.diagnostics["retrieval_manifest"])
         self.assertEqual(payload["retrieval_diagnostics"]["retrieval_evidence"], result.diagnostics["retrieval_evidence"])
@@ -2607,6 +2611,10 @@ class UnifiedRetrievalTests(unittest.TestCase):
         self.assertEqual(provenance["query_intent"], "compare")
         self.assertEqual(provenance["retrieval_backend"], "sqlite_fts")
         self.assertEqual(provenance["retrieval_mode"], "fts_first")
+        self.assertEqual(
+            provenance["primary_excerpt_lookup_fingerprint"],
+            result.hits[0].provenance["excerpt_lookup_fingerprint"],
+        )
 
     def test_engine_retrieval_tool_returns_canonical_downstream_payload(self) -> None:
         payload = engine_retrieve_auto_payload(

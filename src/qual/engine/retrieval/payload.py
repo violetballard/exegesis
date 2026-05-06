@@ -1524,6 +1524,10 @@ def _build_retrieval_provenance_from_payload(payload: dict[str, object]) -> dict
         normalized["primary_excerpt_id"] = summary.get("primary_excerpt_id")
     if "primary_excerpt_fingerprint" not in normalized:
         normalized["primary_excerpt_fingerprint"] = summary.get("primary_excerpt_fingerprint")
+    if "primary_excerpt_lookup_fingerprint" not in normalized:
+        normalized["primary_excerpt_lookup_fingerprint"] = summary.get(
+            "primary_excerpt_lookup_fingerprint"
+        )
     if "primary_excerpt_text_hash" not in normalized:
         normalized["primary_excerpt_text_hash"] = summary.get("primary_excerpt_text_hash")
     if "doc_hits_fingerprint" not in normalized:
@@ -1573,6 +1577,10 @@ def _build_retrieval_provenance_from_payload(payload: dict[str, object]) -> dict
             normalized["primary_excerpt_id"] = first_excerpt_citation.get("excerpt_id")
             if _is_missing_snapshot_value(normalized.get("primary_excerpt_fingerprint")):
                 normalized["primary_excerpt_fingerprint"] = first_excerpt_citation.get("excerpt_fingerprint")
+            if _is_missing_snapshot_value(normalized.get("primary_excerpt_lookup_fingerprint")):
+                normalized["primary_excerpt_lookup_fingerprint"] = first_excerpt_citation.get(
+                    "excerpt_lookup_fingerprint"
+                )
             if _is_missing_snapshot_value(normalized.get("primary_excerpt_text_hash")):
                 normalized["primary_excerpt_text_hash"] = first_excerpt_citation.get("excerpt_text_hash")
     return normalized
