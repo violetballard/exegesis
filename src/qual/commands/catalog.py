@@ -1276,6 +1276,8 @@ def _demo_exact_action_smoke_argv_by_engine_action(
     specs: tuple[CommandSpec, ...],
 ) -> dict[str, tuple[str, ...]]:
     expected_actions = set(command_demo_engine_actions(specs))
+    expected_command_by_action = dict(command_demo_action_lookup_table(specs))
+    cli_lookup = dict(command_cli_lookup_table()) if specs == COMMAND_SPECS else dict(command_lookup_index(specs))
     argv_by_action: dict[str, tuple[str, ...]] = {}
     seen_argv: set[tuple[str, ...]] = set()
     for engine_action, argv in _DEMO_EXACT_ACTION_SMOKE_ARGV_BY_ENGINE_ACTION:
@@ -1287,6 +1289,13 @@ def _demo_exact_action_smoke_argv_by_engine_action(
             raise ValueError(f"Command demo exact action smoke argv must not be empty: {engine_action}")
         if argv in seen_argv:
             raise ValueError(f"Duplicate command demo exact action smoke argv: {engine_action}")
+        requested_command = _normalize_token(_strip_command_palette_prefix(argv[0]))
+        expected_command = expected_command_by_action.get(engine_action)
+        if cli_lookup.get(requested_command) != expected_command:
+            raise ValueError(
+                "Command demo exact action smoke argv must use the approved parser surface: "
+                f"{engine_action}"
+            )
         seen_argv.add(argv)
         argv_by_action[engine_action] = argv
     missing_actions = tuple(
