@@ -1,5 +1,6 @@
 from __future__ import annotations
 
+import json
 import os
 import re
 from dataclasses import dataclass
@@ -65,6 +66,20 @@ class PatchReviewCommandStatus:
     next_actions: tuple[str, ...]
     engine_actions: tuple[str, ...]
     ready: bool
+
+
+@dataclass(frozen=True)
+class PatchReviewCommandStatusPayload:
+    command: str
+    flow_step: str
+    demo_path_step: str
+    decision: str
+    next_actions: tuple[str, ...]
+    engine_actions: tuple[str, ...]
+    ready: bool
+    has_changes: bool
+    normalized_equal: bool
+    truncated: bool
 
 
 def _normalize_text(value: str) -> str:
@@ -363,6 +378,26 @@ def build_patch_review_command_status(payload: DiffPreviewInput) -> PatchReviewC
     )
 
 
+def build_patch_review_command_status_payload(
+    payload: DiffPreviewInput,
+) -> PatchReviewCommandStatusPayload:
+    """Return a deterministic status payload for CLI smoke checks."""
+
+    decision = build_patch_review_decision(payload)
+    return PatchReviewCommandStatusPayload(
+        command=PATCH_REVIEW_COMMAND_NAME,
+        flow_step=PATCH_REVIEW_FLOW_STEP,
+        demo_path_step=PATCH_REVIEW_DEMO_PATH_STEP,
+        decision=decision.status,
+        next_actions=decision.next_actions,
+        engine_actions=decision.engine_actions,
+        ready=bool(decision.next_actions and decision.engine_actions),
+        has_changes=decision.has_changes,
+        normalized_equal=decision.normalized_equal,
+        truncated=decision.truncated,
+    )
+
+
 def run_patch_review_decision(payload: DiffPreviewInput) -> str:
     decision = build_patch_review_decision(payload)
     return (
@@ -384,4 +419,24 @@ def run_patch_review_command_status(payload: DiffPreviewInput) -> str:
         f"next-actions={','.join(status.next_actions)}; "
         f"engine-actions={','.join(status.engine_actions)}; "
         f"ready={str(status.ready).lower()}"
+    )
+
+
+def run_patch_review_command_status_json(payload: DiffPreviewInput) -> str:
+    status = build_patch_review_command_status_payload(payload)
+    return json.dumps(
+        {
+            "command": status.command,
+            "flow_step": status.flow_step,
+            "demo_path_step": status.demo_path_step,
+            "decision": status.decision,
+            "next_actions": status.next_actions,
+            "engine_actions": status.engine_actions,
+            "ready": status.ready,
+            "has_changes": status.has_changes,
+            "normalized_equal": status.normalized_equal,
+            "truncated": status.truncated,
+        },
+        sort_keys=True,
+        separators=(",", ":"),
     )
