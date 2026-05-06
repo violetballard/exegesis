@@ -5,9 +5,9 @@
 - Merge target: current `main`
 - Handoff type: high-risk retrieval handoff finalization for the FTS-first retrieval lane.
 - Reviewed implementation base: `378cf9a74a3658058079a32f186fcd254c4a4034`.
-- Reviewed implementation code head: final branch HEAD SHA reported in the fixer response.
-- Reviewed implementation range for re-review: `378cf9a74a3658058079a32f186fcd254c4a4034..final branch HEAD`.
-- Final branch HEAD SHA is reported in the fixer response because the commit cannot self-record its own SHA.
+- Reviewed implementation code head: `d3c8252da4ce14c1736581c83ed50a9ece1af37e`.
+- Reviewed implementation range for re-review: `378cf9a74a3658058079a32f186fcd254c4a4034..d3c8252da4ce14c1736581c83ed50a9ece1af37e`.
+- Final packet-refresh HEAD SHA is reported in the fixer response because this metadata-only commit cannot self-record its own SHA.
 - Scope classification: high-risk because this lane includes the approved shared regression surface `tests/unit/test_unified_retrieval.py`.
 - Lane-owned paths: `src/qual/retrieval/**`, `src/qual/engine/retrieval/**`.
 - Approved shared regression path: `tests/unit/test_unified_retrieval.py`.
@@ -15,7 +15,7 @@
 
 ## Scope Completed
 
-This corrected packet supersedes the stale narrow-range handoff and makes all production and test changes through the final branch HEAD part of the reviewed implementation range.
+This corrected packet supersedes the stale narrow-range handoff and makes all production and test changes through `d3c8252da4ce14c1736581c83ed50a9ece1af37e` part of the reviewed implementation range. The final fixer commit is metadata-only and is reported in the fixer response.
 
 The retrieval lane keeps SQLite FTS as the authoritative MVP retrieval path. The branch adds deterministic FTS cache handling and cache audit metadata, normalizes retrieval payload snapshots and query constraints, preserves retrieval provenance for basket/context promotion flows, keeps PageIndex and embeddings as deferred compatibility surfaces, and makes date-range constraints fail fast when malformed or reversed before FTS execution.
 
@@ -34,9 +34,9 @@ This finalization pass after `c72c99cb27c5b23934314c551c904603fd4e4553` preserve
 
 ## Files Changed
 
-Reviewed implementation range for re-review: `378cf9a74a3658058079a32f186fcd254c4a4034..final branch HEAD`.
+Reviewed implementation range for re-review: `378cf9a74a3658058079a32f186fcd254c4a4034..d3c8252da4ce14c1736581c83ed50a9ece1af37e`.
 
-From `git diff --name-status 378cf9a74a3658058079a32f186fcd254c4a4034..25f8d10c4b8f02c6d613af3300a5b7a02ec1c848`:
+From `git diff --name-status 378cf9a74a3658058079a32f186fcd254c4a4034..d3c8252da4ce14c1736581c83ed50a9ece1af37e`:
 
 - `M .codex/kickoff_packets/feat-retrieval-fts.md`
 - `M .codex/lane_meta/feat-retrieval-fts.json`
@@ -46,50 +46,42 @@ From `git diff --name-status 378cf9a74a3658058079a32f186fcd254c4a4034..25f8d10c4
 - `M src/qual/retrieval/service.py`
 - `M tests/unit/test_unified_retrieval.py`
 
-Current finalization passes changed:
+Implementation files changed after `adfa8cdadd43747ffbcb612e4151e262b13e52ca` are included in this reviewed range:
 
-- `M src/qual/retrieval/service.py`
-- `M THREAD_PACKET.md`
+- `src/qual/engine/retrieval/fts_strategy.py`
+- `src/qual/engine/retrieval/payload.py`
+- `src/qual/retrieval/service.py`
+- `tests/unit/test_unified_retrieval.py`
 
-This finalization pass changed:
-
-- `M src/qual/engine/retrieval/payload.py`
-- `M src/qual/retrieval/service.py`
-- `M THREAD_PACKET.md`
-
-This finalization pass after `c72c99cb27c5b23934314c551c904603fd4e4553` changed:
-
-- `M src/qual/engine/retrieval/payload.py`
-- `M THREAD_PACKET.md`
-
-From `git diff --stat 378cf9a74a3658058079a32f186fcd254c4a4034..25f8d10c4b8f02c6d613af3300a5b7a02ec1c848`:
+From `git diff --stat 378cf9a74a3658058079a32f186fcd254c4a4034..d3c8252da4ce14c1736581c83ed50a9ece1af37e`:
 
 - `.codex/kickoff_packets/feat-retrieval-fts.md` - 36 lines changed.
 - `.codex/lane_meta/feat-retrieval-fts.json` - 155 lines changed.
-- `THREAD_PACKET.md` - 115 lines changed.
+- `THREAD_PACKET.md` - 157 lines changed.
 - `src/qual/engine/retrieval/fts_strategy.py` - 6 lines changed.
-- `src/qual/engine/retrieval/payload.py` - 27 lines changed.
-- `src/qual/retrieval/service.py` - 53 lines changed.
+- `src/qual/engine/retrieval/payload.py` - 33 lines changed.
+- `src/qual/retrieval/service.py` - 84 lines changed.
 - `tests/unit/test_unified_retrieval.py` - 96 lines changed.
 
 ## Budget/Risk
 
 - Task budget: `4` high-risk task groups, including the post-`adfa8cdadd43747ffbcb612e4151e262b13e52ca` date-range query-boundary validation changes as task group 4.
 - File count for reviewed implementation handoff: `7 files changed`.
-- Size accounting: `367 insertions(+), 121 deletions(-)`; net `246` LOC.
-- AGENTS file/size status: fits high-risk size limits of `<=8 files` and `<=300 net LOC`.
+- Size accounting: `441 insertions(+), 126 deletions(-)`; net `315` LOC for the full packet range, including regenerated handoff metadata.
+- Implementation code/test size accounting: `172 insertions(+), 47 deletions(-)`; net `125` LOC across 4 implementation/test files.
+- AGENTS file/size status: implementation code/test changes fit high-risk limits; full packet range exceeds the `<=300 net LOC` high-risk size limit by 15 LOC because it includes required handoff metadata regeneration.
 - Shared/integrator exception status: uses the approved shared regression surface `tests/unit/test_unified_retrieval.py`; no integrator-locked files changed.
 - Routing/provider impact: none.
 - PageIndex/embeddings impact: no PageIndex, embeddings, hybrid, or alternate retrieval path was added as a required MVP path.
-- Remaining risks/blockers: none.
+- Remaining risks/blockers: sandbox blocks writes under `.codex/kickoff_packets` and `.codex/lane_meta` with `Operation not permitted`, so this fixer commit updates `THREAD_PACKET.md`, the writable handoff packet. The stale hidden metadata paths still require an environment with `.codex` write permission if reviewers require those artifacts to be restamped too.
 
-Current finalization remains low blast radius: production changes are confined to `src/qual/engine/retrieval/payload.py`, and the only non-production update is this required handoff packet. No shared regression or integrator-locked file edits were added.
+Current finalization remains low blast radius: the final fixer commit updates handoff metadata only. No shared regression or integrator-locked file edits are added by this fixer pass.
 
 ## Traceability Correction
 
 The earlier packet incorrectly claimed commits after `adfa8cdadd43747ffbcb612e4151e262b13e52ca` were metadata-only. That claim is withdrawn. Commits including `1696a088d`, `d31c231e`, `9792d439`, and `25f8d10c4` are code-bearing retrieval/test commits and are included in the corrected reviewed implementation range.
 
-This handoff has one authoritative reviewed implementation range: `378cf9a74a3658058079a32f186fcd254c4a4034..final branch HEAD`.
+This handoff has one authoritative reviewed implementation range: `378cf9a74a3658058079a32f186fcd254c4a4034..d3c8252da4ce14c1736581c83ed50a9ece1af37e`.
 
 ## Roadmap/Vision
 
@@ -104,6 +96,12 @@ This handoff has one authoritative reviewed implementation range: `378cf9a74a365
 
 Commands run for this corrected packet on the branch-tip worktree state:
 
+- `make scope-check` - passed; no policy for branch `codex/feat-retrieval-fts`, scope-check skipped policy and passed.
+- `./quality-format.sh --check` - passed.
+- `./quality-lint.sh` - passed shell syntax and trailing whitespace checks.
+- `./quality-test.sh` - passed smoke tests and 127 unit tests.
+- `./typecheck-test.sh` - passed Python source compilation under `src/`.
+- `make ci` - passed setup, scope-check, format, lint, compile/typecheck, smoke tests, and 127 unit tests.
 - `python -m unittest tests.unit.test_unified_retrieval` - passed 58 retrieval unit tests.
 - `python -m pytest tests/unit/test_unified_retrieval.py` - not run; active Python reported `No module named pytest`.
 - `./quality-test.sh` - first run failed 5 unified retrieval helper rehydration comparisons after adding `query_constraints`; fixed by normalizing source-bundle constraint snapshots in `src/qual/engine/retrieval/payload.py`.
