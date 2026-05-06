@@ -1027,59 +1027,109 @@ def _build_retrieval_citation_bundle_from_payload(payload: dict[str, object]) ->
     provenance = payload.get("retrieval_provenance", {})
     summary = payload.get("retrieval_summary", {})
     diagnostics = payload.get("retrieval_diagnostics", {})
+    evidence = payload.get("retrieval_evidence", {})
+    manifest = payload.get("retrieval_manifest", {})
+    doc_bundle = payload.get("retrieval_doc_bundle", {})
+    excerpt_bundle = payload.get("retrieval_excerpt_bundle", {})
     if not isinstance(provenance, dict):
         provenance = {}
     if not isinstance(summary, dict):
         summary = {}
     if not isinstance(diagnostics, dict):
         diagnostics = {}
+    if not isinstance(evidence, dict):
+        evidence = {}
+    if not isinstance(manifest, dict):
+        manifest = {}
+    if not isinstance(doc_bundle, dict):
+        doc_bundle = {}
+    if not isinstance(excerpt_bundle, dict):
+        excerpt_bundle = {}
+
+    doc_citations = _normalize_list_like(
+        provenance.get(
+            "doc_citations",
+            evidence.get("doc_citations", doc_bundle.get("doc_citations", [])),
+        )
+    )
+    excerpt_citations = _normalize_list_like(
+        provenance.get(
+            "excerpt_citations",
+            evidence.get("excerpt_citations", excerpt_bundle.get("excerpt_citations", [])),
+        )
+    )
     active_strategy_ids = _normalize_active_strategy_ids(
         provenance.get(
             "active_strategy_ids",
-            summary.get("active_strategy_ids", diagnostics.get("active_strategy_ids")),
+            summary.get(
+                "active_strategy_ids",
+                evidence.get("active_strategy_ids", diagnostics.get("active_strategy_ids")),
+            ),
         ),
         field_name="citation_bundle",
     )
     deferred_strategy_ids = _normalize_deferred_strategy_ids(
         provenance.get(
             "deferred_strategy_ids",
-            summary.get("deferred_strategy_ids", diagnostics.get("deferred_strategy_ids")),
+            summary.get(
+                "deferred_strategy_ids",
+                evidence.get("deferred_strategy_ids", diagnostics.get("deferred_strategy_ids")),
+            ),
         ),
         field_name="citation_bundle",
     )
     query_scope = query.get(
         "scope",
-        provenance.get("query_scope", summary.get("query_scope", diagnostics.get("query_scope"))),
+        provenance.get(
+            "query_scope",
+            summary.get("query_scope", evidence.get("query_scope", diagnostics.get("query_scope"))),
+        ),
     )
     query_intent = query.get(
         "intent",
-        provenance.get("query_intent", summary.get("query_intent", diagnostics.get("query_intent"))),
+        provenance.get(
+            "query_intent",
+            summary.get("query_intent", evidence.get("query_intent", diagnostics.get("query_intent"))),
+        ),
     )
     query_date_range = query_constraints.get(
         "date_range",
-        provenance.get("query_date_range", summary.get("query_date_range", diagnostics.get("date_range"))),
+        provenance.get(
+            "query_date_range",
+            summary.get("query_date_range", evidence.get("query_date_range", diagnostics.get("date_range"))),
+        ),
     )
     query_date_range = _normalize_optional_list_like(query_date_range)
     candidate_doc_count = provenance.get(
         "candidate_doc_count",
-        summary.get("candidate_doc_count", diagnostics.get("candidate_doc_count")),
+        summary.get(
+            "candidate_doc_count",
+            evidence.get("candidate_doc_count", diagnostics.get("candidate_doc_count")),
+        ),
     )
     fts_shortlist_doc_ids = _normalize_list_like(
         provenance.get(
             "fts_shortlist_doc_ids",
-            summary.get("fts_shortlist_doc_ids", diagnostics.get("fts_shortlist_doc_ids", [])),
+            summary.get(
+                "fts_shortlist_doc_ids",
+                evidence.get("fts_shortlist_doc_ids", diagnostics.get("fts_shortlist_doc_ids", [])),
+            ),
         )
     )
     return _normalize_citation_bundle_snapshot({
         "query_fingerprint": _first_text_value(
             provenance.get("query_fingerprint"),
             summary.get("query_fingerprint"),
+            evidence.get("query_fingerprint"),
             diagnostics.get("query_fingerprint"),
             query_fingerprint,
         ),
         "result_fingerprint": provenance.get(
             "result_fingerprint",
-            summary.get("result_fingerprint", diagnostics.get("result_fingerprint")),
+            summary.get(
+                "result_fingerprint",
+                evidence.get("result_fingerprint", diagnostics.get("result_fingerprint")),
+            ),
         ),
         "query_scope": query_scope,
         "query_intent": query_intent,
@@ -1088,32 +1138,59 @@ def _build_retrieval_citation_bundle_from_payload(payload: dict[str, object]) ->
         "fts_shortlist_doc_ids": fts_shortlist_doc_ids,
         "retrieval_backend": provenance.get(
             "retrieval_backend",
-            summary.get("retrieval_backend", diagnostics.get("retrieval_backend")),
+            summary.get(
+                "retrieval_backend",
+                evidence.get("retrieval_backend", diagnostics.get("retrieval_backend")),
+            ),
         ),
         "retrieval_mode": provenance.get(
             "retrieval_mode",
-            summary.get("retrieval_mode", diagnostics.get("retrieval_mode")),
+            summary.get(
+                "retrieval_mode",
+                evidence.get("retrieval_mode", diagnostics.get("retrieval_mode")),
+            ),
         ),
         "retrieval_policy": copy.deepcopy(
             provenance.get(
                 "retrieval_policy",
-                summary.get("retrieval_policy", diagnostics.get("retrieval_policy", {})),
+                summary.get(
+                    "retrieval_policy",
+                    evidence.get("retrieval_policy", diagnostics.get("retrieval_policy", {})),
+                ),
             )
         ),
         "active_strategy_ids": active_strategy_ids,
         "deferred_strategy_ids": deferred_strategy_ids,
-        "citation_status": copy.deepcopy(summary.get("citation_status", provenance.get("citation_status", {}))),
-        "doc_count": provenance.get("doc_count", summary.get("doc_count")),
-        "excerpt_count": provenance.get("excerpt_count", summary.get("excerpt_count")),
+        "citation_status": copy.deepcopy(
+            summary.get("citation_status", provenance.get("citation_status", evidence.get("citation_status", {})))
+        ),
+        "doc_count": provenance.get("doc_count", summary.get("doc_count", evidence.get("doc_count", len(doc_citations)))),
+        "excerpt_count": provenance.get(
+            "excerpt_count",
+            summary.get("excerpt_count", evidence.get("excerpt_count", len(excerpt_citations))),
+        ),
         "doc_hits_fingerprint": provenance.get(
-            "doc_hits_fingerprint", summary.get("doc_hits_fingerprint", diagnostics.get("doc_hits_fingerprint"))
+            "doc_hits_fingerprint",
+            summary.get(
+                "doc_hits_fingerprint",
+                evidence.get(
+                    "doc_hits_fingerprint",
+                    manifest.get("doc_hits_fingerprint", diagnostics.get("doc_hits_fingerprint")),
+                ),
+            ),
         ),
         "excerpt_hits_fingerprint": provenance.get(
             "excerpt_hits_fingerprint",
-            summary.get("excerpt_hits_fingerprint", diagnostics.get("excerpt_hits_fingerprint")),
+            summary.get(
+                "excerpt_hits_fingerprint",
+                evidence.get(
+                    "excerpt_hits_fingerprint",
+                    manifest.get("excerpt_hits_fingerprint", diagnostics.get("excerpt_hits_fingerprint")),
+                ),
+            ),
         ),
-        "doc_citations": copy.deepcopy(provenance.get("doc_citations", [])),
-        "excerpt_citations": copy.deepcopy(provenance.get("excerpt_citations", [])),
+        "doc_citations": copy.deepcopy(doc_citations),
+        "excerpt_citations": copy.deepcopy(excerpt_citations),
     })
 
 
