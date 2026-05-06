@@ -43,6 +43,11 @@ class RetrievalProvenanceBundleSource(Protocol):
         """Return the deterministic retrieval provenance snapshot consumed by engine flows."""
 
 
+class RetrievalBasketPromotionBundleSource(Protocol):
+    def retrieval_basket_promotion_bundle(self) -> dict[str, object]:
+        """Return deterministic retrieval evidence items ready for context-basket promotion."""
+
+
 def _normalize_list_like(value: object) -> list[object]:
     if isinstance(value, list):
         return copy.deepcopy(value)
@@ -71,6 +76,12 @@ def _normalize_optional_text(value: object) -> str | None:
         if text:
             return text
     return None
+
+
+def _normalize_bool_map(value: object) -> dict[str, bool]:
+    if not isinstance(value, dict):
+        return {}
+    return {str(key): bool(item) for key, item in value.items()}
 
 
 def _basket_item_identity(item: dict[str, object]) -> str | None:
@@ -1110,6 +1121,29 @@ def _normalize_retrieval_evidence_snapshot(evidence: dict[str, object]) -> dict[
     return normalized
 
 
+def _normalize_basket_promotion_bundle_snapshot(bundle: dict[str, object]) -> dict[str, object]:
+    normalized = copy.deepcopy(bundle)
+    if not isinstance(normalized, dict):
+        return {}
+    normalized["query_date_range"] = _normalize_optional_list_like(normalized.get("query_date_range"))
+    normalized["active_strategy_ids"] = _normalize_list_like(normalized.get("active_strategy_ids"))
+    normalized["deferred_strategy_ids"] = _normalize_list_like(normalized.get("deferred_strategy_ids"))
+    if "caches_used" in normalized:
+        normalized["caches_used"] = _normalize_bool_map(normalized.get("caches_used"))
+    normalized["promotion_target"] = _first_text_value(normalized.get("promotion_target")) or "context_basket"
+    normalized["promotion_items"] = _normalize_list_like(normalized.get("promotion_items"))
+    normalized["promotion_item_count"] = len(normalized["promotion_items"])
+    retrieval_policy = normalized.get("retrieval_policy")
+    if isinstance(retrieval_policy, dict):
+        normalized["retrieval_policy"] = _normalize_policy_snapshot(retrieval_policy)
+    citation_status = normalized.get("citation_status")
+    if isinstance(citation_status, dict):
+        normalized["citation_status"] = copy.deepcopy(citation_status)
+    elif "citation_status" in normalized:
+        normalized["citation_status"] = {}
+    return normalized
+
+
 def _normalize_retrieval_source_bundle_snapshot(source_bundle: dict[str, object]) -> dict[str, object]:
     normalized = copy.deepcopy(source_bundle)
     if not isinstance(normalized, dict):
@@ -1136,6 +1170,9 @@ def _normalize_retrieval_source_bundle_snapshot(source_bundle: dict[str, object]
     normalized["retrieval_doc_bundle"] = _build_retrieval_doc_bundle_from_payload(normalized)
     normalized["retrieval_excerpt_bundle"] = _build_retrieval_excerpt_bundle_from_payload(normalized)
     normalized["retrieval_provenance"] = _build_retrieval_provenance_from_payload(normalized)
+    normalized["retrieval_basket_promotion_bundle"] = _build_retrieval_basket_promotion_bundle_from_payload(
+        normalized
+    )
     normalized["doc_hits"] = _normalize_list_like(normalized.get("doc_hits", []))
     normalized["excerpt_hits"] = _normalize_list_like(normalized.get("excerpt_hits", []))
     normalized["basket_promotion_items"] = _basket_promotion_items_from_snapshot(normalized)
@@ -1503,6 +1540,7 @@ def _backfill_downstream_payload_from_context_bundle(
         "retrieval_doc_bundle": context_bundle.get("retrieval_doc_bundle"),
         "retrieval_excerpt_bundle": context_bundle.get("retrieval_excerpt_bundle"),
         "retrieval_provenance": context_bundle.get("retrieval_provenance"),
+        "retrieval_basket_promotion_bundle": context_bundle.get("retrieval_basket_promotion_bundle"),
         "retrieval_source_bundle": context_bundle.get("retrieval_source_bundle"),
         "retrieval_evidence": context_bundle.get("retrieval_evidence"),
         "basket_promotion_items": context_bundle.get("basket_promotion_items"),
@@ -1543,6 +1581,9 @@ def _build_retrieval_context_bundle_from_source_bundle(source_bundle: dict[str, 
         source_bundle,
         basket_promotion_items=basket_promotion_items,
     )
+    retrieval_basket_promotion_bundle = source_bundle.get("retrieval_basket_promotion_bundle", {})
+    if not isinstance(retrieval_basket_promotion_bundle, dict):
+        retrieval_basket_promotion_bundle = _build_retrieval_basket_promotion_bundle_from_payload(source_bundle)
     bundle = {
         # Source-bundle-only reconstruction keeps the top-level context auditless.
         "audit_ref": None,
@@ -1565,6 +1606,7 @@ def _build_retrieval_context_bundle_from_source_bundle(source_bundle: dict[str, 
         "retrieval_doc_bundle": copy.deepcopy(retrieval_doc_bundle),
         "retrieval_excerpt_bundle": copy.deepcopy(retrieval_excerpt_bundle),
         "retrieval_provenance": copy.deepcopy(retrieval_provenance),
+        "retrieval_basket_promotion_bundle": copy.deepcopy(retrieval_basket_promotion_bundle),
         "retrieval_source_bundle": copy.deepcopy(source_bundle),
         "retrieval_evidence": copy.deepcopy(source_bundle.get("retrieval_evidence", {})),
         "basket_promotion_items": basket_promotion_items,
@@ -1699,6 +1741,60 @@ def _build_retrieval_excerpt_bundle_from_payload(payload: dict[str, object]) -> 
     })
 
 
+def _build_retrieval_basket_promotion_bundle_from_payload(payload: dict[str, object]) -> dict[str, object]:
+    """Return deterministic FTS evidence items ready for context-basket promotion."""
+
+    basket_bundle = payload.get("retrieval_basket_promotion_bundle")
+    if isinstance(basket_bundle, dict):
+        return _normalize_basket_promotion_bundle_snapshot(basket_bundle)
+    bundle_context = _build_retrieval_bundle_context_from_payload(payload)
+    promotion_items: list[dict[str, object]] = []
+    for hit in _normalize_list_like(payload.get("excerpt_hits", [])):
+        if not isinstance(hit, dict):
+            continue
+        excerpt_id = hit.get("excerpt_id")
+        if excerpt_id is None:
+            continue
+        provenance = hit.get("provenance", {})
+        if not isinstance(provenance, dict):
+            provenance = {}
+        promotion_items.append(
+            {
+                "doc_id": hit.get("doc_id"),
+                "excerpt_id": excerpt_id,
+                "title_hint": hit.get("title_hint"),
+                "excerpt_text": hit.get("excerpt_text"),
+                "span": copy.deepcopy(hit.get("span", provenance.get("span", {}))),
+                "score": hit.get("score"),
+                "rank": provenance.get("rank", hit.get("rank")),
+                "source_strategy": hit.get("source_strategy", provenance.get("source_strategy")),
+                "retrieval_backend": hit.get("retrieval_backend", provenance.get("retrieval_backend")),
+                "retrieval_mode": hit.get("retrieval_mode", provenance.get("retrieval_mode")),
+                "source_hash": hit.get("source_hash", provenance.get("source_hash")),
+                "doc_fingerprint": hit.get("doc_fingerprint", provenance.get("doc_fingerprint")),
+                "doc_identity_fingerprint": hit.get(
+                    "doc_identity_fingerprint",
+                    provenance.get("doc_identity_fingerprint"),
+                ),
+                "excerpt_fingerprint": hit.get("excerpt_fingerprint", provenance.get("excerpt_fingerprint")),
+                "excerpt_text_hash": hit.get(
+                    "excerpt_text_hash",
+                    provenance.get("excerpt_text_hash", provenance.get("hash")),
+                ),
+                "matched_terms": copy.deepcopy(hit.get("matched_terms", provenance.get("matched_terms"))),
+                "match_count": hit.get("match_count", provenance.get("match_count")),
+            }
+        )
+    return _normalize_basket_promotion_bundle_snapshot(
+        {
+            **bundle_context,
+            "promotion_target": "context_basket",
+            "promotion_item_count": len(promotion_items),
+            "promotion_items": promotion_items,
+        }
+    )
+
+
 def _build_retrieval_context_bundle_from_payload(payload: dict[str, object]) -> dict[str, object]:
     """Return the deterministic retrieval context bundle from a downstream payload snapshot."""
 
@@ -1731,6 +1827,9 @@ def _build_retrieval_context_bundle_from_payload(payload: dict[str, object]) -> 
         normalized_payload,
         _build_retrieval_downstream_payload_from_source_bundle(source_bundle),
     )
+    retrieval_basket_promotion_bundle = normalized_payload.get("retrieval_basket_promotion_bundle", {})
+    if not isinstance(retrieval_basket_promotion_bundle, dict):
+        retrieval_basket_promotion_bundle = _build_retrieval_basket_promotion_bundle_from_payload(normalized_payload)
     bundle = {
         "audit_ref": normalized_payload.get("audit_ref"),
         "result_fingerprint": normalized_payload.get("result_fingerprint"),
@@ -1744,6 +1843,7 @@ def _build_retrieval_context_bundle_from_payload(payload: dict[str, object]) -> 
         "retrieval_doc_bundle": _build_retrieval_doc_bundle_from_payload(normalized_payload),
         "retrieval_excerpt_bundle": _build_retrieval_excerpt_bundle_from_payload(normalized_payload),
         "retrieval_provenance": _build_retrieval_provenance_from_payload(normalized_payload),
+        "retrieval_basket_promotion_bundle": copy.deepcopy(retrieval_basket_promotion_bundle),
         "retrieval_source_bundle": source_bundle,
         "retrieval_evidence": copy.deepcopy(normalized_payload.get("retrieval_evidence", {})),
         "basket_promotion_items": basket_promotion_items,
@@ -1816,8 +1916,19 @@ def _build_retrieval_diagnostics_from_source_bundle(source_bundle: dict[str, obj
         )
     )
     strategies_used = list(active_strategy_ids)
+    caches_used = _normalize_bool_map(citation_bundle.get("caches_used", normalized.get("caches_used", {})))
+    if not caches_used:
+        caches_used = {strategy_id: False for strategy_id in strategies_used}
+    retrieval_evidence = normalized.get("retrieval_evidence", {})
+    if not isinstance(retrieval_evidence, dict):
+        retrieval_evidence = {}
+    fts_shortlist_query_fingerprint = _first_text_value(
+        normalized.get("fts_shortlist_query_fingerprint"),
+        citation_bundle.get("fts_shortlist_query_fingerprint"),
+        retrieval_evidence.get("fts_shortlist_query_fingerprint"),
+    )
 
-    return {
+    diagnostics = {
         "retrieval_policy": copy.deepcopy(retrieval_policy),
         "retrieval_backend": _normalize_retrieval_backend(
             citation_bundle.get(
@@ -1853,7 +1964,7 @@ def _build_retrieval_diagnostics_from_source_bundle(source_bundle: dict[str, obj
         "fts_shortlist_doc_ids": fts_shortlist_doc_ids,
         "strategies_used": strategies_used,
         "elapsed_ms_by_strategy": {strategy_id: 0 for strategy_id in strategies_used},
-        "caches_used": {strategy_id: False for strategy_id in strategies_used},
+        "caches_used": caches_used,
         "elapsed_ms_total": 0,
         "doc_hits_count": citation_bundle.get("doc_count", len(_normalize_list_like(normalized.get("doc_hits", [])))),
         "excerpt_hits_count": citation_bundle.get("excerpt_count", len(_normalize_list_like(normalized.get("excerpt_hits", [])))),
@@ -1869,6 +1980,9 @@ def _build_retrieval_diagnostics_from_source_bundle(source_bundle: dict[str, obj
             normalized.get("result_fingerprint"),
         ),
     }
+    if fts_shortlist_query_fingerprint is not None:
+        diagnostics["fts_shortlist_query_fingerprint"] = fts_shortlist_query_fingerprint
+    return diagnostics
 
 
 def _build_retrieval_provenance_from_payload(payload: dict[str, object]) -> dict[str, object]:
@@ -2065,6 +2179,8 @@ class RetrievalDownstreamPayload:
     retrieval_manifest: dict[str, object]
     retrieval_evidence: dict[str, object]
     retrieval_provenance: dict[str, object]
+    retrieval_basket_promotion_bundle: dict[str, object]
+    source_bundle_fingerprint: str
     retrieval_source_bundle: dict[str, object]
     basket_promotion_items: list[dict[str, object]] | None = None
 
@@ -2074,6 +2190,7 @@ class RetrievalDownstreamPayload:
         manifest = copy.deepcopy(self.retrieval_manifest)
         evidence = copy.deepcopy(self.retrieval_evidence)
         provenance = copy.deepcopy(self.retrieval_provenance)
+        basket_promotion_bundle = copy.deepcopy(self.retrieval_basket_promotion_bundle)
         summary = copy.deepcopy(self.retrieval_summary)
         source_bundle = copy.deepcopy(self.retrieval_source_bundle)
         basket_promotion_items = _normalize_list_like(self.basket_promotion_items)
@@ -2098,6 +2215,8 @@ class RetrievalDownstreamPayload:
             "retrieval_manifest": manifest,
             "retrieval_evidence": evidence,
             "retrieval_provenance": provenance,
+            "retrieval_basket_promotion_bundle": basket_promotion_bundle,
+            "source_bundle_fingerprint": self.source_bundle_fingerprint,
             "retrieval_source_bundle": source_bundle,
             "basket_promotion_items": basket_promotion_items,
             "basket_promotion_count": basket_promotion_count,
@@ -2138,6 +2257,8 @@ def build_retrieval_downstream_payload(
     retrieval_manifest: dict[str, object],
     retrieval_evidence: dict[str, object],
     retrieval_provenance: dict[str, object],
+    retrieval_basket_promotion_bundle: dict[str, object],
+    source_bundle_fingerprint: str,
     retrieval_source_bundle: dict[str, object],
     basket_promotion_items: list[dict[str, object]] | None = None,
 ) -> dict[str, object]:
@@ -2159,6 +2280,8 @@ def build_retrieval_downstream_payload(
         retrieval_manifest=retrieval_manifest,
         retrieval_evidence=retrieval_evidence,
         retrieval_provenance=retrieval_provenance,
+        retrieval_basket_promotion_bundle=retrieval_basket_promotion_bundle,
+        source_bundle_fingerprint=source_bundle_fingerprint,
         retrieval_source_bundle=retrieval_source_bundle,
         basket_promotion_items=basket_promotion_items,
     ).as_dict()
@@ -2211,11 +2334,13 @@ def _build_retrieval_downstream_payload_from_source_bundle(
     payload.pop("retrieval_diagnostics", None)
     payload.pop("retrieval_source_bundle", None)
     payload.pop("query_fingerprint", None)
-    payload.pop("source_bundle_fingerprint", None)
+    source_bundle_fingerprint = payload.pop("source_bundle_fingerprint", None)
     payload["policy"] = copy.deepcopy(policy_snapshot)
     payload["retrieval_policy"] = copy.deepcopy(policy_snapshot)
     payload["audit_ref"] = payload.get("audit_ref")
     payload["retrieval_diagnostics"] = _build_retrieval_diagnostics_from_source_bundle(normalized)
+    if source_bundle_fingerprint is not None:
+        payload["source_bundle_fingerprint"] = source_bundle_fingerprint
     payload["retrieval_source_bundle"] = copy.deepcopy(normalized)
     return payload
 

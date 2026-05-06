@@ -394,12 +394,14 @@ class RetrievalResult:
             citation_status=citation_status,
             retrieval_policy=retrieval_policy,
         )
+        retrieval_basket_promotion_bundle = self.retrieval_basket_promotion_bundle()
         retrieval_source_bundle = self._retrieval_source_bundle_snapshot(
             query=query,
             retrieval_policy=retrieval_policy,
             citation_bundle=citation_bundle,
             citation_status=citation_status,
             retrieval_summary=retrieval_summary,
+            retrieval_basket_promotion_bundle=retrieval_basket_promotion_bundle,
         )
         basket_promotion_items = self.basket_promotion_items()
         return build_retrieval_downstream_payload(
@@ -420,6 +422,8 @@ class RetrievalResult:
             retrieval_manifest=dict(self.diagnostics["retrieval_manifest"]),
             retrieval_evidence=dict(self.evidence),
             retrieval_provenance=retrieval_provenance,
+            retrieval_basket_promotion_bundle=retrieval_basket_promotion_bundle,
+            source_bundle_fingerprint=cast(str, retrieval_source_bundle["source_bundle_fingerprint"]),
             retrieval_source_bundle=retrieval_source_bundle,
             basket_promotion_items=basket_promotion_items,
         )
@@ -563,6 +567,9 @@ class RetrievalResult:
             "retrieval_doc_bundle": copy.deepcopy(downstream_payload["retrieval_doc_bundle"]),
             "retrieval_excerpt_bundle": copy.deepcopy(downstream_payload["retrieval_excerpt_bundle"]),
             "retrieval_provenance": copy.deepcopy(downstream_payload["retrieval_provenance"]),
+            "retrieval_basket_promotion_bundle": copy.deepcopy(
+                downstream_payload["retrieval_basket_promotion_bundle"]
+            ),
             "retrieval_source_bundle": copy.deepcopy(downstream_payload["retrieval_source_bundle"]),
             "retrieval_evidence": copy.deepcopy(downstream_payload["retrieval_evidence"]),
             "basket_promotion_items": copy.deepcopy(basket_promotion_items),
@@ -625,6 +632,42 @@ class RetrievalResult:
             item["basket_item_fingerprint"] = RetrievalService._basket_item_fingerprint(item)
             items.append(item)
         return items
+
+    def retrieval_basket_promotion_bundle(self) -> dict[str, object]:
+        """Return deterministic FTS evidence items ready for context-basket promotion."""
+
+        bundle_context = self._retrieval_bundle_context_snapshot()
+        promotion_items: list[dict[str, object]] = []
+        for hit in self.hits:
+            if hit.excerpt_id is None:
+                continue
+            promotion_items.append(
+                {
+                    "doc_id": hit.doc_id,
+                    "excerpt_id": hit.excerpt_id,
+                    "title_hint": hit.title_hint,
+                    "excerpt_text": hit.excerpt_text,
+                    "span": copy.deepcopy(hit.span),
+                    "score": hit.score,
+                    "rank": hit.provenance.get("rank"),
+                    "source_strategy": hit.source_strategy,
+                    "retrieval_backend": hit.provenance.get("retrieval_backend"),
+                    "retrieval_mode": hit.provenance.get("retrieval_mode"),
+                    "source_hash": hit.provenance.get("source_hash"),
+                    "doc_fingerprint": hit.provenance.get("doc_fingerprint"),
+                    "doc_identity_fingerprint": hit.provenance.get("doc_identity_fingerprint"),
+                    "excerpt_fingerprint": hit.provenance.get("excerpt_fingerprint"),
+                    "excerpt_text_hash": hit.provenance.get("excerpt_text_hash") or hit.provenance.get("hash"),
+                    "matched_terms": copy.deepcopy(hit.provenance.get("matched_terms")),
+                    "match_count": hit.provenance.get("match_count"),
+                }
+            )
+        return {
+            **bundle_context,
+            "promotion_target": "context_basket",
+            "promotion_item_count": len(promotion_items),
+            "promotion_items": promotion_items,
+        }
 
     def _query_snapshot(self) -> dict[str, object]:
         return {
@@ -906,6 +949,7 @@ class RetrievalResult:
         citation_bundle: dict[str, object] | None = None,
         citation_status: dict[str, object] | None = None,
         retrieval_summary: dict[str, object] | None = None,
+        retrieval_basket_promotion_bundle: dict[str, object] | None = None,
     ) -> dict[str, object]:
         query_snapshot = query if query is not None else self._query_snapshot()
         retrieval_policy_snapshot = retrieval_policy if retrieval_policy is not None else self._retrieval_policy_snapshot()
@@ -925,6 +969,11 @@ class RetrievalResult:
             str(item["basket_item_fingerprint"])
             for item in basket_promotion_items
         ]
+        basket_promotion_bundle_snapshot = (
+            retrieval_basket_promotion_bundle
+            if retrieval_basket_promotion_bundle is not None
+            else self.retrieval_basket_promotion_bundle()
+        )
         source_bundle = {
             "result_fingerprint": self.result_fingerprint,
             "query_fingerprint": self.diagnostics["query_fingerprint"],
@@ -953,6 +1002,7 @@ class RetrievalResult:
                     retrieval_policy=retrieval_policy_snapshot,
                 )
             ),
+            "retrieval_basket_promotion_bundle": copy.deepcopy(basket_promotion_bundle_snapshot),
         }
         # Fingerprint the source snapshot itself so copies can be verified deterministically.
         source_bundle["source_bundle_fingerprint"] = RetrievalService._stable_fingerprint(
@@ -1175,6 +1225,8 @@ class RetrievalService:
         fts_shortlist_limit = self._fts_shortlist_limit(query.constraints.max_results)
         date_range = query.constraints.date_range
         fts_candidate_scan_limit = self._fts_candidate_scan_limit(fts_shortlist_limit, date_range=date_range)
+        fts_shortlist_query = self._build_fts_shortlist_query(query, max_results=fts_shortlist_limit)
+        fts_shortlist_query_fingerprint = self._query_fingerprint(fts_shortlist_query)
         fts_shortlist = (
             self._candidate_docs_from_fts(
                 query,
@@ -1265,6 +1317,7 @@ class RetrievalService:
             "doc_scope_id": self._doc_scope_id(query.scope),
             "date_range": list(date_range) if date_range is not None else None,
             "fts_shortlist_limit": fts_shortlist_limit,
+            "fts_shortlist_query_fingerprint": fts_shortlist_query_fingerprint,
             "fts_candidate_scan_limit": fts_candidate_scan_limit,
             "candidate_doc_count": effective_candidate_doc_count,
             "candidate_doc_ids": list(candidate_doc_ids),
@@ -1301,6 +1354,7 @@ class RetrievalService:
                 "doc_ids_count": len({hit.doc_id for hit in merged_hits}),
                 "hits_count": len(merged_hits),
                 "candidate_resolution": candidate_resolution,
+                "fts_shortlist_query_fingerprint": fts_shortlist_query_fingerprint,
                 "fts_shortlist_doc_ids": diagnostics["fts_shortlist_doc_ids"],
                 "retrieval_manifest": retrieval_manifest,
                 "retrieval_evidence": retrieval_evidence,
@@ -1839,12 +1893,28 @@ class RetrievalService:
         ]
         basket_promotion_count = len(basket_promotion_items)
 
+        query_constraints = {
+            "max_results": query.constraints.max_results,
+            "doc_types": list(RetrievalService._normalized_doc_types(query.constraints.doc_types)),
+            "date_range": list(query.constraints.date_range)
+            if query.constraints.date_range is not None
+            else None,
+            "require_citations": query.constraints.require_citations,
+            "section_hint": query.constraints.section_hint,
+            "prefer_exact_matches": query.constraints.prefer_exact_matches,
+        }
+        fts_shortlist_query = self._build_fts_shortlist_query(
+            query,
+            max_results=self._fts_shortlist_limit(query.constraints.max_results),
+        )
         return {
             "query_fingerprint": query_fingerprint,
             "result_fingerprint": result_fingerprint,
             "query_scope": query.scope,
             "query_intent": query.intent,
-            "query_constraints": RetrievalService._query_constraints_snapshot(query),
+            "query_constraints": query_constraints,
+            "query_constraints_fingerprint": RetrievalService._stable_fingerprint(query_constraints),
+            "fts_shortlist_query_fingerprint": self._query_fingerprint(fts_shortlist_query),
             "query_date_range": list(query.constraints.date_range)
             if query.constraints.date_range is not None
             else None,

@@ -92,6 +92,23 @@ def _normalize_optional_text(value: object, *, field_name: str) -> str | None:
     return normalized or None
 
 
+def _normalize_optional_bool(value: object, *, default: bool = False) -> bool:
+    if value is None:
+        return default
+    if isinstance(value, bool):
+        return value
+    if isinstance(value, str):
+        normalized = value.strip().casefold()
+        if normalized in {"1", "true", "yes", "on"}:
+            return True
+        if normalized in {"0", "false", "no", "off", ""}:
+            return False
+        raise ValueError(f"unsupported boolean constraint value: {value}")
+    if isinstance(value, int) and value in {0, 1}:
+        return bool(value)
+    raise TypeError("boolean constraints must be bools, 0/1 integers, text booleans, or None")
+
+
 def build_retrieval_query(
     *,
     query_text: str,
