@@ -690,6 +690,19 @@ class UnifiedRetrievalTests(unittest.TestCase):
         )
         self.assertEqual(payload["retrieval_citation_bundle"], result.citation_bundle())
         self.assertEqual(
+            payload["retrieval_citation_bundle"]["basket_promotion_count"],
+            len(result.basket_promotion_items()),
+        )
+        self.assertEqual(payload["retrieval_citation_bundle"]["basket_promotion_ready"], True)
+        self.assertEqual(
+            payload["retrieval_citation_bundle"]["basket_item_ids"],
+            [item["item_id"] for item in result.basket_promotion_items()],
+        )
+        self.assertEqual(
+            payload["retrieval_citation_bundle"]["basket_item_fingerprints"],
+            [item["basket_item_fingerprint"] for item in result.basket_promotion_items()],
+        )
+        self.assertEqual(
             payload["retrieval_citation_bundle"]["doc_citations"],
             payload["retrieval_provenance"]["doc_citations"],
         )
@@ -2481,6 +2494,13 @@ class UnifiedRetrievalTests(unittest.TestCase):
         self.assertEqual(direct["retrieval_mode"], "fts_first")
         self.assertEqual(direct["active_strategy_ids"], ["fts"])
         self.assertEqual(direct["deferred_strategy_ids"], ["pageindex", "embeddings"])
+        self.assertEqual(direct["basket_promotion_count"], len(result.basket_promotion_items()))
+        self.assertEqual(direct["basket_promotion_ready"], True)
+        self.assertEqual(direct["basket_item_ids"], [item["item_id"] for item in result.basket_promotion_items()])
+        self.assertEqual(
+            direct["basket_item_fingerprints"],
+            [item["basket_item_fingerprint"] for item in result.basket_promotion_items()],
+        )
         self.assertEqual(direct["doc_citations"], result.citation_bundle()["doc_citations"])
         self.assertEqual(direct["excerpt_citations"], result.citation_bundle()["excerpt_citations"])
         direct["doc_citations"][0]["doc_id"] = "mutated-doc-id"

@@ -410,6 +410,8 @@ class RetrievalResult:
         active_strategy_ids = list(self.diagnostics["active_strategy_ids"])
         deferred_strategy_ids = list(self.diagnostics["deferred_strategy_ids"])
         citation_status = self._citation_status_snapshot()
+        basket_promotion_items = self.basket_promotion_items()
+        basket_promotion_count = len(basket_promotion_items)
         query_date_range = (
             list(self.query.constraints.date_range)
             if self.query.constraints.date_range is not None
@@ -438,6 +440,13 @@ class RetrievalResult:
             "citation_status": citation_status,
             "doc_count": len(self.doc_hits),
             "excerpt_count": len(self.hits),
+            "basket_promotion_count": basket_promotion_count,
+            "basket_promotion_ready": basket_promotion_count > 0,
+            "basket_item_ids": [str(item["item_id"]) for item in basket_promotion_items],
+            "basket_item_fingerprints": [
+                str(item["basket_item_fingerprint"])
+                for item in basket_promotion_items
+            ],
             "doc_hits_fingerprint": self.diagnostics["doc_hits_fingerprint"],
             "excerpt_hits_fingerprint": self.diagnostics["excerpt_hits_fingerprint"],
             "doc_citations": self._doc_citation_snapshots(),
