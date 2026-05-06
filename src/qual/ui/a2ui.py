@@ -3346,7 +3346,11 @@ def _build_terminal_artifact_cli_fallback_payload_contract_manifest() -> dict[st
         "renderer_entrypoint": "render_terminal_artifact_cli_fallback_payload",
         "shell_renderer_entrypoint": "ShellUI.render_cli_fallback_payload",
         "required_fields": list(_TERMINAL_ARTIFACT_CLI_FALLBACK_PAYLOAD_REQUIRED_FIELDS),
-        "artifact_input_shape": "explicit two-item sequence: kind, artifact",
+        "artifact_input_shape": "ordered replayable sequence of explicit two-item sequences: kind, artifact",
+        "artifact_input_order_policy": (
+            "artifact containers must be replayable ordered sequences; mapping, unordered set-like, and one-shot "
+            "iterable containers are rejected"
+        ),
         "artifact_entry_contract": "TerminalArtifact",
         "cli_fallback_entry_fields": list(_TERMINAL_ARTIFACT_CLI_FALLBACK_PAYLOAD_CLI_ENTRY_FIELDS),
         "artifact_id_policy": (
@@ -3727,7 +3731,7 @@ def build_terminal_artifact_envelope(artifact: Any, *, kind: str) -> dict[str, A
 
 
 def build_terminal_artifact_cli_fallback_payload(
-    artifacts: Iterable[Sequence[Any]],
+    artifacts: Sequence[Sequence[Any]],
 ) -> dict[str, Any]:
     """Build the shared engine-to-client payload plus deterministic CLI text.
 
@@ -3737,6 +3741,12 @@ def build_terminal_artifact_cli_fallback_payload(
     rendered from that same envelope so the CLI path cannot drift from the
     shared contract payload.
     """
+
+    if (
+        isinstance(artifacts, (str, bytes, Mapping, Set))
+        or not isinstance(artifacts, Sequence)
+    ):
+        raise ValueError("TerminalArtifact fallback payload artifacts must be a replayable ordered sequence")
 
     envelope_items: list[dict[str, Any]] = []
     rendered_items: list[dict[str, Any]] = []

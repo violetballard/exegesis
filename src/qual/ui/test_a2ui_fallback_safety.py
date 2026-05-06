@@ -12767,7 +12767,15 @@ class A2UIFallbackSafetyTests(unittest.TestCase):
         self.assertEqual(contract["payload_type"], "TerminalArtifactCliFallbackPayload")
         self.assertEqual(contract["renderer_entrypoint"], "render_terminal_artifact_cli_fallback_payload")
         self.assertEqual(contract["shell_renderer_entrypoint"], "ShellUI.render_cli_fallback_payload")
-        self.assertEqual(contract["artifact_input_shape"], "explicit two-item sequence: kind, artifact")
+        self.assertEqual(
+            contract["artifact_input_shape"],
+            "ordered replayable sequence of explicit two-item sequences: kind, artifact",
+        )
+        self.assertEqual(
+            contract["artifact_input_order_policy"],
+            "artifact containers must be replayable ordered sequences; mapping, unordered set-like, and one-shot "
+            "iterable containers are rejected",
+        )
         self.assertEqual(contract["artifact_entry_contract"], "TerminalArtifact")
         self.assertIn("artifact_order_fingerprint", contract["required_fields"])
         self.assertIn("cli_fallback_fingerprint", contract["required_fields"])
@@ -12992,6 +13000,40 @@ class A2UIFallbackSafetyTests(unittest.TestCase):
     def test_terminal_artifact_cli_fallback_payload_rejects_empty_artifact_list(self) -> None:
         with self.assertRaises(ValueError):
             build_terminal_artifact_cli_fallback_payload([])
+
+    def test_terminal_artifact_cli_fallback_payload_rejects_unordered_artifact_containers(self) -> None:
+        unordered_artifacts = {
+            (
+                "card",
+                (
+                    ("type", "GenericCard"),
+                    ("title", "Run Log"),
+                    ("blocks", (("type", "MarkdownBlock"), ("markdown", "Done"))),
+                    ("actions", ()),
+                ),
+            )
+        }
+
+        with self.assertRaises(ValueError):
+            build_terminal_artifact_cli_fallback_payload(unordered_artifacts)
+
+    def test_terminal_artifact_cli_fallback_payload_rejects_one_shot_artifact_iterables(self) -> None:
+        artifact_iterable = iter(
+            [
+                (
+                    "card",
+                    {
+                        "type": "GenericCard",
+                        "title": "Run Log",
+                        "blocks": [{"type": "MarkdownBlock", "markdown": "Done"}],
+                        "actions": [],
+                    },
+                )
+            ]
+        )
+
+        with self.assertRaises(ValueError):
+            build_terminal_artifact_cli_fallback_payload(artifact_iterable)
 
     def test_terminal_artifact_cli_fallback_payload_rejects_stale_artifact_order_fingerprint(self) -> None:
         payload = build_terminal_artifact_cli_fallback_payload(
