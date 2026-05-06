@@ -8284,6 +8284,62 @@ def command_demo_command_surface_lookup_table(
     )
 
 
+def command_demo_command_surface_payload(
+    specs: tuple[CommandSpec, ...] = COMMAND_SPECS,
+    launcher_argv: tuple[str, ...] = COMMAND_SMOKE_CLI_LAUNCHER_ARGV,
+) -> dict[str, object]:
+    contract = command_demo_command_surface_contract(specs, launcher_argv)
+    payload: dict[str, object] = {
+        "launcher_argv": list(contract.launcher_argv),
+        "entries": [
+            {
+                "ordinal": entry.ordinal,
+                "demo_path_step": entry.demo_path_step,
+                "flow_step": entry.flow_step,
+                "name": entry.name,
+                "command_argv": list(entry.command_argv),
+                "command_line": entry.command_line,
+                "engine_actions": list(entry.engine_actions),
+                "exact_action_argv": [
+                    {
+                        "engine_action": engine_action,
+                        "argv": list(argv),
+                    }
+                    for engine_action, argv in entry.exact_action_argv
+                ],
+                "exact_action_lines": [
+                    {
+                        "engine_action": engine_action,
+                        "command_line": command_line,
+                    }
+                    for engine_action, command_line in entry.exact_action_lines
+                ],
+                "cli_exact_action_lines": [
+                    {
+                        "engine_action": engine_action,
+                        "command_line": command_line,
+                    }
+                    for engine_action, command_line in entry.cli_exact_action_lines
+                ],
+            }
+            for entry in contract.entries
+        ],
+    }
+    json.dumps(payload, sort_keys=True, separators=(",", ":"))
+    return payload
+
+
+def command_demo_command_surface_json(
+    specs: tuple[CommandSpec, ...] = COMMAND_SPECS,
+    launcher_argv: tuple[str, ...] = COMMAND_SMOKE_CLI_LAUNCHER_ARGV,
+) -> str:
+    return json.dumps(
+        command_demo_command_surface_payload(specs, launcher_argv),
+        sort_keys=True,
+        separators=(",", ":"),
+    )
+
+
 @lru_cache(maxsize=None)
 def command_demo_command_coverage_contract(
     specs: tuple[CommandSpec, ...] = COMMAND_SPECS,
@@ -8534,6 +8590,20 @@ def command_mvp_demo_command_surface_lookup_table(
     launcher_argv: tuple[str, ...] = COMMAND_SMOKE_CLI_LAUNCHER_ARGV,
 ) -> tuple[tuple[str, tuple[str, ...], tuple[str, ...]], ...]:
     return command_demo_command_surface_lookup_table(specs, launcher_argv)
+
+
+def command_mvp_demo_command_surface_payload(
+    specs: tuple[CommandSpec, ...] = COMMAND_SPECS,
+    launcher_argv: tuple[str, ...] = COMMAND_SMOKE_CLI_LAUNCHER_ARGV,
+) -> dict[str, object]:
+    return command_demo_command_surface_payload(specs, launcher_argv)
+
+
+def command_mvp_demo_command_surface_json(
+    specs: tuple[CommandSpec, ...] = COMMAND_SPECS,
+    launcher_argv: tuple[str, ...] = COMMAND_SMOKE_CLI_LAUNCHER_ARGV,
+) -> str:
+    return command_demo_command_surface_json(specs, launcher_argv)
 
 
 def command_mvp_demo_command_coverage_contract(

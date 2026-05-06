@@ -198,7 +198,9 @@ from src.qual.commands.catalog import (
     command_mvp_demo_command_coverage_lookup_table as _command_coverage_lookup_table,
     command_mvp_demo_command_coverage_summary as _command_coverage_summary,
     command_mvp_demo_command_surface_contract as _command_surface_contract,
+    command_mvp_demo_command_surface_json as _command_surface_json,
     command_mvp_demo_command_surface_lookup_table as _command_surface_lookup_table,
+    command_mvp_demo_command_surface_payload as _command_surface_payload,
     command_mvp_demo_command_surface_summary as _command_surface_summary,
     command_mvp_demo_readiness_action_line_lookup_table as _readiness_action_line_lookup_table,
     command_mvp_demo_readiness_action_argv_lookup_table as _readiness_action_argv_lookup_table,
@@ -580,7 +582,9 @@ __all__ = [
     "canonical_command_command_coverage_lookup_table",
     "canonical_command_command_coverage_summary",
     "canonical_command_command_surface_contract",
+    "canonical_command_command_surface_json",
     "canonical_command_command_surface_lookup_table",
+    "canonical_command_command_surface_payload",
     "canonical_command_command_surface_summary",
     "canonical_command_engine_action_matches_for_argv",
     "canonical_command_readiness_is_complete",
@@ -1686,6 +1690,14 @@ def canonical_command_command_surface_summary() -> tuple[
 
 def canonical_command_command_surface_lookup_table() -> tuple[tuple[str, tuple[str, ...], tuple[str, ...]], ...]:
     return _command_surface_lookup_table()
+
+
+def canonical_command_command_surface_payload() -> dict[str, object]:
+    return _command_surface_payload()
+
+
+def canonical_command_command_surface_json() -> str:
+    return _command_surface_json()
 
 
 def canonical_command_action_route_summary() -> tuple[tuple[str, str, str, str], ...]:
