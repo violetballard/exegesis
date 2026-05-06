@@ -688,6 +688,7 @@ class RetrievalResult:
                 "retrieval_backend": doc_hit.provenance.get("retrieval_backend"),
                 "retrieval_mode": doc_hit.provenance.get("retrieval_mode"),
                 "source_strategy": doc_hit.provenance.get("source_strategy"),
+                "retrieval_source_strategy": doc_hit.provenance.get("source_strategy"),
             }
             for doc_hit in self.doc_hits
         ]
@@ -716,6 +717,7 @@ class RetrievalResult:
                 "rank": hit.provenance.get("rank"),
                 "span": hit.provenance.get("span"),
                 "source_strategy": hit.provenance.get("source_strategy"),
+                "retrieval_source_strategy": hit.provenance.get("source_strategy"),
                 "retrieval_backend": hit.provenance.get("retrieval_backend"),
                 "retrieval_mode": hit.provenance.get("retrieval_mode"),
             }
@@ -1759,6 +1761,7 @@ class RetrievalService:
                     "retrieval_backend": doc_hit.provenance.get("retrieval_backend"),
                     "retrieval_mode": doc_hit.provenance.get("retrieval_mode"),
                     "source_strategy": doc_hit.provenance.get("source_strategy"),
+                    "retrieval_source_strategy": doc_hit.provenance.get("source_strategy"),
                 }
             )
         doc_rank_by_id = {
@@ -1791,6 +1794,7 @@ class RetrievalService:
                     "rank": hit.provenance.get("rank"),
                     "fts_rank": hit.provenance.get("fts_rank"),
                     "source_strategy": hit.provenance.get("source_strategy"),
+                    "retrieval_source_strategy": hit.provenance.get("source_strategy"),
                     "retrieval_backend": hit.provenance.get("retrieval_backend"),
                     "retrieval_mode": hit.provenance.get("retrieval_mode"),
                 }

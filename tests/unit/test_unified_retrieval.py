@@ -691,6 +691,10 @@ class UnifiedRetrievalTests(unittest.TestCase):
         )
         self.assertEqual(payload["retrieval_citation_bundle"]["doc_citations"][0]["source_hash"], result.doc_hits[0].source_hash)
         self.assertEqual(
+            payload["retrieval_citation_bundle"]["doc_citations"][0]["retrieval_source_strategy"],
+            "fts",
+        )
+        self.assertEqual(
             payload["retrieval_citation_bundle"]["doc_citations"][0]["query_fingerprint"],
             result.diagnostics["query_fingerprint"],
         )
@@ -702,6 +706,10 @@ class UnifiedRetrievalTests(unittest.TestCase):
         self.assertEqual(
             payload["retrieval_citation_bundle"]["excerpt_citations"][0]["source_hash"],
             result.hits[0].provenance["source_hash"],
+        )
+        self.assertEqual(
+            payload["retrieval_citation_bundle"]["excerpt_citations"][0]["retrieval_source_strategy"],
+            "fts",
         )
         self.assertEqual(
             payload["retrieval_citation_bundle"]["excerpt_citations"][0]["doc_identity_fingerprint"],
@@ -750,6 +758,7 @@ class UnifiedRetrievalTests(unittest.TestCase):
             "retrieval_backend",
             "retrieval_mode",
             "source_strategy",
+            "retrieval_source_strategy",
         ):
             self.assertEqual(evidence_doc_citation[field_name], provenance_doc_citation[field_name])
         self.assertEqual(
@@ -3144,6 +3153,7 @@ class UnifiedRetrievalTests(unittest.TestCase):
                     "retrieval_backend": item["provenance"]["retrieval_backend"],
                     "retrieval_mode": item["provenance"]["retrieval_mode"],
                     "source_strategy": item["provenance"]["source_strategy"],
+                    "retrieval_source_strategy": item["provenance"]["source_strategy"],
                 }
                 for item in payload["doc_hits"]
             ],
@@ -3173,6 +3183,7 @@ class UnifiedRetrievalTests(unittest.TestCase):
                     "matched_terms": item["provenance"]["matched_terms"],
                     "fts_rank": item["provenance"]["fts_rank"],
                     "source_strategy": item["provenance"]["source_strategy"],
+                    "retrieval_source_strategy": item["provenance"]["source_strategy"],
                     "retrieval_backend": item["provenance"]["retrieval_backend"],
                     "retrieval_mode": item["provenance"]["retrieval_mode"],
                 }
