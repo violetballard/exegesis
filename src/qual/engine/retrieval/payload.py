@@ -918,14 +918,6 @@ def _normalize_citation_bundle_snapshot(citation_bundle: dict[str, object]) -> d
         normalized["citation_status"] = copy.deepcopy(citation_status)
     elif "citation_status" in normalized:
         normalized["citation_status"] = {}
-    if _is_missing_snapshot_value(normalized.get("retrieval_evidence_fingerprint")):
-        normalized["retrieval_evidence_fingerprint"] = _stable_fingerprint(
-            {
-                key: value
-                for key, value in normalized.items()
-                if key != "retrieval_evidence_fingerprint"
-            }
-        )
     return normalized
 
 
@@ -952,6 +944,14 @@ def _normalize_doc_bundle_snapshot(doc_bundle: dict[str, object]) -> dict[str, o
         normalized["citation_status"] = copy.deepcopy(citation_status)
     elif "citation_status" in normalized:
         normalized["citation_status"] = {}
+    if _is_missing_snapshot_value(normalized.get("retrieval_evidence_fingerprint")):
+        normalized["retrieval_evidence_fingerprint"] = _stable_fingerprint(
+            {
+                key: value
+                for key, value in normalized.items()
+                if key != "retrieval_evidence_fingerprint"
+            }
+        )
     return normalized
 
 
