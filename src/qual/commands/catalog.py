@@ -1091,9 +1091,15 @@ def _validate_cli_entrypoints() -> None:
 
 def _command_cli_tokens_by_name() -> dict[str, tuple[str, ...]]:
     tokens_by_name: dict[str, list[str]] = {}
-    for token, canonical_name in command_cli_lookup_table():
+    for token, canonical_name in command_cli_contract().lookup_table:
         tokens_by_name.setdefault(canonical_name, []).append(token)
     return {name: tuple(tokens) for name, tokens in tokens_by_name.items()}
+
+
+def _command_cli_lookup_for_specs(specs: tuple[CommandSpec, ...]) -> tuple[tuple[str, str], ...]:
+    if specs == COMMAND_SPECS:
+        return command_cli_contract().lookup_table
+    return command_lookup_index(specs)
 
 
 def _route_cli_tokens_by_name(specs: tuple[CommandSpec, ...]) -> dict[str, tuple[str, ...]]:
@@ -1494,7 +1500,7 @@ def _demo_exact_action_smoke_argv_by_engine_action(
 ) -> dict[str, tuple[str, ...]]:
     expected_actions = set(command_demo_engine_actions(specs))
     expected_command_by_action = dict(command_demo_action_lookup_table(specs))
-    cli_lookup = dict(command_cli_lookup_table()) if specs == COMMAND_SPECS else dict(command_lookup_index(specs))
+    cli_lookup = dict(_command_cli_lookup_for_specs(specs))
     argv_by_action: dict[str, tuple[str, ...]] = {}
     seen_argv: set[tuple[str, ...]] = set()
     for engine_action, argv in _DEMO_EXACT_ACTION_SMOKE_ARGV_BY_ENGINE_ACTION:
@@ -1567,11 +1573,7 @@ def _validate_demo_smoke_argv_parser_surface(
         _normalize_token(entry.flow_step): entry
         for entry in command_flow_manifest(specs, flow_steps)
     }
-    parser_lookup = (
-        dict(command_cli_lookup_table())
-        if specs == COMMAND_SPECS
-        else dict(command_lookup_index(specs))
-    )
+    parser_lookup = dict(_command_cli_lookup_for_specs(specs))
     for flow_step in _normalize_flow_steps(flow_steps):
         argv = argv_by_flow_step[flow_step]
         command_token = _normalize_token(_strip_command_palette_prefix(argv[0]))
@@ -2302,7 +2304,7 @@ def _validate_command_demo_smoke_command_contract(
     ):
         raise ValueError("Command demo smoke argv engine actions are inconsistent")
 
-    cli_lookup = dict(command_cli_lookup_table()) if specs == COMMAND_SPECS else dict(command_lookup_index(specs))
+    cli_lookup = dict(_command_cli_lookup_for_specs(specs))
     seen_flow_steps = set()
     for entry in contract.entries:
         if entry.flow_step in seen_flow_steps:
@@ -3109,7 +3111,7 @@ def _validate_command_demo_action_smoke_argv_contract(
         route_entry.engine_action: route_entry.cli_tokens
         for route_entry in route_contract.entries
     }
-    cli_lookup = dict(command_cli_lookup_table()) if specs == COMMAND_SPECS else dict(command_lookup_index(specs))
+    cli_lookup = dict(_command_cli_lookup_for_specs(specs))
     for entry in contract.entries:
         if not entry.argv:
             raise ValueError(f"Command demo action smoke argv must not be empty: {entry.engine_action}")
@@ -3533,7 +3535,7 @@ def command_demo_readiness_cli_contract(
         entry.name: entry
         for entry in command_demo_readiness_contract(specs, launcher_argv).entries
     }
-    cli_lookup = command_cli_lookup_table() if specs == COMMAND_SPECS else command_lookup_index(specs)
+    cli_lookup = _command_cli_lookup_for_specs(specs)
     contract = CommandDemoReadinessCliContract(
         entries=tuple(
             CommandDemoReadinessCliEntry(
@@ -7286,7 +7288,7 @@ def _validate_command_demo_readiness_cli_step_validation_contract(
         raise ValueError("Command demo readiness CLI step validation command names are inconsistent")
     if tuple(step.command_line for step in contract.steps) != tuple(step.command_line for step in step_seals):
         raise ValueError("Command demo readiness CLI step validation command lines are inconsistent")
-    cli_lookup = dict(command_cli_lookup_table()) if specs == COMMAND_SPECS else {}
+    cli_lookup = dict(_command_cli_lookup_for_specs(specs)) if specs == COMMAND_SPECS else {}
     for step in contract.steps:
         if not step.parser_token:
             raise ValueError(f"Command demo readiness CLI step validation parser token is empty: {step.flow_step}")
@@ -9109,7 +9111,7 @@ def _canonicalize_exact_action_command_argv(
     if not argv:
         return ()
     parser_token = _normalize_token(_strip_command_palette_prefix(argv[0]))
-    if parser_token not in dict(command_cli_lookup_table()):
+    if parser_token not in dict(_command_cli_lookup_for_specs(specs)):
         return ()
     return _canonicalize_smoke_command_argv(specs, argv)
 
@@ -10712,7 +10714,7 @@ def command_demo_readiness_validate_cli_argv(
     is_cli_entrypoint = (
         specs == COMMAND_SPECS
         and parser_token is not None
-        and parser_token in dict(command_cli_lookup_table())
+        and parser_token in dict(_command_cli_lookup_for_specs(specs))
         and compatibility_validation.name is not None
     )
     if not is_cli_entrypoint:
