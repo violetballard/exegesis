@@ -404,6 +404,21 @@ class CommandDemoReadinessExactActionContract:
 
 
 @dataclass(frozen=True)
+class CommandDemoReadinessActionMatrixEntry:
+    ordinal: int
+    demo_path_step: str
+    flow_step: str
+    name: str
+    engine_actions: tuple[str, ...]
+    exact_action_lines: tuple[tuple[str, str], ...]
+
+
+@dataclass(frozen=True)
+class CommandDemoReadinessActionMatrixContract:
+    entries: tuple[CommandDemoReadinessActionMatrixEntry, ...]
+
+
+@dataclass(frozen=True)
 class CommandDemoReadinessExactActionScriptStep:
     ordinal: int
     engine_action: str
@@ -10261,7 +10276,7 @@ def _validate_command_demo_readiness_exact_action_contract(
 def command_demo_readiness_exact_action_summary(
     specs: tuple[CommandSpec, ...] = COMMAND_SPECS,
     launcher_argv: tuple[str, ...] = COMMAND_SMOKE_CLI_LAUNCHER_ARGV,
-) -> tuple[tuple[str, str, str, str, str], ...]:
+) -> tuple[tuple[str, str, str, str, str, str], ...]:
     return tuple(
         (
             entry.engine_action,
@@ -10367,6 +10382,110 @@ def command_demo_readiness_exact_action_entries_for_command(
     return dict(command_demo_readiness_exact_action_index_by_command(specs, launcher_argv)).get(
         requested_command,
         (),
+    )
+
+
+@lru_cache(maxsize=None)
+def command_demo_readiness_action_matrix_contract(
+    specs: tuple[CommandSpec, ...] = COMMAND_SPECS,
+    launcher_argv: tuple[str, ...] = COMMAND_SMOKE_CLI_LAUNCHER_ARGV,
+) -> CommandDemoReadinessActionMatrixContract:
+    route_contract = command_demo_readiness_route_contract(specs, launcher_argv)
+    exact_entries_by_flow_step = {
+        flow_step: entries
+        for flow_step, entries in command_demo_readiness_exact_action_index_by_flow_step(
+            specs,
+            launcher_argv,
+        )
+    }
+    contract = CommandDemoReadinessActionMatrixContract(
+        entries=tuple(
+            CommandDemoReadinessActionMatrixEntry(
+                ordinal=entry.ordinal,
+                demo_path_step=entry.demo_path_step,
+                flow_step=entry.flow_step,
+                name=entry.name,
+                engine_actions=entry.engine_actions,
+                exact_action_lines=tuple(
+                    (exact_entry.engine_action, exact_entry.command_line)
+                    for exact_entry in exact_entries_by_flow_step.get(entry.flow_step, ())
+                ),
+            )
+            for entry in route_contract.entries
+        )
+    )
+    _validate_command_demo_readiness_action_matrix_contract(
+        contract,
+        route_contract,
+        specs,
+        launcher_argv,
+    )
+    return contract
+
+
+def _validate_command_demo_readiness_action_matrix_contract(
+    contract: CommandDemoReadinessActionMatrixContract,
+    route_contract: CommandDemoReadinessRouteContract,
+    specs: tuple[CommandSpec, ...],
+    launcher_argv: tuple[str, ...],
+) -> None:
+    route_entries = route_contract.entries
+    if tuple(entry.ordinal for entry in contract.entries) != tuple(entry.ordinal for entry in route_entries):
+        raise ValueError("Command demo readiness action matrix ordinals are inconsistent")
+    if tuple(entry.demo_path_step for entry in contract.entries) != tuple(
+        entry.demo_path_step for entry in route_entries
+    ):
+        raise ValueError("Command demo readiness action matrix path steps are inconsistent")
+    if tuple(entry.flow_step for entry in contract.entries) != tuple(entry.flow_step for entry in route_entries):
+        raise ValueError("Command demo readiness action matrix flow steps are inconsistent")
+    if tuple(entry.name for entry in contract.entries) != tuple(entry.name for entry in route_entries):
+        raise ValueError("Command demo readiness action matrix command names are inconsistent")
+    if tuple(entry.engine_actions for entry in contract.entries) != tuple(
+        entry.engine_actions for entry in route_entries
+    ):
+        raise ValueError("Command demo readiness action matrix actions are inconsistent")
+
+    flattened_action_lines = tuple(
+        action_line
+        for entry in contract.entries
+        for action_line in entry.exact_action_lines
+    )
+    if flattened_action_lines != command_demo_readiness_exact_action_line_lookup_table(specs, launcher_argv):
+        raise ValueError("Command demo readiness action matrix exact lines are inconsistent")
+
+    for entry in contract.entries:
+        if not entry.engine_actions or not entry.exact_action_lines:
+            raise ValueError(f"Command demo readiness action matrix entry is incomplete: {entry.flow_step}")
+        if tuple(engine_action for engine_action, _ in entry.exact_action_lines) != entry.engine_actions:
+            raise ValueError(
+                f"Command demo readiness action matrix coverage is inconsistent: {entry.flow_step}"
+            )
+        for engine_action, command_line in entry.exact_action_lines:
+            resolved_action = command_demo_readiness_exact_action_for_argv(
+                command_line,
+                specs,
+                launcher_argv,
+            )
+            if resolved_action != engine_action:
+                raise ValueError(
+                    f"Command demo readiness action matrix line is not exact: {engine_action}"
+                )
+
+
+def command_demo_readiness_action_matrix_summary(
+    specs: tuple[CommandSpec, ...] = COMMAND_SPECS,
+    launcher_argv: tuple[str, ...] = COMMAND_SMOKE_CLI_LAUNCHER_ARGV,
+) -> tuple[tuple[int, str, str, str, tuple[str, ...], tuple[tuple[str, str], ...]], ...]:
+    return tuple(
+        (
+            entry.ordinal,
+            entry.demo_path_step,
+            entry.flow_step,
+            entry.name,
+            entry.engine_actions,
+            entry.exact_action_lines,
+        )
+        for entry in command_demo_readiness_action_matrix_contract(specs, launcher_argv).entries
     )
 
 
@@ -15133,8 +15252,22 @@ def command_mvp_demo_readiness_exact_action_contract(
 def command_mvp_demo_readiness_exact_action_summary(
     specs: tuple[CommandSpec, ...] = COMMAND_SPECS,
     launcher_argv: tuple[str, ...] = COMMAND_SMOKE_CLI_LAUNCHER_ARGV,
-) -> tuple[tuple[str, str, str, str, str], ...]:
+) -> tuple[tuple[str, str, str, str, str, str], ...]:
     return command_demo_readiness_exact_action_summary(specs, launcher_argv)
+
+
+def command_mvp_demo_readiness_action_matrix_contract(
+    specs: tuple[CommandSpec, ...] = COMMAND_SPECS,
+    launcher_argv: tuple[str, ...] = COMMAND_SMOKE_CLI_LAUNCHER_ARGV,
+) -> CommandDemoReadinessActionMatrixContract:
+    return command_demo_readiness_action_matrix_contract(specs, launcher_argv)
+
+
+def command_mvp_demo_readiness_action_matrix_summary(
+    specs: tuple[CommandSpec, ...] = COMMAND_SPECS,
+    launcher_argv: tuple[str, ...] = COMMAND_SMOKE_CLI_LAUNCHER_ARGV,
+) -> tuple[tuple[int, str, str, str, tuple[str, ...], tuple[tuple[str, str], ...]], ...]:
+    return command_demo_readiness_action_matrix_summary(specs, launcher_argv)
 
 
 def command_mvp_demo_readiness_exact_action_index_by_demo_path_step(

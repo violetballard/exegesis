@@ -20,6 +20,7 @@ from src.qual.commands.catalog import (
     CommandDemoReadinessEntry,
     CommandDemoReadinessExactActionEntry,
     CommandDemoReadinessExactActionContract,
+    CommandDemoReadinessActionMatrixContract,
     CommandDemoReadinessExactActionRouteContract,
     CommandDemoReadinessExactCliAuditContract,
     CommandDemoReadinessExactActionScriptContract,
@@ -249,6 +250,8 @@ from src.qual.commands.catalog import (
     command_mvp_demo_readiness_exact_action_entry_for_argv as _readiness_exact_action_entry_for_argv,
     command_mvp_demo_readiness_exact_action_contract as _readiness_exact_action_contract,
     command_mvp_demo_readiness_exact_action_summary as _readiness_exact_action_summary,
+    command_mvp_demo_readiness_action_matrix_contract as _readiness_action_matrix_contract,
+    command_mvp_demo_readiness_action_matrix_summary as _readiness_action_matrix_summary,
     command_mvp_demo_readiness_exact_cli_audit_contract as _readiness_exact_cli_audit_contract,
     command_mvp_demo_readiness_exact_cli_audit_summary as _readiness_exact_cli_audit_summary,
     command_mvp_demo_readiness_exact_action_route_contract
@@ -1691,8 +1694,19 @@ def canonical_command_action_exact_contract() -> CommandDemoReadinessExactAction
     return _readiness_exact_action_contract()
 
 
-def canonical_command_action_exact_summary() -> tuple[tuple[str, str, str, str, str], ...]:
+def canonical_command_action_exact_summary() -> tuple[tuple[str, str, str, str, str, str], ...]:
     return _readiness_exact_action_summary()
+
+
+def canonical_command_action_matrix_contract() -> CommandDemoReadinessActionMatrixContract:
+    return _readiness_action_matrix_contract()
+
+
+def canonical_command_action_matrix_summary() -> tuple[
+    tuple[int, str, str, str, tuple[str, ...], tuple[tuple[str, str], ...]],
+    ...,
+]:
+    return _readiness_action_matrix_summary()
 
 
 def canonical_command_action_exact_script_contract() -> CommandDemoReadinessExactActionScriptContract:
