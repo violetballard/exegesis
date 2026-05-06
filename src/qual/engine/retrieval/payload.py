@@ -181,6 +181,7 @@ def _basket_item_fingerprint(item: dict[str, object]) -> str:
             "retrieval_backend": item.get("retrieval_backend"),
             "retrieval_mode": item.get("retrieval_mode"),
             "retrieval_policy": item.get("retrieval_policy"),
+            "query_constraints": item.get("query_constraints"),
             "query_fingerprint": item.get("query_fingerprint"),
             "result_fingerprint": item.get("result_fingerprint"),
         }

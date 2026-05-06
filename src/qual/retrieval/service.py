@@ -632,6 +632,7 @@ class RetrievalResult:
                 "retrieval_policy": copy.deepcopy(hit.provenance.get("retrieval_policy")),
                 "query_scope": self.query.scope,
                 "query_intent": self.query.intent,
+                "query_constraints": RetrievalService._query_constraints_snapshot(self.query),
                 "query_date_range": list(self.query.constraints.date_range)
                 if self.query.constraints.date_range is not None
                 else None,
@@ -1845,6 +1846,7 @@ class RetrievalService:
                 "retrieval_policy": copy.deepcopy(retrieval_policy),
                 "query_scope": query.scope,
                 "query_intent": query.intent,
+                "query_constraints": RetrievalService._query_constraints_snapshot(query),
                 "query_date_range": list(query.constraints.date_range)
                 if query.constraints.date_range is not None
                 else None,
@@ -1947,6 +1949,7 @@ class RetrievalService:
                 "retrieval_backend": item.get("retrieval_backend"),
                 "retrieval_mode": item.get("retrieval_mode"),
                 "retrieval_policy": item.get("retrieval_policy"),
+                "query_constraints": item.get("query_constraints"),
                 "query_fingerprint": item.get("query_fingerprint"),
                 "result_fingerprint": item.get("result_fingerprint"),
             }

@@ -630,6 +630,14 @@ class UnifiedRetrievalTests(unittest.TestCase):
         self.assertEqual(payload["retrieval_citation_bundle"]["query_constraints"], payload["query"]["constraints"])
         self.assertEqual(payload["retrieval_provenance"]["query_constraints"], payload["query"]["constraints"])
         self.assertEqual(
+            payload["basket_promotion_items"][0]["query_constraints"],
+            payload["query"]["constraints"],
+        )
+        self.assertEqual(
+            payload["retrieval_evidence"]["basket_promotion_items"][0]["query_constraints"],
+            payload["query"]["constraints"],
+        )
+        self.assertEqual(
             payload["retrieval_evidence"]["candidate_doc_count"],
             result.diagnostics["candidate_doc_count"],
         )
