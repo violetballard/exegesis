@@ -139,6 +139,9 @@ def _normalize_policy_snapshot(policy: object) -> dict[str, object]:
 
 def _normalize_citation_bundle_snapshot(citation_bundle: dict[str, object]) -> dict[str, object]:
     normalized = copy.deepcopy(citation_bundle)
+    query_constraints = normalized.get("query_constraints")
+    if isinstance(query_constraints, dict):
+        normalized["query_constraints"] = _normalize_query_snapshot({"constraints": query_constraints})["constraints"]
     normalized["query_date_range"] = _normalize_optional_list_like(normalized.get("query_date_range"))
     normalized["fts_shortlist_doc_ids"] = _normalize_list_like(normalized.get("fts_shortlist_doc_ids"))
     normalized["active_strategy_ids"] = _normalize_list_like(normalized.get("active_strategy_ids"))
@@ -421,6 +424,7 @@ def _build_retrieval_citation_bundle_from_payload(payload: dict[str, object]) ->
         ),
         "query_scope": query_scope,
         "query_intent": query_intent,
+        "query_constraints": copy.deepcopy(query_constraints),
         "query_date_range": query_date_range,
         "candidate_doc_count": candidate_doc_count,
         "fts_shortlist_doc_ids": fts_shortlist_doc_ids,
