@@ -4878,6 +4878,77 @@ def _validate_command_demo_readiness_handoff_packet(
         raise ValueError("Command demo readiness handoff packet action step exact lines are inconsistent")
 
 
+def _command_demo_readiness_handoff_packet_payload(
+    packet: CommandDemoReadinessHandoffPacket,
+) -> dict[str, object]:
+    return {
+        "scope_completed": packet.scope_completed,
+        "roadmap_items": list(packet.roadmap_items),
+        "vision_capabilities": list(packet.vision_capabilities),
+        "routing_provider_impact": packet.routing_provider_impact,
+        "fingerprint": {
+            "algorithm": packet.fingerprint_algorithm,
+            "digest": packet.fingerprint_digest,
+        },
+        "canonical_demo_path_steps": list(packet.canonical_demo_path_steps),
+        "command_lines": list(packet.command_lines),
+        "exact_action_lines": list(packet.exact_action_lines),
+        "cli_exact_action_lines": list(packet.cli_exact_action_lines),
+        "checklist_lines": list(packet.checklist_lines),
+        "is_complete": packet.is_complete,
+        "missing_flow_steps": list(packet.missing_flow_steps),
+        "missing_engine_actions": list(packet.missing_engine_actions),
+        "invalid_argv": [list(argv) for argv in packet.invalid_argv],
+        "action_steps": [
+            {
+                "ordinal": step.ordinal,
+                "demo_path_step": step.demo_path_step,
+                "flow_step": step.flow_step,
+                "name": step.name,
+                "command_line": step.command_line,
+                "exact_action_lines": [
+                    {
+                        "engine_action": engine_action,
+                        "command_line": command_line,
+                    }
+                    for engine_action, command_line in step.exact_action_lines
+                ],
+            }
+            for step in packet.action_steps
+        ],
+    }
+
+
+def _validate_command_demo_readiness_handoff_packet_payload(
+    payload: dict[str, object],
+    packet: CommandDemoReadinessHandoffPacket,
+) -> None:
+    if payload != _command_demo_readiness_handoff_packet_payload(packet):
+        raise ValueError("Command demo readiness handoff packet payload is inconsistent")
+    json.dumps(payload, sort_keys=True, separators=(",", ":"))
+
+
+def command_demo_readiness_handoff_packet_payload(
+    specs: tuple[CommandSpec, ...] = COMMAND_SPECS,
+    launcher_argv: tuple[str, ...] = COMMAND_SMOKE_CLI_LAUNCHER_ARGV,
+) -> dict[str, object]:
+    packet = command_demo_readiness_handoff_packet(specs, launcher_argv)
+    payload = _command_demo_readiness_handoff_packet_payload(packet)
+    _validate_command_demo_readiness_handoff_packet_payload(payload, packet)
+    return payload
+
+
+def command_demo_readiness_handoff_packet_json(
+    specs: tuple[CommandSpec, ...] = COMMAND_SPECS,
+    launcher_argv: tuple[str, ...] = COMMAND_SMOKE_CLI_LAUNCHER_ARGV,
+) -> str:
+    return json.dumps(
+        command_demo_readiness_handoff_packet_payload(specs, launcher_argv),
+        sort_keys=True,
+        separators=(",", ":"),
+    )
+
+
 def command_demo_readiness_handoff_packet_summary(
     specs: tuple[CommandSpec, ...] = COMMAND_SPECS,
     launcher_argv: tuple[str, ...] = COMMAND_SMOKE_CLI_LAUNCHER_ARGV,
@@ -8317,6 +8388,20 @@ def command_mvp_demo_readiness_handoff_packet(
     launcher_argv: tuple[str, ...] = COMMAND_SMOKE_CLI_LAUNCHER_ARGV,
 ) -> CommandDemoReadinessHandoffPacket:
     return command_demo_readiness_handoff_packet(specs, launcher_argv)
+
+
+def command_mvp_demo_readiness_handoff_packet_payload(
+    specs: tuple[CommandSpec, ...] = COMMAND_SPECS,
+    launcher_argv: tuple[str, ...] = COMMAND_SMOKE_CLI_LAUNCHER_ARGV,
+) -> dict[str, object]:
+    return command_demo_readiness_handoff_packet_payload(specs, launcher_argv)
+
+
+def command_mvp_demo_readiness_handoff_packet_json(
+    specs: tuple[CommandSpec, ...] = COMMAND_SPECS,
+    launcher_argv: tuple[str, ...] = COMMAND_SMOKE_CLI_LAUNCHER_ARGV,
+) -> str:
+    return command_demo_readiness_handoff_packet_json(specs, launcher_argv)
 
 
 def command_mvp_demo_readiness_handoff_packet_summary(
