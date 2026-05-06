@@ -840,6 +840,10 @@ def _normalize_citation_bundle_snapshot(citation_bundle: dict[str, object]) -> d
     normalized = copy.deepcopy(citation_bundle)
     normalized["query_date_range"] = _normalize_optional_list_like(normalized.get("query_date_range"))
     normalized["fts_shortlist_doc_ids"] = _normalize_list_like(normalized.get("fts_shortlist_doc_ids"))
+    candidate_resolution = normalized.get("candidate_resolution")
+    normalized["candidate_resolution"] = (
+        copy.deepcopy(candidate_resolution) if isinstance(candidate_resolution, dict) else None
+    )
     normalized["active_strategy_ids"] = _normalize_active_strategy_ids(
         normalized.get("active_strategy_ids"),
         field_name="citation_bundle",
@@ -1278,6 +1282,17 @@ def _build_retrieval_citation_bundle_from_payload(payload: dict[str, object]) ->
             evidence.get("candidate_doc_count", diagnostics.get("candidate_doc_count")),
         ),
     )
+    candidate_resolution = provenance.get(
+        "candidate_resolution",
+        evidence.get(
+            "candidate_resolution",
+            diagnostics.get("candidate_resolution"),
+        ),
+    )
+    if isinstance(candidate_resolution, dict):
+        candidate_resolution = copy.deepcopy(candidate_resolution)
+    else:
+        candidate_resolution = None
     fts_shortlist_doc_ids = _normalize_list_like(
         provenance.get(
             "fts_shortlist_doc_ids",
@@ -1306,6 +1321,7 @@ def _build_retrieval_citation_bundle_from_payload(payload: dict[str, object]) ->
         "query_intent": query_intent,
         "query_date_range": query_date_range,
         "candidate_doc_count": candidate_doc_count,
+        "candidate_resolution": candidate_resolution,
         "fts_shortlist_doc_ids": fts_shortlist_doc_ids,
         "retrieval_backend": provenance.get(
             "retrieval_backend",
@@ -1747,7 +1763,10 @@ def _build_retrieval_diagnostics_from_source_bundle(source_bundle: dict[str, obj
         else max(fts_shortlist_limit, fts_shortlist_limit * 4, 100)
     )
     fts_shortlist_doc_ids = _normalize_list_like(citation_bundle.get("fts_shortlist_doc_ids", []))
-    candidate_resolution = retrieval_evidence.get("candidate_resolution")
+    candidate_resolution = retrieval_evidence.get(
+        "candidate_resolution",
+        citation_bundle.get("candidate_resolution"),
+    )
     if isinstance(candidate_resolution, dict):
         candidate_resolution = copy.deepcopy(candidate_resolution)
     else:

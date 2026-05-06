@@ -846,6 +846,10 @@ class UnifiedRetrievalTests(unittest.TestCase):
         )
         expected_items = result.basket_promotion_items()
         self.assertEqual(
+            bundle["candidate_resolution"],
+            result.citation_bundle()["candidate_resolution"],
+        )
+        self.assertEqual(
             [item["item_id"] for item in bundle["basket_promotion_items"]],
             [item["item_id"] for item in expected_items],
         )

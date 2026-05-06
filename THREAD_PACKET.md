@@ -17,14 +17,14 @@
 
 This branch-tip handoff covers the full retrieval implementation currently present on `codex/feat-retrieval-fts`, including all production and test changes after `adfa8cdadd43747ffbcb612e4151e262b13e52ca`. SQLite FTS remains the authoritative retrieval path for MVP flows. PageIndex and embeddings remain compatibility-only/deferred surfaces that fail closed when they cannot be resolved through the canonical FTS path.
 
-The branch hardens deterministic retrieval payloads, FTS candidate strategy identity, sparse-policy rehydration, excerpt lookup provenance, bundle identity validation, and final hit rank/score ordering. Downstream citation bundles, context bundles, and basket promotion payloads now receive normalized, auditable retrieval snapshots tied to the FTS-first result order the engine consumes.
+The branch hardens deterministic retrieval payloads, FTS candidate strategy identity, sparse-policy rehydration, sparse candidate-resolution rehydration, excerpt lookup provenance, bundle identity validation, and final hit rank/score ordering. Downstream citation bundles, context bundles, and basket promotion payloads now receive normalized, auditable retrieval snapshots tied to the FTS-first result order and candidate set the engine consumes.
 
 Canonical demo-path step advanced: `retrieve relevant material`. This also supports `promote or gather context into the basket` because source bundles, context bundles, citations, and basket promotion items carry deterministic retrieval provenance.
 
 ## Tasks Completed
 
 1. FTS-first retrieval and excerpt lookup: kept SQLite FTS authoritative, exported the canonical retrieval facades, removed PageIndex fallback from excerpt fetching, and enforced fail-closed behavior for PageIndex-only or non-FTS excerpt identifiers.
-2. Deterministic retrieval payloads and provenance: normalized query snapshots, constraints, candidate/document identities, source bundles, context bundles, citation backfills, lookup fingerprints, and basket promotion metadata.
+2. Deterministic retrieval payloads and provenance: normalized query snapshots, constraints, candidate/document identities, candidate-resolution snapshots, source bundles, context bundles, citation backfills, lookup fingerprints, and basket promotion metadata.
 3. Retrieval policy and strategy hardening: preserved sparse retrieval policy identity, guarded deferred backend policy, validated bundle identity, stabilized FTS merge strategy identity, and kept engine retrieval exports aligned with the canonical retrieval implementation.
 4. Final result ordering and regression coverage: re-ranked final deduplicated FTS hits after truncation so score/provenance rank match output order, and expanded approved shared regression coverage in `tests/unit/test_unified_retrieval.py` for FTS-only behavior, payload identity, provenance, and promotion-ready outputs.
 
@@ -39,10 +39,10 @@ Reviewed implementation range for re-review: `378cf9a74a3658058079a32f186fcd254c
 - `THREAD_PACKET.md` - regenerated this authoritative handoff packet for the actual branch-tip scope.
 - `src/qual/engine/retrieval/__init__.py` - aligned engine retrieval exports and compatibility facade wiring with the FTS-first retrieval surface.
 - `src/qual/engine/retrieval/fts_strategy.py` - hardened FTS strategy identity and candidate/provenance behavior.
-- `src/qual/engine/retrieval/payload.py` - normalized retrieval payload snapshots, source/context bundles, citation backfills, basket promotion metadata, and identifier/fingerprint fields.
+- `src/qual/engine/retrieval/payload.py` - normalized retrieval payload snapshots, source/context bundles, citation backfills, candidate-resolution rehydration, basket promotion metadata, and identifier/fingerprint fields.
 - `src/qual/retrieval/__init__.py` - exported canonical retrieval helpers through the public retrieval facade.
 - `src/qual/retrieval/service.py` - implemented FTS-only excerpt fetching, deterministic query/constraint/cache handling, sparse policy reconstruction, and final hit re-ranking.
-- `tests/unit/test_unified_retrieval.py` - expanded approved shared regression coverage for FTS-first retrieval, fail-closed fallback behavior, payload/provenance normalization, and branch-tip hardening.
+- `tests/unit/test_unified_retrieval.py` - expanded approved shared regression coverage for FTS-first retrieval, fail-closed fallback behavior, payload/provenance normalization, candidate-resolution rehydration, and branch-tip hardening.
 
 ## Diff Evidence
 
@@ -51,14 +51,14 @@ Command: `git diff --stat 378cf9a74a3658058079a32f186fcd254c4a4034 --`
 ```text
  .codex/kickoff_packets/feat-retrieval-fts.md |   36 +-
  .codex/lane_meta/feat-retrieval-fts.json     |  155 ++-
- THREAD_PACKET.md                             |  203 ++--
+ THREAD_PACKET.md                             |  205 ++--
  src/qual/engine/retrieval/__init__.py        |   86 +-
  src/qual/engine/retrieval/fts_strategy.py    |   59 +-
- src/qual/engine/retrieval/payload.py         | 1399 +++++++++++++++++++++++---
+ src/qual/engine/retrieval/payload.py         | 1418 +++++++++++++++++++++++---
  src/qual/retrieval/__init__.py               |   11 +
  src/qual/retrieval/service.py                |  844 ++++++++++++++--
- tests/unit/test_unified_retrieval.py         | 1201 +++++++++++++++++++++-
- 9 files changed, 3609 insertions(+), 385 deletions(-)
+ tests/unit/test_unified_retrieval.py         | 1203 +++++++++++++++++++++-
+ 9 files changed, 3633 insertions(+), 384 deletions(-)
 ```
 
 Command: `git diff --stat adfa8cdadd43747ffbcb612e4151e262b13e52ca --`
@@ -66,14 +66,14 @@ Command: `git diff --stat adfa8cdadd43747ffbcb612e4151e262b13e52ca --`
 ```text
  .codex/kickoff_packets/feat-retrieval-fts.md |   36 +-
  .codex/lane_meta/feat-retrieval-fts.json     |  155 ++-
- THREAD_PACKET.md                             |  203 ++--
+ THREAD_PACKET.md                             |  205 ++--
  src/qual/engine/retrieval/__init__.py        |   86 +-
  src/qual/engine/retrieval/fts_strategy.py    |   59 +-
- src/qual/engine/retrieval/payload.py         | 1399 +++++++++++++++++++++++---
+ src/qual/engine/retrieval/payload.py         | 1418 +++++++++++++++++++++++---
  src/qual/retrieval/__init__.py               |   11 +
  src/qual/retrieval/service.py                |  823 ++++++++++++++-
  tests/unit/test_unified_retrieval.py         | 1181 +++++++++++++++++++++-
- 9 files changed, 3590 insertions(+), 363 deletions(-)
+ 9 files changed, 3613 insertions(+), 361 deletions(-)
 ```
 
 Command: `git show --name-status --oneline e49d7c2c34d1e8f3dd8ca1927e2efbef53d67f06`
@@ -88,8 +88,8 @@ M	src/qual/retrieval/service.py
 
 - Task budget: `4/4` high-risk task groups.
 - File count for branch-tip handoff including this packet fix: `9 files changed`.
-- Size accounting for branch-tip handoff including this packet fix: `3609 insertions(+), 385 deletions(-)`, net `3224 LOC`.
-- Post-`adfa8cd` branch delta including this packet fix: `9 files changed, 3590 insertions(+), 363 deletions(-)`.
+- Size accounting for branch-tip handoff including this packet fix: `3633 insertions(+), 384 deletions(-)`, net `3249 LOC`.
+- Post-`adfa8cd` branch delta including this packet fix: `9 files changed, 3613 insertions(+), 361 deletions(-)`.
 - AGENTS file/size status: exceeds high-risk size limits of `<=8 files` and `<=300 net LOC`; this is now explicitly disclosed for reviewer/integrator judgment instead of being hidden behind metadata-only wording.
 - Shared/integrator exception status: `tests/unit/test_unified_retrieval.py` is approved shared regression coverage for the retrieval lane; no integrator-locked files changed.
 - Routing/provider impact: none.
@@ -108,6 +108,8 @@ M	src/qual/retrieval/service.py
 ## Commands Run
 
 - `make scope-check` - passed for branch `codex/feat-retrieval-fts`.
+- `python -m pytest tests/unit/test_unified_retrieval.py -q` - not run; current interpreter has no installed `pytest` module.
+- `python -m unittest tests.unit.test_unified_retrieval -v` - passed 81 unit tests.
 - `./quality-format.sh --check` - passed.
 - `./quality-lint.sh` - passed shell syntax and trailing whitespace checks.
 - `./quality-test.sh` - passed smoke tests and 150 unit tests.
