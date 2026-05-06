@@ -123,6 +123,7 @@ from src.qual.commands.catalog import (
     command_mvp_demo_readiness_index_summary as _readiness_index_summary,
     command_mvp_demo_readiness_shell_script as _readiness_shell_script,
     command_mvp_demo_readiness_cli_smoke_lines as _readiness_cli_smoke_lines,
+    command_mvp_demo_readiness_cli_smoke_script_text as _readiness_cli_smoke_script_text,
     command_mvp_demo_readiness_shell_executable_lines as _readiness_shell_executable_lines,
     command_mvp_demo_readiness_shell_executable_route_summary as _readiness_shell_executable_route_summary,
     command_mvp_demo_readiness_shell_script_lines as _readiness_shell_script_lines,
@@ -444,6 +445,7 @@ __all__ = [
     "canonical_command_readiness_command_audit_summary",
     "canonical_command_readiness_shell_script",
     "canonical_command_readiness_cli_smoke_lines",
+    "canonical_command_readiness_cli_smoke_script_text",
     "canonical_command_readiness_shell_executable_lines",
     "canonical_command_readiness_shell_executable_route_summary",
     "canonical_command_readiness_shell_script_lines",
@@ -970,6 +972,10 @@ def canonical_command_readiness_shell_script() -> CommandDemoReadinessShellScrip
 
 def canonical_command_readiness_cli_smoke_lines() -> tuple[str, ...]:
     return _readiness_cli_smoke_lines()
+
+
+def canonical_command_readiness_cli_smoke_script_text() -> str:
+    return _readiness_cli_smoke_script_text()
 
 
 def canonical_command_readiness_shell_executable_lines() -> tuple[str, ...]:

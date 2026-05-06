@@ -927,6 +927,28 @@ class CommandDemoReadinessProgress:
 
 
 @dataclass(frozen=True)
+class CommandDemoReadinessCommandProgressEntry:
+    ordinal: int
+    demo_path_step: str
+    flow_step: str
+    name: str
+    command_line: str
+    action_lines: tuple[tuple[str, str], ...]
+    is_covered: bool
+    remaining_engine_actions: tuple[str, ...]
+
+
+@dataclass(frozen=True)
+class CommandDemoReadinessCommandProgressContract:
+    is_complete: bool
+    next_flow_step: str | None
+    next_command_line: str
+    next_exact_action_line: str
+    entries: tuple[CommandDemoReadinessCommandProgressEntry, ...]
+    invalid_argv: tuple[tuple[str, ...], ...]
+
+
+@dataclass(frozen=True)
 class CommandDemoReadinessNextAction:
     validation: CommandDemoReadinessScriptValidation
     next_engine_action: str | None
@@ -7713,6 +7735,13 @@ def command_demo_readiness_cli_smoke_lines(
     return lines
 
 
+def command_demo_readiness_cli_smoke_script_text(
+    specs: tuple[CommandSpec, ...] = COMMAND_SPECS,
+    launcher_argv: tuple[str, ...] = COMMAND_SMOKE_CLI_LAUNCHER_ARGV,
+) -> str:
+    return "\n".join(command_demo_readiness_cli_smoke_lines(specs, launcher_argv))
+
+
 def command_demo_readiness_shell_script_text(
     specs: tuple[CommandSpec, ...] = COMMAND_SPECS,
     launcher_argv: tuple[str, ...] = COMMAND_SMOKE_CLI_LAUNCHER_ARGV,
@@ -10875,6 +10904,125 @@ def command_demo_readiness_progress_summary(
     )
 
 
+def _validate_command_demo_readiness_command_progress_contract(
+    contract: CommandDemoReadinessCommandProgressContract,
+    progress: CommandDemoReadinessProgress,
+    specs: tuple[CommandSpec, ...],
+    launcher_argv: tuple[str, ...],
+) -> None:
+    trace = command_demo_readiness_command_trace_contract(specs, launcher_argv)
+    if contract.is_complete != progress.validation.is_complete:
+        raise ValueError("Command demo readiness command progress completeness is inconsistent")
+    if contract.next_flow_step != progress.next_flow_step:
+        raise ValueError("Command demo readiness command progress next flow step is inconsistent")
+    if contract.next_command_line != progress.next_command_line:
+        raise ValueError("Command demo readiness command progress next command line is inconsistent")
+    if contract.next_exact_action_line != progress.next_exact_action_line:
+        raise ValueError("Command demo readiness command progress next exact action line is inconsistent")
+    if contract.invalid_argv != progress.validation.invalid_argv:
+        raise ValueError("Command demo readiness command progress invalid argv is inconsistent")
+    if tuple(entry.flow_step for entry in contract.entries) != tuple(
+        entry.flow_step for entry in trace.entries
+    ):
+        raise ValueError("Command demo readiness command progress flow steps are inconsistent")
+    if tuple(entry.command_line for entry in contract.entries) != tuple(
+        entry.command_line for entry in trace.entries
+    ):
+        raise ValueError("Command demo readiness command progress command lines are inconsistent")
+    covered_flow_steps = set(progress.validation.covered_flow_steps)
+    missing_engine_actions = set(progress.validation.missing_engine_actions)
+    for entry, trace_entry in zip(contract.entries, trace.entries, strict=True):
+        if entry.ordinal != trace_entry.ordinal:
+            raise ValueError("Command demo readiness command progress ordinals are inconsistent")
+        if entry.demo_path_step != trace_entry.demo_path_step:
+            raise ValueError("Command demo readiness command progress path steps are inconsistent")
+        if entry.name != trace_entry.name:
+            raise ValueError("Command demo readiness command progress names are inconsistent")
+        if entry.action_lines != trace_entry.action_lines:
+            raise ValueError("Command demo readiness command progress action lines are inconsistent")
+        if entry.is_covered != (entry.flow_step in covered_flow_steps):
+            raise ValueError("Command demo readiness command progress coverage is inconsistent")
+        expected_remaining_actions = tuple(
+            engine_action
+            for engine_action, _line in entry.action_lines
+            if engine_action in missing_engine_actions
+        )
+        if entry.remaining_engine_actions != expected_remaining_actions:
+            raise ValueError("Command demo readiness command progress remaining actions are inconsistent")
+    if contract.is_complete and any(not entry.is_covered for entry in contract.entries):
+        raise ValueError("Command demo readiness command progress is complete but has uncovered commands")
+
+
+def command_demo_readiness_command_progress_contract(
+    argvs: Sequence[Sequence[str] | str],
+    specs: tuple[CommandSpec, ...] = COMMAND_SPECS,
+    launcher_argv: tuple[str, ...] = COMMAND_SMOKE_CLI_LAUNCHER_ARGV,
+) -> CommandDemoReadinessCommandProgressContract:
+    progress = command_demo_readiness_progress(argvs, specs, launcher_argv)
+    covered_flow_steps = set(progress.validation.covered_flow_steps)
+    missing_engine_actions = set(progress.validation.missing_engine_actions)
+    contract = CommandDemoReadinessCommandProgressContract(
+        is_complete=progress.validation.is_complete,
+        next_flow_step=progress.next_flow_step,
+        next_command_line=progress.next_command_line,
+        next_exact_action_line=progress.next_exact_action_line,
+        entries=tuple(
+            CommandDemoReadinessCommandProgressEntry(
+                ordinal=entry.ordinal,
+                demo_path_step=entry.demo_path_step,
+                flow_step=entry.flow_step,
+                name=entry.name,
+                command_line=entry.command_line,
+                action_lines=entry.action_lines,
+                is_covered=entry.flow_step in covered_flow_steps,
+                remaining_engine_actions=tuple(
+                    engine_action
+                    for engine_action, _line in entry.action_lines
+                    if engine_action in missing_engine_actions
+                ),
+            )
+            for entry in command_demo_readiness_command_trace_contract(specs, launcher_argv).entries
+        ),
+        invalid_argv=progress.validation.invalid_argv,
+    )
+    _validate_command_demo_readiness_command_progress_contract(contract, progress, specs, launcher_argv)
+    return contract
+
+
+def command_demo_readiness_command_progress_summary(
+    argvs: Sequence[Sequence[str] | str],
+    specs: tuple[CommandSpec, ...] = COMMAND_SPECS,
+    launcher_argv: tuple[str, ...] = COMMAND_SMOKE_CLI_LAUNCHER_ARGV,
+) -> tuple[
+    bool,
+    str | None,
+    str,
+    str,
+    tuple[tuple[int, str, str, str, str, bool, tuple[str, ...]], ...],
+    tuple[tuple[str, ...], ...],
+]:
+    contract = command_demo_readiness_command_progress_contract(argvs, specs, launcher_argv)
+    return (
+        contract.is_complete,
+        contract.next_flow_step,
+        contract.next_command_line,
+        contract.next_exact_action_line,
+        tuple(
+            (
+                entry.ordinal,
+                entry.demo_path_step,
+                entry.flow_step,
+                entry.name,
+                entry.command_line,
+                entry.is_covered,
+                entry.remaining_engine_actions,
+            )
+            for entry in contract.entries
+        ),
+        contract.invalid_argv,
+    )
+
+
 def command_demo_readiness_shell_progress(
     lines: Sequence[str] | str,
     specs: tuple[CommandSpec, ...] = COMMAND_SPECS,
@@ -10901,6 +11049,37 @@ def command_demo_readiness_shell_progress_summary(
         progress.remaining_command_lines,
         progress.remaining_exact_action_lines,
         progress.validation.invalid_argv,
+    )
+
+
+def command_demo_readiness_shell_command_progress_contract(
+    lines: Sequence[str] | str,
+    specs: tuple[CommandSpec, ...] = COMMAND_SPECS,
+    launcher_argv: tuple[str, ...] = COMMAND_SMOKE_CLI_LAUNCHER_ARGV,
+) -> CommandDemoReadinessCommandProgressContract:
+    return command_demo_readiness_command_progress_contract(
+        _shell_script_executable_argv(lines),
+        specs,
+        launcher_argv,
+    )
+
+
+def command_demo_readiness_shell_command_progress_summary(
+    lines: Sequence[str] | str,
+    specs: tuple[CommandSpec, ...] = COMMAND_SPECS,
+    launcher_argv: tuple[str, ...] = COMMAND_SMOKE_CLI_LAUNCHER_ARGV,
+) -> tuple[
+    bool,
+    str | None,
+    str,
+    str,
+    tuple[tuple[int, str, str, str, str, bool, tuple[str, ...]], ...],
+    tuple[tuple[str, ...], ...],
+]:
+    return command_demo_readiness_command_progress_summary(
+        _shell_script_executable_argv(lines),
+        specs,
+        launcher_argv,
     )
 
 
@@ -11326,6 +11505,29 @@ def command_mvp_demo_readiness_progress_summary(
     return command_demo_readiness_progress_summary(argvs, specs, launcher_argv)
 
 
+def command_mvp_demo_readiness_command_progress_contract(
+    argvs: Sequence[Sequence[str] | str],
+    specs: tuple[CommandSpec, ...] = COMMAND_SPECS,
+    launcher_argv: tuple[str, ...] = COMMAND_SMOKE_CLI_LAUNCHER_ARGV,
+) -> CommandDemoReadinessCommandProgressContract:
+    return command_demo_readiness_command_progress_contract(argvs, specs, launcher_argv)
+
+
+def command_mvp_demo_readiness_command_progress_summary(
+    argvs: Sequence[Sequence[str] | str],
+    specs: tuple[CommandSpec, ...] = COMMAND_SPECS,
+    launcher_argv: tuple[str, ...] = COMMAND_SMOKE_CLI_LAUNCHER_ARGV,
+) -> tuple[
+    bool,
+    str | None,
+    str,
+    str,
+    tuple[tuple[int, str, str, str, str, bool, tuple[str, ...]], ...],
+    tuple[tuple[str, ...], ...],
+]:
+    return command_demo_readiness_command_progress_summary(argvs, specs, launcher_argv)
+
+
 def command_mvp_demo_readiness_validate_cli_shell_script_lines(
     lines: Sequence[str] | str,
     specs: tuple[CommandSpec, ...] = COMMAND_SPECS,
@@ -11348,6 +11550,29 @@ def command_mvp_demo_readiness_shell_progress_summary(
     launcher_argv: tuple[str, ...] = COMMAND_SMOKE_CLI_LAUNCHER_ARGV,
 ) -> tuple[bool, str | None, str, str, tuple[str, ...], tuple[str, ...], tuple[tuple[str, ...], ...]]:
     return command_demo_readiness_shell_progress_summary(lines, specs, launcher_argv)
+
+
+def command_mvp_demo_readiness_shell_command_progress_contract(
+    lines: Sequence[str] | str,
+    specs: tuple[CommandSpec, ...] = COMMAND_SPECS,
+    launcher_argv: tuple[str, ...] = COMMAND_SMOKE_CLI_LAUNCHER_ARGV,
+) -> CommandDemoReadinessCommandProgressContract:
+    return command_demo_readiness_shell_command_progress_contract(lines, specs, launcher_argv)
+
+
+def command_mvp_demo_readiness_shell_command_progress_summary(
+    lines: Sequence[str] | str,
+    specs: tuple[CommandSpec, ...] = COMMAND_SPECS,
+    launcher_argv: tuple[str, ...] = COMMAND_SMOKE_CLI_LAUNCHER_ARGV,
+) -> tuple[
+    bool,
+    str | None,
+    str,
+    str,
+    tuple[tuple[int, str, str, str, str, bool, tuple[str, ...]], ...],
+    tuple[tuple[str, ...], ...],
+]:
+    return command_demo_readiness_shell_command_progress_summary(lines, specs, launcher_argv)
 
 
 def command_mvp_demo_readiness_next_action(
@@ -12909,6 +13134,13 @@ def command_mvp_demo_readiness_cli_smoke_lines(
     launcher_argv: tuple[str, ...] = COMMAND_SMOKE_CLI_LAUNCHER_ARGV,
 ) -> tuple[str, ...]:
     return command_demo_readiness_cli_smoke_lines(specs, launcher_argv)
+
+
+def command_mvp_demo_readiness_cli_smoke_script_text(
+    specs: tuple[CommandSpec, ...] = COMMAND_SPECS,
+    launcher_argv: tuple[str, ...] = COMMAND_SMOKE_CLI_LAUNCHER_ARGV,
+) -> str:
+    return command_demo_readiness_cli_smoke_script_text(specs, launcher_argv)
 
 
 def command_mvp_demo_readiness_shell_script_text(
