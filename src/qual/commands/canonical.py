@@ -12,6 +12,7 @@ from src.qual.commands.catalog import (
     CommandDemoReadinessCliContract,
     CommandDemoReadinessHandoffAudit,
     CommandDemoReadinessProgress,
+    CommandDemoReadinessCommandProgressContract,
     CommandDemoReadinessCommandTraceEntry,
     CommandDemoReadinessCommandTraceContract,
     CommandDemoReadinessTraceEntry,
@@ -247,8 +248,14 @@ from src.qual.commands.catalog import (
     command_mvp_demo_readiness_validate_cli_script as _readiness_validate_cli_script,
     command_mvp_demo_readiness_progress as _readiness_progress,
     command_mvp_demo_readiness_progress_summary as _readiness_progress_summary,
+    command_mvp_demo_readiness_command_progress_contract as _readiness_command_progress_contract,
+    command_mvp_demo_readiness_command_progress_summary as _readiness_command_progress_summary,
     command_mvp_demo_readiness_shell_progress as _readiness_shell_progress,
     command_mvp_demo_readiness_shell_progress_summary as _readiness_shell_progress_summary,
+    command_mvp_demo_readiness_shell_command_progress_contract
+    as _readiness_shell_command_progress_contract,
+    command_mvp_demo_readiness_shell_command_progress_summary
+    as _readiness_shell_command_progress_summary,
     command_mvp_demo_readiness_next_action as _readiness_next_action,
     command_mvp_demo_readiness_next_action_summary as _readiness_next_action_summary,
     command_mvp_demo_readiness_next_command_argv as _readiness_next_command_argv,
@@ -485,8 +492,12 @@ __all__ = [
     "canonical_command_readiness_validate_cli_script",
     "canonical_command_readiness_progress",
     "canonical_command_readiness_progress_summary",
+    "canonical_command_readiness_command_progress_contract",
+    "canonical_command_readiness_command_progress_summary",
     "canonical_command_readiness_shell_progress",
     "canonical_command_readiness_shell_progress_summary",
+    "canonical_command_readiness_shell_command_progress_contract",
+    "canonical_command_readiness_shell_command_progress_summary",
     "canonical_command_readiness_next_action",
     "canonical_command_readiness_next_action_summary",
     "canonical_command_readiness_next_command_argv",
@@ -1654,6 +1665,25 @@ def canonical_command_readiness_progress_summary(
     return _readiness_progress_summary(argvs)
 
 
+def canonical_command_readiness_command_progress_contract(
+    argvs: Sequence[Sequence[str] | str],
+) -> CommandDemoReadinessCommandProgressContract:
+    return _readiness_command_progress_contract(argvs)
+
+
+def canonical_command_readiness_command_progress_summary(
+    argvs: Sequence[Sequence[str] | str],
+) -> tuple[
+    bool,
+    str | None,
+    str,
+    str,
+    tuple[tuple[int, str, str, str, str, bool, tuple[str, ...]], ...],
+    tuple[tuple[str, ...], ...],
+]:
+    return _readiness_command_progress_summary(argvs)
+
+
 def canonical_command_readiness_shell_progress(
     lines: Sequence[str] | str,
 ) -> CommandDemoReadinessProgress:
@@ -1664,6 +1694,25 @@ def canonical_command_readiness_shell_progress_summary(
     lines: Sequence[str] | str,
 ) -> tuple[bool, str | None, str, str, tuple[str, ...], tuple[str, ...], tuple[tuple[str, ...], ...]]:
     return _readiness_shell_progress_summary(lines)
+
+
+def canonical_command_readiness_shell_command_progress_contract(
+    lines: Sequence[str] | str,
+) -> CommandDemoReadinessCommandProgressContract:
+    return _readiness_shell_command_progress_contract(lines)
+
+
+def canonical_command_readiness_shell_command_progress_summary(
+    lines: Sequence[str] | str,
+) -> tuple[
+    bool,
+    str | None,
+    str,
+    str,
+    tuple[tuple[int, str, str, str, str, bool, tuple[str, ...]], ...],
+    tuple[tuple[str, ...], ...],
+]:
+    return _readiness_shell_command_progress_summary(lines)
 
 
 def canonical_command_readiness_next_action(
