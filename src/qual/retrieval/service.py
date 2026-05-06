@@ -548,6 +548,11 @@ class RetrievalResult:
         bundle = {
             "audit_ref": self.audit_ref,
             "result_fingerprint": self.result_fingerprint,
+            "query": copy.deepcopy(downstream_payload["query"]),
+            "retrieval_policy": copy.deepcopy(downstream_payload["retrieval_policy"]),
+            "retrieval_manifest": copy.deepcopy(downstream_payload["retrieval_manifest"]),
+            "retrieval_summary": copy.deepcopy(downstream_payload["retrieval_summary"]),
+            "citation_status": copy.deepcopy(downstream_payload["citation_status"]),
             "retrieval_downstream_payload": copy.deepcopy(downstream_payload),
             "retrieval_citation_bundle": copy.deepcopy(downstream_payload["retrieval_citation_bundle"]),
             "retrieval_doc_bundle": copy.deepcopy(downstream_payload["retrieval_doc_bundle"]),

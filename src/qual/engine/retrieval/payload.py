@@ -1185,6 +1185,11 @@ def _backfill_downstream_payload_from_context_bundle(
     context_backfill = {
         "audit_ref": context_bundle.get("audit_ref"),
         "result_fingerprint": context_bundle.get("result_fingerprint"),
+        "query": context_bundle.get("query"),
+        "retrieval_policy": context_bundle.get("retrieval_policy"),
+        "retrieval_manifest": context_bundle.get("retrieval_manifest"),
+        "retrieval_summary": context_bundle.get("retrieval_summary"),
+        "citation_status": context_bundle.get("citation_status"),
         "retrieval_citation_bundle": context_bundle.get("retrieval_citation_bundle"),
         "retrieval_doc_bundle": context_bundle.get("retrieval_doc_bundle"),
         "retrieval_excerpt_bundle": context_bundle.get("retrieval_excerpt_bundle"),
@@ -1233,6 +1238,19 @@ def _build_retrieval_context_bundle_from_source_bundle(source_bundle: dict[str, 
         # Source-bundle-only reconstruction keeps the top-level context auditless.
         "audit_ref": None,
         "result_fingerprint": source_bundle.get("result_fingerprint"),
+        "query": copy.deepcopy(downstream_payload.get("query", source_bundle.get("query", {}))),
+        "retrieval_policy": copy.deepcopy(
+            downstream_payload.get("retrieval_policy", source_bundle.get("policy", {}))
+        ),
+        "retrieval_manifest": copy.deepcopy(
+            downstream_payload.get("retrieval_manifest", source_bundle.get("retrieval_manifest", {}))
+        ),
+        "retrieval_summary": copy.deepcopy(
+            downstream_payload.get("retrieval_summary", source_bundle.get("retrieval_summary", {}))
+        ),
+        "citation_status": copy.deepcopy(
+            downstream_payload.get("citation_status", source_bundle.get("citation_status", {}))
+        ),
         "retrieval_downstream_payload": copy.deepcopy(downstream_payload),
         "retrieval_citation_bundle": copy.deepcopy(retrieval_citation_bundle),
         "retrieval_doc_bundle": copy.deepcopy(retrieval_doc_bundle),
@@ -1402,6 +1420,11 @@ def _build_retrieval_context_bundle_from_payload(payload: dict[str, object]) -> 
     bundle = {
         "audit_ref": normalized_payload.get("audit_ref"),
         "result_fingerprint": normalized_payload.get("result_fingerprint"),
+        "query": copy.deepcopy(normalized_payload.get("query", {})),
+        "retrieval_policy": copy.deepcopy(normalized_payload.get("retrieval_policy", {})),
+        "retrieval_manifest": copy.deepcopy(normalized_payload.get("retrieval_manifest", {})),
+        "retrieval_summary": copy.deepcopy(normalized_payload.get("retrieval_summary", {})),
+        "citation_status": copy.deepcopy(normalized_payload.get("citation_status", {})),
         "retrieval_downstream_payload": normalized_payload,
         "retrieval_citation_bundle": _build_retrieval_citation_bundle_from_payload(normalized_payload),
         "retrieval_doc_bundle": _build_retrieval_doc_bundle_from_payload(normalized_payload),
