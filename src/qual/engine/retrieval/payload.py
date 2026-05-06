@@ -939,8 +939,9 @@ def _normalize_excerpt_bundle_snapshot(excerpt_bundle: dict[str, object]) -> dic
         normalized["basket_promotion_count"]
     )
     retrieval_policy = normalized.get("retrieval_policy")
-    if isinstance(retrieval_policy, dict):
-        normalized["retrieval_policy"] = _normalize_policy_snapshot(retrieval_policy)
+    normalized["retrieval_policy"] = _normalize_policy_snapshot(
+        retrieval_policy if isinstance(retrieval_policy, dict) else {}
+    )
     _normalize_bundle_retrieval_identity(normalized, field_name="excerpt_bundle")
     citation_status = normalized.get("citation_status")
     if isinstance(citation_status, dict):
