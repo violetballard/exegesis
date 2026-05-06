@@ -631,6 +631,7 @@ class CommandDemoReadinessReport:
 class CommandDemoReadinessHandoffPacket:
     branch_name: str
     scope_completed: str
+    tasks_completed: tuple[str, ...]
     files_changed: tuple[str, ...]
     commands_run: tuple[tuple[str, str], ...]
     roadmap_items: tuple[str, ...]
@@ -6221,6 +6222,12 @@ def command_demo_readiness_handoff_packet(
             "CLI compatibility and migration-safe entrypoints for the engine-first "
             "open, retrieval, patch-review, and persist demo loop."
         ),
+        tasks_completed=(
+            "1. Kept project/document open reachable through the bootstrap command.",
+            "2. Kept retrieval and basket promotion reachable through the context-basket command.",
+            "3. Kept revision, apply, and reject review reachable through the diff-preview command.",
+            "4. Kept persist-and-continue handoff reachable through the terminal command.",
+        ),
         files_changed=("src/qual/commands/**",),
         commands_run=tuple(
             (entry.command, entry.expected_result)
@@ -6293,6 +6300,15 @@ def _validate_command_demo_readiness_handoff_packet(
         raise ValueError("Command demo readiness handoff packet branch is inconsistent")
     if not packet.scope_completed.strip():
         raise ValueError("Command demo readiness handoff packet scope must not be empty")
+    if not packet.tasks_completed:
+        raise ValueError("Command demo readiness handoff packet tasks must not be empty")
+    if tuple(f"{index}. " for index in range(1, len(packet.tasks_completed) + 1)) != tuple(
+        task[: len(f"{index}. ")]
+        for index, task in enumerate(packet.tasks_completed, start=1)
+    ):
+        raise ValueError("Command demo readiness handoff packet tasks must be numbered")
+    if any(not task.strip() for task in packet.tasks_completed):
+        raise ValueError("Command demo readiness handoff packet tasks must not be empty")
     if packet.files_changed != ("src/qual/commands/**",):
         raise ValueError("Command demo readiness handoff packet files changed are inconsistent")
     if packet.commands_run != tuple((entry.command, entry.expected_result) for entry in required_gate_commands):
@@ -6374,6 +6390,7 @@ def _command_demo_readiness_handoff_packet_payload(
     return {
         "branch_name": packet.branch_name,
         "scope_completed": packet.scope_completed,
+        "tasks_completed": list(packet.tasks_completed),
         "files_changed": list(packet.files_changed),
         "commands_run": [
             {
@@ -6500,6 +6517,7 @@ def command_demo_readiness_handoff_packet_json(
 COMMAND_DEMO_READINESS_HANDOFF_FIELD_NAMES: tuple[str, ...] = (
     "branch_name",
     "scope_completed",
+    "tasks_completed",
     "files_changed",
     "commands_run",
     "roadmap_items",
@@ -6544,6 +6562,7 @@ def _command_demo_readiness_handoff_field_entries(
     return (
         CommandDemoReadinessHandoffFieldEntry("branch_name", packet.branch_name),
         CommandDemoReadinessHandoffFieldEntry("scope_completed", packet.scope_completed),
+        CommandDemoReadinessHandoffFieldEntry("tasks_completed", "; ".join(packet.tasks_completed)),
         CommandDemoReadinessHandoffFieldEntry("files_changed", "; ".join(packet.files_changed)),
         CommandDemoReadinessHandoffFieldEntry(
             "commands_run",
@@ -6598,6 +6617,8 @@ def _validate_command_demo_readiness_handoff_field_contract(
         raise ValueError("Command demo readiness handoff branch field is inconsistent")
     if values_by_name["scope_completed"] != packet.scope_completed:
         raise ValueError("Command demo readiness handoff scope field is inconsistent")
+    if values_by_name["tasks_completed"] != "; ".join(packet.tasks_completed):
+        raise ValueError("Command demo readiness handoff tasks field is inconsistent")
     if values_by_name["files_changed"] != "; ".join(packet.files_changed):
         raise ValueError("Command demo readiness handoff files-changed field is inconsistent")
     if values_by_name["commands_run"] != "; ".join(
@@ -6863,6 +6884,7 @@ def command_demo_readiness_handoff_packet_markdown(
         "",
         f"- Branch name: {packet.branch_name}",
         f"- Scope completed: {packet.scope_completed}",
+        f"- Tasks completed: {'; '.join(packet.tasks_completed)}",
         f"- Files changed: {'; '.join(packet.files_changed)}",
         f"- Commands run with results: {'; '.join(f'{command} -> {result}' for command, result in packet.commands_run)}",
         f"- Roadmap item(s) affected: {'; '.join(packet.roadmap_items)}",
@@ -6913,6 +6935,7 @@ def _validate_command_demo_readiness_handoff_packet_markdown(
     required_fragments = (
         packet.branch_name,
         packet.scope_completed,
+        *packet.tasks_completed,
         *packet.files_changed,
         *(f"{command} -> {result}" for command, result in packet.commands_run),
         *packet.roadmap_items,
@@ -6931,6 +6954,8 @@ def _validate_command_demo_readiness_handoff_packet_markdown(
     missing_fragments = tuple(fragment for fragment in required_fragments if fragment not in markdown)
     if missing_fragments:
         raise ValueError("Command demo readiness handoff packet markdown is incomplete")
+    if "Tasks completed" not in markdown:
+        raise ValueError("Command demo readiness handoff packet markdown lacks task fields")
     if "Roadmap item(s) affected" not in markdown or "Vision capability affected" not in markdown:
         raise ValueError("Command demo readiness handoff packet markdown lacks integration fields")
     if "Lane/owned paths" not in markdown or "Shared-file approval" not in markdown:
