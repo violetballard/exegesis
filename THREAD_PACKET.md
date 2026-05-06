@@ -45,6 +45,22 @@ Current pass task count: `1` meaningful task group, within the high-risk `4` tas
 Current pass size: packet-only traceability update in `THREAD_PACKET.md`.
 Shared/integrator-locked impact this pass: none; no source, test, or integrator-locked files were edited.
 
+## Integrator Failure Fixer Addendum
+
+This packet supersedes approved packet `R__APPROVED__codex-feat-retrieval-fts__cad21a6c9f4d9fa6b3b68fdd9b9d769d999594ed__20260506T194240Z.md` after the integrator reported `bad local cli marker: invalid_request_error`.
+
+Local reproduction result: the lane worktree reproduced the required integration gate sequence, but did not reproduce a project merge conflict, scope failure, formatting failure, lint failure, unit failure, typecheck failure, or CI failure. The captured integrator failure is therefore recorded as an external local Codex CLI marker failure from the integrator runner, not a retrieval implementation failure.
+
+Fix action: refreshed this handoff packet with the local reproduction result and fresh required gate evidence. No retrieval source, shared regression, provider routing, or integrator-locked files were changed in this fixer pass.
+
+Current integration-failure fixer files changed:
+
+- `M THREAD_PACKET.md`
+
+Current integration-failure fixer task count: `1` meaningful task group, within the high-risk `4` task cap for this fixer pass.
+Current integration-failure fixer size: packet-only gate/reproduction evidence update in `THREAD_PACKET.md`.
+Shared/integrator-locked impact this integration-failure fixer pass: none; no source, test, or integrator-locked files were edited.
+
 ## Tasks Completed
 
 1. Made SQLite FTS the authoritative MVP retrieval path while keeping PageIndex and embeddings fallback-only/deferred.
@@ -96,6 +112,15 @@ The protected `.codex/kickoff_packets/feat-retrieval-fts.md` and `.codex/lane_me
 ## Commands Run
 
 Required gates rerun for the final branch tip after this packet-only fixer commit:
+
+- `make scope-check` - passed for branch `codex/feat-retrieval-fts`.
+- `./quality-format.sh --check` - passed.
+- `./quality-lint.sh` - passed shell syntax and trailing whitespace checks.
+- `./quality-test.sh` - passed smoke tests and 129 unit tests.
+- `./typecheck-test.sh` - passed Python source compilation under `src/`.
+- `make ci` - passed setup, scope-check, format, lint, compile/typecheck, smoke tests, and 129 unit tests.
+
+Required gates rerun for the integration-failure fixer pass:
 
 - `make scope-check` - passed for branch `codex/feat-retrieval-fts`.
 - `./quality-format.sh --check` - passed.
