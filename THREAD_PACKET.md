@@ -3,7 +3,7 @@
 - Branch name: `codex/feat-retrieval-fts`
 - Lane: `feat-retrieval-fts`
 - Merge target: current `main`
-- Merge candidate for re-review: branch tip `HEAD` on `codex/feat-retrieval-fts`, including this packet traceability refresh. Before this reviewer-required fixer sequence, the branch tip was `31b130f24f8a944ef421fd02d1d2fb62ef559944`; the final post-commit SHA is reported in the fixer deliverable.
+- Merge candidate for re-review: branch tip `HEAD` on `codex/feat-retrieval-fts`, including this packet traceability refresh. The reviewer-referenced merge candidate was `31b130f24f8a944ef421fd02d1d2fb62ef559944`; the pre-fix tip for this pass was `9511a016c20f09b43c6e7a571e0a8a49f90ea209`; the final post-commit SHA is reported in the fixer deliverable.
 - Actual merge-candidate diff against `main`: `main...HEAD`, currently anchored at merge-base `b4ca0dd3ea81042f9aec63782695cf83678fc6b1`.
 - Reviewer-requested traceability range: `adfa8cdadd43747ffbcb612e4151e262b13e52ca..HEAD`. This is the historical range that includes every source/test change after the earlier reviewed implementation head, including changes that are already reachable from current `main`.
 - Current merge-base before this packet refresh commit: `b4ca0dd3ea81042f9aec63782695cf83678fc6b1`.
@@ -78,7 +78,7 @@ Historical post-`adfa8cdadd43747ffbcb612e4151e262b13e52ca` traceability files:
 
 Packet mirror update blocker:
 
-- `.codex/kickoff_packets/feat-retrieval-fts.md` and `.codex/lane_meta/feat-retrieval-fts.json` still contain stale earlier packet wording in the worktree, but this sandbox rejects writes inside `.codex/**` with `Operation not permitted`. Treat `THREAD_PACKET.md` and the final fixer SHA as the authoritative re-review packet for this fixer pass.
+- `.codex/kickoff_packets/feat-retrieval-fts.md` and `.codex/lane_meta/feat-retrieval-fts.json` still contain stale earlier packet wording in the worktree, but the available `apply_patch` tool rejects writes inside `.codex/**` with `writing outside of the project`. Treat `THREAD_PACKET.md` and the final fixer SHA as the authoritative re-review packet for this fixer pass. `THREAD_PACKET.md` is explicitly regenerated so branch tip `HEAD` is the merge candidate and source/test commits after `adfa8cdadd43747ffbcb612e4151e262b13e52ca` are implementation scope when included in the historical traceability range.
 
 Integrator-locked files: none.
 
@@ -86,7 +86,7 @@ Integrator-locked files: none.
 
 - Task budget: `4/4` high-risk tasks.
 - File budget: before this packet refresh commit, the actual merge-candidate diff `main...HEAD` changes `5` files: `THREAD_PACKET.md`, `src/qual/engine/retrieval/__init__.py`, `src/qual/engine/retrieval/payload.py`, `src/qual/retrieval/service.py`, and `tests/unit/test_unified_retrieval.py`. This remains within the high-risk `<=8 files` limit. The reviewer-requested historical traceability range `adfa8cdadd43747ffbcb612e4151e262b13e52ca..HEAD` changes `9` files, which is over the high-risk file budget and is called out here for re-review instead of being narrowed or hidden.
-- Net LOC: before this packet refresh commit, the actual merge-candidate diff `main...HEAD` was `130` insertions and `26` deletions across the `5` files above. This fixer pass only refreshes the authoritative handoff packet in `THREAD_PACKET.md`; the final post-commit SHA and gate results are reported in the fixer deliverable. The reviewer-requested historical traceability range remains larger and is explicitly disclosed for traceability.
+- Net LOC: before this packet refresh commit, the actual merge-candidate diff `main...HEAD` was `132` insertions and `27` deletions across the `5` files above. This fixer pass refreshes the authoritative `THREAD_PACKET.md`; the final post-commit SHA and gate results are reported in the fixer deliverable. The reviewer-requested historical traceability range remains larger and is explicitly disclosed for traceability.
 - Shared-file approval note: `tests/unit/test_unified_retrieval.py` is the approved shared-by-approval regression file for this lane.
 - Routing/provider impact: none.
 - PageIndex/embeddings impact: none; both remain deferred/compatibility-only.
