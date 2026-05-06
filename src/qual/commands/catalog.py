@@ -4567,20 +4567,29 @@ def command_demo_execution_plan_contract(
                 command_line=_shell_join(entry.command_argv),
                 engine_actions=entry.engine_actions,
                 action_lines=tuple(
-                    (engine_action, _shell_join(action_argv))
+                    (
+                        engine_action,
+                        _command_demo_action_coverage_line(
+                            engine_action,
+                            _shell_join(action_argv),
+                            specs,
+                            launcher_argv,
+                        ),
+                    )
                     for engine_action, action_argv in entry.action_command_argv
                 ),
             )
             for entry in readiness_contract.entries
         ),
     )
-    _validate_command_demo_execution_plan_contract(contract, readiness_contract, launcher_argv)
+    _validate_command_demo_execution_plan_contract(contract, readiness_contract, specs, launcher_argv)
     return contract
 
 
 def _validate_command_demo_execution_plan_contract(
     contract: CommandDemoExecutionPlanContract,
     readiness_contract: CommandDemoReadinessContract,
+    specs: tuple[CommandSpec, ...],
     launcher_argv: tuple[str, ...],
 ) -> None:
     _validate_command_smoke_cli_launcher(launcher_argv)
@@ -4615,13 +4624,31 @@ def _validate_command_demo_execution_plan_contract(
         if step.engine_actions != entry.engine_actions:
             raise ValueError(f"Command demo execution plan actions are inconsistent: {step.flow_step}")
         expected_action_lines = tuple(
-            (engine_action, _shell_join(action_argv))
+            (
+                engine_action,
+                _command_demo_action_coverage_line(
+                    engine_action,
+                    _shell_join(action_argv),
+                    specs,
+                    launcher_argv,
+                ),
+            )
             for engine_action, action_argv in entry.action_command_argv
         )
         if step.action_lines != expected_action_lines:
             raise ValueError(f"Command demo execution plan action lines are inconsistent: {step.flow_step}")
         if not step.command_line or not step.action_lines:
             raise ValueError(f"Command demo execution plan step must be smoke-testable: {step.flow_step}")
+        for engine_action, action_line in step.action_lines:
+            resolved_action = command_demo_readiness_exact_action_for_argv(
+                action_line,
+                specs,
+                launcher_argv,
+            )
+            if resolved_action != engine_action:
+                raise ValueError(
+                    f"Command demo execution plan exact action is inconsistent: {engine_action}"
+                )
 
 
 def command_demo_execution_plan_summary(
