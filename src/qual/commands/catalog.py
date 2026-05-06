@@ -713,6 +713,23 @@ class CommandDemoReadinessCliStepValidationContract:
 
 
 @dataclass(frozen=True)
+class CommandDemoReadinessCliEntrypointSeal:
+    ordinal: int
+    demo_path_step: str
+    flow_step: str
+    name: str
+    parser_token: str
+    command_line: str
+    canonical_command_line: str
+    is_cli_entrypoint: bool
+
+
+@dataclass(frozen=True)
+class CommandDemoReadinessCliEntrypointSealContract:
+    steps: tuple[CommandDemoReadinessCliEntrypointSeal, ...]
+
+
+@dataclass(frozen=True)
 class CommandDemoReadinessIndexEntry:
     ordinal: int
     demo_path_step: str
@@ -7595,6 +7612,124 @@ def command_demo_readiness_cli_step_validation_json(
     )
 
 
+@lru_cache(maxsize=None)
+def command_demo_readiness_cli_entrypoint_seal_contract(
+    specs: tuple[CommandSpec, ...] = COMMAND_SPECS,
+    launcher_argv: tuple[str, ...] = COMMAND_SMOKE_CLI_LAUNCHER_ARGV,
+) -> CommandDemoReadinessCliEntrypointSealContract:
+    steps = tuple(
+        CommandDemoReadinessCliEntrypointSeal(
+            ordinal=step.ordinal,
+            demo_path_step=step.demo_path_step,
+            flow_step=step.flow_step,
+            name=step.name,
+            parser_token=step.parser_token,
+            command_line=step.command_line,
+            canonical_command_line=step.canonical_command_line,
+            is_cli_entrypoint=step.is_cli_entrypoint,
+        )
+        for step in command_demo_readiness_cli_step_validation_contract(specs, launcher_argv).steps
+    )
+    contract = CommandDemoReadinessCliEntrypointSealContract(steps=steps)
+    _validate_command_demo_readiness_cli_entrypoint_seal_contract(
+        contract,
+        specs,
+        launcher_argv,
+    )
+    return contract
+
+
+def _validate_command_demo_readiness_cli_entrypoint_seal_contract(
+    contract: CommandDemoReadinessCliEntrypointSealContract,
+    specs: tuple[CommandSpec, ...],
+    launcher_argv: tuple[str, ...],
+) -> None:
+    validations = command_demo_readiness_cli_step_validation_contract(specs, launcher_argv).steps
+    if tuple(step.ordinal for step in contract.steps) != tuple(
+        validation.ordinal
+        for validation in validations
+    ):
+        raise ValueError("Command demo CLI entrypoint seal ordinals are inconsistent")
+    if tuple(step.flow_step for step in contract.steps) != tuple(
+        validation.flow_step
+        for validation in validations
+    ):
+        raise ValueError("Command demo CLI entrypoint seal flow steps are inconsistent")
+    if tuple(step.name for step in contract.steps) != tuple(validation.name for validation in validations):
+        raise ValueError("Command demo CLI entrypoint seal commands are inconsistent")
+    for step, validation in zip(contract.steps, validations, strict=True):
+        expected_parser_token = command_cli_entrypoint_for(step.name)
+        if not expected_parser_token:
+            raise ValueError(f"Command demo CLI entrypoint seal is missing a parser token: {step.name}")
+        if step.parser_token != expected_parser_token:
+            raise ValueError(f"Command demo CLI entrypoint seal parser token is inconsistent: {step.name}")
+        if step.command_line != validation.command_line:
+            raise ValueError(f"Command demo CLI entrypoint seal command line is inconsistent: {step.name}")
+        if step.canonical_command_line != validation.canonical_command_line:
+            raise ValueError(
+                f"Command demo CLI entrypoint seal canonical command line is inconsistent: {step.name}"
+            )
+        if not step.is_cli_entrypoint:
+            raise ValueError(f"Command demo CLI entrypoint seal command is not a CLI entrypoint: {step.name}")
+
+
+def command_demo_readiness_cli_entrypoint_seal_summary(
+    specs: tuple[CommandSpec, ...] = COMMAND_SPECS,
+    launcher_argv: tuple[str, ...] = COMMAND_SMOKE_CLI_LAUNCHER_ARGV,
+) -> tuple[tuple[int, str, str, str, str, str, bool], ...]:
+    return tuple(
+        (
+            step.ordinal,
+            step.demo_path_step,
+            step.flow_step,
+            step.name,
+            step.parser_token,
+            step.canonical_command_line,
+            step.is_cli_entrypoint,
+        )
+        for step in command_demo_readiness_cli_entrypoint_seal_contract(
+            specs,
+            launcher_argv,
+        ).steps
+    )
+
+
+def command_demo_readiness_cli_entrypoint_seal_payload(
+    specs: tuple[CommandSpec, ...] = COMMAND_SPECS,
+    launcher_argv: tuple[str, ...] = COMMAND_SMOKE_CLI_LAUNCHER_ARGV,
+) -> tuple[dict[str, object], ...]:
+    return tuple(
+        {
+            "ordinal": step.ordinal,
+            "demo_path_step": step.demo_path_step,
+            "flow_step": step.flow_step,
+            "command": step.name,
+            "parser_token": step.parser_token,
+            "command_line": step.command_line,
+            "canonical_command_line": step.canonical_command_line,
+            "is_cli_entrypoint": step.is_cli_entrypoint,
+        }
+        for step in command_demo_readiness_cli_entrypoint_seal_contract(
+            specs,
+            launcher_argv,
+        ).steps
+    )
+
+
+def command_demo_readiness_cli_entrypoint_seal_json(
+    specs: tuple[CommandSpec, ...] = COMMAND_SPECS,
+    launcher_argv: tuple[str, ...] = COMMAND_SMOKE_CLI_LAUNCHER_ARGV,
+) -> str:
+    return json.dumps(
+        command_demo_readiness_cli_entrypoint_seal_payload(
+            specs,
+            launcher_argv,
+        ),
+        sort_keys=True,
+        separators=(",", ":"),
+    )
+
+
 def _command_demo_readiness_index_step_payload(
     step: CommandDemoReadinessStepSeal,
 ) -> dict[str, object]:
@@ -13721,6 +13856,34 @@ def command_mvp_demo_readiness_cli_step_validation_json(
     launcher_argv: tuple[str, ...] = COMMAND_SMOKE_CLI_LAUNCHER_ARGV,
 ) -> str:
     return command_demo_readiness_cli_step_validation_json(specs, launcher_argv)
+
+
+def command_mvp_demo_readiness_cli_entrypoint_seal_contract(
+    specs: tuple[CommandSpec, ...] = COMMAND_SPECS,
+    launcher_argv: tuple[str, ...] = COMMAND_SMOKE_CLI_LAUNCHER_ARGV,
+) -> CommandDemoReadinessCliEntrypointSealContract:
+    return command_demo_readiness_cli_entrypoint_seal_contract(specs, launcher_argv)
+
+
+def command_mvp_demo_readiness_cli_entrypoint_seal_summary(
+    specs: tuple[CommandSpec, ...] = COMMAND_SPECS,
+    launcher_argv: tuple[str, ...] = COMMAND_SMOKE_CLI_LAUNCHER_ARGV,
+) -> tuple[tuple[int, str, str, str, str, str, bool], ...]:
+    return command_demo_readiness_cli_entrypoint_seal_summary(specs, launcher_argv)
+
+
+def command_mvp_demo_readiness_cli_entrypoint_seal_payload(
+    specs: tuple[CommandSpec, ...] = COMMAND_SPECS,
+    launcher_argv: tuple[str, ...] = COMMAND_SMOKE_CLI_LAUNCHER_ARGV,
+) -> tuple[dict[str, object], ...]:
+    return command_demo_readiness_cli_entrypoint_seal_payload(specs, launcher_argv)
+
+
+def command_mvp_demo_readiness_cli_entrypoint_seal_json(
+    specs: tuple[CommandSpec, ...] = COMMAND_SPECS,
+    launcher_argv: tuple[str, ...] = COMMAND_SMOKE_CLI_LAUNCHER_ARGV,
+) -> str:
+    return command_demo_readiness_cli_entrypoint_seal_json(specs, launcher_argv)
 
 
 def command_mvp_demo_readiness_index_contract(

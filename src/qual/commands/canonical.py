@@ -49,6 +49,7 @@ from src.qual.commands.catalog import (
     CommandDemoReadinessIndexContract,
     CommandDemoReadinessIndexEntry,
     CommandDemoReadinessNextAction,
+    CommandDemoReadinessCliEntrypointSealContract,
     CommandDemoReadinessCliStepValidationContract,
     CommandDemoReadinessStepSealContract,
     CommandDemoReadinessCommandAuditContract,
@@ -117,6 +118,14 @@ from src.qual.commands.catalog import (
     as _readiness_cli_step_validation_payload,
     command_mvp_demo_readiness_cli_step_validation_summary
     as _readiness_cli_step_validation_summary,
+    command_mvp_demo_readiness_cli_entrypoint_seal_contract
+    as _readiness_cli_entrypoint_seal_contract,
+    command_mvp_demo_readiness_cli_entrypoint_seal_json
+    as _readiness_cli_entrypoint_seal_json,
+    command_mvp_demo_readiness_cli_entrypoint_seal_payload
+    as _readiness_cli_entrypoint_seal_payload,
+    command_mvp_demo_readiness_cli_entrypoint_seal_summary
+    as _readiness_cli_entrypoint_seal_summary,
     command_mvp_demo_readiness_index_contract as _readiness_index_contract,
     command_mvp_demo_readiness_index_json as _readiness_index_json,
     command_mvp_demo_readiness_next_command_line as _readiness_next_command_line,
@@ -473,6 +482,10 @@ __all__ = [
     "canonical_command_readiness_cli_step_validation_summary",
     "canonical_command_readiness_cli_step_validation_payload",
     "canonical_command_readiness_cli_step_validation_json",
+    "canonical_command_readiness_cli_entrypoint_seal_contract",
+    "canonical_command_readiness_cli_entrypoint_seal_summary",
+    "canonical_command_readiness_cli_entrypoint_seal_payload",
+    "canonical_command_readiness_cli_entrypoint_seal_json",
     "canonical_command_readiness_index_contract",
     "canonical_command_readiness_index_summary",
     "canonical_command_readiness_index_payload",
@@ -1166,6 +1179,25 @@ def canonical_command_readiness_cli_step_validation_payload() -> tuple[dict[str,
 
 def canonical_command_readiness_cli_step_validation_json() -> str:
     return _readiness_cli_step_validation_json()
+
+
+def canonical_command_readiness_cli_entrypoint_seal_contract() -> CommandDemoReadinessCliEntrypointSealContract:
+    return _readiness_cli_entrypoint_seal_contract()
+
+
+def canonical_command_readiness_cli_entrypoint_seal_summary() -> tuple[
+    tuple[int, str, str, str, str, str, bool],
+    ...,
+]:
+    return _readiness_cli_entrypoint_seal_summary()
+
+
+def canonical_command_readiness_cli_entrypoint_seal_payload() -> tuple[dict[str, object], ...]:
+    return _readiness_cli_entrypoint_seal_payload()
+
+
+def canonical_command_readiness_cli_entrypoint_seal_json() -> str:
+    return _readiness_cli_entrypoint_seal_json()
 
 
 def canonical_command_readiness_index_contract() -> CommandDemoReadinessIndexContract:
