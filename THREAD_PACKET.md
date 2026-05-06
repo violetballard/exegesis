@@ -3,80 +3,121 @@
 - Branch name: `codex/feat-retrieval-fts`
 - Lane: `feat-retrieval-fts`
 - Merge target: current `main`
-- Handoff type: shared/high-risk retrieval feature hardening handoff for the FTS-first retrieval lane.
-- Implementation base before this split: `3078e7d5d8d67605b8c8208383ecdcfa6310471f`.
-- Final branch tip: reported in the final handoff after commit creation.
-- Reviewed implementation range for this split: `3078e7d5d8d67605b8c8208383ecdcfa6310471f..FINAL_BRANCH_TIP`.
-- Scope classification: high-risk under the retrieval kickoff packet because the lane handoff carries approved shared regression coverage history; this split itself changes only lane-owned implementation code plus this handoff packet.
+- Handoff type: high-risk branch-tip retrieval handoff for the FTS-first retrieval lane.
+- Reviewed implementation base: `378cf9a74a3658058079a32f186fcd254c4a4034`.
+- Actual merge candidate before this packet fix: `e49d7c2c34d1e8f3dd8ca1927e2efbef53d67f06`.
+- Reviewed implementation range for re-review: `378cf9a74a3658058079a32f186fcd254c4a4034..FINAL_BRANCH_TIP`.
+- Final branch tip: reported in the final fixer response after commit creation.
+- Scope classification: high-risk because this lane touches retrieval core/facade behavior and approved shared regression coverage in `tests/unit/test_unified_retrieval.py`.
+- Lane-owned paths: `src/qual/retrieval/**`, `src/qual/engine/retrieval/**`.
+- Approved shared regression path: `tests/unit/test_unified_retrieval.py`.
 - Integrator-locked files: none.
 
 ## Scope Completed
 
-This split hardens direct engine-facing retrieval bundle normalization so explicit stale backend or mode fields fail closed at every canonical bundle boundary. Citation, doc, excerpt, summary, manifest, and evidence snapshots now validate any present top-level `retrieval_backend` and `retrieval_mode` values against the FTS-first MVP contract without adding missing fields or changing stable sparse snapshot shapes.
+This branch-tip handoff covers the full retrieval implementation currently present on `codex/feat-retrieval-fts`, including all production and test changes after `adfa8cdadd43747ffbcb612e4151e262b13e52ca`. SQLite FTS remains the authoritative retrieval path for MVP flows. PageIndex and embeddings remain compatibility-only/deferred surfaces that fail closed when they cannot be resolved through the canonical FTS path.
 
-Canonical demo-path step advanced: `retrieve relevant material`. This also supports `promote or gather context into the basket` by preventing stale PageIndex or hybrid retrieval identities from surviving in sparse bundle snapshots that are later rebuilt into downstream payloads, context bundles, and basket promotion references.
+The branch hardens deterministic retrieval payloads, FTS candidate strategy identity, sparse-policy rehydration, excerpt lookup provenance, bundle identity validation, and final hit rank/score ordering. Downstream citation bundles, context bundles, and basket promotion payloads now receive normalized, auditable retrieval snapshots tied to the FTS-first result order the engine consumes.
+
+Canonical demo-path step advanced: `retrieve relevant material`. This also supports `promote or gather context into the basket` because source bundles, context bundles, citations, and basket promotion items carry deterministic retrieval provenance.
 
 ## Tasks Completed
 
-1. Bundle identity guard: added shared validation for explicit `retrieval_backend` and `retrieval_mode` fields on direct citation/doc/excerpt/summary/manifest/evidence snapshots.
-2. Source-bundle fail-closed ordering: validates top-level sparse payload backend/mode before derived doc/excerpt bundles are rebuilt, preserving the existing source-bundle error contract.
-3. Shape stability: kept absent sparse identity fields absent so existing deterministic bundle equality and fingerprints remain stable.
-4. Verification and handoff: re-ran the unified retrieval suite and all required local gates, then refreshed this handoff packet.
+1. FTS-first retrieval and excerpt lookup: kept SQLite FTS authoritative, exported the canonical retrieval facades, removed PageIndex fallback from excerpt fetching, and enforced fail-closed behavior for PageIndex-only or non-FTS excerpt identifiers.
+2. Deterministic retrieval payloads and provenance: normalized query snapshots, constraints, candidate/document identities, source bundles, context bundles, citation backfills, lookup fingerprints, and basket promotion metadata.
+3. Retrieval policy and strategy hardening: preserved sparse retrieval policy identity, guarded deferred backend policy, validated bundle identity, stabilized FTS merge strategy identity, and kept engine retrieval exports aligned with the canonical retrieval implementation.
+4. Final result ordering and regression coverage: re-ranked final deduplicated FTS hits after truncation so score/provenance rank match output order, and expanded approved shared regression coverage in `tests/unit/test_unified_retrieval.py` for FTS-only behavior, payload identity, provenance, and promotion-ready outputs.
 
-Final demo-path statement: retrieval output remains FTS-first, deterministic, and promotion-ready, while explicit stale PageIndex, hybrid, or non-`sqlite_fts` bundle identities are rejected before engine consumers can treat them as canonical.
+Final demo-path statement: retrieval output remains FTS-first, deterministic, auditable, and promotion-ready, with citation and basket promotion metadata tied to the final result order.
 
 ## Files Changed
 
-Implementation base before this split: `3078e7d5d8d67605b8c8208383ecdcfa6310471f`.
+Reviewed implementation range for re-review: `378cf9a74a3658058079a32f186fcd254c4a4034..FINAL_BRANCH_TIP`.
 
-- `src/qual/engine/retrieval/payload.py` - direct retrieval bundle snapshots now validate explicit backend/mode identity fields and sparse source payloads validate top-level backend/mode before rebuilding nested bundles.
-- `THREAD_PACKET.md` - handoff packet refreshed with required `INTEGRATION.md` fields.
+- `.codex/kickoff_packets/feat-retrieval-fts.md` - branch-tip range includes this stale lane metadata from earlier commits; this fixer attempted to update it, but the sandbox rejected writes to hidden `.codex` paths with `Operation not permitted`.
+- `.codex/lane_meta/feat-retrieval-fts.json` - branch-tip range includes this stale lane metadata from earlier commits; this fixer attempted to update it, but the sandbox rejected writes to hidden `.codex` paths with `Operation not permitted`.
+- `THREAD_PACKET.md` - regenerated this authoritative handoff packet for the actual branch-tip scope.
+- `src/qual/engine/retrieval/__init__.py` - aligned engine retrieval exports and compatibility facade wiring with the FTS-first retrieval surface.
+- `src/qual/engine/retrieval/fts_strategy.py` - hardened FTS strategy identity and candidate/provenance behavior.
+- `src/qual/engine/retrieval/payload.py` - normalized retrieval payload snapshots, source/context bundles, citation backfills, basket promotion metadata, and identifier/fingerprint fields.
+- `src/qual/retrieval/__init__.py` - exported canonical retrieval helpers through the public retrieval facade.
+- `src/qual/retrieval/service.py` - implemented FTS-only excerpt fetching, deterministic query/constraint/cache handling, sparse policy reconstruction, and final hit re-ranking.
+- `tests/unit/test_unified_retrieval.py` - expanded approved shared regression coverage for FTS-first retrieval, fail-closed fallback behavior, payload/provenance normalization, and branch-tip hardening.
 
 ## Diff Evidence
 
-Command: `git diff --stat HEAD -- src/qual/engine/retrieval/payload.py`
+Command: `git diff --stat 378cf9a74a3658058079a32f186fcd254c4a4034..e49d7c2c34d1e8f3dd8ca1927e2efbef53d67f06`
 
 ```text
- src/qual/engine/retrieval/payload.py | 42 ++++++++++++++++++++++++++++++++++++
- 1 file changed, 42 insertions(+)
+ .codex/kickoff_packets/feat-retrieval-fts.md |   36 +-
+ .codex/lane_meta/feat-retrieval-fts.json     |  155 ++-
+ THREAD_PACKET.md                             |  121 ++-
+ src/qual/engine/retrieval/__init__.py        |   86 +-
+ src/qual/engine/retrieval/fts_strategy.py    |   59 +-
+ src/qual/engine/retrieval/payload.py         | 1399 +++++++++++++++++++++++---
+ src/qual/retrieval/__init__.py               |   11 +
+ src/qual/retrieval/service.py                |  844 ++++++++++++++--
+ tests/unit/test_unified_retrieval.py         | 1201 +++++++++++++++++++++-
+ 9 files changed, 3547 insertions(+), 365 deletions(-)
 ```
 
-Command: `git diff --numstat HEAD -- src/qual/engine/retrieval/payload.py`
+Command: `git diff --stat adfa8cdadd43747ffbcb612e4151e262b13e52ca..e49d7c2c34d1e8f3dd8ca1927e2efbef53d67f06`
 
 ```text
-42	0	src/qual/engine/retrieval/payload.py
+ .codex/kickoff_packets/feat-retrieval-fts.md |   36 +-
+ .codex/lane_meta/feat-retrieval-fts.json     |  155 ++-
+ THREAD_PACKET.md                             |  121 ++-
+ src/qual/engine/retrieval/__init__.py        |   86 +-
+ src/qual/engine/retrieval/fts_strategy.py    |   59 +-
+ src/qual/engine/retrieval/payload.py         | 1399 +++++++++++++++++++++++---
+ src/qual/retrieval/__init__.py               |   11 +
+ src/qual/retrieval/service.py                |  823 ++++++++++++++-
+ tests/unit/test_unified_retrieval.py         | 1181 +++++++++++++++++++++-
+ 9 files changed, 3528 insertions(+), 343 deletions(-)
+```
+
+Command: `git show --name-status --oneline e49d7c2c34d1e8f3dd8ca1927e2efbef53d67f06`
+
+```text
+e49d7c2c3 Harden final retrieval hit ranks
+M	THREAD_PACKET.md
+M	src/qual/retrieval/service.py
 ```
 
 ## Budget/Risk
 
 - Task budget: `4/4` high-risk task groups.
-- File count for implementation change before packet refresh: `1 file changed`.
-- Size accounting for implementation change before packet refresh: `42 insertions(+), 0 deletions(-)`, net `42 LOC`.
-- AGENTS file/size status: fits high-risk limits of `<=8 files` and `<=300 net LOC`.
-- Shared/integrator exception status: none needed; no shared regression or integrator-locked file changed in this split.
+- File count for branch-tip handoff before this packet fix: `9 files changed`.
+- Size accounting for branch-tip handoff before this packet fix: `3547 insertions(+), 365 deletions(-)`, net `3182 LOC`.
+- Post-`adfa8cd` branch delta before this packet fix: `9 files changed, 3528 insertions(+), 343 deletions(-)`.
+- AGENTS file/size status: exceeds high-risk size limits of `<=8 files` and `<=300 net LOC`; this is now explicitly disclosed for reviewer/integrator judgment instead of being hidden behind metadata-only wording.
+- Shared/integrator exception status: `tests/unit/test_unified_retrieval.py` is approved shared regression coverage for the retrieval lane; no integrator-locked files changed.
 - Routing/provider impact: none.
-- PageIndex/embeddings impact: remain compatibility-only/deferred identifiers; explicit stale PageIndex, hybrid, or non-FTS bundle identity values now fail closed at more direct bundle boundaries.
-- Remaining risks/blockers: none known for this split.
+- PageIndex/embeddings impact: remain compatibility-only/deferred identifiers; no PageIndex, embeddings, hybrid, or alternate retrieval path was added.
+- Remaining risks/blockers: the branch-tip change volume exceeds AGENTS high-risk size limits. The authoritative root packet no longer claims production/test commits after `adfa8cd` are metadata-only. Stale `.codex` metadata copies still contain old metadata-only wording because this sandbox rejected writes to those hidden paths.
 
 ## Roadmap/Vision
 
 - Roadmap items affected: `ROADMAP.md` Milestone 3 generation provenance contract and Milestone 4 FTS-first retrieval orchestration/source-attribution/auditable deterministic retrieval.
 - Vision capability affected: retrieval-backed context, retrieval-first context handling, auditable outputs, and reliable local-first state.
-- Architecture alignment: FTS remains the required local retrieval path. PageIndex and embeddings stay compatibility-only/deferred and explicit stale backend/mode identities fail closed in engine-facing retrieval bundles.
+- Architecture alignment: FTS remains the required local retrieval path. PageIndex and embeddings stay compatibility-only/deferred.
 - Canonical demo-path mapping: advances `retrieve relevant material` and supports `promote or gather context into the basket`.
 - Routing/provider impact note: none.
 - Proposed `README.md` patch text: none.
 
 ## Commands Run
 
-- `python3 -m unittest tests.unit.test_unified_retrieval -v` - first run failed after the initial draft changed sparse bundle shapes; narrowed the implementation and re-ran.
-- `python3 -m unittest tests.unit.test_unified_retrieval -v` - passed, 81 tests.
+- `make scope-check` - passed; repo reported no policy for branch `codex/feat-retrieval-fts` and skipped policy enforcement.
 - `./quality-format.sh --check` - passed.
 - `./quality-lint.sh` - passed shell syntax and trailing whitespace checks.
 - `./quality-test.sh` - passed smoke tests and 150 unit tests.
 - `./typecheck-test.sh` - passed Python source compilation under `src/`.
-- `make ci` - passed setup, scope-check, format, lint, build, typecheck, smoke tests, and 150 unit tests.
+- `make ci` - passed setup, scope-check, format, lint, compile/typecheck, smoke tests, and 150 unit tests.
 
 ## Metadata Write Note
 
-The root `THREAD_PACKET.md` is the authoritative regenerated handoff packet for this split. The final branch tip is intentionally reported in the final handoff after commit creation because embedding the commit SHA inside the commit would become stale immediately.
+The root `THREAD_PACKET.md` is the authoritative regenerated handoff packet. No commit after `adfa8cdadd43747ffbcb612e4151e262b13e52ca` is described here as metadata-only unless `git show --name-status` for that commit contains only packet or lane metadata files. The reviewed implementation range intentionally covers `378cf9a74a3658058079a32f186fcd254c4a4034..FINAL_BRANCH_TIP` so the actual merge candidate is traceable.
+
+## Metadata Write Blocker
+
+This fixer attempted to update `.codex/kickoff_packets/feat-retrieval-fts.md` and `.codex/lane_meta/feat-retrieval-fts.json` to remove stale metadata-only wording from those copies as well. Both writes failed with `PermissionError: [Errno 1] Operation not permitted` in this worktree sandbox. The root `THREAD_PACKET.md` is therefore the corrected source of truth for re-review, while the stale `.codex` metadata files remain an explicit blocker/risk if the reviewer treats them as authoritative.
