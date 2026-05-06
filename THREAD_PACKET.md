@@ -5,8 +5,8 @@
 - Merge target: current `main`
 - Handoff type: high-risk retrieval feature handoff for the FTS-first retrieval lane.
 - Scope classification: high-risk because the actual branch-tip implementation range edits approved shared regression coverage in `tests/unit/test_unified_retrieval.py` and engine retrieval entrypoint/facade code.
-- Reviewed merge-candidate range before this final fixer commit: `378cf9a74a3658058079a32f186fcd254c4a4034..32cb26b8f8d90a5346e3bde32fd36292df4def1b`
-- Reviewed branch tip before this final fixer commit: `32cb26b8f8d90a5346e3bde32fd36292df4def1b`
+- Reviewed merge-candidate range before this final fixer commit: `9511a016c20f09b43c6e7a571e0a8a49f90ea209..0d6b774afb809783a4e3375c06e51b6a557bcfd2`
+- Reviewed branch tip before this final fixer commit: `0d6b774afb809783a4e3375c06e51b6a557bcfd2`
 - Final HEAD SHA: reported in the final response after this fixer commit is created.
 - Approved shared-file note: `tests/unit/test_unified_retrieval.py` is approved shared-by-approval regression coverage for this retrieval lane. No integrator-locked files are edited in this handoff.
 
@@ -14,7 +14,7 @@
 
 This branch-tip handoff covers the complete FTS-first retrieval implementation currently on `codex/feat-retrieval-fts`, including the source and test changes that earlier packets incorrectly excluded after `adfa8cd`. SQLite FTS remains the deterministic retrieval source of truth; PageIndex and embeddings remain compatibility-only fallback shims that fail closed and are not reintroduced as required retrieval paths.
 
-This final fixer pass keeps the same FTS-first scope and hardens sparse payload reconstruction so citation, doc, excerpt, summary, manifest, evidence, diagnostics, and provenance snapshots cannot carry non-FTS active strategies back into downstream engine context.
+This final fixer pass keeps the same FTS-first scope and hardens ordered retrieval identifier snapshots so manifest and summary fingerprint lists only expose present FTS provenance values, keeping sparse or partial downstream context bundles free of placeholder `None` entries.
 
 Canonical demo-path mapping:
 
@@ -25,20 +25,15 @@ Canonical demo-path mapping:
 
 1. Canonical FTS retrieval path: added and exported the canonical retrieval query constructor, `retrieve_auto` helper, and FTS-first service behavior through both retrieval facades.
 2. Stable retrieval provenance: emitted deterministic document/excerpt hits, citations, basket summaries, primary lookup fingerprints, and ordered `excerpt_lookup_fingerprints` in manifests, summaries, evidence, and result fingerprint payloads.
-3. Engine payload compatibility: normalized sparse retrieval source, summary, manifest, policy, provenance, excerpt identity, and context payload snapshots for downstream engine flows.
+3. Engine payload compatibility: normalized sparse retrieval source, summary, manifest, policy, provenance, excerpt identity, ordered identifier lists, and context payload snapshots for downstream engine flows.
 4. Shared regression coverage: extended approved shared retrieval tests for facade exports, payload reconstruction, citation/provenance helpers, FTS-only excerpt backfill, lookup fingerprints, and fail-closed compatibility behavior.
 
 ## Files Changed
 
-Reviewed range before this packet-refresh fixer commit `378cf9a74a3658058079a32f186fcd254c4a4034..32cb26b8f8d90a5346e3bde32fd36292df4def1b`:
+Reviewed range before this packet-refresh fixer commit `9511a016c20f09b43c6e7a571e0a8a49f90ea209..0d6b774afb809783a4e3375c06e51b6a557bcfd2`:
 
-- `.codex/kickoff_packets/feat-retrieval-fts.md` - lane kickoff packet metadata for the retrieval handoff.
-- `.codex/lane_meta/feat-retrieval-fts.json` - lane metadata consumed by packet automation.
 - `THREAD_PACKET.md` - authoritative handoff packet for this branch-tip review.
-- `src/qual/engine/retrieval/__init__.py` - engine retrieval facade exports for canonical retrieval helpers.
-- `src/qual/engine/retrieval/fts_strategy.py` - engine-side FTS strategy behavior and fallback boundaries.
 - `src/qual/engine/retrieval/payload.py` - deterministic retrieval payload and sparse snapshot normalization.
-- `src/qual/retrieval/__init__.py` - public retrieval facade exports.
 - `src/qual/retrieval/service.py` - canonical FTS-first retrieval service, provenance, citation, and lookup fingerprint behavior.
 - `tests/unit/test_unified_retrieval.py` - approved shared-by-approval regression coverage for the retrieval contract.
 
@@ -47,31 +42,21 @@ Shared-by-approval files: `tests/unit/test_unified_retrieval.py`.
 
 ## Diff Evidence
 
-Command: `git diff --stat 378cf9a74a3658058079a32f186fcd254c4a4034..32cb26b8f8d90a5346e3bde32fd36292df4def1b`
+Command: `git diff --stat 9511a016c20f09b43c6e7a571e0a8a49f90ea209..0d6b774afb809783a4e3375c06e51b6a557bcfd2`
 
 ```text
- .codex/kickoff_packets/feat-retrieval-fts.md |  36 +-
- .codex/lane_meta/feat-retrieval-fts.json     | 155 ++++-
- THREAD_PACKET.md                             | 186 +++---
- src/qual/engine/retrieval/__init__.py        |  63 +-
- src/qual/engine/retrieval/fts_strategy.py    |  59 +-
- src/qual/engine/retrieval/payload.py         | 894 ++++++++++++++++++++++++--
- src/qual/retrieval/__init__.py               |  11 +
- src/qual/retrieval/service.py                | 608 ++++++++++++++++--
- tests/unit/test_unified_retrieval.py         | 912 ++++++++++++++++++++++++++-
- 9 files changed, 2647 insertions(+), 277 deletions(-)
+ THREAD_PACKET.md                     | 208 +++++++++++-------------------
+ src/qual/engine/retrieval/payload.py | 240 +++++++++++++++++++++++++++--------
+ src/qual/retrieval/service.py        |  57 +++++++++
+ tests/unit/test_unified_retrieval.py | 198 +++++++++++++++++++++++++++++
+ 4 files changed, 515 insertions(+), 188 deletions(-)
 ```
 
-Command: `git diff --name-status 378cf9a74a3658058079a32f186fcd254c4a4034..32cb26b8f8d90a5346e3bde32fd36292df4def1b`
+Command: `git diff --name-status 9511a016c20f09b43c6e7a571e0a8a49f90ea209..0d6b774afb809783a4e3375c06e51b6a557bcfd2`
 
 ```text
-M	.codex/kickoff_packets/feat-retrieval-fts.md
-M	.codex/lane_meta/feat-retrieval-fts.json
 M	THREAD_PACKET.md
-M	src/qual/engine/retrieval/__init__.py
-M	src/qual/engine/retrieval/fts_strategy.py
 M	src/qual/engine/retrieval/payload.py
-M	src/qual/retrieval/__init__.py
 M	src/qual/retrieval/service.py
 M	tests/unit/test_unified_retrieval.py
 ```
@@ -79,12 +64,12 @@ M	tests/unit/test_unified_retrieval.py
 ## Budget/Risk
 
 - Task budget: `4/4` high-risk task groups.
-- Size accounting for reviewed merge-candidate range: `9 files changed, 2647 insertions(+), 277 deletions(-)`.
-- AGENTS high-risk size/file status: exceeds `<=8 files` and `<=300 net LOC`.
-- Integrator exception status: explicit size/file-count exception is required for approval of this branch-tip range. This packet no longer claims high-risk budget compliance.
+- Size accounting for reviewed merge-candidate range before this final fixer commit: `4 files changed, 515 insertions(+), 188 deletions(-)`.
+- AGENTS high-risk size/file status: exceeds `<=300 net LOC`.
+- Integrator exception status: explicit size exception is required for approval of this branch-tip range. This packet no longer claims high-risk size compliance.
 - Routing/provider impact: none.
 - PageIndex/embeddings impact: remain compatibility-only fallback behavior; no active non-FTS retrieval path is introduced.
-- Final fixer impact: no routing/provider changes; only FTS-only active-strategy validation in retrieval payload reconstruction plus packet metadata.
+- Final fixer impact: no routing/provider changes; only present-value compaction for ordered retrieval identifier lists plus packet metadata.
 - Remaining risk: integration approval depends on accepting the documented high-risk size/file-count exception or requesting a split.
 
 ## Roadmap/Vision
@@ -99,6 +84,8 @@ M	tests/unit/test_unified_retrieval.py
 
 - `make scope-check` - passed for branch `codex/feat-retrieval-fts`.
 - `./quality-format.sh --check` - passed.
+- `python -m unittest tests.unit.test_unified_retrieval` - passed 75 retrieval unit tests before this final fixer edit.
+- `python -m unittest tests.unit.test_unified_retrieval` - passed 75 retrieval unit tests after this final fixer edit.
 - `./quality-lint.sh` - passed shell syntax and trailing whitespace checks.
 - `python -m pytest tests/unit/test_unified_retrieval.py` - not run; current interpreter has no `pytest` module.
 - `python -m unittest tests.unit.test_unified_retrieval` - passed 75 retrieval unit tests.
@@ -108,4 +95,4 @@ M	tests/unit/test_unified_retrieval.py
 
 ## Risks/Blockers
 
-No implementation blocker is known. The branch-tip review range is now explicit and complete. Approval requires the integrator to accept the documented high-risk budget exception because the actual reviewed range exceeds the AGENTS high-risk file and LOC limits.
+No implementation blocker is known. The branch-tip review range is now explicit and complete. Approval requires the integrator to accept the documented high-risk budget exception because the actual reviewed range exceeds the AGENTS high-risk LOC limit.

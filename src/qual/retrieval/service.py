@@ -59,6 +59,15 @@ def _optional_text(value: object) -> str | None:
     return None
 
 
+def _present_text_values(values: Iterator[object]) -> list[str]:
+    normalized: list[str] = []
+    for value in values:
+        text = _optional_text(value)
+        if text is not None:
+            normalized.append(text)
+    return normalized
+
+
 def _required_compact_text(value: object, *, field_name: str) -> str:
     if not isinstance(value, str):
         raise TypeError(f"{field_name} must be text")
@@ -684,33 +693,33 @@ class RetrievalResult:
             str(item["basket_item_fingerprint"])
             for item in basket_promotion_items
         ]
-        doc_fingerprints = [_optional_text(doc_hit.provenance.get("doc_fingerprint")) for doc_hit in self.doc_hits]
-        doc_identity_fingerprints = [
-            _optional_text(doc_hit.provenance.get("doc_identity_fingerprint")) for doc_hit in self.doc_hits
-        ]
-        top_excerpt_fingerprints = [
-            _optional_text(doc_hit.provenance.get("top_excerpt_fingerprint")) for doc_hit in self.doc_hits
-        ]
-        top_excerpt_lookup_fingerprints = [
-            _optional_text(doc_hit.provenance.get("top_excerpt_lookup_fingerprint"))
+        doc_fingerprints = _present_text_values(doc_hit.provenance.get("doc_fingerprint") for doc_hit in self.doc_hits)
+        doc_identity_fingerprints = _present_text_values(
+            doc_hit.provenance.get("doc_identity_fingerprint") for doc_hit in self.doc_hits
+        )
+        top_excerpt_fingerprints = _present_text_values(
+            doc_hit.provenance.get("top_excerpt_fingerprint") for doc_hit in self.doc_hits
+        )
+        top_excerpt_lookup_fingerprints = _present_text_values(
+            doc_hit.provenance.get("top_excerpt_lookup_fingerprint")
             for doc_hit in self.doc_hits
-        ]
-        top_excerpt_text_hashes = [
-            _optional_text(doc_hit.provenance.get("top_excerpt_text_hash")) for doc_hit in self.doc_hits
-        ]
-        excerpt_fingerprints = [
-            _optional_text(hit.provenance.get("excerpt_fingerprint")) for hit in self.hits if hit.excerpt_id is not None
-        ]
-        excerpt_lookup_fingerprints = [
-            _optional_text(hit.provenance.get("excerpt_lookup_fingerprint"))
+        )
+        top_excerpt_text_hashes = _present_text_values(
+            doc_hit.provenance.get("top_excerpt_text_hash") for doc_hit in self.doc_hits
+        )
+        excerpt_fingerprints = _present_text_values(
+            hit.provenance.get("excerpt_fingerprint") for hit in self.hits if hit.excerpt_id is not None
+        )
+        excerpt_lookup_fingerprints = _present_text_values(
+            hit.provenance.get("excerpt_lookup_fingerprint")
             for hit in self.hits
             if hit.excerpt_id is not None
-        ]
-        excerpt_text_hashes = [
-            _optional_text(hit.provenance.get("excerpt_text_hash") or hit.provenance.get("hash"))
+        )
+        excerpt_text_hashes = _present_text_values(
+            hit.provenance.get("excerpt_text_hash") or hit.provenance.get("hash")
             for hit in self.hits
             if hit.excerpt_id is not None
-        ]
+        )
         return {
             "query_fingerprint": self.diagnostics["query_fingerprint"],
             "result_fingerprint": self.result_fingerprint,
@@ -1499,33 +1508,33 @@ class RetrievalService:
         *,
         retrieval_policy: dict[str, object],
     ) -> dict[str, object]:
-        doc_fingerprints = [_optional_text(doc_hit.provenance.get("doc_fingerprint")) for doc_hit in doc_hits]
-        doc_identity_fingerprints = [
-            _optional_text(doc_hit.provenance.get("doc_identity_fingerprint")) for doc_hit in doc_hits
-        ]
-        top_excerpt_fingerprints = [
-            _optional_text(doc_hit.provenance.get("top_excerpt_fingerprint")) for doc_hit in doc_hits
-        ]
-        top_excerpt_lookup_fingerprints = [
-            _optional_text(doc_hit.provenance.get("top_excerpt_lookup_fingerprint"))
+        doc_fingerprints = _present_text_values(doc_hit.provenance.get("doc_fingerprint") for doc_hit in doc_hits)
+        doc_identity_fingerprints = _present_text_values(
+            doc_hit.provenance.get("doc_identity_fingerprint") for doc_hit in doc_hits
+        )
+        top_excerpt_fingerprints = _present_text_values(
+            doc_hit.provenance.get("top_excerpt_fingerprint") for doc_hit in doc_hits
+        )
+        top_excerpt_lookup_fingerprints = _present_text_values(
+            doc_hit.provenance.get("top_excerpt_lookup_fingerprint")
             for doc_hit in doc_hits
-        ]
-        top_excerpt_text_hashes = [
-            _optional_text(doc_hit.provenance.get("top_excerpt_text_hash")) for doc_hit in doc_hits
-        ]
-        excerpt_fingerprints = [
-            _optional_text(hit.provenance.get("excerpt_fingerprint")) for hit in hits if hit.excerpt_id is not None
-        ]
-        excerpt_lookup_fingerprints = [
-            _optional_text(hit.provenance.get("excerpt_lookup_fingerprint"))
+        )
+        top_excerpt_text_hashes = _present_text_values(
+            doc_hit.provenance.get("top_excerpt_text_hash") for doc_hit in doc_hits
+        )
+        excerpt_fingerprints = _present_text_values(
+            hit.provenance.get("excerpt_fingerprint") for hit in hits if hit.excerpt_id is not None
+        )
+        excerpt_lookup_fingerprints = _present_text_values(
+            hit.provenance.get("excerpt_lookup_fingerprint")
             for hit in hits
             if hit.excerpt_id is not None
-        ]
-        excerpt_text_hashes = [
-            _optional_text(hit.provenance.get("excerpt_text_hash") or hit.provenance.get("hash"))
+        )
+        excerpt_text_hashes = _present_text_values(
+            hit.provenance.get("excerpt_text_hash") or hit.provenance.get("hash")
             for hit in hits
             if hit.excerpt_id is not None
-        ]
+        )
         doc_hits_fingerprint = self._stable_fingerprint(
             [
                 {
