@@ -67,6 +67,7 @@ class PatchReviewCommandStatus:
     next_actions: tuple[str, ...]
     engine_actions: tuple[str, ...]
     ready: bool
+    action_routes: tuple[tuple[str, str], ...] = ()
 
 
 @dataclass(frozen=True)
@@ -81,6 +82,7 @@ class PatchReviewCommandStatusPayload:
     has_changes: bool
     normalized_equal: bool
     truncated: bool
+    action_routes: tuple[tuple[str, str], ...] = ()
 
 
 @dataclass(frozen=True)
@@ -382,6 +384,16 @@ def _patch_review_command_ready(decision: PatchReviewDecision) -> bool:
     return bool(routes) and all(action and engine_action for action, engine_action in routes)
 
 
+def _patch_review_action_route_lookup_for_decision(
+    decision: PatchReviewDecision,
+) -> tuple[tuple[str, str], ...]:
+    return tuple(
+        (action, engine_action)
+        for action, engine_action in _patch_review_action_routes_for_decision(decision)
+        if action and engine_action
+    )
+
+
 def build_patch_review_decision(payload: DiffPreviewInput) -> PatchReviewDecision:
     result = build_diff_preview_result(payload)
     if result.has_changes:
@@ -415,6 +427,7 @@ def build_patch_review_command_status(payload: DiffPreviewInput) -> PatchReviewC
         next_actions=decision.next_actions,
         engine_actions=decision.engine_actions,
         ready=_patch_review_command_ready(decision),
+        action_routes=_patch_review_action_route_lookup_for_decision(decision),
     )
 
 
@@ -435,6 +448,7 @@ def build_patch_review_command_status_payload(
         has_changes=decision.has_changes,
         normalized_equal=decision.normalized_equal,
         truncated=decision.truncated,
+        action_routes=_patch_review_action_route_lookup_for_decision(decision),
     )
 
 
@@ -458,11 +472,7 @@ def build_patch_review_action_routes(payload: DiffPreviewInput) -> tuple[PatchRe
 def build_patch_review_action_route_lookup(payload: DiffPreviewInput) -> tuple[tuple[str, str], ...]:
     """Return a deterministic action -> engine-action lookup for CLI smoke checks."""
 
-    return tuple(
-        (route.action, route.engine_action)
-        for route in build_patch_review_action_routes(payload)
-        if route.ready
-    )
+    return _patch_review_action_route_lookup_for_decision(build_patch_review_decision(payload))
 
 
 def run_patch_review_decision(payload: DiffPreviewInput) -> str:
@@ -485,6 +495,7 @@ def run_patch_review_command_status(payload: DiffPreviewInput) -> str:
         f"decision={status.decision_status}; "
         f"next-actions={','.join(status.next_actions)}; "
         f"engine-actions={','.join(status.engine_actions)}; "
+        f"action-routes={json.dumps(status.action_routes)}; "
         f"ready={str(status.ready).lower()}"
     )
 
@@ -503,6 +514,7 @@ def run_patch_review_command_status_json(payload: DiffPreviewInput) -> str:
             "has_changes": status.has_changes,
             "normalized_equal": status.normalized_equal,
             "truncated": status.truncated,
+            "action_routes": status.action_routes,
         },
         sort_keys=True,
         separators=(",", ":"),
