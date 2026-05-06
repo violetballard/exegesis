@@ -512,6 +512,7 @@ class CommandDemoReadinessHandoffMapEntry:
     command_argv: tuple[str, ...]
     command_line: str
     exact_action_lines: tuple[tuple[str, str], ...]
+    cli_exact_action_lines: tuple[tuple[str, str], ...]
     next_demo_path_step: str | None
 
 
@@ -4427,6 +4428,9 @@ def command_demo_readiness_handoff_map_contract(
     launcher_argv: tuple[str, ...] = COMMAND_SMOKE_CLI_LAUNCHER_ARGV,
 ) -> CommandDemoReadinessHandoffMapContract:
     action_steps = command_demo_readiness_handoff_action_contract(specs, launcher_argv).steps
+    cli_exact_lines_by_action = dict(
+        command_demo_readiness_cli_exact_action_line_lookup_table(specs, launcher_argv)
+    )
     entries: list[CommandDemoReadinessHandoffMapEntry] = []
     for index, step in enumerate(action_steps):
         next_step = action_steps[index + 1] if index + 1 < len(action_steps) else None
@@ -4442,6 +4446,11 @@ def command_demo_readiness_handoff_map_contract(
                 ),
                 command_line=step.command_line,
                 exact_action_lines=step.exact_action_lines,
+                cli_exact_action_lines=tuple(
+                    (engine_action, cli_exact_lines_by_action[engine_action])
+                    for engine_action, _ in step.exact_action_lines
+                    if engine_action in cli_exact_lines_by_action
+                ),
                 next_demo_path_step=next_step.demo_path_step if next_step is not None else None,
             )
         )
@@ -4472,6 +4481,19 @@ def _validate_command_demo_readiness_handoff_map_contract(
         step.exact_action_lines for step in action_steps
     ):
         raise ValueError("Command demo readiness handoff map action lines are inconsistent")
+    cli_exact_lines_by_action = dict(
+        command_demo_readiness_cli_exact_action_line_lookup_table(specs, launcher_argv)
+    )
+    expected_cli_exact_lines = tuple(
+        tuple(
+            (engine_action, cli_exact_lines_by_action[engine_action])
+            for engine_action, _ in step.exact_action_lines
+            if engine_action in cli_exact_lines_by_action
+        )
+        for step in action_steps
+    )
+    if tuple(entry.cli_exact_action_lines for entry in contract.entries) != expected_cli_exact_lines:
+        raise ValueError("Command demo readiness handoff map CLI exact action lines are inconsistent")
     if tuple(entry.next_demo_path_step for entry in contract.entries) != (
         *(step.demo_path_step for step in action_steps[1:]),
         None,
@@ -4484,14 +4506,38 @@ def _validate_command_demo_readiness_handoff_map_contract(
         )
         if entry.command_argv != expected_argv:
             raise ValueError(f"Command demo readiness handoff map argv is inconsistent: {entry.flow_step}")
-        if not entry.command_argv or not entry.command_line or not entry.exact_action_lines:
+        if (
+            not entry.command_argv
+            or not entry.command_line
+            or not entry.exact_action_lines
+            or not entry.cli_exact_action_lines
+        ):
             raise ValueError(f"Command demo readiness handoff map entry is incomplete: {entry.flow_step}")
+        if tuple(action for action, _ in entry.cli_exact_action_lines) != tuple(
+            action for action, _ in entry.exact_action_lines
+        ):
+            raise ValueError(
+                f"Command demo readiness handoff map CLI exact action coverage is inconsistent: {entry.flow_step}"
+            )
 
 
 def command_demo_readiness_handoff_map_summary(
     specs: tuple[CommandSpec, ...] = COMMAND_SPECS,
     launcher_argv: tuple[str, ...] = COMMAND_SMOKE_CLI_LAUNCHER_ARGV,
-) -> tuple[tuple[int, str, str, str, tuple[str, ...], str, tuple[tuple[str, str], ...], str | None], ...]:
+) -> tuple[
+    tuple[
+        int,
+        str,
+        str,
+        str,
+        tuple[str, ...],
+        str,
+        tuple[tuple[str, str], ...],
+        tuple[tuple[str, str], ...],
+        str | None,
+    ],
+    ...,
+]:
     return tuple(
         (
             entry.ordinal,
@@ -4501,6 +4547,7 @@ def command_demo_readiness_handoff_map_summary(
             entry.command_argv,
             entry.command_line,
             entry.exact_action_lines,
+            entry.cli_exact_action_lines,
             entry.next_demo_path_step,
         )
         for entry in command_demo_readiness_handoff_map_contract(specs, launcher_argv).entries
@@ -4520,6 +4567,7 @@ def command_demo_readiness_handoff_map_payload(
             "command_argv": entry.command_argv,
             "command_line": entry.command_line,
             "exact_action_lines": entry.exact_action_lines,
+            "cli_exact_action_lines": entry.cli_exact_action_lines,
             "next_demo_path_step": entry.next_demo_path_step,
         }
         for entry in command_demo_readiness_handoff_map_contract(specs, launcher_argv).entries
