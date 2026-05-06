@@ -114,6 +114,8 @@ class RetrievalConstraints:
     prefer_exact_matches: bool = False
 
     def __post_init__(self) -> None:
+        if isinstance(self.max_results, bool) or not isinstance(self.max_results, int):
+            raise TypeError("max_results must be an integer retrieval limit, not bool or non-int")
         if self.max_results < 1:
             raise ValueError("max_results must be greater than zero")
         object.__setattr__(self, "doc_types", _canonicalize_doc_types(self.doc_types))

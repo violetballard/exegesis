@@ -205,6 +205,12 @@ class UnifiedRetrievalTests(unittest.TestCase):
         with self.assertRaisesRegex(ValueError, "date_range start must be on or before end"):
             RetrievalConstraints(date_range=("2026-02-01", "2026-01-01"))
 
+    def test_retrieval_constraints_reject_bool_and_non_int_max_results(self) -> None:
+        for value in (True, False, "4", 4.0):
+            with self.subTest(value=value):
+                with self.assertRaisesRegex(TypeError, "max_results must be an integer retrieval limit"):
+                    RetrievalConstraints(max_results=value)  # type: ignore[arg-type]
+
     def test_retrieve_auto_reports_stable_fts_shortlist_doc_ids(self) -> None:
         query = RetrievalQuery(
             query_text="theory implications",
