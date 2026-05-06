@@ -551,6 +551,20 @@ class CommandDemoReadinessGate:
 
 
 @dataclass(frozen=True)
+class CommandDemoReadinessGateAudit:
+    is_complete: bool
+    exact_cli_audit_complete: bool
+    command_count: int
+    exact_action_count: int
+    cli_exact_action_count: int
+    missing_engine_actions: tuple[str, ...]
+    missing_flow_steps: tuple[str, ...]
+    invalid_cli_argv: tuple[tuple[str, ...], ...]
+    invalid_cli_exact_action_argv: tuple[tuple[str, ...], ...]
+    invalid_exact_cli_engine_actions: tuple[str, ...]
+
+
+@dataclass(frozen=True)
 class CommandDemoReadinessReport:
     is_complete: bool
     missing_engine_actions: tuple[str, ...]
@@ -5410,6 +5424,88 @@ def command_demo_readiness_gate_summary(
         gate.missing_engine_actions,
         gate.command_lines,
         gate.action_lines,
+    )
+
+
+def command_demo_readiness_gate_audit(
+    specs: tuple[CommandSpec, ...] = COMMAND_SPECS,
+    launcher_argv: tuple[str, ...] = COMMAND_SMOKE_CLI_LAUNCHER_ARGV,
+) -> CommandDemoReadinessGateAudit:
+    gate = command_demo_readiness_gate(specs, launcher_argv)
+    exact_cli_audit = command_demo_readiness_exact_cli_audit_contract(
+        specs,
+        launcher_argv,
+    )
+    audit = CommandDemoReadinessGateAudit(
+        is_complete=gate.is_complete and exact_cli_audit.is_complete,
+        exact_cli_audit_complete=exact_cli_audit.is_complete,
+        command_count=len(gate.command_lines),
+        exact_action_count=len(gate.action_lines),
+        cli_exact_action_count=len(gate.cli_exact_action_lines),
+        missing_engine_actions=gate.missing_engine_actions,
+        missing_flow_steps=gate.missing_flow_steps,
+        invalid_cli_argv=gate.invalid_cli_argv,
+        invalid_cli_exact_action_argv=gate.invalid_cli_exact_action_argv,
+        invalid_exact_cli_engine_actions=exact_cli_audit.invalid_engine_actions,
+    )
+    _validate_command_demo_readiness_gate_audit(audit, gate, exact_cli_audit)
+    return audit
+
+
+def _validate_command_demo_readiness_gate_audit(
+    audit: CommandDemoReadinessGateAudit,
+    gate: CommandDemoReadinessGate,
+    exact_cli_audit: CommandDemoReadinessExactCliAuditContract,
+) -> None:
+    if audit.command_count != len(gate.command_lines):
+        raise ValueError("Command demo readiness gate audit command count is inconsistent")
+    if audit.exact_action_count != len(gate.action_lines):
+        raise ValueError("Command demo readiness gate audit exact action count is inconsistent")
+    if audit.cli_exact_action_count != len(gate.cli_exact_action_lines):
+        raise ValueError("Command demo readiness gate audit CLI exact action count is inconsistent")
+    if audit.missing_engine_actions != gate.missing_engine_actions:
+        raise ValueError("Command demo readiness gate audit missing actions are inconsistent")
+    if audit.missing_flow_steps != gate.missing_flow_steps:
+        raise ValueError("Command demo readiness gate audit missing flow steps are inconsistent")
+    if audit.invalid_cli_argv != gate.invalid_cli_argv:
+        raise ValueError("Command demo readiness gate audit invalid CLI argv are inconsistent")
+    if audit.invalid_cli_exact_action_argv != gate.invalid_cli_exact_action_argv:
+        raise ValueError("Command demo readiness gate audit invalid CLI exact action argv are inconsistent")
+    if audit.invalid_exact_cli_engine_actions != exact_cli_audit.invalid_engine_actions:
+        raise ValueError("Command demo readiness gate audit invalid exact CLI actions are inconsistent")
+    if audit.exact_cli_audit_complete != exact_cli_audit.is_complete:
+        raise ValueError("Command demo readiness gate audit exact CLI completeness is inconsistent")
+    if audit.is_complete != (gate.is_complete and exact_cli_audit.is_complete):
+        raise ValueError("Command demo readiness gate audit completeness is inconsistent")
+
+
+def command_demo_readiness_gate_audit_summary(
+    specs: tuple[CommandSpec, ...] = COMMAND_SPECS,
+    launcher_argv: tuple[str, ...] = COMMAND_SMOKE_CLI_LAUNCHER_ARGV,
+) -> tuple[
+    bool,
+    bool,
+    int,
+    int,
+    int,
+    tuple[str, ...],
+    tuple[str, ...],
+    tuple[tuple[str, ...], ...],
+    tuple[tuple[str, ...], ...],
+    tuple[str, ...],
+]:
+    audit = command_demo_readiness_gate_audit(specs, launcher_argv)
+    return (
+        audit.is_complete,
+        audit.exact_cli_audit_complete,
+        audit.command_count,
+        audit.exact_action_count,
+        audit.cli_exact_action_count,
+        audit.missing_engine_actions,
+        audit.missing_flow_steps,
+        audit.invalid_cli_argv,
+        audit.invalid_cli_exact_action_argv,
+        audit.invalid_exact_cli_engine_actions,
     )
 
 
@@ -12388,6 +12484,31 @@ def command_mvp_demo_readiness_gate_summary(
     launcher_argv: tuple[str, ...] = COMMAND_SMOKE_CLI_LAUNCHER_ARGV,
 ) -> tuple[bool, tuple[str, ...], tuple[str, ...], tuple[tuple[str, str], ...]]:
     return command_demo_readiness_gate_summary(specs, launcher_argv)
+
+
+def command_mvp_demo_readiness_gate_audit(
+    specs: tuple[CommandSpec, ...] = COMMAND_SPECS,
+    launcher_argv: tuple[str, ...] = COMMAND_SMOKE_CLI_LAUNCHER_ARGV,
+) -> CommandDemoReadinessGateAudit:
+    return command_demo_readiness_gate_audit(specs, launcher_argv)
+
+
+def command_mvp_demo_readiness_gate_audit_summary(
+    specs: tuple[CommandSpec, ...] = COMMAND_SPECS,
+    launcher_argv: tuple[str, ...] = COMMAND_SMOKE_CLI_LAUNCHER_ARGV,
+) -> tuple[
+    bool,
+    bool,
+    int,
+    int,
+    int,
+    tuple[str, ...],
+    tuple[str, ...],
+    tuple[tuple[str, ...], ...],
+    tuple[tuple[str, ...], ...],
+    tuple[str, ...],
+]:
+    return command_demo_readiness_gate_audit_summary(specs, launcher_argv)
 
 
 def command_mvp_demo_readiness_flow_gate_summary(

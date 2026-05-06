@@ -4,6 +4,7 @@ from collections.abc import Sequence
 
 from src.qual.commands.catalog import (
     CommandDemoReadinessGate,
+    CommandDemoReadinessGateAudit,
     CommandDemoReadinessActionEntry,
     CommandDemoReadinessActionSequenceContract,
     CommandDemoReadinessArgvValidation,
@@ -272,6 +273,8 @@ from src.qual.commands.catalog import (
     command_mvp_demo_readiness_validate_script as _readiness_validate_script,
     command_mvp_demo_readiness_validate_shell_script_lines as _readiness_validate_shell_script_lines,
     command_mvp_demo_readiness_gate as _readiness_gate,
+    command_mvp_demo_readiness_gate_audit as _readiness_gate_audit,
+    command_mvp_demo_readiness_gate_audit_summary as _readiness_gate_audit_summary,
     command_mvp_demo_readiness_flow_gate_summary as _readiness_flow_gate_summary,
     command_mvp_demo_readiness_gate_issues as _readiness_gate_issues,
     command_mvp_demo_readiness_gate_summary as _readiness_gate_summary,
@@ -370,6 +373,8 @@ __all__ = [
     "canonical_command_action_cli_exact_for_argv",
     "canonical_command_action_readiness_summary",
     "canonical_command_readiness_gate",
+    "canonical_command_readiness_gate_audit",
+    "canonical_command_readiness_gate_audit_summary",
     "canonical_command_readiness_gate_issues",
     "canonical_command_readiness_gate_summary",
     "canonical_command_require_readiness_handoff_complete",
@@ -615,6 +620,25 @@ def canonical_command_action_smoke_summary() -> tuple[tuple[str, str, str, str, 
 
 def canonical_command_readiness_gate() -> CommandDemoReadinessGate:
     return _readiness_gate()
+
+
+def canonical_command_readiness_gate_audit() -> CommandDemoReadinessGateAudit:
+    return _readiness_gate_audit()
+
+
+def canonical_command_readiness_gate_audit_summary() -> tuple[
+    bool,
+    bool,
+    int,
+    int,
+    int,
+    tuple[str, ...],
+    tuple[str, ...],
+    tuple[tuple[str, ...], ...],
+    tuple[tuple[str, ...], ...],
+    tuple[str, ...],
+]:
+    return _readiness_gate_audit_summary()
 
 
 def canonical_command_readiness_gate_summary() -> tuple[
