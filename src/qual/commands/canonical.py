@@ -38,6 +38,7 @@ from src.qual.commands.catalog import (
     CommandDemoReadinessSmokePlanStep,
     CommandDemoReadinessIndexContract,
     CommandDemoReadinessStepSealContract,
+    CommandDemoSurfaceReadinessContract,
     CommandDemoSupportedLauncherReadinessContract,
     CommandDemoReadinessTraceContract,
     CommandDemoSmokeMatrixContract,
@@ -54,6 +55,10 @@ from src.qual.commands.catalog import (
     command_mvp_demo_readiness_handoff_audit as _readiness_handoff_audit,
     command_mvp_demo_readiness_handoff_audit_summary as _readiness_handoff_audit_summary,
     command_mvp_demo_readiness_handoff_packet_json as _readiness_handoff_packet_json,
+    command_mvp_demo_surface_readiness_contract as _surface_readiness_contract,
+    command_mvp_demo_surface_readiness_json as _surface_readiness_json,
+    command_mvp_demo_surface_readiness_payload as _surface_readiness_payload,
+    command_mvp_demo_surface_readiness_summary as _surface_readiness_summary,
     command_mvp_demo_readiness_handoff_packet_markdown as _readiness_handoff_packet_markdown,
     command_mvp_demo_readiness_handoff_packet_payload as _readiness_handoff_packet_payload,
     command_mvp_demo_readiness_handoff_packet_summary as _readiness_handoff_packet_summary,
@@ -297,6 +302,10 @@ __all__ = [
     "canonical_command_readiness_handoff_packet_payload",
     "canonical_command_readiness_handoff_packet_summary",
     "canonical_command_readiness_handoff_status_lines",
+    "canonical_command_surface_readiness_contract",
+    "canonical_command_surface_readiness_json",
+    "canonical_command_surface_readiness_payload",
+    "canonical_command_surface_readiness_summary",
     "canonical_command_readiness_handoff_action_contract",
     "canonical_command_readiness_handoff_action_summary",
     "canonical_command_readiness_action_sequence_contract",
@@ -571,6 +580,25 @@ def canonical_command_readiness_handoff_packet_payload() -> dict[str, object]:
 
 def canonical_command_readiness_handoff_packet_json() -> str:
     return _readiness_handoff_packet_json()
+
+
+def canonical_command_surface_readiness_contract() -> CommandDemoSurfaceReadinessContract:
+    return _surface_readiness_contract()
+
+
+def canonical_command_surface_readiness_summary() -> tuple[
+    tuple[int, str, str, str, tuple[str, ...], str, tuple[str, ...], tuple[tuple[str, str], ...]],
+    ...,
+]:
+    return _surface_readiness_summary()
+
+
+def canonical_command_surface_readiness_payload() -> dict[str, object]:
+    return _surface_readiness_payload()
+
+
+def canonical_command_surface_readiness_json() -> str:
+    return _surface_readiness_json()
 
 
 def canonical_command_readiness_handoff_packet_markdown() -> str:

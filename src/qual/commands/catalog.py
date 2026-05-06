@@ -693,6 +693,28 @@ class CommandDemoCommandSurfaceContract:
 
 
 @dataclass(frozen=True)
+class CommandDemoSurfaceReadinessEntry:
+    ordinal: int
+    demo_path_step: str
+    flow_step: str
+    name: str
+    cli_tokens: tuple[str, ...]
+    command_argv: tuple[str, ...]
+    command_line: str
+    engine_actions: tuple[str, ...]
+    exact_action_lines: tuple[tuple[str, str], ...]
+
+
+@dataclass(frozen=True)
+class CommandDemoSurfaceReadinessContract:
+    launcher_argv: tuple[str, ...]
+    fingerprint_algorithm: str
+    fingerprint_digest: str
+    is_complete: bool
+    entries: tuple[CommandDemoSurfaceReadinessEntry, ...]
+
+
+@dataclass(frozen=True)
 class CommandDemoCommandCoverageEntry:
     ordinal: int
     demo_path_step: str
@@ -5164,6 +5186,156 @@ def command_demo_readiness_handoff_packet_json(
 ) -> str:
     return json.dumps(
         command_demo_readiness_handoff_packet_payload(specs, launcher_argv),
+        sort_keys=True,
+        separators=(",", ":"),
+    )
+
+
+@lru_cache(maxsize=None)
+def command_demo_surface_readiness_contract(
+    specs: tuple[CommandSpec, ...] = COMMAND_SPECS,
+    launcher_argv: tuple[str, ...] = COMMAND_SMOKE_CLI_LAUNCHER_ARGV,
+) -> CommandDemoSurfaceReadinessContract:
+    packet = command_demo_readiness_handoff_packet(specs, launcher_argv)
+    routes_by_flow_step = {
+        entry.flow_step: entry
+        for entry in command_demo_readiness_route_contract(specs, launcher_argv).entries
+    }
+    contract = CommandDemoSurfaceReadinessContract(
+        launcher_argv=launcher_argv,
+        fingerprint_algorithm=packet.fingerprint_algorithm,
+        fingerprint_digest=packet.fingerprint_digest,
+        is_complete=packet.is_complete,
+        entries=tuple(
+            CommandDemoSurfaceReadinessEntry(
+                ordinal=step.ordinal,
+                demo_path_step=step.demo_path_step,
+                flow_step=step.flow_step,
+                name=step.name,
+                cli_tokens=routes_by_flow_step[step.flow_step].cli_tokens,
+                command_argv=step.command_argv,
+                command_line=step.command_line,
+                engine_actions=step.engine_actions,
+                exact_action_lines=step.exact_action_lines,
+            )
+            for step in packet.step_seals
+        ),
+    )
+    _validate_command_demo_surface_readiness_contract(
+        contract,
+        packet,
+        routes_by_flow_step,
+        launcher_argv,
+    )
+    return contract
+
+
+def _validate_command_demo_surface_readiness_contract(
+    contract: CommandDemoSurfaceReadinessContract,
+    packet: CommandDemoReadinessHandoffPacket,
+    routes_by_flow_step: dict[str, CommandDemoReadinessRouteEntry],
+    launcher_argv: tuple[str, ...],
+) -> None:
+    if contract.launcher_argv != launcher_argv:
+        raise ValueError("Command demo surface readiness launcher is inconsistent")
+    if contract.fingerprint_algorithm != packet.fingerprint_algorithm:
+        raise ValueError("Command demo surface readiness fingerprint algorithm is inconsistent")
+    if contract.fingerprint_digest != packet.fingerprint_digest:
+        raise ValueError("Command demo surface readiness fingerprint digest is inconsistent")
+    if contract.is_complete != packet.is_complete:
+        raise ValueError("Command demo surface readiness completeness is inconsistent")
+    if tuple(entry.command_line for entry in contract.entries) != packet.command_lines:
+        raise ValueError("Command demo surface readiness command lines are inconsistent")
+    if tuple(entry.demo_path_step for entry in contract.entries) != packet.canonical_demo_path_steps:
+        raise ValueError("Command demo surface readiness path steps are inconsistent")
+    if tuple(
+        line
+        for entry in contract.entries
+        for _, line in entry.exact_action_lines
+    ) != packet.exact_action_lines:
+        raise ValueError("Command demo surface readiness exact action lines are inconsistent")
+
+    seen_flow_steps: set[str] = set()
+    for entry in contract.entries:
+        if entry.flow_step in seen_flow_steps:
+            raise ValueError(f"Duplicate command demo surface readiness flow step: {entry.flow_step}")
+        seen_flow_steps.add(entry.flow_step)
+        route = routes_by_flow_step.get(entry.flow_step)
+        if route is None:
+            raise ValueError(f"Command demo surface readiness route is missing: {entry.flow_step}")
+        if entry.name != route.name:
+            raise ValueError(f"Command demo surface readiness command is inconsistent: {entry.flow_step}")
+        if entry.cli_tokens != route.cli_tokens:
+            raise ValueError(f"Command demo surface readiness CLI tokens are inconsistent: {entry.flow_step}")
+        if not entry.cli_tokens or not entry.command_line or not entry.exact_action_lines:
+            raise ValueError(f"Command demo surface readiness entry is not smoke-testable: {entry.flow_step}")
+
+
+def command_demo_surface_readiness_summary(
+    specs: tuple[CommandSpec, ...] = COMMAND_SPECS,
+    launcher_argv: tuple[str, ...] = COMMAND_SMOKE_CLI_LAUNCHER_ARGV,
+) -> tuple[
+    tuple[int, str, str, str, tuple[str, ...], str, tuple[str, ...], tuple[tuple[str, str], ...]],
+    ...,
+]:
+    return tuple(
+        (
+            entry.ordinal,
+            entry.demo_path_step,
+            entry.flow_step,
+            entry.name,
+            entry.cli_tokens,
+            entry.command_line,
+            entry.engine_actions,
+            entry.exact_action_lines,
+        )
+        for entry in command_demo_surface_readiness_contract(specs, launcher_argv).entries
+    )
+
+
+def command_demo_surface_readiness_payload(
+    specs: tuple[CommandSpec, ...] = COMMAND_SPECS,
+    launcher_argv: tuple[str, ...] = COMMAND_SMOKE_CLI_LAUNCHER_ARGV,
+) -> dict[str, object]:
+    contract = command_demo_surface_readiness_contract(specs, launcher_argv)
+    payload: dict[str, object] = {
+        "launcher_argv": list(contract.launcher_argv),
+        "fingerprint": {
+            "algorithm": contract.fingerprint_algorithm,
+            "digest": contract.fingerprint_digest,
+        },
+        "is_complete": contract.is_complete,
+        "entries": [
+            {
+                "ordinal": entry.ordinal,
+                "demo_path_step": entry.demo_path_step,
+                "flow_step": entry.flow_step,
+                "name": entry.name,
+                "cli_tokens": list(entry.cli_tokens),
+                "command_argv": list(entry.command_argv),
+                "command_line": entry.command_line,
+                "engine_actions": list(entry.engine_actions),
+                "exact_action_lines": [
+                    {
+                        "engine_action": engine_action,
+                        "command_line": command_line,
+                    }
+                    for engine_action, command_line in entry.exact_action_lines
+                ],
+            }
+            for entry in contract.entries
+        ],
+    }
+    json.dumps(payload, sort_keys=True, separators=(",", ":"))
+    return payload
+
+
+def command_demo_surface_readiness_json(
+    specs: tuple[CommandSpec, ...] = COMMAND_SPECS,
+    launcher_argv: tuple[str, ...] = COMMAND_SMOKE_CLI_LAUNCHER_ARGV,
+) -> str:
+    return json.dumps(
+        command_demo_surface_readiness_payload(specs, launcher_argv),
         sort_keys=True,
         separators=(",", ":"),
     )
@@ -9694,6 +9866,37 @@ def command_mvp_demo_readiness_handoff_packet_json(
     launcher_argv: tuple[str, ...] = COMMAND_SMOKE_CLI_LAUNCHER_ARGV,
 ) -> str:
     return command_demo_readiness_handoff_packet_json(specs, launcher_argv)
+
+
+def command_mvp_demo_surface_readiness_contract(
+    specs: tuple[CommandSpec, ...] = COMMAND_SPECS,
+    launcher_argv: tuple[str, ...] = COMMAND_SMOKE_CLI_LAUNCHER_ARGV,
+) -> CommandDemoSurfaceReadinessContract:
+    return command_demo_surface_readiness_contract(specs, launcher_argv)
+
+
+def command_mvp_demo_surface_readiness_summary(
+    specs: tuple[CommandSpec, ...] = COMMAND_SPECS,
+    launcher_argv: tuple[str, ...] = COMMAND_SMOKE_CLI_LAUNCHER_ARGV,
+) -> tuple[
+    tuple[int, str, str, str, tuple[str, ...], str, tuple[str, ...], tuple[tuple[str, str], ...]],
+    ...,
+]:
+    return command_demo_surface_readiness_summary(specs, launcher_argv)
+
+
+def command_mvp_demo_surface_readiness_payload(
+    specs: tuple[CommandSpec, ...] = COMMAND_SPECS,
+    launcher_argv: tuple[str, ...] = COMMAND_SMOKE_CLI_LAUNCHER_ARGV,
+) -> dict[str, object]:
+    return command_demo_surface_readiness_payload(specs, launcher_argv)
+
+
+def command_mvp_demo_surface_readiness_json(
+    specs: tuple[CommandSpec, ...] = COMMAND_SPECS,
+    launcher_argv: tuple[str, ...] = COMMAND_SMOKE_CLI_LAUNCHER_ARGV,
+) -> str:
+    return command_demo_surface_readiness_json(specs, launcher_argv)
 
 
 def command_mvp_demo_readiness_handoff_packet_summary(
