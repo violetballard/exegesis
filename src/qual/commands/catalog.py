@@ -1434,6 +1434,19 @@ COMMAND_SMOKE_SHELL_WRAPPER_COMMANDS: tuple[str, ...] = (
 COMMAND_SMOKE_SHELL_WRAPPER_FLAGS: tuple[str, ...] = (
     "-p",
 )
+COMMAND_SMOKE_SHELL_TIMEOUT_WRAPPER_COMMANDS: tuple[str, ...] = (
+    "timeout",
+)
+COMMAND_SMOKE_SHELL_TIMEOUT_VALUE_OPTIONS: tuple[str, ...] = (
+    "-k",
+    "--kill-after",
+)
+COMMAND_SMOKE_SHELL_TIMEOUT_FLAG_OPTIONS: tuple[str, ...] = (
+    "--foreground",
+    "--preserve-status",
+    "-v",
+    "--verbose",
+)
 COMMAND_SMOKE_SHELL_OUTPUT_SINK_COMMANDS: tuple[str, ...] = (
     "tee",
 )
@@ -11150,14 +11163,45 @@ def _split_env_split_string_argv(value: str) -> tuple[str, ...]:
 
 def _strip_shell_command_wrappers(argv: tuple[str, ...]) -> tuple[str, ...]:
     tokens = _strip_shell_control_keywords(argv)
-    while tokens and PurePath(tokens[0]).name in COMMAND_SMOKE_SHELL_WRAPPER_COMMANDS:
-        index = 1
-        while index < len(tokens) and tokens[index] in COMMAND_SMOKE_SHELL_WRAPPER_FLAGS:
-            index += 1
-        tokens = tokens[index:]
+    while tokens and (
+        PurePath(tokens[0]).name in COMMAND_SMOKE_SHELL_WRAPPER_COMMANDS
+        or PurePath(tokens[0]).name in COMMAND_SMOKE_SHELL_TIMEOUT_WRAPPER_COMMANDS
+    ):
+        command = PurePath(tokens[0]).name
+        if command in COMMAND_SMOKE_SHELL_TIMEOUT_WRAPPER_COMMANDS:
+            tokens = _strip_shell_timeout_wrapper(tokens)
+        else:
+            index = 1
+            while index < len(tokens) and tokens[index] in COMMAND_SMOKE_SHELL_WRAPPER_FLAGS:
+                index += 1
+            tokens = tokens[index:]
         tokens = _strip_shell_env_assignments(tokens)
         tokens = _strip_shell_control_keywords(tokens)
     return tokens
+
+
+def _strip_shell_timeout_wrapper(argv: tuple[str, ...]) -> tuple[str, ...]:
+    index = 1
+    while index < len(argv):
+        token = argv[index]
+        option = token.split("=", 1)[0]
+        if option in COMMAND_SMOKE_SHELL_TIMEOUT_FLAG_OPTIONS:
+            index += 1
+            continue
+        if option in COMMAND_SMOKE_SHELL_TIMEOUT_VALUE_OPTIONS:
+            index += 1
+            if "=" not in token:
+                index += 1
+            continue
+        if token.startswith("-") and token != "-":
+            return argv
+        break
+    if index >= len(argv):
+        return argv
+    index += 1
+    if index >= len(argv):
+        return argv
+    return argv[index:]
 
 
 def _split_uv_python_launcher_prefix(argv: tuple[str, ...]) -> tuple[tuple[str, ...], tuple[str, ...]]:

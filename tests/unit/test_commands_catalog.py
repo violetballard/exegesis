@@ -765,6 +765,24 @@ class CommandCatalogTests(unittest.TestCase):
             ("project-open", "retrieval", "patch-review", "export-handoff"),
         )
 
+    def test_shell_script_validation_resolves_timeout_wrapped_commands(self) -> None:
+        script = """
+        timeout 30s python -m src.main bootstrap
+        timeout --foreground -k 5s 30s python -m src.main context-basket list
+        timeout --kill-after=5s 30s python -m src.main diff-preview --original draft --proposed revised
+        timeout -v 30s python -m src.main terminal --operation-kind terminal_synthesis_request --message done
+        """
+
+        validation = command_demo_readiness_validate_shell_script_lines(script)
+
+        self.assertTrue(validation.is_complete)
+        self.assertEqual(validation.invalid_argv, ())
+        self.assertEqual(validation.missing_flow_steps, ())
+        self.assertEqual(
+            validation.covered_flow_steps,
+            ("project-open", "retrieval", "patch-review", "export-handoff"),
+        )
+
     def test_versioned_python_launchers_are_recognized(self) -> None:
         """Versioned Python binaries (python3.12, python3.13.1, etc.) must be treated
         as supported launchers so readiness lookups strip them correctly."""
