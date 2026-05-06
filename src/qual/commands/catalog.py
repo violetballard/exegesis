@@ -5158,6 +5158,22 @@ def command_demo_readiness_handoff_packet_summary(
     )
 
 
+def command_demo_readiness_handoff_status_lines(
+    specs: tuple[CommandSpec, ...] = COMMAND_SPECS,
+    launcher_argv: tuple[str, ...] = COMMAND_SMOKE_CLI_LAUNCHER_ARGV,
+) -> tuple[str, ...]:
+    packet = command_demo_readiness_handoff_packet(specs, launcher_argv)
+    return (
+        f"readiness={str(packet.is_complete).lower()}",
+        f"fingerprint={packet.fingerprint_algorithm}:{packet.fingerprint_digest}",
+        f"demo_path_steps={'; '.join(packet.canonical_demo_path_steps)}",
+        f"command_lines={'; '.join(packet.command_lines)}",
+        f"exact_action_lines={'; '.join(packet.exact_action_lines)}",
+        f"missing_flow_steps={'; '.join(packet.missing_flow_steps)}",
+        f"missing_engine_actions={'; '.join(packet.missing_engine_actions)}",
+    )
+
+
 @lru_cache(maxsize=None)
 def command_demo_readiness_handoff_audit(
     specs: tuple[CommandSpec, ...] = COMMAND_SPECS,
@@ -9267,6 +9283,13 @@ def command_mvp_demo_readiness_handoff_packet_summary(
     tuple[tuple[str, ...], ...],
 ]:
     return command_demo_readiness_handoff_packet_summary(specs, launcher_argv)
+
+
+def command_mvp_demo_readiness_handoff_status_lines(
+    specs: tuple[CommandSpec, ...] = COMMAND_SPECS,
+    launcher_argv: tuple[str, ...] = COMMAND_SMOKE_CLI_LAUNCHER_ARGV,
+) -> tuple[str, ...]:
+    return command_demo_readiness_handoff_status_lines(specs, launcher_argv)
 
 
 def command_mvp_demo_readiness_handoff_audit(

@@ -54,6 +54,7 @@ from src.qual.commands.catalog import (
     command_mvp_demo_readiness_handoff_packet_json as _readiness_handoff_packet_json,
     command_mvp_demo_readiness_handoff_packet_payload as _readiness_handoff_packet_payload,
     command_mvp_demo_readiness_handoff_packet_summary as _readiness_handoff_packet_summary,
+    command_mvp_demo_readiness_handoff_status_lines as _readiness_handoff_status_lines,
     command_demo_readiness_handoff_action_contract as _readiness_handoff_action_contract,
     command_mvp_demo_readiness_handoff_action_summary as _readiness_handoff_action_summary,
     command_mvp_demo_readiness_action_sequence_contract as _readiness_action_sequence_contract,
@@ -285,6 +286,7 @@ __all__ = [
     "canonical_command_readiness_handoff_packet_json",
     "canonical_command_readiness_handoff_packet_payload",
     "canonical_command_readiness_handoff_packet_summary",
+    "canonical_command_readiness_handoff_status_lines",
     "canonical_command_readiness_handoff_action_contract",
     "canonical_command_readiness_handoff_action_summary",
     "canonical_command_readiness_action_sequence_contract",
@@ -593,6 +595,10 @@ def canonical_command_readiness_handoff_packet_summary() -> tuple[
     tuple[tuple[str, ...], ...],
 ]:
     return _readiness_handoff_packet_summary()
+
+
+def canonical_command_readiness_handoff_status_lines() -> tuple[str, ...]:
+    return _readiness_handoff_status_lines()
 
 
 def canonical_command_readiness_seal() -> CommandDemoReadinessSeal:
