@@ -25,6 +25,7 @@ TRUNCATION_MARKER_ENV = "QUAL_DIFF_TRUNCATION_MARKER"
 ANSI_ESCAPE_RE = re.compile(r"\x1B\[[0-?]*[ -/]*[@-~]")
 PATCH_REVIEW_APPLY_ENGINE_ACTION = "ExegesisAppService.apply_patch"
 PATCH_REVIEW_REJECT_ENGINE_ACTION = "ExegesisAppService.reject_patch"
+PATCH_REVIEW_REVISE_ENGINE_ACTION = "ExegesisAppService.revise_selection"
 PATCH_REVIEW_CONTINUE_ENGINE_ACTION = "ExegesisAppService.save_document"
 PATCH_REVIEW_COMMAND_NAME = "diff-preview"
 PATCH_REVIEW_FLOW_STEP = "patch-review"
@@ -347,23 +348,47 @@ def run_diff_preview(payload: DiffPreviewInput) -> str:
     return build_diff_preview_result(payload).output
 
 
+def _patch_review_engine_actions_for_result(result: DiffPreviewResult) -> tuple[str, ...]:
+    if result.has_changes:
+        return (
+            PATCH_REVIEW_REVISE_ENGINE_ACTION,
+            PATCH_REVIEW_APPLY_ENGINE_ACTION,
+            PATCH_REVIEW_REJECT_ENGINE_ACTION,
+        )
+    return (PATCH_REVIEW_CONTINUE_ENGINE_ACTION,)
+
+
+def _patch_review_action_routes_for_decision(
+    decision: PatchReviewDecision,
+) -> tuple[tuple[str, str], ...]:
+    if decision.status == "changes-detected":
+        return (
+            ("revise", PATCH_REVIEW_REVISE_ENGINE_ACTION),
+            ("apply", PATCH_REVIEW_APPLY_ENGINE_ACTION),
+            ("reject", PATCH_REVIEW_REJECT_ENGINE_ACTION),
+        )
+    return tuple(
+        (action, engine_action)
+        for action, engine_action in zip(
+            decision.next_actions,
+            decision.engine_actions,
+            strict=True,
+        )
+    )
+
+
 def build_patch_review_decision(payload: DiffPreviewInput) -> PatchReviewDecision:
     result = build_diff_preview_result(payload)
     if result.has_changes:
         status = "changes-detected"
         next_actions = ("apply", "reject")
-        engine_actions = (
-            PATCH_REVIEW_APPLY_ENGINE_ACTION,
-            PATCH_REVIEW_REJECT_ENGINE_ACTION,
-        )
     elif result.normalized_equal:
         status = "no-op"
         next_actions = ("continue",)
-        engine_actions = (PATCH_REVIEW_CONTINUE_ENGINE_ACTION,)
     else:
         status = "no-diff"
         next_actions = ("continue",)
-        engine_actions = (PATCH_REVIEW_CONTINUE_ENGINE_ACTION,)
+    engine_actions = _patch_review_engine_actions_for_result(result)
     return PatchReviewDecision(
         status=status,
         next_actions=next_actions,
@@ -421,11 +446,7 @@ def build_patch_review_action_routes(payload: DiffPreviewInput) -> tuple[PatchRe
             demo_path_step=PATCH_REVIEW_DEMO_PATH_STEP,
             ready=bool(action and engine_action),
         )
-        for action, engine_action in zip(
-            decision.next_actions,
-            decision.engine_actions,
-            strict=True,
-        )
+        for action, engine_action in _patch_review_action_routes_for_decision(decision)
     )
 
 
