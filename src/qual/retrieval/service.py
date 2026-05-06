@@ -1404,6 +1404,8 @@ class RetrievalService:
     def _merge_hits(self, runs: list[StrategyRun], *, max_results: int) -> list[RetrievalHit]:
         combined: list[RetrievalHit] = []
         for run in runs:
+            if run.strategy_id != _FTS_SOURCE_STRATEGY:
+                raise ValueError(f"unsupported retrieval run strategy: {run.strategy_id}")
             for hit in run.hits:
                 if isinstance(hit, RetrievalHit):
                     provenance_source_strategy = hit.provenance.get(
