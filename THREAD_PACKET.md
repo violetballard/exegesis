@@ -3,9 +3,9 @@
 - Branch name: `codex/feat-retrieval-fts`
 - Lane: `feat-retrieval-fts`
 - Merge target: current `main`
-- Branch HEAD before this branch-tip source-bearing fixer pass: `f2649eade7c028d46452a81ccf8b1a585a028ba8`.
-- Branch-tip source-bearing commit included in this packet: final HEAD reported in the final fixer response.
-- Final HEAD SHA after this source-bearing packet refresh: reported in the final fixer response.
+- Branch HEAD before this packet-only fixer pass: `6d1bb9facefe51674660dc4bd5fc1960efc91fd8`.
+- Branch-tip commit included in this packet: final HEAD reported in the final fixer response.
+- Final HEAD SHA after this packet refresh: reported in the final fixer response.
 - Handoff type: high-risk retrieval feature handoff for the FTS-first retrieval lane.
 - Scope classification: high-risk because this branch edits engine retrieval entrypoints/facades and approved shared regression coverage in `tests/unit/test_unified_retrieval.py`.
 - Actual review scope for re-review: narrowed to `378cf9a74a3658058079a32f186fcd254c4a4034..final HEAD reported in the final fixer response`.
@@ -13,7 +13,7 @@
 - Actual merge-candidate range against current `main`: `9511a016c20f09b43c6e7a571e0a8a49f90ea209..final HEAD reported in the final fixer response`.
 - Reviewer-required post-`adfa8cda` source/test-bearing range included in review scope: `adfa8cdadd43747ffbcb612e4151e262b13e52ca..final HEAD reported in the final fixer response`.
 - Traceability correction: no source/test-changing commit after `adfa8cda` is classified as metadata-only. Commits including `2114d026ad9bd68cea6fb63a538771a21d17f816`, `9ca591791ae84e4f86d0b4b3e37b5bffbce09913`, `9609b4cc7d53d03668b96117ed4db1bb14f5ea4f`, `340b2b1f445391cf424f9a73bb1b7abc5fa07102`, `e746e57856d91c90b13207365a232401e4a65500`, `5cc7a8c7bc203f089927b9556c2075251c048899`, `4c748b49a7fa631dd338661802cde03fd93091f7`, `e09c3be72e65f399889512a1914f719d670c6da8`, `9dc7ed4f55fbb3d487d47a91171e8255fed29c82`, and `8a3fbcfc5` are implementation commits and are included in the reviewed range above.
-- This source-bearing fixer pass changes canonical FTS retrieval evidence, approved shared retrieval regression coverage, and root packet metadata only; it does not introduce any non-FTS retrieval path.
+- This packet-only fixer pass changes the root handoff packet only. It does not classify any source/test-changing commit after `adfa8cda` as metadata-only.
 - Approved shared-file note: `tests/unit/test_unified_retrieval.py` is approved shared-by-approval regression coverage for this retrieval lane. No integrator-locked files are edited in this handoff.
 
 ## Scope Completed
@@ -84,39 +84,39 @@ Shared-by-approval files: `tests/unit/test_unified_retrieval.py`.
 
 ## Diff Evidence
 
-Command: `git diff --stat 378cf9a74a3658058079a32f186fcd254c4a4034..83dfff4a899c22b077833c83649a14fde52beebe`
+Command: `git diff --stat 378cf9a74a3658058079a32f186fcd254c4a4034..6d1bb9facefe51674660dc4bd5fc1960efc91fd8`
 
 ```text
  .codex/kickoff_packets/feat-retrieval-fts.md |   36 +-
  .codex/lane_meta/feat-retrieval-fts.json     |  155 +++-
- THREAD_PACKET.md                             |  249 ++++--
+ THREAD_PACKET.md                             |  286 ++++--
  src/qual/engine/retrieval/__init__.py        |   86 +-
  src/qual/engine/retrieval/fts_strategy.py    |   59 +-
- src/qual/engine/retrieval/payload.py         | 1171 +++++++++++++++++++++++---
+ src/qual/engine/retrieval/payload.py         | 1194 +++++++++++++++++++++++---
  src/qual/retrieval/__init__.py               |   11 +
  src/qual/retrieval/service.py                |  827 ++++++++++++++++--
- tests/unit/test_unified_retrieval.py         | 1081 +++++++++++++++++++++++-
- 9 files changed, 3327 insertions(+), 348 deletions(-)
+ tests/unit/test_unified_retrieval.py         | 1131 +++++++++++++++++++++++-
+ 9 files changed, 3434 insertions(+), 351 deletions(-)
 ```
 
-Command: `git diff --stat 9511a016c20f09b43c6e7a571e0a8a49f90ea209..83dfff4a899c22b077833c83649a14fde52beebe`
+Command: `git diff --stat 9511a016c20f09b43c6e7a571e0a8a49f90ea209..6d1bb9facefe51674660dc4bd5fc1960efc91fd8`
 
 ```text
- THREAD_PACKET.md                      | 262 +++++++++++----------
+ THREAD_PACKET.md                      | 295 ++++++++++++++---------
  src/qual/engine/retrieval/__init__.py |  23 +-
- src/qual/engine/retrieval/payload.py  | 412 +++++++++++++++++++++++++++-------
+ src/qual/engine/retrieval/payload.py  | 435 +++++++++++++++++++++++++++-------
  src/qual/retrieval/service.py         | 284 ++++++++++++++++++++---
- tests/unit/test_unified_retrieval.py  | 367 ++++++++++++++++++++++++++++++
-5 files changed, 1106 insertions(+), 242 deletions(-)
+ tests/unit/test_unified_retrieval.py  | 411 ++++++++++++++++++++++++++++++++
+5 files changed, 1208 insertions(+), 240 deletions(-)
 ```
 
-Command: `git diff --stat f2649eade7c028d46452a81ccf8b1a585a028ba8..final HEAD reported in the final fixer response`
+Command: `git diff --stat f2649eade7c028d46452a81ccf8b1a585a028ba8..6d1bb9facefe51674660dc4bd5fc1960efc91fd8`
 
 ```text
- THREAD_PACKET.md                         | refreshed packet metadata
- src/qual/engine/retrieval/payload.py     | 22 +++++++++++++++++++
- tests/unit/test_unified_retrieval.py     | 41 ++++++++++++++++++++++++++++++++++++
- 3 files changed before packet refresh, 63 insertions(+)
+ THREAD_PACKET.md                     | 34 ++++++++++++++++--------------
+ src/qual/engine/retrieval/payload.py | 22 +++++++++++++++++++
+ tests/unit/test_unified_retrieval.py | 41 ++++++++++++++++++++++++++++++++++++
+ 3 files changed, 81 insertions(+), 16 deletions(-)
 ```
 
 Command: `git show --stat --name-status --oneline 9609b4cc7d53d03668b96117ed4db1bb14f5ea4f..4c748b49a7fa631dd338661802cde03fd93091f7 -- THREAD_PACKET.md src/qual/engine/retrieval/__init__.py src/qual/retrieval/service.py tests/unit/test_unified_retrieval.py`
@@ -140,21 +140,21 @@ M	src/qual/retrieval/service.py
 M	tests/unit/test_unified_retrieval.py
 ```
 
-Current source-bearing fixer delta:
+Source-bearing delta after reviewer-cited `f2649eade`:
 
 - `src/qual/engine/retrieval/payload.py` - preserves basket promotion refs when sparse citation bundles are rebuilt from FTS excerpt citations and restores the explicit `basket_item_id` alias on excerpt-hit/excerpt-citation rehydration.
 - `tests/unit/test_unified_retrieval.py` - asserts citation-bundle reconstruction from source-bundle-only snapshots preserves basket promotion items, IDs, count, readiness, and `basket_item_id` aliases; also asserts sparse excerpt-hit basket rehydration carries the alias.
-- `THREAD_PACKET.md` - re-emits the authoritative packet with internally consistent source-bearing scope, file list, budget accounting, and demo-path mapping. The `.codex` packet mirror files remain stale because this sandbox returns `Operation not permitted` when writing under `.codex/`.
+- `THREAD_PACKET.md` - re-emits the authoritative packet with internally consistent source-bearing scope, file list, budget accounting, and demo-path mapping.
 
 ## Budget/Risk
 
 - Task budget: `4/4` high-risk task groups.
 - File count for source/test-bearing implementation range: `9 files changed`.
-- Size accounting for source/test-bearing implementation range through `83dfff4a899c22b077833c83649a14fde52beebe`: `3327 insertions(+), 348 deletions(-)` before this final sparse alias correction.
-- File count for current source-bearing fixer pass: `3 files changed`.
-- Size accounting for current source-bearing fixer pass before this packet refresh: `63 insertions(+)` across source/test files.
+- Size accounting for source/test-bearing implementation range through `6d1bb9facefe51674660dc4bd5fc1960efc91fd8`: `3434 insertions(+), 351 deletions(-)` before this packet-only refresh.
+- File count for source-bearing delta after reviewer-cited `f2649eade`: `3 files changed`.
+- Size accounting for source-bearing delta after reviewer-cited `f2649eade`: `81 insertions(+), 16 deletions(-)`.
 - File count for actual merge-candidate retrieval range against current `main`: `5 files changed` before this packet refresh.
-- Size accounting for actual merge-candidate retrieval range against current `main` through `83dfff4a899c22b077833c83649a14fde52beebe`: `1106 insertions(+), 242 deletions(-)` before this packet refresh.
+- Size accounting for actual merge-candidate retrieval range against current `main` through `6d1bb9facefe51674660dc4bd5fc1960efc91fd8`: `1208 insertions(+), 240 deletions(-)` before this packet-only refresh.
 - AGENTS high-risk file/size status: exceeds `<=8 files` and `<=300 net LOC` in the authoritative review range, and exceeds `<=300 net LOC` in the actual merge-candidate range.
 - Integrator exception status: no explicit high-risk size/file-count exception approval is present in this worktree. This packet does not claim high-risk size compliance; re-review must either reject for the missing exception or route to the integrator for explicit exception approval.
 - Routing/provider impact: none.
@@ -171,6 +171,14 @@ Current source-bearing fixer delta:
 - Proposed `README.md` patch text: none.
 
 ## Commands Run
+
+- Reviewer-required packet-only traceability refresh pass:
+- `make scope-check` - passed for branch `codex/feat-retrieval-fts`; the script reported no specific policy for this branch before the final pass line.
+- `./quality-format.sh --check` - passed.
+- `./quality-lint.sh` - passed shell syntax and trailing whitespace checks.
+- `./quality-test.sh` - passed smoke tests and 148 unit tests.
+- `./typecheck-test.sh` - passed Python source compilation under `src/`.
+- `make ci` - passed setup, scope-check, format, lint, typecheck, smoke tests, and 148 unit tests.
 
 - Current branch-tip source-bearing fixer pass:
 - `python3 -m unittest tests.unit.test_unified_retrieval -v` - passed 79 retrieval tests.
@@ -223,8 +231,8 @@ Previous source-bearing verification:
 
 ## Metadata Write Note
 
-The root `THREAD_PACKET.md` is the authoritative regenerated handoff packet for this fixer pass. This root packet corrects stale claims by explicitly choosing the review scope `378cf9a74a3658058079a32f186fcd254c4a4034..final HEAD reported in the final fixer response`, listing every changed implementation/test/metadata file in that scope, and including all source/test-bearing commits through the final HEAD reported in the final fixer response. This final fixer commit is source-bearing because it preserves sparse citation-bundle basket ref reconstruction in `src/qual/engine/retrieval/payload.py` and updates approved shared regression coverage.
+The root `THREAD_PACKET.md` is the authoritative regenerated handoff packet for this fixer pass. This root packet corrects stale claims by explicitly choosing the review scope `378cf9a74a3658058079a32f186fcd254c4a4034..final HEAD reported in the final fixer response`, listing every changed implementation/test/metadata file in that scope, and including all source/test-bearing commits through `6d1bb9facefe51674660dc4bd5fc1960efc91fd8` plus this packet-only fixer commit. The source-bearing commits after `adfa8cda`, including `f2649eade7c028d46452a81ccf8b1a585a028ba8` and `6d1bb9facefe51674660dc4bd5fc1960efc91fd8`, are included in the reviewed implementation range and are not described as metadata-only.
 
 ## Risks/Blockers
 
-No implementation blocker is known. The branch-tip review range is now explicit and complete in `THREAD_PACKET.md`. The `.codex` packet mirror files could not be updated in this sandbox because writes under `.codex/` fail with `Operation not permitted`; use `THREAD_PACKET.md` as the authoritative regenerated handoff packet. The remaining approval blockers are procedural: no explicit integrator high-risk size/file-count exception approval is present in this worktree, and the actual reviewed range exceeds the AGENTS high-risk file and LOC limits.
+No implementation blocker is known. The branch-tip review range is now explicit and complete in `THREAD_PACKET.md`. The `.codex` packet mirror files are readable but not writable in this sandbox, so this pass cannot refresh those stale mirrors; use the root `THREAD_PACKET.md` as the authoritative regenerated handoff packet. The remaining approval blockers are procedural: no explicit integrator high-risk size/file-count exception approval is present in this worktree, and the actual reviewed range exceeds the AGENTS high-risk file and LOC limits.
