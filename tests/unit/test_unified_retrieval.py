@@ -662,6 +662,14 @@ class UnifiedRetrievalTests(unittest.TestCase):
             result.doc_hits[0].provenance["doc_rank"],
         )
         self.assertEqual(
+            payload["retrieval_citation_bundle"]["excerpt_citations"][0]["doc_rank"],
+            result.doc_hits[0].provenance["doc_rank"],
+        )
+        self.assertEqual(
+            payload["basket_promotion_items"][0]["doc_rank"],
+            result.doc_hits[0].provenance["doc_rank"],
+        )
+        self.assertEqual(
             payload["retrieval_evidence"]["basket_promotion_items"][0]["doc_rank"],
             result.doc_hits[0].provenance["doc_rank"],
         )
@@ -2415,6 +2423,7 @@ class UnifiedRetrievalTests(unittest.TestCase):
             basket_items[0]["excerpt_lookup_fingerprint"],
             result.hits[0].provenance["excerpt_lookup_fingerprint"],
         )
+        self.assertEqual(basket_items[0]["doc_rank"], result.doc_hits[0].provenance["doc_rank"])
         self.assertTrue(basket_items[0]["basket_item_fingerprint"])
 
     def test_retrieval_context_bundle_helper_backfills_sparse_basket_fingerprints(self) -> None:
@@ -2964,6 +2973,11 @@ class UnifiedRetrievalTests(unittest.TestCase):
                     "excerpt_text_hash": item["provenance"]["excerpt_text_hash"],
                     "query_fingerprint": payload["retrieval_summary"]["query_fingerprint"],
                     "result_fingerprint": payload["retrieval_summary"]["result_fingerprint"],
+                    "doc_rank": next(
+                        doc["provenance"]["doc_rank"]
+                        for doc in payload["doc_hits"]
+                        if doc["doc_id"] == item["doc_id"]
+                    ),
                     "rank": item["provenance"]["rank"],
                     "span": item["provenance"]["span"],
                     "match_count": item["provenance"]["match_count"],

@@ -594,6 +594,10 @@ class RetrievalResult:
         """Return deterministic excerpt references ready for context-basket promotion."""
 
         items: list[dict[str, object]] = []
+        doc_rank_by_id = {
+            doc_hit.doc_id: doc_hit.provenance.get("doc_rank")
+            for doc_hit in self.doc_hits
+        }
         for hit in self.hits:
             if hit.excerpt_id is None:
                 continue
@@ -612,7 +616,9 @@ class RetrievalResult:
                 "excerpt_lookup_fingerprint": hit.provenance.get("excerpt_lookup_fingerprint"),
                 "excerpt_text_hash": hit.provenance.get("excerpt_text_hash") or hit.provenance.get("hash"),
                 "span": copy.deepcopy(hit.provenance.get("span")),
+                "doc_rank": doc_rank_by_id.get(hit.doc_id),
                 "rank": hit.provenance.get("rank"),
+                "fts_rank": hit.provenance.get("fts_rank"),
                 "source_strategy": hit.source_strategy,
                 "retrieval_backend": hit.provenance.get("retrieval_backend"),
                 "retrieval_mode": hit.provenance.get("retrieval_mode"),
@@ -684,6 +690,10 @@ class RetrievalResult:
         ]
 
     def _excerpt_citation_snapshots(self) -> list[dict[str, object]]:
+        doc_rank_by_id = {
+            doc_hit.doc_id: doc_hit.provenance.get("doc_rank")
+            for doc_hit in self.doc_hits
+        }
         return [
             {
                 "doc_id": hit.doc_id,
@@ -696,6 +706,7 @@ class RetrievalResult:
                 "excerpt_text_hash": hit.provenance.get("excerpt_text_hash") or hit.provenance.get("hash"),
                 "query_fingerprint": self.diagnostics["query_fingerprint"],
                 "result_fingerprint": self.result_fingerprint,
+                "doc_rank": doc_rank_by_id.get(hit.doc_id),
                 "match_count": hit.provenance.get("match_count"),
                 "matched_terms": hit.provenance.get("matched_terms"),
                 "fts_rank": hit.provenance.get("fts_rank"),
@@ -1882,7 +1893,10 @@ class RetrievalService:
                 "excerpt_lookup_fingerprint": item.get("excerpt_lookup_fingerprint"),
                 "excerpt_text_hash": item.get("excerpt_text_hash"),
                 "span": item.get("span"),
+                "doc_rank": item.get("doc_rank"),
                 "source_strategy": item.get("source_strategy"),
+                "rank": item.get("rank"),
+                "fts_rank": item.get("fts_rank"),
                 "retrieval_backend": item.get("retrieval_backend"),
                 "retrieval_mode": item.get("retrieval_mode"),
                 "retrieval_policy": item.get("retrieval_policy"),
