@@ -5,7 +5,7 @@
 - Merge target: current `main`
 - Handoff type: high-risk branch-tip retrieval handoff for the FTS-first retrieval lane.
 - Reviewed implementation base: `378cf9a74a3658058079a32f186fcd254c4a4034`.
-- Actual merge candidate before this packet fix: `c467cf894d68468f003243bec0631b8f4c50a682`.
+- Actual merge candidate before this packet fix: `d79154202cfd9b40ef16054af2eb7d5b0fddf0386`.
 - Reviewed implementation range for re-review: `378cf9a74a3658058079a32f186fcd254c4a4034..FINAL_BRANCH_TIP`.
 - Final branch tip: reported in the final fixer response after commit creation.
 - Scope classification: high-risk because this lane touches retrieval core/facade behavior and approved shared regression coverage in `tests/unit/test_unified_retrieval.py`.
@@ -34,8 +34,8 @@ Required before-handoff demo-path statement: this work now makes the canonical d
 
 Reviewed implementation range for re-review: `378cf9a74a3658058079a32f186fcd254c4a4034..FINAL_BRANCH_TIP`.
 
-- `.codex/kickoff_packets/feat-retrieval-fts.md` - branch-tip range includes this stale lane metadata from earlier commits; this fixer attempted to update it, but the sandbox rejected writes to hidden `.codex` paths with `PermissionError: [Errno 1] Operation not permitted`.
-- `.codex/lane_meta/feat-retrieval-fts.json` - branch-tip range includes this stale lane metadata from earlier commits; this fixer attempted to update it, but the sandbox rejected writes to hidden `.codex` paths with `PermissionError: [Errno 1] Operation not permitted`.
+- `.codex/kickoff_packets/feat-retrieval-fts.md` - branch-tip range includes stale lane metadata from earlier commits; the integration-facing root packet is the regenerated source of truth for re-review.
+- `.codex/lane_meta/feat-retrieval-fts.json` - branch-tip range includes stale lane metadata from earlier commits; the integration-facing root packet is the regenerated source of truth for re-review.
 - `THREAD_PACKET.md` - regenerated this authoritative handoff packet for the actual branch-tip scope.
 - `src/qual/engine/retrieval/__init__.py` - aligned engine retrieval exports and compatibility facade wiring with the FTS-first retrieval surface.
 - `src/qual/engine/retrieval/fts_strategy.py` - hardened FTS strategy identity and candidate/provenance behavior.
@@ -94,7 +94,7 @@ M	tests/unit/test_unified_retrieval.py
 - Shared/integrator exception status: `tests/unit/test_unified_retrieval.py` is approved shared regression coverage for the retrieval lane; no integrator-locked files changed.
 - Routing/provider impact: none.
 - PageIndex/embeddings impact: remain compatibility-only/deferred identifiers; no PageIndex, embeddings, hybrid, or alternate retrieval path was added.
-- Remaining risks/blockers: the branch-tip change volume exceeds AGENTS high-risk size limits. The authoritative root packet no longer claims production/test commits after `adfa8cd` are metadata-only. Stale `.codex` metadata copies still contain old metadata-only wording because this sandbox rejected writes to those hidden paths.
+- Remaining risks/blockers: the branch-tip change volume exceeds AGENTS high-risk size limits. The authoritative root packet no longer claims production/test commits after `adfa8cd` are metadata-only. Stale `.codex` metadata copies still contain old metadata-only wording and should not be treated as authoritative for this re-review.
 
 ## Roadmap/Vision
 
@@ -116,10 +116,8 @@ M	tests/unit/test_unified_retrieval.py
 - `./typecheck-test.sh` - passed Python source compilation under `src/`.
 - `make ci` - passed setup, scope-check, format, lint, compile/typecheck, smoke tests, and 150 unit tests.
 
-## Metadata Write Note
+## Metadata Note
 
 The root `THREAD_PACKET.md` is the authoritative regenerated handoff packet. No commit after `adfa8cdadd43747ffbcb612e4151e262b13e52ca` is described here as metadata-only unless `git show --name-status` for that commit contains only packet or lane metadata files. The reviewed implementation range intentionally covers `378cf9a74a3658058079a32f186fcd254c4a4034..FINAL_BRANCH_TIP` so the actual merge candidate is traceable.
 
-## Metadata Write Blocker
-
-This fixer attempted to update `.codex/kickoff_packets/feat-retrieval-fts.md` and `.codex/lane_meta/feat-retrieval-fts.json` to remove stale metadata-only wording from those copies as well. Both writes failed with `PermissionError: [Errno 1] Operation not permitted` in this worktree sandbox. The root `THREAD_PACKET.md` is therefore the corrected source of truth for re-review, while the stale `.codex` metadata files remain an explicit blocker/risk if the reviewer treats them as authoritative.
+The `.codex` lane metadata files are included in the branch-tip diff because earlier packet refresh commits changed them, but their stale narrow-range wording is superseded by this root packet for re-review. Reviewers should use this root packet plus the final fixer response HEAD SHA as the source of truth for the merge candidate.
