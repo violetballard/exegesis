@@ -1324,11 +1324,19 @@ COMMAND_SMOKE_ENV_SPLIT_STRING_OPTIONS: tuple[str, ...] = (
 )
 COMMAND_SMOKE_SHELL_SETUP_COMMANDS: tuple[str, ...] = (
     "cd",
+    "mkdir",
     "pushd",
     "popd",
     "pwd",
     "true",
     ":",
+)
+COMMAND_SMOKE_SHELL_SETUP_PATH_COMMANDS: tuple[str, ...] = (
+    "mkdir",
+)
+COMMAND_SMOKE_SHELL_SETUP_PATH_FLAGS: tuple[str, ...] = (
+    "-p",
+    "--parents",
 )
 COMMAND_SMOKE_SHELL_STATUS_COMMANDS: tuple[str, ...] = (
     "exit",
@@ -12772,6 +12780,8 @@ def _is_shell_script_setup_argv(argv: tuple[str, ...]) -> bool:
         return _is_shell_status_argv(argv[1:])
     if command in COMMAND_SMOKE_SHELL_PROBE_COMMANDS:
         return _is_shell_script_probe_setup_argv(argv[1:])
+    if command in COMMAND_SMOKE_SHELL_SETUP_PATH_COMMANDS:
+        return _is_shell_script_path_setup_argv(argv[1:])
     if command in COMMAND_SMOKE_SHELL_OUTPUT_SINK_COMMANDS:
         return _is_shell_script_output_sink_argv(argv[1:])
     return command in COMMAND_SMOKE_SHELL_SETUP_COMMANDS
@@ -12788,6 +12798,15 @@ def _is_shell_script_probe_setup_argv(argv: tuple[str, ...]) -> bool:
     while index < len(argv) and argv[index] in COMMAND_SMOKE_SHELL_PROBE_FLAGS:
         index += 1
     return index > 0 and index < len(argv) and all(not token.startswith("-") for token in argv[index:])
+
+
+def _is_shell_script_path_setup_argv(argv: tuple[str, ...]) -> bool:
+    if not argv:
+        return False
+    index = 0
+    while index < len(argv) and argv[index] in COMMAND_SMOKE_SHELL_SETUP_PATH_FLAGS:
+        index += 1
+    return index < len(argv) and all(not token.startswith("-") for token in argv[index:])
 
 
 def _is_shell_script_output_sink_argv(argv: tuple[str, ...]) -> bool:
