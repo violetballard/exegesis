@@ -508,7 +508,9 @@ class CommandDemoReadinessGate:
     covered_flow_steps: tuple[str, ...] = ()
     missing_flow_steps: tuple[str, ...] = ()
     cli_command_lines: tuple[str, ...] = ()
+    cli_exact_action_lines: tuple[str, ...] = ()
     invalid_cli_argv: tuple[tuple[str, ...], ...] = ()
+    invalid_cli_exact_action_argv: tuple[tuple[str, ...], ...] = ()
 
 
 @dataclass(frozen=True)
@@ -4808,21 +4810,34 @@ def command_demo_readiness_gate(
         specs,
         launcher_argv,
     )
+    cli_exact_action_validation = command_demo_readiness_validate_cli_exact_action_script(
+        tuple(line for _, line in exact_action_lines),
+        specs,
+        launcher_argv,
+    )
     missing_flow_steps = tuple(
         flow_step
         for flow_step in expected_flow_steps
         if flow_step not in covered_flow_steps
     )
     invalid_cli_argv = cli_validation.invalid_argv
+    invalid_cli_exact_action_argv = cli_exact_action_validation.invalid_argv
     gate = CommandDemoReadinessGate(
-        is_complete=not missing_engine_actions and not missing_flow_steps and not invalid_cli_argv,
+        is_complete=(
+            not missing_engine_actions
+            and not missing_flow_steps
+            and not invalid_cli_argv
+            and not invalid_cli_exact_action_argv
+        ),
         missing_engine_actions=missing_engine_actions,
         command_lines=tuple(step.command_line for step in smoke_plan.steps),
         action_lines=exact_action_lines,
         covered_flow_steps=covered_flow_steps,
         missing_flow_steps=missing_flow_steps,
         cli_command_lines=cli_validation.command_lines,
+        cli_exact_action_lines=cli_exact_action_validation.command_lines,
         invalid_cli_argv=invalid_cli_argv,
+        invalid_cli_exact_action_argv=invalid_cli_exact_action_argv,
     )
     _validate_command_demo_readiness_gate(
         gate,
@@ -4847,16 +4862,27 @@ def _validate_command_demo_readiness_gate(
         specs,
         launcher_argv,
     )
+    cli_exact_action_validation = command_demo_readiness_validate_cli_exact_action_script(
+        tuple(line for _, line in expected_action_lines),
+        specs,
+        launcher_argv,
+    )
     if gate.command_lines != expected_command_lines:
         raise ValueError("Command demo readiness gate command lines are inconsistent")
     if gate.action_lines != expected_action_lines:
         raise ValueError("Command demo readiness gate action lines are inconsistent")
     if gate.cli_command_lines != cli_validation.command_lines:
         raise ValueError("Command demo readiness gate CLI command lines are inconsistent")
+    if gate.cli_exact_action_lines != cli_exact_action_validation.command_lines:
+        raise ValueError("Command demo readiness gate CLI exact action lines are inconsistent")
     if gate.invalid_cli_argv != cli_validation.invalid_argv:
         raise ValueError("Command demo readiness gate invalid CLI argv are inconsistent")
+    if gate.invalid_cli_exact_action_argv != cli_exact_action_validation.invalid_argv:
+        raise ValueError("Command demo readiness gate invalid CLI exact action argv are inconsistent")
     if gate.invalid_cli_argv:
         raise ValueError("Command demo readiness gate includes unsupported CLI argv")
+    if gate.invalid_cli_exact_action_argv:
+        raise ValueError("Command demo readiness gate includes unsupported CLI exact action argv")
     if gate.covered_flow_steps != tuple(step.flow_step for step in smoke_plan.steps):
         raise ValueError("Command demo readiness gate flow coverage is inconsistent")
     expected_flow_steps = _expected_command_demo_flow_steps(specs)
@@ -4876,6 +4902,7 @@ def _validate_command_demo_readiness_gate(
         not gate.missing_engine_actions
         and not gate.missing_flow_steps
         and not gate.invalid_cli_argv
+        and not gate.invalid_cli_exact_action_argv
     ):
         raise ValueError("Command demo readiness gate completeness is inconsistent")
 
@@ -4921,6 +4948,9 @@ def _command_demo_readiness_gate_issues(gate: CommandDemoReadinessGate) -> tuple
     if gate.invalid_cli_argv:
         invalid_lines = ", ".join(_shell_join(argv) for argv in gate.invalid_cli_argv)
         issues.append(f"invalid CLI argv: {invalid_lines}")
+    if gate.invalid_cli_exact_action_argv:
+        invalid_lines = ", ".join(_shell_join(argv) for argv in gate.invalid_cli_exact_action_argv)
+        issues.append(f"invalid CLI exact action argv: {invalid_lines}")
     return tuple(issues)
 
 
