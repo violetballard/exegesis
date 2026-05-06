@@ -71,4 +71,4 @@ Integrator-locked files: none identified in this packet. Shared-by-approval file
 
 ## Risks/Blockers
 
-The sandbox denies writes under `.codex/**` in this worktree (`Operation not permitted` on `.codex/kickoff_packets/feat-retrieval-fts.md`, `.codex/lane_meta/feat-retrieval-fts.json`, and even a probe `touch .codex/write_probe`), so the regenerated packet is recorded in the writable `THREAD_PACKET.md` handoff surface. Re-review should inspect `d7fd5d200358287fa42a18d39e2b277463b9b69f..ff2c849ff66d0f67799ce20b70d251f7fdfe54d6` for retrieval implementation and then use the final fixer HEAD SHA for the packet-only branch tip.
+The sandbox denies writes under `.codex/**` in this worktree (`Operation not permitted` on `.codex/kickoff_packets/feat-retrieval-fts.md`), so the regenerated packet is recorded in the writable `THREAD_PACKET.md` handoff surface. Re-review should inspect `d7fd5d200358287fa42a18d39e2b277463b9b69f..ff2c849ff66d0f67799ce20b70d251f7fdfe54d6` for retrieval implementation and then use the final fixer HEAD SHA for the packet-only branch tip.
