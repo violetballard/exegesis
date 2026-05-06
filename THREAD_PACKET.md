@@ -6,15 +6,15 @@
 - Handoff type: high-risk retrieval feature handoff for the FTS-first retrieval lane.
 - Scope classification: high-risk because this branch edits engine retrieval entrypoints/facades and approved shared regression coverage in `tests/unit/test_unified_retrieval.py`.
 - Authoritative reviewed implementation range for re-review: `378cf9a7..HEAD` on `codex/feat-retrieval-fts`.
-- Evidence branch tip before this fixer commit: `4ca1c6b0c8e6bd1bbf2fb27ec3ed5f60729bac52`.
+- Implementation branch tip before this packet-only fixer commit: `fa14772592bba8a097f802fd4376aba9ab329e1c`.
 - Final HEAD SHA: reported in the final response after this fixer commit is created.
 - Approved shared-file note: `tests/unit/test_unified_retrieval.py` is approved shared-by-approval regression coverage for this retrieval lane. No integrator-locked files are edited in this handoff.
 
 ## Scope Completed
 
-This packet supersedes earlier handoff packets for `codex/feat-retrieval-fts`. The only authoritative reviewed range is the full branch-tip range, `378cf9a7..HEAD`, at the time of re-review. Evidence below was generated from pre-fixer branch tip `ce1cbbbea0abc97b6960fac26853b6d039c750dd`; this fixer commit refreshes handoff traceability without narrowing the reviewed implementation range. The final SHA is reported with the fixer result.
+This packet supersedes earlier handoff packets for `codex/feat-retrieval-fts`. The only authoritative reviewed range is the full branch-tip range, `378cf9a7..HEAD`, at the time of re-review. Evidence below was generated from implementation branch tip `fa14772592bba8a097f802fd4376aba9ab329e1c`; this fixer commit refreshes handoff traceability without narrowing the reviewed implementation range. The final SHA is reported with the fixer result.
 
-Prior packet text incorrectly excluded code after `adfa8cd` and incorrectly implied that later packet-refresh commits were metadata-only. That claim is withdrawn. The reviewed range now includes every file changed from `378cf9a7` through the actual branch tip, including implementation commits such as `4f27cdc52ac52cb309afc950c807a66911e74da6` (`Harden retrieval identifier snapshots`) and the later packet correction commits on the branch.
+Prior packet text incorrectly excluded code after `adfa8cd` and incorrectly implied that later packet-refresh commits were metadata-only. That claim is withdrawn. The reviewed range now includes every file changed from `378cf9a7` through the actual branch tip, including implementation commits such as `4ca1c6b0c8e6bd1bbf2fb27ec3ed5f60729bac52` (`Harden sparse retrieval citation rehydration`, which changes `src/qual/engine/retrieval/payload.py`) and `fa14772592bba8a097f802fd4376aba9ab329e1c` (`fix(retrieval): surface candidate resolution provenance`, which changes `src/qual/retrieval/service.py`).
 
 Out-of-lane packet tooling scope: `codex_packet_handoff/tools/planner.py` and `tests/unit/test_packet_planner.py` are not part of this retrieval handoff. They appear in older cumulative accounting from `d7fd5d2..adfa8cd`, but the regenerated authoritative review range is `378cf9a7..HEAD`; `git diff --name-status 378cf9a7..HEAD` does not include either file. This retrieval handoff requests review only for the files listed below.
 
@@ -38,7 +38,7 @@ AGENTS.md narrowing statement: this work makes the `retrieve relevant material` 
 ## Files Changed
 
 Authoritative reviewed implementation range for re-review: `378cf9a7..HEAD` on `codex/feat-retrieval-fts`.
-Evidence range before this fixer commit: `378cf9a7..4ca1c6b0c8e6bd1bbf2fb27ec3ed5f60729bac52`
+Evidence range before this packet-only fixer commit: `378cf9a7..fa14772592bba8a097f802fd4376aba9ab329e1c`
 
 - `.codex/kickoff_packets/feat-retrieval-fts.md` - lane kickoff metadata corrected during earlier packet refreshes.
 - `.codex/lane_meta/feat-retrieval-fts.json` - lane metadata corrected during earlier packet refreshes.
