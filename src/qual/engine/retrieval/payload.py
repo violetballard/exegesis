@@ -918,6 +918,14 @@ def _normalize_citation_bundle_snapshot(citation_bundle: dict[str, object]) -> d
         normalized["citation_status"] = copy.deepcopy(citation_status)
     elif "citation_status" in normalized:
         normalized["citation_status"] = {}
+    if _is_missing_snapshot_value(normalized.get("retrieval_evidence_fingerprint")):
+        normalized["retrieval_evidence_fingerprint"] = _stable_fingerprint(
+            {
+                key: value
+                for key, value in normalized.items()
+                if key != "retrieval_evidence_fingerprint"
+            }
+        )
     return normalized
 
 
@@ -1143,15 +1151,39 @@ def _normalize_basket_promotion_bundle_snapshot(bundle: dict[str, object]) -> di
             "query_scope": normalized.get("query_scope"),
             "query_intent": normalized.get("query_intent"),
             "query_date_range": normalized.get("query_date_range"),
+            "citation_status": normalized.get("citation_status"),
+            "retrieval_evidence_fingerprint": normalized.get("retrieval_evidence_fingerprint"),
             "retrieval_backend": normalized.get("retrieval_backend"),
             "retrieval_mode": normalized.get("retrieval_mode"),
         }
         for key, fallback_value in item_fallbacks.items():
             if _is_missing_snapshot_value(normalized_item.get(key)) and not _is_missing_snapshot_value(fallback_value):
                 normalized_item[key] = copy.deepcopy(fallback_value)
+        if _is_missing_snapshot_value(normalized_item.get("promotion_item_fingerprint")):
+            normalized_item["promotion_item_fingerprint"] = _stable_fingerprint(
+                {
+                    key: value
+                    for key, value in normalized_item.items()
+                    if key != "promotion_item_fingerprint"
+                }
+            )
         promotion_items.append(normalized_item)
     normalized["promotion_items"] = promotion_items
     normalized["promotion_item_count"] = len(normalized["promotion_items"])
+    if _is_missing_snapshot_value(normalized.get("promotion_bundle_fingerprint")):
+        normalized["promotion_bundle_fingerprint"] = _stable_fingerprint(
+            {
+                "promotion_target": normalized.get("promotion_target"),
+                "result_fingerprint": normalized.get("result_fingerprint"),
+                "query_fingerprint": normalized.get("query_fingerprint"),
+                "retrieval_evidence_fingerprint": normalized.get("retrieval_evidence_fingerprint"),
+                "promotion_item_fingerprints": [
+                    item.get("promotion_item_fingerprint")
+                    for item in promotion_items
+                    if isinstance(item, dict)
+                ],
+            }
+        )
     retrieval_policy = normalized.get("retrieval_policy")
     if isinstance(retrieval_policy, dict):
         normalized["retrieval_policy"] = _normalize_policy_snapshot(retrieval_policy)
@@ -1185,6 +1217,13 @@ def _normalize_retrieval_source_bundle_snapshot(source_bundle: dict[str, object]
     normalized["retrieval_evidence"] = _normalize_retrieval_evidence_snapshot(
         normalized.get("retrieval_evidence", {})
     )
+    retrieval_evidence = normalized["retrieval_evidence"]
+    retrieval_evidence_fingerprint = _first_text_value(
+        normalized.get("retrieval_evidence_fingerprint"),
+        retrieval_evidence.get("retrieval_evidence_fingerprint") if isinstance(retrieval_evidence, dict) else None,
+    )
+    if retrieval_evidence_fingerprint is not None:
+        normalized["retrieval_evidence_fingerprint"] = retrieval_evidence_fingerprint
     normalized["retrieval_citation_bundle"] = _build_retrieval_citation_bundle_from_payload(normalized)
     normalized["retrieval_doc_bundle"] = _build_retrieval_doc_bundle_from_payload(normalized)
     normalized["retrieval_excerpt_bundle"] = _build_retrieval_excerpt_bundle_from_payload(normalized)
@@ -1527,6 +1566,7 @@ def _build_retrieval_source_bundle_from_payload(payload: dict[str, object]) -> d
         "excerpt_hits": copy.deepcopy(payload.get("excerpt_hits", [])),
         "retrieval_manifest": copy.deepcopy(payload.get("retrieval_manifest", {})),
         "retrieval_evidence": copy.deepcopy(payload.get("retrieval_evidence", {})),
+        "retrieval_evidence_fingerprint": payload.get("retrieval_evidence_fingerprint"),
         "retrieval_provenance": copy.deepcopy(payload.get("retrieval_provenance", {})),
         "basket_promotion_items": copy.deepcopy(basket_promotion_items),
         "basket_promotion_count": basket_promotion_count,
@@ -1666,6 +1706,10 @@ def _build_retrieval_bundle_context_from_payload(payload: dict[str, object]) -> 
     citation_bundle = payload.get("retrieval_citation_bundle", {})
     if not isinstance(citation_bundle, dict):
         citation_bundle = _build_retrieval_citation_bundle_from_payload(payload)
+    evidence = payload.get("retrieval_evidence", {})
+    if not isinstance(evidence, dict):
+        evidence = {}
+    evidence = _normalize_retrieval_evidence_snapshot(evidence)
     query_date_range = _normalize_optional_list_like(
         normalized_query_constraints.get(
             "date_range",
@@ -1711,10 +1755,16 @@ def _build_retrieval_bundle_context_from_payload(payload: dict[str, object]) -> 
             field_name="bundle_context",
         ),
         "citation_status": copy.deepcopy(payload.get("citation_status", summary.get("citation_status", provenance.get("citation_status", {})))),
+        "retrieval_evidence_fingerprint": (
+            evidence.get("retrieval_evidence_fingerprint")
+            or provenance.get("retrieval_evidence_fingerprint")
+            or summary.get("retrieval_evidence_fingerprint")
+            or diagnostics.get("retrieval_evidence_fingerprint")
+        ),
         "retrieval_citation_bundle": copy.deepcopy(citation_bundle),
         "retrieval_manifest": copy.deepcopy(payload.get("retrieval_manifest", {})),
         "retrieval_provenance": copy.deepcopy(provenance),
-        "retrieval_evidence": copy.deepcopy(payload.get("retrieval_evidence", {})),
+        "retrieval_evidence": copy.deepcopy(evidence),
     }
 
 
@@ -1777,50 +1827,63 @@ def _build_retrieval_basket_promotion_bundle_from_payload(payload: dict[str, obj
         provenance = hit.get("provenance", {})
         if not isinstance(provenance, dict):
             provenance = {}
-        promotion_items.append(
-            {
-                "doc_id": hit.get("doc_id"),
-                "excerpt_id": excerpt_id,
-                "title_hint": hit.get("title_hint"),
-                "excerpt_text": hit.get("excerpt_text"),
-                "span": copy.deepcopy(hit.get("span", provenance.get("span", {}))),
-                "score": hit.get("score"),
-                "rank": provenance.get("rank", hit.get("rank")),
-                "source_strategy": hit.get("source_strategy", provenance.get("source_strategy")),
-                "result_fingerprint": hit.get(
-                    "result_fingerprint",
-                    provenance.get("result_fingerprint", bundle_context["result_fingerprint"]),
+        promotion_item = {
+            "doc_id": hit.get("doc_id"),
+            "excerpt_id": excerpt_id,
+            "title_hint": hit.get("title_hint"),
+            "excerpt_text": hit.get("excerpt_text"),
+            "span": copy.deepcopy(hit.get("span", provenance.get("span", {}))),
+            "score": hit.get("score"),
+            "rank": provenance.get("rank", hit.get("rank")),
+            "source_strategy": hit.get("source_strategy", provenance.get("source_strategy")),
+            "result_fingerprint": hit.get(
+                "result_fingerprint",
+                provenance.get("result_fingerprint", bundle_context["result_fingerprint"]),
+            ),
+            "query_fingerprint": hit.get(
+                "query_fingerprint",
+                provenance.get("query_fingerprint", bundle_context["query_fingerprint"]),
+            ),
+            "query_scope": hit.get("query_scope", provenance.get("query_scope", bundle_context["query_scope"])),
+            "query_intent": hit.get("query_intent", provenance.get("query_intent", bundle_context["query_intent"])),
+            "query_date_range": copy.deepcopy(
+                hit.get(
+                    "query_date_range",
+                    provenance.get("query_date_range", bundle_context["query_date_range"]),
+                )
+            ),
+            "citation_status": copy.deepcopy(
+                hit.get(
+                    "citation_status",
+                    provenance.get("citation_status", bundle_context["citation_status"]),
+                )
+            ),
+            "retrieval_evidence_fingerprint": hit.get(
+                "retrieval_evidence_fingerprint",
+                provenance.get(
+                    "retrieval_evidence_fingerprint",
+                    bundle_context["retrieval_evidence_fingerprint"],
                 ),
-                "query_fingerprint": hit.get(
-                    "query_fingerprint",
-                    provenance.get("query_fingerprint", bundle_context["query_fingerprint"]),
-                ),
-                "query_scope": hit.get("query_scope", provenance.get("query_scope", bundle_context["query_scope"])),
-                "query_intent": hit.get("query_intent", provenance.get("query_intent", bundle_context["query_intent"])),
-                "query_date_range": copy.deepcopy(
-                    hit.get(
-                        "query_date_range",
-                        provenance.get("query_date_range", bundle_context["query_date_range"]),
-                    )
-                ),
-                "retrieval_backend": hit.get("retrieval_backend", provenance.get("retrieval_backend")),
-                "retrieval_mode": hit.get("retrieval_mode", provenance.get("retrieval_mode")),
-                "source_hash": hit.get("source_hash", provenance.get("source_hash")),
-                "doc_type": hit.get("doc_type", provenance.get("doc_type")),
-                "doc_fingerprint": hit.get("doc_fingerprint", provenance.get("doc_fingerprint")),
-                "doc_identity_fingerprint": hit.get(
-                    "doc_identity_fingerprint",
-                    provenance.get("doc_identity_fingerprint"),
-                ),
-                "excerpt_fingerprint": hit.get("excerpt_fingerprint", provenance.get("excerpt_fingerprint")),
-                "excerpt_text_hash": hit.get(
-                    "excerpt_text_hash",
-                    provenance.get("excerpt_text_hash", provenance.get("hash")),
-                ),
-                "matched_terms": copy.deepcopy(hit.get("matched_terms", provenance.get("matched_terms"))),
-                "match_count": hit.get("match_count", provenance.get("match_count")),
-            }
-        )
+            ),
+            "retrieval_backend": hit.get("retrieval_backend", provenance.get("retrieval_backend")),
+            "retrieval_mode": hit.get("retrieval_mode", provenance.get("retrieval_mode")),
+            "source_hash": hit.get("source_hash", provenance.get("source_hash")),
+            "doc_type": hit.get("doc_type", provenance.get("doc_type")),
+            "doc_fingerprint": hit.get("doc_fingerprint", provenance.get("doc_fingerprint")),
+            "doc_identity_fingerprint": hit.get(
+                "doc_identity_fingerprint",
+                provenance.get("doc_identity_fingerprint"),
+            ),
+            "excerpt_fingerprint": hit.get("excerpt_fingerprint", provenance.get("excerpt_fingerprint")),
+            "excerpt_text_hash": hit.get(
+                "excerpt_text_hash",
+                provenance.get("excerpt_text_hash", provenance.get("hash")),
+            ),
+            "matched_terms": copy.deepcopy(hit.get("matched_terms", provenance.get("matched_terms"))),
+            "match_count": hit.get("match_count", provenance.get("match_count")),
+        }
+        promotion_item["promotion_item_fingerprint"] = _stable_fingerprint(promotion_item)
+        promotion_items.append(promotion_item)
     return _normalize_basket_promotion_bundle_snapshot(
         {
             **bundle_context,
@@ -1927,6 +1990,7 @@ def _build_retrieval_diagnostics_from_source_bundle(source_bundle: dict[str, obj
     retrieval_evidence = normalized.get("retrieval_evidence", {})
     if not isinstance(retrieval_evidence, dict):
         retrieval_evidence = {}
+    retrieval_evidence = _normalize_retrieval_evidence_snapshot(retrieval_evidence)
     max_results_int = _normalize_query_max_results(
         query_constraints.get("max_results", citation_bundle.get("doc_count", 10))
     )
@@ -1955,9 +2019,6 @@ def _build_retrieval_diagnostics_from_source_bundle(source_bundle: dict[str, obj
     caches_used = _normalize_bool_map(citation_bundle.get("caches_used", normalized.get("caches_used", {})))
     if not caches_used:
         caches_used = {strategy_id: False for strategy_id in strategies_used}
-    retrieval_evidence = normalized.get("retrieval_evidence", {})
-    if not isinstance(retrieval_evidence, dict):
-        retrieval_evidence = {}
     fts_shortlist_query_fingerprint = _first_text_value(
         normalized.get("fts_shortlist_query_fingerprint"),
         citation_bundle.get("fts_shortlist_query_fingerprint"),
@@ -2010,7 +2071,8 @@ def _build_retrieval_diagnostics_from_source_bundle(source_bundle: dict[str, obj
             citation_bundle.get("citation_status", normalized.get("citation_status", {}))
         ),
         "retrieval_manifest": copy.deepcopy(normalized.get("retrieval_manifest", {})),
-        "retrieval_evidence": copy.deepcopy(normalized.get("retrieval_evidence", {})),
+        "retrieval_evidence": copy.deepcopy(retrieval_evidence),
+        "retrieval_evidence_fingerprint": retrieval_evidence.get("retrieval_evidence_fingerprint"),
         "result_fingerprint": citation_bundle.get(
             "result_fingerprint",
             normalized.get("result_fingerprint"),
@@ -2031,10 +2093,14 @@ def _build_retrieval_provenance_from_payload(payload: dict[str, object]) -> dict
         normalized = {}
     summary = payload.get("retrieval_summary", {})
     diagnostics = payload.get("retrieval_diagnostics", {})
+    evidence = payload.get("retrieval_evidence", {})
     if not isinstance(summary, dict):
         summary = {}
     if not isinstance(diagnostics, dict):
         diagnostics = {}
+    if not isinstance(evidence, dict):
+        evidence = {}
+    evidence = _normalize_retrieval_evidence_snapshot(evidence)
     query = payload.get("query", {})
     if not isinstance(query, dict):
         query = {}
@@ -2151,6 +2217,12 @@ def _build_retrieval_provenance_from_payload(payload: dict[str, object]) -> dict
         )
     if "citation_status" not in normalized:
         normalized["citation_status"] = copy.deepcopy(summary.get("citation_status", {}))
+    if "retrieval_evidence_fingerprint" not in normalized:
+        normalized["retrieval_evidence_fingerprint"] = (
+            evidence.get("retrieval_evidence_fingerprint")
+            or summary.get("retrieval_evidence_fingerprint")
+            or diagnostics.get("retrieval_evidence_fingerprint")
+        )
     if "doc_count" not in normalized:
         normalized["doc_count"] = summary.get("doc_count")
     if "excerpt_count" not in normalized:
@@ -2370,6 +2442,7 @@ def _build_retrieval_downstream_payload_from_source_bundle(
     payload.pop("retrieval_diagnostics", None)
     payload.pop("retrieval_source_bundle", None)
     payload.pop("query_fingerprint", None)
+    payload.pop("retrieval_evidence_fingerprint", None)
     source_bundle_fingerprint = payload.pop("source_bundle_fingerprint", None)
     payload["policy"] = copy.deepcopy(policy_snapshot)
     payload["retrieval_policy"] = copy.deepcopy(policy_snapshot)

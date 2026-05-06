@@ -1,6 +1,7 @@
 from __future__ import annotations
 
 import copy
+import hashlib
 import json
 import tempfile
 import unittest
@@ -617,6 +618,35 @@ class UnifiedRetrievalTests(unittest.TestCase):
         self.assertEqual(payload["retrieval_diagnostics"]["retrieval_evidence"], result.diagnostics["retrieval_evidence"])
         self.assertEqual(payload["retrieval_manifest"], result.diagnostics["retrieval_manifest"])
         self.assertEqual(payload["retrieval_evidence"], result.evidence)
+        evidence_for_fingerprint = dict(payload["retrieval_evidence"])
+        retrieval_evidence_fingerprint = evidence_for_fingerprint.pop("retrieval_evidence_fingerprint")
+        self.assertEqual(
+            retrieval_evidence_fingerprint,
+            hashlib.sha256(
+                json.dumps(
+                    evidence_for_fingerprint,
+                    sort_keys=True,
+                    separators=(",", ":"),
+                    ensure_ascii=True,
+                ).encode("utf-8")
+            ).hexdigest(),
+        )
+        self.assertEqual(
+            payload["retrieval_diagnostics"]["retrieval_evidence_fingerprint"],
+            retrieval_evidence_fingerprint,
+        )
+        self.assertEqual(
+            payload["retrieval_summary"]["retrieval_evidence_fingerprint"],
+            retrieval_evidence_fingerprint,
+        )
+        self.assertEqual(
+            payload["retrieval_provenance"]["retrieval_evidence_fingerprint"],
+            retrieval_evidence_fingerprint,
+        )
+        self.assertEqual(
+            payload["retrieval_source_bundle"]["retrieval_evidence_fingerprint"],
+            retrieval_evidence_fingerprint,
+        )
         self.assertEqual(payload["doc_hits"][0]["result_fingerprint"], result.result_fingerprint)
         self.assertEqual(
             payload["doc_hits"][0]["provenance"]["result_fingerprint"],
@@ -1682,6 +1712,19 @@ class UnifiedRetrievalTests(unittest.TestCase):
 
         with self.assertRaisesRegex(KeyError, "unknown excerpt_id"):
             self.service.fetch_excerpt(str(excerpt_ids[0]))
+
+    def test_excerpt_payload_normalization_rejects_pageindex_resolution(self) -> None:
+        with self.assertRaisesRegex(ValueError, "FTS-only"):
+            self.service._normalize_excerpt_payload(
+                {
+                    "excerpt_id": "pageindex-excerpt",
+                    "doc_id": "doc-pdf-1",
+                    "text": "PageIndex-only excerpt text",
+                    "provenance": {"source_strategy": "pageindex"},
+                },
+                source_strategy="pageindex",  # type: ignore[arg-type]
+                lookup_resolution="pageindex",
+            )
 
     def test_retrieval_payload_helpers_normalize_tuple_shaped_snapshots(self) -> None:
         payload = {
@@ -3127,10 +3170,20 @@ class UnifiedRetrievalTests(unittest.TestCase):
             )
         )
         direct_item = result.retrieval_basket_promotion_bundle()["promotion_items"][0]
+        retrieval_evidence_fingerprint = result.evidence["retrieval_evidence_fingerprint"]
         self.assertEqual(direct_item["query_fingerprint"], result.diagnostics["query_fingerprint"])
         self.assertEqual(direct_item["query_scope"], "vault")
         self.assertEqual(direct_item["query_intent"], "compare")
         self.assertEqual(direct_item["query_date_range"], ["2026-01-01", "2026-12-31"])
+        self.assertEqual(direct_item["retrieval_evidence_fingerprint"], retrieval_evidence_fingerprint)
+        self.assertEqual(
+            result.retrieval_basket_promotion_bundle()["retrieval_evidence_fingerprint"],
+            retrieval_evidence_fingerprint,
+        )
+        self.assertEqual(
+            direct_item["citation_status"],
+            result.retrieval_basket_promotion_bundle()["citation_status"],
+        )
         self.assertEqual(direct_item["doc_type"], "memo")
         self.assertEqual(
             engine_retrieve_fts_basket_promotion_bundle(
@@ -3184,16 +3237,27 @@ class UnifiedRetrievalTests(unittest.TestCase):
             hit.pop("query_scope", None)
             hit.pop("query_intent", None)
             hit.pop("query_date_range", None)
+            hit.pop("citation_status", None)
+            hit.pop("retrieval_evidence_fingerprint", None)
             hit["provenance"].pop("query_fingerprint", None)
             hit["provenance"].pop("query_scope", None)
             hit["provenance"].pop("query_intent", None)
             hit["provenance"].pop("query_date_range", None)
+            hit["provenance"].pop("citation_status", None)
+            hit["provenance"].pop("retrieval_evidence_fingerprint", None)
 
-        rehydrated_item = _build_retrieval_basket_promotion_bundle_from_payload(payload)["promotion_items"][0]
+        rehydrated_bundle = _build_retrieval_basket_promotion_bundle_from_payload(payload)
+        rehydrated_item = rehydrated_bundle["promotion_items"][0]
         self.assertEqual(rehydrated_item["query_fingerprint"], result.diagnostics["query_fingerprint"])
         self.assertEqual(rehydrated_item["query_scope"], "vault")
         self.assertEqual(rehydrated_item["query_intent"], "compare")
         self.assertEqual(rehydrated_item["query_date_range"], ["2026-01-01", "2026-12-31"])
+        self.assertEqual(rehydrated_item["retrieval_evidence_fingerprint"], retrieval_evidence_fingerprint)
+        self.assertEqual(rehydrated_bundle["retrieval_evidence_fingerprint"], retrieval_evidence_fingerprint)
+        self.assertEqual(
+            rehydrated_item["citation_status"],
+            result.retrieval_basket_promotion_bundle()["citation_status"],
+        )
         self.assertEqual(rehydrated_item["doc_type"], "memo")
 
     def test_engine_retrieval_tool_returns_canonical_downstream_payload(self) -> None:
