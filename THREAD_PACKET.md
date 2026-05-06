@@ -46,34 +46,34 @@ Reviewed implementation range for re-review: `378cf9a74a3658058079a32f186fcd254c
 
 ## Diff Evidence
 
-Command: `git diff --stat 378cf9a74a3658058079a32f186fcd254c4a4034..e49d7c2c34d1e8f3dd8ca1927e2efbef53d67f06`
+Command: `git diff --stat 378cf9a74a3658058079a32f186fcd254c4a4034 --`
 
 ```text
  .codex/kickoff_packets/feat-retrieval-fts.md |   36 +-
  .codex/lane_meta/feat-retrieval-fts.json     |  155 ++-
- THREAD_PACKET.md                             |  121 ++-
+ THREAD_PACKET.md                             |  203 ++--
  src/qual/engine/retrieval/__init__.py        |   86 +-
  src/qual/engine/retrieval/fts_strategy.py    |   59 +-
  src/qual/engine/retrieval/payload.py         | 1399 +++++++++++++++++++++++---
  src/qual/retrieval/__init__.py               |   11 +
  src/qual/retrieval/service.py                |  844 ++++++++++++++--
  tests/unit/test_unified_retrieval.py         | 1201 +++++++++++++++++++++-
- 9 files changed, 3547 insertions(+), 365 deletions(-)
+ 9 files changed, 3609 insertions(+), 385 deletions(-)
 ```
 
-Command: `git diff --stat adfa8cdadd43747ffbcb612e4151e262b13e52ca..e49d7c2c34d1e8f3dd8ca1927e2efbef53d67f06`
+Command: `git diff --stat adfa8cdadd43747ffbcb612e4151e262b13e52ca --`
 
 ```text
  .codex/kickoff_packets/feat-retrieval-fts.md |   36 +-
  .codex/lane_meta/feat-retrieval-fts.json     |  155 ++-
- THREAD_PACKET.md                             |  121 ++-
+ THREAD_PACKET.md                             |  203 ++--
  src/qual/engine/retrieval/__init__.py        |   86 +-
  src/qual/engine/retrieval/fts_strategy.py    |   59 +-
  src/qual/engine/retrieval/payload.py         | 1399 +++++++++++++++++++++++---
  src/qual/retrieval/__init__.py               |   11 +
  src/qual/retrieval/service.py                |  823 ++++++++++++++-
  tests/unit/test_unified_retrieval.py         | 1181 +++++++++++++++++++++-
- 9 files changed, 3528 insertions(+), 343 deletions(-)
+ 9 files changed, 3590 insertions(+), 363 deletions(-)
 ```
 
 Command: `git show --name-status --oneline e49d7c2c34d1e8f3dd8ca1927e2efbef53d67f06`
@@ -87,9 +87,9 @@ M	src/qual/retrieval/service.py
 ## Budget/Risk
 
 - Task budget: `4/4` high-risk task groups.
-- File count for branch-tip handoff before this packet fix: `9 files changed`.
-- Size accounting for branch-tip handoff before this packet fix: `3547 insertions(+), 365 deletions(-)`, net `3182 LOC`.
-- Post-`adfa8cd` branch delta before this packet fix: `9 files changed, 3528 insertions(+), 343 deletions(-)`.
+- File count for branch-tip handoff including this packet fix: `9 files changed`.
+- Size accounting for branch-tip handoff including this packet fix: `3609 insertions(+), 385 deletions(-)`, net `3224 LOC`.
+- Post-`adfa8cd` branch delta including this packet fix: `9 files changed, 3590 insertions(+), 363 deletions(-)`.
 - AGENTS file/size status: exceeds high-risk size limits of `<=8 files` and `<=300 net LOC`; this is now explicitly disclosed for reviewer/integrator judgment instead of being hidden behind metadata-only wording.
 - Shared/integrator exception status: `tests/unit/test_unified_retrieval.py` is approved shared regression coverage for the retrieval lane; no integrator-locked files changed.
 - Routing/provider impact: none.
@@ -107,7 +107,7 @@ M	src/qual/retrieval/service.py
 
 ## Commands Run
 
-- `make scope-check` - passed; repo reported no policy for branch `codex/feat-retrieval-fts` and skipped policy enforcement.
+- `make scope-check` - passed for branch `codex/feat-retrieval-fts`.
 - `./quality-format.sh --check` - passed.
 - `./quality-lint.sh` - passed shell syntax and trailing whitespace checks.
 - `./quality-test.sh` - passed smoke tests and 150 unit tests.
