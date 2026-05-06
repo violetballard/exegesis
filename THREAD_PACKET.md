@@ -4,7 +4,7 @@
 - Lane: `feat-retrieval-fts`
 - Merge target: current `main`
 - Current source/test implementation head: `e746e57856d91c90b13207365a232401e4a65500`
-- Final HEAD SHA after this packet finalization commit: reported in the final fixer response.
+- Final HEAD SHA after this fixer packet finalization commit: reported in the final fixer response.
 - Handoff type: high-risk retrieval feature handoff for the FTS-first retrieval lane.
 - Scope classification: high-risk because this branch edits engine retrieval entrypoints/facades and approved shared regression coverage in `tests/unit/test_unified_retrieval.py`.
 - Authoritative reviewed implementation range for re-review: `378cf9a74a3658058079a32f186fcd254c4a4034..e746e57856d91c90b13207365a232401e4a65500`.
@@ -119,6 +119,12 @@ M	tests/unit/test_unified_retrieval.py
 
 ## Commands Run
 
+- `make scope-check` - passed on branch `codex/feat-retrieval-fts` in this fixer pass.
+- `./quality-format.sh --check` - passed in this fixer pass.
+- `./quality-lint.sh` - passed shell syntax and trailing whitespace checks in this fixer pass.
+- `./quality-test.sh` - passed smoke tests and 147 unit tests in this fixer pass.
+- `./typecheck-test.sh` - passed Python source compilation under `src/` in this fixer pass.
+- `make ci` - passed setup, scope-check, format, lint, typecheck, smoke tests, and 147 unit tests in this fixer pass.
 - `make scope-check` - passed for branch `codex/feat-retrieval-fts`; scope-check reported no branch policy and skipped policy-specific checks, then passed.
 - `python -m unittest tests.unit.test_unified_retrieval.UnifiedRetrievalTests.test_retrieval_constraints_reject_bool_and_non_int_max_results` - passed.
 - `python -m unittest tests.unit.test_unified_retrieval` - passed 78 focused retrieval tests.
@@ -130,7 +136,7 @@ M	tests/unit/test_unified_retrieval.py
 
 ## Metadata Write Note
 
-The root `THREAD_PACKET.md` is the authoritative regenerated handoff packet for this fixer pass. The patch tool allowed writes to the root packet but rejected writes under `.codex/kickoff_packets/feat-retrieval-fts.md` and `.codex/lane_meta/feat-retrieval-fts.json` as outside the project, so those `.codex` packet surfaces still contain stale metadata and must not be used as review source of truth. This root packet corrects their stale claims by explicitly including the actual source/test-bearing range through `e746e57856d91c90b13207365a232401e4a65500`.
+The root `THREAD_PACKET.md` is the authoritative regenerated handoff packet for this fixer pass. The patch tool allowed writes to the root packet but rejected writes under `.codex/kickoff_packets/feat-retrieval-fts.md` and `.codex/lane_meta/feat-retrieval-fts.json` as outside the project. A direct write attempt to those `.codex` mirror files also failed with `PermissionError: [Errno 1] Operation not permitted`, so those protected packet surfaces still contain stale metadata and must not be used as review source of truth. This root packet corrects their stale claims by explicitly including the actual source/test-bearing range through `e746e57856d91c90b13207365a232401e4a65500`.
 
 ## Risks/Blockers
 
