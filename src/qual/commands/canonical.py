@@ -1147,6 +1147,9 @@ def canonical_command_readiness_action_sequence_summary() -> tuple[
 
 def canonical_command_readiness_handoff_packet_summary() -> tuple[
     str,
+    str,
+    tuple[str, ...],
+    tuple[tuple[str, str], ...],
     tuple[str, ...],
     tuple[str, ...],
     str,
