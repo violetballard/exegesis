@@ -530,6 +530,14 @@ class UnifiedRetrievalTests(unittest.TestCase):
             [item.provenance["top_excerpt_lookup_fingerprint"] for item in result.doc_hits],
         )
         self.assertEqual(
+            manifest["excerpt_lookup_fingerprints"],
+            [
+                item.provenance["excerpt_lookup_fingerprint"]
+                for item in result.hits
+                if item.excerpt_id is not None
+            ],
+        )
+        self.assertEqual(
             manifest["top_excerpt_text_hashes"],
             [item.provenance["top_excerpt_text_hash"] for item in result.doc_hits],
         )
@@ -544,6 +552,7 @@ class UnifiedRetrievalTests(unittest.TestCase):
         )
         self.assertIn("top_excerpt_text_hashes", manifest)
         self.assertIn("top_excerpt_lookup_fingerprints", manifest)
+        self.assertIn("excerpt_lookup_fingerprints", manifest)
         self.assertIn("excerpt_text_hashes", manifest)
 
     def test_downstream_payload_exposes_policy_and_diagnostics_snapshot(self) -> None:
@@ -586,11 +595,23 @@ class UnifiedRetrievalTests(unittest.TestCase):
             payload["retrieval_summary"]["primary_excerpt_lookup_fingerprint"],
             result.hits[0].provenance["excerpt_lookup_fingerprint"] if result.hits else None,
         )
+        self.assertEqual(
+            payload["retrieval_summary"]["excerpt_lookup_fingerprints"],
+            [
+                item.provenance["excerpt_lookup_fingerprint"]
+                for item in result.hits
+                if item.excerpt_id is not None
+            ],
+        )
         self.assertEqual(payload["retrieval_diagnostics"]["result_fingerprint"], result.result_fingerprint)
         self.assertEqual(payload["retrieval_diagnostics"]["retrieval_manifest"], result.diagnostics["retrieval_manifest"])
         self.assertEqual(payload["retrieval_diagnostics"]["retrieval_evidence"], result.diagnostics["retrieval_evidence"])
         self.assertEqual(payload["retrieval_manifest"], result.diagnostics["retrieval_manifest"])
         self.assertEqual(payload["retrieval_evidence"], result.evidence)
+        self.assertEqual(
+            payload["retrieval_evidence"]["excerpt_lookup_fingerprints"],
+            payload["retrieval_manifest"]["excerpt_lookup_fingerprints"],
+        )
         self.assertEqual(payload["retrieval_evidence"]["result_fingerprint"], result.result_fingerprint)
         self.assertEqual(payload["retrieval_evidence"]["query_scope"], "vault")
         self.assertEqual(payload["retrieval_evidence"]["query_intent"], "compare")

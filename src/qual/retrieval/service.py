@@ -701,6 +701,11 @@ class RetrievalResult:
         excerpt_fingerprints = [
             _optional_text(hit.provenance.get("excerpt_fingerprint")) for hit in self.hits if hit.excerpt_id is not None
         ]
+        excerpt_lookup_fingerprints = [
+            _optional_text(hit.provenance.get("excerpt_lookup_fingerprint"))
+            for hit in self.hits
+            if hit.excerpt_id is not None
+        ]
         excerpt_text_hashes = [
             _optional_text(hit.provenance.get("excerpt_text_hash") or hit.provenance.get("hash"))
             for hit in self.hits
@@ -723,6 +728,7 @@ class RetrievalResult:
             "doc_identity_fingerprints": doc_identity_fingerprints,
             "excerpt_ids": [hit.excerpt_id for hit in self.hits if hit.excerpt_id is not None],
             "excerpt_fingerprints": excerpt_fingerprints,
+            "excerpt_lookup_fingerprints": excerpt_lookup_fingerprints,
             "excerpt_text_hashes": excerpt_text_hashes,
             "top_excerpt_fingerprints": top_excerpt_fingerprints,
             "top_excerpt_lookup_fingerprints": top_excerpt_lookup_fingerprints,
@@ -1510,6 +1516,11 @@ class RetrievalService:
         excerpt_fingerprints = [
             _optional_text(hit.provenance.get("excerpt_fingerprint")) for hit in hits if hit.excerpt_id is not None
         ]
+        excerpt_lookup_fingerprints = [
+            _optional_text(hit.provenance.get("excerpt_lookup_fingerprint"))
+            for hit in hits
+            if hit.excerpt_id is not None
+        ]
         excerpt_text_hashes = [
             _optional_text(hit.provenance.get("excerpt_text_hash") or hit.provenance.get("hash"))
             for hit in hits
@@ -1556,6 +1567,7 @@ class RetrievalService:
             "top_excerpt_text_hashes": top_excerpt_text_hashes,
             "excerpt_ids": [hit.excerpt_id for hit in hits if hit.excerpt_id is not None],
             "excerpt_fingerprints": excerpt_fingerprints,
+            "excerpt_lookup_fingerprints": excerpt_lookup_fingerprints,
             "excerpt_text_hashes": excerpt_text_hashes,
             "doc_hits_fingerprint": doc_hits_fingerprint,
             "excerpt_hits_fingerprint": excerpt_hits_fingerprint,
@@ -1685,6 +1697,7 @@ class RetrievalService:
             "deferred_strategy_ids": list(cast(list[str], retrieval_policy["deferred_strategy_ids"])),
             "doc_hits_fingerprint": retrieval_manifest.get("doc_hits_fingerprint"),
             "excerpt_hits_fingerprint": retrieval_manifest.get("excerpt_hits_fingerprint"),
+            "excerpt_lookup_fingerprints": list(retrieval_manifest.get("excerpt_lookup_fingerprints", [])),
             "citation_status": {
                 "required": query.constraints.require_citations,
                 "available": bool(hits),
@@ -1720,6 +1733,7 @@ class RetrievalService:
             "top_excerpt_fingerprints": retrieval_manifest.get("top_excerpt_fingerprints", []),
             "top_excerpt_lookup_fingerprints": retrieval_manifest.get("top_excerpt_lookup_fingerprints", []),
             "excerpt_fingerprints": retrieval_manifest.get("excerpt_fingerprints", []),
+            "excerpt_lookup_fingerprints": retrieval_manifest.get("excerpt_lookup_fingerprints", []),
             "top_excerpt_text_hashes": retrieval_manifest.get("top_excerpt_text_hashes", []),
             "excerpt_text_hashes": retrieval_manifest.get("excerpt_text_hashes", []),
             "active_strategy_ids": retrieval_manifest.get("active_strategy_ids", []),

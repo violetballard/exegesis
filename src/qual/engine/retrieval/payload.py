@@ -759,6 +759,9 @@ def _normalize_retrieval_summary_snapshot(summary: dict[str, object]) -> dict[st
     normalized["doc_identity_fingerprints"] = _normalize_list_like(normalized.get("doc_identity_fingerprints"))
     normalized["excerpt_ids"] = _normalize_list_like(normalized.get("excerpt_ids"))
     normalized["excerpt_fingerprints"] = _normalize_list_like(normalized.get("excerpt_fingerprints"))
+    normalized["excerpt_lookup_fingerprints"] = _normalize_list_like(
+        normalized.get("excerpt_lookup_fingerprints")
+    )
     normalized["excerpt_text_hashes"] = _normalize_list_like(normalized.get("excerpt_text_hashes"))
     normalized["top_excerpt_fingerprints"] = _normalize_list_like(normalized.get("top_excerpt_fingerprints"))
     normalized["top_excerpt_lookup_fingerprints"] = _normalize_list_like(
@@ -806,6 +809,9 @@ def _normalize_retrieval_manifest_snapshot(manifest: dict[str, object]) -> dict[
     normalized["top_excerpt_text_hashes"] = _normalize_list_like(normalized.get("top_excerpt_text_hashes"))
     normalized["excerpt_ids"] = _normalize_list_like(normalized.get("excerpt_ids"))
     normalized["excerpt_fingerprints"] = _normalize_list_like(normalized.get("excerpt_fingerprints"))
+    normalized["excerpt_lookup_fingerprints"] = _normalize_list_like(
+        normalized.get("excerpt_lookup_fingerprints")
+    )
     normalized["excerpt_text_hashes"] = _normalize_list_like(normalized.get("excerpt_text_hashes"))
     normalized["active_strategy_ids"] = _normalize_list_like(normalized.get("active_strategy_ids"))
     normalized["deferred_strategy_ids"] = _normalize_list_like(normalized.get("deferred_strategy_ids"))
