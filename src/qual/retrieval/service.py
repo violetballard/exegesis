@@ -1464,7 +1464,18 @@ class RetrievalService:
             out.append(hit)
             if len(out) >= max_results:
                 break
-        return out
+        return self._with_final_output_ranks(out)
+
+    @staticmethod
+    def _with_final_output_ranks(hits: list[RetrievalHit]) -> list[RetrievalHit]:
+        """Align hit provenance ranks with the final deduped output order."""
+
+        ranked: list[RetrievalHit] = []
+        for rank, hit in enumerate(hits, start=1):
+            provenance = dict(hit.provenance)
+            provenance["rank"] = rank
+            ranked.append(replace(hit, provenance=provenance, score=round(1.0 / rank, 3)))
+        return ranked
 
     @staticmethod
     def _with_run_provenance(
