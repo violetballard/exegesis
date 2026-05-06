@@ -592,6 +592,7 @@ class CommandDemoSupportedLauncherReadinessEntry:
     command_lines: tuple[str, ...]
     action_lines: tuple[tuple[str, str], ...]
     exact_action_lines: tuple[tuple[str, str], ...] = ()
+    cli_smoke_lines: tuple[str, ...] = ()
 
 
 @dataclass(frozen=True)
@@ -5578,6 +5579,10 @@ def command_demo_supported_launcher_readiness_contract(
             specs,
             launcher_argv,
         )
+        cli_smoke_lines = command_demo_readiness_cli_smoke_lines(
+            specs,
+            launcher_argv,
+        )
         entries.append(
             CommandDemoSupportedLauncherReadinessEntry(
                 launcher_argv=launcher_argv,
@@ -5586,6 +5591,7 @@ def command_demo_supported_launcher_readiness_contract(
                 command_lines=gate.command_lines,
                 action_lines=gate.action_lines,
                 exact_action_lines=exact_action_lines,
+                cli_smoke_lines=cli_smoke_lines,
             )
         )
     contract = CommandDemoSupportedLauncherReadinessContract(
@@ -5626,6 +5632,21 @@ def _validate_command_demo_supported_launcher_readiness_contract(
             raise ValueError("Command demo supported launcher commands must not be empty")
         if not entry.action_lines:
             raise ValueError("Command demo supported launcher actions must not be empty")
+        expected_cli_smoke_lines = command_demo_readiness_cli_smoke_lines(
+            specs,
+            entry.launcher_argv,
+        )
+        if entry.cli_smoke_lines != expected_cli_smoke_lines:
+            raise ValueError("Command demo supported launcher CLI smoke lines are inconsistent")
+        if not entry.cli_smoke_lines:
+            raise ValueError("Command demo supported launcher CLI smoke lines must not be empty")
+        cli_smoke_validation = command_demo_readiness_validate_cli_shell_script_lines(
+            entry.cli_smoke_lines,
+            specs,
+            entry.launcher_argv,
+        )
+        if not cli_smoke_validation.is_complete:
+            raise ValueError("Command demo supported launcher CLI smoke lines must cover the MVP route")
         exact_validation = command_demo_readiness_validate_cli_exact_action_shell_script_lines(
             tuple(line for _, line in entry.exact_action_lines),
             specs,
@@ -5668,6 +5689,15 @@ def command_demo_supported_launcher_exact_action_lookup_table(
     )
 
 
+def command_demo_supported_launcher_cli_smoke_lookup_table(
+    specs: tuple[CommandSpec, ...] = COMMAND_SPECS,
+) -> tuple[tuple[tuple[str, ...], tuple[str, ...]], ...]:
+    return tuple(
+        (entry.launcher_argv, entry.cli_smoke_lines)
+        for entry in command_demo_supported_launcher_readiness_contract(specs).entries
+    )
+
+
 def command_mvp_demo_supported_launcher_readiness_contract(
     specs: tuple[CommandSpec, ...] = COMMAND_SPECS,
 ) -> CommandDemoSupportedLauncherReadinessContract:
@@ -5690,6 +5720,12 @@ def command_mvp_demo_supported_launcher_exact_action_lookup_table(
     specs: tuple[CommandSpec, ...] = COMMAND_SPECS,
 ) -> tuple[tuple[tuple[str, ...], tuple[tuple[str, str], ...]], ...]:
     return command_demo_supported_launcher_exact_action_lookup_table(specs)
+
+
+def command_mvp_demo_supported_launcher_cli_smoke_lookup_table(
+    specs: tuple[CommandSpec, ...] = COMMAND_SPECS,
+) -> tuple[tuple[tuple[str, ...], tuple[str, ...]], ...]:
+    return command_demo_supported_launcher_cli_smoke_lookup_table(specs)
 
 
 def command_demo_readiness_command_trace_entry_for_engine_action(
