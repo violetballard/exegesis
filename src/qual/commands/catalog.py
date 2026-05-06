@@ -8610,6 +8610,38 @@ def command_demo_readiness_exact_action_entries_for_demo_path_step(
 
 
 @lru_cache(maxsize=None)
+def command_demo_readiness_exact_action_index_by_flow_step(
+    specs: tuple[CommandSpec, ...] = COMMAND_SPECS,
+    launcher_argv: tuple[str, ...] = COMMAND_SMOKE_CLI_LAUNCHER_ARGV,
+) -> tuple[tuple[str, tuple[CommandDemoReadinessExactActionEntry, ...]], ...]:
+    entries_by_flow_step: dict[str, list[CommandDemoReadinessExactActionEntry]] = {}
+    flow_step_order: list[str] = []
+    for entry in command_demo_readiness_exact_action_contract(specs, launcher_argv).entries:
+        flow_step = _normalize_token(entry.flow_step)
+        if not flow_step:
+            raise ValueError("Command demo exact action flow step must not be empty")
+        if flow_step not in entries_by_flow_step:
+            entries_by_flow_step[flow_step] = []
+            flow_step_order.append(flow_step)
+        entries_by_flow_step[flow_step].append(entry)
+    return tuple((flow_step, tuple(entries_by_flow_step[flow_step])) for flow_step in flow_step_order)
+
+
+def command_demo_readiness_exact_action_entries_for_flow_step(
+    flow_step: str,
+    specs: tuple[CommandSpec, ...] = COMMAND_SPECS,
+    launcher_argv: tuple[str, ...] = COMMAND_SMOKE_CLI_LAUNCHER_ARGV,
+) -> tuple[CommandDemoReadinessExactActionEntry, ...]:
+    requested_step = _normalize_token(flow_step)
+    if not requested_step:
+        return ()
+    return dict(command_demo_readiness_exact_action_index_by_flow_step(specs, launcher_argv)).get(
+        requested_step,
+        (),
+    )
+
+
+@lru_cache(maxsize=None)
 def command_demo_readiness_exact_action_index_by_command(
     specs: tuple[CommandSpec, ...] = COMMAND_SPECS,
     launcher_argv: tuple[str, ...] = COMMAND_SMOKE_CLI_LAUNCHER_ARGV,
@@ -9106,6 +9138,21 @@ def command_demo_readiness_exact_action_lines_for_demo_path_step(
     )
 
 
+def command_demo_readiness_exact_action_lines_for_flow_step(
+    flow_step: str,
+    specs: tuple[CommandSpec, ...] = COMMAND_SPECS,
+    launcher_argv: tuple[str, ...] = COMMAND_SMOKE_CLI_LAUNCHER_ARGV,
+) -> tuple[tuple[str, str], ...]:
+    return tuple(
+        (entry.engine_action, entry.command_line)
+        for entry in command_demo_readiness_exact_action_entries_for_flow_step(
+            flow_step,
+            specs,
+            launcher_argv,
+        )
+    )
+
+
 def command_demo_readiness_exact_action_lines_for_command(
     command_name: str,
     specs: tuple[CommandSpec, ...] = COMMAND_SPECS,
@@ -9135,6 +9182,28 @@ def command_demo_readiness_cli_exact_action_lines_for_demo_path_step(
     return tuple(
         (engine_action, cli_exact_action_lines[engine_action])
         for engine_action, _command_line in command_demo_readiness_exact_action_lines_for_demo_path_step(
+            requested_step,
+            specs,
+            launcher_argv,
+        )
+        if engine_action in cli_exact_action_lines
+    )
+
+
+def command_demo_readiness_cli_exact_action_lines_for_flow_step(
+    flow_step: str,
+    specs: tuple[CommandSpec, ...] = COMMAND_SPECS,
+    launcher_argv: tuple[str, ...] = COMMAND_SMOKE_CLI_LAUNCHER_ARGV,
+) -> tuple[tuple[str, str], ...]:
+    requested_step = _normalize_token(flow_step)
+    if not requested_step:
+        return ()
+    cli_exact_action_lines = dict(
+        command_demo_readiness_cli_exact_action_line_lookup_table(specs, launcher_argv)
+    )
+    return tuple(
+        (engine_action, cli_exact_action_lines[engine_action])
+        for engine_action, _command_line in command_demo_readiness_exact_action_lines_for_flow_step(
             requested_step,
             specs,
             launcher_argv,
@@ -11758,6 +11827,13 @@ def command_mvp_demo_readiness_exact_action_index_by_demo_path_step(
     return command_demo_readiness_exact_action_index_by_demo_path_step(specs, launcher_argv)
 
 
+def command_mvp_demo_readiness_exact_action_index_by_flow_step(
+    specs: tuple[CommandSpec, ...] = COMMAND_SPECS,
+    launcher_argv: tuple[str, ...] = COMMAND_SMOKE_CLI_LAUNCHER_ARGV,
+) -> tuple[tuple[str, tuple[CommandDemoReadinessExactActionEntry, ...]], ...]:
+    return command_demo_readiness_exact_action_index_by_flow_step(specs, launcher_argv)
+
+
 def command_mvp_demo_readiness_exact_action_entries_for_demo_path_step(
     demo_path_step: str,
     specs: tuple[CommandSpec, ...] = COMMAND_SPECS,
@@ -11765,6 +11841,18 @@ def command_mvp_demo_readiness_exact_action_entries_for_demo_path_step(
 ) -> tuple[CommandDemoReadinessExactActionEntry, ...]:
     return command_demo_readiness_exact_action_entries_for_demo_path_step(
         demo_path_step,
+        specs,
+        launcher_argv,
+    )
+
+
+def command_mvp_demo_readiness_exact_action_entries_for_flow_step(
+    flow_step: str,
+    specs: tuple[CommandSpec, ...] = COMMAND_SPECS,
+    launcher_argv: tuple[str, ...] = COMMAND_SMOKE_CLI_LAUNCHER_ARGV,
+) -> tuple[CommandDemoReadinessExactActionEntry, ...]:
+    return command_demo_readiness_exact_action_entries_for_flow_step(
+        flow_step,
         specs,
         launcher_argv,
     )
@@ -12078,6 +12166,18 @@ def command_mvp_demo_readiness_exact_action_lines_for_demo_path_step(
     )
 
 
+def command_mvp_demo_readiness_exact_action_lines_for_flow_step(
+    flow_step: str,
+    specs: tuple[CommandSpec, ...] = COMMAND_SPECS,
+    launcher_argv: tuple[str, ...] = COMMAND_SMOKE_CLI_LAUNCHER_ARGV,
+) -> tuple[tuple[str, str], ...]:
+    return command_demo_readiness_exact_action_lines_for_flow_step(
+        flow_step,
+        specs,
+        launcher_argv,
+    )
+
+
 def command_mvp_demo_readiness_exact_action_lines_for_command(
     command_name: str,
     specs: tuple[CommandSpec, ...] = COMMAND_SPECS,
@@ -12097,6 +12197,18 @@ def command_mvp_demo_readiness_cli_exact_action_lines_for_demo_path_step(
 ) -> tuple[tuple[str, str], ...]:
     return command_demo_readiness_cli_exact_action_lines_for_demo_path_step(
         demo_path_step,
+        specs,
+        launcher_argv,
+    )
+
+
+def command_mvp_demo_readiness_cli_exact_action_lines_for_flow_step(
+    flow_step: str,
+    specs: tuple[CommandSpec, ...] = COMMAND_SPECS,
+    launcher_argv: tuple[str, ...] = COMMAND_SMOKE_CLI_LAUNCHER_ARGV,
+) -> tuple[tuple[str, str], ...]:
+    return command_demo_readiness_cli_exact_action_lines_for_flow_step(
+        flow_step,
         specs,
         launcher_argv,
     )
