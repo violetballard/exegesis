@@ -13626,7 +13626,7 @@ def command_mvp_demo_readiness_shell_handoff_command_progress_json(
 
 
 def command_mvp_demo_readiness_next_action(
-    argvs: Sequence[Sequence[str] | str],
+    argvs: Sequence[Sequence[str] | str] = (),
     specs: tuple[CommandSpec, ...] = COMMAND_SPECS,
     launcher_argv: tuple[str, ...] = COMMAND_SMOKE_CLI_LAUNCHER_ARGV,
 ) -> CommandDemoReadinessNextAction:
@@ -13634,7 +13634,7 @@ def command_mvp_demo_readiness_next_action(
 
 
 def command_mvp_demo_readiness_next_action_summary(
-    argvs: Sequence[Sequence[str] | str],
+    argvs: Sequence[Sequence[str] | str] = (),
     specs: tuple[CommandSpec, ...] = COMMAND_SPECS,
     launcher_argv: tuple[str, ...] = COMMAND_SMOKE_CLI_LAUNCHER_ARGV,
 ) -> tuple[
@@ -13652,7 +13652,7 @@ def command_mvp_demo_readiness_next_action_summary(
 
 
 def command_mvp_demo_readiness_next_action_payload(
-    argvs: Sequence[Sequence[str] | str],
+    argvs: Sequence[Sequence[str] | str] = (),
     specs: tuple[CommandSpec, ...] = COMMAND_SPECS,
     launcher_argv: tuple[str, ...] = COMMAND_SMOKE_CLI_LAUNCHER_ARGV,
 ) -> dict[str, object]:
@@ -13660,7 +13660,7 @@ def command_mvp_demo_readiness_next_action_payload(
 
 
 def command_mvp_demo_readiness_next_action_json(
-    argvs: Sequence[Sequence[str] | str],
+    argvs: Sequence[Sequence[str] | str] = (),
     specs: tuple[CommandSpec, ...] = COMMAND_SPECS,
     launcher_argv: tuple[str, ...] = COMMAND_SMOKE_CLI_LAUNCHER_ARGV,
 ) -> str:
@@ -13668,7 +13668,7 @@ def command_mvp_demo_readiness_next_action_json(
 
 
 def command_mvp_demo_readiness_next_command_argv(
-    argvs: Sequence[Sequence[str] | str],
+    argvs: Sequence[Sequence[str] | str] = (),
     specs: tuple[CommandSpec, ...] = COMMAND_SPECS,
     launcher_argv: tuple[str, ...] = COMMAND_SMOKE_CLI_LAUNCHER_ARGV,
 ) -> tuple[str, ...]:
@@ -13676,7 +13676,7 @@ def command_mvp_demo_readiness_next_command_argv(
 
 
 def command_mvp_demo_readiness_next_exact_action_argv(
-    argvs: Sequence[Sequence[str] | str],
+    argvs: Sequence[Sequence[str] | str] = (),
     specs: tuple[CommandSpec, ...] = COMMAND_SPECS,
     launcher_argv: tuple[str, ...] = COMMAND_SMOKE_CLI_LAUNCHER_ARGV,
 ) -> tuple[str, ...]:

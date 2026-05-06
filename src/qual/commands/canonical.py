@@ -2491,25 +2491,25 @@ def canonical_command_readiness_shell_handoff_command_progress_summary(
 
 
 def canonical_command_readiness_next_action(
-    argvs: Sequence[Sequence[str] | str],
+    argvs: Sequence[Sequence[str] | str] = (),
 ) -> CommandDemoReadinessNextAction:
     return _readiness_next_action(argvs)
 
 
 def canonical_command_readiness_next_action_payload(
-    argvs: Sequence[Sequence[str] | str],
+    argvs: Sequence[Sequence[str] | str] = (),
 ) -> dict[str, object]:
     return _readiness_next_action_payload(argvs)
 
 
 def canonical_command_readiness_next_action_json(
-    argvs: Sequence[Sequence[str] | str],
+    argvs: Sequence[Sequence[str] | str] = (),
 ) -> str:
     return _readiness_next_action_json(argvs)
 
 
 def canonical_command_readiness_next_action_summary(
-    argvs: Sequence[Sequence[str] | str],
+    argvs: Sequence[Sequence[str] | str] = (),
 ) -> tuple[
     bool,
     str | None,
@@ -2525,13 +2525,13 @@ def canonical_command_readiness_next_action_summary(
 
 
 def canonical_command_readiness_next_command_argv(
-    argvs: Sequence[Sequence[str] | str],
+    argvs: Sequence[Sequence[str] | str] = (),
 ) -> tuple[str, ...]:
     return _readiness_next_command_argv(argvs)
 
 
 def canonical_command_readiness_next_exact_action_argv(
-    argvs: Sequence[Sequence[str] | str],
+    argvs: Sequence[Sequence[str] | str] = (),
 ) -> tuple[str, ...]:
     return _readiness_next_exact_action_argv(argvs)
 
@@ -2562,7 +2562,7 @@ def _readiness_status_for_next_action(
 
 
 def canonical_command_readiness_next_status(
-    argvs: Sequence[Sequence[str] | str],
+    argvs: Sequence[Sequence[str] | str] = (),
 ) -> CommandCanonicalReadinessStatus:
     """Return the next canonical demo-path command/action after a partial CLI transcript."""
 
