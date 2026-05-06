@@ -62,12 +62,12 @@ Integrator-locked files: none identified in this packet. Shared-by-approval file
 
 ## Commands Run
 
-- `make scope-check` - passed; no explicit policy for branch `codex/feat-retrieval-fts`, check exited green.
+- `make scope-check` - passed for branch `codex/feat-retrieval-fts`.
 - `./quality-format.sh --check` - passed.
-- `./quality-lint.sh` - passed.
-- `./quality-test.sh` - passed; smoke plus 140 unit tests.
+- `./quality-lint.sh` - passed shell syntax and trailing whitespace checks.
+- `./quality-test.sh` - passed smoke plus 140 unit tests, including unified retrieval and packet planner coverage.
 - `./typecheck-test.sh` - passed; compiled Python sources in `src/`.
-- `make ci` - passed; reran setup, scope-check, format, lint, typecheck, and quality tests.
+- `make ci` - passed setup, scope-check, format, lint, typecheck, and quality tests.
 
 ## Risks/Blockers
 
