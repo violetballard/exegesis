@@ -6,15 +6,15 @@
 - Handoff type: high-risk retrieval feature handoff for the FTS-first retrieval lane.
 - Scope classification: high-risk because this branch edits engine retrieval entrypoints/facades and approved shared regression coverage in `tests/unit/test_unified_retrieval.py`.
 - Authoritative reviewed implementation range for re-review: `378cf9a7..HEAD` on `codex/feat-retrieval-fts`.
-- Implementation branch tip before this packet-only fixer commit: `fa14772592bba8a097f802fd4376aba9ab329e1c`.
+- Implementation branch tip before this packet-only fixer commit: `0940be225ea4c80cc5f1fdc27b82a6cb4c60d024`.
 - Final HEAD SHA: reported in the final response after this fixer commit is created.
 - Approved shared-file note: `tests/unit/test_unified_retrieval.py` is approved shared-by-approval regression coverage for this retrieval lane. No integrator-locked files are edited in this handoff.
 
 ## Scope Completed
 
-This packet supersedes earlier handoff packets for `codex/feat-retrieval-fts`. The only authoritative reviewed range is the full branch-tip range, `378cf9a7..HEAD`, at the time of re-review. Evidence below was generated from implementation branch tip `fa14772592bba8a097f802fd4376aba9ab329e1c`; this fixer commit refreshes handoff traceability without narrowing the reviewed implementation range. The final SHA is reported with the fixer result.
+This packet supersedes earlier handoff packets for `codex/feat-retrieval-fts`. The only authoritative reviewed range is the full branch-tip range, `378cf9a7..HEAD`, at the time of re-review. Evidence below was regenerated from branch tip `0940be225ea4c80cc5f1fdc27b82a6cb4c60d024`; this fixer commit refreshes handoff traceability without narrowing the reviewed implementation range. The final SHA is reported with the fixer result.
 
-Prior packet text incorrectly excluded code after `adfa8cd` and incorrectly implied that later packet-refresh commits were metadata-only. That claim is withdrawn. The reviewed range now includes every file changed from `378cf9a7` through the actual branch tip, including implementation commits such as `4ca1c6b0c8e6bd1bbf2fb27ec3ed5f60729bac52` (`Harden sparse retrieval citation rehydration`, which changes `src/qual/engine/retrieval/payload.py`) and `fa14772592bba8a097f802fd4376aba9ab329e1c` (`fix(retrieval): surface candidate resolution provenance`, which changes `src/qual/retrieval/service.py`).
+Prior packet text incorrectly excluded code after `adfa8cd` and incorrectly implied that later packet-refresh commits were metadata-only. That claim is withdrawn. The reviewed range now includes every file changed from `378cf9a7` through the actual branch tip, including implementation commits such as `4ca1c6b0c8e6bd1bbf2fb27ec3ed5f60729bac52` (`Harden sparse retrieval citation rehydration`, which changes `src/qual/engine/retrieval/payload.py`) and `fa14772592bba8a097f802fd4376aba9ab329e1c` (`fix(retrieval): surface candidate resolution provenance`, which changes `src/qual/retrieval/service.py`), plus branch-tip packet refresh commit `0940be225ea4c80cc5f1fdc27b82a6cb4c60d024`.
 
 Out-of-lane packet tooling scope: `codex_packet_handoff/tools/planner.py` and `tests/unit/test_packet_planner.py` are not part of this retrieval handoff. They appear in older cumulative accounting from `d7fd5d2..adfa8cd`, but the regenerated authoritative review range is `378cf9a7..HEAD`; `git diff --name-status 378cf9a7..HEAD` does not include either file. This retrieval handoff requests review only for the files listed below.
 
@@ -38,7 +38,7 @@ AGENTS.md narrowing statement: this work makes the `retrieve relevant material` 
 ## Files Changed
 
 Authoritative reviewed implementation range for re-review: `378cf9a7..HEAD` on `codex/feat-retrieval-fts`.
-Evidence range before this packet-only fixer commit: `378cf9a7..fa14772592bba8a097f802fd4376aba9ab329e1c`
+Evidence range before this packet-only fixer commit: `378cf9a7..0940be225ea4c80cc5f1fdc27b82a6cb4c60d024`
 
 - `.codex/kickoff_packets/feat-retrieval-fts.md` - lane kickoff metadata corrected during earlier packet refreshes.
 - `.codex/lane_meta/feat-retrieval-fts.json` - lane metadata corrected during earlier packet refreshes.
@@ -52,6 +52,10 @@ Evidence range before this packet-only fixer commit: `378cf9a7..fa14772592bba8a0
 
 Integrator-locked files: none.
 Shared-by-approval files: `tests/unit/test_unified_retrieval.py`.
+
+## Metadata Write Note
+
+The root `THREAD_PACKET.md` is the authoritative regenerated handoff packet for this fixer pass. The `.codex/` directory in this worktree is currently protected from writes by the local filesystem (`Operation not permitted` on creating or rewriting files under `.codex/`), so stale `.codex/kickoff_packets/feat-retrieval-fts.md` and `.codex/lane_meta/feat-retrieval-fts.json` text should not be used as the review source of truth for this pass.
 
 ## Diff Evidence
 
@@ -67,7 +71,7 @@ Command: `git diff --stat 378cf9a7..HEAD`
  src/qual/retrieval/__init__.py               |   11 +
  src/qual/retrieval/service.py                |  691 ++++++++++++++--
  tests/unit/test_unified_retrieval.py         |  920 ++++++++++++++++++++++-
- 9 files changed, 2930 insertions(+), 350 deletions(-)
+ 9 files changed, 2932 insertions(+), 348 deletions(-)
 ```
 
 Command: `git diff --name-status 378cf9a7..HEAD`
@@ -88,12 +92,12 @@ M	tests/unit/test_unified_retrieval.py
 
 - Task budget: `4/4` high-risk task groups.
 - File count for authoritative reviewed implementation range: `9 files changed`.
-- Size accounting for authoritative reviewed implementation range: `2930 insertions(+), 350 deletions(-)`.
+- Size accounting for authoritative reviewed implementation range: `2932 insertions(+), 348 deletions(-)`.
 - AGENTS high-risk file/size status: exceeds `<=8 files` and `<=300 net LOC`.
 - Integrator exception status: explicit high-risk size/file exception is required for approval of this branch-tip range. This packet does not claim high-risk size compliance.
 - Routing/provider impact: none.
 - PageIndex/embeddings impact: remain compatibility-only fallback behavior; no active non-FTS retrieval path is introduced.
-- Current fixer impact: adds candidate-resolution snapshots to citation/provenance bundles, refreshes handoff range, budget accounting, files changed, canonical demo-path mapping, and gate reporting for re-review.
+- Current fixer impact: refreshes handoff range, budget accounting, files changed, canonical demo-path mapping, and gate reporting for re-review against the actual branch tip.
 - Remaining risk: integration approval depends on accepting the documented high-risk size/file-count exception or requesting a split.
 
 ## Roadmap/Vision
