@@ -645,6 +645,10 @@ class UnifiedRetrievalTests(unittest.TestCase):
             payload["retrieval_evidence"]["basket_promotion_items"][0]["result_fingerprint"],
             result.result_fingerprint,
         )
+        self.assertEqual(
+            payload["retrieval_evidence"]["basket_promotion_items"][0]["doc_identity_fingerprint"],
+            result.hits[0].provenance["doc_identity_fingerprint"],
+        )
         self.assertEqual(payload["retrieval_citation_bundle"]["doc_citations"][0]["source_hash"], result.doc_hits[0].source_hash)
         self.assertEqual(
             payload["retrieval_citation_bundle"]["doc_citations"][0]["query_fingerprint"],
@@ -658,6 +662,10 @@ class UnifiedRetrievalTests(unittest.TestCase):
         self.assertEqual(
             payload["retrieval_citation_bundle"]["excerpt_citations"][0]["source_hash"],
             result.hits[0].provenance["source_hash"],
+        )
+        self.assertEqual(
+            payload["retrieval_citation_bundle"]["excerpt_citations"][0]["doc_identity_fingerprint"],
+            result.hits[0].provenance["doc_identity_fingerprint"],
         )
         self.assertEqual(
             payload["retrieval_citation_bundle"]["excerpt_citations"][0]["excerpt_lookup_fingerprint"],
@@ -674,6 +682,10 @@ class UnifiedRetrievalTests(unittest.TestCase):
         self.assertEqual(
             payload["retrieval_evidence"]["excerpt_citations"][0]["source_hash"],
             result.hits[0].provenance["source_hash"],
+        )
+        self.assertEqual(
+            payload["retrieval_evidence"]["excerpt_citations"][0]["doc_identity_fingerprint"],
+            result.hits[0].provenance["doc_identity_fingerprint"],
         )
         self.assertEqual(
             payload["retrieval_evidence"]["excerpt_citations"][0]["excerpt_lookup_fingerprint"],
@@ -2925,6 +2937,7 @@ class UnifiedRetrievalTests(unittest.TestCase):
                     "excerpt_id": item["excerpt_id"],
                     "doc_type": item["provenance"]["doc_type"],
                     "source_hash": item["source_hash"],
+                    "doc_identity_fingerprint": item["provenance"]["doc_identity_fingerprint"],
                     "excerpt_fingerprint": item["provenance"]["excerpt_fingerprint"],
                     "excerpt_lookup_fingerprint": item["provenance"]["excerpt_lookup_fingerprint"],
                     "excerpt_text_hash": item["provenance"]["excerpt_text_hash"],
