@@ -9378,6 +9378,45 @@ def command_demo_readiness_action_lines_for_argv(
     )
 
 
+def command_demo_readiness_primary_engine_action_for_argv(
+    argv: Sequence[str] | str,
+    specs: tuple[CommandSpec, ...] = COMMAND_SPECS,
+    launcher_argv: tuple[str, ...] = COMMAND_SMOKE_CLI_LAUNCHER_ARGV,
+) -> str | None:
+    exact_action = command_demo_readiness_exact_action_for_argv(argv, specs, launcher_argv)
+    if exact_action is not None:
+        return exact_action
+    action_matches = command_demo_readiness_engine_action_matches_for_argv(argv, specs, launcher_argv)
+    if len(action_matches) == 1:
+        return action_matches[0]
+    return None
+
+
+def command_demo_readiness_primary_action_line_for_argv(
+    argv: Sequence[str] | str,
+    specs: tuple[CommandSpec, ...] = COMMAND_SPECS,
+    launcher_argv: tuple[str, ...] = COMMAND_SMOKE_CLI_LAUNCHER_ARGV,
+) -> tuple[str, str] | None:
+    primary_action = command_demo_readiness_primary_engine_action_for_argv(argv, specs, launcher_argv)
+    if primary_action is None:
+        return None
+    exact_line = command_demo_readiness_exact_line_for_engine_action(
+        primary_action,
+        specs,
+        launcher_argv,
+    )
+    if exact_line:
+        return primary_action, exact_line
+    for engine_action, action_line in command_demo_readiness_action_lines_for_argv(
+        argv,
+        specs,
+        launcher_argv,
+    ):
+        if engine_action == primary_action:
+            return engine_action, action_line
+    return None
+
+
 def command_demo_readiness_entry_for_engine_action(
     engine_action: str,
     specs: tuple[CommandSpec, ...] = COMMAND_SPECS,
@@ -12748,6 +12787,22 @@ def command_mvp_demo_readiness_action_lines_for_argv(
     launcher_argv: tuple[str, ...] = COMMAND_SMOKE_CLI_LAUNCHER_ARGV,
 ) -> tuple[tuple[str, str], ...]:
     return command_demo_readiness_action_lines_for_argv(argv, specs, launcher_argv)
+
+
+def command_mvp_demo_readiness_primary_engine_action_for_argv(
+    argv: Sequence[str] | str,
+    specs: tuple[CommandSpec, ...] = COMMAND_SPECS,
+    launcher_argv: tuple[str, ...] = COMMAND_SMOKE_CLI_LAUNCHER_ARGV,
+) -> str | None:
+    return command_demo_readiness_primary_engine_action_for_argv(argv, specs, launcher_argv)
+
+
+def command_mvp_demo_readiness_primary_action_line_for_argv(
+    argv: Sequence[str] | str,
+    specs: tuple[CommandSpec, ...] = COMMAND_SPECS,
+    launcher_argv: tuple[str, ...] = COMMAND_SMOKE_CLI_LAUNCHER_ARGV,
+) -> tuple[str, str] | None:
+    return command_demo_readiness_primary_action_line_for_argv(argv, specs, launcher_argv)
 
 
 def command_mvp_demo_readiness_entry_for_engine_action(
