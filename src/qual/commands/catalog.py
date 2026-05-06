@@ -649,6 +649,26 @@ class CommandDemoCommandReadinessContract:
 
 
 @dataclass(frozen=True)
+class CommandDemoCommandSurfaceEntry:
+    ordinal: int
+    demo_path_step: str
+    flow_step: str
+    name: str
+    command_argv: tuple[str, ...]
+    command_line: str
+    engine_actions: tuple[str, ...]
+    exact_action_argv: tuple[tuple[str, tuple[str, ...]], ...]
+    exact_action_lines: tuple[tuple[str, str], ...]
+    cli_exact_action_lines: tuple[tuple[str, str], ...]
+
+
+@dataclass(frozen=True)
+class CommandDemoCommandSurfaceContract:
+    launcher_argv: tuple[str, ...]
+    entries: tuple[CommandDemoCommandSurfaceEntry, ...]
+
+
+@dataclass(frozen=True)
 class CommandDemoSupportedLauncherReadinessEntry:
     launcher_argv: tuple[str, ...]
     is_complete: bool
@@ -6132,6 +6152,134 @@ def command_demo_command_readiness_lookup_table(
     )
 
 
+@lru_cache(maxsize=None)
+def command_demo_command_surface_contract(
+    specs: tuple[CommandSpec, ...] = COMMAND_SPECS,
+    launcher_argv: tuple[str, ...] = COMMAND_SMOKE_CLI_LAUNCHER_ARGV,
+) -> CommandDemoCommandSurfaceContract:
+    readiness_by_name = dict(command_demo_readiness_index_by_command(specs, launcher_argv))
+    exact_argv_by_action = {
+        action: argv
+        for argv, action in command_demo_readiness_exact_action_argv_lookup_table(
+            specs,
+            launcher_argv,
+        )
+    }
+    entries: list[CommandDemoCommandSurfaceEntry] = []
+    for readiness_entry in command_demo_command_readiness_contract(specs, launcher_argv).entries:
+        command_entry = readiness_by_name.get(readiness_entry.name)
+        if command_entry is None:
+            raise ValueError(f"Missing command demo surface readiness entry: {readiness_entry.name}")
+        entries.append(
+            CommandDemoCommandSurfaceEntry(
+                ordinal=readiness_entry.ordinal,
+                demo_path_step=readiness_entry.demo_path_step,
+                flow_step=readiness_entry.flow_step,
+                name=readiness_entry.name,
+                command_argv=command_entry.command_argv,
+                command_line=readiness_entry.command_line,
+                engine_actions=readiness_entry.engine_actions,
+                exact_action_argv=tuple(
+                    (action, exact_argv_by_action[action])
+                    for action in readiness_entry.engine_actions
+                    if action in exact_argv_by_action
+                ),
+                exact_action_lines=readiness_entry.exact_action_lines,
+                cli_exact_action_lines=readiness_entry.cli_exact_action_lines,
+            )
+        )
+    contract = CommandDemoCommandSurfaceContract(
+        launcher_argv=launcher_argv,
+        entries=tuple(entries),
+    )
+    _validate_command_demo_command_surface_contract(contract, specs, launcher_argv)
+    return contract
+
+
+def _validate_command_demo_command_surface_contract(
+    contract: CommandDemoCommandSurfaceContract,
+    specs: tuple[CommandSpec, ...],
+    launcher_argv: tuple[str, ...],
+) -> None:
+    if contract.launcher_argv != launcher_argv:
+        raise ValueError("Command demo surface launcher is inconsistent")
+    readiness_entries = command_demo_readiness_contract(specs, launcher_argv).entries
+    command_entries = command_demo_command_readiness_contract(specs, launcher_argv).entries
+    if tuple(entry.ordinal for entry in contract.entries) != tuple(entry.ordinal for entry in readiness_entries):
+        raise ValueError("Command demo surface ordinals are inconsistent")
+    if tuple(entry.name for entry in contract.entries) != tuple(entry.name for entry in command_entries):
+        raise ValueError("Command demo surface command names are inconsistent")
+    if tuple(entry.command_argv for entry in contract.entries) != tuple(
+        entry.command_argv for entry in readiness_entries
+    ):
+        raise ValueError("Command demo surface command argv are inconsistent")
+    if tuple(entry.command_line for entry in contract.entries) != tuple(
+        entry.command_line for entry in command_entries
+    ):
+        raise ValueError("Command demo surface command lines are inconsistent")
+    if tuple(entry.engine_actions for entry in contract.entries) != tuple(
+        entry.engine_actions for entry in command_entries
+    ):
+        raise ValueError("Command demo surface engine actions are inconsistent")
+    for entry, command_entry in zip(contract.entries, command_entries, strict=True):
+        if tuple(action for action, _ in entry.exact_action_argv) != entry.engine_actions:
+            raise ValueError(f"Command demo surface exact argv are incomplete: {entry.name}")
+        if tuple(action for action, _ in entry.exact_action_lines) != entry.engine_actions:
+            raise ValueError(f"Command demo surface exact lines are incomplete: {entry.name}")
+        if entry.exact_action_lines != command_entry.exact_action_lines:
+            raise ValueError(f"Command demo surface exact lines are inconsistent: {entry.name}")
+        if entry.cli_exact_action_lines != command_entry.cli_exact_action_lines:
+            raise ValueError(f"Command demo surface CLI exact lines are inconsistent: {entry.name}")
+        for engine_action, argv in entry.exact_action_argv:
+            if command_demo_readiness_exact_action_for_argv(argv, specs, launcher_argv) != engine_action:
+                raise ValueError(f"Command demo surface exact argv is not routeable: {engine_action}")
+
+
+def command_demo_command_surface_summary(
+    specs: tuple[CommandSpec, ...] = COMMAND_SPECS,
+    launcher_argv: tuple[str, ...] = COMMAND_SMOKE_CLI_LAUNCHER_ARGV,
+) -> tuple[
+    tuple[
+        int,
+        str,
+        str,
+        str,
+        tuple[str, ...],
+        str,
+        tuple[str, ...],
+        tuple[tuple[str, tuple[str, ...]], ...],
+        tuple[tuple[str, str], ...],
+        tuple[tuple[str, str], ...],
+    ],
+    ...,
+]:
+    return tuple(
+        (
+            entry.ordinal,
+            entry.demo_path_step,
+            entry.flow_step,
+            entry.name,
+            entry.command_argv,
+            entry.command_line,
+            entry.engine_actions,
+            entry.exact_action_argv,
+            entry.exact_action_lines,
+            entry.cli_exact_action_lines,
+        )
+        for entry in command_demo_command_surface_contract(specs, launcher_argv).entries
+    )
+
+
+def command_demo_command_surface_lookup_table(
+    specs: tuple[CommandSpec, ...] = COMMAND_SPECS,
+    launcher_argv: tuple[str, ...] = COMMAND_SMOKE_CLI_LAUNCHER_ARGV,
+) -> tuple[tuple[str, tuple[str, ...], tuple[str, ...]], ...]:
+    return tuple(
+        (entry.name, entry.command_argv, entry.engine_actions)
+        for entry in command_demo_command_surface_contract(specs, launcher_argv).entries
+    )
+
+
 def command_mvp_demo_command_readiness_contract(
     specs: tuple[CommandSpec, ...] = COMMAND_SPECS,
     launcher_argv: tuple[str, ...] = COMMAND_SMOKE_CLI_LAUNCHER_ARGV,
@@ -6163,6 +6311,41 @@ def command_mvp_demo_command_readiness_lookup_table(
     launcher_argv: tuple[str, ...] = COMMAND_SMOKE_CLI_LAUNCHER_ARGV,
 ) -> tuple[tuple[str, str, tuple[str, ...]], ...]:
     return command_demo_command_readiness_lookup_table(specs, launcher_argv)
+
+
+def command_mvp_demo_command_surface_contract(
+    specs: tuple[CommandSpec, ...] = COMMAND_SPECS,
+    launcher_argv: tuple[str, ...] = COMMAND_SMOKE_CLI_LAUNCHER_ARGV,
+) -> CommandDemoCommandSurfaceContract:
+    return command_demo_command_surface_contract(specs, launcher_argv)
+
+
+def command_mvp_demo_command_surface_summary(
+    specs: tuple[CommandSpec, ...] = COMMAND_SPECS,
+    launcher_argv: tuple[str, ...] = COMMAND_SMOKE_CLI_LAUNCHER_ARGV,
+) -> tuple[
+    tuple[
+        int,
+        str,
+        str,
+        str,
+        tuple[str, ...],
+        str,
+        tuple[str, ...],
+        tuple[tuple[str, tuple[str, ...]], ...],
+        tuple[tuple[str, str], ...],
+        tuple[tuple[str, str], ...],
+    ],
+    ...,
+]:
+    return command_demo_command_surface_summary(specs, launcher_argv)
+
+
+def command_mvp_demo_command_surface_lookup_table(
+    specs: tuple[CommandSpec, ...] = COMMAND_SPECS,
+    launcher_argv: tuple[str, ...] = COMMAND_SMOKE_CLI_LAUNCHER_ARGV,
+) -> tuple[tuple[str, tuple[str, ...], tuple[str, ...]], ...]:
+    return command_demo_command_surface_lookup_table(specs, launcher_argv)
 
 
 @lru_cache(maxsize=None)

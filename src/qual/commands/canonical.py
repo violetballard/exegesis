@@ -21,6 +21,7 @@ from src.qual.commands.catalog import (
     CommandDemoActionCoverageEntry,
     CommandDemoCommandActionContract,
     CommandDemoCommandReadinessContract,
+    CommandDemoCommandSurfaceContract,
     CommandDemoExecutionPlanContract,
     CommandDemoExecutionPlanStep,
     CommandDemoReadinessHandoffChecklistContract,
@@ -130,6 +131,9 @@ from src.qual.commands.catalog import (
     command_mvp_demo_command_readiness_contract as _command_readiness_contract,
     command_mvp_demo_command_readiness_lookup_table as _command_readiness_lookup_table,
     command_mvp_demo_command_readiness_summary as _command_readiness_summary,
+    command_mvp_demo_command_surface_contract as _command_surface_contract,
+    command_mvp_demo_command_surface_lookup_table as _command_surface_lookup_table,
+    command_mvp_demo_command_surface_summary as _command_surface_summary,
     command_mvp_demo_readiness_action_line_lookup_table as _readiness_action_line_lookup_table,
     command_mvp_demo_readiness_action_argv_lookup_table as _readiness_action_argv_lookup_table,
     command_mvp_demo_readiness_action_entries_for_argv as _readiness_action_entries_for_argv,
@@ -357,6 +361,9 @@ __all__ = [
     "canonical_command_command_readiness_contract",
     "canonical_command_command_readiness_lookup_table",
     "canonical_command_command_readiness_summary",
+    "canonical_command_command_surface_contract",
+    "canonical_command_command_surface_lookup_table",
+    "canonical_command_command_surface_summary",
     "canonical_command_engine_action_matches_for_argv",
     "canonical_command_readiness_is_complete",
     "canonical_command_readiness_missing_engine_actions",
@@ -1096,6 +1103,32 @@ def canonical_command_command_readiness_summary() -> tuple[
 
 def canonical_command_command_readiness_lookup_table() -> tuple[tuple[str, str, tuple[str, ...]], ...]:
     return _command_readiness_lookup_table()
+
+
+def canonical_command_command_surface_contract() -> CommandDemoCommandSurfaceContract:
+    return _command_surface_contract()
+
+
+def canonical_command_command_surface_summary() -> tuple[
+    tuple[
+        int,
+        str,
+        str,
+        str,
+        tuple[str, ...],
+        str,
+        tuple[str, ...],
+        tuple[tuple[str, tuple[str, ...]], ...],
+        tuple[tuple[str, str], ...],
+        tuple[tuple[str, str], ...],
+    ],
+    ...,
+]:
+    return _command_surface_summary()
+
+
+def canonical_command_command_surface_lookup_table() -> tuple[tuple[str, tuple[str, ...], tuple[str, ...]], ...]:
+    return _command_surface_lookup_table()
 
 
 def canonical_command_action_route_summary() -> tuple[tuple[str, str, str, str], ...]:
