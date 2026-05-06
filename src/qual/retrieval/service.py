@@ -2276,8 +2276,8 @@ class RetrievalService:
 
     @staticmethod
     def _matched_query_terms(query_terms: tuple[str, ...], text: str) -> tuple[str, ...]:
-        text_lower = text.casefold()
-        return tuple(term for term in query_terms if term in text_lower)
+        text_terms = set(RetrievalService._query_terms(text))
+        return tuple(term for term in query_terms if term in text_terms)
 
     @staticmethod
     def _query_terms(query_text: str) -> tuple[str, ...]:

@@ -142,6 +142,21 @@ Current basket promotion export finalizer task count: `1` meaningful task group,
 Current basket promotion export finalizer source/test size before this packet update: `3 files changed, 56 insertions(+), 2 deletions(-)`.
 Shared/integrator-locked impact this basket promotion export finalizer pass: approved shared regression coverage in `tests/unit/test_unified_retrieval.py`; no provider routing, UI, or integrator-locked files were edited.
 
+## Matched-Term Provenance Finalizer Addendum
+
+This source-bearing finalizer keeps retrieval FTS-first and tightens excerpt provenance without adding PageIndex, embeddings, provider routing, UI, or integrator-locked behavior. `RetrievalService._matched_query_terms()` now compares query terms against the same token-normalized excerpt terms used by the FTS query builder instead of substring containment, so retrieved excerpt provenance reports only whole searchable term matches.
+
+This keeps the FTS evidence attached to downstream payloads, citation bundles, provenance bundles, and context-basket promotion items more auditable for revise/apply consumers.
+
+Current matched-term provenance finalizer files changed:
+
+- `M src/qual/retrieval/service.py`
+- `M THREAD_PACKET.md`
+
+Current matched-term provenance finalizer task count: `1` meaningful task group, within the high-risk `4` task cap for this finalizer pass.
+Current matched-term provenance finalizer source size before this packet update: `1 file changed, 2 insertions(+), 2 deletions(-)`.
+Shared/integrator-locked impact this matched-term provenance finalizer pass: none; no shared regression, provider routing, UI, or integrator-locked files were edited.
+
 ## Tasks Completed
 
 1. Made SQLite FTS the authoritative MVP retrieval path while keeping PageIndex and embeddings fallback-only/deferred.
@@ -157,7 +172,7 @@ Final canonical demo-path statement: this work makes the `retrieve relevant mate
 
 ## Files Changed
 
-Authoritative reviewed range: `378cf9a74a3658058079a32f186fcd254c4a4034..HEAD`, where `HEAD` is the final branch tip reported with this fixer response. This range includes actual merge candidate `b43178f56a0c78df411697654c17f2c029d44546`; the source-bearing implementation tip included in that range is the final branch tip after this basket-promotion export finalizer.
+Authoritative reviewed range: `378cf9a74a3658058079a32f186fcd254c4a4034..HEAD`, where `HEAD` is the final branch tip reported with this fixer response. This range includes actual merge candidate `b43178f56a0c78df411697654c17f2c029d44546`; the source-bearing implementation tip included in that range is the final branch tip after this matched-term provenance finalizer.
 
 Expected changed files for that range:
 
@@ -171,7 +186,7 @@ Expected changed files for that range:
 - `M src/qual/retrieval/service.py`
 - `M tests/unit/test_unified_retrieval.py`
 
-Merge-candidate diff through prior actual tip `b43178f56a0c78df411697654c17f2c029d44546`: `9 files changed, 870 insertions(+), 188 deletions(-)` versus reviewed base `378cf9a74a3658058079a32f186fcd254c4a4034`. Excluding `THREAD_PACKET.md`, the source/artifact range was `8 files changed, 688 insertions(+), 125 deletions(-)`, net `+563` LOC. The exact post-`adfa8cd` interval called out by review was `9 files changed, 842 insertions(+), 157 deletions(-)` and includes the six retrieval source/test files listed above plus packet/artifact changes. This finalizer adds the public basket-promotion export contract in `src/qual/retrieval/__init__.py`, `src/qual/engine/retrieval/__init__.py`, and `tests/unit/test_unified_retrieval.py`; the final branch-tip SHA and cumulative diff stat are reported in the fixer response.
+Merge-candidate diff through prior actual tip `b43178f56a0c78df411697654c17f2c029d44546`: `9 files changed, 870 insertions(+), 188 deletions(-)` versus reviewed base `378cf9a74a3658058079a32f186fcd254c4a4034`. Excluding `THREAD_PACKET.md`, the source/artifact range was `8 files changed, 688 insertions(+), 125 deletions(-)`, net `+563` LOC. The exact post-`adfa8cd` interval called out by review was `9 files changed, 842 insertions(+), 157 deletions(-)` and includes the six retrieval source/test files listed above plus packet/artifact changes. The basket-promotion export finalizer adds the public basket-promotion export contract in `src/qual/retrieval/__init__.py`, `src/qual/engine/retrieval/__init__.py`, and `tests/unit/test_unified_retrieval.py`; the matched-term provenance finalizer adds the current owned-path change in `src/qual/retrieval/service.py`. The final branch-tip SHA and cumulative diff stat are reported in the fixer response.
 
 The protected `.codex/kickoff_packets/feat-retrieval-fts.md` and `.codex/lane_meta/feat-retrieval-fts.json` mirror artifacts could not be edited in-place, so they are removed from the merge candidate to avoid preserving stale contradictory trace metadata. `THREAD_PACKET.md` is the coherent handoff packet for re-review.
 
@@ -179,7 +194,7 @@ The protected `.codex/kickoff_packets/feat-retrieval-fts.md` and `.codex/lane_me
 
 - Task budget: `4` high-risk task groups; completed as the four task groups above.
 - File count: `9 files` in the full reviewed packet range including `THREAD_PACKET.md`; `8 files` excluding the handoff packet itself. The source/artifact count remains within the high-risk `<=8 files` limit, while the packet-inclusive count is reported here for traceability.
-- Size accounting: actual merge candidate `b43178f56a0c78df411697654c17f2c029d44546` is `9 files changed, 870 insertions(+), 188 deletions(-)` versus the authoritative reviewed base, and the source/artifact portion excluding `THREAD_PACKET.md` is net `+563` LOC. This exceeds the high-risk `<=300 net LOC` budget and is reported here rather than hidden by a stale narrow range. The current basket promotion export finalizer itself is a narrow `3 files changed, 56 insertions(+), 2 deletions(-)` retrieval export/test contract update before this packet update.
+- Size accounting: actual merge candidate `b43178f56a0c78df411697654c17f2c029d44546` is `9 files changed, 870 insertions(+), 188 deletions(-)` versus the authoritative reviewed base, and the source/artifact portion excluding `THREAD_PACKET.md` is net `+563` LOC. This exceeds the high-risk `<=300 net LOC` budget and is reported here rather than hidden by a stale narrow range. The matched-term provenance finalizer itself is a narrow `1 file changed, 2 insertions(+), 2 deletions(-)` owned-path source update before this packet update.
 - Shared/integrator exception status: `tests/unit/test_unified_retrieval.py` is the sole approved shared regression surface; no integrator-locked files changed.
 - Routing/provider impact: none.
 - Remaining risks/blockers: size budget exceeded for the full corrected range; no functional gate blockers after required gates are rerun on the final branch tip.
@@ -242,6 +257,24 @@ Required gates rerun after the basket-promotion export finalizer:
 
 - `python -m pytest tests/unit/test_unified_retrieval.py -q` - blocked; active Python has no `pytest` module.
 - `python -m unittest tests.unit.test_unified_retrieval -v` - passed 61 retrieval tests before the edit and passed 61 retrieval tests after the edit.
+- `./quality-format.sh --check` - passed.
+- `./quality-lint.sh` - passed shell syntax and trailing whitespace checks.
+- `./quality-test.sh` - passed smoke tests and 130 unit tests.
+- `./typecheck-test.sh` - passed Python source compilation under `src/`.
+- `make ci` - passed setup, scope-check, format, lint, compile/typecheck, smoke tests, and 130 unit tests.
+
+Required gates rerun after the matched-term provenance finalizer:
+
+- `python -m pytest tests/unit/test_unified_retrieval.py` - blocked; active Python has no `pytest` module.
+- `python -m unittest tests.unit.test_unified_retrieval` - passed 61 retrieval tests.
+- `./quality-format.sh --check` - passed.
+- `./quality-lint.sh` - passed shell syntax and trailing whitespace checks.
+- `./quality-test.sh` - passed smoke tests and 130 unit tests.
+- `./typecheck-test.sh` - passed Python source compilation under `src/`.
+- `make ci` - passed setup, scope-check, format, lint, compile/typecheck, smoke tests, and 130 unit tests.
+
+Final required gates rerun after the matched-term packet refresh:
+
 - `./quality-format.sh --check` - passed.
 - `./quality-lint.sh` - passed shell syntax and trailing whitespace checks.
 - `./quality-test.sh` - passed smoke tests and 130 unit tests.
