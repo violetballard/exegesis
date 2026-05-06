@@ -249,11 +249,17 @@ from src.qual.commands.catalog import (
     command_mvp_demo_readiness_progress as _readiness_progress,
     command_mvp_demo_readiness_progress_summary as _readiness_progress_summary,
     command_mvp_demo_readiness_command_progress_contract as _readiness_command_progress_contract,
+    command_mvp_demo_readiness_command_progress_json as _readiness_command_progress_json,
+    command_mvp_demo_readiness_command_progress_payload as _readiness_command_progress_payload,
     command_mvp_demo_readiness_command_progress_summary as _readiness_command_progress_summary,
     command_mvp_demo_readiness_shell_progress as _readiness_shell_progress,
     command_mvp_demo_readiness_shell_progress_summary as _readiness_shell_progress_summary,
     command_mvp_demo_readiness_shell_command_progress_contract
     as _readiness_shell_command_progress_contract,
+    command_mvp_demo_readiness_shell_command_progress_json
+    as _readiness_shell_command_progress_json,
+    command_mvp_demo_readiness_shell_command_progress_payload
+    as _readiness_shell_command_progress_payload,
     command_mvp_demo_readiness_shell_command_progress_summary
     as _readiness_shell_command_progress_summary,
     command_mvp_demo_readiness_next_action as _readiness_next_action,
@@ -493,10 +499,14 @@ __all__ = [
     "canonical_command_readiness_progress",
     "canonical_command_readiness_progress_summary",
     "canonical_command_readiness_command_progress_contract",
+    "canonical_command_readiness_command_progress_json",
+    "canonical_command_readiness_command_progress_payload",
     "canonical_command_readiness_command_progress_summary",
     "canonical_command_readiness_shell_progress",
     "canonical_command_readiness_shell_progress_summary",
     "canonical_command_readiness_shell_command_progress_contract",
+    "canonical_command_readiness_shell_command_progress_json",
+    "canonical_command_readiness_shell_command_progress_payload",
     "canonical_command_readiness_shell_command_progress_summary",
     "canonical_command_readiness_next_action",
     "canonical_command_readiness_next_action_summary",
@@ -1671,6 +1681,18 @@ def canonical_command_readiness_command_progress_contract(
     return _readiness_command_progress_contract(argvs)
 
 
+def canonical_command_readiness_command_progress_payload(
+    argvs: Sequence[Sequence[str] | str],
+) -> dict[str, object]:
+    return _readiness_command_progress_payload(argvs)
+
+
+def canonical_command_readiness_command_progress_json(
+    argvs: Sequence[Sequence[str] | str],
+) -> str:
+    return _readiness_command_progress_json(argvs)
+
+
 def canonical_command_readiness_command_progress_summary(
     argvs: Sequence[Sequence[str] | str],
 ) -> tuple[
@@ -1700,6 +1722,18 @@ def canonical_command_readiness_shell_command_progress_contract(
     lines: Sequence[str] | str,
 ) -> CommandDemoReadinessCommandProgressContract:
     return _readiness_shell_command_progress_contract(lines)
+
+
+def canonical_command_readiness_shell_command_progress_payload(
+    lines: Sequence[str] | str,
+) -> dict[str, object]:
+    return _readiness_shell_command_progress_payload(lines)
+
+
+def canonical_command_readiness_shell_command_progress_json(
+    lines: Sequence[str] | str,
+) -> str:
+    return _readiness_shell_command_progress_json(lines)
 
 
 def canonical_command_readiness_shell_command_progress_summary(
