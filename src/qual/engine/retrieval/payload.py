@@ -424,6 +424,7 @@ def _basket_promotion_items_from_excerpt_hits(
                     provenance.get("doc_rank", doc_rank_by_id.get(doc_id)),
                 ),
                 "rank": hit.get("rank", provenance.get("rank")),
+                "fts_rank": hit.get("fts_rank", provenance.get("fts_rank")),
                 "source_strategy": source_strategy,
                 "retrieval_backend": _first_text_value(
                     hit.get("retrieval_backend"),

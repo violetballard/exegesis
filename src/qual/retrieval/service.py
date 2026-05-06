@@ -1793,6 +1793,7 @@ class RetrievalService:
                 "span": copy.deepcopy(item["span"]),
                 "doc_rank": item["doc_rank"],
                 "rank": item["rank"],
+                "fts_rank": item["fts_rank"],
                 "source_strategy": item["source_strategy"],
                 "retrieval_backend": item["retrieval_backend"],
                 "retrieval_mode": item["retrieval_mode"],
