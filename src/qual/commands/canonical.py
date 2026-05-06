@@ -262,6 +262,8 @@ from src.qual.commands.catalog import (
     as _readiness_exact_action_route_summary,
     command_mvp_demo_readiness_exact_action_script_contract
     as _readiness_exact_action_script_contract,
+    command_mvp_demo_readiness_exact_action_script_lookup_table
+    as _readiness_exact_action_script_lookup_table,
     command_mvp_demo_readiness_exact_action_script_summary
     as _readiness_exact_action_script_summary,
     command_mvp_demo_readiness_exact_argv_for_engine_action as _readiness_exact_argv_for_engine_action,
@@ -449,6 +451,7 @@ __all__ = [
     "canonical_command_action_exact_contract",
     "canonical_command_action_exact_summary",
     "canonical_command_action_exact_script_contract",
+    "canonical_command_action_exact_script_lookup_table",
     "canonical_command_action_exact_script_summary",
     "canonical_command_action_cli_exact_shell_script_lines",
     "canonical_command_action_cli_exact_shell_script_text",
@@ -1711,6 +1714,10 @@ def canonical_command_action_matrix_summary() -> tuple[
 
 def canonical_command_action_exact_script_contract() -> CommandDemoReadinessExactActionScriptContract:
     return _readiness_exact_action_script_contract()
+
+
+def canonical_command_action_exact_script_lookup_table() -> tuple[tuple[str, str], ...]:
+    return _readiness_exact_action_script_lookup_table()
 
 
 def canonical_command_action_exact_script_summary() -> tuple[tuple[int, str, str, str, str, str], ...]:
