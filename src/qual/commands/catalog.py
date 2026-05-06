@@ -1935,6 +1935,27 @@ def _approved_cli_canonical_names() -> tuple[str, ...]:
 
 
 @lru_cache(maxsize=None)
+def _approved_cli_entrypoint_by_canonical_name() -> tuple[tuple[str, str], ...]:
+    entrypoints: list[tuple[str, str]] = []
+    seen_names: set[str] = set()
+    for token, canonical_name in _approved_cli_lookup_table():
+        if canonical_name in seen_names:
+            continue
+        seen_names.add(canonical_name)
+        entrypoints.append((canonical_name, token))
+    return tuple(entrypoints)
+
+
+def command_cli_entrypoint_for(token: str) -> str | None:
+    """Return the approved parser entrypoint for a command token, alias, or flow step."""
+
+    spec = command_spec(token)
+    if spec is None:
+        return None
+    return dict(_approved_cli_entrypoint_by_canonical_name()).get(spec.name)
+
+
+@lru_cache(maxsize=None)
 def command_cli_contract() -> CommandCliContract:
     tokens = command_cli_tokens()
     lookup_table = command_cli_lookup_table()
