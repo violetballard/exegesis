@@ -16,6 +16,7 @@ from src.qual.commands.catalog import (
     CommandDemoReadinessEntry,
     CommandDemoReadinessExactActionEntry,
     CommandDemoReadinessExactActionContract,
+    CommandDemoReadinessExactCliAuditContract,
     CommandDemoReadinessExactActionScriptContract,
     CommandDemoReadinessHandoffActionContract,
     CommandDemoActionCoverageContract,
@@ -202,6 +203,8 @@ from src.qual.commands.catalog import (
     command_mvp_demo_readiness_exact_action_entry_for_argv as _readiness_exact_action_entry_for_argv,
     command_mvp_demo_readiness_exact_action_contract as _readiness_exact_action_contract,
     command_mvp_demo_readiness_exact_action_summary as _readiness_exact_action_summary,
+    command_mvp_demo_readiness_exact_cli_audit_contract as _readiness_exact_cli_audit_contract,
+    command_mvp_demo_readiness_exact_cli_audit_summary as _readiness_exact_cli_audit_summary,
     command_mvp_demo_readiness_exact_action_route_lookup_table
     as _readiness_exact_action_route_lookup_table,
     command_mvp_demo_readiness_exact_action_route_summary
@@ -1616,3 +1619,14 @@ def canonical_command_exact_action_route_summary() -> tuple[
 
 def canonical_command_exact_action_route_lookup_table() -> tuple[tuple[str, str], ...]:
     return _readiness_exact_action_route_lookup_table()
+
+
+def canonical_command_exact_cli_audit_contract() -> CommandDemoReadinessExactCliAuditContract:
+    return _readiness_exact_cli_audit_contract()
+
+
+def canonical_command_exact_cli_audit_summary() -> tuple[
+    tuple[str, str, str, str, str, str, bool],
+    ...,
+]:
+    return _readiness_exact_cli_audit_summary()

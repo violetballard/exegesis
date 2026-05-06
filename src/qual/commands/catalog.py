@@ -358,6 +358,25 @@ class CommandDemoReadinessExactActionEntry:
 
 
 @dataclass(frozen=True)
+class CommandDemoReadinessExactCliAuditEntry:
+    engine_action: str
+    flow_step: str
+    name: str
+    parser_token: str
+    command_line: str
+    canonical_command_line: str
+    demo_path_step: str
+    is_cli_entrypoint: bool
+
+
+@dataclass(frozen=True)
+class CommandDemoReadinessExactCliAuditContract:
+    is_complete: bool
+    entries: tuple[CommandDemoReadinessExactCliAuditEntry, ...]
+    invalid_engine_actions: tuple[str, ...]
+
+
+@dataclass(frozen=True)
 class CommandDemoReadinessExactActionContract:
     entries: tuple[CommandDemoReadinessExactActionEntry, ...]
 
@@ -6340,6 +6359,7 @@ def command_demo_readiness_seal(
         specs,
         launcher_argv,
     )
+    exact_cli_audit = command_demo_readiness_exact_cli_audit_contract(specs, launcher_argv)
     missing_flow_steps = _ordered_unique_tokens(
         *exact_validation.missing_flow_steps,
         *cli_validation.missing_flow_steps,
@@ -6348,6 +6368,7 @@ def command_demo_readiness_seal(
         *gate.missing_engine_actions,
         *exact_validation.missing_engine_actions,
         *cli_validation.missing_engine_actions,
+        *exact_cli_audit.invalid_engine_actions,
     )
     invalid_argv = _ordered_unique_argv(
         *exact_validation.invalid_argv,
@@ -6358,6 +6379,7 @@ def command_demo_readiness_seal(
             gate.is_complete
             and exact_validation.is_complete
             and cli_validation.is_complete
+            and exact_cli_audit.is_complete
             and not missing_flow_steps
             and not missing_engine_actions
             and not invalid_argv
@@ -8546,6 +8568,119 @@ def command_demo_readiness_exact_action_summary(
             entry.demo_path_step,
         )
         for entry in command_demo_readiness_exact_action_contract(specs, launcher_argv).entries
+    )
+
+
+@lru_cache(maxsize=None)
+def command_demo_readiness_exact_cli_audit_contract(
+    specs: tuple[CommandSpec, ...] = COMMAND_SPECS,
+    launcher_argv: tuple[str, ...] = COMMAND_SMOKE_CLI_LAUNCHER_ARGV,
+) -> CommandDemoReadinessExactCliAuditContract:
+    entries = tuple(
+        _command_demo_readiness_exact_cli_audit_entry(entry, specs, launcher_argv)
+        for entry in command_demo_readiness_exact_action_contract(specs, launcher_argv).entries
+    )
+    invalid_engine_actions = tuple(
+        entry.engine_action
+        for entry in entries
+        if not entry.is_cli_entrypoint or entry.command_line != entry.canonical_command_line
+    )
+    contract = CommandDemoReadinessExactCliAuditContract(
+        is_complete=not invalid_engine_actions,
+        entries=entries,
+        invalid_engine_actions=invalid_engine_actions,
+    )
+    _validate_command_demo_readiness_exact_cli_audit_contract(contract, specs, launcher_argv)
+    return contract
+
+
+def _command_demo_readiness_exact_cli_audit_entry(
+    entry: CommandDemoReadinessExactActionEntry,
+    specs: tuple[CommandSpec, ...],
+    launcher_argv: tuple[str, ...],
+) -> CommandDemoReadinessExactCliAuditEntry:
+    validation = command_demo_readiness_validate_cli_argv(
+        entry.command_argv,
+        specs,
+        launcher_argv,
+    )
+    return CommandDemoReadinessExactCliAuditEntry(
+        engine_action=entry.engine_action,
+        flow_step=entry.flow_step,
+        name=entry.name,
+        parser_token=validation.parser_token or "",
+        command_line=entry.command_line,
+        canonical_command_line=validation.command_line,
+        demo_path_step=entry.demo_path_step,
+        is_cli_entrypoint=(
+            validation.is_cli_entrypoint
+            and validation.name == entry.name
+            and validation.flow_step == entry.flow_step
+            and validation.demo_path_step == entry.demo_path_step
+            and validation.exact_engine_action == entry.engine_action
+        ),
+    )
+
+
+def _validate_command_demo_readiness_exact_cli_audit_contract(
+    contract: CommandDemoReadinessExactCliAuditContract,
+    specs: tuple[CommandSpec, ...],
+    launcher_argv: tuple[str, ...],
+) -> None:
+    exact_contract = command_demo_readiness_exact_action_contract(specs, launcher_argv)
+    if tuple(entry.engine_action for entry in contract.entries) != tuple(
+        entry.engine_action for entry in exact_contract.entries
+    ):
+        raise ValueError("Command demo exact CLI audit actions are inconsistent")
+    if tuple(entry.flow_step for entry in contract.entries) != tuple(
+        entry.flow_step for entry in exact_contract.entries
+    ):
+        raise ValueError("Command demo exact CLI audit flow steps are inconsistent")
+    if tuple(entry.name for entry in contract.entries) != tuple(
+        entry.name for entry in exact_contract.entries
+    ):
+        raise ValueError("Command demo exact CLI audit command names are inconsistent")
+    if tuple(entry.demo_path_step for entry in contract.entries) != tuple(
+        entry.demo_path_step for entry in exact_contract.entries
+    ):
+        raise ValueError("Command demo exact CLI audit path steps are inconsistent")
+    if tuple(entry.command_line for entry in contract.entries) != tuple(
+        entry.command_line for entry in exact_contract.entries
+    ):
+        raise ValueError("Command demo exact CLI audit command lines are inconsistent")
+    if len({entry.engine_action for entry in contract.entries}) != len(contract.entries):
+        raise ValueError("Command demo exact CLI audit actions must be unique")
+    for entry in contract.entries:
+        if not entry.parser_token:
+            raise ValueError(f"Command demo exact CLI audit parser token is missing: {entry.engine_action}")
+        if not entry.is_cli_entrypoint:
+            raise ValueError(f"Command demo exact CLI audit entry is not parser-backed: {entry.engine_action}")
+        if entry.command_line != entry.canonical_command_line:
+            raise ValueError(f"Command demo exact CLI audit line drift: {entry.engine_action}")
+    if contract.invalid_engine_actions:
+        raise ValueError("Command demo exact CLI audit must not report invalid actions")
+    if not contract.is_complete:
+        raise ValueError("Command demo exact CLI audit must be complete")
+
+
+def command_demo_readiness_exact_cli_audit_summary(
+    specs: tuple[CommandSpec, ...] = COMMAND_SPECS,
+    launcher_argv: tuple[str, ...] = COMMAND_SMOKE_CLI_LAUNCHER_ARGV,
+) -> tuple[tuple[str, str, str, str, str, str, bool], ...]:
+    return tuple(
+        (
+            entry.engine_action,
+            entry.flow_step,
+            entry.name,
+            entry.parser_token,
+            entry.command_line,
+            entry.demo_path_step,
+            entry.is_cli_entrypoint,
+        )
+        for entry in command_demo_readiness_exact_cli_audit_contract(
+            specs,
+            launcher_argv,
+        ).entries
     )
 
 
@@ -11506,6 +11641,20 @@ def command_mvp_demo_readiness_exact_action_summary(
     launcher_argv: tuple[str, ...] = COMMAND_SMOKE_CLI_LAUNCHER_ARGV,
 ) -> tuple[tuple[str, str, str, str, str], ...]:
     return command_demo_readiness_exact_action_summary(specs, launcher_argv)
+
+
+def command_mvp_demo_readiness_exact_cli_audit_contract(
+    specs: tuple[CommandSpec, ...] = COMMAND_SPECS,
+    launcher_argv: tuple[str, ...] = COMMAND_SMOKE_CLI_LAUNCHER_ARGV,
+) -> CommandDemoReadinessExactCliAuditContract:
+    return command_demo_readiness_exact_cli_audit_contract(specs, launcher_argv)
+
+
+def command_mvp_demo_readiness_exact_cli_audit_summary(
+    specs: tuple[CommandSpec, ...] = COMMAND_SPECS,
+    launcher_argv: tuple[str, ...] = COMMAND_SMOKE_CLI_LAUNCHER_ARGV,
+) -> tuple[tuple[str, str, str, str, str, str, bool], ...]:
+    return command_demo_readiness_exact_cli_audit_summary(specs, launcher_argv)
 
 
 def command_mvp_demo_readiness_exact_action_script_contract(
