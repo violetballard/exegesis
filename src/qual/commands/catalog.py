@@ -5389,6 +5389,18 @@ def _validate_command_demo_surface_readiness_contract(
             raise ValueError(f"Command demo surface readiness CLI tokens are inconsistent: {entry.flow_step}")
         if not entry.cli_tokens or not entry.command_line or not entry.exact_action_lines:
             raise ValueError(f"Command demo surface readiness entry is not smoke-testable: {entry.flow_step}")
+        for engine_action, command_line in entry.exact_action_lines:
+            if not engine_action or not command_line:
+                raise ValueError(f"Command demo surface readiness exact action is empty: {entry.flow_step}")
+            resolved_action = command_demo_readiness_exact_action_for_argv(
+                command_line,
+                specs,
+                launcher_argv=launcher_argv,
+            )
+            if resolved_action != engine_action:
+                raise ValueError(
+                    f"Command demo surface readiness exact action does not round-trip: {entry.flow_step}"
+                )
 
 
 def command_demo_surface_readiness_summary(
