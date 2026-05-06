@@ -1578,6 +1578,11 @@ def _validate_demo_smoke_argv_parser_surface(
         argv = argv_by_flow_step[flow_step]
         command_token = _normalize_token(_strip_command_palette_prefix(argv[0]))
         expected_name = manifest_by_flow_step[flow_step].name
+        if command_token != _normalize_token(expected_name):
+            raise ValueError(
+                "Command demo smoke argv must use the canonical command token: "
+                f"{flow_step}"
+            )
         if parser_lookup.get(command_token) != expected_name:
             raise ValueError(
                 "Command demo smoke argv must use the approved parser surface: "
