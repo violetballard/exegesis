@@ -33,6 +33,7 @@ from src.qual.commands.catalog import (
     CommandDemoReadinessShellScript,
     CommandDemoReadinessScriptValidation,
     CommandDemoReadinessSmokePlanStep,
+    CommandDemoReadinessStepSealContract,
     CommandDemoSupportedLauncherReadinessContract,
     CommandDemoReadinessTraceContract,
     CommandDemoSmokeMatrixContract,
@@ -62,6 +63,10 @@ from src.qual.commands.catalog import (
     command_mvp_demo_readiness_seal_summary as _readiness_seal_summary,
     command_mvp_demo_readiness_fingerprint as _readiness_fingerprint,
     command_mvp_demo_readiness_fingerprint_summary as _readiness_fingerprint_summary,
+    command_mvp_demo_readiness_step_seal_contract as _readiness_step_seal_contract,
+    command_mvp_demo_readiness_step_seal_json as _readiness_step_seal_json,
+    command_mvp_demo_readiness_step_seal_payload as _readiness_step_seal_payload,
+    command_mvp_demo_readiness_step_seal_summary as _readiness_step_seal_summary,
     command_mvp_demo_readiness_shell_script as _readiness_shell_script,
     command_mvp_demo_readiness_cli_smoke_lines as _readiness_cli_smoke_lines,
     command_mvp_demo_readiness_shell_executable_lines as _readiness_shell_executable_lines,
@@ -281,6 +286,10 @@ __all__ = [
     "canonical_command_readiness_seal_summary",
     "canonical_command_readiness_fingerprint",
     "canonical_command_readiness_fingerprint_summary",
+    "canonical_command_readiness_step_seal_contract",
+    "canonical_command_readiness_step_seal_summary",
+    "canonical_command_readiness_step_seal_payload",
+    "canonical_command_readiness_step_seal_json",
     "canonical_command_readiness_shell_script",
     "canonical_command_readiness_cli_smoke_lines",
     "canonical_command_readiness_shell_executable_lines",
@@ -582,6 +591,25 @@ def canonical_command_readiness_fingerprint_summary() -> tuple[
     tuple[str, ...],
 ]:
     return _readiness_fingerprint_summary()
+
+
+def canonical_command_readiness_step_seal_contract() -> CommandDemoReadinessStepSealContract:
+    return _readiness_step_seal_contract()
+
+
+def canonical_command_readiness_step_seal_summary() -> tuple[
+    tuple[int, str, str, str, tuple[str, ...], str, tuple[str, ...], tuple[tuple[str, str], ...]],
+    ...,
+]:
+    return _readiness_step_seal_summary()
+
+
+def canonical_command_readiness_step_seal_payload() -> tuple[dict[str, object], ...]:
+    return _readiness_step_seal_payload()
+
+
+def canonical_command_readiness_step_seal_json() -> str:
+    return _readiness_step_seal_json()
 
 
 def canonical_command_readiness_shell_script() -> CommandDemoReadinessShellScript:

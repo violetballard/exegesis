@@ -562,6 +562,23 @@ class CommandDemoReadinessFingerprint:
 
 
 @dataclass(frozen=True)
+class CommandDemoReadinessStepSeal:
+    ordinal: int
+    demo_path_step: str
+    flow_step: str
+    name: str
+    command_argv: tuple[str, ...]
+    command_line: str
+    engine_actions: tuple[str, ...]
+    exact_action_lines: tuple[tuple[str, str], ...]
+
+
+@dataclass(frozen=True)
+class CommandDemoReadinessStepSealContract:
+    steps: tuple[CommandDemoReadinessStepSeal, ...]
+
+
+@dataclass(frozen=True)
 class CommandDemoReadinessShellScript:
     lines: tuple[str, ...]
     command_lines: tuple[str, ...]
@@ -5337,6 +5354,125 @@ def command_demo_readiness_fingerprint_summary(
 
 
 @lru_cache(maxsize=None)
+def command_demo_readiness_step_seal_contract(
+    specs: tuple[CommandSpec, ...] = COMMAND_SPECS,
+    launcher_argv: tuple[str, ...] = COMMAND_SMOKE_CLI_LAUNCHER_ARGV,
+) -> CommandDemoReadinessStepSealContract:
+    readiness_entries = command_demo_readiness_contract(specs, launcher_argv).entries
+    exact_lines_by_flow_step: dict[str, list[tuple[str, str]]] = {}
+    for engine_action, command_line in command_demo_readiness_exact_action_line_lookup_table(
+        specs,
+        launcher_argv,
+    ):
+        flow_step = command_demo_readiness_flow_step_for_argv(command_line, specs, launcher_argv)
+        if flow_step is None:
+            raise ValueError(f"Command demo readiness step seal action is not routeable: {engine_action}")
+        exact_lines_by_flow_step.setdefault(flow_step, []).append((engine_action, command_line))
+
+    contract = CommandDemoReadinessStepSealContract(
+        steps=tuple(
+            CommandDemoReadinessStepSeal(
+                ordinal=entry.ordinal,
+                demo_path_step=entry.demo_path_step,
+                flow_step=entry.flow_step,
+                name=entry.name,
+                command_argv=_argv_without_launcher(entry.command_argv, launcher_argv),
+                command_line=_shell_join(entry.command_argv),
+                engine_actions=entry.engine_actions,
+                exact_action_lines=tuple(exact_lines_by_flow_step.get(entry.flow_step, ())),
+            )
+            for entry in readiness_entries
+        )
+    )
+    _validate_command_demo_readiness_step_seal_contract(contract, specs, launcher_argv)
+    return contract
+
+
+def _validate_command_demo_readiness_step_seal_contract(
+    contract: CommandDemoReadinessStepSealContract,
+    specs: tuple[CommandSpec, ...],
+    launcher_argv: tuple[str, ...],
+) -> None:
+    readiness_entries = command_demo_readiness_contract(specs, launcher_argv).entries
+    if tuple(step.ordinal for step in contract.steps) != tuple(entry.ordinal for entry in readiness_entries):
+        raise ValueError("Command demo readiness step seal ordinals are inconsistent")
+    if tuple(step.flow_step for step in contract.steps) != tuple(entry.flow_step for entry in readiness_entries):
+        raise ValueError("Command demo readiness step seal flow steps are inconsistent")
+    if tuple(step.name for step in contract.steps) != tuple(entry.name for entry in readiness_entries):
+        raise ValueError("Command demo readiness step seal command names are inconsistent")
+    if tuple(step.command_line for step in contract.steps) != tuple(
+        _shell_join(entry.command_argv) for entry in readiness_entries
+    ):
+        raise ValueError("Command demo readiness step seal command lines are inconsistent")
+    if tuple(step.demo_path_step for step in contract.steps) != tuple(
+        entry.demo_path_step for entry in readiness_entries
+    ):
+        raise ValueError("Command demo readiness step seal demo path steps are inconsistent")
+    if tuple(step.engine_actions for step in contract.steps) != tuple(
+        entry.engine_actions for entry in readiness_entries
+    ):
+        raise ValueError("Command demo readiness step seal actions are inconsistent")
+    for step in contract.steps:
+        expected_actions = tuple(engine_action for engine_action, _ in step.exact_action_lines)
+        if expected_actions != step.engine_actions:
+            raise ValueError(f"Command demo readiness step seal exact actions are incomplete: {step.flow_step}")
+        if any(not command_line.strip() for _, command_line in step.exact_action_lines):
+            raise ValueError(f"Command demo readiness step seal exact action line is empty: {step.flow_step}")
+
+
+def command_demo_readiness_step_seal_summary(
+    specs: tuple[CommandSpec, ...] = COMMAND_SPECS,
+    launcher_argv: tuple[str, ...] = COMMAND_SMOKE_CLI_LAUNCHER_ARGV,
+) -> tuple[
+    tuple[int, str, str, str, tuple[str, ...], str, tuple[str, ...], tuple[tuple[str, str], ...]],
+    ...,
+]:
+    return tuple(
+        (
+            step.ordinal,
+            step.demo_path_step,
+            step.flow_step,
+            step.name,
+            step.command_argv,
+            step.command_line,
+            step.engine_actions,
+            step.exact_action_lines,
+        )
+        for step in command_demo_readiness_step_seal_contract(specs, launcher_argv).steps
+    )
+
+
+def command_demo_readiness_step_seal_payload(
+    specs: tuple[CommandSpec, ...] = COMMAND_SPECS,
+    launcher_argv: tuple[str, ...] = COMMAND_SMOKE_CLI_LAUNCHER_ARGV,
+) -> tuple[dict[str, object], ...]:
+    return tuple(
+        {
+            "ordinal": step.ordinal,
+            "demo_path_step": step.demo_path_step,
+            "flow_step": step.flow_step,
+            "command": step.name,
+            "command_argv": step.command_argv,
+            "command_line": step.command_line,
+            "engine_actions": step.engine_actions,
+            "exact_action_lines": step.exact_action_lines,
+        }
+        for step in command_demo_readiness_step_seal_contract(specs, launcher_argv).steps
+    )
+
+
+def command_demo_readiness_step_seal_json(
+    specs: tuple[CommandSpec, ...] = COMMAND_SPECS,
+    launcher_argv: tuple[str, ...] = COMMAND_SMOKE_CLI_LAUNCHER_ARGV,
+) -> str:
+    return json.dumps(
+        command_demo_readiness_step_seal_payload(specs, launcher_argv),
+        sort_keys=True,
+        separators=(",", ":"),
+    )
+
+
+@lru_cache(maxsize=None)
 def command_demo_readiness_shell_script(
     specs: tuple[CommandSpec, ...] = COMMAND_SPECS,
     launcher_argv: tuple[str, ...] = COMMAND_SMOKE_CLI_LAUNCHER_ARGV,
@@ -8714,6 +8850,37 @@ def command_mvp_demo_readiness_fingerprint_summary(
     launcher_argv: tuple[str, ...] = COMMAND_SMOKE_CLI_LAUNCHER_ARGV,
 ) -> tuple[str, str, tuple[str, ...], tuple[str, ...], tuple[str, ...], tuple[str, ...], tuple[str, ...]]:
     return command_demo_readiness_fingerprint_summary(specs, launcher_argv)
+
+
+def command_mvp_demo_readiness_step_seal_contract(
+    specs: tuple[CommandSpec, ...] = COMMAND_SPECS,
+    launcher_argv: tuple[str, ...] = COMMAND_SMOKE_CLI_LAUNCHER_ARGV,
+) -> CommandDemoReadinessStepSealContract:
+    return command_demo_readiness_step_seal_contract(specs, launcher_argv)
+
+
+def command_mvp_demo_readiness_step_seal_summary(
+    specs: tuple[CommandSpec, ...] = COMMAND_SPECS,
+    launcher_argv: tuple[str, ...] = COMMAND_SMOKE_CLI_LAUNCHER_ARGV,
+) -> tuple[
+    tuple[int, str, str, str, tuple[str, ...], str, tuple[str, ...], tuple[tuple[str, str], ...]],
+    ...,
+]:
+    return command_demo_readiness_step_seal_summary(specs, launcher_argv)
+
+
+def command_mvp_demo_readiness_step_seal_payload(
+    specs: tuple[CommandSpec, ...] = COMMAND_SPECS,
+    launcher_argv: tuple[str, ...] = COMMAND_SMOKE_CLI_LAUNCHER_ARGV,
+) -> tuple[dict[str, object], ...]:
+    return command_demo_readiness_step_seal_payload(specs, launcher_argv)
+
+
+def command_mvp_demo_readiness_step_seal_json(
+    specs: tuple[CommandSpec, ...] = COMMAND_SPECS,
+    launcher_argv: tuple[str, ...] = COMMAND_SMOKE_CLI_LAUNCHER_ARGV,
+) -> str:
+    return command_demo_readiness_step_seal_json(specs, launcher_argv)
 
 
 def command_mvp_demo_readiness_shell_script(
