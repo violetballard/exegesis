@@ -189,6 +189,18 @@
     "feat-formatting-bar": {
       "branch": "codex/feat-formatting-bar",
       "enabled": false
+    },
+    "feat-developer-provider-config": {
+      "branch": "codex/feat-developer-provider-config",
+      "enabled": false
+    },
+    "feat-desktop-packaging": {
+      "branch": "codex/feat-desktop-packaging",
+      "enabled": false
+    },
+    "feat-cop-lite-licensing": {
+      "branch": "codex/feat-cop-lite-licensing",
+      "enabled": false
     }
   },
   "planner": {

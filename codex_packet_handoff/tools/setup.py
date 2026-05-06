@@ -25,6 +25,9 @@ LANES = [
     'feat-export',
     'feat-zotero-import',
     'feat-formatting-bar',
+    'feat-developer-provider-config',
+    'feat-desktop-packaging',
+    'feat-cop-lite-licensing',
 ]
 
 def ensure_dirs():
@@ -53,6 +56,9 @@ def write_example_config():
     lanes_cfg["feat-export"]["enabled"] = False
     lanes_cfg["feat-zotero-import"]["enabled"] = False
     lanes_cfg["feat-formatting-bar"]["enabled"] = False
+    lanes_cfg["feat-developer-provider-config"]["enabled"] = False
+    lanes_cfg["feat-desktop-packaging"]["enabled"] = False
+    lanes_cfg["feat-cop-lite-licensing"]["enabled"] = False
     for lane in ("feat-commands", "feat-retrieval-fts"):
         lanes_cfg[lane].update(
             {

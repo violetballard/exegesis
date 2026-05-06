@@ -48,6 +48,9 @@ DEFAULT_LANES = [
     "feat-export",
     "feat-zotero-import",
     "feat-formatting-bar",
+    "feat-developer-provider-config",
+    "feat-desktop-packaging",
+    "feat-cop-lite-licensing",
 ]
 STATE_LOCK = threading.Lock()
 STALE_THREAD_RE = "session not found for thread_id"

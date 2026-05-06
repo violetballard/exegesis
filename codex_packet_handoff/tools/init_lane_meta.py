@@ -25,6 +25,9 @@ LANES = [
     'feat-export',
     'feat-zotero-import',
     'feat-formatting-bar',
+    'feat-developer-provider-config',
+    'feat-desktop-packaging',
+    'feat-cop-lite-licensing',
 ]
 
 if __name__ == "__main__":

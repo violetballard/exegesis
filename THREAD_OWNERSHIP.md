@@ -150,6 +150,39 @@ Detailed task breakdown lives in `/Users/doctor-violet/Library/CloudStorage/Box-
   - Current status:
     - disabled until formatting bar work is intentionally activated
 
+- `codex/feat-developer-provider-config*`
+  - Owned paths:
+    - `src/qual/providers/**`
+    - `src/qual/credentials/**`
+    - `engine/src/exegesis_engine/providers/**`
+    - `engine/src/exegesis_engine/credentials/**`
+    - `client-textual/src/exegesis_textual/providers/**`
+    - `client-textual/src/exegesis_textual/commands/provider_config/**`
+  - Current status:
+    - disabled until developer provider configuration is intentionally activated
+
+- `codex/feat-desktop-packaging*`
+  - Owned paths:
+    - `desktop-shell/**`
+    - `scripts/packaging/**`
+    - `scripts/release/**`
+    - `docs/packaging/**`
+  - Current status:
+    - disabled until desktop packaging is intentionally activated
+
+- `codex/feat-cop-lite-licensing*`
+  - Owned paths:
+    - `engine/src/exegesis_engine/licensing/**`
+    - `engine/src/exegesis_engine/lite_gateway/**`
+    - `engine/src/exegesis_engine/nanonets_usage/**`
+    - `client-textual/src/exegesis_textual/licensing/**`
+    - `client-textual/src/exegesis_textual/imports/**`
+    - `shared/src/exegesis_shared/licensing/**`
+    - `shared/src/exegesis_shared/nanonets_usage/**`
+    - `docs/licensing/**`
+  - Current status:
+    - disabled until Lite licensing and Nanonets page-credit work is intentionally activated
+
 ## Retired planning targets
 
 - `codex/feat-ux-flow*`

@@ -136,6 +136,30 @@ LANE_OWNED_PATHS = {
         "engine/src/exegesis_engine/formatting/**",
         "client-textual/src/exegesis_textual/formatting/**",
     ],
+    "feat-developer-provider-config": [
+        "src/qual/providers/**",
+        "src/qual/credentials/**",
+        "engine/src/exegesis_engine/providers/**",
+        "engine/src/exegesis_engine/credentials/**",
+        "client-textual/src/exegesis_textual/providers/**",
+        "client-textual/src/exegesis_textual/commands/provider_config/**",
+    ],
+    "feat-desktop-packaging": [
+        "desktop-shell/**",
+        "scripts/packaging/**",
+        "scripts/release/**",
+        "docs/packaging/**",
+    ],
+    "feat-cop-lite-licensing": [
+        "engine/src/exegesis_engine/licensing/**",
+        "engine/src/exegesis_engine/lite_gateway/**",
+        "engine/src/exegesis_engine/nanonets_usage/**",
+        "client-textual/src/exegesis_textual/licensing/**",
+        "client-textual/src/exegesis_textual/imports/**",
+        "shared/src/exegesis_shared/licensing/**",
+        "shared/src/exegesis_shared/nanonets_usage/**",
+        "docs/licensing/**",
+    ],
 }
 
 Json = Dict[str, Any]

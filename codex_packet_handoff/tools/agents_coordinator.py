@@ -127,6 +127,9 @@ DEFAULT_LANES = [
     "feat-export",
     "feat-zotero-import",
     "feat-formatting-bar",
+    "feat-developer-provider-config",
+    "feat-desktop-packaging",
+    "feat-cop-lite-licensing",
 ]
 
 WORKTREE_TEMP_PATTERNS = (

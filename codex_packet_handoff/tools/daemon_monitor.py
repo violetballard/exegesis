@@ -48,6 +48,9 @@ DEFAULT_LANES = [
     "feat-export",
     "feat-zotero-import",
     "feat-formatting-bar",
+    "feat-developer-provider-config",
+    "feat-desktop-packaging",
+    "feat-cop-lite-licensing",
 ]
 VERDICT_RE = re.compile(
     r"(?:\*\*Verdict\*\*|Verdict:)\s*`?(APPROVED|CHANGES_REQUESTED|CHANGES REQUESTED)`?",

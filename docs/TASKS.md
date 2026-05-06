@@ -175,6 +175,59 @@ Activation rule:
 Implementation batches:
 - use `docs/FUTURE_MVP_FEATURES_SPEC.md` as the lane-ready build sheet
 
+### `feat-developer-provider-config`
+Own later:
+- developer-version-only command-palette provider configuration
+- Lite remote Mistral Small 4 provider profile
+- Lite managed Nanonets OCR-3 provider profile with cross-platform app-managed remote service credentials
+- OpenAI, Claude, Mistral, Nanonets, and local OpenAI-compatible endpoint setup
+- default online provider and default model selection
+- connection testing and credential clearing commands
+- macOS Keychain, Windows Credential Manager/DPAPI-backed storage, and Linux Secret Service/libsecret credential-store modes
+- backend provider-router integration for developer BYOK/BYOM setup
+- packaged-distro command hiding and backend rejection
+
+Activation rule:
+- disabled until developer-version provider configuration is intentionally activated
+
+Implementation batches:
+- use `docs/FUTURE_MVP_FEATURES_SPEC.md` as the lane-ready build sheet
+
+### `feat-desktop-packaging`
+Own later:
+- Developer and Lite desktop distribution profiles
+- pywebview native shell around the locally served Textual UI
+- bundled Python runtime, Engine, Textual local server, and SQLite local storage
+- Briefcase packaging for macOS `.dmg`, Windows `.msi`, and Linux Flatpak
+- platform app-data directory handling for database, project files, cache, and logs
+- loopback-only local server startup, port collision handling, and shutdown coordination
+- GitHub Release artifact collection and checksum generation
+- Developer profile integration with Milestone 15 BYOK/BYOM provider commands
+- Lite profile integration with remote Mistral Small 4 and managed Nanonets OCR-3
+
+Activation rule:
+- disabled until desktop packaging work is intentionally activated
+
+Implementation batches:
+- use `docs/FUTURE_MVP_FEATURES_SPEC.md` as the lane-ready build sheet
+
+### `feat-cop-lite-licensing`
+Own later:
+- initial CoP unlimited Lite course access with no seat cap
+- Developer/Lite boundary where Developer never uses hosted Lite workflows
+- Lite-only hosted License Gateway for license invites, claim, refresh, managed provider proxy, Paddle webhooks, and Nanonets page state
+- Nanonets page ledger with 150-page default initial CoP balance
+- fixed Nanonets top-up packages of 150, 500, and 1000 pages
+- transaction-safe OCR page reservation, consumption, release, refund, and idempotent callback handling
+- Lite import-window Nanonets balance, estimated-page count, insufficient-balance, and top-up package behavior
+- future Tally/manual approval/Claude cowork license-generation hooks
+
+Activation rule:
+- disabled until Lite licensing and hosted gateway work is intentionally activated
+
+Implementation batches:
+- use `docs/FUTURE_MVP_FEATURES_SPEC.md` as the lane-ready build sheet
+
 ## Explicitly not now
 - Textual dependency installation
 - Textual widget implementation
@@ -187,7 +240,13 @@ Implementation batches:
 - runtime export behavior
 - runtime Zotero import behavior
 - runtime formatting bar behavior
+- runtime developer provider configuration behavior
+- runtime desktop packaging behavior
+- runtime Lite license gateway behavior
+- runtime CoP course licensing behavior
+- runtime Nanonets page-credit metering or Paddle top-ups
 - shell import filtering changes
+- shell import-window Nanonets balance behavior
 - inspector metadata editing behavior
 - tabs, live preview, collaboration, sync, drag-and-drop
 - native workstation shell work

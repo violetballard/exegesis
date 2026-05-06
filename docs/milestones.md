@@ -253,3 +253,66 @@ Status:
 - Planned and disabled
 - Lane state: disabled (`feat-formatting-bar`)
 - This milestone is spec scaffolding only until explicitly activated
+
+## Milestone 15: Developer provider configuration
+
+Outcome:
+- Developer builds can eventually configure bring-your-own-key and bring-your-own-model providers through command-palette flows only, while Lite builds use fixed cross-platform remote Mistral Small 4 and managed Nanonets OCR-3 profiles.
+
+Deliverables:
+- command-palette commands for OpenAI, Claude, Mistral, Nanonets, local OpenAI-compatible endpoint, default provider/model, connection testing, and credential clearing
+- developer-version gating so non-developer builds hide and reject credential/provider mutation commands
+- Lite distribution mode with fixed remote Mistral Small 4, managed Nanonets OCR-3, and no user API-key setup
+- Lite managed Nanonets credentials provided by app-managed remote service infrastructure, not hardcoded into the app, repo, project files, or user keychain
+- secure credential-store abstraction for macOS Keychain, Windows Credential Manager/DPAPI-backed storage, and Linux Secret Service/libsecret
+- backend provider-router integration for default online provider, default model, and confidential-mode local endpoint
+- no dedicated settings window
+- no user-editable config file
+
+Status:
+- Planned and disabled
+- Lane state: disabled (`feat-developer-provider-config`)
+- This milestone is spec scaffolding only until explicitly activated
+
+## Milestone 16: Desktop packaging for Developer and Lite
+
+Outcome:
+- Developer and Lite builds can eventually ship as normal local desktop apps for macOS, Windows, and Linux, with native windows, bundled runtime, local storage, and GitHub Release artifacts.
+
+Deliverables:
+- pywebview desktop shell for a native window around the locally served Textual UI
+- bundled Python runtime, Exegesis Engine, Textual local server, and SQLite app-data storage
+- Briefcase packaging configuration for Developer and Lite variants
+- macOS `.dmg`, Windows `.msi`, and Linux Flatpak release targets
+- platform app-data directory handling for SQLite, project files, cache, and logs
+- loopback-only local server startup with port collision handling
+- startup/shutdown coordination across engine, Textual server, pywebview, and SQLite
+- GitHub Release artifact collection with checksums
+- Developer packaging profile wired to Milestone 15 BYOK/BYOM provider commands
+- Lite packaging profile wired to remote Mistral Small 4 and managed Nanonets OCR-3 without user credential setup
+
+Status:
+- Planned and disabled
+- Lane state: disabled (`feat-desktop-packaging`)
+- This milestone is spec scaffolding only until explicitly activated
+
+## Milestone 17: CoP Launch Gate
+
+Outcome:
+- Lite builds can eventually grant initial Community of Practice users unlimited Lite course access while tracking finite Nanonets online OCR pages through a hosted Lite License Gateway.
+
+Deliverables:
+- initial CoP unlimited Lite course license with no seat cap
+- Developer/Lite boundary that prevents Developer builds from using hosted Lite workflows
+- Lite-only hosted License Gateway for license invites, claim, refresh, managed provider proxy, Paddle webhooks, and Nanonets page state
+- Nanonets page ledger with 150-page initial CoP balance
+- fixed Nanonets top-up packages of 150, 500, and 1000 pages
+- Paddle webhook contract for paid top-ups
+- transaction-safe reservation/consumption/release/refund rules for Nanonets OCR jobs
+- Lite import-window balance and estimated-page display before OCR-backed import
+- future hooks for Tally request intake, manual approval, and Claude cowork license-link generation
+
+Status:
+- Planned and disabled
+- Lane state: disabled (`feat-cop-lite-licensing`)
+- This milestone is spec scaffolding only until explicitly activated

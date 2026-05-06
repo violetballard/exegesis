@@ -262,6 +262,82 @@ Exit criteria:
 - formatting shortcut behavior is specified
 - no runtime formatting behavior is active until the lane is enabled
 
+## Milestone 15: Developer provider configuration
+
+Status: planned, disabled
+
+Scope:
+- add developer-version-only command-palette flows for bring-your-own-key and bring-your-own-model setup
+- support a Lite distribution mode that uses remote Mistral Small 4 and managed Nanonets OCR-3 by default with no user key setup
+- configure OpenAI, Claude, Mistral, Nanonets, and local OpenAI-compatible endpoint credentials
+- store all secrets securely through the detected OS credential store
+- use macOS Keychain, Windows Credential Manager/DPAPI-backed storage, or Linux Secret Service/libsecret as appropriate
+- set default online provider and default model without a dedicated settings window or config file
+- test current connection and clear stored credentials
+- hide and reject developer provider mutation commands outside developer builds
+- keep Lite managed Nanonets credentials cross-platform in app-managed remote service infrastructure, not hardcoded into the app, repo, project files, or user keychain
+
+Lane mapping:
+- `feat-developer-provider-config`: disabled until explicitly activated
+
+Exit criteria:
+- developer-only provider command contract is specified
+- Lite remote Mistral Small 4 provider contract is specified
+- Lite managed Nanonets OCR-3 provider contract is specified
+- cross-platform secure credential storage contract is specified
+- backend provider-router integration is specified
+- no runtime developer provider configuration behavior is active until the lane is enabled
+
+## Milestone 16: Desktop packaging for Developer and Lite
+
+Status: planned, disabled
+
+Scope:
+- package Exegesis as a normal local desktop app with no terminal or localhost exposure for end users
+- support both Developer and Lite distributions
+- target macOS `.dmg`, Windows `.msi`, and Linux Flatpak release artifacts
+- bundle Python runtime, Exegesis Engine, Textual local server, pywebview native shell, and SQLite local storage
+- initialize app data and SQLite from platform-appropriate user app data directories
+- use Briefcase for platform packaging and GitHub Releases for binary distribution
+- keep Developer builds wired for Milestone 15 BYOK/BYOM provider configuration
+- keep Lite builds wired for remote Mistral Small 4 and managed Nanonets OCR-3 without user credential setup
+- coordinate startup and shutdown across engine, local server, pywebview, and SQLite
+
+Lane mapping:
+- `feat-desktop-packaging`: disabled until explicitly activated
+
+Exit criteria:
+- Developer and Lite packaging architecture is specified for macOS, Windows, and Linux
+- desktop runtime startup/shutdown contract is specified
+- platform app-data and SQLite packaging behavior is specified
+- Briefcase/GitHub Release artifact flow is specified
+- no runtime packaging behavior is active until the lane is enabled
+
+## Milestone 17: CoP Launch Gate
+
+Status: planned, disabled
+
+Scope:
+- add initial Community of Practice unlimited Lite course access with no seat cap
+- keep Developer builds fully separate from hosted Lite workflows
+- add a Lite-only hosted License Gateway for license claim/refresh, managed Lite provider access, Paddle webhooks, and Nanonets page-credit state
+- route Lite remote Mistral Small 4 and Nanonets OCR-3 through gateway-managed credentials
+- keep Nanonets online OCR page-metered with a 150-page default balance for the initial CoP
+- allow fixed top-up packages of 150, 500, and 1000 pages through manual admin top-up and future Paddle checkout
+- specify ledger-based Nanonets page accounting, transaction-safe reservations, and idempotent job/webhook handling
+- show Nanonets page balance and estimated import page count in the Lite import window before OCR-backed import
+- define future Tally/manual approval/Claude cowork license-generation hooks without implementing them
+
+Lane mapping:
+- `feat-cop-lite-licensing`: disabled until explicitly activated
+
+Exit criteria:
+- Lite-only hosted License Gateway contract is specified
+- Developer/Lite boundary is specified so Developer never calls hosted Lite workflows
+- initial CoP Lite access and course-access rules are specified
+- Nanonets page ledger, fixed top-ups, Paddle webhook, and import-window balance behavior are specified
+- no runtime licensing, gateway, Paddle, OCR metering, or shell behavior is active until the lane is enabled
+
 Current operational narrowing:
 - Treat the canonical closure target as one engine-first demo path:
   - open project/document
@@ -293,6 +369,9 @@ Current operational narrowing:
 - `feat-export`
 - `feat-zotero-import`
 - `feat-formatting-bar`
+- `feat-developer-provider-config`
+- `feat-desktop-packaging`
+- `feat-cop-lite-licensing`
 
 ## Retired planning targets
 - `feat-ux-flow`

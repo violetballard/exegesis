@@ -201,6 +201,24 @@ is_allowed() {
       esac
       return 1
       ;;
+    codex/feat-developer-provider-config*)
+      case "$f" in
+        src/qual/providers/*|src/qual/providers/*/*|src/qual/credentials/*|src/qual/credentials/*/*|engine/src/exegesis_engine/providers/*|engine/src/exegesis_engine/providers/*/*|engine/src/exegesis_engine/credentials/*|engine/src/exegesis_engine/credentials/*/*|client-textual/src/exegesis_textual/providers/*|client-textual/src/exegesis_textual/providers/*/*|client-textual/src/exegesis_textual/commands/provider_config/*|client-textual/src/exegesis_textual/commands/provider_config/*/*) return 0 ;;
+      esac
+      return 1
+      ;;
+    codex/feat-desktop-packaging*)
+      case "$f" in
+        desktop-shell/*|desktop-shell/*/*|scripts/packaging/*|scripts/packaging/*/*|scripts/release/*|scripts/release/*/*|docs/packaging/*|docs/packaging/*/*) return 0 ;;
+      esac
+      return 1
+      ;;
+    codex/feat-cop-lite-licensing*)
+      case "$f" in
+        engine/src/exegesis_engine/licensing/*|engine/src/exegesis_engine/licensing/*/*|engine/src/exegesis_engine/lite_gateway/*|engine/src/exegesis_engine/lite_gateway/*/*|engine/src/exegesis_engine/nanonets_usage/*|engine/src/exegesis_engine/nanonets_usage/*/*|client-textual/src/exegesis_textual/licensing/*|client-textual/src/exegesis_textual/licensing/*/*|client-textual/src/exegesis_textual/imports/*|client-textual/src/exegesis_textual/imports/*/*|shared/src/exegesis_shared/licensing/*|shared/src/exegesis_shared/licensing/*/*|shared/src/exegesis_shared/nanonets_usage/*|shared/src/exegesis_shared/nanonets_usage/*/*|docs/licensing/*|docs/licensing/*/*) return 0 ;;
+      esac
+      return 1
+      ;;
     *)
       log "scope-check: no policy for branch '$branch'; skipping"
       return 0
