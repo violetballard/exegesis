@@ -1138,6 +1138,10 @@ COMMAND_SMOKE_SHELL_SETUP_COMMANDS: tuple[str, ...] = (
     "cd",
     "pwd",
 )
+COMMAND_SMOKE_SHELL_STATUS_COMMANDS: tuple[str, ...] = (
+    "exit",
+    "return",
+)
 COMMAND_SMOKE_SHELL_PROBE_COMMANDS: tuple[str, ...] = (
     "command",
 )
@@ -9950,11 +9954,17 @@ def _is_shell_script_setup_argv(argv: tuple[str, ...]) -> bool:
         return all(SHELL_ENV_ASSIGNMENT_RE.fullmatch(token) for token in argv[1:])
     if command == "set":
         return _is_shell_strict_mode_setup_argv(argv)
+    if command in COMMAND_SMOKE_SHELL_STATUS_COMMANDS:
+        return _is_shell_status_argv(argv[1:])
     if command in COMMAND_SMOKE_SHELL_PROBE_COMMANDS:
         return _is_shell_script_probe_setup_argv(argv[1:])
     if command in COMMAND_SMOKE_SHELL_OUTPUT_SINK_COMMANDS:
         return _is_shell_script_output_sink_argv(argv[1:])
     return command in COMMAND_SMOKE_SHELL_SETUP_COMMANDS
+
+
+def _is_shell_status_argv(argv: tuple[str, ...]) -> bool:
+    return len(argv) <= 1 and all(token.isdigit() for token in argv)
 
 
 def _is_shell_script_probe_setup_argv(argv: tuple[str, ...]) -> bool:
