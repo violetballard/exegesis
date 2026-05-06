@@ -1,6 +1,8 @@
 from __future__ import annotations
 
 import copy
+from collections.abc import Mapping, Sequence
+from dataclasses import asdict, is_dataclass
 import time
 from typing import Any, Callable
 
@@ -20,8 +22,8 @@ class FTSStrategy:
     #
     # The cache stores **one** recent request – the most recent ``(query,
     # candidate_doc_ids)`` tuple and its resulting hits. If a subsequent call
-    # provides an identical query object (equality is based on ``==`` for the
-    # supplied type) and the same ordered ``candidate_doc_ids``, we return the
+    # provides an equivalent query snapshot and the same ordered
+    # ``candidate_doc_ids``, we return the
     # cached hits and set ``cache_used=True`` in the ``StrategyRun`` payload.
     # The cache is deliberately tiny to avoid unbounded memory growth and to keep
     # the behaviour easy to reason about for tests.
@@ -76,12 +78,32 @@ class FTSStrategy:
         """Return a defensive snapshot for the one-entry cache key.
 
         Retrieval queries are usually immutable dataclasses, but some callers may
-        still hand in mutable query-shaped objects. Snapshotting the query keeps
-        later caller mutations from silently altering the cached key.
+        still hand in mutable query-shaped objects. Snapshotting public query
+        state keeps later caller mutations from silently altering the cached key
+        and lets equivalent query-shaped inputs share one deterministic FTS run.
         """
 
-        try:
-            query_snapshot = copy.deepcopy(query)
-        except Exception:
-            query_snapshot = query
+        query_snapshot = FTSStrategy._snapshot_cache_value(query)
         return query_snapshot, tuple(candidate_doc_ids)
+
+    @staticmethod
+    def _snapshot_cache_value(value: Any) -> Any:
+        if is_dataclass(value) and not isinstance(value, type):
+            return FTSStrategy._snapshot_cache_value(asdict(value))
+        if isinstance(value, Mapping):
+            return tuple(
+                (str(key), FTSStrategy._snapshot_cache_value(item))
+                for key, item in sorted(value.items(), key=lambda pair: str(pair[0]))
+            )
+        if isinstance(value, tuple):
+            return tuple(FTSStrategy._snapshot_cache_value(item) for item in value)
+        if isinstance(value, list):
+            return tuple(FTSStrategy._snapshot_cache_value(item) for item in value)
+        if isinstance(value, Sequence) and not isinstance(value, (str, bytes, bytearray)):
+            return tuple(FTSStrategy._snapshot_cache_value(item) for item in value)
+        if hasattr(value, "__dict__"):
+            return FTSStrategy._snapshot_cache_value(vars(value))
+        try:
+            return copy.deepcopy(value)
+        except Exception:
+            return repr(value)

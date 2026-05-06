@@ -33,10 +33,12 @@ This finalization pass after `5e1bf46c0` adds a deterministic `query_constraints
 
 This finalization pass after `1bd6935e88dec29b34f6a38fcbaf55081a028e07` canonicalizes doc-type filters inside downstream query-constraint snapshots and retrieval evidence. Semantically identical caller filters now produce stable constraint payloads and fingerprints across citation, provenance, source-bundle, and evidence surfaces used for basket/context promotion.
 
+This finalization pass after `fac4524b04777587ca2933d618373e1a65fb163f` makes the FTS strategy cache key use deterministic public query snapshots for dataclasses, mapping/list-shaped payloads, and query-shaped objects. Equivalent FTS-first query inputs now share the cached SQLite FTS run even when the caller uses separate mutable query-shaped objects, and caller mutations after retrieval cannot alter the stored cache key.
+
 ## Tasks Completed
 
 1. Made SQLite FTS the primary retrieval path for document and excerpt retrieval, with PageIndex and embeddings retained as compatibility-only fallback/deferred surfaces.
-2. Stabilized FTS retrieval cache behavior, including cache invalidation on document updates and cache audit metadata for payload/provenance consumers.
+2. Stabilized FTS retrieval cache behavior, including deterministic query-shaped cache snapshots, cache invalidation on document updates, and cache audit metadata for payload/provenance consumers.
 3. Normalized retrieval payloads, query snapshots, constraints, provenance fingerprints, source bundles, and basket/context promotion metadata for deterministic downstream engine use, including canonical doc-type filters and explicit query-constraint snapshots in bundle/provenance surfaces.
 4. Validated date-range constraints and canonical query text/scope constraints at the retrieval boundary, preserved normalized query constraints during sparse citation/source/context-bundle rehydration, added stable FTS excerpt lookup fingerprints to payload/provenance/audit snapshots, and exposed normalized query constraints plus their deterministic fingerprint in retrieval evidence for basket/context promotion, with approved shared regression coverage in `tests/unit/test_unified_retrieval.py` for the FTS-first retrieval behavior, payload normalization, cache metadata, facade exports, citation/provenance helpers, excerpt lookup, and date-range validation included in this task group.
 
@@ -78,6 +80,12 @@ Additional current finalization diff after `1bd6935e88dec29b34f6a38fcbaf55081a02
 - `M THREAD_PACKET.md` - handoff packet restamp.
 - `M src/qual/retrieval/service.py` - canonicalizes doc-type filters in query-constraint snapshots and retrieval evidence before computing downstream fingerprints.
 
+Additional current finalization diff after `fac4524b04777587ca2933d618373e1a65fb163f`:
+
+- `M THREAD_PACKET.md` - handoff packet restamp.
+- `M src/qual/engine/retrieval/fts_strategy.py` - snapshots dataclass, mapping/list-shaped, and public query-object state into deterministic FTS cache keys.
+- `M tests/unit/test_unified_retrieval.py` - covers equivalent query-shaped objects reusing the FTS strategy cache after caller-side mutation.
+
 From `git diff --stat 378cf9a74a3658058079a32f186fcd254c4a4034..FINAL_FIXER_HEAD_REPORTED_IN_RESPONSE`:
 
 - `.codex/kickoff_packets/feat-retrieval-fts.md` - 36 lines changed.
@@ -102,6 +110,8 @@ From `git diff --stat 378cf9a74a3658058079a32f186fcd254c4a4034..FINAL_FIXER_HEAD
 
 Current finalization remains low blast radius: the final fixer commit updates FTS query-constraint snapshot canonicalization in `src/qual/retrieval/service.py` and this handoff packet. No integrator-locked file edits are added by this fixer pass, and no new shared regression files are edited.
 
+Current finalization after `fac4524b04777587ca2933d618373e1a65fb163f` remains within the high-risk budget: 1 task group, 3 files changed including this handoff packet, and `60 insertions(+), 7 deletions(-)` before the packet restamp. The implementation/test delta is 2 files and net +53 LOC. No integrator-locked files, provider/routing code, UI code, PageIndex required path, embeddings required path, or additional shared regression files are touched.
+
 ## Traceability Correction
 
 The earlier packet incorrectly claimed commits after `adfa8cdadd43747ffbcb612e4151e262b13e52ca` were metadata-only. That claim is withdrawn. Commits including `1696a088d`, `d31c231e`, `9792d439`, and `25f8d10c4` are code-bearing retrieval/test commits and are included in the corrected reviewed implementation range.
@@ -121,6 +131,12 @@ This handoff has one authoritative reviewed implementation range: `378cf9a74a365
 
 Commands run for this corrected packet on the branch-tip worktree state:
 
+- `python -m unittest tests.unit.test_unified_retrieval.UnifiedRetrievalTests.test_fts_strategy_cache_uses_stable_query_snapshots tests.unit.test_unified_retrieval.UnifiedRetrievalTests.test_retrieve_auto_records_cache_use_in_diagnostics_and_audit` - passed 2 focused cache tests after adding deterministic FTS cache query snapshots.
+- `./quality-format.sh --check` - passed after adding deterministic FTS cache query snapshots.
+- `./quality-lint.sh` - passed shell syntax and trailing whitespace checks after adding deterministic FTS cache query snapshots.
+- `./quality-test.sh` - passed smoke tests and 128 unit tests after adding deterministic FTS cache query snapshots.
+- `./typecheck-test.sh` - passed Python source compilation under `src/` after adding deterministic FTS cache query snapshots.
+- `make ci` - passed setup, scope-check, format, lint, compile/typecheck, smoke tests, and 128 unit tests after adding deterministic FTS cache query snapshots.
 - `python -m unittest tests.unit.test_unified_retrieval` - passed 58 retrieval unit tests after canonicalizing doc-type filters in downstream query-constraint snapshots and retrieval evidence.
 - `./quality-format.sh --check` - passed after canonicalizing doc-type filters in downstream query-constraint snapshots and retrieval evidence.
 - `./quality-lint.sh` - passed shell syntax and trailing whitespace checks after canonicalizing doc-type filters in downstream query-constraint snapshots and retrieval evidence.

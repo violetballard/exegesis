@@ -234,6 +234,37 @@ class UnifiedRetrievalTests(unittest.TestCase):
         retrieval_events = [event for event in audit_events if event["name"] == "retrieval_executed"]
         self.assertEqual(retrieval_events[-1]["metadata"]["caches_used"], {"fts": True})
 
+    def test_fts_strategy_cache_uses_stable_query_snapshots(self) -> None:
+        calls: list[tuple[object, tuple[str, ...]]] = []
+
+        class QueryShape:
+            def __init__(self, *, query_text: str, constraints: dict[str, object]) -> None:
+                self.query_text = query_text
+                self.constraints = constraints
+
+        def runner(query: object, candidate_doc_ids: tuple[str, ...]) -> list[dict[str, object]]:
+            calls.append((query, candidate_doc_ids))
+            return [{"doc_id": "doc-pdf-1", "query_text": getattr(query, "query_text")}]
+
+        strategy = engine_retrieval.FTSStrategy(runner)
+        first_query = QueryShape(
+            query_text="theory implications",
+            constraints={"doc_types": ["pdf"], "max_results": 5},
+        )
+        second_query = QueryShape(
+            query_text="theory implications",
+            constraints={"max_results": 5, "doc_types": ["pdf"]},
+        )
+
+        first = strategy.retrieve(first_query, candidate_doc_ids=("doc-pdf-1",))
+        first_query.constraints["doc_types"].append("memo")
+        second = strategy.retrieve(second_query, candidate_doc_ids=("doc-pdf-1",))
+
+        self.assertFalse(first.cache_used)
+        self.assertTrue(second.cache_used)
+        self.assertEqual(len(calls), 1)
+        self.assertEqual(second.hits, first.hits)
+
     def test_retrieval_hits_reject_non_fts_source_strategies(self) -> None:
         with self.assertRaisesRegex(ValueError, "source_strategy must be fts"):
             RetrievalHit(
