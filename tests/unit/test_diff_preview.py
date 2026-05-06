@@ -10,7 +10,11 @@ from src.qual.commands.diff_preview import (
     SUMMARY_ONLY_ENV,
     SUPPRESS_FILE_HEADERS_ENV,
     DiffPreviewInput,
+    PatchReviewDecision,
+    build_diff_preview_result,
+    build_patch_review_decision,
     run_diff_preview,
+    run_patch_review_decision,
 )
 
 
@@ -84,6 +88,77 @@ class DiffPreviewBehaviorTests(unittest.TestCase):
             identical = run_diff_preview(DiffPreviewInput("same\n", "same\n"))
         self.assertEqual(both_empty, "No diff: both inputs are empty.")
         self.assertEqual(identical, "No diff: inputs are identical after normalization.")
+
+
+class PatchReviewDecisionTests(unittest.TestCase):
+    """Validate the patch-review decision flow for the Milestone 3 demo loop.
+
+    These tests ensure the patch review command surface correctly drives the
+    apply/reject decision that the engine loop requires.
+    """
+
+    def test_changes_detected_yields_apply_reject_actions(self) -> None:
+        decision = build_patch_review_decision(
+            DiffPreviewInput("original line\n", "revised line\n")
+        )
+        self.assertEqual(decision.status, "changes-detected")
+        self.assertEqual(decision.next_actions, ("apply", "reject"))
+        self.assertTrue(decision.has_changes)
+        self.assertFalse(decision.normalized_equal)
+
+    def test_identical_inputs_yield_no_op(self) -> None:
+        decision = build_patch_review_decision(
+            DiffPreviewInput("same content\n", "same content\n")
+        )
+        self.assertEqual(decision.status, "no-op")
+        self.assertEqual(decision.next_actions, ("continue",))
+        self.assertFalse(decision.has_changes)
+        self.assertTrue(decision.normalized_equal)
+
+    def test_empty_inputs_yield_no_op(self) -> None:
+        decision = build_patch_review_decision(DiffPreviewInput("", ""))
+        self.assertEqual(decision.status, "no-op")
+        self.assertEqual(decision.next_actions, ("continue",))
+        self.assertFalse(decision.has_changes)
+        self.assertTrue(decision.normalized_equal)
+
+    def test_run_patch_review_decision_output_format(self) -> None:
+        output = run_patch_review_decision(
+            DiffPreviewInput("original\n", "revised\n")
+        )
+        self.assertIn("patch-review: changes-detected", output)
+        self.assertIn("next-actions=apply,reject", output)
+        self.assertIn("truncated=", output)
+
+    def test_run_patch_review_decision_no_op_format(self) -> None:
+        output = run_patch_review_decision(
+            DiffPreviewInput("same\n", "same\n")
+        )
+        self.assertIn("patch-review: no-op", output)
+        self.assertIn("next-actions=continue", output)
+
+    def test_decision_truncated_flag_reflects_diff_result(self) -> None:
+        decision = build_patch_review_decision(
+            DiffPreviewInput("a\n", "b\n")
+        )
+        self.assertFalse(decision.truncated)
+
+    def test_decision_summary_matches_diff_summary(self) -> None:
+        result = build_diff_preview_result(
+            DiffPreviewInput("a\nold\n", "a\nnew\n")
+        )
+        decision = build_patch_review_decision(
+            DiffPreviewInput("a\nold\n", "a\nnew\n")
+        )
+        self.assertEqual(result.summary, decision.summary)
+
+    def test_decision_is_frozen_dataclass(self) -> None:
+        decision = build_patch_review_decision(
+            DiffPreviewInput("a\n", "b\n")
+        )
+        self.assertIsInstance(decision, PatchReviewDecision)
+        with self.assertRaises(Exception):
+            decision.status = "modified"  # type: ignore[attr-defined]
 
 
 if __name__ == "__main__":

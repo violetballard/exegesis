@@ -900,5 +900,230 @@ class CommandCatalogTests(unittest.TestCase):
         )
 
 
+class Milestone3DemoLoopTests(unittest.TestCase):
+    """Validate the complete Milestone 3 canonical demo path.
+
+    These tests ensure every step of the engine-side demo loop is reachable
+    through stable commands before downstream lanes activate.
+    """
+
+    def test_demo_path_steps_are_in_canonical_order(self) -> None:
+        from src.qual.commands.catalog import (
+            DEMO_COMMAND_FLOW_STEPS,
+            _DEMO_PATH_STEP_BY_FLOW_STEP,
+        )
+
+        expected_steps = (
+            "open project/document",
+            "retrieve relevant material and gather context",
+            "preview and apply or reject a patch",
+            "persist and continue",
+        )
+        actual_steps = tuple(entry[1] for entry in _DEMO_PATH_STEP_BY_FLOW_STEP)
+        self.assertEqual(actual_steps, expected_steps)
+
+        expected_flow_steps = (
+            "project-open",
+            "retrieval",
+            "patch-review",
+            "export-handoff",
+        )
+        self.assertEqual(DEMO_COMMAND_FLOW_STEPS, expected_flow_steps)
+
+    def test_demo_path_steps_map_to_expected_commands(self) -> None:
+        from src.qual.commands.catalog import (
+            _DEMO_PATH_STEP_BY_FLOW_STEP,
+            command_demo_path_step_for_command,
+        )
+
+        expected = {
+            "bootstrap": "open project/document",
+            "context-basket": "retrieve relevant material and gather context",
+            "diff-preview": "preview and apply or reject a patch",
+            "terminal": "persist and continue",
+        }
+        for command, demo_step in expected.items():
+            self.assertEqual(
+                command_demo_path_step_for_command(command),
+                demo_step,
+                f"Command {command} should map to '{demo_step}'",
+            )
+
+    def test_demo_path_engine_actions_are_complete(self) -> None:
+        from src.qual.commands.catalog import (
+            _DEMO_PATH_STEP_BY_FLOW_STEP,
+            command_demo_engine_actions,
+        )
+
+        all_actions = set()
+        for _, _, actions in _DEMO_PATH_STEP_BY_FLOW_STEP:
+            for action in actions:
+                self.assertNotIn(
+                    action,
+                    all_actions,
+                    f"Engine action {action} appears in multiple demo path steps",
+                )
+                all_actions.add(action)
+
+        catalog_actions = set(command_demo_engine_actions())
+        self.assertEqual(
+            all_actions,
+            catalog_actions,
+            "Demo path engine actions must match catalog engine actions",
+        )
+
+    def test_readiness_handoff_packet_is_complete(self) -> None:
+        from src.qual.commands.canonical import (
+            canonical_command_readiness_handoff_packet,
+        )
+
+        packet = canonical_command_readiness_handoff_packet()
+        self.assertTrue(
+            packet.is_complete,
+            f"Handoff packet should be complete; missing flow steps: {packet.missing_flow_steps}, "
+            f"missing engine actions: {packet.missing_engine_actions}",
+        )
+        self.assertEqual(packet.missing_flow_steps, ())
+        self.assertEqual(packet.missing_engine_actions, ())
+        self.assertEqual(packet.invalid_argv, ())
+        self.assertEqual(len(packet.command_lines), 4)
+
+    def test_full_demo_cli_transcript_validates_complete(self) -> None:
+        from src.qual.commands.catalog import (
+            command_demo_readiness_validate_script,
+            _DEMO_SMOKE_ARGV_BY_FLOW_STEP,
+        )
+
+        argvs = tuple(argv for _, argv in _DEMO_SMOKE_ARGV_BY_FLOW_STEP)
+        validation = command_demo_readiness_validate_script(argvs)
+
+        self.assertTrue(
+            validation.is_complete,
+            f"Full demo transcript should be complete; missing: {validation.missing_flow_steps}",
+        )
+        self.assertEqual(validation.missing_flow_steps, ())
+        self.assertEqual(validation.missing_engine_actions, ())
+        self.assertEqual(validation.invalid_argv, ())
+        self.assertEqual(
+            validation.covered_flow_steps,
+            ("project-open", "retrieval", "patch-review", "export-handoff"),
+        )
+
+    def test_demo_loop_progression_advances_through_all_steps(self) -> None:
+        from src.qual.commands.canonical import (
+            canonical_command_readiness_progress,
+            canonical_command_readiness_next_action,
+        )
+        from src.qual.commands.catalog import (
+            _DEMO_SMOKE_ARGV_BY_FLOW_STEP,
+        )
+
+        argvs = tuple(argv for _, argv in _DEMO_SMOKE_ARGV_BY_FLOW_STEP)
+
+        for i in range(len(argvs)):
+            partial = argvs[:i]
+            if i < len(argvs) - 1:
+                progress = canonical_command_readiness_progress(partial)
+                self.assertIsNotNone(
+                    progress.next_flow_step,
+                    f"After {i} steps, should still have next flow step",
+                )
+                next_action = canonical_command_readiness_next_action(partial)
+                self.assertFalse(
+                    next_action.is_complete,
+                    f"After {i} steps, demo loop should not be complete yet",
+                )
+
+        progress = canonical_command_readiness_progress(argvs)
+        self.assertIsNone(
+            progress.next_flow_step,
+            "After all steps, next flow step should be None",
+        )
+
+    def test_patch_review_step_covers_all_patch_actions(self) -> None:
+        from src.qual.commands.catalog import (
+            _DEMO_PATH_STEP_BY_FLOW_STEP,
+            command_demo_readiness_exact_action_argv_lookup_table,
+        )
+
+        patch_review_entry = None
+        for flow_step, demo_step, actions in _DEMO_PATH_STEP_BY_FLOW_STEP:
+            if demo_step == "preview and apply or reject a patch":
+                patch_review_entry = (flow_step, demo_step, actions)
+                break
+
+        self.assertIsNotNone(patch_review_entry)
+        _, _, expected_actions = patch_review_entry
+        self.assertEqual(
+            set(expected_actions),
+            {
+                "ExegesisAppService.revise_selection",
+                "ExegesisAppService.apply_patch",
+                "ExegesisAppService.reject_patch",
+            },
+        )
+
+        lookup = dict(command_demo_readiness_exact_action_argv_lookup_table())
+        for action in expected_actions:
+            self.assertIn(
+                action,
+                lookup,
+                f"Patch review action {action} must have exact action argv",
+            )
+
+    def test_export_handoff_step_covers_persist_action(self) -> None:
+        from src.qual.commands.catalog import (
+            _DEMO_PATH_STEP_BY_FLOW_STEP,
+            command_demo_readiness_exact_action_argv_lookup_table,
+        )
+
+        export_entry = None
+        for flow_step, demo_step, actions in _DEMO_PATH_STEP_BY_FLOW_STEP:
+            if demo_step == "persist and continue":
+                export_entry = (flow_step, demo_step, actions)
+                break
+
+        self.assertIsNotNone(export_entry)
+        _, _, expected_actions = export_entry
+        self.assertEqual(expected_actions, ("ExegesisAppService.save_document",))
+
+        lookup = dict(command_demo_readiness_exact_action_argv_lookup_table())
+        self.assertIn(
+            "ExegesisAppService.save_document",
+            lookup,
+            "Export handoff action must have exact action argv",
+        )
+
+    def test_retrieval_step_covers_search_and_basket_actions(self) -> None:
+        from src.qual.commands.catalog import (
+            _DEMO_PATH_STEP_BY_FLOW_STEP,
+            command_demo_readiness_exact_action_argv_lookup_table,
+        )
+
+        retrieval_entry = None
+        for flow_step, demo_step, actions in _DEMO_PATH_STEP_BY_FLOW_STEP:
+            if demo_step == "retrieve relevant material and gather context":
+                retrieval_entry = (flow_step, demo_step, actions)
+                break
+
+        self.assertIsNotNone(retrieval_entry)
+        _, _, expected_actions = retrieval_entry
+        self.assertEqual(
+            set(expected_actions),
+            {
+                "ExegesisAppService.search_project",
+                "ExegesisAppService.add_basket_item",
+            },
+        )
+
+        lookup = dict(command_demo_readiness_exact_action_argv_lookup_table())
+        for action in expected_actions:
+            self.assertIn(
+                action,
+                lookup,
+                f"Retrieval action {action} must have exact action argv",
+            )
+
+
 if __name__ == "__main__":
     unittest.main()

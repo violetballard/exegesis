@@ -2434,6 +2434,14 @@ def command_demo_path_contract(
     return contract
 
 
+def command_demo_path_steps(
+    specs: tuple[CommandSpec, ...] = COMMAND_SPECS,
+) -> tuple[str, ...]:
+    """Return the canonical Milestone 3 demo path labels in route order."""
+
+    return tuple(entry.demo_path_step for entry in command_demo_path_contract(specs).entries)
+
+
 def _demo_path_metadata_for_route(
     flow_step: str,
     path_steps: dict[str, tuple[str, tuple[str, ...]]],
@@ -13682,6 +13690,12 @@ def command_mvp_demo_path_readiness_contract(
     launcher_argv: tuple[str, ...] = COMMAND_SMOKE_CLI_LAUNCHER_ARGV,
 ) -> CommandDemoPathReadinessContract:
     return command_demo_path_readiness_contract(specs, launcher_argv)
+
+
+def command_mvp_demo_path_steps(
+    specs: tuple[CommandSpec, ...] = COMMAND_SPECS,
+) -> tuple[str, ...]:
+    return command_demo_path_steps(specs)
 
 
 def command_mvp_demo_path_readiness_summary(
