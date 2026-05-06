@@ -11,6 +11,10 @@ from pathlib import PurePath
 
 
 SHELL_ENV_ASSIGNMENT_RE = re.compile(r"[A-Za-z_][A-Za-z0-9_]*=.*")
+SHELL_REDIRECT_OPERATOR_RE = re.compile(r"(?:[0-9]+)?(?:>>?|<<?|<>|>&|<&)|&>>?")
+SHELL_REDIRECT_WITH_TARGET_RE = re.compile(
+    r"(?:(?:[0-9]+)?(?:>>?|<<?|<>|>&|<&)|&>>?).+"
+)
 
 
 @dataclass(frozen=True)
@@ -8694,7 +8698,37 @@ def _normalize_shell_script_segment_argv(
         opened_groups = max(0, opened_groups - (len(tokens[-1]) - len(stripped)))
         tokens[-1] = stripped
 
-    return tuple(token for token in tokens if token), opened_groups
+    return _strip_shell_redirections(tuple(token for token in tokens if token)), opened_groups
+
+
+def _strip_shell_redirections(argv: tuple[str, ...]) -> tuple[str, ...]:
+    stripped_argv: list[str] = []
+    index = 0
+    while index < len(argv):
+        token = argv[index]
+        if _is_shell_redirection_operator(token):
+            if index + 2 < len(argv) and argv[index + 1] == "&" and argv[index + 2].isdigit():
+                index += 3
+                continue
+            index += 2
+            continue
+        if _is_shell_redirection_with_target(token):
+            index += 1
+            continue
+        stripped_argv.append(token)
+        index += 1
+    return tuple(stripped_argv)
+
+
+def _is_shell_redirection_operator(token: str) -> bool:
+    return SHELL_REDIRECT_OPERATOR_RE.fullmatch(token) is not None
+
+
+def _is_shell_redirection_with_target(token: str) -> bool:
+    return (
+        not _is_shell_redirection_operator(token)
+        and SHELL_REDIRECT_WITH_TARGET_RE.fullmatch(token) is not None
+    )
 
 
 def _is_shell_strict_mode_setup_line(line: str) -> bool:
