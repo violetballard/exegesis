@@ -597,6 +597,20 @@ _MVP_ACTIVE_STRATEGY_IDS = ["fts"]
 _MVP_DEFERRED_STRATEGY_IDS = ["pageindex", "embeddings"]
 
 
+def _normalize_retrieval_backend(value: object, *, field_name: str) -> str:
+    retrieval_backend = _normalize_optional_text(value)
+    if retrieval_backend is not None and retrieval_backend != _MVP_RETRIEVAL_BACKEND:
+        raise ValueError(f"{field_name} must use sqlite_fts backend for the MVP")
+    return retrieval_backend or _MVP_RETRIEVAL_BACKEND
+
+
+def _normalize_retrieval_mode(value: object, *, field_name: str) -> str:
+    retrieval_mode = _normalize_optional_text(value)
+    if retrieval_mode is not None and retrieval_mode != _MVP_RETRIEVAL_MODE:
+        raise ValueError(f"{field_name} must use fts_first mode for the MVP")
+    return retrieval_mode or _MVP_RETRIEVAL_MODE
+
+
 def _normalize_active_strategy_ids(value: object, *, field_name: str) -> list[str]:
     if isinstance(value, Set):
         raise TypeError(f"{field_name} active strategies must be an ordered iterable of values")
@@ -612,7 +626,11 @@ def _normalize_deferred_strategy_ids(value: object, *, field_name: str) -> list[
     if isinstance(value, Set):
         raise TypeError(f"{field_name} deferred strategies must be an ordered iterable of values")
     strategy_ids = _stable_text_values(value if value is not None else _MVP_DEFERRED_STRATEGY_IDS)
-    return strategy_ids or list(_MVP_DEFERRED_STRATEGY_IDS)
+    if not strategy_ids:
+        return list(_MVP_DEFERRED_STRATEGY_IDS)
+    if strategy_ids != _MVP_DEFERRED_STRATEGY_IDS:
+        raise ValueError(f"{field_name} deferred strategies must remain pageindex, embeddings for the MVP")
+    return strategy_ids
 
 
 def _normalize_confidentiality_profile(value: object) -> str:
@@ -781,15 +799,41 @@ def _normalize_policy_snapshot(policy: object) -> dict[str, object]:
         normalized.get("deferred_strategy_ids"),
         field_name="retrieval_policy",
     )
-    retrieval_backend = _normalize_optional_text(normalized.get("retrieval_backend"))
-    if retrieval_backend is not None and retrieval_backend != _MVP_RETRIEVAL_BACKEND:
-        raise ValueError("retrieval_policy must use sqlite_fts backend for the MVP")
-    normalized["retrieval_backend"] = retrieval_backend or _MVP_RETRIEVAL_BACKEND
-    retrieval_mode = _normalize_optional_text(normalized.get("retrieval_mode"))
-    if retrieval_mode is not None and retrieval_mode != _MVP_RETRIEVAL_MODE:
-        raise ValueError("retrieval_policy must use fts_first mode for the MVP")
-    normalized["retrieval_mode"] = retrieval_mode or _MVP_RETRIEVAL_MODE
+    normalized["retrieval_backend"] = _normalize_retrieval_backend(
+        normalized.get("retrieval_backend"),
+        field_name="retrieval_policy",
+    )
+    normalized["retrieval_mode"] = _normalize_retrieval_mode(
+        normalized.get("retrieval_mode"),
+        field_name="retrieval_policy",
+    )
     return normalized
+
+
+def _normalize_bundle_retrieval_identity(
+    normalized: dict[str, object],
+    *,
+    field_name: str,
+) -> None:
+    retrieval_policy = normalized.get("retrieval_policy")
+    if not isinstance(retrieval_policy, dict):
+        retrieval_policy = {}
+    if "retrieval_backend" in normalized:
+        normalized["retrieval_backend"] = _normalize_retrieval_backend(
+            _first_text_value(
+                normalized.get("retrieval_backend"),
+                retrieval_policy.get("retrieval_backend"),
+            ),
+            field_name=field_name,
+        )
+    if "retrieval_mode" in normalized:
+        normalized["retrieval_mode"] = _normalize_retrieval_mode(
+            _first_text_value(
+                normalized.get("retrieval_mode"),
+                retrieval_policy.get("retrieval_mode"),
+            ),
+            field_name=field_name,
+        )
 
 
 def _normalize_citation_bundle_snapshot(citation_bundle: dict[str, object]) -> dict[str, object]:
@@ -826,6 +870,7 @@ def _normalize_citation_bundle_snapshot(citation_bundle: dict[str, object]) -> d
     normalized["retrieval_policy"] = _normalize_policy_snapshot(
         retrieval_policy if isinstance(retrieval_policy, dict) else {}
     )
+    _normalize_bundle_retrieval_identity(normalized, field_name="citation_bundle")
     citation_status = normalized.get("citation_status")
     if isinstance(citation_status, dict):
         normalized["citation_status"] = copy.deepcopy(citation_status)
@@ -851,6 +896,7 @@ def _normalize_doc_bundle_snapshot(doc_bundle: dict[str, object]) -> dict[str, o
     normalized["retrieval_policy"] = _normalize_policy_snapshot(
         retrieval_policy if isinstance(retrieval_policy, dict) else {}
     )
+    _normalize_bundle_retrieval_identity(normalized, field_name="doc_bundle")
     citation_status = normalized.get("citation_status")
     if isinstance(citation_status, dict):
         normalized["citation_status"] = copy.deepcopy(citation_status)
@@ -891,6 +937,7 @@ def _normalize_excerpt_bundle_snapshot(excerpt_bundle: dict[str, object]) -> dic
     retrieval_policy = normalized.get("retrieval_policy")
     if isinstance(retrieval_policy, dict):
         normalized["retrieval_policy"] = _normalize_policy_snapshot(retrieval_policy)
+    _normalize_bundle_retrieval_identity(normalized, field_name="excerpt_bundle")
     citation_status = normalized.get("citation_status")
     if isinstance(citation_status, dict):
         normalized["citation_status"] = copy.deepcopy(citation_status)
@@ -939,6 +986,7 @@ def _normalize_retrieval_summary_snapshot(summary: dict[str, object]) -> dict[st
     normalized["retrieval_policy"] = _normalize_policy_snapshot(
         retrieval_policy if isinstance(retrieval_policy, dict) else {}
     )
+    _normalize_bundle_retrieval_identity(normalized, field_name="retrieval_summary")
     citation_status = normalized.get("citation_status")
     if isinstance(citation_status, dict):
         normalized["citation_status"] = copy.deepcopy(citation_status)
@@ -975,6 +1023,7 @@ def _normalize_retrieval_manifest_snapshot(manifest: dict[str, object]) -> dict[
     retrieval_policy = normalized.get("retrieval_policy")
     if isinstance(retrieval_policy, dict):
         normalized["retrieval_policy"] = _normalize_policy_snapshot(retrieval_policy)
+    _normalize_bundle_retrieval_identity(normalized, field_name="retrieval_manifest")
     return normalized
 
 
@@ -1017,6 +1066,7 @@ def _normalize_retrieval_evidence_snapshot(evidence: dict[str, object]) -> dict[
     retrieval_policy = normalized.get("retrieval_policy")
     if isinstance(retrieval_policy, dict):
         normalized["retrieval_policy"] = _normalize_policy_snapshot(retrieval_policy)
+    _normalize_bundle_retrieval_identity(normalized, field_name="retrieval_evidence")
     retrieval_manifest = normalized.get("retrieval_manifest")
     if isinstance(retrieval_manifest, dict):
         normalized["retrieval_manifest"] = _normalize_retrieval_manifest_snapshot(retrieval_manifest)
@@ -1103,25 +1153,26 @@ def _normalize_retrieval_source_bundle_snapshot(source_bundle: dict[str, object]
     if query_fingerprint is not None:
         normalized["query_fingerprint"] = query_fingerprint
 
-    retrieval_backend = _first_text_value(
-        normalized.get("retrieval_backend"),
-        retrieval_policy.get("retrieval_backend"),
-        retrieval_summary.get("retrieval_backend"),
-        retrieval_provenance.get("retrieval_backend"),
-        retrieval_citation_bundle.get("retrieval_backend"),
+    normalized["retrieval_backend"] = _normalize_retrieval_backend(
+        _first_text_value(
+            normalized.get("retrieval_backend"),
+            retrieval_policy.get("retrieval_backend"),
+            retrieval_summary.get("retrieval_backend"),
+            retrieval_provenance.get("retrieval_backend"),
+            retrieval_citation_bundle.get("retrieval_backend"),
+        ),
+        field_name="retrieval_source_bundle",
     )
-    if retrieval_backend is not None:
-        normalized["retrieval_backend"] = retrieval_backend
-
-    retrieval_mode = _first_text_value(
-        normalized.get("retrieval_mode"),
-        retrieval_policy.get("retrieval_mode"),
-        retrieval_summary.get("retrieval_mode"),
-        retrieval_provenance.get("retrieval_mode"),
-        retrieval_citation_bundle.get("retrieval_mode"),
+    normalized["retrieval_mode"] = _normalize_retrieval_mode(
+        _first_text_value(
+            normalized.get("retrieval_mode"),
+            retrieval_policy.get("retrieval_mode"),
+            retrieval_summary.get("retrieval_mode"),
+            retrieval_provenance.get("retrieval_mode"),
+            retrieval_citation_bundle.get("retrieval_mode"),
+        ),
+        field_name="retrieval_source_bundle",
     )
-    if retrieval_mode is not None:
-        normalized["retrieval_mode"] = retrieval_mode
 
     normalized["source_bundle_fingerprint"] = _stable_fingerprint(
         {key: value for key, value in normalized.items() if key != "source_bundle_fingerprint"}
@@ -1323,6 +1374,16 @@ def _build_retrieval_source_bundle_from_payload(payload: dict[str, object]) -> d
         source_bundle = payload.get("source_bundle")
     if isinstance(source_bundle, dict):
         return _normalize_retrieval_source_bundle_snapshot(source_bundle)
+    if "retrieval_backend" in payload:
+        _normalize_retrieval_backend(
+            payload.get("retrieval_backend"),
+            field_name="retrieval_source_bundle",
+        )
+    if "retrieval_mode" in payload:
+        _normalize_retrieval_mode(
+            payload.get("retrieval_mode"),
+            field_name="retrieval_source_bundle",
+        )
     retrieval_doc_bundle = payload.get("retrieval_doc_bundle")
     if not isinstance(retrieval_doc_bundle, dict):
         retrieval_doc_bundle = _build_retrieval_doc_bundle_from_payload(payload)
@@ -1701,13 +1762,19 @@ def _build_retrieval_diagnostics_from_source_bundle(source_bundle: dict[str, obj
 
     return {
         "retrieval_policy": copy.deepcopy(retrieval_policy),
-        "retrieval_backend": citation_bundle.get(
-            "retrieval_backend",
-            normalized.get("retrieval_backend"),
+        "retrieval_backend": _normalize_retrieval_backend(
+            citation_bundle.get(
+                "retrieval_backend",
+                normalized.get("retrieval_backend"),
+            ),
+            field_name="retrieval_diagnostics",
         ),
-        "retrieval_mode": citation_bundle.get(
-            "retrieval_mode",
-            normalized.get("retrieval_mode"),
+        "retrieval_mode": _normalize_retrieval_mode(
+            citation_bundle.get(
+                "retrieval_mode",
+                normalized.get("retrieval_mode"),
+            ),
+            field_name="retrieval_diagnostics",
         ),
         "active_strategy_ids": strategies_used,
         "deferred_strategy_ids": deferred_strategy_ids,
@@ -1800,6 +1867,17 @@ def _build_retrieval_provenance_from_payload(payload: dict[str, object]) -> dict
         )
     else:
         normalized["retrieval_policy"] = _normalize_policy_snapshot(normalized["retrieval_policy"])
+    policy = normalized["retrieval_policy"]
+    if not isinstance(policy, dict):
+        policy = {}
+    normalized["retrieval_backend"] = _normalize_retrieval_backend(
+        _first_text_value(normalized.get("retrieval_backend"), policy.get("retrieval_backend")),
+        field_name="retrieval_provenance",
+    )
+    normalized["retrieval_mode"] = _normalize_retrieval_mode(
+        _first_text_value(normalized.get("retrieval_mode"), policy.get("retrieval_mode")),
+        field_name="retrieval_provenance",
+    )
     if "active_strategy_ids" not in normalized:
         normalized["active_strategy_ids"] = _normalize_active_strategy_ids(
             summary.get("active_strategy_ids", diagnostics.get("active_strategy_ids")),
