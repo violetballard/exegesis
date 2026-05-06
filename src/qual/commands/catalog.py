@@ -869,6 +869,21 @@ COMMAND_SMOKE_SUPPORTED_PYTHON_LAUNCHERS: tuple[str, ...] = (
     "python",
     "python3",
 )
+COMMAND_SMOKE_PYTHON_FLAG_OPTIONS: tuple[str, ...] = (
+    "-B",
+    "-E",
+    "-I",
+    "-O",
+    "-OO",
+    "-P",
+    "-S",
+    "-s",
+    "-u",
+)
+COMMAND_SMOKE_PYTHON_VALUE_OPTIONS: tuple[str, ...] = (
+    "-W",
+    "-X",
+)
 COMMAND_SMOKE_ENV_LAUNCHERS: tuple[str, ...] = (
     "env",
 )
@@ -6443,14 +6458,9 @@ def _argv_without_launcher(argv: tuple[str, ...], launcher_argv: tuple[str, ...]
         unwrapped_without_implicit_python = _argv_without_implicit_python_launcher_tail(unwrapped_argv)
         if unwrapped_without_implicit_python != unwrapped_argv:
             return unwrapped_without_implicit_python
-    for launcher_tail in COMMAND_SMOKE_SUPPORTED_LAUNCHER_TAILS:
-        launcher_len = 1 + len(launcher_tail)
-        if (
-            len(argv) >= launcher_len
-            and _is_supported_python_launcher(argv[0])
-            and _launcher_tail_matches(argv[1:launcher_len], launcher_tail)
-        ):
-            return _strip_launcher_separator(argv[launcher_len:])
+    python_launcher_argv, command_argv = _split_python_launcher_argv(argv)
+    if python_launcher_argv:
+        return _strip_launcher_separator(command_argv)
     return argv
 
 
@@ -6468,14 +6478,9 @@ def _detected_launcher_argv(argv: tuple[str, ...]) -> tuple[str, ...]:
         implicit_python_tail = _detected_implicit_python_launcher_tail(unwrapped_argv)
         if implicit_python_tail:
             return (*launcher_prefix, *implicit_python_tail)
-    for launcher_tail in COMMAND_SMOKE_SUPPORTED_LAUNCHER_TAILS:
-        launcher_len = 1 + len(launcher_tail)
-        if (
-            len(argv) >= launcher_len
-            and _is_supported_python_launcher(argv[0])
-            and _launcher_tail_matches(argv[1:launcher_len], launcher_tail)
-        ):
-            return argv[:launcher_len]
+    python_launcher_argv, _command_argv = _split_python_launcher_argv(argv)
+    if python_launcher_argv:
+        return python_launcher_argv
     return ()
 
 
@@ -6647,6 +6652,34 @@ def _is_supported_python_launcher(token: str) -> bool:
     if launcher_name in COMMAND_SMOKE_SUPPORTED_PYTHON_LAUNCHERS:
         return True
     return re.fullmatch(r"python\d+(?:\.\d+)*", launcher_name) is not None
+
+
+def _split_python_launcher_argv(argv: tuple[str, ...]) -> tuple[tuple[str, ...], tuple[str, ...]]:
+    if not argv or not _is_supported_python_launcher(argv[0]):
+        return (), argv
+    index = 1
+    while index < len(argv):
+        token = argv[index]
+        if token in COMMAND_SMOKE_PYTHON_FLAG_OPTIONS:
+            index += 1
+            continue
+        if any(
+            token.startswith(option) and token != option
+            for option in COMMAND_SMOKE_PYTHON_VALUE_OPTIONS
+        ):
+            index += 1
+            continue
+        if token in COMMAND_SMOKE_PYTHON_VALUE_OPTIONS:
+            if index + 1 >= len(argv):
+                return (), argv
+            index += 2
+            continue
+        break
+    for launcher_tail in COMMAND_SMOKE_SUPPORTED_LAUNCHER_TAILS:
+        tail_end = index + len(launcher_tail)
+        if len(argv) >= tail_end and _launcher_tail_matches(argv[index:tail_end], launcher_tail):
+            return argv[:tail_end], argv[tail_end:]
+    return (), argv
 
 
 def _launcher_tail_matches(argv_tail: tuple[str, ...], expected_tail: tuple[str, ...]) -> bool:
