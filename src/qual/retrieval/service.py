@@ -2480,6 +2480,7 @@ class RetrievalService:
         )
         if basket_promotion_item is not None:
             normalized["basket_promotion_item"] = basket_promotion_item
+            normalized["basket_promotion_source"] = basket_promotion_item["basket_promotion_source"]
             normalized["basket_item_id"] = basket_promotion_item["item_id"]
             normalized["basket_item_fingerprint"] = basket_promotion_item["basket_item_fingerprint"]
             normalized["basket_promotion_items"] = [copy.deepcopy(basket_promotion_item)]
@@ -2517,6 +2518,8 @@ class RetrievalService:
         normalized_provenance["retrieval_source_strategy"] = source_strategy
         normalized_provenance["lookup_resolution"] = lookup_resolution
         normalized_provenance["excerpt_lookup_fingerprint"] = excerpt_lookup_fingerprint
+        if isinstance(normalized.get("basket_promotion_source"), str):
+            normalized_provenance["basket_promotion_source"] = normalized["basket_promotion_source"]
         if isinstance(normalized.get("basket_promotion_count"), int):
             normalized_provenance["basket_promotion_count"] = normalized["basket_promotion_count"]
         if isinstance(normalized.get("basket_promotion_ready"), bool):
@@ -2566,6 +2569,7 @@ class RetrievalService:
             "retrieval_mode": retrieval_mode,
             "retrieval_policy": copy.deepcopy(retrieval_policy),
             "lookup_resolution": lookup_resolution,
+            "basket_promotion_source": "fts_excerpt_lookup",
             "excerpt_lookup_fingerprint": excerpt_lookup_fingerprint,
         }
         return self._with_basket_item_fingerprint(item)
