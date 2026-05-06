@@ -19,7 +19,7 @@ This branch-tip handoff covers the full retrieval implementation currently prese
 
 The branch hardens deterministic retrieval payloads, FTS candidate strategy identity, sparse-policy rehydration, sparse candidate-resolution rehydration, excerpt lookup provenance, bundle identity validation, final hit rank/score ordering, and basket-promotion strategy aliases. Downstream citation bundles, context bundles, and basket promotion payloads now receive normalized, auditable retrieval snapshots tied to the FTS-first result order and candidate set the engine consumes.
 
-Canonical demo-path step advanced: `retrieve relevant material`. This makes the `retrieve relevant material` step more real by making excerpt lookup FTS-only and fail-closed for PageIndex-only IDs; it also supports later `promote or gather context into the basket` by keeping excerpt provenance deterministic.
+Canonical demo-path step advanced: `retrieve relevant material`. This work makes the canonical demo-path step `retrieve relevant material` more real by making FTS excerpt lookup deterministic, provenance-backed, and fail-closed for PageIndex-only IDs; it also supports later `promote or gather context into the basket` by keeping excerpt provenance deterministic.
 
 ## Tasks Completed
 
@@ -28,7 +28,7 @@ Canonical demo-path step advanced: `retrieve relevant material`. This makes the 
 3. Retrieval policy and strategy hardening: preserved sparse retrieval policy identity, guarded deferred backend policy, validated bundle identity, stabilized FTS merge strategy identity, and kept engine retrieval exports aligned with the canonical retrieval implementation. Canonical demo-path step advanced: `retrieve relevant material`.
 4. Final result ordering and regression coverage: re-ranked final deduplicated FTS hits after truncation so score/provenance rank match output order, and expanded approved shared regression coverage in `tests/unit/test_unified_retrieval.py` for FTS-only behavior, payload identity, provenance, and promotion-ready outputs. Canonical demo-path steps advanced: `retrieve relevant material` and `promote or gather context into the basket`.
 
-Required before-handoff demo-path statement: this work now makes the canonical demo-path step `retrieve relevant material` more real by keeping retrieval FTS-first, deterministic, auditable, and tied to final result order; it also makes `promote or gather context into the basket` more real by carrying citation and basket promotion metadata through the retrieval payloads.
+AGENTS.md narrowing statement: This work makes the canonical demo-path step `retrieve relevant material` more real by making FTS excerpt lookup deterministic, provenance-backed, and fail-closed for PageIndex-only IDs. It also makes `promote or gather context into the basket` more real by carrying citation and basket promotion metadata through the retrieval payloads.
 
 ## Files Changed
 
