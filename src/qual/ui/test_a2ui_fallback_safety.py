@@ -90,6 +90,7 @@ from src.qual.ui.a2ui import (
     describe_terminal_fallback_contract,
     build_terminal_artifact_envelope,
     build_terminal_artifact_cli_fallback_payload,
+    build_named_terminal_artifact_cli_fallback_payload,
     normalize_capabilities,
     normalize_action_ref,
     normalize_selection_ref,
@@ -12759,6 +12760,66 @@ class A2UIFallbackSafetyTests(unittest.TestCase):
         self.assertEqual(render_terminal_cli_fallback(payload), expected)
         self.assertEqual(ShellUI().render_artifact(payload), expected)
         self.assertEqual(ShellUI().render_cli_fallback(payload), expected)
+
+    def test_named_terminal_artifact_cli_fallback_payload_orders_by_stable_engine_names(self) -> None:
+        card = {
+            "type": "GenericCard",
+            "title": "Run Log",
+            "blocks": [{"type": "MarkdownBlock", "markdown": "Done"}],
+            "actions": [],
+        }
+        action = ActionRef(id="export_document", label="Export", payload={"format": "md"})
+        selection = SelectionRef(id="revise", label="Revise", payload={"mode": "tighten"}, selected=True)
+
+        first_payload = build_named_terminal_artifact_cli_fallback_payload(
+            {
+                "03-selection": ("selection", selection),
+                "01-card": ("card", card),
+                "02-action": ("action", action),
+            }
+        )
+        second_payload = build_named_terminal_artifact_cli_fallback_payload(
+            {
+                "02-action": ("action", action),
+                "03-selection": ("selection", selection),
+                "01-card": ("card", card),
+            }
+        )
+
+        self.assertEqual(first_payload, second_payload)
+        self.assertEqual([item["kind"] for item in first_payload["artifacts"]], ["card", "action", "selection"])
+        self.assertNotIn("01-card", json.dumps(first_payload, sort_keys=True))
+        self.assertEqual(
+            ShellUI().render_cli_fallback_payload(first_payload),
+            render_terminal_artifact_cli_fallback_payload(first_payload),
+        )
+        self.assertIs(
+            public_ui.build_named_terminal_artifact_cli_fallback_payload,
+            build_named_terminal_artifact_cli_fallback_payload,
+        )
+        public_ui.validate_terminal_artifact_cli_fallback_payload(first_payload)
+
+    def test_named_terminal_artifact_cli_fallback_payload_rejects_ambiguous_engine_names(self) -> None:
+        artifact = {
+            "type": "GenericCard",
+            "title": "Run Log",
+            "blocks": [{"type": "MarkdownBlock", "markdown": "Done"}],
+            "actions": [],
+        }
+
+        with self.assertRaises(ValueError):
+            build_named_terminal_artifact_cli_fallback_payload({"": ("card", artifact)})
+        with self.assertRaises(ValueError):
+            build_named_terminal_artifact_cli_fallback_payload(
+                {
+                    "r\u00e9sume": ("card", artifact),
+                    "re\u0301sume": ("card", artifact),
+                }
+            )
+        with self.assertRaises(ValueError):
+            build_named_terminal_artifact_cli_fallback_payload({"run\u200b-log": ("card", artifact)})
+        with self.assertRaises(ValueError):
+            build_named_terminal_artifact_cli_fallback_payload({"card": artifact})
 
     def test_terminal_artifact_cli_fallback_payload_artifact_ids_are_unique_for_duplicate_artifacts(self) -> None:
         artifact = {

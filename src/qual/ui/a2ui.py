@@ -3815,6 +3815,48 @@ def build_terminal_artifact_cli_fallback_payload(
     return payload
 
 
+def build_named_terminal_artifact_cli_fallback_payload(
+    artifacts: Mapping[str, Sequence[Any]],
+) -> dict[str, Any]:
+    """Build a CLI fallback payload from stable engine artifact names.
+
+    Engine workflows often accumulate artifacts by stage name before they are
+    rendered. This helper keeps those stage names out of the client payload
+    while using them to impose a deterministic order, so equivalent engine
+    outputs render the same CLI fallback regardless of insertion order.
+    """
+
+    if not isinstance(artifacts, Mapping):
+        raise ValueError("Named TerminalArtifact fallback artifacts must be a mapping")
+    if not artifacts:
+        raise ValueError("Named TerminalArtifact fallback artifacts must contain at least one artifact")
+
+    ordered_artifacts: list[tuple[str, Any]] = []
+    normalized_names: set[str] = set()
+    for name, item in artifacts.items():
+        normalized_name = _normalize_terminal_artifact_cli_fallback_payload_artifact_name(name)
+        if normalized_name in normalized_names:
+            raise ValueError("Named TerminalArtifact fallback artifact names must be unique after normalization")
+        normalized_names.add(normalized_name)
+        if isinstance(item, (str, bytes)) or not isinstance(item, Sequence) or len(item) != 2:
+            raise ValueError("Named TerminalArtifact fallback artifacts must map names to (kind, artifact) pairs")
+        kind, artifact = item
+        ordered_artifacts.append((normalized_name, (kind, artifact)))
+
+    return build_terminal_artifact_cli_fallback_payload(
+        [item for _, item in sorted(ordered_artifacts, key=lambda entry: entry[0])]
+    )
+
+
+def _normalize_terminal_artifact_cli_fallback_payload_artifact_name(name: Any) -> str:
+    if not isinstance(name, str) or not name.strip():
+        raise ValueError("Named TerminalArtifact fallback artifact names must be non-empty strings")
+    normalized_name = unicodedata.normalize("NFC", name.strip())
+    if any(unicodedata.category(char).startswith("C") for char in normalized_name):
+        raise ValueError("Named TerminalArtifact fallback artifact names must not contain control characters")
+    return normalized_name
+
+
 def _render_terminal_artifact_cli_fallback_payload_text(cli_fallback: Sequence[Mapping[str, Any]]) -> str:
     return TERMINAL_ARTIFACT_CLI_FALLBACK_PAYLOAD_RENDER_SEPARATOR.join(
         entry["text"] for entry in cli_fallback
