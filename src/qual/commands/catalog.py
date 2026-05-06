@@ -9935,7 +9935,7 @@ def _split_uv_python_launcher_prefix(argv: tuple[str, ...]) -> tuple[tuple[str, 
         unwrapped_argv = argv[3:]
     else:
         return (), argv
-    if not python_launcher.strip() or not _is_supported_python_launcher(python_launcher):
+    if not python_launcher.strip() or not _is_supported_uv_python_selector(python_launcher):
         return (), argv
     if unwrapped_argv[:1] == ("--",):
         prefix = (*prefix, "--")
@@ -9993,6 +9993,13 @@ def _launcher_prefix_matches(
 
 def _is_supported_uv_launcher(token: str) -> bool:
     return PurePath(token).name == "uv"
+
+
+def _is_supported_uv_python_selector(token: str) -> bool:
+    return (
+        _is_supported_python_launcher(token)
+        or re.fullmatch(r"\d+(?:\.\d+)*", token.strip()) is not None
+    )
 
 
 def _canonical_argv_with_requested_launcher(
