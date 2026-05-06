@@ -7608,7 +7608,7 @@ def _cli_parser_token_for_requested_argv(
     requested_command_argv = _normalize_implicit_bootstrap_argv(specs, requested_command_argv)
     if not requested_command_argv:
         return None
-    token = _normalize_token(requested_command_argv[0])
+    token = _normalize_token(_strip_command_palette_prefix(requested_command_argv[0]))
     if not token:
         return None
     return token
