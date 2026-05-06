@@ -455,6 +455,16 @@ def build_patch_review_action_routes(payload: DiffPreviewInput) -> tuple[PatchRe
     )
 
 
+def build_patch_review_action_route_lookup(payload: DiffPreviewInput) -> tuple[tuple[str, str], ...]:
+    """Return a deterministic action -> engine-action lookup for CLI smoke checks."""
+
+    return tuple(
+        (route.action, route.engine_action)
+        for route in build_patch_review_action_routes(payload)
+        if route.ready
+    )
+
+
 def run_patch_review_decision(payload: DiffPreviewInput) -> str:
     decision = build_patch_review_decision(payload)
     return (
@@ -530,6 +540,14 @@ def run_patch_review_action_routes_json(payload: DiffPreviewInput) -> str:
             }
             for route in routes
         ],
+        sort_keys=True,
+        separators=(",", ":"),
+    )
+
+
+def run_patch_review_action_route_lookup_json(payload: DiffPreviewInput) -> str:
+    return json.dumps(
+        build_patch_review_action_route_lookup(payload),
         sort_keys=True,
         separators=(",", ":"),
     )
