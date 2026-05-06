@@ -484,6 +484,9 @@ def _normalized_query_text(value: object) -> str | None:
 
 
 _SUPPORTED_CONFIDENTIALITY_PROFILES = {"confidential", "standard"}
+_MVP_RETRIEVAL_BACKEND = "sqlite_fts"
+_MVP_RETRIEVAL_MODE = "fts_first"
+_MVP_ACTIVE_STRATEGY_IDS = ["fts"]
 
 
 def _normalize_confidentiality_profile(value: object) -> str:
@@ -644,6 +647,14 @@ def _normalize_policy_snapshot(policy: object) -> dict[str, object]:
     normalized = copy.deepcopy(policy)
     normalized["active_strategy_ids"] = _normalize_list_like(normalized.get("active_strategy_ids"))
     normalized["deferred_strategy_ids"] = _normalize_list_like(normalized.get("deferred_strategy_ids"))
+    retrieval_backend = _normalize_optional_text(normalized.get("retrieval_backend"))
+    if retrieval_backend is not None and retrieval_backend != _MVP_RETRIEVAL_BACKEND:
+        raise ValueError("retrieval_policy must use sqlite_fts backend for the MVP")
+    retrieval_mode = _normalize_optional_text(normalized.get("retrieval_mode"))
+    if retrieval_mode is not None and retrieval_mode != _MVP_RETRIEVAL_MODE:
+        raise ValueError("retrieval_policy must use fts_first mode for the MVP")
+    if normalized["active_strategy_ids"] and normalized["active_strategy_ids"] != _MVP_ACTIVE_STRATEGY_IDS:
+        raise ValueError("retrieval_policy active strategies must be fts-only for the MVP")
     return normalized
 
 
