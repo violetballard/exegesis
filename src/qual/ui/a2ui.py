@@ -28,6 +28,7 @@ TERMINAL_ARTIFACT_CLI_FALLBACK_ENTRYPOINT_SCHEMA_VERSION = 1
 TERMINAL_ARTIFACT_CLI_FALLBACK_TARGET_SCHEMA_VERSION = 1
 TERMINAL_ARTIFACT_CLI_FALLBACK_ROUTE_SCHEMA_VERSION = 1
 TERMINAL_ARTIFACT_CLI_FALLBACK_PAYLOAD_RENDER_SEPARATOR = "\n\n"
+TERMINAL_ARTIFACT_CLI_FALLBACK_PAYLOAD_ARTIFACT_ID_FINGERPRINT_PREFIX_CHARS = 16
 TERMINAL_ARTIFACT_RAW_LEAF_CARD_DEFAULT_SCHEMA_VERSION = 1
 TERMINAL_ARTIFACT_KIND_CONTRACTS_SCHEMA_VERSION = 1
 _TERMINAL_ARTIFACT_ENVELOPE_TYPE = "TerminalArtifact"
@@ -163,6 +164,12 @@ _TERMINAL_ARTIFACT_CLI_FALLBACK_PAYLOAD_CLI_ENTRY_FIELDS: tuple[str, ...] = (
     "artifact_fingerprint",
     "text",
     "text_fingerprint",
+)
+_TERMINAL_ARTIFACT_CLI_FALLBACK_PAYLOAD_ARTIFACT_ORDER_FIELDS: tuple[str, ...] = (
+    "index",
+    "artifact_id",
+    "kind",
+    "artifact_fingerprint",
 )
 
 
@@ -3353,10 +3360,22 @@ def _build_terminal_artifact_cli_fallback_payload_contract_manifest() -> dict[st
         ),
         "artifact_entry_contract": "TerminalArtifact",
         "cli_fallback_entry_fields": list(_TERMINAL_ARTIFACT_CLI_FALLBACK_PAYLOAD_CLI_ENTRY_FIELDS),
-        "artifact_id_policy": (
-            "artifact_id is deterministic from artifact kind and envelope fingerprint for client-neutral references"
+        "artifact_order_entry_fields": list(
+            _TERMINAL_ARTIFACT_CLI_FALLBACK_PAYLOAD_ARTIFACT_ORDER_FIELDS
         ),
+        "artifact_id_policy": (
+            "artifact_id is deterministic from artifact order, kind, and envelope fingerprint for unique "
+            "client-neutral references"
+        ),
+        "artifact_id_format_policy": "artifact_id format is <zero-based-index>:<kind>:<artifact-fingerprint-prefix>",
+        "artifact_id_fingerprint_prefix_chars": (
+            TERMINAL_ARTIFACT_CLI_FALLBACK_PAYLOAD_ARTIFACT_ID_FINGERPRINT_PREFIX_CHARS
+        ),
+        "artifact_id_uniqueness_policy": "artifact_id values must be unique within each CLI fallback payload",
         "artifact_count_policy": "artifact_count must equal both artifacts and cli_fallback lengths",
+        "artifact_order_fingerprint_policy": (
+            "artifact_order_fingerprint covers the ordered artifact_id, kind, and artifact_fingerprint entries"
+        ),
         "min_artifact_count": 1,
         "empty_payload_policy": "payloads must contain at least one artifact so CLI fallback text is non-empty",
         "alignment_policy": "cli_fallback entries align by index, artifact_id, and kind with artifacts",
@@ -3763,6 +3782,7 @@ def build_terminal_artifact_cli_fallback_payload(
                 "index": index,
                 "artifact_id": _terminal_artifact_cli_fallback_payload_artifact_id(
                     envelope,
+                    index=index,
                     artifact_fingerprint=artifact_fingerprint,
                 ),
                 "kind": envelope["kind"],
@@ -3780,12 +3800,7 @@ def build_terminal_artifact_cli_fallback_payload(
         "artifact_count": len(envelope_items),
         "artifact_order_fingerprint": _fingerprint_manifest_section(
             [
-                {
-                    "index": index,
-                    "artifact_id": _terminal_artifact_cli_fallback_payload_artifact_id(envelope),
-                    "kind": envelope["kind"],
-                    "artifact_fingerprint": _fingerprint_manifest_section(envelope),
-                }
+                _terminal_artifact_cli_fallback_payload_artifact_order_entry(envelope, index=index)
                 for index, envelope in enumerate(envelope_items)
             ]
         ),
@@ -3809,12 +3824,71 @@ def _render_terminal_artifact_cli_fallback_payload_text(cli_fallback: Sequence[M
 def _terminal_artifact_cli_fallback_payload_artifact_id(
     envelope: Mapping[str, Any],
     *,
+    index: int,
     artifact_fingerprint: str | None = None,
 ) -> str:
     fingerprint = artifact_fingerprint
     if fingerprint is None:
         fingerprint = _fingerprint_manifest_section(envelope)
-    return f"{envelope['kind']}:{fingerprint[:16]}"
+    fingerprint_prefix = fingerprint[
+        :TERMINAL_ARTIFACT_CLI_FALLBACK_PAYLOAD_ARTIFACT_ID_FINGERPRINT_PREFIX_CHARS
+    ]
+    return f"{index}:{envelope['kind']}:{fingerprint_prefix}"
+
+
+def _terminal_artifact_cli_fallback_payload_artifact_order_entry(
+    envelope: Mapping[str, Any],
+    *,
+    index: int,
+    artifact_fingerprint: str | None = None,
+) -> dict[str, Any]:
+    fingerprint = artifact_fingerprint
+    if fingerprint is None:
+        fingerprint = _fingerprint_manifest_section(envelope)
+    return {
+        "index": index,
+        "artifact_id": _terminal_artifact_cli_fallback_payload_artifact_id(
+            envelope,
+            index=index,
+            artifact_fingerprint=fingerprint,
+        ),
+        "kind": envelope["kind"],
+        "artifact_fingerprint": fingerprint,
+    }
+
+
+def _is_terminal_artifact_cli_fallback_payload_artifact_id_shape(
+    artifact_id: str,
+    *,
+    index: int,
+    kind: str,
+    artifact_fingerprint: str,
+) -> bool:
+    prefix, separator, fingerprint_prefix = artifact_id.rpartition(":")
+    expected_fingerprint_prefix = artifact_fingerprint[
+        :TERMINAL_ARTIFACT_CLI_FALLBACK_PAYLOAD_ARTIFACT_ID_FINGERPRINT_PREFIX_CHARS
+    ]
+    if not separator or fingerprint_prefix != expected_fingerprint_prefix:
+        return False
+    index_text, separator, artifact_kind = prefix.partition(":")
+    if not separator or artifact_kind != kind:
+        return False
+    return index_text == str(index)
+
+
+def _validate_terminal_artifact_cli_fallback_payload_artifact_id_uniqueness(
+    cli_fallback: Sequence[Any],
+) -> None:
+    artifact_ids: set[str] = set()
+    for fallback in cli_fallback:
+        if not isinstance(fallback, Mapping):
+            continue
+        artifact_id = fallback.get("artifact_id")
+        if type(artifact_id) is not str:
+            continue
+        if artifact_id in artifact_ids:
+            raise ValueError("TerminalArtifactCliFallbackPayload artifact_id values must be unique")
+        artifact_ids.add(artifact_id)
 
 
 def render_terminal_artifact_cli_fallback_payload(payload: Any) -> str:
@@ -3976,18 +4050,19 @@ def validate_terminal_artifact_cli_fallback_payload(payload: Any) -> None:
         raise ValueError("TerminalArtifactCliFallbackPayload artifact_count is invalid")
     if len(artifacts) != len(cli_fallback):
         raise ValueError("TerminalArtifactCliFallbackPayload artifacts and cli_fallback must align")
+    _validate_terminal_artifact_cli_fallback_payload_artifact_id_uniqueness(cli_fallback)
     artifact_order = [
-        {
-            "index": index,
-            "artifact_id": (
-                _terminal_artifact_cli_fallback_payload_artifact_id(envelope)
-                if isinstance(envelope, Mapping)
-                and isinstance(envelope.get("kind"), str)
-                else None
-            ),
-            "kind": envelope.get("kind") if isinstance(envelope, Mapping) else None,
-            "artifact_fingerprint": _fingerprint_manifest_section(envelope),
-        }
+        (
+            _terminal_artifact_cli_fallback_payload_artifact_order_entry(envelope, index=index)
+            if isinstance(envelope, Mapping)
+            and isinstance(envelope.get("kind"), str)
+            else {
+                "index": index,
+                "artifact_id": None,
+                "kind": envelope.get("kind") if isinstance(envelope, Mapping) else None,
+                "artifact_fingerprint": _fingerprint_manifest_section(envelope),
+            }
+        )
         for index, envelope in enumerate(artifacts)
     ]
     artifact_order_fingerprint = payload.get("artifact_order_fingerprint")
@@ -4024,9 +4099,16 @@ def validate_terminal_artifact_cli_fallback_payload(payload: Any) -> None:
         artifact_id = fallback.get("artifact_id")
         if (
             type(artifact_id) is not str
+            or not _is_terminal_artifact_cli_fallback_payload_artifact_id_shape(
+                artifact_id,
+                index=index,
+                kind=envelope["kind"],
+                artifact_fingerprint=artifact_fingerprint,
+            )
             or artifact_id
             != _terminal_artifact_cli_fallback_payload_artifact_id(
                 envelope,
+                index=index,
                 artifact_fingerprint=artifact_fingerprint,
             )
         ):

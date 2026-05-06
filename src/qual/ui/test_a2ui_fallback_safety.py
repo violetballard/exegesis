@@ -14,6 +14,7 @@ from src.qual.ui.a2ui import (
     A2UI_LEAF_CONTRACTS_SCHEMA_VERSION,
     A2UI_VERSION,
     TERMINAL_ARTIFACT_CLI_FALLBACK_PAYLOAD_SCHEMA_VERSION,
+    TERMINAL_ARTIFACT_CLI_FALLBACK_PAYLOAD_ARTIFACT_ID_FINGERPRINT_PREFIX_CHARS,
     TERMINAL_ARTIFACT_CLI_FALLBACK_PAYLOAD_RENDER_SEPARATOR,
     A2UICapabilities,
     A2UISessionStore,
@@ -252,6 +253,10 @@ class A2UIFallbackSafetyTests(unittest.TestCase):
         self.assertEqual(
             public_ui.TERMINAL_ARTIFACT_RENDERER_ENTRYPOINTS_SCHEMA_VERSION,
             TERMINAL_ARTIFACT_RENDERER_ENTRYPOINTS_SCHEMA_VERSION,
+        )
+        self.assertEqual(
+            public_ui.TERMINAL_ARTIFACT_CLI_FALLBACK_PAYLOAD_ARTIFACT_ID_FINGERPRINT_PREFIX_CHARS,
+            TERMINAL_ARTIFACT_CLI_FALLBACK_PAYLOAD_ARTIFACT_ID_FINGERPRINT_PREFIX_CHARS,
         )
         self.assertIs(public_ui.SHELL_UI_ENTRYPOINTS, SHELL_UI_ENTRYPOINTS)
         self.assertIs(public_ui.SHELL_UI_STARTUP_FIELDS, SHELL_UI_STARTUP_FIELDS)
@@ -12669,7 +12674,10 @@ class A2UIFallbackSafetyTests(unittest.TestCase):
                 [
                     {
                         "index": index,
-                        "artifact_id": f"{item['kind']}:{_fingerprint_manifest_section(item)[:16]}",
+                        "artifact_id": (
+                            f"{index}:{item['kind']}:"
+                            f"{_fingerprint_manifest_section(item)[:TERMINAL_ARTIFACT_CLI_FALLBACK_PAYLOAD_ARTIFACT_ID_FINGERPRINT_PREFIX_CHARS]}"
+                        ),
                         "kind": item["kind"],
                         "artifact_fingerprint": _fingerprint_manifest_section(item),
                     }
@@ -12693,8 +12701,9 @@ class A2UIFallbackSafetyTests(unittest.TestCase):
         self.assertEqual(
             [item["artifact_id"] for item in payload["cli_fallback"]],
             [
-                f"{item['kind']}:{_fingerprint_manifest_section(item)[:16]}"
-                for item in payload["artifacts"]
+                f"{index}:{item['kind']}:"
+                f"{_fingerprint_manifest_section(item)[:TERMINAL_ARTIFACT_CLI_FALLBACK_PAYLOAD_ARTIFACT_ID_FINGERPRINT_PREFIX_CHARS]}"
+                for index, item in enumerate(payload["artifacts"])
             ],
         )
         self.assertEqual(
@@ -12751,6 +12760,27 @@ class A2UIFallbackSafetyTests(unittest.TestCase):
         self.assertEqual(ShellUI().render_artifact(payload), expected)
         self.assertEqual(ShellUI().render_cli_fallback(payload), expected)
 
+    def test_terminal_artifact_cli_fallback_payload_artifact_ids_are_unique_for_duplicate_artifacts(self) -> None:
+        artifact = {
+            "type": "GenericCard",
+            "title": "Run Log",
+            "blocks": [{"type": "MarkdownBlock", "markdown": "Done"}],
+            "actions": [],
+        }
+
+        payload = build_terminal_artifact_cli_fallback_payload(
+            [
+                ("card", artifact),
+                ("card", artifact),
+            ]
+        )
+
+        artifact_ids = [entry["artifact_id"] for entry in payload["cli_fallback"]]
+        self.assertEqual(len(set(artifact_ids)), 2)
+        self.assertTrue(artifact_ids[0].startswith("0:card:"))
+        self.assertTrue(artifact_ids[1].startswith("1:card:"))
+        validate_terminal_artifact_cli_fallback_payload(payload)
+
     def test_terminal_artifact_cli_fallback_payload_schema_version_is_manifested(self) -> None:
         schema_versions = _build_a2ui_schema_versions_manifest()
 
@@ -12785,8 +12815,25 @@ class A2UIFallbackSafetyTests(unittest.TestCase):
             ["index", "artifact_id", "kind", "artifact_fingerprint", "text", "text_fingerprint"],
         )
         self.assertEqual(
+            contract["artifact_order_entry_fields"],
+            ["index", "artifact_id", "kind", "artifact_fingerprint"],
+        )
+        self.assertEqual(
             contract["artifact_id_policy"],
-            "artifact_id is deterministic from artifact kind and envelope fingerprint for client-neutral references",
+            "artifact_id is deterministic from artifact order, kind, and envelope fingerprint for unique "
+            "client-neutral references",
+        )
+        self.assertEqual(
+            contract["artifact_id_format_policy"],
+            "artifact_id format is <zero-based-index>:<kind>:<artifact-fingerprint-prefix>",
+        )
+        self.assertEqual(
+            contract["artifact_id_fingerprint_prefix_chars"],
+            TERMINAL_ARTIFACT_CLI_FALLBACK_PAYLOAD_ARTIFACT_ID_FINGERPRINT_PREFIX_CHARS,
+        )
+        self.assertEqual(
+            contract["artifact_id_uniqueness_policy"],
+            "artifact_id values must be unique within each CLI fallback payload",
         )
         self.assertEqual(
             contract["alignment_policy"],
@@ -12832,6 +12879,10 @@ class A2UIFallbackSafetyTests(unittest.TestCase):
         self.assertEqual(
             contract["artifact_count_policy"],
             "artifact_count must equal both artifacts and cli_fallback lengths",
+        )
+        self.assertEqual(
+            contract["artifact_order_fingerprint_policy"],
+            "artifact_order_fingerprint covers the ordered artifact_id, kind, and artifact_fingerprint entries",
         )
         self.assertEqual(contract["min_artifact_count"], 1)
         self.assertEqual(
@@ -13146,14 +13197,18 @@ class A2UIFallbackSafetyTests(unittest.TestCase):
             [
                 {
                     "index": 0,
-                    "artifact_id": f" Card :{_fingerprint_manifest_section(payload['artifacts'][0])[:16]}",
+                    "artifact_id": (
+                        f"0: Card :"
+                        f"{_fingerprint_manifest_section(payload['artifacts'][0])[:TERMINAL_ARTIFACT_CLI_FALLBACK_PAYLOAD_ARTIFACT_ID_FINGERPRINT_PREFIX_CHARS]}"
+                    ),
                     "kind": payload["artifacts"][0]["kind"],
                     "artifact_fingerprint": _fingerprint_manifest_section(payload["artifacts"][0]),
                 }
             ]
         )
         payload["cli_fallback"][0]["artifact_id"] = (
-            f" Card :{_fingerprint_manifest_section(payload['artifacts'][0])[:16]}"
+            f"0: Card :"
+            f"{_fingerprint_manifest_section(payload['artifacts'][0])[:TERMINAL_ARTIFACT_CLI_FALLBACK_PAYLOAD_ARTIFACT_ID_FINGERPRINT_PREFIX_CHARS]}"
         )
         payload["cli_fallback"][0]["artifact_fingerprint"] = _fingerprint_manifest_section(
             payload["artifacts"][0]
@@ -13181,6 +13236,77 @@ class A2UIFallbackSafetyTests(unittest.TestCase):
             ]
         )
         payload["cli_fallback"][0]["artifact_id"] = "card:stale"
+        payload["cli_fallback_fingerprint"] = _fingerprint_manifest_section(payload["cli_fallback"])
+        fingerprint_input = dict(payload)
+        fingerprint_input.pop("payload_fingerprint")
+        payload["payload_fingerprint"] = _fingerprint_manifest_section(fingerprint_input)
+
+        with self.assertRaises(ValueError):
+            validate_terminal_artifact_cli_fallback_payload(payload)
+
+    def test_terminal_artifact_cli_fallback_payload_rejects_artifact_id_without_index_prefix(self) -> None:
+        payload = build_terminal_artifact_cli_fallback_payload(
+            [
+                (
+                    "card",
+                    {
+                        "type": "GenericCard",
+                        "title": "Run Log",
+                        "blocks": [{"type": "MarkdownBlock", "markdown": "Done"}],
+                        "actions": [],
+                    },
+                )
+            ]
+        )
+        artifact_fingerprint = _fingerprint_manifest_section(payload["artifacts"][0])
+        payload["cli_fallback"][0]["artifact_id"] = (
+            f"card:{artifact_fingerprint[:TERMINAL_ARTIFACT_CLI_FALLBACK_PAYLOAD_ARTIFACT_ID_FINGERPRINT_PREFIX_CHARS]}"
+        )
+        payload["cli_fallback_fingerprint"] = _fingerprint_manifest_section(payload["cli_fallback"])
+        fingerprint_input = dict(payload)
+        fingerprint_input.pop("payload_fingerprint")
+        payload["payload_fingerprint"] = _fingerprint_manifest_section(fingerprint_input)
+
+        with self.assertRaises(ValueError):
+            validate_terminal_artifact_cli_fallback_payload(payload)
+
+    def test_terminal_artifact_cli_fallback_payload_rejects_duplicate_artifact_ids(self) -> None:
+        artifact = {
+            "type": "GenericCard",
+            "title": "Run Log",
+            "blocks": [{"type": "MarkdownBlock", "markdown": "Done"}],
+            "actions": [],
+        }
+        payload = build_terminal_artifact_cli_fallback_payload(
+            [
+                ("card", artifact),
+                ("card", artifact),
+            ]
+        )
+        payload["cli_fallback"][1]["artifact_id"] = payload["cli_fallback"][0]["artifact_id"]
+        payload["cli_fallback_fingerprint"] = _fingerprint_manifest_section(payload["cli_fallback"])
+        fingerprint_input = dict(payload)
+        fingerprint_input.pop("payload_fingerprint")
+        payload["payload_fingerprint"] = _fingerprint_manifest_section(fingerprint_input)
+
+        with self.assertRaises(ValueError):
+            validate_terminal_artifact_cli_fallback_payload(payload)
+
+    def test_terminal_artifact_cli_fallback_payload_rejects_unhashable_artifact_id_as_value_error(self) -> None:
+        payload = build_terminal_artifact_cli_fallback_payload(
+            [
+                (
+                    "card",
+                    {
+                        "type": "GenericCard",
+                        "title": "Run Log",
+                        "blocks": [{"type": "MarkdownBlock", "markdown": "Done"}],
+                        "actions": [],
+                    },
+                )
+            ]
+        )
+        payload["cli_fallback"][0]["artifact_id"] = {"invalid": "shape"}
         payload["cli_fallback_fingerprint"] = _fingerprint_manifest_section(payload["cli_fallback"])
         fingerprint_input = dict(payload)
         fingerprint_input.pop("payload_fingerprint")
