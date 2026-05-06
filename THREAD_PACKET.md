@@ -3,11 +3,11 @@
 - Branch name: `codex/feat-retrieval-fts`
 - Lane: `feat-retrieval-fts`
 - Merge target: current `main`
-- Final fixer HEAD SHA: the metadata-only packet correction commit that contains this handoff refresh; reported in the fixer response.
+- Final fixer HEAD SHA: the final source-bearing export/test commit plus this handoff refresh; reported in the fixer response.
 - Authoritative reviewed implementation base: `378cf9a74a3658058079a32f186fcd254c4a4034`
 - Authoritative reviewed implementation range for re-review: `378cf9a74a3658058079a32f186fcd254c4a4034..HEAD`, where `HEAD` is the final packet-correction branch tip reported with this fixer response and includes merge candidate `b43178f56a0c78df411697654c17f2c029d44546`.
 - Actual merge candidate covered by this packet: `b43178f56a0c78df411697654c17f2c029d44546`.
-- Source-bearing merge-candidate tip included in the reviewed range: `a107bee8194bc73875e183230ee72259ea6886e4`; later commits through `b43178f56a0c78df411697654c17f2c029d44546` are packet-only traceability refreshes.
+- Source-bearing merge-candidate tip included in the reviewed range: the final branch tip reported with this fixer response; it extends the prior basket-promotion facade work by exporting the promotion helpers through both retrieval facades' public `__all__` lists and covering those exports in the approved shared regression surface.
 - Handoff type: high-risk retrieval handoff for the FTS-first retrieval lane.
 - Risk reason: approved shared regression surface `tests/unit/test_unified_retrieval.py`.
 - Lane-owned paths: `src/qual/retrieval/**`, `src/qual/engine/retrieval/**`.
@@ -112,7 +112,7 @@ Shared/integrator-locked impact this source finalizer pass: approved shared regr
 
 This source-bearing finalizer keeps retrieval FTS-first and exposes the existing deterministic context-basket promotion bundle through the canonical retrieval facades. `RetrievalService` now has explicit `retrieve_fts_basket_promotion_bundle()` and `retrieve_auto_basket_promotion_bundle()` methods, and both `src.qual.retrieval` and `src.qual.engine.retrieval` forward to those methods.
 
-The new facade methods return the same FTS evidence bundle already embedded in downstream payloads, source bundles, and context bundles. They do not add a new retrieval strategy, do not expand `engine_retrieval.__all__`, and do not touch PageIndex, embeddings, provider routing, UI, or integrator-locked files.
+The new facade methods return the same FTS evidence bundle already embedded in downstream payloads, source bundles, and context bundles. They do not add a new retrieval strategy and do not touch PageIndex, embeddings, provider routing, UI, or integrator-locked files.
 
 Current basket promotion facade files changed:
 
@@ -124,6 +124,23 @@ Current basket promotion facade files changed:
 Current basket promotion facade task count: `1` meaningful task group, within the high-risk `4` task cap for this finalizer pass.
 Current basket promotion facade source size before this packet update: `3 files changed, 66 insertions(+)`.
 Shared/integrator-locked impact this basket promotion facade pass: none; no shared regression, provider routing, UI, or integrator-locked files were edited.
+
+## Basket Promotion Export Finalizer Addendum
+
+This source-bearing finalizer keeps retrieval FTS-first and makes the already-implemented basket-promotion helpers part of the canonical public retrieval export surface. `src.qual.retrieval.__all__` and `src.qual.engine.retrieval.__all__` now include `retrieve_fts_basket_promotion_bundle` and `retrieve_auto_basket_promotion_bundle`, so engine consumers using explicit star-export contracts can reach the same deterministic context-basket promotion bundle as direct facade callers.
+
+The approved shared regression surface now asserts those export names and verifies that the service, package facade, and engine facade all return the same FTS `context_basket` promotion bundle for the same query. This supports the demo path from FTS retrieval to context-basket promotion without adding PageIndex, embeddings, provider routing, UI, or integrator-locked changes.
+
+Current basket promotion export finalizer files changed:
+
+- `M src/qual/retrieval/__init__.py`
+- `M src/qual/engine/retrieval/__init__.py`
+- `M tests/unit/test_unified_retrieval.py`
+- `M THREAD_PACKET.md`
+
+Current basket promotion export finalizer task count: `1` meaningful task group, within the high-risk `4` task cap for this finalizer pass.
+Current basket promotion export finalizer source/test size before this packet update: `3 files changed, 56 insertions(+), 2 deletions(-)`.
+Shared/integrator-locked impact this basket promotion export finalizer pass: approved shared regression coverage in `tests/unit/test_unified_retrieval.py`; no provider routing, UI, or integrator-locked files were edited.
 
 ## Tasks Completed
 
@@ -140,7 +157,7 @@ Final canonical demo-path statement: this work makes the `retrieve relevant mate
 
 ## Files Changed
 
-Authoritative reviewed range: `378cf9a74a3658058079a32f186fcd254c4a4034..HEAD`, where `HEAD` is the final packet-correction branch tip reported with this fixer response. This range includes actual merge candidate `b43178f56a0c78df411697654c17f2c029d44546`; the source-bearing implementation tip included in that range is `a107bee8194bc73875e183230ee72259ea6886e4`.
+Authoritative reviewed range: `378cf9a74a3658058079a32f186fcd254c4a4034..HEAD`, where `HEAD` is the final branch tip reported with this fixer response. This range includes actual merge candidate `b43178f56a0c78df411697654c17f2c029d44546`; the source-bearing implementation tip included in that range is the final branch tip after this basket-promotion export finalizer.
 
 Expected changed files for that range:
 
@@ -154,7 +171,7 @@ Expected changed files for that range:
 - `M src/qual/retrieval/service.py`
 - `M tests/unit/test_unified_retrieval.py`
 
-Merge-candidate diff through actual tip `b43178f56a0c78df411697654c17f2c029d44546`: `9 files changed, 870 insertions(+), 188 deletions(-)` versus reviewed base `378cf9a74a3658058079a32f186fcd254c4a4034`. Excluding `THREAD_PACKET.md`, the source/artifact range is `8 files changed, 688 insertions(+), 125 deletions(-)`, net `+563` LOC. The exact post-`adfa8cd` interval called out by review is `9 files changed, 842 insertions(+), 157 deletions(-)` and includes the six retrieval source/test files listed above plus packet/artifact changes. The `a107bee8194bc73875e183230ee72259ea6886e4` source-bearing finalizer adds narrow retrieval facade methods in `src/qual/retrieval/service.py`, `src/qual/retrieval/__init__.py`, and `src/qual/engine/retrieval/__init__.py`; this fixer commit only refreshes the handoff packet.
+Merge-candidate diff through prior actual tip `b43178f56a0c78df411697654c17f2c029d44546`: `9 files changed, 870 insertions(+), 188 deletions(-)` versus reviewed base `378cf9a74a3658058079a32f186fcd254c4a4034`. Excluding `THREAD_PACKET.md`, the source/artifact range was `8 files changed, 688 insertions(+), 125 deletions(-)`, net `+563` LOC. The exact post-`adfa8cd` interval called out by review was `9 files changed, 842 insertions(+), 157 deletions(-)` and includes the six retrieval source/test files listed above plus packet/artifact changes. This finalizer adds the public basket-promotion export contract in `src/qual/retrieval/__init__.py`, `src/qual/engine/retrieval/__init__.py`, and `tests/unit/test_unified_retrieval.py`; the final branch-tip SHA and cumulative diff stat are reported in the fixer response.
 
 The protected `.codex/kickoff_packets/feat-retrieval-fts.md` and `.codex/lane_meta/feat-retrieval-fts.json` mirror artifacts could not be edited in-place, so they are removed from the merge candidate to avoid preserving stale contradictory trace metadata. `THREAD_PACKET.md` is the coherent handoff packet for re-review.
 
@@ -162,7 +179,7 @@ The protected `.codex/kickoff_packets/feat-retrieval-fts.md` and `.codex/lane_me
 
 - Task budget: `4` high-risk task groups; completed as the four task groups above.
 - File count: `9 files` in the full reviewed packet range including `THREAD_PACKET.md`; `8 files` excluding the handoff packet itself. The source/artifact count remains within the high-risk `<=8 files` limit, while the packet-inclusive count is reported here for traceability.
-- Size accounting: actual merge candidate `b43178f56a0c78df411697654c17f2c029d44546` is `9 files changed, 870 insertions(+), 188 deletions(-)` versus the authoritative reviewed base, and the source/artifact portion excluding `THREAD_PACKET.md` is net `+563` LOC. This exceeds the high-risk `<=300 net LOC` budget and is reported here rather than hidden by a stale narrow range. The current basket promotion facade finalizer itself is a narrow `3 files changed, 66 insertions(+)` retrieval contract exposure before the packet update.
+- Size accounting: actual merge candidate `b43178f56a0c78df411697654c17f2c029d44546` is `9 files changed, 870 insertions(+), 188 deletions(-)` versus the authoritative reviewed base, and the source/artifact portion excluding `THREAD_PACKET.md` is net `+563` LOC. This exceeds the high-risk `<=300 net LOC` budget and is reported here rather than hidden by a stale narrow range. The current basket promotion export finalizer itself is a narrow `3 files changed, 56 insertions(+), 2 deletions(-)` retrieval export/test contract update before this packet update.
 - Shared/integrator exception status: `tests/unit/test_unified_retrieval.py` is the sole approved shared regression surface; no integrator-locked files changed.
 - Routing/provider impact: none.
 - Remaining risks/blockers: size budget exceeded for the full corrected range; no functional gate blockers after required gates are rerun on the final branch tip.
@@ -215,6 +232,16 @@ Required gates rerun for the source-bearing finalizer pass:
 
 Final required gates rerun after the basket promotion facade code and packet refresh:
 
+- `./quality-format.sh --check` - passed.
+- `./quality-lint.sh` - passed shell syntax and trailing whitespace checks.
+- `./quality-test.sh` - passed smoke tests and 130 unit tests.
+- `./typecheck-test.sh` - passed Python source compilation under `src/`.
+- `make ci` - passed setup, scope-check, format, lint, compile/typecheck, smoke tests, and 130 unit tests.
+
+Required gates rerun after the basket-promotion export finalizer:
+
+- `python -m pytest tests/unit/test_unified_retrieval.py -q` - blocked; active Python has no `pytest` module.
+- `python -m unittest tests.unit.test_unified_retrieval -v` - passed 61 retrieval tests before the edit and passed 61 retrieval tests after the edit.
 - `./quality-format.sh --check` - passed.
 - `./quality-lint.sh` - passed shell syntax and trailing whitespace checks.
 - `./quality-test.sh` - passed smoke tests and 130 unit tests.

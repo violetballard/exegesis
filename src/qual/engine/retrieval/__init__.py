@@ -297,6 +297,7 @@ __all__ = [
     "retrieve_fts_provenance_bundle",
     "retrieve_fts_doc_bundle",
     "retrieve_fts_excerpt_bundle",
+    "retrieve_fts_basket_promotion_bundle",
     "retrieve_fts_excerpt",
     "fetch_fts_excerpt",
     "retrieve_fts_payload",
@@ -307,5 +308,6 @@ __all__ = [
     "retrieve_auto_provenance_bundle",
     "retrieve_auto_doc_bundle",
     "retrieve_auto_excerpt_bundle",
+    "retrieve_auto_basket_promotion_bundle",
     "retrieve_auto_payload",
 ]
