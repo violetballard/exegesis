@@ -4,75 +4,65 @@
 - Lane: `feat-retrieval-fts`
 - Merge target: current `main`
 - Handoff type: high-risk split handoff for the FTS-first retrieval lane.
-- Authoritative reviewed implementation range: `f2649eade7c028d46452a81ccf8b1a585a028ba8..69b3ca51841e749c604d00d6cdc6c03a09b1519b`.
-- Packet refresh commits after `69b3ca51841e749c604d00d6cdc6c03a09b1519b` are handoff metadata only and are not part of the reviewed implementation range.
+- Authoritative reviewed implementation range: `2dbe7796388d7fc5a706798e23aca579ec46b071..ca9fd136c478d43b48161569709fa52ed9ff1503`.
+- Reviewed implementation head: `ca9fd136c478d43b48161569709fa52ed9ff1503`.
+- Packet refresh commits after `ca9fd136c478d43b48161569709fa52ed9ff1503` are handoff metadata only and are not part of the reviewed implementation range.
 - Scope classification: high-risk because this split includes approved shared regression coverage in `tests/unit/test_unified_retrieval.py`.
 - Approved shared-file note: `tests/unit/test_unified_retrieval.py` is approved shared-by-approval regression coverage for this retrieval lane.
 - Integrator-locked files: none.
 
 ## Scope Completed
 
-This packet supersedes earlier `feat-retrieval-fts` handoff packets. Re-review should use only the authoritative reviewed implementation range above for implementation file lists, diff stats, task accounting, and ownership/risk accounting.
+This split keeps sparse FTS context rehydration self-describing when downstream engine flows rebuild basket promotion refs from excerpt-hit snapshots. Rebuilt basket refs now inherit the enclosing FTS policy/backend/mode snapshot when thin excerpt hits no longer carry those fields directly, so basket/context promotion remains deterministic, auditable, and explicitly FTS-first.
 
-This split keeps FTS retrieval promotion identity deterministic without introducing PageIndex or embeddings as required retrieval paths. Sparse citation bundles and excerpt-hit snapshots now rehydrate promotion-ready basket refs with stable `basket_item_id` aliases and document-rank provenance. Direct FTS excerpt lookup audit events carry ordered basket item IDs and fingerprints for downstream basket/context promotion auditability.
-
-Canonical demo-path step advanced: `retrieve relevant material`. This split also supports `promote or gather context into the basket` by preserving auditable FTS lookup identity and promotion-ready basket references.
+Canonical demo-path step advanced: `retrieve relevant material`. This split also supports `promote or gather context into the basket` by keeping promotion-ready basket refs tied to `sqlite_fts` / `fts_first` policy identity even from sparse context bundles.
 
 ## Tasks Completed
 
-1. Direct FTS excerpt audit identity: advances `retrieve relevant material` by carrying canonical `basket_item_ids` and `basket_item_fingerprints` in direct `retrieve_fts_excerpt`/`fetch_excerpt` audit records.
-2. Sparse basket alias rehydration: advances `retrieve relevant material` and supports `promote or gather context into the basket` by restoring explicit `basket_item_id` aliases when sparse context bundles retain only canonical item identity.
-3. Document-rank promotion provenance: advances `retrieve relevant material` and supports `promote or gather context into the basket` by preserving `doc_rank` when basket refs rebuild from surviving doc-hit or doc-citation snapshots.
-4. Shared regression coverage: advances `retrieve relevant material` by adding approved shared tests for direct FTS excerpt audit identity, sparse basket alias rehydration, citation-bundle basket ref reconstruction, and document-rank preservation.
+1. Sparse policy fallback: advances `retrieve relevant material` by deriving rebuilt basket ref `retrieval_backend`, `retrieval_mode`, and `retrieval_policy` from the enclosing FTS snapshot when excerpt-hit fields are absent.
+2. Shared regression coverage: advances `retrieve relevant material` by proving sparse context bundle basket rehydration still emits `sqlite_fts`, `fts_first`, and active `fts` policy identity after excerpt-hit policy fields are stripped.
+3. Handoff metadata refresh: records the reviewed implementation range, files changed, commands run, roadmap/vision mapping, and remaining risk status for this split.
 
-Final demo-path statement: this work makes `retrieve relevant material` more real by keeping FTS lookup identity deterministic and promotion-ready for basket/context flows.
+Final demo-path statement: this work keeps sparse retrieval outputs promotion-ready for basket/context flows without introducing PageIndex or embeddings as active retrieval paths.
 
 ## Files Changed
 
-Authoritative reviewed implementation range: `f2649eade7c028d46452a81ccf8b1a585a028ba8..69b3ca51841e749c604d00d6cdc6c03a09b1519b`.
+Authoritative reviewed implementation range: `2dbe7796388d7fc5a706798e23aca579ec46b071..ca9fd136c478d43b48161569709fa52ed9ff1503`.
+
+- `src/qual/engine/retrieval/payload.py` - sparse excerpt-hit basket ref reconstruction now falls back to the enclosing normalized FTS retrieval policy/backend/mode.
+- `tests/unit/test_unified_retrieval.py` - approved shared regression coverage for sparse basket ref policy identity after excerpt-hit policy fields are stripped.
+
+Metadata-only packet refresh after reviewed implementation head:
 
 - `THREAD_PACKET.md` - handoff packet refreshed for this split.
-- `src/qual/engine/retrieval/payload.py` - sparse citation and excerpt-hit basket ref reconstruction preserves promotion identity and document rank.
-- `src/qual/retrieval/service.py` - direct FTS excerpt lookup audit events include ordered basket item IDs and fingerprints.
-- `tests/unit/test_unified_retrieval.py` - approved shared regression coverage for FTS lookup identity and basket promotion rehydration.
-
-Excluded from reviewed implementation scope:
-
-- `codex_packet_handoff/tools/planner.py` and `tests/unit/test_packet_planner.py` are not in this split range and are not classified as metadata-only handoff artifacts.
-- Earlier cumulative retrieval commits are outside this split handoff and require separate review packets if they are to be reviewed.
-- Packet refresh commits after `69b3ca51841e749c604d00d6cdc6c03a09b1519b` change handoff metadata only and do not expand the reviewed implementation range.
 
 ## Diff Evidence
 
-Command: `git diff --stat f2649eade7c028d46452a81ccf8b1a585a028ba8..69b3ca51841e749c604d00d6cdc6c03a09b1519b`
+Command: `git diff --stat 2dbe7796388d7fc5a706798e23aca579ec46b071..ca9fd136c478d43b48161569709fa52ed9ff1503`
 
 ```text
- THREAD_PACKET.md                     | 137 +++++++++++++++++++++++++----------
- src/qual/engine/retrieval/payload.py |  72 +++++++++++++++++-
- src/qual/retrieval/service.py        |   2 +
- tests/unit/test_unified_retrieval.py |  93 +++++++++++++++++-------
- 4 files changed, 235 insertions(+), 69 deletions(-)
+ src/qual/engine/retrieval/payload.py | 39 +++++++++++++++++++++++++++++++++---
+ tests/unit/test_unified_retrieval.py | 21 +++++++++++++++++++
+ 2 files changed, 57 insertions(+), 3 deletions(-)
 ```
 
-Command: `git diff --numstat f2649eade7c028d46452a81ccf8b1a585a028ba8..69b3ca51841e749c604d00d6cdc6c03a09b1519b`
+Command: `git diff --numstat 2dbe7796388d7fc5a706798e23aca579ec46b071..ca9fd136c478d43b48161569709fa52ed9ff1503`
 
 ```text
-97	40	THREAD_PACKET.md
-71	1	src/qual/engine/retrieval/payload.py
-2	0	src/qual/retrieval/service.py
-65	28	tests/unit/test_unified_retrieval.py
+36	3	src/qual/engine/retrieval/payload.py
+21	0	tests/unit/test_unified_retrieval.py
 ```
 
 ## Budget/Risk
 
-- Task budget: `4/4` high-risk task groups.
-- File count for authoritative reviewed implementation range: `4 files changed`.
-- Size accounting for authoritative reviewed implementation range: `235 insertions(+), 69 deletions(-)`, net `+166 LOC`.
+- Task budget: `3/4` high-risk task groups.
+- File count for authoritative reviewed implementation range: `2 files changed`.
+- Size accounting for authoritative reviewed implementation range: `57 insertions(+), 3 deletions(-)`, net `+54 LOC`.
 - AGENTS high-risk file/size status: fits `<=8 files` and `<=300 net LOC`.
-- Integrator exception status: no exception needed for this split handoff.
+- Integrator exception status: approved shared regression coverage in `tests/unit/test_unified_retrieval.py`; no integrator-locked files changed.
 - Routing/provider impact: none.
-- PageIndex/embeddings impact: remain compatibility-only fallback behavior; no active non-FTS retrieval path is introduced.
-- Remaining risks/blockers: none known for this split. Earlier cumulative branch work is intentionally excluded from this reviewed implementation range.
+- PageIndex/embeddings impact: remain compatibility-only/deferred; no active non-FTS retrieval path is introduced.
+- Remaining risks/blockers: none known for this split.
 
 ## Roadmap/Vision
 
@@ -85,7 +75,8 @@ Command: `git diff --numstat f2649eade7c028d46452a81ccf8b1a585a028ba8..69b3ca518
 
 ## Commands Run
 
-- `make scope-check` - passed for branch `codex/feat-retrieval-fts`.
+- `python -m pytest tests/unit/test_unified_retrieval.py -q` - not run because `pytest` is not installed in this environment.
+- `python -m unittest tests.unit.test_unified_retrieval.UnifiedRetrievalTests.test_retrieval_context_bundle_helper_rebuilds_sparse_basket_refs_from_excerpt_hits` - passed.
 - `./quality-format.sh --check` - passed.
 - `./quality-lint.sh` - passed shell syntax and trailing whitespace checks.
 - `./quality-test.sh` - passed smoke tests and 148 unit tests.
@@ -94,4 +85,4 @@ Command: `git diff --numstat f2649eade7c028d46452a81ccf8b1a585a028ba8..69b3ca518
 
 ## Metadata Write Note
 
-The root `THREAD_PACKET.md` is the authoritative regenerated handoff packet for this fixer pass. The `.codex` kickoff and lane metadata mirrors are best-effort summaries only; this packet is the source of truth for the reviewed implementation range and split accounting.
+The root `THREAD_PACKET.md` is the authoritative regenerated handoff packet for this split. Re-review should anchor implementation scope to `ca9fd136c478d43b48161569709fa52ed9ff1503` and range `2dbe7796388d7fc5a706798e23aca579ec46b071..ca9fd136c478d43b48161569709fa52ed9ff1503`; packet refresh commits after that reviewed implementation head are metadata only unless they change retrieval code or the approved shared regression file.
