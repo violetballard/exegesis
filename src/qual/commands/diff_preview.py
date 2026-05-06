@@ -473,6 +473,23 @@ def run_patch_review_command_status_json(payload: DiffPreviewInput) -> str:
     )
 
 
+def run_patch_review_action_routes(payload: DiffPreviewInput) -> str:
+    routes = build_patch_review_action_routes(payload)
+    if not routes:
+        return "patch-review-route: none"
+    return "\n".join(
+        (
+            f"patch-review-route: action={route.action}; "
+            f"engine-action={route.engine_action}; "
+            f"command={route.command}; "
+            f"flow-step={route.flow_step}; "
+            f"demo-path-step={route.demo_path_step}; "
+            f"ready={str(route.ready).lower()}"
+        )
+        for route in routes
+    )
+
+
 def run_patch_review_action_routes_json(payload: DiffPreviewInput) -> str:
     routes = build_patch_review_action_routes(payload)
     return json.dumps(
