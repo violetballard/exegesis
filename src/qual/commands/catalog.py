@@ -5158,6 +5158,76 @@ def command_demo_readiness_handoff_packet_summary(
     )
 
 
+def command_demo_readiness_handoff_packet_markdown(
+    specs: tuple[CommandSpec, ...] = COMMAND_SPECS,
+    launcher_argv: tuple[str, ...] = COMMAND_SMOKE_CLI_LAUNCHER_ARGV,
+) -> str:
+    packet = command_demo_readiness_handoff_packet(specs, launcher_argv)
+    risks = _command_demo_readiness_handoff_packet_risks(packet)
+    lines = (
+        "## Command Demo Readiness Handoff",
+        "",
+        f"- Scope completed: {packet.scope_completed}",
+        f"- Roadmap item(s) affected: {'; '.join(packet.roadmap_items)}",
+        f"- Vision capability affected: {'; '.join(packet.vision_capabilities)}",
+        f"- Routing/provider impact: {packet.routing_provider_impact}",
+        f"- Readiness complete: {str(packet.is_complete).lower()}",
+        f"- Fingerprint: {packet.fingerprint_algorithm}:{packet.fingerprint_digest}",
+        f"- Canonical demo-path steps: {'; '.join(packet.canonical_demo_path_steps)}",
+        f"- Commands: {'; '.join(packet.command_lines)}",
+        f"- Exact engine actions: {'; '.join(packet.exact_action_lines)}",
+        f"- Risks/blockers: {'; '.join(risks)}",
+        "",
+        "### Demo Path Checklist",
+        *packet.checklist_lines,
+    )
+    markdown = "\n".join(lines)
+    _validate_command_demo_readiness_handoff_packet_markdown(markdown, packet, risks)
+    return markdown
+
+
+def _command_demo_readiness_handoff_packet_risks(
+    packet: CommandDemoReadinessHandoffPacket,
+) -> tuple[str, ...]:
+    risks: list[str] = []
+    if packet.missing_flow_steps:
+        risks.append(f"missing flow steps: {', '.join(packet.missing_flow_steps)}")
+    if packet.missing_engine_actions:
+        risks.append(f"missing engine actions: {', '.join(packet.missing_engine_actions)}")
+    if packet.invalid_argv:
+        invalid = ", ".join(_shell_join(argv) for argv in packet.invalid_argv)
+        risks.append(f"invalid argv: {invalid}")
+    if not risks:
+        risks.append("None from command readiness metadata.")
+    return tuple(risks)
+
+
+def _validate_command_demo_readiness_handoff_packet_markdown(
+    markdown: str,
+    packet: CommandDemoReadinessHandoffPacket,
+    risks: tuple[str, ...],
+) -> None:
+    if not markdown.strip():
+        raise ValueError("Command demo readiness handoff packet markdown must not be empty")
+    required_fragments = (
+        packet.scope_completed,
+        *packet.roadmap_items,
+        *packet.vision_capabilities,
+        packet.routing_provider_impact,
+        f"{packet.fingerprint_algorithm}:{packet.fingerprint_digest}",
+        *packet.canonical_demo_path_steps,
+        *packet.command_lines,
+        *packet.exact_action_lines,
+        *packet.checklist_lines,
+        *risks,
+    )
+    missing_fragments = tuple(fragment for fragment in required_fragments if fragment not in markdown)
+    if missing_fragments:
+        raise ValueError("Command demo readiness handoff packet markdown is incomplete")
+    if "Roadmap item(s) affected" not in markdown or "Vision capability affected" not in markdown:
+        raise ValueError("Command demo readiness handoff packet markdown lacks integration fields")
+
+
 def command_demo_readiness_handoff_status_lines(
     specs: tuple[CommandSpec, ...] = COMMAND_SPECS,
     launcher_argv: tuple[str, ...] = COMMAND_SMOKE_CLI_LAUNCHER_ARGV,
@@ -9283,6 +9353,13 @@ def command_mvp_demo_readiness_handoff_packet_summary(
     tuple[tuple[str, ...], ...],
 ]:
     return command_demo_readiness_handoff_packet_summary(specs, launcher_argv)
+
+
+def command_mvp_demo_readiness_handoff_packet_markdown(
+    specs: tuple[CommandSpec, ...] = COMMAND_SPECS,
+    launcher_argv: tuple[str, ...] = COMMAND_SMOKE_CLI_LAUNCHER_ARGV,
+) -> str:
+    return command_demo_readiness_handoff_packet_markdown(specs, launcher_argv)
 
 
 def command_mvp_demo_readiness_handoff_status_lines(

@@ -52,6 +52,7 @@ from src.qual.commands.catalog import (
     command_mvp_demo_readiness_handoff_audit as _readiness_handoff_audit,
     command_mvp_demo_readiness_handoff_audit_summary as _readiness_handoff_audit_summary,
     command_mvp_demo_readiness_handoff_packet_json as _readiness_handoff_packet_json,
+    command_mvp_demo_readiness_handoff_packet_markdown as _readiness_handoff_packet_markdown,
     command_mvp_demo_readiness_handoff_packet_payload as _readiness_handoff_packet_payload,
     command_mvp_demo_readiness_handoff_packet_summary as _readiness_handoff_packet_summary,
     command_mvp_demo_readiness_handoff_status_lines as _readiness_handoff_status_lines,
@@ -554,6 +555,10 @@ def canonical_command_readiness_handoff_packet_payload() -> dict[str, object]:
 
 def canonical_command_readiness_handoff_packet_json() -> str:
     return _readiness_handoff_packet_json()
+
+
+def canonical_command_readiness_handoff_packet_markdown() -> str:
+    return _readiness_handoff_packet_markdown()
 
 
 def canonical_command_readiness_handoff_action_contract() -> CommandDemoReadinessHandoffActionContract:
