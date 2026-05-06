@@ -2242,11 +2242,12 @@ def _readiness_status_for_next_action(
     next_action: CommandDemoReadinessNextAction,
 ) -> CommandCanonicalReadinessStatus:
     argv = (
-        next_action.remaining_exact_action_lines
-        and canonical_command_action_cli_exact_argv_for_engine_action(
-            next_action.remaining_engine_actions[0]
+        canonical_command_action_cli_exact_argv_for_engine_action(
+            next_action.next_engine_action
         )
-    ) or ()
+        if next_action.next_engine_action is not None
+        else ()
+    )
     return _readiness_status(
         command=next_action.next_engine_action
         and canonical_command_for_engine_action(next_action.next_engine_action),
