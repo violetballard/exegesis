@@ -5519,6 +5519,15 @@ def command_demo_supported_launcher_readiness_lookup_table(
     )
 
 
+def command_demo_supported_launcher_exact_action_lookup_table(
+    specs: tuple[CommandSpec, ...] = COMMAND_SPECS,
+) -> tuple[tuple[tuple[str, ...], tuple[tuple[str, str], ...]], ...]:
+    return tuple(
+        (entry.launcher_argv, entry.exact_action_lines)
+        for entry in command_demo_supported_launcher_readiness_contract(specs).entries
+    )
+
+
 def command_mvp_demo_supported_launcher_readiness_contract(
     specs: tuple[CommandSpec, ...] = COMMAND_SPECS,
 ) -> CommandDemoSupportedLauncherReadinessContract:
@@ -5535,6 +5544,12 @@ def command_mvp_demo_supported_launcher_readiness_lookup_table(
     specs: tuple[CommandSpec, ...] = COMMAND_SPECS,
 ) -> tuple[tuple[tuple[str, ...], tuple[str, ...]], ...]:
     return command_demo_supported_launcher_readiness_lookup_table(specs)
+
+
+def command_mvp_demo_supported_launcher_exact_action_lookup_table(
+    specs: tuple[CommandSpec, ...] = COMMAND_SPECS,
+) -> tuple[tuple[tuple[str, ...], tuple[tuple[str, str], ...]], ...]:
+    return command_demo_supported_launcher_exact_action_lookup_table(specs)
 
 
 def command_demo_readiness_command_trace_entry_for_engine_action(

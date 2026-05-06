@@ -79,6 +79,8 @@ from src.qual.commands.catalog import (
     command_mvp_demo_execution_plan_step_for_engine_action as _execution_plan_step_for_engine_action,
     command_mvp_demo_execution_plan_step_for_flow_step as _execution_plan_step_for_flow_step,
     command_mvp_demo_supported_launcher_argv as _supported_launcher_argv,
+    command_mvp_demo_supported_launcher_exact_action_lookup_table
+    as _supported_launcher_exact_action_lookup_table,
     command_mvp_demo_supported_launcher_readiness_contract as _supported_launcher_readiness_contract,
     command_mvp_demo_supported_launcher_readiness_lookup_table as _supported_launcher_readiness_lookup_table,
     command_mvp_demo_supported_launcher_readiness_summary as _supported_launcher_readiness_summary,
@@ -275,6 +277,7 @@ __all__ = [
     "canonical_command_execution_plan_step_for_flow_step",
     "canonical_command_execution_plan_summary",
     "canonical_command_supported_launcher_argv",
+    "canonical_command_supported_launcher_exact_action_lookup_table",
     "canonical_command_supported_launcher_readiness_contract",
     "canonical_command_supported_launcher_readiness_lookup_table",
     "canonical_command_supported_launcher_readiness_summary",
@@ -650,6 +653,13 @@ def canonical_command_supported_launcher_readiness_lookup_table() -> tuple[
     ...,
 ]:
     return _supported_launcher_readiness_lookup_table()
+
+
+def canonical_command_supported_launcher_exact_action_lookup_table() -> tuple[
+    tuple[tuple[str, ...], tuple[tuple[str, str], ...]],
+    ...,
+]:
+    return _supported_launcher_exact_action_lookup_table()
 
 
 def canonical_command_readiness_command_trace_entry_for_engine_action(
