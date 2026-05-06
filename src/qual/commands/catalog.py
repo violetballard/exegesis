@@ -7670,6 +7670,96 @@ def command_demo_command_coverage_lookup_table(
     )
 
 
+@lru_cache(maxsize=None)
+def _command_demo_command_coverage_entry_for_flow_step(
+    specs: tuple[CommandSpec, ...],
+    launcher_argv: tuple[str, ...],
+    flow_step: str,
+) -> CommandDemoCommandCoverageEntry | None:
+    requested_flow_step = _normalize_token(flow_step)
+    if not requested_flow_step:
+        return None
+    return next(
+        (
+            entry
+            for entry in command_demo_command_coverage_contract(specs, launcher_argv).entries
+            if entry.flow_step == requested_flow_step
+        ),
+        None,
+    )
+
+
+def command_demo_command_coverage_entry_for_flow_step(
+    flow_step: str,
+    specs: tuple[CommandSpec, ...] = COMMAND_SPECS,
+    launcher_argv: tuple[str, ...] = COMMAND_SMOKE_CLI_LAUNCHER_ARGV,
+) -> CommandDemoCommandCoverageEntry | None:
+    return _command_demo_command_coverage_entry_for_flow_step(
+        specs,
+        launcher_argv,
+        flow_step,
+    )
+
+
+@lru_cache(maxsize=None)
+def _command_demo_command_coverage_entry_for_demo_path_step(
+    specs: tuple[CommandSpec, ...],
+    launcher_argv: tuple[str, ...],
+    demo_path_step: str,
+) -> CommandDemoCommandCoverageEntry | None:
+    requested_demo_path_step = _normalize_token(demo_path_step)
+    if not requested_demo_path_step:
+        return None
+    return next(
+        (
+            entry
+            for entry in command_demo_command_coverage_contract(specs, launcher_argv).entries
+            if _normalize_token(entry.demo_path_step) == requested_demo_path_step
+        ),
+        None,
+    )
+
+
+def command_demo_command_coverage_entry_for_demo_path_step(
+    demo_path_step: str,
+    specs: tuple[CommandSpec, ...] = COMMAND_SPECS,
+    launcher_argv: tuple[str, ...] = COMMAND_SMOKE_CLI_LAUNCHER_ARGV,
+) -> CommandDemoCommandCoverageEntry | None:
+    return _command_demo_command_coverage_entry_for_demo_path_step(
+        specs,
+        launcher_argv,
+        demo_path_step,
+    )
+
+
+def command_demo_command_coverage_is_complete_for_demo_path_step(
+    demo_path_step: str,
+    specs: tuple[CommandSpec, ...] = COMMAND_SPECS,
+    launcher_argv: tuple[str, ...] = COMMAND_SMOKE_CLI_LAUNCHER_ARGV,
+) -> bool:
+    entry = command_demo_command_coverage_entry_for_demo_path_step(
+        demo_path_step,
+        specs,
+        launcher_argv,
+    )
+    return entry is not None and entry.is_complete
+
+
+def command_demo_command_coverage_missing_actions_for_demo_path_step(
+    demo_path_step: str,
+    specs: tuple[CommandSpec, ...] = COMMAND_SPECS,
+    launcher_argv: tuple[str, ...] = COMMAND_SMOKE_CLI_LAUNCHER_ARGV,
+) -> tuple[str, ...]:
+    entry = command_demo_command_coverage_entry_for_demo_path_step(
+        demo_path_step,
+        specs,
+        launcher_argv,
+    )
+    if entry is None:
+        return ()
+    return entry.missing_engine_actions
+
+
 def command_mvp_demo_command_readiness_contract(
     specs: tuple[CommandSpec, ...] = COMMAND_SPECS,
     launcher_argv: tuple[str, ...] = COMMAND_SMOKE_CLI_LAUNCHER_ARGV,
@@ -7757,6 +7847,54 @@ def command_mvp_demo_command_coverage_lookup_table(
     launcher_argv: tuple[str, ...] = COMMAND_SMOKE_CLI_LAUNCHER_ARGV,
 ) -> tuple[tuple[str, bool, tuple[str, ...]], ...]:
     return command_demo_command_coverage_lookup_table(specs, launcher_argv)
+
+
+def command_mvp_demo_command_coverage_entry_for_flow_step(
+    flow_step: str,
+    specs: tuple[CommandSpec, ...] = COMMAND_SPECS,
+    launcher_argv: tuple[str, ...] = COMMAND_SMOKE_CLI_LAUNCHER_ARGV,
+) -> CommandDemoCommandCoverageEntry | None:
+    return command_demo_command_coverage_entry_for_flow_step(
+        flow_step,
+        specs,
+        launcher_argv,
+    )
+
+
+def command_mvp_demo_command_coverage_entry_for_demo_path_step(
+    demo_path_step: str,
+    specs: tuple[CommandSpec, ...] = COMMAND_SPECS,
+    launcher_argv: tuple[str, ...] = COMMAND_SMOKE_CLI_LAUNCHER_ARGV,
+) -> CommandDemoCommandCoverageEntry | None:
+    return command_demo_command_coverage_entry_for_demo_path_step(
+        demo_path_step,
+        specs,
+        launcher_argv,
+    )
+
+
+def command_mvp_demo_command_coverage_is_complete_for_demo_path_step(
+    demo_path_step: str,
+    specs: tuple[CommandSpec, ...] = COMMAND_SPECS,
+    launcher_argv: tuple[str, ...] = COMMAND_SMOKE_CLI_LAUNCHER_ARGV,
+) -> bool:
+    return command_demo_command_coverage_is_complete_for_demo_path_step(
+        demo_path_step,
+        specs,
+        launcher_argv,
+    )
+
+
+def command_mvp_demo_command_coverage_missing_actions_for_demo_path_step(
+    demo_path_step: str,
+    specs: tuple[CommandSpec, ...] = COMMAND_SPECS,
+    launcher_argv: tuple[str, ...] = COMMAND_SMOKE_CLI_LAUNCHER_ARGV,
+) -> tuple[str, ...]:
+    return command_demo_command_coverage_missing_actions_for_demo_path_step(
+        demo_path_step,
+        specs,
+        launcher_argv,
+    )
 
 
 @lru_cache(maxsize=None)
