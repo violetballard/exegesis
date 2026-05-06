@@ -9931,7 +9931,7 @@ def _is_shell_strict_mode_setup_argv(argv: tuple[str, ...]) -> bool:
                 return False
             index += 2
             continue
-        if token.startswith("-") and token[1:] and set(token[1:]).issubset({"e", "u", "o"}):
+        if token.startswith("-") and token[1:] and set(token[1:]).issubset({"E", "e", "u", "o", "x"}):
             if "o" in token:
                 if index + 1 >= len(argv) or argv[index + 1] != "pipefail":
                     return False
