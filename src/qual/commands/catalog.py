@@ -539,6 +539,19 @@ class CommandDemoReadinessHandoffPacket:
 
 
 @dataclass(frozen=True)
+class CommandDemoReadinessHandoffAudit:
+    is_complete: bool
+    fingerprint_digest: str
+    packet_fingerprint_digest: str
+    command_lines_match: bool
+    exact_action_lines_match: bool
+    cli_exact_action_lines_match: bool
+    invalid_argv: tuple[tuple[str, ...], ...]
+    missing_flow_steps: tuple[str, ...]
+    missing_engine_actions: tuple[str, ...]
+
+
+@dataclass(frozen=True)
 class CommandDemoReadinessSeal:
     is_complete: bool
     flow_steps: tuple[str, ...]
@@ -5099,6 +5112,126 @@ def command_demo_readiness_handoff_packet_summary(
 
 
 @lru_cache(maxsize=None)
+def command_demo_readiness_handoff_audit(
+    specs: tuple[CommandSpec, ...] = COMMAND_SPECS,
+    launcher_argv: tuple[str, ...] = COMMAND_SMOKE_CLI_LAUNCHER_ARGV,
+) -> CommandDemoReadinessHandoffAudit:
+    packet = command_demo_readiness_handoff_packet(specs, launcher_argv)
+    seal = command_demo_readiness_seal(specs, launcher_argv)
+    fingerprint = command_demo_readiness_fingerprint(specs, launcher_argv)
+    cli_validation = command_demo_readiness_validate_cli_exact_action_shell_script_lines(
+        packet.cli_exact_action_lines,
+        specs,
+        launcher_argv,
+    )
+    exact_validation = command_demo_readiness_validate_exact_action_shell_script_lines(
+        packet.exact_action_lines,
+        specs,
+        launcher_argv,
+    )
+    invalid_argv = _ordered_unique_argv(
+        *packet.invalid_argv,
+        *cli_validation.invalid_argv,
+        *exact_validation.invalid_argv,
+    )
+    missing_flow_steps = _ordered_unique_tokens(
+        *packet.missing_flow_steps,
+        *cli_validation.missing_flow_steps,
+        *exact_validation.missing_flow_steps,
+    )
+    missing_engine_actions = _ordered_unique_tokens(
+        *packet.missing_engine_actions,
+        *cli_validation.missing_engine_actions,
+        *exact_validation.missing_engine_actions,
+    )
+    audit = CommandDemoReadinessHandoffAudit(
+        is_complete=(
+            packet.is_complete
+            and seal.is_complete
+            and cli_validation.is_complete
+            and exact_validation.is_complete
+            and packet.fingerprint_digest == fingerprint.digest
+            and packet.command_lines == seal.command_lines
+            and packet.exact_action_lines == seal.exact_action_lines
+            and packet.cli_exact_action_lines == seal.cli_exact_action_lines
+            and not invalid_argv
+            and not missing_flow_steps
+            and not missing_engine_actions
+        ),
+        fingerprint_digest=fingerprint.digest,
+        packet_fingerprint_digest=packet.fingerprint_digest,
+        command_lines_match=packet.command_lines == seal.command_lines,
+        exact_action_lines_match=packet.exact_action_lines == seal.exact_action_lines,
+        cli_exact_action_lines_match=packet.cli_exact_action_lines == seal.cli_exact_action_lines,
+        invalid_argv=invalid_argv,
+        missing_flow_steps=missing_flow_steps,
+        missing_engine_actions=missing_engine_actions,
+    )
+    _validate_command_demo_readiness_handoff_audit(audit, packet, seal, fingerprint)
+    return audit
+
+
+def _validate_command_demo_readiness_handoff_audit(
+    audit: CommandDemoReadinessHandoffAudit,
+    packet: CommandDemoReadinessHandoffPacket,
+    seal: CommandDemoReadinessSeal,
+    fingerprint: CommandDemoReadinessFingerprint,
+) -> None:
+    if audit.fingerprint_digest != fingerprint.digest:
+        raise ValueError("Command demo readiness handoff audit fingerprint is inconsistent")
+    if audit.packet_fingerprint_digest != packet.fingerprint_digest:
+        raise ValueError("Command demo readiness handoff audit packet fingerprint is inconsistent")
+    if audit.command_lines_match != (packet.command_lines == seal.command_lines):
+        raise ValueError("Command demo readiness handoff audit command match is inconsistent")
+    if audit.exact_action_lines_match != (packet.exact_action_lines == seal.exact_action_lines):
+        raise ValueError("Command demo readiness handoff audit exact action match is inconsistent")
+    if audit.cli_exact_action_lines_match != (
+        packet.cli_exact_action_lines == seal.cli_exact_action_lines
+    ):
+        raise ValueError("Command demo readiness handoff audit CLI exact action match is inconsistent")
+    if audit.is_complete != (
+        packet.is_complete
+        and seal.is_complete
+        and audit.fingerprint_digest == audit.packet_fingerprint_digest
+        and audit.command_lines_match
+        and audit.exact_action_lines_match
+        and audit.cli_exact_action_lines_match
+        and not audit.invalid_argv
+        and not audit.missing_flow_steps
+        and not audit.missing_engine_actions
+    ):
+        raise ValueError("Command demo readiness handoff audit completeness is inconsistent")
+
+
+def command_demo_readiness_handoff_audit_summary(
+    specs: tuple[CommandSpec, ...] = COMMAND_SPECS,
+    launcher_argv: tuple[str, ...] = COMMAND_SMOKE_CLI_LAUNCHER_ARGV,
+) -> tuple[
+    bool,
+    str,
+    str,
+    bool,
+    bool,
+    bool,
+    tuple[tuple[str, ...], ...],
+    tuple[str, ...],
+    tuple[str, ...],
+]:
+    audit = command_demo_readiness_handoff_audit(specs, launcher_argv)
+    return (
+        audit.is_complete,
+        audit.fingerprint_digest,
+        audit.packet_fingerprint_digest,
+        audit.command_lines_match,
+        audit.exact_action_lines_match,
+        audit.cli_exact_action_lines_match,
+        audit.invalid_argv,
+        audit.missing_flow_steps,
+        audit.missing_engine_actions,
+    )
+
+
+@lru_cache(maxsize=None)
 def command_demo_readiness_action_sequence_contract(
     specs: tuple[CommandSpec, ...] = COMMAND_SPECS,
     launcher_argv: tuple[str, ...] = COMMAND_SMOKE_CLI_LAUNCHER_ARGV,
@@ -8872,6 +9005,30 @@ def command_mvp_demo_readiness_handoff_packet_summary(
     tuple[tuple[str, ...], ...],
 ]:
     return command_demo_readiness_handoff_packet_summary(specs, launcher_argv)
+
+
+def command_mvp_demo_readiness_handoff_audit(
+    specs: tuple[CommandSpec, ...] = COMMAND_SPECS,
+    launcher_argv: tuple[str, ...] = COMMAND_SMOKE_CLI_LAUNCHER_ARGV,
+) -> CommandDemoReadinessHandoffAudit:
+    return command_demo_readiness_handoff_audit(specs, launcher_argv)
+
+
+def command_mvp_demo_readiness_handoff_audit_summary(
+    specs: tuple[CommandSpec, ...] = COMMAND_SPECS,
+    launcher_argv: tuple[str, ...] = COMMAND_SMOKE_CLI_LAUNCHER_ARGV,
+) -> tuple[
+    bool,
+    str,
+    str,
+    bool,
+    bool,
+    bool,
+    tuple[tuple[str, ...], ...],
+    tuple[str, ...],
+    tuple[str, ...],
+]:
+    return command_demo_readiness_handoff_audit_summary(specs, launcher_argv)
 
 
 def command_mvp_demo_readiness_seal(
