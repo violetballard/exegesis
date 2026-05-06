@@ -353,6 +353,12 @@ class RetrievalDocHit:
         top_fts_rank = self.provenance.get("top_fts_rank")
         if isinstance(top_fts_rank, (int, float)):
             payload["top_fts_rank"] = top_fts_rank
+        top_matched_terms = self.provenance.get("top_matched_terms")
+        if isinstance(top_matched_terms, list):
+            payload["top_matched_terms"] = copy.deepcopy(top_matched_terms)
+        top_match_count = self.provenance.get("top_match_count")
+        if isinstance(top_match_count, int):
+            payload["top_match_count"] = top_match_count
         retrieval_backend = self.provenance.get("retrieval_backend")
         if isinstance(retrieval_backend, str) and retrieval_backend:
             payload["retrieval_backend"] = retrieval_backend

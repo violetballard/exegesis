@@ -520,6 +520,8 @@ class UnifiedRetrievalTests(unittest.TestCase):
         )
         self.assertEqual(doc_hit_payload["top_excerpt_text_hash"], doc_hit.provenance["top_excerpt_text_hash"])
         self.assertEqual(doc_hit_payload["top_excerpt_rank"], doc_hit.provenance["top_excerpt_rank"])
+        self.assertEqual(doc_hit_payload["top_matched_terms"], doc_hit.provenance["top_matched_terms"])
+        self.assertEqual(doc_hit_payload["top_match_count"], doc_hit.provenance["top_match_count"])
         self.assertEqual(doc_hit_payload["source_hash"], doc_hit.source_hash)
         self.assertEqual(result.diagnostics["doc_hits_count"], len(result.doc_hits))
         self.assertEqual(result.diagnostics["excerpt_hits_count"], len(result.hits))
