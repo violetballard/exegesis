@@ -6653,6 +6653,33 @@ def command_demo_readiness_exact_action_route_lookup_table(
 
 
 @lru_cache(maxsize=None)
+def command_demo_readiness_exact_action_route_index(
+    specs: tuple[CommandSpec, ...] = COMMAND_SPECS,
+    launcher_argv: tuple[str, ...] = COMMAND_SMOKE_CLI_LAUNCHER_ARGV,
+) -> tuple[tuple[str, CommandDemoReadinessExactActionRouteEntry], ...]:
+    return tuple(
+        (entry.engine_action, entry)
+        for entry in command_demo_readiness_exact_action_route_contract(
+            specs,
+            launcher_argv,
+        ).entries
+    )
+
+
+def command_demo_readiness_exact_action_route_for_engine_action(
+    engine_action: str,
+    specs: tuple[CommandSpec, ...] = COMMAND_SPECS,
+    launcher_argv: tuple[str, ...] = COMMAND_SMOKE_CLI_LAUNCHER_ARGV,
+) -> CommandDemoReadinessExactActionRouteEntry | None:
+    requested_action = engine_action.strip()
+    if not requested_action:
+        return None
+    return dict(command_demo_readiness_exact_action_route_index(specs, launcher_argv)).get(
+        requested_action
+    )
+
+
+@lru_cache(maxsize=None)
 def command_demo_readiness_action_sequence_contract(
     specs: tuple[CommandSpec, ...] = COMMAND_SPECS,
     launcher_argv: tuple[str, ...] = COMMAND_SMOKE_CLI_LAUNCHER_ARGV,
@@ -12230,6 +12257,25 @@ def command_mvp_demo_readiness_exact_action_route_lookup_table(
     launcher_argv: tuple[str, ...] = COMMAND_SMOKE_CLI_LAUNCHER_ARGV,
 ) -> tuple[tuple[str, str], ...]:
     return command_demo_readiness_exact_action_route_lookup_table(specs, launcher_argv)
+
+
+def command_mvp_demo_readiness_exact_action_route_index(
+    specs: tuple[CommandSpec, ...] = COMMAND_SPECS,
+    launcher_argv: tuple[str, ...] = COMMAND_SMOKE_CLI_LAUNCHER_ARGV,
+) -> tuple[tuple[str, CommandDemoReadinessExactActionRouteEntry], ...]:
+    return command_demo_readiness_exact_action_route_index(specs, launcher_argv)
+
+
+def command_mvp_demo_readiness_exact_action_route_for_engine_action(
+    engine_action: str,
+    specs: tuple[CommandSpec, ...] = COMMAND_SPECS,
+    launcher_argv: tuple[str, ...] = COMMAND_SMOKE_CLI_LAUNCHER_ARGV,
+) -> CommandDemoReadinessExactActionRouteEntry | None:
+    return command_demo_readiness_exact_action_route_for_engine_action(
+        engine_action,
+        specs,
+        launcher_argv,
+    )
 
 
 def command_mvp_demo_readiness_seal(
