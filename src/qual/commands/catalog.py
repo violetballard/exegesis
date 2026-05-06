@@ -853,6 +853,10 @@ COMMAND_SMOKE_ENV_FLAGS: tuple[str, ...] = (
     "-i",
     "--ignore-environment",
 )
+COMMAND_SMOKE_ENV_VALUE_OPTIONS: tuple[str, ...] = (
+    "-u",
+    "--unset",
+)
 COMMAND_SMOKE_SHELL_SETUP_COMMANDS: tuple[str, ...] = (
     "cd",
     "pwd",
@@ -6342,6 +6346,14 @@ def _split_env_launcher_prefix(argv: tuple[str, ...]) -> tuple[tuple[str, ...], 
         token = argv[index]
         if token == "--":
             return argv[: index + 1], argv[index + 1 :]
+        if _env_option_has_inline_value(token):
+            index += 1
+            continue
+        if token in COMMAND_SMOKE_ENV_VALUE_OPTIONS:
+            if index + 1 >= len(argv):
+                return (), argv
+            index += 2
+            continue
         if token in COMMAND_SMOKE_ENV_FLAGS or SHELL_ENV_ASSIGNMENT_RE.fullmatch(token):
             index += 1
             continue
@@ -6349,6 +6361,10 @@ def _split_env_launcher_prefix(argv: tuple[str, ...]) -> tuple[tuple[str, ...], 
     if index >= len(argv):
         return (), argv
     return argv[:index], argv[index:]
+
+
+def _env_option_has_inline_value(token: str) -> bool:
+    return token.startswith("--unset=") and token != "--unset="
 
 
 def _strip_shell_command_wrappers(argv: tuple[str, ...]) -> tuple[str, ...]:
