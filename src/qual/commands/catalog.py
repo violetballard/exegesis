@@ -601,6 +601,23 @@ class CommandDemoReadinessCommandTraceContract:
 
 
 @dataclass(frozen=True)
+class CommandDemoCommandReadinessEntry:
+    ordinal: int
+    demo_path_step: str
+    flow_step: str
+    name: str
+    command_line: str
+    engine_actions: tuple[str, ...]
+    exact_action_lines: tuple[tuple[str, str], ...]
+    cli_exact_action_lines: tuple[tuple[str, str], ...]
+
+
+@dataclass(frozen=True)
+class CommandDemoCommandReadinessContract:
+    entries: tuple[CommandDemoCommandReadinessEntry, ...]
+
+
+@dataclass(frozen=True)
 class CommandDemoSupportedLauncherReadinessEntry:
     launcher_argv: tuple[str, ...]
     is_complete: bool
@@ -5676,6 +5693,127 @@ def command_demo_readiness_command_trace_lookup_table(
         (entry.name, entry.action_lines)
         for entry in command_demo_readiness_command_trace_contract(specs, launcher_argv).entries
     )
+
+
+@lru_cache(maxsize=None)
+def command_demo_command_readiness_contract(
+    specs: tuple[CommandSpec, ...] = COMMAND_SPECS,
+    launcher_argv: tuple[str, ...] = COMMAND_SMOKE_CLI_LAUNCHER_ARGV,
+) -> CommandDemoCommandReadinessContract:
+    exact_lines_by_action = dict(command_demo_readiness_exact_action_line_lookup_table(specs, launcher_argv))
+    cli_exact_lines_by_action = dict(command_demo_readiness_cli_exact_action_line_lookup_table(specs, launcher_argv))
+    entries = tuple(
+        CommandDemoCommandReadinessEntry(
+            ordinal=entry.ordinal,
+            demo_path_step=entry.demo_path_step,
+            flow_step=entry.flow_step,
+            name=entry.name,
+            command_line=entry.command_line,
+            engine_actions=tuple(action for action, _ in entry.action_lines),
+            exact_action_lines=tuple(
+                (action, exact_lines_by_action[action])
+                for action, _ in entry.action_lines
+                if action in exact_lines_by_action
+            ),
+            cli_exact_action_lines=tuple(
+                (action, cli_exact_lines_by_action[action])
+                for action, _ in entry.action_lines
+                if action in cli_exact_lines_by_action
+            ),
+        )
+        for entry in command_demo_readiness_command_trace_contract(specs, launcher_argv).entries
+    )
+    contract = CommandDemoCommandReadinessContract(entries=entries)
+    _validate_command_demo_command_readiness_contract(contract)
+    return contract
+
+
+def _validate_command_demo_command_readiness_contract(
+    contract: CommandDemoCommandReadinessContract,
+) -> None:
+    for entry in contract.entries:
+        if not entry.command_line:
+            raise ValueError(f"Command demo readiness command line is missing: {entry.name}")
+        if not entry.engine_actions:
+            raise ValueError(f"Command demo readiness engine actions are missing: {entry.name}")
+        if tuple(action for action, _ in entry.exact_action_lines) != entry.engine_actions:
+            raise ValueError(f"Command demo readiness exact action lines are incomplete: {entry.name}")
+        if tuple(action for action, _ in entry.cli_exact_action_lines) != entry.engine_actions:
+            raise ValueError(f"Command demo readiness CLI exact action lines are incomplete: {entry.name}")
+
+
+def command_demo_command_readiness_summary(
+    specs: tuple[CommandSpec, ...] = COMMAND_SPECS,
+    launcher_argv: tuple[str, ...] = COMMAND_SMOKE_CLI_LAUNCHER_ARGV,
+) -> tuple[
+    tuple[
+        int,
+        str,
+        str,
+        str,
+        str,
+        tuple[str, ...],
+        tuple[tuple[str, str], ...],
+        tuple[tuple[str, str], ...],
+    ],
+    ...,
+]:
+    return tuple(
+        (
+            entry.ordinal,
+            entry.demo_path_step,
+            entry.flow_step,
+            entry.name,
+            entry.command_line,
+            entry.engine_actions,
+            entry.exact_action_lines,
+            entry.cli_exact_action_lines,
+        )
+        for entry in command_demo_command_readiness_contract(specs, launcher_argv).entries
+    )
+
+
+def command_demo_command_readiness_lookup_table(
+    specs: tuple[CommandSpec, ...] = COMMAND_SPECS,
+    launcher_argv: tuple[str, ...] = COMMAND_SMOKE_CLI_LAUNCHER_ARGV,
+) -> tuple[tuple[str, str, tuple[str, ...]], ...]:
+    return tuple(
+        (entry.name, entry.command_line, entry.engine_actions)
+        for entry in command_demo_command_readiness_contract(specs, launcher_argv).entries
+    )
+
+
+def command_mvp_demo_command_readiness_contract(
+    specs: tuple[CommandSpec, ...] = COMMAND_SPECS,
+    launcher_argv: tuple[str, ...] = COMMAND_SMOKE_CLI_LAUNCHER_ARGV,
+) -> CommandDemoCommandReadinessContract:
+    return command_demo_command_readiness_contract(specs, launcher_argv)
+
+
+def command_mvp_demo_command_readiness_summary(
+    specs: tuple[CommandSpec, ...] = COMMAND_SPECS,
+    launcher_argv: tuple[str, ...] = COMMAND_SMOKE_CLI_LAUNCHER_ARGV,
+) -> tuple[
+    tuple[
+        int,
+        str,
+        str,
+        str,
+        str,
+        tuple[str, ...],
+        tuple[tuple[str, str], ...],
+        tuple[tuple[str, str], ...],
+    ],
+    ...,
+]:
+    return command_demo_command_readiness_summary(specs, launcher_argv)
+
+
+def command_mvp_demo_command_readiness_lookup_table(
+    specs: tuple[CommandSpec, ...] = COMMAND_SPECS,
+    launcher_argv: tuple[str, ...] = COMMAND_SMOKE_CLI_LAUNCHER_ARGV,
+) -> tuple[tuple[str, str, tuple[str, ...]], ...]:
+    return command_demo_command_readiness_lookup_table(specs, launcher_argv)
 
 
 @lru_cache(maxsize=None)
