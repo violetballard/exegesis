@@ -1318,6 +1318,7 @@ class RetrievalService:
 
     def _run_fts_hits(self, query: RetrievalQuery, candidate_doc_ids: tuple[str, ...]) -> list[RetrievalHit]:
         match_query, query_terms = self._build_fts_match_query(query.query_text)
+        query_fingerprint = self._query_fingerprint(query)
         exact_phrase = self._normalized_query_text(query.query_text)
         scope_doc = self._doc_scope_id(query.scope)
         allowed_doc_types = self._normalized_doc_types(query.constraints.doc_types)
@@ -1366,7 +1367,7 @@ class RetrievalService:
                 fts_rank=float(row["fts_rank"]),
                 query_scope=query.scope,
                 query_intent=query.intent,
-                query_fingerprint=self._query_fingerprint(query),
+                query_fingerprint=query_fingerprint,
                 candidate_doc_count=effective_candidate_doc_count,
                 query_date_range=query.constraints.date_range,
             )
