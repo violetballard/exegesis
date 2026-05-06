@@ -810,6 +810,32 @@ def _normalize_policy_snapshot(policy: object) -> dict[str, object]:
     return normalized
 
 
+def _normalize_bundle_retrieval_identity(
+    normalized: dict[str, object],
+    *,
+    field_name: str,
+) -> None:
+    retrieval_policy = normalized.get("retrieval_policy")
+    if not isinstance(retrieval_policy, dict):
+        retrieval_policy = {}
+    if "retrieval_backend" in normalized:
+        normalized["retrieval_backend"] = _normalize_retrieval_backend(
+            _first_text_value(
+                normalized.get("retrieval_backend"),
+                retrieval_policy.get("retrieval_backend"),
+            ),
+            field_name=field_name,
+        )
+    if "retrieval_mode" in normalized:
+        normalized["retrieval_mode"] = _normalize_retrieval_mode(
+            _first_text_value(
+                normalized.get("retrieval_mode"),
+                retrieval_policy.get("retrieval_mode"),
+            ),
+            field_name=field_name,
+        )
+
+
 def _normalize_citation_bundle_snapshot(citation_bundle: dict[str, object]) -> dict[str, object]:
     normalized = copy.deepcopy(citation_bundle)
     normalized["query_date_range"] = _normalize_optional_list_like(normalized.get("query_date_range"))
@@ -844,6 +870,7 @@ def _normalize_citation_bundle_snapshot(citation_bundle: dict[str, object]) -> d
     normalized["retrieval_policy"] = _normalize_policy_snapshot(
         retrieval_policy if isinstance(retrieval_policy, dict) else {}
     )
+    _normalize_bundle_retrieval_identity(normalized, field_name="citation_bundle")
     citation_status = normalized.get("citation_status")
     if isinstance(citation_status, dict):
         normalized["citation_status"] = copy.deepcopy(citation_status)
@@ -869,6 +896,7 @@ def _normalize_doc_bundle_snapshot(doc_bundle: dict[str, object]) -> dict[str, o
     normalized["retrieval_policy"] = _normalize_policy_snapshot(
         retrieval_policy if isinstance(retrieval_policy, dict) else {}
     )
+    _normalize_bundle_retrieval_identity(normalized, field_name="doc_bundle")
     citation_status = normalized.get("citation_status")
     if isinstance(citation_status, dict):
         normalized["citation_status"] = copy.deepcopy(citation_status)
@@ -909,6 +937,7 @@ def _normalize_excerpt_bundle_snapshot(excerpt_bundle: dict[str, object]) -> dic
     retrieval_policy = normalized.get("retrieval_policy")
     if isinstance(retrieval_policy, dict):
         normalized["retrieval_policy"] = _normalize_policy_snapshot(retrieval_policy)
+    _normalize_bundle_retrieval_identity(normalized, field_name="excerpt_bundle")
     citation_status = normalized.get("citation_status")
     if isinstance(citation_status, dict):
         normalized["citation_status"] = copy.deepcopy(citation_status)
@@ -957,6 +986,7 @@ def _normalize_retrieval_summary_snapshot(summary: dict[str, object]) -> dict[st
     normalized["retrieval_policy"] = _normalize_policy_snapshot(
         retrieval_policy if isinstance(retrieval_policy, dict) else {}
     )
+    _normalize_bundle_retrieval_identity(normalized, field_name="retrieval_summary")
     citation_status = normalized.get("citation_status")
     if isinstance(citation_status, dict):
         normalized["citation_status"] = copy.deepcopy(citation_status)
@@ -993,6 +1023,7 @@ def _normalize_retrieval_manifest_snapshot(manifest: dict[str, object]) -> dict[
     retrieval_policy = normalized.get("retrieval_policy")
     if isinstance(retrieval_policy, dict):
         normalized["retrieval_policy"] = _normalize_policy_snapshot(retrieval_policy)
+    _normalize_bundle_retrieval_identity(normalized, field_name="retrieval_manifest")
     return normalized
 
 
@@ -1035,6 +1066,7 @@ def _normalize_retrieval_evidence_snapshot(evidence: dict[str, object]) -> dict[
     retrieval_policy = normalized.get("retrieval_policy")
     if isinstance(retrieval_policy, dict):
         normalized["retrieval_policy"] = _normalize_policy_snapshot(retrieval_policy)
+    _normalize_bundle_retrieval_identity(normalized, field_name="retrieval_evidence")
     retrieval_manifest = normalized.get("retrieval_manifest")
     if isinstance(retrieval_manifest, dict):
         normalized["retrieval_manifest"] = _normalize_retrieval_manifest_snapshot(retrieval_manifest)
@@ -1342,6 +1374,16 @@ def _build_retrieval_source_bundle_from_payload(payload: dict[str, object]) -> d
         source_bundle = payload.get("source_bundle")
     if isinstance(source_bundle, dict):
         return _normalize_retrieval_source_bundle_snapshot(source_bundle)
+    if "retrieval_backend" in payload:
+        _normalize_retrieval_backend(
+            payload.get("retrieval_backend"),
+            field_name="retrieval_source_bundle",
+        )
+    if "retrieval_mode" in payload:
+        _normalize_retrieval_mode(
+            payload.get("retrieval_mode"),
+            field_name="retrieval_source_bundle",
+        )
     retrieval_doc_bundle = payload.get("retrieval_doc_bundle")
     if not isinstance(retrieval_doc_bundle, dict):
         retrieval_doc_bundle = _build_retrieval_doc_bundle_from_payload(payload)

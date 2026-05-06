@@ -3,76 +3,73 @@
 - Branch name: `codex/feat-retrieval-fts`
 - Lane: `feat-retrieval-fts`
 - Merge target: current `main`
-- Handoff type: shared/high-risk hardening handoff for the FTS-first retrieval lane.
-- Authoritative reviewed implementation base: `e40dfcb3adde628551f54f66710b232c67ad6fe7`.
-- Reviewed implementation head: `1f825ff2caf97956fa04d111adcc7f7935c2a1f2`.
-- Reviewed implementation range: `e40dfcb3adde628551f54f66710b232c67ad6fe7..1f825ff2caf97956fa04d111adcc7f7935c2a1f2`.
-- Scope classification: high-risk because this split edits approved shared regression coverage in `tests/unit/test_unified_retrieval.py`; the 4-task cap applies.
-- Approved shared-file note: `tests/unit/test_unified_retrieval.py` remains the approved shared-by-approval regression surface for `feat-retrieval-fts`.
+- Handoff type: shared/high-risk retrieval feature hardening handoff for the FTS-first retrieval lane.
+- Implementation base before this split: `3078e7d5d8d67605b8c8208383ecdcfa6310471f`.
+- Final branch tip: reported in the final handoff after commit creation.
+- Reviewed implementation range for this split: `3078e7d5d8d67605b8c8208383ecdcfa6310471f..FINAL_BRANCH_TIP`.
+- Scope classification: high-risk under the retrieval kickoff packet because the lane handoff carries approved shared regression coverage history; this split itself changes only lane-owned implementation code plus this handoff packet.
 - Integrator-locked files: none.
 
 ## Scope Completed
 
-This split makes sparse retrieval payload rehydration fail closed when backend or mode fields drift away from the canonical FTS-first MVP contract. Policy normalization now shares explicit backend and mode validators, source bundle rehydration validates copied top-level/summary/provenance/citation backend fields, diagnostics rebuilt from sparse source bundles validate backend and mode, and provenance rehydration validates stale provenance-level backend/mode values before downstream consumers can treat them as canonical.
+This split hardens direct engine-facing retrieval bundle normalization so explicit stale backend or mode fields fail closed at every canonical bundle boundary. Citation, doc, excerpt, summary, manifest, and evidence snapshots now validate any present top-level `retrieval_backend` and `retrieval_mode` values against the FTS-first MVP contract without adding missing fields or changing stable sparse snapshot shapes.
 
-Canonical demo-path step advanced: `retrieve relevant material`. This split also supports `promote or gather context into the basket` by keeping sparse source/provenance/context snapshots FTS-stable before basket promotion items and later revise/apply context bundles are rebuilt.
+Canonical demo-path step advanced: `retrieve relevant material`. This also supports `promote or gather context into the basket` by preventing stale PageIndex or hybrid retrieval identities from surviving in sparse bundle snapshots that are later rebuilt into downstream payloads, context bundles, and basket promotion references.
 
 ## Tasks Completed
 
-1. Backend/mode drift guard: enforces `sqlite_fts` and `fts_first` for sparse source bundle, diagnostics, provenance, and policy normalization.
-2. Shared regression coverage: adds a unified retrieval test proving stale sparse backend and mode values fail closed.
-3. Verification: re-runs the unified retrieval suite and required local gates.
-4. Handoff metadata refresh: records branch, scope, files, commands, roadmap/vision mapping, and residual risk status.
+1. Bundle identity guard: added shared validation for explicit `retrieval_backend` and `retrieval_mode` fields on direct citation/doc/excerpt/summary/manifest/evidence snapshots.
+2. Source-bundle fail-closed ordering: validates top-level sparse payload backend/mode before derived doc/excerpt bundles are rebuilt, preserving the existing source-bundle error contract.
+3. Shape stability: kept absent sparse identity fields absent so existing deterministic bundle equality and fingerprints remain stable.
+4. Verification and handoff: re-ran the unified retrieval suite and all required local gates, then refreshed this handoff packet.
 
-Final demo-path statement: retrieval output remains FTS-first, deterministic, and promotion-ready without allowing PageIndex, hybrid, or other stale backend/mode identities into engine-facing payloads.
+Final demo-path statement: retrieval output remains FTS-first, deterministic, and promotion-ready, while explicit stale PageIndex, hybrid, or non-`sqlite_fts` bundle identities are rejected before engine consumers can treat them as canonical.
 
 ## Files Changed
 
-Authoritative reviewed implementation base: `e40dfcb3adde628551f54f66710b232c67ad6fe7`.
+Implementation base before this split: `3078e7d5d8d67605b8c8208383ecdcfa6310471f`.
 
-- `src/qual/engine/retrieval/payload.py` - sparse payload policy/source/provenance/diagnostics normalization now requires backend `sqlite_fts` and mode `fts_first`.
-- `tests/unit/test_unified_retrieval.py` - approved shared regression verifies sparse backend/mode drift is rejected.
+- `src/qual/engine/retrieval/payload.py` - direct retrieval bundle snapshots now validate explicit backend/mode identity fields and sparse source payloads validate top-level backend/mode before rebuilding nested bundles.
 - `THREAD_PACKET.md` - handoff packet refreshed with required `INTEGRATION.md` fields.
 
 ## Diff Evidence
 
-Command: `git diff --stat e40dfcb3adde628551f54f66710b232c67ad6fe7..1f825ff2caf97956fa04d111adcc7f7935c2a1f2 -- src/qual/engine/retrieval/payload.py tests/unit/test_unified_retrieval.py`
+Command: `git diff --stat HEAD -- src/qual/engine/retrieval/payload.py`
 
 ```text
- src/qual/engine/retrieval/payload.py | 94 ++++++++++++++++++++++++------------
- tests/unit/test_unified_retrieval.py | 33 +++++++++++++
- 2 files changed, 96 insertions(+), 31 deletions(-)
+ src/qual/engine/retrieval/payload.py | 42 ++++++++++++++++++++++++++++++++++++
+ 1 file changed, 42 insertions(+)
 ```
 
-Command: `git diff --numstat e40dfcb3adde628551f54f66710b232c67ad6fe7..1f825ff2caf97956fa04d111adcc7f7935c2a1f2 -- src/qual/engine/retrieval/payload.py tests/unit/test_unified_retrieval.py`
+Command: `git diff --numstat HEAD -- src/qual/engine/retrieval/payload.py`
 
 ```text
-63	31	src/qual/engine/retrieval/payload.py
-33	0	tests/unit/test_unified_retrieval.py
+42	0	src/qual/engine/retrieval/payload.py
 ```
 
 ## Budget/Risk
 
 - Task budget: `4/4` high-risk task groups.
-- File count for authoritative reviewed implementation range before packet refresh: `2 files changed`.
-- Size accounting for authoritative reviewed implementation range before packet refresh: `96 insertions(+), 31 deletions(-)`, net `65 LOC`.
+- File count for implementation change before packet refresh: `1 file changed`.
+- Size accounting for implementation change before packet refresh: `42 insertions(+), 0 deletions(-)`, net `42 LOC`.
 - AGENTS file/size status: fits high-risk limits of `<=8 files` and `<=300 net LOC`.
-- Integrator exception status: approved shared regression coverage in `tests/unit/test_unified_retrieval.py`; no integrator-locked files changed.
+- Shared/integrator exception status: none needed; no shared regression or integrator-locked file changed in this split.
 - Routing/provider impact: none.
-- PageIndex/embeddings impact: remain compatibility-only/deferred identifiers; sparse payloads now reject backend/mode drift instead of accepting stale PageIndex or hybrid identities.
+- PageIndex/embeddings impact: remain compatibility-only/deferred identifiers; explicit stale PageIndex, hybrid, or non-FTS bundle identity values now fail closed at more direct bundle boundaries.
 - Remaining risks/blockers: none known for this split.
 
 ## Roadmap/Vision
 
 - Roadmap items affected: `ROADMAP.md` Milestone 3 generation provenance contract and Milestone 4 FTS-first retrieval orchestration/source-attribution/auditable deterministic retrieval.
 - Vision capability affected: retrieval-backed context, retrieval-first context handling, auditable outputs, and reliable local-first state.
-- Architecture alignment: FTS remains the required local retrieval path. PageIndex and embeddings stay compatibility-only/deferred and stale backend/mode identities fail closed in sparse rehydration.
+- Architecture alignment: FTS remains the required local retrieval path. PageIndex and embeddings stay compatibility-only/deferred and explicit stale backend/mode identities fail closed in engine-facing retrieval bundles.
 - Canonical demo-path mapping: advances `retrieve relevant material` and supports `promote or gather context into the basket`.
 - Routing/provider impact note: none.
 - Proposed `README.md` patch text: none.
 
 ## Commands Run
 
+- `python3 -m unittest tests.unit.test_unified_retrieval -v` - first run failed after the initial draft changed sparse bundle shapes; narrowed the implementation and re-ran.
 - `python3 -m unittest tests.unit.test_unified_retrieval -v` - passed, 81 tests.
 - `./quality-format.sh --check` - passed.
 - `./quality-lint.sh` - passed shell syntax and trailing whitespace checks.
@@ -82,4 +79,4 @@ Command: `git diff --numstat e40dfcb3adde628551f54f66710b232c67ad6fe7..1f825ff2c
 
 ## Metadata Write Note
 
-The root `THREAD_PACKET.md` is the authoritative regenerated handoff packet for this split. Re-review should anchor implementation scope to `1f825ff2caf97956fa04d111adcc7f7935c2a1f2` and range `e40dfcb3adde628551f54f66710b232c67ad6fe7..1f825ff2caf97956fa04d111adcc7f7935c2a1f2`. This packet refresh does not move the reviewed implementation range; use the final fixer handoff for the packet-refresh branch tip.
+The root `THREAD_PACKET.md` is the authoritative regenerated handoff packet for this split. The final branch tip is intentionally reported in the final handoff after commit creation because embedding the commit SHA inside the commit would become stale immediately.
