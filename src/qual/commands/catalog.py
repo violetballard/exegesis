@@ -634,6 +634,7 @@ class CommandDemoReadinessHandoffPacket:
     cli_step_validations: tuple[CommandDemoReadinessCliStepValidation, ...] = ()
     lane_owned_paths: tuple[str, ...] = ()
     shared_file_approval: str = ""
+    required_gate_commands: tuple[CommandDemoReadinessGateCommand, ...] = ()
 
 
 @dataclass(frozen=True)
@@ -645,6 +646,13 @@ class CommandDemoReadinessHandoffFieldEntry:
 @dataclass(frozen=True)
 class CommandDemoReadinessHandoffFieldContract:
     entries: tuple[CommandDemoReadinessHandoffFieldEntry, ...]
+
+
+@dataclass(frozen=True)
+class CommandDemoReadinessGateCommand:
+    ordinal: int
+    command: str
+    expected_result: str
 
 
 @dataclass(frozen=True)
@@ -6058,6 +6066,7 @@ def command_demo_readiness_handoff_packet(
     action_steps = command_demo_readiness_handoff_action_contract(specs, launcher_argv).steps
     step_seals = command_demo_readiness_step_seal_contract(specs, launcher_argv).steps
     cli_step_validations = command_demo_readiness_cli_step_validation_contract(specs, launcher_argv).steps
+    required_gate_commands = command_demo_readiness_required_gate_commands()
     packet = CommandDemoReadinessHandoffPacket(
         scope_completed=(
             "CLI compatibility and migration-safe entrypoints for the engine-first "
@@ -6097,6 +6106,7 @@ def command_demo_readiness_handoff_packet(
         cli_step_validations=cli_step_validations,
         lane_owned_paths=("src/qual/commands/**",),
         shared_file_approval="Not required: command readiness scope remains lane-owned.",
+        required_gate_commands=required_gate_commands,
     )
     _validate_command_demo_readiness_handoff_packet(
         packet,
@@ -6106,6 +6116,7 @@ def command_demo_readiness_handoff_packet(
         action_steps,
         step_seals,
         cli_step_validations,
+        required_gate_commands,
         specs,
         launcher_argv,
     )
@@ -6120,6 +6131,7 @@ def _validate_command_demo_readiness_handoff_packet(
     action_steps: tuple[CommandDemoReadinessHandoffActionStep, ...],
     step_seals: tuple[CommandDemoReadinessStepSeal, ...],
     cli_step_validations: tuple[CommandDemoReadinessCliStepValidation, ...],
+    required_gate_commands: tuple[CommandDemoReadinessGateCommand, ...],
     specs: tuple[CommandSpec, ...],
     launcher_argv: tuple[str, ...],
 ) -> None:
@@ -6165,6 +6177,8 @@ def _validate_command_demo_readiness_handoff_packet(
         raise ValueError("Command demo readiness handoff packet step seals are inconsistent")
     if packet.cli_step_validations != cli_step_validations:
         raise ValueError("Command demo readiness handoff packet CLI step validations are inconsistent")
+    if packet.required_gate_commands != required_gate_commands:
+        raise ValueError("Command demo readiness handoff packet gate commands are inconsistent")
     if tuple(step.command_line for step in packet.action_steps) != packet.command_lines:
         raise ValueError("Command demo readiness handoff packet action step commands are inconsistent")
     if tuple(step.command_line for step in packet.step_seals) != packet.command_lines:
@@ -6177,6 +6191,8 @@ def _validate_command_demo_readiness_handoff_packet(
         raise ValueError("Command demo readiness handoff packet owned paths are inconsistent")
     if not packet.shared_file_approval.strip():
         raise ValueError("Command demo readiness handoff packet shared-file approval must not be empty")
+    if packet.required_gate_commands != command_demo_readiness_required_gate_commands():
+        raise ValueError("Command demo readiness handoff packet required gates are inconsistent")
     if tuple(
         line
         for step in packet.action_steps
@@ -6207,6 +6223,14 @@ def _command_demo_readiness_handoff_packet_payload(
         "canonical_demo_path_steps": list(packet.canonical_demo_path_steps),
         "lane_owned_paths": list(packet.lane_owned_paths),
         "shared_file_approval": packet.shared_file_approval,
+        "required_gate_commands": [
+            {
+                "ordinal": entry.ordinal,
+                "command": entry.command,
+                "expected_result": entry.expected_result,
+            }
+            for entry in packet.required_gate_commands
+        ],
         "command_lines": list(packet.command_lines),
         "exact_action_lines": list(packet.exact_action_lines),
         "cli_exact_action_lines": list(packet.cli_exact_action_lines),
@@ -6305,12 +6329,33 @@ COMMAND_DEMO_READINESS_HANDOFF_FIELD_NAMES: tuple[str, ...] = (
     "canonical_demo_path_step_advanced",
     "lane_owned_paths",
     "shared_file_approval",
+    "required_gate_commands",
     "command_lines",
     "exact_action_lines",
     "readiness_fingerprint",
     "readiness_complete",
     "risks_blockers",
 )
+COMMAND_DEMO_READINESS_REQUIRED_GATE_COMMANDS: tuple[CommandDemoReadinessGateCommand, ...] = (
+    CommandDemoReadinessGateCommand(1, "./quality-format.sh --check", "pass"),
+    CommandDemoReadinessGateCommand(2, "./quality-lint.sh", "pass"),
+    CommandDemoReadinessGateCommand(3, "./quality-test.sh", "pass"),
+    CommandDemoReadinessGateCommand(4, "./typecheck-test.sh", "pass"),
+    CommandDemoReadinessGateCommand(5, "make ci", "pass"),
+)
+
+
+def command_demo_readiness_required_gate_commands() -> tuple[CommandDemoReadinessGateCommand, ...]:
+    commands = COMMAND_DEMO_READINESS_REQUIRED_GATE_COMMANDS
+    if tuple(entry.ordinal for entry in commands) != tuple(range(1, len(commands) + 1)):
+        raise ValueError("Command demo readiness gate command ordinals are inconsistent")
+    if any(not entry.command.strip() for entry in commands):
+        raise ValueError("Command demo readiness gate commands must not be empty")
+    if any(entry.expected_result != "pass" for entry in commands):
+        raise ValueError("Command demo readiness gate commands must require passing results")
+    if len({entry.command for entry in commands}) != len(commands):
+        raise ValueError("Command demo readiness gate commands must be unique")
+    return commands
 
 
 def _command_demo_readiness_handoff_field_entries(
@@ -6334,6 +6379,10 @@ def _command_demo_readiness_handoff_field_entries(
         ),
         CommandDemoReadinessHandoffFieldEntry("lane_owned_paths", "; ".join(packet.lane_owned_paths)),
         CommandDemoReadinessHandoffFieldEntry("shared_file_approval", packet.shared_file_approval),
+        CommandDemoReadinessHandoffFieldEntry(
+            "required_gate_commands",
+            "; ".join(entry.command for entry in packet.required_gate_commands),
+        ),
         CommandDemoReadinessHandoffFieldEntry("command_lines", "; ".join(packet.command_lines)),
         CommandDemoReadinessHandoffFieldEntry(
             "exact_action_lines",
@@ -6373,6 +6422,10 @@ def _validate_command_demo_readiness_handoff_field_contract(
         raise ValueError("Command demo readiness handoff owned paths field is inconsistent")
     if values_by_name["shared_file_approval"] != packet.shared_file_approval:
         raise ValueError("Command demo readiness handoff approval field is inconsistent")
+    if values_by_name["required_gate_commands"] != "; ".join(
+        entry.command for entry in packet.required_gate_commands
+    ):
+        raise ValueError("Command demo readiness handoff gate commands field is inconsistent")
 
 
 @lru_cache(maxsize=None)
@@ -6616,6 +6669,7 @@ def command_demo_readiness_handoff_packet_markdown(
         f"- Canonical demo-path step advanced: {packet.canonical_demo_path_step_advanced}",
         f"- Lane/owned paths: {'; '.join(packet.lane_owned_paths)}",
         f"- Shared-file approval: {packet.shared_file_approval}",
+        f"- Required gates: {'; '.join(entry.command for entry in packet.required_gate_commands)}",
         f"- Readiness complete: {str(packet.is_complete).lower()}",
         f"- Fingerprint: {packet.fingerprint_algorithm}:{packet.fingerprint_digest}",
         f"- Canonical demo-path steps: {'; '.join(packet.canonical_demo_path_steps)}",
@@ -14645,6 +14699,10 @@ def command_mvp_demo_readiness_handoff_field_summary(
     launcher_argv: tuple[str, ...] = COMMAND_SMOKE_CLI_LAUNCHER_ARGV,
 ) -> tuple[tuple[str, str], ...]:
     return command_demo_readiness_handoff_field_summary(specs, launcher_argv)
+
+
+def command_mvp_demo_readiness_required_gate_commands() -> tuple[CommandDemoReadinessGateCommand, ...]:
+    return command_demo_readiness_required_gate_commands()
 
 
 def command_mvp_demo_surface_readiness_contract(
