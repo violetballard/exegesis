@@ -40,6 +40,7 @@ from src.qual.commands.catalog import (
     CommandDemoReadinessIndexContract,
     CommandDemoReadinessCliStepValidationContract,
     CommandDemoReadinessStepSealContract,
+    CommandDemoReadinessCommandAuditContract,
     CommandDemoSurfaceReadinessContract,
     CommandDemoSupportedLauncherReadinessContract,
     CommandDemoReadinessTraceContract,
@@ -114,6 +115,8 @@ from src.qual.commands.catalog import (
     command_mvp_demo_readiness_command_trace_entry_for_argv as _readiness_command_trace_entry_for_argv,
     command_mvp_demo_readiness_command_trace_lookup_table as _readiness_command_trace_lookup_table,
     command_mvp_demo_readiness_command_trace_summary as _readiness_command_trace_summary,
+    command_mvp_demo_readiness_command_audit_contract as _readiness_command_audit_contract,
+    command_mvp_demo_readiness_command_audit_summary as _readiness_command_audit_summary,
     command_mvp_demo_execution_plan_contract as _execution_plan_contract,
     command_mvp_demo_execution_plan_lookup_table as _execution_plan_lookup_table,
     command_mvp_demo_execution_plan_summary as _execution_plan_summary,
@@ -1528,6 +1531,17 @@ def canonical_command_cli_exact_action_lines_for_demo_path_step(
     demo_path_step: str,
 ) -> tuple[tuple[str, str], ...]:
     return _readiness_cli_exact_action_lines_for_demo_path_step(demo_path_step)
+
+
+def canonical_command_readiness_command_audit_contract() -> CommandDemoReadinessCommandAuditContract:
+    return _readiness_command_audit_contract()
+
+
+def canonical_command_readiness_command_audit_summary() -> tuple[
+    tuple[str, str, str, bool, tuple[str, ...]],
+    ...,
+]:
+    return _readiness_command_audit_summary()
 
 
 def canonical_command_exact_action_route_summary() -> tuple[

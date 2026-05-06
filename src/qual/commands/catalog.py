@@ -895,6 +895,27 @@ class CommandDemoCommandActionContract:
     entries: tuple[CommandDemoCommandActionEntry, ...]
 
 
+@dataclass(frozen=True)
+class CommandDemoReadinessCommandAuditEntry:
+    ordinal: int
+    flow_step: str
+    name: str
+    demo_path_step: str
+    command_line: str
+    engine_actions: tuple[str, ...]
+    exact_action_lines: tuple[tuple[str, str], ...]
+    is_cli_entrypoint: bool
+    is_complete: bool
+
+
+@dataclass(frozen=True)
+class CommandDemoReadinessCommandAuditContract:
+    fingerprint_algorithm: str
+    fingerprint_digest: str
+    is_complete: bool
+    entries: tuple[CommandDemoReadinessCommandAuditEntry, ...]
+
+
 def _normalize_token(value: str) -> str:
     normalized = re.sub(r"[-_\s]+", "-", value.strip().casefold())
     return normalized.strip("-")
@@ -5734,6 +5755,104 @@ def command_demo_readiness_handoff_step_status_summary(
             for step in contract.steps
         ),
     )
+
+
+@lru_cache(maxsize=None)
+def command_demo_readiness_command_audit_contract(
+    specs: tuple[CommandSpec, ...] = COMMAND_SPECS,
+    launcher_argv: tuple[str, ...] = COMMAND_SMOKE_CLI_LAUNCHER_ARGV,
+) -> CommandDemoReadinessCommandAuditContract:
+    step_status = command_demo_readiness_handoff_step_status_contract(specs, launcher_argv)
+    entries = tuple(
+        CommandDemoReadinessCommandAuditEntry(
+            ordinal=step.ordinal,
+            flow_step=step.flow_step,
+            name=step.name,
+            demo_path_step=step.demo_path_step,
+            command_line=step.command_line,
+            engine_actions=step.engine_actions,
+            exact_action_lines=step.exact_action_lines,
+            is_cli_entrypoint=step.is_cli_entrypoint,
+            is_complete=step.is_complete,
+        )
+        for step in step_status.steps
+    )
+    contract = CommandDemoReadinessCommandAuditContract(
+        fingerprint_algorithm=step_status.fingerprint_algorithm,
+        fingerprint_digest=step_status.fingerprint_digest,
+        is_complete=step_status.is_complete and all(entry.is_complete for entry in entries),
+        entries=entries,
+    )
+    _validate_command_demo_readiness_command_audit_contract(contract, step_status)
+    return contract
+
+
+def _validate_command_demo_readiness_command_audit_contract(
+    contract: CommandDemoReadinessCommandAuditContract,
+    step_status: CommandDemoReadinessHandoffStepStatusContract,
+) -> None:
+    if contract.fingerprint_algorithm != step_status.fingerprint_algorithm:
+        raise ValueError("Command demo readiness command audit fingerprint algorithm is inconsistent")
+    if contract.fingerprint_digest != step_status.fingerprint_digest:
+        raise ValueError("Command demo readiness command audit fingerprint digest is inconsistent")
+    if tuple(entry.ordinal for entry in contract.entries) != tuple(step.ordinal for step in step_status.steps):
+        raise ValueError("Command demo readiness command audit ordinals are inconsistent")
+    if tuple(entry.flow_step for entry in contract.entries) != tuple(step.flow_step for step in step_status.steps):
+        raise ValueError("Command demo readiness command audit flow steps are inconsistent")
+    if tuple(entry.name for entry in contract.entries) != tuple(step.name for step in step_status.steps):
+        raise ValueError("Command demo readiness command audit names are inconsistent")
+    if tuple(entry.demo_path_step for entry in contract.entries) != tuple(
+        step.demo_path_step for step in step_status.steps
+    ):
+        raise ValueError("Command demo readiness command audit demo path steps are inconsistent")
+    if tuple(entry.command_line for entry in contract.entries) != tuple(
+        step.command_line for step in step_status.steps
+    ):
+        raise ValueError("Command demo readiness command audit command lines are inconsistent")
+    for entry, step in zip(contract.entries, step_status.steps, strict=True):
+        if entry.engine_actions != step.engine_actions:
+            raise ValueError(f"Command demo readiness command audit actions are inconsistent: {entry.flow_step}")
+        if entry.exact_action_lines != step.exact_action_lines:
+            raise ValueError(
+                f"Command demo readiness command audit exact action lines are inconsistent: {entry.flow_step}"
+            )
+        if entry.is_cli_entrypoint != step.is_cli_entrypoint:
+            raise ValueError(f"Command demo readiness command audit CLI flag is inconsistent: {entry.flow_step}")
+        if entry.is_complete != step.is_complete:
+            raise ValueError(f"Command demo readiness command audit completeness is inconsistent: {entry.flow_step}")
+    if contract.is_complete != (step_status.is_complete and all(entry.is_complete for entry in contract.entries)):
+        raise ValueError("Command demo readiness command audit completeness is inconsistent")
+
+
+def command_demo_readiness_command_audit_summary(
+    specs: tuple[CommandSpec, ...] = COMMAND_SPECS,
+    launcher_argv: tuple[str, ...] = COMMAND_SMOKE_CLI_LAUNCHER_ARGV,
+) -> tuple[tuple[str, str, str, bool, tuple[str, ...]], ...]:
+    contract = command_demo_readiness_command_audit_contract(specs, launcher_argv)
+    return tuple(
+        (
+            entry.flow_step,
+            entry.name,
+            entry.demo_path_step,
+            entry.is_complete,
+            entry.engine_actions,
+        )
+        for entry in contract.entries
+    )
+
+
+def command_mvp_demo_readiness_command_audit_contract(
+    specs: tuple[CommandSpec, ...] = COMMAND_SPECS,
+    launcher_argv: tuple[str, ...] = COMMAND_SMOKE_CLI_LAUNCHER_ARGV,
+) -> CommandDemoReadinessCommandAuditContract:
+    return command_demo_readiness_command_audit_contract(specs, launcher_argv)
+
+
+def command_mvp_demo_readiness_command_audit_summary(
+    specs: tuple[CommandSpec, ...] = COMMAND_SPECS,
+    launcher_argv: tuple[str, ...] = COMMAND_SMOKE_CLI_LAUNCHER_ARGV,
+) -> tuple[tuple[str, str, str, bool, tuple[str, ...]], ...]:
+    return command_demo_readiness_command_audit_summary(specs, launcher_argv)
 
 
 def command_demo_readiness_handoff_step_status_payload(
