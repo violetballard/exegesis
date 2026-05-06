@@ -1752,6 +1752,39 @@ class UnifiedRetrievalTests(unittest.TestCase):
         ):
             _build_retrieval_source_bundle_from_payload(payload)
 
+    def test_sparse_retrieval_payload_rejects_backend_and_mode_drift(self) -> None:
+        base_payload = {
+            "query": {
+                "query_text": "memo comparison",
+                "scope": "vault",
+                "intent": "compare",
+                "constraints": {"max_results": 4},
+            },
+            "policy": {
+                "retrieval_backend": "sqlite_fts",
+                "retrieval_mode": "fts_first",
+                "active_strategy_ids": ("fts",),
+                "deferred_strategy_ids": ("pageindex", "embeddings"),
+            },
+            "retrieval_backend": "sqlite_fts",
+            "retrieval_mode": "fts_first",
+        }
+        stale_backend = copy.deepcopy(base_payload)
+        stale_backend["retrieval_backend"] = "pageindex"
+        stale_mode = copy.deepcopy(base_payload)
+        stale_mode["retrieval_provenance"] = {"retrieval_mode": "hybrid"}
+
+        with self.assertRaisesRegex(
+            ValueError,
+            "retrieval_source_bundle must use sqlite_fts backend for the MVP",
+        ):
+            _build_retrieval_source_bundle_from_payload(stale_backend)
+        with self.assertRaisesRegex(
+            ValueError,
+            "retrieval_provenance must use fts_first mode for the MVP",
+        ):
+            _build_retrieval_provenance_from_payload(stale_mode)
+
     def test_sparse_excerpt_basket_rehydration_rejects_non_fts_strategy(self) -> None:
         payload = {
             "query": {
