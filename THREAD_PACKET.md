@@ -47,22 +47,22 @@ Shared-by-approval files: `tests/unit/test_unified_retrieval.py`.
 
 ## Diff Evidence
 
-Command: `git diff --stat 378cf9a7..HEAD` at pre-fixer tip `e93e42766a...`
+Command: `git diff --stat 378cf9a7..HEAD`
 
 ```text
  .codex/kickoff_packets/feat-retrieval-fts.md |   36 +-
  .codex/lane_meta/feat-retrieval-fts.json     |  155 +++-
- THREAD_PACKET.md                             |  189 ++---
+ THREAD_PACKET.md                             |  190 ++---
  src/qual/engine/retrieval/__init__.py        |   63 +-
  src/qual/engine/retrieval/fts_strategy.py    |   59 +-
  src/qual/engine/retrieval/payload.py         | 1013 +++++++++++++++++++++++---
  src/qual/retrieval/__init__.py               |   11 +
  src/qual/retrieval/service.py                |  679 +++++++++++++++--
  tests/unit/test_unified_retrieval.py         |  912 ++++++++++++++++++++++-
- 9 files changed, 2783 insertions(+), 334 deletions(-)
+ 9 files changed, 2784 insertions(+), 334 deletions(-)
 ```
 
-Command: `git diff --name-status 378cf9a7..HEAD` at pre-fixer tip `e93e42766a...`
+Command: `git diff --name-status 378cf9a7..HEAD`
 
 ```text
 M	.codex/kickoff_packets/feat-retrieval-fts.md
@@ -80,7 +80,7 @@ M	tests/unit/test_unified_retrieval.py
 
 - Task budget: `4/4` high-risk task groups.
 - File count for authoritative reviewed implementation range: `9 files changed`.
-- Size accounting for authoritative reviewed implementation range at pre-fixer evidence tip: `2783 insertions(+), 334 deletions(-)`.
+- Size accounting for authoritative reviewed implementation range: `2784 insertions(+), 334 deletions(-)`.
 - AGENTS high-risk file/size status: exceeds `<=8 files` and `<=300 net LOC`.
 - Integrator exception status: explicit high-risk size/file exception is required for approval of this branch-tip range. This packet does not claim high-risk size compliance.
 - Routing/provider impact: none.
