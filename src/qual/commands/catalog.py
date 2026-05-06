@@ -390,6 +390,15 @@ class CommandDemoReadinessExactCliAuditContract:
 
 
 @dataclass(frozen=True)
+class CommandDemoReadinessExactArgvAudit:
+    engine_action: str
+    argv: tuple[str, ...]
+    canonical_command: str
+    is_valid: bool
+    reason: str = ""
+
+
+@dataclass(frozen=True)
 class CommandDemoReadinessExactActionContract:
     entries: tuple[CommandDemoReadinessExactActionEntry, ...]
 
@@ -1551,7 +1560,13 @@ def _demo_exact_action_smoke_argv_by_engine_action(
             raise ValueError(f"Command demo exact action smoke argv must not be empty: {engine_action}")
         if argv in seen_argv:
             raise ValueError(f"Duplicate command demo exact action smoke argv: {engine_action}")
-        requested_command = _normalize_token(_strip_command_palette_prefix(argv[0]))
+        audit = _audit_demo_exact_action_argv(engine_action, argv, specs)
+        if not audit.is_valid:
+            raise ValueError(
+                "Command demo exact action smoke argv must be canonical: "
+                f"{engine_action} ({audit.reason})"
+            )
+        requested_command = audit.canonical_command
         expected_command = expected_command_by_action.get(engine_action)
         if cli_lookup.get(requested_command) != expected_command:
             raise ValueError(
@@ -1568,6 +1583,71 @@ def _demo_exact_action_smoke_argv_by_engine_action(
     if missing_actions:
         raise ValueError(f"Missing command demo exact action smoke argv: {', '.join(missing_actions)}")
     return argv_by_action
+
+
+def _audit_demo_exact_action_argv(
+    engine_action: str,
+    argv: tuple[str, ...],
+    specs: tuple[CommandSpec, ...],
+) -> CommandDemoReadinessExactArgvAudit:
+    if not argv:
+        return CommandDemoReadinessExactArgvAudit(engine_action, argv, "", False, "empty argv")
+    normalized_command = _normalize_token(argv[0])
+    if not normalized_command:
+        return CommandDemoReadinessExactArgvAudit(engine_action, argv, "", False, "empty command")
+    if argv[0] != normalized_command:
+        return CommandDemoReadinessExactArgvAudit(
+            engine_action,
+            argv,
+            normalized_command,
+            False,
+            "command token is not normalized",
+        )
+    if _strip_command_palette_prefix(argv[0]) != argv[0]:
+        return CommandDemoReadinessExactArgvAudit(
+            engine_action,
+            argv,
+            normalized_command,
+            False,
+            "command palette aliases are not exact action argv",
+        )
+    if _argv_without_launcher(argv, ()) != argv:
+        return CommandDemoReadinessExactArgvAudit(
+            engine_action,
+            argv,
+            normalized_command,
+            False,
+            "launcher or shell wrapper prefixes are not exact action argv",
+        )
+    if command_spec_for(specs, normalized_command) is None:
+        return CommandDemoReadinessExactArgvAudit(
+            engine_action,
+            argv,
+            normalized_command,
+            False,
+            "unknown command",
+        )
+    return CommandDemoReadinessExactArgvAudit(
+        engine_action,
+        argv,
+        normalized_command,
+        True,
+    )
+
+
+def command_demo_readiness_exact_argv_audit(
+    specs: tuple[CommandSpec, ...] = COMMAND_SPECS,
+) -> tuple[CommandDemoReadinessExactArgvAudit, ...]:
+    return tuple(
+        _audit_demo_exact_action_argv(engine_action, argv, specs)
+        for engine_action, argv in _DEMO_EXACT_ACTION_SMOKE_ARGV_BY_ENGINE_ACTION
+    )
+
+
+def command_mvp_demo_readiness_exact_argv_audit(
+    specs: tuple[CommandSpec, ...] = COMMAND_SPECS,
+) -> tuple[CommandDemoReadinessExactArgvAudit, ...]:
+    return command_demo_readiness_exact_argv_audit(specs)
 
 
 def _validate_demo_action_smoke_argv_coverage(
