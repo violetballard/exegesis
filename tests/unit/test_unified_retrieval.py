@@ -670,8 +670,24 @@ class UnifiedRetrievalTests(unittest.TestCase):
             result.doc_hits[0].provenance["doc_rank"],
         )
         self.assertEqual(
+            payload["basket_promotion_items"][0]["matched_terms"],
+            result.hits[0].provenance["matched_terms"],
+        )
+        self.assertEqual(
+            payload["basket_promotion_items"][0]["match_count"],
+            result.hits[0].provenance["match_count"],
+        )
+        self.assertEqual(
             payload["retrieval_evidence"]["basket_promotion_items"][0]["doc_rank"],
             result.doc_hits[0].provenance["doc_rank"],
+        )
+        self.assertEqual(
+            payload["retrieval_evidence"]["basket_promotion_items"][0]["matched_terms"],
+            result.hits[0].provenance["matched_terms"],
+        )
+        self.assertEqual(
+            payload["retrieval_evidence"]["basket_promotion_items"][0]["match_count"],
+            result.hits[0].provenance["match_count"],
         )
         self.assertEqual(payload["retrieval_citation_bundle"]["doc_citations"][0]["source_hash"], result.doc_hits[0].source_hash)
         self.assertEqual(

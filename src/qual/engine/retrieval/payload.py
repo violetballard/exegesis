@@ -174,6 +174,8 @@ def _basket_item_fingerprint(item: dict[str, object]) -> str:
             "doc_rank": item.get("doc_rank"),
             "rank": item.get("rank"),
             "fts_rank": item.get("fts_rank"),
+            "matched_terms": item.get("matched_terms"),
+            "match_count": item.get("match_count"),
             "source_strategy": item.get("source_strategy"),
             "retrieval_source_strategy": item.get("retrieval_source_strategy"),
             "retrieval_backend": item.get("retrieval_backend"),
