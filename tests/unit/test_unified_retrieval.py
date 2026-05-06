@@ -1374,6 +1374,7 @@ class UnifiedRetrievalTests(unittest.TestCase):
         self.assertTrue(normalized["excerpt_lookup_fingerprint"])
         self.assertEqual(normalized["basket_promotion_count"], 1)
         self.assertTrue(normalized["basket_promotion_ready"])
+        self.assertEqual(normalized["basket_promotion_source"], "fts_excerpt_lookup")
 
         provenance = normalized["provenance"]
         self.assertEqual(provenance["source_strategy"], "fts")
@@ -1393,6 +1394,7 @@ class UnifiedRetrievalTests(unittest.TestCase):
         )
         self.assertEqual(provenance["basket_promotion_count"], 1)
         self.assertTrue(provenance["basket_promotion_ready"])
+        self.assertEqual(provenance["basket_promotion_source"], "fts_excerpt_lookup")
         self.assertEqual(
             provenance["basket_item_fingerprint"],
             normalized["basket_item_fingerprint"],
@@ -1501,6 +1503,9 @@ class UnifiedRetrievalTests(unittest.TestCase):
         self.assertEqual(basket_item["retrieval_mode"], "fts_first")
         self.assertEqual(basket_item["retrieval_policy"], canonical["retrieval_policy"])
         self.assertEqual(basket_item["lookup_resolution"], "fts")
+        self.assertEqual(canonical["basket_promotion_source"], "fts_excerpt_lookup")
+        self.assertEqual(canonical["provenance"]["basket_promotion_source"], "fts_excerpt_lookup")
+        self.assertEqual(basket_item["basket_promotion_source"], "fts_excerpt_lookup")
         self.assertEqual(
             basket_item["excerpt_lookup_fingerprint"],
             canonical["excerpt_lookup_fingerprint"],
