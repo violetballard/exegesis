@@ -1184,6 +1184,7 @@ class RetrievalService:
         effective_candidate_doc_count = self._effective_candidate_doc_count(query.scope, candidate_doc_ids)
         candidate_resolution = self._candidate_resolution_snapshot(
             query,
+            query_fingerprint=query_fingerprint,
             candidate_doc_ids=candidate_doc_ids,
             fts_shortlist_doc_ids=fts_shortlist,
         )
@@ -1992,6 +1993,7 @@ class RetrievalService:
         self,
         query: RetrievalQuery,
         *,
+        query_fingerprint: str,
         candidate_doc_ids: tuple[str, ...],
         fts_shortlist_doc_ids: tuple[str, ...],
     ) -> dict[str, object]:
@@ -2004,6 +2006,7 @@ class RetrievalService:
         else:
             resolution_source = "fts_shortlist"
         query_filters = {
+            "max_results": query.constraints.max_results,
             "doc_types": list(self._normalized_doc_types(query.constraints.doc_types)),
             "date_range": list(query.constraints.date_range)
             if query.constraints.date_range is not None
@@ -2011,9 +2014,13 @@ class RetrievalService:
             "section_hint": query.constraints.section_hint,
             "prefer_exact_matches": query.constraints.prefer_exact_matches,
             "require_citations": query.constraints.require_citations,
+            "confidentiality_profile": query.confidentiality_profile,
         }
         return {
             "scope": scope,
+            "query_scope": query.scope,
+            "query_intent": query.intent,
+            "query_fingerprint": query_fingerprint,
             "resolution_source": resolution_source,
             "query_filters": query_filters,
             "candidate_doc_ids": list(candidate_doc_ids),
