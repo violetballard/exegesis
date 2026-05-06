@@ -82,6 +82,16 @@ class PatchReviewCommandStatusPayload:
     truncated: bool
 
 
+@dataclass(frozen=True)
+class PatchReviewActionRoute:
+    action: str
+    engine_action: str
+    command: str
+    flow_step: str
+    demo_path_step: str
+    ready: bool
+
+
 def _normalize_text(value: str) -> str:
     # Normalize newlines so diff output is stable across platforms.
     return value.replace("\r\n", "\n").replace("\r", "\n")
@@ -398,6 +408,27 @@ def build_patch_review_command_status_payload(
     )
 
 
+def build_patch_review_action_routes(payload: DiffPreviewInput) -> tuple[PatchReviewActionRoute, ...]:
+    """Return the exact patch-review action routes exposed by the command surface."""
+
+    decision = build_patch_review_decision(payload)
+    return tuple(
+        PatchReviewActionRoute(
+            action=action,
+            engine_action=engine_action,
+            command=PATCH_REVIEW_COMMAND_NAME,
+            flow_step=PATCH_REVIEW_FLOW_STEP,
+            demo_path_step=PATCH_REVIEW_DEMO_PATH_STEP,
+            ready=bool(action and engine_action),
+        )
+        for action, engine_action in zip(
+            decision.next_actions,
+            decision.engine_actions,
+            strict=True,
+        )
+    )
+
+
 def run_patch_review_decision(payload: DiffPreviewInput) -> str:
     decision = build_patch_review_decision(payload)
     return (
@@ -437,6 +468,25 @@ def run_patch_review_command_status_json(payload: DiffPreviewInput) -> str:
             "normalized_equal": status.normalized_equal,
             "truncated": status.truncated,
         },
+        sort_keys=True,
+        separators=(",", ":"),
+    )
+
+
+def run_patch_review_action_routes_json(payload: DiffPreviewInput) -> str:
+    routes = build_patch_review_action_routes(payload)
+    return json.dumps(
+        [
+            {
+                "action": route.action,
+                "engine_action": route.engine_action,
+                "command": route.command,
+                "flow_step": route.flow_step,
+                "demo_path_step": route.demo_path_step,
+                "ready": route.ready,
+            }
+            for route in routes
+        ],
         sort_keys=True,
         separators=(",", ":"),
     )
