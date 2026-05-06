@@ -11,7 +11,7 @@
 - Authoritative reviewed implementation base: `378cf9a74a3658058079a32f186fcd254c4a4034`.
 - Authoritative reviewed implementation range for re-review: `378cf9a74a3658058079a32f186fcd254c4a4034..HEAD`, where `HEAD` is the final branch tip reported with this fixer response. This is the actual merge candidate range.
 - Actual source-bearing branch tip covered by this packet: `b3b0e81e6a6754dfa3eaa3d21a01ee82817ad846`.
-- Current fixer pass: source-bearing retrieval promotion evidence update; final branch tip is the commit containing this packet refresh.
+- Current fixer pass: packet-only canonical demo-path mapping update; final branch tip is the commit containing this packet refresh.
 - Packet-only trace tip before this fixer refresh: `d902e90625ddfa0abfa92a152e8a94aa26fed2b4`.
 - Source-bearing update note: commits after `adfa8cdadd43747ffbcb612e4151e262b13e52ca` and through `b3b0e81e6a6754dfa3eaa3d21a01ee82817ad846` are source-bearing, not metadata-only. They change retrieval source and shared regression coverage, and every one of those changes is included in the corrected reviewed implementation range.
 
@@ -54,6 +54,14 @@ Sandbox note for this fixer pass: the auxiliary `.codex/kickoff_packets` and `.c
 
 ## Required Fixes Applied
 
+Current packet-only fixer pass for the latest reviewer request:
+
+1. Updated each completed task below so it explicitly names the canonical demo-path step it advances, using the required wording `retrieve relevant material` and `promote or gather context into the basket` where applicable.
+2. Added a final handoff statement naming the canonical demo-path steps this work makes more real.
+3. Preserved the same reviewed implementation range, `378cf9a74a3658058079a32f186fcd254c4a4034..HEAD`; this pass is packet-only and adds no retrieval code changes.
+
+Earlier required fixes already applied:
+
 1. Regenerated the review packet against the actual merge candidate range `378cf9a74a3658058079a32f186fcd254c4a4034..HEAD` instead of retaining the stale `adfa8cdadd43747ffbcb612e4151e262b13e52ca` implementation head.
 2. Set the reviewed implementation range to cover every source/test change that will be merged into the branch tip, including all reviewer-cited changes after `adfa8cdadd43747ffbcb612e4151e262b13e52ca`.
 3. Listed the complete changed source/test implementation surface and the full changed-file surface for the corrected range.
@@ -71,20 +79,22 @@ This fixer pass also carries `citation_status` into each promotion item and into
 
 Canonical demo path: `vault/context material -> FTS retrieval -> retrieval evidence -> context basket promotion -> engine revise/apply`.
 
-Canonical demo-path step made real by this work: it advances both retrieving relevant material with FTS and promoting retrieved evidence into the context basket; the stable retrieval evidence and promotion fingerprints then support downstream plan/revise/apply flows without rehydrating the whole retrieval result.
+Canonical demo-path step made real by this work: this work makes `retrieve relevant material` and `promote or gather context into the basket` more real by making FTS excerpt lookup deterministic, FTS-only, structured, and auditable; the stable retrieval evidence and promotion fingerprints then support downstream plan/revise/apply flows without rehydrating the whole retrieval result.
 
 ## Tasks Completed
 
 1. Made SQLite FTS the authoritative MVP retrieval path while keeping PageIndex and embeddings fallback-only/deferred.
-   Canonical demo-path step advanced: `FTS retrieval`.
+   Canonical demo-path step advanced: `retrieve relevant material` through authoritative `FTS retrieval`.
 2. Stabilized FTS cache and query normalization for query-shaped objects, dataclasses, mappings, iterables, date ranges, shortlist queries, fingerprints, doc types, scopes, boolean constraints, fresh runner output, cache invalidation, and cache audit metadata.
-   Canonical demo-path step advanced: `FTS retrieval`.
+   Canonical demo-path step advanced: `retrieve relevant material` through deterministic FTS query/cache behavior.
 3. Normalized retrieval payload, provenance, citation, source-bundle, context-bundle, basket-promotion, and evidence snapshots so sparse downstream helpers can rehydrate FTS-first payloads without losing constraints, fingerprints, ranks, identities, policies, section hints, promotion items, promotion fingerprints, doc type, matched terms, or confidentiality profile metadata.
-   Canonical demo-path steps advanced: `retrieval evidence` and `context basket promotion`.
+   Canonical demo-path steps advanced: `retrieve relevant material` through structured retrieval evidence and `promote or gather context into the basket` through stable basket-promotion payloads.
 4. Added fail-closed retrieval boundary coverage for malformed or reversed date ranges, empty query/scope inputs, unresolved `doc:` and `collection:` scopes, FTS-only excerpt lookup, excerpt lookup fingerprints, cache/query snapshot behavior, and facade/export availability for basket-promotion helpers.
-   Canonical demo-path steps advanced: `FTS retrieval` and `engine revise/apply` through stable retrieval facade contracts.
+   Canonical demo-path steps advanced: `retrieve relevant material` through FTS-only excerpt lookup and `promote or gather context into the basket` through stable retrieval facade contracts.
 
 Current fixer task completed: attached `citation_status` to basket promotion items and rehydrated promotion items, with shared regression coverage in `tests/unit/test_unified_retrieval.py`.
+
+Final handoff statement: this work makes `retrieve relevant material` and `promote or gather context into the basket` more real by making FTS excerpt lookup deterministic, FTS-only, structured, and auditable.
 
 Task accounting: `4` high-risk task groups completed, matching the high-risk cap of `4`.
 
@@ -95,7 +105,7 @@ Task accounting: `4` high-risk task groups completed, matching the high-risk cap
 - Size accounting: the corrected full source-bearing range exceeds the high-risk `<=300 net LOC` size limit. The actual source-bearing range through `b3b0e81e6a6754dfa3eaa3d21a01ee82817ad846` is `9 files changed, 888 insertions(+), 201 deletions(-)`, and the source/artifact/test portion excluding `THREAD_PACKET.md` is `8 files changed, 806 insertions(+), 129 deletions(-)`. This budget overage is reported explicitly for reviewer/integrator disposition rather than hidden behind a stale narrow range.
 - Shared/integrator exception status: `tests/unit/test_unified_retrieval.py` is the sole approved shared regression surface; no integrator-locked files changed.
 - Routing/provider impact: none.
-- Current fixer diff: `3 files changed, 18 insertions(+)` across retrieval-owned code and the approved shared regression file.
+- Current fixer diff: packet-only update to `THREAD_PACKET.md`; no retrieval source or test files changed in this fixer pass.
 - Remaining risks/blockers: size budget exceeded for the full corrected cumulative range; required gates passed for this final fixer state.
 
 ## Roadmap/Vision
@@ -120,7 +130,4 @@ Required gates rerun on `2026-05-06` for the corrected full reviewed range `378c
 
 Current fixer changed files:
 
-- `src/qual/retrieval/service.py`
-- `src/qual/engine/retrieval/payload.py`
-- `tests/unit/test_unified_retrieval.py`
 - `THREAD_PACKET.md`
