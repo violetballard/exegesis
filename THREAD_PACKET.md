@@ -16,7 +16,7 @@
 - This source-bearing fixer pass changes direct FTS excerpt lookup audit metadata, approved shared retrieval regression coverage, and the root handoff packet. It does not classify any source/test-changing commit after `adfa8cda` as metadata-only.
 - Approved shared-file note: `tests/unit/test_unified_retrieval.py` is approved shared-by-approval regression coverage for this retrieval lane. No integrator-locked files are edited in this handoff.
 - AGENTS.md Active MVP canonical demo-path step: `retrieve relevant material`. This source-bearing fixer keeps sparse basket promotion ordering explicit for `retrieve relevant material`, with every completed task below mapped to that step.
-- Reviewer-required demo-path mapping: This work makes the "retrieve relevant material" step more real by making FTS-only excerpt lookup deterministic and auditable for engine retrieval results. It also supports `promote or gather context into the basket` by preserving basket-facing lookup identity and candidate-set provenance.
+- Reviewer-required demo-path mapping: This work makes the `retrieve relevant material` step more real by keeping excerpt lookup FTS-only and returning deterministic provenance suitable for basket promotion. It also supports `promote or gather context into the basket` by preserving basket-facing lookup identity and candidate-set provenance.
 
 ## Scope Completed
 
@@ -50,7 +50,7 @@ This branch-tip source-bearing fixer pass carries canonical `basket_item_ids` an
 
 The post-`adfa8cda` implementation deltas are explicitly included in review scope. They preserve sparse basket-promotion identity when snapshots retain `basket_item_id`, reject boolean `max_results` values before Python bool/int coercion can affect retrieval limits, reject bool and non-int `max_results` values at the canonical `RetrievalConstraints` boundary, propagate result fingerprints onto document hits, carry document identity fingerprints into excerpt citation/evidence/basket surfaces, and normalize retrieval section hints without requiring non-FTS retrieval paths.
 
-Canonical demo-path step advanced: `retrieve relevant material`. This work makes the `retrieve relevant material` canonical demo-path step more real by making excerpt lookup FTS-only, deterministic, and auditable for downstream basket/workflow use. It also supports `promote or gather context into the basket` because basket-facing summaries preserve auditable FTS lookup identity and candidate-set provenance.
+Canonical demo-path step advanced: `retrieve relevant material`. This work makes the `retrieve relevant material` canonical demo-path step more real by keeping excerpt lookup FTS-only and returning deterministic provenance suitable for basket promotion. It also supports `promote or gather context into the basket` because basket-facing summaries preserve auditable FTS lookup identity and candidate-set provenance.
 
 ## Tasks Completed
 
