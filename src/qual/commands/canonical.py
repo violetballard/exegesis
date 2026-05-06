@@ -24,6 +24,7 @@ from src.qual.commands.catalog import (
     CommandDemoReadinessHandoffContract,
     CommandDemoReadinessHandoffLineContract,
     CommandDemoReadinessHandoffPacket,
+    CommandDemoReadinessFingerprint,
     CommandDemoReadinessReport,
     CommandDemoReadinessRouteContract,
     CommandDemoReadinessSeal,
@@ -55,6 +56,8 @@ from src.qual.commands.catalog import (
     command_mvp_demo_readiness_report_summary as _readiness_report_summary,
     command_mvp_demo_readiness_seal as _readiness_seal,
     command_mvp_demo_readiness_seal_summary as _readiness_seal_summary,
+    command_mvp_demo_readiness_fingerprint as _readiness_fingerprint,
+    command_mvp_demo_readiness_fingerprint_summary as _readiness_fingerprint_summary,
     command_mvp_demo_readiness_shell_script as _readiness_shell_script,
     command_mvp_demo_readiness_cli_smoke_lines as _readiness_cli_smoke_lines,
     command_mvp_demo_readiness_shell_executable_lines as _readiness_shell_executable_lines,
@@ -257,6 +260,8 @@ __all__ = [
     "canonical_command_readiness_report_summary",
     "canonical_command_readiness_seal",
     "canonical_command_readiness_seal_summary",
+    "canonical_command_readiness_fingerprint",
+    "canonical_command_readiness_fingerprint_summary",
     "canonical_command_readiness_shell_script",
     "canonical_command_readiness_cli_smoke_lines",
     "canonical_command_readiness_shell_executable_lines",
@@ -529,6 +534,22 @@ def canonical_command_readiness_seal_summary() -> tuple[
     tuple[tuple[str, ...], ...],
 ]:
     return _readiness_seal_summary()
+
+
+def canonical_command_readiness_fingerprint() -> CommandDemoReadinessFingerprint:
+    return _readiness_fingerprint()
+
+
+def canonical_command_readiness_fingerprint_summary() -> tuple[
+    str,
+    str,
+    tuple[str, ...],
+    tuple[str, ...],
+    tuple[str, ...],
+    tuple[str, ...],
+    tuple[str, ...],
+]:
+    return _readiness_fingerprint_summary()
 
 
 def canonical_command_readiness_shell_script() -> CommandDemoReadinessShellScript:
