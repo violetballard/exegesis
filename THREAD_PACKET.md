@@ -5,8 +5,8 @@
 - Merge target: current `main`
 - Handoff type: high-risk retrieval feature handoff for the FTS-first retrieval lane.
 - Scope classification: high-risk because the actual branch-tip implementation range edits approved shared regression coverage in `tests/unit/test_unified_retrieval.py` and engine retrieval entrypoint/facade code.
-- Reviewed merge-candidate range before this final fixer commit: `9511a016c20f09b43c6e7a571e0a8a49f90ea209..0d6b774afb809783a4e3375c06e51b6a557bcfd2`
-- Reviewed branch tip before this final fixer commit: `0d6b774afb809783a4e3375c06e51b6a557bcfd2`
+- Reviewed implementation range before this packet-only fixer commit: `9511a016c20f09b43c6e7a571e0a8a49f90ea209..4f27cdc5203c9d17e96553051db2241d9fa7f65c`
+- Reviewed branch tip before this packet-only fixer commit: `4f27cdc5203c9d17e96553051db2241d9fa7f65c`
 - Final HEAD SHA: reported in the final response after this fixer commit is created.
 - Approved shared-file note: `tests/unit/test_unified_retrieval.py` is approved shared-by-approval regression coverage for this retrieval lane. No integrator-locked files are edited in this handoff.
 
@@ -14,7 +14,9 @@
 
 This branch-tip handoff covers the complete FTS-first retrieval implementation currently on `codex/feat-retrieval-fts`, including the source and test changes that earlier packets incorrectly excluded after `adfa8cd`. SQLite FTS remains the deterministic retrieval source of truth; PageIndex and embeddings remain compatibility-only fallback shims that fail closed and are not reintroduced as required retrieval paths.
 
-This final fixer pass keeps the same FTS-first scope and hardens ordered retrieval identifier snapshots so manifest and summary fingerprint lists only expose present FTS provenance values, keeping sparse or partial downstream context bundles free of placeholder `None` entries.
+Traceability correction: prior handoff text incorrectly treated packet-refresh commits after `adfa8cd` as metadata-only. That claim is withdrawn. In particular, `0d6b774afb809783a4e3375c06e51b6a557bcfd2` modifies `src/qual/engine/retrieval/payload.py` as implementation work and is included in the reviewed implementation range above.
+
+The reviewed implementation range keeps the same FTS-first scope and hardens ordered retrieval identifier snapshots so manifest and summary fingerprint lists only expose present FTS provenance values, keeping sparse or partial downstream context bundles free of placeholder `None` entries.
 
 Canonical demo-path mapping:
 
@@ -30,7 +32,7 @@ Canonical demo-path mapping:
 
 ## Files Changed
 
-Reviewed range before this packet-refresh fixer commit `9511a016c20f09b43c6e7a571e0a8a49f90ea209..0d6b774afb809783a4e3375c06e51b6a557bcfd2`:
+Reviewed implementation range before this packet-only fixer commit `9511a016c20f09b43c6e7a571e0a8a49f90ea209..4f27cdc5203c9d17e96553051db2241d9fa7f65c`:
 
 - `THREAD_PACKET.md` - authoritative handoff packet for this branch-tip review.
 - `src/qual/engine/retrieval/payload.py` - deterministic retrieval payload and sparse snapshot normalization.
@@ -42,17 +44,17 @@ Shared-by-approval files: `tests/unit/test_unified_retrieval.py`.
 
 ## Diff Evidence
 
-Command: `git diff --stat 9511a016c20f09b43c6e7a571e0a8a49f90ea209..0d6b774afb809783a4e3375c06e51b6a557bcfd2`
+Command: `git diff --stat 9511a016c20f09b43c6e7a571e0a8a49f90ea209..4f27cdc5203c9d17e96553051db2241d9fa7f65c`
 
 ```text
- THREAD_PACKET.md                     | 208 +++++++++++-------------------
+ THREAD_PACKET.md                     | 187 +++++++++------------------
  src/qual/engine/retrieval/payload.py | 240 +++++++++++++++++++++++++++--------
- src/qual/retrieval/service.py        |  57 +++++++++
+ src/qual/retrieval/service.py        | 130 ++++++++++++++-----
  tests/unit/test_unified_retrieval.py | 198 +++++++++++++++++++++++++++++
- 4 files changed, 515 insertions(+), 188 deletions(-)
+ 4 files changed, 539 insertions(+), 216 deletions(-)
 ```
 
-Command: `git diff --name-status 9511a016c20f09b43c6e7a571e0a8a49f90ea209..0d6b774afb809783a4e3375c06e51b6a557bcfd2`
+Command: `git diff --name-status 9511a016c20f09b43c6e7a571e0a8a49f90ea209..4f27cdc5203c9d17e96553051db2241d9fa7f65c`
 
 ```text
 M	THREAD_PACKET.md
@@ -64,12 +66,12 @@ M	tests/unit/test_unified_retrieval.py
 ## Budget/Risk
 
 - Task budget: `4/4` high-risk task groups.
-- Size accounting for reviewed merge-candidate range before this final fixer commit: `4 files changed, 515 insertions(+), 188 deletions(-)`.
+- Size accounting for reviewed implementation range before this packet-only fixer commit: `4 files changed, 539 insertions(+), 216 deletions(-)`.
 - AGENTS high-risk size/file status: exceeds `<=300 net LOC`.
 - Integrator exception status: explicit size exception is required for approval of this branch-tip range. This packet no longer claims high-risk size compliance.
 - Routing/provider impact: none.
 - PageIndex/embeddings impact: remain compatibility-only fallback behavior; no active non-FTS retrieval path is introduced.
-- Final fixer impact: no routing/provider changes; only present-value compaction for ordered retrieval identifier lists plus packet metadata.
+- Packet-only fixer impact: no routing/provider changes; corrects handoff range, false metadata-only traceability, budget accounting, and gate reporting for re-review.
 - Remaining risk: integration approval depends on accepting the documented high-risk size/file-count exception or requesting a split.
 
 ## Roadmap/Vision
@@ -82,13 +84,9 @@ M	tests/unit/test_unified_retrieval.py
 
 ## Commands Run
 
-- `make scope-check` - passed for branch `codex/feat-retrieval-fts`.
+- `make scope-check` - passed for branch `codex/feat-retrieval-fts`; no branch policy was configured, so the check skipped policy matching and exited successfully.
 - `./quality-format.sh --check` - passed.
-- `python -m unittest tests.unit.test_unified_retrieval` - passed 75 retrieval unit tests before this final fixer edit.
-- `python -m unittest tests.unit.test_unified_retrieval` - passed 75 retrieval unit tests after this final fixer edit.
 - `./quality-lint.sh` - passed shell syntax and trailing whitespace checks.
-- `python -m pytest tests/unit/test_unified_retrieval.py` - not run; current interpreter has no `pytest` module.
-- `python -m unittest tests.unit.test_unified_retrieval` - passed 75 retrieval unit tests.
 - `./quality-test.sh` - passed smoke tests and 144 unit tests.
 - `./typecheck-test.sh` - passed Python source compilation under `src/`.
 - `make ci` - passed setup, scope-check, format, lint, typecheck, smoke tests, and 144 unit tests.
