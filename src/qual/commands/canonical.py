@@ -648,6 +648,10 @@ __all__ = [
     "canonical_command_readiness_status_for_demo_path_step",
     "canonical_command_readiness_status_for_engine_action",
     "canonical_command_readiness_status_for_flow_step",
+    "canonical_command_readiness_statuses_for_argvs",
+    "canonical_command_readiness_remaining_statuses",
+    "canonical_command_readiness_shell_statuses",
+    "canonical_command_readiness_shell_remaining_statuses",
     "canonical_command_readiness_lookup_table",
     "canonical_command_readiness_command_line_lookup_table",
     "canonical_command_readiness_summary",
@@ -789,6 +793,54 @@ def canonical_command_demo_readiness_statuses() -> tuple[CommandCanonicalReadine
 def canonical_command_demo_readiness_ready() -> bool:
     statuses = canonical_command_demo_readiness_statuses()
     return bool(statuses) and all(status.ready for status in statuses)
+
+
+def canonical_command_readiness_statuses_for_argvs(
+    argvs: Sequence[Sequence[str] | str],
+) -> tuple[CommandCanonicalReadinessStatus, ...]:
+    """Return canonical command statuses covered by a partial demo CLI transcript."""
+
+    validation = canonical_command_readiness_validate_script(argvs)
+    return tuple(
+        canonical_command_readiness_status_for_argv(argv)
+        for argv in validation.canonical_argv
+    )
+
+
+def canonical_command_readiness_remaining_statuses(
+    argvs: Sequence[Sequence[str] | str],
+) -> tuple[CommandCanonicalReadinessStatus, ...]:
+    """Return canonical command statuses still required after a partial CLI transcript."""
+
+    validation = canonical_command_readiness_validate_script(argvs)
+    return tuple(
+        canonical_command_readiness_status_for_flow_step(flow_step)
+        for flow_step in validation.missing_flow_steps
+    )
+
+
+def canonical_command_readiness_shell_statuses(
+    lines: Sequence[str] | str,
+) -> tuple[CommandCanonicalReadinessStatus, ...]:
+    """Return canonical command statuses covered by shell smoke-script lines."""
+
+    validation = canonical_command_readiness_validate_shell_script_lines(lines)
+    return tuple(
+        canonical_command_readiness_status_for_argv(argv)
+        for argv in validation.canonical_argv
+    )
+
+
+def canonical_command_readiness_shell_remaining_statuses(
+    lines: Sequence[str] | str,
+) -> tuple[CommandCanonicalReadinessStatus, ...]:
+    """Return canonical command statuses still required after shell smoke-script lines."""
+
+    validation = canonical_command_readiness_validate_shell_script_lines(lines)
+    return tuple(
+        canonical_command_readiness_status_for_flow_step(flow_step)
+        for flow_step in validation.missing_flow_steps
+    )
 
 
 def canonical_command_action_readiness_summary() -> tuple[
