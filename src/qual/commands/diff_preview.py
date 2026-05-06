@@ -39,6 +39,16 @@ class DiffPreviewResult:
     truncated: bool
 
 
+@dataclass(frozen=True)
+class PatchReviewDecision:
+    status: str
+    next_actions: tuple[str, ...]
+    summary: str
+    has_changes: bool
+    normalized_equal: bool
+    truncated: bool
+
+
 def _normalize_text(value: str) -> str:
     # Normalize newlines so diff output is stable across platforms.
     return value.replace("\r\n", "\n").replace("\r", "\n")
@@ -292,3 +302,34 @@ def build_diff_preview_result(payload: DiffPreviewInput) -> DiffPreviewResult:
 
 def run_diff_preview(payload: DiffPreviewInput) -> str:
     return build_diff_preview_result(payload).output
+
+
+def build_patch_review_decision(payload: DiffPreviewInput) -> PatchReviewDecision:
+    result = build_diff_preview_result(payload)
+    if result.has_changes:
+        status = "changes-detected"
+        next_actions = ("apply", "reject")
+    elif result.normalized_equal:
+        status = "no-op"
+        next_actions = ("continue",)
+    else:
+        status = "no-diff"
+        next_actions = ("continue",)
+    return PatchReviewDecision(
+        status=status,
+        next_actions=next_actions,
+        summary=result.summary,
+        has_changes=result.has_changes,
+        normalized_equal=result.normalized_equal,
+        truncated=result.truncated,
+    )
+
+
+def run_patch_review_decision(payload: DiffPreviewInput) -> str:
+    decision = build_patch_review_decision(payload)
+    return (
+        f"patch-review: {decision.status}; "
+        f"next-actions={','.join(decision.next_actions)}; "
+        f"truncated={str(decision.truncated).lower()}; "
+        f"{decision.summary}"
+    )
