@@ -467,6 +467,7 @@ class UnifiedRetrievalTests(unittest.TestCase):
         self.assertEqual(doc_hit.provenance["top_excerpt_id"], doc_hit.top_excerpt_id)
         self.assertIn("top_excerpt_hash", doc_hit.provenance)
         self.assertIn("top_excerpt_fingerprint", doc_hit.provenance)
+        self.assertIn("top_excerpt_lookup_fingerprint", doc_hit.provenance)
         self.assertIn("top_excerpt_span", doc_hit.provenance)
         self.assertIn("top_matched_terms", doc_hit.provenance)
         self.assertIn("top_match_count", doc_hit.provenance)
@@ -483,6 +484,10 @@ class UnifiedRetrievalTests(unittest.TestCase):
         self.assertEqual(doc_hit_payload["doc_fingerprint"], doc_hit.provenance["doc_fingerprint"])
         self.assertEqual(doc_hit_payload["doc_identity_fingerprint"], doc_hit.provenance["doc_identity_fingerprint"])
         self.assertEqual(doc_hit_payload["top_excerpt_fingerprint"], doc_hit.provenance["top_excerpt_fingerprint"])
+        self.assertEqual(
+            doc_hit_payload["top_excerpt_lookup_fingerprint"],
+            doc_hit.provenance["top_excerpt_lookup_fingerprint"],
+        )
         self.assertEqual(doc_hit_payload["top_excerpt_text_hash"], doc_hit.provenance["top_excerpt_text_hash"])
         self.assertEqual(doc_hit_payload["top_excerpt_rank"], doc_hit.provenance["top_excerpt_rank"])
         self.assertEqual(doc_hit_payload["source_hash"], doc_hit.source_hash)
@@ -497,6 +502,10 @@ class UnifiedRetrievalTests(unittest.TestCase):
         )
         self.assertEqual(manifest["top_excerpt_ids"], [item.top_excerpt_id for item in result.doc_hits])
         self.assertEqual(
+            manifest["top_excerpt_lookup_fingerprints"],
+            [item.provenance["top_excerpt_lookup_fingerprint"] for item in result.doc_hits],
+        )
+        self.assertEqual(
             manifest["top_excerpt_text_hashes"],
             [item.provenance["top_excerpt_text_hash"] for item in result.doc_hits],
         )
@@ -510,6 +519,7 @@ class UnifiedRetrievalTests(unittest.TestCase):
             ],
         )
         self.assertIn("top_excerpt_text_hashes", manifest)
+        self.assertIn("top_excerpt_lookup_fingerprints", manifest)
         self.assertIn("excerpt_text_hashes", manifest)
 
     def test_downstream_payload_exposes_policy_and_diagnostics_snapshot(self) -> None:
@@ -633,6 +643,10 @@ class UnifiedRetrievalTests(unittest.TestCase):
         self.assertEqual(
             evidence_doc_citation["top_excerpt_fingerprint"],
             provenance_doc_citation["top_excerpt_fingerprint"],
+        )
+        self.assertEqual(
+            evidence_doc_citation["top_excerpt_lookup_fingerprint"],
+            provenance_doc_citation["top_excerpt_lookup_fingerprint"],
         )
         self.assertEqual(
             evidence_doc_citation["top_excerpt_text_hash"],
@@ -2587,6 +2601,7 @@ class UnifiedRetrievalTests(unittest.TestCase):
                     "doc_rank": item["provenance"]["doc_rank"],
                     "top_excerpt_id": item["top_excerpt_id"],
                     "top_excerpt_fingerprint": item["provenance"]["top_excerpt_fingerprint"],
+                    "top_excerpt_lookup_fingerprint": item["provenance"]["top_excerpt_lookup_fingerprint"],
                     "top_excerpt_text_hash": item["provenance"]["top_excerpt_text_hash"],
                     "top_excerpt_span": item["provenance"]["top_excerpt_span"],
                     "top_matched_terms": item["provenance"]["top_matched_terms"],
