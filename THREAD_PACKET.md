@@ -5,16 +5,16 @@
 - Merge target: current `main`
 - Handoff type: high-risk retrieval feature handoff for the FTS-first retrieval lane.
 - Scope classification: high-risk because this branch edits engine retrieval entrypoints/facades and approved shared regression coverage in `tests/unit/test_unified_retrieval.py`.
-- Authoritative reviewed implementation range before this packet-only fixer commit: `378cf9a7..cd0fb0c32dcb678f7b828f58916ac02ea16569f8`
-- Reviewed branch tip before this packet-only fixer commit: `cd0fb0c32dcb678f7b828f58916ac02ea16569f8`
-- Final HEAD SHA: reported in the final response after this packet-only fixer commit is created.
+- Authoritative reviewed implementation range for re-review: `378cf9a7..HEAD` on `codex/feat-retrieval-fts`.
+- Evidence branch tip before this fixer commit: `e93e42766a...` (`fix(retrieval): make handoff packet authoritative`).
+- Final HEAD SHA: reported in the final response after this fixer commit is created.
 - Approved shared-file note: `tests/unit/test_unified_retrieval.py` is approved shared-by-approval regression coverage for this retrieval lane. No integrator-locked files are edited in this handoff.
 
 ## Scope Completed
 
-This packet supersedes earlier handoff packets for `codex/feat-retrieval-fts`. The only authoritative reviewed implementation range is `378cf9a7..cd0fb0c32dcb678f7b828f58916ac02ea16569f8`, which includes every implementation and packet correction commit currently on the branch before this fixer commit.
+This packet supersedes earlier handoff packets for `codex/feat-retrieval-fts`. The only authoritative reviewed range is the full branch-tip range, `378cf9a7..HEAD`, at the time of re-review. Evidence below was generated from pre-fixer branch tip `e93e42766a...`; this fixer commit only updates handoff traceability metadata and the final SHA is reported with the fixer result.
 
-Prior packet text incorrectly excluded code after `adfa8cd` and incorrectly implied that `4f27cdc52ac52cb309afc950c807a66911e74da6` was metadata-only. That claim is withdrawn. `4f27cdc52ac52cb309afc950c807a66911e74da6` is implementation work named `Harden retrieval identifier snapshots` and modifies `THREAD_PACKET.md` plus `src/qual/retrieval/service.py`; it is included in the reviewed implementation range above.
+Prior packet text incorrectly excluded code after `adfa8cd` and incorrectly implied that later packet-refresh commits were metadata-only. That claim is withdrawn. The reviewed range now includes every file changed from `378cf9a7` through the actual branch tip, including implementation commits such as `4f27cdc52ac52cb309afc950c807a66911e74da6` (`Harden retrieval identifier snapshots`) and the later packet correction commits on the branch.
 
 The branch implements the FTS-first retrieval MVP path. SQLite FTS remains the deterministic retrieval source of truth. PageIndex and embeddings remain compatibility-only fallback shims that fail closed and are not reintroduced as required retrieval paths. The final work hardens stable retrieval identity by preserving ordered excerpt lookup fingerprints, document and excerpt provenance, sparse context payload snapshots, citations, basket summaries, and fail-closed compatibility behavior.
 
@@ -29,7 +29,8 @@ Canonical demo-path step advanced: `retrieve relevant material`. The work makes 
 
 ## Files Changed
 
-Authoritative reviewed implementation range before this packet-only fixer commit: `378cf9a7..cd0fb0c32dcb678f7b828f58916ac02ea16569f8`
+Authoritative reviewed implementation range for re-review: `378cf9a7..HEAD` on `codex/feat-retrieval-fts`.
+Evidence range before this fixer commit: `378cf9a7..e93e42766a...`
 
 - `.codex/kickoff_packets/feat-retrieval-fts.md` - lane kickoff metadata corrected during earlier packet refreshes.
 - `.codex/lane_meta/feat-retrieval-fts.json` - lane metadata corrected during earlier packet refreshes.
@@ -46,22 +47,22 @@ Shared-by-approval files: `tests/unit/test_unified_retrieval.py`.
 
 ## Diff Evidence
 
-Command: `git diff --stat 378cf9a7..cd0fb0c32dcb678f7b828f58916ac02ea16569f8`
+Command: `git diff --stat 378cf9a7..HEAD` at pre-fixer tip `e93e42766a...`
 
 ```text
  .codex/kickoff_packets/feat-retrieval-fts.md |   36 +-
  .codex/lane_meta/feat-retrieval-fts.json     |  155 +++-
- THREAD_PACKET.md                             |  136 ++--
+ THREAD_PACKET.md                             |  189 ++---
  src/qual/engine/retrieval/__init__.py        |   63 +-
  src/qual/engine/retrieval/fts_strategy.py    |   59 +-
  src/qual/engine/retrieval/payload.py         | 1013 +++++++++++++++++++++++---
  src/qual/retrieval/__init__.py               |   11 +
  src/qual/retrieval/service.py                |  679 +++++++++++++++--
  tests/unit/test_unified_retrieval.py         |  912 ++++++++++++++++++++++-
- 9 files changed, 2750 insertions(+), 314 deletions(-)
+ 9 files changed, 2783 insertions(+), 334 deletions(-)
 ```
 
-Command: `git diff --name-status 378cf9a7..cd0fb0c32dcb678f7b828f58916ac02ea16569f8`
+Command: `git diff --name-status 378cf9a7..HEAD` at pre-fixer tip `e93e42766a...`
 
 ```text
 M	.codex/kickoff_packets/feat-retrieval-fts.md
@@ -79,7 +80,7 @@ M	tests/unit/test_unified_retrieval.py
 
 - Task budget: `4/4` high-risk task groups.
 - File count for authoritative reviewed implementation range: `9 files changed`.
-- Size accounting for authoritative reviewed implementation range: `2750 insertions(+), 314 deletions(-)`.
+- Size accounting for authoritative reviewed implementation range at pre-fixer evidence tip: `2783 insertions(+), 334 deletions(-)`.
 - AGENTS high-risk file/size status: exceeds `<=8 files` and `<=300 net LOC`.
 - Integrator exception status: explicit high-risk size/file exception is required for approval of this branch-tip range. This packet does not claim high-risk size compliance.
 - Routing/provider impact: none.
