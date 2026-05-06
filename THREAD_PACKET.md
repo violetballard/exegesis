@@ -3,9 +3,9 @@
 - Branch name: `codex/feat-retrieval-fts`
 - Lane: `feat-retrieval-fts`
 - Merge target: current `main`
-- Branch HEAD before this branch-tip source-bearing fixer pass: `5166a998d02258f8251924c1568fec1f3b69e21f`.
-- Branch-tip source-bearing commit included in this packet: final HEAD reported in the final fixer response.
-- Final HEAD SHA after this source-bearing packet refresh: reported in the final fixer response.
+- Branch HEAD before this packet-only fixer pass: `6d1bb9facefe51674660dc4bd5fc1960efc91fd8`.
+- Branch-tip commit included in this packet: final HEAD reported in the final fixer response.
+- Final HEAD SHA after this packet refresh: reported in the final fixer response.
 - Handoff type: high-risk retrieval feature handoff for the FTS-first retrieval lane.
 - Scope classification: high-risk because this branch edits engine retrieval entrypoints/facades and approved shared regression coverage in `tests/unit/test_unified_retrieval.py`.
 - Actual review scope for re-review: narrowed to `378cf9a74a3658058079a32f186fcd254c4a4034..final HEAD reported in the final fixer response`.
@@ -13,8 +13,10 @@
 - Actual merge-candidate range against current `main`: `9511a016c20f09b43c6e7a571e0a8a49f90ea209..final HEAD reported in the final fixer response`.
 - Reviewer-required post-`adfa8cda` source/test-bearing range included in review scope: `adfa8cdadd43747ffbcb612e4151e262b13e52ca..final HEAD reported in the final fixer response`.
 - Traceability correction: no source/test-changing commit after `adfa8cda` is classified as metadata-only. Commits including `2114d026ad9bd68cea6fb63a538771a21d17f816`, `9ca591791ae84e4f86d0b4b3e37b5bffbce09913`, `9609b4cc7d53d03668b96117ed4db1bb14f5ea4f`, `340b2b1f445391cf424f9a73bb1b7abc5fa07102`, `e746e57856d91c90b13207365a232401e4a65500`, `5cc7a8c7bc203f089927b9556c2075251c048899`, `4c748b49a7fa631dd338661802cde03fd93091f7`, `e09c3be72e65f399889512a1914f719d670c6da8`, `9dc7ed4f55fbb3d487d47a91171e8255fed29c82`, and `8a3fbcfc5` are implementation commits and are included in the reviewed range above.
-- This source-bearing fixer pass changes canonical FTS retrieval evidence, approved shared retrieval regression coverage, and root packet metadata only; it does not introduce any non-FTS retrieval path.
+- This packet-only fixer pass changes the root handoff packet only. It does not classify any source/test-changing commit after `adfa8cda` as metadata-only.
 - Approved shared-file note: `tests/unit/test_unified_retrieval.py` is approved shared-by-approval regression coverage for this retrieval lane. No integrator-locked files are edited in this handoff.
+- AGENTS.md Active MVP canonical demo-path step: `retrieve relevant material`. This packet-only fixer makes the handoff metadata explicit that the lane advances `retrieve relevant material`, with every completed task below mapped to that step.
+- Reviewer-required demo-path mapping: This work makes the "retrieve relevant material" step more real by making FTS-only excerpt lookup deterministic and auditable for engine retrieval results. It also supports `promote or gather context into the basket` by preserving basket-facing lookup identity and candidate-set provenance.
 
 ## Scope Completed
 
@@ -34,6 +36,8 @@ This final source-bearing fixer pass preserves that explicit `basket_item_id` al
 
 This source-bearing fixer pass makes retrieval citations, evidence, and basket promotion refs explicitly carry the canonical document rank for each promoted excerpt. Basket item fingerprints now include doc and excerpt rank fields, so downstream basket/context flows can preserve both excerpt rank and doc-level ordering when promoting retrieved FTS evidence into the basket for later revise/apply steps.
 
+This branch-tip source-bearing fixer pass preserves promotion-ready basket refs when sparse citation bundles are reconstructed from source-bundle-only snapshots. Rehydration now treats FTS excerpt citations as promotion-capable evidence, restores the explicit `basket_item_id` alias, and carries basket item IDs, fingerprints, count, and readiness through the citation bundle without introducing any non-FTS retrieval path.
+
 This source-bearing candidate-resolution provenance correction records the normalized query filters inside the FTS candidate-resolution snapshot. Downstream basket/context consumers can now audit which doc type, date, section-hint, exact-match, and citation constraints shaped the candidate set without inferring that context from separate query fields or invoking any non-FTS retrieval path.
 
 This branch-tip source-bearing candidate-resolution identity correction makes the candidate-resolution snapshot self-identifying by adding the canonical query fingerprint, query scope, query intent, max-results filter, and confidentiality profile. Downstream basket/context consumers can now carry the candidate-set provenance independently of the surrounding payload while still proving it belongs to the same FTS-first query snapshot.
@@ -48,8 +52,8 @@ Canonical demo-path step advanced: `retrieve relevant material`. This work makes
 
 1. Canonical FTS retrieval path: advances `retrieve relevant material` by adding and exporting the canonical retrieval query constructor, `retrieve_auto` helper, FTS-first service behavior through both retrieval facades, and strict facade `max_results` validation aligned with the canonical service dataclass.
 2. Stable retrieval provenance: advances `retrieve relevant material` by emitting deterministic document/excerpt hits, citations, basket summaries, candidate-resolution snapshots, primary lookup fingerprints, ordered `excerpt_lookup_fingerprints`, direct excerpt lookup audit identity, document identity fingerprints on excerpt citation/evidence surfaces, normalized section hints, and document-level result fingerprints in manifests, summaries, evidence, audit events, and result fingerprint payloads.
-3. Engine payload compatibility: advances `retrieve relevant material` and supports `promote or gather context into the basket` by normalizing sparse retrieval source, summary, manifest, policy, provenance, excerpt identity, ordered identifier lists, context payload snapshots, and reconstructed sparse diagnostics for downstream engine flows, including top-level context bundle query, policy, manifest, summary, citation status fields, bool-safe canonical `max_results` normalization for FTS shortlist sizing, strict facade-side `max_results` validation for new FTS queries, canonical top-level excerpt text hashes on direct FTS excerpt lookup payloads, explicit `basket_item_id` aliases and canonical `doc_rank` fields on promotion-ready excerpt refs, sparse rehydration of missing `basket_item_id` aliases from canonical item identity, and self-identifying query-filter snapshots in candidate-resolution provenance.
-4. Shared regression coverage: advances `retrieve relevant material` and supports `promote or gather context into the basket` by extending approved shared retrieval tests for facade exports, payload reconstruction, citation/provenance helpers, FTS-only excerpt backfill, lookup fingerprints, direct excerpt lookup audit identity, context bundle copy safety, bool and non-int constraint rejection, result fingerprint propagation, document-rank promotion evidence, sparse basket alias rehydration, section-hint normalization, and fail-closed compatibility behavior.
+3. Engine payload compatibility: advances `retrieve relevant material` and supports `promote or gather context into the basket` by normalizing sparse retrieval source, summary, manifest, policy, provenance, excerpt identity, ordered identifier lists, context payload snapshots, and reconstructed sparse diagnostics for downstream engine flows, including top-level context bundle query, policy, manifest, summary, citation status fields, bool-safe canonical `max_results` normalization for FTS shortlist sizing, strict facade-side `max_results` validation for new FTS queries, canonical top-level excerpt text hashes on direct FTS excerpt lookup payloads, explicit `basket_item_id` aliases and canonical `doc_rank` fields on promotion-ready excerpt refs, sparse rehydration of missing `basket_item_id` aliases from canonical item identity and excerpt citations, citation-bundle basket ref reconstruction from source-bundle-only snapshots, and self-identifying query-filter snapshots in candidate-resolution provenance.
+4. Shared regression coverage: advances `retrieve relevant material` and supports `promote or gather context into the basket` by extending approved shared retrieval tests for facade exports, payload reconstruction, citation/provenance helpers, FTS-only excerpt backfill, lookup fingerprints, direct excerpt lookup audit identity, context bundle copy safety, bool and non-int constraint rejection, result fingerprint propagation, document-rank promotion evidence, sparse basket alias rehydration, citation-bundle basket ref reconstruction, section-hint normalization, and fail-closed compatibility behavior.
 
 ## Files Changed
 
@@ -62,10 +66,10 @@ Source/test-bearing implementation range: `378cf9a74a3658058079a32f186fcd254c4a4
 - `THREAD_PACKET.md` - authoritative handoff packet for branch-tip review, refreshed for this source-bearing sparse basket alias correction.
 - `src/qual/engine/retrieval/__init__.py` - engine retrieval facade exports and canonical query constraint normalization, including bool and non-int `max_results` rejection and section-hint normalization.
 - `src/qual/engine/retrieval/fts_strategy.py` - FTS strategy integration behavior.
-- `src/qual/engine/retrieval/payload.py` - deterministic retrieval payload, sparse snapshot normalization, basket item fingerprint identity, sparse `basket_item_id` alias rehydration, and top-level context bundle reconstruction.
+- `src/qual/engine/retrieval/payload.py` - deterministic retrieval payload, sparse snapshot normalization, basket item fingerprint identity, sparse `basket_item_id` alias rehydration from item, excerpt-hit, and excerpt-citation snapshots, citation-bundle basket ref reconstruction, and top-level context bundle reconstruction.
 - `src/qual/retrieval/__init__.py` - retrieval facade exports.
 - `src/qual/retrieval/service.py` - canonical FTS-first retrieval service, provenance, candidate-resolution citation snapshots, self-identifying candidate query-filter provenance, lookup fingerprint behavior, direct excerpt lookup audit identity, top-level excerpt text hash lookup payloads, context bundle packaging, document-level result fingerprint propagation, document identity propagation, explicit basket item aliases, document-rank promotion evidence, canonical `max_results` type validation, and per-pass query fingerprint reuse for FTS excerpt provenance.
-- `tests/unit/test_unified_retrieval.py` - approved shared-by-approval regression coverage for the retrieval contract, direct excerpt lookup audit identity, context bundle copy safety, bool and non-int constraint rejection, document-hit result fingerprints, document identity propagation, section-hint normalization, explicit basket item aliases, sparse basket alias rehydration, and document-rank promotion evidence.
+- `tests/unit/test_unified_retrieval.py` - approved shared-by-approval regression coverage for the retrieval contract, direct excerpt lookup audit identity, context bundle copy safety, bool and non-int constraint rejection, document-hit result fingerprints, document identity propagation, section-hint normalization, explicit basket item aliases, sparse basket alias rehydration, citation-bundle basket ref reconstruction, and document-rank promotion evidence.
 
 Implementation deltas after `adfa8cda` that are explicitly included in review scope:
 
@@ -82,39 +86,39 @@ Shared-by-approval files: `tests/unit/test_unified_retrieval.py`.
 
 ## Diff Evidence
 
-Command: `git diff --stat 378cf9a74a3658058079a32f186fcd254c4a4034..83dfff4a899c22b077833c83649a14fde52beebe`
+Command: `git diff --stat 378cf9a74a3658058079a32f186fcd254c4a4034..6d1bb9facefe51674660dc4bd5fc1960efc91fd8`
 
 ```text
  .codex/kickoff_packets/feat-retrieval-fts.md |   36 +-
  .codex/lane_meta/feat-retrieval-fts.json     |  155 +++-
- THREAD_PACKET.md                             |  249 ++++--
+ THREAD_PACKET.md                             |  286 ++++--
  src/qual/engine/retrieval/__init__.py        |   86 +-
  src/qual/engine/retrieval/fts_strategy.py    |   59 +-
- src/qual/engine/retrieval/payload.py         | 1171 +++++++++++++++++++++++---
+ src/qual/engine/retrieval/payload.py         | 1194 +++++++++++++++++++++++---
  src/qual/retrieval/__init__.py               |   11 +
  src/qual/retrieval/service.py                |  827 ++++++++++++++++--
- tests/unit/test_unified_retrieval.py         | 1081 +++++++++++++++++++++++-
- 9 files changed, 3327 insertions(+), 348 deletions(-)
+ tests/unit/test_unified_retrieval.py         | 1131 +++++++++++++++++++++++-
+ 9 files changed, 3434 insertions(+), 351 deletions(-)
 ```
 
-Command: `git diff --stat 9511a016c20f09b43c6e7a571e0a8a49f90ea209..83dfff4a899c22b077833c83649a14fde52beebe`
+Command: `git diff --stat 9511a016c20f09b43c6e7a571e0a8a49f90ea209..6d1bb9facefe51674660dc4bd5fc1960efc91fd8`
 
 ```text
- THREAD_PACKET.md                      | 262 +++++++++++----------
+ THREAD_PACKET.md                      | 295 ++++++++++++++---------
  src/qual/engine/retrieval/__init__.py |  23 +-
- src/qual/engine/retrieval/payload.py  | 412 +++++++++++++++++++++++++++-------
+ src/qual/engine/retrieval/payload.py  | 435 +++++++++++++++++++++++++++-------
  src/qual/retrieval/service.py         | 284 ++++++++++++++++++++---
- tests/unit/test_unified_retrieval.py  | 367 ++++++++++++++++++++++++++++++
-5 files changed, 1106 insertions(+), 242 deletions(-)
+ tests/unit/test_unified_retrieval.py  | 411 ++++++++++++++++++++++++++++++++
+5 files changed, 1208 insertions(+), 240 deletions(-)
 ```
 
-Command: `git diff --stat 5166a998d02258f8251924c1568fec1f3b69e21f..final HEAD reported in the final fixer response`
+Command: `git diff --stat f2649eade7c028d46452a81ccf8b1a585a028ba8..6d1bb9facefe51674660dc4bd5fc1960efc91fd8`
 
 ```text
- THREAD_PACKET.md                         | refreshed packet metadata
- src/qual/engine/retrieval/payload.py     | 1 +
- tests/unit/test_unified_retrieval.py     | 3 +++
- 3 files changed before packet refresh, 4 insertions(+)
+ THREAD_PACKET.md                     | 34 ++++++++++++++++--------------
+ src/qual/engine/retrieval/payload.py | 22 +++++++++++++++++++
+ tests/unit/test_unified_retrieval.py | 41 ++++++++++++++++++++++++++++++++++++
+ 3 files changed, 81 insertions(+), 16 deletions(-)
 ```
 
 Command: `git show --stat --name-status --oneline 9609b4cc7d53d03668b96117ed4db1bb14f5ea4f..4c748b49a7fa631dd338661802cde03fd93091f7 -- THREAD_PACKET.md src/qual/engine/retrieval/__init__.py src/qual/retrieval/service.py tests/unit/test_unified_retrieval.py`
@@ -138,21 +142,21 @@ M	src/qual/retrieval/service.py
 M	tests/unit/test_unified_retrieval.py
 ```
 
-Current source-bearing fixer delta:
+Source-bearing delta after reviewer-cited `f2649eade`:
 
-- `src/qual/engine/retrieval/payload.py` - restores the explicit `basket_item_id` alias from the canonical item identity while normalizing sparse basket promotion refs.
-- `tests/unit/test_unified_retrieval.py` - asserts sparse context-bundle rehydration preserves `basket_item_id` when an item-id-only basket ref survives.
-- `THREAD_PACKET.md` - re-emits the authoritative packet with internally consistent source-bearing scope, file list, budget accounting, and demo-path mapping. The `.codex` packet mirror files remain stale because this sandbox returns `Operation not permitted` when writing under `.codex/`.
+- `src/qual/engine/retrieval/payload.py` - preserves basket promotion refs when sparse citation bundles are rebuilt from FTS excerpt citations and restores the explicit `basket_item_id` alias on excerpt-hit/excerpt-citation rehydration.
+- `tests/unit/test_unified_retrieval.py` - asserts citation-bundle reconstruction from source-bundle-only snapshots preserves basket promotion items, IDs, count, readiness, and `basket_item_id` aliases; also asserts sparse excerpt-hit basket rehydration carries the alias.
+- `THREAD_PACKET.md` - re-emits the authoritative packet with internally consistent source-bearing scope, file list, budget accounting, and demo-path mapping.
 
 ## Budget/Risk
 
 - Task budget: `4/4` high-risk task groups.
 - File count for source/test-bearing implementation range: `9 files changed`.
-- Size accounting for source/test-bearing implementation range through `83dfff4a899c22b077833c83649a14fde52beebe`: `3327 insertions(+), 348 deletions(-)` before this final sparse alias correction.
-- File count for current source-bearing fixer pass: `3 files changed`.
-- Size accounting for current source-bearing fixer pass before this packet refresh: `4 insertions(+)` across source/test files.
+- Size accounting for source/test-bearing implementation range through `6d1bb9facefe51674660dc4bd5fc1960efc91fd8`: `3434 insertions(+), 351 deletions(-)` before this packet-only refresh.
+- File count for source-bearing delta after reviewer-cited `f2649eade`: `3 files changed`.
+- Size accounting for source-bearing delta after reviewer-cited `f2649eade`: `81 insertions(+), 16 deletions(-)`.
 - File count for actual merge-candidate retrieval range against current `main`: `5 files changed` before this packet refresh.
-- Size accounting for actual merge-candidate retrieval range against current `main` through `83dfff4a899c22b077833c83649a14fde52beebe`: `1106 insertions(+), 242 deletions(-)` before this packet refresh.
+- Size accounting for actual merge-candidate retrieval range against current `main` through `6d1bb9facefe51674660dc4bd5fc1960efc91fd8`: `1208 insertions(+), 240 deletions(-)` before this packet-only refresh.
 - AGENTS high-risk file/size status: exceeds `<=8 files` and `<=300 net LOC` in the authoritative review range, and exceeds `<=300 net LOC` in the actual merge-candidate range.
 - Integrator exception status: no explicit high-risk size/file-count exception approval is present in this worktree. This packet does not claim high-risk size compliance; re-review must either reject for the missing exception or route to the integrator for explicit exception approval.
 - Routing/provider impact: none.
@@ -170,13 +174,21 @@ Current source-bearing fixer delta:
 
 ## Commands Run
 
-- Current branch-tip source-bearing fixer pass:
-- `python -m unittest tests.unit.test_unified_retrieval -q` - passed 78 retrieval tests.
+- Reviewer-required packet-only traceability refresh pass:
+- `make scope-check` - passed for branch `codex/feat-retrieval-fts`; the script reported no specific policy for this branch before the final pass line.
 - `./quality-format.sh --check` - passed.
 - `./quality-lint.sh` - passed shell syntax and trailing whitespace checks.
-- `./quality-test.sh` - passed smoke tests and 147 unit tests.
+- `./quality-test.sh` - passed smoke tests and 148 unit tests.
 - `./typecheck-test.sh` - passed Python source compilation under `src/`.
-- `make ci` - passed setup, scope-check, format, lint, typecheck, smoke tests, and 147 unit tests.
+- `make ci` - passed setup, scope-check, format, lint, typecheck, smoke tests, and 148 unit tests.
+
+- Current branch-tip source-bearing fixer pass:
+- `python3 -m unittest tests.unit.test_unified_retrieval -v` - passed 79 retrieval tests.
+- `./quality-format.sh --check` - passed.
+- `./quality-lint.sh` - passed shell syntax and trailing whitespace checks.
+- `./quality-test.sh` - passed smoke tests and 148 unit tests.
+- `./typecheck-test.sh` - passed Python source compilation under `src/`.
+- `make ci` - passed setup, scope-check, format, lint, typecheck, smoke tests, and 148 unit tests.
 
 - Reviewer-required final fixer verification pass after the prior packet evidence edit and before the prior metadata-only commit:
 - `make scope-check` - passed for branch `codex/feat-retrieval-fts`.
@@ -221,8 +233,8 @@ Previous source-bearing verification:
 
 ## Metadata Write Note
 
-The root `THREAD_PACKET.md` is the authoritative regenerated handoff packet for this fixer pass. This root packet corrects stale claims by explicitly choosing the review scope `378cf9a74a3658058079a32f186fcd254c4a4034..final HEAD reported in the final fixer response`, listing every changed implementation/test/metadata file in that scope, and including all source/test-bearing commits through the final HEAD reported in the final fixer response. This final fixer commit is source-bearing because it restores sparse basket alias rehydration in `src/qual/engine/retrieval/payload.py` and updates approved shared regression coverage.
+The root `THREAD_PACKET.md` is the authoritative regenerated handoff packet for this fixer pass. This root packet corrects stale claims by explicitly choosing the review scope `378cf9a74a3658058079a32f186fcd254c4a4034..final HEAD reported in the final fixer response`, listing every changed implementation/test/metadata file in that scope, and including all source/test-bearing commits through `6d1bb9facefe51674660dc4bd5fc1960efc91fd8` plus this packet-only fixer commit. The source-bearing commits after `adfa8cda`, including `f2649eade7c028d46452a81ccf8b1a585a028ba8` and `6d1bb9facefe51674660dc4bd5fc1960efc91fd8`, are included in the reviewed implementation range and are not described as metadata-only.
 
 ## Risks/Blockers
 
-No implementation blocker is known. The branch-tip review range is now explicit and complete in `THREAD_PACKET.md`. The `.codex` packet mirror files could not be updated in this sandbox because writes under `.codex/` fail with `Operation not permitted`; use `THREAD_PACKET.md` as the authoritative regenerated handoff packet. The remaining approval blockers are procedural: no explicit integrator high-risk size/file-count exception approval is present in this worktree, and the actual reviewed range exceeds the AGENTS high-risk file and LOC limits.
+No implementation blocker is known. The branch-tip review range is now explicit and complete in `THREAD_PACKET.md`. The `.codex` packet mirror files are readable but not writable in this sandbox, so this pass cannot refresh those stale mirrors; use the root `THREAD_PACKET.md` as the authoritative regenerated handoff packet. The remaining approval blockers are procedural: no explicit integrator high-risk size/file-count exception approval is present in this worktree, and the actual reviewed range exceeds the AGENTS high-risk file and LOC limits.

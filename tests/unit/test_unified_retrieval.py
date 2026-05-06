@@ -817,6 +817,46 @@ class UnifiedRetrievalTests(unittest.TestCase):
             "mutated-doc-id",
         )
 
+    def test_retrieval_citation_bundle_helper_rehydrates_source_bundle_basket_refs(self) -> None:
+        result = self.service.retrieve_auto(
+            RetrievalQuery(
+                query_text="memo coding comparison",
+                scope="vault",
+                intent="compare",
+                constraints=RetrievalConstraints(max_results=4),
+                confidentiality_profile="confidential",
+            )
+        )
+
+        class _SourceBundleOnlySource:
+            def __init__(self, payload: dict[str, object]) -> None:
+                self._payload = payload
+
+            def source_bundle(self) -> dict[str, object]:
+                return self._payload
+
+        source_bundle = json.loads(json.dumps(result.source_bundle()))
+        source_bundle.pop("retrieval_citation_bundle", None)
+        source_bundle.pop("basket_promotion_items", None)
+        source_bundle.pop("basket_item_ids", None)
+        source_bundle.pop("basket_item_fingerprints", None)
+
+        bundle = engine_build_retrieval_citation_bundle_from_result(
+            _SourceBundleOnlySource(source_bundle)
+        )
+        expected_items = result.basket_promotion_items()
+        self.assertEqual(
+            [item["item_id"] for item in bundle["basket_promotion_items"]],
+            [item["item_id"] for item in expected_items],
+        )
+        self.assertEqual(
+            [item["basket_item_id"] for item in bundle["basket_promotion_items"]],
+            [item["item_id"] for item in expected_items],
+        )
+        self.assertEqual(bundle["basket_item_ids"], [item["item_id"] for item in expected_items])
+        self.assertEqual(bundle["basket_promotion_count"], len(expected_items))
+        self.assertTrue(bundle["basket_promotion_ready"])
+
     def test_retrieval_result_as_dict_alias_matches_downstream_payload(self) -> None:
         result = self.service.retrieve_auto(
             RetrievalQuery(
@@ -2379,6 +2419,7 @@ class UnifiedRetrievalTests(unittest.TestCase):
         expected_excerpt_ids = [item.excerpt_id for item in result.hits if item.excerpt_id is not None]
         basket_items = context_bundle["basket_promotion_items"]
         self.assertEqual([item["item_id"] for item in basket_items], expected_excerpt_ids)
+        self.assertEqual([item["basket_item_id"] for item in basket_items], expected_excerpt_ids)
         self.assertEqual(context_bundle["basket_item_ids"], expected_excerpt_ids)
         self.assertEqual(basket_items[0]["doc_id"], result.hits[0].doc_id)
         self.assertEqual(basket_items[0]["query_scope"], "vault")
