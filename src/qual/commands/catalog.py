@@ -1291,7 +1291,7 @@ _DEMO_EXACT_ACTION_SMOKE_ARGV_BY_ENGINE_ACTION: tuple[tuple[str, tuple[str, ...]
 _SMOKE_VALUE_AGNOSTIC_OPTIONS_BY_COMMAND: tuple[tuple[str, tuple[str, ...]], ...] = (
     ("bootstrap", ("--project",)),
     ("diff-preview", ("--original", "--proposed")),
-    ("terminal", ("--message",)),
+    ("terminal", ("--operation-kind", "--message")),
 )
 _SMOKE_VALUE_AGNOSTIC_POSITIONALS_BY_COMMAND: tuple[tuple[str, tuple[int, ...]], ...] = (
     ("context-basket", (1,)),
