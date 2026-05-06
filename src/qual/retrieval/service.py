@@ -1431,6 +1431,19 @@ class RetrievalService:
             "query_fingerprint": query_fingerprint,
             "query_scope": query.scope,
             "query_intent": query.intent,
+            "query_constraints": {
+                "max_results": query.constraints.max_results,
+                "doc_types": list(query.constraints.doc_types),
+                "date_range": list(query.constraints.date_range)
+                if query.constraints.date_range is not None
+                else None,
+                "require_citations": query.constraints.require_citations,
+                "section_hint": query.constraints.section_hint,
+                "prefer_exact_matches": query.constraints.prefer_exact_matches,
+            },
+            "query_date_range": list(query.constraints.date_range)
+            if query.constraints.date_range is not None
+            else None,
             "retrieval_policy": dict(retrieval_policy),
             "retrieval_backend": cast(str, retrieval_policy["retrieval_backend"]),
             "retrieval_mode": cast(str, retrieval_policy["retrieval_mode"]),
