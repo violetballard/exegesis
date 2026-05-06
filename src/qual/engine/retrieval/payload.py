@@ -181,6 +181,7 @@ def _basket_item_fingerprint(item: dict[str, object]) -> str:
             "retrieval_backend": item.get("retrieval_backend"),
             "retrieval_mode": item.get("retrieval_mode"),
             "retrieval_policy": item.get("retrieval_policy"),
+            "query_constraints": item.get("query_constraints"),
             "query_fingerprint": item.get("query_fingerprint"),
             "result_fingerprint": item.get("result_fingerprint"),
         }
@@ -330,6 +331,15 @@ def _basket_promotion_items_from_excerpt_hits(
     query_constraints = query.get("constraints", {})
     if not isinstance(query_constraints, dict):
         query_constraints = {}
+    normalized_query_constraints = _normalize_query_constraints_snapshot(
+        retrieval_provenance.get(
+            "query_constraints",
+            retrieval_citation_bundle.get(
+                "query_constraints",
+                retrieval_evidence.get("query_constraints", query_constraints),
+            ),
+        )
+    )
     query_fingerprint = _first_text_value(
         snapshot.get("query_fingerprint"),
         retrieval_summary.get("query_fingerprint"),
@@ -354,7 +364,7 @@ def _basket_promotion_items_from_excerpt_hits(
         retrieval_evidence.get("query_intent"),
     )
     query_date_range = _normalize_optional_list_like(
-        query_constraints.get(
+        normalized_query_constraints.get(
             "date_range",
             retrieval_summary.get(
                 "query_date_range",
@@ -445,8 +455,12 @@ def _basket_promotion_items_from_excerpt_hits(
                 "query_scope": _first_text_value(provenance.get("query_scope"), query_scope),
                 "query_intent": _first_text_value(provenance.get("query_intent"), query_intent),
                 "query_date_range": _normalize_optional_list_like(
-                    provenance.get("query_date_range", query_date_range)
+                    provenance.get(
+                        "query_date_range",
+                        normalized_query_constraints.get("date_range", query_date_range),
+                    )
                 ),
+                "query_constraints": copy.deepcopy(normalized_query_constraints),
                 "query_fingerprint": _first_text_value(
                     provenance.get("query_fingerprint"),
                     query_fingerprint,
@@ -793,6 +807,10 @@ def _normalize_query_snapshot(query: object) -> dict[str, object]:
     return normalized
 
 
+def _normalize_query_constraints_snapshot(constraints: object) -> dict[str, object]:
+    return dict(_normalize_query_snapshot({"constraints": constraints})["constraints"])
+
+
 def _normalize_policy_snapshot(policy: object) -> dict[str, object]:
     if not isinstance(policy, dict):
         policy = {}
@@ -844,6 +862,9 @@ def _normalize_bundle_retrieval_identity(
 
 def _normalize_citation_bundle_snapshot(citation_bundle: dict[str, object]) -> dict[str, object]:
     normalized = copy.deepcopy(citation_bundle)
+    normalized["query_constraints"] = _normalize_query_constraints_snapshot(
+        normalized.get("query_constraints", {})
+    )
     normalized["query_date_range"] = _normalize_optional_list_like(normalized.get("query_date_range"))
     normalized["fts_shortlist_doc_ids"] = _normalize_list_like(normalized.get("fts_shortlist_doc_ids"))
     candidate_resolution = normalized.get("candidate_resolution")
@@ -1195,8 +1216,8 @@ def _build_retrieval_citation_bundle_from_payload(payload: dict[str, object]) ->
     """Return the deterministic citation bundle from a downstream payload snapshot."""
 
     citation_bundle = payload.get("retrieval_citation_bundle")
-    if isinstance(citation_bundle, dict):
-        return copy.deepcopy(citation_bundle)
+    if isinstance(citation_bundle, dict) and citation_bundle:
+        return _normalize_citation_bundle_snapshot(citation_bundle)
 
     query = payload.get("query", {})
     if not isinstance(query, dict):
@@ -1227,6 +1248,12 @@ def _build_retrieval_citation_bundle_from_payload(payload: dict[str, object]) ->
         doc_bundle = {}
     if not isinstance(excerpt_bundle, dict):
         excerpt_bundle = {}
+    normalized_query_constraints = _normalize_query_constraints_snapshot(
+        provenance.get(
+            "query_constraints",
+            evidence.get("query_constraints", query_constraints),
+        )
+    )
 
     doc_citations = _normalize_list_like(
         provenance.get(
@@ -1326,6 +1353,7 @@ def _build_retrieval_citation_bundle_from_payload(payload: dict[str, object]) ->
         ),
         "query_scope": query_scope,
         "query_intent": query_intent,
+        "query_constraints": normalized_query_constraints,
         "query_date_range": query_date_range,
         "candidate_doc_count": candidate_doc_count,
         "candidate_resolution": candidate_resolution,
@@ -1436,7 +1464,6 @@ def _build_retrieval_source_bundle_from_payload(payload: dict[str, object]) -> d
         "retrieval_backend": payload.get("retrieval_backend"),
         "retrieval_mode": payload.get("retrieval_mode"),
         "citation_status": copy.deepcopy(payload.get("citation_status", {})),
-        "retrieval_citation_bundle": copy.deepcopy(payload.get("retrieval_citation_bundle", {})),
         "retrieval_summary": copy.deepcopy(payload.get("retrieval_summary", {})),
         "retrieval_doc_bundle": copy.deepcopy(retrieval_doc_bundle),
         "retrieval_excerpt_bundle": copy.deepcopy(retrieval_excerpt_bundle),
@@ -1572,11 +1599,14 @@ def _build_retrieval_bundle_context_from_payload(payload: dict[str, object]) -> 
     query_constraints = query.get("constraints", {})
     if not isinstance(query_constraints, dict):
         query_constraints = {}
+    normalized_query_constraints = _normalize_query_constraints_snapshot(
+        provenance.get("query_constraints", query_constraints)
+    )
     citation_bundle = payload.get("retrieval_citation_bundle", {})
     if not isinstance(citation_bundle, dict):
         citation_bundle = _build_retrieval_citation_bundle_from_payload(payload)
     query_date_range = _normalize_optional_list_like(
-        query_constraints.get(
+        normalized_query_constraints.get(
             "date_range",
             provenance.get("query_date_range", summary.get("query_date_range", diagnostics.get("date_range"))),
         )
@@ -1598,6 +1628,7 @@ def _build_retrieval_bundle_context_from_payload(payload: dict[str, object]) -> 
             "intent",
             provenance.get("query_intent", summary.get("query_intent", diagnostics.get("query_intent"))),
         ),
+        "query_constraints": normalized_query_constraints,
         "query_date_range": query_date_range,
         "retrieval_backend": payload.get("retrieval_backend", summary.get("retrieval_backend", diagnostics.get("retrieval_backend"))),
         "retrieval_mode": payload.get("retrieval_mode", summary.get("retrieval_mode", diagnostics.get("retrieval_mode"))),
@@ -1861,6 +1892,16 @@ def _build_retrieval_provenance_from_payload(payload: dict[str, object]) -> dict
     query_constraints = query.get("constraints", {})
     if not isinstance(query_constraints, dict):
         query_constraints = {}
+    citation_bundle = payload.get("retrieval_citation_bundle", {})
+    if not isinstance(citation_bundle, dict):
+        citation_bundle = {}
+    normalized_query_constraints = _normalize_query_constraints_snapshot(
+        normalized.get(
+            "query_constraints",
+            citation_bundle.get("query_constraints", query_constraints),
+        )
+    )
+    normalized["query_constraints"] = normalized_query_constraints
     query_date_range = _normalize_optional_list_like(normalized.get("query_date_range"))
     if _is_missing_snapshot_value(normalized.get("query_fingerprint")):
         normalized["query_fingerprint"] = _first_text_value(
@@ -1876,7 +1917,7 @@ def _build_retrieval_provenance_from_payload(payload: dict[str, object]) -> dict
         normalized["query_date_range"] = _normalize_optional_list_like(
             summary.get(
                 "query_date_range",
-                diagnostics.get("date_range", query_constraints.get("date_range")),
+                diagnostics.get("date_range", normalized_query_constraints.get("date_range")),
             )
         )
     else:

@@ -453,6 +453,7 @@ class RetrievalResult:
             "result_fingerprint": self.result_fingerprint,
             "query_scope": self.query.scope,
             "query_intent": self.query.intent,
+            "query_constraints": RetrievalService._query_constraints_snapshot(self.query),
             "query_date_range": query_date_range,
             "candidate_doc_count": self.diagnostics.get("candidate_doc_count"),
             "candidate_resolution": candidate_resolution,
@@ -605,12 +606,16 @@ class RetrievalResult:
                 "matched_terms": copy.deepcopy(hit.provenance.get("matched_terms")),
                 "match_count": hit.provenance.get("match_count"),
                 "source_strategy": hit.source_strategy,
-                "retrieval_source_strategy": hit.source_strategy,
+                "retrieval_source_strategy": hit.provenance.get(
+                    "retrieval_source_strategy",
+                    hit.source_strategy,
+                ),
                 "retrieval_backend": hit.provenance.get("retrieval_backend"),
                 "retrieval_mode": hit.provenance.get("retrieval_mode"),
                 "retrieval_policy": copy.deepcopy(hit.provenance.get("retrieval_policy")),
                 "query_scope": self.query.scope,
                 "query_intent": self.query.intent,
+                "query_constraints": RetrievalService._query_constraints_snapshot(self.query),
                 "query_date_range": list(self.query.constraints.date_range)
                 if self.query.constraints.date_range is not None
                 else None,
@@ -626,14 +631,7 @@ class RetrievalResult:
             "query_text": self.query.query_text,
             "scope": self.query.scope,
             "intent": self.query.intent,
-            "constraints": {
-                "max_results": self.query.constraints.max_results,
-                "doc_types": list(self.query.constraints.doc_types),
-                "date_range": list(self.query.constraints.date_range) if self.query.constraints.date_range is not None else None,
-                "require_citations": self.query.constraints.require_citations,
-                "section_hint": self.query.constraints.section_hint,
-                "prefer_exact_matches": self.query.constraints.prefer_exact_matches,
-            },
+            "constraints": RetrievalService._query_constraints_snapshot(self.query),
             "confidentiality_profile": self.query.confidentiality_profile,
         }
 
@@ -671,7 +669,10 @@ class RetrievalResult:
                 "retrieval_backend": doc_hit.provenance.get("retrieval_backend"),
                 "retrieval_mode": doc_hit.provenance.get("retrieval_mode"),
                 "source_strategy": doc_hit.provenance.get("source_strategy"),
-                "retrieval_source_strategy": doc_hit.provenance.get("source_strategy"),
+                "retrieval_source_strategy": doc_hit.provenance.get(
+                    "retrieval_source_strategy",
+                    doc_hit.provenance.get("source_strategy"),
+                ),
             }
             for doc_hit in self.doc_hits
         ]
@@ -700,7 +701,10 @@ class RetrievalResult:
                 "rank": hit.provenance.get("rank"),
                 "span": hit.provenance.get("span"),
                 "source_strategy": hit.provenance.get("source_strategy"),
-                "retrieval_source_strategy": hit.provenance.get("source_strategy"),
+                "retrieval_source_strategy": hit.provenance.get(
+                    "retrieval_source_strategy",
+                    hit.provenance.get("source_strategy"),
+                ),
                 "retrieval_backend": hit.provenance.get("retrieval_backend"),
                 "retrieval_mode": hit.provenance.get("retrieval_mode"),
             }
@@ -810,6 +814,7 @@ class RetrievalResult:
             "query_fingerprint": self.diagnostics["query_fingerprint"],
             "query_scope": self.query.scope,
             "query_intent": self.query.intent,
+            "query_constraints": RetrievalService._query_constraints_snapshot(self.query),
             "query_date_range": (
                 list(self.query.constraints.date_range)
                 if self.query.constraints.date_range is not None
@@ -877,6 +882,7 @@ class RetrievalResult:
             "query_fingerprint": self.diagnostics["query_fingerprint"],
             "query_scope": self.query.scope,
             "query_intent": self.query.intent,
+            "query_constraints": RetrievalService._query_constraints_snapshot(self.query),
             "query_date_range": query_date_range,
             "retrieval_backend": self.diagnostics["retrieval_backend"],
             "retrieval_mode": self.diagnostics["retrieval_mode"],
@@ -1155,6 +1161,7 @@ class RetrievalService:
                 "basket_item_ids": copy.deepcopy(excerpt.get("basket_item_ids", [])),
                 "basket_item_fingerprint": excerpt.get("basket_item_fingerprint"),
                 "basket_item_fingerprints": copy.deepcopy(excerpt.get("basket_item_fingerprints", [])),
+                "basket_promotion_source": excerpt.get("basket_promotion_source"),
                 "basket_promotion_count": excerpt.get("basket_promotion_count"),
                 "basket_promotion_ready": excerpt.get("basket_promotion_ready"),
                 "span": copy.deepcopy(span),
@@ -1812,12 +1819,16 @@ class RetrievalService:
                 "matched_terms": copy.deepcopy(item.get("matched_terms")),
                 "match_count": item.get("match_count"),
                 "source_strategy": item["source_strategy"],
-                "retrieval_source_strategy": item["source_strategy"],
+                "retrieval_source_strategy": item.get(
+                    "retrieval_source_strategy",
+                    item["source_strategy"],
+                ),
                 "retrieval_backend": item["retrieval_backend"],
                 "retrieval_mode": item["retrieval_mode"],
                 "retrieval_policy": copy.deepcopy(retrieval_policy),
                 "query_scope": query.scope,
                 "query_intent": query.intent,
+                "query_constraints": RetrievalService._query_constraints_snapshot(query),
                 "query_date_range": list(query.constraints.date_range)
                 if query.constraints.date_range is not None
                 else None,
@@ -1833,6 +1844,7 @@ class RetrievalService:
             "result_fingerprint": result_fingerprint,
             "query_scope": query.scope,
             "query_intent": query.intent,
+            "query_constraints": RetrievalService._query_constraints_snapshot(query),
             "query_date_range": list(query.constraints.date_range)
             if query.constraints.date_range is not None
             else None,
@@ -1919,6 +1931,7 @@ class RetrievalService:
                 "retrieval_backend": item.get("retrieval_backend"),
                 "retrieval_mode": item.get("retrieval_mode"),
                 "retrieval_policy": item.get("retrieval_policy"),
+                "query_constraints": item.get("query_constraints"),
                 "query_fingerprint": item.get("query_fingerprint"),
                 "result_fingerprint": item.get("result_fingerprint"),
             }
@@ -2045,14 +2058,7 @@ class RetrievalService:
         else:
             resolution_source = "fts_shortlist"
         query_filters = {
-            "max_results": query.constraints.max_results,
-            "doc_types": list(self._normalized_doc_types(query.constraints.doc_types)),
-            "date_range": list(query.constraints.date_range)
-            if query.constraints.date_range is not None
-            else None,
-            "section_hint": query.constraints.section_hint,
-            "prefer_exact_matches": query.constraints.prefer_exact_matches,
-            "require_citations": query.constraints.require_citations,
+            **RetrievalService._query_constraints_snapshot(query),
             "confidentiality_profile": query.confidentiality_profile,
         }
         return {
@@ -2643,23 +2649,28 @@ class RetrievalService:
 
     @staticmethod
     def _query_fingerprint(query: RetrievalQuery) -> str:
-        normalized_constraints = {
-            "max_results": query.constraints.max_results,
-            "doc_types": list(RetrievalService._normalized_doc_types(query.constraints.doc_types)),
-            "date_range": list(query.constraints.date_range) if query.constraints.date_range is not None else None,
-            "require_citations": query.constraints.require_citations,
-            "section_hint": query.constraints.section_hint,
-            "prefer_exact_matches": query.constraints.prefer_exact_matches,
-        }
         payload = {
             "query_text": RetrievalService._normalized_query_text(query.query_text),
             "scope": query.scope,
             "intent": query.intent,
-            "constraints": normalized_constraints,
+            "constraints": RetrievalService._query_constraints_snapshot(query),
             "confidentiality_profile": query.confidentiality_profile,
         }
         serialized = json.dumps(payload, sort_keys=True, separators=(",", ":"), ensure_ascii=True)
         return hashlib.sha256(serialized.encode("utf-8")).hexdigest()
+
+    @staticmethod
+    def _query_constraints_snapshot(query: RetrievalQuery) -> dict[str, object]:
+        return {
+            "max_results": query.constraints.max_results,
+            "doc_types": list(RetrievalService._normalized_doc_types(query.constraints.doc_types)),
+            "date_range": list(query.constraints.date_range)
+            if query.constraints.date_range is not None
+            else None,
+            "require_citations": query.constraints.require_citations,
+            "section_hint": query.constraints.section_hint,
+            "prefer_exact_matches": query.constraints.prefer_exact_matches,
+        }
 
     @staticmethod
     def _stable_fingerprint(payload: object) -> str:
