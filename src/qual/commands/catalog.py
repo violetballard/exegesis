@@ -1087,6 +1087,8 @@ COMMAND_SMOKE_SHELL_PROBE_FLAGS: tuple[str, ...] = (
     "-V",
 )
 COMMAND_SMOKE_SHELL_WRAPPER_COMMANDS: tuple[str, ...] = (
+    "command",
+    "exec",
     "time",
 )
 COMMAND_SMOKE_SHELL_WRAPPER_FLAGS: tuple[str, ...] = (
