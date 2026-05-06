@@ -7116,6 +7116,42 @@ def command_demo_readiness_index_json(
     )
 
 
+def command_demo_readiness_next_index_entry(
+    current_flow_step: str | None = None,
+    specs: tuple[CommandSpec, ...] = COMMAND_SPECS,
+    launcher_argv: tuple[str, ...] = COMMAND_SMOKE_CLI_LAUNCHER_ARGV,
+) -> CommandDemoReadinessIndexEntry | None:
+    """Return the next indexed MVP demo command after the given flow step."""
+
+    entries = command_demo_readiness_index_contract(specs, launcher_argv).entries
+    if current_flow_step is None:
+        return entries[0] if entries else None
+
+    requested_flow_step = _normalize_token(current_flow_step)
+    if not requested_flow_step:
+        return entries[0] if entries else None
+
+    for index, entry in enumerate(entries):
+        if entry.flow_step != requested_flow_step:
+            continue
+        next_index = index + 1
+        if next_index >= len(entries):
+            return None
+        return entries[next_index]
+    return None
+
+
+def command_demo_readiness_next_command_line(
+    current_flow_step: str | None = None,
+    specs: tuple[CommandSpec, ...] = COMMAND_SPECS,
+    launcher_argv: tuple[str, ...] = COMMAND_SMOKE_CLI_LAUNCHER_ARGV,
+) -> str:
+    entry = command_demo_readiness_next_index_entry(current_flow_step, specs, launcher_argv)
+    if entry is None:
+        return ""
+    return entry.command_line
+
+
 @lru_cache(maxsize=None)
 def command_demo_readiness_shell_script(
     specs: tuple[CommandSpec, ...] = COMMAND_SPECS,
@@ -11750,6 +11786,22 @@ def command_mvp_demo_readiness_index_json(
     launcher_argv: tuple[str, ...] = COMMAND_SMOKE_CLI_LAUNCHER_ARGV,
 ) -> str:
     return command_demo_readiness_index_json(specs, launcher_argv)
+
+
+def command_mvp_demo_readiness_next_index_entry(
+    current_flow_step: str | None = None,
+    specs: tuple[CommandSpec, ...] = COMMAND_SPECS,
+    launcher_argv: tuple[str, ...] = COMMAND_SMOKE_CLI_LAUNCHER_ARGV,
+) -> CommandDemoReadinessIndexEntry | None:
+    return command_demo_readiness_next_index_entry(current_flow_step, specs, launcher_argv)
+
+
+def command_mvp_demo_readiness_next_command_line(
+    current_flow_step: str | None = None,
+    specs: tuple[CommandSpec, ...] = COMMAND_SPECS,
+    launcher_argv: tuple[str, ...] = COMMAND_SMOKE_CLI_LAUNCHER_ARGV,
+) -> str:
+    return command_demo_readiness_next_command_line(current_flow_step, specs, launcher_argv)
 
 
 def command_mvp_demo_readiness_shell_script(

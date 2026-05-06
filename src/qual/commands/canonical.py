@@ -41,6 +41,7 @@ from src.qual.commands.catalog import (
     CommandDemoReadinessScriptValidation,
     CommandDemoReadinessSmokePlanStep,
     CommandDemoReadinessIndexContract,
+    CommandDemoReadinessIndexEntry,
     CommandDemoReadinessCliStepValidationContract,
     CommandDemoReadinessStepSealContract,
     CommandDemoReadinessCommandAuditContract,
@@ -107,6 +108,8 @@ from src.qual.commands.catalog import (
     as _readiness_cli_step_validation_summary,
     command_mvp_demo_readiness_index_contract as _readiness_index_contract,
     command_mvp_demo_readiness_index_json as _readiness_index_json,
+    command_mvp_demo_readiness_next_command_line as _readiness_next_command_line,
+    command_mvp_demo_readiness_next_index_entry as _readiness_next_index_entry,
     command_mvp_demo_readiness_index_payload as _readiness_index_payload,
     command_mvp_demo_readiness_index_summary as _readiness_index_summary,
     command_mvp_demo_readiness_shell_script as _readiness_shell_script,
@@ -400,6 +403,8 @@ __all__ = [
     "canonical_command_readiness_index_summary",
     "canonical_command_readiness_index_payload",
     "canonical_command_readiness_index_json",
+    "canonical_command_readiness_next_index_entry",
+    "canonical_command_readiness_next_command_line",
     "canonical_command_readiness_command_audit_contract",
     "canonical_command_readiness_command_audit_json",
     "canonical_command_readiness_command_audit_payload",
@@ -861,6 +866,18 @@ def canonical_command_readiness_index_payload() -> dict[str, object]:
 
 def canonical_command_readiness_index_json() -> str:
     return _readiness_index_json()
+
+
+def canonical_command_readiness_next_index_entry(
+    current_flow_step: str | None = None,
+) -> CommandDemoReadinessIndexEntry | None:
+    return _readiness_next_index_entry(current_flow_step)
+
+
+def canonical_command_readiness_next_command_line(
+    current_flow_step: str | None = None,
+) -> str:
+    return _readiness_next_command_line(current_flow_step)
 
 
 def canonical_command_readiness_shell_script() -> CommandDemoReadinessShellScript:
