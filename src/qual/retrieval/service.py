@@ -2555,6 +2555,7 @@ class RetrievalService:
             "excerpt_text_hash": text_hash,
             "span": copy.deepcopy(span),
             "source_strategy": source_strategy,
+            "retrieval_source_strategy": source_strategy,
             "retrieval_backend": retrieval_backend,
             "retrieval_mode": retrieval_mode,
             "retrieval_policy": copy.deepcopy(retrieval_policy),

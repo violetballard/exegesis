@@ -1467,6 +1467,7 @@ class UnifiedRetrievalTests(unittest.TestCase):
         self.assertEqual(basket_item["excerpt_text_hash"], canonical["text_hash"])
         self.assertEqual(basket_item["span"], canonical["span"])
         self.assertEqual(basket_item["source_strategy"], "fts")
+        self.assertEqual(basket_item["retrieval_source_strategy"], "fts")
         self.assertEqual(basket_item["retrieval_backend"], "sqlite_fts")
         self.assertEqual(basket_item["retrieval_mode"], "fts_first")
         self.assertEqual(basket_item["retrieval_policy"], canonical["retrieval_policy"])
