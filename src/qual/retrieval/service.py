@@ -125,6 +125,10 @@ class RetrievalQuery:
     confidentiality_profile: Literal["confidential", "standard"] = "confidential"
 
     def __post_init__(self) -> None:
+        if not str(self.query_text).strip():
+            raise ValueError("query_text must be non-empty")
+        if not str(self.scope).strip():
+            raise ValueError("scope must be non-empty")
         object.__setattr__(
             self,
             "intent",

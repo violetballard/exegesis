@@ -19,6 +19,8 @@ This corrected packet supersedes the stale narrow-range handoff and makes all pr
 
 The retrieval lane keeps SQLite FTS as the authoritative MVP retrieval path. The branch adds deterministic FTS cache handling and cache audit metadata, normalizes retrieval payload snapshots and query constraints, preserves retrieval provenance for basket/context promotion flows, keeps PageIndex and embeddings as deferred compatibility surfaces, and makes date-range constraints fail fast when malformed or reversed before FTS execution.
 
+Current finalization pass from `39a57044eb09ff24415395800695043d4cad28da` adds canonical retrieval-query boundary validation so empty query text or empty scope fails before FTS execution.
+
 ## Tasks Completed
 
 1. Made SQLite FTS the primary retrieval path for document and excerpt retrieval, with PageIndex and embeddings retained as compatibility-only fallback/deferred surfaces.
@@ -39,6 +41,10 @@ From `git diff --name-status 378cf9a74a3658058079a32f186fcd254c4a4034..25f8d10c4
 - `M src/qual/engine/retrieval/payload.py`
 - `M src/qual/retrieval/service.py`
 - `M tests/unit/test_unified_retrieval.py`
+
+Current finalization pass changed:
+
+- `M src/qual/retrieval/service.py`
 
 From `git diff --stat 378cf9a74a3658058079a32f186fcd254c4a4034..25f8d10c4b8f02c6d613af3300a5b7a02ec1c848`:
 
@@ -61,6 +67,8 @@ From `git diff --stat 378cf9a74a3658058079a32f186fcd254c4a4034..25f8d10c4b8f02c6
 - PageIndex/embeddings impact: no PageIndex, embeddings, hybrid, or alternate retrieval path was added as a required MVP path.
 - Remaining risks/blockers: none.
 
+Current finalization pass remains low blast radius within retrieval production code: `1 file changed`, `4 insertions(+)`, no shared regression or integrator-locked file edits.
+
 ## Traceability Correction
 
 The earlier packet incorrectly claimed commits after `adfa8cdadd43747ffbcb612e4151e262b13e52ca` were metadata-only. That claim is withdrawn. Commits including `1696a088d`, `d31c231e`, `9792d439`, and `25f8d10c4` are code-bearing retrieval/test commits and are included in the corrected reviewed implementation range.
@@ -80,6 +88,7 @@ This handoff has one authoritative reviewed implementation range: `378cf9a74a365
 
 Commands run for this corrected packet on the branch-tip worktree state:
 
+- `python -m unittest tests.unit.test_unified_retrieval` - passed 58 retrieval unit tests.
 - `make scope-check` - passed.
 - `./quality-format.sh --check` - passed.
 - `./quality-lint.sh` - passed shell syntax and trailing whitespace checks.
