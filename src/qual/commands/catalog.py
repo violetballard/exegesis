@@ -5769,9 +5769,13 @@ def command_demo_readiness_exact_action_for_argv(
     for action_argv, engine_action in lookup.items():
         action_command_argv = _argv_without_launcher(action_argv, launcher_argv)
         canonical_action_argv = _canonical_argv_with_requested_launcher(action_argv, requested_launcher_argv)
-        if requested_argv in {action_argv, action_command_argv, canonical_action_argv}:
+        if (
+            _exact_action_argv_matches(requested_argv, action_argv)
+            or _exact_action_argv_matches(requested_argv, action_command_argv)
+            or _exact_action_argv_matches(requested_argv, canonical_action_argv)
+        ):
             return engine_action
-        if requested_canonical_command_argv == action_command_argv:
+        if _exact_action_argv_matches(requested_canonical_command_argv, action_command_argv):
             return engine_action
     return None
 
@@ -6528,6 +6532,25 @@ def _smoke_option_argv_matches(
     )
 
 
+def _exact_option_argv_matches(
+    requested_argv: tuple[str, ...],
+    expected_argv: tuple[str, ...],
+) -> bool:
+    requested = _split_smoke_option_argv(requested_argv)
+    expected = _split_smoke_option_argv(expected_argv)
+    if requested is None or expected is None:
+        return False
+    requested_command, requested_positionals, requested_options = requested
+    expected_command, expected_positionals, expected_options = expected
+    if requested_command != expected_command or requested_positionals != expected_positionals:
+        return False
+    if len({option for option, _ in requested_options}) != len(requested_options):
+        return False
+    if len({option for option, _ in expected_options}) != len(expected_options):
+        return False
+    return dict(requested_options) == dict(expected_options)
+
+
 @lru_cache(maxsize=None)
 def _smoke_value_agnostic_options_for_command(command: str) -> tuple[str, ...]:
     command_name = _normalize_token(command)
@@ -6563,6 +6586,13 @@ def _smoke_argv_matches(
     expected_argv: tuple[str, ...],
 ) -> bool:
     return requested_argv == expected_argv or _smoke_option_argv_matches(requested_argv, expected_argv)
+
+
+def _exact_action_argv_matches(
+    requested_argv: tuple[str, ...],
+    expected_argv: tuple[str, ...],
+) -> bool:
+    return requested_argv == expected_argv or _exact_option_argv_matches(requested_argv, expected_argv)
 
 
 @lru_cache(maxsize=None)
