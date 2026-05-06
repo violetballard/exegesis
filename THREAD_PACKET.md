@@ -5,7 +5,7 @@
 - Merge target: current `main`
 - Handoff type: high-risk branch-tip retrieval handoff for the FTS-first retrieval lane.
 - Reviewed implementation base: `378cf9a74a3658058079a32f186fcd254c4a4034`.
-- Actual merge candidate before this packet fix: `b44a4cd1ed2fa32d36f52d8cca11f4fc8f72ff4e`.
+- Actual merge candidate before this packet fix: `f8a823e19d4ace050979ec0f2eb5c6e7a5052208`.
 - Reviewed implementation range for re-review: `378cf9a74a3658058079a32f186fcd254c4a4034..FINAL_BRANCH_TIP`.
 - Final branch tip: reported in the final fixer response after commit creation.
 - Scope classification: high-risk because this lane touches retrieval core/facade behavior and approved shared regression coverage in `tests/unit/test_unified_retrieval.py`.
@@ -17,14 +17,14 @@
 
 This branch-tip handoff covers the full retrieval implementation currently present on `codex/feat-retrieval-fts`, including all production and test changes after `adfa8cdadd43747ffbcb612e4151e262b13e52ca`. SQLite FTS remains the authoritative retrieval path for MVP flows. PageIndex and embeddings remain compatibility-only/deferred surfaces that fail closed when they cannot be resolved through the canonical FTS path.
 
-The branch hardens deterministic retrieval payloads, FTS candidate strategy identity, sparse-policy rehydration, sparse candidate-resolution rehydration, excerpt lookup provenance, bundle identity validation, and final hit rank/score ordering. Downstream citation bundles, context bundles, and basket promotion payloads now receive normalized, auditable retrieval snapshots tied to the FTS-first result order and candidate set the engine consumes.
+The branch hardens deterministic retrieval payloads, FTS candidate strategy identity, sparse-policy rehydration, sparse candidate-resolution rehydration, excerpt lookup provenance, bundle identity validation, final hit rank/score ordering, and basket-promotion strategy aliases. Downstream citation bundles, context bundles, and basket promotion payloads now receive normalized, auditable retrieval snapshots tied to the FTS-first result order and candidate set the engine consumes.
 
 Canonical demo-path step advanced: `retrieve relevant material`. This also supports `promote or gather context into the basket` because source bundles, context bundles, citations, and basket promotion items carry deterministic retrieval provenance.
 
 ## Tasks Completed
 
 1. FTS-first retrieval and excerpt lookup: kept SQLite FTS authoritative, exported the canonical retrieval facades, removed PageIndex fallback from excerpt fetching, and enforced fail-closed behavior for PageIndex-only or non-FTS excerpt identifiers. Canonical demo-path step advanced: `retrieve relevant material`.
-2. Deterministic retrieval payloads and provenance: normalized query snapshots, constraints, candidate/document identities, candidate-resolution snapshots, source bundles, context bundles, citation backfills, lookup fingerprints, and basket promotion metadata. Canonical demo-path steps advanced: `retrieve relevant material` and `promote or gather context into the basket`.
+2. Deterministic retrieval payloads and provenance: normalized query snapshots, constraints, candidate/document identities, candidate-resolution snapshots, source bundles, context bundles, citation backfills, lookup fingerprints, and basket promotion metadata, including explicit `retrieval_source_strategy` aliases on promotion refs. Canonical demo-path steps advanced: `retrieve relevant material` and `promote or gather context into the basket`.
 3. Retrieval policy and strategy hardening: preserved sparse retrieval policy identity, guarded deferred backend policy, validated bundle identity, stabilized FTS merge strategy identity, and kept engine retrieval exports aligned with the canonical retrieval implementation. Canonical demo-path step advanced: `retrieve relevant material`.
 4. Final result ordering and regression coverage: re-ranked final deduplicated FTS hits after truncation so score/provenance rank match output order, and expanded approved shared regression coverage in `tests/unit/test_unified_retrieval.py` for FTS-only behavior, payload identity, provenance, and promotion-ready outputs. Canonical demo-path steps advanced: `retrieve relevant material` and `promote or gather context into the basket`.
 
@@ -39,9 +39,9 @@ Reviewed implementation range for re-review: `378cf9a74a3658058079a32f186fcd254c
 - `THREAD_PACKET.md` - regenerated this authoritative handoff packet for the actual branch-tip scope.
 - `src/qual/engine/retrieval/__init__.py` - aligned engine retrieval exports and compatibility facade wiring with the FTS-first retrieval surface.
 - `src/qual/engine/retrieval/fts_strategy.py` - hardened FTS strategy identity and candidate/provenance behavior.
-- `src/qual/engine/retrieval/payload.py` - normalized retrieval payload snapshots, source/context bundles, citation backfills, candidate-resolution rehydration, basket promotion metadata, and identifier/fingerprint fields.
+- `src/qual/engine/retrieval/payload.py` - normalized retrieval payload snapshots, source/context bundles, citation backfills, candidate-resolution rehydration, basket promotion metadata, FTS strategy aliases, and identifier/fingerprint fields.
 - `src/qual/retrieval/__init__.py` - exported canonical retrieval helpers through the public retrieval facade.
-- `src/qual/retrieval/service.py` - implemented FTS-only excerpt fetching, deterministic query/constraint/cache handling, sparse policy reconstruction, and final hit re-ranking.
+- `src/qual/retrieval/service.py` - implemented FTS-only excerpt fetching, deterministic query/constraint/cache handling, sparse policy reconstruction, final hit re-ranking, and explicit FTS strategy aliases for basket promotion items.
 - `tests/unit/test_unified_retrieval.py` - expanded approved shared regression coverage for FTS-first retrieval, fail-closed fallback behavior, payload/provenance normalization, candidate-resolution rehydration, and branch-tip hardening.
 
 ## Diff Evidence
@@ -51,14 +51,14 @@ Command: `git diff --stat 378cf9a74a3658058079a32f186fcd254c4a4034 --`
 ```text
  .codex/kickoff_packets/feat-retrieval-fts.md |   36 +-
  .codex/lane_meta/feat-retrieval-fts.json     |  155 ++-
- THREAD_PACKET.md                             |  201 ++--
+ THREAD_PACKET.md                             |  218 ++--
  src/qual/engine/retrieval/__init__.py        |   86 +-
  src/qual/engine/retrieval/fts_strategy.py    |   59 +-
- src/qual/engine/retrieval/payload.py         | 1424 +++++++++++++++++++++++---
+ src/qual/engine/retrieval/payload.py         | 1427 +++++++++++++++++++++++---
  src/qual/retrieval/__init__.py               |   11 +
- src/qual/retrieval/service.py                |  845 +++++++++++++--
+ src/qual/retrieval/service.py                |  848 +++++++++++++--
  tests/unit/test_unified_retrieval.py         | 1203 +++++++++++++++++++++-
- 9 files changed, 3634 insertions(+), 386 deletions(-)
+ 9 files changed, 3657 insertions(+), 386 deletions(-)
 ```
 
 Command: `git diff --stat adfa8cdadd43747ffbcb612e4151e262b13e52ca --`
@@ -66,14 +66,14 @@ Command: `git diff --stat adfa8cdadd43747ffbcb612e4151e262b13e52ca --`
 ```text
  .codex/kickoff_packets/feat-retrieval-fts.md |   36 +-
  .codex/lane_meta/feat-retrieval-fts.json     |  155 ++-
- THREAD_PACKET.md                             |  201 ++--
+ THREAD_PACKET.md                             |  218 ++--
  src/qual/engine/retrieval/__init__.py        |   86 +-
  src/qual/engine/retrieval/fts_strategy.py    |   59 +-
- src/qual/engine/retrieval/payload.py         | 1424 +++++++++++++++++++++++---
+ src/qual/engine/retrieval/payload.py         | 1427 +++++++++++++++++++++++---
  src/qual/retrieval/__init__.py               |   11 +
- src/qual/retrieval/service.py                |  824 ++++++++++++++-
+ src/qual/retrieval/service.py                |  827 ++++++++++++++-
  tests/unit/test_unified_retrieval.py         | 1181 +++++++++++++++++++++-
- 9 files changed, 3614 insertions(+), 363 deletions(-)
+ 9 files changed, 3637 insertions(+), 363 deletions(-)
 ```
 
 Command: `git show --name-status --oneline b44a4cd1ed2fa32d36f52d8cca11f4fc8f72ff4e`
@@ -91,12 +91,21 @@ Command: `git show --name-status --oneline 7124a25d35c390ee27d0ea07865323b6916ca
 M	src/qual/engine/retrieval/payload.py
 ```
 
+Current uncommitted implementation delta before this packet refresh:
+
+```text
+THREAD_PACKET.md                     | 39 ++++++++++++++++++++++--------------
+src/qual/engine/retrieval/payload.py |  3 +++
+src/qual/retrieval/service.py        |  3 +++
+3 files changed, 31 insertions(+), 15 deletions(-)
+```
+
 ## Budget/Risk
 
 - Task budget: `4/4` high-risk task groups.
 - File count for branch-tip handoff including this packet fix: `9 files changed`.
-- Size accounting for branch-tip handoff including this packet fix: `3634 insertions(+), 386 deletions(-)`, net `3248 LOC`.
-- Post-`adfa8cd` branch delta including this packet fix: `9 files changed, 3614 insertions(+), 363 deletions(-)`.
+- Size accounting for branch-tip handoff including this packet fix: `3657 insertions(+), 386 deletions(-)`, net `3271 LOC`.
+- Post-`adfa8cd` branch delta including this packet fix: `9 files changed, 3637 insertions(+), 363 deletions(-)`.
 - AGENTS file/size status: exceeds high-risk size limits of `<=8 files` and `<=300 net LOC`; this is now explicitly disclosed for reviewer/integrator judgment instead of being hidden behind metadata-only wording.
 - Shared/integrator exception status: `tests/unit/test_unified_retrieval.py` is approved shared regression coverage for the retrieval lane; no integrator-locked files changed.
 - Routing/provider impact: none.
@@ -120,6 +129,7 @@ M	src/qual/engine/retrieval/payload.py
 - `./quality-test.sh` - passed smoke tests and 150 unit tests.
 - `./typecheck-test.sh` - passed Python source compilation under `src/`.
 - `make ci` - passed setup, scope-check, format, lint, compile/typecheck, smoke tests, and 150 unit tests.
+- `python3 -m unittest tests.unit.test_unified_retrieval` - passed 81 focused retrieval tests.
 
 ## Metadata Note
 
