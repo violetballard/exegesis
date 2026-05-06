@@ -1391,7 +1391,13 @@ COMMAND_SMOKE_ENV_FLAGS: tuple[str, ...] = (
     "--ignore-environment",
 )
 COMMAND_SMOKE_ENV_VALUE_OPTIONS: tuple[str, ...] = (
+    "-C",
+    "--chdir",
     "-u",
+    "--unset",
+)
+COMMAND_SMOKE_ENV_INLINE_VALUE_OPTIONS: tuple[str, ...] = (
+    "--chdir",
     "--unset",
 )
 COMMAND_SMOKE_ENV_SPLIT_STRING_OPTIONS: tuple[str, ...] = (
@@ -11123,7 +11129,8 @@ def _split_env_launcher_prefix(argv: tuple[str, ...]) -> tuple[tuple[str, ...], 
 
 
 def _env_option_has_inline_value(token: str) -> bool:
-    return token.startswith("--unset=") and token != "--unset="
+    option, value = _split_smoke_long_option(token)
+    return value is not None and value != "" and option in COMMAND_SMOKE_ENV_INLINE_VALUE_OPTIONS
 
 
 def _env_split_string_prefix(prefix: tuple[str, ...]) -> bool:
