@@ -514,6 +514,7 @@ class CommandDemoReadinessHandoffPacket:
     missing_engine_actions: tuple[str, ...]
     invalid_argv: tuple[tuple[str, ...], ...]
     action_steps: tuple[CommandDemoReadinessHandoffActionStep, ...] = ()
+    cli_exact_action_lines: tuple[str, ...] = ()
 
 
 @dataclass(frozen=True)
@@ -4752,6 +4753,7 @@ def command_demo_readiness_handoff_packet(
         missing_engine_actions=seal.missing_engine_actions,
         invalid_argv=seal.invalid_argv,
         action_steps=action_steps,
+        cli_exact_action_lines=seal.cli_exact_action_lines,
     )
     _validate_command_demo_readiness_handoff_packet(
         packet,
@@ -4790,6 +4792,8 @@ def _validate_command_demo_readiness_handoff_packet(
         raise ValueError("Command demo readiness handoff packet command lines are inconsistent")
     if packet.exact_action_lines != seal.exact_action_lines:
         raise ValueError("Command demo readiness handoff packet exact action lines are inconsistent")
+    if packet.cli_exact_action_lines != seal.cli_exact_action_lines:
+        raise ValueError("Command demo readiness handoff packet CLI exact action lines are inconsistent")
     if packet.checklist_lines != checklist_lines:
         raise ValueError("Command demo readiness handoff packet checklist lines are inconsistent")
     if packet.is_complete != seal.is_complete:
