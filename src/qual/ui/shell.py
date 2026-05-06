@@ -31,8 +31,11 @@ from .a2ui import (
     describe_terminal_artifact_renderer_entrypoints_contract,
     describe_terminal_artifact_rendering_contract,
     describe_terminal_fallback_contract,
+    describe_terminal_artifact_cli_fallback_payload_contract,
+    render_terminal_artifact_cli_fallback_payload,
     terminal_fallback_contract_fingerprint,
     terminal_artifact_cli_fallback_contract_fingerprint,
+    terminal_artifact_cli_fallback_payload_contract_fingerprint,
     terminal_artifact_cli_fallback_entrypoint_contract_fingerprint,
     terminal_artifact_cli_fallback_entrypoint_contract_manifest_fingerprint,
     terminal_artifact_cli_fallback_entrypoint_contract_fingerprints_fingerprint,
@@ -81,6 +84,7 @@ SHELL_UI_STARTUP_FIELDS: tuple[str, ...] = (
 SHELL_UI_ENTRYPOINTS: tuple[tuple[str, str], ...] = (
     ("render_artifact", "ShellUI.render_artifact"),
     ("render_cli_fallback", "ShellUI.render_cli_fallback"),
+    ("render_cli_fallback_payload", "ShellUI.render_cli_fallback_payload"),
     ("render_startup", "ShellUI.render_startup"),
 )
 SHELL_UI_STARTUP_PREVIEW_LIMIT = 3
@@ -111,6 +115,8 @@ class ShellUI:
     """Minimal CLI shell used to verify bootstrap wiring."""
 
     def render_artifact(self, artifact: Any, *, kind: str | None = None) -> str:
+        if kind is None and self._is_cli_fallback_payload(artifact):
+            return self.render_cli_fallback_payload(artifact)
         normalized_kind = self._normalize_fallback_kind(kind)
         if normalized_kind == "card" and _is_explicit_terminal_artifact_leaf(artifact):
             # Card hints must not be able to smuggle typed leaf payloads back
@@ -203,6 +209,8 @@ class ShellUI:
 
     def render_cli_fallback(self, artifact: Any, *, kind: str | None = None) -> str:
         """Render an A2UI artifact through the explicit CLI fallback entrypoint."""
+        if kind is None and self._is_cli_fallback_payload(artifact):
+            return self.render_cli_fallback_payload(artifact)
         normalized_kind = self._normalize_fallback_kind(kind)
         fallback_hint_token = None
         fallback_target: tuple[Any, str] | None = None
@@ -254,6 +262,18 @@ class ShellUI:
         finally:
             if fallback_hint_token is not None:
                 _TERMINAL_ARTIFACT_CLI_FALLBACK_TARGET_HINT.reset(fallback_hint_token)
+
+    def render_cli_fallback_payload(self, payload: Any) -> str:
+        """Render a shared multi-artifact CLI fallback payload."""
+
+        return render_terminal_artifact_cli_fallback_payload(payload)
+
+    @staticmethod
+    def _is_cli_fallback_payload(payload: Any) -> bool:
+        return (
+            isinstance(payload, Mapping)
+            and payload.get("type") == "TerminalArtifactCliFallbackPayload"
+        )
 
     def _render_cli_fallback_with_recovery(
         self,
@@ -804,6 +824,9 @@ def _build_shell_ui_contract_manifest(
         terminal_artifact_cli_fallback_route_contract_fingerprint()
     )
     terminal_artifact_cli_fallback_entrypoint = "render_terminal_cli_fallback"
+    terminal_artifact_cli_fallback_payload_contract = (
+        describe_terminal_artifact_cli_fallback_payload_contract()
+    )
     terminal_artifact_cli_fallback_entrypoint_contract_manifest = (
         describe_terminal_artifact_cli_fallback_entrypoint_contract()
     )
@@ -959,6 +982,18 @@ def _build_shell_ui_contract_manifest(
         "terminal_artifact_cli_fallback_contract_manifest_fingerprint": (
             terminal_artifact_cli_fallback_contract_fingerprint()
         ),
+        "terminal_artifact_cli_fallback_payload_contract": copy.deepcopy(
+            terminal_artifact_cli_fallback_payload_contract
+        ),
+        "terminal_artifact_cli_fallback_payload_contract_fingerprint": (
+            terminal_artifact_cli_fallback_payload_contract["contract_fingerprint"]
+        ),
+        "terminal_artifact_cli_fallback_payload_contract_manifest": copy.deepcopy(
+            terminal_artifact_cli_fallback_payload_contract
+        ),
+        "terminal_artifact_cli_fallback_payload_contract_manifest_fingerprint": (
+            terminal_artifact_cli_fallback_payload_contract["contract_fingerprint"]
+        ),
         "terminal_artifact_renderer_entrypoints_contract": copy.deepcopy(
             terminal_artifact_renderer_entrypoints_contract
         ),
@@ -1051,6 +1086,9 @@ def _describe_shell_ui_contract_fingerprints_cached(
     terminal_artifact_cli_fallback_contract_fingerprint_value = (
         terminal_artifact_cli_fallback_contract_fingerprint()
     )
+    terminal_artifact_cli_fallback_payload_contract_fingerprint_value = (
+        terminal_artifact_cli_fallback_payload_contract_fingerprint()
+    )
     terminal_artifact_cli_fallback_entrypoint_contract = (
         describe_terminal_artifact_cli_fallback_entrypoint_contract()
     )
@@ -1117,6 +1155,13 @@ def _describe_shell_ui_contract_fingerprints_cached(
         "terminal_artifact_cli_fallback_target_contract_manifest_fingerprints": terminal_artifact_cli_fallback_target_contract["contract_fingerprints_fingerprint"],
         "terminal_artifact_cli_fallback": terminal_artifact_cli_fallback_contract_fingerprint_value,
         "terminal_artifact_cli_fallback_contract": terminal_artifact_cli_fallback_contract_fingerprint_value,
+        "terminal_artifact_cli_fallback_payload": terminal_artifact_cli_fallback_payload_contract_fingerprint_value,
+        "terminal_artifact_cli_fallback_payload_contract": (
+            terminal_artifact_cli_fallback_payload_contract_fingerprint_value
+        ),
+        "terminal_artifact_cli_fallback_payload_contract_manifest": (
+            terminal_artifact_cli_fallback_payload_contract_fingerprint_value
+        ),
         "terminal_artifact_renderer_entrypoints": terminal_artifact_renderer_entrypoints_contract_fingerprint_value,
         "terminal_artifact_renderer_entrypoints_contract": terminal_artifact_renderer_entrypoints_contract_fingerprint_value,
         "renderer_entrypoints_contract_manifest": terminal_artifact_renderer_entrypoints_contract_fingerprint_value,
@@ -1209,6 +1254,14 @@ def _describe_shell_ui_contract_fingerprints_cached(
             terminal_artifact_cli_fallback_route_contract_fingerprint_value,
         ),
         ("terminal_artifact_cli_fallback_contract", fingerprints["terminal_artifact_cli_fallback_contract"]),
+        (
+            "terminal_artifact_cli_fallback_payload_contract",
+            fingerprints["terminal_artifact_cli_fallback_payload_contract"],
+        ),
+        (
+            "terminal_artifact_cli_fallback_payload_contract_manifest",
+            fingerprints["terminal_artifact_cli_fallback_payload_contract_manifest"],
+        ),
         (
             "terminal_artifact_renderer_entrypoints_contract",
             fingerprints["terminal_artifact_renderer_entrypoints_contract"],
