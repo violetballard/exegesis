@@ -4,83 +4,82 @@
 - Lane: `feat-retrieval-fts`
 - Merge target: current `main`
 - Handoff type: shared/high-risk hardening handoff for the FTS-first retrieval lane.
-- Authoritative reviewed implementation base: `38e13150dc2e5ae44734bd2473ae226d7f1b997d`.
-- Reviewed implementation head: `544cd774297e588b53d82a199faac34cdc312b47`.
-- Reviewed implementation range: `38e13150dc2e5ae44734bd2473ae226d7f1b997d..544cd774297e588b53d82a199faac34cdc312b47`.
+- Authoritative reviewed implementation base: `e40dfcb3adde628551f54f66710b232c67ad6fe7`.
+- Reviewed implementation head: `1f825ff2caf97956fa04d111adcc7f7935c2a1f2`.
+- Reviewed implementation range: `e40dfcb3adde628551f54f66710b232c67ad6fe7..1f825ff2caf97956fa04d111adcc7f7935c2a1f2`.
 - Scope classification: high-risk because this split edits approved shared regression coverage in `tests/unit/test_unified_retrieval.py`; the 4-task cap applies.
 - Approved shared-file note: `tests/unit/test_unified_retrieval.py` remains the approved shared-by-approval regression surface for `feat-retrieval-fts`.
 - Integrator-locked files: none.
 
 ## Scope Completed
 
-This split makes sparse retrieval payload policy rehydration fail closed when deferred strategy identities drift away from the canonical MVP tuple: `pageindex`, `embeddings`. Missing deferred strategy values still default to the FTS-first policy snapshot, but reordered, stale, or expanded values are rejected before downstream source/provenance/context bundles can treat them as valid retrieval policy.
+This split makes sparse retrieval payload rehydration fail closed when backend or mode fields drift away from the canonical FTS-first MVP contract. Policy normalization now shares explicit backend and mode validators, source bundle rehydration validates copied top-level/summary/provenance/citation backend fields, diagnostics rebuilt from sparse source bundles validate backend and mode, and provenance rehydration validates stale provenance-level backend/mode values before downstream consumers can treat them as canonical.
 
-Canonical demo-path step advanced: `retrieve relevant material`. This split also supports `promote or gather context into the basket` by keeping sparse retrieval snapshots policy-stable before basket promotion items and context bundles are rebuilt for later revise/apply steps.
+Canonical demo-path step advanced: `retrieve relevant material`. This split also supports `promote or gather context into the basket` by keeping sparse source/provenance/context snapshots FTS-stable before basket promotion items and later revise/apply context bundles are rebuilt.
 
 ## Tasks Completed
 
-1. Deferred-strategy policy guard: enforces the canonical MVP deferred strategy identity during sparse payload normalization.
-2. Shared regression coverage: adds a unified retrieval test proving reordered deferred strategy identities fail closed.
+1. Backend/mode drift guard: enforces `sqlite_fts` and `fts_first` for sparse source bundle, diagnostics, provenance, and policy normalization.
+2. Shared regression coverage: adds a unified retrieval test proving stale sparse backend and mode values fail closed.
 3. Verification: re-runs the unified retrieval suite and required local gates.
 4. Handoff metadata refresh: records branch, scope, files, commands, roadmap/vision mapping, and residual risk status.
 
-Final demo-path statement: retrieval output remains FTS-first, deterministic, and promotion-ready without allowing PageIndex or embeddings policy drift into engine-facing payloads.
+Final demo-path statement: retrieval output remains FTS-first, deterministic, and promotion-ready without allowing PageIndex, hybrid, or other stale backend/mode identities into engine-facing payloads.
 
 ## Files Changed
 
-Authoritative reviewed implementation base: `38e13150dc2e5ae44734bd2473ae226d7f1b997d`.
+Authoritative reviewed implementation base: `e40dfcb3adde628551f54f66710b232c67ad6fe7`.
 
-- `src/qual/engine/retrieval/payload.py` - sparse payload policy normalization now requires deferred strategy ids to remain `pageindex`, `embeddings`.
-- `tests/unit/test_unified_retrieval.py` - approved shared regression verifies deferred strategy drift is rejected.
+- `src/qual/engine/retrieval/payload.py` - sparse payload policy/source/provenance/diagnostics normalization now requires backend `sqlite_fts` and mode `fts_first`.
+- `tests/unit/test_unified_retrieval.py` - approved shared regression verifies sparse backend/mode drift is rejected.
 - `THREAD_PACKET.md` - handoff packet refreshed with required `INTEGRATION.md` fields.
 
 ## Diff Evidence
 
-Command: `git diff --stat 38e13150dc2e5ae44734bd2473ae226d7f1b997d -- src/qual/engine/retrieval/payload.py tests/unit/test_unified_retrieval.py`
+Command: `git diff --stat e40dfcb3adde628551f54f66710b232c67ad6fe7..1f825ff2caf97956fa04d111adcc7f7935c2a1f2 -- src/qual/engine/retrieval/payload.py tests/unit/test_unified_retrieval.py`
 
 ```text
- src/qual/engine/retrieval/payload.py |  6 +++++-
- tests/unit/test_unified_retrieval.py | 24 ++++++++++++++++++++++++
- 2 files changed, 29 insertions(+), 1 deletion(-)
+ src/qual/engine/retrieval/payload.py | 94 ++++++++++++++++++++++++------------
+ tests/unit/test_unified_retrieval.py | 33 +++++++++++++
+ 2 files changed, 96 insertions(+), 31 deletions(-)
 ```
 
-Command: `git diff --numstat 38e13150dc2e5ae44734bd2473ae226d7f1b997d -- src/qual/engine/retrieval/payload.py tests/unit/test_unified_retrieval.py`
+Command: `git diff --numstat e40dfcb3adde628551f54f66710b232c67ad6fe7..1f825ff2caf97956fa04d111adcc7f7935c2a1f2 -- src/qual/engine/retrieval/payload.py tests/unit/test_unified_retrieval.py`
 
 ```text
-5	1	src/qual/engine/retrieval/payload.py
-24	0	tests/unit/test_unified_retrieval.py
+63	31	src/qual/engine/retrieval/payload.py
+33	0	tests/unit/test_unified_retrieval.py
 ```
 
 ## Budget/Risk
 
 - Task budget: `4/4` high-risk task groups.
 - File count for authoritative reviewed implementation range before packet refresh: `2 files changed`.
-- Size accounting for authoritative reviewed implementation range before packet refresh: `29 insertions(+), 1 deletion(-)`, net `28 LOC`.
+- Size accounting for authoritative reviewed implementation range before packet refresh: `96 insertions(+), 31 deletions(-)`, net `65 LOC`.
 - AGENTS file/size status: fits high-risk limits of `<=8 files` and `<=300 net LOC`.
 - Integrator exception status: approved shared regression coverage in `tests/unit/test_unified_retrieval.py`; no integrator-locked files changed.
 - Routing/provider impact: none.
-- PageIndex/embeddings impact: remain compatibility-only/deferred identifiers; sparse payloads now reject deferred-strategy identity drift instead of accepting it.
+- PageIndex/embeddings impact: remain compatibility-only/deferred identifiers; sparse payloads now reject backend/mode drift instead of accepting stale PageIndex or hybrid identities.
 - Remaining risks/blockers: none known for this split.
 
 ## Roadmap/Vision
 
 - Roadmap items affected: `ROADMAP.md` Milestone 3 generation provenance contract and Milestone 4 FTS-first retrieval orchestration/source-attribution/auditable deterministic retrieval.
 - Vision capability affected: retrieval-backed context, retrieval-first context handling, auditable outputs, and reliable local-first state.
-- Architecture alignment: FTS remains the required local retrieval path. PageIndex and embeddings stay compatibility-only/deferred and fail closed if sparse payload policy identity drifts.
+- Architecture alignment: FTS remains the required local retrieval path. PageIndex and embeddings stay compatibility-only/deferred and stale backend/mode identities fail closed in sparse rehydration.
 - Canonical demo-path mapping: advances `retrieve relevant material` and supports `promote or gather context into the basket`.
 - Routing/provider impact note: none.
 - Proposed `README.md` patch text: none.
 
 ## Commands Run
 
-- `python -m pytest tests/unit/test_unified_retrieval.py` - failed because the active Python 3.14 interpreter does not have `pytest` installed.
-- `python3 -m unittest tests.unit.test_unified_retrieval -v` - passed, 80 tests.
+- `python3 -m unittest tests.unit.test_unified_retrieval -v` - passed, 81 tests.
 - `./quality-format.sh --check` - passed.
 - `./quality-lint.sh` - passed shell syntax and trailing whitespace checks.
-- `./quality-test.sh` - passed smoke tests and 149 unit tests.
+- `./quality-test.sh` - passed smoke tests and 150 unit tests.
 - `./typecheck-test.sh` - passed Python source compilation under `src/`.
-- `make ci` - passed setup, scope-check, format, lint, build, typecheck, smoke tests, and 149 unit tests.
+- `make ci` - passed setup, scope-check, format, lint, build, typecheck, smoke tests, and 150 unit tests.
 
 ## Metadata Write Note
 
-The root `THREAD_PACKET.md` is the authoritative regenerated handoff packet for this split. Re-review should anchor implementation scope to `544cd774297e588b53d82a199faac34cdc312b47` and range `38e13150dc2e5ae44734bd2473ae226d7f1b997d..544cd774297e588b53d82a199faac34cdc312b47`. Any later packet-only branch tip does not move that reviewed implementation range.
+The root `THREAD_PACKET.md` is the authoritative regenerated handoff packet for this split. Re-review should anchor implementation scope to `1f825ff2caf97956fa04d111adcc7f7935c2a1f2` and range `e40dfcb3adde628551f54f66710b232c67ad6fe7..1f825ff2caf97956fa04d111adcc7f7935c2a1f2`. This packet refresh does not move the reviewed implementation range; use the final fixer handoff for the packet-refresh branch tip.
