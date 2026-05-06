@@ -3,24 +3,24 @@
 - Branch name: `codex/feat-retrieval-fts`
 - Lane: `feat-retrieval-fts`
 - Merge target: current `main`
-- Current branch tip used to regenerate this packet: `2114d026ad9bd68cea6fb63a538771a21d17f816`
+- Current branch tip used to regenerate this packet: `9ca591791ae84e4f86d0b4b3e37b5bffbce09913`
 - Final HEAD SHA after this fixer commit: reported in the final fixer response.
 - Handoff type: high-risk retrieval feature handoff for the FTS-first retrieval lane.
 - Scope classification: high-risk because this branch edits engine retrieval entrypoints/facades and approved shared regression coverage in `tests/unit/test_unified_retrieval.py`.
-- Authoritative reviewed implementation range for re-review: `378cf9a74a3658058079a32f186fcd254c4a4034..65a7e513067af91bceaba792e59ddd6f82928cce`, plus later packet/code commits through the final HEAD reported in the final fixer response.
-- Reviewer-required post-`adfa8cda` range: `adfa8cdadd43747ffbcb612e4151e262b13e52ca..2114d026ad9bd68cea6fb63a538771a21d17f816`, plus this fixer commit through the final HEAD reported in the final fixer response; this range is explicitly included in re-review and contains all source/test commits after `adfa8cda`.
-- Corrected traceability note: `6f4f8751cefec4b5ee12fa795b7c15fad41f388f` is source/test-bearing, not metadata-only. It changes `THREAD_PACKET.md`, `src/qual/retrieval/service.py`, and `tests/unit/test_unified_retrieval.py`.
+- Authoritative reviewed implementation range for re-review: `378cf9a74a3658058079a32f186fcd254c4a4034..9ca591791ae84e4f86d0b4b3e37b5bffbce09913`, plus this packet-only fixer commit through the final HEAD reported in the final fixer response.
+- Reviewer-required post-`adfa8cda` range: `adfa8cdadd43747ffbcb612e4151e262b13e52ca..9ca591791ae84e4f86d0b4b3e37b5bffbce09913`, plus this packet-only fixer commit through the final HEAD reported in the final fixer response; this range is explicitly included in re-review and contains every source/test-bearing commit after `adfa8cda`.
+- Corrected traceability note: `2114d026ad9bd68cea6fb63a538771a21d17f816` and `9ca591791ae84e4f86d0b4b3e37b5bffbce09913` are source/test-bearing retrieval commits, not metadata-only packet refreshes. They change `THREAD_PACKET.md`, `src/qual/engine/retrieval/payload.py`, and `tests/unit/test_unified_retrieval.py`. Earlier source/test-bearing commits after `adfa8cda`, including `6f4f8751cefec4b5ee12fa795b7c15fad41f388f`, are also included in the reviewed range.
 - Approved shared-file note: `tests/unit/test_unified_retrieval.py` is approved shared-by-approval regression coverage for this retrieval lane. No integrator-locked files are edited in this handoff.
 
 ## Scope Completed
 
-This packet supersedes earlier handoff packets for `codex/feat-retrieval-fts`. Earlier packets were stale because they described `378cf9a7..adfa8cda` while the branch tip had advanced past `65a7e513067af91bceaba792e59ddd6f82928cce`. Re-review must use the actual branch-tip range above, and must include every source/test commit after `adfa8cda` through the final HEAD reported in the final fixer response.
+This packet supersedes earlier handoff packets for `codex/feat-retrieval-fts`. Earlier packets were stale because they described narrowed implementation ranges while the branch tip had advanced through source/test-bearing retrieval commits. Re-review must use the actual branch-tip range above, and must include every source/test commit after `adfa8cda` through the final HEAD reported in the final fixer response.
 
 The branch implements the FTS-first retrieval MVP path. SQLite FTS remains the deterministic retrieval source of truth. PageIndex and embeddings remain compatibility-only fallback shims that fail closed and are not reintroduced as required retrieval paths. The branch hardens stable retrieval identity by preserving ordered excerpt lookup fingerprints, document and excerpt provenance, sparse context payload snapshots, citations, basket summaries, candidate-resolution snapshots, top-level context query/policy/manifest/summary snapshots, direct excerpt lookup audit identity, and fail-closed compatibility behavior.
 
 Canonical demo-path step advanced: `retrieve relevant material`. The work makes that step more real by constructing deterministic FTS-first queries, returning document and excerpt hits with stable provenance, reconstructing sparse payload snapshots, and exposing ordered excerpt lookup fingerprints alongside excerpt IDs, text hashes, citations, candidate-resolution snapshots, and basket item fingerprints. It also supports `promote or gather context into the basket` because basket-facing summaries preserve auditable FTS lookup identity and candidate-set provenance.
 
-Current fixer pass from `2114d026ad9bd68cea6fb63a538771a21d17f816` makes a real retrieval code change: sparse retrieval payload normalization now treats `basket_item_id` as the same FTS excerpt identity as `item_id` and `excerpt_id`, canonicalizes that identity back onto rehydrated basket-promotion item snapshots, and keeps sparse basket counts stable when downstream context snapshots retain only the basket-facing identifier.
+The source-bearing commits through `9ca591791ae84e4f86d0b4b3e37b5bffbce09913` make real retrieval code changes: sparse retrieval payload normalization treats `basket_item_id` as the same FTS excerpt identity as `item_id` and `excerpt_id`, canonicalizes that identity back onto rehydrated basket-promotion item snapshots, and keeps sparse basket counts stable when downstream context snapshots retain only the basket-facing identifier.
 
 ## Tasks Completed
 
@@ -33,13 +33,13 @@ Current fixer pass from `2114d026ad9bd68cea6fb63a538771a21d17f816` makes a real 
 4. Shared regression coverage: extended approved shared retrieval tests for facade exports, payload reconstruction, citation/provenance helpers, FTS-only excerpt backfill, lookup fingerprints, direct excerpt lookup audit identity, and fail-closed compatibility behavior.
    Canonical demo-path step advanced: `retrieve relevant material`.
 
-Current fixer task: preserved sparse basket-promotion identity when snapshots retain `basket_item_id` without `item_id`/`excerpt_id`, so promotion-ready context snapshots still deduplicate and count the same FTS excerpt once.
+Latest source-bearing task: preserved sparse basket-promotion identity when snapshots retain `basket_item_id` without `item_id`/`excerpt_id`, so promotion-ready context snapshots still deduplicate and count the same FTS excerpt once.
 
-Post-`adfa8cda` source/test accounting: `git log --format='%H%x09%s' adfa8cdadd43747ffbcb612e4151e262b13e52ca..2114d026ad9bd68cea6fb63a538771a21d17f816 -- src/qual/retrieval src/qual/engine/retrieval tests/unit/test_unified_retrieval.py | wc -l` reports `405` source/test-bearing commits before this fixer commit. They are included in the re-review range and grouped into the four task categories above; they are not claimed as metadata-only.
+Source/test accounting for the corrected review range: `git log --format='%H%x09%s' 378cf9a74a3658058079a32f186fcd254c4a4034..9ca591791ae84e4f86d0b4b3e37b5bffbce09913 -- src/qual/retrieval src/qual/engine/retrieval tests/unit/test_unified_retrieval.py | wc -l` reports `407` source/test-bearing commits before this packet-only fixer commit. They are included in the re-review range and grouped into the four task categories above; they are not claimed as metadata-only.
 
 ## Files Changed
 
-Authoritative full branch-tip range: `378cf9a74a3658058079a32f186fcd254c4a4034..65a7e513067af91bceaba792e59ddd6f82928cce`.
+Authoritative full branch-tip range: `378cf9a74a3658058079a32f186fcd254c4a4034..9ca591791ae84e4f86d0b4b3e37b5bffbce09913`, plus this packet-only fixer commit through the final HEAD reported in the final fixer response.
 
 - `.codex/kickoff_packets/feat-retrieval-fts.md` - lane kickoff metadata corrected during packet refreshes.
 - `.codex/lane_meta/feat-retrieval-fts.json` - lane metadata corrected during packet refreshes.
@@ -51,7 +51,7 @@ Authoritative full branch-tip range: `378cf9a74a3658058079a32f186fcd254c4a4034..
 - `src/qual/retrieval/service.py` - canonical FTS-first retrieval service, provenance, candidate-resolution citation snapshots, lookup fingerprint behavior, direct excerpt lookup audit identity, and context bundle packaging.
 - `tests/unit/test_unified_retrieval.py` - approved shared-by-approval regression coverage for the retrieval contract, direct excerpt lookup audit identity, and context bundle copy safety.
 
-Current fixer delta from `2114d026ad9bd68cea6fb63a538771a21d17f816`:
+Latest source-bearing delta from `2114d026ad9bd68cea6fb63a538771a21d17f816..9ca591791ae84e4f86d0b4b3e37b5bffbce09913`:
 
 - `THREAD_PACKET.md` - authoritative handoff packet refreshed for this pass.
 - `src/qual/engine/retrieval/payload.py` - sparse basket-promotion item identity now recognizes `basket_item_id` alongside `item_id` and `excerpt_id`, and canonicalizes that identity for reconstructed downstream payloads.
@@ -60,43 +60,44 @@ Current fixer delta from `2114d026ad9bd68cea6fb63a538771a21d17f816`:
 Integrator-locked files: none.
 Shared-by-approval files: `tests/unit/test_unified_retrieval.py`.
 
+Current packet-only fixer delta from `9ca591791ae84e4f86d0b4b3e37b5bffbce09913`:
+
+- `THREAD_PACKET.md` - authoritative handoff packet refreshed for this pass.
+
 ## Metadata Write Note
 
-The root `THREAD_PACKET.md` is the authoritative regenerated handoff packet for this fixer pass. The sandbox rejected writes under `.codex/` during this pass, so `.codex/kickoff_packets/feat-retrieval-fts.md` and `.codex/lane_meta/feat-retrieval-fts.json` may still contain stale metadata and should not be used as the review source of truth.
+The root `THREAD_PACKET.md` is the authoritative regenerated handoff packet for this fixer pass. Writes to `.codex/kickoff_packets/feat-retrieval-fts.md` and `.codex/lane_meta/feat-retrieval-fts.json` are blocked in this worktree by protected `com.apple.provenance` metadata (`Operation not permitted` from both `apply_patch` and direct file writes), so those `.codex` files still contain stale packet metadata and must not be used as the review source of truth. This packet corrects their stale claims by explicitly including the actual source-bearing branch-tip range.
 
 ## Diff Evidence
 
-Command: `git diff --stat adfa8cdadd43747ffbcb612e4151e262b13e52ca..65a7e513067af91bceaba792e59ddd6f82928cce`
+Command: `git diff --stat 378cf9a74a3658058079a32f186fcd254c4a4034..9ca591791ae84e4f86d0b4b3e37b5bffbce09913`
 
 ```text
  .codex/kickoff_packets/feat-retrieval-fts.md |   36 +-
  .codex/lane_meta/feat-retrieval-fts.json     |  155 +++-
- THREAD_PACKET.md                             |  237 ++++--
+ THREAD_PACKET.md                             |  236 ++++--
  src/qual/engine/retrieval/__init__.py        |   63 +-
  src/qual/engine/retrieval/fts_strategy.py    |   59 +-
- src/qual/engine/retrieval/payload.py         | 1145 +++++++++++++++++++++++---
+ src/qual/engine/retrieval/payload.py         | 1158 +++++++++++++++++++++++---
  src/qual/retrieval/__init__.py               |   11 +
- src/qual/retrieval/service.py                |  673 +++++++++++++--
- tests/unit/test_unified_retrieval.py         |  917 ++++++++++++++++++++-
- 9 files changed, 2977 insertions(+), 319 deletions(-)
+ src/qual/retrieval/service.py                |  757 +++++++++++++++--
+ tests/unit/test_unified_retrieval.py         | 1022 ++++++++++++++++++++++-
+ 9 files changed, 3147 insertions(+), 350 deletions(-)
 ```
 
-Command: `git diff --stat 378cf9a74a3658058079a32f186fcd254c4a4034..65a7e513067af91bceaba792e59ddd6f82928cce`
+Command: `git diff --stat 378cf9a74a3658058079a32f186fcd254c4a4034..9ca591791ae84e4f86d0b4b3e37b5bffbce09913 -- src/qual/engine/retrieval src/qual/retrieval tests/unit/test_unified_retrieval.py`
 
 ```text
- .codex/kickoff_packets/feat-retrieval-fts.md |   36 +-
- .codex/lane_meta/feat-retrieval-fts.json     |  155 +++-
- THREAD_PACKET.md                             |  237 ++++--
- src/qual/engine/retrieval/__init__.py        |   63 +-
- src/qual/engine/retrieval/fts_strategy.py    |   59 +-
- src/qual/engine/retrieval/payload.py         | 1145 +++++++++++++++++++++++---
- src/qual/retrieval/__init__.py               |   11 +
- src/qual/retrieval/service.py                |  694 ++++++++++++++--
- tests/unit/test_unified_retrieval.py         |  955 ++++++++++++++++++++-
- 9 files changed, 3005 insertions(+), 350 deletions(-)
+ src/qual/engine/retrieval/__init__.py     |   63 +-
+ src/qual/engine/retrieval/fts_strategy.py |   59 +-
+ src/qual/engine/retrieval/payload.py      | 1158 ++++++++++++++++++++++++++---
+ src/qual/retrieval/__init__.py            |   11 +
+ src/qual/retrieval/service.py             |  757 +++++++++++++++++--
+ tests/unit/test_unified_retrieval.py      | 1022 ++++++++++++++++++++++++-
+ 6 files changed, 2819 insertions(+), 251 deletions(-)
 ```
 
-Command: `git diff --name-status adfa8cdadd43747ffbcb612e4151e262b13e52ca..65a7e513067af91bceaba792e59ddd6f82928cce`
+Command: `git diff --name-status 378cf9a74a3658058079a32f186fcd254c4a4034..9ca591791ae84e4f86d0b4b3e37b5bffbce09913`
 
 ```text
 M	.codex/kickoff_packets/feat-retrieval-fts.md
@@ -110,21 +111,24 @@ M	src/qual/retrieval/service.py
 M	tests/unit/test_unified_retrieval.py
 ```
 
-Command: `git show --stat 6f4f8751cefec4b5ee12fa795b7c15fad41f388f`
+Command: `git show --stat 2114d026ad9bd68cea6fb63a538771a21d17f816`
 
 ```text
- THREAD_PACKET.md                     | 30 +++++++++++++++---------------
- src/qual/retrieval/service.py        |  3 +++
- tests/unit/test_unified_retrieval.py | 35 +++++++++++++++++++++++++++++++++++
- 3 files changed, 53 insertions(+), 15 deletions(-)
+ src/qual/engine/retrieval/__init__.py     |  63 +++++++-
+ src/qual/engine/retrieval/fts_strategy.py |  21 ++-
+ src/qual/engine/retrieval/payload.py      | 274 ++++++++++++++++++++++++++------
+ src/qual/retrieval/__init__.py            |  11 ++
+ src/qual/retrieval/service.py             | 251 ++++++++++++++++++++++++++---
+ tests/unit/test_unified_retrieval.py      | 195 ++++++++++++++++++++++-
+ 6 files changed, 738 insertions(+), 77 deletions(-)
 ```
 
 ## Budget/Risk
 
 - Task budget: `4/4` high-risk task groups.
 - File count for authoritative branch-tip range: `9 files changed`.
-- Size accounting for post-`adfa8cda` source/test-inclusive range: `2977 insertions(+), 319 deletions(-)`.
-- Size accounting for full branch-tip range from `378cf9a7`: `3005 insertions(+), 350 deletions(-)`.
+- Size accounting for reviewed source/test files from `378cf9a7`: `2819 insertions(+), 251 deletions(-)`.
+- Size accounting for full branch-tip range from `378cf9a7`: `3147 insertions(+), 350 deletions(-)` before this packet-only fixer commit.
 - AGENTS high-risk file/size status: exceeds `<=8 files` and `<=300 net LOC`.
 - Integrator exception status: no explicit high-risk size/file-count exception approval is present in this worktree. This packet does not claim high-risk size compliance; re-review must either reject for the missing exception or route to the integrator for explicit exception approval.
 - Routing/provider impact: none.
