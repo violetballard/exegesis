@@ -157,6 +157,23 @@ Current matched-term provenance finalizer task count: `1` meaningful task group,
 Current matched-term provenance finalizer source size before this packet update: `1 file changed, 2 insertions(+), 2 deletions(-)`.
 Shared/integrator-locked impact this matched-term provenance finalizer pass: none; no shared regression, provider routing, UI, or integrator-locked files were edited.
 
+## Basket Promotion Doc-Type Finalizer Addendum
+
+This source-bearing finalizer keeps retrieval FTS-first and tightens context-basket promotion auditability without adding PageIndex, embeddings, provider routing, UI, or integrator-locked behavior. Promotion items now preserve `doc_type` from FTS hit provenance in both direct `RetrievalResult.retrieval_basket_promotion_bundle()` output and sparse downstream payload rehydration.
+
+This lets downstream basket and revise/apply consumers inspect promoted evidence by source type without reopening the full enclosing retrieval payload.
+
+Current basket promotion doc-type finalizer files changed:
+
+- `M src/qual/retrieval/service.py`
+- `M src/qual/engine/retrieval/payload.py`
+- `M tests/unit/test_unified_retrieval.py`
+- `M THREAD_PACKET.md`
+
+Current basket promotion doc-type finalizer task count: `1` meaningful task group, within the high-risk `4` task cap for this finalizer pass.
+Current basket promotion doc-type finalizer source/test size before this packet update: `3 files changed, 4 insertions(+)`.
+Shared/integrator-locked impact this basket promotion doc-type finalizer pass: approved shared regression coverage in `tests/unit/test_unified_retrieval.py`; no provider routing, UI, or integrator-locked files were edited.
+
 ## Tasks Completed
 
 1. Made SQLite FTS the authoritative MVP retrieval path while keeping PageIndex and embeddings fallback-only/deferred.
@@ -207,6 +224,24 @@ The protected `.codex/kickoff_packets/feat-retrieval-fts.md` and `.codex/lane_me
 - Proposed `README.md` patch text: none.
 
 ## Commands Run
+
+Required gates rerun after the basket promotion doc-type finalizer:
+
+- `python -m unittest tests.unit.test_unified_retrieval.UnifiedRetrievalTests.test_basket_promotion_items_backfill_query_context_from_bundle` - passed.
+- `make scope-check` - passed for branch `codex/feat-retrieval-fts`; no branch-specific policy was configured.
+- `./quality-format.sh --check` - passed.
+- `./quality-lint.sh` - passed shell syntax and trailing whitespace checks.
+- `./quality-test.sh` - passed smoke tests and 130 unit tests.
+- `./typecheck-test.sh` - passed Python source compilation under `src/`.
+- `make ci` - passed setup, scope-check, format, lint, compile/typecheck, smoke tests, and 130 unit tests.
+
+Final required gates rerun after this packet command-evidence refresh:
+
+- `./quality-format.sh --check` - passed.
+- `./quality-lint.sh` - passed shell syntax and trailing whitespace checks.
+- `./quality-test.sh` - passed smoke tests and 130 unit tests.
+- `./typecheck-test.sh` - passed Python source compilation under `src/`.
+- `make ci` - passed setup, scope-check, format, lint, compile/typecheck, smoke tests, and 130 unit tests.
 
 Required gates rerun for this branch-tip traceability fixer pass against actual merge candidate `b43178f56a0c78df411697654c17f2c029d44546` plus this packet-only update:
 

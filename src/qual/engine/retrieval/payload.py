@@ -761,6 +761,7 @@ def _build_retrieval_basket_promotion_bundle_from_payload(payload: dict[str, obj
                 "retrieval_backend": hit.get("retrieval_backend", provenance.get("retrieval_backend")),
                 "retrieval_mode": hit.get("retrieval_mode", provenance.get("retrieval_mode")),
                 "source_hash": hit.get("source_hash", provenance.get("source_hash")),
+                "doc_type": hit.get("doc_type", provenance.get("doc_type")),
                 "doc_fingerprint": hit.get("doc_fingerprint", provenance.get("doc_fingerprint")),
                 "doc_identity_fingerprint": hit.get(
                     "doc_identity_fingerprint",

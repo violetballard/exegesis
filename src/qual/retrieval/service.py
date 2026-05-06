@@ -557,6 +557,7 @@ class RetrievalResult:
                     "retrieval_backend": hit.provenance.get("retrieval_backend"),
                     "retrieval_mode": hit.provenance.get("retrieval_mode"),
                     "source_hash": hit.provenance.get("source_hash"),
+                    "doc_type": hit.provenance.get("doc_type"),
                     "doc_fingerprint": hit.provenance.get("doc_fingerprint"),
                     "doc_identity_fingerprint": hit.provenance.get("doc_identity_fingerprint"),
                     "excerpt_fingerprint": hit.provenance.get("excerpt_fingerprint"),

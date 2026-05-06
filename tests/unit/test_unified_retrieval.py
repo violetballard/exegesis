@@ -2066,6 +2066,7 @@ class UnifiedRetrievalTests(unittest.TestCase):
         self.assertEqual(direct_item["query_scope"], "vault")
         self.assertEqual(direct_item["query_intent"], "compare")
         self.assertEqual(direct_item["query_date_range"], ["2026-01-01", "2026-12-31"])
+        self.assertEqual(direct_item["doc_type"], "memo")
         self.assertEqual(
             engine_retrieve_fts_basket_promotion_bundle(
                 self.service,
@@ -2128,6 +2129,7 @@ class UnifiedRetrievalTests(unittest.TestCase):
         self.assertEqual(rehydrated_item["query_scope"], "vault")
         self.assertEqual(rehydrated_item["query_intent"], "compare")
         self.assertEqual(rehydrated_item["query_date_range"], ["2026-01-01", "2026-12-31"])
+        self.assertEqual(rehydrated_item["doc_type"], "memo")
 
     def test_engine_retrieval_tool_returns_canonical_downstream_payload(self) -> None:
         payload = engine_retrieve_auto_payload(
