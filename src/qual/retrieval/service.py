@@ -651,6 +651,7 @@ class RetrievalResult:
                     "score": hit.score,
                     "rank": hit.provenance.get("rank"),
                     "source_strategy": hit.source_strategy,
+                    "result_fingerprint": self.result_fingerprint,
                     "query_fingerprint": hit.provenance.get(
                         "query_fingerprint",
                         bundle_context["query_fingerprint"],
@@ -663,6 +664,7 @@ class RetrievalResult:
                     "retrieval_backend": hit.provenance.get("retrieval_backend"),
                     "retrieval_mode": hit.provenance.get("retrieval_mode"),
                     "source_hash": hit.provenance.get("source_hash"),
+                    "doc_type": hit.provenance.get("doc_type"),
                     "doc_fingerprint": hit.provenance.get("doc_fingerprint"),
                     "doc_identity_fingerprint": hit.provenance.get("doc_identity_fingerprint"),
                     "excerpt_fingerprint": hit.provenance.get("excerpt_fingerprint"),
@@ -1110,6 +1112,11 @@ class RetrievalService:
 
         return self.retrieve_fts(query).retrieval_excerpt_bundle()
 
+    def retrieve_fts_basket_promotion_bundle(self, query: RetrievalQuery) -> dict[str, object]:
+        """Return FTS evidence items ready for context-basket promotion."""
+
+        return self.retrieve_fts(query).retrieval_basket_promotion_bundle()
+
     def retrieve_auto(self, query: RetrievalQuery) -> RetrievalResult:
         return self.retrieve_fts(query)
 
@@ -1147,6 +1154,11 @@ class RetrievalService:
         """Return the canonical excerpt-focused bundle for the FTS-first auto path."""
 
         return self.retrieve_auto(query).retrieval_excerpt_bundle()
+
+    def retrieve_auto_basket_promotion_bundle(self, query: RetrievalQuery) -> dict[str, object]:
+        """Return FTS evidence items ready for context-basket promotion."""
+
+        return self.retrieve_auto(query).retrieval_basket_promotion_bundle()
 
     def fetch_fts_excerpt(self, excerpt_id: str) -> dict[str, object]:
         """Backward-compatible alias for the canonical FTS-only excerpt lookup path."""

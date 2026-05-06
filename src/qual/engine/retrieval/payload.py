@@ -1131,7 +1131,26 @@ def _normalize_basket_promotion_bundle_snapshot(bundle: dict[str, object]) -> di
     if "caches_used" in normalized:
         normalized["caches_used"] = _normalize_bool_map(normalized.get("caches_used"))
     normalized["promotion_target"] = _first_text_value(normalized.get("promotion_target")) or "context_basket"
-    normalized["promotion_items"] = _normalize_list_like(normalized.get("promotion_items"))
+    promotion_items: list[object] = []
+    for item in _normalize_list_like(normalized.get("promotion_items")):
+        if not isinstance(item, dict):
+            promotion_items.append(copy.deepcopy(item))
+            continue
+        normalized_item = copy.deepcopy(item)
+        item_fallbacks = {
+            "result_fingerprint": normalized.get("result_fingerprint"),
+            "query_fingerprint": normalized.get("query_fingerprint"),
+            "query_scope": normalized.get("query_scope"),
+            "query_intent": normalized.get("query_intent"),
+            "query_date_range": normalized.get("query_date_range"),
+            "retrieval_backend": normalized.get("retrieval_backend"),
+            "retrieval_mode": normalized.get("retrieval_mode"),
+        }
+        for key, fallback_value in item_fallbacks.items():
+            if _is_missing_snapshot_value(normalized_item.get(key)) and not _is_missing_snapshot_value(fallback_value):
+                normalized_item[key] = copy.deepcopy(fallback_value)
+        promotion_items.append(normalized_item)
+    normalized["promotion_items"] = promotion_items
     normalized["promotion_item_count"] = len(normalized["promotion_items"])
     retrieval_policy = normalized.get("retrieval_policy")
     if isinstance(retrieval_policy, dict):
@@ -1768,6 +1787,10 @@ def _build_retrieval_basket_promotion_bundle_from_payload(payload: dict[str, obj
                 "score": hit.get("score"),
                 "rank": provenance.get("rank", hit.get("rank")),
                 "source_strategy": hit.get("source_strategy", provenance.get("source_strategy")),
+                "result_fingerprint": hit.get(
+                    "result_fingerprint",
+                    provenance.get("result_fingerprint", bundle_context["result_fingerprint"]),
+                ),
                 "query_fingerprint": hit.get(
                     "query_fingerprint",
                     provenance.get("query_fingerprint", bundle_context["query_fingerprint"]),
@@ -1783,6 +1806,7 @@ def _build_retrieval_basket_promotion_bundle_from_payload(payload: dict[str, obj
                 "retrieval_backend": hit.get("retrieval_backend", provenance.get("retrieval_backend")),
                 "retrieval_mode": hit.get("retrieval_mode", provenance.get("retrieval_mode")),
                 "source_hash": hit.get("source_hash", provenance.get("source_hash")),
+                "doc_type": hit.get("doc_type", provenance.get("doc_type")),
                 "doc_fingerprint": hit.get("doc_fingerprint", provenance.get("doc_fingerprint")),
                 "doc_identity_fingerprint": hit.get(
                     "doc_identity_fingerprint",

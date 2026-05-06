@@ -29,16 +29,18 @@ from src.qual.engine.retrieval.interface import StrategyRun
 import src.qual.retrieval as package_retrieval
 from src.qual.retrieval import fetch_excerpt as engine_fetch_excerpt
 from src.qual.retrieval import retrieve_auto as engine_retrieve_auto
+from src.qual.retrieval import retrieve_auto_basket_promotion_bundle as engine_retrieve_auto_basket_promotion_bundle
 from src.qual.retrieval import retrieve_auto_citation_bundle as engine_retrieve_auto_citation_bundle
 from src.qual.retrieval import retrieve_auto_doc_bundle as engine_retrieve_auto_doc_bundle
-from src.qual.retrieval import retrieve_auto_provenance_bundle as engine_retrieve_auto_provenance_bundle
 from src.qual.retrieval import retrieve_auto_payload as engine_retrieve_auto_payload
+from src.qual.retrieval import retrieve_auto_provenance_bundle as engine_retrieve_auto_provenance_bundle
 from src.qual.retrieval import retrieve_auto_source_bundle as engine_retrieve_auto_source_bundle
 from src.qual.retrieval import retrieve_fts as engine_retrieve_fts
+from src.qual.retrieval import retrieve_fts_basket_promotion_bundle as engine_retrieve_fts_basket_promotion_bundle
 from src.qual.retrieval import retrieve_fts_doc_bundle as engine_retrieve_fts_doc_bundle
 from src.qual.retrieval import retrieve_fts_excerpt as engine_retrieve_fts_excerpt
-from src.qual.retrieval import retrieve_fts_provenance_bundle as engine_retrieve_fts_provenance_bundle
 from src.qual.retrieval import retrieve_fts_payload as engine_retrieve_fts_payload
+from src.qual.retrieval import retrieve_fts_provenance_bundle as engine_retrieve_fts_provenance_bundle
 from src.qual.retrieval import retrieve_fts_source_bundle as engine_retrieve_fts_source_bundle
 from src.qual.retrieval.service import RetrievalConstraints, RetrievalQuery, RetrievalService
 from src.qual.retrieval.service import RetrievalDocHit
@@ -1961,6 +1963,7 @@ class UnifiedRetrievalTests(unittest.TestCase):
                 "retrieve_fts_provenance_bundle",
                 "retrieve_fts_doc_bundle",
                 "retrieve_fts_excerpt_bundle",
+                "retrieve_fts_basket_promotion_bundle",
                 "retrieve_fts_excerpt",
                 "fetch_fts_excerpt",
                 "fetch_excerpt",
@@ -1971,6 +1974,7 @@ class UnifiedRetrievalTests(unittest.TestCase):
                 "retrieve_auto_provenance_bundle",
                 "retrieve_auto_doc_bundle",
                 "retrieve_auto_excerpt_bundle",
+                "retrieve_auto_basket_promotion_bundle",
                 "retrieve_auto_payload",
             ],
         )
@@ -1996,6 +2000,7 @@ class UnifiedRetrievalTests(unittest.TestCase):
         self.assertTrue(hasattr(engine_retrieval, "retrieve_fts_source_bundle"))
         self.assertTrue(hasattr(engine_retrieval, "retrieve_fts_provenance_bundle"))
         self.assertTrue(hasattr(engine_retrieval, "retrieve_fts_excerpt_bundle"))
+        self.assertTrue(hasattr(engine_retrieval, "retrieve_fts_basket_promotion_bundle"))
         self.assertTrue(hasattr(engine_retrieval, "retrieve_fts_excerpt"))
         self.assertTrue(hasattr(engine_retrieval, "fetch_fts_excerpt"))
         self.assertTrue(hasattr(engine_retrieval, "fetch_excerpt"))
@@ -2004,6 +2009,7 @@ class UnifiedRetrievalTests(unittest.TestCase):
         self.assertTrue(hasattr(engine_retrieval, "retrieve_auto_source_bundle"))
         self.assertTrue(hasattr(engine_retrieval, "retrieve_auto_provenance_bundle"))
         self.assertTrue(hasattr(engine_retrieval, "retrieve_auto_excerpt_bundle"))
+        self.assertTrue(hasattr(engine_retrieval, "retrieve_auto_basket_promotion_bundle"))
         self.assertTrue(hasattr(engine_retrieval, "retrieve_auto_payload"))
         self.assertTrue(hasattr(package_retrieval, "retrieve_auto_citation_bundle"))
 
@@ -3125,6 +3131,51 @@ class UnifiedRetrievalTests(unittest.TestCase):
         self.assertEqual(direct_item["query_scope"], "vault")
         self.assertEqual(direct_item["query_intent"], "compare")
         self.assertEqual(direct_item["query_date_range"], ["2026-01-01", "2026-12-31"])
+        self.assertEqual(direct_item["doc_type"], "memo")
+        self.assertEqual(
+            engine_retrieve_fts_basket_promotion_bundle(
+                self.service,
+                query_text="memo comparison",
+                scope="vault",
+                intent="compare",
+                constraints={"max_results": 4, "date_range": ["2026-01-01", "2026-12-31"]},
+                confidentiality_profile="confidential",
+            ),
+            result.retrieval_basket_promotion_bundle(),
+        )
+        self.assertEqual(
+            engine_retrieve_auto_basket_promotion_bundle(
+                self.service,
+                query_text="memo comparison",
+                scope="vault",
+                intent="compare",
+                constraints={"max_results": 4, "date_range": ["2026-01-01", "2026-12-31"]},
+                confidentiality_profile="confidential",
+            ),
+            result.retrieval_basket_promotion_bundle(),
+        )
+        self.assertEqual(
+            engine_retrieval.retrieve_fts_basket_promotion_bundle(
+                self.service,
+                query_text="memo comparison",
+                scope="vault",
+                intent="compare",
+                constraints={"max_results": 4, "date_range": ["2026-01-01", "2026-12-31"]},
+                confidentiality_profile="confidential",
+            ),
+            result.retrieval_basket_promotion_bundle(),
+        )
+        self.assertEqual(
+            engine_retrieval.retrieve_auto_basket_promotion_bundle(
+                self.service,
+                query_text="memo comparison",
+                scope="vault",
+                intent="compare",
+                constraints={"max_results": 4, "date_range": ["2026-01-01", "2026-12-31"]},
+                confidentiality_profile="confidential",
+            ),
+            result.retrieval_basket_promotion_bundle(),
+        )
 
         payload = result.to_downstream_payload()
         payload.pop("retrieval_basket_promotion_bundle", None)
@@ -3143,6 +3194,7 @@ class UnifiedRetrievalTests(unittest.TestCase):
         self.assertEqual(rehydrated_item["query_scope"], "vault")
         self.assertEqual(rehydrated_item["query_intent"], "compare")
         self.assertEqual(rehydrated_item["query_date_range"], ["2026-01-01", "2026-12-31"])
+        self.assertEqual(rehydrated_item["doc_type"], "memo")
 
     def test_engine_retrieval_tool_returns_canonical_downstream_payload(self) -> None:
         payload = engine_retrieve_auto_payload(

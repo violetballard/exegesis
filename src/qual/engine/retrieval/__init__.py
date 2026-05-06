@@ -243,6 +243,12 @@ def retrieve_fts_excerpt_bundle(*args, **kwargs):
     return _retrieve_fts_excerpt_bundle(*args, **kwargs)
 
 
+def retrieve_fts_basket_promotion_bundle(*args, **kwargs):
+    from src.qual.retrieval import retrieve_fts_basket_promotion_bundle as _retrieve_fts_basket_promotion_bundle
+
+    return _retrieve_fts_basket_promotion_bundle(*args, **kwargs)
+
+
 def retrieve_fts_excerpt(*args, **kwargs):
     from src.qual.retrieval import retrieve_fts_excerpt as _retrieve_fts_excerpt
 
@@ -315,6 +321,12 @@ def retrieve_auto_excerpt_bundle(*args, **kwargs):
     return _retrieve_auto_excerpt_bundle(*args, **kwargs)
 
 
+def retrieve_auto_basket_promotion_bundle(*args, **kwargs):
+    from src.qual.retrieval import retrieve_auto_basket_promotion_bundle as _retrieve_auto_basket_promotion_bundle
+
+    return _retrieve_auto_basket_promotion_bundle(*args, **kwargs)
+
+
 def retrieve_auto_payload(*args, **kwargs):
     from src.qual.retrieval import retrieve_auto_payload as _retrieve_auto_payload
 
@@ -347,6 +359,7 @@ __all__ = [
     "retrieve_fts_provenance_bundle",
     "retrieve_fts_doc_bundle",
     "retrieve_fts_excerpt_bundle",
+    "retrieve_fts_basket_promotion_bundle",
     "retrieve_fts_excerpt",
     "fetch_fts_excerpt",
     "fetch_excerpt",
@@ -357,5 +370,6 @@ __all__ = [
     "retrieve_auto_provenance_bundle",
     "retrieve_auto_doc_bundle",
     "retrieve_auto_excerpt_bundle",
+    "retrieve_auto_basket_promotion_bundle",
     "retrieve_auto_payload",
 ]
