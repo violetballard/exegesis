@@ -535,6 +535,7 @@ class CommandDemoReadinessHandoffPacket:
     invalid_argv: tuple[tuple[str, ...], ...]
     action_steps: tuple[CommandDemoReadinessHandoffActionStep, ...] = ()
     cli_exact_action_lines: tuple[str, ...] = ()
+    step_seals: tuple[CommandDemoReadinessStepSeal, ...] = ()
 
 
 @dataclass(frozen=True)
@@ -4837,6 +4838,7 @@ def command_demo_readiness_handoff_packet(
     fingerprint = command_demo_readiness_fingerprint(specs, launcher_argv)
     checklist_lines = command_demo_readiness_handoff_checklist_lines(specs, launcher_argv)
     action_steps = command_demo_readiness_handoff_action_contract(specs, launcher_argv).steps
+    step_seals = command_demo_readiness_step_seal_contract(specs, launcher_argv).steps
     packet = CommandDemoReadinessHandoffPacket(
         scope_completed=(
             "CLI compatibility and migration-safe entrypoints for the engine-first "
@@ -4868,6 +4870,7 @@ def command_demo_readiness_handoff_packet(
         invalid_argv=seal.invalid_argv,
         action_steps=action_steps,
         cli_exact_action_lines=seal.cli_exact_action_lines,
+        step_seals=step_seals,
     )
     _validate_command_demo_readiness_handoff_packet(
         packet,
@@ -4875,6 +4878,7 @@ def command_demo_readiness_handoff_packet(
         fingerprint,
         checklist_lines,
         action_steps,
+        step_seals,
         specs,
         launcher_argv,
     )
@@ -4887,6 +4891,7 @@ def _validate_command_demo_readiness_handoff_packet(
     fingerprint: CommandDemoReadinessFingerprint,
     checklist_lines: tuple[str, ...],
     action_steps: tuple[CommandDemoReadinessHandoffActionStep, ...],
+    step_seals: tuple[CommandDemoReadinessStepSeal, ...],
     specs: tuple[CommandSpec, ...],
     launcher_argv: tuple[str, ...],
 ) -> None:
@@ -4926,14 +4931,24 @@ def _validate_command_demo_readiness_handoff_packet(
         raise ValueError("Command demo readiness handoff packet invalid argv are inconsistent")
     if packet.action_steps != action_steps:
         raise ValueError("Command demo readiness handoff packet action steps are inconsistent")
+    if packet.step_seals != step_seals:
+        raise ValueError("Command demo readiness handoff packet step seals are inconsistent")
     if tuple(step.command_line for step in packet.action_steps) != packet.command_lines:
         raise ValueError("Command demo readiness handoff packet action step commands are inconsistent")
+    if tuple(step.command_line for step in packet.step_seals) != packet.command_lines:
+        raise ValueError("Command demo readiness handoff packet step seal commands are inconsistent")
     if tuple(
         line
         for step in packet.action_steps
         for _, line in step.exact_action_lines
     ) != packet.exact_action_lines:
         raise ValueError("Command demo readiness handoff packet action step exact lines are inconsistent")
+    if tuple(
+        line
+        for step in packet.step_seals
+        for _, line in step.exact_action_lines
+    ) != packet.exact_action_lines:
+        raise ValueError("Command demo readiness handoff packet step seal exact lines are inconsistent")
 
 
 def _command_demo_readiness_handoff_packet_payload(
@@ -4973,6 +4988,25 @@ def _command_demo_readiness_handoff_packet_payload(
                 ],
             }
             for step in packet.action_steps
+        ],
+        "step_seals": [
+            {
+                "ordinal": step.ordinal,
+                "demo_path_step": step.demo_path_step,
+                "flow_step": step.flow_step,
+                "name": step.name,
+                "command_argv": list(step.command_argv),
+                "command_line": step.command_line,
+                "engine_actions": list(step.engine_actions),
+                "exact_action_lines": [
+                    {
+                        "engine_action": engine_action,
+                        "command_line": command_line,
+                    }
+                    for engine_action, command_line in step.exact_action_lines
+                ],
+            }
+            for step in packet.step_seals
         ],
     }
 
