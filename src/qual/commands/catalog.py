@@ -8578,6 +8578,38 @@ def command_demo_readiness_exact_action_summary(
 
 
 @lru_cache(maxsize=None)
+def command_demo_readiness_exact_action_index_by_demo_path_step(
+    specs: tuple[CommandSpec, ...] = COMMAND_SPECS,
+    launcher_argv: tuple[str, ...] = COMMAND_SMOKE_CLI_LAUNCHER_ARGV,
+) -> tuple[tuple[str, tuple[CommandDemoReadinessExactActionEntry, ...]], ...]:
+    entries_by_step: dict[str, list[CommandDemoReadinessExactActionEntry]] = {}
+    step_order: list[str] = []
+    for entry in command_demo_readiness_exact_action_contract(specs, launcher_argv).entries:
+        step_key = _normalize_token(entry.demo_path_step)
+        if not step_key:
+            raise ValueError("Command demo exact action path step must not be empty")
+        if step_key not in entries_by_step:
+            entries_by_step[step_key] = []
+            step_order.append(step_key)
+        entries_by_step[step_key].append(entry)
+    return tuple((step_key, tuple(entries_by_step[step_key])) for step_key in step_order)
+
+
+def command_demo_readiness_exact_action_entries_for_demo_path_step(
+    demo_path_step: str,
+    specs: tuple[CommandSpec, ...] = COMMAND_SPECS,
+    launcher_argv: tuple[str, ...] = COMMAND_SMOKE_CLI_LAUNCHER_ARGV,
+) -> tuple[CommandDemoReadinessExactActionEntry, ...]:
+    requested_step = _normalize_token(demo_path_step)
+    if not requested_step:
+        return ()
+    return dict(command_demo_readiness_exact_action_index_by_demo_path_step(specs, launcher_argv)).get(
+        requested_step,
+        (),
+    )
+
+
+@lru_cache(maxsize=None)
 def command_demo_readiness_exact_cli_audit_contract(
     specs: tuple[CommandSpec, ...] = COMMAND_SPECS,
     launcher_argv: tuple[str, ...] = COMMAND_SMOKE_CLI_LAUNCHER_ARGV,
@@ -9032,13 +9064,14 @@ def command_demo_readiness_exact_action_lines_for_demo_path_step(
     specs: tuple[CommandSpec, ...] = COMMAND_SPECS,
     launcher_argv: tuple[str, ...] = COMMAND_SMOKE_CLI_LAUNCHER_ARGV,
 ) -> tuple[tuple[str, str], ...]:
-    requested_step = _normalize_token(demo_path_step)
-    if not requested_step:
-        return ()
-    for step in command_demo_readiness_handoff_action_contract(specs, launcher_argv).steps:
-        if _normalize_token(step.demo_path_step) == requested_step:
-            return step.exact_action_lines
-    return ()
+    return tuple(
+        (entry.engine_action, entry.command_line)
+        for entry in command_demo_readiness_exact_action_entries_for_demo_path_step(
+            demo_path_step,
+            specs,
+            launcher_argv,
+        )
+    )
 
 
 def command_demo_readiness_cli_exact_action_lines_for_demo_path_step(
@@ -11647,6 +11680,25 @@ def command_mvp_demo_readiness_exact_action_summary(
     launcher_argv: tuple[str, ...] = COMMAND_SMOKE_CLI_LAUNCHER_ARGV,
 ) -> tuple[tuple[str, str, str, str, str], ...]:
     return command_demo_readiness_exact_action_summary(specs, launcher_argv)
+
+
+def command_mvp_demo_readiness_exact_action_index_by_demo_path_step(
+    specs: tuple[CommandSpec, ...] = COMMAND_SPECS,
+    launcher_argv: tuple[str, ...] = COMMAND_SMOKE_CLI_LAUNCHER_ARGV,
+) -> tuple[tuple[str, tuple[CommandDemoReadinessExactActionEntry, ...]], ...]:
+    return command_demo_readiness_exact_action_index_by_demo_path_step(specs, launcher_argv)
+
+
+def command_mvp_demo_readiness_exact_action_entries_for_demo_path_step(
+    demo_path_step: str,
+    specs: tuple[CommandSpec, ...] = COMMAND_SPECS,
+    launcher_argv: tuple[str, ...] = COMMAND_SMOKE_CLI_LAUNCHER_ARGV,
+) -> tuple[CommandDemoReadinessExactActionEntry, ...]:
+    return command_demo_readiness_exact_action_entries_for_demo_path_step(
+        demo_path_step,
+        specs,
+        launcher_argv,
+    )
 
 
 def command_mvp_demo_readiness_exact_cli_audit_contract(
