@@ -252,6 +252,28 @@ def retrieve_fts_excerpt_bundle(
     )
 
 
+def retrieve_fts_basket_promotion_bundle(
+    service: RetrievalService,
+    *,
+    query_text: str,
+    scope: str,
+    intent: str,
+    constraints: RetrievalConstraintInput = None,
+    confidentiality_profile: str = "confidential",
+) -> dict[str, object]:
+    """Return FTS evidence items ready for context-basket promotion."""
+
+    return _call_fts_retrieval(
+        service,
+        query_text=query_text,
+        scope=scope,
+        intent=intent,
+        constraints=constraints,
+        confidentiality_profile=confidentiality_profile,
+        method_name="retrieve_fts_basket_promotion_bundle",
+    )
+
+
 def retrieve_fts_excerpt(
     service: RetrievalService,
     *,
@@ -421,6 +443,28 @@ def retrieve_auto_excerpt_bundle(
         constraints=constraints,
         confidentiality_profile=confidentiality_profile,
         method_name="retrieve_auto_excerpt_bundle",
+    )
+
+
+def retrieve_auto_basket_promotion_bundle(
+    service: RetrievalService,
+    *,
+    query_text: str,
+    scope: str,
+    intent: str,
+    constraints: RetrievalConstraintInput = None,
+    confidentiality_profile: str = "confidential",
+) -> dict[str, object]:
+    """Return FTS evidence items ready for context-basket promotion."""
+
+    return _call_fts_retrieval(
+        service,
+        query_text=query_text,
+        scope=scope,
+        intent=intent,
+        constraints=constraints,
+        confidentiality_profile=confidentiality_profile,
+        method_name="retrieve_auto_basket_promotion_bundle",
     )
 
 

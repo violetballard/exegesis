@@ -186,6 +186,12 @@ def retrieve_fts_excerpt_bundle(*args, **kwargs):
     return _retrieve_fts_excerpt_bundle(*args, **kwargs)
 
 
+def retrieve_fts_basket_promotion_bundle(*args, **kwargs):
+    from src.qual.retrieval import retrieve_fts_basket_promotion_bundle as _retrieve_fts_basket_promotion_bundle
+
+    return _retrieve_fts_basket_promotion_bundle(*args, **kwargs)
+
+
 def retrieve_fts_excerpt(*args, **kwargs):
     from src.qual.retrieval import retrieve_fts_excerpt as _retrieve_fts_excerpt
 
@@ -250,6 +256,12 @@ def retrieve_auto_excerpt_bundle(*args, **kwargs):
     from src.qual.retrieval import retrieve_auto_excerpt_bundle as _retrieve_auto_excerpt_bundle
 
     return _retrieve_auto_excerpt_bundle(*args, **kwargs)
+
+
+def retrieve_auto_basket_promotion_bundle(*args, **kwargs):
+    from src.qual.retrieval import retrieve_auto_basket_promotion_bundle as _retrieve_auto_basket_promotion_bundle
+
+    return _retrieve_auto_basket_promotion_bundle(*args, **kwargs)
 
 
 def retrieve_auto_payload(*args, **kwargs):

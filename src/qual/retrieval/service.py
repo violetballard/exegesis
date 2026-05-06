@@ -946,6 +946,11 @@ class RetrievalService:
 
         return self.retrieve_fts(query).retrieval_excerpt_bundle()
 
+    def retrieve_fts_basket_promotion_bundle(self, query: RetrievalQuery) -> dict[str, object]:
+        """Return FTS evidence items ready for context-basket promotion."""
+
+        return self.retrieve_fts(query).retrieval_basket_promotion_bundle()
+
     def retrieve_auto(self, query: RetrievalQuery) -> RetrievalResult:
         return self.retrieve_fts(query)
 
@@ -983,6 +988,11 @@ class RetrievalService:
         """Return the canonical excerpt-focused bundle for the FTS-first auto path."""
 
         return self.retrieve_auto(query).retrieval_excerpt_bundle()
+
+    def retrieve_auto_basket_promotion_bundle(self, query: RetrievalQuery) -> dict[str, object]:
+        """Return FTS evidence items ready for context-basket promotion."""
+
+        return self.retrieve_auto(query).retrieval_basket_promotion_bundle()
 
     def fetch_fts_excerpt(self, excerpt_id: str) -> dict[str, object]:
         """Backward-compatible alias for the canonical FTS-only excerpt lookup path."""

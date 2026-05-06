@@ -78,6 +78,23 @@ Current source finalizer task count: `1` meaningful task group, within the high-
 Current source finalizer size before this packet update: `3 files changed, 58 insertions(+), 8 deletions(-)`.
 Shared/integrator-locked impact this source finalizer pass: approved shared regression coverage in `tests/unit/test_unified_retrieval.py`; no provider routing or integrator-locked files were edited.
 
+## Basket Promotion Facade Addendum
+
+This source-bearing finalizer keeps retrieval FTS-first and exposes the existing deterministic context-basket promotion bundle through the canonical retrieval facades. `RetrievalService` now has explicit `retrieve_fts_basket_promotion_bundle()` and `retrieve_auto_basket_promotion_bundle()` methods, and both `src.qual.retrieval` and `src.qual.engine.retrieval` forward to those methods.
+
+The new facade methods return the same FTS evidence bundle already embedded in downstream payloads, source bundles, and context bundles. They do not add a new retrieval strategy, do not expand `engine_retrieval.__all__`, and do not touch PageIndex, embeddings, provider routing, UI, or integrator-locked files.
+
+Current basket promotion facade files changed:
+
+- `M src/qual/retrieval/service.py`
+- `M src/qual/retrieval/__init__.py`
+- `M src/qual/engine/retrieval/__init__.py`
+- `M THREAD_PACKET.md`
+
+Current basket promotion facade task count: `1` meaningful task group, within the high-risk `4` task cap for this finalizer pass.
+Current basket promotion facade source size before this packet update: `3 files changed, 66 insertions(+)`.
+Shared/integrator-locked impact this basket promotion facade pass: none; no shared regression, provider routing, UI, or integrator-locked files were edited.
+
 ## Tasks Completed
 
 1. Made SQLite FTS the authoritative MVP retrieval path while keeping PageIndex and embeddings fallback-only/deferred.
@@ -103,18 +120,19 @@ Expected changed files for that range:
 - `M src/qual/engine/retrieval/__init__.py`
 - `M src/qual/engine/retrieval/fts_strategy.py`
 - `M src/qual/engine/retrieval/payload.py`
+- `M src/qual/retrieval/__init__.py`
 - `M src/qual/retrieval/service.py`
 - `M tests/unit/test_unified_retrieval.py`
 
-Merge-candidate diff through source-bearing tip `125a3b7f84f096159baed4114029a7a38df772ae`: `8 files changed, 637 insertions(+), 188 deletions(-)`, net `+449` LOC. This finalizer adds a narrow source-bearing hardening in `src/qual/retrieval/service.py` and `src/qual/engine/retrieval/payload.py`, plus this handoff refresh.
+Merge-candidate diff through this source-bearing tip before the packet update: `8 files changed, 688 insertions(+), 125 deletions(-)`, net `+563` LOC, excluding `THREAD_PACKET.md`. This finalizer adds narrow source-bearing retrieval facade methods in `src/qual/retrieval/service.py`, `src/qual/retrieval/__init__.py`, and `src/qual/engine/retrieval/__init__.py`, plus this handoff refresh.
 
 The protected `.codex/kickoff_packets/feat-retrieval-fts.md` and `.codex/lane_meta/feat-retrieval-fts.json` mirror artifacts could not be edited in-place, so they are removed from the merge candidate to avoid preserving stale contradictory trace metadata. `THREAD_PACKET.md` is the coherent handoff packet for re-review.
 
 ## Budget/Risk
 
 - Task budget: `4` high-risk task groups; completed as the four task groups above.
-- File count: `8 files` in the full reviewed packet range; within the high-risk `<=8 files` limit.
-- Size accounting: source-bearing branch tip `125a3b7f84f096159baed4114029a7a38df772ae` is net `+449` LOC versus the authoritative reviewed base, before finalizer updates. This exceeds the high-risk `<=300 net LOC` budget and is reported here rather than hidden by a stale narrow range. The current source finalizer itself is a narrow `3 files changed, 58 insertions(+), 8 deletions(-)` retrieval contract hardening before the packet update.
+- File count: `9 files` in the full reviewed packet range including `THREAD_PACKET.md`; `8 files` excluding the handoff packet itself. The source/artifact count remains within the high-risk `<=8 files` limit, while the packet-inclusive count is reported here for traceability.
+- Size accounting: current source-bearing branch tip is net `+563` LOC versus the authoritative reviewed base, before this packet update. This exceeds the high-risk `<=300 net LOC` budget and is reported here rather than hidden by a stale narrow range. The current basket promotion facade finalizer itself is a narrow `3 files changed, 66 insertions(+)` retrieval contract exposure before the packet update.
 - Shared/integrator exception status: `tests/unit/test_unified_retrieval.py` is the sole approved shared regression surface; no integrator-locked files changed.
 - Routing/provider impact: none.
 - Remaining risks/blockers: size budget exceeded for the full corrected range; no functional gate blockers after required gates are rerun on the final branch tip.
@@ -129,6 +147,24 @@ The protected `.codex/kickoff_packets/feat-retrieval-fts.md` and `.codex/lane_me
 ## Commands Run
 
 Required gates rerun for the source-bearing finalizer pass:
+
+- `python - <<'PY' ... PY` basket promotion facade smoke script - passed; service, retrieval package, and engine retrieval facades returned identical FTS `context_basket` promotion bundles.
+- `./quality-format.sh --check` - passed.
+- `./quality-lint.sh` - passed shell syntax and trailing whitespace checks.
+- `./quality-test.sh` - first attempt failed on exact `engine_retrieval.__all__` export-list contract after the new facade names were added to star exports.
+- `./quality-test.sh` - passed after keeping the new facade methods directly addressable without expanding `__all__`; smoke tests and 130 unit tests passed.
+- `./typecheck-test.sh` - passed Python source compilation under `src/`.
+- `make ci` - passed setup, scope-check, format, lint, compile/typecheck, smoke tests, and 130 unit tests.
+
+Final required gates rerun after the basket promotion facade code and packet refresh:
+
+- `./quality-format.sh --check` - passed.
+- `./quality-lint.sh` - passed shell syntax and trailing whitespace checks.
+- `./quality-test.sh` - passed smoke tests and 130 unit tests.
+- `./typecheck-test.sh` - passed Python source compilation under `src/`.
+- `make ci` - passed setup, scope-check, format, lint, compile/typecheck, smoke tests, and 130 unit tests.
+
+Earlier required gates for the basket-promotion query-context hardening pass:
 
 - `python -m unittest tests.unit.test_unified_retrieval.UnifiedRetrievalTests.test_basket_promotion_items_backfill_query_context_from_bundle` - passed.
 - `make scope-check` - passed for branch `codex/feat-retrieval-fts`.
