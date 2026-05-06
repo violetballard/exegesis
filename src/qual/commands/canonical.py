@@ -1,6 +1,7 @@
 from __future__ import annotations
 
 from collections.abc import Sequence
+from dataclasses import dataclass
 
 from src.qual.commands.catalog import (
     CommandDemoReadinessGate,
@@ -360,7 +361,20 @@ from src.qual.commands.catalog import (
     command_mvp_demo_readiness_summary as _readiness_summary,
 )
 
+
+@dataclass(frozen=True)
+class CommandCanonicalReadinessStatus:
+    command: str | None
+    flow_step: str | None
+    demo_path_step: str | None
+    argv: tuple[str, ...]
+    command_line: str
+    engine_actions: tuple[str, ...]
+    ready: bool
+
+
 __all__ = [
+    "CommandCanonicalReadinessStatus",
     "canonical_command",
     "canonical_command_action_argv_lookup_table",
     "canonical_command_action_demo_path_lookup_table",
@@ -615,6 +629,11 @@ __all__ = [
     "canonical_command_readiness_entry_for_demo_path_step",
     "canonical_command_readiness_entry_for_engine_action",
     "canonical_command_readiness_entry_for_flow_step",
+    "canonical_command_readiness_status_for_argv",
+    "canonical_command_readiness_status_for_command",
+    "canonical_command_readiness_status_for_demo_path_step",
+    "canonical_command_readiness_status_for_engine_action",
+    "canonical_command_readiness_status_for_flow_step",
     "canonical_command_readiness_lookup_table",
     "canonical_command_readiness_command_line_lookup_table",
     "canonical_command_readiness_summary",
@@ -638,6 +657,98 @@ def canonical_command_readiness_lookup_table() -> tuple[tuple[str, tuple[str, ..
 
 def canonical_command_readiness_command_line_lookup_table() -> tuple[tuple[str, str], ...]:
     return _readiness_command_line_lookup_table()
+
+
+def _readiness_status(
+    *,
+    command: str | None,
+    flow_step: str | None,
+    demo_path_step: str | None,
+    argv: tuple[str, ...],
+    command_line: str,
+    engine_actions: tuple[str, ...],
+) -> CommandCanonicalReadinessStatus:
+    return CommandCanonicalReadinessStatus(
+        command=command,
+        flow_step=flow_step,
+        demo_path_step=demo_path_step,
+        argv=argv,
+        command_line=command_line,
+        engine_actions=engine_actions,
+        ready=bool(command and flow_step and demo_path_step and argv and engine_actions),
+    )
+
+
+def canonical_command_readiness_status_for_command(
+    command_name: str,
+) -> CommandCanonicalReadinessStatus:
+    command = canonical_command(command_name)
+    flow_step = canonical_command_flow_step(command)
+    demo_path_step = canonical_command_demo_path_step(command)
+    return _readiness_status(
+        command=command if flow_step else None,
+        flow_step=flow_step,
+        demo_path_step=demo_path_step,
+        argv=canonical_command_argv(command),
+        command_line=canonical_command_line(command),
+        engine_actions=canonical_command_engine_actions(command),
+    )
+
+
+def canonical_command_readiness_status_for_argv(
+    argv: Sequence[str] | str,
+) -> CommandCanonicalReadinessStatus:
+    command = canonical_command_command_for_argv(argv)
+    return _readiness_status(
+        command=command,
+        flow_step=canonical_command_flow_step_for_argv(argv),
+        demo_path_step=canonical_command_demo_path_step_for_argv(argv),
+        argv=canonical_command_argv_for_argv(argv),
+        command_line=canonical_command_line_for_argv(argv),
+        engine_actions=canonical_command_engine_actions_for_argv(argv),
+    )
+
+
+def canonical_command_readiness_status_for_flow_step(
+    flow_step: str,
+) -> CommandCanonicalReadinessStatus:
+    command = canonical_command_for_flow_step(flow_step)
+    return _readiness_status(
+        command=command,
+        flow_step=canonical_command_flow_step(command) if command else None,
+        demo_path_step=canonical_command_demo_path_step(command) if command else None,
+        argv=canonical_command_argv_for_flow_step(flow_step),
+        command_line=canonical_command_line_for_flow_step(flow_step),
+        engine_actions=canonical_command_engine_actions_for_flow_step(flow_step),
+    )
+
+
+def canonical_command_readiness_status_for_demo_path_step(
+    demo_path_step: str,
+) -> CommandCanonicalReadinessStatus:
+    command = canonical_command_for_demo_path_step(demo_path_step)
+    return _readiness_status(
+        command=command,
+        flow_step=canonical_command_flow_step(command) if command else None,
+        demo_path_step=canonical_command_demo_path_step(command) if command else None,
+        argv=canonical_command_argv_for_demo_path_step(demo_path_step),
+        command_line=canonical_command_line_for_demo_path_step(demo_path_step),
+        engine_actions=canonical_command_engine_actions_for_demo_path_step(demo_path_step),
+    )
+
+
+def canonical_command_readiness_status_for_engine_action(
+    engine_action: str,
+) -> CommandCanonicalReadinessStatus:
+    command = canonical_command_for_engine_action(engine_action)
+    return _readiness_status(
+        command=command,
+        flow_step=canonical_command_flow_step_for_engine_action(engine_action),
+        demo_path_step=canonical_command_demo_path_step_for_engine_action(engine_action),
+        argv=canonical_command_argv_for_engine_action(engine_action),
+        command_line=canonical_command_line_for_engine_action(engine_action),
+        engine_actions=(engine_action,) if command else (),
+    )
 
 
 def canonical_command_action_readiness_summary() -> tuple[
