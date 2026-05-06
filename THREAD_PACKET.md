@@ -3,11 +3,11 @@
 - Branch name: `codex/feat-retrieval-fts`
 - Lane: `feat-retrieval-fts`
 - Merge target: current `main`
-- Current branch tip used to regenerate this packet: `65a7e513067af91bceaba792e59ddd6f82928cce`
+- Current branch tip used to regenerate this packet: `b4b7c3a5e258c55b25195b843f3483ca208ceaa3`
 - Final HEAD SHA after this fixer commit: reported in the final fixer response.
 - Handoff type: high-risk retrieval feature handoff for the FTS-first retrieval lane.
 - Scope classification: high-risk because this branch edits engine retrieval entrypoints/facades and approved shared regression coverage in `tests/unit/test_unified_retrieval.py`.
-- Authoritative reviewed implementation range for re-review: `378cf9a74a3658058079a32f186fcd254c4a4034..65a7e513067af91bceaba792e59ddd6f82928cce`, plus this metadata-only packet correction commit.
+- Authoritative reviewed implementation range for re-review: `378cf9a74a3658058079a32f186fcd254c4a4034..65a7e513067af91bceaba792e59ddd6f82928cce`, plus later packet/code commits through the final HEAD reported in the final fixer response.
 - Reviewer-required post-`adfa8cda` range: `adfa8cdadd43747ffbcb612e4151e262b13e52ca..65a7e513067af91bceaba792e59ddd6f82928cce`; this range is explicitly included in re-review and contains all source/test commits after `adfa8cda`.
 - Corrected traceability note: `6f4f8751cefec4b5ee12fa795b7c15fad41f388f` is source/test-bearing, not metadata-only. It changes `THREAD_PACKET.md`, `src/qual/retrieval/service.py`, and `tests/unit/test_unified_retrieval.py`.
 - Approved shared-file note: `tests/unit/test_unified_retrieval.py` is approved shared-by-approval regression coverage for this retrieval lane. No integrator-locked files are edited in this handoff.
@@ -20,6 +20,8 @@ The branch implements the FTS-first retrieval MVP path. SQLite FTS remains the d
 
 Canonical demo-path step advanced: `retrieve relevant material`. The work makes that step more real by constructing deterministic FTS-first queries, returning document and excerpt hits with stable provenance, reconstructing sparse payload snapshots, and exposing ordered excerpt lookup fingerprints alongside excerpt IDs, text hashes, citations, candidate-resolution snapshots, and basket item fingerprints. It also supports `promote or gather context into the basket` because basket-facing summaries preserve auditable FTS lookup identity and candidate-set provenance.
 
+Current fixer pass from `b4b7c3a5e258c55b25195b843f3483ca208ceaa3` makes a real retrieval code change: FTS excerpt hits now receive the resolved candidate set, candidate-resolution snapshot, active FTS policy, and final result fingerprint in their per-hit provenance, and hit/doc dict snapshots surface `candidate_resolution` at the top level. This keeps basket/context consumers from having to infer excerpt routing context from only the enclosing bundle.
+
 ## Tasks Completed
 
 1. Canonical FTS retrieval path: added and exported the canonical retrieval query constructor, `retrieve_auto` helper, and FTS-first service behavior through both retrieval facades.
@@ -30,6 +32,8 @@ Canonical demo-path step advanced: `retrieve relevant material`. The work makes 
    Canonical demo-path step advanced: `retrieve relevant material`.
 4. Shared regression coverage: extended approved shared retrieval tests for facade exports, payload reconstruction, citation/provenance helpers, FTS-only excerpt backfill, lookup fingerprints, direct excerpt lookup audit identity, and fail-closed compatibility behavior.
    Canonical demo-path step advanced: `retrieve relevant material`.
+
+Current fixer task: enriched per-excerpt FTS run provenance with candidate resolution, shortlist IDs, policy, and result fingerprint so promotion-ready excerpt snapshots remain auditable when downstream flows handle hits independently of the full retrieval bundle.
 
 Post-`adfa8cda` source/test accounting: `git log --format='%H%x09%s' adfa8cdadd43747ffbcb612e4151e262b13e52ca..65a7e513067af91bceaba792e59ddd6f82928cce -- src/qual/retrieval src/qual/engine/retrieval tests/unit/test_unified_retrieval.py | wc -l` reports `403` source/test-bearing commits. They are included in the re-review range and grouped into the four task categories above; they are not claimed as metadata-only.
 
@@ -46,6 +50,11 @@ Authoritative full branch-tip range: `378cf9a74a3658058079a32f186fcd254c4a4034..
 - `src/qual/retrieval/__init__.py` - retrieval facade exports.
 - `src/qual/retrieval/service.py` - canonical FTS-first retrieval service, provenance, candidate-resolution citation snapshots, lookup fingerprint behavior, direct excerpt lookup audit identity, and context bundle packaging.
 - `tests/unit/test_unified_retrieval.py` - approved shared-by-approval regression coverage for the retrieval contract, direct excerpt lookup audit identity, and context bundle copy safety.
+
+Current fixer delta from `b4b7c3a5e258c55b25195b843f3483ca208ceaa3`:
+
+- `THREAD_PACKET.md` - authoritative handoff packet refreshed for this pass.
+- `src/qual/retrieval/service.py` - per-excerpt FTS provenance now includes candidate-resolution context and final result fingerprint.
 
 Integrator-locked files: none.
 Shared-by-approval files: `tests/unit/test_unified_retrieval.py`.
@@ -137,6 +146,8 @@ Command: `git show --stat 6f4f8751cefec4b5ee12fa795b7c15fad41f388f`
 - `./quality-test.sh` - passed smoke tests and 145 unit tests.
 - `./typecheck-test.sh` - passed Python source compilation under `src/`.
 - `make ci` - passed setup, scope-check, format, lint, typecheck, smoke tests, and 145 unit tests.
+- `python3 -m unittest tests.unit.test_unified_retrieval` - passed 76 focused retrieval tests.
+- `python -m pytest tests/unit/test_unified_retrieval.py` - blocked because the active Python 3.14 environment has no `pytest` module; the documented shell and unittest gates above passed.
 
 ## Risks/Blockers
 

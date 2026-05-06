@@ -213,6 +213,9 @@ class RetrievalHit:
         candidate_doc_count = self.provenance.get("candidate_doc_count")
         if isinstance(candidate_doc_count, int):
             payload["candidate_doc_count"] = candidate_doc_count
+        candidate_resolution = self.provenance.get("candidate_resolution")
+        if isinstance(candidate_resolution, dict):
+            payload["candidate_resolution"] = copy.deepcopy(candidate_resolution)
         fts_shortlist_doc_ids = self.provenance.get("fts_shortlist_doc_ids")
         normalized_fts_shortlist_doc_ids = _optional_list_like(fts_shortlist_doc_ids)
         if normalized_fts_shortlist_doc_ids is not None:
@@ -302,6 +305,9 @@ class RetrievalDocHit:
         candidate_doc_count = self.provenance.get("candidate_doc_count")
         if isinstance(candidate_doc_count, int):
             payload["candidate_doc_count"] = candidate_doc_count
+        candidate_resolution = self.provenance.get("candidate_resolution")
+        if isinstance(candidate_resolution, dict):
+            payload["candidate_resolution"] = copy.deepcopy(candidate_resolution)
         fts_shortlist_doc_ids = self.provenance.get("fts_shortlist_doc_ids")
         normalized_fts_shortlist_doc_ids = _optional_list_like(fts_shortlist_doc_ids)
         if normalized_fts_shortlist_doc_ids is not None:
@@ -1175,6 +1181,15 @@ class RetrievalService:
         else:
             fts_run = StrategyRun(strategy_id=self._fts.id, hits=[], elapsed_ms=0, cache_used=False)
         merged_hits = self._merge_hits([fts_run], max_results=query.constraints.max_results)
+        merged_hits = self._with_run_provenance(
+            merged_hits,
+            query=query,
+            query_fingerprint=query_fingerprint,
+            retrieval_policy=retrieval_policy,
+            candidate_doc_count=effective_candidate_doc_count,
+            candidate_resolution=candidate_resolution,
+            fts_shortlist_doc_ids=fts_shortlist,
+        )
         doc_hits = self._build_doc_hits(
             query,
             merged_hits,
@@ -1202,6 +1217,7 @@ class RetrievalService:
             query_fingerprint=query_fingerprint,
             retrieval_manifest=retrieval_manifest,
         )
+        merged_hits = self._with_result_fingerprint(merged_hits, result_fingerprint=result_fingerprint)
         retrieval_evidence = self._build_retrieval_evidence(
             query=query,
             doc_hits=doc_hits,
@@ -1420,6 +1436,53 @@ class RetrievalService:
             if len(out) >= max_results:
                 break
         return out
+
+    @staticmethod
+    def _with_run_provenance(
+        hits: list[RetrievalHit],
+        *,
+        query: RetrievalQuery,
+        query_fingerprint: str,
+        retrieval_policy: dict[str, object],
+        candidate_doc_count: int,
+        candidate_resolution: dict[str, object],
+        fts_shortlist_doc_ids: tuple[str, ...],
+    ) -> list[RetrievalHit]:
+        enriched: list[RetrievalHit] = []
+        for hit in hits:
+            provenance = dict(hit.provenance)
+            provenance.update(
+                {
+                    "query_scope": query.scope,
+                    "query_intent": query.intent,
+                    "query_date_range": list(query.constraints.date_range)
+                    if query.constraints.date_range is not None
+                    else None,
+                    "query_fingerprint": query_fingerprint,
+                    "candidate_doc_count": candidate_doc_count,
+                    "candidate_resolution": copy.deepcopy(candidate_resolution),
+                    "fts_shortlist_doc_ids": list(fts_shortlist_doc_ids),
+                    "retrieval_backend": retrieval_policy["retrieval_backend"],
+                    "retrieval_mode": retrieval_policy["retrieval_mode"],
+                    "retrieval_policy": copy.deepcopy(retrieval_policy),
+                    "source_strategy": primary_strategy_id(),
+                }
+            )
+            enriched.append(replace(hit, provenance=provenance))
+        return enriched
+
+    @staticmethod
+    def _with_result_fingerprint(
+        hits: list[RetrievalHit],
+        *,
+        result_fingerprint: str,
+    ) -> list[RetrievalHit]:
+        enriched: list[RetrievalHit] = []
+        for hit in hits:
+            provenance = dict(hit.provenance)
+            provenance["result_fingerprint"] = result_fingerprint
+            enriched.append(replace(hit, provenance=provenance))
+        return enriched
 
     def _build_doc_hits(
         self,
