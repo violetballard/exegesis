@@ -10,6 +10,7 @@ from src.qual.commands.catalog import (
     CommandDemoReadinessCliArgvValidation,
     CommandDemoReadinessCliContract,
     CommandDemoReadinessHandoffAudit,
+    CommandDemoReadinessProgress,
     CommandDemoReadinessCommandTraceEntry,
     CommandDemoReadinessCommandTraceContract,
     CommandDemoReadinessTraceEntry,
@@ -234,6 +235,10 @@ from src.qual.commands.catalog import (
     command_mvp_demo_readiness_validate_argv as _readiness_validate_argv,
     command_mvp_demo_readiness_validate_cli_argv as _readiness_validate_cli_argv,
     command_mvp_demo_readiness_validate_cli_script as _readiness_validate_cli_script,
+    command_mvp_demo_readiness_progress as _readiness_progress,
+    command_mvp_demo_readiness_progress_summary as _readiness_progress_summary,
+    command_mvp_demo_readiness_shell_progress as _readiness_shell_progress,
+    command_mvp_demo_readiness_shell_progress_summary as _readiness_shell_progress_summary,
     command_mvp_demo_readiness_validate_cli_shell_script_lines
     as _readiness_validate_cli_shell_script_lines,
     command_mvp_demo_readiness_validate_exact_action_script
@@ -447,6 +452,10 @@ __all__ = [
     "canonical_command_readiness_validate_argv",
     "canonical_command_readiness_validate_cli_argv",
     "canonical_command_readiness_validate_cli_script",
+    "canonical_command_readiness_progress",
+    "canonical_command_readiness_progress_summary",
+    "canonical_command_readiness_shell_progress",
+    "canonical_command_readiness_shell_progress_summary",
     "canonical_command_readiness_validate_cli_shell_script_lines",
     "canonical_command_readiness_validate_exact_action_script",
     "canonical_command_readiness_validate_exact_action_shell_script_lines",
@@ -1542,6 +1551,30 @@ def canonical_command_readiness_validate_cli_script(
     argvs: Sequence[Sequence[str] | str],
 ) -> CommandDemoReadinessScriptValidation:
     return _readiness_validate_cli_script(argvs)
+
+
+def canonical_command_readiness_progress(
+    argvs: Sequence[Sequence[str] | str],
+) -> CommandDemoReadinessProgress:
+    return _readiness_progress(argvs)
+
+
+def canonical_command_readiness_progress_summary(
+    argvs: Sequence[Sequence[str] | str],
+) -> tuple[bool, str | None, str, str, tuple[str, ...], tuple[str, ...], tuple[tuple[str, ...], ...]]:
+    return _readiness_progress_summary(argvs)
+
+
+def canonical_command_readiness_shell_progress(
+    lines: Sequence[str] | str,
+) -> CommandDemoReadinessProgress:
+    return _readiness_shell_progress(lines)
+
+
+def canonical_command_readiness_shell_progress_summary(
+    lines: Sequence[str] | str,
+) -> tuple[bool, str | None, str, str, tuple[str, ...], tuple[str, ...], tuple[tuple[str, ...], ...]]:
+    return _readiness_shell_progress_summary(lines)
 
 
 def canonical_command_readiness_validate_cli_shell_script_lines(
