@@ -303,6 +303,7 @@ def _normalize_basket_promotion_bundle_snapshot(bundle: dict[str, object]) -> di
             "query_scope": normalized.get("query_scope"),
             "query_intent": normalized.get("query_intent"),
             "query_date_range": normalized.get("query_date_range"),
+            "citation_status": normalized.get("citation_status"),
             "retrieval_backend": normalized.get("retrieval_backend"),
             "retrieval_mode": normalized.get("retrieval_mode"),
         }
@@ -781,6 +782,12 @@ def _build_retrieval_basket_promotion_bundle_from_payload(payload: dict[str, obj
                 hit.get(
                     "query_date_range",
                     provenance.get("query_date_range", bundle_context["query_date_range"]),
+                )
+            ),
+            "citation_status": copy.deepcopy(
+                hit.get(
+                    "citation_status",
+                    provenance.get("citation_status", bundle_context["citation_status"]),
                 )
             ),
             "retrieval_backend": hit.get("retrieval_backend", provenance.get("retrieval_backend")),

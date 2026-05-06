@@ -11,6 +11,7 @@
 - Authoritative reviewed implementation base: `378cf9a74a3658058079a32f186fcd254c4a4034`.
 - Authoritative reviewed implementation range for re-review: `378cf9a74a3658058079a32f186fcd254c4a4034..HEAD`, where `HEAD` is the final branch tip reported with this fixer response. This is the actual merge candidate range.
 - Actual source-bearing branch tip covered by this packet: `b3b0e81e6a6754dfa3eaa3d21a01ee82817ad846`.
+- Current fixer pass: source-bearing retrieval promotion evidence update; final branch tip is the commit containing this packet refresh.
 - Packet-only trace tip before this fixer refresh: `d902e90625ddfa0abfa92a152e8a94aa26fed2b4`.
 - Source-bearing update note: commits after `adfa8cdadd43747ffbcb612e4151e262b13e52ca` and through `b3b0e81e6a6754dfa3eaa3d21a01ee82817ad846` are source-bearing, not metadata-only. They change retrieval source and shared regression coverage, and every one of those changes is included in the corrected reviewed implementation range.
 
@@ -58,12 +59,15 @@ Sandbox note for this fixer pass: the auxiliary `.codex/kickoff_packets` and `.c
 3. Listed the complete changed source/test implementation surface and the full changed-file surface for the corrected range.
 4. Reran and reported `make scope-check`, `./quality-format.sh --check`, `./quality-lint.sh`, `./quality-test.sh`, `./typecheck-test.sh`, and `make ci` for the corrected branch-tip packet.
 5. Kept high-risk/shared accounting explicit: this is a four-task high-risk handoff because `tests/unit/test_unified_retrieval.py` is approved shared regression coverage.
+6. Added citation-status propagation to FTS basket promotion items so promoted excerpt evidence carries the citation satisfaction snapshot needed by downstream basket/revise/apply flows.
 
 ## Scope Completed
 
 SQLite FTS remains the required MVP retrieval path. PageIndex and embeddings remain deferred or compatibility-only surfaces and are not reintroduced as required paths.
 
 The branch hardens deterministic FTS retrieval behavior across cache keys, fresh-run cache snapshots, query snapshots, result payloads, excerpt lookup, citation/provenance bundles, evidence snapshots, sparse bundle rehydration, date-range propagation, shortlist query fingerprints, matched-term provenance, result fingerprints, doc identity, doc rank, doc type, strategy aliases, query constraints, and context basket promotion evidence. The final source-bearing update adds deterministic promotion-item and promotion-bundle fingerprints so basket promotion can audit exact FTS evidence items without rehydrating the whole retrieval result.
+
+This fixer pass also carries `citation_status` into each promotion item and into sparse-payload promotion-item rehydration. That keeps the exact citation requirement/availability/satisfaction snapshot attached to the FTS excerpt evidence that can be promoted into the context basket.
 
 Canonical demo path: `vault/context material -> FTS retrieval -> retrieval evidence -> context basket promotion -> engine revise/apply`.
 
@@ -80,6 +84,8 @@ Canonical demo-path step made real by this work: it advances both retrieving rel
 4. Added fail-closed retrieval boundary coverage for malformed or reversed date ranges, empty query/scope inputs, unresolved `doc:` and `collection:` scopes, FTS-only excerpt lookup, excerpt lookup fingerprints, cache/query snapshot behavior, and facade/export availability for basket-promotion helpers.
    Canonical demo-path steps advanced: `FTS retrieval` and `engine revise/apply` through stable retrieval facade contracts.
 
+Current fixer task completed: attached `citation_status` to basket promotion items and rehydrated promotion items, with shared regression coverage in `tests/unit/test_unified_retrieval.py`.
+
 Task accounting: `4` high-risk task groups completed, matching the high-risk cap of `4`.
 
 ## Budget/Risk
@@ -89,7 +95,8 @@ Task accounting: `4` high-risk task groups completed, matching the high-risk cap
 - Size accounting: the corrected full source-bearing range exceeds the high-risk `<=300 net LOC` size limit. The actual source-bearing range through `b3b0e81e6a6754dfa3eaa3d21a01ee82817ad846` is `9 files changed, 888 insertions(+), 201 deletions(-)`, and the source/artifact/test portion excluding `THREAD_PACKET.md` is `8 files changed, 806 insertions(+), 129 deletions(-)`. This budget overage is reported explicitly for reviewer/integrator disposition rather than hidden behind a stale narrow range.
 - Shared/integrator exception status: `tests/unit/test_unified_retrieval.py` is the sole approved shared regression surface; no integrator-locked files changed.
 - Routing/provider impact: none.
-- Remaining risks/blockers: size budget exceeded for the full corrected range; required gates are rerun and reported below after the actual final source-bearing commit and this packet refresh.
+- Current fixer diff: `3 files changed, 18 insertions(+)` across retrieval-owned code and the approved shared regression file.
+- Remaining risks/blockers: size budget exceeded for the full corrected cumulative range; required gates passed for this final fixer state.
 
 ## Roadmap/Vision
 
@@ -103,9 +110,17 @@ Task accounting: `4` high-risk task groups completed, matching the high-risk cap
 Required gates rerun on `2026-05-06` for the corrected full reviewed range `378cf9a74a3658058079a32f186fcd254c4a4034..HEAD` after the source-bearing tip `b3b0e81e6a6754dfa3eaa3d21a01ee82817ad846`:
 
 - `python -m unittest tests.unit.test_unified_retrieval` - passed 61 retrieval tests.
+- `python -m unittest tests.unit.test_unified_retrieval.UnifiedRetrievalTests.test_basket_promotion_items_backfill_query_context_from_bundle` - passed.
 - `make scope-check` - passed for branch `codex/feat-retrieval-fts`; no branch-specific policy was configured.
 - `./quality-format.sh --check` - passed.
 - `./quality-lint.sh` - passed shell syntax and trailing whitespace checks.
 - `./quality-test.sh` - passed smoke tests and 130 unit tests.
 - `./typecheck-test.sh` - passed Python source compilation under `src/` (exit 0).
 - `make ci` - passed setup, scope-check, format, lint, compile/typecheck, smoke tests, and 130 unit tests.
+
+Current fixer changed files:
+
+- `src/qual/retrieval/service.py`
+- `src/qual/engine/retrieval/payload.py`
+- `tests/unit/test_unified_retrieval.py`
+- `THREAD_PACKET.md`

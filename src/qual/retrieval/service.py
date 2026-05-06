@@ -554,6 +554,7 @@ class RetrievalResult:
                 "query_date_range": copy.deepcopy(
                     hit.provenance.get("query_date_range", bundle_context["query_date_range"])
                 ),
+                "citation_status": copy.deepcopy(bundle_context["citation_status"]),
                 "retrieval_backend": hit.provenance.get("retrieval_backend"),
                 "retrieval_mode": hit.provenance.get("retrieval_mode"),
                 "source_hash": hit.provenance.get("source_hash"),

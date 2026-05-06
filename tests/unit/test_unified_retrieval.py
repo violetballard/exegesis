@@ -2066,6 +2066,10 @@ class UnifiedRetrievalTests(unittest.TestCase):
         self.assertEqual(direct_item["query_scope"], "vault")
         self.assertEqual(direct_item["query_intent"], "compare")
         self.assertEqual(direct_item["query_date_range"], ["2026-01-01", "2026-12-31"])
+        self.assertEqual(
+            direct_item["citation_status"],
+            result.retrieval_basket_promotion_bundle()["citation_status"],
+        )
         self.assertEqual(direct_item["doc_type"], "memo")
         self.assertEqual(
             engine_retrieve_fts_basket_promotion_bundle(
@@ -2119,16 +2123,22 @@ class UnifiedRetrievalTests(unittest.TestCase):
             hit.pop("query_scope", None)
             hit.pop("query_intent", None)
             hit.pop("query_date_range", None)
+            hit.pop("citation_status", None)
             hit["provenance"].pop("query_fingerprint", None)
             hit["provenance"].pop("query_scope", None)
             hit["provenance"].pop("query_intent", None)
             hit["provenance"].pop("query_date_range", None)
+            hit["provenance"].pop("citation_status", None)
 
         rehydrated_item = _build_retrieval_basket_promotion_bundle_from_payload(payload)["promotion_items"][0]
         self.assertEqual(rehydrated_item["query_fingerprint"], result.diagnostics["query_fingerprint"])
         self.assertEqual(rehydrated_item["query_scope"], "vault")
         self.assertEqual(rehydrated_item["query_intent"], "compare")
         self.assertEqual(rehydrated_item["query_date_range"], ["2026-01-01", "2026-12-31"])
+        self.assertEqual(
+            rehydrated_item["citation_status"],
+            result.retrieval_basket_promotion_bundle()["citation_status"],
+        )
         self.assertEqual(rehydrated_item["doc_type"], "memo")
 
     def test_engine_retrieval_tool_returns_canonical_downstream_payload(self) -> None:
