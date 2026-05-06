@@ -58,6 +58,9 @@ Own later:
 Activation rule:
 - disabled until explicitly enabled after the current engine/demo loop is stable
 
+Implementation batches:
+- use `docs/FUTURE_IMPORT_RAG_SPEC.md` as the lane-ready build sheet
+
 ### `feat-literature-import`
 Own later:
 - literature import type semantics inside the import modal
@@ -69,6 +72,9 @@ Own later:
 Activation rule:
 - disabled until `feat-ocr-import` is specified and explicitly enabled for implementation
 
+Implementation batches:
+- use `docs/FUTURE_IMPORT_RAG_SPEC.md` as the lane-ready build sheet
+
 ### `feat-rag-index`
 Own later:
 - Markdown-aware chunking and chunk metadata contract
@@ -79,6 +85,9 @@ Own later:
 
 Activation rule:
 - disabled until OCR/import normalization and literature metadata specs are ready for implementation
+
+Implementation batches:
+- use `docs/FUTURE_IMPORT_RAG_SPEC.md` as the lane-ready build sheet
 
 ### `feat-qual-coding`
 Own later:
