@@ -3,6 +3,7 @@ from __future__ import annotations
 
 import os
 from pathlib import Path
+import tempfile
 import tomllib
 from typing import Dict
 
@@ -127,7 +128,10 @@ def isolated_codex_env(root: str) -> Dict[str, str]:
 
 def agent_ripgrep_config_path(root: str) -> Path:
     target = Path(root).resolve() / ".codex" / "agent_ripgrep_config"
-    target.parent.mkdir(parents=True, exist_ok=True)
+    try:
+        target.parent.mkdir(parents=True, exist_ok=True)
+    except OSError:
+        target = Path(tempfile.gettempdir()) / "qual_agent_ripgrep_config"
     current_text = target.read_text(encoding="utf-8") if target.exists() else None
     if current_text != AGENT_RIPGREP_CONFIG_TEXT:
         target.write_text(AGENT_RIPGREP_CONFIG_TEXT, encoding="utf-8")
