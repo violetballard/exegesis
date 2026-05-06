@@ -82,7 +82,10 @@ Task accounting: `4` high-risk task groups completed, matching the high-risk tas
 
 ## Commands Run
 
-Required gates for this final fixer state:
+Required gates for this final fixer state were re-run on 2026-05-06 after the
+traceability packet refresh. The final fixer commit is metadata-only, so these
+results apply to the corrected branch tip without changing the implementation
+review range above.
 
 - `make scope-check` - passed for branch `codex/feat-retrieval-fts`; no branch-specific policy was configured.
 - `./quality-format.sh --check` - passed.
