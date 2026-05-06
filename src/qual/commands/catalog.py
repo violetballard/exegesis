@@ -11657,13 +11657,24 @@ def command_demo_readiness_validate_exact_action_script(
         for _, exact_engine_action in exact_action_by_argv
         if exact_engine_action is not None
     }
+    exact_action_sequence = tuple(
+        exact_engine_action
+        for _, exact_engine_action in exact_action_by_argv
+        if exact_engine_action is not None
+    )
     expected_actions = command_demo_engine_actions(specs)
     covered_engine_actions = tuple(action for action in expected_actions if action in exact_action_set)
     missing_engine_actions = tuple(action for action in expected_actions if action not in exact_action_set)
-    invalid_argv = tuple(
-        requested
-        for requested, exact_engine_action in exact_action_by_argv
-        if exact_engine_action is None
+    invalid_argv = _invalid_exact_action_script_argv(
+        requested_argv,
+        exact_action_sequence,
+        expected_actions,
+        missing_engine_actions,
+        tuple(
+            requested
+            for requested, exact_engine_action in exact_action_by_argv
+            if exact_engine_action is None
+        ),
     )
     canonical_argv = tuple(
         command_demo_readiness_exact_argv_for_engine_action(action, specs, launcher_argv)
@@ -11688,6 +11699,20 @@ def command_demo_readiness_validate_exact_action_script(
         invalid_argv=invalid_argv,
         is_complete=not missing_flow_steps and not missing_engine_actions and not invalid_argv,
     )
+
+
+def _invalid_exact_action_script_argv(
+    requested_argv: tuple[tuple[str, ...], ...],
+    exact_action_sequence: tuple[str, ...],
+    expected_actions: tuple[str, ...],
+    missing_engine_actions: tuple[str, ...],
+    invalid_argv: tuple[tuple[str, ...], ...],
+) -> tuple[tuple[str, ...], ...]:
+    if invalid_argv or missing_engine_actions:
+        return invalid_argv
+    if exact_action_sequence != expected_actions:
+        return requested_argv
+    return ()
 
 
 def command_demo_readiness_validate_exact_action_shell_script_lines(
@@ -11719,13 +11744,24 @@ def command_demo_readiness_validate_cli_exact_action_script(
         for _, exact_engine_action in exact_action_by_argv
         if exact_engine_action is not None
     }
+    exact_action_sequence = tuple(
+        exact_engine_action
+        for _, exact_engine_action in exact_action_by_argv
+        if exact_engine_action is not None
+    )
     expected_actions = command_demo_engine_actions(specs)
     covered_engine_actions = tuple(action for action in expected_actions if action in exact_action_set)
     missing_engine_actions = tuple(action for action in expected_actions if action not in exact_action_set)
-    invalid_argv = tuple(
-        validation.requested_argv
-        for validation in validations
-        if not validation.is_cli_entrypoint or validation.exact_engine_action is None
+    invalid_argv = _invalid_exact_action_script_argv(
+        requested_argv,
+        exact_action_sequence,
+        expected_actions,
+        missing_engine_actions,
+        tuple(
+            validation.requested_argv
+            for validation in validations
+            if not validation.is_cli_entrypoint or validation.exact_engine_action is None
+        ),
     )
     canonical_argv = tuple(
         command_demo_readiness_exact_argv_for_engine_action(action, specs, launcher_argv)
