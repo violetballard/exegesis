@@ -5,7 +5,7 @@
 - Merge target: current `main`
 - Handoff type: high-risk branch-tip retrieval handoff for the FTS-first retrieval lane.
 - Reviewed implementation base: `378cf9a74a3658058079a32f186fcd254c4a4034`.
-- Actual merge candidate before this packet fix: `e49d7c2c34d1e8f3dd8ca1927e2efbef53d67f06`.
+- Actual merge candidate before this packet fix: `c467cf894d68468f003243bec0631b8f4c50a682`.
 - Reviewed implementation range for re-review: `378cf9a74a3658058079a32f186fcd254c4a4034..FINAL_BRANCH_TIP`.
 - Final branch tip: reported in the final fixer response after commit creation.
 - Scope classification: high-risk because this lane touches retrieval core/facade behavior and approved shared regression coverage in `tests/unit/test_unified_retrieval.py`.
@@ -34,8 +34,8 @@ Required before-handoff demo-path statement: this work now makes the canonical d
 
 Reviewed implementation range for re-review: `378cf9a74a3658058079a32f186fcd254c4a4034..FINAL_BRANCH_TIP`.
 
-- `.codex/kickoff_packets/feat-retrieval-fts.md` - branch-tip range includes this stale lane metadata from earlier commits; this fixer attempted to update it, but the sandbox rejected writes to hidden `.codex` paths with `Operation not permitted`.
-- `.codex/lane_meta/feat-retrieval-fts.json` - branch-tip range includes this stale lane metadata from earlier commits; this fixer attempted to update it, but the sandbox rejected writes to hidden `.codex` paths with `Operation not permitted`.
+- `.codex/kickoff_packets/feat-retrieval-fts.md` - branch-tip range includes this stale lane metadata from earlier commits; this fixer attempted to update it, but the sandbox rejected writes to hidden `.codex` paths with `PermissionError: [Errno 1] Operation not permitted`.
+- `.codex/lane_meta/feat-retrieval-fts.json` - branch-tip range includes this stale lane metadata from earlier commits; this fixer attempted to update it, but the sandbox rejected writes to hidden `.codex` paths with `PermissionError: [Errno 1] Operation not permitted`.
 - `THREAD_PACKET.md` - regenerated this authoritative handoff packet for the actual branch-tip scope.
 - `src/qual/engine/retrieval/__init__.py` - aligned engine retrieval exports and compatibility facade wiring with the FTS-first retrieval surface.
 - `src/qual/engine/retrieval/fts_strategy.py` - hardened FTS strategy identity and candidate/provenance behavior.
@@ -76,12 +76,12 @@ Command: `git diff --stat adfa8cdadd43747ffbcb612e4151e262b13e52ca --`
  9 files changed, 3613 insertions(+), 361 deletions(-)
 ```
 
-Command: `git show --name-status --oneline e49d7c2c34d1e8f3dd8ca1927e2efbef53d67f06`
+Command: `git show --name-status --oneline bbdab95619a69e962c548b844d9d8e68f25a65cb`
 
 ```text
-e49d7c2c3 Harden final retrieval hit ranks
-M	THREAD_PACKET.md
-M	src/qual/retrieval/service.py
+bbdab9561 Harden retrieval candidate resolution rehydration
+M	src/qual/engine/retrieval/payload.py
+M	tests/unit/test_unified_retrieval.py
 ```
 
 ## Budget/Risk
