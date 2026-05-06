@@ -548,6 +548,7 @@ class CommandDemoReadinessHandoffPacket:
     roadmap_items: tuple[str, ...]
     vision_capabilities: tuple[str, ...]
     routing_provider_impact: str
+    canonical_demo_path_step_advanced: str
     fingerprint_algorithm: str
     fingerprint_digest: str
     canonical_demo_path_steps: tuple[str, ...]
@@ -5229,6 +5230,10 @@ def command_demo_readiness_handoff_packet(
             "Required capability 6: Auditable state and workflow",
         ),
         routing_provider_impact="None: command readiness metadata does not touch model routing or providers.",
+        canonical_demo_path_step_advanced=(
+            "open project/document; retrieve relevant material and gather context; "
+            "preview and apply or reject a patch; persist and continue"
+        ),
         fingerprint_algorithm=fingerprint.algorithm,
         fingerprint_digest=fingerprint.digest,
         canonical_demo_path_steps=tuple(
@@ -5280,6 +5285,8 @@ def _validate_command_demo_readiness_handoff_packet(
         raise ValueError("Command demo readiness handoff packet vision capabilities must not be empty")
     if not packet.routing_provider_impact.strip():
         raise ValueError("Command demo readiness handoff packet provider impact must not be empty")
+    if packet.canonical_demo_path_step_advanced != "; ".join(packet.canonical_demo_path_steps):
+        raise ValueError("Command demo readiness handoff packet advanced demo path step is inconsistent")
     if packet.fingerprint_algorithm != fingerprint.algorithm:
         raise ValueError("Command demo readiness handoff packet fingerprint algorithm is inconsistent")
     if packet.fingerprint_digest != fingerprint.digest:
@@ -5342,6 +5349,7 @@ def _command_demo_readiness_handoff_packet_payload(
         "roadmap_items": list(packet.roadmap_items),
         "vision_capabilities": list(packet.vision_capabilities),
         "routing_provider_impact": packet.routing_provider_impact,
+        "canonical_demo_path_step_advanced": packet.canonical_demo_path_step_advanced,
         "fingerprint": {
             "algorithm": packet.fingerprint_algorithm,
             "digest": packet.fingerprint_digest,
@@ -5650,6 +5658,7 @@ def command_demo_readiness_handoff_packet_markdown(
         f"- Roadmap item(s) affected: {'; '.join(packet.roadmap_items)}",
         f"- Vision capability affected: {'; '.join(packet.vision_capabilities)}",
         f"- Routing/provider impact: {packet.routing_provider_impact}",
+        f"- Canonical demo-path step advanced: {packet.canonical_demo_path_step_advanced}",
         f"- Readiness complete: {str(packet.is_complete).lower()}",
         f"- Fingerprint: {packet.fingerprint_algorithm}:{packet.fingerprint_digest}",
         f"- Canonical demo-path steps: {'; '.join(packet.canonical_demo_path_steps)}",
@@ -5693,6 +5702,7 @@ def _validate_command_demo_readiness_handoff_packet_markdown(
         *packet.roadmap_items,
         *packet.vision_capabilities,
         packet.routing_provider_impact,
+        packet.canonical_demo_path_step_advanced,
         f"{packet.fingerprint_algorithm}:{packet.fingerprint_digest}",
         *packet.canonical_demo_path_steps,
         *packet.command_lines,
