@@ -8527,7 +8527,7 @@ def command_demo_command_surface_contract(
     readiness_by_name = dict(command_demo_readiness_index_by_command(specs, launcher_argv))
     exact_argv_by_action = {
         action: argv
-        for argv, action in command_demo_readiness_exact_action_argv_lookup_table(
+        for action, argv in command_demo_readiness_exact_action_argv_lookup_table(
             specs,
             launcher_argv,
         )
@@ -9338,11 +9338,11 @@ def command_demo_readiness_action_entries_for_argv(
 def command_demo_readiness_exact_action_argv_lookup_table(
     specs: tuple[CommandSpec, ...] = COMMAND_SPECS,
     launcher_argv: tuple[str, ...] = COMMAND_SMOKE_CLI_LAUNCHER_ARGV,
-) -> tuple[tuple[tuple[str, ...], str], ...]:
+) -> tuple[tuple[str, tuple[str, ...]], ...]:
     _validate_command_smoke_cli_launcher(launcher_argv)
     exact_argv_by_action = _demo_exact_action_smoke_argv_by_engine_action(specs)
     return tuple(
-        ((*launcher_argv, *exact_argv_by_action[engine_action]), engine_action)
+        (engine_action, (*launcher_argv, *exact_argv_by_action[engine_action]))
         for engine_action in command_demo_engine_actions(specs)
     )
 
@@ -9350,10 +9350,10 @@ def command_demo_readiness_exact_action_argv_lookup_table(
 def command_demo_readiness_cli_exact_action_argv_lookup_table(
     specs: tuple[CommandSpec, ...] = COMMAND_SPECS,
     launcher_argv: tuple[str, ...] = COMMAND_SMOKE_CLI_LAUNCHER_ARGV,
-) -> tuple[tuple[tuple[str, ...], str], ...]:
+) -> tuple[tuple[str, tuple[str, ...]], ...]:
     lookup = command_demo_readiness_exact_action_argv_lookup_table(specs, launcher_argv)
     invalid_entries: list[str] = []
-    for argv, engine_action in lookup:
+    for engine_action, argv in lookup:
         validation = command_demo_readiness_validate_cli_argv(argv, specs, launcher_argv)
         if not validation.is_cli_entrypoint or validation.exact_engine_action != engine_action:
             invalid_entries.append(_shell_join(argv))
@@ -9371,7 +9371,7 @@ def command_demo_readiness_exact_action_line_lookup_table(
 ) -> tuple[tuple[str, str], ...]:
     return tuple(
         (engine_action, _shell_join(argv))
-        for argv, engine_action in command_demo_readiness_exact_action_argv_lookup_table(
+        for engine_action, argv in command_demo_readiness_exact_action_argv_lookup_table(
             specs,
             launcher_argv,
         )
@@ -9384,7 +9384,7 @@ def command_demo_readiness_cli_exact_action_line_lookup_table(
 ) -> tuple[tuple[str, str], ...]:
     return tuple(
         (engine_action, _shell_join(argv))
-        for argv, engine_action in command_demo_readiness_cli_exact_action_argv_lookup_table(
+        for engine_action, argv in command_demo_readiness_cli_exact_action_argv_lookup_table(
             specs,
             launcher_argv,
         )
@@ -9399,13 +9399,10 @@ def command_demo_readiness_cli_exact_argv_for_engine_action(
     requested_action = engine_action.strip()
     if not requested_action:
         return ()
-    return {
-        action: argv
-        for argv, action in command_demo_readiness_cli_exact_action_argv_lookup_table(
-            specs,
-            launcher_argv,
-        )
-    }.get(requested_action, ())
+    return dict(command_demo_readiness_cli_exact_action_argv_lookup_table(specs, launcher_argv)).get(
+        requested_action,
+        (),
+    )
 
 
 def command_demo_readiness_cli_exact_line_for_engine_action(
@@ -9504,8 +9501,8 @@ def command_demo_readiness_exact_action_for_argv(
         specs,
         requested_command_argv,
     )
-    lookup = dict(command_demo_readiness_exact_action_argv_lookup_table(specs, launcher_argv))
-    for action_argv, engine_action in lookup.items():
+    lookup = command_demo_readiness_exact_action_argv_lookup_table(specs, launcher_argv)
+    for engine_action, action_argv in lookup:
         action_command_argv = _argv_without_launcher(action_argv, launcher_argv)
         canonical_action_argv = _canonical_argv_with_requested_launcher(action_argv, requested_launcher_argv)
         if (
@@ -9578,13 +9575,10 @@ def command_demo_readiness_exact_argv_for_engine_action(
     requested_action = engine_action.strip()
     if not requested_action:
         return ()
-    return {
-        action: argv
-        for argv, action in command_demo_readiness_exact_action_argv_lookup_table(
-            specs,
-            launcher_argv,
-        )
-    }.get(requested_action, ())
+    return dict(command_demo_readiness_exact_action_argv_lookup_table(specs, launcher_argv)).get(
+        requested_action,
+        (),
+    )
 
 
 def command_demo_readiness_exact_line_for_engine_action(
@@ -9609,7 +9603,7 @@ def command_demo_readiness_exact_action_contract(
 ) -> CommandDemoReadinessExactActionContract:
     action_entries = dict(command_demo_readiness_action_index(specs, launcher_argv))
     entries: list[CommandDemoReadinessExactActionEntry] = []
-    for argv, engine_action in command_demo_readiness_exact_action_argv_lookup_table(
+    for engine_action, argv in command_demo_readiness_exact_action_argv_lookup_table(
         specs,
         launcher_argv,
     ):
@@ -9641,7 +9635,7 @@ def _validate_command_demo_readiness_exact_action_contract(
         raise ValueError("Command demo exact action entries are inconsistent")
     if tuple(entry.command_argv for entry in contract.entries) != tuple(
         argv
-        for argv, _ in command_demo_readiness_exact_action_argv_lookup_table(
+        for _, argv in command_demo_readiness_exact_action_argv_lookup_table(
             specs,
             launcher_argv,
         )
@@ -10187,6 +10181,14 @@ def command_demo_readiness_demo_path_step_for_command(
     if entry is None:
         return None
     return entry.demo_path_step
+
+
+def command_demo_path_step_for_command(
+    command_name: str,
+    specs: tuple[CommandSpec, ...] = COMMAND_SPECS,
+    launcher_argv: tuple[str, ...] = COMMAND_SMOKE_CLI_LAUNCHER_ARGV,
+) -> str | None:
+    return command_demo_readiness_demo_path_step_for_command(command_name, specs, launcher_argv)
 
 
 @lru_cache(maxsize=None)
@@ -11217,14 +11219,12 @@ def command_demo_readiness_validate_cli_script(
     covered_flow_steps = tuple(flow_step for flow_step in expected_flow_steps if flow_step in covered_flow_step_set)
     missing_flow_steps = tuple(flow_step for flow_step in expected_flow_steps if flow_step not in covered_flow_step_set)
 
-    valid_requested_argv = tuple(
-        validation.requested_argv for validation in validations if validation.is_cli_entrypoint
-    )
-    covered_action_set = _covered_demo_readiness_engine_actions(
-        valid_requested_argv,
-        specs,
-        launcher_argv,
-    )
+    covered_action_set = {
+        engine_action
+        for validation in validations
+        if validation.is_cli_entrypoint
+        for engine_action in validation.engine_actions
+    }
     expected_actions = command_demo_engine_actions(specs)
     covered_engine_actions = tuple(action for action in expected_actions if action in covered_action_set)
     missing_engine_actions = tuple(action for action in expected_actions if action not in covered_action_set)
@@ -12533,11 +12533,12 @@ def command_demo_readiness_validate_script(
     covered_flow_steps = tuple(flow_step for flow_step in expected_flow_steps if flow_step in covered_flow_step_set)
     missing_flow_steps = tuple(flow_step for flow_step in expected_flow_steps if flow_step not in covered_flow_step_set)
 
-    covered_action_set = _covered_demo_readiness_engine_actions(
-        tuple(validation.requested_argv for validation in validations),
-        specs,
-        launcher_argv,
-    )
+    covered_action_set = {
+        engine_action
+        for validation in validations
+        if validation.name is not None
+        for engine_action in validation.engine_actions
+    }
     expected_actions = command_demo_engine_actions(specs)
     covered_engine_actions = tuple(action for action in expected_actions if action in covered_action_set)
     missing_engine_actions = tuple(action for action in expected_actions if action not in covered_action_set)
