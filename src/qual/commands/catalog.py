@@ -4398,6 +4398,46 @@ def command_demo_readiness_route_summary(
     )
 
 
+def command_demo_readiness_route_payload(
+    specs: tuple[CommandSpec, ...] = COMMAND_SPECS,
+    launcher_argv: tuple[str, ...] = COMMAND_SMOKE_CLI_LAUNCHER_ARGV,
+) -> dict[str, object]:
+    contract = command_demo_readiness_route_contract(specs, launcher_argv)
+    return {
+        "launcher_argv": launcher_argv,
+        "routes": [
+            {
+                "ordinal": entry.ordinal,
+                "demo_path_step": entry.demo_path_step,
+                "flow_step": entry.flow_step,
+                "command": entry.name,
+                "cli_tokens": entry.cli_tokens,
+                "command_line": entry.command_line,
+                "engine_actions": entry.engine_actions,
+                "action_lines": [
+                    {
+                        "engine_action": engine_action,
+                        "command_line": command_line,
+                    }
+                    for engine_action, command_line in entry.action_lines
+                ],
+            }
+            for entry in contract.entries
+        ],
+    }
+
+
+def command_demo_readiness_route_json(
+    specs: tuple[CommandSpec, ...] = COMMAND_SPECS,
+    launcher_argv: tuple[str, ...] = COMMAND_SMOKE_CLI_LAUNCHER_ARGV,
+) -> str:
+    return json.dumps(
+        command_demo_readiness_route_payload(specs, launcher_argv),
+        sort_keys=True,
+        separators=(",", ":"),
+    )
+
+
 @lru_cache(maxsize=None)
 def command_demo_execution_plan_contract(
     specs: tuple[CommandSpec, ...] = COMMAND_SPECS,
@@ -10557,6 +10597,20 @@ def command_mvp_demo_readiness_route_summary(
     launcher_argv: tuple[str, ...] = COMMAND_SMOKE_CLI_LAUNCHER_ARGV,
 ) -> tuple[tuple[int, str, str, str, tuple[str, ...], str, tuple[str, ...], tuple[tuple[str, str], ...]], ...]:
     return command_demo_readiness_route_summary(specs, launcher_argv)
+
+
+def command_mvp_demo_readiness_route_payload(
+    specs: tuple[CommandSpec, ...] = COMMAND_SPECS,
+    launcher_argv: tuple[str, ...] = COMMAND_SMOKE_CLI_LAUNCHER_ARGV,
+) -> dict[str, object]:
+    return command_demo_readiness_route_payload(specs, launcher_argv)
+
+
+def command_mvp_demo_readiness_route_json(
+    specs: tuple[CommandSpec, ...] = COMMAND_SPECS,
+    launcher_argv: tuple[str, ...] = COMMAND_SMOKE_CLI_LAUNCHER_ARGV,
+) -> str:
+    return command_demo_readiness_route_json(specs, launcher_argv)
 
 
 def command_mvp_demo_readiness_handoff_markdown(

@@ -79,6 +79,8 @@ from src.qual.commands.catalog import (
     command_mvp_demo_readiness_action_sequence_contract as _readiness_action_sequence_contract,
     command_mvp_demo_readiness_action_sequence_summary as _readiness_action_sequence_summary,
     command_mvp_demo_readiness_route_contract as _readiness_route_contract,
+    command_mvp_demo_readiness_route_json as _readiness_route_json,
+    command_mvp_demo_readiness_route_payload as _readiness_route_payload,
     command_mvp_demo_readiness_route_summary as _readiness_route_summary,
     command_mvp_demo_readiness_handoff_summary as _readiness_handoff_summary,
     command_mvp_demo_readiness_report as _readiness_report,
@@ -346,6 +348,8 @@ __all__ = [
     "canonical_command_readiness_action_sequence_contract",
     "canonical_command_readiness_action_sequence_summary",
     "canonical_command_readiness_route_contract",
+    "canonical_command_readiness_route_json",
+    "canonical_command_readiness_route_payload",
     "canonical_command_readiness_route_summary",
     "canonical_command_readiness_report",
     "canonical_command_readiness_report_summary",
@@ -1012,6 +1016,14 @@ def canonical_command_readiness_route_summary() -> tuple[
     ...,
 ]:
     return _readiness_route_summary()
+
+
+def canonical_command_readiness_route_payload() -> dict[str, object]:
+    return _readiness_route_payload()
+
+
+def canonical_command_readiness_route_json() -> str:
+    return _readiness_route_json()
 
 
 def canonical_command_require_readiness_complete() -> CommandDemoReadinessGate:
