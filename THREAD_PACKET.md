@@ -65,7 +65,7 @@ Command: `git diff --stat 378cf9a74a3658058079a32f186fcd254c4a4034..HEAD`
  src/qual/retrieval/__init__.py               |   11 +
  src/qual/retrieval/service.py                |  971 +++++++++++++++--
  tests/unit/test_unified_retrieval.py         | 1350 ++++++++++++++++++++++-
- 9 files changed, 3894 insertions(+), 452 deletions(-)
+ 9 files changed, 3892 insertions(+), 452 deletions(-)
 ```
 
 Command: `git diff --name-status 378cf9a74a3658058079a32f186fcd254c4a4034..HEAD`
@@ -86,7 +86,7 @@ M	tests/unit/test_unified_retrieval.py
 
 - Task budget: `4/4` high-risk task groups.
 - File count for reviewed implementation handoff: `9 files changed`.
-- Size accounting for reviewed implementation handoff: `3894 insertions(+), 452 deletions(-)`, net `3442 LOC`.
+- Size accounting for reviewed implementation handoff: `3892 insertions(+), 452 deletions(-)`, net `3440 LOC`.
 - AGENTS file/size status: exceeds high-risk size limits of `<=8 files` and `<=300 net LOC`.
 - Budget exception status: the worktree contains an approved shared-file exception for `tests/unit/test_unified_retrieval.py`; no explicit integrator-approved exception for the high-risk file/LOC overage is present in the writable worktree evidence. This packet discloses the overage for reviewer/integrator decision instead of hiding it behind metadata-only wording.
 - Scope split status: not performed in this fixer pass because narrowing the branch to `<=300` net LOC would require removing already-reviewed retrieval implementation behavior rather than correcting packet traceability. If the integrator does not grant a size exception, this branch needs an explicit split plan before merge.
