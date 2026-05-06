@@ -1414,6 +1414,8 @@ COMMAND_SMOKE_SUPPORTED_PYTHON_LAUNCHERS: tuple[str, ...] = (
 )
 COMMAND_SMOKE_PYTHON_FLAG_OPTIONS: tuple[str, ...] = (
     "-B",
+    "-b",
+    "-bb",
     "-E",
     "-I",
     "-O",
