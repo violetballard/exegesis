@@ -552,6 +552,7 @@ def _build_retrieval_context_bundle_from_source_bundle(source_bundle: dict[str, 
         # Source-bundle-only reconstruction keeps the top-level context auditless.
         "audit_ref": None,
         "result_fingerprint": source_bundle.get("result_fingerprint"),
+        "source_bundle_fingerprint": source_bundle.get("source_bundle_fingerprint"),
         "retrieval_downstream_payload": copy.deepcopy(source_bundle),
         "retrieval_citation_bundle": copy.deepcopy(retrieval_citation_bundle),
         "retrieval_doc_bundle": copy.deepcopy(retrieval_doc_bundle),
@@ -667,15 +668,20 @@ def _build_retrieval_excerpt_bundle_from_payload(payload: dict[str, object]) -> 
 def _build_retrieval_context_bundle_from_payload(payload: dict[str, object]) -> dict[str, object]:
     """Return the deterministic retrieval context bundle from a downstream payload snapshot."""
 
+    source_bundle = _build_retrieval_source_bundle_from_payload(payload)
     return {
         "audit_ref": payload.get("audit_ref"),
         "result_fingerprint": payload.get("result_fingerprint"),
+        "source_bundle_fingerprint": payload.get(
+            "source_bundle_fingerprint",
+            source_bundle.get("source_bundle_fingerprint"),
+        ),
         "retrieval_downstream_payload": copy.deepcopy(payload),
         "retrieval_citation_bundle": _build_retrieval_citation_bundle_from_payload(payload),
         "retrieval_doc_bundle": _build_retrieval_doc_bundle_from_payload(payload),
         "retrieval_excerpt_bundle": _build_retrieval_excerpt_bundle_from_payload(payload),
         "retrieval_provenance": _build_retrieval_provenance_from_payload(payload),
-        "retrieval_source_bundle": _build_retrieval_source_bundle_from_payload(payload),
+        "retrieval_source_bundle": source_bundle,
         "retrieval_evidence": copy.deepcopy(payload.get("retrieval_evidence", {})),
     }
 

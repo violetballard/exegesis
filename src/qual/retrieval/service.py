@@ -511,6 +511,7 @@ class RetrievalResult:
         return {
             "audit_ref": self.audit_ref,
             "result_fingerprint": self.result_fingerprint,
+            "source_bundle_fingerprint": downstream_payload["source_bundle_fingerprint"],
             "retrieval_downstream_payload": copy.deepcopy(downstream_payload),
             "retrieval_citation_bundle": copy.deepcopy(downstream_payload["retrieval_citation_bundle"]),
             "retrieval_doc_bundle": copy.deepcopy(downstream_payload["retrieval_doc_bundle"]),
