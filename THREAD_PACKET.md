@@ -20,12 +20,14 @@ The branch hardens deterministic retrieval payloads, FTS candidate strategy iden
 
 Canonical demo-path step advanced: `retrieve relevant material`. This work makes that step more real by making FTS retrieval and excerpt lookup deterministic, provenance-backed, query-constraint-aware, and fail-closed for PageIndex-only IDs. It also supports later `promote or gather context into the basket` by keeping excerpt provenance, citation snapshots, matched-term evidence, and basket promotion metadata deterministic.
 
+Canonical demo-path step advanced: retrieve relevant material, with deterministic excerpt/provenance output suitable for basket promotion.
+
 ## Tasks Completed
 
-1. FTS-first retrieval and excerpt lookup: kept SQLite FTS authoritative, exported the canonical retrieval facades, removed PageIndex fallback from excerpt fetching, and enforced fail-closed behavior for PageIndex-only or non-FTS excerpt identifiers.
-2. Deterministic retrieval payloads and provenance: normalized query snapshots, constraints, query-constraint evidence/citation/provenance/basket-promotion snapshots, sparse basket-promotion query-context rehydration, candidate/document identities, candidate-resolution snapshots, source bundles, context bundles, citation backfills, lookup fingerprints, excerpt lookup audit hashes and promotion-source audit metadata, canonical provenance-level `retrieval_source_strategy` aliases, and basket promotion metadata, including direct excerpt lookup `basket_promotion_source` plus `matched_terms`/`match_count` evidence on result promotion refs and doc-hit top-excerpt snapshots.
-3. Retrieval policy and strategy hardening: preserved sparse retrieval policy identity, guarded deferred backend policy, validated bundle identity, stabilized FTS merge strategy identity, and kept engine retrieval exports aligned with the canonical retrieval implementation.
-4. Final result ordering and regression coverage: re-ranked final deduplicated FTS hits after truncation so score/provenance rank match output order, and expanded approved shared regression coverage in `tests/unit/test_unified_retrieval.py` for FTS-only behavior, payload identity, provenance, citation strategy aliases, and promotion-ready outputs.
+1. Canonical demo-path step advanced: `retrieve relevant material`. FTS-first retrieval and excerpt lookup: kept SQLite FTS authoritative, exported the canonical retrieval facades, removed PageIndex fallback from excerpt fetching, and enforced fail-closed behavior for PageIndex-only or non-FTS excerpt identifiers.
+2. Canonical demo-path step advanced: `retrieve relevant material`; supports `promote or gather context into the basket`. Deterministic retrieval payloads and provenance: normalized query snapshots, constraints, query-constraint evidence/citation/provenance/basket-promotion snapshots, sparse basket-promotion query-context rehydration, candidate/document identities, candidate-resolution snapshots, source bundles, context bundles, citation backfills, lookup fingerprints, excerpt lookup audit hashes and promotion-source audit metadata, canonical provenance-level `retrieval_source_strategy` aliases, and basket promotion metadata, including direct excerpt lookup `basket_promotion_source` plus `matched_terms`/`match_count` evidence on result promotion refs and doc-hit top-excerpt snapshots.
+3. Canonical demo-path step advanced: `retrieve relevant material`. Retrieval policy and strategy hardening: preserved sparse retrieval policy identity, guarded deferred backend policy, validated bundle identity, stabilized FTS merge strategy identity, and kept engine retrieval exports aligned with the canonical retrieval implementation.
+4. Canonical demo-path step advanced: `retrieve relevant material`; validates readiness for `promote or gather context into the basket`. Final result ordering and regression coverage: re-ranked final deduplicated FTS hits after truncation so score/provenance rank match output order, and expanded approved shared regression coverage in `tests/unit/test_unified_retrieval.py` for FTS-only behavior, payload identity, provenance, citation strategy aliases, and promotion-ready outputs.
 
 ## Files Changed
 
@@ -43,6 +45,14 @@ Reviewed implementation range for re-review: `378cf9a74a3658058079a32f186fcd254c
 
 
 ## Reviewer Required Fixes Addressed
+
+Latest metadata-only reviewer fixes:
+
+1. Updated each completed task so it explicitly names the canonical demo-path step it advances.
+2. Added the final canonical demo-path sentence required by the reviewer: `Canonical demo-path step advanced: retrieve relevant material, with deterministic excerpt/provenance output suitable for basket promotion.`
+3. This packet is ready for reviewer packet refresh after the metadata-only handoff fix.
+
+Prior reviewer traceability fixes:
 
 1. Regenerated the authoritative handoff packet so the reviewed implementation range is the branch-tip range `378cf9a74a3658058079a32f186fcd254c4a4034..HEAD`, covering all non-metadata code intended for merge.
 2. Updated `Files Changed`, `Scope Completed`, and `Tasks Completed` to cover the actual branch-tip changes in `src/qual/engine/retrieval/**`, `src/qual/retrieval/**`, and `tests/unit/test_unified_retrieval.py`.
