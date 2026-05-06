@@ -7,6 +7,17 @@ import tomllib
 from typing import Dict
 
 
+AGENT_RIPGREP_CONFIG_TEXT = "\n".join(
+    [
+        "--glob",
+        "!.codex/**",
+        "--glob",
+        "!.agents/**",
+        "",
+    ]
+)
+
+
 def _source_codex_home() -> Path:
     raw = os.environ.get("CODEX_HOME")
     if raw:
@@ -110,4 +121,21 @@ def isolated_codex_env(root: str) -> Dict[str, str]:
     env = os.environ.copy()
     env["CODEX_HOME"] = str(target_home)
     env["PYTHONDONTWRITEBYTECODE"] = "1"
+    env["RIPGREP_CONFIG_PATH"] = str(agent_ripgrep_config_path(root))
+    return env
+
+
+def agent_ripgrep_config_path(root: str) -> Path:
+    target = Path(root).resolve() / ".codex" / "agent_ripgrep_config"
+    target.parent.mkdir(parents=True, exist_ok=True)
+    current_text = target.read_text(encoding="utf-8") if target.exists() else None
+    if current_text != AGENT_RIPGREP_CONFIG_TEXT:
+        target.write_text(AGENT_RIPGREP_CONFIG_TEXT, encoding="utf-8")
+    return target
+
+
+def agent_runtime_env(root: str, base: Dict[str, str] | None = None) -> Dict[str, str]:
+    env = dict(base or os.environ)
+    env["PYTHONDONTWRITEBYTECODE"] = "1"
+    env["RIPGREP_CONFIG_PATH"] = str(agent_ripgrep_config_path(root))
     return env

@@ -1017,6 +1017,10 @@ class CloudConcurrencyCapsTests(unittest.TestCase):
             spec = router.load_json(Path(job["spec_path"]), {})
             self.assertIn(".prompt.txt", spec["cmd"][-1])
             self.assertNotIn("stdin_path", spec)
+            rg_config = repo.resolve() / ".codex" / "agent_ripgrep_config"
+            self.assertEqual(spec["env_overrides"]["RIPGREP_CONFIG_PATH"], str(rg_config))
+            self.assertIn("!.codex/**", rg_config.read_text(encoding="utf-8"))
+            self.assertIn("!.agents/**", rg_config.read_text(encoding="utf-8"))
 
     def test_feature_direct_exec_bootstraps_prompt_from_file(self) -> None:
         profile_cfg = {
@@ -1032,7 +1036,12 @@ class CloudConcurrencyCapsTests(unittest.TestCase):
             workdir.mkdir()
             log_path = Path(tmp) / "lane.log"
             prompt_path = Path(tmp) / "lane.prompt.md"
-            with mock.patch.object(launch_feature_lanes.subprocess, "Popen", return_value=proc) as popen_mock:
+            repo_root = Path(tmp) / "repo"
+            repo_root.mkdir()
+            with (
+                mock.patch.object(launch_feature_lanes, "REPO_ROOT", repo_root),
+                mock.patch.object(launch_feature_lanes.subprocess, "Popen", return_value=proc) as popen_mock,
+            ):
                 pid = launch_feature_lanes._spawn_direct_exec(
                     profile_cfg,
                     workdir=str(workdir),
@@ -1044,6 +1053,15 @@ class CloudConcurrencyCapsTests(unittest.TestCase):
                 self.assertEqual(prompt_path.read_text(), "lane kickoff prompt")
                 self.assertIn(str(prompt_path), popen_mock.call_args.args[0][-1])
                 self.assertIs(popen_mock.call_args.kwargs["stdin"], launch_feature_lanes.subprocess.DEVNULL)
+                self.assertEqual(
+                    popen_mock.call_args.kwargs["env"]["RIPGREP_CONFIG_PATH"],
+                    str(repo_root.resolve() / ".codex" / "agent_ripgrep_config"),
+                )
+                rg_config = (repo_root.resolve() / ".codex" / "agent_ripgrep_config").read_text(
+                    encoding="utf-8"
+                )
+                self.assertIn("!.codex/**", rg_config)
+                self.assertIn("!.agents/**", rg_config)
                 self.assertTrue(popen_mock.call_args.kwargs["start_new_session"])
 
     def test_materialize_reviewer_packet_uses_final_verdict_packet_for_huge_note(self) -> None:

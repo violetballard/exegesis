@@ -18,14 +18,14 @@ try:
     from git_ops import run_git
     from git_hygiene import prune_stale_index_locks
     from log_maintenance import prune_log_dir
-    from local_codex_runtime import isolated_codex_env
+    from local_codex_runtime import agent_ripgrep_config_path, agent_runtime_env, isolated_codex_env
     from packet_progress import infer_last_submitted_sha
 except ImportError:  # pragma: no cover - test/import fallback for package execution
     from .codex_mcp_client import ApprovalPolicy, CodexMcpClient
     from .git_ops import run_git
     from .git_hygiene import prune_stale_index_locks
     from .log_maintenance import prune_log_dir
-    from .local_codex_runtime import isolated_codex_env
+    from .local_codex_runtime import agent_ripgrep_config_path, agent_runtime_env, isolated_codex_env
     from .packet_progress import infer_last_submitted_sha
 
 PACKETS_ROOT = Path(".codex/packets/lanes")
@@ -872,7 +872,7 @@ def _run_cli_codex(
         stdin=subprocess.DEVNULL,
         text=True,
         timeout=timeout,
-        env=env,
+        env=agent_runtime_env(cwd, env),
     )
     return p.returncode, p.stdout or ""
 
@@ -890,7 +890,7 @@ def _run_cli_reviewer(
         return None
     runtime_local = bool(local)
     prof = _profile_for_role(cfg, "reviewer", local=local, lane=lane)
-    env = isolated_codex_env(repo_cwd) if runtime_local else None
+    env = agent_runtime_env(repo_cwd, isolated_codex_env(repo_cwd) if runtime_local else None)
     try:
         rc, out = _run_cli_codex(
             prof.codex_cmd,
@@ -932,7 +932,7 @@ def _run_cli_integrator(
         return None
     runtime_local = bool(local)
     prof = _profile_for_role(cfg, "integrator", local=local, lane=lane)
-    env = isolated_codex_env(repo_cwd) if runtime_local else None
+    env = agent_runtime_env(repo_cwd, isolated_codex_env(repo_cwd) if runtime_local else None)
     try:
         rc, out = _run_cli_codex(
             prof.codex_cmd,
@@ -1147,6 +1147,12 @@ def _spawn_detached_cli_job(
     result_path = job_dir / f"{ts}__{token}.result.json"
     prompt_path = job_dir / f"{ts}__{token}.prompt.txt"
     write_text(prompt_path, prompt)
+    env_overrides = {
+        "PYTHONDONTWRITEBYTECODE": "1",
+        "RIPGREP_CONFIG_PATH": str(agent_ripgrep_config_path(repo_cwd)),
+    }
+    if local:
+        env_overrides["CODEX_HOME"] = isolated_codex_env(repo_cwd)["CODEX_HOME"]
     spec = {
         "cmd": _build_cli_exec_cmd(
             profile,
@@ -1157,7 +1163,7 @@ def _spawn_detached_cli_job(
         ),
         "cwd": repo_cwd,
         "timeout_seconds": float(timeout_seconds),
-        "env_overrides": {"CODEX_HOME": isolated_codex_env(repo_cwd)["CODEX_HOME"]} if local else {},
+        "env_overrides": env_overrides,
         "output_path": str(output_path),
         "result_path": str(result_path),
         "resume_epoch": resume_epoch,
@@ -1720,7 +1726,7 @@ def run_fixer(
     )
     ts = datetime.now(timezone.utc).strftime("%Y%m%dT%H%M%SZ")
     logp = logs / f"fixer__{lane}__{ts}.log"
-    env = isolated_codex_env(repo_cwd) if runtime_local else None
+    env = agent_runtime_env(repo_cwd, isolated_codex_env(repo_cwd) if runtime_local else None)
     with logp.open("w") as lf:
         prompt_text = fixer_prompt(lane, branch, reviewer_packet, wt)
         prompt_path = logs / f"fixer__{lane}__{ts}.prompt.txt"

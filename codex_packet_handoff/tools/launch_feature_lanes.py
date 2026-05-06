@@ -16,13 +16,13 @@ try:
     from git_ops import run_git
     from lane_profiles import ENGINE_MILESTONE_FOCUS, engine_priority_lines
     from log_maintenance import prune_log_dir
-    from local_codex_runtime import isolated_codex_env
+    from local_codex_runtime import agent_runtime_env, isolated_codex_env
 except ImportError:  # pragma: no cover - test/import fallback for package execution
     from .codex_mcp_client import ApprovalPolicy, CodexMcpClient
     from .git_ops import run_git
     from .lane_profiles import ENGINE_MILESTONE_FOCUS, engine_priority_lines
     from .log_maintenance import prune_log_dir
-    from .local_codex_runtime import isolated_codex_env
+    from .local_codex_runtime import agent_runtime_env, isolated_codex_env
 
 REPO_ROOT = Path(__file__).resolve().parents[2]
 CONFIG_FILE = REPO_ROOT / ".codex/packet_router/config.json"
@@ -417,7 +417,7 @@ def _spawn_direct_exec(
     local_mode = str(profile_cfg.get("mode") or "") == "local_fallback"
     harness = str(profile_cfg.get("harness") or "codex")
     model = str(profile_cfg.get("model") or "")
-    env = isolated_codex_env(str(REPO_ROOT)) if local_mode else None
+    env = agent_runtime_env(str(REPO_ROOT), isolated_codex_env(str(REPO_ROOT)) if local_mode else None)
     resolved_prompt_path = prompt_path or log_path.with_suffix(".prompt.md")
     resolved_prompt_path.parent.mkdir(parents=True, exist_ok=True)
     resolved_prompt_path.write_text(prompt)
