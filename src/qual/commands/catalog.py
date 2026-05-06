@@ -1282,6 +1282,11 @@ _COMMAND_HANDLER_DELEGATIONS: tuple[CommandHandlerDelegationEntry, ...] = (
         delegated_to="exegesis_engine.api.runtime_commands.run_terminal_command",
     ),
 )
+_COMMAND_HANDLER_COMPATIBILITY_PREFIX = "src.qual.app."
+_COMMAND_HANDLER_DELEGATION_TARGET_PREFIXES: tuple[str, ...] = (
+    "exegesis_engine.",
+    "src.qual.commands.diff_preview.",
+)
 COMMAND_SMOKE_CLI_LAUNCHER_ARGV: tuple[str, ...] = ("python", "-m", "src.main")
 COMMAND_SMOKE_SCRIPT_LAUNCHER_ARGV: tuple[str, ...] = ("python", "src/main.py")
 COMMAND_SMOKE_CLI_PYTHON3_LAUNCHER_ARGV: tuple[str, ...] = ("python3", "-m", "src.main")
@@ -2216,6 +2221,12 @@ def _validate_command_handler_delegation_contract(
             raise ValueError(f"Command handler delegation target must not be empty: {entry.name}")
         if entry.handler == entry.delegated_to:
             raise ValueError(f"Command handler must delegate outside itself: {entry.name}")
+        if not entry.handler.startswith(_COMMAND_HANDLER_COMPATIBILITY_PREFIX):
+            raise ValueError(f"Command handler must stay in the CLI compatibility surface: {entry.name}")
+        if entry.delegated_to.startswith(_COMMAND_HANDLER_COMPATIBILITY_PREFIX):
+            raise ValueError(f"Command handler must not delegate back into the app shim: {entry.name}")
+        if not entry.delegated_to.startswith(_COMMAND_HANDLER_DELEGATION_TARGET_PREFIXES):
+            raise ValueError(f"Command handler delegation target is outside approved engine surfaces: {entry.name}")
 
 
 def command_handler_delegation_summary() -> tuple[tuple[str, str, str, str], ...]:
