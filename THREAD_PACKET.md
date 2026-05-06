@@ -5,8 +5,8 @@
 - Merge target: current `main`
 - Handoff type: high-risk retrieval feature handoff for the FTS-first retrieval lane.
 - Scope classification: high-risk because the actual branch-tip implementation range edits approved shared regression coverage in `tests/unit/test_unified_retrieval.py` and engine retrieval entrypoint/facade code.
-- Reviewed implementation range: `378cf9a..27323962b4c6b627ecb78ac2b3da0bebe071a309`
-- Reviewed implementation head: `27323962b4c6b627ecb78ac2b3da0bebe071a309`
+- Reviewed merge-candidate range: `378cf9a..HEAD`
+- Reviewed implementation head before this handoff-only fixer commit: `27323962b4c6b627ecb78ac2b3da0bebe071a309`
 - Final HEAD SHA: reported in the final response after this fixer commit is created.
 - Approved shared-file note: `tests/unit/test_unified_retrieval.py` is approved shared-by-approval regression coverage for this retrieval lane. No integrator-locked files are edited in this handoff.
 
@@ -28,7 +28,7 @@ Canonical demo-path mapping:
 
 ## Files Changed
 
-Reviewed range `378cf9a..27323962b4c6b627ecb78ac2b3da0bebe071a309`:
+Reviewed range `378cf9a..HEAD`:
 
 - `.codex/kickoff_packets/feat-retrieval-fts.md` - lane kickoff packet metadata for the retrieval handoff.
 - `.codex/lane_meta/feat-retrieval-fts.json` - lane metadata consumed by packet automation.
@@ -45,22 +45,22 @@ Shared-by-approval files: `tests/unit/test_unified_retrieval.py`.
 
 ## Diff Evidence
 
-Command: `git diff --stat 378cf9a..27323962b4c6b627ecb78ac2b3da0bebe071a309`
+Command: `git diff --stat 378cf9a..HEAD`
 
 ```text
  .codex/kickoff_packets/feat-retrieval-fts.md |  36 +-
  .codex/lane_meta/feat-retrieval-fts.json     | 155 ++++-
- THREAD_PACKET.md                             | 112 ++--
+ THREAD_PACKET.md                             | 186 +++---
  src/qual/engine/retrieval/__init__.py        |  63 +-
  src/qual/engine/retrieval/fts_strategy.py    |  59 +-
  src/qual/engine/retrieval/payload.py         | 894 ++++++++++++++++++++++++--
  src/qual/retrieval/__init__.py               |  11 +
  src/qual/retrieval/service.py                | 608 ++++++++++++++++--
  tests/unit/test_unified_retrieval.py         | 912 ++++++++++++++++++++++++++-
- 9 files changed, 2590 insertions(+), 260 deletions(-)
+ 9 files changed, 2647 insertions(+), 277 deletions(-)
 ```
 
-Command: `git diff --name-status 378cf9a..27323962b4c6b627ecb78ac2b3da0bebe071a309`
+Command: `git diff --name-status 378cf9a..HEAD`
 
 ```text
 M	.codex/kickoff_packets/feat-retrieval-fts.md
@@ -77,7 +77,7 @@ M	tests/unit/test_unified_retrieval.py
 ## Budget/Risk
 
 - Task budget: `4/4` high-risk task groups.
-- Size accounting for reviewed implementation range: `9 files changed, 2590 insertions(+), 260 deletions(-)`.
+- Size accounting for reviewed merge-candidate range: `9 files changed, 2647 insertions(+), 277 deletions(-)`.
 - AGENTS high-risk size/file status: exceeds `<=8 files` and `<=300 net LOC`.
 - Integrator exception status: explicit size/file-count exception is required for approval of this branch-tip range. This packet no longer claims high-risk budget compliance.
 - Routing/provider impact: none.
