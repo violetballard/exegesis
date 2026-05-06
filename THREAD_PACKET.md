@@ -41,6 +41,15 @@ Reviewed implementation range for re-review: `378cf9a74a3658058079a32f186fcd254c
 - `src/qual/retrieval/service.py` - implemented FTS-only excerpt fetching, deterministic query/constraint/cache handling, sparse policy reconstruction, final hit re-ranking, explicit FTS strategy aliases, provenance-level `retrieval_source_strategy` aliases, direct excerpt lookup promotion-source metadata, normalized query-constraint snapshots in retrieval evidence/citation/provenance bundles and basket promotion refs, matched-term evidence for basket promotion items and doc-hit top-excerpt snapshots, canonical `excerpt_text_hash` audit recording, and `basket_promotion_source` audit recording for excerpt lookups.
 - `tests/unit/test_unified_retrieval.py` - expanded approved shared regression coverage for FTS-first retrieval, fail-closed fallback behavior, payload/provenance normalization, query-constraint citation bundle normalization, basket-promotion query-constraint snapshots, sparse basket-promotion query-context rehydration, candidate-resolution rehydration, branch-tip hardening, direct excerpt lookup promotion-source metadata, matched-term basket promotion evidence, doc-hit top-excerpt matched-term snapshots, citation strategy aliases, canonical excerpt lookup audit identity, and promotion-source audit metadata.
 
+
+## Reviewer Required Fixes Addressed
+
+1. Regenerated the authoritative handoff packet so the reviewed implementation range is the branch-tip range `378cf9a74a3658058079a32f186fcd254c4a4034..HEAD`, covering all non-metadata code intended for merge.
+2. Updated `Files Changed`, `Scope Completed`, and `Tasks Completed` to cover the actual branch-tip changes in `src/qual/engine/retrieval/**`, `src/qual/retrieval/**`, and `tests/unit/test_unified_retrieval.py`.
+3. Re-evaluated AGENTS budget compliance against the corrected branch-tip range: `4/4` high-risk task groups, `9` files changed, and net `3621` LOC. The range exceeds high-risk file/size limits and still needs integrator acceptance or an explicit split plan before merge.
+4. Re-ran the required gates on the corrected branch-tip content; outcomes are listed under `Commands Run`.
+5. Kept the intended review target as the branch tip rather than moving the branch back to `adfa8cdadd43747ffbcb612e4151e262b13e52ca`.
+
 ## Traceability Corrections
 
 - The reviewed implementation range is `378cf9a74a3658058079a32f186fcd254c4a4034..HEAD`; it includes all production/test changes present at the branch tip.
@@ -58,14 +67,14 @@ Command: `git diff --stat 378cf9a74a3658058079a32f186fcd254c4a4034..HEAD`
 ```text
  .codex/kickoff_packets/feat-retrieval-fts.md |   36 +-
  .codex/lane_meta/feat-retrieval-fts.json     |  155 ++-
- THREAD_PACKET.md                             |  200 ++--
+ THREAD_PACKET.md                             |  210 ++--
  src/qual/engine/retrieval/__init__.py        |   86 +-
  src/qual/engine/retrieval/fts_strategy.py    |   59 +-
  src/qual/engine/retrieval/payload.py         | 1576 +++++++++++++++++++++++---
  src/qual/retrieval/__init__.py               |   11 +
  src/qual/retrieval/service.py                |  977 ++++++++++++++--
  tests/unit/test_unified_retrieval.py         | 1415 ++++++++++++++++++++++-
- 9 files changed, 4064 insertions(+), 452 deletions(-)
+ 9 files changed, 4073 insertions(+), 452 deletions(-)
 ```
 
 Command: `git diff --name-status 378cf9a74a3658058079a32f186fcd254c4a4034..HEAD`
@@ -86,7 +95,7 @@ M	tests/unit/test_unified_retrieval.py
 
 - Task budget: `4/4` high-risk task groups.
 - File count for reviewed implementation handoff: `9 files changed`.
-- Size accounting for reviewed implementation handoff: `4064 insertions(+), 452 deletions(-)`, net `3612 LOC`.
+- Size accounting for reviewed implementation handoff: `4073 insertions(+), 452 deletions(-)`, net `3621 LOC`.
 - AGENTS file/size status: exceeds high-risk size limits of `<=8 files` and `<=300 net LOC`.
 - Budget exception status: the worktree contains an approved shared-file exception for `tests/unit/test_unified_retrieval.py`; no explicit integrator-approved exception for the high-risk file/LOC overage is present in the writable worktree evidence. This packet discloses the overage for reviewer/integrator decision instead of hiding it behind metadata-only wording.
 - Scope split status: not performed in this fixer pass because narrowing the branch to `<=300` net LOC would require removing already-reviewed retrieval implementation behavior rather than correcting packet traceability. If the integrator does not grant a size exception, this branch needs an explicit split plan before merge.
@@ -118,4 +127,4 @@ Commands re-run for this corrected branch-tip packet on the exact worktree state
 
 ## Metadata Note
 
-The root `THREAD_PACKET.md` is the authoritative regenerated handoff packet for this fixer pass. The reviewed implementation range intentionally covers `378cf9a74a3658058079a32f186fcd254c4a4034..HEAD` so all production and test changes present at the branch tip are traceable. The protected `.codex` metadata files are listed in the actual changed files for the range, but this root packet supersedes any stale narrow-range wording in those metadata files.
+The root `THREAD_PACKET.md` is the authoritative regenerated handoff packet for this fixer pass. The reviewed implementation range intentionally covers `378cf9a74a3658058079a32f186fcd254c4a4034..HEAD` so all production and test changes present at the branch tip are traceable. The protected `.codex` metadata files are listed in the actual changed files for the range, but this root packet supersedes stale narrow-range wording in those metadata files. During this fixer pass the local OS denied writes under `.codex` with `PermissionError: [Errno 1] Operation not permitted`, so stale `.codex/kickoff_packets/feat-retrieval-fts.md` and `.codex/lane_meta/feat-retrieval-fts.json` wording is explicitly non-authoritative for re-review.
