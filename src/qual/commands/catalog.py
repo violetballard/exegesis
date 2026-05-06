@@ -6169,6 +6169,26 @@ def require_command_demo_readiness_handoff_complete(
         )
     if not packet.fingerprint_digest.strip():
         raise ValueError("Command demo readiness handoff fingerprint must not be empty")
+    verification = command_demo_readiness_verification_contract(specs, launcher_argv)
+    if not verification.is_complete:
+        raise ValueError(
+            "Command demo readiness handoff verification is incomplete: "
+            + ", ".join(verification.missing_steps)
+        )
+    trusted_loop = command_demo_trusted_loop_contract(specs, launcher_argv)
+    if not trusted_loop.is_complete:
+        issues = _command_demo_readiness_gate_issues(
+            command_demo_readiness_gate(specs, launcher_argv)
+        )
+        raise ValueError(
+            "Command demo trusted loop is incomplete: "
+            + ("; ".join(issues) if issues else "not all steps are ready")
+        )
+    audit = command_demo_readiness_handoff_audit(specs, launcher_argv)
+    if not audit.is_complete:
+        raise ValueError("Command demo readiness handoff audit is incomplete")
+    if trusted_loop.fingerprint_digest != packet.fingerprint_digest:
+        raise ValueError("Command demo trusted loop fingerprint drifted from handoff packet")
     return packet
 
 
