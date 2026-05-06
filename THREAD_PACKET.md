@@ -44,6 +44,21 @@ The branch hardens deterministic FTS retrieval behavior across cache keys, fresh
 
 Canonical demo-path mapping: `vault/context material -> FTS retrieval -> retrieval evidence -> context basket promotion -> engine revise/apply`. This advances `retrieve relevant material` by producing deterministic, auditable FTS evidence, and supports `promote or gather context into the basket` by preserving rehydratable source, context, citation, provenance, and the named `retrieval_basket_promotion_bundle`.
 
+## Final Owned-Path Source Pass Addendum
+
+This source pass keeps retrieval FTS-first and does not reintroduce PageIndex, embeddings, provider routing, UI, or integrator-locked behavior. It hardens sparse retrieval basket-promotion normalization in `src/qual/engine/retrieval/payload.py`: when an existing `retrieval_basket_promotion_bundle` is present but its `promotion_items` are missing per-item audit context, the normalizer now backfills `query_fingerprint`, `query_scope`, `query_intent`, `query_date_range`, `retrieval_backend`, and `retrieval_mode` from the enclosing bundle.
+
+This preserves promotion-ready context-basket records when downstream engine flows consume sparse bundle snapshots apart from the full retrieval payload.
+
+Current owned-path source pass files changed:
+
+- `M src/qual/engine/retrieval/payload.py`
+- `M THREAD_PACKET.md`
+
+Current owned-path source pass task count: `1` meaningful task group, within the high-risk `4` task cap for this finalizer pass.
+Current owned-path source pass source size before this packet update: `1 file changed, 19 insertions(+), 1 deletion(-)`.
+Shared/integrator-locked impact this owned-path source pass: none; no shared regression, provider routing, UI, or integrator-locked files were edited.
+
 ## Final Fixer Pass Addendum
 
 This packet supersedes rejected branch tip `473f5e42aa909c029fa143e734209ce5c95f7db5`. It keeps the same corrected cumulative reviewed range, `378cf9a74a3658058079a32f186fcd254c4a4034..HEAD`, and treats every source-bearing retrieval commit through `125a3b7f84f096159baed4114029a7a38df772ae` as part of the implementation under review.
@@ -162,6 +177,15 @@ The protected `.codex/kickoff_packets/feat-retrieval-fts.md` and `.codex/lane_me
 ## Commands Run
 
 Required gates rerun for this branch-tip traceability fixer pass against actual merge candidate `b43178f56a0c78df411697654c17f2c029d44546` plus this packet-only update:
+
+Required gates rerun for the final owned-path source pass:
+
+- `python - <<'PY' ... PY` sparse basket promotion backfill smoke script - passed; sparse `promotion_items` inherited bundle-level query and backend audit context.
+- `./quality-format.sh --check` - passed.
+- `./quality-lint.sh` - passed shell syntax and trailing whitespace checks.
+- `./quality-test.sh` - passed smoke tests and 130 unit tests.
+- `./typecheck-test.sh` - passed Python source compilation under `src/`.
+- `make ci` - passed setup, scope-check, format, lint, compile/typecheck, smoke tests, and 130 unit tests.
 
 - `make scope-check` - passed for branch `codex/feat-retrieval-fts`.
 - `./quality-format.sh --check` - passed.
