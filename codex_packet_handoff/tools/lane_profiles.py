@@ -380,10 +380,12 @@ LANE_PROFILES: Dict[str, Json] = {
             "Specify Zotero as the preferred one-way MVP literature import source.",
             "Specify browser/login or API-key workflow and secure credential storage.",
             "Specify metadata and attached-file import through the literature/OCR pipeline.",
+            "Specify that Zotero attachments skip initial metadata classification when Zotero metadata is complete.",
         ],
         "definition_of_done": [
             "One-way Zotero import/auth contract is specified.",
             "Zotero metadata mapping into the project literature library is specified.",
+            "Zotero-sourced OCR attachment flow uses Zotero metadata rather than normal starting metadata classification when complete.",
             "Attached-file pipeline behavior is specified.",
             "No runtime Zotero behavior is active until the lane is enabled.",
         ],

@@ -125,6 +125,7 @@ Own later:
 - secure credential storage requirements
 - Zotero metadata import into literature metadata
 - literature folder as durable project-level literature library for citations, RAG, drafting, and context promotion
+- skip initial metadata classification for Zotero attachments when Zotero metadata is complete
 - no writeback, bidirectional sync, collection management, or deep-research export into Zotero
 - attached-file import through the literature/OCR pipeline
 

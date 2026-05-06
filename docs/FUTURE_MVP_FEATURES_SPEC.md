@@ -283,6 +283,7 @@ Intent:
 - Treat Zotero as the preferred MVP path for importing literature and high-quality metadata.
 - Add Zotero as a one-way literature import source without bypassing the normal literature/OCR pipeline.
 - Import metadata first, then import attached files through the existing literature/OCR flow.
+- Use Zotero metadata as the initial literature metadata record, so Zotero attachments do not run the normal starting metadata classification flow after OCR.
 - Treat the project literature folder as the project-level literature library: a larger, durable basket that feeds citations, RAG, drafting, and context promotion.
 - Do not implement writeback, export, sync, or deep-research push into Zotero in this milestone.
 
@@ -339,11 +340,15 @@ Import modal:
 - If unauthenticated, show login/connect flow.
 - If authenticated, show searchable Zotero item list.
 - User selects one or more items and attached files.
-- Imported metadata opens the same literature metadata approval flow as normal literature import.
+- Imported Zotero metadata seeds the literature record directly.
+- Skip the normal initial metadata classification and approval flow when Zotero metadata includes the core fields needed for the record.
+- If Zotero metadata is missing core fields, show a lightweight metadata completion/edit step using Zotero fields as defaults.
+- Users may still explicitly edit metadata before save when they choose to.
 
 Attachment handling:
-- Markdown attachments go through Markdown literature import.
-- PDF/image/document attachments go through OCR import first, then literature metadata approval.
+- Markdown attachments go through Markdown literature import for content only, then attach content to the Zotero-seeded literature record.
+- PDF/image/document attachments go through OCR import for content only, then attach normalized Markdown to the Zotero-seeded literature record.
+- Zotero-sourced attachments do not run model-based metadata classification after OCR unless Zotero metadata is incomplete and the user requests classification.
 - Metadata-only Zotero items can still create literature records with no local full text.
 
 Shortcut row and palette:
@@ -359,9 +364,10 @@ Shortcut row and palette:
 2. Zotero metadata search
    - List/search libraries and items.
 3. Metadata mapping
-   - Convert Zotero candidates into literature metadata approval candidates.
+   - Convert Zotero candidates into Zotero-seeded literature records.
 4. Attachment import
-   - Route attachments through Markdown/OCR literature import pipeline.
+   - Route attachments through Markdown/OCR literature import pipeline for content extraction only.
+   - Skip initial metadata classification for Zotero-sourced attachments unless metadata is incomplete.
 5. UI integration
    - Add Zotero source in import modal and command palette.
 
@@ -372,7 +378,9 @@ Shortcut row and palette:
 - Zotero search returns import candidates with metadata fields.
 - Metadata-only import creates literature record.
 - PDF attachment import routes through OCR/literature pipeline.
-- Markdown attachment import skips OCR and runs literature metadata approval.
+- OCRed Zotero attachment skips initial metadata classification when Zotero metadata is complete.
+- Markdown Zotero attachment skips OCR and initial metadata classification when Zotero metadata is complete.
+- Incomplete Zotero metadata opens a lightweight completion/edit step.
 - Failed auth or expired credentials shows reconnect action.
 - Command palette contains Zotero commands.
 

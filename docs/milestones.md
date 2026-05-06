@@ -194,6 +194,7 @@ Deliverables:
 - secure credential storage requirement
 - Zotero metadata import into literature metadata
 - literature folder treated as a durable project-level literature library that feeds citations, RAG, drafting, and context promotion
+- Zotero attachments skip the normal starting metadata classification flow when Zotero metadata is complete
 - no writeback, bidirectional sync, collection management, or deep-research export into Zotero
 - Zotero attached-file import through the standard literature/OCR pipeline
 

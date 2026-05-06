@@ -200,6 +200,7 @@ Scope:
 - store Zotero credentials securely
 - import Zotero metadata and attached literature files through the normal literature/OCR import pipeline
 - treat the project literature folder as a durable project-level literature library, not just a loose file list
+- use Zotero metadata as authoritative initial metadata so Zotero attachments skip the normal starting metadata classification flow after OCR
 - explicitly defer writeback, bidirectional sync, collection management, and deep-research export into Zotero
 
 Lane mapping:
@@ -208,6 +209,7 @@ Lane mapping:
 Exit criteria:
 - one-way Zotero import/auth contract is specified
 - Zotero metadata-to-literature mapping is specified
+- Zotero attachment import skips initial metadata classification when Zotero metadata is complete
 - no runtime Zotero behavior is active until the lane is enabled
 
 ## Milestone 12: Citation support
