@@ -1511,6 +1511,7 @@ class RetrievalService:
                     "retrieval_mode": retrieval_policy["retrieval_mode"],
                     "retrieval_policy": copy.deepcopy(retrieval_policy),
                     "source_strategy": primary_strategy_id(),
+                    "retrieval_source_strategy": primary_strategy_id(),
                 }
             )
             enriched.append(replace(hit, provenance=provenance))
@@ -1625,6 +1626,7 @@ class RetrievalService:
                         ),
                         "excerpt_count": len(doc_hit_list),
                         "source_strategy": primary_strategy_id(),
+                        "retrieval_source_strategy": primary_strategy_id(),
                         "retrieval_mode": cast(str, retrieval_policy["retrieval_mode"]),
                         "query_scope": query.scope,
                         "query_intent": query.intent,
@@ -1761,7 +1763,10 @@ class RetrievalService:
                     "retrieval_backend": doc_hit.provenance.get("retrieval_backend"),
                     "retrieval_mode": doc_hit.provenance.get("retrieval_mode"),
                     "source_strategy": doc_hit.provenance.get("source_strategy"),
-                    "retrieval_source_strategy": doc_hit.provenance.get("source_strategy"),
+                    "retrieval_source_strategy": doc_hit.provenance.get(
+                        "retrieval_source_strategy",
+                        doc_hit.provenance.get("source_strategy"),
+                    ),
                 }
             )
         doc_rank_by_id = {
@@ -1794,7 +1799,10 @@ class RetrievalService:
                     "rank": hit.provenance.get("rank"),
                     "fts_rank": hit.provenance.get("fts_rank"),
                     "source_strategy": hit.provenance.get("source_strategy"),
-                    "retrieval_source_strategy": hit.provenance.get("source_strategy"),
+                    "retrieval_source_strategy": hit.provenance.get(
+                        "retrieval_source_strategy",
+                        hit.provenance.get("source_strategy"),
+                    ),
                     "retrieval_backend": hit.provenance.get("retrieval_backend"),
                     "retrieval_mode": hit.provenance.get("retrieval_mode"),
                 }
@@ -2282,6 +2290,7 @@ class RetrievalService:
             "rank": rank,
             "fts_rank": fts_rank,
             "source_strategy": "fts",
+            "retrieval_source_strategy": "fts",
             "retrieval_backend": self._retrieval_policy.retrieval_backend,
             "retrieval_mode": self._retrieval_policy.retrieval_mode,
             "retrieval_policy": self._retrieval_policy.as_snapshot(),
