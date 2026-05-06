@@ -65,6 +65,8 @@ from src.qual.commands.catalog import (
     command_demo_readiness_entry_for_argv,
     command_demo_readiness_exact_action_for_argv,
     command_demo_readiness_exact_action_argv_lookup_table,
+    command_demo_readiness_cli_exact_action_lines_for_demo_path_step,
+    command_demo_readiness_exact_action_lines_for_demo_path_step,
     command_demo_readiness_validate_shell_script_lines,
     COMMAND_SMOKE_CLI_LAUNCHER_ARGV,
 )
@@ -811,6 +813,48 @@ class CommandCatalogTests(unittest.TestCase):
                 "--proposed 'applied draft text'"
             ),
             "ExegesisAppService.apply_patch",
+        )
+
+    def test_cli_exact_action_lines_are_grouped_by_demo_path_step(self) -> None:
+        self.assertEqual(
+            command_demo_readiness_cli_exact_action_lines_for_demo_path_step(
+                "preview and apply or reject a patch"
+            ),
+            (
+                (
+                    "ExegesisAppService.revise_selection",
+                    (
+                        "python -m src.main diff-preview --original 'draft text before revision' "
+                        "--proposed 'revised draft text'"
+                    ),
+                ),
+                (
+                    "ExegesisAppService.apply_patch",
+                    (
+                        "python -m src.main diff-preview --original 'draft text before apply' "
+                        "--proposed 'applied draft text'"
+                    ),
+                ),
+                (
+                    "ExegesisAppService.reject_patch",
+                    (
+                        "python -m src.main diff-preview --original 'draft text before reject' "
+                        "--proposed 'rejected draft text'"
+                    ),
+                ),
+            ),
+        )
+        self.assertEqual(
+            command_demo_readiness_cli_exact_action_lines_for_demo_path_step(
+                "preview and apply or reject a patch"
+            ),
+            command_demo_readiness_exact_action_lines_for_demo_path_step(
+                "preview and apply or reject a patch"
+            ),
+        )
+        self.assertEqual(
+            command_demo_readiness_cli_exact_action_lines_for_demo_path_step("missing"),
+            (),
         )
 
 

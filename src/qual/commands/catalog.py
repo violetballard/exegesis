@@ -8375,6 +8375,28 @@ def command_demo_readiness_exact_action_lines_for_demo_path_step(
     return ()
 
 
+def command_demo_readiness_cli_exact_action_lines_for_demo_path_step(
+    demo_path_step: str,
+    specs: tuple[CommandSpec, ...] = COMMAND_SPECS,
+    launcher_argv: tuple[str, ...] = COMMAND_SMOKE_CLI_LAUNCHER_ARGV,
+) -> tuple[tuple[str, str], ...]:
+    requested_step = _normalize_token(demo_path_step)
+    if not requested_step:
+        return ()
+    cli_exact_action_lines = dict(
+        command_demo_readiness_cli_exact_action_line_lookup_table(specs, launcher_argv)
+    )
+    return tuple(
+        (engine_action, cli_exact_action_lines[engine_action])
+        for engine_action, _command_line in command_demo_readiness_exact_action_lines_for_demo_path_step(
+            requested_step,
+            specs,
+            launcher_argv,
+        )
+        if engine_action in cli_exact_action_lines
+    )
+
+
 def _normalize_smoke_argv(argv: tuple[str, ...]) -> tuple[str, ...]:
     return tuple(stripped for token in argv for stripped in (token.strip(),) if stripped)
 
@@ -11102,6 +11124,18 @@ def command_mvp_demo_readiness_exact_action_lines_for_demo_path_step(
     launcher_argv: tuple[str, ...] = COMMAND_SMOKE_CLI_LAUNCHER_ARGV,
 ) -> tuple[tuple[str, str], ...]:
     return command_demo_readiness_exact_action_lines_for_demo_path_step(
+        demo_path_step,
+        specs,
+        launcher_argv,
+    )
+
+
+def command_mvp_demo_readiness_cli_exact_action_lines_for_demo_path_step(
+    demo_path_step: str,
+    specs: tuple[CommandSpec, ...] = COMMAND_SPECS,
+    launcher_argv: tuple[str, ...] = COMMAND_SMOKE_CLI_LAUNCHER_ARGV,
+) -> tuple[tuple[str, str], ...]:
+    return command_demo_readiness_cli_exact_action_lines_for_demo_path_step(
         demo_path_step,
         specs,
         launcher_argv,
