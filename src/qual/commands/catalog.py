@@ -542,6 +542,7 @@ class CommandDemoReadinessHandoffPacket:
     action_steps: tuple[CommandDemoReadinessHandoffActionStep, ...] = ()
     cli_exact_action_lines: tuple[str, ...] = ()
     step_seals: tuple[CommandDemoReadinessStepSeal, ...] = ()
+    cli_step_validations: tuple[CommandDemoReadinessCliStepValidation, ...] = ()
 
 
 @dataclass(frozen=True)
@@ -596,6 +597,23 @@ class CommandDemoReadinessStepSeal:
 @dataclass(frozen=True)
 class CommandDemoReadinessStepSealContract:
     steps: tuple[CommandDemoReadinessStepSeal, ...]
+
+
+@dataclass(frozen=True)
+class CommandDemoReadinessCliStepValidation:
+    ordinal: int
+    demo_path_step: str
+    flow_step: str
+    name: str
+    command_line: str
+    parser_token: str
+    canonical_command_line: str
+    is_cli_entrypoint: bool
+
+
+@dataclass(frozen=True)
+class CommandDemoReadinessCliStepValidationContract:
+    steps: tuple[CommandDemoReadinessCliStepValidation, ...]
 
 
 @dataclass(frozen=True)
@@ -5028,6 +5046,7 @@ def command_demo_readiness_handoff_packet(
     checklist_lines = command_demo_readiness_handoff_checklist_lines(specs, launcher_argv)
     action_steps = command_demo_readiness_handoff_action_contract(specs, launcher_argv).steps
     step_seals = command_demo_readiness_step_seal_contract(specs, launcher_argv).steps
+    cli_step_validations = command_demo_readiness_cli_step_validation_contract(specs, launcher_argv).steps
     packet = CommandDemoReadinessHandoffPacket(
         scope_completed=(
             "CLI compatibility and migration-safe entrypoints for the engine-first "
@@ -5060,6 +5079,7 @@ def command_demo_readiness_handoff_packet(
         action_steps=action_steps,
         cli_exact_action_lines=seal.cli_exact_action_lines,
         step_seals=step_seals,
+        cli_step_validations=cli_step_validations,
     )
     _validate_command_demo_readiness_handoff_packet(
         packet,
@@ -5068,6 +5088,7 @@ def command_demo_readiness_handoff_packet(
         checklist_lines,
         action_steps,
         step_seals,
+        cli_step_validations,
         specs,
         launcher_argv,
     )
@@ -5081,6 +5102,7 @@ def _validate_command_demo_readiness_handoff_packet(
     checklist_lines: tuple[str, ...],
     action_steps: tuple[CommandDemoReadinessHandoffActionStep, ...],
     step_seals: tuple[CommandDemoReadinessStepSeal, ...],
+    cli_step_validations: tuple[CommandDemoReadinessCliStepValidation, ...],
     specs: tuple[CommandSpec, ...],
     launcher_argv: tuple[str, ...],
 ) -> None:
@@ -5122,10 +5144,16 @@ def _validate_command_demo_readiness_handoff_packet(
         raise ValueError("Command demo readiness handoff packet action steps are inconsistent")
     if packet.step_seals != step_seals:
         raise ValueError("Command demo readiness handoff packet step seals are inconsistent")
+    if packet.cli_step_validations != cli_step_validations:
+        raise ValueError("Command demo readiness handoff packet CLI step validations are inconsistent")
     if tuple(step.command_line for step in packet.action_steps) != packet.command_lines:
         raise ValueError("Command demo readiness handoff packet action step commands are inconsistent")
     if tuple(step.command_line for step in packet.step_seals) != packet.command_lines:
         raise ValueError("Command demo readiness handoff packet step seal commands are inconsistent")
+    if tuple(step.command_line for step in packet.cli_step_validations) != packet.command_lines:
+        raise ValueError("Command demo readiness handoff packet CLI step validation commands are inconsistent")
+    if any(not step.is_cli_entrypoint for step in packet.cli_step_validations):
+        raise ValueError("Command demo readiness handoff packet includes unsupported CLI step")
     if tuple(
         line
         for step in packet.action_steps
@@ -5196,6 +5224,19 @@ def _command_demo_readiness_handoff_packet_payload(
                 ],
             }
             for step in packet.step_seals
+        ],
+        "cli_step_validations": [
+            {
+                "ordinal": step.ordinal,
+                "demo_path_step": step.demo_path_step,
+                "flow_step": step.flow_step,
+                "name": step.name,
+                "command_line": step.command_line,
+                "parser_token": step.parser_token,
+                "canonical_command_line": step.canonical_command_line,
+                "is_cli_entrypoint": step.is_cli_entrypoint,
+            }
+            for step in packet.cli_step_validations
         ],
     }
 
@@ -6046,6 +6087,117 @@ def command_demo_readiness_step_seal_json(
 ) -> str:
     return json.dumps(
         command_demo_readiness_step_seal_payload(specs, launcher_argv),
+        sort_keys=True,
+        separators=(",", ":"),
+    )
+
+
+@lru_cache(maxsize=None)
+def command_demo_readiness_cli_step_validation_contract(
+    specs: tuple[CommandSpec, ...] = COMMAND_SPECS,
+    launcher_argv: tuple[str, ...] = COMMAND_SMOKE_CLI_LAUNCHER_ARGV,
+) -> CommandDemoReadinessCliStepValidationContract:
+    steps: list[CommandDemoReadinessCliStepValidation] = []
+    for step in command_demo_readiness_step_seal_contract(specs, launcher_argv).steps:
+        validation = command_demo_readiness_validate_cli_argv(
+            step.command_line,
+            specs,
+            launcher_argv,
+        )
+        steps.append(
+            CommandDemoReadinessCliStepValidation(
+                ordinal=step.ordinal,
+                demo_path_step=step.demo_path_step,
+                flow_step=step.flow_step,
+                name=step.name,
+                command_line=step.command_line,
+                parser_token=validation.parser_token or "",
+                canonical_command_line=validation.command_line,
+                is_cli_entrypoint=validation.is_cli_entrypoint,
+            )
+        )
+    contract = CommandDemoReadinessCliStepValidationContract(steps=tuple(steps))
+    _validate_command_demo_readiness_cli_step_validation_contract(contract, specs, launcher_argv)
+    return contract
+
+
+def _validate_command_demo_readiness_cli_step_validation_contract(
+    contract: CommandDemoReadinessCliStepValidationContract,
+    specs: tuple[CommandSpec, ...],
+    launcher_argv: tuple[str, ...],
+) -> None:
+    step_seals = command_demo_readiness_step_seal_contract(specs, launcher_argv).steps
+    if tuple(step.ordinal for step in contract.steps) != tuple(step.ordinal for step in step_seals):
+        raise ValueError("Command demo readiness CLI step validation ordinals are inconsistent")
+    if tuple(step.demo_path_step for step in contract.steps) != tuple(step.demo_path_step for step in step_seals):
+        raise ValueError("Command demo readiness CLI step validation demo path steps are inconsistent")
+    if tuple(step.flow_step for step in contract.steps) != tuple(step.flow_step for step in step_seals):
+        raise ValueError("Command demo readiness CLI step validation flow steps are inconsistent")
+    if tuple(step.name for step in contract.steps) != tuple(step.name for step in step_seals):
+        raise ValueError("Command demo readiness CLI step validation command names are inconsistent")
+    if tuple(step.command_line for step in contract.steps) != tuple(step.command_line for step in step_seals):
+        raise ValueError("Command demo readiness CLI step validation command lines are inconsistent")
+    cli_lookup = dict(command_cli_lookup_table()) if specs == COMMAND_SPECS else {}
+    for step in contract.steps:
+        if not step.parser_token:
+            raise ValueError(f"Command demo readiness CLI step validation parser token is empty: {step.flow_step}")
+        if specs == COMMAND_SPECS and cli_lookup.get(step.parser_token) != step.name:
+            raise ValueError(f"Command demo readiness CLI step validation parser token is inconsistent: {step.flow_step}")
+        validation = command_demo_readiness_validate_cli_argv(
+            step.command_line,
+            specs,
+            launcher_argv,
+        )
+        if step.canonical_command_line != validation.command_line:
+            raise ValueError(f"Command demo readiness CLI step validation canonical line is inconsistent: {step.flow_step}")
+        if not step.is_cli_entrypoint or not validation.is_cli_entrypoint:
+            raise ValueError(f"Command demo readiness CLI step validation is not routeable: {step.flow_step}")
+
+
+def command_demo_readiness_cli_step_validation_summary(
+    specs: tuple[CommandSpec, ...] = COMMAND_SPECS,
+    launcher_argv: tuple[str, ...] = COMMAND_SMOKE_CLI_LAUNCHER_ARGV,
+) -> tuple[tuple[int, str, str, str, str, str, str, bool], ...]:
+    return tuple(
+        (
+            step.ordinal,
+            step.demo_path_step,
+            step.flow_step,
+            step.name,
+            step.command_line,
+            step.parser_token,
+            step.canonical_command_line,
+            step.is_cli_entrypoint,
+        )
+        for step in command_demo_readiness_cli_step_validation_contract(specs, launcher_argv).steps
+    )
+
+
+def command_demo_readiness_cli_step_validation_payload(
+    specs: tuple[CommandSpec, ...] = COMMAND_SPECS,
+    launcher_argv: tuple[str, ...] = COMMAND_SMOKE_CLI_LAUNCHER_ARGV,
+) -> tuple[dict[str, object], ...]:
+    return tuple(
+        {
+            "ordinal": step.ordinal,
+            "demo_path_step": step.demo_path_step,
+            "flow_step": step.flow_step,
+            "command": step.name,
+            "command_line": step.command_line,
+            "parser_token": step.parser_token,
+            "canonical_command_line": step.canonical_command_line,
+            "is_cli_entrypoint": step.is_cli_entrypoint,
+        }
+        for step in command_demo_readiness_cli_step_validation_contract(specs, launcher_argv).steps
+    )
+
+
+def command_demo_readiness_cli_step_validation_json(
+    specs: tuple[CommandSpec, ...] = COMMAND_SPECS,
+    launcher_argv: tuple[str, ...] = COMMAND_SMOKE_CLI_LAUNCHER_ARGV,
+) -> str:
+    return json.dumps(
+        command_demo_readiness_cli_step_validation_payload(specs, launcher_argv),
         sort_keys=True,
         separators=(",", ":"),
     )
@@ -10073,6 +10225,34 @@ def command_mvp_demo_readiness_step_seal_json(
     launcher_argv: tuple[str, ...] = COMMAND_SMOKE_CLI_LAUNCHER_ARGV,
 ) -> str:
     return command_demo_readiness_step_seal_json(specs, launcher_argv)
+
+
+def command_mvp_demo_readiness_cli_step_validation_contract(
+    specs: tuple[CommandSpec, ...] = COMMAND_SPECS,
+    launcher_argv: tuple[str, ...] = COMMAND_SMOKE_CLI_LAUNCHER_ARGV,
+) -> CommandDemoReadinessCliStepValidationContract:
+    return command_demo_readiness_cli_step_validation_contract(specs, launcher_argv)
+
+
+def command_mvp_demo_readiness_cli_step_validation_summary(
+    specs: tuple[CommandSpec, ...] = COMMAND_SPECS,
+    launcher_argv: tuple[str, ...] = COMMAND_SMOKE_CLI_LAUNCHER_ARGV,
+) -> tuple[tuple[int, str, str, str, str, str, str, bool], ...]:
+    return command_demo_readiness_cli_step_validation_summary(specs, launcher_argv)
+
+
+def command_mvp_demo_readiness_cli_step_validation_payload(
+    specs: tuple[CommandSpec, ...] = COMMAND_SPECS,
+    launcher_argv: tuple[str, ...] = COMMAND_SMOKE_CLI_LAUNCHER_ARGV,
+) -> tuple[dict[str, object], ...]:
+    return command_demo_readiness_cli_step_validation_payload(specs, launcher_argv)
+
+
+def command_mvp_demo_readiness_cli_step_validation_json(
+    specs: tuple[CommandSpec, ...] = COMMAND_SPECS,
+    launcher_argv: tuple[str, ...] = COMMAND_SMOKE_CLI_LAUNCHER_ARGV,
+) -> str:
+    return command_demo_readiness_cli_step_validation_json(specs, launcher_argv)
 
 
 def command_mvp_demo_readiness_index_contract(
