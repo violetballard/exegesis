@@ -555,6 +555,7 @@ class RetrievalResult:
                     hit.provenance.get("query_date_range", bundle_context["query_date_range"])
                 ),
                 "citation_status": copy.deepcopy(bundle_context["citation_status"]),
+                "retrieval_evidence_fingerprint": bundle_context["retrieval_evidence_fingerprint"],
                 "retrieval_backend": hit.provenance.get("retrieval_backend"),
                 "retrieval_mode": hit.provenance.get("retrieval_mode"),
                 "source_hash": hit.provenance.get("source_hash"),
@@ -573,6 +574,7 @@ class RetrievalResult:
                 "promotion_target": "context_basket",
                 "result_fingerprint": self.result_fingerprint,
                 "query_fingerprint": bundle_context["query_fingerprint"],
+                "retrieval_evidence_fingerprint": bundle_context["retrieval_evidence_fingerprint"],
                 "promotion_item_fingerprints": [
                     item["promotion_item_fingerprint"] for item in promotion_items
                 ],
@@ -716,6 +718,7 @@ class RetrievalResult:
             "active_strategy_ids": list(self.diagnostics["active_strategy_ids"]),
             "deferred_strategy_ids": list(self.diagnostics["deferred_strategy_ids"]),
             "citation_status": citation_status,
+            "retrieval_evidence_fingerprint": self.evidence.get("retrieval_evidence_fingerprint"),
         }
 
     def _retrieval_provenance_snapshot(
@@ -764,6 +767,7 @@ class RetrievalResult:
                 else None
             ),
             "citation_status": citation_status,
+            "retrieval_evidence_fingerprint": self.evidence.get("retrieval_evidence_fingerprint"),
             "doc_count": citation_bundle["doc_count"],
             "excerpt_count": citation_bundle["excerpt_count"],
             "doc_citations": citation_bundle["doc_citations"],
@@ -801,6 +805,7 @@ class RetrievalResult:
             "active_strategy_ids": list(self.diagnostics["active_strategy_ids"]),
             "deferred_strategy_ids": list(self.diagnostics["deferred_strategy_ids"]),
             "citation_status": citation_status,
+            "retrieval_evidence_fingerprint": self.evidence.get("retrieval_evidence_fingerprint"),
             # Keep the citation bundle inline so doc/excerpt snapshots remain
             # self-contained for downstream drafting and patching flows.
             "retrieval_citation_bundle": copy.deepcopy(citation_bundle),
@@ -848,6 +853,7 @@ class RetrievalResult:
             "retrieval_backend": self.diagnostics["retrieval_backend"],
             "retrieval_mode": self.diagnostics["retrieval_mode"],
             "citation_status": copy.deepcopy(citation_status_snapshot),
+            "retrieval_evidence_fingerprint": self.evidence.get("retrieval_evidence_fingerprint"),
             "retrieval_citation_bundle": copy.deepcopy(citation_bundle_snapshot),
             "retrieval_summary": retrieval_summary_snapshot,
             "retrieval_doc_bundle": copy.deepcopy(self.retrieval_doc_bundle()),
@@ -1157,6 +1163,7 @@ class RetrievalService:
             "doc_hits_fingerprint": retrieval_manifest["doc_hits_fingerprint"],
             "excerpt_hits_fingerprint": retrieval_manifest["excerpt_hits_fingerprint"],
             "citation_status": citation_status,
+            "retrieval_evidence_fingerprint": retrieval_evidence["retrieval_evidence_fingerprint"],
             "retrieval_manifest": retrieval_manifest,
             "retrieval_evidence": retrieval_evidence,
             "result_fingerprint": result_fingerprint,
@@ -1185,6 +1192,7 @@ class RetrievalService:
                 "fts_shortlist_doc_ids": diagnostics["fts_shortlist_doc_ids"],
                 "retrieval_manifest": retrieval_manifest,
                 "retrieval_evidence": retrieval_evidence,
+                "retrieval_evidence_fingerprint": retrieval_evidence["retrieval_evidence_fingerprint"],
                 "doc_hits_fingerprint": retrieval_manifest["doc_hits_fingerprint"],
                 "excerpt_hits_fingerprint": retrieval_manifest["excerpt_hits_fingerprint"],
                 "result_fingerprint": result_fingerprint,
@@ -1544,7 +1552,7 @@ class RetrievalService:
             query,
             max_results=self._fts_shortlist_limit(query.constraints.max_results),
         )
-        return {
+        evidence = {
             "query_fingerprint": query_fingerprint,
             "query_scope": query.scope,
             "query_intent": query.intent,
@@ -1574,6 +1582,8 @@ class RetrievalService:
             "excerpt_citations": excerpt_citations,
             "retrieval_manifest": dict(retrieval_manifest),
         }
+        evidence["retrieval_evidence_fingerprint"] = RetrievalService._stable_fingerprint(evidence)
+        return evidence
 
     @staticmethod
     def _build_result_fingerprint(

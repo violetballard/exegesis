@@ -278,6 +278,14 @@ def _normalize_retrieval_evidence_snapshot(evidence: dict[str, object]) -> dict[
         normalized["citation_status"] = copy.deepcopy(citation_status)
     elif "citation_status" in normalized:
         normalized["citation_status"] = {}
+    if _is_missing_snapshot_value(normalized.get("retrieval_evidence_fingerprint")):
+        normalized["retrieval_evidence_fingerprint"] = _stable_fingerprint(
+            {
+                key: value
+                for key, value in normalized.items()
+                if key != "retrieval_evidence_fingerprint"
+            }
+        )
     return normalized
 
 
@@ -304,6 +312,7 @@ def _normalize_basket_promotion_bundle_snapshot(bundle: dict[str, object]) -> di
             "query_intent": normalized.get("query_intent"),
             "query_date_range": normalized.get("query_date_range"),
             "citation_status": normalized.get("citation_status"),
+            "retrieval_evidence_fingerprint": normalized.get("retrieval_evidence_fingerprint"),
             "retrieval_backend": normalized.get("retrieval_backend"),
             "retrieval_mode": normalized.get("retrieval_mode"),
         }
@@ -327,6 +336,7 @@ def _normalize_basket_promotion_bundle_snapshot(bundle: dict[str, object]) -> di
                 "promotion_target": normalized.get("promotion_target"),
                 "result_fingerprint": normalized.get("result_fingerprint"),
                 "query_fingerprint": normalized.get("query_fingerprint"),
+                "retrieval_evidence_fingerprint": normalized.get("retrieval_evidence_fingerprint"),
                 "promotion_item_fingerprints": [
                     item.get("promotion_item_fingerprint")
                     for item in promotion_items
@@ -410,6 +420,19 @@ def _normalize_retrieval_source_bundle_snapshot(source_bundle: dict[str, object]
     )
     if query_fingerprint is not None:
         normalized["query_fingerprint"] = query_fingerprint
+
+    retrieval_evidence = normalized.get("retrieval_evidence", {})
+    if not isinstance(retrieval_evidence, dict):
+        retrieval_evidence = {}
+    retrieval_evidence = _normalize_retrieval_evidence_snapshot(retrieval_evidence)
+    retrieval_evidence_fingerprint = _first_text_value(
+        normalized.get("retrieval_evidence_fingerprint"),
+        retrieval_evidence.get("retrieval_evidence_fingerprint"),
+        retrieval_summary.get("retrieval_evidence_fingerprint"),
+        retrieval_provenance.get("retrieval_evidence_fingerprint"),
+    )
+    if retrieval_evidence_fingerprint is not None:
+        normalized["retrieval_evidence_fingerprint"] = retrieval_evidence_fingerprint
 
     retrieval_backend = _first_text_value(
         normalized.get("retrieval_backend"),
@@ -573,6 +596,7 @@ def _build_retrieval_source_bundle_from_payload(payload: dict[str, object]) -> d
         "excerpt_hits": copy.deepcopy(payload.get("excerpt_hits", [])),
         "retrieval_manifest": copy.deepcopy(payload.get("retrieval_manifest", {})),
         "retrieval_evidence": copy.deepcopy(payload.get("retrieval_evidence", {})),
+        "retrieval_evidence_fingerprint": payload.get("retrieval_evidence_fingerprint"),
         "retrieval_provenance": copy.deepcopy(payload.get("retrieval_provenance", {})),
     })
 
@@ -661,6 +685,10 @@ def _build_retrieval_bundle_context_from_payload(payload: dict[str, object]) -> 
     citation_bundle = payload.get("retrieval_citation_bundle", {})
     if not isinstance(citation_bundle, dict):
         citation_bundle = _build_retrieval_citation_bundle_from_payload(payload)
+    evidence = payload.get("retrieval_evidence", {})
+    if not isinstance(evidence, dict):
+        evidence = {}
+    evidence = _normalize_retrieval_evidence_snapshot(evidence)
     query_date_range = _normalize_optional_list_like(
         query_constraints.get(
             "date_range",
@@ -694,10 +722,16 @@ def _build_retrieval_bundle_context_from_payload(payload: dict[str, object]) -> 
             provenance.get("deferred_strategy_ids", summary.get("deferred_strategy_ids", diagnostics.get("deferred_strategy_ids", [])))
         ),
         "citation_status": copy.deepcopy(payload.get("citation_status", summary.get("citation_status", provenance.get("citation_status", {})))),
+        "retrieval_evidence_fingerprint": (
+            evidence.get("retrieval_evidence_fingerprint")
+            or provenance.get("retrieval_evidence_fingerprint")
+            or summary.get("retrieval_evidence_fingerprint")
+            or diagnostics.get("retrieval_evidence_fingerprint")
+        ),
         "retrieval_citation_bundle": copy.deepcopy(citation_bundle),
         "retrieval_manifest": copy.deepcopy(payload.get("retrieval_manifest", {})),
         "retrieval_provenance": copy.deepcopy(provenance),
-        "retrieval_evidence": copy.deepcopy(payload.get("retrieval_evidence", {})),
+        "retrieval_evidence": copy.deepcopy(evidence),
     }
 
 
@@ -936,7 +970,8 @@ def _build_retrieval_diagnostics_from_source_bundle(source_bundle: dict[str, obj
             citation_bundle.get("citation_status", normalized.get("citation_status", {}))
         ),
         "retrieval_manifest": copy.deepcopy(normalized.get("retrieval_manifest", {})),
-        "retrieval_evidence": copy.deepcopy(normalized.get("retrieval_evidence", {})),
+        "retrieval_evidence": copy.deepcopy(retrieval_evidence),
+        "retrieval_evidence_fingerprint": retrieval_evidence.get("retrieval_evidence_fingerprint"),
         "result_fingerprint": citation_bundle.get(
             "result_fingerprint",
             normalized.get("result_fingerprint"),
@@ -957,10 +992,14 @@ def _build_retrieval_provenance_from_payload(payload: dict[str, object]) -> dict
         normalized = {}
     summary = payload.get("retrieval_summary", {})
     diagnostics = payload.get("retrieval_diagnostics", {})
+    evidence = payload.get("retrieval_evidence", {})
     if not isinstance(summary, dict):
         summary = {}
     if not isinstance(diagnostics, dict):
         diagnostics = {}
+    if not isinstance(evidence, dict):
+        evidence = {}
+    evidence = _normalize_retrieval_evidence_snapshot(evidence)
     query_date_range = _normalize_optional_list_like(normalized.get("query_date_range"))
     if "query_fingerprint" not in normalized:
         normalized["query_fingerprint"] = summary.get("query_fingerprint", diagnostics.get("query_fingerprint"))
@@ -1044,6 +1083,12 @@ def _build_retrieval_provenance_from_payload(payload: dict[str, object]) -> dict
         )
     if "citation_status" not in normalized:
         normalized["citation_status"] = copy.deepcopy(summary.get("citation_status", {}))
+    if "retrieval_evidence_fingerprint" not in normalized:
+        normalized["retrieval_evidence_fingerprint"] = (
+            evidence.get("retrieval_evidence_fingerprint")
+            or summary.get("retrieval_evidence_fingerprint")
+            or diagnostics.get("retrieval_evidence_fingerprint")
+        )
     if "doc_count" not in normalized:
         normalized["doc_count"] = summary.get("doc_count")
     if "excerpt_count" not in normalized:
@@ -1291,6 +1336,7 @@ def _build_retrieval_downstream_payload_from_source_bundle(
     payload.pop("query_fingerprint", None)
     payload.pop("query_constraints", None)
     payload.pop("query_constraints_fingerprint", None)
+    payload.pop("retrieval_evidence_fingerprint", None)
     payload["policy"] = copy.deepcopy(policy_snapshot)
     payload["retrieval_policy"] = copy.deepcopy(policy_snapshot)
     payload["audit_ref"] = payload.get("audit_ref")

@@ -10,9 +10,9 @@
 - Integrator-locked files changed: none.
 - Authoritative reviewed implementation base: `378cf9a74a3658058079a32f186fcd254c4a4034`.
 - Authoritative reviewed implementation range for re-review: `378cf9a74a3658058079a32f186fcd254c4a4034..HEAD`, where `HEAD` is the final branch tip reported with this fixer response. This is the actual merge candidate range.
-- Actual source-bearing branch tip covered by this packet: `b3b0e81e6a6754dfa3eaa3d21a01ee82817ad846`.
-- Current fixer pass: packet-only canonical demo-path mapping update; final branch tip is the commit containing this packet refresh.
-- Packet-only trace tip before this fixer refresh: `d902e90625ddfa0abfa92a152e8a94aa26fed2b4`.
+- Actual source-bearing branch tip covered by this packet: final branch tip reported with this fixer response.
+- Current fixer pass: source-bearing retrieval evidence fingerprint hardening plus packet refresh; final branch tip is the commit containing this fixer work.
+- Pre-fixer branch tip before this source-bearing refresh: `a355ea6bb835f741d122745ac249cb30c2736dbe`.
 - Source-bearing update note: commits after `adfa8cdadd43747ffbcb612e4151e262b13e52ca` and through `b3b0e81e6a6754dfa3eaa3d21a01ee82817ad846` are source-bearing, not metadata-only. They change retrieval source and shared regression coverage, and every one of those changes is included in the corrected reviewed implementation range.
 
 ## Traceability Correction
@@ -21,7 +21,7 @@ This packet supersedes stale narrow-range handoffs that described `adfa8cdadd437
 
 `378cf9a74a3658058079a32f186fcd254c4a4034..HEAD`
 
-That range includes every source-bearing retrieval commit through `b3b0e81e6a6754dfa3eaa3d21a01ee82817ad846`, including the reviewer-cited source changes after `adfa8cdadd43747ffbcb612e4151e262b13e52ca`. The packet-only fixer commits on top of `b3b0e81e6a6754dfa3eaa3d21a01ee82817ad846`, including `d1440f763ae89eb3853059c8fb4a0deda6ee75ed`, `b1a9ea85016746bcd2a54a247e860d7c3fe4e1e9`, `d902e90625ddfa0abfa92a152e8a94aa26fed2b4`, and the final fixer commit reported with this handoff response, do not move retrieval source.
+That range includes every source-bearing retrieval commit through the final branch tip reported with this fixer response, including the reviewer-cited source changes after `adfa8cdadd43747ffbcb612e4151e262b13e52ca` and this source-bearing evidence-fingerprint hardening pass. Earlier packet-only fixer commits on top of `b3b0e81e6a6754dfa3eaa3d21a01ee82817ad846`, including `d1440f763ae89eb3853059c8fb4a0deda6ee75ed`, `b1a9ea85016746bcd2a54a247e860d7c3fe4e1e9`, and `d902e90625ddfa0abfa92a152e8a94aa26fed2b4`, remain packet-only, but the final fixer commit reported with this handoff response is source-bearing.
 
 The rejected packet boundary `378cf9a74a3658058079a32f186fcd254c4a4034..adfa8cdadd43747ffbcb612e4151e262b13e52ca` is superseded. Re-review should not treat `adfa8cdadd43747ffbcb612e4151e262b13e52ca` as the reviewed implementation head, because `adfa8cdadd43747ffbcb612e4151e262b13e52ca..HEAD` contains source/test changes that will be merged.
 
@@ -46,7 +46,7 @@ The full changed-file surface in the corrected range is:
 - `M tests/unit/test_unified_retrieval.py`
 - `M THREAD_PACKET.md`
 
-Current source-bearing diff size for `378cf9a74a3658058079a32f186fcd254c4a4034..b3b0e81e6a6754dfa3eaa3d21a01ee82817ad846` is `9 files changed, 888 insertions(+), 201 deletions(-)`. Excluding `THREAD_PACKET.md`, the source/artifact/test portion is `8 files changed, 806 insertions(+), 129 deletions(-)`. The final reviewed range is still `378cf9a74a3658058079a32f186fcd254c4a4034..HEAD`; later changes after `b3b0e81e6a6754dfa3eaa3d21a01ee82817ad846` are packet-only traceability refreshes. At the pre-commit packet-refresh tip `d902e90625ddfa0abfa92a152e8a94aa26fed2b4`, the full corrected range is `9 files changed, 891 insertions(+), 201 deletions(-)`.
+Current source-bearing diff size for `378cf9a74a3658058079a32f186fcd254c4a4034..HEAD` after this source-bearing fixer is `9 files changed, 1042 insertions(+), 199 deletions(-)`. Excluding `THREAD_PACKET.md`, the source/artifact/test portion is `8 files changed, 923 insertions(+), 132 deletions(-)`. The final reviewed range is still `378cf9a74a3658058079a32f186fcd254c4a4034..HEAD`; this fixer pass moves retrieval source and shared regression coverage, so it is part of the reviewed implementation range.
 
 The protected `.codex/kickoff_packets/feat-retrieval-fts.md` and `.codex/lane_meta/feat-retrieval-fts.json` mirror artifacts are deleted in this branch so stale contradictory packet metadata is not preserved. `THREAD_PACKET.md` is the coherent handoff packet for re-review.
 
@@ -54,11 +54,12 @@ Sandbox note for this fixer pass: the auxiliary `.codex/kickoff_packets` and `.c
 
 ## Required Fixes Applied
 
-Current packet-only fixer pass for the latest reviewer request:
+Current source-bearing fixer pass for the latest reviewer request:
 
-1. Updated each completed task below so it explicitly names the canonical demo-path step it advances, using the required wording `retrieve relevant material` and `promote or gather context into the basket` where applicable.
-2. Added a final handoff statement naming the canonical demo-path steps this work makes more real.
-3. Preserved the same reviewed implementation range, `378cf9a74a3658058079a32f186fcd254c4a4034..HEAD`; this pass is packet-only and adds no retrieval code changes.
+1. Added a deterministic `retrieval_evidence_fingerprint` to the canonical FTS evidence snapshot.
+2. Carried that evidence fingerprint into retrieval diagnostics, provenance, source bundles, and basket-promotion bundles/items without adding a new top-level downstream payload field.
+3. Added shared regression coverage proving the fingerprint is stable, auditable, and rehydrated into basket-promotion evidence when sparse payload helpers rebuild promotion items.
+4. Preserved the corrected reviewed implementation range, `378cf9a74a3658058079a32f186fcd254c4a4034..HEAD`; this pass is source-bearing and included in that range.
 
 Earlier required fixes already applied:
 
@@ -75,7 +76,7 @@ SQLite FTS remains the required MVP retrieval path. PageIndex and embeddings rem
 
 The branch hardens deterministic FTS retrieval behavior across cache keys, fresh-run cache snapshots, query snapshots, result payloads, excerpt lookup, citation/provenance bundles, evidence snapshots, sparse bundle rehydration, date-range propagation, shortlist query fingerprints, matched-term provenance, result fingerprints, doc identity, doc rank, doc type, strategy aliases, query constraints, and context basket promotion evidence. The final source-bearing update adds deterministic promotion-item and promotion-bundle fingerprints so basket promotion can audit exact FTS evidence items without rehydrating the whole retrieval result.
 
-This fixer pass also carries `citation_status` into each promotion item and into sparse-payload promotion-item rehydration. That keeps the exact citation requirement/availability/satisfaction snapshot attached to the FTS excerpt evidence that can be promoted into the context basket.
+This fixer pass also carries a deterministic `retrieval_evidence_fingerprint` into diagnostics, provenance, source bundles, and basket promotion items. That lets downstream basket/revise/apply flows audit the exact FTS evidence snapshot attached to promoted excerpts without rehydrating the whole retrieval result.
 
 Canonical demo path: `vault/context material -> FTS retrieval -> retrieval evidence -> context basket promotion -> engine revise/apply`.
 
@@ -92,7 +93,7 @@ Canonical demo-path step made real by this work: this work makes `retrieve relev
 4. Added fail-closed retrieval boundary coverage for malformed or reversed date ranges, empty query/scope inputs, unresolved `doc:` and `collection:` scopes, FTS-only excerpt lookup, excerpt lookup fingerprints, cache/query snapshot behavior, and facade/export availability for basket-promotion helpers.
    Canonical demo-path steps advanced: `retrieve relevant material` through FTS-only excerpt lookup and `promote or gather context into the basket` through stable retrieval facade contracts.
 
-Current fixer task completed: attached `citation_status` to basket promotion items and rehydrated promotion items, with shared regression coverage in `tests/unit/test_unified_retrieval.py`.
+Current fixer task completed: attached deterministic `retrieval_evidence_fingerprint` coverage to FTS evidence, provenance/source snapshots, and basket promotion items, with shared regression coverage in `tests/unit/test_unified_retrieval.py`.
 
 Final handoff statement: this work makes `retrieve relevant material` and `promote or gather context into the basket` more real by making FTS excerpt lookup deterministic, FTS-only, structured, and auditable.
 
@@ -102,10 +103,10 @@ Task accounting: `4` high-risk task groups completed, matching the high-risk cap
 
 - Task budget: `4` high-risk task groups; completed as the four task groups above.
 - File count: `9 files` in the full reviewed packet range including `THREAD_PACKET.md`; `8 files` excluding the handoff packet itself.
-- Size accounting: the corrected full source-bearing range exceeds the high-risk `<=300 net LOC` size limit. The actual source-bearing range through `b3b0e81e6a6754dfa3eaa3d21a01ee82817ad846` is `9 files changed, 888 insertions(+), 201 deletions(-)`, and the source/artifact/test portion excluding `THREAD_PACKET.md` is `8 files changed, 806 insertions(+), 129 deletions(-)`. This budget overage is reported explicitly for reviewer/integrator disposition rather than hidden behind a stale narrow range.
+- Size accounting: the corrected full source-bearing range exceeds the high-risk `<=300 net LOC` size limit. The actual corrected range through this fixer is `9 files changed, 1042 insertions(+), 199 deletions(-)`, and the source/artifact/test portion excluding `THREAD_PACKET.md` is `8 files changed, 923 insertions(+), 132 deletions(-)`. This budget overage is reported explicitly for reviewer/integrator disposition rather than hidden behind a stale narrow range.
 - Shared/integrator exception status: `tests/unit/test_unified_retrieval.py` is the sole approved shared regression surface; no integrator-locked files changed.
 - Routing/provider impact: none.
-- Current fixer diff: packet-only update to `THREAD_PACKET.md`; no retrieval source or test files changed in this fixer pass.
+- Current fixer diff: source-bearing update to `src/qual/retrieval/service.py`, `src/qual/engine/retrieval/payload.py`, shared regression update to `tests/unit/test_unified_retrieval.py`, and packet update to `THREAD_PACKET.md`.
 - Remaining risks/blockers: size budget exceeded for the full corrected cumulative range; required gates passed for this final fixer state.
 
 ## Roadmap/Vision
@@ -117,10 +118,11 @@ Task accounting: `4` high-risk task groups completed, matching the high-risk cap
 
 ## Commands Run
 
-Required gates rerun on `2026-05-06` for the corrected full reviewed range `378cf9a74a3658058079a32f186fcd254c4a4034..HEAD` after the source-bearing tip `b3b0e81e6a6754dfa3eaa3d21a01ee82817ad846`:
+Required gates rerun on `2026-05-06` for the corrected full reviewed range `378cf9a74a3658058079a32f186fcd254c4a4034..HEAD` after this source-bearing fixer pass:
 
 - `python -m unittest tests.unit.test_unified_retrieval` - passed 61 retrieval tests.
-- `python -m unittest tests.unit.test_unified_retrieval.UnifiedRetrievalTests.test_basket_promotion_items_backfill_query_context_from_bundle` - passed.
+- `python -m unittest tests.unit.test_unified_retrieval.UnifiedRetrievalTests.test_downstream_payload_exposes_policy_and_diagnostics_snapshot tests.unit.test_unified_retrieval.UnifiedRetrievalTests.test_basket_promotion_items_backfill_query_context_from_bundle` - passed.
+- `python -m unittest tests.unit.test_unified_retrieval` - passed 61 retrieval tests after source-fingerprint hardening.
 - `make scope-check` - passed for branch `codex/feat-retrieval-fts`; no branch-specific policy was configured.
 - `./quality-format.sh --check` - passed.
 - `./quality-lint.sh` - passed shell syntax and trailing whitespace checks.
@@ -130,4 +132,7 @@ Required gates rerun on `2026-05-06` for the corrected full reviewed range `378c
 
 Current fixer changed files:
 
+- `src/qual/engine/retrieval/payload.py`
+- `src/qual/retrieval/service.py`
+- `tests/unit/test_unified_retrieval.py`
 - `THREAD_PACKET.md`
