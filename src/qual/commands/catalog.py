@@ -6189,7 +6189,35 @@ def require_command_demo_readiness_handoff_complete(
         raise ValueError("Command demo readiness handoff audit is incomplete")
     if trusted_loop.fingerprint_digest != packet.fingerprint_digest:
         raise ValueError("Command demo trusted loop fingerprint drifted from handoff packet")
+    _validate_command_demo_readiness_handler_handoff(packet, specs, launcher_argv)
     return packet
+
+
+def _validate_command_demo_readiness_handler_handoff(
+    packet: CommandDemoReadinessHandoffPacket,
+    specs: tuple[CommandSpec, ...],
+    launcher_argv: tuple[str, ...],
+) -> None:
+    handler_contract = command_handler_demo_path_contract(specs, launcher_argv)
+    if tuple(entry.name for entry in handler_contract.entries) != tuple(
+        step.name for step in packet.step_seals
+    ):
+        raise ValueError("Command demo handler handoff names are inconsistent")
+    if tuple(entry.flow_step for entry in handler_contract.entries) != tuple(
+        step.flow_step for step in packet.step_seals
+    ):
+        raise ValueError("Command demo handler handoff flow steps are inconsistent")
+    if tuple(entry.demo_path_step for entry in handler_contract.entries) != tuple(
+        step.demo_path_step for step in packet.step_seals
+    ):
+        raise ValueError("Command demo handler handoff path steps are inconsistent")
+    for handler_entry, step in zip(handler_contract.entries, packet.step_seals, strict=True):
+        if handler_entry.command_argv != step.command_argv:
+            raise ValueError(f"Command demo handler argv drifted: {handler_entry.name}")
+        if handler_entry.engine_actions != step.engine_actions:
+            raise ValueError(f"Command demo handler actions drifted: {handler_entry.name}")
+        if handler_entry.handler == handler_entry.delegated_to:
+            raise ValueError(f"Command demo handler does not delegate: {handler_entry.name}")
 
 
 @lru_cache(maxsize=None)
