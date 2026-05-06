@@ -3,10 +3,11 @@
 - Branch name: `codex/feat-retrieval-fts`
 - Lane: `feat-retrieval-fts`
 - Merge target: current `main`
-- Handoff type: high-risk retrieval date-range contract validation fixer handoff for the FTS-first retrieval lane.
-- Reviewed implementation base: `d31c231eaa190fa363902ec28e3ad46f5e58ac77`.
-- Reviewed implementation head: `HEAD` after this fixer commit; final SHA is reported in the fixer response.
-- Reviewed implementation range for re-review: `d31c231eaa190fa363902ec28e3ad46f5e58ac77..HEAD`.
+- Handoff type: corrected high-risk retrieval handoff for the FTS-first retrieval lane.
+- Reviewed implementation base: `378cf9a74a3658058079a32f186fcd254c4a4034`.
+- Reviewed implementation code head: `25f8d10c4b8f02c6d613af3300a5b7a02ec1c848`.
+- Reviewed implementation range for re-review: `378cf9a74a3658058079a32f186fcd254c4a4034..25f8d10c4b8f02c6d613af3300a5b7a02ec1c848`.
+- Packet refresh commit after this file is metadata-only; final branch HEAD SHA is reported in the fixer response.
 - Scope classification: high-risk because this lane includes the approved shared regression surface `tests/unit/test_unified_retrieval.py`.
 - Lane-owned paths: `src/qual/retrieval/**`, `src/qual/engine/retrieval/**`.
 - Approved shared regression path: `tests/unit/test_unified_retrieval.py`.
@@ -14,35 +15,58 @@
 
 ## Scope Completed
 
-This fixer keeps SQLite FTS as the authoritative MVP retrieval path and makes date-range retrieval constraints fail fast when they are malformed or reversed. `RetrievalConstraints`, both canonical retrieval query facades, `RetrievalService.retrieve_fts`, and the `retrieve_auto` alias now share the same date-range validation contract before FTS execution, so downstream retrieval payloads cannot silently represent invalid operator constraints as an empty evidence set.
+This corrected packet supersedes the stale narrow-range handoff and makes all production and test changes through `25f8d10c4b8f02c6d613af3300a5b7a02ec1c848` part of the reviewed implementation range.
 
-The retrieval shape remains FTS-first and deterministic. PageIndex and embeddings remain deferred compatibility surfaces, while basket promotion and later revise/apply steps get a clearer contract: no-hit results are reserved for valid searches with no matching FTS evidence, not invalid date filters.
+The retrieval lane keeps SQLite FTS as the authoritative MVP retrieval path. The branch adds deterministic FTS cache handling and cache audit metadata, normalizes retrieval payload snapshots and query constraints, preserves retrieval provenance for basket/context promotion flows, keeps PageIndex and embeddings as deferred compatibility surfaces, and makes date-range constraints fail fast when malformed or reversed before FTS execution.
 
 ## Tasks Completed
 
-1. Canonical demo-path step advanced: `retrieve relevant material`. FTS retrieval now rejects invalid date-range constraints before building evidence.
-2. Canonical demo-path step supported: `promote or gather context into the basket`. Valid empty evidence and invalid operator constraints are now distinguishable for basket/context flows.
-3. Canonical engine surface tightened: `build_retrieval_query` rejects malformed and reversed date ranges before retrieval execution.
-4. Added approved shared regression coverage for malformed and reversed date ranges on both canonical query-construction facades.
+1. Made SQLite FTS the primary retrieval path for document and excerpt retrieval, with PageIndex and embeddings retained as compatibility-only fallback/deferred surfaces.
+2. Stabilized FTS retrieval cache behavior, including cache invalidation on document updates and cache audit metadata for payload/provenance consumers.
+3. Normalized retrieval payloads, query snapshots, constraints, provenance fingerprints, source bundles, and basket/context promotion metadata for deterministic downstream engine use.
+4. Validated date-range constraints at the canonical query and FTS retrieval boundaries so malformed or reversed filters fail fast instead of producing misleading empty evidence.
+5. Added and maintained approved shared regression coverage in `tests/unit/test_unified_retrieval.py` for FTS-first retrieval behavior, payload normalization, cache metadata, facade exports, citation/provenance helpers, excerpt lookup, and date-range validation.
 
 ## Files Changed
 
-Reviewed implementation range for re-review: `d31c231eaa190fa363902ec28e3ad46f5e58ac77..HEAD`.
+Reviewed implementation range for re-review: `378cf9a74a3658058079a32f186fcd254c4a4034..25f8d10c4b8f02c6d613af3300a5b7a02ec1c848`.
 
-- `THREAD_PACKET.md` - authoritative handoff packet for this fixer pass.
-- `src/qual/retrieval/service.py` - centralizes date-range parseability and ordering validation for constraints and FTS retrieval.
-- `tests/unit/test_unified_retrieval.py` - covers malformed and reversed date-range rejection on both canonical query-construction facades.
+From `git diff --name-status 378cf9a74a3658058079a32f186fcd254c4a4034..25f8d10c4b8f02c6d613af3300a5b7a02ec1c848`:
+
+- `M .codex/kickoff_packets/feat-retrieval-fts.md`
+- `M .codex/lane_meta/feat-retrieval-fts.json`
+- `M THREAD_PACKET.md`
+- `M src/qual/engine/retrieval/fts_strategy.py`
+- `M src/qual/engine/retrieval/payload.py`
+- `M src/qual/retrieval/service.py`
+- `M tests/unit/test_unified_retrieval.py`
+
+From `git diff --stat 378cf9a74a3658058079a32f186fcd254c4a4034..25f8d10c4b8f02c6d613af3300a5b7a02ec1c848`:
+
+- `.codex/kickoff_packets/feat-retrieval-fts.md` - 36 lines changed.
+- `.codex/lane_meta/feat-retrieval-fts.json` - 155 lines changed.
+- `THREAD_PACKET.md` - 115 lines changed.
+- `src/qual/engine/retrieval/fts_strategy.py` - 6 lines changed.
+- `src/qual/engine/retrieval/payload.py` - 27 lines changed.
+- `src/qual/retrieval/service.py` - 53 lines changed.
+- `tests/unit/test_unified_retrieval.py` - 96 lines changed.
 
 ## Budget/Risk
 
-- Task budget: `4/4` high-risk task groups.
-- File count for reviewed implementation handoff: `3 files changed`.
-- Size accounting before packet rewrite: `38 insertions(+), 13 deletions(-)` across retrieval service and approved shared regression coverage.
+- Task budget: `4` high-risk task groups in the original thread, with this corrected packet summarizing the cumulative branch-level retrieval work as five traceability items.
+- File count for reviewed implementation handoff: `7 files changed`.
+- Size accounting: `367 insertions(+), 121 deletions(-)`; net `246` LOC.
 - AGENTS file/size status: fits high-risk size limits of `<=8 files` and `<=300 net LOC`.
 - Shared/integrator exception status: uses the approved shared regression surface `tests/unit/test_unified_retrieval.py`; no integrator-locked files changed.
 - Routing/provider impact: none.
 - PageIndex/embeddings impact: no PageIndex, embeddings, hybrid, or alternate retrieval path was added as a required MVP path.
 - Remaining risks/blockers: none.
+
+## Traceability Correction
+
+The earlier packet incorrectly claimed commits after `adfa8cdadd43747ffbcb612e4151e262b13e52ca` were metadata-only. That claim is withdrawn. Commits including `1696a088d`, `d31c231e`, `9792d439`, and `25f8d10c4` are code-bearing retrieval/test commits and are included in the corrected reviewed implementation range.
+
+This handoff has one authoritative reviewed implementation range: `378cf9a74a3658058079a32f186fcd254c4a4034..25f8d10c4b8f02c6d613af3300a5b7a02ec1c848`.
 
 ## Roadmap/Vision
 
@@ -55,15 +79,11 @@ Reviewed implementation range for re-review: `d31c231eaa190fa363902ec28e3ad46f5e
 
 ## Commands Run
 
-Commands run for this corrected branch-tip packet on the exact worktree state to be committed by this fixer pass:
+Commands run for this corrected packet on the branch-tip worktree state:
 
-- `python -m unittest tests.unit.test_unified_retrieval` - passed 58 retrieval tests.
+- `make scope-check` - passed.
 - `./quality-format.sh --check` - passed.
 - `./quality-lint.sh` - passed shell syntax and trailing whitespace checks.
 - `./quality-test.sh` - passed smoke tests and 127 unit tests.
 - `./typecheck-test.sh` - passed Python source compilation under `src/`.
 - `make ci` - passed setup, scope-check, format, lint, compile/typecheck, smoke tests, and 127 unit tests.
-
-## Metadata Note
-
-The root `THREAD_PACKET.md` is the authoritative regenerated handoff packet for this fixer pass. The reviewed implementation range intentionally covers `d31c231eaa190fa363902ec28e3ad46f5e58ac77..HEAD` so this production retrieval date-range validation change is traceable from the prior branch tip.
