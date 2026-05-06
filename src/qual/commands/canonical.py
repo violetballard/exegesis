@@ -29,6 +29,7 @@ from src.qual.commands.catalog import (
     CommandDemoReadinessHandoffContract,
     CommandDemoReadinessHandoffLineContract,
     CommandDemoReadinessHandoffPacket,
+    CommandDemoReadinessHandoffStepStatusContract,
     CommandDemoReadinessFingerprint,
     CommandDemoReadinessReport,
     CommandDemoReadinessRouteContract,
@@ -64,6 +65,14 @@ from src.qual.commands.catalog import (
     command_mvp_demo_readiness_handoff_packet_payload as _readiness_handoff_packet_payload,
     command_mvp_demo_readiness_handoff_packet_summary as _readiness_handoff_packet_summary,
     command_mvp_demo_readiness_handoff_status_lines as _readiness_handoff_status_lines,
+    command_mvp_demo_readiness_handoff_step_status_contract
+    as _readiness_handoff_step_status_contract,
+    command_mvp_demo_readiness_handoff_step_status_json
+    as _readiness_handoff_step_status_json,
+    command_mvp_demo_readiness_handoff_step_status_payload
+    as _readiness_handoff_step_status_payload,
+    command_mvp_demo_readiness_handoff_step_status_summary
+    as _readiness_handoff_step_status_summary,
     command_demo_readiness_handoff_action_contract as _readiness_handoff_action_contract,
     command_mvp_demo_readiness_handoff_action_summary as _readiness_handoff_action_summary,
     command_mvp_demo_readiness_action_sequence_contract as _readiness_action_sequence_contract,
@@ -316,6 +325,10 @@ __all__ = [
     "canonical_command_readiness_handoff_packet_payload",
     "canonical_command_readiness_handoff_packet_summary",
     "canonical_command_readiness_handoff_status_lines",
+    "canonical_command_readiness_handoff_step_status_contract",
+    "canonical_command_readiness_handoff_step_status_summary",
+    "canonical_command_readiness_handoff_step_status_payload",
+    "canonical_command_readiness_handoff_step_status_json",
     "canonical_command_surface_readiness_contract",
     "canonical_command_surface_readiness_json",
     "canonical_command_surface_readiness_payload",
@@ -669,6 +682,27 @@ def canonical_command_readiness_handoff_packet_summary() -> tuple[
 
 def canonical_command_readiness_handoff_status_lines() -> tuple[str, ...]:
     return _readiness_handoff_status_lines()
+
+
+def canonical_command_readiness_handoff_step_status_contract() -> CommandDemoReadinessHandoffStepStatusContract:
+    return _readiness_handoff_step_status_contract()
+
+
+def canonical_command_readiness_handoff_step_status_summary() -> tuple[
+    str,
+    str,
+    bool,
+    tuple[tuple[int, str, str, str, str, str, tuple[str, ...], tuple[tuple[str, str], ...], bool, bool], ...],
+]:
+    return _readiness_handoff_step_status_summary()
+
+
+def canonical_command_readiness_handoff_step_status_payload() -> dict[str, object]:
+    return _readiness_handoff_step_status_payload()
+
+
+def canonical_command_readiness_handoff_step_status_json() -> str:
+    return _readiness_handoff_step_status_json()
 
 
 def canonical_command_readiness_seal() -> CommandDemoReadinessSeal:
