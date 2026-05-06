@@ -29,9 +29,11 @@ The branch hardens deterministic FTS retrieval behavior across cache keys, fresh
 
 Canonical demo-path mapping: `vault/context material -> FTS retrieval -> retrieval evidence -> context basket promotion -> engine revise/apply`. This advances `retrieve relevant material` by producing deterministic, auditable FTS evidence, and supports `promote or gather context into the basket` by preserving rehydratable source, context, citation, provenance, and the named `retrieval_basket_promotion_bundle`.
 
-## Current Fixer Pass Addendum
+## Final Fixer Pass Addendum
 
-The source-bearing tip before this pass makes the basket-promotion contract explicit in code. `RetrievalResult.retrieval_basket_promotion_bundle()` emits deterministic FTS excerpt promotion items with doc/excerpt ids, text, spans, ranks, hashes, fingerprints, matched terms, source strategy, backend, and mode. The downstream payload, source bundle, and context bundle preserve and rehydrate that named bundle through the engine retrieval payload helpers.
+This packet supersedes rejected branch tip `473f5e42aa909c029fa143e734209ce5c95f7db5`. It keeps the same corrected cumulative reviewed range, `378cf9a74a3658058079a32f186fcd254c4a4034..HEAD`, and treats every source-bearing retrieval commit through `125a3b7f84f096159baed4114029a7a38df772ae` as part of the implementation under review.
+
+The source-bearing tip makes the basket-promotion contract explicit in code. `RetrievalResult.retrieval_basket_promotion_bundle()` emits deterministic FTS excerpt promotion items with doc/excerpt ids, text, spans, ranks, hashes, fingerprints, matched terms, source strategy, backend, and mode. The downstream payload, source bundle, and context bundle preserve and rehydrate that named bundle through the engine retrieval payload helpers.
 
 This fixer pass corrects packet traceability only. It does not add, remove, or alter retrieval implementation behavior after source-bearing tip `125a3b7f84f096159baed4114029a7a38df772ae`.
 
@@ -39,7 +41,7 @@ Current pass files changed:
 
 - `M THREAD_PACKET.md`
 
-Current pass task count: `1` meaningful task group, within the high-risk `4` task cap.
+Current pass task count: `1` meaningful task group, within the high-risk `4` task cap for this fixer pass.
 Current pass size: packet-only traceability update in `THREAD_PACKET.md`.
 Shared/integrator-locked impact this pass: none; no source, test, or integrator-locked files were edited.
 
@@ -87,9 +89,8 @@ The protected `.codex/kickoff_packets/feat-retrieval-fts.md` and `.codex/lane_me
 
 ## Commands Run
 
-Required gates rerun for this final merge candidate:
+Required gates rerun for the final branch tip after this packet-only fixer commit:
 
-- `python -m unittest tests.unit.test_unified_retrieval` - passed 60 focused retrieval tests.
 - `make scope-check` - passed for branch `codex/feat-retrieval-fts`.
 - `./quality-format.sh --check` - passed.
 - `./quality-lint.sh` - passed shell syntax and trailing whitespace checks.
