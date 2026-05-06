@@ -7179,7 +7179,9 @@ def command_demo_readiness_shell_script(
             lines.append(step.command_line)
         for engine_action, command_line in cli_exact_action_lines_by_flow_step.get(step.flow_step, ()):
             lines.append(f"# action: {engine_action}")
-            lines.append(command_line)
+            if command_line not in emitted_command_lines:
+                emitted_command_lines.add(command_line)
+                lines.append(command_line)
     script = CommandDemoReadinessShellScript(
         lines=tuple(lines),
         command_lines=command_lines,
@@ -7212,28 +7214,30 @@ def _validate_command_demo_readiness_shell_script(
     if any(not line.strip() for line in script.lines):
         raise ValueError("Command demo readiness shell script lines must not be empty")
     executable_lines = tuple(line for line in script.lines if not line.startswith("#"))
-    expected_executable_lines = tuple(
-        line
-        for grouped_lines in (
-            ("set -euo pipefail",),
-            *(
-                (
-                    step.command_line,
-                    *(
-                        command_line
-                        for _, command_line in expected_action_lines
-                        if command_demo_readiness_flow_step_for_argv(
-                            command_line,
-                            specs,
-                            launcher_argv,
-                        )
-                        == step.flow_step
-                    ),
-                )
-                for step in smoke_plan.steps
-            ),
+    expected_executable_lines = _dedupe_command_lines(
+        tuple(
+            line
+            for grouped_lines in (
+                ("set -euo pipefail",),
+                *(
+                    (
+                        step.command_line,
+                        *(
+                            command_line
+                            for _, command_line in expected_action_lines
+                            if command_demo_readiness_flow_step_for_argv(
+                                command_line,
+                                specs,
+                                launcher_argv,
+                            )
+                            == step.flow_step
+                        ),
+                    )
+                    for step in smoke_plan.steps
+                ),
+            )
+            for line in grouped_lines
         )
-        for line in grouped_lines
     )
     if executable_lines != expected_executable_lines:
         raise ValueError("Command demo readiness shell script executable lines are inconsistent")
