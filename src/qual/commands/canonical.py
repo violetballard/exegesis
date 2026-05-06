@@ -1,5 +1,6 @@
 from __future__ import annotations
 
+import json
 from collections.abc import Sequence
 from dataclasses import dataclass
 
@@ -745,7 +746,13 @@ __all__ = [
     "canonical_command_readiness_shell_statuses",
     "canonical_command_readiness_shell_remaining_statuses",
     "canonical_command_readiness_snapshot",
+    "canonical_command_readiness_snapshot_summary",
+    "canonical_command_readiness_snapshot_payload",
+    "canonical_command_readiness_snapshot_json",
     "canonical_command_readiness_shell_snapshot",
+    "canonical_command_readiness_shell_snapshot_summary",
+    "canonical_command_readiness_shell_snapshot_payload",
+    "canonical_command_readiness_shell_snapshot_json",
     "canonical_command_readiness_lookup_table",
     "canonical_command_readiness_command_line_lookup_table",
     "canonical_command_readiness_summary",
@@ -962,6 +969,116 @@ def canonical_command_readiness_snapshot(
     )
 
 
+def _canonical_command_readiness_status_payload(
+    status: CommandCanonicalReadinessStatus,
+) -> dict[str, object]:
+    return {
+        "command": status.command,
+        "flow_step": status.flow_step,
+        "demo_path_step": status.demo_path_step,
+        "argv": status.argv,
+        "command_line": status.command_line,
+        "engine_actions": status.engine_actions,
+        "ready": status.ready,
+    }
+
+
+def _canonical_command_readiness_snapshot_summary(
+    snapshot: CommandCanonicalReadinessSnapshot,
+) -> tuple[
+    bool,
+    tuple[tuple[str | None, str | None, str | None, bool], ...],
+    tuple[tuple[str | None, str | None, str | None, bool], ...],
+    tuple[str | None, str | None, str | None, tuple[str, ...], bool],
+    tuple[tuple[str, ...], ...],
+]:
+    return (
+        snapshot.complete,
+        tuple(
+            (
+                status.command,
+                status.flow_step,
+                status.demo_path_step,
+                status.ready,
+            )
+            for status in snapshot.completed
+        ),
+        tuple(
+            (
+                status.command,
+                status.flow_step,
+                status.demo_path_step,
+                status.ready,
+            )
+            for status in snapshot.remaining
+        ),
+        (
+            snapshot.next_status.command,
+            snapshot.next_status.flow_step,
+            snapshot.next_status.demo_path_step,
+            snapshot.next_status.engine_actions,
+            snapshot.next_status.ready,
+        ),
+        snapshot.invalid_argv,
+    )
+
+
+def canonical_command_readiness_snapshot_summary(
+    argvs: Sequence[Sequence[str] | str],
+) -> tuple[
+    bool,
+    tuple[tuple[str | None, str | None, str | None, bool], ...],
+    tuple[tuple[str | None, str | None, str | None, bool], ...],
+    tuple[str | None, str | None, str | None, tuple[str, ...], bool],
+    tuple[tuple[str, ...], ...],
+]:
+    """Return a compact deterministic readiness snapshot for CLI smoke checks."""
+
+    return _canonical_command_readiness_snapshot_summary(
+        canonical_command_readiness_snapshot(argvs)
+    )
+
+
+def _canonical_command_readiness_snapshot_payload(
+    snapshot: CommandCanonicalReadinessSnapshot,
+) -> dict[str, object]:
+    return {
+        "complete": snapshot.complete,
+        "completed": [
+            _canonical_command_readiness_status_payload(status)
+            for status in snapshot.completed
+        ],
+        "remaining": [
+            _canonical_command_readiness_status_payload(status)
+            for status in snapshot.remaining
+        ],
+        "next_status": _canonical_command_readiness_status_payload(snapshot.next_status),
+        "invalid_argv": snapshot.invalid_argv,
+    }
+
+
+def canonical_command_readiness_snapshot_payload(
+    argvs: Sequence[Sequence[str] | str],
+) -> dict[str, object]:
+    """Return a JSON-ready readiness snapshot for command smoke runners."""
+
+    return _canonical_command_readiness_snapshot_payload(
+        canonical_command_readiness_snapshot(argvs)
+    )
+
+
+def canonical_command_readiness_snapshot_json(
+    argvs: Sequence[Sequence[str] | str],
+) -> str:
+    """Return a deterministic JSON readiness snapshot for CLI compatibility checks."""
+
+    return json.dumps(
+        canonical_command_readiness_snapshot_payload(argvs),
+        sort_keys=True,
+        separators=(",", ":"),
+    )
+
+
 def canonical_command_demo_transcript_contract() -> CommandDemoCommandTranscriptContract:
     """Return the canonical full CLI transcript for the Milestone 3 demo loop."""
 
@@ -1030,6 +1147,44 @@ def canonical_command_readiness_shell_snapshot(
         next_status=canonical_command_readiness_next_status(validation.canonical_argv),
         invalid_argv=validation.invalid_argv,
         complete=validation.is_complete,
+    )
+
+
+def canonical_command_readiness_shell_snapshot_summary(
+    lines: Sequence[str] | str,
+) -> tuple[
+    bool,
+    tuple[tuple[str | None, str | None, str | None, bool], ...],
+    tuple[tuple[str | None, str | None, str | None, bool], ...],
+    tuple[str | None, str | None, str | None, tuple[str, ...], bool],
+    tuple[tuple[str, ...], ...],
+]:
+    """Return a compact deterministic readiness snapshot for shell smoke lines."""
+
+    return _canonical_command_readiness_snapshot_summary(
+        canonical_command_readiness_shell_snapshot(lines)
+    )
+
+
+def canonical_command_readiness_shell_snapshot_payload(
+    lines: Sequence[str] | str,
+) -> dict[str, object]:
+    """Return a JSON-ready readiness snapshot for shell smoke runners."""
+
+    return _canonical_command_readiness_snapshot_payload(
+        canonical_command_readiness_shell_snapshot(lines)
+    )
+
+
+def canonical_command_readiness_shell_snapshot_json(
+    lines: Sequence[str] | str,
+) -> str:
+    """Return a deterministic JSON readiness snapshot for shell smoke lines."""
+
+    return json.dumps(
+        canonical_command_readiness_shell_snapshot_payload(lines),
+        sort_keys=True,
+        separators=(",", ":"),
     )
 
 
