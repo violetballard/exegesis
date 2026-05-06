@@ -1720,6 +1720,7 @@ class RetrievalService:
                 "doc_identity_fingerprint": item.get("doc_identity_fingerprint"),
                 "excerpt_id": item.get("excerpt_id"),
                 "excerpt_fingerprint": item.get("excerpt_fingerprint"),
+                "excerpt_lookup_fingerprint": item.get("excerpt_lookup_fingerprint"),
                 "excerpt_text_hash": item.get("excerpt_text_hash"),
                 "span": item.get("span"),
                 "source_strategy": item.get("source_strategy"),

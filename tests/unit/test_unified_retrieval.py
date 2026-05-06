@@ -2193,10 +2193,18 @@ class UnifiedRetrievalTests(unittest.TestCase):
         sparse_context_bundle = json.loads(json.dumps(result.retrieval_context_bundle()))
         sparse_context_bundle.pop("basket_promotion_items", None)
         sparse_context_bundle.pop("basket_item_ids", None)
+        excerpt_bundle = sparse_context_bundle.get("retrieval_excerpt_bundle")
+        self.assertIsInstance(excerpt_bundle, dict)
+        excerpt_bundle.pop("basket_promotion_items", None)
+        excerpt_bundle.pop("basket_item_ids", None)
         source_bundle = sparse_context_bundle.get("retrieval_source_bundle")
         self.assertIsInstance(source_bundle, dict)
         source_bundle.pop("basket_promotion_items", None)
         source_bundle.pop("basket_item_ids", None)
+        source_excerpt_bundle = source_bundle.get("retrieval_excerpt_bundle")
+        self.assertIsInstance(source_excerpt_bundle, dict)
+        source_excerpt_bundle.pop("basket_promotion_items", None)
+        source_excerpt_bundle.pop("basket_item_ids", None)
         evidence = sparse_context_bundle.get("retrieval_evidence")
         self.assertIsInstance(evidence, dict)
         evidence.pop("basket_promotion_items", None)
@@ -2204,6 +2212,10 @@ class UnifiedRetrievalTests(unittest.TestCase):
         self.assertIsInstance(downstream_payload, dict)
         downstream_payload.pop("basket_promotion_items", None)
         downstream_payload.pop("basket_item_ids", None)
+        downstream_excerpt_bundle = downstream_payload.get("retrieval_excerpt_bundle")
+        self.assertIsInstance(downstream_excerpt_bundle, dict)
+        downstream_excerpt_bundle.pop("basket_promotion_items", None)
+        downstream_excerpt_bundle.pop("basket_item_ids", None)
         downstream_evidence = downstream_payload.get("retrieval_evidence")
         self.assertIsInstance(downstream_evidence, dict)
         downstream_evidence.pop("basket_promotion_items", None)
@@ -2226,6 +2238,10 @@ class UnifiedRetrievalTests(unittest.TestCase):
         self.assertEqual(basket_items[0]["query_scope"], "vault")
         self.assertEqual(basket_items[0]["query_intent"], "compare")
         self.assertEqual(basket_items[0]["result_fingerprint"], result.result_fingerprint)
+        self.assertEqual(
+            basket_items[0]["excerpt_lookup_fingerprint"],
+            result.hits[0].provenance["excerpt_lookup_fingerprint"],
+        )
         self.assertTrue(basket_items[0]["basket_item_fingerprint"])
 
     def test_retrieval_context_bundle_helper_backfills_sparse_basket_fingerprints(self) -> None:
