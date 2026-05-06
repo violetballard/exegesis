@@ -564,6 +564,8 @@ def _normalize_query_bool(value: object) -> bool:
 
 
 def _normalize_query_max_results(value: object) -> int:
+    if isinstance(value, bool):
+        return 10
     try:
         max_results = int(value) if value is not None else 10
     except (TypeError, ValueError):
