@@ -704,6 +704,25 @@ class CommandDemoReadinessShellScript:
 
 
 @dataclass(frozen=True)
+class CommandDemoReadinessRunbook:
+    fingerprint_algorithm: str
+    fingerprint_digest: str
+    shell_script_text: str
+    cli_smoke_lines: tuple[str, ...]
+    executable_route_summary: tuple[tuple[str, str, str, str | None], ...]
+    progress_summary: tuple[
+        bool,
+        str | None,
+        str,
+        str,
+        tuple[str, ...],
+        tuple[str, ...],
+        tuple[tuple[str, ...], ...],
+    ]
+    is_complete: bool
+
+
+@dataclass(frozen=True)
 class CommandDemoReadinessTraceEntry:
     ordinal: int
     engine_action: str
@@ -7492,6 +7511,70 @@ def command_demo_readiness_shell_script_text(
     return command_demo_readiness_shell_script(specs, launcher_argv).text
 
 
+def command_demo_readiness_runbook(
+    specs: tuple[CommandSpec, ...] = COMMAND_SPECS,
+    launcher_argv: tuple[str, ...] = COMMAND_SMOKE_CLI_LAUNCHER_ARGV,
+) -> CommandDemoReadinessRunbook:
+    seal = command_demo_readiness_seal(specs, launcher_argv)
+    fingerprint = command_demo_readiness_fingerprint(specs, launcher_argv)
+    shell_script = command_demo_readiness_shell_script(specs, launcher_argv)
+    cli_smoke_lines = command_demo_readiness_cli_smoke_lines(specs, launcher_argv)
+    runbook = CommandDemoReadinessRunbook(
+        fingerprint_algorithm=fingerprint.algorithm,
+        fingerprint_digest=fingerprint.digest,
+        shell_script_text=shell_script.text,
+        cli_smoke_lines=cli_smoke_lines,
+        executable_route_summary=command_demo_readiness_shell_executable_route_summary(
+            specs,
+            launcher_argv,
+        ),
+        progress_summary=command_demo_readiness_shell_progress_summary(
+            shell_script.lines,
+            specs,
+            launcher_argv,
+        ),
+        is_complete=seal.is_complete,
+    )
+    _validate_command_demo_readiness_runbook(runbook, seal, shell_script, specs, launcher_argv)
+    return runbook
+
+
+def _validate_command_demo_readiness_runbook(
+    runbook: CommandDemoReadinessRunbook,
+    seal: CommandDemoReadinessSeal,
+    shell_script: CommandDemoReadinessShellScript,
+    specs: tuple[CommandSpec, ...],
+    launcher_argv: tuple[str, ...],
+) -> None:
+    fingerprint = command_demo_readiness_fingerprint(specs, launcher_argv)
+    if runbook.fingerprint_algorithm != fingerprint.algorithm:
+        raise ValueError("Command demo readiness runbook fingerprint algorithm is inconsistent")
+    if runbook.fingerprint_digest != fingerprint.digest:
+        raise ValueError("Command demo readiness runbook fingerprint digest is inconsistent")
+    if runbook.shell_script_text != shell_script.text:
+        raise ValueError("Command demo readiness runbook shell script text is inconsistent")
+    expected_cli_smoke_lines = command_demo_readiness_cli_smoke_lines(specs, launcher_argv)
+    if runbook.cli_smoke_lines != expected_cli_smoke_lines:
+        raise ValueError("Command demo readiness runbook CLI smoke lines are inconsistent")
+    expected_route_summary = command_demo_readiness_shell_executable_route_summary(
+        specs,
+        launcher_argv,
+    )
+    if runbook.executable_route_summary != expected_route_summary:
+        raise ValueError("Command demo readiness runbook route summary is inconsistent")
+    expected_progress_summary = command_demo_readiness_shell_progress_summary(
+        shell_script.lines,
+        specs,
+        launcher_argv,
+    )
+    if runbook.progress_summary != expected_progress_summary:
+        raise ValueError("Command demo readiness runbook progress summary is inconsistent")
+    if runbook.is_complete != seal.is_complete:
+        raise ValueError("Command demo readiness runbook completion is inconsistent")
+    if not runbook.is_complete:
+        raise ValueError("Command demo readiness runbook must cover the MVP route")
+
+
 @lru_cache(maxsize=None)
 def command_demo_readiness_trace_contract(
     specs: tuple[CommandSpec, ...] = COMMAND_SPECS,
@@ -12205,6 +12288,13 @@ def command_mvp_demo_readiness_shell_script_text(
     launcher_argv: tuple[str, ...] = COMMAND_SMOKE_CLI_LAUNCHER_ARGV,
 ) -> str:
     return command_demo_readiness_shell_script_text(specs, launcher_argv)
+
+
+def command_mvp_demo_readiness_runbook(
+    specs: tuple[CommandSpec, ...] = COMMAND_SPECS,
+    launcher_argv: tuple[str, ...] = COMMAND_SMOKE_CLI_LAUNCHER_ARGV,
+) -> CommandDemoReadinessRunbook:
+    return command_demo_readiness_runbook(specs, launcher_argv)
 
 
 def command_mvp_demo_readiness_trace_contract(

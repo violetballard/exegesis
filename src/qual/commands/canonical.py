@@ -38,6 +38,7 @@ from src.qual.commands.catalog import (
     CommandDemoReadinessFingerprint,
     CommandDemoReadinessReport,
     CommandDemoReadinessRouteContract,
+    CommandDemoReadinessRunbook,
     CommandDemoReadinessSeal,
     CommandDemoReadinessShellScript,
     CommandDemoReadinessScriptValidation,
@@ -124,6 +125,7 @@ from src.qual.commands.catalog import (
     command_mvp_demo_readiness_shell_executable_route_summary as _readiness_shell_executable_route_summary,
     command_mvp_demo_readiness_shell_script_lines as _readiness_shell_script_lines,
     command_mvp_demo_readiness_shell_script_text as _readiness_shell_script_text,
+    command_mvp_demo_readiness_runbook as _readiness_runbook,
     command_mvp_demo_readiness_trace_contract as _readiness_trace_contract,
     command_mvp_demo_readiness_trace_entry_for_engine_action as _readiness_trace_entry_for_engine_action,
     command_mvp_demo_readiness_trace_entry_for_argv as _readiness_trace_entry_for_argv,
@@ -429,6 +431,7 @@ __all__ = [
     "canonical_command_readiness_shell_executable_route_summary",
     "canonical_command_readiness_shell_script_lines",
     "canonical_command_readiness_shell_script_text",
+    "canonical_command_readiness_runbook",
     "canonical_command_readiness_trace_contract",
     "canonical_command_readiness_trace_entry_for_engine_action",
     "canonical_command_readiness_trace_entry_for_argv",
@@ -942,6 +945,10 @@ def canonical_command_readiness_shell_script_lines() -> tuple[str, ...]:
 
 def canonical_command_readiness_shell_script_text() -> str:
     return _readiness_shell_script_text()
+
+
+def canonical_command_readiness_runbook() -> CommandDemoReadinessRunbook:
+    return _readiness_runbook()
 
 
 def canonical_command_readiness_trace_contract() -> CommandDemoReadinessTraceContract:
