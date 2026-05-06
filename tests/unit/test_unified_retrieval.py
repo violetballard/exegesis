@@ -999,12 +999,24 @@ class UnifiedRetrievalTests(unittest.TestCase):
         self.assertEqual(excerpt["retrieval_policy"]["retrieval_mode"], "fts_first")
         self.assertEqual(excerpt["source_hash"], result.hits[0].provenance["source_hash"])
         self.assertEqual(excerpt["text_hash"], result.hits[0].provenance["excerpt_text_hash"])
+        self.assertEqual(excerpt["lookup_fingerprint"], excerpt["provenance"]["lookup_fingerprint"])
         self.assertEqual(excerpt["provenance"]["source_strategy"], "fts")
         self.assertEqual(excerpt["provenance"]["retrieval_backend"], "sqlite_fts")
         self.assertEqual(excerpt["provenance"]["retrieval_mode"], "fts_first")
         self.assertEqual(excerpt["provenance"]["hash"], result.hits[0].provenance["hash"])
         self.assertEqual(excerpt["provenance"]["excerpt_fingerprint"], result.hits[0].provenance["excerpt_fingerprint"])
         self.assertTrue(excerpt["text"])
+
+        fetched_again = self.service.fetch_excerpt(excerpt_id or "")
+        self.assertEqual(fetched_again["lookup_fingerprint"], excerpt["lookup_fingerprint"])
+
+        audit_events = [
+            json.loads(line)
+            for line in (self.root / "audit_events.jsonl").read_text(encoding="utf-8").splitlines()
+            if line.strip()
+        ]
+        lookup_events = [event for event in audit_events if event["name"] == "excerpt_lookup_completed"]
+        self.assertEqual(lookup_events[-1]["metadata"]["lookup_fingerprint"], excerpt["lookup_fingerprint"])
 
     def test_fetch_excerpt_requires_an_fts_lookup_hit(self) -> None:
         docindex_service = DocIndexService(self.root, audit_log=self.audit)

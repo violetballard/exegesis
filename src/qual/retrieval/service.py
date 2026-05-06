@@ -963,6 +963,7 @@ class RetrievalService:
                 "source_hash": excerpt.get("source_hash"),
                 "text_hash": excerpt.get("text_hash"),
                 "excerpt_fingerprint": excerpt.get("excerpt_fingerprint"),
+                "lookup_fingerprint": excerpt.get("lookup_fingerprint"),
                 "span": copy.deepcopy(span),
             },
         )
@@ -1902,6 +1903,16 @@ class RetrievalService:
                 source_hash=str(normalized.get("source_hash") or provenance.get("source_hash") or ""),
             )
         normalized["excerpt_fingerprint"] = excerpt_fingerprint
+        lookup_fingerprint = RetrievalService._stable_fingerprint(
+            {
+                "excerpt_fingerprint": excerpt_fingerprint,
+                "lookup_resolution": lookup_resolution,
+                "retrieval_backend": retrieval_backend,
+                "retrieval_mode": retrieval_mode,
+                "source_strategy": source_strategy,
+            }
+        )
+        normalized["lookup_fingerprint"] = lookup_fingerprint
         if "provenance" in normalized:
             normalized_provenance = {
                 **provenance,
@@ -1927,6 +1938,7 @@ class RetrievalService:
             normalized_provenance["retrieval_policy"] = copy.deepcopy(retrieval_policy)
             normalized_provenance["retrieval_source_strategy"] = source_strategy
             normalized_provenance["lookup_resolution"] = lookup_resolution
+            normalized_provenance["lookup_fingerprint"] = lookup_fingerprint
             normalized["provenance"] = normalized_provenance
         return normalized
 
