@@ -65,13 +65,14 @@ class FTSStrategy:
 
         started = int(self._now_fn())
         hits = self._runner(query, candidate_doc_ids)
-        # Update the one‑slot cache with the fresh result.
+        hit_snapshot = copy.deepcopy(hits)
+        # Update the one-slot cache with the fresh result.
         self._cache_key = cache_key
-        self._cache_hits = copy.deepcopy(hits)
+        self._cache_hits = copy.deepcopy(hit_snapshot)
 
         elapsed_ns = max(0, int(self._now_fn()) - started)
         elapsed_ms = elapsed_ns // 1_000_000
-        return StrategyRun(strategy_id=self.id, hits=hits, elapsed_ms=elapsed_ms, cache_used=False)
+        return StrategyRun(strategy_id=self.id, hits=hit_snapshot, elapsed_ms=elapsed_ms, cache_used=False)
 
     @staticmethod
     def _make_cache_key(query: Any, candidate_doc_ids: tuple[str, ...]) -> tuple[Any, tuple[str, ...]]:

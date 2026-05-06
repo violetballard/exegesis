@@ -3,7 +3,7 @@
 - Branch name: `codex/feat-retrieval-fts`
 - Lane: `feat-retrieval-fts`
 - Merge target: current `main`
-- Merge candidate before final fixer commit: `0ae9c1429b`
+- Merge candidate before final fixer commit: `4bca73fb0`
 - Final fixer HEAD SHA: reported in the fixer response after this packet commit.
 - Authoritative reviewed implementation base: `378cf9a74a3658058079a32f186fcd254c4a4034`
 - Authoritative reviewed implementation range for re-review: `378cf9a74a3658058079a32f186fcd254c4a4034..FINAL_FIXER_HEAD_REPORTED_IN_RESPONSE`
@@ -27,14 +27,14 @@ Other source-bearing commits after `adfa8cdadd43747ffbcb612e4151e262b13e52ca` ar
 
 The retrieval lane keeps SQLite FTS as the required MVP retrieval path. PageIndex and embeddings remain deferred or compatibility-only surfaces and are not reintroduced as required paths.
 
-The full merge candidate adds and hardens deterministic FTS retrieval behavior across cache keys, query snapshots, result payloads, excerpt lookup, citation/provenance bundles, evidence snapshots, and sparse bundle rehydration. It validates canonical query boundaries, malformed or reversed date ranges, unresolved scopes, empty prefixed `doc:` and `collection:` scopes, doc-type filters, and max-result/scope normalization before or during FTS execution so downstream basket/context promotion flows receive stable, auditable retrieval evidence.
+The full merge candidate adds and hardens deterministic FTS retrieval behavior across cache keys, fresh-run cache snapshots, query snapshots, result payloads, excerpt lookup, citation/provenance bundles, evidence snapshots, and sparse bundle rehydration. It validates canonical query boundaries, malformed or reversed date ranges, unresolved scopes, empty prefixed `doc:` and `collection:` scopes, doc-type filters, and max-result/scope normalization before or during FTS execution so downstream basket/context promotion flows receive stable, auditable retrieval evidence.
 
 The canonical demo-path mapping is `vault/context material -> FTS retrieval -> retrieval evidence -> context basket promotion -> engine revise/apply`. This branch advances the `retrieve relevant material` step by making retrieved documents, excerpts, source bundles, citation bundles, provenance, context refs, basket refs, query constraints, and lookup fingerprints deterministic and rehydratable for CLI-backed engine flows.
 
 ## Tasks Completed
 
 1. Made SQLite FTS the authoritative MVP retrieval path for document and excerpt retrieval while keeping PageIndex and embeddings fallback-only/deferred.
-2. Stabilized FTS cache and query normalization, including deterministic snapshots for query-shaped objects, dataclasses, mappings, iterables, date ranges, doc types, scopes, cache invalidation, and cache audit metadata.
+2. Stabilized FTS cache and query normalization, including deterministic snapshots for query-shaped objects, dataclasses, mappings, iterables, date ranges, doc types, scopes, fresh runner output, cache invalidation, and cache audit metadata.
 3. Normalized retrieval payload, provenance, citation, source-bundle, context-bundle, basket-promotion, and evidence snapshots so sparse downstream helpers can rehydrate stable FTS-first payloads without losing query constraints, fingerprints, ranks, identities, policies, section hints, or confidentiality profile metadata.
 4. Added fail-closed retrieval boundary coverage and approved shared regressions for malformed or reversed date ranges, empty query/scope inputs, unresolved `doc:` and `collection:` scopes, FTS-only excerpt lookup, excerpt lookup fingerprints, and cache/query snapshot behavior in `tests/unit/test_unified_retrieval.py`.
 
@@ -65,9 +65,9 @@ Final merge-candidate diff from `378cf9a74a3658058079a32f186fcd254c4a4034..FINAL
 
 Final packet correction note: `.codex/kickoff_packets/feat-retrieval-fts.md` and `.codex/lane_meta/feat-retrieval-fts.json` are protected by the filesystem in this worktree (`Operation not permitted` on direct write and xattr removal). Because their tracked contents still assert the false stale `adfa8cdadd43747ffbcb612e4151e262b13e52ca`/metadata-only trace, this fixer removes those two stale mirror artifacts from the merge candidate instead of preserving contradictory tracked packet metadata. `THREAD_PACKET.md` is the coherent handoff packet for re-review.
 
-Implementation/test-only diff from `378cf9a74a3658058079a32f186fcd254c4a4034..0ae9c1429b`:
+Implementation/test-only diff from `378cf9a74a3658058079a32f186fcd254c4a4034..FINAL_FIXER_HEAD_REPORTED_IN_RESPONSE`:
 
-- `src/qual/engine/retrieval/fts_strategy.py`
+- `src/qual/engine/retrieval/fts_strategy.py` - includes the final owned-path refresh that returns defensive fresh-run FTS hit snapshots before caching.
 - `src/qual/engine/retrieval/payload.py`
 - `src/qual/retrieval/service.py`
 - `tests/unit/test_unified_retrieval.py`
@@ -85,8 +85,8 @@ Implementation/test-only diff from `378cf9a74a3658058079a32f186fcd254c4a4034..0a
 
 ## Roadmap/Vision
 
-- Roadmap items affected: `ROADMAP.md` Milestone 3 Product Readiness, including FTS-first ingestion/index path and retrieval evidence attached to outputs.
-- Product Vision capability affected: `2. Retrieval-first context handling` and `6. Auditable state and workflow`.
+- Roadmap items affected: `ROADMAP.md` Milestone 3 Product Readiness generation provenance and Milestone 4 Retrieval Layer FTS-first retrieval orchestration/source attribution.
+- Product Vision capability affected: `2. Retrieval-first context handling` and `3. Auditable generation`.
 - Architecture alignment: retrieval stays in `src/qual/retrieval/**` and `src/qual/engine/retrieval/**`; no provider/routing/core app entrypoints are touched.
 - Routing/provider impact note: none.
 - Proposed `README.md` patch text: none.
@@ -95,9 +95,10 @@ Implementation/test-only diff from `378cf9a74a3658058079a32f186fcd254c4a4034..0a
 
 Required gates rerun for this final merge candidate:
 
-- `make scope-check` - passed; no policy for branch `codex/feat-retrieval-fts`, scope-check skipped policy enforcement and passed.
+- `make scope-check` - passed for branch `codex/feat-retrieval-fts`.
 - `./quality-format.sh --check` - passed.
 - `./quality-lint.sh` - passed shell syntax and trailing whitespace checks.
+- `python -m unittest tests.unit.test_unified_retrieval` - passed 60 focused retrieval regression tests before and after the final owned-path refresh.
 - `./quality-test.sh` - passed smoke tests and 129 unit tests.
 - `./typecheck-test.sh` - passed Python source compilation under `src/`.
 - `make ci` - passed setup, scope-check, format, lint, compile/typecheck, smoke tests, and 129 unit tests.
