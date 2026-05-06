@@ -1307,6 +1307,8 @@ COMMAND_SMOKE_ENV_SPLIT_STRING_OPTIONS: tuple[str, ...] = (
 )
 COMMAND_SMOKE_SHELL_SETUP_COMMANDS: tuple[str, ...] = (
     "cd",
+    "pushd",
+    "popd",
     "pwd",
     "true",
     ":",
