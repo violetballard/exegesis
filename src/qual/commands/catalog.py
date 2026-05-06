@@ -6852,6 +6852,21 @@ def command_demo_readiness_shell_executable_lines(
     )
 
 
+def command_demo_readiness_shell_executable_route_summary(
+    specs: tuple[CommandSpec, ...] = COMMAND_SPECS,
+    launcher_argv: tuple[str, ...] = COMMAND_SMOKE_CLI_LAUNCHER_ARGV,
+) -> tuple[tuple[str, str, str, str | None], ...]:
+    entries: list[tuple[str, str, str, str | None]] = []
+    for line in command_demo_readiness_shell_executable_lines(specs, launcher_argv):
+        if line == "set -euo pipefail":
+            continue
+        validation = command_demo_readiness_validate_cli_argv(line, specs, launcher_argv)
+        if validation.flow_step is None or validation.name is None:
+            raise ValueError(f"Command demo readiness shell executable is not routeable: {line}")
+        entries.append((line, validation.flow_step, validation.name, validation.exact_engine_action))
+    return tuple(entries)
+
+
 def command_demo_readiness_cli_smoke_lines(
     specs: tuple[CommandSpec, ...] = COMMAND_SPECS,
     launcher_argv: tuple[str, ...] = COMMAND_SMOKE_CLI_LAUNCHER_ARGV,
@@ -10721,6 +10736,13 @@ def command_mvp_demo_readiness_shell_executable_lines(
     launcher_argv: tuple[str, ...] = COMMAND_SMOKE_CLI_LAUNCHER_ARGV,
 ) -> tuple[str, ...]:
     return command_demo_readiness_shell_executable_lines(specs, launcher_argv)
+
+
+def command_mvp_demo_readiness_shell_executable_route_summary(
+    specs: tuple[CommandSpec, ...] = COMMAND_SPECS,
+    launcher_argv: tuple[str, ...] = COMMAND_SMOKE_CLI_LAUNCHER_ARGV,
+) -> tuple[tuple[str, str, str, str | None], ...]:
+    return command_demo_readiness_shell_executable_route_summary(specs, launcher_argv)
 
 
 def command_mvp_demo_readiness_cli_smoke_lines(
