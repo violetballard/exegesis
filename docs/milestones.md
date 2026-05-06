@@ -183,7 +183,26 @@ Status:
 - Lane state: disabled (`feat-editor-basics`)
 - This milestone is spec scaffolding only until explicitly activated
 
-## Milestone 11: Citation support
+## Milestone 11: Zotero import
+
+Outcome:
+- Zotero becomes the preferred MVP path for importing literature and high-quality metadata into the project literature library.
+
+Deliverables:
+- one-way Zotero import option for literature
+- in-app or browser-based Zotero login/key workflow
+- secure credential storage requirement
+- Zotero metadata import into literature metadata
+- literature folder treated as a durable project-level literature library that feeds citations, RAG, drafting, and context promotion
+- no writeback, bidirectional sync, collection management, or deep-research export into Zotero
+- Zotero attached-file import through the standard literature/OCR pipeline
+
+Status:
+- Planned and disabled
+- Lane state: disabled (`feat-zotero-import`)
+- This milestone is spec scaffolding only until explicitly activated
+
+## Milestone 12: Citation support
 
 Outcome:
 - Drafts can eventually cite literature manually or through model-assisted writing while preserving Pandoc-compatible source citations.
@@ -201,7 +220,7 @@ Status:
 - Lane state: disabled (`feat-citations`)
 - This milestone is spec scaffolding only until explicitly activated
 
-## Milestone 12: Export support
+## Milestone 13: Export support
 
 Outcome:
 - Drafts can eventually export raw Markdown, APA PDF, and APA DOCX with generated reference lists.
@@ -218,23 +237,6 @@ Deliverables:
 Status:
 - Planned and disabled
 - Lane state: disabled (`feat-export`)
-- This milestone is spec scaffolding only until explicitly activated
-
-## Milestone 13: Zotero import
-
-Outcome:
-- Literature can eventually be imported from Zotero while still flowing through Exegesis literature metadata and OCR import contracts.
-
-Deliverables:
-- Zotero import option for literature
-- in-app or browser-based Zotero login/key workflow
-- secure credential storage requirement
-- Zotero metadata import into literature metadata
-- Zotero attached-file import through the standard literature/OCR pipeline
-
-Status:
-- Planned and disabled
-- Lane state: disabled (`feat-zotero-import`)
 - This milestone is spec scaffolding only until explicitly activated
 
 ## Milestone 14: Formatting bar

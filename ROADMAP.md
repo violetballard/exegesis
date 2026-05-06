@@ -189,7 +189,28 @@ Exit criteria:
 - shortcut and command-palette coverage is specified
 - no runtime editor basics behavior is active until the lane is enabled
 
-## Milestone 11: Citation support
+## Milestone 11: Zotero import
+
+Status: planned, disabled
+
+Scope:
+- make Zotero the preferred MVP path for importing literature and high-quality metadata
+- add Zotero as a one-way literature import source
+- support Zotero login/key workflow through in-app or browser-based authentication
+- store Zotero credentials securely
+- import Zotero metadata and attached literature files through the normal literature/OCR import pipeline
+- treat the project literature folder as a durable project-level literature library, not just a loose file list
+- explicitly defer writeback, bidirectional sync, collection management, and deep-research export into Zotero
+
+Lane mapping:
+- `feat-zotero-import`: disabled until explicitly activated
+
+Exit criteria:
+- one-way Zotero import/auth contract is specified
+- Zotero metadata-to-literature mapping is specified
+- no runtime Zotero behavior is active until the lane is enabled
+
+## Milestone 12: Citation support
 
 Status: planned, disabled
 
@@ -207,7 +228,7 @@ Exit criteria:
 - manual and model-used citation behavior is specified
 - no runtime citation behavior is active until the lane is enabled
 
-## Milestone 12: Export support
+## Milestone 13: Export support
 
 Status: planned, disabled
 
@@ -225,24 +246,6 @@ Exit criteria:
 - export format contract is specified
 - APA metadata and reference-list requirements are specified
 - no runtime export behavior is active until the lane is enabled
-
-## Milestone 13: Zotero import
-
-Status: planned, disabled
-
-Scope:
-- add Zotero as a literature import source
-- support Zotero login/key workflow through in-app or browser-based authentication
-- store Zotero credentials securely
-- import Zotero metadata and attached literature files through the normal literature/OCR import pipeline
-
-Lane mapping:
-- `feat-zotero-import`: disabled until explicitly activated
-
-Exit criteria:
-- Zotero import/auth contract is specified
-- Zotero metadata-to-literature mapping is specified
-- no runtime Zotero behavior is active until the lane is enabled
 
 ## Milestone 14: Formatting bar
 
@@ -365,9 +368,9 @@ Current operational narrowing:
 - `feat-rag-index`
 - `feat-qual-coding`
 - `feat-editor-basics`
+- `feat-zotero-import`
 - `feat-citations`
 - `feat-export`
-- `feat-zotero-import`
 - `feat-formatting-bar`
 - `feat-developer-provider-config`
 - `feat-desktop-packaging`

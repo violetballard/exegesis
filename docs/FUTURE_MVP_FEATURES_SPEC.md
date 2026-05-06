@@ -275,7 +275,119 @@ Behavior with generated edits:
 - Undo stack is per document, not global across all documents.
 - Command palette contains Copy, Paste, Undo, Redo.
 
-## Milestone 11: Citation Support
+## Milestone 11: Zotero Import
+
+Lane: `feat-zotero-import` (disabled)
+
+Intent:
+- Treat Zotero as the preferred MVP path for importing literature and high-quality metadata.
+- Add Zotero as a one-way literature import source without bypassing the normal literature/OCR pipeline.
+- Import metadata first, then import attached files through the existing literature/OCR flow.
+- Treat the project literature folder as the project-level literature library: a larger, durable basket that feeds citations, RAG, drafting, and context promotion.
+- Do not implement writeback, export, sync, or deep-research push into Zotero in this milestone.
+
+### Data Model
+
+Zotero account state:
+- `account_id`
+- `user_id` or Zotero library ID
+- `display_name`
+- `credential_ref`: keychain/secret reference, never raw token in project files
+- `last_sync_at`
+
+Zotero import candidate:
+- `zotero_item_key`
+- `library_id`
+- `title`
+- `authors`
+- `year/date`
+- `DOI`
+- `URL`
+- `abstract`
+- `citation_key`
+- `attachment_refs`
+- `selected_for_import`
+
+Mapping to literature metadata:
+- Zotero title -> literature title
+- creators/authors -> authors
+- publication title -> venue/publication
+- date -> year/date
+- DOI/URL copied directly
+- abstract note copied if available
+- Zotero item key stored as provenance
+
+### Engine/API Surface
+
+Add Zotero actions:
+- `get_zotero_auth_status(project_id) -> ZoteroAuthStatus`
+- `start_zotero_auth(project_id) -> ZoteroAuthRequest`
+- `complete_zotero_auth(project_id, callback_payload) -> ZoteroAuthStatus`
+- `list_zotero_libraries(project_id) -> list[ZoteroLibrary]`
+- `search_zotero_items(project_id, query?) -> list[ZoteroImportCandidate]`
+- `import_zotero_items(project_id, candidate_ids, import_options) -> ImportResult`
+
+Authentication default:
+- Prefer browser-based OAuth/API-key workflow supported by Zotero.
+- Store credentials in keychain/secret storage.
+- Never write raw Zotero credentials to repo, project files, transcripts, or logs.
+
+### UI And Commands
+
+Import modal:
+- Add Zotero as a source under literature import.
+- If unauthenticated, show login/connect flow.
+- If authenticated, show searchable Zotero item list.
+- User selects one or more items and attached files.
+- Imported metadata opens the same literature metadata approval flow as normal literature import.
+
+Attachment handling:
+- Markdown attachments go through Markdown literature import.
+- PDF/image/document attachments go through OCR import first, then literature metadata approval.
+- Metadata-only Zotero items can still create literature records with no local full text.
+
+Shortcut row and palette:
+- Required commands:
+  - `Import from Zotero`
+  - `Reconnect Zotero`
+  - `Search Zotero Library`
+
+### Implementation Batches
+
+1. Auth and secret contract
+   - Add auth status, connect flow, and credential-ref storage.
+2. Zotero metadata search
+   - List/search libraries and items.
+3. Metadata mapping
+   - Convert Zotero candidates into literature metadata approval candidates.
+4. Attachment import
+   - Route attachments through Markdown/OCR literature import pipeline.
+5. UI integration
+   - Add Zotero source in import modal and command palette.
+
+### Test Plan
+
+- Unauthenticated Zotero import prompts for connect flow.
+- Auth completion stores only credential references in project state.
+- Zotero search returns import candidates with metadata fields.
+- Metadata-only import creates literature record.
+- PDF attachment import routes through OCR/literature pipeline.
+- Markdown attachment import skips OCR and runs literature metadata approval.
+- Failed auth or expired credentials shows reconnect action.
+- Command palette contains Zotero commands.
+
+References:
+- [Zotero Web API basics](https://www.zotero.org/support/dev/web_api/v3/basics)
+- [Zotero OAuth](https://www.zotero.org/support/dev/web_api/v3/oauth)
+
+Non-goals:
+- writeback from Exegesis into Zotero
+- bidirectional sync
+- Zotero collection management
+- generating Zotero items from deep research
+- using Zotero as the primary document store
+
+## Milestone 12: Citation Support
 
 Lane: `feat-citations` (disabled)
 
@@ -374,7 +486,7 @@ Shortcut row and palette:
 References:
 - [Pandoc citations](https://pandoc.org/MANUAL.html?citationMarker=43dcd9a7-70db-4a1f-b0ae-981daa162054)
 
-## Milestone 12: Export Support
+## Milestone 13: Export Support
 
 Lane: `feat-export` (disabled)
 
@@ -473,108 +585,6 @@ Shortcut row and palette:
 
 References:
 - [Pandoc citations](https://pandoc.org/MANUAL.html?citationMarker=43dcd9a7-70db-4a1f-b0ae-981daa162054)
-
-## Milestone 13: Zotero Import
-
-Lane: `feat-zotero-import` (disabled)
-
-Intent:
-- Add Zotero as a literature import source without bypassing the normal literature/OCR pipeline.
-- Import metadata first, then import attached files through the existing literature/OCR flow.
-
-### Data Model
-
-Zotero account state:
-- `account_id`
-- `user_id` or Zotero library ID
-- `display_name`
-- `credential_ref`: keychain/secret reference, never raw token in project files
-- `last_sync_at`
-
-Zotero import candidate:
-- `zotero_item_key`
-- `library_id`
-- `title`
-- `authors`
-- `year/date`
-- `DOI`
-- `URL`
-- `abstract`
-- `citation_key`
-- `attachment_refs`
-- `selected_for_import`
-
-Mapping to literature metadata:
-- Zotero title -> literature title
-- creators/authors -> authors
-- publication title -> venue/publication
-- date -> year/date
-- DOI/URL copied directly
-- abstract note copied if available
-- Zotero item key stored as provenance
-
-### Engine/API Surface
-
-Add Zotero actions:
-- `get_zotero_auth_status(project_id) -> ZoteroAuthStatus`
-- `start_zotero_auth(project_id) -> ZoteroAuthRequest`
-- `complete_zotero_auth(project_id, callback_payload) -> ZoteroAuthStatus`
-- `list_zotero_libraries(project_id) -> list[ZoteroLibrary]`
-- `search_zotero_items(project_id, query?) -> list[ZoteroImportCandidate]`
-- `import_zotero_items(project_id, candidate_ids, import_options) -> ImportResult`
-
-Authentication default:
-- Prefer browser-based OAuth/API-key workflow supported by Zotero.
-- Store credentials in keychain/secret storage.
-- Never write raw Zotero credentials to repo, project files, transcripts, or logs.
-
-### UI And Commands
-
-Import modal:
-- Add Zotero as a source under literature import.
-- If unauthenticated, show login/connect flow.
-- If authenticated, show searchable Zotero item list.
-- User selects one or more items and attached files.
-- Imported metadata opens the same literature metadata approval flow as normal literature import.
-
-Attachment handling:
-- Markdown attachments go through Markdown literature import.
-- PDF/image/document attachments go through OCR import first, then literature metadata approval.
-- Metadata-only Zotero items can still create literature records with no local full text.
-
-Shortcut row and palette:
-- Required commands:
-  - `Import from Zotero`
-  - `Reconnect Zotero`
-  - `Search Zotero Library`
-
-### Implementation Batches
-
-1. Auth and secret contract
-   - Add auth status, connect flow, and credential-ref storage.
-2. Zotero metadata search
-   - List/search libraries and items.
-3. Metadata mapping
-   - Convert Zotero candidates into literature metadata approval candidates.
-4. Attachment import
-   - Route attachments through Markdown/OCR literature import pipeline.
-5. UI integration
-   - Add Zotero source in import modal and command palette.
-
-### Test Plan
-
-- Unauthenticated Zotero import prompts for connect flow.
-- Auth completion stores only credential references in project state.
-- Zotero search returns import candidates with metadata fields.
-- Metadata-only import creates literature record.
-- PDF attachment import routes through OCR/literature pipeline.
-- Markdown attachment import skips OCR and runs literature metadata approval.
-- Failed auth or expired credentials shows reconnect action.
-- Command palette contains Zotero commands.
-
-References:
-- [Zotero Web API basics](https://www.zotero.org/support/dev/web_api/v3/basics)
-- [Zotero OAuth](https://www.zotero.org/support/dev/web_api/v3/oauth)
 
 ## Milestone 14: Formatting Bar
 

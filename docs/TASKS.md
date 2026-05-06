@@ -118,6 +118,22 @@ Activation rule:
 Implementation batches:
 - use `docs/FUTURE_MVP_FEATURES_SPEC.md` as the lane-ready build sheet
 
+### `feat-zotero-import`
+Own later:
+- one-way Zotero as the preferred MVP literature import source
+- Zotero browser/login or API-key workflow
+- secure credential storage requirements
+- Zotero metadata import into literature metadata
+- literature folder as durable project-level literature library for citations, RAG, drafting, and context promotion
+- no writeback, bidirectional sync, collection management, or deep-research export into Zotero
+- attached-file import through the literature/OCR pipeline
+
+Activation rule:
+- disabled until OCR/import normalization and literature metadata contracts are ready
+
+Implementation batches:
+- use `docs/FUTURE_MVP_FEATURES_SPEC.md` as the lane-ready build sheet
+
 ### `feat-citations`
 Own later:
 - manual literature citation insertion
@@ -144,20 +160,6 @@ Own later:
 
 Activation rule:
 - disabled until citation support and draft metadata contracts are ready
-
-Implementation batches:
-- use `docs/FUTURE_MVP_FEATURES_SPEC.md` as the lane-ready build sheet
-
-### `feat-zotero-import`
-Own later:
-- Zotero as a literature import source
-- Zotero browser/login or API-key workflow
-- secure credential storage requirements
-- Zotero metadata import into literature metadata
-- attached-file import through the literature/OCR pipeline
-
-Activation rule:
-- disabled until literature import and OCR import contracts are ready
 
 Implementation batches:
 - use `docs/FUTURE_MVP_FEATURES_SPEC.md` as the lane-ready build sheet
