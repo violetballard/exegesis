@@ -9,16 +9,19 @@
 - Approved shared regression path: `tests/unit/test_unified_retrieval.py`.
 - Integrator-locked files changed: none.
 - Authoritative reviewed implementation base: `378cf9a74a3658058079a32f186fcd254c4a4034`.
-- Authoritative reviewed implementation range for re-review: `378cf9a74a3658058079a32f186fcd254c4a4034..HEAD`, where `HEAD` is the final branch tip reported with this fixer response.
-- Reviewer-cited unreviewed implementation range now included: `adfa8cdadd43747ffbcb612e4151e262b13e52ca..HEAD`.
+- Authoritative reviewed implementation head: `f71a0f766894cf6dca96f33a7b071e9f3930609a`.
+- Authoritative reviewed implementation range for re-review: `378cf9a74a3658058079a32f186fcd254c4a4034..f71a0f766894cf6dca96f33a7b071e9f3930609a`.
+- Reviewer-cited unreviewed implementation range now included: `adfa8cdadd43747ffbcb612e4151e262b13e52ca..f71a0f766894cf6dca96f33a7b071e9f3930609a`.
 
 ## Traceability Correction
 
 This packet supersedes all earlier handoffs that described `adfa8cdadd43747ffbcb612e4151e262b13e52ca` as the reviewed implementation head or described later branch-tip commits as metadata-only. The actual merge candidate range is:
 
-`378cf9a74a3658058079a32f186fcd254c4a4034..HEAD`
+`378cf9a74a3658058079a32f186fcd254c4a4034..f71a0f766894cf6dca96f33a7b071e9f3930609a`
 
-That range includes every non-metadata retrieval change through the final branch tip, including the reviewer-cited implementation changes after `adfa8cdadd43747ffbcb612e4151e262b13e52ca` in `src/qual/retrieval/service.py`, `src/qual/engine/retrieval/payload.py`, and `tests/unit/test_unified_retrieval.py`.
+That range includes every non-metadata retrieval change through `f71a0f766894cf6dca96f33a7b071e9f3930609a`, including the reviewer-cited implementation changes after `adfa8cdadd43747ffbcb612e4151e262b13e52ca` in `src/qual/retrieval/service.py`, `src/qual/engine/retrieval/payload.py`, and `tests/unit/test_unified_retrieval.py`.
+
+This fixer creates a metadata-only packet refresh commit after `f71a0f766894cf6dca96f33a7b071e9f3930609a`; the final HEAD SHA for that packet refresh is reported with the fixer response. The refreshed packet does not classify `f71a0f766894cf6dca96f33a7b071e9f3930609a` as metadata-only.
 
 Re-review should not use `adfa8cdadd43747ffbcb612e4151e262b13e52ca` as the implementation head. It is an intermediate commit only.
 
@@ -64,7 +67,7 @@ Task accounting: `4` high-risk task groups completed, matching the high-risk tas
 
 - Task budget: `4` high-risk task groups; completed as the four groups above.
 - File count: the corrected implementation submission uses `6` source/test files plus `3` packet/artifact files.
-- Size limit: exceeds the high-risk `<=300 net LOC` limit. The corrected final range `378cf9a74a3658058079a32f186fcd254c4a4034..HEAD` is `9 files changed, 1006 insertions(+), 198 deletions(-)`. This packet refresh keeps that overage explicit for reviewer/integrator disposition.
+- Size limit: exceeds the high-risk `<=300 net LOC` limit. The corrected implementation range `378cf9a74a3658058079a32f186fcd254c4a4034..f71a0f766894cf6dca96f33a7b071e9f3930609a` is `9 files changed, 1027 insertions(+), 199 deletions(-)`. This packet refresh keeps that overage explicit for reviewer/integrator disposition.
 - Explicit exception status: no integrator-approved size exception is recorded in the worktree. Re-review should treat the size overage as a known blocker unless the integrator grants an exception or requests a split.
 - Shared-file exception status: `tests/unit/test_unified_retrieval.py` is the sole approved shared regression surface; no integrator-locked files changed.
 - Routing/provider impact: none.
