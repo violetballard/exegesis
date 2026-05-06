@@ -2063,6 +2063,55 @@ def command_handler_delegation_for(command_name: str) -> CommandHandlerDelegatio
 
 
 @lru_cache(maxsize=None)
+def command_mvp_handler_delegation_contract() -> CommandHandlerDelegationContract:
+    entries_by_name = {
+        entry.name: entry
+        for entry in command_handler_delegation_contract().entries
+    }
+    ordered_entries = tuple(
+        entries_by_name[name]
+        for name in command_mvp_flow_names()
+    )
+    contract = CommandHandlerDelegationContract(entries=ordered_entries)
+    _validate_command_mvp_handler_delegation_contract(contract)
+    return contract
+
+
+def _validate_command_mvp_handler_delegation_contract(
+    contract: CommandHandlerDelegationContract,
+) -> None:
+    if tuple(entry.name for entry in contract.entries) != command_mvp_flow_names():
+        raise ValueError("Command MVP handler delegation names are inconsistent")
+    if tuple(entry.flow_step for entry in contract.entries) != command_mvp_flow_steps():
+        raise ValueError("Command MVP handler delegation flow steps are inconsistent")
+    delegated_names = {entry.name for entry in contract.entries}
+    missing_names = tuple(
+        name
+        for name in command_names()
+        if name not in delegated_names
+    )
+    if missing_names:
+        raise ValueError(
+            "Command MVP handler delegation is missing commands: "
+            + ", ".join(missing_names)
+        )
+
+
+def command_mvp_handler_delegation_summary() -> tuple[tuple[str, str, str, str], ...]:
+    return tuple(
+        (entry.name, entry.flow_step, entry.handler, entry.delegated_to)
+        for entry in command_mvp_handler_delegation_contract().entries
+    )
+
+
+def command_mvp_handler_delegation_lookup_table() -> tuple[tuple[str, str], ...]:
+    return tuple(
+        (entry.name, entry.delegated_to)
+        for entry in command_mvp_handler_delegation_contract().entries
+    )
+
+
+@lru_cache(maxsize=None)
 def command_cli_route_catalog(
     specs: tuple[CommandSpec, ...] = COMMAND_SPECS,
     flow_steps: tuple[str, ...] | None = None,

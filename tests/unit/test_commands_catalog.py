@@ -34,6 +34,9 @@ from src.qual.commands.catalog import (
     command_lookup_tokens_for,
     command_manifest,
     command_mvp_flow,
+    command_mvp_handler_delegation_contract,
+    command_mvp_handler_delegation_lookup_table,
+    command_mvp_handler_delegation_summary,
     command_mvp_cli_flow_contract,
     command_mvp_cli_route_contract,
     command_mvp_flow_names,
@@ -603,6 +606,45 @@ class CommandCatalogTests(unittest.TestCase):
         self.assertEqual(
             tuple(entry.name for entry in manifest),
             ("bootstrap", "context-basket", "diff-preview", "terminal"),
+        )
+
+    def test_command_mvp_handler_delegation_contract_tracks_demo_sequence(self) -> None:
+        contract = command_mvp_handler_delegation_contract()
+        self.assertEqual(
+            tuple((entry.flow_step, entry.name) for entry in contract.entries),
+            (
+                ("project-open", "bootstrap"),
+                ("retrieval", "context-basket"),
+                ("patch-review", "diff-preview"),
+                ("export-handoff", "terminal"),
+            ),
+        )
+        self.assertEqual(
+            command_mvp_handler_delegation_lookup_table(),
+            (
+                (
+                    "bootstrap",
+                    "exegesis_engine.api.runtime_commands.run_bootstrap",
+                ),
+                (
+                    "context-basket",
+                    "exegesis_engine.api.runtime_commands.run_context_basket_command",
+                ),
+                ("diff-preview", "src.qual.commands.diff_preview.run_diff_preview"),
+                (
+                    "terminal",
+                    "exegesis_engine.api.runtime_commands.run_terminal_command",
+                ),
+            ),
+        )
+        self.assertEqual(
+            tuple((name, flow_step) for name, flow_step, _, _ in command_mvp_handler_delegation_summary()),
+            (
+                ("bootstrap", "project-open"),
+                ("context-basket", "retrieval"),
+                ("diff-preview", "patch-review"),
+                ("terminal", "export-handoff"),
+            ),
         )
 
     def test_mvp_flow_helpers_expose_the_expected_sequence(self) -> None:
