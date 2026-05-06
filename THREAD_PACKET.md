@@ -11,7 +11,7 @@
 - Authoritative reviewed implementation base: `378cf9a74a3658058079a32f186fcd254c4a4034`.
 - Authoritative reviewed implementation range for re-review: `378cf9a74a3658058079a32f186fcd254c4a4034..HEAD`, where `HEAD` is the final branch tip reported with this fixer response.
 - Actual source-bearing branch tip covered by this packet: `b3b0e81e6a6754dfa3eaa3d21a01ee82817ad846`.
-- Packet-only trace tip before this fixer refresh: `b1a9ea85016746bcd2a54a247e860d7c3fe4e1e9`.
+- Packet-only trace tip before this fixer refresh: `d902e90625ddfa0abfa92a152e8a94aa26fed2b4`.
 - Source-bearing update note: `b3b0e81e6a6754dfa3eaa3d21a01ee82817ad846` is source-bearing, not metadata-only. It changes `src/qual/retrieval/service.py`, `src/qual/engine/retrieval/payload.py`, and `THREAD_PACKET.md`; those retrieval source changes are included in the corrected reviewed implementation range.
 
 ## Traceability Correction
@@ -20,7 +20,7 @@ This packet supersedes stale narrow-range handoffs that described `adfa8cdadd437
 
 `378cf9a74a3658058079a32f186fcd254c4a4034..HEAD`
 
-That range includes every source-bearing retrieval commit through `b3b0e81e6a6754dfa3eaa3d21a01ee82817ad846`, including the reviewer-cited source changes after `adfa8cdadd43747ffbcb612e4151e262b13e52ca`. The packet-only fixer commits on top of `b3b0e81e6a6754dfa3eaa3d21a01ee82817ad846`, including `d1440f763ae89eb3853059c8fb4a0deda6ee75ed`, `b1a9ea85016746bcd2a54a247e860d7c3fe4e1e9`, and the final fixer commit reported with this handoff response, do not move retrieval source.
+That range includes every source-bearing retrieval commit through `b3b0e81e6a6754dfa3eaa3d21a01ee82817ad846`, including the reviewer-cited source changes after `adfa8cdadd43747ffbcb612e4151e262b13e52ca`. The packet-only fixer commits on top of `b3b0e81e6a6754dfa3eaa3d21a01ee82817ad846`, including `d1440f763ae89eb3853059c8fb4a0deda6ee75ed`, `b1a9ea85016746bcd2a54a247e860d7c3fe4e1e9`, `d902e90625ddfa0abfa92a152e8a94aa26fed2b4`, and the final fixer commit reported with this handoff response, do not move retrieval source.
 
 The source/test implementation surface in the corrected range is:
 
@@ -43,9 +43,11 @@ The full changed-file surface in the corrected range is:
 - `M tests/unit/test_unified_retrieval.py`
 - `M THREAD_PACKET.md`
 
-Current source-bearing diff size for `378cf9a74a3658058079a32f186fcd254c4a4034..b3b0e81e6a6754dfa3eaa3d21a01ee82817ad846` is `9 files changed, 888 insertions(+), 201 deletions(-)`. Excluding `THREAD_PACKET.md`, the source/artifact/test portion is `8 files changed, 806 insertions(+), 129 deletions(-)`. The final reviewed range is still `378cf9a74a3658058079a32f186fcd254c4a4034..HEAD`; later changes after `b3b0e81e6a6754dfa3eaa3d21a01ee82817ad846` are packet-only traceability refreshes. At the pre-commit packet-refresh tip `b1a9ea85016746bcd2a54a247e860d7c3fe4e1e9`, the full corrected range is `9 files changed, 891 insertions(+), 201 deletions(-)`.
+Current source-bearing diff size for `378cf9a74a3658058079a32f186fcd254c4a4034..b3b0e81e6a6754dfa3eaa3d21a01ee82817ad846` is `9 files changed, 888 insertions(+), 201 deletions(-)`. Excluding `THREAD_PACKET.md`, the source/artifact/test portion is `8 files changed, 806 insertions(+), 129 deletions(-)`. The final reviewed range is still `378cf9a74a3658058079a32f186fcd254c4a4034..HEAD`; later changes after `b3b0e81e6a6754dfa3eaa3d21a01ee82817ad846` are packet-only traceability refreshes. At the pre-commit packet-refresh tip `d902e90625ddfa0abfa92a152e8a94aa26fed2b4`, the full corrected range is `9 files changed, 891 insertions(+), 201 deletions(-)`.
 
 The protected `.codex/kickoff_packets/feat-retrieval-fts.md` and `.codex/lane_meta/feat-retrieval-fts.json` mirror artifacts are deleted in this branch so stale contradictory packet metadata is not preserved. `THREAD_PACKET.md` is the coherent handoff packet for re-review.
+
+Sandbox note for this fixer pass: the auxiliary `.codex/kickoff_packets` and `.codex/lane_meta` directories are not writable in this worktree (`Operation not permitted` on write). Treat this root `THREAD_PACKET.md` as the authoritative regenerated review packet for the actual merge candidate; the corrected range and file accounting above supersede any stale read-only auxiliary metadata visible to local tools.
 
 ## Scope Completed
 
