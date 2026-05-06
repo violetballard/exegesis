@@ -632,6 +632,8 @@ class CommandDemoReadinessHandoffPacket:
     cli_exact_action_lines: tuple[str, ...] = ()
     step_seals: tuple[CommandDemoReadinessStepSeal, ...] = ()
     cli_step_validations: tuple[CommandDemoReadinessCliStepValidation, ...] = ()
+    lane_owned_paths: tuple[str, ...] = ()
+    shared_file_approval: str = ""
 
 
 @dataclass(frozen=True)
@@ -6093,6 +6095,8 @@ def command_demo_readiness_handoff_packet(
         cli_exact_action_lines=seal.cli_exact_action_lines,
         step_seals=step_seals,
         cli_step_validations=cli_step_validations,
+        lane_owned_paths=("src/qual/commands/**",),
+        shared_file_approval="Not required: command readiness scope remains lane-owned.",
     )
     _validate_command_demo_readiness_handoff_packet(
         packet,
@@ -6169,6 +6173,10 @@ def _validate_command_demo_readiness_handoff_packet(
         raise ValueError("Command demo readiness handoff packet CLI step validation commands are inconsistent")
     if any(not step.is_cli_entrypoint for step in packet.cli_step_validations):
         raise ValueError("Command demo readiness handoff packet includes unsupported CLI step")
+    if packet.lane_owned_paths != ("src/qual/commands/**",):
+        raise ValueError("Command demo readiness handoff packet owned paths are inconsistent")
+    if not packet.shared_file_approval.strip():
+        raise ValueError("Command demo readiness handoff packet shared-file approval must not be empty")
     if tuple(
         line
         for step in packet.action_steps
@@ -6197,6 +6205,8 @@ def _command_demo_readiness_handoff_packet_payload(
             "digest": packet.fingerprint_digest,
         },
         "canonical_demo_path_steps": list(packet.canonical_demo_path_steps),
+        "lane_owned_paths": list(packet.lane_owned_paths),
+        "shared_file_approval": packet.shared_file_approval,
         "command_lines": list(packet.command_lines),
         "exact_action_lines": list(packet.exact_action_lines),
         "cli_exact_action_lines": list(packet.cli_exact_action_lines),
@@ -6293,6 +6303,8 @@ COMMAND_DEMO_READINESS_HANDOFF_FIELD_NAMES: tuple[str, ...] = (
     "vision_capabilities",
     "routing_provider_impact",
     "canonical_demo_path_step_advanced",
+    "lane_owned_paths",
+    "shared_file_approval",
     "command_lines",
     "exact_action_lines",
     "readiness_fingerprint",
@@ -6320,6 +6332,8 @@ def _command_demo_readiness_handoff_field_entries(
             "canonical_demo_path_step_advanced",
             packet.canonical_demo_path_step_advanced,
         ),
+        CommandDemoReadinessHandoffFieldEntry("lane_owned_paths", "; ".join(packet.lane_owned_paths)),
+        CommandDemoReadinessHandoffFieldEntry("shared_file_approval", packet.shared_file_approval),
         CommandDemoReadinessHandoffFieldEntry("command_lines", "; ".join(packet.command_lines)),
         CommandDemoReadinessHandoffFieldEntry(
             "exact_action_lines",
@@ -6355,6 +6369,10 @@ def _validate_command_demo_readiness_handoff_field_contract(
     expected_fingerprint = f"{packet.fingerprint_algorithm}:{packet.fingerprint_digest}"
     if values_by_name["readiness_fingerprint"] != expected_fingerprint:
         raise ValueError("Command demo readiness handoff fingerprint field is inconsistent")
+    if values_by_name["lane_owned_paths"] != "; ".join(packet.lane_owned_paths):
+        raise ValueError("Command demo readiness handoff owned paths field is inconsistent")
+    if values_by_name["shared_file_approval"] != packet.shared_file_approval:
+        raise ValueError("Command demo readiness handoff approval field is inconsistent")
 
 
 @lru_cache(maxsize=None)
@@ -6596,6 +6614,8 @@ def command_demo_readiness_handoff_packet_markdown(
         f"- Vision capability affected: {'; '.join(packet.vision_capabilities)}",
         f"- Routing/provider impact: {packet.routing_provider_impact}",
         f"- Canonical demo-path step advanced: {packet.canonical_demo_path_step_advanced}",
+        f"- Lane/owned paths: {'; '.join(packet.lane_owned_paths)}",
+        f"- Shared-file approval: {packet.shared_file_approval}",
         f"- Readiness complete: {str(packet.is_complete).lower()}",
         f"- Fingerprint: {packet.fingerprint_algorithm}:{packet.fingerprint_digest}",
         f"- Canonical demo-path steps: {'; '.join(packet.canonical_demo_path_steps)}",
@@ -6640,6 +6660,8 @@ def _validate_command_demo_readiness_handoff_packet_markdown(
         *packet.vision_capabilities,
         packet.routing_provider_impact,
         packet.canonical_demo_path_step_advanced,
+        *packet.lane_owned_paths,
+        packet.shared_file_approval,
         f"{packet.fingerprint_algorithm}:{packet.fingerprint_digest}",
         *packet.canonical_demo_path_steps,
         *packet.command_lines,
@@ -6652,6 +6674,8 @@ def _validate_command_demo_readiness_handoff_packet_markdown(
         raise ValueError("Command demo readiness handoff packet markdown is incomplete")
     if "Roadmap item(s) affected" not in markdown or "Vision capability affected" not in markdown:
         raise ValueError("Command demo readiness handoff packet markdown lacks integration fields")
+    if "Lane/owned paths" not in markdown or "Shared-file approval" not in markdown:
+        raise ValueError("Command demo readiness handoff packet markdown lacks scope fields")
 
 
 def command_demo_readiness_handoff_status_lines(
