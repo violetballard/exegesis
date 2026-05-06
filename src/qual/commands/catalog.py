@@ -11422,7 +11422,7 @@ def _split_shell_script_command_segments(argv: tuple[str, ...]) -> tuple[tuple[s
         if token == "&" and _is_shell_redirection_target_marker(argv, index):
             current_segment.append(token)
             continue
-        if token in {"&&", ";", "|", "&"}:
+        if token in {"&&", ";", "|", "|&", "&"}:
             if current_segment:
                 segment, opened_groups = _normalize_shell_script_segment_argv(
                     tuple(current_segment),
