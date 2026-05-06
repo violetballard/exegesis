@@ -1448,6 +1448,41 @@ class UnifiedRetrievalTests(unittest.TestCase):
         self.assertEqual(first["source_strategy"], "fts")
         self.assertEqual(first["lookup_resolution"], "fts")
 
+    def test_retrieve_fts_excerpt_audit_records_stable_lookup_identity(self) -> None:
+        result = self.service.retrieve_auto(
+            RetrievalQuery(
+                query_text="memo coding comparison",
+                scope="vault",
+                intent="compare",
+                constraints=RetrievalConstraints(max_results=4),
+                confidentiality_profile="confidential",
+            )
+        )
+
+        excerpt_id = result.hits[0].excerpt_id
+        self.assertIsNotNone(excerpt_id)
+        excerpt = self.service.retrieve_fts_excerpt(excerpt_id or "")
+
+        lines = [
+            json.loads(line)
+            for line in (self.root / "audit_events.jsonl").read_text(encoding="utf-8").splitlines()
+        ]
+        event = next(item for item in reversed(lines) if item["name"] == "excerpt_lookup_completed")
+        metadata = event["metadata"]
+        self.assertEqual(metadata["excerpt_id"], excerpt_id)
+        self.assertEqual(metadata["doc_id"], excerpt["doc_id"])
+        self.assertEqual(metadata["source_strategy"], "fts")
+        self.assertEqual(metadata["retrieval_source_strategy"], "fts")
+        self.assertEqual(metadata["lookup_entrypoint"], "retrieve_fts_excerpt")
+        self.assertEqual(metadata["lookup_resolution"], "fts")
+        self.assertEqual(metadata["retrieval_backend"], "sqlite_fts")
+        self.assertEqual(metadata["retrieval_mode"], "fts_first")
+        self.assertEqual(metadata["doc_identity_fingerprint"], excerpt["doc_identity_fingerprint"])
+        self.assertEqual(metadata["excerpt_text_hash"], excerpt["text_hash"])
+        self.assertEqual(metadata["excerpt_lookup_fingerprint"], excerpt["excerpt_lookup_fingerprint"])
+        self.assertEqual(metadata["basket_item_id"], excerpt_id)
+        self.assertEqual(metadata["basket_item_fingerprint"], excerpt["basket_item_fingerprint"])
+
     def test_retrieval_hits_surface_top_level_retrieval_context(self) -> None:
         result = self.service.retrieve_auto(
             RetrievalQuery(
