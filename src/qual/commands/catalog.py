@@ -6967,14 +6967,17 @@ def command_demo_readiness_shell_script(
 ) -> CommandDemoReadinessShellScript:
     smoke_plan = command_demo_readiness_smoke_plan(specs, launcher_argv)
     command_lines = tuple(step.command_line for step in smoke_plan.steps)
-    exact_action_lines = command_demo_readiness_exact_action_line_lookup_table(specs, launcher_argv)
-    exact_action_lines_by_flow_step: dict[str, list[tuple[str, str]]] = {}
-    for engine_action, command_line in exact_action_lines:
+    cli_exact_action_lines = command_demo_readiness_cli_exact_action_line_lookup_table(
+        specs,
+        launcher_argv,
+    )
+    cli_exact_action_lines_by_flow_step: dict[str, list[tuple[str, str]]] = {}
+    for engine_action, command_line in cli_exact_action_lines:
         flow_step = command_demo_readiness_flow_step_for_argv(command_line, specs, launcher_argv)
         if flow_step is None:
-            raise ValueError(f"Command demo readiness shell exact action is not routeable: {engine_action}")
-        exact_action_lines_by_flow_step.setdefault(flow_step, []).append((engine_action, command_line))
-    action_lines = exact_action_lines
+            raise ValueError(f"Command demo readiness shell CLI exact action is not routeable: {engine_action}")
+        cli_exact_action_lines_by_flow_step.setdefault(flow_step, []).append((engine_action, command_line))
+    action_lines = cli_exact_action_lines
     lines: list[str] = ["set -euo pipefail"]
     emitted_command_lines = {"set -euo pipefail"}
     for step in smoke_plan.steps:
@@ -6982,7 +6985,7 @@ def command_demo_readiness_shell_script(
         if step.command_line not in emitted_command_lines:
             emitted_command_lines.add(step.command_line)
             lines.append(step.command_line)
-        for engine_action, command_line in exact_action_lines_by_flow_step.get(step.flow_step, ()):
+        for engine_action, command_line in cli_exact_action_lines_by_flow_step.get(step.flow_step, ()):
             lines.append(f"# action: {engine_action}")
             if command_line not in emitted_command_lines:
                 emitted_command_lines.add(command_line)
@@ -7004,11 +7007,14 @@ def _validate_command_demo_readiness_shell_script(
     launcher_argv: tuple[str, ...],
 ) -> None:
     expected_command_lines = tuple(step.command_line for step in smoke_plan.steps)
-    expected_action_lines = command_demo_readiness_exact_action_line_lookup_table(specs, launcher_argv)
+    expected_action_lines = command_demo_readiness_cli_exact_action_line_lookup_table(
+        specs,
+        launcher_argv,
+    )
     if script.command_lines != expected_command_lines:
         raise ValueError("Command demo readiness shell script command lines are inconsistent")
     if script.action_lines != expected_action_lines:
-        raise ValueError("Command demo readiness shell script action lines are inconsistent")
+        raise ValueError("Command demo readiness shell script CLI action lines are inconsistent")
     if not script.lines or script.lines[0] != "set -euo pipefail":
         raise ValueError("Command demo readiness shell script must start with strict shell mode")
     if script.text != "\n".join(script.lines):
@@ -7051,13 +7057,13 @@ def _validate_command_demo_readiness_shell_script(
     )
     if not validation.is_complete:
         raise ValueError("Command demo readiness shell script does not cover the MVP route")
-    exact_validation = command_demo_readiness_validate_cli_exact_action_shell_script_lines(
+    cli_exact_validation = command_demo_readiness_validate_cli_exact_action_shell_script_lines(
         tuple(command_line for _, command_line in expected_action_lines),
         specs,
         launcher_argv,
     )
-    if not exact_validation.is_complete:
-        raise ValueError("Command demo readiness shell script does not cover exact MVP actions")
+    if not cli_exact_validation.is_complete:
+        raise ValueError("Command demo readiness shell script does not cover CLI exact MVP actions")
 
 
 def _dedupe_command_lines(lines: tuple[str, ...]) -> tuple[str, ...]:
