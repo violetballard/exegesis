@@ -13899,10 +13899,6 @@ def _split_shell_script_line(line: str) -> tuple[str, ...]:
 
 
 def _split_shell_script_command_segments(argv: tuple[str, ...]) -> tuple[tuple[str, ...], ...]:
-    if "||" in argv:
-        segment, _opened_groups = _normalize_shell_script_segment_argv(argv, 0)
-        return (segment,) if segment else ()
-
     segments: list[tuple[str, ...]] = []
     current_segment: list[str] = []
     opened_groups = 0
@@ -13910,7 +13906,7 @@ def _split_shell_script_command_segments(argv: tuple[str, ...]) -> tuple[tuple[s
         if token == "&" and _is_shell_redirection_target_marker(argv, index):
             current_segment.append(token)
             continue
-        if token in {"&&", ";", "|", "|&", "&"}:
+        if token in {"&&", "||", ";", "|", "|&", "&"}:
             if current_segment:
                 segment, opened_groups = _normalize_shell_script_segment_argv(
                     tuple(current_segment),
