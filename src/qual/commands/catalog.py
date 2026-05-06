@@ -11183,7 +11183,10 @@ def _split_shell_script_command_segments(argv: tuple[str, ...]) -> tuple[tuple[s
     segments: list[tuple[str, ...]] = []
     current_segment: list[str] = []
     opened_groups = 0
-    for token in argv:
+    for index, token in enumerate(argv):
+        if token == "&" and _is_shell_redirection_target_marker(argv, index):
+            current_segment.append(token)
+            continue
         if token in {"&&", ";", "|", "&"}:
             if current_segment:
                 segment, opened_groups = _normalize_shell_script_segment_argv(
@@ -11203,6 +11206,14 @@ def _split_shell_script_command_segments(argv: tuple[str, ...]) -> tuple[tuple[s
         if segment:
             segments.append(segment)
     return tuple(segments)
+
+
+def _is_shell_redirection_target_marker(argv: tuple[str, ...], index: int) -> bool:
+    return (
+        0 < index < len(argv) - 1
+        and argv[index] == "&"
+        and _is_shell_redirection_operator(argv[index - 1])
+    )
 
 
 def _normalize_shell_script_segment_argv(
@@ -11248,7 +11259,7 @@ def _strip_shell_redirections(argv: tuple[str, ...]) -> tuple[str, ...]:
     while index < len(argv):
         token = argv[index]
         if _is_shell_redirection_operator(token):
-            if index + 2 < len(argv) and argv[index + 1] == "&" and argv[index + 2].isdigit():
+            if index + 2 < len(argv) and argv[index + 1] == "&":
                 index += 3
                 continue
             index += 2
