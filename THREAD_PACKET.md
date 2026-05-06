@@ -6,13 +6,13 @@
 - Handoff type: high-risk retrieval feature handoff for the FTS-first retrieval lane.
 - Scope classification: high-risk because this branch edits engine retrieval entrypoints/facades and approved shared regression coverage in `tests/unit/test_unified_retrieval.py`.
 - Authoritative reviewed implementation range for re-review: `378cf9a7..HEAD` on `codex/feat-retrieval-fts`.
-- Evidence branch tip before this fixer commit: `878bbe81a` (`fix(retrieval): refresh branch-tip handoff scope`).
+- Evidence branch tip before this fixer commit: `ce1cbbbea0abc97b6960fac26853b6d039c750dd` (`fix(retrieval): expose context bundle snapshots`).
 - Final HEAD SHA: reported in the final response after this fixer commit is created.
 - Approved shared-file note: `tests/unit/test_unified_retrieval.py` is approved shared-by-approval regression coverage for this retrieval lane. No integrator-locked files are edited in this handoff.
 
 ## Scope Completed
 
-This packet supersedes earlier handoff packets for `codex/feat-retrieval-fts`. The only authoritative reviewed range is the full branch-tip range, `378cf9a7..HEAD`, at the time of re-review. Evidence below was generated from pre-fixer branch tip `878bbe81a`; this fixer commit hardens the retrieval context bundle shape for downstream engine consumers and refreshes handoff traceability. The final SHA is reported with the fixer result.
+This packet supersedes earlier handoff packets for `codex/feat-retrieval-fts`. The only authoritative reviewed range is the full branch-tip range, `378cf9a7..HEAD`, at the time of re-review. Evidence below was generated from pre-fixer branch tip `ce1cbbbea0abc97b6960fac26853b6d039c750dd`; this fixer commit refreshes handoff traceability without narrowing the reviewed implementation range. The final SHA is reported with the fixer result.
 
 Prior packet text incorrectly excluded code after `adfa8cd` and incorrectly implied that later packet-refresh commits were metadata-only. That claim is withdrawn. The reviewed range now includes every file changed from `378cf9a7` through the actual branch tip, including implementation commits such as `4f27cdc52ac52cb309afc950c807a66911e74da6` (`Harden retrieval identifier snapshots`) and the later packet correction commits on the branch.
 
@@ -38,7 +38,7 @@ AGENTS.md narrowing statement: this work makes the `retrieve relevant material` 
 ## Files Changed
 
 Authoritative reviewed implementation range for re-review: `378cf9a7..HEAD` on `codex/feat-retrieval-fts`.
-Evidence range before this fixer commit: `378cf9a7..878bbe81a`
+Evidence range before this fixer commit: `378cf9a7..ce1cbbbea0abc97b6960fac26853b6d039c750dd`
 
 - `.codex/kickoff_packets/feat-retrieval-fts.md` - lane kickoff metadata corrected during earlier packet refreshes.
 - `.codex/lane_meta/feat-retrieval-fts.json` - lane metadata corrected during earlier packet refreshes.
@@ -88,12 +88,12 @@ M	tests/unit/test_unified_retrieval.py
 
 - Task budget: `4/4` high-risk task groups.
 - File count for authoritative reviewed implementation range: `9 files changed`.
-- Size accounting for authoritative reviewed implementation range: `2790 insertions(+), 334 deletions(-)`.
+- Size accounting for authoritative reviewed implementation range: `2828 insertions(+), 334 deletions(-)`.
 - AGENTS high-risk file/size status: exceeds `<=8 files` and `<=300 net LOC`.
 - Integrator exception status: explicit high-risk size/file exception is required for approval of this branch-tip range. This packet does not claim high-risk size compliance.
 - Routing/provider impact: none.
 - PageIndex/embeddings impact: remain compatibility-only fallback behavior; no active non-FTS retrieval path is introduced.
-- Current fixer impact: exposes context bundle query, policy, manifest, summary, and citation status as direct copy-safe engine-facing fields, then refreshes handoff range, budget accounting, files changed, canonical demo-path mapping, and gate reporting for re-review.
+- Current fixer impact: refreshes handoff range, budget accounting, files changed, canonical demo-path mapping, and gate reporting for re-review.
 - Remaining risk: integration approval depends on accepting the documented high-risk size/file-count exception or requesting a split.
 
 ## Roadmap/Vision
