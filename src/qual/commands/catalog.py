@@ -1414,7 +1414,10 @@ def _validate_demo_action_smoke_argv_coverage(
         raise ValueError(f"Unknown command demo action smoke argv: {', '.join(extra_actions)}")
 
 
-def _validate_demo_smoke_argv_coverage(flow_steps: tuple[str, ...]) -> None:
+def _validate_demo_smoke_argv_coverage(
+    specs: tuple[CommandSpec, ...],
+    flow_steps: tuple[str, ...],
+) -> None:
     argv_by_flow_step = _demo_smoke_argv_by_flow_step()
     expected_flow_steps = set(_normalize_flow_steps(flow_steps))
     configured_flow_steps = set(argv_by_flow_step)
@@ -1428,6 +1431,32 @@ def _validate_demo_smoke_argv_coverage(flow_steps: tuple[str, ...]) -> None:
     )
     if extra_flow_steps:
         raise ValueError(f"Unknown command demo smoke argv flow steps: {', '.join(extra_flow_steps)}")
+    _validate_demo_smoke_argv_parser_surface(specs, flow_steps, argv_by_flow_step)
+
+
+def _validate_demo_smoke_argv_parser_surface(
+    specs: tuple[CommandSpec, ...],
+    flow_steps: tuple[str, ...],
+    argv_by_flow_step: dict[str, tuple[str, ...]],
+) -> None:
+    manifest_by_flow_step = {
+        _normalize_token(entry.flow_step): entry
+        for entry in command_flow_manifest(specs, flow_steps)
+    }
+    parser_lookup = (
+        dict(command_cli_lookup_table())
+        if specs == COMMAND_SPECS
+        else dict(command_lookup_index(specs))
+    )
+    for flow_step in _normalize_flow_steps(flow_steps):
+        argv = argv_by_flow_step[flow_step]
+        command_token = _normalize_token(_strip_command_palette_prefix(argv[0]))
+        expected_name = manifest_by_flow_step[flow_step].name
+        if parser_lookup.get(command_token) != expected_name:
+            raise ValueError(
+                "Command demo smoke argv must use the approved parser surface: "
+                f"{flow_step}"
+            )
 
 
 def _validate_smoke_matching_policy(specs: tuple[CommandSpec, ...]) -> None:
@@ -2107,7 +2136,8 @@ def command_demo_smoke_command_contract(
 ) -> CommandDemoSmokeCommandContract:
     smoke_contract = command_demo_smoke_contract(specs)
     _validate_demo_smoke_argv_coverage(
-        tuple(entry.flow_step for entry in smoke_contract.entries)
+        specs,
+        tuple(entry.flow_step for entry in smoke_contract.entries),
     )
     argv_by_flow_step = _demo_smoke_argv_by_flow_step()
     entries = tuple(
