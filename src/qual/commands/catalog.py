@@ -1157,6 +1157,8 @@ COMMAND_SMOKE_ENV_SPLIT_STRING_OPTIONS: tuple[str, ...] = (
 COMMAND_SMOKE_SHELL_SETUP_COMMANDS: tuple[str, ...] = (
     "cd",
     "pwd",
+    "true",
+    ":",
 )
 COMMAND_SMOKE_SHELL_STATUS_COMMANDS: tuple[str, ...] = (
     "exit",
