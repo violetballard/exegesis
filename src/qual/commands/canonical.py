@@ -20,6 +20,7 @@ from src.qual.commands.catalog import (
     CommandDemoActionCoverageContract,
     CommandDemoActionCoverageEntry,
     CommandDemoCommandActionContract,
+    CommandDemoCommandCoverageContract,
     CommandDemoCommandReadinessContract,
     CommandDemoCommandSurfaceContract,
     CommandDemoExecutionPlanContract,
@@ -133,6 +134,9 @@ from src.qual.commands.catalog import (
     command_mvp_demo_command_readiness_contract as _command_readiness_contract,
     command_mvp_demo_command_readiness_lookup_table as _command_readiness_lookup_table,
     command_mvp_demo_command_readiness_summary as _command_readiness_summary,
+    command_mvp_demo_command_coverage_contract as _command_coverage_contract,
+    command_mvp_demo_command_coverage_lookup_table as _command_coverage_lookup_table,
+    command_mvp_demo_command_coverage_summary as _command_coverage_summary,
     command_mvp_demo_command_surface_contract as _command_surface_contract,
     command_mvp_demo_command_surface_lookup_table as _command_surface_lookup_table,
     command_mvp_demo_command_surface_summary as _command_surface_summary,
@@ -364,6 +368,9 @@ __all__ = [
     "canonical_command_command_readiness_contract",
     "canonical_command_command_readiness_lookup_table",
     "canonical_command_command_readiness_summary",
+    "canonical_command_command_coverage_contract",
+    "canonical_command_command_coverage_lookup_table",
+    "canonical_command_command_coverage_summary",
     "canonical_command_command_surface_contract",
     "canonical_command_command_surface_lookup_table",
     "canonical_command_command_surface_summary",
@@ -1114,6 +1121,21 @@ def canonical_command_command_readiness_summary() -> tuple[
 
 def canonical_command_command_readiness_lookup_table() -> tuple[tuple[str, str, tuple[str, ...]], ...]:
     return _command_readiness_lookup_table()
+
+
+def canonical_command_command_coverage_contract() -> CommandDemoCommandCoverageContract:
+    return _command_coverage_contract()
+
+
+def canonical_command_command_coverage_summary() -> tuple[
+    tuple[int, str, str, str, str, tuple[str, ...], tuple[str, ...], tuple[str, ...], bool],
+    ...,
+]:
+    return _command_coverage_summary()
+
+
+def canonical_command_command_coverage_lookup_table() -> tuple[tuple[str, bool, tuple[str, ...]], ...]:
+    return _command_coverage_lookup_table()
 
 
 def canonical_command_command_surface_contract() -> CommandDemoCommandSurfaceContract:
