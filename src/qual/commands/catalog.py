@@ -597,6 +597,26 @@ class CommandDemoReadinessStepSealContract:
 
 
 @dataclass(frozen=True)
+class CommandDemoReadinessIndexEntry:
+    ordinal: int
+    demo_path_step: str
+    flow_step: str
+    name: str
+    command_line: str
+    engine_actions: tuple[str, ...]
+    exact_action_lines: tuple[tuple[str, str], ...]
+    readiness_fingerprint_digest: str
+    step_fingerprint_digest: str
+
+
+@dataclass(frozen=True)
+class CommandDemoReadinessIndexContract:
+    fingerprint_algorithm: str
+    readiness_fingerprint_digest: str
+    entries: tuple[CommandDemoReadinessIndexEntry, ...]
+
+
+@dataclass(frozen=True)
 class CommandDemoReadinessShellScript:
     lines: tuple[str, ...]
     command_lines: tuple[str, ...]
@@ -5820,6 +5840,164 @@ def command_demo_readiness_step_seal_json(
     )
 
 
+def _command_demo_readiness_index_step_payload(
+    step: CommandDemoReadinessStepSeal,
+) -> dict[str, object]:
+    return {
+        "ordinal": step.ordinal,
+        "demo_path_step": step.demo_path_step,
+        "flow_step": step.flow_step,
+        "name": step.name,
+        "command_line": step.command_line,
+        "engine_actions": step.engine_actions,
+        "exact_action_lines": step.exact_action_lines,
+    }
+
+
+def _command_demo_readiness_index_step_digest(
+    step: CommandDemoReadinessStepSeal,
+) -> str:
+    digest_input = json.dumps(
+        _command_demo_readiness_index_step_payload(step),
+        sort_keys=True,
+        separators=(",", ":"),
+    ).encode("utf-8")
+    return hashlib.sha256(digest_input).hexdigest()
+
+
+@lru_cache(maxsize=None)
+def command_demo_readiness_index_contract(
+    specs: tuple[CommandSpec, ...] = COMMAND_SPECS,
+    launcher_argv: tuple[str, ...] = COMMAND_SMOKE_CLI_LAUNCHER_ARGV,
+) -> CommandDemoReadinessIndexContract:
+    fingerprint = command_demo_readiness_fingerprint(specs, launcher_argv)
+    contract = CommandDemoReadinessIndexContract(
+        fingerprint_algorithm=fingerprint.algorithm,
+        readiness_fingerprint_digest=fingerprint.digest,
+        entries=tuple(
+            CommandDemoReadinessIndexEntry(
+                ordinal=step.ordinal,
+                demo_path_step=step.demo_path_step,
+                flow_step=step.flow_step,
+                name=step.name,
+                command_line=step.command_line,
+                engine_actions=step.engine_actions,
+                exact_action_lines=step.exact_action_lines,
+                readiness_fingerprint_digest=fingerprint.digest,
+                step_fingerprint_digest=_command_demo_readiness_index_step_digest(step),
+            )
+            for step in command_demo_readiness_step_seal_contract(specs, launcher_argv).steps
+        ),
+    )
+    _validate_command_demo_readiness_index_contract(contract, specs, launcher_argv)
+    return contract
+
+
+def _validate_command_demo_readiness_index_contract(
+    contract: CommandDemoReadinessIndexContract,
+    specs: tuple[CommandSpec, ...],
+    launcher_argv: tuple[str, ...],
+) -> None:
+    fingerprint = command_demo_readiness_fingerprint(specs, launcher_argv)
+    step_seals = command_demo_readiness_step_seal_contract(specs, launcher_argv).steps
+    if contract.fingerprint_algorithm != fingerprint.algorithm:
+        raise ValueError("Command demo readiness index fingerprint algorithm is inconsistent")
+    if contract.readiness_fingerprint_digest != fingerprint.digest:
+        raise ValueError("Command demo readiness index fingerprint digest is inconsistent")
+    if tuple(entry.ordinal for entry in contract.entries) != tuple(step.ordinal for step in step_seals):
+        raise ValueError("Command demo readiness index ordinals are inconsistent")
+    if tuple(entry.demo_path_step for entry in contract.entries) != tuple(
+        step.demo_path_step for step in step_seals
+    ):
+        raise ValueError("Command demo readiness index demo path steps are inconsistent")
+    if tuple(entry.flow_step for entry in contract.entries) != tuple(step.flow_step for step in step_seals):
+        raise ValueError("Command demo readiness index flow steps are inconsistent")
+    if tuple(entry.name for entry in contract.entries) != tuple(step.name for step in step_seals):
+        raise ValueError("Command demo readiness index command names are inconsistent")
+    if tuple(entry.command_line for entry in contract.entries) != tuple(
+        step.command_line for step in step_seals
+    ):
+        raise ValueError("Command demo readiness index command lines are inconsistent")
+    for entry, step in zip(contract.entries, step_seals, strict=True):
+        if entry.engine_actions != step.engine_actions:
+            raise ValueError(f"Command demo readiness index actions are inconsistent: {entry.flow_step}")
+        if entry.exact_action_lines != step.exact_action_lines:
+            raise ValueError(
+                f"Command demo readiness index exact action lines are inconsistent: {entry.flow_step}"
+            )
+        if entry.readiness_fingerprint_digest != fingerprint.digest:
+            raise ValueError(f"Command demo readiness index entry fingerprint is inconsistent: {entry.flow_step}")
+        if entry.step_fingerprint_digest != _command_demo_readiness_index_step_digest(step):
+            raise ValueError(
+                f"Command demo readiness index step fingerprint is inconsistent: {entry.flow_step}"
+            )
+
+
+def command_demo_readiness_index_summary(
+    specs: tuple[CommandSpec, ...] = COMMAND_SPECS,
+    launcher_argv: tuple[str, ...] = COMMAND_SMOKE_CLI_LAUNCHER_ARGV,
+) -> tuple[
+    str,
+    str,
+    tuple[tuple[int, str, str, str, str, tuple[str, ...], tuple[tuple[str, str], ...], str, str], ...],
+]:
+    contract = command_demo_readiness_index_contract(specs, launcher_argv)
+    return (
+        contract.fingerprint_algorithm,
+        contract.readiness_fingerprint_digest,
+        tuple(
+            (
+                entry.ordinal,
+                entry.demo_path_step,
+                entry.flow_step,
+                entry.name,
+                entry.command_line,
+                entry.engine_actions,
+                entry.exact_action_lines,
+                entry.readiness_fingerprint_digest,
+                entry.step_fingerprint_digest,
+            )
+            for entry in contract.entries
+        ),
+    )
+
+
+def command_demo_readiness_index_payload(
+    specs: tuple[CommandSpec, ...] = COMMAND_SPECS,
+    launcher_argv: tuple[str, ...] = COMMAND_SMOKE_CLI_LAUNCHER_ARGV,
+) -> dict[str, object]:
+    contract = command_demo_readiness_index_contract(specs, launcher_argv)
+    return {
+        "fingerprint_algorithm": contract.fingerprint_algorithm,
+        "readiness_fingerprint_digest": contract.readiness_fingerprint_digest,
+        "entries": [
+            {
+                "ordinal": entry.ordinal,
+                "demo_path_step": entry.demo_path_step,
+                "flow_step": entry.flow_step,
+                "command": entry.name,
+                "command_line": entry.command_line,
+                "engine_actions": entry.engine_actions,
+                "exact_action_lines": entry.exact_action_lines,
+                "readiness_fingerprint_digest": entry.readiness_fingerprint_digest,
+                "step_fingerprint_digest": entry.step_fingerprint_digest,
+            }
+            for entry in contract.entries
+        ],
+    }
+
+
+def command_demo_readiness_index_json(
+    specs: tuple[CommandSpec, ...] = COMMAND_SPECS,
+    launcher_argv: tuple[str, ...] = COMMAND_SMOKE_CLI_LAUNCHER_ARGV,
+) -> str:
+    return json.dumps(
+        command_demo_readiness_index_payload(specs, launcher_argv),
+        sort_keys=True,
+        separators=(",", ":"),
+    )
+
+
 @lru_cache(maxsize=None)
 def command_demo_readiness_shell_script(
     specs: tuple[CommandSpec, ...] = COMMAND_SPECS,
@@ -9645,6 +9823,38 @@ def command_mvp_demo_readiness_step_seal_json(
     launcher_argv: tuple[str, ...] = COMMAND_SMOKE_CLI_LAUNCHER_ARGV,
 ) -> str:
     return command_demo_readiness_step_seal_json(specs, launcher_argv)
+
+
+def command_mvp_demo_readiness_index_contract(
+    specs: tuple[CommandSpec, ...] = COMMAND_SPECS,
+    launcher_argv: tuple[str, ...] = COMMAND_SMOKE_CLI_LAUNCHER_ARGV,
+) -> CommandDemoReadinessIndexContract:
+    return command_demo_readiness_index_contract(specs, launcher_argv)
+
+
+def command_mvp_demo_readiness_index_summary(
+    specs: tuple[CommandSpec, ...] = COMMAND_SPECS,
+    launcher_argv: tuple[str, ...] = COMMAND_SMOKE_CLI_LAUNCHER_ARGV,
+) -> tuple[
+    str,
+    str,
+    tuple[tuple[int, str, str, str, str, tuple[str, ...], tuple[tuple[str, str], ...], str, str], ...],
+]:
+    return command_demo_readiness_index_summary(specs, launcher_argv)
+
+
+def command_mvp_demo_readiness_index_payload(
+    specs: tuple[CommandSpec, ...] = COMMAND_SPECS,
+    launcher_argv: tuple[str, ...] = COMMAND_SMOKE_CLI_LAUNCHER_ARGV,
+) -> dict[str, object]:
+    return command_demo_readiness_index_payload(specs, launcher_argv)
+
+
+def command_mvp_demo_readiness_index_json(
+    specs: tuple[CommandSpec, ...] = COMMAND_SPECS,
+    launcher_argv: tuple[str, ...] = COMMAND_SMOKE_CLI_LAUNCHER_ARGV,
+) -> str:
+    return command_demo_readiness_index_json(specs, launcher_argv)
 
 
 def command_mvp_demo_readiness_shell_script(

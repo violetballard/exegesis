@@ -36,6 +36,7 @@ from src.qual.commands.catalog import (
     CommandDemoReadinessShellScript,
     CommandDemoReadinessScriptValidation,
     CommandDemoReadinessSmokePlanStep,
+    CommandDemoReadinessIndexContract,
     CommandDemoReadinessStepSealContract,
     CommandDemoSupportedLauncherReadinessContract,
     CommandDemoReadinessTraceContract,
@@ -74,6 +75,10 @@ from src.qual.commands.catalog import (
     command_mvp_demo_readiness_step_seal_json as _readiness_step_seal_json,
     command_mvp_demo_readiness_step_seal_payload as _readiness_step_seal_payload,
     command_mvp_demo_readiness_step_seal_summary as _readiness_step_seal_summary,
+    command_mvp_demo_readiness_index_contract as _readiness_index_contract,
+    command_mvp_demo_readiness_index_json as _readiness_index_json,
+    command_mvp_demo_readiness_index_payload as _readiness_index_payload,
+    command_mvp_demo_readiness_index_summary as _readiness_index_summary,
     command_mvp_demo_readiness_shell_script as _readiness_shell_script,
     command_mvp_demo_readiness_cli_smoke_lines as _readiness_cli_smoke_lines,
     command_mvp_demo_readiness_shell_executable_lines as _readiness_shell_executable_lines,
@@ -308,6 +313,10 @@ __all__ = [
     "canonical_command_readiness_step_seal_summary",
     "canonical_command_readiness_step_seal_payload",
     "canonical_command_readiness_step_seal_json",
+    "canonical_command_readiness_index_contract",
+    "canonical_command_readiness_index_summary",
+    "canonical_command_readiness_index_payload",
+    "canonical_command_readiness_index_json",
     "canonical_command_readiness_shell_script",
     "canonical_command_readiness_cli_smoke_lines",
     "canonical_command_readiness_shell_executable_lines",
@@ -664,6 +673,26 @@ def canonical_command_readiness_step_seal_payload() -> tuple[dict[str, object], 
 
 def canonical_command_readiness_step_seal_json() -> str:
     return _readiness_step_seal_json()
+
+
+def canonical_command_readiness_index_contract() -> CommandDemoReadinessIndexContract:
+    return _readiness_index_contract()
+
+
+def canonical_command_readiness_index_summary() -> tuple[
+    str,
+    str,
+    tuple[tuple[int, str, str, str, str, tuple[str, ...], tuple[tuple[str, str], ...], str, str], ...],
+]:
+    return _readiness_index_summary()
+
+
+def canonical_command_readiness_index_payload() -> dict[str, object]:
+    return _readiness_index_payload()
+
+
+def canonical_command_readiness_index_json() -> str:
+    return _readiness_index_json()
 
 
 def canonical_command_readiness_shell_script() -> CommandDemoReadinessShellScript:
