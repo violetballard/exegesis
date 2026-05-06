@@ -655,6 +655,8 @@ class CommandDemoReadinessHandoffPacket:
     lane_owned_paths: tuple[str, ...] = ()
     shared_file_approval: str = ""
     required_gate_commands: tuple[CommandDemoReadinessGateCommand, ...] = ()
+    kickoff_budget: tuple[tuple[str, str], ...] = ()
+    stop_triggers: tuple[str, ...] = ()
 
 
 @dataclass(frozen=True)
@@ -6216,6 +6218,8 @@ def command_demo_readiness_handoff_packet(
     step_seals = command_demo_readiness_step_seal_contract(specs, launcher_argv).steps
     cli_step_validations = command_demo_readiness_cli_step_validation_contract(specs, launcher_argv).steps
     required_gate_commands = command_demo_readiness_required_gate_commands()
+    kickoff_budget = command_demo_readiness_kickoff_budget()
+    stop_triggers = command_demo_readiness_stop_triggers()
     packet = CommandDemoReadinessHandoffPacket(
         branch_name="codex/feat-commands",
         scope_completed=(
@@ -6268,6 +6272,8 @@ def command_demo_readiness_handoff_packet(
         lane_owned_paths=("src/qual/commands/**",),
         shared_file_approval="Not required: command readiness scope remains lane-owned.",
         required_gate_commands=required_gate_commands,
+        kickoff_budget=kickoff_budget,
+        stop_triggers=stop_triggers,
     )
     _validate_command_demo_readiness_handoff_packet(
         packet,
@@ -6278,6 +6284,8 @@ def command_demo_readiness_handoff_packet(
         step_seals,
         cli_step_validations,
         required_gate_commands,
+        kickoff_budget,
+        stop_triggers,
         specs,
         launcher_argv,
     )
@@ -6293,6 +6301,8 @@ def _validate_command_demo_readiness_handoff_packet(
     step_seals: tuple[CommandDemoReadinessStepSeal, ...],
     cli_step_validations: tuple[CommandDemoReadinessCliStepValidation, ...],
     required_gate_commands: tuple[CommandDemoReadinessGateCommand, ...],
+    kickoff_budget: tuple[tuple[str, str], ...],
+    stop_triggers: tuple[str, ...],
     specs: tuple[CommandSpec, ...],
     launcher_argv: tuple[str, ...],
 ) -> None:
@@ -6355,6 +6365,10 @@ def _validate_command_demo_readiness_handoff_packet(
         raise ValueError("Command demo readiness handoff packet CLI step validations are inconsistent")
     if packet.required_gate_commands != required_gate_commands:
         raise ValueError("Command demo readiness handoff packet gate commands are inconsistent")
+    if packet.kickoff_budget != kickoff_budget:
+        raise ValueError("Command demo readiness handoff packet kickoff budget is inconsistent")
+    if packet.stop_triggers != stop_triggers:
+        raise ValueError("Command demo readiness handoff packet stop triggers are inconsistent")
     if tuple(step.command_line for step in packet.action_steps) != packet.command_lines:
         raise ValueError("Command demo readiness handoff packet action step commands are inconsistent")
     if tuple(step.command_line for step in packet.step_seals) != packet.command_lines:
@@ -6369,6 +6383,10 @@ def _validate_command_demo_readiness_handoff_packet(
         raise ValueError("Command demo readiness handoff packet shared-file approval must not be empty")
     if packet.required_gate_commands != command_demo_readiness_required_gate_commands():
         raise ValueError("Command demo readiness handoff packet required gates are inconsistent")
+    if packet.kickoff_budget != command_demo_readiness_kickoff_budget():
+        raise ValueError("Command demo readiness handoff packet required budget is inconsistent")
+    if packet.stop_triggers != command_demo_readiness_stop_triggers():
+        raise ValueError("Command demo readiness handoff packet required stop triggers are inconsistent")
     if tuple(
         line
         for step in packet.action_steps
@@ -6418,6 +6436,14 @@ def _command_demo_readiness_handoff_packet_payload(
             }
             for entry in packet.required_gate_commands
         ],
+        "kickoff_budget": [
+            {
+                "name": name,
+                "value": value,
+            }
+            for name, value in packet.kickoff_budget
+        ],
+        "stop_triggers": list(packet.stop_triggers),
         "command_lines": list(packet.command_lines),
         "exact_action_lines": list(packet.exact_action_lines),
         "cli_exact_action_lines": list(packet.cli_exact_action_lines),
@@ -6527,6 +6553,8 @@ COMMAND_DEMO_READINESS_HANDOFF_FIELD_NAMES: tuple[str, ...] = (
     "lane_owned_paths",
     "shared_file_approval",
     "required_gate_commands",
+    "kickoff_budget",
+    "stop_triggers",
     "command_lines",
     "exact_action_lines",
     "readiness_fingerprint",
@@ -6539,6 +6567,19 @@ COMMAND_DEMO_READINESS_REQUIRED_GATE_COMMANDS: tuple[CommandDemoReadinessGateCom
     CommandDemoReadinessGateCommand(3, "./quality-test.sh", "pass"),
     CommandDemoReadinessGateCommand(4, "./typecheck-test.sh", "pass"),
     CommandDemoReadinessGateCommand(5, "make ci", "pass"),
+)
+COMMAND_DEMO_READINESS_KICKOFF_BUDGET: tuple[tuple[str, str], ...] = (
+    ("task_budget", "8"),
+    ("time_budget_min", "45"),
+    ("max_files_changed", "12"),
+    ("max_net_loc", "500"),
+    ("max_fix_attempts", "2"),
+)
+COMMAND_DEMO_READINESS_STOP_TRIGGERS: tuple[str, ...] = (
+    "integrator-locked/shared-by-approval edits needed",
+    "unresolved test/lint/typecheck after 2 attempts",
+    "unresolved make scope-check",
+    "budget/size/time limit hit",
 )
 
 
@@ -6553,6 +6594,28 @@ def command_demo_readiness_required_gate_commands() -> tuple[CommandDemoReadines
     if len({entry.command for entry in commands}) != len(commands):
         raise ValueError("Command demo readiness gate commands must be unique")
     return commands
+
+
+def command_demo_readiness_kickoff_budget() -> tuple[tuple[str, str], ...]:
+    budget = COMMAND_DEMO_READINESS_KICKOFF_BUDGET
+    if not budget:
+        raise ValueError("Command demo readiness kickoff budget must not be empty")
+    if len({name for name, _ in budget}) != len(budget):
+        raise ValueError("Command demo readiness kickoff budget keys must be unique")
+    if any(not name.strip() or not value.strip() for name, value in budget):
+        raise ValueError("Command demo readiness kickoff budget values must not be empty")
+    return budget
+
+
+def command_demo_readiness_stop_triggers() -> tuple[str, ...]:
+    triggers = COMMAND_DEMO_READINESS_STOP_TRIGGERS
+    if not triggers:
+        raise ValueError("Command demo readiness stop triggers must not be empty")
+    if any(not trigger.strip() for trigger in triggers):
+        raise ValueError("Command demo readiness stop triggers must not be empty")
+    if len(set(triggers)) != len(triggers):
+        raise ValueError("Command demo readiness stop triggers must be unique")
+    return triggers
 
 
 def _command_demo_readiness_handoff_field_entries(
@@ -6586,6 +6649,14 @@ def _command_demo_readiness_handoff_field_entries(
         CommandDemoReadinessHandoffFieldEntry(
             "required_gate_commands",
             "; ".join(entry.command for entry in packet.required_gate_commands),
+        ),
+        CommandDemoReadinessHandoffFieldEntry(
+            "kickoff_budget",
+            "; ".join(f"{name}={value}" for name, value in packet.kickoff_budget),
+        ),
+        CommandDemoReadinessHandoffFieldEntry(
+            "stop_triggers",
+            "; ".join(packet.stop_triggers),
         ),
         CommandDemoReadinessHandoffFieldEntry("command_lines", "; ".join(packet.command_lines)),
         CommandDemoReadinessHandoffFieldEntry(
@@ -6640,6 +6711,12 @@ def _validate_command_demo_readiness_handoff_field_contract(
         entry.command for entry in packet.required_gate_commands
     ):
         raise ValueError("Command demo readiness handoff gate commands field is inconsistent")
+    if values_by_name["kickoff_budget"] != "; ".join(
+        f"{name}={value}" for name, value in packet.kickoff_budget
+    ):
+        raise ValueError("Command demo readiness handoff budget field is inconsistent")
+    if values_by_name["stop_triggers"] != "; ".join(packet.stop_triggers):
+        raise ValueError("Command demo readiness handoff stop triggers field is inconsistent")
 
 
 @lru_cache(maxsize=None)
@@ -6894,6 +6971,8 @@ def command_demo_readiness_handoff_packet_markdown(
         f"- Lane/owned paths: {'; '.join(packet.lane_owned_paths)}",
         f"- Shared-file approval: {packet.shared_file_approval}",
         f"- Required gates: {'; '.join(entry.command for entry in packet.required_gate_commands)}",
+        f"- Kickoff budget: {'; '.join(f'{name}={value}' for name, value in packet.kickoff_budget)}",
+        f"- Stop triggers: {'; '.join(packet.stop_triggers)}",
         f"- Readiness complete: {str(packet.is_complete).lower()}",
         f"- Fingerprint: {packet.fingerprint_algorithm}:{packet.fingerprint_digest}",
         f"- Canonical demo-path steps: {'; '.join(packet.canonical_demo_path_steps)}",
@@ -14929,6 +15008,14 @@ def command_mvp_demo_readiness_handoff_field_summary(
 
 def command_mvp_demo_readiness_required_gate_commands() -> tuple[CommandDemoReadinessGateCommand, ...]:
     return command_demo_readiness_required_gate_commands()
+
+
+def command_mvp_demo_readiness_kickoff_budget() -> tuple[tuple[str, str], ...]:
+    return command_demo_readiness_kickoff_budget()
+
+
+def command_mvp_demo_readiness_stop_triggers() -> tuple[str, ...]:
+    return command_demo_readiness_stop_triggers()
 
 
 def command_mvp_demo_surface_readiness_contract(

@@ -91,6 +91,8 @@ from src.qual.commands.catalog import (
     command_mvp_demo_readiness_handoff_field_contract as _readiness_handoff_field_contract,
     command_mvp_demo_readiness_handoff_field_summary as _readiness_handoff_field_summary,
     command_mvp_demo_readiness_required_gate_commands as _readiness_required_gate_commands,
+    command_mvp_demo_readiness_kickoff_budget as _readiness_kickoff_budget,
+    command_mvp_demo_readiness_stop_triggers as _readiness_stop_triggers,
     command_mvp_demo_readiness_handoff_status_lines as _readiness_handoff_status_lines,
     command_mvp_demo_readiness_handoff_step_status_contract
     as _readiness_handoff_step_status_contract,
@@ -515,6 +517,8 @@ __all__ = [
     "canonical_command_readiness_handoff_field_contract",
     "canonical_command_readiness_handoff_field_summary",
     "canonical_command_readiness_required_gate_commands",
+    "canonical_command_readiness_kickoff_budget",
+    "canonical_command_readiness_stop_triggers",
     "canonical_command_readiness_handoff_status_lines",
     "canonical_command_readiness_handoff_step_status_contract",
     "canonical_command_readiness_handoff_step_status_summary",
@@ -1616,6 +1620,14 @@ def canonical_command_readiness_handoff_field_summary() -> tuple[tuple[str, str]
 
 def canonical_command_readiness_required_gate_commands() -> tuple[CommandDemoReadinessGateCommand, ...]:
     return _readiness_required_gate_commands()
+
+
+def canonical_command_readiness_kickoff_budget() -> tuple[tuple[str, str], ...]:
+    return _readiness_kickoff_budget()
+
+
+def canonical_command_readiness_stop_triggers() -> tuple[str, ...]:
+    return _readiness_stop_triggers()
 
 
 def canonical_command_readiness_handoff_status_lines() -> tuple[str, ...]:
