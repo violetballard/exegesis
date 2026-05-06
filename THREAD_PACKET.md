@@ -17,14 +17,14 @@
 
 This branch-tip handoff covers the full retrieval implementation currently present on `codex/feat-retrieval-fts`, including all production and test changes after `adfa8cdadd43747ffbcb612e4151e262b13e52ca`. SQLite FTS remains the authoritative retrieval path for MVP flows. PageIndex and embeddings remain compatibility-only/deferred surfaces that fail closed when they cannot be resolved through the canonical FTS path.
 
-The branch hardens deterministic retrieval payloads, FTS candidate strategy identity, sparse-policy rehydration, sparse candidate-resolution rehydration, excerpt lookup provenance, bundle identity validation, final hit rank/score ordering, and basket-promotion strategy aliases. Downstream citation bundles, context bundles, and basket promotion payloads now receive normalized, auditable retrieval snapshots tied to the FTS-first result order and candidate set the engine consumes.
+The branch hardens deterministic retrieval payloads, FTS candidate strategy identity, sparse-policy rehydration, sparse candidate-resolution rehydration, excerpt lookup provenance, bundle identity validation, final hit rank/score ordering, and basket-promotion strategy aliases. Downstream citation bundles, context bundles, excerpt lookup audit events, and basket promotion payloads now receive normalized, auditable retrieval snapshots tied to the FTS-first result order and candidate set the engine consumes.
 
 Canonical demo-path step advanced: `retrieve relevant material`. This work makes the canonical demo-path step `retrieve relevant material` more real by making FTS excerpt lookup deterministic, provenance-backed, and fail-closed for PageIndex-only IDs; it also supports later `promote or gather context into the basket` by keeping excerpt provenance deterministic.
 
 ## Tasks Completed
 
 1. FTS-first retrieval and excerpt lookup: kept SQLite FTS authoritative, exported the canonical retrieval facades, removed PageIndex fallback from excerpt fetching, and enforced fail-closed behavior for PageIndex-only or non-FTS excerpt identifiers. Canonical demo-path step advanced: `retrieve relevant material`.
-2. Deterministic retrieval payloads and provenance: normalized query snapshots, constraints, candidate/document identities, candidate-resolution snapshots, source bundles, context bundles, citation backfills, lookup fingerprints, and basket promotion metadata, including explicit `retrieval_source_strategy` aliases on promotion refs. Canonical demo-path steps advanced: `retrieve relevant material` and `promote or gather context into the basket`.
+2. Deterministic retrieval payloads and provenance: normalized query snapshots, constraints, candidate/document identities, candidate-resolution snapshots, source bundles, context bundles, citation backfills, lookup fingerprints, excerpt lookup audit hashes, and basket promotion metadata, including explicit `retrieval_source_strategy` aliases on promotion refs. Canonical demo-path steps advanced: `retrieve relevant material` and `promote or gather context into the basket`.
 3. Retrieval policy and strategy hardening: preserved sparse retrieval policy identity, guarded deferred backend policy, validated bundle identity, stabilized FTS merge strategy identity, and kept engine retrieval exports aligned with the canonical retrieval implementation. Canonical demo-path step advanced: `retrieve relevant material`.
 4. Final result ordering and regression coverage: re-ranked final deduplicated FTS hits after truncation so score/provenance rank match output order, and expanded approved shared regression coverage in `tests/unit/test_unified_retrieval.py` for FTS-only behavior, payload identity, provenance, and promotion-ready outputs. Canonical demo-path steps advanced: `retrieve relevant material` and `promote or gather context into the basket`.
 
@@ -41,8 +41,8 @@ Reviewed implementation range for re-review: `378cf9a74a3658058079a32f186fcd254c
 - `src/qual/engine/retrieval/fts_strategy.py` - hardened FTS strategy identity and candidate/provenance behavior.
 - `src/qual/engine/retrieval/payload.py` - normalized retrieval payload snapshots, source/context bundles, citation backfills, candidate-resolution rehydration, basket promotion metadata, FTS strategy aliases, and identifier/fingerprint fields.
 - `src/qual/retrieval/__init__.py` - exported canonical retrieval helpers through the public retrieval facade.
-- `src/qual/retrieval/service.py` - implemented FTS-only excerpt fetching, deterministic query/constraint/cache handling, sparse policy reconstruction, final hit re-ranking, and explicit FTS strategy aliases for basket promotion items.
-- `tests/unit/test_unified_retrieval.py` - expanded approved shared regression coverage for FTS-first retrieval, fail-closed fallback behavior, payload/provenance normalization, candidate-resolution rehydration, and branch-tip hardening.
+- `src/qual/retrieval/service.py` - implemented FTS-only excerpt fetching, deterministic query/constraint/cache handling, sparse policy reconstruction, final hit re-ranking, explicit FTS strategy aliases for basket promotion items, and canonical `excerpt_text_hash` audit recording for excerpt lookups.
+- `tests/unit/test_unified_retrieval.py` - expanded approved shared regression coverage for FTS-first retrieval, fail-closed fallback behavior, payload/provenance normalization, candidate-resolution rehydration, branch-tip hardening, and canonical excerpt lookup audit identity.
 
 ## Diff Evidence
 
@@ -91,13 +91,12 @@ Command: `git show --name-status --oneline 7124a25d35c390ee27d0ea07865323b6916ca
 M	src/qual/engine/retrieval/payload.py
 ```
 
-Current uncommitted implementation delta before this packet refresh:
+Current implementation delta before this packet refresh:
 
 ```text
-THREAD_PACKET.md                     | 39 ++++++++++++++++++++++--------------
-src/qual/engine/retrieval/payload.py |  3 +++
-src/qual/retrieval/service.py        |  3 +++
-3 files changed, 31 insertions(+), 15 deletions(-)
+src/qual/retrieval/service.py        | 2 +-
+tests/unit/test_unified_retrieval.py | 2 +-
+2 files changed, 2 insertions(+), 2 deletions(-)
 ```
 
 ## Budget/Risk
@@ -129,7 +128,8 @@ src/qual/retrieval/service.py        |  3 +++
 - `./quality-test.sh` - passed smoke tests and 150 unit tests.
 - `./typecheck-test.sh` - passed Python source compilation under `src/`.
 - `make ci` - passed setup, scope-check, format, lint, compile/typecheck, smoke tests, and 150 unit tests.
-- `python3 -m unittest tests.unit.test_unified_retrieval` - passed 81 focused retrieval tests.
+- `python3 -m unittest tests.unit.test_unified_retrieval` - passed 81 focused retrieval tests before the audit hash fix.
+- `python3 -m unittest tests.unit.test_unified_retrieval.UnifiedRetrievalTests.test_retrieve_fts_excerpt_audit_records_stable_lookup_identity tests.unit.test_unified_retrieval` - passed the targeted audit regression plus the full retrieval suite, 82 test executions total.
 
 ## Metadata Note
 
