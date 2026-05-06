@@ -2224,12 +2224,35 @@ def command_demo_smoke_script_lookup_table(
     return tuple((step.ordinal, step.argv) for step in command_demo_smoke_script_contract(specs).steps)
 
 
-def _validate_command_smoke_cli_launcher(launcher_argv: tuple[str, ...]) -> None:
+def _validate_command_smoke_cli_launcher_tokens(launcher_argv: tuple[str, ...]) -> None:
     if not launcher_argv or any(not token.strip() for token in launcher_argv):
         raise ValueError("Command smoke CLI launcher argv must not be empty")
 
 
+def _validate_command_smoke_launcher_roundtrip(launcher_argv: tuple[str, ...]) -> None:
+    probe_argv = (*launcher_argv, "bootstrap")
+    if _detected_launcher_argv(probe_argv) != launcher_argv:
+        raise ValueError("Command smoke CLI launcher argv is unsupported")
+    if _argv_without_launcher(probe_argv, launcher_argv) != ("bootstrap",):
+        raise ValueError("Command smoke CLI launcher argv does not resolve to CLI commands")
+
+
+def _validate_command_smoke_cli_launcher(launcher_argv: tuple[str, ...]) -> None:
+    _validate_command_smoke_cli_launcher_tokens(launcher_argv)
+    _validate_command_smoke_launcher_roundtrip(launcher_argv)
+
+
+def _validate_command_smoke_supported_launchers() -> None:
+    seen_launchers: set[tuple[str, ...]] = set()
+    for launcher_argv in COMMAND_SMOKE_SUPPORTED_LAUNCHER_ARGV:
+        _validate_command_smoke_cli_launcher(launcher_argv)
+        if launcher_argv in seen_launchers:
+            raise ValueError("Duplicate command smoke supported launcher argv")
+        seen_launchers.add(launcher_argv)
+
+
 def command_demo_supported_launcher_argv() -> tuple[tuple[str, ...], ...]:
+    _validate_command_smoke_supported_launchers()
     return COMMAND_SMOKE_SUPPORTED_LAUNCHER_ARGV
 
 
