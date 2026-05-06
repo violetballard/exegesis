@@ -990,6 +990,8 @@ class RetrievalService:
         fts_shortlist_limit = self._fts_shortlist_limit(query.constraints.max_results)
         date_range = query.constraints.date_range
         fts_candidate_scan_limit = self._fts_candidate_scan_limit(fts_shortlist_limit, date_range=date_range)
+        fts_shortlist_query = self._build_fts_shortlist_query(query, max_results=fts_shortlist_limit)
+        fts_shortlist_query_fingerprint = self._query_fingerprint(fts_shortlist_query)
         fts_shortlist = (
             self._candidate_docs_from_fts(
                 query,
@@ -1059,6 +1061,7 @@ class RetrievalService:
             "doc_scope_id": self._doc_scope_id(query.scope),
             "date_range": list(date_range) if date_range is not None else None,
             "fts_shortlist_limit": fts_shortlist_limit,
+            "fts_shortlist_query_fingerprint": fts_shortlist_query_fingerprint,
             "fts_candidate_scan_limit": fts_candidate_scan_limit,
             "candidate_doc_count": effective_candidate_doc_count,
             "fts_shortlist_count": len(fts_shortlist),
@@ -1096,6 +1099,7 @@ class RetrievalService:
                 "caches_used": diagnostics["caches_used"],
                 "doc_ids_count": len({hit.doc_id for hit in merged_hits}),
                 "hits_count": len(merged_hits),
+                "fts_shortlist_query_fingerprint": fts_shortlist_query_fingerprint,
                 "fts_shortlist_doc_ids": diagnostics["fts_shortlist_doc_ids"],
                 "retrieval_manifest": retrieval_manifest,
                 "retrieval_evidence": retrieval_evidence,
@@ -1454,12 +1458,17 @@ class RetrievalService:
             "section_hint": query.constraints.section_hint,
             "prefer_exact_matches": query.constraints.prefer_exact_matches,
         }
+        fts_shortlist_query = self._build_fts_shortlist_query(
+            query,
+            max_results=self._fts_shortlist_limit(query.constraints.max_results),
+        )
         return {
             "query_fingerprint": query_fingerprint,
             "query_scope": query.scope,
             "query_intent": query.intent,
             "query_constraints": query_constraints,
             "query_constraints_fingerprint": RetrievalService._stable_fingerprint(query_constraints),
+            "fts_shortlist_query_fingerprint": self._query_fingerprint(fts_shortlist_query),
             "query_date_range": list(query.constraints.date_range)
             if query.constraints.date_range is not None
             else None,
@@ -1567,6 +1576,7 @@ class RetrievalService:
             constraints=RetrievalConstraints(
                 max_results=max_results,
                 doc_types=query.constraints.doc_types,
+                date_range=query.constraints.date_range,
                 require_citations=query.constraints.require_citations,
                 section_hint=query.constraints.section_hint,
                 prefer_exact_matches=query.constraints.prefer_exact_matches,

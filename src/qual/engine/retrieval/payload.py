@@ -731,8 +731,16 @@ def _build_retrieval_diagnostics_from_source_bundle(source_bundle: dict[str, obj
     caches_used = _normalize_bool_map(citation_bundle.get("caches_used", normalized.get("caches_used", {})))
     if not caches_used:
         caches_used = {strategy_id: False for strategy_id in strategies_used}
+    retrieval_evidence = normalized.get("retrieval_evidence", {})
+    if not isinstance(retrieval_evidence, dict):
+        retrieval_evidence = {}
+    fts_shortlist_query_fingerprint = _first_text_value(
+        normalized.get("fts_shortlist_query_fingerprint"),
+        citation_bundle.get("fts_shortlist_query_fingerprint"),
+        retrieval_evidence.get("fts_shortlist_query_fingerprint"),
+    )
 
-    return {
+    diagnostics = {
         "retrieval_policy": copy.deepcopy(retrieval_policy),
         "retrieval_backend": citation_bundle.get(
             "retrieval_backend",
@@ -779,6 +787,9 @@ def _build_retrieval_diagnostics_from_source_bundle(source_bundle: dict[str, obj
             normalized.get("result_fingerprint"),
         ),
     }
+    if fts_shortlist_query_fingerprint is not None:
+        diagnostics["fts_shortlist_query_fingerprint"] = fts_shortlist_query_fingerprint
+    return diagnostics
 
 
 def _build_retrieval_provenance_from_payload(payload: dict[str, object]) -> dict[str, object]:
