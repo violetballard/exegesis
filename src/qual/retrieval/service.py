@@ -75,6 +75,25 @@ def _normalize_supported_value(value: object, *, field_name: str, allowed: set[s
     return normalized
 
 
+def _parse_date_value(value: str) -> date | None:
+    try:
+        return datetime.fromisoformat(value).date()
+    except ValueError:
+        try:
+            return date.fromisoformat(value)
+        except ValueError:
+            return None
+
+
+def _validate_date_range_values(date_range: tuple[str, str]) -> None:
+    start_date = _parse_date_value(date_range[0])
+    end_date = _parse_date_value(date_range[1])
+    if start_date is None or end_date is None:
+        raise ValueError("date_range values must be ISO dates or datetimes")
+    if start_date > end_date:
+        raise ValueError("date_range start must be on or before end")
+
+
 @dataclass(frozen=True)
 class RetrievalConstraints:
     max_results: int = 10
@@ -92,6 +111,7 @@ class RetrievalConstraints:
             normalized = tuple(str(value).strip() for value in self.date_range)
             if len(normalized) != 2 or any(not value for value in normalized):
                 raise ValueError("date_range must contain exactly two non-empty values")
+            _validate_date_range_values(cast(tuple[str, str], normalized))
             object.__setattr__(self, "date_range", normalized)
         object.__setattr__(self, "section_hint", _optional_text(self.section_hint))
 
@@ -1582,13 +1602,7 @@ class RetrievalService:
 
     @staticmethod
     def _parse_date_value(value: str) -> date | None:
-        try:
-            return datetime.fromisoformat(value).date()
-        except ValueError:
-            try:
-                return date.fromisoformat(value)
-            except ValueError:
-                return None
+        return _parse_date_value(value)
 
     def _is_long_structured_doc(self, doc_id: str) -> bool:
         meta = self._load_doc_meta().get(doc_id)
@@ -2011,12 +2025,7 @@ class RetrievalService:
         if query.constraints.max_results < 1:
             raise ValueError("max_results must be greater than zero")
         if query.constraints.date_range is not None:
-            start_date = self._parse_date_value(query.constraints.date_range[0])
-            end_date = self._parse_date_value(query.constraints.date_range[1])
-            if start_date is None or end_date is None:
-                raise ValueError("date_range values must be ISO dates or datetimes")
-            if start_date > end_date:
-                raise ValueError("date_range start must be on or before end")
+            _validate_date_range_values(query.constraints.date_range)
         if query.scope.startswith("section:"):
             raise ValueError("section scope is unsupported until FTS fallback can resolve section targets")
         if query.scope not in {"vault"} and not any(query.scope.startswith(prefix) for prefix in ("collection:", "doc:")):

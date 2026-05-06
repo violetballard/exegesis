@@ -3,7 +3,7 @@
 - Branch name: `codex/feat-retrieval-fts`
 - Lane: `feat-retrieval-fts`
 - Merge target: current `main`
-- Handoff type: high-risk retrieval date-range validation fixer handoff for the FTS-first retrieval lane.
+- Handoff type: high-risk retrieval date-range contract validation fixer handoff for the FTS-first retrieval lane.
 - Reviewed implementation base: `d31c231eaa190fa363902ec28e3ad46f5e58ac77`.
 - Reviewed implementation head: `HEAD` after this fixer commit; final SHA is reported in the fixer response.
 - Reviewed implementation range for re-review: `d31c231eaa190fa363902ec28e3ad46f5e58ac77..HEAD`.
@@ -14,7 +14,7 @@
 
 ## Scope Completed
 
-This fixer keeps SQLite FTS as the authoritative MVP retrieval path and makes date-range retrieval constraints fail fast when they are malformed or reversed. `RetrievalService.retrieve_fts` and the `retrieve_auto` alias now validate date-range bounds before FTS execution, so downstream retrieval payloads cannot silently represent invalid operator constraints as an empty evidence set.
+This fixer keeps SQLite FTS as the authoritative MVP retrieval path and makes date-range retrieval constraints fail fast when they are malformed or reversed. `RetrievalConstraints`, both canonical retrieval query facades, `RetrievalService.retrieve_fts`, and the `retrieve_auto` alias now share the same date-range validation contract before FTS execution, so downstream retrieval payloads cannot silently represent invalid operator constraints as an empty evidence set.
 
 The retrieval shape remains FTS-first and deterministic. PageIndex and embeddings remain deferred compatibility surfaces, while basket promotion and later revise/apply steps get a clearer contract: no-hit results are reserved for valid searches with no matching FTS evidence, not invalid date filters.
 
@@ -22,21 +22,22 @@ The retrieval shape remains FTS-first and deterministic. PageIndex and embedding
 
 1. Canonical demo-path step advanced: `retrieve relevant material`. FTS retrieval now rejects invalid date-range constraints before building evidence.
 2. Canonical demo-path step supported: `promote or gather context into the basket`. Valid empty evidence and invalid operator constraints are now distinguishable for basket/context flows.
-3. Added approved shared regression coverage for malformed and reversed date ranges on the canonical `retrieve_auto` path.
+3. Canonical engine surface tightened: `build_retrieval_query` rejects malformed and reversed date ranges before retrieval execution.
+4. Added approved shared regression coverage for malformed and reversed date ranges on both canonical query-construction facades.
 
 ## Files Changed
 
 Reviewed implementation range for re-review: `d31c231eaa190fa363902ec28e3ad46f5e58ac77..HEAD`.
 
 - `THREAD_PACKET.md` - authoritative handoff packet for this fixer pass.
-- `src/qual/retrieval/service.py` - validates date-range parseability and ordering before FTS retrieval.
-- `tests/unit/test_unified_retrieval.py` - covers malformed and reversed date-range rejection on the canonical retrieval path.
+- `src/qual/retrieval/service.py` - centralizes date-range parseability and ordering validation for constraints and FTS retrieval.
+- `tests/unit/test_unified_retrieval.py` - covers malformed and reversed date-range rejection on both canonical query-construction facades.
 
 ## Budget/Risk
 
-- Task budget: `3/4` high-risk task groups.
+- Task budget: `4/4` high-risk task groups.
 - File count for reviewed implementation handoff: `3 files changed`.
-- Size accounting before packet rewrite: `24 insertions(+)` across retrieval service and approved shared regression coverage.
+- Size accounting before packet rewrite: `38 insertions(+), 13 deletions(-)` across retrieval service and approved shared regression coverage.
 - AGENTS file/size status: fits high-risk size limits of `<=8 files` and `<=300 net LOC`.
 - Shared/integrator exception status: uses the approved shared regression surface `tests/unit/test_unified_retrieval.py`; no integrator-locked files changed.
 - Routing/provider impact: none.
@@ -56,12 +57,12 @@ Reviewed implementation range for re-review: `d31c231eaa190fa363902ec28e3ad46f5e
 
 Commands run for this corrected branch-tip packet on the exact worktree state to be committed by this fixer pass:
 
-- `python -m unittest tests.unit.test_unified_retrieval` - passed 57 retrieval tests.
+- `python -m unittest tests.unit.test_unified_retrieval` - passed 58 retrieval tests.
 - `./quality-format.sh --check` - passed.
 - `./quality-lint.sh` - passed shell syntax and trailing whitespace checks.
-- `./quality-test.sh` - passed smoke tests and 126 unit tests.
+- `./quality-test.sh` - passed smoke tests and 127 unit tests.
 - `./typecheck-test.sh` - passed Python source compilation under `src/`.
-- `make ci` - passed setup, scope-check, format, lint, compile/typecheck, smoke tests, and 126 unit tests.
+- `make ci` - passed setup, scope-check, format, lint, compile/typecheck, smoke tests, and 127 unit tests.
 
 ## Metadata Note
 

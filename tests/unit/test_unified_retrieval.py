@@ -1365,6 +1365,22 @@ class UnifiedRetrievalTests(unittest.TestCase):
         self.assertEqual(engine_query.constraints.prefer_exact_matches, True)
         self.assertEqual(engine_query.confidentiality_profile, "standard")
 
+    def test_retrieval_query_constructor_rejects_invalid_date_ranges_before_execution(self) -> None:
+        for date_range, message in (
+            (("not-a-date", "2026-01-31"), "date_range values must be ISO dates or datetimes"),
+            (("2026-02-01", "2026-01-31"), "date_range start must be on or before end"),
+        ):
+            for facade in (engine_retrieval.build_retrieval_query, package_retrieval.build_retrieval_query):
+                with self.subTest(date_range=date_range, facade=facade.__module__):
+                    with self.assertRaisesRegex(ValueError, message):
+                        facade(
+                            query_text="memo comparison",
+                            scope="vault",
+                            intent="compare",
+                            constraints={"date_range": date_range},
+                            confidentiality_profile="standard",
+                        )
+
     def test_retrieval_package_helpers_accept_constraints_dataclass(self) -> None:
         constraints = RetrievalConstraints(
             max_results=7,
