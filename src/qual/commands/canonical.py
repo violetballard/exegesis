@@ -506,6 +506,8 @@ def canonical_command_readiness_handoff_packet_summary() -> tuple[
     tuple[str, ...],
     tuple[str, ...],
     str,
+    str,
+    str,
     tuple[str, ...],
     tuple[str, ...],
     tuple[str, ...],

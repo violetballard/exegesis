@@ -507,6 +507,8 @@ class CommandDemoReadinessHandoffPacket:
     roadmap_items: tuple[str, ...]
     vision_capabilities: tuple[str, ...]
     routing_provider_impact: str
+    fingerprint_algorithm: str
+    fingerprint_digest: str
     canonical_demo_path_steps: tuple[str, ...]
     command_lines: tuple[str, ...]
     exact_action_lines: tuple[str, ...]
@@ -4758,6 +4760,7 @@ def command_demo_readiness_handoff_packet(
     launcher_argv: tuple[str, ...] = COMMAND_SMOKE_CLI_LAUNCHER_ARGV,
 ) -> CommandDemoReadinessHandoffPacket:
     seal = command_demo_readiness_seal(specs, launcher_argv)
+    fingerprint = command_demo_readiness_fingerprint(specs, launcher_argv)
     checklist_lines = command_demo_readiness_handoff_checklist_lines(specs, launcher_argv)
     action_steps = command_demo_readiness_handoff_action_contract(specs, launcher_argv).steps
     packet = CommandDemoReadinessHandoffPacket(
@@ -4776,6 +4779,8 @@ def command_demo_readiness_handoff_packet(
             "Required capability 6: Auditable state and workflow",
         ),
         routing_provider_impact="None: command readiness metadata does not touch model routing or providers.",
+        fingerprint_algorithm=fingerprint.algorithm,
+        fingerprint_digest=fingerprint.digest,
         canonical_demo_path_steps=tuple(
             step.demo_path_step
             for step in command_demo_path_readiness_contract(specs, launcher_argv).steps
@@ -4793,6 +4798,7 @@ def command_demo_readiness_handoff_packet(
     _validate_command_demo_readiness_handoff_packet(
         packet,
         seal,
+        fingerprint,
         checklist_lines,
         action_steps,
         specs,
@@ -4804,6 +4810,7 @@ def command_demo_readiness_handoff_packet(
 def _validate_command_demo_readiness_handoff_packet(
     packet: CommandDemoReadinessHandoffPacket,
     seal: CommandDemoReadinessSeal,
+    fingerprint: CommandDemoReadinessFingerprint,
     checklist_lines: tuple[str, ...],
     action_steps: tuple[CommandDemoReadinessHandoffActionStep, ...],
     specs: tuple[CommandSpec, ...],
@@ -4817,6 +4824,10 @@ def _validate_command_demo_readiness_handoff_packet(
         raise ValueError("Command demo readiness handoff packet vision capabilities must not be empty")
     if not packet.routing_provider_impact.strip():
         raise ValueError("Command demo readiness handoff packet provider impact must not be empty")
+    if packet.fingerprint_algorithm != fingerprint.algorithm:
+        raise ValueError("Command demo readiness handoff packet fingerprint algorithm is inconsistent")
+    if packet.fingerprint_digest != fingerprint.digest:
+        raise ValueError("Command demo readiness handoff packet fingerprint digest is inconsistent")
     expected_demo_steps = tuple(
         step.demo_path_step
         for step in command_demo_path_readiness_contract(specs, launcher_argv).steps
@@ -4859,6 +4870,8 @@ def command_demo_readiness_handoff_packet_summary(
     tuple[str, ...],
     tuple[str, ...],
     str,
+    str,
+    str,
     tuple[str, ...],
     tuple[str, ...],
     tuple[str, ...],
@@ -4874,6 +4887,8 @@ def command_demo_readiness_handoff_packet_summary(
         packet.roadmap_items,
         packet.vision_capabilities,
         packet.routing_provider_impact,
+        packet.fingerprint_algorithm,
+        packet.fingerprint_digest,
         packet.canonical_demo_path_steps,
         packet.command_lines,
         packet.exact_action_lines,
@@ -8242,6 +8257,8 @@ def command_mvp_demo_readiness_handoff_packet_summary(
     str,
     tuple[str, ...],
     tuple[str, ...],
+    str,
+    str,
     str,
     tuple[str, ...],
     tuple[str, ...],
