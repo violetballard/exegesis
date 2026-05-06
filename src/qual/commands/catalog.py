@@ -967,6 +967,10 @@ COMMAND_SMOKE_ENV_VALUE_OPTIONS: tuple[str, ...] = (
     "-u",
     "--unset",
 )
+COMMAND_SMOKE_ENV_SPLIT_STRING_OPTIONS: tuple[str, ...] = (
+    "-S",
+    "--split-string",
+)
 COMMAND_SMOKE_SHELL_SETUP_COMMANDS: tuple[str, ...] = (
     "cd",
     "pwd",
@@ -7120,6 +7124,8 @@ def _argv_without_launcher(argv: tuple[str, ...], launcher_argv: tuple[str, ...]
             return _strip_launcher_separator(argv[len(supported_launcher_argv) :])
     launcher_prefix, unwrapped_argv = _split_supported_launcher_prefix(argv)
     if launcher_prefix:
+        if _env_split_string_prefix(launcher_prefix):
+            return _strip_launcher_separator(unwrapped_argv)
         unwrapped_without_launcher = _argv_without_launcher(unwrapped_argv, ())
         if unwrapped_without_launcher != unwrapped_argv:
             return unwrapped_without_launcher
@@ -7140,6 +7146,8 @@ def _detected_launcher_argv(argv: tuple[str, ...]) -> tuple[str, ...]:
             return supported_launcher_argv
     launcher_prefix, unwrapped_argv = _split_supported_launcher_prefix(argv)
     if launcher_prefix:
+        if _env_split_string_prefix(launcher_prefix):
+            return launcher_prefix
         detected_argv = _detected_launcher_argv(unwrapped_argv)
         if detected_argv:
             return (*launcher_prefix, *detected_argv)
@@ -7199,6 +7207,18 @@ def _split_env_launcher_prefix(argv: tuple[str, ...]) -> tuple[tuple[str, ...], 
                 return (), argv
             index += 2
             continue
+        if token in COMMAND_SMOKE_ENV_SPLIT_STRING_OPTIONS:
+            if index + 1 >= len(argv):
+                return (), argv
+            split_argv = _split_env_split_string_argv(argv[index + 1])
+            if not _env_split_string_starts_supported_launcher(split_argv):
+                return (), argv
+            return argv[: index + 2], argv[index + 2 :]
+        if token.startswith("--split-string=") and token != "--split-string=":
+            split_argv = _split_env_split_string_argv(token.split("=", 1)[1])
+            if not _env_split_string_starts_supported_launcher(split_argv):
+                return (), argv
+            return argv[: index + 1], argv[index + 1 :]
         if token in COMMAND_SMOKE_ENV_FLAGS or SHELL_ENV_ASSIGNMENT_RE.fullmatch(token):
             index += 1
             continue
@@ -7210,6 +7230,42 @@ def _split_env_launcher_prefix(argv: tuple[str, ...]) -> tuple[tuple[str, ...], 
 
 def _env_option_has_inline_value(token: str) -> bool:
     return token.startswith("--unset=") and token != "--unset="
+
+
+def _env_split_string_prefix(prefix: tuple[str, ...]) -> bool:
+    return any(
+        token in COMMAND_SMOKE_ENV_SPLIT_STRING_OPTIONS
+        or (token.startswith("--split-string=") and token != "--split-string=")
+        for token in prefix
+    )
+
+
+def _split_env_split_string_argv(value: str) -> tuple[str, ...]:
+    try:
+        return tuple(shlex.split(value))
+    except ValueError:
+        return ()
+
+
+def _env_split_string_starts_supported_launcher(argv: tuple[str, ...]) -> bool:
+    if not argv:
+        return False
+    if _detected_implicit_python_launcher_tail(argv):
+        return True
+    python_launcher_argv, _ = _split_python_launcher_argv(argv)
+    if python_launcher_argv:
+        return True
+    uv_python_prefix, _ = _split_uv_python_launcher_prefix(argv)
+    if uv_python_prefix:
+        return True
+    uv_run_prefix, _ = _split_uv_run_option_prefix(argv)
+    if uv_run_prefix:
+        return True
+    for launcher_prefix in COMMAND_SMOKE_SUPPORTED_LAUNCHER_PREFIXES:
+        requested_prefix = argv[: len(launcher_prefix)]
+        if _launcher_prefix_matches(requested_prefix, launcher_prefix):
+            return True
+    return False
 
 
 def _strip_shell_command_wrappers(argv: tuple[str, ...]) -> tuple[str, ...]:
