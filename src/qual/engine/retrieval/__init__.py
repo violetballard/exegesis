@@ -61,9 +61,9 @@ def _normalize_constraint_values(
 def _normalize_optional_int(value: object, *, default: int) -> int:
     if value is None:
         return default
-    if isinstance(value, bool):
-        raise TypeError("integer retrieval constraints must be int-like values, not bool")
-    return int(value)
+    if isinstance(value, bool) or not isinstance(value, int):
+        raise TypeError("integer retrieval constraints must be int-like values, not bool or non-int")
+    return value
 
 
 def _normalize_optional_bool(value: object, *, default: bool) -> bool:
