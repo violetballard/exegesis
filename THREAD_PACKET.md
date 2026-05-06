@@ -5,7 +5,7 @@
 - Merge target: current `main`
 - Handoff type: high-risk branch-tip retrieval handoff for the FTS-first retrieval lane.
 - Reviewed implementation base: `378cf9a74a3658058079a32f186fcd254c4a4034`.
-- Actual merge candidate before this packet fix: `f8a823e19d4ace050979ec0f2eb5c6e7a5052208`.
+- Actual merge candidate before this packet fix: `9d92047f0639aed47db163308097ba72843e75ca`.
 - Reviewed implementation range for re-review: `378cf9a74a3658058079a32f186fcd254c4a4034..FINAL_BRANCH_TIP`.
 - Final branch tip: reported in the final fixer response after commit creation.
 - Scope classification: high-risk because this lane touches retrieval core/facade behavior and approved shared regression coverage in `tests/unit/test_unified_retrieval.py`.
@@ -34,8 +34,8 @@ Required before-handoff demo-path statement: this work now makes the canonical d
 
 Reviewed implementation range for re-review: `378cf9a74a3658058079a32f186fcd254c4a4034..FINAL_BRANCH_TIP`.
 
-- `.codex/kickoff_packets/feat-retrieval-fts.md` - branch-tip range includes stale lane metadata from earlier commits; the integration-facing root packet is the regenerated source of truth for re-review.
-- `.codex/lane_meta/feat-retrieval-fts.json` - branch-tip range includes stale lane metadata from earlier commits; the integration-facing root packet is the regenerated source of truth for re-review.
+- `.codex/kickoff_packets/feat-retrieval-fts.md` - branch-tip range includes stale lane metadata from earlier commits; attempted update in this fixer pass was blocked by sandbox filesystem permissions (`Operation not permitted` under `.codex`).
+- `.codex/lane_meta/feat-retrieval-fts.json` - branch-tip range includes stale lane metadata from earlier commits; attempted update in this fixer pass was blocked by sandbox filesystem permissions (`Operation not permitted` under `.codex`).
 - `THREAD_PACKET.md` - regenerated this authoritative handoff packet for the actual branch-tip scope.
 - `src/qual/engine/retrieval/__init__.py` - aligned engine retrieval exports and compatibility facade wiring with the FTS-first retrieval surface.
 - `src/qual/engine/retrieval/fts_strategy.py` - hardened FTS strategy identity and candidate/provenance behavior.
@@ -110,7 +110,7 @@ src/qual/retrieval/service.py        |  3 +++
 - Shared/integrator exception status: `tests/unit/test_unified_retrieval.py` is approved shared regression coverage for the retrieval lane; no integrator-locked files changed.
 - Routing/provider impact: none.
 - PageIndex/embeddings impact: remain compatibility-only/deferred identifiers; no PageIndex, embeddings, hybrid, or alternate retrieval path was added.
-- Remaining risks/blockers: the branch-tip change volume exceeds AGENTS high-risk size limits. The authoritative root packet no longer claims production/test commits after `adfa8cd` are metadata-only. Stale `.codex` metadata copies still contain old metadata-only wording and should not be treated as authoritative for this re-review.
+- Remaining risks/blockers: the branch-tip change volume exceeds AGENTS high-risk size limits. The authoritative root packet no longer claims production/test commits after `adfa8cd` are metadata-only. `.codex` metadata copies still contain old metadata-only wording because this sandbox refuses writes under `.codex`; reviewer-required metadata synchronization remains blocked until that directory is writable or regenerated outside this sandbox.
 
 ## Roadmap/Vision
 
@@ -135,4 +135,4 @@ src/qual/retrieval/service.py        |  3 +++
 
 The root `THREAD_PACKET.md` is the authoritative regenerated handoff packet. No commit after `adfa8cdadd43747ffbcb612e4151e262b13e52ca` is described here as metadata-only unless `git show --name-status` for that commit contains only packet or lane metadata files. The reviewed implementation range intentionally covers `378cf9a74a3658058079a32f186fcd254c4a4034..FINAL_BRANCH_TIP` so the actual merge candidate is traceable.
 
-The `.codex` lane metadata files are included in the branch-tip diff because earlier packet refresh commits changed them, but their stale narrow-range wording is superseded by this root packet for re-review. Reviewers should use this root packet plus the final fixer response HEAD SHA as the source of truth for the merge candidate.
+The `.codex` lane metadata files are included in the branch-tip diff because earlier packet refresh commits changed them, but they still contain stale narrow-range wording. This fixer pass attempted to rewrite `.codex/kickoff_packets/feat-retrieval-fts.md` and `.codex/lane_meta/feat-retrieval-fts.json`; both writes failed with `Operation not permitted`, and even creating `.codex/write-test` failed with the same error. Reviewers should treat this as an unresolved filesystem blocker for required fix 5 rather than as a completed metadata sync.
