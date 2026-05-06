@@ -3,10 +3,10 @@
 - Branch name: `codex/feat-retrieval-fts`
 - Lane: `feat-retrieval-fts`
 - Merge target: current `main`
-- Final fixer HEAD SHA: the source-bearing finalizer commit that contains this handoff; reported in the fixer response.
+- Final fixer HEAD SHA: the metadata-only packet correction commit that contains this handoff refresh; reported in the fixer response.
 - Authoritative reviewed implementation base: `378cf9a74a3658058079a32f186fcd254c4a4034`
-- Authoritative reviewed implementation range for re-review: `378cf9a74a3658058079a32f186fcd254c4a4034..HEAD`, where `HEAD` is this source-bearing finalizer commit.
-- Source-bearing merge-candidate tip before this source-bearing finalizer commit: `d8508d9a97534d25c4f861b9dc3769bed7a35595`.
+- Authoritative reviewed implementation range for re-review: `378cf9a74a3658058079a32f186fcd254c4a4034..HEAD`, where `HEAD` is the final packet-correction branch tip reported with this fixer response.
+- Source-bearing merge-candidate tip included in the reviewed range: `a107bee8194bc73875e183230ee72259ea6886e4`.
 - Handoff type: high-risk retrieval handoff for the FTS-first retrieval lane.
 - Risk reason: approved shared regression surface `tests/unit/test_unified_retrieval.py`.
 - Lane-owned paths: `src/qual/retrieval/**`, `src/qual/engine/retrieval/**`.
@@ -15,11 +15,23 @@
 
 ## Traceability Correction
 
-This packet supersedes the stale narrow-range handoff. The reviewed range is the full merge-candidate range from `378cf9a74a3658058079a32f186fcd254c4a4034` through this source-bearing finalizer commit, so it includes source-bearing commits after `adfa8cdadd43747ffbcb612e4151e262b13e52ca` through `125a3b7f84f096159baed4114029a7a38df772ae`, including `cff7569dddc06bd6c4b445ebfc4dd5d161ab3cf0`, plus the current finalizer's basket-promotion query-context hardening.
+This packet supersedes the stale narrow-range handoff. The reviewed range is the full merge-candidate range from `378cf9a74a3658058079a32f186fcd254c4a4034` through the final packet-correction branch tip reported with this fixer response, so it includes source-bearing commits after `adfa8cdadd43747ffbcb612e4151e262b13e52ca` through actual source-bearing tip `a107bee8194bc73875e183230ee72259ea6886e4`, including `cff7569dddc06bd6c4b445ebfc4dd5d161ab3cf0`, `125a3b7f84f096159baed4114029a7a38df772ae`, and the basket-promotion facade exposure in `a107bee8194bc73875e183230ee72259ea6886e4`.
 
 The previous metadata-only classification for `cff7569dddc06bd6c4b445ebfc4dd5d161ab3cf0` is withdrawn. That commit changes `src/qual/retrieval/service.py` and `src/qual/engine/retrieval/payload.py`, so it is included in the reviewed implementation range.
 
-Other source-bearing post-`adfa8cd` commits are included as well; the post-`adfa8cd` implementation surface is `src/qual/engine/retrieval/__init__.py`, `src/qual/engine/retrieval/fts_strategy.py`, `src/qual/engine/retrieval/payload.py`, `src/qual/retrieval/service.py`, and `tests/unit/test_unified_retrieval.py`. The current finalizer also changes `src/qual/retrieval/service.py`, `src/qual/engine/retrieval/payload.py`, and `tests/unit/test_unified_retrieval.py` to harden per-item basket-promotion query provenance.
+Other source-bearing post-`adfa8cd` commits are included as well; the post-`adfa8cd` implementation surface is `src/qual/engine/retrieval/__init__.py`, `src/qual/engine/retrieval/fts_strategy.py`, `src/qual/engine/retrieval/payload.py`, `src/qual/retrieval/__init__.py`, `src/qual/retrieval/service.py`, and `tests/unit/test_unified_retrieval.py`. The corrected range also includes the source-bearing changes in `a107bee8194bc73875e183230ee72259ea6886e4` to expose basket-promotion facade helpers from `src/qual/retrieval/__init__.py`, `src/qual/retrieval/service.py`, and `src/qual/engine/retrieval/__init__.py`.
+
+## Reviewer Rejection Fix Addendum
+
+This fixer pass addresses the review packet that rejected branch tip `a107bee8194bc73875e183230ee72259ea6886e4` because the previous packet falsely treated later source commits as metadata-only. The packet now treats `a107bee8194bc73875e183230ee72259ea6886e4` as the source-bearing merge-candidate tip covered by the reviewed implementation range, and the final branch tip for this pass is a metadata-only packet correction commit on top of that source-bearing tip.
+
+Current reviewer-rejection fixer files changed:
+
+- `M THREAD_PACKET.md`
+
+Current reviewer-rejection fixer task count: `1` meaningful task group, within the high-risk `4` task cap for this fixer pass.
+Current reviewer-rejection fixer size: packet-only traceability update in `THREAD_PACKET.md`.
+Shared/integrator-locked impact this reviewer-rejection fixer pass: none; no source, shared regression, provider routing, UI, or integrator-locked files were edited.
 
 ## Scope Completed
 
@@ -110,7 +122,7 @@ Final canonical demo-path statement: this work makes the `retrieve relevant mate
 
 ## Files Changed
 
-Authoritative reviewed range: `378cf9a74a3658058079a32f186fcd254c4a4034..HEAD`, where `HEAD` is this source-bearing finalizer commit.
+Authoritative reviewed range: `378cf9a74a3658058079a32f186fcd254c4a4034..HEAD`, where `HEAD` is the final packet-correction branch tip reported with this fixer response. The source-bearing implementation tip included in that range is `a107bee8194bc73875e183230ee72259ea6886e4`.
 
 Expected changed files for that range:
 
@@ -124,7 +136,7 @@ Expected changed files for that range:
 - `M src/qual/retrieval/service.py`
 - `M tests/unit/test_unified_retrieval.py`
 
-Merge-candidate diff through this source-bearing tip before the packet update: `8 files changed, 688 insertions(+), 125 deletions(-)`, net `+563` LOC, excluding `THREAD_PACKET.md`. This finalizer adds narrow source-bearing retrieval facade methods in `src/qual/retrieval/service.py`, `src/qual/retrieval/__init__.py`, and `src/qual/engine/retrieval/__init__.py`, plus this handoff refresh.
+Merge-candidate diff through source-bearing tip `a107bee8194bc73875e183230ee72259ea6886e4` before this packet update: `8 files changed, 688 insertions(+), 125 deletions(-)`, net `+563` LOC, excluding `THREAD_PACKET.md`. The `a107bee8194bc73875e183230ee72259ea6886e4` source-bearing finalizer adds narrow retrieval facade methods in `src/qual/retrieval/service.py`, `src/qual/retrieval/__init__.py`, and `src/qual/engine/retrieval/__init__.py`; this fixer commit only refreshes the handoff packet.
 
 The protected `.codex/kickoff_packets/feat-retrieval-fts.md` and `.codex/lane_meta/feat-retrieval-fts.json` mirror artifacts could not be edited in-place, so they are removed from the merge candidate to avoid preserving stale contradictory trace metadata. `THREAD_PACKET.md` is the coherent handoff packet for re-review.
 
@@ -145,6 +157,15 @@ The protected `.codex/kickoff_packets/feat-retrieval-fts.md` and `.codex/lane_me
 - Proposed `README.md` patch text: none.
 
 ## Commands Run
+
+Required gates rerun for this reviewer-rejection fixer pass:
+
+- `make scope-check` - passed for branch `codex/feat-retrieval-fts`; no branch-specific policy was configured.
+- `./quality-format.sh --check` - passed.
+- `./quality-lint.sh` - passed shell syntax and trailing whitespace checks.
+- `./quality-test.sh` - passed smoke tests and 130 unit tests.
+- `./typecheck-test.sh` - passed Python source compilation under `src/`.
+- `make ci` - passed setup, scope-check, format, lint, compile/typecheck, smoke tests, and 130 unit tests.
 
 Required gates rerun for the source-bearing finalizer pass:
 
