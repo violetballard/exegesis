@@ -63,6 +63,8 @@ from src.qual.commands.catalog import (
     CommandDemoSupportedLauncherReadinessContract,
     CommandDemoReadinessTraceContract,
     CommandDemoSmokeMatrixContract,
+    CommandHandlerDemoPathContract,
+    CommandHandlerDemoPathEntry,
     canonical_command as _canonical_command,
     command_mvp_demo_path_readiness_contract as _path_readiness_contract,
     command_mvp_demo_path_steps as _path_steps,
@@ -416,6 +418,10 @@ from src.qual.commands.catalog import (
     command_mvp_demo_readiness_lookup_table as _readiness_lookup_table,
     command_mvp_demo_readiness_command_line_lookup_table as _readiness_command_line_lookup_table,
     command_mvp_demo_readiness_summary as _readiness_summary,
+    command_mvp_handler_demo_path_contract as _handler_demo_path_contract,
+    command_mvp_handler_demo_path_entry_for_command as _handler_demo_path_entry_for_command,
+    command_mvp_handler_demo_path_lookup_table as _handler_demo_path_lookup_table,
+    command_mvp_handler_demo_path_summary as _handler_demo_path_summary,
 )
 
 
@@ -726,6 +732,10 @@ __all__ = [
     "canonical_command_readiness_lookup_table",
     "canonical_command_readiness_command_line_lookup_table",
     "canonical_command_readiness_summary",
+    "canonical_command_handler_demo_path_contract",
+    "canonical_command_handler_demo_path_entry_for_command",
+    "canonical_command_handler_demo_path_lookup_table",
+    "canonical_command_handler_demo_path_summary",
 ]
 
 
@@ -746,6 +756,30 @@ def canonical_command_readiness_lookup_table() -> tuple[tuple[str, tuple[str, ..
 
 def canonical_command_readiness_command_line_lookup_table() -> tuple[tuple[str, str], ...]:
     return _readiness_command_line_lookup_table()
+
+
+def canonical_command_handler_demo_path_contract() -> CommandHandlerDemoPathContract:
+    return _handler_demo_path_contract()
+
+
+def canonical_command_handler_demo_path_summary() -> tuple[
+    tuple[str, str, str, str, str, tuple[str, ...], tuple[str, ...]],
+    ...,
+]:
+    return _handler_demo_path_summary()
+
+
+def canonical_command_handler_demo_path_lookup_table() -> tuple[
+    tuple[str, tuple[str, tuple[str, ...]]],
+    ...,
+]:
+    return _handler_demo_path_lookup_table()
+
+
+def canonical_command_handler_demo_path_entry_for_command(
+    command_name: str,
+) -> CommandHandlerDemoPathEntry | None:
+    return _handler_demo_path_entry_for_command(command_name)
 
 
 def _readiness_status(
