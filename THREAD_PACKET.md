@@ -3,10 +3,10 @@
 - Branch name: `codex/feat-retrieval-fts`
 - Lane: `feat-retrieval-fts`
 - Merge target: current `main`
-- Final fixer HEAD SHA: the packet-only fixer commit that contains this handoff; reported in the fixer response.
+- Final fixer HEAD SHA: the source-bearing finalizer commit that contains this handoff; reported in the fixer response.
 - Authoritative reviewed implementation base: `378cf9a74a3658058079a32f186fcd254c4a4034`
-- Authoritative reviewed implementation range for re-review: `378cf9a74a3658058079a32f186fcd254c4a4034..HEAD`, where `HEAD` is this packet-only fixer commit.
-- Source-bearing merge-candidate tip before this packet-only fixer commit: `125a3b7f84f096159baed4114029a7a38df772ae`.
+- Authoritative reviewed implementation range for re-review: `378cf9a74a3658058079a32f186fcd254c4a4034..HEAD`, where `HEAD` is this source-bearing finalizer commit.
+- Source-bearing merge-candidate tip before this source-bearing finalizer commit: `d8508d9a97534d25c4f861b9dc3769bed7a35595`.
 - Handoff type: high-risk retrieval handoff for the FTS-first retrieval lane.
 - Risk reason: approved shared regression surface `tests/unit/test_unified_retrieval.py`.
 - Lane-owned paths: `src/qual/retrieval/**`, `src/qual/engine/retrieval/**`.
@@ -15,11 +15,11 @@
 
 ## Traceability Correction
 
-This packet supersedes the stale narrow-range handoff. The reviewed range is the full merge-candidate range from `378cf9a74a3658058079a32f186fcd254c4a4034` through this final packet-only fixer commit, so it includes source-bearing commits after `adfa8cdadd43747ffbcb612e4151e262b13e52ca` through `125a3b7f84f096159baed4114029a7a38df772ae`, including `cff7569dddc06bd6c4b445ebfc4dd5d161ab3cf0`.
+This packet supersedes the stale narrow-range handoff. The reviewed range is the full merge-candidate range from `378cf9a74a3658058079a32f186fcd254c4a4034` through this source-bearing finalizer commit, so it includes source-bearing commits after `adfa8cdadd43747ffbcb612e4151e262b13e52ca` through `125a3b7f84f096159baed4114029a7a38df772ae`, including `cff7569dddc06bd6c4b445ebfc4dd5d161ab3cf0`, plus the current finalizer's basket-promotion query-context hardening.
 
 The previous metadata-only classification for `cff7569dddc06bd6c4b445ebfc4dd5d161ab3cf0` is withdrawn. That commit changes `src/qual/retrieval/service.py` and `src/qual/engine/retrieval/payload.py`, so it is included in the reviewed implementation range.
 
-Other source-bearing post-`adfa8cd` commits are included as well; the post-`adfa8cd` implementation surface is `src/qual/engine/retrieval/__init__.py`, `src/qual/engine/retrieval/fts_strategy.py`, `src/qual/engine/retrieval/payload.py`, `src/qual/retrieval/service.py`, and `tests/unit/test_unified_retrieval.py`. This final fixer commit changes only `THREAD_PACKET.md`.
+Other source-bearing post-`adfa8cd` commits are included as well; the post-`adfa8cd` implementation surface is `src/qual/engine/retrieval/__init__.py`, `src/qual/engine/retrieval/fts_strategy.py`, `src/qual/engine/retrieval/payload.py`, `src/qual/retrieval/service.py`, and `tests/unit/test_unified_retrieval.py`. The current finalizer also changes `src/qual/retrieval/service.py`, `src/qual/engine/retrieval/payload.py`, and `tests/unit/test_unified_retrieval.py` to harden per-item basket-promotion query provenance.
 
 ## Scope Completed
 
@@ -45,6 +45,39 @@ Current pass task count: `1` meaningful task group, within the high-risk `4` tas
 Current pass size: packet-only traceability update in `THREAD_PACKET.md`.
 Shared/integrator-locked impact this pass: none; no source, test, or integrator-locked files were edited.
 
+## Integrator Failure Fixer Addendum
+
+This packet supersedes approved packet `R__APPROVED__codex-feat-retrieval-fts__cad21a6c9f4d9fa6b3b68fdd9b9d769d999594ed__20260506T194240Z.md` after the integrator reported `bad local cli marker: invalid_request_error`.
+
+Local reproduction result: the lane worktree reproduced the required integration gate sequence, but did not reproduce a project merge conflict, scope failure, formatting failure, lint failure, unit failure, typecheck failure, or CI failure. The captured integrator failure is therefore recorded as an external local Codex CLI marker failure from the integrator runner, not a retrieval implementation failure.
+
+Fix action: refreshed this handoff packet with the local reproduction result and fresh required gate evidence. No retrieval source, shared regression, provider routing, or integrator-locked files were changed in this fixer pass.
+
+Current integration-failure fixer files changed:
+
+- `M THREAD_PACKET.md`
+
+Current integration-failure fixer task count: `1` meaningful task group, within the high-risk `4` task cap for this fixer pass.
+Current integration-failure fixer size: packet-only gate/reproduction evidence update in `THREAD_PACKET.md`.
+Shared/integrator-locked impact this integration-failure fixer pass: none; no source, test, or integrator-locked files were edited.
+
+## Source Finalizer Addendum
+
+This source-bearing finalizer keeps retrieval FTS-first and does not reintroduce PageIndex or embeddings as required paths. It hardens the basket-promotion contract by copying query-level audit context onto each promotion item: `query_fingerprint`, `query_scope`, `query_intent`, and `query_date_range`.
+
+The direct retrieval result bundle and the sparse downstream payload rehydration helper now emit the same per-item query context, falling back to the enclosing retrieval bundle when sparse excerpt hits do not carry those fields. This makes individual context-basket promotion records auditable even when they are consumed apart from the enclosing retrieval bundle.
+
+Current source finalizer files changed:
+
+- `M src/qual/retrieval/service.py`
+- `M src/qual/engine/retrieval/payload.py`
+- `M tests/unit/test_unified_retrieval.py`
+- `M THREAD_PACKET.md`
+
+Current source finalizer task count: `1` meaningful task group, within the high-risk `4` task cap for this finalizer pass.
+Current source finalizer size before this packet update: `3 files changed, 58 insertions(+), 8 deletions(-)`.
+Shared/integrator-locked impact this source finalizer pass: approved shared regression coverage in `tests/unit/test_unified_retrieval.py`; no provider routing or integrator-locked files were edited.
+
 ## Tasks Completed
 
 1. Made SQLite FTS the authoritative MVP retrieval path while keeping PageIndex and embeddings fallback-only/deferred.
@@ -60,7 +93,7 @@ Final canonical demo-path statement: this work makes the `retrieve relevant mate
 
 ## Files Changed
 
-Authoritative reviewed range: `378cf9a74a3658058079a32f186fcd254c4a4034..HEAD`, where `HEAD` is this packet-only fixer commit.
+Authoritative reviewed range: `378cf9a74a3658058079a32f186fcd254c4a4034..HEAD`, where `HEAD` is this source-bearing finalizer commit.
 
 - `.codex/kickoff_packets/feat-retrieval-fts.md` - lane kickoff metadata refreshed by earlier packet commits; root `THREAD_PACKET.md` is the authoritative packet for branch-tip re-review.
 - `.codex/lane_meta/feat-retrieval-fts.json` - lane metadata refreshed by earlier packet commits; root `THREAD_PACKET.md` supersedes stale narrow-range wording.
@@ -81,7 +114,7 @@ Authoritative reviewed range: `378cf9a74a3658058079a32f186fcd254c4a4034..HEAD`, 
 - `M src/qual/retrieval/service.py`
 - `M tests/unit/test_unified_retrieval.py`
 
-Merge-candidate diff through source-bearing tip `125a3b7f84f096159baed4114029a7a38df772ae`: `8 files changed, 637 insertions(+), 188 deletions(-)`, net `+449` LOC. The final packet-only fixer commit adds only this traceability update to `THREAD_PACKET.md`.
+Merge-candidate diff through source-bearing tip `125a3b7f84f096159baed4114029a7a38df772ae`: `8 files changed, 637 insertions(+), 188 deletions(-)`, net `+449` LOC. This finalizer adds a narrow source-bearing hardening in `src/qual/retrieval/service.py` and `src/qual/engine/retrieval/payload.py`, plus this handoff refresh.
 
 The protected `.codex/kickoff_packets/feat-retrieval-fts.md` and `.codex/lane_meta/feat-retrieval-fts.json` mirror artifacts could not be edited in-place, so they are removed from the merge candidate to avoid preserving stale contradictory trace metadata. `THREAD_PACKET.md` is the coherent handoff packet for re-review.
 
@@ -89,7 +122,7 @@ The protected `.codex/kickoff_packets/feat-retrieval-fts.md` and `.codex/lane_me
 
 - Task budget: `4` high-risk task groups; completed as the four task groups above.
 - File count: `8 files` in the full reviewed packet range; within the high-risk `<=8 files` limit.
-- Size accounting: source-bearing branch tip `125a3b7f84f096159baed4114029a7a38df772ae` is net `+449` LOC versus the authoritative reviewed base, before this packet-only update. This exceeds the high-risk `<=300 net LOC` budget and is reported here rather than hidden by a stale narrow range.
+- Size accounting: source-bearing branch tip `125a3b7f84f096159baed4114029a7a38df772ae` is net `+449` LOC versus the authoritative reviewed base, before finalizer updates. This exceeds the high-risk `<=300 net LOC` budget and is reported here rather than hidden by a stale narrow range. The current source finalizer itself is a narrow `3 files changed, 58 insertions(+), 8 deletions(-)` retrieval contract hardening before the packet update.
 - Shared/integrator exception status: `tests/unit/test_unified_retrieval.py` is the sole approved shared regression surface; no integrator-locked files changed.
 - Routing/provider impact: none.
 - Remaining risks/blockers: size budget exceeded for the full corrected range; no functional gate blockers after required gates are rerun on the final branch tip.
@@ -103,7 +136,17 @@ The protected `.codex/kickoff_packets/feat-retrieval-fts.md` and `.codex/lane_me
 
 ## Commands Run
 
-Required gates rerun for the final branch tip after this packet-only fixer commit:
+Required gates rerun for the source-bearing finalizer pass:
+
+- `python -m unittest tests.unit.test_unified_retrieval.UnifiedRetrievalTests.test_basket_promotion_items_backfill_query_context_from_bundle` - passed.
+- `make scope-check` - passed for branch `codex/feat-retrieval-fts`.
+- `./quality-format.sh --check` - passed.
+- `./quality-lint.sh` - passed shell syntax and trailing whitespace checks.
+- `./quality-test.sh` - passed smoke tests and 130 unit tests.
+- `./typecheck-test.sh` - passed Python source compilation under `src/`.
+- `make ci` - passed setup, scope-check, format, lint, compile/typecheck, smoke tests, and 130 unit tests.
+
+Required gates rerun for the integration-failure fixer pass:
 
 - `make scope-check` - passed for branch `codex/feat-retrieval-fts`.
 - `./quality-format.sh --check` - passed.
