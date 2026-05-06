@@ -26,6 +26,7 @@ from src.qual.engine.retrieval.payload import (
     build_retrieval_source_bundle_from_result,
 )
 
+
 def _normalize_constraint_values(
     value: object,
     *,
@@ -60,6 +61,8 @@ def _normalize_constraint_values(
 def _normalize_optional_int(value: object, *, default: int) -> int:
     if value is None:
         return default
+    if isinstance(value, bool):
+        raise TypeError("integer retrieval constraints must be int-like values, not bool")
     return int(value)
 
 
@@ -80,6 +83,15 @@ def _normalize_optional_bool(value: object, *, default: bool) -> bool:
     raise TypeError("boolean retrieval constraints must be bool, number, text, or None")
 
 
+def _normalize_optional_text(value: object, *, field_name: str) -> str | None:
+    if value is None:
+        return None
+    if not isinstance(value, str):
+        raise TypeError(f"{field_name} must be a text value or None")
+    normalized = " ".join(value.split())
+    return normalized or None
+
+
 def build_retrieval_query(
     *,
     query_text: str,
@@ -92,7 +104,10 @@ def build_retrieval_query(
 
     The helper normalizes the loose dict-shaped constraint payload used by the
     engine and public retrieval facades into the stable dataclass contract that
-    the service layer consumes.
+    the service layer consumes. Constraint payloads are mapping-shaped or
+    RetrievalConstraints objects, iterable doc_types/date_range values are
+    normalized deterministically from those inputs, and optional section hints
+    are compacted before the query fingerprint is derived.
     """
 
     from src.qual.retrieval.service import RetrievalConstraints, RetrievalQuery
@@ -135,7 +150,10 @@ def build_retrieval_query(
                 payload.get("require_citations"),
                 default=False,
             ),
-            section_hint=payload.get("section_hint"),  # type: ignore[arg-type]
+            section_hint=_normalize_optional_text(
+                payload.get("section_hint"),
+                field_name="section_hint",
+            ),
             prefer_exact_matches=_normalize_optional_bool(
                 payload.get("prefer_exact_matches"),
                 default=False,
