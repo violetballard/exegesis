@@ -8016,6 +8016,79 @@ def command_demo_command_transcript_lines(
     )
 
 
+def command_demo_command_transcript_payload(
+    specs: tuple[CommandSpec, ...] = COMMAND_SPECS,
+    launcher_argv: tuple[str, ...] = COMMAND_SMOKE_CLI_LAUNCHER_ARGV,
+) -> dict[str, object]:
+    contract = command_demo_command_transcript_contract(specs, launcher_argv)
+    payload: dict[str, object] = {
+        "is_complete": contract.is_complete,
+        "fingerprint": {
+            "algorithm": contract.fingerprint_algorithm,
+            "readiness_digest": contract.readiness_fingerprint_digest,
+        },
+        "steps": [
+            {
+                "ordinal": step.ordinal,
+                "demo_path_step": step.demo_path_step,
+                "flow_step": step.flow_step,
+                "name": step.name,
+                "argv": list(step.argv),
+                "command_line": step.command_line,
+                "engine_actions": list(step.engine_actions),
+            }
+            for step in contract.steps
+        ],
+    }
+    _validate_command_demo_command_transcript_payload(payload, contract)
+    return payload
+
+
+def _validate_command_demo_command_transcript_payload(
+    payload: dict[str, object],
+    contract: CommandDemoCommandTranscriptContract,
+) -> None:
+    if payload.get("is_complete") != contract.is_complete:
+        raise ValueError("Command demo transcript payload completeness is inconsistent")
+    fingerprint = payload.get("fingerprint")
+    if not isinstance(fingerprint, dict):
+        raise ValueError("Command demo transcript payload fingerprint is missing")
+    if fingerprint.get("algorithm") != contract.fingerprint_algorithm:
+        raise ValueError("Command demo transcript payload fingerprint algorithm is inconsistent")
+    if fingerprint.get("readiness_digest") != contract.readiness_fingerprint_digest:
+        raise ValueError("Command demo transcript payload fingerprint digest is inconsistent")
+    steps = payload.get("steps")
+    if not isinstance(steps, list):
+        raise ValueError("Command demo transcript payload steps are missing")
+    if len(steps) != len(contract.steps):
+        raise ValueError("Command demo transcript payload step count is inconsistent")
+    expected_lines = tuple(step.command_line for step in contract.steps)
+    for step_payload, step, expected_line in zip(steps, contract.steps, expected_lines, strict=True):
+        if not isinstance(step_payload, dict):
+            raise ValueError("Command demo transcript payload step is invalid")
+        if step_payload.get("ordinal") != step.ordinal:
+            raise ValueError(f"Command demo transcript payload ordinal is inconsistent: {step.flow_step}")
+        if step_payload.get("flow_step") != step.flow_step:
+            raise ValueError(f"Command demo transcript payload flow step is inconsistent: {step.flow_step}")
+        if step_payload.get("command_line") != expected_line:
+            raise ValueError(f"Command demo transcript payload command line is inconsistent: {step.flow_step}")
+        if tuple(step_payload.get("argv", ())) != step.argv:
+            raise ValueError(f"Command demo transcript payload argv is inconsistent: {step.flow_step}")
+        if tuple(step_payload.get("engine_actions", ())) != step.engine_actions:
+            raise ValueError(f"Command demo transcript payload actions are inconsistent: {step.flow_step}")
+
+
+def command_demo_command_transcript_json(
+    specs: tuple[CommandSpec, ...] = COMMAND_SPECS,
+    launcher_argv: tuple[str, ...] = COMMAND_SMOKE_CLI_LAUNCHER_ARGV,
+) -> str:
+    return json.dumps(
+        command_demo_command_transcript_payload(specs, launcher_argv),
+        sort_keys=True,
+        separators=(",", ":"),
+    )
+
+
 def command_demo_readiness_next_index_entry(
     current_flow_step: str | None = None,
     specs: tuple[CommandSpec, ...] = COMMAND_SPECS,
@@ -14056,6 +14129,41 @@ def command_mvp_demo_readiness_index_json(
     launcher_argv: tuple[str, ...] = COMMAND_SMOKE_CLI_LAUNCHER_ARGV,
 ) -> str:
     return command_demo_readiness_index_json(specs, launcher_argv)
+
+
+def command_mvp_demo_command_transcript_contract(
+    specs: tuple[CommandSpec, ...] = COMMAND_SPECS,
+    launcher_argv: tuple[str, ...] = COMMAND_SMOKE_CLI_LAUNCHER_ARGV,
+) -> CommandDemoCommandTranscriptContract:
+    return command_demo_command_transcript_contract(specs, launcher_argv)
+
+
+def command_mvp_demo_command_transcript_summary(
+    specs: tuple[CommandSpec, ...] = COMMAND_SPECS,
+    launcher_argv: tuple[str, ...] = COMMAND_SMOKE_CLI_LAUNCHER_ARGV,
+) -> tuple[str, str, tuple[tuple[int, str, str, str, str, tuple[str, ...]], ...]]:
+    return command_demo_command_transcript_summary(specs, launcher_argv)
+
+
+def command_mvp_demo_command_transcript_lines(
+    specs: tuple[CommandSpec, ...] = COMMAND_SPECS,
+    launcher_argv: tuple[str, ...] = COMMAND_SMOKE_CLI_LAUNCHER_ARGV,
+) -> tuple[str, ...]:
+    return command_demo_command_transcript_lines(specs, launcher_argv)
+
+
+def command_mvp_demo_command_transcript_payload(
+    specs: tuple[CommandSpec, ...] = COMMAND_SPECS,
+    launcher_argv: tuple[str, ...] = COMMAND_SMOKE_CLI_LAUNCHER_ARGV,
+) -> dict[str, object]:
+    return command_demo_command_transcript_payload(specs, launcher_argv)
+
+
+def command_mvp_demo_command_transcript_json(
+    specs: tuple[CommandSpec, ...] = COMMAND_SPECS,
+    launcher_argv: tuple[str, ...] = COMMAND_SMOKE_CLI_LAUNCHER_ARGV,
+) -> str:
+    return command_demo_command_transcript_json(specs, launcher_argv)
 
 
 def command_mvp_demo_readiness_next_index_entry(
