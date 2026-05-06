@@ -1026,6 +1026,13 @@ COMMAND_SMOKE_SHELL_WRAPPER_COMMANDS: tuple[str, ...] = (
 COMMAND_SMOKE_SHELL_WRAPPER_FLAGS: tuple[str, ...] = (
     "-p",
 )
+COMMAND_SMOKE_SHELL_OUTPUT_SINK_COMMANDS: tuple[str, ...] = (
+    "tee",
+)
+COMMAND_SMOKE_SHELL_OUTPUT_SINK_FLAGS: tuple[str, ...] = (
+    "-a",
+    "--append",
+)
 DEMO_COMMAND_FLOW_STEPS: tuple[str, ...] = (
     "project-open",
     "retrieval",
@@ -8644,7 +8651,7 @@ def _split_shell_script_command_segments(argv: tuple[str, ...]) -> tuple[tuple[s
     current_segment: list[str] = []
     opened_groups = 0
     for token in argv:
-        if token in {"&&", "||", ";"}:
+        if token in {"&&", "||", ";", "|"}:
             if current_segment:
                 segment, opened_groups = _normalize_shell_script_segment_argv(
                     tuple(current_segment),
@@ -8730,6 +8737,8 @@ def _is_shell_script_setup_argv(argv: tuple[str, ...]) -> bool:
         return _is_shell_strict_mode_setup_argv(argv)
     if command in COMMAND_SMOKE_SHELL_PROBE_COMMANDS:
         return _is_shell_script_probe_setup_argv(argv[1:])
+    if command in COMMAND_SMOKE_SHELL_OUTPUT_SINK_COMMANDS:
+        return _is_shell_script_output_sink_argv(argv[1:])
     return command in COMMAND_SMOKE_SHELL_SETUP_COMMANDS
 
 
@@ -8740,6 +8749,15 @@ def _is_shell_script_probe_setup_argv(argv: tuple[str, ...]) -> bool:
     while index < len(argv) and argv[index] in COMMAND_SMOKE_SHELL_PROBE_FLAGS:
         index += 1
     return index > 0 and index < len(argv) and all(not token.startswith("-") for token in argv[index:])
+
+
+def _is_shell_script_output_sink_argv(argv: tuple[str, ...]) -> bool:
+    if not argv:
+        return False
+    index = 0
+    while index < len(argv) and argv[index] in COMMAND_SMOKE_SHELL_OUTPUT_SINK_FLAGS:
+        index += 1
+    return index < len(argv)
 
 
 def command_demo_readiness_validate_shell_script_lines(
