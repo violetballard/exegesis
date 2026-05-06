@@ -3,20 +3,20 @@
 - Branch name: `codex/feat-retrieval-fts`
 - Lane: `feat-retrieval-fts`
 - Merge target: current `main`
-- Reviewed implementation head: `ff2c849ff66d0f67799ce20b70d251f7fdfe54d6`
-- Reviewed implementation range: `d7fd5d200358287fa42a18d39e2b277463b9b69f..ff2c849ff66d0f67799ce20b70d251f7fdfe54d6`
-- Packet refresh note: this fixer commit adds one retrieval payload/basket provenance hardening change and refreshes handoff metadata; re-review should inspect the full range above plus the final fixer HEAD SHA reported with this handoff.
+- Reviewed implementation head: `6b2dca35224887b913d27a95bed144743669c6cc`
+- Reviewed implementation range: `d7fd5d200358287fa42a18d39e2b277463b9b69f..6b2dca35224887b913d27a95bed144743669c6cc`
+- Packet refresh note: this packet intentionally regenerates the merge-candidate range around the actual source-bearing branch tip. Re-review should inspect the full range above, including `cdcad7ffd7b6a048c0603a8db712a028bbc2b9e5` and `6b2dca35224887b913d27a95bed144743669c6cc`; the final fixer commit created from this packet refresh is packet-only and its SHA is reported in the fixer response.
 - Handoff type: high-risk retrieval feature handoff for the FTS-first retrieval lane.
 - Scope classification: high-risk because the full range includes approved shared regression coverage in `tests/unit/test_unified_retrieval.py` plus packet-planner metadata support.
 - Approved shared-file note: `tests/unit/test_unified_retrieval.py` is approved shared-by-approval regression coverage for this retrieval lane. `codex_packet_handoff/tools/planner.py` and `tests/unit/test_packet_planner.py` are included because earlier packet traceability fixes changed the handoff tooling/tests that generated this lane packet.
 
 ## Scope Completed
 
-The regenerated handoff covers every retrieval source/test change through `ff2c849ff66d0f67799ce20b70d251f7fdfe54d6`, including the reviewer-cited `0a0b05709e8482138096462705d0c35fd82e7dbb`. The complete range ships an FTS-first retrieval MVP: SQLite FTS stays authoritative, PageIndex and embeddings remain deferred compatibility shims, retrieval query construction and `retrieve_auto` are exported through both retrieval facades, and payload/provenance snapshots are deterministic for downstream engine flows.
+The regenerated handoff covers every retrieval source/test change through `6b2dca35224887b913d27a95bed144743669c6cc`, including the reviewer-cited source-bearing `cdcad7ffd7b6a048c0603a8db712a028bbc2b9e5` context-bundle source identity backfill. The complete range ships an FTS-first retrieval MVP: SQLite FTS stays authoritative, PageIndex and embeddings remain deferred compatibility shims, retrieval query construction and `retrieve_auto` are exported through both retrieval facades, and payload/provenance snapshots are deterministic for downstream engine flows.
 
 The complete range also hardens basket/workflow promotion evidence. It preserves canonical source bundles, context bundles, basket refs, excerpt lookup fingerprints, date ranges, doc scopes, and doc-hit top-excerpt lookup fingerprints through canonical retrieval results and engine-side sparse payload reconstruction.
 
-This branch-tip fixer additionally hardens sparse context-bundle reconstruction so rebuilt basket promotion refs preserve `excerpt_lookup_fingerprint`, and basket item fingerprints include that lookup identity before later engine steps promote context into basket/workflow state.
+The full branch-tip source range additionally hardens sparse context-bundle reconstruction so rebuilt basket promotion refs preserve source identity, `excerpt_lookup_fingerprint`, basket lookup fingerprints, and doc-hit top-excerpt lookup fingerprints before later engine steps promote context into basket/workflow state.
 
 Canonical demo-path step advanced: `retrieve relevant material` for basket/workflow promotion. The branch makes that step more real by giving downstream engine and basket flows deterministic FTS doc/excerpt evidence, lookup fingerprints, and promotion-ready refs instead of ambiguous PageIndex or embedding fallbacks.
 
@@ -37,11 +37,11 @@ Canonical demo-path step advanced: `retrieve relevant material` for basket/workf
 - `src/qual/engine/retrieval/embeddings_strategy.py` - deferred/fail-closed embeddings compatibility shim.
 - `src/qual/engine/retrieval/fts_strategy.py` - FTS cache isolation and scope/query normalization.
 - `src/qual/engine/retrieval/pageindex_strategy.py` - deferred/fail-closed PageIndex compatibility shim.
-- `src/qual/engine/retrieval/payload.py` - sparse retrieval payload, source/context bundle, basket, policy, query, provenance normalization, lookup-fingerprint preservation, and context-bundle source identity backfill.
+- `src/qual/engine/retrieval/payload.py` - sparse retrieval payload, source/context bundle, basket, policy, query, provenance normalization, lookup-fingerprint preservation, context-bundle source identity backfill, and sparse basket ref lookup fingerprint reconstruction.
 - `src/qual/retrieval/__init__.py` - package retrieval facade exports and canonical helper surface.
-- `src/qual/retrieval/service.py` - FTS retrieval service, excerpt lookup, evidence, citation, manifest, and basket promotion provenance fingerprinting.
+- `src/qual/retrieval/service.py` - FTS retrieval service, excerpt lookup, evidence, citation, manifest, doc-hit lookup identity, and basket promotion provenance fingerprinting.
 - `tests/unit/test_packet_planner.py` - packet traceability metadata tests.
-- `tests/unit/test_unified_retrieval.py` - approved shared retrieval regression coverage.
+- `tests/unit/test_unified_retrieval.py` - approved shared retrieval regression coverage, including sparse payload/context backfills and basket lookup fingerprint preservation.
 
 Integrator-locked files: none identified in this packet. Shared-by-approval files in the full range: `tests/unit/test_unified_retrieval.py`; packet tooling/test edits are included explicitly in this regenerated range.
 
@@ -49,10 +49,10 @@ Integrator-locked files: none identified in this packet. Shared-by-approval file
 
 - Task budget: `4/4` high-risk task groups. This packet is a regenerated cumulative branch-tip handoff after reviewer traceability feedback; the four groups above account for the full source-bearing range.
 - File budget: `13` files changed across the full reviewed range, exceeding the high-risk `<=8 files` checkpoint and requiring re-review against this full packet.
-- Net LOC: `3795 insertions(+), 313 deletions(-)` across the full reviewed range, exceeding the high-risk `<=300 net LOC` checkpoint and requiring re-review against this full packet.
+- Net LOC: `3836 insertions(+), 312 deletions(-)` across the full reviewed range, exceeding the high-risk `<=300 net LOC` checkpoint and requiring re-review against this full packet.
 - Routing/provider impact: none.
 - PageIndex/embeddings impact: compatibility-only shims remain fail-closed and are not active retrieval paths.
-- Remaining risk: the full range is large and crosses packet tooling plus approved shared retrieval tests; reviewers should inspect the regenerated full range rather than the stale `adfa8cd` subset.
+- Remaining risk: the full range is large and crosses packet tooling plus approved shared retrieval tests; reviewers should inspect the regenerated full range rather than any stale narrowed subset.
 
 ## Roadmap/Vision
 
@@ -75,4 +75,4 @@ Integrator-locked files: none identified in this packet. Shared-by-approval file
 
 ## Risks/Blockers
 
-No current blockers. This branch-tip fixer stays in owned retrieval payload/service paths, approved shared retrieval regression coverage, and the `THREAD_PACKET.md` handoff surface. Re-review should inspect `d7fd5d200358287fa42a18d39e2b277463b9b69f..ff2c849ff66d0f67799ce20b70d251f7fdfe54d6` for the prior cumulative retrieval implementation, then include the final fixer HEAD SHA for the new sparse basket lookup-fingerprint hardening and refreshed packet.
+No current blockers. This branch-tip fixer stays in owned retrieval payload/service paths, approved shared retrieval regression coverage, and the `THREAD_PACKET.md` handoff surface. Re-review should inspect `d7fd5d200358287fa42a18d39e2b277463b9b69f..6b2dca35224887b913d27a95bed144743669c6cc` for the cumulative retrieval implementation, including the reviewer-cited `cdcad7ffd7b6a048c0603a8db712a028bbc2b9e5` source change and the later branch-tip basket lookup-fingerprint hardening.
