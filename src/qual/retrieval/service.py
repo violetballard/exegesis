@@ -2087,6 +2087,9 @@ class RetrievalService:
             _validate_date_range_values(query.constraints.date_range)
         if query.scope.startswith("section:"):
             raise ValueError("section scope is unsupported until FTS fallback can resolve section targets")
+        for prefix in ("collection:", "doc:"):
+            if query.scope.startswith(prefix) and not query.scope.split(":", 1)[1].strip():
+                raise ValueError(f"{prefix[:-1]} scope id must be non-empty")
         if query.scope not in {"vault"} and not any(query.scope.startswith(prefix) for prefix in ("collection:", "doc:")):
             raise ValueError("unsupported scope")
         if query.intent not in _SUPPORTED_RETRIEVAL_INTENTS:

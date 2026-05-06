@@ -35,12 +35,14 @@ This finalization pass after `1bd6935e88dec29b34f6a38fcbaf55081a028e07` canonica
 
 This finalization pass after `fac4524b04777587ca2933d618373e1a65fb163f` makes the FTS strategy cache key use deterministic public query snapshots for dataclasses, mapping/list-shaped payloads, and query-shaped objects. Equivalent FTS-first query inputs now share the cached SQLite FTS run even when the caller uses separate mutable query-shaped objects, and caller mutations after retrieval cannot alter the stored cache key.
 
+This finalization pass after `9200bbc10` makes empty prefixed scopes fail closed before FTS execution. `doc:` and `collection:` scopes must now carry a non-empty scope id, preventing empty scoped retrieval requests from producing misleading empty-result evidence or falling back to broader FTS candidate behavior during basket/context promotion.
+
 ## Tasks Completed
 
 1. Made SQLite FTS the primary retrieval path for document and excerpt retrieval, with PageIndex and embeddings retained as compatibility-only fallback/deferred surfaces.
 2. Stabilized FTS retrieval cache behavior, including deterministic query-shaped cache snapshots, cache invalidation on document updates, and cache audit metadata for payload/provenance consumers.
 3. Normalized retrieval payloads, query snapshots, constraints, provenance fingerprints, source bundles, and basket/context promotion metadata for deterministic downstream engine use, including canonical doc-type filters and explicit query-constraint snapshots in bundle/provenance surfaces.
-4. Validated date-range constraints and canonical query text/scope constraints at the retrieval boundary, preserved normalized query constraints during sparse citation/source/context-bundle rehydration, added stable FTS excerpt lookup fingerprints to payload/provenance/audit snapshots, and exposed normalized query constraints plus their deterministic fingerprint in retrieval evidence for basket/context promotion, with approved shared regression coverage in `tests/unit/test_unified_retrieval.py` for the FTS-first retrieval behavior, payload normalization, cache metadata, facade exports, citation/provenance helpers, excerpt lookup, and date-range validation included in this task group.
+4. Validated date-range constraints and canonical query text/scope constraints at the retrieval boundary, including fail-closed handling for empty `doc:` and `collection:` scope ids, preserved normalized query constraints during sparse citation/source/context-bundle rehydration, added stable FTS excerpt lookup fingerprints to payload/provenance/audit snapshots, and exposed normalized query constraints plus their deterministic fingerprint in retrieval evidence for basket/context promotion, with approved shared regression coverage in `tests/unit/test_unified_retrieval.py` for the FTS-first retrieval behavior, payload normalization, cache metadata, facade exports, citation/provenance helpers, excerpt lookup, and query-boundary validation included in this task group.
 
 ## Files Changed
 
@@ -86,6 +88,12 @@ Additional current finalization diff after `fac4524b04777587ca2933d618373e1a65fb
 - `M src/qual/engine/retrieval/fts_strategy.py` - snapshots dataclass, mapping/list-shaped, and public query-object state into deterministic FTS cache keys.
 - `M tests/unit/test_unified_retrieval.py` - covers equivalent query-shaped objects reusing the FTS strategy cache after caller-side mutation.
 
+Additional current finalization diff after `9200bbc10`:
+
+- `M THREAD_PACKET.md` - handoff packet restamp.
+- `M src/qual/retrieval/service.py` - rejects empty `doc:` and `collection:` scope ids before FTS execution.
+- `M tests/unit/test_unified_retrieval.py` - covers fail-closed empty prefixed scope validation in the approved shared regression surface.
+
 From `git diff --stat 378cf9a74a3658058079a32f186fcd254c4a4034..FINAL_FIXER_HEAD_REPORTED_IN_RESPONSE`:
 
 - `.codex/kickoff_packets/feat-retrieval-fts.md` - 36 lines changed.
@@ -112,6 +120,8 @@ Current finalization remains low blast radius: the final fixer commit updates FT
 
 Current finalization after `fac4524b04777587ca2933d618373e1a65fb163f` remains within the high-risk budget: 1 task group, 3 files changed including this handoff packet, and `60 insertions(+), 7 deletions(-)` before the packet restamp. The implementation/test delta is 2 files and net +53 LOC. No integrator-locked files, provider/routing code, UI code, PageIndex required path, embeddings required path, or additional shared regression files are touched.
 
+Current finalization after `9200bbc10` remains within the high-risk budget: 1 task group, 3 files changed including this handoff packet, and `22 insertions(+), 0 deletions(-)` before the packet restamp. The implementation/test delta is 2 files and net +22 LOC. No integrator-locked files, provider/routing code, UI code, PageIndex required path, embeddings required path, or additional shared regression files are touched.
+
 ## Traceability Correction
 
 The earlier packet incorrectly claimed commits after `adfa8cdadd43747ffbcb612e4151e262b13e52ca` were metadata-only. That claim is withdrawn. Commits including `1696a088d`, `d31c231e`, `9792d439`, and `25f8d10c4` are code-bearing retrieval/test commits and are included in the corrected reviewed implementation range.
@@ -123,7 +133,7 @@ This handoff has one authoritative reviewed implementation range: `378cf9a74a365
 - Roadmap items affected: `ROADMAP.md` Milestone 3 retrieval/search readiness and real workflow loop support.
 - Product Vision capability affected: retrieval-first context handling.
 - Architecture alignment: FTS remains the required local retrieval path. PageIndex and embeddings stay compatibility-only/deferred.
-- Canonical demo-path mapping: advances `retrieve relevant material` by preventing invalid date filters and whitespace-only retrieval queries from producing misleading or unstable retrieval evidence, by making normalized retrieval constraints and canonical doc-type filters visible, fingerprinted, and rehydratable in bundle/provenance/citation/evidence snapshots used for basket/context promotion, and by making fetched FTS excerpt payloads auditable through stable lookup fingerprints.
+- Canonical demo-path mapping: advances `retrieve relevant material` by preventing invalid date filters, whitespace-only retrieval queries, and empty prefixed retrieval scopes from producing misleading or unstable retrieval evidence, by making normalized retrieval constraints and canonical doc-type filters visible, fingerprinted, and rehydratable in bundle/provenance/citation/evidence snapshots used for basket/context promotion, and by making fetched FTS excerpt payloads auditable through stable lookup fingerprints.
 - Routing/provider impact note: none.
 - Proposed `README.md` patch text: none.
 
@@ -132,6 +142,13 @@ This handoff has one authoritative reviewed implementation range: `378cf9a74a365
 Commands run for this corrected packet on the branch-tip worktree state:
 
 - `python -m unittest tests.unit.test_unified_retrieval.UnifiedRetrievalTests.test_fts_strategy_cache_uses_stable_query_snapshots tests.unit.test_unified_retrieval.UnifiedRetrievalTests.test_retrieve_auto_records_cache_use_in_diagnostics_and_audit` - passed 2 focused cache tests after adding deterministic FTS cache query snapshots.
+- `python -m unittest tests.unit.test_unified_retrieval.UnifiedRetrievalTests.test_empty_prefixed_scopes_fail_closed_before_fts_execution` - passed focused empty prefixed scope validation regression.
+- `python -m unittest tests.unit.test_unified_retrieval` - passed 60 retrieval unit tests after adding empty prefixed scope validation.
+- `./quality-format.sh --check` - passed after adding empty prefixed scope validation.
+- `./quality-lint.sh` - passed shell syntax and trailing whitespace checks after adding empty prefixed scope validation.
+- `./quality-test.sh` - passed smoke tests and 129 unit tests after adding empty prefixed scope validation.
+- `./typecheck-test.sh` - passed Python source compilation under `src/` after adding empty prefixed scope validation.
+- `make ci` - passed setup, scope-check, format, lint, compile/typecheck, smoke tests, and 129 unit tests after adding empty prefixed scope validation.
 - `./quality-format.sh --check` - passed after adding deterministic FTS cache query snapshots.
 - `./quality-lint.sh` - passed shell syntax and trailing whitespace checks after adding deterministic FTS cache query snapshots.
 - `./quality-test.sh` - passed smoke tests and 128 unit tests after adding deterministic FTS cache query snapshots.

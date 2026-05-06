@@ -377,6 +377,25 @@ class UnifiedRetrievalTests(unittest.TestCase):
                 )
             )
 
+    def test_empty_prefixed_scopes_fail_closed_before_fts_execution(self) -> None:
+        for scope, message in (
+            ("doc:", "doc scope id must be non-empty"),
+            ("doc:   ", "doc scope id must be non-empty"),
+            ("collection:", "collection scope id must be non-empty"),
+            ("collection:   ", "collection scope id must be non-empty"),
+        ):
+            with self.subTest(scope=scope):
+                with self.assertRaisesRegex(ValueError, message):
+                    self.service.retrieve_auto(
+                        RetrievalQuery(
+                            query_text="discussion theory",
+                            scope=scope,
+                            intent="lookup",
+                            constraints=RetrievalConstraints(max_results=4),
+                            confidentiality_profile="confidential",
+                        )
+                    )
+
     def test_retrieve_auto_rejects_invalid_date_range_constraints(self) -> None:
         for date_range, message in (
             (("not-a-date", "2026-01-31"), "date_range values must be ISO dates or datetimes"),
