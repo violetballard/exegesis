@@ -913,6 +913,20 @@ class CommandDemoReadinessProgress:
 
 
 @dataclass(frozen=True)
+class CommandDemoReadinessNextAction:
+    validation: CommandDemoReadinessScriptValidation
+    next_engine_action: str | None
+    next_demo_path_step: str | None
+    next_flow_step: str | None
+    next_command_line: str
+    next_exact_action_line: str
+    remaining_engine_actions: tuple[str, ...]
+    remaining_exact_action_lines: tuple[str, ...]
+    invalid_argv: tuple[tuple[str, ...], ...]
+    is_complete: bool
+
+
+@dataclass(frozen=True)
 class CommandDemoExecutionPlanStep:
     ordinal: int
     demo_path_step: str
@@ -10794,6 +10808,175 @@ def command_demo_readiness_shell_progress_summary(
     )
 
 
+def _next_action_for_validation(
+    validation: CommandDemoReadinessScriptValidation,
+) -> str | None:
+    if validation.missing_engine_actions:
+        return validation.missing_engine_actions[0]
+    return None
+
+
+def _validate_command_demo_readiness_next_action(
+    next_action: CommandDemoReadinessNextAction,
+    specs: tuple[CommandSpec, ...],
+    launcher_argv: tuple[str, ...],
+) -> None:
+    expected_engine_action = _next_action_for_validation(next_action.validation)
+    if next_action.next_engine_action != expected_engine_action:
+        raise ValueError("Command demo readiness next action is inconsistent")
+    expected_demo_path_step = (
+        command_demo_action_demo_path_step(expected_engine_action, specs)
+        if expected_engine_action is not None
+        else None
+    )
+    if next_action.next_demo_path_step != expected_demo_path_step:
+        raise ValueError("Command demo readiness next action path step is inconsistent")
+    expected_flow_step = (
+        command_demo_action_flow_step(expected_engine_action, specs)
+        if expected_engine_action is not None
+        else None
+    )
+    if next_action.next_flow_step != expected_flow_step:
+        raise ValueError("Command demo readiness next action flow step is inconsistent")
+    expected_exact_action_lines = _remaining_exact_action_lines_for_validation(
+        next_action.validation,
+        specs,
+        launcher_argv,
+    )
+    if next_action.remaining_engine_actions != next_action.validation.missing_engine_actions:
+        raise ValueError("Command demo readiness next action remaining actions are inconsistent")
+    if next_action.remaining_exact_action_lines != expected_exact_action_lines:
+        raise ValueError("Command demo readiness next action exact lines are inconsistent")
+    expected_next_exact_action_line = expected_exact_action_lines[0] if expected_exact_action_lines else ""
+    if next_action.next_exact_action_line != expected_next_exact_action_line:
+        raise ValueError("Command demo readiness next action exact line is inconsistent")
+    expected_next_command_line = (
+        command_demo_readiness_line_for_flow_step(expected_flow_step, specs, launcher_argv)
+        if expected_flow_step is not None
+        else ""
+    )
+    if next_action.next_command_line != expected_next_command_line:
+        raise ValueError("Command demo readiness next action command line is inconsistent")
+    if next_action.invalid_argv != next_action.validation.invalid_argv:
+        raise ValueError("Command demo readiness next action invalid argv is inconsistent")
+    if next_action.is_complete != next_action.validation.is_complete:
+        raise ValueError("Command demo readiness next action completeness is inconsistent")
+    if next_action.is_complete and (
+        next_action.next_engine_action is not None
+        or next_action.next_demo_path_step is not None
+        or next_action.next_flow_step is not None
+        or next_action.next_command_line
+        or next_action.next_exact_action_line
+        or next_action.remaining_engine_actions
+        or next_action.remaining_exact_action_lines
+    ):
+        raise ValueError("Command demo readiness next action is complete but still has remaining work")
+
+
+def command_demo_readiness_next_action(
+    argvs: Sequence[Sequence[str] | str],
+    specs: tuple[CommandSpec, ...] = COMMAND_SPECS,
+    launcher_argv: tuple[str, ...] = COMMAND_SMOKE_CLI_LAUNCHER_ARGV,
+) -> CommandDemoReadinessNextAction:
+    validation = command_demo_readiness_validate_handoff_script(argvs, specs, launcher_argv)
+    next_engine_action = _next_action_for_validation(validation)
+    next_flow_step = (
+        command_demo_action_flow_step(next_engine_action, specs)
+        if next_engine_action is not None
+        else None
+    )
+    remaining_exact_action_lines = _remaining_exact_action_lines_for_validation(
+        validation,
+        specs,
+        launcher_argv,
+    )
+    next_action = CommandDemoReadinessNextAction(
+        validation=validation,
+        next_engine_action=next_engine_action,
+        next_demo_path_step=(
+            command_demo_action_demo_path_step(next_engine_action, specs)
+            if next_engine_action is not None
+            else None
+        ),
+        next_flow_step=next_flow_step,
+        next_command_line=(
+            command_demo_readiness_line_for_flow_step(next_flow_step, specs, launcher_argv)
+            if next_flow_step is not None
+            else ""
+        ),
+        next_exact_action_line=remaining_exact_action_lines[0] if remaining_exact_action_lines else "",
+        remaining_engine_actions=validation.missing_engine_actions,
+        remaining_exact_action_lines=remaining_exact_action_lines,
+        invalid_argv=validation.invalid_argv,
+        is_complete=validation.is_complete,
+    )
+    _validate_command_demo_readiness_next_action(next_action, specs, launcher_argv)
+    return next_action
+
+
+def command_demo_readiness_next_action_summary(
+    argvs: Sequence[Sequence[str] | str],
+    specs: tuple[CommandSpec, ...] = COMMAND_SPECS,
+    launcher_argv: tuple[str, ...] = COMMAND_SMOKE_CLI_LAUNCHER_ARGV,
+) -> tuple[
+    bool,
+    str | None,
+    str | None,
+    str | None,
+    str,
+    str,
+    tuple[str, ...],
+    tuple[str, ...],
+    tuple[tuple[str, ...], ...],
+]:
+    next_action = command_demo_readiness_next_action(argvs, specs, launcher_argv)
+    return (
+        next_action.is_complete,
+        next_action.next_engine_action,
+        next_action.next_demo_path_step,
+        next_action.next_flow_step,
+        next_action.next_command_line,
+        next_action.next_exact_action_line,
+        next_action.remaining_engine_actions,
+        next_action.remaining_exact_action_lines,
+        next_action.invalid_argv,
+    )
+
+
+def command_demo_readiness_shell_next_action(
+    lines: Sequence[str] | str,
+    specs: tuple[CommandSpec, ...] = COMMAND_SPECS,
+    launcher_argv: tuple[str, ...] = COMMAND_SMOKE_CLI_LAUNCHER_ARGV,
+) -> CommandDemoReadinessNextAction:
+    return command_demo_readiness_next_action(
+        _shell_script_executable_argv(lines),
+        specs,
+        launcher_argv,
+    )
+
+
+def command_demo_readiness_shell_next_action_summary(
+    lines: Sequence[str] | str,
+    specs: tuple[CommandSpec, ...] = COMMAND_SPECS,
+    launcher_argv: tuple[str, ...] = COMMAND_SMOKE_CLI_LAUNCHER_ARGV,
+) -> tuple[
+    bool,
+    str | None,
+    str | None,
+    str | None,
+    str,
+    str,
+    tuple[str, ...],
+    tuple[str, ...],
+    tuple[tuple[str, ...], ...],
+]:
+    return command_demo_readiness_next_action_summary(
+        _shell_script_executable_argv(lines),
+        specs,
+        launcher_argv,
+    )
+
+
 def command_demo_readiness_validate_cli_shell_script_lines(
     lines: Sequence[str] | str,
     specs: tuple[CommandSpec, ...] = COMMAND_SPECS,
@@ -11015,6 +11198,58 @@ def command_mvp_demo_readiness_shell_progress_summary(
     launcher_argv: tuple[str, ...] = COMMAND_SMOKE_CLI_LAUNCHER_ARGV,
 ) -> tuple[bool, str | None, str, str, tuple[str, ...], tuple[str, ...], tuple[tuple[str, ...], ...]]:
     return command_demo_readiness_shell_progress_summary(lines, specs, launcher_argv)
+
+
+def command_mvp_demo_readiness_next_action(
+    argvs: Sequence[Sequence[str] | str],
+    specs: tuple[CommandSpec, ...] = COMMAND_SPECS,
+    launcher_argv: tuple[str, ...] = COMMAND_SMOKE_CLI_LAUNCHER_ARGV,
+) -> CommandDemoReadinessNextAction:
+    return command_demo_readiness_next_action(argvs, specs, launcher_argv)
+
+
+def command_mvp_demo_readiness_next_action_summary(
+    argvs: Sequence[Sequence[str] | str],
+    specs: tuple[CommandSpec, ...] = COMMAND_SPECS,
+    launcher_argv: tuple[str, ...] = COMMAND_SMOKE_CLI_LAUNCHER_ARGV,
+) -> tuple[
+    bool,
+    str | None,
+    str | None,
+    str | None,
+    str,
+    str,
+    tuple[str, ...],
+    tuple[str, ...],
+    tuple[tuple[str, ...], ...],
+]:
+    return command_demo_readiness_next_action_summary(argvs, specs, launcher_argv)
+
+
+def command_mvp_demo_readiness_shell_next_action(
+    lines: Sequence[str] | str,
+    specs: tuple[CommandSpec, ...] = COMMAND_SPECS,
+    launcher_argv: tuple[str, ...] = COMMAND_SMOKE_CLI_LAUNCHER_ARGV,
+) -> CommandDemoReadinessNextAction:
+    return command_demo_readiness_shell_next_action(lines, specs, launcher_argv)
+
+
+def command_mvp_demo_readiness_shell_next_action_summary(
+    lines: Sequence[str] | str,
+    specs: tuple[CommandSpec, ...] = COMMAND_SPECS,
+    launcher_argv: tuple[str, ...] = COMMAND_SMOKE_CLI_LAUNCHER_ARGV,
+) -> tuple[
+    bool,
+    str | None,
+    str | None,
+    str | None,
+    str,
+    str,
+    tuple[str, ...],
+    tuple[str, ...],
+    tuple[tuple[str, ...], ...],
+]:
+    return command_demo_readiness_shell_next_action_summary(lines, specs, launcher_argv)
 
 
 def command_mvp_demo_readiness_validate_exact_action_script(
