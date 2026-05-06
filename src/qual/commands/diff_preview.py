@@ -30,6 +30,15 @@ class DiffPreviewInput:
     proposed: str
 
 
+@dataclass(frozen=True)
+class DiffPreviewResult:
+    output: str
+    summary: str
+    has_changes: bool
+    normalized_equal: bool
+    truncated: bool
+
+
 def _normalize_text(value: str) -> str:
     # Normalize newlines so diff output is stable across platforms.
     return value.replace("\r\n", "\n").replace("\r", "\n")
@@ -181,7 +190,7 @@ def _truncate_diff(diff: str, max_chars: int) -> str:
     )
 
 
-def run_diff_preview(payload: DiffPreviewInput) -> str:
+def build_diff_preview_result(payload: DiffPreviewInput) -> DiffPreviewResult:
     original = _normalize_text(payload.original)
     proposed = _normalize_text(payload.proposed)
     ignore_trailing_whitespace = _env_enabled(IGNORE_TRAILING_WHITESPACE_ENV)
@@ -208,18 +217,40 @@ def run_diff_preview(payload: DiffPreviewInput) -> str:
         proposed = _normalize_trailing_whitespace(proposed)
 
     if not original and not proposed:
-        return "No diff: both inputs are empty."
+        output = "No diff: both inputs are empty."
+        return DiffPreviewResult(
+            output=output,
+            summary=output,
+            has_changes=False,
+            normalized_equal=True,
+            truncated=False,
+        )
 
     if original == proposed:
-        return "No diff: inputs are identical after normalization."
+        output = "No diff: inputs are identical after normalization."
+        return DiffPreviewResult(
+            output=output,
+            summary=output,
+            has_changes=False,
+            normalized_equal=True,
+            truncated=False,
+        )
 
     drafting = DraftingService()
     diff = drafting.propose_diff(original, proposed)
     summary_source = diff
+    summary = _summarize_diff(summary_source)
     if suppress_file_headers:
         diff = _suppress_file_headers(diff)
     if not diff:
-        return "No diff: inputs are identical."
+        output = "No diff: inputs are identical."
+        return DiffPreviewResult(
+            output=output,
+            summary=output,
+            has_changes=False,
+            normalized_equal=False,
+            truncated=False,
+        )
     max_chars = _max_diff_output_chars()
     banner = ""
     if include_options_banner:
@@ -232,12 +263,32 @@ def run_diff_preview(payload: DiffPreviewInput) -> str:
             + "\n\n"
         )
     if _env_enabled(SUMMARY_ONLY_ENV):
-        return f"{banner}{_summarize_diff(summary_source)}"
+        return DiffPreviewResult(
+            output=f"{banner}{summary}",
+            summary=summary,
+            has_changes=True,
+            normalized_equal=False,
+            truncated=False,
+        )
 
     output = diff
+    truncated = False
     if len(diff) > max_chars:
         output = _truncate_diff(diff, max_chars)
+        truncated = True
 
     if _env_enabled(INCLUDE_SUMMARY_ENV):
-        return f"{banner}{output}\n\n{_summarize_diff(summary_source)}"
-    return f"{banner}{output}"
+        output = f"{banner}{output}\n\n{summary}"
+    else:
+        output = f"{banner}{output}"
+    return DiffPreviewResult(
+        output=output,
+        summary=summary,
+        has_changes=True,
+        normalized_equal=False,
+        truncated=truncated,
+    )
+
+
+def run_diff_preview(payload: DiffPreviewInput) -> str:
+    return build_diff_preview_result(payload).output
