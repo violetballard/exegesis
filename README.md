@@ -17,6 +17,7 @@ The Textual writing client is the MVP target, but Textual is not an active depen
 - Thread lane ownership and scope guardrails: `THREAD_OWNERSHIP.md`
 - Detailed milestone breakdown: `docs/milestones.md`
 - Detailed tasks and lane mapping: `docs/TASKS.md`
+- Sprint activation plan for grouped lane work: `docs/MVP_SPRINT_PLAN.md`
 - Disabled future import/OCR/literature/RAG specs: `docs/FUTURE_IMPORT_RAG_SPEC.md`
 - Disabled future summer MVP feature specs: `docs/FUTURE_MVP_FEATURES_SPEC.md`
 - Detailed staged structure notes: `docs/PROJECT_STRUCTURE.md`
