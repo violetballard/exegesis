@@ -49,6 +49,7 @@ from src.qual.commands.catalog import (
     CommandDemoSmokeMatrixContract,
     canonical_command as _canonical_command,
     command_mvp_demo_path_readiness_contract as _path_readiness_contract,
+    command_mvp_demo_path_action_coverage_summary as _path_action_coverage_summary,
     command_mvp_demo_path_readiness_summary as _path_readiness_summary,
     command_mvp_demo_readiness_handoff_checklist_contract as _readiness_handoff_checklist_contract,
     command_mvp_demo_readiness_handoff_checklist_lines as _readiness_handoff_checklist_lines,
@@ -343,6 +344,7 @@ __all__ = [
     "canonical_command_readiness_gate_issues",
     "canonical_command_readiness_gate_summary",
     "canonical_command_demo_path_readiness_contract",
+    "canonical_command_demo_path_action_coverage_summary",
     "canonical_command_demo_path_readiness_summary",
     "canonical_command_readiness_cli_contract",
     "canonical_command_readiness_cli_lookup_table",
@@ -591,6 +593,13 @@ def canonical_command_demo_path_readiness_summary() -> tuple[
     ...,
 ]:
     return _path_readiness_summary()
+
+
+def canonical_command_demo_path_action_coverage_summary() -> tuple[
+    tuple[str, str, str, tuple[str, ...], tuple[str, ...]],
+    ...,
+]:
+    return _path_action_coverage_summary()
 
 
 def canonical_command_readiness_cli_contract() -> CommandDemoReadinessCliContract:

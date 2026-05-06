@@ -3997,6 +3997,60 @@ def command_demo_path_readiness_summary(
     )
 
 
+def command_demo_path_action_coverage_summary(
+    specs: tuple[CommandSpec, ...] = COMMAND_SPECS,
+    launcher_argv: tuple[str, ...] = COMMAND_SMOKE_CLI_LAUNCHER_ARGV,
+) -> tuple[tuple[str, str, str, tuple[str, ...], tuple[str, ...]], ...]:
+    """Return exact smoke command lines grouped by canonical demo-path step."""
+
+    action_lines_by_engine_action = dict(
+        command_demo_readiness_exact_action_line_lookup_table(specs, launcher_argv)
+    )
+    summary = tuple(
+        (
+            step.flow_step,
+            step.name,
+            step.demo_path_step,
+            step.engine_actions,
+            tuple(action_lines_by_engine_action.get(action, "") for action in step.engine_actions),
+        )
+        for step in command_demo_path_readiness_contract(specs, launcher_argv).steps
+    )
+    _validate_command_demo_path_action_coverage_summary(summary)
+    return summary
+
+
+def _validate_command_demo_path_action_coverage_summary(
+    summary: tuple[tuple[str, str, str, tuple[str, ...], tuple[str, ...]], ...],
+) -> None:
+    if not summary:
+        raise ValueError("Command demo path action coverage summary must not be empty")
+    seen_flow_steps: set[str] = set()
+    for flow_step, name, demo_path_step, engine_actions, action_lines in summary:
+        if not flow_step or not name or not demo_path_step:
+            raise ValueError("Command demo path action coverage summary contains empty metadata")
+        if flow_step in seen_flow_steps:
+            raise ValueError(f"Duplicate command demo path action coverage flow step: {flow_step}")
+        seen_flow_steps.add(flow_step)
+        if not engine_actions or not action_lines or len(engine_actions) != len(action_lines):
+            raise ValueError(
+                f"Command demo path action coverage is incomplete: {flow_step}"
+            )
+        if any(not action.strip() for action in engine_actions) or any(
+            not line.strip() for line in action_lines
+        ):
+            raise ValueError(
+                f"Command demo path action coverage contains empty action data: {flow_step}"
+            )
+
+
+def command_mvp_demo_path_action_coverage_summary(
+    specs: tuple[CommandSpec, ...] = COMMAND_SPECS,
+    launcher_argv: tuple[str, ...] = COMMAND_SMOKE_CLI_LAUNCHER_ARGV,
+) -> tuple[tuple[str, str, str, tuple[str, ...], tuple[str, ...]], ...]:
+    return command_demo_path_action_coverage_summary(specs, launcher_argv)
+
+
 @lru_cache(maxsize=None)
 def command_demo_readiness_handoff_contract(
     specs: tuple[CommandSpec, ...] = COMMAND_SPECS,
