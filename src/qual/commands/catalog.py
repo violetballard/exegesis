@@ -9649,6 +9649,30 @@ def command_demo_readiness_validate_cli_exact_action_shell_script_lines(
     )
 
 
+def command_demo_readiness_validate_handoff_script(
+    argvs: Sequence[Sequence[str] | str],
+    specs: tuple[CommandSpec, ...] = COMMAND_SPECS,
+    launcher_argv: tuple[str, ...] = COMMAND_SMOKE_CLI_LAUNCHER_ARGV,
+) -> CommandDemoReadinessScriptValidation:
+    return command_demo_readiness_validate_cli_exact_action_script(
+        argvs,
+        specs,
+        launcher_argv,
+    )
+
+
+def command_demo_readiness_validate_handoff_shell_script_lines(
+    lines: Sequence[str] | str,
+    specs: tuple[CommandSpec, ...] = COMMAND_SPECS,
+    launcher_argv: tuple[str, ...] = COMMAND_SMOKE_CLI_LAUNCHER_ARGV,
+) -> CommandDemoReadinessScriptValidation:
+    return command_demo_readiness_validate_cli_exact_action_shell_script_lines(
+        lines,
+        specs,
+        launcher_argv,
+    )
+
+
 def command_mvp_demo_readiness_validate_argv(
     argv: Sequence[str] | str,
     specs: tuple[CommandSpec, ...] = COMMAND_SPECS,
@@ -9711,6 +9735,22 @@ def command_mvp_demo_readiness_validate_cli_exact_action_shell_script_lines(
     launcher_argv: tuple[str, ...] = COMMAND_SMOKE_CLI_LAUNCHER_ARGV,
 ) -> CommandDemoReadinessScriptValidation:
     return command_demo_readiness_validate_cli_exact_action_shell_script_lines(lines, specs, launcher_argv)
+
+
+def command_mvp_demo_readiness_validate_handoff_script(
+    argvs: Sequence[Sequence[str] | str],
+    specs: tuple[CommandSpec, ...] = COMMAND_SPECS,
+    launcher_argv: tuple[str, ...] = COMMAND_SMOKE_CLI_LAUNCHER_ARGV,
+) -> CommandDemoReadinessScriptValidation:
+    return command_demo_readiness_validate_handoff_script(argvs, specs, launcher_argv)
+
+
+def command_mvp_demo_readiness_validate_handoff_shell_script_lines(
+    lines: Sequence[str] | str,
+    specs: tuple[CommandSpec, ...] = COMMAND_SPECS,
+    launcher_argv: tuple[str, ...] = COMMAND_SMOKE_CLI_LAUNCHER_ARGV,
+) -> CommandDemoReadinessScriptValidation:
+    return command_demo_readiness_validate_handoff_shell_script_lines(lines, specs, launcher_argv)
 
 
 def command_demo_readiness_validate_script(
