@@ -5247,6 +5247,22 @@ def command_demo_readiness_shell_executable_lines(
     )
 
 
+def command_demo_readiness_cli_smoke_lines(
+    specs: tuple[CommandSpec, ...] = COMMAND_SPECS,
+    launcher_argv: tuple[str, ...] = COMMAND_SMOKE_CLI_LAUNCHER_ARGV,
+) -> tuple[str, ...]:
+    seal = command_demo_readiness_seal(specs, launcher_argv)
+    lines = _dedupe_command_lines((*seal.command_lines, *seal.cli_exact_action_lines))
+    validation = command_demo_readiness_validate_cli_shell_script_lines(
+        lines,
+        specs,
+        launcher_argv,
+    )
+    if not validation.is_complete:
+        raise ValueError("Command demo readiness CLI smoke lines do not cover the MVP route")
+    return lines
+
+
 def command_demo_readiness_shell_script_text(
     specs: tuple[CommandSpec, ...] = COMMAND_SPECS,
     launcher_argv: tuple[str, ...] = COMMAND_SMOKE_CLI_LAUNCHER_ARGV,
@@ -8184,6 +8200,13 @@ def command_mvp_demo_readiness_shell_executable_lines(
     launcher_argv: tuple[str, ...] = COMMAND_SMOKE_CLI_LAUNCHER_ARGV,
 ) -> tuple[str, ...]:
     return command_demo_readiness_shell_executable_lines(specs, launcher_argv)
+
+
+def command_mvp_demo_readiness_cli_smoke_lines(
+    specs: tuple[CommandSpec, ...] = COMMAND_SPECS,
+    launcher_argv: tuple[str, ...] = COMMAND_SMOKE_CLI_LAUNCHER_ARGV,
+) -> tuple[str, ...]:
+    return command_demo_readiness_cli_smoke_lines(specs, launcher_argv)
 
 
 def command_mvp_demo_readiness_shell_script_text(
