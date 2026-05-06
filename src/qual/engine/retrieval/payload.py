@@ -728,10 +728,18 @@ def _build_retrieval_basket_promotion_bundle_from_payload(payload: dict[str, obj
                 "score": hit.get("score"),
                 "rank": provenance.get("rank", hit.get("rank")),
                 "source_strategy": hit.get("source_strategy", provenance.get("source_strategy")),
-                "query_fingerprint": hit.get("query_fingerprint", provenance.get("query_fingerprint")),
-                "query_scope": hit.get("query_scope", provenance.get("query_scope")),
-                "query_intent": hit.get("query_intent", provenance.get("query_intent")),
-                "query_date_range": copy.deepcopy(hit.get("query_date_range", provenance.get("query_date_range"))),
+                "query_fingerprint": hit.get(
+                    "query_fingerprint",
+                    provenance.get("query_fingerprint", bundle_context["query_fingerprint"]),
+                ),
+                "query_scope": hit.get("query_scope", provenance.get("query_scope", bundle_context["query_scope"])),
+                "query_intent": hit.get("query_intent", provenance.get("query_intent", bundle_context["query_intent"])),
+                "query_date_range": copy.deepcopy(
+                    hit.get(
+                        "query_date_range",
+                        provenance.get("query_date_range", bundle_context["query_date_range"]),
+                    )
+                ),
                 "retrieval_backend": hit.get("retrieval_backend", provenance.get("retrieval_backend")),
                 "retrieval_mode": hit.get("retrieval_mode", provenance.get("retrieval_mode")),
                 "source_hash": hit.get("source_hash", provenance.get("source_hash")),

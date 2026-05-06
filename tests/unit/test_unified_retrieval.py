@@ -21,6 +21,7 @@ from src.qual.engine.retrieval import build_retrieval_source_bundle_from_result 
 from src.qual.engine.retrieval.payload import build_retrieval_citation_bundle_from_result
 from src.qual.engine.retrieval.payload import build_retrieval_downstream_payload_from_result
 from src.qual.engine.retrieval.payload import build_retrieval_provenance_from_result
+from src.qual.engine.retrieval.payload import _build_retrieval_basket_promotion_bundle_from_payload
 from src.qual.engine.retrieval.payload import _build_retrieval_excerpt_bundle_from_payload
 from src.qual.engine.retrieval.payload import _build_retrieval_source_bundle_from_payload
 from src.qual.engine.retrieval.payload import _build_retrieval_provenance_from_payload
@@ -2040,6 +2041,43 @@ class UnifiedRetrievalTests(unittest.TestCase):
         self.assertEqual(provenance["query_intent"], "compare")
         self.assertEqual(provenance["retrieval_backend"], "sqlite_fts")
         self.assertEqual(provenance["retrieval_mode"], "fts_first")
+
+    def test_basket_promotion_items_backfill_query_context_from_bundle(self) -> None:
+        result = self.service.retrieve_auto(
+            RetrievalQuery(
+                query_text="memo comparison",
+                scope="vault",
+                intent="compare",
+                constraints=RetrievalConstraints(
+                    max_results=4,
+                    date_range=("2026-01-01", "2026-12-31"),
+                ),
+                confidentiality_profile="confidential",
+            )
+        )
+        direct_item = result.retrieval_basket_promotion_bundle()["promotion_items"][0]
+        self.assertEqual(direct_item["query_fingerprint"], result.diagnostics["query_fingerprint"])
+        self.assertEqual(direct_item["query_scope"], "vault")
+        self.assertEqual(direct_item["query_intent"], "compare")
+        self.assertEqual(direct_item["query_date_range"], ["2026-01-01", "2026-12-31"])
+
+        payload = result.to_downstream_payload()
+        payload.pop("retrieval_basket_promotion_bundle", None)
+        for hit in payload["excerpt_hits"]:
+            hit.pop("query_fingerprint", None)
+            hit.pop("query_scope", None)
+            hit.pop("query_intent", None)
+            hit.pop("query_date_range", None)
+            hit["provenance"].pop("query_fingerprint", None)
+            hit["provenance"].pop("query_scope", None)
+            hit["provenance"].pop("query_intent", None)
+            hit["provenance"].pop("query_date_range", None)
+
+        rehydrated_item = _build_retrieval_basket_promotion_bundle_from_payload(payload)["promotion_items"][0]
+        self.assertEqual(rehydrated_item["query_fingerprint"], result.diagnostics["query_fingerprint"])
+        self.assertEqual(rehydrated_item["query_scope"], "vault")
+        self.assertEqual(rehydrated_item["query_intent"], "compare")
+        self.assertEqual(rehydrated_item["query_date_range"], ["2026-01-01", "2026-12-31"])
 
     def test_engine_retrieval_tool_returns_canonical_downstream_payload(self) -> None:
         payload = engine_retrieve_auto_payload(

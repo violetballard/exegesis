@@ -19,7 +19,7 @@ This packet supersedes the stale narrow-range handoff. The reviewed range is the
 
 The previous metadata-only classification for `cff7569dddc06bd6c4b445ebfc4dd5d161ab3cf0` is withdrawn. That commit changes `src/qual/retrieval/service.py` and `src/qual/engine/retrieval/payload.py`, so it is included in the reviewed implementation range.
 
-Other source-bearing post-`adfa8cd` commits are included as well; the post-`adfa8cd` implementation surface is `src/qual/engine/retrieval/__init__.py`, `src/qual/engine/retrieval/fts_strategy.py`, `src/qual/engine/retrieval/payload.py`, `src/qual/retrieval/service.py`, and `tests/unit/test_unified_retrieval.py`. This final fixer commit changes only `THREAD_PACKET.md`.
+Other source-bearing post-`adfa8cd` commits are included as well; the post-`adfa8cd` implementation surface is `src/qual/engine/retrieval/__init__.py`, `src/qual/engine/retrieval/fts_strategy.py`, `src/qual/engine/retrieval/payload.py`, `src/qual/retrieval/service.py`, and `tests/unit/test_unified_retrieval.py`. The current finalizer also changes `src/qual/retrieval/service.py`, `src/qual/engine/retrieval/payload.py`, and `tests/unit/test_unified_retrieval.py` to harden per-item basket-promotion query provenance.
 
 ## Scope Completed
 
@@ -65,17 +65,18 @@ Shared/integrator-locked impact this integration-failure fixer pass: none; no so
 
 This source-bearing finalizer keeps retrieval FTS-first and does not reintroduce PageIndex or embeddings as required paths. It hardens the basket-promotion contract by copying query-level audit context onto each promotion item: `query_fingerprint`, `query_scope`, `query_intent`, and `query_date_range`.
 
-The direct retrieval result bundle and the sparse downstream payload rehydration helper now emit the same per-item query context. This makes individual context-basket promotion records auditable even when they are consumed apart from the enclosing retrieval bundle.
+The direct retrieval result bundle and the sparse downstream payload rehydration helper now emit the same per-item query context, falling back to the enclosing retrieval bundle when sparse excerpt hits do not carry those fields. This makes individual context-basket promotion records auditable even when they are consumed apart from the enclosing retrieval bundle.
 
 Current source finalizer files changed:
 
 - `M src/qual/retrieval/service.py`
 - `M src/qual/engine/retrieval/payload.py`
+- `M tests/unit/test_unified_retrieval.py`
 - `M THREAD_PACKET.md`
 
 Current source finalizer task count: `1` meaningful task group, within the high-risk `4` task cap for this finalizer pass.
-Current source finalizer size before this packet update: `2 files changed, 8 insertions(+)`.
-Shared/integrator-locked impact this source finalizer pass: none; no shared regression, provider routing, or integrator-locked files were edited.
+Current source finalizer size before this packet update: `3 files changed, 58 insertions(+), 8 deletions(-)`.
+Shared/integrator-locked impact this source finalizer pass: approved shared regression coverage in `tests/unit/test_unified_retrieval.py`; no provider routing or integrator-locked files were edited.
 
 ## Tasks Completed
 
@@ -113,7 +114,7 @@ The protected `.codex/kickoff_packets/feat-retrieval-fts.md` and `.codex/lane_me
 
 - Task budget: `4` high-risk task groups; completed as the four task groups above.
 - File count: `8 files` in the full reviewed packet range; within the high-risk `<=8 files` limit.
-- Size accounting: source-bearing branch tip `125a3b7f84f096159baed4114029a7a38df772ae` is net `+449` LOC versus the authoritative reviewed base, before finalizer updates. This exceeds the high-risk `<=300 net LOC` budget and is reported here rather than hidden by a stale narrow range. The current source finalizer itself is a narrow `+8` LOC retrieval contract hardening before the packet update.
+- Size accounting: source-bearing branch tip `125a3b7f84f096159baed4114029a7a38df772ae` is net `+449` LOC versus the authoritative reviewed base, before finalizer updates. This exceeds the high-risk `<=300 net LOC` budget and is reported here rather than hidden by a stale narrow range. The current source finalizer itself is a narrow `3 files changed, 58 insertions(+), 8 deletions(-)` retrieval contract hardening before the packet update.
 - Shared/integrator exception status: `tests/unit/test_unified_retrieval.py` is the sole approved shared regression surface; no integrator-locked files changed.
 - Routing/provider impact: none.
 - Remaining risks/blockers: size budget exceeded for the full corrected range; no functional gate blockers after required gates are rerun on the final branch tip.
@@ -129,13 +130,13 @@ The protected `.codex/kickoff_packets/feat-retrieval-fts.md` and `.codex/lane_me
 
 Required gates rerun for the source-bearing finalizer pass:
 
+- `python -m unittest tests.unit.test_unified_retrieval.UnifiedRetrievalTests.test_basket_promotion_items_backfill_query_context_from_bundle` - passed.
 - `make scope-check` - passed for branch `codex/feat-retrieval-fts`.
 - `./quality-format.sh --check` - passed.
 - `./quality-lint.sh` - passed shell syntax and trailing whitespace checks.
-- `./quality-test.sh` - passed smoke tests and 129 unit tests.
+- `./quality-test.sh` - passed smoke tests and 130 unit tests.
 - `./typecheck-test.sh` - passed Python source compilation under `src/`.
-- `make ci` - passed setup, scope-check, format, lint, compile/typecheck, smoke tests, and 129 unit tests.
-- `python -m pytest tests/unit/test_unified_retrieval.py` - not run; this Python environment has no `pytest` module, so the repo gate scripts above are the authoritative test evidence.
+- `make ci` - passed setup, scope-check, format, lint, compile/typecheck, smoke tests, and 130 unit tests.
 
 Required gates rerun for the integration-failure fixer pass:
 

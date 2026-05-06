@@ -545,10 +545,15 @@ class RetrievalResult:
                     "score": hit.score,
                     "rank": hit.provenance.get("rank"),
                     "source_strategy": hit.source_strategy,
-                    "query_fingerprint": hit.provenance.get("query_fingerprint"),
-                    "query_scope": hit.provenance.get("query_scope"),
-                    "query_intent": hit.provenance.get("query_intent"),
-                    "query_date_range": copy.deepcopy(hit.provenance.get("query_date_range")),
+                    "query_fingerprint": hit.provenance.get(
+                        "query_fingerprint",
+                        bundle_context["query_fingerprint"],
+                    ),
+                    "query_scope": hit.provenance.get("query_scope", bundle_context["query_scope"]),
+                    "query_intent": hit.provenance.get("query_intent", bundle_context["query_intent"]),
+                    "query_date_range": copy.deepcopy(
+                        hit.provenance.get("query_date_range", bundle_context["query_date_range"])
+                    ),
                     "retrieval_backend": hit.provenance.get("retrieval_backend"),
                     "retrieval_mode": hit.provenance.get("retrieval_mode"),
                     "source_hash": hit.provenance.get("source_hash"),
