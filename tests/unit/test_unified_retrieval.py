@@ -2435,7 +2435,25 @@ class UnifiedRetrievalTests(unittest.TestCase):
                 for nested in value:
                     strip_promoted_refs(nested)
 
+        def strip_excerpt_hit_policy_fields(value: object) -> None:
+            if isinstance(value, dict):
+                if isinstance(value.get("excerpt_id"), str):
+                    value.pop("retrieval_backend", None)
+                    value.pop("retrieval_mode", None)
+                    value.pop("retrieval_policy", None)
+                    provenance = value.get("provenance")
+                    if isinstance(provenance, dict):
+                        provenance.pop("retrieval_backend", None)
+                        provenance.pop("retrieval_mode", None)
+                        provenance.pop("retrieval_policy", None)
+                for nested in value.values():
+                    strip_excerpt_hit_policy_fields(nested)
+            elif isinstance(value, list):
+                for nested in value:
+                    strip_excerpt_hit_policy_fields(nested)
+
         strip_promoted_refs(sparse_context_bundle)
+        strip_excerpt_hit_policy_fields(sparse_context_bundle)
 
         class _SparseContextBundleSource:
             def __init__(self, payload: dict[str, object]) -> None:
@@ -2456,6 +2474,9 @@ class UnifiedRetrievalTests(unittest.TestCase):
         self.assertEqual(basket_items[0]["query_scope"], "vault")
         self.assertEqual(basket_items[0]["query_intent"], "compare")
         self.assertEqual(basket_items[0]["result_fingerprint"], result.result_fingerprint)
+        self.assertEqual(basket_items[0]["retrieval_backend"], "sqlite_fts")
+        self.assertEqual(basket_items[0]["retrieval_mode"], "fts_first")
+        self.assertEqual(basket_items[0]["retrieval_policy"]["active_strategy_ids"], ["fts"])
         self.assertEqual(
             basket_items[0]["excerpt_lookup_fingerprint"],
             result.hits[0].provenance["excerpt_lookup_fingerprint"],

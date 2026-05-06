@@ -283,6 +283,36 @@ def _basket_promotion_items_from_excerpt_hits(
     if not isinstance(retrieval_evidence, dict):
         retrieval_evidence = {}
 
+    retrieval_policy = snapshot.get("retrieval_policy")
+    if not isinstance(retrieval_policy, dict):
+        retrieval_policy = snapshot.get("policy")
+    if not isinstance(retrieval_policy, dict):
+        retrieval_policy = retrieval_summary.get("retrieval_policy")
+    if not isinstance(retrieval_policy, dict):
+        retrieval_policy = retrieval_provenance.get("retrieval_policy")
+    if not isinstance(retrieval_policy, dict):
+        retrieval_policy = retrieval_citation_bundle.get("retrieval_policy")
+    if not isinstance(retrieval_policy, dict):
+        retrieval_policy = retrieval_evidence.get("retrieval_policy")
+    normalized_retrieval_policy = _normalize_policy_snapshot(
+        retrieval_policy if isinstance(retrieval_policy, dict) else {}
+    )
+    retrieval_backend = _first_text_value(
+        snapshot.get("retrieval_backend"),
+        retrieval_summary.get("retrieval_backend"),
+        retrieval_provenance.get("retrieval_backend"),
+        retrieval_citation_bundle.get("retrieval_backend"),
+        retrieval_evidence.get("retrieval_backend"),
+        normalized_retrieval_policy.get("retrieval_backend"),
+    )
+    retrieval_mode = _first_text_value(
+        snapshot.get("retrieval_mode"),
+        retrieval_summary.get("retrieval_mode"),
+        retrieval_provenance.get("retrieval_mode"),
+        retrieval_citation_bundle.get("retrieval_mode"),
+        retrieval_evidence.get("retrieval_mode"),
+        normalized_retrieval_policy.get("retrieval_mode"),
+    )
     result_fingerprint = _first_text_value(
         snapshot.get("result_fingerprint"),
         retrieval_summary.get("result_fingerprint"),
@@ -356,6 +386,9 @@ def _basket_promotion_items_from_excerpt_hits(
             provenance.get("retrieval_source_strategy"),
             context="sparse excerpt hit",
         )
+        hit_retrieval_policy = hit.get("retrieval_policy", provenance.get("retrieval_policy"))
+        if not isinstance(hit_retrieval_policy, dict):
+            hit_retrieval_policy = normalized_retrieval_policy
         doc_id = _first_text_value(hit.get("doc_id"), provenance.get("doc_id"))
         items.append(
             _with_basket_item_fingerprint({
@@ -395,14 +428,14 @@ def _basket_promotion_items_from_excerpt_hits(
                 "retrieval_backend": _first_text_value(
                     hit.get("retrieval_backend"),
                     provenance.get("retrieval_backend"),
+                    retrieval_backend,
                 ),
                 "retrieval_mode": _first_text_value(
                     hit.get("retrieval_mode"),
                     provenance.get("retrieval_mode"),
+                    retrieval_mode,
                 ),
-                "retrieval_policy": copy.deepcopy(
-                    hit.get("retrieval_policy", provenance.get("retrieval_policy"))
-                ),
+                "retrieval_policy": copy.deepcopy(_normalize_policy_snapshot(hit_retrieval_policy)),
                 "query_scope": _first_text_value(provenance.get("query_scope"), query_scope),
                 "query_intent": _first_text_value(provenance.get("query_intent"), query_intent),
                 "query_date_range": _normalize_optional_list_like(
