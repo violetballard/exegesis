@@ -241,6 +241,19 @@ class CommandDemoActionContract:
 
 
 @dataclass(frozen=True)
+class CommandHandlerDelegationEntry:
+    name: str
+    flow_step: str
+    handler: str
+    delegated_to: str
+
+
+@dataclass(frozen=True)
+class CommandHandlerDelegationContract:
+    entries: tuple[CommandHandlerDelegationEntry, ...]
+
+
+@dataclass(frozen=True)
 class CommandDemoActionRouteEntry:
     engine_action: str
     flow_step: str
@@ -1146,6 +1159,32 @@ _CANONICAL_CLI_ENTRYPOINTS: tuple[str, ...] = (
     "terminal",
 )
 _CLI_ENTRYPOINTS: tuple[str, ...] = _CANONICAL_CLI_ENTRYPOINTS
+_COMMAND_HANDLER_DELEGATIONS: tuple[CommandHandlerDelegationEntry, ...] = (
+    CommandHandlerDelegationEntry(
+        name="bootstrap",
+        flow_step="project-open",
+        handler="src.qual.app.run_bootstrap",
+        delegated_to="exegesis_engine.api.runtime_commands.run_bootstrap",
+    ),
+    CommandHandlerDelegationEntry(
+        name="diff-preview",
+        flow_step="patch-review",
+        handler="src.qual.app.run_diff_preview_command",
+        delegated_to="src.qual.commands.diff_preview.run_diff_preview",
+    ),
+    CommandHandlerDelegationEntry(
+        name="context-basket",
+        flow_step="retrieval",
+        handler="src.qual.app.run_context_basket_command",
+        delegated_to="exegesis_engine.api.runtime_commands.run_context_basket_command",
+    ),
+    CommandHandlerDelegationEntry(
+        name="terminal",
+        flow_step="export-handoff",
+        handler="src.qual.app.run_terminal_command",
+        delegated_to="exegesis_engine.api.runtime_commands.run_terminal_command",
+    ),
+)
 COMMAND_SMOKE_CLI_LAUNCHER_ARGV: tuple[str, ...] = ("python", "-m", "src.main")
 COMMAND_SMOKE_SCRIPT_LAUNCHER_ARGV: tuple[str, ...] = ("python", "src/main.py")
 COMMAND_SMOKE_CLI_PYTHON3_LAUNCHER_ARGV: tuple[str, ...] = ("python3", "-m", "src.main")
@@ -1976,6 +2015,51 @@ def command_cli_contract() -> CommandCliContract:
         canonical_names=canonical_names,
         lookup_table=lookup_table,
     )
+
+
+@lru_cache(maxsize=None)
+def command_handler_delegation_contract() -> CommandHandlerDelegationContract:
+    contract = CommandHandlerDelegationContract(entries=_COMMAND_HANDLER_DELEGATIONS)
+    _validate_command_handler_delegation_contract(contract)
+    return contract
+
+
+def _validate_command_handler_delegation_contract(
+    contract: CommandHandlerDelegationContract,
+) -> None:
+    if tuple(entry.name for entry in contract.entries) != command_names():
+        raise ValueError("Command handler delegation names are inconsistent")
+    if tuple(entry.flow_step for entry in contract.entries) != command_flow_steps():
+        raise ValueError("Command handler delegation flow steps are inconsistent")
+    for entry in contract.entries:
+        if canonical_command(entry.name) != entry.name:
+            raise ValueError(f"Command handler delegation is not canonical: {entry.name}")
+        if not entry.handler.strip() or not entry.delegated_to.strip():
+            raise ValueError(f"Command handler delegation target must not be empty: {entry.name}")
+        if entry.handler == entry.delegated_to:
+            raise ValueError(f"Command handler must delegate outside itself: {entry.name}")
+
+
+def command_handler_delegation_summary() -> tuple[tuple[str, str, str, str], ...]:
+    return tuple(
+        (entry.name, entry.flow_step, entry.handler, entry.delegated_to)
+        for entry in command_handler_delegation_contract().entries
+    )
+
+
+def command_handler_delegation_lookup_table() -> tuple[tuple[str, str], ...]:
+    return tuple(
+        (entry.name, entry.delegated_to)
+        for entry in command_handler_delegation_contract().entries
+    )
+
+
+def command_handler_delegation_for(command_name: str) -> CommandHandlerDelegationEntry | None:
+    canonical_name = canonical_command(command_name)
+    for entry in command_handler_delegation_contract().entries:
+        if entry.name == canonical_name:
+            return entry
+    return None
 
 
 @lru_cache(maxsize=None)
