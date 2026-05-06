@@ -9761,10 +9761,17 @@ def command_demo_readiness_index_by_demo_path_step(
     specs: tuple[CommandSpec, ...] = COMMAND_SPECS,
     launcher_argv: tuple[str, ...] = COMMAND_SMOKE_CLI_LAUNCHER_ARGV,
 ) -> tuple[tuple[str, CommandDemoReadinessEntry], ...]:
-    return tuple(
-        (_normalize_token(entry.demo_path_step), entry)
-        for entry in command_demo_readiness_contract(specs, launcher_argv).entries
-    )
+    entries: list[tuple[str, CommandDemoReadinessEntry]] = []
+    seen_steps: set[str] = set()
+    for entry in command_demo_readiness_contract(specs, launcher_argv).entries:
+        demo_path_step = _normalize_token(entry.demo_path_step)
+        if not demo_path_step:
+            raise ValueError(f"Command demo readiness path step must not be empty: {entry.flow_step}")
+        if demo_path_step in seen_steps:
+            raise ValueError(f"Duplicate command demo readiness path step: {entry.demo_path_step}")
+        seen_steps.add(demo_path_step)
+        entries.append((demo_path_step, entry))
+    return tuple(entries)
 
 
 @lru_cache(maxsize=None)
