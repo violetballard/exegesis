@@ -647,6 +647,8 @@ __all__ = [
     "canonical_command_readiness_next_command_argv",
     "canonical_command_readiness_next_exact_action_argv",
     "canonical_command_readiness_next_status",
+    "canonical_command_readiness_next_status_json",
+    "canonical_command_readiness_next_status_payload",
     "canonical_command_readiness_shell_next_action",
     "canonical_command_readiness_shell_next_action_json",
     "canonical_command_readiness_shell_next_action_payload",
@@ -654,6 +656,8 @@ __all__ = [
     "canonical_command_readiness_shell_next_command_argv",
     "canonical_command_readiness_shell_next_exact_action_argv",
     "canonical_command_readiness_shell_next_status",
+    "canonical_command_readiness_shell_next_status_json",
+    "canonical_command_readiness_shell_next_status_payload",
     "canonical_command_readiness_validate_cli_shell_script_lines",
     "canonical_command_readiness_validate_exact_action_script",
     "canonical_command_readiness_validate_exact_action_shell_script_lines",
@@ -2748,6 +2752,28 @@ def canonical_command_readiness_next_status(
     return _readiness_status_for_next_action(_readiness_next_action(argvs))
 
 
+def canonical_command_readiness_next_status_payload(
+    argvs: Sequence[Sequence[str] | str] = (),
+) -> dict[str, object]:
+    """Return a JSON-ready next command/action status for CLI smoke runners."""
+
+    return _canonical_command_readiness_status_payload(
+        canonical_command_readiness_next_status(argvs)
+    )
+
+
+def canonical_command_readiness_next_status_json(
+    argvs: Sequence[Sequence[str] | str] = (),
+) -> str:
+    """Return deterministic JSON for the next command/action status."""
+
+    return json.dumps(
+        canonical_command_readiness_next_status_payload(argvs),
+        sort_keys=True,
+        separators=(",", ":"),
+    )
+
+
 def canonical_command_readiness_shell_next_action(
     lines: Sequence[str] | str,
 ) -> CommandDemoReadinessNextAction:
@@ -2800,6 +2826,28 @@ def canonical_command_readiness_shell_next_status(
     """Return the next canonical demo-path command/action after shell smoke lines."""
 
     return _readiness_status_for_next_action(_readiness_shell_next_action(lines))
+
+
+def canonical_command_readiness_shell_next_status_payload(
+    lines: Sequence[str] | str,
+) -> dict[str, object]:
+    """Return a JSON-ready next command/action status for shell smoke lines."""
+
+    return _canonical_command_readiness_status_payload(
+        canonical_command_readiness_shell_next_status(lines)
+    )
+
+
+def canonical_command_readiness_shell_next_status_json(
+    lines: Sequence[str] | str,
+) -> str:
+    """Return deterministic JSON for the next shell command/action status."""
+
+    return json.dumps(
+        canonical_command_readiness_shell_next_status_payload(lines),
+        sort_keys=True,
+        separators=(",", ":"),
+    )
 
 
 def canonical_command_readiness_validate_cli_shell_script_lines(
