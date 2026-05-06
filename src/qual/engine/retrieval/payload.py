@@ -273,6 +273,7 @@ def _normalize_retrieval_source_bundle_snapshot(source_bundle: dict[str, object]
     if not isinstance(normalized, dict):
         return {}
     normalized["query"] = _normalize_query_snapshot(normalized.get("query", {}))
+    normalized["query_constraints"] = copy.deepcopy(normalized["query"].get("constraints", {}))
     normalized["policy"] = _normalize_policy_snapshot(
         normalized.get("policy", normalized.get("retrieval_policy", {}))
     )
@@ -1081,6 +1082,7 @@ def _build_retrieval_downstream_payload_from_source_bundle(
     payload.pop("retrieval_diagnostics", None)
     payload.pop("retrieval_source_bundle", None)
     payload.pop("query_fingerprint", None)
+    payload.pop("query_constraints", None)
     payload["policy"] = copy.deepcopy(policy_snapshot)
     payload["retrieval_policy"] = copy.deepcopy(policy_snapshot)
     payload["audit_ref"] = payload.get("audit_ref")

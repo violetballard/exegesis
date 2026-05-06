@@ -3,7 +3,7 @@
 - Branch name: `codex/feat-retrieval-fts`
 - Lane: `feat-retrieval-fts`
 - Merge target: current `main`
-- Handoff type: corrected high-risk retrieval handoff for the FTS-first retrieval lane.
+- Handoff type: high-risk retrieval handoff finalization for the FTS-first retrieval lane.
 - Reviewed implementation base: `378cf9a74a3658058079a32f186fcd254c4a4034`.
 - Reviewed implementation code head: final branch HEAD SHA reported in the fixer response.
 - Reviewed implementation range for re-review: `378cf9a74a3658058079a32f186fcd254c4a4034..final branch HEAD`.
@@ -15,17 +15,19 @@
 
 ## Scope Completed
 
-This corrected packet supersedes the stale narrow-range handoff and makes all production and test changes through `25f8d10c4b8f02c6d613af3300a5b7a02ec1c848` part of the reviewed implementation range.
+This corrected packet supersedes the stale narrow-range handoff and makes all production and test changes through the final branch HEAD part of the reviewed implementation range.
 
 The retrieval lane keeps SQLite FTS as the authoritative MVP retrieval path. The branch adds deterministic FTS cache handling and cache audit metadata, normalizes retrieval payload snapshots and query constraints, preserves retrieval provenance for basket/context promotion flows, keeps PageIndex and embeddings as deferred compatibility surfaces, and makes date-range constraints fail fast when malformed or reversed before FTS execution.
 
 Current finalization passes after `25f8d10c4b8f02c6d613af3300a5b7a02ec1c848` add canonical retrieval-query boundary validation so empty query text or scope fails before FTS execution, and caller whitespace is trimmed before scope matching, payload snapshots, and provenance fingerprints are produced.
 
+This finalization pass after `78b6747f4827b5304204e26e42c99827f04d6481` surfaces normalized query constraints directly in citation, provenance, doc/excerpt bundle, and source-bundle snapshots. The engine payload compatibility shim preserves that source-bundle constraint snapshot while keeping the top-level downstream payload shape stable when source bundles are rehydrated for basket/context promotion flows.
+
 ## Tasks Completed
 
 1. Made SQLite FTS the primary retrieval path for document and excerpt retrieval, with PageIndex and embeddings retained as compatibility-only fallback/deferred surfaces.
 2. Stabilized FTS retrieval cache behavior, including cache invalidation on document updates and cache audit metadata for payload/provenance consumers.
-3. Normalized retrieval payloads, query snapshots, constraints, provenance fingerprints, source bundles, and basket/context promotion metadata for deterministic downstream engine use.
+3. Normalized retrieval payloads, query snapshots, constraints, provenance fingerprints, source bundles, and basket/context promotion metadata for deterministic downstream engine use, including explicit query-constraint snapshots in bundle/provenance surfaces.
 4. Validated date-range constraints and canonical query text/scope constraints at the retrieval boundary, with approved shared regression coverage in `tests/unit/test_unified_retrieval.py` for the FTS-first retrieval behavior, payload normalization, cache metadata, facade exports, citation/provenance helpers, excerpt lookup, and date-range validation included in this task group.
 
 ## Files Changed
@@ -44,6 +46,12 @@ From `git diff --name-status 378cf9a74a3658058079a32f186fcd254c4a4034..25f8d10c4
 
 Current finalization passes changed:
 
+- `M src/qual/retrieval/service.py`
+- `M THREAD_PACKET.md`
+
+This finalization pass changed:
+
+- `M src/qual/engine/retrieval/payload.py`
 - `M src/qual/retrieval/service.py`
 - `M THREAD_PACKET.md`
 
@@ -68,7 +76,7 @@ From `git diff --stat 378cf9a74a3658058079a32f186fcd254c4a4034..25f8d10c4b8f02c6
 - PageIndex/embeddings impact: no PageIndex, embeddings, hybrid, or alternate retrieval path was added as a required MVP path.
 - Remaining risks/blockers: none.
 
-Current finalization remains low blast radius: the production change is confined to `src/qual/retrieval/service.py`, and the only non-production update is this required handoff packet. No shared regression or integrator-locked file edits were added.
+Current finalization remains low blast radius: production changes are confined to `src/qual/retrieval/service.py` and `src/qual/engine/retrieval/payload.py`, and the only non-production update is this required handoff packet. No shared regression or integrator-locked file edits were added.
 
 ## Traceability Correction
 
@@ -81,7 +89,7 @@ This handoff has one authoritative reviewed implementation range: `378cf9a74a365
 - Roadmap items affected: `ROADMAP.md` Milestone 3 retrieval/search readiness and real workflow loop support.
 - Product Vision capability affected: retrieval-first context handling.
 - Architecture alignment: FTS remains the required local retrieval path. PageIndex and embeddings stay compatibility-only/deferred.
-- Canonical demo-path mapping: advances `retrieve relevant material` by preventing invalid date filters and whitespace-only retrieval queries from producing misleading or unstable retrieval evidence.
+- Canonical demo-path mapping: advances `retrieve relevant material` by preventing invalid date filters and whitespace-only retrieval queries from producing misleading or unstable retrieval evidence, and by making the normalized retrieval constraints visible in bundle/provenance snapshots used for basket/context promotion.
 - Routing/provider impact note: none.
 - Proposed `README.md` patch text: none.
 
@@ -90,6 +98,8 @@ This handoff has one authoritative reviewed implementation range: `378cf9a74a365
 Commands run for this corrected packet on the branch-tip worktree state:
 
 - `python -m unittest tests.unit.test_unified_retrieval` - passed 58 retrieval unit tests.
+- `python -m pytest tests/unit/test_unified_retrieval.py` - not run; active Python reported `No module named pytest`.
+- `./quality-test.sh` - first run failed 5 unified retrieval helper rehydration comparisons after adding `query_constraints`; fixed by normalizing source-bundle constraint snapshots in `src/qual/engine/retrieval/payload.py`.
 - `make scope-check` - passed.
 - `./quality-format.sh --check` - passed.
 - `./quality-lint.sh` - passed shell syntax and trailing whitespace checks.
