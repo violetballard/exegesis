@@ -23,9 +23,15 @@ Canonical demo-path step advanced: `retrieve relevant material`. The work makes 
 ## Tasks Completed
 
 1. Canonical FTS retrieval path: added and exported the canonical retrieval query constructor, `retrieve_auto` helper, and FTS-first service behavior through both retrieval facades.
+   Canonical demo-path step advanced: `retrieve relevant material`.
 2. Stable retrieval provenance: emitted deterministic document/excerpt hits, citations, basket summaries, primary lookup fingerprints, and ordered `excerpt_lookup_fingerprints` in manifests, summaries, evidence, and result fingerprint payloads.
+   Canonical demo-path step advanced: `retrieve relevant material`; supports `promote or gather context into the basket` by preserving promotion-ready provenance.
 3. Engine payload compatibility: normalized sparse retrieval source, summary, manifest, policy, provenance, excerpt identity, ordered identifier lists, and context payload snapshots for downstream engine flows.
+   Canonical demo-path step advanced: `retrieve relevant material`.
 4. Shared regression coverage: extended approved shared retrieval tests for facade exports, payload reconstruction, citation/provenance helpers, FTS-only excerpt backfill, lookup fingerprints, and fail-closed compatibility behavior.
+   Canonical demo-path step advanced: `retrieve relevant material`.
+
+AGENTS.md narrowing statement: this work makes the `retrieve relevant material` step more real by ensuring engine retrieval uses FTS-only excerpt lookup with deterministic provenance suitable for basket promotion.
 
 ## Files Changed
 
