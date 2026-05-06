@@ -24,8 +24,7 @@ The retrieval lane keeps SQLite FTS as the authoritative MVP retrieval path. The
 1. Made SQLite FTS the primary retrieval path for document and excerpt retrieval, with PageIndex and embeddings retained as compatibility-only fallback/deferred surfaces.
 2. Stabilized FTS retrieval cache behavior, including cache invalidation on document updates and cache audit metadata for payload/provenance consumers.
 3. Normalized retrieval payloads, query snapshots, constraints, provenance fingerprints, source bundles, and basket/context promotion metadata for deterministic downstream engine use.
-4. Validated date-range constraints at the canonical query and FTS retrieval boundaries so malformed or reversed filters fail fast instead of producing misleading empty evidence.
-5. Added and maintained approved shared regression coverage in `tests/unit/test_unified_retrieval.py` for FTS-first retrieval behavior, payload normalization, cache metadata, facade exports, citation/provenance helpers, excerpt lookup, and date-range validation.
+4. Validated date-range constraints at the canonical query and FTS retrieval boundaries, with approved shared regression coverage in `tests/unit/test_unified_retrieval.py` for the FTS-first retrieval behavior, payload normalization, cache metadata, facade exports, citation/provenance helpers, excerpt lookup, and date-range validation included in this task group.
 
 ## Files Changed
 
@@ -53,7 +52,7 @@ From `git diff --stat 378cf9a74a3658058079a32f186fcd254c4a4034..25f8d10c4b8f02c6
 
 ## Budget/Risk
 
-- Task budget: `4` high-risk task groups in the original thread, with this corrected packet summarizing the cumulative branch-level retrieval work as five traceability items.
+- Task budget: `4` high-risk task groups, including the post-`adfa8cdadd43747ffbcb612e4151e262b13e52ca` date-range query-boundary validation changes as task group 4.
 - File count for reviewed implementation handoff: `7 files changed`.
 - Size accounting: `367 insertions(+), 121 deletions(-)`; net `246` LOC.
 - AGENTS file/size status: fits high-risk size limits of `<=8 files` and `<=300 net LOC`.
@@ -70,10 +69,10 @@ This handoff has one authoritative reviewed implementation range: `378cf9a74a365
 
 ## Roadmap/Vision
 
-- Roadmap items affected: `ROADMAP.md` Milestone 4 FTS-first retrieval orchestration/source-attribution/auditable deterministic retrieval; Milestone 3 generation provenance contract clarity for retrieved evidence.
-- Vision capability affected: retrieval-backed context, retrieval-first context handling, auditable outputs, and deterministic operator controls.
+- Roadmap items affected: `ROADMAP.md` Milestone 3 retrieval/search readiness and real workflow loop support.
+- Product Vision capability affected: retrieval-first context handling.
 - Architecture alignment: FTS remains the required local retrieval path. PageIndex and embeddings stay compatibility-only/deferred.
-- Canonical demo-path mapping: advances `retrieve relevant material` and supports `promote or gather context into the basket` by preventing invalid date filters from producing misleading empty retrieval evidence.
+- Canonical demo-path mapping: advances `retrieve relevant material` by preventing invalid date filters from producing misleading empty retrieval evidence.
 - Routing/provider impact note: none.
 - Proposed `README.md` patch text: none.
 
