@@ -12,6 +12,7 @@ from src.qual.commands.catalog import (
     CommandDemoReadinessHandoffAudit,
     CommandDemoReadinessCommandTraceEntry,
     CommandDemoReadinessCommandTraceContract,
+    CommandDemoReadinessTraceEntry,
     CommandDemoReadinessEntry,
     CommandDemoReadinessExactActionEntry,
     CommandDemoReadinessExactActionContract,
@@ -112,6 +113,8 @@ from src.qual.commands.catalog import (
     command_mvp_demo_readiness_shell_script_lines as _readiness_shell_script_lines,
     command_mvp_demo_readiness_shell_script_text as _readiness_shell_script_text,
     command_mvp_demo_readiness_trace_contract as _readiness_trace_contract,
+    command_mvp_demo_readiness_trace_entry_for_engine_action as _readiness_trace_entry_for_engine_action,
+    command_mvp_demo_readiness_trace_entry_for_argv as _readiness_trace_entry_for_argv,
     command_mvp_demo_readiness_command_trace_contract as _readiness_command_trace_contract,
     command_mvp_demo_readiness_command_trace_entry_for_engine_action as _readiness_command_trace_entry_for_engine_action,
     command_mvp_demo_readiness_command_trace_entry_for_argv as _readiness_command_trace_entry_for_argv,
@@ -382,6 +385,8 @@ __all__ = [
     "canonical_command_readiness_shell_script_lines",
     "canonical_command_readiness_shell_script_text",
     "canonical_command_readiness_trace_contract",
+    "canonical_command_readiness_trace_entry_for_engine_action",
+    "canonical_command_readiness_trace_entry_for_argv",
     "canonical_command_readiness_command_trace_contract",
     "canonical_command_readiness_command_trace_entry_for_engine_action",
     "canonical_command_readiness_command_trace_entry_for_argv",
@@ -986,6 +991,18 @@ def canonical_command_supported_launcher_cli_smoke_lookup_table() -> tuple[
     ...,
 ]:
     return _supported_launcher_cli_smoke_lookup_table()
+
+
+def canonical_command_readiness_trace_entry_for_engine_action(
+    engine_action: str,
+) -> CommandDemoReadinessTraceEntry | None:
+    return _readiness_trace_entry_for_engine_action(engine_action)
+
+
+def canonical_command_readiness_trace_entry_for_argv(
+    argv: Sequence[str] | str,
+) -> CommandDemoReadinessTraceEntry | None:
+    return _readiness_trace_entry_for_argv(argv)
 
 
 def canonical_command_readiness_command_trace_entry_for_engine_action(
