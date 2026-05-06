@@ -48,9 +48,15 @@ Shared/integrator-locked impact this pass: none; no source, test, or integrator-
 ## Tasks Completed
 
 1. Made SQLite FTS the authoritative MVP retrieval path while keeping PageIndex and embeddings fallback-only/deferred.
+   Canonical demo-path step advanced: `retrieve relevant material`.
 2. Stabilized FTS cache and query normalization for query-shaped objects, dataclasses, mappings, iterables, date ranges, shortlist queries, fingerprints, doc types, scopes, boolean constraints, fresh runner output, cache invalidation, and cache audit metadata.
+   Canonical demo-path step advanced: `retrieve relevant material`.
 3. Normalized retrieval payload, provenance, citation, source-bundle, context-bundle, basket-promotion, and evidence snapshots so sparse downstream helpers can rehydrate FTS-first payloads without losing constraints, fingerprints, ranks, identities, policies, section hints, promotion items, or confidentiality profile metadata.
+   Canonical demo-path steps advanced: `retrieve relevant material` and `promote or gather context into the basket`.
 4. Added fail-closed retrieval boundary coverage for malformed or reversed date ranges, empty query/scope inputs, unresolved `doc:` and `collection:` scopes, FTS-only excerpt lookup, excerpt lookup fingerprints, and cache/query snapshot behavior.
+   Canonical demo-path step advanced: `retrieve relevant material`.
+
+Final canonical demo-path statement: this work makes the `retrieve relevant material` step more real by making excerpt lookup FTS-only, deterministic, and auditable for downstream basket/workflow use, and it supports `promote or gather context into the basket` by preserving deterministic promotion-ready retrieval evidence.
 
 ## Files Changed
 
