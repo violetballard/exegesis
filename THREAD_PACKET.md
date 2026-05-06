@@ -3,7 +3,7 @@
 - Branch name: `codex/feat-retrieval-fts`
 - Lane: `feat-retrieval-fts`
 - Merge target: current `main`
-- Branch HEAD before this source-bearing fixer pass: `f04fc9ba52417ebfc489a49ecfb72a3870ff79c3`.
+- Branch HEAD before this source-bearing fixer pass: `e1bdd27e890b4aee5a9ffa7413cd310598f2375c`.
 - Branch-tip commit included in this packet: final HEAD reported in the final fixer response.
 - Final HEAD SHA after this packet refresh: reported in the final fixer response.
 - Handoff type: high-risk retrieval feature handoff for the FTS-first retrieval lane.
@@ -13,7 +13,7 @@
 - Actual merge-candidate range against current `main`: `9511a016c20f09b43c6e7a571e0a8a49f90ea209..final HEAD reported in the final fixer response`.
 - Reviewer-required post-`adfa8cda` source/test-bearing range included in review scope: `adfa8cdadd43747ffbcb612e4151e262b13e52ca..final HEAD reported in the final fixer response`.
 - Traceability correction: no source/test-changing commit after `adfa8cda` is classified as metadata-only. Commits including `2114d026ad9bd68cea6fb63a538771a21d17f816`, `9ca591791ae84e4f86d0b4b3e37b5bffbce09913`, `9609b4cc7d53d03668b96117ed4db1bb14f5ea4f`, `340b2b1f445391cf424f9a73bb1b7abc5fa07102`, `e746e57856d91c90b13207365a232401e4a65500`, `5cc7a8c7bc203f089927b9556c2075251c048899`, `4c748b49a7fa631dd338661802cde03fd93091f7`, `e09c3be72e65f399889512a1914f719d670c6da8`, `9dc7ed4f55fbb3d487d47a91171e8255fed29c82`, and `8a3fbcfc5` are implementation commits and are included in the reviewed range above.
-- This source-bearing fixer pass changes engine retrieval payload reconstruction, approved shared retrieval regression coverage, and the root handoff packet. It does not classify any source/test-changing commit after `adfa8cda` as metadata-only.
+- This source-bearing fixer pass changes direct FTS excerpt lookup audit metadata, approved shared retrieval regression coverage, and the root handoff packet. It does not classify any source/test-changing commit after `adfa8cda` as metadata-only.
 - Approved shared-file note: `tests/unit/test_unified_retrieval.py` is approved shared-by-approval regression coverage for this retrieval lane. No integrator-locked files are edited in this handoff.
 - AGENTS.md Active MVP canonical demo-path step: `retrieve relevant material`. This source-bearing fixer keeps sparse basket promotion ordering explicit for `retrieve relevant material`, with every completed task below mapped to that step.
 - Reviewer-required demo-path mapping: This work makes the "retrieve relevant material" step more real by making FTS-only excerpt lookup deterministic and auditable for engine retrieval results. It also supports `promote or gather context into the basket` by preserving basket-facing lookup identity and candidate-set provenance.
@@ -46,6 +46,8 @@ This branch-tip source-bearing candidate-resolution identity correction makes th
 
 The prior source-bearing query-fingerprint correction computes the FTS hit query fingerprint once per FTS row materialization pass and reuses that stable value for every excerpt provenance record in the run. That keeps excerpt evidence aligned to one canonical query snapshot while preserving SQLite FTS as the only active retrieval backend.
 
+This branch-tip source-bearing fixer pass carries canonical `basket_item_ids` and `basket_item_fingerprints` into direct FTS excerpt lookup audit events. Direct `retrieve_fts_excerpt`/`fetch_excerpt` audit records now preserve both singular lookup identity and ordered basket promotion identity lists, so downstream basket/context promotion can be audited without rehydrating identity from a separate retrieval snapshot.
+
 The post-`adfa8cda` implementation deltas are explicitly included in review scope. They preserve sparse basket-promotion identity when snapshots retain `basket_item_id`, reject boolean `max_results` values before Python bool/int coercion can affect retrieval limits, reject bool and non-int `max_results` values at the canonical `RetrievalConstraints` boundary, propagate result fingerprints onto document hits, carry document identity fingerprints into excerpt citation/evidence/basket surfaces, and normalize retrieval section hints without requiring non-FTS retrieval paths.
 
 Canonical demo-path step advanced: `retrieve relevant material`. This work makes the `retrieve relevant material` canonical demo-path step more real by making excerpt lookup FTS-only, deterministic, and auditable for downstream basket/workflow use. It also supports `promote or gather context into the basket` because basket-facing summaries preserve auditable FTS lookup identity and candidate-set provenance.
@@ -53,7 +55,7 @@ Canonical demo-path step advanced: `retrieve relevant material`. This work makes
 ## Tasks Completed
 
 1. Canonical FTS retrieval path: advances `retrieve relevant material` by adding and exporting the canonical retrieval query constructor, `retrieve_auto` helper, FTS-first service behavior through both retrieval facades, and strict facade `max_results` validation aligned with the canonical service dataclass.
-2. Stable retrieval provenance: advances `retrieve relevant material` by emitting deterministic document/excerpt hits, citations, basket summaries, candidate-resolution snapshots, primary lookup fingerprints, ordered `excerpt_lookup_fingerprints`, direct excerpt lookup audit identity, document identity fingerprints on excerpt citation/evidence surfaces, normalized section hints, and document-level result fingerprints in manifests, summaries, evidence, audit events, and result fingerprint payloads.
+2. Stable retrieval provenance: advances `retrieve relevant material` by emitting deterministic document/excerpt hits, citations, basket summaries, candidate-resolution snapshots, primary lookup fingerprints, ordered `excerpt_lookup_fingerprints`, direct excerpt lookup audit identity with basket item ID/fingerprint lists, document identity fingerprints on excerpt citation/evidence surfaces, normalized section hints, and document-level result fingerprints in manifests, summaries, evidence, audit events, and result fingerprint payloads.
 3. Engine payload compatibility: advances `retrieve relevant material` and supports `promote or gather context into the basket` by normalizing sparse retrieval source, summary, manifest, policy, provenance, excerpt identity, ordered identifier lists, context payload snapshots, and reconstructed sparse diagnostics for downstream engine flows, including top-level context bundle query, policy, manifest, summary, citation status fields, bool-safe canonical `max_results` normalization for FTS shortlist sizing, strict facade-side `max_results` validation for new FTS queries, canonical top-level excerpt text hashes on direct FTS excerpt lookup payloads, explicit `basket_item_id` aliases and canonical `doc_rank` fields on promotion-ready excerpt refs, sparse rehydration of missing `basket_item_id` aliases from canonical item identity and excerpt citations, document-rank preservation when sparse basket refs rebuild from excerpt-hit snapshots, citation-bundle basket ref reconstruction from source-bundle-only snapshots, and self-identifying query-filter snapshots in candidate-resolution provenance.
 4. Shared regression coverage: advances `retrieve relevant material` and supports `promote or gather context into the basket` by extending approved shared retrieval tests for facade exports, payload reconstruction, citation/provenance helpers, FTS-only excerpt backfill, lookup fingerprints, direct excerpt lookup audit identity, context bundle copy safety, bool and non-int constraint rejection, result fingerprint propagation, document-rank promotion evidence, sparse basket alias and document-rank rehydration, citation-bundle basket ref reconstruction, section-hint normalization, and fail-closed compatibility behavior.
 
@@ -70,8 +72,8 @@ Source/test-bearing implementation range: `378cf9a74a3658058079a32f186fcd254c4a4
 - `src/qual/engine/retrieval/fts_strategy.py` - FTS strategy integration behavior.
 - `src/qual/engine/retrieval/payload.py` - deterministic retrieval payload, sparse snapshot normalization, basket item fingerprint identity, sparse `basket_item_id` alias rehydration from item, excerpt-hit, and excerpt-citation snapshots, document-rank preservation for sparse excerpt-hit basket refs, citation-bundle basket ref reconstruction, and top-level context bundle reconstruction.
 - `src/qual/retrieval/__init__.py` - retrieval facade exports.
-- `src/qual/retrieval/service.py` - canonical FTS-first retrieval service, provenance, candidate-resolution citation snapshots, self-identifying candidate query-filter provenance, lookup fingerprint behavior, direct excerpt lookup audit identity, top-level excerpt text hash lookup payloads, context bundle packaging, document-level result fingerprint propagation, document identity propagation, explicit basket item aliases, document-rank promotion evidence, canonical `max_results` type validation, and per-pass query fingerprint reuse for FTS excerpt provenance.
-- `tests/unit/test_unified_retrieval.py` - approved shared-by-approval regression coverage for the retrieval contract, direct excerpt lookup audit identity, context bundle copy safety, bool and non-int constraint rejection, document-hit result fingerprints, document identity propagation, section-hint normalization, explicit basket item aliases, sparse basket alias and document-rank rehydration, citation-bundle basket ref reconstruction, and document-rank promotion evidence.
+- `src/qual/retrieval/service.py` - canonical FTS-first retrieval service, provenance, candidate-resolution citation snapshots, self-identifying candidate query-filter provenance, lookup fingerprint behavior, direct excerpt lookup audit identity including basket item ID/fingerprint lists, top-level excerpt text hash lookup payloads, context bundle packaging, document-level result fingerprint propagation, document identity propagation, explicit basket item aliases, document-rank promotion evidence, canonical `max_results` type validation, and per-pass query fingerprint reuse for FTS excerpt provenance.
+- `tests/unit/test_unified_retrieval.py` - approved shared-by-approval regression coverage for the retrieval contract, direct excerpt lookup audit identity including basket item ID/fingerprint lists, context bundle copy safety, bool and non-int constraint rejection, document-hit result fingerprints, document identity propagation, section-hint normalization, explicit basket item aliases, sparse basket alias and document-rank rehydration, citation-bundle basket ref reconstruction, and document-rank promotion evidence.
 
 Implementation deltas after `adfa8cda` that are explicitly included in review scope:
 
@@ -161,6 +163,16 @@ Command: `git diff --stat`
  3 files changed, 103 insertions(+), 40 deletions(-)
 ```
 
+Current source-bearing delta from branch head `e1bdd27e890b4aee5a9ffa7413cd310598f2375c` before this pass:
+
+Command: `git diff --stat`
+
+```text
+ src/qual/retrieval/service.py        | 2 ++
+ tests/unit/test_unified_retrieval.py | 5 +++++
+ 2 files changed, 7 insertions(+)
+```
+
 ## Budget/Risk
 
 - Task budget: `4/4` high-risk task groups.
@@ -168,8 +180,8 @@ Command: `git diff --stat`
 - Size accounting for source/test-bearing implementation range through `6d1bb9facefe51674660dc4bd5fc1960efc91fd8`: `3434 insertions(+), 351 deletions(-)` before this packet-only refresh.
 - File count for source-bearing delta after reviewer-cited `f2649eade`: `3 files changed`.
 - Size accounting for source-bearing delta after reviewer-cited `f2649eade`: `81 insertions(+), 16 deletions(-)`.
-- File count for current source-bearing fixer delta from `f04fc9ba52417ebfc489a49ecfb72a3870ff79c3`: `3 files changed`.
-- Size accounting for current source-bearing fixer delta from `f04fc9ba52417ebfc489a49ecfb72a3870ff79c3`: `103 insertions(+), 40 deletions(-)`.
+- File count for current source-bearing fixer delta from `e1bdd27e890b4aee5a9ffa7413cd310598f2375c`: `2 files changed` before this packet refresh.
+- Size accounting for current source-bearing fixer delta from `e1bdd27e890b4aee5a9ffa7413cd310598f2375c`: `7 insertions(+), 0 deletions(-)` before this packet refresh.
 - File count for actual merge-candidate retrieval range against current `main`: `5 files changed` before this packet refresh.
 - Size accounting for actual merge-candidate retrieval range against current `main` through `6d1bb9facefe51674660dc4bd5fc1960efc91fd8`: `1208 insertions(+), 240 deletions(-)` before this packet-only refresh.
 - AGENTS high-risk file/size status: exceeds `<=8 files` and `<=300 net LOC` in the authoritative review range, and exceeds `<=300 net LOC` in the actual merge-candidate range.
@@ -207,6 +219,15 @@ Command: `git diff --stat`
 - `make ci` - passed setup, scope-check, format, lint, typecheck, smoke tests, and 148 unit tests.
 
 - Current branch-tip source-bearing fixer pass:
+- `python -m unittest tests.unit.test_unified_retrieval.UnifiedRetrievalTests.test_retrieve_fts_excerpt_audit_records_stable_lookup_identity -q` - passed 1 focused direct FTS excerpt lookup audit regression.
+- `python -m unittest tests.unit.test_unified_retrieval -q` - passed 79 retrieval tests.
+- `./quality-format.sh --check` - passed.
+- `./quality-lint.sh` - passed shell syntax and trailing whitespace checks.
+- `./quality-test.sh` - passed smoke tests and 148 unit tests.
+- `./typecheck-test.sh` - passed Python source compilation under `src/`.
+- `make ci` - passed setup, scope-check, format, lint, typecheck, smoke tests, and 148 unit tests.
+
+- Prior branch-tip source-bearing fixer pass:
 - `python3 -m unittest tests.unit.test_unified_retrieval -v` - passed 79 retrieval tests.
 - `./quality-format.sh --check` - passed.
 - `./quality-lint.sh` - passed shell syntax and trailing whitespace checks.

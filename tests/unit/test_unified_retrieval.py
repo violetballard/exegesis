@@ -1569,7 +1569,12 @@ class UnifiedRetrievalTests(unittest.TestCase):
         self.assertEqual(metadata["excerpt_text_hash"], excerpt["text_hash"])
         self.assertEqual(metadata["excerpt_lookup_fingerprint"], excerpt["excerpt_lookup_fingerprint"])
         self.assertEqual(metadata["basket_item_id"], excerpt_id)
+        self.assertEqual(metadata["basket_item_ids"], [excerpt_id])
         self.assertEqual(metadata["basket_item_fingerprint"], excerpt["basket_item_fingerprint"])
+        self.assertEqual(
+            metadata["basket_item_fingerprints"],
+            [excerpt["basket_item_fingerprint"]],
+        )
 
     def test_retrieval_hits_surface_top_level_retrieval_context(self) -> None:
         result = self.service.retrieve_auto(
