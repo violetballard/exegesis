@@ -7435,7 +7435,7 @@ def _shell_script_executable_argv(lines: Sequence[str] | str) -> tuple[tuple[str
 
 
 def _split_shell_script_line(line: str) -> tuple[str, ...]:
-    lexer = shlex.shlex(line, posix=True, punctuation_chars=";&")
+    lexer = shlex.shlex(line, posix=True, punctuation_chars=";&|")
     lexer.whitespace_split = True
     lexer.commenters = "#"
     try:
@@ -7449,7 +7449,7 @@ def _split_shell_script_command_segments(argv: tuple[str, ...]) -> tuple[tuple[s
     current_segment: list[str] = []
     opened_groups = 0
     for token in argv:
-        if token in {"&&", ";"}:
+        if token in {"&&", "||", ";"}:
             if current_segment:
                 segment, opened_groups = _normalize_shell_script_segment_argv(
                     tuple(current_segment),
