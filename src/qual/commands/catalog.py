@@ -1120,6 +1120,25 @@ class CommandDemoReadinessNextAction:
 
 
 @dataclass(frozen=True)
+class CommandDemoReadinessRemainingAction:
+    ordinal: int
+    engine_action: str
+    demo_path_step: str
+    flow_step: str
+    command_name: str
+    command_argv: tuple[str, ...]
+    command_line: str
+
+
+@dataclass(frozen=True)
+class CommandDemoReadinessRemainingActionContract:
+    validation: CommandDemoReadinessScriptValidation
+    actions: tuple[CommandDemoReadinessRemainingAction, ...]
+    invalid_argv: tuple[tuple[str, ...], ...]
+    is_complete: bool
+
+
+@dataclass(frozen=True)
 class CommandDemoExecutionPlanStep:
     ordinal: int
     demo_path_step: str
@@ -13170,6 +13189,125 @@ def command_demo_readiness_next_action_json(
     )
 
 
+def _remaining_action_for_engine_action(
+    ordinal: int,
+    engine_action: str,
+    specs: tuple[CommandSpec, ...],
+    launcher_argv: tuple[str, ...],
+) -> CommandDemoReadinessRemainingAction:
+    route_entry = command_demo_readiness_exact_action_route_for_engine_action(
+        engine_action,
+        specs,
+        launcher_argv,
+    )
+    if route_entry is None:
+        raise ValueError(f"Missing command demo readiness route: {engine_action}")
+    return CommandDemoReadinessRemainingAction(
+        ordinal=ordinal,
+        engine_action=engine_action,
+        demo_path_step=route_entry.demo_path_step,
+        flow_step=route_entry.flow_step,
+        command_name=route_entry.name,
+        command_argv=route_entry.command_argv,
+        command_line=route_entry.command_line,
+    )
+
+
+def _validate_command_demo_readiness_remaining_action_contract(
+    contract: CommandDemoReadinessRemainingActionContract,
+) -> None:
+    expected_actions = contract.validation.missing_engine_actions
+    if tuple(action.engine_action for action in contract.actions) != expected_actions:
+        raise ValueError("Command demo readiness remaining actions are inconsistent")
+    if tuple(action.ordinal for action in contract.actions) != tuple(range(1, len(contract.actions) + 1)):
+        raise ValueError("Command demo readiness remaining action ordinals are inconsistent")
+    if contract.invalid_argv != contract.validation.invalid_argv:
+        raise ValueError("Command demo readiness remaining invalid argv is inconsistent")
+    if contract.is_complete != contract.validation.is_complete:
+        raise ValueError("Command demo readiness remaining completeness is inconsistent")
+    if contract.is_complete and contract.actions:
+        raise ValueError("Command demo readiness remaining contract is complete but still has actions")
+
+
+def command_demo_readiness_remaining_action_contract(
+    argvs: Sequence[Sequence[str] | str],
+    specs: tuple[CommandSpec, ...] = COMMAND_SPECS,
+    launcher_argv: tuple[str, ...] = COMMAND_SMOKE_CLI_LAUNCHER_ARGV,
+) -> CommandDemoReadinessRemainingActionContract:
+    validation = command_demo_readiness_validate_handoff_script(argvs, specs, launcher_argv)
+    contract = CommandDemoReadinessRemainingActionContract(
+        validation=validation,
+        actions=tuple(
+            _remaining_action_for_engine_action(ordinal, engine_action, specs, launcher_argv)
+            for ordinal, engine_action in enumerate(validation.missing_engine_actions, start=1)
+        ),
+        invalid_argv=validation.invalid_argv,
+        is_complete=validation.is_complete,
+    )
+    _validate_command_demo_readiness_remaining_action_contract(contract)
+    return contract
+
+
+def command_demo_readiness_remaining_action_summary(
+    argvs: Sequence[Sequence[str] | str],
+    specs: tuple[CommandSpec, ...] = COMMAND_SPECS,
+    launcher_argv: tuple[str, ...] = COMMAND_SMOKE_CLI_LAUNCHER_ARGV,
+) -> tuple[bool, tuple[tuple[int, str, str, str, str, tuple[str, ...], str], ...], tuple[tuple[str, ...], ...]]:
+    contract = command_demo_readiness_remaining_action_contract(argvs, specs, launcher_argv)
+    return (
+        contract.is_complete,
+        tuple(
+            (
+                action.ordinal,
+                action.engine_action,
+                action.demo_path_step,
+                action.flow_step,
+                action.command_name,
+                action.command_argv,
+                action.command_line,
+            )
+            for action in contract.actions
+        ),
+        contract.invalid_argv,
+    )
+
+
+def command_demo_readiness_remaining_action_payload(
+    argvs: Sequence[Sequence[str] | str],
+    specs: tuple[CommandSpec, ...] = COMMAND_SPECS,
+    launcher_argv: tuple[str, ...] = COMMAND_SMOKE_CLI_LAUNCHER_ARGV,
+) -> dict[str, object]:
+    contract = command_demo_readiness_remaining_action_contract(argvs, specs, launcher_argv)
+    return {
+        "is_complete": contract.is_complete,
+        "invalid_argv": contract.invalid_argv,
+        "actions": tuple(
+            {
+                "ordinal": action.ordinal,
+                "engine_action": action.engine_action,
+                "demo_path_step": action.demo_path_step,
+                "flow_step": action.flow_step,
+                "command_name": action.command_name,
+                "command_argv": action.command_argv,
+                "command_line": action.command_line,
+            }
+            for action in contract.actions
+        ),
+    }
+
+
+def command_demo_readiness_remaining_action_json(
+    argvs: Sequence[Sequence[str] | str],
+    specs: tuple[CommandSpec, ...] = COMMAND_SPECS,
+    launcher_argv: tuple[str, ...] = COMMAND_SMOKE_CLI_LAUNCHER_ARGV,
+) -> str:
+    return json.dumps(
+        command_demo_readiness_remaining_action_payload(argvs, specs, launcher_argv),
+        sort_keys=True,
+        separators=(",", ":"),
+    )
+
+
 def command_demo_readiness_next_command_argv(
     argvs: Sequence[Sequence[str] | str],
     specs: tuple[CommandSpec, ...] = COMMAND_SPECS,
@@ -13252,6 +13390,54 @@ def command_demo_readiness_shell_next_action_json(
     launcher_argv: tuple[str, ...] = COMMAND_SMOKE_CLI_LAUNCHER_ARGV,
 ) -> str:
     return command_demo_readiness_next_action_json(
+        _shell_script_executable_argv(lines),
+        specs,
+        launcher_argv,
+    )
+
+
+def command_demo_readiness_shell_remaining_action_contract(
+    lines: Sequence[str] | str,
+    specs: tuple[CommandSpec, ...] = COMMAND_SPECS,
+    launcher_argv: tuple[str, ...] = COMMAND_SMOKE_CLI_LAUNCHER_ARGV,
+) -> CommandDemoReadinessRemainingActionContract:
+    return command_demo_readiness_remaining_action_contract(
+        _shell_script_executable_argv(lines),
+        specs,
+        launcher_argv,
+    )
+
+
+def command_demo_readiness_shell_remaining_action_summary(
+    lines: Sequence[str] | str,
+    specs: tuple[CommandSpec, ...] = COMMAND_SPECS,
+    launcher_argv: tuple[str, ...] = COMMAND_SMOKE_CLI_LAUNCHER_ARGV,
+) -> tuple[bool, tuple[tuple[int, str, str, str, str, tuple[str, ...], str], ...], tuple[tuple[str, ...], ...]]:
+    return command_demo_readiness_remaining_action_summary(
+        _shell_script_executable_argv(lines),
+        specs,
+        launcher_argv,
+    )
+
+
+def command_demo_readiness_shell_remaining_action_payload(
+    lines: Sequence[str] | str,
+    specs: tuple[CommandSpec, ...] = COMMAND_SPECS,
+    launcher_argv: tuple[str, ...] = COMMAND_SMOKE_CLI_LAUNCHER_ARGV,
+) -> dict[str, object]:
+    return command_demo_readiness_remaining_action_payload(
+        _shell_script_executable_argv(lines),
+        specs,
+        launcher_argv,
+    )
+
+
+def command_demo_readiness_shell_remaining_action_json(
+    lines: Sequence[str] | str,
+    specs: tuple[CommandSpec, ...] = COMMAND_SPECS,
+    launcher_argv: tuple[str, ...] = COMMAND_SMOKE_CLI_LAUNCHER_ARGV,
+) -> str:
+    return command_demo_readiness_remaining_action_json(
         _shell_script_executable_argv(lines),
         specs,
         launcher_argv,
@@ -13771,6 +13957,38 @@ def command_mvp_demo_readiness_next_action_json(
     return command_demo_readiness_next_action_json(argvs, specs, launcher_argv)
 
 
+def command_mvp_demo_readiness_remaining_action_contract(
+    argvs: Sequence[Sequence[str] | str] = (),
+    specs: tuple[CommandSpec, ...] = COMMAND_SPECS,
+    launcher_argv: tuple[str, ...] = COMMAND_SMOKE_CLI_LAUNCHER_ARGV,
+) -> CommandDemoReadinessRemainingActionContract:
+    return command_demo_readiness_remaining_action_contract(argvs, specs, launcher_argv)
+
+
+def command_mvp_demo_readiness_remaining_action_summary(
+    argvs: Sequence[Sequence[str] | str] = (),
+    specs: tuple[CommandSpec, ...] = COMMAND_SPECS,
+    launcher_argv: tuple[str, ...] = COMMAND_SMOKE_CLI_LAUNCHER_ARGV,
+) -> tuple[bool, tuple[tuple[int, str, str, str, str, tuple[str, ...], str], ...], tuple[tuple[str, ...], ...]]:
+    return command_demo_readiness_remaining_action_summary(argvs, specs, launcher_argv)
+
+
+def command_mvp_demo_readiness_remaining_action_payload(
+    argvs: Sequence[Sequence[str] | str] = (),
+    specs: tuple[CommandSpec, ...] = COMMAND_SPECS,
+    launcher_argv: tuple[str, ...] = COMMAND_SMOKE_CLI_LAUNCHER_ARGV,
+) -> dict[str, object]:
+    return command_demo_readiness_remaining_action_payload(argvs, specs, launcher_argv)
+
+
+def command_mvp_demo_readiness_remaining_action_json(
+    argvs: Sequence[Sequence[str] | str] = (),
+    specs: tuple[CommandSpec, ...] = COMMAND_SPECS,
+    launcher_argv: tuple[str, ...] = COMMAND_SMOKE_CLI_LAUNCHER_ARGV,
+) -> str:
+    return command_demo_readiness_remaining_action_json(argvs, specs, launcher_argv)
+
+
 def command_mvp_demo_readiness_next_command_argv(
     argvs: Sequence[Sequence[str] | str] = (),
     specs: tuple[CommandSpec, ...] = COMMAND_SPECS,
@@ -13827,6 +14045,38 @@ def command_mvp_demo_readiness_shell_next_action_json(
     launcher_argv: tuple[str, ...] = COMMAND_SMOKE_CLI_LAUNCHER_ARGV,
 ) -> str:
     return command_demo_readiness_shell_next_action_json(lines, specs, launcher_argv)
+
+
+def command_mvp_demo_readiness_shell_remaining_action_contract(
+    lines: Sequence[str] | str,
+    specs: tuple[CommandSpec, ...] = COMMAND_SPECS,
+    launcher_argv: tuple[str, ...] = COMMAND_SMOKE_CLI_LAUNCHER_ARGV,
+) -> CommandDemoReadinessRemainingActionContract:
+    return command_demo_readiness_shell_remaining_action_contract(lines, specs, launcher_argv)
+
+
+def command_mvp_demo_readiness_shell_remaining_action_summary(
+    lines: Sequence[str] | str,
+    specs: tuple[CommandSpec, ...] = COMMAND_SPECS,
+    launcher_argv: tuple[str, ...] = COMMAND_SMOKE_CLI_LAUNCHER_ARGV,
+) -> tuple[bool, tuple[tuple[int, str, str, str, str, tuple[str, ...], str], ...], tuple[tuple[str, ...], ...]]:
+    return command_demo_readiness_shell_remaining_action_summary(lines, specs, launcher_argv)
+
+
+def command_mvp_demo_readiness_shell_remaining_action_payload(
+    lines: Sequence[str] | str,
+    specs: tuple[CommandSpec, ...] = COMMAND_SPECS,
+    launcher_argv: tuple[str, ...] = COMMAND_SMOKE_CLI_LAUNCHER_ARGV,
+) -> dict[str, object]:
+    return command_demo_readiness_shell_remaining_action_payload(lines, specs, launcher_argv)
+
+
+def command_mvp_demo_readiness_shell_remaining_action_json(
+    lines: Sequence[str] | str,
+    specs: tuple[CommandSpec, ...] = COMMAND_SPECS,
+    launcher_argv: tuple[str, ...] = COMMAND_SMOKE_CLI_LAUNCHER_ARGV,
+) -> str:
+    return command_demo_readiness_shell_remaining_action_json(lines, specs, launcher_argv)
 
 
 def command_mvp_demo_readiness_shell_next_command_argv(

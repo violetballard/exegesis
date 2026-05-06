@@ -56,6 +56,7 @@ from src.qual.commands.catalog import (
     CommandDemoReadinessIndexContract,
     CommandDemoReadinessIndexEntry,
     CommandDemoReadinessNextAction,
+    CommandDemoReadinessRemainingActionContract,
     CommandDemoReadinessCliEntrypointSealContract,
     CommandDemoReadinessCliStepValidationContract,
     CommandDemoReadinessStepSealContract,
@@ -331,6 +332,11 @@ from src.qual.commands.catalog import (
     command_mvp_demo_readiness_next_action_summary as _readiness_next_action_summary,
     command_mvp_demo_readiness_next_command_argv as _readiness_next_command_argv,
     command_mvp_demo_readiness_next_exact_action_argv as _readiness_next_exact_action_argv,
+    command_mvp_demo_readiness_remaining_action_contract
+    as _readiness_remaining_action_contract,
+    command_mvp_demo_readiness_remaining_action_json as _readiness_remaining_action_json,
+    command_mvp_demo_readiness_remaining_action_payload as _readiness_remaining_action_payload,
+    command_mvp_demo_readiness_remaining_action_summary as _readiness_remaining_action_summary,
     command_mvp_demo_readiness_shell_next_action as _readiness_shell_next_action,
     command_mvp_demo_readiness_shell_next_action_json
     as _readiness_shell_next_action_json,
@@ -339,6 +345,14 @@ from src.qual.commands.catalog import (
     command_mvp_demo_readiness_shell_next_action_summary as _readiness_shell_next_action_summary,
     command_mvp_demo_readiness_shell_next_command_argv as _readiness_shell_next_command_argv,
     command_mvp_demo_readiness_shell_next_exact_action_argv as _readiness_shell_next_exact_action_argv,
+    command_mvp_demo_readiness_shell_remaining_action_contract
+    as _readiness_shell_remaining_action_contract,
+    command_mvp_demo_readiness_shell_remaining_action_json
+    as _readiness_shell_remaining_action_json,
+    command_mvp_demo_readiness_shell_remaining_action_payload
+    as _readiness_shell_remaining_action_payload,
+    command_mvp_demo_readiness_shell_remaining_action_summary
+    as _readiness_shell_remaining_action_summary,
     command_mvp_demo_readiness_validate_cli_shell_script_lines
     as _readiness_validate_cli_shell_script_lines,
     command_mvp_demo_readiness_validate_exact_action_script
@@ -650,6 +664,10 @@ __all__ = [
     "canonical_command_readiness_next_action_summary",
     "canonical_command_readiness_next_command_argv",
     "canonical_command_readiness_next_exact_action_argv",
+    "canonical_command_readiness_remaining_action_contract",
+    "canonical_command_readiness_remaining_action_json",
+    "canonical_command_readiness_remaining_action_payload",
+    "canonical_command_readiness_remaining_action_summary",
     "canonical_command_readiness_next_status",
     "canonical_command_readiness_next_status_json",
     "canonical_command_readiness_next_status_payload",
@@ -659,6 +677,10 @@ __all__ = [
     "canonical_command_readiness_shell_next_action_summary",
     "canonical_command_readiness_shell_next_command_argv",
     "canonical_command_readiness_shell_next_exact_action_argv",
+    "canonical_command_readiness_shell_remaining_action_contract",
+    "canonical_command_readiness_shell_remaining_action_json",
+    "canonical_command_readiness_shell_remaining_action_payload",
+    "canonical_command_readiness_shell_remaining_action_summary",
     "canonical_command_readiness_shell_next_status",
     "canonical_command_readiness_shell_next_status_json",
     "canonical_command_readiness_shell_next_status_payload",
@@ -2731,6 +2753,30 @@ def canonical_command_readiness_next_exact_action_argv(
     return _readiness_next_exact_action_argv(argvs)
 
 
+def canonical_command_readiness_remaining_action_contract(
+    argvs: Sequence[Sequence[str] | str] = (),
+) -> CommandDemoReadinessRemainingActionContract:
+    return _readiness_remaining_action_contract(argvs)
+
+
+def canonical_command_readiness_remaining_action_payload(
+    argvs: Sequence[Sequence[str] | str] = (),
+) -> dict[str, object]:
+    return _readiness_remaining_action_payload(argvs)
+
+
+def canonical_command_readiness_remaining_action_json(
+    argvs: Sequence[Sequence[str] | str] = (),
+) -> str:
+    return _readiness_remaining_action_json(argvs)
+
+
+def canonical_command_readiness_remaining_action_summary(
+    argvs: Sequence[Sequence[str] | str] = (),
+) -> tuple[bool, tuple[tuple[int, str, str, str, str, tuple[str, ...], str], ...], tuple[tuple[str, ...], ...]]:
+    return _readiness_remaining_action_summary(argvs)
+
+
 def _readiness_status_for_next_action(
     next_action: CommandDemoReadinessNextAction,
 ) -> CommandCanonicalReadinessStatus:
@@ -2830,6 +2876,30 @@ def canonical_command_readiness_shell_next_exact_action_argv(
     lines: Sequence[str] | str,
 ) -> tuple[str, ...]:
     return _readiness_shell_next_exact_action_argv(lines)
+
+
+def canonical_command_readiness_shell_remaining_action_contract(
+    lines: Sequence[str] | str,
+) -> CommandDemoReadinessRemainingActionContract:
+    return _readiness_shell_remaining_action_contract(lines)
+
+
+def canonical_command_readiness_shell_remaining_action_payload(
+    lines: Sequence[str] | str,
+) -> dict[str, object]:
+    return _readiness_shell_remaining_action_payload(lines)
+
+
+def canonical_command_readiness_shell_remaining_action_json(
+    lines: Sequence[str] | str,
+) -> str:
+    return _readiness_shell_remaining_action_json(lines)
+
+
+def canonical_command_readiness_shell_remaining_action_summary(
+    lines: Sequence[str] | str,
+) -> tuple[bool, tuple[tuple[int, str, str, str, str, tuple[str, ...], str], ...], tuple[tuple[str, ...], ...]]:
+    return _readiness_shell_remaining_action_summary(lines)
 
 
 def canonical_command_readiness_shell_next_status(
