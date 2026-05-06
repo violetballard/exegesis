@@ -1539,7 +1539,12 @@ class UnifiedRetrievalTests(unittest.TestCase):
         self.assertEqual(metadata["excerpt_text_hash"], excerpt["text_hash"])
         self.assertEqual(metadata["excerpt_lookup_fingerprint"], excerpt["excerpt_lookup_fingerprint"])
         self.assertEqual(metadata["basket_item_id"], excerpt_id)
+        self.assertEqual(metadata["basket_item_ids"], [excerpt_id])
         self.assertEqual(metadata["basket_item_fingerprint"], excerpt["basket_item_fingerprint"])
+        self.assertEqual(
+            metadata["basket_item_fingerprints"],
+            [excerpt["basket_item_fingerprint"]],
+        )
 
     def test_retrieval_hits_surface_top_level_retrieval_context(self) -> None:
         result = self.service.retrieve_auto(
@@ -2377,34 +2382,43 @@ class UnifiedRetrievalTests(unittest.TestCase):
         )
 
         sparse_context_bundle = json.loads(json.dumps(result.retrieval_context_bundle()))
-        sparse_context_bundle.pop("basket_promotion_items", None)
-        sparse_context_bundle.pop("basket_item_ids", None)
-        excerpt_bundle = sparse_context_bundle.get("retrieval_excerpt_bundle")
-        self.assertIsInstance(excerpt_bundle, dict)
-        excerpt_bundle.pop("basket_promotion_items", None)
-        excerpt_bundle.pop("basket_item_ids", None)
-        source_bundle = sparse_context_bundle.get("retrieval_source_bundle")
-        self.assertIsInstance(source_bundle, dict)
-        source_bundle.pop("basket_promotion_items", None)
-        source_bundle.pop("basket_item_ids", None)
-        source_excerpt_bundle = source_bundle.get("retrieval_excerpt_bundle")
-        self.assertIsInstance(source_excerpt_bundle, dict)
-        source_excerpt_bundle.pop("basket_promotion_items", None)
-        source_excerpt_bundle.pop("basket_item_ids", None)
-        evidence = sparse_context_bundle.get("retrieval_evidence")
-        self.assertIsInstance(evidence, dict)
-        evidence.pop("basket_promotion_items", None)
-        downstream_payload = sparse_context_bundle.get("retrieval_downstream_payload")
-        self.assertIsInstance(downstream_payload, dict)
-        downstream_payload.pop("basket_promotion_items", None)
-        downstream_payload.pop("basket_item_ids", None)
-        downstream_excerpt_bundle = downstream_payload.get("retrieval_excerpt_bundle")
-        self.assertIsInstance(downstream_excerpt_bundle, dict)
-        downstream_excerpt_bundle.pop("basket_promotion_items", None)
-        downstream_excerpt_bundle.pop("basket_item_ids", None)
-        downstream_evidence = downstream_payload.get("retrieval_evidence")
-        self.assertIsInstance(downstream_evidence, dict)
-        downstream_evidence.pop("basket_promotion_items", None)
+        self.assertIsInstance(sparse_context_bundle.get("retrieval_doc_bundle"), dict)
+
+        def strip_promoted_refs(value: object) -> None:
+            if isinstance(value, dict):
+                for key in (
+                    "basket_promotion_items",
+                    "basket_item_ids",
+                    "basket_item_fingerprints",
+                    "retrieval_citation_bundle",
+                    "excerpt_citations",
+                ):
+                    value.pop(key, None)
+                for nested in value.values():
+                    strip_promoted_refs(nested)
+            elif isinstance(value, list):
+                for nested in value:
+                    strip_promoted_refs(nested)
+
+        def strip_excerpt_hit_policy_fields(value: object) -> None:
+            if isinstance(value, dict):
+                if isinstance(value.get("excerpt_id"), str):
+                    value.pop("retrieval_backend", None)
+                    value.pop("retrieval_mode", None)
+                    value.pop("retrieval_policy", None)
+                    provenance = value.get("provenance")
+                    if isinstance(provenance, dict):
+                        provenance.pop("retrieval_backend", None)
+                        provenance.pop("retrieval_mode", None)
+                        provenance.pop("retrieval_policy", None)
+                for nested in value.values():
+                    strip_excerpt_hit_policy_fields(nested)
+            elif isinstance(value, list):
+                for nested in value:
+                    strip_excerpt_hit_policy_fields(nested)
+
+        strip_promoted_refs(sparse_context_bundle)
+        strip_excerpt_hit_policy_fields(sparse_context_bundle)
 
         class _SparseContextBundleSource:
             def __init__(self, payload: dict[str, object]) -> None:
@@ -2425,6 +2439,9 @@ class UnifiedRetrievalTests(unittest.TestCase):
         self.assertEqual(basket_items[0]["query_scope"], "vault")
         self.assertEqual(basket_items[0]["query_intent"], "compare")
         self.assertEqual(basket_items[0]["result_fingerprint"], result.result_fingerprint)
+        self.assertEqual(basket_items[0]["retrieval_backend"], "sqlite_fts")
+        self.assertEqual(basket_items[0]["retrieval_mode"], "fts_first")
+        self.assertEqual(basket_items[0]["retrieval_policy"]["active_strategy_ids"], ["fts"])
         self.assertEqual(
             basket_items[0]["excerpt_lookup_fingerprint"],
             result.hits[0].provenance["excerpt_lookup_fingerprint"],
