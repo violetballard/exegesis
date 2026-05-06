@@ -175,6 +175,7 @@ def _basket_item_fingerprint(item: dict[str, object]) -> str:
             "rank": item.get("rank"),
             "fts_rank": item.get("fts_rank"),
             "source_strategy": item.get("source_strategy"),
+            "retrieval_source_strategy": item.get("retrieval_source_strategy"),
             "retrieval_backend": item.get("retrieval_backend"),
             "retrieval_mode": item.get("retrieval_mode"),
             "retrieval_policy": item.get("retrieval_policy"),
@@ -219,6 +220,7 @@ def _normalize_basket_promotion_items(items: list[object]) -> list[object]:
                 item_snapshot.get("retrieval_source_strategy"),
                 context="basket promotion item",
             )
+            item_snapshot["retrieval_source_strategy"] = item_snapshot["source_strategy"]
             normalized.append(_with_basket_item_fingerprint(item_snapshot))
         else:
             normalized.append(copy.deepcopy(item))
@@ -426,6 +428,7 @@ def _basket_promotion_items_from_excerpt_hits(
                 "rank": hit.get("rank", provenance.get("rank")),
                 "fts_rank": hit.get("fts_rank", provenance.get("fts_rank")),
                 "source_strategy": source_strategy,
+                "retrieval_source_strategy": source_strategy,
                 "retrieval_backend": _first_text_value(
                     hit.get("retrieval_backend"),
                     provenance.get("retrieval_backend"),
