@@ -369,6 +369,8 @@ __all__ = [
     "canonical_command_readiness_index_summary",
     "canonical_command_readiness_index_payload",
     "canonical_command_readiness_index_json",
+    "canonical_command_readiness_command_audit_contract",
+    "canonical_command_readiness_command_audit_summary",
     "canonical_command_readiness_shell_script",
     "canonical_command_readiness_cli_smoke_lines",
     "canonical_command_readiness_shell_executable_lines",
