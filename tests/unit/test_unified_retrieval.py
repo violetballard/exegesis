@@ -1728,6 +1728,30 @@ class UnifiedRetrievalTests(unittest.TestCase):
         self.assertEqual(provenance["active_strategy_ids"], ["fts"])
         self.assertEqual(provenance["deferred_strategy_ids"], ["pageindex", "embeddings"])
 
+    def test_sparse_retrieval_payload_rejects_deferred_strategy_drift(self) -> None:
+        payload = {
+            "query": {
+                "query_text": "memo comparison",
+                "scope": "vault",
+                "intent": "compare",
+                "constraints": {"max_results": 4},
+            },
+            "policy": {
+                "retrieval_backend": "sqlite_fts",
+                "retrieval_mode": "fts_first",
+                "active_strategy_ids": ("fts",),
+                "deferred_strategy_ids": ("embeddings", "pageindex"),
+            },
+            "retrieval_backend": "sqlite_fts",
+            "retrieval_mode": "fts_first",
+        }
+
+        with self.assertRaisesRegex(
+            ValueError,
+            "retrieval_policy deferred strategies must remain pageindex, embeddings for the MVP",
+        ):
+            _build_retrieval_source_bundle_from_payload(payload)
+
     def test_sparse_excerpt_basket_rehydration_rejects_non_fts_strategy(self) -> None:
         payload = {
             "query": {

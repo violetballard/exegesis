@@ -612,7 +612,11 @@ def _normalize_deferred_strategy_ids(value: object, *, field_name: str) -> list[
     if isinstance(value, Set):
         raise TypeError(f"{field_name} deferred strategies must be an ordered iterable of values")
     strategy_ids = _stable_text_values(value if value is not None else _MVP_DEFERRED_STRATEGY_IDS)
-    return strategy_ids or list(_MVP_DEFERRED_STRATEGY_IDS)
+    if not strategy_ids:
+        return list(_MVP_DEFERRED_STRATEGY_IDS)
+    if strategy_ids != _MVP_DEFERRED_STRATEGY_IDS:
+        raise ValueError(f"{field_name} deferred strategies must remain pageindex, embeddings for the MVP")
+    return strategy_ids
 
 
 def _normalize_confidentiality_profile(value: object) -> str:
