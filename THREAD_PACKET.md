@@ -35,10 +35,12 @@ The canonical demo-path mapping is `vault/context material -> FTS retrieval -> r
 
 ## Tasks Completed
 
-1. Made SQLite FTS the authoritative MVP retrieval path for document and excerpt retrieval while keeping PageIndex and embeddings fallback-only/deferred.
-2. Stabilized FTS cache and query normalization, including deterministic snapshots for query-shaped objects, dataclasses, mappings, iterables, date ranges, doc types, scopes, fresh runner output, cache invalidation, and cache audit metadata.
-3. Normalized retrieval payload, provenance, citation, source-bundle, context-bundle, basket-promotion, and evidence snapshots so sparse downstream helpers can rehydrate stable FTS-first payloads without losing query constraints, fingerprints, ranks, identities, policies, section hints, or confidentiality profile metadata.
-4. Added fail-closed retrieval boundary coverage and approved shared regressions for malformed or reversed date ranges, empty query/scope inputs, unresolved `doc:` and `collection:` scopes, FTS-only excerpt lookup, excerpt lookup fingerprints, and cache/query snapshot behavior in `tests/unit/test_unified_retrieval.py`.
+1. Canonical demo-path step advanced: `retrieve relevant material`. Made SQLite FTS the authoritative MVP retrieval path for document and excerpt retrieval while keeping PageIndex and embeddings fallback-only/deferred.
+2. Canonical demo-path step advanced: `retrieve relevant material`. Stabilized FTS cache and query normalization, including deterministic snapshots for query-shaped objects, dataclasses, mappings, iterables, date ranges, doc types, scopes, fresh runner output, cache invalidation, and cache audit metadata.
+3. Canonical demo-path steps advanced: `retrieve relevant material` and `promote or gather context into the basket`. Normalized retrieval payload, provenance, citation, source-bundle, context-bundle, basket-promotion, and evidence snapshots so sparse downstream helpers can rehydrate stable FTS-first payloads without losing query constraints, fingerprints, ranks, identities, policies, section hints, or confidentiality profile metadata.
+4. Canonical demo-path steps advanced: `retrieve relevant material` and `promote or gather context into the basket`. Added fail-closed retrieval boundary coverage and approved shared regressions for malformed or reversed date ranges, empty query/scope inputs, unresolved `doc:` and `collection:` scopes, FTS-only excerpt lookup, excerpt lookup fingerprints, and cache/query snapshot behavior in `tests/unit/test_unified_retrieval.py`.
+
+Final canonical demo-path statement: this handoff makes `retrieve relevant material` more real by enforcing FTS-first retrieval evidence and also makes `promote or gather context into the basket` more real by preserving stable context and basket promotion bundles for downstream CLI-backed engine flows.
 
 ## Files Changed
 
