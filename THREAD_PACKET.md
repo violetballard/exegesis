@@ -5,8 +5,8 @@
 - Merge target: current `main`
 - Handoff type: shared/high-risk hardening handoff for the FTS-first retrieval lane.
 - Authoritative reviewed implementation base: `38e13150dc2e5ae44734bd2473ae226d7f1b997d`.
-- Reviewed implementation head: final fixer commit created from this packet.
-- Reviewed implementation range: `38e13150dc2e5ae44734bd2473ae226d7f1b997d..final fixer commit`.
+- Reviewed implementation head: `544cd774297e588b53d82a199faac34cdc312b47`.
+- Reviewed implementation range: `38e13150dc2e5ae44734bd2473ae226d7f1b997d..544cd774297e588b53d82a199faac34cdc312b47`.
 - Scope classification: high-risk because this split edits approved shared regression coverage in `tests/unit/test_unified_retrieval.py`; the 4-task cap applies.
 - Approved shared-file note: `tests/unit/test_unified_retrieval.py` remains the approved shared-by-approval regression surface for `feat-retrieval-fts`.
 - Integrator-locked files: none.
@@ -83,4 +83,4 @@ Command: `git diff --numstat 38e13150dc2e5ae44734bd2473ae226d7f1b997d -- src/qua
 
 ## Metadata Write Note
 
-The root `THREAD_PACKET.md` is the authoritative regenerated handoff packet for this split. Re-review should anchor implementation scope to the final fixer commit reported in the handoff and range `38e13150dc2e5ae44734bd2473ae226d7f1b997d..final fixer commit`.
+The root `THREAD_PACKET.md` is the authoritative regenerated handoff packet for this split. Re-review should anchor implementation scope to `544cd774297e588b53d82a199faac34cdc312b47` and range `38e13150dc2e5ae44734bd2473ae226d7f1b997d..544cd774297e588b53d82a199faac34cdc312b47`. Any later packet-only branch tip does not move that reviewed implementation range.
