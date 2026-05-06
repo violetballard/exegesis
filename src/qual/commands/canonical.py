@@ -176,6 +176,7 @@ from src.qual.commands.catalog import (
     command_mvp_demo_readiness_validate_shell_script_lines as _readiness_validate_shell_script_lines,
     command_mvp_demo_readiness_gate as _readiness_gate,
     command_mvp_demo_readiness_flow_gate_summary as _readiness_flow_gate_summary,
+    command_mvp_demo_readiness_gate_issues as _readiness_gate_issues,
     command_mvp_demo_readiness_gate_summary as _readiness_gate_summary,
     command_mvp_demo_readiness_smoke_plan_argv as _readiness_smoke_plan_argv,
     command_mvp_demo_readiness_smoke_plan_argv_for_flow_step
@@ -258,6 +259,7 @@ __all__ = [
     "canonical_command_action_cli_exact_for_argv",
     "canonical_command_action_readiness_summary",
     "canonical_command_readiness_gate",
+    "canonical_command_readiness_gate_issues",
     "canonical_command_readiness_gate_summary",
     "canonical_command_demo_path_readiness_contract",
     "canonical_command_demo_path_readiness_summary",
@@ -443,6 +445,10 @@ def canonical_command_readiness_gate_summary() -> tuple[
     tuple[tuple[str, str], ...],
 ]:
     return _readiness_gate_summary()
+
+
+def canonical_command_readiness_gate_issues() -> tuple[str, ...]:
+    return _readiness_gate_issues()
 
 
 def canonical_command_readiness_flow_gate_summary() -> tuple[bool, tuple[str, ...], tuple[str, ...]]:
