@@ -7140,7 +7140,10 @@ def _normalize_shell_script_segment_argv(
 
 
 def _is_shell_strict_mode_setup_line(line: str) -> bool:
-    argv = _split_shell_script_line(line)
+    return _is_shell_strict_mode_setup_argv(_split_shell_script_line(line))
+
+
+def _is_shell_strict_mode_setup_argv(argv: tuple[str, ...]) -> bool:
     if len(argv) < 2 or argv[0] != "set":
         return False
     index = 1
@@ -7172,6 +7175,8 @@ def _is_shell_script_setup_argv(argv: tuple[str, ...]) -> bool:
     command = PurePath(argv[0]).name
     if command == "export":
         return all(SHELL_ENV_ASSIGNMENT_RE.fullmatch(token) for token in argv[1:])
+    if command == "set":
+        return _is_shell_strict_mode_setup_argv(argv)
     if command in COMMAND_SMOKE_SHELL_PROBE_COMMANDS:
         return _is_shell_script_probe_setup_argv(argv[1:])
     return command in COMMAND_SMOKE_SHELL_SETUP_COMMANDS
