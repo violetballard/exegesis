@@ -334,6 +334,7 @@ def _basket_promotion_items_from_excerpt_hits(
             ),
         )
     )
+    doc_rank_by_id = _doc_rank_by_id_from_snapshot(snapshot)
 
     items: list[object] = []
     seen: set[str] = set()
@@ -355,12 +356,13 @@ def _basket_promotion_items_from_excerpt_hits(
             provenance.get("retrieval_source_strategy"),
             context="sparse excerpt hit",
         )
+        doc_id = _first_text_value(hit.get("doc_id"), provenance.get("doc_id"))
         items.append(
             _with_basket_item_fingerprint({
                 "item_id": excerpt_id,
                 "basket_item_id": excerpt_id,
                 "item_type": "excerpt",
-                "doc_id": _first_text_value(hit.get("doc_id"), provenance.get("doc_id")),
+                "doc_id": doc_id,
                 "doc_type": _first_text_value(hit.get("doc_type"), provenance.get("doc_type")),
                 "title_hint": _first_text_value(hit.get("title_hint")),
                 "source_hash": _first_text_value(hit.get("source_hash"), provenance.get("source_hash")),
@@ -384,6 +386,10 @@ def _basket_promotion_items_from_excerpt_hits(
                     provenance.get("hash"),
                 ),
                 "span": copy.deepcopy(hit.get("span", provenance.get("span"))),
+                "doc_rank": hit.get(
+                    "doc_rank",
+                    provenance.get("doc_rank", doc_rank_by_id.get(doc_id)),
+                ),
                 "rank": hit.get("rank", provenance.get("rank")),
                 "source_strategy": source_strategy,
                 "retrieval_backend": _first_text_value(
@@ -413,6 +419,48 @@ def _basket_promotion_items_from_excerpt_hits(
             })
         )
     return items
+
+
+def _doc_rank_by_id_from_snapshot(snapshot: dict[str, object]) -> dict[str, object]:
+    """Return doc-rank hints from sparse doc-hit and doc-citation snapshots."""
+
+    doc_rank_by_id: dict[str, object] = {}
+
+    def record_doc_rank(item: object) -> None:
+        if not isinstance(item, dict):
+            return
+        doc_id = _first_text_value(item.get("doc_id"))
+        if doc_id is None or doc_id in doc_rank_by_id:
+            return
+        provenance = item.get("provenance")
+        if not isinstance(provenance, dict):
+            provenance = {}
+        doc_rank = item.get("doc_rank", provenance.get("doc_rank"))
+        if isinstance(doc_rank, int):
+            doc_rank_by_id[doc_id] = doc_rank
+
+    for item in _normalize_list_like(snapshot.get("doc_hits", [])):
+        record_doc_rank(item)
+    for item in _normalize_list_like(snapshot.get("doc_citations", [])):
+        record_doc_rank(item)
+
+    for bundle_key in ("retrieval_doc_bundle", "retrieval_citation_bundle", "retrieval_provenance"):
+        bundle = snapshot.get(bundle_key)
+        if not isinstance(bundle, dict):
+            continue
+        for item in _normalize_list_like(bundle.get("doc_hits", [])):
+            record_doc_rank(item)
+        for item in _normalize_list_like(bundle.get("doc_citations", [])):
+            record_doc_rank(item)
+
+    for bundle_key in ("retrieval_source_bundle", "source_bundle", "retrieval_downstream_payload"):
+        bundle = snapshot.get(bundle_key)
+        if not isinstance(bundle, dict):
+            continue
+        for doc_id, doc_rank in _doc_rank_by_id_from_snapshot(bundle).items():
+            doc_rank_by_id.setdefault(doc_id, doc_rank)
+
+    return doc_rank_by_id
 
 
 def _basket_item_ids_from_snapshot(

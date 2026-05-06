@@ -2412,34 +2412,25 @@ class UnifiedRetrievalTests(unittest.TestCase):
         )
 
         sparse_context_bundle = json.loads(json.dumps(result.retrieval_context_bundle()))
-        sparse_context_bundle.pop("basket_promotion_items", None)
-        sparse_context_bundle.pop("basket_item_ids", None)
-        excerpt_bundle = sparse_context_bundle.get("retrieval_excerpt_bundle")
-        self.assertIsInstance(excerpt_bundle, dict)
-        excerpt_bundle.pop("basket_promotion_items", None)
-        excerpt_bundle.pop("basket_item_ids", None)
-        source_bundle = sparse_context_bundle.get("retrieval_source_bundle")
-        self.assertIsInstance(source_bundle, dict)
-        source_bundle.pop("basket_promotion_items", None)
-        source_bundle.pop("basket_item_ids", None)
-        source_excerpt_bundle = source_bundle.get("retrieval_excerpt_bundle")
-        self.assertIsInstance(source_excerpt_bundle, dict)
-        source_excerpt_bundle.pop("basket_promotion_items", None)
-        source_excerpt_bundle.pop("basket_item_ids", None)
-        evidence = sparse_context_bundle.get("retrieval_evidence")
-        self.assertIsInstance(evidence, dict)
-        evidence.pop("basket_promotion_items", None)
-        downstream_payload = sparse_context_bundle.get("retrieval_downstream_payload")
-        self.assertIsInstance(downstream_payload, dict)
-        downstream_payload.pop("basket_promotion_items", None)
-        downstream_payload.pop("basket_item_ids", None)
-        downstream_excerpt_bundle = downstream_payload.get("retrieval_excerpt_bundle")
-        self.assertIsInstance(downstream_excerpt_bundle, dict)
-        downstream_excerpt_bundle.pop("basket_promotion_items", None)
-        downstream_excerpt_bundle.pop("basket_item_ids", None)
-        downstream_evidence = downstream_payload.get("retrieval_evidence")
-        self.assertIsInstance(downstream_evidence, dict)
-        downstream_evidence.pop("basket_promotion_items", None)
+        self.assertIsInstance(sparse_context_bundle.get("retrieval_doc_bundle"), dict)
+
+        def strip_promoted_refs(value: object) -> None:
+            if isinstance(value, dict):
+                for key in (
+                    "basket_promotion_items",
+                    "basket_item_ids",
+                    "basket_item_fingerprints",
+                    "retrieval_citation_bundle",
+                    "excerpt_citations",
+                ):
+                    value.pop(key, None)
+                for nested in value.values():
+                    strip_promoted_refs(nested)
+            elif isinstance(value, list):
+                for nested in value:
+                    strip_promoted_refs(nested)
+
+        strip_promoted_refs(sparse_context_bundle)
 
         class _SparseContextBundleSource:
             def __init__(self, payload: dict[str, object]) -> None:
