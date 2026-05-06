@@ -5,14 +5,16 @@
 - Merge target: current `main`
 - Handoff type: high-risk retrieval feature handoff for the FTS-first retrieval lane.
 - Scope classification: high-risk because the actual branch-tip implementation range edits approved shared regression coverage in `tests/unit/test_unified_retrieval.py` and engine retrieval entrypoint/facade code.
-- Reviewed merge-candidate range before this packet-refresh fixer commit: `378cf9a74a3658058079a32f186fcd254c4a4034..32cb26b8f8d90a5346e3bde32fd36292df4def1b`
-- Reviewed branch tip before this packet-refresh fixer commit: `32cb26b8f8d90a5346e3bde32fd36292df4def1b`
+- Reviewed merge-candidate range before this final fixer commit: `378cf9a74a3658058079a32f186fcd254c4a4034..32cb26b8f8d90a5346e3bde32fd36292df4def1b`
+- Reviewed branch tip before this final fixer commit: `32cb26b8f8d90a5346e3bde32fd36292df4def1b`
 - Final HEAD SHA: reported in the final response after this fixer commit is created.
 - Approved shared-file note: `tests/unit/test_unified_retrieval.py` is approved shared-by-approval regression coverage for this retrieval lane. No integrator-locked files are edited in this handoff.
 
 ## Scope Completed
 
 This branch-tip handoff covers the complete FTS-first retrieval implementation currently on `codex/feat-retrieval-fts`, including the source and test changes that earlier packets incorrectly excluded after `adfa8cd`. SQLite FTS remains the deterministic retrieval source of truth; PageIndex and embeddings remain compatibility-only fallback shims that fail closed and are not reintroduced as required retrieval paths.
+
+This final fixer pass keeps the same FTS-first scope and hardens sparse payload reconstruction so citation, doc, excerpt, summary, manifest, evidence, diagnostics, and provenance snapshots cannot carry non-FTS active strategies back into downstream engine context.
 
 Canonical demo-path mapping:
 
@@ -82,6 +84,7 @@ M	tests/unit/test_unified_retrieval.py
 - Integrator exception status: explicit size/file-count exception is required for approval of this branch-tip range. This packet no longer claims high-risk budget compliance.
 - Routing/provider impact: none.
 - PageIndex/embeddings impact: remain compatibility-only fallback behavior; no active non-FTS retrieval path is introduced.
+- Final fixer impact: no routing/provider changes; only FTS-only active-strategy validation in retrieval payload reconstruction plus packet metadata.
 - Remaining risk: integration approval depends on accepting the documented high-risk size/file-count exception or requesting a split.
 
 ## Roadmap/Vision
@@ -97,6 +100,8 @@ M	tests/unit/test_unified_retrieval.py
 - `make scope-check` - passed for branch `codex/feat-retrieval-fts`.
 - `./quality-format.sh --check` - passed.
 - `./quality-lint.sh` - passed shell syntax and trailing whitespace checks.
+- `python -m pytest tests/unit/test_unified_retrieval.py` - not run; current interpreter has no `pytest` module.
+- `python -m unittest tests.unit.test_unified_retrieval` - passed 75 retrieval unit tests.
 - `./quality-test.sh` - passed smoke tests and 144 unit tests.
 - `./typecheck-test.sh` - passed Python source compilation under `src/`.
 - `make ci` - passed setup, scope-check, format, lint, typecheck, smoke tests, and 144 unit tests.
