@@ -21,6 +21,7 @@ from src.qual.commands.catalog import (
     CommandDemoReadinessExactCliAuditContract,
     CommandDemoReadinessExactActionScriptContract,
     CommandDemoReadinessHandoffActionContract,
+    CommandDemoReadinessHandoffMapContract,
     CommandDemoActionCoverageContract,
     CommandDemoActionCoverageEntry,
     CommandDemoCommandActionContract,
@@ -82,6 +83,10 @@ from src.qual.commands.catalog import (
     as _readiness_handoff_step_status_summary,
     command_demo_readiness_handoff_action_contract as _readiness_handoff_action_contract,
     command_mvp_demo_readiness_handoff_action_summary as _readiness_handoff_action_summary,
+    command_mvp_demo_readiness_handoff_map_contract as _readiness_handoff_map_contract,
+    command_mvp_demo_readiness_handoff_map_json as _readiness_handoff_map_json,
+    command_mvp_demo_readiness_handoff_map_payload as _readiness_handoff_map_payload,
+    command_mvp_demo_readiness_handoff_map_summary as _readiness_handoff_map_summary,
     command_mvp_demo_readiness_action_sequence_contract as _readiness_action_sequence_contract,
     command_mvp_demo_readiness_action_sequence_summary as _readiness_action_sequence_summary,
     command_mvp_demo_readiness_route_contract as _readiness_route_contract,
@@ -384,6 +389,10 @@ __all__ = [
     "canonical_command_surface_readiness_summary",
     "canonical_command_readiness_handoff_action_contract",
     "canonical_command_readiness_handoff_action_summary",
+    "canonical_command_readiness_handoff_map_contract",
+    "canonical_command_readiness_handoff_map_json",
+    "canonical_command_readiness_handoff_map_payload",
+    "canonical_command_readiness_handoff_map_summary",
     "canonical_command_readiness_action_sequence_contract",
     "canonical_command_readiness_action_sequence_summary",
     "canonical_command_readiness_route_contract",
@@ -728,6 +737,25 @@ def canonical_command_readiness_handoff_action_summary() -> tuple[
     ...,
 ]:
     return _readiness_handoff_action_summary()
+
+
+def canonical_command_readiness_handoff_map_contract() -> CommandDemoReadinessHandoffMapContract:
+    return _readiness_handoff_map_contract()
+
+
+def canonical_command_readiness_handoff_map_summary() -> tuple[
+    tuple[int, str, str, str, tuple[str, ...], str, tuple[tuple[str, str], ...], str | None],
+    ...,
+]:
+    return _readiness_handoff_map_summary()
+
+
+def canonical_command_readiness_handoff_map_payload() -> tuple[dict[str, object], ...]:
+    return _readiness_handoff_map_payload()
+
+
+def canonical_command_readiness_handoff_map_json() -> str:
+    return _readiness_handoff_map_json()
 
 
 def canonical_command_readiness_action_sequence_contract() -> CommandDemoReadinessActionSequenceContract:

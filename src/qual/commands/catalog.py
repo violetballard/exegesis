@@ -504,6 +504,23 @@ class CommandDemoReadinessHandoffActionContract:
 
 
 @dataclass(frozen=True)
+class CommandDemoReadinessHandoffMapEntry:
+    ordinal: int
+    demo_path_step: str
+    flow_step: str
+    name: str
+    command_argv: tuple[str, ...]
+    command_line: str
+    exact_action_lines: tuple[tuple[str, str], ...]
+    next_demo_path_step: str | None
+
+
+@dataclass(frozen=True)
+class CommandDemoReadinessHandoffMapContract:
+    entries: tuple[CommandDemoReadinessHandoffMapEntry, ...]
+
+
+@dataclass(frozen=True)
 class CommandDemoReadinessActionSequenceStep:
     ordinal: int
     engine_action: str
@@ -4382,6 +4399,122 @@ def command_demo_readiness_handoff_action_summary(
             specs,
             launcher_argv,
         ).steps
+    )
+
+
+@lru_cache(maxsize=None)
+def command_demo_readiness_handoff_map_contract(
+    specs: tuple[CommandSpec, ...] = COMMAND_SPECS,
+    launcher_argv: tuple[str, ...] = COMMAND_SMOKE_CLI_LAUNCHER_ARGV,
+) -> CommandDemoReadinessHandoffMapContract:
+    action_steps = command_demo_readiness_handoff_action_contract(specs, launcher_argv).steps
+    entries: list[CommandDemoReadinessHandoffMapEntry] = []
+    for index, step in enumerate(action_steps):
+        next_step = action_steps[index + 1] if index + 1 < len(action_steps) else None
+        entries.append(
+            CommandDemoReadinessHandoffMapEntry(
+                ordinal=step.ordinal,
+                demo_path_step=step.demo_path_step,
+                flow_step=step.flow_step,
+                name=step.name,
+                command_argv=_argv_without_launcher(
+                    command_demo_readiness_argv_for_flow_step(step.flow_step, specs, launcher_argv),
+                    launcher_argv,
+                ),
+                command_line=step.command_line,
+                exact_action_lines=step.exact_action_lines,
+                next_demo_path_step=next_step.demo_path_step if next_step is not None else None,
+            )
+        )
+    contract = CommandDemoReadinessHandoffMapContract(entries=tuple(entries))
+    _validate_command_demo_readiness_handoff_map_contract(contract, action_steps, specs, launcher_argv)
+    return contract
+
+
+def _validate_command_demo_readiness_handoff_map_contract(
+    contract: CommandDemoReadinessHandoffMapContract,
+    action_steps: tuple[CommandDemoReadinessHandoffActionStep, ...],
+    specs: tuple[CommandSpec, ...],
+    launcher_argv: tuple[str, ...],
+) -> None:
+    if tuple(entry.ordinal for entry in contract.entries) != tuple(step.ordinal for step in action_steps):
+        raise ValueError("Command demo readiness handoff map ordinals are inconsistent")
+    if tuple(entry.demo_path_step for entry in contract.entries) != tuple(
+        step.demo_path_step for step in action_steps
+    ):
+        raise ValueError("Command demo readiness handoff map path steps are inconsistent")
+    if tuple(entry.flow_step for entry in contract.entries) != tuple(step.flow_step for step in action_steps):
+        raise ValueError("Command demo readiness handoff map flow steps are inconsistent")
+    if tuple(entry.name for entry in contract.entries) != tuple(step.name for step in action_steps):
+        raise ValueError("Command demo readiness handoff map command names are inconsistent")
+    if tuple(entry.command_line for entry in contract.entries) != tuple(step.command_line for step in action_steps):
+        raise ValueError("Command demo readiness handoff map command lines are inconsistent")
+    if tuple(entry.exact_action_lines for entry in contract.entries) != tuple(
+        step.exact_action_lines for step in action_steps
+    ):
+        raise ValueError("Command demo readiness handoff map action lines are inconsistent")
+    if tuple(entry.next_demo_path_step for entry in contract.entries) != (
+        *(step.demo_path_step for step in action_steps[1:]),
+        None,
+    ):
+        raise ValueError("Command demo readiness handoff map next steps are inconsistent")
+    for entry in contract.entries:
+        expected_argv = _argv_without_launcher(
+            command_demo_readiness_argv_for_flow_step(entry.flow_step, specs, launcher_argv),
+            launcher_argv,
+        )
+        if entry.command_argv != expected_argv:
+            raise ValueError(f"Command demo readiness handoff map argv is inconsistent: {entry.flow_step}")
+        if not entry.command_argv or not entry.command_line or not entry.exact_action_lines:
+            raise ValueError(f"Command demo readiness handoff map entry is incomplete: {entry.flow_step}")
+
+
+def command_demo_readiness_handoff_map_summary(
+    specs: tuple[CommandSpec, ...] = COMMAND_SPECS,
+    launcher_argv: tuple[str, ...] = COMMAND_SMOKE_CLI_LAUNCHER_ARGV,
+) -> tuple[tuple[int, str, str, str, tuple[str, ...], str, tuple[tuple[str, str], ...], str | None], ...]:
+    return tuple(
+        (
+            entry.ordinal,
+            entry.demo_path_step,
+            entry.flow_step,
+            entry.name,
+            entry.command_argv,
+            entry.command_line,
+            entry.exact_action_lines,
+            entry.next_demo_path_step,
+        )
+        for entry in command_demo_readiness_handoff_map_contract(specs, launcher_argv).entries
+    )
+
+
+def command_demo_readiness_handoff_map_payload(
+    specs: tuple[CommandSpec, ...] = COMMAND_SPECS,
+    launcher_argv: tuple[str, ...] = COMMAND_SMOKE_CLI_LAUNCHER_ARGV,
+) -> tuple[dict[str, object], ...]:
+    return tuple(
+        {
+            "ordinal": entry.ordinal,
+            "demo_path_step": entry.demo_path_step,
+            "flow_step": entry.flow_step,
+            "command": entry.name,
+            "command_argv": entry.command_argv,
+            "command_line": entry.command_line,
+            "exact_action_lines": entry.exact_action_lines,
+            "next_demo_path_step": entry.next_demo_path_step,
+        }
+        for entry in command_demo_readiness_handoff_map_contract(specs, launcher_argv).entries
+    )
+
+
+def command_demo_readiness_handoff_map_json(
+    specs: tuple[CommandSpec, ...] = COMMAND_SPECS,
+    launcher_argv: tuple[str, ...] = COMMAND_SMOKE_CLI_LAUNCHER_ARGV,
+) -> str:
+    return json.dumps(
+        command_demo_readiness_handoff_map_payload(specs, launcher_argv),
+        sort_keys=True,
+        separators=(",", ":"),
     )
 
 
@@ -11600,6 +11733,34 @@ def command_mvp_demo_readiness_handoff_action_summary(
     launcher_argv: tuple[str, ...] = COMMAND_SMOKE_CLI_LAUNCHER_ARGV,
 ) -> tuple[tuple[int, str, str, str, str, tuple[tuple[str, str], ...]], ...]:
     return command_demo_readiness_handoff_action_summary(specs, launcher_argv)
+
+
+def command_mvp_demo_readiness_handoff_map_contract(
+    specs: tuple[CommandSpec, ...] = COMMAND_SPECS,
+    launcher_argv: tuple[str, ...] = COMMAND_SMOKE_CLI_LAUNCHER_ARGV,
+) -> CommandDemoReadinessHandoffMapContract:
+    return command_demo_readiness_handoff_map_contract(specs, launcher_argv)
+
+
+def command_mvp_demo_readiness_handoff_map_summary(
+    specs: tuple[CommandSpec, ...] = COMMAND_SPECS,
+    launcher_argv: tuple[str, ...] = COMMAND_SMOKE_CLI_LAUNCHER_ARGV,
+) -> tuple[tuple[int, str, str, str, tuple[str, ...], str, tuple[tuple[str, str], ...], str | None], ...]:
+    return command_demo_readiness_handoff_map_summary(specs, launcher_argv)
+
+
+def command_mvp_demo_readiness_handoff_map_payload(
+    specs: tuple[CommandSpec, ...] = COMMAND_SPECS,
+    launcher_argv: tuple[str, ...] = COMMAND_SMOKE_CLI_LAUNCHER_ARGV,
+) -> tuple[dict[str, object], ...]:
+    return command_demo_readiness_handoff_map_payload(specs, launcher_argv)
+
+
+def command_mvp_demo_readiness_handoff_map_json(
+    specs: tuple[CommandSpec, ...] = COMMAND_SPECS,
+    launcher_argv: tuple[str, ...] = COMMAND_SMOKE_CLI_LAUNCHER_ARGV,
+) -> str:
+    return command_demo_readiness_handoff_map_json(specs, launcher_argv)
 
 
 def command_mvp_demo_readiness_action_sequence_contract(
