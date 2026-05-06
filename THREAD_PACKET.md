@@ -4,51 +4,60 @@
 - Lane: `feat-retrieval-fts`
 - Merge target: current `main`
 - Handoff type: high-risk retrieval feature handoff for the FTS-first retrieval lane.
-- Scope classification: high-risk because this handoff includes the approved shared-by-approval regression file `tests/unit/test_unified_retrieval.py`.
-- Current implementation base for this pass: `a0387c70acd4dadad91c3f70178c8663c90bca96`.
-- Final implementation head: reported in the final fixer handoff after the commit is created.
+- Scope classification: high-risk because the reviewed branch-tip source/test delta includes the approved shared-by-approval regression file `tests/unit/test_unified_retrieval.py`.
+- Review boundary for this handoff: `378cf9a74a3658058079a32f186fcd254c4a4034..ed0cc8037310156946229a7ac161400f43aba7fb` for source/test implementation, plus the final packet-only fixer commit reported in the final handoff.
+- Source/test implementation head: `ed0cc8037310156946229a7ac161400f43aba7fb`.
+- Final HEAD SHA: reported in the final fixer response after the packet-only commit is created.
 - Approved shared-file note: `tests/unit/test_unified_retrieval.py` is approved shared-by-approval regression coverage for this retrieval lane. No integrator-locked files are edited in this handoff.
 
 ## Scope Completed
 
-This handoff adds deterministic basket-promotion summary fields to the canonical retrieval citation bundle. Citation-only consumers can now audit whether retrieved FTS excerpts are promotable, and can compare stable basket item IDs/fingerprints without rehydrating the full downstream payload. SQLite FTS remains the only active retrieval path; PageIndex and embeddings remain deferred metadata only.
+This handoff covers the actual branch-tip retrieval implementation delta through `ed0cc8037310156946229a7ac161400f43aba7fb`; no commit in that reviewed source/test range is being represented as metadata-only. The cumulative FTS-first retrieval work keeps SQLite FTS authoritative, exports the canonical retrieval helpers through the retrieval facades, normalizes retrieval payloads and provenance snapshots for downstream engine flows, reconstructs sparse source/context/citation bundles deterministically, and exposes basket promotion readiness, IDs, fingerprints, counts, and references in retrieval payloads and citation snapshots. PageIndex and embeddings remain deferred compatibility metadata/fallback shims and are not active retrieval requirements.
 
-Canonical demo-path step advanced: `retrieve relevant material`, with support for `promote or gather context into the basket` because citation snapshots now expose deterministic promotion readiness and item identity metadata for later basket, revise, patch, and apply flows.
+Canonical demo-path steps advanced: `retrieve relevant material` and `promote or gather context into the basket`. The actual reviewed delta supports Milestone 3 FTS-first structured retrieval by making FTS excerpts and citation bundles sufficient for deterministic basket/workflow promotion without rehydrating non-FTS retrieval paths.
 
 ## Tasks Completed
 
-1. Canonical steps `retrieve relevant material` and `promote or gather context into the basket`: Added basket promotion count/readiness plus stable item IDs/fingerprints to `RetrievalResult.citation_bundle()`.
-2. Canonical steps `retrieve relevant material` and `promote or gather context into the basket`: Added approved shared regression coverage proving direct and payload-embedded citation bundles expose the same deterministic basket promotion summary.
+1. Canonical step `retrieve relevant material`: Made SQLite FTS the authoritative retrieval path, including FTS-only excerpt lookup, cache invalidation/scoping, query normalization, date/scope/doc-type constraint normalization, and fail-closed handling for unresolved or non-FTS scopes.
+2. Canonical step `retrieve relevant material`: Stabilized retrieval payloads, source bundles, context bundles, citation bundles, provenance fingerprints, excerpt lookup fingerprints, and evidence context so downstream engine flows receive deterministic structured snapshots.
+3. Canonical step `promote or gather context into the basket`: Added deterministic basket promotion readiness/counts, basket item IDs, fingerprints, context references, source references, citation references, and promotion candidate reconstruction across direct retrieval results, sparse backfills, context bundles, and downstream payloads.
+4. Shared regression coverage: Extended the approved shared-by-approval file `tests/unit/test_unified_retrieval.py` to cover the FTS-first retrieval contract, facade exports, fail-closed non-FTS behavior, deterministic payload/citation/provenance backfills, and basket/workflow promotion metadata.
 
 ## Files Changed
 
-- `src/qual/retrieval/service.py` - citation bundles now include basket promotion count/readiness plus deterministic basket item IDs/fingerprints.
-- `tests/unit/test_unified_retrieval.py` - approved shared regression coverage added for citation-bundle basket promotion summary fields.
-- `THREAD_PACKET.md` - handoff packet refreshed for this implementation delta and gate results.
+- `.codex/kickoff_packets/feat-retrieval-fts.md` - packet mirror present in the branch-tip delta; this sandbox cannot rewrite it because the `.codex` mirror path is protected by filesystem permissions.
+- `.codex/lane_meta/feat-retrieval-fts.json` - lane metadata mirror present in the branch-tip delta; this sandbox cannot rewrite it because the `.codex` mirror path is protected by filesystem permissions.
+- `THREAD_PACKET.md` - authoritative handoff packet regenerated for the actual branch-tip review boundary and required gate results.
+- `src/qual/engine/retrieval/__init__.py` - exports canonical retrieval facade helpers used by engine-side retrieval flows.
+- `src/qual/engine/retrieval/fts_strategy.py` - hardens FTS strategy hit snapshots and FTS-only retrieval behavior.
+- `src/qual/engine/retrieval/payload.py` - normalizes retrieval payload/query/policy/provenance snapshots and basket promotion metadata for downstream consumers.
+- `src/qual/retrieval/__init__.py` - exposes the canonical retrieval query and auto-retrieval helpers from the retrieval package.
+- `src/qual/retrieval/service.py` - implements deterministic FTS retrieval, excerpt lookup, citation/source/context bundle backfills, provenance fingerprints, and basket promotion summary fields.
+- `tests/unit/test_unified_retrieval.py` - approved shared-by-approval regression coverage for the FTS-first retrieval contract and basket promotion payload/citation behavior.
 
 Integrator-locked files: none. Shared-by-approval files: `tests/unit/test_unified_retrieval.py` only.
 
 ## Budget/Risk
 
-- Task budget: `2/4` high-risk task groups.
-- Current delta stat before final commit: `3 files changed, 43 insertions(+), 14 deletions(-)`.
+- Task budget: `4/4` high-risk task groups.
+- Actual source/test implementation delta: `9 files changed, 2545 insertions(+), 260 deletions(-)` for `378cf9a74a3658058079a32f186fcd254c4a4034..ed0cc8037310156946229a7ac161400f43aba7fb`.
+- AGENTS size/file status: the full branch-tip source/test delta exceeds the high-risk size guideline of `<=8 files` and `<=300 net LOC`.
+- Approved exception status: the shared regression file `tests/unit/test_unified_retrieval.py` is approved for this retrieval lane; no separate size/LOC exception is recorded in this worktree packet.
 - Routing/provider impact: none.
-- PageIndex/embeddings impact: remain deferred metadata only; no active non-FTS retrieval behavior added.
-- Remaining risk: low. The change is confined to the canonical retrieval result shape plus the approved shared regression.
+- PageIndex/embeddings impact: remain deferred compatibility metadata/fallback-only behavior; no active non-FTS retrieval path is introduced.
+- Remaining risk: review should explicitly account for the size/LOC overage. The implementation scope remains inside retrieval-owned paths plus the approved shared regression file.
 
 ## Roadmap/Vision
 
-- Roadmap items affected: `ROADMAP.md` Milestone 3 generation provenance contract and Milestone 4 retrieval source-attribution/auditable deterministic retrieval.
-- Vision capability affected: retrieval-first context handling and auditable generation/workflow state.
-- Canonical demo-path mapping: advances `retrieve relevant material` and supports `promote or gather context into the basket` by surfacing promotion readiness and stable item identity in citation snapshots.
+- Roadmap items affected: `ROADMAP.md` Milestone 3 real workflow loop, specifically FTS-first structured retrieval and basket/workflow promotion support; Milestone 4 retrieval source-attribution/auditable deterministic retrieval.
+- Vision capability affected: retrieval-first context handling and auditable state/workflow.
+- Canonical demo-path mapping: advances `retrieve relevant material` and supports `promote or gather context into the basket` by surfacing stable FTS evidence, source identity, citation identity, and promotion-ready basket references.
 - Routing/provider impact note: none.
 - Proposed `README.md` patch text: none.
 
 ## Commands Run
 
-- `python -m unittest tests.unit.test_unified_retrieval.UnifiedRetrievalTests.test_downstream_payload_includes_retrieval_contract tests.unit.test_unified_retrieval.UnifiedRetrievalTests.test_retrieve_auto_citation_bundle_matches_result_snapshot tests.unit.test_unified_retrieval.UnifiedRetrievalTests.test_retrieve_fts_citation_bundle_matches_result_snapshot` - failed because the first test name was mistyped; the two citation-focused tests in the command passed.
-- `python -m unittest tests.unit.test_unified_retrieval.UnifiedRetrievalTests.test_downstream_payload_exposes_policy_and_diagnostics_snapshot tests.unit.test_unified_retrieval.UnifiedRetrievalTests.test_retrieve_auto_citation_bundle_matches_result_snapshot tests.unit.test_unified_retrieval.UnifiedRetrievalTests.test_retrieve_fts_citation_bundle_matches_result_snapshot` - passed 3 focused retrieval tests.
-- `python -m unittest tests.unit.test_unified_retrieval` - passed 75 retrieval tests.
+- `make scope-check` - passed; output reported no policy for branch `codex/feat-retrieval-fts`, skipped policy enforcement, and passed.
 - `./quality-format.sh --check` - passed.
 - `./quality-lint.sh` - passed shell syntax and trailing whitespace checks.
 - `./quality-test.sh` - passed smoke plus 144 unit tests.
@@ -57,6 +66,8 @@ Integrator-locked files: none. Shared-by-approval files: `tests/unit/test_unifie
 
 ## Risks/Blockers
 
-The `.codex` packet mirror files were previously observed as read-only in this sandbox. The committed handoff packet for this pass is therefore `THREAD_PACKET.md`, the mutable handoff packet in this worktree.
+The authoritative mutable packet now uses one review boundary and does not rely on metadata-only wording for commits that touched retrieval code. The `.codex` packet mirror files could not be rewritten in this sandbox: `apply_patch` rejected those paths as outside the writable project, and a direct open failed with `PermissionError: [Errno 1] Operation not permitted`. Treat `THREAD_PACKET.md` as the corrected handoff source of truth for this fixer pass.
 
-Final canonical demo-path statement: this work keeps SQLite FTS as the deterministic retrieval source of truth while making citation snapshots sufficient to audit basket promotion readiness and stable retrieved-item identity for downstream revise, patch, and apply flows.
+The remaining recorded risk is budget accounting: the branch-tip source/test delta exceeds the AGENTS high-risk file and LOC guidelines, and this packet records that no separate size/LOC exception is present beyond the approved shared regression file.
+
+Final canonical demo-path statement: this work keeps SQLite FTS as the deterministic retrieval source of truth while making structured retrieval snapshots sufficient to audit basket promotion readiness and stable retrieved-item identity for downstream revise, patch, and apply flows.
