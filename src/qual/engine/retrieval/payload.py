@@ -66,6 +66,12 @@ def _normalize_optional_text(value: object) -> str | None:
     return None
 
 
+def _normalize_bool_map(value: object) -> dict[str, bool]:
+    if not isinstance(value, dict):
+        return {}
+    return {str(key): bool(item) for key, item in value.items()}
+
+
 def _first_text_value(*values: object) -> str | None:
     for value in values:
         text = _normalize_optional_text(value)
@@ -137,6 +143,8 @@ def _normalize_citation_bundle_snapshot(citation_bundle: dict[str, object]) -> d
     normalized["fts_shortlist_doc_ids"] = _normalize_list_like(normalized.get("fts_shortlist_doc_ids"))
     normalized["active_strategy_ids"] = _normalize_list_like(normalized.get("active_strategy_ids"))
     normalized["deferred_strategy_ids"] = _normalize_list_like(normalized.get("deferred_strategy_ids"))
+    if "caches_used" in normalized:
+        normalized["caches_used"] = _normalize_bool_map(normalized.get("caches_used"))
     normalized["doc_citations"] = _normalize_list_like(normalized.get("doc_citations"))
     normalized["excerpt_citations"] = _normalize_list_like(normalized.get("excerpt_citations"))
     retrieval_policy = normalized.get("retrieval_policy")
@@ -155,6 +163,8 @@ def _normalize_doc_bundle_snapshot(doc_bundle: dict[str, object]) -> dict[str, o
     normalized["query_date_range"] = _normalize_optional_list_like(normalized.get("query_date_range"))
     normalized["active_strategy_ids"] = _normalize_list_like(normalized.get("active_strategy_ids"))
     normalized["deferred_strategy_ids"] = _normalize_list_like(normalized.get("deferred_strategy_ids"))
+    if "caches_used" in normalized:
+        normalized["caches_used"] = _normalize_bool_map(normalized.get("caches_used"))
     normalized["doc_hits"] = _normalize_list_like(normalized.get("doc_hits"))
     normalized["doc_citations"] = _normalize_list_like(normalized.get("doc_citations"))
     retrieval_policy = normalized.get("retrieval_policy")
@@ -173,6 +183,8 @@ def _normalize_excerpt_bundle_snapshot(excerpt_bundle: dict[str, object]) -> dic
     normalized["query_date_range"] = _normalize_optional_list_like(normalized.get("query_date_range"))
     normalized["active_strategy_ids"] = _normalize_list_like(normalized.get("active_strategy_ids"))
     normalized["deferred_strategy_ids"] = _normalize_list_like(normalized.get("deferred_strategy_ids"))
+    if "caches_used" in normalized:
+        normalized["caches_used"] = _normalize_bool_map(normalized.get("caches_used"))
     normalized["excerpt_hits"] = _normalize_list_like(normalized.get("excerpt_hits"))
     normalized["excerpt_citations"] = _normalize_list_like(normalized.get("excerpt_citations"))
     retrieval_policy = normalized.get("retrieval_policy")
@@ -200,6 +212,8 @@ def _normalize_retrieval_summary_snapshot(summary: dict[str, object]) -> dict[st
     normalized["top_excerpt_text_hashes"] = _normalize_list_like(normalized.get("top_excerpt_text_hashes"))
     normalized["active_strategy_ids"] = _normalize_list_like(normalized.get("active_strategy_ids"))
     normalized["deferred_strategy_ids"] = _normalize_list_like(normalized.get("deferred_strategy_ids"))
+    if "caches_used" in normalized:
+        normalized["caches_used"] = _normalize_bool_map(normalized.get("caches_used"))
     retrieval_policy = normalized.get("retrieval_policy")
     if isinstance(retrieval_policy, dict):
         normalized["retrieval_policy"] = _normalize_policy_snapshot(retrieval_policy)
@@ -224,6 +238,8 @@ def _normalize_retrieval_manifest_snapshot(manifest: dict[str, object]) -> dict[
     normalized["excerpt_text_hashes"] = _normalize_list_like(normalized.get("excerpt_text_hashes"))
     normalized["active_strategy_ids"] = _normalize_list_like(normalized.get("active_strategy_ids"))
     normalized["deferred_strategy_ids"] = _normalize_list_like(normalized.get("deferred_strategy_ids"))
+    if "caches_used" in normalized:
+        normalized["caches_used"] = _normalize_bool_map(normalized.get("caches_used"))
     retrieval_policy = normalized.get("retrieval_policy")
     if isinstance(retrieval_policy, dict):
         normalized["retrieval_policy"] = _normalize_policy_snapshot(retrieval_policy)
@@ -234,6 +250,8 @@ def _normalize_retrieval_evidence_snapshot(evidence: dict[str, object]) -> dict[
     normalized = copy.deepcopy(evidence)
     normalized["active_strategy_ids"] = _normalize_list_like(normalized.get("active_strategy_ids"))
     normalized["deferred_strategy_ids"] = _normalize_list_like(normalized.get("deferred_strategy_ids"))
+    if "caches_used" in normalized:
+        normalized["caches_used"] = _normalize_bool_map(normalized.get("caches_used"))
     normalized["doc_citations"] = _normalize_list_like(normalized.get("doc_citations"))
     normalized["excerpt_citations"] = _normalize_list_like(normalized.get("excerpt_citations"))
     retrieval_policy = normalized.get("retrieval_policy")
@@ -258,6 +276,8 @@ def _normalize_retrieval_source_bundle_snapshot(source_bundle: dict[str, object]
     normalized["policy"] = _normalize_policy_snapshot(
         normalized.get("policy", normalized.get("retrieval_policy", {}))
     )
+    if "caches_used" in normalized:
+        normalized["caches_used"] = _normalize_bool_map(normalized.get("caches_used"))
     citation_status = normalized.get("citation_status")
     if isinstance(citation_status, dict):
         normalized["citation_status"] = copy.deepcopy(citation_status)
@@ -687,6 +707,9 @@ def _build_retrieval_diagnostics_from_source_bundle(source_bundle: dict[str, obj
     )
     fts_shortlist_doc_ids = _normalize_list_like(citation_bundle.get("fts_shortlist_doc_ids", []))
     strategies_used = list(active_strategy_ids)
+    caches_used = _normalize_bool_map(citation_bundle.get("caches_used", normalized.get("caches_used", {})))
+    if not caches_used:
+        caches_used = {strategy_id: False for strategy_id in strategies_used}
 
     return {
         "retrieval_policy": copy.deepcopy(retrieval_policy),
@@ -715,7 +738,7 @@ def _build_retrieval_diagnostics_from_source_bundle(source_bundle: dict[str, obj
         "fts_shortlist_doc_ids": fts_shortlist_doc_ids,
         "strategies_used": strategies_used,
         "elapsed_ms_by_strategy": {strategy_id: 0 for strategy_id in strategies_used},
-        "caches_used": {strategy_id: False for strategy_id in strategies_used},
+        "caches_used": caches_used,
         "elapsed_ms_total": 0,
         "doc_hits_count": citation_bundle.get("doc_count", len(_normalize_list_like(normalized.get("doc_hits", [])))),
         "excerpt_hits_count": citation_bundle.get("excerpt_count", len(_normalize_list_like(normalized.get("excerpt_hits", [])))),
@@ -784,6 +807,8 @@ def _build_retrieval_provenance_from_payload(payload: dict[str, object]) -> dict
         )
     else:
         normalized["deferred_strategy_ids"] = _normalize_list_like(normalized["deferred_strategy_ids"])
+    if "caches_used" in normalized:
+        normalized["caches_used"] = _normalize_bool_map(normalized["caches_used"])
     if "candidate_doc_count" not in normalized:
         normalized["candidate_doc_count"] = diagnostics.get("candidate_doc_count")
     if "fts_shortlist_doc_ids" not in normalized:

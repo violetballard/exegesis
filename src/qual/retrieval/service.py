@@ -1039,6 +1039,7 @@ class RetrievalService:
                 "deferred_strategy_ids": diagnostics["deferred_strategy_ids"],
                 "strategies_used": diagnostics["strategies_used"],
                 "elapsed_ms_by_strategy": diagnostics["elapsed_ms_by_strategy"],
+                "caches_used": diagnostics["caches_used"],
                 "doc_ids_count": len({hit.doc_id for hit in merged_hits}),
                 "hits_count": len(merged_hits),
                 "fts_shortlist_doc_ids": diagnostics["fts_shortlist_doc_ids"],

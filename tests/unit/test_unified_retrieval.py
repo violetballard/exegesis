@@ -208,6 +208,31 @@ class UnifiedRetrievalTests(unittest.TestCase):
         self.assertEqual(first.diagnostics["fts_shortlist_doc_ids"], second.diagnostics["fts_shortlist_doc_ids"])
         self.assertIn("doc-pdf-1", first.diagnostics["fts_shortlist_doc_ids"])
 
+    def test_retrieve_auto_records_cache_use_in_diagnostics_and_audit(self) -> None:
+        query = RetrievalQuery(
+            query_text="theory implications",
+            scope="doc:doc-pdf-1",
+            intent="lookup",
+            constraints=RetrievalConstraints(max_results=5),
+            confidentiality_profile="confidential",
+        )
+        first = self.service.retrieve_auto(query)
+        second = self.service.retrieve_auto(query)
+
+        self.assertEqual(first.diagnostics["caches_used"], {"fts": False})
+        self.assertEqual(second.diagnostics["caches_used"], {"fts": True})
+        self.assertEqual(first.result_fingerprint, second.result_fingerprint)
+
+        payload = second.to_downstream_payload()
+        self.assertEqual(payload["retrieval_diagnostics"]["caches_used"], {"fts": True})
+        audit_events = [
+            json.loads(line)
+            for line in (self.root / "audit_events.jsonl").read_text(encoding="utf-8").splitlines()
+            if line.strip()
+        ]
+        retrieval_events = [event for event in audit_events if event["name"] == "retrieval_executed"]
+        self.assertEqual(retrieval_events[-1]["metadata"]["caches_used"], {"fts": True})
+
     def test_retrieval_hits_reject_non_fts_source_strategies(self) -> None:
         with self.assertRaisesRegex(ValueError, "source_strategy must be fts"):
             RetrievalHit(
