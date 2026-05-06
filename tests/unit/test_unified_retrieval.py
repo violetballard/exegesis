@@ -608,6 +608,11 @@ class UnifiedRetrievalTests(unittest.TestCase):
         self.assertEqual(payload["retrieval_diagnostics"]["retrieval_evidence"], result.diagnostics["retrieval_evidence"])
         self.assertEqual(payload["retrieval_manifest"], result.diagnostics["retrieval_manifest"])
         self.assertEqual(payload["retrieval_evidence"], result.evidence)
+        self.assertEqual(payload["doc_hits"][0]["result_fingerprint"], result.result_fingerprint)
+        self.assertEqual(
+            payload["doc_hits"][0]["provenance"]["result_fingerprint"],
+            result.result_fingerprint,
+        )
         self.assertEqual(
             payload["retrieval_evidence"]["excerpt_lookup_fingerprints"],
             payload["retrieval_manifest"]["excerpt_lookup_fingerprints"],

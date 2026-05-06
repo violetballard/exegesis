@@ -216,6 +216,9 @@ class RetrievalHit:
         candidate_resolution = self.provenance.get("candidate_resolution")
         if isinstance(candidate_resolution, dict):
             payload["candidate_resolution"] = copy.deepcopy(candidate_resolution)
+        result_fingerprint = self.provenance.get("result_fingerprint")
+        if isinstance(result_fingerprint, str) and result_fingerprint:
+            payload["result_fingerprint"] = result_fingerprint
         fts_shortlist_doc_ids = self.provenance.get("fts_shortlist_doc_ids")
         normalized_fts_shortlist_doc_ids = _optional_list_like(fts_shortlist_doc_ids)
         if normalized_fts_shortlist_doc_ids is not None:
@@ -308,6 +311,9 @@ class RetrievalDocHit:
         candidate_resolution = self.provenance.get("candidate_resolution")
         if isinstance(candidate_resolution, dict):
             payload["candidate_resolution"] = copy.deepcopy(candidate_resolution)
+        result_fingerprint = self.provenance.get("result_fingerprint")
+        if isinstance(result_fingerprint, str) and result_fingerprint:
+            payload["result_fingerprint"] = result_fingerprint
         fts_shortlist_doc_ids = self.provenance.get("fts_shortlist_doc_ids")
         normalized_fts_shortlist_doc_ids = _optional_list_like(fts_shortlist_doc_ids)
         if normalized_fts_shortlist_doc_ids is not None:
@@ -1217,6 +1223,7 @@ class RetrievalService:
             query_fingerprint=query_fingerprint,
             retrieval_manifest=retrieval_manifest,
         )
+        doc_hits = self._with_doc_result_fingerprint(doc_hits, result_fingerprint=result_fingerprint)
         merged_hits = self._with_result_fingerprint(merged_hits, result_fingerprint=result_fingerprint)
         retrieval_evidence = self._build_retrieval_evidence(
             query=query,
@@ -1482,6 +1489,19 @@ class RetrievalService:
             provenance = dict(hit.provenance)
             provenance["result_fingerprint"] = result_fingerprint
             enriched.append(replace(hit, provenance=provenance))
+        return enriched
+
+    @staticmethod
+    def _with_doc_result_fingerprint(
+        doc_hits: list[RetrievalDocHit],
+        *,
+        result_fingerprint: str,
+    ) -> list[RetrievalDocHit]:
+        enriched: list[RetrievalDocHit] = []
+        for doc_hit in doc_hits:
+            provenance = dict(doc_hit.provenance)
+            provenance["result_fingerprint"] = result_fingerprint
+            enriched.append(replace(doc_hit, provenance=provenance))
         return enriched
 
     def _build_doc_hits(
