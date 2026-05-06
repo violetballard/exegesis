@@ -642,6 +642,24 @@ class CommandDemoReadinessHandoffStepStatusContract:
 
 
 @dataclass(frozen=True)
+class CommandDemoReadinessVerificationEntry:
+    ordinal: int
+    demo_path_step: str
+    flow_step: str
+    name: str
+    command_line: str
+    exact_action_lines: tuple[tuple[str, str], ...]
+    status: str
+
+
+@dataclass(frozen=True)
+class CommandDemoReadinessVerificationContract:
+    is_complete: bool
+    entries: tuple[CommandDemoReadinessVerificationEntry, ...]
+    missing_steps: tuple[str, ...]
+
+
+@dataclass(frozen=True)
 class CommandDemoTrustedLoopStep:
     ordinal: int
     demo_path_step: str
@@ -6663,6 +6681,92 @@ def command_demo_readiness_handoff_step_status_summary(
     )
 
 
+@lru_cache(maxsize=None)
+def command_demo_readiness_verification_contract(
+    specs: tuple[CommandSpec, ...] = COMMAND_SPECS,
+    launcher_argv: tuple[str, ...] = COMMAND_SMOKE_CLI_LAUNCHER_ARGV,
+) -> CommandDemoReadinessVerificationContract:
+    status_contract = command_demo_readiness_handoff_step_status_contract(specs, launcher_argv)
+    entries = tuple(
+        CommandDemoReadinessVerificationEntry(
+            ordinal=step.ordinal,
+            demo_path_step=step.demo_path_step,
+            flow_step=step.flow_step,
+            name=step.name,
+            command_line=step.command_line,
+            exact_action_lines=step.exact_action_lines,
+            status="ready" if step.is_complete else "blocked",
+        )
+        for step in status_contract.steps
+    )
+    contract = CommandDemoReadinessVerificationContract(
+        is_complete=status_contract.is_complete and all(entry.status == "ready" for entry in entries),
+        entries=entries,
+        missing_steps=tuple(entry.flow_step for entry in entries if entry.status != "ready"),
+    )
+    _validate_command_demo_readiness_verification_contract(contract, status_contract)
+    return contract
+
+
+def _validate_command_demo_readiness_verification_contract(
+    contract: CommandDemoReadinessVerificationContract,
+    status_contract: CommandDemoReadinessHandoffStepStatusContract,
+) -> None:
+    if tuple(entry.ordinal for entry in contract.entries) != tuple(step.ordinal for step in status_contract.steps):
+        raise ValueError("Command demo readiness verification ordinals are inconsistent")
+    if tuple(entry.demo_path_step for entry in contract.entries) != tuple(
+        step.demo_path_step for step in status_contract.steps
+    ):
+        raise ValueError("Command demo readiness verification demo path steps are inconsistent")
+    if tuple(entry.flow_step for entry in contract.entries) != tuple(step.flow_step for step in status_contract.steps):
+        raise ValueError("Command demo readiness verification flow steps are inconsistent")
+    if tuple(entry.name for entry in contract.entries) != tuple(step.name for step in status_contract.steps):
+        raise ValueError("Command demo readiness verification commands are inconsistent")
+    if tuple(entry.command_line for entry in contract.entries) != tuple(
+        step.command_line for step in status_contract.steps
+    ):
+        raise ValueError("Command demo readiness verification command lines are inconsistent")
+    if tuple(entry.exact_action_lines for entry in contract.entries) != tuple(
+        step.exact_action_lines for step in status_contract.steps
+    ):
+        raise ValueError("Command demo readiness verification exact action lines are inconsistent")
+    expected_statuses = tuple("ready" if step.is_complete else "blocked" for step in status_contract.steps)
+    if tuple(entry.status for entry in contract.entries) != expected_statuses:
+        raise ValueError("Command demo readiness verification statuses are inconsistent")
+    expected_missing_steps = tuple(
+        step.flow_step
+        for step in status_contract.steps
+        if not step.is_complete
+    )
+    if contract.missing_steps != expected_missing_steps:
+        raise ValueError("Command demo readiness verification missing steps are inconsistent")
+    if contract.is_complete != (status_contract.is_complete and not contract.missing_steps):
+        raise ValueError("Command demo readiness verification completeness is inconsistent")
+
+
+def command_demo_readiness_verification_summary(
+    specs: tuple[CommandSpec, ...] = COMMAND_SPECS,
+    launcher_argv: tuple[str, ...] = COMMAND_SMOKE_CLI_LAUNCHER_ARGV,
+) -> tuple[bool, tuple[str, ...], tuple[tuple[int, str, str, str, str, tuple[tuple[str, str], ...], str], ...]]:
+    contract = command_demo_readiness_verification_contract(specs, launcher_argv)
+    return (
+        contract.is_complete,
+        contract.missing_steps,
+        tuple(
+            (
+                entry.ordinal,
+                entry.demo_path_step,
+                entry.flow_step,
+                entry.name,
+                entry.command_line,
+                entry.exact_action_lines,
+                entry.status,
+            )
+            for entry in contract.entries
+        ),
+    )
+
+
 def command_demo_trusted_loop_contract(
     specs: tuple[CommandSpec, ...] = COMMAND_SPECS,
     launcher_argv: tuple[str, ...] = COMMAND_SMOKE_CLI_LAUNCHER_ARGV,
@@ -6951,6 +7055,48 @@ def command_demo_readiness_handoff_step_status_json(
 ) -> str:
     return json.dumps(
         command_demo_readiness_handoff_step_status_payload(specs, launcher_argv),
+        sort_keys=True,
+        separators=(",", ":"),
+    )
+
+
+def command_demo_readiness_verification_payload(
+    specs: tuple[CommandSpec, ...] = COMMAND_SPECS,
+    launcher_argv: tuple[str, ...] = COMMAND_SMOKE_CLI_LAUNCHER_ARGV,
+) -> dict[str, object]:
+    contract = command_demo_readiness_verification_contract(specs, launcher_argv)
+    payload: dict[str, object] = {
+        "is_complete": contract.is_complete,
+        "missing_steps": list(contract.missing_steps),
+        "entries": [
+            {
+                "ordinal": entry.ordinal,
+                "demo_path_step": entry.demo_path_step,
+                "flow_step": entry.flow_step,
+                "command": entry.name,
+                "command_line": entry.command_line,
+                "exact_action_lines": [
+                    {
+                        "engine_action": engine_action,
+                        "command_line": command_line,
+                    }
+                    for engine_action, command_line in entry.exact_action_lines
+                ],
+                "status": entry.status,
+            }
+            for entry in contract.entries
+        ],
+    }
+    json.dumps(payload, sort_keys=True, separators=(",", ":"))
+    return payload
+
+
+def command_demo_readiness_verification_json(
+    specs: tuple[CommandSpec, ...] = COMMAND_SPECS,
+    launcher_argv: tuple[str, ...] = COMMAND_SMOKE_CLI_LAUNCHER_ARGV,
+) -> str:
+    return json.dumps(
+        command_demo_readiness_verification_payload(specs, launcher_argv),
         sort_keys=True,
         separators=(",", ":"),
     )
@@ -14019,6 +14165,20 @@ def command_mvp_demo_readiness_handoff_step_status_summary(
     return command_demo_readiness_handoff_step_status_summary(specs, launcher_argv)
 
 
+def command_mvp_demo_readiness_verification_contract(
+    specs: tuple[CommandSpec, ...] = COMMAND_SPECS,
+    launcher_argv: tuple[str, ...] = COMMAND_SMOKE_CLI_LAUNCHER_ARGV,
+) -> CommandDemoReadinessVerificationContract:
+    return command_demo_readiness_verification_contract(specs, launcher_argv)
+
+
+def command_mvp_demo_readiness_verification_summary(
+    specs: tuple[CommandSpec, ...] = COMMAND_SPECS,
+    launcher_argv: tuple[str, ...] = COMMAND_SMOKE_CLI_LAUNCHER_ARGV,
+) -> tuple[bool, tuple[str, ...], tuple[tuple[int, str, str, str, str, tuple[tuple[str, str], ...], str], ...]]:
+    return command_demo_readiness_verification_summary(specs, launcher_argv)
+
+
 def command_mvp_demo_trusted_loop_contract(
     specs: tuple[CommandSpec, ...] = COMMAND_SPECS,
     launcher_argv: tuple[str, ...] = COMMAND_SMOKE_CLI_LAUNCHER_ARGV,
@@ -14053,6 +14213,20 @@ def command_mvp_demo_readiness_handoff_step_status_json(
     launcher_argv: tuple[str, ...] = COMMAND_SMOKE_CLI_LAUNCHER_ARGV,
 ) -> str:
     return command_demo_readiness_handoff_step_status_json(specs, launcher_argv)
+
+
+def command_mvp_demo_readiness_verification_payload(
+    specs: tuple[CommandSpec, ...] = COMMAND_SPECS,
+    launcher_argv: tuple[str, ...] = COMMAND_SMOKE_CLI_LAUNCHER_ARGV,
+) -> dict[str, object]:
+    return command_demo_readiness_verification_payload(specs, launcher_argv)
+
+
+def command_mvp_demo_readiness_verification_json(
+    specs: tuple[CommandSpec, ...] = COMMAND_SPECS,
+    launcher_argv: tuple[str, ...] = COMMAND_SMOKE_CLI_LAUNCHER_ARGV,
+) -> str:
+    return command_demo_readiness_verification_json(specs, launcher_argv)
 
 
 def command_mvp_demo_readiness_handoff_audit(

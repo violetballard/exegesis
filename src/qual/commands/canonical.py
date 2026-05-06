@@ -38,6 +38,7 @@ from src.qual.commands.catalog import (
     CommandDemoReadinessHandoffLineContract,
     CommandDemoReadinessHandoffPacket,
     CommandDemoReadinessHandoffStepStatusContract,
+    CommandDemoReadinessVerificationContract,
     CommandDemoTrustedLoopContract,
     CommandDemoReadinessFingerprint,
     CommandDemoReadinessReport,
@@ -89,6 +90,10 @@ from src.qual.commands.catalog import (
     as _readiness_handoff_step_status_payload,
     command_mvp_demo_readiness_handoff_step_status_summary
     as _readiness_handoff_step_status_summary,
+    command_mvp_demo_readiness_verification_contract as _readiness_verification_contract,
+    command_mvp_demo_readiness_verification_json as _readiness_verification_json,
+    command_mvp_demo_readiness_verification_payload as _readiness_verification_payload,
+    command_mvp_demo_readiness_verification_summary as _readiness_verification_summary,
     command_mvp_demo_trusted_loop_contract as _trusted_loop_contract,
     command_mvp_demo_trusted_loop_summary as _trusted_loop_summary,
     command_demo_readiness_handoff_action_contract as _readiness_handoff_action_contract,
@@ -457,6 +462,10 @@ __all__ = [
     "canonical_command_readiness_handoff_step_status_summary",
     "canonical_command_readiness_handoff_step_status_payload",
     "canonical_command_readiness_handoff_step_status_json",
+    "canonical_command_readiness_verification_contract",
+    "canonical_command_readiness_verification_summary",
+    "canonical_command_readiness_verification_payload",
+    "canonical_command_readiness_verification_json",
     "canonical_command_trusted_loop_contract",
     "canonical_command_trusted_loop_summary",
     "canonical_command_surface_readiness_contract",
@@ -1112,6 +1121,18 @@ def canonical_command_readiness_handoff_step_status_summary() -> tuple[
     return _readiness_handoff_step_status_summary()
 
 
+def canonical_command_readiness_verification_contract() -> CommandDemoReadinessVerificationContract:
+    return _readiness_verification_contract()
+
+
+def canonical_command_readiness_verification_summary() -> tuple[
+    bool,
+    tuple[str, ...],
+    tuple[tuple[int, str, str, str, str, tuple[tuple[str, str], ...], str], ...],
+]:
+    return _readiness_verification_summary()
+
+
 def canonical_command_trusted_loop_contract() -> CommandDemoTrustedLoopContract:
     return _trusted_loop_contract()
 
@@ -1134,6 +1155,14 @@ def canonical_command_readiness_handoff_step_status_payload() -> dict[str, objec
 
 def canonical_command_readiness_handoff_step_status_json() -> str:
     return _readiness_handoff_step_status_json()
+
+
+def canonical_command_readiness_verification_payload() -> dict[str, object]:
+    return _readiness_verification_payload()
+
+
+def canonical_command_readiness_verification_json() -> str:
+    return _readiness_verification_json()
 
 
 def canonical_command_readiness_seal() -> CommandDemoReadinessSeal:
