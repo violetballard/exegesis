@@ -404,6 +404,8 @@ class RetrievalResult:
         active_strategy_ids = list(self.diagnostics["active_strategy_ids"])
         deferred_strategy_ids = list(self.diagnostics["deferred_strategy_ids"])
         citation_status = self._citation_status_snapshot()
+        query_constraints = self._query_constraints_snapshot()
+        query_constraints_fingerprint = self._query_constraints_fingerprint(query_constraints)
         query_date_range = (
             list(self.query.constraints.date_range)
             if self.query.constraints.date_range is not None
@@ -421,7 +423,8 @@ class RetrievalResult:
             "result_fingerprint": self.result_fingerprint,
             "query_scope": self.query.scope,
             "query_intent": self.query.intent,
-            "query_constraints": self._query_constraints_snapshot(),
+            "query_constraints": query_constraints,
+            "query_constraints_fingerprint": query_constraints_fingerprint,
             "query_date_range": query_date_range,
             "candidate_doc_count": self.diagnostics.get("candidate_doc_count"),
             "fts_shortlist_doc_ids": fts_shortlist_doc_ids,
@@ -535,6 +538,10 @@ class RetrievalResult:
             "section_hint": self.query.constraints.section_hint,
             "prefer_exact_matches": self.query.constraints.prefer_exact_matches,
         }
+
+    @staticmethod
+    def _query_constraints_fingerprint(query_constraints: dict[str, object]) -> str:
+        return RetrievalService._stable_fingerprint(query_constraints)
 
     def _retrieval_policy_snapshot(self) -> dict[str, object]:
         return copy.deepcopy(self.diagnostics["retrieval_policy"])
@@ -654,11 +661,13 @@ class RetrievalResult:
     ) -> dict[str, object]:
         primary_doc_hit = self.doc_hits[0] if self.doc_hits else None
         primary_excerpt_hit = self.hits[0] if self.hits else None
+        query_constraints = self._query_constraints_snapshot()
         return {
             "query_fingerprint": self.diagnostics["query_fingerprint"],
             "query_scope": self.query.scope,
             "query_intent": self.query.intent,
-            "query_constraints": self._query_constraints_snapshot(),
+            "query_constraints": query_constraints,
+            "query_constraints_fingerprint": self._query_constraints_fingerprint(query_constraints),
             "query_date_range": (
                 list(self.query.constraints.date_range)
                 if self.query.constraints.date_range is not None
@@ -711,12 +720,14 @@ class RetrievalResult:
             citation_status=citation_status,
             retrieval_policy=retrieval_policy,
         )
+        query_constraints = self._query_constraints_snapshot()
         return {
             "result_fingerprint": self.result_fingerprint,
             "query_fingerprint": self.diagnostics["query_fingerprint"],
             "query_scope": self.query.scope,
             "query_intent": self.query.intent,
-            "query_constraints": self._query_constraints_snapshot(),
+            "query_constraints": query_constraints,
+            "query_constraints_fingerprint": self._query_constraints_fingerprint(query_constraints),
             "query_date_range": query_date_range,
             "retrieval_backend": self.diagnostics["retrieval_backend"],
             "retrieval_mode": self.diagnostics["retrieval_mode"],
@@ -758,6 +769,9 @@ class RetrievalResult:
             "query_fingerprint": self.diagnostics["query_fingerprint"],
             "query": query_snapshot,
             "query_constraints": copy.deepcopy(query_snapshot["constraints"]),
+            "query_constraints_fingerprint": self._query_constraints_fingerprint(
+                copy.deepcopy(query_snapshot["constraints"])
+            ),
             "policy": copy.deepcopy(retrieval_policy_snapshot),
             "retrieval_backend": self.diagnostics["retrieval_backend"],
             "retrieval_mode": self.diagnostics["retrieval_mode"],
@@ -1038,6 +1052,7 @@ class RetrievalService:
             "active_strategy_ids": list(retrieval_policy["active_strategy_ids"]),
             "deferred_strategy_ids": list(retrieval_policy["deferred_strategy_ids"]),
             "query_fingerprint": query_fingerprint,
+            "query_constraints_fingerprint": retrieval_evidence["query_constraints_fingerprint"],
             "query_scope": query.scope,
             "query_intent": query.intent,
             "doc_scope_id": self._doc_scope_id(query.scope),
@@ -1068,6 +1083,7 @@ class RetrievalService:
             metadata={
                 "query_hash": query_hash,
                 "query_fingerprint": query_fingerprint,
+                "query_constraints_fingerprint": diagnostics["query_constraints_fingerprint"],
                 "retrieval_policy": retrieval_policy,
                 "retrieval_mode": diagnostics["retrieval_mode"],
                 "query_scope": query.scope,
@@ -1427,20 +1443,22 @@ class RetrievalService:
                 }
             )
 
+        query_constraints = {
+            "max_results": query.constraints.max_results,
+            "doc_types": list(query.constraints.doc_types),
+            "date_range": list(query.constraints.date_range)
+            if query.constraints.date_range is not None
+            else None,
+            "require_citations": query.constraints.require_citations,
+            "section_hint": query.constraints.section_hint,
+            "prefer_exact_matches": query.constraints.prefer_exact_matches,
+        }
         return {
             "query_fingerprint": query_fingerprint,
             "query_scope": query.scope,
             "query_intent": query.intent,
-            "query_constraints": {
-                "max_results": query.constraints.max_results,
-                "doc_types": list(query.constraints.doc_types),
-                "date_range": list(query.constraints.date_range)
-                if query.constraints.date_range is not None
-                else None,
-                "require_citations": query.constraints.require_citations,
-                "section_hint": query.constraints.section_hint,
-                "prefer_exact_matches": query.constraints.prefer_exact_matches,
-            },
+            "query_constraints": query_constraints,
+            "query_constraints_fingerprint": RetrievalService._stable_fingerprint(query_constraints),
             "query_date_range": list(query.constraints.date_range)
             if query.constraints.date_range is not None
             else None,

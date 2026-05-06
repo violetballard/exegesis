@@ -142,6 +142,7 @@ def _normalize_citation_bundle_snapshot(citation_bundle: dict[str, object]) -> d
     query_constraints = normalized.get("query_constraints")
     if isinstance(query_constraints, dict):
         normalized["query_constraints"] = _normalize_query_snapshot({"constraints": query_constraints})["constraints"]
+        normalized.setdefault("query_constraints_fingerprint", _stable_fingerprint(normalized["query_constraints"]))
     normalized["query_date_range"] = _normalize_optional_list_like(normalized.get("query_date_range"))
     normalized["fts_shortlist_doc_ids"] = _normalize_list_like(normalized.get("fts_shortlist_doc_ids"))
     normalized["active_strategy_ids"] = _normalize_list_like(normalized.get("active_strategy_ids"))
@@ -251,6 +252,10 @@ def _normalize_retrieval_manifest_snapshot(manifest: dict[str, object]) -> dict[
 
 def _normalize_retrieval_evidence_snapshot(evidence: dict[str, object]) -> dict[str, object]:
     normalized = copy.deepcopy(evidence)
+    query_constraints = normalized.get("query_constraints")
+    if isinstance(query_constraints, dict):
+        normalized["query_constraints"] = _normalize_query_snapshot({"constraints": query_constraints})["constraints"]
+        normalized.setdefault("query_constraints_fingerprint", _stable_fingerprint(normalized["query_constraints"]))
     normalized["active_strategy_ids"] = _normalize_list_like(normalized.get("active_strategy_ids"))
     normalized["deferred_strategy_ids"] = _normalize_list_like(normalized.get("deferred_strategy_ids"))
     if "caches_used" in normalized:
@@ -277,6 +282,7 @@ def _normalize_retrieval_source_bundle_snapshot(source_bundle: dict[str, object]
         return {}
     normalized["query"] = _normalize_query_snapshot(normalized.get("query", {}))
     normalized["query_constraints"] = copy.deepcopy(normalized["query"].get("constraints", {}))
+    normalized.setdefault("query_constraints_fingerprint", _stable_fingerprint(normalized["query_constraints"]))
     normalized["policy"] = _normalize_policy_snapshot(
         normalized.get("policy", normalized.get("retrieval_policy", {}))
     )
@@ -425,6 +431,10 @@ def _build_retrieval_citation_bundle_from_payload(payload: dict[str, object]) ->
         "query_scope": query_scope,
         "query_intent": query_intent,
         "query_constraints": copy.deepcopy(query_constraints),
+        "query_constraints_fingerprint": provenance.get(
+            "query_constraints_fingerprint",
+            _stable_fingerprint(query_constraints),
+        ),
         "query_date_range": query_date_range,
         "candidate_doc_count": candidate_doc_count,
         "fts_shortlist_doc_ids": fts_shortlist_doc_ids,
@@ -732,6 +742,10 @@ def _build_retrieval_diagnostics_from_source_bundle(source_bundle: dict[str, obj
             "query_fingerprint",
             normalized.get("query_fingerprint"),
         ),
+        "query_constraints_fingerprint": citation_bundle.get(
+            "query_constraints_fingerprint",
+            _stable_fingerprint(query_constraints),
+        ),
         "query_scope": query_scope,
         "query_intent": query_intent,
         "doc_scope_id": query_scope.split(":", 1)[1] if isinstance(query_scope, str) and query_scope.startswith("doc:") else None,
@@ -782,6 +796,18 @@ def _build_retrieval_provenance_from_payload(payload: dict[str, object]) -> dict
         normalized["query_scope"] = summary.get("query_scope", diagnostics.get("query_scope"))
     if "query_intent" not in normalized:
         normalized["query_intent"] = summary.get("query_intent", diagnostics.get("query_intent"))
+    if "query_constraints" not in normalized:
+        query = payload.get("query", {})
+        if isinstance(query, dict):
+            normalized["query_constraints"] = _normalize_query_snapshot(query).get("constraints", {})
+        else:
+            normalized["query_constraints"] = {}
+    elif isinstance(normalized["query_constraints"], dict):
+        normalized["query_constraints"] = _normalize_query_snapshot({"constraints": normalized["query_constraints"]})[
+            "constraints"
+        ]
+    if "query_constraints_fingerprint" not in normalized:
+        normalized["query_constraints_fingerprint"] = _stable_fingerprint(normalized["query_constraints"])
     if "query_date_range" not in normalized:
         normalized["query_date_range"] = _normalize_optional_list_like(
             summary.get("query_date_range", diagnostics.get("date_range"))
@@ -1087,6 +1113,7 @@ def _build_retrieval_downstream_payload_from_source_bundle(
     payload.pop("retrieval_source_bundle", None)
     payload.pop("query_fingerprint", None)
     payload.pop("query_constraints", None)
+    payload.pop("query_constraints_fingerprint", None)
     payload["policy"] = copy.deepcopy(policy_snapshot)
     payload["retrieval_policy"] = copy.deepcopy(policy_snapshot)
     payload["audit_ref"] = payload.get("audit_ref")

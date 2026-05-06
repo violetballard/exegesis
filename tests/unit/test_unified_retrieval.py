@@ -1,5 +1,6 @@
 from __future__ import annotations
 
+import hashlib
 import json
 import tempfile
 import unittest
@@ -439,6 +440,14 @@ class UnifiedRetrievalTests(unittest.TestCase):
         )
 
         payload = result.to_downstream_payload()
+        expected_constraints_fingerprint = hashlib.sha256(
+            json.dumps(
+                payload["query"]["constraints"],
+                sort_keys=True,
+                separators=(",", ":"),
+                ensure_ascii=True,
+            ).encode("utf-8")
+        ).hexdigest()
         self.assertEqual(payload["policy"], payload["retrieval_policy"])
         self.assertEqual(payload["retrieval_policy"]["retrieval_backend"], "sqlite_fts")
         self.assertEqual(payload["retrieval_policy"]["retrieval_mode"], "fts_first")
@@ -464,10 +473,20 @@ class UnifiedRetrievalTests(unittest.TestCase):
             result.hits[0].excerpt_id if result.hits else None,
         )
         self.assertEqual(payload["retrieval_diagnostics"]["result_fingerprint"], result.result_fingerprint)
+        self.assertEqual(payload["retrieval_diagnostics"]["query_constraints_fingerprint"], expected_constraints_fingerprint)
         self.assertEqual(payload["retrieval_diagnostics"]["retrieval_manifest"], result.diagnostics["retrieval_manifest"])
         self.assertEqual(payload["retrieval_diagnostics"]["retrieval_evidence"], result.diagnostics["retrieval_evidence"])
         self.assertEqual(payload["retrieval_manifest"], result.diagnostics["retrieval_manifest"])
         self.assertEqual(payload["retrieval_evidence"], result.evidence)
+        self.assertEqual(payload["retrieval_evidence"]["query_constraints_fingerprint"], expected_constraints_fingerprint)
+        self.assertEqual(
+            payload["retrieval_citation_bundle"]["query_constraints_fingerprint"],
+            expected_constraints_fingerprint,
+        )
+        self.assertEqual(payload["retrieval_provenance"]["query_constraints_fingerprint"], expected_constraints_fingerprint)
+        self.assertEqual(payload["retrieval_source_bundle"]["query_constraints_fingerprint"], expected_constraints_fingerprint)
+        self.assertEqual(payload["retrieval_doc_bundle"]["query_constraints_fingerprint"], expected_constraints_fingerprint)
+        self.assertEqual(payload["retrieval_excerpt_bundle"]["query_constraints_fingerprint"], expected_constraints_fingerprint)
         self.assertEqual(payload["retrieval_provenance"]["citation_status"], payload["retrieval_summary"]["citation_status"])
         self.assertEqual(payload["retrieval_provenance"]["doc_count"], len(result.doc_hits))
         self.assertEqual(payload["retrieval_provenance"]["excerpt_count"], len(result.hits))
@@ -1188,13 +1207,23 @@ class UnifiedRetrievalTests(unittest.TestCase):
         provenance = _build_retrieval_provenance_from_payload(payload)
         source_bundle = _build_retrieval_source_bundle_from_payload(payload)
         excerpt_bundle = _build_retrieval_excerpt_bundle_from_payload(payload)
+        expected_constraints_fingerprint = hashlib.sha256(
+            json.dumps(
+                source_bundle["query"]["constraints"],
+                sort_keys=True,
+                separators=(",", ":"),
+                ensure_ascii=True,
+            ).encode("utf-8")
+        ).hexdigest()
 
         self.assertEqual(provenance["query_date_range"], ["2026-01-01", "2026-01-31"])
         self.assertEqual(provenance["active_strategy_ids"], ["fts"])
         self.assertEqual(provenance["deferred_strategy_ids"], ["pageindex", "embeddings"])
         self.assertEqual(provenance["fts_shortlist_doc_ids"], ["doc-1", "doc-2"])
+        self.assertEqual(provenance["query_constraints_fingerprint"], expected_constraints_fingerprint)
         self.assertEqual(source_bundle["query"]["constraints"]["doc_types"], ["memo", "pdf"])
         self.assertEqual(source_bundle["query"]["constraints"]["date_range"], ["2026-01-01", "2026-01-31"])
+        self.assertEqual(source_bundle["query_constraints_fingerprint"], expected_constraints_fingerprint)
         self.assertEqual(source_bundle["policy"]["active_strategy_ids"], ["fts"])
         self.assertEqual(source_bundle["policy"]["deferred_strategy_ids"], ["pageindex", "embeddings"])
         self.assertEqual(excerpt_bundle["doc_count"], 1)
