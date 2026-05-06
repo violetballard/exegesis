@@ -16,6 +16,7 @@
 - This packet-only fixer pass changes the root handoff packet only. It does not classify any source/test-changing commit after `adfa8cda` as metadata-only.
 - Approved shared-file note: `tests/unit/test_unified_retrieval.py` is approved shared-by-approval regression coverage for this retrieval lane. No integrator-locked files are edited in this handoff.
 - AGENTS.md Active MVP canonical demo-path step: `retrieve relevant material`. This packet-only fixer makes the handoff metadata explicit that the lane advances `retrieve relevant material`, with every completed task below mapped to that step.
+- Reviewer-required demo-path mapping: This work makes the "retrieve relevant material" step more real by making FTS-only excerpt lookup deterministic and auditable for engine retrieval results. It also supports `promote or gather context into the basket` by preserving basket-facing lookup identity and candidate-set provenance.
 
 ## Scope Completed
 
