@@ -5693,15 +5693,48 @@ def command_demo_readiness_handoff_status_lines(
     launcher_argv: tuple[str, ...] = COMMAND_SMOKE_CLI_LAUNCHER_ARGV,
 ) -> tuple[str, ...]:
     packet = command_demo_readiness_handoff_packet(specs, launcher_argv)
-    return (
+    gate = command_demo_readiness_gate(specs, launcher_argv)
+    lines = (
         f"readiness={str(packet.is_complete).lower()}",
         f"fingerprint={packet.fingerprint_algorithm}:{packet.fingerprint_digest}",
         f"demo_path_steps={'; '.join(packet.canonical_demo_path_steps)}",
         f"command_lines={'; '.join(packet.command_lines)}",
+        f"cli_command_lines={'; '.join(gate.cli_command_lines)}",
         f"exact_action_lines={'; '.join(packet.exact_action_lines)}",
+        f"cli_exact_action_lines={'; '.join(packet.cli_exact_action_lines)}",
         f"missing_flow_steps={'; '.join(packet.missing_flow_steps)}",
         f"missing_engine_actions={'; '.join(packet.missing_engine_actions)}",
+        f"invalid_cli_argv={'; '.join(_shell_join(argv) for argv in gate.invalid_cli_argv)}",
+        "invalid_cli_exact_action_argv="
+        f"{'; '.join(_shell_join(argv) for argv in gate.invalid_cli_exact_action_argv)}",
     )
+    _validate_command_demo_readiness_handoff_status_lines(lines, packet, gate)
+    return lines
+
+
+def _validate_command_demo_readiness_handoff_status_lines(
+    lines: tuple[str, ...],
+    packet: CommandDemoReadinessHandoffPacket,
+    gate: CommandDemoReadinessGate,
+) -> None:
+    if len(lines) != 11 or any(not line.strip() for line in lines):
+        raise ValueError("Command demo readiness handoff status lines are incomplete")
+    expected_lines = (
+        f"readiness={str(packet.is_complete).lower()}",
+        f"fingerprint={packet.fingerprint_algorithm}:{packet.fingerprint_digest}",
+        f"demo_path_steps={'; '.join(packet.canonical_demo_path_steps)}",
+        f"command_lines={'; '.join(packet.command_lines)}",
+        f"cli_command_lines={'; '.join(gate.cli_command_lines)}",
+        f"exact_action_lines={'; '.join(packet.exact_action_lines)}",
+        f"cli_exact_action_lines={'; '.join(packet.cli_exact_action_lines)}",
+        f"missing_flow_steps={'; '.join(packet.missing_flow_steps)}",
+        f"missing_engine_actions={'; '.join(packet.missing_engine_actions)}",
+        f"invalid_cli_argv={'; '.join(_shell_join(argv) for argv in gate.invalid_cli_argv)}",
+        "invalid_cli_exact_action_argv="
+        f"{'; '.join(_shell_join(argv) for argv in gate.invalid_cli_exact_action_argv)}",
+    )
+    if lines != expected_lines:
+        raise ValueError("Command demo readiness handoff status lines are inconsistent")
 
 
 @lru_cache(maxsize=None)
