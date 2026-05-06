@@ -3,24 +3,24 @@
 - Branch name: `codex/feat-retrieval-fts`
 - Lane: `feat-retrieval-fts`
 - Merge target: current `main`
-- Current branch tip used to regenerate this packet: `10b5e0d02786abfe474c1d8fcefb3ef90544d3a1`
+- Current branch tip used to regenerate this packet: `2114d026ad9bd68cea6fb63a538771a21d17f816`
 - Final HEAD SHA after this fixer commit: reported in the final fixer response.
 - Handoff type: high-risk retrieval feature handoff for the FTS-first retrieval lane.
 - Scope classification: high-risk because this branch edits engine retrieval entrypoints/facades and approved shared regression coverage in `tests/unit/test_unified_retrieval.py`.
 - Authoritative reviewed implementation range for re-review: `378cf9a74a3658058079a32f186fcd254c4a4034..65a7e513067af91bceaba792e59ddd6f82928cce`, plus later packet/code commits through the final HEAD reported in the final fixer response.
-- Reviewer-required post-`adfa8cda` range: `adfa8cdadd43747ffbcb612e4151e262b13e52ca..65a7e513067af91bceaba792e59ddd6f82928cce`; this range is explicitly included in re-review and contains all source/test commits after `adfa8cda`.
+- Reviewer-required post-`adfa8cda` range: `adfa8cdadd43747ffbcb612e4151e262b13e52ca..2114d026ad9bd68cea6fb63a538771a21d17f816`, plus this fixer commit through the final HEAD reported in the final fixer response; this range is explicitly included in re-review and contains all source/test commits after `adfa8cda`.
 - Corrected traceability note: `6f4f8751cefec4b5ee12fa795b7c15fad41f388f` is source/test-bearing, not metadata-only. It changes `THREAD_PACKET.md`, `src/qual/retrieval/service.py`, and `tests/unit/test_unified_retrieval.py`.
 - Approved shared-file note: `tests/unit/test_unified_retrieval.py` is approved shared-by-approval regression coverage for this retrieval lane. No integrator-locked files are edited in this handoff.
 
 ## Scope Completed
 
-This packet supersedes earlier handoff packets for `codex/feat-retrieval-fts`. Earlier packets were stale because they described `378cf9a7..adfa8cda` while the branch tip had advanced to `65a7e513067af91bceaba792e59ddd6f82928cce`. Re-review must use the actual branch-tip range above, and must include every source/test commit after `adfa8cda`.
+This packet supersedes earlier handoff packets for `codex/feat-retrieval-fts`. Earlier packets were stale because they described `378cf9a7..adfa8cda` while the branch tip had advanced past `65a7e513067af91bceaba792e59ddd6f82928cce`. Re-review must use the actual branch-tip range above, and must include every source/test commit after `adfa8cda` through the final HEAD reported in the final fixer response.
 
 The branch implements the FTS-first retrieval MVP path. SQLite FTS remains the deterministic retrieval source of truth. PageIndex and embeddings remain compatibility-only fallback shims that fail closed and are not reintroduced as required retrieval paths. The branch hardens stable retrieval identity by preserving ordered excerpt lookup fingerprints, document and excerpt provenance, sparse context payload snapshots, citations, basket summaries, candidate-resolution snapshots, top-level context query/policy/manifest/summary snapshots, direct excerpt lookup audit identity, and fail-closed compatibility behavior.
 
 Canonical demo-path step advanced: `retrieve relevant material`. The work makes that step more real by constructing deterministic FTS-first queries, returning document and excerpt hits with stable provenance, reconstructing sparse payload snapshots, and exposing ordered excerpt lookup fingerprints alongside excerpt IDs, text hashes, citations, candidate-resolution snapshots, and basket item fingerprints. It also supports `promote or gather context into the basket` because basket-facing summaries preserve auditable FTS lookup identity and candidate-set provenance.
 
-Current fixer pass from `10b5e0d02786abfe474c1d8fcefb3ef90544d3a1` makes a real retrieval code change: sparse retrieval payload normalization now deduplicates basket-promotion item snapshots by FTS excerpt identity and carries the deduped items into the reconstructed downstream payload, source bundle, and context bundle. This keeps basket/context consumers from promoting the same FTS excerpt more than once when they rehydrate sparse retrieval snapshots.
+Current fixer pass from `2114d026ad9bd68cea6fb63a538771a21d17f816` makes a real retrieval code change: sparse retrieval payload normalization now treats `basket_item_id` as the same FTS excerpt identity as `item_id` and `excerpt_id`, canonicalizes that identity back onto rehydrated basket-promotion item snapshots, and keeps sparse basket counts stable when downstream context snapshots retain only the basket-facing identifier.
 
 ## Tasks Completed
 
@@ -33,9 +33,9 @@ Current fixer pass from `10b5e0d02786abfe474c1d8fcefb3ef90544d3a1` makes a real 
 4. Shared regression coverage: extended approved shared retrieval tests for facade exports, payload reconstruction, citation/provenance helpers, FTS-only excerpt backfill, lookup fingerprints, direct excerpt lookup audit identity, and fail-closed compatibility behavior.
    Canonical demo-path step advanced: `retrieve relevant material`.
 
-Current fixer task: deduplicated sparse basket-promotion item rehydration by FTS excerpt identity so promotion-ready context snapshots remain stable when downstream flows handle sparse retrieval bundles independently of the original result object.
+Current fixer task: preserved sparse basket-promotion identity when snapshots retain `basket_item_id` without `item_id`/`excerpt_id`, so promotion-ready context snapshots still deduplicate and count the same FTS excerpt once.
 
-Post-`adfa8cda` source/test accounting: `git log --format='%H%x09%s' adfa8cdadd43747ffbcb612e4151e262b13e52ca..65a7e513067af91bceaba792e59ddd6f82928cce -- src/qual/retrieval src/qual/engine/retrieval tests/unit/test_unified_retrieval.py | wc -l` reports `403` source/test-bearing commits. They are included in the re-review range and grouped into the four task categories above; they are not claimed as metadata-only.
+Post-`adfa8cda` source/test accounting: `git log --format='%H%x09%s' adfa8cdadd43747ffbcb612e4151e262b13e52ca..2114d026ad9bd68cea6fb63a538771a21d17f816 -- src/qual/retrieval src/qual/engine/retrieval tests/unit/test_unified_retrieval.py | wc -l` reports `405` source/test-bearing commits before this fixer commit. They are included in the re-review range and grouped into the four task categories above; they are not claimed as metadata-only.
 
 ## Files Changed
 
@@ -51,11 +51,11 @@ Authoritative full branch-tip range: `378cf9a74a3658058079a32f186fcd254c4a4034..
 - `src/qual/retrieval/service.py` - canonical FTS-first retrieval service, provenance, candidate-resolution citation snapshots, lookup fingerprint behavior, direct excerpt lookup audit identity, and context bundle packaging.
 - `tests/unit/test_unified_retrieval.py` - approved shared-by-approval regression coverage for the retrieval contract, direct excerpt lookup audit identity, and context bundle copy safety.
 
-Current fixer delta from `10b5e0d02786abfe474c1d8fcefb3ef90544d3a1`:
+Current fixer delta from `2114d026ad9bd68cea6fb63a538771a21d17f816`:
 
 - `THREAD_PACKET.md` - authoritative handoff packet refreshed for this pass.
-- `src/qual/engine/retrieval/payload.py` - sparse basket-promotion item snapshots are deduplicated by FTS excerpt identity and propagated into reconstructed downstream payloads.
-- `tests/unit/test_unified_retrieval.py` - approved shared regression coverage for deduping sparse basket-promotion item snapshots across context, source, and downstream payload reconstruction.
+- `src/qual/engine/retrieval/payload.py` - sparse basket-promotion item identity now recognizes `basket_item_id` alongside `item_id` and `excerpt_id`, and canonicalizes that identity for reconstructed downstream payloads.
+- `tests/unit/test_unified_retrieval.py` - approved shared regression coverage for deduping sparse basket-promotion item snapshots that only preserve the basket-facing identifier.
 
 Integrator-locked files: none.
 Shared-by-approval files: `tests/unit/test_unified_retrieval.py`.
@@ -148,6 +148,7 @@ Command: `git show --stat 6f4f8751cefec4b5ee12fa795b7c15fad41f388f`
 - `./typecheck-test.sh` - passed Python source compilation under `src/`.
 - `make ci` - passed setup, scope-check, format, lint, typecheck, smoke tests, and 146 unit tests.
 - `python -m unittest tests.unit.test_unified_retrieval` - passed 77 focused retrieval tests.
+- `python -m unittest tests.unit.test_unified_retrieval.UnifiedRetrievalTests.test_retrieval_context_bundle_helper_deduplicates_sparse_basket_items` - passed.
 - `python -m pytest tests/unit/test_unified_retrieval.py` - blocked because the active Python 3.14 environment has no `pytest` module; the documented shell and unittest gates above passed.
 
 ## Risks/Blockers

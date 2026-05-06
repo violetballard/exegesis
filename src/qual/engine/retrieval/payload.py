@@ -73,20 +73,25 @@ def _normalize_optional_text(value: object) -> str | None:
     return None
 
 
+def _basket_item_identity(item: dict[str, object]) -> str | None:
+    for key in ("item_id", "basket_item_id", "excerpt_id"):
+        item_id = _normalize_optional_text(item.get(key))
+        if item_id is not None:
+            return item_id
+    return None
+
+
 def _basket_item_ids_from_items(items: list[object]) -> list[str]:
     item_ids: list[str] = []
     seen: set[str] = set()
     for item in items:
         if not isinstance(item, dict):
             continue
-        item_id = item.get("item_id", item.get("excerpt_id"))
-        if item_id is None:
+        item_id = _basket_item_identity(item)
+        if item_id is None or item_id in seen:
             continue
-        normalized = str(item_id)
-        if not normalized or normalized in seen:
-            continue
-        seen.add(normalized)
-        item_ids.append(normalized)
+        seen.add(item_id)
+        item_ids.append(item_id)
     return item_ids
 
 
@@ -199,13 +204,12 @@ def _normalize_basket_promotion_items(items: list[object]) -> list[object]:
     for item in items:
         if isinstance(item, dict):
             item_snapshot = copy.deepcopy(item)
-            item_id = _normalize_optional_text(
-                item_snapshot.get("item_id", item_snapshot.get("excerpt_id"))
-            )
+            item_id = _basket_item_identity(item_snapshot)
             if item_id is not None:
                 if item_id in seen_item_ids:
                     continue
                 seen_item_ids.add(item_id)
+                item_snapshot.setdefault("item_id", item_id)
             item_snapshot["source_strategy"] = _fts_source_strategy_from_values(
                 item_snapshot.get("source_strategy"),
                 item_snapshot.get("retrieval_source_strategy"),

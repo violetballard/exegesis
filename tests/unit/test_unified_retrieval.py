@@ -2491,8 +2491,12 @@ class UnifiedRetrievalTests(unittest.TestCase):
         sparse_context_bundle = json.loads(json.dumps(result.retrieval_context_bundle()))
         baseline_items = result.basket_promotion_items()
         expected_ids = [str(item["item_id"]) for item in baseline_items]
+        basket_item_id_only = copy.deepcopy(baseline_items[0])
+        basket_item_id_only["basket_item_id"] = basket_item_id_only["item_id"]
+        basket_item_id_only.pop("item_id")
+        basket_item_id_only.pop("excerpt_id")
         duplicate_items = [
-            copy.deepcopy(baseline_items[0]),
+            basket_item_id_only,
             copy.deepcopy(baseline_items[0]),
             *copy.deepcopy(baseline_items),
         ]
@@ -2518,6 +2522,10 @@ class UnifiedRetrievalTests(unittest.TestCase):
         self.assertEqual(
             [str(item["item_id"]) for item in context_bundle["basket_promotion_items"]],
             expected_ids,
+        )
+        self.assertEqual(
+            context_bundle["basket_promotion_items"][0]["basket_item_id"],
+            expected_ids[0],
         )
         self.assertEqual(context_bundle["basket_item_ids"], expected_ids)
         self.assertEqual(context_bundle["basket_promotion_count"], len(expected_ids))
