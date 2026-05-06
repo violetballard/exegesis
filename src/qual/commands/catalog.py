@@ -750,6 +750,25 @@ class CommandDemoReadinessIndexContract:
 
 
 @dataclass(frozen=True)
+class CommandDemoCommandTranscriptStep:
+    ordinal: int
+    demo_path_step: str
+    flow_step: str
+    name: str
+    argv: tuple[str, ...]
+    command_line: str
+    engine_actions: tuple[str, ...]
+
+
+@dataclass(frozen=True)
+class CommandDemoCommandTranscriptContract:
+    is_complete: bool
+    fingerprint_algorithm: str
+    readiness_fingerprint_digest: str
+    steps: tuple[CommandDemoCommandTranscriptStep, ...]
+
+
+@dataclass(frozen=True)
 class CommandDemoReadinessShellScript:
     lines: tuple[str, ...]
     command_lines: tuple[str, ...]
@@ -7893,6 +7912,107 @@ def command_demo_readiness_index_json(
         command_demo_readiness_index_payload(specs, launcher_argv),
         sort_keys=True,
         separators=(",", ":"),
+    )
+
+
+@lru_cache(maxsize=None)
+def command_demo_command_transcript_contract(
+    specs: tuple[CommandSpec, ...] = COMMAND_SPECS,
+    launcher_argv: tuple[str, ...] = COMMAND_SMOKE_CLI_LAUNCHER_ARGV,
+) -> CommandDemoCommandTranscriptContract:
+    """Return the canonical smoke-test transcript for the Milestone 3 command loop."""
+
+    readiness_index = command_demo_readiness_index_contract(specs, launcher_argv)
+    readiness_entries = dict(command_demo_readiness_index(specs, launcher_argv))
+    steps = tuple(
+        CommandDemoCommandTranscriptStep(
+            ordinal=entry.ordinal,
+            demo_path_step=entry.demo_path_step,
+            flow_step=entry.flow_step,
+            name=entry.name,
+            argv=readiness_entries[entry.flow_step].command_argv,
+            command_line=entry.command_line,
+            engine_actions=entry.engine_actions,
+        )
+        for entry in readiness_index.entries
+    )
+    validation = command_demo_readiness_validate_script(
+        tuple(step.argv for step in steps),
+        specs,
+        launcher_argv,
+    )
+    contract = CommandDemoCommandTranscriptContract(
+        is_complete=validation.is_complete,
+        fingerprint_algorithm=readiness_index.fingerprint_algorithm,
+        readiness_fingerprint_digest=readiness_index.readiness_fingerprint_digest,
+        steps=steps,
+    )
+    _validate_command_demo_command_transcript_contract(contract, specs, launcher_argv)
+    return contract
+
+
+def _validate_command_demo_command_transcript_contract(
+    contract: CommandDemoCommandTranscriptContract,
+    specs: tuple[CommandSpec, ...],
+    launcher_argv: tuple[str, ...],
+) -> None:
+    readiness_index = command_demo_readiness_index_contract(specs, launcher_argv)
+    if contract.fingerprint_algorithm != readiness_index.fingerprint_algorithm:
+        raise ValueError("Command demo transcript fingerprint algorithm is inconsistent")
+    if contract.readiness_fingerprint_digest != readiness_index.readiness_fingerprint_digest:
+        raise ValueError("Command demo transcript fingerprint digest is inconsistent")
+    if tuple(step.ordinal for step in contract.steps) != tuple(
+        entry.ordinal for entry in readiness_index.entries
+    ):
+        raise ValueError("Command demo transcript ordinals are inconsistent")
+    if tuple(step.flow_step for step in contract.steps) != tuple(
+        entry.flow_step for entry in readiness_index.entries
+    ):
+        raise ValueError("Command demo transcript flow steps are inconsistent")
+    if tuple(step.command_line for step in contract.steps) != tuple(
+        entry.command_line for entry in readiness_index.entries
+    ):
+        raise ValueError("Command demo transcript command lines are inconsistent")
+    validation = command_demo_readiness_validate_script(
+        tuple(step.argv for step in contract.steps),
+        specs,
+        launcher_argv,
+    )
+    if not validation.is_complete:
+        raise ValueError("Command demo transcript does not cover the MVP loop")
+    if validation.invalid_argv:
+        raise ValueError("Command demo transcript contains invalid command argv")
+
+
+def command_demo_command_transcript_summary(
+    specs: tuple[CommandSpec, ...] = COMMAND_SPECS,
+    launcher_argv: tuple[str, ...] = COMMAND_SMOKE_CLI_LAUNCHER_ARGV,
+) -> tuple[str, str, tuple[tuple[int, str, str, str, str, tuple[str, ...]], ...]]:
+    contract = command_demo_command_transcript_contract(specs, launcher_argv)
+    return (
+        contract.fingerprint_algorithm,
+        contract.readiness_fingerprint_digest,
+        tuple(
+            (
+                step.ordinal,
+                step.demo_path_step,
+                step.flow_step,
+                step.name,
+                step.command_line,
+                step.engine_actions,
+            )
+            for step in contract.steps
+        ),
+    )
+
+
+def command_demo_command_transcript_lines(
+    specs: tuple[CommandSpec, ...] = COMMAND_SPECS,
+    launcher_argv: tuple[str, ...] = COMMAND_SMOKE_CLI_LAUNCHER_ARGV,
+) -> tuple[str, ...]:
+    return tuple(
+        step.command_line
+        for step in command_demo_command_transcript_contract(specs, launcher_argv).steps
     )
 
 
