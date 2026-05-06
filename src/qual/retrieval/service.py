@@ -1732,6 +1732,10 @@ class RetrievalService:
                     "source_strategy": doc_hit.provenance.get("source_strategy"),
                 }
             )
+        doc_rank_by_id = {
+            doc_hit.doc_id: doc_hit.provenance.get("doc_rank")
+            for doc_hit in doc_hits
+        }
 
         excerpt_citations: list[dict[str, object]] = []
         for hit in hits:
@@ -1751,6 +1755,7 @@ class RetrievalService:
                     "excerpt_text_hash": hit.provenance.get("excerpt_text_hash") or hit.provenance.get("hash"),
                     "query_fingerprint": query_fingerprint,
                     "result_fingerprint": result_fingerprint,
+                    "doc_rank": doc_rank_by_id.get(hit.doc_id),
                     "span": hit.provenance.get("span"),
                     "matched_terms": hit.provenance.get("matched_terms"),
                     "match_count": hit.provenance.get("match_count"),
@@ -1778,6 +1783,7 @@ class RetrievalService:
                 "excerpt_lookup_fingerprint": item.get("excerpt_lookup_fingerprint"),
                 "excerpt_text_hash": item["excerpt_text_hash"],
                 "span": copy.deepcopy(item["span"]),
+                "doc_rank": item["doc_rank"],
                 "rank": item["rank"],
                 "source_strategy": item["source_strategy"],
                 "retrieval_backend": item["retrieval_backend"],
