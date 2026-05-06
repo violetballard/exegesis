@@ -691,6 +691,10 @@ class UnifiedRetrievalTests(unittest.TestCase):
         )
         self.assertEqual(payload["retrieval_citation_bundle"]["doc_citations"][0]["source_hash"], result.doc_hits[0].source_hash)
         self.assertEqual(
+            payload["retrieval_citation_bundle"]["doc_citations"][0]["retrieval_source_strategy"],
+            "fts",
+        )
+        self.assertEqual(
             payload["retrieval_citation_bundle"]["doc_citations"][0]["query_fingerprint"],
             result.diagnostics["query_fingerprint"],
         )
@@ -702,6 +706,10 @@ class UnifiedRetrievalTests(unittest.TestCase):
         self.assertEqual(
             payload["retrieval_citation_bundle"]["excerpt_citations"][0]["source_hash"],
             result.hits[0].provenance["source_hash"],
+        )
+        self.assertEqual(
+            payload["retrieval_citation_bundle"]["excerpt_citations"][0]["retrieval_source_strategy"],
+            "fts",
         )
         self.assertEqual(
             payload["retrieval_citation_bundle"]["excerpt_citations"][0]["doc_identity_fingerprint"],
@@ -750,6 +758,7 @@ class UnifiedRetrievalTests(unittest.TestCase):
             "retrieval_backend",
             "retrieval_mode",
             "source_strategy",
+            "retrieval_source_strategy",
         ):
             self.assertEqual(evidence_doc_citation[field_name], provenance_doc_citation[field_name])
         self.assertEqual(
@@ -1338,6 +1347,56 @@ class UnifiedRetrievalTests(unittest.TestCase):
             excerpt["excerpt_lookup_fingerprint"],
         )
         self.assertTrue(excerpt["text"])
+
+    def test_sparse_fts_excerpt_lookup_payload_gets_canonical_provenance(self) -> None:
+        sparse_excerpt = {
+            "excerpt_id": "fts_sparse_lookup",
+            "doc_id": "doc-pdf-1",
+            "span": {"char_range": {"start": 0, "end": 19}},
+            "text": "Methods section with",
+        }
+
+        normalized = self.service._normalize_excerpt_payload(
+            sparse_excerpt,
+            source_strategy="fts",
+            lookup_resolution="fts",
+        )
+
+        self.assertEqual(normalized["source_strategy"], "fts")
+        self.assertEqual(normalized["retrieval_source_strategy"], "fts")
+        self.assertEqual(normalized["retrieval_backend"], "sqlite_fts")
+        self.assertEqual(normalized["retrieval_mode"], "fts_first")
+        self.assertEqual(normalized["lookup_resolution"], "fts")
+        self.assertEqual(normalized["doc_type"], "pdf")
+        self.assertEqual(normalized["title_hint"], "Interview Packet")
+        self.assertEqual(normalized["excerpt_text"], sparse_excerpt["text"])
+        self.assertTrue(normalized["excerpt_fingerprint"])
+        self.assertTrue(normalized["excerpt_lookup_fingerprint"])
+        self.assertEqual(normalized["basket_promotion_count"], 1)
+        self.assertTrue(normalized["basket_promotion_ready"])
+
+        provenance = normalized["provenance"]
+        self.assertEqual(provenance["source_strategy"], "fts")
+        self.assertEqual(provenance["retrieval_source_strategy"], "fts")
+        self.assertEqual(provenance["lookup_resolution"], "fts")
+        self.assertEqual(provenance["excerpt_id"], sparse_excerpt["excerpt_id"])
+        self.assertEqual(provenance["doc_id"], "doc-pdf-1")
+        self.assertEqual(provenance["doc_type"], "pdf")
+        self.assertEqual(provenance["title_hint"], "Interview Packet")
+        self.assertEqual(provenance["span"], normalized["span"])
+        self.assertEqual(provenance["hash"], normalized["text_hash"])
+        self.assertEqual(provenance["excerpt_text_hash"], normalized["excerpt_text_hash"])
+        self.assertEqual(provenance["excerpt_fingerprint"], normalized["excerpt_fingerprint"])
+        self.assertEqual(
+            provenance["excerpt_lookup_fingerprint"],
+            normalized["excerpt_lookup_fingerprint"],
+        )
+        self.assertEqual(provenance["basket_promotion_count"], 1)
+        self.assertTrue(provenance["basket_promotion_ready"])
+        self.assertEqual(
+            provenance["basket_item_fingerprint"],
+            normalized["basket_item_fingerprint"],
+        )
 
     def test_fetch_excerpt_requires_an_fts_lookup_hit(self) -> None:
         docindex_service = DocIndexService(self.root, audit_log=self.audit)
@@ -3059,6 +3118,7 @@ class UnifiedRetrievalTests(unittest.TestCase):
                     "retrieval_backend": item["provenance"]["retrieval_backend"],
                     "retrieval_mode": item["provenance"]["retrieval_mode"],
                     "source_strategy": item["provenance"]["source_strategy"],
+                    "retrieval_source_strategy": item["provenance"]["source_strategy"],
                 }
                 for item in payload["doc_hits"]
             ],
@@ -3088,6 +3148,7 @@ class UnifiedRetrievalTests(unittest.TestCase):
                     "matched_terms": item["provenance"]["matched_terms"],
                     "fts_rank": item["provenance"]["fts_rank"],
                     "source_strategy": item["provenance"]["source_strategy"],
+                    "retrieval_source_strategy": item["provenance"]["source_strategy"],
                     "retrieval_backend": item["provenance"]["retrieval_backend"],
                     "retrieval_mode": item["provenance"]["retrieval_mode"],
                 }

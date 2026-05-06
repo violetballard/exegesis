@@ -671,6 +671,7 @@ class RetrievalResult:
                 "retrieval_backend": doc_hit.provenance.get("retrieval_backend"),
                 "retrieval_mode": doc_hit.provenance.get("retrieval_mode"),
                 "source_strategy": doc_hit.provenance.get("source_strategy"),
+                "retrieval_source_strategy": doc_hit.provenance.get("source_strategy"),
             }
             for doc_hit in self.doc_hits
         ]
@@ -699,6 +700,7 @@ class RetrievalResult:
                 "rank": hit.provenance.get("rank"),
                 "span": hit.provenance.get("span"),
                 "source_strategy": hit.provenance.get("source_strategy"),
+                "retrieval_source_strategy": hit.provenance.get("source_strategy"),
                 "retrieval_backend": hit.provenance.get("retrieval_backend"),
                 "retrieval_mode": hit.provenance.get("retrieval_mode"),
             }
@@ -1741,6 +1743,7 @@ class RetrievalService:
                     "retrieval_backend": doc_hit.provenance.get("retrieval_backend"),
                     "retrieval_mode": doc_hit.provenance.get("retrieval_mode"),
                     "source_strategy": doc_hit.provenance.get("source_strategy"),
+                    "retrieval_source_strategy": doc_hit.provenance.get("source_strategy"),
                 }
             )
         doc_rank_by_id = {
@@ -1773,6 +1776,7 @@ class RetrievalService:
                     "rank": hit.provenance.get("rank"),
                     "fts_rank": hit.provenance.get("fts_rank"),
                     "source_strategy": hit.provenance.get("source_strategy"),
+                    "retrieval_source_strategy": hit.provenance.get("source_strategy"),
                     "retrieval_backend": hit.provenance.get("retrieval_backend"),
                     "retrieval_mode": hit.provenance.get("retrieval_mode"),
                 }
@@ -2465,41 +2469,43 @@ class RetrievalService:
             normalized["basket_promotion_ready"] = True
             normalized["basket_item_ids"] = [basket_promotion_item["item_id"]]
             normalized["basket_item_fingerprints"] = [basket_promotion_item["basket_item_fingerprint"]]
-        if "provenance" in normalized:
-            normalized_provenance = {
-                **provenance,
-                "source_strategy": source_strategy,
-            }
-            if doc_id_value is not None:
-                normalized_provenance["doc_id"] = doc_id_value
-            if isinstance(source_hash, str) and source_hash:
-                normalized_provenance["source_hash"] = source_hash
-            if isinstance(doc_type, str) and doc_type:
-                normalized_provenance["doc_type"] = doc_type
-            if title_hint is not None:
-                normalized_provenance["title_hint"] = title_hint
-            if canonical_span is not None:
-                normalized_provenance["span"] = canonical_span
-            normalized_provenance["text_hash"] = text_hash
-            if isinstance(text_hash, str) and text_hash:
-                normalized_provenance["hash"] = text_hash
-                normalized_provenance["excerpt_text_hash"] = text_hash
-            normalized_provenance["excerpt_fingerprint"] = excerpt_fingerprint
-            if isinstance(doc_identity_fingerprint, str) and doc_identity_fingerprint:
-                normalized_provenance["doc_identity_fingerprint"] = doc_identity_fingerprint
-            normalized_provenance["retrieval_backend"] = retrieval_backend
-            normalized_provenance["retrieval_mode"] = retrieval_mode
-            normalized_provenance["retrieval_policy"] = copy.deepcopy(retrieval_policy)
-            normalized_provenance["retrieval_source_strategy"] = source_strategy
-            normalized_provenance["lookup_resolution"] = lookup_resolution
-            normalized_provenance["excerpt_lookup_fingerprint"] = excerpt_lookup_fingerprint
-            if isinstance(normalized.get("basket_promotion_count"), int):
-                normalized_provenance["basket_promotion_count"] = normalized["basket_promotion_count"]
-            if isinstance(normalized.get("basket_promotion_ready"), bool):
-                normalized_provenance["basket_promotion_ready"] = normalized["basket_promotion_ready"]
-            if isinstance(normalized.get("basket_item_fingerprint"), str):
-                normalized_provenance["basket_item_fingerprint"] = normalized["basket_item_fingerprint"]
-            normalized["provenance"] = normalized_provenance
+        normalized_provenance = {
+            **provenance,
+            "source_strategy": source_strategy,
+        }
+        excerpt_id_value = normalized.get("excerpt_id")
+        if isinstance(excerpt_id_value, str) and excerpt_id_value:
+            normalized_provenance["excerpt_id"] = excerpt_id_value
+        if doc_id_value is not None:
+            normalized_provenance["doc_id"] = doc_id_value
+        if isinstance(source_hash, str) and source_hash:
+            normalized_provenance["source_hash"] = source_hash
+        if isinstance(doc_type, str) and doc_type:
+            normalized_provenance["doc_type"] = doc_type
+        if title_hint is not None:
+            normalized_provenance["title_hint"] = title_hint
+        if canonical_span is not None:
+            normalized_provenance["span"] = canonical_span
+        normalized_provenance["text_hash"] = text_hash
+        if isinstance(text_hash, str) and text_hash:
+            normalized_provenance["hash"] = text_hash
+            normalized_provenance["excerpt_text_hash"] = text_hash
+        normalized_provenance["excerpt_fingerprint"] = excerpt_fingerprint
+        if isinstance(doc_identity_fingerprint, str) and doc_identity_fingerprint:
+            normalized_provenance["doc_identity_fingerprint"] = doc_identity_fingerprint
+        normalized_provenance["retrieval_backend"] = retrieval_backend
+        normalized_provenance["retrieval_mode"] = retrieval_mode
+        normalized_provenance["retrieval_policy"] = copy.deepcopy(retrieval_policy)
+        normalized_provenance["retrieval_source_strategy"] = source_strategy
+        normalized_provenance["lookup_resolution"] = lookup_resolution
+        normalized_provenance["excerpt_lookup_fingerprint"] = excerpt_lookup_fingerprint
+        if isinstance(normalized.get("basket_promotion_count"), int):
+            normalized_provenance["basket_promotion_count"] = normalized["basket_promotion_count"]
+        if isinstance(normalized.get("basket_promotion_ready"), bool):
+            normalized_provenance["basket_promotion_ready"] = normalized["basket_promotion_ready"]
+        if isinstance(normalized.get("basket_item_fingerprint"), str):
+            normalized_provenance["basket_item_fingerprint"] = normalized["basket_item_fingerprint"]
+        normalized["provenance"] = normalized_provenance
         return normalized
 
     def _excerpt_lookup_basket_promotion_item(
