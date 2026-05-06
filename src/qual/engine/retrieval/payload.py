@@ -213,6 +213,7 @@ def _normalize_basket_promotion_items(items: list[object]) -> list[object]:
                     continue
                 seen_item_ids.add(item_id)
                 item_snapshot.setdefault("item_id", item_id)
+                item_snapshot.setdefault("basket_item_id", item_id)
             item_snapshot["source_strategy"] = _fts_source_strategy_from_values(
                 item_snapshot.get("source_strategy"),
                 item_snapshot.get("retrieval_source_strategy"),
