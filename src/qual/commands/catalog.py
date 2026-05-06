@@ -6437,13 +6437,15 @@ def command_demo_readiness_handoff_packet(
         branch_name="codex/feat-commands",
         scope_completed=(
             "CLI compatibility and migration-safe entrypoints for the engine-first "
-            "open, retrieval, patch-review, and persist demo loop."
+            "open, retrieval, patch-review, and persist demo loop, with a deterministic "
+            "trusted-loop payload for handoff smoke checks."
         ),
         tasks_completed=(
             "1. Kept project/document open reachable through the bootstrap command.",
             "2. Kept retrieval and basket promotion reachable through the context-basket command.",
             "3. Kept revision, apply, and reject review reachable through the diff-preview command.",
             "4. Kept persist-and-continue handoff reachable through the terminal command.",
+            "5. Exposed the trusted command loop as deterministic payload and JSON surfaces.",
         ),
         files_changed=("src/qual/commands/**",),
         commands_run=tuple(
@@ -7599,6 +7601,45 @@ def command_demo_trusted_loop_summary(
         contract.missing_flow_steps,
         contract.missing_engine_actions,
         contract.invalid_argv,
+    )
+
+
+def command_demo_trusted_loop_payload(
+    specs: tuple[CommandSpec, ...] = COMMAND_SPECS,
+    launcher_argv: tuple[str, ...] = COMMAND_SMOKE_CLI_LAUNCHER_ARGV,
+) -> dict[str, object]:
+    contract = command_demo_trusted_loop_contract(specs, launcher_argv)
+    return {
+        "fingerprint_algorithm": contract.fingerprint_algorithm,
+        "fingerprint_digest": contract.fingerprint_digest,
+        "is_complete": contract.is_complete,
+        "missing_flow_steps": contract.missing_flow_steps,
+        "missing_engine_actions": contract.missing_engine_actions,
+        "invalid_argv": contract.invalid_argv,
+        "steps": [
+            {
+                "ordinal": step.ordinal,
+                "demo_path_step": step.demo_path_step,
+                "flow_step": step.flow_step,
+                "command": step.name,
+                "command_line": step.command_line,
+                "engine_actions": step.engine_actions,
+                "exact_action_lines": step.exact_action_lines,
+                "ready": step.ready,
+            }
+            for step in contract.steps
+        ],
+    }
+
+
+def command_demo_trusted_loop_json(
+    specs: tuple[CommandSpec, ...] = COMMAND_SPECS,
+    launcher_argv: tuple[str, ...] = COMMAND_SMOKE_CLI_LAUNCHER_ARGV,
+) -> str:
+    return json.dumps(
+        command_demo_trusted_loop_payload(specs, launcher_argv),
+        sort_keys=True,
+        separators=(",", ":"),
     )
 
 
@@ -15582,6 +15623,20 @@ def command_mvp_demo_trusted_loop_summary(
     tuple[tuple[str, ...], ...],
 ]:
     return command_demo_trusted_loop_summary(specs, launcher_argv)
+
+
+def command_mvp_demo_trusted_loop_payload(
+    specs: tuple[CommandSpec, ...] = COMMAND_SPECS,
+    launcher_argv: tuple[str, ...] = COMMAND_SMOKE_CLI_LAUNCHER_ARGV,
+) -> dict[str, object]:
+    return command_demo_trusted_loop_payload(specs, launcher_argv)
+
+
+def command_mvp_demo_trusted_loop_json(
+    specs: tuple[CommandSpec, ...] = COMMAND_SPECS,
+    launcher_argv: tuple[str, ...] = COMMAND_SMOKE_CLI_LAUNCHER_ARGV,
+) -> str:
+    return command_demo_trusted_loop_json(specs, launcher_argv)
 
 
 def command_mvp_demo_readiness_handoff_step_status_payload(

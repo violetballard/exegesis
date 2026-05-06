@@ -110,6 +110,8 @@ from src.qual.commands.catalog import (
     command_mvp_demo_readiness_verification_payload as _readiness_verification_payload,
     command_mvp_demo_readiness_verification_summary as _readiness_verification_summary,
     command_mvp_demo_trusted_loop_contract as _trusted_loop_contract,
+    command_mvp_demo_trusted_loop_json as _trusted_loop_json,
+    command_mvp_demo_trusted_loop_payload as _trusted_loop_payload,
     command_mvp_demo_trusted_loop_summary as _trusted_loop_summary,
     command_demo_readiness_handoff_action_contract as _readiness_handoff_action_contract,
     command_mvp_demo_readiness_handoff_action_summary as _readiness_handoff_action_summary,
@@ -551,6 +553,8 @@ __all__ = [
     "canonical_command_readiness_verification_json",
     "canonical_command_trusted_loop_contract",
     "canonical_command_trusted_loop_summary",
+    "canonical_command_trusted_loop_payload",
+    "canonical_command_trusted_loop_json",
     "canonical_command_surface_readiness_contract",
     "canonical_command_surface_readiness_json",
     "canonical_command_surface_readiness_payload",
@@ -1730,6 +1734,14 @@ def canonical_command_trusted_loop_summary() -> tuple[
     tuple[tuple[str, ...], ...],
 ]:
     return _trusted_loop_summary()
+
+
+def canonical_command_trusted_loop_payload() -> dict[str, object]:
+    return _trusted_loop_payload()
+
+
+def canonical_command_trusted_loop_json() -> str:
+    return _trusted_loop_json()
 
 
 def canonical_command_readiness_handoff_step_status_payload() -> dict[str, object]:
