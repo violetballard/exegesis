@@ -646,6 +646,14 @@ class UnifiedRetrievalTests(unittest.TestCase):
             result.result_fingerprint,
         )
         self.assertEqual(
+            payload["basket_promotion_items"][0]["basket_item_id"],
+            payload["basket_promotion_items"][0]["item_id"],
+        )
+        self.assertEqual(
+            payload["retrieval_evidence"]["basket_promotion_items"][0]["basket_item_id"],
+            payload["retrieval_evidence"]["basket_promotion_items"][0]["item_id"],
+        )
+        self.assertEqual(
             payload["retrieval_evidence"]["basket_promotion_items"][0]["doc_identity_fingerprint"],
             result.hits[0].provenance["doc_identity_fingerprint"],
         )
@@ -1371,6 +1379,7 @@ class UnifiedRetrievalTests(unittest.TestCase):
         basket_item = canonical["basket_promotion_item"]
         self.assertEqual(canonical["basket_item_id"], excerpt_id)
         self.assertEqual(basket_item["item_id"], excerpt_id)
+        self.assertEqual(basket_item["basket_item_id"], excerpt_id)
         self.assertEqual(basket_item["item_type"], "excerpt")
         self.assertEqual(basket_item["doc_id"], canonical["doc_id"])
         self.assertEqual(basket_item["doc_type"], canonical["doc_type"])
@@ -2651,6 +2660,10 @@ class UnifiedRetrievalTests(unittest.TestCase):
         self.assertEqual(direct["basket_promotion_count"], len(result.basket_promotion_items()))
         self.assertEqual(direct["basket_promotion_ready"], True)
         self.assertEqual(direct["basket_item_ids"], [item["item_id"] for item in result.basket_promotion_items()])
+        self.assertEqual(
+            [item["basket_item_id"] for item in direct["basket_promotion_items"]],
+            [item["item_id"] for item in result.basket_promotion_items()],
+        )
         self.assertEqual(
             direct["basket_item_fingerprints"],
             [item["basket_item_fingerprint"] for item in result.basket_promotion_items()],

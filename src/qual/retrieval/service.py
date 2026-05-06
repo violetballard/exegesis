@@ -469,6 +469,7 @@ class RetrievalResult:
             "citation_status": citation_status,
             "doc_count": len(self.doc_hits),
             "excerpt_count": len(self.hits),
+            "basket_promotion_items": copy.deepcopy(basket_promotion_items),
             "basket_promotion_count": basket_promotion_count,
             "basket_promotion_ready": basket_promotion_count > 0,
             "basket_item_ids": [str(item["item_id"]) for item in basket_promotion_items],
@@ -598,6 +599,7 @@ class RetrievalResult:
                 continue
             item = {
                 "item_id": hit.excerpt_id,
+                "basket_item_id": hit.excerpt_id,
                 "item_type": "excerpt",
                 "doc_id": hit.doc_id,
                 "doc_type": hit.provenance.get("doc_type"),
@@ -1761,6 +1763,7 @@ class RetrievalService:
         basket_promotion_items = [
             self._with_basket_item_fingerprint({
                 "item_id": item["excerpt_id"],
+                "basket_item_id": item["excerpt_id"],
                 "item_type": "excerpt",
                 "doc_id": item["doc_id"],
                 "doc_type": item["doc_type"],
@@ -2475,6 +2478,7 @@ class RetrievalService:
             return None
         item = {
             "item_id": excerpt_id,
+            "basket_item_id": excerpt_id,
             "item_type": "excerpt",
             "doc_id": doc_id,
             "doc_type": doc_type,
