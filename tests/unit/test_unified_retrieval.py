@@ -657,6 +657,22 @@ class UnifiedRetrievalTests(unittest.TestCase):
             payload["retrieval_evidence"]["basket_promotion_items"][0]["doc_identity_fingerprint"],
             result.hits[0].provenance["doc_identity_fingerprint"],
         )
+        self.assertEqual(
+            payload["retrieval_evidence"]["excerpt_citations"][0]["doc_rank"],
+            result.doc_hits[0].provenance["doc_rank"],
+        )
+        self.assertEqual(
+            payload["retrieval_citation_bundle"]["excerpt_citations"][0]["doc_rank"],
+            result.doc_hits[0].provenance["doc_rank"],
+        )
+        self.assertEqual(
+            payload["basket_promotion_items"][0]["doc_rank"],
+            result.doc_hits[0].provenance["doc_rank"],
+        )
+        self.assertEqual(
+            payload["retrieval_evidence"]["basket_promotion_items"][0]["doc_rank"],
+            result.doc_hits[0].provenance["doc_rank"],
+        )
         self.assertEqual(payload["retrieval_citation_bundle"]["doc_citations"][0]["source_hash"], result.doc_hits[0].source_hash)
         self.assertEqual(
             payload["retrieval_citation_bundle"]["doc_citations"][0]["query_fingerprint"],
@@ -2372,6 +2388,7 @@ class UnifiedRetrievalTests(unittest.TestCase):
             basket_items[0]["excerpt_lookup_fingerprint"],
             result.hits[0].provenance["excerpt_lookup_fingerprint"],
         )
+        self.assertEqual(basket_items[0]["doc_rank"], result.doc_hits[0].provenance["doc_rank"])
         self.assertTrue(basket_items[0]["basket_item_fingerprint"])
 
     def test_retrieval_context_bundle_helper_backfills_sparse_basket_fingerprints(self) -> None:
@@ -2488,11 +2505,14 @@ class UnifiedRetrievalTests(unittest.TestCase):
         sparse_context_bundle = json.loads(json.dumps(result.retrieval_context_bundle()))
         baseline_items = result.basket_promotion_items()
         expected_ids = [str(item["item_id"]) for item in baseline_items]
+        item_id_only = copy.deepcopy(baseline_items[0])
+        item_id_only.pop("basket_item_id")
         basket_item_id_only = copy.deepcopy(baseline_items[0])
         basket_item_id_only["basket_item_id"] = basket_item_id_only["item_id"]
         basket_item_id_only.pop("item_id")
         basket_item_id_only.pop("excerpt_id")
         duplicate_items = [
+            item_id_only,
             basket_item_id_only,
             copy.deepcopy(baseline_items[0]),
             *copy.deepcopy(baseline_items),
@@ -2921,6 +2941,11 @@ class UnifiedRetrievalTests(unittest.TestCase):
                     "excerpt_text_hash": item["provenance"]["excerpt_text_hash"],
                     "query_fingerprint": payload["retrieval_summary"]["query_fingerprint"],
                     "result_fingerprint": payload["retrieval_summary"]["result_fingerprint"],
+                    "doc_rank": next(
+                        doc["provenance"]["doc_rank"]
+                        for doc in payload["doc_hits"]
+                        if doc["doc_id"] == item["doc_id"]
+                    ),
                     "rank": item["provenance"]["rank"],
                     "span": item["provenance"]["span"],
                     "match_count": item["provenance"]["match_count"],

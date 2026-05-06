@@ -171,6 +171,9 @@ def _basket_item_fingerprint(item: dict[str, object]) -> str:
             "excerpt_lookup_fingerprint": item.get("excerpt_lookup_fingerprint"),
             "excerpt_text_hash": item.get("excerpt_text_hash"),
             "span": item.get("span"),
+            "doc_rank": item.get("doc_rank"),
+            "rank": item.get("rank"),
+            "fts_rank": item.get("fts_rank"),
             "source_strategy": item.get("source_strategy"),
             "retrieval_backend": item.get("retrieval_backend"),
             "retrieval_mode": item.get("retrieval_mode"),
@@ -210,6 +213,7 @@ def _normalize_basket_promotion_items(items: list[object]) -> list[object]:
                     continue
                 seen_item_ids.add(item_id)
                 item_snapshot.setdefault("item_id", item_id)
+                item_snapshot.setdefault("basket_item_id", item_id)
             item_snapshot["source_strategy"] = _fts_source_strategy_from_values(
                 item_snapshot.get("source_strategy"),
                 item_snapshot.get("retrieval_source_strategy"),
