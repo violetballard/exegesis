@@ -182,6 +182,10 @@ from src.qual.commands.catalog import (
     command_mvp_demo_readiness_exact_action_entry_for_argv as _readiness_exact_action_entry_for_argv,
     command_mvp_demo_readiness_exact_action_contract as _readiness_exact_action_contract,
     command_mvp_demo_readiness_exact_action_summary as _readiness_exact_action_summary,
+    command_mvp_demo_readiness_exact_action_route_lookup_table
+    as _readiness_exact_action_route_lookup_table,
+    command_mvp_demo_readiness_exact_action_route_summary
+    as _readiness_exact_action_route_summary,
     command_mvp_demo_readiness_exact_action_script_contract
     as _readiness_exact_action_script_contract,
     command_mvp_demo_readiness_exact_action_script_summary
@@ -436,6 +440,8 @@ __all__ = [
     "canonical_command_engine_actions_for_argv",
     "canonical_command_engine_actions_for_flow_step",
     "canonical_command_exact_action_lines_for_demo_path_step",
+    "canonical_command_exact_action_route_lookup_table",
+    "canonical_command_exact_action_route_summary",
     "canonical_command_flow_step",
     "canonical_command_flow_step_for_demo_path_step",
     "canonical_command_flow_step_for_argv",
@@ -1453,3 +1459,14 @@ def canonical_command_exact_action_lines_for_demo_path_step(
     demo_path_step: str,
 ) -> tuple[tuple[str, str], ...]:
     return _readiness_exact_action_lines_for_demo_path_step(demo_path_step)
+
+
+def canonical_command_exact_action_route_summary() -> tuple[
+    tuple[str, str, str, str, tuple[str, ...], str],
+    ...,
+]:
+    return _readiness_exact_action_route_summary()
+
+
+def canonical_command_exact_action_route_lookup_table() -> tuple[tuple[str, str], ...]:
+    return _readiness_exact_action_route_lookup_table()

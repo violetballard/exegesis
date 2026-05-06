@@ -676,6 +676,22 @@ class CommandDemoReadinessCommandTraceContract:
 
 
 @dataclass(frozen=True)
+class CommandDemoReadinessExactActionRouteEntry:
+    engine_action: str
+    demo_path_step: str
+    flow_step: str
+    name: str
+    cli_tokens: tuple[str, ...]
+    command_argv: tuple[str, ...]
+    command_line: str
+
+
+@dataclass(frozen=True)
+class CommandDemoReadinessExactActionRouteContract:
+    entries: tuple[CommandDemoReadinessExactActionRouteEntry, ...]
+
+
+@dataclass(frozen=True)
 class CommandDemoCommandReadinessEntry:
     ordinal: int
     demo_path_step: str
@@ -5668,6 +5684,118 @@ def command_demo_readiness_handoff_audit_summary(
 
 
 @lru_cache(maxsize=None)
+def command_demo_readiness_exact_action_route_contract(
+    specs: tuple[CommandSpec, ...] = COMMAND_SPECS,
+    launcher_argv: tuple[str, ...] = COMMAND_SMOKE_CLI_LAUNCHER_ARGV,
+) -> CommandDemoReadinessExactActionRouteContract:
+    routes_by_flow_step = {
+        route.flow_step: route
+        for route in command_demo_readiness_route_contract(specs, launcher_argv).entries
+    }
+    entries: list[CommandDemoReadinessExactActionRouteEntry] = []
+    for engine_action in command_demo_engine_actions(specs):
+        action_entry = command_demo_readiness_action_entry(engine_action, specs, launcher_argv)
+        if action_entry is None:
+            raise ValueError(f"Command demo readiness exact action is not routeable: {engine_action}")
+        route = routes_by_flow_step.get(action_entry.flow_step)
+        if route is None:
+            raise ValueError(f"Command demo readiness exact action route is missing: {engine_action}")
+        command_argv = command_demo_readiness_exact_argv_for_engine_action(
+            engine_action,
+            specs,
+            launcher_argv,
+        )
+        command_line = command_demo_readiness_exact_line_for_engine_action(
+            engine_action,
+            specs,
+            launcher_argv,
+        )
+        entries.append(
+            CommandDemoReadinessExactActionRouteEntry(
+                engine_action=engine_action,
+                demo_path_step=action_entry.demo_path_step,
+                flow_step=action_entry.flow_step,
+                name=action_entry.name,
+                cli_tokens=route.cli_tokens,
+                command_argv=command_argv,
+                command_line=command_line,
+            )
+        )
+    contract = CommandDemoReadinessExactActionRouteContract(entries=tuple(entries))
+    _validate_command_demo_readiness_exact_action_route_contract(
+        contract,
+        specs,
+        launcher_argv,
+    )
+    return contract
+
+
+def _validate_command_demo_readiness_exact_action_route_contract(
+    contract: CommandDemoReadinessExactActionRouteContract,
+    specs: tuple[CommandSpec, ...],
+    launcher_argv: tuple[str, ...],
+) -> None:
+    if tuple(entry.engine_action for entry in contract.entries) != command_demo_engine_actions(specs):
+        raise ValueError("Command demo readiness exact action route actions are inconsistent")
+    seen_actions: set[str] = set()
+    for entry in contract.entries:
+        if entry.engine_action in seen_actions:
+            raise ValueError(f"Duplicate command demo readiness exact action: {entry.engine_action}")
+        seen_actions.add(entry.engine_action)
+        action_entry = command_demo_readiness_action_entry(entry.engine_action, specs, launcher_argv)
+        if action_entry is None:
+            raise ValueError(f"Command demo readiness exact action is not configured: {entry.engine_action}")
+        if entry.demo_path_step != action_entry.demo_path_step:
+            raise ValueError(f"Command demo readiness exact action path is inconsistent: {entry.engine_action}")
+        if entry.flow_step != action_entry.flow_step:
+            raise ValueError(f"Command demo readiness exact action flow is inconsistent: {entry.engine_action}")
+        if entry.name != action_entry.name:
+            raise ValueError(f"Command demo readiness exact action command is inconsistent: {entry.engine_action}")
+        if not entry.command_argv or not entry.command_line:
+            raise ValueError(f"Command demo readiness exact action line is missing: {entry.engine_action}")
+        if _shell_join(entry.command_argv) != entry.command_line:
+            raise ValueError(f"Command demo readiness exact action line is inconsistent: {entry.engine_action}")
+        validation = command_demo_readiness_validate_cli_argv(entry.command_argv, specs, launcher_argv)
+        if not validation.is_cli_entrypoint or validation.exact_engine_action != entry.engine_action:
+            raise ValueError(f"Command demo readiness exact action is not CLI-routeable: {entry.engine_action}")
+        if entry.flow_step != validation.flow_step or entry.name != validation.name:
+            raise ValueError(f"Command demo readiness exact action validation drifted: {entry.engine_action}")
+
+
+def command_demo_readiness_exact_action_route_summary(
+    specs: tuple[CommandSpec, ...] = COMMAND_SPECS,
+    launcher_argv: tuple[str, ...] = COMMAND_SMOKE_CLI_LAUNCHER_ARGV,
+) -> tuple[tuple[str, str, str, str, tuple[str, ...], str], ...]:
+    return tuple(
+        (
+            entry.engine_action,
+            entry.demo_path_step,
+            entry.flow_step,
+            entry.name,
+            entry.cli_tokens,
+            entry.command_line,
+        )
+        for entry in command_demo_readiness_exact_action_route_contract(
+            specs,
+            launcher_argv,
+        ).entries
+    )
+
+
+def command_demo_readiness_exact_action_route_lookup_table(
+    specs: tuple[CommandSpec, ...] = COMMAND_SPECS,
+    launcher_argv: tuple[str, ...] = COMMAND_SMOKE_CLI_LAUNCHER_ARGV,
+) -> tuple[tuple[str, str], ...]:
+    return tuple(
+        (entry.engine_action, entry.command_line)
+        for entry in command_demo_readiness_exact_action_route_contract(
+            specs,
+            launcher_argv,
+        ).entries
+    )
+
+
+@lru_cache(maxsize=None)
 def command_demo_readiness_action_sequence_contract(
     specs: tuple[CommandSpec, ...] = COMMAND_SPECS,
     launcher_argv: tuple[str, ...] = COMMAND_SMOKE_CLI_LAUNCHER_ARGV,
@@ -10158,6 +10286,27 @@ def command_mvp_demo_readiness_handoff_audit_summary(
     tuple[str, ...],
 ]:
     return command_demo_readiness_handoff_audit_summary(specs, launcher_argv)
+
+
+def command_mvp_demo_readiness_exact_action_route_contract(
+    specs: tuple[CommandSpec, ...] = COMMAND_SPECS,
+    launcher_argv: tuple[str, ...] = COMMAND_SMOKE_CLI_LAUNCHER_ARGV,
+) -> CommandDemoReadinessExactActionRouteContract:
+    return command_demo_readiness_exact_action_route_contract(specs, launcher_argv)
+
+
+def command_mvp_demo_readiness_exact_action_route_summary(
+    specs: tuple[CommandSpec, ...] = COMMAND_SPECS,
+    launcher_argv: tuple[str, ...] = COMMAND_SMOKE_CLI_LAUNCHER_ARGV,
+) -> tuple[tuple[str, str, str, str, tuple[str, ...], str], ...]:
+    return command_demo_readiness_exact_action_route_summary(specs, launcher_argv)
+
+
+def command_mvp_demo_readiness_exact_action_route_lookup_table(
+    specs: tuple[CommandSpec, ...] = COMMAND_SPECS,
+    launcher_argv: tuple[str, ...] = COMMAND_SMOKE_CLI_LAUNCHER_ARGV,
+) -> tuple[tuple[str, str], ...]:
+    return command_demo_readiness_exact_action_route_lookup_table(specs, launcher_argv)
 
 
 def command_mvp_demo_readiness_seal(
