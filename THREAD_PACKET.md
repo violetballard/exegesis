@@ -160,6 +160,14 @@ Current source-bearing fixer delta:
 
 ## Commands Run
 
+- Reviewer-required final fixer verification pass after this packet evidence edit and before the final metadata-only commit:
+- `make scope-check` - passed for branch `codex/feat-retrieval-fts`.
+- `./quality-format.sh --check` - passed.
+- `./quality-lint.sh` - passed shell syntax and trailing whitespace checks.
+- `./quality-test.sh` - passed smoke tests and 147 unit tests.
+- `./typecheck-test.sh` - passed Python source compilation under `src/`.
+- `make ci` - passed setup, scope-check, format, lint, typecheck, smoke tests, and 147 unit tests.
+
 - Reviewer-required metadata-only packet refresh pass:
 - `make scope-check` - passed for branch `codex/feat-retrieval-fts`; the script reported no specific policy for this branch before the final pass line.
 - `./quality-format.sh --check` - passed.
