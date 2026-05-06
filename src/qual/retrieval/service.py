@@ -1316,6 +1316,12 @@ class RetrievalService:
         for run in runs:
             for hit in run.hits:
                 if isinstance(hit, RetrievalHit):
+                    provenance_source_strategy = hit.provenance.get(
+                        "source_strategy",
+                        hit.provenance.get("retrieval_source_strategy", "fts"),
+                    )
+                    if provenance_source_strategy != "fts":
+                        raise ValueError(f"unsupported retrieval provenance strategy: {provenance_source_strategy}")
                     combined.append(hit)
                     continue
                 if isinstance(hit, dict):
