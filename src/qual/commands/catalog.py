@@ -5480,6 +5480,7 @@ def command_demo_surface_readiness_contract(
         packet,
         routes_by_flow_step,
         launcher_argv,
+        specs,
     )
     return contract
 
@@ -5489,6 +5490,7 @@ def _validate_command_demo_surface_readiness_contract(
     packet: CommandDemoReadinessHandoffPacket,
     routes_by_flow_step: dict[str, CommandDemoReadinessRouteEntry],
     launcher_argv: tuple[str, ...],
+    specs: tuple[CommandSpec, ...],
 ) -> None:
     if contract.launcher_argv != launcher_argv:
         raise ValueError("Command demo surface readiness launcher is inconsistent")
