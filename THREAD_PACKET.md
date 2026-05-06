@@ -26,13 +26,27 @@ SQLite FTS remains the required MVP retrieval path. PageIndex and embeddings rem
 
 The branch hardens deterministic FTS retrieval behavior across cache keys, fresh-run cache snapshots, query snapshots, result payloads, excerpt lookup, citation/provenance bundles, evidence snapshots, sparse bundle rehydration, date-range propagation, and shortlist query fingerprints.
 
-Canonical demo-path mapping: `vault/context material -> FTS retrieval -> retrieval evidence -> context basket promotion -> engine revise/apply`. This advances `retrieve relevant material` by producing deterministic, auditable FTS evidence, and supports `promote or gather context into the basket` by preserving rehydratable source, context, citation, provenance, and basket-promotion bundles.
+Canonical demo-path mapping: `vault/context material -> FTS retrieval -> retrieval evidence -> context basket promotion -> engine revise/apply`. This advances `retrieve relevant material` by producing deterministic, auditable FTS evidence, and supports `promote or gather context into the basket` by preserving rehydratable source, context, citation, provenance, and the named `retrieval_basket_promotion_bundle`.
+
+## Current Fixer Pass Addendum
+
+This pass makes the basket-promotion contract explicit in code. `RetrievalResult.retrieval_basket_promotion_bundle()` now emits deterministic FTS excerpt promotion items with doc/excerpt ids, text, spans, ranks, hashes, fingerprints, matched terms, source strategy, backend, and mode. The downstream payload, source bundle, and context bundle now preserve and rehydrate that named bundle through the engine retrieval payload helpers.
+
+Current pass files changed:
+
+- `M THREAD_PACKET.md`
+- `M src/qual/engine/retrieval/payload.py`
+- `M src/qual/retrieval/service.py`
+
+Current pass task count: `1` meaningful task group, within the high-risk `4` task cap.
+Current pass size: `2` source files changed, `145` source insertions before this packet edit; within the high-risk `<=8` files and `<=300` net LOC limits for this pass.
+Shared/integrator-locked impact this pass: none; no test or integrator-locked files were edited.
 
 ## Tasks Completed
 
 1. Made SQLite FTS the authoritative MVP retrieval path while keeping PageIndex and embeddings fallback-only/deferred.
 2. Stabilized FTS cache and query normalization for query-shaped objects, dataclasses, mappings, iterables, date ranges, shortlist queries, fingerprints, doc types, scopes, boolean constraints, fresh runner output, cache invalidation, and cache audit metadata.
-3. Normalized retrieval payload, provenance, citation, source-bundle, context-bundle, basket-promotion, and evidence snapshots so sparse downstream helpers can rehydrate FTS-first payloads without losing constraints, fingerprints, ranks, identities, policies, section hints, or confidentiality profile metadata.
+3. Normalized retrieval payload, provenance, citation, source-bundle, context-bundle, basket-promotion, and evidence snapshots so sparse downstream helpers can rehydrate FTS-first payloads without losing constraints, fingerprints, ranks, identities, policies, section hints, promotion items, or confidentiality profile metadata.
 4. Added fail-closed retrieval boundary coverage for malformed or reversed date ranges, empty query/scope inputs, unresolved `doc:` and `collection:` scopes, FTS-only excerpt lookup, excerpt lookup fingerprints, and cache/query snapshot behavior.
 
 ## Files Changed
@@ -74,6 +88,7 @@ The protected `.codex/kickoff_packets/feat-retrieval-fts.md` and `.codex/lane_me
 
 Required gates rerun for this final merge candidate:
 
+- `python -m unittest tests.unit.test_unified_retrieval` - passed 60 focused retrieval tests.
 - `make scope-check` - passed for branch `codex/feat-retrieval-fts`.
 - `./quality-format.sh --check` - passed.
 - `./quality-lint.sh` - passed shell syntax and trailing whitespace checks.
