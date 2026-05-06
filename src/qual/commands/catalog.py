@@ -11282,6 +11282,56 @@ def command_demo_readiness_next_action_summary(
     )
 
 
+def _command_demo_readiness_next_action_payload(
+    next_action: CommandDemoReadinessNextAction,
+) -> dict[str, object]:
+    validation = next_action.validation
+    return {
+        "is_complete": next_action.is_complete,
+        "next_engine_action": next_action.next_engine_action,
+        "next_demo_path_step": next_action.next_demo_path_step,
+        "next_flow_step": next_action.next_flow_step,
+        "next_command_line": next_action.next_command_line,
+        "next_exact_action_line": next_action.next_exact_action_line,
+        "remaining_engine_actions": next_action.remaining_engine_actions,
+        "remaining_exact_action_lines": next_action.remaining_exact_action_lines,
+        "invalid_argv": next_action.invalid_argv,
+        "validation": {
+            "requested_argv": validation.requested_argv,
+            "canonical_argv": validation.canonical_argv,
+            "command_lines": validation.command_lines,
+            "covered_flow_steps": validation.covered_flow_steps,
+            "missing_flow_steps": validation.missing_flow_steps,
+            "covered_engine_actions": validation.covered_engine_actions,
+            "missing_engine_actions": validation.missing_engine_actions,
+            "invalid_argv": validation.invalid_argv,
+            "is_complete": validation.is_complete,
+        },
+    }
+
+
+def command_demo_readiness_next_action_payload(
+    argvs: Sequence[Sequence[str] | str],
+    specs: tuple[CommandSpec, ...] = COMMAND_SPECS,
+    launcher_argv: tuple[str, ...] = COMMAND_SMOKE_CLI_LAUNCHER_ARGV,
+) -> dict[str, object]:
+    return _command_demo_readiness_next_action_payload(
+        command_demo_readiness_next_action(argvs, specs, launcher_argv)
+    )
+
+
+def command_demo_readiness_next_action_json(
+    argvs: Sequence[Sequence[str] | str],
+    specs: tuple[CommandSpec, ...] = COMMAND_SPECS,
+    launcher_argv: tuple[str, ...] = COMMAND_SMOKE_CLI_LAUNCHER_ARGV,
+) -> str:
+    return json.dumps(
+        command_demo_readiness_next_action_payload(argvs, specs, launcher_argv),
+        sort_keys=True,
+        separators=(",", ":"),
+    )
+
+
 def command_demo_readiness_next_command_argv(
     argvs: Sequence[Sequence[str] | str],
     specs: tuple[CommandSpec, ...] = COMMAND_SPECS,
@@ -11340,6 +11390,30 @@ def command_demo_readiness_shell_next_action_summary(
     tuple[tuple[str, ...], ...],
 ]:
     return command_demo_readiness_next_action_summary(
+        _shell_script_executable_argv(lines),
+        specs,
+        launcher_argv,
+    )
+
+
+def command_demo_readiness_shell_next_action_payload(
+    lines: Sequence[str] | str,
+    specs: tuple[CommandSpec, ...] = COMMAND_SPECS,
+    launcher_argv: tuple[str, ...] = COMMAND_SMOKE_CLI_LAUNCHER_ARGV,
+) -> dict[str, object]:
+    return command_demo_readiness_next_action_payload(
+        _shell_script_executable_argv(lines),
+        specs,
+        launcher_argv,
+    )
+
+
+def command_demo_readiness_shell_next_action_json(
+    lines: Sequence[str] | str,
+    specs: tuple[CommandSpec, ...] = COMMAND_SPECS,
+    launcher_argv: tuple[str, ...] = COMMAND_SMOKE_CLI_LAUNCHER_ARGV,
+) -> str:
+    return command_demo_readiness_next_action_json(
         _shell_script_executable_argv(lines),
         specs,
         launcher_argv,
@@ -11697,6 +11771,22 @@ def command_mvp_demo_readiness_next_action_summary(
     return command_demo_readiness_next_action_summary(argvs, specs, launcher_argv)
 
 
+def command_mvp_demo_readiness_next_action_payload(
+    argvs: Sequence[Sequence[str] | str],
+    specs: tuple[CommandSpec, ...] = COMMAND_SPECS,
+    launcher_argv: tuple[str, ...] = COMMAND_SMOKE_CLI_LAUNCHER_ARGV,
+) -> dict[str, object]:
+    return command_demo_readiness_next_action_payload(argvs, specs, launcher_argv)
+
+
+def command_mvp_demo_readiness_next_action_json(
+    argvs: Sequence[Sequence[str] | str],
+    specs: tuple[CommandSpec, ...] = COMMAND_SPECS,
+    launcher_argv: tuple[str, ...] = COMMAND_SMOKE_CLI_LAUNCHER_ARGV,
+) -> str:
+    return command_demo_readiness_next_action_json(argvs, specs, launcher_argv)
+
+
 def command_mvp_demo_readiness_next_command_argv(
     argvs: Sequence[Sequence[str] | str],
     specs: tuple[CommandSpec, ...] = COMMAND_SPECS,
@@ -11737,6 +11827,22 @@ def command_mvp_demo_readiness_shell_next_action_summary(
     tuple[tuple[str, ...], ...],
 ]:
     return command_demo_readiness_shell_next_action_summary(lines, specs, launcher_argv)
+
+
+def command_mvp_demo_readiness_shell_next_action_payload(
+    lines: Sequence[str] | str,
+    specs: tuple[CommandSpec, ...] = COMMAND_SPECS,
+    launcher_argv: tuple[str, ...] = COMMAND_SMOKE_CLI_LAUNCHER_ARGV,
+) -> dict[str, object]:
+    return command_demo_readiness_shell_next_action_payload(lines, specs, launcher_argv)
+
+
+def command_mvp_demo_readiness_shell_next_action_json(
+    lines: Sequence[str] | str,
+    specs: tuple[CommandSpec, ...] = COMMAND_SPECS,
+    launcher_argv: tuple[str, ...] = COMMAND_SMOKE_CLI_LAUNCHER_ARGV,
+) -> str:
+    return command_demo_readiness_shell_next_action_json(lines, specs, launcher_argv)
 
 
 def command_mvp_demo_readiness_shell_next_command_argv(
