@@ -622,7 +622,10 @@ class RetrievalResult:
                 "matched_terms": copy.deepcopy(hit.provenance.get("matched_terms")),
                 "match_count": hit.provenance.get("match_count"),
                 "source_strategy": hit.source_strategy,
-                "retrieval_source_strategy": hit.source_strategy,
+                "retrieval_source_strategy": hit.provenance.get(
+                    "retrieval_source_strategy",
+                    hit.source_strategy,
+                ),
                 "retrieval_backend": hit.provenance.get("retrieval_backend"),
                 "retrieval_mode": hit.provenance.get("retrieval_mode"),
                 "retrieval_policy": copy.deepcopy(hit.provenance.get("retrieval_policy")),
@@ -688,7 +691,10 @@ class RetrievalResult:
                 "retrieval_backend": doc_hit.provenance.get("retrieval_backend"),
                 "retrieval_mode": doc_hit.provenance.get("retrieval_mode"),
                 "source_strategy": doc_hit.provenance.get("source_strategy"),
-                "retrieval_source_strategy": doc_hit.provenance.get("source_strategy"),
+                "retrieval_source_strategy": doc_hit.provenance.get(
+                    "retrieval_source_strategy",
+                    doc_hit.provenance.get("source_strategy"),
+                ),
             }
             for doc_hit in self.doc_hits
         ]
@@ -717,7 +723,10 @@ class RetrievalResult:
                 "rank": hit.provenance.get("rank"),
                 "span": hit.provenance.get("span"),
                 "source_strategy": hit.provenance.get("source_strategy"),
-                "retrieval_source_strategy": hit.provenance.get("source_strategy"),
+                "retrieval_source_strategy": hit.provenance.get(
+                    "retrieval_source_strategy",
+                    hit.provenance.get("source_strategy"),
+                ),
                 "retrieval_backend": hit.provenance.get("retrieval_backend"),
                 "retrieval_mode": hit.provenance.get("retrieval_mode"),
             }
@@ -1830,7 +1839,10 @@ class RetrievalService:
                 "matched_terms": copy.deepcopy(item.get("matched_terms")),
                 "match_count": item.get("match_count"),
                 "source_strategy": item["source_strategy"],
-                "retrieval_source_strategy": item["source_strategy"],
+                "retrieval_source_strategy": item.get(
+                    "retrieval_source_strategy",
+                    item["source_strategy"],
+                ),
                 "retrieval_backend": item["retrieval_backend"],
                 "retrieval_mode": item["retrieval_mode"],
                 "retrieval_policy": copy.deepcopy(retrieval_policy),
