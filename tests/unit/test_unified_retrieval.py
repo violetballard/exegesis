@@ -2644,6 +2644,44 @@ class UnifiedRetrievalTests(unittest.TestCase):
             result.hits[0].provenance["excerpt_lookup_fingerprint"],
         )
 
+    def test_sparse_provenance_treats_empty_identity_fields_as_missing(self) -> None:
+        result = self.service.retrieve_auto(
+            RetrievalQuery(
+                query_text="memo comparison",
+                scope="vault",
+                intent="compare",
+                constraints=RetrievalConstraints(max_results=4),
+                confidentiality_profile="confidential",
+            )
+        )
+
+        payload = json.loads(json.dumps(result.to_downstream_payload()))
+        provenance = payload["retrieval_provenance"]
+        diagnostics = payload["retrieval_diagnostics"]
+        self.assertIsInstance(provenance, dict)
+        self.assertIsInstance(diagnostics, dict)
+        provenance["query_scope"] = ""
+        provenance["query_intent"] = ""
+        provenance["query_date_range"] = []
+        provenance["result_fingerprint"] = ""
+        provenance["retrieval_backend"] = ""
+        provenance["retrieval_mode"] = ""
+        provenance["candidate_doc_count"] = None
+        provenance["doc_hits_fingerprint"] = ""
+        provenance["excerpt_hits_fingerprint"] = ""
+
+        rebuilt = _build_retrieval_provenance_from_payload(payload)
+
+        self.assertEqual(rebuilt["query_scope"], "vault")
+        self.assertEqual(rebuilt["query_intent"], "compare")
+        self.assertIsNone(rebuilt["query_date_range"])
+        self.assertEqual(rebuilt["result_fingerprint"], result.result_fingerprint)
+        self.assertEqual(rebuilt["retrieval_backend"], "sqlite_fts")
+        self.assertEqual(rebuilt["retrieval_mode"], "fts_first")
+        self.assertEqual(rebuilt["candidate_doc_count"], diagnostics["candidate_doc_count"])
+        self.assertEqual(rebuilt["doc_hits_fingerprint"], diagnostics["doc_hits_fingerprint"])
+        self.assertEqual(rebuilt["excerpt_hits_fingerprint"], diagnostics["excerpt_hits_fingerprint"])
+
     def test_engine_retrieval_tool_returns_canonical_downstream_payload(self) -> None:
         payload = engine_retrieve_auto_payload(
             self.service,

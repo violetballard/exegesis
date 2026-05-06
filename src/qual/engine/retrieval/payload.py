@@ -1469,11 +1469,11 @@ def _build_retrieval_provenance_from_payload(payload: dict[str, object]) -> dict
             diagnostics.get("query_fingerprint"),
             query_fingerprint,
         )
-    if "query_scope" not in normalized:
+    if _is_missing_snapshot_value(normalized.get("query_scope")):
         normalized["query_scope"] = summary.get("query_scope", diagnostics.get("query_scope", query.get("scope")))
-    if "query_intent" not in normalized:
+    if _is_missing_snapshot_value(normalized.get("query_intent")):
         normalized["query_intent"] = summary.get("query_intent", diagnostics.get("query_intent", query.get("intent")))
-    if "query_date_range" not in normalized:
+    if _is_missing_snapshot_value(normalized.get("query_date_range")):
         normalized["query_date_range"] = _normalize_optional_list_like(
             summary.get(
                 "query_date_range",
@@ -1482,11 +1482,11 @@ def _build_retrieval_provenance_from_payload(payload: dict[str, object]) -> dict
         )
     else:
         normalized["query_date_range"] = query_date_range
-    if "result_fingerprint" not in normalized:
+    if _is_missing_snapshot_value(normalized.get("result_fingerprint")):
         normalized["result_fingerprint"] = summary.get("result_fingerprint", diagnostics.get("result_fingerprint"))
-    if "retrieval_backend" not in normalized:
+    if _is_missing_snapshot_value(normalized.get("retrieval_backend")):
         normalized["retrieval_backend"] = summary.get("retrieval_backend", diagnostics.get("retrieval_backend"))
-    if "retrieval_mode" not in normalized:
+    if _is_missing_snapshot_value(normalized.get("retrieval_mode")):
         normalized["retrieval_mode"] = summary.get("retrieval_mode", diagnostics.get("retrieval_mode"))
     if "retrieval_policy" not in normalized:
         normalized["retrieval_policy"] = _normalize_policy_snapshot(
@@ -1506,7 +1506,7 @@ def _build_retrieval_provenance_from_payload(payload: dict[str, object]) -> dict
         )
     else:
         normalized["deferred_strategy_ids"] = _normalize_list_like(normalized["deferred_strategy_ids"])
-    if "candidate_doc_count" not in normalized:
+    if _is_missing_snapshot_value(normalized.get("candidate_doc_count")):
         normalized["candidate_doc_count"] = diagnostics.get("candidate_doc_count")
     if "fts_shortlist_doc_ids" not in normalized:
         normalized["fts_shortlist_doc_ids"] = _normalize_list_like(
@@ -1530,12 +1530,12 @@ def _build_retrieval_provenance_from_payload(payload: dict[str, object]) -> dict
         )
     if "primary_excerpt_text_hash" not in normalized:
         normalized["primary_excerpt_text_hash"] = summary.get("primary_excerpt_text_hash")
-    if "doc_hits_fingerprint" not in normalized:
+    if _is_missing_snapshot_value(normalized.get("doc_hits_fingerprint")):
         normalized["doc_hits_fingerprint"] = summary.get(
             "doc_hits_fingerprint",
             diagnostics.get("doc_hits_fingerprint"),
         )
-    if "excerpt_hits_fingerprint" not in normalized:
+    if _is_missing_snapshot_value(normalized.get("excerpt_hits_fingerprint")):
         normalized["excerpt_hits_fingerprint"] = summary.get(
             "excerpt_hits_fingerprint",
             diagnostics.get("excerpt_hits_fingerprint"),
