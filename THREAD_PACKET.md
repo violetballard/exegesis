@@ -5,8 +5,8 @@
 - Merge target: current `main`
 - Handoff type: high-risk retrieval feature handoff for the FTS-first retrieval lane.
 - Scope classification: high-risk because the actual branch-tip implementation range edits approved shared regression coverage in `tests/unit/test_unified_retrieval.py` and engine retrieval entrypoint/facade code.
-- Reviewed merge-candidate range: `378cf9a..HEAD`
-- Reviewed implementation head before this handoff-only fixer commit: `27323962b4c6b627ecb78ac2b3da0bebe071a309`
+- Reviewed merge-candidate range before this packet-refresh fixer commit: `378cf9a74a3658058079a32f186fcd254c4a4034..32cb26b8f8d90a5346e3bde32fd36292df4def1b`
+- Reviewed branch tip before this packet-refresh fixer commit: `32cb26b8f8d90a5346e3bde32fd36292df4def1b`
 - Final HEAD SHA: reported in the final response after this fixer commit is created.
 - Approved shared-file note: `tests/unit/test_unified_retrieval.py` is approved shared-by-approval regression coverage for this retrieval lane. No integrator-locked files are edited in this handoff.
 
@@ -28,7 +28,7 @@ Canonical demo-path mapping:
 
 ## Files Changed
 
-Reviewed range `378cf9a..HEAD`:
+Reviewed range before this packet-refresh fixer commit `378cf9a74a3658058079a32f186fcd254c4a4034..32cb26b8f8d90a5346e3bde32fd36292df4def1b`:
 
 - `.codex/kickoff_packets/feat-retrieval-fts.md` - lane kickoff packet metadata for the retrieval handoff.
 - `.codex/lane_meta/feat-retrieval-fts.json` - lane metadata consumed by packet automation.
@@ -45,7 +45,7 @@ Shared-by-approval files: `tests/unit/test_unified_retrieval.py`.
 
 ## Diff Evidence
 
-Command: `git diff --stat 378cf9a..HEAD`
+Command: `git diff --stat 378cf9a74a3658058079a32f186fcd254c4a4034..32cb26b8f8d90a5346e3bde32fd36292df4def1b`
 
 ```text
  .codex/kickoff_packets/feat-retrieval-fts.md |  36 +-
@@ -60,7 +60,7 @@ Command: `git diff --stat 378cf9a..HEAD`
  9 files changed, 2647 insertions(+), 277 deletions(-)
 ```
 
-Command: `git diff --name-status 378cf9a..HEAD`
+Command: `git diff --name-status 378cf9a74a3658058079a32f186fcd254c4a4034..32cb26b8f8d90a5346e3bde32fd36292df4def1b`
 
 ```text
 M	.codex/kickoff_packets/feat-retrieval-fts.md
@@ -94,7 +94,7 @@ M	tests/unit/test_unified_retrieval.py
 
 ## Commands Run
 
-- `make scope-check` - passed for branch `codex/feat-retrieval-fts`; repo policy reported no branch-specific policy before passing.
+- `make scope-check` - passed for branch `codex/feat-retrieval-fts`.
 - `./quality-format.sh --check` - passed.
 - `./quality-lint.sh` - passed shell syntax and trailing whitespace checks.
 - `./quality-test.sh` - passed smoke tests and 144 unit tests.
