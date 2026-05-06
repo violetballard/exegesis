@@ -1183,7 +1183,7 @@ class RetrievalService:
             candidate_doc_ids = self._filter_candidate_doc_ids_by_date_range(candidate_doc_ids, date_range)
         effective_candidate_doc_count = self._effective_candidate_doc_count(query.scope, candidate_doc_ids)
         candidate_resolution = self._candidate_resolution_snapshot(
-            query.scope,
+            query,
             candidate_doc_ids=candidate_doc_ids,
             fts_shortlist_doc_ids=fts_shortlist,
         )
@@ -1988,13 +1988,14 @@ class RetrievalService:
             return fallback
         return fallback
 
-    @staticmethod
     def _candidate_resolution_snapshot(
-        scope: str,
+        self,
+        query: RetrievalQuery,
         *,
         candidate_doc_ids: tuple[str, ...],
         fts_shortlist_doc_ids: tuple[str, ...],
     ) -> dict[str, object]:
+        scope = query.scope
         scope_doc_id = RetrievalService._doc_scope_id(scope)
         if scope_doc_id is not None:
             resolution_source = "doc_scope"
@@ -2002,9 +2003,19 @@ class RetrievalService:
             resolution_source = "collection_scope"
         else:
             resolution_source = "fts_shortlist"
+        query_filters = {
+            "doc_types": list(self._normalized_doc_types(query.constraints.doc_types)),
+            "date_range": list(query.constraints.date_range)
+            if query.constraints.date_range is not None
+            else None,
+            "section_hint": query.constraints.section_hint,
+            "prefer_exact_matches": query.constraints.prefer_exact_matches,
+            "require_citations": query.constraints.require_citations,
+        }
         return {
             "scope": scope,
             "resolution_source": resolution_source,
+            "query_filters": query_filters,
             "candidate_doc_ids": list(candidate_doc_ids),
             "candidate_doc_count": len(candidate_doc_ids),
             "fts_shortlist_doc_ids": list(fts_shortlist_doc_ids),
