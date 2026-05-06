@@ -855,6 +855,10 @@ COMMAND_SMOKE_UV_CLI_LAUNCHER_ARGV: tuple[str, ...] = ("uv", "run", "python", "-
 COMMAND_SMOKE_UV_SCRIPT_LAUNCHER_ARGV: tuple[str, ...] = ("uv", "run", "python", "src/main.py")
 COMMAND_SMOKE_UV_CLI_PYTHON3_LAUNCHER_ARGV: tuple[str, ...] = ("uv", "run", "python3", "-m", "src.main")
 COMMAND_SMOKE_UV_SCRIPT_PYTHON3_LAUNCHER_ARGV: tuple[str, ...] = ("uv", "run", "python3", "src/main.py")
+COMMAND_SMOKE_ENV_CLI_LAUNCHER_ARGV: tuple[str, ...] = ("env", "python", "-m", "src.main")
+COMMAND_SMOKE_ENV_SCRIPT_LAUNCHER_ARGV: tuple[str, ...] = ("env", "python", "src/main.py")
+COMMAND_SMOKE_ENV_CLI_PYTHON3_LAUNCHER_ARGV: tuple[str, ...] = ("env", "python3", "-m", "src.main")
+COMMAND_SMOKE_ENV_SCRIPT_PYTHON3_LAUNCHER_ARGV: tuple[str, ...] = ("env", "python3", "src/main.py")
 COMMAND_SMOKE_SUPPORTED_LAUNCHER_ARGV: tuple[tuple[str, ...], ...] = (
     COMMAND_SMOKE_CLI_LAUNCHER_ARGV,
     COMMAND_SMOKE_SCRIPT_LAUNCHER_ARGV,
@@ -864,6 +868,10 @@ COMMAND_SMOKE_SUPPORTED_LAUNCHER_ARGV: tuple[tuple[str, ...], ...] = (
     COMMAND_SMOKE_UV_SCRIPT_LAUNCHER_ARGV,
     COMMAND_SMOKE_UV_CLI_PYTHON3_LAUNCHER_ARGV,
     COMMAND_SMOKE_UV_SCRIPT_PYTHON3_LAUNCHER_ARGV,
+    COMMAND_SMOKE_ENV_CLI_LAUNCHER_ARGV,
+    COMMAND_SMOKE_ENV_SCRIPT_LAUNCHER_ARGV,
+    COMMAND_SMOKE_ENV_CLI_PYTHON3_LAUNCHER_ARGV,
+    COMMAND_SMOKE_ENV_SCRIPT_PYTHON3_LAUNCHER_ARGV,
 )
 COMMAND_SMOKE_SUPPORTED_LAUNCHER_TAILS: tuple[tuple[str, ...], ...] = (
     ("-m", "src.main"),
