@@ -13070,6 +13070,136 @@ class A2UIFallbackSafetyTests(unittest.TestCase):
         with self.assertRaises(ValueError):
             validate_terminal_artifact_cli_fallback_payload(payload)
 
+    def test_action_payload_contract_canonicalizes_engine_identifiers(self) -> None:
+        action = normalize_action_ref(
+            {
+                "id": " apply_patch ",
+                "label": " Apply ",
+                "payload": {"patch_id": " patch-1 "},
+            }
+        )
+        clipboard = normalize_action_ref(
+            {
+                "id": "copy_to_clipboard",
+                "label": "Copy",
+                "payload": {"text": "  keep exact CLI fallback text  "},
+            }
+        )
+        manifest = describe_action_contract()
+
+        self.assertEqual(action.id, "apply_patch")
+        self.assertEqual(action.label, "Apply")
+        self.assertEqual(action.payload, {"patch_id": "patch-1"})
+        self.assertEqual(clipboard.payload, {"text": "  keep exact CLI fallback text  "})
+        self.assertIn(
+            {
+                "id": "apply_patch",
+                "version": 1,
+                "fields": ["patch_id"],
+                "identifier_fields": ["patch_id"],
+                "free_text_fields": [],
+            },
+            manifest["payload_schemas"],
+        )
+        self.assertIn(
+            {
+                "id": "copy_to_clipboard",
+                "version": 1,
+                "fields": ["text"],
+                "identifier_fields": [],
+                "free_text_fields": ["text"],
+            },
+            manifest["payload_schemas"],
+        )
+        self.assertIn(
+            {
+                "id": "export_document",
+                "version": 1,
+                "fields": ["format"],
+                "identifier_fields": ["format"],
+                "free_text_fields": [],
+            },
+            manifest["payload_schemas"],
+        )
+        self.assertEqual(
+            manifest["payload_string_policy"]["free_text_fields"],
+            {"copy_to_clipboard": ["text"]},
+        )
+        self.assertEqual(
+            manifest["payload_string_policy"]["identifier_fields"]["apply_patch"],
+            ["patch_id"],
+        )
+        self.assertNotIn(
+            "copy_to_clipboard",
+            manifest["payload_string_policy"]["identifier_fields"],
+        )
+        schema_action = describe_a2ui_contract()["schemas"]["actions"][0]
+        self.assertNotIn("payload_string_policy", schema_action)
+        self.assertIn(
+            {"id": "copy_to_clipboard", "version": 1, "fields": ["text"]},
+            schema_action["payload_schemas"],
+        )
+
+    def test_action_ref_dataclass_payload_uses_same_identifier_policy(self) -> None:
+        action = normalize_action_ref(
+            ActionRef(
+                id="apply_patch",
+                label="Apply",
+                payload={"patch_id": " patch-1 "},
+            )
+        )
+
+        self.assertEqual(action.payload, {"patch_id": "patch-1"})
+
+    def test_action_payload_contract_rejects_blank_or_control_engine_identifiers(self) -> None:
+        invalid_payloads = (
+            {"patch_id": "   "},
+            {"patch_id": "patch\n1"},
+        )
+
+        for payload in invalid_payloads:
+            with self.subTest(payload=payload):
+                with self.assertRaises(ValueError):
+                    normalize_action_ref(
+                        {
+                            "id": "apply_patch",
+                            "label": "Apply",
+                            "payload": payload,
+                        }
+                    )
+
+    def test_terminal_action_renderer_labels_payload_string_policy(self) -> None:
+        identifier_text = render_terminal_action(
+            {
+                "id": "apply_patch",
+                "label": "Apply",
+                "payload": {"patch_id": " patch-1 "},
+            }
+        )
+        free_text = render_terminal_action(
+            {
+                "id": "copy_to_clipboard",
+                "label": "Copy",
+                "payload": {"text": "  keep exact CLI fallback text  "},
+            }
+        )
+        no_payload_fields = render_terminal_action(
+            {
+                "id": "refresh_license",
+                "label": "Refresh",
+                "payload": {},
+            }
+        )
+
+        self.assertIn("- payload: {\"patch_id\":\"patch-1\"}", identifier_text)
+        self.assertIn("- payload_policy: identifier=patch_id", identifier_text)
+        self.assertIn(
+            "- payload: {\"text\":\"  keep exact CLI fallback text  \"}",
+            free_text,
+        )
+        self.assertIn("- payload_policy: free_text=text", free_text)
+        self.assertNotIn("payload_policy", no_payload_fields)
+
     def test_terminal_artifact_cli_fallback_payload_rejects_empty_cli_text(self) -> None:
         with patch("src.qual.ui.a2ui.render_terminal_cli_fallback", return_value="   "):
             with self.assertRaises(ValueError):

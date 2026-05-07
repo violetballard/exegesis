@@ -132,6 +132,17 @@ _ACTION_SCHEMAS: dict[str, dict[str, type]] = {
     "export_document": {"format": str},
     "copy_to_clipboard": {"text": str},
 }
+_ACTION_PAYLOAD_FREE_TEXT_FIELDS: dict[str, tuple[str, ...]] = {
+    "copy_to_clipboard": ("text",),
+}
+_ACTION_PAYLOAD_IDENTIFIER_FIELDS: dict[str, tuple[str, ...]] = {
+    action_id: tuple(
+        field
+        for field, value_type in schema.items()
+        if value_type is str and field not in _ACTION_PAYLOAD_FREE_TEXT_FIELDS.get(action_id, ())
+    )
+    for action_id, schema in _ACTION_SCHEMAS.items()
+}
 
 _CAPABILITIES_REQUIRED_FIELDS: tuple[str, ...] = (
     "a2ui_version",
@@ -4613,7 +4624,25 @@ def _build_action_contract_manifest() -> dict[str, Any]:
         "required_fields": ["id", "label", "payload"],
         "optional_fields": ["confirm", "policy_sensitive"],
         "allowed_actions": sorted(ALLOWED_ACTION_IDS),
-        "payload_schemas": _build_action_payload_schema_manifest(),
+        "payload_schemas": _build_action_payload_schema_manifest(include_string_policy_fields=True),
+        "payload_string_policy": _build_action_payload_string_policy_manifest(),
+    }
+
+
+def _build_action_payload_string_policy_manifest() -> dict[str, Any]:
+    free_text_fields = {
+        action_id: sorted(fields)
+        for action_id, fields in sorted(_ACTION_PAYLOAD_FREE_TEXT_FIELDS.items())
+    }
+    identifier_fields = {
+        action_id: sorted(fields)
+        for action_id, fields in sorted(_ACTION_PAYLOAD_IDENTIFIER_FIELDS.items())
+        if fields
+    }
+    return {
+        "canonical_fields": "string payload fields are stripped and must be non-empty unless marked free_text",
+        "identifier_fields": identifier_fields,
+        "free_text_fields": free_text_fields,
     }
 
 
@@ -5398,15 +5427,19 @@ def _build_read_only_json_preview_block(payload: dict[str, Any], *, max_payload_
     }
 
 
-def _build_action_payload_schema_manifest() -> list[dict[str, Any]]:
-    return [
-        {
+def _build_action_payload_schema_manifest(*, include_string_policy_fields: bool = False) -> list[dict[str, Any]]:
+    payload_schemas: list[dict[str, Any]] = []
+    for action_id, schema in sorted(_ACTION_SCHEMAS.items()):
+        payload_schema: dict[str, Any] = {
             "id": action_id,
             "version": A2UI_ACTION_SCHEMA_VERSION,
             "fields": sorted(schema),
         }
-        for action_id, schema in sorted(_ACTION_SCHEMAS.items())
-    ]
+        if include_string_policy_fields:
+            payload_schema["identifier_fields"] = list(_ACTION_PAYLOAD_IDENTIFIER_FIELDS.get(action_id, ()))
+            payload_schema["free_text_fields"] = list(_ACTION_PAYLOAD_FREE_TEXT_FIELDS.get(action_id, ()))
+        payload_schemas.append(payload_schema)
+    return payload_schemas
 
 
 def _build_card_schema_manifest() -> list[dict[str, Any]]:
@@ -6613,6 +6646,9 @@ def render_terminal_action(action: Any) -> str:
         f"- id: {_render_terminal_inline_text(normalized.id)}",
         f"- payload: {_render_payload_preview(normalized.payload, max_payload_bytes=256)}",
     ]
+    payload_policy = _action_payload_field_policy_label(normalized.id)
+    if payload_policy is not None:
+        lines.append(f"- payload_policy: {payload_policy}")
     if normalized.confirm is not None:
         lines.append(f"- confirm: {_render_payload_preview(normalized.confirm, max_payload_bytes=256)}")
     if normalized.policy_sensitive:
@@ -8025,7 +8061,7 @@ def _normalize_action(action: ActionRef | Mapping[str, Any], *, supported_action
     payload = action.get("payload")
     if not isinstance(payload, Mapping):
         raise ValueError("Action payload must be an object")
-    _validate_action_payload(action_id, payload)
+    payload = _normalize_action_payload(action_id, payload)
 
     normalized: dict[str, Any] = {
         "id": action_id,
@@ -8305,6 +8341,10 @@ def _snapshot_terminal_artifact_value(value: Any, *, _seen_ids: set[int] | None 
 
 
 def _validate_action_payload(action_id: str, payload: Mapping[str, Any]) -> None:
+    _normalize_action_payload(action_id, payload)
+
+
+def _normalize_action_payload(action_id: str, payload: Mapping[str, Any]) -> dict[str, Any]:
     schema = _ACTION_SCHEMAS.get(action_id)
     if schema is None:
         raise ValueError(f"No schema for action id: {action_id}")
@@ -8312,11 +8352,45 @@ def _validate_action_payload(action_id: str, payload: Mapping[str, Any]) -> None
     if extra_keys:
         extras = ", ".join(sorted(extra_keys))
         raise ValueError(f"Unexpected payload field for {action_id}: {extras}")
+    normalized: dict[str, Any] = {}
+    identifier_fields = set(_ACTION_PAYLOAD_IDENTIFIER_FIELDS.get(action_id, ()))
     for key, value_type in schema.items():
         if key not in payload:
             raise ValueError(f"Missing payload field for {action_id}: {key}")
         if not isinstance(payload[key], value_type):
             raise ValueError(f"Invalid payload type for {action_id}:{key}")
+        value = payload[key]
+        if value_type is str and isinstance(value, str):
+            normalized[key] = (
+                _normalize_action_payload_identifier(action_id, key, value)
+                if key in identifier_fields
+                else value
+            )
+            continue
+        normalized[key] = _snapshot_terminal_artifact_value(value)
+    return normalized
+
+
+def _normalize_action_payload_identifier(action_id: str, key: str, value: str) -> str:
+    normalized_value = value.strip()
+    if not normalized_value:
+        raise ValueError(f"Action payload field for {action_id}:{key} must be non-empty")
+    if any(unicodedata.category(char).startswith("C") for char in normalized_value):
+        raise ValueError(f"Action payload field for {action_id}:{key} must not contain control characters")
+    return normalized_value
+
+
+def _action_payload_field_policy_label(action_id: str) -> str | None:
+    identifier_fields = tuple(_ACTION_PAYLOAD_IDENTIFIER_FIELDS.get(action_id, ()))
+    free_text_fields = tuple(_ACTION_PAYLOAD_FREE_TEXT_FIELDS.get(action_id, ()))
+    parts: list[str] = []
+    if identifier_fields:
+        parts.append(f"identifier={','.join(identifier_fields)}")
+    if free_text_fields:
+        parts.append(f"free_text={','.join(free_text_fields)}")
+    if not parts:
+        return None
+    return "; ".join(parts)
 
 
 def _validate_primitive_block_fields(block_type: str, block: Mapping[str, Any]) -> None:
