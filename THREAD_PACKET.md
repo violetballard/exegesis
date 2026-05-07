@@ -10,10 +10,10 @@
 - Approved shared regression path: `tests/unit/test_unified_retrieval.py`.
 - Integrator-locked files changed: none.
 - Authoritative reviewed implementation base: `378cf9a74a3658058079a32f186fcd254c4a4034`.
-- Reviewed implementation head: `beed411ecb15821f0cf145bd3ad68d59c996801c`.
-- Reviewed implementation range: `378cf9a74a3658058079a32f186fcd254c4a4034..beed411ecb15821f0cf145bd3ad68d59c996801c`.
-- Current packet refresh head before this edit: `5c137f2d1f7d3e4e45fd5c449406a333fb2b8d456`.
-- Current packet refresh role: packet-only traceability correction. It is not the reviewed implementation head.
+- Reviewed implementation head: `51ee03de162297cce0dfafb2435fb33a7189807d`.
+- Reviewed implementation range: `378cf9a74a3658058079a32f186fcd254c4a4034..51ee03de162297cce0dfafb2435fb33a7189807d`.
+- Current packet refresh head before this edit: `51ee03de162297cce0dfafb2435fb33a7189807d`.
+- Current packet refresh role: post-review packet update for the source-bearing basket-promotion normalizer fix.
 
 ## Traceability Correction
 
@@ -21,11 +21,13 @@ This packet supersedes earlier handoffs that described `adfa8cdadd43747ffbcb612e
 
 The actual source-bearing merge candidate for this branch is:
 
-`378cf9a74a3658058079a32f186fcd254c4a4034..beed411ecb15821f0cf145bd3ad68d59c996801c`
+`378cf9a74a3658058079a32f186fcd254c4a4034..51ee03de162297cce0dfafb2435fb33a7189807d`
 
-That range includes every intended retrieval source/test change through `beed411ecb15821f0cf145bd3ad68d59c996801c`, including the reviewer-cited post-`adfa8cdadd43747ffbcb612e4151e262b13e52ca` changes in `src/qual/engine/retrieval/__init__.py`, `src/qual/engine/retrieval/fts_strategy.py`, `src/qual/engine/retrieval/payload.py`, `src/qual/retrieval/__init__.py`, `src/qual/retrieval/service.py`, and `tests/unit/test_unified_retrieval.py`.
+That range includes every intended retrieval source/test change through `51ee03de162297cce0dfafb2435fb33a7189807d`, including the reviewer-cited post-`adfa8cdadd43747ffbcb612e4151e262b13e52ca` changes in `src/qual/engine/retrieval/__init__.py`, `src/qual/engine/retrieval/fts_strategy.py`, `src/qual/engine/retrieval/payload.py`, `src/qual/retrieval/__init__.py`, `src/qual/retrieval/service.py`, and `tests/unit/test_unified_retrieval.py`.
 
 `beed411ecb15821f0cf145bd3ad68d59c996801c` is source-bearing. It modifies `src/qual/engine/retrieval/__init__.py`, `src/qual/retrieval/service.py`, and `THREAD_PACKET.md`. It must not be treated as metadata-only. Packet-only commits after `beed411ecb15821f0cf145bd3ad68d59c996801c` refresh traceability and gate evidence only.
+
+`51ee03de162297cce0dfafb2435fb33a7189807d` is also source-bearing. It modifies `src/qual/engine/retrieval/payload.py` so basket-promotion item rehydration normalizes item-level `query_date_range` and `matched_terms` values before promotion-item fingerprinting.
 
 Re-review should not use `adfa8cdadd43747ffbcb612e4151e262b13e52ca` as the implementation head. It is an intermediate implementation commit only.
 
@@ -54,7 +56,7 @@ Packet-only refresh surface after the reviewed implementation head:
 
 SQLite FTS remains the required MVP retrieval path. PageIndex and embeddings remain deferred or compatibility-only fallback surfaces and are not reintroduced as required paths.
 
-The branch makes FTS retrieval deterministic and auditable across query construction, cache keys, fresh-run cache snapshots, query snapshots, result payloads, excerpt lookup, citation/provenance bundles, sparse source/context bundle rehydration, date-range propagation, shortlist query fingerprints, matched-term provenance, result fingerprints, doc identity, doc rank, doc type, strategy aliases, query constraints, retrieval manifest fingerprints, and basket-promotion evidence.
+The branch makes FTS retrieval deterministic and auditable across query construction, cache keys, fresh-run cache snapshots, query snapshots, result payloads, excerpt lookup, citation/provenance bundles, sparse source/context bundle rehydration, date-range propagation, shortlist query fingerprints, matched-term provenance, result fingerprints, doc identity, doc rank, doc type, strategy aliases, query constraints, retrieval manifest fingerprints, and basket-promotion evidence. The final source-bearing pass additionally normalizes rehydrated basket-promotion item date ranges and matched-term lists before item fingerprinting.
 
 The corrected branch-tip implementation also tightens the canonical engine and service query normalization paths so malformed, unordered, or scalar-shaped `date_range` inputs fail closed before FTS execution.
 
@@ -66,7 +68,7 @@ Before-handoff canonical demo-path statement: this work advances `retrieve relev
 
 1. Canonical demo-path step advanced: `retrieve relevant material`. Made SQLite FTS the authoritative MVP retrieval path while keeping PageIndex and embeddings fallback-only/deferred.
 2. Canonical demo-path step advanced: `retrieve relevant material`. Stabilized FTS query, cache, constraint, date-range, shortlist, doc-type, scope, and fresh-run behavior for deterministic retrieval.
-3. Canonical demo-path steps advanced: `retrieve relevant material` and `promote or gather context into the basket`. Normalized retrieval payloads, provenance, citation/source/context bundles, evidence snapshots, sparse bundle rehydration, retrieval manifest fingerprints, and basket-promotion evidence.
+3. Canonical demo-path steps advanced: `retrieve relevant material` and `promote or gather context into the basket`. Normalized retrieval payloads, provenance, citation/source/context bundles, evidence snapshots, sparse bundle rehydration, retrieval manifest fingerprints, and basket-promotion evidence, including item-level date-range and matched-term normalization before basket-promotion fingerprinting.
 4. Canonical demo-path steps advanced: `retrieve relevant material` and `promote or gather context into the basket`. Added fail-closed and audit-focused regression coverage for malformed/reversed date ranges, empty inputs, unresolved scopes, FTS-only excerpt lookup and payload normalization, excerpt lookup fingerprints, cache/query snapshots, facade/export availability, and basket-promotion fingerprint propagation.
 
 Task accounting: `4` high-risk task groups completed, matching the high-risk task cap.
@@ -75,7 +77,7 @@ Task accounting: `4` high-risk task groups completed, matching the high-risk tas
 
 - Task budget: `4` high-risk task groups; completed as the four groups above.
 - File count: the corrected source-bearing range changes `6` source/test files plus `3` packet/artifact files.
-- Size accounting: the corrected source-bearing range `378cf9a74a3658058079a32f186fcd254c4a4034..beed411ecb15821f0cf145bd3ad68d59c996801c` is `9 files changed, 1428 insertions(+), 211 deletions(-)`. The source/test-only surface is `6 files changed, 1277 insertions(+), 81 deletions(-)`.
+- Size accounting: the corrected source-bearing range `378cf9a74a3658058079a32f186fcd254c4a4034..51ee03de162297cce0dfafb2435fb33a7189807d` is `9 files changed, 1384 insertions(+), 211 deletions(-)`. The source/test-only surface is `6 files changed, 1284 insertions(+), 81 deletions(-)`.
 - Size limit status: exceeds the high-risk `<=8 files` and `<=300 net LOC` limits.
 - Explicit exception status: no integrator-approved size exception is recorded in this worktree. Because the full source-bearing range remains together, this is a known blocker for approval until the integrator grants an exception or requests a branch split.
 - Shared-file exception status: `tests/unit/test_unified_retrieval.py` is the sole approved shared regression surface; no integrator-locked files changed.
@@ -102,6 +104,7 @@ Required gates for this corrected merge candidate were re-run on 2026-05-07 agai
 
 Additional focused retrieval checks run earlier in this lane:
 
+- `python3 -m unittest tests.unit.test_unified_retrieval -k basket_promotion` - passed 2 focused basket-promotion tests after the final source-bearing basket item normalization fix.
 - `python3 -m unittest tests.unit.test_unified_retrieval` - passed after unordered date-range containers were rejected in facade/service normalization.
 - `python3 - <<'PY' ... build_retrieval_query(...) ... RetrievalConstraints(...) ... PY` - passed; unordered set-shaped date ranges fail closed in both the engine facade and service constraints, scalar string date ranges remain rejected, and ordered list-shaped date ranges still normalize to the canonical tuple.
 - `python -m pytest tests/unit/test_unified_retrieval.py` - blocked because the active Python interpreter had no `pytest` module installed.
