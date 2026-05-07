@@ -106,6 +106,18 @@ class PatchReviewCommandContract:
     ready: bool
 
 
+@dataclass(frozen=True)
+class PatchReviewCommandSmokeContract:
+    command: str
+    flow_step: str
+    demo_path_step: str
+    changed_decision: str
+    changed_action_routes: tuple[tuple[str, str], ...]
+    no_change_decision: str
+    no_change_action_routes: tuple[tuple[str, str], ...]
+    ready: bool
+
+
 def _normalize_text(value: str) -> str:
     # Normalize newlines so diff output is stable across platforms.
     return value.replace("\r\n", "\n").replace("\r", "\n")
@@ -513,6 +525,31 @@ def build_patch_review_command_contract() -> PatchReviewCommandContract:
     )
 
 
+def build_patch_review_command_smoke_contract() -> PatchReviewCommandSmokeContract:
+    """Return the deterministic changed/no-change routes for command smoke checks."""
+
+    changed = build_patch_review_decision(
+        DiffPreviewInput("draft text before review\n", "revised draft text\n")
+    )
+    no_change = build_patch_review_decision(
+        DiffPreviewInput("unchanged draft text\n", "unchanged draft text\n")
+    )
+    changed_routes = _patch_review_action_route_lookup_for_decision(changed)
+    no_change_routes = _patch_review_action_route_lookup_for_decision(no_change)
+    return PatchReviewCommandSmokeContract(
+        command=PATCH_REVIEW_COMMAND_NAME,
+        flow_step=PATCH_REVIEW_FLOW_STEP,
+        demo_path_step=PATCH_REVIEW_DEMO_PATH_STEP,
+        changed_decision=changed.status,
+        changed_action_routes=changed_routes,
+        no_change_decision=no_change.status,
+        no_change_action_routes=no_change_routes,
+        ready=bool(changed_routes)
+        and bool(no_change_routes)
+        and all(action and engine_action for action, engine_action in changed_routes + no_change_routes),
+    )
+
+
 def run_patch_review_decision(payload: DiffPreviewInput) -> str:
     decision = build_patch_review_decision(payload)
     return (
@@ -626,6 +663,38 @@ def run_patch_review_command_contract_json() -> str:
             "change_action_routes": contract.change_action_routes,
             "no_change_action_routes": contract.no_change_action_routes,
             "engine_actions": contract.engine_actions,
+            "ready": contract.ready,
+        },
+        sort_keys=True,
+        separators=(",", ":"),
+    )
+
+
+def run_patch_review_command_smoke_contract() -> str:
+    contract = build_patch_review_command_smoke_contract()
+    return (
+        f"command={contract.command}; "
+        f"flow-step={contract.flow_step}; "
+        f"demo-path-step={contract.demo_path_step}; "
+        f"changed-decision={contract.changed_decision}; "
+        f"changed-action-routes={json.dumps(contract.changed_action_routes)}; "
+        f"no-change-decision={contract.no_change_decision}; "
+        f"no-change-action-routes={json.dumps(contract.no_change_action_routes)}; "
+        f"ready={str(contract.ready).lower()}"
+    )
+
+
+def run_patch_review_command_smoke_contract_json() -> str:
+    contract = build_patch_review_command_smoke_contract()
+    return json.dumps(
+        {
+            "command": contract.command,
+            "flow_step": contract.flow_step,
+            "demo_path_step": contract.demo_path_step,
+            "changed_decision": contract.changed_decision,
+            "changed_action_routes": contract.changed_action_routes,
+            "no_change_decision": contract.no_change_decision,
+            "no_change_action_routes": contract.no_change_action_routes,
             "ready": contract.ready,
         },
         sort_keys=True,
