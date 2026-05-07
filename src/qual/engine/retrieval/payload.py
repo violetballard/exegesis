@@ -357,6 +357,8 @@ def _normalize_basket_promotion_bundle_snapshot(bundle: dict[str, object]) -> di
             "query_fingerprint": normalized.get("query_fingerprint"),
             "query_scope": normalized.get("query_scope"),
             "query_intent": normalized.get("query_intent"),
+            "query_constraints": normalized.get("query_constraints"),
+            "query_constraints_fingerprint": normalized.get("query_constraints_fingerprint"),
             "query_date_range": normalized.get("query_date_range"),
             "citation_status": normalized.get("citation_status"),
             "retrieval_evidence_fingerprint": normalized.get("retrieval_evidence_fingerprint"),
@@ -862,6 +864,19 @@ def _build_retrieval_basket_promotion_bundle_from_payload(payload: dict[str, obj
             ),
             "query_scope": hit.get("query_scope", provenance.get("query_scope", bundle_context["query_scope"])),
             "query_intent": hit.get("query_intent", provenance.get("query_intent", bundle_context["query_intent"])),
+            "query_constraints": copy.deepcopy(
+                hit.get(
+                    "query_constraints",
+                    provenance.get("query_constraints", bundle_context["query_constraints"]),
+                )
+            ),
+            "query_constraints_fingerprint": hit.get(
+                "query_constraints_fingerprint",
+                provenance.get(
+                    "query_constraints_fingerprint",
+                    bundle_context["query_constraints_fingerprint"],
+                ),
+            ),
             "query_date_range": copy.deepcopy(
                 hit.get(
                     "query_date_range",

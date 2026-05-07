@@ -551,6 +551,8 @@ class RetrievalResult:
                 ),
                 "query_scope": hit.provenance.get("query_scope", bundle_context["query_scope"]),
                 "query_intent": hit.provenance.get("query_intent", bundle_context["query_intent"]),
+                "query_constraints": copy.deepcopy(bundle_context["query_constraints"]),
+                "query_constraints_fingerprint": bundle_context["query_constraints_fingerprint"],
                 "query_date_range": copy.deepcopy(
                     hit.provenance.get("query_date_range", bundle_context["query_date_range"])
                 ),
