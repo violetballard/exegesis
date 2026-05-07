@@ -12,8 +12,8 @@
 - Authoritative reviewed implementation base: `378cf9a74a3658058079a32f186fcd254c4a4034`.
 - Reviewed implementation head: final branch tip reported in the fixer handoff after this packet edit.
 - Reviewed implementation range: `378cf9a74a3658058079a32f186fcd254c4a4034..final branch tip reported in the fixer handoff`.
-- Current branch head before this packet edit: `11a248555e0ca1647d443d02acd36bd11c203767`.
-- Current pass role: source-bearing retrieval finalization that keeps sparse retrieval provenance primary document/excerpt fields rehydratable from citation snapshots.
+- Current branch head before this packet edit: `fc52e1621d7321321e8aa5ec6811a3fd447dcc6d`.
+- Current pass role: source-bearing retrieval finalization that keeps sparse doc/excerpt bundle citations rehydratable from citation snapshots.
 
 ## Traceability Correction
 
@@ -38,6 +38,8 @@ This source-bearing fixer pass modifies `src/qual/retrieval/service.py`, `tests/
 This source-bearing fixer pass modifies `src/qual/retrieval/service.py`, `tests/unit/test_unified_retrieval.py`, and `THREAD_PACKET.md` so document ingestion canonicalizes stored `doc_type` metadata before FTS indexing. This keeps canonical query filters such as scalar `"memo"` aligned with documents ingested using whitespace or case variants such as `" Memo "`.
 
 This source-bearing fixer pass modifies `src/qual/engine/retrieval/payload.py` and `THREAD_PACKET.md` so sparse downstream payloads that contain empty primary summary fields can still rehydrate primary document and excerpt provenance from citation snapshots. This keeps retrieval source/context bundles deterministic for basket promotion and later revise/apply consumers without reintroducing deferred retrieval strategies.
+
+This source-bearing fixer pass modifies `src/qual/engine/retrieval/payload.py`, `tests/unit/test_unified_retrieval.py`, and `THREAD_PACKET.md` so sparse downstream payloads that omit explicit doc/excerpt bundle snapshots and provenance citation arrays still rehydrate bundle citations from the canonical retrieval citation bundle. This keeps citation-backed source/context bundles deterministic for basket promotion and later revise/apply consumers.
 
 Packet-only commits after `5c87b08a9f7ca5a4dabc23fc1a80214276a882e9` refresh traceability and gate evidence only through `f9bdab5ded16e44476d773a24249c64442df2f3a`. The source-bearing passes after that packet-only refresh change `src/qual/retrieval/service.py` and `tests/unit/test_unified_retrieval.py`; reviewers should include the final branch tip reported in the fixer handoff when re-reviewing the merge candidate.
 
@@ -87,6 +89,8 @@ This finalization pass also canonicalizes stored document `doc_type` values befo
 
 This finalization pass also backfills sparse retrieval provenance primary document and excerpt fields from citation snapshots when earlier sparse summary fields are empty. That preserves deterministic primary-source provenance for context-basket promotion and downstream revise/apply steps that rehydrate from source/context bundles.
 
+This finalization pass also backfills sparse doc and excerpt bundle citation arrays from the canonical retrieval citation bundle when a downstream payload omits explicit bundle snapshots and provenance citation arrays. That keeps citation evidence available to context-basket promotion and revise/apply consumers that rehydrate from sparse engine payloads.
+
 Canonical demo path advanced: `vault/context material -> FTS retrieval -> retrieval evidence -> context basket promotion -> engine revise/apply`.
 
 Before-handoff canonical demo-path statement: this work advances `retrieve relevant material` by keeping retrieval FTS-first, deterministic, and auditable; it also supports `promote or gather context into the basket` by preserving provenance and query evidence on promotion bundles/items.
@@ -101,14 +105,15 @@ Before-handoff canonical demo-path statement: this work advances `retrieve relev
 6. Canonical demo-path step advanced: `retrieve relevant material`. Aligned direct service scalar `doc_types` constraints with facade normalization so a scalar text filter is treated as one deterministic FTS filter, not character-split filter noise.
 7. Canonical demo-path step advanced: `retrieve relevant material`. Canonicalized stored document `doc_type` values before metadata/FTS writes so normalized FTS filters match ingested documents deterministically and provenance emits the canonical filtered type.
 8. Canonical demo-path steps advanced: `retrieve relevant material` and `promote or gather context into the basket`. Backfilled sparse primary document/excerpt provenance from citation snapshots when summary fields are empty, keeping rehydrated retrieval context auditable for basket promotion and later revise/apply consumers.
+9. Canonical demo-path steps advanced: `retrieve relevant material` and `promote or gather context into the basket`. Backfilled sparse doc/excerpt bundle citation arrays from the canonical citation bundle when explicit bundle snapshots and provenance citation arrays are absent.
 
-Task accounting: `8` high-risk task groups are present in the cumulative branch after this source-bearing finalization pass, exceeding the high-risk task cap and requiring the same integration decision already noted for the size overage.
+Task accounting: `9` high-risk task groups are present in the cumulative branch after this source-bearing finalization pass, exceeding the high-risk task cap and requiring the same integration decision already noted for the size overage.
 
 ## Kickoff Budget/Limits Compliance
 
-- Task budget: `4` high-risk task groups; this cumulative branch now has `8` source-bearing task groups after the sparse provenance citation fallback fix.
-- File count: the corrected source-bearing range before this pass changes `6` source/test files plus `3` packet/artifact files; this pass changes `src/qual/engine/retrieval/payload.py` and `THREAD_PACKET.md`.
-- Size accounting: the corrected source-bearing range `378cf9a74a3658058079a32f186fcd254c4a4034..final branch tip reported in the fixer handoff` is `9 files changed, 1582 insertions(+), 221 deletions(-)` including this source-bearing fix and packet refresh.
+- Task budget: `4` high-risk task groups; this cumulative branch now has `9` source-bearing task groups after the sparse doc/excerpt bundle citation fallback fix.
+- File count: the corrected source-bearing range before this pass changes `6` source/test files plus `3` packet/artifact files; this pass changes `src/qual/engine/retrieval/payload.py`, `tests/unit/test_unified_retrieval.py`, and `THREAD_PACKET.md`.
+- Size accounting: the corrected source-bearing range `378cf9a74a3658058079a32f186fcd254c4a4034..final branch tip reported in the fixer handoff` is `9 files changed, 1621 insertions(+), 221 deletions(-)` including this source-bearing fix and packet refresh.
 - Size limit status: exceeds the high-risk `<=8 files` and `<=300 net LOC` limits.
 - Explicit exception status: no integrator-approved size or task-budget exception is recorded in this worktree. Because the full source-bearing range remains together, this is a known blocker for approval until the integrator grants an exception or requests a branch split.
 - Shared-file exception status: `tests/unit/test_unified_retrieval.py` is the sole approved shared regression surface; no integrator-locked files changed.
@@ -130,9 +135,9 @@ Required gates for this corrected merge candidate were re-run on 2026-05-07 agai
 - `make scope-check` - passed for branch `codex/feat-retrieval-fts`.
 - `./quality-format.sh --check` - passed.
 - `./quality-lint.sh` - passed shell syntax and trailing whitespace checks.
-- `./quality-test.sh` - passed smoke tests and 135 unit tests.
+- `./quality-test.sh` - passed smoke tests and 136 unit tests.
 - `./typecheck-test.sh` - passed Python source compilation under `src/`.
-- `make ci` - passed setup, scope-check, format, lint, compile/typecheck, smoke tests, and 135 unit tests.
+- `make ci` - passed setup, scope-check, format, lint, compile/typecheck, smoke tests, and 136 unit tests.
 
 Additional focused retrieval checks run earlier in this lane:
 
@@ -141,6 +146,8 @@ Additional focused retrieval checks run earlier in this lane:
 - `python3 - <<'PY' ... _build_retrieval_provenance_from_payload(...) ... PY` - passed; sparse primary document/excerpt provenance fields are backfilled from citation snapshots when summary fields are empty.
 - `python3 -m compileall -q src/qual/engine/retrieval/payload.py` - passed after the sparse provenance citation fallback fix.
 - `python3 -m unittest tests.unit.test_unified_retrieval -q` - passed 66 unified retrieval tests after the sparse provenance citation fallback fix.
+- `python3 -m unittest tests.unit.test_unified_retrieval.UnifiedRetrievalTests.test_sparse_payload_doc_and_excerpt_bundles_use_citation_fallbacks -q` - passed after adding sparse doc/excerpt bundle citation fallback coverage.
+- `python3 -m unittest tests.unit.test_unified_retrieval -q` - passed 67 unified retrieval tests after the sparse doc/excerpt bundle citation fallback fix.
 - `python3 -m unittest tests.unit.test_unified_retrieval -q` - passed 66 unified retrieval tests after the stored doc-type canonicalization fix.
 - `python3 -m unittest tests.unit.test_unified_retrieval -q` - passed 65 unified retrieval tests after the direct scalar doc-type normalization fix.
 - `python3 -m unittest tests.unit.test_unified_retrieval -k basket_promotion -q` - passed 3 focused basket-promotion tests after recomputing normalized basket-promotion fingerprints.

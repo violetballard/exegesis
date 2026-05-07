@@ -874,10 +874,13 @@ def _build_retrieval_doc_bundle_from_payload(payload: dict[str, object]) -> dict
         return _normalize_doc_bundle_snapshot(doc_bundle)
     bundle_context = _build_retrieval_bundle_context_from_payload(payload)
     provenance = bundle_context["retrieval_provenance"]
+    citation_bundle = bundle_context["retrieval_citation_bundle"]
     doc_hits = _normalize_list_like(payload.get("doc_hits", []))
     doc_citations: list[object] = []
     if isinstance(provenance, dict):
         doc_citations = _normalize_list_like(provenance.get("doc_citations", []))
+    if not doc_citations and isinstance(citation_bundle, dict):
+        doc_citations = _normalize_list_like(citation_bundle.get("doc_citations", []))
     return _normalize_doc_bundle_snapshot({
         **bundle_context,
         "doc_count": len(doc_hits),
@@ -894,10 +897,13 @@ def _build_retrieval_excerpt_bundle_from_payload(payload: dict[str, object]) -> 
         return _normalize_excerpt_bundle_snapshot(excerpt_bundle)
     bundle_context = _build_retrieval_bundle_context_from_payload(payload)
     provenance = bundle_context["retrieval_provenance"]
+    citation_bundle = bundle_context["retrieval_citation_bundle"]
     excerpt_hits = _normalize_list_like(payload.get("excerpt_hits", []))
     excerpt_citations: list[object] = []
     if isinstance(provenance, dict):
         excerpt_citations = _normalize_list_like(provenance.get("excerpt_citations", []))
+    if not excerpt_citations and isinstance(citation_bundle, dict):
+        excerpt_citations = _normalize_list_like(citation_bundle.get("excerpt_citations", []))
     return _normalize_excerpt_bundle_snapshot({
         **bundle_context,
         "doc_count": len(_normalize_list_like(payload.get("doc_hits", []))),
