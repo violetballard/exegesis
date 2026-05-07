@@ -12842,6 +12842,68 @@ class A2UIFallbackSafetyTests(unittest.TestCase):
         self.assertTrue(artifact_ids[1].startswith("1:card:"))
         validate_terminal_artifact_cli_fallback_payload(payload)
 
+    def test_terminal_artifact_cli_fallback_payload_redacts_opaque_selection_payload_values(self) -> None:
+        selection = SelectionRef(
+            id="revise",
+            label="Revise",
+            payload={"mode": "tighten", "opaque": _OpaqueValue()},
+            selected=True,
+        )
+
+        payload = build_terminal_artifact_cli_fallback_payload([("selection", selection)])
+
+        self.assertEqual(
+            payload["artifacts"][0]["artifact"]["payload"],
+            {"mode": "tighten", "opaque": "<non-json:_OpaqueValue>"},
+        )
+        self.assertIn("<non-json:_OpaqueValue>", payload["cli_fallback"][0]["text"])
+        self.assertEqual(
+            render_terminal_artifact_cli_fallback_payload(payload),
+            ShellUI().render_cli_fallback_payload(payload),
+        )
+        validate_terminal_artifact_cli_fallback_payload(payload)
+
+    def test_terminal_artifact_cli_fallback_payload_preserves_distinct_json_safe_payload_keys(self) -> None:
+        selection = SelectionRef(
+            id="revise",
+            label="Revise",
+            payload={"1": "string-key", 1: "integer-key", ("phase", 2): "tuple-key"},
+            selected=True,
+        )
+
+        payload = build_terminal_artifact_cli_fallback_payload([("selection", selection)])
+        artifact_payload = payload["artifacts"][0]["artifact"]["payload"]
+
+        self.assertEqual(
+            artifact_payload,
+            {
+                "1": "string-key",
+                '<key:int:1>': "integer-key",
+                '<key:tuple:["phase",2]>': "tuple-key",
+            },
+        )
+        self.assertIn("<key:int:1>", payload["cli_fallback"][0]["text"])
+        self.assertIn('<key:tuple:[\\"phase\\",2]>', payload["cli_fallback"][0]["text"])
+        validate_terminal_artifact_cli_fallback_payload(payload)
+
+    def test_terminal_artifact_cli_fallback_payload_redacts_opaque_payload_keys(self) -> None:
+        selection = SelectionRef(
+            id="revise",
+            label="Revise",
+            payload={_OpaqueValue(): "opaque-key"},
+            selected=True,
+        )
+
+        payload = build_terminal_artifact_cli_fallback_payload([("selection", selection)])
+        artifact_payload = payload["artifacts"][0]["artifact"]["payload"]
+
+        self.assertEqual(
+            artifact_payload,
+            {'<key:_OpaqueValue:"<non-json:_OpaqueValue>">': "opaque-key"},
+        )
+        self.assertNotIn("object at 0x", payload["cli_fallback"][0]["text"])
+        validate_terminal_artifact_cli_fallback_payload(payload)
+
     def test_terminal_artifact_cli_fallback_payload_schema_version_is_manifested(self) -> None:
         schema_versions = _build_a2ui_schema_versions_manifest()
 

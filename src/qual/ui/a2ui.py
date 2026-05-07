@@ -8289,11 +8289,16 @@ def _snapshot_terminal_artifact_value(value: Any, *, _seen_ids: set[int] | None 
             return f"<cycle:{type(value).__name__}>"
         _seen_ids.add(value_id)
         try:
-            # Canonicalize mappings so engine-produced payload snapshots do not
-            # depend on insertion order from the source object.
+            sanitized_items = [
+                (
+                    _terminal_artifact_mapping_key_label(key, _seen_ids=_seen_ids),
+                    _snapshot_terminal_artifact_value(value[key], _seen_ids=_seen_ids),
+                )
+                for key in value
+            ]
             return {
-                key: _snapshot_terminal_artifact_value(value[key], _seen_ids=_seen_ids)
-                for key in sorted(value, key=lambda item: str(item))
+                key: sanitized_value
+                for key, sanitized_value in sorted(sanitized_items, key=lambda item: item[0])
             }
         finally:
             _seen_ids.remove(value_id)
@@ -8335,9 +8340,29 @@ def _snapshot_terminal_artifact_value(value: Any, *, _seen_ids: set[int] | None 
             _seen_ids.remove(value_id)
 
     try:
-        return copy.deepcopy(value)
+        snapshot = copy.deepcopy(value)
     except Exception:
-        return value
+        return f"<non-json:{type(value).__name__}>"
+    return _json_safe_terminal_artifact_value(snapshot, source_type=type(value).__name__)
+
+
+def _terminal_artifact_mapping_key_label(key: Any, *, _seen_ids: set[int]) -> str:
+    if isinstance(key, str):
+        return key
+    key_snapshot = _snapshot_terminal_artifact_value(key, _seen_ids=_seen_ids)
+    try:
+        key_preview = _canonical_json(key_snapshot)
+    except (TypeError, ValueError):
+        key_preview = f'"<non-json:{type(key).__name__}>"'
+    return f"<key:{type(key).__name__}:{key_preview}>"
+
+
+def _json_safe_terminal_artifact_value(value: Any, *, source_type: str) -> Any:
+    try:
+        _canonical_json(value)
+    except (TypeError, ValueError):
+        return f"<non-json:{source_type}>"
+    return value
 
 
 def _validate_action_payload(action_id: str, payload: Mapping[str, Any]) -> None:
