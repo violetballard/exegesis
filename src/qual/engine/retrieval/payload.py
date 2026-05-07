@@ -221,16 +221,18 @@ def _normalize_excerpt_citation_snapshots(value: object) -> list[object]:
             continue
         normalized_citation = copy.deepcopy(citation)
         basket_item_id = normalized_citation.get("basket_item_id")
-        if not _is_missing_snapshot_value(basket_item_id):
-            expected_basket_item_id = _basket_item_id_for_excerpt(
-                source_strategy=normalized_citation.get(
-                    "retrieval_source_strategy",
-                    normalized_citation.get("source_strategy"),
-                ),
-                excerpt_id=normalized_citation.get("excerpt_id"),
-            )
-            if basket_item_id != expected_basket_item_id:
-                normalized_citation.pop("basket_item_id", None)
+        expected_basket_item_id = _basket_item_id_for_excerpt(
+            source_strategy=normalized_citation.get(
+                "retrieval_source_strategy",
+                normalized_citation.get("source_strategy"),
+            ),
+            excerpt_id=normalized_citation.get("excerpt_id"),
+        )
+        if _is_missing_snapshot_value(basket_item_id):
+            if expected_basket_item_id is not None:
+                normalized_citation["basket_item_id"] = expected_basket_item_id
+        elif basket_item_id != expected_basket_item_id:
+            normalized_citation.pop("basket_item_id", None)
         normalized.append(normalized_citation)
     return normalized
 

@@ -217,6 +217,12 @@ class RetrievalHit:
             "node_path": copy.deepcopy(self.node_path),
             "provenance": copy.deepcopy(self.provenance),
         }
+        basket_item_id = _basket_item_id_for_excerpt(
+            source_strategy=self.source_strategy,
+            excerpt_id=self.excerpt_id,
+        )
+        if basket_item_id is not None:
+            payload["basket_item_id"] = basket_item_id
         query_fingerprint = self.provenance.get("query_fingerprint")
         if isinstance(query_fingerprint, str) and query_fingerprint:
             payload["query_fingerprint"] = query_fingerprint
@@ -691,6 +697,10 @@ class RetrievalResult:
             {
                 "doc_id": hit.doc_id,
                 "excerpt_id": hit.excerpt_id,
+                "basket_item_id": _basket_item_id_for_excerpt(
+                    source_strategy=hit.provenance.get("source_strategy", hit.source_strategy),
+                    excerpt_id=hit.excerpt_id,
+                ),
                 "doc_type": hit.provenance.get("doc_type"),
                 "source_hash": hit.provenance.get("source_hash"),
                 "excerpt_fingerprint": hit.provenance.get("excerpt_fingerprint"),

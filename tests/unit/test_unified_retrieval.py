@@ -2487,6 +2487,7 @@ class UnifiedRetrievalTests(unittest.TestCase):
                 {
                     "doc_id": item["doc_id"],
                     "excerpt_id": item["excerpt_id"],
+                    "basket_item_id": item["basket_item_id"],
                     "doc_type": item["provenance"]["doc_type"],
                     "source_hash": item["source_hash"],
                     "excerpt_fingerprint": item["provenance"]["excerpt_fingerprint"],
