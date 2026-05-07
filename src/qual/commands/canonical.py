@@ -52,6 +52,8 @@ from src.qual.commands.catalog import (
     CommandDemoReadinessGateCommand,
     CommandDemoReadinessVerificationContract,
     CommandDemoTrustedLoopContract,
+    CommandDemoSmokeSequenceEntry,
+    CommandDemoSmokeSequenceContract,
     CommandDemoReadinessFingerprint,
     CommandDemoReadinessReport,
     CommandDemoReadinessRouteContract,
@@ -129,6 +131,7 @@ from src.qual.commands.catalog import (
     command_mvp_demo_trusted_loop_json as _trusted_loop_json,
     command_mvp_demo_trusted_loop_payload as _trusted_loop_payload,
     command_mvp_demo_trusted_loop_summary as _trusted_loop_summary,
+    command_mvp_demo_smoke_sequence_contract as _smoke_sequence_contract,
     command_demo_readiness_handoff_action_contract as _readiness_handoff_action_contract,
     command_mvp_demo_readiness_handoff_action_summary as _readiness_handoff_action_summary,
     command_mvp_demo_readiness_handoff_map_contract as _readiness_handoff_map_contract,
@@ -584,6 +587,7 @@ __all__ = [
     "canonical_command_trusted_loop_summary",
     "canonical_command_trusted_loop_payload",
     "canonical_command_trusted_loop_json",
+    "canonical_command_smoke_sequence_contract",
     "canonical_command_surface_readiness_contract",
     "canonical_command_surface_readiness_json",
     "canonical_command_surface_readiness_payload",
@@ -1849,6 +1853,10 @@ def canonical_command_trusted_loop_payload() -> dict[str, object]:
 
 def canonical_command_trusted_loop_json() -> str:
     return _trusted_loop_json()
+
+
+def canonical_command_smoke_sequence_contract() -> CommandDemoSmokeSequenceContract:
+    return _smoke_sequence_contract()
 
 
 def canonical_command_readiness_handoff_step_status_payload() -> dict[str, object]:

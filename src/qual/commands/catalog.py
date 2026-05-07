@@ -794,6 +794,33 @@ class CommandDemoTrustedLoopContract:
 
 
 @dataclass(frozen=True)
+class CommandDemoSmokeSequenceEntry:
+    ordinal: int
+    demo_path_step: str
+    flow_step: str
+    name: str
+    smoke_argv: tuple[str, ...]
+    engine_actions: tuple[str, ...]
+    exact_action_argv: tuple[str, ...]
+    thin_handler_ready: bool
+    ready: bool
+
+
+@dataclass(frozen=True)
+class CommandDemoSmokeSequenceContract:
+    fingerprint_algorithm: str
+    fingerprint_digest: str
+    is_complete: bool
+    trusted_loop_complete: bool
+    entries: tuple[CommandDemoSmokeSequenceEntry, ...]
+    smoke_argvs: tuple[tuple[str, ...], ...]
+    exact_action_argvs: tuple[tuple[str, ...], ...]
+    missing_flow_steps: tuple[str, ...]
+    missing_engine_actions: tuple[str, ...]
+    invalid_argv: tuple[tuple[str, ...], ...]
+
+
+@dataclass(frozen=True)
 class CommandDemoReadinessHandoffAudit:
     is_complete: bool
     fingerprint_digest: str
@@ -7973,6 +8000,78 @@ def command_demo_trusted_loop_json(
         sort_keys=True,
         separators=(",", ":"),
     )
+
+
+@lru_cache(maxsize=None)
+def command_demo_smoke_sequence_contract(
+    specs: tuple[CommandSpec, ...] = COMMAND_SPECS,
+    launcher_argv: tuple[str, ...] = COMMAND_SMOKE_CLI_LAUNCHER_ARGV,
+) -> CommandDemoSmokeSequenceContract:
+    """Bundle trusted-loop readiness with exact smoke argvs for the demo path.
+
+    Returns a compact contract that validates the complete Milestone 3 demo
+    loop can be driven through the CLI with thin handlers delegating to
+    engine code.
+    """
+    trusted_loop = command_demo_trusted_loop_contract(specs, launcher_argv)
+    smoke_argv_by_flow_step = _demo_smoke_argv_by_flow_step()
+    exact_argv_by_action = _demo_exact_action_smoke_argv_by_engine_action(specs)
+    thin_action_by_engine_action = {
+        entry.engine_action: entry
+        for entry in command_handler_thin_action_contract(specs, launcher_argv).entries
+    }
+
+    entries = tuple(
+        CommandDemoSmokeSequenceEntry(
+            ordinal=step.ordinal,
+            demo_path_step=step.demo_path_step,
+            flow_step=step.flow_step,
+            name=step.name,
+            smoke_argv=smoke_argv_by_flow_step[step.flow_step],
+            engine_actions=step.engine_actions,
+            exact_action_argv=tuple(
+                exact_argv_by_action[action] for action in step.engine_actions
+            ),
+            thin_handler_ready=step.thin_handler_ready,
+            ready=step.ready,
+        )
+        for step in trusted_loop.steps
+    )
+
+    smoke_argvs = tuple(entry.smoke_argv for entry in entries)
+    exact_action_argvs = tuple(
+        argv for entry in entries for argv in entry.exact_action_argv
+    )
+
+    contract = CommandDemoSmokeSequenceContract(
+        fingerprint_algorithm=trusted_loop.fingerprint_algorithm,
+        fingerprint_digest=trusted_loop.fingerprint_digest,
+        is_complete=(
+            trusted_loop.is_complete
+            and all(entry.ready for entry in entries)
+            and all(entry.thin_handler_ready for entry in entries)
+        ),
+        trusted_loop_complete=trusted_loop.is_complete,
+        entries=entries,
+        smoke_argvs=smoke_argvs,
+        exact_action_argvs=exact_action_argvs,
+        missing_flow_steps=trusted_loop.missing_flow_steps,
+        missing_engine_actions=trusted_loop.missing_engine_actions,
+        invalid_argv=trusted_loop.invalid_argv,
+    )
+
+    if tuple(entry.flow_step for entry in contract.entries) != DEMO_COMMAND_FLOW_STEPS:
+        raise ValueError("Command demo smoke sequence flow order is inconsistent")
+    if tuple(entry.smoke_argv for entry in contract.entries) != contract.smoke_argvs:
+        raise ValueError("Command demo smoke sequence argvs are inconsistent")
+    expected_complete = (
+        trusted_loop.is_complete
+        and all(entry.ready for entry in entries)
+        and all(entry.thin_handler_ready for entry in entries)
+    )
+    if contract.is_complete != expected_complete:
+        raise ValueError("Command demo smoke sequence completeness is inconsistent")
+    return contract
 
 
 @lru_cache(maxsize=None)
@@ -15997,6 +16096,14 @@ def command_mvp_demo_trusted_loop_json(
     launcher_argv: tuple[str, ...] = COMMAND_SMOKE_CLI_LAUNCHER_ARGV,
 ) -> str:
     return command_demo_trusted_loop_json(specs, launcher_argv)
+
+
+@lru_cache(maxsize=None)
+def command_mvp_demo_smoke_sequence_contract(
+    specs: tuple[CommandSpec, ...] = COMMAND_SPECS,
+    launcher_argv: tuple[str, ...] = COMMAND_SMOKE_CLI_LAUNCHER_ARGV,
+) -> CommandDemoSmokeSequenceContract:
+    return command_demo_smoke_sequence_contract(specs, launcher_argv)
 
 
 def command_mvp_demo_readiness_handoff_step_status_payload(
