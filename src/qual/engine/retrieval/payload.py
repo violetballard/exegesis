@@ -357,7 +357,7 @@ def _normalize_basket_promotion_bundle_snapshot(bundle: dict[str, object]) -> di
         ]
     else:
         normalized["query_constraints"] = {}
-    normalized.setdefault("query_constraints_fingerprint", _stable_fingerprint(normalized["query_constraints"]))
+    normalized["query_constraints_fingerprint"] = _stable_fingerprint(normalized["query_constraints"])
     normalized["query_date_range"] = _normalize_optional_list_like(normalized.get("query_date_range"))
     normalized["active_strategy_ids"] = _normalize_list_like(normalized.get("active_strategy_ids"))
     normalized["deferred_strategy_ids"] = _normalize_list_like(normalized.get("deferred_strategy_ids"))
@@ -423,31 +423,29 @@ def _normalize_basket_promotion_bundle_snapshot(bundle: dict[str, object]) -> di
             normalized_item["matched_terms"] = _normalize_list_like(
                 normalized_item.get("matched_terms")
             )
-        if _is_missing_snapshot_value(normalized_item.get("promotion_item_fingerprint")):
-            normalized_item["promotion_item_fingerprint"] = _stable_fingerprint(
-                {
-                    key: value
-                    for key, value in normalized_item.items()
-                    if key != "promotion_item_fingerprint"
-                }
-            )
+        normalized_item["promotion_item_fingerprint"] = _stable_fingerprint(
+            {
+                key: value
+                for key, value in normalized_item.items()
+                if key != "promotion_item_fingerprint"
+            }
+        )
         promotion_items.append(normalized_item)
     normalized["promotion_items"] = promotion_items
     normalized["promotion_item_count"] = len(normalized["promotion_items"])
-    if _is_missing_snapshot_value(normalized.get("promotion_bundle_fingerprint")):
-        normalized["promotion_bundle_fingerprint"] = _stable_fingerprint(
-            {
-                "promotion_target": normalized.get("promotion_target"),
-                "result_fingerprint": normalized.get("result_fingerprint"),
-                "query_fingerprint": normalized.get("query_fingerprint"),
-                "retrieval_evidence_fingerprint": normalized.get("retrieval_evidence_fingerprint"),
-                "promotion_item_fingerprints": [
-                    item.get("promotion_item_fingerprint")
-                    for item in promotion_items
-                    if isinstance(item, dict)
-                ],
-            }
-        )
+    normalized["promotion_bundle_fingerprint"] = _stable_fingerprint(
+        {
+            "promotion_target": normalized.get("promotion_target"),
+            "result_fingerprint": normalized.get("result_fingerprint"),
+            "query_fingerprint": normalized.get("query_fingerprint"),
+            "retrieval_evidence_fingerprint": normalized.get("retrieval_evidence_fingerprint"),
+            "promotion_item_fingerprints": [
+                item.get("promotion_item_fingerprint")
+                for item in promotion_items
+                if isinstance(item, dict)
+            ],
+        }
+    )
     retrieval_policy = normalized.get("retrieval_policy")
     if isinstance(retrieval_policy, dict):
         normalized["retrieval_policy"] = _normalize_policy_snapshot(retrieval_policy)
