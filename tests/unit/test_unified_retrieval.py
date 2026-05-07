@@ -23,6 +23,7 @@ from src.qual.engine.retrieval.payload import build_retrieval_citation_bundle_fr
 from src.qual.engine.retrieval.payload import build_retrieval_downstream_payload_from_result
 from src.qual.engine.retrieval.payload import build_retrieval_provenance_from_result
 from src.qual.engine.retrieval.payload import _build_retrieval_basket_promotion_bundle_from_payload
+from src.qual.engine.retrieval.payload import _build_retrieval_doc_bundle_from_payload
 from src.qual.engine.retrieval.payload import _build_retrieval_excerpt_bundle_from_payload
 from src.qual.engine.retrieval.payload import _build_retrieval_source_bundle_from_payload
 from src.qual.engine.retrieval.payload import _build_retrieval_provenance_from_payload
@@ -2909,6 +2910,31 @@ class UnifiedRetrievalTests(unittest.TestCase):
             context_bundle["retrieval_excerpt_bundle"]["basket_promotion_count"],
             len(baseline_items),
         )
+
+    def test_sparse_payload_doc_and_excerpt_bundles_use_citation_fallbacks(self) -> None:
+        result = self.service.retrieve_auto(
+            RetrievalQuery(
+                query_text="memo coding comparison",
+                scope="vault",
+                intent="compare",
+                constraints=RetrievalConstraints(max_results=4),
+                confidentiality_profile="confidential",
+            )
+        )
+
+        payload = json.loads(json.dumps(result.to_downstream_payload()))
+        payload.pop("retrieval_doc_bundle", None)
+        payload.pop("retrieval_excerpt_bundle", None)
+        payload["retrieval_provenance"].pop("doc_citations", None)
+        payload["retrieval_provenance"].pop("excerpt_citations", None)
+
+        doc_bundle = _build_retrieval_doc_bundle_from_payload(payload)
+        excerpt_bundle = _build_retrieval_excerpt_bundle_from_payload(payload)
+
+        self.assertEqual(doc_bundle["doc_citations"], result.citation_bundle()["doc_citations"])
+        self.assertEqual(excerpt_bundle["excerpt_citations"], result.citation_bundle()["excerpt_citations"])
+        self.assertEqual(doc_bundle["doc_hits"], payload["doc_hits"])
+        self.assertEqual(excerpt_bundle["excerpt_hits"], payload["excerpt_hits"])
 
     def test_retrieve_auto_citation_bundle_matches_result_snapshot(self) -> None:
         query = RetrievalQuery(
