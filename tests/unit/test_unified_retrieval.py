@@ -2128,6 +2128,8 @@ class UnifiedRetrievalTests(unittest.TestCase):
         self.assertEqual(direct_item["query_constraints_fingerprint"], expected_constraints_fingerprint)
         self.assertEqual(direct_item["query_date_range"], ["2026-01-01", "2026-12-31"])
         self.assertEqual(direct_item["retrieval_evidence_fingerprint"], retrieval_evidence_fingerprint)
+        self.assertEqual(direct_item["retrieval_source_strategy"], "fts")
+        self.assertEqual(direct_item["retrieval_policy"], result.diagnostics["retrieval_policy"])
         self.assertEqual(result.retrieval_basket_promotion_bundle()["query_constraints"], expected_constraints)
         self.assertEqual(
             result.retrieval_basket_promotion_bundle()["query_constraints_fingerprint"],
@@ -2196,12 +2198,16 @@ class UnifiedRetrievalTests(unittest.TestCase):
             hit.pop("query_date_range", None)
             hit.pop("citation_status", None)
             hit.pop("retrieval_evidence_fingerprint", None)
+            hit.pop("retrieval_source_strategy", None)
+            hit.pop("retrieval_policy", None)
             hit["provenance"].pop("query_fingerprint", None)
             hit["provenance"].pop("query_scope", None)
             hit["provenance"].pop("query_intent", None)
             hit["provenance"].pop("query_date_range", None)
             hit["provenance"].pop("citation_status", None)
             hit["provenance"].pop("retrieval_evidence_fingerprint", None)
+            hit["provenance"].pop("retrieval_source_strategy", None)
+            hit["provenance"].pop("retrieval_policy", None)
 
         rehydrated_bundle = _build_retrieval_basket_promotion_bundle_from_payload(payload)
         rehydrated_item = rehydrated_bundle["promotion_items"][0]
@@ -2212,6 +2218,8 @@ class UnifiedRetrievalTests(unittest.TestCase):
         self.assertEqual(rehydrated_item["query_constraints_fingerprint"], expected_constraints_fingerprint)
         self.assertEqual(rehydrated_item["query_date_range"], ["2026-01-01", "2026-12-31"])
         self.assertEqual(rehydrated_item["retrieval_evidence_fingerprint"], retrieval_evidence_fingerprint)
+        self.assertEqual(rehydrated_item["retrieval_source_strategy"], "fts")
+        self.assertEqual(rehydrated_item["retrieval_policy"], result.diagnostics["retrieval_policy"])
         self.assertEqual(rehydrated_bundle["query_constraints"], expected_constraints)
         self.assertEqual(
             rehydrated_bundle["query_constraints_fingerprint"],

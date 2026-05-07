@@ -373,10 +373,18 @@ def _normalize_basket_promotion_bundle_snapshot(bundle: dict[str, object]) -> di
             "retrieval_manifest_fingerprint": normalized.get("retrieval_manifest_fingerprint"),
             "retrieval_backend": normalized.get("retrieval_backend"),
             "retrieval_mode": normalized.get("retrieval_mode"),
+            "retrieval_policy": normalized.get("retrieval_policy"),
         }
         for key, fallback_value in item_fallbacks.items():
             if _is_missing_snapshot_value(normalized_item.get(key)) and not _is_missing_snapshot_value(fallback_value):
                 normalized_item[key] = copy.deepcopy(fallback_value)
+        if _is_missing_snapshot_value(normalized_item.get("retrieval_source_strategy")):
+            source_strategy = normalized_item.get("source_strategy")
+            if not _is_missing_snapshot_value(source_strategy):
+                normalized_item["retrieval_source_strategy"] = copy.deepcopy(source_strategy)
+        item_policy = normalized_item.get("retrieval_policy")
+        if isinstance(item_policy, dict):
+            normalized_item["retrieval_policy"] = _normalize_policy_snapshot(item_policy)
         item_constraints = normalized_item.get("query_constraints")
         if isinstance(item_constraints, dict):
             normalized_item["query_constraints"] = _normalize_query_snapshot({"constraints": item_constraints})[
@@ -900,6 +908,13 @@ def _build_retrieval_basket_promotion_bundle_from_payload(payload: dict[str, obj
             "score": hit.get("score"),
             "rank": provenance.get("rank", hit.get("rank")),
             "source_strategy": hit.get("source_strategy", provenance.get("source_strategy")),
+            "retrieval_source_strategy": hit.get(
+                "retrieval_source_strategy",
+                provenance.get(
+                    "retrieval_source_strategy",
+                    hit.get("source_strategy", provenance.get("source_strategy")),
+                ),
+            ),
             "result_fingerprint": hit.get(
                 "result_fingerprint",
                 provenance.get("result_fingerprint", bundle_context["result_fingerprint"]),
@@ -951,6 +966,12 @@ def _build_retrieval_basket_promotion_bundle_from_payload(payload: dict[str, obj
             ),
             "retrieval_backend": hit.get("retrieval_backend", provenance.get("retrieval_backend")),
             "retrieval_mode": hit.get("retrieval_mode", provenance.get("retrieval_mode")),
+            "retrieval_policy": copy.deepcopy(
+                hit.get(
+                    "retrieval_policy",
+                    provenance.get("retrieval_policy", bundle_context.get("retrieval_policy")),
+                )
+            ),
             "source_hash": hit.get("source_hash", provenance.get("source_hash")),
             "doc_type": hit.get("doc_type", provenance.get("doc_type")),
             "doc_fingerprint": hit.get("doc_fingerprint", provenance.get("doc_fingerprint")),

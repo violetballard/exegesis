@@ -549,6 +549,7 @@ class RetrievalResult:
                 "score": hit.score,
                 "rank": hit.provenance.get("rank"),
                 "source_strategy": hit.source_strategy,
+                "retrieval_source_strategy": hit.source_strategy,
                 "result_fingerprint": self.result_fingerprint,
                 "query_fingerprint": hit.provenance.get(
                     "query_fingerprint",
@@ -566,6 +567,7 @@ class RetrievalResult:
                 "retrieval_manifest_fingerprint": bundle_context["retrieval_manifest_fingerprint"],
                 "retrieval_backend": hit.provenance.get("retrieval_backend"),
                 "retrieval_mode": hit.provenance.get("retrieval_mode"),
+                "retrieval_policy": copy.deepcopy(hit.provenance.get("retrieval_policy")),
                 "source_hash": hit.provenance.get("source_hash"),
                 "doc_type": hit.provenance.get("doc_type"),
                 "doc_fingerprint": hit.provenance.get("doc_fingerprint"),
