@@ -2129,6 +2129,7 @@ class UnifiedRetrievalTests(unittest.TestCase):
         self.assertEqual(direct_item["query_date_range"], ["2026-01-01", "2026-12-31"])
         self.assertEqual(direct_item["retrieval_evidence_fingerprint"], retrieval_evidence_fingerprint)
         self.assertEqual(direct_item["retrieval_source_strategy"], "fts")
+        self.assertEqual(direct_item["basket_item_id"], f"retrieval:fts:{direct_item['excerpt_id']}")
         self.assertEqual(direct_item["retrieval_policy"], result.diagnostics["retrieval_policy"])
         self.assertEqual(result.retrieval_basket_promotion_bundle()["query_constraints"], expected_constraints)
         self.assertEqual(
@@ -2200,6 +2201,7 @@ class UnifiedRetrievalTests(unittest.TestCase):
             hit.pop("retrieval_evidence_fingerprint", None)
             hit.pop("retrieval_source_strategy", None)
             hit.pop("retrieval_policy", None)
+            hit.pop("basket_item_id", None)
             hit["provenance"].pop("query_fingerprint", None)
             hit["provenance"].pop("query_scope", None)
             hit["provenance"].pop("query_intent", None)
@@ -2208,6 +2210,7 @@ class UnifiedRetrievalTests(unittest.TestCase):
             hit["provenance"].pop("retrieval_evidence_fingerprint", None)
             hit["provenance"].pop("retrieval_source_strategy", None)
             hit["provenance"].pop("retrieval_policy", None)
+            hit["provenance"].pop("basket_item_id", None)
 
         rehydrated_bundle = _build_retrieval_basket_promotion_bundle_from_payload(payload)
         rehydrated_item = rehydrated_bundle["promotion_items"][0]
@@ -2220,6 +2223,7 @@ class UnifiedRetrievalTests(unittest.TestCase):
         self.assertEqual(rehydrated_item["retrieval_evidence_fingerprint"], retrieval_evidence_fingerprint)
         self.assertEqual(rehydrated_item["retrieval_source_strategy"], "fts")
         self.assertEqual(rehydrated_item["retrieval_policy"], result.diagnostics["retrieval_policy"])
+        self.assertEqual(rehydrated_item["basket_item_id"], f"retrieval:fts:{rehydrated_item['excerpt_id']}")
         self.assertEqual(rehydrated_bundle["query_constraints"], expected_constraints)
         self.assertEqual(
             rehydrated_bundle["query_constraints_fingerprint"],
@@ -2259,6 +2263,7 @@ class UnifiedRetrievalTests(unittest.TestCase):
         promotion_items = cast(dict[str, object], basket_bundle)["promotion_items"]
         self.assertIsInstance(promotion_items, list)
         promotion_item = cast(list[dict[str, object]], promotion_items)[0]
+        promotion_item.pop("basket_item_id", None)
         promotion_item["query_constraints"] = {
             "max_results": "4",
             "doc_types": ("memo",),
@@ -2312,6 +2317,7 @@ class UnifiedRetrievalTests(unittest.TestCase):
             normalized_item["query_constraints_fingerprint"],
             expected_item_constraints_fingerprint,
         )
+        self.assertEqual(normalized_item["basket_item_id"], f"retrieval:fts:{normalized_item['excerpt_id']}")
         self.assertNotEqual(normalized_item["promotion_item_fingerprint"], "stale-fingerprint")
 
     def test_engine_retrieval_tool_returns_canonical_downstream_payload(self) -> None:

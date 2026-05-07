@@ -69,6 +69,14 @@ def _optional_list_like(value: object) -> list[object] | None:
     return [value]
 
 
+def _basket_item_id_for_excerpt(*, source_strategy: object, excerpt_id: object) -> str | None:
+    source = _optional_text(source_strategy)
+    excerpt = _optional_text(excerpt_id)
+    if source is None or excerpt is None:
+        return None
+    return f"retrieval:{source}:{excerpt}"
+
+
 def _normalize_supported_value(value: object, *, field_name: str, allowed: set[str]) -> str:
     normalized = str(value).strip().casefold()
     if normalized not in allowed:
@@ -552,6 +560,10 @@ class RetrievalResult:
             if hit.excerpt_id is None:
                 continue
             promotion_item = {
+                "basket_item_id": _basket_item_id_for_excerpt(
+                    source_strategy=hit.source_strategy,
+                    excerpt_id=hit.excerpt_id,
+                ),
                 "doc_id": hit.doc_id,
                 "excerpt_id": hit.excerpt_id,
                 "title_hint": hit.title_hint,

@@ -112,6 +112,14 @@ def _first_text_value(*values: object) -> str | None:
     return None
 
 
+def _basket_item_id_for_excerpt(*, source_strategy: object, excerpt_id: object) -> str | None:
+    source = _normalize_optional_text(source_strategy)
+    excerpt = _normalize_optional_text(excerpt_id)
+    if source is None or excerpt is None:
+        return None
+    return f"retrieval:{source}:{excerpt}"
+
+
 def _stable_fingerprint(payload: object) -> str:
     serialized = json.dumps(payload, sort_keys=True, separators=(",", ":"), ensure_ascii=True)
     return hashlib.sha256(serialized.encode("utf-8")).hexdigest()
@@ -382,6 +390,14 @@ def _normalize_basket_promotion_bundle_snapshot(bundle: dict[str, object]) -> di
             source_strategy = normalized_item.get("source_strategy")
             if not _is_missing_snapshot_value(source_strategy):
                 normalized_item["retrieval_source_strategy"] = copy.deepcopy(source_strategy)
+        if _is_missing_snapshot_value(normalized_item.get("basket_item_id")):
+            normalized_item["basket_item_id"] = _basket_item_id_for_excerpt(
+                source_strategy=normalized_item.get(
+                    "retrieval_source_strategy",
+                    normalized_item.get("source_strategy"),
+                ),
+                excerpt_id=normalized_item.get("excerpt_id"),
+            )
         item_policy = normalized_item.get("retrieval_policy")
         if isinstance(item_policy, dict):
             normalized_item["retrieval_policy"] = _normalize_policy_snapshot(item_policy)
@@ -907,6 +923,22 @@ def _build_retrieval_basket_promotion_bundle_from_payload(payload: dict[str, obj
         if not isinstance(provenance, dict):
             provenance = {}
         promotion_item = {
+            "basket_item_id": hit.get(
+                "basket_item_id",
+                provenance.get(
+                    "basket_item_id",
+                    _basket_item_id_for_excerpt(
+                        source_strategy=hit.get(
+                            "retrieval_source_strategy",
+                            provenance.get(
+                                "retrieval_source_strategy",
+                                hit.get("source_strategy", provenance.get("source_strategy")),
+                            ),
+                        ),
+                        excerpt_id=excerpt_id,
+                    ),
+                ),
+            ),
             "doc_id": hit.get("doc_id"),
             "excerpt_id": excerpt_id,
             "title_hint": hit.get("title_hint"),
