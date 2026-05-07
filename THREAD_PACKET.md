@@ -12,8 +12,8 @@
 - Authoritative reviewed implementation base: `378cf9a74a3658058079a32f186fcd254c4a4034`.
 - Reviewed implementation head: `51ee03de162297cce0dfafb2435fb33a7189807d`.
 - Reviewed implementation range: `378cf9a74a3658058079a32f186fcd254c4a4034..51ee03de162297cce0dfafb2435fb33a7189807d`.
-- Current packet refresh head before this edit: `51ee03de162297cce0dfafb2435fb33a7189807d`.
-- Current packet refresh role: post-review packet update for the source-bearing basket-promotion normalizer fix.
+- Current packet refresh head before this fixer edit: `c3a393e8a2f74d0d579d76dd9d144bb19ca71254`.
+- Current packet refresh role: packet-only traceability update after the source-bearing basket-promotion normalizer fix.
 
 ## Traceability Correction
 
@@ -25,9 +25,11 @@ The actual source-bearing merge candidate for this branch is:
 
 That range includes every intended retrieval source/test change through `51ee03de162297cce0dfafb2435fb33a7189807d`, including the reviewer-cited post-`adfa8cdadd43747ffbcb612e4151e262b13e52ca` changes in `src/qual/engine/retrieval/__init__.py`, `src/qual/engine/retrieval/fts_strategy.py`, `src/qual/engine/retrieval/payload.py`, `src/qual/retrieval/__init__.py`, `src/qual/retrieval/service.py`, and `tests/unit/test_unified_retrieval.py`.
 
-`beed411ecb15821f0cf145bd3ad68d59c996801c` is source-bearing. It modifies `src/qual/engine/retrieval/__init__.py`, `src/qual/retrieval/service.py`, and `THREAD_PACKET.md`. It must not be treated as metadata-only. Packet-only commits after `beed411ecb15821f0cf145bd3ad68d59c996801c` refresh traceability and gate evidence only.
+`beed411ecb15821f0cf145bd3ad68d59c996801c` is source-bearing. It modifies `src/qual/engine/retrieval/__init__.py`, `src/qual/retrieval/service.py`, and `THREAD_PACKET.md`. It must not be treated as metadata-only.
 
 `51ee03de162297cce0dfafb2435fb33a7189807d` is also source-bearing. It modifies `src/qual/engine/retrieval/payload.py` so basket-promotion item rehydration normalizes item-level `query_date_range` and `matched_terms` values before promotion-item fingerprinting.
+
+Packet-only commits after `51ee03de162297cce0dfafb2435fb33a7189807d` refresh traceability and gate evidence only.
 
 Re-review should not use `adfa8cdadd43747ffbcb612e4151e262b13e52ca` as the implementation head. It is an intermediate implementation commit only.
 
@@ -85,7 +87,7 @@ Task accounting: `4` high-risk task groups completed, matching the high-risk tas
 
 ## Required Fixes Applied
 
-1. Regenerated this review packet with the real source-bearing implementation head: `beed411ecb15821f0cf145bd3ad68d59c996801c`.
+1. Regenerated this review packet with the real source-bearing implementation head: `51ee03de162297cce0dfafb2435fb33a7189807d`.
 2. Removed the stale metadata-only framing for `beed411ecb15821f0cf145bd3ad68d59c996801c`; it is explicitly identified as source-bearing.
 3. Updated the reviewed implementation range to include all intended source/test changes in the branch-tip source-bearing candidate.
 4. Updated files changed, task accounting, command outcomes, risks, and roadmap/vision mapping to match the corrected range.
