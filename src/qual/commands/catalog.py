@@ -14730,7 +14730,7 @@ def command_demo_readiness_validate_script(
 
 
 def _expected_command_demo_flow_steps(specs: tuple[CommandSpec, ...]) -> tuple[str, ...]:
-    if specs is COMMAND_SPECS:
+    if specs == COMMAND_SPECS:
         return command_demo_flow_steps()
     return command_flow_steps(specs)
 
@@ -17252,7 +17252,7 @@ def _resolve_contract_flow_steps(
     if flow_steps is not None:
         return flow_steps
     # Keep the default flow surface aligned with the current MVP smoke path.
-    if specs is COMMAND_SPECS:
+    if specs == COMMAND_SPECS:
         return command_demo_flow_steps()
     return command_flow_steps(specs)
 
