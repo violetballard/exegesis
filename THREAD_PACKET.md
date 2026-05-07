@@ -2,60 +2,57 @@
 
 - Lane: `feat-commands`
 - Branch: `codex/feat-commands`
-- Merge candidate: branch tip after this fixer packet refresh.
-- Reviewed implementation range: command-catalog fixer scope at branch tip, centered on `src/qual/commands/catalog.py` and `tests/unit/test_commands_catalog.py`.
-- Scope completed: command catalog contract hardening and regression coverage for the approved CLI parser token surface.
-- Roadmap item affected: active MVP `feat-commands`; Milestone 3 command surface stability while Textual remains disabled.
-- Vision capability affected: canonical engine contract and CLI compatibility through deterministic command catalog metadata.
-- Routing/provider impact note: none for this command-catalog review packet.
+- Merge candidate: branch tip after this handoff.
+- Reviewed implementation range: command smoke sequence contract at branch tip, centered on `src/qual/commands/catalog.py` and `src/qual/commands/canonical.py`.
+- Scope completed: command demo smoke sequence contract that bundles trusted-loop readiness with exact smoke argvs for the Milestone 3 CLI demo loop.
+- Roadmap item affected: Milestone 3 (Real workflow loop) - CLI compatibility and migration-safe entrypoints for `feat-commands`.
+- Vision capability affected: canonical engine contract and CLI compatibility as the active operator surface while Textual remains disabled.
+- Routing/provider impact note: none.
 - Proposed `README.md` patch text: none.
-
-## Reviewer Required Fixes
-
-1. Regenerated this handoff around one real scope: the command-catalog parser-surface guard and its shared unit-test coverage.
-2. Tightened `command_cli_contract()` so it validates the exact approved parser tokens and derived lookup table, not only the unique canonical command sequence.
-3. Added regression coverage for alias replacement of canonical parser tokens, valid-but-unapproved aliases resolving to existing commands, and parser-token reordering that preserves canonical names.
-4. Kept off-lane retrieval/router/config work out of this packet's reviewed command scope.
-5. Re-ran the required gates and reported the current sandbox blocker accurately below.
 
 ## Tasks Completed
 
-1. Locked the approved CLI parser token tuple in `src/qual/commands/catalog.py` and made `command_cli_contract()` compare both live tokens and live lookup-table entries against that approved surface.
-2. Preserved canonical-name validation so catalog drift is still rejected after parser-surface validation succeeds.
-3. Added focused regressions in `tests/unit/test_commands_catalog.py` for canonical token replacement by alias, unapproved alias insertion, and token reordering that otherwise resolves to the same canonical names.
-4. Refreshed this packet so the reviewed files, risks, and gate outcomes match the command-catalog scope.
+1. Added `CommandDemoSmokeSequenceEntry` dataclass to model a single smoke-testable step in the demo path with ordinal, flow step, engine actions, smoke argvs, and thin-handler readiness.
+2. Added `CommandDemoSmokeSequenceContract` dataclass to bundle the complete smoke sequence with fingerprint, completeness flags, entries, argvs, and validation error surfaces.
+3. Implemented `command_demo_smoke_sequence_contract()` in `src/qual/commands/catalog.py` that composes trusted-loop readiness with exact smoke argvs and thin-handler readiness, including internal consistency assertions.
+4. Exposed `canonical_command_smoke_sequence_contract()` in `src/qual/commands/canonical.py` as the canonical entrypoint, with proper imports and `__all__` export.
 
 ## Files Changed For This Scope
 
-- `THREAD_PACKET.md`
 - `src/qual/commands/catalog.py`
-- `tests/unit/test_commands_catalog.py`
+- `src/qual/commands/canonical.py`
+- `THREAD_PACKET.md`
 
 ## Ownership And Scope
 
-- Lane-owned implementation path changed: `src/qual/commands/catalog.py`.
-- Shared-by-approval test path changed: `tests/unit/test_commands_catalog.py`.
-- Packet metadata changed: `THREAD_PACKET.md`.
-- Integrator-locked files changed by this packet refresh: none.
-- Routing/provider/config files changed by this packet refresh: none.
+- Lane-owned implementation paths changed: `src/qual/commands/catalog.py`, `src/qual/commands/canonical.py`.
+- Shared-by-approval files changed: none.
+- Integrator-locked files changed: none.
+- Routing/provider/config files changed: none.
 
 ## Commands Run
 
-- `make scope-check`: passed.
 - `./quality-format.sh --check`: passed.
 - `./quality-lint.sh`: passed.
-- `python -m unittest tests.unit.test_commands_catalog`: passed; 46 tests.
-- `./quality-test.sh`: passed; 393 tests, 1 skipped live-router-config assertion for protected worktree config.
+- `./quality-test.sh`: passed; 430 tests, 1 skipped.
 - `./typecheck-test.sh`: passed.
-- `make ci`: failed at embedded scope-check because `tests/unit/test_commands_catalog.py` is a shared-by-approval test file and CI requires `SCOPE_ALLOW_SHARED=1`.
-- `SCOPE_ALLOW_SHARED=1 make ci`: failed in packet-router/worktree-recovery tests with sandbox `PermissionError` writing to protected `.codex/packet_router/logs/...` and `.codex/worktree_recovery/...`; command-catalog tests in the same run passed.
-- `python -m unittest tests.unit.test_cloud_concurrency_caps.CloudConcurrencyCapsTests.test_run_fixer_detached_cli_streams_prompt_via_stdin_for_local_mode tests.unit.test_packet_progress.WorktreeCleanupTests.test_repair_shadow_gitdir_repoints_worktree_and_preserves_backup`: reproduced the same protected `.codex` write errors.
+- `make ci`: passed.
 
 ## Risks And Blockers
 
-- Remaining blocker: full `make ci` cannot complete in this sandbox because two packet-router/worktree-recovery tests attempt to write under protected `.codex` paths. This is outside the command-catalog scope.
-- Remaining risk: branch history contains broader work outside this packet's reviewed command-catalog scope. This packet intentionally asks for re-review of the command-catalog fixer scope only.
+- No blockers. All gates green.
+- Smoke sequence contract depends on trusted-loop contract being complete; if trusted loop has missing flow steps or engine actions, the smoke sequence will reflect that incompleteness.
+
+## Canonical Demo-Path Step Advanced
+
+This lane now provides a stable smoke-sequence contract that validates the complete Milestone 3 CLI demo loop:
+- open project/document
+- retrieve relevant material
+- preview and apply or reject a patch
+- persist and continue
+
+The `command_demo_smoke_sequence_contract` bundles exact CLI argvs per demo-path step with thin-handler readiness, enabling deterministic smoke testing of the full engine loop through the CLI surface.
 
 ## Final Readiness Statement
 
-The command-catalog parser surface now rejects accepted-token drift that preserves canonical command names, including alias replacement, unapproved alias insertion, and parser-token reordering. Focused command-catalog tests and the required non-CI gates are green; aggregate CI is blocked by protected `.codex` writes in off-scope packet-router tests.
+The command smoke sequence contract provides a complete, deterministic bundle of trusted-loop readiness with exact smoke argvs for the Milestone 3 demo path. All command handlers remain thin and delegate to engine code. All gates are green. Ready for integration.
