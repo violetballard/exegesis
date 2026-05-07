@@ -206,6 +206,10 @@
     "feat-cop-lite-licensing": {
       "branch": "codex/feat-cop-lite-licensing",
       "enabled": false
+    },
+    "feat-browser-pdf-capture": {
+      "branch": "codex/feat-browser-pdf-capture",
+      "enabled": false
     }
   },
   "planner": {

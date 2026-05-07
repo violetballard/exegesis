@@ -7,6 +7,7 @@ Detailed lane/task mapping lives in `/Users/doctor-violet/Library/CloudStorage/B
 Sprint activation plan lives in `/Users/doctor-violet/Library/CloudStorage/Box-Box/projects/qual/docs/MVP_SPRINT_PLAN.md`.
 Future import, OCR, literature metadata, and RAG specs live in `/Users/doctor-violet/Library/CloudStorage/Box-Box/projects/qual/docs/FUTURE_IMPORT_RAG_SPEC.md`.
 Future summer MVP feature specs live in `/Users/doctor-violet/Library/CloudStorage/Box-Box/projects/qual/docs/FUTURE_MVP_FEATURES_SPEC.md`.
+Post-MVP feature specs live in `/Users/doctor-violet/Library/CloudStorage/Box-Box/projects/qual/docs/POST_MVP_FEATURES_SPEC.md`.
 
 ## Product target
 
@@ -256,6 +257,8 @@ Status: planned, disabled
 
 Scope:
 - add basic Markdown formatting controls for bold, italic, underline where supported, and heading levels
+- add image-as-figure insertion with title, caption, alt text, and project-managed asset references
+- add title/caption metadata for Markdown tables so APA export can render table titles and notes
 - insert Markdown syntax rather than creating WYSIWYG document state
 - prefer semantic headings over manual visual formatting
 - add dedicated formatting shortcut row and command-palette entries
@@ -265,6 +268,7 @@ Lane mapping:
 
 Exit criteria:
 - formatting bar contract is specified
+- figure/table metadata authoring contract is specified
 - formatting shortcut behavior is specified
 - no runtime formatting behavior is active until the lane is enabled
 
@@ -344,6 +348,28 @@ Exit criteria:
 - Nanonets page ledger, fixed top-ups, Paddle webhook, and import-window balance behavior are specified
 - no runtime licensing, gateway, Paddle, OCR metering, or shell behavior is active until the lane is enabled
 
+## Milestone 18: Browser PDF Capture Extension
+
+Status: post-MVP planned, disabled
+
+Scope:
+- add a minimal browser extension for Chrome, Firefox, and Safari that only sends the current PDF tab to Exegesis
+- keep the extension as a capture button, not a Zotero clone, translator system, scraper, or browser-side product surface
+- let Exegesis own direct/authenticated fetch handling, import, OCR, metadata extraction, project placement, deduping, and indexing
+- use loopback handoff first, with custom protocol/native messaging hooks available if browser security requires them
+- include extension artifacts in desktop packaging and guide browser-required install/enable flows without bypassing browser security prompts
+- support direct-fetchable PDFs first and preserve a later hook for browser-assisted authenticated PDF relay
+
+Lane mapping:
+- `feat-browser-pdf-capture`: disabled until explicitly activated after the MVP launch gate
+
+Exit criteria:
+- Chrome, Firefox, and Safari capture flows are specified
+- extension popup behavior and PDF detection policy are specified
+- Exegesis handoff contract and pending browser import record are specified
+- packaging/install integration and browser security limits are specified
+- no runtime browser extension, local capture endpoint, native bridge, or import behavior is active until the lane is enabled
+
 Current operational narrowing:
 - Treat the canonical closure target as one engine-first demo path:
   - open project/document
@@ -378,6 +404,7 @@ Current operational narrowing:
 - `feat-developer-provider-config`
 - `feat-desktop-packaging`
 - `feat-cop-lite-licensing`
+- `feat-browser-pdf-capture`
 
 ## Retired planning targets
 - `feat-ux-flow`

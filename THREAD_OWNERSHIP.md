@@ -183,6 +183,18 @@ Detailed task breakdown lives in `/Users/doctor-violet/Library/CloudStorage/Box-
   - Current status:
     - disabled until Lite licensing and Nanonets page-credit work is intentionally activated
 
+- `codex/feat-browser-pdf-capture*`
+  - Owned paths:
+    - `browser-extension/**`
+    - `engine/src/exegesis_engine/browser_capture/**`
+    - `client-textual/src/exegesis_textual/browser_capture/**`
+    - `shared/src/exegesis_shared/browser_capture/**`
+    - `desktop-shell/browser_extension/**`
+    - `scripts/browser_extension/**`
+    - `docs/browser_extension/**`
+  - Current status:
+    - disabled until post-MVP browser PDF capture work is intentionally activated
+
 ## Retired planning targets
 
 - `codex/feat-ux-flow*`

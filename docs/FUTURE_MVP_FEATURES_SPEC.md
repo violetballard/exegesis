@@ -586,8 +586,10 @@ Shortcut row and palette:
 - Raw Markdown export preserves backing Markdown text.
 - APA PDF export includes title/author/institution and reference list.
 - APA DOCX export includes title/author/institution and reference list.
+- APA PDF/DOCX export renders figure titles/captions and table titles/captions from Milestone 14 metadata when present.
 - Missing required identity metadata produces editable warning, not a crash.
 - Missing citation metadata produces export warnings.
+- Missing figure/table APA metadata produces editable export warnings, not silent malformed output.
 - Future style registry can list APA without enabling unsupported styles.
 - Command palette contains export commands.
 
@@ -601,6 +603,7 @@ Lane: `feat-formatting-bar` (disabled)
 Intent:
 - Make Markdown editing feel familiar without turning the document pane into WYSIWYG.
 - Prefer semantic headings because headings support export, retrieval, and document structure better than manual visual formatting.
+- Add semantic helpers for figures and tables so images and Markdown tables can carry titles and captions for APA export.
 
 ### Data And Behavior
 
@@ -620,23 +623,85 @@ Markdown rules:
 - Heading commands should replace existing heading prefix rather than stacking `#` characters.
 - Empty selection formatting inserts paired markers with cursor between them where practical.
 
+Figure insertion:
+- `document_id`
+- source image file or imported image asset reference
+- `figure_id`: stable generated ID, e.g. `fig-method-map`
+- `title`: required for APA-ready figures
+- `caption`: optional note/caption text
+- `alt_text`: required accessibility text
+- `placement_offset` or selection replacement range
+- `before_hash`
+- `after_hash`
+- undoable edit operation reference
+
+Figure Markdown backing form:
+- Store figures as semantic Markdown source, not opaque WYSIWYG state.
+- Use a stable Exegesis figure block that export can transform into Pandoc/APA output.
+- Keep image files in project-managed assets and reference them by relative path.
+- Required fields are stable ID, image path, title, and alt text.
+- Captions may be empty, but export should warn if an APA figure lacks title or accessibility text.
+
+Recommended source shape:
+
+```md
+::: {.exegesis-figure #fig-method-map title="Method Map"}
+![Diagram showing the analytic workflow.](assets/fig-method-map.png)
+
+Caption or note text for the figure.
+:::
+```
+
+Table title and caption metadata:
+- Markdown tables may be wrapped in a stable Exegesis table block.
+- `table_id`: stable generated ID, e.g. `tbl-participant-summary`
+- `title`: required for APA-ready tables
+- `caption`: optional note/caption text
+- The backing table remains a normal Markdown pipe table inside the wrapper.
+- Export may transform this wrapper into Pandoc-compatible table structures and APA table title/note layout.
+
+Recommended source shape:
+
+```md
+::: {.exegesis-table #tbl-participant-summary title="Participant Summary"}
+| Participant | Role | Interview date |
+| --- | --- | --- |
+| P1 | Faculty | 2026-05-01 |
+
+Caption or note text for the table.
+:::
+```
+
+Metadata rules:
+- Figure and table IDs must remain stable when titles or captions are edited.
+- Title/caption edits are undoable document edits.
+- If a figure or table is cited elsewhere later, citation links should target the stable block ID.
+- Export owns final APA numbering; authors do not manually type `Figure 1` or `Table 1` into the title field.
+- Retrieval should be able to index figure/table titles, captions, and table text as document content.
+
 ### Engine/API Surface
 
 Add formatting actions:
 - `apply_inline_format(document_id, selection_range, format) -> EditResult`
 - `apply_heading_level(document_id, line_range, level) -> EditResult`
+- `insert_figure(document_id, image_asset, title, caption, alt_text, placement) -> EditResult`
+- `wrap_table_with_metadata(document_id, table_range, title, caption) -> EditResult`
+- `edit_block_metadata(document_id, block_id, title, caption, alt_text=None) -> EditResult`
 - `list_formatting_commands(document_id, selection_state) -> list[FormattingCommandState]`
 
 Integration requirement:
 - Formatting operations must record undoable edit operations once Milestone 10 is enabled.
 - Formatting must preserve Markdown source text as the backing document truth.
+- Figure/table title and caption metadata must be readable by Milestone 12 export.
+- Figure/table source should degrade acceptably as Markdown if exported raw.
 
 ### UI And Commands
 
 Formatting bar:
 - Appears above or within the document pane when lane is enabled.
-- Controls: Bold, Italic, Underline, H1, H2, H3, H4, H5, H6.
+- Controls: Bold, Italic, Underline, H1, H2, H3, H4, H5, H6, Insert Figure, Table Title/Caption.
 - Headers are visually grouped before inline styles or clearly marked as structure.
+- Figure and table controls open small centered modals for title/caption/alt-text entry instead of inline mini-UIs.
 - The UI should not imply WYSIWYG storage; it is a Markdown helper.
 
 Shortcut row and palette:
@@ -651,6 +716,9 @@ Shortcut row and palette:
   - `Heading 4`
   - `Heading 5`
   - `Heading 6`
+  - `Insert Figure`
+  - `Add Table Title/Caption`
+  - `Edit Figure/Table Metadata`
 
 ### Implementation Batches
 
@@ -662,8 +730,13 @@ Shortcut row and palette:
    - Add buttons and disabled/enabled states.
 4. Shortcut and palette integration
    - Add top row and command-palette commands.
-5. Export/retrieval compatibility checks
+5. Figure insertion and asset references
+   - Add project-managed image asset insertion, figure block generation, and title/caption/alt-text modal contract.
+6. Table metadata wrapping
+   - Add table-range detection, stable table block wrapping, and title/caption editing.
+7. Export/retrieval compatibility checks
    - Verify heading transforms produce clean Markdown structure.
+   - Verify figure/table metadata can be consumed by APA export.
 
 ### Test Plan
 
@@ -676,6 +749,13 @@ Shortcut row and palette:
 - Formatting operations are undoable when editor basics are enabled.
 - Formatting bar commands appear in command palette.
 - Backing document remains Markdown text, not WYSIWYG state.
+- Insert Figure creates a project asset reference and a stable figure block.
+- Figure insertion requires title and alt text, with optional caption.
+- Figure title/caption/alt-text edits preserve the stable figure ID.
+- Add Table Title/Caption wraps an existing Markdown table without corrupting table cells.
+- Table title/caption edits preserve the stable table ID.
+- Raw Markdown export keeps readable figure/table source.
+- APA export can consume figure/table title and caption metadata for final numbering and layout.
 
 ## Milestone 15: Developer Provider Configuration
 

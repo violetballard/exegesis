@@ -219,6 +219,12 @@ is_allowed() {
       esac
       return 1
       ;;
+    codex/feat-browser-pdf-capture*)
+      case "$f" in
+        browser-extension/*|browser-extension/*/*|engine/src/exegesis_engine/browser_capture/*|engine/src/exegesis_engine/browser_capture/*/*|client-textual/src/exegesis_textual/browser_capture/*|client-textual/src/exegesis_textual/browser_capture/*/*|shared/src/exegesis_shared/browser_capture/*|shared/src/exegesis_shared/browser_capture/*/*|desktop-shell/browser_extension/*|desktop-shell/browser_extension/*/*|scripts/browser_extension/*|scripts/browser_extension/*/*|docs/browser_extension/*|docs/browser_extension/*/*) return 0 ;;
+      esac
+      return 1
+      ;;
     *)
       log "scope-check: no policy for branch '$branch'; skipping"
       return 0

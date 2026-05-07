@@ -159,3 +159,11 @@ Exit criteria:
 ## Stop Line
 
 Sprint 5 is the summer launch gate. After Sprint 5, stop adding new planned features until there is real CoP usage feedback.
+
+## Post-MVP Backlog
+
+These lanes are deliberately outside Sprint 0-5 and should not be activated until after the CoP launch gate produces real usage feedback.
+
+- `feat-browser-pdf-capture`
+
+Milestone 18 lives in `docs/POST_MVP_FEATURES_SPEC.md` and specifies a tiny browser PDF capture extension for Chrome, Firefox, and Safari.

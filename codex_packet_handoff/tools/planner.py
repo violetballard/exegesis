@@ -160,6 +160,15 @@ LANE_OWNED_PATHS = {
         "shared/src/exegesis_shared/nanonets_usage/**",
         "docs/licensing/**",
     ],
+    "feat-browser-pdf-capture": [
+        "browser-extension/**",
+        "engine/src/exegesis_engine/browser_capture/**",
+        "client-textual/src/exegesis_textual/browser_capture/**",
+        "shared/src/exegesis_shared/browser_capture/**",
+        "desktop-shell/browser_extension/**",
+        "scripts/browser_extension/**",
+        "docs/browser_extension/**",
+    ],
 }
 
 Json = Dict[str, Any]

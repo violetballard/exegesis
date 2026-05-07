@@ -130,6 +130,7 @@ DEFAULT_LANES = [
     "feat-developer-provider-config",
     "feat-desktop-packaging",
     "feat-cop-lite-licensing",
+    "feat-browser-pdf-capture",
 ]
 
 WORKTREE_TEMP_PATTERNS = (

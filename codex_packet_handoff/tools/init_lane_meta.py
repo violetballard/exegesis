@@ -28,6 +28,7 @@ LANES = [
     'feat-developer-provider-config',
     'feat-desktop-packaging',
     'feat-cop-lite-licensing',
+    'feat-browser-pdf-capture',
 ]
 
 if __name__ == "__main__":

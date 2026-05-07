@@ -247,6 +247,8 @@ Outcome:
 
 Deliverables:
 - formatting bar for bold, italic, underline where supported, and heading levels
+- image-as-figure insertion with title, caption, alt text, and project-managed asset reference
+- Markdown table title/caption metadata for APA-ready export
 - direct Markdown syntax insertion/wrapping
 - semantic heading controls preferred over manual styling
 - formatting shortcut row
@@ -319,3 +321,23 @@ Status:
 - Planned and disabled
 - Lane state: disabled (`feat-cop-lite-licensing`)
 - This milestone is spec scaffolding only until explicitly activated
+
+## Milestone 18: Browser PDF Capture Extension
+
+Outcome:
+- After MVP usage feedback, Exegesis can eventually ship a very small Chrome, Firefox, and Safari extension that sends the current PDF tab into the Exegesis import pipeline.
+
+Deliverables:
+- minimal browser action popup with `Add PDF to Exegesis`
+- current-tab PDF detection for Chrome, Firefox, and Safari
+- loopback Exegesis handoff contract with custom protocol/native messaging fallback hooks
+- pending browser import record in Exegesis
+- direct-fetch-first PDF import handoff into existing import/OCR/literature/dedupe/indexing paths
+- graceful authenticated-PDF failure state and later browser-assisted relay hook
+- packaging artifacts and install/enable guidance bundled with desktop releases
+- command-palette entries for browser extension install/status/help
+
+Status:
+- Post-MVP planned and disabled
+- Lane state: disabled (`feat-browser-pdf-capture`)
+- This milestone is spec scaffolding only until explicitly activated after the MVP launch gate

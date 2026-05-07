@@ -168,6 +168,8 @@ Implementation batches:
 ### `feat-formatting-bar`
 Own later:
 - formatting bar for bold, italic, underline where supported, and heading levels
+- image-as-figure insertion with title, caption, alt text, stable block ID, and project-managed asset reference
+- Markdown table title/caption metadata wrapping for APA-ready export
 - Markdown syntax insertion/wrapping behavior
 - semantic heading preference for export/retrieval compatibility
 - formatting shortcut row and command-palette entries
@@ -231,6 +233,23 @@ Activation rule:
 Implementation batches:
 - use `docs/FUTURE_MVP_FEATURES_SPEC.md` as the lane-ready build sheet
 
+### `feat-browser-pdf-capture`
+Own later:
+- minimal Chrome, Firefox, and Safari browser extension for current-tab PDF capture only
+- popup states for PDF detected, not PDF, Exegesis unavailable, accepted handoff, and rejected handoff
+- current-tab PDF detection without page scraping, translator behavior, link discovery, or browser-side OCR
+- loopback Exegesis capture endpoint contract and custom protocol/native messaging fallback hooks
+- pending browser import record and import-review handoff into Exegesis
+- direct-fetch-first PDF handling, authenticated-PDF graceful failure, and future browser-assisted relay hook
+- packaging artifacts and browser install/enable guidance bundled with desktop releases
+- command-palette entries for browser extension install, status, and help
+
+Activation rule:
+- disabled until explicitly enabled after the MVP launch gate and real CoP usage feedback
+
+Implementation batches:
+- use `docs/POST_MVP_FEATURES_SPEC.md` as the lane-ready build sheet
+
 ## Explicitly not now
 - Textual dependency installation
 - Textual widget implementation
@@ -248,6 +267,7 @@ Implementation batches:
 - runtime Lite license gateway behavior
 - runtime CoP course licensing behavior
 - runtime Nanonets page-credit metering or Paddle top-ups
+- runtime browser extension, local browser-capture endpoint, native bridge, or PDF capture behavior
 - shell import filtering changes
 - shell import-window Nanonets balance behavior
 - inspector metadata editing behavior
