@@ -12,6 +12,7 @@
 - Reviewed implementation head: `05dbd5e46c57d7bbfa7679bb171ad3cfe2223975`.
 - Reviewed implementation range: `378cf9a74a3658058079a32f186fcd254c4a4034..05dbd5e46c57d7bbfa7679bb171ad3cfe2223975`.
 - Current packet refresh commit: reported in the final handoff response after commit creation.
+- Gate re-run anchor before this fixer commit: `b7ca44696119ad1ffcce78ad782342ed9ffb0522`.
 - Reviewer-cited unreviewed implementation range now included: `adfa8cdadd43747ffbcb612e4151e262b13e52ca..ea11c328588f77aec44cc0cb163f7266364cb87b`, plus the source-bearing manifest provenance commit `05dbd5e46c57d7bbfa7679bb171ad3cfe2223975`.
 
 ## Traceability Correction
@@ -110,7 +111,7 @@ Task accounting: `4` high-risk task groups completed, matching the high-risk tas
 
 ## Commands Run
 
-Required gates for this corrected merge candidate were re-run on 2026-05-07 after the source-bearing manifest-fingerprint update. The final refresh commit SHA is reported with the handoff response after commit creation.
+Required gates for this corrected merge candidate were re-run on 2026-05-07 against packet-refresh tip `b7ca44696119ad1ffcce78ad782342ed9ffb0522` after the source-bearing manifest-fingerprint update. The final refresh commit SHA is reported with the handoff response after commit creation.
 
 - `make scope-check` - passed for branch `codex/feat-retrieval-fts`.
 - `./quality-format.sh --check` - passed.
