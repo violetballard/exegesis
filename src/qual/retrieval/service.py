@@ -947,12 +947,14 @@ class RetrievalResult:
             citation_status=citation_status,
             retrieval_policy=retrieval_policy,
         )
+        query_constraints = RetrievalService._query_constraints_snapshot(self.query)
         return {
             "result_fingerprint": self.result_fingerprint,
             "query_fingerprint": self.diagnostics["query_fingerprint"],
             "query_scope": self.query.scope,
             "query_intent": self.query.intent,
-            "query_constraints": RetrievalService._query_constraints_snapshot(self.query),
+            "query_constraints": query_constraints,
+            "query_constraints_fingerprint": RetrievalService._stable_fingerprint(query_constraints),
             "query_date_range": query_date_range,
             "retrieval_backend": self.diagnostics["retrieval_backend"],
             "retrieval_mode": self.diagnostics["retrieval_mode"],
