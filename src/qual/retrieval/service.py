@@ -1087,9 +1087,12 @@ class RetrievalService:
         return self._lookup_fts_excerpt(excerpt_id, lookup_entrypoint="retrieve_fts_excerpt")
 
     def _lookup_fts_excerpt(self, excerpt_id: str, *, lookup_entrypoint: str) -> dict[str, object]:
-        fts_excerpt = self._find_fts_excerpt(excerpt_id)
+        normalized_excerpt_id = _optional_text(excerpt_id)
+        if normalized_excerpt_id is None:
+            raise ValueError("excerpt_id must be non-empty")
+        fts_excerpt = self._find_fts_excerpt(normalized_excerpt_id)
         if fts_excerpt is None:
-            raise KeyError(f"unknown excerpt_id: {excerpt_id}")
+            raise KeyError(f"unknown excerpt_id: {normalized_excerpt_id}")
         self._record_excerpt_lookup_audit(
             fts_excerpt,
             lookup_entrypoint=lookup_entrypoint,
@@ -2013,6 +2016,15 @@ class RetrievalService:
         normalized["source_strategy"] = source_strategy
         normalized["retrieval_source_strategy"] = source_strategy
         normalized["lookup_resolution"] = lookup_resolution
+        excerpt_id_value = _optional_text(normalized.get("excerpt_id") or provenance.get("excerpt_id"))
+        if excerpt_id_value is not None:
+            normalized["excerpt_id"] = excerpt_id_value
+            basket_item_id = _basket_item_id_for_excerpt(
+                source_strategy=source_strategy,
+                excerpt_id=excerpt_id_value,
+            )
+            if basket_item_id is not None:
+                normalized["basket_item_id"] = basket_item_id
         text_hash = provenance.get("hash") or provenance.get("excerpt_text_hash") or normalized.get("text_hash")
         if not isinstance(text_hash, str) or not text_hash:
             text_value = normalized.get("text")
@@ -2121,6 +2133,11 @@ class RetrievalService:
                 **provenance,
                 "source_strategy": source_strategy,
             }
+            if excerpt_id_value is not None:
+                normalized_provenance["excerpt_id"] = excerpt_id_value
+                basket_item_id = normalized.get("basket_item_id")
+                if isinstance(basket_item_id, str) and basket_item_id:
+                    normalized_provenance["basket_item_id"] = basket_item_id
             if doc_id_value is not None:
                 normalized_provenance["doc_id"] = doc_id_value
             if isinstance(source_hash, str) and source_hash:

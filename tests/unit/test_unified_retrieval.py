@@ -1092,6 +1092,7 @@ class UnifiedRetrievalTests(unittest.TestCase):
         self.assertIsNotNone(excerpt_id)
         excerpt = self.service.fetch_excerpt(excerpt_id or "")
         self.assertEqual(excerpt["excerpt_id"], excerpt_id)
+        self.assertEqual(excerpt["basket_item_id"], f"retrieval:fts:{excerpt_id}")
         self.assertEqual(excerpt["doc_id"], result.hits[0].doc_id)
         self.assertEqual(excerpt["span"], result.hits[0].span)
         self.assertEqual(excerpt["source_strategy"], "fts")
@@ -1103,6 +1104,7 @@ class UnifiedRetrievalTests(unittest.TestCase):
         self.assertEqual(excerpt["text_hash"], result.hits[0].provenance["excerpt_text_hash"])
         self.assertEqual(excerpt["lookup_fingerprint"], excerpt["provenance"]["lookup_fingerprint"])
         self.assertEqual(excerpt["provenance"]["source_strategy"], "fts")
+        self.assertEqual(excerpt["provenance"]["basket_item_id"], f"retrieval:fts:{excerpt_id}")
         self.assertEqual(excerpt["provenance"]["retrieval_backend"], "sqlite_fts")
         self.assertEqual(excerpt["provenance"]["retrieval_mode"], "fts_first")
         self.assertEqual(excerpt["provenance"]["hash"], result.hits[0].provenance["hash"])
@@ -1141,6 +1143,29 @@ class UnifiedRetrievalTests(unittest.TestCase):
 
         with self.assertRaisesRegex(KeyError, "unknown excerpt_id"):
             self.service.fetch_excerpt(str(excerpt_id))
+
+    def test_fetch_excerpt_canonicalizes_fts_excerpt_ids(self) -> None:
+        result = self.service.retrieve_auto(
+            RetrievalQuery(
+                query_text="discussion theory",
+                scope="doc:doc-pdf-1",
+                intent="lookup",
+                constraints=RetrievalConstraints(max_results=3),
+                confidentiality_profile="confidential",
+            )
+        )
+
+        excerpt_id = result.hits[0].excerpt_id
+        self.assertIsNotNone(excerpt_id)
+        excerpt = self.service.fetch_excerpt(f"  {excerpt_id}  ")
+
+        self.assertEqual(excerpt["excerpt_id"], excerpt_id)
+        self.assertEqual(excerpt["basket_item_id"], f"retrieval:fts:{excerpt_id}")
+        self.assertEqual(excerpt["provenance"]["excerpt_id"], excerpt_id)
+        self.assertEqual(excerpt["provenance"]["basket_item_id"], f"retrieval:fts:{excerpt_id}")
+
+        with self.assertRaisesRegex(ValueError, "excerpt_id must be non-empty"):
+            self.service.fetch_excerpt("   ")
 
     def test_excerpt_payload_normalization_rejects_pageindex_resolution(self) -> None:
         with self.assertRaisesRegex(ValueError, "canonical FTS strategy"):
@@ -1184,11 +1209,13 @@ class UnifiedRetrievalTests(unittest.TestCase):
         self.assertEqual(helper, canonical)
         self.assertEqual(package_helper, canonical)
         self.assertEqual(canonical["source_strategy"], "fts")
+        self.assertEqual(canonical["basket_item_id"], f"retrieval:fts:{excerpt_id}")
         self.assertEqual(canonical["retrieval_backend"], "sqlite_fts")
         self.assertEqual(canonical["retrieval_mode"], "fts_first")
         self.assertEqual(canonical["retrieval_policy"]["retrieval_backend"], "sqlite_fts")
         self.assertEqual(canonical["retrieval_policy"]["retrieval_mode"], "fts_first")
         self.assertEqual(canonical["provenance"]["source_strategy"], "fts")
+        self.assertEqual(canonical["provenance"]["basket_item_id"], f"retrieval:fts:{excerpt_id}")
         self.assertEqual(canonical["provenance"]["retrieval_backend"], "sqlite_fts")
         self.assertEqual(canonical["provenance"]["retrieval_mode"], "fts_first")
         self.assertEqual(canonical["provenance"]["doc_id"], result.hits[0].doc_id)
