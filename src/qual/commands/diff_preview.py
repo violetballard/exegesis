@@ -118,6 +118,23 @@ class PatchReviewCommandSmokeContract:
     ready: bool
 
 
+@dataclass(frozen=True)
+class PatchReviewReadinessContract:
+    command: str
+    flow_step: str
+    demo_path_step: str
+    decision_status: str
+    next_actions: tuple[str, ...]
+    action_routes: tuple[tuple[str, str], ...]
+    expected_action_routes: tuple[tuple[str, str], ...]
+    valid_action_routes: tuple[tuple[str, str], ...]
+    missing_action_routes: tuple[tuple[str, str], ...]
+    engine_actions: tuple[str, ...]
+    missing_engine_actions: tuple[str, ...]
+    extra_engine_actions: tuple[str, ...]
+    ready: bool
+
+
 def _normalize_text(value: str) -> str:
     # Normalize newlines so diff output is stable across platforms.
     return value.replace("\r\n", "\n").replace("\r", "\n")
@@ -843,6 +860,79 @@ def run_patch_review_action_route_validation_json() -> str:
     return json.dumps(
         _patch_review_action_route_validation_payload(
             validate_patch_review_command_contract()
+        ),
+        sort_keys=True,
+        separators=(",", ":"),
+    )
+
+
+def build_patch_review_readiness_contract(
+    payload: DiffPreviewInput,
+) -> PatchReviewReadinessContract:
+    """Bundle patch-review decision state with the stable demo-path route contract."""
+
+    status = build_patch_review_command_status(payload)
+    validation = validate_patch_review_command_contract()
+    return PatchReviewReadinessContract(
+        command=status.command,
+        flow_step=status.flow_step,
+        demo_path_step=status.demo_path_step,
+        decision_status=status.decision_status,
+        next_actions=status.next_actions,
+        action_routes=status.action_routes,
+        expected_action_routes=validation.expected_action_routes,
+        valid_action_routes=validation.valid_action_routes,
+        missing_action_routes=validation.missing_action_routes,
+        engine_actions=status.engine_actions,
+        missing_engine_actions=validation.missing_engine_actions,
+        extra_engine_actions=validation.extra_engine_actions,
+        ready=status.ready and validation.is_valid,
+    )
+
+
+def _patch_review_readiness_contract_payload(
+    contract: PatchReviewReadinessContract,
+) -> dict[str, object]:
+    return {
+        "command": contract.command,
+        "flow_step": contract.flow_step,
+        "demo_path_step": contract.demo_path_step,
+        "decision_status": contract.decision_status,
+        "next_actions": contract.next_actions,
+        "action_routes": contract.action_routes,
+        "expected_action_routes": contract.expected_action_routes,
+        "valid_action_routes": contract.valid_action_routes,
+        "missing_action_routes": contract.missing_action_routes,
+        "engine_actions": contract.engine_actions,
+        "missing_engine_actions": contract.missing_engine_actions,
+        "extra_engine_actions": contract.extra_engine_actions,
+        "ready": contract.ready,
+    }
+
+
+def run_patch_review_readiness_contract(payload: DiffPreviewInput) -> str:
+    """Return a compact readiness line for patch-review command smoke checks."""
+
+    contract = build_patch_review_readiness_contract(payload)
+    return (
+        f"patch-review-readiness: command={contract.command}; "
+        f"flow-step={contract.flow_step}; "
+        f"demo-path-step={contract.demo_path_step}; "
+        f"decision={contract.decision_status}; "
+        f"next-actions={','.join(contract.next_actions)}; "
+        f"action-routes={json.dumps(contract.action_routes)}; "
+        f"missing-routes={json.dumps(contract.missing_action_routes)}; "
+        f"missing-engine-actions={','.join(contract.missing_engine_actions)}; "
+        f"ready={str(contract.ready).lower()}"
+    )
+
+
+def run_patch_review_readiness_contract_json(payload: DiffPreviewInput) -> str:
+    """Return deterministic JSON for patch-review command readiness checks."""
+
+    return json.dumps(
+        _patch_review_readiness_contract_payload(
+            build_patch_review_readiness_contract(payload)
         ),
         sort_keys=True,
         separators=(",", ":"),
