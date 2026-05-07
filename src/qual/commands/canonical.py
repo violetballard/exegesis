@@ -682,6 +682,7 @@ __all__ = [
     "canonical_command_readiness_next_status",
     "canonical_command_readiness_next_status_json",
     "canonical_command_readiness_next_status_payload",
+    "canonical_command_readiness_next_status_summary",
     "canonical_command_readiness_shell_next_action",
     "canonical_command_readiness_shell_next_action_json",
     "canonical_command_readiness_shell_next_action_payload",
@@ -695,6 +696,7 @@ __all__ = [
     "canonical_command_readiness_shell_next_status",
     "canonical_command_readiness_shell_next_status_json",
     "canonical_command_readiness_shell_next_status_payload",
+    "canonical_command_readiness_shell_next_status_summary",
     "canonical_command_readiness_validate_cli_shell_script_lines",
     "canonical_command_readiness_validate_exact_action_script",
     "canonical_command_readiness_validate_exact_action_shell_script_lines",
@@ -1062,6 +1064,20 @@ def _canonical_command_readiness_status_payload(
         "engine_actions": status.engine_actions,
         "ready": status.ready,
     }
+
+
+def _canonical_command_readiness_status_summary(
+    status: CommandCanonicalReadinessStatus,
+) -> tuple[str | None, str | None, str | None, tuple[str, ...], str, tuple[str, ...], bool]:
+    return (
+        status.command,
+        status.flow_step,
+        status.demo_path_step,
+        status.argv,
+        status.command_line,
+        status.engine_actions,
+        status.ready,
+    )
 
 
 def _canonical_command_readiness_snapshot_summary(
@@ -2867,6 +2883,16 @@ def canonical_command_readiness_next_status_payload(
     )
 
 
+def canonical_command_readiness_next_status_summary(
+    argvs: Sequence[Sequence[str] | str] = (),
+) -> tuple[str | None, str | None, str | None, tuple[str, ...], str, tuple[str, ...], bool]:
+    """Return a compact next command/action tuple for CLI smoke runners."""
+
+    return _canonical_command_readiness_status_summary(
+        canonical_command_readiness_next_status(argvs)
+    )
+
+
 def canonical_command_readiness_next_status_json(
     argvs: Sequence[Sequence[str] | str] = (),
 ) -> str:
@@ -2963,6 +2989,16 @@ def canonical_command_readiness_shell_next_status_payload(
     """Return a JSON-ready next command/action status for shell smoke lines."""
 
     return _canonical_command_readiness_status_payload(
+        canonical_command_readiness_shell_next_status(lines)
+    )
+
+
+def canonical_command_readiness_shell_next_status_summary(
+    lines: Sequence[str] | str,
+) -> tuple[str | None, str | None, str | None, tuple[str, ...], str, tuple[str, ...], bool]:
+    """Return a compact next command/action tuple for shell smoke lines."""
+
+    return _canonical_command_readiness_status_summary(
         canonical_command_readiness_shell_next_status(lines)
     )
 
