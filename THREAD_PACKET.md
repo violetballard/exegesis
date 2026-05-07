@@ -9,9 +9,9 @@
 - Approved shared regression path: `tests/unit/test_unified_retrieval.py`.
 - Integrator-locked files changed: none.
 - Authoritative reviewed implementation base: `378cf9a74a3658058079a32f186fcd254c4a4034`.
-- Reviewed implementation head before this packet refresh: `83e52f7642a21516a3a996d099c9a50b6527c379`.
-- Reviewed implementation range before this packet refresh: `378cf9a74a3658058079a32f186fcd254c4a4034..83e52f7642a21516a3a996d099c9a50b6527c379`.
-- Packet refresh commit: reported in the final handoff response after commit creation.
+- Reviewed implementation head before this source-bearing refresh: `ea11c328588f77aec44cc0cb163f7266364cb87b`.
+- Reviewed implementation range before this source-bearing refresh: `378cf9a74a3658058079a32f186fcd254c4a4034..ea11c328588f77aec44cc0cb163f7266364cb87b`.
+- Current source-bearing refresh commit: reported in the final handoff response after commit creation.
 - Reviewer-cited unreviewed implementation range now included: `adfa8cdadd43747ffbcb612e4151e262b13e52ca..83e52f7642a21516a3a996d099c9a50b6527c379`.
 
 ## Traceability Correction
@@ -22,11 +22,11 @@ This packet supersedes all earlier handoffs that described `adfa8cdadd43747ffbcb
 
 That range includes every retrieval implementation change through `83e52f7642a21516a3a996d099c9a50b6527c379`, including the reviewer-cited implementation changes after `adfa8cdadd43747ffbcb612e4151e262b13e52ca` in `src/qual/engine/retrieval/__init__.py`, `src/qual/engine/retrieval/fts_strategy.py`, `src/qual/engine/retrieval/payload.py`, `src/qual/retrieval/__init__.py`, `src/qual/retrieval/service.py`, and `tests/unit/test_unified_retrieval.py`.
 
-This fixer creates a packet refresh commit after `83e52f7642a21516a3a996d099c9a50b6527c379`; the final HEAD SHA for that packet refresh is reported with the fixer response. The refreshed packet does not classify `9e3df053f8cb56536a1908dfbce8acbd2cdadf86`, `83e52f7642a21516a3a996d099c9a50b6527c379`, or any other source/test-changing commit as metadata-only.
+This fixer creates a source-bearing refresh commit after `ea11c328588f77aec44cc0cb163f7266364cb87b`; the final HEAD SHA for that refresh is reported with the fixer response. The refreshed packet does not classify `9e3df053f8cb56536a1908dfbce8acbd2cdadf86`, `83e52f7642a21516a3a996d099c9a50b6527c379`, this refresh, or any other source/test-changing commit as metadata-only.
 
 Re-review should not use `adfa8cdadd43747ffbcb612e4151e262b13e52ca` as the implementation head. It is an intermediate commit only.
 
-The packet refresh itself only corrects handoff traceability for the already-present source-bearing branch tip. The final commit SHA for this packet refresh is reported outside the packet to avoid self-stale metadata.
+This refresh is source-bearing: it adds a retrieval manifest fingerprint to the canonical FTS payload and sparse payload rehydration surfaces. The final commit SHA for this refresh is reported outside the packet to avoid self-stale metadata.
 
 ## Files Changed
 
@@ -67,6 +67,8 @@ This latest source-bearing delta carries normalized query constraints and their 
 
 This final source-bearing delta also normalizes item-level query constraints when rehydrating an existing downstream `retrieval_basket_promotion_bundle`. If a promotion item carries tuple/string-shaped constraints or a stale query-constraint fingerprint, the payload helper now canonicalizes the item constraints and regenerates the item query-constraint fingerprint before computing the promotion item fingerprint.
 
+This current source-bearing delta adds a deterministic `retrieval_manifest_fingerprint` to the FTS manifest, diagnostics, provenance, source/context bundles, and basket-promotion evidence. That gives basket promotion and later revise/apply flows a compact audit key for the exact doc/excerpt manifest attached to promoted FTS excerpts, including when sparse downstream payloads are rehydrated.
+
 Canonical demo path advanced: `vault/context material -> FTS retrieval -> retrieval evidence -> context basket promotion -> engine revise/apply`.
 
 Before-handoff canonical demo-path statement: this work makes `retrieve relevant material` more real by making FTS-only excerpt lookup deterministic and fail-closed for PageIndex-only excerpt IDs, and it supports `promote or gather context into the basket` through stable excerpt/provenance payloads.
@@ -104,10 +106,11 @@ Task accounting: `4` high-risk task groups completed, matching the high-risk tas
 11. Added the required before-handoff canonical demo-path statement naming how this work makes `retrieve relevant material` more real and supports `promote or gather context into the basket`.
 12. Added item-level query constraints and query-constraint fingerprints to basket-promotion evidence for both direct FTS retrieval results and sparse payload-derived bundles.
 13. Normalized item-level query constraints and regenerated item query-constraint fingerprints when existing downstream basket-promotion bundles are rehydrated.
+14. Added deterministic retrieval manifest fingerprints to service-produced and payload-derived retrieval contracts so basket-promotion evidence can audit the exact FTS doc/excerpt manifest without rehydrating the full result.
 
 ## Commands Run
 
-Required gates for this corrected merge candidate were re-run on 2026-05-07 after the packet updates. This fixer changes packet metadata only; the reviewed implementation range remains `378cf9a74a3658058079a32f186fcd254c4a4034..83e52f7642a21516a3a996d099c9a50b6527c379`. The final packet refresh commit SHA is reported with the handoff response after commit creation.
+Required gates for this corrected merge candidate were re-run on 2026-05-07 after the source-bearing manifest-fingerprint update. The final refresh commit SHA is reported with the handoff response after commit creation.
 
 - `make scope-check` - passed for branch `codex/feat-retrieval-fts`.
 - `./quality-format.sh --check` - passed.
@@ -118,6 +121,7 @@ Required gates for this corrected merge candidate were re-run on 2026-05-07 afte
 
 Additional focused retrieval checks run earlier in this lane:
 
+- `python3 -m unittest tests.unit.test_unified_retrieval` - passed 63 retrieval tests after adding retrieval manifest fingerprints to service and payload-derived retrieval contracts.
 - `python3 -m unittest tests.unit.test_unified_retrieval.UnifiedRetrievalTests.test_basket_promotion_items_backfill_query_context_from_bundle` - passed after adding item-level query constraints and query-constraint fingerprints to basket-promotion evidence.
 - `python3 -m unittest tests.unit.test_unified_retrieval` - passed 63 retrieval tests after adding item-level basket-promotion query audit fields.
 - `python3 -m unittest tests.unit.test_unified_retrieval.UnifiedRetrievalTests.test_basket_promotion_bundle_normalizes_query_constraints_snapshot` - passed after adding item-level query-constraint normalization for existing basket-promotion bundles.

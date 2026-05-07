@@ -398,6 +398,10 @@ class RetrievalResult:
             retrieval_evidence=dict(self.evidence),
             retrieval_provenance=retrieval_provenance,
             retrieval_basket_promotion_bundle=retrieval_basket_promotion_bundle,
+            retrieval_manifest_fingerprint=cast(
+                str | None,
+                retrieval_source_bundle.get("retrieval_manifest_fingerprint"),
+            ),
             source_bundle_fingerprint=cast(str, retrieval_source_bundle["source_bundle_fingerprint"]),
             retrieval_source_bundle=retrieval_source_bundle,
         )
@@ -515,6 +519,7 @@ class RetrievalResult:
             "audit_ref": self.audit_ref,
             "result_fingerprint": self.result_fingerprint,
             "source_bundle_fingerprint": downstream_payload["source_bundle_fingerprint"],
+            "retrieval_manifest_fingerprint": downstream_payload["retrieval_manifest_fingerprint"],
             "retrieval_downstream_payload": copy.deepcopy(downstream_payload),
             "retrieval_citation_bundle": copy.deepcopy(downstream_payload["retrieval_citation_bundle"]),
             "retrieval_doc_bundle": copy.deepcopy(downstream_payload["retrieval_doc_bundle"]),
@@ -558,6 +563,7 @@ class RetrievalResult:
                 ),
                 "citation_status": copy.deepcopy(bundle_context["citation_status"]),
                 "retrieval_evidence_fingerprint": bundle_context["retrieval_evidence_fingerprint"],
+                "retrieval_manifest_fingerprint": bundle_context["retrieval_manifest_fingerprint"],
                 "retrieval_backend": hit.provenance.get("retrieval_backend"),
                 "retrieval_mode": hit.provenance.get("retrieval_mode"),
                 "source_hash": hit.provenance.get("source_hash"),
@@ -717,6 +723,9 @@ class RetrievalResult:
             ),
             "doc_hits_fingerprint": self.diagnostics["doc_hits_fingerprint"],
             "excerpt_hits_fingerprint": self.diagnostics["excerpt_hits_fingerprint"],
+            "retrieval_manifest_fingerprint": self.diagnostics["retrieval_manifest"].get(
+                "retrieval_manifest_fingerprint"
+            ),
             "active_strategy_ids": list(self.diagnostics["active_strategy_ids"]),
             "deferred_strategy_ids": list(self.diagnostics["deferred_strategy_ids"]),
             "citation_status": citation_status,
@@ -752,6 +761,9 @@ class RetrievalResult:
             "deferred_strategy_ids": list(self.diagnostics["deferred_strategy_ids"]),
             "doc_hits_fingerprint": self.diagnostics["doc_hits_fingerprint"],
             "excerpt_hits_fingerprint": self.diagnostics["excerpt_hits_fingerprint"],
+            "retrieval_manifest_fingerprint": self.diagnostics["retrieval_manifest"].get(
+                "retrieval_manifest_fingerprint"
+            ),
             "candidate_doc_count": self.diagnostics.get("candidate_doc_count"),
             "fts_shortlist_doc_ids": list(self.diagnostics.get("fts_shortlist_doc_ids", [])),
             "primary_doc_id": primary_doc_hit.doc_id if primary_doc_hit is not None else None,
@@ -808,6 +820,9 @@ class RetrievalResult:
             "deferred_strategy_ids": list(self.diagnostics["deferred_strategy_ids"]),
             "citation_status": citation_status,
             "retrieval_evidence_fingerprint": self.evidence.get("retrieval_evidence_fingerprint"),
+            "retrieval_manifest_fingerprint": self.diagnostics["retrieval_manifest"].get(
+                "retrieval_manifest_fingerprint"
+            ),
             # Keep the citation bundle inline so doc/excerpt snapshots remain
             # self-contained for downstream drafting and patching flows.
             "retrieval_citation_bundle": copy.deepcopy(citation_bundle),
@@ -856,6 +871,9 @@ class RetrievalResult:
             "retrieval_mode": self.diagnostics["retrieval_mode"],
             "citation_status": copy.deepcopy(citation_status_snapshot),
             "retrieval_evidence_fingerprint": self.evidence.get("retrieval_evidence_fingerprint"),
+            "retrieval_manifest_fingerprint": self.diagnostics["retrieval_manifest"].get(
+                "retrieval_manifest_fingerprint"
+            ),
             "retrieval_citation_bundle": copy.deepcopy(citation_bundle_snapshot),
             "retrieval_summary": retrieval_summary_snapshot,
             "retrieval_doc_bundle": copy.deepcopy(self.retrieval_doc_bundle()),
@@ -1164,6 +1182,7 @@ class RetrievalService:
             "excerpt_hits_count": len(merged_hits),
             "doc_hits_fingerprint": retrieval_manifest["doc_hits_fingerprint"],
             "excerpt_hits_fingerprint": retrieval_manifest["excerpt_hits_fingerprint"],
+            "retrieval_manifest_fingerprint": retrieval_manifest["retrieval_manifest_fingerprint"],
             "citation_status": citation_status,
             "retrieval_evidence_fingerprint": retrieval_evidence["retrieval_evidence_fingerprint"],
             "retrieval_manifest": retrieval_manifest,
@@ -1197,6 +1216,7 @@ class RetrievalService:
                 "retrieval_evidence_fingerprint": retrieval_evidence["retrieval_evidence_fingerprint"],
                 "doc_hits_fingerprint": retrieval_manifest["doc_hits_fingerprint"],
                 "excerpt_hits_fingerprint": retrieval_manifest["excerpt_hits_fingerprint"],
+                "retrieval_manifest_fingerprint": retrieval_manifest["retrieval_manifest_fingerprint"],
                 "result_fingerprint": result_fingerprint,
             },
         )
@@ -1471,7 +1491,7 @@ class RetrievalService:
                 if hit.excerpt_id is not None
             ]
         )
-        return {
+        manifest = {
             "doc_ids": [doc_hit.doc_id for doc_hit in doc_hits],
             "doc_fingerprints": doc_fingerprints,
             "doc_identity_fingerprints": doc_identity_fingerprints,
@@ -1487,6 +1507,8 @@ class RetrievalService:
             "active_strategy_ids": list(cast(list[str], retrieval_policy["active_strategy_ids"])),
             "deferred_strategy_ids": list(cast(list[str], retrieval_policy["deferred_strategy_ids"])),
         }
+        manifest["retrieval_manifest_fingerprint"] = self._stable_fingerprint(manifest)
+        return manifest
 
     def _build_retrieval_evidence(
         self,
@@ -1571,6 +1593,7 @@ class RetrievalService:
             "deferred_strategy_ids": list(cast(list[str], retrieval_policy["deferred_strategy_ids"])),
             "doc_hits_fingerprint": retrieval_manifest.get("doc_hits_fingerprint"),
             "excerpt_hits_fingerprint": retrieval_manifest.get("excerpt_hits_fingerprint"),
+            "retrieval_manifest_fingerprint": retrieval_manifest.get("retrieval_manifest_fingerprint"),
             "citation_status": {
                 "required": query.constraints.require_citations,
                 "available": bool(hits),

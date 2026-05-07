@@ -285,6 +285,14 @@ def _normalize_retrieval_manifest_snapshot(manifest: dict[str, object]) -> dict[
     retrieval_policy = normalized.get("retrieval_policy")
     if isinstance(retrieval_policy, dict):
         normalized["retrieval_policy"] = _normalize_policy_snapshot(retrieval_policy)
+    if _is_missing_snapshot_value(normalized.get("retrieval_manifest_fingerprint")):
+        normalized["retrieval_manifest_fingerprint"] = _stable_fingerprint(
+            {
+                key: value
+                for key, value in normalized.items()
+                if key != "retrieval_manifest_fingerprint"
+            }
+        )
     return normalized
 
 
@@ -362,6 +370,7 @@ def _normalize_basket_promotion_bundle_snapshot(bundle: dict[str, object]) -> di
             "query_date_range": normalized.get("query_date_range"),
             "citation_status": normalized.get("citation_status"),
             "retrieval_evidence_fingerprint": normalized.get("retrieval_evidence_fingerprint"),
+            "retrieval_manifest_fingerprint": normalized.get("retrieval_manifest_fingerprint"),
             "retrieval_backend": normalized.get("retrieval_backend"),
             "retrieval_mode": normalized.get("retrieval_mode"),
         }
@@ -493,6 +502,20 @@ def _normalize_retrieval_source_bundle_snapshot(source_bundle: dict[str, object]
     )
     if retrieval_evidence_fingerprint is not None:
         normalized["retrieval_evidence_fingerprint"] = retrieval_evidence_fingerprint
+
+    retrieval_manifest = normalized.get("retrieval_manifest", {})
+    if not isinstance(retrieval_manifest, dict):
+        retrieval_manifest = {}
+    retrieval_manifest = _normalize_retrieval_manifest_snapshot(retrieval_manifest)
+    retrieval_manifest_fingerprint = _first_text_value(
+        normalized.get("retrieval_manifest_fingerprint"),
+        retrieval_manifest.get("retrieval_manifest_fingerprint"),
+        retrieval_evidence.get("retrieval_manifest_fingerprint"),
+        retrieval_summary.get("retrieval_manifest_fingerprint"),
+        retrieval_provenance.get("retrieval_manifest_fingerprint"),
+    )
+    if retrieval_manifest_fingerprint is not None:
+        normalized["retrieval_manifest_fingerprint"] = retrieval_manifest_fingerprint
 
     retrieval_backend = _first_text_value(
         normalized.get("retrieval_backend"),
@@ -713,6 +736,7 @@ def _build_retrieval_context_bundle_from_source_bundle(source_bundle: dict[str, 
         "audit_ref": None,
         "result_fingerprint": source_bundle.get("result_fingerprint"),
         "source_bundle_fingerprint": source_bundle.get("source_bundle_fingerprint"),
+        "retrieval_manifest_fingerprint": source_bundle.get("retrieval_manifest_fingerprint"),
         "retrieval_downstream_payload": copy.deepcopy(source_bundle),
         "retrieval_citation_bundle": copy.deepcopy(retrieval_citation_bundle),
         "retrieval_doc_bundle": copy.deepcopy(retrieval_doc_bundle),
@@ -750,6 +774,10 @@ def _build_retrieval_bundle_context_from_payload(payload: dict[str, object]) -> 
     if not isinstance(evidence, dict):
         evidence = {}
     evidence = _normalize_retrieval_evidence_snapshot(evidence)
+    retrieval_manifest = payload.get("retrieval_manifest", {})
+    if not isinstance(retrieval_manifest, dict):
+        retrieval_manifest = {}
+    retrieval_manifest = _normalize_retrieval_manifest_snapshot(retrieval_manifest)
     query_date_range = _normalize_optional_list_like(
         query_constraints.get(
             "date_range",
@@ -791,8 +819,15 @@ def _build_retrieval_bundle_context_from_payload(payload: dict[str, object]) -> 
             or summary.get("retrieval_evidence_fingerprint")
             or diagnostics.get("retrieval_evidence_fingerprint")
         ),
+        "retrieval_manifest_fingerprint": (
+            evidence.get("retrieval_manifest_fingerprint")
+            or provenance.get("retrieval_manifest_fingerprint")
+            or summary.get("retrieval_manifest_fingerprint")
+            or diagnostics.get("retrieval_manifest_fingerprint")
+            or retrieval_manifest.get("retrieval_manifest_fingerprint")
+        ),
         "retrieval_citation_bundle": copy.deepcopy(citation_bundle),
-        "retrieval_manifest": copy.deepcopy(payload.get("retrieval_manifest", {})),
+        "retrieval_manifest": copy.deepcopy(retrieval_manifest),
         "retrieval_provenance": copy.deepcopy(provenance),
         "retrieval_evidence": copy.deepcopy(evidence),
     }
@@ -907,6 +942,13 @@ def _build_retrieval_basket_promotion_bundle_from_payload(payload: dict[str, obj
                     bundle_context["retrieval_evidence_fingerprint"],
                 ),
             ),
+            "retrieval_manifest_fingerprint": hit.get(
+                "retrieval_manifest_fingerprint",
+                provenance.get(
+                    "retrieval_manifest_fingerprint",
+                    bundle_context["retrieval_manifest_fingerprint"],
+                ),
+            ),
             "retrieval_backend": hit.get("retrieval_backend", provenance.get("retrieval_backend")),
             "retrieval_mode": hit.get("retrieval_mode", provenance.get("retrieval_mode")),
             "source_hash": hit.get("source_hash", provenance.get("source_hash")),
@@ -947,6 +989,7 @@ def _build_retrieval_context_bundle_from_payload(payload: dict[str, object]) -> 
             "source_bundle_fingerprint",
             source_bundle.get("source_bundle_fingerprint"),
         ),
+        "retrieval_manifest_fingerprint": source_bundle.get("retrieval_manifest_fingerprint"),
         "retrieval_downstream_payload": copy.deepcopy(payload),
         "retrieval_citation_bundle": _build_retrieval_citation_bundle_from_payload(payload),
         "retrieval_doc_bundle": _build_retrieval_doc_bundle_from_payload(payload),
@@ -1049,6 +1092,7 @@ def _build_retrieval_diagnostics_from_source_bundle(source_bundle: dict[str, obj
         "excerpt_hits_count": citation_bundle.get("excerpt_count", len(_normalize_list_like(normalized.get("excerpt_hits", [])))),
         "doc_hits_fingerprint": citation_bundle.get("doc_hits_fingerprint"),
         "excerpt_hits_fingerprint": citation_bundle.get("excerpt_hits_fingerprint"),
+        "retrieval_manifest_fingerprint": normalized.get("retrieval_manifest_fingerprint"),
         "citation_status": copy.deepcopy(
             citation_bundle.get("citation_status", normalized.get("citation_status", {}))
         ),
@@ -1172,6 +1216,12 @@ def _build_retrieval_provenance_from_payload(payload: dict[str, object]) -> dict
             or summary.get("retrieval_evidence_fingerprint")
             or diagnostics.get("retrieval_evidence_fingerprint")
         )
+    if "retrieval_manifest_fingerprint" not in normalized:
+        normalized["retrieval_manifest_fingerprint"] = (
+            evidence.get("retrieval_manifest_fingerprint")
+            or summary.get("retrieval_manifest_fingerprint")
+            or diagnostics.get("retrieval_manifest_fingerprint")
+        )
     if "doc_count" not in normalized:
         normalized["doc_count"] = summary.get("doc_count")
     if "excerpt_count" not in normalized:
@@ -1234,6 +1284,7 @@ class RetrievalDownstreamPayload:
     retrieval_evidence: dict[str, object]
     retrieval_provenance: dict[str, object]
     retrieval_basket_promotion_bundle: dict[str, object]
+    retrieval_manifest_fingerprint: str | None
     source_bundle_fingerprint: str
     retrieval_source_bundle: dict[str, object]
 
@@ -1266,6 +1317,7 @@ class RetrievalDownstreamPayload:
             "retrieval_evidence": evidence,
             "retrieval_provenance": provenance,
             "retrieval_basket_promotion_bundle": basket_promotion_bundle,
+            "retrieval_manifest_fingerprint": self.retrieval_manifest_fingerprint,
             "source_bundle_fingerprint": self.source_bundle_fingerprint,
             "retrieval_source_bundle": source_bundle,
         }
@@ -1306,6 +1358,7 @@ def build_retrieval_downstream_payload(
     retrieval_evidence: dict[str, object],
     retrieval_provenance: dict[str, object],
     retrieval_basket_promotion_bundle: dict[str, object],
+    retrieval_manifest_fingerprint: str | None,
     source_bundle_fingerprint: str,
     retrieval_source_bundle: dict[str, object],
 ) -> dict[str, object]:
@@ -1328,6 +1381,7 @@ def build_retrieval_downstream_payload(
         retrieval_evidence=retrieval_evidence,
         retrieval_provenance=retrieval_provenance,
         retrieval_basket_promotion_bundle=retrieval_basket_promotion_bundle,
+        retrieval_manifest_fingerprint=retrieval_manifest_fingerprint,
         source_bundle_fingerprint=source_bundle_fingerprint,
         retrieval_source_bundle=retrieval_source_bundle,
     ).as_dict()
