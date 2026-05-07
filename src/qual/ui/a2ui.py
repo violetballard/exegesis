@@ -57,6 +57,12 @@ _TERMINAL_ARTIFACT_CLI_FALLBACK_ROUTE_PRECEDENCE: tuple[str, ...] = (
     "render_terminal_selection",
     "render_terminal_card",
 )
+ENGINE_A2UI_CLI_FALLBACK_STAGE_ORDER: tuple[str, ...] = (
+    "plan",
+    "revise",
+    "patch",
+    "apply",
+)
 
 _TERMINAL_ARTIFACT_CLI_FALLBACK_TARGET_HINT: ContextVar[tuple[Any, str] | None] = ContextVar(
     "qual_terminal_artifact_cli_fallback_target_hint",
@@ -3373,9 +3379,14 @@ def _build_terminal_artifact_cli_fallback_payload_contract_manifest() -> dict[st
         "required_fields": list(_TERMINAL_ARTIFACT_CLI_FALLBACK_PAYLOAD_REQUIRED_FIELDS),
         "artifact_input_shape": "ordered replayable sequence of explicit two-item sequences: kind, artifact",
         "artifact_input_order_policy": (
-            "artifact containers must be replayable ordered sequences; mapping, unordered set-like, and one-shot "
-            "iterable containers are rejected"
+            "artifact containers must be replayable ordered sequences; named mapping inputs use the engine stage "
+            "order before falling back to sorted names; unordered set-like and one-shot iterable containers are rejected"
         ),
+        "named_artifact_order_policy": (
+            "named engine artifacts render in plan, revise, patch, apply order when those stage names are present; "
+            "other stage names render after known stages in case-insensitive lexical order"
+        ),
+        "known_engine_stage_order": list(ENGINE_A2UI_CLI_FALLBACK_STAGE_ORDER),
         "artifact_entry_contract": "TerminalArtifact",
         "artifact_entry_fields": list(_TERMINAL_ARTIFACT_ENVELOPE_REQUIRED_FIELDS),
         "artifact_entry_version_policy": (
@@ -3860,16 +3871,23 @@ def build_named_terminal_artifact_cli_fallback_payload(
     normalized_names: set[str] = set()
     for name, item in artifacts.items():
         normalized_name = _normalize_terminal_artifact_cli_fallback_payload_artifact_name(name)
-        if normalized_name in normalized_names:
+        normalized_unique_key = normalized_name.casefold()
+        if normalized_unique_key in normalized_names:
             raise ValueError("Named TerminalArtifact fallback artifact names must be unique after normalization")
-        normalized_names.add(normalized_name)
+        normalized_names.add(normalized_unique_key)
         if isinstance(item, (str, bytes)) or not isinstance(item, Sequence) or len(item) != 2:
             raise ValueError("Named TerminalArtifact fallback artifacts must map names to (kind, artifact) pairs")
         kind, artifact = item
         ordered_artifacts.append((normalized_name, (kind, artifact)))
 
     return build_terminal_artifact_cli_fallback_payload(
-        [item for _, item in sorted(ordered_artifacts, key=lambda entry: entry[0])]
+        [
+            item
+            for _, item in sorted(
+                ordered_artifacts,
+                key=lambda entry: _engine_a2ui_cli_fallback_stage_sort_key(entry[0]),
+            )
+        ]
     )
 
 
@@ -3897,6 +3915,17 @@ def _normalize_terminal_artifact_cli_fallback_payload_artifact_name(name: Any) -
     if any(unicodedata.category(char).startswith("C") for char in normalized_name):
         raise ValueError("Named TerminalArtifact fallback artifact names must not contain control characters")
     return normalized_name
+
+
+def _engine_a2ui_cli_fallback_stage_sort_key(name: str) -> tuple[int, int, str]:
+    stage_order = {
+        stage_name: index
+        for index, stage_name in enumerate(ENGINE_A2UI_CLI_FALLBACK_STAGE_ORDER)
+    }
+    normalized_name = name.casefold()
+    if normalized_name in stage_order:
+        return (0, stage_order[normalized_name], normalized_name)
+    return (1, len(stage_order), normalized_name)
 
 
 def _render_terminal_artifact_cli_fallback_payload_text(cli_fallback: Sequence[Mapping[str, Any]]) -> str:

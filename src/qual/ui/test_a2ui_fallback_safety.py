@@ -25,6 +25,7 @@ from src.qual.ui.a2ui import (
     REQUIRED_PRIMITIVE_BLOCKS,
     SELECTION_SCHEMA_VERSION,
     TERMINAL_FALLBACK_SCHEMA_VERSION,
+    ENGINE_A2UI_CLI_FALLBACK_STAGE_ORDER,
     GENERIC_FALLBACK_SUBTITLE,
     card_contract_fingerprint,
     action_contract_fingerprint,
@@ -12856,6 +12857,13 @@ class A2UIFallbackSafetyTests(unittest.TestCase):
                 }
             )
         with self.assertRaises(ValueError):
+            build_named_terminal_artifact_cli_fallback_payload(
+                {
+                    "plan": ("card", artifact),
+                    "Plan": ("card", artifact),
+                }
+            )
+        with self.assertRaises(ValueError):
             build_named_terminal_artifact_cli_fallback_payload({"run\u200b-log": ("card", artifact)})
         with self.assertRaises(ValueError):
             build_named_terminal_artifact_cli_fallback_payload({"card": artifact})
@@ -13973,6 +13981,61 @@ class A2UIFallbackSafetyTests(unittest.TestCase):
         self.assertEqual([entry["kind"] for entry in first["artifacts"]], ["card", "action"])
         self.assertEqual(first["rendered_text"], render_terminal_artifact_cli_fallback_payload(first))
         validate_terminal_artifact_cli_fallback_payload(first)
+
+    def test_engine_a2ui_cli_fallback_payload_uses_workflow_stage_order_for_named_artifacts(self) -> None:
+        payload = build_engine_a2ui_cli_fallback_payload(
+            {
+                "apply": ["action", ActionRef(id="copy_to_clipboard", label="Apply", payload={"text": "applied"})],
+                "patch": ["action", ActionRef(id="copy_to_clipboard", label="Patch", payload={"text": "patched"})],
+                "plan": [
+                    "card",
+                    {
+                        "type": "GenericCard",
+                        "title": "Plan",
+                        "blocks": [{"type": "MarkdownBlock", "markdown": "planned"}],
+                        "actions": [],
+                    },
+                ],
+                "revise": [
+                    "card",
+                    {
+                        "type": "GenericCard",
+                        "title": "Revise",
+                        "blocks": [{"type": "MarkdownBlock", "markdown": "revised"}],
+                        "actions": [],
+                    },
+                ],
+            }
+        )
+
+        self.assertEqual(
+            [entry["kind"] for entry in payload["artifacts"]],
+            ["card", "card", "action", "action"],
+        )
+        self.assertLess(
+            payload["rendered_text"].index("[GenericCard] Plan"),
+            payload["rendered_text"].index("[GenericCard] Revise"),
+        )
+        self.assertLess(
+            payload["rendered_text"].index("[GenericCard] Revise"),
+            payload["rendered_text"].index("[ActionRef] Patch"),
+        )
+        self.assertLess(
+            payload["rendered_text"].index("[ActionRef] Patch"),
+            payload["rendered_text"].index("[ActionRef] Apply"),
+        )
+        validate_terminal_artifact_cli_fallback_payload(payload)
+
+    def test_terminal_artifact_cli_fallback_payload_contract_documents_named_stage_order(self) -> None:
+        manifest = describe_terminal_artifact_cli_fallback_payload_contract()
+
+        self.assertEqual(manifest["known_engine_stage_order"], list(ENGINE_A2UI_CLI_FALLBACK_STAGE_ORDER))
+        self.assertEqual(
+            public_ui.ENGINE_A2UI_CLI_FALLBACK_STAGE_ORDER,
+            ENGINE_A2UI_CLI_FALLBACK_STAGE_ORDER,
+        )
+        self.assertIn("named engine artifacts", manifest["named_artifact_order_policy"])
+        self.assertEqual(len(manifest["contract_fingerprint"]), 64)
 
     def test_terminal_artifact_prefers_typed_card_payloads_over_conflicting_non_card_hints(self) -> None:
         artifact = {
