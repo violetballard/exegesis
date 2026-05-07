@@ -604,6 +604,7 @@ class CoordinatorDaemonBehaviorTests(unittest.TestCase):
             patch("codex_packet_handoff.tools.agents_coordinator._local_lms_feature_launch_slots", return_value=2),
             patch("codex_packet_handoff.tools.agents_coordinator._active_local_fixer_jobs", return_value=0),
             patch("codex_packet_handoff.tools.agents_coordinator._has_reviewer_notes_backlog", return_value=False),
+            patch("codex_packet_handoff.tools.agents_coordinator._has_lane_backlog", return_value=False),
             patch("codex_packet_handoff.tools.agents_coordinator._has_router_priority_backlog", return_value=False),
             patch("codex_packet_handoff.tools.agents_coordinator.run_cmd", side_effect=fake_run_cmd),
         ):
