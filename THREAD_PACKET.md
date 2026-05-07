@@ -4,6 +4,7 @@
 - Lane: `feat-retrieval-fts`
 - Merge target: current `main`
 - Handoff type: high-risk retrieval handoff for the FTS-first retrieval lane.
+- Canonical demo-path step advanced before handoff: `retrieve relevant material`.
 - Risk reason: approved shared regression surface `tests/unit/test_unified_retrieval.py`.
 - Lane-owned paths: `src/qual/retrieval/**`, `src/qual/engine/retrieval/**`.
 - Approved shared regression path: `tests/unit/test_unified_retrieval.py`.
@@ -78,6 +79,8 @@ Canonical demo path advanced: `vault/context material -> FTS retrieval -> retrie
 
 Before-handoff canonical demo-path statement: this work makes `retrieve relevant material` more real by making FTS-only excerpt lookup deterministic and fail-closed for PageIndex-only excerpt IDs, and it supports `promote or gather context into the basket` through stable excerpt/provenance payloads.
 
+Each completed task below names the canonical demo-path step it advances: `retrieve relevant material` and, where applicable, `promote or gather context into the basket`.
+
 ## Tasks Completed
 
 1. Canonical demo-path step advanced: `retrieve relevant material`. Made SQLite FTS the authoritative MVP retrieval path while keeping PageIndex and embeddings fallback-only/deferred.
@@ -114,6 +117,7 @@ Task accounting: `4` high-risk task groups completed, matching the high-risk tas
 14. Added deterministic retrieval manifest fingerprints to service-produced and payload-derived retrieval contracts so basket-promotion evidence can audit the exact FTS doc/excerpt manifest without rehydrating the full result.
 15. Tightened canonical engine query construction so loose mapping-shaped `date_range` constraints must contain exactly two non-empty values before FTS retrieval can run.
 16. Added per-item FTS policy and source-strategy snapshots to basket-promotion evidence and sparse payload rehydration.
+17. Refreshed handoff packet metadata only to explicitly state that this work advances the canonical demo-path step `retrieve relevant material`, with each completed task mapped to `retrieve relevant material` and, where applicable, `promote or gather context into the basket`.
 
 ## Commands Run
 
