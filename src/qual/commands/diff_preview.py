@@ -787,7 +787,11 @@ def validate_patch_review_action_routes(
     )
 
     return PatchReviewActionRouteValidation(
-        is_valid=len(missing) == 0 and len(invalid_action_routes) == 0,
+        is_valid=(
+            len(missing) == 0
+            and len(invalid_action_routes) == 0
+            and len(missing_action_routes) == 0
+        ),
         engine_actions=route_engine_actions,
         valid_engine_actions=valid,
         missing_engine_actions=missing,
