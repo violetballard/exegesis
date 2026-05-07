@@ -218,6 +218,44 @@ def _capabilities() -> A2UICapabilities:
     )
 
 
+def _refresh_cli_fallback_payload_artifact_fingerprints(
+    payload: dict[str, object],
+) -> None:
+    artifacts = payload["artifacts"]
+    cli_fallback = payload["cli_fallback"]
+    assert isinstance(artifacts, list)
+    assert isinstance(cli_fallback, list)
+
+    artifact_order = []
+    for index, artifact in enumerate(artifacts):
+        fallback = cli_fallback[index]
+        assert isinstance(artifact, dict)
+        assert isinstance(fallback, dict)
+        assert isinstance(artifact["kind"], str)
+
+        artifact_fingerprint = _fingerprint_manifest_section(artifact)
+        artifact_id = (
+            f"{index}:{artifact['kind']}:"
+            f"{artifact_fingerprint[:TERMINAL_ARTIFACT_CLI_FALLBACK_PAYLOAD_ARTIFACT_ID_FINGERPRINT_PREFIX_CHARS]}"
+        )
+        artifact_order.append(
+            {
+                "index": index,
+                "artifact_id": artifact_id,
+                "kind": artifact["kind"],
+                "artifact_fingerprint": artifact_fingerprint,
+            }
+        )
+        fallback["artifact_fingerprint"] = artifact_fingerprint
+        fallback["artifact_id"] = artifact_id
+
+    payload["artifact_order_fingerprint"] = _fingerprint_manifest_section(artifact_order)
+    payload["cli_fallback_fingerprint"] = _fingerprint_manifest_section(cli_fallback)
+    fingerprint_input = dict(payload)
+    fingerprint_input.pop("payload_fingerprint")
+    payload["payload_fingerprint"] = _fingerprint_manifest_section(fingerprint_input)
+
+
 _RAW_LEAF_CARD_DEFAULT_MANIFEST = {
     "preserve_when_kind_is_unset": True,
     "required_fields": ["id", "label", "payload"],
@@ -12930,6 +12968,18 @@ class A2UIFallbackSafetyTests(unittest.TestCase):
             "iterable containers are rejected",
         )
         self.assertEqual(contract["artifact_entry_contract"], "TerminalArtifact")
+        self.assertEqual(
+            contract["artifact_entry_fields"],
+            ["type", "kind", "artifact", "contract_version", "a2ui_version"],
+        )
+        self.assertEqual(
+            contract["artifact_entry_version_policy"],
+            "embedded artifacts must be complete versioned TerminalArtifact envelopes",
+        )
+        self.assertEqual(
+            contract["artifact_entry_fingerprint_policy"],
+            "artifact fingerprints cover the complete TerminalArtifact envelope including version fields",
+        )
         self.assertIn("artifact_order_fingerprint", contract["required_fields"])
         self.assertIn("cli_fallback_fingerprint", contract["required_fields"])
         self.assertIn("rendered_text_fingerprint", contract["required_fields"])
@@ -13408,6 +13458,29 @@ class A2UIFallbackSafetyTests(unittest.TestCase):
                 with self.assertRaises(ValueError):
                     validate_terminal_artifact_cli_fallback_payload(payload)
 
+    def test_terminal_artifact_cli_fallback_payload_rejects_boolean_artifact_versions(self) -> None:
+        version_fields = ("contract_version", "a2ui_version")
+        for field in version_fields:
+            with self.subTest(field=field):
+                payload = build_terminal_artifact_cli_fallback_payload(
+                    [
+                        (
+                            "card",
+                            {
+                                "type": "GenericCard",
+                                "title": "Run Log",
+                                "blocks": [{"type": "MarkdownBlock", "markdown": "Done"}],
+                                "actions": [],
+                            },
+                        )
+                    ]
+                )
+                payload["artifacts"][0][field] = True
+                _refresh_cli_fallback_payload_artifact_fingerprints(payload)
+
+                with self.assertRaises(ValueError):
+                    validate_terminal_artifact_cli_fallback_payload(payload)
+
     def test_terminal_artifact_cli_fallback_payload_rejects_non_string_kind(self) -> None:
         payload = build_terminal_artifact_cli_fallback_payload(
             [
@@ -13763,6 +13836,52 @@ class A2UIFallbackSafetyTests(unittest.TestCase):
         with self.assertRaisesRegex(
             ValueError,
             "Missing TerminalArtifactCliFallbackPayload cli_fallback field",
+        ):
+            validate_terminal_artifact_cli_fallback_payload(payload)
+
+    def test_terminal_artifact_cli_fallback_payload_rejects_missing_artifact_contract_version(self) -> None:
+        payload = build_terminal_artifact_cli_fallback_payload(
+            [
+                (
+                    "card",
+                    {
+                        "type": "GenericCard",
+                        "title": "Run Log",
+                        "blocks": [{"type": "MarkdownBlock", "markdown": "Done"}],
+                        "actions": [],
+                    },
+                )
+            ]
+        )
+        del payload["artifacts"][0]["contract_version"]
+        _refresh_cli_fallback_payload_artifact_fingerprints(payload)
+
+        with self.assertRaisesRegex(
+            ValueError,
+            "Missing TerminalArtifactCliFallbackPayload artifact field",
+        ):
+            validate_terminal_artifact_cli_fallback_payload(payload)
+
+    def test_terminal_artifact_cli_fallback_payload_rejects_missing_artifact_a2ui_version(self) -> None:
+        payload = build_terminal_artifact_cli_fallback_payload(
+            [
+                (
+                    "card",
+                    {
+                        "type": "GenericCard",
+                        "title": "Run Log",
+                        "blocks": [{"type": "MarkdownBlock", "markdown": "Done"}],
+                        "actions": [],
+                    },
+                )
+            ]
+        )
+        del payload["artifacts"][0]["a2ui_version"]
+        _refresh_cli_fallback_payload_artifact_fingerprints(payload)
+
+        with self.assertRaisesRegex(
+            ValueError,
+            "Missing TerminalArtifactCliFallbackPayload artifact field",
         ):
             validate_terminal_artifact_cli_fallback_payload(payload)
 

@@ -182,6 +182,13 @@ _TERMINAL_ARTIFACT_CLI_FALLBACK_PAYLOAD_ARTIFACT_ORDER_FIELDS: tuple[str, ...] =
     "kind",
     "artifact_fingerprint",
 )
+_TERMINAL_ARTIFACT_ENVELOPE_REQUIRED_FIELDS: tuple[str, ...] = (
+    "type",
+    "kind",
+    "artifact",
+    "contract_version",
+    "a2ui_version",
+)
 
 
 @dataclass(frozen=True)
@@ -3370,6 +3377,13 @@ def _build_terminal_artifact_cli_fallback_payload_contract_manifest() -> dict[st
             "iterable containers are rejected"
         ),
         "artifact_entry_contract": "TerminalArtifact",
+        "artifact_entry_fields": list(_TERMINAL_ARTIFACT_ENVELOPE_REQUIRED_FIELDS),
+        "artifact_entry_version_policy": (
+            "embedded artifacts must be complete versioned TerminalArtifact envelopes"
+        ),
+        "artifact_entry_fingerprint_policy": (
+            "artifact fingerprints cover the complete TerminalArtifact envelope including version fields"
+        ),
         "cli_fallback_entry_fields": list(_TERMINAL_ARTIFACT_CLI_FALLBACK_PAYLOAD_CLI_ENTRY_FIELDS),
         "artifact_order_entry_fields": list(
             _TERMINAL_ARTIFACT_CLI_FALLBACK_PAYLOAD_ARTIFACT_ORDER_FIELDS
@@ -4063,6 +4077,28 @@ def validate_terminal_artifact_envelope(envelope: Any) -> None:
     _validate_terminal_artifact_payload_kind(envelope["artifact"], normalized_kind)
 
 
+def _validate_versioned_terminal_artifact_envelope(envelope: Any) -> None:
+    if not isinstance(envelope, Mapping):
+        raise ValueError("TerminalArtifactCliFallbackPayload artifacts entries must be objects")
+    missing_keys = set(_TERMINAL_ARTIFACT_ENVELOPE_REQUIRED_FIELDS) - set(envelope)
+    if missing_keys:
+        missing = ", ".join(sorted(missing_keys))
+        raise ValueError(f"Missing TerminalArtifactCliFallbackPayload artifact field(s): {missing}")
+    validate_terminal_artifact_envelope(envelope)
+
+
+def _validate_terminal_artifact_cli_fallback_payload_artifact_entries(
+    artifacts: Sequence[Any],
+) -> None:
+    for envelope in artifacts:
+        if not isinstance(envelope, Mapping):
+            raise ValueError("TerminalArtifactCliFallbackPayload artifacts entries must be objects")
+        missing_keys = set(_TERMINAL_ARTIFACT_ENVELOPE_REQUIRED_FIELDS) - set(envelope)
+        if missing_keys:
+            missing = ", ".join(sorted(missing_keys))
+            raise ValueError(f"Missing TerminalArtifactCliFallbackPayload artifact field(s): {missing}")
+
+
 def validate_terminal_artifact_cli_fallback_payload(payload: Any) -> None:
     if not isinstance(payload, Mapping):
         raise ValueError("TerminalArtifactCliFallbackPayload must be an object")
@@ -4103,6 +4139,7 @@ def validate_terminal_artifact_cli_fallback_payload(payload: Any) -> None:
         raise ValueError("TerminalArtifactCliFallbackPayload artifact_count is invalid")
     if len(artifacts) != len(cli_fallback):
         raise ValueError("TerminalArtifactCliFallbackPayload artifacts and cli_fallback must align")
+    _validate_terminal_artifact_cli_fallback_payload_artifact_entries(artifacts)
     _validate_terminal_artifact_cli_fallback_payload_artifact_id_uniqueness(cli_fallback)
     artifact_order = [
         (
@@ -4125,7 +4162,7 @@ def validate_terminal_artifact_cli_fallback_payload(payload: Any) -> None:
     ):
         raise ValueError("TerminalArtifactCliFallbackPayload artifact_order_fingerprint is stale")
     for index, envelope in enumerate(artifacts):
-        validate_terminal_artifact_envelope(envelope)
+        _validate_versioned_terminal_artifact_envelope(envelope)
         fallback = cli_fallback[index]
         if not isinstance(fallback, Mapping):
             raise ValueError("TerminalArtifactCliFallbackPayload cli_fallback entries must be objects")
