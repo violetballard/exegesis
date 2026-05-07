@@ -2220,6 +2220,56 @@ class UnifiedRetrievalTests(unittest.TestCase):
         )
         self.assertEqual(rehydrated_item["doc_type"], "memo")
 
+    def test_basket_promotion_bundle_normalizes_query_constraints_snapshot(self) -> None:
+        result = self.service.retrieve_auto(
+            RetrievalQuery(
+                query_text="memo comparison",
+                scope="vault",
+                intent="compare",
+                constraints=RetrievalConstraints(
+                    max_results=4,
+                    date_range=("2026-01-01", "2026-12-31"),
+                ),
+                confidentiality_profile="confidential",
+            )
+        )
+        payload = result.to_downstream_payload()
+        basket_bundle = payload["retrieval_basket_promotion_bundle"]
+        self.assertIsInstance(basket_bundle, dict)
+        cast(dict[str, object], basket_bundle)["query_constraints"] = {
+            "max_results": 4,
+            "doc_types": (),
+            "date_range": ("2026-01-01", "2026-12-31"),
+            "require_citations": False,
+            "section_hint": "  ",
+            "prefer_exact_matches": False,
+        }
+        cast(dict[str, object], basket_bundle).pop("query_constraints_fingerprint", None)
+
+        normalized_bundle = _build_retrieval_basket_promotion_bundle_from_payload(payload)
+
+        expected_constraints = {
+            "max_results": 4,
+            "doc_types": [],
+            "date_range": ["2026-01-01", "2026-12-31"],
+            "require_citations": False,
+            "section_hint": None,
+            "prefer_exact_matches": False,
+        }
+        expected_constraints_fingerprint = hashlib.sha256(
+            json.dumps(
+                expected_constraints,
+                sort_keys=True,
+                separators=(",", ":"),
+                ensure_ascii=True,
+            ).encode("utf-8")
+        ).hexdigest()
+        self.assertEqual(normalized_bundle["query_constraints"], expected_constraints)
+        self.assertEqual(
+            normalized_bundle["query_constraints_fingerprint"],
+            expected_constraints_fingerprint,
+        )
+
     def test_engine_retrieval_tool_returns_canonical_downstream_payload(self) -> None:
         payload = engine_retrieve_auto_payload(
             self.service,

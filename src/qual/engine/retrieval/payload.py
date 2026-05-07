@@ -293,6 +293,20 @@ def _normalize_basket_promotion_bundle_snapshot(bundle: dict[str, object]) -> di
     normalized = copy.deepcopy(bundle)
     if not isinstance(normalized, dict):
         return {}
+    query_constraints = normalized.get("query_constraints")
+    if not isinstance(query_constraints, dict):
+        query = normalized.get("query")
+        if isinstance(query, dict):
+            query_constraints = query.get("constraints", {})
+        else:
+            query_constraints = {}
+    if isinstance(query_constraints, dict):
+        normalized["query_constraints"] = _normalize_query_snapshot({"constraints": query_constraints})[
+            "constraints"
+        ]
+    else:
+        normalized["query_constraints"] = {}
+    normalized.setdefault("query_constraints_fingerprint", _stable_fingerprint(normalized["query_constraints"]))
     normalized["query_date_range"] = _normalize_optional_list_like(normalized.get("query_date_range"))
     normalized["active_strategy_ids"] = _normalize_list_like(normalized.get("active_strategy_ids"))
     normalized["deferred_strategy_ids"] = _normalize_list_like(normalized.get("deferred_strategy_ids"))

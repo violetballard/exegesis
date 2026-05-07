@@ -11,7 +11,7 @@
 - Authoritative reviewed implementation base: `378cf9a74a3658058079a32f186fcd254c4a4034`.
 - Pre-fixer reviewed implementation head: `b0b046271168b6d058e60b7a97080bebf5220781`.
 - Pre-fixer reviewed implementation range: `378cf9a74a3658058079a32f186fcd254c4a4034..b0b046271168b6d058e60b7a97080bebf5220781`.
-- Current fixer base before this source-bearing delta: `81ca2d34b58dbd843b5ed26f0107c75fc37f20cb`.
+- Current fixer base before this source-bearing delta: `9f77b3585ab352ff9f4e42a1a2569b2b22aeac14`.
 - Final source-bearing fixer commit: reported in the final handoff response after commit creation.
 - Reviewer-cited unreviewed implementation range now included: `adfa8cdadd43747ffbcb612e4151e262b13e52ca..b0b046271168b6d058e60b7a97080bebf5220781`.
 
@@ -27,7 +27,7 @@ This fixer creates a metadata-only packet refresh commit after `b0b046271168b6d0
 
 Re-review should not use `adfa8cdadd43747ffbcb612e4151e262b13e52ca` as the implementation head. It is an intermediate commit only.
 
-This final source-bearing fixer builds on packet-refresh head `81ca2d34b58dbd843b5ed26f0107c75fc37f20cb` and preserves the corrected cumulative implementation range above while adding one narrow payload hardening change. The final commit SHA for this delta is reported outside the packet to avoid self-stale metadata.
+This final source-bearing fixer builds on packet-refresh head `9f77b3585ab352ff9f4e42a1a2569b2b22aeac14` and preserves the corrected cumulative implementation range above while adding one narrow payload hardening change. The final commit SHA for this delta is reported outside the packet to avoid self-stale metadata.
 
 ## Files Changed
 
@@ -60,6 +60,8 @@ The latest implementation delta preserves normalized query constraints and their
 
 The final source-bearing fixer also preserves `retrieval_evidence_fingerprint` on payload-derived basket-promotion items when the full promotion bundle is absent. This keeps sparse downstream payload snapshots auditable at the individual promotion-item level without requiring the original `RetrievalResult`.
 
+This latest source-bearing delta normalizes and fingerprints `query_constraints` when a downstream payload already carries a `retrieval_basket_promotion_bundle`. That keeps service-produced and payload-derived basket-promotion bundles aligned even when tuple/list constraint shapes or blank section hints are rehydrated from sparse engine snapshots.
+
 Canonical demo path advanced: `vault/context material -> FTS retrieval -> retrieval evidence -> context basket promotion -> engine revise/apply`.
 
 ## Tasks Completed
@@ -89,23 +91,27 @@ Task accounting: `4` high-risk task groups completed, matching the high-risk tas
 5. Added a final fail-closed guard so excerpt payload normalization cannot accept PageIndex resolution as a compatibility path.
 6. Preserved query constraints and query-constraint fingerprints in payload-derived basket-promotion bundles so sparse promotion evidence remains auditable.
 7. Preserved retrieval evidence fingerprints in payload-derived basket-promotion items so sparse promotion evidence stays aligned with service-produced promotion bundles.
+8. Normalized basket-promotion bundle query constraints and regenerated missing query-constraint fingerprints when rehydrating an existing promotion bundle from downstream payload snapshots.
 
 ## Commands Run
 
 Required gates for this final fixer state were re-run on 2026-05-07 after the
 latest retrieval implementation delta. This final fixer is source-bearing in
-`src/qual/engine/retrieval/payload.py`; the final commit SHA is reported with
-the handoff response after commit creation.
+`src/qual/engine/retrieval/payload.py`, `tests/unit/test_unified_retrieval.py`,
+and `THREAD_PACKET.md`; the final commit SHA is reported with the handoff
+response after commit creation.
 
 - `make scope-check` - passed for branch `codex/feat-retrieval-fts`.
 - `./quality-format.sh --check` - passed.
 - `./quality-lint.sh` - passed shell syntax and trailing whitespace checks.
-- `./quality-test.sh` - passed smoke tests and 131 unit tests.
+- `./quality-test.sh` - passed smoke tests and 132 unit tests.
 - `./typecheck-test.sh` - passed Python source compilation under `src/`.
-- `make ci` - passed setup, scope-check, format, lint, compile/typecheck, smoke tests, and 131 unit tests.
+- `make ci` - passed setup, scope-check, format, lint, compile/typecheck, smoke tests, and 132 unit tests.
 
 Additional focused retrieval checks run earlier in this lane:
 
+- `python3 -m unittest tests.unit.test_unified_retrieval.UnifiedRetrievalTests.test_basket_promotion_bundle_normalizes_query_constraints_snapshot` - passed after adding basket-promotion bundle query-constraint normalization.
+- `python3 -m unittest tests.unit.test_unified_retrieval` - passed 63 retrieval tests after adding basket-promotion bundle query-constraint normalization.
 - `python3 -m unittest tests.unit.test_unified_retrieval.UnifiedRetrievalTests.test_basket_promotion_items_backfill_query_context_from_bundle` - passed after preserving payload-derived promotion-item retrieval evidence fingerprints.
 - `python3 -m unittest tests.unit.test_unified_retrieval.UnifiedRetrievalTests.test_basket_promotion_items_backfill_query_context_from_bundle` - passed after preserving payload-derived basket-promotion query constraints.
 - `python -m pytest tests/unit/test_unified_retrieval.py` - blocked because the active Python interpreter has no `pytest` module installed.
