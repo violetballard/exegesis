@@ -6,6 +6,7 @@ from src.qual.commands.diff_preview import (
     DiffPreviewInput,
     DiffPreviewResult,
     PatchReviewActionRoute,
+    PatchReviewActionRouteValidation,
     PatchReviewCommandStatus,
     PatchReviewCommandStatusPayload,
     PatchReviewCommandContract,
@@ -29,7 +30,11 @@ from src.qual.commands.diff_preview import (
     run_patch_review_command_smoke_contract,
     run_patch_review_command_smoke_contract_json,
     run_patch_review_decision,
+    run_patch_review_action_route_validation,
+    run_patch_review_action_route_validation_json,
     run_diff_preview,
+    validate_patch_review_action_routes,
+    validate_patch_review_command_contract,
 )
 
 __all__ = tuple(name for name in globals() if not name.startswith("_"))

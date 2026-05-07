@@ -11,10 +11,15 @@ from src.qual.commands.diff_preview import (
     SUPPRESS_FILE_HEADERS_ENV,
     DiffPreviewInput,
     PatchReviewDecision,
+    PatchReviewActionRouteValidation,
     build_diff_preview_result,
     build_patch_review_decision,
+    build_patch_review_command_contract,
     run_diff_preview,
     run_patch_review_decision,
+    run_patch_review_action_route_validation,
+    validate_patch_review_action_routes,
+    validate_patch_review_command_contract,
 )
 
 
@@ -159,6 +164,91 @@ class PatchReviewDecisionTests(unittest.TestCase):
         self.assertIsInstance(decision, PatchReviewDecision)
         with self.assertRaises(Exception):
             decision.status = "modified"  # type: ignore[attr-defined]
+
+
+class PatchReviewActionRouteValidationTests(unittest.TestCase):
+    """Validate that patch review action routes are anchored to the demo path.
+
+    These tests ensure the command surface cannot drift from the canonical
+    engine actions defined in the command catalog.
+    """
+
+    def test_contract_validation_is_valid(self) -> None:
+        validation = validate_patch_review_command_contract()
+        self.assertIsInstance(validation, PatchReviewActionRouteValidation)
+        self.assertTrue(
+            validation.is_valid,
+            f"All engine actions should be in the demo path; missing: {validation.missing_engine_actions}",
+        )
+        self.assertEqual(validation.missing_engine_actions, ())
+
+    def test_contract_validation_covers_all_patch_review_actions(self) -> None:
+        validation = validate_patch_review_command_contract()
+        # The contract should cover all 4 patch-review engine actions.
+        expected_actions = {
+            "ExegesisAppService.revise_selection",
+            "ExegesisAppService.apply_patch",
+            "ExegesisAppService.reject_patch",
+            "ExegesisAppService.save_document",
+        }
+        self.assertEqual(
+            set(validation.engine_actions),
+            expected_actions,
+            "Contract should cover all patch-review engine actions",
+        )
+
+    def test_contract_validation_extra_actions_are_non_patch_review(self) -> None:
+        validation = validate_patch_review_command_contract()
+        # Extra actions are demo-path actions not in the patch-review contract.
+        # These should be the non-patch-review engine actions.
+        patch_review_actions = {
+            "ExegesisAppService.revise_selection",
+            "ExegesisAppService.apply_patch",
+            "ExegesisAppService.reject_patch",
+            "ExegesisAppService.save_document",
+        }
+        for extra in validation.extra_engine_actions:
+            self.assertNotIn(
+                extra,
+                patch_review_actions,
+                f"{extra} should not appear as extra if it is a patch-review action",
+            )
+
+    def test_route_validation_rejects_unknown_engine_action(self) -> None:
+        invalid_routes = (
+            ("apply", "ExegesisAppService.apply_patch"),
+            ("unknown", "ExegesisAppService.nonexistent_action"),
+        )
+        validation = validate_patch_review_action_routes(invalid_routes)
+        self.assertFalse(validation.is_valid)
+        self.assertEqual(
+            validation.missing_engine_actions,
+            ("ExegesisAppService.nonexistent_action",),
+        )
+        self.assertEqual(
+            validation.valid_engine_actions,
+            ("ExegesisAppService.apply_patch",),
+        )
+
+    def test_route_validation_accepts_all_known_actions(self) -> None:
+        contract = build_patch_review_command_contract()
+        all_routes = contract.change_action_routes + contract.no_change_action_routes
+        validation = validate_patch_review_action_routes(all_routes)
+        self.assertTrue(validation.is_valid)
+        self.assertEqual(validation.missing_engine_actions, ())
+
+    def test_run_validation_output_format(self) -> None:
+        output = run_patch_review_action_route_validation()
+        self.assertIn("patch-review-route-validation:", output)
+        self.assertIn("is_valid=true", output)
+        self.assertIn("engine_actions=", output)
+        self.assertIn("valid=", output)
+
+    def test_validation_validation_is_frozen_dataclass(self) -> None:
+        validation = validate_patch_review_command_contract()
+        self.assertIsInstance(validation, PatchReviewActionRouteValidation)
+        with self.assertRaises(Exception):
+            validation.is_valid = False  # type: ignore[attr-defined]
 
 
 if __name__ == "__main__":

@@ -700,3 +700,150 @@ def run_patch_review_command_smoke_contract_json() -> str:
         sort_keys=True,
         separators=(",", ":"),
     )
+
+
+@dataclass(frozen=True)
+class PatchReviewActionRouteValidation:
+    is_valid: bool
+    engine_actions: tuple[str, ...]
+    valid_engine_actions: tuple[str, ...]
+    missing_engine_actions: tuple[str, ...]
+    extra_engine_actions: tuple[str, ...]
+    expected_action_routes: tuple[tuple[str, str], ...]
+    valid_action_routes: tuple[tuple[str, str], ...]
+    invalid_action_routes: tuple[tuple[str, str], ...]
+    missing_action_routes: tuple[tuple[str, str], ...]
+
+
+def _expected_patch_review_action_routes() -> tuple[tuple[str, str], ...]:
+    contract = build_patch_review_command_contract()
+    return contract.change_action_routes + contract.no_change_action_routes
+
+
+def validate_patch_review_action_routes(
+    routes: tuple[tuple[str, str], ...],
+) -> PatchReviewActionRouteValidation:
+    """Validate exact patch-review action routes against demo-path engine actions.
+
+    This catches both unknown engine actions and valid engine actions wired to
+    the wrong command action token.
+    """
+    from src.qual.commands.catalog import command_demo_engine_actions
+
+    demo_engine_actions = set(command_demo_engine_actions())
+    expected_action_routes = _expected_patch_review_action_routes()
+    expected_action_route_set = set(expected_action_routes)
+    route_engine_actions = tuple(engine_action for _, engine_action in routes)
+    route_set = set(route_engine_actions)
+
+    valid = tuple(
+        engine_action
+        for engine_action in route_engine_actions
+        if engine_action in demo_engine_actions
+    )
+    missing = tuple(
+        engine_action
+        for engine_action in route_engine_actions
+        if engine_action not in demo_engine_actions
+    )
+    # Extra actions are demo-path actions not covered by this contract's routes.
+    extra = tuple(
+        engine_action
+        for engine_action in command_demo_engine_actions()
+        if engine_action not in route_set
+    )
+    valid_action_routes = tuple(
+        route
+        for route in routes
+        if route in expected_action_route_set
+    )
+    invalid_action_routes = tuple(
+        route
+        for route in routes
+        if route not in expected_action_route_set
+    )
+    route_pairs = set(routes)
+    missing_action_routes = tuple(
+        route
+        for route in expected_action_routes
+        if route not in route_pairs
+    )
+
+    return PatchReviewActionRouteValidation(
+        is_valid=len(missing) == 0 and len(invalid_action_routes) == 0,
+        engine_actions=route_engine_actions,
+        valid_engine_actions=valid,
+        missing_engine_actions=missing,
+        extra_engine_actions=extra,
+        expected_action_routes=expected_action_routes,
+        valid_action_routes=valid_action_routes,
+        invalid_action_routes=invalid_action_routes,
+        missing_action_routes=missing_action_routes,
+    )
+
+
+def _patch_review_action_route_validation_payload(
+    validation: PatchReviewActionRouteValidation,
+) -> dict[str, object]:
+    return {
+        "is_valid": validation.is_valid,
+        "engine_actions": validation.engine_actions,
+        "valid_engine_actions": validation.valid_engine_actions,
+        "missing_engine_actions": validation.missing_engine_actions,
+        "extra_engine_actions": validation.extra_engine_actions,
+        "expected_action_routes": validation.expected_action_routes,
+        "valid_action_routes": validation.valid_action_routes,
+        "invalid_action_routes": validation.invalid_action_routes,
+        "missing_action_routes": validation.missing_action_routes,
+    }
+
+
+def validate_patch_review_command_contract() -> PatchReviewActionRouteValidation:
+    """Validate the patch review command contract against the demo path engine actions.
+
+    Returns a validation result indicating whether all engine actions in the
+    contract are covered by the canonical demo path.
+    """
+    contract = build_patch_review_command_contract()
+    all_routes = contract.change_action_routes + contract.no_change_action_routes
+    return validate_patch_review_action_routes(all_routes)
+
+
+def run_patch_review_action_route_validation() -> str:
+    """Return a human-readable validation report for CLI smoke checks."""
+    validation = validate_patch_review_command_contract()
+    parts = [
+        f"patch-review-route-validation: is_valid={str(validation.is_valid).lower()}",
+        f"engine_actions={','.join(validation.engine_actions)}",
+        f"valid={','.join(validation.valid_engine_actions)}",
+    ]
+    if validation.missing_engine_actions:
+        parts.append(
+            f"missing={','.join(validation.missing_engine_actions)}"
+        )
+    if validation.invalid_action_routes:
+        parts.append(
+            "invalid-routes="
+            + json.dumps(validation.invalid_action_routes, separators=(",", ":"))
+        )
+    if validation.missing_action_routes:
+        parts.append(
+            "missing-routes="
+            + json.dumps(validation.missing_action_routes, separators=(",", ":"))
+        )
+    if validation.extra_engine_actions:
+        parts.append(
+            f"extra={','.join(validation.extra_engine_actions)}"
+        )
+    return "; ".join(parts)
+
+
+def run_patch_review_action_route_validation_json() -> str:
+    """Return the patch-review route validation as deterministic JSON."""
+    return json.dumps(
+        _patch_review_action_route_validation_payload(
+            validate_patch_review_command_contract()
+        ),
+        sort_keys=True,
+        separators=(",", ":"),
+    )
