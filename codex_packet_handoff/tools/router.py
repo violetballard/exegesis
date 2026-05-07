@@ -88,6 +88,10 @@ CLOUD_INTEGRATOR_RETRY_COOLDOWN_SECONDS = 60.0
 ROUTER_LOG_KEEP_RECENT = 36
 ROUTER_LOG_MAX_TOTAL_BYTES = 16 * 1024 * 1024
 ROUTER_LOG_MIN_AGE_SECONDS = 1800
+INTEGRATOR_EXEC_MARKERS = (
+    "You are the INTEGRATOR",
+    "Consume this APPROVED packet",
+)
 
 @dataclass
 class RouterConfig:
@@ -1010,6 +1014,56 @@ def _count_active_pid_jobs(job_map: Dict[str, Dict[str, Any]], *, local: Optiona
     return active
 
 
+def _tracked_integrator_pids(state: Dict[str, Any]) -> set[int]:
+    pids: set[int] = set()
+    for key in ("cloud_integrator_jobs", "local_integrator_jobs"):
+        jobs = state.get(key) or {}
+        if not isinstance(jobs, dict):
+            continue
+        for job in jobs.values():
+            if not isinstance(job, dict):
+                continue
+            pid = int(job.get("pid") or 0)
+            if pid > 0:
+                pids.add(pid)
+    return pids
+
+
+def _live_untracked_cloud_integrator_exec_pids(state: Dict[str, Any]) -> List[int]:
+    """Return live Codex integrators that router state failed to track."""
+    tracked = _tracked_integrator_pids(state)
+    try:
+        proc = subprocess.run(
+            ["ps", "-axo", "pid=,command="],
+            stdout=subprocess.PIPE,
+            stderr=subprocess.DEVNULL,
+            text=True,
+            timeout=2,
+        )
+    except Exception:
+        return []
+    if proc.returncode != 0:
+        return []
+    current_pid = os.getpid()
+    pids: List[int] = []
+    for raw_line in (proc.stdout or "").splitlines():
+        line = raw_line.strip()
+        if not line:
+            continue
+        pid_text, _, command = line.partition(" ")
+        try:
+            pid = int(pid_text)
+        except ValueError:
+            continue
+        if pid == current_pid or pid in tracked or not _pid_alive(pid):
+            continue
+        if "codex exec" not in command:
+            continue
+        if any(marker in command for marker in INTEGRATOR_EXEC_MARKERS):
+            pids.append(pid)
+    return pids
+
+
 def _count_active_feature_local_jobs() -> int:
     feature_state = load_json(FEATURE_RUNNER_STATE_FILE, {})
     lanes = feature_state.get("lanes") if isinstance(feature_state, dict) else {}
@@ -1048,6 +1102,7 @@ def _count_active_cloud_jobs(state: Dict[str, Any]) -> int:
     active = _count_active_feature_cloud_jobs()
     active += _count_active_local_jobs(_local_job_map(state, "cloud_reviewer_jobs"))
     active += _count_active_local_jobs(_local_job_map(state, "cloud_integrator_jobs"))
+    active += len(_live_untracked_cloud_integrator_exec_pids(state))
     active += _count_active_pid_jobs(_local_job_map(state, "fixer_fallback_jobs"), local=False)
     return active
 
@@ -1067,6 +1122,7 @@ def _cloud_role_slot_available(cfg: RouterConfig, state: Dict[str, Any], role: s
     elif role == "integrator":
         cap = int(getattr(cfg, "max_cloud_integrator_jobs", 4) or 0)
         active = _count_active_local_jobs(_local_job_map(state, "cloud_integrator_jobs"))
+        active += len(_live_untracked_cloud_integrator_exec_pids(state))
     elif role == "fixer":
         cap = int(getattr(cfg, "max_cloud_fixer_jobs", 4) or 0)
         active = _count_active_pid_jobs(_local_job_map(state, "fixer_fallback_jobs"), local=False)

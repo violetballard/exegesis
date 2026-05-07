@@ -409,6 +409,27 @@ class CloudConcurrencyCapsTests(unittest.TestCase):
         ):
             self.assertFalse(router._cloud_role_slot_available(cfg, state, "integrator"))
 
+    def test_router_counts_untracked_cloud_integrator_execs_against_cloud_cap(self) -> None:
+        cfg = SimpleNamespace(
+            max_cloud_feature_jobs=4,
+            max_cloud_reviewer_jobs=4,
+            max_cloud_integrator_jobs=1,
+            max_cloud_fixer_jobs=4,
+            max_total_cloud_jobs=4,
+            runtime_mode_default="hybrid",
+        )
+        state = {
+            "runtime_mode": "hybrid",
+            "cloud_available": True,
+        }
+
+        with (
+            mock.patch.object(router, "_count_active_feature_cloud_jobs", return_value=0),
+            mock.patch.object(router, "_live_untracked_cloud_integrator_exec_pids", return_value=[9999]),
+        ):
+            self.assertFalse(router._cloud_role_slot_available(cfg, state, "integrator"))
+            self.assertEqual(router._count_active_cloud_jobs(state), 1)
+
     def test_cloud_reviewers_can_share_total_cloud_cap(self) -> None:
         cfg = SimpleNamespace(
             max_cloud_feature_jobs=4,
@@ -535,6 +556,32 @@ class CloudConcurrencyCapsTests(unittest.TestCase):
             self.assertEqual(agents_coordinator._launch_free_lanes(state_doc), ["feat-a", "feat-b"])
 
         self.assertEqual(launched, ["feat-a", "feat-b"])
+
+    def test_coordinator_blocks_cloud_free_lanes_when_any_router_backlog_exists(self) -> None:
+        state_doc: dict[str, object] = {}
+        calls: list[list[str]] = []
+
+        def fake_run_cmd(cmd: list[str]) -> tuple[int, str]:
+            calls.append(cmd)
+            return 0, ""
+
+        with (
+            mock.patch.object(agents_coordinator, "_enabled_lanes", return_value=["feat-a", "feat-b"]),
+            mock.patch.object(agents_coordinator, "_lane_queue_empty", return_value=True),
+            mock.patch.object(agents_coordinator, "_lane_has_active_feature_session", return_value=False),
+            mock.patch.object(agents_coordinator, "_feature_thread_state", return_value={}),
+            mock.patch.object(agents_coordinator, "_local_lms_feature_launch_slots", return_value=1),
+            mock.patch.object(agents_coordinator, "_active_local_fixer_jobs", return_value=0),
+            mock.patch.object(agents_coordinator, "_has_reviewer_notes_backlog", return_value=False),
+            mock.patch.object(agents_coordinator, "_has_lane_backlog", return_value=True),
+            mock.patch.object(agents_coordinator, "_cloud_feature_launch_slots", return_value=2),
+            mock.patch.object(agents_coordinator, "run_cmd", side_effect=fake_run_cmd),
+        ):
+            self.assertEqual(agents_coordinator._launch_free_lanes(state_doc), ["feat-a"])
+
+        self.assertEqual(len(calls), 1)
+        self.assertIn("--provider", calls[0])
+        self.assertEqual(calls[0][calls[0].index("--provider") + 1], "local")
 
     def test_router_tick_prioritizes_integrator_before_reviewer_fixer(self) -> None:
         cfg = SimpleNamespace(lanes={"feat-a": {}, "feat-b": {}})

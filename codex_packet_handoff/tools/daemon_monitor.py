@@ -64,6 +64,10 @@ EXEC_RESULT_RE = re.compile(r"exited (\d+)|succeeded", re.IGNORECASE)
 REQUIRED_FIX_RE = re.compile(r"^\s*\d+\.\s+", re.MULTILINE)
 LANE_NAME_RE = re.compile(r"feature lane agent for\s+`?([A-Za-z0-9._-]+)`?", re.IGNORECASE)
 CODEX_EXEC_RE = re.compile(r"\bcodex\b.*\bexec\b", re.IGNORECASE)
+INTEGRATOR_EXEC_MARKERS = (
+    "You are the INTEGRATOR",
+    "Consume this APPROVED packet",
+)
 PROC_TIMEOUT_SECONDS = 2.0
 LOG_TAIL_MAX_BYTES = 128 * 1024
 LOG_TAIL_MAX_LINES = 240
@@ -138,6 +142,55 @@ def _count_active_pid_jobs(job_map: Any, *, local: bool | None = None) -> int:
         if _pid_alive(pid):
             active += 1
     return active
+
+
+def _tracked_integrator_pids(router_state: Dict[str, Any]) -> set[int]:
+    pids: set[int] = set()
+    for key in ("cloud_integrator_jobs", "local_integrator_jobs"):
+        jobs = router_state.get(key) or {}
+        if not isinstance(jobs, dict):
+            continue
+        for job in jobs.values():
+            if not isinstance(job, dict):
+                continue
+            pid = int(job.get("pid") or 0)
+            if pid > 0:
+                pids.add(pid)
+    return pids
+
+
+def _live_untracked_cloud_integrator_exec_pids(router_state: Dict[str, Any]) -> List[int]:
+    tracked = _tracked_integrator_pids(router_state)
+    try:
+        proc = subprocess.run(
+            ["ps", "-axo", "pid=,command="],
+            stdout=subprocess.PIPE,
+            stderr=subprocess.DEVNULL,
+            text=True,
+            timeout=PROC_TIMEOUT_SECONDS,
+        )
+    except Exception:
+        return []
+    if proc.returncode != 0:
+        return []
+    current_pid = os.getpid()
+    pids: List[int] = []
+    for raw_line in (proc.stdout or "").splitlines():
+        line = raw_line.strip()
+        if not line:
+            continue
+        pid_text, _, command = line.partition(" ")
+        try:
+            pid = int(pid_text)
+        except ValueError:
+            continue
+        if pid == current_pid or pid in tracked or not _pid_alive(pid):
+            continue
+        if "codex exec" not in command:
+            continue
+        if any(marker in command for marker in INTEGRATOR_EXEC_MARKERS):
+            pids.append(pid)
+    return pids
 
 
 def _pid_matches_daemon(pid: int) -> bool:
@@ -1098,7 +1151,8 @@ def main() -> None:
     print(f"local_lms_jobs={_active_local_worker_count(router_state)} / {int((_load_json(ROUTER_CFG, {}) or {}).get('max_total_local_lms_jobs', 4) or 4)}")
     cloud_feature_jobs = _active_feature_mode_count("cloud_primary")
     cloud_reviewer_jobs = _active_cloud_reviewer_count()
-    cloud_integrator_jobs = _count_active_pid_jobs(router_state.get("cloud_integrator_jobs") or {})
+    untracked_cloud_integrators = _live_untracked_cloud_integrator_exec_pids(router_state)
+    cloud_integrator_jobs = _count_active_pid_jobs(router_state.get("cloud_integrator_jobs") or {}) + len(untracked_cloud_integrators)
     cloud_fixer_jobs = _count_active_pid_jobs(router_state.get("fixer_fallback_jobs") or {}, local=False)
     cfg_for_caps = _load_json(ROUTER_CFG, {}) or {}
     cloud_total_jobs = cloud_feature_jobs + cloud_reviewer_jobs + cloud_integrator_jobs + cloud_fixer_jobs
@@ -1111,6 +1165,8 @@ def main() -> None:
         f"integrator {cloud_integrator_jobs}, "
         f"fixer {cloud_fixer_jobs})"
     )
+    if untracked_cloud_integrators:
+        print(f"cloud_integrator_untracked_pids={','.join(str(pid) for pid in untracked_cloud_integrators)}")
     reviewer_map = router_state.get("reviewer_thread_ids") or {}
     if isinstance(reviewer_map, dict) and reviewer_map:
         print(f"reviewer_thread_count={len(reviewer_map)}")

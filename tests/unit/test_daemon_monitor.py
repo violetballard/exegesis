@@ -89,6 +89,37 @@ class DaemonMonitorTests(unittest.TestCase):
         self.assertIn('cloud session', state['summary'])
         self.assertIn('worker_cloud', state['summary'])
 
+    def test_untracked_cloud_integrator_exec_pids_detects_live_integrator(self) -> None:
+        ps_output = (
+            " 1111 /Applications/Codex.app/Contents/Resources/codex exec "
+            "Consume this APPROVED packet for feat-retrieval-fts\n"
+            " 2222 /Applications/Codex.app/Contents/Resources/codex exec "
+            "regular feature worker\n"
+            " 3333 /Applications/Codex.app/Contents/Resources/codex exec "
+            "You are the INTEGRATOR for feat-commands\n"
+        )
+        completed = mock.Mock(returncode=0, stdout=ps_output)
+        router_state = {
+            'cloud_integrator_jobs': {'tracked': {'pid': 3333}},
+        }
+
+        with mock.patch.object(
+            daemon_monitor.subprocess,
+            'run',
+            return_value=completed,
+        ), mock.patch.object(
+            daemon_monitor,
+            '_pid_alive',
+            side_effect=lambda pid: pid in {1111, 2222, 3333},
+        ), mock.patch.object(
+            daemon_monitor.os,
+            'getpid',
+            return_value=9999,
+        ):
+            pids = daemon_monitor._live_untracked_cloud_integrator_exec_pids(router_state)
+
+        self.assertEqual(pids, [1111])
+
 
 if __name__ == '__main__':
     unittest.main()

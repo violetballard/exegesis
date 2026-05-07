@@ -1696,7 +1696,7 @@ def _launch_free_lanes(state_doc: Dict[str, object]) -> List[str]:
         # refills. Keep one local LMS slot open so the router can kick a fixer
         # instead of letting free-lane launches continually steal capacity.
         local_slots = max(0, local_slots - 1)
-    cloud_slots = 0 if (reviewer_backlog or _has_router_priority_backlog()) else _cloud_feature_launch_slots()
+    cloud_slots = 0 if (reviewer_backlog or _has_lane_backlog()) else _cloud_feature_launch_slots()
     if local_slots <= 0 and cloud_slots <= 0:
         print("[coordinator] local/cloud feature caps reached; deferring feature lane launch")
         return []
