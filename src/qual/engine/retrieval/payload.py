@@ -117,6 +117,8 @@ def _basket_item_id_for_excerpt(*, source_strategy: object, excerpt_id: object) 
     excerpt = _normalize_optional_text(excerpt_id)
     if source is None or excerpt is None:
         return None
+    if source.casefold() != "fts":
+        return None
     return f"retrieval:{source}:{excerpt}"
 
 
@@ -391,13 +393,15 @@ def _normalize_basket_promotion_bundle_snapshot(bundle: dict[str, object]) -> di
             if not _is_missing_snapshot_value(source_strategy):
                 normalized_item["retrieval_source_strategy"] = copy.deepcopy(source_strategy)
         if _is_missing_snapshot_value(normalized_item.get("basket_item_id")):
-            normalized_item["basket_item_id"] = _basket_item_id_for_excerpt(
+            basket_item_id = _basket_item_id_for_excerpt(
                 source_strategy=normalized_item.get(
                     "retrieval_source_strategy",
                     normalized_item.get("source_strategy"),
                 ),
                 excerpt_id=normalized_item.get("excerpt_id"),
             )
+            if basket_item_id is not None:
+                normalized_item["basket_item_id"] = basket_item_id
         item_policy = normalized_item.get("retrieval_policy")
         if isinstance(item_policy, dict):
             normalized_item["retrieval_policy"] = _normalize_policy_snapshot(item_policy)

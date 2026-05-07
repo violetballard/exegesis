@@ -74,6 +74,8 @@ def _basket_item_id_for_excerpt(*, source_strategy: object, excerpt_id: object) 
     excerpt = _optional_text(excerpt_id)
     if source is None or excerpt is None:
         return None
+    if source.casefold() != _FTS_SOURCE_STRATEGY:
+        return None
     return f"retrieval:{source}:{excerpt}"
 
 

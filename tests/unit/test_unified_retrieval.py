@@ -2320,6 +2320,35 @@ class UnifiedRetrievalTests(unittest.TestCase):
         self.assertEqual(normalized_item["basket_item_id"], f"retrieval:fts:{normalized_item['excerpt_id']}")
         self.assertNotEqual(normalized_item["promotion_item_fingerprint"], "stale-fingerprint")
 
+    def test_basket_promotion_bundle_does_not_mint_non_fts_item_ids(self) -> None:
+        result = self.service.retrieve_auto(
+            RetrievalQuery(
+                query_text="memo comparison",
+                scope="vault",
+                intent="compare",
+                constraints=RetrievalConstraints(max_results=4),
+                confidentiality_profile="confidential",
+            )
+        )
+        payload = result.to_downstream_payload()
+        basket_bundle = payload["retrieval_basket_promotion_bundle"]
+        self.assertIsInstance(basket_bundle, dict)
+        promotion_items = cast(dict[str, object], basket_bundle)["promotion_items"]
+        self.assertIsInstance(promotion_items, list)
+        promotion_item = cast(list[dict[str, object]], promotion_items)[0]
+        promotion_item.pop("basket_item_id", None)
+        promotion_item.pop("promotion_item_fingerprint", None)
+        promotion_item["source_strategy"] = "pageindex"
+        promotion_item["retrieval_source_strategy"] = "pageindex"
+
+        normalized_bundle = _build_retrieval_basket_promotion_bundle_from_payload(payload)
+        normalized_item = normalized_bundle["promotion_items"][0]
+
+        self.assertEqual(normalized_item["source_strategy"], "pageindex")
+        self.assertEqual(normalized_item["retrieval_source_strategy"], "pageindex")
+        self.assertNotIn("basket_item_id", normalized_item)
+        self.assertIn("promotion_item_fingerprint", normalized_item)
+
     def test_engine_retrieval_tool_returns_canonical_downstream_payload(self) -> None:
         payload = engine_retrieve_auto_payload(
             self.service,
