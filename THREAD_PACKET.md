@@ -10,10 +10,10 @@
 - Approved shared regression path: `tests/unit/test_unified_retrieval.py`.
 - Integrator-locked files changed: none.
 - Authoritative reviewed implementation base: `378cf9a74a3658058079a32f186fcd254c4a4034`.
-- Reviewed implementation head before this pass: `5c87b08a9f7ca5a4dabc23fc1a80214276a882e9`.
-- Reviewed implementation range before this pass: `378cf9a74a3658058079a32f186fcd254c4a4034..5c87b08a9f7ca5a4dabc23fc1a80214276a882e9`.
+- Reviewed implementation head: `18028a25255124d391236db94aaf068c20413795`.
+- Reviewed implementation range: `378cf9a74a3658058079a32f186fcd254c4a4034..18028a25255124d391236db94aaf068c20413795`.
 - Current branch head before this packet edit: `1aa04cf75d01660e6caa5d3d887b28ce17d9b58e`.
-- Current pass role: source-bearing retrieval finalization that recomputes basket-promotion fingerprints after snapshot normalization; the final commit SHA is reported in the final fixer handoff.
+- Current pass role: source-bearing retrieval finalization that recomputes basket-promotion fingerprints after snapshot normalization.
 
 ## Traceability Correction
 
@@ -33,7 +33,7 @@ That range includes every intended retrieval source/test change through `5c87b08
 
 `5c87b08a9f7ca5a4dabc23fc1a80214276a882e9` is also source-bearing. It modifies `src/qual/retrieval/service.py`, `src/qual/engine/retrieval/payload.py`, and `tests/unit/test_unified_retrieval.py` so basket-promotion item ID generation remains FTS-only; PageIndex/embedding-shaped sparse promotion snapshots fail closed instead of receiving promotable `retrieval:<strategy>:<excerpt_id>` IDs.
 
-Packet-only commits after `5c87b08a9f7ca5a4dabc23fc1a80214276a882e9` refresh traceability and gate evidence only through `1aa04cf75d01660e6caa5d3d887b28ce17d9b58e`. This pass is source-bearing because it changes `src/qual/engine/retrieval/payload.py`; reviewers should include the final fixer commit SHA reported with this handoff when re-reviewing the merge candidate.
+Packet-only commits after `5c87b08a9f7ca5a4dabc23fc1a80214276a882e9` refresh traceability and gate evidence only through `1aa04cf75d01660e6caa5d3d887b28ce17d9b58e`. This pass is source-bearing because it changes `src/qual/engine/retrieval/payload.py`; reviewers should include `18028a25255124d391236db94aaf068c20413795` when re-reviewing the merge candidate.
 
 Tracked packet note for this fixer pass: `.codex/kickoff_packets/feat-retrieval-fts.md` and `.codex/lane_meta/feat-retrieval-fts.json` are ignored local automation metadata in this branch worktree and are not tracked at `HEAD`. Treat this tracked `THREAD_PACKET.md` file as the authoritative corrected handoff packet for re-review.
 
@@ -93,7 +93,7 @@ Task accounting: `5` high-risk task groups are present in the cumulative branch 
 
 - Task budget: `4` high-risk task groups; this cumulative branch now has `5` source-bearing task groups after the final basket-promotion fingerprint normalization fix.
 - File count: the corrected source-bearing range before this pass changes `6` source/test files plus `3` packet/artifact files; this pass changes `src/qual/engine/retrieval/payload.py` and `THREAD_PACKET.md`.
-- Size accounting before this pass: the corrected source-bearing range `378cf9a74a3658058079a32f186fcd254c4a4034..5c87b08a9f7ca5a4dabc23fc1a80214276a882e9` is `9 files changed, 1480 insertions(+), 211 deletions(-)`. Final size accounting should include the final fixer commit SHA reported with this handoff.
+- Size accounting: the corrected source-bearing range `378cf9a74a3658058079a32f186fcd254c4a4034..18028a25255124d391236db94aaf068c20413795` is `9 files changed, 1491 insertions(+), 211 deletions(-)`.
 - Size limit status: exceeds the high-risk `<=8 files` and `<=300 net LOC` limits.
 - Explicit exception status: no integrator-approved size or task-budget exception is recorded in this worktree. Because the full source-bearing range remains together, this is a known blocker for approval until the integrator grants an exception or requests a branch split.
 - Shared-file exception status: `tests/unit/test_unified_retrieval.py` is the sole approved shared regression surface; no integrator-locked files changed.
