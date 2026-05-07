@@ -1736,7 +1736,7 @@ class UnifiedRetrievalTests(unittest.TestCase):
             self.service.fetch_excerpt(str(excerpt_ids[0]))
 
     def test_excerpt_payload_normalization_rejects_pageindex_resolution(self) -> None:
-        with self.assertRaisesRegex(ValueError, "FTS-only"):
+        with self.assertRaisesRegex(ValueError, "canonical FTS strategy"):
             self.service._normalize_excerpt_payload(
                 {
                     "excerpt_id": "pageindex-excerpt",

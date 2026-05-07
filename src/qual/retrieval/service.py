@@ -2441,7 +2441,7 @@ class RetrievalService:
         lookup_resolution: str,
     ) -> dict[str, object]:
         if source_strategy != "fts":
-            raise ValueError("excerpt payload normalization is FTS-only for the MVP")
+            raise ValueError("excerpt lookup payloads must use the canonical FTS strategy")
         provenance = excerpt.get("provenance", {})
         if not isinstance(provenance, dict):
             provenance = {}
