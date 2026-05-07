@@ -6,7 +6,7 @@ import json
 import re
 import sqlite3
 import uuid
-from collections.abc import Mapping, Set
+from collections.abc import Iterable, Mapping, Set
 from contextlib import contextmanager
 from dataclasses import dataclass, field
 from datetime import UTC, date, datetime
@@ -39,10 +39,21 @@ _SUPPORTED_CONFIDENTIALITY_PROFILES = {"confidential", "standard"}
 _FTS_SOURCE_STRATEGY = "fts"
 
 
-def _canonicalize_doc_types(doc_types: tuple[str, ...]) -> tuple[str, ...]:
+def _canonicalize_doc_types(doc_types: object) -> tuple[str, ...]:
+    if doc_types is None:
+        return ()
+    if isinstance(doc_types, str):
+        doc_type_values: Iterable[object] = (doc_types,)
+    elif isinstance(doc_types, (bytes, bytearray, Mapping)):
+        raise TypeError("doc_types must be an iterable of values or text")
+    elif isinstance(doc_types, Iterable):
+        doc_type_values = doc_types
+    else:
+        raise TypeError("doc_types must be an iterable of values or text")
+
     seen: set[str] = set()
     normalized: list[str] = []
-    for doc_type in doc_types:
+    for doc_type in doc_type_values:
         value = str(doc_type).strip().casefold()
         if not value or value in seen:
             continue

@@ -12,8 +12,8 @@
 - Authoritative reviewed implementation base: `378cf9a74a3658058079a32f186fcd254c4a4034`.
 - Reviewed implementation head: `18028a25255124d391236db94aaf068c20413795`.
 - Reviewed implementation range: `378cf9a74a3658058079a32f186fcd254c4a4034..18028a25255124d391236db94aaf068c20413795`.
-- Current branch head before this packet edit: `1aa04cf75d01660e6caa5d3d887b28ce17d9b58e`.
-- Current pass role: source-bearing retrieval finalization that recomputes basket-promotion fingerprints after snapshot normalization.
+- Current branch head before this packet edit: `f9bdab5ded16e44476d773a24249c64442df2f3a`.
+- Current pass role: source-bearing retrieval finalization that keeps direct service `doc_types` constraints aligned with the canonical FTS-first facade normalization path.
 
 ## Traceability Correction
 
@@ -73,7 +73,7 @@ The branch makes FTS retrieval deterministic and auditable across query construc
 
 The corrected branch-tip implementation also tightens the canonical engine and service query normalization paths so malformed, unordered, or scalar-shaped `date_range` inputs fail closed before FTS execution.
 
-This finalization pass tightens basket-promotion snapshot normalization so stale `query_constraints_fingerprint`, `promotion_item_fingerprint`, and `promotion_bundle_fingerprint` values are recomputed after query constraints, item metadata, matched terms, and FTS-only basket item IDs are normalized. That keeps rehydrated promotion evidence auditable when downstream engine flows promote retrieval hits into the context basket.
+This finalization pass keeps direct service-layer `RetrievalConstraints(doc_types=...)` normalization aligned with the canonical facade path. Scalar text doc-type filters now normalize as a single doc type instead of being split into characters, so direct engine/service callers preserve deterministic FTS document filters before retrieval execution.
 
 Canonical demo path advanced: `vault/context material -> FTS retrieval -> retrieval evidence -> context basket promotion -> engine revise/apply`.
 
@@ -86,13 +86,14 @@ Before-handoff canonical demo-path statement: this work advances `retrieve relev
 3. Canonical demo-path steps advanced: `retrieve relevant material` and `promote or gather context into the basket`. Normalized retrieval payloads, provenance, citation/source/context bundles, evidence snapshots, sparse bundle rehydration, retrieval manifest fingerprints, and basket-promotion evidence, including item-level date-range and matched-term normalization before basket-promotion fingerprinting and deterministic FTS-only `basket_item_id` values for promotion.
 4. Canonical demo-path steps advanced: `retrieve relevant material` and `promote or gather context into the basket`. Added fail-closed and audit-focused regression coverage for malformed/reversed date ranges, empty inputs, unresolved scopes, FTS-only excerpt lookup and payload normalization, excerpt lookup fingerprints, cache/query snapshots, facade/export availability, basket-promotion fingerprint propagation, sparse basket item ID rehydration, and non-FTS basket item ID rejection.
 5. Canonical demo-path step advanced: `promote or gather context into the basket`. Recomputed basket-promotion fingerprints after snapshot normalization so stale sparse bundle fingerprints cannot survive rehydration.
+6. Canonical demo-path step advanced: `retrieve relevant material`. Aligned direct service scalar `doc_types` constraints with facade normalization so a scalar text filter is treated as one deterministic FTS filter, not character-split filter noise.
 
-Task accounting: `5` high-risk task groups are present in the cumulative branch after this source-bearing finalization pass, exceeding the high-risk task cap and requiring the same integration decision already noted for the size overage.
+Task accounting: `6` high-risk task groups are present in the cumulative branch after this source-bearing finalization pass, exceeding the high-risk task cap and requiring the same integration decision already noted for the size overage.
 
 ## Kickoff Budget/Limits Compliance
 
-- Task budget: `4` high-risk task groups; this cumulative branch now has `5` source-bearing task groups after the final basket-promotion fingerprint normalization fix.
-- File count: the corrected source-bearing range before this pass changes `6` source/test files plus `3` packet/artifact files; this pass changes `src/qual/engine/retrieval/payload.py` and `THREAD_PACKET.md`.
+- Task budget: `4` high-risk task groups; this cumulative branch now has `6` source-bearing task groups after the direct scalar doc-type normalization fix.
+- File count: the corrected source-bearing range before this pass changes `6` source/test files plus `3` packet/artifact files; this pass changes `src/qual/retrieval/service.py`, `tests/unit/test_unified_retrieval.py`, and `THREAD_PACKET.md`.
 - Size accounting: the corrected source-bearing range `378cf9a74a3658058079a32f186fcd254c4a4034..18028a25255124d391236db94aaf068c20413795` is `9 files changed, 1491 insertions(+), 211 deletions(-)`.
 - Size limit status: exceeds the high-risk `<=8 files` and `<=300 net LOC` limits.
 - Explicit exception status: no integrator-approved size or task-budget exception is recorded in this worktree. Because the full source-bearing range remains together, this is a known blocker for approval until the integrator grants an exception or requests a branch split.
@@ -115,12 +116,14 @@ Required gates for this corrected merge candidate were re-run on 2026-05-07 agai
 - `make scope-check` - passed for branch `codex/feat-retrieval-fts`.
 - `./quality-format.sh --check` - passed.
 - `./quality-lint.sh` - passed shell syntax and trailing whitespace checks.
-- `./quality-test.sh` - passed smoke tests and 133 unit tests.
+- `./quality-test.sh` - passed smoke tests and 134 unit tests.
 - `./typecheck-test.sh` - passed Python source compilation under `src/`.
-- `make ci` - passed setup, scope-check, format, lint, compile/typecheck, smoke tests, and 133 unit tests.
+- `make ci` - passed setup, scope-check, format, lint, compile/typecheck, smoke tests, and 134 unit tests.
 
 Additional focused retrieval checks run earlier in this lane:
 
+- `python3 -m unittest tests.unit.test_unified_retrieval.UnifiedRetrievalTests.test_retrieval_constraints_accept_scalar_doc_type_as_one_filter -q` - passed after aligning direct service scalar doc-type constraint normalization with the canonical facade path.
+- `python3 -m unittest tests.unit.test_unified_retrieval -q` - passed 65 unified retrieval tests after the direct scalar doc-type normalization fix.
 - `python3 -m unittest tests.unit.test_unified_retrieval -k basket_promotion -q` - passed 3 focused basket-promotion tests after recomputing normalized basket-promotion fingerprints.
 - `python3 - <<'PY' ... _build_retrieval_basket_promotion_bundle_from_payload(...) ... PY` - passed; stale query constraint, promotion item, and promotion bundle fingerprints are recomputed after sparse basket-promotion snapshot normalization.
 - `python3 -m unittest tests.unit.test_unified_retrieval -q` - passed 64 unified retrieval tests after adding deterministic FTS-only `basket_item_id` output and rehydration.

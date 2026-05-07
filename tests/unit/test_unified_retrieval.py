@@ -1505,6 +1505,26 @@ class UnifiedRetrievalTests(unittest.TestCase):
         self.assertEqual(engine_query.constraints.prefer_exact_matches, True)
         self.assertEqual(engine_query.confidentiality_profile, "standard")
 
+    def test_retrieval_constraints_accept_scalar_doc_type_as_one_filter(self) -> None:
+        constraints = RetrievalConstraints(doc_types="Memo")  # type: ignore[arg-type]
+
+        self.assertEqual(constraints.doc_types, ("memo",))
+
+        result = self.service.retrieve_auto(
+            RetrievalQuery(
+                query_text="memo comparison",
+                scope="vault",
+                intent="compare",
+                constraints=constraints,
+                confidentiality_profile="confidential",
+            )
+        )
+
+        self.assertTrue(result.hits)
+        self.assertEqual(result.query.constraints.doc_types, ("memo",))
+        self.assertEqual(result.diagnostics["retrieval_backend"], "sqlite_fts")
+        self.assertEqual(result.diagnostics["retrieval_mode"], "fts_first")
+
     def test_retrieval_query_constructor_rejects_invalid_date_ranges_before_execution(self) -> None:
         for date_range, message in (
             (("not-a-date", "2026-01-31"), "date_range values must be ISO dates or datetimes"),
