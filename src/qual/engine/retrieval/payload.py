@@ -396,6 +396,13 @@ def _normalize_basket_promotion_bundle_snapshot(bundle: dict[str, object]) -> di
             normalized_item["query_constraints_fingerprint"] = _stable_fingerprint(
                 normalized_item["query_constraints"]
             )
+        normalized_item["query_date_range"] = _normalize_optional_list_like(
+            normalized_item.get("query_date_range")
+        )
+        if "matched_terms" in normalized_item:
+            normalized_item["matched_terms"] = _normalize_list_like(
+                normalized_item.get("matched_terms")
+            )
         if _is_missing_snapshot_value(normalized_item.get("promotion_item_fingerprint")):
             normalized_item["promotion_item_fingerprint"] = _stable_fingerprint(
                 {
