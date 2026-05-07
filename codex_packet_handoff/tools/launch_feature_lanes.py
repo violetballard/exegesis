@@ -52,6 +52,8 @@ DEFAULT_LANES = [
     "feat-desktop-packaging",
     "feat-cop-lite-licensing",
     "feat-browser-pdf-capture",
+    "feat-open-access-deep-research",
+    "feat-quant-analysis",
 ]
 STATE_LOCK = threading.Lock()
 STALE_THREAD_RE = "session not found for thread_id"

@@ -250,6 +250,49 @@ Activation rule:
 Implementation batches:
 - use `docs/POST_MVP_FEATURES_SPEC.md` as the lane-ready build sheet
 
+### `feat-open-access-deep-research`
+Own later:
+- local-first multi-agent source discovery for possible literature and web sources
+- current-project search, selected-other-project search, then open web/scholarly provider fan-out
+- LangChain Open Deep Research-inspired supervisor/researcher architecture without report writing or synthesis
+- Tavily provider adapter as default when configured, with Brave, Exa, and PDF/full-text-capable scholarly adapters as additive sources
+- provider-normalized source candidate records with provenance, confidence, import hints, and review status
+- DOI, canonical URL, title/author/year, provider ID, and future content-hash dedupe
+- explainable candidate ranking and import readiness labels
+- reviewable source batch cards/lists that hand selected candidates to the standard import protocol
+- privacy/project-mode/credential controls so confidential project content is not sent to open web providers without explicit permission
+- audit trail for search plan, providers, queries, candidates, dedupe decisions, selections, and import request IDs
+
+Activation rule:
+- disabled until explicitly enabled after the MVP launch gate and real CoP usage feedback
+
+Implementation batches:
+- use `docs/POST_MVP_FEATURES_SPEC.md` as the lane-ready build sheet
+
+### `feat-quant-analysis`
+Own later:
+- first-class `Datasets` project browser section
+- CSV-only dataset import with provenance, row/column guardrails, and dataset storage
+- variable metadata and auto-detection for categorical, ordinal, and scale variables
+- raw-data document view with variable type override controls
+- inspector-driven analysis picker and variable selectors
+- descriptive statistics overall and split by categorical/ordinal variables
+- frequency and contingency tables
+- t-test, ANOVA, chi-squared, and linear correlation
+- p-values and effect sizes for inferential tests
+- small/medium/large effect-size guidance
+- markdown result tables
+- bar chart, density curve, and scatter plot artifacts
+- ordered analysis sequence transcript for tests
+- save analysis sequence as a project summary
+- local-only statsmodels/pandas/numpy/matplotlib execution boundaries
+
+Activation rule:
+- disabled until explicitly enabled after the MVP launch gate and real CoP usage feedback
+
+Implementation batches:
+- use `docs/POST_MVP_FEATURES_SPEC.md` as the lane-ready build sheet
+
 ## Explicitly not now
 - Textual dependency installation
 - Textual widget implementation
@@ -268,6 +311,7 @@ Implementation batches:
 - runtime CoP course licensing behavior
 - runtime Nanonets page-credit metering or Paddle top-ups
 - runtime browser extension, local browser-capture endpoint, native bridge, or PDF capture behavior
+- runtime open web search, multi-agent research orchestration, provider API calls, candidate ranking, or research import-batch behavior
 - shell import filtering changes
 - shell import-window Nanonets balance behavior
 - inspector metadata editing behavior

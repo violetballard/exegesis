@@ -169,6 +169,22 @@ LANE_OWNED_PATHS = {
         "scripts/browser_extension/**",
         "docs/browser_extension/**",
     ],
+    "feat-open-access-deep-research": [
+        "engine/src/exegesis_engine/research/**",
+        "engine/src/exegesis_engine/research_providers/**",
+        "engine/src/exegesis_engine/import_batches/**",
+        "client-textual/src/exegesis_textual/research/**",
+        "shared/src/exegesis_shared/research/**",
+        "docs/research/**",
+    ],
+    "feat-quant-analysis": [
+        "engine/src/exegesis_engine/datasets/**",
+        "engine/src/exegesis_engine/quant_analysis/**",
+        "client-textual/src/exegesis_textual/datasets/**",
+        "shared/src/exegesis_shared/datasets/**",
+        "shared/src/exegesis_shared/quant_analysis/**",
+        "docs/quant_analysis/**",
+    ],
 }
 
 Json = Dict[str, Any]

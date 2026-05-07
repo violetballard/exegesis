@@ -29,6 +29,8 @@ LANES = [
     'feat-desktop-packaging',
     'feat-cop-lite-licensing',
     'feat-browser-pdf-capture',
+    'feat-open-access-deep-research',
+    'feat-quant-analysis',
 ]
 
 def ensure_dirs():
@@ -61,6 +63,8 @@ def write_example_config():
     lanes_cfg["feat-desktop-packaging"]["enabled"] = False
     lanes_cfg["feat-cop-lite-licensing"]["enabled"] = False
     lanes_cfg["feat-browser-pdf-capture"]["enabled"] = False
+    lanes_cfg["feat-open-access-deep-research"]["enabled"] = False
+    lanes_cfg["feat-quant-analysis"]["enabled"] = False
     for lane in ("feat-commands", "feat-retrieval-fts"):
         lanes_cfg[lane].update(
             {

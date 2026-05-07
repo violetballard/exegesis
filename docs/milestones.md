@@ -341,3 +341,48 @@ Status:
 - Post-MVP planned and disabled
 - Lane state: disabled (`feat-browser-pdf-capture`)
 - This milestone is spec scaffolding only until explicitly activated after the MVP launch gate
+
+## Milestone 19: Multi-Agent Open Access Deep Research
+
+Outcome:
+- After MVP usage feedback, Exegesis can eventually run local-first multi-agent source discovery that finds possible literature and web sources, dedupes them, and presents them as an import batch for user review.
+
+Deliverables:
+- research supervisor and researcher-worker architecture inspired by LangChain/Open Deep Research patterns
+- current-project and selected-other-project search before open web search
+- Tavily-first open web search provider with Brave, Exa, and PDF/full-text-capable scholarly provider adapters
+- normalized source candidate model with provider/local provenance
+- DOI, canonical URL, title/author/year, and future content-hash dedupe rules
+- explainable candidate ranking and readiness labels
+- source batch review surface and standard import-protocol handoff
+- privacy, credential, project-mode, budget, cancellation, and audit rules
+
+Status:
+- Post-MVP planned and disabled
+- Lane state: disabled (`feat-open-access-deep-research`)
+- This milestone is spec scaffolding only until explicitly activated after the MVP launch gate
+
+## Milestone 20: Quantitative Analysis
+
+Outcome:
+- After MVP usage feedback, Exegesis can eventually support lean CSV-based quantitative analysis as a first-class project workflow, with raw data, basic statistics, charts, and saveable analysis sequences inside the same project model.
+
+Deliverables:
+- `Datasets` project browser section
+- CSV-only dataset import with provenance, row/column guardrails, and project storage
+- variable type auto-detection for categorical, ordinal, and scale variables
+- editable variable type overrides in the raw-data document view
+- inspector-driven analysis selection and variable assignment
+- descriptive statistics: N, mean, median, mode, SD, SE, min, max, skew, kurtosis
+- frequency and contingency tables
+- inferential tests: t-test, ANOVA, chi-squared, and linear correlation
+- p-values and effect sizes for inferential tests
+- small/medium/large effect-size guidance
+- basic charts: bar charts, density curves, and scatter plots
+- ordered analysis sequence transcript
+- save analysis sequence as a summary under `Summaries`
+
+Status:
+- Post-MVP planned and disabled
+- Lane state: disabled (`feat-quant-analysis`)
+- This milestone is spec scaffolding only until explicitly activated after the MVP launch gate

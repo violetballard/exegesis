@@ -131,6 +131,8 @@ DEFAULT_LANES = [
     "feat-desktop-packaging",
     "feat-cop-lite-licensing",
     "feat-browser-pdf-capture",
+    "feat-open-access-deep-research",
+    "feat-quant-analysis",
 ]
 
 WORKTREE_TEMP_PATTERNS = (

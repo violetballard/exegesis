@@ -370,6 +370,52 @@ Exit criteria:
 - packaging/install integration and browser security limits are specified
 - no runtime browser extension, local capture endpoint, native bridge, or import behavior is active until the lane is enabled
 
+
+## Milestone 19: Multi-Agent Open Access Deep Research
+
+Status: post-MVP planned, disabled
+
+Scope:
+- add a local-first, multi-agent source discovery workflow for possible literature and web sources
+- search the current Exegesis project first, then selected other Exegesis projects, then configured open web and PDF/full-text scholarly providers
+- use a LangChain Open Deep Research-inspired supervisor/researcher architecture without generating final reports, summaries, or synthesis
+- support Tavily as the default agentic web provider when configured, with Brave, Exa, and PDF/full-text-capable scholarly providers as additive adapters
+- normalize, dedupe, rank, and explain candidate sources before user review
+- present source candidates as an import batch that enters the standard import/OCR/literature/RAG pipeline
+
+Lane mapping:
+- `feat-open-access-deep-research`: disabled until explicitly activated after the MVP launch gate
+
+Exit criteria:
+- local-first project search plus open web provider fan-out are specified
+- research supervisor, provider adapters, candidate normalization, dedupe, ranking, and audit models are specified
+- source batch review and standard import-protocol handoff are specified
+- privacy/project-mode/credential boundaries are specified
+- no runtime web search, multi-agent orchestration, provider API calls, source ranking, or import-batch behavior is active until the lane is enabled
+
+## Milestone 20: Quantitative Analysis
+
+Status: post-MVP planned, disabled
+
+Scope:
+- add `Datasets` as a first-class project browser section
+- import CSV files only, with dataset provenance and row/column guardrails
+- auto-detect variables as categorical, ordinal, or scale and allow user overrides in the dataset document view
+- show raw data in the document pane while the inspector configures analyses
+- support descriptive statistics, frequency and contingency tables, t-test, ANOVA, chi-squared, and linear correlation
+- generate simple markdown result tables plus bar charts, density curves, and scatter plots
+- show p-values and effect sizes for inferential tests with compact small/medium/large guidance
+- let users build an ordered analysis sequence and save it as a project summary
+
+Lane mapping:
+- `feat-quant-analysis`: disabled until explicitly activated after the MVP launch gate
+
+Exit criteria:
+- dataset import, variable typing, analysis contracts, chart artifacts, sequence transcript, and summary export are specified
+- statsmodels/pandas/numpy/matplotlib execution boundaries are specified
+- local-only privacy/provider boundaries are specified
+- no runtime CSV import, statistical testing, chart generation, dataset UI, or analysis-summary behavior is active until the lane is enabled
+
 Current operational narrowing:
 - Treat the canonical closure target as one engine-first demo path:
   - open project/document
@@ -405,6 +451,8 @@ Current operational narrowing:
 - `feat-desktop-packaging`
 - `feat-cop-lite-licensing`
 - `feat-browser-pdf-capture`
+- `feat-open-access-deep-research`
+- `feat-quant-analysis`
 
 ## Retired planning targets
 - `feat-ux-flow`

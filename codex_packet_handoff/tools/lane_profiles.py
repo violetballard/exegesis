@@ -546,6 +546,70 @@ LANE_PROFILES: Dict[str, Json] = {
         ],
         "routing_provider_impact": "None while disabled.",
     },
+    "feat-open-access-deep-research": {
+        "scope_goal": "Disabled post-MVP lane for local-first multi-agent open access source discovery that hands deduped candidates to the standard import protocol.",
+        "priority_summary": "Disabled open access deep research source-discovery lane.",
+        "priority_outcomes": [
+            "Specify a LangChain-inspired supervisor/researcher architecture that discovers sources but does not write reports or syntheses.",
+            "Specify local Exegesis project search before open web provider fan-out.",
+            "Specify Tavily-first search with Brave, Exa, and PDF/full-text-capable scholarly adapters.",
+            "Specify candidate normalization, dedupe, ranking, provenance, and audit records.",
+            "Specify source-batch review and standard import-protocol handoff.",
+        ],
+        "definition_of_done": [
+            "Local-first source discovery and open web provider fan-out are specified.",
+            "Research job, plan, candidate, provenance, batch, and import request contracts are specified.",
+            "Deduplication and explainable ranking rules are specified.",
+            "Privacy, project-mode, credential, budget, cancellation, and audit boundaries are specified.",
+            "No runtime web search, multi-agent orchestration, provider API calls, ranking, or import-batch behavior is active until the lane is enabled.",
+        ],
+        "do_not_spend_time_on": [
+            "Runtime open web search implementation before explicit activation.",
+            "Generated research reports, summaries, synthesis, or automatic draft edits.",
+            "Browser scraping, unauthorized paywall access, or institutional authentication bypasses.",
+            "Automatic import without user review.",
+            "Zotero write-back or deep research export into Zotero.",
+        ],
+        "risk": "MEDIUM",
+        "roadmap_items": ["ROADMAP.md: Milestone 19: Multi-Agent Open Access Deep Research"],
+        "vision_capabilities": [
+            "2. Retrieval-first context handling",
+            "6. Auditable state and workflow",
+        ],
+        "routing_provider_impact": "None while disabled.",
+    },
+    "feat-quant-analysis": {
+        "scope_goal": "Disabled post-MVP lane for first-class CSV dataset import, lean quantitative analysis, basic plots, and saveable analysis sequences.",
+        "priority_summary": "Disabled quantitative analysis lane.",
+        "priority_outcomes": [
+            "Specify Datasets as a first-class project browser section.",
+            "Specify CSV-only import with variable type detection and user overrides.",
+            "Specify descriptive statistics, frequency and contingency tables, t-test, ANOVA, chi-squared, and linear correlation.",
+            "Specify p-values, effect sizes, and small/medium/large effect-size guidance for inferential tests.",
+            "Specify basic chart artifacts and analysis sequences that can be saved as summaries.",
+        ],
+        "definition_of_done": [
+            "Dataset, variable, analysis run, sequence, and chart artifact contracts are specified.",
+            "CSV import, guardrails, provenance, and variable typing rules are specified.",
+            "Supported statistics, chart types, markdown output, and effect-size guidance are specified.",
+            "Inspector/document-view workflows and sequence-to-summary behavior are specified.",
+            "No runtime CSV import, statistical testing, plotting, dataset UI, or analysis summary behavior is active until the lane is enabled.",
+        ],
+        "do_not_spend_time_on": [
+            "Runtime quantitative analysis implementation before explicit activation.",
+            "Non-CSV import formats.",
+            "Spreadsheet editing, formula cells, or rich data cleaning workflows.",
+            "Advanced models such as regression, logistic regression, mixed models, factor analysis, or non-parametric tests.",
+            "LLM-generated quantitative interpretations or conclusions.",
+        ],
+        "risk": "MEDIUM",
+        "roadmap_items": ["ROADMAP.md: Milestone 20: Quantitative Analysis"],
+        "vision_capabilities": [
+            "4. Research workspace",
+            "6. Auditable state and workflow",
+        ],
+        "routing_provider_impact": "None while disabled.",
+    },
 }
 
 

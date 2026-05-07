@@ -210,6 +210,14 @@
     "feat-browser-pdf-capture": {
       "branch": "codex/feat-browser-pdf-capture",
       "enabled": false
+    },
+    "feat-open-access-deep-research": {
+      "branch": "codex/feat-open-access-deep-research",
+      "enabled": false
+    },
+    "feat-quant-analysis": {
+      "branch": "codex/feat-quant-analysis",
+      "enabled": false
     }
   },
   "planner": {

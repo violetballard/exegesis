@@ -225,6 +225,18 @@ is_allowed() {
       esac
       return 1
       ;;
+    codex/feat-open-access-deep-research*)
+      case "$f" in
+        engine/src/exegesis_engine/research/*|engine/src/exegesis_engine/research/*/*|engine/src/exegesis_engine/research_providers/*|engine/src/exegesis_engine/research_providers/*/*|engine/src/exegesis_engine/import_batches/*|engine/src/exegesis_engine/import_batches/*/*|client-textual/src/exegesis_textual/research/*|client-textual/src/exegesis_textual/research/*/*|shared/src/exegesis_shared/research/*|shared/src/exegesis_shared/research/*/*|docs/research/*|docs/research/*/*) return 0 ;;
+      esac
+      return 1
+      ;;
+    codex/feat-quant-analysis*)
+      case "$f" in
+        engine/src/exegesis_engine/datasets/*|engine/src/exegesis_engine/datasets/*/*|engine/src/exegesis_engine/quant_analysis/*|engine/src/exegesis_engine/quant_analysis/*/*|client-textual/src/exegesis_textual/datasets/*|client-textual/src/exegesis_textual/datasets/*/*|shared/src/exegesis_shared/datasets/*|shared/src/exegesis_shared/datasets/*/*|shared/src/exegesis_shared/quant_analysis/*|shared/src/exegesis_shared/quant_analysis/*/*|docs/quant_analysis/*|docs/quant_analysis/*/*) return 0 ;;
+      esac
+      return 1
+      ;;
     *)
       log "scope-check: no policy for branch '$branch'; skipping"
       return 0

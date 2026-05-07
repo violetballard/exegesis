@@ -52,6 +52,8 @@ DEFAULT_LANES = [
     "feat-desktop-packaging",
     "feat-cop-lite-licensing",
     "feat-browser-pdf-capture",
+    "feat-open-access-deep-research",
+    "feat-quant-analysis",
 ]
 VERDICT_RE = re.compile(
     r"(?:\*\*Verdict\*\*|Verdict:)\s*`?(APPROVED|CHANGES_REQUESTED|CHANGES REQUESTED)`?",

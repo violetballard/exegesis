@@ -195,6 +195,28 @@ Detailed task breakdown lives in `/Users/doctor-violet/Library/CloudStorage/Box-
   - Current status:
     - disabled until post-MVP browser PDF capture work is intentionally activated
 
+- `codex/feat-open-access-deep-research*`
+  - Owned paths:
+    - `engine/src/exegesis_engine/research/**`
+    - `engine/src/exegesis_engine/research_providers/**`
+    - `engine/src/exegesis_engine/import_batches/**`
+    - `client-textual/src/exegesis_textual/research/**`
+    - `shared/src/exegesis_shared/research/**`
+    - `docs/research/**`
+  - Current status:
+    - disabled until post-MVP open access source discovery work is intentionally activated
+
+- `codex/feat-quant-analysis*`
+  - Owned paths:
+    - `engine/src/exegesis_engine/datasets/**`
+    - `engine/src/exegesis_engine/quant_analysis/**`
+    - `client-textual/src/exegesis_textual/datasets/**`
+    - `shared/src/exegesis_shared/datasets/**`
+    - `shared/src/exegesis_shared/quant_analysis/**`
+    - `docs/quant_analysis/**`
+  - Current status:
+    - disabled until post-MVP quantitative analysis work is intentionally activated
+
 ## Retired planning targets
 
 - `codex/feat-ux-flow*`

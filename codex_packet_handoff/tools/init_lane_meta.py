@@ -29,6 +29,8 @@ LANES = [
     'feat-desktop-packaging',
     'feat-cop-lite-licensing',
     'feat-browser-pdf-capture',
+    'feat-open-access-deep-research',
+    'feat-quant-analysis',
 ]
 
 if __name__ == "__main__":
