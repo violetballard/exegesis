@@ -12,8 +12,8 @@
 - Authoritative reviewed implementation base: `378cf9a74a3658058079a32f186fcd254c4a4034`.
 - Reviewed implementation head: final branch tip reported in the fixer handoff after this packet edit.
 - Reviewed implementation range: `378cf9a74a3658058079a32f186fcd254c4a4034..final branch tip reported in the fixer handoff`.
-- Current branch head before this packet edit: `fc52e1621d7321321e8aa5ec6811a3fd447dcc6d`.
-- Current pass role: source-bearing retrieval finalization that keeps sparse doc/excerpt bundle citations rehydratable from citation snapshots.
+- Current branch head before this packet edit: `c9213ee2b6ca3b078570bbf722221ba26aa5f846`.
+- Current pass role: source-bearing retrieval finalization that validates sparse citation basket item IDs remain FTS-only before source/context bundle rehydration.
 
 ## Traceability Correction
 
@@ -40,6 +40,8 @@ This source-bearing fixer pass modifies `src/qual/retrieval/service.py`, `tests/
 This source-bearing fixer pass modifies `src/qual/engine/retrieval/payload.py` and `THREAD_PACKET.md` so sparse downstream payloads that contain empty primary summary fields can still rehydrate primary document and excerpt provenance from citation snapshots. This keeps retrieval source/context bundles deterministic for basket promotion and later revise/apply consumers without reintroducing deferred retrieval strategies.
 
 This source-bearing fixer pass modifies `src/qual/engine/retrieval/payload.py`, `tests/unit/test_unified_retrieval.py`, and `THREAD_PACKET.md` so sparse downstream payloads that omit explicit doc/excerpt bundle snapshots and provenance citation arrays still rehydrate bundle citations from the canonical retrieval citation bundle. This keeps citation-backed source/context bundles deterministic for basket promotion and later revise/apply consumers.
+
+This source-bearing fixer pass modifies `src/qual/engine/retrieval/payload.py` and `THREAD_PACKET.md` so sparse citation bundle normalization strips stale or non-FTS `basket_item_id` values from excerpt citations. Existing FTS basket IDs that match `retrieval:fts:<excerpt_id>` are preserved, while PageIndex/embedding-shaped or mismatched IDs fail closed before source/context bundle rehydration.
 
 Packet-only commits after `5c87b08a9f7ca5a4dabc23fc1a80214276a882e9` refresh traceability and gate evidence only through `f9bdab5ded16e44476d773a24249c64442df2f3a`. The source-bearing passes after that packet-only refresh change `src/qual/retrieval/service.py` and `tests/unit/test_unified_retrieval.py`; reviewers should include the final branch tip reported in the fixer handoff when re-reviewing the merge candidate.
 
@@ -71,8 +73,6 @@ Packet-only refresh surface after the reviewed implementation head:
 Current source-bearing fixer surface:
 
 - `src/qual/engine/retrieval/payload.py`
-- `src/qual/retrieval/service.py`
-- `tests/unit/test_unified_retrieval.py`
 - `THREAD_PACKET.md`
 
 ## Scope Completed
@@ -91,6 +91,8 @@ This finalization pass also backfills sparse retrieval provenance primary docume
 
 This finalization pass also backfills sparse doc and excerpt bundle citation arrays from the canonical retrieval citation bundle when a downstream payload omits explicit bundle snapshots and provenance citation arrays. That keeps citation evidence available to context-basket promotion and revise/apply consumers that rehydrate from sparse engine payloads.
 
+This finalization pass also validates sparse excerpt-citation basket item IDs during citation bundle normalization. FTS-shaped citation IDs remain rehydratable, while stale, mismatched, PageIndex-shaped, or embedding-shaped citation IDs are removed so deferred retrieval strategies cannot appear promotable through sparse source/context bundles.
+
 Canonical demo path advanced: `vault/context material -> FTS retrieval -> retrieval evidence -> context basket promotion -> engine revise/apply`.
 
 Before-handoff canonical demo-path statement: this work advances `retrieve relevant material` by keeping retrieval FTS-first, deterministic, and auditable; it also supports `promote or gather context into the basket` by preserving provenance and query evidence on promotion bundles/items.
@@ -106,14 +108,15 @@ Before-handoff canonical demo-path statement: this work advances `retrieve relev
 7. Canonical demo-path step advanced: `retrieve relevant material`. Canonicalized stored document `doc_type` values before metadata/FTS writes so normalized FTS filters match ingested documents deterministically and provenance emits the canonical filtered type.
 8. Canonical demo-path steps advanced: `retrieve relevant material` and `promote or gather context into the basket`. Backfilled sparse primary document/excerpt provenance from citation snapshots when summary fields are empty, keeping rehydrated retrieval context auditable for basket promotion and later revise/apply consumers.
 9. Canonical demo-path steps advanced: `retrieve relevant material` and `promote or gather context into the basket`. Backfilled sparse doc/excerpt bundle citation arrays from the canonical citation bundle when explicit bundle snapshots and provenance citation arrays are absent.
+10. Canonical demo-path steps advanced: `retrieve relevant material` and `promote or gather context into the basket`. Validated sparse excerpt-citation `basket_item_id` values as FTS-only during citation bundle normalization so stale or deferred-strategy IDs fail closed before rehydration.
 
-Task accounting: `9` high-risk task groups are present in the cumulative branch after this source-bearing finalization pass, exceeding the high-risk task cap and requiring the same integration decision already noted for the size overage.
+Task accounting: `10` high-risk task groups are present in the cumulative branch after this source-bearing finalization pass, exceeding the high-risk task cap and requiring the same integration decision already noted for the size overage.
 
 ## Kickoff Budget/Limits Compliance
 
-- Task budget: `4` high-risk task groups; this cumulative branch now has `9` source-bearing task groups after the sparse doc/excerpt bundle citation fallback fix.
-- File count: the corrected source-bearing range before this pass changes `6` source/test files plus `3` packet/artifact files; this pass changes `src/qual/engine/retrieval/payload.py`, `tests/unit/test_unified_retrieval.py`, and `THREAD_PACKET.md`.
-- Size accounting: the corrected source-bearing range `378cf9a74a3658058079a32f186fcd254c4a4034..final branch tip reported in the fixer handoff` is `9 files changed, 1621 insertions(+), 221 deletions(-)` including this source-bearing fix and packet refresh.
+- Task budget: `4` high-risk task groups; this cumulative branch now has `10` source-bearing task groups after the sparse citation basket ID validation fix.
+- File count: the corrected source-bearing range before this pass changes `6` source/test files plus `3` packet/artifact files; this pass changes `src/qual/engine/retrieval/payload.py` and `THREAD_PACKET.md`.
+- Size accounting: the corrected source-bearing range `378cf9a74a3658058079a32f186fcd254c4a4034..final branch tip reported in the fixer handoff` exceeds the high-risk `<=300 net LOC` limit; exact final size is reported by the final fixer handoff after this packet commit.
 - Size limit status: exceeds the high-risk `<=8 files` and `<=300 net LOC` limits.
 - Explicit exception status: no integrator-approved size or task-budget exception is recorded in this worktree. Because the full source-bearing range remains together, this is a known blocker for approval until the integrator grants an exception or requests a branch split.
 - Shared-file exception status: `tests/unit/test_unified_retrieval.py` is the sole approved shared regression surface; no integrator-locked files changed.
@@ -141,6 +144,8 @@ Required gates for this corrected merge candidate were re-run on 2026-05-07 agai
 
 Additional focused retrieval checks run earlier in this lane:
 
+- `python3 -m unittest tests.unit.test_unified_retrieval -q` - passed 67 unified retrieval tests after the sparse citation basket ID validation fix.
+- `python3 - <<'PY' ... build_retrieval_citation_bundle_from_result(...) ... PY` - passed; FTS-shaped citation `basket_item_id` values are preserved while PageIndex-shaped and mismatched IDs are removed.
 - `python3 -m unittest tests.unit.test_unified_retrieval.UnifiedRetrievalTests.test_retrieval_constraints_accept_scalar_doc_type_as_one_filter -q` - passed after aligning direct service scalar doc-type constraint normalization with the canonical facade path.
 - `python3 -m unittest tests.unit.test_unified_retrieval.UnifiedRetrievalTests.test_add_document_canonicalizes_doc_type_before_fts_filtering -q` - passed after canonicalizing stored document doc types before FTS indexing.
 - `python3 - <<'PY' ... _build_retrieval_provenance_from_payload(...) ... PY` - passed; sparse primary document/excerpt provenance fields are backfilled from citation snapshots when summary fields are empty.

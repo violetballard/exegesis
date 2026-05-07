@@ -198,7 +198,9 @@ def _normalize_citation_bundle_snapshot(citation_bundle: dict[str, object]) -> d
     if "caches_used" in normalized:
         normalized["caches_used"] = _normalize_bool_map(normalized.get("caches_used"))
     normalized["doc_citations"] = _normalize_list_like(normalized.get("doc_citations"))
-    normalized["excerpt_citations"] = _normalize_list_like(normalized.get("excerpt_citations"))
+    normalized["excerpt_citations"] = _normalize_excerpt_citation_snapshots(
+        normalized.get("excerpt_citations")
+    )
     retrieval_policy = normalized.get("retrieval_policy")
     if isinstance(retrieval_policy, dict):
         normalized["retrieval_policy"] = _normalize_policy_snapshot(retrieval_policy)
@@ -207,6 +209,28 @@ def _normalize_citation_bundle_snapshot(citation_bundle: dict[str, object]) -> d
         normalized["citation_status"] = copy.deepcopy(citation_status)
     elif "citation_status" in normalized:
         normalized["citation_status"] = {}
+    return normalized
+
+
+def _normalize_excerpt_citation_snapshots(value: object) -> list[object]:
+    normalized: list[object] = []
+    for citation in _normalize_list_like(value):
+        if not isinstance(citation, dict):
+            normalized.append(copy.deepcopy(citation))
+            continue
+        normalized_citation = copy.deepcopy(citation)
+        basket_item_id = normalized_citation.get("basket_item_id")
+        if not _is_missing_snapshot_value(basket_item_id):
+            expected_basket_item_id = _basket_item_id_for_excerpt(
+                source_strategy=normalized_citation.get(
+                    "retrieval_source_strategy",
+                    normalized_citation.get("source_strategy"),
+                ),
+                excerpt_id=normalized_citation.get("excerpt_id"),
+            )
+            if basket_item_id != expected_basket_item_id:
+                normalized_citation.pop("basket_item_id", None)
+        normalized.append(normalized_citation)
     return normalized
 
 
