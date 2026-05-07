@@ -43,6 +43,18 @@ def _normalize_constraint_values(value: object, *, field_name: str) -> tuple[str
     return tuple(str(item) for item in value if item is not None)
 
 
+def _normalize_date_range_constraint(value: object) -> tuple[str, str] | None:
+    """Return the canonical two-value date range for loose facade inputs."""
+
+    if value is None:
+        return None
+    values = _normalize_constraint_values(value, field_name="date_range")
+    normalized = tuple(item.strip() for item in values)
+    if len(normalized) != 2 or any(not item for item in normalized):
+        raise ValueError("date_range must contain exactly two non-empty values")
+    return normalized
+
+
 def _normalize_optional_int(value: object, *, default: int) -> int:
     if value is None:
         return default
@@ -102,11 +114,7 @@ def build_retrieval_query(
         raise TypeError("constraints must be a mapping or RetrievalConstraints")
 
     doc_types = _normalize_constraint_values(payload.get("doc_types"), field_name="doc_types")
-    date_range = payload.get("date_range")
-    if isinstance(date_range, str):
-        date_range = (date_range,)
-    if date_range is not None:
-        date_range = _normalize_constraint_values(date_range, field_name="date_range")
+    date_range = _normalize_date_range_constraint(payload.get("date_range"))
     return RetrievalQuery(
         query_text=query_text,
         scope=scope,
