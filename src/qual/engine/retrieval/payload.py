@@ -827,6 +827,13 @@ def _build_retrieval_basket_promotion_bundle_from_payload(payload: dict[str, obj
                     provenance.get("citation_status", bundle_context["citation_status"]),
                 )
             ),
+            "retrieval_evidence_fingerprint": hit.get(
+                "retrieval_evidence_fingerprint",
+                provenance.get(
+                    "retrieval_evidence_fingerprint",
+                    bundle_context["retrieval_evidence_fingerprint"],
+                ),
+            ),
             "retrieval_backend": hit.get("retrieval_backend", provenance.get("retrieval_backend")),
             "retrieval_mode": hit.get("retrieval_mode", provenance.get("retrieval_mode")),
             "source_hash": hit.get("source_hash", provenance.get("source_hash")),

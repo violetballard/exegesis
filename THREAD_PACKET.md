@@ -9,8 +9,10 @@
 - Approved shared regression path: `tests/unit/test_unified_retrieval.py`.
 - Integrator-locked files changed: none.
 - Authoritative reviewed implementation base: `378cf9a74a3658058079a32f186fcd254c4a4034`.
-- Authoritative reviewed implementation head: `b0b046271168b6d058e60b7a97080bebf5220781`.
-- Authoritative reviewed implementation range for re-review: `378cf9a74a3658058079a32f186fcd254c4a4034..b0b046271168b6d058e60b7a97080bebf5220781`.
+- Pre-fixer reviewed implementation head: `b0b046271168b6d058e60b7a97080bebf5220781`.
+- Pre-fixer reviewed implementation range: `378cf9a74a3658058079a32f186fcd254c4a4034..b0b046271168b6d058e60b7a97080bebf5220781`.
+- Current fixer base before this source-bearing delta: `81ca2d34b58dbd843b5ed26f0107c75fc37f20cb`.
+- Final source-bearing fixer commit: reported in the final handoff response after commit creation.
 - Reviewer-cited unreviewed implementation range now included: `adfa8cdadd43747ffbcb612e4151e262b13e52ca..b0b046271168b6d058e60b7a97080bebf5220781`.
 
 ## Traceability Correction
@@ -24,6 +26,8 @@ That range includes every non-metadata retrieval change through `b0b046271168b6d
 This fixer creates a metadata-only packet refresh commit after `b0b046271168b6d058e60b7a97080bebf5220781`; the final HEAD SHA for that packet refresh is reported with the fixer response. The refreshed packet does not classify `b0b046271168b6d058e60b7a97080bebf5220781` as metadata-only.
 
 Re-review should not use `adfa8cdadd43747ffbcb612e4151e262b13e52ca` as the implementation head. It is an intermediate commit only.
+
+This final source-bearing fixer builds on packet-refresh head `81ca2d34b58dbd843b5ed26f0107c75fc37f20cb` and preserves the corrected cumulative implementation range above while adding one narrow payload hardening change. The final commit SHA for this delta is reported outside the packet to avoid self-stale metadata.
 
 ## Files Changed
 
@@ -54,6 +58,8 @@ The prior implementation delta tightened the canonical excerpt payload normalize
 
 The latest implementation delta preserves normalized query constraints and their fingerprint when rehydrating basket-promotion bundles from downstream payload snapshots. This keeps payload-derived promotion evidence aligned with service-produced bundles for downstream basket promotion and later revise/apply audit trails.
 
+The final source-bearing fixer also preserves `retrieval_evidence_fingerprint` on payload-derived basket-promotion items when the full promotion bundle is absent. This keeps sparse downstream payload snapshots auditable at the individual promotion-item level without requiring the original `RetrievalResult`.
+
 Canonical demo path advanced: `vault/context material -> FTS retrieval -> retrieval evidence -> context basket promotion -> engine revise/apply`.
 
 ## Tasks Completed
@@ -82,15 +88,16 @@ Task accounting: `4` high-risk task groups completed, matching the high-risk tas
 4. Documented that the branch still exceeds the high-risk size limit and that no explicit integrator-approved size exception is present.
 5. Added a final fail-closed guard so excerpt payload normalization cannot accept PageIndex resolution as a compatibility path.
 6. Preserved query constraints and query-constraint fingerprints in payload-derived basket-promotion bundles so sparse promotion evidence remains auditable.
+7. Preserved retrieval evidence fingerprints in payload-derived basket-promotion items so sparse promotion evidence stays aligned with service-produced promotion bundles.
 
 ## Commands Run
 
 Required gates for this final fixer state were re-run on 2026-05-07 after the
-latest retrieval implementation delta. The final packet refresh commit is
-metadata-only, so these results apply to the corrected branch tip without
-changing the implementation review range above.
+latest retrieval implementation delta. This final fixer is source-bearing in
+`src/qual/engine/retrieval/payload.py`; the final commit SHA is reported with
+the handoff response after commit creation.
 
-- `make scope-check` - passed for branch `codex/feat-retrieval-fts`; no branch-specific policy was configured.
+- `make scope-check` - passed for branch `codex/feat-retrieval-fts`.
 - `./quality-format.sh --check` - passed.
 - `./quality-lint.sh` - passed shell syntax and trailing whitespace checks.
 - `./quality-test.sh` - passed smoke tests and 131 unit tests.
@@ -99,6 +106,7 @@ changing the implementation review range above.
 
 Additional focused retrieval checks run earlier in this lane:
 
+- `python3 -m unittest tests.unit.test_unified_retrieval.UnifiedRetrievalTests.test_basket_promotion_items_backfill_query_context_from_bundle` - passed after preserving payload-derived promotion-item retrieval evidence fingerprints.
 - `python3 -m unittest tests.unit.test_unified_retrieval.UnifiedRetrievalTests.test_basket_promotion_items_backfill_query_context_from_bundle` - passed after preserving payload-derived basket-promotion query constraints.
 - `python -m pytest tests/unit/test_unified_retrieval.py` - blocked because the active Python interpreter has no `pytest` module installed.
 - `python3 -m unittest tests.unit.test_unified_retrieval` - passed 62 retrieval tests after the final FTS-only excerpt payload normalization guard.
