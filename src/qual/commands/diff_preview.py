@@ -95,6 +95,17 @@ class PatchReviewActionRoute:
     ready: bool
 
 
+@dataclass(frozen=True)
+class PatchReviewCommandContract:
+    command: str
+    flow_step: str
+    demo_path_step: str
+    change_action_routes: tuple[tuple[str, str], ...]
+    no_change_action_routes: tuple[tuple[str, str], ...]
+    engine_actions: tuple[str, ...]
+    ready: bool
+
+
 def _normalize_text(value: str) -> str:
     # Normalize newlines so diff output is stable across platforms.
     return value.replace("\r\n", "\n").replace("\r", "\n")
@@ -475,6 +486,33 @@ def build_patch_review_action_route_lookup(payload: DiffPreviewInput) -> tuple[t
     return _patch_review_action_route_lookup_for_decision(build_patch_review_decision(payload))
 
 
+def build_patch_review_command_contract() -> PatchReviewCommandContract:
+    """Return the stable patch-review route surface without requiring document text."""
+
+    change_action_routes = (
+        ("revise", PATCH_REVIEW_REVISE_ENGINE_ACTION),
+        ("apply", PATCH_REVIEW_APPLY_ENGINE_ACTION),
+        ("reject", PATCH_REVIEW_REJECT_ENGINE_ACTION),
+    )
+    no_change_action_routes = (("continue", PATCH_REVIEW_CONTINUE_ENGINE_ACTION),)
+    engine_actions = tuple(
+        engine_action
+        for _, engine_action in change_action_routes + no_change_action_routes
+    )
+    return PatchReviewCommandContract(
+        command=PATCH_REVIEW_COMMAND_NAME,
+        flow_step=PATCH_REVIEW_FLOW_STEP,
+        demo_path_step=PATCH_REVIEW_DEMO_PATH_STEP,
+        change_action_routes=change_action_routes,
+        no_change_action_routes=no_change_action_routes,
+        engine_actions=engine_actions,
+        ready=all(
+            action and engine_action
+            for action, engine_action in change_action_routes + no_change_action_routes
+        ),
+    )
+
+
 def run_patch_review_decision(payload: DiffPreviewInput) -> str:
     decision = build_patch_review_decision(payload)
     return (
@@ -560,6 +598,36 @@ def run_patch_review_action_routes_json(payload: DiffPreviewInput) -> str:
 def run_patch_review_action_route_lookup_json(payload: DiffPreviewInput) -> str:
     return json.dumps(
         build_patch_review_action_route_lookup(payload),
+        sort_keys=True,
+        separators=(",", ":"),
+    )
+
+
+def run_patch_review_command_contract() -> str:
+    contract = build_patch_review_command_contract()
+    return (
+        f"command={contract.command}; "
+        f"flow-step={contract.flow_step}; "
+        f"demo-path-step={contract.demo_path_step}; "
+        f"change-action-routes={json.dumps(contract.change_action_routes)}; "
+        f"no-change-action-routes={json.dumps(contract.no_change_action_routes)}; "
+        f"engine-actions={','.join(contract.engine_actions)}; "
+        f"ready={str(contract.ready).lower()}"
+    )
+
+
+def run_patch_review_command_contract_json() -> str:
+    contract = build_patch_review_command_contract()
+    return json.dumps(
+        {
+            "command": contract.command,
+            "flow_step": contract.flow_step,
+            "demo_path_step": contract.demo_path_step,
+            "change_action_routes": contract.change_action_routes,
+            "no_change_action_routes": contract.no_change_action_routes,
+            "engine_actions": contract.engine_actions,
+            "ready": contract.ready,
+        },
         sort_keys=True,
         separators=(",", ":"),
     )

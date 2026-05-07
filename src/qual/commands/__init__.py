@@ -8,7 +8,9 @@ from src.qual.commands.diff_preview import (
     PatchReviewActionRoute,
     PatchReviewCommandStatus,
     PatchReviewCommandStatusPayload,
+    PatchReviewCommandContract,
     PatchReviewDecision,
+    build_patch_review_command_contract,
     build_patch_review_action_route_lookup,
     build_patch_review_action_routes,
     build_diff_preview_result,
@@ -20,6 +22,8 @@ from src.qual.commands.diff_preview import (
     run_patch_review_action_routes_json,
     run_patch_review_command_status,
     run_patch_review_command_status_json,
+    run_patch_review_command_contract,
+    run_patch_review_command_contract_json,
     run_patch_review_decision,
     run_diff_preview,
 )
