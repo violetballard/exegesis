@@ -29,6 +29,12 @@ from src.qual.commands.catalog import (
     CommandDemoReadinessHandoffMapContract,
     CommandDemoActionCoverageContract,
     CommandDemoActionCoverageEntry,
+    CommandDemoActionSmokeArgvContract,
+    CommandDemoActionSmokeArgvEntry,
+    CommandDemoActionSmokeCliArgvContract,
+    CommandDemoActionSmokeCliArgvEntry,
+    CommandDemoActionSmokeScriptContract,
+    CommandDemoActionSmokeScriptStep,
     CommandDemoCommandActionContract,
     CommandDemoCommandCoverageContract,
     CommandDemoCommandReadinessContract,
@@ -219,8 +225,10 @@ from src.qual.commands.catalog import (
     command_mvp_demo_readiness_trace_lookup_table as _readiness_trace_lookup_table,
     command_mvp_demo_readiness_trace_summary as _readiness_trace_summary,
     command_mvp_demo_action_smoke_script_argv as _action_smoke_script_argv,
+    command_mvp_demo_action_smoke_script_contract as _action_smoke_script_contract,
     command_mvp_demo_action_smoke_script_lines as _action_smoke_script_lines,
     command_mvp_demo_action_smoke_script_lookup_table as _action_smoke_script_lookup_table,
+    command_mvp_demo_action_smoke_script_step as _action_smoke_script_step,
     command_mvp_demo_action_smoke_script_summary as _action_smoke_script_summary,
     command_mvp_demo_smoke_cli_script_argv as _smoke_cli_script_argv,
     command_mvp_demo_smoke_cli_script_lines as _smoke_cli_script_lines,
@@ -236,7 +244,11 @@ from src.qual.commands.catalog import (
     command_mvp_demo_action_flow_step as _action_flow_step,
     command_mvp_demo_action_route_summary as _action_route_summary,
     command_mvp_demo_action_smoke_argv as _action_smoke_argv,
+    command_mvp_demo_action_smoke_argv_contract as _action_smoke_argv_contract,
+    command_mvp_demo_action_smoke_argv_entry as _action_smoke_argv_entry,
     command_mvp_demo_action_smoke_argv_lookup_table as _action_smoke_argv_lookup_table,
+    command_mvp_demo_action_smoke_cli_argv_contract as _action_smoke_cli_argv_contract,
+    command_mvp_demo_action_smoke_cli_argv_entry as _action_smoke_cli_argv_entry,
     command_mvp_demo_engine_actions as _demo_engine_actions,
     command_mvp_demo_command_action_contract as _command_action_contract,
     command_mvp_demo_command_action_lookup_table as _command_action_lookup_table,
@@ -757,9 +769,15 @@ __all__ = [
     "canonical_command_action_flow_lookup_table",
     "canonical_command_demo_path_step_for_engine_action",
     "canonical_command_action_smoke_cli_argv",
+    "canonical_command_action_smoke_cli_argv_contract",
+    "canonical_command_action_smoke_cli_argv_entry",
+    "canonical_command_action_smoke_cli_script_contract",
+    "canonical_command_action_smoke_cli_script_step",
     "canonical_command_action_smoke_cli_lines",
     "canonical_command_action_smoke_cli_lookup_table",
     "canonical_command_action_smoke_cli_summary",
+    "canonical_command_action_smoke_argv_contract",
+    "canonical_command_action_smoke_argv_entry",
     "canonical_command_demo_path_step",
     "canonical_command_demo_smoke_cli_argv",
     "canonical_command_demo_smoke_cli_lines",
@@ -2428,6 +2446,10 @@ def canonical_command_action_smoke_cli_summary() -> tuple[
     return _action_smoke_script_summary()
 
 
+def canonical_command_action_smoke_cli_script_contract() -> CommandDemoActionSmokeScriptContract:
+    return _action_smoke_script_contract()
+
+
 def canonical_command_action_smoke_cli_lookup_table() -> tuple[
     tuple[int, str, tuple[str, ...]],
     ...,
@@ -2441,6 +2463,22 @@ def canonical_command_action_smoke_cli_lines() -> tuple[tuple[int, str, str, str
 
 def canonical_command_action_smoke_cli_argv(ordinal: int) -> tuple[str, ...]:
     return _action_smoke_script_argv(ordinal)
+
+
+def canonical_command_action_smoke_cli_script_step(
+    ordinal: int,
+) -> CommandDemoActionSmokeScriptStep | None:
+    return _action_smoke_script_step(ordinal)
+
+
+def canonical_command_action_smoke_cli_argv_contract() -> CommandDemoActionSmokeCliArgvContract:
+    return _action_smoke_cli_argv_contract()
+
+
+def canonical_command_action_smoke_cli_argv_entry(
+    engine_action: str,
+) -> CommandDemoActionSmokeCliArgvEntry | None:
+    return _action_smoke_cli_argv_entry(engine_action)
 
 
 def canonical_command_action_argv_lookup_table() -> tuple[tuple[str, tuple[str, ...]], ...]:
@@ -2553,6 +2591,16 @@ def canonical_command_action_cli_smoke_lookup_table() -> tuple[tuple[str, str], 
 
 def canonical_command_action_smoke_argv_lookup_table() -> tuple[tuple[str, tuple[str, ...]], ...]:
     return _action_smoke_argv_lookup_table()
+
+
+def canonical_command_action_smoke_argv_contract() -> CommandDemoActionSmokeArgvContract:
+    return _action_smoke_argv_contract()
+
+
+def canonical_command_action_smoke_argv_entry(
+    engine_action: str,
+) -> CommandDemoActionSmokeArgvEntry | None:
+    return _action_smoke_argv_entry(engine_action)
 
 
 def canonical_command_action_smoke_argv(engine_action: str) -> tuple[str, ...]:
