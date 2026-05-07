@@ -66,12 +66,14 @@ This final source-bearing delta also canonicalizes string-shaped scalar query co
 
 Canonical demo path advanced: `vault/context material -> FTS retrieval -> retrieval evidence -> context basket promotion -> engine revise/apply`.
 
+Before-handoff canonical demo-path statement: this work makes `retrieve relevant material` more real by making FTS-only excerpt lookup deterministic and fail-closed for PageIndex-only excerpt IDs, and it supports `promote or gather context into the basket` through stable excerpt/provenance payloads.
+
 ## Tasks Completed
 
-1. Made SQLite FTS the authoritative MVP retrieval path while keeping PageIndex and embeddings fallback-only/deferred.
-2. Stabilized FTS query, cache, constraint, date-range, shortlist, doc-type, scope, and fresh-run behavior for deterministic retrieval.
-3. Normalized retrieval payloads, provenance, citation/source/context bundles, evidence snapshots, sparse bundle rehydration, and basket-promotion evidence so downstream helpers preserve ranks, identities, policies, fingerprints, matched terms, and confidentiality profile metadata.
-4. Added fail-closed and audit-focused shared regression coverage for malformed/reversed date ranges, empty inputs, unresolved `doc:` and `collection:` scopes, FTS-only excerpt lookup and payload normalization, excerpt lookup fingerprints, cache/query snapshots, facade/export availability, basket-promotion fingerprint propagation, and payload-derived basket-promotion query-constraint rehydration.
+1. Canonical demo-path step advanced: `retrieve relevant material`. Made SQLite FTS the authoritative MVP retrieval path while keeping PageIndex and embeddings fallback-only/deferred.
+2. Canonical demo-path step advanced: `retrieve relevant material`. Stabilized FTS query, cache, constraint, date-range, shortlist, doc-type, scope, and fresh-run behavior for deterministic retrieval.
+3. Canonical demo-path steps advanced: `retrieve relevant material` and `promote or gather context into the basket`. Normalized retrieval payloads, provenance, citation/source/context bundles, evidence snapshots, sparse bundle rehydration, and basket-promotion evidence so downstream helpers preserve ranks, identities, policies, fingerprints, matched terms, and confidentiality profile metadata.
+4. Canonical demo-path steps advanced: `retrieve relevant material` and `promote or gather context into the basket`. Added fail-closed and audit-focused shared regression coverage for malformed/reversed date ranges, empty inputs, unresolved `doc:` and `collection:` scopes, FTS-only excerpt lookup and payload normalization, excerpt lookup fingerprints, cache/query snapshots, facade/export availability, basket-promotion fingerprint propagation, and payload-derived basket-promotion query-constraint rehydration.
 
 Task accounting: `4` high-risk task groups completed, matching the high-risk task cap.
 
@@ -95,13 +97,12 @@ Task accounting: `4` high-risk task groups completed, matching the high-risk tas
 7. Preserved retrieval evidence fingerprints in payload-derived basket-promotion items so sparse promotion evidence stays aligned with service-produced promotion bundles.
 8. Normalized basket-promotion bundle query constraints and regenerated missing query-constraint fingerprints when rehydrating an existing promotion bundle from downstream payload snapshots.
 9. Canonicalized string-shaped scalar query constraints during sparse payload rehydration so downstream basket-promotion fingerprints do not drift from service-produced FTS retrieval contracts.
+10. Added explicit per-task canonical demo-path step mappings to the completed task list.
+11. Added the required before-handoff canonical demo-path statement naming how this work makes `retrieve relevant material` more real and supports `promote or gather context into the basket`.
 
 ## Commands Run
 
-Required gates for this final fixer state were re-run on 2026-05-07 after the
-latest retrieval implementation delta. This final fixer is source-bearing in
-`src/qual/engine/retrieval/payload.py` and `THREAD_PACKET.md`; the final commit
-SHA is reported with the handoff response after commit creation.
+Required gates for this final metadata-only packet correction were re-run on 2026-05-07 after the canonical demo-path handoff mapping was added. This fixer changes `THREAD_PACKET.md` only; the reviewed implementation range remains unchanged because no retrieval code changed. The final commit SHA is reported with the handoff response after commit creation.
 
 - `make scope-check` - passed for branch `codex/feat-retrieval-fts`.
 - `./quality-format.sh --check` - passed.
