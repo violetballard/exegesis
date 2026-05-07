@@ -287,6 +287,24 @@ class CommandHandlerActionRouteContract:
 
 
 @dataclass(frozen=True)
+class CommandHandlerThinActionEntry:
+    engine_action: str
+    demo_path_step: str
+    flow_step: str
+    name: str
+    handler: str
+    delegated_to: str
+    command_line: str
+    is_thin: bool
+
+
+@dataclass(frozen=True)
+class CommandHandlerThinActionContract:
+    is_complete: bool
+    entries: tuple[CommandHandlerThinActionEntry, ...]
+
+
+@dataclass(frozen=True)
 class CommandDemoActionRouteEntry:
     engine_action: str
     flow_step: str
@@ -2631,6 +2649,101 @@ def command_handler_action_route_entry_for_engine_action(
     return None
 
 
+def _is_thin_handler_route(entry: CommandHandlerActionRouteEntry) -> bool:
+    return (
+        bool(entry.handler.strip())
+        and bool(entry.delegated_to.strip())
+        and bool(entry.command_line.strip())
+        and entry.handler != entry.delegated_to
+        and entry.handler.startswith(_COMMAND_HANDLER_COMPATIBILITY_PREFIX)
+        and not entry.delegated_to.startswith(_COMMAND_HANDLER_COMPATIBILITY_PREFIX)
+        and entry.delegated_to.startswith(_COMMAND_HANDLER_DELEGATION_TARGET_PREFIXES)
+    )
+
+
+@lru_cache(maxsize=None)
+def command_handler_thin_action_contract(
+    specs: tuple[CommandSpec, ...] = COMMAND_SPECS,
+    launcher_argv: tuple[str, ...] = COMMAND_SMOKE_CLI_LAUNCHER_ARGV,
+) -> CommandHandlerThinActionContract:
+    entries = tuple(
+        CommandHandlerThinActionEntry(
+            engine_action=entry.engine_action,
+            demo_path_step=entry.demo_path_step,
+            flow_step=entry.flow_step,
+            name=entry.name,
+            handler=entry.handler,
+            delegated_to=entry.delegated_to,
+            command_line=entry.command_line,
+            is_thin=_is_thin_handler_route(entry),
+        )
+        for entry in command_handler_action_route_contract(specs, launcher_argv).entries
+    )
+    contract = CommandHandlerThinActionContract(
+        is_complete=all(entry.is_thin for entry in entries),
+        entries=entries,
+    )
+    _validate_command_handler_thin_action_contract(contract, specs=specs, launcher_argv=launcher_argv)
+    return contract
+
+
+def _validate_command_handler_thin_action_contract(
+    contract: CommandHandlerThinActionContract,
+    *,
+    specs: tuple[CommandSpec, ...],
+    launcher_argv: tuple[str, ...],
+) -> None:
+    action_routes = command_handler_action_route_contract(specs, launcher_argv).entries
+    if tuple(entry.engine_action for entry in contract.entries) != tuple(
+        entry.engine_action for entry in action_routes
+    ):
+        raise ValueError("Command handler thin action engine actions are inconsistent")
+    if tuple(entry.engine_action for entry in contract.entries) != command_demo_engine_actions(specs):
+        raise ValueError("Command handler thin action coverage is incomplete")
+    for entry, route_entry in zip(contract.entries, action_routes, strict=True):
+        if (
+            entry.demo_path_step != route_entry.demo_path_step
+            or entry.flow_step != route_entry.flow_step
+            or entry.name != route_entry.name
+            or entry.handler != route_entry.handler
+            or entry.delegated_to != route_entry.delegated_to
+            or entry.command_line != route_entry.command_line
+        ):
+            raise ValueError(f"Command handler thin action route drifted: {entry.engine_action}")
+        if entry.is_thin != _is_thin_handler_route(route_entry):
+            raise ValueError(f"Command handler thin action readiness drifted: {entry.engine_action}")
+    if contract.is_complete != all(entry.is_thin for entry in contract.entries):
+        raise ValueError("Command handler thin action completeness is inconsistent")
+
+
+def command_handler_thin_action_summary(
+    specs: tuple[CommandSpec, ...] = COMMAND_SPECS,
+    launcher_argv: tuple[str, ...] = COMMAND_SMOKE_CLI_LAUNCHER_ARGV,
+) -> tuple[tuple[str, str, str, str, str, str, bool], ...]:
+    return tuple(
+        (
+            entry.engine_action,
+            entry.demo_path_step,
+            entry.flow_step,
+            entry.name,
+            entry.handler,
+            entry.delegated_to,
+            entry.is_thin,
+        )
+        for entry in command_handler_thin_action_contract(specs, launcher_argv).entries
+    )
+
+
+def command_handler_thin_action_lookup_table(
+    specs: tuple[CommandSpec, ...] = COMMAND_SPECS,
+    launcher_argv: tuple[str, ...] = COMMAND_SMOKE_CLI_LAUNCHER_ARGV,
+) -> tuple[tuple[str, tuple[str, str, str, bool]], ...]:
+    return tuple(
+        (entry.engine_action, (entry.handler, entry.delegated_to, entry.command_line, entry.is_thin))
+        for entry in command_handler_thin_action_contract(specs, launcher_argv).entries
+    )
+
+
 def command_mvp_handler_action_route_contract(
     specs: tuple[CommandSpec, ...] = COMMAND_SPECS,
     launcher_argv: tuple[str, ...] = COMMAND_SMOKE_CLI_LAUNCHER_ARGV,
@@ -2658,6 +2771,27 @@ def command_mvp_handler_action_route_entry_for_engine_action(
     launcher_argv: tuple[str, ...] = COMMAND_SMOKE_CLI_LAUNCHER_ARGV,
 ) -> CommandHandlerActionRouteEntry | None:
     return command_handler_action_route_entry_for_engine_action(engine_action, specs, launcher_argv)
+
+
+def command_mvp_handler_thin_action_contract(
+    specs: tuple[CommandSpec, ...] = COMMAND_SPECS,
+    launcher_argv: tuple[str, ...] = COMMAND_SMOKE_CLI_LAUNCHER_ARGV,
+) -> CommandHandlerThinActionContract:
+    return command_handler_thin_action_contract(specs, launcher_argv)
+
+
+def command_mvp_handler_thin_action_summary(
+    specs: tuple[CommandSpec, ...] = COMMAND_SPECS,
+    launcher_argv: tuple[str, ...] = COMMAND_SMOKE_CLI_LAUNCHER_ARGV,
+) -> tuple[tuple[str, str, str, str, str, str, bool], ...]:
+    return command_handler_thin_action_summary(specs, launcher_argv)
+
+
+def command_mvp_handler_thin_action_lookup_table(
+    specs: tuple[CommandSpec, ...] = COMMAND_SPECS,
+    launcher_argv: tuple[str, ...] = COMMAND_SMOKE_CLI_LAUNCHER_ARGV,
+) -> tuple[tuple[str, tuple[str, str, str, bool]], ...]:
+    return command_handler_thin_action_lookup_table(specs, launcher_argv)
 
 
 @lru_cache(maxsize=None)

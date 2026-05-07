@@ -69,6 +69,7 @@ from src.qual.commands.catalog import (
     CommandHandlerActionRouteEntry,
     CommandHandlerDemoPathContract,
     CommandHandlerDemoPathEntry,
+    CommandHandlerThinActionContract,
     canonical_command as _canonical_command,
     command_mvp_demo_path_readiness_contract as _path_readiness_contract,
     command_mvp_demo_path_steps as _path_steps,
@@ -448,6 +449,9 @@ from src.qual.commands.catalog import (
     command_mvp_handler_demo_path_entry_for_command as _handler_demo_path_entry_for_command,
     command_mvp_handler_demo_path_lookup_table as _handler_demo_path_lookup_table,
     command_mvp_handler_demo_path_summary as _handler_demo_path_summary,
+    command_mvp_handler_thin_action_contract as _handler_thin_action_contract,
+    command_mvp_handler_thin_action_lookup_table as _handler_thin_action_lookup_table,
+    command_mvp_handler_thin_action_summary as _handler_thin_action_summary,
 )
 
 
@@ -819,6 +823,9 @@ __all__ = [
     "canonical_command_handler_demo_path_entry_for_command",
     "canonical_command_handler_demo_path_lookup_table",
     "canonical_command_handler_demo_path_summary",
+    "canonical_command_handler_thin_action_contract",
+    "canonical_command_handler_thin_action_lookup_table",
+    "canonical_command_handler_thin_action_summary",
 ]
 
 
@@ -887,6 +894,24 @@ def canonical_command_handler_action_route_entry_for_engine_action(
     engine_action: str,
 ) -> CommandHandlerActionRouteEntry | None:
     return _handler_action_route_entry_for_engine_action(engine_action)
+
+
+def canonical_command_handler_thin_action_contract() -> CommandHandlerThinActionContract:
+    return _handler_thin_action_contract()
+
+
+def canonical_command_handler_thin_action_summary() -> tuple[
+    tuple[str, str, str, str, str, str, bool],
+    ...,
+]:
+    return _handler_thin_action_summary()
+
+
+def canonical_command_handler_thin_action_lookup_table() -> tuple[
+    tuple[str, tuple[str, str, str, bool]],
+    ...,
+]:
+    return _handler_thin_action_lookup_table()
 
 
 def _readiness_status(
