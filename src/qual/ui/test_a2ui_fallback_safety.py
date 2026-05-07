@@ -89,6 +89,7 @@ from src.qual.ui.a2ui import (
     describe_terminal_artifact_cli_fallback_entrypoint_contract_manifest,
     describe_terminal_fallback_contract,
     build_terminal_artifact_envelope,
+    build_engine_a2ui_cli_fallback_payload,
     build_terminal_artifact_cli_fallback_payload,
     build_named_terminal_artifact_cli_fallback_payload,
     normalize_capabilities,
@@ -13916,6 +13917,62 @@ class A2UIFallbackSafetyTests(unittest.TestCase):
         self.assertEqual(payload["artifacts"][0]["kind"], "card")
         self.assertIn("[GenericCard] Run Log", payload["cli_fallback"][0]["text"])
         validate_terminal_artifact_cli_fallback_payload(payload)
+
+    def test_engine_a2ui_cli_fallback_payload_accepts_ordered_artifacts(self) -> None:
+        payload = build_engine_a2ui_cli_fallback_payload(
+            [
+                [
+                    "card",
+                    {
+                        "type": "GenericCard",
+                        "title": "Plan Result",
+                        "blocks": [{"type": "MarkdownBlock", "markdown": "Ready"}],
+                        "actions": [],
+                    },
+                ],
+                ["action", ActionRef(id="copy_to_clipboard", label="Copy", payload={"text": "Ready"})],
+            ]
+        )
+
+        self.assertEqual([entry["kind"] for entry in payload["artifacts"]], ["card", "action"])
+        self.assertIn("[GenericCard] Plan Result", payload["rendered_text"])
+        self.assertIn("[ActionRef] Copy", payload["rendered_text"])
+        validate_terminal_artifact_cli_fallback_payload(payload)
+
+    def test_engine_a2ui_cli_fallback_payload_sorts_named_artifacts_deterministically(self) -> None:
+        first = build_engine_a2ui_cli_fallback_payload(
+            {
+                "revise": ["action", ActionRef(id="copy_to_clipboard", label="Copy", payload={"text": "Done"})],
+                "plan": [
+                    "card",
+                    {
+                        "type": "GenericCard",
+                        "title": "Plan",
+                        "blocks": [{"type": "MarkdownBlock", "markdown": "Done"}],
+                        "actions": [],
+                    },
+                ],
+            }
+        )
+        second = build_engine_a2ui_cli_fallback_payload(
+            {
+                "plan": [
+                    "card",
+                    {
+                        "type": "GenericCard",
+                        "title": "Plan",
+                        "blocks": [{"type": "MarkdownBlock", "markdown": "Done"}],
+                        "actions": [],
+                    },
+                ],
+                "revise": ["action", ActionRef(id="copy_to_clipboard", label="Copy", payload={"text": "Done"})],
+            }
+        )
+
+        self.assertEqual(first, second)
+        self.assertEqual([entry["kind"] for entry in first["artifacts"]], ["card", "action"])
+        self.assertEqual(first["rendered_text"], render_terminal_artifact_cli_fallback_payload(first))
+        validate_terminal_artifact_cli_fallback_payload(first)
 
     def test_terminal_artifact_prefers_typed_card_payloads_over_conflicting_non_card_hints(self) -> None:
         artifact = {

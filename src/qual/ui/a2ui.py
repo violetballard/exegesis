@@ -3873,6 +3873,23 @@ def build_named_terminal_artifact_cli_fallback_payload(
     )
 
 
+def build_engine_a2ui_cli_fallback_payload(
+    artifacts: Mapping[str, Sequence[Any]] | Sequence[Sequence[Any]],
+) -> dict[str, Any]:
+    """Build the engine-facing A2UI payload with shared CLI fallback text.
+
+    Engine runs can accumulate artifacts as either stage-name mappings or as
+    an already ordered list of ``(kind, artifact)`` pairs. This entrypoint keeps
+    that choice out of callers while still returning the same
+    ``TerminalArtifactCliFallbackPayload`` contract consumed by CLI rendering
+    and future A2UI clients.
+    """
+
+    if isinstance(artifacts, Mapping):
+        return build_named_terminal_artifact_cli_fallback_payload(artifacts)
+    return build_terminal_artifact_cli_fallback_payload(artifacts)
+
+
 def _normalize_terminal_artifact_cli_fallback_payload_artifact_name(name: Any) -> str:
     if not isinstance(name, str) or not name.strip():
         raise ValueError("Named TerminalArtifact fallback artifact names must be non-empty strings")
