@@ -9,24 +9,24 @@
 - Approved shared regression path: `tests/unit/test_unified_retrieval.py`.
 - Integrator-locked files changed: none.
 - Authoritative reviewed implementation base: `378cf9a74a3658058079a32f186fcd254c4a4034`.
-- Reviewed implementation head before this source-bearing refresh: `ea11c328588f77aec44cc0cb163f7266364cb87b`.
-- Reviewed implementation range before this source-bearing refresh: `378cf9a74a3658058079a32f186fcd254c4a4034..ea11c328588f77aec44cc0cb163f7266364cb87b`.
-- Current source-bearing refresh commit: reported in the final handoff response after commit creation.
-- Reviewer-cited unreviewed implementation range now included: `adfa8cdadd43747ffbcb612e4151e262b13e52ca..83e52f7642a21516a3a996d099c9a50b6527c379`.
+- Reviewed implementation head: `05dbd5e46c57d7bbfa7679bb171ad3cfe2223975`.
+- Reviewed implementation range: `378cf9a74a3658058079a32f186fcd254c4a4034..05dbd5e46c57d7bbfa7679bb171ad3cfe2223975`.
+- Current packet refresh commit: reported in the final handoff response after commit creation.
+- Reviewer-cited unreviewed implementation range now included: `adfa8cdadd43747ffbcb612e4151e262b13e52ca..ea11c328588f77aec44cc0cb163f7266364cb87b`, plus the source-bearing manifest provenance commit `05dbd5e46c57d7bbfa7679bb171ad3cfe2223975`.
 
 ## Traceability Correction
 
 This packet supersedes all earlier handoffs that described `adfa8cdadd43747ffbcb612e4151e262b13e52ca` as the reviewed implementation head or described later source-bearing branch-tip commits as metadata-only. The actual source-bearing merge candidate range before this packet refresh is:
 
-`378cf9a74a3658058079a32f186fcd254c4a4034..83e52f7642a21516a3a996d099c9a50b6527c379`
+`378cf9a74a3658058079a32f186fcd254c4a4034..05dbd5e46c57d7bbfa7679bb171ad3cfe2223975`
 
-That range includes every retrieval implementation change through `83e52f7642a21516a3a996d099c9a50b6527c379`, including the reviewer-cited implementation changes after `adfa8cdadd43747ffbcb612e4151e262b13e52ca` in `src/qual/engine/retrieval/__init__.py`, `src/qual/engine/retrieval/fts_strategy.py`, `src/qual/engine/retrieval/payload.py`, `src/qual/retrieval/__init__.py`, `src/qual/retrieval/service.py`, and `tests/unit/test_unified_retrieval.py`.
+That range includes every retrieval implementation change through `05dbd5e46c57d7bbfa7679bb171ad3cfe2223975`, including the reviewer-cited implementation changes after `adfa8cdadd43747ffbcb612e4151e262b13e52ca` in `src/qual/engine/retrieval/__init__.py`, `src/qual/engine/retrieval/fts_strategy.py`, `src/qual/engine/retrieval/payload.py`, `src/qual/retrieval/__init__.py`, `src/qual/retrieval/service.py`, and `tests/unit/test_unified_retrieval.py`.
 
-This fixer creates a source-bearing refresh commit after `ea11c328588f77aec44cc0cb163f7266364cb87b`; the final HEAD SHA for that refresh is reported with the fixer response. The refreshed packet does not classify `9e3df053f8cb56536a1908dfbce8acbd2cdadf86`, `83e52f7642a21516a3a996d099c9a50b6527c379`, this refresh, or any other source/test-changing commit as metadata-only.
+This fixer creates a metadata packet refresh after `05dbd5e46c57d7bbfa7679bb171ad3cfe2223975`; the final HEAD SHA for that packet refresh is reported with the fixer response. The refreshed packet does not classify `9e3df053f8cb56536a1908dfbce8acbd2cdadf86`, `83e52f7642a21516a3a996d099c9a50b6527c379`, `05dbd5e46c57d7bbfa7679bb171ad3cfe2223975`, or any other source/test-changing commit as metadata-only.
 
 Re-review should not use `adfa8cdadd43747ffbcb612e4151e262b13e52ca` as the implementation head. It is an intermediate commit only.
 
-This refresh is source-bearing: it adds a retrieval manifest fingerprint to the canonical FTS payload and sparse payload rehydration surfaces. The final commit SHA for this refresh is reported outside the packet to avoid self-stale metadata.
+The source-bearing manifest fingerprint refresh is commit `05dbd5e46c57d7bbfa7679bb171ad3cfe2223975`; this packet refresh is metadata-only and binds the handoff to that source head.
 
 ## Files Changed
 
@@ -86,14 +86,14 @@ Task accounting: `4` high-risk task groups completed, matching the high-risk tas
 
 - Task budget: `4` high-risk task groups; completed as the four groups above.
 - File count: the corrected implementation submission uses `6` source/test files plus `3` packet/artifact files.
-- Size limit: exceeds the high-risk `<=300 net LOC` limit. The corrected implementation range `378cf9a74a3658058079a32f186fcd254c4a4034..83e52f7642a21516a3a996d099c9a50b6527c379` is `9 files changed, 1264 insertions(+), 199 deletions(-)`. This packet refresh keeps that overage explicit for reviewer/integrator disposition.
+- Size limit: exceeds the high-risk `<=300 net LOC` limit. The corrected implementation range `378cf9a74a3658058079a32f186fcd254c4a4034..05dbd5e46c57d7bbfa7679bb171ad3cfe2223975` is `9 files changed, 1346 insertions(+), 201 deletions(-)` including packet metadata (`7 files changed, 1346 insertions(+), 137 deletions(-)` excluding `.codex` packet metadata). This packet refresh keeps that overage explicit for reviewer/integrator disposition.
 - Explicit exception status: no integrator-approved size exception is recorded in the worktree. Re-review should treat the size overage as a known blocker unless the integrator grants an exception or requests a split.
 - Shared-file exception status: `tests/unit/test_unified_retrieval.py` is the sole approved shared regression surface; no integrator-locked files changed.
 - Routing/provider impact: none.
 
 ## Required Fixes Applied
 
-1. Regenerated the review packet so the reviewed implementation range includes all source/test-changing commits through the actual branch tip `83e52f7642a21516a3a996d099c9a50b6527c379` instead of stopping at `adfa8cdadd43747ffbcb612e4151e262b13e52ca`.
+1. Regenerated the review packet so the reviewed implementation range includes all source/test-changing commits through the actual source head `05dbd5e46c57d7bbfa7679bb171ad3cfe2223975` instead of stopping at `adfa8cdadd43747ffbcb612e4151e262b13e52ca`.
 2. Updated files changed, tasks completed, scope completed, and kickoff budget/limits compliance to match the actual implementation being submitted.
 3. Re-ran the required gates on the exact branch tip intended for re-review; current outcomes are listed below.
 4. Documented that the branch still exceeds the high-risk size limit and that no explicit integrator-approved size exception is present.
