@@ -1305,21 +1305,21 @@ def _build_retrieval_provenance_from_payload(payload: dict[str, object]) -> dict
         normalized["excerpt_citations"] = copy.deepcopy(excerpt_citations)
     else:
         normalized["excerpt_citations"] = _normalize_list_like(normalized["excerpt_citations"])
-    if "primary_doc_id" not in normalized and doc_citations:
+    if _is_missing_snapshot_value(normalized.get("primary_doc_id")) and doc_citations:
         first_doc_citation = doc_citations[0]
         if isinstance(first_doc_citation, dict):
             normalized["primary_doc_id"] = first_doc_citation.get("doc_id")
-            if "primary_doc_fingerprint" not in normalized:
+            if _is_missing_snapshot_value(normalized.get("primary_doc_fingerprint")):
                 normalized["primary_doc_fingerprint"] = first_doc_citation.get("doc_fingerprint")
-            if "primary_doc_identity_fingerprint" not in normalized:
+            if _is_missing_snapshot_value(normalized.get("primary_doc_identity_fingerprint")):
                 normalized["primary_doc_identity_fingerprint"] = first_doc_citation.get("doc_identity_fingerprint")
-    if "primary_excerpt_id" not in normalized and excerpt_citations:
+    if _is_missing_snapshot_value(normalized.get("primary_excerpt_id")) and excerpt_citations:
         first_excerpt_citation = excerpt_citations[0]
         if isinstance(first_excerpt_citation, dict):
             normalized["primary_excerpt_id"] = first_excerpt_citation.get("excerpt_id")
-            if "primary_excerpt_fingerprint" not in normalized:
+            if _is_missing_snapshot_value(normalized.get("primary_excerpt_fingerprint")):
                 normalized["primary_excerpt_fingerprint"] = first_excerpt_citation.get("excerpt_fingerprint")
-            if "primary_excerpt_text_hash" not in normalized:
+            if _is_missing_snapshot_value(normalized.get("primary_excerpt_text_hash")):
                 normalized["primary_excerpt_text_hash"] = first_excerpt_citation.get("excerpt_text_hash")
     return normalized
 
