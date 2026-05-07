@@ -682,6 +682,7 @@ def _build_retrieval_bundle_context_from_payload(payload: dict[str, object]) -> 
     query_constraints = query.get("constraints", {})
     if not isinstance(query_constraints, dict):
         query_constraints = {}
+    normalized_query_constraints = _normalize_query_snapshot({"constraints": query_constraints})["constraints"]
     citation_bundle = payload.get("retrieval_citation_bundle", {})
     if not isinstance(citation_bundle, dict):
         citation_bundle = _build_retrieval_citation_bundle_from_payload(payload)
@@ -709,6 +710,8 @@ def _build_retrieval_bundle_context_from_payload(payload: dict[str, object]) -> 
             "intent",
             provenance.get("query_intent", summary.get("query_intent", diagnostics.get("query_intent"))),
         ),
+        "query_constraints": normalized_query_constraints,
+        "query_constraints_fingerprint": _stable_fingerprint(normalized_query_constraints),
         "query_date_range": query_date_range,
         "retrieval_backend": payload.get("retrieval_backend", summary.get("retrieval_backend", diagnostics.get("retrieval_backend"))),
         "retrieval_mode": payload.get("retrieval_mode", summary.get("retrieval_mode", diagnostics.get("retrieval_mode"))),

@@ -2105,11 +2105,32 @@ class UnifiedRetrievalTests(unittest.TestCase):
         )
         direct_item = result.retrieval_basket_promotion_bundle()["promotion_items"][0]
         retrieval_evidence_fingerprint = result.evidence["retrieval_evidence_fingerprint"]
+        expected_constraints = {
+            "max_results": 4,
+            "doc_types": [],
+            "date_range": ["2026-01-01", "2026-12-31"],
+            "require_citations": False,
+            "section_hint": None,
+            "prefer_exact_matches": False,
+        }
+        expected_constraints_fingerprint = hashlib.sha256(
+            json.dumps(
+                expected_constraints,
+                sort_keys=True,
+                separators=(",", ":"),
+                ensure_ascii=True,
+            ).encode("utf-8")
+        ).hexdigest()
         self.assertEqual(direct_item["query_fingerprint"], result.diagnostics["query_fingerprint"])
         self.assertEqual(direct_item["query_scope"], "vault")
         self.assertEqual(direct_item["query_intent"], "compare")
         self.assertEqual(direct_item["query_date_range"], ["2026-01-01", "2026-12-31"])
         self.assertEqual(direct_item["retrieval_evidence_fingerprint"], retrieval_evidence_fingerprint)
+        self.assertEqual(result.retrieval_basket_promotion_bundle()["query_constraints"], expected_constraints)
+        self.assertEqual(
+            result.retrieval_basket_promotion_bundle()["query_constraints_fingerprint"],
+            expected_constraints_fingerprint,
+        )
         self.assertEqual(
             result.retrieval_basket_promotion_bundle()["retrieval_evidence_fingerprint"],
             retrieval_evidence_fingerprint,
@@ -2187,6 +2208,11 @@ class UnifiedRetrievalTests(unittest.TestCase):
         self.assertEqual(rehydrated_item["query_intent"], "compare")
         self.assertEqual(rehydrated_item["query_date_range"], ["2026-01-01", "2026-12-31"])
         self.assertEqual(rehydrated_item["retrieval_evidence_fingerprint"], retrieval_evidence_fingerprint)
+        self.assertEqual(rehydrated_bundle["query_constraints"], expected_constraints)
+        self.assertEqual(
+            rehydrated_bundle["query_constraints_fingerprint"],
+            expected_constraints_fingerprint,
+        )
         self.assertEqual(rehydrated_bundle["retrieval_evidence_fingerprint"], retrieval_evidence_fingerprint)
         self.assertEqual(
             rehydrated_item["citation_status"],
