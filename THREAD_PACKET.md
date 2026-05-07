@@ -12,8 +12,8 @@
 - Authoritative reviewed implementation base: `378cf9a74a3658058079a32f186fcd254c4a4034`.
 - Reviewed implementation head: final branch tip reported in the fixer handoff after this packet edit.
 - Reviewed implementation range: `378cf9a74a3658058079a32f186fcd254c4a4034..final branch tip reported in the fixer handoff`.
-- Current branch head before this packet edit: `80dcc022524ce2e6e5d89be114950643c690d10c`.
-- Current pass role: source-bearing retrieval finalization that makes direct FTS excerpt lookup payloads basket-promotion ready.
+- Current branch head before this packet edit: `2be4f7436811827402054a490ac6df7518fe586f`.
+- Current pass role: source-bearing retrieval finalization that canonicalizes FTS basket item ID strategy casing.
 
 ## Traceability Correction
 
@@ -45,6 +45,8 @@ This source-bearing fixer pass modifies `src/qual/engine/retrieval/payload.py` a
 
 This source-bearing fixer pass modifies `src/qual/retrieval/service.py`, `tests/unit/test_unified_retrieval.py`, and `THREAD_PACKET.md` so direct FTS excerpt lookup trims padded excerpt IDs, fails blank excerpt IDs before FTS lookup, and returns the same deterministic `retrieval:fts:<excerpt_id>` basket item identity used by retrieval basket-promotion bundles.
 
+This source-bearing fixer pass modifies `src/qual/retrieval/service.py`, `src/qual/engine/retrieval/payload.py`, and `THREAD_PACKET.md` so accepted mixed-case or padded FTS strategy labels still emit canonical lower-case `retrieval:fts:<excerpt_id>` basket item IDs while non-FTS strategies continue to fail closed.
+
 Packet-only commits after `5c87b08a9f7ca5a4dabc23fc1a80214276a882e9` refresh traceability and gate evidence only through `f9bdab5ded16e44476d773a24249c64442df2f3a`. The source-bearing passes after that packet-only refresh change `src/qual/retrieval/service.py`, `src/qual/engine/retrieval/payload.py`, and `tests/unit/test_unified_retrieval.py`; reviewers should include the final branch tip reported in the fixer handoff when re-reviewing the merge candidate.
 
 Tracked packet note for this fixer pass: `.codex/kickoff_packets/feat-retrieval-fts.md` and `.codex/lane_meta/feat-retrieval-fts.json` are ignored local automation metadata in this branch worktree and are not tracked at `HEAD`. Treat this tracked `THREAD_PACKET.md` file as the authoritative corrected handoff packet for re-review.
@@ -75,7 +77,7 @@ Packet-only refresh surface after the reviewed implementation head:
 Current source-bearing fixer surface:
 
 - `src/qual/retrieval/service.py`
-- `tests/unit/test_unified_retrieval.py`
+- `src/qual/engine/retrieval/payload.py`
 - `THREAD_PACKET.md`
 
 ## Scope Completed
@@ -98,6 +100,8 @@ This finalization pass also validates sparse excerpt-citation basket item IDs du
 
 This finalization pass also makes direct FTS excerpt lookup payloads promotion-ready by exposing the deterministic `retrieval:fts:<excerpt_id>` basket item ID at top level and in provenance. Padded excerpt IDs are canonicalized before lookup, and blank excerpt IDs fail closed before FTS execution.
 
+This finalization pass also lower-cases the strategy segment when minting FTS basket item IDs from accepted mixed-case or padded FTS strategy values. That keeps service and sparse-payload rehydration paths on the same canonical `retrieval:fts:<excerpt_id>` identity without making PageIndex or embedding-shaped snapshots promotable.
+
 Canonical demo path advanced: `vault/context material -> FTS retrieval -> retrieval evidence -> context basket promotion -> engine revise/apply`.
 
 Before-handoff canonical demo-path statement: this work advances `retrieve relevant material` by keeping retrieval FTS-first, deterministic, and auditable; it also supports `promote or gather context into the basket` by preserving provenance and query evidence on promotion bundles/items.
@@ -115,13 +119,14 @@ Before-handoff canonical demo-path statement: this work advances `retrieve relev
 9. Canonical demo-path steps advanced: `retrieve relevant material` and `promote or gather context into the basket`. Backfilled sparse doc/excerpt bundle citation arrays from the canonical citation bundle when explicit bundle snapshots and provenance citation arrays are absent.
 10. Canonical demo-path steps advanced: `retrieve relevant material` and `promote or gather context into the basket`. Validated sparse excerpt-citation `basket_item_id` values as FTS-only during citation bundle normalization so stale or deferred-strategy IDs fail closed before rehydration.
 11. Canonical demo-path steps advanced: `retrieve relevant material` and `promote or gather context into the basket`. Made direct FTS excerpt lookup payloads expose deterministic FTS-only basket item IDs, canonicalize padded excerpt IDs, and fail blank IDs closed before lookup.
+12. Canonical demo-path steps advanced: `retrieve relevant material` and `promote or gather context into the basket`. Canonicalized accepted FTS strategy labels before minting basket item IDs so service and sparse payload helpers always emit lower-case `retrieval:fts:<excerpt_id>` identities while deferred strategies fail closed.
 
-Task accounting: `11` high-risk task groups are present in the cumulative branch after this source-bearing finalization pass, exceeding the high-risk task cap and requiring the same integration decision already noted for the size overage.
+Task accounting: `12` high-risk task groups are present in the cumulative branch after this source-bearing finalization pass, exceeding the high-risk task cap and requiring the same integration decision already noted for the size overage.
 
 ## Kickoff Budget/Limits Compliance
 
-- Task budget: `4` high-risk task groups; this cumulative branch now has `11` source-bearing task groups after the direct FTS excerpt lookup basket ID fix.
-- File count: the corrected source-bearing range before this pass changes `6` source/test files plus `3` packet/artifact files; this pass changes `src/qual/retrieval/service.py`, `tests/unit/test_unified_retrieval.py`, and `THREAD_PACKET.md`.
+- Task budget: `4` high-risk task groups; this cumulative branch now has `12` source-bearing task groups after the FTS strategy-label basket ID canonicalization fix.
+- File count: the corrected source-bearing range before this pass changes `6` source/test files plus `3` packet/artifact files; this pass changes `src/qual/retrieval/service.py`, `src/qual/engine/retrieval/payload.py`, and `THREAD_PACKET.md`.
 - Size accounting: the corrected source-bearing range `378cf9a74a3658058079a32f186fcd254c4a4034..final branch tip reported in the fixer handoff` exceeds the high-risk `<=300 net LOC` limit; exact final size is reported by the final fixer handoff after this packet commit.
 - Size limit status: exceeds the high-risk `<=8 files` and `<=300 net LOC` limits.
 - Explicit exception status: no integrator-approved size or task-budget exception is recorded in this worktree. Because the full source-bearing range remains together, this is a known blocker for approval until the integrator grants an exception or requests a branch split.
@@ -150,6 +155,9 @@ Required gates for this corrected merge candidate were re-run on 2026-05-07 agai
 
 Additional focused retrieval checks run earlier in this lane:
 
+- `python3 - <<'PY' ... _basket_item_id_for_excerpt(...) ... PY` - passed after canonicalizing accepted mixed-case FTS strategy labels to lower-case `retrieval:fts:<excerpt_id>` basket item IDs while keeping deferred strategies fail-closed.
+- `python3 -m compileall -q src/qual/retrieval/service.py src/qual/engine/retrieval/payload.py` - passed after the FTS strategy-label basket ID canonicalization fix.
+- `python3 -m unittest tests.unit.test_unified_retrieval -q` - passed 68 unified retrieval tests after the FTS strategy-label basket ID canonicalization fix.
 - `python -m unittest tests.unit.test_unified_retrieval -v` - passed 68 unified retrieval tests after making direct FTS excerpt lookup payloads expose FTS-only basket item IDs and canonicalize padded excerpt IDs.
 - `python3 -m unittest tests.unit.test_unified_retrieval -q` - passed 67 unified retrieval tests after the sparse citation basket ID validation fix.
 - `python3 - <<'PY' ... build_retrieval_citation_bundle_from_result(...) ... PY` - passed; FTS-shaped citation `basket_item_id` values are preserved while PageIndex-shaped and mismatched IDs are removed.
