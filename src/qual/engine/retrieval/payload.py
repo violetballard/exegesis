@@ -71,6 +71,33 @@ def _normalize_optional_text(value: object) -> str | None:
     return None
 
 
+def _normalize_int_like(value: object) -> object:
+    if isinstance(value, bool):
+        return value
+    if isinstance(value, int):
+        return value
+    if isinstance(value, str):
+        text = value.strip()
+        if text:
+            try:
+                return int(text)
+            except ValueError:
+                return value
+    return value
+
+
+def _normalize_bool_like(value: object) -> object:
+    if isinstance(value, bool):
+        return value
+    if isinstance(value, str):
+        text = value.strip().casefold()
+        if text in {"1", "true", "yes", "on"}:
+            return True
+        if text in {"0", "false", "no", "off"}:
+            return False
+    return value
+
+
 def _normalize_bool_map(value: object) -> dict[str, bool]:
     if not isinstance(value, dict):
         return {}
@@ -126,9 +153,15 @@ def _normalize_query_snapshot(query: object) -> dict[str, object]:
         constraints = {}
     else:
         constraints = copy.deepcopy(constraints)
+    if "max_results" in constraints:
+        constraints["max_results"] = _normalize_int_like(constraints.get("max_results"))
     constraints["doc_types"] = _normalize_list_like(constraints.get("doc_types"))
     constraints["date_range"] = _normalize_optional_list_like(constraints.get("date_range"))
+    if "require_citations" in constraints:
+        constraints["require_citations"] = _normalize_bool_like(constraints.get("require_citations"))
     constraints["section_hint"] = _normalize_optional_text(constraints.get("section_hint"))
+    if "prefer_exact_matches" in constraints:
+        constraints["prefer_exact_matches"] = _normalize_bool_like(constraints.get("prefer_exact_matches"))
     normalized["constraints"] = constraints
     return normalized
 
