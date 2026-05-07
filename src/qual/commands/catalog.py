@@ -759,8 +759,11 @@ class CommandDemoTrustedLoopStep:
     flow_step: str
     name: str
     command_line: str
+    handler: str
+    delegated_to: str
     engine_actions: tuple[str, ...]
     exact_action_lines: tuple[tuple[str, str], ...]
+    thin_handler_ready: bool
     ready: bool
 
 
@@ -7658,6 +7661,14 @@ def command_demo_trusted_loop_contract(
 ) -> CommandDemoTrustedLoopContract:
     packet = command_demo_readiness_handoff_packet(specs, launcher_argv)
     status_contract = command_demo_readiness_handoff_step_status_contract(specs, launcher_argv)
+    handler_by_name = {
+        entry.name: entry
+        for entry in command_handler_demo_path_contract(specs, launcher_argv).entries
+    }
+    thin_action_by_engine_action = {
+        entry.engine_action: entry
+        for entry in command_handler_thin_action_contract(specs, launcher_argv).entries
+    }
     steps = tuple(
         CommandDemoTrustedLoopStep(
             ordinal=step.ordinal,
@@ -7665,8 +7676,14 @@ def command_demo_trusted_loop_contract(
             flow_step=step.flow_step,
             name=step.name,
             command_line=step.command_line,
+            handler=handler_by_name[step.name].handler,
+            delegated_to=handler_by_name[step.name].delegated_to,
             engine_actions=step.engine_actions,
             exact_action_lines=step.exact_action_lines,
+            thin_handler_ready=all(
+                thin_action_by_engine_action[engine_action].is_thin
+                for engine_action in step.engine_actions
+            ),
             ready=step.is_complete,
         )
         for step in status_contract.steps
@@ -7679,6 +7696,7 @@ def command_demo_trusted_loop_contract(
             and status_contract.is_complete
             and not packet.invalid_argv
             and all(step.ready for step in steps)
+            and all(step.thin_handler_ready for step in steps)
         ),
         steps=steps,
         missing_flow_steps=packet.missing_flow_steps,
@@ -7691,11 +7709,29 @@ def command_demo_trusted_loop_contract(
         raise ValueError("Command demo trusted loop path steps are inconsistent")
     if tuple(step.command_line for step in contract.steps) != packet.command_lines:
         raise ValueError("Command demo trusted loop command lines are inconsistent")
+    handler_contract = command_handler_demo_path_contract(specs, launcher_argv)
+    if tuple(step.handler for step in contract.steps) != tuple(
+        entry.handler for entry in handler_contract.entries
+    ):
+        raise ValueError("Command demo trusted loop handlers are inconsistent")
+    if tuple(step.delegated_to for step in contract.steps) != tuple(
+        entry.delegated_to for entry in handler_contract.entries
+    ):
+        raise ValueError("Command demo trusted loop delegations are inconsistent")
+    if tuple(step.thin_handler_ready for step in contract.steps) != tuple(
+        all(
+            thin_action_by_engine_action[engine_action].is_thin
+            for engine_action in step.engine_actions
+        )
+        for step in status_contract.steps
+    ):
+        raise ValueError("Command demo trusted loop thin handler readiness is inconsistent")
     expected_complete = (
         packet.is_complete
         and status_contract.is_complete
         and not packet.invalid_argv
         and all(step.ready for step in contract.steps)
+        and all(step.thin_handler_ready for step in contract.steps)
     )
     if contract.is_complete != expected_complete:
         raise ValueError("Command demo trusted loop completeness is inconsistent")
@@ -7757,8 +7793,11 @@ def command_demo_trusted_loop_payload(
                 "flow_step": step.flow_step,
                 "command": step.name,
                 "command_line": step.command_line,
+                "handler": step.handler,
+                "delegated_to": step.delegated_to,
                 "engine_actions": step.engine_actions,
                 "exact_action_lines": step.exact_action_lines,
+                "thin_handler_ready": step.thin_handler_ready,
                 "ready": step.ready,
             }
             for step in contract.steps
