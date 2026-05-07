@@ -4,7 +4,7 @@
 - Lane: `feat-retrieval-fts`
 - Merge target: current `main`
 - Handoff type: high-risk retrieval handoff for the FTS-first retrieval lane.
-- Canonical demo-path step advanced before handoff: `retrieve relevant material`.
+- Canonical demo-path step advanced before handoff: `retrieve relevant material`; deterministic payload/provenance output also strengthens `promote or gather context into the basket`.
 - Risk reason: approved shared regression surface `tests/unit/test_unified_retrieval.py`.
 - Lane-owned paths: `src/qual/retrieval/**`, `src/qual/engine/retrieval/**`.
 - Approved shared regression path: `tests/unit/test_unified_retrieval.py`.
@@ -79,7 +79,7 @@ This current source-bearing delta rejects unordered loose `date_range` container
 
 Canonical demo path advanced: `vault/context material -> FTS retrieval -> retrieval evidence -> context basket promotion -> engine revise/apply`.
 
-Before-handoff canonical demo-path statement: this work makes `retrieve relevant material` more real by making FTS-only excerpt lookup deterministic and fail-closed for PageIndex-only excerpt IDs, and it supports `promote or gather context into the basket` through stable excerpt/provenance payloads.
+Before-handoff canonical demo-path statement: Canonical demo-path step advanced: `retrieve relevant material`; deterministic payload/provenance output also strengthens `promote or gather context into the basket`.
 
 Each completed task below names the canonical demo-path step it advances: `retrieve relevant material` and, where applicable, `promote or gather context into the basket`.
 
