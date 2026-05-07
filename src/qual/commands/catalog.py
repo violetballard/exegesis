@@ -706,6 +706,21 @@ class CommandDemoReadinessHandoffFieldContract:
 
 
 @dataclass(frozen=True)
+class CommandDemoReadinessHandoffRequirementEntry:
+    field_name: str
+    value: str
+    source: str
+    is_present: bool
+
+
+@dataclass(frozen=True)
+class CommandDemoReadinessHandoffRequirementContract:
+    is_complete: bool
+    entries: tuple[CommandDemoReadinessHandoffRequirementEntry, ...]
+    missing_fields: tuple[str, ...]
+
+
+@dataclass(frozen=True)
 class CommandDemoReadinessGateCommand:
     ordinal: int
     command: str
@@ -7091,6 +7106,132 @@ def command_demo_readiness_handoff_field_summary(
     return tuple(
         (entry.field_name, entry.value)
         for entry in command_demo_readiness_handoff_field_contract(specs, launcher_argv).entries
+    )
+
+
+def _handoff_requirement_source(field_name: str) -> str:
+    if field_name in {
+        "branch_name",
+        "scope_completed",
+        "tasks_completed",
+        "files_changed",
+        "commands_run",
+        "lane_owned_paths",
+        "shared_file_approval",
+        "required_gate_commands",
+        "kickoff_budget",
+        "stop_triggers",
+    }:
+        return "AGENTS.md handoff packet"
+    if field_name in {
+        "roadmap_items",
+        "vision_capabilities",
+        "routing_provider_impact",
+        "canonical_demo_path_step_advanced",
+    }:
+        return "INTEGRATION.md lane review gate"
+    return "command readiness seal"
+
+
+def _validate_command_demo_readiness_handoff_requirement_contract(
+    contract: CommandDemoReadinessHandoffRequirementContract,
+    field_contract: CommandDemoReadinessHandoffFieldContract,
+) -> None:
+    expected_fields = COMMAND_DEMO_READINESS_HANDOFF_FIELD_NAMES
+    if tuple(entry.field_name for entry in contract.entries) != expected_fields:
+        raise ValueError("Command demo readiness handoff requirements are inconsistent")
+    values_by_name = {entry.field_name: entry.value for entry in field_contract.entries}
+    for entry in contract.entries:
+        if entry.value != values_by_name[entry.field_name]:
+            raise ValueError(f"Command demo readiness handoff requirement drifted: {entry.field_name}")
+        if entry.source != _handoff_requirement_source(entry.field_name):
+            raise ValueError(f"Command demo readiness handoff requirement source drifted: {entry.field_name}")
+        if entry.is_present != bool(entry.value.strip()):
+            raise ValueError(f"Command demo readiness handoff requirement presence drifted: {entry.field_name}")
+    expected_missing_fields = tuple(
+        entry.field_name
+        for entry in contract.entries
+        if not entry.is_present
+    )
+    if contract.missing_fields != expected_missing_fields:
+        raise ValueError("Command demo readiness handoff missing fields are inconsistent")
+    if contract.is_complete != (not contract.missing_fields):
+        raise ValueError("Command demo readiness handoff requirement completeness is inconsistent")
+
+
+@lru_cache(maxsize=None)
+def command_demo_readiness_handoff_requirement_contract(
+    specs: tuple[CommandSpec, ...] = COMMAND_SPECS,
+    launcher_argv: tuple[str, ...] = COMMAND_SMOKE_CLI_LAUNCHER_ARGV,
+) -> CommandDemoReadinessHandoffRequirementContract:
+    field_contract = command_demo_readiness_handoff_field_contract(specs, launcher_argv)
+    entries = tuple(
+        CommandDemoReadinessHandoffRequirementEntry(
+            field_name=entry.field_name,
+            value=entry.value,
+            source=_handoff_requirement_source(entry.field_name),
+            is_present=bool(entry.value.strip()),
+        )
+        for entry in field_contract.entries
+    )
+    contract = CommandDemoReadinessHandoffRequirementContract(
+        is_complete=all(entry.is_present for entry in entries),
+        entries=entries,
+        missing_fields=tuple(
+            entry.field_name
+            for entry in entries
+            if not entry.is_present
+        ),
+    )
+    _validate_command_demo_readiness_handoff_requirement_contract(contract, field_contract)
+    return contract
+
+
+def command_demo_readiness_handoff_requirement_summary(
+    specs: tuple[CommandSpec, ...] = COMMAND_SPECS,
+    launcher_argv: tuple[str, ...] = COMMAND_SMOKE_CLI_LAUNCHER_ARGV,
+) -> tuple[bool, tuple[str, ...], tuple[tuple[str, str, str, bool], ...]]:
+    contract = command_demo_readiness_handoff_requirement_contract(specs, launcher_argv)
+    return (
+        contract.is_complete,
+        contract.missing_fields,
+        tuple(
+            (entry.field_name, entry.value, entry.source, entry.is_present)
+            for entry in contract.entries
+        ),
+    )
+
+
+def command_demo_readiness_handoff_requirement_payload(
+    specs: tuple[CommandSpec, ...] = COMMAND_SPECS,
+    launcher_argv: tuple[str, ...] = COMMAND_SMOKE_CLI_LAUNCHER_ARGV,
+) -> dict[str, object]:
+    contract = command_demo_readiness_handoff_requirement_contract(specs, launcher_argv)
+    payload: dict[str, object] = {
+        "is_complete": contract.is_complete,
+        "missing_fields": list(contract.missing_fields),
+        "entries": [
+            {
+                "field_name": entry.field_name,
+                "value": entry.value,
+                "source": entry.source,
+                "is_present": entry.is_present,
+            }
+            for entry in contract.entries
+        ],
+    }
+    json.dumps(payload, sort_keys=True, separators=(",", ":"))
+    return payload
+
+
+def command_demo_readiness_handoff_requirement_json(
+    specs: tuple[CommandSpec, ...] = COMMAND_SPECS,
+    launcher_argv: tuple[str, ...] = COMMAND_SMOKE_CLI_LAUNCHER_ARGV,
+) -> str:
+    return json.dumps(
+        command_demo_readiness_handoff_requirement_payload(specs, launcher_argv),
+        sort_keys=True,
+        separators=(",", ":"),
     )
 
 
@@ -15662,6 +15803,34 @@ def command_mvp_demo_readiness_handoff_field_summary(
     launcher_argv: tuple[str, ...] = COMMAND_SMOKE_CLI_LAUNCHER_ARGV,
 ) -> tuple[tuple[str, str], ...]:
     return command_demo_readiness_handoff_field_summary(specs, launcher_argv)
+
+
+def command_mvp_demo_readiness_handoff_requirement_contract(
+    specs: tuple[CommandSpec, ...] = COMMAND_SPECS,
+    launcher_argv: tuple[str, ...] = COMMAND_SMOKE_CLI_LAUNCHER_ARGV,
+) -> CommandDemoReadinessHandoffRequirementContract:
+    return command_demo_readiness_handoff_requirement_contract(specs, launcher_argv)
+
+
+def command_mvp_demo_readiness_handoff_requirement_summary(
+    specs: tuple[CommandSpec, ...] = COMMAND_SPECS,
+    launcher_argv: tuple[str, ...] = COMMAND_SMOKE_CLI_LAUNCHER_ARGV,
+) -> tuple[bool, tuple[str, ...], tuple[tuple[str, str, str, bool], ...]]:
+    return command_demo_readiness_handoff_requirement_summary(specs, launcher_argv)
+
+
+def command_mvp_demo_readiness_handoff_requirement_payload(
+    specs: tuple[CommandSpec, ...] = COMMAND_SPECS,
+    launcher_argv: tuple[str, ...] = COMMAND_SMOKE_CLI_LAUNCHER_ARGV,
+) -> dict[str, object]:
+    return command_demo_readiness_handoff_requirement_payload(specs, launcher_argv)
+
+
+def command_mvp_demo_readiness_handoff_requirement_json(
+    specs: tuple[CommandSpec, ...] = COMMAND_SPECS,
+    launcher_argv: tuple[str, ...] = COMMAND_SMOKE_CLI_LAUNCHER_ARGV,
+) -> str:
+    return command_demo_readiness_handoff_requirement_json(specs, launcher_argv)
 
 
 def command_mvp_demo_readiness_required_gate_commands() -> tuple[CommandDemoReadinessGateCommand, ...]:
