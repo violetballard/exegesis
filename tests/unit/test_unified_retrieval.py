@@ -1525,6 +1525,30 @@ class UnifiedRetrievalTests(unittest.TestCase):
         self.assertEqual(result.diagnostics["retrieval_backend"], "sqlite_fts")
         self.assertEqual(result.diagnostics["retrieval_mode"], "fts_first")
 
+    def test_add_document_canonicalizes_doc_type_before_fts_filtering(self) -> None:
+        self.service.add_or_update_document(
+            doc_id="doc-spaced-type",
+            doc_type=" Memo ",
+            title_hint="Spaced Type Memo",
+            text="Memo evidence with canonical filter coverage.",
+        )
+
+        result = self.service.retrieve_auto(
+            RetrievalQuery(
+                query_text="canonical filter",
+                scope="vault",
+                intent="lookup",
+                constraints=RetrievalConstraints(max_results=4, doc_types="memo"),  # type: ignore[arg-type]
+                confidentiality_profile="confidential",
+            )
+        )
+
+        self.assertEqual(result.query.constraints.doc_types, ("memo",))
+        self.assertIn("doc-spaced-type", [hit.doc_id for hit in result.hits])
+        spaced_hit = next(hit for hit in result.hits if hit.doc_id == "doc-spaced-type")
+        self.assertEqual(spaced_hit.provenance["doc_type"], "memo")
+        self.assertEqual(spaced_hit.as_dict()["doc_type"], "memo")
+
     def test_retrieval_query_constructor_rejects_invalid_date_ranges_before_execution(self) -> None:
         for date_range, message in (
             (("not-a-date", "2026-01-31"), "date_range values must be ISO dates or datetimes"),
