@@ -12,8 +12,8 @@
 - Authoritative reviewed implementation base: `378cf9a74a3658058079a32f186fcd254c4a4034`.
 - Reviewed implementation head: `51ee03de162297cce0dfafb2435fb33a7189807d`.
 - Reviewed implementation range: `378cf9a74a3658058079a32f186fcd254c4a4034..51ee03de162297cce0dfafb2435fb33a7189807d`.
-- Current packet refresh head before this fixer edit: `c3a393e8a2f74d0d579d76dd9d144bb19ca71254`.
-- Current packet refresh role: packet-only traceability update after the source-bearing basket-promotion normalizer fix.
+- Current packet refresh head before this fixer edit: `68adcaede9f752fc3418c9cea9c2fcdd2eb7eba6`.
+- Current packet refresh role: packet-only reviewer-fix finalization after the source-bearing basket-promotion normalizer fix.
 
 ## Traceability Correction
 
@@ -30,6 +30,8 @@ That range includes every intended retrieval source/test change through `51ee03d
 `51ee03de162297cce0dfafb2435fb33a7189807d` is also source-bearing. It modifies `src/qual/engine/retrieval/payload.py` so basket-promotion item rehydration normalizes item-level `query_date_range` and `matched_terms` values before promotion-item fingerprinting.
 
 Packet-only commits after `51ee03de162297cce0dfafb2435fb33a7189807d` refresh traceability and gate evidence only.
+
+Sandbox note for this fixer pass: `.codex/kickoff_packets/feat-retrieval-fts.md` and `.codex/lane_meta/feat-retrieval-fts.json` still contain older stale traceability text, but this worktree sandbox rejects writes under `.codex` with `Operation not permitted`. Treat `THREAD_PACKET.md` as the authoritative corrected handoff packet for this re-review.
 
 Re-review should not use `adfa8cdadd43747ffbcb612e4151e262b13e52ca` as the implementation head. It is an intermediate implementation commit only.
 
@@ -91,7 +93,7 @@ Task accounting: `4` high-risk task groups completed, matching the high-risk tas
 2. Removed the stale metadata-only framing for `beed411ecb15821f0cf145bd3ad68d59c996801c`; it is explicitly identified as source-bearing.
 3. Updated the reviewed implementation range to include all intended source/test changes in the branch-tip source-bearing candidate.
 4. Updated files changed, task accounting, command outcomes, risks, and roadmap/vision mapping to match the corrected range.
-5. Documented that no explicit integrator-approved size exception is present for the high-risk size overage.
+5. Documented that no explicit integrator-approved size exception is present for the high-risk size overage, so approval remains blocked unless the integrator grants an exception or requests a branch split/reduced handoff.
 
 ## Commands Run
 
@@ -113,7 +115,7 @@ Additional focused retrieval checks run earlier in this lane:
 
 ## Remaining Risks Or Blockers
 
-- The corrected cumulative source-bearing range exceeds the high-risk size/file limits. No explicit integrator-approved size exception is present in the worktree.
+- The corrected cumulative source-bearing range exceeds the high-risk size/file limits. No explicit integrator-approved size exception is present in the worktree, so this remains a required integration decision: grant a size exception or request a branch split/reduced handoff.
 - All source-bearing work is now included in the reviewed implementation range; there is no longer a metadata-only branch-tip claim hiding source/test changes after `adfa8cdadd43747ffbcb612e4151e262b13e52ca`.
 
 ## Roadmap/Vision
