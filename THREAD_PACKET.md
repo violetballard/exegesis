@@ -13,7 +13,7 @@
 - Reviewed implementation head: final source-bearing fixer commit SHA, reported in the final handoff response after commit creation.
 - Reviewed implementation range: `378cf9a74a3658058079a32f186fcd254c4a4034..final source-bearing fixer commit SHA reported in the final handoff response`.
 - Current packet refresh commit: not applicable; this pass is source-bearing and the final commit SHA is reported in the final handoff response after commit creation.
-- Gate re-run anchor before this fixer commit: `ebefe39caf560b0392e8ce619739583c1d343d7d`.
+- Gate re-run anchor before this fixer commit: `c87f2d209e0c28f45dc6ce6427ad2cb41ebe2e09`.
 - Reviewer-cited unreviewed implementation range now included: `adfa8cdadd43747ffbcb612e4151e262b13e52ca..ea11c328588f77aec44cc0cb163f7266364cb87b`, plus the source-bearing manifest provenance commit `05dbd5e46c57d7bbfa7679bb171ad3cfe2223975`.
 
 ## Traceability Correction
@@ -24,11 +24,11 @@ This packet supersedes all earlier handoffs that described `adfa8cdadd43747ffbcb
 
 That range includes every retrieval implementation change through `05dbd5e46c57d7bbfa7679bb171ad3cfe2223975`, including the reviewer-cited implementation changes after `adfa8cdadd43747ffbcb612e4151e262b13e52ca` in `src/qual/engine/retrieval/__init__.py`, `src/qual/engine/retrieval/fts_strategy.py`, `src/qual/engine/retrieval/payload.py`, `src/qual/retrieval/__init__.py`, `src/qual/retrieval/service.py`, and `tests/unit/test_unified_retrieval.py`.
 
-This fixer creates a source-bearing retrieval facade correction after `bed7e94c77bfbe78b48972b164bfebdb6ad96f57`; the final HEAD SHA for that source-bearing fixer is reported with the fixer response. The refreshed packet does not classify `9e3df053f8cb56536a1908dfbce8acbd2cdadf86`, `83e52f7642a21516a3a996d099c9a50b6527c379`, `05dbd5e46c57d7bbfa7679bb171ad3cfe2223975`, this current fixer, or any other source/test-changing commit as metadata-only.
+This fixer creates a source-bearing retrieval facade and service constraint correction after `c87f2d209e0c28f45dc6ce6427ad2cb41ebe2e09`; the final HEAD SHA for that source-bearing fixer is reported with the fixer response. The refreshed packet does not classify `9e3df053f8cb56536a1908dfbce8acbd2cdadf86`, `83e52f7642a21516a3a996d099c9a50b6527c379`, `05dbd5e46c57d7bbfa7679bb171ad3cfe2223975`, this current fixer, or any other source/test-changing commit as metadata-only.
 
 Re-review should not use `adfa8cdadd43747ffbcb612e4151e262b13e52ca` as the implementation head. It is an intermediate commit only.
 
-The source-bearing manifest fingerprint refresh is commit `05dbd5e46c57d7bbfa7679bb171ad3cfe2223975`; this source-bearing fixer extends the handoff to include stricter canonical engine query normalization for loose date-range facade inputs.
+The source-bearing manifest fingerprint refresh is commit `05dbd5e46c57d7bbfa7679bb171ad3cfe2223975`; this source-bearing fixer extends the handoff to include stricter canonical engine and service query normalization for loose date-range inputs.
 
 ## Files Changed
 
@@ -75,6 +75,8 @@ This final source-bearing delta makes the canonical engine retrieval query build
 
 This latest source-bearing delta carries the FTS retrieval policy and `retrieval_source_strategy` onto each basket-promotion item and teaches sparse payload rehydration to backfill and normalize those fields. Promoted excerpts now retain the exact FTS policy/source snapshot needed for context-basket storage and later revise/apply audit trails even when the original full retrieval result is unavailable.
 
+This current source-bearing delta rejects unordered loose `date_range` containers before query construction can reach FTS. Engine facade calls and direct service constraints now require an ordered two-value date range, keeping date-filtered retrieval deterministic for basket-promotion and later revise/apply audit trails.
+
 Canonical demo path advanced: `vault/context material -> FTS retrieval -> retrieval evidence -> context basket promotion -> engine revise/apply`.
 
 Before-handoff canonical demo-path statement: this work makes `retrieve relevant material` more real by making FTS-only excerpt lookup deterministic and fail-closed for PageIndex-only excerpt IDs, and it supports `promote or gather context into the basket` through stable excerpt/provenance payloads.
@@ -118,6 +120,7 @@ Task accounting: `4` high-risk task groups completed, matching the high-risk tas
 15. Tightened canonical engine query construction so loose mapping-shaped `date_range` constraints must contain exactly two non-empty values before FTS retrieval can run.
 16. Added per-item FTS policy and source-strategy snapshots to basket-promotion evidence and sparse payload rehydration.
 17. Refreshed handoff packet metadata only to explicitly state that this work advances the canonical demo-path step `retrieve relevant material`, with each completed task mapped to `retrieve relevant material` and, where applicable, `promote or gather context into the basket`.
+18. Tightened loose `date_range` normalization so unordered containers fail closed in both the engine facade and service constraints before FTS execution.
 
 ## Commands Run
 
@@ -132,6 +135,8 @@ Required gates for this corrected merge candidate were re-run on 2026-05-07 agai
 
 Additional focused retrieval checks run earlier in this lane:
 
+- `python3 -m unittest tests.unit.test_unified_retrieval` - passed 63 retrieval tests after unordered date-range containers were rejected in facade/service normalization.
+- `python3 - <<'PY' ... build_retrieval_query(...) ... RetrievalConstraints(...) ... PY` - passed; unordered set-shaped date ranges fail closed in both the engine facade and service constraints, scalar string date ranges remain rejected, and ordered list-shaped date ranges still normalize to the canonical tuple.
 - `python -m unittest tests.unit.test_unified_retrieval.UnifiedRetrievalTests.test_basket_promotion_items_backfill_query_context_from_bundle` - passed after adding per-item FTS policy and source-strategy snapshots to basket-promotion evidence.
 - `python -m unittest tests.unit.test_unified_retrieval` - passed 63 retrieval tests after adding per-item FTS policy and source-strategy snapshots.
 - `python3 - <<'PY' ... build_retrieval_query(...) ... PY` - passed; list-shaped date ranges normalize to the canonical tuple and scalar string date ranges fail closed with `date_range must contain exactly two non-empty values`.

@@ -4,7 +4,7 @@ The retrieval lane keeps this package as the narrow public surface for the
 engine's retrieval orchestration code.
 """
 
-from collections.abc import Iterable, Mapping
+from collections.abc import Iterable, Mapping, Set
 
 from src.qual.engine.retrieval.fts_strategy import FTSStrategy
 from src.qual.engine.retrieval.interface import RetrievalStrategy, StrategyRun
@@ -48,6 +48,8 @@ def _normalize_date_range_constraint(value: object) -> tuple[str, str] | None:
 
     if value is None:
         return None
+    if isinstance(value, Set):
+        raise TypeError("date_range must be an ordered two-value iterable")
     values = _normalize_constraint_values(value, field_name="date_range")
     normalized = tuple(item.strip() for item in values)
     if len(normalized) != 2 or any(not item for item in normalized):

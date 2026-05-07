@@ -6,6 +6,7 @@ import json
 import re
 import sqlite3
 import uuid
+from collections.abc import Mapping, Set
 from contextlib import contextmanager
 from dataclasses import dataclass, field
 from datetime import UTC, date, datetime
@@ -94,6 +95,20 @@ def _validate_date_range_values(date_range: tuple[str, str]) -> None:
         raise ValueError("date_range start must be on or before end")
 
 
+def _canonicalize_date_range(value: object) -> tuple[str, str]:
+    if isinstance(value, (str, bytes, bytearray, Mapping, Set)):
+        raise TypeError("date_range must be an ordered two-value iterable")
+    try:
+        normalized = tuple(str(item).strip() for item in value)  # type: ignore[union-attr]
+    except TypeError as exc:
+        raise TypeError("date_range must be an ordered two-value iterable") from exc
+    if len(normalized) != 2 or any(not item for item in normalized):
+        raise ValueError("date_range must contain exactly two non-empty values")
+    date_range = cast(tuple[str, str], normalized)
+    _validate_date_range_values(date_range)
+    return date_range
+
+
 @dataclass(frozen=True)
 class RetrievalConstraints:
     max_results: int = 10
@@ -108,11 +123,7 @@ class RetrievalConstraints:
             raise ValueError("max_results must be greater than zero")
         object.__setattr__(self, "doc_types", _canonicalize_doc_types(self.doc_types))
         if self.date_range is not None:
-            normalized = tuple(str(value).strip() for value in self.date_range)
-            if len(normalized) != 2 or any(not value for value in normalized):
-                raise ValueError("date_range must contain exactly two non-empty values")
-            _validate_date_range_values(cast(tuple[str, str], normalized))
-            object.__setattr__(self, "date_range", normalized)
+            object.__setattr__(self, "date_range", _canonicalize_date_range(self.date_range))
         object.__setattr__(self, "section_hint", _optional_text(self.section_hint))
 
 
