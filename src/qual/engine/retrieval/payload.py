@@ -78,6 +78,33 @@ def _normalize_optional_text(value: object) -> str | None:
     return None
 
 
+def _normalize_int_like(value: object) -> object:
+    if isinstance(value, bool):
+        return value
+    if isinstance(value, int):
+        return value
+    if isinstance(value, str):
+        text = value.strip()
+        if text:
+            try:
+                return int(text)
+            except ValueError:
+                return value
+    return value
+
+
+def _normalize_bool_like(value: object) -> object:
+    if isinstance(value, bool):
+        return value
+    if isinstance(value, str):
+        text = value.strip().casefold()
+        if text in {"1", "true", "yes", "on"}:
+            return True
+        if text in {"0", "false", "no", "off"}:
+            return False
+    return value
+
+
 def _normalize_bool_map(value: object) -> dict[str, bool]:
     if not isinstance(value, dict):
         return {}
@@ -1126,6 +1153,14 @@ def _normalize_retrieval_evidence_snapshot(evidence: dict[str, object]) -> dict[
         normalized["citation_status"] = copy.deepcopy(citation_status)
     elif "citation_status" in normalized:
         normalized["citation_status"] = {}
+    if _is_missing_snapshot_value(normalized.get("retrieval_evidence_fingerprint")):
+        normalized["retrieval_evidence_fingerprint"] = _stable_fingerprint(
+            {
+                key: value
+                for key, value in normalized.items()
+                if key != "retrieval_evidence_fingerprint"
+            }
+        )
     return normalized
 
 
@@ -1133,6 +1168,20 @@ def _normalize_basket_promotion_bundle_snapshot(bundle: dict[str, object]) -> di
     normalized = copy.deepcopy(bundle)
     if not isinstance(normalized, dict):
         return {}
+    query_constraints = normalized.get("query_constraints")
+    if not isinstance(query_constraints, dict):
+        query = normalized.get("query")
+        if isinstance(query, dict):
+            query_constraints = query.get("constraints", {})
+        else:
+            query_constraints = {}
+    if isinstance(query_constraints, dict):
+        normalized["query_constraints"] = _normalize_query_snapshot({"constraints": query_constraints})[
+            "constraints"
+        ]
+    else:
+        normalized["query_constraints"] = {}
+    normalized.setdefault("query_constraints_fingerprint", _stable_fingerprint(normalized["query_constraints"]))
     normalized["query_date_range"] = _normalize_optional_list_like(normalized.get("query_date_range"))
     normalized["active_strategy_ids"] = _normalize_list_like(normalized.get("active_strategy_ids"))
     normalized["deferred_strategy_ids"] = _normalize_list_like(normalized.get("deferred_strategy_ids"))
@@ -1150,6 +1199,8 @@ def _normalize_basket_promotion_bundle_snapshot(bundle: dict[str, object]) -> di
             "query_fingerprint": normalized.get("query_fingerprint"),
             "query_scope": normalized.get("query_scope"),
             "query_intent": normalized.get("query_intent"),
+            "query_constraints": normalized.get("query_constraints"),
+            "query_constraints_fingerprint": normalized.get("query_constraints_fingerprint"),
             "query_date_range": normalized.get("query_date_range"),
             "citation_status": normalized.get("citation_status"),
             "retrieval_evidence_fingerprint": normalized.get("retrieval_evidence_fingerprint"),
@@ -1159,6 +1210,17 @@ def _normalize_basket_promotion_bundle_snapshot(bundle: dict[str, object]) -> di
         for key, fallback_value in item_fallbacks.items():
             if _is_missing_snapshot_value(normalized_item.get(key)) and not _is_missing_snapshot_value(fallback_value):
                 normalized_item[key] = copy.deepcopy(fallback_value)
+        item_constraints = normalized_item.get("query_constraints")
+        if isinstance(item_constraints, dict):
+            normalized_item["query_constraints"] = _normalize_query_snapshot({"constraints": item_constraints})[
+                "constraints"
+            ]
+        elif not _is_missing_snapshot_value(normalized.get("query_constraints")):
+            normalized_item["query_constraints"] = copy.deepcopy(normalized["query_constraints"])
+        if isinstance(normalized_item.get("query_constraints"), dict):
+            normalized_item["query_constraints_fingerprint"] = _stable_fingerprint(
+                normalized_item["query_constraints"]
+            )
         if _is_missing_snapshot_value(normalized_item.get("promotion_item_fingerprint")):
             normalized_item["promotion_item_fingerprint"] = _stable_fingerprint(
                 {
@@ -1279,6 +1341,19 @@ def _normalize_retrieval_source_bundle_snapshot(source_bundle: dict[str, object]
     )
     if query_fingerprint is not None:
         normalized["query_fingerprint"] = query_fingerprint
+
+    retrieval_evidence = normalized.get("retrieval_evidence", {})
+    if not isinstance(retrieval_evidence, dict):
+        retrieval_evidence = {}
+    retrieval_evidence = _normalize_retrieval_evidence_snapshot(retrieval_evidence)
+    retrieval_evidence_fingerprint = _first_text_value(
+        normalized.get("retrieval_evidence_fingerprint"),
+        retrieval_evidence.get("retrieval_evidence_fingerprint"),
+        retrieval_summary.get("retrieval_evidence_fingerprint"),
+        retrieval_provenance.get("retrieval_evidence_fingerprint"),
+    )
+    if retrieval_evidence_fingerprint is not None:
+        normalized["retrieval_evidence_fingerprint"] = retrieval_evidence_fingerprint
 
     normalized["retrieval_backend"] = _normalize_retrieval_backend(
         _first_text_value(
@@ -1847,6 +1922,19 @@ def _build_retrieval_basket_promotion_bundle_from_payload(payload: dict[str, obj
             ),
             "query_scope": hit.get("query_scope", provenance.get("query_scope", bundle_context["query_scope"])),
             "query_intent": hit.get("query_intent", provenance.get("query_intent", bundle_context["query_intent"])),
+            "query_constraints": copy.deepcopy(
+                hit.get(
+                    "query_constraints",
+                    provenance.get("query_constraints", bundle_context["query_constraints"]),
+                )
+            ),
+            "query_constraints_fingerprint": hit.get(
+                "query_constraints_fingerprint",
+                provenance.get(
+                    "query_constraints_fingerprint",
+                    bundle_context["query_constraints_fingerprint"],
+                ),
+            ),
             "query_date_range": copy.deepcopy(
                 hit.get(
                     "query_date_range",
@@ -2445,6 +2533,8 @@ def _build_retrieval_downstream_payload_from_source_bundle(
     payload.pop("query_fingerprint", None)
     payload.pop("retrieval_evidence_fingerprint", None)
     source_bundle_fingerprint = payload.pop("source_bundle_fingerprint", None)
+    payload.pop("query_constraints", None)
+    payload.pop("query_constraints_fingerprint", None)
     payload["policy"] = copy.deepcopy(policy_snapshot)
     payload["retrieval_policy"] = copy.deepcopy(policy_snapshot)
     payload["audit_ref"] = payload.get("audit_ref")

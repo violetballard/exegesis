@@ -647,6 +647,15 @@ class UnifiedRetrievalTests(unittest.TestCase):
             payload["retrieval_source_bundle"]["retrieval_evidence_fingerprint"],
             retrieval_evidence_fingerprint,
         )
+        expected_constraints_fingerprint = hashlib.sha256(
+            json.dumps(
+                payload["query"]["constraints"],
+                sort_keys=True,
+                separators=(",", ":"),
+                ensure_ascii=True,
+            ).encode("utf-8")
+        ).hexdigest()
+        self.assertEqual(payload["retrieval_evidence"]["query_constraints_fingerprint"], expected_constraints_fingerprint)
         self.assertEqual(payload["doc_hits"][0]["result_fingerprint"], result.result_fingerprint)
         self.assertEqual(
             payload["doc_hits"][0]["provenance"]["result_fingerprint"],
@@ -1464,6 +1473,19 @@ class UnifiedRetrievalTests(unittest.TestCase):
 
         with self.assertRaisesRegex(KeyError, "unknown excerpt_id"):
             self.service.fetch_excerpt(str(excerpt_id))
+
+    def test_excerpt_payload_normalization_rejects_pageindex_resolution(self) -> None:
+        with self.assertRaisesRegex(ValueError, "canonical FTS strategy"):
+            self.service._normalize_excerpt_payload(
+                {
+                    "excerpt_id": "pageindex-excerpt",
+                    "doc_id": "doc-pdf-1",
+                    "text": "PageIndex-only excerpt text",
+                    "provenance": {"source_strategy": "pageindex"},
+                },
+                source_strategy="pageindex",  # type: ignore[arg-type]
+                lookup_resolution="pageindex",
+            )
 
     def test_retrieve_fts_excerpt_returns_canonical_fts_payload(self) -> None:
         result = self.service.retrieve_auto(
@@ -3190,6 +3212,8 @@ class UnifiedRetrievalTests(unittest.TestCase):
         self.assertEqual(direct_item["query_fingerprint"], result.diagnostics["query_fingerprint"])
         self.assertEqual(direct_item["query_scope"], "vault")
         self.assertEqual(direct_item["query_intent"], "compare")
+        self.assertEqual(direct_item["query_constraints"], expected_constraints)
+        self.assertEqual(direct_item["query_constraints_fingerprint"], expected_constraints_fingerprint)
         self.assertEqual(direct_item["query_date_range"], ["2026-01-01", "2026-12-31"])
         self.assertEqual(direct_item["retrieval_evidence_fingerprint"], retrieval_evidence_fingerprint)
         self.assertEqual(result.retrieval_basket_promotion_bundle()["query_constraints"], expected_constraints)
@@ -3272,6 +3296,8 @@ class UnifiedRetrievalTests(unittest.TestCase):
         self.assertEqual(rehydrated_item["query_fingerprint"], result.diagnostics["query_fingerprint"])
         self.assertEqual(rehydrated_item["query_scope"], "vault")
         self.assertEqual(rehydrated_item["query_intent"], "compare")
+        self.assertEqual(rehydrated_item["query_constraints"], expected_constraints)
+        self.assertEqual(rehydrated_item["query_constraints_fingerprint"], expected_constraints_fingerprint)
         self.assertEqual(rehydrated_item["query_date_range"], ["2026-01-01", "2026-12-31"])
         self.assertEqual(rehydrated_item["retrieval_evidence_fingerprint"], retrieval_evidence_fingerprint)
         self.assertEqual(rehydrated_bundle["query_constraints"], expected_constraints)
@@ -3285,6 +3311,88 @@ class UnifiedRetrievalTests(unittest.TestCase):
             result.retrieval_basket_promotion_bundle()["citation_status"],
         )
         self.assertEqual(rehydrated_item["doc_type"], "memo")
+
+    def test_basket_promotion_bundle_normalizes_query_constraints_snapshot(self) -> None:
+        result = self.service.retrieve_auto(
+            RetrievalQuery(
+                query_text="memo comparison",
+                scope="vault",
+                intent="compare",
+                constraints=RetrievalConstraints(
+                    max_results=4,
+                    date_range=("2026-01-01", "2026-12-31"),
+                ),
+                confidentiality_profile="confidential",
+            )
+        )
+        payload = result.to_downstream_payload()
+        basket_bundle = payload["retrieval_basket_promotion_bundle"]
+        self.assertIsInstance(basket_bundle, dict)
+        cast(dict[str, object], basket_bundle)["query_constraints"] = {
+            "max_results": 4,
+            "doc_types": (),
+            "date_range": ("2026-01-01", "2026-12-31"),
+            "require_citations": False,
+            "section_hint": "  ",
+            "prefer_exact_matches": False,
+        }
+        promotion_items = cast(dict[str, object], basket_bundle)["promotion_items"]
+        self.assertIsInstance(promotion_items, list)
+        promotion_item = cast(list[dict[str, object]], promotion_items)[0]
+        promotion_item["query_constraints"] = {
+            "max_results": "4",
+            "doc_types": ("memo",),
+            "date_range": ("2026-01-01", "2026-12-31"),
+            "require_citations": "false",
+            "section_hint": "  ",
+            "prefer_exact_matches": "false",
+        }
+        promotion_item["query_constraints_fingerprint"] = "stale-fingerprint"
+        promotion_item.pop("promotion_item_fingerprint", None)
+        cast(dict[str, object], basket_bundle).pop("query_constraints_fingerprint", None)
+
+        normalized_bundle = _build_retrieval_basket_promotion_bundle_from_payload(payload)
+
+        expected_constraints = {
+            "max_results": 4,
+            "doc_types": [],
+            "date_range": ["2026-01-01", "2026-12-31"],
+            "require_citations": False,
+            "section_hint": None,
+            "prefer_exact_matches": False,
+        }
+        expected_constraints_fingerprint = hashlib.sha256(
+            json.dumps(
+                expected_constraints,
+                sort_keys=True,
+                separators=(",", ":"),
+                ensure_ascii=True,
+            ).encode("utf-8")
+        ).hexdigest()
+        self.assertEqual(normalized_bundle["query_constraints"], expected_constraints)
+        self.assertEqual(
+            normalized_bundle["query_constraints_fingerprint"],
+            expected_constraints_fingerprint,
+        )
+        normalized_item = normalized_bundle["promotion_items"][0]
+        expected_item_constraints = {
+            **expected_constraints,
+            "doc_types": ["memo"],
+        }
+        expected_item_constraints_fingerprint = hashlib.sha256(
+            json.dumps(
+                expected_item_constraints,
+                sort_keys=True,
+                separators=(",", ":"),
+                ensure_ascii=True,
+            ).encode("utf-8")
+        ).hexdigest()
+        self.assertEqual(normalized_item["query_constraints"], expected_item_constraints)
+        self.assertEqual(
+            normalized_item["query_constraints_fingerprint"],
+            expected_item_constraints_fingerprint,
+        )
+        self.assertNotEqual(normalized_item["promotion_item_fingerprint"], "stale-fingerprint")
 
     def test_engine_retrieval_tool_returns_canonical_downstream_payload(self) -> None:
         payload = engine_retrieve_auto_payload(
