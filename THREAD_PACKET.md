@@ -12,8 +12,8 @@
 - Authoritative reviewed implementation base: `378cf9a74a3658058079a32f186fcd254c4a4034`.
 - Reviewed implementation head: `5c87b08a9f7ca5a4dabc23fc1a80214276a882e9`.
 - Reviewed implementation range: `378cf9a74a3658058079a32f186fcd254c4a4034..5c87b08a9f7ca5a4dabc23fc1a80214276a882e9`.
-- Current packet refresh head before this packet edit: `5c87b08a9f7ca5a4dabc23fc1a80214276a882e9`.
-- Current packet refresh role: packet-only handoff refresh after the source-bearing FTS-only basket item ID guard.
+- Current packet refresh head before this packet edit: `419bf5ee91249f0d5f330023dd98d43d794620f8`.
+- Current packet refresh role: packet-only handoff refresh that keeps reviewer traceability anchored to the real source-bearing candidate ending at `5c87b08a9f7ca5a4dabc23fc1a80214276a882e9`.
 
 ## Traceability Correction
 
@@ -33,9 +33,9 @@ That range includes every intended retrieval source/test change through `5c87b08
 
 `5c87b08a9f7ca5a4dabc23fc1a80214276a882e9` is also source-bearing. It modifies `src/qual/retrieval/service.py`, `src/qual/engine/retrieval/payload.py`, and `tests/unit/test_unified_retrieval.py` so basket-promotion item ID generation remains FTS-only; PageIndex/embedding-shaped sparse promotion snapshots fail closed instead of receiving promotable `retrieval:<strategy>:<excerpt_id>` IDs.
 
-Packet-only commits after `5c87b08a9f7ca5a4dabc23fc1a80214276a882e9` refresh traceability and gate evidence only.
+Packet-only commits after `5c87b08a9f7ca5a4dabc23fc1a80214276a882e9` refresh traceability and gate evidence only. The current tracked packet refresh commit before this edit is `419bf5ee91249f0d5f330023dd98d43d794620f8`; it changes `THREAD_PACKET.md` only and does not expand the reviewed retrieval implementation range.
 
-Sandbox note for this fixer pass: `.codex/kickoff_packets/feat-retrieval-fts.md` and `.codex/lane_meta/feat-retrieval-fts.json` still contain older stale traceability text, but this worktree sandbox rejects writes under `.codex` with `Operation not permitted`. Treat `THREAD_PACKET.md` as the authoritative corrected handoff packet for this re-review.
+Tracked packet note for this fixer pass: `.codex/kickoff_packets/feat-retrieval-fts.md` and `.codex/lane_meta/feat-retrieval-fts.json` are ignored local automation metadata in this branch worktree and are not tracked at `HEAD`. Treat this tracked `THREAD_PACKET.md` file as the authoritative corrected handoff packet for re-review.
 
 Re-review should not use `adfa8cdadd43747ffbcb612e4151e262b13e52ca` as the implementation head. It is an intermediate implementation commit only.
 
@@ -98,17 +98,18 @@ Task accounting: `4` high-risk task groups completed, matching the high-risk tas
 3. Updated the reviewed implementation range to include all intended source/test changes in the branch-tip source-bearing candidate.
 4. Updated files changed, task accounting, command outcomes, risks, and roadmap/vision mapping to match the corrected range.
 5. Documented that no explicit integrator-approved size exception is present for the high-risk size overage, so approval remains blocked unless the integrator grants an exception or requests a branch split/reduced handoff.
+6. Stated the corrected canonical demo-path step explicitly: `retrieve relevant material`, with additional support for `promote or gather context into the basket`.
 
 ## Commands Run
 
-Required gates for this corrected merge candidate were re-run on 2026-05-07 against branch `codex/feat-retrieval-fts` after the FTS-only `basket_item_id` source-bearing fix.
+Required gates for this corrected merge candidate were re-run on 2026-05-07 against branch `codex/feat-retrieval-fts` after this packet-refresh edit.
 
 - `make scope-check` - passed for branch `codex/feat-retrieval-fts`.
 - `./quality-format.sh --check` - passed.
 - `./quality-lint.sh` - passed shell syntax and trailing whitespace checks.
-- `./quality-test.sh` - passed smoke tests and 132 unit tests.
+- `./quality-test.sh` - passed smoke tests and 133 unit tests.
 - `./typecheck-test.sh` - passed Python source compilation under `src/`.
-- `make ci` - passed setup, scope-check, format, lint, compile/typecheck, smoke tests, and 132 unit tests.
+- `make ci` - passed setup, scope-check, format, lint, compile/typecheck, smoke tests, and 133 unit tests.
 
 Additional focused retrieval checks run earlier in this lane:
 
