@@ -368,6 +368,17 @@ def _normalize_basket_promotion_bundle_snapshot(bundle: dict[str, object]) -> di
         for key, fallback_value in item_fallbacks.items():
             if _is_missing_snapshot_value(normalized_item.get(key)) and not _is_missing_snapshot_value(fallback_value):
                 normalized_item[key] = copy.deepcopy(fallback_value)
+        item_constraints = normalized_item.get("query_constraints")
+        if isinstance(item_constraints, dict):
+            normalized_item["query_constraints"] = _normalize_query_snapshot({"constraints": item_constraints})[
+                "constraints"
+            ]
+        elif not _is_missing_snapshot_value(normalized.get("query_constraints")):
+            normalized_item["query_constraints"] = copy.deepcopy(normalized["query_constraints"])
+        if isinstance(normalized_item.get("query_constraints"), dict):
+            normalized_item["query_constraints_fingerprint"] = _stable_fingerprint(
+                normalized_item["query_constraints"]
+            )
         if _is_missing_snapshot_value(normalized_item.get("promotion_item_fingerprint")):
             normalized_item["promotion_item_fingerprint"] = _stable_fingerprint(
                 {

@@ -11,7 +11,7 @@
 - Authoritative reviewed implementation base: `378cf9a74a3658058079a32f186fcd254c4a4034`.
 - Pre-fixer reviewed implementation head: `b0b046271168b6d058e60b7a97080bebf5220781`.
 - Pre-fixer reviewed implementation range: `378cf9a74a3658058079a32f186fcd254c4a4034..b0b046271168b6d058e60b7a97080bebf5220781`.
-- Current fixer base before this source-bearing delta: `73997a4572f9389481211897e6551a274a2536c2`.
+- Current fixer base before this source-bearing delta: `9e3df053f`.
 - Final source-bearing fixer commit: reported in the final handoff response after commit creation.
 - Reviewer-cited unreviewed implementation range now included: `adfa8cdadd43747ffbcb612e4151e262b13e52ca..b0b046271168b6d058e60b7a97080bebf5220781`.
 
@@ -27,7 +27,7 @@ This fixer creates a metadata-only packet refresh commit after `b0b046271168b6d0
 
 Re-review should not use `adfa8cdadd43747ffbcb612e4151e262b13e52ca` as the implementation head. It is an intermediate commit only.
 
-This final source-bearing fixer builds on packet-refresh head `73997a4572f9389481211897e6551a274a2536c2` and preserves the corrected cumulative implementation range above while adding one narrow basket-promotion audit hardening change. The final commit SHA for this delta is reported outside the packet to avoid self-stale metadata.
+This final source-bearing fixer builds on branch head `9e3df053f` and preserves the corrected cumulative implementation range above while adding one narrow basket-promotion audit hardening change. The final commit SHA for this delta is reported outside the packet to avoid self-stale metadata.
 
 ## Files Changed
 
@@ -66,6 +66,8 @@ This final source-bearing delta also canonicalizes string-shaped scalar query co
 
 This latest source-bearing delta carries normalized query constraints and their fingerprint onto each basket-promotion item from both service-produced bundles and sparse downstream payload rehydration. Promoted excerpts are now self-contained enough for context-basket storage and later revise/apply audit trails without relying only on bundle-level query metadata.
 
+This final source-bearing delta also normalizes item-level query constraints when rehydrating an existing downstream `retrieval_basket_promotion_bundle`. If a promotion item carries tuple/string-shaped constraints or a stale query-constraint fingerprint, the payload helper now canonicalizes the item constraints and regenerates the item query-constraint fingerprint before computing the promotion item fingerprint.
+
 Canonical demo path advanced: `vault/context material -> FTS retrieval -> retrieval evidence -> context basket promotion -> engine revise/apply`.
 
 Before-handoff canonical demo-path statement: this work makes `retrieve relevant material` more real by making FTS-only excerpt lookup deterministic and fail-closed for PageIndex-only excerpt IDs, and it supports `promote or gather context into the basket` through stable excerpt/provenance payloads.
@@ -102,6 +104,7 @@ Task accounting: `4` high-risk task groups completed, matching the high-risk tas
 10. Added explicit per-task canonical demo-path step mappings to the completed task list.
 11. Added the required before-handoff canonical demo-path statement naming how this work makes `retrieve relevant material` more real and supports `promote or gather context into the basket`.
 12. Added item-level query constraints and query-constraint fingerprints to basket-promotion evidence for both direct FTS retrieval results and sparse payload-derived bundles.
+13. Normalized item-level query constraints and regenerated item query-constraint fingerprints when existing downstream basket-promotion bundles are rehydrated.
 
 ## Commands Run
 
@@ -118,6 +121,8 @@ Additional focused retrieval checks run earlier in this lane:
 
 - `python3 -m unittest tests.unit.test_unified_retrieval.UnifiedRetrievalTests.test_basket_promotion_items_backfill_query_context_from_bundle` - passed after adding item-level query constraints and query-constraint fingerprints to basket-promotion evidence.
 - `python3 -m unittest tests.unit.test_unified_retrieval` - passed 63 retrieval tests after adding item-level basket-promotion query audit fields.
+- `python3 -m unittest tests.unit.test_unified_retrieval.UnifiedRetrievalTests.test_basket_promotion_bundle_normalizes_query_constraints_snapshot` - passed after adding item-level query-constraint normalization for existing basket-promotion bundles.
+- `python3 -m unittest tests.unit.test_unified_retrieval` - passed 63 retrieval tests after adding item-level query-constraint normalization for existing basket-promotion bundles.
 - `python3 -m unittest tests.unit.test_unified_retrieval.UnifiedRetrievalTests.test_basket_promotion_bundle_normalizes_query_constraints_snapshot` - passed after scalar query-constraint canonicalization.
 - `python3 - <<'PY' ... _build_retrieval_basket_promotion_bundle_from_payload(...) ... PY` - passed; sparse string-shaped `max_results`, `require_citations`, and `prefer_exact_matches` normalized to int/bool values.
 - `python3 -m unittest tests.unit.test_unified_retrieval` - passed 63 retrieval tests after scalar query-constraint canonicalization.

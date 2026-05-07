@@ -2248,6 +2248,19 @@ class UnifiedRetrievalTests(unittest.TestCase):
             "section_hint": "  ",
             "prefer_exact_matches": False,
         }
+        promotion_items = cast(dict[str, object], basket_bundle)["promotion_items"]
+        self.assertIsInstance(promotion_items, list)
+        promotion_item = cast(list[dict[str, object]], promotion_items)[0]
+        promotion_item["query_constraints"] = {
+            "max_results": "4",
+            "doc_types": ("memo",),
+            "date_range": ("2026-01-01", "2026-12-31"),
+            "require_citations": "false",
+            "section_hint": "  ",
+            "prefer_exact_matches": "false",
+        }
+        promotion_item["query_constraints_fingerprint"] = "stale-fingerprint"
+        promotion_item.pop("promotion_item_fingerprint", None)
         cast(dict[str, object], basket_bundle).pop("query_constraints_fingerprint", None)
 
         normalized_bundle = _build_retrieval_basket_promotion_bundle_from_payload(payload)
@@ -2273,6 +2286,25 @@ class UnifiedRetrievalTests(unittest.TestCase):
             normalized_bundle["query_constraints_fingerprint"],
             expected_constraints_fingerprint,
         )
+        normalized_item = normalized_bundle["promotion_items"][0]
+        expected_item_constraints = {
+            **expected_constraints,
+            "doc_types": ["memo"],
+        }
+        expected_item_constraints_fingerprint = hashlib.sha256(
+            json.dumps(
+                expected_item_constraints,
+                sort_keys=True,
+                separators=(",", ":"),
+                ensure_ascii=True,
+            ).encode("utf-8")
+        ).hexdigest()
+        self.assertEqual(normalized_item["query_constraints"], expected_item_constraints)
+        self.assertEqual(
+            normalized_item["query_constraints_fingerprint"],
+            expected_item_constraints_fingerprint,
+        )
+        self.assertNotEqual(normalized_item["promotion_item_fingerprint"], "stale-fingerprint")
 
     def test_engine_retrieval_tool_returns_canonical_downstream_payload(self) -> None:
         payload = engine_retrieve_auto_payload(
