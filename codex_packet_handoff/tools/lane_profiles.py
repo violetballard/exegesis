@@ -681,17 +681,19 @@ LANE_PROFILES: Dict[str, Json] = {
         "routing_provider_impact": "None while disabled.",
     },
     "feat-quant-analysis": {
-        "scope_goal": "Disabled post-MVP lane for first-class CSV dataset import, lean quantitative analysis, basic plots, and saveable analysis sequences.",
+        "scope_goal": "Disabled post-MVP lane for first-class CSV dataset import, native Swift/IMSL quantitative analysis, basic plots, and saveable analysis sequences.",
         "priority_summary": "Disabled quantitative analysis lane.",
         "priority_outcomes": [
             "Specify Datasets as a first-class native Workstation project browser section.",
             "Specify CSV-only import with variable type detection and user overrides.",
+            "Specify native StatsCore Swift APIs, a narrow StatsBridge C shim, and IMSL C Numerical Library backend isolation.",
             "Specify descriptive statistics, frequency and contingency tables, t-test, ANOVA, chi-squared, and linear correlation.",
             "Specify p-values, effect sizes, and small/medium/large effect-size guidance for inferential tests.",
             "Specify basic chart artifacts and analysis sequences that can be saved as summaries.",
         ],
         "definition_of_done": [
             "Dataset, variable, analysis run, sequence, and chart artifact contracts are specified.",
+            "StatsCore, StatsBridge, IMSL isolation, Swift DataFrame-compatible adapters, and vendor feasibility gates are specified.",
             "CSV import, guardrails, provenance, and variable typing rules are specified.",
             "Supported statistics, chart types, markdown output, and effect-size guidance are specified.",
             "Native Workstation SwiftUI dataset/inspector workflows and sequence-to-summary behavior are specified.",
@@ -704,6 +706,7 @@ LANE_PROFILES: Dict[str, Json] = {
             "Advanced models such as regression, logistic regression, mixed models, factor analysis, or non-parametric tests.",
             "LLM-generated quantitative interpretations or conclusions.",
             "Textual shell implementation; this lane is native Workstation/SwiftUI only.",
+            "Python/statsmodels implementation unless a future Python-backed helper is intentionally scoped.",
         ],
         "risk": "MEDIUM",
         "roadmap_items": ["ROADMAP.md: Milestone 23: Quantitative Analysis"],

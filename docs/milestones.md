@@ -405,6 +405,8 @@ Deliverables:
 - descriptive statistics, frequency and contingency tables, t-test, ANOVA, chi-squared, and linear correlation
 - p-values, effect sizes, and small/medium/large guidance
 - basic charts and saveable analysis sequences
+- native `StatsCore` Swift package, `StatsBridge` C shim, and IMSL C Numerical Library backend isolation
+- IMSL vendor feasibility checklist for macOS, Apple Silicon, redistribution, linking mode, and Swift/Xcode use
 
 Status:
 - Studio Pro planned and disabled

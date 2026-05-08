@@ -345,9 +345,12 @@ Own later:
 - bar chart, density curve, and scatter plot artifacts
 - ordered analysis sequence transcript for tests
 - save analysis sequence as a project summary
-- sidecar routes for dataset import, variable typing, analysis runs, chart artifact generation, sequence updates, and summary save
+- native `StatsCore` Swift APIs with Codable result structs and DataFrame-compatible table adapters
+- narrow `StatsBridge` C shim that isolates IMSL C Numerical Library calls and normalizes status/error codes
+- vendor feasibility gate for IMSL macOS, Apple Silicon, redistribution, linking mode, Swift/Xcode use, CI, signing, and notarization
+- optional sidecar exposure only if future Python-backed preprocessing or artifact generation is intentionally added
 - native Studio Workstation/SwiftUI only; no Textual shell implementation
-- local-only statsmodels/pandas/numpy/matplotlib execution boundaries
+- local-only Swift/IMSL execution boundaries
 
 Activation rule:
 - disabled until explicitly enabled after the MVP launch gate and real CoP usage feedback

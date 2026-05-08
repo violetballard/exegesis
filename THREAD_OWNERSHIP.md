@@ -246,8 +246,8 @@ Detailed task breakdown lives in `/Users/doctor-violet/Library/CloudStorage/Box-
 
 - `codex/feat-quant-analysis*`
   - Owned paths:
-    - `engine/src/exegesis_engine/datasets/**`
-    - `engine/src/exegesis_engine/quant_analysis/**`
+    - `desktop-shell/workstation/StatsCore/**`
+    - `desktop-shell/workstation/StatsBridge/**`
     - `desktop-shell/workstation/datasets/**`
     - `desktop-shell/workstation/quant_analysis/**`
     - `shared/src/exegesis_shared/datasets/**`

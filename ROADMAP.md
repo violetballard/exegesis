@@ -435,13 +435,14 @@ Scope:
 - support descriptive statistics, frequency and contingency tables, t-test, ANOVA, chi-squared, and linear correlation
 - show p-values, effect sizes, and compact small/medium/large guidance
 - implement dataset views, analysis configuration, and result sequences only in Studio's native SwiftUI interface
+- implement statistics through native `StatsCore` Swift APIs, a narrow `StatsBridge` C shim, and IMSL C Numerical Library rather than Python/statsmodels
 
 Lane mapping:
 - `feat-quant-analysis`: disabled until explicitly activated after Studio is available
 
 Exit criteria:
 - dataset import, variable typing, analysis contracts, chart artifacts, sequence transcript, and summary export are specified
-- statsmodels/pandas/numpy/matplotlib execution boundaries are specified
+- `StatsCore`, `StatsBridge`, IMSL isolation, Swift DataFrame-compatible adapters, and vendor feasibility gates are specified
 - local-only privacy/provider boundaries are specified
 - no runtime CSV import, statistical testing, chart generation, dataset UI, or analysis-summary behavior is active until the lane is enabled
 

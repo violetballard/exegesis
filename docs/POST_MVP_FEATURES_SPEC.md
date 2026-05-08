@@ -554,8 +554,7 @@ Minimum response contracts:
   "feature_routes": {
     "imports": "1",
     "rag": "1",
-    "research": "1",
-    "quant_analysis": "1"
+    "research": "1"
   }
 }
 ```
@@ -576,7 +575,7 @@ Required for each later Python feature:
 
 Applies immediately to later post-MVP specs:
 - Milestone 22 Deep Research must expose job creation, status, cancellation, candidate batch retrieval, and import-batch handoff through the sidecar.
-- Milestone 23 Quantitative Analysis must expose dataset import, variable typing, analysis run creation, chart artifact generation, sequence updates, and summary save through the sidecar.
+- Milestone 23 Quantitative Analysis is native Swift/IMSL by default, not Python-backed by default. It must use the Python sidecar only if a later implementation adds Python-backed preprocessing or artifact generation.
 - Milestone 24 Advanced Qualitative Coding Visualizations must expose aggregation, matrix, graph, comparison, and codebook-generation data through the sidecar when those features need Python-backed processing.
 - Milestone 25 Confidential Collaboration must expose only local Studio Workstation coordination, health, audit, and sync-status hooks through the sidecar; any networked collaboration service contracts must be designed separately in that lane before implementation.
 - Any later OCR, RAG, import, export, citation, or provider-backed Python feature touched after this point must either expose its Workstation-facing behavior through the sidecar or explicitly document why it remains internal-only.
@@ -1825,8 +1824,8 @@ Acceptance criteria:
 
 Lane: `feat-quant-analysis` (disabled)
 
-Sidecar rule:
-- Because this milestone comes after Milestones 19 and 20, dataset import, variable typing, analysis runs, chart generation, analysis sequence updates, and summary-save operations must be exposed through the Python Backend Sidecar API when reachable from Workstation or SwiftUI.
+Native statistics rule:
+- Quantitative analysis is a native Workstation feature centered on `StatsCore`, `StatsBridge`, and the IMSL C Numerical Library. It should not route through the Python sidecar unless a future implementation adds Python-backed preprocessing or artifact generation.
 
 Status: post-MVP planned, disabled
 
@@ -1836,7 +1835,7 @@ Add a first-class, lean quantitative analysis surface for CSV datasets inside Ex
 
 The goal is to let researchers keep small quantitative checks inside the same project workflow as memos, transcripts, summaries, literature, basket context, and later RAG. It should feel like a notebook sequence for basic tests, not like a replacement for R, SPSS, Stata, Jamovi, or JASP.
 
-This pass is a disabled spec only. It must not activate runtime dataset import, statsmodels execution, plotting, SwiftUI views, or summary generation until `feat-quant-analysis` is intentionally enabled after the MVP launch gate.
+This pass is a disabled spec only. It must not activate runtime dataset import, IMSL execution, chart rendering, SwiftUI views, or summary generation until `feat-quant-analysis` is intentionally enabled after the MVP launch gate.
 
 ### Product Scope
 
@@ -1848,9 +1847,9 @@ In scope:
 - show raw data in the native Workstation dataset view.
 - allow changing variable type from the native Workstation raw-data view.
 - expose analysis selection in the native Workstation inspector/sidebar.
-- run basic descriptive and inferential analyses through Python.
+- run basic descriptive and inferential analyses through native `StatsCore` APIs backed by a narrow IMSL bridge.
 - generate markdown result tables.
-- generate basic charts.
+- generate basic native chart artifacts.
 - append analyses to a dataset-specific transcript sequence.
 - save the analysis sequence as a summary in the project summaries section.
 - explain effect-size interpretation as small, medium, or large in each applicable result.
@@ -2054,13 +2053,55 @@ Covariate rule:
 - because Milestone 23 intentionally stays lean, basic tests may show covariates as unavailable with copy: `Covariates are not available for this basic test.`
 - do not silently ignore selected covariates.
 
+### Native Statistics Architecture
+
+Milestone 23 should buy a mature statistical engine without letting a proprietary numerical library own the app architecture.
+
+Preferred stack:
+
+```text
+SwiftUI Workstation
+  -> StatsCore Swift package
+     - public Swift APIs
+     - native dataset and variable models
+     - Swift DataFrame-compatible table adapters
+     - result structs
+     - validation
+     - Codable outputs
+  -> StatsBridge C target
+     - stable C functions owned by Exegesis
+     - Swift-friendly array and metadata conversion
+     - IMSL calls isolated behind the bridge
+     - normalized IMSL status/error codes
+  -> IMSL C Numerical Library
+```
+
+Rules:
+- use IMSL C Numerical Library directly through C, not IMSL Fortran bindings.
+- do not let IMSL symbols leak into SwiftUI, project storage, import/export, or inspector code.
+- expose clean Swift types from `StatsCore`: `Dataset`, `DatasetVariable`, `DescriptiveStats`, `InferentialTestResult`, `RegressionSummary`, `CorrelationResult`, `ModelResult`, `ChartSpec`, and `AnalysisSequence`.
+- make all public `StatsCore` outputs `Codable` so results can be stored, exported, and rendered consistently.
+- keep Swift native DataFrame-compatible table structures as the app-facing model for raw data display, variable typing, validation, and simple built-in calculations.
+- use simple native calculations where they make the UI more responsive, but treat `StatsCore` plus the IMSL-backed engine as the canonical analysis path for saved inferential results.
+- define a narrow `StatsEngineBackend` protocol so IMSL can be swapped if licensing, platform support, CI, or redistribution becomes a blocker.
+
+Vendor due diligence must happen before implementation:
+- confirm IMSL C Numerical Library support for macOS, including Apple Silicon `arm64` and any required `x86_64` compatibility path.
+- confirm whether IMSL can be redistributed inside an internal or commercial macOS desktop application.
+- confirm whether static linking is permitted or whether dynamic linking is required.
+- confirm whether IMSL has restrictions for Swift/Xcode applications.
+- document CI, signing, notarization, and license-file implications before any runtime code depends on IMSL.
+
 ### Analysis Support
 
-Use `statsmodels` for statistical tests where applicable and a standard Python plotting tool for charts. Preferred plotting stack:
-- `matplotlib` for stable artifact generation.
-- optional `seaborn` for density curves if already accepted by packaging constraints.
+Use `StatsCore` as the public Swift API and `StatsBridge` as the only IMSL boundary.
 
-Use `pandas` and `numpy` for dataset preparation and descriptive calculations.
+Implementation defaults:
+- IMSL C Numerical Library performs the canonical statistical calculations where applicable.
+- Swift native DataFrame-compatible adapters own CSV-derived table loading, variable metadata, raw-data display, and validation.
+- `StatsCore` emits markdown-ready result tables, effect-size records, and deterministic `ChartSpec` values.
+- native Workstation rendering turns `ChartSpec` values into static bar, density, and scatter artifacts.
+- no statsmodels, pandas, numpy, matplotlib, or seaborn dependency is part of the default Milestone 23 implementation.
 
 #### Descriptive Statistics
 
@@ -2275,9 +2316,9 @@ Add command palette entries:
 
 Shortcut rows are not required in Milestone 23 unless later UI planning decides dataset analysis needs dedicated shortcuts.
 
-### Engine API and CLI Contracts
+### Workstation API and CLI Contracts
 
-Minimum CLI/API contracts:
+Minimum command/service contracts:
 
 ```bash
 exegesis dataset import --project <project-id> --file <path.csv>
@@ -2300,6 +2341,14 @@ Internal service contracts:
 - `DatasetChartService`
 - `DatasetSequenceService`
 - `DatasetSummaryExportService`
+- `StatsCore`
+- `StatsBridge`
+- `StatsEngineBackend`
+- `IMSLStatsEngineBackend`
+
+Sidecar contract:
+- no default Python sidecar route is required for Milestone 23.
+- if a future implementation adds Python-backed preprocessing or artifact generation, that part must expose Workstation-facing behavior through the Milestone 20 sidecar and document why it cannot stay in native `StatsCore`.
 
 ### Error Handling
 
@@ -2320,14 +2369,15 @@ All analysis errors should append a status entry to the sequence only when the u
 
 Quantitative analysis is local-first:
 - CSV contents are not sent to online providers.
-- statsmodels and plotting run locally.
+- `StatsCore`, `StatsBridge`, and IMSL run locally inside the native Workstation distribution.
+- chart artifacts are rendered locally from deterministic `ChartSpec` values.
 - saved summaries stay in the project.
 - LLM interpretation is out of scope for Milestone 23.
 
 Developer/Lite boundary:
 - Developer and Lite builds use the same local analysis engine for CSV datasets.
 - Lite managed provider credentials are not involved.
-- no Paddle, License Gateway, OCR usage, or online model calls are needed for quantitative analysis.
+- no Paddle, License Gateway, OCR usage, online model calls, or Lite gateway calls are needed for quantitative analysis.
 
 ### Lane Wiring Plan
 
@@ -2335,8 +2385,8 @@ Add disabled lane:
 - `feat-quant-analysis`
 
 Owned paths:
-- `engine/src/exegesis_engine/datasets/**`
-- `engine/src/exegesis_engine/quant_analysis/**`
+- `desktop-shell/workstation/StatsCore/**`
+- `desktop-shell/workstation/StatsBridge/**`
 - `desktop-shell/workstation/datasets/**`
 - `desktop-shell/workstation/quant_analysis/**`
 - `shared/src/exegesis_shared/datasets/**`
@@ -2356,27 +2406,31 @@ Lane profile:
 
 1. Spec and lane scaffolding
    - Add docs, disabled lane registration, ownership, lane profile, and scope policy.
-2. Dataset contracts
-   - Add dataset, variable, analysis run, sequence, and chart artifact models.
-3. CSV import
+2. IMSL feasibility gate
+   - Confirm Perforce support for macOS, Apple Silicon, redistribution, linking mode, Swift/Xcode use, CI, signing, and notarization.
+3. `StatsCore` contracts
+   - Add Swift dataset, variable, result, effect-size, chart-spec, and sequence models with Codable outputs.
+4. `StatsBridge` and backend isolation
+   - Add the C shim contract, IMSL error/status normalization, and `StatsEngineBackend` swappability before any IMSL-dependent implementation.
+5. CSV import
    - Add CSV loader, validation, provenance, hash, row/column guardrails, and tests.
-4. Variable type detection
+6. Variable type detection
    - Add categorical/ordinal/scale detection and override persistence.
-5. Raw dataset SwiftUI view contract
-   - Add table read model and variable-type editing contract for the native Workstation once this lane is active.
-6. Descriptive and frequency analysis
+7. Raw dataset SwiftUI view contract
+   - Add DataFrame-compatible table read model and variable-type editing contract for the native Workstation once this lane is active.
+8. Descriptive and frequency analysis
    - Add descriptive, frequency, contingency tables, markdown output, and tests.
-7. Inferential tests
+9. Inferential tests
    - Add t-test, ANOVA, chi-squared, and Pearson correlation with p-values and effect sizes.
-8. Chart artifacts
-   - Add bar, density, and scatter plot generation with deterministic artifact storage.
-9. Analysis sequence
+10. Chart artifacts
+   - Add native bar, density, and scatter chart artifact generation with deterministic artifact storage.
+11. Analysis sequence
    - Add appendable sequence entries, status entries, and ordered display contracts.
-10. Save sequence as summary
+12. Save sequence as summary
    - Add markdown summary creation and project summary registration.
-11. SwiftUI inspector/sidebar controls
+13. SwiftUI inspector/sidebar controls
    - Add analysis picker, variable selectors, split-by controls, and sequence actions in the native Workstation once this lane is active.
-12. End-to-end acceptance tests
+14. End-to-end acceptance tests
    - Validate CSV import, variable typing, analyses, charts, sequence, and summary save.
 
 ### Test Plan
@@ -2387,6 +2441,14 @@ Scaffolding tests:
 - Scope-check policy allows only dataset/quant-analysis docs and implementation paths when the lane is active.
 - `status.py` shows the lane disabled.
 - Docs clearly state this is post-MVP and not part of Sprint 0-5.
+
+Architecture tests:
+- `StatsCore` public result types are Codable.
+- `StatsCore` can operate against a mock `StatsEngineBackend`.
+- IMSL symbols are isolated behind `StatsBridge` and do not appear in SwiftUI or storage modules.
+- `StatsBridge` normalizes IMSL status/error codes into stable Swift-facing errors.
+- DataFrame-compatible table adapters preserve column names, row counts, missing values, and variable metadata.
+- the implementation is blocked until IMSL macOS, Apple Silicon, redistribution, linking, and Swift/Xcode constraints are documented.
 
 CSV import tests:
 - CSV import creates a dataset under `Datasets`.

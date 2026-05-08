@@ -251,7 +251,7 @@ is_allowed() {
       ;;
     codex/feat-quant-analysis*)
       case "$f" in
-        engine/src/exegesis_engine/datasets/*|engine/src/exegesis_engine/datasets/*/*|engine/src/exegesis_engine/quant_analysis/*|engine/src/exegesis_engine/quant_analysis/*/*|desktop-shell/workstation/datasets/*|desktop-shell/workstation/datasets/*/*|desktop-shell/workstation/quant_analysis/*|desktop-shell/workstation/quant_analysis/*/*|shared/src/exegesis_shared/datasets/*|shared/src/exegesis_shared/datasets/*/*|shared/src/exegesis_shared/quant_analysis/*|shared/src/exegesis_shared/quant_analysis/*/*|docs/quant_analysis/*|docs/quant_analysis/*/*) return 0 ;;
+        desktop-shell/workstation/StatsCore/*|desktop-shell/workstation/StatsCore/*/*|desktop-shell/workstation/StatsBridge/*|desktop-shell/workstation/StatsBridge/*/*|desktop-shell/workstation/datasets/*|desktop-shell/workstation/datasets/*/*|desktop-shell/workstation/quant_analysis/*|desktop-shell/workstation/quant_analysis/*/*|shared/src/exegesis_shared/datasets/*|shared/src/exegesis_shared/datasets/*/*|shared/src/exegesis_shared/quant_analysis/*|shared/src/exegesis_shared/quant_analysis/*/*|docs/quant_analysis/*|docs/quant_analysis/*/*) return 0 ;;
       esac
       return 1
       ;;

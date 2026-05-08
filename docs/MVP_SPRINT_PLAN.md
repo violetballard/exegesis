@@ -187,7 +187,7 @@ Milestone 19 lives in `docs/POST_MVP_FEATURES_SPEC.md` and specifies a tiny brow
 Milestone 20 lives in the same post-MVP spec and specifies a localhost-only FastAPI sidecar packaged by PyInstaller and supervised by macOS Studio Workstation.
 Milestone 21 lives in the same post-MVP spec and specifies the macOS-only native Workstation/Studio distribution sprint for signed web-distributed builds that bundle the sidecar.
 Milestone 22 lives in the same post-MVP spec and specifies local-first multi-agent open access source discovery that hands deduped candidates to the standard import protocol through the sidecar.
-Milestone 23 lives in the same post-MVP spec and specifies first-class CSV dataset import, lean quantitative analysis, basic charts, and saveable analysis sequences through the sidecar.
+Milestone 23 lives in the same post-MVP spec and specifies first-class CSV dataset import, lean quantitative analysis, basic charts, and saveable analysis sequences through native `StatsCore`/`StatsBridge`/IMSL rather than the Python sidecar by default.
 Milestone 24 lives in the same post-MVP spec and specifies advanced qualitative coding visualizations, matrices, distribution tables, comparisons, and codebook generation.
 Milestone 25 lives in the same post-MVP spec and specifies the later company-wide confidential collaboration design sprint for Studio/SwiftUI shared project work.
 Milestone 26 lives in the same post-MVP spec and specifies long-term native iPad Lite after collaboration, once Studio/Pro Swift-native components can replace sidecar-dependent behavior.
