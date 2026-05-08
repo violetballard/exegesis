@@ -636,6 +636,8 @@ class CommandDemoReadinessGate:
     cli_exact_action_lines: tuple[str, ...] = ()
     invalid_cli_argv: tuple[tuple[str, ...], ...] = ()
     invalid_cli_exact_action_argv: tuple[tuple[str, ...], ...] = ()
+    thin_handler_complete: bool = True
+    thin_handler_violations: tuple[str, ...] = ()
 
 
 @dataclass(frozen=True)
@@ -6248,12 +6250,19 @@ def command_demo_readiness_gate(
     )
     invalid_cli_argv = cli_validation.invalid_argv
     invalid_cli_exact_action_argv = cli_exact_action_validation.invalid_argv
+    thin_contract = command_handler_thin_action_contract(specs, launcher_argv)
+    thin_handler_violations = tuple(
+        entry.engine_action
+        for entry in thin_contract.entries
+        if not entry.is_thin
+    )
     gate = CommandDemoReadinessGate(
         is_complete=(
             not missing_engine_actions
             and not missing_flow_steps
             and not invalid_cli_argv
             and not invalid_cli_exact_action_argv
+            and thin_contract.is_complete
         ),
         missing_engine_actions=missing_engine_actions,
         command_lines=tuple(step.command_line for step in smoke_plan.steps),
@@ -6264,6 +6273,8 @@ def command_demo_readiness_gate(
         cli_exact_action_lines=cli_exact_action_validation.command_lines,
         invalid_cli_argv=invalid_cli_argv,
         invalid_cli_exact_action_argv=invalid_cli_exact_action_argv,
+        thin_handler_complete=thin_contract.is_complete,
+        thin_handler_violations=thin_handler_violations,
     )
     _validate_command_demo_readiness_gate(
         gate,
@@ -6329,8 +6340,19 @@ def _validate_command_demo_readiness_gate(
         and not gate.missing_flow_steps
         and not gate.invalid_cli_argv
         and not gate.invalid_cli_exact_action_argv
+        and gate.thin_handler_complete
     ):
         raise ValueError("Command demo readiness gate completeness is inconsistent")
+    expected_thin_contract = command_handler_thin_action_contract(specs, launcher_argv)
+    if gate.thin_handler_complete != expected_thin_contract.is_complete:
+        raise ValueError("Command demo readiness gate thin handler completeness is inconsistent")
+    expected_violations = tuple(
+        entry.engine_action
+        for entry in expected_thin_contract.entries
+        if not entry.is_thin
+    )
+    if gate.thin_handler_violations != expected_violations:
+        raise ValueError("Command demo readiness gate thin handler violations are inconsistent")
 
 
 def command_demo_readiness_gate_summary(
