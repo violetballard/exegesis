@@ -100,7 +100,7 @@
   "use_cli_reviewer_fallback": true,
   "use_cli_integrator_fallback": true,
   "idle_seconds": 1.2,
-  "reviewer_timeout": 180,
+  "reviewer_timeout": 600,
   "integrator_timeout": 900,
   "max_cloud_fixer_kicks_per_run": 1,
   "max_local_fixer_kicks_per_run": 1,
@@ -199,6 +199,10 @@
       "branch": "codex/feat-developer-provider-config",
       "enabled": false
     },
+    "feat-project-transfer": {
+      "branch": "codex/feat-project-transfer",
+      "enabled": false
+    },
     "feat-desktop-packaging": {
       "branch": "codex/feat-desktop-packaging",
       "enabled": false
@@ -211,12 +215,32 @@
       "branch": "codex/feat-browser-pdf-capture",
       "enabled": false
     },
+    "feat-python-sidecar-api": {
+      "branch": "codex/feat-python-sidecar-api",
+      "enabled": false
+    },
+    "feat-native-workstation": {
+      "branch": "codex/feat-native-workstation",
+      "enabled": false
+    },
     "feat-open-access-deep-research": {
       "branch": "codex/feat-open-access-deep-research",
       "enabled": false
     },
     "feat-quant-analysis": {
       "branch": "codex/feat-quant-analysis",
+      "enabled": false
+    },
+    "feat-advanced-qual-visuals": {
+      "branch": "codex/feat-advanced-qual-visuals",
+      "enabled": false
+    },
+    "feat-confidential-collaboration": {
+      "branch": "codex/feat-confidential-collaboration",
+      "enabled": false
+    },
+    "feat-ipad-native-lite": {
+      "branch": "codex/feat-ipad-native-lite",
       "enabled": false
     }
   },

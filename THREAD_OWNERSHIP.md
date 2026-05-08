@@ -161,6 +161,17 @@ Detailed task breakdown lives in `/Users/doctor-violet/Library/CloudStorage/Box-
   - Current status:
     - disabled until developer provider configuration is intentionally activated
 
+- `codex/feat-project-transfer*`
+  - Owned paths:
+    - `engine/src/exegesis_engine/project_transfer/**`
+    - `shared/src/exegesis_shared/project_transfer/**`
+    - `client-textual/src/exegesis_textual/project_transfer/**`
+    - `desktop-shell/workstation/project_transfer/**`
+    - `docs/project_transfer/**`
+  - Current status:
+    - disabled until MVP project export/import transfer work is intentionally activated
+    - licenses are per user/account, not per machine or project archive
+
 - `codex/feat-desktop-packaging*`
   - Owned paths:
     - `desktop-shell/**`
@@ -195,27 +206,91 @@ Detailed task breakdown lives in `/Users/doctor-violet/Library/CloudStorage/Box-
   - Current status:
     - disabled until post-MVP browser PDF capture work is intentionally activated
 
+- `codex/feat-python-sidecar-api*`
+  - Owned paths:
+    - `engine/src/exegesis_engine/sidecar/**`
+    - `shared/src/exegesis_shared/sidecar/**`
+    - `desktop-shell/sidecar/**`
+    - `scripts/sidecar/**`
+    - `docs/sidecar/**`
+  - Current status:
+    - disabled until post-MVP Python backend sidecar API work is intentionally activated
+
+- `codex/feat-native-workstation*`
+  - Owned paths:
+    - `desktop-shell/workstation/**`
+    - `desktop-shell/native/**`
+    - `desktop-shell/packaging/**`
+    - `scripts/workstation/**`
+    - `scripts/packaging/**`
+    - `scripts/release/**`
+    - `docs/workstation/**`
+    - `docs/packaging/**`
+  - Current status:
+    - disabled until post-MVP macOS Studio Workstation/distribution work is intentionally activated
+    - macOS only; no Windows/Linux Studio signing or packaging
+    - likely interactive rather than broad daemon-scheduled work
+
 - `codex/feat-open-access-deep-research*`
   - Owned paths:
     - `engine/src/exegesis_engine/research/**`
     - `engine/src/exegesis_engine/research_providers/**`
     - `engine/src/exegesis_engine/import_batches/**`
-    - `client-textual/src/exegesis_textual/research/**`
+    - `desktop-shell/workstation/research/**`
+    - `desktop-shell/workstation/import_batches/**`
     - `shared/src/exegesis_shared/research/**`
     - `docs/research/**`
   - Current status:
-    - disabled until post-MVP open access source discovery work is intentionally activated
+    - disabled until Studio Pro open access source discovery work is intentionally activated
+    - native Studio Workstation/SwiftUI only; do not touch the Textual shell
 
 - `codex/feat-quant-analysis*`
   - Owned paths:
     - `engine/src/exegesis_engine/datasets/**`
     - `engine/src/exegesis_engine/quant_analysis/**`
-    - `client-textual/src/exegesis_textual/datasets/**`
+    - `desktop-shell/workstation/datasets/**`
+    - `desktop-shell/workstation/quant_analysis/**`
     - `shared/src/exegesis_shared/datasets/**`
     - `shared/src/exegesis_shared/quant_analysis/**`
     - `docs/quant_analysis/**`
   - Current status:
-    - disabled until post-MVP quantitative analysis work is intentionally activated
+    - disabled until Studio Pro quantitative analysis work is intentionally activated
+    - native Studio Workstation/SwiftUI only; do not touch the Textual shell
+
+- `codex/feat-advanced-qual-visuals*`
+  - Owned paths:
+    - `engine/src/exegesis_engine/qual_visualizations/**`
+    - `engine/src/exegesis_engine/codebook/**`
+    - `desktop-shell/workstation/qual_visualizations/**`
+    - `shared/src/exegesis_shared/qual_visualizations/**`
+    - `docs/qual_visualizations/**`
+  - Current status:
+    - disabled until Studio Pro advanced qualitative coding visualization work is intentionally activated
+    - native Studio Workstation/SwiftUI only; do not touch the Textual shell
+
+- `codex/feat-confidential-collaboration*`
+  - Owned paths:
+    - `engine/src/exegesis_engine/collaboration/**`
+    - `engine/src/exegesis_engine/confidential_sync/**`
+    - `desktop-shell/workstation/collaboration/**`
+    - `shared/src/exegesis_shared/collaboration/**`
+    - `shared/src/exegesis_shared/confidential_sync/**`
+    - `docs/collaboration/**`
+  - Current status:
+    - disabled until the post-Pro company-wide confidential collaboration sprint is intentionally activated
+    - conceptual planning lane; expect interactive/manual architecture work before broad daemon execution
+    - native Studio Workstation/SwiftUI only; do not touch the Textual shell
+
+- `codex/feat-ipad-native-lite*`
+  - Owned paths:
+    - `client-ipad/lite/**`
+    - `client-ipad/shared/**`
+    - `shared/src/exegesis_shared/ipad_lite/**`
+    - `docs/ipad_lite/**`
+  - Current status:
+    - disabled until the long-term iPad native Lite conceptual sprint is intentionally activated
+    - conceptual planning lane after confidential collaboration
+    - iPadOS-native Lite work should reuse mature Studio/Pro Swift-native components and avoid depending on the Python sidecar
 
 ## Retired planning targets
 

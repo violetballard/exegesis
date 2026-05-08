@@ -277,144 +277,233 @@ Exit criteria:
 Status: planned, disabled
 
 Scope:
-- add developer-version-only command-palette flows for bring-your-own-key and bring-your-own-model setup
-- support a Lite distribution mode that uses remote Mistral Small 4 and managed Nanonets OCR-3 by default with no user key setup
-- configure OpenAI, Claude, Mistral, Nanonets, and local OpenAI-compatible endpoint credentials
-- store all secrets securely through the detected OS credential store
-- use macOS Keychain, Windows Credential Manager/DPAPI-backed storage, or Linux Secret Service/libsecret as appropriate
-- set default online provider and default model without a dedicated settings window or config file
-- test current connection and clear stored credentials
-- hide and reject developer provider mutation commands outside developer builds
-- keep Lite managed Nanonets credentials cross-platform in app-managed remote service infrastructure, not hardcoded into the app, repo, project files, or user keychain
+- add command-palette configuration for Developer BYOK/BYOM providers
+- support OpenAI, Claude, Mistral, Nanonets, and local OpenAI-compatible endpoints
+- store keys securely through the OS credential-store abstraction
+- keep Lite managed provider defaults separate from Developer keys
 
 Lane mapping:
 - `feat-developer-provider-config`: disabled until explicitly activated
 
 Exit criteria:
-- developer-only provider command contract is specified
-- Lite remote Mistral Small 4 provider contract is specified
-- Lite managed Nanonets OCR-3 provider contract is specified
-- cross-platform secure credential storage contract is specified
-- backend provider-router integration is specified
-- no runtime developer provider configuration behavior is active until the lane is enabled
+- provider commands, credential storage, provider defaults, connection tests, and clear-credential behavior are specified
+- Developer and Lite provider boundaries are specified
+- no runtime provider configuration behavior is active until the lane is enabled
 
-## Milestone 16: Desktop packaging for Developer and Lite
+## Milestone 16: Project Transfer Export/Import
+
+Status: MVP planned, disabled
+
+Scope:
+- add portable project export/import through a zip archive so users can move projects between machines
+- include project documents, basket entries, metadata, citations, codes, datasets, summaries, transcripts, literature records, provenance, and local project settings
+- exclude credentials, provider keys, local endpoints, managed Lite secrets, license refresh tokens, and machine-specific caches
+- include a manifest, schema version, content hashes, archive validation, and import preview before restore
+- support conflict handling for importing into an existing project or onto a machine that already has a project with the same identity
+- integrate with licensing: licenses are per user/account, not per machine and not bundled into the zip
+
+Lane mapping:
+- `feat-project-transfer`: disabled until explicitly activated as an MVP support feature
+
+Exit criteria:
+- export/import archive format, validation, preview, and restore rules are specified
+- credential/license exclusion and per-user licensing boundaries are specified
+- no runtime project export/import behavior is active until the lane is enabled
+
+## Milestone 17: Desktop packaging for Developer and Lite
 
 Status: planned, disabled
 
 Scope:
-- package Exegesis as a normal local desktop app with no terminal or localhost exposure for end users
-- support both Developer and Lite distributions
-- target macOS `.dmg`, Windows `.msi`, and Linux Flatpak release artifacts
-- bundle Python runtime, Exegesis Engine, Textual local server, pywebview native shell, and SQLite local storage
-- initialize app data and SQLite from platform-appropriate user app data directories
-- use Briefcase for platform packaging and GitHub Releases for binary distribution
-- keep Developer builds wired for Milestone 15 BYOK/BYOM provider configuration
-- keep Lite builds wired for remote Mistral Small 4 and managed Nanonets OCR-3 without user credential setup
-- coordinate startup and shutdown across engine, local server, pywebview, and SQLite
+- package Developer and Lite as normal local desktop apps around the locally served Textual UI
+- use pywebview, bundled Python runtime, SQLite app data, local server startup/shutdown, and GitHub Release artifacts
+- keep Lite managed-provider secrets outside the bundle and routed through the hosted License Gateway
+- keep Developer builds wired to Milestone 15 BYOK/BYOM provider configuration
+- keep cross-platform Developer/Lite packaging separate from the later macOS-only Studio Workstation
 
 Lane mapping:
 - `feat-desktop-packaging`: disabled until explicitly activated
 
 Exit criteria:
-- Developer and Lite packaging architecture is specified for macOS, Windows, and Linux
-- desktop runtime startup/shutdown contract is specified
-- platform app-data and SQLite packaging behavior is specified
-- Briefcase/GitHub Release artifact flow is specified
-- no runtime packaging behavior is active until the lane is enabled
+- Developer and Lite packaging architecture is specified
+- local runtime startup, shutdown, storage, release artifact, and profile boundaries are specified
+- no runtime desktop packaging behavior is active until the lane is enabled
 
-## Milestone 17: CoP Launch Gate
+## Milestone 18: Lite Website Licensing and CoP Launch Gate
 
 Status: planned, disabled
 
 Scope:
-- add initial Community of Practice unlimited Lite course access with no seat cap
-- keep Developer builds fully separate from hosted Lite workflows
-- add a Lite-only hosted License Gateway for license claim/refresh, managed Lite provider access, Paddle webhooks, and Nanonets page-credit state
-- route Lite remote Mistral Small 4 and Nanonets OCR-3 through gateway-managed credentials
-- keep Nanonets online OCR page-metered with a 150-page default balance for the initial CoP
-- allow fixed top-up packages of 150, 500, and 1000 pages through manual admin top-up and future Paddle checkout
-- specify ledger-based Nanonets page accounting, transaction-safe reservations, and idempotent job/webhook handling
-- show Nanonets page balance and estimated import page count in the Lite import window before OCR-backed import
-- define future Tally/manual approval/Claude cowork license-generation hooks without implementing them
+- add individual paid Lite licensing through the website and Paddle
+- add Studio and Pro subscription license inheritance so active Studio/Pro subscribers also receive Lite access for secondary machines
+- add course licensing through a single self-serve student link that instructors can give to enrolled students
+- add a course-license request workflow through a Tally form that Claude cowork can access through MCP for classification, preparation, and manual approval support
+- preserve the initial CoP unlimited Lite course access path
+- keep Nanonets online OCR page credits separate from course or Lite access
+- keep the hosted License Gateway as the Lite-only place for license claim/refresh, managed Mistral/Nanonets access, Paddle webhooks, and Nanonets page-credit state
+- make project transfer license-safe: imported project zips require the current user to have a valid license, but licenses are never machine-bound or included in project archives
 
 Lane mapping:
-- `feat-cop-lite-licensing`: disabled until explicitly activated
+- `feat-cop-lite-licensing`: disabled until explicitly activated as the CoP launch gate
 
 Exit criteria:
-- Lite-only hosted License Gateway contract is specified
-- Developer/Lite boundary is specified so Developer never calls hosted Lite workflows
-- initial CoP Lite access and course-access rules are specified
-- Nanonets page ledger, fixed top-ups, Paddle webhook, and import-window balance behavior are specified
+- individual paid Lite, Studio/Pro inherited Lite access, course licensing, initial CoP access, and Nanonets page-credit rules are specified
+- Paddle website purchase, course-license link, Tally/MCP approval workflow, and License Gateway contracts are specified
+- per-user licensing, subscription inheritance, and project-transfer boundaries are specified
 - no runtime licensing, gateway, Paddle, OCR metering, or shell behavior is active until the lane is enabled
 
-## Milestone 18: Browser PDF Capture Extension
+## Milestone 19: Browser PDF Capture Extension
 
 Status: post-MVP planned, disabled
 
 Scope:
-- add a minimal browser extension for Chrome, Firefox, and Safari that only sends the current PDF tab to Exegesis
-- keep the extension as a capture button, not a Zotero clone, translator system, scraper, or browser-side product surface
-- let Exegesis own direct/authenticated fetch handling, import, OCR, metadata extraction, project placement, deduping, and indexing
-- use loopback handoff first, with custom protocol/native messaging hooks available if browser security requires them
-- include extension artifacts in desktop packaging and guide browser-required install/enable flows without bypassing browser security prompts
-- support direct-fetchable PDFs first and preserve a later hook for browser-assisted authenticated PDF relay
+- add a tiny Chrome, Firefox, and Safari browser extension that sends the current PDF tab to Exegesis
+- keep the extension as a capture button only; Exegesis owns import, OCR, metadata, dedupe, and indexing
+- package browser-extension artifacts with the desktop app where browser security rules allow it
 
 Lane mapping:
 - `feat-browser-pdf-capture`: disabled until explicitly activated after the MVP launch gate
 
 Exit criteria:
-- Chrome, Firefox, and Safari capture flows are specified
-- extension popup behavior and PDF detection policy are specified
-- Exegesis handoff contract and pending browser import record are specified
-- packaging/install integration and browser security limits are specified
+- browser detection, handoff contract, packaging, and import handoff are specified
 - no runtime browser extension, local capture endpoint, native bridge, or import behavior is active until the lane is enabled
 
-
-## Milestone 19: Multi-Agent Open Access Deep Research
+## Milestone 20: Python Backend Sidecar API
 
 Status: post-MVP planned, disabled
 
 Scope:
-- add a local-first, multi-agent source discovery workflow for possible literature and web sources
-- search the current Exegesis project first, then selected other Exegesis projects, then configured open web and PDF/full-text scholarly providers
-- use a LangChain Open Deep Research-inspired supervisor/researcher architecture without generating final reports, summaries, or synthesis
-- support Tavily as the default agentic web provider when configured, with Brave, Exa, and PDF/full-text-capable scholarly providers as additive adapters
-- normalize, dedupe, rank, and explain candidate sources before user review
-- present source candidates as an import batch that enters the standard import/OCR/literature/RAG pipeline
+- add a localhost-only FastAPI sidecar for Python-backed features
+- package the sidecar as a macOS PyInstaller binary for Studio Workstation supervision
+- include health, readiness, version, feature manifest, shutdown, local auth, request limits, log redaction, and sidecar lifecycle contracts
+- require future Studio Python features to expose Workstation-facing behavior through the sidecar when applicable
 
 Lane mapping:
-- `feat-open-access-deep-research`: disabled until explicitly activated after the MVP launch gate
+- `feat-python-sidecar-api`: disabled until explicitly activated after the MVP launch gate
 
 Exit criteria:
-- local-first project search plus open web provider fan-out are specified
-- research supervisor, provider adapters, candidate normalization, dedupe, ranking, and audit models are specified
-- source batch review and standard import-protocol handoff are specified
-- privacy/project-mode/credential boundaries are specified
-- no runtime web search, multi-agent orchestration, provider API calls, source ranking, or import-batch behavior is active until the lane is enabled
+- sidecar endpoint, schema, security, lifecycle, packaging, and supervision contracts are specified
+- macOS Studio sidecar packaging expectations are specified
+- no runtime sidecar API or binary packaging behavior is active until the lane is enabled
 
-## Milestone 20: Quantitative Analysis
+## Milestone 21: Native Workstation and Signed Distribution
 
 Status: post-MVP planned, disabled
 
 Scope:
-- add `Datasets` as a first-class project browser section
-- import CSV files only, with dataset provenance and row/column guardrails
-- auto-detect variables as categorical, ordinal, or scale and allow user overrides in the dataset document view
-- show raw data in the document pane while the inspector configures analyses
-- support descriptive statistics, frequency and contingency tables, t-test, ANOVA, chi-squared, and linear correlation
-- generate simple markdown result tables plus bar charts, density curves, and scatter plots
-- show p-values and effect sizes for inferential tests with compact small/medium/large guidance
-- let users build an ordered analysis sequence and save it as a project summary
+- define the macOS-only native Workstation, branded as Studio, after the sidecar milestone
+- package the native SwiftUI interface, project storage, and Milestone 20 sidecar into a signed and notarized macOS distribution
+- evaluate STTextView as the preferred native editor foundation, with plugins for annotations, Markdown highlighting, diffs, citations, figures, and tables
+- ship through web distribution with checksums, release manifest, clean install, update/manual upgrade, crash/diagnostic, and data preservation guidance
+- remove Windows and Linux signing from this milestone; those are not Studio targets
+- keep this as a likely interactive sprint rather than broad daemon-driven packaging work
 
 Lane mapping:
-- `feat-quant-analysis`: disabled until explicitly activated after the MVP launch gate
+- `feat-native-workstation`: disabled until explicitly activated after the MVP launch gate
+
+Exit criteria:
+- macOS Studio lifecycle, signing, notarization, distribution, update, and sidecar supervision are specified
+- native editor foundation and STTextView plugin expectations are specified at a conceptual level
+- Windows/Linux Studio signing and packaging are out of scope
+- no runtime native Workstation, signing, updater, website distribution, or sidecar bundle behavior is active until the lane is enabled
+
+## Milestone 22: Multi-Agent Open Access Deep Research
+
+Status: Studio Pro planned, disabled
+
+Scope:
+- add local-first multi-agent source discovery after Studio is available
+- search current and selected Exegesis projects first, then open web/PDF-capable providers such as Tavily, Brave, Exa, and scholarly full-text/PDF sources
+- present deduped candidates as a reviewable source batch for the standard import protocol
+- avoid automated synthesis/report writing; the feature finds sources for user review and Exegesis-supported analysis
+- implement the review/control surface only in Studio's native SwiftUI interface
+
+Lane mapping:
+- `feat-open-access-deep-research`: disabled until explicitly activated after Studio is available
+
+Exit criteria:
+- local-first project search, provider fan-out, source normalization, dedupe, ranking, audit, and import-batch contracts are specified
+- privacy/project-mode/credential boundaries are specified
+- no runtime web search, multi-agent orchestration, provider API calls, ranking, or import-batch behavior is active until the lane is enabled
+
+## Milestone 23: Quantitative Analysis
+
+Status: Studio Pro planned, disabled
+
+Scope:
+- add first-class CSV dataset import, variable typing, lean statistics, basic charts, and saveable analysis sequences after Studio is available
+- support descriptive statistics, frequency and contingency tables, t-test, ANOVA, chi-squared, and linear correlation
+- show p-values, effect sizes, and compact small/medium/large guidance
+- implement dataset views, analysis configuration, and result sequences only in Studio's native SwiftUI interface
+
+Lane mapping:
+- `feat-quant-analysis`: disabled until explicitly activated after Studio is available
 
 Exit criteria:
 - dataset import, variable typing, analysis contracts, chart artifacts, sequence transcript, and summary export are specified
 - statsmodels/pandas/numpy/matplotlib execution boundaries are specified
 - local-only privacy/provider boundaries are specified
 - no runtime CSV import, statistical testing, chart generation, dataset UI, or analysis-summary behavior is active until the lane is enabled
+
+## Milestone 24: Advanced Qualitative Coding Visualizations
+
+Status: Studio Pro conceptual, disabled
+
+Scope:
+- add advanced qualitative coding visualizations after Studio and basic coding are available
+- support browsable graphs, code/document matrices, distribution tables, visual comparisons, and codebook generation
+- visualize parent/child code structure, co-occurrence, frequency distributions, examples, and code appearance across documents, document types, participants, and folders
+- provide native Studio SwiftUI browse, filter, compare, and export surfaces
+- keep Deep Research, Quantitative Analysis, and Advanced Qualitative Coding as the three Studio Pro feature families after Studio is available
+
+Lane mapping:
+- `feat-advanced-qual-visuals`: disabled until explicitly activated after Studio is available
+
+Exit criteria:
+- graph, matrix, distribution, comparison, and codebook concepts are specified
+- aggregation and visualization data contracts are specified
+- no runtime advanced coding visualization, matrix, codebook, or Studio Pro UI behavior is active until the lane is enabled
+
+## Milestone 25: Confidential Collaboration
+
+Status: post-Pro conceptual, disabled
+
+Scope:
+- define the later company-wide confidential collaboration system after Studio and the major Pro workflows are in place
+- preserve confidential-first project boundaries while eventually supporting shared projects, members, roles, permissions, comments, review decisions, and audit trails
+- specify encrypted/local-first sync or secure collaboration-service boundaries before implementation
+- make collaboration licensing account-based rather than machine-based, so a higher-licensed user can participate from Lite on a secondary machine when their account permits it
+- expose full collaboration management through Studio's native SwiftUI interface, while scoping a minimal Lite participation surface for licensed secondary-machine use
+- handle this as a design-first architecture sprint before normal daemon feature batching
+
+Lane mapping:
+- `feat-confidential-collaboration`: disabled until explicitly activated after Studio Pro usage feedback
+
+Exit criteria:
+- conceptual architecture, threat model, privacy boundary, data concepts, and activation prerequisites are specified
+- Studio/SwiftUI management surfaces and Lite participation boundaries are scoped
+- collaboration entitlement, license refresh, and client-capability rules are specified as account-based, not device-based
+- sidecar/service boundaries and auditability expectations are specified at a planning level
+- no runtime collaboration server, sync engine, sharing workflow, SwiftUI collaboration surface, or Textual shell collaboration behavior is active until the lane is enabled
+
+## Milestone 26: Native iPad Lite
+
+Status: long-term conceptual, disabled
+
+Scope:
+- define a native iPadOS Lite client after confidential collaboration and after enough Studio/Pro Swift-native infrastructure exists to reuse
+- account for the fact that iPad Lite cannot depend on the macOS Python sidecar packaging/supervision model
+- identify which Lite workflows must become Swift-native, gateway-backed, deferred, or unavailable on iPad
+- preserve account-based Lite access, including inherited Lite access for Studio/Pro subscribers on secondary devices
+- scope iPad Lite as a constrained secondary-machine client, not a Studio/Pro feature replacement
+
+Lane mapping:
+- `feat-ipad-native-lite`: disabled until explicitly activated after the collaboration conceptual milestone and native Studio/Pro foundations mature
+
+Exit criteria:
+- iPad Lite product boundary, entitlement model, sidecar limitations, and Swift-native reuse prerequisites are specified
+- project archive, license refresh, offline behavior, and collaboration participation boundaries are specified at a conceptual level
+- no runtime iPad app, Swift-native Lite client, App Store packaging, or sidecar replacement behavior is active until the lane is enabled
 
 Current operational narrowing:
 - Treat the canonical closure target as one engine-first demo path:
@@ -448,11 +537,17 @@ Current operational narrowing:
 - `feat-export`
 - `feat-formatting-bar`
 - `feat-developer-provider-config`
+- `feat-project-transfer`
 - `feat-desktop-packaging`
 - `feat-cop-lite-licensing`
 - `feat-browser-pdf-capture`
+- `feat-python-sidecar-api`
+- `feat-native-workstation`
 - `feat-open-access-deep-research`
 - `feat-quant-analysis`
+- `feat-advanced-qual-visuals`
+- `feat-confidential-collaboration`
+- `feat-ipad-native-lite`
 
 ## Retired planning targets
 - `feat-ux-flow`

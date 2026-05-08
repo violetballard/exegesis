@@ -26,11 +26,17 @@ LANES = [
     'feat-zotero-import',
     'feat-formatting-bar',
     'feat-developer-provider-config',
+    'feat-project-transfer',
     'feat-desktop-packaging',
     'feat-cop-lite-licensing',
     'feat-browser-pdf-capture',
+    'feat-python-sidecar-api',
+    'feat-native-workstation',
     'feat-open-access-deep-research',
     'feat-quant-analysis',
+    'feat-advanced-qual-visuals',
+    'feat-confidential-collaboration',
+    'feat-ipad-native-lite',
 ]
 
 def ensure_dirs():
@@ -60,11 +66,17 @@ def write_example_config():
     lanes_cfg["feat-zotero-import"]["enabled"] = False
     lanes_cfg["feat-formatting-bar"]["enabled"] = False
     lanes_cfg["feat-developer-provider-config"]["enabled"] = False
+    lanes_cfg["feat-project-transfer"]["enabled"] = False
     lanes_cfg["feat-desktop-packaging"]["enabled"] = False
     lanes_cfg["feat-cop-lite-licensing"]["enabled"] = False
     lanes_cfg["feat-browser-pdf-capture"]["enabled"] = False
+    lanes_cfg["feat-python-sidecar-api"]["enabled"] = False
+    lanes_cfg["feat-native-workstation"]["enabled"] = False
     lanes_cfg["feat-open-access-deep-research"]["enabled"] = False
     lanes_cfg["feat-quant-analysis"]["enabled"] = False
+    lanes_cfg["feat-advanced-qual-visuals"]["enabled"] = False
+    lanes_cfg["feat-confidential-collaboration"]["enabled"] = False
+    lanes_cfg["feat-ipad-native-lite"]["enabled"] = False
     for lane in ("feat-commands", "feat-retrieval-fts"):
         lanes_cfg[lane].update(
             {
@@ -171,7 +183,7 @@ def write_example_config():
         "use_cli_reviewer_fallback": True,
         "use_cli_integrator_fallback": True,
         "idle_seconds": 1.2,
-        "reviewer_timeout": 180,
+        "reviewer_timeout": 600,
         "integrator_timeout": 900,
         "max_cloud_fixer_kicks_per_run": 1,
         "max_local_fixer_kicks_per_run": 1,

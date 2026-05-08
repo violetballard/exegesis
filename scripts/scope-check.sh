@@ -207,6 +207,12 @@ is_allowed() {
       esac
       return 1
       ;;
+    codex/feat-project-transfer*)
+      case "$f" in
+        engine/src/exegesis_engine/project_transfer/*|engine/src/exegesis_engine/project_transfer/*/*|shared/src/exegesis_shared/project_transfer/*|shared/src/exegesis_shared/project_transfer/*/*|client-textual/src/exegesis_textual/project_transfer/*|client-textual/src/exegesis_textual/project_transfer/*/*|desktop-shell/workstation/project_transfer/*|desktop-shell/workstation/project_transfer/*/*|docs/project_transfer/*|docs/project_transfer/*/*) return 0 ;;
+      esac
+      return 1
+      ;;
     codex/feat-desktop-packaging*)
       case "$f" in
         desktop-shell/*|desktop-shell/*/*|scripts/packaging/*|scripts/packaging/*/*|scripts/release/*|scripts/release/*/*|docs/packaging/*|docs/packaging/*/*) return 0 ;;
@@ -225,15 +231,45 @@ is_allowed() {
       esac
       return 1
       ;;
+    codex/feat-python-sidecar-api*)
+      case "$f" in
+        engine/src/exegesis_engine/sidecar/*|engine/src/exegesis_engine/sidecar/*/*|shared/src/exegesis_shared/sidecar/*|shared/src/exegesis_shared/sidecar/*/*|desktop-shell/sidecar/*|desktop-shell/sidecar/*/*|scripts/sidecar/*|scripts/sidecar/*/*|docs/sidecar/*|docs/sidecar/*/*) return 0 ;;
+      esac
+      return 1
+      ;;
+    codex/feat-native-workstation*)
+      case "$f" in
+        desktop-shell/workstation/*|desktop-shell/workstation/*/*|desktop-shell/native/*|desktop-shell/native/*/*|desktop-shell/packaging/*|desktop-shell/packaging/*/*|scripts/workstation/*|scripts/workstation/*/*|scripts/packaging/*|scripts/packaging/*/*|scripts/release/*|scripts/release/*/*|docs/workstation/*|docs/workstation/*/*|docs/packaging/*|docs/packaging/*/*) return 0 ;;
+      esac
+      return 1
+      ;;
     codex/feat-open-access-deep-research*)
       case "$f" in
-        engine/src/exegesis_engine/research/*|engine/src/exegesis_engine/research/*/*|engine/src/exegesis_engine/research_providers/*|engine/src/exegesis_engine/research_providers/*/*|engine/src/exegesis_engine/import_batches/*|engine/src/exegesis_engine/import_batches/*/*|client-textual/src/exegesis_textual/research/*|client-textual/src/exegesis_textual/research/*/*|shared/src/exegesis_shared/research/*|shared/src/exegesis_shared/research/*/*|docs/research/*|docs/research/*/*) return 0 ;;
+        engine/src/exegesis_engine/research/*|engine/src/exegesis_engine/research/*/*|engine/src/exegesis_engine/research_providers/*|engine/src/exegesis_engine/research_providers/*/*|engine/src/exegesis_engine/import_batches/*|engine/src/exegesis_engine/import_batches/*/*|desktop-shell/workstation/research/*|desktop-shell/workstation/research/*/*|desktop-shell/workstation/import_batches/*|desktop-shell/workstation/import_batches/*/*|shared/src/exegesis_shared/research/*|shared/src/exegesis_shared/research/*/*|docs/research/*|docs/research/*/*) return 0 ;;
       esac
       return 1
       ;;
     codex/feat-quant-analysis*)
       case "$f" in
-        engine/src/exegesis_engine/datasets/*|engine/src/exegesis_engine/datasets/*/*|engine/src/exegesis_engine/quant_analysis/*|engine/src/exegesis_engine/quant_analysis/*/*|client-textual/src/exegesis_textual/datasets/*|client-textual/src/exegesis_textual/datasets/*/*|shared/src/exegesis_shared/datasets/*|shared/src/exegesis_shared/datasets/*/*|shared/src/exegesis_shared/quant_analysis/*|shared/src/exegesis_shared/quant_analysis/*/*|docs/quant_analysis/*|docs/quant_analysis/*/*) return 0 ;;
+        engine/src/exegesis_engine/datasets/*|engine/src/exegesis_engine/datasets/*/*|engine/src/exegesis_engine/quant_analysis/*|engine/src/exegesis_engine/quant_analysis/*/*|desktop-shell/workstation/datasets/*|desktop-shell/workstation/datasets/*/*|desktop-shell/workstation/quant_analysis/*|desktop-shell/workstation/quant_analysis/*/*|shared/src/exegesis_shared/datasets/*|shared/src/exegesis_shared/datasets/*/*|shared/src/exegesis_shared/quant_analysis/*|shared/src/exegesis_shared/quant_analysis/*/*|docs/quant_analysis/*|docs/quant_analysis/*/*) return 0 ;;
+      esac
+      return 1
+      ;;
+    codex/feat-advanced-qual-visuals*)
+      case "$f" in
+        engine/src/exegesis_engine/qual_visualizations/*|engine/src/exegesis_engine/qual_visualizations/*/*|engine/src/exegesis_engine/codebook/*|engine/src/exegesis_engine/codebook/*/*|desktop-shell/workstation/qual_visualizations/*|desktop-shell/workstation/qual_visualizations/*/*|shared/src/exegesis_shared/qual_visualizations/*|shared/src/exegesis_shared/qual_visualizations/*/*|docs/qual_visualizations/*|docs/qual_visualizations/*/*) return 0 ;;
+      esac
+      return 1
+      ;;
+    codex/feat-confidential-collaboration*)
+      case "$f" in
+        engine/src/exegesis_engine/collaboration/*|engine/src/exegesis_engine/collaboration/*/*|engine/src/exegesis_engine/confidential_sync/*|engine/src/exegesis_engine/confidential_sync/*/*|desktop-shell/workstation/collaboration/*|desktop-shell/workstation/collaboration/*/*|shared/src/exegesis_shared/collaboration/*|shared/src/exegesis_shared/collaboration/*/*|shared/src/exegesis_shared/confidential_sync/*|shared/src/exegesis_shared/confidential_sync/*/*|docs/collaboration/*|docs/collaboration/*/*) return 0 ;;
+      esac
+      return 1
+      ;;
+    codex/feat-ipad-native-lite*)
+      case "$f" in
+        client-ipad/lite/*|client-ipad/lite/*/*|client-ipad/shared/*|client-ipad/shared/*/*|shared/src/exegesis_shared/ipad_lite/*|shared/src/exegesis_shared/ipad_lite/*/*|docs/ipad_lite/*|docs/ipad_lite/*/*) return 0 ;;
       esac
       return 1
       ;;

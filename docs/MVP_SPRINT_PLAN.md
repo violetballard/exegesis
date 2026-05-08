@@ -106,6 +106,7 @@ Exit criteria:
 
 Activate together:
 - `feat-developer-provider-config`
+- `feat-project-transfer`
 - `feat-desktop-packaging`
 
 Goal:
@@ -115,10 +116,13 @@ Shared integration target:
 - Developer build supports BYOK/BYOM provider setup through command-palette flows.
 - Lite build uses fixed remote Mistral Small 4 and managed Nanonets OCR-3 provider paths.
 - API keys and local endpoint credentials use OS credential storage.
+- Project export/import creates portable zip archives for moving projects between machines.
+- Project archives never include credentials, provider keys, local endpoints, license tokens, or managed Lite secrets.
 - Packaged app launches as a desktop app without terminal or localhost exposure.
 
 Exit criteria:
 - Developer and Lite provider modes are separated and testable.
+- Project transfer is license-safe: licenses are per user/account, not per machine or archive.
 - macOS packaging path works first, with Windows/Linux specs ready for follow-up.
 - SQLite app data, local server startup, pywebview shell, and shutdown are packaged-runtime safe.
 - A user can install and launch the app without developer tooling.
@@ -132,6 +136,10 @@ Goal:
 - Let the first Community of Practice actually use Lite, with access and Nanonets usage controlled enough for beta launch.
 
 Shared integration target:
+- Individual users can purchase Lite through the website and Paddle.
+- Studio and Pro subscribers automatically receive Lite access for secondary-machine use without a separate Lite purchase.
+- Instructors can receive course licensing approval and distribute one self-serve link to students.
+- Tally intake is available through MCP for Claude cowork-assisted course-license review and manual approval preparation.
 - Admin can issue initial CoP Lite access.
 - Lite app can claim and refresh license status through the hosted Lite License Gateway.
 - Initial CoP has unlimited Lite course access with no seat cap.
@@ -142,9 +150,11 @@ Shared integration target:
 
 Exit criteria:
 - Initial CoP can access Lite course materials.
+- Individual paid Lite users and course-link students can claim Lite access through the License Gateway.
+- Studio/Pro users can refresh inherited Lite access through the License Gateway on secondary machines.
 - Nanonets usage is ledger-based and cannot silently overspend.
 - Paddle webhook/top-up handling is idempotent.
-- CoP Lite access and Nanonets page credits remain separate systems.
+- Individual/course/CoP Lite access, project transfer, and Nanonets page credits remain separate systems.
 - The first CoP can start using Exegesis without per-machine hand-holding.
 
 ## Activation Rules
@@ -165,9 +175,19 @@ Sprint 5 is the summer launch gate. After Sprint 5, stop adding new planned feat
 These lanes are deliberately outside Sprint 0-5 and should not be activated until after the CoP launch gate produces real usage feedback.
 
 - `feat-browser-pdf-capture`
+- `feat-python-sidecar-api`
+- `feat-native-workstation`
 - `feat-open-access-deep-research`
 - `feat-quant-analysis`
+- `feat-advanced-qual-visuals`
+- `feat-confidential-collaboration`
+- `feat-ipad-native-lite`
 
-Milestone 18 lives in `docs/POST_MVP_FEATURES_SPEC.md` and specifies a tiny browser PDF capture extension for Chrome, Firefox, and Safari.
-Milestone 19 lives in the same post-MVP spec and specifies local-first multi-agent open access source discovery that hands deduped candidates to the standard import protocol.
-Milestone 20 lives in the same post-MVP spec and specifies first-class CSV dataset import, lean quantitative analysis, basic charts, and saveable analysis sequences.
+Milestone 19 lives in `docs/POST_MVP_FEATURES_SPEC.md` and specifies a tiny browser PDF capture extension for Chrome, Firefox, and Safari.
+Milestone 20 lives in the same post-MVP spec and specifies a localhost-only FastAPI sidecar packaged by PyInstaller and supervised by macOS Studio Workstation.
+Milestone 21 lives in the same post-MVP spec and specifies the macOS-only native Workstation/Studio distribution sprint for signed web-distributed builds that bundle the sidecar.
+Milestone 22 lives in the same post-MVP spec and specifies local-first multi-agent open access source discovery that hands deduped candidates to the standard import protocol through the sidecar.
+Milestone 23 lives in the same post-MVP spec and specifies first-class CSV dataset import, lean quantitative analysis, basic charts, and saveable analysis sequences through the sidecar.
+Milestone 24 lives in the same post-MVP spec and specifies advanced qualitative coding visualizations, matrices, distribution tables, comparisons, and codebook generation.
+Milestone 25 lives in the same post-MVP spec and specifies the later company-wide confidential collaboration design sprint for Studio/SwiftUI shared project work.
+Milestone 26 lives in the same post-MVP spec and specifies long-term native iPad Lite after collaboration, once Studio/Pro Swift-native components can replace sidecar-dependent behavior.

@@ -745,7 +745,8 @@ def _maybe_restore_cloud(
 def _offline_reviewer_fallback(pkt: str, reason: str) -> str:
     """Produce a deterministic reviewer packet when reviewer threads are unavailable.
 
-    This keeps the pipeline moving during quota windows instead of stalling.
+    This keeps the pipeline visible during quota windows without approving work
+    that did not receive an actual reviewer pass.
     """
     t = pkt or ""
     tl = t.lower()
@@ -781,24 +782,8 @@ def _offline_reviewer_fallback(pkt: str, reason: str) -> str:
     has_fail_markers = any(m in tl for m in fail_markers)
     has_blocker = "blocker" in tl and not ("no blocker" in tl or "none" in tl)
 
-    approve = not missing_fields and not missing_cmds and not has_fail_markers and not has_blocker
-    if approve:
-        return (
-            "Verdict: `APPROVED`\n\n"
-            "Findings\n"
-            "- Reviewer was unavailable; offline policy fallback validated packet structure and required gates.\n\n"
-            "Missing handoff fields (if any)\n"
-            "- none\n\n"
-            "Required fixes before re-review (numbered, actionable)\n"
-            "1. none\n\n"
-            "If approved: merge order + any post-merge checks (include merge risk)\n"
-            "1. Merge this lane after existing queued approvals.\n"
-            "2. Re-run `make ci` on integrator branch.\n"
-            "3. Merge risk: medium (reviewer fallback used due quota window).\n\n"
-            f"Fallback reason: {reason}\n"
-        )
-
     fixes: List[str] = []
+    fixes.append("Re-run this packet through a live reviewer; offline fallback cannot approve integration.")
     if missing_fields:
         fixes.append(f"Add missing handoff fields: {', '.join(missing_fields)}.")
     if missing_cmds:
@@ -820,6 +805,25 @@ def _offline_reviewer_fallback(pkt: str, reason: str) -> str:
         + "\n\nRequired fixes before re-review (numbered, actionable)\n"
         + fixes_txt
         + f"\n\nFallback reason: {reason}\n"
+    )
+
+
+def _requires_live_reviewer_rerun(note_text: str) -> bool:
+    """Return True for synthetic review notes that are not fixer work.
+
+    Offline reviewer fallback is intentionally conservative: it blocks approval
+    when a live review is unavailable. Sending that synthetic note to a feature
+    fixer creates a loop because the fixer cannot satisfy "re-run live review"
+    by changing code.
+    """
+    text = (note_text or "").lower()
+    return (
+        "offline fallback cannot approve integration" in text
+        or (
+            "reviewer was unavailable" in text
+            and "fallback reason:" in text
+            and "live reviewer" in text
+        )
     )
 
 def reviewer_prompt(pkt: str) -> str:
@@ -1366,6 +1370,9 @@ def _prepare_cli_reviewer_result(
                 _quota_retry_epoch(cfg, quota_text),
             )
             print(f"[router] cloud reviewer job for {lane} hit quota; cloud pool unavailable, local work continues: {reason}")
+            return False, "", state
+        if local:
+            print(f"[router] local reviewer job for {lane} failed; packet remains pending for live re-review: {reason}")
             return False, "", state
         print(f"[router] {mode_label} reviewer job for {lane} failed, using offline fallback: {reason}")
         return True, _offline_reviewer_fallback(pkt, reason), state
@@ -2226,6 +2233,9 @@ def process_reviewer_backlog(
             note_text = newest_note.read_text(errors="ignore")
         except Exception:
             note_text = ""
+        if _requires_live_reviewer_rerun(note_text):
+            print(f"[router] {lane}: reviewer fallback note requires live re-review; not kicking fixer")
+            continue
         if parse_verdict(note_text) == "APPROVED":
             # Approved reviewer notes belong to the integrator path; they are
             # not feature-fixer work and should not consume the one-kick budget.

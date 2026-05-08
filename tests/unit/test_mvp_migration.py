@@ -564,6 +564,25 @@ class CoordinatorDaemonBehaviorTests(unittest.TestCase):
         self.assertIn("reviewer-cloud", build_calls)
         self.assertIn("integrator-cloud", build_calls)
 
+    def test_run_router_direct_falls_back_to_subprocess_when_profiles_are_cli_only(self) -> None:
+        from codex_packet_handoff.tools import agents_coordinator as coordinator
+
+        ctx = SimpleNamespace()
+        with (
+            patch.object(
+                coordinator,
+                "_run_router_direct_once",
+                side_effect=coordinator.DirectRouterUnsupported("current runtime uses opencode"),
+            ),
+            patch.object(coordinator, "_run_router_subprocess", return_value=(0, "[router] queued local reviewer job\n", 1)) as subprocess_router,
+        ):
+            rc, out, attempts = coordinator._run_router_direct(ctx, retries=2)
+
+        self.assertEqual(rc, 0)
+        self.assertIn("queued local reviewer", out)
+        self.assertEqual(attempts, 1)
+        subprocess_router.assert_called_once_with(2)
+
     def test_launch_free_lanes_relaunches_idle_lane_without_active_feature_session(self) -> None:
         from codex_packet_handoff.tools.agents_coordinator import _launch_free_lanes
 
@@ -781,6 +800,77 @@ class CoordinatorStateReconcileTests(unittest.TestCase):
 
 
 class RouterReviewerBootstrapTests(unittest.TestCase):
+    def test_offline_reviewer_fallback_never_approves_without_live_review(self) -> None:
+        from codex_packet_handoff.tools import router
+
+        packet = "\n".join(
+            [
+                "## Tasks completed",
+                "1. Did the thing.",
+                "## Files changed",
+                "- src/qual/retrieval/service.py",
+                "## Commands run and outcomes",
+                "- `./quality-format.sh --check`: PASS",
+                "- `./quality-lint.sh`: PASS",
+                "- `./quality-test.sh`: PASS",
+                "- `./typecheck-test.sh`: PASS",
+                "- `make ci`: PASS",
+                "## Risks / blockers",
+                "- Blockers: none",
+            ]
+        )
+
+        result = router._offline_reviewer_fallback(packet, "timed out after 180.0s")
+
+        self.assertIn("Verdict: `CHANGES_REQUESTED`", result)
+        self.assertIn("live reviewer", result)
+        self.assertNotIn("Verdict: `APPROVED`", result)
+
+    def test_offline_reviewer_fallback_note_is_not_fixer_work(self) -> None:
+        from codex_packet_handoff.tools import router
+
+        note = router._offline_reviewer_fallback("feature packet", "timed out after 600.0s")
+
+        self.assertTrue(router._requires_live_reviewer_rerun(note))
+
+    def test_local_reviewer_failure_keeps_packet_pending(self) -> None:
+        from codex_packet_handoff.tools import router
+
+        with tempfile.TemporaryDirectory() as tmp:
+            root = Path(tmp)
+            result_path = root / "review.result.json"
+            output_path = root / "review.out.log"
+            result_path.write_text('{"status": "error", "rc": 1, "error": "timed out"}', encoding="utf-8")
+            output_path.write_text("", encoding="utf-8")
+            pkt = root / "F__codex-feat-retrieval-fts__abc1234__20260508T000000Z.md"
+            pkt.write_text("Feature packet", encoding="utf-8")
+            cfg = SimpleNamespace(auto_switch_to_local_on_quota=True)
+            state = {
+                "runtime_mode": "local_fallback",
+                "local_reviewer_jobs": {
+                    "feat-retrieval-fts": {
+                        "packet_name": pkt.name,
+                        "pid": 999999,
+                        "result_path": str(result_path),
+                        "output_path": str(output_path),
+                    }
+                },
+            }
+
+            ready, reviewer_text, new_state = router._prepare_cli_reviewer_result(
+                cfg,
+                state,
+                "/repo",
+                "feat-retrieval-fts",
+                pkt,
+                "Feature packet",
+                local=True,
+            )
+
+        self.assertFalse(ready)
+        self.assertEqual(reviewer_text, "")
+        self.assertEqual(new_state["local_reviewer_jobs"], {})
+
     def test_process_once_prefers_cli_reviewer_in_cloud_mode(self) -> None:
         from codex_packet_handoff.tools import router
 

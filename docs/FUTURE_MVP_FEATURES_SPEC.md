@@ -1036,7 +1036,142 @@ No-settings-window rule:
 - Clear stored credentials removes all provider keys, endpoint metadata, defaults, and validation status.
 - No raw API keys appear in logs, project files, router config, transcripts, or test snapshots.
 
-## Milestone 16: Desktop Packaging For Developer And Lite
+## Milestone 16: Project Transfer Export/Import
+
+Lane: `feat-project-transfer` (disabled)
+
+Intent:
+- Add project export/import through a portable zip archive so users can move projects between machines.
+- Keep this as an MVP support feature because users will need a simple non-cloud transfer path.
+- Preserve confidential-first behavior by excluding credentials, license tokens, provider keys, local endpoints, managed Lite secrets, and machine-specific caches.
+- Integrate with Lite licensing: a project archive never carries a license; the receiving user/machine must authenticate or refresh license status separately.
+
+Non-activation rule:
+- This milestone is specification and lane scaffolding only.
+- Do not implement runtime project export, project import, archive creation, or archive restore until this lane is explicitly enabled.
+
+### Archive Contract
+
+Archive format:
+- zip file with one required `exegesis-project-manifest.json` at the root.
+- project content stored under stable top-level directories.
+- all paths inside the archive must be relative, normalized, and free of path traversal.
+
+Manifest fields:
+- `archive_schema_version`
+- `created_by_app_version`
+- `project_id`
+- `project_title`
+- `exported_at`
+- `exported_by_user_id`: nullable/redacted where appropriate
+- `project_mode`
+- `document_counts_by_type`
+- `content_hashes`
+- `included_sections`
+- `excluded_sections`
+- `license_included`: must always be false
+- `credentials_included`: must always be false
+
+Archive may include:
+- drafts, memos, summaries, transcripts, literature, and imported documents
+- basket entries and context sets
+- citation metadata and bibliography records
+- qualitative codes and code assignments when coding exists
+- datasets and analysis sequences when quantitative analysis exists
+- project-local assets such as figures, OCR outputs, generated charts, and attachments
+- project settings that are safe to move between machines
+- provenance, audit-safe import records, and source metadata
+
+Archive must not include:
+- API keys
+- local OpenAI-compatible endpoint URLs if marked device-private
+- provider credentials
+- macOS Keychain, Windows Credential Manager, Linux Secret Service references that imply raw secret availability
+- Lite License Gateway refresh tokens
+- managed Mistral/Nanonets gateway secrets
+- Paddle payment identifiers beyond safe license status references
+- machine-specific caches
+- daemon state, packet queues, or development worktrees
+
+### Export Flow
+
+Export behavior:
+1. User chooses project export.
+2. App validates that project storage is in a consistent state.
+3. App builds a manifest and content hash list.
+4. App writes a zip to a user-selected destination.
+5. App shows a confirmation with archive path, size, and excluded sensitive categories.
+
+Export options:
+- include generated assets: default true
+- include analysis/chart artifacts: default true when present
+- include audit/provenance records: default true
+- include cached retrieval indexes: default false
+
+### Import Flow
+
+Import behavior:
+1. User selects an Exegesis project zip.
+2. App validates manifest, schema version, hashes, and safe paths.
+3. App shows an import preview with project title, sections, counts, size, and warnings.
+4. User chooses import as new project or merge/replace only if supported.
+5. App restores content into local project storage.
+6. App refreshes current user license status separately if Lite licensing is required.
+
+Conflict behavior:
+- default to import as a new project when project ID or slug already exists.
+- never overwrite an existing project without explicit confirmation.
+- preserve original project ID inside metadata while assigning a local instance ID if needed.
+
+### Licensing Integration
+
+Licensing rules:
+- Licenses are per user/account, not per machine.
+- Licenses are not bundled into project zip files.
+- Imported projects do not grant Lite, course, Pro, Studio, Nanonets, or provider access.
+- Lite users importing a project must still have a valid Lite license for gated features.
+- Nanonets page credits stay with the user's gateway account, not the project archive.
+- Developer users must configure credentials on each machine through Milestone 15 flows.
+
+Required copy:
+- `Project archives do not include API keys, license tokens, or local provider credentials.`
+- `Your Exegesis license is tied to your user account, not this machine or project file.`
+- `This project was imported. Refresh your license before using Lite-only features.`
+
+### Implementation Batches
+
+1. Spec and lane scaffolding
+   - Add docs, disabled lane registration, ownership, profile, and scope policy.
+2. Manifest and archive schema
+   - Define manifest, archive layout, safe-path validation, hashes, and version compatibility.
+3. Export builder
+   - Add deterministic project content collection and zip writing.
+4. Import validator and preview
+   - Add manifest/hash validation and import preview data.
+5. Restore behavior
+   - Add import-as-new and conflict-safe restore.
+6. Licensing boundary integration
+   - Ensure archives exclude license tokens and imported projects require current user license status.
+7. Tests
+   - Cover export, import, unsafe archives, conflict handling, and secret exclusion.
+
+### Test Plan
+
+- `feat-project-transfer` exists in lane defaults and profiles.
+- `feat-project-transfer` is disabled in router config.
+- Export produces a zip with a root manifest.
+- Export includes expected project documents and metadata.
+- Export excludes credentials, provider keys, local endpoints, license tokens, managed Lite secrets, and machine caches.
+- Import rejects non-zip files.
+- Import rejects missing or invalid manifests.
+- Import rejects path traversal entries.
+- Import rejects hash mismatches.
+- Import preview shows title, sections, counts, size, and warnings.
+- Import-as-new works when the project already exists locally.
+- Imported project does not grant license access.
+- Lite-only features require current user license refresh after import.
+
+## Milestone 17: Desktop Packaging For Developer And Lite
 
 Lane: `feat-desktop-packaging` (disabled)
 
@@ -1237,16 +1372,21 @@ Runtime status:
 - Lite build hides provider mutation commands and uses Lite remote Mistral Small 4 plus managed Nanonets OCR-3 provider mode.
 - GitHub Release script collects artifacts and checksums.
 
-## Milestone 17: CoP Launch Gate
+## Milestone 18: Lite Website Licensing And CoP Launch Gate
 
 Lane: `feat-cop-lite-licensing` (disabled)
 
 Intent:
-- Add a fully specified but disabled Lite licensing lane for the initial Community of Practice beta group.
+- Add a fully specified but disabled Lite licensing lane for individual paid Lite users, course licensing, and the initial Community of Practice beta group.
+- Support individual paid Lite purchases through the Exegesis website and Paddle.
+- Support future Studio and Pro subscriptions as account licenses that include Lite client access for secondary machines.
+- Support course licensing through one instructor-distributed self-serve link that students can use to claim access.
+- Support course-license request intake through a Tally form accessible via MCP for Claude cowork-assisted classification and manual approval preparation.
 - Give initial CoP users unlimited Lite course access without seat limits.
 - Keep Nanonets online OCR page-metered with a 150-page default balance and fixed top-up packages.
 - Require a Lite-only hosted License Gateway for license distribution, managed Lite provider access, Paddle webhooks, and Nanonets page ledger state.
 - Keep Developer builds completely separate from hosted Lite workflows.
+- Treat licenses as per-user/account entitlements, not per-machine activations.
 
 Non-activation rule:
 - This milestone is specification and lane scaffolding only.
@@ -1274,6 +1414,13 @@ Lite builds:
 Required constants:
 - `INITIAL_COP_ID = "initial-cop"`
 - `UNLIMITED_LITE_COP_LICENSE = "unlimited_lite_cop"`
+- `INDIVIDUAL_LITE_LICENSE = "individual_lite"`
+- `COURSE_LITE_LICENSE = "course_lite"`
+- `STUDIO_SUBSCRIPTION_LICENSE = "studio_subscription"`
+- `PRO_SUBSCRIPTION_LICENSE = "pro_subscription"`
+- `LITE_CLIENT_ACCESS_ENTITLEMENT = "lite_client_access"`
+- `STUDIO_APP_ACCESS_ENTITLEMENT = "studio_app_access"`
+- `PRO_FEATURE_ACCESS_ENTITLEMENT = "pro_feature_access"`
 - `DEFAULT_NANONETS_PAGE_LIMIT = 150`
 - `NANONETS_TOP_UP_PACKAGES = [150, 500, 1000]`
 
@@ -1287,11 +1434,72 @@ Top-up package rule:
 - Manual/admin top-ups and future Paddle top-ups both use the same package list.
 - Arbitrary top-up quantities are rejected in v1 unless a later super-admin adjustment path is explicitly added.
 
+Project transfer licensing rule:
+- Project zip archives never contain license tokens, refresh tokens, Paddle state, managed provider credentials, or machine activation data.
+- A user importing a project on another machine must still claim or refresh their own Lite license.
+- A project archive cannot transfer paid Lite, course Lite, Initial CoP, Nanonets page credits, or future Studio or Pro entitlements.
+
+### License Hierarchy And Included Lite Access
+
+Studio and Pro subscriptions must include Lite access as an inherited account entitlement:
+- A user with an active Studio subscription can install and use Lite on a secondary machine without buying a separate Lite license.
+- A user with an active Pro subscription can install and use Lite on a secondary machine without buying a separate Lite license.
+- This is account-based access, not machine activation. Secondary-device use must not require a second license for the same user.
+- The Lite app validates inherited access by calling the same License Gateway `claim` or `refresh` path used by ordinary Lite users.
+- The License Gateway response must clearly distinguish direct Lite licenses from inherited Lite access so support, telemetry, and UI copy can explain why the user has Lite access.
+
+License types:
+- `individual_lite`
+  - Direct paid Lite license.
+  - Grants `lite_client_access`.
+- `course_lite`
+  - Course-scoped Lite access claimed through an instructor-distributed student link.
+  - Grants course-scoped `lite_client_access`.
+- `unlimited_lite_cop`
+  - Initial CoP Lite course access with no seat cap.
+  - Grants CoP-scoped `lite_client_access`.
+- `studio_subscription`
+  - Paid Studio subscription.
+  - Grants `studio_app_access`.
+  - Also derives `lite_client_access` for secondary-machine use.
+- `pro_subscription`
+  - Paid Pro subscription.
+  - Grants `studio_app_access` and `pro_feature_access`.
+  - Also derives `lite_client_access` for secondary-machine use.
+
+Derived entitlement rules:
+- `lite_client_access` is true when any active direct or inherited Lite-granting license exists.
+- Multiple licenses may grant the same entitlement; the gateway must return all active sources and a normalized effective entitlement.
+- Revoking or cancelling a Studio/Pro subscription removes the inherited Lite access on the next successful refresh, subject only to signed-cache grace-period rules.
+- Inherited Lite access does not create unlimited Nanonets page usage. Online OCR remains governed by the user's or account's Nanonets page balance unless a specific subscription package later includes an explicit page allocation.
+- Inherited Lite access does not transfer Studio-only or Pro-only features into the Lite client. The Lite client may show only Lite-supported capabilities unless the final client-capability matrix explicitly allows more.
+
+Required gateway entitlement response shape:
+- `account_id`
+- `effective_entitlements`
+  - includes `lite_client_access`
+  - may include `studio_app_access`
+  - may include `pro_feature_access`
+- `license_sources`
+  - each source includes `license_type`, `status`, `scope`, `grants`, `expires_at` where applicable, and `derived_entitlements`
+- `client_capabilities`
+  - `lite`
+  - `studio`
+  - `pro`
+- `refresh_expires_at`
+- `signed_cache`
+
+Required copy:
+- `Lite access is included with your Studio subscription.`
+- `Lite access is included with your Pro subscription.`
+- `Your Exegesis license is tied to your account, not this machine.`
+- `Refresh your license to use Lite on this machine.`
+
 ### Course Licensing Model
 
 Add license/entitlement concepts:
 - `LicenseType`
-  - includes `unlimited_lite_cop`
+  - includes `individual_lite`, `course_lite`, `unlimited_lite_cop`, `studio_subscription`, and `pro_subscription`
 - `License`
   - `id`
   - `type`
@@ -1317,11 +1525,114 @@ Initial seed:
 - Grant only Lite course content.
 
 Access rules:
+- Individual paid Lite users can access Lite content attached to their active account license.
+- Studio subscribers can access Lite through inherited `lite_client_access`.
+- Pro subscribers can access Lite through inherited `lite_client_access`.
+- Course Lite users can access Lite content through an active course enrollment claim.
 - Initial CoP users can access Lite course content.
 - Initial CoP users cannot access Full content through this license alone.
 - Non-CoP users do not receive this Lite license.
 - Existing full-access behavior still wins when separately present.
 - Course access checks are engine/server-authoritative; UI labels are not authorization.
+
+### Individual Paid Lite Licensing
+
+Website/Paddle flow:
+1. User purchases Lite through the Exegesis website.
+2. Paddle checkout completes payment.
+3. Paddle webhook posts to the License Gateway.
+4. Gateway verifies signature and idempotency.
+5. Gateway creates or updates the user's `individual_lite` license.
+6. Lite app claims or refreshes license status through the gateway.
+
+Rules:
+- Paddle is the only paid provider for v1.
+- Payment webhooks must be idempotent and signature-verified.
+- License state is tied to user/account identity, not device identity.
+- Project import/export does not carry paid license state.
+- Refund/cancel/revocation behavior should update gateway license status on next refresh.
+
+### Studio And Pro Subscription Lite Access
+
+Studio/Pro subscription flow:
+1. User subscribes to Studio or Pro through the Exegesis website and Paddle.
+2. Paddle checkout completes payment.
+3. Paddle webhook posts to the License Gateway.
+4. Gateway verifies signature and idempotency.
+5. Gateway creates or updates the user's `studio_subscription` or `pro_subscription` license.
+6. Gateway derives `lite_client_access` from the active Studio/Pro license.
+7. Lite app on a secondary machine refreshes license status through the gateway.
+8. Lite app enables Lite capabilities without requiring a separate Lite purchase.
+
+Rules:
+- Studio and Pro subscriptions are account licenses.
+- Studio and Pro subscriptions include Lite access for secondary-machine use.
+- The Lite app must not require a standalone `individual_lite` license when a valid Studio or Pro source grants inherited Lite access.
+- The Lite app must present the inherited Lite source in status/help copy when relevant.
+- The Studio app must not depend on the Lite client to validate Studio/Pro access; Studio validates its own entitlement from the same gateway.
+- Revocation, cancellation, refund, or failed renewal of Studio/Pro must remove inherited Lite access on next refresh, subject only to signed-cache grace-period rules.
+- Studio/Pro inherited Lite access does not automatically grant course enrollment, CoP membership, or unlimited Nanonets pages.
+- Studio/Pro inherited Lite access does not imply that Pro-only features are available in the Lite client.
+
+Data concepts:
+- `StudioSubscriptionLicense`
+  - user/account id
+  - Paddle customer/subscription/transaction reference
+  - status: active, cancelled, past_due, refunded, revoked, expired
+  - grants: `studio_app_access`, derived `lite_client_access`
+  - created/updated timestamps
+- `ProSubscriptionLicense`
+  - user/account id
+  - Paddle customer/subscription/transaction reference
+  - status: active, cancelled, past_due, refunded, revoked, expired
+  - grants: `studio_app_access`, `pro_feature_access`, derived `lite_client_access`
+  - created/updated timestamps
+- `EffectiveEntitlement`
+  - user/account id
+  - entitlement id
+  - active boolean
+  - source license ids
+  - client capabilities
+  - expires_at or refresh deadline
+
+### Course Licensing
+
+Course licensing flow:
+1. Instructor or program requests course access through a Tally form.
+2. Claude cowork can access the Tally intake via MCP to classify the request, prepare approval notes, and draft follow-up.
+3. Human approval remains required.
+4. Approved course receives one self-serve student claim link.
+5. Instructor gives that single link to enrolled students.
+6. Students claim Lite access through the License Gateway.
+
+Data concepts:
+- `CourseLicense`
+  - `id`
+  - `course_id`
+  - `instructor_email`
+  - `institution`
+  - `course_title`
+  - `term`
+  - `status`: requested, approved, rejected, revoked, expired
+  - `student_claim_link_id`
+  - `created_at`, `updated_at`
+- `StudentClaimLink`
+  - opaque claim token
+  - course license id
+  - status: active, paused, revoked, expired
+  - optional max claim count if later needed; default v1 is uncapped unless manually configured
+- `CourseEnrollmentClaim`
+  - student user/account id
+  - course license id
+  - claimed_at
+  - active
+
+Rules:
+- One self-serve link per approved course is the v1 instructor distribution mechanism.
+- Students do not need individual manual invites when using the course link.
+- Course link access grants Lite course access only, not Full, Studio, or Pro access.
+- Course license approval workflow is external/manual in v1; the app spec only defines gateway-compatible hooks.
+- Tally/MCP/Claude cowork automation is workflow support, not an authorization source. Gateway/admin approval remains authoritative.
 
 Required access copy:
 - `Lite access included through Initial CoP`
@@ -1334,6 +1645,9 @@ Required access copy:
 Lite requires a small hosted License Gateway because managed provider credentials and Paddle webhooks cannot safely live inside the desktop app.
 
 Gateway responsibilities:
+- Store individual paid Lite licenses.
+- Store Studio and Pro subscription licenses that include inherited Lite access.
+- Store approved course licenses and student claim links.
 - Store initial CoP license grants.
 - Generate license invite links or codes.
 - Claim and refresh Lite license status.
@@ -1343,6 +1657,35 @@ Gateway responsibilities:
 - Keep managed provider keys out of Lite app bundles, local logs, project files, transcripts, and local license cache.
 
 Gateway data concepts:
+- `IndividualLiteLicense`
+  - user/account id
+  - Paddle customer/subscription/transaction reference where applicable
+  - active/revoked/cancelled/refunded state
+  - created/updated timestamps
+- `StudioSubscriptionLicense`
+  - user/account id
+  - Paddle customer/subscription/transaction reference
+  - active/cancelled/past-due/refunded/revoked state
+  - derived Lite access flag
+  - created/updated timestamps
+- `ProSubscriptionLicense`
+  - user/account id
+  - Paddle customer/subscription/transaction reference
+  - active/cancelled/past-due/refunded/revoked state
+  - Studio access flag
+  - Pro feature access flag
+  - derived Lite access flag
+  - created/updated timestamps
+- `CourseLicense`
+  - approved course/program record
+  - instructor contact
+  - institution/course/term metadata
+  - student claim link reference
+- `StudentClaimLink`
+  - opaque token
+  - active/revoked/expired state
+  - course license reference
+  - claim audit counters
 - `LicenseInvite`
   - invite code or link token
   - community id
@@ -1364,6 +1707,15 @@ Gateway data concepts:
   - gateway-side mediation for Lite Mistral Small 4 and Nanonets OCR-3 calls
 
 Required gateway endpoints:
+- `POST /admin/course-licenses`
+  - admin-only
+  - creates or approves a course license after manual review
+- `POST /admin/course-licenses/{id}/student-link`
+  - admin-only
+  - creates or rotates the single self-serve student link for an approved course
+- `POST /licenses/claim-course`
+  - Lite app submits student claim token
+  - returns current Lite entitlement and refresh token
 - `POST /admin/licenses/invites`
   - admin-only
   - creates an invite link/code for an approved user or initial CoP participant
@@ -1372,6 +1724,7 @@ Required gateway endpoints:
   - returns current Lite entitlement and refresh token
 - `POST /licenses/refresh`
   - Lite app refreshes entitlement status and signed local cache
+  - returns direct and inherited Lite access sources, including Studio/Pro-derived access when present
 - `GET /nanonets/pages/balance`
   - returns purchased, used, reserved, refunded, and remaining pages
 - `GET /nanonets/pages/ledger`
@@ -1381,7 +1734,7 @@ Required gateway endpoints:
   - accepts only 150, 500, or 1000 pages
 - `POST /webhooks/paddle`
   - verifies Paddle signature
-  - creates top-up ledger entries idempotently
+  - creates individual Lite, Studio, Pro, and page top-up ledger updates idempotently
 - Lite-only managed provider proxy endpoints
   - mediate Mistral Small 4 calls for Lite
   - mediate Nanonets OCR-3 calls for Lite
@@ -1497,10 +1850,11 @@ Concurrency and idempotency:
 ### Paddle Top-Ups
 
 Paddle rules:
-- Paddle is the only planned paid top-up provider.
+- Paddle is the only planned paid provider for individual Lite purchases and OCR page top-ups.
 - Paid checkout top-ups use package sizes 150, 500, or 1000 pages.
 - Paddle webhook events must be signature-verified and idempotent.
 - Paddle event IDs or payment reference IDs must be stored so replay does not double-credit pages.
+- Individual paid Lite checkout events must not create duplicate licenses when webhooks replay.
 
 Manual/admin top-ups:
 - Allowed for admins/owners/billing managers only.
@@ -1552,11 +1906,11 @@ Future access workflow:
 - Tally form gathers course-access requests.
 - Tally MCP/classification helps categorize requests.
 - Manual approval remains required.
-- Claude cowork flow may generate course license links through the gateway admin endpoint.
+- Claude cowork flow may prepare the approval packet and generate course license links through the gateway admin endpoint after human approval.
 
-Milestone 17 boundary:
+Milestone 18 boundary:
 - Define the hooks and endpoint compatibility only.
-- Do not implement Tally intake, MCP classification, automated approval, or Claude cowork automation in this lane.
+- Do not make Tally classification or Claude cowork automation authoritative for access decisions.
 
 ### Implementation Batches
 
@@ -1565,13 +1919,13 @@ Milestone 17 boundary:
 2. Gateway contract and shared models
    - Define license, invite, refresh token, signed cache, usage account, ledger, top-up, and job contracts.
 3. Lite licensing behavior
-   - Implement invite claim, license refresh, signed local cache, and course-access checks.
+   - Implement individual paid Lite claim, Studio/Pro inherited Lite access, course-link claim, invite claim, license refresh, signed local cache, and course-access checks.
 4. Nanonets ledger and balance
    - Implement ledger math, cached balance recalculation, and transaction-safe reservations.
 5. Gateway OCR job lifecycle
    - Implement reserve/submit/complete/fail/reconcile paths and idempotent callbacks.
-6. Paddle/manual top-ups
-   - Implement fixed-package manual top-ups and Paddle webhook top-ups.
+6. Paddle/manual top-ups and paid Lite webhooks
+   - Implement individual Lite, Studio, Pro Paddle webhook handling plus fixed-package manual/Paddle OCR top-ups.
 7. Textual import-window integration
    - Show page balance, estimated pages, insufficient-balance state, and top-up choices for Lite OCR-backed imports.
 8. Acceptance tests and security checks
@@ -1582,6 +1936,8 @@ Milestone 17 boundary:
 - Developer build attempts Lite license refresh: reject or no-op without contacting gateway.
 - Lite app cannot reach gateway: use signed local cache only within configured grace-period behavior.
 - Lite license revoked: next refresh removes active Lite access after cache/grace rules expire.
+- Studio or Pro subscription revoked/cancelled/refunded: next refresh removes inherited Lite access unless another active Lite-granting license exists.
+- User has both individual Lite and Studio/Pro: effective Lite access remains active while at least one source is active; status should show all active sources.
 - Invite already claimed: reject unless gateway explicitly supports reissue.
 - Invite revoked: reject claim and refresh.
 - Paddle webhook replay: no double-credit.
@@ -1603,6 +1959,16 @@ Scaffolding tests:
 - `status.py` shows the lane disabled.
 
 Licensing tests:
+- Paddle individual Lite purchase creates or updates active Lite entitlement idempotently.
+- Paddle Studio subscription creates or updates active Studio entitlement and inherited Lite access idempotently.
+- Paddle Pro subscription creates or updates active Pro entitlement and inherited Lite access idempotently.
+- Lite app accepts inherited Lite access from active Studio subscription without a separate Lite purchase.
+- Lite app accepts inherited Lite access from active Pro subscription without a separate Lite purchase.
+- Studio/Pro cancellation removes inherited Lite access on refresh when no other active Lite-granting source exists.
+- A user with both individual Lite and Studio/Pro keeps Lite access while either active source remains.
+- Course license approval can produce one self-serve student link.
+- Student claim link grants Lite access without per-student manual invite.
+- Revoked course link cannot create new claims.
 - Admin can create Lite license invite.
 - Valid invite grants Initial CoP Lite access.
 - Invalid or revoked invite is rejected.
@@ -1617,6 +1983,7 @@ Developer/Lite boundary tests:
 - Developer build does not show Lite managed provider proxy state.
 - Developer import window does not fetch Lite Nanonets page balance.
 - Lite build does not expose Developer BYOK/BYOM controls.
+- Lite build uses effective `lite_client_access` whether it came from individual Lite, course Lite, CoP Lite, Studio, or Pro.
 
 Nanonets usage tests:
 - Initial CoP account starts with 150 pages.
@@ -1644,3 +2011,5 @@ Combined behavior tests:
 - Exhausted OCR balance blocks online OCR even with Lite access.
 - Nanonets top-up does not grant course access.
 - Full course access does not bypass OCR page limits.
+- Studio/Pro inherited Lite access does not grant unlimited Nanonets pages.
+- Studio/Pro inherited Lite access does not unlock Studio-only or Pro-only features inside Lite unless explicitly supported by client capability rules.

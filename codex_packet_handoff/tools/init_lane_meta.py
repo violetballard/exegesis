@@ -26,11 +26,17 @@ LANES = [
     'feat-zotero-import',
     'feat-formatting-bar',
     'feat-developer-provider-config',
+    'feat-project-transfer',
     'feat-desktop-packaging',
     'feat-cop-lite-licensing',
     'feat-browser-pdf-capture',
+    'feat-python-sidecar-api',
+    'feat-native-workstation',
     'feat-open-access-deep-research',
     'feat-quant-analysis',
+    'feat-advanced-qual-visuals',
+    'feat-confidential-collaboration',
+    'feat-ipad-native-lite',
 ]
 
 if __name__ == "__main__":

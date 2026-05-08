@@ -128,11 +128,17 @@ DEFAULT_LANES = [
     "feat-zotero-import",
     "feat-formatting-bar",
     "feat-developer-provider-config",
+    "feat-project-transfer",
     "feat-desktop-packaging",
     "feat-cop-lite-licensing",
     "feat-browser-pdf-capture",
+    "feat-python-sidecar-api",
+    "feat-native-workstation",
     "feat-open-access-deep-research",
     "feat-quant-analysis",
+    "feat-advanced-qual-visuals",
+    "feat-confidential-collaboration",
+    "feat-ipad-native-lite",
 ]
 
 WORKTREE_TEMP_PATTERNS = (
@@ -1478,6 +1484,8 @@ def _run_router_direct_once(ctx: DirectRouterCtx) -> Tuple[int, str]:
         out = f"[router] processed {n} packet(s), kicked {kicked} reviewer-fixer task(s), integrated {integrated} approval packet(s)\n"
         print(out, end="")
         return 0, out
+    except DirectRouterUnsupported:
+        raise
     except Exception:
         buf = io.StringIO()
         traceback.print_exc(file=buf)
@@ -1491,7 +1499,11 @@ def _run_router_direct(ctx: DirectRouterCtx, retries: int) -> Tuple[int, str, in
     attempts = 0
     while True:
         attempts += 1
-        rc, out = _run_router_direct_once(ctx)
+        try:
+            rc, out = _run_router_direct_once(ctx)
+        except DirectRouterUnsupported as exc:
+            print(f"[coordinator] direct router unavailable; using subprocess mode: {exc}")
+            return _run_router_subprocess(retries)
         if rc == 0:
             return rc, out, attempts
         if attempts > retries + 1:

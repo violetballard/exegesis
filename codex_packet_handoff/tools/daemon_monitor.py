@@ -49,11 +49,17 @@ DEFAULT_LANES = [
     "feat-zotero-import",
     "feat-formatting-bar",
     "feat-developer-provider-config",
+    "feat-project-transfer",
     "feat-desktop-packaging",
     "feat-cop-lite-licensing",
     "feat-browser-pdf-capture",
+    "feat-python-sidecar-api",
+    "feat-native-workstation",
     "feat-open-access-deep-research",
     "feat-quant-analysis",
+    "feat-advanced-qual-visuals",
+    "feat-confidential-collaboration",
+    "feat-ipad-native-lite",
 ]
 VERDICT_RE = re.compile(
     r"(?:\*\*Verdict\*\*|Verdict:)\s*`?(APPROVED|CHANGES_REQUESTED|CHANGES REQUESTED)`?",

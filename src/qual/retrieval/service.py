@@ -62,6 +62,16 @@ def _optional_text(value: object) -> str | None:
     return None
 
 
+def _basket_item_id_for_excerpt(*, source_strategy: object, excerpt_id: object) -> str | None:
+    source = _optional_text(source_strategy)
+    excerpt = _optional_text(excerpt_id)
+    if source is None or excerpt is None:
+        return None
+    if source.casefold() != _FTS_SOURCE_STRATEGY:
+        return None
+    return f"retrieval:{source}:{excerpt}"
+
+
 def _present_text_values(values: Iterator[object]) -> list[str]:
     normalized: list[str] = []
     for value in values:
@@ -1215,7 +1225,7 @@ class RetrievalService:
             raise TypeError("excerpt_id must be text")
         normalized = excerpt_id.strip()
         if not normalized:
-            raise ValueError("excerpt_id is required")
+            raise ValueError("excerpt_id must be non-empty")
         return normalized
 
     def _record_excerpt_lookup_audit(
@@ -2449,6 +2459,15 @@ class RetrievalService:
         normalized["source_strategy"] = source_strategy
         normalized["retrieval_source_strategy"] = source_strategy
         normalized["lookup_resolution"] = lookup_resolution
+        excerpt_id_value = _optional_text(normalized.get("excerpt_id") or provenance.get("excerpt_id"))
+        if excerpt_id_value is not None:
+            normalized["excerpt_id"] = excerpt_id_value
+            basket_item_id = _basket_item_id_for_excerpt(
+                source_strategy=source_strategy,
+                excerpt_id=excerpt_id_value,
+            )
+            if basket_item_id is not None:
+                normalized["basket_item_id"] = basket_item_id
         text_hash = provenance.get("hash") or provenance.get("excerpt_text_hash") or normalized.get("text_hash")
         if not isinstance(text_hash, str) or not text_hash:
             text_value = normalized.get("text")
@@ -2595,12 +2614,12 @@ class RetrievalService:
         if basket_promotion_item is not None:
             normalized["basket_promotion_item"] = basket_promotion_item
             normalized["basket_promotion_source"] = basket_promotion_item["basket_promotion_source"]
-            normalized["basket_item_id"] = basket_promotion_item["item_id"]
+            normalized["basket_item_id"] = basket_promotion_item["basket_item_id"]
             normalized["basket_item_fingerprint"] = basket_promotion_item["basket_item_fingerprint"]
             normalized["basket_promotion_items"] = [copy.deepcopy(basket_promotion_item)]
             normalized["basket_promotion_count"] = 1
             normalized["basket_promotion_ready"] = True
-            normalized["basket_item_ids"] = [basket_promotion_item["item_id"]]
+            normalized["basket_item_ids"] = [basket_promotion_item["basket_item_id"]]
             normalized["basket_item_fingerprints"] = [basket_promotion_item["basket_item_fingerprint"]]
         normalized_provenance = {
             **provenance,
@@ -2640,6 +2659,8 @@ class RetrievalService:
             normalized_provenance["basket_promotion_ready"] = normalized["basket_promotion_ready"]
         if isinstance(normalized.get("basket_item_fingerprint"), str):
             normalized_provenance["basket_item_fingerprint"] = normalized["basket_item_fingerprint"]
+        if isinstance(normalized.get("basket_item_id"), str):
+            normalized_provenance["basket_item_id"] = normalized["basket_item_id"]
         normalized["provenance"] = normalized_provenance
         return normalized
 
@@ -2663,9 +2684,15 @@ class RetrievalService:
         excerpt_id = excerpt.get("excerpt_id")
         if not isinstance(excerpt_id, str) or not excerpt_id:
             return None
+        basket_item_id = _basket_item_id_for_excerpt(
+            source_strategy=source_strategy,
+            excerpt_id=excerpt_id,
+        )
+        if basket_item_id is None:
+            return None
         item = {
-            "item_id": excerpt_id,
-            "basket_item_id": excerpt_id,
+            "item_id": basket_item_id,
+            "basket_item_id": basket_item_id,
             "item_type": "excerpt",
             "doc_id": doc_id,
             "doc_type": doc_type,

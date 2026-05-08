@@ -622,6 +622,16 @@ def _first_text_value(*values: object) -> str | None:
     return None
 
 
+def _basket_item_id_for_excerpt(*, source_strategy: object, excerpt_id: object) -> str | None:
+    source = _normalize_optional_text(source_strategy)
+    excerpt = _normalize_optional_text(excerpt_id)
+    if source is None or excerpt is None:
+        return None
+    if source.casefold() != "fts":
+        return None
+    return f"retrieval:{source}:{excerpt}"
+
+
 def _stable_fingerprint(payload: object) -> str:
     serialized = json.dumps(payload, sort_keys=True, separators=(",", ":"), ensure_ascii=True)
     return hashlib.sha256(serialized.encode("utf-8")).hexdigest()
@@ -918,7 +928,9 @@ def _normalize_citation_bundle_snapshot(citation_bundle: dict[str, object]) -> d
         field_name="citation_bundle",
     )
     normalized["doc_citations"] = _normalize_list_like(normalized.get("doc_citations"))
-    normalized["excerpt_citations"] = _normalize_list_like(normalized.get("excerpt_citations"))
+    normalized["excerpt_citations"] = _normalize_excerpt_citation_snapshots(
+        normalized.get("excerpt_citations")
+    )
     normalized["basket_promotion_items"] = _basket_promotion_items_from_snapshot(normalized)
     normalized["basket_item_ids"] = _basket_item_ids_from_snapshot(
         normalized,
@@ -945,6 +957,28 @@ def _normalize_citation_bundle_snapshot(citation_bundle: dict[str, object]) -> d
         normalized["citation_status"] = copy.deepcopy(citation_status)
     elif "citation_status" in normalized:
         normalized["citation_status"] = {}
+    return normalized
+
+
+def _normalize_excerpt_citation_snapshots(value: object) -> list[object]:
+    normalized: list[object] = []
+    for citation in _normalize_list_like(value):
+        if not isinstance(citation, dict):
+            normalized.append(copy.deepcopy(citation))
+            continue
+        normalized_citation = copy.deepcopy(citation)
+        basket_item_id = normalized_citation.get("basket_item_id")
+        if not _is_missing_snapshot_value(basket_item_id):
+            expected_basket_item_id = _basket_item_id_for_excerpt(
+                source_strategy=normalized_citation.get(
+                    "retrieval_source_strategy",
+                    normalized_citation.get("source_strategy"),
+                ),
+                excerpt_id=normalized_citation.get("excerpt_id"),
+            )
+            if basket_item_id != expected_basket_item_id:
+                normalized_citation.pop("basket_item_id", None)
+        normalized.append(normalized_citation)
     return normalized
 
 

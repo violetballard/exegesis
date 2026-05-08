@@ -1550,9 +1550,10 @@ class UnifiedRetrievalTests(unittest.TestCase):
             canonical["excerpt_lookup_fingerprint"],
         )
         basket_item = canonical["basket_promotion_item"]
-        self.assertEqual(canonical["basket_item_id"], excerpt_id)
-        self.assertEqual(basket_item["item_id"], excerpt_id)
-        self.assertEqual(basket_item["basket_item_id"], excerpt_id)
+        expected_basket_item_id = f"retrieval:fts:{excerpt_id}"
+        self.assertEqual(canonical["basket_item_id"], expected_basket_item_id)
+        self.assertEqual(basket_item["item_id"], expected_basket_item_id)
+        self.assertEqual(basket_item["basket_item_id"], expected_basket_item_id)
         self.assertEqual(basket_item["item_type"], "excerpt")
         self.assertEqual(basket_item["doc_id"], canonical["doc_id"])
         self.assertEqual(basket_item["doc_type"], canonical["doc_type"])
@@ -1633,7 +1634,7 @@ class UnifiedRetrievalTests(unittest.TestCase):
 
         self.assertEqual(self.service.retrieve_fts_excerpt(f"  {excerpt_id}  "), canonical)
         self.assertEqual(engine_retrieve_fts_excerpt(self.service, excerpt_id=f"\n{excerpt_id}\t"), canonical)
-        with self.assertRaisesRegex(ValueError, "excerpt_id is required"):
+        with self.assertRaisesRegex(ValueError, "excerpt_id must be non-empty"):
             self.service.retrieve_fts_excerpt("  ")
 
     def test_retrieve_fts_excerpt_lookup_fingerprint_is_stable(self) -> None:
@@ -1689,8 +1690,8 @@ class UnifiedRetrievalTests(unittest.TestCase):
         self.assertEqual(metadata["doc_identity_fingerprint"], excerpt["doc_identity_fingerprint"])
         self.assertEqual(metadata["excerpt_text_hash"], excerpt["excerpt_text_hash"])
         self.assertEqual(metadata["excerpt_lookup_fingerprint"], excerpt["excerpt_lookup_fingerprint"])
-        self.assertEqual(metadata["basket_item_id"], excerpt_id)
-        self.assertEqual(metadata["basket_item_ids"], [excerpt_id])
+        self.assertEqual(metadata["basket_item_id"], f"retrieval:fts:{excerpt_id}")
+        self.assertEqual(metadata["basket_item_ids"], [f"retrieval:fts:{excerpt_id}"])
         self.assertEqual(metadata["basket_item_fingerprint"], excerpt["basket_item_fingerprint"])
         self.assertEqual(
             metadata["basket_item_fingerprints"],

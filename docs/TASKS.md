@@ -198,6 +198,21 @@ Activation rule:
 Implementation batches:
 - use `docs/FUTURE_MVP_FEATURES_SPEC.md` as the lane-ready build sheet
 
+### `feat-project-transfer`
+Own later:
+- project export/import through portable zip archives
+- archive manifest, schema version, content hashes, and safe path validation
+- export of documents, basket, summaries, transcripts, literature metadata, citations, codes, datasets, assets, provenance, and safe project settings
+- explicit exclusion of credentials, provider keys, local endpoints, managed Lite secrets, license refresh tokens, and machine caches
+- import preview, validation, conflict handling, and import-as-new restore behavior
+- licensing integration: licenses are per user/account, not per machine or project archive
+
+Activation rule:
+- disabled until MVP project transfer work is intentionally activated
+
+Implementation batches:
+- use `docs/FUTURE_MVP_FEATURES_SPEC.md` as the lane-ready build sheet
+
 ### `feat-desktop-packaging`
 Own later:
 - Developer and Lite desktop distribution profiles
@@ -218,13 +233,19 @@ Implementation batches:
 
 ### `feat-cop-lite-licensing`
 Own later:
+- individual paid Lite licensing through website checkout and Paddle webhooks
+- Studio and Pro subscription licensing that includes Lite access for secondary-machine use
+- course licensing through one instructor-distributed self-serve student link
+- Tally intake form accessible through MCP for Claude cowork-assisted classification and manual approval preparation
 - initial CoP unlimited Lite course access with no seat cap
 - Developer/Lite boundary where Developer never uses hosted Lite workflows
 - Lite-only hosted License Gateway for license invites, claim, refresh, managed provider proxy, Paddle webhooks, and Nanonets page state
 - Nanonets page ledger with 150-page default initial CoP balance
 - fixed Nanonets top-up packages of 150, 500, and 1000 pages
+- per-user/account licensing boundaries integrated with project transfer
 - transaction-safe OCR page reservation, consumption, release, refund, and idempotent callback handling
 - Lite import-window Nanonets balance, estimated-page count, insufficient-balance, and top-up package behavior
+- effective entitlement refresh that accepts Lite access from individual Lite, course Lite, CoP Lite, Studio, or Pro sources
 - future Tally/manual approval/Claude cowork license-generation hooks
 
 Activation rule:
@@ -250,6 +271,43 @@ Activation rule:
 Implementation batches:
 - use `docs/POST_MVP_FEATURES_SPEC.md` as the lane-ready build sheet
 
+### `feat-python-sidecar-api`
+Own later:
+- localhost-only FastAPI sidecar app for Python-backed features
+- PyInstaller sidecar binary packaging for macOS Studio builds
+- baseline `/healthz`, `/readyz`, `/version`, `/features`, and `/shutdown` endpoint contracts
+- local per-launch auth token, loopback-only binding, origin restrictions, request size limits, and log redaction
+- macOS Studio Workstation launch, health polling, bounded restart, compatibility check, and graceful shutdown contract
+- sidecar route manifest and schema/version negotiation for feature groups
+- requirement that later Workstation/SwiftUI-facing Python features expose their behavior through sidecar routes
+- Developer/Lite build boundary for sidecar provider and gateway access
+
+Activation rule:
+- disabled until explicitly enabled after the MVP launch gate and real CoP usage feedback
+
+Implementation batches:
+- use `docs/POST_MVP_FEATURES_SPEC.md` as the lane-ready build sheet
+
+### `feat-native-workstation`
+Own later:
+- macOS Studio Workstation app lifecycle, window/runtime boundary, and local UI hosting strategy
+- STTextView as preferred native editor foundation candidate, with plugin planning for annotations, Markdown highlighting, diffs, citations, figures, and tables
+- bundled Milestone 20 sidecar launch, health monitoring, compatibility checks, restart, and shutdown
+- signed web-distributed macOS Studio artifact
+- macOS signing/notarization and checksums
+- explicit exclusion of Windows/Linux Studio signing and packaging
+- release manifest, checksums, web download flow, and troubleshooting copy
+- update/manual upgrade behavior that preserves project data and does not orphan sidecars
+- local backend status and failure surfaces for sidecar startup/incompatibility issues
+- interactive sprint guidance because native packaging/signing should not be blindly daemon-scheduled
+
+Activation rule:
+- disabled until explicitly enabled after the MVP launch gate and real CoP usage feedback
+- activation should be managed interactively, with daemon work limited to narrow scriptable tasks
+
+Implementation batches:
+- use `docs/POST_MVP_FEATURES_SPEC.md` as the conceptual sprint build sheet
+
 ### `feat-open-access-deep-research`
 Own later:
 - local-first multi-agent source discovery for possible literature and web sources
@@ -259,7 +317,9 @@ Own later:
 - provider-normalized source candidate records with provenance, confidence, import hints, and review status
 - DOI, canonical URL, title/author/year, provider ID, and future content-hash dedupe
 - explainable candidate ranking and import readiness labels
-- reviewable source batch cards/lists that hand selected candidates to the standard import protocol
+- native Studio Workstation SwiftUI source batch cards/lists that hand selected candidates to the standard import protocol
+- sidecar routes for research job creation, status, cancellation, candidate batch retrieval, and import-batch handoff
+- native Studio Workstation/SwiftUI only; no Textual shell implementation
 - privacy/project-mode/credential controls so confidential project content is not sent to open web providers without explicit permission
 - audit trail for search plan, providers, queries, candidates, dedupe decisions, selections, and import request IDs
 
@@ -271,10 +331,10 @@ Implementation batches:
 
 ### `feat-quant-analysis`
 Own later:
-- first-class `Datasets` project browser section
+- first-class native Studio Workstation `Datasets` project browser section
 - CSV-only dataset import with provenance, row/column guardrails, and dataset storage
 - variable metadata and auto-detection for categorical, ordinal, and scale variables
-- raw-data document view with variable type override controls
+- native Studio Workstation raw-data view with variable type override controls
 - inspector-driven analysis picker and variable selectors
 - descriptive statistics overall and split by categorical/ordinal variables
 - frequency and contingency tables
@@ -285,6 +345,8 @@ Own later:
 - bar chart, density curve, and scatter plot artifacts
 - ordered analysis sequence transcript for tests
 - save analysis sequence as a project summary
+- sidecar routes for dataset import, variable typing, analysis runs, chart artifact generation, sequence updates, and summary save
+- native Studio Workstation/SwiftUI only; no Textual shell implementation
 - local-only statsmodels/pandas/numpy/matplotlib execution boundaries
 
 Activation rule:
@@ -292,6 +354,62 @@ Activation rule:
 
 Implementation batches:
 - use `docs/POST_MVP_FEATURES_SPEC.md` as the lane-ready build sheet
+
+### `feat-advanced-qual-visuals`
+Own later:
+- Studio Pro browsable code graphs for parent/child code structure, co-occurrence, and document/code relationships
+- code-by-document, code-by-document-type, code-by-folder, and parent/child matrices
+- distribution tables for frequencies, coverage, code density, and parent/child rollups
+- visual comparisons across selected documents, document types, participants, folders, groups, and codes
+- codebook generation from code metadata, definitions, frequencies, representative excerpts, and audit history
+- native Studio Workstation SwiftUI graph, matrix, comparison, and codebook surfaces
+- sidecar route contracts for aggregation and artifact generation where Python-backed processing is needed
+- explicit Textual shell exclusion
+
+Activation rule:
+- disabled until Studio Pro advanced qualitative coding visualization work is intentionally activated after native Studio is available
+
+Implementation batches:
+- use `docs/POST_MVP_FEATURES_SPEC.md` as the conceptual build sheet
+
+### `feat-confidential-collaboration`
+Own later:
+- conceptual threat model and privacy boundary for shared confidential projects
+- shared project membership, invitations, roles, permissions, and audit events
+- encrypted/local-first sync or secure collaboration-service architecture decision
+- collaboration data concepts for operations, comments, review decisions, conflicts, sync checkpoints, and device identity
+- account-based collaboration licensing and entitlement refresh rules, not machine-based licensing
+- Lite participation boundaries for higher-licensed users working from secondary machines
+- native Studio Workstation SwiftUI collaboration surfaces for sharing status, members, activity, review, comments, conflicts, and sync health
+- Studio-only collaboration management boundaries so Lite participation does not unlock Pro/admin surfaces
+- sidecar/service boundary for local coordination, sync health, audit queries, and future hosted relay contracts
+- project-mode preservation, provider allowlists, and cloud-send policy boundaries
+- explicit current Textual shell exclusion while preserving a future Lite participation spec
+- implementation-lane split after the conceptual architecture is accepted
+
+Activation rule:
+- disabled until explicitly enabled after Studio Pro usage feedback
+- expected to be handled as a design-first company-wide sprint before broad daemon execution
+
+Implementation batches:
+- use `docs/POST_MVP_FEATURES_SPEC.md` as the conceptual build sheet
+
+### `feat-ipad-native-lite`
+Own later:
+- native iPadOS Lite product boundary after confidential collaboration
+- inventory of sidecar-backed Lite workflows that must become Swift-native, gateway-backed, deferred, or unavailable on iPad
+- reuse plan for mature Studio/Pro Swift-native editor, project, import, license, and collaboration components
+- account-based Lite entitlement refresh on iPad, including inherited Lite access for Studio/Pro subscribers
+- project archive import/export, offline cache, file provider, document picker, and share sheet boundaries
+- constrained iPad Lite collaboration participation without Studio-only management or Pro-only surfaces
+- activation prerequisites for splitting this long-term client work into implementation lanes
+
+Activation rule:
+- disabled until explicitly enabled after confidential collaboration and mature Studio/Pro native foundations
+- expected to be handled as a conceptual client-architecture sprint before implementation
+
+Implementation batches:
+- use `docs/POST_MVP_FEATURES_SPEC.md` as the conceptual build sheet
 
 ## Explicitly not now
 - Textual dependency installation
@@ -306,12 +424,18 @@ Implementation batches:
 - runtime Zotero import behavior
 - runtime formatting bar behavior
 - runtime developer provider configuration behavior
+- runtime project transfer export/import behavior
 - runtime desktop packaging behavior
 - runtime Lite license gateway behavior
 - runtime CoP course licensing behavior
 - runtime Nanonets page-credit metering or Paddle top-ups
 - runtime browser extension, local browser-capture endpoint, native bridge, or PDF capture behavior
+- runtime Python sidecar API behavior
+- runtime native Workstation packaging/signing/distribution behavior
 - runtime open web search, multi-agent research orchestration, provider API calls, candidate ranking, or research import-batch behavior
+- runtime advanced qualitative coding visualization, matrix, graph, comparison, or codebook behavior
+- runtime confidential collaboration, sync, invitation, shared project, or SwiftUI collaboration behavior
+- runtime native iPad Lite, App Store packaging, Swift-native sidecar replacement, or iPadOS client behavior
 - shell import filtering changes
 - shell import-window Nanonets balance behavior
 - inspector metadata editing behavior

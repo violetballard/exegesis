@@ -3,16 +3,21 @@
 This document defines disabled post-MVP work that should not be activated until the summer MVP and CoP launch gate have produced real usage feedback.
 
 Current post-MVP lanes:
-- Milestone 18: `feat-browser-pdf-capture`
-- Milestone 19: `feat-open-access-deep-research`
-- Milestone 20: `feat-quant-analysis`
+- Milestone 19: `feat-browser-pdf-capture`
+- Milestone 20: `feat-python-sidecar-api`
+- Milestone 21: `feat-native-workstation`
+- Milestone 22: `feat-open-access-deep-research`
+- Milestone 23: `feat-quant-analysis`
+- Milestone 24: `feat-advanced-qual-visuals`
+- Milestone 25: `feat-confidential-collaboration`
+- Milestone 26: `feat-ipad-native-lite`
 
 Activation rule:
 - These lanes remain disabled in router config.
 - Do not schedule, implement, or polish these features until explicitly enabled after the MVP launch gate.
-- Runtime browser extension, native bridge, import handoff, packaging behavior, open web search, multi-agent research orchestration, source ranking, import-batch behavior, CSV dataset analysis, statistical testing, and plot generation must remain inactive until the relevant lane is intentionally activated.
+- Runtime browser extension, native bridge, import handoff, packaging behavior, Python sidecar API behavior, PyInstaller sidecar packaging, Studio Workstation supervision, native Workstation packaging/signing/distribution, open web search, multi-agent research orchestration, source ranking, import-batch behavior, CSV dataset analysis, statistical testing, plot generation, advanced qualitative coding visualizations, codebook generation, confidential collaboration/sync behavior, and native iPad Lite behavior must remain inactive until the relevant lane is intentionally activated.
 
-## Milestone 18: Browser PDF Capture Extension
+## Milestone 19: Browser PDF Capture Extension
 
 Lane: `feat-browser-pdf-capture` (disabled)
 
@@ -67,7 +72,7 @@ Implementation approach:
 - Use one small WebExtension source tree for Chrome and Firefox.
 - Generate browser-specific manifests from a shared base manifest when needed.
 - Provide Safari through a Safari Web Extension wrapper as part of the macOS desktop package.
-- Edge can follow the Chrome build path later, but Edge support is not required for Milestone 18 acceptance.
+- Edge can follow the Chrome build path later, but Edge support is not required for Milestone 19 acceptance.
 
 Packaging expectation:
 - Desktop packages include the extension artifacts for Chrome, Firefox, and Safari.
@@ -145,7 +150,7 @@ Fallback handoff:
 
 Later formal bridge option:
 - Native messaging can replace or augment loopback HTTP if browser/security requirements make it necessary.
-- Native messaging is not required for the first Milestone 18 implementation unless loopback handoff fails acceptance criteria.
+- Native messaging is not required for the first Milestone 19 implementation unless loopback handoff fails acceptance criteria.
 
 Local endpoint contract:
 
@@ -326,7 +331,7 @@ Shared TypeScript modules:
 ### Packaging And Install Integration
 
 Packaging responsibilities:
-- Milestone 16 desktop packaging must include extension artifacts when Milestone 18 is active.
+- Milestone 17 desktop packaging must include extension artifacts when Milestone 19 is active.
 - Build scripts produce Chrome, Firefox, and Safari deliverables from the shared extension source.
 - First-run onboarding checks browser-extension install/enable status and offers browser-specific setup.
 - The app can re-open setup from the command palette, e.g. `Install Browser PDF Capture Extension`.
@@ -434,9 +439,607 @@ Acceptance criteria:
 - Exegesis, not the extension, handles project placement, OCR, metadata, dedupe, and indexing.
 - Extension remains small enough that future browser changes are easy to maintain.
 
-## Milestone 19: Multi-Agent Open Access Deep Research
+
+## Milestone 20: Python Backend Sidecar API
+
+Lane: `feat-python-sidecar-api` (disabled)
+
+Intent:
+- Add a localhost-only FastAPI sidecar for Python-backed Exegesis features so the native Workstation can run, monitor, and talk to the Python backend without embedding Python directly.
+- Package the sidecar as a standalone binary with PyInstaller for Developer and Lite desktop distributions.
+- Make the sidecar the required HTTP boundary for Python features added after this milestone.
+- Keep the sidecar small, local, observable, and boring: it should be easy for Workstation to start, health-check, stop, and restart.
+
+Non-activation rule:
+- This milestone is post-MVP specification and lane scaffolding only.
+- Do not implement runtime FastAPI endpoints, PyInstaller builds, Workstation process management, or feature endpoint migration until this lane is explicitly enabled.
+
+### Product Boundary
+
+The sidecar owns:
+- localhost-only FastAPI application startup
+- stable health and readiness endpoints
+- local feature endpoint routing for Python-backed features
+- request/response schemas for Python feature calls
+- lightweight process metadata for Workstation monitoring
+- graceful shutdown behavior for the desktop app
+- sanitized structured logging suitable for local diagnostics
+
+The native Studio Workstation owns:
+- launching the packaged sidecar binary
+- selecting an ephemeral or configured localhost port
+- passing startup configuration and secrets through the approved secure channel
+- monitoring sidecar health
+- restarting the sidecar when it fails within configured limits
+- presenting user-facing local backend status when needed
+
+The engine owns:
+- actual feature implementation behind sidecar routes
+- SQLite/project storage access rules
+- confidential-mode enforcement
+- provider/key resolution through Developer or Lite configuration boundaries
+- audit events for feature actions
+
+Non-goals:
+- no remote server exposure
+- no public network binding
+- no browser-accessible unauthenticated broad API surface
+- no cloud hosting
+- no replacement for the Lite License Gateway
+- no general plugin marketplace runtime
+- no attempt to make every old internal engine function an endpoint in the first batch
+- no WebSocket requirement unless a later feature explicitly needs streaming progress
+
+### Localhost Security Model
+
+Binding:
+- The sidecar binds only to `127.0.0.1` by default.
+- `0.0.0.0`, LAN addresses, and public interfaces are rejected in packaged builds.
+- Developer debug builds may allow explicit loopback aliases only through a documented flag.
+
+Authentication:
+- Workstation generates a per-launch random bearer token or equivalent local session secret.
+- All non-health endpoints require the token.
+- The token is passed to the sidecar through process environment, stdin, or another local-only secure startup channel.
+- The token must not be written to logs, project files, transcripts, or crash reports.
+
+Origin and CORS:
+- CORS is disabled by default.
+- If a local UI bridge or webview needs browser-origin access, allow only the exact local origin selected by Workstation.
+- Reject unknown origins for browser-reachable endpoints.
+
+Request boundaries:
+- Enforce request size limits per endpoint.
+- Enforce path normalization for any file/path inputs.
+- Do not accept arbitrary filesystem paths from the UI bridge without Workstation/engine validation.
+- Redact API keys, license tokens, local bearer tokens, and file paths where logs could become user-shareable.
+
+### Required Endpoints
+
+Health endpoints:
+- `GET /healthz`
+  - unauthenticated liveness check
+  - returns process is alive and event loop can answer
+- `GET /readyz`
+  - authenticated readiness check
+  - verifies engine initialization, project storage availability when configured, and provider configuration sanity without making paid model calls
+- `GET /version`
+  - authenticated version/build metadata
+  - includes app version, sidecar schema version, build flavor, and feature route versions
+
+Process endpoints:
+- `POST /shutdown`
+  - authenticated graceful shutdown requested by Workstation
+  - refuses requests without local token
+- `GET /features`
+  - authenticated route capability manifest
+  - lists available feature groups and route schema versions
+
+Minimum response contracts:
+
+```json
+{
+  "status": "ok",
+  "sidecar_schema_version": "1",
+  "uptime_seconds": 12.4
+}
+```
+
+```json
+{
+  "status": "ready",
+  "engine_initialized": true,
+  "storage_ready": true,
+  "build_flavor": "developer",
+  "feature_routes": {
+    "imports": "1",
+    "rag": "1",
+    "research": "1",
+    "quant_analysis": "1"
+  }
+}
+```
+
+### Feature Endpoint Rule After This Milestone
+
+All Python-backed feature additions or behavior changes after Milestone 20 must include sidecar exposure when the feature is reachable from Studio Workstation or the native SwiftUI client.
+
+Required for each later Python feature:
+- route group under `/features/{feature_name}/...` or another documented stable prefix
+- request and response schema in shared contracts
+- authentication and request size policy
+- confidential-mode/provider boundary checks
+- local audit event or status entry when the feature mutates project state
+- unit tests for schemas and handlers
+- integration test showing Workstation or SwiftUI-facing client code can call the sidecar route
+- version entry in `GET /features`
+
+Applies immediately to later post-MVP specs:
+- Milestone 22 Deep Research must expose job creation, status, cancellation, candidate batch retrieval, and import-batch handoff through the sidecar.
+- Milestone 23 Quantitative Analysis must expose dataset import, variable typing, analysis run creation, chart artifact generation, sequence updates, and summary save through the sidecar.
+- Milestone 24 Advanced Qualitative Coding Visualizations must expose aggregation, matrix, graph, comparison, and codebook-generation data through the sidecar when those features need Python-backed processing.
+- Milestone 25 Confidential Collaboration must expose only local Studio Workstation coordination, health, audit, and sync-status hooks through the sidecar; any networked collaboration service contracts must be designed separately in that lane before implementation.
+- Any later OCR, RAG, import, export, citation, or provider-backed Python feature touched after this point must either expose its Workstation-facing behavior through the sidecar or explicitly document why it remains internal-only.
+
+### PyInstaller Packaging
+
+Packaging target:
+- build a standalone macOS sidecar binary for Studio Workstation
+- include it in the macOS Studio app bundle
+- Studio Workstation starts the binary directly rather than requiring users to run Python
+
+Build inputs:
+- FastAPI app entrypoint
+- engine package modules required by sidecar routes
+- pydantic/shared schema modules
+- runtime assets required for local feature execution
+- PyInstaller spec files per platform if needed
+
+Build outputs:
+- macOS sidecar binary bundled inside the Studio `.app`
+
+Packaging rules:
+- sidecar binary version must match the desktop app version or pass a compatibility matrix check
+- Workstation refuses to start incompatible sidecar schema versions with a clear error
+- crash logs are local and sanitized
+- packaged sidecar must not contain Developer user API keys, Lite managed provider keys, local bearer tokens, or project data
+
+### Workstation Supervision Contract
+
+Startup flow:
+1. Workstation selects a free loopback port.
+2. Workstation generates local auth token.
+3. Workstation launches the sidecar binary with port, token, build flavor, app data directory, and log directory.
+4. Workstation polls `/healthz` until live or timeout.
+5. Workstation polls `/readyz` until ready or shows a local backend error.
+6. Workstation provides sidecar URL and token only to trusted in-process UI/client code.
+
+Monitoring:
+- poll `/healthz` on a short interval while active
+- poll `/readyz` less frequently or when project/provider state changes
+- restart on unexpected exit with exponential backoff and a maximum restart count
+- surface clear status: starting, ready, unhealthy, restarting, stopped, incompatible, failed
+
+Shutdown:
+- use `POST /shutdown` first
+- after timeout, terminate the sidecar process
+- avoid orphaned sidecar processes after Workstation exits
+
+### Logging and Diagnostics
+
+Log requirements:
+- structured local logs with timestamp, route group, request id, duration, status, and sanitized error class
+- no request bodies in logs by default
+- no secrets or provider keys in logs
+- no full document text in logs
+- optional debug logging only in Developer mode and still redacted
+
+Diagnostics:
+- `GET /version` reports sidecar and engine build metadata
+- Workstation can include sidecar health/version in a support bundle
+- support bundles must redact local auth token, provider keys, and project content
+
+### Developer/Lite Boundary
+
+Developer:
+- sidecar uses BYOK/BYOM provider configuration from Milestone 15
+- local OpenAI-compatible endpoints remain available through Developer configuration
+- sidecar never calls Lite License Gateway managed-provider proxy endpoints
+
+Lite:
+- sidecar uses Lite gateway-mediated provider access where Lite features require managed remote services
+- managed provider keys remain server-side in the License Gateway and never ship in the sidecar
+- sidecar can call the Lite Gateway only through authenticated Lite app flows
+
+Common:
+- both builds use the same health, ready, version, shutdown, and feature manifest contracts
+- feature-specific route availability may differ by build flavor and license state
+
+### Implementation Batches
+
+1. Spec and lane scaffolding
+   - Add docs, disabled lane registration, ownership, lane profile, and scope policy.
+2. Shared sidecar contracts
+   - Add health, readiness, version, feature manifest, error, and route metadata schemas.
+3. FastAPI skeleton
+   - Add app factory, local binding validation, auth middleware, request IDs, and health endpoints.
+4. Engine startup adapter
+   - Initialize engine config, storage handles, provider config checks, and graceful shutdown hooks.
+5. Workstation supervision contract
+   - Add process launch, port selection, token generation, health polling, shutdown, and restart contracts.
+6. PyInstaller packaging
+   - Add sidecar build specs/scripts and packaging integration checks for macOS Studio builds.
+7. Feature manifest and route versioning
+   - Add `/features` route and compatibility/version negotiation.
+8. Security and diagnostics hardening
+   - Add CORS/origin rules, log redaction, size limits, support-bundle fields, and failure copy.
+9. Acceptance tests
+   - Validate local-only binding, auth, health/readiness, shutdown, packaging metadata, and Workstation supervision.
+
+### Lane Wiring Plan
+
+Add disabled lane:
+- `feat-python-sidecar-api`
+
+Owned paths:
+- `engine/src/exegesis_engine/sidecar/**`
+- `shared/src/exegesis_shared/sidecar/**`
+- `desktop-shell/sidecar/**`
+- `scripts/sidecar/**`
+- `docs/sidecar/**`
+
+Scope policy:
+- lane may edit only the above owned paths once activated.
+- roadmap/spec/config scaffolding remains integrator-owned during this planning pass.
+
+Lane profile:
+- risk: `HIGH`
+- routing impact: none while disabled
+- roadmap item: Milestone 20
+
+### Test Plan
+
+Scaffolding tests:
+- `feat-python-sidecar-api` exists in lane defaults and profiles.
+- `feat-python-sidecar-api` is disabled in router config and example config.
+- Scope-check policy allows only sidecar docs and implementation paths when the lane is active.
+- `status.py` shows the lane disabled.
+- Docs clearly state this is post-MVP and not part of Sprint 0-5.
+
+Endpoint tests:
+- `/healthz` answers without auth and never exposes secrets.
+- `/readyz` requires auth and reports readiness without paid provider calls.
+- `/version` requires auth and reports schema/build metadata.
+- `/features` requires auth and reports feature route versions.
+- `/shutdown` requires auth and initiates graceful shutdown.
+- non-health endpoints reject missing/invalid tokens.
+- unknown origins are rejected when browser-origin access is configured.
+
+Security tests:
+- packaged builds reject non-loopback host binding.
+- request size limits are enforced.
+- logs redact local auth tokens, provider keys, and document text.
+- malformed JSON returns stable error payloads without stack traces.
+
+Workstation supervision tests:
+- Workstation can launch the sidecar binary with port and token.
+- health polling transitions starting to ready.
+- incompatible schema version blocks startup with clear error.
+- unexpected exit triggers bounded restart.
+- shutdown does not leave orphaned sidecar processes.
+
+Packaging tests:
+- PyInstaller build includes the sidecar app entrypoint and required engine/shared modules.
+- macOS Studio package contains the sidecar binary.
+- packaged sidecar does not include user credentials or managed Lite provider keys.
+
+Acceptance criteria:
+- Workstation can start, health-check, ready-check, and stop the sidecar locally.
+- The sidecar binds only to localhost in packaged builds.
+- The sidecar exposes stable health/version/feature contracts.
+- Later Python features have a clear required path for sidecar route exposure.
+- No runtime sidecar behavior is active until this lane is explicitly enabled.
+
+
+## Milestone 21: Native Workstation and Signed Distribution
+
+Lane: `feat-native-workstation` (disabled)
+
+Intent:
+- Define the macOS-only Studio Workstation sprint that turns the local Exegesis runtime into a signed, distributable desktop product.
+- Treat this as a conceptual and interactive sprint rather than a normal daemon-driven implementation lane.
+- Package the native macOS shell, SwiftUI interface surface, local project storage, and Milestone 20 sidecar into one desktop app.
+- Prepare web-distributed macOS builds with signing, notarization, update channels, crash/log handling, and install/uninstall behavior.
+
+Non-activation rule:
+- This milestone is post-MVP specification and planning scaffolding only.
+- Do not implement native shell runtime, signing workflows, updater behavior, website distribution, or sidecar bundle integration until this milestone is explicitly enabled.
+- When enabled, this sprint should be run interactively with direct human review because packaging, signing, and OS trust flows are high-friction and platform-specific.
+
+### Product Boundary
+
+The native Studio Workstation owns:
+- native app window and app lifecycle
+- native SwiftUI interface hosting and app-shell strategy
+- native document editor strategy, with STTextView as the preferred AppKit-backed editor candidate inside SwiftUI
+- launch and supervision of the Milestone 20 Python sidecar binary
+- app data directory selection and migration handling
+- native menus, file-open hooks, and app-level command routing where needed
+- packaging, signing, notarization, installer, and updater behavior
+- first-run/onboarding surfaces for local runtime readiness
+- local backend status surfaces when the sidecar is unhealthy or incompatible
+
+The sidecar owns:
+- Python-backed feature endpoints
+- local health/readiness/version/feature manifest
+- engine initialization and provider/storage checks
+- Python feature execution behind authenticated loopback routes
+
+The engine owns:
+- project state, SQLite storage, imports, providers, retrieval/indexing, and workflow behavior
+
+Non-goals:
+- no broad feature expansion beyond making the app distributable
+- no deep research, quantitative analysis, or new research workflow implementation
+- no app store submission requirement in the first pass
+- no collaboration/sync architecture
+- no hosted Lite License Gateway changes beyond consuming existing Lite contracts
+- no replacing the sidecar with embedded Python
+
+### Native Editor Foundation
+
+Preferred editor substrate to evaluate:
+- STTextView embedded in the native SwiftUI Workstation as the document editing core.
+- The Workstation sprint should treat STTextView as the first candidate because Exegesis needs a real macOS text editor foundation rather than a custom textarea-style widget.
+- This is a conceptual architecture decision for the native Workstation sprint; it does not activate runtime editor replacement in this planning pass.
+
+Required plugin surface to plan:
+- annotations
+- Markdown highlighting
+- inline and side-by-side diffs
+- citations rendered as navigable links into project literature
+- figures with title/caption metadata
+- Markdown tables with title/caption metadata for APA/Pandoc export
+
+Design expectations:
+- plugins must preserve editable Markdown as the source of truth.
+- plugin rendering should not destroy source offsets needed by citations, comments, coding, diffs, or patch application.
+- annotations, citations, figures, and tables must remain export-aware rather than purely visual decorations.
+- diff rendering should support the existing apply/reject revision model and later collaboration review.
+- the editor architecture should leave room for qualitative coding highlights, search highlights, and future collaboration markers without hardcoding those features into the base editor.
+
+### Distribution Model
+
+Initial distribution target:
+- macOS download from Exegesis website or GitHub Releases style release backend
+- no terminal required
+- user launches a native app, not localhost manually
+- app bundles the sidecar and all required local runtime assets
+- Windows and Linux Studio builds are out of scope
+
+Platform target:
+- macOS signed and notarized app/dmg only
+
+Release artifacts should include:
+- native Workstation app
+- bundled Milestone 20 sidecar binary
+- SwiftUI/native UI assets
+- engine/shared/client assets needed at runtime
+- license notices
+- release manifest with version, platform, architecture, checksums, and sidecar compatibility
+
+### Signing and Trust Requirements
+
+macOS:
+- Developer ID signing
+- notarization
+- stapled ticket where applicable
+- hardened runtime if required by bundled binaries
+- Gatekeeper-friendly install path and launch behavior
+
+Out of scope:
+- non-macOS Studio distribution
+
+macOS release:
+- publish SHA256 checksums
+- release manifest is tamper-evident or signed
+- sidecar binary compatibility is checked at app startup
+- app refuses to run a mismatched or untrusted sidecar bundle
+
+### Packaging Architecture
+
+Milestone 17 establishes the basic desktop packaging plan. This milestone is the post-sidecar production distribution sprint:
+- integrate sidecar bundle into the native app package
+- verify signing survives bundled sidecar binaries
+- verify sidecar can start from inside the signed app bundle/install path
+- verify updater/install flows preserve app data and do not orphan sidecars
+- verify app can recover from missing, quarantined, or incompatible sidecar binary
+
+Preferred architecture:
+1. Workstation launches.
+2. Workstation locates bundled sidecar binary.
+3. Workstation verifies version/signature/compatibility.
+4. Workstation starts sidecar on loopback with per-launch auth token.
+5. Workstation opens the local UI surface.
+6. Workstation monitors sidecar and UI lifecycle.
+7. Workstation shuts down sidecar on app exit.
+
+### Web Distribution and Updates
+
+Minimum release flow:
+- build macOS artifacts for supported Apple Silicon/Intel architecture targets
+- sign macOS artifacts
+- notarize macOS artifacts
+- generate release manifest and checksums
+- publish artifacts to web download location
+- smoke-test install on clean macOS machines
+
+Update behavior:
+- v1 may use manual update checks only.
+- If auto-update is added, it must verify signatures/checksums before applying updates.
+- Update flow must preserve projects, local config, credentials, logs, and Lite license cache.
+- Update flow must not leave old sidecar processes running.
+
+Download page requirements:
+- clearly label Developer and Lite builds if both exist
+- show platform/architecture
+- show version and release date
+- link checksums or verification details
+- provide uninstall/reset instructions
+- provide basic troubleshooting for sidecar startup failures
+
+### Workstation Runtime Requirements
+
+Startup status states:
+- app starting
+- sidecar starting
+- sidecar ready
+- UI ready
+- sidecar unhealthy
+- sidecar incompatible
+- app update required
+- app failed to start local backend
+
+Minimum native affordances:
+- app title and icon
+- standard quit behavior
+- restore last window size/position if practical
+- app menu entries for about, check for updates, reveal logs, reset local backend, quit
+- command or menu action to show local backend status
+
+Failure handling:
+- if sidecar fails to start, show clear local backend error with retry and reveal logs
+- if sidecar version is incompatible, instruct update/reinstall
+- if port binding fails, retry with another loopback port
+- if bundled sidecar is missing/quarantined, provide reinstall guidance
+- if app data migration fails, do not destroy existing user projects
+
+### Developer/Lite Boundary
+
+Developer build:
+- exposes BYOK/BYOM configuration from Milestone 15
+- includes sidecar and local endpoint support
+- does not call Lite-only managed provider proxy workflows unless explicitly configured for Lite
+
+Lite build:
+- hides Developer BYOK/BYOM controls
+- uses Lite license/gateway flow where required
+- still runs local Workstation plus local sidecar for local project behavior
+- bundles no managed provider secrets
+
+Studio/Pro licensing boundary:
+- Studio and Pro subscriptions are validated through the shared License Gateway entitlement model from Milestone 18.
+- Active Studio and Pro subscriptions include Lite client access for secondary-machine use.
+- Studio validates `studio_app_access` and, for Pro-only features, `pro_feature_access`; it must not depend on the Lite client to validate Studio/Pro access.
+- Lite validates inherited `lite_client_access` from Studio/Pro through the same claim/refresh flow used for direct Lite licenses.
+- Studio/Pro subscription state, refresh tokens, and signed caches are never embedded in project transfer archives.
+
+Both builds:
+- share native shell/runtime supervision code where possible
+- share sidecar health/version contracts
+- differ in feature availability, provider controls, and licensing surfaces
+
+### Interactive Sprint Guidance
+
+This milestone should usually not be delegated as a broad unattended daemon lane.
+
+Reasons:
+- signing and notarization failures are platform/account specific
+- packaging bugs often need live launch testing and visual inspection
+- OS trust prompts require human confirmation
+- website distribution decisions need product judgment
+- native app lifecycle issues are easier to debug interactively
+
+Recommended mode when activated:
+- create short manual implementation packets
+- test on one platform at a time
+- commit small verified packaging steps
+- keep the daemon out of broad native packaging edits unless the task is narrow and scriptable
+
+### Lane Wiring Plan
+
+Add disabled lane:
+- `feat-native-workstation`
+
+Owned paths:
+- `desktop-shell/workstation/**`
+- `desktop-shell/native/**`
+- `desktop-shell/packaging/**`
+- `scripts/workstation/**`
+- `scripts/packaging/**`
+- `scripts/release/**`
+- `docs/workstation/**`
+- `docs/packaging/**`
+
+Scope policy:
+- lane may edit only the above owned paths once activated.
+- roadmap/spec/config scaffolding remains integrator-owned during this planning pass.
+- because this is an interactive sprint, enabling the lane does not imply automatic daemon scheduling.
+
+Lane profile:
+- risk: `HIGH`
+- routing impact: none while disabled
+- roadmap item: Milestone 21
+
+### Implementation Batches
+
+1. Concept and platform decision record
+   - Choose shell strategy, packaging tools, sidecar bundle location, update strategy, and release artifact types.
+2. Workstation app lifecycle prototype
+   - Launch native shell, locate sidecar, start/stop sidecar, show status.
+3. Sidecar bundle integration
+   - Package the Milestone 20 binary inside Workstation and verify compatibility checks.
+4. macOS signed distribution
+   - Sign, notarize, build dmg, verify clean install and launch.
+5. Release manifest and download workflow
+   - Generate release metadata, checksums, website/download copy, and troubleshooting notes.
+6. Update/manual upgrade path
+   - Verify app data preservation, sidecar replacement, and no orphan sidecar processes.
+7. macOS smoke matrix
+   - Run launch, project open, sidecar health, import path, quit/restart, uninstall/reset checks on clean macOS installs.
+
+### Test Plan
+
+Scaffolding tests:
+- `feat-native-workstation` exists in lane defaults and profiles.
+- `feat-native-workstation` is disabled in router config and example config.
+- Scope-check policy allows only workstation/packaging/release docs and implementation paths when the lane is active.
+- `status.py` shows the lane disabled.
+- Docs clearly state this is post-MVP and likely interactive, not a default daemon sprint.
+
+Packaging tests:
+- macOS artifact is signed and notarized.
+- Non-macOS Studio signing and packaging are out of scope.
+- bundled sidecar exists and matches the expected sidecar schema version.
+- app refuses incompatible sidecar binary with clear error.
+- app starts sidecar from the signed/bundled install location.
+- app shuts down sidecar on quit.
+- update/install flow preserves project data.
+
+Workstation tests:
+- clean launch reaches sidecar ready and UI ready states.
+- sidecar startup failure shows retry/reveal logs actions.
+- port conflict retries with another loopback port.
+- missing/quarantined sidecar surfaces reinstall guidance.
+- app data migration failure preserves existing data.
+- Studio validates `studio_app_access` through the License Gateway entitlement state.
+- Pro-only surfaces validate `pro_feature_access`.
+- Lite on a secondary machine can refresh inherited `lite_client_access` from the same active Studio/Pro subscription.
+
+Acceptance criteria:
+- A user can download, install, and launch a native macOS Studio Workstation build without terminal use.
+- The signed Workstation can start and monitor the bundled sidecar.
+- The app can pass a basic local project smoke path through the sidecar-backed runtime.
+- Studio/Pro subscription entitlement checks align with the Milestone 18 License Gateway spec and include Lite secondary-machine access.
+- Release artifacts are signed/checksummed and ready for web distribution.
+- Packaging work remains disabled until explicitly activated.
+
+## Milestone 22: Multi-Agent Open Access Deep Research
 
 Lane: `feat-open-access-deep-research` (disabled)
+
+Sidecar rule:
+- Because this milestone comes after Milestones 19 and 20, all Workstation/SwiftUI-facing Python behavior for research jobs, provider fan-out, candidate batches, and import-batch handoff must be exposed through the Python Backend Sidecar API.
 
 Intent:
 - Add a post-MVP source-discovery workflow that helps users find possible literature and web sources for review, import, summary, and synthesis inside Exegesis.
@@ -447,7 +1050,7 @@ Intent:
 
 Non-activation rule:
 - This milestone is post-MVP specification and lane scaffolding only.
-- Do not implement runtime web search, local project search fan-out, provider API calls, browser scraping, source ranking, import batch creation, or shell UI behavior until this lane is explicitly enabled.
+- Do not implement runtime web search, local project search fan-out, provider API calls, browser scraping, source ranking, import batch creation, or native Workstation/SwiftUI behavior until this lane is explicitly enabled.
 
 ### Product Boundary
 
@@ -467,7 +1070,7 @@ Existing or earlier milestones own:
 - literature metadata detection/approval through Milestone 7
 - RAG indexing and retrieval through Milestone 8
 - Zotero literature import through Milestone 13
-- browser PDF capture through Milestone 18
+- browser PDF capture through Milestone 19
 - summaries, drafting, citation insertion, export, and synthesis in their respective lanes
 
 Non-goals:
@@ -929,7 +1532,7 @@ The ranker should return explainable labels:
 
 ### Import Batch UI Contract
 
-The source batch should be rendered as a reviewable card/list in the Textual interface when that UI path is active.
+The source batch should be rendered as a reviewable card/list in the native Workstation SwiftUI interface when this lane is active.
 
 Batch header:
 - research query
@@ -1111,9 +1714,11 @@ Shared contract boundaries:
 - `shared/src/exegesis_shared/research/models.py`
 - `shared/src/exegesis_shared/research/events.py`
 
-Client/Textual boundaries:
-- `client-textual/src/exegesis_textual/research/**`
-- no runtime UI work until lane activation
+Native Workstation/SwiftUI boundaries:
+- `desktop-shell/workstation/research/**`
+- `desktop-shell/workstation/import_batches/**`
+- no runtime SwiftUI work until lane activation
+- do not touch the Textual shell for this milestone
 
 ### Implementation Batches
 
@@ -1135,8 +1740,8 @@ Client/Textual boundaries:
    - Merge candidates across local/project/web/scholarly results with explainable decisions.
 9. Import batch builder
    - Present deduped candidates and hand selected items into the standard import protocol.
-10. Textual review surface
-   - Add source batch review UI once client lanes are active.
+10. SwiftUI review surface
+   - Add source batch review UI in the native Workstation once this lane is active.
 11. Security, privacy, and audit hardening
    - Enforce project mode policies, credential redaction, provider budgets, and audit logs.
 12. End-to-end acceptance tests
@@ -1216,9 +1821,12 @@ Acceptance criteria:
 - Exegesis imports selected candidates through the mature import/OCR/literature/RAG pipeline.
 - The milestone does not generate synthesis, summaries, or final reports.
 
-## Milestone 20: Quantitative Analysis
+## Milestone 23: Quantitative Analysis
 
 Lane: `feat-quant-analysis` (disabled)
+
+Sidecar rule:
+- Because this milestone comes after Milestones 19 and 20, dataset import, variable typing, analysis runs, chart generation, analysis sequence updates, and summary-save operations must be exposed through the Python Backend Sidecar API when reachable from Workstation or SwiftUI.
 
 Status: post-MVP planned, disabled
 
@@ -1228,7 +1836,7 @@ Add a first-class, lean quantitative analysis surface for CSV datasets inside Ex
 
 The goal is to let researchers keep small quantitative checks inside the same project workflow as memos, transcripts, summaries, literature, basket context, and later RAG. It should feel like a notebook sequence for basic tests, not like a replacement for R, SPSS, Stata, Jamovi, or JASP.
 
-This pass is a disabled spec only. It must not activate runtime dataset import, statsmodels execution, plotting, UI widgets, or summary generation until `feat-quant-analysis` is intentionally enabled after the MVP launch gate.
+This pass is a disabled spec only. It must not activate runtime dataset import, statsmodels execution, plotting, SwiftUI views, or summary generation until `feat-quant-analysis` is intentionally enabled after the MVP launch gate.
 
 ### Product Scope
 
@@ -1237,9 +1845,9 @@ In scope:
 - import CSV files only.
 - store dataset metadata and variable metadata in the project database.
 - auto-detect variable type as `categorical`, `ordinal`, or `scale`.
-- show raw data in the document view.
-- allow changing variable type from the raw-data document view.
-- expose analysis selection in the inspector.
+- show raw data in the native Workstation dataset view.
+- allow changing variable type from the native Workstation raw-data view.
+- expose analysis selection in the native Workstation inspector/sidebar.
 - run basic descriptive and inferential analyses through Python.
 - generate markdown result tables.
 - generate basic charts.
@@ -1368,7 +1976,7 @@ type DatasetAnalysisType =
 ### CSV Import
 
 CSV import rules:
-- accept `.csv` only for Milestone 20.
+- accept `.csv` only for Milestone 23.
 - use UTF-8 by default, with a clear error for unreadable files.
 - preserve original column names but create normalized internal variable names.
 - require a header row.
@@ -1405,13 +2013,13 @@ Detection heuristics:
   - low-cardinality nominal values.
 
 Detection must be editable:
-- raw-data document view exposes the current type for each column.
+- native Workstation raw-data view exposes the current type for each column.
 - user changes set `userOverriddenType`.
 - analyses use `userOverriddenType` when present, otherwise `detectedType`.
 
-### Document View
+### Native Workstation Dataset View
 
-Dataset document view:
+Dataset view:
 - shows a raw-data table.
 - freezes or clearly labels column headers.
 - shows variable type controls in the header or a compact variable metadata panel.
@@ -1420,7 +2028,7 @@ Dataset document view:
 - does not modify cell values.
 - supports selecting a variable or cell enough to update the inspector.
 
-The document view should remain simple and truthful:
+The native Workstation dataset view should remain simple and truthful:
 - raw rows.
 - variable names.
 - variable types.
@@ -1443,7 +2051,7 @@ When a dataset is selected, the inspector shows:
 
 Covariate rule:
 - v1 includes the selector contract but only enables it for analyses that explicitly support covariates.
-- because Milestone 20 intentionally stays lean, basic tests may show covariates as unavailable with copy: `Covariates are not available for this basic test.`
+- because Milestone 23 intentionally stays lean, basic tests may show covariates as unavailable with copy: `Covariates are not available for this basic test.`
 - do not silently ignore selected covariates.
 
 ### Analysis Support
@@ -1539,7 +2147,7 @@ Output:
 - eta squared.
 - small/medium/large effect-size interpretation.
 
-Do not implement post-hoc tests in Milestone 20.
+Do not implement post-hoc tests in Milestone 23.
 
 #### Chi-Squared
 
@@ -1556,7 +2164,7 @@ Output:
 
 Warn when expected-cell assumptions are weak:
 - show expected count warning when too many expected cells are below 5.
-- do not implement Fisher's exact test in Milestone 20.
+- do not implement Fisher's exact test in Milestone 23.
 
 #### Linear Correlation
 
@@ -1571,7 +2179,7 @@ Output:
 - small/medium/large effect-size interpretation for `r`.
 - scatter plot.
 
-Do not implement regression models in Milestone 20.
+Do not implement regression models in Milestone 23.
 
 ### Effect Size Guidance
 
@@ -1665,7 +2273,7 @@ Add command palette entries:
 - `Add Analysis to Sequence`
 - `Save Analysis Sequence as Summary`
 
-Shortcut rows are not required in Milestone 20 unless later UI planning decides dataset analysis needs dedicated shortcuts.
+Shortcut rows are not required in Milestone 23 unless later UI planning decides dataset analysis needs dedicated shortcuts.
 
 ### Engine API and CLI Contracts
 
@@ -1714,7 +2322,7 @@ Quantitative analysis is local-first:
 - CSV contents are not sent to online providers.
 - statsmodels and plotting run locally.
 - saved summaries stay in the project.
-- LLM interpretation is out of scope for Milestone 20.
+- LLM interpretation is out of scope for Milestone 23.
 
 Developer/Lite boundary:
 - Developer and Lite builds use the same local analysis engine for CSV datasets.
@@ -1729,7 +2337,8 @@ Add disabled lane:
 Owned paths:
 - `engine/src/exegesis_engine/datasets/**`
 - `engine/src/exegesis_engine/quant_analysis/**`
-- `client-textual/src/exegesis_textual/datasets/**`
+- `desktop-shell/workstation/datasets/**`
+- `desktop-shell/workstation/quant_analysis/**`
 - `shared/src/exegesis_shared/datasets/**`
 - `shared/src/exegesis_shared/quant_analysis/**`
 - `docs/quant_analysis/**`
@@ -1741,7 +2350,7 @@ Scope policy:
 Lane profile:
 - risk: `MEDIUM`
 - routing impact: none while disabled
-- roadmap item: Milestone 20
+- roadmap item: Milestone 23
 
 ### Implementation Batches
 
@@ -1753,8 +2362,8 @@ Lane profile:
    - Add CSV loader, validation, provenance, hash, row/column guardrails, and tests.
 4. Variable type detection
    - Add categorical/ordinal/scale detection and override persistence.
-5. Raw dataset document view contract
-   - Add table read model and variable-type editing contract once client lanes are active.
+5. Raw dataset SwiftUI view contract
+   - Add table read model and variable-type editing contract for the native Workstation once this lane is active.
 6. Descriptive and frequency analysis
    - Add descriptive, frequency, contingency tables, markdown output, and tests.
 7. Inferential tests
@@ -1765,8 +2374,8 @@ Lane profile:
    - Add appendable sequence entries, status entries, and ordered display contracts.
 10. Save sequence as summary
    - Add markdown summary creation and project summary registration.
-11. Textual inspector controls
-   - Add analysis picker, variable selectors, split-by controls, and sequence actions once client lanes are active.
+11. SwiftUI inspector/sidebar controls
+   - Add analysis picker, variable selectors, split-by controls, and sequence actions in the native Workstation once this lane is active.
 12. End-to-end acceptance tests
    - Validate CSV import, variable typing, analyses, charts, sequence, and summary save.
 
@@ -1835,7 +2444,7 @@ Privacy tests:
 Acceptance criteria:
 - User can import a CSV into the `Datasets` project section.
 - Exegesis auto-detects variable types and lets the user override them.
-- User can inspect raw data in the document view.
+- User can inspect raw data in the native Workstation dataset view.
 - User can run descriptive statistics overall and split by categorical/ordinal variables.
 - User can run frequency and contingency tables.
 - User can run t-test, ANOVA, chi-squared, and linear correlation.
@@ -1845,3 +2454,547 @@ Acceptance criteria:
 - User can build a sequence of tests.
 - User can save the sequence as a summary.
 - No runtime dataset analysis behavior is active until the lane is enabled.
+
+## Milestone 24: Advanced Qualitative Coding Visualizations
+
+Lane: `feat-advanced-qual-visuals` (disabled)
+
+Intent:
+- Define the Studio Pro advanced qualitative coding visualization layer after basic coding and native Studio are available.
+- Make codes browseable and analyzable through graphs, matrices, distribution tables, visual comparisons, and codebook generation.
+- Keep this as a conceptual/spec lane until the basic qualitative coding model has real usage.
+- Treat Deep Research, Quantitative Analysis, and Advanced Qualitative Coding as the three Studio Pro feature families after native Studio is available.
+
+Non-activation rule:
+- This milestone is post-MVP conceptual specification and lane scaffolding only.
+- Do not implement runtime graphs, matrices, dashboards, codebook generation, aggregation jobs, SwiftUI visualization views, or export behavior until this lane is explicitly enabled.
+- Do not touch the Textual shell for this milestone. Advanced qualitative coding visualizations are native Studio Workstation/SwiftUI only.
+
+### Product Boundary
+
+Advanced qualitative coding visualizations eventually own:
+- browsable code graphs
+- parent/child code structure views
+- code co-occurrence views
+- document/code relationship graphs
+- code-by-document matrices
+- code-by-document-type matrices
+- code-by-participant or folder distribution tables when metadata supports it
+- visual comparison views across selected documents, groups, folders, codes, or time slices
+- code frequency and coverage tables
+- codebook generation from code definitions, examples, frequencies, and audit history
+- exportable visualization summaries and codebook documents
+
+It does not own:
+- creating the basic coding model; that belongs to Milestone 9
+- collaboration-aware shared coding; that belongs to the later collaboration milestone
+- quantitative statistics over CSV datasets; that belongs to Milestone 23
+- open web source discovery; that belongs to Milestone 22
+- Textual shell visualization work
+
+### Data Concepts
+
+Future contracts should cover:
+- `CodeGraphNode`
+- `CodeGraphEdge`
+- `CodeCoOccurrence`
+- `CodeDistributionTable`
+- `CodeMatrix`
+- `CodeComparisonSet`
+- `CodeAppearanceAggregate`
+- `CodebookEntry`
+- `GeneratedCodebook`
+- `QualVisualizationSpec`
+- `QualVisualizationArtifact`
+
+These contracts should derive from existing code assignments and document metadata rather than duplicating source-of-truth code data.
+
+### Visualization Types
+
+Browsable graphs:
+- parent/child code graph
+- code co-occurrence graph
+- document-code bipartite graph
+- optional participant/code graph when participant metadata exists
+
+Matrices:
+- code by document
+- code by document type
+- code by folder
+- parent code by child code
+- code by participant/group when metadata exists
+
+Distribution tables:
+- frequency by code
+- frequency by document/document type
+- coverage by excerpt count and token estimate
+- code density by document length
+- parent/child rollups
+
+Visual comparisons:
+- compare selected documents by code distribution
+- compare selected folders/groups by code distribution
+- compare parent codes by child-code composition
+- compare code frequencies before/after filtering
+
+Codebook generation:
+- generate a structured codebook from code names, descriptions, parent/child structure, frequency, representative excerpts, and audit metadata
+- allow user review/edit before saving
+- save generated codebook as a project summary or exportable Markdown artifact
+
+### Native Studio/SwiftUI Scope
+
+Future Studio surfaces may include:
+- code graph browser
+- matrix/table browser
+- comparison builder
+- filter panel for document type, folder, participant, date, and code hierarchy
+- representative excerpt drill-down
+- codebook preview and save flow
+- export/save summary actions
+
+Boundaries:
+- use `desktop-shell/workstation/qual_visualizations/**` for native Studio/SwiftUI surfaces.
+- use `engine/src/exegesis_engine/qual_visualizations/**` and `engine/src/exegesis_engine/codebook/**` for aggregation and codebook generation logic.
+- expose Python-backed aggregation or artifact generation through the sidecar when needed.
+- do not create Textual shell visualization views.
+
+### Lane Wiring Plan
+
+Add disabled lane:
+- `feat-advanced-qual-visuals`
+
+Owned paths:
+- `engine/src/exegesis_engine/qual_visualizations/**`
+- `engine/src/exegesis_engine/codebook/**`
+- `desktop-shell/workstation/qual_visualizations/**`
+- `shared/src/exegesis_shared/qual_visualizations/**`
+- `docs/qual_visualizations/**`
+
+Scope policy:
+- lane may edit only the above owned paths once activated.
+- roadmap/spec/config scaffolding remains integrator-owned during this planning pass.
+
+Lane profile:
+- risk: `MEDIUM`
+- routing impact: none while disabled
+- roadmap item: Milestone 24
+
+### Future Design Batches
+
+1. Aggregate contracts
+   - Define graph, matrix, distribution, comparison, and codebook schemas.
+2. Query/read model
+   - Define aggregation inputs from code assignments, document metadata, folders, document types, and participant metadata.
+3. Graph and matrix generation
+   - Specify deterministic graph/matrix generation and filters.
+4. Distribution and comparison views
+   - Specify table and comparison calculations plus drill-down behavior.
+5. Codebook generation
+   - Specify codebook entry generation, representative excerpt selection, user review, and save/export behavior.
+6. Studio SwiftUI surfaces
+   - Define graph browser, matrix browser, comparison builder, codebook preview, and save flows.
+7. Sidecar exposure
+   - Add sidecar route contracts for aggregation and artifact generation if Python-backed execution is needed.
+8. Acceptance tests
+   - Validate aggregates, filters, representative excerpts, codebook save, and no Textual shell scope.
+
+### Test Plan
+
+Scaffolding tests:
+- `feat-advanced-qual-visuals` exists in lane defaults and profiles.
+- `feat-advanced-qual-visuals` is disabled in router config and example config.
+- Scope-check policy allows only advanced qualitative visualization docs and implementation paths when the lane is active.
+- `status.py` shows the lane disabled.
+- Docs clearly state this is a Studio Pro feature after native Studio is available.
+
+Future acceptance tests, once activated:
+- code graph nodes and edges derive from code assignments.
+- co-occurrence graph respects selected filters.
+- code-by-document matrix counts match source assignments.
+- distribution tables include frequency and coverage values.
+- visual comparisons update when documents/groups/codes are changed.
+- codebook generation includes definitions, parent/child structure, frequencies, representative excerpts, and audit metadata.
+- saved codebook creates a project summary or Markdown artifact.
+- Textual shell files are not touched.
+
+Acceptance criteria for this disabled spec:
+- Milestone 24 is documented as advanced qualitative coding visualizations.
+- The lane is registered and disabled everywhere the router and planner expect.
+- The feature is positioned as one of the three Studio Pro feature families after native Studio is available.
+- Native Studio/SwiftUI is the only planned UI surface.
+- Textual shell visualization work is explicitly out of scope.
+
+
+## Milestone 25: Confidential Collaboration
+
+Lane: `feat-confidential-collaboration` (disabled)
+
+Intent:
+- Define the later company-wide collaboration system after the native Workstation, sidecar, deep research, and quantitative analysis foundations are in place.
+- Keep this as a conceptual architecture sprint, not a near-term implementation lane.
+- Preserve Exegesis's confidential-first product boundary while allowing future teams, cohorts, and research groups to collaborate safely inside shared projects.
+- Define collaboration licensing explicitly: collaboration access is tied to the user's account/license, not a device, so a higher-licensed user can participate from a Lite install on a secondary machine.
+- Treat this as a whole level of company-wide development that will likely be handled interactively before broad daemon execution.
+
+Non-activation rule:
+- This milestone is post-MVP conceptual specification and lane scaffolding only.
+- Do not implement runtime collaboration servers, sync protocols, shared project mutation, invitation flows, SwiftUI collaboration views, or provider-backed collaboration features until this lane is explicitly enabled.
+- Do not implement current Textual shell collaboration behavior in this milestone. The activated design must separately decide the minimal Lite participation surface, while full collaboration management remains a Studio/SwiftUI responsibility.
+
+### Product Boundary
+
+Confidential collaboration eventually owns:
+- shared project membership and invitations
+- workspace, cohort, and research-team roles
+- project-level and document-level permissions
+- collaboration entitlement and client-access rules across Lite, Studio, course, and future higher-tier licenses
+- private local-first editing and review workflows
+- encrypted sync or secure exchange of collaboration state
+- revision, comment, and decision trails that preserve research provenance
+- audit logs for who accessed, changed, exported, imported, or shared project material
+- native Workstation SwiftUI collaboration surfaces
+- Lite-client participation paths for licensed users on secondary machines
+
+It does not own:
+- public social features
+- generalized multi-tenant SaaS workspaces detached from confidential project policy
+- open web publishing
+- course licensing or CoP access approval as sales/onboarding workflows
+- payment or page-credit metering
+- generic chat-room behavior unrelated to research workflow
+- full Studio Pro collaboration management inside the Lite client
+
+### Conceptual Architecture Questions
+
+This lane must answer these before implementation:
+- Which licenses unlock collaboration: individual Lite, course Lite, Studio Pro, institutional/course, or separate collaboration add-on?
+- Which collaboration actions are available in Lite for a higher-licensed user on a secondary machine, and which require Studio?
+- How does a user prove collaboration entitlement after importing/opening a shared project on another device?
+- What is the threat model for shared confidential projects?
+- Which content can be synced, shared, or exported, and under which project modes?
+- Does collaboration use encrypted local-first sync, a hosted relay, peer exchange, or a hybrid?
+- Which state is authoritative when two users edit or review the same document?
+- Which operations require explicit user approval before being visible to others?
+- How are citations, imported literature, OCR artifacts, baskets, codes, datasets, and analysis sequences shared?
+- How are offline edits reconciled without losing auditability?
+- Which collaboration events must be immutable audit records?
+- Which parts can run through the Python sidecar, and which require native Workstation service coordination?
+- Which parts must be available through a Lite participation surface, if any, without turning Lite into full Studio?
+- What must never be sent to cloud providers during collaboration?
+
+### Licensing And Client Access
+
+Collaboration licensing must be account-centered:
+- Collaboration entitlement is tied to the user/account, not a machine.
+- A valid higher-tier user should be able to use collaboration from a Lite install on a secondary machine, such as a lightweight MacBook, when their account license permits it.
+- Project archives, shared project invitations, and sync state must never carry raw license tokens or grant collaboration access by themselves.
+- Opening or importing a shared project on a new machine requires the current user to claim/refresh their own license status.
+- Device replacement or secondary-device use must not require a separate machine license.
+
+Client access model to define:
+- Studio owns full collaboration administration, member management, permission design, audit inspection, conflict resolution, and advanced review surfaces.
+- Lite should support enough collaboration participation for a licensed user to work from a secondary machine.
+- Lite participation may include opening shared projects, syncing allowed content, viewing membership state, adding comments/review decisions, and making permitted document edits, subject to the final design.
+- Lite should not automatically unlock Studio Pro features such as deep research, quantitative analysis, or advanced qualitative visualizations unless the user's account license includes those entitlements.
+- Course Lite collaboration should be explicitly scoped: course access may allow participation in course/project collaboration when enabled, but should not imply unrestricted organization-wide collaboration.
+
+Required future entitlement concepts:
+- `collaboration_enabled`
+- `collaboration_role`
+- `collaboration_client_capabilities`
+- `license_tier`
+- `device_id`
+- `license_refresh_state`
+
+Required copy:
+- `Collaboration access is tied to your Exegesis account, not this device.`
+- `Refresh your license to use this shared project on this machine.`
+- `Your license allows collaboration in Lite, but some management tools require Studio.`
+
+### Data Concepts
+
+Future contracts should cover:
+- `WorkspaceMember`
+- `ProjectInvite`
+- `ProjectRole`
+- `ProjectPermission`
+- `CollaborationSession`
+- `SharedProjectLease`
+- `EncryptedSyncEnvelope`
+- `CollaborationOperation`
+- `CollaborationConflict`
+- `ReviewDecision`
+- `SharedComment`
+- `AuditEvent`
+- `SyncCheckpoint`
+- `DeviceIdentity`
+
+These are conceptual names for the spec. The activated lane may rename them during detailed design.
+
+### Privacy And Confidentiality Rules
+
+Default rules:
+- Confidential project content must not be sent to third-party cloud providers by collaboration code unless the project policy explicitly allows it.
+- Shared state must preserve project-mode policy, provider allowlists, and cloud-send policy.
+- Collaboration metadata should be minimized, but not at the cost of auditability.
+- Any hosted coordination service must avoid plaintext project content where practical.
+- Credentials, provider keys, OCR keys, and personal local model endpoints are never shared through collaboration state.
+- Exports from shared projects must preserve provenance and citation/reference integrity.
+
+### Native Workstation/SwiftUI Scope
+
+Future Workstation surfaces may include:
+- project sharing status
+- invite creation and acceptance
+- member and role management
+- shared document activity
+- pending review/approval queues
+- comment and decision trails
+- sync health and conflict resolution
+- audit-event inspection
+
+Boundaries:
+- use `desktop-shell/workstation/collaboration/**` for native Studio Workstation/SwiftUI collaboration management surfaces.
+- use sidecar or engine routes only for local coordination, sync status, audit queries, and safe handoff to any future collaboration service.
+- if Lite participation requires a non-Studio surface, define it as a constrained client capability during the collaboration design sprint rather than as part of current shell mockup work.
+
+### Lane Wiring Plan
+
+Add disabled lane:
+- `feat-confidential-collaboration`
+
+Owned paths:
+- `engine/src/exegesis_engine/collaboration/**`
+- `engine/src/exegesis_engine/confidential_sync/**`
+- `desktop-shell/workstation/collaboration/**`
+- `shared/src/exegesis_shared/collaboration/**`
+- `shared/src/exegesis_shared/confidential_sync/**`
+- `docs/collaboration/**`
+
+Scope policy:
+- lane may edit only the above owned paths once activated.
+- roadmap/spec/config scaffolding remains integrator-owned during this planning pass.
+
+Lane profile:
+- risk: `HIGH`
+- routing impact: none while disabled
+- roadmap item: Milestone 25
+
+### Future Design Batches
+
+This milestone should be handled as a design-first sprint before normal feature threading:
+1. Threat model and privacy boundary
+   - Define project modes, allowed collaboration metadata, cloud prohibition rules, license/client-access boundaries, and audit expectations.
+2. Collaboration data model
+   - Specify members, roles, permissions, invites, sessions, operations, conflicts, comments, audit events, and account-level collaboration entitlement state.
+3. Sync architecture decision
+   - Choose encrypted local-first sync, hosted relay, peer exchange, or hybrid based on privacy and reliability.
+4. Conflict and review semantics
+   - Define how document edits, coding changes, baskets, citations, datasets, summaries, and exports reconcile.
+5. Workstation UX architecture
+   - Define the native SwiftUI surfaces for invites, members, activity, review, comments, conflicts, sync health, and Studio-only management.
+6. Sidecar and service boundaries
+   - Define local sidecar coordination routes, license refresh checks, client capability checks, and any future hosted service API contracts.
+7. Security and abuse review
+   - Validate encryption, access control, auditability, credential isolation, and project-mode preservation.
+8. Implementation lane split
+   - Split into smaller development lanes only after the conceptual architecture is accepted.
+
+### Test Plan
+
+Scaffolding tests:
+- `feat-confidential-collaboration` exists in lane defaults and profiles.
+- `feat-confidential-collaboration` is disabled in router config and example config.
+- Scope-check policy allows only collaboration docs and implementation paths when the lane is active.
+- `status.py` shows the lane disabled.
+- Docs clearly state this is conceptual post-MVP work after Milestone 24.
+
+Future acceptance tests, once split into implementation lanes:
+- collaboration entitlement is user/account-based and not machine-based.
+- a higher-licensed user can refresh entitlement and access allowed collaboration features from Lite on a secondary machine.
+- Lite collaboration participation does not unlock Studio-only management or Pro features.
+- project transfer/import does not carry collaboration license tokens.
+- invitations require authorization.
+- members receive only the permissions assigned to their role.
+- confidential project policy blocks unauthorized cloud-provider sharing.
+- shared changes produce audit events.
+- conflict resolution preserves original and proposed states.
+- sync resume does not duplicate operations.
+- offline edits reconcile without losing local changes.
+- exported shared documents retain citation and provenance metadata.
+- credentials and local provider endpoints are not included in shared state.
+
+Acceptance criteria for this disabled spec:
+- Milestone 25 is documented as confidential collaboration.
+- The lane is registered and disabled everywhere the router and planner expect.
+- The scope is explicitly company-wide, post-quant, and later than the current summer grunt-work milestones.
+- The spec explicitly handles collaboration licensing and Lite secondary-machine access for appropriately licensed users.
+- The spec is conceptual rather than pretending collaboration can be safely batch-implemented immediately.
+- Studio/SwiftUI owns full collaboration management, while Lite participation requirements are captured for the future design sprint.
+
+## Milestone 26: Native iPad Lite
+
+Lane: `feat-ipad-native-lite` (disabled)
+
+Intent:
+- Define a long-term conceptual milestone for a native iPadOS Lite client after confidential collaboration has been architected.
+- Treat iPad Lite as a later client-family expansion, not a near-term MVP, Studio Pro, or Textual shell task.
+- Recognize that iPad cannot depend on the packaged Python sidecar model used by macOS Studio Workstation.
+- Plan for more Lite behavior to become Swift-native over time as Studio and Pro mature their native Swift components.
+- Keep the core product promise: Lite remains a secondary-machine, lower-friction client for users whose account license allows Lite access.
+
+Non-activation rule:
+- This milestone is conceptual specification and lane scaffolding only.
+- Do not implement runtime iPadOS views, App Store packaging, Swift-native sidecar replacements, sync/client storage, or Lite feature behavior until the lane is explicitly enabled.
+- This work should not begin until enough Studio/Pro Swift-native infrastructure exists to reuse rather than rebuild.
+
+### Product Boundary
+
+iPad native Lite eventually owns:
+- native iPadOS project browsing and document reading/editing surfaces
+- Lite-compatible project open/import/export flows
+- license claim and refresh using the same account-based License Gateway model as desktop Lite
+- secondary-machine access for eligible Studio/Pro, individual Lite, course Lite, and CoP Lite users
+- lightweight annotation, reading, review, drafting, and collaboration participation where the license and client capability matrix allow it
+- iPadOS file provider, document picker, share sheet, and local storage behavior
+- offline-safe project access boundaries and refresh behavior
+
+iPad native Lite does not own:
+- Studio-only or Pro-only management surfaces
+- deep research orchestration
+- quantitative analysis
+- advanced qualitative visualization dashboards
+- full confidential collaboration administration
+- Python sidecar packaging
+- local OpenAI-compatible model hosting
+- Developer BYOK/BYOM command-palette workflows
+- Textual shell behavior
+
+### Sidecar And Swift-Native Constraint
+
+The architectural constraint is the point of the milestone:
+- macOS Studio can supervise a packaged Python sidecar.
+- iPadOS Lite cannot rely on that same Python sidecar runtime model.
+- Therefore, any iPad-native Lite feature must either be Swift-native, call a safe hosted Lite Gateway endpoint, or use shared portable data/contracts that do not require local Python execution.
+- The milestone should inventory which existing sidecar-backed behaviors must be rewritten, deferred, or reduced for iPad Lite.
+
+Likely Swift-native candidates over time:
+- project navigation and local document cache
+- Markdown document rendering/editing
+- license refresh and signed entitlement cache
+- project archive import/export validation
+- simple basket viewing and context promotion
+- citation and literature link navigation
+- annotation/review display
+- basic sync/client capability checks once collaboration exists
+
+Likely not in first iPad Lite:
+- OCR import requiring local Python or Nanonets page-ledger orchestration beyond hosted gateway calls
+- local RAG indexing
+- quantitative analysis
+- deep research provider fan-out
+- advanced coding visualizations
+- complex patch/rewrite previews unless the native editor stack already supports them
+
+### Dependency On Studio And Pro Native Work
+
+iPad Lite should reuse mature native components rather than invent a second product:
+- reuse Studio/Pro Swift data models where practical
+- reuse account/license entitlement models from Milestone 18 and Milestone 25
+- reuse native editor decisions from Milestone 21 where possible, adapted for iPadOS
+- reuse project-transfer archive contracts from Milestone 16
+- reuse collaboration client-capability rules from Milestone 25
+- reuse import/literature/citation data contracts where they can run without sidecar-only behavior
+
+Activation prerequisites:
+- native Studio Workstation has settled the Swift data model and editor direction.
+- License Gateway can provide device/account entitlement refresh for Lite.
+- collaboration client-capability rules distinguish Lite participation from Studio management.
+- project transfer/archive format is stable.
+- enough sidecar-backed behavior has been factored into shared contracts or Swift-native components.
+
+### Client Capability Model
+
+iPad Lite should be specified through client capabilities, not product vibes:
+- `ipad_lite_client_access`
+- `can_open_project_archive`
+- `can_refresh_license`
+- `can_edit_markdown_document`
+- `can_view_literature_metadata`
+- `can_add_annotation`
+- `can_participate_in_collaboration`
+- `can_run_local_sidecar_feature`: expected false
+- `requires_gateway_for_remote_feature`: true for hosted Lite-only workflows
+
+The capability matrix should make clear:
+- which actions work offline
+- which actions require gateway connectivity
+- which actions require Studio/Pro subscription
+- which actions are unavailable on iPad Lite even when the account has Pro
+- which project modes block cloud or hosted workflows
+
+### Lane Wiring Plan
+
+Add disabled lane:
+- `feat-ipad-native-lite`
+
+Owned paths:
+- `client-ipad/lite/**`
+- `client-ipad/shared/**`
+- `shared/src/exegesis_shared/ipad_lite/**`
+- `docs/ipad_lite/**`
+
+Scope policy:
+- lane may edit only the above owned paths once activated.
+- roadmap/spec/config scaffolding remains integrator-owned during this planning pass.
+- enabling this lane should not imply immediate daemon execution; it is a long-term conceptual client-architecture sprint.
+
+Lane profile:
+- risk: `HIGH`
+- routing impact: none while disabled
+- roadmap item: Milestone 26
+
+### Future Design Batches
+
+1. Product boundary and entitlement matrix
+   - Define which Lite workflows belong on iPad and which are desktop-only.
+2. Sidecar dependency inventory
+   - List every Lite workflow that currently depends on Python sidecar or local Python libraries.
+3. Swift-native reuse plan
+   - Identify Studio/Pro Swift components that can be reused or generalized for iPad.
+4. Data and archive compatibility
+   - Specify project open/import/export compatibility and local storage.
+5. License and gateway behavior
+   - Specify claim, refresh, signed cache, offline grace, and secondary-machine access.
+6. Editor and document workflow
+   - Define the minimum iPad editor/reader behavior and how it handles Markdown, citations, annotations, figures, and tables.
+7. Collaboration participation boundary
+   - Define what Lite collaboration participation means on iPad without Studio management surfaces.
+8. Implementation split
+   - Split into smaller implementation lanes only after the conceptual architecture is accepted.
+
+### Test Plan
+
+Scaffolding tests:
+- `feat-ipad-native-lite` exists in lane defaults and profiles.
+- `feat-ipad-native-lite` is disabled in router config and example config.
+- Scope-check policy allows only iPad Lite docs and implementation paths when the lane is active.
+- `status.py` shows the lane disabled.
+- Docs clearly state this is post-collaboration, conceptual, and long-term.
+
+Future acceptance tests, once split into implementation lanes:
+- iPad Lite can refresh account-based Lite access.
+- Studio/Pro subscribers can use inherited Lite access on iPad without buying separate Lite.
+- iPad Lite does not attempt to launch or package the Python sidecar.
+- iPad Lite blocks or hides sidecar-only features unless a Swift-native or hosted-gateway equivalent exists.
+- iPad Lite project archive import does not carry credentials or license tokens.
+- offline behavior respects signed license cache and project-mode policy.
+- iPad Lite collaboration participation does not unlock Studio-only management or Pro-only features.
+
+Acceptance criteria for this disabled spec:
+- Milestone 26 is documented as Native iPad Lite after confidential collaboration.
+- The lane is registered and disabled everywhere the router and planner expect.
+- The spec clearly states that iPad Lite is long-term because sidecar-dependent behavior must become Swift-native or gateway-backed.
+- The spec ties iPad Lite to reuse of mature Studio/Pro Swift-native infrastructure.
+- No runtime iPad Lite behavior is active.
