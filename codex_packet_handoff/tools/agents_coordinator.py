@@ -24,6 +24,7 @@ try:
     from git_ops import run_git
     from git_hygiene import run_hygiene
     from local_exec_sweeper import (
+        find_context_exhausted_repo_local_exec_pids,
         find_repo_owned_local_exec_pids,
         find_stale_repo_local_exec_pids,
         find_stale_repo_test_runner_pids,
@@ -34,6 +35,7 @@ except ImportError:  # pragma: no cover - package execution fallback
     from .git_ops import run_git
     from .git_hygiene import run_hygiene
     from .local_exec_sweeper import (
+        find_context_exhausted_repo_local_exec_pids,
         find_repo_owned_local_exec_pids,
         find_stale_repo_local_exec_pids,
         find_stale_repo_test_runner_pids,
@@ -784,6 +786,34 @@ def _tracked_feature_exec_pids() -> List[int]:
     return sorted(set(tracked))
 
 
+def _tracked_local_exec_log_paths() -> Dict[int, str]:
+    tracked: Dict[int, str] = {}
+    feature_state = load_json(FEATURE_RUNNER_STATE_FILE, {})
+    lanes = feature_state.get("lanes") if isinstance(feature_state, dict) else {}
+    if isinstance(lanes, dict):
+        for lane_state in lanes.values():
+            if not isinstance(lane_state, dict):
+                continue
+            pid = int(lane_state.get("pid") or 0)
+            log_path = str(lane_state.get("log_path") or "")
+            if pid > 0 and log_path:
+                tracked[pid] = log_path
+    router_state = load_json(ROUTER_STATE_FILE, {})
+    if isinstance(router_state, dict):
+        for key in ROUTER_JOB_STATE_KEYS:
+            jobs = router_state.get(key)
+            if not isinstance(jobs, dict):
+                continue
+            for job in jobs.values():
+                if not isinstance(job, dict):
+                    continue
+                pid = int(job.get("pid") or 0)
+                log_path = str(job.get("output_path") or "")
+                if pid > 0 and log_path:
+                    tracked[pid] = log_path
+    return tracked
+
+
 def _reconcile_orphan_local_exec_processes() -> List[int]:
     # Feature and router direct-exec jobs are intentionally detached by
     # short-lived launcher processes. As long as they remain tracked in state,
@@ -797,6 +827,13 @@ def _reconcile_orphan_local_exec_processes() -> List[int]:
     if orphaned:
         terminate_local_exec_pids(orphaned)
     return orphaned
+
+
+def _reconcile_context_exhausted_local_exec_processes() -> List[int]:
+    exhausted = find_context_exhausted_repo_local_exec_pids(_tracked_local_exec_log_paths())
+    if exhausted:
+        terminate_local_exec_pids(exhausted)
+    return exhausted
 
 
 def _reconcile_stale_test_runner_processes() -> List[int]:
@@ -830,6 +867,7 @@ def _reconcile_control_plane_state(coordinator_state: Dict[str, object]) -> Dict
     router_removed = _reconcile_router_state(coordinator_state)
     orphan_local_exec_pids_removed = _reconcile_orphan_local_exec_processes()
     stale_test_runner_pids_removed = _reconcile_stale_test_runner_processes()
+    context_exhausted_pids_removed = _reconcile_context_exhausted_local_exec_processes()
     worktree_reconcile = _reconcile_lane_worktrees()
     git_hygiene = run_hygiene(REPO_ROOT)
     git_hygiene_status = _update_git_hygiene_status(coordinator_state, git_hygiene)
@@ -868,6 +906,11 @@ def _reconcile_control_plane_state(coordinator_state: Dict[str, object]) -> Dict
             "[reconcile] terminated stale repo test runners: "
             + ", ".join(str(pid) for pid in stale_test_runner_pids_removed)
         )
+    if context_exhausted_pids_removed:
+        print(
+            "[reconcile] terminated context-exhausted local workers: "
+            + ", ".join(str(pid) for pid in context_exhausted_pids_removed)
+        )
     for repaired in worktree_reconcile["gitdir_repaired"]:
         print(f"[reconcile] restored shared gitdir for {repaired}")
     for backup in worktree_reconcile["gitdir_backups"]:
@@ -898,6 +941,7 @@ def _reconcile_control_plane_state(coordinator_state: Dict[str, object]) -> Dict
         "duplicate_feature_pids_removed": duplicate_feature_pids_removed,
         "orphan_local_exec_pids_removed": orphan_local_exec_pids_removed,
         "stale_test_runner_pids_removed": stale_test_runner_pids_removed,
+        "context_exhausted_pids_removed": context_exhausted_pids_removed,
         "worktree_reconcile": worktree_reconcile,
         "git_hygiene": git_hygiene,
         "git_hygiene_status": git_hygiene_status,

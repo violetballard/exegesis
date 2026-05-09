@@ -10,7 +10,7 @@ Manual breakdown if you need to inspect each step:
 - `python codex_packet_handoff/tools/daemon_ctl.py status`
 - `python codex_packet_handoff/tools/status.py`
 - `python codex_packet_handoff/tools/daemon_monitor.py`
-- `ps -axo pid,etime,command | rg "codex exec|codex_packet_handoff/tools/agents_coordinator.py" || true`
+- `ps -axo pid,etime,command | rg "codex exec|opencode run|codex_packet_handoff/tools/agents_coordinator.py" || true`
 - `for f in $(ls -1t .codex/feature_runner/logs/*.log 2>/dev/null | head -n 5); do echo "FILE:$f"; tail -n 20 "$f"; done`
 - `for f in $(ls -1t .codex/packet_router/logs/*.log 2>/dev/null | head -n 5); do echo "FILE:$f"; tail -n 40 "$f"; done`
 - `tail -n 80 .codex/packet_coordinator/daemon.log 2>/dev/null || true`

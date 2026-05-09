@@ -12,7 +12,7 @@ from typing import Dict, Iterable, List
 
 LOCAL_AGENT_RE = re.compile(r"(?:\bcodex\b.*\bexec\b|\bopencode\b.*\brun\b)", re.IGNORECASE)
 LOCAL_EXEC_MARKERS = ("--skip-git-repo-check", "workspace-write", "--local-provider", "lmstudio")
-OPENCODE_LOCAL_MARKERS = ("--model", "lmstudio/qwen3.6-27b", "--dir")
+OPENCODE_LOCAL_MARKERS = ("--model", "lmstudio/qwen3.6-27b")
 TEST_RUNNER_RE = re.compile(
     r"(^|/|\s)(quality-test\.sh|typecheck-test\.sh|python(?:\d+(?:\.\d+)?)?\s+-m\s+(unittest|pytest)\b|pytest\b)",
     re.IGNORECASE,
@@ -26,6 +26,15 @@ PROMPT_ROOT_SUFFIXES = (
 MANAGED_WORKTREE_ROOT = Path.home() / ".codex/worktrees"
 ORPHAN_TEST_RUNNER_MIN_AGE_SECONDS = int(os.environ.get("ORPHAN_TEST_RUNNER_MIN_AGE_SECONDS", "1800"))
 ORPHAN_TEST_RUNNER_RSS_LIMIT_KB = int(os.environ.get("ORPHAN_TEST_RUNNER_RSS_LIMIT_KB", "1500000"))
+CONTEXT_EXHAUSTION_MARKERS = (
+    "ERROR: stream disconnected before completion: Context size has been exceeded",
+    "ERROR: stream disconnected before completion: context size has been exceeded",
+    "ERROR: stream disconnected before completion: Context length exceeded",
+    "ERROR: stream disconnected before completion: context length exceeded",
+    "Error: context length exceeded",
+    "error: context length exceeded",
+)
+CONTEXT_EXHAUSTION_TAIL_BYTES = int(os.environ.get("CONTEXT_EXHAUSTION_TAIL_BYTES", "65536"))
 
 
 def _pid_alive(pid: int) -> bool:
@@ -122,6 +131,23 @@ def _repo_prompt_roots(repo_root: Path) -> List[Path]:
     for suffix in PROMPT_ROOT_SUFFIXES:
         roots.append((resolved_repo / suffix).resolve())
     return roots
+
+
+def _tail_contains_context_exhaustion(path_value: str) -> bool:
+    if not path_value:
+        return False
+    try:
+        path = Path(path_value).expanduser().resolve(strict=False)
+        if not path.exists() or not path.is_file():
+            return False
+        size = path.stat().st_size
+        with path.open("rb") as handle:
+            if size > CONTEXT_EXHAUSTION_TAIL_BYTES:
+                handle.seek(max(0, size - CONTEXT_EXHAUSTION_TAIL_BYTES))
+            text = handle.read().decode("utf-8", errors="replace")
+    except OSError:
+        return False
+    return any(marker in text for marker in CONTEXT_EXHAUSTION_MARKERS)
 
 
 def _is_repo_owned_prompt_path(repo_root: Path, prompt_path: str) -> bool:
@@ -304,9 +330,27 @@ def find_stale_repo_local_exec_pids(
             ppid = int(meta.get("ppid") or 0)
         except ValueError:
             ppid = 0
+        if ppid in tracked:
+            continue
         if pid not in tracked or (ppid == 1 and pid not in detached_ok):
             stale.append(pid)
     return sorted(stale)
+
+
+def find_context_exhausted_repo_local_exec_pids(pid_to_log_path: Dict[int, str]) -> List[int]:
+    """Find tracked local execs whose current log shows terminal context exhaustion."""
+
+    exhausted: List[int] = []
+    for raw_pid, log_path in pid_to_log_path.items():
+        try:
+            pid = int(raw_pid)
+        except (TypeError, ValueError):
+            continue
+        if pid <= 0 or not _pid_alive(pid):
+            continue
+        if _tail_contains_context_exhaustion(str(log_path or "")):
+            exhausted.append(pid)
+    return sorted(set(exhausted))
 
 
 def terminate_local_exec_pids(pids: Iterable[int], *, grace_seconds: float = 1.0) -> List[int]:
