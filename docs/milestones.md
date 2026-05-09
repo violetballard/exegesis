@@ -46,6 +46,12 @@ Active engine ownership:
 - `feat-a2ui-contract`: shared card/action contracts
 - `feat-commands`: CLI compatibility while the package/layout migration is underway
 
+Notebook context compaction:
+- implement against `/Users/doctor-violet/Library/CloudStorage/Box-Box/projects/qual/docs/NOTEBOOK_CONTEXT_COMPACTION_SPEC.md`
+- preserve raw notebook transcript history while assembling compacted model requests
+- keep pinned entries, unresolved rewrite cards, current document context, and basket source-type labels verbatim
+- store compaction blocks with source entry IDs, token counts, validation status, and restore support
+
 Status:
 - In progress
 
@@ -58,6 +64,7 @@ Deliverables:
 - persistence for document/basket/session state
 - save-to-project workflow output paths
 - readable, durable workflow cards
+- notebook compaction cards and audit state for long sessions
 - keyboard-first interaction plan carried through the client
 - minimal audit/proposal logging
 
@@ -249,6 +256,7 @@ Deliverables:
 - formatting bar for bold, italic, underline where supported, and heading levels
 - image-as-figure insertion with title, caption, alt text, and project-managed asset reference
 - Markdown table title/caption metadata for APA-ready export
+- document and selection word counts in the inspector alongside LLM token estimates
 - direct Markdown syntax insertion/wrapping
 - semantic heading controls preferred over manual styling
 - formatting shortcut row
@@ -320,6 +328,9 @@ Deliverables:
 - initial CoP unlimited Lite course access
 - hosted License Gateway for license claim, refresh, managed Mistral/Nanonets access, Paddle webhooks, and Nanonets page state
 - 150 default Nanonets pages plus fixed top-ups for 150, 500, and 1000 pages
+- Studio 250-page monthly managed cloud OCR bucket and Pro 500-page monthly managed cloud OCR bucket
+- edition system tiers: Lite 8 GB, Studio/Pro 16 GB with cloud OCR fallback, 32 GB for local OCR, and 128 GB for local confidential mode
+- Pro-only entitlement gating for Quantitative Analysis and Advanced Qualitative Coding Visualizations
 - import-window Nanonets balance and estimated-page display
 - licensing boundary: per user/account, not per machine, including Studio/Pro-derived Lite access and never embedded in project transfer archives
 
@@ -368,6 +379,7 @@ Deliverables:
 - native macOS SwiftUI Workstation lifecycle
 - STTextView editor foundation evaluation with plugins for annotations, Markdown highlighting, diffs, citations, figures, and tables
 - bundled sidecar launch, health monitoring, compatibility checks, restart, and shutdown
+- Workstation memory tiers and OCR routing: 16 GB minimum with managed cloud OCR fallback, 32 GB for local OCR, and 128 GB for local confidential mode
 - macOS signing, notarization, dmg/release artifact, checksums, and web distribution
 - release manifest, clean install, manual update/upgrade, and project data preservation
 - explicit exclusion of Windows/Linux Studio signing and packaging
@@ -400,6 +412,7 @@ Outcome:
 
 Deliverables:
 - native Studio `Datasets` project browser section
+- Pro-only `pro_feature_access` requirement
 - CSV-only dataset import with provenance, row/column guardrails, and project storage
 - variable type auto-detection and editable overrides
 - descriptive statistics, frequency and contingency tables, t-test, ANOVA, chi-squared, and linear correlation
@@ -419,6 +432,7 @@ Outcome:
 
 Deliverables:
 - browsable code graphs for parent/child structures, co-occurrence, and document/code relationships
+- Pro-only `pro_feature_access` requirement
 - code/document matrices and distribution tables
 - visual comparisons across documents, document types, participants, folders, and codes
 - codebook generation from code definitions, frequencies, examples, and audit history

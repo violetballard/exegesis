@@ -679,6 +679,14 @@ Metadata rules:
 - Export owns final APA numbering; authors do not manually type `Figure 1` or `Table 1` into the title field.
 - Retrieval should be able to index figure/table titles, captions, and table text as document content.
 
+Inspector word counts:
+- The inspector must show both LLM-oriented token estimates and human-oriented word counts.
+- When a document is open and no text selection is active, show document word count and document token estimate.
+- When text is selected, show selection word count and selection token estimate in addition to the document-level counts.
+- Word count should use a deterministic local tokenizer suitable for prose metrics, not the LLM token estimator.
+- Count labels should be explicit, for example `Document Words`, `Selection Words`, `Document Tokens`, and `Selection Tokens`.
+- Word counts are display metadata only; they do not affect retrieval chunking, export citation state, or model context budgeting.
+
 ### Engine/API Surface
 
 Add formatting actions:
@@ -688,6 +696,7 @@ Add formatting actions:
 - `wrap_table_with_metadata(document_id, table_range, title, caption) -> EditResult`
 - `edit_block_metadata(document_id, block_id, title, caption, alt_text=None) -> EditResult`
 - `list_formatting_commands(document_id, selection_state) -> list[FormattingCommandState]`
+- `get_document_reading_metrics(document_id, selection_range?) -> ReadingMetrics`
 
 Integration requirement:
 - Formatting operations must record undoable edit operations once Milestone 10 is enabled.
@@ -756,6 +765,9 @@ Shortcut row and palette:
 - Table title/caption edits preserve the stable table ID.
 - Raw Markdown export keeps readable figure/table source.
 - APA export can consume figure/table title and caption metadata for final numbering and layout.
+- Inspector shows document word count and token estimate when no selection is active.
+- Inspector shows selection word count and selection token estimate when text is selected.
+- Word count remains deterministic and separate from LLM token estimation.
 
 ## Milestone 15: Developer Provider Configuration
 
@@ -1384,7 +1396,7 @@ Intent:
 - Support course-license request intake through a Tally form accessible via MCP for Claude cowork-assisted classification and manual approval preparation.
 - Give initial CoP users unlimited Lite course access without seat limits.
 - Keep Nanonets online OCR page-metered with a 150-page default balance and fixed top-up packages.
-- Require a Lite-only hosted License Gateway for license distribution, managed Lite provider access, Paddle webhooks, and Nanonets page ledger state.
+- Require a hosted License Gateway for license distribution, managed Lite provider access, Studio/Pro managed OCR fallback, Paddle webhooks, and Nanonets page ledger state.
 - Keep Developer builds completely separate from hosted Lite workflows.
 - Treat licenses as per-user/account entitlements, not per-machine activations.
 
@@ -1422,12 +1434,21 @@ Required constants:
 - `STUDIO_APP_ACCESS_ENTITLEMENT = "studio_app_access"`
 - `PRO_FEATURE_ACCESS_ENTITLEMENT = "pro_feature_access"`
 - `DEFAULT_NANONETS_PAGE_LIMIT = 150`
+- `STUDIO_CLOUD_OCR_MONTHLY_PAGE_LIMIT = 250`
+- `PRO_CLOUD_OCR_MONTHLY_PAGE_LIMIT = 500`
 - `NANONETS_TOP_UP_PACKAGES = [150, 500, 1000]`
+- `LITE_MIN_MEMORY_GB = 8`
+- `WORKSTATION_MIN_MEMORY_GB = 16`
+- `LOCAL_OCR_MIN_MEMORY_GB = 32`
+- `LOCAL_CONFIDENTIAL_MODE_MIN_MEMORY_GB = 128`
 
 Default usage account:
 - Initial CoP usage account type: `community`.
 - Initial CoP starts with 150 Nanonets pages.
 - The 150-page default is finite OCR usage, not unlimited Nanonets usage.
+- Studio subscriptions receive a monthly cloud OCR bucket of 250 Nanonets OCR-3 pages when local OCR is unavailable or unsafe to load.
+- Pro subscriptions receive a monthly cloud OCR bucket of 500 Nanonets OCR-3 pages when local OCR is unavailable or unsafe to load.
+- Studio/Pro monthly OCR buckets are distinct from Lite's initial 150-page balance and distinct from paid top-up packages.
 
 Top-up package rule:
 - The only v1 top-up packages are 150, 500, and 1000 pages.
@@ -1474,6 +1495,26 @@ Derived entitlement rules:
 - Inherited Lite access does not create unlimited Nanonets page usage. Online OCR remains governed by the user's or account's Nanonets page balance unless a specific subscription package later includes an explicit page allocation.
 - Inherited Lite access does not transfer Studio-only or Pro-only features into the Lite client. The Lite client may show only Lite-supported capabilities unless the final client-capability matrix explicitly allows more.
 
+Edition capability rules:
+- Lite minimum memory target is 8 GB.
+- Studio and Pro minimum memory target is 16 GB when cloud OCR fallback is available.
+- Local OCR requires at least 32 GB total system memory and enough currently available memory to load the local OCR model without hurting app responsiveness.
+- Local confidential mode requires at least 128 GB total system memory.
+- Studio users with less than 128 GB can still use Studio features that do not require local confidential mode.
+- Pro users with less than 128 GB can still use Pro features, but local confidential mode must be unavailable with clear copy explaining the memory requirement.
+- Quantitative Analysis and Advanced Qualitative Coding Visualizations require `pro_feature_access`; Studio-only licenses must not unlock them.
+- The gateway and app should distinguish entitlement failures from hardware capability failures. A user can be licensed for Pro while still lacking local confidential-mode hardware.
+
+OCR routing rules by edition:
+- Markdown-direct imports never consume OCR pages.
+- Lite uses managed Nanonets OCR-3 for OCR-backed imports and consumes the Lite OCR page balance.
+- Studio and Pro first attempt local Nanonets OCR2 only when project policy allows local processing, total memory is at least 32 GB, and current available memory is sufficient to load the model safely.
+- If local OCR cannot be loaded because current memory is insufficient, Studio and Pro may fall back to managed Nanonets OCR-3 when project policy allows cloud processing.
+- Studio cloud OCR fallback consumes from the 250-page monthly Studio bucket.
+- Pro cloud OCR fallback consumes from the 500-page monthly Pro bucket.
+- If local OCR is available, prefer it to preserve monthly cloud OCR pages.
+- If the project is in local confidential mode, cloud OCR fallback is blocked even when pages remain.
+
 Required gateway entitlement response shape:
 - `account_id`
 - `effective_entitlements`
@@ -1486,6 +1527,12 @@ Required gateway entitlement response shape:
   - `lite`
   - `studio`
   - `pro`
+- `hardware_capabilities`
+  - `total_memory_gb`
+  - `local_ocr_supported`
+  - `local_confidential_mode_supported`
+- `ocr_page_buckets`
+  - current Lite, Studio, or Pro managed OCR balances visible to the active client
 - `refresh_expires_at`
 - `signed_cache`
 
@@ -1494,6 +1541,9 @@ Required copy:
 - `Lite access is included with your Pro subscription.`
 - `Your Exegesis license is tied to your account, not this machine.`
 - `Refresh your license to use Lite on this machine.`
+- `Local confidential mode requires 128 GB of memory. Your license is active, but this machine does not meet that local-confidential requirement.`
+- `Local OCR is unavailable right now, so this import can use your cloud OCR pages if project policy allows cloud processing.`
+- `Cloud OCR pages remaining this month: {pagesRemaining}`
 
 ### Course Licensing Model
 
@@ -1580,12 +1630,14 @@ Data concepts:
   - Paddle customer/subscription/transaction reference
   - status: active, cancelled, past_due, refunded, revoked, expired
   - grants: `studio_app_access`, derived `lite_client_access`
+  - managed OCR monthly page limit: 250
   - created/updated timestamps
 - `ProSubscriptionLicense`
   - user/account id
   - Paddle customer/subscription/transaction reference
   - status: active, cancelled, past_due, refunded, revoked, expired
   - grants: `studio_app_access`, `pro_feature_access`, derived `lite_client_access`
+  - managed OCR monthly page limit: 500
   - created/updated timestamps
 - `EffectiveEntitlement`
   - user/account id
@@ -1642,7 +1694,7 @@ Required access copy:
 
 ### Exegesis License Gateway
 
-Lite requires a small hosted License Gateway because managed provider credentials and Paddle webhooks cannot safely live inside the desktop app.
+Lite requires a small hosted License Gateway because managed provider credentials and Paddle webhooks cannot safely live inside the desktop app. Studio and Pro also use the gateway for subscription entitlement refresh and managed cloud OCR fallback when local OCR cannot load safely.
 
 Gateway responsibilities:
 - Store individual paid Lite licenses.
@@ -1652,8 +1704,10 @@ Gateway responsibilities:
 - Generate license invite links or codes.
 - Claim and refresh Lite license status.
 - Store Nanonets page usage accounts, ledger entries, top-ups, and job usage records.
+- Store Studio and Pro monthly managed OCR page buckets.
 - Receive and verify Paddle webhook events.
 - Mediate Lite managed Mistral Small 4 and Nanonets OCR-3 requests.
+- Mediate Studio/Pro managed Nanonets OCR-3 fallback requests when local OCR is unavailable and policy allows cloud processing.
 - Keep managed provider keys out of Lite app bundles, local logs, project files, transcripts, and local license cache.
 
 Gateway data concepts:
@@ -1735,9 +1789,10 @@ Required gateway endpoints:
 - `POST /webhooks/paddle`
   - verifies Paddle signature
   - creates individual Lite, Studio, Pro, and page top-up ledger updates idempotently
-- Lite-only managed provider proxy endpoints
+- Managed provider proxy endpoints
   - mediate Mistral Small 4 calls for Lite
   - mediate Nanonets OCR-3 calls for Lite
+  - mediate Nanonets OCR-3 fallback calls for Studio and Pro when local OCR is unavailable and policy allows cloud processing
 
 Gateway security rules:
 - Admin endpoints require admin authorization.
@@ -1752,7 +1807,10 @@ Usage account:
 - `NanonetsUsageAccount`
   - `id`
   - `usage_account_id`
-  - `usage_account_type`: `community` for initial CoP v1
+  - `usage_account_type`: `community`, `user`, or `subscription`
+  - `license_source_id`: optional, used for Studio/Pro monthly buckets
+  - `period_start`: optional for monthly buckets
+  - `period_end`: optional for monthly buckets
   - `created_at`, `updated_at`
 
 Balance summary:
@@ -1818,16 +1876,24 @@ Ledger math:
 - `consume`: decreases reserved pages and increases used pages when tied to a reservation.
 - Cached balance may exist, but ledger is source of truth.
 
+Monthly subscription bucket rules:
+- Studio and Pro managed OCR buckets reset monthly according to the subscription/account period recorded by the gateway.
+- Studio receives 250 cloud OCR pages per month.
+- Pro receives 500 cloud OCR pages per month.
+- Unused monthly subscription pages do not roll over unless a future pricing plan explicitly adds rollover.
+- Paid top-ups, if purchased, should be tracked separately from monthly subscription allocations so support can explain why pages are available.
+- Cloud OCR fallback must reserve and consume pages through the same transaction-safe ledger as Lite OCR.
+
 ### Nanonets Job Flow
 
 Before online OCR submission:
-1. Resolve Lite usage account.
+1. Resolve the active usage account for Lite, Studio, or Pro.
 2. Estimate page count.
 3. Lock usage account balance in a transaction.
 4. Reject if remaining pages are insufficient.
 5. Create job record.
 6. Create reservation ledger entry.
-7. Submit to Nanonets through the Lite gateway proxy.
+7. Submit to Nanonets through the managed gateway proxy.
 8. Move job to submitted/processing state.
 
 On completion:
@@ -1874,11 +1940,13 @@ Non-goals:
 
 License status:
 - Use the existing action vocabulary around `refresh_license` where possible.
-- Add Lite-only claim-license and refresh-license flow specs.
+- Add claim-license and refresh-license flow specs for Lite, Studio, and Pro entitlement refresh.
 - Developer builds do not call Lite gateway license claim or refresh endpoints.
 
 Import window:
 - When selected import requires Lite online Nanonets OCR, show current page balance in the import modal/window.
+- When selected import in Studio or Pro requires managed cloud OCR fallback, show current monthly cloud OCR balance and estimated page count.
+- When local OCR is possible but current available memory is insufficient, explain that cloud OCR fallback is available only if project policy permits cloud processing.
 - Show estimated page count once the selected file can be counted.
 - Show whether import can proceed with current balance.
 - If insufficient, show top-up choices for 150, 500, and 1000 pages.
@@ -1985,14 +2053,28 @@ Developer/Lite boundary tests:
 - Lite build does not expose Developer BYOK/BYOM controls.
 - Lite build uses effective `lite_client_access` whether it came from individual Lite, course Lite, CoP Lite, Studio, or Pro.
 
+Edition and hardware capability tests:
+- Lite minimum-memory guidance is 8 GB.
+- Studio and Pro minimum-memory guidance is 16 GB when managed cloud OCR fallback is available.
+- Local OCR is available only when total memory is at least 32 GB and current available memory can load OCR without degrading responsiveness.
+- Local confidential mode is unavailable below 128 GB even when the user has an active Studio or Pro license.
+- Hardware insufficiency is reported separately from license failure.
+- Studio-only licenses do not unlock Quantitative Analysis.
+- Studio-only licenses do not unlock Advanced Qualitative Coding Visualizations.
+- Pro licenses expose Quantitative Analysis and Advanced Qualitative Coding Visualizations through `pro_feature_access`.
+
 Nanonets usage tests:
 - Initial CoP account starts with 150 pages.
+- Studio accounts receive 250 managed cloud OCR pages per month.
+- Pro accounts receive 500 managed cloud OCR pages per month.
 - Top-up package choices are exactly 150, 500, and 1000 pages.
 - Invalid/custom package sizes are rejected.
 - Unauthorized top-ups are rejected.
 - Paddle top-up webhooks are signature-verified and idempotent.
 - Remaining pages are calculated from ledger.
 - Insufficient balance blocks online OCR import.
+- Studio/Pro managed OCR fallback reserves and consumes pages from the correct monthly bucket.
+- Local OCR does not consume monthly cloud OCR pages when it can load safely.
 - Successful job consumes actual pages.
 - Lower actual page count releases unused reservation.
 - Charged failed job consumes charged pages.
@@ -2003,6 +2085,8 @@ Nanonets usage tests:
 Import-window tests:
 - Lite OCR-backed import shows current Nanonets balance.
 - Lite OCR-backed import shows estimated page count.
+- Studio/Pro OCR-backed import shows managed monthly cloud OCR balance when cloud fallback will be used.
+- Studio/Pro OCR-backed import explains when local OCR is skipped because current available memory is insufficient.
 - Insufficient balance disables or blocks submit and shows top-up choices.
 - Markdown-direct import does not show Nanonets page consumption.
 

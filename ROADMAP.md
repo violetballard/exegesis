@@ -5,6 +5,7 @@ This file is the canonical milestone tracker for the staged Exegesis MVP migrati
 Detailed milestone breakdown lives in `/Users/doctor-violet/Library/CloudStorage/Box-Box/projects/qual/docs/milestones.md`.
 Detailed lane/task mapping lives in `/Users/doctor-violet/Library/CloudStorage/Box-Box/projects/qual/docs/TASKS.md`.
 Sprint activation plan lives in `/Users/doctor-violet/Library/CloudStorage/Box-Box/projects/qual/docs/MVP_SPRINT_PLAN.md`.
+MVP notebook context compaction spec lives in `/Users/doctor-violet/Library/CloudStorage/Box-Box/projects/qual/docs/NOTEBOOK_CONTEXT_COMPACTION_SPEC.md`.
 Future import, OCR, literature metadata, and RAG specs live in `/Users/doctor-violet/Library/CloudStorage/Box-Box/projects/qual/docs/FUTURE_IMPORT_RAG_SPEC.md`.
 Future summer MVP feature specs live in `/Users/doctor-violet/Library/CloudStorage/Box-Box/projects/qual/docs/FUTURE_MVP_FEATURES_SPEC.md`.
 Post-MVP feature specs live in `/Users/doctor-violet/Library/CloudStorage/Box-Box/projects/qual/docs/POST_MVP_FEATURES_SPEC.md`.
@@ -55,6 +56,7 @@ Scope:
 - expose canonical engine state models
 - keep retrieval/search FTS-first and structured
 - expose plan/draft/revise/apply-reject through the canonical app service
+- define notebook context compaction for long sessions so the engine can continue without losing raw history
 - preserve CLI compatibility while the package/layout migration lands
 - move A2UI contracts into `shared` while keeping renderers outside `shared`
 
@@ -69,6 +71,7 @@ Exit criteria:
 - engine can persist project/document/basket/session state
 - retrieval returns structured results suitable for basket promotion
 - plan/draft/revise/apply-reject flows operate through the canonical app service
+- notebook context compaction can preserve raw transcript history while assembling budgeted model requests
 - CLI can still execute the MVP loop while Textual remains disabled
 
 ## Milestone 4: Dogfooding readiness
@@ -77,12 +80,14 @@ Status: planned
 
 Scope:
 - finish persistence and audit hooks needed for real writing sessions
+- expose visible notebook compaction/audit behavior for long writing sessions
 - keep command palette/useful workflow actions mapped in the engine contract now
 - reserve UI polish and keyboard-first validation for the disabled Textual lanes later
 
 Exit criteria:
 - engine state survives repeated sessions
 - workflow artifacts are stable enough to support real writing use
+- notebook sessions can compact old context without deleting raw history or losing pinned decisions
 - the future client surface is unblocked by engine contract gaps
 
 ## Milestone 5: YC demo readiness
@@ -259,6 +264,7 @@ Scope:
 - add basic Markdown formatting controls for bold, italic, underline where supported, and heading levels
 - add image-as-figure insertion with title, caption, alt text, and project-managed asset references
 - add title/caption metadata for Markdown tables so APA export can render table titles and notes
+- add document and selection word counts in the inspector alongside LLM token estimates
 - insert Markdown syntax rather than creating WYSIWYG document state
 - prefer semantic headings over manual visual formatting
 - add dedicated formatting shortcut row and command-palette entries
@@ -340,7 +346,10 @@ Scope:
 - add a course-license request workflow through a Tally form that Claude cowork can access through MCP for classification, preparation, and manual approval support
 - preserve the initial CoP unlimited Lite course access path
 - keep Nanonets online OCR page credits separate from course or Lite access
-- keep the hosted License Gateway as the Lite-only place for license claim/refresh, managed Mistral/Nanonets access, Paddle webhooks, and Nanonets page-credit state
+- define Lite/Studio/Pro system tiers: Lite 8 GB, Studio/Pro 16 GB with cloud OCR fallback, 32 GB for local OCR, and 128 GB for local confidential mode
+- define Studio and Pro managed cloud OCR fallback buckets: Studio 250 pages/month and Pro 500 pages/month
+- keep Quantitative Analysis and Advanced Qualitative Coding Visualizations gated to Pro-only `pro_feature_access`
+- keep the hosted License Gateway as the place for license claim/refresh, managed Lite Mistral access, managed Nanonets OCR fallback, Paddle webhooks, and Nanonets page-credit state
 - make project transfer license-safe: imported project zips require the current user to have a valid license, but licenses are never machine-bound or included in project archives
 
 Lane mapping:
@@ -394,6 +403,8 @@ Scope:
 - define the macOS-only native Workstation, branded as Studio, after the sidecar milestone
 - package the native SwiftUI interface, project storage, and Milestone 20 sidecar into a signed and notarized macOS distribution
 - evaluate STTextView as the preferred native editor foundation, with plugins for annotations, Markdown highlighting, diffs, citations, figures, and tables
+- enforce Workstation system tiers: Studio/Pro minimum 16 GB with managed cloud OCR fallback, 32 GB for local OCR, and 128 GB for local confidential mode
+- route OCR locally when enough memory is currently available, otherwise fall back to managed cloud OCR when policy allows
 - ship through web distribution with checksums, release manifest, clean install, update/manual upgrade, crash/diagnostic, and data preservation guidance
 - remove Windows and Linux signing from this milestone; those are not Studio targets
 - keep this as a likely interactive sprint rather than broad daemon-driven packaging work
@@ -432,6 +443,7 @@ Status: Studio Pro planned, disabled
 
 Scope:
 - add first-class CSV dataset import, variable typing, lean statistics, basic charts, and saveable analysis sequences after Studio is available
+- require Pro-only `pro_feature_access`
 - support descriptive statistics, frequency and contingency tables, t-test, ANOVA, chi-squared, and linear correlation
 - show p-values, effect sizes, and compact small/medium/large guidance
 - implement dataset views, analysis configuration, and result sequences only in Studio's native SwiftUI interface
@@ -452,6 +464,7 @@ Status: Studio Pro conceptual, disabled
 
 Scope:
 - add advanced qualitative coding visualizations after Studio and basic coding are available
+- require Pro-only `pro_feature_access`
 - support browsable graphs, code/document matrices, distribution tables, visual comparisons, and codebook generation
 - visualize parent/child code structure, co-occurrence, frequency distributions, examples, and code appearance across documents, document types, participants, and folders
 - provide native Studio SwiftUI browse, filter, compare, and export surfaces
@@ -514,7 +527,7 @@ Current operational narrowing:
   - produce a plan or revision
   - preview and apply or reject a patch
   - persist the updated document/session state
-  - continue working
+  - continue working with compacted notebook context when the raw history grows too large
 - Active lane work should be judged against whether it directly advances that path.
 - Improvements that do not make that path more real are second-order and should wait until the demo loop stands.
 

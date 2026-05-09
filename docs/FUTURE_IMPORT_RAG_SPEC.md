@@ -55,6 +55,16 @@ Model targets:
 - Online OCR: Nanonets OCR-3.
 - Local/offline OCR: Nanonets OCR2.
 
+Edition-aware OCR routing:
+- Lite always uses managed online Nanonets OCR-3 for OCR-backed imports and consumes the Lite OCR page balance from the License Gateway.
+- Studio and Pro should prefer local Nanonets OCR2 when total memory is at least 32 GB and current available memory is sufficient to load the OCR model without degrading responsiveness.
+- Studio and Pro may fall back to managed Nanonets OCR-3 when local OCR is unavailable because of current memory pressure and project policy allows cloud processing.
+- Studio managed cloud OCR fallback has a 250-page monthly subscription bucket.
+- Pro managed cloud OCR fallback has a 500-page monthly subscription bucket.
+- If local OCR can be used safely, do not consume cloud OCR pages.
+- If a project is in local confidential mode, cloud OCR fallback is blocked even when monthly pages remain.
+- Local confidential mode requires the Workstation hardware tier specified in the licensing/native Workstation specs; OCR routing must report hardware limitations separately from license limitations.
+
 References:
 - [Nanonets OCR-3](https://nanonets.com/research/nanonets-ocr-3)
 - [Nanonets supported file formats](https://docs.nanonets.com/docs/file-formats)
@@ -122,6 +132,7 @@ Provider preference:
 - `auto`: use local provider when offline/confidential mode requires it; use online only when project policy allows cloud processing.
 - `local`: force Nanonets OCR2.
 - `online`: force Nanonets OCR-3 if project policy allows online processing.
+- `auto` for Studio/Pro must check both total system memory and current available memory before attempting local OCR. If current memory is insufficient and cloud processing is allowed, route to online OCR and reserve managed OCR pages.
 
 Markdown-direct import:
 - Bypasses OCR.
@@ -147,6 +158,8 @@ Review modal:
 - OCR-backed imports open a centered preview/approval modal before save.
 - Preview shows editable normalized Markdown.
 - Shows provenance summary: provider/model, original filename, page/sheet count, warnings.
+- Shows whether OCR was local or managed cloud fallback.
+- For managed cloud OCR, shows estimated and actual page usage when available.
 - User can edit title, document type, and Markdown before saving.
 
 Project browser:
@@ -183,6 +196,8 @@ Command palette:
 - Spreadsheet import: each sheet becomes a Markdown section with sheet provenance.
 - Large source file: show progress and allow cancellation.
 - Confidential project: online OCR is blocked unless policy explicitly allows cloud processing.
+- Studio/Pro machine has enough total memory but current memory is too low for OCR: route to managed cloud OCR only if cloud processing is allowed and pages remain.
+- Studio/Pro cloud OCR pages exhausted: block managed OCR fallback and explain that local OCR can be retried when memory is available.
 
 ### Test Plan
 
@@ -196,6 +211,10 @@ Command palette:
 - User-edited preview Markdown is what gets saved.
 - Duplicate source hash warns before creating duplicate document.
 - Confidential/local-only project blocks online OCR and uses local provider.
+- Studio/Pro auto OCR chooses local OCR when memory is available.
+- Studio/Pro auto OCR chooses managed cloud OCR when current available memory is insufficient and project policy permits cloud processing.
+- Studio/Pro managed cloud OCR decrements the correct 250-page or 500-page monthly bucket.
+- Studio/Pro confidential project blocks managed cloud OCR fallback even when pages remain.
 - Failed import can be retried.
 - Command palette contains import/retry/approve/cancel commands.
 

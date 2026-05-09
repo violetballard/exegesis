@@ -913,12 +913,41 @@ Failure handling:
 - if bundled sidecar is missing/quarantined, provide reinstall guidance
 - if app data migration fails, do not destroy existing user projects
 
+### Workstation System Requirements And OCR Routing
+
+Minimum supported memory tiers:
+- Lite minimum: 8 GB.
+- Studio minimum: 16 GB when managed cloud OCR fallback is available.
+- Pro minimum: 16 GB when managed cloud OCR fallback is available.
+- Local OCR minimum: 32 GB total system memory plus enough currently available memory to load Nanonets OCR2 without hurting responsiveness.
+- Local confidential mode minimum: 128 GB total system memory.
+
+Edition behavior:
+- Studio and Pro licenses remain valid on machines below 128 GB, but local confidential mode must be unavailable on those machines.
+- Users below 128 GB can still use non-confidential Studio/Pro features that their license grants.
+- Pro-only features remain entitlement-gated by `pro_feature_access`; hardware limitations should not be reported as license failures.
+- Hardware capability checks must be local and privacy-preserving.
+
+OCR provider selection:
+- Markdown-direct import never uses OCR or consumes managed OCR pages.
+- Studio and Pro should try local Nanonets OCR2 first only when total memory and current available memory are sufficient.
+- If current available memory is too low to load local OCR safely, Studio and Pro should fall back to managed Nanonets OCR-3 when the project allows cloud processing.
+- Studio managed cloud OCR fallback has a 250-page monthly subscription bucket.
+- Pro managed cloud OCR fallback has a 500-page monthly subscription bucket.
+- If local OCR is available, prefer it to avoid burning cloud OCR pages.
+- If the project is in local confidential mode, managed cloud OCR fallback is blocked even if the user has pages remaining.
+
+User-facing copy:
+- `Local OCR is unavailable right now, so this import can use your cloud OCR pages if project policy allows cloud processing.`
+- `Local confidential mode requires 128 GB of memory. Your license is active, but this machine does not meet that local-confidential requirement.`
+- `Cloud OCR pages remaining this month: {pagesRemaining}`
+
 ### Developer/Lite Boundary
 
 Developer build:
 - exposes BYOK/BYOM configuration from Milestone 15
 - includes sidecar and local endpoint support
-- does not call Lite-only managed provider proxy workflows unless explicitly configured for Lite
+- does not call hosted managed provider proxy workflows unless explicitly running as a licensed Lite, Studio, or Pro build that allows those managed workflows
 
 Lite build:
 - hides Developer BYOK/BYOM controls
@@ -932,6 +961,10 @@ Studio/Pro licensing boundary:
 - Studio validates `studio_app_access` and, for Pro-only features, `pro_feature_access`; it must not depend on the Lite client to validate Studio/Pro access.
 - Lite validates inherited `lite_client_access` from Studio/Pro through the same claim/refresh flow used for direct Lite licenses.
 - Studio/Pro subscription state, refresh tokens, and signed caches are never embedded in project transfer archives.
+- Quantitative Analysis and Advanced Qualitative Coding Visualizations are Pro-only and require `pro_feature_access`.
+- Studio-only licenses must not unlock Pro-only feature surfaces.
+- Studio cloud OCR fallback uses the Studio 250-page monthly subscription bucket.
+- Pro cloud OCR fallback uses the Pro 500-page monthly subscription bucket.
 
 Both builds:
 - share native shell/runtime supervision code where possible
@@ -1827,6 +1860,12 @@ Lane: `feat-quant-analysis` (disabled)
 Native statistics rule:
 - Quantitative analysis is a native Workstation feature centered on `StatsCore`, `StatsBridge`, and the IMSL C Numerical Library. It should not route through the Python sidecar unless a future implementation adds Python-backed preprocessing or artifact generation.
 
+Licensing rule:
+- Quantitative Analysis is Pro-only.
+- The feature requires `pro_feature_access` in addition to a native Workstation build that supports the Quantitative Analysis module.
+- A Studio-only subscription must not expose dataset import, analysis configuration, chart generation, or analysis-sequence save behavior.
+- A Pro user on a machine below the local confidential-mode hardware tier can still use Quantitative Analysis, because the core statistics engine runs locally and does not require local confidential LLM mode.
+
 Status: post-MVP planned, disabled
 
 ### Summary
@@ -2374,10 +2413,12 @@ Quantitative analysis is local-first:
 - saved summaries stay in the project.
 - LLM interpretation is out of scope for Milestone 23.
 
-Developer/Lite boundary:
-- Developer and Lite builds use the same local analysis engine for CSV datasets.
+Edition boundary:
+- Production Quantitative Analysis is available only when `pro_feature_access` is active.
+- Studio-only and Lite clients must not expose the Quantitative Analysis feature surface.
+- Developer/internal builds may compile or test the module with a developer override, but the production entitlement rule remains Pro-only.
 - Lite managed provider credentials are not involved.
-- no Paddle, License Gateway, OCR usage, online model calls, or Lite gateway calls are needed for quantitative analysis.
+- no OCR usage, online model calls, or Lite gateway calls are needed for quantitative analysis.
 
 ### Lane Wiring Plan
 
@@ -2441,6 +2482,7 @@ Scaffolding tests:
 - Scope-check policy allows only dataset/quant-analysis docs and implementation paths when the lane is active.
 - `status.py` shows the lane disabled.
 - Docs clearly state this is post-MVP and not part of Sprint 0-5.
+- Docs clearly state this is a Pro-only feature requiring `pro_feature_access`.
 
 Architecture tests:
 - `StatsCore` public result types are Codable.
@@ -2526,6 +2568,12 @@ Intent:
 - Make codes browseable and analyzable through graphs, matrices, distribution tables, visual comparisons, and codebook generation.
 - Keep this as a conceptual/spec lane until the basic qualitative coding model has real usage.
 - Treat Deep Research, Quantitative Analysis, and Advanced Qualitative Coding as the three Studio Pro feature families after native Studio is available.
+
+Licensing rule:
+- Advanced Qualitative Coding Visualizations are Pro-only.
+- The feature requires `pro_feature_access`.
+- Studio-only licenses may use basic qualitative coding if that feature is enabled, but must not unlock advanced graphs, matrices, visual comparison surfaces, or generated codebooks.
+- A Pro user on a machine below the local confidential-mode hardware tier can still use advanced qualitative visualizations that do not require local confidential LLM mode.
 
 Non-activation rule:
 - This milestone is post-MVP conceptual specification and lane scaffolding only.
@@ -2669,6 +2717,7 @@ Scaffolding tests:
 - Scope-check policy allows only advanced qualitative visualization docs and implementation paths when the lane is active.
 - `status.py` shows the lane disabled.
 - Docs clearly state this is a Studio Pro feature after native Studio is available.
+- Docs clearly state this is a Pro-only feature requiring `pro_feature_access`.
 
 Future acceptance tests, once activated:
 - code graph nodes and edges derive from code assignments.
@@ -2684,6 +2733,7 @@ Acceptance criteria for this disabled spec:
 - Milestone 24 is documented as advanced qualitative coding visualizations.
 - The lane is registered and disabled everywhere the router and planner expect.
 - The feature is positioned as one of the three Studio Pro feature families after native Studio is available.
+- The feature is explicitly gated behind `pro_feature_access`.
 - Native Studio/SwiftUI is the only planned UI surface.
 - Textual shell visualization work is explicitly out of scope.
 

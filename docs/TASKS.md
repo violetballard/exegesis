@@ -8,26 +8,31 @@ This file expands the canonical roadmap and lane mapping while the Textual lanes
 - keep `src/main.py` and the CLI surface stable during package migration
 - preserve bootstrap, diff-preview, basket, and terminal command compatibility
 - keep canonical imports available without breaking `src/qual/*`
+- expose notebook context commands for budget, compact, list compactions, expand, restore raw, pin, and unpin
 
 ### `feat-context-storage`
 - land canonical state models and storage adapters under `engine/src/exegesis_engine`
 - keep basket/document/session persistence deterministic
 - preserve current `src/qual/context/*` and `src/qual/storage/*` flows through shims or wrappers
+- store raw notebook entries, compaction blocks, pin state, source entry IDs, validation status, and restore metadata from `docs/NOTEBOOK_CONTEXT_COMPACTION_SPEC.md`
 
 ### `feat-retrieval-fts`
 - keep the FTS-first retrieval path authoritative
 - expose retrieval through the canonical engine contract
 - keep structured results suitable for workflow cards and basket promotion
+- support FTS backfill over archived notebook entries and compaction summaries
 
 ### `feat-a2ui-contract`
 - move card/action contracts and selection types into `shared/src/exegesis_shared`
 - keep terminal/CLI rendering outside the shared package
 - preserve `src/qual/ui/a2ui.py` as a compatibility layer while the migration settles
+- define context-budget, compaction-block, and recovered-notebook-context cards/actions
 
 ### `feat-engine-runs`
 - expose the canonical app service surface
 - keep plan/draft/revise/apply/reject reachable through the engine contract
 - preserve engine-first dependency direction during the migration
+- implement request budgeting, compaction trigger policy, compaction-mode model calls, and compacted model request assembly
 
 ## Defined but disabled
 
@@ -46,6 +51,7 @@ Own later:
 - `client-textual/src/exegesis_textual/workflow/**`
 - `client-textual/src/exegesis_textual/cards/**`
 - `client-textual/src/exegesis_textual/events/**`
+- render notebook compaction cards and controls once Textual workflow lanes are enabled
 
 ### `feat-ocr-import`
 Own later:
@@ -239,8 +245,11 @@ Own later:
 - Tally intake form accessible through MCP for Claude cowork-assisted classification and manual approval preparation
 - initial CoP unlimited Lite course access with no seat cap
 - Developer/Lite boundary where Developer never uses hosted Lite workflows
-- Lite-only hosted License Gateway for license invites, claim, refresh, managed provider proxy, Paddle webhooks, and Nanonets page state
+- hosted License Gateway for license invites, claim, refresh, managed Lite provider proxy, Studio/Pro managed OCR fallback, Paddle webhooks, and Nanonets page state
 - Nanonets page ledger with 150-page default initial CoP balance
+- Studio managed cloud OCR bucket of 250 pages per month and Pro managed cloud OCR bucket of 500 pages per month
+- edition hardware tiers: Lite 8 GB, Studio/Pro 16 GB with cloud OCR fallback, 32 GB for local OCR, and 128 GB for local confidential mode
+- Pro-only entitlement gating for Quantitative Analysis and Advanced Qualitative Coding Visualizations
 - fixed Nanonets top-up packages of 150, 500, and 1000 pages
 - per-user/account licensing boundaries integrated with project transfer
 - transaction-safe OCR page reservation, consumption, release, refund, and idempotent callback handling
@@ -293,6 +302,8 @@ Own later:
 - macOS Studio Workstation app lifecycle, window/runtime boundary, and local UI hosting strategy
 - STTextView as preferred native editor foundation candidate, with plugin planning for annotations, Markdown highlighting, diffs, citations, figures, and tables
 - bundled Milestone 20 sidecar launch, health monitoring, compatibility checks, restart, and shutdown
+- Workstation memory tiers and local/confidential capability checks
+- local OCR preference with managed cloud OCR fallback when current available memory is insufficient and project policy allows cloud processing
 - signed web-distributed macOS Studio artifact
 - macOS signing/notarization and checksums
 - explicit exclusion of Windows/Linux Studio signing and packaging
@@ -332,6 +343,7 @@ Implementation batches:
 ### `feat-quant-analysis`
 Own later:
 - first-class native Studio Workstation `Datasets` project browser section
+- Pro-only entitlement requirement through `pro_feature_access`
 - CSV-only dataset import with provenance, row/column guardrails, and dataset storage
 - variable metadata and auto-detection for categorical, ordinal, and scale variables
 - native Studio Workstation raw-data view with variable type override controls
@@ -361,6 +373,7 @@ Implementation batches:
 ### `feat-advanced-qual-visuals`
 Own later:
 - Studio Pro browsable code graphs for parent/child code structure, co-occurrence, and document/code relationships
+- Pro-only entitlement requirement through `pro_feature_access`
 - code-by-document, code-by-document-type, code-by-folder, and parent/child matrices
 - distribution tables for frequencies, coverage, code density, and parent/child rollups
 - visual comparisons across selected documents, document types, participants, folders, groups, and codes
