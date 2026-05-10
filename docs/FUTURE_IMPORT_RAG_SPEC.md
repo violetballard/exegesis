@@ -57,7 +57,8 @@ Model targets:
 
 Edition-aware OCR routing:
 - Lite always uses managed online Nanonets OCR-3 for OCR-backed imports and consumes the Lite OCR page balance from the License Gateway.
-- Studio and Pro should prefer local Nanonets OCR2 when total memory is at least 32 GB and current available memory is sufficient to load the OCR model without degrading responsiveness.
+- Studio can run with managed online OCR at 8 GB, but should prefer local Nanonets OCR2 when at least 16 GB of memory is currently available for OCR without degrading responsiveness.
+- Pro has a 16 GB minimum and follows the same current-available-memory local OCR rule.
 - Studio and Pro may fall back to managed Nanonets OCR-3 when local OCR is unavailable because of current memory pressure and project policy allows cloud processing.
 - Studio managed cloud OCR fallback has a 250-page monthly subscription bucket.
 - Pro managed cloud OCR fallback has a 500-page monthly subscription bucket.
@@ -132,7 +133,7 @@ Provider preference:
 - `auto`: use local provider when offline/confidential mode requires it; use online only when project policy allows cloud processing.
 - `local`: force Nanonets OCR2.
 - `online`: force Nanonets OCR-3 if project policy allows online processing.
-- `auto` for Studio/Pro must check both total system memory and current available memory before attempting local OCR. If current memory is insufficient and cloud processing is allowed, route to online OCR and reserve managed OCR pages.
+- `auto` for Studio/Pro must check current available memory before attempting local OCR. If current memory is insufficient and cloud processing is allowed, route to online OCR and reserve managed OCR pages.
 
 Markdown-direct import:
 - Bypasses OCR.

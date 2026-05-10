@@ -265,6 +265,7 @@ Scope:
 - add image-as-figure insertion with title, caption, alt text, and project-managed asset references
 - add title/caption metadata for Markdown tables so APA export can render table titles and notes
 - add document and selection word counts in the inspector alongside LLM token estimates
+- include document and selection word counts in draft/rewrite model request context
 - insert Markdown syntax rather than creating WYSIWYG document state
 - prefer semantic headings over manual visual formatting
 - add dedicated formatting shortcut row and command-palette entries
@@ -346,7 +347,7 @@ Scope:
 - add a course-license request workflow through a Tally form that Claude cowork can access through MCP for classification, preparation, and manual approval support
 - preserve the initial CoP unlimited Lite course access path
 - keep Nanonets online OCR page credits separate from course or Lite access
-- define Lite/Studio/Pro system tiers: Lite 8 GB, Studio/Pro 16 GB with cloud OCR fallback, 32 GB for local OCR, and 128 GB for local confidential mode
+- define Lite/Studio/Pro system tiers: Lite 8 GB, Studio 8 GB with managed cloud OCR, Pro 16 GB, local OCR when enough memory is currently available, and 128 GB for local confidential mode
 - define Studio and Pro managed cloud OCR fallback buckets: Studio 250 pages/month and Pro 500 pages/month
 - keep Quantitative Analysis and Advanced Qualitative Coding Visualizations gated to Pro-only `pro_feature_access`
 - keep the hosted License Gateway as the place for license claim/refresh, managed Lite Mistral access, managed Nanonets OCR fallback, Paddle webhooks, and Nanonets page-credit state
@@ -403,8 +404,11 @@ Scope:
 - define the macOS-only native Workstation, branded as Studio, after the sidecar milestone
 - package the native SwiftUI interface, project storage, and Milestone 20 sidecar into a signed and notarized macOS distribution
 - evaluate STTextView as the preferred native editor foundation, with plugins for annotations, Markdown highlighting, diffs, citations, figures, and tables
-- enforce Workstation system tiers: Studio/Pro minimum 16 GB with managed cloud OCR fallback, 32 GB for local OCR, and 128 GB for local confidential mode
-- route OCR locally when enough memory is currently available, otherwise fall back to managed cloud OCR when policy allows
+- enforce Workstation system tiers: Studio minimum 8 GB, Pro minimum 16 GB, local confidential mode minimum 128 GB, and local OCR only when enough memory is currently available
+- route OCR locally when enough memory is currently available, otherwise fall back to managed cloud OCR when policy allows and the project is not confidential
+- define MLX Swift as the local confidential runtime and specify confidential quant tiers from 128 GB Q4 through 512 GB F16
+- define R2-backed licensed multipart model downloads and first-confidential-project just-in-time model acquisition
+- lock project confidentiality at creation and restrict confidential-project imports to confidential sources except literature
 - ship through web distribution with checksums, release manifest, clean install, update/manual upgrade, crash/diagnostic, and data preservation guidance
 - remove Windows and Linux signing from this milestone; those are not Studio targets
 - keep this as a likely interactive sprint rather than broad daemon-driven packaging work

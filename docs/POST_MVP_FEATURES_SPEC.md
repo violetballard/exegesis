@@ -917,9 +917,12 @@ Failure handling:
 
 Minimum supported memory tiers:
 - Lite minimum: 8 GB.
-- Studio minimum: 16 GB when managed cloud OCR fallback is available.
+- Studio minimum: 8 GB when managed cloud OCR fallback is available.
 - Pro minimum: 16 GB when managed cloud OCR fallback is available.
-- Local OCR minimum: 32 GB total system memory plus enough currently available memory to load Nanonets OCR2 without hurting responsiveness.
+- Local OCR availability is based on current available memory, not just installed memory.
+- Studio can use local Nanonets OCR2 when at least 16 GB of memory is currently available for the OCR process without hurting responsiveness.
+- Studio on an 8 GB machine is online-OCR only.
+- Pro can use local Nanonets OCR2 under the same current-memory availability rule, but Pro's product minimum remains 16 GB.
 - Local confidential mode minimum: 128 GB total system memory.
 
 Edition behavior:
@@ -930,17 +933,59 @@ Edition behavior:
 
 OCR provider selection:
 - Markdown-direct import never uses OCR or consumes managed OCR pages.
-- Studio and Pro should try local Nanonets OCR2 first only when total memory and current available memory are sufficient.
+- Studio and Pro should try local Nanonets OCR2 first only when current available memory is sufficient.
 - If current available memory is too low to load local OCR safely, Studio and Pro should fall back to managed Nanonets OCR-3 when the project allows cloud processing.
 - Studio managed cloud OCR fallback has a 250-page monthly subscription bucket.
 - Pro managed cloud OCR fallback has a 500-page monthly subscription bucket.
 - If local OCR is available, prefer it to avoid burning cloud OCR pages.
-- If the project is in local confidential mode, managed cloud OCR fallback is blocked even if the user has pages remaining.
+- If the project is confidential, managed cloud OCR fallback is blocked even if the user has pages remaining.
+- Confidential projects can only use offline/local OCR.
+
+### Local Confidential Runtime
+
+Runtime:
+- Use MLX Swift as the local confidential LLM runtime for macOS Studio/Pro.
+- Local confidential mode is available only on machines with at least 128 GB total system memory.
+- Confidential mode uses downloaded local quants only; it must not call managed cloud model or cloud OCR providers.
+- The runtime selector should be native Swift-facing and should not require the Python sidecar for core local confidential inference.
+
+Confidential quant tiers:
+- 128 GB: `Balanced` with Q4 quant.
+- 192 GB: `Enhanced` with Q5 quant.
+- 256 GB: `Advanced` with Q6 quant.
+- 384 GB: `Ultra` with Q8 quant.
+- 512 GB: `Max` with F16 weights.
+
+Quant selection rules:
+- Each machine can select its highest supported tier or any lower tier.
+- The default recommendation should be the highest tier that leaves enough memory for the app, OCR, sidecar, and normal user activity.
+- A user may choose a lower tier for speed, thermals, disk, or responsiveness.
+- If a user chooses a higher tier than the machine supports, block the selection with clear copy instead of attempting a failing download.
+
+Model download behavior:
+- When a confidential project is started for the first time, Workstation determines the highest supported tier and selected tier, then just-in-time downloads the matching model package.
+- If the user later changes the confidential runtime tier in the UI, Workstation downloads the newly selected quant on demand.
+- Downloads are served from Cloudflare R2 behind the License Gateway entitlement check.
+- Model packages should be split into parts to support resumable partial downloads, retry after network failure, and future delta/update behavior.
+- Download state must survive app restart and should support pause/resume/cancel.
+- License checks gate access to model packages but downloaded local model files are never embedded in project transfer archives.
+
+Confidential project rules:
+- Confidential project mode is selected at project creation.
+- A project cannot be changed from confidential to non-confidential or from non-confidential to confidential after creation.
+- Confidential projects cannot import documents from non-confidential projects.
+- Non-confidential projects cannot import documents from confidential projects.
+- Exception: literature may be imported across project confidentiality boundaries when the literature itself is not marked confidential and the user confirms the transfer.
+- Confidential project import flows must not call online OCR, managed cloud model providers, or open-web search.
+- Confidential project metadata should clearly indicate that cloud fallback is unavailable by design, not broken.
 
 User-facing copy:
 - `Local OCR is unavailable right now, so this import can use your cloud OCR pages if project policy allows cloud processing.`
 - `Local confidential mode requires 128 GB of memory. Your license is active, but this machine does not meet that local-confidential requirement.`
 - `Cloud OCR pages remaining this month: {pagesRemaining}`
+- `This project is confidential. Online OCR and cloud model fallback are disabled.`
+- `This machine supports {highestTier}. You can use {highestTier} or any lower confidential runtime tier.`
+- `Changing confidential runtime tier will download the selected local model before it can be used.`
 
 ### Developer/Lite Boundary
 
@@ -1057,12 +1102,25 @@ Workstation tests:
 - Studio validates `studio_app_access` through the License Gateway entitlement state.
 - Pro-only surfaces validate `pro_feature_access`.
 - Lite on a secondary machine can refresh inherited `lite_client_access` from the same active Studio/Pro subscription.
+- Studio on an 8 GB machine routes OCR-backed imports to managed online OCR when project policy allows.
+- Studio with at least 16 GB currently available for OCR offers local Nanonets OCR2.
+- Confidential projects block online OCR and cloud model fallback even when managed cloud pages remain.
+- Confidential project mode is immutable after project creation.
+- Confidential projects reject imports from non-confidential project documents, except eligible non-confidential literature with explicit confirmation.
+- Non-confidential projects reject imports from confidential project documents.
+- MLX Swift confidential runtime tier selection exposes only supported quant tiers and lower tiers.
+- First confidential project startup triggers licensed JIT model download for the selected quant.
+- Changing quant tier triggers JIT download of the selected tier without embedding model files in project transfer archives.
+- Interrupted multipart R2 model downloads can resume without restarting from byte zero.
 
 Acceptance criteria:
 - A user can download, install, and launch a native macOS Studio Workstation build without terminal use.
 - The signed Workstation can start and monitor the bundled sidecar.
 - The app can pass a basic local project smoke path through the sidecar-backed runtime.
 - Studio/Pro subscription entitlement checks align with the Milestone 18 License Gateway spec and include Lite secondary-machine access.
+- Studio can run on 8 GB with managed online OCR, while Pro requires 16 GB.
+- Local confidential mode is MLX Swift-backed and unavailable below 128 GB.
+- Confidential runtime quant tiers, R2 multipart downloads, and immutable confidential project boundaries are specified.
 - Release artifacts are signed/checksummed and ready for web distribution.
 - Packaging work remains disabled until explicitly activated.
 

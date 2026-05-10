@@ -176,6 +176,7 @@ Own later:
 - formatting bar for bold, italic, underline where supported, and heading levels
 - image-as-figure insertion with title, caption, alt text, stable block ID, and project-managed asset reference
 - Markdown table title/caption metadata wrapping for APA-ready export
+- document and selection word counts in inspector reading metrics and draft/rewrite request context
 - Markdown syntax insertion/wrapping behavior
 - semantic heading preference for export/retrieval compatibility
 - formatting shortcut row and command-palette entries
@@ -248,7 +249,7 @@ Own later:
 - hosted License Gateway for license invites, claim, refresh, managed Lite provider proxy, Studio/Pro managed OCR fallback, Paddle webhooks, and Nanonets page state
 - Nanonets page ledger with 150-page default initial CoP balance
 - Studio managed cloud OCR bucket of 250 pages per month and Pro managed cloud OCR bucket of 500 pages per month
-- edition hardware tiers: Lite 8 GB, Studio/Pro 16 GB with cloud OCR fallback, 32 GB for local OCR, and 128 GB for local confidential mode
+- edition hardware tiers: Lite 8 GB, Studio 8 GB with online OCR, Pro 16 GB, local OCR when current memory allows, and 128 GB for local confidential mode
 - Pro-only entitlement gating for Quantitative Analysis and Advanced Qualitative Coding Visualizations
 - fixed Nanonets top-up packages of 150, 500, and 1000 pages
 - per-user/account licensing boundaries integrated with project transfer

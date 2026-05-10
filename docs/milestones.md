@@ -257,6 +257,7 @@ Deliverables:
 - image-as-figure insertion with title, caption, alt text, and project-managed asset reference
 - Markdown table title/caption metadata for APA-ready export
 - document and selection word counts in the inspector alongside LLM token estimates
+- document and selection word counts in draft/rewrite request context so the LLM can follow human length instructions
 - direct Markdown syntax insertion/wrapping
 - semantic heading controls preferred over manual styling
 - formatting shortcut row
@@ -329,7 +330,7 @@ Deliverables:
 - hosted License Gateway for license claim, refresh, managed Mistral/Nanonets access, Paddle webhooks, and Nanonets page state
 - 150 default Nanonets pages plus fixed top-ups for 150, 500, and 1000 pages
 - Studio 250-page monthly managed cloud OCR bucket and Pro 500-page monthly managed cloud OCR bucket
-- edition system tiers: Lite 8 GB, Studio/Pro 16 GB with cloud OCR fallback, 32 GB for local OCR, and 128 GB for local confidential mode
+- edition system tiers: Lite 8 GB, Studio 8 GB with managed cloud OCR, Pro 16 GB, local OCR when current memory allows, and 128 GB for local confidential mode
 - Pro-only entitlement gating for Quantitative Analysis and Advanced Qualitative Coding Visualizations
 - import-window Nanonets balance and estimated-page display
 - licensing boundary: per user/account, not per machine, including Studio/Pro-derived Lite access and never embedded in project transfer archives
@@ -379,7 +380,10 @@ Deliverables:
 - native macOS SwiftUI Workstation lifecycle
 - STTextView editor foundation evaluation with plugins for annotations, Markdown highlighting, diffs, citations, figures, and tables
 - bundled sidecar launch, health monitoring, compatibility checks, restart, and shutdown
-- Workstation memory tiers and OCR routing: 16 GB minimum with managed cloud OCR fallback, 32 GB for local OCR, and 128 GB for local confidential mode
+- Workstation memory tiers and OCR routing: Studio 8 GB minimum, Pro 16 GB minimum, local OCR when current memory allows, and 128 GB for local confidential mode
+- MLX Swift local confidential runtime with selectable quant tiers from 128 GB Q4 through 512 GB F16
+- licensed R2-backed multipart downloads for confidential model quants
+- creation-time immutable confidential project mode and confidential import boundaries
 - macOS signing, notarization, dmg/release artifact, checksums, and web distribution
 - release manifest, clean install, manual update/upgrade, and project data preservation
 - explicit exclusion of Windows/Linux Studio signing and packaging

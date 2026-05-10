@@ -686,6 +686,9 @@ Inspector word counts:
 - Word count should use a deterministic local tokenizer suitable for prose metrics, not the LLM token estimator.
 - Count labels should be explicit, for example `Document Words`, `Selection Words`, `Document Tokens`, and `Selection Tokens`.
 - Word counts are display metadata only; they do not affect retrieval chunking, export citation state, or model context budgeting.
+- Drafting and rewriting requests must include the current document word count and, when a selection is active, the selected text word count.
+- Model request context should label these as human word counts, separate from token budget estimates, so the LLM can follow instructions such as "add about 250 words" or "rewrite this 900-word section to 500 words."
+- Word-count context is advisory request metadata; it must not replace deterministic client/engine enforcement when a later feature needs hard length limits.
 
 ### Engine/API Surface
 
@@ -697,12 +700,14 @@ Add formatting actions:
 - `edit_block_metadata(document_id, block_id, title, caption, alt_text=None) -> EditResult`
 - `list_formatting_commands(document_id, selection_state) -> list[FormattingCommandState]`
 - `get_document_reading_metrics(document_id, selection_range?) -> ReadingMetrics`
+- `build_writing_request_metrics(document_id, selection_range?) -> WritingRequestMetrics`
 
 Integration requirement:
 - Formatting operations must record undoable edit operations once Milestone 10 is enabled.
 - Formatting must preserve Markdown source text as the backing document truth.
 - Figure/table title and caption metadata must be readable by Milestone 12 export.
 - Figure/table source should degrade acceptably as Markdown if exported raw.
+- Draft and rewrite request builders must call the reading-metrics path so model prompts receive document and selection word counts alongside token estimates.
 
 ### UI And Commands
 
@@ -768,6 +773,8 @@ Shortcut row and palette:
 - Inspector shows document word count and token estimate when no selection is active.
 - Inspector shows selection word count and selection token estimate when text is selected.
 - Word count remains deterministic and separate from LLM token estimation.
+- Draft request payload includes document word count and current selection word count when present.
+- Rewrite request payload includes document word count, selected text word count, and token estimates without asking the LLM to infer them from raw text.
 
 ## Milestone 15: Developer Provider Configuration
 
@@ -1497,8 +1504,10 @@ Derived entitlement rules:
 
 Edition capability rules:
 - Lite minimum memory target is 8 GB.
-- Studio and Pro minimum memory target is 16 GB when cloud OCR fallback is available.
-- Local OCR requires at least 32 GB total system memory and enough currently available memory to load the local OCR model without hurting app responsiveness.
+- Studio minimum memory target is 8 GB when managed online OCR is available.
+- Pro minimum memory target is 16 GB when managed cloud OCR fallback is available.
+- Studio can use local OCR only when at least 16 GB of memory is currently available for the local OCR model without hurting app responsiveness; otherwise Studio is online-OCR only.
+- Pro follows the same current-available-memory local OCR rule.
 - Local confidential mode requires at least 128 GB total system memory.
 - Studio users with less than 128 GB can still use Studio features that do not require local confidential mode.
 - Pro users with less than 128 GB can still use Pro features, but local confidential mode must be unavailable with clear copy explaining the memory requirement.
@@ -1508,7 +1517,7 @@ Edition capability rules:
 OCR routing rules by edition:
 - Markdown-direct imports never consume OCR pages.
 - Lite uses managed Nanonets OCR-3 for OCR-backed imports and consumes the Lite OCR page balance.
-- Studio and Pro first attempt local Nanonets OCR2 only when project policy allows local processing, total memory is at least 32 GB, and current available memory is sufficient to load the model safely.
+- Studio and Pro first attempt local Nanonets OCR2 only when project policy allows local processing and current available memory is sufficient to load the model safely.
 - If local OCR cannot be loaded because current memory is insufficient, Studio and Pro may fall back to managed Nanonets OCR-3 when project policy allows cloud processing.
 - Studio cloud OCR fallback consumes from the 250-page monthly Studio bucket.
 - Pro cloud OCR fallback consumes from the 500-page monthly Pro bucket.
@@ -2055,8 +2064,8 @@ Developer/Lite boundary tests:
 
 Edition and hardware capability tests:
 - Lite minimum-memory guidance is 8 GB.
-- Studio and Pro minimum-memory guidance is 16 GB when managed cloud OCR fallback is available.
-- Local OCR is available only when total memory is at least 32 GB and current available memory can load OCR without degrading responsiveness.
+- Studio minimum-memory guidance is 8 GB with online OCR, and Pro minimum-memory guidance is 16 GB.
+- Local OCR is available only when current available memory can load OCR without degrading responsiveness.
 - Local confidential mode is unavailable below 128 GB even when the user has an active Studio or Pro license.
 - Hardware insufficiency is reported separately from license failure.
 - Studio-only licenses do not unlock Quantitative Analysis.
