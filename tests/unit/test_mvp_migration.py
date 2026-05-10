@@ -317,6 +317,40 @@ class ScopeCheckMigrationTests(unittest.TestCase):
 
         self.assertFalse(run_mock.called)
 
+    def test_planner_skips_gate_run_for_active_feature_lane(self) -> None:
+        from codex_packet_handoff.tools import planner as planner_mod
+
+        cfg = {
+            "lanes": {
+                "feat-context-storage": {
+                    "enabled": True,
+                    "branch": "codex/feat-context-storage",
+                }
+            }
+        }
+        planner_state = {"lanes": {}}
+        coordinator_state = {
+            "lane_refill": {
+                "feat-context-storage": {
+                    "feature_active": True,
+                }
+            }
+        }
+
+        with (
+            patch.object(planner_mod, "load_json", side_effect=[cfg, planner_state]),
+            patch.object(planner_mod, "load_coordinator_state", return_value=coordinator_state),
+            patch.object(planner_mod, "list_git_remotes", return_value=[]),
+            patch.object(planner_mod, "lane_has_pending_feature", return_value=False),
+            patch.object(planner_mod, "ensure_lane_dirs"),
+            patch.object(planner_mod, "run_scope_check") as scope_check,
+            patch.object(planner_mod, "run_required_gate") as required_gate,
+        ):
+            planner_mod.main()
+
+        scope_check.assert_not_called()
+        required_gate.assert_not_called()
+
     def test_compute_changed_files_falls_back_to_branch_ref_diff_tree(self) -> None:
         from codex_packet_handoff.tools import planner as planner_mod
 

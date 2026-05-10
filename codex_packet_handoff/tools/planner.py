@@ -25,6 +25,7 @@ REPO_ROOT = Path(__file__).resolve().parents[2]
 PACKETS_ROOT = Path(".codex/packets/lanes")
 PLANNER_ROOT = Path(".codex/packet_planner")
 STATE_FILE = PLANNER_ROOT / "state.json"
+COORDINATOR_STATE_FILE = Path(".codex/packet_coordinator/state.json")
 CONFIG_FILE = Path(".codex/packet_router/config.json")
 SCOPE_CHECK_SCRIPT = REPO_ROOT / "scripts/scope-check.sh"
 FORMAT_CHECK_SCRIPT = REPO_ROOT / "quality-format.sh"
@@ -258,6 +259,20 @@ def merge_lane_meta_defaults(lane: str, meta: Json) -> Json:
 def load_json(p: Path, default: Any) -> Any:
     try: return json.loads(p.read_text())
     except Exception: return default
+
+def load_coordinator_state() -> Dict[str, Any]:
+    try:
+        data = json.loads(COORDINATOR_STATE_FILE.read_text())
+    except Exception:
+        return {}
+    return data if isinstance(data, dict) else {}
+
+def lane_feature_active(coordinator_state: Dict[str, Any], lane: str) -> bool:
+    lane_refill = coordinator_state.get("lane_refill")
+    if not isinstance(lane_refill, dict):
+        return False
+    lane_state = lane_refill.get(lane)
+    return isinstance(lane_state, dict) and lane_state.get("feature_active") is True
 
 def save_json(p: Path, data: Any) -> None:
     p.parent.mkdir(parents=True, exist_ok=True)
@@ -631,6 +646,7 @@ def main()->None:
     gates=list(planner_cfg.get("required_gates", REQUIRED_GATES_DEFAULT))
     state=load_json(STATE_FILE,{})
     lane_state=state.get("lanes",{})
+    coordinator_state=load_coordinator_state()
     repo=str(Path.cwd())
     remotes = list_git_remotes(repo)
     if remotes:
@@ -647,6 +663,9 @@ def main()->None:
             continue
         ensure_lane_dirs(lane)
         if lane_has_pending_feature(lane):
+            continue
+        if lane_feature_active(coordinator_state, lane):
+            print(f"[planner] {lane}: feature worker active; skipping gate run until handoff")
             continue
         has_reviewer_notes = lane_has_reviewer_notes(lane)
         branch=str((lcfg or {}).get("branch") or f"codex/{lane}")
