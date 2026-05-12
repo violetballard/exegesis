@@ -11829,6 +11829,41 @@ def command_demo_readiness_action_matrix_summary(
     )
 
 
+def command_demo_readiness_action_matrix_payload(
+    specs: tuple[CommandSpec, ...] = COMMAND_SPECS,
+    launcher_argv: tuple[str, ...] = COMMAND_SMOKE_CLI_LAUNCHER_ARGV,
+) -> dict[str, object]:
+    """Return the exact demo-path action matrix as deterministic JSON-ready data."""
+
+    contract = command_demo_readiness_action_matrix_contract(specs, launcher_argv)
+    return {
+        "entries": [
+            {
+                "ordinal": entry.ordinal,
+                "demo_path_step": entry.demo_path_step,
+                "flow_step": entry.flow_step,
+                "command": entry.name,
+                "engine_actions": entry.engine_actions,
+                "exact_action_lines": entry.exact_action_lines,
+            }
+            for entry in contract.entries
+        ],
+    }
+
+
+def command_demo_readiness_action_matrix_json(
+    specs: tuple[CommandSpec, ...] = COMMAND_SPECS,
+    launcher_argv: tuple[str, ...] = COMMAND_SMOKE_CLI_LAUNCHER_ARGV,
+) -> str:
+    """Return deterministic JSON for command smoke runners and handoff tooling."""
+
+    return json.dumps(
+        command_demo_readiness_action_matrix_payload(specs, launcher_argv),
+        sort_keys=True,
+        separators=(",", ":"),
+    )
+
+
 @lru_cache(maxsize=None)
 def command_demo_readiness_exact_cli_audit_contract(
     specs: tuple[CommandSpec, ...] = COMMAND_SPECS,
@@ -17002,6 +17037,20 @@ def command_mvp_demo_readiness_action_matrix_summary(
     launcher_argv: tuple[str, ...] = COMMAND_SMOKE_CLI_LAUNCHER_ARGV,
 ) -> tuple[tuple[int, str, str, str, tuple[str, ...], tuple[tuple[str, str], ...]], ...]:
     return command_demo_readiness_action_matrix_summary(specs, launcher_argv)
+
+
+def command_mvp_demo_readiness_action_matrix_payload(
+    specs: tuple[CommandSpec, ...] = COMMAND_SPECS,
+    launcher_argv: tuple[str, ...] = COMMAND_SMOKE_CLI_LAUNCHER_ARGV,
+) -> dict[str, object]:
+    return command_demo_readiness_action_matrix_payload(specs, launcher_argv)
+
+
+def command_mvp_demo_readiness_action_matrix_json(
+    specs: tuple[CommandSpec, ...] = COMMAND_SPECS,
+    launcher_argv: tuple[str, ...] = COMMAND_SMOKE_CLI_LAUNCHER_ARGV,
+) -> str:
+    return command_demo_readiness_action_matrix_json(specs, launcher_argv)
 
 
 def command_mvp_demo_readiness_exact_action_index_by_demo_path_step(

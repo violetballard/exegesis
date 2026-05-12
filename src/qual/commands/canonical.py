@@ -296,6 +296,8 @@ from src.qual.commands.catalog import (
     command_mvp_demo_readiness_exact_action_contract as _readiness_exact_action_contract,
     command_mvp_demo_readiness_exact_action_summary as _readiness_exact_action_summary,
     command_mvp_demo_readiness_action_matrix_contract as _readiness_action_matrix_contract,
+    command_mvp_demo_readiness_action_matrix_json as _readiness_action_matrix_json,
+    command_mvp_demo_readiness_action_matrix_payload as _readiness_action_matrix_payload,
     command_mvp_demo_readiness_action_matrix_summary as _readiness_action_matrix_summary,
     command_mvp_demo_readiness_exact_cli_audit_contract as _readiness_exact_cli_audit_contract,
     command_mvp_demo_readiness_exact_cli_audit_summary as _readiness_exact_cli_audit_summary,
@@ -541,6 +543,10 @@ __all__ = [
     "canonical_command_action_exact_shell_script_text",
     "canonical_command_action_exact_contract",
     "canonical_command_action_exact_summary",
+    "canonical_command_action_matrix_contract",
+    "canonical_command_action_matrix_json",
+    "canonical_command_action_matrix_payload",
+    "canonical_command_action_matrix_summary",
     "canonical_command_action_exact_script_contract",
     "canonical_command_action_exact_script_lookup_table",
     "canonical_command_action_exact_script_summary",
@@ -2455,6 +2461,14 @@ def canonical_command_action_exact_summary() -> tuple[tuple[str, str, str, str, 
 
 def canonical_command_action_matrix_contract() -> CommandDemoReadinessActionMatrixContract:
     return _readiness_action_matrix_contract()
+
+
+def canonical_command_action_matrix_payload() -> dict[str, object]:
+    return _readiness_action_matrix_payload()
+
+
+def canonical_command_action_matrix_json() -> str:
+    return _readiness_action_matrix_json()
 
 
 def canonical_command_action_matrix_summary() -> tuple[
