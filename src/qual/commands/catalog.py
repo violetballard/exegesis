@@ -1441,8 +1441,11 @@ class CommandDemoPersistContinueContract:
     command_line: str
     engine_action: str
     action_line: str
+    required_prior_flow_steps: tuple[str, ...]
+    required_prior_demo_path_steps: tuple[str, ...]
     is_cli_entrypoint: bool
     is_exact_action: bool
+    is_final_demo_path_step: bool
 
 
 @dataclass(frozen=True)
@@ -7278,6 +7281,8 @@ def command_demo_persist_continue_contract(
         specs,
         launcher_argv,
     )
+    required_prior_steps = command_demo_persist_continue_prerequisite_flow_steps()
+    required_prior_demo_path_steps = command_demo_persist_continue_prerequisite_demo_path_steps()
     contract = CommandDemoPersistContinueContract(
         demo_path_step=step.demo_path_step,
         flow_step=step.flow_step,
@@ -7285,8 +7290,11 @@ def command_demo_persist_continue_contract(
         command_line=step.command_line,
         engine_action=coverage.engine_action,
         action_line=coverage.action_line,
+        required_prior_flow_steps=required_prior_steps,
+        required_prior_demo_path_steps=required_prior_demo_path_steps,
         is_cli_entrypoint=cli_validation.is_cli_entrypoint,
         is_exact_action=resolved_action == DEMO_PERSIST_CONTINUE_ENGINE_ACTION,
+        is_final_demo_path_step=step.flow_step == command_demo_flow_steps()[-1],
     )
     _validate_command_demo_persist_continue_contract(contract, step)
     return contract
@@ -7306,10 +7314,36 @@ def _validate_command_demo_persist_continue_contract(
         raise ValueError("Command demo persist contract engine action is inconsistent")
     if contract.engine_action not in step.engine_actions:
         raise ValueError("Command demo persist contract action is not in execution plan")
+    if contract.required_prior_flow_steps != command_demo_persist_continue_prerequisite_flow_steps():
+        raise ValueError("Command demo persist contract prerequisites are inconsistent")
+    if (
+        contract.required_prior_demo_path_steps
+        != command_demo_persist_continue_prerequisite_demo_path_steps()
+    ):
+        raise ValueError("Command demo persist contract path prerequisites are inconsistent")
     if not contract.is_cli_entrypoint:
         raise ValueError("Command demo persist contract command is not a CLI entrypoint")
     if not contract.is_exact_action:
         raise ValueError("Command demo persist contract action is not exact")
+    if not contract.is_final_demo_path_step:
+        raise ValueError("Command demo persist contract is not the final demo path step")
+
+
+def command_demo_persist_continue_prerequisite_flow_steps() -> tuple[str, ...]:
+    flow_steps = command_demo_flow_steps()
+    persist_index = flow_steps.index("export-handoff")
+    return flow_steps[:persist_index]
+
+
+def command_demo_persist_continue_prerequisite_demo_path_steps() -> tuple[str, ...]:
+    demo_path_by_flow_step = {
+        flow_step: demo_path_step
+        for flow_step, demo_path_step, _engine_actions in _DEMO_PATH_STEP_BY_FLOW_STEP
+    }
+    return tuple(
+        demo_path_by_flow_step[flow_step]
+        for flow_step in command_demo_persist_continue_prerequisite_flow_steps()
+    )
 
 
 def command_demo_persist_continue_lookup_table(
@@ -7378,8 +7412,11 @@ def command_demo_persist_continue_payload(
         "command_line": contract.command_line,
         "engine_action": contract.engine_action,
         "action_line": contract.action_line,
+        "required_prior_flow_steps": contract.required_prior_flow_steps,
+        "required_prior_demo_path_steps": contract.required_prior_demo_path_steps,
         "is_cli_entrypoint": contract.is_cli_entrypoint,
         "is_exact_action": contract.is_exact_action,
+        "is_final_demo_path_step": contract.is_final_demo_path_step,
     }
 
 
@@ -7619,6 +7656,14 @@ def command_mvp_demo_persist_continue_lookup_table(
     launcher_argv: tuple[str, ...] = COMMAND_SMOKE_CLI_LAUNCHER_ARGV,
 ) -> tuple[tuple[str, str], ...]:
     return command_demo_persist_continue_lookup_table(specs, launcher_argv)
+
+
+def command_mvp_demo_persist_continue_prerequisite_flow_steps() -> tuple[str, ...]:
+    return command_demo_persist_continue_prerequisite_flow_steps()
+
+
+def command_mvp_demo_persist_continue_prerequisite_demo_path_steps() -> tuple[str, ...]:
+    return command_demo_persist_continue_prerequisite_demo_path_steps()
 
 
 def command_mvp_demo_persist_continue_payload(

@@ -250,6 +250,10 @@ from src.qual.commands.catalog import (
     command_mvp_demo_persist_continue_json as _persist_continue_json,
     command_mvp_demo_persist_continue_lookup_table as _persist_continue_lookup_table,
     command_mvp_demo_persist_continue_payload as _persist_continue_payload,
+    command_mvp_demo_persist_continue_prerequisite_demo_path_steps
+    as _persist_continue_prerequisite_demo_path_steps,
+    command_mvp_demo_persist_continue_prerequisite_flow_steps
+    as _persist_continue_prerequisite_flow_steps,
     command_mvp_demo_persist_continue_summary as _persist_continue_summary,
     command_mvp_demo_execution_plan_step_for_argv as _execution_plan_step_for_argv,
     command_mvp_demo_execution_plan_step_for_command as _execution_plan_step_for_command,
@@ -815,6 +819,8 @@ __all__ = [
     "canonical_command_persist_continue_json",
     "canonical_command_persist_continue_lookup_table",
     "canonical_command_persist_continue_payload",
+    "canonical_command_persist_continue_prerequisite_demo_path_steps",
+    "canonical_command_persist_continue_prerequisite_flow_steps",
     "canonical_command_persist_continue_summary",
     "canonical_command_execution_plan_lookup_table",
     "canonical_command_execution_plan_step_for_argv",
@@ -2875,6 +2881,14 @@ def canonical_command_persist_continue_payload() -> dict[str, object]:
 
 def canonical_command_persist_continue_json() -> str:
     return _persist_continue_json()
+
+
+def canonical_command_persist_continue_prerequisite_flow_steps() -> tuple[str, ...]:
+    return _persist_continue_prerequisite_flow_steps()
+
+
+def canonical_command_persist_continue_prerequisite_demo_path_steps() -> tuple[str, ...]:
+    return _persist_continue_prerequisite_demo_path_steps()
 
 
 def canonical_command_action_coverage_lookup_table() -> tuple[tuple[str, str], ...]:
