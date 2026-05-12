@@ -1932,11 +1932,16 @@ class UnifiedRetrievalTests(unittest.TestCase):
             "doc_count": "2",
             "excerpt_count": "4",
         }
+        string_caches_used = {"fts": "false", "pageindex": "0", "embeddings": "true"}
         sparse_source_bundle["citation_status"] = numeric_status
+        sparse_source_bundle["caches_used"] = string_caches_used
         sparse_source_bundle["retrieval_summary"]["citation_status"] = numeric_status
+        sparse_source_bundle["retrieval_summary"]["caches_used"] = string_caches_used
         sparse_source_bundle["retrieval_evidence"]["citation_status"] = numeric_status
         sparse_source_bundle["retrieval_citation_bundle"]["citation_status"] = numeric_status
+        sparse_source_bundle["retrieval_citation_bundle"]["caches_used"] = string_caches_used
         sparse_source_bundle["retrieval_basket_promotion_bundle"]["citation_status"] = numeric_status
+        sparse_source_bundle["retrieval_basket_promotion_bundle"]["caches_used"] = string_caches_used
         for item in sparse_source_bundle["retrieval_basket_promotion_bundle"]["promotion_items"]:
             item["citation_status"] = numeric_status
 
@@ -1948,14 +1953,22 @@ class UnifiedRetrievalTests(unittest.TestCase):
             "doc_count": 2,
             "excerpt_count": 4,
         }
+        expected_caches_used = {"fts": False, "pageindex": False, "embeddings": True}
 
         self.assertEqual(payload["citation_status"], expected_status)
         self.assertEqual(payload["retrieval_summary"]["citation_status"], expected_status)
+        self.assertEqual(payload["retrieval_summary"]["caches_used"], expected_caches_used)
         self.assertEqual(payload["retrieval_evidence"]["citation_status"], expected_status)
         self.assertEqual(payload["retrieval_source_bundle"]["citation_status"], expected_status)
+        self.assertEqual(payload["retrieval_source_bundle"]["caches_used"], expected_caches_used)
+        self.assertEqual(payload["retrieval_citation_bundle"]["caches_used"], expected_caches_used)
         self.assertEqual(
             payload["retrieval_basket_promotion_bundle"]["promotion_items"][0]["citation_status"],
             expected_status,
+        )
+        self.assertEqual(
+            payload["retrieval_basket_promotion_bundle"]["caches_used"],
+            expected_caches_used,
         )
 
     def test_retrieval_downstream_payload_helper_backfills_sparse_context_bundle_fields(self) -> None:

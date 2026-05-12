@@ -106,7 +106,11 @@ def _normalize_bool_like(value: object) -> object:
 def _normalize_bool_map(value: object) -> dict[str, bool]:
     if not isinstance(value, dict):
         return {}
-    return {str(key): bool(item) for key, item in value.items()}
+    normalized: dict[str, bool] = {}
+    for key, item in value.items():
+        bool_value = _normalize_bool_like(item)
+        normalized[str(key)] = bool_value if isinstance(bool_value, bool) else bool(item)
+    return normalized
 
 
 def _first_text_value(*values: object) -> str | None:
