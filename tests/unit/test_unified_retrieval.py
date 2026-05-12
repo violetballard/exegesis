@@ -2646,6 +2646,33 @@ class UnifiedRetrievalTests(unittest.TestCase):
             payload["retrieval_basket_promotion_bundle"]["promotion_items"][0],
         )
 
+    def test_retrieval_downstream_payload_helper_rejects_non_fts_promotion_strategies(self) -> None:
+        result = self.service.retrieve_auto(
+            RetrievalQuery(
+                query_text="memo coding comparison",
+                scope="vault",
+                intent="compare",
+                constraints=RetrievalConstraints(max_results=4),
+                confidentiality_profile="confidential",
+            )
+        )
+
+        class _SparseSourceBundleOnlySource:
+            def __init__(self, payload: dict[str, object]) -> None:
+                self._payload = payload
+
+            def source_bundle(self) -> dict[str, object]:
+                return self._payload
+
+        sparse_source_bundle = json.loads(json.dumps(result.source_bundle()))
+        sparse_source_bundle["retrieval_basket_promotion_bundle"]["active_strategy_ids"] = [
+            "fts",
+            "embeddings",
+        ]
+
+        with self.assertRaisesRegex(ValueError, "active strategies must be fts-only"):
+            build_retrieval_downstream_payload_from_result(_SparseSourceBundleOnlySource(sparse_source_bundle))
+
     def test_retrieval_downstream_payload_helper_backfills_sparse_context_bundle_fields(self) -> None:
         result = self.service.retrieve_auto(
             RetrievalQuery(

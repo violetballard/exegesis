@@ -1265,8 +1265,14 @@ def _normalize_basket_promotion_bundle_snapshot(bundle: dict[str, object]) -> di
         normalized["query_constraints"] = {}
     normalized.setdefault("query_constraints_fingerprint", _stable_fingerprint(normalized["query_constraints"]))
     normalized["query_date_range"] = _normalize_optional_list_like(normalized.get("query_date_range"))
-    normalized["active_strategy_ids"] = _normalize_list_like(normalized.get("active_strategy_ids"))
-    normalized["deferred_strategy_ids"] = _normalize_list_like(normalized.get("deferred_strategy_ids"))
+    normalized["active_strategy_ids"] = _normalize_active_strategy_ids(
+        normalized.get("active_strategy_ids"),
+        field_name="retrieval_basket_promotion_bundle",
+    )
+    normalized["deferred_strategy_ids"] = _normalize_deferred_strategy_ids(
+        normalized.get("deferred_strategy_ids"),
+        field_name="retrieval_basket_promotion_bundle",
+    )
     if "caches_used" in normalized:
         normalized["caches_used"] = _normalize_bool_map(normalized.get("caches_used"))
     normalized["promotion_target"] = _first_text_value(normalized.get("promotion_target")) or "context_basket"

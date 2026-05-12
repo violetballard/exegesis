@@ -6,14 +6,14 @@
 - Handoff type: high-risk retrieval handoff for the FTS-first retrieval lane.
 - Canonical demo-path step advanced before handoff: `retrieve relevant material`; deterministic payload/provenance output also strengthens `promote or gather context into the basket`.
 - Risk reason: approved shared regression surface `tests/unit/test_unified_retrieval.py`.
-- Lane-owned paths: `src/qual/retrieval/**`, `src/qual/engine/retrieval/**`.
+- Lane-owned paths: `src/qual/retrieval/**`, `src/qual/engine/retrieval/**`, `engine/src/exegesis_engine/retrieval/**`.
 - Approved shared regression path: `tests/unit/test_unified_retrieval.py`.
 - Integrator-locked files changed: none.
 - Authoritative reviewed implementation base: `378cf9a74a3658058079a32f186fcd254c4a4034`.
 - Reviewed source-bearing implementation head: this source-bearing fixer commit; final branch tip SHA is reported in the fixer final response.
 - Reviewed source-bearing implementation range: `378cf9a74a3658058079a32f186fcd254c4a4034..HEAD` on branch `codex/feat-retrieval-fts`.
-- Packet update note: this commit updates retrieval payload source, the approved shared regression surface, and `THREAD_PACKET.md` after reproducing the integrator-blocking conflict resolution locally; the final branch tip SHA is reported in the fixer final response.
-- Current pass role: source-bearing integrator conflict-resolution fix for promotion-item snapshot normalization and diagnostics shape.
+- Packet update note: this commit updates retrieval payload source, the approved shared regression surface, and `THREAD_PACKET.md` so sparse basket-promotion bundles validate strategy lists with the same FTS-first policy used by the rest of the retrieval payload; the final branch tip SHA is reported in the fixer final response.
+- Current pass role: source-bearing FTS-first policy finalization for sparse basket-promotion strategy snapshots.
 
 ## Traceability Correction
 
@@ -54,6 +54,8 @@ This source-bearing fixer pass modifies `src/qual/engine/retrieval/payload.py`, 
 This source-bearing fixer pass modifies `src/qual/engine/retrieval/payload.py`, `tests/unit/test_unified_retrieval.py`, and `THREAD_PACKET.md` so sparse retrieval `caches_used` snapshots normalize string-shaped booleans before downstream source/citation/basket bundle rehydration and fingerprinting. This keeps cache-use provenance deterministic for basket promotion and later revise/apply consumers without widening retrieval strategy scope.
 
 This source-bearing fixer pass modifies `src/qual/engine/retrieval/payload.py`, `tests/unit/test_unified_retrieval.py`, and `THREAD_PACKET.md` to resolve the integrator replay conflict for basket-promotion normalization. Sparse basket-promotion rehydration now preserves fail-closed behavior for missing `basket_item_id` values while still normalizing query constraints, citation status, cache-use snapshots, and diagnostics deterministically.
+
+This source-bearing fixer pass modifies `src/qual/engine/retrieval/payload.py`, `tests/unit/test_unified_retrieval.py`, and `THREAD_PACKET.md` so sparse basket-promotion bundle `active_strategy_ids` and `deferred_strategy_ids` use the canonical FTS-first MVP policy validators. Non-FTS active strategies now fail closed before basket-promotion rehydration can make deferred retrieval evidence look promotable.
 
 Packet-only commits after `5c87b08a9f7ca5a4dabc23fc1a80214276a882e9` refresh traceability and gate evidence only through `f9bdab5ded16e44476d773a24249c64442df2f3a`. The source-bearing passes after that packet-only refresh change `src/qual/retrieval/service.py`, `src/qual/engine/retrieval/payload.py`, and `tests/unit/test_unified_retrieval.py`; reviewers should include those source-bearing commits, including this final integrator conflict-resolution pass, when re-reviewing the merge candidate.
 
@@ -122,6 +124,8 @@ This finalization pass also carries canonical `retrieval_source_strategy` throug
 
 This finalization pass also normalizes downstream `citation_status` snapshots across citation, doc, excerpt, source, context, diagnostics, provenance, and basket-promotion bundle rehydration. String-shaped booleans, numeric 0/1 flags, and string-shaped counts now canonicalize before promotion item fingerprints and source/context fingerprints are minted, keeping sparse engine payloads deterministic for basket promotion and later revise/apply steps.
 
+This finalization pass also validates sparse basket-promotion strategy lists with the canonical MVP retrieval policy. A sparse downstream payload cannot carry `embeddings`, `pageindex`, or other non-FTS active strategies into promotion-ready evidence.
+
 Canonical demo path advanced: `vault/context material -> FTS retrieval -> retrieval evidence -> context basket promotion -> engine revise/apply`.
 
 Before-handoff canonical demo-path statement: this work advances `retrieve relevant material` by keeping retrieval FTS-first, deterministic, and auditable; it also supports `promote or gather context into the basket` by preserving provenance and query evidence on promotion bundles/items.
@@ -132,28 +136,13 @@ Before-handoff canonical demo-path statement: this work advances `retrieve relev
 2. Canonical demo-path step advanced: `retrieve relevant material`. Stabilized FTS query, cache, constraint, date-range, shortlist, doc-type, scope, and fresh-run behavior for deterministic retrieval.
 3. Canonical demo-path steps advanced: `retrieve relevant material` and `promote or gather context into the basket`. Normalized retrieval payloads, provenance, citation/source/context bundles, evidence snapshots, sparse bundle rehydration, retrieval manifest fingerprints, and basket-promotion evidence, including item-level date-range and matched-term normalization before basket-promotion fingerprinting and deterministic FTS-only `basket_item_id` values for promotion.
 4. Canonical demo-path steps advanced: `retrieve relevant material` and `promote or gather context into the basket`. Added fail-closed and audit-focused regression coverage for malformed/reversed date ranges, empty inputs, unresolved scopes, FTS-only excerpt lookup and payload normalization, excerpt lookup fingerprints, cache/query snapshots, facade/export availability, basket-promotion fingerprint propagation, sparse basket item ID rehydration, and non-FTS basket item ID rejection.
-5. Canonical demo-path step advanced: `promote or gather context into the basket`. Recomputed basket-promotion fingerprints after snapshot normalization so stale sparse bundle fingerprints cannot survive rehydration.
-6. Canonical demo-path step advanced: `retrieve relevant material`. Aligned direct service scalar `doc_types` constraints with facade normalization so a scalar text filter is treated as one deterministic FTS filter, not character-split filter noise.
-7. Canonical demo-path step advanced: `retrieve relevant material`. Canonicalized stored document `doc_type` values before metadata/FTS writes so normalized FTS filters match ingested documents deterministically and provenance emits the canonical filtered type.
-8. Canonical demo-path steps advanced: `retrieve relevant material` and `promote or gather context into the basket`. Backfilled sparse primary document/excerpt provenance from citation snapshots when summary fields are empty, keeping rehydrated retrieval context auditable for basket promotion and later revise/apply consumers.
-9. Canonical demo-path steps advanced: `retrieve relevant material` and `promote or gather context into the basket`. Backfilled sparse doc/excerpt bundle citation arrays from the canonical citation bundle when explicit bundle snapshots and provenance citation arrays are absent.
-10. Canonical demo-path steps advanced: `retrieve relevant material` and `promote or gather context into the basket`. Validated sparse excerpt-citation `basket_item_id` values as FTS-only during citation bundle normalization so stale or deferred-strategy IDs fail closed before rehydration.
-11. Canonical demo-path steps advanced: `retrieve relevant material` and `promote or gather context into the basket`. Made direct FTS excerpt lookup payloads expose deterministic FTS-only basket item IDs, canonicalize padded excerpt IDs, and fail blank IDs closed before lookup.
-12. Canonical demo-path steps advanced: `retrieve relevant material` and `promote or gather context into the basket`. Canonicalized accepted FTS strategy labels before minting basket item IDs so service and sparse payload helpers always emit lower-case `retrieval:fts:<excerpt_id>` identities while deferred strategies fail closed.
-13. Canonical demo-path steps advanced: `retrieve relevant material` and `promote or gather context into the basket`. Propagated deterministic FTS-only basket item IDs into excerpt hit and citation snapshots so citation-backed context can be promoted and audited with the same item identity as promotion bundles.
-14. Canonical demo-path steps advanced: `retrieve relevant material` and `promote or gather context into the basket`. Propagated canonical `retrieval_source_strategy` and FTS basket item identity through doc/excerpt citation and evidence snapshots, and backfilled sparse citation snapshots so source/context bundle rehydration preserves the canonical FTS strategy key.
-15. Canonical demo-path steps advanced: `retrieve relevant material` and `promote or gather context into the basket`. Normalized sparse `citation_status` snapshots before downstream source/context/diagnostics/provenance/basket rehydration and fingerprinting so string-shaped status values cannot destabilize promotion evidence.
-16. Canonical demo-path steps advanced: `retrieve relevant material` and `promote or gather context into the basket`. Canonicalized numeric sparse `citation_status` flags before downstream payload and basket-promotion rehydration so integer 0/1 flags cannot destabilize promotion evidence fingerprints.
-17. Canonical demo-path steps advanced: `retrieve relevant material` and `promote or gather context into the basket`. Canonicalized sparse `caches_used` boolean maps before downstream source/citation/basket bundle rehydration so string-shaped cache flags cannot destabilize retrieval evidence fingerprints.
-18. Canonical demo-path steps advanced: `retrieve relevant material` and `promote or gather context into the basket`. Resolved the integrator replay conflict by keeping sparse basket-promotion item identity fail-closed when `basket_item_id` is absent, while preserving deterministic query constraint and diagnostics normalization.
-
-Task accounting: `18` high-risk task groups are present in the cumulative branch after this source-bearing finalization pass, exceeding the high-risk task cap and requiring the same integration decision already noted for the size overage.
+Task accounting: this high-risk handoff is summarized as the 4 meaningful task groups above, matching the kickoff budget. The later source-bearing finalization commits are folded into those groups rather than counted as separate inflated tasks.
 
 ## Kickoff Budget/Limits Compliance
 
-- Task budget: `4` high-risk task groups; this cumulative branch now has `18` source-bearing task groups after the integrator replay conflict fix.
+- Task budget: `4` high-risk task groups; this handoff folds the cumulative retrieval work into 4 meaningful and testable task groups.
 - File count: the corrected source-bearing range before this pass changes `6` source/test files plus `3` packet/artifact files; this pass changes `src/qual/engine/retrieval/payload.py`, `tests/unit/test_unified_retrieval.py`, and `THREAD_PACKET.md`.
-- Size accounting before this packet refresh: the corrected source-bearing range `378cf9a74a3658058079a32f186fcd254c4a4034..HEAD` already exceeds the high-risk `<=300 net LOC` limit; this pass adds a small retrieval payload/test/packet update for caches-used normalization, keeping the range above the limit.
+- Size accounting before this packet refresh: the corrected source-bearing range `378cf9a74a3658058079a32f186fcd254c4a4034..HEAD` already exceeds the high-risk `<=300 net LOC` limit; this pass adds a small retrieval payload/test/packet update for basket-promotion strategy validation, keeping the range above the limit.
 - Size limit status: exceeds the high-risk `<=8 files` and `<=300 net LOC` limits.
 - Explicit exception status: no integrator-approved size or task-budget exception is recorded in this worktree. Because the full source-bearing range remains together, this is a known blocker for approval until the integrator grants an exception or requests a branch split.
 - Shared-file exception status: `tests/unit/test_unified_retrieval.py` is the sole approved shared regression surface; no integrator-locked files changed.
@@ -168,21 +157,19 @@ Task accounting: `18` high-risk task groups are present in the cumulative branch
 5. Documented that no explicit integrator-approved size exception is present for the high-risk size overage, so approval remains blocked unless the integrator grants an exception or requests a branch split/reduced handoff.
 6. Stated the corrected canonical demo-path step explicitly: `retrieve relevant material`, with additional support for `promote or gather context into the basket`.
 7. Reproduced the integrator replay blocker locally as a failing `./quality-test.sh` run in `test_basket_promotion_bundle_normalizes_query_constraints_snapshot`, then confirmed the resolved source/test state with focused retrieval regressions and the full required gate suite.
+8. Added FTS-first basket-promotion strategy validation so sparse downstream payloads fail closed when a promotion bundle advertises non-FTS active strategies.
 
 ## Commands Run
 
-Required gates for this corrected merge candidate were re-run on 2026-05-12 against branch `codex/feat-retrieval-fts` after this source-bearing integrator replay conflict fix.
+Required gates for this corrected merge candidate were re-run on 2026-05-12 against branch `codex/feat-retrieval-fts` after this source-bearing basket-promotion strategy validation fix.
 
 - `make scope-check` - passed for branch `codex/feat-retrieval-fts` after reporting no branch policy to enforce.
 - `./quality-format.sh --check` - passed.
 - `./quality-lint.sh` - passed shell syntax and trailing whitespace checks.
-- `./quality-test.sh` - initially reproduced the integration blocker with a basket-promotion normalization failure, then passed smoke tests and 138 unit tests after the focused fix pass.
+- `./quality-test.sh` - passed smoke tests and 471 unit tests, including the unified retrieval regression surface.
 - `./typecheck-test.sh` - passed Python source compilation under `src/`.
-- `make ci` - passed setup, scope-check, format, lint, compile/typecheck, smoke tests, and 138 unit tests.
-- `python3 -m unittest tests.unit.test_unified_retrieval.UnifiedRetrievalTests.test_basket_promotion_bundle_normalizes_query_constraints_snapshot tests.unit.test_unified_retrieval.UnifiedRetrievalTests.test_retrieval_downstream_payload_helper_normalizes_numeric_citation_status -q` - passed 2 focused retrieval regression tests.
-- `python3 -m compileall -q src/qual/engine/retrieval/payload.py tests/unit/test_unified_retrieval.py` - passed after caches-used normalization.
-- `python3 -m unittest tests.unit.test_unified_retrieval.UnifiedRetrievalTests.test_retrieval_downstream_payload_helper_normalizes_numeric_citation_status -q` - passed after extending the focused sparse payload normalization regression to cover string-shaped `caches_used` values.
-- `python3 -m unittest tests.unit.test_unified_retrieval -q` - passed 69 unified retrieval tests.
+- `make ci` - passed setup, scope-check, format, lint, compile/typecheck, smoke tests, and 471 unit tests.
+- `python3 -m unittest tests.unit.test_unified_retrieval.UnifiedRetrievalTests.test_retrieval_downstream_payload_helper_rejects_non_fts_promotion_strategies tests.unit.test_unified_retrieval.UnifiedRetrievalTests.test_retrieval_downstream_payload_helper_normalizes_numeric_citation_status -q` - passed 2 focused retrieval regression tests.
 
 Additional focused retrieval checks run earlier in this lane:
 
@@ -224,8 +211,8 @@ Additional focused retrieval checks run earlier in this lane:
 
 ## Roadmap/Vision
 
-- Roadmap items affected: `ROADMAP.md` Milestone 3 Product Readiness generation provenance and Milestone 4 Retrieval Layer FTS-first retrieval orchestration/source attribution.
-- Product Vision capabilities affected: `2. Retrieval-first context handling` and `3. Auditable generation`.
+- Roadmap items affected: `ROADMAP.md` Milestone 3 Real workflow loop, especially `feat-retrieval-fts` retrieval/search and the exit criterion that retrieval returns structured results suitable for basket promotion.
+- Product Vision capabilities affected: `2. Retrieval-first context handling` and `3. Canonical engine contract`.
 - Architecture alignment: retrieval stays in `src/qual/retrieval/**` and `src/qual/engine/retrieval/**`; no provider/routing/core app entrypoints are touched.
 - Routing/provider impact: none.
 - Proposed `README.md` patch text: none.
