@@ -8144,6 +8144,18 @@ def command_demo_smoke_sequence_contract(
 
     if tuple(entry.flow_step for entry in contract.entries) != DEMO_COMMAND_FLOW_STEPS:
         raise ValueError("Command demo smoke sequence flow order is inconsistent")
+    expected_engine_actions = command_demo_engine_actions(specs)
+    if tuple(
+        action
+        for entry in contract.entries
+        for action in entry.engine_actions
+    ) != expected_engine_actions:
+        raise ValueError("Command demo smoke sequence engine actions are inconsistent")
+    if contract.exact_action_argvs != tuple(
+        exact_argv_by_action[action]
+        for action in expected_engine_actions
+    ):
+        raise ValueError("Command demo smoke sequence exact action argvs are inconsistent")
     if tuple(entry.smoke_argv for entry in contract.entries) != contract.smoke_argvs:
         raise ValueError("Command demo smoke sequence argvs are inconsistent")
     expected_complete = (
