@@ -781,9 +781,12 @@ __all__ = [
     "canonical_command_readiness_status_for_demo_path_step",
     "canonical_command_readiness_status_for_engine_action",
     "canonical_command_demo_readiness_statuses",
+    "canonical_command_demo_readiness_status_lookup_table",
     "canonical_command_demo_readiness_ready",
     "canonical_command_readiness_statuses_for_argvs",
     "canonical_command_readiness_remaining_statuses",
+    "canonical_command_readiness_handoff_step_status_index_payload",
+    "canonical_command_readiness_handoff_step_status_index_json",
     "canonical_command_readiness_snapshot",
     "canonical_command_readiness_snapshot_json",
     "canonical_command_readiness_snapshot_payload",
@@ -818,6 +821,8 @@ __all__ = [
     "canonical_command_readiness_shell_handoff_command_progress_payload",
     "canonical_command_readiness_shell_handoff_command_progress_summary",
     "canonical_command_readiness_shell_handoff_remaining_statuses",
+    "canonical_command_readiness_shell_handoff_step_status_index_payload",
+    "canonical_command_readiness_shell_handoff_step_status_index_json",
     "canonical_command_readiness_shell_handoff_snapshot",
     "canonical_command_readiness_shell_handoff_snapshot_json",
     "canonical_command_readiness_shell_handoff_snapshot_payload",
@@ -972,8 +977,13 @@ __all__ = [
     "canonical_command_readiness_status_for_flow_step",
     "canonical_command_readiness_statuses_for_argvs",
     "canonical_command_readiness_remaining_statuses",
+    "canonical_command_demo_readiness_status_lookup_table",
+    "canonical_command_readiness_handoff_step_status_index_payload",
+    "canonical_command_readiness_handoff_step_status_index_json",
     "canonical_command_readiness_shell_statuses",
     "canonical_command_readiness_shell_remaining_statuses",
+    "canonical_command_readiness_shell_handoff_step_status_index_payload",
+    "canonical_command_readiness_shell_handoff_step_status_index_json",
     "canonical_command_readiness_snapshot",
     "canonical_command_readiness_snapshot_summary",
     "canonical_command_readiness_snapshot_payload",
@@ -1323,6 +1333,36 @@ def canonical_command_demo_readiness_statuses() -> tuple[CommandCanonicalReadine
     )
 
 
+def _readiness_status_lookup_by_demo_path_step(
+    statuses: Sequence[CommandCanonicalReadinessStatus],
+) -> tuple[tuple[str, tuple[CommandCanonicalReadinessStatus, ...]], ...]:
+    order = canonical_command_demo_path_steps()
+    buckets = {step: [] for step in order}
+    extras: list[str] = []
+    for status in statuses:
+        if not status.demo_path_step:
+            continue
+        if status.demo_path_step not in buckets:
+            buckets[status.demo_path_step] = []
+            extras.append(status.demo_path_step)
+        buckets[status.demo_path_step].append(status)
+    return tuple(
+        (step, tuple(buckets[step]))
+        for step in (*order, *tuple(extras))
+        if buckets[step]
+    )
+
+
+def canonical_command_demo_readiness_status_lookup_table() -> tuple[
+    tuple[str, tuple[CommandCanonicalReadinessStatus, ...]], ...
+]:
+    """Group canonical demo command statuses by demo-path step for smoke checks."""
+
+    return _readiness_status_lookup_by_demo_path_step(
+        canonical_command_demo_readiness_statuses()
+    )
+
+
 def canonical_command_demo_readiness_ready() -> bool:
     statuses = canonical_command_demo_readiness_statuses()
     return bool(statuses) and all(status.ready for status in statuses)
@@ -1475,6 +1515,38 @@ def _canonical_command_readiness_snapshot_payload(
     }
 
 
+def _readiness_step_status_index_payload(
+    snapshot: CommandCanonicalReadinessSnapshot,
+) -> dict[str, object]:
+    completed = dict(_readiness_status_lookup_by_demo_path_step(snapshot.completed))
+    remaining = dict(_readiness_status_lookup_by_demo_path_step(snapshot.remaining))
+    steps = tuple(
+        step
+        for step in canonical_command_demo_path_steps()
+        if completed.get(step) or remaining.get(step)
+    )
+    return {
+        "complete": snapshot.complete,
+        "invalid_argv": snapshot.invalid_argv,
+        "next_status": _canonical_command_readiness_status_payload(snapshot.next_status),
+        "steps": [
+            {
+                "demo_path_step": step,
+                "complete": bool(completed.get(step)) and not bool(remaining.get(step)),
+                "completed": [
+                    _canonical_command_readiness_status_payload(status)
+                    for status in completed.get(step, ())
+                ],
+                "remaining": [
+                    _canonical_command_readiness_status_payload(status)
+                    for status in remaining.get(step, ())
+                ],
+            }
+            for step in steps
+        ],
+    }
+
+
 def canonical_command_readiness_snapshot_payload(
     argvs: Sequence[Sequence[str] | str],
 ) -> dict[str, object]:
@@ -1585,6 +1657,28 @@ def canonical_command_readiness_handoff_snapshot_json(
 
     return json.dumps(
         canonical_command_readiness_handoff_snapshot_payload(argvs),
+        sort_keys=True,
+        separators=(",", ":"),
+    )
+
+
+def canonical_command_readiness_handoff_step_status_index_payload(
+    argvs: Sequence[Sequence[str] | str],
+) -> dict[str, object]:
+    """Return exact handoff action status grouped by canonical demo-path step."""
+
+    return _readiness_step_status_index_payload(
+        canonical_command_readiness_handoff_snapshot(argvs)
+    )
+
+
+def canonical_command_readiness_handoff_step_status_index_json(
+    argvs: Sequence[Sequence[str] | str],
+) -> str:
+    """Return deterministic JSON for exact handoff action status by demo-path step."""
+
+    return json.dumps(
+        canonical_command_readiness_handoff_step_status_index_payload(argvs),
         sort_keys=True,
         separators=(",", ":"),
     )
@@ -1768,6 +1862,28 @@ def canonical_command_readiness_shell_handoff_snapshot_json(
 
     return json.dumps(
         canonical_command_readiness_shell_handoff_snapshot_payload(lines),
+        sort_keys=True,
+        separators=(",", ":"),
+    )
+
+
+def canonical_command_readiness_shell_handoff_step_status_index_payload(
+    lines: Sequence[str] | str,
+) -> dict[str, object]:
+    """Return exact handoff shell status grouped by canonical demo-path step."""
+
+    return _readiness_step_status_index_payload(
+        canonical_command_readiness_shell_handoff_snapshot(lines)
+    )
+
+
+def canonical_command_readiness_shell_handoff_step_status_index_json(
+    lines: Sequence[str] | str,
+) -> str:
+    """Return deterministic JSON for exact handoff shell status by demo-path step."""
+
+    return json.dumps(
+        canonical_command_readiness_shell_handoff_step_status_index_payload(lines),
         sort_keys=True,
         separators=(",", ":"),
     )
