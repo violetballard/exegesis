@@ -621,6 +621,8 @@ class CommandCanonicalReadinessCheckpoint:
     trusted_loop: CommandDemoTrustedLoopContract
     smoke_sequence: CommandDemoSmokeSequenceContract
     trust_checklist: CommandDemoTrustChecklistContract
+    handler_trust_gate: CommandHandlerTrustGateContract
+    handler_trusted_demo_path: CommandHandlerTrustedDemoPathContract
     smoke_snapshot: CommandCanonicalReadinessSnapshot
     is_ready: bool
     issues: tuple[str, ...]
@@ -2479,6 +2481,8 @@ def canonical_command_readiness_checkpoint() -> CommandCanonicalReadinessCheckpo
     trusted_loop = canonical_command_trusted_loop_contract()
     smoke_sequence = canonical_command_smoke_sequence_contract()
     trust_checklist = canonical_command_trust_checklist_contract()
+    handler_trust_gate = canonical_command_handler_trust_gate_contract()
+    handler_trusted_demo_path = canonical_command_handler_trusted_demo_path_contract()
     smoke_snapshot = canonical_command_readiness_snapshot(smoke_sequence.smoke_argvs)
     issues = (
         _command_readiness_checkpoint_gate_issues(
@@ -2506,6 +2510,15 @@ def canonical_command_readiness_checkpoint() -> CommandCanonicalReadinessCheckpo
             issues=canonical_command_trust_checklist_issues(),
         )
         + _command_readiness_checkpoint_gate_issues(
+            "handler-trust-gate",
+            missing_engine_actions=handler_trust_gate.missing_engine_actions,
+            issues=handler_trust_gate.thin_handler_violations,
+        )
+        + _command_readiness_checkpoint_gate_issues(
+            "handler-trusted-demo-path",
+            missing_engine_actions=handler_trusted_demo_path.missing_engine_actions,
+        )
+        + _command_readiness_checkpoint_gate_issues(
             "smoke-snapshot",
             missing_flow_steps=tuple(
                 status.flow_step
@@ -2521,12 +2534,16 @@ def canonical_command_readiness_checkpoint() -> CommandCanonicalReadinessCheckpo
         trusted_loop=trusted_loop,
         smoke_sequence=smoke_sequence,
         trust_checklist=trust_checklist,
+        handler_trust_gate=handler_trust_gate,
+        handler_trusted_demo_path=handler_trusted_demo_path,
         smoke_snapshot=smoke_snapshot,
         is_ready=(
             handoff.is_complete
             and trusted_loop.is_complete
             and smoke_sequence.is_complete
             and trust_checklist.is_complete
+            and handler_trust_gate.is_complete
+            and handler_trusted_demo_path.is_complete
             and smoke_snapshot.complete
             and not unique_issues
         ),
@@ -2575,6 +2592,8 @@ def canonical_command_readiness_checkpoint_summary() -> tuple[
     bool,
     bool,
     bool,
+    bool,
+    bool,
     tuple[str, ...],
 ]:
     checkpoint = canonical_command_readiness_checkpoint()
@@ -2586,6 +2605,8 @@ def canonical_command_readiness_checkpoint_summary() -> tuple[
         checkpoint.trusted_loop.is_complete,
         checkpoint.smoke_sequence.is_complete,
         checkpoint.trust_checklist.is_complete,
+        checkpoint.handler_trust_gate.is_complete,
+        checkpoint.handler_trusted_demo_path.is_complete,
         checkpoint.issues,
     )
 
@@ -2600,6 +2621,15 @@ def canonical_command_readiness_checkpoint_payload() -> dict[str, object]:
         "trusted_loop_complete": checkpoint.trusted_loop.is_complete,
         "smoke_sequence_complete": checkpoint.smoke_sequence.is_complete,
         "trust_checklist_complete": checkpoint.trust_checklist.is_complete,
+        "handler_trust_gate_complete": checkpoint.handler_trust_gate.is_complete,
+        "handler_trusted_demo_path_complete": (
+            checkpoint.handler_trusted_demo_path.is_complete
+        ),
+        "handler_engine_delegations": checkpoint.handler_trust_gate.engine_delegations,
+        "handler_thin_violations": checkpoint.handler_trust_gate.thin_handler_violations,
+        "handler_missing_engine_actions": (
+            checkpoint.handler_trusted_demo_path.missing_engine_actions
+        ),
         "smoke_snapshot_complete": checkpoint.smoke_snapshot.complete,
         "completed_flow_steps": tuple(
             status.flow_step
