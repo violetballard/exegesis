@@ -1944,6 +1944,11 @@ class UnifiedRetrievalTests(unittest.TestCase):
         sparse_source_bundle["retrieval_basket_promotion_bundle"]["caches_used"] = string_caches_used
         for item in sparse_source_bundle["retrieval_basket_promotion_bundle"]["promotion_items"]:
             item["citation_status"] = numeric_status
+        sparse_item = sparse_source_bundle["retrieval_basket_promotion_bundle"]["promotion_items"][0]
+        sparse_item["source_strategy"] = "fts"
+        sparse_item["excerpt_id"] = "missing-id-should-stay-missing"
+        sparse_item.pop("retrieval_source_strategy", None)
+        sparse_item.pop("basket_item_id", None)
 
         payload = build_retrieval_downstream_payload_from_result(_SparseSourceBundleOnlySource(sparse_source_bundle))
         expected_status = {
@@ -1969,6 +1974,14 @@ class UnifiedRetrievalTests(unittest.TestCase):
         self.assertEqual(
             payload["retrieval_basket_promotion_bundle"]["caches_used"],
             expected_caches_used,
+        )
+        self.assertNotIn(
+            "retrieval_source_strategy",
+            payload["retrieval_basket_promotion_bundle"]["promotion_items"][0],
+        )
+        self.assertNotIn(
+            "basket_item_id",
+            payload["retrieval_basket_promotion_bundle"]["promotion_items"][0],
         )
 
     def test_retrieval_downstream_payload_helper_backfills_sparse_context_bundle_fields(self) -> None:
@@ -2483,7 +2496,7 @@ class UnifiedRetrievalTests(unittest.TestCase):
             normalized_item["query_constraints_fingerprint"],
             expected_item_constraints_fingerprint,
         )
-        self.assertEqual(normalized_item["basket_item_id"], f"retrieval:fts:{normalized_item['excerpt_id']}")
+        self.assertNotIn("basket_item_id", normalized_item)
         self.assertNotEqual(normalized_item["promotion_item_fingerprint"], "stale-fingerprint")
 
     def test_basket_promotion_bundle_does_not_mint_non_fts_item_ids(self) -> None:

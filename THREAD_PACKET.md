@@ -53,6 +53,8 @@ This source-bearing fixer pass modifies `src/qual/engine/retrieval/payload.py`, 
 
 This source-bearing fixer pass modifies `src/qual/engine/retrieval/payload.py`, `tests/unit/test_unified_retrieval.py`, and `THREAD_PACKET.md` so sparse retrieval `caches_used` snapshots normalize string-shaped booleans before downstream source/citation/basket bundle rehydration and fingerprinting. This keeps cache-use provenance deterministic for basket promotion and later revise/apply consumers without widening retrieval strategy scope.
 
+This source-bearing fixer pass modifies `src/qual/engine/retrieval/payload.py`, `tests/unit/test_unified_retrieval.py`, and `THREAD_PACKET.md` to resolve the integrator replay conflict for basket-promotion normalization. Sparse basket-promotion rehydration now preserves fail-closed behavior for missing `basket_item_id` values while still normalizing query constraints, citation status, cache-use snapshots, and diagnostics deterministically.
+
 Packet-only commits after `5c87b08a9f7ca5a4dabc23fc1a80214276a882e9` refresh traceability and gate evidence only through `f9bdab5ded16e44476d773a24249c64442df2f3a`. The source-bearing passes after that packet-only refresh change `src/qual/retrieval/service.py`, `src/qual/engine/retrieval/payload.py`, and `tests/unit/test_unified_retrieval.py`; reviewers should include those source-bearing commits, including this final caches-used normalization pass, when re-reviewing the merge candidate.
 
 Tracked packet note for this fixer pass: `.codex/kickoff_packets/feat-retrieval-fts.md` and `.codex/lane_meta/feat-retrieval-fts.json` are ignored local automation metadata in this branch worktree and are not tracked at `HEAD`. Treat this tracked `THREAD_PACKET.md` file as the authoritative corrected handoff packet for re-review.
@@ -143,12 +145,13 @@ Before-handoff canonical demo-path statement: this work advances `retrieve relev
 15. Canonical demo-path steps advanced: `retrieve relevant material` and `promote or gather context into the basket`. Normalized sparse `citation_status` snapshots before downstream source/context/diagnostics/provenance/basket rehydration and fingerprinting so string-shaped status values cannot destabilize promotion evidence.
 16. Canonical demo-path steps advanced: `retrieve relevant material` and `promote or gather context into the basket`. Canonicalized numeric sparse `citation_status` flags before downstream payload and basket-promotion rehydration so integer 0/1 flags cannot destabilize promotion evidence fingerprints.
 17. Canonical demo-path steps advanced: `retrieve relevant material` and `promote or gather context into the basket`. Canonicalized sparse `caches_used` boolean maps before downstream source/citation/basket bundle rehydration so string-shaped cache flags cannot destabilize retrieval evidence fingerprints.
+18. Canonical demo-path steps advanced: `retrieve relevant material` and `promote or gather context into the basket`. Resolved the integrator replay conflict by keeping sparse basket-promotion item identity fail-closed when `basket_item_id` is absent, while preserving deterministic query constraint and diagnostics normalization.
 
-Task accounting: `17` high-risk task groups are present in the cumulative branch after this source-bearing finalization pass, exceeding the high-risk task cap and requiring the same integration decision already noted for the size overage.
+Task accounting: `18` high-risk task groups are present in the cumulative branch after this source-bearing finalization pass, exceeding the high-risk task cap and requiring the same integration decision already noted for the size overage.
 
 ## Kickoff Budget/Limits Compliance
 
-- Task budget: `4` high-risk task groups; this cumulative branch now has `17` source-bearing task groups after the caches-used normalization fix.
+- Task budget: `4` high-risk task groups; this cumulative branch now has `18` source-bearing task groups after the integrator replay conflict fix.
 - File count: the corrected source-bearing range before this pass changes `6` source/test files plus `3` packet/artifact files; this pass changes `src/qual/engine/retrieval/payload.py`, `tests/unit/test_unified_retrieval.py`, and `THREAD_PACKET.md`.
 - Size accounting before this packet refresh: the corrected source-bearing range `378cf9a74a3658058079a32f186fcd254c4a4034..HEAD` already exceeds the high-risk `<=300 net LOC` limit; this pass adds a small retrieval payload/test/packet update for caches-used normalization, keeping the range above the limit.
 - Size limit status: exceeds the high-risk `<=8 files` and `<=300 net LOC` limits.
@@ -164,17 +167,19 @@ Task accounting: `17` high-risk task groups are present in the cumulative branch
 4. Updated files changed, task accounting, command outcomes, risks, and roadmap/vision mapping to match the corrected range.
 5. Documented that no explicit integrator-approved size exception is present for the high-risk size overage, so approval remains blocked unless the integrator grants an exception or requests a branch split/reduced handoff.
 6. Stated the corrected canonical demo-path step explicitly: `retrieve relevant material`, with additional support for `promote or gather context into the basket`.
+7. Reproduced the integrator replay blocker locally as a failing `./quality-test.sh` run in `test_basket_promotion_bundle_normalizes_query_constraints_snapshot`, then confirmed the resolved source/test state with focused retrieval regressions and the full required gate suite.
 
 ## Commands Run
 
-Required gates for this corrected merge candidate were re-run on 2026-05-12 against branch `codex/feat-retrieval-fts` after this source-bearing caches-used normalization fix.
+Required gates for this corrected merge candidate were re-run on 2026-05-12 against branch `codex/feat-retrieval-fts` after this source-bearing integrator replay conflict fix.
 
 - `make scope-check` - passed for branch `codex/feat-retrieval-fts` after reporting no branch policy to enforce.
 - `./quality-format.sh --check` - passed.
 - `./quality-lint.sh` - passed shell syntax and trailing whitespace checks.
-- `./quality-test.sh` - passed smoke tests and 138 unit tests.
+- `./quality-test.sh` - initially reproduced the integration blocker with a basket-promotion normalization failure, then passed smoke tests and 138 unit tests after the focused fix pass.
 - `./typecheck-test.sh` - passed Python source compilation under `src/`.
 - `make ci` - passed setup, scope-check, format, lint, compile/typecheck, smoke tests, and 138 unit tests.
+- `python3 -m unittest tests.unit.test_unified_retrieval.UnifiedRetrievalTests.test_basket_promotion_bundle_normalizes_query_constraints_snapshot tests.unit.test_unified_retrieval.UnifiedRetrievalTests.test_retrieval_downstream_payload_helper_normalizes_numeric_citation_status -q` - passed 2 focused retrieval regression tests.
 - `python3 -m compileall -q src/qual/engine/retrieval/payload.py tests/unit/test_unified_retrieval.py` - passed after caches-used normalization.
 - `python3 -m unittest tests.unit.test_unified_retrieval.UnifiedRetrievalTests.test_retrieval_downstream_payload_helper_normalizes_numeric_citation_status -q` - passed after extending the focused sparse payload normalization regression to cover string-shaped `caches_used` values.
 - `python3 -m unittest tests.unit.test_unified_retrieval -q` - passed 69 unified retrieval tests.

@@ -445,20 +445,6 @@ def _normalize_basket_promotion_bundle_snapshot(bundle: dict[str, object]) -> di
             normalized_item["citation_status"] = _normalize_citation_status_snapshot(
                 normalized_item.get("citation_status")
             )
-        if _is_missing_snapshot_value(normalized_item.get("retrieval_source_strategy")):
-            source_strategy = normalized_item.get("source_strategy")
-            if not _is_missing_snapshot_value(source_strategy):
-                normalized_item["retrieval_source_strategy"] = copy.deepcopy(source_strategy)
-        if _is_missing_snapshot_value(normalized_item.get("basket_item_id")):
-            basket_item_id = _basket_item_id_for_excerpt(
-                source_strategy=normalized_item.get(
-                    "retrieval_source_strategy",
-                    normalized_item.get("source_strategy"),
-                ),
-                excerpt_id=normalized_item.get("excerpt_id"),
-            )
-            if basket_item_id is not None:
-                normalized_item["basket_item_id"] = basket_item_id
         item_policy = normalized_item.get("retrieval_policy")
         if isinstance(item_policy, dict):
             normalized_item["retrieval_policy"] = _normalize_policy_snapshot(item_policy)
@@ -1215,7 +1201,6 @@ def _build_retrieval_diagnostics_from_source_bundle(source_bundle: dict[str, obj
         "excerpt_hits_count": citation_bundle.get("excerpt_count", len(_normalize_list_like(normalized.get("excerpt_hits", [])))),
         "doc_hits_fingerprint": citation_bundle.get("doc_hits_fingerprint"),
         "excerpt_hits_fingerprint": citation_bundle.get("excerpt_hits_fingerprint"),
-        "retrieval_manifest_fingerprint": normalized.get("retrieval_manifest_fingerprint"),
         "citation_status": _normalize_citation_status_snapshot(
             citation_bundle.get("citation_status", normalized.get("citation_status", {}))
         ),
@@ -1227,6 +1212,9 @@ def _build_retrieval_diagnostics_from_source_bundle(source_bundle: dict[str, obj
             normalized.get("result_fingerprint"),
         ),
     }
+    retrieval_manifest_fingerprint = normalized.get("retrieval_manifest_fingerprint")
+    if retrieval_manifest_fingerprint is not None:
+        diagnostics["retrieval_manifest_fingerprint"] = retrieval_manifest_fingerprint
     if fts_shortlist_query_fingerprint is not None:
         diagnostics["fts_shortlist_query_fingerprint"] = fts_shortlist_query_fingerprint
     return diagnostics
