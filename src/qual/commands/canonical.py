@@ -81,6 +81,8 @@ from src.qual.commands.catalog import (
     CommandHandlerDemoPathContract,
     CommandHandlerDemoPathEntry,
     CommandHandlerThinActionContract,
+    CommandHandlerTrustedActionContract,
+    CommandHandlerTrustedActionEntry,
     canonical_command as _canonical_command,
     command_mvp_demo_path_readiness_contract as _path_readiness_contract,
     command_mvp_demo_path_steps as _path_steps,
@@ -507,6 +509,12 @@ from src.qual.commands.catalog import (
     command_mvp_handler_thin_action_contract as _handler_thin_action_contract,
     command_mvp_handler_thin_action_lookup_table as _handler_thin_action_lookup_table,
     command_mvp_handler_thin_action_summary as _handler_thin_action_summary,
+    command_mvp_handler_trusted_action_contract as _handler_trusted_action_contract,
+    command_mvp_handler_trusted_action_entry_for_engine_action
+    as _handler_trusted_action_entry_for_engine_action,
+    command_mvp_handler_trusted_action_entry_for_argv as _handler_trusted_action_entry_for_argv,
+    command_mvp_handler_trusted_action_lookup_table as _handler_trusted_action_lookup_table,
+    command_mvp_handler_trusted_action_summary as _handler_trusted_action_summary,
 )
 
 
@@ -931,6 +939,11 @@ __all__ = [
     "canonical_command_handler_thin_action_contract",
     "canonical_command_handler_thin_action_lookup_table",
     "canonical_command_handler_thin_action_summary",
+    "canonical_command_handler_trusted_action_contract",
+    "canonical_command_handler_trusted_action_entry_for_engine_action",
+    "canonical_command_handler_trusted_action_entry_for_argv",
+    "canonical_command_handler_trusted_action_lookup_table",
+    "canonical_command_handler_trusted_action_summary",
 ]
 
 
@@ -1035,6 +1048,36 @@ def canonical_command_handler_thin_action_lookup_table() -> tuple[
     ...,
 ]:
     return _handler_thin_action_lookup_table()
+
+
+def canonical_command_handler_trusted_action_contract() -> CommandHandlerTrustedActionContract:
+    return _handler_trusted_action_contract()
+
+
+def canonical_command_handler_trusted_action_summary() -> tuple[
+    tuple[str, str, str, str, str, str, tuple[str, ...], str, bool, bool],
+    ...,
+]:
+    return _handler_trusted_action_summary()
+
+
+def canonical_command_handler_trusted_action_lookup_table() -> tuple[
+    tuple[str, tuple[str, str, tuple[str, ...], str, bool, bool]],
+    ...,
+]:
+    return _handler_trusted_action_lookup_table()
+
+
+def canonical_command_handler_trusted_action_entry_for_engine_action(
+    engine_action: str,
+) -> CommandHandlerTrustedActionEntry | None:
+    return _handler_trusted_action_entry_for_engine_action(engine_action)
+
+
+def canonical_command_handler_trusted_action_entry_for_argv(
+    argv: Sequence[str] | str,
+) -> CommandHandlerTrustedActionEntry | None:
+    return _handler_trusted_action_entry_for_argv(argv)
 
 
 def _readiness_status(
