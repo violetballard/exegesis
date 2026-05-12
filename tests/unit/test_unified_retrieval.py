@@ -1991,6 +1991,10 @@ class UnifiedRetrievalTests(unittest.TestCase):
         payload.pop("retrieval_excerpt_bundle", None)
         payload["retrieval_provenance"].pop("doc_citations", None)
         payload["retrieval_provenance"].pop("excerpt_citations", None)
+        for citation in payload["retrieval_citation_bundle"]["doc_citations"]:
+            citation.pop("retrieval_source_strategy", None)
+        for citation in payload["retrieval_citation_bundle"]["excerpt_citations"]:
+            citation.pop("retrieval_source_strategy", None)
 
         doc_bundle = _build_retrieval_doc_bundle_from_payload(payload)
         excerpt_bundle = _build_retrieval_excerpt_bundle_from_payload(payload)
@@ -2477,6 +2481,7 @@ class UnifiedRetrievalTests(unittest.TestCase):
                     "top_excerpt_fingerprint": item["provenance"]["top_excerpt_fingerprint"],
                     "top_excerpt_text_hash": item["provenance"]["top_excerpt_text_hash"],
                     "source_strategy": item["provenance"]["source_strategy"],
+                    "retrieval_source_strategy": item["retrieval_source_strategy"],
                 }
                 for item in payload["doc_hits"]
             ],
@@ -2498,6 +2503,7 @@ class UnifiedRetrievalTests(unittest.TestCase):
                     "matched_terms": item["provenance"]["matched_terms"],
                     "fts_rank": item["provenance"]["fts_rank"],
                     "source_strategy": item["provenance"]["source_strategy"],
+                    "retrieval_source_strategy": item["retrieval_source_strategy"],
                     "retrieval_backend": item["provenance"]["retrieval_backend"],
                     "retrieval_mode": item["provenance"]["retrieval_mode"],
                 }

@@ -688,6 +688,10 @@ class RetrievalResult:
                 "top_excerpt_fingerprint": doc_hit.provenance.get("top_excerpt_fingerprint"),
                 "top_excerpt_text_hash": doc_hit.provenance.get("top_excerpt_text_hash"),
                 "source_strategy": doc_hit.provenance.get("source_strategy"),
+                "retrieval_source_strategy": doc_hit.provenance.get(
+                    "retrieval_source_strategy",
+                    doc_hit.provenance.get("source_strategy"),
+                ),
             }
             for doc_hit in self.doc_hits
         ]
@@ -711,6 +715,10 @@ class RetrievalResult:
                 "rank": hit.provenance.get("rank"),
                 "span": hit.provenance.get("span"),
                 "source_strategy": hit.provenance.get("source_strategy"),
+                "retrieval_source_strategy": hit.provenance.get(
+                    "retrieval_source_strategy",
+                    hit.provenance.get("source_strategy"),
+                ),
                 "retrieval_backend": hit.provenance.get("retrieval_backend"),
                 "retrieval_mode": hit.provenance.get("retrieval_mode"),
             }
@@ -1592,6 +1600,11 @@ class RetrievalService:
                     "excerpt_ids": list(doc_hit.provenance.get("excerpt_ids", [])),
                     "excerpt_count": doc_hit.excerpt_count,
                     "matched_terms": doc_hit.provenance.get("top_matched_terms"),
+                    "source_strategy": doc_hit.provenance.get("source_strategy"),
+                    "retrieval_source_strategy": doc_hit.provenance.get(
+                        "retrieval_source_strategy",
+                        doc_hit.provenance.get("source_strategy"),
+                    ),
                 }
             )
 
@@ -1603,6 +1616,10 @@ class RetrievalService:
                 {
                     "doc_id": hit.doc_id,
                     "excerpt_id": hit.excerpt_id,
+                    "basket_item_id": _basket_item_id_for_excerpt(
+                        source_strategy=hit.provenance.get("source_strategy", hit.source_strategy),
+                        excerpt_id=hit.excerpt_id,
+                    ),
                     "doc_type": hit.provenance.get("doc_type"),
                     "source_hash": hit.provenance.get("source_hash"),
                     "excerpt_fingerprint": hit.provenance.get("excerpt_fingerprint"),
@@ -1613,6 +1630,10 @@ class RetrievalService:
                     "rank": hit.provenance.get("rank"),
                     "fts_rank": hit.provenance.get("fts_rank"),
                     "source_strategy": hit.provenance.get("source_strategy"),
+                    "retrieval_source_strategy": hit.provenance.get(
+                        "retrieval_source_strategy",
+                        hit.provenance.get("source_strategy"),
+                    ),
                     "retrieval_backend": hit.provenance.get("retrieval_backend"),
                     "retrieval_mode": hit.provenance.get("retrieval_mode"),
                 }
