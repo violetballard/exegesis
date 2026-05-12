@@ -301,8 +301,12 @@ from src.qual.commands.catalog import (
     command_mvp_demo_readiness_exact_cli_audit_summary as _readiness_exact_cli_audit_summary,
     command_mvp_demo_readiness_exact_action_route_contract
     as _readiness_exact_action_route_contract,
+    command_mvp_demo_readiness_exact_action_route_json
+    as _readiness_exact_action_route_json,
     command_mvp_demo_readiness_exact_action_route_lookup_table
     as _readiness_exact_action_route_lookup_table,
+    command_mvp_demo_readiness_exact_action_route_payload
+    as _readiness_exact_action_route_payload,
     command_mvp_demo_readiness_exact_action_route_summary
     as _readiness_exact_action_route_summary,
     command_mvp_demo_readiness_exact_action_script_contract
@@ -828,7 +832,9 @@ __all__ = [
     "canonical_command_cli_exact_action_lines_for_demo_path_step",
     "canonical_command_cli_exact_action_lines_for_flow_step",
     "canonical_command_exact_action_route_contract",
+    "canonical_command_exact_action_route_json",
     "canonical_command_exact_action_route_lookup_table",
+    "canonical_command_exact_action_route_payload",
     "canonical_command_exact_action_route_summary",
     "canonical_command_flow_step",
     "canonical_command_flow_step_for_demo_path_step",
@@ -3391,6 +3397,14 @@ def canonical_command_exact_action_route_summary() -> tuple[
 
 def canonical_command_exact_action_route_lookup_table() -> tuple[tuple[str, str], ...]:
     return _readiness_exact_action_route_lookup_table()
+
+
+def canonical_command_exact_action_route_payload() -> tuple[dict[str, object], ...]:
+    return _readiness_exact_action_route_payload()
+
+
+def canonical_command_exact_action_route_json() -> str:
+    return _readiness_exact_action_route_json()
 
 
 def canonical_command_exact_cli_audit_contract() -> CommandDemoReadinessExactCliAuditContract:
