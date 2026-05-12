@@ -12,8 +12,8 @@
 - Authoritative reviewed implementation base: `378cf9a74a3658058079a32f186fcd254c4a4034`.
 - Reviewed source-bearing implementation head: this source-bearing fixer commit; final branch tip SHA is reported in the fixer final response.
 - Reviewed source-bearing implementation range: `378cf9a74a3658058079a32f186fcd254c4a4034..HEAD` on branch `codex/feat-retrieval-fts`.
-- Packet update note: this commit updates the engine retrieval facade export list, the approved shared regression surface, and `THREAD_PACKET.md` so export-list consumers can discover the canonical `retrieve_auto` default retrieval entrypoint alongside the explicit FTS entrypoint; the final branch tip SHA is reported in the fixer final response.
-- Current pass role: source-bearing FTS-first engine facade export finalization for canonical default retrieval availability.
+- Packet update note: this commit updates retrieval basket-promotion item snapshots, sparse excerpt-hit rehydration, the approved shared regression surface, and `THREAD_PACKET.md` so context-basket promotion items carry the same deterministic `query_constraints_fingerprint` already present on promotion bundle items; the final branch tip SHA is reported in the fixer final response.
+- Current pass role: source-bearing FTS-first basket-promotion query-constraint fingerprint finalization for canonical context-basket promotion availability.
 
 ## Traceability Correction
 
@@ -73,7 +73,9 @@ This source-bearing fixer pass modifies `src/qual/retrieval/service.py`, `src/qu
 
 This source-bearing fixer pass modifies `src/qual/retrieval/service.py`, `src/qual/engine/retrieval/payload.py`, `tests/unit/test_unified_retrieval.py`, and `THREAD_PACKET.md` so basket-promotion bundle `promotion_items` now carry the same canonical FTS basket item identity used by `basket_promotion_items`, including when sparse payloads rebuild the bundle from excerpt hits.
 
-Packet-only commits after `5c87b08a9f7ca5a4dabc23fc1a80214276a882e9` refresh traceability and gate evidence only through `f9bdab5ded16e44476d773a24249c64442df2f3a`. The source-bearing passes after that packet-only refresh change `src/qual/retrieval/service.py`, `src/qual/engine/retrieval/payload.py`, and `tests/unit/test_unified_retrieval.py`; reviewers should include those source-bearing commits, including this final self-contained basket-promotion bundle pass, when re-reviewing the merge candidate.
+This source-bearing fixer pass modifies `src/qual/retrieval/service.py`, `src/qual/engine/retrieval/payload.py`, `tests/unit/test_unified_retrieval.py`, and `THREAD_PACKET.md` so basket-promotion item snapshots carry deterministic `query_constraints_fingerprint` values in both direct retrieval results and sparse excerpt-hit rehydration. This keeps context-basket promotion items auditable against the query constraints that produced them without widening retrieval strategy scope.
+
+Packet-only commits after `5c87b08a9f7ca5a4dabc23fc1a80214276a882e9` refresh traceability and gate evidence only through `f9bdab5ded16e44476d773a24249c64442df2f3a`. The source-bearing passes after that packet-only refresh change `src/qual/retrieval/service.py`, `src/qual/engine/retrieval/payload.py`, and `tests/unit/test_unified_retrieval.py`; reviewers should include those source-bearing commits, including this final basket-promotion query-constraint fingerprint pass, when re-reviewing the merge candidate.
 
 Tracked packet note for this fixer pass: `.codex/kickoff_packets/feat-retrieval-fts.md` and `.codex/lane_meta/feat-retrieval-fts.json` are ignored local automation metadata in this branch worktree and are not tracked at `HEAD`. Treat this tracked `THREAD_PACKET.md` file as the authoritative corrected handoff packet for re-review.
 
@@ -107,7 +109,7 @@ Previous source-bearing fixer surface at `1439aa3eff4d420fb4fcad83c0556c2608813c
 - `src/qual/engine/retrieval/payload.py`
 - `tests/unit/test_unified_retrieval.py`
 
-Final source-bearing basket identity finalization surface in this pass:
+Current source-bearing basket-promotion query-constraint fingerprint finalization surface in this pass:
 
 - `THREAD_PACKET.md`
 - `src/qual/engine/retrieval/payload.py`
@@ -118,7 +120,7 @@ Final source-bearing basket identity finalization surface in this pass:
 
 SQLite FTS remains the required MVP retrieval path. PageIndex and embeddings remain deferred or compatibility-only fallback surfaces and are not reintroduced as required paths.
 
-The branch makes FTS retrieval deterministic and auditable across query construction, cache keys, fresh-run cache snapshots, query snapshots, result payloads, excerpt lookup, citation/provenance bundles, sparse source/context bundle rehydration, date-range propagation, shortlist query fingerprints, matched-term provenance, result fingerprints, doc identity, doc rank, doc type, strategy aliases, query constraints, retrieval manifest fingerprints, and basket-promotion evidence. The final source-bearing passes additionally normalize rehydrated basket-promotion item date ranges and matched-term lists before item fingerprinting, add deterministic basket item IDs for direct context-basket promotion, and keep those IDs FTS-only so compatibility/deferred retrieval shapes fail closed.
+The branch makes FTS retrieval deterministic and auditable across query construction, cache keys, fresh-run cache snapshots, query snapshots, result payloads, excerpt lookup, citation/provenance bundles, sparse source/context bundle rehydration, date-range propagation, shortlist query fingerprints, matched-term provenance, result fingerprints, doc identity, doc rank, doc type, strategy aliases, query constraints, retrieval manifest fingerprints, and basket-promotion evidence. The final source-bearing passes additionally normalize rehydrated basket-promotion item date ranges and matched-term lists before item fingerprinting, add deterministic basket item IDs for direct context-basket promotion, keep those IDs FTS-only so compatibility/deferred retrieval shapes fail closed, and carry query-constraint fingerprints on basket-ready item snapshots.
 
 The corrected branch-tip implementation also tightens the canonical engine and service query normalization paths so malformed, unordered, or scalar-shaped `date_range` inputs fail closed before FTS execution.
 
@@ -152,6 +154,8 @@ This finalization pass also aligns direct retrieval result basket-promotion snap
 
 This finalization pass also exposes the canonical `retrieve_auto` default retrieval entrypoint through the engine retrieval facade export list. The engine surface now exports both explicit `retrieve_fts` and default `retrieve_auto` entrypoints while both continue to resolve to the FTS-first retrieval path.
 
+This finalization pass also carries deterministic `query_constraints_fingerprint` values on direct and sparse-rehydrated basket-promotion item snapshots. Context-basket promotion consumers can now audit each basket item against the exact normalized constraints that produced it, matching the bundle-level promotion-item fingerprint evidence.
+
 Canonical demo path advanced: `vault/context material -> FTS retrieval -> retrieval evidence -> context basket promotion -> engine revise/apply`.
 
 Before-handoff canonical demo-path statement: this work advances `retrieve relevant material` by keeping retrieval FTS-first, deterministic, and auditable; it also supports `promote or gather context into the basket` by preserving provenance and query evidence on promotion bundles/items.
@@ -160,15 +164,15 @@ Before-handoff canonical demo-path statement: this work advances `retrieve relev
 
 1. Canonical demo-path step advanced: `retrieve relevant material`. Made SQLite FTS the authoritative MVP retrieval path while keeping PageIndex and embeddings fallback-only/deferred.
 2. Canonical demo-path step advanced: `retrieve relevant material`. Stabilized FTS query, cache, constraint, date-range, shortlist, doc-type, scope, and fresh-run behavior for deterministic retrieval.
-3. Canonical demo-path steps advanced: `retrieve relevant material` and `promote or gather context into the basket`. Normalized retrieval payloads, provenance, citation/source/context bundles, evidence snapshots, sparse bundle rehydration, retrieval manifest fingerprints, and basket-promotion evidence, including item-level date-range and matched-term normalization before basket-promotion fingerprinting and deterministic FTS-only `basket_item_id` values for promotion. The engine facade now exports the default `retrieve_auto` entrypoint that reaches this FTS-first retrieval path.
-4. Canonical demo-path steps advanced: `retrieve relevant material` and `promote or gather context into the basket`. Added fail-closed and audit-focused regression coverage for malformed/reversed date ranges, empty inputs, unresolved scopes, FTS-only excerpt lookup and payload normalization, excerpt lookup fingerprints, cache/query snapshots, facade/export availability, basket-promotion fingerprint propagation, sparse basket item ID rehydration, and non-FTS basket item ID rejection.
+3. Canonical demo-path steps advanced: `retrieve relevant material` and `promote or gather context into the basket`. Normalized retrieval payloads, provenance, citation/source/context bundles, evidence snapshots, sparse bundle rehydration, retrieval manifest fingerprints, and basket-promotion evidence, including item-level date-range and matched-term normalization before basket-promotion fingerprinting, deterministic FTS-only `basket_item_id` values for promotion, and query-constraint fingerprints on basket-ready item snapshots. The engine facade now exports the default `retrieve_auto` entrypoint that reaches this FTS-first retrieval path.
+4. Canonical demo-path steps advanced: `retrieve relevant material` and `promote or gather context into the basket`. Added fail-closed and audit-focused regression coverage for malformed/reversed date ranges, empty inputs, unresolved scopes, FTS-only excerpt lookup and payload normalization, excerpt lookup fingerprints, cache/query snapshots, facade/export availability, basket-promotion fingerprint propagation, sparse basket item ID rehydration, basket item query-constraint fingerprints, and non-FTS basket item ID rejection.
 Task accounting: this high-risk handoff is summarized as the 4 meaningful task groups above, matching the kickoff budget. The later source-bearing finalization commits are folded into those groups rather than counted as separate inflated tasks.
 
 ## Kickoff Budget/Limits Compliance
 
 - Task budget: `4` high-risk task groups; this handoff folds the cumulative retrieval work into 4 meaningful and testable task groups.
-- File count: the corrected source-bearing range before this pass changes `6` source/test files plus `3` packet/artifact files; this pass changes `src/qual/engine/retrieval/__init__.py`, `tests/unit/test_unified_retrieval.py`, and `THREAD_PACKET.md`.
-- Size accounting before this packet refresh: the corrected source-bearing range `378cf9a74a3658058079a32f186fcd254c4a4034..HEAD` already exceeds the high-risk `<=300 net LOC` limit; this pass adds a small retrieval facade export/test/packet update for canonical default retrieval surface availability, keeping the range above the limit.
+- File count: the corrected source-bearing range before this pass changes `6` source/test files plus `3` packet/artifact files; this pass changes `src/qual/retrieval/service.py`, `src/qual/engine/retrieval/payload.py`, `tests/unit/test_unified_retrieval.py`, and `THREAD_PACKET.md`.
+- Size accounting before this packet refresh: the corrected source-bearing range `378cf9a74a3658058079a32f186fcd254c4a4034..HEAD` already exceeds the high-risk `<=300 net LOC` limit; this pass adds a small retrieval service/payload/test/packet update for basket item query-constraint fingerprint propagation, keeping the range above the limit.
 - Size limit status: exceeds the high-risk `<=8 files` and `<=300 net LOC` limits.
 - Explicit exception status: no integrator-approved size or task-budget exception is recorded in this worktree. Because the full source-bearing range remains together, this is a known blocker for approval until the integrator grants an exception or requests a branch split.
 - Shared-file exception status: `tests/unit/test_unified_retrieval.py` is the sole approved shared regression surface; no integrator-locked files changed.
@@ -192,10 +196,22 @@ Task accounting: this high-risk handoff is summarized as the 4 meaningful task g
 14. Aligned direct retrieval bundle basket IDs and sparse excerpt-hit basket rehydration on canonical `retrieval:fts:<excerpt_id>` item identity while preserving raw excerpt IDs separately for audit.
 15. Added canonical FTS basket item identity fields to basket-promotion bundle `promotion_items` so direct and sparse promotion evidence can be promoted without depending on plain excerpt IDs.
 16. Exported the canonical engine facade `retrieve_auto` default entrypoint through `src.qual.engine.retrieval.__all__`, with regression coverage keeping the facade export list aligned to the FTS-first engine surface.
+17. Added deterministic `query_constraints_fingerprint` values to direct and sparse-rehydrated basket-promotion item snapshots so context-basket promotion evidence remains auditable against normalized query constraints.
 
 ## Commands Run
 
-Required gates for this corrected merge candidate were re-run on 2026-05-12 against branch `codex/feat-retrieval-fts` after this source-bearing engine facade export fix.
+Required gates for this corrected merge candidate were re-run on 2026-05-12 against branch `codex/feat-retrieval-fts` after this source-bearing basket-promotion query-constraint fingerprint fix.
+
+- `python -m pytest tests/unit/test_unified_retrieval.py -k basket_promotion -q` - passed 3 focused basket-promotion regressions after adding basket item `query_constraints_fingerprint` propagation.
+- `./quality-format.sh --check` - passed.
+- `./quality-lint.sh` - passed shell syntax and trailing whitespace checks.
+- `./typecheck-test.sh` - passed Python source compilation under `src/`.
+- `./quality-test.sh` - passed smoke tests and 475 unit tests, including all 92 unified retrieval tests.
+- `make ci` - blocked at scope-check because `tests/unit/test_unified_retrieval.py` is an approved shared regression path; rerun with `SCOPE_ALLOW_SHARED=1`.
+- `SCOPE_ALLOW_SHARED=1 make ci` - passed scope-check, format, lint, compile/typecheck, smoke tests, and retrieval tests, then failed with 6 unrelated sandbox/control-plane `PermissionError` errors when tests attempted to write `.codex/packet_router/logs`, `.codex/feature_runner/state.json`, `.codex/packet_planner/state.json`, move recovery artifacts under `.codex/worktree_recovery`, or invoke `ps`.
+- `python -m pytest tests/unit/test_unified_retrieval.py -q` - passed 92 unified retrieval tests and 8 subtests after the packet refresh.
+
+Earlier gate history for this corrected merge candidate:
 
 - `pytest tests/unit/test_unified_retrieval.py -q` - blocked during collection because the shell environment did not include the repository on `PYTHONPATH` (`ModuleNotFoundError: No module named 'src'`).
 - `PYTHONPATH=. pytest tests/unit/test_unified_retrieval.py -q` - passed 92 unified retrieval tests and 8 subtests after exporting `retrieve_auto` through the engine facade `__all__`.

@@ -3490,6 +3490,10 @@ class UnifiedRetrievalTests(unittest.TestCase):
         self.assertEqual(direct_item["query_intent"], "compare")
         self.assertEqual(direct_item["query_constraints"], expected_constraints)
         self.assertEqual(direct_item["query_constraints_fingerprint"], expected_constraints_fingerprint)
+        self.assertEqual(
+            result.basket_promotion_items()[0]["query_constraints_fingerprint"],
+            expected_constraints_fingerprint,
+        )
         self.assertEqual(direct_item["query_date_range"], ["2026-01-01", "2026-12-31"])
         self.assertEqual(direct_item["retrieval_evidence_fingerprint"], retrieval_evidence_fingerprint)
         self.assertEqual(result.retrieval_basket_promotion_bundle()["query_constraints"], expected_constraints)
@@ -3577,6 +3581,10 @@ class UnifiedRetrievalTests(unittest.TestCase):
         self.assertEqual(rehydrated_item["query_intent"], "compare")
         self.assertEqual(rehydrated_item["query_constraints"], expected_constraints)
         self.assertEqual(rehydrated_item["query_constraints_fingerprint"], expected_constraints_fingerprint)
+        self.assertEqual(
+            rehydrated_bundle["basket_promotion_items"][0]["query_constraints_fingerprint"],
+            expected_constraints_fingerprint,
+        )
         self.assertEqual(rehydrated_item["query_date_range"], ["2026-01-01", "2026-12-31"])
         self.assertEqual(rehydrated_item["retrieval_evidence_fingerprint"], retrieval_evidence_fingerprint)
         self.assertEqual(rehydrated_bundle["query_constraints"], expected_constraints)

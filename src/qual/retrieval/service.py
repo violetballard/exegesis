@@ -612,6 +612,8 @@ class RetrievalResult:
         """Return deterministic excerpt references ready for context-basket promotion."""
 
         items: list[dict[str, object]] = []
+        query_constraints = RetrievalService._query_constraints_snapshot(self.query)
+        query_constraints_fingerprint = RetrievalService._stable_fingerprint(query_constraints)
         doc_rank_by_id = {
             doc_hit.doc_id: doc_hit.provenance.get("doc_rank")
             for doc_hit in self.doc_hits
@@ -653,7 +655,8 @@ class RetrievalResult:
                 "retrieval_policy": copy.deepcopy(hit.provenance.get("retrieval_policy")),
                 "query_scope": self.query.scope,
                 "query_intent": self.query.intent,
-                "query_constraints": RetrievalService._query_constraints_snapshot(self.query),
+                "query_constraints": copy.deepcopy(query_constraints),
+                "query_constraints_fingerprint": query_constraints_fingerprint,
                 "query_date_range": list(self.query.constraints.date_range)
                 if self.query.constraints.date_range is not None
                 else None,
@@ -1956,6 +1959,8 @@ class RetrievalService:
                 }
             )
 
+        query_constraints = RetrievalService._query_constraints_snapshot(query)
+        query_constraints_fingerprint = RetrievalService._stable_fingerprint(query_constraints)
         basket_promotion_items = [
             self._with_basket_item_fingerprint({
                 "item_id": _basket_item_id_for_excerpt(
@@ -1993,7 +1998,8 @@ class RetrievalService:
                 "retrieval_policy": copy.deepcopy(retrieval_policy),
                 "query_scope": query.scope,
                 "query_intent": query.intent,
-                "query_constraints": RetrievalService._query_constraints_snapshot(query),
+                "query_constraints": copy.deepcopy(query_constraints),
+                "query_constraints_fingerprint": query_constraints_fingerprint,
                 "query_date_range": list(query.constraints.date_range)
                 if query.constraints.date_range is not None
                 else None,

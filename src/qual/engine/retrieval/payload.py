@@ -529,6 +529,7 @@ def _basket_promotion_items_from_excerpt_hits(
                     )
                 ),
                 "query_constraints": copy.deepcopy(normalized_query_constraints),
+                "query_constraints_fingerprint": _stable_fingerprint(normalized_query_constraints),
                 "query_fingerprint": _first_text_value(
                     provenance.get("query_fingerprint"),
                     query_fingerprint,
