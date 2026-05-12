@@ -376,6 +376,7 @@ from src.qual.commands.catalog import (
     command_mvp_demo_readiness_next_action_summary as _readiness_next_action_summary,
     command_mvp_demo_readiness_next_command_argv as _readiness_next_command_argv,
     command_mvp_demo_readiness_next_exact_action_argv as _readiness_next_exact_action_argv,
+    command_mvp_demo_readiness_next_exact_action_line as _readiness_next_exact_action_line,
     command_mvp_demo_readiness_remaining_action_contract
     as _readiness_remaining_action_contract,
     command_mvp_demo_readiness_remaining_action_json as _readiness_remaining_action_json,
@@ -389,6 +390,8 @@ from src.qual.commands.catalog import (
     command_mvp_demo_readiness_shell_next_action_summary as _readiness_shell_next_action_summary,
     command_mvp_demo_readiness_shell_next_command_argv as _readiness_shell_next_command_argv,
     command_mvp_demo_readiness_shell_next_exact_action_argv as _readiness_shell_next_exact_action_argv,
+    command_mvp_demo_readiness_shell_next_exact_action_line
+    as _readiness_shell_next_exact_action_line,
     command_mvp_demo_readiness_shell_remaining_action_contract
     as _readiness_shell_remaining_action_contract,
     command_mvp_demo_readiness_shell_remaining_action_json
@@ -746,6 +749,7 @@ __all__ = [
     "canonical_command_readiness_next_action_summary",
     "canonical_command_readiness_next_command_argv",
     "canonical_command_readiness_next_exact_action_argv",
+    "canonical_command_readiness_next_exact_action_line",
     "canonical_command_readiness_remaining_action_contract",
     "canonical_command_readiness_remaining_action_json",
     "canonical_command_readiness_remaining_action_payload",
@@ -760,6 +764,7 @@ __all__ = [
     "canonical_command_readiness_shell_next_action_summary",
     "canonical_command_readiness_shell_next_command_argv",
     "canonical_command_readiness_shell_next_exact_action_argv",
+    "canonical_command_readiness_shell_next_exact_action_line",
     "canonical_command_readiness_shell_remaining_action_contract",
     "canonical_command_readiness_shell_remaining_action_json",
     "canonical_command_readiness_shell_remaining_action_payload",
@@ -3087,6 +3092,12 @@ def canonical_command_readiness_next_exact_action_argv(
     return _readiness_next_exact_action_argv(argvs)
 
 
+def canonical_command_readiness_next_exact_action_line(
+    argvs: Sequence[Sequence[str] | str] = (),
+) -> str:
+    return _readiness_next_exact_action_line(argvs)
+
+
 def canonical_command_readiness_remaining_action_contract(
     argvs: Sequence[Sequence[str] | str] = (),
 ) -> CommandDemoReadinessRemainingActionContract:
@@ -3220,6 +3231,12 @@ def canonical_command_readiness_shell_next_exact_action_argv(
     lines: Sequence[str] | str,
 ) -> tuple[str, ...]:
     return _readiness_shell_next_exact_action_argv(lines)
+
+
+def canonical_command_readiness_shell_next_exact_action_line(
+    lines: Sequence[str] | str,
+) -> str:
+    return _readiness_shell_next_exact_action_line(lines)
 
 
 def canonical_command_readiness_shell_remaining_action_contract(
