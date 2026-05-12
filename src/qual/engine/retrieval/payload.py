@@ -950,6 +950,8 @@ def _normalize_citation_bundle_snapshot(citation_bundle: dict[str, object]) -> d
         normalized.get("deferred_strategy_ids"),
         field_name="citation_bundle",
     )
+    if "caches_used" in normalized:
+        normalized["caches_used"] = _normalize_bool_map(normalized.get("caches_used"))
     normalized["doc_citations"] = _normalize_list_like(normalized.get("doc_citations"))
     normalized["excerpt_citations"] = _normalize_excerpt_citation_snapshots(
         normalized.get("excerpt_citations")
@@ -1122,6 +1124,8 @@ def _normalize_retrieval_summary_snapshot(summary: dict[str, object]) -> dict[st
         normalized.get("deferred_strategy_ids"),
         field_name="retrieval_summary",
     )
+    if "caches_used" in normalized:
+        normalized["caches_used"] = _normalize_bool_map(normalized.get("caches_used"))
     normalized["basket_item_ids"] = _stable_text_values(normalized.get("basket_item_ids"))
     normalized["basket_item_fingerprints"] = _stable_text_values(
         normalized.get("basket_item_fingerprints")
@@ -1354,6 +1358,10 @@ def _normalize_retrieval_source_bundle_snapshot(source_bundle: dict[str, object]
     normalized["retrieval_summary"] = _normalize_retrieval_summary_snapshot(
         normalized.get("retrieval_summary", {})
     )
+    if _is_missing_snapshot_value(normalized["retrieval_summary"].get("retrieval_policy")):
+        normalized["retrieval_summary"]["retrieval_policy"] = copy.deepcopy(
+            normalized.get("policy", normalized.get("retrieval_policy", {}))
+        )
     normalized["retrieval_manifest"] = _normalize_retrieval_manifest_snapshot(
         normalized.get("retrieval_manifest", {})
     )
