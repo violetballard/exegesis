@@ -1906,6 +1906,58 @@ class UnifiedRetrievalTests(unittest.TestCase):
         self.assertEqual(payload["retrieval_source_bundle"]["retrieval_mode"], "fts_first")
         self.assertEqual(payload, expected)
 
+    def test_retrieval_downstream_payload_helper_normalizes_numeric_citation_status(self) -> None:
+        result = self.service.retrieve_auto(
+            RetrievalQuery(
+                query_text="memo coding comparison",
+                scope="vault",
+                intent="compare",
+                constraints=RetrievalConstraints(max_results=4),
+                confidentiality_profile="confidential",
+            )
+        )
+
+        class _SparseSourceBundleOnlySource:
+            def __init__(self, payload: dict[str, object]) -> None:
+                self._payload = payload
+
+            def source_bundle(self) -> dict[str, object]:
+                return self._payload
+
+        sparse_source_bundle = json.loads(json.dumps(result.source_bundle()))
+        numeric_status = {
+            "required": 0,
+            "available": 1,
+            "satisfied": 1,
+            "doc_count": "2",
+            "excerpt_count": "4",
+        }
+        sparse_source_bundle["citation_status"] = numeric_status
+        sparse_source_bundle["retrieval_summary"]["citation_status"] = numeric_status
+        sparse_source_bundle["retrieval_evidence"]["citation_status"] = numeric_status
+        sparse_source_bundle["retrieval_citation_bundle"]["citation_status"] = numeric_status
+        sparse_source_bundle["retrieval_basket_promotion_bundle"]["citation_status"] = numeric_status
+        for item in sparse_source_bundle["retrieval_basket_promotion_bundle"]["promotion_items"]:
+            item["citation_status"] = numeric_status
+
+        payload = build_retrieval_downstream_payload_from_result(_SparseSourceBundleOnlySource(sparse_source_bundle))
+        expected_status = {
+            "required": False,
+            "available": True,
+            "satisfied": True,
+            "doc_count": 2,
+            "excerpt_count": 4,
+        }
+
+        self.assertEqual(payload["citation_status"], expected_status)
+        self.assertEqual(payload["retrieval_summary"]["citation_status"], expected_status)
+        self.assertEqual(payload["retrieval_evidence"]["citation_status"], expected_status)
+        self.assertEqual(payload["retrieval_source_bundle"]["citation_status"], expected_status)
+        self.assertEqual(
+            payload["retrieval_basket_promotion_bundle"]["promotion_items"][0]["citation_status"],
+            expected_status,
+        )
+
     def test_retrieval_downstream_payload_helper_backfills_sparse_context_bundle_fields(self) -> None:
         result = self.service.retrieve_auto(
             RetrievalQuery(

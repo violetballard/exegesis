@@ -12,8 +12,8 @@
 - Authoritative reviewed implementation base: `378cf9a74a3658058079a32f186fcd254c4a4034`.
 - Reviewed source-bearing implementation head: this source-bearing fixer commit; final branch tip SHA is reported in the fixer final response.
 - Reviewed source-bearing implementation range: `378cf9a74a3658058079a32f186fcd254c4a4034..HEAD` on branch `codex/feat-retrieval-fts`.
-- Packet update note: this commit updates retrieval source, the approved shared regression surface, and `THREAD_PACKET.md`; the final branch tip SHA is reported in the fixer final response.
-- Current pass role: source-bearing citation provenance normalization for the reviewed source-bearing range.
+- Packet update note: this commit updates retrieval payload source, the approved shared regression surface, and `THREAD_PACKET.md`; the final branch tip SHA is reported in the fixer final response.
+- Current pass role: source-bearing citation-status normalization for the reviewed source-bearing range.
 
 ## Traceability Correction
 
@@ -49,7 +49,9 @@ This source-bearing fixer pass modifies `src/qual/retrieval/service.py`, `src/qu
 
 This source-bearing fixer pass modifies `src/qual/retrieval/service.py`, `src/qual/engine/retrieval/payload.py`, `tests/unit/test_unified_retrieval.py`, and `THREAD_PACKET.md` so excerpt hit snapshots and excerpt citation snapshots expose the same deterministic FTS-only `basket_item_id` used by context-basket promotion bundles. Sparse citation normalization now mints missing FTS citation basket IDs and still strips stale or non-FTS IDs.
 
-Packet-only commits after `5c87b08a9f7ca5a4dabc23fc1a80214276a882e9` refresh traceability and gate evidence only through `f9bdab5ded16e44476d773a24249c64442df2f3a`. The source-bearing passes after that packet-only refresh change `src/qual/retrieval/service.py`, `src/qual/engine/retrieval/payload.py`, and `tests/unit/test_unified_retrieval.py`; reviewers should include those source-bearing commits, including this final citation provenance normalization pass, when re-reviewing the merge candidate.
+This source-bearing fixer pass modifies `src/qual/engine/retrieval/payload.py`, `tests/unit/test_unified_retrieval.py`, and `THREAD_PACKET.md` so downstream payload/source/context/provenance/diagnostics/basket snapshots normalize `citation_status` booleans and counts before copy-safe rehydration and fingerprinting, including numeric 0/1 flags from sparse engine payloads. This keeps sparse retrieval evidence deterministic for basket promotion and later revise/apply consumers without widening retrieval strategy scope.
+
+Packet-only commits after `5c87b08a9f7ca5a4dabc23fc1a80214276a882e9` refresh traceability and gate evidence only through `f9bdab5ded16e44476d773a24249c64442df2f3a`. The source-bearing passes after that packet-only refresh change `src/qual/retrieval/service.py`, `src/qual/engine/retrieval/payload.py`, and `tests/unit/test_unified_retrieval.py`; reviewers should include those source-bearing commits, including this final citation-status normalization pass, when re-reviewing the merge candidate.
 
 Tracked packet note for this fixer pass: `.codex/kickoff_packets/feat-retrieval-fts.md` and `.codex/lane_meta/feat-retrieval-fts.json` are ignored local automation metadata in this branch worktree and are not tracked at `HEAD`. Treat this tracked `THREAD_PACKET.md` file as the authoritative corrected handoff packet for re-review.
 
@@ -82,10 +84,9 @@ Previous source-bearing fixer surface at `1439aa3eff4d420fb4fcad83c0556c2608813c
 - `src/qual/engine/retrieval/payload.py`
 - `tests/unit/test_unified_retrieval.py`
 
-Final source-bearing citation provenance normalization surface in this pass:
+Final source-bearing citation-status normalization surface in this pass:
 
 - `THREAD_PACKET.md`
-- `src/qual/retrieval/service.py`
 - `src/qual/engine/retrieval/payload.py`
 - `tests/unit/test_unified_retrieval.py`
 
@@ -115,6 +116,8 @@ This finalization pass also carries deterministic FTS-only basket item IDs throu
 
 This finalization pass also carries canonical `retrieval_source_strategy` through doc and excerpt citation snapshots and backfills it during sparse citation normalization. FTS excerpt evidence snapshots now retain the same deterministic `retrieval:fts:<excerpt_id>` basket identity across citation bundles, evidence snapshots, source bundles, and context-basket promotion paths.
 
+This finalization pass also normalizes downstream `citation_status` snapshots across citation, doc, excerpt, source, context, diagnostics, provenance, and basket-promotion bundle rehydration. String-shaped booleans, numeric 0/1 flags, and string-shaped counts now canonicalize before promotion item fingerprints and source/context fingerprints are minted, keeping sparse engine payloads deterministic for basket promotion and later revise/apply steps.
+
 Canonical demo path advanced: `vault/context material -> FTS retrieval -> retrieval evidence -> context basket promotion -> engine revise/apply`.
 
 Before-handoff canonical demo-path statement: this work advances `retrieve relevant material` by keeping retrieval FTS-first, deterministic, and auditable; it also supports `promote or gather context into the basket` by preserving provenance and query evidence on promotion bundles/items.
@@ -135,14 +138,16 @@ Before-handoff canonical demo-path statement: this work advances `retrieve relev
 12. Canonical demo-path steps advanced: `retrieve relevant material` and `promote or gather context into the basket`. Canonicalized accepted FTS strategy labels before minting basket item IDs so service and sparse payload helpers always emit lower-case `retrieval:fts:<excerpt_id>` identities while deferred strategies fail closed.
 13. Canonical demo-path steps advanced: `retrieve relevant material` and `promote or gather context into the basket`. Propagated deterministic FTS-only basket item IDs into excerpt hit and citation snapshots so citation-backed context can be promoted and audited with the same item identity as promotion bundles.
 14. Canonical demo-path steps advanced: `retrieve relevant material` and `promote or gather context into the basket`. Propagated canonical `retrieval_source_strategy` and FTS basket item identity through doc/excerpt citation and evidence snapshots, and backfilled sparse citation snapshots so source/context bundle rehydration preserves the canonical FTS strategy key.
+15. Canonical demo-path steps advanced: `retrieve relevant material` and `promote or gather context into the basket`. Normalized sparse `citation_status` snapshots before downstream source/context/diagnostics/provenance/basket rehydration and fingerprinting so string-shaped status values cannot destabilize promotion evidence.
+16. Canonical demo-path steps advanced: `retrieve relevant material` and `promote or gather context into the basket`. Canonicalized numeric sparse `citation_status` flags before downstream payload and basket-promotion rehydration so integer 0/1 flags cannot destabilize promotion evidence fingerprints.
 
-Task accounting: `14` high-risk task groups are present in the cumulative branch after this source-bearing finalization pass, exceeding the high-risk task cap and requiring the same integration decision already noted for the size overage.
+Task accounting: `16` high-risk task groups are present in the cumulative branch after this source-bearing finalization pass, exceeding the high-risk task cap and requiring the same integration decision already noted for the size overage.
 
 ## Kickoff Budget/Limits Compliance
 
-- Task budget: `4` high-risk task groups; this cumulative branch now has `14` source-bearing task groups after the citation provenance strategy normalization fix.
-- File count: the corrected source-bearing range before this pass changes `6` source/test files plus `3` packet/artifact files; this pass changes `src/qual/retrieval/service.py`, `src/qual/engine/retrieval/payload.py`, `tests/unit/test_unified_retrieval.py`, and `THREAD_PACKET.md`.
-- Size accounting: the corrected source-bearing range `378cf9a74a3658058079a32f186fcd254c4a4034..HEAD` changes `9` tracked source/test/packet/artifact files with `1799` insertions and `228` deletions, exceeding the high-risk `<=300 net LOC` limit.
+- Task budget: `4` high-risk task groups; this cumulative branch now has `16` source-bearing task groups after the citation-status normalization fix.
+- File count: the corrected source-bearing range before this pass changes `6` source/test files plus `3` packet/artifact files; this pass changes `src/qual/engine/retrieval/payload.py`, `tests/unit/test_unified_retrieval.py`, and `THREAD_PACKET.md`.
+- Size accounting before this packet refresh: the corrected source-bearing range `378cf9a74a3658058079a32f186fcd254c4a4034..HEAD` changed `9` tracked source/test/packet/artifact files with `1799` insertions and `228` deletions; this pass adds `116` insertions and `53` deletions across retrieval payload source, the approved shared regression surface, and this handoff packet, keeping the range above the high-risk `<=300 net LOC` limit.
 - Size limit status: exceeds the high-risk `<=8 files` and `<=300 net LOC` limits.
 - Explicit exception status: no integrator-approved size or task-budget exception is recorded in this worktree. Because the full source-bearing range remains together, this is a known blocker for approval until the integrator grants an exception or requests a branch split.
 - Shared-file exception status: `tests/unit/test_unified_retrieval.py` is the sole approved shared regression surface; no integrator-locked files changed.
@@ -159,14 +164,16 @@ Task accounting: `14` high-risk task groups are present in the cumulative branch
 
 ## Commands Run
 
-Required gates for this corrected merge candidate were re-run on 2026-05-12 against branch `codex/feat-retrieval-fts` after this source-bearing citation provenance normalization fix.
+Required gates for this corrected merge candidate were re-run on 2026-05-12 against branch `codex/feat-retrieval-fts` after this source-bearing citation-status normalization fix.
 
-- `make scope-check` - passed for branch `codex/feat-retrieval-fts`.
+- `make scope-check` - passed for branch `codex/feat-retrieval-fts` after reporting no branch policy to enforce.
 - `./quality-format.sh --check` - passed.
 - `./quality-lint.sh` - passed shell syntax and trailing whitespace checks.
-- `./quality-test.sh` - passed smoke tests and 137 unit tests.
+- `./quality-test.sh` - passed smoke tests and 138 unit tests.
 - `./typecheck-test.sh` - passed Python source compilation under `src/`.
-- `make ci` - passed setup, scope-check, format, lint, compile/typecheck, smoke tests, and 137 unit tests.
+- `make ci` - passed setup, scope-check, format, lint, compile/typecheck, smoke tests, and 138 unit tests.
+- `python -m pytest tests/unit/test_unified_retrieval.py` - passed 69 unified retrieval tests.
+- `python -m pytest tests/unit/test_unified_retrieval.py -k numeric_citation_status` - passed the focused numeric citation-status regression.
 
 Additional focused retrieval checks run earlier in this lane:
 
