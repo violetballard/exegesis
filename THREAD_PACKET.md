@@ -12,8 +12,8 @@
 - Authoritative reviewed implementation base: `378cf9a74a3658058079a32f186fcd254c4a4034`.
 - Reviewed source-bearing implementation head: this source-bearing fixer commit; final branch tip SHA is reported in the fixer final response.
 - Reviewed source-bearing implementation range: `378cf9a74a3658058079a32f186fcd254c4a4034..HEAD` on branch `codex/feat-retrieval-fts`.
-- Packet update note: this commit updates retrieval payload source, the approved shared regression surface, and `THREAD_PACKET.md`; the final branch tip SHA is reported in the fixer final response.
-- Current pass role: source-bearing caches-used normalization for the reviewed source-bearing range.
+- Packet update note: this commit updates retrieval payload source, the approved shared regression surface, and `THREAD_PACKET.md` after reproducing the integrator-blocking conflict resolution locally; the final branch tip SHA is reported in the fixer final response.
+- Current pass role: source-bearing integrator conflict-resolution fix for promotion-item snapshot normalization and diagnostics shape.
 
 ## Traceability Correction
 
@@ -55,7 +55,7 @@ This source-bearing fixer pass modifies `src/qual/engine/retrieval/payload.py`, 
 
 This source-bearing fixer pass modifies `src/qual/engine/retrieval/payload.py`, `tests/unit/test_unified_retrieval.py`, and `THREAD_PACKET.md` to resolve the integrator replay conflict for basket-promotion normalization. Sparse basket-promotion rehydration now preserves fail-closed behavior for missing `basket_item_id` values while still normalizing query constraints, citation status, cache-use snapshots, and diagnostics deterministically.
 
-Packet-only commits after `5c87b08a9f7ca5a4dabc23fc1a80214276a882e9` refresh traceability and gate evidence only through `f9bdab5ded16e44476d773a24249c64442df2f3a`. The source-bearing passes after that packet-only refresh change `src/qual/retrieval/service.py`, `src/qual/engine/retrieval/payload.py`, and `tests/unit/test_unified_retrieval.py`; reviewers should include those source-bearing commits, including this final caches-used normalization pass, when re-reviewing the merge candidate.
+Packet-only commits after `5c87b08a9f7ca5a4dabc23fc1a80214276a882e9` refresh traceability and gate evidence only through `f9bdab5ded16e44476d773a24249c64442df2f3a`. The source-bearing passes after that packet-only refresh change `src/qual/retrieval/service.py`, `src/qual/engine/retrieval/payload.py`, and `tests/unit/test_unified_retrieval.py`; reviewers should include those source-bearing commits, including this final integrator conflict-resolution pass, when re-reviewing the merge candidate.
 
 Tracked packet note for this fixer pass: `.codex/kickoff_packets/feat-retrieval-fts.md` and `.codex/lane_meta/feat-retrieval-fts.json` are ignored local automation metadata in this branch worktree and are not tracked at `HEAD`. Treat this tracked `THREAD_PACKET.md` file as the authoritative corrected handoff packet for re-review.
 
@@ -88,7 +88,7 @@ Previous source-bearing fixer surface at `1439aa3eff4d420fb4fcad83c0556c2608813c
 - `src/qual/engine/retrieval/payload.py`
 - `tests/unit/test_unified_retrieval.py`
 
-Final source-bearing citation-status normalization surface in this pass:
+Final source-bearing integrator conflict-resolution surface in this pass:
 
 - `THREAD_PACKET.md`
 - `src/qual/engine/retrieval/payload.py`
