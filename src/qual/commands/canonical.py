@@ -2414,21 +2414,30 @@ def canonical_command_readiness_checkpoint() -> CommandCanonicalReadinessCheckpo
     smoke_sequence = canonical_command_smoke_sequence_contract()
     trust_checklist = canonical_command_trust_checklist_contract()
     issues = (
-        handoff.missing_flow_steps
-        + handoff.missing_engine_actions
-        + tuple("invalid argv: " + " ".join(argv) for argv in handoff.invalid_argv)
-        + trusted_loop.missing_flow_steps
-        + trusted_loop.missing_engine_actions
-        + tuple(
-            "invalid trusted-loop argv: " + " ".join(argv)
-            for argv in trusted_loop.invalid_argv
+        _command_readiness_checkpoint_gate_issues(
+            "handoff",
+            missing_flow_steps=handoff.missing_flow_steps,
+            missing_engine_actions=handoff.missing_engine_actions,
+            invalid_argv=handoff.invalid_argv,
         )
-        + smoke_sequence.missing_flow_steps
-        + smoke_sequence.missing_engine_actions
-        + tuple("invalid smoke argv: " + " ".join(argv) for argv in smoke_sequence.invalid_argv)
-        + canonical_command_trusted_loop_issues()
-        + canonical_command_smoke_sequence_issues()
-        + canonical_command_trust_checklist_issues()
+        + _command_readiness_checkpoint_gate_issues(
+            "trusted-loop",
+            missing_flow_steps=trusted_loop.missing_flow_steps,
+            missing_engine_actions=trusted_loop.missing_engine_actions,
+            invalid_argv=trusted_loop.invalid_argv,
+            issues=canonical_command_trusted_loop_issues(),
+        )
+        + _command_readiness_checkpoint_gate_issues(
+            "smoke-sequence",
+            missing_flow_steps=smoke_sequence.missing_flow_steps,
+            missing_engine_actions=smoke_sequence.missing_engine_actions,
+            invalid_argv=smoke_sequence.invalid_argv,
+            issues=canonical_command_smoke_sequence_issues(),
+        )
+        + _command_readiness_checkpoint_gate_issues(
+            "trust-checklist",
+            issues=canonical_command_trust_checklist_issues(),
+        )
     )
     unique_issues = tuple(dict.fromkeys(issue for issue in issues if issue))
     return CommandCanonicalReadinessCheckpoint(
@@ -2444,6 +2453,25 @@ def canonical_command_readiness_checkpoint() -> CommandCanonicalReadinessCheckpo
             and not unique_issues
         ),
         issues=unique_issues,
+    )
+
+
+def _command_readiness_checkpoint_gate_issues(
+    gate: str,
+    *,
+    missing_flow_steps: Sequence[str] = (),
+    missing_engine_actions: Sequence[str] = (),
+    invalid_argv: Sequence[Sequence[str]] = (),
+    issues: Sequence[str] = (),
+) -> tuple[str, ...]:
+    return (
+        tuple(f"{gate}: missing flow step: {flow_step}" for flow_step in missing_flow_steps)
+        + tuple(
+            f"{gate}: missing engine action: {engine_action}"
+            for engine_action in missing_engine_actions
+        )
+        + tuple(f"{gate}: invalid argv: {' '.join(argv)}" for argv in invalid_argv)
+        + tuple(f"{gate}: {issue}" for issue in issues)
     )
 
 
