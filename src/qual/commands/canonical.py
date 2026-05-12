@@ -598,6 +598,7 @@ class CommandCanonicalReadinessCheckpoint:
     trusted_loop: CommandDemoTrustedLoopContract
     smoke_sequence: CommandDemoSmokeSequenceContract
     trust_checklist: CommandDemoTrustChecklistContract
+    smoke_snapshot: CommandCanonicalReadinessSnapshot
     is_ready: bool
     issues: tuple[str, ...]
 
@@ -2447,6 +2448,7 @@ def canonical_command_readiness_checkpoint() -> CommandCanonicalReadinessCheckpo
     trusted_loop = canonical_command_trusted_loop_contract()
     smoke_sequence = canonical_command_smoke_sequence_contract()
     trust_checklist = canonical_command_trust_checklist_contract()
+    smoke_snapshot = canonical_command_readiness_snapshot(smoke_sequence.smoke_argvs)
     issues = (
         _command_readiness_checkpoint_gate_issues(
             "handoff",
@@ -2472,6 +2474,15 @@ def canonical_command_readiness_checkpoint() -> CommandCanonicalReadinessCheckpo
             "trust-checklist",
             issues=canonical_command_trust_checklist_issues(),
         )
+        + _command_readiness_checkpoint_gate_issues(
+            "smoke-snapshot",
+            missing_flow_steps=tuple(
+                status.flow_step
+                for status in smoke_snapshot.remaining
+                if status.flow_step
+            ),
+            invalid_argv=smoke_snapshot.invalid_argv,
+        )
     )
     unique_issues = tuple(dict.fromkeys(issue for issue in issues if issue))
     return CommandCanonicalReadinessCheckpoint(
@@ -2479,11 +2490,13 @@ def canonical_command_readiness_checkpoint() -> CommandCanonicalReadinessCheckpo
         trusted_loop=trusted_loop,
         smoke_sequence=smoke_sequence,
         trust_checklist=trust_checklist,
+        smoke_snapshot=smoke_snapshot,
         is_ready=(
             handoff.is_complete
             and trusted_loop.is_complete
             and smoke_sequence.is_complete
             and trust_checklist.is_complete
+            and smoke_snapshot.complete
             and not unique_issues
         ),
         issues=unique_issues,
@@ -2556,6 +2569,18 @@ def canonical_command_readiness_checkpoint_payload() -> dict[str, object]:
         "trusted_loop_complete": checkpoint.trusted_loop.is_complete,
         "smoke_sequence_complete": checkpoint.smoke_sequence.is_complete,
         "trust_checklist_complete": checkpoint.trust_checklist.is_complete,
+        "smoke_snapshot_complete": checkpoint.smoke_snapshot.complete,
+        "completed_flow_steps": tuple(
+            status.flow_step
+            for status in checkpoint.smoke_snapshot.completed
+            if status.flow_step
+        ),
+        "remaining_flow_steps": tuple(
+            status.flow_step
+            for status in checkpoint.smoke_snapshot.remaining
+            if status.flow_step
+        ),
+        "next_command_line": checkpoint.smoke_snapshot.next_status.command_line,
         "command_lines": checkpoint.handoff.command_lines,
         "smoke_argvs": checkpoint.smoke_sequence.smoke_argvs,
         "exact_action_argvs": checkpoint.smoke_sequence.exact_action_argvs,
