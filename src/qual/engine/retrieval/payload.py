@@ -247,7 +247,18 @@ def _top_basket_item_ids_from_doc_snapshots(*snapshots: object) -> list[str]:
         for item in _normalize_list_like(snapshot):
             if isinstance(item, dict):
                 values.append(item.get("top_basket_item_id"))
-    return _stable_text_values(values)
+    return _stable_fts_basket_item_ids(values)
+
+
+def _primary_basket_item_id_from_excerpt_snapshots(*snapshots: object) -> str | None:
+    for snapshot in snapshots:
+        for item in _normalize_list_like(snapshot):
+            if not isinstance(item, dict):
+                continue
+            item_id = _normalize_fts_basket_item_id(item.get("basket_item_id"))
+            if item_id is not None:
+                return item_id
+    return None
 
 
 def _basket_promotion_count_from_items(items: list[object]) -> int:
@@ -273,8 +284,8 @@ def _basket_promotion_count_from_snapshot(
             return len(basket_item_ids)
 
     if any(
-        _stable_text_values(candidate_ids)
-        for candidate_ids, _candidate_fingerprints in _basket_item_ref_snapshot_candidates(snapshot)
+        _stable_text_values(candidate_ids) or _stable_text_values(candidate_fingerprints)
+        for candidate_ids, candidate_fingerprints in _basket_item_ref_snapshot_candidates(snapshot)
     ):
         return 0
 
@@ -1103,7 +1114,7 @@ def _normalize_excerpt_citation_snapshots(value: object) -> list[object]:
             source_strategy = normalized_citation.get("source_strategy")
             if not _is_missing_snapshot_value(source_strategy):
                 normalized_citation["retrieval_source_strategy"] = copy.deepcopy(source_strategy)
-        basket_item_id = normalized_citation.get("basket_item_id")
+        basket_item_id = _normalize_optional_text(normalized_citation.get("basket_item_id"))
         expected_basket_item_id = _basket_item_id_for_excerpt(
             source_strategy=normalized_citation.get(
                 "retrieval_source_strategy",
@@ -1116,6 +1127,8 @@ def _normalize_excerpt_citation_snapshots(value: object) -> list[object]:
                 normalized_citation["basket_item_id"] = expected_basket_item_id
         elif basket_item_id != expected_basket_item_id:
             normalized_citation.pop("basket_item_id", None)
+        else:
+            normalized_citation["basket_item_id"] = basket_item_id
         normalized.append(normalized_citation)
     return normalized
 
@@ -1208,11 +1221,14 @@ def _normalize_retrieval_summary_snapshot(summary: dict[str, object]) -> dict[st
     )
     normalized["excerpt_text_hashes"] = _normalize_list_like(normalized.get("excerpt_text_hashes"))
     normalized["top_excerpt_fingerprints"] = _normalize_list_like(normalized.get("top_excerpt_fingerprints"))
-    normalized["top_basket_item_ids"] = _stable_text_values(normalized.get("top_basket_item_ids"))
+    normalized["top_basket_item_ids"] = _stable_fts_basket_item_ids(normalized.get("top_basket_item_ids"))
     normalized["top_excerpt_lookup_fingerprints"] = _normalize_list_like(
         normalized.get("top_excerpt_lookup_fingerprints")
     )
     normalized["top_excerpt_text_hashes"] = _normalize_list_like(normalized.get("top_excerpt_text_hashes"))
+    normalized["primary_basket_item_id"] = _normalize_fts_basket_item_id(
+        normalized.get("primary_basket_item_id")
+    )
     normalized["active_strategy_ids"] = _normalize_active_strategy_ids(
         normalized.get("active_strategy_ids"),
         field_name="retrieval_summary",
@@ -1223,7 +1239,7 @@ def _normalize_retrieval_summary_snapshot(summary: dict[str, object]) -> dict[st
     )
     if "caches_used" in normalized:
         normalized["caches_used"] = _normalize_bool_map(normalized.get("caches_used"))
-    normalized["basket_item_ids"] = _stable_text_values(normalized.get("basket_item_ids"))
+    normalized["basket_item_ids"] = _stable_fts_basket_item_ids(normalized.get("basket_item_ids"))
     normalized["basket_item_fingerprints"] = _stable_text_values(
         normalized.get("basket_item_fingerprints")
     )
@@ -1248,7 +1264,9 @@ def _normalize_retrieval_manifest_snapshot(manifest: dict[str, object]) -> dict[
     normalized["doc_fingerprints"] = _normalize_list_like(normalized.get("doc_fingerprints"))
     normalized["doc_identity_fingerprints"] = _normalize_list_like(normalized.get("doc_identity_fingerprints"))
     normalized["top_excerpt_ids"] = _normalize_list_like(normalized.get("top_excerpt_ids"))
-    normalized["top_basket_item_ids"] = _stable_text_values(normalized.get("top_basket_item_ids"))
+    normalized["top_basket_item_ids"] = _stable_fts_basket_item_ids(
+        normalized.get("top_basket_item_ids")
+    )
     normalized["top_excerpt_fingerprints"] = _normalize_list_like(normalized.get("top_excerpt_fingerprints"))
     normalized["top_excerpt_lookup_fingerprints"] = _normalize_list_like(
         normalized.get("top_excerpt_lookup_fingerprints")
@@ -1260,7 +1278,7 @@ def _normalize_retrieval_manifest_snapshot(manifest: dict[str, object]) -> dict[
         normalized.get("excerpt_lookup_fingerprints")
     )
     normalized["excerpt_text_hashes"] = _normalize_list_like(normalized.get("excerpt_text_hashes"))
-    normalized["basket_item_ids"] = _stable_text_values(normalized.get("basket_item_ids", []))
+    normalized["basket_item_ids"] = _stable_fts_basket_item_ids(normalized.get("basket_item_ids", []))
     if "basket_item_fingerprints" in normalized:
         normalized["basket_item_fingerprints"] = _stable_text_values(
             normalized.get("basket_item_fingerprints", [])
@@ -1577,11 +1595,11 @@ def _normalize_retrieval_source_bundle_snapshot(source_bundle: dict[str, object]
     if isinstance(citation_bundle, dict):
         doc_citations = _normalize_list_like(citation_bundle.get("doc_citations", []))
         excerpt_citations = _normalize_list_like(citation_bundle.get("excerpt_citations", []))
-    top_basket_item_ids = _stable_text_values(
+    top_basket_item_ids = _stable_fts_basket_item_ids(
         normalized["retrieval_summary"].get("top_basket_item_ids")
     )
     if not top_basket_item_ids:
-        top_basket_item_ids = _stable_text_values(
+        top_basket_item_ids = _stable_fts_basket_item_ids(
             normalized["retrieval_manifest"].get("top_basket_item_ids")
         )
     if not top_basket_item_ids:
@@ -1591,9 +1609,9 @@ def _normalize_retrieval_source_bundle_snapshot(source_bundle: dict[str, object]
         )
     normalized["retrieval_summary"]["top_basket_item_ids"] = top_basket_item_ids
     if _is_missing_snapshot_value(normalized["retrieval_summary"].get("primary_basket_item_id")) and excerpt_citations:
-        first_excerpt_citation = excerpt_citations[0]
-        if isinstance(first_excerpt_citation, dict):
-            normalized["retrieval_summary"]["primary_basket_item_id"] = first_excerpt_citation.get("basket_item_id")
+        normalized["retrieval_summary"]["primary_basket_item_id"] = (
+            _primary_basket_item_id_from_excerpt_snapshots(excerpt_citations)
+        )
     normalized["retrieval_manifest"]["top_basket_item_ids"] = top_basket_item_ids
     normalized["basket_promotion_items"] = _basket_promotion_items_from_snapshot(normalized)
     normalized["basket_item_ids"] = _basket_item_ids_from_snapshot(
@@ -2617,11 +2635,21 @@ def _build_retrieval_provenance_from_payload(payload: dict[str, object]) -> dict
     if "primary_excerpt_id" not in normalized:
         normalized["primary_excerpt_id"] = summary.get("primary_excerpt_id")
     if "primary_basket_item_id" not in normalized:
-        normalized["primary_basket_item_id"] = summary.get("primary_basket_item_id")
-    if "top_basket_item_ids" not in normalized:
-        normalized["top_basket_item_ids"] = _stable_text_values(summary.get("top_basket_item_ids"))
+        normalized["primary_basket_item_id"] = _normalize_fts_basket_item_id(
+            summary.get("primary_basket_item_id")
+        )
     else:
-        normalized["top_basket_item_ids"] = _stable_text_values(normalized["top_basket_item_ids"])
+        normalized["primary_basket_item_id"] = _normalize_fts_basket_item_id(
+            normalized["primary_basket_item_id"]
+        )
+    if "top_basket_item_ids" not in normalized:
+        normalized["top_basket_item_ids"] = _stable_fts_basket_item_ids(
+            summary.get("top_basket_item_ids")
+        )
+    else:
+        normalized["top_basket_item_ids"] = _stable_fts_basket_item_ids(
+            normalized["top_basket_item_ids"]
+        )
     if "primary_excerpt_fingerprint" not in normalized:
         normalized["primary_excerpt_fingerprint"] = summary.get("primary_excerpt_fingerprint")
     if "primary_excerpt_lookup_fingerprint" not in normalized:
@@ -2686,7 +2714,9 @@ def _build_retrieval_provenance_from_payload(payload: dict[str, object]) -> dict
             if _is_missing_snapshot_value(normalized.get("primary_excerpt_id")):
                 normalized["primary_excerpt_id"] = first_excerpt_citation.get("excerpt_id")
             if _is_missing_snapshot_value(normalized.get("primary_basket_item_id")):
-                normalized["primary_basket_item_id"] = first_excerpt_citation.get("basket_item_id")
+                normalized["primary_basket_item_id"] = _primary_basket_item_id_from_excerpt_snapshots(
+                    excerpt_citations
+                )
             if _is_missing_snapshot_value(normalized.get("primary_excerpt_fingerprint")):
                 normalized["primary_excerpt_fingerprint"] = first_excerpt_citation.get("excerpt_fingerprint")
             if _is_missing_snapshot_value(normalized.get("primary_excerpt_lookup_fingerprint")):

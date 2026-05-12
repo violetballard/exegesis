@@ -1973,6 +1973,104 @@ class UnifiedRetrievalTests(unittest.TestCase):
         self.assertEqual(provenance["active_strategy_ids"], ["fts"])
         self.assertEqual(provenance["deferred_strategy_ids"], ["pageindex", "embeddings"])
 
+    def test_sparse_retrieval_payload_filters_manifest_basket_ids_to_fts(self) -> None:
+        payload = {
+            "query": {
+                "query_text": "memo comparison",
+                "scope": "vault",
+                "intent": "compare",
+                "constraints": {"max_results": 4},
+            },
+            "retrieval_backend": "sqlite_fts",
+            "retrieval_mode": "fts_first",
+            "retrieval_summary": {
+                "query_fingerprint": "query-fingerprint",
+                "basket_item_ids": [
+                    "retrieval:pageindex:summary-excerpt-1",
+                    " retrieval:fts:summary-excerpt-2 ",
+                ],
+                "basket_item_fingerprints": ["summary-fingerprint"],
+                "primary_basket_item_id": "retrieval:embeddings:summary-primary",
+                "top_basket_item_ids": [
+                    "pageindex:excerpt-1",
+                    " retrieval:fts:excerpt-2 ",
+                    "retrieval:embeddings:excerpt-3",
+                ],
+                "citation_status": {"required": False, "available": False, "satisfied": True},
+            },
+            "retrieval_manifest": {
+                "top_basket_item_ids": [
+                    "retrieval:embeddings:manifest-excerpt-1",
+                    "retrieval:fts:manifest-excerpt-2",
+                ],
+                "basket_item_ids": [
+                    "excerpt-raw",
+                    " retrieval:fts:manifest-excerpt-3 ",
+                    "retrieval:pageindex:manifest-excerpt-4",
+                ],
+                "basket_item_fingerprints": ["manifest-fingerprint"],
+            },
+            "retrieval_citation_bundle": {
+                "excerpt_citations": [
+                    {
+                        "excerpt_id": "cite-2",
+                        "basket_item_id": " retrieval:fts:cite-2 ",
+                        "retrieval_source_strategy": "fts",
+                    },
+                ],
+            },
+        }
+
+        source_bundle = _build_retrieval_source_bundle_from_payload(payload)
+        provenance = _build_retrieval_provenance_from_payload(source_bundle)
+
+        self.assertEqual(source_bundle["retrieval_summary"]["top_basket_item_ids"], ["retrieval:fts:excerpt-2"])
+        self.assertEqual(source_bundle["retrieval_summary"]["basket_item_ids"], ["retrieval:fts:summary-excerpt-2"])
+        self.assertEqual(source_bundle["retrieval_manifest"]["top_basket_item_ids"], ["retrieval:fts:excerpt-2"])
+        self.assertEqual(source_bundle["retrieval_manifest"]["basket_item_ids"], ["retrieval:fts:manifest-excerpt-3"])
+        self.assertEqual(source_bundle["basket_item_ids"], ["retrieval:fts:summary-excerpt-2"])
+        self.assertEqual(source_bundle["basket_item_fingerprints"], ["summary-fingerprint"])
+        self.assertEqual(source_bundle["retrieval_summary"]["primary_basket_item_id"], "retrieval:fts:cite-2")
+        self.assertEqual(provenance["primary_basket_item_id"], "retrieval:fts:cite-2")
+        self.assertEqual(provenance["top_basket_item_ids"], ["retrieval:fts:excerpt-2"])
+
+        manifest_only_source = _build_retrieval_source_bundle_from_payload(
+            {
+                "query": payload["query"],
+                "retrieval_backend": "sqlite_fts",
+                "retrieval_mode": "fts_first",
+                "retrieval_manifest": payload["retrieval_manifest"],
+            }
+        )
+
+        self.assertEqual(
+            manifest_only_source["retrieval_manifest"]["top_basket_item_ids"],
+            ["retrieval:fts:manifest-excerpt-2"],
+        )
+
+        doc_fallback_source = _build_retrieval_source_bundle_from_payload(
+            {
+                "query": payload["query"],
+                "retrieval_backend": "sqlite_fts",
+                "retrieval_mode": "fts_first",
+                "retrieval_citation_bundle": {
+                    "doc_citations": [
+                        {"doc_id": "doc-1", "top_basket_item_id": "retrieval:embeddings:doc-excerpt-1"},
+                        {"doc_id": "doc-2", "top_basket_item_id": " retrieval:fts:doc-excerpt-2 "},
+                    ],
+                },
+            }
+        )
+
+        self.assertEqual(
+            doc_fallback_source["retrieval_summary"]["top_basket_item_ids"],
+            ["retrieval:fts:doc-excerpt-2"],
+        )
+        self.assertEqual(
+            manifest_only_source["retrieval_summary"]["top_basket_item_ids"],
+            ["retrieval:fts:manifest-excerpt-2"],
+        )
+
     def test_sparse_retrieval_payload_rejects_deferred_strategy_drift(self) -> None:
         payload = {
             "query": {
