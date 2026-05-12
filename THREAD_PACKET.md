@@ -12,8 +12,8 @@
 - Authoritative reviewed implementation base: `378cf9a74a3658058079a32f186fcd254c4a4034`.
 - Reviewed source-bearing implementation head: this source-bearing fixer commit; final branch tip SHA is reported in the fixer final response.
 - Reviewed source-bearing implementation range: `378cf9a74a3658058079a32f186fcd254c4a4034..HEAD` on branch `codex/feat-retrieval-fts`.
-- Packet update note: this commit updates FTS basket-promotion bundle output, sparse bundle normalization, the shared retrieval regression surface, and `THREAD_PACKET.md` so `promotion_items` carry the same deterministic `basket_item_fingerprint` as canonical `basket_promotion_items`; the final branch tip SHA is reported in the fixer final response.
-- Current pass role: source-bearing FTS basket-promotion fingerprint finalization for auditable context-basket promotion.
+- Packet update note: this commit updates direct excerpt-hit snapshots, the shared retrieval regression surface, and `THREAD_PACKET.md` so downstream payload and excerpt-bundle `excerpt_hits` carry the same deterministic `basket_item_fingerprint` as canonical FTS basket-promotion items; the final branch tip SHA is reported in the fixer final response.
+- Current pass role: source-bearing FTS excerpt-hit basket fingerprint finalization for auditable context-basket promotion.
 
 ## Traceability Correction
 
@@ -91,7 +91,9 @@ This source-bearing fixer pass modifies `src/qual/engine/retrieval/payload.py`, 
 
 This source-bearing fixer pass modifies `src/qual/retrieval/service.py`, `tests/unit/test_unified_retrieval.py`, and `THREAD_PACKET.md` so direct FTS excerpt lookup provenance carries the same deterministic `basket_item_ids` and `basket_item_fingerprints` lists already exposed on the lookup payload and audit event. Context-basket promotion consumers can now audit the complete basket-ready identity set from the canonical provenance snapshot without reconstructing it from top-level fields.
 
-Packet-only commits after `5c87b08a9f7ca5a4dabc23fc1a80214276a882e9` refresh traceability and gate evidence only through `f9bdab5ded16e44476d773a24249c64442df2f3a`. The source-bearing passes after that packet-only refresh change `src/qual/retrieval/service.py`, `src/qual/engine/retrieval/payload.py`, and `tests/unit/test_unified_retrieval.py`; reviewers should include those source-bearing commits, including this final direct excerpt lookup provenance pass, when re-reviewing the merge candidate.
+This source-bearing fixer pass modifies `src/qual/retrieval/service.py`, `tests/unit/test_unified_retrieval.py`, and `THREAD_PACKET.md` so downstream payload and excerpt-bundle `excerpt_hits` carry the deterministic FTS `basket_item_fingerprint` from the matching canonical basket-promotion item. Context-basket promotion consumers can now audit raw excerpt-hit snapshots directly against promotable basket evidence without reconstructing the fingerprint from plain excerpt IDs.
+
+Packet-only commits after `5c87b08a9f7ca5a4dabc23fc1a80214276a882e9` refresh traceability and gate evidence only through `f9bdab5ded16e44476d773a24249c64442df2f3a`. The source-bearing passes after that packet-only refresh change `src/qual/retrieval/service.py`, `src/qual/engine/retrieval/payload.py`, and `tests/unit/test_unified_retrieval.py`; reviewers should include those source-bearing commits, including this final excerpt-hit basket fingerprint pass, when re-reviewing the merge candidate.
 
 Tracked packet note for this fixer pass: `.codex/kickoff_packets/feat-retrieval-fts.md` and `.codex/lane_meta/feat-retrieval-fts.json` are ignored local automation metadata in this branch worktree and are not tracked at `HEAD`. Treat this tracked `THREAD_PACKET.md` file as the authoritative corrected handoff packet for re-review.
 
@@ -237,13 +239,15 @@ Task accounting: this high-risk handoff is summarized as the 4 meaningful task g
 24. Rehydrated canonical FTS basket item identity for sparse basket-promotion snapshots missing both identity fields, with regression coverage that preserves older item-id-only compatibility snapshots.
 25. Added direct FTS excerpt lookup provenance lists for canonical basket item IDs and fingerprints so payload, provenance, and audit surfaces agree on promotable identity.
 26. Added canonical basket item fingerprint propagation to direct and sparse-rehydrated basket-promotion `promotion_items`, with regression coverage proving the promotion item and canonical basket item carry the same FTS basket fingerprint.
+27. Added canonical basket item fingerprint propagation to downstream payload and excerpt-bundle `excerpt_hits`, with regression coverage proving raw excerpt-hit snapshots match the FTS basket-promotion item fingerprint.
 
 ## Commands Run
 
-Required gates for this corrected merge candidate were re-run on 2026-05-12 against branch `codex/feat-retrieval-fts` after this source-bearing basket-promotion fingerprint fix.
+Required gates for this corrected merge candidate were re-run on 2026-05-12 against branch `codex/feat-retrieval-fts` after this source-bearing excerpt-hit basket fingerprint fix.
 
-- `python -m pytest tests/unit/test_unified_retrieval.py -k "basket_promotion_items_backfill_query_context_from_bundle"` - passed 1 focused basket-promotion fingerprint regression after the edit.
-- `python -m pytest tests/unit/test_unified_retrieval.py` - passed 92 unified retrieval tests after the edit.
+- `python3 -m compileall -q src/qual/retrieval/service.py tests/unit/test_unified_retrieval.py` - passed after the edit.
+- `python3 -m unittest tests.unit.test_unified_retrieval.UnifiedRetrievalTests.test_engine_retrieval_tool_returns_canonical_downstream_payload -q` - passed 1 focused downstream payload regression after the edit.
+- `python3 -m unittest tests.unit.test_unified_retrieval -q` - passed 92 unified retrieval tests after the edit.
 - `./quality-format.sh --check` - passed after the edit.
 - `./quality-lint.sh` - passed shell syntax and trailing whitespace checks after the edit.
 - `./quality-test.sh` - passed smoke tests and 475 unit tests, including all unified retrieval tests, after the edit.

@@ -461,7 +461,7 @@ class RetrievalResult:
             retrieval_excerpt_bundle=retrieval_excerpt_bundle,
             retrieval_summary=retrieval_summary,
             doc_hits=[doc_hit.as_dict() for doc_hit in self.doc_hits],
-            excerpt_hits=[hit.as_dict() for hit in self.hits],
+            excerpt_hits=self._excerpt_hit_snapshots(),
             retrieval_diagnostics=dict(self.diagnostics),
             retrieval_manifest=dict(self.diagnostics["retrieval_manifest"]),
             retrieval_evidence=dict(self.evidence),
@@ -579,7 +579,7 @@ class RetrievalResult:
             **bundle_context,
             "doc_count": len(self.doc_hits),
             "excerpt_count": len(self.hits),
-            "excerpt_hits": [hit.as_dict() for hit in self.hits],
+            "excerpt_hits": self._excerpt_hit_snapshots(),
             "excerpt_citations": self._excerpt_citation_snapshots(),
             "basket_promotion_items": copy.deepcopy(basket_promotion_items),
             "basket_promotion_count": basket_promotion_count,
@@ -683,6 +683,25 @@ class RetrievalResult:
             item["basket_item_fingerprint"] = RetrievalService._basket_item_fingerprint(item)
             items.append(item)
         return items
+
+    def _excerpt_hit_snapshots(self) -> list[dict[str, object]]:
+        basket_items_by_excerpt_id = {
+            str(item["excerpt_id"]): item
+            for item in self.basket_promotion_items()
+            if isinstance(item.get("excerpt_id"), str)
+        }
+        snapshots: list[dict[str, object]] = []
+        for hit in self.hits:
+            snapshot = hit.as_dict()
+            if hit.excerpt_id is not None:
+                basket_item = basket_items_by_excerpt_id.get(hit.excerpt_id)
+                if basket_item is not None and isinstance(basket_item.get("basket_item_fingerprint"), str):
+                    snapshot["basket_item_fingerprint"] = basket_item["basket_item_fingerprint"]
+                    provenance = snapshot.get("provenance")
+                    if isinstance(provenance, dict):
+                        provenance["basket_item_fingerprint"] = basket_item["basket_item_fingerprint"]
+            snapshots.append(snapshot)
+        return snapshots
 
     def retrieval_basket_promotion_bundle(self) -> dict[str, object]:
         """Return deterministic FTS evidence items ready for context-basket promotion."""
@@ -1118,7 +1137,7 @@ class RetrievalResult:
             "retrieval_doc_bundle": copy.deepcopy(self.retrieval_doc_bundle()),
             "retrieval_excerpt_bundle": copy.deepcopy(self.retrieval_excerpt_bundle()),
             "doc_hits": [doc_hit.as_dict() for doc_hit in self.doc_hits],
-            "excerpt_hits": [hit.as_dict() for hit in self.hits],
+            "excerpt_hits": self._excerpt_hit_snapshots(),
             "retrieval_manifest": copy.deepcopy(self.diagnostics["retrieval_manifest"]),
             "retrieval_evidence": copy.deepcopy(self.evidence),
             "basket_promotion_items": copy.deepcopy(basket_promotion_items),

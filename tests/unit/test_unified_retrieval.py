@@ -660,6 +660,22 @@ class UnifiedRetrievalTests(unittest.TestCase):
         self.assertEqual(payload["retrieval_diagnostics"]["retrieval_evidence"], result.diagnostics["retrieval_evidence"])
         self.assertEqual(payload["retrieval_manifest"], result.diagnostics["retrieval_manifest"])
         self.assertEqual(payload["retrieval_evidence"], result.evidence)
+        basket_item_fingerprint_by_excerpt_id = {
+            item["excerpt_id"]: item["basket_item_fingerprint"]
+            for item in result.basket_promotion_items()
+        }
+        self.assertEqual(
+            payload["excerpt_hits"][0]["basket_item_fingerprint"],
+            basket_item_fingerprint_by_excerpt_id[payload["excerpt_hits"][0]["excerpt_id"]],
+        )
+        self.assertEqual(
+            payload["excerpt_hits"][0]["provenance"]["basket_item_fingerprint"],
+            payload["excerpt_hits"][0]["basket_item_fingerprint"],
+        )
+        self.assertEqual(
+            payload["retrieval_excerpt_bundle"]["excerpt_hits"][0]["basket_item_fingerprint"],
+            payload["excerpt_hits"][0]["basket_item_fingerprint"],
+        )
         evidence_for_fingerprint = dict(payload["retrieval_evidence"])
         retrieval_evidence_fingerprint = evidence_for_fingerprint.pop("retrieval_evidence_fingerprint")
         self.assertEqual(
@@ -1307,7 +1323,11 @@ class UnifiedRetrievalTests(unittest.TestCase):
         self.assertIsNone(direct["query_date_range"])
         self.assertEqual(direct["active_strategy_ids"], ["fts"])
         self.assertEqual(direct["deferred_strategy_ids"], ["pageindex", "embeddings"])
-        self.assertEqual(direct["excerpt_hits"], [item.as_dict() for item in result.hits])
+        self.assertEqual(direct["excerpt_hits"], result.retrieval_excerpt_bundle()["excerpt_hits"])
+        self.assertEqual(
+            direct["excerpt_hits"][0]["provenance"]["basket_item_fingerprint"],
+            direct["excerpt_hits"][0]["basket_item_fingerprint"],
+        )
         self.assertEqual(direct["excerpt_citations"], result.retrieval_excerpt_bundle()["excerpt_citations"])
         direct["excerpt_hits"][0]["provenance"]["doc_id"] = "mutated-doc-id"
         self.assertNotEqual(self.service.retrieve_auto_excerpt_bundle(query)["excerpt_hits"][0]["provenance"]["doc_id"], "mutated-doc-id")
