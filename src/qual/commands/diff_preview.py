@@ -131,6 +131,7 @@ class PatchReviewReadinessContract:
     missing_action_routes: tuple[tuple[str, str], ...]
     engine_actions: tuple[str, ...]
     missing_engine_actions: tuple[str, ...]
+    missing_expected_engine_actions: tuple[str, ...]
     extra_engine_actions: tuple[str, ...]
     ready: bool
 
@@ -732,6 +733,7 @@ class PatchReviewActionRouteValidation:
     engine_actions: tuple[str, ...]
     valid_engine_actions: tuple[str, ...]
     missing_engine_actions: tuple[str, ...]
+    missing_expected_engine_actions: tuple[str, ...]
     extra_engine_actions: tuple[str, ...]
     expected_action_routes: tuple[tuple[str, str], ...]
     valid_action_routes: tuple[tuple[str, str], ...]
@@ -792,16 +794,23 @@ def validate_patch_review_action_routes(
         for route in expected_action_routes
         if route not in route_pairs
     )
+    missing_expected_engine_actions = tuple(
+        engine_action
+        for _, engine_action in expected_action_routes
+        if engine_action not in route_set
+    )
 
     return PatchReviewActionRouteValidation(
         is_valid=(
             len(missing) == 0
+            and len(missing_expected_engine_actions) == 0
             and len(invalid_action_routes) == 0
             and len(missing_action_routes) == 0
         ),
         engine_actions=route_engine_actions,
         valid_engine_actions=valid,
         missing_engine_actions=missing,
+        missing_expected_engine_actions=missing_expected_engine_actions,
         extra_engine_actions=extra,
         expected_action_routes=expected_action_routes,
         valid_action_routes=valid_action_routes,
@@ -818,6 +827,7 @@ def _patch_review_action_route_validation_payload(
         "engine_actions": validation.engine_actions,
         "valid_engine_actions": validation.valid_engine_actions,
         "missing_engine_actions": validation.missing_engine_actions,
+        "missing_expected_engine_actions": validation.missing_expected_engine_actions,
         "extra_engine_actions": validation.extra_engine_actions,
         "expected_action_routes": validation.expected_action_routes,
         "valid_action_routes": validation.valid_action_routes,
@@ -848,6 +858,11 @@ def run_patch_review_action_route_validation() -> str:
     if validation.missing_engine_actions:
         parts.append(
             f"missing={','.join(validation.missing_engine_actions)}"
+        )
+    if validation.missing_expected_engine_actions:
+        parts.append(
+            "missing-expected="
+            + ",".join(validation.missing_expected_engine_actions)
         )
     if validation.invalid_action_routes:
         parts.append(
@@ -896,6 +911,7 @@ def build_patch_review_readiness_contract(
         missing_action_routes=validation.missing_action_routes,
         engine_actions=status.engine_actions,
         missing_engine_actions=validation.missing_engine_actions,
+        missing_expected_engine_actions=validation.missing_expected_engine_actions,
         extra_engine_actions=validation.extra_engine_actions,
         ready=status.ready and validation.is_valid,
     )
