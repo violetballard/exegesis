@@ -885,6 +885,7 @@ __all__ = [
     "canonical_command_readiness_next_status_json",
     "canonical_command_readiness_next_status_payload",
     "canonical_command_readiness_next_status_summary",
+    "canonical_command_readiness_next_command_line_for_argvs",
     "canonical_command_readiness_shell_next_action",
     "canonical_command_readiness_shell_next_action_json",
     "canonical_command_readiness_shell_next_action_payload",
@@ -3867,6 +3868,14 @@ def canonical_command_readiness_next_status_json(
         sort_keys=True,
         separators=(",", ":"),
     )
+
+
+def canonical_command_readiness_next_command_line_for_argvs(
+    argvs: Sequence[Sequence[str] | str] = (),
+) -> str:
+    """Return the next canonical command line after a partial CLI transcript."""
+
+    return canonical_command_readiness_next_status(argvs).command_line
 
 
 def canonical_command_readiness_shell_next_action(
