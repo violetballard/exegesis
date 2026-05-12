@@ -421,7 +421,14 @@ def _patch_review_action_routes_for_decision(
 
 def _patch_review_command_ready(decision: PatchReviewDecision) -> bool:
     routes = _patch_review_action_routes_for_decision(decision)
-    return bool(routes) and all(action and engine_action for action, engine_action in routes)
+    route_actions = {action for action, _engine_action in routes}
+    route_engine_actions = {engine_action for _action, engine_action in routes}
+    return (
+        bool(routes)
+        and all(action and engine_action for action, engine_action in routes)
+        and set(decision.next_actions).issubset(route_actions)
+        and set(decision.engine_actions).issubset(route_engine_actions)
+    )
 
 
 def _patch_review_action_route_lookup_for_decision(
