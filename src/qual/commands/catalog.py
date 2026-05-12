@@ -2420,6 +2420,22 @@ def command_handler_delegation_for(command_name: str) -> CommandHandlerDelegatio
     return None
 
 
+def command_handler_delegation_for_argv(
+    argv: Sequence[str] | str,
+    specs: tuple[CommandSpec, ...] = COMMAND_SPECS,
+    launcher_argv: tuple[str, ...] = COMMAND_SMOKE_CLI_LAUNCHER_ARGV,
+) -> CommandHandlerDelegationEntry | None:
+    requested_argv = _coerce_smoke_argv(argv)
+    requested_command_argv = _argv_without_launcher(requested_argv, launcher_argv)
+    canonical_command_argv = _canonicalize_smoke_command_argv(specs, requested_command_argv)
+    if not canonical_command_argv:
+        return None
+    spec = command_spec_for(specs, canonical_command_argv[0])
+    if spec is None:
+        return None
+    return command_handler_delegation_for(spec.name)
+
+
 @lru_cache(maxsize=None)
 def command_mvp_handler_delegation_contract() -> CommandHandlerDelegationContract:
     entries_by_name = {
@@ -2467,6 +2483,14 @@ def command_mvp_handler_delegation_lookup_table() -> tuple[tuple[str, str], ...]
         (entry.name, entry.delegated_to)
         for entry in command_mvp_handler_delegation_contract().entries
     )
+
+
+def command_mvp_handler_delegation_for_argv(
+    argv: Sequence[str] | str,
+    specs: tuple[CommandSpec, ...] = COMMAND_SPECS,
+    launcher_argv: tuple[str, ...] = COMMAND_SMOKE_CLI_LAUNCHER_ARGV,
+) -> CommandHandlerDelegationEntry | None:
+    return command_handler_delegation_for_argv(argv, specs, launcher_argv)
 
 
 @lru_cache(maxsize=None)

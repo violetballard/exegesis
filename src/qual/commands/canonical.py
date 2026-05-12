@@ -76,6 +76,7 @@ from src.qual.commands.catalog import (
     CommandDemoSmokeMatrixContract,
     CommandHandlerActionRouteContract,
     CommandHandlerActionRouteEntry,
+    CommandHandlerDelegationEntry,
     CommandHandlerDemoPathContract,
     CommandHandlerDemoPathEntry,
     CommandHandlerThinActionContract,
@@ -478,6 +479,7 @@ from src.qual.commands.catalog import (
     command_mvp_handler_action_route_entry_for_argv as _handler_action_route_entry_for_argv,
     command_mvp_handler_action_route_lookup_table as _handler_action_route_lookup_table,
     command_mvp_handler_action_route_summary as _handler_action_route_summary,
+    command_mvp_handler_delegation_for_argv as _handler_delegation_for_argv,
     command_mvp_handler_demo_path_contract as _handler_demo_path_contract,
     command_mvp_handler_demo_path_entry_for_argv as _handler_demo_path_entry_for_argv,
     command_mvp_handler_demo_path_entry_for_command as _handler_demo_path_entry_for_command,
@@ -871,6 +873,7 @@ __all__ = [
     "canonical_command_handler_action_route_entry_for_argv",
     "canonical_command_handler_action_route_lookup_table",
     "canonical_command_handler_action_route_summary",
+    "canonical_command_handler_delegation_for_argv",
     "canonical_command_handler_demo_path_contract",
     "canonical_command_handler_demo_path_entry_for_argv",
     "canonical_command_handler_demo_path_entry_for_command",
@@ -959,6 +962,12 @@ def canonical_command_handler_action_route_entry_for_argv(
     argv: Sequence[str] | str,
 ) -> CommandHandlerActionRouteEntry | None:
     return _handler_action_route_entry_for_argv(argv)
+
+
+def canonical_command_handler_delegation_for_argv(
+    argv: Sequence[str] | str,
+) -> CommandHandlerDelegationEntry | None:
+    return _handler_delegation_for_argv(argv)
 
 
 def canonical_command_handler_thin_action_contract() -> CommandHandlerThinActionContract:
