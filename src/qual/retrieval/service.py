@@ -81,6 +81,20 @@ def _basket_item_ids_from_items(items: list[dict[str, object]]) -> list[str]:
     ]
 
 
+def _basket_item_ids_from_hits(hits: list["RetrievalHit"]) -> list[str]:
+    return [
+        basket_item_id
+        for hit in hits
+        if (
+            basket_item_id := _basket_item_id_for_excerpt(
+                source_strategy=hit.source_strategy,
+                excerpt_id=hit.excerpt_id,
+            )
+        )
+        is not None
+    ]
+
+
 def _present_text_values(values: Iterator[object]) -> list[str]:
     normalized: list[str] = []
     for value in values:
@@ -1818,6 +1832,7 @@ class RetrievalService:
             for hit in hits
             if hit.excerpt_id is not None
         )
+        basket_item_ids = _basket_item_ids_from_hits(hits)
         doc_hits_fingerprint = self._stable_fingerprint(
             [
                 {
@@ -1861,6 +1876,7 @@ class RetrievalService:
             "excerpt_fingerprints": excerpt_fingerprints,
             "excerpt_lookup_fingerprints": excerpt_lookup_fingerprints,
             "excerpt_text_hashes": excerpt_text_hashes,
+            "basket_item_ids": basket_item_ids,
             "doc_hits_fingerprint": doc_hits_fingerprint,
             "excerpt_hits_fingerprint": excerpt_hits_fingerprint,
             "retrieval_policy": dict(retrieval_policy),
@@ -2087,6 +2103,7 @@ class RetrievalService:
             "excerpt_lookup_fingerprints": retrieval_manifest.get("excerpt_lookup_fingerprints", []),
             "top_excerpt_text_hashes": retrieval_manifest.get("top_excerpt_text_hashes", []),
             "excerpt_text_hashes": retrieval_manifest.get("excerpt_text_hashes", []),
+            "basket_item_ids": retrieval_manifest.get("basket_item_ids", []),
             "active_strategy_ids": retrieval_manifest.get("active_strategy_ids", []),
             "deferred_strategy_ids": retrieval_manifest.get("deferred_strategy_ids", []),
         }
