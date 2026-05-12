@@ -8025,6 +8025,7 @@ def command_demo_trusted_loop_contract(
 ) -> CommandDemoTrustedLoopContract:
     packet = command_demo_readiness_handoff_packet(specs, launcher_argv)
     status_contract = command_demo_readiness_handoff_step_status_contract(specs, launcher_argv)
+    verification_contract = command_demo_readiness_verification_contract(specs, launcher_argv)
     handler_by_name = {
         entry.name: entry
         for entry in command_handler_demo_path_contract(specs, launcher_argv).entries
@@ -8058,6 +8059,7 @@ def command_demo_trusted_loop_contract(
         is_complete=(
             packet.is_complete
             and status_contract.is_complete
+            and verification_contract.is_complete
             and not packet.invalid_argv
             and all(step.ready for step in steps)
             and all(step.thin_handler_ready for step in steps)
@@ -8073,6 +8075,21 @@ def command_demo_trusted_loop_contract(
         raise ValueError("Command demo trusted loop path steps are inconsistent")
     if tuple(step.command_line for step in contract.steps) != packet.command_lines:
         raise ValueError("Command demo trusted loop command lines are inconsistent")
+    if tuple(step.flow_step for step in contract.steps) != tuple(
+        entry.flow_step for entry in verification_contract.entries
+    ):
+        raise ValueError("Command demo trusted loop verification steps are inconsistent")
+    if tuple(step.command_line for step in contract.steps) != tuple(
+        entry.command_line for entry in verification_contract.entries
+    ):
+        raise ValueError("Command demo trusted loop verification command lines are inconsistent")
+    expected_verification_missing = tuple(
+        step.flow_step
+        for step in contract.steps
+        if not step.ready
+    )
+    if verification_contract.missing_steps != expected_verification_missing:
+        raise ValueError("Command demo trusted loop verification missing steps are inconsistent")
     handler_contract = command_handler_demo_path_contract(specs, launcher_argv)
     if tuple(step.handler for step in contract.steps) != tuple(
         entry.handler for entry in handler_contract.entries
@@ -8093,6 +8110,7 @@ def command_demo_trusted_loop_contract(
     expected_complete = (
         packet.is_complete
         and status_contract.is_complete
+        and verification_contract.is_complete
         and not packet.invalid_argv
         and all(step.ready for step in contract.steps)
         and all(step.thin_handler_ready for step in contract.steps)
