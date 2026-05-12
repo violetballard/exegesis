@@ -166,6 +166,7 @@ _TERMINAL_ARTIFACT_CLI_FALLBACK_PAYLOAD_REQUIRED_FIELDS: tuple[str, ...] = (
     "contract_version",
     "a2ui_version",
     "artifact_count",
+    "artifact_order",
     "artifact_order_fingerprint",
     "cli_fallback_fingerprint",
     "rendered_text",
@@ -3459,6 +3460,10 @@ def _build_terminal_artifact_cli_fallback_payload_contract_manifest() -> dict[st
         "artifact_entry_fingerprint_policy": (
             "artifact fingerprints cover the complete TerminalArtifact envelope including version fields"
         ),
+        "artifact_order_policy": (
+            "artifact_order exposes the same deterministic references used by cli_fallback so engine clients can "
+            "address artifacts without parsing rendered text"
+        ),
         "cli_fallback_entry_fields": list(_TERMINAL_ARTIFACT_CLI_FALLBACK_PAYLOAD_CLI_ENTRY_FIELDS),
         "artifact_order_entry_fields": list(
             _TERMINAL_ARTIFACT_CLI_FALLBACK_PAYLOAD_ARTIFACT_ORDER_FIELDS
@@ -3892,18 +3897,18 @@ def build_terminal_artifact_cli_fallback_payload(
             }
         )
     rendered_text = _render_terminal_artifact_cli_fallback_payload_text(rendered_items)
+    artifact_order = [
+        _terminal_artifact_cli_fallback_payload_artifact_order_entry(envelope, index=index)
+        for index, envelope in enumerate(envelope_items)
+    ]
     payload = {
         "type": "TerminalArtifactCliFallbackPayload",
         "schema_version": TERMINAL_ARTIFACT_CLI_FALLBACK_PAYLOAD_SCHEMA_VERSION,
         "contract_version": A2UI_CONTRACT_VERSION,
         "a2ui_version": A2UI_VERSION,
         "artifact_count": len(envelope_items),
-        "artifact_order_fingerprint": _fingerprint_manifest_section(
-            [
-                _terminal_artifact_cli_fallback_payload_artifact_order_entry(envelope, index=index)
-                for index, envelope in enumerate(envelope_items)
-            ]
-        ),
+        "artifact_order": artifact_order,
+        "artifact_order_fingerprint": _fingerprint_manifest_section(artifact_order),
         "artifacts": envelope_items,
         "cli_fallback": rendered_items,
     }
@@ -4161,6 +4166,21 @@ def render_terminal_artifact_cli_fallback_payload(payload: Any) -> str:
     return payload["rendered_text"]
 
 
+def resolve_terminal_artifact_cli_fallback_payload_artifact(
+    payload: Any,
+    artifact_id: str,
+) -> dict[str, Any]:
+    """Return the versioned artifact envelope addressed by a CLI fallback payload id."""
+
+    validate_terminal_artifact_cli_fallback_payload(payload)
+    if type(artifact_id) is not str or not artifact_id.strip():
+        raise ValueError("TerminalArtifactCliFallbackPayload artifact_id must be a non-empty string")
+    for order_entry in payload["artifact_order"]:
+        if order_entry["artifact_id"] == artifact_id:
+            return copy.deepcopy(payload["artifacts"][order_entry["index"]])
+    raise ValueError("TerminalArtifactCliFallbackPayload artifact_id is unknown")
+
+
 def _is_terminal_artifact_cli_fallback_payload(payload: Any) -> bool:
     return (
         isinstance(payload, Mapping)
@@ -4337,20 +4357,35 @@ def validate_terminal_artifact_cli_fallback_payload(payload: Any) -> None:
         raise ValueError("TerminalArtifactCliFallbackPayload artifacts and cli_fallback must align")
     _validate_terminal_artifact_cli_fallback_payload_artifact_entries(artifacts)
     _validate_terminal_artifact_cli_fallback_payload_artifact_id_uniqueness(cli_fallback)
-    artifact_order = [
-        (
-            _terminal_artifact_cli_fallback_payload_artifact_order_entry(envelope, index=index)
-            if isinstance(envelope, Mapping)
-            and isinstance(envelope.get("kind"), str)
-            else {
-                "index": index,
-                "artifact_id": None,
-                "kind": envelope.get("kind") if isinstance(envelope, Mapping) else None,
-                "artifact_fingerprint": _fingerprint_manifest_section(envelope),
-            }
-        )
+    artifact_order = payload.get("artifact_order")
+    if not isinstance(artifact_order, list):
+        raise ValueError("TerminalArtifactCliFallbackPayload artifact_order must be a list")
+    if len(artifact_order) != artifact_count:
+        raise ValueError("TerminalArtifactCliFallbackPayload artifact_order length is invalid")
+    expected_artifact_order = [
+        _terminal_artifact_cli_fallback_payload_artifact_order_entry(envelope, index=index)
+        if isinstance(envelope, Mapping) and isinstance(envelope.get("kind"), str)
+        else {
+            "index": index,
+            "artifact_id": None,
+            "kind": envelope.get("kind") if isinstance(envelope, Mapping) else None,
+            "artifact_fingerprint": _fingerprint_manifest_section(envelope),
+        }
         for index, envelope in enumerate(artifacts)
     ]
+    for index, order_entry in enumerate(artifact_order):
+        if not isinstance(order_entry, Mapping):
+            raise ValueError("TerminalArtifactCliFallbackPayload artifact_order entries must be objects")
+        order_missing_keys = set(_TERMINAL_ARTIFACT_CLI_FALLBACK_PAYLOAD_ARTIFACT_ORDER_FIELDS) - set(order_entry)
+        if order_missing_keys:
+            missing = ", ".join(sorted(order_missing_keys))
+            raise ValueError(f"Missing TerminalArtifactCliFallbackPayload artifact_order field(s): {missing}")
+        order_extra_keys = set(order_entry) - set(_TERMINAL_ARTIFACT_CLI_FALLBACK_PAYLOAD_ARTIFACT_ORDER_FIELDS)
+        if order_extra_keys:
+            extras = ", ".join(sorted(order_extra_keys))
+            raise ValueError(f"Unexpected TerminalArtifactCliFallbackPayload artifact_order field(s): {extras}")
+        if dict(order_entry) != expected_artifact_order[index]:
+            raise ValueError("TerminalArtifactCliFallbackPayload artifact_order is stale")
     artifact_order_fingerprint = payload.get("artifact_order_fingerprint")
     if (
         type(artifact_order_fingerprint) is not str

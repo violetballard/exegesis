@@ -104,6 +104,7 @@ from src.qual.ui.a2ui import (
     render_terminal_cli_fallback,
     render_terminal_card,
     render_terminal_selection,
+    resolve_terminal_artifact_cli_fallback_payload_artifact,
     _infer_terminal_artifact_kind_from_mapping,
     refine_terminal_artifact_cli_fallback_target,
     _snapshot_contract_section,
@@ -253,6 +254,7 @@ def _refresh_cli_fallback_payload_artifact_fingerprints(
         fallback["artifact_fingerprint"] = artifact_fingerprint
         fallback["artifact_id"] = artifact_id
 
+    payload["artifact_order"] = artifact_order
     payload["artifact_order_fingerprint"] = _fingerprint_manifest_section(artifact_order)
     payload["cli_fallback_fingerprint"] = _fingerprint_manifest_section(cli_fallback)
     fingerprint_input = dict(payload)
@@ -12994,8 +12996,8 @@ class A2UIFallbackSafetyTests(unittest.TestCase):
         )
         self.assertEqual(
             contract["artifact_input_order_policy"],
-            "artifact containers must be replayable ordered sequences; mapping, unordered set-like, and one-shot "
-            "iterable containers are rejected",
+            "artifact containers must be replayable ordered sequences; named mapping inputs use the engine stage "
+            "order before falling back to sorted names; unordered set-like and one-shot iterable containers are rejected",
         )
         self.assertEqual(contract["artifact_entry_contract"], "TerminalArtifact")
         self.assertEqual(
@@ -13010,6 +13012,7 @@ class A2UIFallbackSafetyTests(unittest.TestCase):
             contract["artifact_entry_fingerprint_policy"],
             "artifact fingerprints cover the complete TerminalArtifact envelope including version fields",
         )
+        self.assertIn("artifact_order", contract["required_fields"])
         self.assertIn("artifact_order_fingerprint", contract["required_fields"])
         self.assertIn("cli_fallback_fingerprint", contract["required_fields"])
         self.assertIn("rendered_text_fingerprint", contract["required_fields"])
@@ -13944,6 +13947,13 @@ class A2UIFallbackSafetyTests(unittest.TestCase):
         )
 
         self.assertEqual(payload["artifacts"][0]["kind"], "card")
+        self.assertEqual(payload["artifact_order"][0]["index"], 0)
+        self.assertEqual(payload["artifact_order"][0]["kind"], "card")
+        self.assertEqual(payload["artifact_order"][0]["artifact_id"], payload["cli_fallback"][0]["artifact_id"])
+        self.assertEqual(
+            payload["artifact_order"][0]["artifact_fingerprint"],
+            payload["cli_fallback"][0]["artifact_fingerprint"],
+        )
         self.assertIn("[GenericCard] Run Log", payload["cli_fallback"][0]["text"])
         validate_terminal_artifact_cli_fallback_payload(payload)
 
@@ -14069,12 +14079,108 @@ class A2UIFallbackSafetyTests(unittest.TestCase):
         manifest = describe_terminal_artifact_cli_fallback_payload_contract()
 
         self.assertEqual(manifest["known_engine_stage_order"], list(ENGINE_A2UI_CLI_FALLBACK_STAGE_ORDER))
+        self.assertIn("artifact_order", manifest["required_fields"])
+        self.assertIn("address artifacts without parsing rendered text", manifest["artifact_order_policy"])
         self.assertEqual(
             public_ui.ENGINE_A2UI_CLI_FALLBACK_STAGE_ORDER,
             ENGINE_A2UI_CLI_FALLBACK_STAGE_ORDER,
         )
         self.assertIn("named engine artifacts", manifest["named_artifact_order_policy"])
         self.assertEqual(len(manifest["contract_fingerprint"]), 64)
+
+    def test_terminal_artifact_cli_fallback_payload_rejects_stale_artifact_order(self) -> None:
+        payload = build_terminal_artifact_cli_fallback_payload(
+            [
+                [
+                    "card",
+                    {
+                        "type": "GenericCard",
+                        "title": "Run Log",
+                        "blocks": [{"type": "MarkdownBlock", "markdown": "Done"}],
+                        "actions": [],
+                    },
+                ]
+            ]
+        )
+        payload["artifact_order"][0]["kind"] = "action"
+        payload["artifact_order_fingerprint"] = _fingerprint_manifest_section(payload["artifact_order"])
+        fingerprint_input = dict(payload)
+        fingerprint_input.pop("payload_fingerprint")
+        payload["payload_fingerprint"] = _fingerprint_manifest_section(fingerprint_input)
+
+        with self.assertRaisesRegex(
+            ValueError,
+            "TerminalArtifactCliFallbackPayload artifact_order is stale",
+        ):
+            validate_terminal_artifact_cli_fallback_payload(payload)
+
+    def test_terminal_artifact_cli_fallback_payload_resolves_artifacts_by_order_id(self) -> None:
+        payload = build_terminal_artifact_cli_fallback_payload(
+            [
+                [
+                    "card",
+                    {
+                        "type": "GenericCard",
+                        "title": "Run Log",
+                        "blocks": [{"type": "MarkdownBlock", "markdown": "Done"}],
+                        "actions": [],
+                    },
+                ],
+                ("action", ActionRef(id="copy_to_clipboard", label="Copy", payload={"text": "Done"})),
+            ]
+        )
+        artifact_id = payload["artifact_order"][1]["artifact_id"]
+
+        resolved = resolve_terminal_artifact_cli_fallback_payload_artifact(payload, artifact_id)
+
+        self.assertEqual(resolved, payload["artifacts"][1])
+        self.assertEqual(resolved["kind"], "action")
+        self.assertEqual(
+            public_ui.resolve_terminal_artifact_cli_fallback_payload_artifact(payload, artifact_id),
+            resolved,
+        )
+
+    def test_terminal_artifact_cli_fallback_payload_resolves_artifact_copy(self) -> None:
+        payload = build_terminal_artifact_cli_fallback_payload(
+            [
+                [
+                    "card",
+                    {
+                        "type": "GenericCard",
+                        "title": "Run Log",
+                        "blocks": [{"type": "MarkdownBlock", "markdown": "Done"}],
+                        "actions": [],
+                    },
+                ]
+            ]
+        )
+        artifact_id = payload["artifact_order"][0]["artifact_id"]
+
+        resolved = resolve_terminal_artifact_cli_fallback_payload_artifact(payload, artifact_id)
+        resolved["artifact"]["blocks"][0]["markdown"] = "changed"
+
+        self.assertEqual(payload["artifacts"][0]["artifact"]["blocks"][0]["markdown"], "Done")
+
+    def test_terminal_artifact_cli_fallback_payload_rejects_unknown_artifact_id(self) -> None:
+        payload = build_terminal_artifact_cli_fallback_payload(
+            [
+                [
+                    "card",
+                    {
+                        "type": "GenericCard",
+                        "title": "Run Log",
+                        "blocks": [{"type": "MarkdownBlock", "markdown": "Done"}],
+                        "actions": [],
+                    },
+                ]
+            ]
+        )
+
+        with self.assertRaisesRegex(
+            ValueError,
+            "TerminalArtifactCliFallbackPayload artifact_id is unknown",
+        ):
+            resolve_terminal_artifact_cli_fallback_payload_artifact(payload, "0:card:missing")
 
     def test_terminal_artifact_prefers_typed_card_payloads_over_conflicting_non_card_hints(self) -> None:
         artifact = {
