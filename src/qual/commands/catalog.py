@@ -312,6 +312,7 @@ class CommandHandlerTrustedActionEntry:
     name: str
     handler: str
     delegated_to: str
+    engine_delegated_to: str
     command_argv: tuple[str, ...]
     command_line: str
     is_thin: bool
@@ -331,6 +332,7 @@ class CommandHandlerTrustedDemoPathEntry:
     demo_path_step: str
     handler: str
     delegated_to: str
+    engine_delegated_to: str
     command_argv: tuple[str, ...]
     command_line: str
     engine_actions: tuple[str, ...]
@@ -820,6 +822,7 @@ class CommandDemoTrustedLoopStep:
     command_line: str
     handler: str
     delegated_to: str
+    engine_delegated_to: str
     engine_actions: tuple[str, ...]
     exact_action_lines: tuple[tuple[str, str], ...]
     thin_handler_ready: bool
@@ -1508,6 +1511,12 @@ _COMMAND_HANDLER_COMPATIBILITY_PREFIX = "src.qual.app."
 _COMMAND_HANDLER_DELEGATION_TARGET_PREFIXES: tuple[str, ...] = (
     "exegesis_engine.",
     "src.qual.commands.diff_preview.",
+)
+_COMMAND_HANDLER_ENGINE_DELEGATION_TARGETS: tuple[tuple[str, str], ...] = (
+    ("bootstrap", "exegesis_engine.api.runtime_commands.run_bootstrap"),
+    ("diff-preview", "exegesis_engine.api.runtime_commands.run_diff_preview_command"),
+    ("context-basket", "exegesis_engine.api.runtime_commands.run_context_basket_command"),
+    ("terminal", "exegesis_engine.api.runtime_commands.run_terminal_command"),
 )
 COMMAND_SMOKE_CLI_LAUNCHER_ARGV: tuple[str, ...] = ("python", "-m", "src.main")
 COMMAND_SMOKE_SCRIPT_LAUNCHER_ARGV: tuple[str, ...] = ("python", "src/main.py")
@@ -2476,6 +2485,31 @@ def _validate_command_handler_delegation_contract(
             raise ValueError(f"Command handler delegation target is outside approved engine surfaces: {entry.name}")
 
 
+def _command_handler_engine_delegation_lookup() -> dict[str, str]:
+    lookup: dict[str, str] = {}
+    expected_names = set(command_mvp_flow_names())
+    for name, target in _COMMAND_HANDLER_ENGINE_DELEGATION_TARGETS:
+        if name not in expected_names:
+            raise ValueError(f"Unknown command handler engine delegation: {name}")
+        if name in lookup:
+            raise ValueError(f"Duplicate command handler engine delegation: {name}")
+        if not target.startswith("exegesis_engine."):
+            raise ValueError(f"Command handler engine delegation must target engine API: {name}")
+        lookup[name] = target
+    missing_names = tuple(name for name in command_mvp_flow_names() if name not in lookup)
+    if missing_names:
+        raise ValueError(f"Missing command handler engine delegation: {missing_names}")
+    return lookup
+
+
+def _command_handler_engine_delegation_target(command_name: str) -> str:
+    canonical_name = canonical_command(command_name)
+    target = _command_handler_engine_delegation_lookup().get(canonical_name)
+    if target is None:
+        raise ValueError(f"Missing command handler engine delegation: {command_name}")
+    return target
+
+
 def command_handler_delegation_summary() -> tuple[tuple[str, str, str, str], ...]:
     return tuple(
         (entry.name, entry.flow_step, entry.handler, entry.delegated_to)
@@ -2951,6 +2985,7 @@ def command_handler_trusted_action_contract(
             name=route.name,
             handler=route.handler,
             delegated_to=route.delegated_to,
+            engine_delegated_to=_command_handler_engine_delegation_target(route.name),
             command_argv=route.command_argv,
             command_line=route.command_line,
             is_thin=thin_by_action[route.engine_action].is_thin,
@@ -3001,6 +3036,8 @@ def _validate_command_handler_trusted_action_contract(
             or entry.command_line != route_entry.command_line
         ):
             raise ValueError(f"Command handler trusted action route drifted: {entry.engine_action}")
+        if entry.engine_delegated_to != _command_handler_engine_delegation_target(entry.name):
+            raise ValueError(f"Command handler trusted action engine delegation drifted: {entry.engine_action}")
         if entry.is_thin != thin_entry.is_thin:
             raise ValueError(f"Command handler trusted action thin status drifted: {entry.engine_action}")
         if entry.is_ready != (entry.engine_action in readiness_actions):
@@ -3012,7 +3049,7 @@ def _validate_command_handler_trusted_action_contract(
 def command_handler_trusted_action_summary(
     specs: tuple[CommandSpec, ...] = COMMAND_SPECS,
     launcher_argv: tuple[str, ...] = COMMAND_SMOKE_CLI_LAUNCHER_ARGV,
-) -> tuple[tuple[str, str, str, str, str, str, tuple[str, ...], str, bool, bool], ...]:
+) -> tuple[tuple[str, str, str, str, str, str, str, tuple[str, ...], str, bool, bool], ...]:
     return tuple(
         (
             entry.engine_action,
@@ -3021,6 +3058,7 @@ def command_handler_trusted_action_summary(
             entry.name,
             entry.handler,
             entry.delegated_to,
+            entry.engine_delegated_to,
             entry.command_argv,
             entry.command_line,
             entry.is_thin,
@@ -3033,13 +3071,14 @@ def command_handler_trusted_action_summary(
 def command_handler_trusted_action_lookup_table(
     specs: tuple[CommandSpec, ...] = COMMAND_SPECS,
     launcher_argv: tuple[str, ...] = COMMAND_SMOKE_CLI_LAUNCHER_ARGV,
-) -> tuple[tuple[str, tuple[str, str, tuple[str, ...], str, bool, bool]], ...]:
+) -> tuple[tuple[str, tuple[str, str, str, tuple[str, ...], str, bool, bool]], ...]:
     return tuple(
         (
             entry.engine_action,
             (
                 entry.handler,
                 entry.delegated_to,
+                entry.engine_delegated_to,
                 entry.command_argv,
                 entry.command_line,
                 entry.is_thin,
@@ -3092,6 +3131,7 @@ def command_handler_trusted_demo_path_contract(
             demo_path_step=entry.demo_path_step,
             handler=entry.handler,
             delegated_to=entry.delegated_to,
+            engine_delegated_to=_command_handler_engine_delegation_target(entry.name),
             command_argv=entry.command_argv,
             command_line=_shell_join(entry.command_argv),
             engine_actions=entry.engine_actions,
@@ -3153,6 +3193,8 @@ def _validate_command_handler_trusted_demo_path_contract(
             or entry.engine_actions != demo_path_entry.engine_actions
         ):
             raise ValueError(f"Command handler trusted demo path drifted: {entry.name}")
+        if entry.engine_delegated_to != _command_handler_engine_delegation_target(entry.name):
+            raise ValueError(f"Command handler trusted demo path engine delegation drifted: {entry.name}")
         if entry.command_line != _shell_join(entry.command_argv):
             raise ValueError(f"Command handler trusted demo path command line drifted: {entry.name}")
         expected_trusted = tuple(
@@ -3187,7 +3229,7 @@ def _validate_command_handler_trusted_demo_path_contract(
 def command_handler_trusted_demo_path_summary(
     specs: tuple[CommandSpec, ...] = COMMAND_SPECS,
     launcher_argv: tuple[str, ...] = COMMAND_SMOKE_CLI_LAUNCHER_ARGV,
-) -> tuple[tuple[str, str, str, str, str, tuple[str, ...], str, tuple[str, ...], bool], ...]:
+) -> tuple[tuple[str, str, str, str, str, str, tuple[str, ...], str, tuple[str, ...], bool], ...]:
     return tuple(
         (
             entry.name,
@@ -3195,6 +3237,7 @@ def command_handler_trusted_demo_path_summary(
             entry.demo_path_step,
             entry.handler,
             entry.delegated_to,
+            entry.engine_delegated_to,
             entry.command_argv,
             entry.command_line,
             entry.engine_actions,
@@ -3207,11 +3250,11 @@ def command_handler_trusted_demo_path_summary(
 def command_handler_trusted_demo_path_lookup_table(
     specs: tuple[CommandSpec, ...] = COMMAND_SPECS,
     launcher_argv: tuple[str, ...] = COMMAND_SMOKE_CLI_LAUNCHER_ARGV,
-) -> tuple[tuple[str, tuple[str, tuple[str, ...], bool]], ...]:
+) -> tuple[tuple[str, tuple[str, str, tuple[str, ...], bool]], ...]:
     return tuple(
         (
             entry.name,
-            (entry.delegated_to, entry.engine_actions, entry.is_trusted),
+            (entry.delegated_to, entry.engine_delegated_to, entry.engine_actions, entry.is_trusted),
         )
         for entry in command_handler_trusted_demo_path_contract(specs, launcher_argv).entries
     )
@@ -3308,14 +3351,14 @@ def command_mvp_handler_trusted_action_contract(
 def command_mvp_handler_trusted_action_summary(
     specs: tuple[CommandSpec, ...] = COMMAND_SPECS,
     launcher_argv: tuple[str, ...] = COMMAND_SMOKE_CLI_LAUNCHER_ARGV,
-) -> tuple[tuple[str, str, str, str, str, str, tuple[str, ...], str, bool, bool], ...]:
+) -> tuple[tuple[str, str, str, str, str, str, str, tuple[str, ...], str, bool, bool], ...]:
     return command_handler_trusted_action_summary(specs, launcher_argv)
 
 
 def command_mvp_handler_trusted_action_lookup_table(
     specs: tuple[CommandSpec, ...] = COMMAND_SPECS,
     launcher_argv: tuple[str, ...] = COMMAND_SMOKE_CLI_LAUNCHER_ARGV,
-) -> tuple[tuple[str, tuple[str, str, tuple[str, ...], str, bool, bool]], ...]:
+) -> tuple[tuple[str, tuple[str, str, str, tuple[str, ...], str, bool, bool]], ...]:
     return command_handler_trusted_action_lookup_table(specs, launcher_argv)
 
 
@@ -3345,14 +3388,14 @@ def command_mvp_handler_trusted_demo_path_contract(
 def command_mvp_handler_trusted_demo_path_summary(
     specs: tuple[CommandSpec, ...] = COMMAND_SPECS,
     launcher_argv: tuple[str, ...] = COMMAND_SMOKE_CLI_LAUNCHER_ARGV,
-) -> tuple[tuple[str, str, str, str, str, tuple[str, ...], str, tuple[str, ...], bool], ...]:
+) -> tuple[tuple[str, str, str, str, str, str, tuple[str, ...], str, tuple[str, ...], bool], ...]:
     return command_handler_trusted_demo_path_summary(specs, launcher_argv)
 
 
 def command_mvp_handler_trusted_demo_path_lookup_table(
     specs: tuple[CommandSpec, ...] = COMMAND_SPECS,
     launcher_argv: tuple[str, ...] = COMMAND_SMOKE_CLI_LAUNCHER_ARGV,
-) -> tuple[tuple[str, tuple[str, tuple[str, ...], bool]], ...]:
+) -> tuple[tuple[str, tuple[str, str, tuple[str, ...], bool]], ...]:
     return command_handler_trusted_demo_path_lookup_table(specs, launcher_argv)
 
 
@@ -8469,6 +8512,7 @@ def command_demo_trusted_loop_contract(
             command_line=step.command_line,
             handler=handler_by_name[step.name].handler,
             delegated_to=handler_by_name[step.name].delegated_to,
+            engine_delegated_to=_command_handler_engine_delegation_target(step.name),
             engine_actions=step.engine_actions,
             exact_action_lines=step.exact_action_lines,
             thin_handler_ready=all(
@@ -8525,6 +8569,11 @@ def command_demo_trusted_loop_contract(
         entry.delegated_to for entry in handler_contract.entries
     ):
         raise ValueError("Command demo trusted loop delegations are inconsistent")
+    if tuple(step.engine_delegated_to for step in contract.steps) != tuple(
+        _command_handler_engine_delegation_target(entry.name)
+        for entry in handler_contract.entries
+    ):
+        raise ValueError("Command demo trusted loop engine delegations are inconsistent")
     if tuple(step.thin_handler_ready for step in contract.steps) != tuple(
         all(
             thin_action_by_engine_action[engine_action].is_thin
@@ -8562,6 +8611,7 @@ def command_demo_trusted_loop_summary(
             str,
             str,
             str,
+            str,
             tuple[str, ...],
             tuple[tuple[str, str], ...],
             bool,
@@ -8587,6 +8637,7 @@ def command_demo_trusted_loop_summary(
                 step.command_line,
                 step.handler,
                 step.delegated_to,
+                step.engine_delegated_to,
                 step.engine_actions,
                 step.exact_action_lines,
                 step.thin_handler_ready,
@@ -8621,6 +8672,7 @@ def command_demo_trusted_loop_payload(
                 "command_line": step.command_line,
                 "handler": step.handler,
                 "delegated_to": step.delegated_to,
+                "engine_delegated_to": step.engine_delegated_to,
                 "engine_actions": step.engine_actions,
                 "exact_action_lines": step.exact_action_lines,
                 "thin_handler_ready": step.thin_handler_ready,

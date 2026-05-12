@@ -1103,14 +1103,14 @@ def canonical_command_handler_trusted_action_contract() -> CommandHandlerTrusted
 
 
 def canonical_command_handler_trusted_action_summary() -> tuple[
-    tuple[str, str, str, str, str, str, tuple[str, ...], str, bool, bool],
+    tuple[str, str, str, str, str, str, str, tuple[str, ...], str, bool, bool],
     ...,
 ]:
     return _handler_trusted_action_summary()
 
 
 def canonical_command_handler_trusted_action_lookup_table() -> tuple[
-    tuple[str, tuple[str, str, tuple[str, ...], str, bool, bool]],
+    tuple[str, tuple[str, str, str, tuple[str, ...], str, bool, bool]],
     ...,
 ]:
     return _handler_trusted_action_lookup_table()
@@ -1139,6 +1139,7 @@ def canonical_command_handler_trusted_demo_path_summary() -> tuple[
         str,
         str,
         str,
+        str,
         tuple[str, ...],
         str,
         tuple[str, ...],
@@ -1150,7 +1151,7 @@ def canonical_command_handler_trusted_demo_path_summary() -> tuple[
 
 
 def canonical_command_handler_trusted_demo_path_lookup_table() -> tuple[
-    tuple[str, tuple[str, tuple[str, ...], bool]],
+    tuple[str, tuple[str, str, tuple[str, ...], bool]],
     ...,
 ]:
     return _handler_trusted_demo_path_lookup_table()
