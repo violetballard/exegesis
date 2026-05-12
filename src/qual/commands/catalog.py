@@ -951,6 +951,27 @@ class CommandDemoCommandTranscriptContract:
 
 
 @dataclass(frozen=True)
+class CommandDemoStepSurface:
+    ordinal: int
+    demo_path_step: str
+    flow_step: str
+    name: str
+    argv: tuple[str, ...]
+    command_line: str
+    engine_actions: tuple[str, ...]
+    exact_action_lines: tuple[tuple[str, str], ...]
+    ready: bool
+
+
+@dataclass(frozen=True)
+class CommandDemoStepSurfaceContract:
+    is_complete: bool
+    fingerprint_algorithm: str
+    readiness_fingerprint_digest: str
+    steps: tuple[CommandDemoStepSurface, ...]
+
+
+@dataclass(frozen=True)
 class CommandDemoReadinessShellScript:
     lines: tuple[str, ...]
     command_lines: tuple[str, ...]
@@ -9961,6 +9982,156 @@ def command_demo_command_transcript_json(
     )
 
 
+@lru_cache(maxsize=None)
+def command_demo_step_surface_contract(
+    specs: tuple[CommandSpec, ...] = COMMAND_SPECS,
+    launcher_argv: tuple[str, ...] = COMMAND_SMOKE_CLI_LAUNCHER_ARGV,
+) -> CommandDemoStepSurfaceContract:
+    transcript = command_demo_command_transcript_contract(specs, launcher_argv)
+    readiness_index = command_demo_readiness_index_contract(specs, launcher_argv)
+    index_by_flow_step = {entry.flow_step: entry for entry in readiness_index.entries}
+    steps: list[CommandDemoStepSurface] = []
+    for transcript_step in transcript.steps:
+        indexed_step = index_by_flow_step.get(transcript_step.flow_step)
+        if indexed_step is None:
+            raise ValueError(f"Command demo step surface is missing: {transcript_step.flow_step}")
+        ready = bool(
+            transcript_step.command_line
+            and transcript_step.argv
+            and transcript_step.engine_actions
+            and indexed_step.exact_action_lines
+        )
+        steps.append(
+            CommandDemoStepSurface(
+                ordinal=transcript_step.ordinal,
+                demo_path_step=transcript_step.demo_path_step,
+                flow_step=transcript_step.flow_step,
+                name=transcript_step.name,
+                argv=transcript_step.argv,
+                command_line=transcript_step.command_line,
+                engine_actions=transcript_step.engine_actions,
+                exact_action_lines=indexed_step.exact_action_lines,
+                ready=ready,
+            )
+        )
+    contract = CommandDemoStepSurfaceContract(
+        is_complete=transcript.is_complete and all(step.ready for step in steps),
+        fingerprint_algorithm=readiness_index.fingerprint_algorithm,
+        readiness_fingerprint_digest=readiness_index.readiness_fingerprint_digest,
+        steps=tuple(steps),
+    )
+    _validate_command_demo_step_surface_contract(contract, transcript, readiness_index)
+    return contract
+
+
+def _validate_command_demo_step_surface_contract(
+    contract: CommandDemoStepSurfaceContract,
+    transcript: CommandDemoCommandTranscriptContract,
+    readiness_index: CommandDemoReadinessIndexContract,
+) -> None:
+    if contract.fingerprint_algorithm != readiness_index.fingerprint_algorithm:
+        raise ValueError("Command demo step surface fingerprint algorithm is inconsistent")
+    if contract.readiness_fingerprint_digest != readiness_index.readiness_fingerprint_digest:
+        raise ValueError("Command demo step surface fingerprint digest is inconsistent")
+    if tuple(step.ordinal for step in contract.steps) != tuple(
+        step.ordinal for step in transcript.steps
+    ):
+        raise ValueError("Command demo step surface ordinals are inconsistent")
+    if tuple(step.flow_step for step in contract.steps) != tuple(
+        step.flow_step for step in transcript.steps
+    ):
+        raise ValueError("Command demo step surface flow steps are inconsistent")
+    if tuple(step.command_line for step in contract.steps) != tuple(
+        step.command_line for step in transcript.steps
+    ):
+        raise ValueError("Command demo step surface command lines are inconsistent")
+    readiness_by_flow_step = {entry.flow_step: entry for entry in readiness_index.entries}
+    for step in contract.steps:
+        indexed_step = readiness_by_flow_step.get(step.flow_step)
+        if indexed_step is None:
+            raise ValueError(f"Command demo step surface index is missing: {step.flow_step}")
+        if step.exact_action_lines != indexed_step.exact_action_lines:
+            raise ValueError(f"Command demo step surface action lines drifted: {step.flow_step}")
+        if step.engine_actions != indexed_step.engine_actions:
+            raise ValueError(f"Command demo step surface engine actions drifted: {step.flow_step}")
+        if not step.ready:
+            raise ValueError(f"Command demo step surface is not ready: {step.flow_step}")
+    if contract.is_complete != transcript.is_complete:
+        raise ValueError("Command demo step surface completeness is inconsistent")
+
+
+def command_demo_step_surface_summary(
+    specs: tuple[CommandSpec, ...] = COMMAND_SPECS,
+    launcher_argv: tuple[str, ...] = COMMAND_SMOKE_CLI_LAUNCHER_ARGV,
+) -> tuple[
+    bool,
+    str,
+    str,
+    tuple[tuple[int, str, str, str, str, tuple[str, ...], tuple[tuple[str, str], ...], bool], ...],
+]:
+    contract = command_demo_step_surface_contract(specs, launcher_argv)
+    return (
+        contract.is_complete,
+        contract.fingerprint_algorithm,
+        contract.readiness_fingerprint_digest,
+        tuple(
+            (
+                step.ordinal,
+                step.demo_path_step,
+                step.flow_step,
+                step.name,
+                step.command_line,
+                step.engine_actions,
+                step.exact_action_lines,
+                step.ready,
+            )
+            for step in contract.steps
+        ),
+    )
+
+
+def command_demo_step_surface_payload(
+    specs: tuple[CommandSpec, ...] = COMMAND_SPECS,
+    launcher_argv: tuple[str, ...] = COMMAND_SMOKE_CLI_LAUNCHER_ARGV,
+) -> dict[str, object]:
+    contract = command_demo_step_surface_contract(specs, launcher_argv)
+    return {
+        "is_complete": contract.is_complete,
+        "fingerprint": {
+            "algorithm": contract.fingerprint_algorithm,
+            "readiness_digest": contract.readiness_fingerprint_digest,
+        },
+        "steps": [
+            {
+                "ordinal": step.ordinal,
+                "demo_path_step": step.demo_path_step,
+                "flow_step": step.flow_step,
+                "name": step.name,
+                "argv": list(step.argv),
+                "command_line": step.command_line,
+                "engine_actions": list(step.engine_actions),
+                "exact_action_lines": [
+                    {"engine_action": engine_action, "command_line": command_line}
+                    for engine_action, command_line in step.exact_action_lines
+                ],
+                "ready": step.ready,
+            }
+            for step in contract.steps
+        ],
+    }
+
+
+def command_demo_step_surface_json(
+    specs: tuple[CommandSpec, ...] = COMMAND_SPECS,
+    launcher_argv: tuple[str, ...] = COMMAND_SMOKE_CLI_LAUNCHER_ARGV,
+) -> str:
+    return json.dumps(
+        command_demo_step_surface_payload(specs, launcher_argv),
+        sort_keys=True,
+        separators=(",", ":"),
+    )
+
+
 def command_demo_readiness_next_index_entry(
     current_flow_step: str | None = None,
     specs: tuple[CommandSpec, ...] = COMMAND_SPECS,
@@ -17008,6 +17179,39 @@ def command_mvp_demo_command_transcript_json(
     launcher_argv: tuple[str, ...] = COMMAND_SMOKE_CLI_LAUNCHER_ARGV,
 ) -> str:
     return command_demo_command_transcript_json(specs, launcher_argv)
+
+
+def command_mvp_demo_step_surface_contract(
+    specs: tuple[CommandSpec, ...] = COMMAND_SPECS,
+    launcher_argv: tuple[str, ...] = COMMAND_SMOKE_CLI_LAUNCHER_ARGV,
+) -> CommandDemoStepSurfaceContract:
+    return command_demo_step_surface_contract(specs, launcher_argv)
+
+
+def command_mvp_demo_step_surface_summary(
+    specs: tuple[CommandSpec, ...] = COMMAND_SPECS,
+    launcher_argv: tuple[str, ...] = COMMAND_SMOKE_CLI_LAUNCHER_ARGV,
+) -> tuple[
+    bool,
+    str,
+    str,
+    tuple[tuple[int, str, str, str, str, tuple[str, ...], tuple[tuple[str, str], ...], bool], ...],
+]:
+    return command_demo_step_surface_summary(specs, launcher_argv)
+
+
+def command_mvp_demo_step_surface_payload(
+    specs: tuple[CommandSpec, ...] = COMMAND_SPECS,
+    launcher_argv: tuple[str, ...] = COMMAND_SMOKE_CLI_LAUNCHER_ARGV,
+) -> dict[str, object]:
+    return command_demo_step_surface_payload(specs, launcher_argv)
+
+
+def command_mvp_demo_step_surface_json(
+    specs: tuple[CommandSpec, ...] = COMMAND_SPECS,
+    launcher_argv: tuple[str, ...] = COMMAND_SMOKE_CLI_LAUNCHER_ARGV,
+) -> str:
+    return command_demo_step_surface_json(specs, launcher_argv)
 
 
 def command_mvp_demo_readiness_next_index_entry(
