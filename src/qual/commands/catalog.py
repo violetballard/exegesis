@@ -2692,6 +2692,13 @@ def _validate_command_handler_action_route_contract(
             or entry.command_line != exact_route.command_line
         ):
             raise ValueError(f"Command handler action route drifted: {entry.engine_action}")
+        resolved_action = command_demo_readiness_exact_action_for_argv(
+            entry.command_argv,
+            specs,
+            launcher_argv,
+        )
+        if resolved_action != entry.engine_action:
+            raise ValueError(f"Command handler action route argv drifted: {entry.engine_action}")
         if entry.handler != handler_entry.handler or entry.delegated_to != handler_entry.delegated_to:
             raise ValueError(f"Command handler action route delegation drifted: {entry.engine_action}")
 
