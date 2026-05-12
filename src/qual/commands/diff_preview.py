@@ -942,6 +942,7 @@ def _patch_review_readiness_contract_payload(
         "missing_action_routes": contract.missing_action_routes,
         "engine_actions": contract.engine_actions,
         "missing_engine_actions": contract.missing_engine_actions,
+        "missing_expected_engine_actions": contract.missing_expected_engine_actions,
         "extra_engine_actions": contract.extra_engine_actions,
         "ready": contract.ready,
     }
@@ -960,6 +961,7 @@ def run_patch_review_readiness_contract(payload: DiffPreviewInput) -> str:
         f"action-routes={json.dumps(contract.action_routes)}; "
         f"missing-routes={json.dumps(contract.missing_action_routes)}; "
         f"missing-engine-actions={','.join(contract.missing_engine_actions)}; "
+        f"missing-expected-engine-actions={','.join(contract.missing_expected_engine_actions)}; "
         f"ready={str(contract.ready).lower()}"
     )
 
