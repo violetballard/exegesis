@@ -12656,6 +12656,8 @@ def _strip_shell_timeout_wrapper(argv: tuple[str, ...]) -> tuple[str, ...]:
     if index >= len(argv):
         return argv
     index += 1
+    if index < len(argv) and argv[index] == "--":
+        index += 1
     if index >= len(argv):
         return argv
     return argv[index:]
