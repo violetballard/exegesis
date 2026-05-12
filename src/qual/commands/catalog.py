@@ -12613,6 +12613,17 @@ def command_demo_readiness_cli_exact_action_for_argv(
     return validation.exact_engine_action
 
 
+def command_demo_readiness_cli_exact_action_entry_for_argv(
+    argv: Sequence[str] | str,
+    specs: tuple[CommandSpec, ...] = COMMAND_SPECS,
+    launcher_argv: tuple[str, ...] = COMMAND_SMOKE_CLI_LAUNCHER_ARGV,
+) -> CommandDemoReadinessExactActionEntry | None:
+    engine_action = command_demo_readiness_cli_exact_action_for_argv(argv, specs, launcher_argv)
+    if engine_action is None:
+        return None
+    return command_demo_readiness_exact_action_entry_for_argv(argv, specs, launcher_argv)
+
+
 def command_demo_readiness_exact_action_entry_for_argv(
     argv: Sequence[str] | str,
     specs: tuple[CommandSpec, ...] = COMMAND_SPECS,
@@ -18716,6 +18727,14 @@ def command_mvp_demo_readiness_cli_exact_action_for_argv(
     launcher_argv: tuple[str, ...] = COMMAND_SMOKE_CLI_LAUNCHER_ARGV,
 ) -> str | None:
     return command_demo_readiness_cli_exact_action_for_argv(argv, specs, launcher_argv)
+
+
+def command_mvp_demo_readiness_cli_exact_action_entry_for_argv(
+    argv: Sequence[str] | str,
+    specs: tuple[CommandSpec, ...] = COMMAND_SPECS,
+    launcher_argv: tuple[str, ...] = COMMAND_SMOKE_CLI_LAUNCHER_ARGV,
+) -> CommandDemoReadinessExactActionEntry | None:
+    return command_demo_readiness_cli_exact_action_entry_for_argv(argv, specs, launcher_argv)
 
 
 def command_mvp_demo_readiness_exact_action_entry_for_argv(

@@ -316,6 +316,8 @@ from src.qual.commands.catalog import (
     as _readiness_cli_exact_action_shell_script_text,
     command_mvp_demo_readiness_exact_action_for_argv as _readiness_exact_action_for_argv,
     command_mvp_demo_readiness_cli_exact_action_for_argv as _readiness_cli_exact_action_for_argv,
+    command_mvp_demo_readiness_cli_exact_action_entry_for_argv
+    as _readiness_cli_exact_action_entry_for_argv,
     command_mvp_demo_readiness_exact_action_entry_for_argv as _readiness_exact_action_entry_for_argv,
     command_mvp_demo_readiness_exact_action_contract as _readiness_exact_action_contract,
     command_mvp_demo_readiness_exact_action_summary as _readiness_exact_action_summary,
@@ -610,6 +612,7 @@ __all__ = [
     "canonical_command_action_exact_line_lookup_table",
     "canonical_command_action_cli_exact_line_lookup_table",
     "canonical_command_action_exact_for_argv",
+    "canonical_command_action_cli_exact_entry_for_argv",
     "canonical_command_action_exact_entry_for_argv",
     "canonical_command_action_exact_argv_for_engine_action",
     "canonical_command_action_exact_line_for_engine_action",
@@ -3049,6 +3052,12 @@ def canonical_command_action_exact_for_argv(argv: Sequence[str] | str) -> str | 
 
 def canonical_command_action_cli_exact_for_argv(argv: Sequence[str] | str) -> str | None:
     return _readiness_cli_exact_action_for_argv(argv)
+
+
+def canonical_command_action_cli_exact_entry_for_argv(
+    argv: Sequence[str] | str,
+) -> CommandDemoReadinessExactActionEntry | None:
+    return _readiness_cli_exact_action_entry_for_argv(argv)
 
 
 def canonical_command_action_exact_entry_for_argv(
