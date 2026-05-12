@@ -475,6 +475,7 @@ from src.qual.commands.catalog import (
     command_mvp_handler_action_route_lookup_table as _handler_action_route_lookup_table,
     command_mvp_handler_action_route_summary as _handler_action_route_summary,
     command_mvp_handler_demo_path_contract as _handler_demo_path_contract,
+    command_mvp_handler_demo_path_entry_for_argv as _handler_demo_path_entry_for_argv,
     command_mvp_handler_demo_path_entry_for_command as _handler_demo_path_entry_for_command,
     command_mvp_handler_demo_path_lookup_table as _handler_demo_path_lookup_table,
     command_mvp_handler_demo_path_summary as _handler_demo_path_summary,
@@ -863,6 +864,7 @@ __all__ = [
     "canonical_command_handler_action_route_lookup_table",
     "canonical_command_handler_action_route_summary",
     "canonical_command_handler_demo_path_contract",
+    "canonical_command_handler_demo_path_entry_for_argv",
     "canonical_command_handler_demo_path_entry_for_command",
     "canonical_command_handler_demo_path_lookup_table",
     "canonical_command_handler_demo_path_summary",
@@ -913,6 +915,12 @@ def canonical_command_handler_demo_path_entry_for_command(
     command_name: str,
 ) -> CommandHandlerDemoPathEntry | None:
     return _handler_demo_path_entry_for_command(command_name)
+
+
+def canonical_command_handler_demo_path_entry_for_argv(
+    argv: Sequence[str] | str,
+) -> CommandHandlerDemoPathEntry | None:
+    return _handler_demo_path_entry_for_argv(argv)
 
 
 def canonical_command_handler_action_route_contract() -> CommandHandlerActionRouteContract:

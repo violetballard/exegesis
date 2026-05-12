@@ -2567,6 +2567,17 @@ def command_handler_demo_path_entry_for_command(
     return None
 
 
+def command_handler_demo_path_entry_for_argv(
+    argv: Sequence[str] | str,
+    specs: tuple[CommandSpec, ...] = COMMAND_SPECS,
+    launcher_argv: tuple[str, ...] = COMMAND_SMOKE_CLI_LAUNCHER_ARGV,
+) -> CommandHandlerDemoPathEntry | None:
+    readiness_entry = command_demo_readiness_entry_for_argv(argv, specs, launcher_argv)
+    if readiness_entry is None:
+        return None
+    return command_handler_demo_path_entry_for_command(readiness_entry.name, specs, launcher_argv)
+
+
 def command_mvp_handler_demo_path_contract(
     specs: tuple[CommandSpec, ...] = COMMAND_SPECS,
     launcher_argv: tuple[str, ...] = COMMAND_SMOKE_CLI_LAUNCHER_ARGV,
@@ -2594,6 +2605,14 @@ def command_mvp_handler_demo_path_entry_for_command(
     launcher_argv: tuple[str, ...] = COMMAND_SMOKE_CLI_LAUNCHER_ARGV,
 ) -> CommandHandlerDemoPathEntry | None:
     return command_handler_demo_path_entry_for_command(command_name, specs, launcher_argv)
+
+
+def command_mvp_handler_demo_path_entry_for_argv(
+    argv: Sequence[str] | str,
+    specs: tuple[CommandSpec, ...] = COMMAND_SPECS,
+    launcher_argv: tuple[str, ...] = COMMAND_SMOKE_CLI_LAUNCHER_ARGV,
+) -> CommandHandlerDemoPathEntry | None:
+    return command_handler_demo_path_entry_for_argv(argv, specs, launcher_argv)
 
 
 def command_handler_action_route_contract(
