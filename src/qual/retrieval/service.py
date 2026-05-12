@@ -678,7 +678,13 @@ class RetrievalResult:
         for hit in self.hits:
             if hit.excerpt_id is None:
                 continue
+            basket_item_id = _basket_item_id_for_excerpt(
+                source_strategy=hit.source_strategy,
+                excerpt_id=hit.excerpt_id,
+            )
             promotion_item = {
+                "item_id": basket_item_id,
+                "basket_item_id": basket_item_id,
                 "doc_id": hit.doc_id,
                 "excerpt_id": hit.excerpt_id,
                 "title_hint": hit.title_hint,

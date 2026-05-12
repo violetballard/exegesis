@@ -2060,7 +2060,20 @@ def _build_retrieval_basket_promotion_bundle_from_payload(payload: dict[str, obj
         provenance = hit.get("provenance", {})
         if not isinstance(provenance, dict):
             provenance = {}
+        source_strategy = _fts_source_strategy_from_values(
+            hit.get("source_strategy"),
+            hit.get("retrieval_source_strategy"),
+            provenance.get("source_strategy"),
+            provenance.get("retrieval_source_strategy"),
+            context="sparse promotion item",
+        )
+        basket_item_id = _basket_item_id_for_excerpt(
+            source_strategy=source_strategy,
+            excerpt_id=excerpt_id,
+        )
         promotion_item = {
+            "item_id": basket_item_id,
+            "basket_item_id": basket_item_id,
             "doc_id": hit.get("doc_id"),
             "excerpt_id": excerpt_id,
             "title_hint": hit.get("title_hint"),
@@ -2068,20 +2081,8 @@ def _build_retrieval_basket_promotion_bundle_from_payload(payload: dict[str, obj
             "span": copy.deepcopy(hit.get("span", provenance.get("span", {}))),
             "score": hit.get("score"),
             "rank": provenance.get("rank", hit.get("rank")),
-            "source_strategy": hit.get(
-                "source_strategy",
-                hit.get(
-                    "retrieval_source_strategy",
-                    provenance.get(
-                        "source_strategy",
-                        provenance.get("retrieval_source_strategy"),
-                    ),
-                ),
-            ),
-            "retrieval_source_strategy": hit.get(
-                "retrieval_source_strategy",
-                provenance.get("retrieval_source_strategy"),
-            ),
+            "source_strategy": source_strategy,
+            "retrieval_source_strategy": source_strategy,
             "result_fingerprint": hit.get(
                 "result_fingerprint",
                 provenance.get("result_fingerprint", bundle_context["result_fingerprint"]),

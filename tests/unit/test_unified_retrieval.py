@@ -3505,6 +3505,8 @@ class UnifiedRetrievalTests(unittest.TestCase):
         )
         self.assertEqual(direct_item["retrieval_policy"], result.diagnostics["retrieval_policy"])
         self.assertEqual(direct_item["doc_type"], "memo")
+        self.assertEqual(direct_item["basket_item_id"], result.basket_promotion_items()[0]["basket_item_id"])
+        self.assertEqual(direct_item["item_id"], result.basket_promotion_items()[0]["item_id"])
         self.assertEqual(
             engine_retrieve_fts_basket_promotion_bundle(
                 self.service,
@@ -3586,6 +3588,8 @@ class UnifiedRetrievalTests(unittest.TestCase):
             result.retrieval_basket_promotion_bundle()["citation_status"],
         )
         self.assertEqual(rehydrated_item["doc_type"], "memo")
+        self.assertEqual(rehydrated_item["basket_item_id"], result.basket_promotion_items()[0]["basket_item_id"])
+        self.assertEqual(rehydrated_item["item_id"], result.basket_promotion_items()[0]["item_id"])
 
     def test_basket_promotion_bundle_normalizes_query_constraints_snapshot(self) -> None:
         result = self.service.retrieve_auto(
@@ -3667,7 +3671,8 @@ class UnifiedRetrievalTests(unittest.TestCase):
             normalized_item["query_constraints_fingerprint"],
             expected_item_constraints_fingerprint,
         )
-        self.assertNotIn("basket_item_id", normalized_item)
+        self.assertEqual(normalized_item["basket_item_id"], result.basket_promotion_items()[0]["basket_item_id"])
+        self.assertEqual(normalized_item["item_id"], result.basket_promotion_items()[0]["item_id"])
         self.assertNotEqual(normalized_item["promotion_item_fingerprint"], "stale-fingerprint")
 
     def test_basket_promotion_bundle_backfills_item_policy_and_rejects_non_fts_identity(self) -> None:
