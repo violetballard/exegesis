@@ -236,13 +236,16 @@ def _basket_item_fingerprint(item: dict[str, object]) -> str:
 
 
 def _fts_source_strategy_from_values(*values: object, context: str) -> str:
+    matched = False
     for value in values:
         source_strategy = _normalize_optional_text(value)
         if source_strategy is None:
             continue
-        if source_strategy != "fts":
+        if source_strategy.casefold() != "fts":
             raise ValueError(f"{context} must use fts source_strategy for the MVP")
-        return source_strategy
+        matched = True
+    if matched:
+        return "fts"
     return "fts"
 
 
@@ -275,6 +278,20 @@ def _normalize_basket_promotion_items(items: list[object]) -> list[object]:
         else:
             normalized.append(copy.deepcopy(item))
     return normalized
+
+
+def _normalize_basket_promotion_item_strategy_labels(item: dict[str, object]) -> None:
+    has_source_strategy = not _is_missing_snapshot_value(item.get("source_strategy"))
+    has_retrieval_source_strategy = not _is_missing_snapshot_value(item.get("retrieval_source_strategy"))
+    source_strategy = _fts_source_strategy_from_values(
+        item.get("source_strategy"),
+        item.get("retrieval_source_strategy"),
+        context="basket promotion item",
+    )
+    if has_source_strategy:
+        item["source_strategy"] = source_strategy
+    if has_retrieval_source_strategy:
+        item["retrieval_source_strategy"] = source_strategy
 
 
 def _basket_promotion_items_from_snapshot(snapshot: dict[str, object]) -> list[object]:
@@ -1316,6 +1333,7 @@ def _normalize_basket_promotion_bundle_snapshot(bundle: dict[str, object]) -> di
             normalized_item["query_constraints_fingerprint"] = _stable_fingerprint(
                 normalized_item["query_constraints"]
             )
+        _normalize_basket_promotion_item_strategy_labels(normalized_item)
         if _is_missing_snapshot_value(normalized_item.get("promotion_item_fingerprint")):
             normalized_item["promotion_item_fingerprint"] = _stable_fingerprint(
                 {
