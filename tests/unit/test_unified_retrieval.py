@@ -3514,6 +3514,10 @@ class UnifiedRetrievalTests(unittest.TestCase):
         self.assertEqual(direct_item["basket_item_id"], result.basket_promotion_items()[0]["basket_item_id"])
         self.assertEqual(direct_item["item_id"], result.basket_promotion_items()[0]["item_id"])
         self.assertEqual(
+            direct_item["excerpt_lookup_fingerprint"],
+            result.basket_promotion_items()[0]["excerpt_lookup_fingerprint"],
+        )
+        self.assertEqual(
             engine_retrieve_fts_basket_promotion_bundle(
                 self.service,
                 query_text="memo comparison",
@@ -3600,6 +3604,29 @@ class UnifiedRetrievalTests(unittest.TestCase):
         self.assertEqual(rehydrated_item["doc_type"], "memo")
         self.assertEqual(rehydrated_item["basket_item_id"], result.basket_promotion_items()[0]["basket_item_id"])
         self.assertEqual(rehydrated_item["item_id"], result.basket_promotion_items()[0]["item_id"])
+        self.assertEqual(
+            rehydrated_item["excerpt_lookup_fingerprint"],
+            result.basket_promotion_items()[0]["excerpt_lookup_fingerprint"],
+        )
+
+        sparse_bundle_payload = result.to_downstream_payload()
+        sparse_bundle = sparse_bundle_payload["retrieval_basket_promotion_bundle"]
+        self.assertIsInstance(sparse_bundle, dict)
+        sparse_promotion_items = cast(dict[str, object], sparse_bundle)["promotion_items"]
+        self.assertIsInstance(sparse_promotion_items, list)
+        sparse_promotion_item = cast(list[dict[str, object]], sparse_promotion_items)[0]
+        sparse_promotion_item.pop("item_id", None)
+        sparse_promotion_item.pop("excerpt_lookup_fingerprint", None)
+        sparse_promotion_item["promotion_item_fingerprint"] = "stale-fingerprint"
+
+        normalized_sparse_bundle = _build_retrieval_basket_promotion_bundle_from_payload(sparse_bundle_payload)
+        normalized_sparse_item = normalized_sparse_bundle["promotion_items"][0]
+        self.assertEqual(
+            normalized_sparse_item["excerpt_lookup_fingerprint"],
+            result.basket_promotion_items()[0]["excerpt_lookup_fingerprint"],
+        )
+        self.assertEqual(normalized_sparse_item["basket_item_id"], result.basket_promotion_items()[0]["basket_item_id"])
+        self.assertNotEqual(normalized_sparse_item["promotion_item_fingerprint"], "stale-fingerprint")
 
     def test_basket_promotion_bundle_normalizes_query_constraints_snapshot(self) -> None:
         result = self.service.retrieve_auto(

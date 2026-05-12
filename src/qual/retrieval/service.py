@@ -718,6 +718,7 @@ class RetrievalResult:
                 "doc_fingerprint": hit.provenance.get("doc_fingerprint"),
                 "doc_identity_fingerprint": hit.provenance.get("doc_identity_fingerprint"),
                 "excerpt_fingerprint": hit.provenance.get("excerpt_fingerprint"),
+                "excerpt_lookup_fingerprint": hit.provenance.get("excerpt_lookup_fingerprint"),
                 "excerpt_text_hash": hit.provenance.get("excerpt_text_hash") or hit.provenance.get("hash"),
                 "matched_terms": copy.deepcopy(hit.provenance.get("matched_terms")),
                 "match_count": hit.provenance.get("match_count"),

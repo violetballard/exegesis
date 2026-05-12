@@ -1371,6 +1371,34 @@ def _normalize_basket_promotion_bundle_snapshot(bundle: dict[str, object]) -> di
     normalized["promotion_items"] = promotion_items
     normalized["promotion_item_count"] = len(normalized["promotion_items"])
     basket_promotion_items = _basket_promotion_items_from_snapshot(normalized)
+    basket_item_by_id: dict[str, dict[str, object]] = {}
+    for item in basket_promotion_items:
+        if not isinstance(item, dict):
+            continue
+        for key in ("item_id", "basket_item_id"):
+            item_id = item.get(key)
+            if not _is_missing_snapshot_value(item_id):
+                basket_item_by_id.setdefault(str(item_id), item)
+    for item in promotion_items:
+        if not isinstance(item, dict):
+            continue
+        basket_item = basket_item_by_id.get(str(item.get("item_id"))) or basket_item_by_id.get(
+            str(item.get("basket_item_id"))
+        )
+        if not isinstance(basket_item, dict):
+            continue
+        lookup_fingerprint = basket_item.get("excerpt_lookup_fingerprint")
+        if _is_missing_snapshot_value(item.get("excerpt_lookup_fingerprint")) and not _is_missing_snapshot_value(
+            lookup_fingerprint
+        ):
+            item["excerpt_lookup_fingerprint"] = copy.deepcopy(lookup_fingerprint)
+            item["promotion_item_fingerprint"] = _stable_fingerprint(
+                {
+                    key: value
+                    for key, value in item.items()
+                    if key != "promotion_item_fingerprint"
+                }
+            )
     normalized["basket_promotion_items"] = basket_promotion_items
     normalized["basket_item_ids"] = _basket_item_ids_from_snapshot(
         normalized,
@@ -2140,6 +2168,10 @@ def _build_retrieval_basket_promotion_bundle_from_payload(payload: dict[str, obj
                 provenance.get("doc_identity_fingerprint"),
             ),
             "excerpt_fingerprint": hit.get("excerpt_fingerprint", provenance.get("excerpt_fingerprint")),
+            "excerpt_lookup_fingerprint": hit.get(
+                "excerpt_lookup_fingerprint",
+                provenance.get("excerpt_lookup_fingerprint"),
+            ),
             "excerpt_text_hash": hit.get(
                 "excerpt_text_hash",
                 provenance.get("excerpt_text_hash", provenance.get("hash")),
