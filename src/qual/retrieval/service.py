@@ -2771,6 +2771,10 @@ class RetrievalService:
             normalized_provenance["basket_item_fingerprint"] = normalized["basket_item_fingerprint"]
         if isinstance(normalized.get("basket_item_id"), str):
             normalized_provenance["basket_item_id"] = normalized["basket_item_id"]
+        if isinstance(normalized.get("basket_item_ids"), list):
+            normalized_provenance["basket_item_ids"] = copy.deepcopy(normalized["basket_item_ids"])
+        if isinstance(normalized.get("basket_item_fingerprints"), list):
+            normalized_provenance["basket_item_fingerprints"] = copy.deepcopy(normalized["basket_item_fingerprints"])
         normalized["provenance"] = normalized_provenance
         return normalized
 

@@ -1667,9 +1667,14 @@ class UnifiedRetrievalTests(unittest.TestCase):
         self.assertEqual(canonical["basket_promotion_count"], 1)
         self.assertEqual(canonical["provenance"]["basket_promotion_count"], 1)
         self.assertEqual(canonical["basket_item_ids"], [canonical["basket_item_id"]])
+        self.assertEqual(canonical["provenance"]["basket_item_ids"], canonical["basket_item_ids"])
         self.assertEqual(
             canonical["basket_item_fingerprints"],
             [canonical["basket_item_fingerprint"]],
+        )
+        self.assertEqual(
+            canonical["provenance"]["basket_item_fingerprints"],
+            canonical["basket_item_fingerprints"],
         )
 
         repeated = self.service.fetch_fts_excerpt(f"  {excerpt_id}  ")
