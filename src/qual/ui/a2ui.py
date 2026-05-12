@@ -248,8 +248,72 @@ class A2UISessionStore:
         return self._by_session[session_id]
 
 
-def _snapshot_contract_value(value: Any) -> Any:
-    return copy.deepcopy(value)
+def _snapshot_contract_value(value: Any, _seen: set[int] | None = None) -> Any:
+    if _seen is None:
+        _seen = set()
+    if isinstance(value, dict):
+        value_id = id(value)
+        if value_id in _seen:
+            return "<cycle:dict>"
+        _seen.add(value_id)
+        try:
+            return {
+                _snapshot_contract_mapping_key(key, _seen): _snapshot_contract_value(item, _seen)
+                for key, item in sorted(
+                    value.items(),
+                    key=lambda item: _snapshot_contract_mapping_key(item[0], _seen),
+                )
+            }
+        finally:
+            _seen.remove(value_id)
+    if isinstance(value, list):
+        value_id = id(value)
+        if value_id in _seen:
+            return "<cycle:list>"
+        _seen.add(value_id)
+        try:
+            return [_snapshot_contract_value(item, _seen) for item in value]
+        finally:
+            _seen.remove(value_id)
+    if isinstance(value, tuple):
+        value_id = id(value)
+        if value_id in _seen:
+            return "<cycle:tuple>"
+        _seen.add(value_id)
+        try:
+            return [_snapshot_contract_value(item, _seen) for item in value]
+        finally:
+            _seen.remove(value_id)
+    if isinstance(value, Set):
+        value_id = id(value)
+        if value_id in _seen:
+            return f"<cycle:{type(value).__name__}>"
+        _seen.add(value_id)
+        try:
+            normalized_items = [_snapshot_contract_value(item, _seen) for item in value]
+            return sorted(normalized_items, key=_canonical_json_sort_key)
+        finally:
+            _seen.remove(value_id)
+    try:
+        snapshot = copy.deepcopy(value)
+    except Exception:
+        return f"<non-json:{type(value).__name__}>"
+    try:
+        _canonical_json(snapshot)
+    except (TypeError, ValueError):
+        return f"<non-json:{type(value).__name__}>"
+    return snapshot
+
+
+def _snapshot_contract_mapping_key(key: Any, _seen: set[int]) -> str:
+    if isinstance(key, str):
+        return key
+    key_snapshot = _snapshot_contract_value(key, _seen)
+    try:
+        key_preview = _canonical_json(key_snapshot)
+    except (TypeError, ValueError):
+        key_preview = f'"<non-json:{type(key).__name__}>"'
+    return f"<key:{type(key).__name__}:{key_preview}>"
 
 
 def _snapshot_contract_section(section: Any) -> Any:
@@ -3932,15 +3996,22 @@ def validate_engine_artifacts(
     if isinstance(artifacts, Mapping):
         if not artifacts:
             raise ValueError("Engine artifacts must contain at least one artifact")
+        normalized_names: set[str] = set()
         for name, item in artifacts.items():
-            if not isinstance(name, str) or not name.strip():
-                raise ValueError("Engine artifact stage names must be non-empty strings")
+            try:
+                normalized_name = _normalize_terminal_artifact_cli_fallback_payload_artifact_name(name)
+            except ValueError as exc:
+                raise ValueError(f"Engine artifact stage name {name!r} is invalid: {exc}") from exc
+            normalized_unique_key = normalized_name.casefold()
+            if normalized_unique_key in normalized_names:
+                raise ValueError("Engine artifact stage names must be unique after normalization")
+            normalized_names.add(normalized_unique_key)
             if isinstance(item, (str, bytes)) or not isinstance(item, Sequence) or len(item) != 2:
                 raise ValueError(
                     f"Engine artifact for stage {name!r} must be a (kind, artifact) pair"
                 )
             kind, artifact = item
-            pairs.append((f"stage {name!r}", kind, artifact))
+            pairs.append((f"stage {normalized_name!r}", kind, artifact))
     elif (
         isinstance(artifacts, (str, bytes, Mapping, Set))
         or not isinstance(artifacts, Sequence)
@@ -6687,8 +6758,15 @@ def render_terminal_card(card: Any) -> str:
         title = _render_terminal_inline_text(raw_title)
         rendered_card_type = _render_terminal_inline_text(card_type)
         raw_actions = normalized_card.get("actions")
-        actions = _materialize_card_actions(raw_actions)
-        malformed_actions_container = raw_actions is not None and not isinstance(raw_actions, (list, tuple))
+        actions, incomplete_actions = _materialize_action_iterable(raw_actions)
+        malformed_actions_container = (
+            raw_actions is not None
+            and not isinstance(raw_actions, (list, tuple))
+            and (
+                not isinstance(raw_actions, Iterable)
+                or isinstance(raw_actions, (str, bytes, bytearray, Mapping))
+            )
+        )
         subtitle = normalized_card.get("subtitle")
         generic_fallback_source = _resolve_generic_fallback_source(
             raw_title,
@@ -6745,14 +6823,17 @@ def render_terminal_card(card: Any) -> str:
         if rendered_debug:
             lines.append("Debug:")
             lines.extend(rendered_debug)
-        for block in _iter_card_entries(normalized_card.get("blocks")):
+        blocks, incomplete_blocks = _materialize_card_entry_iterable(normalized_card.get("blocks"))
+        for block in blocks:
             lines.extend(_render_terminal_block(block))
+        if incomplete_blocks:
+            lines.append("Some blocks unavailable after fallback recovery")
         rendered_actions = _render_terminal_actions(
             actions,
             supported_actions={FALLBACK_COPY_ACTION_ID} if card_type == UNKNOWN_CARD_TYPE else _ALLOWED_ACTION_SET,
         )
         actions_present = raw_actions is not None
-        filtered_actions = actions_present and len(rendered_actions) < len(actions)
+        filtered_actions = actions_present and (incomplete_actions or len(rendered_actions) < len(actions))
         if rendered_actions:
             lines.append("Actions:")
             lines.extend(rendered_actions)
@@ -6760,7 +6841,7 @@ def render_terminal_card(card: Any) -> str:
                 lines.append("Some actions filtered out by allowlist or validation")
         elif actions_present:
             lines.append("Actions: none available")
-            if actions or malformed_actions_container:
+            if actions or incomplete_actions or malformed_actions_container:
                 lines.append("Actions filtered out by allowlist or validation")
         return "\n".join(lines)
     except Exception:
@@ -8082,11 +8163,9 @@ def _build_read_only_fallback_actions(
 
 
 def _filter_supported_actions(actions: Any, *, supported_actions: set[str]) -> list[dict[str, Any]]:
-    if not isinstance(actions, Iterable) or isinstance(actions, (str, bytes, bytearray, Mapping)):
-        return []
     filtered: list[dict[str, Any]] = []
     seen: set[str] = set()
-    for action in list(actions):
+    for action in _iter_materialized_actions(actions):
         try:
             normalized = _normalize_action(action, supported_actions=supported_actions)
         except ValueError:
@@ -8980,15 +9059,42 @@ def _infer_unknown_fallback_source(title: str) -> str | None:
 
 
 def _iter_card_entries(entries: Any) -> list[Any]:
-    if not isinstance(entries, (list, tuple)):
-        return []
-    return list(entries)
+    materialized, _incomplete = _materialize_card_entry_iterable(entries)
+    return materialized
+
+
+def _materialize_card_entry_iterable(entries: Any) -> tuple[list[Any], bool]:
+    if not isinstance(entries, Iterable) or isinstance(entries, (str, bytes, bytearray, Mapping)):
+        return [], False
+    materialized: list[Any] = []
+    try:
+        for entry in entries:
+            materialized.append(entry)
+    except Exception:
+        return materialized, True
+    return materialized, False
 
 
 def _materialize_card_actions(actions: Any) -> list[Any]:
+    materialized, _incomplete = _materialize_action_iterable(actions)
+    return materialized
+
+
+def _iter_materialized_actions(actions: Any) -> list[Any]:
+    materialized, _incomplete = _materialize_action_iterable(actions)
+    return materialized
+
+
+def _materialize_action_iterable(actions: Any) -> tuple[list[Any], bool]:
     if not isinstance(actions, Iterable) or isinstance(actions, (str, bytes, bytearray, Mapping)):
-        return []
-    return list(actions)
+        return [], False
+    materialized: list[Any] = []
+    try:
+        for action in actions:
+            materialized.append(action)
+    except Exception:
+        return materialized, True
+    return materialized, False
 
 
 def _normalize_card_type(card: dict[str, Any]) -> str:
@@ -9065,12 +9171,8 @@ def _fallback_subtitle(fallback_kind: str) -> str:
 
 
 def _extract_safe_primitive_blocks(card: dict[str, Any], *, allow_code_block: bool = True) -> list[dict[str, Any]]:
-    nested_blocks = card.get("blocks")
-    if not isinstance(nested_blocks, (list, tuple)):
-        return []
-
     safe_blocks: list[dict[str, Any]] = []
-    for block in nested_blocks:
+    for block in _iter_card_entries(card.get("blocks")):
         sanitized_block = _sanitize_safe_primitive_block(block, allow_code_block=allow_code_block)
         if sanitized_block is not None:
             safe_blocks.append(sanitized_block)
@@ -9215,12 +9317,9 @@ def _canonicalize_supported_action_list(
     contract-safe instead of relying on downstream renderers to normalize it.
     """
 
-    if not isinstance(actions, Iterable) or isinstance(actions, (str, bytes, bytearray, Mapping)):
-        return []
-
     filtered: list[dict[str, Any]] = []
     seen: set[str] = set()
-    for action in list(actions):
+    for action in _iter_materialized_actions(actions):
         try:
             normalized = _normalize_action(action, supported_actions=supported_actions)
         except ValueError:

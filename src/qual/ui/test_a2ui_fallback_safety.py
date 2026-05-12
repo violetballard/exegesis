@@ -106,6 +106,7 @@ from src.qual.ui.a2ui import (
     render_terminal_selection,
     _infer_terminal_artifact_kind_from_mapping,
     refine_terminal_artifact_cli_fallback_target,
+    _snapshot_contract_section,
     _render_payload_preview,
     SelectionRef,
     _should_preserve_raw_leaf_card_default,
@@ -820,6 +821,25 @@ class A2UIFallbackSafetyTests(unittest.TestCase):
             second["terminal_artifact_cli_fallback_route_contract_manifest"]["leaf_renderers"]["card"],
             "render_terminal_card",
         )
+
+    def test_a2ui_contract_snapshots_label_non_string_mapping_keys(self) -> None:
+        key = ("route", 1)
+
+        snapshot = _snapshot_contract_section({key: {"name": "card"}, "plain": "kept"})
+
+        self.assertEqual(snapshot["plain"], "kept")
+        self.assertEqual(snapshot['<key:tuple:["route",1]>'], {"name": "card"})
+
+    def test_a2ui_contract_snapshots_set_values_as_deterministic_json_lists(self) -> None:
+        snapshot = _snapshot_contract_section(
+            {
+                "actions": {"export_document", "copy_to_clipboard"},
+                "nested": frozenset((("beta", 2), ("alpha", 1))),
+            }
+        )
+
+        self.assertEqual(snapshot["actions"], ["copy_to_clipboard", "export_document"])
+        self.assertEqual(snapshot["nested"], [["alpha", 1], ["beta", 2]])
 
     def test_shell_ui_contract_exposes_the_cli_fallback_wrapper_manifest_aliases(self) -> None:
         shell_contract = describe_shell_ui_contract(include_contract_aliases=True)
@@ -14576,6 +14596,51 @@ class A2UIFallbackSafetyTests(unittest.TestCase):
         self.assertEqual(direct_unknown["title"], "Unsupported card type: FutureCard")
         self.assertEqual(direct_unknown["actions"][0]["id"], "copy_to_clipboard")
 
+    def test_studio_materialize_card_keeps_partial_actions_when_action_stream_fails(self) -> None:
+        caps = _capabilities()
+
+        def action_stream():
+            yield {
+                "id": "copy_to_clipboard",
+                "label": "Copy JSON",
+                "payload": {"text": "safe"},
+            }
+            raise RuntimeError("action stream closed")
+
+        materialized = studio_materialize_card(
+            {
+                "type": "GenericCard",
+                "title": "Run Log",
+                "blocks": [{"type": "MarkdownBlock", "markdown": "safe body"}],
+                "actions": action_stream(),
+            },
+            caps,
+        )
+
+        self.assertEqual(
+            materialized["actions"],
+            [{"id": "copy_to_clipboard", "label": "Copy JSON", "payload": {"text": "safe"}}],
+        )
+
+    def test_studio_materialize_card_keeps_partial_blocks_when_block_stream_fails(self) -> None:
+        caps = _capabilities()
+
+        def block_stream():
+            yield {"type": "MarkdownBlock", "markdown": "safe body"}
+            raise RuntimeError("block stream closed")
+
+        materialized = studio_materialize_card(
+            {
+                "type": "GenericCard",
+                "title": "Run Log",
+                "blocks": block_stream(),
+                "actions": [],
+            },
+            caps,
+        )
+
+        self.assertEqual(materialized["blocks"], [{"type": "MarkdownBlock", "markdown": "safe body"}])
+
     def test_engine_card_materializers_snapshot_debug_payloads(self) -> None:
         caps = A2UICapabilities(
             a2ui_version=1,
@@ -14990,6 +15055,51 @@ class A2UIFallbackSafetyTests(unittest.TestCase):
         self.assertIn("Actions: none available", text)
         self.assertNotIn("Actions filtered out by allowlist or validation", text)
 
+    def test_terminal_renderer_keeps_card_body_when_action_stream_fails(self) -> None:
+        def action_stream():
+            yield {
+                "id": "copy_to_clipboard",
+                "label": "Copy JSON",
+                "payload": {"text": "safe"},
+            }
+            raise RuntimeError("action stream closed")
+
+        text = render_terminal_card(
+            {
+                "type": "GenericCard",
+                "title": "Run Log",
+                "blocks": [{"type": "MarkdownBlock", "markdown": "safe body"}],
+                "actions": action_stream(),
+            }
+        )
+
+        self.assertIn("[GenericCard] Run Log", text)
+        self.assertIn("safe body", text)
+        self.assertIn("- Copy JSON (copy_to_clipboard)", text)
+        self.assertIn("Some actions filtered out by allowlist or validation", text)
+        self.assertNotIn("Actions: none available", text)
+        self.assertNotIn("<invalid card>", text)
+
+    def test_terminal_renderer_keeps_card_body_when_block_stream_fails(self) -> None:
+        def block_stream():
+            yield {"type": "MarkdownBlock", "markdown": "safe body"}
+            raise RuntimeError("block stream closed")
+
+        text = render_terminal_card(
+            {
+                "type": "GenericCard",
+                "title": "Run Log",
+                "blocks": block_stream(),
+                "actions": [],
+            }
+        )
+
+        self.assertIn("[GenericCard] Run Log", text)
+        self.assertIn("safe body", text)
+        self.assertIn("Some blocks unavailable after fallback recovery", text)
+        self.assertIn("Actions: none available", text)
+        self.assertNotIn("<invalid card>", text)
+
     def test_terminal_renderer_infers_generic_fallback_when_actions_are_missing(self) -> None:
         text = render_terminal_card(
             {
@@ -15390,6 +15500,37 @@ class A2UIFallbackSafetyTests(unittest.TestCase):
         with self.assertRaises(ValueError) as ctx:
             validate_engine_artifacts({"": ("card", {"type": "RunLogCard", "title": "X", "blocks": [], "actions": []})})
         self.assertIn("non-empty string", str(ctx.exception))
+
+    def test_validate_engine_artifacts_rejects_control_character_stage_name(self) -> None:
+        with self.assertRaises(ValueError) as ctx:
+            validate_engine_artifacts(
+                {
+                    "pl\nan": (
+                        "card",
+                        {"type": "RunLogCard", "title": "X", "blocks": [], "actions": []},
+                    )
+                }
+            )
+
+        self.assertIn("stage name", str(ctx.exception))
+        self.assertIn("control characters", str(ctx.exception))
+
+    def test_validate_engine_artifacts_rejects_duplicate_normalized_stage_names(self) -> None:
+        with self.assertRaises(ValueError) as ctx:
+            validate_engine_artifacts(
+                {
+                    " Plan ": (
+                        "card",
+                        {"type": "RunLogCard", "title": "Plan", "blocks": [], "actions": []},
+                    ),
+                    "plan": (
+                        "card",
+                        {"type": "RunLogCard", "title": "Plan 2", "blocks": [], "actions": []},
+                    ),
+                }
+            )
+
+        self.assertIn("unique after normalization", str(ctx.exception))
 
     def test_validate_engine_artifacts_validates_all_kinds_in_sequence(self) -> None:
         artifacts = [
