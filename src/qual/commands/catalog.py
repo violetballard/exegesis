@@ -816,6 +816,7 @@ class CommandDemoSmokeSequenceContract:
     trusted_loop_complete: bool
     entries: tuple[CommandDemoSmokeSequenceEntry, ...]
     smoke_argvs: tuple[tuple[str, ...], ...]
+    smoke_command_lines: tuple[str, ...]
     exact_action_argvs: tuple[tuple[str, ...], ...]
     missing_flow_steps: tuple[str, ...]
     missing_engine_actions: tuple[str, ...]
@@ -8234,6 +8235,9 @@ def command_demo_smoke_sequence_contract(
     )
 
     smoke_argvs = tuple(entry.smoke_argv for entry in entries)
+    smoke_command_lines = tuple(
+        line for _, _, _, line in command_demo_smoke_cli_script_lines(specs, launcher_argv)
+    )
     exact_action_argvs = tuple(
         argv for entry in entries for argv in entry.exact_action_argv
     )
@@ -8249,6 +8253,7 @@ def command_demo_smoke_sequence_contract(
         trusted_loop_complete=trusted_loop.is_complete,
         entries=entries,
         smoke_argvs=smoke_argvs,
+        smoke_command_lines=smoke_command_lines,
         exact_action_argvs=exact_action_argvs,
         missing_flow_steps=trusted_loop.missing_flow_steps,
         missing_engine_actions=trusted_loop.missing_engine_actions,
@@ -8271,6 +8276,12 @@ def command_demo_smoke_sequence_contract(
         raise ValueError("Command demo smoke sequence exact action argvs are inconsistent")
     if tuple(entry.smoke_argv for entry in contract.entries) != contract.smoke_argvs:
         raise ValueError("Command demo smoke sequence argvs are inconsistent")
+    expected_smoke_lines = tuple(
+        _shell_join((*launcher_argv, *entry.smoke_argv))
+        for entry in contract.entries
+    )
+    if contract.smoke_command_lines != expected_smoke_lines:
+        raise ValueError("Command demo smoke sequence command lines are inconsistent")
     expected_complete = (
         trusted_loop.is_complete
         and all(entry.ready for entry in entries)
@@ -8348,6 +8359,7 @@ def command_demo_smoke_sequence_payload(
         "is_complete": contract.is_complete,
         "trusted_loop_complete": contract.trusted_loop_complete,
         "smoke_argvs": contract.smoke_argvs,
+        "smoke_command_lines": contract.smoke_command_lines,
         "exact_action_argvs": contract.exact_action_argvs,
         "missing_flow_steps": contract.missing_flow_steps,
         "missing_engine_actions": contract.missing_engine_actions,
