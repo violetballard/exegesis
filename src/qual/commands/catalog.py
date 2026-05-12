@@ -325,6 +325,28 @@ class CommandHandlerTrustedActionContract:
 
 
 @dataclass(frozen=True)
+class CommandHandlerTrustedDemoPathEntry:
+    name: str
+    flow_step: str
+    demo_path_step: str
+    handler: str
+    delegated_to: str
+    command_argv: tuple[str, ...]
+    command_line: str
+    engine_actions: tuple[str, ...]
+    trusted_engine_actions: tuple[str, ...]
+    missing_engine_actions: tuple[str, ...]
+    is_trusted: bool
+
+
+@dataclass(frozen=True)
+class CommandHandlerTrustedDemoPathContract:
+    is_complete: bool
+    entries: tuple[CommandHandlerTrustedDemoPathEntry, ...]
+    missing_engine_actions: tuple[str, ...]
+
+
+@dataclass(frozen=True)
 class CommandDemoActionRouteEntry:
     engine_action: str
     flow_step: str
@@ -3053,6 +3075,171 @@ def command_handler_trusted_action_entry_for_argv(
     return command_handler_trusted_action_entry_for_engine_action(engine_action, specs, launcher_argv)
 
 
+@lru_cache(maxsize=None)
+def command_handler_trusted_demo_path_contract(
+    specs: tuple[CommandSpec, ...] = COMMAND_SPECS,
+    launcher_argv: tuple[str, ...] = COMMAND_SMOKE_CLI_LAUNCHER_ARGV,
+) -> CommandHandlerTrustedDemoPathContract:
+    trusted_by_action = {
+        entry.engine_action: entry
+        for entry in command_handler_trusted_action_contract(specs, launcher_argv).entries
+        if entry.is_thin and entry.is_ready
+    }
+    entries = tuple(
+        CommandHandlerTrustedDemoPathEntry(
+            name=entry.name,
+            flow_step=entry.flow_step,
+            demo_path_step=entry.demo_path_step,
+            handler=entry.handler,
+            delegated_to=entry.delegated_to,
+            command_argv=entry.command_argv,
+            command_line=_shell_join(entry.command_argv),
+            engine_actions=entry.engine_actions,
+            trusted_engine_actions=tuple(
+                action
+                for action in entry.engine_actions
+                if action in trusted_by_action
+            ),
+            missing_engine_actions=tuple(
+                action
+                for action in entry.engine_actions
+                if action not in trusted_by_action
+            ),
+            is_trusted=all(action in trusted_by_action for action in entry.engine_actions),
+        )
+        for entry in command_handler_demo_path_contract(specs, launcher_argv).entries
+    )
+    missing_engine_actions = tuple(
+        action
+        for entry in entries
+        for action in entry.missing_engine_actions
+    )
+    contract = CommandHandlerTrustedDemoPathContract(
+        is_complete=not missing_engine_actions and all(entry.is_trusted for entry in entries),
+        entries=entries,
+        missing_engine_actions=missing_engine_actions,
+    )
+    _validate_command_handler_trusted_demo_path_contract(
+        contract,
+        specs=specs,
+        launcher_argv=launcher_argv,
+    )
+    return contract
+
+
+def _validate_command_handler_trusted_demo_path_contract(
+    contract: CommandHandlerTrustedDemoPathContract,
+    *,
+    specs: tuple[CommandSpec, ...],
+    launcher_argv: tuple[str, ...],
+) -> None:
+    demo_path_entries = command_handler_demo_path_contract(specs, launcher_argv).entries
+    trusted_actions = {
+        entry.engine_action
+        for entry in command_handler_trusted_action_contract(specs, launcher_argv).entries
+        if entry.is_thin and entry.is_ready
+    }
+    if tuple(entry.name for entry in contract.entries) != tuple(
+        entry.name for entry in demo_path_entries
+    ):
+        raise ValueError("Command handler trusted demo path names are inconsistent")
+    for entry, demo_path_entry in zip(contract.entries, demo_path_entries, strict=True):
+        if (
+            entry.flow_step != demo_path_entry.flow_step
+            or entry.demo_path_step != demo_path_entry.demo_path_step
+            or entry.handler != demo_path_entry.handler
+            or entry.delegated_to != demo_path_entry.delegated_to
+            or entry.command_argv != demo_path_entry.command_argv
+            or entry.engine_actions != demo_path_entry.engine_actions
+        ):
+            raise ValueError(f"Command handler trusted demo path drifted: {entry.name}")
+        if entry.command_line != _shell_join(entry.command_argv):
+            raise ValueError(f"Command handler trusted demo path command line drifted: {entry.name}")
+        expected_trusted = tuple(
+            action
+            for action in entry.engine_actions
+            if action in trusted_actions
+        )
+        expected_missing = tuple(
+            action
+            for action in entry.engine_actions
+            if action not in trusted_actions
+        )
+        if entry.trusted_engine_actions != expected_trusted:
+            raise ValueError(f"Command handler trusted demo path trusted actions drifted: {entry.name}")
+        if entry.missing_engine_actions != expected_missing:
+            raise ValueError(f"Command handler trusted demo path missing actions drifted: {entry.name}")
+        if entry.is_trusted != (not entry.missing_engine_actions):
+            raise ValueError(f"Command handler trusted demo path trust status drifted: {entry.name}")
+    expected_missing_all = tuple(
+        action
+        for entry in contract.entries
+        for action in entry.missing_engine_actions
+    )
+    if contract.missing_engine_actions != expected_missing_all:
+        raise ValueError("Command handler trusted demo path missing actions are inconsistent")
+    if contract.is_complete != (
+        not contract.missing_engine_actions and all(entry.is_trusted for entry in contract.entries)
+    ):
+        raise ValueError("Command handler trusted demo path completeness is inconsistent")
+
+
+def command_handler_trusted_demo_path_summary(
+    specs: tuple[CommandSpec, ...] = COMMAND_SPECS,
+    launcher_argv: tuple[str, ...] = COMMAND_SMOKE_CLI_LAUNCHER_ARGV,
+) -> tuple[tuple[str, str, str, str, str, tuple[str, ...], str, tuple[str, ...], bool], ...]:
+    return tuple(
+        (
+            entry.name,
+            entry.flow_step,
+            entry.demo_path_step,
+            entry.handler,
+            entry.delegated_to,
+            entry.command_argv,
+            entry.command_line,
+            entry.engine_actions,
+            entry.is_trusted,
+        )
+        for entry in command_handler_trusted_demo_path_contract(specs, launcher_argv).entries
+    )
+
+
+def command_handler_trusted_demo_path_lookup_table(
+    specs: tuple[CommandSpec, ...] = COMMAND_SPECS,
+    launcher_argv: tuple[str, ...] = COMMAND_SMOKE_CLI_LAUNCHER_ARGV,
+) -> tuple[tuple[str, tuple[str, tuple[str, ...], bool]], ...]:
+    return tuple(
+        (
+            entry.name,
+            (entry.delegated_to, entry.engine_actions, entry.is_trusted),
+        )
+        for entry in command_handler_trusted_demo_path_contract(specs, launcher_argv).entries
+    )
+
+
+def command_handler_trusted_demo_path_entry_for_command(
+    command_name: str,
+    specs: tuple[CommandSpec, ...] = COMMAND_SPECS,
+    launcher_argv: tuple[str, ...] = COMMAND_SMOKE_CLI_LAUNCHER_ARGV,
+) -> CommandHandlerTrustedDemoPathEntry | None:
+    canonical_name = canonical_command_for(specs, command_name)
+    for entry in command_handler_trusted_demo_path_contract(specs, launcher_argv).entries:
+        if entry.name == canonical_name:
+            return entry
+    return None
+
+
+def command_handler_trusted_demo_path_entry_for_argv(
+    argv: Sequence[str] | str,
+    specs: tuple[CommandSpec, ...] = COMMAND_SPECS,
+    launcher_argv: tuple[str, ...] = COMMAND_SMOKE_CLI_LAUNCHER_ARGV,
+) -> CommandHandlerTrustedDemoPathEntry | None:
+    demo_path_entry = command_handler_demo_path_entry_for_argv(argv, specs, launcher_argv)
+    if demo_path_entry is None:
+        return None
+    return command_handler_trusted_demo_path_entry_for_command(demo_path_entry.name, specs, launcher_argv)
+
+
 def command_mvp_handler_action_route_contract(
     specs: tuple[CommandSpec, ...] = COMMAND_SPECS,
     launcher_argv: tuple[str, ...] = COMMAND_SMOKE_CLI_LAUNCHER_ARGV,
@@ -3146,6 +3333,43 @@ def command_mvp_handler_trusted_action_entry_for_argv(
     launcher_argv: tuple[str, ...] = COMMAND_SMOKE_CLI_LAUNCHER_ARGV,
 ) -> CommandHandlerTrustedActionEntry | None:
     return command_handler_trusted_action_entry_for_argv(argv, specs, launcher_argv)
+
+
+def command_mvp_handler_trusted_demo_path_contract(
+    specs: tuple[CommandSpec, ...] = COMMAND_SPECS,
+    launcher_argv: tuple[str, ...] = COMMAND_SMOKE_CLI_LAUNCHER_ARGV,
+) -> CommandHandlerTrustedDemoPathContract:
+    return command_handler_trusted_demo_path_contract(specs, launcher_argv)
+
+
+def command_mvp_handler_trusted_demo_path_summary(
+    specs: tuple[CommandSpec, ...] = COMMAND_SPECS,
+    launcher_argv: tuple[str, ...] = COMMAND_SMOKE_CLI_LAUNCHER_ARGV,
+) -> tuple[tuple[str, str, str, str, str, tuple[str, ...], str, tuple[str, ...], bool], ...]:
+    return command_handler_trusted_demo_path_summary(specs, launcher_argv)
+
+
+def command_mvp_handler_trusted_demo_path_lookup_table(
+    specs: tuple[CommandSpec, ...] = COMMAND_SPECS,
+    launcher_argv: tuple[str, ...] = COMMAND_SMOKE_CLI_LAUNCHER_ARGV,
+) -> tuple[tuple[str, tuple[str, tuple[str, ...], bool]], ...]:
+    return command_handler_trusted_demo_path_lookup_table(specs, launcher_argv)
+
+
+def command_mvp_handler_trusted_demo_path_entry_for_command(
+    command_name: str,
+    specs: tuple[CommandSpec, ...] = COMMAND_SPECS,
+    launcher_argv: tuple[str, ...] = COMMAND_SMOKE_CLI_LAUNCHER_ARGV,
+) -> CommandHandlerTrustedDemoPathEntry | None:
+    return command_handler_trusted_demo_path_entry_for_command(command_name, specs, launcher_argv)
+
+
+def command_mvp_handler_trusted_demo_path_entry_for_argv(
+    argv: Sequence[str] | str,
+    specs: tuple[CommandSpec, ...] = COMMAND_SPECS,
+    launcher_argv: tuple[str, ...] = COMMAND_SMOKE_CLI_LAUNCHER_ARGV,
+) -> CommandHandlerTrustedDemoPathEntry | None:
+    return command_handler_trusted_demo_path_entry_for_argv(argv, specs, launcher_argv)
 
 
 @lru_cache(maxsize=None)
