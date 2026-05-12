@@ -54,6 +54,7 @@ from src.qual.commands.catalog import (
     CommandDemoTrustedLoopContract,
     CommandDemoSmokeSequenceEntry,
     CommandDemoSmokeSequenceContract,
+    CommandDemoTrustChecklistContract,
     CommandDemoReadinessFingerprint,
     CommandDemoReadinessReport,
     CommandDemoReadinessRouteContract,
@@ -150,6 +151,13 @@ from src.qual.commands.catalog import (
     command_mvp_demo_smoke_sequence_summary as _smoke_sequence_summary,
     require_command_mvp_demo_smoke_sequence_complete
     as _require_smoke_sequence_complete,
+    command_mvp_demo_trust_checklist_contract as _trust_checklist_contract,
+    command_mvp_demo_trust_checklist_issues as _trust_checklist_issues,
+    command_mvp_demo_trust_checklist_json as _trust_checklist_json,
+    command_mvp_demo_trust_checklist_payload as _trust_checklist_payload,
+    command_mvp_demo_trust_checklist_summary as _trust_checklist_summary,
+    require_command_mvp_demo_trust_checklist_complete
+    as _require_trust_checklist_complete,
     command_demo_readiness_handoff_action_contract as _readiness_handoff_action_contract,
     command_mvp_demo_readiness_handoff_action_summary as _readiness_handoff_action_summary,
     command_mvp_demo_readiness_handoff_map_contract as _readiness_handoff_map_contract,
@@ -562,6 +570,7 @@ class CommandCanonicalReadinessCheckpoint:
     handoff: CommandDemoReadinessHandoffPacket
     trusted_loop: CommandDemoTrustedLoopContract
     smoke_sequence: CommandDemoSmokeSequenceContract
+    trust_checklist: CommandDemoTrustChecklistContract
     is_ready: bool
     issues: tuple[str, ...]
 
@@ -670,6 +679,12 @@ __all__ = [
     "canonical_command_smoke_sequence_payload",
     "canonical_command_require_smoke_sequence_complete",
     "canonical_command_smoke_sequence_summary",
+    "canonical_command_trust_checklist_contract",
+    "canonical_command_trust_checklist_issues",
+    "canonical_command_trust_checklist_json",
+    "canonical_command_trust_checklist_payload",
+    "canonical_command_require_trust_checklist_complete",
+    "canonical_command_trust_checklist_summary",
     "canonical_command_readiness_checkpoint",
     "canonical_command_readiness_checkpoint_issues",
     "canonical_command_readiness_checkpoint_json",
@@ -2153,12 +2168,65 @@ def canonical_command_smoke_sequence_issues() -> tuple[str, ...]:
     return _smoke_sequence_issues()
 
 
+def canonical_command_trust_checklist_contract() -> CommandDemoTrustChecklistContract:
+    return _trust_checklist_contract()
+
+
+def canonical_command_require_trust_checklist_complete() -> CommandDemoTrustChecklistContract:
+    return _require_trust_checklist_complete()
+
+
+def canonical_command_trust_checklist_summary() -> tuple[
+    str,
+    str,
+    bool,
+    bool,
+    bool,
+    tuple[
+        tuple[
+            int,
+            str,
+            str,
+            str,
+            str,
+            str,
+            str,
+            str,
+            str,
+            tuple[str, ...],
+            tuple[tuple[str, str], ...],
+            bool,
+            bool,
+            bool,
+        ],
+        ...,
+    ],
+    tuple[str, ...],
+    tuple[str, ...],
+    tuple[tuple[str, ...], ...],
+]:
+    return _trust_checklist_summary()
+
+
+def canonical_command_trust_checklist_payload() -> dict[str, object]:
+    return _trust_checklist_payload()
+
+
+def canonical_command_trust_checklist_json() -> str:
+    return _trust_checklist_json()
+
+
+def canonical_command_trust_checklist_issues() -> tuple[str, ...]:
+    return _trust_checklist_issues()
+
+
 def canonical_command_readiness_checkpoint() -> CommandCanonicalReadinessCheckpoint:
     """Return the stable readiness decision used by command smoke handoffs."""
 
     handoff = canonical_command_readiness_handoff_packet()
     trusted_loop = canonical_command_trusted_loop_contract()
     smoke_sequence = canonical_command_smoke_sequence_contract()
+    trust_checklist = canonical_command_trust_checklist_contract()
     issues = (
         handoff.missing_flow_steps
         + handoff.missing_engine_actions
@@ -2174,16 +2242,19 @@ def canonical_command_readiness_checkpoint() -> CommandCanonicalReadinessCheckpo
         + tuple("invalid smoke argv: " + " ".join(argv) for argv in smoke_sequence.invalid_argv)
         + canonical_command_trusted_loop_issues()
         + canonical_command_smoke_sequence_issues()
+        + canonical_command_trust_checklist_issues()
     )
     unique_issues = tuple(dict.fromkeys(issue for issue in issues if issue))
     return CommandCanonicalReadinessCheckpoint(
         handoff=handoff,
         trusted_loop=trusted_loop,
         smoke_sequence=smoke_sequence,
+        trust_checklist=trust_checklist,
         is_ready=(
             handoff.is_complete
             and trusted_loop.is_complete
             and smoke_sequence.is_complete
+            and trust_checklist.is_complete
             and not unique_issues
         ),
         issues=unique_issues,
@@ -2211,6 +2282,7 @@ def canonical_command_readiness_checkpoint_summary() -> tuple[
     bool,
     bool,
     bool,
+    bool,
     tuple[str, ...],
 ]:
     checkpoint = canonical_command_readiness_checkpoint()
@@ -2221,6 +2293,7 @@ def canonical_command_readiness_checkpoint_summary() -> tuple[
         checkpoint.handoff.is_complete,
         checkpoint.trusted_loop.is_complete,
         checkpoint.smoke_sequence.is_complete,
+        checkpoint.trust_checklist.is_complete,
         checkpoint.issues,
     )
 
@@ -2234,9 +2307,11 @@ def canonical_command_readiness_checkpoint_payload() -> dict[str, object]:
         "handoff_complete": checkpoint.handoff.is_complete,
         "trusted_loop_complete": checkpoint.trusted_loop.is_complete,
         "smoke_sequence_complete": checkpoint.smoke_sequence.is_complete,
+        "trust_checklist_complete": checkpoint.trust_checklist.is_complete,
         "command_lines": checkpoint.handoff.command_lines,
         "smoke_argvs": checkpoint.smoke_sequence.smoke_argvs,
         "exact_action_argvs": checkpoint.smoke_sequence.exact_action_argvs,
+        "trust_checklist": canonical_command_trust_checklist_payload(),
         "issues": checkpoint.issues,
     }
 

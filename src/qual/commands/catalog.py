@@ -869,6 +869,37 @@ class CommandDemoSmokeSequenceContract:
 
 
 @dataclass(frozen=True)
+class CommandDemoTrustChecklistItem:
+    ordinal: int
+    demo_path_step: str
+    flow_step: str
+    name: str
+    command_line: str
+    smoke_command_line: str
+    handler: str
+    delegated_to: str
+    engine_delegated_to: str
+    engine_actions: tuple[str, ...]
+    exact_action_lines: tuple[tuple[str, str], ...]
+    thin_handler_ready: bool
+    ready: bool
+    trusted: bool
+
+
+@dataclass(frozen=True)
+class CommandDemoTrustChecklistContract:
+    fingerprint_algorithm: str
+    fingerprint_digest: str
+    is_complete: bool
+    trusted_loop_complete: bool
+    smoke_sequence_complete: bool
+    items: tuple[CommandDemoTrustChecklistItem, ...]
+    missing_flow_steps: tuple[str, ...]
+    missing_engine_actions: tuple[str, ...]
+    invalid_argv: tuple[tuple[str, ...], ...]
+
+
+@dataclass(frozen=True)
 class CommandDemoReadinessHandoffAudit:
     is_complete: bool
     fingerprint_digest: str
@@ -8951,6 +8982,235 @@ def require_command_demo_smoke_sequence_complete(
     if not contract.is_complete:
         missing = "; ".join(command_demo_smoke_sequence_issues(specs, launcher_argv))
         raise ValueError(f"Command demo smoke sequence is incomplete: {missing}")
+    return contract
+
+
+def command_demo_trust_checklist_contract(
+    specs: tuple[CommandSpec, ...] = COMMAND_SPECS,
+    launcher_argv: tuple[str, ...] = COMMAND_SMOKE_CLI_LAUNCHER_ARGV,
+) -> CommandDemoTrustChecklistContract:
+    """Return one smoke-testable trust item for each Milestone 3 demo command."""
+
+    trusted_loop = command_demo_trusted_loop_contract(specs, launcher_argv)
+    smoke_sequence = command_demo_smoke_sequence_contract(specs, launcher_argv)
+    smoke_lines_by_flow_step = {
+        entry.flow_step: command_line
+        for entry, command_line in zip(
+            smoke_sequence.entries,
+            smoke_sequence.smoke_command_lines,
+            strict=True,
+        )
+    }
+    items = tuple(
+        CommandDemoTrustChecklistItem(
+            ordinal=step.ordinal,
+            demo_path_step=step.demo_path_step,
+            flow_step=step.flow_step,
+            name=step.name,
+            command_line=step.command_line,
+            smoke_command_line=smoke_lines_by_flow_step[step.flow_step],
+            handler=step.handler,
+            delegated_to=step.delegated_to,
+            engine_delegated_to=step.engine_delegated_to,
+            engine_actions=step.engine_actions,
+            exact_action_lines=step.exact_action_lines,
+            thin_handler_ready=step.thin_handler_ready,
+            ready=step.ready,
+            trusted=step.ready and step.thin_handler_ready,
+        )
+        for step in trusted_loop.steps
+    )
+    contract = CommandDemoTrustChecklistContract(
+        fingerprint_algorithm=trusted_loop.fingerprint_algorithm,
+        fingerprint_digest=trusted_loop.fingerprint_digest,
+        is_complete=(
+            trusted_loop.is_complete
+            and smoke_sequence.is_complete
+            and all(item.trusted for item in items)
+        ),
+        trusted_loop_complete=trusted_loop.is_complete,
+        smoke_sequence_complete=smoke_sequence.is_complete,
+        items=items,
+        missing_flow_steps=tuple(
+            dict.fromkeys(trusted_loop.missing_flow_steps + smoke_sequence.missing_flow_steps)
+        ),
+        missing_engine_actions=tuple(
+            dict.fromkeys(
+                trusted_loop.missing_engine_actions
+                + smoke_sequence.missing_engine_actions
+            )
+        ),
+        invalid_argv=tuple(
+            dict.fromkeys(trusted_loop.invalid_argv + smoke_sequence.invalid_argv)
+        ),
+    )
+    if tuple(item.flow_step for item in contract.items) != DEMO_COMMAND_FLOW_STEPS:
+        raise ValueError("Command demo trust checklist flow order is inconsistent")
+    if tuple(item.command_line for item in contract.items) != tuple(
+        step.command_line for step in trusted_loop.steps
+    ):
+        raise ValueError("Command demo trust checklist command lines are inconsistent")
+    if tuple(item.smoke_command_line for item in contract.items) != smoke_sequence.smoke_command_lines:
+        raise ValueError("Command demo trust checklist smoke command lines are inconsistent")
+    if tuple(item.engine_actions for item in contract.items) != tuple(
+        step.engine_actions for step in trusted_loop.steps
+    ):
+        raise ValueError("Command demo trust checklist engine actions are inconsistent")
+    if contract.is_complete != (
+        trusted_loop.is_complete
+        and smoke_sequence.is_complete
+        and all(item.trusted for item in contract.items)
+    ):
+        raise ValueError("Command demo trust checklist completeness is inconsistent")
+    return contract
+
+
+def command_demo_trust_checklist_summary(
+    specs: tuple[CommandSpec, ...] = COMMAND_SPECS,
+    launcher_argv: tuple[str, ...] = COMMAND_SMOKE_CLI_LAUNCHER_ARGV,
+) -> tuple[
+    str,
+    str,
+    bool,
+    bool,
+    bool,
+    tuple[
+        tuple[
+            int,
+            str,
+            str,
+            str,
+            str,
+            str,
+            str,
+            str,
+            str,
+            tuple[str, ...],
+            tuple[tuple[str, str], ...],
+            bool,
+            bool,
+            bool,
+        ],
+        ...,
+    ],
+    tuple[str, ...],
+    tuple[str, ...],
+    tuple[tuple[str, ...], ...],
+]:
+    contract = command_demo_trust_checklist_contract(specs, launcher_argv)
+    return (
+        contract.fingerprint_algorithm,
+        contract.fingerprint_digest,
+        contract.is_complete,
+        contract.trusted_loop_complete,
+        contract.smoke_sequence_complete,
+        tuple(
+            (
+                item.ordinal,
+                item.demo_path_step,
+                item.flow_step,
+                item.name,
+                item.command_line,
+                item.smoke_command_line,
+                item.handler,
+                item.delegated_to,
+                item.engine_delegated_to,
+                item.engine_actions,
+                item.exact_action_lines,
+                item.thin_handler_ready,
+                item.ready,
+                item.trusted,
+            )
+            for item in contract.items
+        ),
+        contract.missing_flow_steps,
+        contract.missing_engine_actions,
+        contract.invalid_argv,
+    )
+
+
+def command_demo_trust_checklist_payload(
+    specs: tuple[CommandSpec, ...] = COMMAND_SPECS,
+    launcher_argv: tuple[str, ...] = COMMAND_SMOKE_CLI_LAUNCHER_ARGV,
+) -> dict[str, object]:
+    contract = command_demo_trust_checklist_contract(specs, launcher_argv)
+    return {
+        "fingerprint_algorithm": contract.fingerprint_algorithm,
+        "fingerprint_digest": contract.fingerprint_digest,
+        "is_complete": contract.is_complete,
+        "trusted_loop_complete": contract.trusted_loop_complete,
+        "smoke_sequence_complete": contract.smoke_sequence_complete,
+        "missing_flow_steps": contract.missing_flow_steps,
+        "missing_engine_actions": contract.missing_engine_actions,
+        "invalid_argv": contract.invalid_argv,
+        "items": [
+            {
+                "ordinal": item.ordinal,
+                "demo_path_step": item.demo_path_step,
+                "flow_step": item.flow_step,
+                "command": item.name,
+                "command_line": item.command_line,
+                "smoke_command_line": item.smoke_command_line,
+                "handler": item.handler,
+                "delegated_to": item.delegated_to,
+                "engine_delegated_to": item.engine_delegated_to,
+                "engine_actions": item.engine_actions,
+                "exact_action_lines": item.exact_action_lines,
+                "thin_handler_ready": item.thin_handler_ready,
+                "ready": item.ready,
+                "trusted": item.trusted,
+            }
+            for item in contract.items
+        ],
+    }
+
+
+def command_demo_trust_checklist_json(
+    specs: tuple[CommandSpec, ...] = COMMAND_SPECS,
+    launcher_argv: tuple[str, ...] = COMMAND_SMOKE_CLI_LAUNCHER_ARGV,
+) -> str:
+    return json.dumps(
+        command_demo_trust_checklist_payload(specs, launcher_argv),
+        sort_keys=True,
+        separators=(",", ":"),
+    )
+
+
+def command_demo_trust_checklist_issues(
+    specs: tuple[CommandSpec, ...] = COMMAND_SPECS,
+    launcher_argv: tuple[str, ...] = COMMAND_SMOKE_CLI_LAUNCHER_ARGV,
+) -> tuple[str, ...]:
+    contract = command_demo_trust_checklist_contract(specs, launcher_argv)
+    issues: list[str] = []
+    if not contract.trusted_loop_complete:
+        issues.append("trusted loop incomplete")
+    if not contract.smoke_sequence_complete:
+        issues.append("smoke sequence incomplete")
+    if contract.missing_flow_steps:
+        issues.append(f"missing flow steps: {', '.join(contract.missing_flow_steps)}")
+    if contract.missing_engine_actions:
+        issues.append(f"missing engine actions: {', '.join(contract.missing_engine_actions)}")
+    if contract.invalid_argv:
+        invalid_lines = ", ".join(_shell_join(argv) for argv in contract.invalid_argv)
+        issues.append(f"invalid argv: {invalid_lines}")
+    for item in contract.items:
+        if not item.ready:
+            issues.append(f"step not ready: {item.name}")
+        if not item.thin_handler_ready:
+            issues.append(f"handler not thin: {item.name}")
+        if not item.trusted:
+            issues.append(f"step not trusted: {item.name}")
+    return tuple(issues)
+
+
+def require_command_demo_trust_checklist_complete(
+    specs: tuple[CommandSpec, ...] = COMMAND_SPECS,
+    launcher_argv: tuple[str, ...] = COMMAND_SMOKE_CLI_LAUNCHER_ARGV,
+) -> CommandDemoTrustChecklistContract:
+    contract = command_demo_trust_checklist_contract(specs, launcher_argv)
+    if not contract.is_complete:
+        missing = "; ".join(command_demo_trust_checklist_issues(specs, launcher_argv))
+        raise ValueError(f"Command demo trust checklist is incomplete: {missing}")
     return contract
 
 
@@ -17420,6 +17680,77 @@ def require_command_mvp_demo_smoke_sequence_complete(
     launcher_argv: tuple[str, ...] = COMMAND_SMOKE_CLI_LAUNCHER_ARGV,
 ) -> CommandDemoSmokeSequenceContract:
     return require_command_demo_smoke_sequence_complete(specs, launcher_argv)
+
+
+@lru_cache(maxsize=None)
+def command_mvp_demo_trust_checklist_contract(
+    specs: tuple[CommandSpec, ...] = COMMAND_SPECS,
+    launcher_argv: tuple[str, ...] = COMMAND_SMOKE_CLI_LAUNCHER_ARGV,
+) -> CommandDemoTrustChecklistContract:
+    return command_demo_trust_checklist_contract(specs, launcher_argv)
+
+
+def command_mvp_demo_trust_checklist_summary(
+    specs: tuple[CommandSpec, ...] = COMMAND_SPECS,
+    launcher_argv: tuple[str, ...] = COMMAND_SMOKE_CLI_LAUNCHER_ARGV,
+) -> tuple[
+    str,
+    str,
+    bool,
+    bool,
+    bool,
+    tuple[
+        tuple[
+            int,
+            str,
+            str,
+            str,
+            str,
+            str,
+            str,
+            str,
+            str,
+            tuple[str, ...],
+            tuple[tuple[str, str], ...],
+            bool,
+            bool,
+            bool,
+        ],
+        ...,
+    ],
+    tuple[str, ...],
+    tuple[str, ...],
+    tuple[tuple[str, ...], ...],
+]:
+    return command_demo_trust_checklist_summary(specs, launcher_argv)
+
+
+def command_mvp_demo_trust_checklist_payload(
+    specs: tuple[CommandSpec, ...] = COMMAND_SPECS,
+    launcher_argv: tuple[str, ...] = COMMAND_SMOKE_CLI_LAUNCHER_ARGV,
+) -> dict[str, object]:
+    return command_demo_trust_checklist_payload(specs, launcher_argv)
+
+
+def command_mvp_demo_trust_checklist_json(
+    specs: tuple[CommandSpec, ...] = COMMAND_SPECS,
+    launcher_argv: tuple[str, ...] = COMMAND_SMOKE_CLI_LAUNCHER_ARGV,
+) -> str:
+    return command_demo_trust_checklist_json(specs, launcher_argv)
+
+
+def command_mvp_demo_trust_checklist_issues(
+    specs: tuple[CommandSpec, ...] = COMMAND_SPECS,
+    launcher_argv: tuple[str, ...] = COMMAND_SMOKE_CLI_LAUNCHER_ARGV,
+) -> tuple[str, ...]:
+    return command_demo_trust_checklist_issues(specs, launcher_argv)
+
+
+def require_command_mvp_demo_trust_checklist_complete(
+    specs: tuple[CommandSpec, ...] = COMMAND_SPECS,
+    launcher_argv: tuple[str, ...] = COMMAND_SMOKE_CLI_LAUNCHER_ARGV,
+) -> CommandDemoTrustChecklistContract:
+    return require_command_demo_trust_checklist_complete(specs, launcher_argv)
 
 
 def command_mvp_demo_readiness_handoff_step_status_payload(
