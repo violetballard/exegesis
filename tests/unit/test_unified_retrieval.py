@@ -4084,10 +4084,13 @@ class UnifiedRetrievalTests(unittest.TestCase):
         promotion_item.pop("retrieval_backend", None)
         promotion_item.pop("retrieval_mode", None)
         promotion_item.pop("retrieval_policy", None)
+        promotion_item["item_id"] = " Retrieval:PageIndex:stale-excerpt "
 
         normalized_bundle = _build_retrieval_basket_promotion_bundle_from_payload(payload)
         normalized_item = normalized_bundle["promotion_items"][0]
 
+        self.assertEqual(normalized_item["item_id"], result.basket_promotion_items()[0]["basket_item_id"])
+        self.assertEqual(normalized_item["basket_item_id"], result.basket_promotion_items()[0]["basket_item_id"])
         self.assertEqual(normalized_item["retrieval_policy"], result.diagnostics["retrieval_policy"])
         self.assertEqual(normalized_bundle["retrieval_backend"], "sqlite_fts")
         self.assertEqual(normalized_bundle["retrieval_mode"], "fts_first")
@@ -4105,6 +4108,16 @@ class UnifiedRetrievalTests(unittest.TestCase):
         with self.assertRaisesRegex(
             ValueError,
             "retrieval_basket_promotion_bundle must use fts_first mode",
+        ):
+            _build_retrieval_basket_promotion_bundle_from_payload(payload)
+
+        cast(dict[str, object], basket_bundle)["retrieval_mode"] = "fts_first"
+        promotion_item.pop("excerpt_id", None)
+        promotion_item.pop("basket_item_id", None)
+        promotion_item["item_id"] = " Retrieval:PageIndex:stale-excerpt "
+        with self.assertRaisesRegex(
+            ValueError,
+            "basket promotion item must use retrieval:fts basket identity",
         ):
             _build_retrieval_basket_promotion_bundle_from_payload(payload)
 

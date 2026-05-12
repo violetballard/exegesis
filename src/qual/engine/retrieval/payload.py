@@ -129,16 +129,26 @@ def _basket_item_identity(item: dict[str, object]) -> str | None:
 
 
 def _canonical_basket_item_id_for_promotion_item(item: dict[str, object]) -> str | None:
-    item_id = _first_text_value(item.get("basket_item_id"), item.get("item_id"))
-    if item_id is not None:
-        return item_id
-    return _basket_item_id_for_excerpt(
+    for key in ("basket_item_id", "item_id"):
+        item_id = _normalize_fts_basket_item_id(item.get(key))
+        if item_id is not None:
+            return item_id
+
+    derived_item_id = _basket_item_id_for_excerpt(
         source_strategy=_first_text_value(
             item.get("source_strategy"),
             item.get("retrieval_source_strategy"),
         ),
         excerpt_id=item.get("excerpt_id"),
     )
+    if derived_item_id is not None:
+        return derived_item_id
+
+    for key in ("basket_item_id", "item_id"):
+        item_id = _normalize_optional_text(item.get(key))
+        if item_id is not None and item_id.casefold().startswith("retrieval:"):
+            raise ValueError("basket promotion item must use retrieval:fts basket identity")
+    return None
 
 
 def _basket_item_ids_from_items(items: list[object]) -> list[str]:
@@ -1439,10 +1449,14 @@ def _normalize_basket_promotion_bundle_snapshot(bundle: dict[str, object]) -> di
         existing_basket_item_id = _first_text_value(normalized_item.get("basket_item_id"))
         item_id = _canonical_basket_item_id_for_promotion_item(normalized_item)
         identity_changed = False
-        if existing_item_id is None and item_id is not None:
+        if item_id is not None and existing_item_id != item_id:
             normalized_item["item_id"] = item_id
             identity_changed = True
-        if existing_item_id is None and existing_basket_item_id is None and item_id is not None:
+        if (
+            item_id is not None
+            and existing_basket_item_id != item_id
+            and (existing_basket_item_id is not None or existing_item_id is None)
+        ):
             normalized_item["basket_item_id"] = item_id
             identity_changed = True
         if "citation_status" in normalized_item:
