@@ -2,6 +2,7 @@ from __future__ import annotations
 
 import copy
 import hashlib
+import importlib
 import json
 import tempfile
 import unittest
@@ -2120,6 +2121,7 @@ class UnifiedRetrievalTests(unittest.TestCase):
                 "build_retrieval_source_bundle_from_result",
                 "retrieve_fts",
                 "retrieve_fts_context_bundle",
+                "retrieve_fts_citation_bundle",
                 "retrieve_fts_source_bundle",
                 "retrieve_fts_provenance_bundle",
                 "retrieve_fts_doc_bundle",
@@ -2158,6 +2160,7 @@ class UnifiedRetrievalTests(unittest.TestCase):
         self.assertTrue(hasattr(engine_retrieval, "build_retrieval_source_bundle_from_result"))
         self.assertTrue(hasattr(engine_retrieval, "retrieve_fts"))
         self.assertTrue(hasattr(engine_retrieval, "retrieve_fts_context_bundle"))
+        self.assertTrue(hasattr(engine_retrieval, "retrieve_fts_citation_bundle"))
         self.assertTrue(hasattr(engine_retrieval, "retrieve_auto_citation_bundle"))
         self.assertTrue(hasattr(engine_retrieval, "retrieve_fts_source_bundle"))
         self.assertTrue(hasattr(engine_retrieval, "retrieve_fts_provenance_bundle"))
@@ -2175,6 +2178,43 @@ class UnifiedRetrievalTests(unittest.TestCase):
         self.assertTrue(hasattr(engine_retrieval, "retrieve_auto_basket_promotion_bundle"))
         self.assertTrue(hasattr(engine_retrieval, "retrieve_auto_payload"))
         self.assertTrue(hasattr(package_retrieval, "retrieve_auto_citation_bundle"))
+
+    def test_canonical_engine_retrieval_package_exports_fts_facade(self) -> None:
+        canonical_engine_retrieval = importlib.import_module("exegesis_engine.retrieval")
+
+        service_exports = [
+            "RetrievalConstraints",
+            "RetrievalDocHit",
+            "RetrievalHit",
+            "RetrievalQuery",
+            "RetrievalResult",
+            "RetrievalService",
+        ]
+        insertion_index = engine_retrieval.__all__.index("DEFERRED_STRATEGY_IDS") + 1
+        self.assertEqual(canonical_engine_retrieval.__all__[:insertion_index], engine_retrieval.__all__[:insertion_index])
+        self.assertEqual(canonical_engine_retrieval.__all__[insertion_index : insertion_index + len(service_exports)], service_exports)
+        self.assertEqual(canonical_engine_retrieval.__all__[insertion_index + len(service_exports) :], engine_retrieval.__all__[insertion_index:])
+        self.assertEqual(len(canonical_engine_retrieval.__all__), len(set(canonical_engine_retrieval.__all__)))
+        for export_name in engine_retrieval.__all__:
+            with self.subTest(export_name=export_name):
+                self.assertIs(
+                    getattr(canonical_engine_retrieval, export_name),
+                    getattr(engine_retrieval, export_name),
+                )
+        self.assertEqual(canonical_engine_retrieval.ACTIVE_STRATEGY_IDS, ("fts",))
+        self.assertEqual(canonical_engine_retrieval.DEFERRED_STRATEGY_IDS, ("pageindex", "embeddings"))
+        self.assertEqual(canonical_engine_retrieval.active_strategy_ids(), ("fts",))
+        self.assertEqual(canonical_engine_retrieval.deferred_strategy_ids(), ("pageindex", "embeddings"))
+        self.assertEqual(canonical_engine_retrieval.primary_strategy_id(), "fts")
+        self.assertTrue(hasattr(canonical_engine_retrieval, "build_retrieval_query"))
+        self.assertTrue(hasattr(canonical_engine_retrieval, "retrieve_fts"))
+        self.assertTrue(hasattr(canonical_engine_retrieval, "retrieve_auto"))
+        self.assertTrue(hasattr(canonical_engine_retrieval, "retrieve_fts_context_bundle"))
+        self.assertTrue(hasattr(canonical_engine_retrieval, "retrieve_fts_citation_bundle"))
+        self.assertTrue(hasattr(canonical_engine_retrieval, "retrieve_auto_basket_promotion_bundle"))
+        self.assertTrue(hasattr(canonical_engine_retrieval, "build_retrieval_downstream_payload_from_result"))
+        self.assertFalse(hasattr(canonical_engine_retrieval, "PageIndexStrategy"))
+        self.assertFalse(hasattr(canonical_engine_retrieval, "EmbeddingsStrategy"))
 
     def test_retrieval_query_constructor_is_shared_by_both_facades(self) -> None:
         constraints = {
@@ -2238,6 +2278,42 @@ class UnifiedRetrievalTests(unittest.TestCase):
         self.assertEqual(engine_query.constraints.date_range, ("2026-01-01", "2026-01-31"))
         self.assertEqual(engine_query.constraints.section_hint, "discussion")
         self.assertEqual(engine_query.confidentiality_profile, "standard")
+
+    def test_retrieval_query_constructor_normalizes_text_boolean_constraints(self) -> None:
+        constraints = {
+            "require_citations": "yes",
+            "prefer_exact_matches": "off",
+        }
+
+        engine_query = engine_retrieval.build_retrieval_query(
+            query_text="memo comparison",
+            scope="vault",
+            intent="compare",
+            constraints=constraints,
+            confidentiality_profile="standard",
+        )
+        package_query = package_retrieval.build_retrieval_query(
+            query_text="memo comparison",
+            scope="vault",
+            intent="compare",
+            constraints=constraints,
+            confidentiality_profile="standard",
+        )
+
+        self.assertEqual(engine_query, package_query)
+        self.assertEqual(engine_query.constraints.require_citations, True)
+        self.assertEqual(engine_query.constraints.prefer_exact_matches, False)
+
+        for constructor in (engine_retrieval.build_retrieval_query, package_retrieval.build_retrieval_query):
+            with self.subTest(constructor=constructor.__module__):
+                with self.assertRaisesRegex(TypeError, "boolean constraints must be bools"):
+                    constructor(
+                        query_text="memo comparison",
+                        scope="vault",
+                        intent="compare",
+                        constraints={"require_citations": 2},
+                        confidentiality_profile="standard",
+                    )
 
     def test_retrieval_query_date_range_rejects_unordered_sets(self) -> None:
         constraints = {
