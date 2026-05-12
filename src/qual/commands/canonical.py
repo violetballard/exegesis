@@ -75,6 +75,7 @@ from src.qual.commands.catalog import (
     CommandDemoSupportedLauncherReadinessContract,
     CommandDemoReadinessTraceContract,
     CommandDemoSmokeMatrixContract,
+    CommandCliContract,
     CommandHandlerActionRouteContract,
     CommandHandlerActionRouteEntry,
     CommandHandlerDelegationEntry,
@@ -84,6 +85,10 @@ from src.qual.commands.catalog import (
     CommandHandlerTrustedActionContract,
     CommandHandlerTrustedActionEntry,
     canonical_command as _canonical_command,
+    command_cli_contract as _cli_contract,
+    command_cli_entrypoint_for as _cli_entrypoint_for,
+    command_cli_lookup_table as _cli_lookup_table,
+    command_cli_tokens as _cli_tokens,
     command_mvp_demo_path_readiness_contract as _path_readiness_contract,
     command_mvp_demo_path_steps as _path_steps,
     command_mvp_demo_path_action_coverage_summary as _path_action_coverage_summary,
@@ -551,6 +556,10 @@ __all__ = [
     "CommandCanonicalReadinessStatus",
     "CommandCanonicalReadinessSnapshot",
     "CommandCanonicalReadinessCheckpoint",
+    "canonical_command_cli_contract",
+    "canonical_command_cli_entrypoint_for",
+    "canonical_command_cli_lookup_table",
+    "canonical_command_cli_tokens",
     "canonical_command",
     "canonical_command_action_argv_lookup_table",
     "canonical_command_action_demo_path_lookup_table",
@@ -949,6 +958,30 @@ __all__ = [
 
 def canonical_command(name: str) -> str:
     return _canonical_command(name)
+
+
+def canonical_command_cli_tokens() -> tuple[str, ...]:
+    """Return the approved parser entrypoints for the CLI-first demo loop."""
+
+    return _cli_tokens()
+
+
+def canonical_command_cli_lookup_table() -> tuple[tuple[str, str], ...]:
+    """Return approved CLI parser entrypoints mapped to canonical commands."""
+
+    return _cli_lookup_table()
+
+
+def canonical_command_cli_contract() -> CommandCliContract:
+    """Return the deterministic CLI parser surface contract."""
+
+    return _cli_contract()
+
+
+def canonical_command_cli_entrypoint_for(token: str) -> str | None:
+    """Return the approved CLI entrypoint for a command token, alias, or flow step."""
+
+    return _cli_entrypoint_for(token)
 
 
 def canonical_command_readiness_summary() -> tuple[
