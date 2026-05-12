@@ -8093,6 +8093,7 @@ def _command_demo_readiness_handoff_packet_payload(
     packet: CommandDemoReadinessHandoffPacket,
 ) -> dict[str, object]:
     risks = _command_demo_readiness_handoff_packet_risks(packet)
+    command_lines_by_demo_path_step = _command_demo_readiness_step_command_lines(packet)
     return {
         "branch_name": packet.branch_name,
         "scope_completed": packet.scope_completed,
@@ -8133,6 +8134,13 @@ def _command_demo_readiness_handoff_packet_payload(
         ],
         "stop_triggers": list(packet.stop_triggers),
         "command_lines": list(packet.command_lines),
+        "command_lines_by_demo_path_step": [
+            {
+                "demo_path_step": demo_path_step,
+                "command_line": command_line,
+            }
+            for demo_path_step, command_line in command_lines_by_demo_path_step
+        ],
         "exact_action_lines": list(packet.exact_action_lines),
         "cli_exact_action_lines": list(packet.cli_exact_action_lines),
         "checklist_lines": list(packet.checklist_lines),
@@ -8204,6 +8212,16 @@ def _validate_command_demo_readiness_handoff_packet_payload(
         raise ValueError("Command demo readiness handoff packet payload readiness is inconsistent")
     if payload["risks_blockers"] != list(_command_demo_readiness_handoff_packet_risks(packet)):
         raise ValueError("Command demo readiness handoff packet payload risks are inconsistent")
+    if payload["command_lines_by_demo_path_step"] != [
+        {
+            "demo_path_step": demo_path_step,
+            "command_line": command_line,
+        }
+        for demo_path_step, command_line in _command_demo_readiness_step_command_lines(packet)
+    ]:
+        raise ValueError(
+            "Command demo readiness handoff packet payload step command lines are inconsistent"
+        )
     json.dumps(payload, sort_keys=True, separators=(",", ":"))
 
 
@@ -8244,6 +8262,7 @@ COMMAND_DEMO_READINESS_HANDOFF_FIELD_NAMES: tuple[str, ...] = (
     "kickoff_budget",
     "stop_triggers",
     "command_lines",
+    "command_lines_by_demo_path_step",
     "exact_action_lines",
     "readiness_fingerprint",
     "readiness_complete",
@@ -8310,6 +8329,7 @@ def _command_demo_readiness_handoff_field_entries(
     packet: CommandDemoReadinessHandoffPacket,
 ) -> tuple[CommandDemoReadinessHandoffFieldEntry, ...]:
     risks = _command_demo_readiness_handoff_packet_risks(packet)
+    command_lines_by_demo_path_step = _command_demo_readiness_step_command_lines(packet)
     return (
         CommandDemoReadinessHandoffFieldEntry("branch_name", packet.branch_name),
         CommandDemoReadinessHandoffFieldEntry("scope_completed", packet.scope_completed),
@@ -8347,6 +8367,13 @@ def _command_demo_readiness_handoff_field_entries(
             "; ".join(packet.stop_triggers),
         ),
         CommandDemoReadinessHandoffFieldEntry("command_lines", "; ".join(packet.command_lines)),
+        CommandDemoReadinessHandoffFieldEntry(
+            "command_lines_by_demo_path_step",
+            "; ".join(
+                f"{demo_path_step} -> {command_line}"
+                for demo_path_step, command_line in command_lines_by_demo_path_step
+            ),
+        ),
         CommandDemoReadinessHandoffFieldEntry(
             "exact_action_lines",
             "; ".join(packet.exact_action_lines),
@@ -8405,6 +8432,11 @@ def _validate_command_demo_readiness_handoff_field_contract(
         raise ValueError("Command demo readiness handoff budget field is inconsistent")
     if values_by_name["stop_triggers"] != "; ".join(packet.stop_triggers):
         raise ValueError("Command demo readiness handoff stop triggers field is inconsistent")
+    if values_by_name["command_lines_by_demo_path_step"] != "; ".join(
+        f"{demo_path_step} -> {command_line}"
+        for demo_path_step, command_line in _command_demo_readiness_step_command_lines(packet)
+    ):
+        raise ValueError("Command demo readiness handoff step command lines field is inconsistent")
 
 
 @lru_cache(maxsize=None)
@@ -8816,6 +8848,20 @@ def _command_demo_readiness_handoff_packet_risks(
     if not risks:
         risks.append("None from command readiness metadata.")
     return tuple(risks)
+
+
+def _command_demo_readiness_step_command_lines(
+    packet: CommandDemoReadinessHandoffPacket,
+) -> tuple[tuple[str, str], ...]:
+    step_command_lines = tuple(
+        (step.demo_path_step, step.command_line)
+        for step in packet.step_seals
+    )
+    if tuple(command_line for _, command_line in step_command_lines) != packet.command_lines:
+        raise ValueError("Command demo readiness step command lines are inconsistent")
+    if tuple(demo_path_step for demo_path_step, _ in step_command_lines) != packet.canonical_demo_path_steps:
+        raise ValueError("Command demo readiness step command demo path is inconsistent")
+    return step_command_lines
 
 
 def _validate_command_demo_readiness_handoff_packet_markdown(
