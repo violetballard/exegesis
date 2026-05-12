@@ -4,8 +4,11 @@ import json
 import os
 import re
 from dataclasses import dataclass
+from typing import Hashable, TypeVar
 
 from src.qual.drafting.service import DraftingService
+
+T = TypeVar("T", bound=Hashable)
 
 MAX_DIFF_OUTPUT_CHARS = 20_000
 MAX_DIFF_OUTPUT_CHARS_ENV = "QUAL_DIFF_MAX_OUTPUT_CHARS"
@@ -860,15 +863,29 @@ class PatchReviewActionRouteValidation:
     missing_engine_actions: tuple[str, ...]
     missing_expected_engine_actions: tuple[str, ...]
     extra_engine_actions: tuple[str, ...]
+    duplicate_engine_actions: tuple[str, ...]
     expected_action_routes: tuple[tuple[str, str], ...]
     valid_action_routes: tuple[tuple[str, str], ...]
     invalid_action_routes: tuple[tuple[str, str], ...]
     missing_action_routes: tuple[tuple[str, str], ...]
+    duplicate_action_routes: tuple[tuple[str, str], ...]
 
 
 def _expected_patch_review_action_routes() -> tuple[tuple[str, str], ...]:
     contract = build_patch_review_command_contract()
     return contract.change_action_routes + contract.no_change_action_routes
+
+
+def _duplicates_in_order(values: tuple[T, ...]) -> tuple[T, ...]:
+    seen: set[T] = set()
+    duplicates: list[T] = []
+    duplicate_seen: set[T] = set()
+    for value in values:
+        if value in seen and value not in duplicate_seen:
+            duplicates.append(value)
+            duplicate_seen.add(value)
+        seen.add(value)
+    return tuple(duplicates)
 
 
 def validate_patch_review_action_routes(
@@ -886,6 +903,8 @@ def validate_patch_review_action_routes(
     expected_action_route_set = set(expected_action_routes)
     route_engine_actions = tuple(engine_action for _, engine_action in routes)
     route_set = set(route_engine_actions)
+    duplicate_engine_actions = _duplicates_in_order(route_engine_actions)
+    duplicate_action_routes = _duplicates_in_order(routes)
 
     valid = tuple(
         engine_action
@@ -931,16 +950,20 @@ def validate_patch_review_action_routes(
             and len(missing_expected_engine_actions) == 0
             and len(invalid_action_routes) == 0
             and len(missing_action_routes) == 0
+            and len(duplicate_engine_actions) == 0
+            and len(duplicate_action_routes) == 0
         ),
         engine_actions=route_engine_actions,
         valid_engine_actions=valid,
         missing_engine_actions=missing,
         missing_expected_engine_actions=missing_expected_engine_actions,
         extra_engine_actions=extra,
+        duplicate_engine_actions=duplicate_engine_actions,
         expected_action_routes=expected_action_routes,
         valid_action_routes=valid_action_routes,
         invalid_action_routes=invalid_action_routes,
         missing_action_routes=missing_action_routes,
+        duplicate_action_routes=duplicate_action_routes,
     )
 
 
@@ -954,10 +977,12 @@ def _patch_review_action_route_validation_payload(
         "missing_engine_actions": validation.missing_engine_actions,
         "missing_expected_engine_actions": validation.missing_expected_engine_actions,
         "extra_engine_actions": validation.extra_engine_actions,
+        "duplicate_engine_actions": validation.duplicate_engine_actions,
         "expected_action_routes": validation.expected_action_routes,
         "valid_action_routes": validation.valid_action_routes,
         "invalid_action_routes": validation.invalid_action_routes,
         "missing_action_routes": validation.missing_action_routes,
+        "duplicate_action_routes": validation.duplicate_action_routes,
     }
 
 
@@ -1002,6 +1027,15 @@ def run_patch_review_action_route_validation() -> str:
     if validation.extra_engine_actions:
         parts.append(
             f"extra={','.join(validation.extra_engine_actions)}"
+        )
+    if validation.duplicate_engine_actions:
+        parts.append(
+            f"duplicate-engine-actions={','.join(validation.duplicate_engine_actions)}"
+        )
+    if validation.duplicate_action_routes:
+        parts.append(
+            "duplicate-routes="
+            + json.dumps(validation.duplicate_action_routes, separators=(",", ":"))
         )
     return "; ".join(parts)
 
