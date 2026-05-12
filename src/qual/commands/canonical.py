@@ -2093,6 +2093,7 @@ def canonical_command_readiness_checkpoint() -> CommandCanonicalReadinessCheckpo
         + canonical_command_trusted_loop_issues()
         + canonical_command_smoke_sequence_issues()
     )
+    unique_issues = tuple(dict.fromkeys(issue for issue in issues if issue))
     return CommandCanonicalReadinessCheckpoint(
         handoff=handoff,
         trusted_loop=trusted_loop,
@@ -2101,8 +2102,9 @@ def canonical_command_readiness_checkpoint() -> CommandCanonicalReadinessCheckpo
             handoff.is_complete
             and trusted_loop.is_complete
             and smoke_sequence.is_complete
+            and not unique_issues
         ),
-        issues=tuple(dict.fromkeys(issue for issue in issues if issue)),
+        issues=unique_issues,
     )
 
 
