@@ -550,6 +550,8 @@ from src.qual.commands.catalog import (
     as _handler_trusted_demo_path_entry_for_command,
     command_mvp_handler_trusted_demo_path_lookup_table
     as _handler_trusted_demo_path_lookup_table,
+    command_mvp_handler_trusted_demo_path_json as _handler_trusted_demo_path_json,
+    command_mvp_handler_trusted_demo_path_payload as _handler_trusted_demo_path_payload,
     command_mvp_handler_trusted_demo_path_summary as _handler_trusted_demo_path_summary,
     require_command_mvp_handler_trusted_demo_path_complete
     as _require_handler_trusted_demo_path_complete,
@@ -1028,7 +1030,9 @@ __all__ = [
     "canonical_command_handler_trusted_demo_path_contract",
     "canonical_command_handler_trusted_demo_path_entry_for_argv",
     "canonical_command_handler_trusted_demo_path_entry_for_command",
+    "canonical_command_handler_trusted_demo_path_json",
     "canonical_command_handler_trusted_demo_path_lookup_table",
+    "canonical_command_handler_trusted_demo_path_payload",
     "canonical_command_handler_trusted_demo_path_summary",
     "require_canonical_command_handler_trusted_demo_path_complete",
 ]
@@ -1222,6 +1226,14 @@ def canonical_command_handler_trusted_demo_path_lookup_table() -> tuple[
     ...,
 ]:
     return _handler_trusted_demo_path_lookup_table()
+
+
+def canonical_command_handler_trusted_demo_path_payload() -> dict[str, object]:
+    return _handler_trusted_demo_path_payload()
+
+
+def canonical_command_handler_trusted_demo_path_json() -> str:
+    return _handler_trusted_demo_path_json()
 
 
 def canonical_command_handler_trusted_demo_path_entry_for_command(

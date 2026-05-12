@@ -3318,6 +3318,45 @@ def command_handler_trusted_demo_path_lookup_table(
     )
 
 
+def command_handler_trusted_demo_path_payload(
+    specs: tuple[CommandSpec, ...] = COMMAND_SPECS,
+    launcher_argv: tuple[str, ...] = COMMAND_SMOKE_CLI_LAUNCHER_ARGV,
+) -> dict[str, object]:
+    contract = command_handler_trusted_demo_path_contract(specs, launcher_argv)
+    return {
+        "is_complete": contract.is_complete,
+        "missing_engine_actions": contract.missing_engine_actions,
+        "commands": [
+            {
+                "command": entry.name,
+                "flow_step": entry.flow_step,
+                "demo_path_step": entry.demo_path_step,
+                "handler": entry.handler,
+                "delegated_to": entry.delegated_to,
+                "engine_delegated_to": entry.engine_delegated_to,
+                "command_argv": entry.command_argv,
+                "command_line": entry.command_line,
+                "engine_actions": entry.engine_actions,
+                "trusted_engine_actions": entry.trusted_engine_actions,
+                "missing_engine_actions": entry.missing_engine_actions,
+                "is_trusted": entry.is_trusted,
+            }
+            for entry in contract.entries
+        ],
+    }
+
+
+def command_handler_trusted_demo_path_json(
+    specs: tuple[CommandSpec, ...] = COMMAND_SPECS,
+    launcher_argv: tuple[str, ...] = COMMAND_SMOKE_CLI_LAUNCHER_ARGV,
+) -> str:
+    return json.dumps(
+        command_handler_trusted_demo_path_payload(specs, launcher_argv),
+        sort_keys=True,
+        separators=(",", ":"),
+    )
+
+
 def command_handler_trusted_demo_path_entry_for_command(
     command_name: str,
     specs: tuple[CommandSpec, ...] = COMMAND_SPECS,
@@ -3462,6 +3501,20 @@ def command_mvp_handler_trusted_demo_path_lookup_table(
     launcher_argv: tuple[str, ...] = COMMAND_SMOKE_CLI_LAUNCHER_ARGV,
 ) -> tuple[tuple[str, tuple[str, str, tuple[str, ...], bool]], ...]:
     return command_handler_trusted_demo_path_lookup_table(specs, launcher_argv)
+
+
+def command_mvp_handler_trusted_demo_path_payload(
+    specs: tuple[CommandSpec, ...] = COMMAND_SPECS,
+    launcher_argv: tuple[str, ...] = COMMAND_SMOKE_CLI_LAUNCHER_ARGV,
+) -> dict[str, object]:
+    return command_handler_trusted_demo_path_payload(specs, launcher_argv)
+
+
+def command_mvp_handler_trusted_demo_path_json(
+    specs: tuple[CommandSpec, ...] = COMMAND_SPECS,
+    launcher_argv: tuple[str, ...] = COMMAND_SMOKE_CLI_LAUNCHER_ARGV,
+) -> str:
+    return command_handler_trusted_demo_path_json(specs, launcher_argv)
 
 
 def command_mvp_handler_trusted_demo_path_entry_for_command(
