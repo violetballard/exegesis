@@ -155,7 +155,7 @@ Task accounting: `13` high-risk task groups are present in the cumulative branch
 
 Required gates for this corrected merge candidate were re-run on 2026-05-12 against branch `codex/feat-retrieval-fts` after this packet-only traceability fix.
 
-- `make scope-check` - passed for branch `codex/feat-retrieval-fts`; the devex scope checker reported no configured policy for this branch before passing.
+- `make scope-check` - passed for branch `codex/feat-retrieval-fts`.
 - `./quality-format.sh --check` - passed.
 - `./quality-lint.sh` - passed shell syntax and trailing whitespace checks.
 - `./quality-test.sh` - passed smoke tests and 137 unit tests.
