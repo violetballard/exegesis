@@ -500,6 +500,10 @@ class UnifiedRetrievalTests(unittest.TestCase):
         self.assertGreaterEqual(doc_hit.excerpt_count, 1)
         self.assertEqual(doc_hit.provenance["doc_id"], doc_hit.doc_id)
         self.assertEqual(doc_hit.provenance["top_excerpt_id"], doc_hit.top_excerpt_id)
+        self.assertEqual(
+            doc_hit.provenance["top_basket_item_id"],
+            f"retrieval:fts:{doc_hit.top_excerpt_id}",
+        )
         self.assertIn("top_excerpt_hash", doc_hit.provenance)
         self.assertIn("top_excerpt_fingerprint", doc_hit.provenance)
         self.assertIn("top_excerpt_lookup_fingerprint", doc_hit.provenance)
@@ -518,6 +522,7 @@ class UnifiedRetrievalTests(unittest.TestCase):
         doc_hit_payload = doc_hit.as_dict()
         self.assertEqual(doc_hit_payload["doc_fingerprint"], doc_hit.provenance["doc_fingerprint"])
         self.assertEqual(doc_hit_payload["doc_identity_fingerprint"], doc_hit.provenance["doc_identity_fingerprint"])
+        self.assertEqual(doc_hit_payload["top_basket_item_id"], doc_hit.provenance["top_basket_item_id"])
         self.assertEqual(doc_hit_payload["top_excerpt_fingerprint"], doc_hit.provenance["top_excerpt_fingerprint"])
         self.assertEqual(
             doc_hit_payload["top_excerpt_lookup_fingerprint"],
@@ -536,6 +541,10 @@ class UnifiedRetrievalTests(unittest.TestCase):
             [item.provenance["doc_identity_fingerprint"] for item in result.doc_hits],
         )
         self.assertEqual(manifest["top_excerpt_ids"], [item.top_excerpt_id for item in result.doc_hits])
+        self.assertEqual(
+            manifest["top_basket_item_ids"],
+            [item.provenance["top_basket_item_id"] for item in result.doc_hits],
+        )
         self.assertEqual(
             manifest["top_excerpt_lookup_fingerprints"],
             [item.provenance["top_excerpt_lookup_fingerprint"] for item in result.doc_hits],
@@ -565,6 +574,26 @@ class UnifiedRetrievalTests(unittest.TestCase):
         self.assertIn("top_excerpt_lookup_fingerprints", manifest)
         self.assertIn("excerpt_lookup_fingerprints", manifest)
         self.assertIn("excerpt_text_hashes", manifest)
+        self.assertEqual(
+            result.result_fingerprint,
+            RetrievalService._stable_fingerprint(
+                {
+                    "query_fingerprint": result.diagnostics["query_fingerprint"],
+                    "retrieval_policy": manifest["retrieval_policy"],
+                    "doc_fingerprints": manifest["doc_fingerprints"],
+                    "top_basket_item_ids": manifest["top_basket_item_ids"],
+                    "top_excerpt_fingerprints": manifest["top_excerpt_fingerprints"],
+                    "top_excerpt_lookup_fingerprints": manifest["top_excerpt_lookup_fingerprints"],
+                    "excerpt_fingerprints": manifest["excerpt_fingerprints"],
+                    "excerpt_lookup_fingerprints": manifest["excerpt_lookup_fingerprints"],
+                    "top_excerpt_text_hashes": manifest["top_excerpt_text_hashes"],
+                    "excerpt_text_hashes": manifest["excerpt_text_hashes"],
+                    "basket_item_ids": manifest["basket_item_ids"],
+                    "active_strategy_ids": manifest["active_strategy_ids"],
+                    "deferred_strategy_ids": manifest["deferred_strategy_ids"],
+                }
+            ),
+        )
 
     def test_downstream_payload_exposes_policy_and_diagnostics_snapshot(self) -> None:
         result = self.service.retrieve_auto(
@@ -601,6 +630,18 @@ class UnifiedRetrievalTests(unittest.TestCase):
         self.assertEqual(
             payload["retrieval_summary"]["primary_excerpt_id"],
             result.hits[0].excerpt_id if result.hits else None,
+        )
+        self.assertEqual(
+            payload["retrieval_summary"]["primary_basket_item_id"],
+            result.hits[0].as_dict()["basket_item_id"] if result.hits else None,
+        )
+        self.assertEqual(
+            payload["retrieval_summary"]["top_basket_item_ids"],
+            [item.provenance["top_basket_item_id"] for item in result.doc_hits],
+        )
+        self.assertEqual(
+            payload["retrieval_provenance"]["top_basket_item_ids"],
+            payload["retrieval_summary"]["top_basket_item_ids"],
         )
         self.assertEqual(
             payload["retrieval_summary"]["primary_excerpt_lookup_fingerprint"],
@@ -812,6 +853,7 @@ class UnifiedRetrievalTests(unittest.TestCase):
             "retrieval_mode",
             "source_strategy",
             "retrieval_source_strategy",
+            "top_basket_item_id",
         ):
             self.assertEqual(evidence_doc_citation[field_name], provenance_doc_citation[field_name])
         self.assertEqual(
@@ -2548,6 +2590,13 @@ class UnifiedRetrievalTests(unittest.TestCase):
             "source_bundle_fingerprint",
         ):
             sparse_source_bundle.pop(key, None)
+        source_summary = sparse_source_bundle.get("retrieval_summary")
+        self.assertIsInstance(source_summary, dict)
+        source_summary.pop("primary_basket_item_id", None)
+        source_summary.pop("top_basket_item_ids", None)
+        source_manifest = sparse_source_bundle.get("retrieval_manifest")
+        self.assertIsInstance(source_manifest, dict)
+        source_manifest.pop("top_basket_item_ids", None)
 
         payload = build_retrieval_downstream_payload_from_result(_SparseSourceBundleOnlySource(sparse_source_bundle))
         expected = result.to_downstream_payload()
@@ -2767,7 +2816,9 @@ class UnifiedRetrievalTests(unittest.TestCase):
         retrieval_summary.pop("excerpt_fingerprints", None)
         retrieval_summary.pop("doc_identity_fingerprints", None)
         retrieval_summary.pop("top_excerpt_fingerprints", None)
+        retrieval_summary.pop("top_basket_item_ids", None)
         retrieval_summary.pop("top_excerpt_text_hashes", None)
+        retrieval_summary.pop("primary_basket_item_id", None)
 
         class _SparseContextBundleSource:
             def __init__(self, payload: dict[str, object]) -> None:
@@ -3789,6 +3840,7 @@ class UnifiedRetrievalTests(unittest.TestCase):
                     "result_fingerprint": payload["retrieval_summary"]["result_fingerprint"],
                     "doc_rank": item["provenance"]["doc_rank"],
                     "top_excerpt_id": item["top_excerpt_id"],
+                    "top_basket_item_id": item["top_basket_item_id"],
                     "top_excerpt_fingerprint": item["provenance"]["top_excerpt_fingerprint"],
                     "top_excerpt_lookup_fingerprint": item["provenance"]["top_excerpt_lookup_fingerprint"],
                     "top_excerpt_text_hash": item["provenance"]["top_excerpt_text_hash"],

@@ -376,6 +376,9 @@ class RetrievalDocHit:
         top_excerpt_fingerprint = self.provenance.get("top_excerpt_fingerprint")
         if isinstance(top_excerpt_fingerprint, str) and top_excerpt_fingerprint:
             payload["top_excerpt_fingerprint"] = top_excerpt_fingerprint
+        top_basket_item_id = self.provenance.get("top_basket_item_id")
+        if isinstance(top_basket_item_id, str) and top_basket_item_id:
+            payload["top_basket_item_id"] = top_basket_item_id
         top_excerpt_lookup_fingerprint = self.provenance.get("top_excerpt_lookup_fingerprint")
         if isinstance(top_excerpt_lookup_fingerprint, str) and top_excerpt_lookup_fingerprint:
             payload["top_excerpt_lookup_fingerprint"] = top_excerpt_lookup_fingerprint
@@ -797,6 +800,7 @@ class RetrievalResult:
                 "result_fingerprint": self.result_fingerprint,
                 "doc_rank": doc_hit.provenance.get("doc_rank"),
                 "top_excerpt_id": doc_hit.top_excerpt_id,
+                "top_basket_item_id": doc_hit.provenance.get("top_basket_item_id"),
                 "top_excerpt_fingerprint": doc_hit.provenance.get("top_excerpt_fingerprint"),
                 "top_excerpt_lookup_fingerprint": doc_hit.provenance.get("top_excerpt_lookup_fingerprint"),
                 "top_excerpt_text_hash": doc_hit.provenance.get("top_excerpt_text_hash"),
@@ -872,6 +876,9 @@ class RetrievalResult:
         top_excerpt_fingerprints = _present_text_values(
             doc_hit.provenance.get("top_excerpt_fingerprint") for doc_hit in self.doc_hits
         )
+        top_basket_item_ids = _present_text_values(
+            doc_hit.provenance.get("top_basket_item_id") for doc_hit in self.doc_hits
+        )
         top_excerpt_lookup_fingerprints = _present_text_values(
             doc_hit.provenance.get("top_excerpt_lookup_fingerprint")
             for doc_hit in self.doc_hits
@@ -912,10 +919,12 @@ class RetrievalResult:
             "excerpt_lookup_fingerprints": excerpt_lookup_fingerprints,
             "excerpt_text_hashes": excerpt_text_hashes,
             "top_excerpt_fingerprints": top_excerpt_fingerprints,
+            "top_basket_item_ids": top_basket_item_ids,
             "top_excerpt_lookup_fingerprints": top_excerpt_lookup_fingerprints,
             "top_excerpt_text_hashes": top_excerpt_text_hashes,
             "primary_doc_id": self.doc_hits[0].doc_id if self.doc_hits else None,
             "primary_excerpt_id": self.hits[0].excerpt_id if self.hits else None,
+            "primary_basket_item_id": self.hits[0].as_dict().get("basket_item_id") if self.hits else None,
             "primary_doc_fingerprint": self.doc_hits[0].provenance.get("doc_fingerprint") if self.doc_hits else None,
             "primary_doc_identity_fingerprint": self.doc_hits[0].provenance.get("doc_identity_fingerprint")
             if self.doc_hits
@@ -979,6 +988,15 @@ class RetrievalResult:
             if primary_doc_hit is not None
             else None,
             "primary_excerpt_id": primary_excerpt_hit.excerpt_id if primary_excerpt_hit is not None else None,
+            "primary_basket_item_id": (
+                primary_excerpt_hit.as_dict().get("basket_item_id")
+                if primary_excerpt_hit is not None
+                else None
+            ),
+            "top_basket_item_ids": _present_text_values(
+                doc_hit.provenance.get("top_basket_item_id")
+                for doc_hit in self.doc_hits
+            ),
             "primary_excerpt_fingerprint": primary_excerpt_hit.provenance.get("excerpt_fingerprint")
             if primary_excerpt_hit is not None
             else None,
@@ -1733,6 +1751,10 @@ class RetrievalService:
             top_excerpt_text_hash = str(
                 top_hit.provenance.get("excerpt_text_hash") or top_hit.provenance.get("hash") or ""
             )
+            top_basket_item_id = _basket_item_id_for_excerpt(
+                source_strategy=top_hit.source_strategy,
+                excerpt_id=top_hit.excerpt_id,
+            )
             top_excerpt_text_length = len(top_hit.excerpt_text or "")
             source_hash = self._doc_source_hash(doc_id, doc_meta=doc_meta)
             doc_identity_fingerprint = self._build_doc_identity_fingerprint(
@@ -1756,6 +1778,7 @@ class RetrievalService:
                         "query_fingerprint": query_fingerprint,
                         "excerpt_ids": [hit.excerpt_id for hit in doc_hit_list if hit.excerpt_id is not None],
                         "top_excerpt_id": top_hit.excerpt_id,
+                        "top_basket_item_id": top_basket_item_id,
                         "top_excerpt_hash": top_hit.provenance.get("hash"),
                         "top_excerpt_text_hash": top_excerpt_text_hash,
                         "top_excerpt_text_length": top_excerpt_text_length,
@@ -1812,6 +1835,9 @@ class RetrievalService:
         top_excerpt_fingerprints = _present_text_values(
             doc_hit.provenance.get("top_excerpt_fingerprint") for doc_hit in doc_hits
         )
+        top_basket_item_ids = _present_text_values(
+            doc_hit.provenance.get("top_basket_item_id") for doc_hit in doc_hits
+        )
         top_excerpt_lookup_fingerprints = _present_text_values(
             doc_hit.provenance.get("top_excerpt_lookup_fingerprint")
             for doc_hit in doc_hits
@@ -1842,6 +1868,7 @@ class RetrievalService:
                     "doc_rank": doc_hit.provenance.get("doc_rank"),
                     "excerpt_count": doc_hit.excerpt_count,
                     "source_strategy": doc_hit.source_strategy,
+                    "top_basket_item_id": doc_hit.provenance.get("top_basket_item_id"),
                     "top_excerpt_fingerprint": doc_hit.provenance.get("top_excerpt_fingerprint"),
                     "top_excerpt_lookup_fingerprint": doc_hit.provenance.get("top_excerpt_lookup_fingerprint"),
                     "top_excerpt_id": doc_hit.top_excerpt_id,
@@ -1869,6 +1896,7 @@ class RetrievalService:
             "doc_fingerprints": doc_fingerprints,
             "doc_identity_fingerprints": doc_identity_fingerprints,
             "top_excerpt_ids": [doc_hit.top_excerpt_id for doc_hit in doc_hits],
+            "top_basket_item_ids": top_basket_item_ids,
             "top_excerpt_fingerprints": top_excerpt_fingerprints,
             "top_excerpt_lookup_fingerprints": top_excerpt_lookup_fingerprints,
             "top_excerpt_text_hashes": top_excerpt_text_hashes,
@@ -1912,6 +1940,7 @@ class RetrievalService:
                     "result_fingerprint": result_fingerprint,
                     "doc_rank": doc_hit.provenance.get("doc_rank"),
                     "top_excerpt_id": doc_hit.top_excerpt_id,
+                    "top_basket_item_id": doc_hit.provenance.get("top_basket_item_id"),
                     "top_excerpt_fingerprint": doc_hit.provenance.get("top_excerpt_fingerprint"),
                     "top_excerpt_lookup_fingerprint": doc_hit.provenance.get("top_excerpt_lookup_fingerprint"),
                     "top_excerpt_text_hash": doc_hit.provenance.get("top_excerpt_text_hash"),
@@ -2097,6 +2126,7 @@ class RetrievalService:
             "query_fingerprint": query_fingerprint,
             "retrieval_policy": retrieval_manifest.get("retrieval_policy", {}),
             "doc_fingerprints": retrieval_manifest.get("doc_fingerprints", []),
+            "top_basket_item_ids": retrieval_manifest.get("top_basket_item_ids", []),
             "top_excerpt_fingerprints": retrieval_manifest.get("top_excerpt_fingerprints", []),
             "top_excerpt_lookup_fingerprints": retrieval_manifest.get("top_excerpt_lookup_fingerprints", []),
             "excerpt_fingerprints": retrieval_manifest.get("excerpt_fingerprints", []),
