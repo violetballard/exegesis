@@ -7010,6 +7010,19 @@ def _validate_command_demo_execution_plan_contract(
         if not step.command_line or not step.action_lines:
             raise ValueError(f"Command demo execution plan step must be smoke-testable: {step.flow_step}")
         for engine_action, action_line in step.action_lines:
+            cli_validation = command_demo_readiness_validate_cli_argv(
+                action_line,
+                specs,
+                launcher_argv,
+            )
+            if not cli_validation.is_cli_entrypoint:
+                raise ValueError(
+                    f"Command demo execution plan action is not a CLI entrypoint: {engine_action}"
+                )
+            if cli_validation.exact_engine_action != engine_action:
+                raise ValueError(
+                    f"Command demo execution plan CLI action is inconsistent: {engine_action}"
+                )
             resolved_action = command_demo_readiness_exact_action_for_argv(
                 action_line,
                 specs,
