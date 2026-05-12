@@ -44,6 +44,7 @@ from src.qual.commands.catalog import (
     CommandDemoExecutionPlanContract,
     CommandDemoExecutionPlanStep,
     CommandDemoPathCommandLineContract,
+    CommandDemoPersistContinueContract,
     CommandDemoReadinessHandoffChecklistContract,
     CommandDemoReadinessHandoffContract,
     CommandDemoReadinessHandoffFieldContract,
@@ -244,6 +245,10 @@ from src.qual.commands.catalog import (
     command_mvp_demo_action_coverage_entry as _action_coverage_entry,
     command_mvp_demo_action_coverage_lookup_table as _action_coverage_lookup_table,
     command_mvp_demo_action_coverage_summary as _action_coverage_summary,
+    command_mvp_demo_persist_continue_contract as _persist_continue_contract,
+    command_mvp_demo_persist_continue_json as _persist_continue_json,
+    command_mvp_demo_persist_continue_payload as _persist_continue_payload,
+    command_mvp_demo_persist_continue_summary as _persist_continue_summary,
     command_mvp_demo_execution_plan_step_for_argv as _execution_plan_step_for_argv,
     command_mvp_demo_execution_plan_step_for_command as _execution_plan_step_for_command,
     command_mvp_demo_execution_plan_step_for_demo_path_step
@@ -792,6 +797,10 @@ __all__ = [
     "canonical_command_action_coverage_entry",
     "canonical_command_action_coverage_lookup_table",
     "canonical_command_action_coverage_summary",
+    "canonical_command_persist_continue_contract",
+    "canonical_command_persist_continue_json",
+    "canonical_command_persist_continue_payload",
+    "canonical_command_persist_continue_summary",
     "canonical_command_execution_plan_lookup_table",
     "canonical_command_execution_plan_step_for_argv",
     "canonical_command_execution_plan_step_for_command",
@@ -2831,6 +2840,22 @@ def canonical_command_action_coverage_contract() -> CommandDemoActionCoverageCon
 
 def canonical_command_action_coverage_summary() -> tuple[tuple[str, str, str, str, str, str], ...]:
     return _action_coverage_summary()
+
+
+def canonical_command_persist_continue_contract() -> CommandDemoPersistContinueContract:
+    return _persist_continue_contract()
+
+
+def canonical_command_persist_continue_summary() -> tuple[str, str, str, str, str, str, bool, bool]:
+    return _persist_continue_summary()
+
+
+def canonical_command_persist_continue_payload() -> dict[str, object]:
+    return _persist_continue_payload()
+
+
+def canonical_command_persist_continue_json() -> str:
+    return _persist_continue_json()
 
 
 def canonical_command_action_coverage_lookup_table() -> tuple[tuple[str, str], ...]:

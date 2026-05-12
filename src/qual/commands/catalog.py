@@ -1424,6 +1424,18 @@ class CommandDemoActionCoverageContract:
 
 
 @dataclass(frozen=True)
+class CommandDemoPersistContinueContract:
+    demo_path_step: str
+    flow_step: str
+    name: str
+    command_line: str
+    engine_action: str
+    action_line: str
+    is_cli_entrypoint: bool
+    is_exact_action: bool
+
+
+@dataclass(frozen=True)
 class CommandDemoCommandActionEntry:
     flow_step: str
     name: str
@@ -1803,6 +1815,7 @@ COMMAND_SMOKE_SHELL_CONTROL_KEYWORDS: tuple[str, ...] = (
     "do",
     "done",
 )
+DEMO_PERSIST_CONTINUE_ENGINE_ACTION = "ExegesisAppService.save_document"
 DEMO_COMMAND_FLOW_STEPS: tuple[str, ...] = (
     "project-open",
     "retrieval",
@@ -1833,7 +1846,7 @@ _DEMO_PATH_STEP_BY_FLOW_STEP: tuple[tuple[str, str, tuple[str, ...]], ...] = (
     (
         "export-handoff",
         "persist and continue",
-        ("ExegesisAppService.save_document",),
+        (DEMO_PERSIST_CONTINUE_ENGINE_ACTION,),
     ),
 )
 _DEMO_SMOKE_ARGV_BY_FLOW_STEP: tuple[tuple[str, tuple[str, ...]], ...] = (
@@ -1896,7 +1909,7 @@ _DEMO_ACTION_SMOKE_ARGV_BY_ENGINE_ACTION: tuple[tuple[str, tuple[str, ...]], ...
         ),
     ),
     (
-        "ExegesisAppService.save_document",
+        DEMO_PERSIST_CONTINUE_ENGINE_ACTION,
         (
             "terminal",
             "--operation-kind",
@@ -1942,7 +1955,7 @@ _DEMO_EXACT_ACTION_SMOKE_ARGV_BY_ENGINE_ACTION: tuple[tuple[str, tuple[str, ...]
         ),
     ),
     (
-        "ExegesisAppService.save_document",
+        DEMO_PERSIST_CONTINUE_ENGINE_ACTION,
         (
             "terminal",
             "--operation-kind",
@@ -7228,6 +7241,113 @@ def command_demo_action_coverage_lookup_table(
 
 
 @lru_cache(maxsize=None)
+def command_demo_persist_continue_contract(
+    specs: tuple[CommandSpec, ...] = COMMAND_SPECS,
+    launcher_argv: tuple[str, ...] = COMMAND_SMOKE_CLI_LAUNCHER_ARGV,
+) -> CommandDemoPersistContinueContract:
+    step = command_demo_execution_plan_step_for_engine_action(
+        DEMO_PERSIST_CONTINUE_ENGINE_ACTION,
+        specs,
+        launcher_argv,
+    )
+    coverage = command_demo_action_coverage_entry(
+        DEMO_PERSIST_CONTINUE_ENGINE_ACTION,
+        specs,
+        launcher_argv,
+    )
+    if step is None or coverage is None:
+        raise ValueError("Command demo persist-and-continue route is missing")
+
+    cli_validation = command_demo_readiness_validate_cli_argv(
+        step.command_line,
+        specs,
+        launcher_argv,
+    )
+    resolved_action = command_demo_readiness_exact_action_for_argv(
+        coverage.action_line,
+        specs,
+        launcher_argv,
+    )
+    contract = CommandDemoPersistContinueContract(
+        demo_path_step=step.demo_path_step,
+        flow_step=step.flow_step,
+        name=step.name,
+        command_line=step.command_line,
+        engine_action=coverage.engine_action,
+        action_line=coverage.action_line,
+        is_cli_entrypoint=cli_validation.is_cli_entrypoint,
+        is_exact_action=resolved_action == DEMO_PERSIST_CONTINUE_ENGINE_ACTION,
+    )
+    _validate_command_demo_persist_continue_contract(contract, step)
+    return contract
+
+
+def _validate_command_demo_persist_continue_contract(
+    contract: CommandDemoPersistContinueContract,
+    step: CommandDemoExecutionPlanStep,
+) -> None:
+    if contract.demo_path_step != "persist and continue":
+        raise ValueError("Command demo persist contract path step is inconsistent")
+    if contract.flow_step != "export-handoff":
+        raise ValueError("Command demo persist contract flow step is inconsistent")
+    if contract.name != step.name or contract.command_line != step.command_line:
+        raise ValueError("Command demo persist contract command is inconsistent")
+    if contract.engine_action != DEMO_PERSIST_CONTINUE_ENGINE_ACTION:
+        raise ValueError("Command demo persist contract engine action is inconsistent")
+    if contract.engine_action not in step.engine_actions:
+        raise ValueError("Command demo persist contract action is not in execution plan")
+    if not contract.is_cli_entrypoint:
+        raise ValueError("Command demo persist contract command is not a CLI entrypoint")
+    if not contract.is_exact_action:
+        raise ValueError("Command demo persist contract action is not exact")
+
+
+def command_demo_persist_continue_summary(
+    specs: tuple[CommandSpec, ...] = COMMAND_SPECS,
+    launcher_argv: tuple[str, ...] = COMMAND_SMOKE_CLI_LAUNCHER_ARGV,
+) -> tuple[str, str, str, str, str, str, bool, bool]:
+    contract = command_demo_persist_continue_contract(specs, launcher_argv)
+    return (
+        contract.demo_path_step,
+        contract.flow_step,
+        contract.name,
+        contract.command_line,
+        contract.engine_action,
+        contract.action_line,
+        contract.is_cli_entrypoint,
+        contract.is_exact_action,
+    )
+
+
+def command_demo_persist_continue_payload(
+    specs: tuple[CommandSpec, ...] = COMMAND_SPECS,
+    launcher_argv: tuple[str, ...] = COMMAND_SMOKE_CLI_LAUNCHER_ARGV,
+) -> dict[str, object]:
+    contract = command_demo_persist_continue_contract(specs, launcher_argv)
+    return {
+        "demo_path_step": contract.demo_path_step,
+        "flow_step": contract.flow_step,
+        "command": contract.name,
+        "command_line": contract.command_line,
+        "engine_action": contract.engine_action,
+        "action_line": contract.action_line,
+        "is_cli_entrypoint": contract.is_cli_entrypoint,
+        "is_exact_action": contract.is_exact_action,
+    }
+
+
+def command_demo_persist_continue_json(
+    specs: tuple[CommandSpec, ...] = COMMAND_SPECS,
+    launcher_argv: tuple[str, ...] = COMMAND_SMOKE_CLI_LAUNCHER_ARGV,
+) -> str:
+    return json.dumps(
+        command_demo_persist_continue_payload(specs, launcher_argv),
+        sort_keys=True,
+        separators=(",", ":"),
+    )
+
+
+@lru_cache(maxsize=None)
 def _command_demo_action_coverage_entry(
     specs: tuple[CommandSpec, ...],
     launcher_argv: tuple[str, ...],
@@ -7431,6 +7551,34 @@ def command_mvp_demo_action_coverage_summary(
     launcher_argv: tuple[str, ...] = COMMAND_SMOKE_CLI_LAUNCHER_ARGV,
 ) -> tuple[tuple[str, str, str, str, str, str], ...]:
     return command_demo_action_coverage_summary(specs, launcher_argv)
+
+
+def command_mvp_demo_persist_continue_contract(
+    specs: tuple[CommandSpec, ...] = COMMAND_SPECS,
+    launcher_argv: tuple[str, ...] = COMMAND_SMOKE_CLI_LAUNCHER_ARGV,
+) -> CommandDemoPersistContinueContract:
+    return command_demo_persist_continue_contract(specs, launcher_argv)
+
+
+def command_mvp_demo_persist_continue_summary(
+    specs: tuple[CommandSpec, ...] = COMMAND_SPECS,
+    launcher_argv: tuple[str, ...] = COMMAND_SMOKE_CLI_LAUNCHER_ARGV,
+) -> tuple[str, str, str, str, str, str, bool, bool]:
+    return command_demo_persist_continue_summary(specs, launcher_argv)
+
+
+def command_mvp_demo_persist_continue_payload(
+    specs: tuple[CommandSpec, ...] = COMMAND_SPECS,
+    launcher_argv: tuple[str, ...] = COMMAND_SMOKE_CLI_LAUNCHER_ARGV,
+) -> dict[str, object]:
+    return command_demo_persist_continue_payload(specs, launcher_argv)
+
+
+def command_mvp_demo_persist_continue_json(
+    specs: tuple[CommandSpec, ...] = COMMAND_SPECS,
+    launcher_argv: tuple[str, ...] = COMMAND_SMOKE_CLI_LAUNCHER_ARGV,
+) -> str:
+    return command_demo_persist_continue_json(specs, launcher_argv)
 
 
 def command_mvp_demo_action_coverage_lookup_table(
