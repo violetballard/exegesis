@@ -1375,6 +1375,7 @@ class UnifiedRetrievalTests(unittest.TestCase):
         self.assertIsNotNone(excerpt_id)
         excerpt = self.service.fetch_excerpt(excerpt_id or "")
         self.assertEqual(excerpt["excerpt_id"], excerpt_id)
+        self.assertEqual(excerpt["basket_item_id"], f"retrieval:fts:{excerpt_id}")
         self.assertEqual(excerpt["doc_id"], result.hits[0].doc_id)
         self.assertEqual(excerpt["title_hint"], result.hits[0].title_hint)
         self.assertEqual(excerpt["span"], result.hits[0].span)
@@ -1386,6 +1387,7 @@ class UnifiedRetrievalTests(unittest.TestCase):
         self.assertEqual(excerpt["source_hash"], result.hits[0].provenance["source_hash"])
         self.assertEqual(excerpt["text_hash"], result.hits[0].provenance["excerpt_text_hash"])
         self.assertEqual(excerpt["provenance"]["source_strategy"], "fts")
+        self.assertEqual(excerpt["provenance"]["basket_item_id"], f"retrieval:fts:{excerpt_id}")
         self.assertEqual(excerpt["provenance"]["retrieval_backend"], "sqlite_fts")
         self.assertEqual(excerpt["provenance"]["retrieval_mode"], "fts_first")
         self.assertEqual(excerpt["provenance"]["title_hint"], result.hits[0].title_hint)
@@ -1475,6 +1477,29 @@ class UnifiedRetrievalTests(unittest.TestCase):
         with self.assertRaisesRegex(KeyError, "unknown excerpt_id"):
             self.service.fetch_excerpt(str(excerpt_id))
 
+    def test_fetch_excerpt_canonicalizes_fts_excerpt_ids(self) -> None:
+        result = self.service.retrieve_auto(
+            RetrievalQuery(
+                query_text="discussion theory",
+                scope="doc:doc-pdf-1",
+                intent="lookup",
+                constraints=RetrievalConstraints(max_results=3),
+                confidentiality_profile="confidential",
+            )
+        )
+
+        excerpt_id = result.hits[0].excerpt_id
+        self.assertIsNotNone(excerpt_id)
+        excerpt = self.service.fetch_excerpt(f"  {excerpt_id}  ")
+
+        self.assertEqual(excerpt["excerpt_id"], excerpt_id)
+        self.assertEqual(excerpt["basket_item_id"], f"retrieval:fts:{excerpt_id}")
+        self.assertEqual(excerpt["provenance"]["excerpt_id"], excerpt_id)
+        self.assertEqual(excerpt["provenance"]["basket_item_id"], f"retrieval:fts:{excerpt_id}")
+
+        with self.assertRaisesRegex(ValueError, "excerpt_id must be non-empty"):
+            self.service.fetch_excerpt("   ")
+
     def test_excerpt_payload_normalization_rejects_pageindex_resolution(self) -> None:
         with self.assertRaisesRegex(ValueError, "canonical FTS strategy"):
             self.service._normalize_excerpt_payload(
@@ -1529,12 +1554,14 @@ class UnifiedRetrievalTests(unittest.TestCase):
         self.assertEqual(package_helper, canonical)
         self.assertEqual(package_fetch_helper, canonical)
         self.assertEqual(canonical["source_strategy"], "fts")
+        self.assertEqual(canonical["basket_item_id"], f"retrieval:fts:{excerpt_id}")
         self.assertEqual(canonical["retrieval_backend"], "sqlite_fts")
         self.assertEqual(canonical["retrieval_mode"], "fts_first")
         self.assertEqual(canonical["retrieval_policy"]["retrieval_backend"], "sqlite_fts")
         self.assertEqual(canonical["retrieval_policy"]["retrieval_mode"], "fts_first")
         self.assertEqual(canonical["title_hint"], result.hits[0].title_hint)
         self.assertEqual(canonical["provenance"]["source_strategy"], "fts")
+        self.assertEqual(canonical["provenance"]["basket_item_id"], f"retrieval:fts:{excerpt_id}")
         self.assertEqual(canonical["provenance"]["retrieval_backend"], "sqlite_fts")
         self.assertEqual(canonical["provenance"]["retrieval_mode"], "fts_first")
         self.assertEqual(canonical["provenance"]["doc_id"], result.hits[0].doc_id)
@@ -3473,6 +3500,7 @@ class UnifiedRetrievalTests(unittest.TestCase):
                 {
                     "doc_id": item["doc_id"],
                     "excerpt_id": item["excerpt_id"],
+                    "basket_item_id": item["basket_item_id"],
                     "doc_type": item["provenance"]["doc_type"],
                     "source_hash": item["source_hash"],
                     "doc_identity_fingerprint": item["provenance"]["doc_identity_fingerprint"],

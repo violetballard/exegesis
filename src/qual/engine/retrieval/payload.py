@@ -627,9 +627,10 @@ def _basket_item_id_for_excerpt(*, source_strategy: object, excerpt_id: object) 
     excerpt = _normalize_optional_text(excerpt_id)
     if source is None or excerpt is None:
         return None
-    if source.casefold() != "fts":
+    normalized_source = source.casefold()
+    if normalized_source != "fts":
         return None
-    return f"retrieval:{source}:{excerpt}"
+    return f"retrieval:{normalized_source}:{excerpt}"
 
 
 def _stable_fingerprint(payload: object) -> str:
@@ -968,16 +969,18 @@ def _normalize_excerpt_citation_snapshots(value: object) -> list[object]:
             continue
         normalized_citation = copy.deepcopy(citation)
         basket_item_id = normalized_citation.get("basket_item_id")
-        if not _is_missing_snapshot_value(basket_item_id):
-            expected_basket_item_id = _basket_item_id_for_excerpt(
-                source_strategy=normalized_citation.get(
-                    "retrieval_source_strategy",
-                    normalized_citation.get("source_strategy"),
-                ),
-                excerpt_id=normalized_citation.get("excerpt_id"),
-            )
-            if basket_item_id != expected_basket_item_id:
-                normalized_citation.pop("basket_item_id", None)
+        expected_basket_item_id = _basket_item_id_for_excerpt(
+            source_strategy=normalized_citation.get(
+                "retrieval_source_strategy",
+                normalized_citation.get("source_strategy"),
+            ),
+            excerpt_id=normalized_citation.get("excerpt_id"),
+        )
+        if _is_missing_snapshot_value(basket_item_id):
+            if expected_basket_item_id is not None:
+                normalized_citation["basket_item_id"] = expected_basket_item_id
+        elif basket_item_id != expected_basket_item_id:
+            normalized_citation.pop("basket_item_id", None)
         normalized.append(normalized_citation)
     return normalized
 

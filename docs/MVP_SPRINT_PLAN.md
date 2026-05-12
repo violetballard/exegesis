@@ -146,6 +146,7 @@ Shared integration target:
 - Initial CoP has unlimited Lite course access with no seat cap.
 - Initial CoP starts with 150 Nanonets pages.
 - Top-ups are fixed at 150, 500, and 1000 pages through Paddle/manual admin flow.
+- Pro includes BYOK/BYOM provider configuration for OpenAI, Claude, Mistral, and local OpenAI-compatible backends, with provider/model/reasoning selection for non-confidential projects only.
 - Lite import window shows Nanonets balance and estimated page count before OCR-backed import.
 - Developer builds never use hosted Lite workflows.
 
@@ -186,9 +187,9 @@ These lanes are deliberately outside Sprint 0-5 and should not be activated unti
 
 Milestone 19 lives in `docs/POST_MVP_FEATURES_SPEC.md` and specifies a tiny browser PDF capture extension for Chrome, Firefox, and Safari.
 Milestone 20 lives in the same post-MVP spec and specifies a localhost-only FastAPI sidecar packaged by PyInstaller and supervised by macOS Studio Workstation.
-Milestone 21 lives in the same post-MVP spec and specifies the macOS-only native Workstation/Studio distribution sprint for signed web-distributed builds that bundle the sidecar, enforce Workstation memory tiers, and route OCR locally or through managed cloud fallback based on available memory and policy.
+Milestone 21 lives in the same post-MVP spec and specifies the macOS-only native Workstation/Studio distribution sprint for signed web-distributed builds that bundle the sidecar, enforce Workstation memory tiers, provide native Light/Dark/Auto appearance settings, manage Pro local confidential models, and route OCR locally or through managed cloud fallback based on available memory and policy.
 Milestone 22 lives in the same post-MVP spec and specifies local-first multi-agent open access source discovery that hands deduped candidates to the standard import protocol through the sidecar.
-Milestone 23 lives in the same post-MVP spec and specifies Pro-only first-class CSV dataset import, lean quantitative analysis, basic charts, and saveable analysis sequences through native `StatsCore`/`StatsBridge`/IMSL rather than the Python sidecar by default.
+Milestone 23 lives in the same post-MVP spec and specifies Pro-only first-class CSV dataset import, lean dataset preparation, quantitative analysis, basic charts, and saveable analysis sequences through native `StatsCore`/`StatsBridge`/IMSL rather than the Python sidecar by default.
 Milestone 24 lives in the same post-MVP spec and specifies Pro-only advanced qualitative coding visualizations, matrices, distribution tables, comparisons, and codebook generation.
 Milestone 25 lives in the same post-MVP spec and specifies the later company-wide confidential collaboration design sprint for Studio/SwiftUI shared project work.
 Milestone 26 lives in the same post-MVP spec and specifies long-term native iPad Lite after collaboration, once Studio/Pro Swift-native components can replace sidecar-dependent behavior.

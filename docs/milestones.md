@@ -276,7 +276,7 @@ Outcome:
 Deliverables:
 - provider setup commands for OpenAI, Claude, Mistral, Nanonets, and local OpenAI-compatible endpoints
 - secure OS credential-store abstraction
-- default online provider and default model selection
+- default online provider plus model and supported reasoning-level selection
 - connection test and clear-stored-credentials commands
 - Developer/Lite command visibility and backend rejection rules
 
@@ -308,6 +308,8 @@ Outcome:
 Deliverables:
 - pywebview desktop shell around the local Textual server
 - bundled Python runtime, SQLite app data, local server startup/shutdown, and GitHub Release artifacts
+- Cloudflare R2-backed update checks, unobtrusive update button, and `Check for Updates` menu command
+- required-update gate that blocks confidential project creation/open until the app is fully updated
 - Developer profile wired to BYOK/BYOM provider commands
 - Lite profile wired to hosted License Gateway and managed provider access
 - cross-platform Developer/Lite packaging plan independent from Studio
@@ -330,6 +332,7 @@ Deliverables:
 - hosted License Gateway for license claim, refresh, managed Mistral/Nanonets access, Paddle webhooks, and Nanonets page state
 - 150 default Nanonets pages plus fixed top-ups for 150, 500, and 1000 pages
 - Studio 250-page monthly managed cloud OCR bucket and Pro 500-page monthly managed cloud OCR bucket
+- Pro BYOK/BYOM provider configuration for OpenAI, Claude, Mistral, and local OpenAI-compatible backends with provider/model/reasoning selection for non-confidential projects only
 - edition system tiers: Lite 8 GB, Studio 8 GB with managed cloud OCR, Pro 16 GB, local OCR when current memory allows, and 128 GB for local confidential mode
 - Pro-only entitlement gating for Quantitative Analysis and Advanced Qualitative Coding Visualizations
 - import-window Nanonets balance and estimated-page display
@@ -378,11 +381,15 @@ Outcome:
 
 Deliverables:
 - native macOS SwiftUI Workstation lifecycle
+- native settings for Light, Dark, and Auto appearance modes
 - STTextView editor foundation evaluation with plugins for annotations, Markdown highlighting, diffs, citations, figures, and tables
 - bundled sidecar launch, health monitoring, compatibility checks, restart, and shutdown
 - Workstation memory tiers and OCR routing: Studio 8 GB minimum, Pro 16 GB minimum, local OCR when current memory allows, and 128 GB for local confidential mode
 - MLX Swift local confidential runtime with selectable quant tiers from 128 GB Q4 through 512 GB F16
+- Pro local model manager for confidential runtime model downloads, storage, deletion, checksums, and tier selection
 - licensed R2-backed multipart downloads for confidential model quants
+- R2-backed app update checks, unobtrusive update button, and `Check for Updates` menu command
+- required-update gate before confidential project creation/open
 - creation-time immutable confidential project mode and confidential import boundaries
 - macOS signing, notarization, dmg/release artifact, checksums, and web distribution
 - release manifest, clean install, manual update/upgrade, and project data preservation
@@ -419,6 +426,7 @@ Deliverables:
 - Pro-only `pro_feature_access` requirement
 - CSV-only dataset import with provenance, row/column guardrails, and project storage
 - variable type auto-detection and editable overrides
+- lean dataset preparation for filtering, row/column removal, one-hot encoding, manual categorical/ordinal quantization, and keyed dataset unions
 - descriptive statistics, frequency and contingency tables, t-test, ANOVA, chi-squared, and linear correlation
 - p-values, effect sizes, and small/medium/large guidance
 - basic charts and saveable analysis sequences

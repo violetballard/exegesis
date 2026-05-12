@@ -760,6 +760,7 @@ Non-activation rule:
 The native Studio Workstation owns:
 - native app window and app lifecycle
 - native SwiftUI interface hosting and app-shell strategy
+- native settings for appearance and local runtime management
 - native document editor strategy, with STTextView as the preferred AppKit-backed editor candidate inside SwiftUI
 - launch and supervision of the Milestone 20 Python sidecar binary
 - app data directory selection and migration handling
@@ -825,7 +826,7 @@ Release artifacts should include:
 - SwiftUI/native UI assets
 - engine/shared/client assets needed at runtime
 - license notices
-- release manifest with version, platform, architecture, checksums, and sidecar compatibility
+- Cloudflare R2 release manifest with version, platform, architecture, checksums, update requirement, and sidecar compatibility
 
 ### Signing and Trust Requirements
 
@@ -870,14 +871,29 @@ Minimum release flow:
 - sign macOS artifacts
 - notarize macOS artifacts
 - generate release manifest and checksums
-- publish artifacts to web download location
+- publish artifacts and release manifest to Cloudflare R2, using the same R2-backed distribution pattern as licensed model downloads
 - smoke-test install on clean macOS machines
 
 Update behavior:
-- v1 may use manual update checks only.
-- If auto-update is added, it must verify signatures/checksums before applying updates.
+- include an automatic background update check that reads the Cloudflare R2 release manifest.
+- keep update UX unobtrusive: show an `Update available` button in the native chrome/status surface when a newer build exists.
+- include a menu command: `Check for Updates`.
+- manual checks report up to date, update available, required update, update failed, and offline states.
+- update downloads must verify signatures/checksums before applying updates.
 - Update flow must preserve projects, local config, credentials, logs, and Lite license cache.
 - Update flow must not leave old sidecar processes running.
+- update checks must not interrupt drafting, coding, import review, or analysis work unless the manifest marks the current build unsafe for the requested action.
+
+Confidential project update gate:
+- Native Workstation must check update state before creating a confidential project.
+- Native Workstation must check update state before opening an existing confidential project.
+- If the current Cloudflare R2 release manifest marks a newer build as required, creation/opening of confidential projects is blocked until the app is fully updated.
+- Non-confidential projects may continue to open unless blocked by schema compatibility or a critical app-wide update.
+- The gate protects confidential-mode runtime, local model, OCR, and storage/security fixes from running on stale builds.
+- Required copy:
+  - `Update required before opening confidential projects.`
+  - `Confidential projects require the latest Exegesis build. Update to continue.`
+  - `You can continue working in non-confidential projects, but confidential project access is paused until the update is installed.`
 
 Download page requirements:
 - clearly label Developer and Lite builds if both exist
@@ -898,6 +914,8 @@ Startup status states:
 - sidecar incompatible
 - app update required
 - app failed to start local backend
+- update available
+- update required before confidential project access
 
 Minimum native affordances:
 - app title and icon
@@ -905,6 +923,18 @@ Minimum native affordances:
 - restore last window size/position if practical
 - app menu entries for about, check for updates, reveal logs, reset local backend, quit
 - command or menu action to show local backend status
+- unobtrusive update button when an update is available or required
+
+Native settings:
+- include an Appearance setting with exactly three modes:
+  - `Light`
+  - `Dark`
+  - `Auto`
+- `Auto` follows the macOS system appearance.
+- Appearance setting must apply to the native SwiftUI shell and editor surfaces.
+- Appearance preference is a local user preference, not project state, and must not be included in project transfer archives.
+- Pro builds include a local model manager for local confidential runtime assets.
+- Studio builds may show local confidential mode as unavailable when the license or hardware does not support it, but the Pro local model manager is the owning surface for model download, storage, deletion, and tier selection.
 
 Failure handling:
 - if sidecar fails to start, show clear local backend error with retry and reveal logs
@@ -912,6 +942,9 @@ Failure handling:
 - if port binding fails, retry with another loopback port
 - if bundled sidecar is missing/quarantined, provide reinstall guidance
 - if app data migration fails, do not destroy existing user projects
+- if update manifest is unavailable, use the last known update-required state for confidential project gates and show offline update-check copy
+- if update download is interrupted, keep the current signed app untouched and allow retry
+- if checksum/signature validation fails, discard the update artifact and block install
 
 ### Workstation System Requirements And OCR Routing
 
@@ -930,6 +963,15 @@ Edition behavior:
 - Users below 128 GB can still use non-confidential Studio/Pro features that their license grants.
 - Pro-only features remain entitlement-gated by `pro_feature_access`; hardware limitations should not be reported as license failures.
 - Hardware capability checks must be local and privacy-preserving.
+
+Pro provider configuration:
+- Pro includes bring-your-own-key support for OpenAI, Claude, and Mistral.
+- Pro includes bring-your-own-model support through a local OpenAI-compatible backend.
+- Pro users can choose provider, model, and supported reasoning level for non-confidential model-backed workflows.
+- Pro provider credentials, local endpoint metadata, provider defaults, model defaults, and reasoning-level choices must use secure credential-store-backed storage and must never be written into projects, logs, transcripts, or project transfer archives.
+- Pro BYOK/BYOM support is not confidential-mode support. OpenAI, Claude, Mistral, and local OpenAI-compatible backends are external/non-confidential provider routes.
+- Confidential projects use only the approved local confidential MLX Swift runtime and licensed downloaded quants.
+- If a Pro user attempts to route a confidential project through BYOK or local OpenAI-compatible BYOM, block the request with clear copy: `BYOK and local OpenAI-compatible providers are not confidential-mode runtimes. Use the local confidential runtime for confidential projects.`
 
 OCR provider selection:
 - Markdown-direct import never uses OCR or consumes managed OCR pages.
@@ -970,6 +1012,18 @@ Model download behavior:
 - Download state must survive app restart and should support pause/resume/cancel.
 - License checks gate access to model packages but downloaded local model files are never embedded in project transfer archives.
 
+Pro local model manager:
+- shows installed confidential runtime models and available licensed tiers for the current machine.
+- shows hardware-supported tier ceiling and allows selecting any supported tier at or below that ceiling.
+- can start, pause, resume, cancel, retry, and delete model downloads.
+- can remove local model files without deleting projects.
+- verifies checksums and license entitlement before marking a model installed.
+- shows disk usage per model package and total local model storage.
+- records model package version, quant tier, checksum, download source, and install path in local app metadata.
+- never stores model packages inside project folders or project transfer archives.
+- blocks deletion of an actively loaded model until the running confidential session is closed or switched.
+- keeps BYOK/BYOM provider configuration separate; OpenAI, Claude, Mistral, and local OpenAI-compatible provider routes do not appear as confidential local models.
+
 Confidential project rules:
 - Confidential project mode is selected at project creation.
 - A project cannot be changed from confidential to non-confidential or from non-confidential to confidential after creation.
@@ -986,6 +1040,9 @@ User-facing copy:
 - `This project is confidential. Online OCR and cloud model fallback are disabled.`
 - `This machine supports {highestTier}. You can use {highestTier} or any lower confidential runtime tier.`
 - `Changing confidential runtime tier will download the selected local model before it can be used.`
+- `Auto appearance follows your macOS setting.`
+- `Deleting a local model does not delete your projects.`
+- `This model is currently in use. Close or switch confidential projects before deleting it.`
 
 ### Developer/Lite Boundary
 
@@ -1008,6 +1065,8 @@ Studio/Pro licensing boundary:
 - Studio/Pro subscription state, refresh tokens, and signed caches are never embedded in project transfer archives.
 - Quantitative Analysis and Advanced Qualitative Coding Visualizations are Pro-only and require `pro_feature_access`.
 - Studio-only licenses must not unlock Pro-only feature surfaces.
+- Pro licenses unlock BYOK/BYOM provider configuration for non-confidential projects, including provider, model, and supported reasoning-level selection.
+- Pro BYOK/BYOM configuration must not be treated as local confidential mode and must not satisfy confidential project routing requirements.
 - Studio cloud OCR fallback uses the Studio 250-page monthly subscription bucket.
 - Pro cloud OCR fallback uses the Pro 500-page monthly subscription bucket.
 
@@ -1069,10 +1128,12 @@ Lane profile:
 4. macOS signed distribution
    - Sign, notarize, build dmg, verify clean install and launch.
 5. Release manifest and download workflow
-   - Generate release metadata, checksums, website/download copy, and troubleshooting notes.
-6. Update/manual upgrade path
+   - Generate R2 release metadata, checksums, website/download copy, and troubleshooting notes.
+6. Auto-update and confidential gate
+   - Add R2-backed update checks, native `Check for Updates`, unobtrusive update button state, checksum/signature validation, and required-update blocking for confidential project creation/open.
+7. Update/manual upgrade path
    - Verify app data preservation, sidecar replacement, and no orphan sidecar processes.
-7. macOS smoke matrix
+8. macOS smoke matrix
    - Run launch, project open, sidecar health, import path, quit/restart, uninstall/reset checks on clean macOS installs.
 
 ### Test Plan
@@ -1092,6 +1153,13 @@ Packaging tests:
 - app starts sidecar from the signed/bundled install location.
 - app shuts down sidecar on quit.
 - update/install flow preserves project data.
+- R2 release manifest supports normal, update-available, required-update, and unreachable states.
+- `Check for Updates` menu command refreshes update state without interrupting active work.
+- unobtrusive update button appears when an update is available or required.
+- update artifact checksum/signature mismatch is rejected.
+- required update blocks confidential project creation.
+- required update blocks opening existing confidential projects.
+- required update does not block non-confidential project open unless schema compatibility or critical app-wide policy requires it.
 
 Workstation tests:
 - clean launch reaches sidecar ready and UI ready states.
@@ -1099,6 +1167,9 @@ Workstation tests:
 - port conflict retries with another loopback port.
 - missing/quarantined sidecar surfaces reinstall guidance.
 - app data migration failure preserves existing data.
+- Appearance setting supports Light, Dark, and Auto modes.
+- Auto appearance follows macOS system appearance.
+- Appearance preference is stored locally and is not included in project transfer archives.
 - Studio validates `studio_app_access` through the License Gateway entitlement state.
 - Pro-only surfaces validate `pro_feature_access`.
 - Lite on a secondary machine can refresh inherited `lite_client_access` from the same active Studio/Pro subscription.
@@ -1106,12 +1177,17 @@ Workstation tests:
 - Studio with at least 16 GB currently available for OCR offers local Nanonets OCR2.
 - Confidential projects block online OCR and cloud model fallback even when managed cloud pages remain.
 - Confidential project mode is immutable after project creation.
+- Confidential project creation/open is unavailable when the app is not fully updated and the manifest marks the update required.
 - Confidential projects reject imports from non-confidential project documents, except eligible non-confidential literature with explicit confirmation.
 - Non-confidential projects reject imports from confidential project documents.
 - MLX Swift confidential runtime tier selection exposes only supported quant tiers and lower tiers.
 - First confidential project startup triggers licensed JIT model download for the selected quant.
 - Changing quant tier triggers JIT download of the selected tier without embedding model files in project transfer archives.
 - Interrupted multipart R2 model downloads can resume without restarting from byte zero.
+- Pro local model manager lists installed and available confidential runtime model tiers.
+- Pro local model manager can start, pause, resume, cancel, retry, and delete model downloads.
+- Pro local model manager verifies checksums and blocks deletion of actively loaded models.
+- Pro local model manager does not list BYOK/BYOM providers as confidential local models.
 
 Acceptance criteria:
 - A user can download, install, and launch a native macOS Studio Workstation build without terminal use.
@@ -1121,6 +1197,9 @@ Acceptance criteria:
 - Studio can run on 8 GB with managed online OCR, while Pro requires 16 GB.
 - Local confidential mode is MLX Swift-backed and unavailable below 128 GB.
 - Confidential runtime quant tiers, R2 multipart downloads, and immutable confidential project boundaries are specified.
+- R2-backed auto-update, manual update check, unobtrusive update button, and required-update confidential gate are specified.
+- Native settings include Light, Dark, and Auto appearance modes.
+- Pro local model manager behavior is specified for confidential runtime assets.
 - Release artifacts are signed/checksummed and ready for web distribution.
 - Packaging work remains disabled until explicitly activated.
 
@@ -1943,6 +2022,13 @@ In scope:
 - auto-detect variable type as `categorical`, `ordinal`, or `scale`.
 - show raw data in the native Workstation dataset view.
 - allow changing variable type from the native Workstation raw-data view.
+- support lean dataset preparation needed for basic analysis:
+  - filter rows by simple conditions.
+  - remove selected rows.
+  - remove selected columns.
+  - create one-hot encoded columns from categorical or ordinal variables.
+  - manually quantize categorical or ordinal variables into numeric scale columns through user-defined mappings.
+  - union compatible datasets by a selected key column.
 - expose analysis selection in the native Workstation inspector/sidebar.
 - run basic descriptive and inferential analyses through native `StatsCore` APIs backed by a narrow IMSL bridge.
 - generate markdown result tables.
@@ -1955,6 +2041,8 @@ Out of scope:
 - non-CSV imports.
 - live spreadsheet editing.
 - formula columns.
+- arbitrary spreadsheet-style transformations beyond the specified data-prep operations.
+- fuzzy joins, many-to-many joins, or relational modeling beyond keyed dataset union.
 - weighted survey analysis.
 - missing-data imputation beyond clear listwise deletion rules.
 - regression beyond simple linear correlation.
@@ -2054,6 +2142,25 @@ type DatasetChartArtifact = {
   altText: string;
   createdAt: string;
 };
+
+type DatasetTransformType =
+  | "filter_rows"
+  | "remove_rows"
+  | "remove_columns"
+  | "one_hot_encode"
+  | "manual_quantize"
+  | "union_by_key";
+
+type DatasetTransform = {
+  id: string;
+  projectId: string;
+  sourceDatasetIds: string[];
+  outputDatasetId: string;
+  transformType: DatasetTransformType;
+  label: string;
+  parameters: Record<string, unknown>;
+  createdAt: string;
+};
 ```
 
 `DatasetAnalysisType`:
@@ -2090,6 +2197,57 @@ MAX_DATASET_COLUMNS = 250;
 
 If the file exceeds a guardrail, show a clear message and do not import silently.
 
+### Dataset Preparation
+
+Milestone 23 includes only the data preparation needed to make the lean quantitative workflow usable without becoming a spreadsheet product.
+
+General transform rules:
+- transforms create a new derived dataset or an explicitly versioned dataset state; they do not silently destroy the original import.
+- every transform records `DatasetTransform` provenance with source dataset IDs, output dataset ID, type, label, parameters, and timestamp.
+- derived datasets stay under `Datasets` and remain eligible for the same variable typing, analysis, charting, and sequence behavior.
+- analysis runs record the dataset ID they used, so later transforms do not mutate historical results.
+- transformed values should preserve missingness explicitly rather than coercing missing cells to `0` unless the operation semantics require it and the UI says so.
+
+Filtering:
+- support simple conditions only:
+  - equals / does not equal.
+  - contains / does not contain for string-like variables.
+  - greater than, greater than or equal, less than, less than or equal for numeric variables.
+  - is missing / is not missing.
+- support combining conditions with `AND` in v1.
+- do not implement nested logic, regex filters, or arbitrary expressions in this milestone.
+
+Row and column removal:
+- allow removing selected rows from the raw-data view.
+- allow removing selected columns from the raw-data view or variable metadata list.
+- row removal stores stable row identifiers when available, otherwise stores source row indexes from the imported dataset version.
+- column removal preserves the original column metadata in transform provenance even though the derived dataset omits the column.
+
+One-hot encoding:
+- available for `categorical` and `ordinal` variables.
+- creates one binary indicator column per selected category by default.
+- allows omitting one reference category for analyses where a reference-coded design is preferred.
+- generated columns should use stable names such as `<variable>__is__<category_slug>`.
+- one-hot generated columns default to `scale` with metadata marking them as derived indicators.
+
+Manual quantization:
+- available for `categorical` and `ordinal` variables.
+- lets the user define an explicit category-to-number mapping.
+- creates a new numeric column rather than overwriting the source variable.
+- requires every non-missing observed category to be mapped or explicitly marked as missing/ignored.
+- generated columns default to `scale` when the mapping is numeric and analysis-ready.
+- ordinal variables may offer the detected order as a starting mapping, but the user must be able to edit it before saving.
+
+Dataset union by key:
+- allow unioning two or more datasets based on one selected key column per dataset.
+- v1 union semantics are append/merge-by-key for compatible project datasets, not a general SQL join system.
+- require a clear conflict policy when the same key appears in multiple datasets:
+  - keep first value.
+  - keep latest value.
+  - create suffixed duplicate columns.
+- require compatible variable names/types or show a conflict-resolution step before creating the derived dataset.
+- never silently drop unmatched rows; the user must choose whether to keep all rows or only matched keys.
+
 ### Variable Type Detection
 
 Auto-detect each variable as `categorical`, `ordinal`, or `scale`.
@@ -2120,6 +2278,10 @@ Dataset view:
 - freezes or clearly labels column headers.
 - shows variable type controls in the header or a compact variable metadata panel.
 - supports changing variable type for one column at a time.
+- supports selecting rows for removal.
+- supports selecting columns for removal, one-hot encoding, or manual quantization.
+- supports opening a compact filter builder for simple row filters.
+- supports starting a keyed union flow from the selected dataset.
 - does not perform spreadsheet editing.
 - does not modify cell values.
 - supports selecting a variable or cell enough to update the inspector.
@@ -2142,6 +2304,13 @@ When a dataset is selected, the inspector shows:
 - independent/grouping variable selector when applicable.
 - covariate selector only for analysis types that support covariates.
 - split-by selector for descriptive statistics.
+- dataset preparation actions when a dataset or variable is selected:
+  - filter rows.
+  - remove selected rows.
+  - remove selected columns.
+  - one-hot encode selected categorical/ordinal variable.
+  - manually quantize selected categorical/ordinal variable.
+  - union datasets by key column.
 - `Add Test to Sequence` action.
 - current sequence summary.
 
@@ -2408,6 +2577,12 @@ Add command palette entries:
 - `Import Dataset CSV`
 - `Open Dataset`
 - `Change Variable Type`
+- `Filter Dataset Rows`
+- `Remove Dataset Rows`
+- `Remove Dataset Columns`
+- `One-Hot Encode Variable`
+- `Manually Quantize Variable`
+- `Union Datasets by Key`
 - `Add Analysis to Sequence`
 - `Save Analysis Sequence as Summary`
 
@@ -2421,6 +2596,12 @@ Minimum command/service contracts:
 exegesis dataset import --project <project-id> --file <path.csv>
 exegesis dataset variables <dataset-id>
 exegesis dataset set-variable-type <dataset-id> <variable-name> --type categorical|ordinal|scale
+exegesis dataset filter <dataset-id> --condition <json> --output-title <title>
+exegesis dataset remove-rows <dataset-id> --rows <row-id-list> --output-title <title>
+exegesis dataset remove-columns <dataset-id> --columns <column-list> --output-title <title>
+exegesis dataset one-hot <dataset-id> --variable <var> [--omit-reference <category>] --output-title <title>
+exegesis dataset quantize <dataset-id> --variable <var> --mapping <json> --output-column <name> --output-title <title>
+exegesis dataset union --datasets <id-list> --keys <dataset-id:column-list> --conflict-policy keep-first|keep-latest|suffix-duplicates --row-policy keep-all|matched-only --output-title <title>
 exegesis dataset analyze <dataset-id> --type descriptive --dependent <var> [--split-by <var>]
 exegesis dataset analyze <dataset-id> --type t-test --dependent <var> [--group <var>] [--comparison-mean <number>]
 exegesis dataset analyze <dataset-id> --type anova --dependent <var> --group <var>
@@ -2432,6 +2613,7 @@ exegesis dataset sequence save-summary <sequence-id>
 
 Internal service contracts:
 - `DatasetImportService`
+- `DatasetTransformService`
 - `VariableTypeDetector`
 - `DatasetAnalysisService`
 - `EffectSizeInterpreter`
@@ -2454,6 +2636,12 @@ User-facing errors:
 - `This CSV file could not be read as UTF-8.`
 - `This CSV file does not contain a header row.`
 - `This dataset is too large for the current quantitative analysis lane.`
+- `This filter is too complex for the current quantitative analysis lane.`
+- `Choose a categorical or ordinal variable for one-hot encoding.`
+- `Choose a categorical or ordinal variable for manual quantization.`
+- `Every observed category must have a numeric mapping or be explicitly ignored.`
+- `Choose a key column for each dataset in the union.`
+- `Resolve column conflicts before creating the unioned dataset.`
 - `Choose a scale variable for this analysis.`
 - `Choose a categorical or ordinal grouping variable for this analysis.`
 - `This test requires exactly two groups.`
@@ -2565,9 +2753,22 @@ Variable detection tests:
 - nominal labels detect as `categorical`.
 - user override wins over detected type.
 
+Dataset preparation tests:
+- simple row filters create a derived dataset and preserve transform provenance.
+- selected row removal creates a derived dataset without mutating the original import.
+- selected column removal creates a derived dataset without mutating the original import.
+- one-hot encoding creates binary indicator columns for categorical variables.
+- one-hot encoding supports omitting a reference category.
+- manual quantization creates a numeric derived column from categorical or ordinal mappings.
+- manual quantization requires every observed non-missing category to be mapped or explicitly ignored.
+- keyed union combines multiple datasets by selected key columns.
+- keyed union requires conflict policy and row policy choices before creating output.
+- transformed datasets remain eligible for variable typing, analysis, charting, and sequence saving.
+
 Document view tests:
 - dataset selection opens raw data.
 - variable type can be changed without modifying raw cell values.
+- data-prep actions create derived datasets instead of silently mutating source imports.
 - inspector updates when a dataset variable is selected.
 
 Descriptive tests:
@@ -2607,6 +2808,10 @@ Acceptance criteria:
 - User can import a CSV into the `Datasets` project section.
 - Exegesis auto-detects variable types and lets the user override them.
 - User can inspect raw data in the native Workstation dataset view.
+- User can filter rows and remove selected rows or columns while preserving the original dataset.
+- User can one-hot encode categorical/ordinal variables.
+- User can manually quantize categorical/ordinal variables into numeric columns.
+- User can union multiple datasets by key column with explicit conflict and row-retention choices.
 - User can run descriptive statistics overall and split by categorical/ordinal variables.
 - User can run frequency and contingency tables.
 - User can run t-test, ANOVA, chi-squared, and linear correlation.

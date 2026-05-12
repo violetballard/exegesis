@@ -193,7 +193,7 @@ Own later:
 - Lite remote Mistral Small 4 provider profile
 - Lite managed Nanonets OCR-3 provider profile with cross-platform app-managed remote service credentials
 - OpenAI, Claude, Mistral, Nanonets, and local OpenAI-compatible endpoint setup
-- default online provider and default model selection
+- default online provider plus model and supported reasoning-level selection
 - connection testing and credential clearing commands
 - macOS Keychain, Windows Credential Manager/DPAPI-backed storage, and Linux Secret Service/libsecret credential-store modes
 - backend provider-router integration for developer BYOK/BYOM setup
@@ -229,6 +229,8 @@ Own later:
 - platform app-data directory handling for database, project files, cache, and logs
 - loopback-only local server startup, port collision handling, and shutdown coordination
 - GitHub Release artifact collection and checksum generation
+- Cloudflare R2 release manifest, update checks, unobtrusive update button, and `Check for Updates` menu command
+- required-update gate that blocks confidential project creation/open until the app is fully updated
 - Developer profile integration with Milestone 15 BYOK/BYOM provider commands
 - Lite profile integration with remote Mistral Small 4 and managed Nanonets OCR-3
 
@@ -249,6 +251,7 @@ Own later:
 - hosted License Gateway for license invites, claim, refresh, managed Lite provider proxy, Studio/Pro managed OCR fallback, Paddle webhooks, and Nanonets page state
 - Nanonets page ledger with 150-page default initial CoP balance
 - Studio managed cloud OCR bucket of 250 pages per month and Pro managed cloud OCR bucket of 500 pages per month
+- Pro BYOK/BYOM provider configuration for OpenAI, Claude, Mistral, and local OpenAI-compatible backends, including provider/model/reasoning selection for non-confidential projects only
 - edition hardware tiers: Lite 8 GB, Studio 8 GB with online OCR, Pro 16 GB, local OCR when current memory allows, and 128 GB for local confidential mode
 - Pro-only entitlement gating for Quantitative Analysis and Advanced Qualitative Coding Visualizations
 - fixed Nanonets top-up packages of 150, 500, and 1000 pages
@@ -301,14 +304,17 @@ Implementation batches:
 ### `feat-native-workstation`
 Own later:
 - macOS Studio Workstation app lifecycle, window/runtime boundary, and local UI hosting strategy
+- native settings for Light, Dark, and Auto appearance modes
 - STTextView as preferred native editor foundation candidate, with plugin planning for annotations, Markdown highlighting, diffs, citations, figures, and tables
 - bundled Milestone 20 sidecar launch, health monitoring, compatibility checks, restart, and shutdown
 - Workstation memory tiers and local/confidential capability checks
+- Pro local model manager for confidential runtime model downloads, storage, deletion, checksums, and tier selection
 - local OCR preference with managed cloud OCR fallback when current available memory is insufficient and project policy allows cloud processing
 - signed web-distributed macOS Studio artifact
 - macOS signing/notarization and checksums
 - explicit exclusion of Windows/Linux Studio signing and packaging
 - release manifest, checksums, web download flow, and troubleshooting copy
+- Cloudflare R2-backed update checks, unobtrusive update button, `Check for Updates` menu command, and required-update confidential project gate
 - update/manual upgrade behavior that preserves project data and does not orphan sidecars
 - local backend status and failure surfaces for sidecar startup/incompatibility issues
 - interactive sprint guidance because native packaging/signing should not be blindly daemon-scheduled
@@ -348,6 +354,7 @@ Own later:
 - CSV-only dataset import with provenance, row/column guardrails, and dataset storage
 - variable metadata and auto-detection for categorical, ordinal, and scale variables
 - native Studio Workstation raw-data view with variable type override controls
+- lean dataset preparation transforms: filtering, row removal, column removal, one-hot encoding, manual categorical/ordinal quantization, and keyed dataset union
 - inspector-driven analysis picker and variable selectors
 - descriptive statistics overall and split by categorical/ordinal variables
 - frequency and contingency tables

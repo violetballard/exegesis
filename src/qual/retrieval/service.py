@@ -67,9 +67,10 @@ def _basket_item_id_for_excerpt(*, source_strategy: object, excerpt_id: object) 
     excerpt = _optional_text(excerpt_id)
     if source is None or excerpt is None:
         return None
-    if source.casefold() != _FTS_SOURCE_STRATEGY:
+    normalized_source = source.casefold()
+    if normalized_source != _FTS_SOURCE_STRATEGY:
         return None
-    return f"retrieval:{source}:{excerpt}"
+    return f"retrieval:{normalized_source}:{excerpt}"
 
 
 def _present_text_values(values: Iterator[object]) -> list[str]:
@@ -205,6 +206,12 @@ class RetrievalHit:
             "node_path": copy.deepcopy(self.node_path),
             "provenance": copy.deepcopy(self.provenance),
         }
+        basket_item_id = _basket_item_id_for_excerpt(
+            source_strategy=self.source_strategy,
+            excerpt_id=self.excerpt_id,
+        )
+        if basket_item_id is not None:
+            payload["basket_item_id"] = basket_item_id
         query_fingerprint = self.provenance.get("query_fingerprint")
         if isinstance(query_fingerprint, str) and query_fingerprint:
             payload["query_fingerprint"] = query_fingerprint
@@ -766,6 +773,10 @@ class RetrievalResult:
             {
                 "doc_id": hit.doc_id,
                 "excerpt_id": hit.excerpt_id,
+                "basket_item_id": _basket_item_id_for_excerpt(
+                    source_strategy=hit.provenance.get("source_strategy", hit.source_strategy),
+                    excerpt_id=hit.excerpt_id,
+                ),
                 "doc_type": hit.provenance.get("doc_type"),
                 "source_hash": hit.provenance.get("source_hash"),
                 "doc_identity_fingerprint": hit.provenance.get("doc_identity_fingerprint"),

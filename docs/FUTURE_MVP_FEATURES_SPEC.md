@@ -816,6 +816,7 @@ Add developer credential concepts:
 - `DeveloperProviderDefaults`
   - `default_online_provider`: openai, claude, or mistral
   - `default_model_by_provider`: map from provider to model name
+  - `reasoning_level_by_provider_model`: optional map from provider/model to supported reasoning level, e.g. `low`, `medium`, `high`, or provider-specific equivalents
   - `local_openai_compatible_endpoint`: keychain-backed metadata record containing base URL, optional API key ref, and default local model
   - `online_ocr_provider`: nanonets when configured for Developer online OCR
   - stored through the same credential-store abstraction rather than a config file
@@ -899,7 +900,7 @@ Lite command availability:
   - `Configure Claude Key`
   - `Configure Mistral Key`
   - `Configure Nanonets Key`
-  - `Configure local OpenAI compatible endpoint for confidential mode`
+  - `Configure local OpenAI compatible endpoint`
   - `Set default online provider`
   - `Set default model for default provider`
   - `Clear stored credentials`
@@ -917,18 +918,20 @@ Add credential-store abstraction:
 - `set_local_openai_endpoint(base_url, model, api_key? = None) -> DeveloperCredentialRef`
 - `set_default_online_provider(provider) -> DeveloperProviderDefaults`
 - `set_default_model(provider, model) -> DeveloperProviderDefaults`
+- `set_default_reasoning_level(provider, model, reasoning_level) -> DeveloperProviderDefaults`
 - `get_developer_provider_defaults() -> DeveloperProviderDefaults`
 - `test_current_provider_connection() -> ProviderConnectionTestResult`
 
 Backend provider-router integration:
 - Developer online provider routing reads the default online provider from the credential-store-backed defaults.
 - Developer default model resolution reads `default_model_by_provider`.
+- Developer reasoning-level resolution reads `reasoning_level_by_provider_model` when the selected provider supports reasoning controls.
 - Lite online provider routing ignores developer defaults and always uses remote Mistral Small 4.
 - Developer OCR routing uses the stored Nanonets key when online OCR is selected and policy allows it.
 - Lite OCR routing ignores developer credentials and uses the app-managed Nanonets OCR-3 service profile.
-- Confidential mode local routing reads the configured local OpenAI-compatible endpoint and model.
+- Developer local model routing reads the configured local OpenAI-compatible endpoint and model for non-confidential projects only.
 - If a required key or endpoint is missing, backend returns an actionable credential-required error naming the command to run.
-- Provider selection must respect project policy: confidential/local-only work cannot use online providers even if keys exist.
+- Provider selection must respect project policy: confidential/local-only work cannot use BYOK online providers, local OpenAI-compatible BYOM endpoints, or managed Lite providers. Confidential projects use only the approved local confidential runtime from the Workstation spec.
 
 Command availability:
 - The command registry must gate provider mutation commands behind `developer_version == true`.
@@ -943,9 +946,10 @@ Required commands, exact labels:
 - `Configure Claude Key`
 - `Configure Mistral Key`
 - `Configure Nanonets Key`
-- `Configure local OpenAI compatible endpoint for confidential mode`
+- `Configure local OpenAI compatible endpoint`
 - `Set default online provider`
 - `Set default model for default provider`
+- `Set reasoning level for selected model`
 - `Test current connection`
 - `Clear stored credentials`
 
@@ -961,10 +965,10 @@ Command behavior:
 - `Configure Nanonets Key`
   - Same as OpenAI, stored under Nanonets provider.
   - Used by Developer OCR import for Nanonets OCR-3 when online OCR is allowed.
-- `Configure local OpenAI compatible endpoint for confidential mode`
+- `Configure local OpenAI compatible endpoint`
   - Prompts for base URL, default local model, and optional API key.
   - Stores endpoint metadata and optional key in keychain/credential store.
-  - Marks this endpoint as the confidential-mode local provider target.
+  - Marks this endpoint as a non-confidential local BYOM provider target.
 - `Set default online provider`
   - Presents OpenAI, Claude, and Mistral.
   - Requires that provider to have either a stored key or an explicit allow-missing confirmation for later setup.
@@ -972,6 +976,10 @@ Command behavior:
   - Prompts for a model name string.
   - Stores the model for the current default provider.
   - Does not validate model existence until `Test current connection`.
+- `Set reasoning level for selected model`
+  - Prompts for the selected provider/model and supported reasoning level.
+  - Stores the reasoning level only for providers and models that expose a compatible reasoning control.
+  - For unsupported models, stores no reasoning level and shows `This model does not expose a reasoning-level control.`
 - `Test current connection`
   - Uses current project/provider policy to test the active provider.
   - In Lite, tests the remote Mistral Small 4 path and the managed Nanonets OCR-3 path.
@@ -997,7 +1005,7 @@ No-settings-window rule:
    - Add keychain-backed provider secret storage with mock credential store for tests.
    - Ensure raw secrets never appear in logs or serialized project state.
 3. Command palette flows
-   - Implement the nine required commands as focused prompt/modal flows.
+   - Implement the ten required commands as focused prompt/modal flows.
    - Add masked input, confirmations, and redacted status output.
 4. Backend provider-router integration
    - Read provider defaults and local endpoint from credential store.
@@ -1021,8 +1029,11 @@ No-settings-window rule:
 - Invalid key: store is allowed, but `Test current connection` marks invalid/unauthorized.
 - Local endpoint has no key: allow if endpoint does not require one.
 - Local endpoint URL malformed: reject before storage.
+- Local OpenAI-compatible endpoint selected for a confidential project: reject with clear copy that BYOM endpoints are not confidential-mode runtimes.
+- BYOK OpenAI/Claude/Mistral selected for a confidential project: reject with clear copy that external provider keys do not satisfy confidential mode.
 - Default online provider cleared: fall back to no default and require explicit provider setup.
 - Default model cleared or missing: provider test returns model-required warning.
+- Reasoning level set for unsupported model: keep provider/model selection and show a non-fatal unsupported-reasoning warning.
 - macOS Keychain unavailable: show secure-storage-unavailable error and do not fall back to plain text files.
 - Windows credential store unavailable: show secure-storage-unavailable error and do not fall back to plain text files.
 - Linux Secret Service unavailable or locked: show secure-storage-unavailable/keyring-locked error and do not fall back to plain text files.
@@ -1031,9 +1042,9 @@ No-settings-window rule:
 
 ### Test Plan
 
-- Developer build shows all nine command-palette commands.
-- Lite build shows `Test current connection` and hides the eight provider mutation commands.
-- Packaged non-configurable build hides all nine provider commands.
+- Developer build shows all ten command-palette commands.
+- Lite build shows `Test current connection` and hides the nine provider mutation commands.
+- Packaged non-configurable build hides all ten provider commands.
 - Backend rejects provider mutation command handlers when developer mode is unavailable.
 - Lite routes online non-confidential calls to remote Mistral Small 4.
 - Lite routes OCR calls to managed Nanonets OCR-3 when remote OCR is allowed.
@@ -1048,7 +1059,9 @@ No-settings-window rule:
 - Local OpenAI-compatible endpoint stores base URL, model, and optional key through credential store.
 - Setting default online provider persists through credential-store-backed defaults, not a config file.
 - Setting default model persists for the selected default provider.
+- Setting reasoning level persists per supported provider/model and is ignored with clear copy for unsupported models.
 - Test current connection reports success for a mocked valid provider.
+- BYOK/BYOM routing is blocked for confidential projects; confidential mode uses only the approved local confidential runtime.
 - Lite `Test current connection` reports status for the remote Mistral Small 4 profile.
 - Lite `Test current connection` reports status for managed Nanonets OCR-3.
 - Test current connection reports missing credentials, unauthorized, unreachable, and model unavailable states.
@@ -1300,6 +1313,29 @@ GitHub Releases:
 - Checksums are generated for all artifacts.
 - Signing/notarization details are tracked per platform as follow-up release-hardening work if not part of the first packaging batch.
 
+### Auto-Update And Version Gating
+
+Update channel:
+- Developer and Lite packaged Textual apps use a release manifest hosted on Cloudflare R2.
+- Installer/package artifacts may still be linked from GitHub Releases, but packaged-app update checks read the R2 manifest so distribution can later move behind licensing/download policy without changing app behavior.
+- Manifest entries include version, channel, platform, variant, artifact URL, checksum, release notes URL, minimum compatible schema versions, and whether the update is required.
+- Downloaded update artifacts are checksum-verified before install or handoff to the platform installer.
+
+User experience:
+- Update notices must be unobtrusive.
+- When an update is available, show a small persistent `Update available` button in the app chrome/status area rather than interrupting the writing flow.
+- Add a native/menu command: `Check for Updates`.
+- Manual update checks show one of: up to date, update available, update required, update check failed.
+- Background update checks must not block drafting, reading, importing, or project navigation.
+
+Confidential gate:
+- If the app is not fully updated and the current manifest marks the update required, block creating or opening confidential projects.
+- Existing non-confidential projects may still open unless their storage schema requires a newer app.
+- Required copy:
+  - `Update required before opening confidential projects.`
+  - `Confidential projects require the latest Exegesis build. Update to continue.`
+  - `You can continue working in non-confidential projects, but confidential project access is paused until the update is installed.`
+
 ### UI And User Experience
 
 End-user expectations:
@@ -1327,6 +1363,9 @@ Add packaging/runtime actions:
 - `get_app_distribution_variant() -> DistributionVariant`
 - `get_app_data_dir() -> Path`
 - `initialize_packaged_runtime() -> RuntimeStatus`
+- `check_for_updates(manual: bool = False) -> UpdateStatus`
+- `download_update(update_id) -> UpdateDownloadStatus`
+- `is_confidential_project_allowed_for_version() -> ConfidentialVersionGate`
 - `start_local_ui_server(host='127.0.0.1', port='auto') -> LocalServerStatus`
 - `stop_local_ui_server() -> LocalServerStatus`
 - `open_desktop_window(local_url) -> DesktopWindowStatus`
@@ -1339,6 +1378,10 @@ Runtime status:
 - database path
 - local server URL
 - provider mode
+- update status
+- latest available version
+- required-update flag
+- confidential-project version gate
 - startup warnings
 
 ### Implementation Batches
@@ -1359,7 +1402,9 @@ Runtime status:
 6. Release artifact automation
    - Add scripts for `.dmg`, `.msi`, and Flatpak builds.
    - Generate checksums and draft GitHub Release artifacts.
-7. Smoke install/run tests
+7. R2 update channel
+   - Generate R2 release manifests, add `Check for Updates`, add unobtrusive update button behavior, verify checksum validation, and gate confidential project creation/open when a required update is pending.
+8. Smoke install/run tests
    - Verify launch, local window, SQLite path, local server shutdown, and variant-specific provider mode.
 
 ### Edge Cases
@@ -1373,6 +1418,10 @@ Runtime status:
 - Linux lacks expected desktop portal/keyring pieces: packaging should fail gracefully with documented prerequisites.
 - Windows install path contains spaces: launcher and resource paths must still work.
 - macOS app translocation/notarization behavior: app data paths must not depend on bundle path mutability.
+- Update manifest unavailable: app continues in current mode, but confidential project creation/open follows the last known required-update state if one exists.
+- Update download interrupted: keep existing app untouched and allow retry.
+- Checksum mismatch: discard artifact, report update failure, and do not install.
+- Required update pending: confidential project creation/open is blocked until updated.
 
 ### Test Plan
 
@@ -1390,6 +1439,13 @@ Runtime status:
 - Developer build exposes Milestone 15 developer provider commands.
 - Lite build hides provider mutation commands and uses Lite remote Mistral Small 4 plus managed Nanonets OCR-3 provider mode.
 - GitHub Release script collects artifacts and checksums.
+- R2 release manifest parses for Developer and Lite variants.
+- `Check for Updates` reports up to date, update available, required update, and unreachable manifest states.
+- Unobtrusive update button appears only when an update is available or required.
+- Update artifact checksum validation rejects tampered downloads.
+- Required update blocks confidential project creation.
+- Required update blocks confidential project open.
+- Required update does not block non-confidential project open unless storage schema compatibility requires it.
 
 ## Milestone 18: Lite Website Licensing And CoP Launch Gate
 
@@ -1514,6 +1570,15 @@ Edition capability rules:
 - Quantitative Analysis and Advanced Qualitative Coding Visualizations require `pro_feature_access`; Studio-only licenses must not unlock them.
 - The gateway and app should distinguish entitlement failures from hardware capability failures. A user can be licensed for Pro while still lacking local confidential-mode hardware.
 
+Pro provider configuration:
+- Pro includes bring-your-own-key provider configuration for OpenAI, Claude, and Mistral.
+- Pro includes bring-your-own-model support through a local OpenAI-compatible backend.
+- Pro users can choose provider, model, and supported reasoning level for non-confidential model-backed workflows.
+- Pro BYOK/BYOM provider settings use the same secure credential-store rules as Milestone 15 and must never be written into projects, logs, transcripts, or project transfer archives.
+- Pro BYOK/BYOM support is not confidential-mode support. OpenAI, Claude, Mistral, and local OpenAI-compatible backends are allowed only for non-confidential projects.
+- Confidential projects in Pro use only the approved local confidential MLX Swift runtime and downloaded licensed quants described by the Workstation spec.
+- If a Pro user selects BYOK/BYOM for a confidential project, the app must block the route with clear copy: `BYOK and local OpenAI-compatible providers are not confidential-mode runtimes. Use the local confidential runtime for confidential projects.`
+
 OCR routing rules by edition:
 - Markdown-direct imports never consume OCR pages.
 - Lite uses managed Nanonets OCR-3 for OCR-backed imports and consumes the Lite OCR page balance.
@@ -1536,12 +1601,17 @@ Required gateway entitlement response shape:
   - `lite`
   - `studio`
   - `pro`
+  - `pro_byok_byom`
 - `hardware_capabilities`
   - `total_memory_gb`
   - `local_ocr_supported`
   - `local_confidential_mode_supported`
 - `ocr_page_buckets`
   - current Lite, Studio, or Pro managed OCR balances visible to the active client
+- `provider_capabilities`
+  - allowed non-confidential providers for the client, including Pro BYOK/BYOM when `pro_feature_access` permits it
+  - whether provider/model/reasoning selection is available
+  - explicit `confidential_supported: false` for BYOK/BYOM provider routes
 - `refresh_expires_at`
 - `signed_cache`
 
@@ -1553,6 +1623,7 @@ Required copy:
 - `Local confidential mode requires 128 GB of memory. Your license is active, but this machine does not meet that local-confidential requirement.`
 - `Local OCR is unavailable right now, so this import can use your cloud OCR pages if project policy allows cloud processing.`
 - `Cloud OCR pages remaining this month: {pagesRemaining}`
+- `BYOK and local OpenAI-compatible providers are not confidential-mode runtimes. Use the local confidential runtime for confidential projects.`
 
 ### Course Licensing Model
 
@@ -2071,6 +2142,10 @@ Edition and hardware capability tests:
 - Studio-only licenses do not unlock Quantitative Analysis.
 - Studio-only licenses do not unlock Advanced Qualitative Coding Visualizations.
 - Pro licenses expose Quantitative Analysis and Advanced Qualitative Coding Visualizations through `pro_feature_access`.
+- Pro licenses expose BYOK/BYOM provider configuration for non-confidential projects.
+- Pro provider configuration can store OpenAI, Claude, Mistral, and local OpenAI-compatible backend settings in secure credential storage.
+- Pro provider configuration supports provider, model, and supported reasoning-level selection.
+- Pro BYOK/BYOM routes are blocked for confidential projects and do not satisfy local confidential mode.
 
 Nanonets usage tests:
 - Initial CoP account starts with 150 pages.

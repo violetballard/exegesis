@@ -286,6 +286,7 @@ Status: planned, disabled
 Scope:
 - add command-palette configuration for Developer BYOK/BYOM providers
 - support OpenAI, Claude, Mistral, Nanonets, and local OpenAI-compatible endpoints
+- support provider, model, and supported reasoning-level selection for Developer BYOK/BYOM routes
 - store keys securely through the OS credential-store abstraction
 - keep Lite managed provider defaults separate from Developer keys
 
@@ -293,7 +294,7 @@ Lane mapping:
 - `feat-developer-provider-config`: disabled until explicitly activated
 
 Exit criteria:
-- provider commands, credential storage, provider defaults, connection tests, and clear-credential behavior are specified
+- provider commands, credential storage, provider defaults, model/reasoning selection, connection tests, and clear-credential behavior are specified
 - Developer and Lite provider boundaries are specified
 - no runtime provider configuration behavior is active until the lane is enabled
 
@@ -324,6 +325,8 @@ Status: planned, disabled
 Scope:
 - package Developer and Lite as normal local desktop apps around the locally served Textual UI
 - use pywebview, bundled Python runtime, SQLite app data, local server startup/shutdown, and GitHub Release artifacts
+- add Cloudflare R2-backed update checks with an unobtrusive update button and a `Check for Updates` menu command
+- block confidential project creation/open when the app is not fully updated and the release manifest marks an update required
 - keep Lite managed-provider secrets outside the bundle and routed through the hosted License Gateway
 - keep Developer builds wired to Milestone 15 BYOK/BYOM provider configuration
 - keep cross-platform Developer/Lite packaging separate from the later macOS-only Studio Workstation
@@ -333,7 +336,8 @@ Lane mapping:
 
 Exit criteria:
 - Developer and Lite packaging architecture is specified
-- local runtime startup, shutdown, storage, release artifact, and profile boundaries are specified
+- local runtime startup, shutdown, storage, update, release artifact, and profile boundaries are specified
+- confidential-project version gating is specified for required updates
 - no runtime desktop packaging behavior is active until the lane is enabled
 
 ## Milestone 18: Lite Website Licensing and CoP Launch Gate
@@ -349,6 +353,7 @@ Scope:
 - keep Nanonets online OCR page credits separate from course or Lite access
 - define Lite/Studio/Pro system tiers: Lite 8 GB, Studio 8 GB with managed cloud OCR, Pro 16 GB, local OCR when enough memory is currently available, and 128 GB for local confidential mode
 - define Studio and Pro managed cloud OCR fallback buckets: Studio 250 pages/month and Pro 500 pages/month
+- include Pro BYOK/BYOM provider configuration for OpenAI, Claude, Mistral, and local OpenAI-compatible backends with provider/model/reasoning selection for non-confidential projects only
 - keep Quantitative Analysis and Advanced Qualitative Coding Visualizations gated to Pro-only `pro_feature_access`
 - keep the hosted License Gateway as the place for license claim/refresh, managed Lite Mistral access, managed Nanonets OCR fallback, Paddle webhooks, and Nanonets page-credit state
 - make project transfer license-safe: imported project zips require the current user to have a valid license, but licenses are never machine-bound or included in project archives
@@ -358,6 +363,7 @@ Lane mapping:
 
 Exit criteria:
 - individual paid Lite, Studio/Pro inherited Lite access, course licensing, initial CoP access, and Nanonets page-credit rules are specified
+- Pro BYOK/BYOM provider configuration is specified as non-confidential provider routing and remains separate from local confidential mode
 - Paddle website purchase, course-license link, Tally/MCP approval workflow, and License Gateway contracts are specified
 - per-user licensing, subscription inheritance, and project-transfer boundaries are specified
 - no runtime licensing, gateway, Paddle, OCR metering, or shell behavior is active until the lane is enabled
@@ -404,10 +410,14 @@ Scope:
 - define the macOS-only native Workstation, branded as Studio, after the sidecar milestone
 - package the native SwiftUI interface, project storage, and Milestone 20 sidecar into a signed and notarized macOS distribution
 - evaluate STTextView as the preferred native editor foundation, with plugins for annotations, Markdown highlighting, diffs, citations, figures, and tables
+- add native settings for Light, Dark, and Auto appearance modes
 - enforce Workstation system tiers: Studio minimum 8 GB, Pro minimum 16 GB, local confidential mode minimum 128 GB, and local OCR only when enough memory is currently available
 - route OCR locally when enough memory is currently available, otherwise fall back to managed cloud OCR when policy allows and the project is not confidential
 - define MLX Swift as the local confidential runtime and specify confidential quant tiers from 128 GB Q4 through 512 GB F16
+- specify Pro local model manager behavior for confidential runtime model downloads, storage, deletion, checksums, and tier selection
 - define R2-backed licensed multipart model downloads and first-confidential-project just-in-time model acquisition
+- define R2-backed app update checks with an unobtrusive update button and `Check for Updates` menu command
+- require the latest required update before creating or opening confidential projects
 - lock project confidentiality at creation and restrict confidential-project imports to confidential sources except literature
 - ship through web distribution with checksums, release manifest, clean install, update/manual upgrade, crash/diagnostic, and data preservation guidance
 - remove Windows and Linux signing from this milestone; those are not Studio targets
@@ -417,8 +427,10 @@ Lane mapping:
 - `feat-native-workstation`: disabled until explicitly activated after the MVP launch gate
 
 Exit criteria:
-- macOS Studio lifecycle, signing, notarization, distribution, update, and sidecar supervision are specified
+- macOS Studio lifecycle, signing, notarization, R2-backed distribution/update, and sidecar supervision are specified
+- required-update confidential project gates are specified
 - native editor foundation and STTextView plugin expectations are specified at a conceptual level
+- native appearance settings and Pro local model manager behavior are specified
 - Windows/Linux Studio signing and packaging are out of scope
 - no runtime native Workstation, signing, updater, website distribution, or sidecar bundle behavior is active until the lane is enabled
 
@@ -448,6 +460,7 @@ Status: Studio Pro planned, disabled
 Scope:
 - add first-class CSV dataset import, variable typing, lean statistics, basic charts, and saveable analysis sequences after Studio is available
 - require Pro-only `pro_feature_access`
+- include lean dataset preparation: filtering, row/column removal, one-hot encoding, manual categorical/ordinal quantization, and keyed unions across datasets
 - support descriptive statistics, frequency and contingency tables, t-test, ANOVA, chi-squared, and linear correlation
 - show p-values, effect sizes, and compact small/medium/large guidance
 - implement dataset views, analysis configuration, and result sequences only in Studio's native SwiftUI interface
@@ -457,7 +470,7 @@ Lane mapping:
 - `feat-quant-analysis`: disabled until explicitly activated after Studio is available
 
 Exit criteria:
-- dataset import, variable typing, analysis contracts, chart artifacts, sequence transcript, and summary export are specified
+- dataset import, variable typing, dataset preparation transforms, analysis contracts, chart artifacts, sequence transcript, and summary export are specified
 - `StatsCore`, `StatsBridge`, IMSL isolation, Swift DataFrame-compatible adapters, and vendor feasibility gates are specified
 - local-only privacy/provider boundaries are specified
 - no runtime CSV import, statistical testing, chart generation, dataset UI, or analysis-summary behavior is active until the lane is enabled
