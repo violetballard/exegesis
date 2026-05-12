@@ -2062,6 +2062,7 @@ class UnifiedRetrievalTests(unittest.TestCase):
                 "fetch_fts_excerpt",
                 "fetch_excerpt",
                 "retrieve_fts_payload",
+                "retrieve_auto",
                 "retrieve_auto_context_bundle",
                 "retrieve_auto_citation_bundle",
                 "retrieve_auto_source_bundle",
@@ -2099,6 +2100,7 @@ class UnifiedRetrievalTests(unittest.TestCase):
         self.assertTrue(hasattr(engine_retrieval, "fetch_fts_excerpt"))
         self.assertTrue(hasattr(engine_retrieval, "fetch_excerpt"))
         self.assertTrue(hasattr(engine_retrieval, "retrieve_fts_payload"))
+        self.assertTrue(hasattr(engine_retrieval, "retrieve_auto"))
         self.assertTrue(hasattr(engine_retrieval, "retrieve_auto_context_bundle"))
         self.assertTrue(hasattr(engine_retrieval, "retrieve_auto_source_bundle"))
         self.assertTrue(hasattr(engine_retrieval, "retrieve_auto_provenance_bundle"))
