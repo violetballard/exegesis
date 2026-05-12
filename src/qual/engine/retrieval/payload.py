@@ -734,7 +734,7 @@ def _basket_item_fingerprints_from_snapshot(
         if not basket_item_ids:
             continue
         basket_item_fingerprints = _stable_text_values(candidate_fingerprints)
-        if basket_item_fingerprints:
+        if len(basket_item_fingerprints) == len(basket_item_ids):
             return basket_item_fingerprints
 
     return []
