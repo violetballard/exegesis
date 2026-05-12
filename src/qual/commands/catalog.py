@@ -1156,6 +1156,16 @@ class CommandDemoReadinessScriptValidation:
 
 
 @dataclass(frozen=True)
+class CommandDemoReadinessOrderedScriptValidation:
+    validation: CommandDemoReadinessScriptValidation
+    expected_flow_steps: tuple[str, ...]
+    observed_flow_steps: tuple[str, ...]
+    order_violations: tuple[tuple[int, str, str], ...]
+    is_ordered: bool
+    is_complete: bool
+
+
+@dataclass(frozen=True)
 class CommandDemoReadinessProgress:
     validation: CommandDemoReadinessScriptValidation
     next_flow_step: str | None
@@ -15158,6 +15168,41 @@ def command_demo_readiness_validate_script(
     )
 
 
+def command_demo_readiness_validate_ordered_script(
+    argvs: Sequence[Sequence[str] | str],
+    specs: tuple[CommandSpec, ...] = COMMAND_SPECS,
+    launcher_argv: tuple[str, ...] = COMMAND_SMOKE_CLI_LAUNCHER_ARGV,
+) -> CommandDemoReadinessOrderedScriptValidation:
+    validations = tuple(command_demo_readiness_validate_argv(argv, specs, launcher_argv) for argv in argvs)
+    validation = command_demo_readiness_validate_script(argvs, specs, launcher_argv)
+    expected_flow_steps = _expected_command_demo_flow_steps(specs)
+    observed_flow_steps = tuple(
+        validation.flow_step
+        for validation in validations
+        if validation.flow_step is not None
+    )
+    order_violations = tuple(
+        (index + 1, observed, expected)
+        for index, (observed, expected) in enumerate(
+            zip(observed_flow_steps, expected_flow_steps, strict=False)
+        )
+        if observed != expected
+    )
+    is_ordered = (
+        len(observed_flow_steps) <= len(expected_flow_steps)
+        and observed_flow_steps == expected_flow_steps[: len(observed_flow_steps)]
+        and not order_violations
+    )
+    return CommandDemoReadinessOrderedScriptValidation(
+        validation=validation,
+        expected_flow_steps=expected_flow_steps,
+        observed_flow_steps=observed_flow_steps,
+        order_violations=order_violations,
+        is_ordered=is_ordered,
+        is_complete=validation.is_complete and is_ordered,
+    )
+
+
 def _expected_command_demo_flow_steps(specs: tuple[CommandSpec, ...]) -> tuple[str, ...]:
     if specs == COMMAND_SPECS:
         return command_demo_flow_steps()
@@ -15428,6 +15473,18 @@ def command_demo_readiness_validate_shell_script_lines(
     )
 
 
+def command_demo_readiness_validate_ordered_shell_script_lines(
+    lines: Sequence[str] | str,
+    specs: tuple[CommandSpec, ...] = COMMAND_SPECS,
+    launcher_argv: tuple[str, ...] = COMMAND_SMOKE_CLI_LAUNCHER_ARGV,
+) -> CommandDemoReadinessOrderedScriptValidation:
+    return command_demo_readiness_validate_ordered_script(
+        _shell_script_executable_argv(lines),
+        specs,
+        launcher_argv,
+    )
+
+
 def command_mvp_demo_readiness_validate_script(
     argvs: Sequence[Sequence[str] | str],
     specs: tuple[CommandSpec, ...] = COMMAND_SPECS,
@@ -15436,12 +15493,28 @@ def command_mvp_demo_readiness_validate_script(
     return command_demo_readiness_validate_script(argvs, specs, launcher_argv)
 
 
+def command_mvp_demo_readiness_validate_ordered_script(
+    argvs: Sequence[Sequence[str] | str],
+    specs: tuple[CommandSpec, ...] = COMMAND_SPECS,
+    launcher_argv: tuple[str, ...] = COMMAND_SMOKE_CLI_LAUNCHER_ARGV,
+) -> CommandDemoReadinessOrderedScriptValidation:
+    return command_demo_readiness_validate_ordered_script(argvs, specs, launcher_argv)
+
+
 def command_mvp_demo_readiness_validate_shell_script_lines(
     lines: Sequence[str] | str,
     specs: tuple[CommandSpec, ...] = COMMAND_SPECS,
     launcher_argv: tuple[str, ...] = COMMAND_SMOKE_CLI_LAUNCHER_ARGV,
 ) -> CommandDemoReadinessScriptValidation:
     return command_demo_readiness_validate_shell_script_lines(lines, specs, launcher_argv)
+
+
+def command_mvp_demo_readiness_validate_ordered_shell_script_lines(
+    lines: Sequence[str] | str,
+    specs: tuple[CommandSpec, ...] = COMMAND_SPECS,
+    launcher_argv: tuple[str, ...] = COMMAND_SMOKE_CLI_LAUNCHER_ARGV,
+) -> CommandDemoReadinessOrderedScriptValidation:
+    return command_demo_readiness_validate_ordered_shell_script_lines(lines, specs, launcher_argv)
 
 
 @lru_cache(maxsize=None)

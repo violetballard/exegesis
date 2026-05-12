@@ -60,6 +60,7 @@ from src.qual.commands.catalog import (
     CommandDemoReadinessRunbook,
     CommandDemoReadinessSeal,
     CommandDemoReadinessShellScript,
+    CommandDemoReadinessOrderedScriptValidation,
     CommandDemoReadinessScriptValidation,
     CommandDemoReadinessSmokePlanStep,
     CommandDemoReadinessIndexContract,
@@ -407,6 +408,10 @@ from src.qual.commands.catalog import (
     as _readiness_validate_handoff_script,
     command_mvp_demo_readiness_validate_handoff_shell_script_lines
     as _readiness_validate_handoff_shell_script_lines,
+    command_mvp_demo_readiness_validate_ordered_script
+    as _readiness_validate_ordered_script,
+    command_mvp_demo_readiness_validate_ordered_shell_script_lines
+    as _readiness_validate_ordered_shell_script_lines,
     command_mvp_demo_readiness_validate_script as _readiness_validate_script,
     command_mvp_demo_readiness_validate_shell_script_lines as _readiness_validate_shell_script_lines,
     command_mvp_demo_readiness_gate as _readiness_gate,
@@ -698,6 +703,8 @@ __all__ = [
     "canonical_command_readiness_validate_argv",
     "canonical_command_readiness_validate_cli_argv",
     "canonical_command_readiness_validate_cli_script",
+    "canonical_command_readiness_validate_ordered_script",
+    "canonical_command_readiness_validate_ordered_shell_script_lines",
     "canonical_command_readiness_progress",
     "canonical_command_readiness_progress_summary",
     "canonical_command_readiness_command_progress_contract",
@@ -2835,6 +2842,18 @@ def canonical_command_readiness_validate_cli_script(
     argvs: Sequence[Sequence[str] | str],
 ) -> CommandDemoReadinessScriptValidation:
     return _readiness_validate_cli_script(argvs)
+
+
+def canonical_command_readiness_validate_ordered_script(
+    argvs: Sequence[Sequence[str] | str],
+) -> CommandDemoReadinessOrderedScriptValidation:
+    return _readiness_validate_ordered_script(argvs)
+
+
+def canonical_command_readiness_validate_ordered_shell_script_lines(
+    lines: Sequence[str] | str,
+) -> CommandDemoReadinessOrderedScriptValidation:
+    return _readiness_validate_ordered_shell_script_lines(lines)
 
 
 def canonical_command_readiness_progress(
