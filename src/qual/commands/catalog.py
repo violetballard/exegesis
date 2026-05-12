@@ -86,6 +86,17 @@ class CommandCliContract:
 
 
 @dataclass(frozen=True)
+class CommandCliEntrypointShim:
+    requested_token: str
+    canonical_name: str
+    cli_entrypoint: str
+    flow_step: str
+    demo_path_step: str
+    engine_actions: tuple[str, ...]
+    command_argv: tuple[str, ...]
+
+
+@dataclass(frozen=True)
 class CommandCliRouteContract:
     """Bundle the parser surface, deterministic MVP route order, route catalog, and smoke surface."""
 
@@ -1564,6 +1575,10 @@ _CANONICAL_CLI_ENTRYPOINTS: tuple[str, ...] = (
     "terminal",
 )
 _CLI_ENTRYPOINTS: tuple[str, ...] = _CANONICAL_CLI_ENTRYPOINTS
+_COMMAND_CLI_ENTRYPOINT_COMPATIBILITY_TOKENS: tuple[tuple[str, str], ...] = (
+    ("retrieve", "context-basket"),
+    ("search", "context-basket"),
+)
 _COMMAND_HANDLER_DELEGATIONS: tuple[CommandHandlerDelegationEntry, ...] = (
     CommandHandlerDelegationEntry(
         name="bootstrap",
@@ -2515,10 +2530,82 @@ def _approved_cli_entrypoint_by_canonical_name() -> tuple[tuple[str, str], ...]:
 def command_cli_entrypoint_for(token: str) -> str | None:
     """Return the approved parser entrypoint for a command token, alias, or flow step."""
 
-    spec = command_spec(token)
-    if spec is None:
+    canonical_name = _command_cli_canonical_name_for_token(token)
+    if canonical_name is None:
         return None
-    return dict(_approved_cli_entrypoint_by_canonical_name()).get(spec.name)
+    return dict(_approved_cli_entrypoint_by_canonical_name()).get(canonical_name)
+
+
+def _command_cli_canonical_name_for_token(token: str) -> str | None:
+    requested_token = _normalize_token(token)
+    spec = command_spec(requested_token)
+    if spec is not None:
+        return spec.name
+    return dict(_COMMAND_CLI_ENTRYPOINT_COMPATIBILITY_TOKENS).get(requested_token)
+
+
+def command_cli_entrypoint_shim(token: str) -> CommandCliEntrypointShim | None:
+    """Return the deterministic parser entrypoint for a compatibility token."""
+
+    requested_token = _normalize_token(token)
+    if not requested_token:
+        return None
+
+    cli_entrypoint = command_cli_entrypoint_for(requested_token)
+    if cli_entrypoint is None:
+        return None
+
+    canonical_name = _command_cli_canonical_name_for_token(requested_token)
+    if canonical_name is None:
+        return None
+
+    readiness_entry = command_demo_readiness_entry_for_command(canonical_name)
+    if readiness_entry is None:
+        return None
+
+    return CommandCliEntrypointShim(
+        requested_token=requested_token,
+        canonical_name=canonical_name,
+        cli_entrypoint=cli_entrypoint,
+        flow_step=readiness_entry.flow_step,
+        demo_path_step=readiness_entry.demo_path_step,
+        engine_actions=readiness_entry.engine_actions,
+        command_argv=readiness_entry.command_argv,
+    )
+
+
+def command_cli_entrypoint_shim_lookup_table(
+    tokens: Sequence[str] | None = None,
+) -> tuple[CommandCliEntrypointShim, ...]:
+    requested_tokens = (
+        (*command_tokens(), *command_flow_steps(), *dict(_COMMAND_CLI_ENTRYPOINT_COMPATIBILITY_TOKENS))
+        if tokens is None
+        else tuple(tokens)
+    )
+    shims = tuple(
+        shim
+        for requested_token in requested_tokens
+        for shim in (command_cli_entrypoint_shim(requested_token),)
+        if shim is not None
+    )
+    return tuple(dict((shim.requested_token, shim) for shim in shims).values())
+
+
+def command_cli_entrypoint_shim_summary(
+    tokens: Sequence[str] | None = None,
+) -> tuple[tuple[str, str, str, str, str, tuple[str, ...], tuple[str, ...]], ...]:
+    return tuple(
+        (
+            shim.requested_token,
+            shim.canonical_name,
+            shim.cli_entrypoint,
+            shim.flow_step,
+            shim.demo_path_step,
+            shim.engine_actions,
+            shim.command_argv,
+        )
+        for shim in command_cli_entrypoint_shim_lookup_table(tokens)
+    )
 
 
 @lru_cache(maxsize=None)
