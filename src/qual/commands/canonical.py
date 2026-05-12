@@ -128,6 +128,7 @@ from src.qual.commands.catalog import (
     command_mvp_demo_readiness_verification_payload as _readiness_verification_payload,
     command_mvp_demo_readiness_verification_summary as _readiness_verification_summary,
     command_mvp_demo_trusted_loop_contract as _trusted_loop_contract,
+    command_mvp_demo_trusted_loop_issues as _trusted_loop_issues,
     command_mvp_demo_trusted_loop_json as _trusted_loop_json,
     command_mvp_demo_trusted_loop_payload as _trusted_loop_payload,
     command_mvp_demo_trusted_loop_summary as _trusted_loop_summary,
@@ -588,6 +589,7 @@ __all__ = [
     "canonical_command_readiness_verification_payload",
     "canonical_command_readiness_verification_json",
     "canonical_command_trusted_loop_contract",
+    "canonical_command_trusted_loop_issues",
     "canonical_command_trusted_loop_summary",
     "canonical_command_trusted_loop_payload",
     "canonical_command_trusted_loop_json",
@@ -1859,6 +1861,10 @@ def canonical_command_trusted_loop_payload() -> dict[str, object]:
 
 def canonical_command_trusted_loop_json() -> str:
     return _trusted_loop_json()
+
+
+def canonical_command_trusted_loop_issues() -> tuple[str, ...]:
+    return _trusted_loop_issues()
 
 
 def canonical_command_smoke_sequence_contract() -> CommandDemoSmokeSequenceContract:

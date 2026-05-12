@@ -8044,6 +8044,27 @@ def command_demo_trusted_loop_json(
     )
 
 
+def command_demo_trusted_loop_issues(
+    specs: tuple[CommandSpec, ...] = COMMAND_SPECS,
+    launcher_argv: tuple[str, ...] = COMMAND_SMOKE_CLI_LAUNCHER_ARGV,
+) -> tuple[str, ...]:
+    contract = command_demo_trusted_loop_contract(specs, launcher_argv)
+    issues: list[str] = []
+    if contract.missing_flow_steps:
+        issues.append(f"missing flow steps: {', '.join(contract.missing_flow_steps)}")
+    if contract.missing_engine_actions:
+        issues.append(f"missing engine actions: {', '.join(contract.missing_engine_actions)}")
+    if contract.invalid_argv:
+        invalid_lines = ", ".join(_shell_join(argv) for argv in contract.invalid_argv)
+        issues.append(f"invalid argv: {invalid_lines}")
+    for step in contract.steps:
+        if not step.ready:
+            issues.append(f"step not ready: {step.name}")
+        if not step.thin_handler_ready:
+            issues.append(f"handler not thin: {step.name}")
+    return tuple(issues)
+
+
 @lru_cache(maxsize=None)
 def command_demo_smoke_sequence_contract(
     specs: tuple[CommandSpec, ...] = COMMAND_SPECS,
@@ -16152,6 +16173,13 @@ def command_mvp_demo_trusted_loop_json(
     launcher_argv: tuple[str, ...] = COMMAND_SMOKE_CLI_LAUNCHER_ARGV,
 ) -> str:
     return command_demo_trusted_loop_json(specs, launcher_argv)
+
+
+def command_mvp_demo_trusted_loop_issues(
+    specs: tuple[CommandSpec, ...] = COMMAND_SPECS,
+    launcher_argv: tuple[str, ...] = COMMAND_SMOKE_CLI_LAUNCHER_ARGV,
+) -> tuple[str, ...]:
+    return command_demo_trusted_loop_issues(specs, launcher_argv)
 
 
 @lru_cache(maxsize=None)
