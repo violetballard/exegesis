@@ -15073,6 +15073,26 @@ def command_demo_readiness_remaining_action_json(
     )
 
 
+def command_demo_readiness_remaining_command_lines(
+    argvs: Sequence[Sequence[str] | str],
+    specs: tuple[CommandSpec, ...] = COMMAND_SPECS,
+    launcher_argv: tuple[str, ...] = COMMAND_SMOKE_CLI_LAUNCHER_ARGV,
+) -> tuple[str, ...]:
+    return command_demo_readiness_progress(argvs, specs, launcher_argv).remaining_command_lines
+
+
+def command_demo_readiness_remaining_exact_action_lines(
+    argvs: Sequence[Sequence[str] | str],
+    specs: tuple[CommandSpec, ...] = COMMAND_SPECS,
+    launcher_argv: tuple[str, ...] = COMMAND_SMOKE_CLI_LAUNCHER_ARGV,
+) -> tuple[str, ...]:
+    return command_demo_readiness_next_action(
+        argvs,
+        specs,
+        launcher_argv,
+    ).remaining_exact_action_lines
+
+
 def command_demo_readiness_next_command_argv(
     argvs: Sequence[Sequence[str] | str],
     specs: tuple[CommandSpec, ...] = COMMAND_SPECS,
@@ -16730,6 +16750,22 @@ def command_mvp_demo_readiness_action_line_lookup_table(
     launcher_argv: tuple[str, ...] = COMMAND_SMOKE_CLI_LAUNCHER_ARGV,
 ) -> tuple[tuple[str, str], ...]:
     return command_demo_readiness_action_line_lookup_table(specs, launcher_argv)
+
+
+def command_mvp_demo_readiness_remaining_command_lines(
+    argvs: Sequence[Sequence[str] | str],
+    specs: tuple[CommandSpec, ...] = COMMAND_SPECS,
+    launcher_argv: tuple[str, ...] = COMMAND_SMOKE_CLI_LAUNCHER_ARGV,
+) -> tuple[str, ...]:
+    return command_demo_readiness_remaining_command_lines(argvs, specs, launcher_argv)
+
+
+def command_mvp_demo_readiness_remaining_exact_action_lines(
+    argvs: Sequence[Sequence[str] | str],
+    specs: tuple[CommandSpec, ...] = COMMAND_SPECS,
+    launcher_argv: tuple[str, ...] = COMMAND_SMOKE_CLI_LAUNCHER_ARGV,
+) -> tuple[str, ...]:
+    return command_demo_readiness_remaining_exact_action_lines(argvs, specs, launcher_argv)
 
 
 def command_mvp_demo_readiness_action_argv_index(

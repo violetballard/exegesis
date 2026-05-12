@@ -388,6 +388,10 @@ from src.qual.commands.catalog import (
     command_mvp_demo_readiness_next_command_argv as _readiness_next_command_argv,
     command_mvp_demo_readiness_next_exact_action_argv as _readiness_next_exact_action_argv,
     command_mvp_demo_readiness_next_exact_action_line as _readiness_next_exact_action_line,
+    command_mvp_demo_readiness_remaining_command_lines
+    as _readiness_remaining_command_lines,
+    command_mvp_demo_readiness_remaining_exact_action_lines
+    as _readiness_remaining_exact_action_lines,
     command_mvp_demo_readiness_remaining_action_contract
     as _readiness_remaining_action_contract,
     command_mvp_demo_readiness_remaining_action_json as _readiness_remaining_action_json,
@@ -797,6 +801,8 @@ __all__ = [
     "canonical_command_readiness_next_command_argv",
     "canonical_command_readiness_next_exact_action_argv",
     "canonical_command_readiness_next_exact_action_line",
+    "canonical_command_readiness_remaining_command_lines",
+    "canonical_command_readiness_remaining_exact_action_lines",
     "canonical_command_readiness_remaining_action_contract",
     "canonical_command_readiness_remaining_action_json",
     "canonical_command_readiness_remaining_action_payload",
@@ -3352,6 +3358,18 @@ def canonical_command_readiness_next_exact_action_line(
     argvs: Sequence[Sequence[str] | str] = (),
 ) -> str:
     return _readiness_next_exact_action_line(argvs)
+
+
+def canonical_command_readiness_remaining_command_lines(
+    argvs: Sequence[Sequence[str] | str] = (),
+) -> tuple[str, ...]:
+    return _readiness_remaining_command_lines(argvs)
+
+
+def canonical_command_readiness_remaining_exact_action_lines(
+    argvs: Sequence[Sequence[str] | str] = (),
+) -> tuple[str, ...]:
+    return _readiness_remaining_exact_action_lines(argvs)
 
 
 def canonical_command_readiness_remaining_action_contract(
