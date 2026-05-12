@@ -3050,6 +3050,56 @@ class UnifiedRetrievalTests(unittest.TestCase):
             expected_ids,
         )
 
+    def test_retrieval_context_bundle_helper_prefers_explicit_basket_item_id(self) -> None:
+        result = self.service.retrieve_auto(
+            RetrievalQuery(
+                query_text="memo coding comparison",
+                scope="vault",
+                intent="compare",
+                constraints=RetrievalConstraints(max_results=4),
+                confidentiality_profile="confidential",
+            )
+        )
+
+        sparse_context_bundle = json.loads(json.dumps(result.retrieval_context_bundle()))
+        baseline_item = result.basket_promotion_items()[0]
+        canonical_id = str(baseline_item["basket_item_id"])
+        stale_item = copy.deepcopy(baseline_item)
+        stale_item["item_id"] = "stale-promotion-id"
+        stale_item["basket_item_id"] = canonical_id
+        stale_item.pop("excerpt_id", None)
+        for snapshot in (
+            sparse_context_bundle,
+            sparse_context_bundle["retrieval_source_bundle"],
+            sparse_context_bundle["retrieval_downstream_payload"],
+            sparse_context_bundle["retrieval_downstream_payload"]["retrieval_evidence"],
+        ):
+            snapshot["basket_promotion_items"] = [copy.deepcopy(stale_item)]
+            snapshot["basket_item_ids"] = ["stale-promotion-id"]
+
+        class _SparseContextBundleSource:
+            def __init__(self, payload: dict[str, object]) -> None:
+                self._payload = payload
+
+            def retrieval_context_bundle(self) -> dict[str, object]:
+                return self._payload
+
+        context_bundle = engine_build_retrieval_context_bundle_from_result(
+            _SparseContextBundleSource(sparse_context_bundle)
+        )
+
+        self.assertEqual(context_bundle["basket_item_ids"], [canonical_id])
+        self.assertEqual(context_bundle["basket_promotion_items"][0]["item_id"], canonical_id)
+        self.assertEqual(context_bundle["basket_promotion_items"][0]["basket_item_id"], canonical_id)
+        self.assertEqual(
+            context_bundle["retrieval_downstream_payload"]["basket_promotion_items"][0]["item_id"],
+            canonical_id,
+        )
+        self.assertEqual(
+            context_bundle["retrieval_source_bundle"]["basket_promotion_items"][0]["basket_item_id"],
+            canonical_id,
+        )
+
     def test_retrieval_context_bundle_helper_prefers_basket_items_over_stale_summaries(self) -> None:
         result = self.service.retrieve_auto(
             RetrievalQuery(

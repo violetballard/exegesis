@@ -121,7 +121,7 @@ def _normalize_bool_map(value: object) -> dict[str, bool]:
 
 
 def _basket_item_identity(item: dict[str, object]) -> str | None:
-    for key in ("item_id", "basket_item_id", "excerpt_id"):
+    for key in ("basket_item_id", "item_id", "excerpt_id"):
         item_id = _normalize_optional_text(item.get(key))
         if item_id is not None:
             return item_id
@@ -266,8 +266,8 @@ def _normalize_basket_promotion_items(items: list[object]) -> list[object]:
                 if item_id in seen_item_ids:
                     continue
                 seen_item_ids.add(item_id)
-                item_snapshot.setdefault("item_id", item_id)
-                item_snapshot.setdefault("basket_item_id", item_id)
+                item_snapshot["item_id"] = item_id
+                item_snapshot["basket_item_id"] = item_id
             item_snapshot["source_strategy"] = _fts_source_strategy_from_values(
                 item_snapshot.get("source_strategy"),
                 item_snapshot.get("retrieval_source_strategy"),
