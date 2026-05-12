@@ -1,6 +1,5 @@
 from __future__ import annotations
 
-from collections.abc import Mapping
 from typing import TypeAlias
 
 from src.qual.engine.retrieval import build_retrieval_query as engine_build_retrieval_query
@@ -13,7 +12,7 @@ from src.qual.retrieval.service import (
     RetrievalService,
 )
 
-RetrievalConstraintInput: TypeAlias = Mapping[str, object] | RetrievalConstraints | None
+RetrievalConstraintInput: TypeAlias = dict[str, object] | RetrievalConstraints | None
 
 
 def _build_retrieval_query(
@@ -41,13 +40,7 @@ def build_retrieval_query(
     constraints: RetrievalConstraintInput = None,
     confidentiality_profile: str = "confidential",
 ) -> RetrievalQuery:
-    """Return the canonical retrieval query used by both facades.
-
-    Constraint payloads are accepted as mapping-shaped payloads or
-    RetrievalConstraints objects and normalized into the engine query
-    dataclass. Iterable doc_types/date_range values are normalized
-    deterministically from those inputs.
-    """
+    """Return the canonical retrieval query used by both facades."""
 
     return engine_build_retrieval_query(
         query_text=query_text,
@@ -294,6 +287,16 @@ def fetch_fts_excerpt(
     return service.fetch_fts_excerpt(excerpt_id)
 
 
+def fetch_excerpt(
+    service: RetrievalService,
+    *,
+    excerpt_id: str,
+) -> dict[str, object]:
+    """Return an excerpt payload using the canonical FTS-only lookup path."""
+
+    return service.fetch_excerpt(excerpt_id)
+
+
 def retrieve_auto(
     service: RetrievalService,
     *,
@@ -494,12 +497,12 @@ def retrieve_auto_payload(
     )
 
 __all__ = [
-    "RetrievalService",
-    "RetrievalQuery",
     "RetrievalConstraints",
     "RetrievalDocHit",
     "RetrievalHit",
+    "RetrievalQuery",
     "RetrievalResult",
+    "RetrievalService",
     "build_retrieval_query",
     "retrieve_fts",
     "retrieve_fts_payload",
@@ -511,6 +514,7 @@ __all__ = [
     "retrieve_fts_basket_promotion_bundle",
     "retrieve_fts_excerpt",
     "fetch_fts_excerpt",
+    "fetch_excerpt",
     "retrieve_fts_citation_bundle",
     "retrieve_auto",
     "retrieve_auto_context_bundle",

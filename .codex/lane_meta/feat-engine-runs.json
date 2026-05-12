@@ -1,12 +1,41 @@
 {
-  "approved_exception_note": "",
-  "kickoff_budget_note": "",
-  "proposed_readme_patch": "",
+  "scope_goal": "Preserve legacy run provenance manifests in the engine run lifecycle so recovered provenance and retrieval evidence stay deterministic and auditable across legacy replay paths.",
+  "scope_completed": [
+    "Updated `src/qual/engine/run_pipeline.py` in reviewed source commit `d59e853efa72e14488e62d9487010ba61e335a55` so `EngineRunFlowResult.to_manifest()` backfills `run_provenance` from legacy flow manifests or snapshots, synthesizes provenance when only the run record is available, and carries `retrieval_evidence` through serialized run manifests.",
+    "Extended `tests/unit/test_engine_run_pipeline.py` to assert provenance-only legacy manifests preserve `retrieval_evidence`, keep `run_provenance` aligned, and continue producing a stable run-flow manifest digest.",
+    "The docs-only sync commits `c46f8eb28a289e9f1138ca7b349ebc3d415a9c86` and later packet-refresh commits keep the handoff packet SHA aligned with the reviewed implementation; they do not change engine scope."
+  ],
+  "kickoff_budget_note": "This packet stays on the current Milestone 3 engine-run loop and audit/provenance handling. Later handoff-maintenance edits remain metadata-only and do not widen the engine scope.",
+  "approved_exception_note": "Approved shared handoff-maintenance artifacts are recorded in the companion shared packet `.codex/kickoff_packets/feat-engine-runs.shared.md`.",
+  "tasks_completed": [
+    "Preserved legacy run provenance manifests in `EngineRunFlowResult.to_manifest()` so recovered provenance and retrieval evidence survive legacy replay paths.",
+    "Kept synthesized `run_flow_manifest` output aligned with recovered provenance for provenance-only rehydration.",
+    "Added regression coverage in `tests/unit/test_engine_run_pipeline.py` for provenance-only manifest synthesis and `retrieval_evidence` preservation.",
+    "Kept the handoff metadata synchronized with the docs-only packet SHA sync commits without widening engine scope."
+  ],
   "risk": "LOW",
-  "roadmap_items": [],
+  "roadmap_items": [
+    "Milestone 3: Real workflow loop - expose canonical engine state models and plan/draft/revise/apply-reject through the canonical app service.",
+    "Milestone 3: Real workflow loop - feat-engine-runs: plan/draft/revise/apply-reject workflow actions.",
+    "Milestone 4: Dogfooding readiness - finish persistence and audit hooks needed for real writing sessions."
+  ],
+  "vision_capabilities": [
+    "Canonical engine contract",
+    "Auditable state and workflow"
+  ],
   "routing_provider_impact": "None",
-  "scope_goal": "Harden the engine run lifecycle so retrieval, patching, provenance, and export flow through one deterministic pipeline.",
-  "shared_file_exception": false,
-  "tasks_completed": [],
-  "vision_capabilities": []
+  "shared_file_exception": true,
+  "reviewed_commit": "d59e853efa72e14488e62d9487010ba61e335a55",
+  "packet_head_role": "metadata-only reviewer-fix finalization",
+  "metadata_only_note": "The current branch tip is a packet-refresh commit. Review the engine-run implementation at `d59e853efa72e14488e62d9487010ba61e335a55`; later handoff-maintenance commits remain metadata-only unless this packet is regenerated.",
+  "reviewed_files": [
+    "src/qual/engine/run_pipeline.py",
+    "tests/unit/test_engine_run_pipeline.py"
+  ],
+  "metadata_only_files": [
+    ".codex/kickoff_packets/feat-engine-runs.md",
+    ".codex/kickoff_packets/feat-engine-runs.shared.md",
+    ".codex/lane_meta/feat-engine-runs.json",
+    "THREAD_PACKET.md"
+  ]
 }

@@ -27,40 +27,69 @@ from src.qual.engine.retrieval.payload import (
 )
 
 
-def _normalize_constraint_values(value: object, *, field_name: str) -> tuple[str, ...]:
+def _normalize_constraint_values(
+    value: object,
+    *,
+    field_name: str,
+    allow_unordered: bool = True,
+) -> tuple[str, ...]:
     """Return a deterministic tuple for loose retrieval constraint payloads."""
 
     if value is None:
         return ()
     if isinstance(value, str):
-        return (value,)
+        normalized = value.strip()
+        return (normalized,) if normalized else ()
     if isinstance(value, (bytes, bytearray)):
         raise TypeError(f"{field_name} must be an iterable of text values")
     if isinstance(value, Mapping):
         raise TypeError(f"{field_name} must be an iterable of values, not a mapping")
+    if not allow_unordered and isinstance(value, Set):
+        raise TypeError(f"{field_name} must be an ordered iterable of values")
     if not isinstance(value, Iterable):
         raise TypeError(f"{field_name} must be an iterable of values or None")
-    return tuple(str(item) for item in value if item is not None)
-
-
-def _normalize_date_range_constraint(value: object) -> tuple[str, str] | None:
-    """Return the canonical two-value date range for loose facade inputs."""
-
-    if value is None:
-        return None
-    if isinstance(value, Set):
-        raise TypeError("date_range must be an ordered two-value iterable")
-    values = _normalize_constraint_values(value, field_name="date_range")
-    normalized = tuple(item.strip() for item in values)
-    if len(normalized) != 2 or any(not item for item in normalized):
-        raise ValueError("date_range must contain exactly two non-empty values")
-    return normalized
+    normalized_values: list[str] = []
+    for item in value:
+        if item is None:
+            continue
+        normalized = str(item).strip()
+        if normalized:
+            normalized_values.append(normalized)
+    return tuple(normalized_values)
 
 
 def _normalize_optional_int(value: object, *, default: int) -> int:
     if value is None:
         return default
-    return int(value)
+    if isinstance(value, bool) or not isinstance(value, int):
+        raise TypeError("integer retrieval constraints must be int-like values, not bool or non-int")
+    return value
+
+
+def _normalize_optional_bool(value: object, *, default: bool) -> bool:
+    if value is None:
+        return default
+    if isinstance(value, bool):
+        return value
+    if isinstance(value, str):
+        normalized = value.strip().casefold()
+        if normalized in {"1", "true", "yes", "on"}:
+            return True
+        if normalized in {"0", "false", "no", "off", ""}:
+            return False
+        raise ValueError(f"unsupported boolean constraint value: {value}")
+    if isinstance(value, (int, float)):
+        return bool(value)
+    raise TypeError("boolean retrieval constraints must be bool, number, text, or None")
+
+
+def _normalize_optional_text(value: object, *, field_name: str) -> str | None:
+    if value is None:
+        return None
+    if not isinstance(value, str):
+        raise TypeError(f"{field_name} must be a text value or None")
+    normalized = " ".join(value.split())
+    return normalized or None
 
 
 def _normalize_optional_bool(value: object, *, default: bool = False) -> bool:
@@ -93,8 +122,9 @@ def build_retrieval_query(
     The helper normalizes the loose dict-shaped constraint payload used by the
     engine and public retrieval facades into the stable dataclass contract that
     the service layer consumes. Constraint payloads are mapping-shaped or
-    RetrievalConstraints objects, and iterable doc_types/date_range values are
-    normalized deterministically from those inputs.
+    RetrievalConstraints objects, iterable doc_types/date_range values are
+    normalized deterministically from those inputs, and optional section hints
+    are compacted before the query fingerprint is derived.
     """
 
     from src.qual.retrieval.service import RetrievalConstraints, RetrievalQuery
@@ -116,7 +146,15 @@ def build_retrieval_query(
         raise TypeError("constraints must be a mapping or RetrievalConstraints")
 
     doc_types = _normalize_constraint_values(payload.get("doc_types"), field_name="doc_types")
-    date_range = _normalize_date_range_constraint(payload.get("date_range"))
+    date_range = payload.get("date_range")
+    if isinstance(date_range, str):
+        date_range = (date_range,)
+    if date_range is not None:
+        date_range = _normalize_constraint_values(
+            date_range,
+            field_name="date_range",
+            allow_unordered=False,
+        )
     return RetrievalQuery(
         query_text=query_text,
         scope=scope,
@@ -125,9 +163,18 @@ def build_retrieval_query(
             max_results=_normalize_optional_int(payload.get("max_results"), default=10),
             doc_types=doc_types,
             date_range=date_range,  # type: ignore[arg-type]
-            require_citations=_normalize_optional_bool(payload.get("require_citations"), default=False),
-            section_hint=payload.get("section_hint"),  # type: ignore[arg-type]
-            prefer_exact_matches=_normalize_optional_bool(payload.get("prefer_exact_matches"), default=False),
+            require_citations=_normalize_optional_bool(
+                payload.get("require_citations"),
+                default=False,
+            ),
+            section_hint=_normalize_optional_text(
+                payload.get("section_hint"),
+                field_name="section_hint",
+            ),
+            prefer_exact_matches=_normalize_optional_bool(
+                payload.get("prefer_exact_matches"),
+                default=False,
+            ),
         ),
         confidentiality_profile=confidentiality_profile,  # type: ignore[arg-type]
     )
@@ -212,6 +259,12 @@ def fetch_fts_excerpt(*args, **kwargs):
     from src.qual.retrieval import fetch_fts_excerpt as _fetch_fts_excerpt
 
     return _fetch_fts_excerpt(*args, **kwargs)
+
+
+def fetch_excerpt(*args, **kwargs):
+    from src.qual.retrieval import fetch_excerpt as _fetch_excerpt
+
+    return _fetch_excerpt(*args, **kwargs)
 
 
 def retrieve_fts_payload(*args, **kwargs):
@@ -301,7 +354,6 @@ __all__ = [
     "build_retrieval_provenance_from_result",
     "build_retrieval_source_bundle_from_result",
     "retrieve_fts",
-    "retrieve_fts_citation_bundle",
     "retrieve_fts_context_bundle",
     "retrieve_fts_source_bundle",
     "retrieve_fts_provenance_bundle",
@@ -310,8 +362,8 @@ __all__ = [
     "retrieve_fts_basket_promotion_bundle",
     "retrieve_fts_excerpt",
     "fetch_fts_excerpt",
+    "fetch_excerpt",
     "retrieve_fts_payload",
-    "retrieve_auto",
     "retrieve_auto_context_bundle",
     "retrieve_auto_citation_bundle",
     "retrieve_auto_source_bundle",
