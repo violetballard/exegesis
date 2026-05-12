@@ -135,9 +135,12 @@ from src.qual.commands.catalog import (
     command_mvp_demo_trusted_loop_payload as _trusted_loop_payload,
     command_mvp_demo_trusted_loop_summary as _trusted_loop_summary,
     command_mvp_demo_smoke_sequence_contract as _smoke_sequence_contract,
+    command_mvp_demo_smoke_sequence_issues as _smoke_sequence_issues,
     command_mvp_demo_smoke_sequence_json as _smoke_sequence_json,
     command_mvp_demo_smoke_sequence_payload as _smoke_sequence_payload,
     command_mvp_demo_smoke_sequence_summary as _smoke_sequence_summary,
+    require_command_mvp_demo_smoke_sequence_complete
+    as _require_smoke_sequence_complete,
     command_demo_readiness_handoff_action_contract as _readiness_handoff_action_contract,
     command_mvp_demo_readiness_handoff_action_summary as _readiness_handoff_action_summary,
     command_mvp_demo_readiness_handoff_map_contract as _readiness_handoff_map_contract,
@@ -616,8 +619,10 @@ __all__ = [
     "canonical_command_trusted_loop_payload",
     "canonical_command_trusted_loop_json",
     "canonical_command_smoke_sequence_contract",
+    "canonical_command_smoke_sequence_issues",
     "canonical_command_smoke_sequence_json",
     "canonical_command_smoke_sequence_payload",
+    "canonical_command_require_smoke_sequence_complete",
     "canonical_command_smoke_sequence_summary",
     "canonical_command_surface_readiness_contract",
     "canonical_command_surface_readiness_json",
@@ -1921,6 +1926,10 @@ def canonical_command_smoke_sequence_contract() -> CommandDemoSmokeSequenceContr
     return _smoke_sequence_contract()
 
 
+def canonical_command_require_smoke_sequence_complete() -> CommandDemoSmokeSequenceContract:
+    return _require_smoke_sequence_complete()
+
+
 def canonical_command_smoke_sequence_summary() -> tuple[
     str,
     str,
@@ -1955,6 +1964,10 @@ def canonical_command_smoke_sequence_payload() -> dict[str, object]:
 
 def canonical_command_smoke_sequence_json() -> str:
     return _smoke_sequence_json()
+
+
+def canonical_command_smoke_sequence_issues() -> tuple[str, ...]:
+    return _smoke_sequence_issues()
 
 
 def canonical_command_readiness_handoff_step_status_payload() -> dict[str, object]:
