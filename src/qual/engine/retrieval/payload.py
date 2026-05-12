@@ -961,6 +961,21 @@ def _normalize_citation_bundle_snapshot(citation_bundle: dict[str, object]) -> d
     return normalized
 
 
+def _normalize_doc_citation_snapshots(value: object) -> list[object]:
+    normalized: list[object] = []
+    for citation in _normalize_list_like(value):
+        if not isinstance(citation, dict):
+            normalized.append(copy.deepcopy(citation))
+            continue
+        normalized_citation = copy.deepcopy(citation)
+        if _is_missing_snapshot_value(normalized_citation.get("retrieval_source_strategy")):
+            source_strategy = normalized_citation.get("source_strategy")
+            if not _is_missing_snapshot_value(source_strategy):
+                normalized_citation["retrieval_source_strategy"] = copy.deepcopy(source_strategy)
+        normalized.append(normalized_citation)
+    return normalized
+
+
 def _normalize_excerpt_citation_snapshots(value: object) -> list[object]:
     normalized: list[object] = []
     for citation in _normalize_list_like(value):
@@ -968,6 +983,10 @@ def _normalize_excerpt_citation_snapshots(value: object) -> list[object]:
             normalized.append(copy.deepcopy(citation))
             continue
         normalized_citation = copy.deepcopy(citation)
+        if _is_missing_snapshot_value(normalized_citation.get("retrieval_source_strategy")):
+            source_strategy = normalized_citation.get("source_strategy")
+            if not _is_missing_snapshot_value(source_strategy):
+                normalized_citation["retrieval_source_strategy"] = copy.deepcopy(source_strategy)
         basket_item_id = normalized_citation.get("basket_item_id")
         expected_basket_item_id = _basket_item_id_for_excerpt(
             source_strategy=normalized_citation.get(
@@ -997,7 +1016,9 @@ def _normalize_doc_bundle_snapshot(doc_bundle: dict[str, object]) -> dict[str, o
         field_name="doc_bundle",
     )
     normalized["doc_hits"] = _normalize_list_like(normalized.get("doc_hits"))
-    normalized["doc_citations"] = _normalize_list_like(normalized.get("doc_citations"))
+    normalized["doc_citations"] = _normalize_doc_citation_snapshots(normalized.get("doc_citations"))
+    if "caches_used" in normalized:
+        normalized["caches_used"] = _normalize_bool_map(normalized.get("caches_used"))
     retrieval_policy = normalized.get("retrieval_policy")
     normalized["retrieval_policy"] = _normalize_policy_snapshot(
         retrieval_policy if isinstance(retrieval_policy, dict) else {}
@@ -1031,7 +1052,11 @@ def _normalize_excerpt_bundle_snapshot(excerpt_bundle: dict[str, object]) -> dic
         field_name="excerpt_bundle",
     )
     normalized["excerpt_hits"] = _normalize_list_like(normalized.get("excerpt_hits"))
-    normalized["excerpt_citations"] = _normalize_list_like(normalized.get("excerpt_citations"))
+    normalized["excerpt_citations"] = _normalize_excerpt_citation_snapshots(
+        normalized.get("excerpt_citations")
+    )
+    if "caches_used" in normalized:
+        normalized["caches_used"] = _normalize_bool_map(normalized.get("caches_used"))
     normalized["basket_promotion_items"] = _basket_promotion_items_from_snapshot(normalized)
     normalized["basket_item_ids"] = _basket_item_ids_from_snapshot(
         normalized,
@@ -1144,6 +1169,15 @@ def _normalize_retrieval_manifest_snapshot(manifest: dict[str, object]) -> dict[
 
 def _normalize_retrieval_evidence_snapshot(evidence: dict[str, object]) -> dict[str, object]:
     normalized = copy.deepcopy(evidence)
+    query_constraints = normalized.get("query_constraints")
+    if isinstance(query_constraints, dict):
+        normalized["query_constraints"] = _normalize_query_snapshot({"constraints": query_constraints})[
+            "constraints"
+        ]
+        normalized.setdefault(
+            "query_constraints_fingerprint",
+            _stable_fingerprint(normalized["query_constraints"]),
+        )
     if "query_date_range" in normalized:
         normalized["query_date_range"] = _normalize_optional_list_like(normalized.get("query_date_range"))
     if "fts_shortlist_doc_ids" in normalized:
@@ -1158,10 +1192,14 @@ def _normalize_retrieval_evidence_snapshot(evidence: dict[str, object]) -> dict[
             normalized.get("deferred_strategy_ids"),
             field_name="retrieval_evidence",
         )
+    if "caches_used" in normalized:
+        normalized["caches_used"] = _normalize_bool_map(normalized.get("caches_used"))
     if "doc_citations" in normalized:
-        normalized["doc_citations"] = _normalize_list_like(normalized.get("doc_citations"))
+        normalized["doc_citations"] = _normalize_doc_citation_snapshots(normalized.get("doc_citations"))
     if "excerpt_citations" in normalized:
-        normalized["excerpt_citations"] = _normalize_list_like(normalized.get("excerpt_citations"))
+        normalized["excerpt_citations"] = _normalize_excerpt_citation_snapshots(
+            normalized.get("excerpt_citations")
+        )
     normalized["basket_promotion_items"] = _basket_promotion_items_from_snapshot(normalized)
     normalized["basket_item_ids"] = _basket_item_ids_from_snapshot(
         normalized,

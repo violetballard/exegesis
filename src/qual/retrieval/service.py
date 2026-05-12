@@ -202,6 +202,7 @@ class RetrievalHit:
             "title_hint": self.title_hint,
             "score": self.score,
             "source_strategy": self.source_strategy,
+            "retrieval_source_strategy": self.source_strategy,
             "rationale": self.rationale,
             "node_path": copy.deepcopy(self.node_path),
             "provenance": copy.deepcopy(self.provenance),
@@ -307,6 +308,7 @@ class RetrievalDocHit:
             "top_excerpt_id": self.top_excerpt_id,
             "top_score": self.top_score,
             "source_strategy": self.source_strategy,
+            "retrieval_source_strategy": self.source_strategy,
             "excerpt_count": self.excerpt_count,
             "provenance": copy.deepcopy(self.provenance),
         }
@@ -1891,6 +1893,13 @@ class RetrievalService:
                 {
                     "doc_id": hit.doc_id,
                     "excerpt_id": hit.excerpt_id,
+                    "basket_item_id": _basket_item_id_for_excerpt(
+                        source_strategy=hit.provenance.get(
+                            "retrieval_source_strategy",
+                            hit.provenance.get("source_strategy", hit.source_strategy),
+                        ),
+                        excerpt_id=hit.excerpt_id,
+                    ),
                     "doc_type": hit.provenance.get("doc_type"),
                     "title_hint": hit.title_hint,
                     "source_hash": hit.provenance.get("source_hash"),
