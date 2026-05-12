@@ -803,7 +803,7 @@ class CommandDemoSmokeSequenceEntry:
     name: str
     smoke_argv: tuple[str, ...]
     engine_actions: tuple[str, ...]
-    exact_action_argv: tuple[str, ...]
+    exact_action_argv: tuple[tuple[str, ...], ...]
     thin_handler_ready: bool
     ready: bool
 
@@ -8154,6 +8154,105 @@ def command_demo_smoke_sequence_contract(
     if contract.is_complete != expected_complete:
         raise ValueError("Command demo smoke sequence completeness is inconsistent")
     return contract
+
+
+def command_demo_smoke_sequence_summary(
+    specs: tuple[CommandSpec, ...] = COMMAND_SPECS,
+    launcher_argv: tuple[str, ...] = COMMAND_SMOKE_CLI_LAUNCHER_ARGV,
+) -> tuple[
+    str,
+    str,
+    bool,
+    bool,
+    tuple[
+        tuple[
+            int,
+            str,
+            str,
+            str,
+            tuple[str, ...],
+            tuple[str, ...],
+            tuple[tuple[str, ...], ...],
+            bool,
+            bool,
+        ],
+        ...,
+    ],
+    tuple[tuple[str, ...], ...],
+    tuple[tuple[str, ...], ...],
+    tuple[str, ...],
+    tuple[str, ...],
+    tuple[tuple[str, ...], ...],
+]:
+    contract = command_demo_smoke_sequence_contract(specs, launcher_argv)
+    return (
+        contract.fingerprint_algorithm,
+        contract.fingerprint_digest,
+        contract.is_complete,
+        contract.trusted_loop_complete,
+        tuple(
+            (
+                entry.ordinal,
+                entry.demo_path_step,
+                entry.flow_step,
+                entry.name,
+                entry.smoke_argv,
+                entry.engine_actions,
+                entry.exact_action_argv,
+                entry.thin_handler_ready,
+                entry.ready,
+            )
+            for entry in contract.entries
+        ),
+        contract.smoke_argvs,
+        contract.exact_action_argvs,
+        contract.missing_flow_steps,
+        contract.missing_engine_actions,
+        contract.invalid_argv,
+    )
+
+
+def command_demo_smoke_sequence_payload(
+    specs: tuple[CommandSpec, ...] = COMMAND_SPECS,
+    launcher_argv: tuple[str, ...] = COMMAND_SMOKE_CLI_LAUNCHER_ARGV,
+) -> dict[str, object]:
+    contract = command_demo_smoke_sequence_contract(specs, launcher_argv)
+    return {
+        "fingerprint_algorithm": contract.fingerprint_algorithm,
+        "fingerprint_digest": contract.fingerprint_digest,
+        "is_complete": contract.is_complete,
+        "trusted_loop_complete": contract.trusted_loop_complete,
+        "smoke_argvs": contract.smoke_argvs,
+        "exact_action_argvs": contract.exact_action_argvs,
+        "missing_flow_steps": contract.missing_flow_steps,
+        "missing_engine_actions": contract.missing_engine_actions,
+        "invalid_argv": contract.invalid_argv,
+        "entries": [
+            {
+                "ordinal": entry.ordinal,
+                "demo_path_step": entry.demo_path_step,
+                "flow_step": entry.flow_step,
+                "command": entry.name,
+                "smoke_argv": entry.smoke_argv,
+                "engine_actions": entry.engine_actions,
+                "exact_action_argv": entry.exact_action_argv,
+                "thin_handler_ready": entry.thin_handler_ready,
+                "ready": entry.ready,
+            }
+            for entry in contract.entries
+        ],
+    }
+
+
+def command_demo_smoke_sequence_json(
+    specs: tuple[CommandSpec, ...] = COMMAND_SPECS,
+    launcher_argv: tuple[str, ...] = COMMAND_SMOKE_CLI_LAUNCHER_ARGV,
+) -> str:
+    return json.dumps(
+        command_demo_smoke_sequence_payload(specs, launcher_argv),
+        sort_keys=True,
+        separators=(",", ":"),
+    )
 
 
 @lru_cache(maxsize=None)
@@ -16207,6 +16306,51 @@ def command_mvp_demo_smoke_sequence_contract(
     launcher_argv: tuple[str, ...] = COMMAND_SMOKE_CLI_LAUNCHER_ARGV,
 ) -> CommandDemoSmokeSequenceContract:
     return command_demo_smoke_sequence_contract(specs, launcher_argv)
+
+
+def command_mvp_demo_smoke_sequence_summary(
+    specs: tuple[CommandSpec, ...] = COMMAND_SPECS,
+    launcher_argv: tuple[str, ...] = COMMAND_SMOKE_CLI_LAUNCHER_ARGV,
+) -> tuple[
+    str,
+    str,
+    bool,
+    bool,
+    tuple[
+        tuple[
+            int,
+            str,
+            str,
+            str,
+            tuple[str, ...],
+            tuple[str, ...],
+            tuple[tuple[str, ...], ...],
+            bool,
+            bool,
+        ],
+        ...,
+    ],
+    tuple[tuple[str, ...], ...],
+    tuple[tuple[str, ...], ...],
+    tuple[str, ...],
+    tuple[str, ...],
+    tuple[tuple[str, ...], ...],
+]:
+    return command_demo_smoke_sequence_summary(specs, launcher_argv)
+
+
+def command_mvp_demo_smoke_sequence_payload(
+    specs: tuple[CommandSpec, ...] = COMMAND_SPECS,
+    launcher_argv: tuple[str, ...] = COMMAND_SMOKE_CLI_LAUNCHER_ARGV,
+) -> dict[str, object]:
+    return command_demo_smoke_sequence_payload(specs, launcher_argv)
+
+
+def command_mvp_demo_smoke_sequence_json(
+    specs: tuple[CommandSpec, ...] = COMMAND_SPECS,
+    launcher_argv: tuple[str, ...] = COMMAND_SMOKE_CLI_LAUNCHER_ARGV,
+) -> str:
+    return command_demo_smoke_sequence_json(specs, launcher_argv)
 
 
 def command_mvp_demo_readiness_handoff_step_status_payload(
