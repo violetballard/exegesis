@@ -84,6 +84,7 @@ from src.qual.commands.catalog import (
     CommandHandlerDemoPathContract,
     CommandHandlerDemoPathEntry,
     CommandHandlerThinActionContract,
+    CommandHandlerTrustGateContract,
     CommandHandlerTrustedActionContract,
     CommandHandlerTrustedActionEntry,
     CommandHandlerTrustedDemoPathContract,
@@ -539,6 +540,10 @@ from src.qual.commands.catalog import (
     command_mvp_handler_thin_action_contract as _handler_thin_action_contract,
     command_mvp_handler_thin_action_lookup_table as _handler_thin_action_lookup_table,
     command_mvp_handler_thin_action_summary as _handler_thin_action_summary,
+    command_mvp_handler_trust_gate_contract as _handler_trust_gate_contract,
+    command_mvp_handler_trust_gate_json as _handler_trust_gate_json,
+    command_mvp_handler_trust_gate_payload as _handler_trust_gate_payload,
+    command_mvp_handler_trust_gate_summary as _handler_trust_gate_summary,
     command_mvp_handler_trusted_action_contract as _handler_trusted_action_contract,
     command_mvp_handler_trusted_action_entry_for_engine_action
     as _handler_trusted_action_entry_for_engine_action,
@@ -555,6 +560,7 @@ from src.qual.commands.catalog import (
     command_mvp_handler_trusted_demo_path_json as _handler_trusted_demo_path_json,
     command_mvp_handler_trusted_demo_path_payload as _handler_trusted_demo_path_payload,
     command_mvp_handler_trusted_demo_path_summary as _handler_trusted_demo_path_summary,
+    require_command_mvp_handler_trust_gate_complete as _require_handler_trust_gate_complete,
     require_command_mvp_handler_trusted_demo_path_complete
     as _require_handler_trusted_demo_path_complete,
 )
@@ -1025,6 +1031,10 @@ __all__ = [
     "canonical_command_handler_thin_action_contract",
     "canonical_command_handler_thin_action_lookup_table",
     "canonical_command_handler_thin_action_summary",
+    "canonical_command_handler_trust_gate_contract",
+    "canonical_command_handler_trust_gate_json",
+    "canonical_command_handler_trust_gate_payload",
+    "canonical_command_handler_trust_gate_summary",
     "canonical_command_handler_trusted_action_contract",
     "canonical_command_handler_trusted_action_entry_for_engine_action",
     "canonical_command_handler_trusted_action_entry_for_argv",
@@ -1037,6 +1047,7 @@ __all__ = [
     "canonical_command_handler_trusted_demo_path_lookup_table",
     "canonical_command_handler_trusted_demo_path_payload",
     "canonical_command_handler_trusted_demo_path_summary",
+    "require_canonical_command_handler_trust_gate_complete",
     "require_canonical_command_handler_trusted_demo_path_complete",
 ]
 
@@ -1166,6 +1177,34 @@ def canonical_command_handler_thin_action_lookup_table() -> tuple[
     ...,
 ]:
     return _handler_thin_action_lookup_table()
+
+
+def canonical_command_handler_trust_gate_contract() -> CommandHandlerTrustGateContract:
+    return _handler_trust_gate_contract()
+
+
+def require_canonical_command_handler_trust_gate_complete() -> CommandHandlerTrustGateContract:
+    return _require_handler_trust_gate_complete()
+
+
+def canonical_command_handler_trust_gate_summary() -> tuple[
+    bool,
+    bool,
+    bool,
+    tuple[str, ...],
+    tuple[tuple[str, str], ...],
+    tuple[str, ...],
+    tuple[str, ...],
+]:
+    return _handler_trust_gate_summary()
+
+
+def canonical_command_handler_trust_gate_payload() -> dict[str, object]:
+    return _handler_trust_gate_payload()
+
+
+def canonical_command_handler_trust_gate_json() -> str:
+    return _handler_trust_gate_json()
 
 
 def canonical_command_handler_trusted_action_contract() -> CommandHandlerTrustedActionContract:

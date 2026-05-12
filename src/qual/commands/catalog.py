@@ -349,6 +349,17 @@ class CommandHandlerTrustedDemoPathContract:
 
 
 @dataclass(frozen=True)
+class CommandHandlerTrustGateContract:
+    is_complete: bool
+    readiness_gate_complete: bool
+    trusted_demo_path_complete: bool
+    command_lines: tuple[str, ...]
+    engine_delegations: tuple[tuple[str, str], ...]
+    missing_engine_actions: tuple[str, ...]
+    thin_handler_violations: tuple[str, ...]
+
+
+@dataclass(frozen=True)
 class CommandDemoActionRouteEntry:
     engine_action: str
     flow_step: str
@@ -3378,6 +3389,178 @@ def command_handler_trusted_demo_path_entry_for_argv(
     if demo_path_entry is None:
         return None
     return command_handler_trusted_demo_path_entry_for_command(demo_path_entry.name, specs, launcher_argv)
+
+
+def command_handler_trust_gate_contract(
+    specs: tuple[CommandSpec, ...] = COMMAND_SPECS,
+    launcher_argv: tuple[str, ...] = COMMAND_SMOKE_CLI_LAUNCHER_ARGV,
+) -> CommandHandlerTrustGateContract:
+    readiness_gate = command_demo_readiness_gate(specs, launcher_argv)
+    trusted_path = command_handler_trusted_demo_path_contract(specs, launcher_argv)
+    contract = CommandHandlerTrustGateContract(
+        is_complete=readiness_gate.is_complete and trusted_path.is_complete,
+        readiness_gate_complete=readiness_gate.is_complete,
+        trusted_demo_path_complete=trusted_path.is_complete,
+        command_lines=readiness_gate.command_lines,
+        engine_delegations=tuple(
+            (entry.name, entry.engine_delegated_to)
+            for entry in trusted_path.entries
+        ),
+        missing_engine_actions=trusted_path.missing_engine_actions,
+        thin_handler_violations=readiness_gate.thin_handler_violations,
+    )
+    _validate_command_handler_trust_gate_contract(
+        contract,
+        specs=specs,
+        launcher_argv=launcher_argv,
+    )
+    return contract
+
+
+def _validate_command_handler_trust_gate_contract(
+    contract: CommandHandlerTrustGateContract,
+    *,
+    specs: tuple[CommandSpec, ...],
+    launcher_argv: tuple[str, ...],
+) -> None:
+    readiness_gate = command_demo_readiness_gate(specs, launcher_argv)
+    trusted_path = command_handler_trusted_demo_path_contract(specs, launcher_argv)
+    if contract.readiness_gate_complete != readiness_gate.is_complete:
+        raise ValueError("Command handler trust gate readiness status drifted")
+    if contract.trusted_demo_path_complete != trusted_path.is_complete:
+        raise ValueError("Command handler trust gate trusted path status drifted")
+    if contract.command_lines != readiness_gate.command_lines:
+        raise ValueError("Command handler trust gate command lines drifted")
+    expected_engine_delegations = tuple(
+        (entry.name, entry.engine_delegated_to)
+        for entry in trusted_path.entries
+    )
+    if contract.engine_delegations != expected_engine_delegations:
+        raise ValueError("Command handler trust gate engine delegations drifted")
+    if contract.missing_engine_actions != trusted_path.missing_engine_actions:
+        raise ValueError("Command handler trust gate missing actions drifted")
+    if contract.thin_handler_violations != readiness_gate.thin_handler_violations:
+        raise ValueError("Command handler trust gate thin handler violations drifted")
+    if contract.is_complete != (
+        contract.readiness_gate_complete
+        and contract.trusted_demo_path_complete
+        and not contract.missing_engine_actions
+        and not contract.thin_handler_violations
+    ):
+        raise ValueError("Command handler trust gate completeness drifted")
+
+
+def command_handler_trust_gate_summary(
+    specs: tuple[CommandSpec, ...] = COMMAND_SPECS,
+    launcher_argv: tuple[str, ...] = COMMAND_SMOKE_CLI_LAUNCHER_ARGV,
+) -> tuple[
+    bool,
+    bool,
+    bool,
+    tuple[str, ...],
+    tuple[tuple[str, str], ...],
+    tuple[str, ...],
+    tuple[str, ...],
+]:
+    contract = command_handler_trust_gate_contract(specs, launcher_argv)
+    return (
+        contract.is_complete,
+        contract.readiness_gate_complete,
+        contract.trusted_demo_path_complete,
+        contract.command_lines,
+        contract.engine_delegations,
+        contract.missing_engine_actions,
+        contract.thin_handler_violations,
+    )
+
+
+def command_handler_trust_gate_payload(
+    specs: tuple[CommandSpec, ...] = COMMAND_SPECS,
+    launcher_argv: tuple[str, ...] = COMMAND_SMOKE_CLI_LAUNCHER_ARGV,
+) -> dict[str, object]:
+    contract = command_handler_trust_gate_contract(specs, launcher_argv)
+    return {
+        "is_complete": contract.is_complete,
+        "readiness_gate_complete": contract.readiness_gate_complete,
+        "trusted_demo_path_complete": contract.trusted_demo_path_complete,
+        "command_lines": contract.command_lines,
+        "engine_delegations": [
+            {"command": command_name, "engine_delegated_to": delegated_to}
+            for command_name, delegated_to in contract.engine_delegations
+        ],
+        "missing_engine_actions": contract.missing_engine_actions,
+        "thin_handler_violations": contract.thin_handler_violations,
+    }
+
+
+def command_handler_trust_gate_json(
+    specs: tuple[CommandSpec, ...] = COMMAND_SPECS,
+    launcher_argv: tuple[str, ...] = COMMAND_SMOKE_CLI_LAUNCHER_ARGV,
+) -> str:
+    return json.dumps(
+        command_handler_trust_gate_payload(specs, launcher_argv),
+        sort_keys=True,
+        separators=(",", ":"),
+    )
+
+
+def require_command_handler_trust_gate_complete(
+    specs: tuple[CommandSpec, ...] = COMMAND_SPECS,
+    launcher_argv: tuple[str, ...] = COMMAND_SMOKE_CLI_LAUNCHER_ARGV,
+) -> CommandHandlerTrustGateContract:
+    contract = command_handler_trust_gate_contract(specs, launcher_argv)
+    if contract.is_complete:
+        return contract
+    missing_actions = ", ".join(contract.missing_engine_actions) or "none"
+    thin_violations = ", ".join(contract.thin_handler_violations) or "none"
+    raise ValueError(
+        "Command handler trust gate is incomplete: "
+        f"missing_engine_actions={missing_actions}; "
+        f"thin_handler_violations={thin_violations}"
+    )
+
+
+def command_mvp_handler_trust_gate_contract(
+    specs: tuple[CommandSpec, ...] = COMMAND_SPECS,
+    launcher_argv: tuple[str, ...] = COMMAND_SMOKE_CLI_LAUNCHER_ARGV,
+) -> CommandHandlerTrustGateContract:
+    return command_handler_trust_gate_contract(specs, launcher_argv)
+
+
+def command_mvp_handler_trust_gate_summary(
+    specs: tuple[CommandSpec, ...] = COMMAND_SPECS,
+    launcher_argv: tuple[str, ...] = COMMAND_SMOKE_CLI_LAUNCHER_ARGV,
+) -> tuple[
+    bool,
+    bool,
+    bool,
+    tuple[str, ...],
+    tuple[tuple[str, str], ...],
+    tuple[str, ...],
+    tuple[str, ...],
+]:
+    return command_handler_trust_gate_summary(specs, launcher_argv)
+
+
+def command_mvp_handler_trust_gate_payload(
+    specs: tuple[CommandSpec, ...] = COMMAND_SPECS,
+    launcher_argv: tuple[str, ...] = COMMAND_SMOKE_CLI_LAUNCHER_ARGV,
+) -> dict[str, object]:
+    return command_handler_trust_gate_payload(specs, launcher_argv)
+
+
+def command_mvp_handler_trust_gate_json(
+    specs: tuple[CommandSpec, ...] = COMMAND_SPECS,
+    launcher_argv: tuple[str, ...] = COMMAND_SMOKE_CLI_LAUNCHER_ARGV,
+) -> str:
+    return command_handler_trust_gate_json(specs, launcher_argv)
+
+
+def require_command_mvp_handler_trust_gate_complete(
+    specs: tuple[CommandSpec, ...] = COMMAND_SPECS,
+    launcher_argv: tuple[str, ...] = COMMAND_SMOKE_CLI_LAUNCHER_ARGV,
+) -> CommandHandlerTrustGateContract:
+    return require_command_handler_trust_gate_complete(specs, launcher_argv)
 
 
 def command_mvp_handler_action_route_contract(
