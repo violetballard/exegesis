@@ -1339,6 +1339,7 @@ class CommandDemoReadinessCommandProgressContract:
     next_flow_step: str | None
     next_command_line: str
     next_exact_action_line: str
+    remaining_exact_action_lines: tuple[str, ...]
     entries: tuple[CommandDemoReadinessCommandProgressEntry, ...]
     invalid_argv: tuple[tuple[str, ...], ...]
 
@@ -15243,6 +15244,8 @@ def _validate_command_demo_readiness_command_progress_contract(
         raise ValueError("Command demo readiness command progress next command line is inconsistent")
     if contract.next_exact_action_line != progress.next_exact_action_line:
         raise ValueError("Command demo readiness command progress next exact action line is inconsistent")
+    if contract.remaining_exact_action_lines != progress.remaining_exact_action_lines:
+        raise ValueError("Command demo readiness command progress remaining exact action lines are inconsistent")
     if contract.invalid_argv != progress.validation.invalid_argv:
         raise ValueError("Command demo readiness command progress invalid argv is inconsistent")
     if tuple(entry.flow_step for entry in contract.entries) != tuple(
@@ -15315,6 +15318,7 @@ def _command_demo_readiness_command_progress_contract_for_progress(
         next_flow_step=progress.next_flow_step,
         next_command_line=progress.next_command_line,
         next_exact_action_line=progress.next_exact_action_line,
+        remaining_exact_action_lines=progress.remaining_exact_action_lines,
         entries=tuple(
             CommandDemoReadinessCommandProgressEntry(
                 ordinal=entry.ordinal,
@@ -15435,6 +15439,7 @@ def _command_demo_readiness_command_progress_payload(
         "next_flow_step": contract.next_flow_step,
         "next_command_line": contract.next_command_line,
         "next_exact_action_line": contract.next_exact_action_line,
+        "remaining_exact_action_lines": contract.remaining_exact_action_lines,
         "invalid_argv": contract.invalid_argv,
         "entries": [
             {
