@@ -4886,6 +4886,26 @@ def command_demo_readiness_required_argv_lookup_table(
     )
 
 
+def command_demo_readiness_required_exact_action_argv(
+    specs: tuple[CommandSpec, ...] = COMMAND_SPECS,
+    launcher_argv: tuple[str, ...] = COMMAND_SMOKE_CLI_LAUNCHER_ARGV,
+) -> tuple[tuple[str, ...], ...]:
+    return tuple(
+        command_demo_readiness_exact_argv_for_engine_action(engine_action, specs, launcher_argv)
+        for engine_action in command_demo_engine_actions(specs)
+    )
+
+
+def command_demo_readiness_required_exact_action_argv_lookup_table(
+    specs: tuple[CommandSpec, ...] = COMMAND_SPECS,
+    launcher_argv: tuple[str, ...] = COMMAND_SMOKE_CLI_LAUNCHER_ARGV,
+) -> tuple[tuple[str, tuple[str, ...]], ...]:
+    return tuple(
+        (engine_action, command_demo_readiness_exact_argv_for_engine_action(engine_action, specs, launcher_argv))
+        for engine_action in command_demo_engine_actions(specs)
+    )
+
+
 @lru_cache(maxsize=None)
 def command_demo_path_readiness_contract(
     specs: tuple[CommandSpec, ...] = COMMAND_SPECS,
@@ -15680,6 +15700,20 @@ def command_mvp_demo_readiness_required_argv_lookup_table(
     launcher_argv: tuple[str, ...] = COMMAND_SMOKE_CLI_LAUNCHER_ARGV,
 ) -> tuple[tuple[str, tuple[str, ...]], ...]:
     return command_demo_readiness_required_argv_lookup_table(specs, launcher_argv)
+
+
+def command_mvp_demo_readiness_required_exact_action_argv(
+    specs: tuple[CommandSpec, ...] = COMMAND_SPECS,
+    launcher_argv: tuple[str, ...] = COMMAND_SMOKE_CLI_LAUNCHER_ARGV,
+) -> tuple[tuple[str, ...], ...]:
+    return command_demo_readiness_required_exact_action_argv(specs, launcher_argv)
+
+
+def command_mvp_demo_readiness_required_exact_action_argv_lookup_table(
+    specs: tuple[CommandSpec, ...] = COMMAND_SPECS,
+    launcher_argv: tuple[str, ...] = COMMAND_SMOKE_CLI_LAUNCHER_ARGV,
+) -> tuple[tuple[str, tuple[str, ...]], ...]:
+    return command_demo_readiness_required_exact_action_argv_lookup_table(specs, launcher_argv)
 
 
 def command_mvp_demo_path_readiness_contract(
