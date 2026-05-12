@@ -442,6 +442,18 @@ def _patch_review_action_route_lookup_for_decision(
     )
 
 
+def _patch_review_smoke_contract_ready(
+    changed_routes: tuple[tuple[str, str], ...],
+    no_change_routes: tuple[tuple[str, str], ...],
+) -> bool:
+    contract = build_patch_review_command_contract()
+    return (
+        contract.ready
+        and changed_routes == contract.change_action_routes
+        and no_change_routes == contract.no_change_action_routes
+    )
+
+
 def build_patch_review_decision(payload: DiffPreviewInput) -> PatchReviewDecision:
     result = build_diff_preview_result(payload)
     if result.has_changes:
@@ -569,9 +581,7 @@ def build_patch_review_command_smoke_contract() -> PatchReviewCommandSmokeContra
         changed_action_routes=changed_routes,
         no_change_decision=no_change.status,
         no_change_action_routes=no_change_routes,
-        ready=bool(changed_routes)
-        and bool(no_change_routes)
-        and all(action and engine_action for action, engine_action in changed_routes + no_change_routes),
+        ready=_patch_review_smoke_contract_ready(changed_routes, no_change_routes),
     )
 
 
