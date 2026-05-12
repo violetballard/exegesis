@@ -43,6 +43,7 @@ from src.qual.commands.catalog import (
     CommandDemoCommandTranscriptContract,
     CommandDemoExecutionPlanContract,
     CommandDemoExecutionPlanStep,
+    CommandDemoPathCommandLineContract,
     CommandDemoReadinessHandoffChecklistContract,
     CommandDemoReadinessHandoffContract,
     CommandDemoReadinessHandoffFieldContract,
@@ -97,6 +98,10 @@ from src.qual.commands.catalog import (
     command_mvp_demo_path_readiness_contract as _path_readiness_contract,
     command_mvp_demo_path_steps as _path_steps,
     command_mvp_demo_path_action_coverage_summary as _path_action_coverage_summary,
+    command_mvp_demo_path_command_line_contract as _path_command_line_contract,
+    command_mvp_demo_path_command_line_json as _path_command_line_json,
+    command_mvp_demo_path_command_line_payload as _path_command_line_payload,
+    command_mvp_demo_path_command_line_summary as _path_command_line_summary,
     command_mvp_demo_path_readiness_summary as _path_readiness_summary,
     command_mvp_demo_readiness_handoff_checklist_contract as _readiness_handoff_checklist_contract,
     command_mvp_demo_readiness_handoff_checklist_lines as _readiness_handoff_checklist_lines,
@@ -477,6 +482,7 @@ from src.qual.commands.catalog import (
     command_mvp_demo_readiness_smoke_plan_summary as _readiness_smoke_plan_summary,
     command_mvp_demo_readiness_is_complete as _readiness_is_complete,
     command_mvp_demo_readiness_missing_engine_actions as _readiness_missing_engine_actions,
+    require_command_mvp_demo_path_command_lines_complete as _require_path_command_lines_complete,
     require_command_mvp_demo_readiness_complete as _require_readiness_complete,
     require_command_mvp_demo_readiness_handoff_complete
     as _require_readiness_handoff_complete,
@@ -650,6 +656,11 @@ __all__ = [
     "canonical_command_demo_path_readiness_contract",
     "canonical_command_demo_path_steps",
     "canonical_command_demo_path_action_coverage_summary",
+    "canonical_command_demo_path_command_line_contract",
+    "canonical_command_demo_path_command_line_summary",
+    "canonical_command_demo_path_command_line_payload",
+    "canonical_command_demo_path_command_line_json",
+    "canonical_command_require_demo_path_command_lines_complete",
     "canonical_command_demo_path_readiness_summary",
     "canonical_command_demo_transcript_contract",
     "canonical_command_demo_transcript_json",
@@ -2030,6 +2041,29 @@ def canonical_command_demo_path_action_coverage_summary() -> tuple[
     ...,
 ]:
     return _path_action_coverage_summary()
+
+
+def canonical_command_demo_path_command_line_contract() -> CommandDemoPathCommandLineContract:
+    return _path_command_line_contract()
+
+
+def canonical_command_demo_path_command_line_summary() -> tuple[
+    tuple[int, str, str, str, str, tuple[str, ...], tuple[tuple[str, str], ...], bool],
+    ...,
+]:
+    return _path_command_line_summary()
+
+
+def canonical_command_demo_path_command_line_payload() -> dict[str, object]:
+    return _path_command_line_payload()
+
+
+def canonical_command_demo_path_command_line_json() -> str:
+    return _path_command_line_json()
+
+
+def canonical_command_require_demo_path_command_lines_complete() -> CommandDemoPathCommandLineContract:
+    return _require_path_command_lines_complete()
 
 
 def canonical_command_readiness_cli_contract() -> CommandDemoReadinessCliContract:
