@@ -123,6 +123,9 @@ class LaneProfileDefaultsTests(unittest.TestCase):
         self.assertIn("Active engine execution order", prompt)
         self.assertIn(engine_priority_lines()[0], prompt)
         self.assertIn("Textual UI lanes remain disabled", prompt)
+        self.assertIn("Do not use full-file `cat`, full-file Read", prompt)
+        self.assertIn("First use `rg -n`", prompt)
+        self.assertIn("normally <=80 lines", prompt)
 
 
 if __name__ == "__main__":

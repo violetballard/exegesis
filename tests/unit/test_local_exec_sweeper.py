@@ -201,6 +201,16 @@ class LocalExecSweeperTests(unittest.TestCase):
 
         self.assertEqual(stale, [505])
 
+    def test_context_exhaustion_marker_matches_tool_error_form(self) -> None:
+        with tempfile.TemporaryDirectory() as tmp:
+            log_path = Path(tmp) / "worker.log"
+            log_path.write_text('Error: "Context size has been exceeded."\n', encoding="utf-8")
+
+            with mock.patch.object(local_exec_sweeper, "_pid_alive", return_value=True):
+                exhausted = local_exec_sweeper.find_context_exhausted_repo_local_exec_pids({101: str(log_path)})
+
+        self.assertEqual(exhausted, [101])
+
 
 if __name__ == "__main__":
     unittest.main()

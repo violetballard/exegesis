@@ -27,6 +27,9 @@ MANAGED_WORKTREE_ROOT = Path.home() / ".codex/worktrees"
 ORPHAN_TEST_RUNNER_MIN_AGE_SECONDS = int(os.environ.get("ORPHAN_TEST_RUNNER_MIN_AGE_SECONDS", "1800"))
 ORPHAN_TEST_RUNNER_RSS_LIMIT_KB = int(os.environ.get("ORPHAN_TEST_RUNNER_RSS_LIMIT_KB", "1500000"))
 CONTEXT_EXHAUSTION_MARKERS = (
+    'Error: "Context size has been exceeded."',
+    "Error: Context size has been exceeded.",
+    "Context size has been exceeded",
     "ERROR: stream disconnected before completion: Context size has been exceeded",
     "ERROR: stream disconnected before completion: context size has been exceeded",
     "ERROR: stream disconnected before completion: Context length exceeded",
