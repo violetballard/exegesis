@@ -24,6 +24,7 @@ from src.qual.engine.retrieval.payload import build_retrieval_citation_bundle_fr
 from src.qual.engine.retrieval.payload import build_retrieval_downstream_payload_from_result
 from src.qual.engine.retrieval.payload import build_retrieval_provenance_from_result
 from src.qual.engine.retrieval.payload import _build_retrieval_basket_promotion_bundle_from_payload
+from src.qual.engine.retrieval.payload import _build_retrieval_context_bundle_from_source_bundle
 from src.qual.engine.retrieval.payload import _build_retrieval_doc_bundle_from_payload
 from src.qual.engine.retrieval.payload import _build_retrieval_excerpt_bundle_from_payload
 from src.qual.engine.retrieval.payload import _build_retrieval_source_bundle_from_payload
@@ -3308,6 +3309,50 @@ class UnifiedRetrievalTests(unittest.TestCase):
             context_bundle["retrieval_excerpt_bundle"]["basket_promotion_count"],
             len(baseline_items),
         )
+
+    def test_retrieval_context_bundle_helper_uses_manifest_basket_refs_for_sparse_source(self) -> None:
+        result = self.service.retrieve_auto(
+            RetrievalQuery(
+                query_text="memo coding comparison",
+                scope="vault",
+                intent="compare",
+                constraints=RetrievalConstraints(max_results=4),
+                confidentiality_profile="confidential",
+            )
+        )
+
+        sparse_source_bundle = json.loads(json.dumps(result.source_bundle()))
+        baseline_items = result.basket_promotion_items()
+        expected_ids = [str(item["basket_item_id"]) for item in baseline_items]
+        expected_fingerprints = [str(item["basket_item_fingerprint"]) for item in baseline_items]
+        manifest = sparse_source_bundle["retrieval_manifest"]
+        manifest["basket_item_ids"] = expected_ids
+        manifest["basket_item_fingerprints"] = expected_fingerprints
+        for snapshot in (
+            sparse_source_bundle,
+            sparse_source_bundle["retrieval_summary"],
+            sparse_source_bundle["retrieval_evidence"],
+            sparse_source_bundle["retrieval_basket_promotion_bundle"],
+            sparse_source_bundle["retrieval_citation_bundle"],
+            sparse_source_bundle["retrieval_doc_bundle"],
+            sparse_source_bundle["retrieval_excerpt_bundle"],
+        ):
+            snapshot.pop("basket_promotion_items", None)
+            snapshot.pop("promotion_items", None)
+            snapshot.pop("basket_item_ids", None)
+            snapshot.pop("basket_item_fingerprints", None)
+            snapshot.pop("basket_promotion_count", None)
+            snapshot.pop("basket_promotion_ready", None)
+            snapshot.pop("excerpt_citations", None)
+        sparse_source_bundle.pop("excerpt_hits", None)
+        sparse_source_bundle["retrieval_excerpt_bundle"].pop("excerpt_hits", None)
+
+        context_bundle = _build_retrieval_context_bundle_from_source_bundle(sparse_source_bundle)
+
+        self.assertEqual(context_bundle["basket_item_ids"], expected_ids)
+        self.assertEqual(context_bundle["basket_item_fingerprints"], expected_fingerprints)
+        self.assertEqual(context_bundle["basket_promotion_count"], len(expected_ids))
+        self.assertTrue(context_bundle["basket_promotion_ready"])
 
     def test_sparse_payload_doc_and_excerpt_bundles_use_citation_fallbacks(self) -> None:
         result = self.service.retrieve_auto(

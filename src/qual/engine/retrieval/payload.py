@@ -207,6 +207,12 @@ def _basket_promotion_count_from_snapshot(
     if item_count:
         return item_count
 
+    retrieval_manifest = snapshot.get("retrieval_manifest")
+    if isinstance(retrieval_manifest, dict):
+        manifest_ids = _stable_text_values(retrieval_manifest.get("basket_item_ids", []))
+        if manifest_ids:
+            return len(manifest_ids)
+
     count = snapshot.get("basket_promotion_count")
     if isinstance(count, int) and count >= 0:
         return count
@@ -637,6 +643,12 @@ def _basket_item_ids_from_snapshot(
         if basket_item_ids:
             return basket_item_ids
 
+    retrieval_manifest = snapshot.get("retrieval_manifest")
+    if isinstance(retrieval_manifest, dict):
+        basket_item_ids = _stable_text_values(retrieval_manifest.get("basket_item_ids", []))
+        if basket_item_ids:
+            return basket_item_ids
+
     return []
 
 
@@ -664,6 +676,14 @@ def _basket_item_fingerprints_from_snapshot(
     if isinstance(retrieval_summary, dict):
         basket_item_fingerprints = _stable_text_values(
             retrieval_summary.get("basket_item_fingerprints", [])
+        )
+        if basket_item_fingerprints:
+            return basket_item_fingerprints
+
+    retrieval_manifest = snapshot.get("retrieval_manifest")
+    if isinstance(retrieval_manifest, dict):
+        basket_item_fingerprints = _stable_text_values(
+            retrieval_manifest.get("basket_item_fingerprints", [])
         )
         if basket_item_fingerprints:
             return basket_item_fingerprints
@@ -1212,6 +1232,11 @@ def _normalize_retrieval_manifest_snapshot(manifest: dict[str, object]) -> dict[
         normalized.get("excerpt_lookup_fingerprints")
     )
     normalized["excerpt_text_hashes"] = _normalize_list_like(normalized.get("excerpt_text_hashes"))
+    normalized["basket_item_ids"] = _stable_text_values(normalized.get("basket_item_ids", []))
+    if "basket_item_fingerprints" in normalized:
+        normalized["basket_item_fingerprints"] = _stable_text_values(
+            normalized.get("basket_item_fingerprints", [])
+        )
     normalized["active_strategy_ids"] = _normalize_active_strategy_ids(
         normalized.get("active_strategy_ids"),
         field_name="retrieval_manifest",
