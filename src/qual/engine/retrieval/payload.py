@@ -2047,7 +2047,20 @@ def _build_retrieval_basket_promotion_bundle_from_payload(payload: dict[str, obj
             "span": copy.deepcopy(hit.get("span", provenance.get("span", {}))),
             "score": hit.get("score"),
             "rank": provenance.get("rank", hit.get("rank")),
-            "source_strategy": hit.get("source_strategy", provenance.get("source_strategy")),
+            "source_strategy": hit.get(
+                "source_strategy",
+                hit.get(
+                    "retrieval_source_strategy",
+                    provenance.get(
+                        "source_strategy",
+                        provenance.get("retrieval_source_strategy"),
+                    ),
+                ),
+            ),
+            "retrieval_source_strategy": hit.get(
+                "retrieval_source_strategy",
+                provenance.get("retrieval_source_strategy"),
+            ),
             "result_fingerprint": hit.get(
                 "result_fingerprint",
                 provenance.get("result_fingerprint", bundle_context["result_fingerprint"]),
