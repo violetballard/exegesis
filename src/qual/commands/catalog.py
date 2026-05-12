@@ -360,6 +360,27 @@ class CommandHandlerTrustGateContract:
 
 
 @dataclass(frozen=True)
+class CommandDemoPathCommandLineEntry:
+    ordinal: int
+    demo_path_step: str
+    flow_step: str
+    name: str
+    command_line: str
+    engine_actions: tuple[str, ...]
+    exact_action_lines: tuple[tuple[str, str], ...]
+    is_trusted: bool
+    missing_engine_actions: tuple[str, ...]
+
+
+@dataclass(frozen=True)
+class CommandDemoPathCommandLineContract:
+    is_complete: bool
+    entries: tuple[CommandDemoPathCommandLineEntry, ...]
+    command_lines: tuple[str, ...]
+    missing_engine_actions: tuple[str, ...]
+
+
+@dataclass(frozen=True)
 class CommandDemoActionRouteEntry:
     engine_action: str
     flow_step: str
@@ -3518,6 +3539,209 @@ def require_command_handler_trust_gate_complete(
         f"missing_engine_actions={missing_actions}; "
         f"thin_handler_violations={thin_violations}"
     )
+
+
+@lru_cache(maxsize=None)
+def command_demo_path_command_line_contract(
+    specs: tuple[CommandSpec, ...] = COMMAND_SPECS,
+    launcher_argv: tuple[str, ...] = COMMAND_SMOKE_CLI_LAUNCHER_ARGV,
+) -> CommandDemoPathCommandLineContract:
+    trusted_path = command_handler_trusted_demo_path_contract(specs, launcher_argv)
+    entries = tuple(
+        CommandDemoPathCommandLineEntry(
+            ordinal=ordinal,
+            demo_path_step=entry.demo_path_step,
+            flow_step=entry.flow_step,
+            name=entry.name,
+            command_line=entry.command_line,
+            engine_actions=entry.engine_actions,
+            exact_action_lines=command_demo_readiness_cli_exact_action_lines_for_demo_path_step(
+                entry.demo_path_step,
+                specs,
+                launcher_argv,
+            ),
+            is_trusted=entry.is_trusted,
+            missing_engine_actions=entry.missing_engine_actions,
+        )
+        for ordinal, entry in enumerate(trusted_path.entries, start=1)
+    )
+    missing_engine_actions = tuple(
+        action
+        for entry in entries
+        for action in entry.missing_engine_actions
+    )
+    contract = CommandDemoPathCommandLineContract(
+        is_complete=trusted_path.is_complete and not missing_engine_actions,
+        entries=entries,
+        command_lines=tuple(entry.command_line for entry in entries),
+        missing_engine_actions=missing_engine_actions,
+    )
+    _validate_command_demo_path_command_line_contract(
+        contract,
+        specs=specs,
+        launcher_argv=launcher_argv,
+    )
+    return contract
+
+
+def _validate_command_demo_path_command_line_contract(
+    contract: CommandDemoPathCommandLineContract,
+    *,
+    specs: tuple[CommandSpec, ...],
+    launcher_argv: tuple[str, ...],
+) -> None:
+    trusted_path = command_handler_trusted_demo_path_contract(specs, launcher_argv)
+    if tuple(entry.name for entry in contract.entries) != tuple(
+        entry.name for entry in trusted_path.entries
+    ):
+        raise ValueError("Command demo path command-line names are inconsistent")
+    if tuple(entry.flow_step for entry in contract.entries) != command_mvp_flow_steps():
+        raise ValueError("Command demo path command-line flow steps are inconsistent")
+    for ordinal, (entry, trusted_entry) in enumerate(
+        zip(contract.entries, trusted_path.entries, strict=True),
+        start=1,
+    ):
+        if entry.ordinal != ordinal:
+            raise ValueError(f"Command demo path command-line ordinal drifted: {entry.name}")
+        if (
+            entry.demo_path_step != trusted_entry.demo_path_step
+            or entry.flow_step != trusted_entry.flow_step
+            or entry.name != trusted_entry.name
+            or entry.command_line != trusted_entry.command_line
+            or entry.engine_actions != trusted_entry.engine_actions
+            or entry.is_trusted != trusted_entry.is_trusted
+            or entry.missing_engine_actions != trusted_entry.missing_engine_actions
+        ):
+            raise ValueError(f"Command demo path command-line entry drifted: {entry.name}")
+        expected_action_lines = command_demo_readiness_cli_exact_action_lines_for_demo_path_step(
+            entry.demo_path_step,
+            specs,
+            launcher_argv,
+        )
+        if entry.exact_action_lines != expected_action_lines:
+            raise ValueError(f"Command demo path exact action lines drifted: {entry.name}")
+        if tuple(action for action, _line in entry.exact_action_lines) != entry.engine_actions:
+            raise ValueError(f"Command demo path exact action coverage drifted: {entry.name}")
+    expected_missing = tuple(
+        action
+        for entry in contract.entries
+        for action in entry.missing_engine_actions
+    )
+    if contract.missing_engine_actions != expected_missing:
+        raise ValueError("Command demo path command-line missing actions are inconsistent")
+    if contract.command_lines != tuple(entry.command_line for entry in contract.entries):
+        raise ValueError("Command demo path command lines drifted")
+    if contract.is_complete != (
+        trusted_path.is_complete
+        and not contract.missing_engine_actions
+        and all(entry.is_trusted for entry in contract.entries)
+    ):
+        raise ValueError("Command demo path command-line completeness drifted")
+
+
+def command_demo_path_command_line_summary(
+    specs: tuple[CommandSpec, ...] = COMMAND_SPECS,
+    launcher_argv: tuple[str, ...] = COMMAND_SMOKE_CLI_LAUNCHER_ARGV,
+) -> tuple[tuple[int, str, str, str, str, tuple[str, ...], tuple[tuple[str, str], ...], bool], ...]:
+    return tuple(
+        (
+            entry.ordinal,
+            entry.demo_path_step,
+            entry.flow_step,
+            entry.name,
+            entry.command_line,
+            entry.engine_actions,
+            entry.exact_action_lines,
+            entry.is_trusted,
+        )
+        for entry in command_demo_path_command_line_contract(specs, launcher_argv).entries
+    )
+
+
+def command_demo_path_command_line_payload(
+    specs: tuple[CommandSpec, ...] = COMMAND_SPECS,
+    launcher_argv: tuple[str, ...] = COMMAND_SMOKE_CLI_LAUNCHER_ARGV,
+) -> dict[str, object]:
+    contract = command_demo_path_command_line_contract(specs, launcher_argv)
+    return {
+        "is_complete": contract.is_complete,
+        "command_lines": contract.command_lines,
+        "missing_engine_actions": contract.missing_engine_actions,
+        "steps": [
+            {
+                "ordinal": entry.ordinal,
+                "demo_path_step": entry.demo_path_step,
+                "flow_step": entry.flow_step,
+                "command": entry.name,
+                "command_line": entry.command_line,
+                "engine_actions": entry.engine_actions,
+                "exact_action_lines": [
+                    {"engine_action": action, "command_line": command_line}
+                    for action, command_line in entry.exact_action_lines
+                ],
+                "is_trusted": entry.is_trusted,
+                "missing_engine_actions": entry.missing_engine_actions,
+            }
+            for entry in contract.entries
+        ],
+    }
+
+
+def command_demo_path_command_line_json(
+    specs: tuple[CommandSpec, ...] = COMMAND_SPECS,
+    launcher_argv: tuple[str, ...] = COMMAND_SMOKE_CLI_LAUNCHER_ARGV,
+) -> str:
+    return json.dumps(
+        command_demo_path_command_line_payload(specs, launcher_argv),
+        sort_keys=True,
+        separators=(",", ":"),
+    )
+
+
+def require_command_demo_path_command_lines_complete(
+    specs: tuple[CommandSpec, ...] = COMMAND_SPECS,
+    launcher_argv: tuple[str, ...] = COMMAND_SMOKE_CLI_LAUNCHER_ARGV,
+) -> CommandDemoPathCommandLineContract:
+    contract = command_demo_path_command_line_contract(specs, launcher_argv)
+    if contract.is_complete:
+        return contract
+    missing = ", ".join(contract.missing_engine_actions) or "unknown"
+    raise ValueError(f"Command demo path command lines are incomplete: {missing}")
+
+
+def command_mvp_demo_path_command_line_contract(
+    specs: tuple[CommandSpec, ...] = COMMAND_SPECS,
+    launcher_argv: tuple[str, ...] = COMMAND_SMOKE_CLI_LAUNCHER_ARGV,
+) -> CommandDemoPathCommandLineContract:
+    return command_demo_path_command_line_contract(specs, launcher_argv)
+
+
+def command_mvp_demo_path_command_line_summary(
+    specs: tuple[CommandSpec, ...] = COMMAND_SPECS,
+    launcher_argv: tuple[str, ...] = COMMAND_SMOKE_CLI_LAUNCHER_ARGV,
+) -> tuple[tuple[int, str, str, str, str, tuple[str, ...], tuple[tuple[str, str], ...], bool], ...]:
+    return command_demo_path_command_line_summary(specs, launcher_argv)
+
+
+def command_mvp_demo_path_command_line_payload(
+    specs: tuple[CommandSpec, ...] = COMMAND_SPECS,
+    launcher_argv: tuple[str, ...] = COMMAND_SMOKE_CLI_LAUNCHER_ARGV,
+) -> dict[str, object]:
+    return command_demo_path_command_line_payload(specs, launcher_argv)
+
+
+def command_mvp_demo_path_command_line_json(
+    specs: tuple[CommandSpec, ...] = COMMAND_SPECS,
+    launcher_argv: tuple[str, ...] = COMMAND_SMOKE_CLI_LAUNCHER_ARGV,
+) -> str:
+    return command_demo_path_command_line_json(specs, launcher_argv)
+
+
+def require_command_mvp_demo_path_command_lines_complete(
+    specs: tuple[CommandSpec, ...] = COMMAND_SPECS,
+    launcher_argv: tuple[str, ...] = COMMAND_SMOKE_CLI_LAUNCHER_ARGV,
+) -> CommandDemoPathCommandLineContract:
+    return require_command_demo_path_command_lines_complete(specs, launcher_argv)
 
 
 def command_mvp_handler_trust_gate_contract(
