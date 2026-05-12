@@ -3789,12 +3789,27 @@ def _readiness_status_for_next_action(
     )
 
 
+def _readiness_status_for_progress(
+    progress: CommandDemoReadinessProgress,
+) -> CommandCanonicalReadinessStatus:
+    if progress.next_flow_step is None:
+        return _readiness_status(
+            command=None,
+            flow_step=None,
+            demo_path_step=None,
+            argv=(),
+            command_line="",
+            engine_actions=(),
+        )
+    return canonical_command_readiness_status_for_flow_step(progress.next_flow_step)
+
+
 def canonical_command_readiness_next_status(
     argvs: Sequence[Sequence[str] | str] = (),
 ) -> CommandCanonicalReadinessStatus:
     """Return the next canonical demo-path command/action after a partial CLI transcript."""
 
-    return _readiness_status_for_next_action(_readiness_next_action(argvs))
+    return _readiness_status_for_progress(_readiness_progress(argvs))
 
 
 def canonical_command_readiness_next_status_payload(
@@ -3910,7 +3925,7 @@ def canonical_command_readiness_shell_next_status(
 ) -> CommandCanonicalReadinessStatus:
     """Return the next canonical demo-path command/action after shell smoke lines."""
 
-    return _readiness_status_for_next_action(_readiness_shell_next_action(lines))
+    return _readiness_status_for_progress(_readiness_shell_progress(lines))
 
 
 def canonical_command_readiness_shell_next_status_payload(
