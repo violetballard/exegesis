@@ -5947,6 +5947,41 @@ def command_demo_execution_plan_lookup_table(
     )
 
 
+def command_demo_execution_plan_payload(
+    specs: tuple[CommandSpec, ...] = COMMAND_SPECS,
+    launcher_argv: tuple[str, ...] = COMMAND_SMOKE_CLI_LAUNCHER_ARGV,
+) -> dict[str, object]:
+    contract = command_demo_execution_plan_contract(specs, launcher_argv)
+    return {
+        "launcher_argv": contract.launcher_argv,
+        "steps": tuple(
+            {
+                "ordinal": step.ordinal,
+                "demo_path_step": step.demo_path_step,
+                "flow_step": step.flow_step,
+                "name": step.name,
+                "launcher_argv": step.launcher_argv,
+                "command_argv": step.command_argv,
+                "command_line": step.command_line,
+                "engine_actions": step.engine_actions,
+                "action_lines": step.action_lines,
+            }
+            for step in contract.steps
+        ),
+    }
+
+
+def command_demo_execution_plan_json(
+    specs: tuple[CommandSpec, ...] = COMMAND_SPECS,
+    launcher_argv: tuple[str, ...] = COMMAND_SMOKE_CLI_LAUNCHER_ARGV,
+) -> str:
+    return json.dumps(
+        command_demo_execution_plan_payload(specs, launcher_argv),
+        sort_keys=True,
+        separators=(",", ":"),
+    )
+
+
 @lru_cache(maxsize=None)
 def command_demo_action_coverage_contract(
     specs: tuple[CommandSpec, ...] = COMMAND_SPECS,
@@ -6248,6 +6283,20 @@ def command_mvp_demo_execution_plan_lookup_table(
     launcher_argv: tuple[str, ...] = COMMAND_SMOKE_CLI_LAUNCHER_ARGV,
 ) -> tuple[tuple[str, tuple[str, ...]], ...]:
     return command_demo_execution_plan_lookup_table(specs, launcher_argv)
+
+
+def command_mvp_demo_execution_plan_payload(
+    specs: tuple[CommandSpec, ...] = COMMAND_SPECS,
+    launcher_argv: tuple[str, ...] = COMMAND_SMOKE_CLI_LAUNCHER_ARGV,
+) -> dict[str, object]:
+    return command_demo_execution_plan_payload(specs, launcher_argv)
+
+
+def command_mvp_demo_execution_plan_json(
+    specs: tuple[CommandSpec, ...] = COMMAND_SPECS,
+    launcher_argv: tuple[str, ...] = COMMAND_SMOKE_CLI_LAUNCHER_ARGV,
+) -> str:
+    return command_demo_execution_plan_json(specs, launcher_argv)
 
 
 def command_mvp_demo_action_coverage_contract(

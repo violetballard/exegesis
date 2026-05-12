@@ -212,7 +212,9 @@ from src.qual.commands.catalog import (
     command_mvp_demo_readiness_command_audit_payload as _readiness_command_audit_payload,
     command_mvp_demo_readiness_command_audit_summary as _readiness_command_audit_summary,
     command_mvp_demo_execution_plan_contract as _execution_plan_contract,
+    command_mvp_demo_execution_plan_json as _execution_plan_json,
     command_mvp_demo_execution_plan_lookup_table as _execution_plan_lookup_table,
+    command_mvp_demo_execution_plan_payload as _execution_plan_payload,
     command_mvp_demo_execution_plan_summary as _execution_plan_summary,
     command_mvp_demo_action_coverage_contract as _action_coverage_contract,
     command_mvp_demo_action_coverage_entry as _action_coverage_entry,
@@ -688,6 +690,8 @@ __all__ = [
     "canonical_command_readiness_command_trace_lookup_table",
     "canonical_command_readiness_command_trace_summary",
     "canonical_command_execution_plan_contract",
+    "canonical_command_execution_plan_json",
+    "canonical_command_execution_plan_payload",
     "canonical_command_action_coverage_contract",
     "canonical_command_action_coverage_entry",
     "canonical_command_action_coverage_lookup_table",
@@ -2192,6 +2196,14 @@ def canonical_command_execution_plan_summary() -> tuple[
 
 def canonical_command_execution_plan_lookup_table() -> tuple[tuple[str, tuple[str, ...]], ...]:
     return _execution_plan_lookup_table()
+
+
+def canonical_command_execution_plan_payload() -> dict[str, object]:
+    return _execution_plan_payload()
+
+
+def canonical_command_execution_plan_json() -> str:
+    return _execution_plan_json()
 
 
 def canonical_command_action_coverage_contract() -> CommandDemoActionCoverageContract:
