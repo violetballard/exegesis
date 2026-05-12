@@ -22,6 +22,7 @@ from src.qual.commands.catalog import (
     CommandDemoReadinessExactActionEntry,
     CommandDemoReadinessExactActionContract,
     CommandDemoReadinessActionMatrixContract,
+    CommandDemoReadinessStepActionLineContract,
     CommandDemoReadinessExactActionRouteContract,
     CommandDemoReadinessExactCliAuditContract,
     CommandDemoReadinessExactActionScriptContract,
@@ -322,6 +323,14 @@ from src.qual.commands.catalog import (
     command_mvp_demo_readiness_action_matrix_json as _readiness_action_matrix_json,
     command_mvp_demo_readiness_action_matrix_payload as _readiness_action_matrix_payload,
     command_mvp_demo_readiness_action_matrix_summary as _readiness_action_matrix_summary,
+    command_mvp_demo_readiness_step_action_line_contract
+    as _readiness_step_action_line_contract,
+    command_mvp_demo_readiness_step_action_line_json
+    as _readiness_step_action_line_json,
+    command_mvp_demo_readiness_step_action_line_payload
+    as _readiness_step_action_line_payload,
+    command_mvp_demo_readiness_step_action_line_summary
+    as _readiness_step_action_line_summary,
     command_mvp_demo_readiness_exact_cli_audit_contract as _readiness_exact_cli_audit_contract,
     command_mvp_demo_readiness_exact_cli_audit_summary as _readiness_exact_cli_audit_summary,
     command_mvp_demo_readiness_exact_action_route_contract
@@ -2974,6 +2983,25 @@ def canonical_command_action_matrix_summary() -> tuple[
     ...,
 ]:
     return _readiness_action_matrix_summary()
+
+
+def canonical_command_step_action_line_contract() -> CommandDemoReadinessStepActionLineContract:
+    return _readiness_step_action_line_contract()
+
+
+def canonical_command_step_action_line_summary() -> tuple[
+    tuple[int, str, str, str, str, str],
+    ...,
+]:
+    return _readiness_step_action_line_summary()
+
+
+def canonical_command_step_action_line_payload() -> tuple[dict[str, object], ...]:
+    return _readiness_step_action_line_payload()
+
+
+def canonical_command_step_action_line_json() -> str:
+    return _readiness_step_action_line_json()
 
 
 def canonical_command_action_exact_script_contract() -> CommandDemoReadinessExactActionScriptContract:
