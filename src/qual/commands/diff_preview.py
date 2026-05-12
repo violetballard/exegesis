@@ -30,6 +30,22 @@ PATCH_REVIEW_CONTINUE_ENGINE_ACTION = "ExegesisAppService.save_document"
 PATCH_REVIEW_COMMAND_NAME = "diff-preview"
 PATCH_REVIEW_FLOW_STEP = "patch-review"
 PATCH_REVIEW_DEMO_PATH_STEP = "preview and apply or reject a patch"
+PATCH_REVIEW_ACTION_COMPATIBILITY_ALIASES: tuple[tuple[str, str], ...] = (
+    ("apply-patch", "apply"),
+    ("apply-patch-action", "apply"),
+    ("accept", "apply"),
+    ("accept-patch", "apply"),
+    ("reject-patch", "reject"),
+    ("reject-patch-action", "reject"),
+    ("discard", "reject"),
+    ("discard-patch", "reject"),
+    ("revise-selection", "revise"),
+    ("continue-without-apply", "continue"),
+    ("no-op", "continue"),
+)
+PATCH_REVIEW_ACTION_COMPATIBILITY_ALIAS_BY_TOKEN: dict[str, str] = dict(
+    PATCH_REVIEW_ACTION_COMPATIBILITY_ALIASES
+)
 
 
 @dataclass(frozen=True)
@@ -115,6 +131,7 @@ class PatchReviewCommandContract:
     demo_path_step: str
     change_action_routes: tuple[tuple[str, str], ...]
     no_change_action_routes: tuple[tuple[str, str], ...]
+    action_compatibility_aliases: tuple[tuple[str, str], ...]
     engine_actions: tuple[str, ...]
     ready: bool
 
@@ -142,6 +159,7 @@ class PatchReviewReadinessContract:
     expected_action_routes: tuple[tuple[str, str], ...]
     valid_action_routes: tuple[tuple[str, str], ...]
     missing_action_routes: tuple[tuple[str, str], ...]
+    action_compatibility_aliases: tuple[tuple[str, str], ...]
     engine_actions: tuple[str, ...]
     missing_engine_actions: tuple[str, ...]
     missing_expected_engine_actions: tuple[str, ...]
@@ -456,7 +474,14 @@ def _patch_review_action_route_lookup_for_decision(
 
 
 def _normalize_patch_review_action(action: str) -> str:
-    return action.strip().lower().replace("_", "-")
+    normalized = re.sub(r"\s+", "-", action.strip().lower().replace("_", "-"))
+    return PATCH_REVIEW_ACTION_COMPATIBILITY_ALIAS_BY_TOKEN.get(normalized, normalized)
+
+
+def build_patch_review_action_compatibility_aliases() -> tuple[tuple[str, str], ...]:
+    """Return stable compatibility tokens accepted for patch-review actions."""
+
+    return PATCH_REVIEW_ACTION_COMPATIBILITY_ALIASES
 
 
 def _patch_review_smoke_contract_ready(
@@ -607,6 +632,7 @@ def build_patch_review_command_contract() -> PatchReviewCommandContract:
         demo_path_step=PATCH_REVIEW_DEMO_PATH_STEP,
         change_action_routes=change_action_routes,
         no_change_action_routes=no_change_action_routes,
+        action_compatibility_aliases=build_patch_review_action_compatibility_aliases(),
         engine_actions=engine_actions,
         ready=all(
             action and engine_action
@@ -770,6 +796,7 @@ def run_patch_review_command_contract() -> str:
         f"demo-path-step={contract.demo_path_step}; "
         f"change-action-routes={json.dumps(contract.change_action_routes)}; "
         f"no-change-action-routes={json.dumps(contract.no_change_action_routes)}; "
+        f"action-compatibility-aliases={json.dumps(contract.action_compatibility_aliases)}; "
         f"engine-actions={','.join(contract.engine_actions)}; "
         f"ready={str(contract.ready).lower()}"
     )
@@ -784,6 +811,7 @@ def run_patch_review_command_contract_json() -> str:
             "demo_path_step": contract.demo_path_step,
             "change_action_routes": contract.change_action_routes,
             "no_change_action_routes": contract.no_change_action_routes,
+            "action_compatibility_aliases": contract.action_compatibility_aliases,
             "engine_actions": contract.engine_actions,
             "ready": contract.ready,
         },
@@ -1006,6 +1034,7 @@ def build_patch_review_readiness_contract(
         expected_action_routes=validation.expected_action_routes,
         valid_action_routes=validation.valid_action_routes,
         missing_action_routes=validation.missing_action_routes,
+        action_compatibility_aliases=build_patch_review_action_compatibility_aliases(),
         engine_actions=status.engine_actions,
         missing_engine_actions=validation.missing_engine_actions,
         missing_expected_engine_actions=validation.missing_expected_engine_actions,
@@ -1027,6 +1056,7 @@ def _patch_review_readiness_contract_payload(
         "expected_action_routes": contract.expected_action_routes,
         "valid_action_routes": contract.valid_action_routes,
         "missing_action_routes": contract.missing_action_routes,
+        "action_compatibility_aliases": contract.action_compatibility_aliases,
         "engine_actions": contract.engine_actions,
         "missing_engine_actions": contract.missing_engine_actions,
         "missing_expected_engine_actions": contract.missing_expected_engine_actions,
@@ -1047,6 +1077,7 @@ def run_patch_review_readiness_contract(payload: DiffPreviewInput) -> str:
         f"next-actions={','.join(contract.next_actions)}; "
         f"action-routes={json.dumps(contract.action_routes)}; "
         f"missing-routes={json.dumps(contract.missing_action_routes)}; "
+        f"action-compatibility-aliases={json.dumps(contract.action_compatibility_aliases)}; "
         f"missing-engine-actions={','.join(contract.missing_engine_actions)}; "
         f"missing-expected-engine-actions={','.join(contract.missing_expected_engine_actions)}; "
         f"ready={str(contract.ready).lower()}"

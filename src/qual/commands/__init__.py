@@ -18,6 +18,7 @@ from src.qual.commands.diff_preview import (
     build_patch_review_command_smoke_contract,
     build_patch_review_action_route_lookup,
     build_patch_review_action_routes,
+    build_patch_review_action_compatibility_aliases,
     build_diff_preview_result,
     build_patch_review_readiness_contract,
     build_patch_review_command_status_payload,
