@@ -181,6 +181,66 @@ def _stable_text_values(values: object) -> list[str]:
     return normalized
 
 
+def _normalize_fts_basket_item_id(value: object) -> str | None:
+    text = _normalize_optional_text(value)
+    if text is None:
+        return None
+    prefix, separator, excerpt_id = text.partition("retrieval:fts:")
+    if prefix or not separator:
+        return None
+    excerpt_id = excerpt_id.strip()
+    if not excerpt_id:
+        return None
+    return f"retrieval:fts:{excerpt_id}"
+
+
+def _stable_fts_basket_item_ids(values: object) -> list[str]:
+    normalized: list[str] = []
+    seen: set[str] = set()
+    for value in _normalize_list_like(values):
+        item_id = _normalize_fts_basket_item_id(value)
+        if item_id is None or item_id in seen:
+            continue
+        seen.add(item_id)
+        normalized.append(item_id)
+    return normalized
+
+
+def _basket_item_ref_snapshot_candidates(snapshot: dict[str, object]) -> list[tuple[object, object]]:
+    candidates: list[tuple[object, object]] = [
+        (
+            snapshot.get("basket_item_ids", []),
+            snapshot.get("basket_item_fingerprints", []),
+        )
+    ]
+    for bundle_key in ("retrieval_source_bundle", "source_bundle"):
+        source_bundle = snapshot.get(bundle_key)
+        if isinstance(source_bundle, dict):
+            candidates.append(
+                (
+                    source_bundle.get("basket_item_ids", []),
+                    source_bundle.get("basket_item_fingerprints", []),
+                )
+            )
+    retrieval_summary = snapshot.get("retrieval_summary")
+    if isinstance(retrieval_summary, dict):
+        candidates.append(
+            (
+                retrieval_summary.get("basket_item_ids", []),
+                retrieval_summary.get("basket_item_fingerprints", []),
+            )
+        )
+    retrieval_manifest = snapshot.get("retrieval_manifest")
+    if isinstance(retrieval_manifest, dict):
+        candidates.append(
+            (
+                retrieval_manifest.get("basket_item_ids", []),
+                retrieval_manifest.get("basket_item_fingerprints", []),
+            )
+        )
+    return candidates
+
+
 def _top_basket_item_ids_from_doc_snapshots(*snapshots: object) -> list[str]:
     values: list[object] = []
     for snapshot in snapshots:
@@ -207,11 +267,16 @@ def _basket_promotion_count_from_snapshot(
     if item_count:
         return item_count
 
-    retrieval_manifest = snapshot.get("retrieval_manifest")
-    if isinstance(retrieval_manifest, dict):
-        manifest_ids = _stable_text_values(retrieval_manifest.get("basket_item_ids", []))
-        if manifest_ids:
-            return len(manifest_ids)
+    for candidate_ids, _candidate_fingerprints in _basket_item_ref_snapshot_candidates(snapshot):
+        basket_item_ids = _stable_fts_basket_item_ids(candidate_ids)
+        if basket_item_ids:
+            return len(basket_item_ids)
+
+    if any(
+        _stable_text_values(candidate_ids)
+        for candidate_ids, _candidate_fingerprints in _basket_item_ref_snapshot_candidates(snapshot)
+    ):
+        return 0
 
     count = snapshot.get("basket_promotion_count")
     if isinstance(count, int) and count >= 0:
@@ -626,26 +691,8 @@ def _basket_item_ids_from_snapshot(
     if item_ids:
         return item_ids
 
-    basket_item_ids = _stable_text_values(snapshot.get("basket_item_ids", []))
-    if basket_item_ids:
-        return basket_item_ids
-
-    for bundle_key in ("retrieval_source_bundle", "source_bundle"):
-        source_bundle = snapshot.get(bundle_key)
-        if isinstance(source_bundle, dict):
-            basket_item_ids = _stable_text_values(source_bundle.get("basket_item_ids", []))
-            if basket_item_ids:
-                return basket_item_ids
-
-    retrieval_summary = snapshot.get("retrieval_summary")
-    if isinstance(retrieval_summary, dict):
-        basket_item_ids = _stable_text_values(retrieval_summary.get("basket_item_ids", []))
-        if basket_item_ids:
-            return basket_item_ids
-
-    retrieval_manifest = snapshot.get("retrieval_manifest")
-    if isinstance(retrieval_manifest, dict):
-        basket_item_ids = _stable_text_values(retrieval_manifest.get("basket_item_ids", []))
+    for candidate_ids, _candidate_fingerprints in _basket_item_ref_snapshot_candidates(snapshot):
+        basket_item_ids = _stable_fts_basket_item_ids(candidate_ids)
         if basket_item_ids:
             return basket_item_ids
 
@@ -661,30 +708,11 @@ def _basket_item_fingerprints_from_snapshot(
     if item_fingerprints:
         return item_fingerprints
 
-    basket_item_fingerprints = _stable_text_values(snapshot.get("basket_item_fingerprints", []))
-    if basket_item_fingerprints:
-        return basket_item_fingerprints
-
-    for bundle_key in ("retrieval_source_bundle", "source_bundle"):
-        source_bundle = snapshot.get(bundle_key)
-        if isinstance(source_bundle, dict):
-            basket_item_fingerprints = _stable_text_values(source_bundle.get("basket_item_fingerprints", []))
-            if basket_item_fingerprints:
-                return basket_item_fingerprints
-
-    retrieval_summary = snapshot.get("retrieval_summary")
-    if isinstance(retrieval_summary, dict):
-        basket_item_fingerprints = _stable_text_values(
-            retrieval_summary.get("basket_item_fingerprints", [])
-        )
-        if basket_item_fingerprints:
-            return basket_item_fingerprints
-
-    retrieval_manifest = snapshot.get("retrieval_manifest")
-    if isinstance(retrieval_manifest, dict):
-        basket_item_fingerprints = _stable_text_values(
-            retrieval_manifest.get("basket_item_fingerprints", [])
-        )
+    for candidate_ids, candidate_fingerprints in _basket_item_ref_snapshot_candidates(snapshot):
+        basket_item_ids = _stable_fts_basket_item_ids(candidate_ids)
+        if not basket_item_ids:
+            continue
+        basket_item_fingerprints = _stable_text_values(candidate_fingerprints)
         if basket_item_fingerprints:
             return basket_item_fingerprints
 

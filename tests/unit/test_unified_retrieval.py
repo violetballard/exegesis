@@ -3354,6 +3354,47 @@ class UnifiedRetrievalTests(unittest.TestCase):
         self.assertEqual(context_bundle["basket_promotion_count"], len(expected_ids))
         self.assertTrue(context_bundle["basket_promotion_ready"])
 
+    def test_sparse_context_bundle_rejects_stale_basket_ref_snapshots(self) -> None:
+        result = self.service.retrieve_auto(
+            RetrievalQuery(
+                query_text="memo coding comparison",
+                scope="vault",
+                intent="compare",
+                constraints=RetrievalConstraints(max_results=4),
+                confidentiality_profile="confidential",
+            )
+        )
+
+        sparse_source_bundle = json.loads(json.dumps(result.source_bundle()))
+        stale_ids = ["pageindex:excerpt-1", "retrieval:embeddings:excerpt-2", "excerpt-3"]
+        stale_fingerprints = ["stale-fingerprint"]
+        for snapshot in (
+            sparse_source_bundle,
+            sparse_source_bundle["retrieval_summary"],
+            sparse_source_bundle["retrieval_evidence"],
+            sparse_source_bundle["retrieval_basket_promotion_bundle"],
+            sparse_source_bundle["retrieval_citation_bundle"],
+            sparse_source_bundle["retrieval_doc_bundle"],
+            sparse_source_bundle["retrieval_excerpt_bundle"],
+            sparse_source_bundle["retrieval_manifest"],
+        ):
+            snapshot.pop("basket_promotion_items", None)
+            snapshot.pop("promotion_items", None)
+            snapshot.pop("excerpt_citations", None)
+            snapshot["basket_item_ids"] = stale_ids
+            snapshot["basket_item_fingerprints"] = stale_fingerprints
+            snapshot["basket_promotion_count"] = 99
+            snapshot["basket_promotion_ready"] = True
+        sparse_source_bundle.pop("excerpt_hits", None)
+        sparse_source_bundle["retrieval_excerpt_bundle"].pop("excerpt_hits", None)
+
+        context_bundle = _build_retrieval_context_bundle_from_source_bundle(sparse_source_bundle)
+
+        self.assertEqual(context_bundle["basket_item_ids"], [])
+        self.assertEqual(context_bundle["basket_item_fingerprints"], [])
+        self.assertEqual(context_bundle["basket_promotion_count"], 0)
+        self.assertFalse(context_bundle["basket_promotion_ready"])
+
     def test_sparse_payload_doc_and_excerpt_bundles_use_citation_fallbacks(self) -> None:
         result = self.service.retrieve_auto(
             RetrievalQuery(

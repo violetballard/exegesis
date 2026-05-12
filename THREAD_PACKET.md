@@ -99,6 +99,10 @@ This source-bearing fixer pass also modifies `src/qual/engine/retrieval/__init__
 
 This source-bearing fixer pass modifies `src/qual/engine/retrieval/payload.py`, `tests/unit/test_unified_retrieval.py`, and `THREAD_PACKET.md` so sparse source/context bundle rehydration can recover canonical FTS basket item IDs, counts, and fingerprints from `retrieval_manifest` when top-level and summary basket fields have been stripped. This keeps compact engine snapshots basket-promotion-ready without reintroducing PageIndex, embeddings, or alternate retrieval strategies.
 
+This source-bearing fixer pass modifies `src/qual/engine/retrieval/payload.py`, `tests/unit/test_unified_retrieval.py`, and `THREAD_PACKET.md` so sparse source/context bundle basket item ID snapshots are accepted only when they are canonical FTS IDs of the form `retrieval:fts:<excerpt_id>`. Stale PageIndex, embedding-shaped, or raw excerpt IDs now fail closed instead of keeping sparse promotion evidence ready through summary or manifest fallback fields.
+
+This source-bearing fixer pass modifies `src/qual/engine/retrieval/payload.py`, `tests/unit/test_unified_retrieval.py`, and `THREAD_PACKET.md` so sparse source/context bundle basket item fingerprint snapshots are trusted only from the same fallback surfaces that retain canonical FTS basket item IDs. Stale fingerprint-only PageIndex, embedding-shaped, or raw excerpt snapshots now fail closed with the invalid IDs instead of leaking provenance into basket-promotion evidence.
+
 Packet-only commits after `5c87b08a9f7ca5a4dabc23fc1a80214276a882e9` refresh traceability and gate evidence only through `f9bdab5ded16e44476d773a24249c64442df2f3a`. The source-bearing passes after that packet-only refresh change `src/qual/retrieval/service.py`, `src/qual/engine/retrieval/payload.py`, `src/qual/engine/retrieval/__init__.py`, `engine/src/exegesis_engine/retrieval/__init__.py`, and `tests/unit/test_unified_retrieval.py`; reviewers should include those source-bearing commits, including this final sparse retrieval manifest fallback pass, when re-reviewing the merge candidate.
 
 Tracked packet note for this fixer pass: `.codex/kickoff_packets/feat-retrieval-fts.md` and `.codex/lane_meta/feat-retrieval-fts.json` are ignored local automation metadata in this branch worktree and are not tracked at `HEAD`. Treat this tracked `THREAD_PACKET.md` file as the authoritative corrected handoff packet for re-review.
@@ -197,6 +201,10 @@ This finalization pass also mirrors the canonical basket item fingerprint onto b
 
 This finalization pass also lets sparse source/context bundle rehydration fall back to `retrieval_manifest` for canonical FTS basket item IDs, counts, and fingerprints when compact snapshots have lost top-level and summary basket fields. Context-basket promotion consumers can still recover manifest-backed FTS basket identity without treating PageIndex or embeddings as promotable paths.
 
+This finalization pass also validates basket item ID snapshots used by sparse source/context fallback. Only canonical `retrieval:fts:<excerpt_id>` IDs can preserve basket-promotion readiness; PageIndex-shaped, embedding-shaped, or raw excerpt IDs now fail closed before context-basket consumers receive promoted refs.
+
+This finalization pass also pairs sparse basket item fingerprint fallback with canonical FTS basket item ID fallback. Fingerprint-only stale snapshots from PageIndex, embeddings, or raw excerpt refs now clear alongside invalid basket IDs so context-basket consumers cannot receive unaudited promotion provenance.
+
 Canonical demo path advanced: `vault/context material -> FTS retrieval -> retrieval evidence -> context basket promotion -> engine revise/apply`.
 
 Before-handoff canonical demo-path statement: this work advances `retrieve relevant material` by keeping retrieval FTS-first, deterministic, and auditable; it also supports `promote or gather context into the basket` by preserving provenance and query evidence on promotion bundles/items.
@@ -251,11 +259,35 @@ Task accounting: this high-risk handoff is summarized as the 4 meaningful task g
 27. Added canonical basket item fingerprint propagation to downstream payload and excerpt-bundle `excerpt_hits`, with regression coverage proving raw excerpt-hit snapshots match the FTS basket-promotion item fingerprint.
 28. Exported the FTS-first facade and policy helpers through the canonical `exegesis_engine.retrieval` package, with regression coverage proving canonical engine-package imports expose `build_retrieval_query`, `retrieve_fts`, `retrieve_auto`, direct FTS citation bundles, and bundle/payload helpers while PageIndex and embeddings remain absent from the active facade. The canonical package now binds those facade exports from `src.qual.engine.retrieval.__all__` and inserts legacy service exports after the explicit `DEFERRED_STRATEGY_IDS` anchor so package-level FTS reachability cannot drift or depend on positional export slicing.
 29. Tightened canonical retrieval query boolean constraint normalization by removing the shadowed loose integer/float path and adding shared regression coverage that both facades accept text booleans but reject non-canonical integer booleans before query fingerprinting.
+30. Added FTS-only validation for sparse basket item ID fallback snapshots so stale PageIndex, embedding-shaped, or raw excerpt IDs cannot keep context-basket promotion marked ready after promotion item evidence has been stripped.
+31. Paired sparse basket item fingerprint fallback with canonical FTS basket item ID fallback so stale fingerprint-only snapshots cannot leak basket-promotion provenance after invalid deferred-strategy IDs fail closed.
 
 ## Commands Run
 
 Required gates for this corrected merge candidate were re-run on 2026-05-12 against branch `codex/feat-retrieval-fts` after this source-bearing sparse retrieval manifest fallback fix.
 
+- `PYTHONPATH=. pytest tests/unit/test_unified_retrieval.py -k 'stale_basket_ref_snapshots or deduplicates_sparse_basket_refs or uses_manifest_basket_refs_for_sparse_source'` - passed 3 focused sparse basket ID/fingerprint fallback regressions, 93 deselected, after pairing fingerprint fallback with canonical FTS ID fallback.
+- `PYTHONPATH=. pytest tests/unit/test_unified_retrieval.py` - passed 96 unified retrieval tests after the paired sparse fingerprint fallback edit.
+- `./quality-format.sh --check` - passed after the paired sparse fingerprint fallback edit.
+- `./quality-lint.sh` - passed shell syntax and trailing whitespace checks after the paired sparse fingerprint fallback edit.
+- `./quality-test.sh` - passed smoke tests and 479 unit tests, including all 96 unified retrieval tests, after the paired sparse fingerprint fallback edit.
+- `./typecheck-test.sh` - passed Python source compilation under `src/` after the paired sparse fingerprint fallback edit.
+- `make ci` - blocked at scope-check because `tests/unit/test_unified_retrieval.py` is an approved shared regression path; rerun with `SCOPE_ALLOW_SHARED=1`.
+- `SCOPE_ALLOW_SHARED=1 make ci` - passed scope-check, format, lint, compile/typecheck, smoke tests, and 479 unit tests through the retrieval surface, then failed with 6 unrelated sandbox/control-plane `PermissionError` errors when inherited shared-scope test execution attempted to write `.codex/packet_router/logs`, write `.codex/feature_runner/state.json`, write `.codex/packet_planner/state.json`, move recovery artifacts under `.codex/worktree_recovery`, or invoke `ps`.
+- `./quality-format.sh --check` - passed after the final packet evidence update.
+- `./quality-lint.sh` - passed shell syntax and trailing whitespace checks after the final packet evidence update.
+- `pytest tests/unit/test_unified_retrieval.py -k 'stale_basket_ref_snapshots or uses_manifest_basket_refs_for_sparse_source'` - blocked during collection because the shell environment did not include the repository on `PYTHONPATH` (`ModuleNotFoundError: No module named 'src'`).
+- `PYTHONPATH=. pytest tests/unit/test_unified_retrieval.py -k 'stale_basket_ref_snapshots or uses_manifest_basket_refs_for_sparse_source'` - passed 2 focused sparse basket item ID fallback regressions, 94 deselected, after the FTS-only snapshot validation edit.
+- `PYTHONPATH=. pytest tests/unit/test_unified_retrieval.py -k 'stale_basket_ref_snapshots or deduplicates_sparse_basket_refs or uses_manifest_basket_refs_for_sparse_source'` - passed 3 focused sparse basket item ID/count fallback regressions, 93 deselected, after ensuring any canonical FTS snapshot list can drive the promotion count while stale-only lists fail closed.
+- `PYTHONPATH=. pytest tests/unit/test_unified_retrieval.py` - passed 96 unified retrieval tests after the FTS-only sparse basket ref validation edit.
+- `./quality-format.sh --check` - passed after the FTS-only sparse basket ref validation edit.
+- `./quality-lint.sh` - passed shell syntax and trailing whitespace checks after the FTS-only sparse basket ref validation edit.
+- `./quality-test.sh` - passed smoke tests and 479 unit tests, including all 96 unified retrieval tests, after the FTS-only sparse basket ref validation edit.
+- `./typecheck-test.sh` - passed Python source compilation under `src/` after the FTS-only sparse basket ref validation edit.
+- `make ci` - blocked at scope-check because `tests/unit/test_unified_retrieval.py` is an approved shared regression path; rerun with `SCOPE_ALLOW_SHARED=1`.
+- `SCOPE_ALLOW_SHARED=1 make ci` - passed scope-check, format, lint, compile/typecheck, smoke tests, and 479 unit tests through the retrieval surface, then failed with 6 unrelated sandbox/control-plane `PermissionError` errors when inherited shared-scope test execution attempted to write `.codex/packet_router/logs`, write `.codex/feature_runner/state.json`, write `.codex/packet_planner/state.json`, move recovery artifacts under `.codex/worktree_recovery`, or invoke `ps`.
+- `./quality-format.sh --check` - passed after the final packet evidence update.
+- `./quality-lint.sh` - passed shell syntax and trailing whitespace checks after the final packet evidence update.
 - `python3 -m unittest tests.unit.test_unified_retrieval.UnifiedRetrievalTests.test_retrieval_context_bundle_helper_uses_manifest_basket_refs_for_sparse_source -q` - passed 1 focused manifest-backed sparse source-bundle regression after the edit.
 - `python3 -m unittest tests.unit.test_unified_retrieval -k 'context_bundle_helper' -q` - passed 10 context-bundle retrieval regressions after tightening manifest normalization to avoid adding empty fields to existing payloads.
 - `python3 -m unittest tests.unit.test_unified_retrieval -q` - passed 95 unified retrieval tests after the edit.
