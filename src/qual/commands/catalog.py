@@ -3150,6 +3150,7 @@ def _validate_command_handler_trusted_demo_path_contract(
             or entry.handler != demo_path_entry.handler
             or entry.delegated_to != demo_path_entry.delegated_to
             or entry.command_argv != demo_path_entry.command_argv
+            or entry.command_line != demo_path_entry.command_line
             or entry.engine_actions != demo_path_entry.engine_actions
         ):
             raise ValueError(f"Command handler trusted demo path drifted: {entry.name}")
