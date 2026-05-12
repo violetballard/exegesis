@@ -3903,9 +3903,87 @@ def build_engine_a2ui_cli_fallback_payload(
     and future A2UI clients.
     """
 
+    validate_engine_artifacts(artifacts)
     if isinstance(artifacts, Mapping):
         return build_named_terminal_artifact_cli_fallback_payload(artifacts)
     return build_terminal_artifact_cli_fallback_payload(artifacts)
+
+
+def validate_engine_artifacts(
+    artifacts: Mapping[str, Sequence[Any]] | Sequence[Sequence[Any]],
+) -> None:
+    """Validate a batch of engine artifacts against the A2UI contract.
+
+    This pre-flight check allows the engine to verify that its accumulated
+    artifacts conform to the contract before committing to the expensive
+    render+build step. It accepts the same input shapes as
+    ``build_engine_a2ui_cli_fallback_payload`` so callers can validate first
+    and build only when the contract is satisfied.
+
+    Raises ``ValueError`` with a clear message on the first violation
+    encountered. Each artifact is validated by its declared kind:
+    - ``"action"``: validated through ``validate_action_ref``
+    - ``"selection"``: validated through ``validate_selection_ref``
+    - ``"card"``: validated as a terminal card payload
+    """
+
+    pairs: list[tuple[str, str, Any]] = []
+
+    if isinstance(artifacts, Mapping):
+        if not artifacts:
+            raise ValueError("Engine artifacts must contain at least one artifact")
+        for name, item in artifacts.items():
+            if not isinstance(name, str) or not name.strip():
+                raise ValueError("Engine artifact stage names must be non-empty strings")
+            if isinstance(item, (str, bytes)) or not isinstance(item, Sequence) or len(item) != 2:
+                raise ValueError(
+                    f"Engine artifact for stage {name!r} must be a (kind, artifact) pair"
+                )
+            kind, artifact = item
+            pairs.append((f"stage {name!r}", kind, artifact))
+    elif (
+        isinstance(artifacts, (str, bytes, Mapping, Set))
+        or not isinstance(artifacts, Sequence)
+    ):
+        raise ValueError("Engine artifacts must be a mapping or ordered sequence")
+    else:
+        if not artifacts:
+            raise ValueError("Engine artifacts must contain at least one artifact")
+        for index, item in enumerate(artifacts):
+            if isinstance(item, (str, bytes)) or not isinstance(item, Sequence) or len(item) != 2:
+                raise ValueError(f"Engine artifact at index {index} must be a (kind, artifact) pair")
+            kind, artifact = item
+            pairs.append((f"index {index}", kind, artifact))
+
+    for location, kind, artifact in pairs:
+        _validate_engine_artifact_kind(kind, location)
+        _validate_engine_artifact_payload(kind, artifact, location)
+
+
+def _validate_engine_artifact_kind(kind: Any, location: str) -> None:
+    if not isinstance(kind, str) or not kind.strip():
+        raise ValueError(f"Engine artifact at {location} must declare a non-empty string kind")
+    normalized = kind.strip().lower()
+    if normalized not in _TERMINAL_ARTIFACT_SUPPORTED_KIND_SET:
+        raise ValueError(
+            f"Engine artifact at {location} has unsupported kind {kind!r}; "
+            f"must be one of {sorted(_TERMINAL_ARTIFACT_SUPPORTED_KIND_SET)}"
+        )
+
+
+def _validate_engine_artifact_payload(kind: str, artifact: Any, location: str) -> None:
+    normalized_kind = kind.strip().lower()
+    try:
+        if normalized_kind == "action":
+            validate_action_ref(artifact)
+        elif normalized_kind == "selection":
+            validate_selection_ref(artifact)
+        elif normalized_kind == "card":
+            _validate_terminal_artifact_card_payload(artifact)
+    except ValueError as exc:
+        raise ValueError(
+            f"Engine artifact at {location} (kind={kind!r}) is invalid: {exc}"
+        ) from exc
 
 
 def _normalize_terminal_artifact_cli_fallback_payload_artifact_name(name: Any) -> str:
@@ -4672,6 +4750,11 @@ def _validate_terminal_artifact_card_payload(artifact: Any) -> None:
     inferred_kind = _normalize_terminal_artifact_kind(artifact, kind=None)
     if inferred_kind in {"action", "selection"}:
         raise ValueError("TerminalArtifact card artifact must not use action or selection payload shape")
+    if isinstance(artifact, Mapping):
+        if all(field in artifact for field in ("id", "label", "payload")) and not any(
+            field in artifact for field in ("blocks", "actions")
+        ):
+            raise ValueError("TerminalArtifact card artifact must not use action or selection payload shape")
 
 
 def _build_selection_contract_manifest() -> dict[str, Any]:

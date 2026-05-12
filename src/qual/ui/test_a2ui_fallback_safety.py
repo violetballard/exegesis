@@ -164,6 +164,7 @@ from src.qual.ui.a2ui import (
     _TERMINAL_ARTIFACT_CLI_FALLBACK_TARGET_HINT,
     studio_materialize_card,
     validate_action_ref,
+    validate_engine_artifacts,
     validate_terminal_artifact_cli_fallback_payload,
     validate_terminal_artifact_envelope,
     validate_generic_card,
@@ -14026,6 +14027,24 @@ class A2UIFallbackSafetyTests(unittest.TestCase):
         )
         validate_terminal_artifact_cli_fallback_payload(payload)
 
+    def test_engine_a2ui_cli_fallback_payload_preflights_contract_before_building(self) -> None:
+        with self.assertRaises(ValueError) as ctx:
+            build_engine_a2ui_cli_fallback_payload(
+                {
+                    "apply": (
+                        "card",
+                        {
+                            "id": "apply_patch",
+                            "label": "Apply",
+                            "payload": {"patch_id": "patch-1"},
+                        },
+                    )
+                }
+            )
+
+        self.assertIn("kind='card'", str(ctx.exception))
+        self.assertIn("action or selection payload shape", str(ctx.exception))
+
     def test_terminal_artifact_cli_fallback_payload_contract_documents_named_stage_order(self) -> None:
         manifest = describe_terminal_artifact_cli_fallback_payload_contract()
 
@@ -15242,6 +15261,160 @@ class A2UIFallbackSafetyTests(unittest.TestCase):
         self.assertEqual([action["id"] for action in card["actions"]], ["copy_to_clipboard"])
         self.assertEqual(card["actions"][0]["label"], "Copy JSON")
         self.assertIn("Safe content", render_terminal_card(card))
+
+    def test_validate_engine_artifacts_accepts_valid_named_artifacts(self) -> None:
+        artifacts = {
+            "plan": (
+                "card",
+                {
+                    "type": "RunLogCard",
+                    "title": "Plan",
+                    "blocks": [{"type": "MarkdownBlock", "markdown": "Plan output"}],
+                    "actions": [],
+                },
+            ),
+            "apply": (
+                "action",
+                {
+                    "id": "apply_patch",
+                    "label": "Apply",
+                    "payload": {"patch_id": "patch-1"},
+                },
+            ),
+        }
+        validate_engine_artifacts(artifacts)
+
+    def test_validate_engine_artifacts_accepts_valid_ordered_artifacts(self) -> None:
+        artifacts = [
+            (
+                "card",
+                {
+                    "type": "RunLogCard",
+                    "title": "Plan",
+                    "blocks": [{"type": "MarkdownBlock", "markdown": "Plan output"}],
+                    "actions": [],
+                },
+            ),
+            (
+                "action",
+                {
+                    "id": "apply_patch",
+                    "label": "Apply",
+                    "payload": {"patch_id": "patch-1"},
+                },
+            ),
+            (
+                "selection",
+                {
+                    "id": "opt-1",
+                    "label": "Option 1",
+                    "payload": {"value": "a"},
+                },
+            ),
+        ]
+        validate_engine_artifacts(artifacts)
+
+    def test_validate_engine_artifacts_rejects_empty_mapping(self) -> None:
+        with self.assertRaises(ValueError) as ctx:
+            validate_engine_artifacts({})
+        self.assertIn("at least one", str(ctx.exception))
+
+    def test_validate_engine_artifacts_rejects_empty_sequence(self) -> None:
+        with self.assertRaises(ValueError) as ctx:
+            validate_engine_artifacts([])
+        self.assertIn("at least one", str(ctx.exception))
+
+    def test_validate_engine_artifacts_rejects_unsupported_kind(self) -> None:
+        with self.assertRaises(ValueError) as ctx:
+            validate_engine_artifacts({"stage": ("unknown", {"id": "x", "label": "X", "payload": {}})})
+        self.assertIn("unsupported kind", str(ctx.exception))
+
+    def test_validate_engine_artifacts_rejects_invalid_action_payload(self) -> None:
+        with self.assertRaises(ValueError) as ctx:
+            validate_engine_artifacts({"stage": ("action", {"id": "", "label": "X", "payload": {}})})
+        self.assertIn("stage 'stage'", str(ctx.exception))
+        self.assertIn("kind='action'", str(ctx.exception))
+
+    def test_validate_engine_artifacts_rejects_invalid_selection_payload(self) -> None:
+        with self.assertRaises(ValueError) as ctx:
+            validate_engine_artifacts({"stage": ("selection", {"id": "x", "label": "", "payload": {}})})
+        self.assertIn("kind='selection'", str(ctx.exception))
+
+    def test_validate_engine_artifacts_rejects_invalid_card_payload(self) -> None:
+        with self.assertRaises(ValueError) as ctx:
+            validate_engine_artifacts(
+                {
+                    "stage": (
+                        "card",
+                        {
+                            "id": "x",
+                            "label": "X",
+                            "payload": {},
+                        },
+                    )
+                }
+            )
+        self.assertIn("stage 'stage'", str(ctx.exception))
+        self.assertIn("kind='card'", str(ctx.exception))
+
+    def test_validate_engine_artifacts_reports_ordered_artifact_index(self) -> None:
+        with self.assertRaises(ValueError) as ctx:
+            validate_engine_artifacts(
+                [
+                    (
+                        "card",
+                        {
+                            "type": "RunLogCard",
+                            "title": "Plan",
+                            "blocks": [{"type": "MarkdownBlock", "markdown": "ok"}],
+                            "actions": [],
+                        },
+                    ),
+                    ("action", {"id": "", "label": "Apply", "payload": {}}),
+                ]
+            )
+        self.assertIn("index 1", str(ctx.exception))
+        self.assertIn("kind='action'", str(ctx.exception))
+
+    def test_validate_engine_artifacts_rejects_non_pair_items(self) -> None:
+        with self.assertRaises(ValueError) as ctx:
+            validate_engine_artifacts({"stage": "not-a-pair"})
+        self.assertIn("(kind, artifact) pair", str(ctx.exception))
+
+    def test_validate_engine_artifacts_rejects_string_input(self) -> None:
+        with self.assertRaises(ValueError) as ctx:
+            validate_engine_artifacts("not-acceptable")
+        self.assertIn("mapping or ordered sequence", str(ctx.exception))
+
+    def test_validate_engine_artifacts_rejects_empty_stage_name(self) -> None:
+        with self.assertRaises(ValueError) as ctx:
+            validate_engine_artifacts({"": ("card", {"type": "RunLogCard", "title": "X", "blocks": [], "actions": []})})
+        self.assertIn("non-empty string", str(ctx.exception))
+
+    def test_validate_engine_artifacts_validates_all_kinds_in_sequence(self) -> None:
+        artifacts = [
+            (
+                "card",
+                {
+                    "type": "RunLogCard",
+                    "title": "Card",
+                    "blocks": [{"type": "MarkdownBlock", "markdown": "OK"}],
+                    "actions": [],
+                },
+            ),
+            (
+                "action",
+                ActionRef(id="copy_to_clipboard", label="Copy", payload={"text": "val"}),
+            ),
+            (
+                "selection",
+                SelectionRef(id="s1", label="Select", payload={"v": 1}),
+            ),
+        ]
+        validate_engine_artifacts(artifacts)
+
+    def test_validate_engine_artifacts_public_export_matches_internal(self) -> None:
+        self.assertIs(public_ui.validate_engine_artifacts, validate_engine_artifacts)
 
 
 if __name__ == "__main__":
