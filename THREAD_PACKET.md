@@ -12,8 +12,8 @@
 - Authoritative reviewed implementation base: `378cf9a74a3658058079a32f186fcd254c4a4034`.
 - Reviewed source-bearing implementation head: this source-bearing fixer commit; final branch tip SHA is reported in the fixer final response.
 - Reviewed source-bearing implementation range: `378cf9a74a3658058079a32f186fcd254c4a4034..HEAD` on branch `codex/feat-retrieval-fts`.
-- Packet update note: this commit updates retrieval payload source, the approved shared regression surface, and `THREAD_PACKET.md` so sparse basket-promotion item rehydration treats explicit `basket_item_id` values as canonical and rewrites stale `item_id` values before source/context bundle promotion; the final branch tip SHA is reported in the fixer final response.
-- Current pass role: source-bearing FTS-first sparse basket-promotion identity finalization for context-basket promotion evidence.
+- Packet update note: this commit updates retrieval service source, sparse payload rehydration source, the approved shared regression surface, and `THREAD_PACKET.md` so direct retrieval bundles and sparse excerpt-hit rehydration emit canonical `retrieval:fts:<excerpt_id>` basket item identities instead of plain excerpt IDs; the final branch tip SHA is reported in the fixer final response.
+- Current pass role: source-bearing FTS-first basket item identity finalization for direct and sparse context-basket promotion evidence.
 
 ## Traceability Correction
 
@@ -67,6 +67,8 @@ This source-bearing fixer pass modifies `src/qual/retrieval/service.py`, `src/qu
 
 This source-bearing fixer pass modifies `src/qual/engine/retrieval/payload.py`, `tests/unit/test_unified_retrieval.py`, and `THREAD_PACKET.md` so sparse basket-promotion item rehydration prefers explicit FTS `basket_item_id` values over stale generic `item_id` values, then rewrites both identity fields to the canonical basket item id before downstream source/context bundle promotion.
 
+This source-bearing fixer pass modifies `src/qual/retrieval/service.py`, `src/qual/engine/retrieval/payload.py`, `tests/unit/test_unified_retrieval.py`, and `THREAD_PACKET.md` so direct retrieval result bundles and sparse excerpt-hit basket rehydration both expose canonical `retrieval:fts:<excerpt_id>` item identities for context-basket promotion while preserving the raw `excerpt_id` separately for audit.
+
 Packet-only commits after `5c87b08a9f7ca5a4dabc23fc1a80214276a882e9` refresh traceability and gate evidence only through `f9bdab5ded16e44476d773a24249c64442df2f3a`. The source-bearing passes after that packet-only refresh change `src/qual/retrieval/service.py`, `src/qual/engine/retrieval/payload.py`, and `tests/unit/test_unified_retrieval.py`; reviewers should include those source-bearing commits, including this final self-contained basket-promotion bundle pass, when re-reviewing the merge candidate.
 
 Tracked packet note for this fixer pass: `.codex/kickoff_packets/feat-retrieval-fts.md` and `.codex/lane_meta/feat-retrieval-fts.json` are ignored local automation metadata in this branch worktree and are not tracked at `HEAD`. Treat this tracked `THREAD_PACKET.md` file as the authoritative corrected handoff packet for re-review.
@@ -101,10 +103,11 @@ Previous source-bearing fixer surface at `1439aa3eff4d420fb4fcad83c0556c2608813c
 - `src/qual/engine/retrieval/payload.py`
 - `tests/unit/test_unified_retrieval.py`
 
-Final source-bearing sparse basket identity finalization surface in this pass:
+Final source-bearing basket identity finalization surface in this pass:
 
 - `THREAD_PACKET.md`
 - `src/qual/engine/retrieval/payload.py`
+- `src/qual/retrieval/service.py`
 - `tests/unit/test_unified_retrieval.py`
 
 ## Scope Completed
@@ -141,6 +144,8 @@ This finalization pass also carries the canonical retrieval policy on each baske
 
 This finalization pass also makes the retrieval basket-promotion bundle self-contained for context-basket promotion by including canonical basket promotion item snapshots, basket item IDs, basket item fingerprints, promotion counts, and readiness flags directly in the bundle. Sparse bundle normalization now preserves or rehydrates those fields before downstream source/context payloads consume the evidence.
 
+This finalization pass also aligns direct retrieval result basket-promotion snapshots and sparse excerpt-hit rehydration around the same canonical `retrieval:fts:<excerpt_id>` item identity. Raw excerpt IDs remain available as `excerpt_id`, while `item_id`, `basket_item_id`, and `basket_item_ids` now carry the context-basket-safe FTS identity across citation, source, context, evidence, and downstream payload surfaces.
+
 Canonical demo path advanced: `vault/context material -> FTS retrieval -> retrieval evidence -> context basket promotion -> engine revise/apply`.
 
 Before-handoff canonical demo-path statement: this work advances `retrieve relevant material` by keeping retrieval FTS-first, deterministic, and auditable; it also supports `promote or gather context into the basket` by preserving provenance and query evidence on promotion bundles/items.
@@ -156,8 +161,8 @@ Task accounting: this high-risk handoff is summarized as the 4 meaningful task g
 ## Kickoff Budget/Limits Compliance
 
 - Task budget: `4` high-risk task groups; this handoff folds the cumulative retrieval work into 4 meaningful and testable task groups.
-- File count: the corrected source-bearing range before this pass changes `6` source/test files plus `3` packet/artifact files; this pass changes `src/qual/engine/retrieval/payload.py`, `tests/unit/test_unified_retrieval.py`, and `THREAD_PACKET.md`.
-- Size accounting before this packet refresh: the corrected source-bearing range `378cf9a74a3658058079a32f186fcd254c4a4034..HEAD` already exceeds the high-risk `<=300 net LOC` limit; this pass adds a small retrieval payload/test/packet update for canonical sparse basket-promotion identity, keeping the range above the limit.
+- File count: the corrected source-bearing range before this pass changes `6` source/test files plus `3` packet/artifact files; this pass changes `src/qual/retrieval/service.py`, `src/qual/engine/retrieval/payload.py`, `tests/unit/test_unified_retrieval.py`, and `THREAD_PACKET.md`.
+- Size accounting before this packet refresh: the corrected source-bearing range `378cf9a74a3658058079a32f186fcd254c4a4034..HEAD` already exceeds the high-risk `<=300 net LOC` limit; this pass adds a small retrieval source/test/packet update for canonical direct and sparse basket-promotion identity, keeping the range above the limit.
 - Size limit status: exceeds the high-risk `<=8 files` and `<=300 net LOC` limits.
 - Explicit exception status: no integrator-approved size or task-budget exception is recorded in this worktree. Because the full source-bearing range remains together, this is a known blocker for approval until the integrator grants an exception or requests a branch split.
 - Shared-file exception status: `tests/unit/test_unified_retrieval.py` is the sole approved shared regression surface; no integrator-locked files changed.
@@ -178,11 +183,22 @@ Task accounting: this high-risk handoff is summarized as the 4 meaningful task g
 11. Added sparse excerpt-hit `retrieval_source_strategy` fallback during basket-promotion bundle rebuilds so FTS-only promotion evidence keeps canonical strategy identity when `source_strategy` is absent.
 12. Added self-contained basket item snapshots, IDs, fingerprints, counts, and readiness fields to retrieval basket-promotion bundles and their sparse normalization path.
 13. Added canonical sparse basket-promotion item identity normalization so an explicit FTS `basket_item_id` wins over stale generic `item_id` values before downstream source/context bundle promotion.
+14. Aligned direct retrieval bundle basket IDs and sparse excerpt-hit basket rehydration on canonical `retrieval:fts:<excerpt_id>` item identity while preserving raw excerpt IDs separately for audit.
 
 ## Commands Run
 
-Required gates for this corrected merge candidate were re-run on 2026-05-12 against branch `codex/feat-retrieval-fts` after this source-bearing sparse basket-promotion identity fix.
+Required gates for this corrected merge candidate were re-run on 2026-05-12 against branch `codex/feat-retrieval-fts` after this source-bearing direct and sparse basket-promotion identity fix.
 
+- `python3 -m unittest tests.unit.test_unified_retrieval -k basket_item -q` - passed 3 focused basket item identity regressions after canonicalizing direct and sparse FTS basket IDs.
+- `python3 -m unittest tests.unit.test_unified_retrieval -k basket_promotion -q` - passed 3 focused basket-promotion regressions.
+- `python3 -m unittest tests.unit.test_unified_retrieval -q` - passed 92 unified retrieval tests after canonical basket ID alignment.
+- `./quality-format.sh --check` - passed.
+- `./quality-lint.sh` - passed shell syntax and trailing whitespace checks.
+- `./quality-test.sh` - passed smoke tests and 475 unit tests, including the unified retrieval regression surface.
+- `./typecheck-test.sh` - passed Python source compilation under `src/`.
+- `make ci` - blocked at scope-check because `tests/unit/test_unified_retrieval.py` is an approved shared regression path; rerun with `SCOPE_ALLOW_SHARED=1`.
+- `SCOPE_ALLOW_SHARED=1 make ci` - passed scope-check, format, lint, compile/typecheck, smoke tests, and retrieval tests, then failed with 6 unrelated sandbox/control-plane `PermissionError` errors when tests attempted to write `.codex/packet_router/logs`, `.codex/feature_runner/state.json`, `.codex/packet_planner/state.json`, move recovery artifacts under `.codex/worktree_recovery`, or invoke `ps`.
+- `SCOPE_ALLOW_SHARED=1 ./scripts/scope-check.sh && ./scripts/format-check.sh && ./scripts/lint.sh && ./scripts/build.sh && ./typecheck-test.sh && ./scripts/test.sh` - passed scope-check, format, lint, compile/typecheck, smoke tests, and retrieval tests, then failed with the same 6 unrelated sandbox/control-plane `PermissionError` errors during control-plane tests.
 - `python -m pytest tests/unit/test_unified_retrieval.py -k "prefers_explicit_basket_item_id or deduplicates_sparse_basket_items"` - passed 2 focused sparse basket-promotion identity regressions.
 - `./quality-format.sh --check` - passed.
 - `./quality-lint.sh` - passed shell syntax and trailing whitespace checks.
@@ -245,7 +261,7 @@ Additional focused retrieval checks run earlier in this lane:
 ## Remaining Risks Or Blockers
 
 - The corrected cumulative source-bearing range exceeds the high-risk task, size, and file limits. No explicit integrator-approved exception is present in the worktree, so this remains a required integration decision: grant an exception or request a branch split/reduced handoff.
-- Required gates are green for this pass, including `make ci`.
+- Required retrieval and local format/lint/typecheck/test gates are green for this pass. `make ci` is blocked after two attempts by unrelated sandbox/control-plane `PermissionError` failures after scope, format, lint, compile/typecheck, smoke, and retrieval tests pass; details are recorded above.
 - All source-bearing work is now included in the reviewed implementation range; there is no longer a metadata-only branch-tip claim hiding source/test changes after `adfa8cdadd43747ffbcb612e4151e262b13e52ca`.
 
 ## Roadmap/Vision

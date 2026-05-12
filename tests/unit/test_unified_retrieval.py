@@ -2862,10 +2862,12 @@ class UnifiedRetrievalTests(unittest.TestCase):
             _SparseContextBundleSource(sparse_context_bundle)
         )
         expected_excerpt_ids = [item.excerpt_id for item in result.hits if item.excerpt_id is not None]
+        expected_basket_item_ids = [f"retrieval:fts:{excerpt_id}" for excerpt_id in expected_excerpt_ids]
         basket_items = context_bundle["basket_promotion_items"]
-        self.assertEqual([item["item_id"] for item in basket_items], expected_excerpt_ids)
-        self.assertEqual([item["basket_item_id"] for item in basket_items], expected_excerpt_ids)
-        self.assertEqual(context_bundle["basket_item_ids"], expected_excerpt_ids)
+        self.assertEqual([item["excerpt_id"] for item in basket_items], expected_excerpt_ids)
+        self.assertEqual([item["item_id"] for item in basket_items], expected_basket_item_ids)
+        self.assertEqual([item["basket_item_id"] for item in basket_items], expected_basket_item_ids)
+        self.assertEqual(context_bundle["basket_item_ids"], expected_basket_item_ids)
         self.assertEqual(basket_items[0]["doc_id"], result.hits[0].doc_id)
         self.assertEqual(basket_items[0]["query_scope"], "vault")
         self.assertEqual(basket_items[0]["query_intent"], "compare")

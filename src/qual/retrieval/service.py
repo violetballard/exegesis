@@ -73,6 +73,14 @@ def _basket_item_id_for_excerpt(*, source_strategy: object, excerpt_id: object) 
     return f"retrieval:{normalized_source}:{excerpt}"
 
 
+def _basket_item_ids_from_items(items: list[dict[str, object]]) -> list[str]:
+    return [
+        str(item["basket_item_id"])
+        for item in items
+        if _optional_text(item.get("basket_item_id")) is not None
+    ]
+
+
 def _present_text_values(values: Iterator[object]) -> list[str]:
     normalized: list[str] = []
     for value in values:
@@ -492,7 +500,7 @@ class RetrievalResult:
             "basket_promotion_items": copy.deepcopy(basket_promotion_items),
             "basket_promotion_count": basket_promotion_count,
             "basket_promotion_ready": basket_promotion_count > 0,
-            "basket_item_ids": [str(item["item_id"]) for item in basket_promotion_items],
+            "basket_item_ids": _basket_item_ids_from_items(basket_promotion_items),
             "basket_item_fingerprints": [
                 str(item["basket_item_fingerprint"])
                 for item in basket_promotion_items
@@ -559,7 +567,7 @@ class RetrievalResult:
             "basket_promotion_items": copy.deepcopy(basket_promotion_items),
             "basket_promotion_count": basket_promotion_count,
             "basket_promotion_ready": basket_promotion_count > 0,
-            "basket_item_ids": [str(item["item_id"]) for item in basket_promotion_items],
+            "basket_item_ids": _basket_item_ids_from_items(basket_promotion_items),
             "basket_item_fingerprints": basket_item_fingerprints,
         }
 
@@ -594,7 +602,7 @@ class RetrievalResult:
             "basket_promotion_items": copy.deepcopy(basket_promotion_items),
             "basket_promotion_count": basket_promotion_count,
             "basket_promotion_ready": basket_promotion_count > 0,
-            "basket_item_ids": [str(item["item_id"]) for item in basket_promotion_items],
+            "basket_item_ids": _basket_item_ids_from_items(basket_promotion_items),
             "basket_item_fingerprints": basket_item_fingerprints,
         }
         bundle["context_bundle_fingerprint"] = _context_bundle_fingerprint(bundle)
@@ -611,9 +619,13 @@ class RetrievalResult:
         for hit in self.hits:
             if hit.excerpt_id is None:
                 continue
+            basket_item_id = _basket_item_id_for_excerpt(
+                source_strategy=hit.source_strategy,
+                excerpt_id=hit.excerpt_id,
+            )
             item = {
-                "item_id": hit.excerpt_id,
-                "basket_item_id": hit.excerpt_id,
+                "item_id": basket_item_id,
+                "basket_item_id": basket_item_id,
                 "item_type": "excerpt",
                 "doc_id": hit.doc_id,
                 "doc_type": hit.provenance.get("doc_type"),
@@ -722,7 +734,7 @@ class RetrievalResult:
             "basket_promotion_items": copy.deepcopy(basket_promotion_items),
             "basket_promotion_count": basket_promotion_count,
             "basket_promotion_ready": basket_promotion_count > 0,
-            "basket_item_ids": [str(item["item_id"]) for item in basket_promotion_items],
+            "basket_item_ids": _basket_item_ids_from_items(basket_promotion_items),
             "basket_item_fingerprints": basket_item_fingerprints,
             "promotion_bundle_fingerprint": promotion_bundle_fingerprint,
         }
@@ -866,7 +878,7 @@ class RetrievalResult:
             "excerpt_count": len(self.hits),
             "basket_promotion_count": basket_promotion_count,
             "basket_promotion_ready": basket_promotion_count > 0,
-            "basket_item_ids": [str(item["item_id"]) for item in basket_promotion_items],
+            "basket_item_ids": _basket_item_ids_from_items(basket_promotion_items),
             "basket_item_fingerprints": basket_item_fingerprints,
             "doc_ids": [doc_hit.doc_id for doc_hit in self.doc_hits],
             "doc_fingerprints": doc_fingerprints,
@@ -958,7 +970,7 @@ class RetrievalResult:
             ),
             "basket_promotion_count": basket_promotion_count,
             "basket_promotion_ready": basket_promotion_count > 0,
-            "basket_item_ids": [str(item["item_id"]) for item in basket_promotion_items],
+            "basket_item_ids": _basket_item_ids_from_items(basket_promotion_items),
             "basket_item_fingerprints": basket_item_fingerprints,
             "citation_status": citation_status,
             "retrieval_evidence_fingerprint": self.evidence.get("retrieval_evidence_fingerprint"),
@@ -1061,7 +1073,7 @@ class RetrievalResult:
             "basket_promotion_items": copy.deepcopy(basket_promotion_items),
             "basket_promotion_count": basket_promotion_count,
             "basket_promotion_ready": basket_promotion_count > 0,
-            "basket_item_ids": [str(item["item_id"]) for item in basket_promotion_items],
+            "basket_item_ids": _basket_item_ids_from_items(basket_promotion_items),
             "basket_item_fingerprints": basket_item_fingerprints,
             "retrieval_provenance": copy.deepcopy(
                 self._retrieval_provenance_snapshot(
@@ -1940,8 +1952,14 @@ class RetrievalService:
 
         basket_promotion_items = [
             self._with_basket_item_fingerprint({
-                "item_id": item["excerpt_id"],
-                "basket_item_id": item["excerpt_id"],
+                "item_id": _basket_item_id_for_excerpt(
+                    source_strategy=item["source_strategy"],
+                    excerpt_id=item["excerpt_id"],
+                ),
+                "basket_item_id": _basket_item_id_for_excerpt(
+                    source_strategy=item["source_strategy"],
+                    excerpt_id=item["excerpt_id"],
+                ),
                 "item_type": "excerpt",
                 "doc_id": item["doc_id"],
                 "doc_type": item["doc_type"],
@@ -2030,7 +2048,7 @@ class RetrievalService:
             "basket_promotion_items": basket_promotion_items,
             "basket_promotion_count": basket_promotion_count,
             "basket_promotion_ready": basket_promotion_count > 0,
-            "basket_item_ids": [str(item["item_id"]) for item in basket_promotion_items],
+            "basket_item_ids": _basket_item_ids_from_items(basket_promotion_items),
             "basket_item_fingerprints": [
                 str(item["basket_item_fingerprint"])
                 for item in basket_promotion_items

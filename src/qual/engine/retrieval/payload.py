@@ -468,10 +468,14 @@ def _basket_promotion_items_from_excerpt_hits(
         if not isinstance(hit_retrieval_policy, dict):
             hit_retrieval_policy = normalized_retrieval_policy
         doc_id = _first_text_value(hit.get("doc_id"), provenance.get("doc_id"))
+        basket_item_id = _basket_item_id_for_excerpt(
+            source_strategy=source_strategy,
+            excerpt_id=excerpt_id,
+        )
         items.append(
             _with_basket_item_fingerprint({
-                "item_id": excerpt_id,
-                "basket_item_id": excerpt_id,
+                "item_id": basket_item_id,
+                "basket_item_id": basket_item_id,
                 "item_type": "excerpt",
                 "doc_id": doc_id,
                 "doc_type": _first_text_value(hit.get("doc_type"), provenance.get("doc_type")),
