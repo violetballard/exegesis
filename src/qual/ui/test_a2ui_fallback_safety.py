@@ -15554,6 +15554,55 @@ class A2UIFallbackSafetyTests(unittest.TestCase):
         ]
         validate_engine_artifacts(artifacts)
 
+    def test_validate_engine_artifacts_accepts_terminal_artifact_envelopes(self) -> None:
+        artifacts = [
+            (
+                "card",
+                build_terminal_artifact_envelope(
+                    {
+                        "type": "RunLogCard",
+                        "title": "Card",
+                        "blocks": [{"type": "MarkdownBlock", "markdown": "OK"}],
+                        "actions": [],
+                    },
+                    kind="card",
+                ),
+            ),
+            (
+                "action",
+                build_terminal_artifact_envelope(
+                    ActionRef(id="copy_to_clipboard", label="Copy", payload={"text": "val"}),
+                    kind="action",
+                ),
+            ),
+            (
+                "selection",
+                build_terminal_artifact_envelope(
+                    SelectionRef(id="s1", label="Select", payload={"v": 1}),
+                    kind="selection",
+                ),
+            ),
+        ]
+
+        validate_engine_artifacts(artifacts)
+
+    def test_validate_engine_artifacts_rejects_terminal_artifact_kind_mismatch(self) -> None:
+        with self.assertRaises(ValueError) as ctx:
+            validate_engine_artifacts(
+                {
+                    "apply": (
+                        "action",
+                        build_terminal_artifact_envelope(
+                            SelectionRef(id="s1", label="Select", payload={"v": 1}),
+                            kind="selection",
+                        ),
+                    )
+                }
+            )
+
+        self.assertIn("kind='action'", str(ctx.exception))
+        self.assertIn("kind does not match", str(ctx.exception))
+
     def test_validate_engine_artifacts_public_export_matches_internal(self) -> None:
         self.assertIs(public_ui.validate_engine_artifacts, validate_engine_artifacts)
 

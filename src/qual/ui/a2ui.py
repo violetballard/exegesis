@@ -4045,6 +4045,7 @@ def _validate_engine_artifact_kind(kind: Any, location: str) -> None:
 def _validate_engine_artifact_payload(kind: str, artifact: Any, location: str) -> None:
     normalized_kind = kind.strip().lower()
     try:
+        artifact = _unwrap_terminal_artifact_for_kind(artifact, kind=normalized_kind)
         if normalized_kind == "action":
             validate_action_ref(artifact)
         elif normalized_kind == "selection":
