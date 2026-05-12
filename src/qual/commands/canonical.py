@@ -530,9 +530,19 @@ class CommandCanonicalReadinessSnapshot:
     complete: bool
 
 
+@dataclass(frozen=True)
+class CommandCanonicalReadinessCheckpoint:
+    handoff: CommandDemoReadinessHandoffPacket
+    trusted_loop: CommandDemoTrustedLoopContract
+    smoke_sequence: CommandDemoSmokeSequenceContract
+    is_ready: bool
+    issues: tuple[str, ...]
+
+
 __all__ = [
     "CommandCanonicalReadinessStatus",
     "CommandCanonicalReadinessSnapshot",
+    "CommandCanonicalReadinessCheckpoint",
     "canonical_command",
     "canonical_command_action_argv_lookup_table",
     "canonical_command_action_demo_path_lookup_table",
@@ -629,6 +639,12 @@ __all__ = [
     "canonical_command_smoke_sequence_payload",
     "canonical_command_require_smoke_sequence_complete",
     "canonical_command_smoke_sequence_summary",
+    "canonical_command_readiness_checkpoint",
+    "canonical_command_readiness_checkpoint_issues",
+    "canonical_command_readiness_checkpoint_json",
+    "canonical_command_readiness_checkpoint_payload",
+    "canonical_command_readiness_checkpoint_summary",
+    "canonical_command_require_readiness_checkpoint",
     "canonical_command_surface_readiness_contract",
     "canonical_command_surface_readiness_json",
     "canonical_command_surface_readiness_payload",
@@ -1977,6 +1993,100 @@ def canonical_command_smoke_sequence_json() -> str:
 
 def canonical_command_smoke_sequence_issues() -> tuple[str, ...]:
     return _smoke_sequence_issues()
+
+
+def canonical_command_readiness_checkpoint() -> CommandCanonicalReadinessCheckpoint:
+    """Return the stable readiness decision used by command smoke handoffs."""
+
+    handoff = canonical_command_readiness_handoff_packet()
+    trusted_loop = canonical_command_trusted_loop_contract()
+    smoke_sequence = canonical_command_smoke_sequence_contract()
+    issues = (
+        handoff.missing_flow_steps
+        + handoff.missing_engine_actions
+        + tuple("invalid argv: " + " ".join(argv) for argv in handoff.invalid_argv)
+        + trusted_loop.missing_flow_steps
+        + trusted_loop.missing_engine_actions
+        + tuple(
+            "invalid trusted-loop argv: " + " ".join(argv)
+            for argv in trusted_loop.invalid_argv
+        )
+        + smoke_sequence.missing_flow_steps
+        + smoke_sequence.missing_engine_actions
+        + tuple("invalid smoke argv: " + " ".join(argv) for argv in smoke_sequence.invalid_argv)
+        + canonical_command_trusted_loop_issues()
+        + canonical_command_smoke_sequence_issues()
+    )
+    return CommandCanonicalReadinessCheckpoint(
+        handoff=handoff,
+        trusted_loop=trusted_loop,
+        smoke_sequence=smoke_sequence,
+        is_ready=(
+            handoff.is_complete
+            and trusted_loop.is_complete
+            and smoke_sequence.is_complete
+        ),
+        issues=tuple(dict.fromkeys(issue for issue in issues if issue)),
+    )
+
+
+def canonical_command_require_readiness_checkpoint() -> CommandCanonicalReadinessCheckpoint:
+    checkpoint = canonical_command_readiness_checkpoint()
+    if not checkpoint.is_ready:
+        raise ValueError(
+            "Command readiness checkpoint is incomplete: "
+            + ", ".join(checkpoint.issues)
+        )
+    return checkpoint
+
+
+def canonical_command_readiness_checkpoint_issues() -> tuple[str, ...]:
+    return canonical_command_readiness_checkpoint().issues
+
+
+def canonical_command_readiness_checkpoint_summary() -> tuple[
+    str,
+    str,
+    bool,
+    bool,
+    bool,
+    bool,
+    tuple[str, ...],
+]:
+    checkpoint = canonical_command_readiness_checkpoint()
+    return (
+        checkpoint.trusted_loop.fingerprint_algorithm,
+        checkpoint.trusted_loop.fingerprint_digest,
+        checkpoint.is_ready,
+        checkpoint.handoff.is_complete,
+        checkpoint.trusted_loop.is_complete,
+        checkpoint.smoke_sequence.is_complete,
+        checkpoint.issues,
+    )
+
+
+def canonical_command_readiness_checkpoint_payload() -> dict[str, object]:
+    checkpoint = canonical_command_readiness_checkpoint()
+    return {
+        "fingerprint_algorithm": checkpoint.trusted_loop.fingerprint_algorithm,
+        "fingerprint_digest": checkpoint.trusted_loop.fingerprint_digest,
+        "is_ready": checkpoint.is_ready,
+        "handoff_complete": checkpoint.handoff.is_complete,
+        "trusted_loop_complete": checkpoint.trusted_loop.is_complete,
+        "smoke_sequence_complete": checkpoint.smoke_sequence.is_complete,
+        "command_lines": checkpoint.handoff.command_lines,
+        "smoke_argvs": checkpoint.smoke_sequence.smoke_argvs,
+        "exact_action_argvs": checkpoint.smoke_sequence.exact_action_argvs,
+        "issues": checkpoint.issues,
+    }
+
+
+def canonical_command_readiness_checkpoint_json() -> str:
+    return json.dumps(
+        canonical_command_readiness_checkpoint_payload(),
+        sort_keys=True,
+        separators=(",", ":"),
+    )
 
 
 def canonical_command_readiness_handoff_step_status_payload() -> dict[str, object]:
