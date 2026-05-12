@@ -7302,6 +7302,43 @@ def _validate_command_demo_persist_continue_contract(
         raise ValueError("Command demo persist contract action is not exact")
 
 
+def command_demo_persist_continue_lookup_table(
+    specs: tuple[CommandSpec, ...] = COMMAND_SPECS,
+    launcher_argv: tuple[str, ...] = COMMAND_SMOKE_CLI_LAUNCHER_ARGV,
+) -> tuple[tuple[str, str], ...]:
+    contract = command_demo_persist_continue_contract(specs, launcher_argv)
+    lookup_table = (
+        ("demo_path_step", contract.demo_path_step),
+        ("flow_step", contract.flow_step),
+        ("command", contract.name),
+        ("command_line", contract.command_line),
+        ("engine_action", contract.engine_action),
+        ("action_line", contract.action_line),
+    )
+    _validate_command_demo_persist_continue_lookup_table(lookup_table, contract)
+    return lookup_table
+
+
+def _validate_command_demo_persist_continue_lookup_table(
+    lookup_table: tuple[tuple[str, str], ...],
+    contract: CommandDemoPersistContinueContract,
+) -> None:
+    expected_lookup_table = (
+        ("demo_path_step", contract.demo_path_step),
+        ("flow_step", contract.flow_step),
+        ("command", contract.name),
+        ("command_line", contract.command_line),
+        ("engine_action", contract.engine_action),
+        ("action_line", contract.action_line),
+    )
+    if lookup_table != expected_lookup_table:
+        raise ValueError("Command demo persist contract lookup table is inconsistent")
+    if len({key for key, _value in lookup_table}) != len(lookup_table):
+        raise ValueError("Command demo persist contract lookup keys must be unique")
+    if any(not key.strip() or not value.strip() for key, value in lookup_table):
+        raise ValueError("Command demo persist contract lookup values must not be empty")
+
+
 def command_demo_persist_continue_summary(
     specs: tuple[CommandSpec, ...] = COMMAND_SPECS,
     launcher_argv: tuple[str, ...] = COMMAND_SMOKE_CLI_LAUNCHER_ARGV,
@@ -7565,6 +7602,13 @@ def command_mvp_demo_persist_continue_summary(
     launcher_argv: tuple[str, ...] = COMMAND_SMOKE_CLI_LAUNCHER_ARGV,
 ) -> tuple[str, str, str, str, str, str, bool, bool]:
     return command_demo_persist_continue_summary(specs, launcher_argv)
+
+
+def command_mvp_demo_persist_continue_lookup_table(
+    specs: tuple[CommandSpec, ...] = COMMAND_SPECS,
+    launcher_argv: tuple[str, ...] = COMMAND_SMOKE_CLI_LAUNCHER_ARGV,
+) -> tuple[tuple[str, str], ...]:
+    return command_demo_persist_continue_lookup_table(specs, launcher_argv)
 
 
 def command_mvp_demo_persist_continue_payload(

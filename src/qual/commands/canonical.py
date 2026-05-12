@@ -247,6 +247,7 @@ from src.qual.commands.catalog import (
     command_mvp_demo_action_coverage_summary as _action_coverage_summary,
     command_mvp_demo_persist_continue_contract as _persist_continue_contract,
     command_mvp_demo_persist_continue_json as _persist_continue_json,
+    command_mvp_demo_persist_continue_lookup_table as _persist_continue_lookup_table,
     command_mvp_demo_persist_continue_payload as _persist_continue_payload,
     command_mvp_demo_persist_continue_summary as _persist_continue_summary,
     command_mvp_demo_execution_plan_step_for_argv as _execution_plan_step_for_argv,
@@ -799,6 +800,7 @@ __all__ = [
     "canonical_command_action_coverage_summary",
     "canonical_command_persist_continue_contract",
     "canonical_command_persist_continue_json",
+    "canonical_command_persist_continue_lookup_table",
     "canonical_command_persist_continue_payload",
     "canonical_command_persist_continue_summary",
     "canonical_command_execution_plan_lookup_table",
@@ -2848,6 +2850,10 @@ def canonical_command_persist_continue_contract() -> CommandDemoPersistContinueC
 
 def canonical_command_persist_continue_summary() -> tuple[str, str, str, str, str, str, bool, bool]:
     return _persist_continue_summary()
+
+
+def canonical_command_persist_continue_lookup_table() -> tuple[tuple[str, str], ...]:
+    return _persist_continue_lookup_table()
 
 
 def canonical_command_persist_continue_payload() -> dict[str, object]:
