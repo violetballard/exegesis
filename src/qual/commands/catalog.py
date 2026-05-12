@@ -1436,6 +1436,9 @@ class CommandDemoReadinessCommandAuditEntry:
     command_line: str
     engine_actions: tuple[str, ...]
     exact_action_lines: tuple[tuple[str, str], ...]
+    required_engine_action_count: int
+    covered_engine_action_count: int
+    missing_engine_actions: tuple[str, ...]
     is_cli_entrypoint: bool
     is_complete: bool
 
@@ -9715,25 +9718,39 @@ def command_demo_readiness_command_audit_contract(
     launcher_argv: tuple[str, ...] = COMMAND_SMOKE_CLI_LAUNCHER_ARGV,
 ) -> CommandDemoReadinessCommandAuditContract:
     step_status = command_demo_readiness_handoff_step_status_contract(specs, launcher_argv)
-    entries = tuple(
-        CommandDemoReadinessCommandAuditEntry(
-            ordinal=step.ordinal,
-            flow_step=step.flow_step,
-            name=step.name,
-            demo_path_step=step.demo_path_step,
-            command_line=step.command_line,
-            engine_actions=step.engine_actions,
-            exact_action_lines=step.exact_action_lines,
-            is_cli_entrypoint=step.is_cli_entrypoint,
-            is_complete=step.is_complete,
+    entries: list[CommandDemoReadinessCommandAuditEntry] = []
+    for step in step_status.steps:
+        covered_engine_actions = tuple(
+            engine_action
+            for engine_action in step.engine_actions
+            if any(exact_action == engine_action for exact_action, _ in step.exact_action_lines)
         )
-        for step in step_status.steps
-    )
+        missing_engine_actions = tuple(
+            engine_action
+            for engine_action in step.engine_actions
+            if engine_action not in covered_engine_actions
+        )
+        entries.append(
+            CommandDemoReadinessCommandAuditEntry(
+                ordinal=step.ordinal,
+                flow_step=step.flow_step,
+                name=step.name,
+                demo_path_step=step.demo_path_step,
+                command_line=step.command_line,
+                engine_actions=step.engine_actions,
+                exact_action_lines=step.exact_action_lines,
+                required_engine_action_count=len(step.engine_actions),
+                covered_engine_action_count=len(covered_engine_actions),
+                missing_engine_actions=missing_engine_actions,
+                is_cli_entrypoint=step.is_cli_entrypoint,
+                is_complete=step.is_complete and not missing_engine_actions,
+            )
+        )
     contract = CommandDemoReadinessCommandAuditContract(
         fingerprint_algorithm=step_status.fingerprint_algorithm,
         fingerprint_digest=step_status.fingerprint_digest,
         is_complete=step_status.is_complete and all(entry.is_complete for entry in entries),
-        entries=entries,
+        entries=tuple(entries),
     )
     _validate_command_demo_readiness_command_audit_contract(contract, step_status)
     return contract
@@ -9768,9 +9785,31 @@ def _validate_command_demo_readiness_command_audit_contract(
             raise ValueError(
                 f"Command demo readiness command audit exact action lines are inconsistent: {entry.flow_step}"
             )
+        covered_engine_actions = tuple(
+            engine_action
+            for engine_action in entry.engine_actions
+            if any(exact_action == engine_action for exact_action, _ in entry.exact_action_lines)
+        )
+        missing_engine_actions = tuple(
+            engine_action
+            for engine_action in entry.engine_actions
+            if engine_action not in covered_engine_actions
+        )
+        if entry.required_engine_action_count != len(entry.engine_actions):
+            raise ValueError(
+                f"Command demo readiness command audit required count is inconsistent: {entry.flow_step}"
+            )
+        if entry.covered_engine_action_count != len(covered_engine_actions):
+            raise ValueError(
+                f"Command demo readiness command audit covered count is inconsistent: {entry.flow_step}"
+            )
+        if entry.missing_engine_actions != missing_engine_actions:
+            raise ValueError(
+                f"Command demo readiness command audit missing actions are inconsistent: {entry.flow_step}"
+            )
         if entry.is_cli_entrypoint != step.is_cli_entrypoint:
             raise ValueError(f"Command demo readiness command audit CLI flag is inconsistent: {entry.flow_step}")
-        if entry.is_complete != step.is_complete:
+        if entry.is_complete != (step.is_complete and not entry.missing_engine_actions):
             raise ValueError(f"Command demo readiness command audit completeness is inconsistent: {entry.flow_step}")
     if contract.is_complete != (step_status.is_complete and all(entry.is_complete for entry in contract.entries)):
         raise ValueError("Command demo readiness command audit completeness is inconsistent")
@@ -9788,6 +9827,23 @@ def command_demo_readiness_command_audit_summary(
             entry.demo_path_step,
             entry.is_complete,
             entry.engine_actions,
+        )
+        for entry in contract.entries
+    )
+
+
+def command_demo_readiness_command_audit_coverage_summary(
+    specs: tuple[CommandSpec, ...] = COMMAND_SPECS,
+    launcher_argv: tuple[str, ...] = COMMAND_SMOKE_CLI_LAUNCHER_ARGV,
+) -> tuple[tuple[str, str, int, int, tuple[str, ...]], ...]:
+    contract = command_demo_readiness_command_audit_contract(specs, launcher_argv)
+    return tuple(
+        (
+            entry.flow_step,
+            entry.name,
+            entry.required_engine_action_count,
+            entry.covered_engine_action_count,
+            entry.missing_engine_actions,
         )
         for entry in contract.entries
     )
@@ -9819,6 +9875,9 @@ def command_demo_readiness_command_audit_payload(
                     }
                     for engine_action, command_line in entry.exact_action_lines
                 ],
+                "required_engine_action_count": entry.required_engine_action_count,
+                "covered_engine_action_count": entry.covered_engine_action_count,
+                "missing_engine_actions": list(entry.missing_engine_actions),
                 "is_cli_entrypoint": entry.is_cli_entrypoint,
                 "is_complete": entry.is_complete,
             }
@@ -9852,6 +9911,13 @@ def command_mvp_demo_readiness_command_audit_summary(
     launcher_argv: tuple[str, ...] = COMMAND_SMOKE_CLI_LAUNCHER_ARGV,
 ) -> tuple[tuple[str, str, str, bool, tuple[str, ...]], ...]:
     return command_demo_readiness_command_audit_summary(specs, launcher_argv)
+
+
+def command_mvp_demo_readiness_command_audit_coverage_summary(
+    specs: tuple[CommandSpec, ...] = COMMAND_SPECS,
+    launcher_argv: tuple[str, ...] = COMMAND_SMOKE_CLI_LAUNCHER_ARGV,
+) -> tuple[tuple[str, str, int, int, tuple[str, ...]], ...]:
+    return command_demo_readiness_command_audit_coverage_summary(specs, launcher_argv)
 
 
 def command_mvp_demo_readiness_command_audit_payload(
