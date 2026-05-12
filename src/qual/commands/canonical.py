@@ -84,6 +84,8 @@ from src.qual.commands.catalog import (
     CommandHandlerThinActionContract,
     CommandHandlerTrustedActionContract,
     CommandHandlerTrustedActionEntry,
+    CommandHandlerTrustedDemoPathContract,
+    CommandHandlerTrustedDemoPathEntry,
     canonical_command as _canonical_command,
     command_cli_contract as _cli_contract,
     command_cli_entrypoint_for as _cli_entrypoint_for,
@@ -520,6 +522,14 @@ from src.qual.commands.catalog import (
     command_mvp_handler_trusted_action_entry_for_argv as _handler_trusted_action_entry_for_argv,
     command_mvp_handler_trusted_action_lookup_table as _handler_trusted_action_lookup_table,
     command_mvp_handler_trusted_action_summary as _handler_trusted_action_summary,
+    command_mvp_handler_trusted_demo_path_contract as _handler_trusted_demo_path_contract,
+    command_mvp_handler_trusted_demo_path_entry_for_argv
+    as _handler_trusted_demo_path_entry_for_argv,
+    command_mvp_handler_trusted_demo_path_entry_for_command
+    as _handler_trusted_demo_path_entry_for_command,
+    command_mvp_handler_trusted_demo_path_lookup_table
+    as _handler_trusted_demo_path_lookup_table,
+    command_mvp_handler_trusted_demo_path_summary as _handler_trusted_demo_path_summary,
 )
 
 
@@ -953,6 +963,11 @@ __all__ = [
     "canonical_command_handler_trusted_action_entry_for_argv",
     "canonical_command_handler_trusted_action_lookup_table",
     "canonical_command_handler_trusted_action_summary",
+    "canonical_command_handler_trusted_demo_path_contract",
+    "canonical_command_handler_trusted_demo_path_entry_for_argv",
+    "canonical_command_handler_trusted_demo_path_entry_for_command",
+    "canonical_command_handler_trusted_demo_path_lookup_table",
+    "canonical_command_handler_trusted_demo_path_summary",
 ]
 
 
@@ -1111,6 +1126,46 @@ def canonical_command_handler_trusted_action_entry_for_argv(
     argv: Sequence[str] | str,
 ) -> CommandHandlerTrustedActionEntry | None:
     return _handler_trusted_action_entry_for_argv(argv)
+
+
+def canonical_command_handler_trusted_demo_path_contract() -> CommandHandlerTrustedDemoPathContract:
+    return _handler_trusted_demo_path_contract()
+
+
+def canonical_command_handler_trusted_demo_path_summary() -> tuple[
+    tuple[
+        str,
+        str,
+        str,
+        str,
+        str,
+        tuple[str, ...],
+        str,
+        tuple[str, ...],
+        bool,
+    ],
+    ...,
+]:
+    return _handler_trusted_demo_path_summary()
+
+
+def canonical_command_handler_trusted_demo_path_lookup_table() -> tuple[
+    tuple[str, tuple[str, tuple[str, ...], bool]],
+    ...,
+]:
+    return _handler_trusted_demo_path_lookup_table()
+
+
+def canonical_command_handler_trusted_demo_path_entry_for_command(
+    command_name: str,
+) -> CommandHandlerTrustedDemoPathEntry | None:
+    return _handler_trusted_demo_path_entry_for_command(command_name)
+
+
+def canonical_command_handler_trusted_demo_path_entry_for_argv(
+    argv: Sequence[str] | str,
+) -> CommandHandlerTrustedDemoPathEntry | None:
+    return _handler_trusted_demo_path_entry_for_argv(argv)
 
 
 def _readiness_status(
