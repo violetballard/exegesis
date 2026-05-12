@@ -128,6 +128,19 @@ def _basket_item_identity(item: dict[str, object]) -> str | None:
     return None
 
 
+def _canonical_basket_item_id_for_promotion_item(item: dict[str, object]) -> str | None:
+    item_id = _first_text_value(item.get("basket_item_id"), item.get("item_id"))
+    if item_id is not None:
+        return item_id
+    return _basket_item_id_for_excerpt(
+        source_strategy=_first_text_value(
+            item.get("source_strategy"),
+            item.get("retrieval_source_strategy"),
+        ),
+        excerpt_id=item.get("excerpt_id"),
+    )
+
+
 def _basket_item_ids_from_items(items: list[object]) -> list[str]:
     item_ids: list[str] = []
     seen: set[str] = set()
@@ -270,7 +283,7 @@ def _normalize_basket_promotion_items(items: list[object]) -> list[object]:
     for item in items:
         if isinstance(item, dict):
             item_snapshot = copy.deepcopy(item)
-            item_id = _basket_item_identity(item_snapshot)
+            item_id = _canonical_basket_item_id_for_promotion_item(item_snapshot)
             if item_id is not None:
                 if item_id in seen_item_ids:
                     continue
@@ -1351,6 +1364,16 @@ def _normalize_basket_promotion_bundle_snapshot(bundle: dict[str, object]) -> di
         for key, fallback_value in item_fallbacks.items():
             if _is_missing_snapshot_value(normalized_item.get(key)) and not _is_missing_snapshot_value(fallback_value):
                 normalized_item[key] = copy.deepcopy(fallback_value)
+        existing_item_id = _first_text_value(normalized_item.get("item_id"))
+        existing_basket_item_id = _first_text_value(normalized_item.get("basket_item_id"))
+        item_id = _canonical_basket_item_id_for_promotion_item(normalized_item)
+        identity_changed = False
+        if existing_item_id is None and item_id is not None:
+            normalized_item["item_id"] = item_id
+            identity_changed = True
+        if existing_item_id is None and existing_basket_item_id is None and item_id is not None:
+            normalized_item["basket_item_id"] = item_id
+            identity_changed = True
         if "citation_status" in normalized_item:
             normalized_item["citation_status"] = _normalize_citation_status_snapshot(
                 normalized_item.get("citation_status")
@@ -1370,7 +1393,7 @@ def _normalize_basket_promotion_bundle_snapshot(bundle: dict[str, object]) -> di
                 normalized_item["query_constraints"]
             )
         _normalize_basket_promotion_item_strategy_labels(normalized_item)
-        if _is_missing_snapshot_value(normalized_item.get("promotion_item_fingerprint")):
+        if identity_changed or _is_missing_snapshot_value(normalized_item.get("promotion_item_fingerprint")):
             normalized_item["promotion_item_fingerprint"] = _stable_fingerprint(
                 {
                     key: value
