@@ -475,6 +475,7 @@ from src.qual.commands.catalog import (
     command_mvp_handler_action_route_contract as _handler_action_route_contract,
     command_mvp_handler_action_route_entry_for_engine_action
     as _handler_action_route_entry_for_engine_action,
+    command_mvp_handler_action_route_entry_for_argv as _handler_action_route_entry_for_argv,
     command_mvp_handler_action_route_lookup_table as _handler_action_route_lookup_table,
     command_mvp_handler_action_route_summary as _handler_action_route_summary,
     command_mvp_handler_demo_path_contract as _handler_demo_path_contract,
@@ -867,6 +868,7 @@ __all__ = [
     "canonical_command_readiness_summary",
     "canonical_command_handler_action_route_contract",
     "canonical_command_handler_action_route_entry_for_engine_action",
+    "canonical_command_handler_action_route_entry_for_argv",
     "canonical_command_handler_action_route_lookup_table",
     "canonical_command_handler_action_route_summary",
     "canonical_command_handler_demo_path_contract",
@@ -951,6 +953,12 @@ def canonical_command_handler_action_route_entry_for_engine_action(
     engine_action: str,
 ) -> CommandHandlerActionRouteEntry | None:
     return _handler_action_route_entry_for_engine_action(engine_action)
+
+
+def canonical_command_handler_action_route_entry_for_argv(
+    argv: Sequence[str] | str,
+) -> CommandHandlerActionRouteEntry | None:
+    return _handler_action_route_entry_for_argv(argv)
 
 
 def canonical_command_handler_thin_action_contract() -> CommandHandlerThinActionContract:

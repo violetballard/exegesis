@@ -2715,6 +2715,17 @@ def command_handler_action_route_entry_for_engine_action(
     return None
 
 
+def command_handler_action_route_entry_for_argv(
+    argv: Sequence[str] | str,
+    specs: tuple[CommandSpec, ...] = COMMAND_SPECS,
+    launcher_argv: tuple[str, ...] = COMMAND_SMOKE_CLI_LAUNCHER_ARGV,
+) -> CommandHandlerActionRouteEntry | None:
+    engine_action = command_demo_readiness_exact_action_for_argv(argv, specs, launcher_argv)
+    if engine_action is None:
+        return None
+    return command_handler_action_route_entry_for_engine_action(engine_action, specs, launcher_argv)
+
+
 def _is_thin_handler_route(entry: CommandHandlerActionRouteEntry) -> bool:
     return (
         bool(entry.handler.strip())
@@ -2837,6 +2848,14 @@ def command_mvp_handler_action_route_entry_for_engine_action(
     launcher_argv: tuple[str, ...] = COMMAND_SMOKE_CLI_LAUNCHER_ARGV,
 ) -> CommandHandlerActionRouteEntry | None:
     return command_handler_action_route_entry_for_engine_action(engine_action, specs, launcher_argv)
+
+
+def command_mvp_handler_action_route_entry_for_argv(
+    argv: Sequence[str] | str,
+    specs: tuple[CommandSpec, ...] = COMMAND_SPECS,
+    launcher_argv: tuple[str, ...] = COMMAND_SMOKE_CLI_LAUNCHER_ARGV,
+) -> CommandHandlerActionRouteEntry | None:
+    return command_handler_action_route_entry_for_argv(argv, specs, launcher_argv)
 
 
 def command_mvp_handler_thin_action_contract(
