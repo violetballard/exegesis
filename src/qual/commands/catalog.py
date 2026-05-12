@@ -1323,6 +1323,16 @@ class CommandDemoReadinessOrderedScriptValidation:
 
 
 @dataclass(frozen=True)
+class CommandDemoReadinessOrderedActionScriptValidation:
+    validation: CommandDemoReadinessScriptValidation
+    expected_engine_actions: tuple[str, ...]
+    observed_engine_actions: tuple[str, ...]
+    order_violations: tuple[tuple[int, str, str], ...]
+    is_ordered: bool
+    is_complete: bool
+
+
+@dataclass(frozen=True)
 class CommandDemoReadinessProgress:
     validation: CommandDemoReadinessScriptValidation
     next_flow_step: str | None
@@ -16749,6 +16759,118 @@ def command_demo_readiness_validate_handoff_shell_script_lines(
     )
 
 
+def _ordered_action_script_validation(
+    validation: CommandDemoReadinessScriptValidation,
+    observed_engine_actions: tuple[str, ...],
+    specs: tuple[CommandSpec, ...],
+) -> CommandDemoReadinessOrderedActionScriptValidation:
+    expected_engine_actions = command_demo_engine_actions(specs)
+    order_violations = tuple(
+        (index + 1, observed, expected)
+        for index, (observed, expected) in enumerate(
+            zip(observed_engine_actions, expected_engine_actions, strict=False)
+        )
+        if observed != expected
+    )
+    is_ordered = (
+        len(observed_engine_actions) <= len(expected_engine_actions)
+        and observed_engine_actions == expected_engine_actions[: len(observed_engine_actions)]
+        and not order_violations
+    )
+    return CommandDemoReadinessOrderedActionScriptValidation(
+        validation=validation,
+        expected_engine_actions=expected_engine_actions,
+        observed_engine_actions=observed_engine_actions,
+        order_violations=order_violations,
+        is_ordered=is_ordered,
+        is_complete=validation.is_complete and is_ordered,
+    )
+
+
+def command_demo_readiness_validate_ordered_exact_action_script(
+    argvs: Sequence[Sequence[str] | str],
+    specs: tuple[CommandSpec, ...] = COMMAND_SPECS,
+    launcher_argv: tuple[str, ...] = COMMAND_SMOKE_CLI_LAUNCHER_ARGV,
+) -> CommandDemoReadinessOrderedActionScriptValidation:
+    validations = tuple(command_demo_readiness_validate_argv(argv, specs, launcher_argv) for argv in argvs)
+    observed_engine_actions = tuple(
+        validation.exact_engine_action
+        for validation in validations
+        if validation.exact_engine_action is not None
+    )
+    return _ordered_action_script_validation(
+        command_demo_readiness_validate_exact_action_script(argvs, specs, launcher_argv),
+        observed_engine_actions,
+        specs,
+    )
+
+
+def command_demo_readiness_validate_ordered_cli_exact_action_script(
+    argvs: Sequence[Sequence[str] | str],
+    specs: tuple[CommandSpec, ...] = COMMAND_SPECS,
+    launcher_argv: tuple[str, ...] = COMMAND_SMOKE_CLI_LAUNCHER_ARGV,
+) -> CommandDemoReadinessOrderedActionScriptValidation:
+    validations = tuple(command_demo_readiness_validate_cli_argv(argv, specs, launcher_argv) for argv in argvs)
+    observed_engine_actions = tuple(
+        validation.exact_engine_action
+        for validation in validations
+        if validation.is_cli_entrypoint and validation.exact_engine_action is not None
+    )
+    return _ordered_action_script_validation(
+        command_demo_readiness_validate_cli_exact_action_script(argvs, specs, launcher_argv),
+        observed_engine_actions,
+        specs,
+    )
+
+
+def command_demo_readiness_validate_ordered_handoff_script(
+    argvs: Sequence[Sequence[str] | str],
+    specs: tuple[CommandSpec, ...] = COMMAND_SPECS,
+    launcher_argv: tuple[str, ...] = COMMAND_SMOKE_CLI_LAUNCHER_ARGV,
+) -> CommandDemoReadinessOrderedActionScriptValidation:
+    return command_demo_readiness_validate_ordered_cli_exact_action_script(
+        argvs,
+        specs,
+        launcher_argv,
+    )
+
+
+def command_demo_readiness_validate_ordered_exact_action_shell_script_lines(
+    lines: Sequence[str] | str,
+    specs: tuple[CommandSpec, ...] = COMMAND_SPECS,
+    launcher_argv: tuple[str, ...] = COMMAND_SMOKE_CLI_LAUNCHER_ARGV,
+) -> CommandDemoReadinessOrderedActionScriptValidation:
+    return command_demo_readiness_validate_ordered_exact_action_script(
+        _shell_script_executable_argv(lines),
+        specs,
+        launcher_argv,
+    )
+
+
+def command_demo_readiness_validate_ordered_cli_exact_action_shell_script_lines(
+    lines: Sequence[str] | str,
+    specs: tuple[CommandSpec, ...] = COMMAND_SPECS,
+    launcher_argv: tuple[str, ...] = COMMAND_SMOKE_CLI_LAUNCHER_ARGV,
+) -> CommandDemoReadinessOrderedActionScriptValidation:
+    return command_demo_readiness_validate_ordered_cli_exact_action_script(
+        _shell_script_executable_argv(lines),
+        specs,
+        launcher_argv,
+    )
+
+
+def command_demo_readiness_validate_ordered_handoff_shell_script_lines(
+    lines: Sequence[str] | str,
+    specs: tuple[CommandSpec, ...] = COMMAND_SPECS,
+    launcher_argv: tuple[str, ...] = COMMAND_SMOKE_CLI_LAUNCHER_ARGV,
+) -> CommandDemoReadinessOrderedActionScriptValidation:
+    return command_demo_readiness_validate_ordered_cli_exact_action_shell_script_lines(
+        lines,
+        specs,
+        launcher_argv,
+    )
+
+
 def command_mvp_demo_readiness_validate_argv(
     argv: Sequence[str] | str,
     specs: tuple[CommandSpec, ...] = COMMAND_SPECS,
@@ -17243,6 +17365,58 @@ def command_mvp_demo_readiness_validate_handoff_shell_script_lines(
     launcher_argv: tuple[str, ...] = COMMAND_SMOKE_CLI_LAUNCHER_ARGV,
 ) -> CommandDemoReadinessScriptValidation:
     return command_demo_readiness_validate_handoff_shell_script_lines(lines, specs, launcher_argv)
+
+
+def command_mvp_demo_readiness_validate_ordered_exact_action_script(
+    argvs: Sequence[Sequence[str] | str],
+    specs: tuple[CommandSpec, ...] = COMMAND_SPECS,
+    launcher_argv: tuple[str, ...] = COMMAND_SMOKE_CLI_LAUNCHER_ARGV,
+) -> CommandDemoReadinessOrderedActionScriptValidation:
+    return command_demo_readiness_validate_ordered_exact_action_script(argvs, specs, launcher_argv)
+
+
+def command_mvp_demo_readiness_validate_ordered_exact_action_shell_script_lines(
+    lines: Sequence[str] | str,
+    specs: tuple[CommandSpec, ...] = COMMAND_SPECS,
+    launcher_argv: tuple[str, ...] = COMMAND_SMOKE_CLI_LAUNCHER_ARGV,
+) -> CommandDemoReadinessOrderedActionScriptValidation:
+    return command_demo_readiness_validate_ordered_exact_action_shell_script_lines(lines, specs, launcher_argv)
+
+
+def command_mvp_demo_readiness_validate_ordered_cli_exact_action_script(
+    argvs: Sequence[Sequence[str] | str],
+    specs: tuple[CommandSpec, ...] = COMMAND_SPECS,
+    launcher_argv: tuple[str, ...] = COMMAND_SMOKE_CLI_LAUNCHER_ARGV,
+) -> CommandDemoReadinessOrderedActionScriptValidation:
+    return command_demo_readiness_validate_ordered_cli_exact_action_script(argvs, specs, launcher_argv)
+
+
+def command_mvp_demo_readiness_validate_ordered_cli_exact_action_shell_script_lines(
+    lines: Sequence[str] | str,
+    specs: tuple[CommandSpec, ...] = COMMAND_SPECS,
+    launcher_argv: tuple[str, ...] = COMMAND_SMOKE_CLI_LAUNCHER_ARGV,
+) -> CommandDemoReadinessOrderedActionScriptValidation:
+    return command_demo_readiness_validate_ordered_cli_exact_action_shell_script_lines(
+        lines,
+        specs,
+        launcher_argv,
+    )
+
+
+def command_mvp_demo_readiness_validate_ordered_handoff_script(
+    argvs: Sequence[Sequence[str] | str],
+    specs: tuple[CommandSpec, ...] = COMMAND_SPECS,
+    launcher_argv: tuple[str, ...] = COMMAND_SMOKE_CLI_LAUNCHER_ARGV,
+) -> CommandDemoReadinessOrderedActionScriptValidation:
+    return command_demo_readiness_validate_ordered_handoff_script(argvs, specs, launcher_argv)
+
+
+def command_mvp_demo_readiness_validate_ordered_handoff_shell_script_lines(
+    lines: Sequence[str] | str,
+    specs: tuple[CommandSpec, ...] = COMMAND_SPECS,
+    launcher_argv: tuple[str, ...] = COMMAND_SMOKE_CLI_LAUNCHER_ARGV,
+) -> CommandDemoReadinessOrderedActionScriptValidation:
+    return command_demo_readiness_validate_ordered_handoff_shell_script_lines(lines, specs, launcher_argv)
 
 
 def command_demo_readiness_validate_script(

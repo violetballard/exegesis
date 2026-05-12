@@ -64,6 +64,7 @@ from src.qual.commands.catalog import (
     CommandDemoReadinessRunbook,
     CommandDemoReadinessSeal,
     CommandDemoReadinessShellScript,
+    CommandDemoReadinessOrderedActionScriptValidation,
     CommandDemoReadinessOrderedScriptValidation,
     CommandDemoReadinessScriptValidation,
     CommandDemoReadinessSmokePlanStep,
@@ -460,6 +461,18 @@ from src.qual.commands.catalog import (
     as _readiness_validate_handoff_script,
     command_mvp_demo_readiness_validate_handoff_shell_script_lines
     as _readiness_validate_handoff_shell_script_lines,
+    command_mvp_demo_readiness_validate_ordered_exact_action_script
+    as _readiness_validate_ordered_exact_action_script,
+    command_mvp_demo_readiness_validate_ordered_exact_action_shell_script_lines
+    as _readiness_validate_ordered_exact_action_shell_script_lines,
+    command_mvp_demo_readiness_validate_ordered_cli_exact_action_script
+    as _readiness_validate_ordered_cli_exact_action_script,
+    command_mvp_demo_readiness_validate_ordered_cli_exact_action_shell_script_lines
+    as _readiness_validate_ordered_cli_exact_action_shell_script_lines,
+    command_mvp_demo_readiness_validate_ordered_handoff_script
+    as _readiness_validate_ordered_handoff_script,
+    command_mvp_demo_readiness_validate_ordered_handoff_shell_script_lines
+    as _readiness_validate_ordered_handoff_shell_script_lines,
     command_mvp_demo_readiness_validate_ordered_script
     as _readiness_validate_ordered_script,
     command_mvp_demo_readiness_validate_ordered_shell_script_lines
@@ -4065,6 +4078,42 @@ def canonical_command_readiness_validate_handoff_shell_script_lines(
     lines: Sequence[str] | str,
 ) -> CommandDemoReadinessScriptValidation:
     return _readiness_validate_handoff_shell_script_lines(lines)
+
+
+def canonical_command_readiness_validate_ordered_exact_action_script(
+    argvs: Sequence[Sequence[str] | str],
+) -> CommandDemoReadinessOrderedActionScriptValidation:
+    return _readiness_validate_ordered_exact_action_script(argvs)
+
+
+def canonical_command_readiness_validate_ordered_exact_action_shell_script_lines(
+    lines: Sequence[str] | str,
+) -> CommandDemoReadinessOrderedActionScriptValidation:
+    return _readiness_validate_ordered_exact_action_shell_script_lines(lines)
+
+
+def canonical_command_readiness_validate_ordered_cli_exact_action_script(
+    argvs: Sequence[Sequence[str] | str],
+) -> CommandDemoReadinessOrderedActionScriptValidation:
+    return _readiness_validate_ordered_cli_exact_action_script(argvs)
+
+
+def canonical_command_readiness_validate_ordered_cli_exact_action_shell_script_lines(
+    lines: Sequence[str] | str,
+) -> CommandDemoReadinessOrderedActionScriptValidation:
+    return _readiness_validate_ordered_cli_exact_action_shell_script_lines(lines)
+
+
+def canonical_command_readiness_validate_ordered_handoff_script(
+    argvs: Sequence[Sequence[str] | str],
+) -> CommandDemoReadinessOrderedActionScriptValidation:
+    return _readiness_validate_ordered_handoff_script(argvs)
+
+
+def canonical_command_readiness_validate_ordered_handoff_shell_script_lines(
+    lines: Sequence[str] | str,
+) -> CommandDemoReadinessOrderedActionScriptValidation:
+    return _readiness_validate_ordered_handoff_shell_script_lines(lines)
 
 
 def canonical_command_readiness_validate_script(
