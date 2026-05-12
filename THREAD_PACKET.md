@@ -10,10 +10,10 @@
 - Approved shared regression path: `tests/unit/test_unified_retrieval.py`.
 - Integrator-locked files changed: none.
 - Authoritative reviewed implementation base: `378cf9a74a3658058079a32f186fcd254c4a4034`.
-- Reviewed implementation head: final branch tip reported in the fixer handoff after this packet edit.
-- Reviewed implementation range: `378cf9a74a3658058079a32f186fcd254c4a4034..final branch tip reported in the fixer handoff`.
-- Current branch head before this packet edit: `cce512ad7dd30c84c2475283fb3facf252efbb3c`.
-- Current pass role: source-bearing retrieval finalization that propagates FTS basket item IDs into excerpt hit and citation snapshots.
+- Reviewed source-bearing implementation head: `1439aa3eff4d420fb4fcad83c0556c2608813c77`.
+- Reviewed source-bearing implementation range: `378cf9a74a3658058079a32f186fcd254c4a4034..1439aa3eff4d420fb4fcad83c0556c2608813c77`.
+- Packet-only traceability fix: this commit updates `THREAD_PACKET.md` only; the final branch tip SHA is reported in the fixer final response.
+- Current pass role: packet-only traceability correction for the reviewed source-bearing range.
 
 ## Traceability Correction
 
@@ -21,9 +21,9 @@ This packet supersedes earlier handoffs that described `adfa8cdadd43747ffbcb612e
 
 The actual source-bearing merge candidate for this branch is:
 
-`378cf9a74a3658058079a32f186fcd254c4a4034..final branch tip reported in the fixer handoff`
+`378cf9a74a3658058079a32f186fcd254c4a4034..1439aa3eff4d420fb4fcad83c0556c2608813c77`
 
-That range includes every intended retrieval source/test change through the current source-bearing fixer pass, including the reviewer-cited post-`adfa8cdadd43747ffbcb612e4151e262b13e52ca` changes in `src/qual/engine/retrieval/__init__.py`, `src/qual/engine/retrieval/fts_strategy.py`, `src/qual/engine/retrieval/payload.py`, `src/qual/retrieval/__init__.py`, `src/qual/retrieval/service.py`, and `tests/unit/test_unified_retrieval.py`.
+That range includes every intended retrieval source/test change through `1439aa3eff4d420fb4fcad83c0556c2608813c77`, including the reviewer-cited post-`adfa8cdadd43747ffbcb612e4151e262b13e52ca` changes in `src/qual/engine/retrieval/__init__.py`, `src/qual/engine/retrieval/fts_strategy.py`, `src/qual/engine/retrieval/payload.py`, `src/qual/retrieval/__init__.py`, `src/qual/retrieval/service.py`, and `tests/unit/test_unified_retrieval.py`.
 
 `beed411ecb15821f0cf145bd3ad68d59c996801c` is source-bearing. It modifies `src/qual/engine/retrieval/__init__.py`, `src/qual/retrieval/service.py`, and `THREAD_PACKET.md`. It must not be treated as metadata-only.
 
@@ -49,7 +49,7 @@ This source-bearing fixer pass modifies `src/qual/retrieval/service.py`, `src/qu
 
 This source-bearing fixer pass modifies `src/qual/retrieval/service.py`, `src/qual/engine/retrieval/payload.py`, `tests/unit/test_unified_retrieval.py`, and `THREAD_PACKET.md` so excerpt hit snapshots and excerpt citation snapshots expose the same deterministic FTS-only `basket_item_id` used by context-basket promotion bundles. Sparse citation normalization now mints missing FTS citation basket IDs and still strips stale or non-FTS IDs.
 
-Packet-only commits after `5c87b08a9f7ca5a4dabc23fc1a80214276a882e9` refresh traceability and gate evidence only through `f9bdab5ded16e44476d773a24249c64442df2f3a`. The source-bearing passes after that packet-only refresh change `src/qual/retrieval/service.py`, `src/qual/engine/retrieval/payload.py`, and `tests/unit/test_unified_retrieval.py`; reviewers should include the final branch tip reported in the fixer handoff when re-reviewing the merge candidate.
+Packet-only commits after `5c87b08a9f7ca5a4dabc23fc1a80214276a882e9` refresh traceability and gate evidence only through `f9bdab5ded16e44476d773a24249c64442df2f3a`. The source-bearing passes after that packet-only refresh change `src/qual/retrieval/service.py`, `src/qual/engine/retrieval/payload.py`, and `tests/unit/test_unified_retrieval.py`; reviewers should include source-bearing commit `1439aa3eff4d420fb4fcad83c0556c2608813c77` when re-reviewing the merge candidate. The commit after `1439aa3eff4d420fb4fcad83c0556c2608813c77` is this packet-only traceability correction.
 
 Tracked packet note for this fixer pass: `.codex/kickoff_packets/feat-retrieval-fts.md` and `.codex/lane_meta/feat-retrieval-fts.json` are ignored local automation metadata in this branch worktree and are not tracked at `HEAD`. Treat this tracked `THREAD_PACKET.md` file as the authoritative corrected handoff packet for re-review.
 
@@ -76,11 +76,14 @@ Packet-only refresh surface after the reviewed implementation head:
 
 - `THREAD_PACKET.md`
 
-Current source-bearing fixer surface:
+Final source-bearing fixer surface at `1439aa3eff4d420fb4fcad83c0556c2608813c77`:
 
 - `src/qual/retrieval/service.py`
 - `src/qual/engine/retrieval/payload.py`
 - `tests/unit/test_unified_retrieval.py`
+
+Packet-only traceability surface after `1439aa3eff4d420fb4fcad83c0556c2608813c77`:
+
 - `THREAD_PACKET.md`
 
 ## Scope Completed
@@ -133,7 +136,7 @@ Task accounting: `13` high-risk task groups are present in the cumulative branch
 
 - Task budget: `4` high-risk task groups; this cumulative branch now has `13` source-bearing task groups after the excerpt hit/citation basket ID propagation fix.
 - File count: the corrected source-bearing range before this pass changes `6` source/test files plus `3` packet/artifact files; this pass changes `src/qual/retrieval/service.py`, `src/qual/engine/retrieval/payload.py`, `tests/unit/test_unified_retrieval.py`, and `THREAD_PACKET.md`.
-- Size accounting: the corrected source-bearing range `378cf9a74a3658058079a32f186fcd254c4a4034..final branch tip reported in the fixer handoff` changes `7` tracked source/test/packet files with `1736` insertions and `160` deletions before the final commit object exists, exceeding the high-risk `<=300 net LOC` limit.
+- Size accounting: the corrected source-bearing range `378cf9a74a3658058079a32f186fcd254c4a4034..1439aa3eff4d420fb4fcad83c0556c2608813c77` changes `9` tracked source/test/packet/artifact files with `1736` insertions and `224` deletions, exceeding the high-risk `<=300 net LOC` limit.
 - Size limit status: exceeds the high-risk `<=8 files` and `<=300 net LOC` limits.
 - Explicit exception status: no integrator-approved size or task-budget exception is recorded in this worktree. Because the full source-bearing range remains together, this is a known blocker for approval until the integrator grants an exception or requests a branch split.
 - Shared-file exception status: `tests/unit/test_unified_retrieval.py` is the sole approved shared regression surface; no integrator-locked files changed.
@@ -141,7 +144,7 @@ Task accounting: `13` high-risk task groups are present in the cumulative branch
 
 ## Required Fixes Applied
 
-1. Regenerated this review packet with the real source-bearing implementation head identified as the final branch tip reported in the fixer handoff.
+1. Regenerated this review packet with the real source-bearing implementation head identified as `1439aa3eff4d420fb4fcad83c0556c2608813c77`.
 2. Removed the stale metadata-only framing for `beed411ecb15821f0cf145bd3ad68d59c996801c`; it is explicitly identified as source-bearing.
 3. Updated the reviewed implementation range to include all intended source/test changes in the branch-tip source-bearing candidate.
 4. Updated files changed, task accounting, command outcomes, risks, and roadmap/vision mapping to match the corrected range.
@@ -150,9 +153,9 @@ Task accounting: `13` high-risk task groups are present in the cumulative branch
 
 ## Commands Run
 
-Required gates for this corrected merge candidate were re-run on 2026-05-07 against branch `codex/feat-retrieval-fts` after this source-bearing fixer edit.
+Required gates for this corrected merge candidate were re-run on 2026-05-12 against branch `codex/feat-retrieval-fts` after this packet-only traceability fix.
 
-- `make scope-check` - passed for branch `codex/feat-retrieval-fts`.
+- `make scope-check` - passed for branch `codex/feat-retrieval-fts`; the devex scope checker reported no configured policy for this branch before passing.
 - `./quality-format.sh --check` - passed.
 - `./quality-lint.sh` - passed shell syntax and trailing whitespace checks.
 - `./quality-test.sh` - passed smoke tests and 137 unit tests.
