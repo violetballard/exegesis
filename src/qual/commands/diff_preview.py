@@ -96,6 +96,19 @@ class PatchReviewActionRoute:
 
 
 @dataclass(frozen=True)
+class PatchReviewActionResolution:
+    action: str
+    engine_action: str
+    command: str
+    flow_step: str
+    demo_path_step: str
+    decision_status: str
+    allowed: bool
+    ready: bool
+    reason: str
+
+
+@dataclass(frozen=True)
 class PatchReviewCommandContract:
     command: str
     flow_step: str
@@ -442,6 +455,10 @@ def _patch_review_action_route_lookup_for_decision(
     )
 
 
+def _normalize_patch_review_action(action: str) -> str:
+    return action.strip().lower().replace("_", "-")
+
+
 def _patch_review_smoke_contract_ready(
     changed_routes: tuple[tuple[str, str], ...],
     no_change_routes: tuple[tuple[str, str], ...],
@@ -533,6 +550,42 @@ def build_patch_review_action_route_lookup(payload: DiffPreviewInput) -> tuple[t
     """Return a deterministic action -> engine-action lookup for CLI smoke checks."""
 
     return _patch_review_action_route_lookup_for_decision(build_patch_review_decision(payload))
+
+
+def resolve_patch_review_action(
+    payload: DiffPreviewInput,
+    action: str,
+) -> PatchReviewActionResolution:
+    """Resolve one requested patch-review action to the engine action it may call."""
+
+    requested_action = _normalize_patch_review_action(action)
+    decision = build_patch_review_decision(payload)
+    current_routes = dict(_patch_review_action_routes_for_decision(decision))
+    expected_routes = dict(_expected_patch_review_action_routes())
+    engine_action = current_routes.get(requested_action, expected_routes.get(requested_action, ""))
+    if not requested_action:
+        allowed = False
+        reason = "missing-action"
+    elif requested_action not in expected_routes:
+        allowed = False
+        reason = "unknown-action"
+    elif requested_action not in current_routes:
+        allowed = False
+        reason = "action-not-available"
+    else:
+        allowed = True
+        reason = "allowed"
+    return PatchReviewActionResolution(
+        action=requested_action,
+        engine_action=engine_action,
+        command=PATCH_REVIEW_COMMAND_NAME,
+        flow_step=PATCH_REVIEW_FLOW_STEP,
+        demo_path_step=PATCH_REVIEW_DEMO_PATH_STEP,
+        decision_status=decision.status,
+        allowed=allowed,
+        ready=allowed and _patch_review_command_ready(decision),
+        reason=reason,
+    )
 
 
 def build_patch_review_command_contract() -> PatchReviewCommandContract:
@@ -670,6 +723,40 @@ def run_patch_review_action_routes_json(payload: DiffPreviewInput) -> str:
 def run_patch_review_action_route_lookup_json(payload: DiffPreviewInput) -> str:
     return json.dumps(
         build_patch_review_action_route_lookup(payload),
+        sort_keys=True,
+        separators=(",", ":"),
+    )
+
+
+def run_patch_review_action_resolution(payload: DiffPreviewInput, action: str) -> str:
+    resolution = resolve_patch_review_action(payload, action)
+    return (
+        f"patch-review-action: action={resolution.action}; "
+        f"engine-action={resolution.engine_action}; "
+        f"command={resolution.command}; "
+        f"flow-step={resolution.flow_step}; "
+        f"demo-path-step={resolution.demo_path_step}; "
+        f"decision={resolution.decision_status}; "
+        f"allowed={str(resolution.allowed).lower()}; "
+        f"ready={str(resolution.ready).lower()}; "
+        f"reason={resolution.reason}"
+    )
+
+
+def run_patch_review_action_resolution_json(payload: DiffPreviewInput, action: str) -> str:
+    resolution = resolve_patch_review_action(payload, action)
+    return json.dumps(
+        {
+            "action": resolution.action,
+            "engine_action": resolution.engine_action,
+            "command": resolution.command,
+            "flow_step": resolution.flow_step,
+            "demo_path_step": resolution.demo_path_step,
+            "decision_status": resolution.decision_status,
+            "allowed": resolution.allowed,
+            "ready": resolution.ready,
+            "reason": resolution.reason,
+        },
         sort_keys=True,
         separators=(",", ":"),
     )
