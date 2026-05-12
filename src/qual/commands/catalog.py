@@ -3214,6 +3214,17 @@ def command_handler_trusted_demo_path_contract(
     return contract
 
 
+def require_command_handler_trusted_demo_path_complete(
+    specs: tuple[CommandSpec, ...] = COMMAND_SPECS,
+    launcher_argv: tuple[str, ...] = COMMAND_SMOKE_CLI_LAUNCHER_ARGV,
+) -> CommandHandlerTrustedDemoPathContract:
+    contract = command_handler_trusted_demo_path_contract(specs, launcher_argv)
+    if contract.is_complete:
+        return contract
+    missing = ", ".join(contract.missing_engine_actions) or "unknown"
+    raise ValueError(f"Command handler trusted demo path is incomplete: {missing}")
+
+
 def _validate_command_handler_trusted_demo_path_contract(
     contract: CommandHandlerTrustedDemoPathContract,
     *,
@@ -3430,6 +3441,13 @@ def command_mvp_handler_trusted_demo_path_contract(
     launcher_argv: tuple[str, ...] = COMMAND_SMOKE_CLI_LAUNCHER_ARGV,
 ) -> CommandHandlerTrustedDemoPathContract:
     return command_handler_trusted_demo_path_contract(specs, launcher_argv)
+
+
+def require_command_mvp_handler_trusted_demo_path_complete(
+    specs: tuple[CommandSpec, ...] = COMMAND_SPECS,
+    launcher_argv: tuple[str, ...] = COMMAND_SMOKE_CLI_LAUNCHER_ARGV,
+) -> CommandHandlerTrustedDemoPathContract:
+    return require_command_handler_trusted_demo_path_complete(specs, launcher_argv)
 
 
 def command_mvp_handler_trusted_demo_path_summary(

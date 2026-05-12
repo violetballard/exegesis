@@ -551,6 +551,8 @@ from src.qual.commands.catalog import (
     command_mvp_handler_trusted_demo_path_lookup_table
     as _handler_trusted_demo_path_lookup_table,
     command_mvp_handler_trusted_demo_path_summary as _handler_trusted_demo_path_summary,
+    require_command_mvp_handler_trusted_demo_path_complete
+    as _require_handler_trusted_demo_path_complete,
 )
 
 
@@ -1028,6 +1030,7 @@ __all__ = [
     "canonical_command_handler_trusted_demo_path_entry_for_command",
     "canonical_command_handler_trusted_demo_path_lookup_table",
     "canonical_command_handler_trusted_demo_path_summary",
+    "require_canonical_command_handler_trusted_demo_path_complete",
 ]
 
 
@@ -1190,6 +1193,10 @@ def canonical_command_handler_trusted_action_entry_for_argv(
 
 def canonical_command_handler_trusted_demo_path_contract() -> CommandHandlerTrustedDemoPathContract:
     return _handler_trusted_demo_path_contract()
+
+
+def require_canonical_command_handler_trusted_demo_path_complete() -> CommandHandlerTrustedDemoPathContract:
+    return _require_handler_trusted_demo_path_complete()
 
 
 def canonical_command_handler_trusted_demo_path_summary() -> tuple[
