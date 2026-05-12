@@ -8700,8 +8700,10 @@ def command_demo_smoke_sequence_contract(
     )
 
     smoke_argvs = tuple(entry.smoke_argv for entry in entries)
+    cli_script_contract = command_demo_smoke_cli_script_contract(specs, launcher_argv)
     smoke_command_lines = tuple(
-        line for _, _, _, line in command_demo_smoke_cli_script_lines(specs, launcher_argv)
+        _shell_join(step.command_argv)
+        for step in cli_script_contract.steps
     )
     exact_action_argvs = tuple(
         argv for entry in entries for argv in entry.exact_action_argv
@@ -8741,6 +8743,11 @@ def command_demo_smoke_sequence_contract(
         raise ValueError("Command demo smoke sequence exact action argvs are inconsistent")
     if tuple(entry.smoke_argv for entry in contract.entries) != contract.smoke_argvs:
         raise ValueError("Command demo smoke sequence argvs are inconsistent")
+    if contract.smoke_argvs != tuple(
+        step.command_argv[len(launcher_argv) :]
+        for step in cli_script_contract.steps
+    ):
+        raise ValueError("Command demo smoke sequence CLI argvs are inconsistent")
     expected_smoke_lines = tuple(
         _shell_join((*launcher_argv, *entry.smoke_argv))
         for entry in contract.entries
