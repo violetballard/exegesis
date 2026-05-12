@@ -1285,7 +1285,7 @@ def _normalize_basket_promotion_bundle_snapshot(bundle: dict[str, object]) -> di
         ]
     else:
         normalized["query_constraints"] = {}
-    normalized.setdefault("query_constraints_fingerprint", _stable_fingerprint(normalized["query_constraints"]))
+    normalized["query_constraints_fingerprint"] = _stable_fingerprint(normalized["query_constraints"])
     normalized["query_date_range"] = _normalize_optional_list_like(normalized.get("query_date_range"))
     normalized["active_strategy_ids"] = _normalize_active_strategy_ids(
         normalized.get("active_strategy_ids"),

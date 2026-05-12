@@ -3638,7 +3638,7 @@ class UnifiedRetrievalTests(unittest.TestCase):
         }
         promotion_item["query_constraints_fingerprint"] = "stale-fingerprint"
         promotion_item.pop("promotion_item_fingerprint", None)
-        cast(dict[str, object], basket_bundle).pop("query_constraints_fingerprint", None)
+        cast(dict[str, object], basket_bundle)["query_constraints_fingerprint"] = "stale-fingerprint"
 
         normalized_bundle = _build_retrieval_basket_promotion_bundle_from_payload(payload)
 
