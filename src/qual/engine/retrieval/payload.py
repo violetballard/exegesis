@@ -1361,6 +1361,23 @@ def _normalize_basket_promotion_bundle_snapshot(bundle: dict[str, object]) -> di
         promotion_items.append(normalized_item)
     normalized["promotion_items"] = promotion_items
     normalized["promotion_item_count"] = len(normalized["promotion_items"])
+    basket_promotion_items = _basket_promotion_items_from_snapshot(normalized)
+    normalized["basket_promotion_items"] = basket_promotion_items
+    normalized["basket_item_ids"] = _basket_item_ids_from_snapshot(
+        normalized,
+        basket_promotion_items=basket_promotion_items,
+    )
+    normalized["basket_item_fingerprints"] = _basket_item_fingerprints_from_snapshot(
+        normalized,
+        basket_promotion_items=basket_promotion_items,
+    )
+    normalized["basket_promotion_count"] = _basket_promotion_count_from_snapshot(
+        normalized,
+        basket_promotion_items=basket_promotion_items,
+    )
+    normalized["basket_promotion_ready"] = _basket_promotion_ready_from_count(
+        normalized["basket_promotion_count"]
+    )
     if _is_missing_snapshot_value(normalized.get("promotion_bundle_fingerprint")):
         normalized["promotion_bundle_fingerprint"] = _stable_fingerprint(
             {

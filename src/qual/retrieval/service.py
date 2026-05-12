@@ -656,6 +656,12 @@ class RetrievalResult:
         """Return deterministic FTS evidence items ready for context-basket promotion."""
 
         bundle_context = self._retrieval_bundle_context_snapshot()
+        basket_promotion_items = self.basket_promotion_items()
+        basket_promotion_count = len(basket_promotion_items)
+        basket_item_fingerprints = [
+            str(item["basket_item_fingerprint"])
+            for item in basket_promotion_items
+        ]
         promotion_items: list[dict[str, object]] = []
         for hit in self.hits:
             if hit.excerpt_id is None:
@@ -713,6 +719,11 @@ class RetrievalResult:
             "promotion_target": "context_basket",
             "promotion_item_count": len(promotion_items),
             "promotion_items": promotion_items,
+            "basket_promotion_items": copy.deepcopy(basket_promotion_items),
+            "basket_promotion_count": basket_promotion_count,
+            "basket_promotion_ready": basket_promotion_count > 0,
+            "basket_item_ids": [str(item["item_id"]) for item in basket_promotion_items],
+            "basket_item_fingerprints": basket_item_fingerprints,
             "promotion_bundle_fingerprint": promotion_bundle_fingerprint,
         }
 
