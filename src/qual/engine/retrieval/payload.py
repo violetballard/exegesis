@@ -318,6 +318,10 @@ def _basket_promotion_items_from_snapshot(snapshot: dict[str, object]) -> list[o
             if basket_promotion_items:
                 return _normalize_basket_promotion_items(basket_promotion_items)
 
+    promotion_items = _normalize_list_like(snapshot.get("promotion_items", []))
+    if promotion_items:
+        return _normalize_basket_promotion_items(promotion_items)
+
     excerpt_hits = _normalize_list_like(snapshot.get("excerpt_hits", []))
     if not excerpt_hits:
         excerpt_bundle = snapshot.get("retrieval_excerpt_bundle")
