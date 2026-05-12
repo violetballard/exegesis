@@ -1036,37 +1036,53 @@ def _tracked_integrator_pids(state: Dict[str, Any]) -> set[int]:
     return pids
 
 
+def _process_command_rows() -> List[Tuple[int, str]]:
+    """Return process command rows, preferring untruncated command text."""
+    commands = (
+        ["ps", "-wwaxo", "pid=,command="],
+        ["ps", "-axo", "pid=,command="],
+    )
+    for command in commands:
+        try:
+            proc = subprocess.run(
+                command,
+                stdout=subprocess.PIPE,
+                stderr=subprocess.DEVNULL,
+                text=True,
+                timeout=2,
+            )
+        except Exception:
+            continue
+        if proc.returncode != 0:
+            continue
+        rows: List[Tuple[int, str]] = []
+        for raw_line in (proc.stdout or "").splitlines():
+            line = raw_line.strip()
+            if not line:
+                continue
+            pid_text, _, process_command = line.partition(" ")
+            try:
+                pid = int(pid_text)
+            except ValueError:
+                continue
+            rows.append((pid, process_command))
+        return rows
+    return []
+
+
+def _is_cloud_integrator_exec_command(command: str) -> bool:
+    return "codex exec" in command and any(marker in command for marker in INTEGRATOR_EXEC_MARKERS)
+
+
 def _live_untracked_cloud_integrator_exec_pids(state: Dict[str, Any]) -> List[int]:
     """Return live Codex integrators that router state failed to track."""
     tracked = _tracked_integrator_pids(state)
-    try:
-        proc = subprocess.run(
-            ["ps", "-axo", "pid=,command="],
-            stdout=subprocess.PIPE,
-            stderr=subprocess.DEVNULL,
-            text=True,
-            timeout=2,
-        )
-    except Exception:
-        return []
-    if proc.returncode != 0:
-        return []
     current_pid = os.getpid()
     pids: List[int] = []
-    for raw_line in (proc.stdout or "").splitlines():
-        line = raw_line.strip()
-        if not line:
-            continue
-        pid_text, _, command = line.partition(" ")
-        try:
-            pid = int(pid_text)
-        except ValueError:
-            continue
+    for pid, command in _process_command_rows():
         if pid == current_pid or pid in tracked or not _pid_alive(pid):
             continue
-        if "codex exec" not in command:
-            continue
-        if any(marker in command for marker in INTEGRATOR_EXEC_MARKERS):
+        if _is_cloud_integrator_exec_command(command):
             pids.append(pid)
     return pids
 

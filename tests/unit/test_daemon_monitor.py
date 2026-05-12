@@ -120,6 +120,41 @@ class DaemonMonitorTests(unittest.TestCase):
 
         self.assertEqual(pids, [1111])
 
+    def test_process_command_rows_prefers_wide_process_listing(self) -> None:
+        completed = mock.Mock(returncode=0, stdout=' 1111 codex exec You are the INTEGRATOR\n')
+
+        with mock.patch.object(daemon_monitor.subprocess, 'run', return_value=completed) as run:
+            rows = daemon_monitor._process_command_rows()
+
+        self.assertEqual(rows, [(1111, 'codex exec You are the INTEGRATOR')])
+        self.assertEqual(run.call_args.args[0], ['ps', '-wwaxo', 'pid=,command='])
+
+    def test_process_command_rows_falls_back_when_wide_listing_is_blocked(self) -> None:
+        completed = mock.Mock(returncode=0, stdout=' 1111 codex exec You are the INTEGRATOR\n')
+
+        with mock.patch.object(
+            daemon_monitor.subprocess,
+            'run',
+            side_effect=[OSError('blocked'), completed],
+        ) as run:
+            rows = daemon_monitor._process_command_rows()
+
+        self.assertEqual(rows, [(1111, 'codex exec You are the INTEGRATOR')])
+        self.assertEqual(run.call_args_list[0].args[0], ['ps', '-wwaxo', 'pid=,command='])
+        self.assertEqual(run.call_args_list[1].args[0], ['ps', '-axo', 'pid=,command='])
+
+    def test_process_command_rows_returns_none_when_process_listing_is_unavailable(self) -> None:
+        with mock.patch.object(
+            daemon_monitor.subprocess,
+            'run',
+            side_effect=[OSError('blocked'), OSError('blocked')],
+        ):
+            self.assertIsNone(daemon_monitor._process_command_rows())
+
+    def test_untracked_cloud_integrator_exec_pids_returns_none_when_process_listing_is_unavailable(self) -> None:
+        with mock.patch.object(daemon_monitor, '_process_command_rows', return_value=None):
+            self.assertIsNone(daemon_monitor._live_untracked_cloud_integrator_exec_pids({}))
+
 
 if __name__ == '__main__':
     unittest.main()

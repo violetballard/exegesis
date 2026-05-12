@@ -165,36 +165,55 @@ def _tracked_integrator_pids(router_state: Dict[str, Any]) -> set[int]:
     return pids
 
 
-def _live_untracked_cloud_integrator_exec_pids(router_state: Dict[str, Any]) -> List[int]:
+def _process_command_rows() -> list[tuple[int, str]] | None:
+    """Return process command rows with wide commands when the platform allows it."""
+    commands = (
+        ["ps", "-wwaxo", "pid=,command="],
+        ["ps", "-axo", "pid=,command="],
+    )
+    for command in commands:
+        try:
+            proc = subprocess.run(
+                command,
+                stdout=subprocess.PIPE,
+                stderr=subprocess.DEVNULL,
+                text=True,
+                timeout=PROC_TIMEOUT_SECONDS,
+            )
+        except Exception:
+            continue
+        if proc.returncode != 0:
+            continue
+        rows: list[tuple[int, str]] = []
+        for raw_line in (proc.stdout or "").splitlines():
+            line = raw_line.strip()
+            if not line:
+                continue
+            pid_text, _, process_command = line.partition(" ")
+            try:
+                pid = int(pid_text)
+            except ValueError:
+                continue
+            rows.append((pid, process_command))
+        return rows
+    return None
+
+
+def _is_cloud_integrator_exec_command(command: str) -> bool:
+    return "codex exec" in command and any(marker in command for marker in INTEGRATOR_EXEC_MARKERS)
+
+
+def _live_untracked_cloud_integrator_exec_pids(router_state: Dict[str, Any]) -> List[int] | None:
     tracked = _tracked_integrator_pids(router_state)
-    try:
-        proc = subprocess.run(
-            ["ps", "-axo", "pid=,command="],
-            stdout=subprocess.PIPE,
-            stderr=subprocess.DEVNULL,
-            text=True,
-            timeout=PROC_TIMEOUT_SECONDS,
-        )
-    except Exception:
-        return []
-    if proc.returncode != 0:
-        return []
     current_pid = os.getpid()
     pids: List[int] = []
-    for raw_line in (proc.stdout or "").splitlines():
-        line = raw_line.strip()
-        if not line:
-            continue
-        pid_text, _, command = line.partition(" ")
-        try:
-            pid = int(pid_text)
-        except ValueError:
-            continue
+    rows = _process_command_rows()
+    if rows is None:
+        return None
+    for pid, command in rows:
         if pid == current_pid or pid in tracked or not _pid_alive(pid):
             continue
-        if "codex exec" not in command:
-            continue
-        if any(marker in command for marker in INTEGRATOR_EXEC_MARKERS):
+        if _is_cloud_integrator_exec_command(command):
             pids.append(pid)
     return pids
 
@@ -1158,20 +1177,36 @@ def main() -> None:
     cloud_feature_jobs = _active_feature_mode_count("cloud_primary")
     cloud_reviewer_jobs = _active_cloud_reviewer_count()
     untracked_cloud_integrators = _live_untracked_cloud_integrator_exec_pids(router_state)
-    cloud_integrator_jobs = _count_active_pid_jobs(router_state.get("cloud_integrator_jobs") or {}) + len(untracked_cloud_integrators)
+    tracked_cloud_integrator_jobs = _count_active_pid_jobs(router_state.get("cloud_integrator_jobs") or {})
+    untracked_cloud_integrator_count = (
+        None if untracked_cloud_integrators is None else len(untracked_cloud_integrators)
+    )
+    cloud_integrator_jobs = tracked_cloud_integrator_jobs + (untracked_cloud_integrator_count or 0)
     cloud_fixer_jobs = _count_active_pid_jobs(router_state.get("fixer_fallback_jobs") or {}, local=False)
     cfg_for_caps = _load_json(ROUTER_CFG, {}) or {}
     cloud_total_jobs = cloud_feature_jobs + cloud_reviewer_jobs + cloud_integrator_jobs + cloud_fixer_jobs
     cloud_total_cap = int(cfg_for_caps.get("max_total_cloud_jobs", 4) or 4)
+    cloud_jobs_display = (
+        f"{cloud_total_jobs}+unknown"
+        if untracked_cloud_integrator_count is None
+        else str(cloud_total_jobs)
+    )
+    cloud_integrator_display = (
+        f"{tracked_cloud_integrator_jobs}+unknown"
+        if untracked_cloud_integrator_count is None
+        else str(cloud_integrator_jobs)
+    )
     print(
         "cloud_jobs="
-        f"{cloud_total_jobs}/{cloud_total_cap} total "
+        f"{cloud_jobs_display}/{cloud_total_cap} total "
         f"(features {cloud_feature_jobs}, "
         f"reviewer {cloud_reviewer_jobs}, "
-        f"integrator {cloud_integrator_jobs}, "
+        f"integrator {cloud_integrator_display}, "
         f"fixer {cloud_fixer_jobs})"
     )
-    if untracked_cloud_integrators:
+    if untracked_cloud_integrators is None:
+        print("cloud_integrator_untracked_pids=unknown_process_listing_unavailable")
+    elif untracked_cloud_integrators:
         print(f"cloud_integrator_untracked_pids={','.join(str(pid) for pid in untracked_cloud_integrators)}")
     reviewer_map = router_state.get("reviewer_thread_ids") or {}
     if isinstance(reviewer_map, dict) and reviewer_map:

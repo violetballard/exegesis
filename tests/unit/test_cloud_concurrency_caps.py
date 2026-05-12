@@ -430,6 +430,15 @@ class CloudConcurrencyCapsTests(unittest.TestCase):
             self.assertFalse(router._cloud_role_slot_available(cfg, state, "integrator"))
             self.assertEqual(router._count_active_cloud_jobs(state), 1)
 
+    def test_router_process_command_rows_prefers_wide_process_listing(self) -> None:
+        completed = mock.Mock(returncode=0, stdout=" 9999 codex exec You are the INTEGRATOR\n")
+
+        with mock.patch.object(router.subprocess, "run", return_value=completed) as run:
+            rows = router._process_command_rows()
+
+        self.assertEqual(rows, [(9999, "codex exec You are the INTEGRATOR")])
+        self.assertEqual(run.call_args.args[0], ["ps", "-wwaxo", "pid=,command="])
+
     def test_cloud_reviewers_can_share_total_cloud_cap(self) -> None:
         cfg = SimpleNamespace(
             max_cloud_feature_jobs=4,
