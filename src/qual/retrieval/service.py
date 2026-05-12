@@ -695,6 +695,12 @@ class RetrievalResult:
             for item in basket_promotion_items
         ]
         promotion_items: list[dict[str, object]] = []
+        basket_item_fingerprint_by_id = {
+            str(item["item_id"]): item["basket_item_fingerprint"]
+            for item in basket_promotion_items
+            if isinstance(item.get("item_id"), str)
+            and isinstance(item.get("basket_item_fingerprint"), str)
+        }
         for hit in self.hits:
             if hit.excerpt_id is None:
                 continue
@@ -740,6 +746,9 @@ class RetrievalResult:
                 "matched_terms": copy.deepcopy(hit.provenance.get("matched_terms")),
                 "match_count": hit.provenance.get("match_count"),
             }
+            basket_item_fingerprint = basket_item_fingerprint_by_id.get(str(basket_item_id))
+            if basket_item_fingerprint is not None:
+                promotion_item["basket_item_fingerprint"] = basket_item_fingerprint
             promotion_item["promotion_item_fingerprint"] = RetrievalService._stable_fingerprint(promotion_item)
             promotion_items.append(promotion_item)
         promotion_bundle_fingerprint = RetrievalService._stable_fingerprint(

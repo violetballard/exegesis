@@ -1426,6 +1426,14 @@ def _normalize_basket_promotion_bundle_snapshot(bundle: dict[str, object]) -> di
             lookup_fingerprint
         ):
             item["excerpt_lookup_fingerprint"] = copy.deepcopy(lookup_fingerprint)
+        basket_item_fingerprint = basket_item.get("basket_item_fingerprint")
+        if _is_missing_snapshot_value(item.get("basket_item_fingerprint")) and not _is_missing_snapshot_value(
+            basket_item_fingerprint
+        ):
+            item["basket_item_fingerprint"] = copy.deepcopy(basket_item_fingerprint)
+        if not _is_missing_snapshot_value(item.get("excerpt_lookup_fingerprint")) or not _is_missing_snapshot_value(
+            item.get("basket_item_fingerprint")
+        ):
             item["promotion_item_fingerprint"] = _stable_fingerprint(
                 {
                     key: value
