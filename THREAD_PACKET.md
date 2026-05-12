@@ -12,8 +12,8 @@
 - Authoritative reviewed implementation base: `378cf9a74a3658058079a32f186fcd254c4a4034`.
 - Reviewed source-bearing implementation head: this source-bearing fixer commit; final branch tip SHA is reported in the fixer final response.
 - Reviewed source-bearing implementation range: `378cf9a74a3658058079a32f186fcd254c4a4034..HEAD` on branch `codex/feat-retrieval-fts`.
-- Packet update note: this commit updates retrieval payload source, the approved shared regression surface, and `THREAD_PACKET.md` so sparse basket-promotion bundles validate both bundle-level strategy lists and item-level strategy labels with the same FTS-first policy used by the rest of the retrieval payload; the final branch tip SHA is reported in the fixer final response.
-- Current pass role: source-bearing FTS-first policy finalization for sparse basket-promotion bundle and item strategy snapshots.
+- Packet update note: this commit updates retrieval service/payload source, the approved shared regression surface, and `THREAD_PACKET.md` so basket-promotion items carry and rehydrate the canonical FTS-first retrieval policy/backend/mode identity, while sparse basket-promotion bundle rehydration rejects non-FTS bundle identity drift; the final branch tip SHA is reported in the fixer final response.
+- Current pass role: source-bearing FTS-first policy finalization for basket-promotion item policy snapshots and sparse bundle identity backfill/validation.
 
 ## Traceability Correction
 
@@ -59,6 +59,8 @@ This source-bearing fixer pass modifies `src/qual/engine/retrieval/payload.py`, 
 
 This source-bearing fixer pass modifies `src/qual/engine/retrieval/payload.py`, `tests/unit/test_unified_retrieval.py`, and `THREAD_PACKET.md` so sparse basket-promotion bundle items also run through the canonical FTS-only item validator. Non-FTS promotion item strategies now fail closed, while padded or mixed-case FTS labels canonicalize to `fts` before downstream payload rehydration.
 
+This source-bearing fixer pass modifies `src/qual/retrieval/service.py`, `src/qual/engine/retrieval/payload.py`, `tests/unit/test_unified_retrieval.py`, and `THREAD_PACKET.md` so context-basket promotion items carry the canonical FTS-first retrieval policy, sparse basket-promotion bundle rehydration backfills item policy/backend/mode identity from the bundle policy, and bundle-level backend/mode drift fails closed before promotion evidence reaches engine consumers.
+
 Packet-only commits after `5c87b08a9f7ca5a4dabc23fc1a80214276a882e9` refresh traceability and gate evidence only through `f9bdab5ded16e44476d773a24249c64442df2f3a`. The source-bearing passes after that packet-only refresh change `src/qual/retrieval/service.py`, `src/qual/engine/retrieval/payload.py`, and `tests/unit/test_unified_retrieval.py`; reviewers should include those source-bearing commits, including this final integrator conflict-resolution pass, when re-reviewing the merge candidate.
 
 Tracked packet note for this fixer pass: `.codex/kickoff_packets/feat-retrieval-fts.md` and `.codex/lane_meta/feat-retrieval-fts.json` are ignored local automation metadata in this branch worktree and are not tracked at `HEAD`. Treat this tracked `THREAD_PACKET.md` file as the authoritative corrected handoff packet for re-review.
@@ -71,6 +73,7 @@ Source and shared regression implementation surface in the corrected source-bear
 
 - `src/qual/engine/retrieval/__init__.py`
 - `src/qual/engine/retrieval/fts_strategy.py`
+- `src/qual/retrieval/service.py`
 - `src/qual/engine/retrieval/payload.py`
 - `src/qual/retrieval/__init__.py`
 - `src/qual/retrieval/service.py`
@@ -128,6 +131,8 @@ This finalization pass also normalizes downstream `citation_status` snapshots ac
 
 This finalization pass also validates sparse basket-promotion strategy lists with the canonical MVP retrieval policy. A sparse downstream payload cannot carry `embeddings`, `pageindex`, or other non-FTS active strategies into promotion-ready evidence.
 
+This finalization pass also carries the canonical retrieval policy on each basket-promotion item and validates sparse basket-promotion bundle backend/mode identity. Sparse promotion evidence now backfills item policy/backend/mode from the FTS-first bundle policy, while PageIndex-shaped bundle identity fails closed before context-basket promotion.
+
 Canonical demo path advanced: `vault/context material -> FTS retrieval -> retrieval evidence -> context basket promotion -> engine revise/apply`.
 
 Before-handoff canonical demo-path statement: this work advances `retrieve relevant material` by keeping retrieval FTS-first, deterministic, and auditable; it also supports `promote or gather context into the basket` by preserving provenance and query evidence on promotion bundles/items.
@@ -143,8 +148,8 @@ Task accounting: this high-risk handoff is summarized as the 4 meaningful task g
 ## Kickoff Budget/Limits Compliance
 
 - Task budget: `4` high-risk task groups; this handoff folds the cumulative retrieval work into 4 meaningful and testable task groups.
-- File count: the corrected source-bearing range before this pass changes `6` source/test files plus `3` packet/artifact files; this pass changes `src/qual/engine/retrieval/payload.py`, `tests/unit/test_unified_retrieval.py`, and `THREAD_PACKET.md`.
-- Size accounting before this packet refresh: the corrected source-bearing range `378cf9a74a3658058079a32f186fcd254c4a4034..HEAD` already exceeds the high-risk `<=300 net LOC` limit; this pass adds a small retrieval payload/test/packet update for basket-promotion bundle and item strategy validation, keeping the range above the limit.
+- File count: the corrected source-bearing range before this pass changes `6` source/test files plus `3` packet/artifact files; this pass changes `src/qual/retrieval/service.py`, `src/qual/engine/retrieval/payload.py`, `tests/unit/test_unified_retrieval.py`, and `THREAD_PACKET.md`.
+- Size accounting before this packet refresh: the corrected source-bearing range `378cf9a74a3658058079a32f186fcd254c4a4034..HEAD` already exceeds the high-risk `<=300 net LOC` limit; this pass adds a small retrieval service/payload/test/packet update for basket-promotion policy propagation plus sparse bundle identity backfill/validation, keeping the range above the limit.
 - Size limit status: exceeds the high-risk `<=8 files` and `<=300 net LOC` limits.
 - Explicit exception status: no integrator-approved size or task-budget exception is recorded in this worktree. Because the full source-bearing range remains together, this is a known blocker for approval until the integrator grants an exception or requests a branch split.
 - Shared-file exception status: `tests/unit/test_unified_retrieval.py` is the sole approved shared regression surface; no integrator-locked files changed.
@@ -161,20 +166,23 @@ Task accounting: this high-risk handoff is summarized as the 4 meaningful task g
 7. Reproduced the integrator replay blocker locally as a failing `./quality-test.sh` run in `test_basket_promotion_bundle_normalizes_query_constraints_snapshot`, then confirmed the resolved source/test state with focused retrieval regressions and the full required gate suite.
 8. Added FTS-first basket-promotion strategy validation so sparse downstream payloads fail closed when a promotion bundle advertises non-FTS active strategies.
 9. Added FTS-only basket-promotion item validation so sparse downstream payloads fail closed when individual promotion items advertise PageIndex/embedding strategies, while canonicalizing accepted padded or mixed-case FTS labels to `fts`.
+10. Added basket-promotion policy propagation and sparse bundle backend/mode backfill/validation so context-basket promotion evidence carries the canonical FTS-first identity and rejects non-FTS bundle identity drift.
 
 ## Commands Run
 
-Required gates for this corrected merge candidate were re-run on 2026-05-12 against branch `codex/feat-retrieval-fts` after this source-bearing basket-promotion item strategy validation fix.
+Required gates for this corrected merge candidate were re-run on 2026-05-12 against branch `codex/feat-retrieval-fts` after this source-bearing basket-promotion policy propagation and sparse bundle identity backfill/validation fix.
+
+- `python3 -m unittest tests.unit.test_unified_retrieval.UnifiedRetrievalTests.test_basket_promotion_bundle_backfills_item_policy_and_rejects_non_fts_identity tests.unit.test_unified_retrieval.UnifiedRetrievalTests.test_basket_promotion_bundle_normalizes_query_constraints_snapshot tests.unit.test_unified_retrieval.UnifiedRetrievalTests.test_basket_promotion_items_backfill_query_context_from_bundle -q` - passed 3 focused retrieval regressions for basket-promotion item policy/backend/mode backfill, bundle identity validation, and neighboring promotion normalization.
 
 - `python3 -m unittest tests.unit.test_unified_retrieval.UnifiedRetrievalTests.test_retrieval_downstream_payload_helper_rejects_non_fts_promotion_items tests.unit.test_unified_retrieval.UnifiedRetrievalTests.test_retrieval_downstream_payload_helper_canonicalizes_fts_promotion_items -q` - passed 2 focused retrieval regression tests for item-level basket-promotion strategy validation.
 - `./quality-format.sh --check` - passed.
 - `./quality-lint.sh` - passed shell syntax and trailing whitespace checks.
 - `./quality-test.sh` - initially failed after broad item normalization added basket identity fields to sparse bundle snapshots; fixed by narrowing item-level normalization to strategy-label validation/canonicalization only.
 - `python3 -m unittest tests.unit.test_unified_retrieval.UnifiedRetrievalTests.test_retrieval_downstream_payload_helper_rejects_non_fts_promotion_items tests.unit.test_unified_retrieval.UnifiedRetrievalTests.test_retrieval_downstream_payload_helper_canonicalizes_fts_promotion_items tests.unit.test_unified_retrieval.UnifiedRetrievalTests.test_basket_promotion_bundle_normalizes_query_constraints_snapshot tests.unit.test_unified_retrieval.UnifiedRetrievalTests.test_retrieval_downstream_payload_helper_normalizes_numeric_citation_status -q` - passed 4 focused retrieval regressions after the narrow fix.
-- `./quality-test.sh` - passed smoke tests and 473 unit tests, including the unified retrieval regression surface.
+- `./quality-test.sh` - passed smoke tests and 474 unit tests, including the unified retrieval regression surface.
 - `./typecheck-test.sh` - passed Python source compilation under `src/`.
 - `make ci` - blocked at scope-check because `tests/unit/test_unified_retrieval.py` is an approved shared regression path; rerun with `SCOPE_ALLOW_SHARED=1`.
-- `SCOPE_ALLOW_SHARED=1 make ci` - blocked twice by sandbox `PermissionError` failures in unrelated control-plane tests that write under `.codex`, move recovery artifacts under `.codex/worktree_recovery`, or invoke `ps`; scope-check, format, lint, compile/typecheck, smoke tests, and retrieval tests ran before the sandbox errors.
+- `SCOPE_ALLOW_SHARED=1 make ci` - passed scope-check, format, lint, compile/typecheck, smoke tests, and retrieval tests, then failed with 6 unrelated control-plane `PermissionError` errors when tests attempted to write `.codex/packet_router/logs`, `.codex/feature_runner/state.json`, `.codex/packet_planner/state.json`, move recovery artifacts under `.codex/worktree_recovery`, or invoke `ps`.
 - `python3 -m unittest tests.unit.test_unified_retrieval.UnifiedRetrievalTests.test_retrieval_downstream_payload_helper_rejects_non_fts_promotion_strategies tests.unit.test_unified_retrieval.UnifiedRetrievalTests.test_retrieval_downstream_payload_helper_normalizes_numeric_citation_status -q` - passed 2 focused retrieval regression tests.
 
 Additional focused retrieval checks run earlier in this lane:

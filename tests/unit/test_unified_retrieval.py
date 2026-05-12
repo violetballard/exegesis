@@ -3451,6 +3451,7 @@ class UnifiedRetrievalTests(unittest.TestCase):
             direct_item["citation_status"],
             result.retrieval_basket_promotion_bundle()["citation_status"],
         )
+        self.assertEqual(direct_item["retrieval_policy"], result.diagnostics["retrieval_policy"])
         self.assertEqual(direct_item["doc_type"], "memo")
         self.assertEqual(
             engine_retrieve_fts_basket_promotion_bundle(
@@ -3616,6 +3617,51 @@ class UnifiedRetrievalTests(unittest.TestCase):
         )
         self.assertNotIn("basket_item_id", normalized_item)
         self.assertNotEqual(normalized_item["promotion_item_fingerprint"], "stale-fingerprint")
+
+    def test_basket_promotion_bundle_backfills_item_policy_and_rejects_non_fts_identity(self) -> None:
+        result = self.service.retrieve_auto(
+            RetrievalQuery(
+                query_text="memo comparison",
+                scope="vault",
+                intent="compare",
+                constraints=RetrievalConstraints(max_results=4),
+                confidentiality_profile="confidential",
+            )
+        )
+        payload = result.to_downstream_payload()
+        basket_bundle = payload["retrieval_basket_promotion_bundle"]
+        self.assertIsInstance(basket_bundle, dict)
+        promotion_items = cast(dict[str, object], basket_bundle)["promotion_items"]
+        self.assertIsInstance(promotion_items, list)
+        promotion_item = cast(list[dict[str, object]], promotion_items)[0]
+        cast(dict[str, object], basket_bundle).pop("retrieval_backend", None)
+        cast(dict[str, object], basket_bundle).pop("retrieval_mode", None)
+        promotion_item.pop("retrieval_backend", None)
+        promotion_item.pop("retrieval_mode", None)
+        promotion_item.pop("retrieval_policy", None)
+
+        normalized_bundle = _build_retrieval_basket_promotion_bundle_from_payload(payload)
+        normalized_item = normalized_bundle["promotion_items"][0]
+
+        self.assertEqual(normalized_item["retrieval_policy"], result.diagnostics["retrieval_policy"])
+        self.assertEqual(normalized_bundle["retrieval_backend"], "sqlite_fts")
+        self.assertEqual(normalized_bundle["retrieval_mode"], "fts_first")
+        self.assertEqual(normalized_item["retrieval_backend"], "sqlite_fts")
+        self.assertEqual(normalized_item["retrieval_mode"], "fts_first")
+
+        cast(dict[str, object], basket_bundle)["retrieval_backend"] = "pageindex"
+        with self.assertRaisesRegex(
+            ValueError,
+            "retrieval_basket_promotion_bundle must use sqlite_fts backend",
+        ):
+            _build_retrieval_basket_promotion_bundle_from_payload(payload)
+        cast(dict[str, object], basket_bundle)["retrieval_backend"] = "sqlite_fts"
+        cast(dict[str, object], basket_bundle)["retrieval_mode"] = "pageindex"
+        with self.assertRaisesRegex(
+            ValueError,
+            "retrieval_basket_promotion_bundle must use fts_first mode",
+        ):
+            _build_retrieval_basket_promotion_bundle_from_payload(payload)
 
     def test_engine_retrieval_tool_returns_canonical_downstream_payload(self) -> None:
         payload = engine_retrieve_auto_payload(

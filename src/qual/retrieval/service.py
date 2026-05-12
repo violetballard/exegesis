@@ -685,6 +685,7 @@ class RetrievalResult:
                 "retrieval_evidence_fingerprint": bundle_context["retrieval_evidence_fingerprint"],
                 "retrieval_backend": hit.provenance.get("retrieval_backend"),
                 "retrieval_mode": hit.provenance.get("retrieval_mode"),
+                "retrieval_policy": copy.deepcopy(bundle_context["retrieval_policy"]),
                 "source_hash": hit.provenance.get("source_hash"),
                 "doc_type": hit.provenance.get("doc_type"),
                 "doc_fingerprint": hit.provenance.get("doc_fingerprint"),

@@ -1292,6 +1292,21 @@ def _normalize_basket_promotion_bundle_snapshot(bundle: dict[str, object]) -> di
     )
     if "caches_used" in normalized:
         normalized["caches_used"] = _normalize_bool_map(normalized.get("caches_used"))
+    normalized["retrieval_policy"] = _normalize_policy_snapshot(normalized.get("retrieval_policy", {}))
+    normalized["retrieval_backend"] = _normalize_retrieval_backend(
+        _first_text_value(
+            normalized.get("retrieval_backend"),
+            normalized["retrieval_policy"].get("retrieval_backend"),
+        ),
+        field_name="retrieval_basket_promotion_bundle",
+    )
+    normalized["retrieval_mode"] = _normalize_retrieval_mode(
+        _first_text_value(
+            normalized.get("retrieval_mode"),
+            normalized["retrieval_policy"].get("retrieval_mode"),
+        ),
+        field_name="retrieval_basket_promotion_bundle",
+    )
     normalized["promotion_target"] = _first_text_value(normalized.get("promotion_target")) or "context_basket"
     promotion_items: list[object] = []
     for item in _normalize_list_like(normalized.get("promotion_items")):
@@ -1311,6 +1326,7 @@ def _normalize_basket_promotion_bundle_snapshot(bundle: dict[str, object]) -> di
             "retrieval_evidence_fingerprint": normalized.get("retrieval_evidence_fingerprint"),
             "retrieval_backend": normalized.get("retrieval_backend"),
             "retrieval_mode": normalized.get("retrieval_mode"),
+            "retrieval_policy": normalized.get("retrieval_policy"),
         }
         for key, fallback_value in item_fallbacks.items():
             if _is_missing_snapshot_value(normalized_item.get(key)) and not _is_missing_snapshot_value(fallback_value):
@@ -1359,9 +1375,7 @@ def _normalize_basket_promotion_bundle_snapshot(bundle: dict[str, object]) -> di
                 ],
             }
         )
-    retrieval_policy = normalized.get("retrieval_policy")
-    if isinstance(retrieval_policy, dict):
-        normalized["retrieval_policy"] = _normalize_policy_snapshot(retrieval_policy)
+    _normalize_bundle_retrieval_identity(normalized, field_name="retrieval_basket_promotion_bundle")
     if "citation_status" in normalized:
         normalized["citation_status"] = _normalize_citation_status_snapshot(normalized.get("citation_status"))
     return normalized
