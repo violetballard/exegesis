@@ -1690,8 +1690,8 @@ _DEMO_SMOKE_ARGV_BY_FLOW_STEP: tuple[tuple[str, tuple[str, ...]], ...] = (
     ),
 )
 _DEMO_ACTION_SMOKE_ARGV_BY_ENGINE_ACTION: tuple[tuple[str, tuple[str, ...]], ...] = (
-    ("ExegesisAppService.open_project", ("bootstrap",)),
-    ("ExegesisAppService.open_document", ("bootstrap",)),
+    ("ExegesisAppService.open_project", ("bootstrap", "--project", "demo-project")),
+    ("ExegesisAppService.open_document", ("bootstrap", "--project", "demo-document")),
     ("ExegesisAppService.search_project", ("context-basket", "list")),
     ("ExegesisAppService.add_basket_item", ("context-basket", "add", "demo-retrieval-result")),
     (
@@ -1699,7 +1699,7 @@ _DEMO_ACTION_SMOKE_ARGV_BY_ENGINE_ACTION: tuple[tuple[str, tuple[str, ...]], ...
         (
             "diff-preview",
             "--original",
-            "draft text",
+            "draft text before revision",
             "--proposed",
             "revised draft text",
         ),
@@ -1709,9 +1709,9 @@ _DEMO_ACTION_SMOKE_ARGV_BY_ENGINE_ACTION: tuple[tuple[str, tuple[str, ...]], ...
         (
             "diff-preview",
             "--original",
-            "draft text",
+            "draft text before apply",
             "--proposed",
-            "revised draft text",
+            "applied draft text",
         ),
     ),
     (
@@ -1719,9 +1719,9 @@ _DEMO_ACTION_SMOKE_ARGV_BY_ENGINE_ACTION: tuple[tuple[str, tuple[str, ...]], ...
         (
             "diff-preview",
             "--original",
-            "draft text",
+            "draft text before reject",
             "--proposed",
-            "revised draft text",
+            "rejected draft text",
         ),
     ),
     (
@@ -1807,6 +1807,7 @@ def _demo_smoke_argv_by_flow_step() -> dict[str, tuple[str, ...]]:
 
 def _demo_action_smoke_argv_by_engine_action() -> dict[str, tuple[str, ...]]:
     argv_by_action: dict[str, tuple[str, ...]] = {}
+    seen_argv: set[tuple[str, ...]] = set()
     for engine_action, argv in _DEMO_ACTION_SMOKE_ARGV_BY_ENGINE_ACTION:
         if not engine_action.strip():
             raise ValueError("Command demo action smoke argv action must not be empty")
@@ -1814,6 +1815,9 @@ def _demo_action_smoke_argv_by_engine_action() -> dict[str, tuple[str, ...]]:
             raise ValueError(f"Duplicate command demo action smoke argv action: {engine_action}")
         if not argv or any(not token.strip() for token in argv):
             raise ValueError(f"Command demo action smoke argv must not be empty: {engine_action}")
+        if argv in seen_argv:
+            raise ValueError(f"Duplicate command demo action smoke argv: {engine_action}")
+        seen_argv.add(argv)
         argv_by_action[engine_action] = argv
     return argv_by_action
 
