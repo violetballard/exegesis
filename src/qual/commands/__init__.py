@@ -23,11 +23,13 @@ from src.qual.commands.canonical import (
     canonical_command_persist_continue_payload,
     canonical_command_readiness_command_audit_payload,
     canonical_command_readiness_cli_smoke_lines,
+    canonical_command_readiness_command_progress_payload,
     canonical_command_readiness_handoff_command_progress_payload,
     canonical_command_readiness_handoff_next_action_payload,
     canonical_command_readiness_next_status_payload,
     canonical_command_readiness_remaining_action_payload,
     canonical_command_readiness_snapshot_payload,
+    canonical_command_readiness_status_for_flow_step,
     canonical_command_retrieval_context_payload,
 )
 from src.qual.commands.diff_preview import (
@@ -132,6 +134,7 @@ def build_mvp_demo_command_surface_payload(
             smoke_argvs
         ),
         "next_step": build_mvp_demo_next_step_payload(smoke_argvs),
+        "resume_packet": build_mvp_demo_resume_packet_payload(smoke_argvs),
         "next_command": canonical_command_readiness_next_status_payload(smoke_argvs),
         "smoke_contract": smoke_contract,
         "smoke_command_lines": canonical_command_readiness_cli_smoke_lines(),
@@ -354,6 +357,74 @@ def build_mvp_demo_next_step_payload(
     }
 
 
+def build_mvp_demo_resume_packet_payload(
+    smoke_argvs: Sequence[Sequence[str] | str] = (),
+) -> dict[str, object]:
+    """Return the trusted command packet for resuming a partial MVP demo loop."""
+
+    command_checkpoint = canonical_command_readiness_command_progress_payload(smoke_argvs)
+    exact_action_checkpoint = build_mvp_demo_readiness_checkpoint_payload(smoke_argvs)
+    if command_checkpoint["is_complete"]:
+        next_command = {
+            "command": None,
+            "flow_step": None,
+            "demo_path_step": None,
+            "argv": (),
+            "command_line": "",
+            "engine_actions": (),
+            "ready": True,
+        }
+    else:
+        next_status = canonical_command_readiness_status_for_flow_step(
+            str(command_checkpoint["next_flow_step"])
+        )
+        next_command = {
+            "command": next_status.command,
+            "flow_step": next_status.flow_step,
+            "demo_path_step": next_status.demo_path_step,
+            "argv": next_status.argv,
+            "command_line": next_status.command_line,
+            "engine_actions": next_status.engine_actions,
+            "ready": next_status.ready,
+        }
+    next_step = {
+        **build_mvp_demo_next_step_payload(smoke_argvs),
+        "is_complete": command_checkpoint["is_complete"],
+        "next_command": next_command,
+    }
+    trusted_contract = build_mvp_demo_trusted_command_contract_payload()
+    command_readiness = {
+        str(entry["command"]): entry
+        for entry in trusted_contract["command_readiness"]
+    }
+    command = next_command["command"]
+    trusted_command = command_readiness.get(str(command)) if command is not None else None
+    compatibility_invocations = tuple(
+        entry
+        for entry in command_cli_compatibility_invocation_payloads()
+        if entry["canonical_name"] == command
+    )
+    return {
+        "is_complete": command_checkpoint["is_complete"],
+        "is_ready": bool(next_command["ready"])
+        and (trusted_command is None or bool(trusted_command["is_trusted"])),
+        "checkpoint": command_checkpoint,
+        "exact_action_checkpoint": exact_action_checkpoint,
+        "next_step": next_step,
+        "trusted_command": trusted_command,
+        "compatibility_invocations": compatibility_invocations,
+    }
+
+
+def run_mvp_demo_resume_packet_json() -> str:
+    """Return stable JSON for resuming the MVP demo command loop."""
+    return json.dumps(
+        build_mvp_demo_resume_packet_payload(),
+        sort_keys=True,
+        separators=(",", ":"),
+    )
+
+
 def run_mvp_demo_next_step_json() -> str:
     """Return stable JSON for the next resumable MVP demo command/action."""
     return json.dumps(
@@ -446,6 +517,7 @@ def build_mvp_demo_cli_handoff_payload(
         "smoke_gate": smoke_gate,
         "checkpoint": checkpoint,
         "next_step": build_mvp_demo_next_step_payload(smoke_argvs),
+        "resume_packet": build_mvp_demo_resume_packet_payload(smoke_argvs),
     }
 
 
@@ -577,6 +649,7 @@ def build_mvp_demo_command_surface_audit_payload() -> dict[str, object]:
         "smoke_gate": build_mvp_demo_smoke_gate_payload(),
         "readiness_checkpoint": build_mvp_demo_readiness_checkpoint_payload(),
         "next_step": build_mvp_demo_next_step_payload(),
+        "resume_packet": build_mvp_demo_resume_packet_payload(),
         "patch_review_readiness_smoke": build_patch_review_readiness_smoke_payload(),
         "patch_review_action_resolution_smoke": build_patch_review_action_resolution_smoke_payload(),
     }
