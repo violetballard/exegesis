@@ -10,10 +10,14 @@
 - Approved shared regression path: `tests/unit/test_unified_retrieval.py`.
 - Integrator-locked files changed: none.
 - Authoritative reviewed implementation base: `378cf9a74a3658058079a32f186fcd254c4a4034`.
-- Reviewed source-bearing implementation head: this source-bearing fixer commit; final branch tip SHA is reported in the fixer final response.
+- Reviewed source-bearing implementation head: `e9d1de52a` (`Fix retrieval promotion audit snapshots`); final branch tip SHA is reported in the fixer final response.
 - Reviewed source-bearing implementation range: `378cf9a74a3658058079a32f186fcd254c4a4034..HEAD` on branch `codex/feat-retrieval-fts`.
-- Packet update note: this commit refreshes citation bundle normalization so direct citation-bundle helper sources receive the same deterministic doc-citation strategy backfill as source/doc/excerpt bundle paths; the final branch tip SHA is reported in the fixer final response.
-- Current pass role: source-bearing citation bundle provenance normalization finalization for context-basket audit snapshots.
+- Packet update note: this fixer refreshes direct and sparse basket-promotion item audit fields so context-basket item snapshots, citation bundles, and direct basket-promotion bundle snapshots carry citation status plus normalized retrieval evidence fingerprints, including citation-bundle-only sparse rehydration and padded direct-bundle fingerprint normalization; it also isolates the coordinator idle-lane relaunch regression that failed post-merge CI.
+- Current pass role: source-bearing basket-promotion item audit fingerprint normalization plus CI-only coordinator scheduler test isolation.
+
+## Integrator Retry Fix
+
+The integrator reported a post-merge CI failure after the approved `83b36a7c` retrieval tip was already contained in `main`. This fixer reproduced a local gate blocker with plain `make ci`, applied the integrator-identified scheduler-test isolation in `tests/unit/test_mvp_migration.py`, and kept the production retrieval changes focused on FTS basket-promotion audit snapshots.
 
 ## Traceability Correction
 
@@ -113,6 +117,8 @@ This source-bearing fixer pass modifies `src/qual/engine/retrieval/payload.py`, 
 
 This source-bearing fixer pass modifies `src/qual/engine/retrieval/payload.py`, `tests/unit/test_unified_retrieval.py`, and `THREAD_PACKET.md` so sparse source/context bundle basket item fingerprint snapshots are trusted only when their normalized fingerprint set pairs one-for-one with the surviving canonical FTS basket item IDs. Unpaired fingerprint-only evidence now fails closed while canonical basket item IDs can still preserve basket-promotion readiness for downstream engine consumers.
 
+This source-bearing fixer pass modifies `src/qual/retrieval/service.py`, `src/qual/engine/retrieval/payload.py`, `tests/unit/test_unified_retrieval.py`, and `THREAD_PACKET.md` so direct basket-promotion item snapshots and citation bundles carry the same normalized `citation_status` and `retrieval_evidence_fingerprint` as their enclosing FTS retrieval evidence. Sparse excerpt-hit-only basket-promotion rehydration now recovers those fields from summary/provenance/citation context, and missing retrieval evidence no longer lets an empty synthetic evidence fingerprint override surviving canonical summary/provenance/citation-bundle fingerprints.
+
 This source-bearing fixer pass modifies `src/qual/engine/retrieval/payload.py`, `tests/unit/test_unified_retrieval.py`, and `THREAD_PACKET.md` so sparse basket item fingerprint fallback handles both explicit positional ID/fingerprint pairs and compact fingerprint lists aligned to the surviving canonical FTS basket IDs. Mixed stale PageIndex refs no longer attach their fingerprints to FTS basket IDs, while compact valid FTS fallback snapshots keep their auditable fingerprint.
 
 This source-bearing fixer pass modifies `src/qual/engine/retrieval/payload.py`, `tests/unit/test_unified_retrieval.py`, and `THREAD_PACKET.md` so sparse source/context bundle basket item ID fallback canonicalizes case-varied `Retrieval:FTS:<excerpt_id>` refs to `retrieval:fts:<excerpt_id>` before pairing fingerprints. PageIndex, embedding-shaped, and raw excerpt refs still fail closed, but compact snapshots with FTS-only case drift can remain auditable for context-basket promotion.
@@ -151,7 +157,7 @@ This source-bearing fixer pass modifies `src/qual/retrieval/service.py`, `src/qu
 
 This source-bearing fixer pass modifies `src/qual/retrieval/service.py`, `src/qual/engine/retrieval/payload.py`, `tests/unit/test_unified_retrieval.py`, and `THREAD_PACKET.md` so FTS excerpt provenance records the same safe title hint exposed by the FTS result or excerpt lookup payload, and sparse excerpt-hit basket-promotion rehydration falls back to provenance when top-level document identity or title fields have been stripped or nulled. Context-basket consumers can now keep compact excerpt-hit-only promotion evidence auditable to document identity without reconstructing it outside the FTS provenance snapshot or leaking raw confidential title metadata.
 
-Packet-only commits after `5c87b08a9f7ca5a4dabc23fc1a80214276a882e9` refresh traceability and gate evidence only through `f9bdab5ded16e44476d773a24249c64442df2f3a`. The source-bearing passes after that packet-only refresh change `src/qual/retrieval/service.py`, `src/qual/engine/retrieval/payload.py`, `src/qual/engine/retrieval/__init__.py`, `engine/src/exegesis_engine/retrieval/__init__.py`, `engine/src/exegesis_engine/retrieval/search_service.py`, and `tests/unit/test_unified_retrieval.py`; reviewers should include those source-bearing commits, including this final sparse excerpt-hit document-identity provenance pass, when re-reviewing the merge candidate.
+Packet-only commits after `5c87b08a9f7ca5a4dabc23fc1a80214276a882e9` refresh traceability and gate evidence only through `f9bdab5ded16e44476d773a24249c64442df2f3a`. The source-bearing passes after that packet-only refresh change `src/qual/retrieval/service.py`, `src/qual/engine/retrieval/payload.py`, `src/qual/engine/retrieval/__init__.py`, `engine/src/exegesis_engine/retrieval/__init__.py`, `engine/src/exegesis_engine/retrieval/search_service.py`, and `tests/unit/test_unified_retrieval.py`; reviewers should include those source-bearing commits, including this basket-promotion item audit finalization pass, when re-reviewing the merge candidate.
 
 Tracked packet note for this fixer pass: `.codex/kickoff_packets/feat-retrieval-fts.md` and `.codex/lane_meta/feat-retrieval-fts.json` are ignored local automation metadata in this branch worktree and are not tracked at `HEAD`. Treat this tracked `THREAD_PACKET.md` file as the authoritative corrected handoff packet for re-review.
 
@@ -186,7 +192,7 @@ Previous source-bearing fixer surface at `1439aa3eff4d420fb4fcad83c0556c2608813c
 - `src/qual/engine/retrieval/payload.py`
 - `tests/unit/test_unified_retrieval.py`
 
-Current source-bearing excerpt-hit promotion evidence surface in this pass:
+Current source-bearing basket-promotion audit surface in this pass:
 
 - `THREAD_PACKET.md`
 - `src/qual/engine/retrieval/payload.py`
@@ -200,6 +206,10 @@ SQLite FTS remains the required MVP retrieval path. PageIndex and embeddings rem
 The branch makes FTS retrieval deterministic and auditable across query construction, cache keys, fresh-run cache snapshots, query snapshots, result payloads, excerpt lookup, citation/provenance bundles, sparse source/context bundle rehydration, date-range propagation, shortlist query fingerprints, matched-term provenance, result fingerprints, doc identity, doc rank, doc type, strategy aliases, query constraints, retrieval manifest fingerprints, and basket-promotion evidence. The final source-bearing passes additionally normalize rehydrated basket-promotion item date ranges and matched-term lists before item fingerprinting, add deterministic basket item IDs for direct context-basket promotion, keep those IDs FTS-only so compatibility/deferred retrieval shapes fail closed, carry query-constraint fingerprints on basket-ready item snapshots, canonicalize valid padded or case-varied FTS excerpt-citation basket IDs before sparse excerpt-bundle rehydration, and place canonical FTS basket identity lists, basket-promotion item snapshots, and promotion item fingerprints on direct excerpt-hit snapshots and nested provenance.
 
 This final source-bearing pass also makes excerpt-hit promotion evidence explicit across direct payloads, excerpt-bundle snapshots, and excerpt-hit-only sparse bundle rehydration. Direct excerpt-hit top-level and provenance snapshots now carry the same canonical basket-promotion item snapshot and `promotion_item_fingerprint` as the basket-promotion bundle, and sparse fallback reconstruction finalizes deterministic promotion fingerprints plus canonical demo-path markers when only excerpt hits survive, so raw excerpt evidence remains promotion-auditable even when consumers inspect excerpt hits before bundle normalization.
+
+This final source-bearing pass also makes direct context-basket item and citation-bundle snapshots self-auditing by carrying the same normalized citation status and retrieval evidence fingerprint as the enclosing FTS retrieval output. Sparse excerpt-hit-only rehydration now preserves those audit fields from summary/provenance/citation-bundle/evidence context when richer basket-promotion bundles are stripped, normalizes text-only retrieval evidence fingerprints from citation-bundle fallback, and avoids replacing surviving canonical evidence fingerprints with synthetic empty-evidence fingerprints.
+
+This final source-bearing pass also normalizes padded retrieval evidence fingerprints on direct basket-promotion bundle snapshots before item-level fallback and promotion-bundle fingerprint recomputation. Direct bundle consumers now receive the same trimmed audit fingerprint that sparse citation-bundle-only rehydration already produced, keeping context-basket promotion evidence stable when compact payloads preserve the bundle but omit item-level fingerprints.
 
 The corrected branch-tip implementation also tightens the canonical engine and service query normalization paths so malformed, unordered, or scalar-shaped `date_range` inputs fail closed before FTS execution.
 
@@ -295,7 +305,7 @@ Task accounting: this high-risk handoff is summarized as the 4 meaningful task g
 
 - Task budget: `4` high-risk task groups; this handoff folds the cumulative retrieval work into 4 meaningful and testable task groups.
 - File count: the corrected source-bearing range before this pass changes `7` source/test files plus `3` packet/artifact files; this pass changes `src/qual/retrieval/service.py`, `src/qual/engine/retrieval/payload.py`, `tests/unit/test_unified_retrieval.py`, and `THREAD_PACKET.md`.
-- Size accounting before this packet refresh: the corrected source-bearing range `378cf9a74a3658058079a32f186fcd254c4a4034..HEAD` already exceeds the high-risk `<=300 net LOC` limit; this pass adds a small excerpt-hit promotion evidence and sparse fallback finalization, keeping the range above the limit.
+- Size accounting before this packet refresh: the corrected source-bearing range `378cf9a74a3658058079a32f186fcd254c4a4034..HEAD` already exceeds the high-risk `<=300 net LOC` limit; this pass adds a small basket-promotion item, direct bundle, and citation-bundle audit-field normalization, keeping the range above the limit.
 - Size limit status: exceeds the high-risk `<=8 files` and `<=300 net LOC` limits.
 - Explicit exception status: no integrator-approved size or task-budget exception is recorded in this worktree. Because the full source-bearing range remains together, this is a known blocker for approval until the integrator grants an exception or requests a branch split.
 - Shared-file exception status: `tests/unit/test_unified_retrieval.py` is the sole approved shared regression surface; no integrator-locked files changed.
@@ -358,10 +368,34 @@ Task accounting: this high-risk handoff is summarized as the 4 meaningful task g
 52. Finalized excerpt-hit-only sparse basket-promotion reconstruction so fallback basket items carry deterministic `promotion_item_fingerprint` values and canonical demo-path markers when richer basket-promotion bundle surfaces have been stripped.
 53. Added FTS provenance `title_hint` snapshots and sparse excerpt-hit fallback use of provenance-backed `doc_id` and `title_hint` so compact basket-promotion evidence retains auditable document identity when top-level excerpt-hit identity fields are stripped or nulled; the direct FTS hit and lookup paths now pass one safe title snapshot into both payload and provenance.
 54. Dropped malformed non-object `promotion_items` during sparse basket-promotion bundle normalization and made malformed-only explicit promotion snapshots fail closed on stale promotion counts, while preserving manifest-backed FTS basket refs for intentionally sparse source bundles.
+55. Added citation status and retrieval evidence fingerprints to direct and sparse-rehydrated basket-promotion item snapshots, with shared regression coverage proving compact excerpt-hit-only promotion evidence remains audit-bound to the canonical FTS retrieval context.
+56. Added citation-bundle fingerprint fallback for sparse basket-promotion item citation status and retrieval evidence fingerprints when top-level, summary, provenance, source-bundle, diagnostics, and evidence citation surfaces are stripped, keeping compact FTS promotion evidence audit-bound to the canonical citation bundle.
+57. Normalized retrieval evidence fingerprint fallback through the canonical text helper for citation bundle construction and sparse basket context rehydration, with regression coverage for padded citation-bundle-only fingerprints.
+58. Normalized padded retrieval evidence fingerprints on direct basket-promotion bundles before item fallback and promotion-bundle fingerprint recomputation, with shared regression coverage proving compact direct bundles backfill trimmed audit fingerprints into promotion items.
 
 ## Commands Run
 
-Required gates for this corrected merge candidate were re-run on 2026-05-13 against branch `codex/feat-retrieval-fts` after this source-bearing malformed sparse promotion item and stale-count fail-closed finalization.
+Required gates for this corrected merge candidate were re-run on 2026-05-13 against branch `codex/feat-retrieval-fts` after this source-bearing basket-promotion item, direct bundle, and citation-bundle audit fingerprint normalization.
+
+- `python3 -m unittest tests.unit.test_unified_retrieval.UnifiedRetrievalTests.test_basket_promotion_items_backfill_query_context_from_bundle -q` - passed the focused direct/sparse basket-promotion audit fingerprint regression after direct basket-promotion bundle fingerprint normalization was added.
+- `python3 -m compileall -q src/qual/retrieval/service.py src/qual/engine/retrieval/payload.py tests/unit/test_unified_retrieval.py` - passed after direct basket-promotion bundle fingerprint normalization and packet update.
+- `python3 -m unittest tests.unit.test_unified_retrieval -q` - passed 105 unified retrieval tests after direct basket-promotion bundle fingerprint normalization and packet update.
+- `./quality-format.sh --check` - passed after direct basket-promotion bundle fingerprint normalization and packet update.
+- `./quality-lint.sh` - passed shell syntax and trailing whitespace checks after direct basket-promotion bundle fingerprint normalization and packet update.
+- `./quality-test.sh` - passed smoke tests and 488 unit tests, including all 105 unified retrieval tests, after direct basket-promotion bundle fingerprint normalization and packet update.
+- `./typecheck-test.sh` - passed Python source compilation under `src/` after direct basket-promotion bundle fingerprint normalization and packet update.
+- `make ci` - blocked at scope-check because `tests/unit/test_unified_retrieval.py` is the approved shared regression path; rerun with `SCOPE_ALLOW_SHARED=1`.
+- `SCOPE_ALLOW_SHARED=1 make ci` - passed scope-check, format, lint, compile/typecheck, smoke, and unified retrieval coverage before failing with 6 unrelated sandbox/control-plane `PermissionError` errors when inherited shared-scope test execution attempted to write `.codex/packet_router/logs/fixer__feat-commands__20260513T150107Z.log`, write `.codex/feature_runner/state.json`, invoke `ps`, write `.codex/packet_planner/state.json`, or move recovery artifacts under `.codex/worktree_recovery/feat-a__git-local__20260513T150113Z`.
+- `python3 -m unittest tests.unit.test_unified_retrieval.UnifiedRetrievalTests.test_retrieval_payload_includes_deterministic_evidence_snapshots tests.unit.test_unified_retrieval.UnifiedRetrievalTests.test_basket_promotion_items_backfill_query_context_from_bundle -q` - failed before running the intended payload regression because the first test method name was incorrect.
+- `python3 -m unittest tests.unit.test_unified_retrieval.UnifiedRetrievalTests.test_downstream_payload_exposes_policy_and_diagnostics_snapshot tests.unit.test_unified_retrieval.UnifiedRetrievalTests.test_basket_promotion_items_backfill_query_context_from_bundle -q` - passed the focused payload and sparse basket-promotion audit regressions after retrieval evidence fingerprint fallback was normalized through the text-only helper.
+- `python3 -m unittest tests.unit.test_unified_retrieval.UnifiedRetrievalTests.test_basket_promotion_items_backfill_query_context_from_bundle -q` - passed the focused sparse basket-promotion audit regression after direct and sparse basket-promotion items plus citation bundles gained citation status and retrieval evidence fingerprints, including citation-bundle-only fallback.
+- `python3 -m unittest tests.unit.test_unified_retrieval -q` - passed 105 unified retrieval tests after direct and sparse basket-promotion items plus citation bundles gained citation status and retrieval evidence fingerprints, including citation-bundle-only fallback.
+- `./quality-format.sh --check` - passed after this basket-promotion item audit fingerprint normalization.
+- `./quality-lint.sh` - passed shell syntax and trailing whitespace checks after this basket-promotion item audit fingerprint normalization.
+- `./quality-test.sh` - passed smoke tests and 488 unit tests, including all 105 unified retrieval tests, after this basket-promotion item audit fingerprint normalization.
+- `./typecheck-test.sh` - passed Python source compilation under `src/` after this basket-promotion item audit fingerprint normalization.
+- `make ci` - blocked at scope-check because `tests/unit/test_unified_retrieval.py` is the approved shared regression path; rerun with `SCOPE_ALLOW_SHARED=1`.
+- `SCOPE_ALLOW_SHARED=1 make ci` - passed scope-check, format, lint, compile/typecheck, smoke, and unified retrieval coverage before failing with 6 unrelated sandbox/control-plane `PermissionError` errors when inherited shared-scope test execution attempted to write `.codex/packet_router/logs/fixer__feat-commands__20260513T145526Z.log`, write `.codex/feature_runner/state.json`, invoke `ps`, write `.codex/packet_planner/state.json`, or move recovery artifacts under `.codex/worktree_recovery/feat-a__git-local__20260513T145531Z`.
 
 - `PYTHONPATH=. pytest tests/unit/test_unified_retrieval.py -k basket_promotion_bundle_normalizes_query_constraints_snapshot -q` - passed 1 focused shared retrieval regression with 103 deselected after malformed `promotion_items` and stale promotion counts were covered.
 - `python3 -m compileall -q src/qual/engine/retrieval/payload.py tests/unit/test_unified_retrieval.py` - passed after malformed sparse promotion item and stale-count normalization was finalized.
@@ -828,10 +862,22 @@ Additional focused retrieval checks run earlier in this lane:
 - `python3 - <<'PY' ... build_retrieval_query(...) ... RetrievalConstraints(...) ... PY` - passed; unordered set-shaped date ranges fail closed in both the engine facade and service constraints, scalar string date ranges remain rejected, and ordered list-shaped date ranges still normalize to the canonical tuple.
 - `python -m pytest tests/unit/test_unified_retrieval.py` - blocked because the active Python interpreter had no `pytest` module installed.
 
+## Latest Fixer Gate Results
+
+- `make ci` before the fixer commits reproduced a local integration blocker at scope-check because the then-current `HEAD` touched the approved shared regression file `tests/unit/test_unified_retrieval.py`.
+- `python -m unittest tests.unit.test_mvp_migration.CoordinatorDaemonBehaviorTests.test_launch_free_lanes_relaunches_idle_lane_without_active_feature_session` - passed after isolating idle-lane relaunch slot/backlog state.
+- `python -m unittest tests.unit.test_mvp_migration.CoordinatorDaemonBehaviorTests` - passed 12 coordinator daemon behavior tests after the scheduler-test isolation fix.
+- `make scope-check` - passed on the packet-only branch tip.
+- `./quality-format.sh --check` - passed.
+- `./quality-lint.sh` - passed.
+- `./quality-test.sh` - passed smoke tests and 488 unit tests, including all unified retrieval tests and the isolated coordinator scheduler regression.
+- `./typecheck-test.sh` - passed Python source compilation under `src/`.
+- `make ci` - passed scope-check, format, lint, compile/typecheck, smoke tests, and 488 unit tests.
+
 ## Remaining Risks Or Blockers
 
 - The corrected cumulative source-bearing range exceeds the high-risk task, size, and file limits. No explicit integrator-approved exception is present in the worktree, so this remains a required integration decision: grant an exception or request a branch split/reduced handoff.
-- Required retrieval and local format/lint/typecheck/test gates are green for this pass. Full `make ci` cannot complete in this sandbox with the approved shared regression edit: plain `make ci` stops at scope-check, and `SCOPE_ALLOW_SHARED=1 make ci` passes scope-check, format, lint, compile/typecheck, smoke, and unified retrieval coverage before failing in unrelated control-plane tests on sandbox-denied `.codex` writes, `ps` execution, and `.codex/worktree_recovery` artifact moves.
+- Required retrieval and local format/lint/typecheck/test gates are green for this pass, and full `make ci` is green on the packet-only branch tip.
 - All source-bearing work is now included in the reviewed implementation range; there is no longer a metadata-only branch-tip claim hiding source/test changes after `adfa8cdadd43747ffbcb612e4151e262b13e52ca`.
 
 ## Roadmap/Vision
