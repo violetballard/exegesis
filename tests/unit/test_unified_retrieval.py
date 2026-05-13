@@ -714,6 +714,11 @@ class UnifiedRetrievalTests(unittest.TestCase):
             [payload["retrieval_summary"]["primary_basket_item_id"]],
         )
         self.assertEqual(
+            payload["excerpt_hits"][0]["provenance"]["title_hint"],
+            payload["excerpt_hits"][0]["title_hint"],
+        )
+        self.assertNotIn(payload["excerpt_hits"][0]["title_hint"], {"Memo Alpha", "Interview Packet"})
+        self.assertEqual(
             payload["retrieval_summary"]["top_basket_item_ids"],
             [item.provenance["top_basket_item_id"] for item in result.doc_hits],
         )
@@ -1546,6 +1551,7 @@ class UnifiedRetrievalTests(unittest.TestCase):
         self.assertEqual(excerpt["basket_item_id"], f"retrieval:fts:{excerpt_id}")
         self.assertEqual(excerpt["doc_id"], result.hits[0].doc_id)
         self.assertEqual(excerpt["title_hint"], result.hits[0].title_hint)
+        self.assertNotEqual(excerpt["title_hint"], "Interview Packet")
         self.assertEqual(excerpt["span"], result.hits[0].span)
         self.assertEqual(excerpt["source_strategy"], "fts")
         self.assertEqual(excerpt["retrieval_backend"], "sqlite_fts")
@@ -1559,6 +1565,7 @@ class UnifiedRetrievalTests(unittest.TestCase):
         self.assertEqual(excerpt["provenance"]["retrieval_backend"], "sqlite_fts")
         self.assertEqual(excerpt["provenance"]["retrieval_mode"], "fts_first")
         self.assertEqual(excerpt["provenance"]["title_hint"], result.hits[0].title_hint)
+        self.assertNotEqual(excerpt["provenance"]["title_hint"], "Interview Packet")
         self.assertEqual(excerpt["provenance"]["hash"], result.hits[0].provenance["hash"])
         self.assertEqual(excerpt["provenance"]["excerpt_fingerprint"], result.hits[0].provenance["excerpt_fingerprint"])
         self.assertEqual(
@@ -4486,8 +4493,27 @@ class UnifiedRetrievalTests(unittest.TestCase):
         excerpt_only_payload.pop("retrieval_evidence", None)
         excerpt_only_payload.pop("retrieval_source_bundle", None)
         excerpt_only_payload.pop("retrieval_citation_bundle", None)
+        provenance_title_hint = excerpt_only_payload["excerpt_hits"][0]["provenance"]["title_hint"]
+        self.assertEqual(provenance_title_hint, result.hits[0].title_hint)
+        self.assertNotIn(provenance_title_hint, {"Memo Alpha", "Interview Packet"})
+        for hit in excerpt_only_payload["excerpt_hits"]:
+            hit["doc_id"] = None
+            hit["title_hint"] = None
         excerpt_only_bundle = _build_retrieval_basket_promotion_bundle_from_payload(excerpt_only_payload)
         excerpt_only_item = excerpt_only_bundle["basket_promotion_items"][0]
+        self.assertEqual(
+            excerpt_only_bundle["promotion_items"][0]["doc_id"],
+            result.hits[0].doc_id,
+        )
+        self.assertEqual(excerpt_only_item["doc_id"], result.hits[0].doc_id)
+        self.assertEqual(
+            excerpt_only_bundle["promotion_items"][0]["title_hint"],
+            provenance_title_hint,
+        )
+        self.assertEqual(
+            excerpt_only_item["title_hint"],
+            provenance_title_hint,
+        )
         self.assertIsInstance(excerpt_only_item["promotion_item_fingerprint"], str)
         self.assertEqual(
             excerpt_only_item["promotion_item_fingerprint"],

@@ -1649,6 +1649,7 @@ class RetrievalService:
             doc_id = str(row["doc_id"])
             excerpt_text = str(row["text"])
             matched_terms = self._matched_query_terms(query_terms, excerpt_text)
+            title_hint = self._safe_title_hint(query, str(row["title_hint"] or ""))
             provenance = self._build_fts_provenance(
                 doc_id=doc_id,
                 excerpt_id=str(row["excerpt_id"]),
@@ -1664,6 +1665,7 @@ class RetrievalService:
                 fts_match_query_fingerprint=fts_match_query_fingerprint,
                 candidate_doc_count=effective_candidate_doc_count,
                 query_date_range=query.constraints.date_range,
+                title_hint=title_hint,
             )
             hits.append(
                 RetrievalHit(
@@ -1671,7 +1673,7 @@ class RetrievalService:
                     excerpt_id=str(row["excerpt_id"]),
                     excerpt_text=excerpt_text,
                     span={"char_range": {"start": int(row["char_start"]), "end": int(row["char_end"])}},
-                    title_hint=self._safe_title_hint(query, str(row["title_hint"] or "")),
+                    title_hint=title_hint,
                     score=round(1.0 / rank, 3),
                     source_strategy="fts",
                     rationale="sqlite_fts_match",
@@ -2580,12 +2582,13 @@ class RetrievalService:
             text = str(row["text"])
             text_hash = hashlib.sha256(text.encode("utf-8")).hexdigest()
             doc_id = str(row["doc_id"])
+            title_hint = self._safe_lookup_title_hint(str(row["title_hint"] or ""))
             return self._normalize_excerpt_payload(
                 {
                     "excerpt_id": excerpt_id,
                     "doc_id": doc_id,
                     "doc_type": str(row["doc_type"]),
-                    "title_hint": self._safe_lookup_title_hint(str(row["title_hint"] or "")),
+                    "title_hint": title_hint,
                     "source_hash": self._doc_source_hash(doc_id),
                     "source_strategy": "fts",
                     "span": {"char_range": {"start": int(row["char_start"]), "end": int(row["char_end"])}},
@@ -2597,6 +2600,7 @@ class RetrievalService:
                         char_start=int(row["char_start"]),
                         char_end=int(row["char_end"]),
                         text=text,
+                        title_hint=title_hint,
                     ),
                 },
                 source_strategy="fts",
@@ -2621,11 +2625,15 @@ class RetrievalService:
         query_fingerprint: str | None = None,
         fts_match_query_fingerprint: str | None = None,
         candidate_doc_count: int | None = None,
+        title_hint: str | None = None,
     ) -> dict[str, object]:
         meta = self._load_doc_meta().get(doc_id, {})
         text_hash = hashlib.sha256(text.encode("utf-8")).hexdigest()
         source_hash = self._doc_source_hash(doc_id, doc_meta=meta)
         doc_type = str(meta.get("doc_type", ""))
+        normalized_title_hint = title_hint.strip() if isinstance(title_hint, str) else None
+        if normalized_title_hint == "":
+            normalized_title_hint = None
         doc_identity_fingerprint = self._build_doc_identity_fingerprint(
             doc_id=doc_id,
             source_hash=source_hash,
@@ -2651,6 +2659,8 @@ class RetrievalService:
             "retrieval_policy": self._retrieval_policy.as_snapshot(),
             "doc_identity_fingerprint": doc_identity_fingerprint,
         }
+        if normalized_title_hint is not None:
+            provenance["title_hint"] = normalized_title_hint
         provenance["excerpt_lookup_fingerprint"] = self._build_excerpt_lookup_fingerprint(
             excerpt_id=excerpt_id,
             doc_id=doc_id,

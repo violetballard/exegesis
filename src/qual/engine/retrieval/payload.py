@@ -661,7 +661,10 @@ def _basket_promotion_items_from_excerpt_hits(
                         "item_type": "excerpt",
                         "doc_id": doc_id,
                         "doc_type": _first_text_value(hit.get("doc_type"), provenance.get("doc_type")),
-                        "title_hint": _first_text_value(hit.get("title_hint")),
+                        "title_hint": _first_text_value(
+                            hit.get("title_hint"),
+                            provenance.get("title_hint"),
+                        ),
                         "source_hash": _first_text_value(hit.get("source_hash"), provenance.get("source_hash")),
                         "doc_identity_fingerprint": _first_text_value(
                             hit.get("doc_identity_fingerprint"),
@@ -2419,6 +2422,7 @@ def _build_retrieval_basket_promotion_bundle_from_payload(payload: dict[str, obj
             provenance.get("retrieval_source_strategy"),
             context="sparse promotion item",
         )
+        doc_id = _first_text_value(hit.get("doc_id"), provenance.get("doc_id"))
         basket_item_id = _basket_item_id_for_excerpt(
             source_strategy=source_strategy,
             excerpt_id=excerpt_id,
@@ -2426,15 +2430,15 @@ def _build_retrieval_basket_promotion_bundle_from_payload(payload: dict[str, obj
         promotion_item = {
             "item_id": basket_item_id,
             "basket_item_id": basket_item_id,
-            "doc_id": hit.get("doc_id"),
+            "doc_id": doc_id,
             "excerpt_id": excerpt_id,
-            "title_hint": hit.get("title_hint"),
+            "title_hint": _first_text_value(hit.get("title_hint"), provenance.get("title_hint")),
             "excerpt_text": hit.get("excerpt_text"),
             "span": copy.deepcopy(hit.get("span", provenance.get("span", {}))),
             "score": hit.get("score"),
             "doc_rank": hit.get(
                 "doc_rank",
-                provenance.get("doc_rank", doc_rank_by_id.get(str(hit.get("doc_id")))),
+                provenance.get("doc_rank", doc_rank_by_id.get(doc_id or "")),
             ),
             "rank": provenance.get("rank", hit.get("rank")),
             "fts_rank": hit.get(
