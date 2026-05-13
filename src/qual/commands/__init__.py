@@ -117,6 +117,13 @@ def build_mvp_demo_path_command_payload(
     command_lines = tuple(loop["command_lines"])
     smoke_argvs = tuple(loop["smoke_argvs"])
     action_lookup = dict(loop["action_lookup_table"])
+    exact_action_argv_lookup = dict(
+        zip(
+            tuple(loop["engine_actions"]),
+            tuple(loop["exact_action_argvs"]),
+            strict=True,
+        )
+    )
     trusted_commands = {
         str(entry["command"]): entry
         for entry in canonical_command_handler_trusted_demo_path_payload()["commands"]
@@ -137,6 +144,9 @@ def build_mvp_demo_path_command_payload(
                 "command_line": command_line,
                 "smoke_argv": smoke_argv,
                 "engine_actions": action_lookup[step],
+                "exact_action_argvs": tuple(
+                    exact_action_argv_lookup[action] for action in action_lookup[step]
+                ),
                 "handler": trusted_command["handler"],
                 "delegated_to": trusted_command["delegated_to"],
                 "engine_delegated_to": trusted_command["engine_delegated_to"],
@@ -170,6 +180,8 @@ def build_mvp_demo_command_sequence_payload(
                 "command_line": command_entry["command_line"],
                 "smoke_argv": command_entry["smoke_argv"],
                 "engine_actions": command_entry["engine_actions"],
+                "exact_action_argvs": command_entry["exact_action_argvs"],
+                "exact_action_lines": smoke_entry["exact_action_lines"],
                 "handler": command_entry["handler"],
                 "delegated_to": command_entry["delegated_to"],
                 "engine_delegated_to": command_entry["engine_delegated_to"],
