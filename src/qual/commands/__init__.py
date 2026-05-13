@@ -25,12 +25,16 @@ from src.qual.commands.canonical import (
     canonical_command_readiness_command_audit_payload,
     canonical_command_readiness_cli_smoke_lines,
     canonical_command_readiness_command_progress_payload,
+    canonical_command_readiness_cli_entrypoint_seal_payload,
+    canonical_command_readiness_fingerprint,
     canonical_command_readiness_handoff_command_progress_payload,
     canonical_command_readiness_handoff_next_action_payload,
     canonical_command_readiness_next_status_payload,
     canonical_command_readiness_remaining_action_payload,
     canonical_command_readiness_required_gate_commands,
+    canonical_command_readiness_seal,
     canonical_command_readiness_snapshot_payload,
+    canonical_command_readiness_step_seal_payload,
     canonical_command_readiness_status_for_flow_step,
     canonical_command_retrieval_context_payload,
 )
@@ -94,6 +98,8 @@ def build_mvp_demo_command_surface_payload(
     patch_review_route_validation = build_patch_review_route_validation_payload()
     patch_review_readiness_smoke = build_patch_review_readiness_smoke_payload()
     patch_review_action_resolution_smoke = build_patch_review_action_resolution_smoke_payload()
+    readiness_seal = canonical_command_readiness_seal()
+    readiness_fingerprint = canonical_command_readiness_fingerprint()
     smoke_gate = build_mvp_demo_smoke_gate_payload(demo_loop)
     trusted_command_contract = build_mvp_demo_trusted_command_contract_payload(demo_loop)
     handler_trusted_demo_path = canonical_command_handler_trusted_demo_path_payload()
@@ -114,6 +120,12 @@ def build_mvp_demo_command_surface_payload(
         "is_ready": readiness_gate["is_ready"],
         "issues": readiness_gate["issues"],
         "readiness_gate": readiness_gate,
+        "readiness_seal": asdict(readiness_seal),
+        "readiness_fingerprint": asdict(readiness_fingerprint),
+        "readiness_step_seals": canonical_command_readiness_step_seal_payload(),
+        "readiness_cli_entrypoint_seals": (
+            canonical_command_readiness_cli_entrypoint_seal_payload()
+        ),
         "handoff_packet": handoff_packet,
         "command_readiness_audit": command_readiness_audit,
         "demo_loop": demo_loop,
@@ -571,6 +583,8 @@ def build_mvp_demo_cli_handoff_payload(
     required_gate_commands = tuple(
         asdict(command) for command in canonical_command_readiness_required_gate_commands()
     )
+    readiness_seal = canonical_command_readiness_seal()
+    readiness_fingerprint = canonical_command_readiness_fingerprint()
     smoke_gate = build_mvp_demo_smoke_gate_payload(demo_loop)
     smoke_matrix = build_mvp_demo_command_smoke_matrix_payload(demo_loop)
     checkpoint = build_mvp_demo_readiness_checkpoint_payload(smoke_argvs)
@@ -589,6 +603,12 @@ def build_mvp_demo_cli_handoff_payload(
         "vision_capabilities": tuple(handoff_packet["vision_capabilities"]),
         "routing_provider_impact": handoff_packet["routing_provider_impact"],
         "risks_blockers": tuple(handoff_packet["risks_blockers"]),
+        "readiness_seal": asdict(readiness_seal),
+        "readiness_fingerprint": asdict(readiness_fingerprint),
+        "readiness_step_seals": canonical_command_readiness_step_seal_payload(),
+        "readiness_cli_entrypoint_seals": (
+            canonical_command_readiness_cli_entrypoint_seal_payload()
+        ),
         "required_gate_commands": required_gate_commands,
         "required_gate_command_lines": tuple(
             command["command"] for command in required_gate_commands
@@ -846,9 +866,17 @@ def run_patch_review_action_resolution_smoke_payload_json() -> str:
 def build_mvp_demo_command_surface_audit_payload() -> dict[str, object]:
     """Return a deterministic audit bundle for command-surface handoff checks."""
     command_surface = canonical_command_command_surface_payload()
+    readiness_seal = canonical_command_readiness_seal()
+    readiness_fingerprint = canonical_command_readiness_fingerprint()
     return {
         "surface": build_mvp_demo_command_surface_payload(),
         "command_surface": command_surface,
+        "readiness_seal": asdict(readiness_seal),
+        "readiness_fingerprint": asdict(readiness_fingerprint),
+        "readiness_step_seals": canonical_command_readiness_step_seal_payload(),
+        "readiness_cli_entrypoint_seals": (
+            canonical_command_readiness_cli_entrypoint_seal_payload()
+        ),
         "entrypoint_shims": command_surface["entrypoint_shims"],
         "compatibility_invocations": command_cli_compatibility_invocation_payloads(),
         "handler_trust_gate": canonical_command_handler_trust_gate_payload(),
