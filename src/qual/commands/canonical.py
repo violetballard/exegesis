@@ -2977,7 +2977,10 @@ def canonical_command_demo_loop_action_lookup_table() -> tuple[tuple[str, tuple[
 def _canonical_command_demo_loop_smoke_entry(
     ordinal: int,
     step: CommandDemoExecutionPlanStep,
+    launcher_argv: tuple[str, ...],
 ) -> CommandCanonicalDemoLoopSmokeEntry:
+    if step.command_argv[: len(launcher_argv)] != launcher_argv:
+        raise ValueError(f"Canonical command demo loop launcher is inconsistent: {step.flow_step}")
     exact_action_lines = canonical_command_cli_exact_action_lines_for_demo_path_step(
         step.demo_path_step
     )
@@ -2994,7 +2997,7 @@ def _canonical_command_demo_loop_smoke_entry(
         demo_path_step=step.demo_path_step,
         command=step.name,
         command_line=step.command_line,
-        smoke_argv=step.command_argv,
+        smoke_argv=step.command_argv[len(launcher_argv) :],
         engine_actions=step.engine_actions,
         exact_action_lines=exact_action_lines,
         ready=ready,
@@ -3005,10 +3008,15 @@ def canonical_command_demo_loop_smoke_contract() -> CommandCanonicalDemoLoopSmok
     """Return the stable command lines that smoke-test the Milestone 3 demo loop."""
 
     loop = canonical_command_demo_loop_contract()
+    launcher_argv = loop.execution_plan.launcher_argv
     entries = tuple(
-        _canonical_command_demo_loop_smoke_entry(ordinal, step)
+        _canonical_command_demo_loop_smoke_entry(ordinal, step, launcher_argv)
         for ordinal, step in enumerate(loop.execution_plan.steps, start=1)
     )
+    if tuple(entry.smoke_argv for entry in entries) != loop.smoke_argvs:
+        raise ValueError("Canonical command demo loop smoke argvs are inconsistent")
+    if tuple(entry.command_line for entry in entries) != loop.command_lines:
+        raise ValueError("Canonical command demo loop smoke command lines are inconsistent")
     issues = tuple(
         f"{entry.demo_path_step}: smoke route does not cover exact engine actions"
         for entry in entries
