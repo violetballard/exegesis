@@ -6852,6 +6852,69 @@ def command_demo_readiness_handoff_map_payload(
     )
 
 
+def command_demo_readiness_handoff_entrypoint_summary(
+    specs: tuple[CommandSpec, ...] = COMMAND_SPECS,
+    launcher_argv: tuple[str, ...] = COMMAND_SMOKE_CLI_LAUNCHER_ARGV,
+) -> tuple[tuple[int, str, str, str, str, tuple[str, ...], str], ...]:
+    """Return demo-path handoff commands with their approved parser entrypoint."""
+
+    entries: list[tuple[int, str, str, str, str, tuple[str, ...], str]] = []
+    for entry in command_demo_readiness_handoff_map_contract(specs, launcher_argv).entries:
+        cli_entrypoint = command_cli_entrypoint_for(entry.name)
+        if cli_entrypoint is None:
+            raise ValueError(f"Command demo readiness entrypoint is missing: {entry.name}")
+        if not entry.command_argv or entry.command_argv[0] != cli_entrypoint:
+            raise ValueError(f"Command demo readiness entrypoint does not match argv: {entry.name}")
+        entries.append(
+            (
+                entry.ordinal,
+                entry.demo_path_step,
+                entry.flow_step,
+                entry.name,
+                cli_entrypoint,
+                entry.command_argv,
+                entry.command_line,
+            )
+        )
+    return tuple(entries)
+
+
+def command_demo_readiness_handoff_entrypoint_payload(
+    specs: tuple[CommandSpec, ...] = COMMAND_SPECS,
+    launcher_argv: tuple[str, ...] = COMMAND_SMOKE_CLI_LAUNCHER_ARGV,
+) -> tuple[dict[str, object], ...]:
+    return tuple(
+        {
+            "ordinal": ordinal,
+            "demo_path_step": demo_path_step,
+            "flow_step": flow_step,
+            "command": command,
+            "cli_entrypoint": cli_entrypoint,
+            "command_argv": command_argv,
+            "command_line": command_line,
+        }
+        for (
+            ordinal,
+            demo_path_step,
+            flow_step,
+            command,
+            cli_entrypoint,
+            command_argv,
+            command_line,
+        ) in command_demo_readiness_handoff_entrypoint_summary(specs, launcher_argv)
+    )
+
+
+def command_demo_readiness_handoff_entrypoint_json(
+    specs: tuple[CommandSpec, ...] = COMMAND_SPECS,
+    launcher_argv: tuple[str, ...] = COMMAND_SMOKE_CLI_LAUNCHER_ARGV,
+) -> str:
+    return json.dumps(
+        command_demo_readiness_handoff_entrypoint_payload(specs, launcher_argv),
+        sort_keys=True,
+    )
+
+
 def command_demo_readiness_handoff_map_json(
     specs: tuple[CommandSpec, ...] = COMMAND_SPECS,
     launcher_argv: tuple[str, ...] = COMMAND_SMOKE_CLI_LAUNCHER_ARGV,
@@ -19152,6 +19215,27 @@ def command_mvp_demo_readiness_handoff_map_json(
     launcher_argv: tuple[str, ...] = COMMAND_SMOKE_CLI_LAUNCHER_ARGV,
 ) -> str:
     return command_demo_readiness_handoff_map_json(specs, launcher_argv)
+
+
+def command_mvp_demo_readiness_handoff_entrypoint_summary(
+    specs: tuple[CommandSpec, ...] = COMMAND_SPECS,
+    launcher_argv: tuple[str, ...] = COMMAND_SMOKE_CLI_LAUNCHER_ARGV,
+) -> tuple[tuple[int, str, str, str, str, tuple[str, ...], str], ...]:
+    return command_demo_readiness_handoff_entrypoint_summary(specs, launcher_argv)
+
+
+def command_mvp_demo_readiness_handoff_entrypoint_payload(
+    specs: tuple[CommandSpec, ...] = COMMAND_SPECS,
+    launcher_argv: tuple[str, ...] = COMMAND_SMOKE_CLI_LAUNCHER_ARGV,
+) -> tuple[dict[str, object], ...]:
+    return command_demo_readiness_handoff_entrypoint_payload(specs, launcher_argv)
+
+
+def command_mvp_demo_readiness_handoff_entrypoint_json(
+    specs: tuple[CommandSpec, ...] = COMMAND_SPECS,
+    launcher_argv: tuple[str, ...] = COMMAND_SMOKE_CLI_LAUNCHER_ARGV,
+) -> str:
+    return command_demo_readiness_handoff_entrypoint_json(specs, launcher_argv)
 
 
 def command_mvp_demo_readiness_action_sequence_contract(
