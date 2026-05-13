@@ -87,7 +87,7 @@
   "cloud_probe_timeout_seconds": 30,
   "feature_launch_timeout_seconds": 300,
   "max_parallel_feature_lanes_cloud": 4,
-  "max_parallel_feature_lanes_local": 1,
+  "max_parallel_feature_lanes_local": 4,
   "max_cloud_feature_jobs": 4,
   "max_cloud_reviewer_jobs": 4,
   "max_cloud_integrator_jobs": 4,
@@ -144,7 +144,11 @@
       "feature_local_profile": "worker_local_heavy",
       "reviewer_local_profile": "worker_local_heavy",
       "fixer_local_profile": "worker_local_heavy",
-      "integrator_local_profile": "worker_local_heavy"
+      "integrator_local_profile": "worker_local_heavy",
+      "feature_cloud_profile": "worker_cloud_standard_medium",
+      "reviewer_cloud_profile": "worker_cloud_standard_medium",
+      "fixer_cloud_profile": "worker_cloud_standard_medium",
+      "integrator_cloud_profile": "integrator_cloud"
     },
     "feat-console-shell": {
       "branch": "codex/feat-console-shell",
@@ -248,5 +252,12 @@
       "./typecheck-test.sh",
       "make ci"
     ]
-  }
+  },
+  "feature_lane_priority": [
+    "feat-engine-runs",
+    "feat-context-storage",
+    "feat-retrieval-fts",
+    "feat-commands",
+    "feat-a2ui-contract"
+  ]
 }

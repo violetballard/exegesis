@@ -76,6 +76,8 @@ COORD_ROOT = REPO_ROOT / ".codex/packet_coordinator"
 RUNS_DIR = COORD_ROOT / "runs"
 STATE_FILE = COORD_ROOT / "state.json"
 LEASE_FILE = COORD_ROOT / "lease.json"
+PAUSE_FILE = COORD_ROOT / "pause.json"
+KICK_FILE = COORD_ROOT / "kick.json"
 ROUTER_CONFIG_FILE = REPO_ROOT / ".codex/packet_router/config.json"
 ROUTER_EXAMPLE_FILE = REPO_ROOT / ".codex/packet_router/example.json"
 ROUTER_STATE_FILE = REPO_ROOT / ".codex/packet_router/state.json"
@@ -1184,7 +1186,12 @@ def _enabled_lanes() -> List[str]:
     cfg = load_json(ROUTER_CONFIG_FILE, {})
     lanes = cfg.get("lanes") if isinstance(cfg, dict) else {}
     if isinstance(lanes, dict) and lanes:
-        return [name for name, lane_cfg in lanes.items() if bool((lane_cfg or {}).get("enabled", True))]
+        enabled = [name for name, lane_cfg in lanes.items() if bool((lane_cfg or {}).get("enabled", True))]
+        priority = cfg.get("feature_lane_priority") if isinstance(cfg, dict) else []
+        if not isinstance(priority, list):
+            priority = []
+        priority_order = [str(name) for name in priority if str(name) in enabled]
+        return priority_order + [name for name in enabled if name not in set(priority_order)]
     return list(DEFAULT_LANES)
 
 
@@ -1699,6 +1706,19 @@ def _active_local_fixer_jobs() -> int:
     return active
 
 
+def _active_local_router_jobs() -> int:
+    router_state = load_json(ROUTER_STATE_FILE, {})
+    active = 0
+    for key in ("local_reviewer_jobs", "local_integrator_jobs"):
+        jobs = router_state.get(key) or {}
+        if isinstance(jobs, dict):
+            for job in jobs.values():
+                if isinstance(job, dict) and _pid_alive(int(job.get("pid") or 0)):
+                    active += 1
+    active += _active_local_fixer_jobs()
+    return active
+
+
 def _launch_free_lanes(state_doc: Dict[str, object]) -> List[str]:
     lane_refill = state_doc.setdefault("lane_refill", {})
     if not isinstance(lane_refill, dict):
@@ -1745,14 +1765,14 @@ def _launch_free_lanes(state_doc: Dict[str, object]) -> List[str]:
         return []
 
     local_slots = _local_lms_feature_launch_slots()
-    active_fixers = _active_local_fixer_jobs()
-    reviewer_backlog = _has_reviewer_notes_backlog()
-    if reviewer_backlog and active_fixers <= 0:
-        # Reviewer handbacks are higher priority than speculative feature
-        # refills. Keep one local LMS slot open so the router can kick a fixer
-        # instead of letting free-lane launches continually steal capacity.
+    router_priority_backlog = _has_router_priority_backlog()
+    if router_priority_backlog and _active_local_router_jobs() <= 0:
+        # Reviewer/fixer/integrator handbacks are higher priority than
+        # speculative feature refills. Keep one local LMS slot open so the
+        # router can advance the current feature loop instead of letting free
+        # lane launches continually steal capacity.
         local_slots = max(0, local_slots - 1)
-    cloud_slots = 0 if (reviewer_backlog or _has_lane_backlog()) else _cloud_feature_launch_slots()
+    cloud_slots = 0 if _has_lane_backlog() else _cloud_feature_launch_slots()
     if local_slots <= 0 and cloud_slots <= 0:
         print("[coordinator] local/cloud feature caps reached; deferring feature lane launch")
         return []
@@ -1805,7 +1825,7 @@ def _has_reviewer_notes_backlog() -> bool:
 
 
 def _has_router_priority_backlog() -> bool:
-    """Return True when cloud capacity should be reserved for review/integration."""
+    """Return True when capacity should be reserved for review/fix/integrate."""
     for lane in _enabled_lanes():
         d = _lane_digest(lane)
         if int(d.get("reviewer_notes", 0)) > 0 or int(d.get("approved", 0)) > 0:
@@ -1813,8 +1833,62 @@ def _has_router_priority_backlog() -> bool:
     return False
 
 
-def _should_run_cycle(args: argparse.Namespace, snapshot: str, prev_snapshot: str, cycles: int, backlog_active: bool) -> bool:
+def _pause_state() -> Dict[str, object]:
+    if not PAUSE_FILE.exists():
+        return {"paused": False}
+    data = load_json(PAUSE_FILE, {})
+    if not isinstance(data, dict):
+        data = {}
+    return {
+        "paused": True,
+        "reason": str(data.get("reason") or ""),
+        "operator": str(data.get("operator") or ""),
+        "updated_at": str(data.get("updated_at") or ""),
+    }
+
+
+def _record_pause_state(coordinator_state: Dict[str, object], pause_state: Dict[str, object]) -> None:
+    coordinator_state["paused"] = bool(pause_state.get("paused"))
+    if pause_state.get("paused"):
+        coordinator_state["pause"] = dict(pause_state)
+        coordinator_state["last_pause_seen_at"] = utc_now()
+    else:
+        if coordinator_state.get("paused"):
+            coordinator_state["last_resumed_at"] = utc_now()
+        coordinator_state.pop("pause", None)
+
+
+def _consume_kick_request(coordinator_state: Dict[str, object]) -> Dict[str, object] | None:
+    if not KICK_FILE.exists():
+        return None
+    data = load_json(KICK_FILE, {})
+    if not isinstance(data, dict):
+        data = {}
+    request = {
+        "action": str(data.get("action") or "kick"),
+        "operator": str(data.get("operator") or ""),
+        "reason": str(data.get("reason") or ""),
+        "requested_at": str(data.get("requested_at") or ""),
+        "consumed_at": utc_now(),
+    }
+    with contextlib.suppress(FileNotFoundError):
+        KICK_FILE.unlink()
+    coordinator_state["last_remote_kick"] = request
+    return request
+
+
+def _should_run_cycle(
+    args: argparse.Namespace,
+    snapshot: str,
+    prev_snapshot: str,
+    cycles: int,
+    backlog_active: bool,
+    *,
+    kick_requested: bool = False,
+) -> bool:
     """Daemon mode keeps the loop alive even when there is no queue delta."""
+    if kick_requested:
+        return True
     if args.daemon:
         return True
     return (snapshot != prev_snapshot) or (cycles == 0) or backlog_active
@@ -1967,13 +2041,42 @@ def main() -> int:
 
         while True:
             touch_lease()
+            coord_state = load_json(STATE_FILE, {})
+            kick_request = _consume_kick_request(coord_state)
+            pause_state = _pause_state()
+            _record_pause_state(coord_state, pause_state)
+            if pause_state.get("paused"):
+                coord_state["daemon_mode"] = args.daemon
+                coord_state["last_cycle_at"] = utc_now()
+                coord_state["last_cycle_activity"] = False
+                save_json(STATE_FILE, coord_state)
+                print(
+                    "[coordinator] paused: "
+                    f"operator={pause_state.get('operator') or '-'} "
+                    f"reason={pause_state.get('reason') or '-'}"
+                )
+                if args.once:
+                    break
+                time.sleep(args.poll_seconds)
+                continue
+            save_json(STATE_FILE, coord_state)
             snapshot = _compute_snapshot(branch_map)
             backlog_active = _has_lane_backlog()
-            should_run = _should_run_cycle(args, snapshot, prev_snapshot, cycles, backlog_active)
+            should_run = _should_run_cycle(
+                args,
+                snapshot,
+                prev_snapshot,
+                cycles,
+                backlog_active,
+                kick_requested=kick_request is not None,
+            )
 
             if should_run:
                 print(f"=== EVENT CYCLE {cycles + 1} START {utc_now()} ===")
                 coord_state = load_json(STATE_FILE, {})
+                if kick_request is not None:
+                    coord_state["last_remote_kick"] = kick_request
+                    save_json(STATE_FILE, coord_state)
                 event = _run_cycle(args, direct_ctx, coord_state)
                 cycles += 1
                 cycle_events.append(event)

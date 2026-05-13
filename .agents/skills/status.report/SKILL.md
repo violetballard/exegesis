@@ -6,6 +6,13 @@ description: "Show the real full status report for daemon, reviewer lanes, integ
 Run from repo root:
 - `./codex_packet_handoff/tools/status_report.sh`
 
+Access path selection:
+- First check whether this Codex session is running on the development machine with this repo mounted locally.
+- If `codex_packet_handoff/tools/daemon_ctl.py` exists locally, use the direct scripts in this skill. Local direct access remains the authoritative path.
+- If local scripts are unavailable but `QUAL_MONITOR_URL` and `QUAL_MONITOR_TOKEN` are set, use `python codex_packet_handoff/tools/remote_monitor_client.py status` for compact status or `... full` for the sanitized full snapshot.
+- Remote monitor access is only for VPN/home access; do not use it as a replacement for direct local scripts when working on the machine.
+- Remote monitor output is sanitized and narrower than local script output, so say when a report is remote-derived.
+
 Manual breakdown if you need to inspect each step:
 - `python codex_packet_handoff/tools/daemon_ctl.py status`
 - `python codex_packet_handoff/tools/status.py`

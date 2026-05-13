@@ -485,6 +485,7 @@ def _runtime_state() -> Dict[str, Any]:
 
 def _coordinator_state() -> Dict[str, Any]:
     state = _load_json(COORD_STATE, {})
+    pause = state.get("pause") if isinstance(state.get("pause"), dict) else {}
     last_cycle_at = str(state.get("last_cycle_at") or "-")
     live_cycle_count = state.get("live_cycle_count", 0)
     last_cycle_activity = bool(state.get("last_cycle_activity", False))
@@ -503,6 +504,9 @@ def _coordinator_state() -> Dict[str, Any]:
         "last_cycle_age_s": last_cycle_age_s,
         "last_cycle_activity": last_cycle_activity,
         "live_cycle_count": live_cycle_count,
+        "paused": bool(state.get("paused", False)),
+        "pause_reason": str((pause or {}).get("reason") or "-"),
+        "pause_operator": str((pause or {}).get("operator") or "-"),
     }
 
 
@@ -1136,6 +1140,10 @@ def main() -> None:
     print(f"last_cycle_at={coord_state['last_cycle_at']}")
     print(f"last_cycle_age_seconds={coord_state['last_cycle_age_s']}")
     print(f"last_cycle_activity={coord_state['last_cycle_activity']}")
+    print(f"paused={coord_state['paused']}")
+    if coord_state["paused"]:
+        print(f"pause_operator={coord_state['pause_operator']}")
+        print(f"pause_reason={coord_state['pause_reason']}")
     git_hygiene = coord_state.get("git_hygiene_status") if isinstance(coord_state, dict) else {}
     if isinstance(git_hygiene, dict):
         print(f"git_hygiene_last_stale_count={git_hygiene.get('last_stale_count', 0)}")

@@ -536,8 +536,9 @@ class CloudConcurrencyCapsTests(unittest.TestCase):
             mock.patch.object(agents_coordinator, "_lane_has_active_feature_session", return_value=False),
             mock.patch.object(agents_coordinator, "_feature_thread_state", return_value={}),
             mock.patch.object(agents_coordinator, "_local_lms_feature_launch_slots", return_value=3),
-            mock.patch.object(agents_coordinator, "_active_local_fixer_jobs", return_value=1),
-            mock.patch.object(agents_coordinator, "_has_reviewer_notes_backlog", return_value=True),
+            mock.patch.object(agents_coordinator, "_active_local_router_jobs", return_value=1),
+            mock.patch.object(agents_coordinator, "_has_router_priority_backlog", return_value=True),
+            mock.patch.object(agents_coordinator, "_has_lane_backlog", return_value=True),
             mock.patch.object(agents_coordinator, "run_cmd", side_effect=fake_run_cmd),
         ):
             self.assertEqual(agents_coordinator._launch_free_lanes(state_doc), ["feat-a", "feat-b", "feat-c"])
@@ -558,8 +559,9 @@ class CloudConcurrencyCapsTests(unittest.TestCase):
             mock.patch.object(agents_coordinator, "_lane_has_active_feature_session", return_value=False),
             mock.patch.object(agents_coordinator, "_feature_thread_state", return_value={}),
             mock.patch.object(agents_coordinator, "_local_lms_feature_launch_slots", return_value=3),
-            mock.patch.object(agents_coordinator, "_active_local_fixer_jobs", return_value=0),
-            mock.patch.object(agents_coordinator, "_has_reviewer_notes_backlog", return_value=True),
+            mock.patch.object(agents_coordinator, "_active_local_router_jobs", return_value=0),
+            mock.patch.object(agents_coordinator, "_has_router_priority_backlog", return_value=True),
+            mock.patch.object(agents_coordinator, "_has_lane_backlog", return_value=True),
             mock.patch.object(agents_coordinator, "run_cmd", side_effect=fake_run_cmd),
         ):
             self.assertEqual(agents_coordinator._launch_free_lanes(state_doc), ["feat-a", "feat-b"])
@@ -580,8 +582,8 @@ class CloudConcurrencyCapsTests(unittest.TestCase):
             mock.patch.object(agents_coordinator, "_lane_has_active_feature_session", return_value=False),
             mock.patch.object(agents_coordinator, "_feature_thread_state", return_value={}),
             mock.patch.object(agents_coordinator, "_local_lms_feature_launch_slots", return_value=1),
-            mock.patch.object(agents_coordinator, "_active_local_fixer_jobs", return_value=0),
-            mock.patch.object(agents_coordinator, "_has_reviewer_notes_backlog", return_value=False),
+            mock.patch.object(agents_coordinator, "_active_local_router_jobs", return_value=1),
+            mock.patch.object(agents_coordinator, "_has_router_priority_backlog", return_value=False),
             mock.patch.object(agents_coordinator, "_has_lane_backlog", return_value=True),
             mock.patch.object(agents_coordinator, "_cloud_feature_launch_slots", return_value=2),
             mock.patch.object(agents_coordinator, "run_cmd", side_effect=fake_run_cmd),
@@ -627,8 +629,8 @@ class CloudConcurrencyCapsTests(unittest.TestCase):
                 None,
             )
 
-        self.assertEqual(calls, ["review", "integrator", "fixer"])
-        self.assertEqual((n, kicked, integrated), (0, 1, 1))
+        self.assertEqual(calls, ["integrator", "review", "integrator", "fixer"])
+        self.assertEqual((n, kicked, integrated), (0, 1, 2))
         self.assertTrue(updated["fixer_saw_integrator_started"])
         self.assertEqual(reviewer_threads, {"feat-a": "reviewer-thread"})
         self.assertEqual(updated["reviewer_thread_id"], "reviewer-thread")
@@ -1078,6 +1080,73 @@ class CloudConcurrencyCapsTests(unittest.TestCase):
             self.assertIn("!.codex/**", rg_config.read_text(encoding="utf-8"))
             self.assertIn("!.agents/**", rg_config.read_text(encoding="utf-8"))
 
+    def test_spawn_detached_cli_job_sends_prompt_directly_to_opencode(self) -> None:
+        cfg = router.RouterConfig(
+            model="gpt-5.4-mini",
+            codex_cmd="codex",
+            fallback_model="qwen3.6-27b",
+            fallback_codex_cmd="opencode",
+            fallback_codex_args=[],
+            fallback_model_args=[],
+            runtime_mode_default="local_fallback",
+            auto_switch_to_local_on_quota=True,
+            auto_probe_cloud_recovery=True,
+            cloud_probe_cooldown_seconds=300.0,
+            cloud_probe_timeout_seconds=30.0,
+            reviewer_timeout=180.0,
+            integrator_timeout=900.0,
+            max_packets_per_run=5,
+            inline_fixer=True,
+            kick_fixers_on_reviewer_backlog=True,
+            fixer_kick_timeout_seconds=8.0,
+            reviewer_fixer_retry_cooldown_seconds=120.0,
+            fixer_quota_retry_cooldown_seconds=3600.0,
+            max_cloud_fixer_kicks_per_run=2,
+            max_local_fixer_kicks_per_run=2,
+            max_cloud_fixer_jobs=2,
+            max_local_fixer_jobs=2,
+            max_cloud_feature_jobs=1,
+            max_cloud_reviewer_jobs=1,
+            max_cloud_integrator_jobs=1,
+            max_total_cloud_jobs=4,
+            prefer_cli_fixer=True,
+            prefer_cli_reviewer=True,
+            prefer_cli_integrator=True,
+            use_cli_reviewer_fallback=True,
+            use_cli_integrator_fallback=True,
+            profiles={
+                "worker_local": router.LaunchProfile("opencode", [], "qwen3.6-27b", [], harness="opencode"),
+            },
+            role_profiles={"fixer_local": "worker_local"},
+            lanes={"feat-commands": {"branch": "codex/feat-commands"}},
+        )
+
+        with tempfile.TemporaryDirectory() as tmp:
+            repo = Path(tmp)
+            proc = SimpleNamespace(pid=7890)
+            with (
+                mock.patch.object(router, "LOCAL_JOB_ROOT", repo / "jobs"),
+                mock.patch.object(router, "_profile_for_role", return_value=cfg.profiles["worker_local"]),
+                mock.patch.object(router, "_current_resume_epoch", return_value="resume-1"),
+                mock.patch.object(router.subprocess, "Popen", return_value=proc),
+            ):
+                job = router._spawn_detached_cli_job(
+                    role="fixer",
+                    cfg=cfg,
+                    repo_cwd=str(repo),
+                    lane="feat-commands",
+                    packet_name="pkt.md",
+                    prompt="very long prompt",
+                    sandbox="workspace-write",
+                    timeout_seconds=30.0,
+                    local=True,
+                )
+
+            spec = router.load_json(Path(job["spec_path"]), {})
+            self.assertEqual(spec["cmd"][-1], "very long prompt")
+            self.assertNotIn(".prompt.txt", spec["cmd"][-1])
+            self.assertNotIn("--add-dir", spec["cmd"])
+
     def test_feature_direct_exec_bootstraps_prompt_from_file(self) -> None:
         profile_cfg = {
             "cmd": "codex",
@@ -1119,6 +1188,41 @@ class CloudConcurrencyCapsTests(unittest.TestCase):
                 self.assertIn("!.codex/**", rg_config)
                 self.assertIn("!.agents/**", rg_config)
                 self.assertTrue(popen_mock.call_args.kwargs["start_new_session"])
+
+    def test_feature_direct_exec_sends_prompt_directly_to_opencode(self) -> None:
+        profile_cfg = {
+            "cmd": "opencode",
+            "cmd_args": [],
+            "harness": "opencode",
+            "mode": "local_fallback",
+            "model": "qwen3.6-27b",
+            "model_args": [],
+        }
+        proc = SimpleNamespace(pid=2468)
+        with tempfile.TemporaryDirectory() as tmp:
+            workdir = Path(tmp) / "wt"
+            workdir.mkdir()
+            log_path = Path(tmp) / "lane.log"
+            prompt_path = Path(tmp) / "lane.prompt.md"
+            repo_root = Path(tmp) / "repo"
+            repo_root.mkdir()
+            with (
+                mock.patch.object(launch_feature_lanes, "REPO_ROOT", repo_root),
+                mock.patch.object(launch_feature_lanes.subprocess, "Popen", return_value=proc) as popen_mock,
+            ):
+                pid = launch_feature_lanes._spawn_direct_exec(
+                    profile_cfg,
+                    workdir=str(workdir),
+                    prompt="lane kickoff prompt",
+                    log_path=log_path,
+                    prompt_path=prompt_path,
+                )
+                self.assertEqual(pid, 2468)
+                self.assertEqual(prompt_path.read_text(), "lane kickoff prompt")
+                cmd = popen_mock.call_args.args[0]
+                self.assertEqual(cmd[-1], "lane kickoff prompt")
+                self.assertNotIn(str(prompt_path), cmd[-1])
+                self.assertEqual(cmd[:4], ["opencode", "run", "--model", "lmstudio/qwen3.6-27b"])
 
     def test_materialize_reviewer_packet_uses_final_verdict_packet_for_huge_note(self) -> None:
         with tempfile.TemporaryDirectory() as tmp:

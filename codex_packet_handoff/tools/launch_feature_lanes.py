@@ -95,7 +95,12 @@ def _enabled_lanes() -> List[str]:
     cfg = load_json(CONFIG_FILE, {})
     lanes = cfg.get("lanes") if isinstance(cfg, dict) else {}
     if isinstance(lanes, dict) and lanes:
-        return [name for name, lane_cfg in lanes.items() if bool((lane_cfg or {}).get("enabled", True))]
+        enabled = [name for name, lane_cfg in lanes.items() if bool((lane_cfg or {}).get("enabled", True))]
+        priority = cfg.get("feature_lane_priority") if isinstance(cfg, dict) else []
+        if not isinstance(priority, list):
+            priority = []
+        priority_order = [str(name) for name in priority if str(name) in enabled]
+        return priority_order + [name for name in enabled if name not in set(priority_order)]
     return list(DEFAULT_LANES)
 
 
@@ -454,7 +459,10 @@ def _spawn_direct_exec(
             cmd.extend(["--model", opencode_model])
         cmd.extend(["--dir", workdir, "--dangerously-skip-permissions"])
         cmd.extend([str(x) for x in list(profile_cfg.get("model_args") or [])])
-        cmd.append(bootstrap)
+        # OpenCode handles tool calls in a single run differently than Codex:
+        # a "cat the prompt file first" bootstrap can be treated as the whole
+        # job and exit after printing the file. Send the lane prompt directly.
+        cmd.append(prompt)
     else:
         cmd = [str(profile_cfg["cmd"]), "exec", *cmd_args]
         if local_mode:

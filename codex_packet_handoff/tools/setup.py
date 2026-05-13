@@ -103,6 +103,14 @@ def write_example_config():
                 "integrator_local_profile": "worker_local_heavy",
             }
         )
+    lanes_cfg["feat-engine-runs"].update(
+        {
+            "feature_cloud_profile": "worker_cloud_standard_medium",
+            "reviewer_cloud_profile": "worker_cloud_standard_medium",
+            "fixer_cloud_profile": "worker_cloud_standard_medium",
+            "integrator_cloud_profile": "integrator_cloud",
+        }
+    )
     example = {
         "model": "gpt-5.1-codex",
         "codex_cmd": APP_CODEX_CMD,
@@ -170,7 +178,7 @@ def write_example_config():
         "cloud_probe_timeout_seconds": 30,
         "feature_launch_timeout_seconds": 300,
         "max_parallel_feature_lanes_cloud": 4,
-        "max_parallel_feature_lanes_local": 3,
+        "max_parallel_feature_lanes_local": 4,
         "max_cloud_feature_jobs": 4,
         "max_cloud_reviewer_jobs": 4,
         "max_cloud_integrator_jobs": 4,
@@ -189,6 +197,13 @@ def write_example_config():
         "max_local_fixer_kicks_per_run": 1,
         "max_local_fixer_jobs": 1,
         "lanes": lanes_cfg,
+        "feature_lane_priority": [
+            "feat-engine-runs",
+            "feat-context-storage",
+            "feat-retrieval-fts",
+            "feat-commands",
+            "feat-a2ui-contract",
+        ],
         "planner": {
             "base_ref": "codex/integrator",
             "required_gates": [

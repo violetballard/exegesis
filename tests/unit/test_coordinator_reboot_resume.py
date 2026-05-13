@@ -133,8 +133,9 @@ class CoordinatorRebootResumeTests(unittest.TestCase):
             patch.object(coordinator, "_lane_queue_empty", return_value=True),
             patch.object(coordinator, "_lane_has_active_feature_session", return_value=False),
             patch.object(coordinator, "_local_lms_feature_launch_slots", return_value=1),
-            patch.object(coordinator, "_active_local_fixer_jobs", return_value=0),
-            patch.object(coordinator, "_has_reviewer_notes_backlog", return_value=True),
+            patch.object(coordinator, "_active_local_router_jobs", return_value=0),
+            patch.object(coordinator, "_has_router_priority_backlog", return_value=True),
+            patch.object(coordinator, "_has_lane_backlog", return_value=True),
             patch.object(coordinator, "run_cmd") as run_cmd,
         ):
             launched = coordinator._launch_free_lanes(state_doc)

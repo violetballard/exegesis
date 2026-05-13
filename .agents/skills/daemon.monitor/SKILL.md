@@ -12,6 +12,12 @@ Run from repo root:
 - `for f in $(ls -1t .codex/packet_router/logs/*.log 2>/dev/null | head -n 5); do echo "FILE:$f"; tail -n 40 "$f"; done`
 - `tail -n 80 .codex/packet_coordinator/daemon.log 2>/dev/null || true`
 
+Access path selection:
+- If this session is on the development machine and local scripts exist, use the direct Python/script workflow above.
+- If this session is remote over VPN and local scripts are unavailable, use `python codex_packet_handoff/tools/remote_monitor_client.py full` with `QUAL_MONITOR_URL` and `QUAL_MONITOR_TOKEN`.
+- Remote monitor access is narrower by design: it gives sanitized status and control, not raw logs or arbitrary commands.
+- Prefer local direct scripts whenever possible; use remote monitor only for VPN/home access.
+
 CLI-first note:
 - assume the operator launched Codex CLI with `codex --oss --local-provider lmstudio -m gpt-oss-20b -C /Users/doctor-violet/Library/CloudStorage/Box-Box/projects/qual`
 - use the Python scripts above; do not infer daemon state from chat history alone

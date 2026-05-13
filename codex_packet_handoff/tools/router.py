@@ -1232,13 +1232,14 @@ def _spawn_detached_cli_job(
     }
     if local:
         env_overrides["CODEX_HOME"] = isolated_codex_env(repo_cwd)["CODEX_HOME"]
+    cli_prompt = prompt if profile.harness == "opencode" else _prompt_file_bootstrap(prompt_path)
     spec = {
         "cmd": _build_cli_exec_cmd(
             profile,
             sandbox=sandbox,
-            prompt=_prompt_file_bootstrap(prompt_path),
+            prompt=cli_prompt,
             local=local,
-            add_dirs=[str(prompt_path.parent.resolve())] if local else None,
+            add_dirs=[str(prompt_path.parent.resolve())] if local and profile.harness != "opencode" else None,
         ),
         "cwd": repo_cwd,
         "timeout_seconds": float(timeout_seconds),
@@ -2427,17 +2428,22 @@ def _process_router_tick(
     """Run one router cycle with deterministic scarce-worker priority.
 
     Ordering matters in local fallback mode where all roles share the same LMS
-    worker cap: approvals unblock integration, fixers unblock reviewer notes,
-    and speculative feature refill is handled by the coordinator after router
-    work. Keep the precedence explicit here so fixers cannot steal the last
-    slot from an integrator backlog.
+    worker cap: existing approvals unblock integration, reviewer work advances
+    active feature lanes, fixers unblock reviewer notes, and speculative feature
+    refill is handled by the coordinator after router work. Keep the precedence
+    explicit here so new review/fix work cannot steal the last slot from an
+    integrator backlog.
     """
-    n, state, reviewer_thread_ids, integrator_tid = process_once(
-        reviewer_client, integrator_client, cfg, state, repo_cwd, reviewer_thread_ids, integrator_tid
-    )
     integrated, state, integrator_tid = process_integrator_backlog(
         integrator_client, cfg, state, repo_cwd, integrator_tid
     )
+    n, state, reviewer_thread_ids, integrator_tid = process_once(
+        reviewer_client, integrator_client, cfg, state, repo_cwd, reviewer_thread_ids, integrator_tid
+    )
+    integrated_after_review, state, integrator_tid = process_integrator_backlog(
+        integrator_client, cfg, state, repo_cwd, integrator_tid
+    )
+    integrated += integrated_after_review
     kicked, state = process_reviewer_backlog(reviewer_client, cfg, state, repo_cwd)
     state["reviewer_thread_ids"] = reviewer_thread_ids
     state["reviewer_thread_missing_lanes"] = [

@@ -13,6 +13,11 @@ Run from repo root:
 - `for f in $(ls -1t .codex/packet_router/logs/*.log 2>/dev/null | head -n 3); do echo "FILE:$f"; tail -n 30 "$f"; done`
 - `tail -n 60 .codex/packet_coordinator/daemon.log 2>/dev/null || true`
 
+Access path selection:
+- If local scripts exist, use the direct resume/status workflow above.
+- If this session is remote over VPN and local scripts are unavailable, use `python codex_packet_handoff/tools/remote_monitor_client.py resume`, then `... status` or `... full`.
+- Remote resume clears the pause flag and requests a fresh reconcile cycle; it does not run arbitrary local scripts.
+
 CLI-first note:
 - assume the operator launched Codex CLI with `codex --oss --local-provider lmstudio -m gpt-oss-20b -C /Users/doctor-violet/Library/CloudStorage/Box-Box/projects/qual`
 - use only the Python scripts above for resume/status control

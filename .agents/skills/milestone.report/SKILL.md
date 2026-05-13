@@ -14,6 +14,12 @@ Run from repo root:
   - `PRODUCT_VISION.md`
   - `AGENTS.md`
 
+Access path selection:
+- If this session is local to the development machine and the repo is mounted, use the direct local scripts and docs listed above.
+- If this session is remote over VPN and local scripts are unavailable, use `python codex_packet_handoff/tools/remote_monitor_client.py status` or `full` for operational evidence, but still rely on checked-out roadmap/spec docs only if they are locally available.
+- Say when operational evidence is remote-derived and sanitized.
+- Remote monitor is not a substitute for reading milestone docs; it only supplies daemon/pipeline evidence.
+
 Optional branch evidence, only if needed to explain why a feature is not closed:
 - `for b in codex/feat-context-storage codex/feat-commands codex/feat-retrieval-fts codex/feat-a2ui-contract codex/feat-engine-runs; do printf "%s -> " "$b"; git rev-parse --short "$b"; done`
 
