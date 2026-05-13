@@ -34,13 +34,22 @@
 
 ## Reviewer Fix Addendum: Command Catalog Slice
 
-- Canonical demo-path step advanced by the command-catalog contract: `retrieve relevant material and gather context into the basket`, with additional CLI compatibility coverage for `open project/document`, `preview and apply or reject a patch`, and `save and continue`.
+- Metadata-only reissue for the command-catalog review packet. No implementation changes were needed for this fixer pass.
+- Canonical demo-path step advanced by the command-catalog contract guard: `retrieve relevant material and gather context into the basket`.
+- Scope tightening: this slice is a prerequisite contract guard for the CLI command catalog, keeping `command_cli_contract().canonical_names` aligned with `command_names()` so the operator-facing command surface cannot silently drift while the engine-side demo path is exercised.
 - Ownership/scope correction for the command-catalog review packet: no integrator-locked files were edited.
 - Approved shared-test exception for the command-catalog slice: `tests/unit/test_commands_catalog.py`.
 - Implementation slice unchanged for this fixer pass: `src/qual/commands/catalog.py` and `tests/unit/test_commands_catalog.py` remain the focused command-catalog hardening delta.
 
+### Command Catalog Tasks Completed
+
+1. Hardened `command_cli_contract()` to derive canonical command names from `command_names()` and reject mismatch against the approved parser entrypoint order. Canonical demo-path step supported: `retrieve relevant material and gather context into the basket`, as a prerequisite guard for the CLI contract used by the retrieval command surface.
+2. Added focused catalog-order coverage proving `command_cli_contract().canonical_names` stays aligned with `command_names()`. Canonical demo-path step supported: `retrieve relevant material and gather context into the basket`.
+3. Added focused drift-rejection coverage proving the CLI contract raises when canonical names diverge from the approved parser surface. Canonical demo-path step supported: `retrieve relevant material and gather context into the basket`.
+
 ## Commands Run
 
+- `make scope-check`: passed.
 - `./quality-format.sh --check`: passed.
 - `./quality-lint.sh`: passed.
 - `./quality-test.sh`: passed; 476 tests, 1 skipped.
