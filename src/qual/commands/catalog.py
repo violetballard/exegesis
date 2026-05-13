@@ -10490,6 +10490,67 @@ def command_demo_readiness_command_audit_summary(
     )
 
 
+def command_demo_readiness_command_audit_index(
+    specs: tuple[CommandSpec, ...] = COMMAND_SPECS,
+    launcher_argv: tuple[str, ...] = COMMAND_SMOKE_CLI_LAUNCHER_ARGV,
+) -> tuple[tuple[str, CommandDemoReadinessCommandAuditEntry], ...]:
+    contract = command_demo_readiness_command_audit_contract(specs, launcher_argv)
+    return tuple((entry.name, entry) for entry in contract.entries)
+
+
+def command_demo_readiness_command_audit_entry(
+    command_name: str,
+    specs: tuple[CommandSpec, ...] = COMMAND_SPECS,
+    launcher_argv: tuple[str, ...] = COMMAND_SMOKE_CLI_LAUNCHER_ARGV,
+) -> CommandDemoReadinessCommandAuditEntry | None:
+    requested_command = canonical_command_for(specs, command_name)
+    if not requested_command:
+        return None
+    return dict(command_demo_readiness_command_audit_index(specs, launcher_argv)).get(requested_command)
+
+
+def command_demo_readiness_command_audit_entry_payload(
+    command_name: str,
+    specs: tuple[CommandSpec, ...] = COMMAND_SPECS,
+    launcher_argv: tuple[str, ...] = COMMAND_SMOKE_CLI_LAUNCHER_ARGV,
+) -> dict[str, object]:
+    entry = command_demo_readiness_command_audit_entry(command_name, specs, launcher_argv)
+    if entry is None:
+        return {}
+    return {
+        "ordinal": entry.ordinal,
+        "demo_path_step": entry.demo_path_step,
+        "flow_step": entry.flow_step,
+        "command": entry.name,
+        "command_line": entry.command_line,
+        "engine_actions": list(entry.engine_actions),
+        "exact_action_lines": [
+            {
+                "engine_action": engine_action,
+                "command_line": command_line,
+            }
+            for engine_action, command_line in entry.exact_action_lines
+        ],
+        "required_engine_action_count": entry.required_engine_action_count,
+        "covered_engine_action_count": entry.covered_engine_action_count,
+        "missing_engine_actions": list(entry.missing_engine_actions),
+        "is_cli_entrypoint": entry.is_cli_entrypoint,
+        "is_complete": entry.is_complete,
+    }
+
+
+def command_demo_readiness_command_audit_entry_json(
+    command_name: str,
+    specs: tuple[CommandSpec, ...] = COMMAND_SPECS,
+    launcher_argv: tuple[str, ...] = COMMAND_SMOKE_CLI_LAUNCHER_ARGV,
+) -> str:
+    return json.dumps(
+        command_demo_readiness_command_audit_entry_payload(command_name, specs, launcher_argv),
+        sort_keys=True,
+        separators=(",", ":"),
+    )
+
+
 def command_demo_readiness_command_audit_coverage_summary(
     specs: tuple[CommandSpec, ...] = COMMAND_SPECS,
     launcher_argv: tuple[str, ...] = COMMAND_SMOKE_CLI_LAUNCHER_ARGV,
@@ -10569,6 +10630,37 @@ def command_mvp_demo_readiness_command_audit_summary(
     launcher_argv: tuple[str, ...] = COMMAND_SMOKE_CLI_LAUNCHER_ARGV,
 ) -> tuple[tuple[str, str, str, bool, tuple[str, ...]], ...]:
     return command_demo_readiness_command_audit_summary(specs, launcher_argv)
+
+
+def command_mvp_demo_readiness_command_audit_index(
+    specs: tuple[CommandSpec, ...] = COMMAND_SPECS,
+    launcher_argv: tuple[str, ...] = COMMAND_SMOKE_CLI_LAUNCHER_ARGV,
+) -> tuple[tuple[str, CommandDemoReadinessCommandAuditEntry], ...]:
+    return command_demo_readiness_command_audit_index(specs, launcher_argv)
+
+
+def command_mvp_demo_readiness_command_audit_entry(
+    command_name: str,
+    specs: tuple[CommandSpec, ...] = COMMAND_SPECS,
+    launcher_argv: tuple[str, ...] = COMMAND_SMOKE_CLI_LAUNCHER_ARGV,
+) -> CommandDemoReadinessCommandAuditEntry | None:
+    return command_demo_readiness_command_audit_entry(command_name, specs, launcher_argv)
+
+
+def command_mvp_demo_readiness_command_audit_entry_payload(
+    command_name: str,
+    specs: tuple[CommandSpec, ...] = COMMAND_SPECS,
+    launcher_argv: tuple[str, ...] = COMMAND_SMOKE_CLI_LAUNCHER_ARGV,
+) -> dict[str, object]:
+    return command_demo_readiness_command_audit_entry_payload(command_name, specs, launcher_argv)
+
+
+def command_mvp_demo_readiness_command_audit_entry_json(
+    command_name: str,
+    specs: tuple[CommandSpec, ...] = COMMAND_SPECS,
+    launcher_argv: tuple[str, ...] = COMMAND_SMOKE_CLI_LAUNCHER_ARGV,
+) -> str:
+    return command_demo_readiness_command_audit_entry_json(command_name, specs, launcher_argv)
 
 
 def command_mvp_demo_readiness_command_audit_coverage_summary(

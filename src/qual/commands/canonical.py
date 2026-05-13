@@ -76,6 +76,7 @@ from src.qual.commands.catalog import (
     CommandDemoReadinessCliEntrypointSealContract,
     CommandDemoReadinessCliStepValidationContract,
     CommandDemoReadinessStepSealContract,
+    CommandDemoReadinessCommandAuditEntry,
     CommandDemoReadinessCommandAuditContract,
     CommandDemoSurfaceReadinessContract,
     CommandDemoSupportedLauncherReadinessContract,
@@ -235,6 +236,10 @@ from src.qual.commands.catalog import (
     command_mvp_demo_readiness_command_trace_lookup_table as _readiness_command_trace_lookup_table,
     command_mvp_demo_readiness_command_trace_summary as _readiness_command_trace_summary,
     command_mvp_demo_readiness_command_audit_contract as _readiness_command_audit_contract,
+    command_mvp_demo_readiness_command_audit_entry as _readiness_command_audit_entry,
+    command_mvp_demo_readiness_command_audit_entry_json as _readiness_command_audit_entry_json,
+    command_mvp_demo_readiness_command_audit_entry_payload as _readiness_command_audit_entry_payload,
+    command_mvp_demo_readiness_command_audit_index as _readiness_command_audit_index,
     command_mvp_demo_readiness_command_audit_json as _readiness_command_audit_json,
     command_mvp_demo_readiness_command_audit_payload as _readiness_command_audit_payload,
     command_mvp_demo_readiness_command_audit_summary as _readiness_command_audit_summary,
@@ -4501,6 +4506,27 @@ def canonical_command_readiness_command_audit_summary() -> tuple[
     ...,
 ]:
     return _readiness_command_audit_summary()
+
+
+def canonical_command_readiness_command_audit_index() -> tuple[
+    tuple[str, CommandDemoReadinessCommandAuditEntry],
+    ...,
+]:
+    return _readiness_command_audit_index()
+
+
+def canonical_command_readiness_command_audit_entry(
+    command_name: str,
+) -> CommandDemoReadinessCommandAuditEntry | None:
+    return _readiness_command_audit_entry(command_name)
+
+
+def canonical_command_readiness_command_audit_entry_payload(command_name: str) -> dict[str, object]:
+    return _readiness_command_audit_entry_payload(command_name)
+
+
+def canonical_command_readiness_command_audit_entry_json(command_name: str) -> str:
+    return _readiness_command_audit_entry_json(command_name)
 
 
 def canonical_command_readiness_command_audit_payload() -> dict[str, object]:
