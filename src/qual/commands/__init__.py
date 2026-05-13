@@ -113,6 +113,7 @@ def build_mvp_demo_command_surface_payload(
     smoke_route_lookup = build_mvp_demo_cli_smoke_route_lookup_payload(smoke_argvs)
     engine_action_route_lookup = build_mvp_demo_engine_action_route_lookup_payload()
     command_completion = build_mvp_demo_cli_completion_payload(smoke_argvs)
+    smoke_replay = build_mvp_demo_cli_smoke_replay_payload(smoke_argvs)
     demo_driver = canonical_command_readiness_demo_driver_payload(smoke_argvs)
     script_validation = build_mvp_demo_cli_script_validation_payload(smoke_argvs)
     readiness_gate = build_mvp_demo_command_surface_readiness_gate_payload(
@@ -126,6 +127,7 @@ def build_mvp_demo_command_surface_payload(
         ),
         runtime_checkpoint_ready=bool(runtime_checkpoint["is_ready"]),
         smoke_route_lookup_ready=bool(smoke_route_lookup["is_ready"]),
+        smoke_replay_ready=bool(smoke_replay["is_ready"]),
         command_completion_ready=bool(command_completion["is_ready"]),
         command_readiness_audit_complete=bool(command_readiness_audit["is_complete"]),
         patch_review_contract_ready=patch_review_contract.ready,
@@ -187,6 +189,7 @@ def build_mvp_demo_command_surface_payload(
         "next_command": canonical_command_readiness_next_status_payload(smoke_argvs),
         "smoke_route": build_mvp_demo_cli_smoke_route_payload(smoke_argvs),
         "smoke_route_lookup": smoke_route_lookup,
+        "smoke_replay": smoke_replay,
         "engine_action_route_lookup": engine_action_route_lookup,
         "smoke_contract": smoke_contract,
         "smoke_command_lines": canonical_command_readiness_cli_smoke_lines(),
@@ -213,6 +216,7 @@ def build_mvp_demo_command_surface_readiness_gate_payload(
     canonical_readiness_checkpoint_ready: bool,
     runtime_checkpoint_ready: bool,
     smoke_route_lookup_ready: bool,
+    smoke_replay_ready: bool,
     command_completion_ready: bool,
     command_readiness_audit_complete: bool,
     patch_review_contract_ready: bool,
@@ -230,6 +234,7 @@ def build_mvp_demo_command_surface_readiness_gate_payload(
         "canonical_readiness_checkpoint": canonical_readiness_checkpoint_ready,
         "runtime_checkpoint": runtime_checkpoint_ready,
         "smoke_route_lookup": smoke_route_lookup_ready,
+        "smoke_replay": smoke_replay_ready,
         "command_completion": command_completion_ready,
         "command_readiness_audit": command_readiness_audit_complete,
         "patch_review_contract": patch_review_contract_ready,
@@ -812,6 +817,7 @@ def build_mvp_demo_cli_handoff_payload(
         "resume_script": build_mvp_demo_resume_script_payload(smoke_argvs),
         "handoff_progress": build_mvp_demo_cli_handoff_progress_payload(smoke_argvs),
         "smoke_route": build_mvp_demo_cli_smoke_route_payload(smoke_argvs),
+        "smoke_replay": build_mvp_demo_cli_smoke_replay_payload(smoke_argvs),
     }
 
 
@@ -1232,6 +1238,93 @@ def run_mvp_demo_cli_smoke_route_lookup_json() -> str:
     )
 
 
+def build_mvp_demo_cli_smoke_replay_payload(
+    smoke_argvs: Sequence[Sequence[str] | str] = (),
+) -> dict[str, object]:
+    """Return the deterministic command/action script reviewers can replay."""
+
+    route_payload = build_mvp_demo_cli_smoke_route_payload(smoke_argvs)
+    route_entries = tuple(route_payload["route_entries"])
+    command_lines = tuple(str(entry["command_line"]) for entry in route_entries)
+    exact_action_lines = tuple(
+        str(route["command_line"])
+        for entry in route_entries
+        for route in tuple(entry["exact_action_routes"])
+    )
+    replay_sections = tuple(
+        {
+            "ordinal": entry["ordinal"],
+            "flow_step": entry["flow_step"],
+            "demo_path_step": entry["demo_path_step"],
+            "command_line": entry["command_line"],
+            "exact_action_lines": tuple(
+                str(route["command_line"]) for route in tuple(entry["exact_action_routes"])
+            ),
+        }
+        for entry in route_entries
+    )
+    replay_lines = tuple(
+        line
+        for section in replay_sections
+        for line in (
+            str(section["command_line"]),
+            *tuple(section["exact_action_lines"]),
+        )
+    )
+    command_validation = command_demo_readiness_validate_cli_shell_script_lines(
+        command_lines
+    )
+    exact_action_validation = (
+        command_demo_readiness_validate_cli_exact_action_shell_script_lines(
+            exact_action_lines
+        )
+    )
+    duplicate_command_lines = _duplicate_lookup_keys(
+        tuple((line, None) for line in command_lines)
+    )
+    duplicate_exact_action_lines = _duplicate_lookup_keys(
+        tuple((line, None) for line in exact_action_lines)
+    )
+    return {
+        "is_ready": (
+            bool(route_payload["is_ready"])
+            and command_validation.is_complete
+            and exact_action_validation.is_complete
+            and not duplicate_command_lines
+            and not duplicate_exact_action_lines
+        ),
+        "is_complete": bool(route_payload["is_complete"]),
+        "replay_lines": replay_lines,
+        "script_text": "\n".join(replay_lines) + ("\n" if replay_lines else ""),
+        "replay_sections": replay_sections,
+        "command_lines": command_lines,
+        "exact_action_lines": exact_action_lines,
+        "command_validation_complete": command_validation.is_complete,
+        "exact_action_validation_complete": exact_action_validation.is_complete,
+        "covered_flow_steps": command_validation.covered_flow_steps,
+        "covered_engine_actions": exact_action_validation.covered_engine_actions,
+        "missing_flow_steps": command_validation.missing_flow_steps,
+        "missing_engine_actions": exact_action_validation.missing_engine_actions,
+        "invalid_command_argv": command_validation.invalid_argv,
+        "invalid_exact_action_argv": exact_action_validation.invalid_argv,
+        "duplicate_command_lines": duplicate_command_lines,
+        "duplicate_exact_action_lines": duplicate_exact_action_lines,
+        "canonical_demo_path_step_advanced": (
+            "open project/document -> retrieve relevant material -> "
+            "preview and apply or reject a patch -> persist and continue"
+        ),
+    }
+
+
+def run_mvp_demo_cli_smoke_replay_json() -> str:
+    """Return stable JSON for the replayable MVP demo command/action script."""
+    return json.dumps(
+        build_mvp_demo_cli_smoke_replay_payload(),
+        sort_keys=True,
+        separators=(",", ":"),
+    )
+
+
 def build_mvp_demo_cli_smoke_transcript_payload(
     smoke_argvs: Sequence[Sequence[str] | str] = (),
     demo_loop: dict[str, object] | None = None,
@@ -1438,6 +1531,7 @@ def build_mvp_demo_command_surface_audit_payload() -> dict[str, object]:
         "script_validation": build_mvp_demo_cli_script_validation_payload(),
         "smoke_route": build_mvp_demo_cli_smoke_route_payload(),
         "smoke_route_lookup": build_mvp_demo_cli_smoke_route_lookup_payload(),
+        "smoke_replay": build_mvp_demo_cli_smoke_replay_payload(),
         "engine_action_route_lookup": build_mvp_demo_engine_action_route_lookup_payload(),
         "patch_review_route_validation": build_patch_review_route_validation_payload(),
         "patch_review_readiness_smoke": build_patch_review_readiness_smoke_payload(),
