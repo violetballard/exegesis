@@ -3480,6 +3480,52 @@ class UnifiedRetrievalTests(unittest.TestCase):
             self.CANONICAL_DEMO_PATH_STEPS,
         )
 
+    def test_sparse_source_bundle_rewrites_stale_demo_path_markers(self) -> None:
+        result = self.service.retrieve_auto(
+            RetrievalQuery(
+                query_text="memo coding comparison",
+                scope="vault",
+                intent="compare",
+                constraints=RetrievalConstraints(max_results=4),
+                confidentiality_profile="confidential",
+            )
+        )
+
+        sparse_source_bundle = json.loads(json.dumps(result.source_bundle()))
+        stale_steps = ["legacy_context_flow"]
+        sparse_source_bundle["canonical_demo_path_steps"] = stale_steps
+        sparse_source_bundle["retrieval_evidence"]["canonical_demo_path_steps"] = stale_steps
+        basket_bundle = sparse_source_bundle["retrieval_basket_promotion_bundle"]
+        basket_bundle["canonical_demo_path_steps"] = stale_steps
+        for item in basket_bundle["promotion_items"]:
+            item["canonical_demo_path_steps"] = stale_steps
+        for item in sparse_source_bundle["basket_promotion_items"]:
+            item["canonical_demo_path_steps"] = stale_steps
+
+        context_bundle = _build_retrieval_context_bundle_from_source_bundle(sparse_source_bundle)
+
+        self.assertEqual(context_bundle["canonical_demo_path_steps"], self.CANONICAL_DEMO_PATH_STEPS)
+        self.assertEqual(
+            context_bundle["retrieval_source_bundle"]["canonical_demo_path_steps"],
+            self.CANONICAL_DEMO_PATH_STEPS,
+        )
+        self.assertEqual(
+            context_bundle["retrieval_source_bundle"]["retrieval_evidence"]["canonical_demo_path_steps"],
+            self.CANONICAL_DEMO_PATH_STEPS,
+        )
+        self.assertEqual(
+            context_bundle["retrieval_basket_promotion_bundle"]["canonical_demo_path_steps"],
+            self.CANONICAL_DEMO_PATH_STEPS,
+        )
+        self.assertEqual(
+            context_bundle["basket_promotion_items"][0]["canonical_demo_path_steps"],
+            self.CANONICAL_DEMO_PATH_STEPS,
+        )
+        self.assertEqual(
+            context_bundle["retrieval_downstream_payload"]["canonical_demo_path_steps"],
+            self.CANONICAL_DEMO_PATH_STEPS,
+        )
+
     def test_sparse_context_bundle_rejects_stale_basket_ref_snapshots(self) -> None:
         result = self.service.retrieve_auto(
             RetrievalQuery(

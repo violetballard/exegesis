@@ -415,8 +415,7 @@ def _normalize_basket_promotion_items(items: list[object]) -> list[object]:
                 context="basket promotion item",
             )
             item_snapshot["retrieval_source_strategy"] = item_snapshot["source_strategy"]
-            if _is_missing_snapshot_value(item_snapshot.get("canonical_demo_path_steps")):
-                item_snapshot["canonical_demo_path_steps"] = list(_RETRIEVAL_DEMO_PATH_STEPS)
+            item_snapshot["canonical_demo_path_steps"] = list(_RETRIEVAL_DEMO_PATH_STEPS)
             normalized.append(_with_basket_item_fingerprint(item_snapshot))
         else:
             normalized.append(copy.deepcopy(item))
@@ -1399,6 +1398,8 @@ def _normalize_retrieval_evidence_snapshot(evidence: dict[str, object]) -> dict[
         normalized["retrieval_manifest"] = _normalize_retrieval_manifest_snapshot(retrieval_manifest)
     if "citation_status" in normalized:
         normalized["citation_status"] = _normalize_citation_status_snapshot(normalized.get("citation_status"))
+    if "canonical_demo_path_steps" in normalized:
+        normalized["canonical_demo_path_steps"] = list(_RETRIEVAL_DEMO_PATH_STEPS)
     if _is_missing_snapshot_value(normalized.get("retrieval_evidence_fingerprint")):
         normalized["retrieval_evidence_fingerprint"] = _stable_fingerprint(
             {
@@ -1455,8 +1456,7 @@ def _normalize_basket_promotion_bundle_snapshot(bundle: dict[str, object]) -> di
         field_name="retrieval_basket_promotion_bundle",
     )
     normalized["promotion_target"] = _first_text_value(normalized.get("promotion_target")) or "context_basket"
-    if _is_missing_snapshot_value(normalized.get("canonical_demo_path_steps")):
-        normalized["canonical_demo_path_steps"] = list(_RETRIEVAL_DEMO_PATH_STEPS)
+    normalized["canonical_demo_path_steps"] = list(_RETRIEVAL_DEMO_PATH_STEPS)
     promotion_items: list[object] = []
     for item in _normalize_list_like(normalized.get("promotion_items")):
         if not isinstance(item, dict):
@@ -1623,8 +1623,7 @@ def _normalize_retrieval_source_bundle_snapshot(source_bundle: dict[str, object]
     normalized["retrieval_evidence"] = _normalize_retrieval_evidence_snapshot(
         normalized.get("retrieval_evidence", {})
     )
-    if _is_missing_snapshot_value(normalized.get("canonical_demo_path_steps")):
-        normalized["canonical_demo_path_steps"] = list(_RETRIEVAL_DEMO_PATH_STEPS)
+    normalized["canonical_demo_path_steps"] = list(_RETRIEVAL_DEMO_PATH_STEPS)
     retrieval_evidence = normalized["retrieval_evidence"]
     retrieval_evidence_fingerprint = _first_text_value(
         normalized.get("retrieval_evidence_fingerprint"),
@@ -2418,8 +2417,7 @@ def _build_retrieval_context_bundle_from_payload(payload: dict[str, object]) -> 
     normalized_payload["basket_promotion_ready"] = _basket_promotion_ready_from_count(
         basket_promotion_count
     )
-    if _is_missing_snapshot_value(normalized_payload.get("canonical_demo_path_steps")):
-        normalized_payload["canonical_demo_path_steps"] = list(_RETRIEVAL_DEMO_PATH_STEPS)
+    normalized_payload["canonical_demo_path_steps"] = list(_RETRIEVAL_DEMO_PATH_STEPS)
     source_bundle = _build_retrieval_source_bundle_from_payload(normalized_payload)
     normalized_payload = _backfill_sparse_snapshot(
         normalized_payload,
