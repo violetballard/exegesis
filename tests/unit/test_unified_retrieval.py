@@ -4617,6 +4617,7 @@ class UnifiedRetrievalTests(unittest.TestCase):
         }
         promotion_item["query_constraints_fingerprint"] = "stale-fingerprint"
         promotion_item["promotion_item_fingerprint"] = "stale-promotion-fingerprint"
+        promotion_items.append("stale-non-object-promotion-item")
         basket_promotion_items = cast(dict[str, object], basket_bundle)["basket_promotion_items"]
         self.assertIsInstance(basket_promotion_items, list)
         basket_promotion_item = cast(list[dict[str, object]], basket_promotion_items)[0]
@@ -4679,6 +4680,8 @@ class UnifiedRetrievalTests(unittest.TestCase):
         self.assertEqual(normalized_item["basket_item_id"], result.basket_promotion_items()[0]["basket_item_id"])
         self.assertEqual(normalized_item["item_id"], result.basket_promotion_items()[0]["item_id"])
         self.assertNotEqual(normalized_item["promotion_item_fingerprint"], "stale-promotion-fingerprint")
+        self.assertEqual(len(normalized_bundle["promotion_items"]), 1)
+        self.assertEqual(normalized_bundle["promotion_item_count"], 1)
         normalized_basket_item = normalized_bundle["basket_promotion_items"][0]
         self.assertEqual(normalized_basket_item["query_constraints"], expected_constraints)
         self.assertEqual(
@@ -4728,6 +4731,34 @@ class UnifiedRetrievalTests(unittest.TestCase):
         self.assertNotEqual(context_item["basket_item_fingerprint"], "stale-basket-fingerprint")
         self.assertNotEqual(context_item["promotion_item_fingerprint"], "stale-promotion-fingerprint")
         self.assertEqual(len(context_bundle["basket_promotion_items"]), 1)
+
+        malformed_payload = result.to_downstream_payload()
+        for key in (
+            "retrieval_source_bundle",
+            "retrieval_basket_promotion_bundle",
+            "retrieval_excerpt_bundle",
+            "retrieval_evidence",
+            "retrieval_summary",
+            "retrieval_manifest",
+            "retrieval_doc_bundle",
+            "retrieval_citation_bundle",
+            "excerpt_hits",
+            "excerpt_citations",
+            "doc_hits",
+            "doc_citations",
+            "basket_item_ids",
+            "basket_item_fingerprints",
+        ):
+            malformed_payload.pop(key, None)
+        malformed_payload["basket_promotion_items"] = ["stale-non-object-promotion-item"]
+        malformed_payload["basket_promotion_count"] = 7
+        malformed_payload["basket_promotion_ready"] = True
+
+        malformed_context_bundle = _build_retrieval_context_bundle_from_payload(malformed_payload)
+
+        self.assertEqual(malformed_context_bundle["basket_promotion_items"], [])
+        self.assertEqual(malformed_context_bundle["basket_promotion_count"], 0)
+        self.assertFalse(malformed_context_bundle["basket_promotion_ready"])
 
     def test_basket_promotion_bundle_backfills_item_policy_and_rejects_non_fts_identity(self) -> None:
         result = self.service.retrieve_auto(

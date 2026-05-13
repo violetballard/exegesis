@@ -305,6 +305,29 @@ def _basket_promotion_count_from_items(items: list[object]) -> int:
     return len(_basket_item_ids_from_items(items))
 
 
+def _has_explicit_basket_promotion_item_snapshot(snapshot: dict[str, object]) -> bool:
+    for key in ("basket_promotion_items", "promotion_items"):
+        if _normalize_list_like(snapshot.get(key)):
+            return True
+
+    retrieval_evidence = snapshot.get("retrieval_evidence")
+    if isinstance(retrieval_evidence, dict) and _normalize_list_like(
+        retrieval_evidence.get("basket_promotion_items")
+    ):
+        return True
+
+    for bundle_key in ("retrieval_basket_promotion_bundle", "retrieval_source_bundle", "source_bundle"):
+        bundle = snapshot.get(bundle_key)
+        if not isinstance(bundle, dict):
+            continue
+        if _normalize_list_like(bundle.get("basket_promotion_items")) or _normalize_list_like(
+            bundle.get("promotion_items")
+        ):
+            return True
+
+    return False
+
+
 def _basket_promotion_ready_from_count(count: object) -> bool:
     return isinstance(count, int) and count > 0
 
@@ -330,6 +353,8 @@ def _basket_promotion_count_from_snapshot(
         return 0
 
     if "basket_item_ids" in snapshot or "basket_item_fingerprints" in snapshot:
+        return 0
+    if _has_explicit_basket_promotion_item_snapshot(snapshot):
         return 0
 
     count = snapshot.get("basket_promotion_count")
@@ -1560,7 +1585,6 @@ def _normalize_basket_promotion_bundle_snapshot(bundle: dict[str, object]) -> di
     promotion_items: list[object] = []
     for item in _normalize_list_like(normalized.get("promotion_items")):
         if not isinstance(item, dict):
-            promotion_items.append(copy.deepcopy(item))
             continue
         normalized_item = copy.deepcopy(item)
         item_fallbacks = {

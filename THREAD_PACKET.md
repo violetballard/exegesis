@@ -12,8 +12,8 @@
 - Authoritative reviewed implementation base: `378cf9a74a3658058079a32f186fcd254c4a4034`.
 - Reviewed source-bearing implementation head: this source-bearing fixer commit; final branch tip SHA is reported in the fixer final response.
 - Reviewed source-bearing implementation range: `378cf9a74a3658058079a32f186fcd254c4a4034..HEAD` on branch `codex/feat-retrieval-fts`.
-- Packet update note: this commit refreshes direct FTS provenance and sparse excerpt-hit promotion rehydration so compact excerpt-hit snapshots can recover safe FTS `doc_id` and `title_hint` values from provenance when top-level identity fields are stripped or nulled; the final branch tip SHA is reported in the fixer final response.
-- Current pass role: source-bearing safe sparse excerpt-hit document identity provenance finalization for context-basket audit snapshots.
+- Packet update note: this commit refreshes basket-promotion bundle normalization so malformed non-object `promotion_items` are dropped before promotion counts and fingerprints are rebuilt, and explicit malformed-only promotion snapshots cannot preserve stale basket-promotion readiness; the final branch tip SHA is reported in the fixer final response.
+- Current pass role: source-bearing malformed sparse promotion item and stale-count fail-closed finalization for context-basket audit snapshots.
 
 ## Traceability Correction
 
@@ -118,6 +118,8 @@ This source-bearing fixer pass modifies `src/qual/engine/retrieval/payload.py`, 
 This source-bearing fixer pass modifies `src/qual/retrieval/service.py`, `src/qual/engine/retrieval/payload.py`, `tests/unit/test_unified_retrieval.py`, and `THREAD_PACKET.md` so retrieval summaries and manifests carry and rehydrate the canonical demo-path markers for `retrieve_relevant_material` and `promote_context_to_basket`. This keeps compact summary-backed or manifest-backed engine snapshots self-describing for basket promotion and later revise/apply consumers without widening retrieval strategy scope.
 
 This source-bearing fixer pass modifies `src/qual/retrieval/service.py`, `src/qual/engine/retrieval/payload.py`, `tests/unit/test_unified_retrieval.py`, and `THREAD_PACKET.md` so direct and sparse-rehydrated FTS retrieval payloads, source/context bundles, basket-promotion bundles, and promotion items carry explicit `canonical_demo_path_steps` markers for `retrieve_relevant_material` and `promote_context_to_basket`, with shared regression coverage locking the markers onto the engine-facing payload surfaces. This makes the Milestone 3 retrieval output self-describing for basket promotion and later revise/apply consumers without reintroducing PageIndex, embeddings, or multi-strategy retrieval as required paths.
+
+This source-bearing fixer pass modifies `src/qual/engine/retrieval/payload.py`, `tests/unit/test_unified_retrieval.py`, and `THREAD_PACKET.md` so sparse basket-promotion bundle normalization drops malformed non-object `promotion_items` before item counts and bundle fingerprints are rebuilt, and malformed-only explicit promotion snapshots cannot fall back to stale `basket_promotion_count` readiness. This keeps both promotion surfaces limited to canonical FTS basket evidence before downstream context-basket consumers promote retrieved material while preserving manifest-backed FTS basket refs for intentionally sparse source bundles.
 
 This source-bearing fixer pass modifies `src/qual/engine/retrieval/payload.py`, `tests/unit/test_unified_retrieval.py`, and `THREAD_PACKET.md` so sparse source-bundle context rehydration backfills `canonical_demo_path_steps` when compact source snapshots strip that marker from the top level and nested retrieval bundles. This keeps source-bundle-only engine context reconstruction aligned with the canonical demo path and basket-promotion evidence without deriving workflow role from raw excerpt IDs or widening beyond FTS-first retrieval.
 
@@ -353,20 +355,21 @@ Task accounting: this high-risk handoff is summarized as the 4 meaningful task g
 51. Added canonical basket-promotion item snapshots and `promotion_item_fingerprint` values to downstream payload and excerpt-bundle excerpt-hit snapshots, including nested provenance, with shared regression coverage proving raw excerpt-hit snapshots match the FTS basket-promotion item before bundle normalization.
 52. Finalized excerpt-hit-only sparse basket-promotion reconstruction so fallback basket items carry deterministic `promotion_item_fingerprint` values and canonical demo-path markers when richer basket-promotion bundle surfaces have been stripped.
 53. Added FTS provenance `title_hint` snapshots and sparse excerpt-hit fallback use of provenance-backed `doc_id` and `title_hint` so compact basket-promotion evidence retains auditable document identity when top-level excerpt-hit identity fields are stripped or nulled; the direct FTS hit and lookup paths now pass one safe title snapshot into both payload and provenance.
+54. Dropped malformed non-object `promotion_items` during sparse basket-promotion bundle normalization and made malformed-only explicit promotion snapshots fail closed on stale promotion counts, while preserving manifest-backed FTS basket refs for intentionally sparse source bundles.
 
 ## Commands Run
 
-Required gates for this corrected merge candidate were re-run on 2026-05-13 against branch `codex/feat-retrieval-fts` after this source-bearing sparse excerpt-hit document identity provenance finalization.
+Required gates for this corrected merge candidate were re-run on 2026-05-13 against branch `codex/feat-retrieval-fts` after this source-bearing malformed sparse promotion item and stale-count fail-closed finalization.
 
-- `python3 -m compileall -q src/qual/engine/retrieval/payload.py tests/unit/test_unified_retrieval.py` - passed after adding provenance-backed sparse `doc_id` rehydration.
-- `python3 -m unittest tests.unit.test_unified_retrieval.UnifiedRetrievalTests.test_basket_promotion_items_backfill_query_context_from_bundle -q` - passed after adding provenance-backed sparse `doc_id` rehydration coverage alongside null top-level title fields.
-- `PYTHONPATH=. pytest tests/unit/test_unified_retrieval.py -q` - passed 104 unified retrieval tests and 96 subtests after provenance-backed safe `doc_id` and `title_hint` rehydration was finalized.
-- `./quality-format.sh --check` - passed after this document identity provenance finalization.
-- `./quality-lint.sh` - passed shell syntax and trailing whitespace checks after this document identity provenance finalization.
-- `./quality-test.sh` - initially failed once in unrelated `test_repair_shadow_gitdir_repoints_worktree_and_preserves_backup` because a generated `.codex/worktree_recovery/feat-a__git-local__20260513T044431Z` destination from the same timestamp already existed; immediate retry passed smoke tests and 487 unit tests, including all unified retrieval tests, after the timestamped recovery path changed.
-- `./typecheck-test.sh` - passed Python source compilation under `src/` after this document identity provenance finalization.
+- `PYTHONPATH=. pytest tests/unit/test_unified_retrieval.py -k basket_promotion_bundle_normalizes_query_constraints_snapshot -q` - passed 1 focused shared retrieval regression with 103 deselected after malformed `promotion_items` and stale promotion counts were covered.
+- `python3 -m compileall -q src/qual/engine/retrieval/payload.py tests/unit/test_unified_retrieval.py` - passed after malformed sparse promotion item and stale-count normalization was finalized.
+- `PYTHONPATH=. pytest tests/unit/test_unified_retrieval.py -q` - passed 104 unified retrieval tests and 96 subtests after malformed sparse promotion item and stale-count normalization was finalized.
+- `./quality-format.sh --check` - passed after this malformed sparse promotion item and stale-count finalization.
+- `./quality-lint.sh` - passed shell syntax and trailing whitespace checks after this malformed sparse promotion item and stale-count finalization.
+- `./quality-test.sh` - passed smoke tests and 487 unit tests, including all unified retrieval tests, after this malformed sparse promotion item and stale-count finalization.
+- `./typecheck-test.sh` - passed Python source compilation under `src/` after this malformed sparse promotion item and stale-count finalization.
 - `make ci` - blocked at scope-check because `tests/unit/test_unified_retrieval.py` is the approved shared regression path; rerun with `SCOPE_ALLOW_SHARED=1`.
-- `SCOPE_ALLOW_SHARED=1 make ci` - passed scope-check, format, lint, compile/typecheck, smoke, and unified retrieval coverage before failing with 6 unrelated sandbox/control-plane `PermissionError` errors when inherited shared-scope test execution attempted to write `.codex/packet_router/logs/fixer__feat-commands__20260513T044529Z.log`, write `.codex/feature_runner/state.json`, invoke `ps`, write `.codex/packet_planner/state.json`, or move recovery artifacts under `.codex/worktree_recovery/feat-a__git-local__20260513T044536Z`.
+- `SCOPE_ALLOW_SHARED=1 make ci` - passed scope-check, format, lint, compile/typecheck, smoke, and unified retrieval coverage before failing with 6 unrelated sandbox/control-plane `PermissionError` errors when inherited shared-scope test execution attempted to write `.codex/packet_router/logs/fixer__feat-commands__20260513T050105Z.log`, write `.codex/feature_runner/state.json`, invoke `ps`, write `.codex/packet_planner/state.json`, or move recovery artifacts under `.codex/worktree_recovery/feat-a__git-local__20260513T050111Z`.
 - `./quality-format.sh --check` - passed after this handoff packet update.
 - `./quality-lint.sh` - passed shell syntax and trailing whitespace checks after this handoff packet update.
 
