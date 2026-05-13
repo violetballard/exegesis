@@ -147,6 +147,7 @@ from src.qual.ui.a2ui import (
     terminal_artifact_cli_fallback_route_contract_fingerprints_fingerprint,
     terminal_artifact_kind_contracts_manifest_fingerprint,
     _fingerprint_manifest_section,
+    _render_engine_artifact_validation_report_text,
     terminal_artifact_raw_leaf_card_default_contract_fingerprint,
     terminal_artifact_raw_leaf_card_default_policy_contract_fingerprint,
     terminal_artifact_render_target_contract_fingerprint,
@@ -15986,7 +15987,11 @@ class A2UIFallbackSafetyTests(unittest.TestCase):
             {
                 "known_stage_order": ["plan", "revise", "patch", "apply"],
                 "present": ["plan"],
+                "present_count": 1,
                 "missing": ["revise", "patch", "apply"],
+                "missing_count": 3,
+                "next_missing_stage": "revise",
+                "progress_label": "1/4",
                 "complete": False,
             },
         )
@@ -15995,6 +16000,8 @@ class A2UIFallbackSafetyTests(unittest.TestCase):
             _fingerprint_manifest_section(report["stage_coverage"]),
         )
         self.assertFalse(report["valid"])
+        self.assertFalse(report["workflow_ready"])
+        self.assertEqual(report["workflow_blocked_reason"], "validation_errors_and_missing_stages")
         self.assertEqual(report["error_count"], 1)
         self.assertEqual(report["error_codes"], ["invalid_payload"])
         self.assertEqual(report["errors"][0]["location"], "stage 'plan'")
@@ -16003,10 +16010,17 @@ class A2UIFallbackSafetyTests(unittest.TestCase):
         self.assertEqual(report["contract_fingerprint"], engine_artifacts_contract_fingerprint())
         self.assertIn("[A2UIEngineArtifactValidationReport]", report["rendered_text"])
         self.assertIn("Status: invalid", report["rendered_text"])
+        self.assertIn("Workflow ready: no", report["rendered_text"])
+        self.assertIn("Workflow handoff: blocked", report["rendered_text"])
+        self.assertIn("Workflow blocked reason: validation_errors_and_missing_stages", report["rendered_text"])
         self.assertIn('stage=plan', report["rendered_text"])
         self.assertIn("Artifact kinds: selection=1", report["rendered_text"])
         self.assertIn("Stages present: plan", report["rendered_text"])
+        self.assertIn("Present stage count: 1", report["rendered_text"])
         self.assertIn("Stages missing: revise, patch, apply", report["rendered_text"])
+        self.assertIn("Missing stage count: 3", report["rendered_text"])
+        self.assertIn("Next missing stage: revise", report["rendered_text"])
+        self.assertIn("Stage progress: 1/4", report["rendered_text"])
         self.assertIn("Stages complete: no", report["rendered_text"])
         self.assertIn('$["plan"]: invalid_payload (selection)', report["rendered_text"])
         self.assertEqual(
@@ -16034,12 +16048,17 @@ class A2UIFallbackSafetyTests(unittest.TestCase):
         )
 
         self.assertTrue(report["valid"])
+        self.assertFalse(report["workflow_ready"])
+        self.assertEqual(report["workflow_blocked_reason"], "missing_stages")
         self.assertEqual(report["error_count"], 0)
         self.assertEqual(report["error_codes"], [])
         self.assertEqual(report["errors"], [])
         self.assertEqual(report["error_fingerprint"], _fingerprint_manifest_section(()))
         self.assertEqual(report["artifact_kind_counts"], {"card": 1})
         self.assertIn("Status: valid", render_engine_artifact_validation_report(report))
+        self.assertIn("Workflow ready: no", report["rendered_text"])
+        self.assertIn("Workflow handoff: blocked", report["rendered_text"])
+        self.assertIn("Workflow blocked reason: missing_stages", report["rendered_text"])
         self.assertIn("Stages complete: no", report["rendered_text"])
         self.assertIn('Artifact order:\n- $["plan"]: kind=card stage=plan', report["rendered_text"])
         validate_engine_artifact_validation_report(report)
@@ -16061,9 +16080,22 @@ class A2UIFallbackSafetyTests(unittest.TestCase):
         report = build_engine_artifact_validation_report(artifacts)
 
         self.assertTrue(report["valid"])
+        self.assertTrue(report["workflow_ready"])
+        self.assertIsNone(report["workflow_blocked_reason"])
         self.assertEqual(report["stage_coverage"]["present"], ["plan", "revise", "patch", "apply"])
+        self.assertEqual(report["stage_coverage"]["present_count"], 4)
         self.assertEqual(report["stage_coverage"]["missing"], [])
+        self.assertEqual(report["stage_coverage"]["missing_count"], 0)
+        self.assertIsNone(report["stage_coverage"]["next_missing_stage"])
+        self.assertEqual(report["stage_coverage"]["progress_label"], "4/4")
         self.assertTrue(report["stage_coverage"]["complete"])
+        self.assertIn("Present stage count: 4", report["rendered_text"])
+        self.assertIn("Missing stage count: 0", report["rendered_text"])
+        self.assertIn("Next missing stage: -", report["rendered_text"])
+        self.assertIn("Stage progress: 4/4", report["rendered_text"])
+        self.assertIn("Workflow ready: yes", report["rendered_text"])
+        self.assertIn("Workflow handoff: ready", report["rendered_text"])
+        self.assertIn("Workflow blocked reason: -", report["rendered_text"])
         self.assertIn("Stages complete: yes", report["rendered_text"])
         validate_engine_artifact_validation_report(report)
 
@@ -16106,6 +16138,48 @@ class A2UIFallbackSafetyTests(unittest.TestCase):
             validate_engine_artifact_validation_report(report)
 
         self.assertIn("valid flag", str(ctx.exception))
+
+    def test_validate_engine_artifact_validation_report_rejects_stale_workflow_ready_flag(self) -> None:
+        artifacts = {
+            stage: (
+                "card",
+                {
+                    "type": "RunLogCard",
+                    "title": stage.title(),
+                    "blocks": [{"type": "MarkdownBlock", "markdown": stage}],
+                    "actions": [],
+                },
+            )
+            for stage in ENGINE_A2UI_CLI_FALLBACK_STAGE_ORDER
+        }
+        report = build_engine_artifact_validation_report(artifacts)
+        report["workflow_ready"] = False
+        report["rendered_text"] = _render_engine_artifact_validation_report_text(report)
+        report["rendered_text_fingerprint"] = _fingerprint_manifest_section(report["rendered_text"])
+        report["report_fingerprint"] = _fingerprint_manifest_section(
+            {key: value for key, value in report.items() if key != "report_fingerprint"}
+        )
+
+        with self.assertRaises(ValueError) as ctx:
+            validate_engine_artifact_validation_report(report)
+
+        self.assertIn("workflow_ready flag", str(ctx.exception))
+
+    def test_validate_engine_artifact_validation_report_rejects_stale_workflow_blocked_reason(self) -> None:
+        report = build_engine_artifact_validation_report(
+            {"plan": ("selection", {"id": "choice-1", "label": "", "payload": {}})}
+        )
+        report["workflow_blocked_reason"] = "missing_stages"
+        report["rendered_text"] = _render_engine_artifact_validation_report_text(report)
+        report["rendered_text_fingerprint"] = _fingerprint_manifest_section(report["rendered_text"])
+        report["report_fingerprint"] = _fingerprint_manifest_section(
+            {key: value for key, value in report.items() if key != "report_fingerprint"}
+        )
+
+        with self.assertRaises(ValueError) as ctx:
+            validate_engine_artifact_validation_report(report)
+
+        self.assertIn("workflow_blocked_reason", str(ctx.exception))
 
     def test_validate_engine_artifact_validation_report_rejects_stale_error_codes(self) -> None:
         report = build_engine_artifact_validation_report(
@@ -16160,9 +16234,73 @@ class A2UIFallbackSafetyTests(unittest.TestCase):
         report["stage_coverage"] = {
             "known_stage_order": ["plan", "revise", "patch", "apply"],
             "present": ["plan", "revise", "patch"],
+            "present_count": 3,
             "missing": ["apply"],
+            "missing_count": 1,
+            "next_missing_stage": "apply",
+            "progress_label": "3/4",
             "complete": False,
         }
+        report["stage_coverage_fingerprint"] = _fingerprint_manifest_section(report["stage_coverage"])
+        report["report_fingerprint"] = _fingerprint_manifest_section(
+            {key: value for key, value in report.items() if key != "report_fingerprint"}
+        )
+
+        with self.assertRaises(ValueError) as ctx:
+            validate_engine_artifact_validation_report(report)
+
+        self.assertIn("stage_coverage", str(ctx.exception))
+
+    def test_validate_engine_artifact_validation_report_rejects_stale_present_count(self) -> None:
+        report = build_engine_artifact_validation_report(
+            {"plan": ("selection", {"id": "choice-1", "label": "Choice", "payload": {}})}
+        )
+        report["stage_coverage"]["present_count"] = 2
+        report["stage_coverage_fingerprint"] = _fingerprint_manifest_section(report["stage_coverage"])
+        report["report_fingerprint"] = _fingerprint_manifest_section(
+            {key: value for key, value in report.items() if key != "report_fingerprint"}
+        )
+
+        with self.assertRaises(ValueError) as ctx:
+            validate_engine_artifact_validation_report(report)
+
+        self.assertIn("stage_coverage", str(ctx.exception))
+
+    def test_validate_engine_artifact_validation_report_rejects_stale_missing_count(self) -> None:
+        report = build_engine_artifact_validation_report(
+            {"plan": ("selection", {"id": "choice-1", "label": "Choice", "payload": {}})}
+        )
+        report["stage_coverage"]["missing_count"] = 2
+        report["stage_coverage_fingerprint"] = _fingerprint_manifest_section(report["stage_coverage"])
+        report["report_fingerprint"] = _fingerprint_manifest_section(
+            {key: value for key, value in report.items() if key != "report_fingerprint"}
+        )
+
+        with self.assertRaises(ValueError) as ctx:
+            validate_engine_artifact_validation_report(report)
+
+        self.assertIn("stage_coverage", str(ctx.exception))
+
+    def test_validate_engine_artifact_validation_report_rejects_stale_next_missing_stage(self) -> None:
+        report = build_engine_artifact_validation_report(
+            {"plan": ("selection", {"id": "choice-1", "label": "Choice", "payload": {}})}
+        )
+        report["stage_coverage"]["next_missing_stage"] = "patch"
+        report["stage_coverage_fingerprint"] = _fingerprint_manifest_section(report["stage_coverage"])
+        report["report_fingerprint"] = _fingerprint_manifest_section(
+            {key: value for key, value in report.items() if key != "report_fingerprint"}
+        )
+
+        with self.assertRaises(ValueError) as ctx:
+            validate_engine_artifact_validation_report(report)
+
+        self.assertIn("stage_coverage", str(ctx.exception))
+
+    def test_validate_engine_artifact_validation_report_rejects_stale_progress_label(self) -> None:
+        report = build_engine_artifact_validation_report(
+            {"plan": ("selection", {"id": "choice-1", "label": "Choice", "payload": {}})}
+        )
+        report["stage_coverage"]["progress_label"] = "2/4"
         report["stage_coverage_fingerprint"] = _fingerprint_manifest_section(report["stage_coverage"])
         report["report_fingerprint"] = _fingerprint_manifest_section(
             {key: value for key, value in report.items() if key != "report_fingerprint"}
@@ -16292,9 +16430,17 @@ class A2UIFallbackSafetyTests(unittest.TestCase):
         )
         self.assertEqual(report["artifact_kind_counts"], {"action": 1, "card": 1, "unknown": 1})
         self.assertEqual(report["stage_coverage"]["present"], ["plan", "patch", "apply"])
+        self.assertEqual(report["stage_coverage"]["present_count"], 3)
         self.assertEqual(report["stage_coverage"]["missing"], ["revise"])
+        self.assertEqual(report["stage_coverage"]["missing_count"], 1)
+        self.assertEqual(report["stage_coverage"]["next_missing_stage"], "revise")
+        self.assertEqual(report["stage_coverage"]["progress_label"], "3/4")
         self.assertFalse(report["stage_coverage"]["complete"])
         self.assertEqual(report["error_codes"], ["invalid_kind", "invalid_pair", "invalid_payload"])
+        self.assertIn("Present stage count: 3", report["rendered_text"])
+        self.assertIn("Missing stage count: 1", report["rendered_text"])
+        self.assertIn("Next missing stage: revise", report["rendered_text"])
+        self.assertIn("Stage progress: 3/4", report["rendered_text"])
         self.assertIn('$["revise"]: invalid_pair', report["rendered_text"])
         self.assertIn('$["patch"]: invalid_payload (action)', report["rendered_text"])
         self.assertIn('$["apply"]: invalid_kind (unknown)', report["rendered_text"])
@@ -16349,9 +16495,17 @@ class A2UIFallbackSafetyTests(unittest.TestCase):
         )
         self.assertEqual(report["artifact_kind_counts"], {"action": 1, "selection": 1})
         self.assertEqual(report["stage_coverage"]["present"], [])
+        self.assertEqual(report["stage_coverage"]["present_count"], 0)
         self.assertEqual(report["stage_coverage"]["missing"], ["plan", "revise", "patch", "apply"])
+        self.assertEqual(report["stage_coverage"]["missing_count"], 4)
+        self.assertEqual(report["stage_coverage"]["next_missing_stage"], "plan")
+        self.assertEqual(report["stage_coverage"]["progress_label"], "0/4")
         self.assertFalse(report["stage_coverage"]["complete"])
         self.assertEqual(report["error_codes"], ["invalid_pair", "invalid_payload"])
+        self.assertIn("Present stage count: 0", report["rendered_text"])
+        self.assertIn("Missing stage count: 4", report["rendered_text"])
+        self.assertIn("Next missing stage: plan", report["rendered_text"])
+        self.assertIn("Stage progress: 0/4", report["rendered_text"])
         self.assertIn("$[1]: invalid_pair", report["rendered_text"])
         self.assertIn("$[2]: invalid_payload (action)", report["rendered_text"])
 
@@ -16412,6 +16566,8 @@ class A2UIFallbackSafetyTests(unittest.TestCase):
         self.assertIn("stable tuple", contract["validation_error_policy"])
         self.assertIn("client-neutral records", contract["validation_error_record_policy"])
         self.assertIn("versioned preflight envelope", contract["validation_report_policy"])
+        self.assertIn("workflow_ready", contract["validation_report_policy"])
+        self.assertIn("workflow_blocked_reason", contract["validation_report_policy"])
         self.assertIn("artifact_order", contract["validation_report_policy"])
         self.assertIn("artifact_kind_counts", contract["validation_report_policy"])
         self.assertIn("stage_coverage", contract["validation_report_policy"])
@@ -16422,6 +16578,29 @@ class A2UIFallbackSafetyTests(unittest.TestCase):
         self.assertIn("deterministic order", contract["validation_report_order_policy"])
         self.assertIn("workflow coverage", contract["validation_report_kind_counts_policy"])
         self.assertIn("plan, revise, patch, apply", contract["validation_report_stage_coverage_policy"])
+        self.assertIn("present_count", contract["validation_report_stage_coverage_policy"])
+        self.assertIn("length of present", contract["validation_report_present_count_policy"])
+        self.assertIn("missing_count", contract["validation_report_stage_coverage_policy"])
+        self.assertIn("length of missing", contract["validation_report_missing_count_policy"])
+        self.assertIn("next_missing_stage", contract["validation_report_stage_coverage_policy"])
+        self.assertIn("first value from missing", contract["validation_report_next_missing_stage_policy"])
+        self.assertIn("progress_label", contract["validation_report_stage_coverage_policy"])
+        self.assertIn("present_count/known_stage_count", contract["validation_report_progress_label_policy"])
+        self.assertIn("valid and every known engine workflow stage", contract["validation_report_workflow_ready_policy"])
+        self.assertIn("validation_errors_and_missing_stages", contract["validation_report_workflow_blocked_reason_policy"])
+        self.assertEqual(
+            contract["validation_report_stage_coverage_fields"],
+            [
+                "known_stage_order",
+                "present",
+                "present_count",
+                "missing",
+                "missing_count",
+                "next_missing_stage",
+                "progress_label",
+                "complete",
+            ],
+        )
         self.assertEqual(
             contract["validation_report_artifact_order_fields"],
             [

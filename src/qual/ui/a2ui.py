@@ -192,6 +192,8 @@ _ENGINE_ARTIFACT_VALIDATION_REPORT_REQUIRED_FIELDS: tuple[str, ...] = (
     "stage_coverage",
     "stage_coverage_fingerprint",
     "valid",
+    "workflow_ready",
+    "workflow_blocked_reason",
     "error_count",
     "error_codes",
     "errors",
@@ -3607,9 +3609,9 @@ def _build_engine_artifacts_contract_manifest() -> dict[str, Any]:
         ),
         "validation_report_policy": (
             "build_engine_artifact_validation_report returns a versioned preflight envelope with valid, "
-            "input_shape, artifact_count, artifact_order, artifact_kind_counts, stage_coverage, error_count, "
-            "error_codes, errors, error_fingerprint, contract_fingerprint, and rendered CLI report fields for "
-            "engine workflow checkpoints"
+            "workflow_ready, workflow_blocked_reason, input_shape, artifact_count, artifact_order, "
+            "artifact_kind_counts, stage_coverage, error_count, error_codes, errors, error_fingerprint, "
+            "contract_fingerprint, and rendered CLI report fields for engine workflow checkpoints"
         ),
         "validation_report_renderer_entrypoint": "render_engine_artifact_validation_report",
         "validation_report_validator_policy": (
@@ -3628,7 +3630,35 @@ def _build_engine_artifacts_contract_manifest() -> dict[str, Any]:
         "validation_report_stage_coverage_policy": (
             "stage_coverage records present and missing known engine workflow stages in the stable "
             "plan, revise, patch, apply order so engine callers can check loop completeness without "
-            "rendering CLI fallback text; complete is true only when every known stage is present"
+            "rendering CLI fallback text; present_count is the number of completed known checkpoints, "
+            "missing_count is the number of absent known checkpoints, next_missing_stage is the first "
+            "absent workflow checkpoint in that order, progress_label is the deterministic present/total "
+            "checkpoint string, and complete is true only when every known stage is present"
+        ),
+        "validation_report_workflow_ready_policy": (
+            "workflow_ready is true only when the report is valid and every known engine workflow stage is "
+            "present, so CLI fallback consumers can gate demo-loop handoff without parsing rendered text"
+        ),
+        "validation_report_workflow_blocked_reason_policy": (
+            "workflow_blocked_reason is null only when workflow_ready is true; otherwise it is a stable "
+            "machine-readable reason of validation_errors, missing_stages, or validation_errors_and_missing_stages "
+            "so engine and CLI fallback consumers can explain why a handoff is blocked without parsing rendered text"
+        ),
+        "validation_report_present_count_policy": (
+            "present_count always equals the length of present so CLI fallback and engine callers can "
+            "display workflow progress without recounting stage names"
+        ),
+        "validation_report_missing_count_policy": (
+            "missing_count always equals the length of missing so CLI fallback and engine callers can "
+            "display progress without recounting stage names"
+        ),
+        "validation_report_next_missing_stage_policy": (
+            "next_missing_stage is null only when stage coverage is complete; otherwise it is the "
+            "first value from missing so CLI fallback can show the next engine-loop checkpoint"
+        ),
+        "validation_report_progress_label_policy": (
+            "progress_label always renders as present_count/known_stage_count so CLI fallback consumers can "
+            "display engine-loop progress without recomputing totals"
         ),
         "validation_report_artifact_order_fields": [
             "index",
@@ -3640,6 +3670,16 @@ def _build_engine_artifacts_contract_manifest() -> dict[str, Any]:
             "artifact_fingerprint",
         ],
         "validation_error_record_schema_version": A2UI_ENGINE_ARTIFACTS_SCHEMA_VERSION,
+        "validation_report_stage_coverage_fields": [
+            "known_stage_order",
+            "present",
+            "present_count",
+            "missing",
+            "missing_count",
+            "next_missing_stage",
+            "progress_label",
+            "complete",
+        ],
         "validation_error_record_fields": [
             "schema_version",
             "index",
@@ -4259,6 +4299,7 @@ def build_engine_artifact_validation_report(
     errors = _collect_engine_artifact_validation_error_records(artifacts, include_payload_after_pair_errors=True)
     artifact_kind_counts = _collect_engine_artifact_validation_report_kind_counts(artifact_order)
     stage_coverage = _collect_engine_artifact_validation_report_stage_coverage(artifact_order)
+    workflow_blocked_reason = _engine_artifact_validation_report_workflow_blocked_reason(errors, stage_coverage)
     report = {
         "type": "A2UIEngineArtifactValidationReport",
         "schema_version": A2UI_ENGINE_ARTIFACTS_SCHEMA_VERSION,
@@ -4273,6 +4314,8 @@ def build_engine_artifact_validation_report(
         "stage_coverage": stage_coverage,
         "stage_coverage_fingerprint": _fingerprint_manifest_section(stage_coverage),
         "valid": not errors,
+        "workflow_ready": workflow_blocked_reason is None,
+        "workflow_blocked_reason": workflow_blocked_reason,
         "error_count": len(errors),
         "error_codes": _collect_engine_artifact_validation_report_error_codes(errors),
         "errors": list(errors),
@@ -4349,8 +4392,24 @@ def validate_engine_artifact_validation_report(report: Mapping[str, Any]) -> Non
         or not isinstance(stage_coverage.get("known_stage_order"), list)
         or stage_coverage["known_stage_order"] != list(ENGINE_A2UI_CLI_FALLBACK_STAGE_ORDER)
         or not isinstance(stage_coverage.get("present"), list)
+        or type(stage_coverage.get("present_count")) is not int
+        or stage_coverage.get("present_count") != len(stage_coverage["present"])
         or not isinstance(stage_coverage.get("missing"), list)
+        or type(stage_coverage.get("missing_count")) is not int
+        or stage_coverage.get("missing_count") != len(stage_coverage["missing"])
+        or stage_coverage.get("next_missing_stage")
+        != (stage_coverage["missing"][0] if stage_coverage["missing"] else None)
+        or (
+            stage_coverage.get("next_missing_stage") is not None
+            and not isinstance(stage_coverage.get("next_missing_stage"), str)
+        )
+        or any(stage not in ENGINE_A2UI_CLI_FALLBACK_STAGE_ORDER for stage in stage_coverage["present"])
+        or any(stage not in ENGINE_A2UI_CLI_FALLBACK_STAGE_ORDER for stage in stage_coverage["missing"])
+        or type(stage_coverage.get("progress_label")) is not str
+        or stage_coverage.get("progress_label")
+        != f"{stage_coverage['present_count']}/{len(stage_coverage['known_stage_order'])}"
         or type(stage_coverage.get("complete")) is not bool
+        or stage_coverage.get("complete") != (not stage_coverage["missing"])
     ):
         raise ValueError("Engine artifact validation report stage_coverage is invalid")
     stage_coverage_fingerprint = report.get("stage_coverage_fingerprint")
@@ -4377,6 +4436,16 @@ def validate_engine_artifact_validation_report(report: Mapping[str, Any]) -> Non
     valid = report.get("valid")
     if type(valid) is not bool or valid != (not errors):
         raise ValueError("Engine artifact validation report valid flag is invalid")
+    workflow_ready = report.get("workflow_ready")
+    if type(workflow_ready) is not bool or workflow_ready != (valid and bool(stage_coverage["complete"])):
+        raise ValueError("Engine artifact validation report workflow_ready flag is invalid")
+    workflow_blocked_reason = report.get("workflow_blocked_reason")
+    expected_workflow_blocked_reason = _engine_artifact_validation_report_workflow_blocked_reason(
+        errors,
+        stage_coverage,
+    )
+    if workflow_blocked_reason != expected_workflow_blocked_reason:
+        raise ValueError("Engine artifact validation report workflow_blocked_reason is invalid")
     error_fingerprint = report.get("error_fingerprint")
     if type(error_fingerprint) is not str or error_fingerprint != _fingerprint_manifest_section(errors):
         raise ValueError("Engine artifact validation report error_fingerprint is stale")
@@ -4404,6 +4473,9 @@ def _render_engine_artifact_validation_report_text(report: Mapping[str, Any]) ->
     lines = [
         "[A2UIEngineArtifactValidationReport]",
         f"Status: {'valid' if report['valid'] else 'invalid'}",
+        f"Workflow ready: {'yes' if report['workflow_ready'] else 'no'}",
+        f"Workflow handoff: {'ready' if report['workflow_ready'] else 'blocked'}",
+        f"Workflow blocked reason: {report['workflow_blocked_reason'] or '-'}",
         f"Input shape: {report['input_shape']}",
         f"Artifacts: {report['artifact_count']}",
         f"Errors: {report['error_count']}",
@@ -4423,7 +4495,11 @@ def _render_engine_artifact_validation_report_text(report: Mapping[str, Any]) ->
         lines.append(f"Artifact kinds: {rendered_counts}")
     stage_coverage = report["stage_coverage"]
     lines.append(f"Stages present: {', '.join(stage_coverage['present']) or '-'}")
+    lines.append(f"Present stage count: {stage_coverage['present_count']}")
     lines.append(f"Stages missing: {', '.join(stage_coverage['missing']) or '-'}")
+    lines.append(f"Missing stage count: {stage_coverage['missing_count']}")
+    lines.append(f"Next missing stage: {stage_coverage['next_missing_stage'] or '-'}")
+    lines.append(f"Stage progress: {stage_coverage['progress_label']}")
     lines.append(f"Stages complete: {'yes' if stage_coverage['complete'] else 'no'}")
     if report["errors"]:
         lines.append("Validation errors:")
@@ -4592,9 +4668,28 @@ def _collect_engine_artifact_validation_report_stage_coverage(
     return {
         "known_stage_order": known_stage_order,
         "present": [stage for stage in known_stage_order if stage in present_stage_names],
+        "present_count": len(present_stage_names),
         "missing": missing_stage_names,
+        "missing_count": len(missing_stage_names),
+        "next_missing_stage": missing_stage_names[0] if missing_stage_names else None,
+        "progress_label": f"{len(present_stage_names)}/{len(known_stage_order)}",
         "complete": not missing_stage_names,
     }
+
+
+def _engine_artifact_validation_report_workflow_blocked_reason(
+    errors: Sequence[Mapping[str, Any]],
+    stage_coverage: Mapping[str, Any],
+) -> str | None:
+    has_errors = bool(errors)
+    missing_stages = not bool(stage_coverage.get("complete"))
+    if has_errors and missing_stages:
+        return "validation_errors_and_missing_stages"
+    if has_errors:
+        return "validation_errors"
+    if missing_stages:
+        return "missing_stages"
+    return None
 
 
 def _collect_engine_artifact_mapping_validation_error_records(
