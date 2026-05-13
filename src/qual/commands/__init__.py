@@ -26,6 +26,7 @@ from src.qual.commands.canonical import (
     canonical_command_readiness_cli_smoke_lines,
     canonical_command_readiness_command_progress_payload,
     canonical_command_readiness_cli_entrypoint_seal_payload,
+    canonical_command_readiness_demo_driver_payload,
     canonical_command_readiness_fingerprint,
     canonical_command_readiness_checkpoint_payload,
     canonical_command_readiness_handoff_command_progress_payload,
@@ -111,6 +112,7 @@ def build_mvp_demo_command_surface_payload(
     runtime_checkpoint = build_mvp_demo_cli_runtime_checkpoint_payload(smoke_argvs)
     smoke_route_lookup = build_mvp_demo_cli_smoke_route_lookup_payload(smoke_argvs)
     command_completion = build_mvp_demo_cli_completion_payload(smoke_argvs)
+    demo_driver = canonical_command_readiness_demo_driver_payload(smoke_argvs)
     readiness_gate = build_mvp_demo_command_surface_readiness_gate_payload(
         demo_loop_ready=bool(demo_loop["is_ready"]),
         smoke_gate=smoke_gate,
@@ -169,6 +171,7 @@ def build_mvp_demo_command_surface_payload(
         "supported_launcher_gate": supported_launcher_gate,
         "smoke_gate": smoke_gate,
         "readiness_snapshot": canonical_command_readiness_snapshot_payload(smoke_argvs),
+        "demo_driver": demo_driver,
         "runtime_checkpoint": runtime_checkpoint,
         "command_completion": command_completion,
         "readiness_checkpoint": build_mvp_demo_readiness_checkpoint_payload(
@@ -1319,6 +1322,7 @@ def build_mvp_demo_command_surface_audit_payload() -> dict[str, object]:
         "cli_handoff": build_mvp_demo_cli_handoff_payload(),
         "smoke_gate": build_mvp_demo_smoke_gate_payload(),
         "readiness_checkpoint": build_mvp_demo_readiness_checkpoint_payload(),
+        "demo_driver": canonical_command_readiness_demo_driver_payload(),
         "next_step": build_mvp_demo_next_step_payload(),
         "resume_packet": build_mvp_demo_resume_packet_payload(),
         "runtime_checkpoint": build_mvp_demo_cli_runtime_checkpoint_payload(),

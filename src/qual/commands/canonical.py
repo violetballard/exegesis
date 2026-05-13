@@ -1055,6 +1055,9 @@ __all__ = [
     "canonical_command_readiness_next_status_json",
     "canonical_command_readiness_next_status_payload",
     "canonical_command_readiness_next_status_summary",
+    "canonical_command_readiness_demo_driver_json",
+    "canonical_command_readiness_demo_driver_payload",
+    "canonical_command_readiness_demo_driver_summary",
     "canonical_command_readiness_next_command_line_for_argvs",
     "canonical_command_readiness_shell_next_action",
     "canonical_command_readiness_shell_next_action_json",
@@ -4714,6 +4717,84 @@ def canonical_command_readiness_next_status_json(
         canonical_command_readiness_next_status_payload(argvs),
         sort_keys=True,
         separators=(",", ":"),
+    )
+
+
+def canonical_command_readiness_demo_driver_payload(
+    argvs: Sequence[Sequence[str] | str] = (),
+) -> dict[str, object]:
+    """Return the deterministic command-driver state for the MVP demo loop."""
+
+    validation = canonical_command_readiness_validate_script(argvs)
+    snapshot = canonical_command_readiness_snapshot(argvs)
+    fingerprint = canonical_command_readiness_fingerprint()
+    return {
+        "schema_version": 1,
+        "readiness_fingerprint": {
+            "algorithm": fingerprint.algorithm,
+            "digest": fingerprint.digest,
+        },
+        "complete": snapshot.complete,
+        "ready": canonical_command_demo_readiness_ready(),
+        "completed": [
+            _canonical_command_readiness_status_payload(status)
+            for status in snapshot.completed
+        ],
+        "remaining": [
+            _canonical_command_readiness_status_payload(status)
+            for status in snapshot.remaining
+        ],
+        "next_status": _canonical_command_readiness_status_payload(
+            snapshot.next_status
+        ),
+        "remaining_command_lines": canonical_command_readiness_remaining_command_lines(
+            validation.canonical_argv
+        ),
+        "remaining_exact_action_lines": canonical_command_readiness_remaining_exact_action_lines(
+            validation.canonical_argv
+        ),
+        "invalid_argv": snapshot.invalid_argv,
+    }
+
+
+def canonical_command_readiness_demo_driver_json(
+    argvs: Sequence[Sequence[str] | str] = (),
+) -> str:
+    """Return deterministic JSON for CLI-first demo driver smoke checks."""
+
+    return json.dumps(
+        canonical_command_readiness_demo_driver_payload(argvs),
+        sort_keys=True,
+        separators=(",", ":"),
+    )
+
+
+def canonical_command_readiness_demo_driver_summary(
+    argvs: Sequence[Sequence[str] | str] = (),
+) -> tuple[
+    bool,
+    bool,
+    str,
+    tuple[str, ...],
+    tuple[str, ...],
+    tuple[tuple[str, ...], ...],
+]:
+    """Return compact driver state for smoke-test assertions."""
+
+    validation = canonical_command_readiness_validate_script(argvs)
+    snapshot = canonical_command_readiness_snapshot(argvs)
+    fingerprint = canonical_command_readiness_fingerprint()
+    return (
+        canonical_command_demo_readiness_ready(),
+        snapshot.complete,
+        fingerprint.digest,
+        canonical_command_readiness_remaining_command_lines(
+            validation.canonical_argv
+        ),
+        canonical_command_readiness_remaining_exact_action_lines(
+            validation.canonical_argv
+        ),
+        snapshot.invalid_argv,
     )
 
 
