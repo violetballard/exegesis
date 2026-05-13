@@ -1220,7 +1220,7 @@ def _normalize_citation_bundle_snapshot(citation_bundle: dict[str, object]) -> d
     )
     if "caches_used" in normalized:
         normalized["caches_used"] = _normalize_bool_map(normalized.get("caches_used"))
-    normalized["doc_citations"] = _normalize_list_like(normalized.get("doc_citations"))
+    normalized["doc_citations"] = _normalize_doc_citation_snapshots(normalized.get("doc_citations"))
     normalized["excerpt_citations"] = _normalize_excerpt_citation_snapshots(
         normalized.get("excerpt_citations")
     )
@@ -3192,7 +3192,10 @@ def build_retrieval_citation_bundle_from_result(
     """Return the deterministic doc and excerpt citation snapshot for a result."""
     bundle_source = getattr(result, "citation_bundle", None)
     if callable(bundle_source):
-        return copy.deepcopy(bundle_source())
+        citation_bundle = bundle_source()
+        if isinstance(citation_bundle, dict):
+            return _normalize_citation_bundle_snapshot(citation_bundle)
+        return copy.deepcopy(citation_bundle)
     payload = build_retrieval_downstream_payload_from_result(result)
     return _build_retrieval_citation_bundle_from_payload(payload)
 

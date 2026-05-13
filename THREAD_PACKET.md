@@ -12,8 +12,8 @@
 - Authoritative reviewed implementation base: `378cf9a74a3658058079a32f186fcd254c4a4034`.
 - Reviewed source-bearing implementation head: this source-bearing fixer commit; final branch tip SHA is reported in the fixer final response.
 - Reviewed source-bearing implementation range: `378cf9a74a3658058079a32f186fcd254c4a4034..HEAD` on branch `codex/feat-retrieval-fts`.
-- Packet update note: this commit refreshes basket-promotion bundle normalization so malformed non-object `promotion_items` are dropped before promotion counts and fingerprints are rebuilt, and explicit malformed-only promotion snapshots cannot preserve stale basket-promotion readiness; the final branch tip SHA is reported in the fixer final response.
-- Current pass role: source-bearing malformed sparse promotion item and stale-count fail-closed finalization for context-basket audit snapshots.
+- Packet update note: this commit refreshes citation bundle normalization so direct citation-bundle helper sources receive the same deterministic doc-citation strategy backfill as source/doc/excerpt bundle paths; the final branch tip SHA is reported in the fixer final response.
+- Current pass role: source-bearing citation bundle provenance normalization finalization for context-basket audit snapshots.
 
 ## Traceability Correction
 
@@ -108,6 +108,8 @@ This source-bearing fixer pass modifies `src/qual/engine/retrieval/payload.py`, 
 This source-bearing fixer pass modifies `src/qual/engine/retrieval/payload.py`, `tests/unit/test_unified_retrieval.py`, and `THREAD_PACKET.md` so sparse retrieval manifest and summary `top_basket_item_ids`, summary and manifest `basket_item_ids`, document-citation `top_basket_item_id` fallbacks, and fingerprint-only stale snapshots normalize through the canonical FTS-only basket ID validator. Stale PageIndex, embedding-shaped, raw excerpt, or padded non-canonical IDs now fail closed before source/context/provenance rehydration can treat them as promotable basket identity or preserve a stale promotion-ready count.
 
 This source-bearing fixer pass modifies `src/qual/engine/retrieval/payload.py`, `tests/unit/test_unified_retrieval.py`, and `THREAD_PACKET.md` so sparse `primary_basket_item_id` summary/provenance fields use the same canonical FTS-only validation as list-shaped basket IDs. Stale PageIndex or embedding-shaped primary IDs now fail closed, while sparse excerpt citation fallback can rehydrate the first canonical `retrieval:fts:<excerpt_id>` primary ID for basket-promotion evidence.
+
+This source-bearing fixer pass modifies `src/qual/engine/retrieval/payload.py`, `tests/unit/test_unified_retrieval.py`, and `THREAD_PACKET.md` so direct `citation_bundle()` helper sources normalize doc citation strategy fields through the same path used by downstream citation-bundle rehydration. Sparse doc citations that retain `source_strategy` but omit `retrieval_source_strategy` now backfill deterministically before context-basket consumers audit citation provenance.
 
 This source-bearing fixer pass modifies `src/qual/engine/retrieval/payload.py`, `tests/unit/test_unified_retrieval.py`, and `THREAD_PACKET.md` so sparse source/context bundle basket item fingerprint snapshots are trusted only when their normalized fingerprint set pairs one-for-one with the surviving canonical FTS basket item IDs. Unpaired fingerprint-only evidence now fails closed while canonical basket item IDs can still preserve basket-promotion readiness for downstream engine consumers.
 
@@ -686,6 +688,17 @@ Earlier gate run for the previous source-bearing raw excerpt-only sparse basket 
 - `SCOPE_ALLOW_SHARED=1 make ci` - passed scope-check, format, lint, compile/typecheck, smoke tests, and all unified retrieval tests, then failed with 6 unrelated sandbox/control-plane `PermissionError` errors when inherited shared-scope test execution attempted to write `.codex/packet_router/logs/fixer__feat-commands__20260513T035937Z.log`, write `.codex/feature_runner/state.json`, invoke `ps`, write `.codex/packet_planner/state.json` in two planner tests, or move recovery artifacts under `.codex/worktree_recovery/feat-a__git-local__20260513T035942Z`.
 - `./quality-format.sh --check` - passed after this handoff packet update.
 - `./quality-lint.sh` - passed shell syntax and trailing whitespace checks after this handoff packet update.
+- `python3 -m compileall -q src/qual/engine/retrieval/payload.py tests/unit/test_unified_retrieval.py` - passed after direct citation-bundle helper normalization.
+- `python3 -m unittest tests.unit.test_unified_retrieval.UnifiedRetrievalTests.test_retrieval_citation_bundle_helper_normalizes_doc_citation_strategy -q` - passed the focused citation-bundle provenance regression.
+- `python3 -m unittest tests.unit.test_unified_retrieval -q` - passed 105 unified retrieval tests after direct citation-bundle helper normalization.
+- `./quality-format.sh --check` - passed after direct citation-bundle helper normalization.
+- `./quality-lint.sh` - passed shell syntax and trailing whitespace checks after direct citation-bundle helper normalization.
+- `./quality-test.sh` - passed smoke tests and 488 unit tests, including all 105 unified retrieval tests, after direct citation-bundle helper normalization.
+- `./typecheck-test.sh` - passed Python source compilation under `src/` after direct citation-bundle helper normalization.
+- `make ci` - blocked at scope-check because `tests/unit/test_unified_retrieval.py` is an approved shared regression path; rerun requires the approved shared-file scope override.
+- `SCOPE_ALLOW_SHARED=1 make ci` - passed scope-check, format, lint, compile/typecheck, smoke, and unified retrieval coverage before failing with 6 unrelated sandbox/control-plane `PermissionError` errors when inherited shared-scope test execution attempted to write `.codex/packet_router/logs/fixer__feat-commands__20260513T050542Z.log`, write `.codex/feature_runner/state.json`, invoke `ps`, write `.codex/packet_planner/state.json`, or move recovery artifacts under `.codex/worktree_recovery/feat-a__git-local__20260513T050547Z`.
+- `./quality-format.sh --check` - passed after the final packet refresh.
+- `./quality-lint.sh` - passed shell syntax and trailing whitespace checks after the final packet refresh.
 
 Older gate history for this corrected merge candidate:
 

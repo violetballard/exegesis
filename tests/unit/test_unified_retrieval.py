@@ -1108,6 +1108,34 @@ class UnifiedRetrievalTests(unittest.TestCase):
         self.assertEqual(bundle["basket_promotion_count"], len(expected_items))
         self.assertTrue(bundle["basket_promotion_ready"])
 
+    def test_retrieval_citation_bundle_helper_normalizes_doc_citation_strategy(self) -> None:
+        result = self.service.retrieve_auto(
+            RetrievalQuery(
+                query_text="memo coding comparison",
+                scope="vault",
+                intent="compare",
+                constraints=RetrievalConstraints(max_results=4),
+                confidentiality_profile="confidential",
+            )
+        )
+
+        class _CitationBundleOnlySource:
+            def __init__(self, citation_bundle: dict[str, object]) -> None:
+                self._citation_bundle = citation_bundle
+
+            def citation_bundle(self) -> dict[str, object]:
+                return self._citation_bundle
+
+        sparse_bundle = json.loads(json.dumps(result.citation_bundle()))
+        sparse_bundle["doc_citations"][0].pop("retrieval_source_strategy", None)
+
+        bundle = build_retrieval_citation_bundle_from_result(
+            _CitationBundleOnlySource(sparse_bundle)
+        )
+
+        self.assertEqual(bundle["doc_citations"], result.citation_bundle()["doc_citations"])
+        self.assertEqual(bundle["excerpt_citations"], result.citation_bundle()["excerpt_citations"])
+
     def test_retrieval_result_as_dict_alias_matches_downstream_payload(self) -> None:
         result = self.service.retrieve_auto(
             RetrievalQuery(
