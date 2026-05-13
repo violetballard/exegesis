@@ -568,6 +568,7 @@ class UnifiedRetrievalTests(unittest.TestCase):
         self.assertEqual(result.diagnostics["doc_hits_count"], len(result.doc_hits))
         self.assertEqual(result.diagnostics["excerpt_hits_count"], len(result.hits))
         manifest = result.diagnostics["retrieval_manifest"]
+        self.assertEqual(manifest["canonical_demo_path_steps"], self.CANONICAL_DEMO_PATH_STEPS)
         self.assertEqual(manifest["doc_ids"], [item.doc_id for item in result.doc_hits])
         self.assertEqual(manifest["doc_fingerprints"], [item.provenance["doc_fingerprint"] for item in result.doc_hits])
         self.assertEqual(
@@ -651,6 +652,10 @@ class UnifiedRetrievalTests(unittest.TestCase):
         self.assertEqual(
             payload["retrieval_summary"]["fts_match_query_fingerprint"],
             result.diagnostics["fts_match_query_fingerprint"],
+        )
+        self.assertEqual(
+            payload["retrieval_summary"]["canonical_demo_path_steps"],
+            self.CANONICAL_DEMO_PATH_STEPS,
         )
         self.assertEqual(payload["retrieval_summary"]["result_fingerprint"], result.result_fingerprint)
         self.assertEqual(payload["retrieval_summary"]["retrieval_backend"], "sqlite_fts")
@@ -2088,6 +2093,10 @@ class UnifiedRetrievalTests(unittest.TestCase):
 
         self.assertEqual(source_bundle["retrieval_summary"]["top_basket_item_ids"], ["retrieval:fts:excerpt-2"])
         self.assertEqual(source_bundle["retrieval_summary"]["basket_item_ids"], ["retrieval:fts:summary-excerpt-2"])
+        self.assertEqual(
+            source_bundle["retrieval_summary"]["canonical_demo_path_steps"],
+            self.CANONICAL_DEMO_PATH_STEPS,
+        )
         self.assertEqual(source_bundle["retrieval_manifest"]["top_basket_item_ids"], ["retrieval:fts:excerpt-2"])
         self.assertEqual(source_bundle["retrieval_manifest"]["basket_item_ids"], ["retrieval:fts:manifest-excerpt-3"])
         self.assertEqual(source_bundle["basket_item_ids"], ["retrieval:fts:summary-excerpt-2"])
@@ -3694,6 +3703,10 @@ class UnifiedRetrievalTests(unittest.TestCase):
 
         self.assertEqual(context_bundle["basket_item_ids"], ["retrieval:fts:excerpt-2"])
         self.assertEqual(context_bundle["basket_item_fingerprints"], ["fingerprint-for-fts-excerpt-2"])
+        self.assertEqual(
+            context_bundle["retrieval_manifest"]["canonical_demo_path_steps"],
+            self.CANONICAL_DEMO_PATH_STEPS,
+        )
         self.assertEqual(context_bundle["basket_promotion_count"], 1)
         self.assertTrue(context_bundle["basket_promotion_ready"])
 

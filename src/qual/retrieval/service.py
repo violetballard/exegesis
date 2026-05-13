@@ -941,6 +941,7 @@ class RetrievalResult:
             if hit.excerpt_id is not None
         )
         return {
+            "canonical_demo_path_steps": list(_RETRIEVAL_DEMO_PATH_STEPS),
             "query_fingerprint": self.diagnostics["query_fingerprint"],
             "fts_match_query_fingerprint": self.diagnostics["fts_match_query_fingerprint"],
             "result_fingerprint": self.result_fingerprint,
@@ -1945,6 +1946,7 @@ class RetrievalService:
             ]
         )
         return {
+            "canonical_demo_path_steps": list(_RETRIEVAL_DEMO_PATH_STEPS),
             "doc_ids": [doc_hit.doc_id for doc_hit in doc_hits],
             "doc_fingerprints": doc_fingerprints,
             "doc_identity_fingerprints": doc_identity_fingerprints,

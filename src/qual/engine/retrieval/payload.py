@@ -1247,6 +1247,7 @@ def _normalize_excerpt_bundle_snapshot(excerpt_bundle: dict[str, object]) -> dic
 
 def _normalize_retrieval_summary_snapshot(summary: dict[str, object]) -> dict[str, object]:
     normalized = copy.deepcopy(summary)
+    normalized["canonical_demo_path_steps"] = list(_RETRIEVAL_DEMO_PATH_STEPS)
     if "query_date_range" in normalized:
         normalized["query_date_range"] = _normalize_optional_list_like(normalized.get("query_date_range"))
     normalized["doc_ids"] = _normalize_list_like(normalized.get("doc_ids"))
@@ -1300,6 +1301,7 @@ def _normalize_retrieval_summary_snapshot(summary: dict[str, object]) -> dict[st
 
 def _normalize_retrieval_manifest_snapshot(manifest: dict[str, object]) -> dict[str, object]:
     normalized = copy.deepcopy(manifest)
+    normalized["canonical_demo_path_steps"] = list(_RETRIEVAL_DEMO_PATH_STEPS)
     normalized["doc_ids"] = _normalize_list_like(normalized.get("doc_ids"))
     normalized["doc_fingerprints"] = _normalize_list_like(normalized.get("doc_fingerprints"))
     normalized["doc_identity_fingerprints"] = _normalize_list_like(normalized.get("doc_identity_fingerprints"))
