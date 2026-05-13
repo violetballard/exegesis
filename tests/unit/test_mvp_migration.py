@@ -871,6 +871,45 @@ class RouterReviewerBootstrapTests(unittest.TestCase):
 
         self.assertTrue(router._requires_live_reviewer_rerun(note))
 
+    def test_reviewer_backlog_restores_archived_packet_for_fallback_note(self) -> None:
+        from codex_packet_handoff.tools import router
+
+        with tempfile.TemporaryDirectory() as tmp:
+            lane_dir = Path(tmp)
+            sha = "040ef749ba4a001da8642a134f41c8ab626c4f3d"
+            archived = lane_dir / "archive" / f"F__codex-feat-retrieval-fts__{sha}__20260513T172457Z.md"
+            archived.parent.mkdir(parents=True, exist_ok=True)
+            archived.write_text("Feature packet body\n", encoding="utf-8")
+            note = lane_dir / "inbox" / "reviewer" / f"R__CHANGES__codex-feat-retrieval-fts__{sha}__20260513T172457Z.md"
+            note.parent.mkdir(parents=True, exist_ok=True)
+            note.write_text(
+                router._offline_reviewer_fallback("Feature packet body\n", "bad local cli marker"),
+                encoding="utf-8",
+            )
+            cfg = SimpleNamespace(
+                inline_fixer=True,
+                kick_fixers_on_reviewer_backlog=True,
+                max_local_fixer_kicks_per_run=1,
+                max_cloud_fixer_kicks_per_run=1,
+                max_local_fixer_jobs=1,
+                max_cloud_fixer_jobs=1,
+                lanes={"feat-retrieval-fts": {"branch": "codex/feat-retrieval-fts"}},
+            )
+
+            with (
+                patch.object(router, "ensure_lane_dirs", return_value=lane_dir),
+                patch.object(router, "_local_lms_slot_available", return_value=True),
+                patch.object(router, "run_fixer") as run_fixer,
+            ):
+                kicked, _state = router.process_reviewer_backlog(object(), cfg, {}, "/repo")
+
+            restored = list((lane_dir / "inbox" / "feature").glob(f"F__codex-feat-retrieval-fts__{sha}__*.md"))
+
+        self.assertEqual(kicked, 0)
+        self.assertEqual(len(restored), 1)
+        self.assertFalse(note.exists())
+        run_fixer.assert_not_called()
+
     def test_local_reviewer_failure_keeps_packet_pending(self) -> None:
         from codex_packet_handoff.tools import router
 

@@ -125,7 +125,7 @@ is_allowed() {
       ;;
     codex/feat-a2ui-contract*)
       case "$f" in
-        src/qual/ui/a2ui.py|shared/src/exegesis_shared/contracts/*|shared/src/exegesis_shared/contracts/*/*|shared/src/exegesis_shared/models/*|shared/src/exegesis_shared/models/*/*|shared/src/exegesis_shared/types/*|shared/src/exegesis_shared/types/*/*) return 0 ;;
+        src/qual/ui/a2ui.py|src/qual/ui/test_a2ui_fallback_safety.py|shared/src/exegesis_shared/contracts/*|shared/src/exegesis_shared/contracts/*/*|shared/src/exegesis_shared/models/*|shared/src/exegesis_shared/models/*/*|shared/src/exegesis_shared/types/*|shared/src/exegesis_shared/types/*/*) return 0 ;;
       esac
       return 1
       ;;

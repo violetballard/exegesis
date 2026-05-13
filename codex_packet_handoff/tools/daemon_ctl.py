@@ -6,6 +6,7 @@ import contextlib
 import errno
 import os
 import signal
+import shutil
 import subprocess
 import sys
 import time
@@ -225,6 +226,13 @@ def _clear_stale_lease() -> None:
         pass
 
 
+def _prune_control_plane_bytecode() -> None:
+    """Avoid adopting stale or half-written pyc files during daemon bootstrap."""
+    for root in (REPO_ROOT / "codex_packet_handoff").glob("**/__pycache__"):
+        if root.is_dir():
+            shutil.rmtree(root, ignore_errors=True)
+
+
 def _lease_state() -> tuple[int | None, float | None]:
     try:
         import json
@@ -264,6 +272,7 @@ def _status() -> int:
 def _start() -> int:
     _ensure_dirs()
     _clear_stale_lease()
+    _prune_control_plane_bytecode()
     compact_log_file(LOG_FILE, max_bytes=DAEMON_LOG_MAX_BYTES, keep_bytes=DAEMON_LOG_KEEP_BYTES)
     pid = _read_pid()
     if _is_running():
@@ -384,6 +393,7 @@ def _stop() -> int:
 def _launchd_run() -> int:
     _ensure_dirs()
     _clear_stale_lease()
+    _prune_control_plane_bytecode()
     compact_log_file(LOG_FILE, max_bytes=DAEMON_LOG_MAX_BYTES, keep_bytes=DAEMON_LOG_KEEP_BYTES)
     devnull_fd = os.open(os.devnull, os.O_RDONLY)
     try:
@@ -394,6 +404,7 @@ def _launchd_run() -> int:
     PID_FILE.write_text(str(os.getpid()))
     env = os.environ.copy()
     env["PYTHONUNBUFFERED"] = "1"
+    env["PYTHONDONTWRITEBYTECODE"] = "1"
     os.execvpe(
         sys.executable,
         [sys.executable, str(REPO_ROOT / "codex_packet_handoff/tools/agents_coordinator.py"), "--daemon"],

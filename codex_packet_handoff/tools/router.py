@@ -1875,6 +1875,30 @@ def archive(src: Path, lane_dir: Path) -> None:
         src.unlink()
 
 
+def _restore_archived_feature_for_live_review(lane_dir: Path, reviewer_note: Path) -> Optional[Path]:
+    """Requeue an archived feature packet when only a synthetic fallback note remains."""
+    note_sha = _packet_sha(reviewer_note.name)
+    if not note_sha:
+        return None
+    feature_inbox = lane_dir / "inbox" / "feature"
+    if any(_packet_sha(p.name) == note_sha for p in feature_inbox.glob("*.md")):
+        return None
+    archived = sorted((lane_dir / "archive").glob(f"F__*__{note_sha}__*.md"), key=lambda p: p.stat().st_mtime)
+    if not archived:
+        return None
+    source = archived[-1]
+    parts = source.name.split("__")
+    if len(parts) >= 4:
+        parts[-1] = datetime.now(timezone.utc).strftime("%Y%m%dT%H%M%SZ.md")
+        name = "__".join(parts)
+    else:
+        name = f"{source.stem}__REREVIEW__{datetime.now(timezone.utc).strftime('%Y%m%dT%H%M%SZ')}.md"
+    restored = feature_inbox / name
+    write_text(restored, source.read_text(errors="ignore"))
+    archive(reviewer_note, lane_dir)
+    return restored
+
+
 def archive_reviewer_notes(lane_dir: Path, keep: Optional[Path] = None) -> int:
     """Archive reviewer notes in inbox/reviewer, optionally preserving one file.
 
@@ -2146,7 +2170,13 @@ def process_once(
                 write_text(lane_dir/"outbox/integrator"/pkt_path.name.replace("F__","R__APPROVED__"), reviewer_text)
                 integ = ""
                 runtime_local = _use_local_provider(cfg, state)
-                if runtime_local:
+                if cfg.prefer_cli_integrator:
+                    # Keep approval handling asynchronous. The integrator
+                    # backlog pass will pick up this outbox packet and launch
+                    # the tracked detached CLI job, avoiding untracked inline
+                    # cloud integrators racing the same packet.
+                    integ = ""
+                elif runtime_local:
                     integ = ""
                 elif not cfg.prefer_cli_integrator and integrator_tid:
                     try:
@@ -2260,7 +2290,11 @@ def process_reviewer_backlog(
         except Exception:
             note_text = ""
         if _requires_live_reviewer_rerun(note_text):
-            print(f"[router] {lane}: reviewer fallback note requires live re-review; not kicking fixer")
+            restored = _restore_archived_feature_for_live_review(lane_dir, newest_note)
+            if restored is not None:
+                print(f"[router] {lane}: restored archived feature packet for live re-review: {restored.name}")
+            else:
+                print(f"[router] {lane}: reviewer fallback note requires live re-review; not kicking fixer")
             continue
         if parse_verdict(note_text) == "APPROVED":
             # Approved reviewer notes belong to the integrator path; they are
