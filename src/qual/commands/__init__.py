@@ -142,6 +142,7 @@ def build_mvp_demo_command_surface_payload(
         "next_step": build_mvp_demo_next_step_payload(smoke_argvs),
         "resume_packet": build_mvp_demo_resume_packet_payload(smoke_argvs),
         "resume_script": build_mvp_demo_resume_script_payload(smoke_argvs),
+        "handoff_progress": build_mvp_demo_cli_handoff_progress_payload(smoke_argvs),
         "next_command": canonical_command_readiness_next_status_payload(smoke_argvs),
         "smoke_contract": smoke_contract,
         "smoke_command_lines": canonical_command_readiness_cli_smoke_lines(),
@@ -594,6 +595,7 @@ def build_mvp_demo_cli_handoff_payload(
         "next_step": build_mvp_demo_next_step_payload(smoke_argvs),
         "resume_packet": build_mvp_demo_resume_packet_payload(smoke_argvs),
         "resume_script": build_mvp_demo_resume_script_payload(smoke_argvs),
+        "handoff_progress": build_mvp_demo_cli_handoff_progress_payload(smoke_argvs),
     }
 
 
@@ -601,6 +603,48 @@ def run_mvp_demo_cli_handoff_json() -> str:
     """Return stable JSON for the reviewer-facing MVP demo CLI handoff."""
     return json.dumps(
         build_mvp_demo_cli_handoff_payload(),
+        sort_keys=True,
+        separators=(",", ":"),
+    )
+
+
+def build_mvp_demo_cli_handoff_progress_payload(
+    smoke_argvs: Sequence[Sequence[str] | str] = (),
+) -> dict[str, object]:
+    """Return compact progress data for deterministic handoff smoke checks."""
+
+    resume_script = build_mvp_demo_resume_script_payload(smoke_argvs)
+    next_step = resume_script["next_step"]
+    next_command = next_step["next_command"]
+    trusted_contract = build_mvp_demo_trusted_command_contract_payload()
+    remaining_command_lines = tuple(resume_script["remaining_command_lines"])
+    remaining_exact_action_lines = tuple(resume_script["remaining_exact_action_lines"])
+    return {
+        "is_ready": bool(trusted_contract["is_trusted"])
+        and not tuple(resume_script["invalid_argv"])
+        and not tuple(resume_script["exact_action_invalid_argv"]),
+        "is_complete": bool(resume_script["is_complete"]),
+        "exact_actions_complete": bool(resume_script["exact_actions_complete"]),
+        "completed_command_count": len(tuple(resume_script["completed_command_lines"])),
+        "remaining_command_count": len(remaining_command_lines),
+        "covered_flow_steps": tuple(resume_script["covered_flow_steps"]),
+        "covered_engine_actions": tuple(resume_script["covered_engine_actions"]),
+        "remaining_command_lines": remaining_command_lines,
+        "remaining_exact_action_lines": remaining_exact_action_lines,
+        "next_command": next_command,
+        "next_command_line": next_command["command_line"],
+        "next_engine_actions": tuple(next_command["engine_actions"]),
+        "trusted_commands": tuple(trusted_contract["commands"]),
+        "untrusted_commands": tuple(trusted_contract["untrusted_commands"]),
+        "invalid_argv": tuple(resume_script["invalid_argv"]),
+        "exact_action_invalid_argv": tuple(resume_script["exact_action_invalid_argv"]),
+    }
+
+
+def run_mvp_demo_cli_handoff_progress_json() -> str:
+    """Return stable JSON for deterministic handoff smoke progress."""
+    return json.dumps(
+        build_mvp_demo_cli_handoff_progress_payload(),
         sort_keys=True,
         separators=(",", ":"),
     )
