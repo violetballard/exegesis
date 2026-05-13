@@ -250,6 +250,8 @@ from src.qual.commands.catalog import (
     command_mvp_demo_persist_continue_json as _persist_continue_json,
     command_mvp_demo_persist_continue_lookup_table as _persist_continue_lookup_table,
     command_mvp_demo_persist_continue_payload as _persist_continue_payload,
+    command_mvp_demo_persist_continue_prerequisite_command_lines
+    as _persist_continue_prerequisite_command_lines,
     command_mvp_demo_persist_continue_prerequisite_demo_path_steps
     as _persist_continue_prerequisite_demo_path_steps,
     command_mvp_demo_persist_continue_prerequisite_flow_steps
@@ -822,6 +824,7 @@ __all__ = [
     "canonical_command_persist_continue_json",
     "canonical_command_persist_continue_lookup_table",
     "canonical_command_persist_continue_payload",
+    "canonical_command_persist_continue_prerequisite_command_lines",
     "canonical_command_persist_continue_prerequisite_demo_path_steps",
     "canonical_command_persist_continue_prerequisite_flow_steps",
     "canonical_command_persist_continue_summary",
@@ -2931,6 +2934,10 @@ def canonical_command_persist_continue_prerequisite_flow_steps() -> tuple[str, .
 
 def canonical_command_persist_continue_prerequisite_demo_path_steps() -> tuple[str, ...]:
     return _persist_continue_prerequisite_demo_path_steps()
+
+
+def canonical_command_persist_continue_prerequisite_command_lines() -> tuple[str, ...]:
+    return _persist_continue_prerequisite_command_lines()
 
 
 def canonical_command_action_coverage_lookup_table() -> tuple[tuple[str, str], ...]:

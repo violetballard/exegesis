@@ -7346,6 +7346,29 @@ def command_demo_persist_continue_prerequisite_demo_path_steps() -> tuple[str, .
     )
 
 
+def command_demo_persist_continue_prerequisite_command_lines(
+    specs: tuple[CommandSpec, ...] = COMMAND_SPECS,
+    launcher_argv: tuple[str, ...] = COMMAND_SMOKE_CLI_LAUNCHER_ARGV,
+) -> tuple[str, ...]:
+    lines: list[str] = []
+    missing_flow_steps: list[str] = []
+    for flow_step in command_demo_persist_continue_prerequisite_flow_steps():
+        step = command_demo_execution_plan_step_for_flow_step(
+            flow_step,
+            specs,
+            launcher_argv,
+        )
+        if step is None:
+            missing_flow_steps.append(flow_step)
+            continue
+        lines.append(step.command_line)
+
+    if missing_flow_steps:
+        missing = ", ".join(missing_flow_steps)
+        raise ValueError(f"Command demo persist prerequisites are missing: {missing}")
+    return tuple(lines)
+
+
 def command_demo_persist_continue_lookup_table(
     specs: tuple[CommandSpec, ...] = COMMAND_SPECS,
     launcher_argv: tuple[str, ...] = COMMAND_SMOKE_CLI_LAUNCHER_ARGV,
@@ -7414,6 +7437,10 @@ def command_demo_persist_continue_payload(
         "action_line": contract.action_line,
         "required_prior_flow_steps": contract.required_prior_flow_steps,
         "required_prior_demo_path_steps": contract.required_prior_demo_path_steps,
+        "required_prior_command_lines": command_demo_persist_continue_prerequisite_command_lines(
+            specs,
+            launcher_argv,
+        ),
         "is_cli_entrypoint": contract.is_cli_entrypoint,
         "is_exact_action": contract.is_exact_action,
         "is_final_demo_path_step": contract.is_final_demo_path_step,
@@ -7664,6 +7691,13 @@ def command_mvp_demo_persist_continue_prerequisite_flow_steps() -> tuple[str, ..
 
 def command_mvp_demo_persist_continue_prerequisite_demo_path_steps() -> tuple[str, ...]:
     return command_demo_persist_continue_prerequisite_demo_path_steps()
+
+
+def command_mvp_demo_persist_continue_prerequisite_command_lines(
+    specs: tuple[CommandSpec, ...] = COMMAND_SPECS,
+    launcher_argv: tuple[str, ...] = COMMAND_SMOKE_CLI_LAUNCHER_ARGV,
+) -> tuple[str, ...]:
+    return command_demo_persist_continue_prerequisite_command_lines(specs, launcher_argv)
 
 
 def command_mvp_demo_persist_continue_payload(
