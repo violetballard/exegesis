@@ -17,6 +17,8 @@ from src.qual.commands.canonical import (
     canonical_command_persist_continue_payload,
     canonical_command_readiness_command_audit_payload,
     canonical_command_readiness_cli_smoke_lines,
+    canonical_command_readiness_next_status_payload,
+    canonical_command_readiness_snapshot_payload,
     canonical_command_retrieval_context_payload,
 )
 from src.qual.commands.diff_preview import (
@@ -75,6 +77,8 @@ def build_mvp_demo_command_surface_payload() -> dict[str, object]:
         "retrieval_context": canonical_command_retrieval_context_payload(),
         "patch_review": asdict(build_patch_review_command_contract()),
         "persist_continue": canonical_command_persist_continue_payload(),
+        "readiness_snapshot": canonical_command_readiness_snapshot_payload(()),
+        "next_command": canonical_command_readiness_next_status_payload(),
         "smoke_contract": smoke_contract,
         "smoke_command_lines": canonical_command_readiness_cli_smoke_lines(),
     }
