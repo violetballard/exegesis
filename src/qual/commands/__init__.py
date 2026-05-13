@@ -1,7 +1,18 @@
 """Stable command compatibility surface for the CLI-first MVP loop."""
 
+from __future__ import annotations
+
+import json
+from dataclasses import asdict
+
 from src.qual.commands.catalog import *  # noqa: F401,F403
 from src.qual.commands.canonical import *  # noqa: F401,F403
+from src.qual.commands.canonical import (
+    canonical_command_execution_plan_payload,
+    canonical_command_persist_continue_payload,
+    canonical_command_readiness_cli_smoke_lines,
+    canonical_command_retrieval_context_payload,
+)
 from src.qual.commands.diff_preview import (
     DiffPreviewInput,
     DiffPreviewResult,
@@ -45,5 +56,25 @@ from src.qual.commands.diff_preview import (
     validate_patch_review_action_routes,
     validate_patch_review_command_contract,
 )
+
+def build_mvp_demo_command_surface_payload() -> dict[str, object]:
+    """Return the deterministic package-level contract for the MVP demo loop."""
+    return {
+        "execution_plan": canonical_command_execution_plan_payload(),
+        "retrieval_context": canonical_command_retrieval_context_payload(),
+        "patch_review": asdict(build_patch_review_command_contract()),
+        "persist_continue": canonical_command_persist_continue_payload(),
+        "smoke_command_lines": canonical_command_readiness_cli_smoke_lines(),
+    }
+
+
+def run_mvp_demo_command_surface_json() -> str:
+    """Return the package-level MVP demo command contract as stable JSON."""
+    return json.dumps(
+        build_mvp_demo_command_surface_payload(),
+        sort_keys=True,
+        separators=(",", ":"),
+    )
+
 
 __all__ = tuple(name for name in globals() if not name.startswith("_"))
