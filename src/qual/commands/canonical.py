@@ -854,13 +854,19 @@ __all__ = [
     "canonical_command_demo_readiness_status_lookup_table",
     "canonical_command_demo_readiness_ready",
     "canonical_command_readiness_statuses_for_argvs",
+    "canonical_command_readiness_cli_statuses_for_argvs",
     "canonical_command_readiness_remaining_statuses",
+    "canonical_command_readiness_cli_remaining_statuses",
     "canonical_command_readiness_handoff_step_status_index_payload",
     "canonical_command_readiness_handoff_step_status_index_json",
     "canonical_command_readiness_snapshot",
+    "canonical_command_readiness_cli_snapshot",
     "canonical_command_readiness_snapshot_json",
     "canonical_command_readiness_snapshot_payload",
     "canonical_command_readiness_snapshot_summary",
+    "canonical_command_readiness_cli_snapshot_json",
+    "canonical_command_readiness_cli_snapshot_payload",
+    "canonical_command_readiness_cli_snapshot_summary",
     "canonical_command_readiness_validate_argv",
     "canonical_command_readiness_validate_cli_argv",
     "canonical_command_readiness_validate_cli_script",
@@ -1047,7 +1053,9 @@ __all__ = [
     "canonical_command_readiness_status_for_engine_action",
     "canonical_command_readiness_status_for_flow_step",
     "canonical_command_readiness_statuses_for_argvs",
+    "canonical_command_readiness_cli_statuses_for_argvs",
     "canonical_command_readiness_remaining_statuses",
+    "canonical_command_readiness_cli_remaining_statuses",
     "canonical_command_demo_readiness_status_lookup_table",
     "canonical_command_readiness_handoff_step_status_index_payload",
     "canonical_command_readiness_handoff_step_status_index_json",
@@ -1056,9 +1064,13 @@ __all__ = [
     "canonical_command_readiness_shell_handoff_step_status_index_payload",
     "canonical_command_readiness_shell_handoff_step_status_index_json",
     "canonical_command_readiness_snapshot",
+    "canonical_command_readiness_cli_snapshot",
     "canonical_command_readiness_snapshot_summary",
     "canonical_command_readiness_snapshot_payload",
     "canonical_command_readiness_snapshot_json",
+    "canonical_command_readiness_cli_snapshot_summary",
+    "canonical_command_readiness_cli_snapshot_payload",
+    "canonical_command_readiness_cli_snapshot_json",
     "canonical_command_readiness_shell_snapshot",
     "canonical_command_readiness_shell_snapshot_summary",
     "canonical_command_readiness_shell_snapshot_payload",
@@ -1499,12 +1511,36 @@ def canonical_command_readiness_statuses_for_argvs(
     )
 
 
+def canonical_command_readiness_cli_statuses_for_argvs(
+    argvs: Sequence[Sequence[str] | str],
+) -> tuple[CommandCanonicalReadinessStatus, ...]:
+    """Return statuses covered by a parser-strict CLI transcript."""
+
+    validation = canonical_command_readiness_validate_cli_script(argvs)
+    return tuple(
+        canonical_command_readiness_status_for_cli_argv(argv)
+        for argv in validation.canonical_argv
+    )
+
+
 def canonical_command_readiness_remaining_statuses(
     argvs: Sequence[Sequence[str] | str],
 ) -> tuple[CommandCanonicalReadinessStatus, ...]:
     """Return canonical command statuses still required after a partial CLI transcript."""
 
     validation = canonical_command_readiness_validate_script(argvs)
+    return tuple(
+        canonical_command_readiness_status_for_flow_step(flow_step)
+        for flow_step in validation.missing_flow_steps
+    )
+
+
+def canonical_command_readiness_cli_remaining_statuses(
+    argvs: Sequence[Sequence[str] | str],
+) -> tuple[CommandCanonicalReadinessStatus, ...]:
+    """Return parser-strict CLI statuses still required after a partial transcript."""
+
+    validation = canonical_command_readiness_validate_cli_script(argvs)
     return tuple(
         canonical_command_readiness_status_for_flow_step(flow_step)
         for flow_step in validation.missing_flow_steps
@@ -1520,6 +1556,27 @@ def canonical_command_readiness_snapshot(
     return CommandCanonicalReadinessSnapshot(
         completed=tuple(
             canonical_command_readiness_status_for_argv(argv)
+            for argv in validation.canonical_argv
+        ),
+        remaining=tuple(
+            canonical_command_readiness_status_for_flow_step(flow_step)
+            for flow_step in validation.missing_flow_steps
+        ),
+        next_status=canonical_command_readiness_next_status(validation.canonical_argv),
+        invalid_argv=validation.invalid_argv,
+        complete=validation.is_complete,
+    )
+
+
+def canonical_command_readiness_cli_snapshot(
+    argvs: Sequence[Sequence[str] | str],
+) -> CommandCanonicalReadinessSnapshot:
+    """Bundle parser-strict CLI readiness status for command smoke checks."""
+
+    validation = canonical_command_readiness_validate_cli_script(argvs)
+    return CommandCanonicalReadinessSnapshot(
+        completed=tuple(
+            canonical_command_readiness_status_for_cli_argv(argv)
             for argv in validation.canonical_argv
         ),
         remaining=tuple(
@@ -1616,6 +1673,22 @@ def canonical_command_readiness_snapshot_summary(
     )
 
 
+def canonical_command_readiness_cli_snapshot_summary(
+    argvs: Sequence[Sequence[str] | str],
+) -> tuple[
+    bool,
+    tuple[tuple[str | None, str | None, str | None, bool], ...],
+    tuple[tuple[str | None, str | None, str | None, bool], ...],
+    tuple[str | None, str | None, str | None, tuple[str, ...], bool],
+    tuple[tuple[str, ...], ...],
+]:
+    """Return a compact parser-strict readiness snapshot for CLI smoke checks."""
+
+    return _canonical_command_readiness_snapshot_summary(
+        canonical_command_readiness_cli_snapshot(argvs)
+    )
+
+
 def _canonical_command_readiness_snapshot_payload(
     snapshot: CommandCanonicalReadinessSnapshot,
 ) -> dict[str, object]:
@@ -1676,6 +1749,16 @@ def canonical_command_readiness_snapshot_payload(
     )
 
 
+def canonical_command_readiness_cli_snapshot_payload(
+    argvs: Sequence[Sequence[str] | str],
+) -> dict[str, object]:
+    """Return a JSON-ready parser-strict snapshot for CLI smoke runners."""
+
+    return _canonical_command_readiness_snapshot_payload(
+        canonical_command_readiness_cli_snapshot(argvs)
+    )
+
+
 def canonical_command_readiness_snapshot_json(
     argvs: Sequence[Sequence[str] | str],
 ) -> str:
@@ -1683,6 +1766,18 @@ def canonical_command_readiness_snapshot_json(
 
     return json.dumps(
         canonical_command_readiness_snapshot_payload(argvs),
+        sort_keys=True,
+        separators=(",", ":"),
+    )
+
+
+def canonical_command_readiness_cli_snapshot_json(
+    argvs: Sequence[Sequence[str] | str],
+) -> str:
+    """Return deterministic JSON for parser-strict CLI compatibility checks."""
+
+    return json.dumps(
+        canonical_command_readiness_cli_snapshot_payload(argvs),
         sort_keys=True,
         separators=(",", ":"),
     )
