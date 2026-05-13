@@ -1479,6 +1479,7 @@ class CommandDemoPersistContinueContract:
     action_line: str
     required_prior_flow_steps: tuple[str, ...]
     required_prior_demo_path_steps: tuple[str, ...]
+    required_prior_command_lines: tuple[str, ...]
     is_cli_entrypoint: bool
     is_exact_action: bool
     is_final_demo_path_step: bool
@@ -7895,6 +7896,10 @@ def command_demo_persist_continue_contract(
     )
     required_prior_steps = command_demo_persist_continue_prerequisite_flow_steps()
     required_prior_demo_path_steps = command_demo_persist_continue_prerequisite_demo_path_steps()
+    required_prior_command_lines = command_demo_persist_continue_prerequisite_command_lines(
+        specs,
+        launcher_argv,
+    )
     contract = CommandDemoPersistContinueContract(
         demo_path_step=step.demo_path_step,
         flow_step=step.flow_step,
@@ -7904,17 +7909,20 @@ def command_demo_persist_continue_contract(
         action_line=coverage.action_line,
         required_prior_flow_steps=required_prior_steps,
         required_prior_demo_path_steps=required_prior_demo_path_steps,
+        required_prior_command_lines=required_prior_command_lines,
         is_cli_entrypoint=cli_validation.is_cli_entrypoint,
         is_exact_action=resolved_action == DEMO_PERSIST_CONTINUE_ENGINE_ACTION,
         is_final_demo_path_step=step.flow_step == command_demo_flow_steps()[-1],
     )
-    _validate_command_demo_persist_continue_contract(contract, step)
+    _validate_command_demo_persist_continue_contract(contract, step, specs, launcher_argv)
     return contract
 
 
 def _validate_command_demo_persist_continue_contract(
     contract: CommandDemoPersistContinueContract,
     step: CommandDemoExecutionPlanStep,
+    specs: tuple[CommandSpec, ...],
+    launcher_argv: tuple[str, ...],
 ) -> None:
     if contract.demo_path_step != "persist and continue":
         raise ValueError("Command demo persist contract path step is inconsistent")
@@ -7933,6 +7941,11 @@ def _validate_command_demo_persist_continue_contract(
         != command_demo_persist_continue_prerequisite_demo_path_steps()
     ):
         raise ValueError("Command demo persist contract path prerequisites are inconsistent")
+    if (
+        contract.required_prior_command_lines
+        != command_demo_persist_continue_prerequisite_command_lines(specs, launcher_argv)
+    ):
+        raise ValueError("Command demo persist contract command-line prerequisites are inconsistent")
     if not contract.is_cli_entrypoint:
         raise ValueError("Command demo persist contract command is not a CLI entrypoint")
     if not contract.is_exact_action:
@@ -8049,10 +8062,7 @@ def command_demo_persist_continue_payload(
         "action_line": contract.action_line,
         "required_prior_flow_steps": contract.required_prior_flow_steps,
         "required_prior_demo_path_steps": contract.required_prior_demo_path_steps,
-        "required_prior_command_lines": command_demo_persist_continue_prerequisite_command_lines(
-            specs,
-            launcher_argv,
-        ),
+        "required_prior_command_lines": contract.required_prior_command_lines,
         "is_cli_entrypoint": contract.is_cli_entrypoint,
         "is_exact_action": contract.is_exact_action,
         "is_final_demo_path_step": contract.is_final_demo_path_step,
