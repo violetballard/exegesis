@@ -3,6 +3,7 @@
 from __future__ import annotations
 
 import json
+from collections.abc import Sequence
 from dataclasses import asdict
 
 from src.qual.commands.catalog import *  # noqa: F401,F403
@@ -70,7 +71,9 @@ from src.qual.commands.diff_preview import (
     validate_patch_review_command_contract,
 )
 
-def build_mvp_demo_command_surface_payload() -> dict[str, object]:
+def build_mvp_demo_command_surface_payload(
+    smoke_argvs: Sequence[Sequence[str] | str] = (),
+) -> dict[str, object]:
     """Return the deterministic package-level contract for the MVP demo loop."""
     demo_loop = canonical_command_demo_loop_payload()
     smoke_contract = canonical_command_demo_loop_smoke_payload()
@@ -89,8 +92,8 @@ def build_mvp_demo_command_surface_payload() -> dict[str, object]:
         "demo_path_command_sequence": build_mvp_demo_command_sequence_payload(demo_loop, smoke_contract),
         "handler_trusted_demo_path": canonical_command_handler_trusted_demo_path_payload(),
         "smoke_gate": build_mvp_demo_smoke_gate_payload(demo_loop),
-        "readiness_snapshot": canonical_command_readiness_snapshot_payload(()),
-        "next_command": canonical_command_readiness_next_status_payload(),
+        "readiness_snapshot": canonical_command_readiness_snapshot_payload(smoke_argvs),
+        "next_command": canonical_command_readiness_next_status_payload(smoke_argvs),
         "smoke_contract": smoke_contract,
         "smoke_command_lines": canonical_command_readiness_cli_smoke_lines(),
     }
