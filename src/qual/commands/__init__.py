@@ -436,6 +436,9 @@ def build_mvp_demo_readiness_checkpoint_payload(
     next_action = canonical_command_readiness_handoff_next_action_payload(smoke_argvs)
     remaining_actions = canonical_command_readiness_remaining_action_payload(smoke_argvs)
     canonical_checkpoint = canonical_command_readiness_checkpoint_payload()
+    exact_action_routes = _mvp_demo_exact_action_routes_for_engine_actions(
+        tuple(next_action["remaining_engine_actions"])
+    )
     return {
         "is_ready": bool(canonical_checkpoint["is_ready"]),
         "is_complete": bool(progress["is_complete"])
@@ -446,6 +449,12 @@ def build_mvp_demo_readiness_checkpoint_payload(
         "progress": progress,
         "next_action": next_action,
         "remaining_actions": remaining_actions,
+        "next_exact_action_route": (
+            exact_action_routes[0]
+            if exact_action_routes and not next_action["is_complete"]
+            else None
+        ),
+        "remaining_exact_action_routes": exact_action_routes,
     }
 
 
@@ -537,6 +546,10 @@ def build_mvp_demo_resume_packet_payload(
         "compatibility_invocations": compatibility_invocations,
         "invalid_argv": invalid_argv,
         "exact_action_invalid_argv": exact_action_invalid_argv,
+        "next_exact_action_route": exact_action_checkpoint["next_exact_action_route"],
+        "remaining_exact_action_routes": exact_action_checkpoint[
+            "remaining_exact_action_routes"
+        ],
     }
 
 
@@ -586,6 +599,9 @@ def build_mvp_demo_resume_script_payload(
         "remaining_exact_action_lines": tuple(
             exact_action_checkpoint["next_action"]["remaining_exact_action_lines"]
         ),
+        "remaining_exact_action_routes": exact_action_checkpoint[
+            "remaining_exact_action_routes"
+        ],
         "invalid_argv": tuple(command_progress["invalid_argv"]),
         "exact_action_invalid_argv": tuple(
             exact_action_checkpoint["remaining_actions"]["invalid_argv"]
@@ -832,6 +848,9 @@ def build_mvp_demo_cli_runtime_checkpoint_payload(
     remaining_command_lines = tuple(
         entry["command_line"] for entry in progress["entries"] if not bool(entry["is_covered"])
     )
+    exact_action_routes = _mvp_demo_exact_action_routes_for_engine_actions(
+        tuple(next_action["remaining_engine_actions"])
+    )
     issues = _mvp_demo_cli_runtime_checkpoint_issues(
         trusted_contract=trusted_contract,
         smoke_gate=smoke_gate,
@@ -853,6 +872,12 @@ def build_mvp_demo_cli_runtime_checkpoint_payload(
         "remaining_command_lines": remaining_command_lines,
         "remaining_exact_action_lines": tuple(progress["remaining_exact_action_lines"]),
         "remaining_engine_actions": tuple(next_action["remaining_engine_actions"]),
+        "next_exact_action_route": (
+            exact_action_routes[0]
+            if exact_action_routes and not next_action["is_complete"]
+            else None
+        ),
+        "remaining_exact_action_routes": exact_action_routes,
         "covered_flow_steps": tuple(
             entry["flow_step"] for entry in progress["entries"] if bool(entry["is_covered"])
         ),
@@ -941,6 +966,20 @@ def build_mvp_demo_cli_smoke_route_payload(
             "preview and apply or reject a patch -> persist and continue"
         ),
     }
+
+
+def _mvp_demo_exact_action_routes_for_engine_actions(
+    engine_actions: Sequence[str],
+) -> tuple[dict[str, object], ...]:
+    route_lookup = {
+        str(route["engine_action"]): route
+        for route in canonical_command_exact_action_route_payload()
+    }
+    return tuple(
+        route_lookup[action]
+        for action in engine_actions
+        if action in route_lookup
+    )
 
 
 def run_mvp_demo_cli_smoke_route_json() -> str:
