@@ -1590,6 +1590,46 @@ def _validate_cli_entrypoints() -> None:
             raise ValueError(f"Unknown command CLI compatibility target: {canonical_name}")
 
 
+def _validate_cli_compatibility_exact_actions(specs: tuple[CommandSpec, ...]) -> None:
+    command_lookup = {
+        _normalize_token(token): spec
+        for spec in specs
+        for token in _lookup_tokens(spec)
+    }
+    compatibility_targets = {
+        _normalize_token(token): _normalize_token(canonical_name)
+        for token, canonical_name in _COMMAND_CLI_ENTRYPOINT_COMPATIBILITY_TOKENS
+    }
+    exact_argv_actions = {
+        engine_action for engine_action, _argv in _DEMO_EXACT_ACTION_SMOKE_ARGV_BY_ENGINE_ACTION
+    }
+    engine_actions_by_flow_step = {
+        _normalize_token(flow_step): tuple(engine_actions)
+        for flow_step, _demo_path_step, engine_actions in _DEMO_PATH_STEP_BY_FLOW_STEP
+    }
+    seen_tokens: set[str] = set()
+
+    for token, engine_action in _COMMAND_CLI_COMPATIBILITY_EXACT_ACTIONS:
+        normalized_token = _normalize_token(token)
+        if not normalized_token or not engine_action:
+            raise ValueError("Command CLI exact-action compatibility entries must not be empty")
+        if normalized_token in seen_tokens:
+            raise ValueError(f"Duplicate command CLI exact-action compatibility token: {token}")
+        seen_tokens.add(normalized_token)
+        canonical_name = compatibility_targets.get(normalized_token)
+        spec = command_lookup.get(canonical_name or normalized_token)
+        if spec is None:
+            raise ValueError(f"Unknown command CLI exact-action compatibility token: {token}")
+        if engine_action not in exact_argv_actions:
+            raise ValueError(f"Unknown command CLI exact-action engine action: {engine_action}")
+        flow_engine_actions = engine_actions_by_flow_step.get(_normalize_token(spec.flow_step), ())
+        if engine_action not in flow_engine_actions:
+            raise ValueError(
+                "Command CLI exact-action compatibility token routes outside its flow step: "
+                f"{token}"
+            )
+
+
 def _command_cli_tokens_by_name() -> dict[str, tuple[str, ...]]:
     tokens_by_name: dict[str, list[str]] = {}
     for token, canonical_name in command_cli_contract().lookup_table:
@@ -1648,6 +1688,9 @@ _CANONICAL_CLI_ENTRYPOINTS: tuple[str, ...] = (
 )
 _CLI_ENTRYPOINTS: tuple[str, ...] = _CANONICAL_CLI_ENTRYPOINTS
 _COMMAND_CLI_ENTRYPOINT_COMPATIBILITY_TOKENS: tuple[tuple[str, str], ...] = (
+    ("open-project", "bootstrap"),
+    ("open-document", "bootstrap"),
+    ("document-open", "bootstrap"),
     ("retrieve", "context-basket"),
     ("search", "context-basket"),
     ("revise", "diff-preview"),
@@ -1661,6 +1704,9 @@ _COMMAND_CLI_ENTRYPOINT_COMPATIBILITY_TOKENS: tuple[tuple[str, str], ...] = (
     ("persist-and-continue", "terminal"),
 )
 _COMMAND_CLI_COMPATIBILITY_EXACT_ACTIONS: tuple[tuple[str, str], ...] = (
+    ("open-project", "ExegesisAppService.open_project"),
+    ("open-document", "ExegesisAppService.open_document"),
+    ("document-open", "ExegesisAppService.open_document"),
     ("retrieve", "ExegesisAppService.search_project"),
     ("search", "ExegesisAppService.search_project"),
     ("revise", "ExegesisAppService.revise_selection"),
@@ -2375,6 +2421,7 @@ def validate_command_catalog(specs: tuple[CommandSpec, ...] = COMMAND_SPECS) -> 
 
     if specs == COMMAND_SPECS:
         _validate_smoke_matching_policy(specs)
+        _validate_cli_compatibility_exact_actions(specs)
 
 
 @lru_cache(maxsize=None)
