@@ -99,6 +99,7 @@ class CommandCliEntrypointShim:
 @dataclass(frozen=True)
 class CommandCliCompatibilityInvocation:
     requested_argv: tuple[str, ...]
+    requested_command_line: str
     requested_token: str
     canonical_name: str
     cli_entrypoint: str
@@ -2808,6 +2809,7 @@ def command_cli_compatibility_invocation(
     engine_actions = (exact_action,) if exact_action is not None else shim.engine_actions
     return CommandCliCompatibilityInvocation(
         requested_argv=requested_argv,
+        requested_command_line=_shell_join(requested_argv),
         requested_token=requested_token,
         canonical_name=shim.canonical_name,
         cli_entrypoint=shim.cli_entrypoint,
@@ -2828,6 +2830,7 @@ def command_cli_compatibility_invocation_payload(
         return None
     return {
         "requested_argv": invocation.requested_argv,
+        "requested_command_line": invocation.requested_command_line,
         "requested_token": invocation.requested_token,
         "canonical_name": invocation.canonical_name,
         "cli_entrypoint": invocation.cli_entrypoint,
@@ -2880,6 +2883,7 @@ def command_cli_compatibility_invocation_payloads(
     return tuple(
         {
             "requested_argv": invocation.requested_argv,
+            "requested_command_line": invocation.requested_command_line,
             "requested_token": invocation.requested_token,
             "canonical_name": invocation.canonical_name,
             "cli_entrypoint": invocation.cli_entrypoint,
