@@ -3546,7 +3546,7 @@ class UnifiedRetrievalTests(unittest.TestCase):
         )
 
         sparse_source_bundle = json.loads(json.dumps(result.source_bundle()))
-        basket_item_ids = ["pageindex:excerpt-1", " retrieval:fts:excerpt-2 "]
+        basket_item_ids = ["pageindex:excerpt-1", " Retrieval:FTS:excerpt-2 "]
         basket_item_fingerprints = ["stale-pageindex-fingerprint", "fingerprint-for-fts-excerpt-2"]
         for snapshot in (
             sparse_source_bundle,

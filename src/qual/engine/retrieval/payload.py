@@ -195,9 +195,10 @@ def _normalize_fts_basket_item_id(value: object) -> str | None:
     text = _normalize_optional_text(value)
     if text is None:
         return None
-    prefix, separator, excerpt_id = text.partition("retrieval:fts:")
-    if prefix or not separator:
+    prefix = "retrieval:fts:"
+    if not text.casefold().startswith(prefix):
         return None
+    excerpt_id = text[len(prefix):]
     excerpt_id = excerpt_id.strip()
     if not excerpt_id:
         return None
