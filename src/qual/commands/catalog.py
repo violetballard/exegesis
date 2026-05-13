@@ -1600,6 +1600,33 @@ def _validate_cli_compatibility_exact_actions(specs: tuple[CommandSpec, ...]) ->
         _normalize_token(token): _normalize_token(canonical_name)
         for token, canonical_name in _COMMAND_CLI_ENTRYPOINT_COMPATIBILITY_TOKENS
     }
+    exact_action_tokens = {
+        _normalize_token(token)
+        for token, _engine_action in _COMMAND_CLI_COMPATIBILITY_EXACT_ACTIONS
+    }
+    compatibility_tokens = tuple(
+        _normalize_token(token)
+        for token, _canonical_name in _COMMAND_CLI_ENTRYPOINT_COMPATIBILITY_TOKENS
+    )
+    compatibility_token_set = set(compatibility_tokens)
+    missing_exact_action_tokens = tuple(
+        token for token in compatibility_tokens if token not in exact_action_tokens
+    )
+    if missing_exact_action_tokens:
+        raise ValueError(
+            "Command CLI compatibility tokens missing exact-action routes: "
+            + ", ".join(missing_exact_action_tokens)
+        )
+    unknown_exact_action_tokens = tuple(
+        _normalize_token(token)
+        for token, _engine_action in _COMMAND_CLI_COMPATIBILITY_EXACT_ACTIONS
+        if _normalize_token(token) not in compatibility_token_set
+    )
+    if unknown_exact_action_tokens:
+        raise ValueError(
+            "Command CLI exact-action routes reference unknown compatibility tokens: "
+            + ", ".join(unknown_exact_action_tokens)
+        )
     exact_argv_actions = {
         engine_action for engine_action, _argv in _DEMO_EXACT_ACTION_SMOKE_ARGV_BY_ENGINE_ACTION
     }
