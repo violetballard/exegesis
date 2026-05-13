@@ -15306,6 +15306,35 @@ def command_demo_readiness_cli_exact_action_lines_for_command(
     )
 
 
+def command_demo_readiness_exact_action_coverage_by_demo_path_step(
+    specs: tuple[CommandSpec, ...] = COMMAND_SPECS,
+    launcher_argv: tuple[str, ...] = COMMAND_SMOKE_CLI_LAUNCHER_ARGV,
+) -> tuple[tuple[str, tuple[tuple[str, str], ...]], ...]:
+    """Return exact smokeable engine-action lines grouped by canonical demo step."""
+
+    return tuple(
+        (
+            entry.demo_path_step,
+            command_demo_readiness_exact_action_lines_for_demo_path_step(
+                entry.demo_path_step,
+                specs,
+                launcher_argv,
+            ),
+        )
+        for entry in command_demo_readiness_contract(specs, launcher_argv).entries
+    )
+
+
+def command_mvp_demo_readiness_exact_action_coverage_by_demo_path_step(
+    specs: tuple[CommandSpec, ...] = COMMAND_SPECS,
+    launcher_argv: tuple[str, ...] = COMMAND_SMOKE_CLI_LAUNCHER_ARGV,
+) -> tuple[tuple[str, tuple[tuple[str, str], ...]], ...]:
+    return command_demo_readiness_exact_action_coverage_by_demo_path_step(
+        specs,
+        launcher_argv,
+    )
+
+
 def _normalize_smoke_argv(argv: tuple[str, ...]) -> tuple[str, ...]:
     return tuple(stripped for token in argv for stripped in (token.strip(),) if stripped)
 

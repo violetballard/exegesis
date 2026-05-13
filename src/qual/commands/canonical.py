@@ -268,6 +268,8 @@ from src.qual.commands.catalog import (
     command_mvp_demo_persist_continue_prerequisite_flow_steps
     as _persist_continue_prerequisite_flow_steps,
     command_mvp_demo_persist_continue_summary as _persist_continue_summary,
+    command_mvp_demo_readiness_exact_action_coverage_by_demo_path_step
+    as _readiness_exact_action_coverage_by_demo_path_step,
     command_mvp_demo_execution_plan_step_for_argv as _execution_plan_step_for_argv,
     command_mvp_demo_execution_plan_step_for_command as _execution_plan_step_for_command,
     command_mvp_demo_execution_plan_step_for_demo_path_step
@@ -935,6 +937,7 @@ __all__ = [
     "canonical_command_persist_continue_prerequisite_demo_path_steps",
     "canonical_command_persist_continue_prerequisite_flow_steps",
     "canonical_command_persist_continue_summary",
+    "canonical_command_readiness_exact_action_coverage_by_demo_path_step",
     "canonical_command_execution_plan_lookup_table",
     "canonical_command_execution_plan_step_for_argv",
     "canonical_command_execution_plan_step_for_command",
@@ -3565,6 +3568,13 @@ def canonical_command_persist_continue_prerequisite_demo_path_steps() -> tuple[s
 
 def canonical_command_persist_continue_prerequisite_command_lines() -> tuple[str, ...]:
     return _persist_continue_prerequisite_command_lines()
+
+
+def canonical_command_readiness_exact_action_coverage_by_demo_path_step() -> tuple[
+    tuple[str, tuple[tuple[str, str], ...]],
+    ...,
+]:
+    return _readiness_exact_action_coverage_by_demo_path_step()
 
 
 def canonical_command_action_coverage_lookup_table() -> tuple[tuple[str, str], ...]:
