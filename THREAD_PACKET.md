@@ -862,10 +862,22 @@ Additional focused retrieval checks run earlier in this lane:
 - `python3 - <<'PY' ... build_retrieval_query(...) ... RetrievalConstraints(...) ... PY` - passed; unordered set-shaped date ranges fail closed in both the engine facade and service constraints, scalar string date ranges remain rejected, and ordered list-shaped date ranges still normalize to the canonical tuple.
 - `python -m pytest tests/unit/test_unified_retrieval.py` - blocked because the active Python interpreter had no `pytest` module installed.
 
+## Latest Fixer Gate Results
+
+- `make ci` before the fixer commits reproduced a local integration blocker at scope-check because the then-current `HEAD` touched the approved shared regression file `tests/unit/test_unified_retrieval.py`.
+- `python -m unittest tests.unit.test_mvp_migration.CoordinatorDaemonBehaviorTests.test_launch_free_lanes_relaunches_idle_lane_without_active_feature_session` - passed after isolating idle-lane relaunch slot/backlog state.
+- `python -m unittest tests.unit.test_mvp_migration.CoordinatorDaemonBehaviorTests` - passed 12 coordinator daemon behavior tests after the scheduler-test isolation fix.
+- `make scope-check` - passed on the packet-only branch tip.
+- `./quality-format.sh --check` - passed.
+- `./quality-lint.sh` - passed.
+- `./quality-test.sh` - passed smoke tests and 488 unit tests, including all unified retrieval tests and the isolated coordinator scheduler regression.
+- `./typecheck-test.sh` - passed Python source compilation under `src/`.
+- `make ci` - passed scope-check, format, lint, compile/typecheck, smoke tests, and 488 unit tests.
+
 ## Remaining Risks Or Blockers
 
 - The corrected cumulative source-bearing range exceeds the high-risk task, size, and file limits. No explicit integrator-approved exception is present in the worktree, so this remains a required integration decision: grant an exception or request a branch split/reduced handoff.
-- Required retrieval and local format/lint/typecheck/test gates are green for this pass. Full `make ci` cannot complete in this sandbox with the approved shared regression edit: plain `make ci` stops at scope-check, and `SCOPE_ALLOW_SHARED=1 make ci` passes scope-check, format, lint, compile/typecheck, smoke, and unified retrieval coverage before failing in unrelated control-plane tests on sandbox-denied `.codex` writes, `ps` execution, and `.codex/worktree_recovery` artifact moves.
+- Required retrieval and local format/lint/typecheck/test gates are green for this pass, and full `make ci` is green on the packet-only branch tip.
 - All source-bearing work is now included in the reviewed implementation range; there is no longer a metadata-only branch-tip claim hiding source/test changes after `adfa8cdadd43747ffbcb612e4151e262b13e52ca`.
 
 ## Roadmap/Vision
