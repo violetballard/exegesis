@@ -89,6 +89,7 @@ def build_mvp_demo_command_surface_payload(
     smoke_contract = canonical_command_demo_loop_smoke_payload()
     patch_review_contract = build_patch_review_command_contract()
     handoff_packet = canonical_command_readiness_handoff_packet_payload()
+    patch_review_route_validation = build_patch_review_route_validation_payload()
     patch_review_readiness_smoke = build_patch_review_readiness_smoke_payload()
     patch_review_action_resolution_smoke = build_patch_review_action_resolution_smoke_payload()
     smoke_gate = build_mvp_demo_smoke_gate_payload(demo_loop)
@@ -100,6 +101,7 @@ def build_mvp_demo_command_surface_payload(
         trusted_command_contract=trusted_command_contract,
         handler_trusted_demo_path=handler_trusted_demo_path,
         patch_review_contract_ready=patch_review_contract.ready,
+        patch_review_route_validation_ready=bool(patch_review_route_validation["is_valid"]),
         patch_review_readiness_smoke_ready=bool(patch_review_readiness_smoke["ready"]),
         patch_review_action_resolution_smoke_ready=bool(
             patch_review_action_resolution_smoke["ready"]
@@ -116,6 +118,7 @@ def build_mvp_demo_command_surface_payload(
         "execution_plan": canonical_command_execution_plan_payload(),
         "retrieval_context": canonical_command_retrieval_context_payload(),
         "patch_review": asdict(patch_review_contract),
+        "patch_review_route_validation": patch_review_route_validation,
         "patch_review_readiness_smoke": patch_review_readiness_smoke,
         "patch_review_action_resolution_smoke": patch_review_action_resolution_smoke,
         "persist_continue": canonical_command_persist_continue_payload(),
@@ -161,6 +164,7 @@ def build_mvp_demo_command_surface_readiness_gate_payload(
     trusted_command_contract: dict[str, object],
     handler_trusted_demo_path: dict[str, object],
     patch_review_contract_ready: bool,
+    patch_review_route_validation_ready: bool,
     patch_review_readiness_smoke_ready: bool,
     patch_review_action_resolution_smoke_ready: bool,
 ) -> dict[str, object]:
@@ -171,6 +175,7 @@ def build_mvp_demo_command_surface_readiness_gate_payload(
         "trusted_command_contract": bool(trusted_command_contract["is_trusted"]),
         "handler_trusted_demo_path": bool(handler_trusted_demo_path["is_complete"]),
         "patch_review_contract": patch_review_contract_ready,
+        "patch_review_route_validation": patch_review_route_validation_ready,
         "patch_review_readiness_smoke": patch_review_readiness_smoke_ready,
         "patch_review_action_resolution_smoke": patch_review_action_resolution_smoke_ready,
     }
@@ -690,6 +695,20 @@ def build_patch_review_action_resolution_smoke_payload() -> dict[str, object]:
     return asdict(build_patch_review_action_resolution_smoke_contract())
 
 
+def build_patch_review_route_validation_payload() -> dict[str, object]:
+    """Return deterministic patch-review route validation data for smoke checks."""
+    return asdict(validate_patch_review_command_contract())
+
+
+def run_patch_review_route_validation_payload_json() -> str:
+    """Return package-level patch-review route validation data as JSON."""
+    return json.dumps(
+        build_patch_review_route_validation_payload(),
+        sort_keys=True,
+        separators=(",", ":"),
+    )
+
+
 def run_patch_review_action_resolution_smoke_payload_json() -> str:
     """Return package-level patch-review action resolution smoke data as JSON."""
     return json.dumps(
@@ -722,6 +741,7 @@ def build_mvp_demo_command_surface_audit_payload() -> dict[str, object]:
         "readiness_checkpoint": build_mvp_demo_readiness_checkpoint_payload(),
         "next_step": build_mvp_demo_next_step_payload(),
         "resume_packet": build_mvp_demo_resume_packet_payload(),
+        "patch_review_route_validation": build_patch_review_route_validation_payload(),
         "patch_review_readiness_smoke": build_patch_review_readiness_smoke_payload(),
         "patch_review_action_resolution_smoke": build_patch_review_action_resolution_smoke_payload(),
     }
