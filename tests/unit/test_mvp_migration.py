@@ -283,7 +283,7 @@ class ScopeCheckMigrationTests(unittest.TestCase):
         self.assertEqual(rc, 124)
         self.assertIn("partial output", out)
         self.assertIn("[TIMEOUT]", out)
-        self.assertTrue(popen_mock.call_args.kwargs["start_new_session"])
+        self.assertTrue(popen_mock.call_args_list[0].kwargs["start_new_session"])
         killpg_mock.assert_called_once_with(4242, planner_mod.signal.SIGTERM)
 
     def test_planner_list_git_remotes_returns_empty_without_remote(self) -> None:
