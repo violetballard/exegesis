@@ -260,7 +260,11 @@ def _paired_basket_item_fingerprints(candidate_ids: object, candidate_fingerprin
     raw_fingerprints = _normalize_list_like(candidate_fingerprints)
     canonical_item_ids = _stable_fts_basket_item_ids(raw_item_ids)
     normalized_fingerprints = _stable_text_values(raw_fingerprints)
-    if len(normalized_fingerprints) == len(canonical_item_ids) and len(raw_fingerprints) != len(raw_item_ids):
+    if (
+        len(normalized_fingerprints) == len(canonical_item_ids)
+        and len(raw_fingerprints) != len(raw_item_ids)
+        and len(canonical_item_ids) == len(raw_item_ids)
+    ):
         return normalized_fingerprints
 
     paired_fingerprints: list[str] = []
@@ -1681,7 +1685,9 @@ def _normalize_retrieval_source_bundle_snapshot(source_bundle: dict[str, object]
         raw_basket_item_ids,
         raw_basket_item_fingerprints,
     )
-    if len(paired_basket_item_fingerprints) == len(normalized["basket_item_ids"]):
+    if raw_basket_item_ids is not None or raw_basket_item_fingerprints is not None:
+        normalized["basket_item_fingerprints"] = paired_basket_item_fingerprints
+    elif len(paired_basket_item_fingerprints) == len(normalized["basket_item_ids"]):
         normalized["basket_item_fingerprints"] = paired_basket_item_fingerprints
     normalized["basket_promotion_count"] = _basket_promotion_count_from_snapshot(
         normalized,

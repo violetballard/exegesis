@@ -12,8 +12,8 @@
 - Authoritative reviewed implementation base: `378cf9a74a3658058079a32f186fcd254c4a4034`.
 - Reviewed source-bearing implementation head: this source-bearing fixer commit; final branch tip SHA is reported in the fixer final response.
 - Reviewed source-bearing implementation range: `378cf9a74a3658058079a32f186fcd254c4a4034..HEAD` on branch `codex/feat-retrieval-fts`.
-- Packet update note: this commit extends the direct canonical `exegesis_engine.retrieval.search_service` compat shim with the same FTS-first facade exports as `exegesis_engine.retrieval`, then refreshes `THREAD_PACKET.md`; the final branch tip SHA is reported in the fixer final response.
-- Current pass role: source-bearing direct compat-shim FTS facade export finalization for canonical engine retrieval access.
+- Packet update note: this commit tightens sparse source/context bundle basket fingerprint normalization so compact fingerprint fallback cannot attach stale PageIndex/embedding evidence to a surviving canonical FTS basket item, then refreshes `THREAD_PACKET.md`; the final branch tip SHA is reported in the fixer final response.
+- Current pass role: source-bearing sparse basket fingerprint fail-closed finalization for FTS-first context-basket evidence.
 
 ## Traceability Correction
 
@@ -123,7 +123,9 @@ This source-bearing fixer pass modifies `src/qual/engine/retrieval/payload.py`, 
 
 This source-bearing fixer pass modifies `engine/src/exegesis_engine/retrieval/search_service.py`, `tests/unit/test_unified_retrieval.py`, and `THREAD_PACKET.md` so direct imports from `exegesis_engine.retrieval.search_service` expose the same FTS-first facade as `exegesis_engine.retrieval`. The canonical compat shim now preserves direct access to `build_retrieval_query`, explicit FTS entrypoints, default `retrieve_auto` helpers, and payload bundle builders while still excluding PageIndex and embeddings strategy classes.
 
-Packet-only commits after `5c87b08a9f7ca5a4dabc23fc1a80214276a882e9` refresh traceability and gate evidence only through `f9bdab5ded16e44476d773a24249c64442df2f3a`. The source-bearing passes after that packet-only refresh change `src/qual/retrieval/service.py`, `src/qual/engine/retrieval/payload.py`, `src/qual/engine/retrieval/__init__.py`, `engine/src/exegesis_engine/retrieval/__init__.py`, `engine/src/exegesis_engine/retrieval/search_service.py`, and `tests/unit/test_unified_retrieval.py`; reviewers should include those source-bearing commits, including this final direct compat-shim FTS facade export pass, when re-reviewing the merge candidate.
+This source-bearing fixer pass modifies `src/qual/engine/retrieval/payload.py`, `tests/unit/test_unified_retrieval.py`, and `THREAD_PACKET.md` so compact basket item fingerprint fallback is accepted only when all candidate basket IDs are already canonical FTS IDs. Sparse snapshots with mixed stale PageIndex/embedding IDs can still preserve the surviving `retrieval:fts:<excerpt_id>` basket ID, but their compact fingerprint evidence now fails closed instead of becoming positionally ambiguous promotion provenance.
+
+Packet-only commits after `5c87b08a9f7ca5a4dabc23fc1a80214276a882e9` refresh traceability and gate evidence only through `f9bdab5ded16e44476d773a24249c64442df2f3a`. The source-bearing passes after that packet-only refresh change `src/qual/retrieval/service.py`, `src/qual/engine/retrieval/payload.py`, `src/qual/engine/retrieval/__init__.py`, `engine/src/exegesis_engine/retrieval/__init__.py`, `engine/src/exegesis_engine/retrieval/search_service.py`, and `tests/unit/test_unified_retrieval.py`; reviewers should include those source-bearing commits, including this final sparse basket fingerprint fail-closed pass, when re-reviewing the merge candidate.
 
 Tracked packet note for this fixer pass: `.codex/kickoff_packets/feat-retrieval-fts.md` and `.codex/lane_meta/feat-retrieval-fts.json` are ignored local automation metadata in this branch worktree and are not tracked at `HEAD`. Treat this tracked `THREAD_PACKET.md` file as the authoritative corrected handoff packet for re-review.
 
@@ -299,10 +301,20 @@ Task accounting: this high-risk handoff is summarized as the 4 meaningful task g
 38. Added stable `fts_match_query_fingerprint` output, manifest/result binding, and sparse source/context bundle rehydration so retrieval evidence can be audited against the FTS match expression without exposing plaintext query terms. The result fingerprint payload now directly includes the hashed FTS match-query identity, with shared regression coverage proving altered match-query identity changes the result fingerprint.
 39. Added canonical demo-path markers to direct retrieval summaries and sparse summary normalization, alongside manifest marker rehydration, so compact summary-backed engine snapshots remain self-describing for retrieval and basket-promotion handoff.
 40. Added direct `exegesis_engine.retrieval.search_service` FTS-first facade exports, with shared regression coverage proving the direct compat shim matches `exegesis_engine.retrieval.__all__`, resolves every facade helper to the canonical engine object, and keeps PageIndex/embeddings strategy classes absent.
+41. Tightened sparse source/context basket fingerprint fallback so compact fingerprint lists are accepted only when every candidate basket ref is canonical FTS; mixed stale PageIndex/embedding refs now preserve the surviving FTS basket ID but drop unauditable compact fingerprint evidence.
 
 ## Commands Run
 
-Required gates for this corrected merge candidate were re-run on 2026-05-13 against branch `codex/feat-retrieval-fts` after this source-bearing direct compat-shim FTS facade export finalization.
+Required gates for this corrected merge candidate were re-run on 2026-05-13 against branch `codex/feat-retrieval-fts` after this source-bearing sparse basket fingerprint fail-closed finalization.
+
+- `PYTHONPATH=. python -m pytest tests/unit/test_unified_retrieval.py -k "compact_fingerprints_for_mixed_basket_refs or pairs_fingerprints_with_valid_fts_basket_refs or rejects_unpaired_basket_fingerprint_snapshots" -q` - first run reproduced the compact mixed-ref fingerprint leak with 1 failure and 2 passes; rerun passed 3 focused sparse basket fingerprint regressions, 99 deselected, after source-bundle normalization was tightened.
+- `PYTHONPATH=. python -m pytest tests/unit/test_unified_retrieval.py -q` - first full retrieval run passed 101 tests and failed the existing mixed-ref compact-fingerprint expectation in `test_sparse_retrieval_payload_filters_manifest_basket_ids_to_fts`; rerun passed all 102 unified retrieval tests and 96 subtests after the fixture was updated to expect fail-closed fingerprint evidence.
+- `./quality-format.sh --check` - passed after the sparse basket fingerprint finalization.
+- `./quality-lint.sh` - passed shell syntax and trailing whitespace checks after the sparse basket fingerprint finalization.
+- `./quality-test.sh` - passed smoke tests and 485 unit tests, including all 102 unified retrieval tests, after the sparse basket fingerprint finalization.
+- `./typecheck-test.sh` - passed Python source compilation under `src/`.
+- `make ci` - blocked at scope-check because `tests/unit/test_unified_retrieval.py` is the approved shared regression path; rerun with `SCOPE_ALLOW_SHARED=1`.
+- `SCOPE_ALLOW_SHARED=1 make ci` - passed scope-check, format, lint, compile/typecheck, smoke tests, and all unified retrieval tests, then failed with 6 unrelated sandbox/control-plane `PermissionError` errors when broader control-plane tests attempted to write `.codex/packet_router/logs/fixer__feat-commands__20260513T012740Z.log`/`fixer__feat-commands__20260513T012757Z.log`, write `.codex/feature_runner/state.json`, invoke `ps`, write `.codex/packet_planner/state.json` in two planner tests, and move recovery artifacts under `.codex/worktree_recovery`.
 
 - `python -m pytest tests/unit/test_unified_retrieval.py -q -k "canonical_engine_retrieval_package_exports_fts_facade or canonical_search_service_exports_fts_facade or engine_retrieval_package_exports_are_fts_only"` - passed 3 focused facade/export tests, 98 deselected, and 86 subtests after direct `exegesis_engine.retrieval.search_service` exports were aligned with the canonical FTS-first facade.
 - `python -m pytest tests/unit/test_unified_retrieval.py -q` - passed all 101 unified retrieval tests and 96 subtests after direct `exegesis_engine.retrieval.search_service` exports were aligned with the canonical FTS-first facade.
