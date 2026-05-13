@@ -866,4 +866,28 @@ def run_mvp_demo_command_surface_audit_json() -> str:
     )
 
 
-__all__ = tuple(name for name in globals() if not name.startswith("_"))
+_PUBLIC_EXPORT_EXCLUSIONS = {
+    "DraftingService",
+    "Hashable",
+    "PurePath",
+    "Sequence",
+    "T",
+    "TypeVar",
+    "annotations",
+    "asdict",
+    "catalog",
+    "canonical",
+    "dataclass",
+    "hashlib",
+    "json",
+    "lru_cache",
+    "os",
+    "re",
+    "shlex",
+}
+
+__all__ = tuple(
+    name
+    for name in globals()
+    if not name.startswith("_") and name not in _PUBLIC_EXPORT_EXCLUSIONS
+)
