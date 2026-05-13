@@ -665,12 +665,37 @@ class CommandCanonicalDemoLoopContract:
     issues: tuple[str, ...]
 
 
+@dataclass(frozen=True)
+class CommandCanonicalDemoLoopSmokeEntry:
+    ordinal: int
+    flow_step: str
+    demo_path_step: str
+    command: str
+    command_line: str
+    smoke_argv: tuple[str, ...]
+    engine_actions: tuple[str, ...]
+    exact_action_lines: tuple[tuple[str, str], ...]
+    ready: bool
+
+
+@dataclass(frozen=True)
+class CommandCanonicalDemoLoopSmokeContract:
+    entries: tuple[CommandCanonicalDemoLoopSmokeEntry, ...]
+    command_line_lookup_table: tuple[tuple[str, str], ...]
+    action_lookup_table: tuple[tuple[str, tuple[str, ...]], ...]
+    supported_launchers: tuple[tuple[str, ...], ...]
+    is_ready: bool
+    issues: tuple[str, ...]
+
+
 __all__ = [
     "CommandCanonicalReadinessStatus",
     "CommandCanonicalReadinessSnapshot",
     "CommandCanonicalDemoPathStepStatus",
     "CommandCanonicalReadinessCheckpoint",
     "CommandCanonicalDemoLoopContract",
+    "CommandCanonicalDemoLoopSmokeEntry",
+    "CommandCanonicalDemoLoopSmokeContract",
     "canonical_command_cli_contract",
     "canonical_command_cli_entrypoint_for",
     "canonical_command_cli_lookup_table",
@@ -794,6 +819,10 @@ __all__ = [
     "canonical_command_demo_loop_summary",
     "canonical_command_demo_loop_command_line_lookup_table",
     "canonical_command_demo_loop_action_lookup_table",
+    "canonical_command_demo_loop_smoke_contract",
+    "canonical_command_demo_loop_smoke_json",
+    "canonical_command_demo_loop_smoke_payload",
+    "canonical_command_demo_loop_smoke_summary",
     "canonical_command_demo_loop_payload",
     "canonical_command_demo_loop_json",
     "canonical_command_require_demo_loop_ready",
@@ -2945,6 +2974,109 @@ def canonical_command_demo_loop_action_lookup_table() -> tuple[tuple[str, tuple[
     )
 
 
+def _canonical_command_demo_loop_smoke_entry(
+    ordinal: int,
+    step: CommandDemoExecutionPlanStep,
+) -> CommandCanonicalDemoLoopSmokeEntry:
+    exact_action_lines = canonical_command_cli_exact_action_lines_for_demo_path_step(
+        step.demo_path_step
+    )
+    exact_actions = tuple(engine_action for engine_action, _line in exact_action_lines)
+    ready = (
+        bool(step.command_line)
+        and bool(step.command_argv)
+        and bool(step.engine_actions)
+        and exact_actions == step.engine_actions
+    )
+    return CommandCanonicalDemoLoopSmokeEntry(
+        ordinal=ordinal,
+        flow_step=step.flow_step,
+        demo_path_step=step.demo_path_step,
+        command=step.name,
+        command_line=step.command_line,
+        smoke_argv=step.command_argv,
+        engine_actions=step.engine_actions,
+        exact_action_lines=exact_action_lines,
+        ready=ready,
+    )
+
+
+def canonical_command_demo_loop_smoke_contract() -> CommandCanonicalDemoLoopSmokeContract:
+    """Return the stable command lines that smoke-test the Milestone 3 demo loop."""
+
+    loop = canonical_command_demo_loop_contract()
+    entries = tuple(
+        _canonical_command_demo_loop_smoke_entry(ordinal, step)
+        for ordinal, step in enumerate(loop.execution_plan.steps, start=1)
+    )
+    issues = tuple(
+        f"{entry.demo_path_step}: smoke route does not cover exact engine actions"
+        for entry in entries
+        if not entry.ready
+    ) + loop.issues
+    return CommandCanonicalDemoLoopSmokeContract(
+        entries=entries,
+        command_line_lookup_table=canonical_command_demo_loop_command_line_lookup_table(),
+        action_lookup_table=canonical_command_demo_loop_action_lookup_table(),
+        supported_launchers=canonical_command_supported_launcher_argv(),
+        is_ready=loop.is_ready and all(entry.ready for entry in entries),
+        issues=issues,
+    )
+
+
+def canonical_command_demo_loop_smoke_summary() -> tuple[
+    tuple[int, str, str, str, str, tuple[str, ...], tuple[str, ...], bool],
+    ...,
+]:
+    contract = canonical_command_demo_loop_smoke_contract()
+    return tuple(
+        (
+            entry.ordinal,
+            entry.flow_step,
+            entry.demo_path_step,
+            entry.command,
+            entry.command_line,
+            entry.smoke_argv,
+            entry.engine_actions,
+            entry.ready,
+        )
+        for entry in contract.entries
+    )
+
+
+def canonical_command_demo_loop_smoke_payload() -> dict[str, object]:
+    contract = canonical_command_demo_loop_smoke_contract()
+    return {
+        "is_ready": contract.is_ready,
+        "issues": contract.issues,
+        "command_line_lookup_table": contract.command_line_lookup_table,
+        "action_lookup_table": contract.action_lookup_table,
+        "supported_launchers": contract.supported_launchers,
+        "entries": tuple(
+            {
+                "ordinal": entry.ordinal,
+                "flow_step": entry.flow_step,
+                "demo_path_step": entry.demo_path_step,
+                "command": entry.command,
+                "command_line": entry.command_line,
+                "smoke_argv": entry.smoke_argv,
+                "engine_actions": entry.engine_actions,
+                "exact_action_lines": entry.exact_action_lines,
+                "ready": entry.ready,
+            }
+            for entry in contract.entries
+        ),
+    }
+
+
+def canonical_command_demo_loop_smoke_json() -> str:
+    return json.dumps(
+        canonical_command_demo_loop_smoke_payload(),
+        sort_keys=True,
+        separators=(",", ":"),
+    )
+
+
 def canonical_command_demo_loop_payload() -> dict[str, object]:
     contract = canonical_command_demo_loop_contract()
     return {
@@ -2959,6 +3091,7 @@ def canonical_command_demo_loop_payload() -> dict[str, object]:
         "action_lookup_table": canonical_command_demo_loop_action_lookup_table(),
         "readiness_checkpoint": canonical_command_readiness_checkpoint_payload(),
         "execution_plan": canonical_command_execution_plan_payload(),
+        "smoke_contract": canonical_command_demo_loop_smoke_payload(),
         "retrieval_context": canonical_command_retrieval_context_payload(),
         "persist_continue": canonical_command_persist_continue_payload(),
     }
