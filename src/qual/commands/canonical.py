@@ -636,10 +636,26 @@ class CommandCanonicalReadinessCheckpoint:
     issues: tuple[str, ...]
 
 
+@dataclass(frozen=True)
+class CommandCanonicalDemoLoopContract:
+    readiness: CommandCanonicalReadinessCheckpoint
+    execution_plan: CommandDemoExecutionPlanContract
+    retrieval_context: CommandDemoRetrievalContextContract
+    persist_continue: CommandDemoPersistContinueContract
+    demo_path_steps: tuple[str, ...]
+    command_lines: tuple[str, ...]
+    smoke_argvs: tuple[tuple[str, ...], ...]
+    exact_action_argvs: tuple[tuple[str, ...], ...]
+    engine_actions: tuple[str, ...]
+    is_ready: bool
+    issues: tuple[str, ...]
+
+
 __all__ = [
     "CommandCanonicalReadinessStatus",
     "CommandCanonicalReadinessSnapshot",
     "CommandCanonicalReadinessCheckpoint",
+    "CommandCanonicalDemoLoopContract",
     "canonical_command_cli_contract",
     "canonical_command_cli_entrypoint_for",
     "canonical_command_cli_lookup_table",
@@ -759,6 +775,11 @@ __all__ = [
     "canonical_command_readiness_checkpoint_step_statuses",
     "canonical_command_readiness_checkpoint_summary",
     "canonical_command_require_readiness_checkpoint",
+    "canonical_command_demo_loop_contract",
+    "canonical_command_demo_loop_summary",
+    "canonical_command_demo_loop_payload",
+    "canonical_command_demo_loop_json",
+    "canonical_command_require_demo_loop_ready",
     "canonical_command_surface_readiness_contract",
     "canonical_command_surface_readiness_json",
     "canonical_command_surface_readiness_payload",
@@ -2774,6 +2795,77 @@ def canonical_command_readiness_checkpoint_payload() -> dict[str, object]:
 def canonical_command_readiness_checkpoint_json() -> str:
     return json.dumps(
         canonical_command_readiness_checkpoint_payload(),
+        sort_keys=True,
+        separators=(",", ":"),
+    )
+
+
+def canonical_command_demo_loop_contract() -> CommandCanonicalDemoLoopContract:
+    """Return one deterministic CLI surface for the Milestone 3 demo loop."""
+
+    readiness = canonical_command_readiness_checkpoint()
+    return CommandCanonicalDemoLoopContract(
+        readiness=readiness,
+        execution_plan=canonical_command_execution_plan_contract(),
+        retrieval_context=canonical_command_retrieval_context_contract(),
+        persist_continue=canonical_command_persist_continue_contract(),
+        demo_path_steps=canonical_command_demo_path_steps(),
+        command_lines=readiness.handoff.command_lines,
+        smoke_argvs=readiness.smoke_sequence.smoke_argvs,
+        exact_action_argvs=readiness.smoke_sequence.exact_action_argvs,
+        engine_actions=canonical_command_demo_engine_actions(),
+        is_ready=readiness.is_ready,
+        issues=readiness.issues,
+    )
+
+
+def canonical_command_require_demo_loop_ready() -> CommandCanonicalDemoLoopContract:
+    contract = canonical_command_demo_loop_contract()
+    if not contract.is_ready:
+        raise ValueError(
+            "Canonical command demo loop is incomplete: "
+            + ", ".join(contract.issues)
+        )
+    return contract
+
+
+def canonical_command_demo_loop_summary() -> tuple[
+    bool,
+    tuple[str, ...],
+    tuple[str, ...],
+    tuple[str, ...],
+    tuple[str, ...],
+]:
+    contract = canonical_command_demo_loop_contract()
+    return (
+        contract.is_ready,
+        contract.demo_path_steps,
+        contract.command_lines,
+        contract.engine_actions,
+        contract.issues,
+    )
+
+
+def canonical_command_demo_loop_payload() -> dict[str, object]:
+    contract = canonical_command_demo_loop_contract()
+    return {
+        "is_ready": contract.is_ready,
+        "issues": contract.issues,
+        "demo_path_steps": contract.demo_path_steps,
+        "command_lines": contract.command_lines,
+        "smoke_argvs": contract.smoke_argvs,
+        "exact_action_argvs": contract.exact_action_argvs,
+        "engine_actions": contract.engine_actions,
+        "readiness_checkpoint": canonical_command_readiness_checkpoint_payload(),
+        "execution_plan": canonical_command_execution_plan_payload(),
+        "retrieval_context": canonical_command_retrieval_context_payload(),
+        "persist_continue": canonical_command_persist_continue_payload(),
+    }
+
+
+def canonical_command_demo_loop_json() -> str:
+    return json.dumps(
+        canonical_command_demo_loop_payload(),
         sort_keys=True,
         separators=(",", ":"),
     )
