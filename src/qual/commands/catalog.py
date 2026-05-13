@@ -2951,9 +2951,13 @@ def _validate_command_handler_delegation_contract(
 
 def _command_handler_engine_delegation_lookup() -> dict[str, str]:
     lookup: dict[str, str] = {}
-    expected_names = set(command_mvp_flow_names())
+    expected_names = command_mvp_flow_names()
+    configured_names = tuple(name for name, _target in _COMMAND_HANDLER_ENGINE_DELEGATION_TARGETS)
+    if configured_names != expected_names:
+        raise ValueError("Command handler engine delegations must match MVP flow order")
+    expected_name_set = set(expected_names)
     for name, target in _COMMAND_HANDLER_ENGINE_DELEGATION_TARGETS:
-        if name not in expected_names:
+        if name not in expected_name_set:
             raise ValueError(f"Unknown command handler engine delegation: {name}")
         if name in lookup:
             raise ValueError(f"Duplicate command handler engine delegation: {name}")
