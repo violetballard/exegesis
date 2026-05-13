@@ -1371,6 +1371,7 @@ class CommandDemoReadinessCommandProgressEntry:
     command_line: str
     action_lines: tuple[tuple[str, str], ...]
     is_covered: bool
+    is_action_complete: bool
     remaining_engine_actions: tuple[str, ...]
 
 
@@ -16596,8 +16597,12 @@ def _validate_command_demo_readiness_command_progress_contract(
         )
         if entry.remaining_engine_actions != expected_remaining_actions:
             raise ValueError("Command demo readiness command progress remaining actions are inconsistent")
+        if entry.is_action_complete != (not expected_remaining_actions):
+            raise ValueError("Command demo readiness command progress action completeness is inconsistent")
     if contract.is_complete and any(not entry.is_covered for entry in contract.entries):
         raise ValueError("Command demo readiness command progress is complete but has uncovered commands")
+    if contract.is_complete and any(not entry.is_action_complete for entry in contract.entries):
+        raise ValueError("Command demo readiness command progress is complete but has incomplete actions")
 
 
 def command_demo_readiness_command_progress_contract(
@@ -16633,6 +16638,16 @@ def _command_demo_readiness_command_progress_contract_for_progress(
 ) -> CommandDemoReadinessCommandProgressContract:
     covered_flow_steps = set(progress.validation.covered_flow_steps)
     missing_engine_actions = set(progress.validation.missing_engine_actions)
+
+    def remaining_engine_actions_for(
+        entry: CommandDemoReadinessCommandTraceEntry,
+    ) -> tuple[str, ...]:
+        return tuple(
+            engine_action
+            for engine_action, _line in entry.action_lines
+            if engine_action in missing_engine_actions
+        )
+
     contract = CommandDemoReadinessCommandProgressContract(
         is_complete=progress.validation.is_complete,
         next_flow_step=progress.next_flow_step,
@@ -16648,11 +16663,8 @@ def _command_demo_readiness_command_progress_contract_for_progress(
                 command_line=entry.command_line,
                 action_lines=entry.action_lines,
                 is_covered=entry.flow_step in covered_flow_steps,
-                remaining_engine_actions=tuple(
-                    engine_action
-                    for engine_action, _line in entry.action_lines
-                    if engine_action in missing_engine_actions
-                ),
+                is_action_complete=not remaining_engine_actions_for(entry),
+                remaining_engine_actions=remaining_engine_actions_for(entry),
             )
             for entry in command_demo_readiness_command_trace_contract(specs, launcher_argv).entries
         ),
@@ -16770,6 +16782,7 @@ def _command_demo_readiness_command_progress_payload(
                 "command_line": entry.command_line,
                 "action_lines": entry.action_lines,
                 "is_covered": entry.is_covered,
+                "is_action_complete": entry.is_action_complete,
                 "remaining_engine_actions": entry.remaining_engine_actions,
             }
             for entry in contract.entries
