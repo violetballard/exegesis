@@ -24,7 +24,7 @@ PROMPT_ROOT_SUFFIXES = (
     Path(".codex/packet_router/local_jobs"),
 )
 MANAGED_WORKTREE_ROOT = Path.home() / ".codex/worktrees"
-ORPHAN_TEST_RUNNER_MIN_AGE_SECONDS = int(os.environ.get("ORPHAN_TEST_RUNNER_MIN_AGE_SECONDS", "1800"))
+ORPHAN_TEST_RUNNER_MIN_AGE_SECONDS = int(os.environ.get("ORPHAN_TEST_RUNNER_MIN_AGE_SECONDS", "300"))
 ORPHAN_TEST_RUNNER_RSS_LIMIT_KB = int(os.environ.get("ORPHAN_TEST_RUNNER_RSS_LIMIT_KB", "1500000"))
 CONTEXT_EXHAUSTION_MARKERS = (
     'Error: "Context size has been exceeded."',
@@ -259,8 +259,16 @@ def find_repo_owned_local_exec_pids(repo_root: Path) -> List[int]:
     return sorted(find_repo_owned_local_exec_processes(repo_root))
 
 
-def find_stale_repo_test_runner_pids(repo_root: Path, tracked_pids: Iterable[int]) -> List[int]:
+def find_stale_repo_test_runner_pids(
+    repo_root: Path,
+    tracked_pids: Iterable[int],
+    *,
+    min_age_seconds: int | None = None,
+    rss_limit_kb: int | None = None,
+) -> List[int]:
     tracked = {int(pid) for pid in tracked_pids if int(pid) > 0}
+    age_limit = ORPHAN_TEST_RUNNER_MIN_AGE_SECONDS if min_age_seconds is None else int(min_age_seconds)
+    rss_limit = ORPHAN_TEST_RUNNER_RSS_LIMIT_KB if rss_limit_kb is None else int(rss_limit_kb)
     try:
         proc = subprocess.run(
             ["ps", "-axo", "pid=,ppid=,pgid=,etime=,rss=,command="],
@@ -292,7 +300,7 @@ def find_stale_repo_test_runner_pids(repo_root: Path, tracked_pids: Iterable[int
             continue
         if not TEST_RUNNER_RE.search(cmd):
             continue
-        if elapsed < ORPHAN_TEST_RUNNER_MIN_AGE_SECONDS and rss < ORPHAN_TEST_RUNNER_RSS_LIMIT_KB:
+        if elapsed < age_limit and rss < rss_limit:
             continue
         cwd_path = _cwd_path_for_pid(pid)
         if not _is_repo_or_managed_worktree_cwd(repo_root, cwd_path):

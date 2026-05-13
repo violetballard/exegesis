@@ -32,6 +32,8 @@ FORMAT_CHECK_SCRIPT = REPO_ROOT / "quality-format.sh"
 LINT_CHECK_SCRIPT = REPO_ROOT / "quality-lint.sh"
 TEST_CHECK_SCRIPT = REPO_ROOT / "quality-test.sh"
 TYPECHECK_SCRIPT = REPO_ROOT / "typecheck-test.sh"
+PLANNER_TEST_GATE_TIMEOUT_SECONDS = 600
+PLANNER_DEFAULT_GATE_TIMEOUT_SECONDS = 900
 SETUP_SCRIPT = REPO_ROOT / "scripts/setup.sh"
 BUILD_SCRIPT = REPO_ROOT / "scripts/build.sh"
 
@@ -288,6 +290,50 @@ def _terminate_process_group(pid: int, sig: int) -> None:
             pass
 
 
+def _descendant_pids(root_pid: int) -> List[int]:
+    try:
+        proc = subprocess.run(
+            ["ps", "-axo", "pid=,ppid="],
+            stdout=subprocess.PIPE,
+            stderr=subprocess.DEVNULL,
+            text=True,
+            timeout=2.0,
+        )
+    except Exception:
+        return []
+    if proc.returncode != 0:
+        return []
+    children: Dict[int, List[int]] = {}
+    for raw in (proc.stdout or "").splitlines():
+        parts = raw.strip().split(None, 1)
+        if len(parts) != 2:
+            continue
+        try:
+            pid = int(parts[0])
+            ppid = int(parts[1])
+        except ValueError:
+            continue
+        children.setdefault(ppid, []).append(pid)
+    seen: set[int] = set()
+    stack = list(children.get(root_pid, []))
+    while stack:
+        pid = stack.pop()
+        if pid in seen:
+            continue
+        seen.add(pid)
+        stack.extend(children.get(pid, []))
+    return sorted(seen, reverse=True)
+
+
+def _terminate_process_tree(pid: int, sig: int) -> None:
+    for child_pid in _descendant_pids(pid):
+        try:
+            os.kill(child_pid, sig)
+        except OSError:
+            pass
+    _terminate_process_group(pid, sig)
+
+
 def run(cmd: str, cwd: str, env: Optional[Dict[str,str]] = None, timeout: int = 3600) -> Tuple[int,str]:
     p = subprocess.Popen(
         cmd,
@@ -302,11 +348,11 @@ def run(cmd: str, cwd: str, env: Optional[Dict[str,str]] = None, timeout: int = 
     try:
         out, _ = p.communicate(timeout=timeout)
     except subprocess.TimeoutExpired:
-        _terminate_process_group(p.pid, signal.SIGTERM)
+        _terminate_process_tree(p.pid, signal.SIGTERM)
         try:
             out, _ = p.communicate(timeout=5)
         except subprocess.TimeoutExpired:
-            _terminate_process_group(p.pid, signal.SIGKILL)
+            _terminate_process_tree(p.pid, signal.SIGKILL)
             out, _ = p.communicate()
         return 124, (out or "") + "\n[TIMEOUT]"
     return p.returncode, out or ""
@@ -512,13 +558,34 @@ def run_repo_gate(
 
 def run_required_gate(cmd: str, cwd: str, env: Optional[Dict[str, str]] = None) -> Tuple[int, str]:
     if cmd == "./quality-format.sh --check":
-        return run_repo_gate(str(FORMAT_CHECK_SCRIPT), cwd, args=["--check"], env=env)
+        return run_repo_gate(
+            str(FORMAT_CHECK_SCRIPT),
+            cwd,
+            args=["--check"],
+            env=env,
+            timeout=PLANNER_DEFAULT_GATE_TIMEOUT_SECONDS,
+        )
     if cmd == "./quality-lint.sh":
-        return run_repo_gate(str(LINT_CHECK_SCRIPT), cwd, env=env)
+        return run_repo_gate(
+            str(LINT_CHECK_SCRIPT),
+            cwd,
+            env=env,
+            timeout=PLANNER_DEFAULT_GATE_TIMEOUT_SECONDS,
+        )
     if cmd == "./quality-test.sh":
-        return run_repo_gate(str(TEST_CHECK_SCRIPT), cwd, env=env)
+        return run_repo_gate(
+            str(TEST_CHECK_SCRIPT),
+            cwd,
+            env=env,
+            timeout=PLANNER_TEST_GATE_TIMEOUT_SECONDS,
+        )
     if cmd == "./typecheck-test.sh":
-        return run_repo_gate(str(TYPECHECK_SCRIPT), cwd, env=env)
+        return run_repo_gate(
+            str(TYPECHECK_SCRIPT),
+            cwd,
+            env=env,
+            timeout=PLANNER_DEFAULT_GATE_TIMEOUT_SECONDS,
+        )
     if cmd == "make ci":
         steps = [
             ("setup", str(SETUP_SCRIPT), []),

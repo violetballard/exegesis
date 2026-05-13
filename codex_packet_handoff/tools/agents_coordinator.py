@@ -146,6 +146,9 @@ DEFAULT_LANES = [
 ]
 
 WORKTREE_TEMP_PATTERNS = (
+    ".mypy_cache",
+    ".pytest_cache",
+    ".ruff_cache",
     ".git-alt*",
     ".git-bisect*",
     ".git-commit*",
@@ -172,6 +175,14 @@ WORKTREE_TEMP_PATTERNS = (
     "visible-temp.txt",
     "worktree-commit*.txt",
     "worktree-probe*.txt",
+)
+WORKTREE_RECURSIVE_TEMP_DIR_NAMES = frozenset(
+    {
+        "__pycache__",
+        ".mypy_cache",
+        ".pytest_cache",
+        ".ruff_cache",
+    }
 )
 
 
@@ -1050,6 +1061,25 @@ def _prune_generated_worktree_artifacts(worktree: Path) -> List[str]:
             continue
         except Exception:
             continue
+    for root, dirnames, _filenames in os.walk(worktree):
+        root_path = Path(root)
+        if root_path == worktree / ".git":
+            dirnames[:] = []
+            continue
+        if ".git" in dirnames:
+            dirnames.remove(".git")
+        for dirname in list(dirnames):
+            if dirname not in WORKTREE_RECURSIVE_TEMP_DIR_NAMES:
+                continue
+            path = root_path / dirname
+            try:
+                shutil.rmtree(path)
+                removed.append(str(path.relative_to(worktree)))
+            except FileNotFoundError:
+                pass
+            except Exception:
+                continue
+            dirnames.remove(dirname)
     packets_dir = worktree / ".codex" / "packets"
     if packets_dir.exists():
         try:
@@ -1923,6 +1953,11 @@ def _run_cycle(
     if args.execution_mode == "direct" and direct_ctx is not None:
         direct_ctx.state = direct_ctx.router_mod.load_json(direct_ctx.router_mod.STATE_FILE, {})
 
+    # Fill empty feature lanes before planner gates run. Planner gates can be
+    # expensive; once a lane is actively working, planner correctly skips gate
+    # reruns for that lane and the daemon stays useful instead of waiting on CI.
+    pre_planner_launched_lanes = _launch_free_lanes(coordinator_state)
+
     print("[planner]")
     if args.execution_mode == "direct":
         planner_rc, planner_out, planner_attempts = _run_planner_direct(args.planner_retries)
@@ -1950,9 +1985,14 @@ def _run_cycle(
         "integrated": router_stats["integrated"],
     }
 
-    launched_lanes = _launch_free_lanes(coordinator_state)
+    post_router_launched_lanes = _launch_free_lanes(coordinator_state)
+    launched_lanes = pre_planner_launched_lanes + [
+        lane for lane in post_router_launched_lanes if lane not in set(pre_planner_launched_lanes)
+    ]
     cycle_event["launcher"] = {
         "launched": launched_lanes,
+        "pre_planner": pre_planner_launched_lanes,
+        "post_router": post_router_launched_lanes,
     }
 
     cycle_event["activity"] = bool(

@@ -357,7 +357,14 @@ def _stop() -> int:
         terminate_local_exec_pids(local_exec_pids)
         stopped_any = True
 
-    stale_test_runner_pids = find_stale_repo_test_runner_pids(REPO_ROOT, tracked_local_exec_pids)
+    # A stop request should leave no planner/test gate subprocesses behind. The
+    # normal reconciler uses an age threshold, but explicit stop is stronger.
+    stale_test_runner_pids = find_stale_repo_test_runner_pids(
+        REPO_ROOT,
+        tracked_local_exec_pids,
+        min_age_seconds=0,
+        rss_limit_kb=0,
+    )
     if stale_test_runner_pids:
         terminate_process_groups(stale_test_runner_pids)
         stopped_any = True

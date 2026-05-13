@@ -1,5 +1,6 @@
 from __future__ import annotations
 
+import os
 import shutil
 import subprocess
 import sys
@@ -22,6 +23,12 @@ class QualityTestScriptTests(unittest.TestCase):
         self._tmp.cleanup()
 
     def run_quality_test(self) -> subprocess.CompletedProcess[str]:
+        env = dict(**os.environ)
+        # The control-plane planner sets QUAL_ROOT_DIR so repo-owned gate scripts
+        # can run against lane worktrees. These script unit tests execute a
+        # copied fixture and must not inherit that repo override, or the fixture
+        # re-enters the full repo test suite recursively.
+        env.pop("QUAL_ROOT_DIR", None)
         return subprocess.run(
             [str(self.root / "quality-test.sh")],
             cwd=self.root,
@@ -29,6 +36,7 @@ class QualityTestScriptTests(unittest.TestCase):
             stderr=subprocess.STDOUT,
             text=True,
             check=False,
+            env=env,
         )
 
     def test_runs_shell_tests_when_present(self) -> None:
