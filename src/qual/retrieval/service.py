@@ -1483,6 +1483,7 @@ class RetrievalService:
             candidate_resolution=candidate_resolution,
             fts_shortlist_doc_ids=fts_shortlist,
         )
+        retrieval_manifest["basket_item_fingerprints"] = list(retrieval_evidence["basket_item_fingerprints"])
         elapsed_ms_total = max(0, int((self._now_fn() - started).total_seconds() * 1000))
         diagnostics = {
             "retrieval_policy": retrieval_policy,
@@ -2132,6 +2133,12 @@ class RetrievalService:
             query,
             max_results=self._fts_shortlist_limit(query.constraints.max_results),
         )
+        basket_item_fingerprints = [
+            str(item["basket_item_fingerprint"])
+            for item in basket_promotion_items
+        ]
+        manifest_snapshot = dict(retrieval_manifest)
+        manifest_snapshot["basket_item_fingerprints"] = list(basket_item_fingerprints)
         evidence = {
             "query_fingerprint": query_fingerprint,
             "fts_match_query_fingerprint": fts_match_query_fingerprint,
@@ -2170,11 +2177,8 @@ class RetrievalService:
             "basket_promotion_count": basket_promotion_count,
             "basket_promotion_ready": basket_promotion_count > 0,
             "basket_item_ids": _basket_item_ids_from_items(basket_promotion_items),
-            "basket_item_fingerprints": [
-                str(item["basket_item_fingerprint"])
-                for item in basket_promotion_items
-            ],
-            "retrieval_manifest": dict(retrieval_manifest),
+            "basket_item_fingerprints": basket_item_fingerprints,
+            "retrieval_manifest": manifest_snapshot,
         }
         evidence["retrieval_evidence_fingerprint"] = RetrievalService._stable_fingerprint(evidence)
         return evidence
