@@ -3448,6 +3448,67 @@ class UnifiedRetrievalTests(unittest.TestCase):
             canonical_id,
         )
 
+    def test_retrieval_context_bundle_helper_rejects_raw_excerpt_only_basket_items(self) -> None:
+        result = self.service.retrieve_auto(
+            RetrievalQuery(
+                query_text="memo coding comparison",
+                scope="vault",
+                intent="compare",
+                constraints=RetrievalConstraints(max_results=4),
+                confidentiality_profile="confidential",
+            )
+        )
+
+        sparse_context_bundle = json.loads(json.dumps(result.retrieval_context_bundle()))
+        raw_item = copy.deepcopy(result.basket_promotion_items()[0])
+        raw_item.pop("item_id", None)
+        raw_item.pop("basket_item_id", None)
+        raw_item.pop("source_strategy", None)
+        raw_item.pop("retrieval_source_strategy", None)
+        raw_item["excerpt_id"] = "raw-excerpt-only"
+
+        def replace_basket_refs(snapshot: object) -> None:
+            if isinstance(snapshot, dict):
+                if (
+                    "basket_promotion_items" in snapshot
+                    or "promotion_items" in snapshot
+                    or "basket_item_ids" in snapshot
+                ):
+                    snapshot["basket_promotion_items"] = [copy.deepcopy(raw_item)]
+                    snapshot["promotion_items"] = [copy.deepcopy(raw_item)]
+                    snapshot["basket_item_ids"] = ["raw-excerpt-only"]
+                    snapshot["basket_promotion_count"] = 1
+                    snapshot["basket_promotion_ready"] = True
+                    snapshot.pop("basket_item_fingerprints", None)
+                    snapshot.pop("excerpt_citations", None)
+                    snapshot.pop("excerpt_hits", None)
+                for value in snapshot.values():
+                    replace_basket_refs(value)
+            elif isinstance(snapshot, list):
+                for value in snapshot:
+                    replace_basket_refs(value)
+
+        replace_basket_refs(sparse_context_bundle)
+
+        class _SparseContextBundleSource:
+            def __init__(self, payload: dict[str, object]) -> None:
+                self._payload = payload
+
+            def retrieval_context_bundle(self) -> dict[str, object]:
+                return self._payload
+
+        context_bundle = engine_build_retrieval_context_bundle_from_result(
+            _SparseContextBundleSource(sparse_context_bundle)
+        )
+
+        self.assertEqual(context_bundle["basket_promotion_items"], [])
+        self.assertEqual(context_bundle["retrieval_source_bundle"]["basket_promotion_items"], [])
+        self.assertEqual(context_bundle["retrieval_downstream_payload"]["basket_promotion_items"], [])
+        self.assertEqual(context_bundle["basket_item_ids"], [])
+        self.assertEqual(context_bundle["basket_item_fingerprints"], [])
+        self.assertEqual(context_bundle["basket_promotion_count"], 0)
+        self.assertFalse(context_bundle["basket_promotion_ready"])
+
     def test_retrieval_context_bundle_helper_prefers_basket_items_over_stale_summaries(self) -> None:
         result = self.service.retrieve_auto(
             RetrievalQuery(

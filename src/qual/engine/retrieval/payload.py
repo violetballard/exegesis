@@ -124,8 +124,8 @@ def _normalize_bool_map(value: object) -> dict[str, bool]:
 
 
 def _basket_item_identity(item: dict[str, object]) -> str | None:
-    for key in ("basket_item_id", "item_id", "excerpt_id"):
-        item_id = _normalize_optional_text(item.get(key))
+    for key in ("basket_item_id", "item_id"):
+        item_id = _normalize_fts_basket_item_id(item.get(key))
         if item_id is not None:
             return item_id
     return None
@@ -173,6 +173,8 @@ def _basket_item_fingerprints_from_items(items: list[object]) -> list[str]:
     seen: set[str] = set()
     for item in items:
         if not isinstance(item, dict):
+            continue
+        if _basket_item_identity(item) is None:
             continue
         item_fingerprint = _normalize_optional_text(item.get("basket_item_fingerprint"))
         if item_fingerprint is None or item_fingerprint in seen:
@@ -407,12 +409,11 @@ def _normalize_basket_promotion_items(items: list[object]) -> list[object]:
         if isinstance(item, dict):
             item_snapshot = copy.deepcopy(item)
             item_id = _canonical_basket_item_id_for_promotion_item(item_snapshot)
-            if item_id is not None:
-                if item_id in seen_item_ids:
-                    continue
-                seen_item_ids.add(item_id)
-                item_snapshot["item_id"] = item_id
-                item_snapshot["basket_item_id"] = item_id
+            if item_id is None or item_id in seen_item_ids:
+                continue
+            seen_item_ids.add(item_id)
+            item_snapshot["item_id"] = item_id
+            item_snapshot["basket_item_id"] = item_id
             item_snapshot["source_strategy"] = _fts_source_strategy_from_values(
                 item_snapshot.get("source_strategy"),
                 item_snapshot.get("retrieval_source_strategy"),
