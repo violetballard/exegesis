@@ -21,6 +21,7 @@ from src.qual.commands.canonical import (
     canonical_command_handler_trust_gate_payload,
     canonical_command_handler_trusted_demo_path_payload,
     canonical_command_persist_continue_payload,
+    canonical_command_readiness_handoff_packet_payload,
     canonical_command_readiness_command_audit_payload,
     canonical_command_readiness_cli_smoke_lines,
     canonical_command_readiness_command_progress_payload,
@@ -87,6 +88,7 @@ def build_mvp_demo_command_surface_payload(
     command_surface = canonical_command_command_surface_payload()
     smoke_contract = canonical_command_demo_loop_smoke_payload()
     patch_review_contract = build_patch_review_command_contract()
+    handoff_packet = canonical_command_readiness_handoff_packet_payload()
     patch_review_readiness_smoke = build_patch_review_readiness_smoke_payload()
     patch_review_action_resolution_smoke = build_patch_review_action_resolution_smoke_payload()
     smoke_gate = build_mvp_demo_smoke_gate_payload(demo_loop)
@@ -107,6 +109,7 @@ def build_mvp_demo_command_surface_payload(
         "is_ready": readiness_gate["is_ready"],
         "issues": readiness_gate["issues"],
         "readiness_gate": readiness_gate,
+        "handoff_packet": handoff_packet,
         "demo_loop": demo_loop,
         "entrypoint_shims": command_surface["entrypoint_shims"],
         "compatibility_invocations": command_cli_compatibility_invocation_payloads(),
@@ -484,6 +487,7 @@ def build_mvp_demo_cli_handoff_payload(
 ) -> dict[str, object]:
     """Return the reviewer-facing CLI smoke handoff for the MVP demo path."""
     demo_loop = canonical_command_demo_loop_payload()
+    handoff_packet = canonical_command_readiness_handoff_packet_payload()
     smoke_gate = build_mvp_demo_smoke_gate_payload(demo_loop)
     smoke_matrix = build_mvp_demo_command_smoke_matrix_payload(demo_loop)
     checkpoint = build_mvp_demo_readiness_checkpoint_payload(smoke_argvs)
@@ -497,6 +501,11 @@ def build_mvp_demo_cli_handoff_payload(
     return {
         "is_ready": bool(smoke_gate["is_complete"])
         and len(trusted_steps) == len(smoke_matrix),
+        "handoff_packet": handoff_packet,
+        "roadmap_items": tuple(handoff_packet["roadmap_items"]),
+        "vision_capabilities": tuple(handoff_packet["vision_capabilities"]),
+        "routing_provider_impact": handoff_packet["routing_provider_impact"],
+        "risks_blockers": tuple(handoff_packet["risks_blockers"]),
         "canonical_demo_path_step_advanced": (
             "open project/document -> retrieve relevant material -> "
             "preview and apply or reject a patch -> persist and continue"
@@ -638,6 +647,7 @@ def build_mvp_demo_command_surface_audit_payload() -> dict[str, object]:
         "compatibility_invocations": command_cli_compatibility_invocation_payloads(),
         "handler_trust_gate": canonical_command_handler_trust_gate_payload(),
         "handler_trusted_demo_path": canonical_command_handler_trusted_demo_path_payload(),
+        "handoff_packet": canonical_command_readiness_handoff_packet_payload(),
         "command_readiness_audit": canonical_command_readiness_command_audit_payload(),
         "exact_action_routes": canonical_command_exact_action_route_payload(),
         "demo_path_commands": build_mvp_demo_path_command_payload(),
