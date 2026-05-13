@@ -13039,8 +13039,33 @@ def command_demo_command_surface_payload(
     launcher_argv: tuple[str, ...] = COMMAND_SMOKE_CLI_LAUNCHER_ARGV,
 ) -> dict[str, object]:
     contract = command_demo_command_surface_contract(specs, launcher_argv)
+    entrypoint_shims = (
+        command_cli_entrypoint_shim_summary()
+        if specs == COMMAND_SPECS
+        else ()
+    )
     payload: dict[str, object] = {
         "launcher_argv": list(contract.launcher_argv),
+        "entrypoint_shims": [
+            {
+                "requested_token": requested_token,
+                "canonical_name": canonical_name,
+                "cli_entrypoint": cli_entrypoint,
+                "flow_step": flow_step,
+                "demo_path_step": demo_path_step,
+                "engine_actions": list(engine_actions),
+                "command_argv": list(command_argv),
+            }
+            for (
+                requested_token,
+                canonical_name,
+                cli_entrypoint,
+                flow_step,
+                demo_path_step,
+                engine_actions,
+                command_argv,
+            ) in entrypoint_shims
+        ],
         "entries": [
             {
                 "ordinal": entry.ordinal,

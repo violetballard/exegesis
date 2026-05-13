@@ -79,6 +79,7 @@ def build_mvp_demo_command_surface_payload(
 ) -> dict[str, object]:
     """Return the deterministic package-level contract for the MVP demo loop."""
     demo_loop = canonical_command_demo_loop_payload()
+    command_surface = canonical_command_command_surface_payload()
     smoke_contract = canonical_command_demo_loop_smoke_payload()
     patch_review_contract = build_patch_review_command_contract()
     patch_review_readiness_smoke = build_patch_review_readiness_smoke_payload()
@@ -102,6 +103,7 @@ def build_mvp_demo_command_surface_payload(
         "issues": readiness_gate["issues"],
         "readiness_gate": readiness_gate,
         "demo_loop": demo_loop,
+        "entrypoint_shims": command_surface["entrypoint_shims"],
         "execution_plan": canonical_command_execution_plan_payload(),
         "retrieval_context": canonical_command_retrieval_context_payload(),
         "patch_review": asdict(patch_review_contract),
@@ -403,9 +405,11 @@ def run_patch_review_action_resolution_smoke_payload_json() -> str:
 
 def build_mvp_demo_command_surface_audit_payload() -> dict[str, object]:
     """Return a deterministic audit bundle for command-surface handoff checks."""
+    command_surface = canonical_command_command_surface_payload()
     return {
         "surface": build_mvp_demo_command_surface_payload(),
-        "command_surface": canonical_command_command_surface_payload(),
+        "command_surface": command_surface,
+        "entrypoint_shims": command_surface["entrypoint_shims"],
         "handler_trust_gate": canonical_command_handler_trust_gate_payload(),
         "handler_trusted_demo_path": canonical_command_handler_trusted_demo_path_payload(),
         "command_readiness_audit": canonical_command_readiness_command_audit_payload(),
