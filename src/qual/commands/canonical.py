@@ -748,6 +748,7 @@ __all__ = [
     "canonical_command_readiness_checkpoint_issues",
     "canonical_command_readiness_checkpoint_json",
     "canonical_command_readiness_checkpoint_payload",
+    "canonical_command_readiness_checkpoint_step_statuses",
     "canonical_command_readiness_checkpoint_summary",
     "canonical_command_require_readiness_checkpoint",
     "canonical_command_surface_readiness_contract",
@@ -2584,6 +2585,16 @@ def canonical_command_readiness_checkpoint_issues() -> tuple[str, ...]:
     return canonical_command_readiness_checkpoint().issues
 
 
+def canonical_command_readiness_checkpoint_step_statuses() -> tuple[dict[str, object], ...]:
+    checkpoint = canonical_command_readiness_checkpoint()
+    return tuple(
+        _canonical_command_readiness_status_payload(
+            canonical_command_readiness_status_for_flow_step(entry.flow_step)
+        )
+        for entry in checkpoint.smoke_sequence.entries
+    )
+
+
 def canonical_command_readiness_checkpoint_summary() -> tuple[
     str,
     str,
@@ -2642,6 +2653,7 @@ def canonical_command_readiness_checkpoint_payload() -> dict[str, object]:
             if status.flow_step
         ),
         "next_command_line": checkpoint.smoke_snapshot.next_status.command_line,
+        "step_statuses": canonical_command_readiness_checkpoint_step_statuses(),
         "command_lines": checkpoint.handoff.command_lines,
         "smoke_argvs": checkpoint.smoke_sequence.smoke_argvs,
         "exact_action_argvs": checkpoint.smoke_sequence.exact_action_argvs,
