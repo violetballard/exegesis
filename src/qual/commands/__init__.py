@@ -37,6 +37,8 @@ from src.qual.commands.canonical import (
     canonical_command_readiness_step_seal_payload,
     canonical_command_readiness_status_for_flow_step,
     canonical_command_retrieval_context_payload,
+    canonical_command_supported_launcher_readiness_audit_summary,
+    canonical_command_supported_launcher_readiness_summary,
 )
 from src.qual.commands.diff_preview import (
     DiffPreviewInput,
@@ -103,11 +105,13 @@ def build_mvp_demo_command_surface_payload(
     smoke_gate = build_mvp_demo_smoke_gate_payload(demo_loop)
     trusted_command_contract = build_mvp_demo_trusted_command_contract_payload(demo_loop)
     handler_trusted_demo_path = canonical_command_handler_trusted_demo_path_payload()
+    supported_launcher_gate = build_mvp_demo_supported_launcher_gate_payload()
     readiness_gate = build_mvp_demo_command_surface_readiness_gate_payload(
         demo_loop_ready=bool(demo_loop["is_ready"]),
         smoke_gate=smoke_gate,
         trusted_command_contract=trusted_command_contract,
         handler_trusted_demo_path=handler_trusted_demo_path,
+        supported_launcher_gate_ready=bool(supported_launcher_gate["is_ready"]),
         command_readiness_audit_complete=bool(command_readiness_audit["is_complete"]),
         patch_review_contract_ready=patch_review_contract.ready,
         patch_review_route_validation_ready=bool(patch_review_route_validation["is_valid"]),
@@ -150,6 +154,7 @@ def build_mvp_demo_command_surface_payload(
         "demo_path_step_surface": command_mvp_demo_step_surface_payload(),
         "trusted_command_contract": trusted_command_contract,
         "handler_trusted_demo_path": handler_trusted_demo_path,
+        "supported_launcher_gate": supported_launcher_gate,
         "smoke_gate": smoke_gate,
         "readiness_snapshot": canonical_command_readiness_snapshot_payload(smoke_argvs),
         "readiness_checkpoint": build_mvp_demo_readiness_checkpoint_payload(
@@ -182,6 +187,7 @@ def build_mvp_demo_command_surface_readiness_gate_payload(
     smoke_gate: dict[str, object],
     trusted_command_contract: dict[str, object],
     handler_trusted_demo_path: dict[str, object],
+    supported_launcher_gate_ready: bool,
     command_readiness_audit_complete: bool,
     patch_review_contract_ready: bool,
     patch_review_route_validation_ready: bool,
@@ -194,6 +200,7 @@ def build_mvp_demo_command_surface_readiness_gate_payload(
         "smoke_gate": bool(smoke_gate["is_complete"]),
         "trusted_command_contract": bool(trusted_command_contract["is_trusted"]),
         "handler_trusted_demo_path": bool(handler_trusted_demo_path["is_complete"]),
+        "supported_launcher_gate": supported_launcher_gate_ready,
         "command_readiness_audit": command_readiness_audit_complete,
         "patch_review_contract": patch_review_contract_ready,
         "patch_review_route_validation": patch_review_route_validation_ready,
@@ -213,6 +220,63 @@ def build_mvp_demo_command_surface_readiness_gate_payload(
         "smoke_gate_ordered": smoke_gate["is_ordered"],
         "untrusted_commands": trusted_command_contract["untrusted_commands"],
         "missing_handler_engine_actions": handler_trusted_demo_path["missing_engine_actions"],
+    }
+
+
+def build_mvp_demo_supported_launcher_gate_payload() -> dict[str, object]:
+    """Return supported launcher readiness for the exact MVP demo command surface."""
+    issues: list[str] = []
+    entries: list[dict[str, object]] = []
+    for (
+        launcher_argv,
+        is_complete,
+        missing_engine_actions,
+        command_lines,
+        exact_action_lines,
+    ) in canonical_command_supported_launcher_readiness_summary():
+        launcher_line = " ".join(launcher_argv)
+        if not is_complete:
+            issues.append(f"{launcher_line} incomplete")
+        if missing_engine_actions:
+            issues.append(f"{launcher_line} missing engine actions")
+        if not command_lines:
+            issues.append(f"{launcher_line} has no command lines")
+        if not exact_action_lines:
+            issues.append(f"{launcher_line} has no exact action lines")
+        entries.append(
+            {
+                "launcher_argv": launcher_argv,
+                "is_complete": is_complete,
+                "missing_engine_actions": missing_engine_actions,
+                "command_lines": command_lines,
+                "exact_action_lines": exact_action_lines,
+            }
+        )
+
+    audit_entries = tuple(
+        {
+            "launcher_argv": launcher_argv,
+            "is_complete": is_complete,
+            "missing_engine_actions": missing_engine_actions,
+            "command_lines": command_lines,
+            "exact_action_lines": exact_action_lines,
+            "all_smoke_lines": all_smoke_lines,
+        }
+        for (
+            launcher_argv,
+            is_complete,
+            missing_engine_actions,
+            command_lines,
+            exact_action_lines,
+            all_smoke_lines,
+        ) in canonical_command_supported_launcher_readiness_audit_summary()
+    )
+    return {
+        "is_ready": not issues,
+        "issues": tuple(issues),
+        "launcher_count": len(entries),
+        "entries": tuple(entries),
+        "audit_entries": audit_entries,
     }
 
 
