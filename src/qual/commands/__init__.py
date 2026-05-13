@@ -416,15 +416,23 @@ def build_mvp_demo_resume_packet_payload(
         for entry in command_cli_compatibility_invocation_payloads()
         if entry["canonical_name"] == command
     )
+    invalid_argv = tuple(command_checkpoint["invalid_argv"])
+    exact_action_invalid_argv = tuple(
+        exact_action_checkpoint["remaining_actions"]["invalid_argv"]
+    )
     return {
         "is_complete": command_checkpoint["is_complete"],
         "is_ready": bool(next_command["ready"])
-        and (trusted_command is None or bool(trusted_command["is_trusted"])),
+        and (trusted_command is None or bool(trusted_command["is_trusted"]))
+        and not invalid_argv
+        and not exact_action_invalid_argv,
         "checkpoint": command_checkpoint,
         "exact_action_checkpoint": exact_action_checkpoint,
         "next_step": next_step,
         "trusted_command": trusted_command,
         "compatibility_invocations": compatibility_invocations,
+        "invalid_argv": invalid_argv,
+        "exact_action_invalid_argv": exact_action_invalid_argv,
     }
 
 
