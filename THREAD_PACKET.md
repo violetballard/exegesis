@@ -32,6 +32,13 @@
 - Integrator-locked files changed: none.
 - Routing/provider/config files changed: none.
 
+## Reviewer Fix Addendum: Command Catalog Slice
+
+- Canonical demo-path step advanced by the command-catalog contract: `retrieve relevant material and gather context into the basket`, with additional CLI compatibility coverage for `open project/document`, `preview and apply or reject a patch`, and `save and continue`.
+- Ownership/scope correction for the command-catalog review packet: no integrator-locked files were edited.
+- Approved shared-test exception for the command-catalog slice: `tests/unit/test_commands_catalog.py`.
+- Implementation slice unchanged for this fixer pass: `src/qual/commands/catalog.py` and `tests/unit/test_commands_catalog.py` remain the focused command-catalog hardening delta.
+
 ## Commands Run
 
 - `./quality-format.sh --check`: passed.
