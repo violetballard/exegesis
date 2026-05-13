@@ -8,6 +8,8 @@ from dataclasses import asdict
 from src.qual.commands.catalog import *  # noqa: F401,F403
 from src.qual.commands.canonical import *  # noqa: F401,F403
 from src.qual.commands.canonical import (
+    canonical_command_demo_loop_payload,
+    canonical_command_demo_loop_smoke_payload,
     canonical_command_execution_plan_payload,
     canonical_command_persist_continue_payload,
     canonical_command_readiness_cli_smoke_lines,
@@ -59,11 +61,17 @@ from src.qual.commands.diff_preview import (
 
 def build_mvp_demo_command_surface_payload() -> dict[str, object]:
     """Return the deterministic package-level contract for the MVP demo loop."""
+    demo_loop = canonical_command_demo_loop_payload()
+    smoke_contract = canonical_command_demo_loop_smoke_payload()
     return {
+        "is_ready": demo_loop["is_ready"],
+        "issues": demo_loop["issues"],
+        "demo_loop": demo_loop,
         "execution_plan": canonical_command_execution_plan_payload(),
         "retrieval_context": canonical_command_retrieval_context_payload(),
         "patch_review": asdict(build_patch_review_command_contract()),
         "persist_continue": canonical_command_persist_continue_payload(),
+        "smoke_contract": smoke_contract,
         "smoke_command_lines": canonical_command_readiness_cli_smoke_lines(),
     }
 
