@@ -4129,7 +4129,7 @@ def canonical_command_action_contract() -> CommandDemoCommandActionContract:
 
 
 def canonical_command_action_summary() -> tuple[
-    tuple[str, str, tuple[str, ...], str, tuple[str, ...]],
+    tuple[str, str, tuple[str, ...], str, tuple[str, ...], tuple[tuple[str, str], ...], bool],
     ...,
 ]:
     return _command_action_summary()

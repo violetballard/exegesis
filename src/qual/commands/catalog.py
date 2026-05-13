@@ -1525,6 +1525,8 @@ class CommandDemoCommandActionEntry:
     smoke_token: str
     demo_path_step: str
     engine_actions: tuple[str, ...]
+    exact_action_lines: tuple[tuple[str, str], ...]
+    is_cli_entrypoint: bool
 
 
 @dataclass(frozen=True)
@@ -19166,6 +19168,14 @@ def command_demo_command_action_contract(
                 smoke_token=entry.cli_tokens[0],
                 demo_path_step=entry.demo_path_step,
                 engine_actions=entry.engine_actions,
+                exact_action_lines=tuple(
+                    (action_entry.engine_action, action_entry.command_line)
+                    for action_entry in command_demo_readiness_exact_action_entries_for_flow_step(
+                        entry.flow_step,
+                        specs,
+                    )
+                ),
+                is_cli_entrypoint=command_cli_entrypoint_for(entry.name) == entry.name,
             )
             for entry in demo_path_contract.entries
         )
@@ -19204,6 +19214,11 @@ def _validate_command_demo_command_action_contract(
         path_entry.engine_actions for path_entry in demo_path_contract.entries
     ):
         raise ValueError("Command demo command action engine actions are inconsistent")
+    if tuple(entry.is_cli_entrypoint for entry in contract.entries) != tuple(
+        command_cli_entrypoint_for(path_entry.name) == path_entry.name
+        for path_entry in demo_path_contract.entries
+    ):
+        raise ValueError("Command demo command action CLI entrypoints are inconsistent")
 
     action_routes_by_name: dict[str, list[CommandDemoActionRouteEntry]] = {}
     for route_entry in command_demo_action_route_contract(specs).entries:
@@ -19211,6 +19226,13 @@ def _validate_command_demo_command_action_contract(
 
     for entry in contract.entries:
         route_entries = tuple(action_routes_by_name.get(entry.name, ()))
+        exact_action_lines = tuple(
+            (action_entry.engine_action, action_entry.command_line)
+            for action_entry in command_demo_readiness_exact_action_entries_for_flow_step(
+                entry.flow_step,
+                specs,
+            )
+        )
         if tuple(route_entry.engine_action for route_entry in route_entries) != entry.engine_actions:
             raise ValueError(f"Command demo command action route actions are inconsistent: {entry.name}")
         if any(route_entry.flow_step != entry.flow_step for route_entry in route_entries):
@@ -19219,11 +19241,15 @@ def _validate_command_demo_command_action_contract(
             raise ValueError(f"Command demo command action route CLI tokens are inconsistent: {entry.name}")
         if any(route_entry.smoke_token != entry.smoke_token for route_entry in route_entries):
             raise ValueError(f"Command demo command action route smoke token is inconsistent: {entry.name}")
+        if entry.exact_action_lines != exact_action_lines:
+            raise ValueError(f"Command demo command action exact action lines are inconsistent: {entry.name}")
+        if tuple(engine_action for engine_action, _line in entry.exact_action_lines) != entry.engine_actions:
+            raise ValueError(f"Command demo command action exact actions are inconsistent: {entry.name}")
 
 
 def command_demo_command_action_summary(
     specs: tuple[CommandSpec, ...] = COMMAND_SPECS,
-) -> tuple[tuple[str, str, tuple[str, ...], str, tuple[str, ...]], ...]:
+) -> tuple[tuple[str, str, tuple[str, ...], str, tuple[str, ...], tuple[tuple[str, str], ...], bool], ...]:
     contract = command_demo_command_action_contract(specs)
     return tuple(
         (
@@ -19232,6 +19258,8 @@ def command_demo_command_action_summary(
             entry.cli_tokens,
             entry.demo_path_step,
             entry.engine_actions,
+            entry.exact_action_lines,
+            entry.is_cli_entrypoint,
         )
         for entry in contract.entries
     )
