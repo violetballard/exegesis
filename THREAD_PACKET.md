@@ -12,10 +12,10 @@
 
 ## Tasks Completed
 
-1. Added `CommandDemoSmokeSequenceEntry` dataclass to model a single smoke-testable step in the demo path with ordinal, flow step, engine actions, smoke argvs, and thin-handler readiness.
-2. Added `CommandDemoSmokeSequenceContract` dataclass to bundle the complete smoke sequence with fingerprint, completeness flags, entries, argvs, and validation error surfaces.
-3. Implemented `command_demo_smoke_sequence_contract()` in `src/qual/commands/catalog.py` that composes trusted-loop readiness with exact smoke argvs and thin-handler readiness, including internal consistency assertions.
-4. Exposed `canonical_command_smoke_sequence_contract()` in `src/qual/commands/canonical.py` as the canonical entrypoint, with proper imports and `__all__` export.
+1. Added `CommandDemoSmokeSequenceEntry` dataclass to model a single smoke-testable step in the demo path with ordinal, flow step, engine actions, smoke argvs, and thin-handler readiness. Canonical demo-path steps advanced: open project/document; retrieve relevant material; preview and apply or reject a patch; persist and continue.
+2. Added `CommandDemoSmokeSequenceContract` dataclass to bundle the complete smoke sequence with fingerprint, completeness flags, entries, argvs, and validation error surfaces. Canonical demo-path steps advanced: open project/document; retrieve relevant material; preview and apply or reject a patch; persist and continue.
+3. Implemented `command_demo_smoke_sequence_contract()` in `src/qual/commands/catalog.py` that composes trusted-loop readiness with exact smoke argvs and thin-handler readiness, including internal consistency assertions. Canonical demo-path steps advanced: open project/document; retrieve relevant material; preview and apply or reject a patch; persist and continue.
+4. Exposed `canonical_command_smoke_sequence_contract()` in `src/qual/commands/canonical.py` as the canonical entrypoint, with proper imports and `__all__` export. Canonical demo-path steps advanced: open project/document; retrieve relevant material; preview and apply or reject a patch; persist and continue.
 
 ## Files Changed For This Scope
 
@@ -52,6 +52,8 @@ This lane now provides a stable smoke-sequence contract that validates the compl
 - persist and continue
 
 The `command_demo_smoke_sequence_contract` bundles exact CLI argvs per demo-path step with thin-handler readiness, enabling deterministic smoke testing of the full engine loop through the CLI surface.
+
+Each completed command-catalog task advances the same deterministic CLI contract across those canonical demo-path steps, so the packet can be smoke-tested from opening a document through retrieval, patch review, and persisted continuation.
 
 ## Final Readiness Statement
 
