@@ -260,6 +260,8 @@ This finalization pass also normalizes sparse `basket_promotion_items` query-con
 
 This finalization pass also makes downstream payload and excerpt-bundle `excerpt_hits` self-contained for basket promotion by carrying canonical FTS basket item IDs and singleton basket identity lists in the raw hit snapshot and nested provenance. Context-basket consumers that inspect excerpt-hit evidence directly can now audit the same `retrieval:fts:<excerpt_id>` identity and basket fingerprint set exposed by the promotion bundles without reconstructing identity from raw excerpt IDs.
 
+This finalization pass also adds the hashed `fts_match_query_fingerprint` to direct basket-promotion items and sparse-rehydrated promotion items. Context-basket consumers can now audit promoted excerpt evidence against the exact FTS match expression identity without exposing plaintext query terms or enabling deferred retrieval strategies.
+
 Canonical demo path advanced: `vault/context material -> FTS retrieval -> retrieval evidence -> context basket promotion -> engine revise/apply`.
 
 Before-handoff canonical demo-path statement: this work advances `retrieve relevant material` by keeping retrieval FTS-first, deterministic, and auditable; it also supports `promote or gather context into the basket` by preserving provenance and query evidence on promotion bundles/items.
@@ -275,7 +277,7 @@ Task accounting: this high-risk handoff is summarized as the 4 meaningful task g
 ## Kickoff Budget/Limits Compliance
 
 - Task budget: `4` high-risk task groups; this handoff folds the cumulative retrieval work into 4 meaningful and testable task groups.
-- File count: the corrected source-bearing range before this pass changes `7` source/test files plus `3` packet/artifact files; this pass changes `src/qual/retrieval/service.py`, `tests/unit/test_unified_retrieval.py`, and `THREAD_PACKET.md`.
+- File count: the corrected source-bearing range before this pass changes `7` source/test files plus `3` packet/artifact files; this pass changes `src/qual/retrieval/service.py`, `src/qual/engine/retrieval/payload.py`, `tests/unit/test_unified_retrieval.py`, and `THREAD_PACKET.md`.
 - Size accounting before this packet refresh: the corrected source-bearing range `378cf9a74a3658058079a32f186fcd254c4a4034..HEAD` already exceeds the high-risk `<=300 net LOC` limit; this pass adds a small excerpt-hit basket identity provenance finalization, keeping the range above the limit.
 - Size limit status: exceeds the high-risk `<=8 files` and `<=300 net LOC` limits.
 - Explicit exception status: no integrator-approved size or task-budget exception is recorded in this worktree. Because the full source-bearing range remains together, this is a known blocker for approval until the integrator grants an exception or requests a branch split.
@@ -332,19 +334,20 @@ Task accounting: this high-risk handoff is summarized as the 4 meaningful task g
 45. Added standalone FTS excerpt lookup basket-promotion item snapshots to provenance and audit metadata, with shared regression coverage proving nested provenance and audit events preserve the canonical basket item, item-level singleton ID/fingerprint lists, promotion readiness/count, and demo-path markers needed for context-basket promotion.
 46. Tightened sparse basket-promotion item normalization so malformed non-object entries are dropped before basket evidence rehydration and stale promotion item fingerprints are recomputed after item-level normalization, with shared regression coverage proving normalized direct and sparse context-bundle promotion item lists contain only canonical FTS basket evidence.
 47. Added canonical FTS basket item IDs and singleton basket identity lists to downstream payload and excerpt-bundle excerpt-hit snapshots, including nested provenance, so raw excerpt-hit evidence remains auditable against context-basket promotion refs without reconstructing identity from raw excerpt IDs.
+48. Added hashed `fts_match_query_fingerprint` propagation to direct basket-promotion item snapshots and sparse basket-promotion bundle rehydration, with shared regression coverage proving both direct and rehydrated promotion evidence stays bound to the canonical FTS match-query identity.
 
 ## Commands Run
 
-Required gates for this corrected merge candidate were re-run on 2026-05-13 against branch `codex/feat-retrieval-fts` after this source-bearing excerpt-hit basket identity provenance finalization.
+Required gates for this corrected merge candidate were re-run on 2026-05-13 against branch `codex/feat-retrieval-fts` after this source-bearing basket-promotion FTS match-query fingerprint finalization.
 
-- `PYTHONPATH=. pytest tests/unit/test_unified_retrieval.py -k downstream_payload_exposes_policy_and_diagnostics_snapshot -q` - passed 1 focused downstream payload regression test, 103 deselected, including direct assertions that payload and excerpt-bundle excerpt hits carry the same basket identity lists.
-- `PYTHONPATH=. pytest tests/unit/test_unified_retrieval.py -q` - passed all 104 unified retrieval tests and 96 subtests after excerpt-hit payload/provenance snapshots started carrying canonical FTS basket item IDs and singleton basket identity lists.
-- `./quality-format.sh --check` - passed after the excerpt-hit basket identity provenance finalization.
-- `./quality-lint.sh` - passed shell syntax and trailing whitespace checks after the excerpt-hit basket identity provenance finalization.
-- `./quality-test.sh` - passed smoke tests and 487 unit tests, including all 104 unified retrieval tests, after the excerpt-hit basket identity provenance finalization.
+- `pytest tests/unit/test_unified_retrieval.py -k basket_promotion_items_backfill_query_context_from_bundle` - blocked at collection because the shell environment lacked repo-root imports (`ModuleNotFoundError: No module named 'src'`).
+- `PYTHONPATH=. pytest tests/unit/test_unified_retrieval.py -k basket_promotion_items_backfill_query_context_from_bundle` - initially failed because sparse bundle context did not backfill `fts_match_query_fingerprint`; fixed in the first focused gate attempt, then passed 1 focused retrieval regression with 103 deselected.
+- `./quality-format.sh --check` - passed after the basket-promotion FTS match-query fingerprint finalization.
+- `./quality-lint.sh` - passed shell syntax and trailing whitespace checks after the basket-promotion FTS match-query fingerprint finalization.
+- `./quality-test.sh` - passed smoke tests and 487 unit tests, including all 104 unified retrieval tests, after the basket-promotion FTS match-query fingerprint finalization.
 - `./typecheck-test.sh` - passed Python source compilation under `src/`.
-- `make ci` - blocked at scope-check because `tests/unit/test_unified_retrieval.py` is the approved shared regression path; rerun with `SCOPE_ALLOW_SHARED=1`.
-- `SCOPE_ALLOW_SHARED=1 make ci` - passed scope-check, format, lint, compile/typecheck, smoke tests, and all unified retrieval tests, then failed with 6 unrelated sandbox/control-plane errors when broader control-plane tests attempted to write `.codex/packet_router/logs/fixer__feat-commands__20260513T030438Z.log`, write `.codex/feature_runner/state.json`, invoke `ps`, write `.codex/packet_planner/state.json` in two planner tests, and move recovery artifacts under `.codex/worktree_recovery/feat-a__git-local__20260513T030443Z`.
+- `make ci` - blocked at scope-check because `tests/unit/test_unified_retrieval.py` is the approved shared regression path; rerun requires `SCOPE_ALLOW_SHARED=1`.
+- `SCOPE_ALLOW_SHARED=1 make ci` - passed scope-check, format, lint, compile/typecheck, smoke tests, and all unified retrieval tests, then failed with 6 unrelated sandbox/control-plane errors when broader control-plane tests attempted to write `.codex/packet_router/logs/fixer__feat-commands__20260513T030917Z.log`, write `.codex/feature_runner/state.json`, invoke `ps`, write `.codex/packet_planner/state.json` in two planner tests, and move recovery artifacts under `.codex/worktree_recovery/feat-a__git-local__20260513T030922Z`.
 
 Earlier gate run for the previous sparse excerpt-citation basket identity canonicalization finalization:
 

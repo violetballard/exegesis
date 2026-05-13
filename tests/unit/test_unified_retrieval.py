@@ -4288,6 +4288,14 @@ class UnifiedRetrievalTests(unittest.TestCase):
             ).encode("utf-8")
         ).hexdigest()
         self.assertEqual(direct_item["query_fingerprint"], result.diagnostics["query_fingerprint"])
+        self.assertEqual(
+            direct_item["fts_match_query_fingerprint"],
+            result.diagnostics["fts_match_query_fingerprint"],
+        )
+        self.assertEqual(
+            result.basket_promotion_items()[0]["fts_match_query_fingerprint"],
+            result.diagnostics["fts_match_query_fingerprint"],
+        )
         self.assertEqual(direct_item["query_scope"], "vault")
         self.assertEqual(direct_item["query_intent"], "compare")
         self.assertEqual(direct_item["query_constraints"], expected_constraints)
@@ -4392,6 +4400,14 @@ class UnifiedRetrievalTests(unittest.TestCase):
         rehydrated_bundle = _build_retrieval_basket_promotion_bundle_from_payload(payload)
         rehydrated_item = rehydrated_bundle["promotion_items"][0]
         self.assertEqual(rehydrated_item["query_fingerprint"], result.diagnostics["query_fingerprint"])
+        self.assertEqual(
+            rehydrated_item["fts_match_query_fingerprint"],
+            result.diagnostics["fts_match_query_fingerprint"],
+        )
+        self.assertEqual(
+            rehydrated_bundle["basket_promotion_items"][0]["fts_match_query_fingerprint"],
+            result.diagnostics["fts_match_query_fingerprint"],
+        )
         self.assertEqual(rehydrated_item["query_scope"], "vault")
         self.assertEqual(rehydrated_item["query_intent"], "compare")
         self.assertEqual(rehydrated_item["query_constraints"], expected_constraints)

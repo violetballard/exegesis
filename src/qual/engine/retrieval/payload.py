@@ -709,6 +709,11 @@ def _basket_promotion_items_from_excerpt_hits(
                     provenance.get("query_fingerprint"),
                     query_fingerprint,
                 ),
+                "fts_match_query_fingerprint": _first_text_value(
+                    hit.get("fts_match_query_fingerprint"),
+                    provenance.get("fts_match_query_fingerprint"),
+                    retrieval_evidence.get("fts_match_query_fingerprint"),
+                ),
                 "result_fingerprint": _first_text_value(
                     provenance.get("result_fingerprint"),
                     result_fingerprint,
@@ -2227,6 +2232,13 @@ def _build_retrieval_bundle_context_from_payload(payload: dict[str, object]) -> 
             diagnostics.get("query_fingerprint"),
             query_fingerprint,
         ),
+        "fts_match_query_fingerprint": _first_text_value(
+            payload.get("fts_match_query_fingerprint"),
+            provenance.get("fts_match_query_fingerprint"),
+            summary.get("fts_match_query_fingerprint"),
+            diagnostics.get("fts_match_query_fingerprint"),
+            evidence.get("fts_match_query_fingerprint"),
+        ),
         "query_scope": query.get(
             "scope",
             provenance.get("query_scope", summary.get("query_scope", diagnostics.get("query_scope"))),
@@ -2368,6 +2380,13 @@ def _build_retrieval_basket_promotion_bundle_from_payload(payload: dict[str, obj
             "query_fingerprint": hit.get(
                 "query_fingerprint",
                 provenance.get("query_fingerprint", bundle_context["query_fingerprint"]),
+            ),
+            "fts_match_query_fingerprint": hit.get(
+                "fts_match_query_fingerprint",
+                provenance.get(
+                    "fts_match_query_fingerprint",
+                    bundle_context["fts_match_query_fingerprint"],
+                ),
             ),
             "query_scope": hit.get("query_scope", provenance.get("query_scope", bundle_context["query_scope"])),
             "query_intent": hit.get("query_intent", provenance.get("query_intent", bundle_context["query_intent"])),

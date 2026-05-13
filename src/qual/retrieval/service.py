@@ -693,6 +693,7 @@ class RetrievalResult:
                 if self.query.constraints.date_range is not None
                 else None,
                 "query_fingerprint": hit.provenance.get("query_fingerprint"),
+                "fts_match_query_fingerprint": hit.provenance.get("fts_match_query_fingerprint"),
                 "result_fingerprint": self.result_fingerprint,
                 "canonical_demo_path_steps": list(_RETRIEVAL_DEMO_PATH_STEPS),
             }
@@ -768,6 +769,7 @@ class RetrievalResult:
                     "query_fingerprint",
                     bundle_context["query_fingerprint"],
                 ),
+                "fts_match_query_fingerprint": hit.provenance.get("fts_match_query_fingerprint"),
                 "query_scope": hit.provenance.get("query_scope", bundle_context["query_scope"]),
                 "query_intent": hit.provenance.get("query_intent", bundle_context["query_intent"]),
                 "query_constraints": copy.deepcopy(bundle_context["query_constraints"]),
