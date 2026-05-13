@@ -7,7 +7,10 @@ from collections.abc import Sequence
 from dataclasses import asdict
 
 from src.qual.commands.catalog import *  # noqa: F401,F403
-from src.qual.commands.catalog import command_demo_readiness_validate_script
+from src.qual.commands.catalog import (
+    command_demo_readiness_validate_ordered_script,
+    command_demo_readiness_validate_script,
+)
 from src.qual.commands.canonical import *  # noqa: F401,F403
 from src.qual.commands.canonical import (
     canonical_command_command_surface_payload,
@@ -208,18 +211,25 @@ def build_mvp_demo_smoke_gate_payload(
     """Return the smoke-test gate for the exact MVP demo command sequence."""
     loop = demo_loop or canonical_command_demo_loop_payload()
     expected_command_lines = tuple(loop["command_lines"])
-    validation = command_demo_readiness_validate_script(tuple(loop["smoke_argvs"]))
+    smoke_argvs = tuple(loop["smoke_argvs"])
+    validation = command_demo_readiness_validate_script(smoke_argvs)
+    ordered_validation = command_demo_readiness_validate_ordered_script(smoke_argvs)
     handler_gate = canonical_command_handler_trust_gate_payload()
     command_lines_match = validation.command_lines == expected_command_lines
     return {
         "is_complete": (
             validation.is_complete
+            and ordered_validation.is_ordered
             and command_lines_match
             and bool(handler_gate["is_complete"])
         ),
+        "is_ordered": ordered_validation.is_ordered,
         "command_lines_match": command_lines_match,
         "command_lines": validation.command_lines,
         "expected_command_lines": expected_command_lines,
+        "expected_flow_steps": ordered_validation.expected_flow_steps,
+        "observed_flow_steps": ordered_validation.observed_flow_steps,
+        "order_violations": ordered_validation.order_violations,
         "handler_trust_gate_complete": handler_gate["is_complete"],
         "handler_engine_delegations": handler_gate["engine_delegations"],
         "thin_handler_violations": handler_gate["thin_handler_violations"],
@@ -281,6 +291,7 @@ def build_mvp_demo_trusted_command_contract_payload(
         "untrusted_commands": untrusted_commands,
         "command_readiness": command_readiness,
         "smoke_gate_complete": smoke_gate["is_complete"],
+        "smoke_gate_ordered": smoke_gate["is_ordered"],
         "handler_trust_gate_complete": handler_gate["is_complete"],
         "thin_handler_violations": handler_gate["thin_handler_violations"],
     }
