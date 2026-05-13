@@ -111,6 +111,7 @@ def build_mvp_demo_command_surface_payload(
     canonical_readiness_checkpoint = canonical_command_readiness_checkpoint_payload()
     runtime_checkpoint = build_mvp_demo_cli_runtime_checkpoint_payload(smoke_argvs)
     smoke_route_lookup = build_mvp_demo_cli_smoke_route_lookup_payload(smoke_argvs)
+    engine_action_route_lookup = build_mvp_demo_engine_action_route_lookup_payload()
     command_completion = build_mvp_demo_cli_completion_payload(smoke_argvs)
     demo_driver = canonical_command_readiness_demo_driver_payload(smoke_argvs)
     readiness_gate = build_mvp_demo_command_surface_readiness_gate_payload(
@@ -184,6 +185,7 @@ def build_mvp_demo_command_surface_payload(
         "next_command": canonical_command_readiness_next_status_payload(smoke_argvs),
         "smoke_route": build_mvp_demo_cli_smoke_route_payload(smoke_argvs),
         "smoke_route_lookup": smoke_route_lookup,
+        "engine_action_route_lookup": engine_action_route_lookup,
         "smoke_contract": smoke_contract,
         "smoke_command_lines": canonical_command_readiness_cli_smoke_lines(),
         "smoke_transcript": build_mvp_demo_cli_smoke_transcript_payload(smoke_argvs),
@@ -1114,6 +1116,58 @@ def _duplicate_lookup_keys(
     return tuple(duplicates)
 
 
+def build_mvp_demo_engine_action_route_lookup_payload() -> dict[str, object]:
+    """Return deterministic command lines for every canonical demo engine action."""
+
+    demo_loop = canonical_command_demo_loop_payload()
+    exact_action_routes = tuple(canonical_command_exact_action_route_payload())
+    route_lookup = tuple(
+        (
+            str(route["engine_action"]),
+            {
+                "command_line": route["command_line"],
+                "command": route["command"],
+                "flow_step": route["flow_step"],
+                "demo_path_step": route["demo_path_step"],
+                "cli_tokens": tuple(route["cli_tokens"]),
+                "command_argv": tuple(route["command_argv"]),
+            },
+        )
+        for route in exact_action_routes
+    )
+    duplicate_engine_actions = _duplicate_lookup_keys(route_lookup)
+    expected_engine_actions = tuple(demo_loop["engine_actions"])
+    routed_engine_actions = tuple(engine_action for engine_action, _route in route_lookup)
+    missing_engine_actions = tuple(
+        action for action in expected_engine_actions if action not in routed_engine_actions
+    )
+    extra_engine_actions = tuple(
+        action for action in routed_engine_actions if action not in expected_engine_actions
+    )
+    return {
+        "is_ready": (
+            not missing_engine_actions
+            and not extra_engine_actions
+            and not duplicate_engine_actions
+        ),
+        "expected_engine_actions": expected_engine_actions,
+        "route_lookup": route_lookup,
+        "route_count": len(route_lookup),
+        "missing_engine_actions": missing_engine_actions,
+        "extra_engine_actions": extra_engine_actions,
+        "duplicate_engine_actions": duplicate_engine_actions,
+    }
+
+
+def run_mvp_demo_engine_action_route_lookup_json() -> str:
+    """Return stable JSON for command lines keyed by canonical engine action."""
+    return json.dumps(
+        build_mvp_demo_engine_action_route_lookup_payload(),
+        sort_keys=True,
+        separators=(",", ":"),
+    )
+
+
 def run_mvp_demo_cli_smoke_route_lookup_json() -> str:
     """Return stable JSON for demo-path CLI route lookup smoke checks."""
     return json.dumps(
@@ -1328,6 +1382,7 @@ def build_mvp_demo_command_surface_audit_payload() -> dict[str, object]:
         "runtime_checkpoint": build_mvp_demo_cli_runtime_checkpoint_payload(),
         "smoke_route": build_mvp_demo_cli_smoke_route_payload(),
         "smoke_route_lookup": build_mvp_demo_cli_smoke_route_lookup_payload(),
+        "engine_action_route_lookup": build_mvp_demo_engine_action_route_lookup_payload(),
         "patch_review_route_validation": build_patch_review_route_validation_payload(),
         "patch_review_readiness_smoke": build_patch_review_readiness_smoke_payload(),
         "patch_review_action_resolution_smoke": build_patch_review_action_resolution_smoke_payload(),
