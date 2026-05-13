@@ -786,6 +786,37 @@ def run_mvp_demo_cli_handoff_progress_json() -> str:
     )
 
 
+def _mvp_demo_cli_runtime_checkpoint_issues(
+    *,
+    trusted_contract: dict[str, object],
+    smoke_gate: dict[str, object],
+    route_validation: dict[str, object],
+    patch_review_readiness_smoke: dict[str, object],
+    patch_review_action_resolution_smoke: dict[str, object],
+    progress: dict[str, object],
+    next_action: dict[str, object],
+) -> tuple[str, ...]:
+    issues: list[str] = []
+    if not bool(trusted_contract["is_trusted"]):
+        untrusted = ", ".join(tuple(trusted_contract["untrusted_commands"])) or "unknown"
+        issues.append(f"untrusted commands: {untrusted}")
+    if not bool(smoke_gate["is_complete"]):
+        issues.append("demo command smoke gate incomplete")
+    if not bool(route_validation["is_valid"]):
+        issues.append("patch-review routes invalid")
+    if not bool(patch_review_readiness_smoke["ready"]):
+        issues.append("patch-review readiness smoke incomplete")
+    if not bool(patch_review_action_resolution_smoke["ready"]):
+        issues.append("patch-review action resolution smoke incomplete")
+    if tuple(progress["invalid_argv"]):
+        invalid = tuple(" ".join(argv) for argv in progress["invalid_argv"])
+        issues.append("invalid command argv: " + "; ".join(invalid))
+    if tuple(next_action["invalid_argv"]):
+        invalid = tuple(" ".join(argv) for argv in next_action["invalid_argv"])
+        issues.append("invalid next-action argv: " + "; ".join(invalid))
+    return tuple(issues)
+
+
 def build_mvp_demo_cli_runtime_checkpoint_payload(
     smoke_argvs: Sequence[Sequence[str] | str] = (),
 ) -> dict[str, object]:
@@ -801,16 +832,18 @@ def build_mvp_demo_cli_runtime_checkpoint_payload(
     remaining_command_lines = tuple(
         entry["command_line"] for entry in progress["entries"] if not bool(entry["is_covered"])
     )
+    issues = _mvp_demo_cli_runtime_checkpoint_issues(
+        trusted_contract=trusted_contract,
+        smoke_gate=smoke_gate,
+        route_validation=route_validation,
+        patch_review_readiness_smoke=patch_review_readiness_smoke,
+        patch_review_action_resolution_smoke=patch_review_action_resolution_smoke,
+        progress=progress,
+        next_action=next_action,
+    )
     return {
-        "is_ready": (
-            bool(trusted_contract["is_trusted"])
-            and bool(smoke_gate["is_complete"])
-            and bool(route_validation["is_valid"])
-            and bool(patch_review_readiness_smoke["ready"])
-            and bool(patch_review_action_resolution_smoke["ready"])
-            and not tuple(progress["invalid_argv"])
-            and not tuple(next_action["invalid_argv"])
-        ),
+        "is_ready": not issues,
+        "issues": issues,
         "is_complete": bool(progress["is_complete"]),
         "next_flow_step": progress["next_flow_step"],
         "next_demo_path_step": next_action["next_demo_path_step"],
