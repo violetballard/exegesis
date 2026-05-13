@@ -274,6 +274,7 @@ def build_mvp_demo_command_smoke_matrix_payload(
     return tuple(
         {
             "ordinal": entry["ordinal"],
+            "flow_step": entry["flow_step"],
             "demo_path_step": entry["demo_path_step"],
             "command": entry["command"],
             "command_line": entry["command_line"],
@@ -406,6 +407,55 @@ def run_mvp_demo_smoke_gate_json() -> str:
     )
 
 
+def build_mvp_demo_cli_handoff_payload(
+    smoke_argvs: Sequence[Sequence[str] | str] = (),
+) -> dict[str, object]:
+    """Return the reviewer-facing CLI smoke handoff for the MVP demo path."""
+    demo_loop = canonical_command_demo_loop_payload()
+    smoke_gate = build_mvp_demo_smoke_gate_payload(demo_loop)
+    smoke_matrix = build_mvp_demo_command_smoke_matrix_payload(demo_loop)
+    checkpoint = build_mvp_demo_readiness_checkpoint_payload(smoke_argvs)
+    trusted_steps = tuple(
+        entry
+        for entry in smoke_matrix
+        if bool(entry["is_smoke_ready"])
+        and bool(entry["is_handler_trusted"])
+        and bool(entry["is_trusted_demo_step"])
+    )
+    return {
+        "is_ready": bool(smoke_gate["is_complete"])
+        and len(trusted_steps) == len(smoke_matrix),
+        "canonical_demo_path_step_advanced": (
+            "open project/document -> retrieve relevant material -> "
+            "preview and apply or reject a patch -> persist and continue"
+        ),
+        "flow_steps": tuple(entry["flow_step"] for entry in smoke_matrix),
+        "commands": tuple(entry["command"] for entry in smoke_matrix),
+        "command_lines": tuple(entry["command_line"] for entry in smoke_matrix),
+        "smoke_argvs": tuple(entry["smoke_argv"] for entry in smoke_matrix),
+        "engine_actions_by_step": tuple(
+            (entry["demo_path_step"], entry["engine_actions"])
+            for entry in smoke_matrix
+        ),
+        "exact_action_lines_by_step": tuple(
+            (entry["demo_path_step"], entry["exact_action_lines"])
+            for entry in smoke_matrix
+        ),
+        "smoke_gate": smoke_gate,
+        "checkpoint": checkpoint,
+        "next_step": build_mvp_demo_next_step_payload(smoke_argvs),
+    }
+
+
+def run_mvp_demo_cli_handoff_json() -> str:
+    """Return stable JSON for the reviewer-facing MVP demo CLI handoff."""
+    return json.dumps(
+        build_mvp_demo_cli_handoff_payload(),
+        sort_keys=True,
+        separators=(",", ":"),
+    )
+
+
 def build_mvp_demo_trusted_command_contract_payload(
     demo_loop: dict[str, object] | None = None,
 ) -> dict[str, object]:
@@ -520,6 +570,7 @@ def build_mvp_demo_command_surface_audit_payload() -> dict[str, object]:
         "demo_path_command_smoke_matrix": build_mvp_demo_command_smoke_matrix_payload(),
         "demo_path_step_surface": command_mvp_demo_step_surface_payload(),
         "trusted_command_contract": build_mvp_demo_trusted_command_contract_payload(),
+        "cli_handoff": build_mvp_demo_cli_handoff_payload(),
         "smoke_gate": build_mvp_demo_smoke_gate_payload(),
         "readiness_checkpoint": build_mvp_demo_readiness_checkpoint_payload(),
         "next_step": build_mvp_demo_next_step_payload(),
