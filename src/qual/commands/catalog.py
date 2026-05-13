@@ -10024,12 +10024,18 @@ def command_demo_smoke_sequence_contract(
     exact_action_argvs = tuple(
         argv for entry in entries for argv in entry.exact_action_argv
     )
+    ordered_smoke_validation = command_demo_readiness_validate_ordered_script(
+        smoke_argvs,
+        specs,
+        launcher_argv,
+    )
 
     contract = CommandDemoSmokeSequenceContract(
         fingerprint_algorithm=trusted_loop.fingerprint_algorithm,
         fingerprint_digest=trusted_loop.fingerprint_digest,
         is_complete=(
             trusted_loop.is_complete
+            and ordered_smoke_validation.is_complete
             and all(entry.ready for entry in entries)
             and all(entry.thin_handler_ready for entry in entries)
         ),
@@ -10059,6 +10065,14 @@ def command_demo_smoke_sequence_contract(
         raise ValueError("Command demo smoke sequence exact action argvs are inconsistent")
     if tuple(entry.smoke_argv for entry in contract.entries) != contract.smoke_argvs:
         raise ValueError("Command demo smoke sequence argvs are inconsistent")
+    if not ordered_smoke_validation.is_complete:
+        raise ValueError("Command demo smoke sequence ordered validation is incomplete")
+    if ordered_smoke_validation.validation.canonical_argv != tuple(
+        (*launcher_argv, *argv) for argv in contract.smoke_argvs
+    ):
+        raise ValueError("Command demo smoke sequence canonical argvs are inconsistent")
+    if ordered_smoke_validation.validation.command_lines != contract.smoke_command_lines:
+        raise ValueError("Command demo smoke sequence validation lines are inconsistent")
     if contract.smoke_argvs != tuple(
         step.command_argv[len(launcher_argv) :]
         for step in cli_script_contract.steps
@@ -10072,6 +10086,7 @@ def command_demo_smoke_sequence_contract(
         raise ValueError("Command demo smoke sequence command lines are inconsistent")
     expected_complete = (
         trusted_loop.is_complete
+        and ordered_smoke_validation.is_complete
         and all(entry.ready for entry in entries)
         and all(entry.thin_handler_ready for entry in entries)
     )
