@@ -837,6 +837,7 @@ __all__ = [
     "canonical_command_demo_loop_smoke_summary",
     "canonical_command_demo_loop_payload",
     "canonical_command_demo_loop_json",
+    "canonical_command_require_demo_loop_smoke_ready",
     "canonical_command_require_demo_loop_ready",
     "canonical_command_surface_readiness_contract",
     "canonical_command_surface_readiness_json",
@@ -2949,10 +2950,14 @@ def canonical_command_demo_loop_contract() -> CommandCanonicalDemoLoopContract:
 
 def canonical_command_require_demo_loop_ready() -> CommandCanonicalDemoLoopContract:
     contract = canonical_command_demo_loop_contract()
-    if not contract.is_ready:
+    smoke_contract = canonical_command_demo_loop_smoke_contract()
+    issues = contract.issues + tuple(
+        issue for issue in smoke_contract.issues if issue not in contract.issues
+    )
+    if not contract.is_ready or not smoke_contract.is_ready:
         raise ValueError(
             "Canonical command demo loop is incomplete: "
-            + ", ".join(contract.issues)
+            + ", ".join(issues)
         )
     return contract
 
@@ -3103,6 +3108,18 @@ def canonical_command_demo_loop_smoke_json() -> str:
         sort_keys=True,
         separators=(",", ":"),
     )
+
+
+def canonical_command_require_demo_loop_smoke_ready() -> CommandCanonicalDemoLoopSmokeContract:
+    """Require every Milestone 3 demo-path command to smoke-test exact engine actions."""
+
+    contract = canonical_command_demo_loop_smoke_contract()
+    if not contract.is_ready:
+        raise ValueError(
+            "Canonical command demo loop smoke contract is incomplete: "
+            + ", ".join(contract.issues)
+        )
+    return contract
 
 
 def canonical_command_demo_loop_payload() -> dict[str, object]:
