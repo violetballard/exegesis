@@ -3926,6 +3926,32 @@ class UnifiedRetrievalTests(unittest.TestCase):
         self.assertEqual(doc_bundle["doc_hits"], payload["doc_hits"])
         self.assertEqual(excerpt_bundle["excerpt_hits"], payload["excerpt_hits"])
 
+    def test_sparse_excerpt_citations_canonicalize_valid_fts_basket_ids(self) -> None:
+        result = self.service.retrieve_auto(
+            RetrievalQuery(
+                query_text="memo coding comparison",
+                scope="vault",
+                intent="compare",
+                constraints=RetrievalConstraints(max_results=4),
+                confidentiality_profile="confidential",
+            )
+        )
+
+        payload = json.loads(json.dumps(result.to_downstream_payload()))
+        payload.pop("retrieval_excerpt_bundle", None)
+        payload["retrieval_provenance"].pop("excerpt_citations", None)
+        citation = payload["retrieval_citation_bundle"]["excerpt_citations"][0]
+        expected_basket_item_id = citation["basket_item_id"]
+        citation["basket_item_id"] = f" Retrieval:FTS:{citation['excerpt_id']} "
+
+        excerpt_bundle = _build_retrieval_excerpt_bundle_from_payload(payload)
+
+        self.assertEqual(excerpt_bundle["excerpt_citations"][0]["basket_item_id"], expected_basket_item_id)
+        self.assertEqual(
+            excerpt_bundle["excerpt_citations"][0],
+            result.citation_bundle()["excerpt_citations"][0],
+        )
+
     def test_retrieve_auto_citation_bundle_matches_result_snapshot(self) -> None:
         query = RetrievalQuery(
             query_text="memo coding comparison",

@@ -1181,7 +1181,7 @@ def _normalize_excerpt_citation_snapshots(value: object) -> list[object]:
             source_strategy = normalized_citation.get("source_strategy")
             if not _is_missing_snapshot_value(source_strategy):
                 normalized_citation["retrieval_source_strategy"] = copy.deepcopy(source_strategy)
-        basket_item_id = _normalize_optional_text(normalized_citation.get("basket_item_id"))
+        basket_item_id = _normalize_fts_basket_item_id(normalized_citation.get("basket_item_id"))
         expected_basket_item_id = _basket_item_id_for_excerpt(
             source_strategy=normalized_citation.get(
                 "retrieval_source_strategy",
