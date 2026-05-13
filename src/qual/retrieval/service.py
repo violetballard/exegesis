@@ -239,6 +239,9 @@ class RetrievalHit:
         query_fingerprint = self.provenance.get("query_fingerprint")
         if isinstance(query_fingerprint, str) and query_fingerprint:
             payload["query_fingerprint"] = query_fingerprint
+        fts_match_query_fingerprint = self.provenance.get("fts_match_query_fingerprint")
+        if isinstance(fts_match_query_fingerprint, str) and fts_match_query_fingerprint:
+            payload["fts_match_query_fingerprint"] = fts_match_query_fingerprint
         query_scope = self.provenance.get("query_scope")
         if isinstance(query_scope, str) and query_scope:
             payload["query_scope"] = query_scope
@@ -338,6 +341,9 @@ class RetrievalDocHit:
         query_fingerprint = self.provenance.get("query_fingerprint")
         if isinstance(query_fingerprint, str) and query_fingerprint:
             payload["query_fingerprint"] = query_fingerprint
+        fts_match_query_fingerprint = self.provenance.get("fts_match_query_fingerprint")
+        if isinstance(fts_match_query_fingerprint, str) and fts_match_query_fingerprint:
+            payload["fts_match_query_fingerprint"] = fts_match_query_fingerprint
         query_scope = self.provenance.get("query_scope")
         if isinstance(query_scope, str) and query_scope:
             payload["query_scope"] = query_scope
@@ -499,6 +505,7 @@ class RetrievalResult:
             candidate_resolution = None
         return {
             "query_fingerprint": self.diagnostics["query_fingerprint"],
+            "fts_match_query_fingerprint": self.diagnostics["fts_match_query_fingerprint"],
             "result_fingerprint": self.result_fingerprint,
             "query_scope": self.query.scope,
             "query_intent": self.query.intent,
@@ -602,6 +609,7 @@ class RetrievalResult:
         bundle = {
             "audit_ref": self.audit_ref,
             "result_fingerprint": self.result_fingerprint,
+            "fts_match_query_fingerprint": downstream_payload.get("fts_match_query_fingerprint"),
             "query": copy.deepcopy(downstream_payload["query"]),
             "retrieval_policy": copy.deepcopy(downstream_payload["retrieval_policy"]),
             "retrieval_manifest": copy.deepcopy(downstream_payload["retrieval_manifest"]),
@@ -934,6 +942,7 @@ class RetrievalResult:
         )
         return {
             "query_fingerprint": self.diagnostics["query_fingerprint"],
+            "fts_match_query_fingerprint": self.diagnostics["fts_match_query_fingerprint"],
             "result_fingerprint": self.result_fingerprint,
             "retrieval_backend": self.diagnostics["retrieval_backend"],
             "retrieval_mode": self.diagnostics["retrieval_mode"],
@@ -1131,6 +1140,7 @@ class RetrievalResult:
         source_bundle = {
             "result_fingerprint": self.result_fingerprint,
             "query_fingerprint": self.diagnostics["query_fingerprint"],
+            "fts_match_query_fingerprint": self.diagnostics["fts_match_query_fingerprint"],
             "query": query_snapshot,
             "policy": copy.deepcopy(retrieval_policy_snapshot),
             "retrieval_backend": self.diagnostics["retrieval_backend"],
@@ -1387,6 +1397,7 @@ class RetrievalService:
     def _run_fts_first_retrieval(self, query: RetrievalQuery) -> RetrievalResult:
         started = self._now_fn()
         query_fingerprint = self._query_fingerprint(query)
+        fts_match_query_fingerprint = self._fts_match_query_fingerprint(query.query_text)
         retrieval_policy = retrieval_policy_snapshot()
         fts_shortlist_limit = self._fts_shortlist_limit(query.constraints.max_results)
         date_range = query.constraints.date_range
@@ -1451,6 +1462,7 @@ class RetrievalService:
             doc_hits,
             merged_hits,
             retrieval_policy=retrieval_policy,
+            fts_match_query_fingerprint=fts_match_query_fingerprint,
         )
         result_fingerprint = self._build_result_fingerprint(
             query_fingerprint=query_fingerprint,
@@ -1478,6 +1490,7 @@ class RetrievalService:
             "active_strategy_ids": list(retrieval_policy["active_strategy_ids"]),
             "deferred_strategy_ids": list(retrieval_policy["deferred_strategy_ids"]),
             "query_fingerprint": query_fingerprint,
+            "fts_match_query_fingerprint": fts_match_query_fingerprint,
             "query_scope": query.scope,
             "query_intent": query.intent,
             "doc_scope_id": self._doc_scope_id(query.scope),
@@ -1510,6 +1523,7 @@ class RetrievalService:
             metadata={
                 "query_hash": query_hash,
                 "query_fingerprint": query_fingerprint,
+                "fts_match_query_fingerprint": fts_match_query_fingerprint,
                 "retrieval_policy": retrieval_policy,
                 "retrieval_mode": diagnostics["retrieval_mode"],
                 "query_scope": query.scope,
@@ -1548,6 +1562,7 @@ class RetrievalService:
 
     def _run_fts_hits(self, query: RetrievalQuery, candidate_doc_ids: tuple[str, ...]) -> list[RetrievalHit]:
         match_query, query_terms = self._build_fts_match_query(query.query_text)
+        fts_match_query_fingerprint = self._fts_match_query_fingerprint(query.query_text)
         query_fingerprint = self._query_fingerprint(query)
         exact_phrase = self._normalized_query_text(query.query_text)
         scope_doc = self._doc_scope_id(query.scope)
@@ -1598,6 +1613,7 @@ class RetrievalService:
                 query_scope=query.scope,
                 query_intent=query.intent,
                 query_fingerprint=query_fingerprint,
+                fts_match_query_fingerprint=fts_match_query_fingerprint,
                 candidate_doc_count=effective_candidate_doc_count,
                 query_date_range=query.constraints.date_range,
             )
@@ -1810,6 +1826,7 @@ class RetrievalService:
                         "source_hash": source_hash,
                         "doc_type": doc_type,
                         "query_fingerprint": query_fingerprint,
+                        "fts_match_query_fingerprint": top_hit.provenance.get("fts_match_query_fingerprint"),
                         "excerpt_ids": [hit.excerpt_id for hit in doc_hit_list if hit.excerpt_id is not None],
                         "top_excerpt_id": top_hit.excerpt_id,
                         "top_basket_item_id": top_basket_item_id,
@@ -1823,6 +1840,7 @@ class RetrievalService:
                         "top_match_count": top_hit.provenance.get("match_count"),
                         "top_excerpt_rank": top_hit.provenance.get("rank"),
                         "top_fts_rank": top_hit.provenance.get("fts_rank"),
+                        "top_fts_match_query_fingerprint": top_hit.provenance.get("fts_match_query_fingerprint"),
                         "retrieval_backend": top_hit.provenance.get(
                             "retrieval_backend",
                             cast(str, retrieval_policy["retrieval_backend"]),
@@ -1861,6 +1879,7 @@ class RetrievalService:
         hits: list[RetrievalHit],
         *,
         retrieval_policy: dict[str, object],
+        fts_match_query_fingerprint: str,
     ) -> dict[str, object]:
         doc_fingerprints = _present_text_values(doc_hit.provenance.get("doc_fingerprint") for doc_hit in doc_hits)
         doc_identity_fingerprints = _present_text_values(
@@ -1939,6 +1958,7 @@ class RetrievalService:
             "excerpt_lookup_fingerprints": excerpt_lookup_fingerprints,
             "excerpt_text_hashes": excerpt_text_hashes,
             "basket_item_ids": basket_item_ids,
+            "fts_match_query_fingerprint": fts_match_query_fingerprint,
             "doc_hits_fingerprint": doc_hits_fingerprint,
             "excerpt_hits_fingerprint": excerpt_hits_fingerprint,
             "retrieval_policy": dict(retrieval_policy),
@@ -1960,6 +1980,7 @@ class RetrievalService:
         candidate_resolution: dict[str, object] | None = None,
         fts_shortlist_doc_ids: tuple[str, ...] = (),
     ) -> dict[str, object]:
+        fts_match_query_fingerprint = self._fts_match_query_fingerprint(query.query_text)
         doc_citations: list[dict[str, object]] = []
         for doc_hit in doc_hits:
             doc_citations.append(
@@ -1971,6 +1992,7 @@ class RetrievalService:
                     "doc_fingerprint": doc_hit.provenance.get("doc_fingerprint"),
                     "doc_identity_fingerprint": doc_hit.provenance.get("doc_identity_fingerprint"),
                     "query_fingerprint": query_fingerprint,
+                    "fts_match_query_fingerprint": fts_match_query_fingerprint,
                     "result_fingerprint": result_fingerprint,
                     "doc_rank": doc_hit.provenance.get("doc_rank"),
                     "top_excerpt_id": doc_hit.top_excerpt_id,
@@ -1981,6 +2003,7 @@ class RetrievalService:
                     "top_excerpt_span": doc_hit.provenance.get("top_excerpt_span"),
                     "top_matched_terms": doc_hit.provenance.get("top_matched_terms"),
                     "top_match_count": doc_hit.provenance.get("top_match_count"),
+                    "top_fts_match_query_fingerprint": doc_hit.provenance.get("top_fts_match_query_fingerprint"),
                     "excerpt_ids": list(doc_hit.provenance.get("excerpt_ids", [])),
                     "excerpt_count": doc_hit.excerpt_count,
                     "matched_terms": doc_hit.provenance.get("top_matched_terms"),
@@ -2022,6 +2045,7 @@ class RetrievalService:
                     "excerpt_lookup_fingerprint": hit.provenance.get("excerpt_lookup_fingerprint"),
                     "excerpt_text_hash": hit.provenance.get("excerpt_text_hash") or hit.provenance.get("hash"),
                     "query_fingerprint": query_fingerprint,
+                    "fts_match_query_fingerprint": hit.provenance.get("fts_match_query_fingerprint"),
                     "result_fingerprint": result_fingerprint,
                     "doc_rank": doc_rank_by_id.get(hit.doc_id),
                     "span": hit.provenance.get("span"),
@@ -2084,6 +2108,7 @@ class RetrievalService:
                 if query.constraints.date_range is not None
                 else None,
                 "query_fingerprint": query_fingerprint,
+                "fts_match_query_fingerprint": item.get("fts_match_query_fingerprint"),
                 "result_fingerprint": result_fingerprint,
                 "canonical_demo_path_steps": list(_RETRIEVAL_DEMO_PATH_STEPS),
             })
@@ -2107,6 +2132,7 @@ class RetrievalService:
         )
         evidence = {
             "query_fingerprint": query_fingerprint,
+            "fts_match_query_fingerprint": fts_match_query_fingerprint,
             "result_fingerprint": result_fingerprint,
             "query_scope": query.scope,
             "query_intent": query.intent,
@@ -2159,6 +2185,7 @@ class RetrievalService:
     ) -> str:
         payload = {
             "query_fingerprint": query_fingerprint,
+            "fts_match_query_fingerprint": retrieval_manifest.get("fts_match_query_fingerprint"),
             "retrieval_policy": retrieval_manifest.get("retrieval_policy", {}),
             "doc_fingerprints": retrieval_manifest.get("doc_fingerprints", []),
             "top_basket_item_ids": retrieval_manifest.get("top_basket_item_ids", []),
@@ -2525,6 +2552,7 @@ class RetrievalService:
         query_intent: str | None = None,
         query_date_range: tuple[str, str] | None = None,
         query_fingerprint: str | None = None,
+        fts_match_query_fingerprint: str | None = None,
         candidate_doc_count: int | None = None,
     ) -> dict[str, object]:
         meta = self._load_doc_meta().get(doc_id, {})
@@ -2575,6 +2603,8 @@ class RetrievalService:
             provenance["query_date_range"] = list(query_date_range)
         if query_fingerprint is not None:
             provenance["query_fingerprint"] = query_fingerprint
+        if fts_match_query_fingerprint is not None:
+            provenance["fts_match_query_fingerprint"] = fts_match_query_fingerprint
         if candidate_doc_count is not None:
             provenance["candidate_doc_count"] = candidate_doc_count
         provenance["excerpt_fingerprint"] = self._stable_fingerprint(
@@ -3140,6 +3170,18 @@ class RetrievalService:
         if terms:
             return " OR ".join(f'"{term}"' for term in terms), tuple(terms)
         raise ValueError("query_text must contain at least one searchable term")
+
+    @staticmethod
+    def _fts_match_query_fingerprint(query_text: str) -> str:
+        match_query, query_terms = RetrievalService._build_fts_match_query(query_text)
+        return RetrievalService._stable_fingerprint(
+            {
+                "retrieval_backend": "sqlite_fts",
+                "retrieval_mode": "fts_first",
+                "match_query": match_query,
+                "query_terms": list(query_terms),
+            }
+        )
 
     @staticmethod
     def _normalized_doc_types(doc_types: tuple[str, ...]) -> tuple[str, ...]:

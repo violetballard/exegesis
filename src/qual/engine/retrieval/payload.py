@@ -1719,6 +1719,19 @@ def _normalize_retrieval_source_bundle_snapshot(source_bundle: dict[str, object]
     if query_fingerprint is not None:
         normalized["query_fingerprint"] = query_fingerprint
 
+    retrieval_manifest = normalized.get("retrieval_manifest", {})
+    if not isinstance(retrieval_manifest, dict):
+        retrieval_manifest = {}
+    fts_match_query_fingerprint = _first_text_value(
+        normalized.get("fts_match_query_fingerprint"),
+        retrieval_summary.get("fts_match_query_fingerprint"),
+        retrieval_provenance.get("fts_match_query_fingerprint"),
+        retrieval_citation_bundle.get("fts_match_query_fingerprint"),
+        retrieval_manifest.get("fts_match_query_fingerprint"),
+    )
+    if fts_match_query_fingerprint is not None:
+        normalized["fts_match_query_fingerprint"] = fts_match_query_fingerprint
+
     retrieval_evidence = normalized.get("retrieval_evidence", {})
     if not isinstance(retrieval_evidence, dict):
         retrieval_evidence = {}
@@ -2006,6 +2019,7 @@ def _build_retrieval_source_bundle_from_payload(payload: dict[str, object]) -> d
     return _normalize_retrieval_source_bundle_snapshot({
         "result_fingerprint": payload.get("result_fingerprint"),
         "query_fingerprint": payload.get("query_fingerprint"),
+        "fts_match_query_fingerprint": payload.get("fts_match_query_fingerprint"),
         "query": query_snapshot,
         "policy": policy_snapshot,
         "retrieval_backend": payload.get("retrieval_backend"),
@@ -2100,6 +2114,7 @@ def _build_retrieval_context_bundle_from_source_bundle(source_bundle: dict[str, 
         # Source-bundle-only reconstruction keeps the top-level context auditless.
         "audit_ref": None,
         "result_fingerprint": source_bundle.get("result_fingerprint"),
+        "fts_match_query_fingerprint": source_bundle.get("fts_match_query_fingerprint"),
         "query": copy.deepcopy(downstream_payload.get("query", source_bundle.get("query", {}))),
         "retrieval_policy": copy.deepcopy(
             downstream_payload.get("retrieval_policy", source_bundle.get("policy", {}))
@@ -2429,6 +2444,7 @@ def _build_retrieval_context_bundle_from_payload(payload: dict[str, object]) -> 
     bundle = {
         "audit_ref": normalized_payload.get("audit_ref"),
         "result_fingerprint": normalized_payload.get("result_fingerprint"),
+        "fts_match_query_fingerprint": normalized_payload.get("fts_match_query_fingerprint"),
         "query": copy.deepcopy(normalized_payload.get("query", {})),
         "retrieval_policy": copy.deepcopy(normalized_payload.get("retrieval_policy", {})),
         "retrieval_manifest": copy.deepcopy(normalized_payload.get("retrieval_manifest", {})),
@@ -2522,6 +2538,19 @@ def _build_retrieval_diagnostics_from_source_bundle(source_bundle: dict[str, obj
         citation_bundle.get("fts_shortlist_query_fingerprint"),
         retrieval_evidence.get("fts_shortlist_query_fingerprint"),
     )
+    retrieval_summary = normalized.get("retrieval_summary", {})
+    if not isinstance(retrieval_summary, dict):
+        retrieval_summary = {}
+    retrieval_manifest = normalized.get("retrieval_manifest", {})
+    if not isinstance(retrieval_manifest, dict):
+        retrieval_manifest = {}
+    fts_match_query_fingerprint = _first_text_value(
+        normalized.get("fts_match_query_fingerprint"),
+        citation_bundle.get("fts_match_query_fingerprint"),
+        retrieval_evidence.get("fts_match_query_fingerprint"),
+        retrieval_summary.get("fts_match_query_fingerprint"),
+        retrieval_manifest.get("fts_match_query_fingerprint"),
+    )
 
     diagnostics = {
         "retrieval_policy": copy.deepcopy(retrieval_policy),
@@ -2546,6 +2575,7 @@ def _build_retrieval_diagnostics_from_source_bundle(source_bundle: dict[str, obj
             normalized.get("query_fingerprint"),
             query_fingerprint,
         ),
+        "fts_match_query_fingerprint": fts_match_query_fingerprint,
         "query_scope": query_scope,
         "query_intent": query_intent,
         "doc_scope_id": query_scope.split(":", 1)[1] if isinstance(query_scope, str) and query_scope.startswith("doc:") else None,
@@ -2830,12 +2860,20 @@ class RetrievalDownstreamPayload:
         basket_promotion_items = _normalize_list_like(self.basket_promotion_items)
         basket_promotion_count = _basket_promotion_count_from_items(basket_promotion_items)
         basket_promotion_ready = _basket_promotion_ready_from_count(basket_promotion_count)
+        fts_match_query_fingerprint = _first_text_value(
+            diagnostics.get("fts_match_query_fingerprint"),
+            manifest.get("fts_match_query_fingerprint"),
+            evidence.get("fts_match_query_fingerprint"),
+            summary.get("fts_match_query_fingerprint"),
+            source_bundle.get("fts_match_query_fingerprint"),
+        )
         return {
             "query": copy.deepcopy(self.query),
             "policy": policy,
             "retrieval_policy": copy.deepcopy(policy),
             "audit_ref": self.audit_ref,
             "result_fingerprint": self.result_fingerprint,
+            "fts_match_query_fingerprint": fts_match_query_fingerprint,
             "retrieval_backend": self.retrieval_backend,
             "retrieval_mode": self.retrieval_mode,
             "citation_status": _normalize_citation_status_snapshot(self.citation_status),

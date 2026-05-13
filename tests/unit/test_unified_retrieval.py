@@ -378,6 +378,25 @@ class UnifiedRetrievalTests(unittest.TestCase):
         )
         self.assertEqual(result.diagnostics["strategies_used"], ["fts"])
         self.assertEqual(result.diagnostics["retrieval_backend"], "sqlite_fts")
+        fts_match_query_fingerprint = result.diagnostics["fts_match_query_fingerprint"]
+        self.assertIsInstance(fts_match_query_fingerprint, str)
+        self.assertEqual(
+            result.diagnostics["retrieval_evidence"]["fts_match_query_fingerprint"],
+            fts_match_query_fingerprint,
+        )
+        self.assertEqual(
+            result.diagnostics["retrieval_manifest"]["fts_match_query_fingerprint"],
+            fts_match_query_fingerprint,
+        )
+        altered_manifest = copy.deepcopy(result.diagnostics["retrieval_manifest"])
+        altered_manifest["fts_match_query_fingerprint"] = "different-fts-match-query"
+        self.assertNotEqual(
+            self.service._build_result_fingerprint(
+                query_fingerprint=result.diagnostics["query_fingerprint"],
+                retrieval_manifest=altered_manifest,
+            ),
+            result.result_fingerprint,
+        )
         for index, hit in enumerate(result.hits, start=1):
             self.assertIsNotNone(hit.excerpt_id)
             self.assertEqual(hit.source_strategy, "fts")
@@ -391,6 +410,7 @@ class UnifiedRetrievalTests(unittest.TestCase):
             self.assertEqual(hit.provenance["query_scope"], "doc:doc-pdf-1")
             self.assertEqual(hit.provenance["query_intent"], "outline_support")
             self.assertEqual(hit.provenance["query_fingerprint"], result.diagnostics["query_fingerprint"])
+            self.assertEqual(hit.provenance["fts_match_query_fingerprint"], fts_match_query_fingerprint)
             self.assertIn("candidate_doc_count", hit.provenance)
             self.assertIn("excerpt_fingerprint", hit.provenance)
             self.assertIsInstance(hit.provenance["matched_terms"], list)
@@ -402,6 +422,7 @@ class UnifiedRetrievalTests(unittest.TestCase):
             self.assertEqual(hit_payload["rank"], hit.provenance["rank"])
             self.assertEqual(hit_payload["match_count"], hit.provenance["match_count"])
             self.assertEqual(hit_payload["matched_terms"], hit.provenance["matched_terms"])
+            self.assertEqual(hit_payload["fts_match_query_fingerprint"], fts_match_query_fingerprint)
 
     def test_fts_matched_terms_are_token_exact_for_provenance(self) -> None:
         self.service.add_or_update_document(
@@ -522,10 +543,19 @@ class UnifiedRetrievalTests(unittest.TestCase):
         self.assertEqual(doc_hit.provenance["query_scope"], "vault")
         self.assertEqual(doc_hit.provenance["query_intent"], "compare")
         self.assertEqual(doc_hit.provenance["query_fingerprint"], result.diagnostics["query_fingerprint"])
+        self.assertEqual(
+            doc_hit.provenance["fts_match_query_fingerprint"],
+            result.diagnostics["fts_match_query_fingerprint"],
+        )
+        self.assertEqual(
+            doc_hit.provenance["top_fts_match_query_fingerprint"],
+            result.diagnostics["fts_match_query_fingerprint"],
+        )
         self.assertIn("top_fts_rank", doc_hit.provenance)
         doc_hit_payload = doc_hit.as_dict()
         self.assertEqual(doc_hit_payload["doc_fingerprint"], doc_hit.provenance["doc_fingerprint"])
         self.assertEqual(doc_hit_payload["doc_identity_fingerprint"], doc_hit.provenance["doc_identity_fingerprint"])
+        self.assertEqual(doc_hit_payload["fts_match_query_fingerprint"], result.diagnostics["fts_match_query_fingerprint"])
         self.assertEqual(doc_hit_payload["top_basket_item_id"], doc_hit.provenance["top_basket_item_id"])
         self.assertEqual(doc_hit_payload["top_excerpt_fingerprint"], doc_hit.provenance["top_excerpt_fingerprint"])
         self.assertEqual(
@@ -583,6 +613,7 @@ class UnifiedRetrievalTests(unittest.TestCase):
             RetrievalService._stable_fingerprint(
                 {
                     "query_fingerprint": result.diagnostics["query_fingerprint"],
+                    "fts_match_query_fingerprint": manifest["fts_match_query_fingerprint"],
                     "retrieval_policy": manifest["retrieval_policy"],
                     "doc_fingerprints": manifest["doc_fingerprints"],
                     "top_basket_item_ids": manifest["top_basket_item_ids"],
@@ -617,9 +648,17 @@ class UnifiedRetrievalTests(unittest.TestCase):
         self.assertEqual(payload["retrieval_policy"]["active_strategy_ids"], ["fts"])
         self.assertEqual(payload["retrieval_policy"]["deferred_strategy_ids"], ["pageindex", "embeddings"])
         self.assertEqual(payload["retrieval_summary"]["query_fingerprint"], result.diagnostics["query_fingerprint"])
+        self.assertEqual(
+            payload["retrieval_summary"]["fts_match_query_fingerprint"],
+            result.diagnostics["fts_match_query_fingerprint"],
+        )
         self.assertEqual(payload["retrieval_summary"]["result_fingerprint"], result.result_fingerprint)
         self.assertEqual(payload["retrieval_summary"]["retrieval_backend"], "sqlite_fts")
         self.assertEqual(payload["retrieval_summary"]["retrieval_mode"], "fts_first")
+        self.assertEqual(
+            payload["retrieval_source_bundle"]["fts_match_query_fingerprint"],
+            result.diagnostics["fts_match_query_fingerprint"],
+        )
         self.assertEqual(payload["canonical_demo_path_steps"], self.CANONICAL_DEMO_PATH_STEPS)
         self.assertEqual(
             payload["retrieval_source_bundle"]["canonical_demo_path_steps"],
@@ -676,6 +715,10 @@ class UnifiedRetrievalTests(unittest.TestCase):
         self.assertEqual(payload["retrieval_diagnostics"]["retrieval_manifest"], result.diagnostics["retrieval_manifest"])
         self.assertEqual(payload["retrieval_diagnostics"]["retrieval_evidence"], result.diagnostics["retrieval_evidence"])
         self.assertEqual(payload["retrieval_manifest"], result.diagnostics["retrieval_manifest"])
+        self.assertEqual(
+            payload["retrieval_manifest"]["fts_match_query_fingerprint"],
+            result.diagnostics["fts_match_query_fingerprint"],
+        )
         self.assertEqual(payload["retrieval_evidence"], result.evidence)
         basket_item_fingerprint_by_excerpt_id = {
             item["excerpt_id"]: item["basket_item_fingerprint"]
@@ -2804,6 +2847,7 @@ class UnifiedRetrievalTests(unittest.TestCase):
         for key in (
             "result_fingerprint",
             "query_fingerprint",
+            "fts_match_query_fingerprint",
             "retrieval_backend",
             "retrieval_mode",
             "source_bundle_fingerprint",
@@ -2834,6 +2878,10 @@ class UnifiedRetrievalTests(unittest.TestCase):
         self.assertEqual(payload["retrieval_mode"], "fts_first")
         self.assertEqual(payload["retrieval_source_bundle"]["result_fingerprint"], result.result_fingerprint)
         self.assertEqual(payload["retrieval_source_bundle"]["query_fingerprint"], result.diagnostics["query_fingerprint"])
+        self.assertEqual(
+            payload["retrieval_source_bundle"]["fts_match_query_fingerprint"],
+            result.diagnostics["fts_match_query_fingerprint"],
+        )
         self.assertEqual(payload["retrieval_source_bundle"]["retrieval_backend"], "sqlite_fts")
         self.assertEqual(payload["retrieval_source_bundle"]["retrieval_mode"], "fts_first")
         self.assertEqual(payload, expected)
@@ -4411,6 +4459,9 @@ class UnifiedRetrievalTests(unittest.TestCase):
         event = next(item for item in lines if item["name"] == "retrieval_executed")
         self.assertIn("query_hash", event["metadata"])
         self.assertIn("query_fingerprint", event["metadata"])
+        self.assertIn("fts_match_query_fingerprint", event["metadata"])
+        self.assertNotIn("highly", event["metadata"]["fts_match_query_fingerprint"])
+        self.assertNotIn("sensitive", event["metadata"]["fts_match_query_fingerprint"])
         self.assertIn("strategies_used", event["metadata"])
         self.assertIn("elapsed_ms_by_strategy", event["metadata"])
         self.assertIn("retrieval_manifest", event["metadata"])
