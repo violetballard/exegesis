@@ -110,6 +110,10 @@ class CommandCliRouteContract:
     lookup_surface: tuple[tuple[str, str], ...] = ()
     flow_surface_tokens: tuple[tuple[str, ...], ...] = ()
     route_catalog: tuple[CommandFlowRouteEntry, ...] = ()
+    entrypoint_shims: tuple[CommandCliEntrypointShim, ...] = ()
+    entrypoint_shim_summary: tuple[
+        tuple[str, str, str, str, str, tuple[str, ...], tuple[str, ...]], ...
+    ] = ()
 
 
 @dataclass(frozen=True)
@@ -4110,6 +4114,13 @@ def _validate_command_cli_route_contract(
         raise ValueError("Command CLI route lookup surface is inconsistent")
     if contract.flow_surface_tokens != command_flow_surface_tokens(specs, flow_steps):
         raise ValueError("Command CLI route surface tokens are inconsistent")
+    if specs == COMMAND_SPECS:
+        if contract.entrypoint_shims != command_cli_entrypoint_shim_lookup_table():
+            raise ValueError("Command CLI route entrypoint shims are inconsistent")
+        if contract.entrypoint_shim_summary != command_cli_entrypoint_shim_summary():
+            raise ValueError("Command CLI route entrypoint shim summary is inconsistent")
+    elif contract.entrypoint_shims or contract.entrypoint_shim_summary:
+        raise ValueError("Custom command CLI route contracts must not expose default entrypoint shims")
 
 
 @lru_cache(maxsize=None)
@@ -4132,6 +4143,16 @@ def command_cli_route_contract(
         lookup_surface=command_flow_lookup_surface(specs, ordered_flow_steps),
         flow_surface_tokens=command_flow_surface_tokens(specs, ordered_flow_steps),
         route_catalog=route_catalog,
+        entrypoint_shims=(
+            command_cli_entrypoint_shim_lookup_table()
+            if specs == COMMAND_SPECS
+            else ()
+        ),
+        entrypoint_shim_summary=(
+            command_cli_entrypoint_shim_summary()
+            if specs == COMMAND_SPECS
+            else ()
+        ),
     )
     _validate_command_cli_route_contract(
         contract,
