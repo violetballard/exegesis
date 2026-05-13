@@ -2620,14 +2620,21 @@ def command_cli_entrypoint_shim(token: str) -> CommandCliEntrypointShim | None:
     )
 
 
+def command_cli_entrypoint_shim_tokens(
+    tokens: Sequence[str] | None = None,
+) -> tuple[str, ...]:
+    if tokens is not None:
+        return tuple(tokens)
+    return (
+        *command_flow_tokens(),
+        *dict(_COMMAND_CLI_ENTRYPOINT_COMPATIBILITY_TOKENS),
+    )
+
+
 def command_cli_entrypoint_shim_lookup_table(
     tokens: Sequence[str] | None = None,
 ) -> tuple[CommandCliEntrypointShim, ...]:
-    requested_tokens = (
-        (*command_tokens(), *command_flow_steps(), *dict(_COMMAND_CLI_ENTRYPOINT_COMPATIBILITY_TOKENS))
-        if tokens is None
-        else tuple(tokens)
-    )
+    requested_tokens = command_cli_entrypoint_shim_tokens(tokens)
     shims = tuple(
         shim
         for requested_token in requested_tokens
