@@ -86,6 +86,7 @@ def build_mvp_demo_command_surface_payload() -> dict[str, object]:
         "patch_review_action_resolution_smoke": build_patch_review_action_resolution_smoke_payload(),
         "persist_continue": canonical_command_persist_continue_payload(),
         "demo_path_commands": build_mvp_demo_path_command_payload(demo_loop),
+        "demo_path_command_sequence": build_mvp_demo_command_sequence_payload(demo_loop, smoke_contract),
         "handler_trusted_demo_path": canonical_command_handler_trusted_demo_path_payload(),
         "smoke_gate": build_mvp_demo_smoke_gate_payload(demo_loop),
         "readiness_snapshot": canonical_command_readiness_snapshot_payload(()),
@@ -137,6 +138,40 @@ def build_mvp_demo_path_command_payload(
                 "delegated_to": trusted_command["delegated_to"],
                 "engine_delegated_to": trusted_command["engine_delegated_to"],
                 "is_trusted": trusted_command["is_trusted"],
+            }
+        )
+    return tuple(entries)
+
+
+def build_mvp_demo_command_sequence_payload(
+    demo_loop: dict[str, object] | None = None,
+    smoke_contract: dict[str, object] | None = None,
+) -> tuple[dict[str, object], ...]:
+    """Return the ordered command sequence smoke runners should execute."""
+    loop = demo_loop or canonical_command_demo_loop_payload()
+    smoke = smoke_contract or canonical_command_demo_loop_smoke_payload()
+    command_lookup = {
+        str(entry["demo_path_step"]): entry
+        for entry in build_mvp_demo_path_command_payload(loop)
+    }
+    entries: list[dict[str, object]] = []
+    for smoke_entry in smoke["entries"]:
+        demo_path_step = str(smoke_entry["demo_path_step"])
+        command_entry = command_lookup[demo_path_step]
+        entries.append(
+            {
+                "ordinal": smoke_entry["ordinal"],
+                "flow_step": smoke_entry["flow_step"],
+                "demo_path_step": demo_path_step,
+                "command": command_entry["command"],
+                "command_line": command_entry["command_line"],
+                "smoke_argv": command_entry["smoke_argv"],
+                "engine_actions": command_entry["engine_actions"],
+                "handler": command_entry["handler"],
+                "delegated_to": command_entry["delegated_to"],
+                "engine_delegated_to": command_entry["engine_delegated_to"],
+                "is_trusted": command_entry["is_trusted"],
+                "smoke_ready": smoke_entry["ready"],
             }
         )
     return tuple(entries)
@@ -241,6 +276,7 @@ def build_mvp_demo_command_surface_audit_payload() -> dict[str, object]:
         "command_readiness_audit": canonical_command_readiness_command_audit_payload(),
         "exact_action_routes": canonical_command_exact_action_route_payload(),
         "demo_path_commands": build_mvp_demo_path_command_payload(),
+        "demo_path_command_sequence": build_mvp_demo_command_sequence_payload(),
         "smoke_gate": build_mvp_demo_smoke_gate_payload(),
         "patch_review_readiness_smoke": build_patch_review_readiness_smoke_payload(),
         "patch_review_action_resolution_smoke": build_patch_review_action_resolution_smoke_payload(),
