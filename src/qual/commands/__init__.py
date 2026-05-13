@@ -29,6 +29,7 @@ from src.qual.commands.canonical import (
     canonical_command_readiness_handoff_next_action_payload,
     canonical_command_readiness_next_status_payload,
     canonical_command_readiness_remaining_action_payload,
+    canonical_command_readiness_required_gate_commands,
     canonical_command_readiness_snapshot_payload,
     canonical_command_readiness_status_for_flow_step,
     canonical_command_retrieval_context_payload,
@@ -549,6 +550,9 @@ def build_mvp_demo_cli_handoff_payload(
     """Return the reviewer-facing CLI smoke handoff for the MVP demo path."""
     demo_loop = canonical_command_demo_loop_payload()
     handoff_packet = canonical_command_readiness_handoff_packet_payload()
+    required_gate_commands = tuple(
+        asdict(command) for command in canonical_command_readiness_required_gate_commands()
+    )
     smoke_gate = build_mvp_demo_smoke_gate_payload(demo_loop)
     smoke_matrix = build_mvp_demo_command_smoke_matrix_payload(demo_loop)
     checkpoint = build_mvp_demo_readiness_checkpoint_payload(smoke_argvs)
@@ -567,6 +571,10 @@ def build_mvp_demo_cli_handoff_payload(
         "vision_capabilities": tuple(handoff_packet["vision_capabilities"]),
         "routing_provider_impact": handoff_packet["routing_provider_impact"],
         "risks_blockers": tuple(handoff_packet["risks_blockers"]),
+        "required_gate_commands": required_gate_commands,
+        "required_gate_command_lines": tuple(
+            command["command"] for command in required_gate_commands
+        ),
         "canonical_demo_path_step_advanced": (
             "open project/document -> retrieve relevant material -> "
             "preview and apply or reject a patch -> persist and continue"
@@ -828,6 +836,9 @@ def build_mvp_demo_command_surface_audit_payload() -> dict[str, object]:
         "handler_trust_gate": canonical_command_handler_trust_gate_payload(),
         "handler_trusted_demo_path": canonical_command_handler_trusted_demo_path_payload(),
         "handoff_packet": canonical_command_readiness_handoff_packet_payload(),
+        "required_gate_commands": tuple(
+            asdict(command) for command in canonical_command_readiness_required_gate_commands()
+        ),
         "command_readiness_audit": canonical_command_readiness_command_audit_payload(),
         "exact_action_routes": canonical_command_exact_action_route_payload(),
         "demo_path_commands": build_mvp_demo_path_command_payload(),
