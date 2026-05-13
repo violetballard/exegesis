@@ -90,6 +90,7 @@ def build_mvp_demo_command_surface_payload(
     smoke_contract = canonical_command_demo_loop_smoke_payload()
     patch_review_contract = build_patch_review_command_contract()
     handoff_packet = canonical_command_readiness_handoff_packet_payload()
+    command_readiness_audit = canonical_command_readiness_command_audit_payload()
     patch_review_route_validation = build_patch_review_route_validation_payload()
     patch_review_readiness_smoke = build_patch_review_readiness_smoke_payload()
     patch_review_action_resolution_smoke = build_patch_review_action_resolution_smoke_payload()
@@ -101,6 +102,7 @@ def build_mvp_demo_command_surface_payload(
         smoke_gate=smoke_gate,
         trusted_command_contract=trusted_command_contract,
         handler_trusted_demo_path=handler_trusted_demo_path,
+        command_readiness_audit_complete=bool(command_readiness_audit["is_complete"]),
         patch_review_contract_ready=patch_review_contract.ready,
         patch_review_route_validation_ready=bool(patch_review_route_validation["is_valid"]),
         patch_review_readiness_smoke_ready=bool(patch_review_readiness_smoke["ready"]),
@@ -113,6 +115,7 @@ def build_mvp_demo_command_surface_payload(
         "issues": readiness_gate["issues"],
         "readiness_gate": readiness_gate,
         "handoff_packet": handoff_packet,
+        "command_readiness_audit": command_readiness_audit,
         "demo_loop": demo_loop,
         "entrypoint_shims": command_surface["entrypoint_shims"],
         "compatibility_invocations": command_cli_compatibility_invocation_payloads(),
@@ -166,6 +169,7 @@ def build_mvp_demo_command_surface_readiness_gate_payload(
     smoke_gate: dict[str, object],
     trusted_command_contract: dict[str, object],
     handler_trusted_demo_path: dict[str, object],
+    command_readiness_audit_complete: bool,
     patch_review_contract_ready: bool,
     patch_review_route_validation_ready: bool,
     patch_review_readiness_smoke_ready: bool,
@@ -177,6 +181,7 @@ def build_mvp_demo_command_surface_readiness_gate_payload(
         "smoke_gate": bool(smoke_gate["is_complete"]),
         "trusted_command_contract": bool(trusted_command_contract["is_trusted"]),
         "handler_trusted_demo_path": bool(handler_trusted_demo_path["is_complete"]),
+        "command_readiness_audit": command_readiness_audit_complete,
         "patch_review_contract": patch_review_contract_ready,
         "patch_review_route_validation": patch_review_route_validation_ready,
         "patch_review_readiness_smoke": patch_review_readiness_smoke_ready,
