@@ -434,6 +434,10 @@ from src.qual.commands.catalog import (
     command_mvp_demo_readiness_next_action_json as _readiness_next_action_json,
     command_mvp_demo_readiness_next_action_payload as _readiness_next_action_payload,
     command_mvp_demo_readiness_next_action_summary as _readiness_next_action_summary,
+    command_mvp_demo_readiness_handoff_next_action as _readiness_handoff_next_action,
+    command_mvp_demo_readiness_handoff_next_action_json as _readiness_handoff_next_action_json,
+    command_mvp_demo_readiness_handoff_next_action_payload as _readiness_handoff_next_action_payload,
+    command_mvp_demo_readiness_handoff_next_action_summary as _readiness_handoff_next_action_summary,
     command_mvp_demo_readiness_next_command_argv as _readiness_next_command_argv,
     command_mvp_demo_readiness_next_exact_action_argv as _readiness_next_exact_action_argv,
     command_mvp_demo_readiness_next_exact_action_line as _readiness_next_exact_action_line,
@@ -452,6 +456,14 @@ from src.qual.commands.catalog import (
     command_mvp_demo_readiness_shell_next_action_payload
     as _readiness_shell_next_action_payload,
     command_mvp_demo_readiness_shell_next_action_summary as _readiness_shell_next_action_summary,
+    command_mvp_demo_readiness_shell_handoff_next_action
+    as _readiness_shell_handoff_next_action,
+    command_mvp_demo_readiness_shell_handoff_next_action_json
+    as _readiness_shell_handoff_next_action_json,
+    command_mvp_demo_readiness_shell_handoff_next_action_payload
+    as _readiness_shell_handoff_next_action_payload,
+    command_mvp_demo_readiness_shell_handoff_next_action_summary
+    as _readiness_shell_handoff_next_action_summary,
     command_mvp_demo_readiness_shell_next_command_argv as _readiness_shell_next_command_argv,
     command_mvp_demo_readiness_shell_next_exact_action_argv as _readiness_shell_next_exact_action_argv,
     command_mvp_demo_readiness_shell_next_exact_action_line
@@ -994,6 +1006,10 @@ __all__ = [
     "canonical_command_readiness_next_action_json",
     "canonical_command_readiness_next_action_payload",
     "canonical_command_readiness_next_action_summary",
+    "canonical_command_readiness_handoff_next_action",
+    "canonical_command_readiness_handoff_next_action_json",
+    "canonical_command_readiness_handoff_next_action_payload",
+    "canonical_command_readiness_handoff_next_action_summary",
     "canonical_command_readiness_next_command_argv",
     "canonical_command_readiness_next_exact_action_argv",
     "canonical_command_readiness_next_exact_action_line",
@@ -1012,6 +1028,10 @@ __all__ = [
     "canonical_command_readiness_shell_next_action_json",
     "canonical_command_readiness_shell_next_action_payload",
     "canonical_command_readiness_shell_next_action_summary",
+    "canonical_command_readiness_shell_handoff_next_action",
+    "canonical_command_readiness_shell_handoff_next_action_json",
+    "canonical_command_readiness_shell_handoff_next_action_payload",
+    "canonical_command_readiness_shell_handoff_next_action_summary",
     "canonical_command_readiness_shell_next_command_argv",
     "canonical_command_readiness_shell_next_exact_action_argv",
     "canonical_command_readiness_shell_next_exact_action_line",
@@ -4315,6 +4335,40 @@ def canonical_command_readiness_next_action_summary(
     return _readiness_next_action_summary(argvs)
 
 
+def canonical_command_readiness_handoff_next_action(
+    argvs: Sequence[Sequence[str] | str] = (),
+) -> CommandDemoReadinessNextAction:
+    return _readiness_handoff_next_action(argvs)
+
+
+def canonical_command_readiness_handoff_next_action_payload(
+    argvs: Sequence[Sequence[str] | str] = (),
+) -> dict[str, object]:
+    return _readiness_handoff_next_action_payload(argvs)
+
+
+def canonical_command_readiness_handoff_next_action_json(
+    argvs: Sequence[Sequence[str] | str] = (),
+) -> str:
+    return _readiness_handoff_next_action_json(argvs)
+
+
+def canonical_command_readiness_handoff_next_action_summary(
+    argvs: Sequence[Sequence[str] | str] = (),
+) -> tuple[
+    bool,
+    str | None,
+    str | None,
+    str | None,
+    str,
+    str,
+    tuple[str, ...],
+    tuple[str, ...],
+    tuple[tuple[str, ...], ...],
+]:
+    return _readiness_handoff_next_action_summary(argvs)
+
+
 def canonical_command_readiness_next_command_argv(
     argvs: Sequence[Sequence[str] | str] = (),
 ) -> tuple[str, ...]:
@@ -4489,6 +4543,40 @@ def canonical_command_readiness_shell_next_action_summary(
     tuple[tuple[str, ...], ...],
 ]:
     return _readiness_shell_next_action_summary(lines)
+
+
+def canonical_command_readiness_shell_handoff_next_action(
+    lines: Sequence[str] | str,
+) -> CommandDemoReadinessNextAction:
+    return _readiness_shell_handoff_next_action(lines)
+
+
+def canonical_command_readiness_shell_handoff_next_action_payload(
+    lines: Sequence[str] | str,
+) -> dict[str, object]:
+    return _readiness_shell_handoff_next_action_payload(lines)
+
+
+def canonical_command_readiness_shell_handoff_next_action_json(
+    lines: Sequence[str] | str,
+) -> str:
+    return _readiness_shell_handoff_next_action_json(lines)
+
+
+def canonical_command_readiness_shell_handoff_next_action_summary(
+    lines: Sequence[str] | str,
+) -> tuple[
+    bool,
+    str | None,
+    str | None,
+    str | None,
+    str,
+    str,
+    tuple[str, ...],
+    tuple[str, ...],
+    tuple[tuple[str, ...], ...],
+]:
+    return _readiness_shell_handoff_next_action_summary(lines)
 
 
 def canonical_command_readiness_shell_next_command_argv(
