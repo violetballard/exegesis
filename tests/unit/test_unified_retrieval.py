@@ -4515,7 +4515,7 @@ class UnifiedRetrievalTests(unittest.TestCase):
             "prefer_exact_matches": "false",
         }
         promotion_item["query_constraints_fingerprint"] = "stale-fingerprint"
-        promotion_item.pop("promotion_item_fingerprint", None)
+        promotion_item["promotion_item_fingerprint"] = "stale-promotion-fingerprint"
         basket_promotion_items = cast(dict[str, object], basket_bundle)["basket_promotion_items"]
         self.assertIsInstance(basket_promotion_items, list)
         basket_promotion_item = cast(list[dict[str, object]], basket_promotion_items)[0]
@@ -4576,7 +4576,7 @@ class UnifiedRetrievalTests(unittest.TestCase):
         )
         self.assertEqual(normalized_item["basket_item_id"], result.basket_promotion_items()[0]["basket_item_id"])
         self.assertEqual(normalized_item["item_id"], result.basket_promotion_items()[0]["item_id"])
-        self.assertNotEqual(normalized_item["promotion_item_fingerprint"], "stale-fingerprint")
+        self.assertNotEqual(normalized_item["promotion_item_fingerprint"], "stale-promotion-fingerprint")
         normalized_basket_item = normalized_bundle["basket_promotion_items"][0]
         self.assertEqual(normalized_basket_item["query_constraints"], expected_constraints)
         self.assertEqual(

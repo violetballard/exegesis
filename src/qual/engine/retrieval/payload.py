@@ -1550,14 +1550,13 @@ def _normalize_basket_promotion_bundle_snapshot(bundle: dict[str, object]) -> di
                 normalized_item["query_constraints"]
             )
         _normalize_basket_promotion_item_strategy_labels(normalized_item)
-        if identity_changed or _is_missing_snapshot_value(normalized_item.get("promotion_item_fingerprint")):
-            normalized_item["promotion_item_fingerprint"] = _stable_fingerprint(
-                {
-                    key: value
-                    for key, value in normalized_item.items()
-                    if key != "promotion_item_fingerprint"
-                }
-            )
+        normalized_item["promotion_item_fingerprint"] = _stable_fingerprint(
+            {
+                key: value
+                for key, value in normalized_item.items()
+                if key != "promotion_item_fingerprint"
+            }
+        )
         promotion_items.append(normalized_item)
     normalized["promotion_items"] = promotion_items
     normalized["promotion_item_count"] = len(normalized["promotion_items"])
