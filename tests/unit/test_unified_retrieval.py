@@ -52,6 +52,8 @@ from src.qual.retrieval.service import RetrievalHit
 
 
 class UnifiedRetrievalTests(unittest.TestCase):
+    CANONICAL_DEMO_PATH_STEPS = ["retrieve_relevant_material", "promote_context_to_basket"]
+
     def setUp(self) -> None:
         self._tmp = tempfile.TemporaryDirectory()
         self.root = Path(self._tmp.name)
@@ -618,6 +620,19 @@ class UnifiedRetrievalTests(unittest.TestCase):
         self.assertEqual(payload["retrieval_summary"]["result_fingerprint"], result.result_fingerprint)
         self.assertEqual(payload["retrieval_summary"]["retrieval_backend"], "sqlite_fts")
         self.assertEqual(payload["retrieval_summary"]["retrieval_mode"], "fts_first")
+        self.assertEqual(payload["canonical_demo_path_steps"], self.CANONICAL_DEMO_PATH_STEPS)
+        self.assertEqual(
+            payload["retrieval_source_bundle"]["canonical_demo_path_steps"],
+            self.CANONICAL_DEMO_PATH_STEPS,
+        )
+        self.assertEqual(
+            result.retrieval_context_bundle()["canonical_demo_path_steps"],
+            self.CANONICAL_DEMO_PATH_STEPS,
+        )
+        self.assertEqual(
+            payload["retrieval_basket_promotion_bundle"]["canonical_demo_path_steps"],
+            self.CANONICAL_DEMO_PATH_STEPS,
+        )
         self.assertEqual(payload["retrieval_summary"]["doc_count"], len(result.doc_hits))
         self.assertEqual(payload["retrieval_summary"]["excerpt_count"], len(result.hits))
         self.assertEqual(payload["retrieval_summary"]["doc_ids"], [item.doc_id for item in result.doc_hits])
@@ -734,6 +749,10 @@ class UnifiedRetrievalTests(unittest.TestCase):
         self.assertEqual(
             payload["basket_promotion_items"][0]["query_constraints"],
             payload["query"]["constraints"],
+        )
+        self.assertEqual(
+            payload["basket_promotion_items"][0]["canonical_demo_path_steps"],
+            self.CANONICAL_DEMO_PATH_STEPS,
         )
         self.assertEqual(
             payload["retrieval_evidence"]["basket_promotion_items"][0]["query_constraints"],
@@ -4015,6 +4034,10 @@ class UnifiedRetrievalTests(unittest.TestCase):
         self.assertEqual(rehydrated_item["retrieval_evidence_fingerprint"], retrieval_evidence_fingerprint)
         self.assertEqual(rehydrated_bundle["query_constraints"], expected_constraints)
         self.assertEqual(
+            rehydrated_bundle["canonical_demo_path_steps"],
+            self.CANONICAL_DEMO_PATH_STEPS,
+        )
+        self.assertEqual(
             rehydrated_bundle["query_constraints_fingerprint"],
             expected_constraints_fingerprint,
         )
@@ -4052,6 +4075,10 @@ class UnifiedRetrievalTests(unittest.TestCase):
         self.assertEqual(
             normalized_sparse_item["excerpt_lookup_fingerprint"],
             result.basket_promotion_items()[0]["excerpt_lookup_fingerprint"],
+        )
+        self.assertEqual(
+            normalized_sparse_item["canonical_demo_path_steps"],
+            self.CANONICAL_DEMO_PATH_STEPS,
         )
         self.assertEqual(normalized_sparse_item["basket_item_id"], result.basket_promotion_items()[0]["basket_item_id"])
         self.assertEqual(normalized_sparse_item["item_id"], result.basket_promotion_items()[0]["item_id"])

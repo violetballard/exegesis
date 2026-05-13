@@ -8,6 +8,9 @@ from dataclasses import dataclass
 from typing import Protocol
 
 
+_RETRIEVAL_DEMO_PATH_STEPS = ["retrieve_relevant_material", "promote_context_to_basket"]
+
+
 class RetrievalDownstreamPayloadSource(Protocol):
     def to_downstream_payload(self) -> dict[str, object]:
         """Return the stable retrieval payload consumed by downstream engine flows."""
@@ -412,6 +415,8 @@ def _normalize_basket_promotion_items(items: list[object]) -> list[object]:
                 context="basket promotion item",
             )
             item_snapshot["retrieval_source_strategy"] = item_snapshot["source_strategy"]
+            if _is_missing_snapshot_value(item_snapshot.get("canonical_demo_path_steps")):
+                item_snapshot["canonical_demo_path_steps"] = list(_RETRIEVAL_DEMO_PATH_STEPS)
             normalized.append(_with_basket_item_fingerprint(item_snapshot))
         else:
             normalized.append(copy.deepcopy(item))
@@ -1450,6 +1455,8 @@ def _normalize_basket_promotion_bundle_snapshot(bundle: dict[str, object]) -> di
         field_name="retrieval_basket_promotion_bundle",
     )
     normalized["promotion_target"] = _first_text_value(normalized.get("promotion_target")) or "context_basket"
+    if _is_missing_snapshot_value(normalized.get("canonical_demo_path_steps")):
+        normalized["canonical_demo_path_steps"] = list(_RETRIEVAL_DEMO_PATH_STEPS)
     promotion_items: list[object] = []
     for item in _normalize_list_like(normalized.get("promotion_items")):
         if not isinstance(item, dict):
@@ -1469,6 +1476,7 @@ def _normalize_basket_promotion_bundle_snapshot(bundle: dict[str, object]) -> di
             "retrieval_backend": normalized.get("retrieval_backend"),
             "retrieval_mode": normalized.get("retrieval_mode"),
             "retrieval_policy": normalized.get("retrieval_policy"),
+            "canonical_demo_path_steps": normalized.get("canonical_demo_path_steps"),
         }
         for key, fallback_value in item_fallbacks.items():
             if _is_missing_snapshot_value(normalized_item.get(key)) and not _is_missing_snapshot_value(fallback_value):
@@ -2365,6 +2373,7 @@ def _build_retrieval_basket_promotion_bundle_from_payload(payload: dict[str, obj
             ),
             "matched_terms": copy.deepcopy(hit.get("matched_terms", provenance.get("matched_terms"))),
             "match_count": hit.get("match_count", provenance.get("match_count")),
+            "canonical_demo_path_steps": list(_RETRIEVAL_DEMO_PATH_STEPS),
         }
         promotion_item["promotion_item_fingerprint"] = _stable_fingerprint(promotion_item)
         promotion_items.append(promotion_item)
@@ -2372,6 +2381,7 @@ def _build_retrieval_basket_promotion_bundle_from_payload(payload: dict[str, obj
         {
             **bundle_context,
             "promotion_target": "context_basket",
+            "canonical_demo_path_steps": list(_RETRIEVAL_DEMO_PATH_STEPS),
             "promotion_item_count": len(promotion_items),
             "promotion_items": promotion_items,
         }
@@ -2405,6 +2415,8 @@ def _build_retrieval_context_bundle_from_payload(payload: dict[str, object]) -> 
     normalized_payload["basket_promotion_ready"] = _basket_promotion_ready_from_count(
         basket_promotion_count
     )
+    if _is_missing_snapshot_value(normalized_payload.get("canonical_demo_path_steps")):
+        normalized_payload["canonical_demo_path_steps"] = list(_RETRIEVAL_DEMO_PATH_STEPS)
     source_bundle = _build_retrieval_source_bundle_from_payload(normalized_payload)
     normalized_payload = _backfill_sparse_snapshot(
         normalized_payload,
@@ -2429,6 +2441,7 @@ def _build_retrieval_context_bundle_from_payload(payload: dict[str, object]) -> 
         "retrieval_basket_promotion_bundle": copy.deepcopy(retrieval_basket_promotion_bundle),
         "retrieval_source_bundle": source_bundle,
         "retrieval_evidence": copy.deepcopy(normalized_payload.get("retrieval_evidence", {})),
+        "canonical_demo_path_steps": list(_RETRIEVAL_DEMO_PATH_STEPS),
         "basket_promotion_items": basket_promotion_items,
         "basket_promotion_count": basket_promotion_count,
         "basket_promotion_ready": _basket_promotion_ready_from_count(basket_promotion_count),
@@ -2838,6 +2851,7 @@ class RetrievalDownstreamPayload:
             "retrieval_basket_promotion_bundle": basket_promotion_bundle,
             "source_bundle_fingerprint": self.source_bundle_fingerprint,
             "retrieval_source_bundle": source_bundle,
+            "canonical_demo_path_steps": list(_RETRIEVAL_DEMO_PATH_STEPS),
             "basket_promotion_items": basket_promotion_items,
             "basket_promotion_count": basket_promotion_count,
             "basket_promotion_ready": basket_promotion_ready,

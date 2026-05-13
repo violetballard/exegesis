@@ -40,6 +40,7 @@ _FTS_BOUNDARY_SCAN_CHARS = 40
 _SUPPORTED_RETRIEVAL_INTENTS = {"lookup", "compare", "summarize", "quote_find", "outline_support"}
 _SUPPORTED_CONFIDENTIALITY_PROFILES = {"confidential", "standard"}
 _FTS_SOURCE_STRATEGY = "fts"
+_RETRIEVAL_DEMO_PATH_STEPS = ["retrieve_relevant_material", "promote_context_to_basket"]
 
 
 def _canonicalize_doc_types(doc_types: tuple[str, ...]) -> tuple[str, ...]:
@@ -616,6 +617,7 @@ class RetrievalResult:
             ),
             "retrieval_source_bundle": copy.deepcopy(downstream_payload["retrieval_source_bundle"]),
             "retrieval_evidence": copy.deepcopy(downstream_payload["retrieval_evidence"]),
+            "canonical_demo_path_steps": list(_RETRIEVAL_DEMO_PATH_STEPS),
             "basket_promotion_items": copy.deepcopy(basket_promotion_items),
             "basket_promotion_count": basket_promotion_count,
             "basket_promotion_ready": basket_promotion_count > 0,
@@ -679,6 +681,7 @@ class RetrievalResult:
                 else None,
                 "query_fingerprint": hit.provenance.get("query_fingerprint"),
                 "result_fingerprint": self.result_fingerprint,
+                "canonical_demo_path_steps": list(_RETRIEVAL_DEMO_PATH_STEPS),
             }
             item["basket_item_fingerprint"] = RetrievalService._basket_item_fingerprint(item)
             items.append(item)
@@ -764,6 +767,7 @@ class RetrievalResult:
                 "excerpt_text_hash": hit.provenance.get("excerpt_text_hash") or hit.provenance.get("hash"),
                 "matched_terms": copy.deepcopy(hit.provenance.get("matched_terms")),
                 "match_count": hit.provenance.get("match_count"),
+                "canonical_demo_path_steps": list(_RETRIEVAL_DEMO_PATH_STEPS),
             }
             basket_item_fingerprint = basket_item_fingerprint_by_id.get(str(basket_item_id))
             if basket_item_fingerprint is not None:
@@ -784,6 +788,7 @@ class RetrievalResult:
         return {
             **bundle_context,
             "promotion_target": "context_basket",
+            "canonical_demo_path_steps": list(_RETRIEVAL_DEMO_PATH_STEPS),
             "promotion_item_count": len(promotion_items),
             "promotion_items": promotion_items,
             "basket_promotion_items": copy.deepcopy(basket_promotion_items),
@@ -1140,6 +1145,7 @@ class RetrievalResult:
             "excerpt_hits": self._excerpt_hit_snapshots(),
             "retrieval_manifest": copy.deepcopy(self.diagnostics["retrieval_manifest"]),
             "retrieval_evidence": copy.deepcopy(self.evidence),
+            "canonical_demo_path_steps": list(_RETRIEVAL_DEMO_PATH_STEPS),
             "basket_promotion_items": copy.deepcopy(basket_promotion_items),
             "basket_promotion_count": basket_promotion_count,
             "basket_promotion_ready": basket_promotion_count > 0,
@@ -2079,6 +2085,7 @@ class RetrievalService:
                 else None,
                 "query_fingerprint": query_fingerprint,
                 "result_fingerprint": result_fingerprint,
+                "canonical_demo_path_steps": list(_RETRIEVAL_DEMO_PATH_STEPS),
             })
             for item in excerpt_citations
         ]
