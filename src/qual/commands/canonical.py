@@ -56,6 +56,7 @@ from src.qual.commands.catalog import (
     CommandDemoReadinessGateCommand,
     CommandDemoReadinessVerificationContract,
     CommandDemoTrustedLoopContract,
+    CommandDemoRuntimeDispatchContract,
     CommandDemoSmokeSequenceEntry,
     CommandDemoSmokeSequenceContract,
     CommandDemoTrustChecklistContract,
@@ -155,6 +156,10 @@ from src.qual.commands.catalog import (
     command_mvp_demo_trusted_loop_json as _trusted_loop_json,
     command_mvp_demo_trusted_loop_payload as _trusted_loop_payload,
     command_mvp_demo_trusted_loop_summary as _trusted_loop_summary,
+    command_mvp_demo_runtime_dispatch_contract as _runtime_dispatch_contract,
+    command_mvp_demo_runtime_dispatch_json as _runtime_dispatch_json,
+    command_mvp_demo_runtime_dispatch_payload as _runtime_dispatch_payload,
+    command_mvp_demo_runtime_dispatch_summary as _runtime_dispatch_summary,
     command_mvp_demo_smoke_sequence_contract as _smoke_sequence_contract,
     command_mvp_demo_smoke_sequence_issues as _smoke_sequence_issues,
     command_mvp_demo_smoke_sequence_json as _smoke_sequence_json,
@@ -825,6 +830,10 @@ __all__ = [
     "canonical_command_trusted_loop_summary",
     "canonical_command_trusted_loop_payload",
     "canonical_command_trusted_loop_json",
+    "canonical_command_runtime_dispatch_contract",
+    "canonical_command_runtime_dispatch_summary",
+    "canonical_command_runtime_dispatch_payload",
+    "canonical_command_runtime_dispatch_json",
     "canonical_command_smoke_sequence_contract",
     "canonical_command_smoke_sequence_issues",
     "canonical_command_smoke_sequence_json",
@@ -2670,6 +2679,47 @@ def canonical_command_trusted_loop_json() -> str:
 
 def canonical_command_trusted_loop_issues() -> tuple[str, ...]:
     return _trusted_loop_issues()
+
+
+def canonical_command_runtime_dispatch_contract() -> CommandDemoRuntimeDispatchContract:
+    return _runtime_dispatch_contract()
+
+
+def canonical_command_runtime_dispatch_summary() -> tuple[
+    str,
+    str,
+    bool,
+    tuple[
+        tuple[
+            int,
+            str,
+            str,
+            str,
+            tuple[str, ...],
+            str,
+            str,
+            str,
+            str,
+            tuple[str, ...],
+            bool,
+            bool,
+            bool,
+        ],
+        ...,
+    ],
+    tuple[str, ...],
+    tuple[str, ...],
+    tuple[tuple[str, ...], ...],
+]:
+    return _runtime_dispatch_summary()
+
+
+def canonical_command_runtime_dispatch_payload() -> dict[str, object]:
+    return _runtime_dispatch_payload()
+
+
+def canonical_command_runtime_dispatch_json() -> str:
+    return _runtime_dispatch_json()
 
 
 def canonical_command_smoke_sequence_contract() -> CommandDemoSmokeSequenceContract:

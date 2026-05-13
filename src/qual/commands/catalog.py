@@ -920,6 +920,37 @@ class CommandDemoTrustedLoopContract:
 
 
 @dataclass(frozen=True)
+class CommandDemoRuntimeDispatchEntry:
+    ordinal: int
+    demo_path_step: str
+    flow_step: str
+    name: str
+    command_argv: tuple[str, ...]
+    command_line: str
+    handler: str
+    delegated_to: str
+    engine_delegated_to: str
+    engine_actions: tuple[str, ...]
+    exact_action_lines: tuple[tuple[str, str], ...]
+    is_cli_entrypoint: bool
+    thin_handler_ready: bool
+    ready: bool
+
+
+@dataclass(frozen=True)
+class CommandDemoRuntimeDispatchContract:
+    fingerprint_algorithm: str
+    fingerprint_digest: str
+    is_complete: bool
+    entries: tuple[CommandDemoRuntimeDispatchEntry, ...]
+    missing_flow_steps: tuple[str, ...]
+    missing_engine_actions: tuple[str, ...]
+    invalid_argv: tuple[tuple[str, ...], ...]
+    non_cli_entrypoints: tuple[str, ...]
+    thin_handler_violations: tuple[str, ...]
+
+
+@dataclass(frozen=True)
 class CommandDemoSmokeSequenceEntry:
     ordinal: int
     demo_path_step: str
@@ -10334,6 +10365,182 @@ def command_demo_trusted_loop_json(
 ) -> str:
     return json.dumps(
         command_demo_trusted_loop_payload(specs, launcher_argv),
+        sort_keys=True,
+        separators=(",", ":"),
+    )
+
+
+def command_demo_runtime_dispatch_contract(
+    specs: tuple[CommandSpec, ...] = COMMAND_SPECS,
+    launcher_argv: tuple[str, ...] = COMMAND_SMOKE_CLI_LAUNCHER_ARGV,
+) -> CommandDemoRuntimeDispatchContract:
+    trusted_loop = command_demo_trusted_loop_contract(specs, launcher_argv)
+    if specs == COMMAND_SPECS:
+        cli_tokens = set(command_cli_tokens())
+    else:
+        cli_tokens = {entry.name for entry in command_manifest(specs)}
+    command_argv_by_flow_step = {
+        entry.flow_step: entry.command_argv
+        for entry in command_demo_readiness_contract(specs, launcher_argv).entries
+    }
+    entries = tuple(
+        CommandDemoRuntimeDispatchEntry(
+            ordinal=step.ordinal,
+            demo_path_step=step.demo_path_step,
+            flow_step=step.flow_step,
+            name=step.name,
+            command_argv=command_argv_by_flow_step.get(step.flow_step, ()),
+            command_line=step.command_line,
+            handler=step.handler,
+            delegated_to=step.delegated_to,
+            engine_delegated_to=step.engine_delegated_to,
+            engine_actions=step.engine_actions,
+            exact_action_lines=step.exact_action_lines,
+            is_cli_entrypoint=step.name in cli_tokens,
+            thin_handler_ready=step.thin_handler_ready,
+            ready=step.ready,
+        )
+        for step in trusted_loop.steps
+    )
+    non_cli_entrypoints = tuple(entry.name for entry in entries if not entry.is_cli_entrypoint)
+    thin_handler_violations = tuple(entry.name for entry in entries if not entry.thin_handler_ready)
+    contract = CommandDemoRuntimeDispatchContract(
+        fingerprint_algorithm=trusted_loop.fingerprint_algorithm,
+        fingerprint_digest=trusted_loop.fingerprint_digest,
+        is_complete=(
+            trusted_loop.is_complete
+            and not non_cli_entrypoints
+            and not thin_handler_violations
+            and all(entry.command_argv for entry in entries)
+        ),
+        entries=entries,
+        missing_flow_steps=trusted_loop.missing_flow_steps,
+        missing_engine_actions=trusted_loop.missing_engine_actions,
+        invalid_argv=trusted_loop.invalid_argv,
+        non_cli_entrypoints=non_cli_entrypoints,
+        thin_handler_violations=thin_handler_violations,
+    )
+    if tuple(entry.flow_step for entry in contract.entries) != DEMO_COMMAND_FLOW_STEPS:
+        raise ValueError("Command demo runtime dispatch flow order is inconsistent")
+    if tuple(entry.command_line for entry in contract.entries) != tuple(
+        step.command_line for step in trusted_loop.steps
+    ):
+        raise ValueError("Command demo runtime dispatch command lines are inconsistent")
+    if tuple(entry.engine_delegated_to for entry in contract.entries) != tuple(
+        step.engine_delegated_to for step in trusted_loop.steps
+    ):
+        raise ValueError("Command demo runtime dispatch engine delegations are inconsistent")
+    expected_complete = (
+        trusted_loop.is_complete
+        and not contract.non_cli_entrypoints
+        and not contract.thin_handler_violations
+        and all(entry.command_argv for entry in contract.entries)
+    )
+    if contract.is_complete != expected_complete:
+        raise ValueError("Command demo runtime dispatch completeness is inconsistent")
+    return contract
+
+
+def command_demo_runtime_dispatch_summary(
+    specs: tuple[CommandSpec, ...] = COMMAND_SPECS,
+    launcher_argv: tuple[str, ...] = COMMAND_SMOKE_CLI_LAUNCHER_ARGV,
+) -> tuple[
+    str,
+    str,
+    bool,
+    tuple[
+        tuple[
+            int,
+            str,
+            str,
+            str,
+            tuple[str, ...],
+            str,
+            str,
+            str,
+            str,
+            tuple[str, ...],
+            bool,
+            bool,
+            bool,
+        ],
+        ...,
+    ],
+    tuple[str, ...],
+    tuple[str, ...],
+    tuple[tuple[str, ...], ...],
+]:
+    contract = command_demo_runtime_dispatch_contract(specs, launcher_argv)
+    return (
+        contract.fingerprint_algorithm,
+        contract.fingerprint_digest,
+        contract.is_complete,
+        tuple(
+            (
+                entry.ordinal,
+                entry.demo_path_step,
+                entry.flow_step,
+                entry.name,
+                entry.command_argv,
+                entry.command_line,
+                entry.handler,
+                entry.delegated_to,
+                entry.engine_delegated_to,
+                entry.engine_actions,
+                entry.is_cli_entrypoint,
+                entry.thin_handler_ready,
+                entry.ready,
+            )
+            for entry in contract.entries
+        ),
+        contract.missing_flow_steps,
+        contract.missing_engine_actions,
+        contract.invalid_argv,
+    )
+
+
+def command_demo_runtime_dispatch_payload(
+    specs: tuple[CommandSpec, ...] = COMMAND_SPECS,
+    launcher_argv: tuple[str, ...] = COMMAND_SMOKE_CLI_LAUNCHER_ARGV,
+) -> dict[str, object]:
+    contract = command_demo_runtime_dispatch_contract(specs, launcher_argv)
+    return {
+        "fingerprint_algorithm": contract.fingerprint_algorithm,
+        "fingerprint_digest": contract.fingerprint_digest,
+        "is_complete": contract.is_complete,
+        "missing_flow_steps": contract.missing_flow_steps,
+        "missing_engine_actions": contract.missing_engine_actions,
+        "invalid_argv": contract.invalid_argv,
+        "non_cli_entrypoints": contract.non_cli_entrypoints,
+        "thin_handler_violations": contract.thin_handler_violations,
+        "entries": [
+            {
+                "ordinal": entry.ordinal,
+                "demo_path_step": entry.demo_path_step,
+                "flow_step": entry.flow_step,
+                "command": entry.name,
+                "command_argv": entry.command_argv,
+                "command_line": entry.command_line,
+                "handler": entry.handler,
+                "delegated_to": entry.delegated_to,
+                "engine_delegated_to": entry.engine_delegated_to,
+                "engine_actions": entry.engine_actions,
+                "exact_action_lines": entry.exact_action_lines,
+                "is_cli_entrypoint": entry.is_cli_entrypoint,
+                "thin_handler_ready": entry.thin_handler_ready,
+                "ready": entry.ready,
+            }
+            for entry in contract.entries
+        ],
+    }
+
+
+def command_demo_runtime_dispatch_json(
+    specs: tuple[CommandSpec, ...] = COMMAND_SPECS,
+    launcher_argv: tuple[str, ...] = COMMAND_SMOKE_CLI_LAUNCHER_ARGV,
+) -> str:
+    return json.dumps(
+        command_demo_runtime_dispatch_payload(specs, launcher_argv),
         sort_keys=True,
         separators=(",", ":"),
     )
@@ -19938,6 +20145,59 @@ def command_mvp_demo_trusted_loop_json(
     launcher_argv: tuple[str, ...] = COMMAND_SMOKE_CLI_LAUNCHER_ARGV,
 ) -> str:
     return command_demo_trusted_loop_json(specs, launcher_argv)
+
+
+def command_mvp_demo_runtime_dispatch_contract(
+    specs: tuple[CommandSpec, ...] = COMMAND_SPECS,
+    launcher_argv: tuple[str, ...] = COMMAND_SMOKE_CLI_LAUNCHER_ARGV,
+) -> CommandDemoRuntimeDispatchContract:
+    return command_demo_runtime_dispatch_contract(specs, launcher_argv)
+
+
+def command_mvp_demo_runtime_dispatch_summary(
+    specs: tuple[CommandSpec, ...] = COMMAND_SPECS,
+    launcher_argv: tuple[str, ...] = COMMAND_SMOKE_CLI_LAUNCHER_ARGV,
+) -> tuple[
+    str,
+    str,
+    bool,
+    tuple[
+        tuple[
+            int,
+            str,
+            str,
+            str,
+            tuple[str, ...],
+            str,
+            str,
+            str,
+            str,
+            tuple[str, ...],
+            bool,
+            bool,
+            bool,
+        ],
+        ...,
+    ],
+    tuple[str, ...],
+    tuple[str, ...],
+    tuple[tuple[str, ...], ...],
+]:
+    return command_demo_runtime_dispatch_summary(specs, launcher_argv)
+
+
+def command_mvp_demo_runtime_dispatch_payload(
+    specs: tuple[CommandSpec, ...] = COMMAND_SPECS,
+    launcher_argv: tuple[str, ...] = COMMAND_SMOKE_CLI_LAUNCHER_ARGV,
+) -> dict[str, object]:
+    return command_demo_runtime_dispatch_payload(specs, launcher_argv)
+
+
+def command_mvp_demo_runtime_dispatch_json(
+    specs: tuple[CommandSpec, ...] = COMMAND_SPECS,
+    launcher_argv: tuple[str, ...] = COMMAND_SMOKE_CLI_LAUNCHER_ARGV,
+) -> str:
+    return command_demo_runtime_dispatch_json(specs, launcher_argv)
 
 
 def command_mvp_demo_trusted_loop_issues(
