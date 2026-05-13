@@ -45,6 +45,7 @@ from src.qual.commands.catalog import (
     CommandDemoExecutionPlanStep,
     CommandDemoPathCommandLineContract,
     CommandDemoPersistContinueContract,
+    CommandDemoRetrievalContextContract,
     CommandDemoReadinessHandoffChecklistContract,
     CommandDemoReadinessHandoffContract,
     CommandDemoReadinessHandoffFieldContract,
@@ -246,6 +247,11 @@ from src.qual.commands.catalog import (
     command_mvp_demo_action_coverage_entry as _action_coverage_entry,
     command_mvp_demo_action_coverage_lookup_table as _action_coverage_lookup_table,
     command_mvp_demo_action_coverage_summary as _action_coverage_summary,
+    command_mvp_demo_retrieval_context_contract as _retrieval_context_contract,
+    command_mvp_demo_retrieval_context_json as _retrieval_context_json,
+    command_mvp_demo_retrieval_context_lookup_table as _retrieval_context_lookup_table,
+    command_mvp_demo_retrieval_context_payload as _retrieval_context_payload,
+    command_mvp_demo_retrieval_context_summary as _retrieval_context_summary,
     command_mvp_demo_persist_continue_contract as _persist_continue_contract,
     command_mvp_demo_persist_continue_json as _persist_continue_json,
     command_mvp_demo_persist_continue_lookup_table as _persist_continue_lookup_table,
@@ -820,6 +826,11 @@ __all__ = [
     "canonical_command_action_coverage_entry",
     "canonical_command_action_coverage_lookup_table",
     "canonical_command_action_coverage_summary",
+    "canonical_command_retrieval_context_contract",
+    "canonical_command_retrieval_context_json",
+    "canonical_command_retrieval_context_lookup_table",
+    "canonical_command_retrieval_context_payload",
+    "canonical_command_retrieval_context_summary",
     "canonical_command_persist_continue_contract",
     "canonical_command_persist_continue_json",
     "canonical_command_persist_continue_lookup_table",
@@ -3001,6 +3012,38 @@ def canonical_command_action_coverage_contract() -> CommandDemoActionCoverageCon
 
 def canonical_command_action_coverage_summary() -> tuple[tuple[str, str, str, str, str, str], ...]:
     return _action_coverage_summary()
+
+
+def canonical_command_retrieval_context_contract() -> CommandDemoRetrievalContextContract:
+    return _retrieval_context_contract()
+
+
+def canonical_command_retrieval_context_summary() -> tuple[
+    str,
+    str,
+    str,
+    str,
+    str,
+    str,
+    str,
+    str,
+    bool,
+    bool,
+    bool,
+]:
+    return _retrieval_context_summary()
+
+
+def canonical_command_retrieval_context_lookup_table() -> tuple[tuple[str, str], ...]:
+    return _retrieval_context_lookup_table()
+
+
+def canonical_command_retrieval_context_payload() -> dict[str, object]:
+    return _retrieval_context_payload()
+
+
+def canonical_command_retrieval_context_json() -> str:
+    return _retrieval_context_json()
 
 
 def canonical_command_persist_continue_contract() -> CommandDemoPersistContinueContract:

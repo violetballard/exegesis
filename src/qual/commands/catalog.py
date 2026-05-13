@@ -1434,6 +1434,22 @@ class CommandDemoActionCoverageContract:
 
 
 @dataclass(frozen=True)
+class CommandDemoRetrievalContextContract:
+    demo_path_step: str
+    flow_step: str
+    name: str
+    command_line: str
+    search_engine_action: str
+    search_action_line: str
+    basket_engine_action: str
+    basket_action_line: str
+    is_cli_entrypoint: bool
+    search_is_exact_action: bool
+    basket_is_exact_action: bool
+    action_order: tuple[str, str]
+
+
+@dataclass(frozen=True)
 class CommandDemoPersistContinueContract:
     demo_path_step: str
     flow_step: str
@@ -7254,6 +7270,186 @@ def command_demo_action_coverage_lookup_table(
 
 
 @lru_cache(maxsize=None)
+def command_demo_retrieval_context_contract(
+    specs: tuple[CommandSpec, ...] = COMMAND_SPECS,
+    launcher_argv: tuple[str, ...] = COMMAND_SMOKE_CLI_LAUNCHER_ARGV,
+) -> CommandDemoRetrievalContextContract:
+    step = command_demo_execution_plan_step_for_flow_step(
+        "retrieval",
+        specs,
+        launcher_argv,
+    )
+    search_coverage = command_demo_action_coverage_entry(
+        "ExegesisAppService.search_project",
+        specs,
+        launcher_argv,
+    )
+    basket_coverage = command_demo_action_coverage_entry(
+        "ExegesisAppService.add_basket_item",
+        specs,
+        launcher_argv,
+    )
+    if step is None or search_coverage is None or basket_coverage is None:
+        raise ValueError("Command demo retrieval context route is missing")
+
+    cli_validation = command_demo_readiness_validate_cli_argv(
+        step.command_line,
+        specs,
+        launcher_argv,
+    )
+    resolved_search_action = command_demo_readiness_exact_action_for_argv(
+        search_coverage.action_line,
+        specs,
+        launcher_argv,
+    )
+    resolved_basket_action = command_demo_readiness_exact_action_for_argv(
+        basket_coverage.action_line,
+        specs,
+        launcher_argv,
+    )
+    contract = CommandDemoRetrievalContextContract(
+        demo_path_step=step.demo_path_step,
+        flow_step=step.flow_step,
+        name=step.name,
+        command_line=step.command_line,
+        search_engine_action=search_coverage.engine_action,
+        search_action_line=search_coverage.action_line,
+        basket_engine_action=basket_coverage.engine_action,
+        basket_action_line=basket_coverage.action_line,
+        is_cli_entrypoint=cli_validation.is_cli_entrypoint,
+        search_is_exact_action=resolved_search_action == search_coverage.engine_action,
+        basket_is_exact_action=resolved_basket_action == basket_coverage.engine_action,
+        action_order=(search_coverage.engine_action, basket_coverage.engine_action),
+    )
+    _validate_command_demo_retrieval_context_contract(contract, step)
+    return contract
+
+
+def _validate_command_demo_retrieval_context_contract(
+    contract: CommandDemoRetrievalContextContract,
+    step: CommandDemoExecutionPlanStep,
+) -> None:
+    if contract.demo_path_step != "retrieve relevant material and gather context":
+        raise ValueError("Command demo retrieval contract path step is inconsistent")
+    if contract.flow_step != "retrieval":
+        raise ValueError("Command demo retrieval contract flow step is inconsistent")
+    if contract.name != step.name or contract.command_line != step.command_line:
+        raise ValueError("Command demo retrieval contract command is inconsistent")
+    if contract.name != "context-basket":
+        raise ValueError("Command demo retrieval contract must use the context-basket command")
+    if contract.search_engine_action != "ExegesisAppService.search_project":
+        raise ValueError("Command demo retrieval search action is inconsistent")
+    if contract.basket_engine_action != "ExegesisAppService.add_basket_item":
+        raise ValueError("Command demo retrieval basket action is inconsistent")
+    if contract.action_order != (
+        "ExegesisAppService.search_project",
+        "ExegesisAppService.add_basket_item",
+    ):
+        raise ValueError("Command demo retrieval action order is inconsistent")
+    if contract.action_order != step.engine_actions:
+        raise ValueError("Command demo retrieval actions are not in the execution plan")
+    if not contract.is_cli_entrypoint:
+        raise ValueError("Command demo retrieval command is not a CLI entrypoint")
+    if not contract.search_is_exact_action or not contract.basket_is_exact_action:
+        raise ValueError("Command demo retrieval actions are not exact")
+    if contract.search_action_line == contract.basket_action_line:
+        raise ValueError("Command demo retrieval action lines must be distinct")
+
+
+def command_demo_retrieval_context_lookup_table(
+    specs: tuple[CommandSpec, ...] = COMMAND_SPECS,
+    launcher_argv: tuple[str, ...] = COMMAND_SMOKE_CLI_LAUNCHER_ARGV,
+) -> tuple[tuple[str, str], ...]:
+    contract = command_demo_retrieval_context_contract(specs, launcher_argv)
+    lookup_table = (
+        ("demo_path_step", contract.demo_path_step),
+        ("flow_step", contract.flow_step),
+        ("command", contract.name),
+        ("command_line", contract.command_line),
+        ("search_engine_action", contract.search_engine_action),
+        ("search_action_line", contract.search_action_line),
+        ("basket_engine_action", contract.basket_engine_action),
+        ("basket_action_line", contract.basket_action_line),
+    )
+    _validate_command_demo_retrieval_context_lookup_table(lookup_table, contract)
+    return lookup_table
+
+
+def _validate_command_demo_retrieval_context_lookup_table(
+    lookup_table: tuple[tuple[str, str], ...],
+    contract: CommandDemoRetrievalContextContract,
+) -> None:
+    expected_lookup_table = (
+        ("demo_path_step", contract.demo_path_step),
+        ("flow_step", contract.flow_step),
+        ("command", contract.name),
+        ("command_line", contract.command_line),
+        ("search_engine_action", contract.search_engine_action),
+        ("search_action_line", contract.search_action_line),
+        ("basket_engine_action", contract.basket_engine_action),
+        ("basket_action_line", contract.basket_action_line),
+    )
+    if lookup_table != expected_lookup_table:
+        raise ValueError("Command demo retrieval contract lookup table is inconsistent")
+    if len({key for key, _value in lookup_table}) != len(lookup_table):
+        raise ValueError("Command demo retrieval contract lookup keys must be unique")
+    if any(not key.strip() or not value.strip() for key, value in lookup_table):
+        raise ValueError("Command demo retrieval contract lookup values must not be empty")
+
+
+def command_demo_retrieval_context_summary(
+    specs: tuple[CommandSpec, ...] = COMMAND_SPECS,
+    launcher_argv: tuple[str, ...] = COMMAND_SMOKE_CLI_LAUNCHER_ARGV,
+) -> tuple[str, str, str, str, str, str, str, str, bool, bool, bool]:
+    contract = command_demo_retrieval_context_contract(specs, launcher_argv)
+    return (
+        contract.demo_path_step,
+        contract.flow_step,
+        contract.name,
+        contract.command_line,
+        contract.search_engine_action,
+        contract.search_action_line,
+        contract.basket_engine_action,
+        contract.basket_action_line,
+        contract.is_cli_entrypoint,
+        contract.search_is_exact_action,
+        contract.basket_is_exact_action,
+    )
+
+
+def command_demo_retrieval_context_payload(
+    specs: tuple[CommandSpec, ...] = COMMAND_SPECS,
+    launcher_argv: tuple[str, ...] = COMMAND_SMOKE_CLI_LAUNCHER_ARGV,
+) -> dict[str, object]:
+    contract = command_demo_retrieval_context_contract(specs, launcher_argv)
+    return {
+        "demo_path_step": contract.demo_path_step,
+        "flow_step": contract.flow_step,
+        "command": contract.name,
+        "command_line": contract.command_line,
+        "search_engine_action": contract.search_engine_action,
+        "search_action_line": contract.search_action_line,
+        "basket_engine_action": contract.basket_engine_action,
+        "basket_action_line": contract.basket_action_line,
+        "is_cli_entrypoint": contract.is_cli_entrypoint,
+        "search_is_exact_action": contract.search_is_exact_action,
+        "basket_is_exact_action": contract.basket_is_exact_action,
+        "action_order": contract.action_order,
+    }
+
+
+def command_demo_retrieval_context_json(
+    specs: tuple[CommandSpec, ...] = COMMAND_SPECS,
+    launcher_argv: tuple[str, ...] = COMMAND_SMOKE_CLI_LAUNCHER_ARGV,
+) -> str:
+    return json.dumps(
+        command_demo_retrieval_context_payload(specs, launcher_argv),
+        sort_keys=True,
+        separators=(",", ":"),
+    )
+
+
+@lru_cache(maxsize=None)
 def command_demo_persist_continue_contract(
     specs: tuple[CommandSpec, ...] = COMMAND_SPECS,
     launcher_argv: tuple[str, ...] = COMMAND_SMOKE_CLI_LAUNCHER_ARGV,
@@ -7662,6 +7858,41 @@ def command_mvp_demo_action_coverage_summary(
     launcher_argv: tuple[str, ...] = COMMAND_SMOKE_CLI_LAUNCHER_ARGV,
 ) -> tuple[tuple[str, str, str, str, str, str], ...]:
     return command_demo_action_coverage_summary(specs, launcher_argv)
+
+
+def command_mvp_demo_retrieval_context_contract(
+    specs: tuple[CommandSpec, ...] = COMMAND_SPECS,
+    launcher_argv: tuple[str, ...] = COMMAND_SMOKE_CLI_LAUNCHER_ARGV,
+) -> CommandDemoRetrievalContextContract:
+    return command_demo_retrieval_context_contract(specs, launcher_argv)
+
+
+def command_mvp_demo_retrieval_context_summary(
+    specs: tuple[CommandSpec, ...] = COMMAND_SPECS,
+    launcher_argv: tuple[str, ...] = COMMAND_SMOKE_CLI_LAUNCHER_ARGV,
+) -> tuple[str, str, str, str, str, str, str, str, bool, bool, bool]:
+    return command_demo_retrieval_context_summary(specs, launcher_argv)
+
+
+def command_mvp_demo_retrieval_context_lookup_table(
+    specs: tuple[CommandSpec, ...] = COMMAND_SPECS,
+    launcher_argv: tuple[str, ...] = COMMAND_SMOKE_CLI_LAUNCHER_ARGV,
+) -> tuple[tuple[str, str], ...]:
+    return command_demo_retrieval_context_lookup_table(specs, launcher_argv)
+
+
+def command_mvp_demo_retrieval_context_payload(
+    specs: tuple[CommandSpec, ...] = COMMAND_SPECS,
+    launcher_argv: tuple[str, ...] = COMMAND_SMOKE_CLI_LAUNCHER_ARGV,
+) -> dict[str, object]:
+    return command_demo_retrieval_context_payload(specs, launcher_argv)
+
+
+def command_mvp_demo_retrieval_context_json(
+    specs: tuple[CommandSpec, ...] = COMMAND_SPECS,
+    launcher_argv: tuple[str, ...] = COMMAND_SMOKE_CLI_LAUNCHER_ARGV,
+) -> str:
+    return command_demo_retrieval_context_json(specs, launcher_argv)
 
 
 def command_mvp_demo_persist_continue_contract(
