@@ -629,6 +629,15 @@ class CommandCanonicalReadinessSnapshot:
 
 
 @dataclass(frozen=True)
+class CommandCanonicalDemoPathStepStatus:
+    demo_path_step: str
+    completed_actions: tuple[str, ...]
+    remaining_actions: tuple[str, ...]
+    command_lines: tuple[str, ...]
+    complete: bool
+
+
+@dataclass(frozen=True)
 class CommandCanonicalReadinessCheckpoint:
     handoff: CommandDemoReadinessHandoffPacket
     trusted_loop: CommandDemoTrustedLoopContract
@@ -659,6 +668,7 @@ class CommandCanonicalDemoLoopContract:
 __all__ = [
     "CommandCanonicalReadinessStatus",
     "CommandCanonicalReadinessSnapshot",
+    "CommandCanonicalDemoPathStepStatus",
     "CommandCanonicalReadinessCheckpoint",
     "CommandCanonicalDemoLoopContract",
     "canonical_command_cli_contract",
@@ -920,6 +930,8 @@ __all__ = [
     "canonical_command_readiness_handoff_snapshot_json",
     "canonical_command_readiness_handoff_snapshot_payload",
     "canonical_command_readiness_handoff_snapshot_summary",
+    "canonical_command_readiness_handoff_transcript_step_statuses",
+    "canonical_command_readiness_handoff_transcript_step_status_summary",
     "canonical_command_readiness_handoff_statuses",
     "canonical_command_readiness_shell_progress",
     "canonical_command_readiness_shell_progress_summary",
@@ -1776,6 +1788,40 @@ def _readiness_step_status_index_payload(
     }
 
 
+def _canonical_command_demo_path_step_statuses(
+    snapshot: CommandCanonicalReadinessSnapshot,
+) -> tuple[CommandCanonicalDemoPathStepStatus, ...]:
+    completed = dict(_readiness_status_lookup_by_demo_path_step(snapshot.completed))
+    remaining = dict(_readiness_status_lookup_by_demo_path_step(snapshot.remaining))
+    step_order = tuple(
+        step
+        for step in canonical_command_demo_path_steps()
+        if completed.get(step) or remaining.get(step)
+    )
+    return tuple(
+        CommandCanonicalDemoPathStepStatus(
+            demo_path_step=step,
+            completed_actions=tuple(
+                action
+                for status in completed.get(step, ())
+                for action in status.engine_actions
+            ),
+            remaining_actions=tuple(
+                action
+                for status in remaining.get(step, ())
+                for action in status.engine_actions
+            ),
+            command_lines=tuple(
+                status.command_line
+                for status in (*completed.get(step, ()), *remaining.get(step, ()))
+                if status.command_line
+            ),
+            complete=bool(completed.get(step)) and not bool(remaining.get(step)),
+        )
+        for step in step_order
+    )
+
+
 def canonical_command_readiness_snapshot_payload(
     argvs: Sequence[Sequence[str] | str],
 ) -> dict[str, object]:
@@ -1888,6 +1934,32 @@ def canonical_command_readiness_handoff_snapshot_summary(
 
     return _canonical_command_readiness_snapshot_summary(
         canonical_command_readiness_handoff_snapshot(argvs)
+    )
+
+
+def canonical_command_readiness_handoff_transcript_step_statuses(
+    argvs: Sequence[Sequence[str] | str],
+) -> tuple[CommandCanonicalDemoPathStepStatus, ...]:
+    """Return exact-action handoff completion grouped by canonical demo-path step."""
+
+    return _canonical_command_demo_path_step_statuses(
+        canonical_command_readiness_handoff_snapshot(argvs)
+    )
+
+
+def canonical_command_readiness_handoff_transcript_step_status_summary(
+    argvs: Sequence[Sequence[str] | str],
+) -> tuple[tuple[str, tuple[str, ...], tuple[str, ...], bool], ...]:
+    """Return compact exact-action step completion for deterministic smoke checks."""
+
+    return tuple(
+        (
+            status.demo_path_step,
+            status.completed_actions,
+            status.remaining_actions,
+            status.complete,
+        )
+        for status in canonical_command_readiness_handoff_transcript_step_statuses(argvs)
     )
 
 
