@@ -1388,9 +1388,14 @@ class RetrievalService:
                 "basket_item_ids": copy.deepcopy(excerpt.get("basket_item_ids", [])),
                 "basket_item_fingerprint": excerpt.get("basket_item_fingerprint"),
                 "basket_item_fingerprints": copy.deepcopy(excerpt.get("basket_item_fingerprints", [])),
+                "basket_promotion_item": copy.deepcopy(excerpt.get("basket_promotion_item")),
+                "basket_promotion_items": copy.deepcopy(excerpt.get("basket_promotion_items", [])),
                 "basket_promotion_source": excerpt.get("basket_promotion_source"),
                 "basket_promotion_count": excerpt.get("basket_promotion_count"),
                 "basket_promotion_ready": excerpt.get("basket_promotion_ready"),
+                "canonical_demo_path_steps": copy.deepcopy(
+                    excerpt.get("canonical_demo_path_steps", [])
+                ),
                 "span": copy.deepcopy(span),
             },
         )
@@ -2745,6 +2750,7 @@ class RetrievalService:
         normalized["retrieval_backend"] = retrieval_backend
         normalized["retrieval_mode"] = retrieval_mode
         normalized["retrieval_policy"] = copy.deepcopy(retrieval_policy)
+        normalized["canonical_demo_path_steps"] = list(_RETRIEVAL_DEMO_PATH_STEPS)
         text_value = normalized.get("text")
         excerpt_text_value = normalized.get("excerpt_text")
         if not isinstance(excerpt_text_value, str) and isinstance(text_value, str):
@@ -2832,6 +2838,7 @@ class RetrievalService:
         normalized_provenance["retrieval_source_strategy"] = source_strategy
         normalized_provenance["lookup_resolution"] = lookup_resolution
         normalized_provenance["excerpt_lookup_fingerprint"] = excerpt_lookup_fingerprint
+        normalized_provenance["canonical_demo_path_steps"] = list(_RETRIEVAL_DEMO_PATH_STEPS)
         if isinstance(normalized.get("basket_promotion_source"), str):
             normalized_provenance["basket_promotion_source"] = normalized["basket_promotion_source"]
         if isinstance(normalized.get("basket_promotion_count"), int):
@@ -2846,6 +2853,14 @@ class RetrievalService:
             normalized_provenance["basket_item_ids"] = copy.deepcopy(normalized["basket_item_ids"])
         if isinstance(normalized.get("basket_item_fingerprints"), list):
             normalized_provenance["basket_item_fingerprints"] = copy.deepcopy(normalized["basket_item_fingerprints"])
+        if isinstance(normalized.get("basket_promotion_item"), dict):
+            normalized_provenance["basket_promotion_item"] = copy.deepcopy(
+                normalized["basket_promotion_item"]
+            )
+        if isinstance(normalized.get("basket_promotion_items"), list):
+            normalized_provenance["basket_promotion_items"] = copy.deepcopy(
+                normalized["basket_promotion_items"]
+            )
         normalized["provenance"] = normalized_provenance
         return normalized
 
@@ -2896,9 +2911,15 @@ class RetrievalService:
             "retrieval_policy": copy.deepcopy(retrieval_policy),
             "lookup_resolution": lookup_resolution,
             "basket_promotion_source": "fts_excerpt_lookup",
+            "basket_item_ids": [basket_item_id],
+            "basket_promotion_count": 1,
+            "basket_promotion_ready": True,
             "excerpt_lookup_fingerprint": excerpt_lookup_fingerprint,
+            "canonical_demo_path_steps": list(_RETRIEVAL_DEMO_PATH_STEPS),
         }
-        return self._with_basket_item_fingerprint(item)
+        item = self._with_basket_item_fingerprint(item)
+        item["basket_item_fingerprints"] = [item["basket_item_fingerprint"]]
+        return item
 
     @staticmethod
     def _build_doc_identity_fingerprint(

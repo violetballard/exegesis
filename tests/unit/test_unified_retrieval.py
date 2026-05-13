@@ -1561,6 +1561,11 @@ class UnifiedRetrievalTests(unittest.TestCase):
         self.assertEqual(normalized["basket_promotion_count"], 1)
         self.assertTrue(normalized["basket_promotion_ready"])
         self.assertEqual(normalized["basket_promotion_source"], "fts_excerpt_lookup")
+        self.assertEqual(normalized["canonical_demo_path_steps"], self.CANONICAL_DEMO_PATH_STEPS)
+        self.assertEqual(
+            normalized["basket_promotion_item"]["canonical_demo_path_steps"],
+            self.CANONICAL_DEMO_PATH_STEPS,
+        )
 
         provenance = normalized["provenance"]
         self.assertEqual(provenance["source_strategy"], "fts")
@@ -1581,10 +1586,13 @@ class UnifiedRetrievalTests(unittest.TestCase):
         self.assertEqual(provenance["basket_promotion_count"], 1)
         self.assertTrue(provenance["basket_promotion_ready"])
         self.assertEqual(provenance["basket_promotion_source"], "fts_excerpt_lookup")
+        self.assertEqual(provenance["canonical_demo_path_steps"], self.CANONICAL_DEMO_PATH_STEPS)
         self.assertEqual(
             provenance["basket_item_fingerprint"],
             normalized["basket_item_fingerprint"],
         )
+        self.assertEqual(provenance["basket_promotion_item"], normalized["basket_promotion_item"])
+        self.assertEqual(provenance["basket_promotion_items"], normalized["basket_promotion_items"])
 
     def test_fetch_excerpt_requires_an_fts_lookup_hit(self) -> None:
         docindex_service = DocIndexService(self.root, audit_log=self.audit)
@@ -1690,11 +1698,13 @@ class UnifiedRetrievalTests(unittest.TestCase):
         self.assertEqual(canonical["retrieval_mode"], "fts_first")
         self.assertEqual(canonical["retrieval_policy"]["retrieval_backend"], "sqlite_fts")
         self.assertEqual(canonical["retrieval_policy"]["retrieval_mode"], "fts_first")
+        self.assertEqual(canonical["canonical_demo_path_steps"], self.CANONICAL_DEMO_PATH_STEPS)
         self.assertEqual(canonical["title_hint"], result.hits[0].title_hint)
         self.assertEqual(canonical["provenance"]["source_strategy"], "fts")
         self.assertEqual(canonical["provenance"]["basket_item_id"], f"retrieval:fts:{excerpt_id}")
         self.assertEqual(canonical["provenance"]["retrieval_backend"], "sqlite_fts")
         self.assertEqual(canonical["provenance"]["retrieval_mode"], "fts_first")
+        self.assertEqual(canonical["provenance"]["canonical_demo_path_steps"], self.CANONICAL_DEMO_PATH_STEPS)
         self.assertEqual(canonical["provenance"]["doc_id"], result.hits[0].doc_id)
         self.assertEqual(canonical["provenance"]["title_hint"], result.hits[0].title_hint)
         self.assertEqual(canonical["provenance"]["excerpt_fingerprint"], result.hits[0].provenance["excerpt_fingerprint"])
@@ -1712,6 +1722,7 @@ class UnifiedRetrievalTests(unittest.TestCase):
         self.assertEqual(canonical["basket_item_id"], expected_basket_item_id)
         self.assertEqual(basket_item["item_id"], expected_basket_item_id)
         self.assertEqual(basket_item["basket_item_id"], expected_basket_item_id)
+        self.assertEqual(basket_item["basket_item_ids"], [expected_basket_item_id])
         self.assertEqual(basket_item["item_type"], "excerpt")
         self.assertEqual(basket_item["doc_id"], canonical["doc_id"])
         self.assertEqual(basket_item["doc_type"], canonical["doc_type"])
@@ -1728,6 +1739,9 @@ class UnifiedRetrievalTests(unittest.TestCase):
         self.assertEqual(basket_item["retrieval_mode"], "fts_first")
         self.assertEqual(basket_item["retrieval_policy"], canonical["retrieval_policy"])
         self.assertEqual(basket_item["lookup_resolution"], "fts")
+        self.assertEqual(basket_item["canonical_demo_path_steps"], self.CANONICAL_DEMO_PATH_STEPS)
+        self.assertEqual(basket_item["basket_promotion_count"], 1)
+        self.assertTrue(basket_item["basket_promotion_ready"])
         self.assertEqual(canonical["basket_promotion_source"], "fts_excerpt_lookup")
         self.assertEqual(canonical["provenance"]["basket_promotion_source"], "fts_excerpt_lookup")
         self.assertEqual(basket_item["basket_promotion_source"], "fts_excerpt_lookup")
@@ -1762,8 +1776,20 @@ class UnifiedRetrievalTests(unittest.TestCase):
             [canonical["basket_item_fingerprint"]],
         )
         self.assertEqual(
+            basket_item["basket_item_fingerprints"],
+            canonical["basket_item_fingerprints"],
+        )
+        self.assertEqual(
             canonical["provenance"]["basket_item_fingerprints"],
             canonical["basket_item_fingerprints"],
+        )
+        self.assertEqual(
+            canonical["provenance"]["basket_promotion_item"],
+            canonical["basket_promotion_item"],
+        )
+        self.assertEqual(
+            canonical["provenance"]["basket_promotion_items"],
+            canonical["basket_promotion_items"],
         )
 
         repeated = self.service.fetch_fts_excerpt(f"  {excerpt_id}  ")
@@ -1860,10 +1886,30 @@ class UnifiedRetrievalTests(unittest.TestCase):
             metadata["basket_item_fingerprints"],
             [excerpt["basket_item_fingerprint"]],
         )
+        self.assertEqual(
+            metadata["basket_promotion_item"]["basket_item_id"],
+            f"retrieval:fts:{excerpt_id}",
+        )
+        self.assertEqual(
+            metadata["basket_promotion_item"]["basket_item_ids"],
+            [f"retrieval:fts:{excerpt_id}"],
+        )
+        self.assertEqual(
+            metadata["basket_promotion_item"]["canonical_demo_path_steps"],
+            self.CANONICAL_DEMO_PATH_STEPS,
+        )
+        self.assertEqual(metadata["basket_promotion_item"]["basket_promotion_count"], 1)
+        self.assertTrue(metadata["basket_promotion_item"]["basket_promotion_ready"])
+        self.assertEqual(
+            metadata["basket_promotion_item"]["basket_item_fingerprints"],
+            [excerpt["basket_item_fingerprint"]],
+        )
+        self.assertEqual(metadata["basket_promotion_items"], [metadata["basket_promotion_item"]])
         self.assertEqual(metadata["basket_promotion_source"], "fts_excerpt_lookup")
         self.assertEqual(metadata["basket_promotion_source"], excerpt["basket_promotion_source"])
         self.assertEqual(metadata["basket_promotion_count"], 1)
         self.assertTrue(metadata["basket_promotion_ready"])
+        self.assertEqual(metadata["canonical_demo_path_steps"], self.CANONICAL_DEMO_PATH_STEPS)
 
     def test_retrieval_hits_surface_top_level_retrieval_context(self) -> None:
         result = self.service.retrieve_auto(
