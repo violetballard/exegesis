@@ -4247,6 +4247,7 @@ def command_demo_path_contract(
     specs: tuple[CommandSpec, ...] = COMMAND_SPECS,
 ) -> CommandDemoPathContract:
     route_catalog = command_flow_route_catalog(flow_steps=command_demo_flow_steps(), specs=specs)
+    _validate_demo_path_step_metadata()
     path_steps = {
         _normalize_token(flow_step): (demo_path_step, engine_actions)
         for flow_step, demo_path_step, engine_actions in _DEMO_PATH_STEP_BY_FLOW_STEP
@@ -4289,6 +4290,38 @@ def _demo_path_metadata_for_route(
     if not engine_actions or any(not action.strip() for action in engine_actions):
         raise ValueError(f"Command demo path engine actions must not be empty: {flow_step}")
     return demo_path_step, engine_actions
+
+
+def _validate_demo_path_step_metadata() -> None:
+    metadata_flow_steps = tuple(
+        _normalize_token(flow_step)
+        for flow_step, _demo_path_step, _engine_actions in _DEMO_PATH_STEP_BY_FLOW_STEP
+    )
+    if metadata_flow_steps != DEMO_COMMAND_FLOW_STEPS:
+        raise ValueError("Command demo path metadata steps are inconsistent")
+
+    seen_flow_steps: set[str] = set()
+    seen_engine_actions: set[str] = set()
+    for flow_step, demo_path_step, engine_actions in _DEMO_PATH_STEP_BY_FLOW_STEP:
+        normalized_flow_step = _normalize_token(flow_step)
+        if normalized_flow_step in seen_flow_steps:
+            raise ValueError(f"Duplicate command demo path metadata step: {normalized_flow_step}")
+        seen_flow_steps.add(normalized_flow_step)
+        if not demo_path_step.strip():
+            raise ValueError(f"Command demo path metadata label must not be empty: {normalized_flow_step}")
+        if not engine_actions:
+            raise ValueError(f"Command demo path metadata actions must not be empty: {normalized_flow_step}")
+        for engine_action in engine_actions:
+            normalized_engine_action = engine_action.strip()
+            if not normalized_engine_action:
+                raise ValueError(
+                    f"Command demo path metadata action must not be empty: {normalized_flow_step}"
+                )
+            if normalized_engine_action in seen_engine_actions:
+                raise ValueError(
+                    f"Duplicate command demo path metadata action: {normalized_engine_action}"
+                )
+            seen_engine_actions.add(normalized_engine_action)
 
 
 def _validate_command_demo_path_contract(
