@@ -4335,6 +4335,10 @@ class UnifiedRetrievalTests(unittest.TestCase):
             result.basket_promotion_items()[0]["basket_item_fingerprint"],
         )
         self.assertEqual(
+            result.basket_promotion_items()[0]["promotion_item_fingerprint"],
+            result.retrieval_basket_promotion_bundle()["basket_promotion_items"][0]["promotion_item_fingerprint"],
+        )
+        self.assertEqual(
             direct_item["excerpt_lookup_fingerprint"],
             result.basket_promotion_items()[0]["excerpt_lookup_fingerprint"],
         )
@@ -4384,6 +4388,22 @@ class UnifiedRetrievalTests(unittest.TestCase):
         )
 
         payload = result.to_downstream_payload()
+        self.assertEqual(
+            payload["excerpt_hits"][0]["promotion_item_fingerprint"],
+            result.basket_promotion_items()[0]["promotion_item_fingerprint"],
+        )
+        self.assertEqual(
+            payload["excerpt_hits"][0]["provenance"]["promotion_item_fingerprint"],
+            result.basket_promotion_items()[0]["promotion_item_fingerprint"],
+        )
+        self.assertEqual(
+            payload["excerpt_hits"][0]["basket_promotion_items"][0],
+            result.basket_promotion_items()[0],
+        )
+        self.assertEqual(
+            payload["excerpt_hits"][0]["provenance"]["basket_promotion_items"][0],
+            result.basket_promotion_items()[0],
+        )
         payload.pop("retrieval_basket_promotion_bundle", None)
         self.assertEqual(
             payload["excerpt_hits"][0]["fts_rank"],
@@ -4460,6 +4480,26 @@ class UnifiedRetrievalTests(unittest.TestCase):
         self.assertEqual(rehydrated_item["doc_rank"], result.basket_promotion_items()[0]["doc_rank"])
         self.assertEqual(rehydrated_item["fts_rank"], result.basket_promotion_items()[0]["fts_rank"])
 
+        excerpt_only_payload = result.to_downstream_payload()
+        excerpt_only_payload.pop("retrieval_basket_promotion_bundle", None)
+        excerpt_only_payload.pop("basket_promotion_items", None)
+        excerpt_only_payload.pop("retrieval_evidence", None)
+        excerpt_only_payload.pop("retrieval_source_bundle", None)
+        excerpt_only_payload.pop("retrieval_citation_bundle", None)
+        excerpt_only_bundle = _build_retrieval_basket_promotion_bundle_from_payload(excerpt_only_payload)
+        excerpt_only_item = excerpt_only_bundle["basket_promotion_items"][0]
+        self.assertIsInstance(excerpt_only_item["promotion_item_fingerprint"], str)
+        self.assertEqual(
+            excerpt_only_item["promotion_item_fingerprint"],
+            _build_retrieval_basket_promotion_bundle_from_payload(excerpt_only_payload)[
+                "basket_promotion_items"
+            ][0]["promotion_item_fingerprint"],
+        )
+        self.assertEqual(
+            excerpt_only_item["canonical_demo_path_steps"],
+            self.CANONICAL_DEMO_PATH_STEPS,
+        )
+
         provenance_only_payload = result.to_downstream_payload()
         provenance_only_payload.pop("retrieval_basket_promotion_bundle", None)
         provenance_only_payload.pop("retrieval_evidence", None)
@@ -4505,6 +4545,10 @@ class UnifiedRetrievalTests(unittest.TestCase):
         self.assertEqual(
             normalized_sparse_item["basket_item_fingerprint"],
             result.basket_promotion_items()[0]["basket_item_fingerprint"],
+        )
+        self.assertEqual(
+            normalized_sparse_bundle["basket_promotion_items"][0]["promotion_item_fingerprint"],
+            result.basket_promotion_items()[0]["promotion_item_fingerprint"],
         )
         self.assertEqual(normalized_sparse_item["doc_rank"], result.basket_promotion_items()[0]["doc_rank"])
         self.assertEqual(normalized_sparse_item["fts_rank"], result.basket_promotion_items()[0]["fts_rank"])
@@ -4563,6 +4607,7 @@ class UnifiedRetrievalTests(unittest.TestCase):
         basket_promotion_item["promotion_item_fingerprint"] = "stale-promotion-fingerprint"
         basket_promotion_items.append("stale-non-object-promotion-item")
         cast(dict[str, object], basket_bundle)["query_constraints_fingerprint"] = "stale-fingerprint"
+        cast(dict[str, object], basket_bundle)["promotion_bundle_fingerprint"] = "stale-bundle-fingerprint"
 
         normalized_bundle = _build_retrieval_basket_promotion_bundle_from_payload(payload)
 
@@ -4620,6 +4665,10 @@ class UnifiedRetrievalTests(unittest.TestCase):
             "stale-promotion-fingerprint",
         )
         self.assertEqual(len(normalized_bundle["basket_promotion_items"]), 1)
+        self.assertNotEqual(
+            normalized_bundle["promotion_bundle_fingerprint"],
+            "stale-bundle-fingerprint",
+        )
 
         sparse_context_bundle = result.retrieval_context_bundle()
         for snapshot in (

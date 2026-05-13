@@ -704,6 +704,7 @@ class RetrievalResult:
                 "canonical_demo_path_steps": list(_RETRIEVAL_DEMO_PATH_STEPS),
             }
             item["basket_item_fingerprint"] = RetrievalService._basket_item_fingerprint(item)
+            RetrievalService._with_promotion_item_fingerprint(item)
             items.append(item)
         return items
 
@@ -725,6 +726,9 @@ class RetrievalResult:
                         snapshot["basket_item_ids"] = [basket_item_id]
                     snapshot["basket_item_fingerprint"] = basket_item["basket_item_fingerprint"]
                     snapshot["basket_item_fingerprints"] = [basket_item["basket_item_fingerprint"]]
+                    snapshot["promotion_item_fingerprint"] = basket_item["promotion_item_fingerprint"]
+                    snapshot["basket_promotion_item"] = copy.deepcopy(basket_item)
+                    snapshot["basket_promotion_items"] = [copy.deepcopy(basket_item)]
                     provenance = snapshot.get("provenance")
                     if isinstance(provenance, dict):
                         if isinstance(basket_item_id, str) and basket_item_id:
@@ -732,6 +736,11 @@ class RetrievalResult:
                             provenance["basket_item_ids"] = [basket_item_id]
                         provenance["basket_item_fingerprint"] = basket_item["basket_item_fingerprint"]
                         provenance["basket_item_fingerprints"] = [basket_item["basket_item_fingerprint"]]
+                        provenance["promotion_item_fingerprint"] = basket_item[
+                            "promotion_item_fingerprint"
+                        ]
+                        provenance["basket_promotion_item"] = copy.deepcopy(basket_item)
+                        provenance["basket_promotion_items"] = [copy.deepcopy(basket_item)]
             snapshots.append(snapshot)
         return snapshots
 
@@ -808,7 +817,7 @@ class RetrievalResult:
             basket_item_fingerprint = basket_item_fingerprint_by_id.get(str(basket_item_id))
             if basket_item_fingerprint is not None:
                 promotion_item["basket_item_fingerprint"] = basket_item_fingerprint
-            promotion_item["promotion_item_fingerprint"] = RetrievalService._stable_fingerprint(promotion_item)
+            RetrievalService._with_promotion_item_fingerprint(promotion_item)
             promotion_items.append(promotion_item)
         promotion_bundle_fingerprint = RetrievalService._stable_fingerprint(
             {
@@ -818,6 +827,9 @@ class RetrievalResult:
                 "retrieval_evidence_fingerprint": bundle_context["retrieval_evidence_fingerprint"],
                 "promotion_item_fingerprints": [
                     item["promotion_item_fingerprint"] for item in promotion_items
+                ],
+                "basket_promotion_item_fingerprints": [
+                    item["promotion_item_fingerprint"] for item in basket_promotion_items
                 ],
             }
         )
@@ -2103,52 +2115,56 @@ class RetrievalService:
         query_constraints = RetrievalService._query_constraints_snapshot(query)
         query_constraints_fingerprint = RetrievalService._stable_fingerprint(query_constraints)
         basket_promotion_items = [
-            self._with_basket_item_fingerprint({
-                "item_id": _basket_item_id_for_excerpt(
-                    source_strategy=item["source_strategy"],
-                    excerpt_id=item["excerpt_id"],
-                ),
-                "basket_item_id": _basket_item_id_for_excerpt(
-                    source_strategy=item["source_strategy"],
-                    excerpt_id=item["excerpt_id"],
-                ),
-                "item_type": "excerpt",
-                "doc_id": item["doc_id"],
-                "doc_type": item["doc_type"],
-                "title_hint": item.get("title_hint"),
-                "source_hash": item["source_hash"],
-                "doc_identity_fingerprint": item.get("doc_identity_fingerprint"),
-                "excerpt_id": item["excerpt_id"],
-                "excerpt_text": item.get("excerpt_text"),
-                "excerpt_fingerprint": item["excerpt_fingerprint"],
-                "excerpt_lookup_fingerprint": item.get("excerpt_lookup_fingerprint"),
-                "excerpt_text_hash": item["excerpt_text_hash"],
-                "span": copy.deepcopy(item["span"]),
-                "doc_rank": item["doc_rank"],
-                "rank": item["rank"],
-                "fts_rank": item["fts_rank"],
-                "matched_terms": copy.deepcopy(item.get("matched_terms")),
-                "match_count": item.get("match_count"),
-                "source_strategy": item["source_strategy"],
-                "retrieval_source_strategy": item.get(
-                    "retrieval_source_strategy",
-                    item["source_strategy"],
-                ),
-                "retrieval_backend": item["retrieval_backend"],
-                "retrieval_mode": item["retrieval_mode"],
-                "retrieval_policy": copy.deepcopy(retrieval_policy),
-                "query_scope": query.scope,
-                "query_intent": query.intent,
-                "query_constraints": copy.deepcopy(query_constraints),
-                "query_constraints_fingerprint": query_constraints_fingerprint,
-                "query_date_range": list(query.constraints.date_range)
-                if query.constraints.date_range is not None
-                else None,
-                "query_fingerprint": query_fingerprint,
-                "fts_match_query_fingerprint": item.get("fts_match_query_fingerprint"),
-                "result_fingerprint": result_fingerprint,
-                "canonical_demo_path_steps": list(_RETRIEVAL_DEMO_PATH_STEPS),
-            })
+            self._with_promotion_item_fingerprint(
+                self._with_basket_item_fingerprint(
+                    {
+                        "item_id": _basket_item_id_for_excerpt(
+                            source_strategy=item["source_strategy"],
+                            excerpt_id=item["excerpt_id"],
+                        ),
+                        "basket_item_id": _basket_item_id_for_excerpt(
+                            source_strategy=item["source_strategy"],
+                            excerpt_id=item["excerpt_id"],
+                        ),
+                        "item_type": "excerpt",
+                        "doc_id": item["doc_id"],
+                        "doc_type": item["doc_type"],
+                        "title_hint": item.get("title_hint"),
+                        "source_hash": item["source_hash"],
+                        "doc_identity_fingerprint": item.get("doc_identity_fingerprint"),
+                        "excerpt_id": item["excerpt_id"],
+                        "excerpt_text": item.get("excerpt_text"),
+                        "excerpt_fingerprint": item["excerpt_fingerprint"],
+                        "excerpt_lookup_fingerprint": item.get("excerpt_lookup_fingerprint"),
+                        "excerpt_text_hash": item["excerpt_text_hash"],
+                        "span": copy.deepcopy(item["span"]),
+                        "doc_rank": item["doc_rank"],
+                        "rank": item["rank"],
+                        "fts_rank": item["fts_rank"],
+                        "matched_terms": copy.deepcopy(item.get("matched_terms")),
+                        "match_count": item.get("match_count"),
+                        "source_strategy": item["source_strategy"],
+                        "retrieval_source_strategy": item.get(
+                            "retrieval_source_strategy",
+                            item["source_strategy"],
+                        ),
+                        "retrieval_backend": item["retrieval_backend"],
+                        "retrieval_mode": item["retrieval_mode"],
+                        "retrieval_policy": copy.deepcopy(retrieval_policy),
+                        "query_scope": query.scope,
+                        "query_intent": query.intent,
+                        "query_constraints": copy.deepcopy(query_constraints),
+                        "query_constraints_fingerprint": query_constraints_fingerprint,
+                        "query_date_range": list(query.constraints.date_range)
+                        if query.constraints.date_range is not None
+                        else None,
+                        "query_fingerprint": query_fingerprint,
+                        "fts_match_query_fingerprint": item.get("fts_match_query_fingerprint"),
+                        "result_fingerprint": result_fingerprint,
+                        "canonical_demo_path_steps": list(_RETRIEVAL_DEMO_PATH_STEPS),
+                    }
+                )
+            )
             for item in excerpt_citations
         ]
         basket_promotion_count = len(basket_promotion_items)
@@ -2244,6 +2260,17 @@ class RetrievalService:
     @staticmethod
     def _with_basket_item_fingerprint(item: dict[str, object]) -> dict[str, object]:
         item["basket_item_fingerprint"] = RetrievalService._basket_item_fingerprint(item)
+        return item
+
+    @staticmethod
+    def _with_promotion_item_fingerprint(item: dict[str, object]) -> dict[str, object]:
+        item["promotion_item_fingerprint"] = RetrievalService._stable_fingerprint(
+            {
+                key: value
+                for key, value in item.items()
+                if key != "promotion_item_fingerprint"
+            }
+        )
         return item
 
     @staticmethod
