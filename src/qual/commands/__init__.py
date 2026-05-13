@@ -79,6 +79,7 @@ def build_mvp_demo_command_surface_payload() -> dict[str, object]:
         "patch_review": asdict(patch_review_contract),
         "patch_review_readiness_smoke": build_patch_review_readiness_smoke_payload(),
         "persist_continue": canonical_command_persist_continue_payload(),
+        "demo_path_commands": build_mvp_demo_path_command_payload(demo_loop),
         "readiness_snapshot": canonical_command_readiness_snapshot_payload(()),
         "next_command": canonical_command_readiness_next_status_payload(),
         "smoke_contract": smoke_contract,
@@ -90,6 +91,42 @@ def run_mvp_demo_command_surface_json() -> str:
     """Return the package-level MVP demo command contract as stable JSON."""
     return json.dumps(
         build_mvp_demo_command_surface_payload(),
+        sort_keys=True,
+        separators=(",", ":"),
+    )
+
+
+def build_mvp_demo_path_command_payload(
+    demo_loop: dict[str, object] | None = None,
+) -> tuple[dict[str, object], ...]:
+    """Return demo-path steps mapped to the commands reviewers can smoke-test."""
+    loop = demo_loop or canonical_command_demo_loop_payload()
+    steps = tuple(loop["demo_path_steps"])
+    command_lines = tuple(loop["command_lines"])
+    smoke_argvs = tuple(loop["smoke_argvs"])
+    action_lookup = dict(loop["action_lookup_table"])
+    entries: list[dict[str, object]] = []
+    for step, command_line, smoke_argv in zip(
+        steps,
+        command_lines,
+        smoke_argvs,
+        strict=True,
+    ):
+        entries.append(
+            {
+                "demo_path_step": step,
+                "command_line": command_line,
+                "smoke_argv": smoke_argv,
+                "engine_actions": action_lookup[step],
+            }
+        )
+    return tuple(entries)
+
+
+def run_mvp_demo_path_command_json() -> str:
+    """Return demo-path command audit data as stable JSON."""
+    return json.dumps(
+        build_mvp_demo_path_command_payload(),
         sort_keys=True,
         separators=(",", ":"),
     )
@@ -131,6 +168,7 @@ def build_mvp_demo_command_surface_audit_payload() -> dict[str, object]:
         "handler_trust_gate": canonical_command_handler_trust_gate_payload(),
         "command_readiness_audit": canonical_command_readiness_command_audit_payload(),
         "exact_action_routes": canonical_command_exact_action_route_payload(),
+        "demo_path_commands": build_mvp_demo_path_command_payload(),
         "patch_review_readiness_smoke": build_patch_review_readiness_smoke_payload(),
     }
 
