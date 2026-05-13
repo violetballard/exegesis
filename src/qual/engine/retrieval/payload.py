@@ -251,6 +251,26 @@ def _basket_item_ref_snapshot_candidates(snapshot: dict[str, object]) -> list[tu
     return candidates
 
 
+def _paired_basket_item_fingerprints(candidate_ids: object, candidate_fingerprints: object) -> list[str]:
+    raw_item_ids = _normalize_list_like(candidate_ids)
+    raw_fingerprints = _normalize_list_like(candidate_fingerprints)
+    canonical_item_ids = _stable_fts_basket_item_ids(raw_item_ids)
+    normalized_fingerprints = _stable_text_values(raw_fingerprints)
+    if len(normalized_fingerprints) == len(canonical_item_ids) and len(raw_fingerprints) != len(raw_item_ids):
+        return normalized_fingerprints
+
+    paired_fingerprints: list[str] = []
+    seen_item_ids: set[str] = set()
+    for raw_item_id, raw_fingerprint in zip(raw_item_ids, raw_fingerprints):
+        item_id = _normalize_fts_basket_item_id(raw_item_id)
+        item_fingerprint = _normalize_optional_text(raw_fingerprint)
+        if item_id is None or item_fingerprint is None or item_id in seen_item_ids:
+            continue
+        seen_item_ids.add(item_id)
+        paired_fingerprints.append(item_fingerprint)
+    return paired_fingerprints
+
+
 def _top_basket_item_ids_from_doc_snapshots(*snapshots: object) -> list[str]:
     values: list[object] = []
     for snapshot in snapshots:
@@ -297,6 +317,9 @@ def _basket_promotion_count_from_snapshot(
         _stable_text_values(candidate_ids) or _stable_text_values(candidate_fingerprints)
         for candidate_ids, candidate_fingerprints in _basket_item_ref_snapshot_candidates(snapshot)
     ):
+        return 0
+
+    if "basket_item_ids" in snapshot or "basket_item_fingerprints" in snapshot:
         return 0
 
     count = snapshot.get("basket_promotion_count")
@@ -733,7 +756,7 @@ def _basket_item_fingerprints_from_snapshot(
         basket_item_ids = _stable_fts_basket_item_ids(candidate_ids)
         if not basket_item_ids:
             continue
-        basket_item_fingerprints = _stable_text_values(candidate_fingerprints)
+        basket_item_fingerprints = _paired_basket_item_fingerprints(candidate_ids, candidate_fingerprints)
         if len(basket_item_fingerprints) == len(basket_item_ids):
             return basket_item_fingerprints
 
@@ -1249,9 +1272,11 @@ def _normalize_retrieval_summary_snapshot(summary: dict[str, object]) -> dict[st
     )
     if "caches_used" in normalized:
         normalized["caches_used"] = _normalize_bool_map(normalized.get("caches_used"))
-    normalized["basket_item_ids"] = _stable_fts_basket_item_ids(normalized.get("basket_item_ids"))
-    normalized["basket_item_fingerprints"] = _stable_text_values(
-        normalized.get("basket_item_fingerprints")
+    basket_item_ids = normalized.get("basket_item_ids")
+    normalized["basket_item_ids"] = _stable_fts_basket_item_ids(basket_item_ids)
+    normalized["basket_item_fingerprints"] = _paired_basket_item_fingerprints(
+        basket_item_ids,
+        normalized.get("basket_item_fingerprints"),
     )
     count = normalized.get("basket_promotion_count")
     if not isinstance(count, int) or count < 0:
@@ -1288,9 +1313,11 @@ def _normalize_retrieval_manifest_snapshot(manifest: dict[str, object]) -> dict[
         normalized.get("excerpt_lookup_fingerprints")
     )
     normalized["excerpt_text_hashes"] = _normalize_list_like(normalized.get("excerpt_text_hashes"))
-    normalized["basket_item_ids"] = _stable_fts_basket_item_ids(normalized.get("basket_item_ids", []))
+    basket_item_ids = normalized.get("basket_item_ids", [])
+    normalized["basket_item_ids"] = _stable_fts_basket_item_ids(basket_item_ids)
     if "basket_item_fingerprints" in normalized:
-        normalized["basket_item_fingerprints"] = _stable_text_values(
+        normalized["basket_item_fingerprints"] = _paired_basket_item_fingerprints(
+            basket_item_ids,
             normalized.get("basket_item_fingerprints", [])
         )
     normalized["active_strategy_ids"] = _normalize_active_strategy_ids(
@@ -1628,6 +1655,8 @@ def _normalize_retrieval_source_bundle_snapshot(source_bundle: dict[str, object]
         )
     normalized["retrieval_manifest"]["top_basket_item_ids"] = top_basket_item_ids
     normalized["basket_promotion_items"] = _basket_promotion_items_from_snapshot(normalized)
+    raw_basket_item_ids = normalized.get("basket_item_ids")
+    raw_basket_item_fingerprints = normalized.get("basket_item_fingerprints")
     normalized["basket_item_ids"] = _basket_item_ids_from_snapshot(
         normalized,
         basket_promotion_items=normalized["basket_promotion_items"],
@@ -1636,6 +1665,12 @@ def _normalize_retrieval_source_bundle_snapshot(source_bundle: dict[str, object]
         normalized,
         basket_promotion_items=normalized["basket_promotion_items"],
     )
+    paired_basket_item_fingerprints = _paired_basket_item_fingerprints(
+        raw_basket_item_ids,
+        raw_basket_item_fingerprints,
+    )
+    if len(paired_basket_item_fingerprints) == len(normalized["basket_item_ids"]):
+        normalized["basket_item_fingerprints"] = paired_basket_item_fingerprints
     normalized["basket_promotion_count"] = _basket_promotion_count_from_snapshot(
         normalized,
         basket_promotion_items=normalized["basket_promotion_items"],
