@@ -81,21 +81,38 @@ def build_mvp_demo_command_surface_payload(
     demo_loop = canonical_command_demo_loop_payload()
     smoke_contract = canonical_command_demo_loop_smoke_payload()
     patch_review_contract = build_patch_review_command_contract()
+    patch_review_readiness_smoke = build_patch_review_readiness_smoke_payload()
+    patch_review_action_resolution_smoke = build_patch_review_action_resolution_smoke_payload()
+    smoke_gate = build_mvp_demo_smoke_gate_payload(demo_loop)
+    trusted_command_contract = build_mvp_demo_trusted_command_contract_payload(demo_loop)
+    handler_trusted_demo_path = canonical_command_handler_trusted_demo_path_payload()
+    readiness_gate = build_mvp_demo_command_surface_readiness_gate_payload(
+        demo_loop_ready=bool(demo_loop["is_ready"]),
+        smoke_gate=smoke_gate,
+        trusted_command_contract=trusted_command_contract,
+        handler_trusted_demo_path=handler_trusted_demo_path,
+        patch_review_contract_ready=patch_review_contract.ready,
+        patch_review_readiness_smoke_ready=bool(patch_review_readiness_smoke["ready"]),
+        patch_review_action_resolution_smoke_ready=bool(
+            patch_review_action_resolution_smoke["ready"]
+        ),
+    )
     return {
-        "is_ready": demo_loop["is_ready"],
-        "issues": demo_loop["issues"],
+        "is_ready": readiness_gate["is_ready"],
+        "issues": readiness_gate["issues"],
+        "readiness_gate": readiness_gate,
         "demo_loop": demo_loop,
         "execution_plan": canonical_command_execution_plan_payload(),
         "retrieval_context": canonical_command_retrieval_context_payload(),
         "patch_review": asdict(patch_review_contract),
-        "patch_review_readiness_smoke": build_patch_review_readiness_smoke_payload(),
-        "patch_review_action_resolution_smoke": build_patch_review_action_resolution_smoke_payload(),
+        "patch_review_readiness_smoke": patch_review_readiness_smoke,
+        "patch_review_action_resolution_smoke": patch_review_action_resolution_smoke,
         "persist_continue": canonical_command_persist_continue_payload(),
         "demo_path_commands": build_mvp_demo_path_command_payload(demo_loop),
         "demo_path_command_sequence": build_mvp_demo_command_sequence_payload(demo_loop, smoke_contract),
-        "trusted_command_contract": build_mvp_demo_trusted_command_contract_payload(demo_loop),
-        "handler_trusted_demo_path": canonical_command_handler_trusted_demo_path_payload(),
-        "smoke_gate": build_mvp_demo_smoke_gate_payload(demo_loop),
+        "trusted_command_contract": trusted_command_contract,
+        "handler_trusted_demo_path": handler_trusted_demo_path,
+        "smoke_gate": smoke_gate,
         "readiness_snapshot": canonical_command_readiness_snapshot_payload(smoke_argvs),
         "next_command": canonical_command_readiness_next_status_payload(smoke_argvs),
         "smoke_contract": smoke_contract,
@@ -110,6 +127,42 @@ def run_mvp_demo_command_surface_json() -> str:
         sort_keys=True,
         separators=(",", ":"),
     )
+
+
+def build_mvp_demo_command_surface_readiness_gate_payload(
+    *,
+    demo_loop_ready: bool,
+    smoke_gate: dict[str, object],
+    trusted_command_contract: dict[str, object],
+    handler_trusted_demo_path: dict[str, object],
+    patch_review_contract_ready: bool,
+    patch_review_readiness_smoke_ready: bool,
+    patch_review_action_resolution_smoke_ready: bool,
+) -> dict[str, object]:
+    """Return the aggregate gate for trusting the package-level command contract."""
+    component_status = {
+        "demo_loop": demo_loop_ready,
+        "smoke_gate": bool(smoke_gate["is_complete"]),
+        "trusted_command_contract": bool(trusted_command_contract["is_trusted"]),
+        "handler_trusted_demo_path": bool(handler_trusted_demo_path["is_complete"]),
+        "patch_review_contract": patch_review_contract_ready,
+        "patch_review_readiness_smoke": patch_review_readiness_smoke_ready,
+        "patch_review_action_resolution_smoke": patch_review_action_resolution_smoke_ready,
+    }
+    issues = tuple(
+        f"{component} not ready"
+        for component, ready in component_status.items()
+        if not ready
+    )
+    return {
+        "is_ready": not issues,
+        "issues": issues,
+        "component_status": tuple(component_status.items()),
+        "command_lines_match": smoke_gate["command_lines_match"],
+        "smoke_gate_ordered": smoke_gate["is_ordered"],
+        "untrusted_commands": trusted_command_contract["untrusted_commands"],
+        "missing_handler_engine_actions": handler_trusted_demo_path["missing_engine_actions"],
+    }
 
 
 def build_mvp_demo_path_command_payload(
