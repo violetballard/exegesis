@@ -835,6 +835,10 @@ class UnifiedRetrievalTests(unittest.TestCase):
         self.assertEqual(payload["retrieval_evidence"]["query_intent"], "compare")
         self.assertIsNone(payload["retrieval_evidence"]["query_date_range"])
         self.assertEqual(payload["retrieval_citation_bundle"]["query_constraints"], payload["query"]["constraints"])
+        self.assertEqual(
+            payload["retrieval_citation_bundle"]["retrieval_evidence_fingerprint"],
+            retrieval_evidence_fingerprint,
+        )
         self.assertEqual(payload["retrieval_provenance"]["query_constraints"], payload["query"]["constraints"])
         self.assertEqual(
             payload["basket_promotion_items"][0]["query_constraints"],
@@ -4339,6 +4343,14 @@ class UnifiedRetrievalTests(unittest.TestCase):
             result.basket_promotion_items()[0]["query_constraints_fingerprint"],
             expected_constraints_fingerprint,
         )
+        self.assertEqual(
+            result.basket_promotion_items()[0]["citation_status"],
+            result.retrieval_basket_promotion_bundle()["citation_status"],
+        )
+        self.assertEqual(
+            result.basket_promotion_items()[0]["retrieval_evidence_fingerprint"],
+            retrieval_evidence_fingerprint,
+        )
         self.assertEqual(direct_item["query_date_range"], ["2026-01-01", "2026-12-31"])
         self.assertEqual(direct_item["retrieval_evidence_fingerprint"], retrieval_evidence_fingerprint)
         self.assertEqual(result.retrieval_basket_promotion_bundle()["query_constraints"], expected_constraints)
@@ -4515,6 +4527,62 @@ class UnifiedRetrievalTests(unittest.TestCase):
         self.assertEqual(rehydrated_item["doc_rank"], result.basket_promotion_items()[0]["doc_rank"])
         self.assertEqual(rehydrated_item["fts_rank"], result.basket_promotion_items()[0]["fts_rank"])
 
+        citation_bundle_only_payload = result.to_downstream_payload()
+        citation_bundle_only_payload.pop("retrieval_basket_promotion_bundle", None)
+        citation_bundle_only_payload.pop("basket_promotion_items", None)
+        citation_bundle_only_payload.pop("citation_status", None)
+        citation_bundle_only_payload.pop("retrieval_evidence_fingerprint", None)
+        citation_bundle_only_payload.pop("retrieval_source_bundle", None)
+        citation_bundle_only_payload.pop("retrieval_evidence", None)
+        citation_bundle_only_payload["retrieval_summary"].pop("citation_status", None)
+        citation_bundle_only_payload["retrieval_summary"].pop("retrieval_evidence_fingerprint", None)
+        citation_bundle_only_payload["retrieval_provenance"].pop("citation_status", None)
+        citation_bundle_only_payload["retrieval_provenance"].pop("retrieval_evidence_fingerprint", None)
+        citation_bundle_only_payload["retrieval_diagnostics"].pop("retrieval_evidence_fingerprint", None)
+        citation_bundle_only_payload["retrieval_citation_bundle"][
+            "retrieval_evidence_fingerprint"
+        ] = f"  {retrieval_evidence_fingerprint}  "
+        for hit in citation_bundle_only_payload["excerpt_hits"]:
+            hit.pop("citation_status", None)
+            hit.pop("retrieval_evidence_fingerprint", None)
+            hit["provenance"].pop("citation_status", None)
+            hit["provenance"].pop("retrieval_evidence_fingerprint", None)
+        citation_bundle_only = _build_retrieval_basket_promotion_bundle_from_payload(
+            citation_bundle_only_payload
+        )
+        self.assertEqual(
+            citation_bundle_only["basket_promotion_items"][0]["citation_status"],
+            result.retrieval_basket_promotion_bundle()["citation_status"],
+        )
+        self.assertEqual(
+            citation_bundle_only["retrieval_evidence_fingerprint"],
+            retrieval_evidence_fingerprint,
+        )
+        self.assertEqual(
+            citation_bundle_only["basket_promotion_items"][0]["retrieval_evidence_fingerprint"],
+            retrieval_evidence_fingerprint,
+        )
+
+        direct_bundle_with_padded_fingerprint = result.to_downstream_payload()
+        direct_bundle_with_padded_fingerprint["retrieval_basket_promotion_bundle"][
+            "retrieval_evidence_fingerprint"
+        ] = f"  {retrieval_evidence_fingerprint}  "
+        for item in direct_bundle_with_padded_fingerprint["retrieval_basket_promotion_bundle"][
+            "promotion_items"
+        ]:
+            item.pop("retrieval_evidence_fingerprint", None)
+        normalized_direct_bundle = _build_retrieval_basket_promotion_bundle_from_payload(
+            direct_bundle_with_padded_fingerprint
+        )
+        self.assertEqual(
+            normalized_direct_bundle["retrieval_evidence_fingerprint"],
+            retrieval_evidence_fingerprint,
+        )
+        self.assertEqual(
+            normalized_direct_bundle["promotion_items"][0]["retrieval_evidence_fingerprint"],
+            retrieval_evidence_fingerprint,
+        )
+
         excerpt_only_payload = result.to_downstream_payload()
         excerpt_only_payload.pop("retrieval_basket_promotion_bundle", None)
         excerpt_only_payload.pop("basket_promotion_items", None)
@@ -4541,6 +4609,14 @@ class UnifiedRetrievalTests(unittest.TestCase):
         self.assertEqual(
             excerpt_only_item["title_hint"],
             provenance_title_hint,
+        )
+        self.assertEqual(
+            excerpt_only_item["citation_status"],
+            result.retrieval_basket_promotion_bundle()["citation_status"],
+        )
+        self.assertEqual(
+            excerpt_only_item["retrieval_evidence_fingerprint"],
+            result.evidence["retrieval_evidence_fingerprint"],
         )
         self.assertIsInstance(excerpt_only_item["promotion_item_fingerprint"], str)
         self.assertEqual(

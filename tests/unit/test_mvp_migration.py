@@ -631,6 +631,10 @@ class CoordinatorDaemonBehaviorTests(unittest.TestCase):
             patch("codex_packet_handoff.tools.agents_coordinator._enabled_lanes", return_value=["feat-commands"]),
             patch("codex_packet_handoff.tools.agents_coordinator._lane_queue_empty", return_value=True),
             patch("codex_packet_handoff.tools.agents_coordinator._lane_has_active_feature_session", return_value=False),
+            patch("codex_packet_handoff.tools.agents_coordinator._cloud_feature_launch_slots", return_value=0),
+            patch("codex_packet_handoff.tools.agents_coordinator._local_lms_feature_launch_slots", return_value=1),
+            patch("codex_packet_handoff.tools.agents_coordinator._has_lane_backlog", return_value=False),
+            patch("codex_packet_handoff.tools.agents_coordinator._has_router_priority_backlog", return_value=False),
             patch("codex_packet_handoff.tools.agents_coordinator.run_cmd", side_effect=fake_run_cmd),
         ):
             launched = _launch_free_lanes(state_doc)

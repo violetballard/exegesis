@@ -531,6 +531,7 @@ class RetrievalResult:
             "active_strategy_ids": active_strategy_ids,
             "deferred_strategy_ids": deferred_strategy_ids,
             "citation_status": citation_status,
+            "retrieval_evidence_fingerprint": self.evidence.get("retrieval_evidence_fingerprint"),
             "doc_count": len(self.doc_hits),
             "excerpt_count": len(self.hits),
             "basket_promotion_items": copy.deepcopy(basket_promotion_items),
@@ -652,6 +653,8 @@ class RetrievalResult:
         items: list[dict[str, object]] = []
         query_constraints = RetrievalService._query_constraints_snapshot(self.query)
         query_constraints_fingerprint = RetrievalService._stable_fingerprint(query_constraints)
+        citation_status = self._citation_status_snapshot()
+        retrieval_evidence_fingerprint = self.evidence.get("retrieval_evidence_fingerprint")
         doc_rank_by_id = {
             doc_hit.doc_id: doc_hit.provenance.get("doc_rank")
             for doc_hit in self.doc_hits
@@ -700,6 +703,8 @@ class RetrievalResult:
                 else None,
                 "query_fingerprint": hit.provenance.get("query_fingerprint"),
                 "fts_match_query_fingerprint": hit.provenance.get("fts_match_query_fingerprint"),
+                "citation_status": copy.deepcopy(citation_status),
+                "retrieval_evidence_fingerprint": retrieval_evidence_fingerprint,
                 "result_fingerprint": self.result_fingerprint,
                 "canonical_demo_path_steps": list(_RETRIEVAL_DEMO_PATH_STEPS),
             }
