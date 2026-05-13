@@ -696,6 +696,61 @@ def run_mvp_demo_cli_handoff_progress_json() -> str:
     )
 
 
+def build_mvp_demo_cli_runtime_checkpoint_payload(
+    smoke_argvs: Sequence[Sequence[str] | str] = (),
+) -> dict[str, object]:
+    """Return the compact CLI checkpoint for continuing the MVP demo loop."""
+
+    progress = canonical_command_readiness_handoff_command_progress_payload(smoke_argvs)
+    next_action = canonical_command_readiness_handoff_next_action_payload(smoke_argvs)
+    trusted_contract = build_mvp_demo_trusted_command_contract_payload()
+    smoke_gate = build_mvp_demo_smoke_gate_payload()
+    route_validation = build_patch_review_route_validation_payload()
+    remaining_command_lines = tuple(
+        entry["command_line"] for entry in progress["entries"] if not bool(entry["is_covered"])
+    )
+    return {
+        "is_ready": (
+            bool(trusted_contract["is_trusted"])
+            and bool(smoke_gate["is_complete"])
+            and bool(route_validation["is_valid"])
+            and not tuple(progress["invalid_argv"])
+            and not tuple(next_action["invalid_argv"])
+        ),
+        "is_complete": bool(progress["is_complete"]),
+        "next_flow_step": progress["next_flow_step"],
+        "next_demo_path_step": next_action["next_demo_path_step"],
+        "next_engine_action": next_action["next_engine_action"],
+        "next_command_line": progress["next_command_line"],
+        "next_exact_action_line": progress["next_exact_action_line"],
+        "remaining_command_lines": remaining_command_lines,
+        "remaining_exact_action_lines": tuple(progress["remaining_exact_action_lines"]),
+        "remaining_engine_actions": tuple(next_action["remaining_engine_actions"]),
+        "covered_flow_steps": tuple(
+            entry["flow_step"] for entry in progress["entries"] if bool(entry["is_covered"])
+        ),
+        "invalid_argv": tuple(progress["invalid_argv"]),
+        "trusted_commands": tuple(trusted_contract["commands"]),
+        "untrusted_commands": tuple(trusted_contract["untrusted_commands"]),
+        "thin_handler_violations": tuple(trusted_contract["thin_handler_violations"]),
+        "smoke_gate_complete": bool(smoke_gate["is_complete"]),
+        "patch_review_routes_valid": bool(route_validation["is_valid"]),
+        "canonical_demo_path_step_advanced": (
+            "open project/document -> retrieve relevant material -> "
+            "preview and apply or reject a patch -> persist and continue"
+        ),
+    }
+
+
+def run_mvp_demo_cli_runtime_checkpoint_json() -> str:
+    """Return stable JSON for the compact MVP demo runtime checkpoint."""
+    return json.dumps(
+        build_mvp_demo_cli_runtime_checkpoint_payload(),
+        sort_keys=True,
+        separators=(",", ":"),
+    )
+
+
 def build_mvp_demo_cli_smoke_transcript_payload(
     smoke_argvs: Sequence[Sequence[str] | str] = (),
     demo_loop: dict[str, object] | None = None,
