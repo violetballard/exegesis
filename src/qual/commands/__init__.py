@@ -130,6 +130,7 @@ def build_mvp_demo_command_surface_payload(
         "readiness_checkpoint": build_mvp_demo_readiness_checkpoint_payload(
             smoke_argvs
         ),
+        "next_step": build_mvp_demo_next_step_payload(smoke_argvs),
         "next_command": canonical_command_readiness_next_status_payload(smoke_argvs),
         "smoke_contract": smoke_contract,
         "smoke_command_lines": canonical_command_readiness_cli_smoke_lines(),
@@ -336,6 +337,30 @@ def run_mvp_demo_readiness_checkpoint_json() -> str:
     )
 
 
+def build_mvp_demo_next_step_payload(
+    smoke_argvs: Sequence[Sequence[str] | str] = (),
+) -> dict[str, object]:
+    """Return the next exact command/action for resuming the MVP demo loop."""
+
+    checkpoint = build_mvp_demo_readiness_checkpoint_payload(smoke_argvs)
+    next_status = canonical_command_readiness_next_status_payload(smoke_argvs)
+    return {
+        "is_complete": checkpoint["is_complete"],
+        "next_command": next_status,
+        "next_action": checkpoint["next_action"],
+        "remaining_actions": checkpoint["remaining_actions"],
+    }
+
+
+def run_mvp_demo_next_step_json() -> str:
+    """Return stable JSON for the next resumable MVP demo command/action."""
+    return json.dumps(
+        build_mvp_demo_next_step_payload(),
+        sort_keys=True,
+        separators=(",", ":"),
+    )
+
+
 def build_mvp_demo_smoke_gate_payload(
     demo_loop: dict[str, object] | None = None,
 ) -> dict[str, object]:
@@ -497,6 +522,7 @@ def build_mvp_demo_command_surface_audit_payload() -> dict[str, object]:
         "trusted_command_contract": build_mvp_demo_trusted_command_contract_payload(),
         "smoke_gate": build_mvp_demo_smoke_gate_payload(),
         "readiness_checkpoint": build_mvp_demo_readiness_checkpoint_payload(),
+        "next_step": build_mvp_demo_next_step_payload(),
         "patch_review_readiness_smoke": build_patch_review_readiness_smoke_payload(),
         "patch_review_action_resolution_smoke": build_patch_review_action_resolution_smoke_payload(),
     }
