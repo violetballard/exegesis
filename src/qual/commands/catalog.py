@@ -1561,6 +1561,19 @@ def _validate_cli_entrypoints() -> None:
         seen_entrypoints.add(normalized_entrypoint)
         if normalized_entrypoint not in command_lookup:
             raise ValueError(f"Unknown CLI command entrypoint: {entrypoint}")
+    seen_compat_tokens: set[str] = set()
+    for compat_token, canonical_name in _COMMAND_CLI_ENTRYPOINT_COMPATIBILITY_TOKENS:
+        normalized_token = _normalize_token(compat_token)
+        normalized_canonical_name = _normalize_token(canonical_name)
+        if not normalized_token or not normalized_canonical_name:
+            raise ValueError("Command CLI compatibility tokens must not be empty")
+        if normalized_token in seen_entrypoints:
+            raise ValueError(f"Command CLI compatibility token collides with parser entrypoint: {compat_token}")
+        if normalized_token in seen_compat_tokens:
+            raise ValueError(f"Duplicate command CLI compatibility token: {compat_token}")
+        seen_compat_tokens.add(normalized_token)
+        if normalized_canonical_name not in command_lookup:
+            raise ValueError(f"Unknown command CLI compatibility target: {canonical_name}")
 
 
 def _command_cli_tokens_by_name() -> dict[str, tuple[str, ...]]:
@@ -1623,6 +1636,9 @@ _CLI_ENTRYPOINTS: tuple[str, ...] = _CANONICAL_CLI_ENTRYPOINTS
 _COMMAND_CLI_ENTRYPOINT_COMPATIBILITY_TOKENS: tuple[tuple[str, str], ...] = (
     ("retrieve", "context-basket"),
     ("search", "context-basket"),
+    ("save", "terminal"),
+    ("persist", "terminal"),
+    ("persist-and-continue", "terminal"),
 )
 _COMMAND_HANDLER_DELEGATIONS: tuple[CommandHandlerDelegationEntry, ...] = (
     CommandHandlerDelegationEntry(
