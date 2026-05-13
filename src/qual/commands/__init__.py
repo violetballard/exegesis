@@ -141,6 +141,7 @@ def build_mvp_demo_command_surface_payload(
         "next_command": canonical_command_readiness_next_status_payload(smoke_argvs),
         "smoke_contract": smoke_contract,
         "smoke_command_lines": canonical_command_readiness_cli_smoke_lines(),
+        "smoke_transcript": build_mvp_demo_cli_smoke_transcript_payload(smoke_argvs),
     }
 
 
@@ -524,6 +525,12 @@ def build_mvp_demo_cli_handoff_payload(
             for entry in smoke_matrix
         ),
         "smoke_gate": smoke_gate,
+        "smoke_transcript": build_mvp_demo_cli_smoke_transcript_payload(
+            smoke_argvs,
+            demo_loop,
+            smoke_matrix,
+            smoke_gate,
+        ),
         "checkpoint": checkpoint,
         "next_step": build_mvp_demo_next_step_payload(smoke_argvs),
         "resume_packet": build_mvp_demo_resume_packet_payload(smoke_argvs),
@@ -534,6 +541,61 @@ def run_mvp_demo_cli_handoff_json() -> str:
     """Return stable JSON for the reviewer-facing MVP demo CLI handoff."""
     return json.dumps(
         build_mvp_demo_cli_handoff_payload(),
+        sort_keys=True,
+        separators=(",", ":"),
+    )
+
+
+def build_mvp_demo_cli_smoke_transcript_payload(
+    smoke_argvs: Sequence[Sequence[str] | str] = (),
+    demo_loop: dict[str, object] | None = None,
+    smoke_matrix: tuple[dict[str, object], ...] | None = None,
+    smoke_gate: dict[str, object] | None = None,
+) -> dict[str, object]:
+    """Return the exact CLI transcript reviewers can replay for the MVP loop."""
+
+    loop = demo_loop or canonical_command_demo_loop_payload()
+    matrix = smoke_matrix or build_mvp_demo_command_smoke_matrix_payload(loop)
+    gate = smoke_gate or build_mvp_demo_smoke_gate_payload(loop)
+    checkpoint = build_mvp_demo_readiness_checkpoint_payload(smoke_argvs)
+    transcript = tuple(
+        {
+            "ordinal": entry["ordinal"],
+            "flow_step": entry["flow_step"],
+            "demo_path_step": entry["demo_path_step"],
+            "command": entry["command"],
+            "command_line": entry["command_line"],
+            "engine_actions": entry["engine_actions"],
+            "exact_action_lines": entry["exact_action_lines"],
+            "is_smoke_ready": bool(entry["is_smoke_ready"]),
+            "is_handler_trusted": bool(entry["is_handler_trusted"]),
+        }
+        for entry in matrix
+    )
+    return {
+        "is_replayable": bool(gate["is_complete"]),
+        "is_complete": bool(checkpoint["is_complete"]),
+        "canonical_demo_path_step_advanced": (
+            "open project/document -> retrieve relevant material -> "
+            "preview and apply or reject a patch -> persist and continue"
+        ),
+        "command_lines": tuple(entry["command_line"] for entry in transcript),
+        "flow_steps": tuple(entry["flow_step"] for entry in transcript),
+        "demo_path_steps": tuple(entry["demo_path_step"] for entry in transcript),
+        "engine_actions": tuple(
+            action
+            for entry in transcript
+            for action in tuple(entry["engine_actions"])
+        ),
+        "transcript": transcript,
+        "checkpoint": checkpoint,
+    }
+
+
+def run_mvp_demo_cli_smoke_transcript_json() -> str:
+    """Return stable JSON for replaying the MVP demo CLI smoke transcript."""
+    return json.dumps(
+        build_mvp_demo_cli_smoke_transcript_payload(),
         sort_keys=True,
         separators=(",", ":"),
     )
