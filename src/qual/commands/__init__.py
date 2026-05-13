@@ -15,6 +15,7 @@ from src.qual.commands.canonical import (
     canonical_command_exact_action_route_payload,
     canonical_command_execution_plan_payload,
     canonical_command_handler_trust_gate_payload,
+    canonical_command_handler_trusted_demo_path_payload,
     canonical_command_persist_continue_payload,
     canonical_command_readiness_command_audit_payload,
     canonical_command_readiness_cli_smoke_lines,
@@ -85,6 +86,7 @@ def build_mvp_demo_command_surface_payload() -> dict[str, object]:
         "patch_review_action_resolution_smoke": build_patch_review_action_resolution_smoke_payload(),
         "persist_continue": canonical_command_persist_continue_payload(),
         "demo_path_commands": build_mvp_demo_path_command_payload(demo_loop),
+        "handler_trusted_demo_path": canonical_command_handler_trusted_demo_path_payload(),
         "smoke_gate": build_mvp_demo_smoke_gate_payload(demo_loop),
         "readiness_snapshot": canonical_command_readiness_snapshot_payload(()),
         "next_command": canonical_command_readiness_next_status_payload(),
@@ -111,6 +113,10 @@ def build_mvp_demo_path_command_payload(
     command_lines = tuple(loop["command_lines"])
     smoke_argvs = tuple(loop["smoke_argvs"])
     action_lookup = dict(loop["action_lookup_table"])
+    trusted_commands = {
+        str(entry["command"]): entry
+        for entry in canonical_command_handler_trusted_demo_path_payload()["commands"]
+    }
     entries: list[dict[str, object]] = []
     for step, command_line, smoke_argv in zip(
         steps,
@@ -118,12 +124,19 @@ def build_mvp_demo_path_command_payload(
         smoke_argvs,
         strict=True,
     ):
+        command = smoke_argv[0]
+        trusted_command = trusted_commands[command]
         entries.append(
             {
                 "demo_path_step": step,
+                "command": command,
                 "command_line": command_line,
                 "smoke_argv": smoke_argv,
                 "engine_actions": action_lookup[step],
+                "handler": trusted_command["handler"],
+                "delegated_to": trusted_command["delegated_to"],
+                "engine_delegated_to": trusted_command["engine_delegated_to"],
+                "is_trusted": trusted_command["is_trusted"],
             }
         )
     return tuple(entries)
@@ -224,6 +237,7 @@ def build_mvp_demo_command_surface_audit_payload() -> dict[str, object]:
         "surface": build_mvp_demo_command_surface_payload(),
         "command_surface": canonical_command_command_surface_payload(),
         "handler_trust_gate": canonical_command_handler_trust_gate_payload(),
+        "handler_trusted_demo_path": canonical_command_handler_trusted_demo_path_payload(),
         "command_readiness_audit": canonical_command_readiness_command_audit_payload(),
         "exact_action_routes": canonical_command_exact_action_route_payload(),
         "demo_path_commands": build_mvp_demo_path_command_payload(),
