@@ -110,6 +110,7 @@ def build_mvp_demo_command_surface_payload(
     canonical_readiness_checkpoint = canonical_command_readiness_checkpoint_payload()
     runtime_checkpoint = build_mvp_demo_cli_runtime_checkpoint_payload(smoke_argvs)
     smoke_route_lookup = build_mvp_demo_cli_smoke_route_lookup_payload(smoke_argvs)
+    command_completion = build_mvp_demo_cli_completion_payload(smoke_argvs)
     readiness_gate = build_mvp_demo_command_surface_readiness_gate_payload(
         demo_loop_ready=bool(demo_loop["is_ready"]),
         smoke_gate=smoke_gate,
@@ -168,6 +169,7 @@ def build_mvp_demo_command_surface_payload(
         "smoke_gate": smoke_gate,
         "readiness_snapshot": canonical_command_readiness_snapshot_payload(smoke_argvs),
         "runtime_checkpoint": runtime_checkpoint,
+        "command_completion": command_completion,
         "readiness_checkpoint": build_mvp_demo_readiness_checkpoint_payload(
             smoke_argvs
         ),
@@ -618,6 +620,56 @@ def run_mvp_demo_resume_script_json() -> str:
     )
 
 
+def build_mvp_demo_cli_completion_payload(
+    smoke_argvs: Sequence[Sequence[str] | str] = (),
+) -> dict[str, object]:
+    """Return deterministic command completion state for the MVP demo loop."""
+
+    checkpoint = build_mvp_demo_readiness_checkpoint_payload(smoke_argvs)
+    resume_script = build_mvp_demo_resume_script_payload(smoke_argvs)
+    next_command = canonical_command_readiness_next_status_payload(smoke_argvs)
+    next_action = canonical_command_readiness_handoff_next_action_payload(smoke_argvs)
+    remaining_command_lines = tuple(resume_script["remaining_command_lines"])
+    remaining_exact_action_lines = tuple(resume_script["remaining_exact_action_lines"])
+    invalid_argv = tuple(resume_script["invalid_argv"])
+    exact_action_invalid_argv = tuple(resume_script["exact_action_invalid_argv"])
+    return {
+        "is_ready": (
+            bool(checkpoint["is_ready"])
+            and not invalid_argv
+            and not exact_action_invalid_argv
+        ),
+        "is_complete": bool(resume_script["is_complete"])
+        and bool(resume_script["exact_actions_complete"]),
+        "completed_command_lines": tuple(resume_script["completed_command_lines"]),
+        "remaining_command_lines": remaining_command_lines,
+        "remaining_exact_action_lines": remaining_exact_action_lines,
+        "current_command_line": (
+            "" if not remaining_command_lines else str(next_command["command_line"])
+        ),
+        "current_demo_path_step": next_command["demo_path_step"],
+        "current_flow_step": next_command["flow_step"],
+        "current_engine_actions": next_command["engine_actions"],
+        "next_exact_action_line": (
+            ""
+            if not remaining_exact_action_lines
+            else str(next_action["next_exact_action_line"])
+        ),
+        "next_exact_engine_action": next_action["next_engine_action"],
+        "invalid_argv": invalid_argv,
+        "exact_action_invalid_argv": exact_action_invalid_argv,
+    }
+
+
+def run_mvp_demo_cli_completion_json() -> str:
+    """Return stable JSON for MVP demo command completion state."""
+    return json.dumps(
+        build_mvp_demo_cli_completion_payload(),
+        sort_keys=True,
+        separators=(",", ":"),
+    )
+
+
 def run_mvp_demo_next_step_json() -> str:
     """Return stable JSON for the next resumable MVP demo command/action."""
     return json.dumps(
@@ -692,6 +744,7 @@ def build_mvp_demo_cli_handoff_payload(
     smoke_matrix = build_mvp_demo_command_smoke_matrix_payload(demo_loop)
     checkpoint = build_mvp_demo_readiness_checkpoint_payload(smoke_argvs)
     runtime_checkpoint = build_mvp_demo_cli_runtime_checkpoint_payload(smoke_argvs)
+    command_completion = build_mvp_demo_cli_completion_payload(smoke_argvs)
     trusted_steps = tuple(
         entry
         for entry in smoke_matrix
@@ -742,6 +795,7 @@ def build_mvp_demo_cli_handoff_payload(
             smoke_gate,
         ),
         "runtime_checkpoint": runtime_checkpoint,
+        "command_completion": command_completion,
         "checkpoint": checkpoint,
         "next_step": build_mvp_demo_next_step_payload(smoke_argvs),
         "resume_packet": build_mvp_demo_resume_packet_payload(smoke_argvs),
