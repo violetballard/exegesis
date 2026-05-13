@@ -141,6 +141,7 @@ def build_mvp_demo_command_surface_payload(
         ),
         "next_step": build_mvp_demo_next_step_payload(smoke_argvs),
         "resume_packet": build_mvp_demo_resume_packet_payload(smoke_argvs),
+        "resume_script": build_mvp_demo_resume_script_payload(smoke_argvs),
         "next_command": canonical_command_readiness_next_status_payload(smoke_argvs),
         "smoke_contract": smoke_contract,
         "smoke_command_lines": canonical_command_readiness_cli_smoke_lines(),
@@ -434,6 +435,59 @@ def run_mvp_demo_resume_packet_json() -> str:
     )
 
 
+def build_mvp_demo_resume_script_payload(
+    smoke_argvs: Sequence[Sequence[str] | str] = (),
+) -> dict[str, object]:
+    """Return completed and remaining command lines for a resumable smoke run."""
+
+    command_progress = canonical_command_readiness_command_progress_payload(smoke_argvs)
+    exact_action_checkpoint = build_mvp_demo_readiness_checkpoint_payload(smoke_argvs)
+    next_step = build_mvp_demo_next_step_payload(smoke_argvs)
+    entries = tuple(command_progress["entries"])
+    return {
+        "is_complete": command_progress["is_complete"],
+        "exact_actions_complete": exact_action_checkpoint["is_complete"],
+        "input_argvs": tuple(
+            tuple(argv) if not isinstance(argv, str) else (argv,)
+            for argv in smoke_argvs
+        ),
+        "completed_command_lines": tuple(
+            entry["command_line"] for entry in entries if entry["is_covered"]
+        ),
+        "covered_flow_steps": tuple(
+            entry["flow_step"] for entry in entries if entry["is_covered"]
+        ),
+        "covered_engine_actions": tuple(
+            action
+            for entry in entries
+            if entry["is_covered"]
+            for action in tuple(
+                engine_action for engine_action, _ in entry["action_lines"]
+            )
+        ),
+        "next_step": next_step,
+        "remaining_command_lines": tuple(
+            entry["command_line"] for entry in entries if not entry["is_covered"]
+        ),
+        "remaining_exact_action_lines": tuple(
+            exact_action_checkpoint["next_action"]["remaining_exact_action_lines"]
+        ),
+        "invalid_argv": tuple(command_progress["invalid_argv"]),
+        "exact_action_invalid_argv": tuple(
+            exact_action_checkpoint["remaining_actions"]["invalid_argv"]
+        ),
+    }
+
+
+def run_mvp_demo_resume_script_json() -> str:
+    """Return stable JSON for resuming the MVP demo command smoke script."""
+    return json.dumps(
+        build_mvp_demo_resume_script_payload(),
+        sort_keys=True,
+        separators=(",", ":"),
+    )
+
+
 def run_mvp_demo_next_step_json() -> str:
     """Return stable JSON for the next resumable MVP demo command/action."""
     return json.dumps(
@@ -539,6 +593,7 @@ def build_mvp_demo_cli_handoff_payload(
         "checkpoint": checkpoint,
         "next_step": build_mvp_demo_next_step_payload(smoke_argvs),
         "resume_packet": build_mvp_demo_resume_packet_payload(smoke_argvs),
+        "resume_script": build_mvp_demo_resume_script_payload(smoke_argvs),
     }
 
 
