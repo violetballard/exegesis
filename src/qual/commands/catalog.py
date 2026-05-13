@@ -97,6 +97,20 @@ class CommandCliEntrypointShim:
 
 
 @dataclass(frozen=True)
+class CommandCliCompatibilityInvocation:
+    requested_argv: tuple[str, ...]
+    requested_token: str
+    canonical_name: str
+    cli_entrypoint: str
+    flow_step: str
+    demo_path_step: str
+    engine_actions: tuple[str, ...]
+    canonical_argv: tuple[str, ...]
+    canonical_command_line: str
+    is_exact_action: bool
+
+
+@dataclass(frozen=True)
 class CommandCliRouteContract:
     """Bundle the parser surface, deterministic MVP route order, route catalog, and smoke surface."""
 
@@ -1646,6 +1660,19 @@ _COMMAND_CLI_ENTRYPOINT_COMPATIBILITY_TOKENS: tuple[tuple[str, str], ...] = (
     ("persist", "terminal"),
     ("persist-and-continue", "terminal"),
 )
+_COMMAND_CLI_COMPATIBILITY_EXACT_ACTIONS: tuple[tuple[str, str], ...] = (
+    ("retrieve", "ExegesisAppService.search_project"),
+    ("search", "ExegesisAppService.search_project"),
+    ("revise", "ExegesisAppService.revise_selection"),
+    ("revise-selection", "ExegesisAppService.revise_selection"),
+    ("apply", "ExegesisAppService.apply_patch"),
+    ("apply-patch", "ExegesisAppService.apply_patch"),
+    ("reject", "ExegesisAppService.reject_patch"),
+    ("reject-patch", "ExegesisAppService.reject_patch"),
+    ("save", "ExegesisAppService.save_document"),
+    ("persist", "ExegesisAppService.save_document"),
+    ("persist-and-continue", "ExegesisAppService.save_document"),
+)
 _COMMAND_HANDLER_DELEGATIONS: tuple[CommandHandlerDelegationEntry, ...] = (
     CommandHandlerDelegationEntry(
         name="bootstrap",
@@ -2680,6 +2707,116 @@ def command_cli_entrypoint_shim_summary(
             shim.command_argv,
         )
         for shim in command_cli_entrypoint_shim_lookup_table(tokens)
+    )
+
+
+def command_cli_compatibility_invocation(
+    argv: Sequence[str] | str,
+) -> CommandCliCompatibilityInvocation | None:
+    """Return the canonical demo argv for a compatibility command invocation."""
+
+    requested_argv = _coerce_smoke_argv(argv)
+    if not requested_argv:
+        return None
+
+    requested_token = _normalize_token(requested_argv[0])
+    shim = command_cli_entrypoint_shim(requested_token)
+    if shim is None:
+        return None
+
+    exact_action = dict(_COMMAND_CLI_COMPATIBILITY_EXACT_ACTIONS).get(requested_token)
+    exact_action_argv = (
+        _demo_exact_action_smoke_argv_by_engine_action(COMMAND_SPECS).get(exact_action)
+        if exact_action is not None
+        else None
+    )
+    canonical_argv = exact_action_argv or shim.command_argv
+    engine_actions = (exact_action,) if exact_action is not None else shim.engine_actions
+    return CommandCliCompatibilityInvocation(
+        requested_argv=requested_argv,
+        requested_token=requested_token,
+        canonical_name=shim.canonical_name,
+        cli_entrypoint=shim.cli_entrypoint,
+        flow_step=shim.flow_step,
+        demo_path_step=shim.demo_path_step,
+        engine_actions=engine_actions,
+        canonical_argv=canonical_argv,
+        canonical_command_line=_shell_join(canonical_argv),
+        is_exact_action=exact_action_argv is not None,
+    )
+
+
+def command_cli_compatibility_invocation_payload(
+    argv: Sequence[str] | str,
+) -> dict[str, object] | None:
+    invocation = command_cli_compatibility_invocation(argv)
+    if invocation is None:
+        return None
+    return {
+        "requested_argv": invocation.requested_argv,
+        "requested_token": invocation.requested_token,
+        "canonical_name": invocation.canonical_name,
+        "cli_entrypoint": invocation.cli_entrypoint,
+        "flow_step": invocation.flow_step,
+        "demo_path_step": invocation.demo_path_step,
+        "engine_actions": invocation.engine_actions,
+        "canonical_argv": invocation.canonical_argv,
+        "canonical_command_line": invocation.canonical_command_line,
+        "is_exact_action": invocation.is_exact_action,
+    }
+
+
+def command_cli_compatibility_invocation_lookup_table(
+    tokens: Sequence[str] | None = None,
+) -> tuple[CommandCliCompatibilityInvocation, ...]:
+    requested_tokens = command_cli_entrypoint_shim_tokens(tokens)
+    invocations = tuple(
+        invocation
+        for requested_token in requested_tokens
+        for invocation in (command_cli_compatibility_invocation((requested_token,)),)
+        if invocation is not None
+    )
+    return tuple(
+        dict((invocation.requested_token, invocation) for invocation in invocations).values()
+    )
+
+
+def command_cli_compatibility_invocation_summary(
+    tokens: Sequence[str] | None = None,
+) -> tuple[tuple[str, str, str, str, str, tuple[str, ...], tuple[str, ...], str, bool], ...]:
+    return tuple(
+        (
+            invocation.requested_token,
+            invocation.canonical_name,
+            invocation.cli_entrypoint,
+            invocation.flow_step,
+            invocation.demo_path_step,
+            invocation.engine_actions,
+            invocation.canonical_argv,
+            invocation.canonical_command_line,
+            invocation.is_exact_action,
+        )
+        for invocation in command_cli_compatibility_invocation_lookup_table(tokens)
+    )
+
+
+def command_cli_compatibility_invocation_payloads(
+    tokens: Sequence[str] | None = None,
+) -> tuple[dict[str, object], ...]:
+    return tuple(
+        {
+            "requested_argv": invocation.requested_argv,
+            "requested_token": invocation.requested_token,
+            "canonical_name": invocation.canonical_name,
+            "cli_entrypoint": invocation.cli_entrypoint,
+            "flow_step": invocation.flow_step,
+            "demo_path_step": invocation.demo_path_step,
+            "engine_actions": invocation.engine_actions,
+            "canonical_argv": invocation.canonical_argv,
+            "canonical_command_line": invocation.canonical_command_line,
+            "is_exact_action": invocation.is_exact_action,
+        }
+        for invocation in command_cli_compatibility_invocation_lookup_table(tokens)
     )
 
 

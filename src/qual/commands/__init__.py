@@ -107,6 +107,7 @@ def build_mvp_demo_command_surface_payload(
         "readiness_gate": readiness_gate,
         "demo_loop": demo_loop,
         "entrypoint_shims": command_surface["entrypoint_shims"],
+        "compatibility_invocations": command_cli_compatibility_invocation_payloads(),
         "execution_plan": canonical_command_execution_plan_payload(),
         "retrieval_context": canonical_command_retrieval_context_payload(),
         "patch_review": asdict(patch_review_contract),
@@ -432,6 +433,7 @@ def build_mvp_demo_cli_handoff_payload(
         "flow_steps": tuple(entry["flow_step"] for entry in smoke_matrix),
         "commands": tuple(entry["command"] for entry in smoke_matrix),
         "command_lines": tuple(entry["command_line"] for entry in smoke_matrix),
+        "compatibility_invocations": command_cli_compatibility_invocation_payloads(),
         "smoke_argvs": tuple(entry["smoke_argv"] for entry in smoke_matrix),
         "engine_actions_by_step": tuple(
             (entry["demo_path_step"], entry["engine_actions"])
@@ -561,6 +563,7 @@ def build_mvp_demo_command_surface_audit_payload() -> dict[str, object]:
         "surface": build_mvp_demo_command_surface_payload(),
         "command_surface": command_surface,
         "entrypoint_shims": command_surface["entrypoint_shims"],
+        "compatibility_invocations": command_cli_compatibility_invocation_payloads(),
         "handler_trust_gate": canonical_command_handler_trust_gate_payload(),
         "handler_trusted_demo_path": canonical_command_handler_trusted_demo_path_payload(),
         "command_readiness_audit": canonical_command_readiness_command_audit_payload(),
