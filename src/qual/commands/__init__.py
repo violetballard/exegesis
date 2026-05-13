@@ -160,6 +160,7 @@ def build_mvp_demo_command_surface_payload(
         "resume_script": build_mvp_demo_resume_script_payload(smoke_argvs),
         "handoff_progress": build_mvp_demo_cli_handoff_progress_payload(smoke_argvs),
         "next_command": canonical_command_readiness_next_status_payload(smoke_argvs),
+        "smoke_route": build_mvp_demo_cli_smoke_route_payload(smoke_argvs),
         "smoke_contract": smoke_contract,
         "smoke_command_lines": canonical_command_readiness_cli_smoke_lines(),
         "smoke_transcript": build_mvp_demo_cli_smoke_transcript_payload(smoke_argvs),
@@ -642,6 +643,7 @@ def build_mvp_demo_cli_handoff_payload(
         "resume_packet": build_mvp_demo_resume_packet_payload(smoke_argvs),
         "resume_script": build_mvp_demo_resume_script_payload(smoke_argvs),
         "handoff_progress": build_mvp_demo_cli_handoff_progress_payload(smoke_argvs),
+        "smoke_route": build_mvp_demo_cli_smoke_route_payload(smoke_argvs),
     }
 
 
@@ -754,6 +756,76 @@ def run_mvp_demo_cli_runtime_checkpoint_json() -> str:
     """Return stable JSON for the compact MVP demo runtime checkpoint."""
     return json.dumps(
         build_mvp_demo_cli_runtime_checkpoint_payload(),
+        sort_keys=True,
+        separators=(",", ":"),
+    )
+
+
+def build_mvp_demo_cli_smoke_route_payload(
+    smoke_argvs: Sequence[Sequence[str] | str] = (),
+) -> dict[str, object]:
+    """Return exact command and action routes for smoke-testing the demo loop."""
+
+    transcript_payload = build_mvp_demo_cli_smoke_transcript_payload(smoke_argvs)
+    checkpoint = build_mvp_demo_cli_runtime_checkpoint_payload(smoke_argvs)
+    exact_action_routes = tuple(canonical_command_exact_action_route_payload())
+    action_route_lookup = {
+        str(route["engine_action"]): route for route in exact_action_routes
+    }
+    route_entries = tuple(
+        {
+            "ordinal": entry["ordinal"],
+            "flow_step": entry["flow_step"],
+            "demo_path_step": entry["demo_path_step"],
+            "command": entry["command"],
+            "command_line": entry["command_line"],
+            "engine_actions": entry["engine_actions"],
+            "exact_action_routes": tuple(
+                action_route_lookup[action]
+                for action in tuple(entry["engine_actions"])
+                if action in action_route_lookup
+            ),
+            "exact_action_lines": entry["exact_action_lines"],
+            "is_smoke_ready": bool(entry["is_smoke_ready"]),
+            "is_handler_trusted": bool(entry["is_handler_trusted"]),
+        }
+        for entry in tuple(transcript_payload["transcript"])
+    )
+    missing_exact_routes = tuple(
+        action
+        for entry in route_entries
+        for action in tuple(entry["engine_actions"])
+        if action not in action_route_lookup
+    )
+    next_engine_action = checkpoint["next_engine_action"]
+    next_route = (
+        action_route_lookup.get(str(next_engine_action))
+        if next_engine_action is not None
+        else None
+    )
+    return {
+        "is_ready": (
+            bool(checkpoint["is_ready"])
+            and bool(transcript_payload["is_replayable"])
+            and not missing_exact_routes
+        ),
+        "is_complete": bool(checkpoint["is_complete"]),
+        "route_entries": route_entries,
+        "missing_exact_routes": missing_exact_routes,
+        "next_command_line": checkpoint["next_command_line"],
+        "next_exact_action_line": checkpoint["next_exact_action_line"],
+        "next_route": next_route,
+        "canonical_demo_path_step_advanced": (
+            "open project/document -> retrieve relevant material -> "
+            "preview and apply or reject a patch -> persist and continue"
+        ),
+    }
+
+
+def run_mvp_demo_cli_smoke_route_json() -> str:
+    """Return stable JSON for the exact MVP demo smoke route."""
+    return json.dumps(
+        build_mvp_demo_cli_smoke_route_payload(),
         sort_keys=True,
         separators=(",", ":"),
     )
@@ -960,6 +1032,7 @@ def build_mvp_demo_command_surface_audit_payload() -> dict[str, object]:
         "readiness_checkpoint": build_mvp_demo_readiness_checkpoint_payload(),
         "next_step": build_mvp_demo_next_step_payload(),
         "resume_packet": build_mvp_demo_resume_packet_payload(),
+        "smoke_route": build_mvp_demo_cli_smoke_route_payload(),
         "patch_review_route_validation": build_patch_review_route_validation_payload(),
         "patch_review_readiness_smoke": build_patch_review_readiness_smoke_payload(),
         "patch_review_action_resolution_smoke": build_patch_review_action_resolution_smoke_payload(),
