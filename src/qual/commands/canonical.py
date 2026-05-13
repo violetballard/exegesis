@@ -1047,6 +1047,7 @@ __all__ = [
     "canonical_command_readiness_next_exact_action_line",
     "canonical_command_readiness_remaining_command_lines",
     "canonical_command_readiness_remaining_exact_action_lines",
+    "canonical_command_readiness_remaining_exact_action_argvs",
     "canonical_command_readiness_remaining_action_contract",
     "canonical_command_readiness_remaining_action_json",
     "canonical_command_readiness_remaining_action_payload",
@@ -4616,6 +4617,24 @@ def canonical_command_readiness_remaining_exact_action_lines(
     return _readiness_remaining_exact_action_lines(argvs)
 
 
+def canonical_command_readiness_remaining_exact_action_argvs(
+    argvs: Sequence[Sequence[str] | str] = (),
+) -> tuple[tuple[str, ...], ...]:
+    remaining_lines = canonical_command_readiness_remaining_exact_action_lines(argvs)
+    line_to_action = {
+        command_line: engine_action
+        for engine_action, command_line in _readiness_exact_action_line_lookup_table()
+    }
+    argv_by_action = dict(_readiness_exact_action_argv_lookup_table())
+    missing_lines = tuple(line for line in remaining_lines if line not in line_to_action)
+    if missing_lines:
+        raise ValueError(
+            "Command readiness exact-action line has no argv: "
+            + ", ".join(missing_lines)
+        )
+    return tuple(argv_by_action[line_to_action[line]] for line in remaining_lines)
+
+
 def canonical_command_readiness_remaining_action_contract(
     argvs: Sequence[Sequence[str] | str] = (),
 ) -> CommandDemoReadinessRemainingActionContract:
@@ -4751,6 +4770,9 @@ def canonical_command_readiness_demo_driver_payload(
             validation.canonical_argv
         ),
         "remaining_exact_action_lines": canonical_command_readiness_remaining_exact_action_lines(
+            validation.canonical_argv
+        ),
+        "remaining_exact_action_argvs": canonical_command_readiness_remaining_exact_action_argvs(
             validation.canonical_argv
         ),
         "invalid_argv": snapshot.invalid_argv,
