@@ -3460,6 +3460,7 @@ class UnifiedRetrievalTests(unittest.TestCase):
             snapshot.pop("basket_item_fingerprints", None)
             snapshot.pop("basket_promotion_count", None)
             snapshot.pop("basket_promotion_ready", None)
+            snapshot.pop("canonical_demo_path_steps", None)
             snapshot.pop("excerpt_citations", None)
         sparse_source_bundle.pop("excerpt_hits", None)
         sparse_source_bundle["retrieval_excerpt_bundle"].pop("excerpt_hits", None)
@@ -3470,6 +3471,14 @@ class UnifiedRetrievalTests(unittest.TestCase):
         self.assertEqual(context_bundle["basket_item_fingerprints"], expected_fingerprints)
         self.assertEqual(context_bundle["basket_promotion_count"], len(expected_ids))
         self.assertTrue(context_bundle["basket_promotion_ready"])
+        self.assertEqual(
+            context_bundle["canonical_demo_path_steps"],
+            self.CANONICAL_DEMO_PATH_STEPS,
+        )
+        self.assertEqual(
+            context_bundle["retrieval_source_bundle"]["canonical_demo_path_steps"],
+            self.CANONICAL_DEMO_PATH_STEPS,
+        )
 
     def test_sparse_context_bundle_rejects_stale_basket_ref_snapshots(self) -> None:
         result = self.service.retrieve_auto(

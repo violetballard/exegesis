@@ -12,8 +12,8 @@
 - Authoritative reviewed implementation base: `378cf9a74a3658058079a32f186fcd254c4a4034`.
 - Reviewed source-bearing implementation head: this source-bearing fixer commit; final branch tip SHA is reported in the fixer final response.
 - Reviewed source-bearing implementation range: `378cf9a74a3658058079a32f186fcd254c4a4034..HEAD` on branch `codex/feat-retrieval-fts`.
-- Packet update note: this commit adds explicit canonical demo-path markers to FTS-first retrieval payload, source/context, and basket-promotion snapshots, adds shared regression coverage for those markers, then refreshes `THREAD_PACKET.md` so engine consumers can identify evidence that advances `retrieve_relevant_material` and `promote_context_to_basket` without deriving that workflow role from raw excerpt IDs or widening retrieval strategy scope; the final branch tip SHA is reported in the fixer final response.
-- Current pass role: source-bearing canonical demo-path marker propagation for FTS retrieval basket-promotion evidence.
+- Packet update note: this commit makes sparse source-bundle context rehydration restore canonical demo-path markers even when compact snapshots stripped them, adds shared regression coverage for the stripped-marker sparse source path, then refreshes `THREAD_PACKET.md` so engine consumers can keep treating sparse FTS context bundles as self-describing evidence for `retrieve_relevant_material` and `promote_context_to_basket`; the final branch tip SHA is reported in the fixer final response.
+- Current pass role: source-bearing sparse source-bundle demo-path marker rehydration for FTS retrieval context evidence.
 
 ## Traceability Correction
 
@@ -114,6 +114,8 @@ This source-bearing fixer pass modifies `src/qual/engine/retrieval/payload.py`, 
 This source-bearing fixer pass modifies `src/qual/engine/retrieval/payload.py`, `tests/unit/test_unified_retrieval.py`, and `THREAD_PACKET.md` so sparse source/context bundle basket item ID fallback canonicalizes case-varied `Retrieval:FTS:<excerpt_id>` refs to `retrieval:fts:<excerpt_id>` before pairing fingerprints. PageIndex, embedding-shaped, and raw excerpt refs still fail closed, but compact snapshots with FTS-only case drift can remain auditable for context-basket promotion.
 
 This source-bearing fixer pass modifies `src/qual/retrieval/service.py`, `src/qual/engine/retrieval/payload.py`, `tests/unit/test_unified_retrieval.py`, and `THREAD_PACKET.md` so direct and sparse-rehydrated FTS retrieval payloads, source/context bundles, basket-promotion bundles, and promotion items carry explicit `canonical_demo_path_steps` markers for `retrieve_relevant_material` and `promote_context_to_basket`, with shared regression coverage locking the markers onto the engine-facing payload surfaces. This makes the Milestone 3 retrieval output self-describing for basket promotion and later revise/apply consumers without reintroducing PageIndex, embeddings, or multi-strategy retrieval as required paths.
+
+This source-bearing fixer pass modifies `src/qual/engine/retrieval/payload.py`, `tests/unit/test_unified_retrieval.py`, and `THREAD_PACKET.md` so sparse source-bundle context rehydration backfills `canonical_demo_path_steps` when compact source snapshots strip that marker from the top level and nested retrieval bundles. This keeps source-bundle-only engine context reconstruction aligned with the canonical demo path and basket-promotion evidence without deriving workflow role from raw excerpt IDs or widening beyond FTS-first retrieval.
 
 Packet-only commits after `5c87b08a9f7ca5a4dabc23fc1a80214276a882e9` refresh traceability and gate evidence only through `f9bdab5ded16e44476d773a24249c64442df2f3a`. The source-bearing passes after that packet-only refresh change `src/qual/retrieval/service.py`, `src/qual/engine/retrieval/payload.py`, `src/qual/engine/retrieval/__init__.py`, `engine/src/exegesis_engine/retrieval/__init__.py`, and `tests/unit/test_unified_retrieval.py`; reviewers should include those source-bearing commits, including this final retrieval demo-path marker propagation pass, when re-reviewing the merge candidate.
 
@@ -415,6 +417,15 @@ Required gates for this corrected merge candidate were re-run on 2026-05-13 agai
 - `./typecheck-test.sh` - passed Python source compilation under `src/` after the demo-path marker propagation edit.
 - `make ci` - blocked at scope-check because `tests/unit/test_unified_retrieval.py` is an approved shared regression path; rerun with `SCOPE_ALLOW_SHARED=1`.
 - `SCOPE_ALLOW_SHARED=1 make ci` - passed scope-check, format, lint, compile/typecheck, smoke tests, and all unified retrieval tests, then failed with 6 unrelated sandbox/control-plane `PermissionError` errors inside the broader 482-test unit run when inherited shared-scope test execution attempted to write `.codex/packet_router/logs/fixer__feat-commands__20260513T001121Z.log`, write `.codex/feature_runner/state.json`, invoke `ps`, write `.codex/packet_planner/state.json`, or move recovery artifacts under `.codex/worktree_recovery`.
+- `python -m pytest tests/unit/test_unified_retrieval.py -k "retrieval_context_bundle_helper_uses_manifest_basket_refs_for_sparse_source"` - passed 1 focused sparse source-bundle rehydration regression after the demo-path marker backfill edit.
+- `./quality-format.sh --check` - passed after the sparse source-bundle demo-path marker backfill edit.
+- `./quality-lint.sh` - passed shell syntax and trailing whitespace checks after the sparse source-bundle demo-path marker backfill edit.
+- `./quality-test.sh` - passed smoke tests and 482 unit tests, including all 99 unified retrieval tests, after the sparse source-bundle demo-path marker backfill edit.
+- `./typecheck-test.sh` - passed Python source compilation under `src/` after the sparse source-bundle demo-path marker backfill edit.
+- `make ci` - blocked at scope-check because `tests/unit/test_unified_retrieval.py` is an approved shared regression path; rerun with `SCOPE_ALLOW_SHARED=1`.
+- `SCOPE_ALLOW_SHARED=1 make ci` - passed scope-check, format, lint, compile/typecheck, smoke tests, and all unified retrieval tests, then failed with 6 unrelated sandbox/control-plane `PermissionError` errors inside the broader 482-test unit run when inherited shared-scope test execution attempted to write `.codex/packet_router/logs/fixer__feat-commands__20260513T002336Z.log`, write `.codex/feature_runner/state.json`, invoke `ps`, write `.codex/packet_planner/state.json`, or move recovery artifacts under `.codex/worktree_recovery`.
+- `./quality-format.sh --check` - passed after the handoff packet update.
+- `./quality-lint.sh` - passed shell syntax and trailing whitespace checks after the handoff packet update.
 
 Older gate history for this corrected merge candidate:
 

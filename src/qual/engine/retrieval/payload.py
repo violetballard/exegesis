@@ -1623,6 +1623,8 @@ def _normalize_retrieval_source_bundle_snapshot(source_bundle: dict[str, object]
     normalized["retrieval_evidence"] = _normalize_retrieval_evidence_snapshot(
         normalized.get("retrieval_evidence", {})
     )
+    if _is_missing_snapshot_value(normalized.get("canonical_demo_path_steps")):
+        normalized["canonical_demo_path_steps"] = list(_RETRIEVAL_DEMO_PATH_STEPS)
     retrieval_evidence = normalized["retrieval_evidence"]
     retrieval_evidence_fingerprint = _first_text_value(
         normalized.get("retrieval_evidence_fingerprint"),
@@ -2120,6 +2122,7 @@ def _build_retrieval_context_bundle_from_source_bundle(source_bundle: dict[str, 
         "retrieval_basket_promotion_bundle": copy.deepcopy(retrieval_basket_promotion_bundle),
         "retrieval_source_bundle": copy.deepcopy(source_bundle),
         "retrieval_evidence": copy.deepcopy(source_bundle.get("retrieval_evidence", {})),
+        "canonical_demo_path_steps": list(_RETRIEVAL_DEMO_PATH_STEPS),
         "basket_promotion_items": basket_promotion_items,
         "basket_promotion_count": basket_promotion_count,
         "basket_promotion_ready": _basket_promotion_ready_from_count(basket_promotion_count),
