@@ -700,6 +700,17 @@ class CommandCanonicalDemoLoopSmokeContract:
     issues: tuple[str, ...]
 
 
+@dataclass(frozen=True)
+class CommandCanonicalDemoLoopStepStatusContract:
+    progress: CommandDemoReadinessCommandProgressContract
+    statuses: tuple[CommandCanonicalDemoPathStepStatus, ...]
+    next_demo_path_step: str | None
+    next_command_line: str
+    next_exact_action_line: str
+    is_complete: bool
+    invalid_argv: tuple[tuple[str, ...], ...]
+
+
 __all__ = [
     "CommandCanonicalReadinessStatus",
     "CommandCanonicalReadinessSnapshot",
@@ -708,6 +719,7 @@ __all__ = [
     "CommandCanonicalDemoLoopContract",
     "CommandCanonicalDemoLoopSmokeEntry",
     "CommandCanonicalDemoLoopSmokeContract",
+    "CommandCanonicalDemoLoopStepStatusContract",
     "canonical_command_cli_contract",
     "canonical_command_cli_entrypoint_for",
     "canonical_command_cli_lookup_table",
@@ -835,6 +847,10 @@ __all__ = [
     "canonical_command_demo_loop_smoke_json",
     "canonical_command_demo_loop_smoke_payload",
     "canonical_command_demo_loop_smoke_summary",
+    "canonical_command_demo_loop_step_status_contract",
+    "canonical_command_demo_loop_step_status_json",
+    "canonical_command_demo_loop_step_status_payload",
+    "canonical_command_demo_loop_step_status_summary",
     "canonical_command_demo_loop_payload",
     "canonical_command_demo_loop_json",
     "canonical_command_require_demo_loop_smoke_ready",
@@ -3120,6 +3136,108 @@ def canonical_command_require_demo_loop_smoke_ready() -> CommandCanonicalDemoLoo
             + ", ".join(contract.issues)
         )
     return contract
+
+
+def canonical_command_demo_loop_step_status_contract(
+    argvs: Sequence[Sequence[str] | str],
+) -> CommandCanonicalDemoLoopStepStatusContract:
+    """Return per-step exact-action progress for the canonical demo loop."""
+
+    progress = _readiness_handoff_command_progress_contract(argvs)
+    statuses = tuple(
+        CommandCanonicalDemoPathStepStatus(
+            demo_path_step=entry.demo_path_step,
+            completed_actions=tuple(
+                engine_action
+                for engine_action, _line in entry.action_lines
+                if engine_action not in entry.remaining_engine_actions
+            ),
+            remaining_actions=entry.remaining_engine_actions,
+            command_lines=(entry.command_line,),
+            complete=entry.is_covered and not entry.remaining_engine_actions,
+        )
+        for entry in progress.entries
+    )
+    next_demo_path_step = next(
+        (
+            entry.demo_path_step
+            for entry in progress.entries
+            if entry.flow_step == progress.next_flow_step
+        ),
+        None,
+    )
+    return CommandCanonicalDemoLoopStepStatusContract(
+        progress=progress,
+        statuses=statuses,
+        next_demo_path_step=next_demo_path_step,
+        next_command_line=progress.next_command_line,
+        next_exact_action_line=progress.next_exact_action_line,
+        is_complete=progress.is_complete,
+        invalid_argv=progress.invalid_argv,
+    )
+
+
+def canonical_command_demo_loop_step_status_summary(
+    argvs: Sequence[Sequence[str] | str],
+) -> tuple[
+    bool,
+    str | None,
+    str,
+    str,
+    tuple[tuple[str, tuple[str, ...], tuple[str, ...], tuple[str, ...], bool], ...],
+    tuple[tuple[str, ...], ...],
+]:
+    contract = canonical_command_demo_loop_step_status_contract(argvs)
+    return (
+        contract.is_complete,
+        contract.next_demo_path_step,
+        contract.next_command_line,
+        contract.next_exact_action_line,
+        tuple(
+            (
+                status.demo_path_step,
+                status.completed_actions,
+                status.remaining_actions,
+                status.command_lines,
+                status.complete,
+            )
+            for status in contract.statuses
+        ),
+        contract.invalid_argv,
+    )
+
+
+def canonical_command_demo_loop_step_status_payload(
+    argvs: Sequence[Sequence[str] | str],
+) -> dict[str, object]:
+    contract = canonical_command_demo_loop_step_status_contract(argvs)
+    return {
+        "is_complete": contract.is_complete,
+        "next_demo_path_step": contract.next_demo_path_step,
+        "next_command_line": contract.next_command_line,
+        "next_exact_action_line": contract.next_exact_action_line,
+        "invalid_argv": contract.invalid_argv,
+        "statuses": tuple(
+            {
+                "demo_path_step": status.demo_path_step,
+                "completed_actions": status.completed_actions,
+                "remaining_actions": status.remaining_actions,
+                "command_lines": status.command_lines,
+                "complete": status.complete,
+            }
+            for status in contract.statuses
+        ),
+    }
+
+
+def canonical_command_demo_loop_step_status_json(
+    argvs: Sequence[Sequence[str] | str],
+) -> str:
+    return json.dumps(
+        canonical_command_demo_loop_step_status_payload(argvs),
+        sort_keys=True,
+        separators=(",", ":"),
+    )
 
 
 def canonical_command_demo_loop_payload() -> dict[str, object]:
