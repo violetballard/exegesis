@@ -1586,6 +1586,14 @@ class UnifiedRetrievalTests(unittest.TestCase):
         self.assertEqual(provenance["basket_promotion_count"], 1)
         self.assertTrue(provenance["basket_promotion_ready"])
         self.assertEqual(provenance["basket_promotion_source"], "fts_excerpt_lookup")
+        self.assertEqual(
+            provenance["promotion_item_fingerprint"],
+            normalized["promotion_item_fingerprint"],
+        )
+        self.assertEqual(
+            normalized["basket_promotion_item"]["promotion_item_fingerprint"],
+            normalized["promotion_item_fingerprint"],
+        )
         self.assertEqual(provenance["canonical_demo_path_steps"], self.CANONICAL_DEMO_PATH_STEPS)
         self.assertEqual(
             provenance["basket_item_fingerprint"],
@@ -1780,6 +1788,14 @@ class UnifiedRetrievalTests(unittest.TestCase):
             canonical["basket_item_fingerprints"],
         )
         self.assertEqual(
+            canonical["promotion_item_fingerprint"],
+            basket_item["promotion_item_fingerprint"],
+        )
+        self.assertEqual(
+            canonical["provenance"]["promotion_item_fingerprint"],
+            canonical["promotion_item_fingerprint"],
+        )
+        self.assertEqual(
             canonical["provenance"]["basket_item_fingerprints"],
             canonical["basket_item_fingerprints"],
         )
@@ -1904,6 +1920,11 @@ class UnifiedRetrievalTests(unittest.TestCase):
             metadata["basket_promotion_item"]["basket_item_fingerprints"],
             [excerpt["basket_item_fingerprint"]],
         )
+        self.assertEqual(
+            metadata["basket_promotion_item"]["promotion_item_fingerprint"],
+            excerpt["promotion_item_fingerprint"],
+        )
+        self.assertEqual(metadata["promotion_item_fingerprint"], excerpt["promotion_item_fingerprint"])
         self.assertEqual(metadata["basket_promotion_items"], [metadata["basket_promotion_item"]])
         self.assertEqual(metadata["basket_promotion_source"], "fts_excerpt_lookup")
         self.assertEqual(metadata["basket_promotion_source"], excerpt["basket_promotion_source"])

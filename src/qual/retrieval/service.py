@@ -1390,6 +1390,7 @@ class RetrievalService:
                 "basket_item_fingerprints": copy.deepcopy(excerpt.get("basket_item_fingerprints", [])),
                 "basket_promotion_item": copy.deepcopy(excerpt.get("basket_promotion_item")),
                 "basket_promotion_items": copy.deepcopy(excerpt.get("basket_promotion_items", [])),
+                "promotion_item_fingerprint": excerpt.get("promotion_item_fingerprint"),
                 "basket_promotion_source": excerpt.get("basket_promotion_source"),
                 "basket_promotion_count": excerpt.get("basket_promotion_count"),
                 "basket_promotion_ready": excerpt.get("basket_promotion_ready"),
@@ -2803,6 +2804,7 @@ class RetrievalService:
             normalized["basket_promotion_source"] = basket_promotion_item["basket_promotion_source"]
             normalized["basket_item_id"] = basket_promotion_item["basket_item_id"]
             normalized["basket_item_fingerprint"] = basket_promotion_item["basket_item_fingerprint"]
+            normalized["promotion_item_fingerprint"] = basket_promotion_item["promotion_item_fingerprint"]
             normalized["basket_promotion_items"] = [copy.deepcopy(basket_promotion_item)]
             normalized["basket_promotion_count"] = 1
             normalized["basket_promotion_ready"] = True
@@ -2847,6 +2849,8 @@ class RetrievalService:
             normalized_provenance["basket_promotion_ready"] = normalized["basket_promotion_ready"]
         if isinstance(normalized.get("basket_item_fingerprint"), str):
             normalized_provenance["basket_item_fingerprint"] = normalized["basket_item_fingerprint"]
+        if isinstance(normalized.get("promotion_item_fingerprint"), str):
+            normalized_provenance["promotion_item_fingerprint"] = normalized["promotion_item_fingerprint"]
         if isinstance(normalized.get("basket_item_id"), str):
             normalized_provenance["basket_item_id"] = normalized["basket_item_id"]
         if isinstance(normalized.get("basket_item_ids"), list):
@@ -2919,6 +2923,13 @@ class RetrievalService:
         }
         item = self._with_basket_item_fingerprint(item)
         item["basket_item_fingerprints"] = [item["basket_item_fingerprint"]]
+        item["promotion_item_fingerprint"] = RetrievalService._stable_fingerprint(
+            {
+                key: value
+                for key, value in item.items()
+                if key != "promotion_item_fingerprint"
+            }
+        )
         return item
 
     @staticmethod
