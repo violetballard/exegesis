@@ -3,6 +3,7 @@ set -eu
 
 ROOT_DIR=${QUAL_ROOT_DIR:-$(CDPATH= cd -- "$(dirname -- "$0")" && pwd)}
 cd "$ROOT_DIR"
+unset QUAL_ROOT_DIR
 
 if [ ! -d tests ]; then
   echo "No tests directory found."
