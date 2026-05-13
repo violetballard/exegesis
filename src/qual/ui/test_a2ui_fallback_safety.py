@@ -11,6 +11,7 @@ from src.qual.ui.a2ui import (
     A2UI_ACTION_SCHEMA_VERSION,
     A2UI_CAPABILITIES_SCHEMA_VERSION,
     A2UI_CONTRACT_VERSION,
+    A2UI_ENGINE_ARTIFACTS_SCHEMA_VERSION,
     A2UI_LEAF_CONTRACTS_SCHEMA_VERSION,
     A2UI_VERSION,
     TERMINAL_ARTIFACT_CLI_FALLBACK_PAYLOAD_SCHEMA_VERSION,
@@ -33,14 +34,21 @@ from src.qual.ui.a2ui import (
     a2ui_contract_fingerprint,
     a2ui_dispatch_contract_fingerprint,
     a2ui_engine_contract_fingerprint,
+    engine_artifacts_contract_fingerprint,
     a2ui_leaf_contracts_fingerprint,
     build_unknown_card,
+    build_engine_artifact_validation_report,
+    validate_engine_artifact_validation_report,
+    collect_engine_artifact_validation_error_records,
+    collect_engine_artifact_validation_errors,
     describe_a2ui_contract,
     describe_a2ui_contract_fingerprints,
     describe_a2ui_dispatch_contract,
     describe_a2ui_dispatch_contract_fingerprints,
     describe_a2ui_capabilities_contract,
     describe_a2ui_engine_contract,
+    describe_engine_artifacts_contract,
+    describe_engine_artifacts_contract_manifest,
     describe_a2ui_leaf_contracts,
     describe_action_contract,
     describe_action_contract_manifest,
@@ -99,6 +107,7 @@ from src.qual.ui.a2ui import (
     normalize_terminal_artifact_payload,
     engine_prepare_card,
     render_terminal_action,
+    render_engine_artifact_validation_report,
     render_terminal_artifact,
     render_terminal_artifact_cli_fallback_payload,
     render_terminal_cli_fallback,
@@ -15711,6 +15720,794 @@ class A2UIFallbackSafetyTests(unittest.TestCase):
 
     def test_validate_engine_artifacts_public_export_matches_internal(self) -> None:
         self.assertIs(public_ui.validate_engine_artifacts, validate_engine_artifacts)
+
+    def test_collect_engine_artifact_validation_errors_reports_stable_tuple(self) -> None:
+        errors = collect_engine_artifact_validation_errors(
+            {"stage": ("action", {"id": "", "label": "Apply", "payload": {}})}
+        )
+
+        self.assertEqual(len(errors), 1)
+        self.assertIn("stage 'stage'", errors[0])
+        self.assertIn("kind='action'", errors[0])
+
+    def test_collect_engine_artifact_validation_error_records_exposes_stable_fields(self) -> None:
+        records = collect_engine_artifact_validation_error_records(
+            {
+                "patch": ("action", {"id": "", "label": "Patch", "payload": {}}),
+                "plan": ("selection", {"id": "choice-1", "label": "", "payload": {}}),
+            }
+        )
+
+        self.assertEqual(
+            tuple(record["message"] for record in records),
+            collect_engine_artifact_validation_errors(
+                {
+                    "plan": ("selection", {"id": "choice-1", "label": "", "payload": {}}),
+                    "patch": ("action", {"id": "", "label": "Patch", "payload": {}}),
+                }
+            ),
+        )
+        self.assertEqual(records[0]["index"], 0)
+        self.assertEqual(records[0]["schema_version"], A2UI_ENGINE_ARTIFACTS_SCHEMA_VERSION)
+        self.assertEqual(records[0]["location"], "stage 'plan'")
+        self.assertEqual(records[0]["path"], '$["plan"]')
+        self.assertEqual(records[0]["stage"], "plan")
+        self.assertEqual(records[0]["kind"], "selection")
+        self.assertEqual(records[0]["code"], "invalid_payload")
+        self.assertIn("kind='selection'", records[0]["message"])
+        self.assertEqual(records[1]["index"], 1)
+        self.assertEqual(records[1]["schema_version"], A2UI_ENGINE_ARTIFACTS_SCHEMA_VERSION)
+        self.assertEqual(records[1]["location"], "stage 'patch'")
+        self.assertEqual(records[1]["path"], '$["patch"]')
+        self.assertEqual(records[1]["stage"], "patch")
+        self.assertEqual(records[1]["kind"], "action")
+        self.assertEqual(records[1]["code"], "invalid_payload")
+        self.assertIn("kind='action'", records[1]["message"])
+
+    def test_collect_engine_artifact_validation_error_records_reports_container_errors(self) -> None:
+        records = collect_engine_artifact_validation_error_records({})
+
+        self.assertEqual(
+            records,
+            (
+                {
+                    "schema_version": A2UI_ENGINE_ARTIFACTS_SCHEMA_VERSION,
+                    "index": 0,
+                    "location": "<container>",
+                    "path": "$",
+                    "stage": None,
+                    "kind": None,
+                    "normalized_kind": None,
+                    "code": "invalid_container",
+                    "message": "Engine artifacts must contain at least one artifact",
+                },
+            ),
+        )
+
+    def test_collect_engine_artifact_validation_error_records_reports_pair_shape_errors(self) -> None:
+        records = collect_engine_artifact_validation_error_records(
+            {
+                "patch": ("action", {"id": "apply_patch", "label": "Apply", "payload": {}}),
+                "plan": ("card",),
+                "revise": "selection",
+            }
+        )
+
+        self.assertEqual(len(records), 2)
+        self.assertEqual(records[0]["index"], 0)
+        self.assertEqual(records[0]["location"], "stage 'plan'")
+        self.assertEqual(records[0]["path"], '$["plan"]')
+        self.assertEqual(records[0]["stage"], "plan")
+        self.assertEqual(records[0]["code"], "invalid_pair")
+        self.assertIn("stage 'plan'", records[0]["message"])
+        self.assertEqual(records[1]["index"], 1)
+        self.assertEqual(records[1]["location"], "stage 'revise'")
+        self.assertEqual(records[1]["path"], '$["revise"]')
+        self.assertEqual(records[1]["stage"], "revise")
+        self.assertEqual(records[1]["code"], "invalid_pair")
+        self.assertIn("stage 'revise'", records[1]["message"])
+
+    def test_collect_engine_artifact_validation_error_records_reports_ordered_pair_shape_errors(self) -> None:
+        records = collect_engine_artifact_validation_error_records(
+            [
+                ("action", {"id": "apply_patch", "label": "Apply", "payload": {}}),
+                ("selection",),
+                "card",
+            ]
+        )
+
+        self.assertEqual(len(records), 2)
+        self.assertEqual(records[0]["index"], 1)
+        self.assertEqual(records[0]["location"], "index 1")
+        self.assertEqual(records[0]["path"], "$[1]")
+        self.assertIsNone(records[0]["stage"])
+        self.assertEqual(records[0]["code"], "invalid_pair")
+        self.assertEqual(records[1]["index"], 2)
+        self.assertEqual(records[1]["location"], "index 2")
+        self.assertEqual(records[1]["path"], "$[2]")
+        self.assertIsNone(records[1]["stage"])
+        self.assertEqual(records[1]["code"], "invalid_pair")
+
+    def test_collect_engine_artifact_validation_error_records_reports_stage_errors(self) -> None:
+        records = collect_engine_artifact_validation_error_records(
+            {
+                "pl\nan": ("card", {"type": "RunLogCard", "title": "X", "blocks": [], "actions": []}),
+                " Plan ": ("card", {"type": "RunLogCard", "title": "Y", "blocks": [], "actions": []}),
+                "plan": ("card", {"type": "RunLogCard", "title": "Z", "blocks": [], "actions": []}),
+            }
+        )
+
+        self.assertEqual(len(records), 2)
+        self.assertEqual(records[0]["index"], 0)
+        self.assertEqual(records[0]["code"], "invalid_stage")
+        self.assertEqual(records[0]["location"], "stage 'pl\\nan'")
+        self.assertEqual(records[0]["path"], '$["pl an"]')
+        self.assertIsNone(records[0]["stage"])
+        self.assertIn("control characters", records[0]["message"])
+        self.assertEqual(records[1]["index"], 2)
+        self.assertEqual(records[1]["code"], "invalid_stage")
+        self.assertEqual(records[1]["location"], "stage 'plan'")
+        self.assertEqual(records[1]["path"], '$["plan"]')
+        self.assertEqual(records[1]["stage"], "plan")
+        self.assertIn("unique after normalization", records[1]["message"])
+
+    def test_collect_engine_artifact_validation_error_records_exposes_kind_error_code(self) -> None:
+        records = collect_engine_artifact_validation_error_records(
+            [("unknown", {"id": "x", "label": "Unsupported", "payload": {}})]
+        )
+
+        self.assertEqual(records[0]["code"], "invalid_kind")
+        self.assertEqual(records[0]["normalized_kind"], "unknown")
+
+    def test_collect_engine_artifact_validation_error_records_exposes_envelope_kind_mismatch(
+        self,
+    ) -> None:
+        records = collect_engine_artifact_validation_error_records(
+            [
+                (
+                    "action",
+                    {
+                        "type": "TerminalArtifact",
+                        "kind": "selection",
+                        "artifact": {"id": "choice-1", "label": "Choice", "payload": {}},
+                        "contract_version": A2UI_CONTRACT_VERSION,
+                        "a2ui_version": A2UI_VERSION,
+                    },
+                )
+            ]
+        )
+
+        self.assertEqual(len(records), 1)
+        self.assertEqual(records[0]["code"], "invalid_envelope_kind")
+        self.assertEqual(records[0]["kind"], "action")
+        self.assertEqual(records[0]["normalized_kind"], "action")
+        self.assertIn("TerminalArtifact envelope", records[0]["message"])
+
+    def test_collect_engine_artifact_validation_error_records_normalizes_kind_without_parsing_message(
+        self,
+    ) -> None:
+        records = collect_engine_artifact_validation_error_records(
+            [(" Action ", {"id": "", "label": "Apply", "payload": {}})]
+        )
+
+        self.assertEqual(records[0]["kind"], " Action ")
+        self.assertEqual(records[0]["normalized_kind"], "action")
+
+    def test_collect_engine_artifact_validation_errors_reports_each_invalid_artifact(self) -> None:
+        errors = collect_engine_artifact_validation_errors(
+            [
+                ("action", {"id": "", "label": "Apply", "payload": {}}),
+                ("selection", {"id": "choice-1", "label": "", "payload": {}}),
+                ("unknown", {"id": "x", "label": "Unsupported", "payload": {}}),
+            ]
+        )
+
+        self.assertEqual(len(errors), 3)
+        self.assertIn("index 0", errors[0])
+        self.assertIn("kind='action'", errors[0])
+        self.assertIn("index 1", errors[1])
+        self.assertIn("kind='selection'", errors[1])
+        self.assertIn("index 2", errors[2])
+        self.assertIn("unsupported kind", errors[2])
+
+    def test_collect_engine_artifact_validation_errors_sorts_named_stages_deterministically(self) -> None:
+        patch_first_errors = collect_engine_artifact_validation_errors(
+            {
+                "patch": ("action", {"id": "", "label": "Patch", "payload": {}}),
+                "plan": ("selection", {"id": "choice-1", "label": "", "payload": {}}),
+            }
+        )
+        plan_first_errors = collect_engine_artifact_validation_errors(
+            {
+                "plan": ("selection", {"id": "choice-1", "label": "", "payload": {}}),
+                "patch": ("action", {"id": "", "label": "Patch", "payload": {}}),
+            }
+        )
+
+        self.assertEqual(patch_first_errors, plan_first_errors)
+        self.assertIn("stage 'plan'", patch_first_errors[0])
+        self.assertIn("stage 'patch'", patch_first_errors[1])
+
+    def test_collect_engine_artifact_validation_errors_returns_empty_tuple_for_valid_batch(self) -> None:
+        errors = collect_engine_artifact_validation_errors(
+            {
+                "plan": (
+                    "card",
+                    {
+                        "type": "RunLogCard",
+                        "title": "Plan",
+                        "blocks": [{"type": "MarkdownBlock", "markdown": "Plan output"}],
+                        "actions": [],
+                    },
+                )
+            }
+        )
+
+        self.assertEqual(errors, ())
+
+    def test_build_engine_artifact_validation_report_wraps_stable_error_records(self) -> None:
+        report = build_engine_artifact_validation_report(
+            {"plan": ("selection", {"id": "choice-1", "label": "", "payload": {}})}
+        )
+
+        self.assertEqual(report["type"], "A2UIEngineArtifactValidationReport")
+        self.assertEqual(report["schema_version"], A2UI_ENGINE_ARTIFACTS_SCHEMA_VERSION)
+        self.assertEqual(report["contract_version"], A2UI_CONTRACT_VERSION)
+        self.assertEqual(report["a2ui_version"], A2UI_VERSION)
+        self.assertEqual(report["input_shape"], "stage_mapping")
+        self.assertEqual(report["artifact_count"], 1)
+        self.assertEqual(
+            report["artifact_order"],
+            [
+                {
+                    "index": 0,
+                    "location": "stage 'plan'",
+                    "path": '$["plan"]',
+                    "stage": "plan",
+                    "kind": "selection",
+                    "normalized_kind": "selection",
+                    "artifact_fingerprint": _fingerprint_manifest_section(
+                        {"id": "choice-1", "label": "", "payload": {}}
+                    ),
+                }
+            ],
+        )
+        self.assertEqual(
+            report["artifact_order_fingerprint"],
+            _fingerprint_manifest_section(report["artifact_order"]),
+        )
+        self.assertEqual(report["artifact_kind_counts"], {"selection": 1})
+        self.assertEqual(
+            report["artifact_kind_counts_fingerprint"],
+            _fingerprint_manifest_section(report["artifact_kind_counts"]),
+        )
+        self.assertEqual(
+            report["stage_coverage"],
+            {
+                "known_stage_order": ["plan", "revise", "patch", "apply"],
+                "present": ["plan"],
+                "missing": ["revise", "patch", "apply"],
+                "complete": False,
+            },
+        )
+        self.assertEqual(
+            report["stage_coverage_fingerprint"],
+            _fingerprint_manifest_section(report["stage_coverage"]),
+        )
+        self.assertFalse(report["valid"])
+        self.assertEqual(report["error_count"], 1)
+        self.assertEqual(report["error_codes"], ["invalid_payload"])
+        self.assertEqual(report["errors"][0]["location"], "stage 'plan'")
+        self.assertEqual(report["errors"][0]["code"], "invalid_payload")
+        self.assertEqual(report["error_fingerprint"], _fingerprint_manifest_section(report["errors"]))
+        self.assertEqual(report["contract_fingerprint"], engine_artifacts_contract_fingerprint())
+        self.assertIn("[A2UIEngineArtifactValidationReport]", report["rendered_text"])
+        self.assertIn("Status: invalid", report["rendered_text"])
+        self.assertIn('stage=plan', report["rendered_text"])
+        self.assertIn("Artifact kinds: selection=1", report["rendered_text"])
+        self.assertIn("Stages present: plan", report["rendered_text"])
+        self.assertIn("Stages missing: revise, patch, apply", report["rendered_text"])
+        self.assertIn("Stages complete: no", report["rendered_text"])
+        self.assertIn('$["plan"]: invalid_payload (selection)', report["rendered_text"])
+        self.assertEqual(
+            report["rendered_text_fingerprint"],
+            _fingerprint_manifest_section(report["rendered_text"]),
+        )
+        self.assertEqual(
+            report["report_fingerprint"],
+            _fingerprint_manifest_section({key: value for key, value in report.items() if key != "report_fingerprint"}),
+        )
+
+    def test_build_engine_artifact_validation_report_marks_valid_batches(self) -> None:
+        report = build_engine_artifact_validation_report(
+            {
+                "plan": (
+                    "card",
+                    {
+                        "type": "RunLogCard",
+                        "title": "Plan",
+                        "blocks": [{"type": "MarkdownBlock", "markdown": "Plan output"}],
+                        "actions": [],
+                    },
+                )
+            }
+        )
+
+        self.assertTrue(report["valid"])
+        self.assertEqual(report["error_count"], 0)
+        self.assertEqual(report["error_codes"], [])
+        self.assertEqual(report["errors"], [])
+        self.assertEqual(report["error_fingerprint"], _fingerprint_manifest_section(()))
+        self.assertEqual(report["artifact_kind_counts"], {"card": 1})
+        self.assertIn("Status: valid", render_engine_artifact_validation_report(report))
+        self.assertIn("Stages complete: no", report["rendered_text"])
+        self.assertIn('Artifact order:\n- $["plan"]: kind=card stage=plan', report["rendered_text"])
+        validate_engine_artifact_validation_report(report)
+
+    def test_build_engine_artifact_validation_report_marks_complete_engine_loop(self) -> None:
+        artifacts = {
+            stage: (
+                "card",
+                {
+                    "type": "RunLogCard",
+                    "title": stage.title(),
+                    "blocks": [{"type": "MarkdownBlock", "markdown": stage}],
+                    "actions": [],
+                },
+            )
+            for stage in ENGINE_A2UI_CLI_FALLBACK_STAGE_ORDER
+        }
+
+        report = build_engine_artifact_validation_report(artifacts)
+
+        self.assertTrue(report["valid"])
+        self.assertEqual(report["stage_coverage"]["present"], ["plan", "revise", "patch", "apply"])
+        self.assertEqual(report["stage_coverage"]["missing"], [])
+        self.assertTrue(report["stage_coverage"]["complete"])
+        self.assertIn("Stages complete: yes", report["rendered_text"])
+        validate_engine_artifact_validation_report(report)
+
+    def test_render_engine_artifact_validation_report_rejects_stale_text(self) -> None:
+        report = build_engine_artifact_validation_report(
+            {"plan": ("selection", {"id": "choice-1", "label": "", "payload": {}})}
+        )
+        report["rendered_text"] = "stale"
+        report["rendered_text_fingerprint"] = _fingerprint_manifest_section(report["rendered_text"])
+        report["report_fingerprint"] = _fingerprint_manifest_section(
+            {key: value for key, value in report.items() if key != "report_fingerprint"}
+        )
+
+        with self.assertRaises(ValueError) as ctx:
+            render_engine_artifact_validation_report(report)
+
+        self.assertIn("rendered_text", str(ctx.exception))
+
+    def test_validate_engine_artifact_validation_report_rejects_stale_fingerprint(self) -> None:
+        report = build_engine_artifact_validation_report(
+            {"plan": ("selection", {"id": "choice-1", "label": "", "payload": {}})}
+        )
+        report["error_fingerprint"] = "stale"
+
+        with self.assertRaises(ValueError) as ctx:
+            validate_engine_artifact_validation_report(report)
+
+        self.assertIn("error_fingerprint", str(ctx.exception))
+
+    def test_validate_engine_artifact_validation_report_rejects_stale_valid_flag(self) -> None:
+        report = build_engine_artifact_validation_report(
+            {"plan": ("selection", {"id": "choice-1", "label": "", "payload": {}})}
+        )
+        report["valid"] = True
+        report["report_fingerprint"] = _fingerprint_manifest_section(
+            {key: value for key, value in report.items() if key != "report_fingerprint"}
+        )
+
+        with self.assertRaises(ValueError) as ctx:
+            validate_engine_artifact_validation_report(report)
+
+        self.assertIn("valid flag", str(ctx.exception))
+
+    def test_validate_engine_artifact_validation_report_rejects_stale_error_codes(self) -> None:
+        report = build_engine_artifact_validation_report(
+            [
+                ("selection", {"id": "choice-1", "label": "", "payload": {}}),
+                ("unknown", {"id": "x", "label": "Unsupported", "payload": {}}),
+            ]
+        )
+        report["error_codes"] = ["invalid_payload"]
+        report["report_fingerprint"] = _fingerprint_manifest_section(
+            {key: value for key, value in report.items() if key != "report_fingerprint"}
+        )
+
+        with self.assertRaises(ValueError) as ctx:
+            validate_engine_artifact_validation_report(report)
+
+        self.assertIn("error_codes", str(ctx.exception))
+
+    def test_validate_engine_artifact_validation_report_rejects_stale_kind_counts(self) -> None:
+        report = build_engine_artifact_validation_report(
+            [
+                (
+                    "action",
+                    {"id": "copy_to_clipboard", "label": "Copy", "payload": {"text": "Plan"}},
+                ),
+                ("selection", {"id": "choice-1", "label": "Choice", "payload": {}}),
+            ]
+        )
+        report["artifact_kind_counts"] = {"selection": 2}
+        report["artifact_kind_counts_fingerprint"] = _fingerprint_manifest_section(
+            report["artifact_kind_counts"]
+        )
+        report["report_fingerprint"] = _fingerprint_manifest_section(
+            {key: value for key, value in report.items() if key != "report_fingerprint"}
+        )
+
+        with self.assertRaises(ValueError) as ctx:
+            validate_engine_artifact_validation_report(report)
+
+        self.assertIn("artifact_kind_counts", str(ctx.exception))
+
+    def test_validate_engine_artifact_validation_report_rejects_stale_stage_coverage(self) -> None:
+        report = build_engine_artifact_validation_report(
+            {
+                "plan": ("selection", {"id": "choice-1", "label": "Choice", "payload": {}}),
+                "patch": (
+                    "action",
+                    {"id": "copy_to_clipboard", "label": "Copy", "payload": {"text": "Patch"}},
+                ),
+            }
+        )
+        report["stage_coverage"] = {
+            "known_stage_order": ["plan", "revise", "patch", "apply"],
+            "present": ["plan", "revise", "patch"],
+            "missing": ["apply"],
+            "complete": False,
+        }
+        report["stage_coverage_fingerprint"] = _fingerprint_manifest_section(report["stage_coverage"])
+        report["report_fingerprint"] = _fingerprint_manifest_section(
+            {key: value for key, value in report.items() if key != "report_fingerprint"}
+        )
+
+        with self.assertRaises(ValueError) as ctx:
+            validate_engine_artifact_validation_report(report)
+
+        self.assertIn("stage_coverage", str(ctx.exception))
+
+    def test_validate_engine_artifact_validation_report_rejects_bad_order_record_shape(self) -> None:
+        report = build_engine_artifact_validation_report(
+            {"plan": ("selection", {"id": "choice-1", "label": "Choice", "payload": {}})}
+        )
+        report["artifact_order"][0]["stage"] = 1
+        report["artifact_order_fingerprint"] = _fingerprint_manifest_section(report["artifact_order"])
+        report["report_fingerprint"] = _fingerprint_manifest_section(
+            {key: value for key, value in report.items() if key != "report_fingerprint"}
+        )
+
+        with self.assertRaises(ValueError) as ctx:
+            validate_engine_artifact_validation_report(report)
+
+        self.assertIn("artifact validation order stage", str(ctx.exception))
+
+    def test_build_engine_artifact_validation_report_exposes_ordered_sequence_order(self) -> None:
+        report = build_engine_artifact_validation_report(
+            [
+                (
+                    "action",
+                    {"id": "copy_to_clipboard", "label": "Copy", "payload": {"text": "Plan"}},
+                ),
+                ("selection", {"id": "choice-1", "label": "Choice", "payload": {}}),
+            ]
+        )
+
+        self.assertTrue(report["valid"])
+        self.assertEqual(report["input_shape"], "ordered_sequence")
+        self.assertEqual(report["artifact_count"], 2)
+        self.assertEqual(report["artifact_kind_counts"], {"action": 1, "selection": 1})
+        self.assertEqual(
+            report["artifact_order"],
+            [
+                {
+                    "index": 0,
+                    "location": "index 0",
+                    "path": "$[0]",
+                    "stage": None,
+                    "kind": "action",
+                    "normalized_kind": "action",
+                    "artifact_fingerprint": _fingerprint_manifest_section(
+                        {"id": "copy_to_clipboard", "label": "Copy", "payload": {"text": "Plan"}}
+                    ),
+                },
+                {
+                    "index": 1,
+                    "location": "index 1",
+                    "path": "$[1]",
+                    "stage": None,
+                    "kind": "selection",
+                    "normalized_kind": "selection",
+                    "artifact_fingerprint": _fingerprint_manifest_section(
+                        {"id": "choice-1", "label": "Choice", "payload": {}}
+                    ),
+                },
+            ],
+        )
+
+    def test_build_engine_artifact_validation_report_keeps_invalid_container_shape(self) -> None:
+        report = build_engine_artifact_validation_report("not-artifacts")
+
+        self.assertFalse(report["valid"])
+        self.assertEqual(report["input_shape"], "invalid")
+        self.assertEqual(report["artifact_count"], 0)
+        self.assertEqual(report["artifact_order"], [])
+        self.assertEqual(report["artifact_kind_counts"], {})
+        self.assertEqual(report["error_codes"], ["invalid_container"])
+
+    def test_build_engine_artifact_validation_report_preserves_valid_mapping_order_with_errors(self) -> None:
+        report = build_engine_artifact_validation_report(
+            {
+                "patch": ("action", {"id": "", "label": "Patch", "payload": {}}),
+                "plan": ("card", {"type": "RunLogCard", "title": "Plan", "blocks": [], "actions": []}),
+                "revise": "not-a-pair",
+                "apply": ("unknown", {"id": "x", "label": "Unsupported", "payload": {}}),
+            }
+        )
+
+        self.assertFalse(report["valid"])
+        self.assertEqual(
+            report["artifact_order"],
+            [
+                {
+                    "index": 0,
+                    "location": "stage 'plan'",
+                    "path": '$["plan"]',
+                    "stage": "plan",
+                    "kind": "card",
+                    "normalized_kind": "card",
+                    "artifact_fingerprint": _fingerprint_manifest_section(
+                        {"type": "RunLogCard", "title": "Plan", "blocks": [], "actions": []}
+                    ),
+                },
+                {
+                    "index": 1,
+                    "location": "stage 'patch'",
+                    "path": '$["patch"]',
+                    "stage": "patch",
+                    "kind": "action",
+                    "normalized_kind": "action",
+                    "artifact_fingerprint": _fingerprint_manifest_section(
+                        {"id": "", "label": "Patch", "payload": {}}
+                    ),
+                },
+                {
+                    "index": 2,
+                    "location": "stage 'apply'",
+                    "path": '$["apply"]',
+                    "stage": "apply",
+                    "kind": "unknown",
+                    "normalized_kind": "unknown",
+                    "artifact_fingerprint": _fingerprint_manifest_section(
+                        {"id": "x", "label": "Unsupported", "payload": {}}
+                    ),
+                },
+            ],
+        )
+        self.assertEqual(report["artifact_kind_counts"], {"action": 1, "card": 1, "unknown": 1})
+        self.assertEqual(report["stage_coverage"]["present"], ["plan", "patch", "apply"])
+        self.assertEqual(report["stage_coverage"]["missing"], ["revise"])
+        self.assertFalse(report["stage_coverage"]["complete"])
+        self.assertEqual(report["error_codes"], ["invalid_kind", "invalid_pair", "invalid_payload"])
+        self.assertIn('$["revise"]: invalid_pair', report["rendered_text"])
+        self.assertIn('$["patch"]: invalid_payload (action)', report["rendered_text"])
+        self.assertIn('$["apply"]: invalid_kind (unknown)', report["rendered_text"])
+
+    def test_build_engine_artifact_validation_report_keeps_quoted_stage_error_path(self) -> None:
+        report = build_engine_artifact_validation_report(
+            {"writer's patch": ("action", {"id": "", "label": "Patch", "payload": {}})}
+        )
+
+        self.assertFalse(report["valid"])
+        self.assertEqual(report["errors"][0]["stage"], "writer's patch")
+        self.assertEqual(report["errors"][0]["path"], '$["writer\'s patch"]')
+        self.assertIn('$["writer\'s patch"]: invalid_payload (action)', report["rendered_text"])
+        validate_engine_artifact_validation_report(report)
+
+    def test_build_engine_artifact_validation_report_preserves_valid_sequence_order_with_errors(self) -> None:
+        report = build_engine_artifact_validation_report(
+            [
+                ("selection", {"id": "choice-1", "label": "Choice", "payload": {}}),
+                "not-a-pair",
+                ("action", {"id": "", "label": "Patch", "payload": {}}),
+            ]
+        )
+
+        self.assertFalse(report["valid"])
+        self.assertEqual(
+            report["artifact_order"],
+            [
+                {
+                    "index": 0,
+                    "location": "index 0",
+                    "path": "$[0]",
+                    "stage": None,
+                    "kind": "selection",
+                    "normalized_kind": "selection",
+                    "artifact_fingerprint": _fingerprint_manifest_section(
+                        {"id": "choice-1", "label": "Choice", "payload": {}}
+                    ),
+                },
+                {
+                    "index": 2,
+                    "location": "index 2",
+                    "path": "$[2]",
+                    "stage": None,
+                    "kind": "action",
+                    "normalized_kind": "action",
+                    "artifact_fingerprint": _fingerprint_manifest_section(
+                        {"id": "", "label": "Patch", "payload": {}}
+                    ),
+                },
+            ],
+        )
+        self.assertEqual(report["artifact_kind_counts"], {"action": 1, "selection": 1})
+        self.assertEqual(report["stage_coverage"]["present"], [])
+        self.assertEqual(report["stage_coverage"]["missing"], ["plan", "revise", "patch", "apply"])
+        self.assertFalse(report["stage_coverage"]["complete"])
+        self.assertEqual(report["error_codes"], ["invalid_pair", "invalid_payload"])
+        self.assertIn("$[1]: invalid_pair", report["rendered_text"])
+        self.assertIn("$[2]: invalid_payload (action)", report["rendered_text"])
+
+    def test_collect_engine_artifact_validation_errors_public_export_matches_internal(self) -> None:
+        self.assertIs(
+            public_ui.build_engine_artifact_validation_report,
+            build_engine_artifact_validation_report,
+        )
+        self.assertIs(
+            public_ui.render_engine_artifact_validation_report,
+            render_engine_artifact_validation_report,
+        )
+        self.assertIs(
+            public_ui.validate_engine_artifact_validation_report,
+            validate_engine_artifact_validation_report,
+        )
+        self.assertIs(
+            public_ui.collect_engine_artifact_validation_errors,
+            collect_engine_artifact_validation_errors,
+        )
+        self.assertIs(
+            public_ui.collect_engine_artifact_validation_error_records,
+            collect_engine_artifact_validation_error_records,
+        )
+
+    def test_engine_artifacts_contract_describes_engine_input_shape(self) -> None:
+        contract = describe_engine_artifacts_contract()
+
+        self.assertEqual(contract["type"], "A2UIEngineArtifactsContract")
+        self.assertEqual(contract["schema_version"], A2UI_ENGINE_ARTIFACTS_SCHEMA_VERSION)
+        self.assertEqual(contract["validator_entrypoint"], "validate_engine_artifacts")
+        self.assertEqual(
+            contract["validation_errors_entrypoint"],
+            "collect_engine_artifact_validation_errors",
+        )
+        self.assertEqual(
+            contract["validation_error_records_entrypoint"],
+            "collect_engine_artifact_validation_error_records",
+        )
+        self.assertEqual(
+            contract["validation_report_entrypoint"],
+            "build_engine_artifact_validation_report",
+        )
+        self.assertEqual(
+            contract["validation_report_validator_entrypoint"],
+            "validate_engine_artifact_validation_report",
+        )
+        self.assertEqual(
+            contract["validation_report_renderer_entrypoint"],
+            "render_engine_artifact_validation_report",
+        )
+        self.assertEqual(contract["builder_entrypoint"], "build_engine_a2ui_cli_fallback_payload")
+        self.assertEqual(contract["output_contract"], "TerminalArtifactCliFallbackPayload")
+        self.assertEqual(contract["known_engine_stage_order"], list(ENGINE_A2UI_CLI_FALLBACK_STAGE_ORDER))
+        self.assertEqual(contract["supported_kinds"], list(TERMINAL_ARTIFACT_SUPPORTED_KINDS))
+        self.assertIn("stage-name mapping", contract["accepted_input_shapes"][0])
+        self.assertIn("one-shot iterables", contract["rejected_input_shapes"])
+        self.assertIn("stable tuple", contract["validation_error_policy"])
+        self.assertIn("client-neutral records", contract["validation_error_record_policy"])
+        self.assertIn("versioned preflight envelope", contract["validation_report_policy"])
+        self.assertIn("artifact_order", contract["validation_report_policy"])
+        self.assertIn("artifact_kind_counts", contract["validation_report_policy"])
+        self.assertIn("stage_coverage", contract["validation_report_policy"])
+        self.assertIn("error_codes", contract["validation_report_policy"])
+        self.assertIn("error_fingerprint", contract["validation_report_policy"])
+        self.assertIn("artifact_order record shape", contract["validation_report_validator_policy"])
+        self.assertIn("report fingerprint", contract["validation_report_validator_policy"])
+        self.assertIn("deterministic order", contract["validation_report_order_policy"])
+        self.assertIn("workflow coverage", contract["validation_report_kind_counts_policy"])
+        self.assertIn("plan, revise, patch, apply", contract["validation_report_stage_coverage_policy"])
+        self.assertEqual(
+            contract["validation_report_artifact_order_fields"],
+            [
+                "index",
+                "location",
+                "path",
+                "stage",
+                "kind",
+                "normalized_kind",
+                "artifact_fingerprint",
+            ],
+        )
+        self.assertEqual(
+            contract["validation_error_record_fields"],
+            [
+                "schema_version",
+                "index",
+                "location",
+                "path",
+                "stage",
+                "kind",
+                "normalized_kind",
+                "code",
+                "message",
+            ],
+        )
+        self.assertEqual(
+            contract["validation_error_record_schema_version"],
+            A2UI_ENGINE_ARTIFACTS_SCHEMA_VERSION,
+        )
+        self.assertEqual(
+            contract["validation_error_codes"],
+            [
+                "invalid_container",
+                "invalid_stage",
+                "invalid_pair",
+                "invalid_kind",
+                "invalid_envelope_kind",
+                "invalid_payload",
+            ],
+        )
+        self.assertIn("PolicyGate", contract["engine_authority_policy"])
+        self.assertIn("Textual", contract["ui_assumption_policy"])
+        self.assertEqual(
+            contract["engine_artifacts_contract_fingerprint"],
+            engine_artifacts_contract_fingerprint(),
+        )
+        self.assertEqual(
+            contract["contract_manifest_fingerprint"],
+            engine_artifacts_contract_fingerprint(),
+        )
+        self.assertEqual(
+            contract["contract_manifest"]["contract_fingerprint"],
+            engine_artifacts_contract_fingerprint(),
+        )
+        self.assertEqual(contract["contract_fingerprint"], engine_artifacts_contract_fingerprint())
+
+    def test_engine_artifacts_contract_manifest_alias_matches_contract(self) -> None:
+        self.assertEqual(describe_engine_artifacts_contract_manifest(), describe_engine_artifacts_contract())
+
+    def test_a2ui_engine_contract_embeds_engine_artifacts_contract(self) -> None:
+        contract = describe_a2ui_engine_contract()
+
+        self.assertEqual(
+            a2ui_contract_fingerprint(
+                include_terminal_artifact_cli_fallback_route=True,
+                include_terminal_artifact_cli_fallback_entrypoint=True,
+            ),
+            contract["contract_fingerprint"],
+        )
+        self.assertEqual(
+            a2ui_engine_contract_fingerprint(),
+            contract["contract_fingerprint"],
+        )
+
+    def test_engine_artifacts_contract_public_export_matches_internal(self) -> None:
+        self.assertIs(public_ui.describe_engine_artifacts_contract, describe_engine_artifacts_contract)
+        self.assertIs(
+            public_ui.describe_engine_artifacts_contract_manifest,
+            describe_engine_artifacts_contract_manifest,
+        )
+        self.assertIs(public_ui.engine_artifacts_contract_fingerprint, engine_artifacts_contract_fingerprint)
+        self.assertEqual(
+            public_ui.A2UI_ENGINE_ARTIFACTS_SCHEMA_VERSION,
+            A2UI_ENGINE_ARTIFACTS_SCHEMA_VERSION,
+        )
 
 
 if __name__ == "__main__":

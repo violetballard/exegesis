@@ -1,5 +1,6 @@
 from __future__ import annotations
 
+import ast
 import copy
 import hashlib
 import json
@@ -14,6 +15,7 @@ A2UI_VERSION = 1
 A2UI_CONTRACT_VERSION = 2
 A2UI_ACTION_SCHEMA_VERSION = 1
 A2UI_CAPABILITIES_SCHEMA_VERSION = 1
+A2UI_ENGINE_ARTIFACTS_SCHEMA_VERSION = 1
 SELECTION_SCHEMA_VERSION = 1
 A2UI_LEAF_CONTRACTS_SCHEMA_VERSION = 1
 CARD_CONTRACT_VERSION = 1
@@ -76,6 +78,7 @@ _TERMINAL_ARTIFACT_RENDERER_ENTRYPOINTS: tuple[tuple[str, str], ...] = (
     ("selection", "render_terminal_selection"),
     ("cli_fallback", "render_terminal_cli_fallback"),
     ("cli_fallback_payload", "render_terminal_artifact_cli_fallback_payload"),
+    ("engine_artifact_validation_report", "render_engine_artifact_validation_report"),
 )
 
 ALLOWED_ACTION_IDS: tuple[str, ...] = (
@@ -175,6 +178,57 @@ _TERMINAL_ARTIFACT_CLI_FALLBACK_PAYLOAD_REQUIRED_FIELDS: tuple[str, ...] = (
     "cli_fallback",
     "payload_fingerprint",
 )
+_ENGINE_ARTIFACT_VALIDATION_REPORT_REQUIRED_FIELDS: tuple[str, ...] = (
+    "type",
+    "schema_version",
+    "contract_version",
+    "a2ui_version",
+    "input_shape",
+    "artifact_count",
+    "artifact_order",
+    "artifact_order_fingerprint",
+    "artifact_kind_counts",
+    "artifact_kind_counts_fingerprint",
+    "stage_coverage",
+    "stage_coverage_fingerprint",
+    "valid",
+    "error_count",
+    "error_codes",
+    "errors",
+    "error_fingerprint",
+    "contract_fingerprint",
+    "rendered_text",
+    "rendered_text_fingerprint",
+    "report_fingerprint",
+)
+_ENGINE_ARTIFACT_VALIDATION_ERROR_RECORD_REQUIRED_FIELDS: tuple[str, ...] = (
+    "schema_version",
+    "index",
+    "location",
+    "path",
+    "stage",
+    "kind",
+    "normalized_kind",
+    "code",
+    "message",
+)
+_ENGINE_ARTIFACT_VALIDATION_ORDER_RECORD_REQUIRED_FIELDS: tuple[str, ...] = (
+    "index",
+    "location",
+    "path",
+    "stage",
+    "kind",
+    "normalized_kind",
+    "artifact_fingerprint",
+)
+_ENGINE_ARTIFACT_VALIDATION_ERROR_CODES: tuple[str, ...] = (
+    "invalid_container",
+    "invalid_stage",
+    "invalid_pair",
+    "invalid_kind",
+    "invalid_envelope_kind",
+    "invalid_payload",
+)
 _TERMINAL_ARTIFACT_CLI_FALLBACK_PAYLOAD_CLI_ENTRY_FIELDS: tuple[str, ...] = (
     "index",
     "artifact_id",
@@ -250,6 +304,8 @@ class A2UISessionStore:
 
 
 def _snapshot_contract_value(value: Any, _seen: set[int] | None = None) -> Any:
+    if value is None or type(value) in {bool, int, float, str}:
+        return value
     if _seen is None:
         _seen = set()
     if isinstance(value, dict):
@@ -3504,6 +3560,119 @@ def _build_terminal_artifact_cli_fallback_payload_contract_manifest() -> dict[st
     }
 
 
+def _build_engine_artifacts_contract_manifest() -> dict[str, Any]:
+    return {
+        "type": "A2UIEngineArtifactsContract",
+        "schema_version": A2UI_ENGINE_ARTIFACTS_SCHEMA_VERSION,
+        "contract_version": A2UI_CONTRACT_VERSION,
+        "a2ui_version": A2UI_VERSION,
+        "validator_entrypoint": "validate_engine_artifacts",
+        "validation_errors_entrypoint": "collect_engine_artifact_validation_errors",
+        "validation_error_records_entrypoint": "collect_engine_artifact_validation_error_records",
+        "validation_report_entrypoint": "build_engine_artifact_validation_report",
+        "validation_report_validator_entrypoint": "validate_engine_artifact_validation_report",
+        "builder_entrypoint": "build_engine_a2ui_cli_fallback_payload",
+        "output_contract": "TerminalArtifactCliFallbackPayload",
+        "output_renderer_entrypoint": "render_terminal_artifact_cli_fallback_payload",
+        "accepted_input_shapes": [
+            "stage-name mapping to explicit (kind, artifact) pairs",
+            "ordered replayable sequence of explicit (kind, artifact) pairs",
+        ],
+        "rejected_input_shapes": [
+            "empty artifact containers",
+            "string or bytes containers",
+            "unordered set-like containers",
+            "one-shot iterables",
+        ],
+        "stage_name_policy": (
+            "mapping stage names are normalized, must be non-empty, must not contain control characters, "
+            "and must be unique after casefolded normalization"
+        ),
+        "named_artifact_order_policy": (
+            "named artifacts render in plan, revise, patch, apply order when those stage names are present; "
+            "unknown stage names render after known stages in case-insensitive lexical order"
+        ),
+        "known_engine_stage_order": list(ENGINE_A2UI_CLI_FALLBACK_STAGE_ORDER),
+        "ordered_artifact_policy": "sequence inputs preserve caller order exactly",
+        "artifact_pair_policy": "each entry must be an explicit two-item kind, artifact pair",
+        "validation_error_policy": (
+            "collect_engine_artifact_validation_errors returns a stable tuple of rendered ValueError messages "
+            "without building or rendering CLI fallback payloads; mapping errors follow the same deterministic "
+            "plan, revise, patch, apply stage ordering as CLI fallback rendering"
+        ),
+        "validation_error_record_policy": (
+            "collect_engine_artifact_validation_error_records returns client-neutral records with stable "
+            "schema_version, index, location, path, kind, normalized_kind, code, and message fields so "
+            "engine callers do not parse rendered error text"
+        ),
+        "validation_report_policy": (
+            "build_engine_artifact_validation_report returns a versioned preflight envelope with valid, "
+            "input_shape, artifact_count, artifact_order, artifact_kind_counts, stage_coverage, error_count, "
+            "error_codes, errors, error_fingerprint, contract_fingerprint, and rendered CLI report fields for "
+            "engine workflow checkpoints"
+        ),
+        "validation_report_renderer_entrypoint": "render_engine_artifact_validation_report",
+        "validation_report_validator_policy": (
+            "validate_engine_artifact_validation_report verifies the report envelope, count fields, "
+            "artifact_order record shape, artifact_order fingerprint, stage coverage fingerprint, "
+            "error fingerprint, contract fingerprint, rendered report fingerprint, and report fingerprint"
+        ),
+        "validation_report_order_policy": (
+            "artifact_order records the deterministic order that build_engine_a2ui_cli_fallback_payload "
+            "will use, with a deterministic per-artifact fingerprint, without rendering terminal fallback text"
+        ),
+        "validation_report_kind_counts_policy": (
+            "artifact_kind_counts records normalized artifact kind totals in lexical key order so engine "
+            "callers can preflight workflow coverage without parsing CLI text"
+        ),
+        "validation_report_stage_coverage_policy": (
+            "stage_coverage records present and missing known engine workflow stages in the stable "
+            "plan, revise, patch, apply order so engine callers can check loop completeness without "
+            "rendering CLI fallback text; complete is true only when every known stage is present"
+        ),
+        "validation_report_artifact_order_fields": [
+            "index",
+            "location",
+            "path",
+            "stage",
+            "kind",
+            "normalized_kind",
+            "artifact_fingerprint",
+        ],
+        "validation_error_record_schema_version": A2UI_ENGINE_ARTIFACTS_SCHEMA_VERSION,
+        "validation_error_record_fields": [
+            "schema_version",
+            "index",
+            "location",
+            "path",
+            "stage",
+            "kind",
+            "normalized_kind",
+            "code",
+            "message",
+        ],
+        "validation_error_codes": list(_ENGINE_ARTIFACT_VALIDATION_ERROR_CODES),
+        "supported_kinds": list(TERMINAL_ARTIFACT_SUPPORTED_KINDS),
+        "kind_validation_entrypoints": {
+            "action": "validate_action_ref",
+            "selection": "validate_selection_ref",
+            "card": "validate_terminal_artifact_render_target",
+        },
+        "terminal_artifact_envelope_policy": (
+            "complete TerminalArtifact envelopes are accepted when the embedded kind matches the declared pair kind"
+        ),
+        "cli_fallback_policy": "CLI renders the same validated artifact payload future A2UI clients consume",
+        "engine_authority_policy": (
+            "payload actions are display artifacts only; execution remains typed, allowlisted, and engine PolicyGate authoritative"
+        ),
+        "ui_assumption_policy": "contract does not require Textual, web, or Studio-specific renderer assumptions",
+        "fingerprint_policy": "contract_fingerprint covers the complete engine artifact contract manifest",
+        "terminal_artifact_cli_fallback_payload_contract_fingerprint": (
+            terminal_artifact_cli_fallback_payload_contract_fingerprint()
+        ),
+    }
+
+
 def _build_terminal_artifact_renderer_entrypoints() -> dict[str, str]:
     """Return the canonical renderer-entrypoint map shared by A2UI manifests."""
 
@@ -3996,12 +4165,708 @@ def validate_engine_artifacts(
     - ``"card"``: validated as a terminal card payload
     """
 
-    pairs: list[tuple[str, str, Any]] = []
+    for location, kind, artifact in _collect_engine_artifact_pairs(artifacts):
+        _validate_engine_artifact_kind(kind, location)
+        _validate_engine_artifact_payload(kind, artifact, location)
+
+
+def collect_engine_artifact_validation_errors(
+    artifacts: Mapping[str, Sequence[Any]] | Sequence[Sequence[Any]],
+) -> tuple[str, ...]:
+    """Return stable validation errors for engine artifact preflight checks."""
+
+    return tuple(record["message"] for record in collect_engine_artifact_validation_error_records(artifacts))
+
+
+def collect_engine_artifact_validation_error_records(
+    artifacts: Mapping[str, Sequence[Any]] | Sequence[Sequence[Any]],
+) -> tuple[dict[str, Any], ...]:
+    """Return stable, structured validation errors for engine artifact preflight checks."""
+
+    return _collect_engine_artifact_validation_error_records(artifacts, include_payload_after_pair_errors=False)
+
+
+def _collect_engine_artifact_validation_error_records(
+    artifacts: Mapping[str, Sequence[Any]] | Sequence[Sequence[Any]],
+    *,
+    include_payload_after_pair_errors: bool,
+) -> tuple[dict[str, Any], ...]:
+    """Return stable validation records, optionally aggregating payload errors too."""
+
+    if isinstance(artifacts, Mapping):
+        stage_errors = _collect_engine_artifact_stage_validation_error_records(artifacts)
+        pair_errors = _collect_engine_artifact_pair_shape_error_records(artifacts)
+        if stage_errors or pair_errors:
+            if include_payload_after_pair_errors:
+                return tuple(
+                    stage_errors
+                    + pair_errors
+                    + _collect_engine_artifact_mapping_validation_error_records(artifacts)
+                )
+            return tuple(stage_errors + pair_errors)
+        mapping_errors = _collect_engine_artifact_mapping_validation_error_records(artifacts)
+        if mapping_errors:
+            return tuple(mapping_errors)
+    try:
+        pairs = _collect_engine_artifact_pairs(artifacts)
+    except ValueError as exc:
+        pair_errors = _collect_engine_artifact_pair_shape_error_records(artifacts)
+        if pair_errors:
+            if include_payload_after_pair_errors:
+                return tuple(pair_errors + _collect_engine_artifact_sequence_validation_error_records(artifacts))
+            return tuple(pair_errors)
+        return (
+            {
+                "schema_version": A2UI_ENGINE_ARTIFACTS_SCHEMA_VERSION,
+                "index": 0,
+                "location": "<container>",
+                "path": "$",
+                "stage": None,
+                "kind": None,
+                "normalized_kind": None,
+                "code": "invalid_container",
+                "message": str(exc),
+            },
+        )
+    errors: list[dict[str, Any]] = []
+    for index, (location, kind, artifact) in enumerate(pairs):
+        try:
+            _validate_engine_artifact_kind(kind, location)
+            _validate_engine_artifact_payload(kind, artifact, location)
+        except ValueError as exc:
+            errors.append(
+                {
+                    "schema_version": A2UI_ENGINE_ARTIFACTS_SCHEMA_VERSION,
+                    "index": index,
+                    "location": location,
+                    "path": _engine_artifact_validation_record_path(location),
+                    "stage": _engine_artifact_validation_record_stage(location),
+                    "kind": kind if isinstance(kind, str) else None,
+                    "normalized_kind": _normalize_engine_artifact_record_kind(kind),
+                    "code": _engine_artifact_validation_error_code(kind, exc),
+                    "message": str(exc),
+                }
+            )
+    return tuple(errors)
+
+
+def build_engine_artifact_validation_report(
+    artifacts: Mapping[str, Sequence[Any]] | Sequence[Sequence[Any]],
+) -> dict[str, Any]:
+    """Return a versioned engine artifact validation report without rendering CLI text."""
+
+    input_shape, artifact_order = _collect_engine_artifact_validation_report_order(artifacts)
+    errors = _collect_engine_artifact_validation_error_records(artifacts, include_payload_after_pair_errors=True)
+    artifact_kind_counts = _collect_engine_artifact_validation_report_kind_counts(artifact_order)
+    stage_coverage = _collect_engine_artifact_validation_report_stage_coverage(artifact_order)
+    report = {
+        "type": "A2UIEngineArtifactValidationReport",
+        "schema_version": A2UI_ENGINE_ARTIFACTS_SCHEMA_VERSION,
+        "contract_version": A2UI_CONTRACT_VERSION,
+        "a2ui_version": A2UI_VERSION,
+        "input_shape": input_shape,
+        "artifact_count": len(artifact_order),
+        "artifact_order": artifact_order,
+        "artifact_order_fingerprint": _fingerprint_manifest_section(artifact_order),
+        "artifact_kind_counts": artifact_kind_counts,
+        "artifact_kind_counts_fingerprint": _fingerprint_manifest_section(artifact_kind_counts),
+        "stage_coverage": stage_coverage,
+        "stage_coverage_fingerprint": _fingerprint_manifest_section(stage_coverage),
+        "valid": not errors,
+        "error_count": len(errors),
+        "error_codes": _collect_engine_artifact_validation_report_error_codes(errors),
+        "errors": list(errors),
+        "error_fingerprint": _fingerprint_manifest_section(errors),
+        "contract_fingerprint": engine_artifacts_contract_fingerprint(),
+    }
+    report["rendered_text"] = _render_engine_artifact_validation_report_text(report)
+    report["rendered_text_fingerprint"] = _fingerprint_manifest_section(report["rendered_text"])
+    report["report_fingerprint"] = _fingerprint_manifest_section(report)
+    return report
+
+
+def render_engine_artifact_validation_report(report: Mapping[str, Any]) -> str:
+    """Render a validated engine artifact preflight report as deterministic CLI text."""
+
+    validate_engine_artifact_validation_report(report)
+    return report["rendered_text"]
+
+
+def validate_engine_artifact_validation_report(report: Mapping[str, Any]) -> None:
+    """Validate a generated engine artifact validation report envelope."""
+
+    if not isinstance(report, Mapping):
+        raise ValueError("Engine artifact validation report must be an object")
+    missing = sorted(set(_ENGINE_ARTIFACT_VALIDATION_REPORT_REQUIRED_FIELDS) - set(report))
+    if missing:
+        raise ValueError(f"Missing engine artifact validation report field(s): {missing}")
+    extras = sorted(set(report) - set(_ENGINE_ARTIFACT_VALIDATION_REPORT_REQUIRED_FIELDS))
+    if extras:
+        raise ValueError(f"Unexpected engine artifact validation report field(s): {extras}")
+    if report.get("type") != "A2UIEngineArtifactValidationReport":
+        raise ValueError("Engine artifact validation report type is invalid")
+    if report.get("schema_version") != A2UI_ENGINE_ARTIFACTS_SCHEMA_VERSION:
+        raise ValueError("Engine artifact validation report schema_version is invalid")
+    if report.get("contract_version") != A2UI_CONTRACT_VERSION:
+        raise ValueError("Engine artifact validation report contract_version is invalid")
+    if report.get("a2ui_version") != A2UI_VERSION:
+        raise ValueError("Engine artifact validation report a2ui_version is invalid")
+    if report.get("input_shape") not in {"stage_mapping", "ordered_sequence", "invalid"}:
+        raise ValueError("Engine artifact validation report input_shape is invalid")
+    artifact_order = report.get("artifact_order")
+    if not isinstance(artifact_order, list):
+        raise ValueError("Engine artifact validation report artifact_order must be a list")
+    for artifact_order_record in artifact_order:
+        _validate_engine_artifact_validation_order_record(artifact_order_record)
+    artifact_count = report.get("artifact_count")
+    if type(artifact_count) is not int or artifact_count != len(artifact_order):
+        raise ValueError("Engine artifact validation report artifact_count is invalid")
+    artifact_order_fingerprint = report.get("artifact_order_fingerprint")
+    if (
+        type(artifact_order_fingerprint) is not str
+        or artifact_order_fingerprint != _fingerprint_manifest_section(artifact_order)
+    ):
+        raise ValueError("Engine artifact validation report artifact_order_fingerprint is stale")
+    artifact_kind_counts = report.get("artifact_kind_counts")
+    if (
+        not isinstance(artifact_kind_counts, dict)
+        or any(not isinstance(kind, str) or not kind for kind in artifact_kind_counts)
+        or any(type(count) is not int or count < 1 for count in artifact_kind_counts.values())
+        or artifact_kind_counts != _collect_engine_artifact_validation_report_kind_counts(artifact_order)
+        or list(artifact_kind_counts) != sorted(artifact_kind_counts)
+    ):
+        raise ValueError("Engine artifact validation report artifact_kind_counts is invalid")
+    artifact_kind_counts_fingerprint = report.get("artifact_kind_counts_fingerprint")
+    if (
+        type(artifact_kind_counts_fingerprint) is not str
+        or artifact_kind_counts_fingerprint != _fingerprint_manifest_section(artifact_kind_counts)
+    ):
+        raise ValueError("Engine artifact validation report artifact_kind_counts_fingerprint is stale")
+    stage_coverage = report.get("stage_coverage")
+    if (
+        not isinstance(stage_coverage, dict)
+        or stage_coverage != _collect_engine_artifact_validation_report_stage_coverage(artifact_order)
+        or not isinstance(stage_coverage.get("known_stage_order"), list)
+        or stage_coverage["known_stage_order"] != list(ENGINE_A2UI_CLI_FALLBACK_STAGE_ORDER)
+        or not isinstance(stage_coverage.get("present"), list)
+        or not isinstance(stage_coverage.get("missing"), list)
+        or type(stage_coverage.get("complete")) is not bool
+    ):
+        raise ValueError("Engine artifact validation report stage_coverage is invalid")
+    stage_coverage_fingerprint = report.get("stage_coverage_fingerprint")
+    if (
+        type(stage_coverage_fingerprint) is not str
+        or stage_coverage_fingerprint != _fingerprint_manifest_section(stage_coverage)
+    ):
+        raise ValueError("Engine artifact validation report stage_coverage_fingerprint is stale")
+    errors = report.get("errors")
+    if not isinstance(errors, list):
+        raise ValueError("Engine artifact validation report errors must be a list")
+    for error in errors:
+        _validate_engine_artifact_validation_error_record(error)
+    error_count = report.get("error_count")
+    if type(error_count) is not int or error_count != len(errors):
+        raise ValueError("Engine artifact validation report error_count is invalid")
+    error_codes = report.get("error_codes")
+    if (
+        not isinstance(error_codes, list)
+        or any(not isinstance(code, str) or not code for code in error_codes)
+        or error_codes != _collect_engine_artifact_validation_report_error_codes(errors)
+    ):
+        raise ValueError("Engine artifact validation report error_codes is invalid")
+    valid = report.get("valid")
+    if type(valid) is not bool or valid != (not errors):
+        raise ValueError("Engine artifact validation report valid flag is invalid")
+    error_fingerprint = report.get("error_fingerprint")
+    if type(error_fingerprint) is not str or error_fingerprint != _fingerprint_manifest_section(errors):
+        raise ValueError("Engine artifact validation report error_fingerprint is stale")
+    if report.get("contract_fingerprint") != engine_artifacts_contract_fingerprint():
+        raise ValueError("Engine artifact validation report contract_fingerprint is stale")
+    rendered_text = report.get("rendered_text")
+    if type(rendered_text) is not str or not rendered_text:
+        raise ValueError("Engine artifact validation report rendered_text is invalid")
+    if rendered_text != _render_engine_artifact_validation_report_text(report):
+        raise ValueError("Engine artifact validation report rendered_text is stale")
+    rendered_text_fingerprint = report.get("rendered_text_fingerprint")
+    if (
+        type(rendered_text_fingerprint) is not str
+        or rendered_text_fingerprint != _fingerprint_manifest_section(rendered_text)
+    ):
+        raise ValueError("Engine artifact validation report rendered_text_fingerprint is stale")
+    expected_report_fingerprint = _fingerprint_manifest_section(
+        {key: value for key, value in report.items() if key != "report_fingerprint"}
+    )
+    if report.get("report_fingerprint") != expected_report_fingerprint:
+        raise ValueError("Engine artifact validation report report_fingerprint is stale")
+
+
+def _render_engine_artifact_validation_report_text(report: Mapping[str, Any]) -> str:
+    lines = [
+        "[A2UIEngineArtifactValidationReport]",
+        f"Status: {'valid' if report['valid'] else 'invalid'}",
+        f"Input shape: {report['input_shape']}",
+        f"Artifacts: {report['artifact_count']}",
+        f"Errors: {report['error_count']}",
+    ]
+    if report["error_codes"]:
+        lines.append(f"Error codes: {', '.join(report['error_codes'])}")
+    if report["artifact_order"]:
+        lines.append("Artifact order:")
+        for record in report["artifact_order"]:
+            stage = record["stage"] if record["stage"] is not None else "-"
+            kind = record["normalized_kind"] if record["normalized_kind"] is not None else "-"
+            lines.append(f"- {record['path']}: kind={kind} stage={stage}")
+    if report["artifact_kind_counts"]:
+        rendered_counts = ", ".join(
+            f"{kind}={count}" for kind, count in report["artifact_kind_counts"].items()
+        )
+        lines.append(f"Artifact kinds: {rendered_counts}")
+    stage_coverage = report["stage_coverage"]
+    lines.append(f"Stages present: {', '.join(stage_coverage['present']) or '-'}")
+    lines.append(f"Stages missing: {', '.join(stage_coverage['missing']) or '-'}")
+    lines.append(f"Stages complete: {'yes' if stage_coverage['complete'] else 'no'}")
+    if report["errors"]:
+        lines.append("Validation errors:")
+        for error in report["errors"]:
+            kind = error["normalized_kind"] if error["normalized_kind"] is not None else "-"
+            lines.append(f"- {error['path']}: {error['code']} ({kind}) {error['message']}")
+    lines.append(f"Contract fingerprint: {report['contract_fingerprint']}")
+    lines.append(f"Error fingerprint: {report['error_fingerprint']}")
+    return "\n".join(lines)
+
+
+def _validate_engine_artifact_validation_error_record(error: Any) -> None:
+    if not isinstance(error, Mapping):
+        raise ValueError("Engine artifact validation report errors entries must be objects")
+    missing = sorted(set(_ENGINE_ARTIFACT_VALIDATION_ERROR_RECORD_REQUIRED_FIELDS) - set(error))
+    if missing:
+        raise ValueError(f"Missing engine artifact validation error field(s): {missing}")
+    extras = sorted(set(error) - set(_ENGINE_ARTIFACT_VALIDATION_ERROR_RECORD_REQUIRED_FIELDS))
+    if extras:
+        raise ValueError(f"Unexpected engine artifact validation error field(s): {extras}")
+    if error.get("schema_version") != A2UI_ENGINE_ARTIFACTS_SCHEMA_VERSION:
+        raise ValueError("Engine artifact validation error schema_version is invalid")
+    if type(error.get("index")) is not int:
+        raise ValueError("Engine artifact validation error index is invalid")
+    for field_name in ("location", "path", "code", "message"):
+        if not isinstance(error.get(field_name), str) or not error[field_name]:
+            raise ValueError(f"Engine artifact validation error {field_name} is invalid")
+    if error["code"] not in _ENGINE_ARTIFACT_VALIDATION_ERROR_CODES:
+        raise ValueError("Engine artifact validation error code is not allowlisted")
+    for field_name in ("stage", "kind", "normalized_kind"):
+        value = error.get(field_name)
+        if value is not None and not isinstance(value, str):
+            raise ValueError(f"Engine artifact validation error {field_name} is invalid")
+
+
+def _validate_engine_artifact_validation_order_record(record: Any) -> None:
+    if not isinstance(record, Mapping):
+        raise ValueError("Engine artifact validation report artifact_order entries must be objects")
+    missing = sorted(set(_ENGINE_ARTIFACT_VALIDATION_ORDER_RECORD_REQUIRED_FIELDS) - set(record))
+    if missing:
+        raise ValueError(f"Missing engine artifact validation order field(s): {missing}")
+    extras = sorted(set(record) - set(_ENGINE_ARTIFACT_VALIDATION_ORDER_RECORD_REQUIRED_FIELDS))
+    if extras:
+        raise ValueError(f"Unexpected engine artifact validation order field(s): {extras}")
+    if type(record.get("index")) is not int:
+        raise ValueError("Engine artifact validation order index is invalid")
+    for field_name in ("location", "path"):
+        if not isinstance(record.get(field_name), str) or not record[field_name]:
+            raise ValueError(f"Engine artifact validation order {field_name} is invalid")
+    for field_name in ("stage", "kind", "normalized_kind"):
+        value = record.get(field_name)
+        if value is not None and not isinstance(value, str):
+            raise ValueError(f"Engine artifact validation order {field_name} is invalid")
+    artifact_fingerprint = record.get("artifact_fingerprint")
+    if not isinstance(artifact_fingerprint, str) or not artifact_fingerprint:
+        raise ValueError("Engine artifact validation order artifact_fingerprint is invalid")
+
+
+def _engine_artifact_fingerprint(artifact: Any) -> str:
+    return _fingerprint_manifest_section(_snapshot_contract_value(artifact))
+
+
+def _collect_engine_artifact_validation_report_order(
+    artifacts: Mapping[str, Sequence[Any]] | Sequence[Sequence[Any]],
+) -> tuple[str, list[dict[str, Any]]]:
+    if isinstance(artifacts, Mapping):
+        return "stage_mapping", _collect_engine_artifact_validation_report_mapping_order(artifacts)
+    elif isinstance(artifacts, (str, bytes, Mapping, Set)) or not isinstance(artifacts, Sequence):
+        input_shape = "invalid"
+    else:
+        return "ordered_sequence", _collect_engine_artifact_validation_report_sequence_order(artifacts)
+
+    return input_shape, []
+
+
+def _collect_engine_artifact_validation_report_mapping_order(
+    artifacts: Mapping[str, Sequence[Any]],
+) -> list[dict[str, Any]]:
+    normalized_names: set[str] = set()
+    named_pairs: list[tuple[str, str, Any, Any]] = []
+    for name, item in artifacts.items():
+        try:
+            normalized_name = _normalize_terminal_artifact_cli_fallback_payload_artifact_name(name)
+        except ValueError:
+            continue
+        normalized_unique_key = normalized_name.casefold()
+        if normalized_unique_key in normalized_names:
+            continue
+        normalized_names.add(normalized_unique_key)
+        if not _is_engine_artifact_pair(item):
+            continue
+        kind, artifact = item
+        named_pairs.append((normalized_name, f"stage {normalized_name!r}", kind, artifact))
+
+    artifact_order: list[dict[str, Any]] = []
+    for index, (stage_name, location, kind, artifact) in enumerate(
+        sorted(named_pairs, key=lambda pair: _engine_a2ui_cli_fallback_stage_sort_key(pair[0]))
+    ):
+        artifact_order.append(
+            {
+                "index": index,
+                "location": location,
+                "path": _engine_artifact_stage_path(stage_name),
+                "stage": stage_name,
+                "kind": kind if isinstance(kind, str) else None,
+                "normalized_kind": _normalize_engine_artifact_record_kind(kind),
+                "artifact_fingerprint": _engine_artifact_fingerprint(artifact),
+            }
+        )
+    return artifact_order
+
+
+def _collect_engine_artifact_validation_report_sequence_order(
+    artifacts: Sequence[Sequence[Any]],
+) -> list[dict[str, Any]]:
+    artifact_order: list[dict[str, Any]] = []
+    for index, item in enumerate(artifacts):
+        if not _is_engine_artifact_pair(item):
+            continue
+        kind, artifact = item
+        location = f"index {index}"
+        artifact_order.append(
+            {
+                "index": index,
+                "location": location,
+                "path": f"$[{index}]",
+                "stage": None,
+                "kind": kind if isinstance(kind, str) else None,
+                "normalized_kind": _normalize_engine_artifact_record_kind(kind),
+                "artifact_fingerprint": _engine_artifact_fingerprint(artifact),
+            }
+        )
+    return artifact_order
+
+
+def _collect_engine_artifact_validation_report_error_codes(
+    errors: Sequence[Mapping[str, Any]],
+) -> list[str]:
+    return sorted(
+        {error["code"] for error in errors if isinstance(error.get("code"), str) and error["code"]}
+    )
+
+
+def _collect_engine_artifact_validation_report_kind_counts(
+    artifact_order: Sequence[Mapping[str, Any]],
+) -> dict[str, int]:
+    counts: dict[str, int] = {}
+    for record in artifact_order:
+        kind = record.get("normalized_kind")
+        if not isinstance(kind, str) or not kind:
+            continue
+        counts[kind] = counts.get(kind, 0) + 1
+    return dict(sorted(counts.items()))
+
+
+def _collect_engine_artifact_validation_report_stage_coverage(
+    artifact_order: Sequence[Mapping[str, Any]],
+) -> dict[str, Any]:
+    known_stage_order = list(ENGINE_A2UI_CLI_FALLBACK_STAGE_ORDER)
+    present_stage_names = {
+        stage
+        for record in artifact_order
+        if isinstance((stage := record.get("stage")), str) and stage in known_stage_order
+    }
+    missing_stage_names = [stage for stage in known_stage_order if stage not in present_stage_names]
+    return {
+        "known_stage_order": known_stage_order,
+        "present": [stage for stage in known_stage_order if stage in present_stage_names],
+        "missing": missing_stage_names,
+        "complete": not missing_stage_names,
+    }
+
+
+def _collect_engine_artifact_mapping_validation_error_records(
+    artifacts: Mapping[str, Sequence[Any]],
+) -> list[dict[str, Any]]:
+    errors: list[dict[str, Any]] = []
+    seen_normalized_names: set[str] = set()
+    named_pairs: list[tuple[str, str, Any, Any]] = []
+    for name, item in artifacts.items():
+        try:
+            normalized_name = _normalize_terminal_artifact_cli_fallback_payload_artifact_name(name)
+        except ValueError:
+            continue
+        normalized_unique_key = normalized_name.casefold()
+        if normalized_unique_key in seen_normalized_names:
+            continue
+        seen_normalized_names.add(normalized_unique_key)
+        if not _is_engine_artifact_pair(item):
+            errors.append(
+                _build_engine_artifact_validation_error_record(
+                    index=len(errors),
+                    location=f"stage {normalized_name!r}",
+                    path=_engine_artifact_stage_path(normalized_name),
+                    stage=normalized_name,
+                    kind=None,
+                    normalized_kind=None,
+                    code="invalid_pair",
+                    message=f"Engine artifact for stage {name!r} must be a (kind, artifact) pair",
+                )
+            )
+            continue
+        kind, artifact = item
+        named_pairs.append((normalized_name, f"stage {normalized_name!r}", kind, artifact))
+
+    for normalized_name, location, kind, artifact in sorted(
+        named_pairs,
+        key=lambda pair: _engine_a2ui_cli_fallback_stage_sort_key(pair[0]),
+    ):
+        try:
+            _validate_engine_artifact_kind(kind, location)
+            _validate_engine_artifact_payload(kind, artifact, location)
+        except ValueError as exc:
+            errors.append(
+                _build_engine_artifact_validation_error_record(
+                    index=len(errors),
+                    location=location,
+                    path=_engine_artifact_stage_path(normalized_name),
+                    stage=normalized_name,
+                    kind=kind if isinstance(kind, str) else None,
+                    normalized_kind=_normalize_engine_artifact_record_kind(kind),
+                    code=_engine_artifact_validation_error_code(kind, exc),
+                    message=str(exc),
+                )
+            )
+    return errors
+
+
+def _collect_engine_artifact_pair_shape_error_records(
+    artifacts: Mapping[str, Sequence[Any]] | Sequence[Sequence[Any]],
+) -> list[dict[str, Any]]:
+    errors: list[dict[str, Any]] = []
+    if isinstance(artifacts, Mapping):
+        named_items: list[tuple[str, Any, Any]] = []
+        for name, item in artifacts.items():
+            try:
+                normalized_name = _normalize_terminal_artifact_cli_fallback_payload_artifact_name(name)
+            except ValueError:
+                continue
+            named_items.append((normalized_name, name, item))
+        for normalized_name, original_name, item in sorted(
+            named_items,
+            key=lambda entry: _engine_a2ui_cli_fallback_stage_sort_key(entry[0]),
+        ):
+            if _is_engine_artifact_pair(item):
+                continue
+            errors.append(
+                _build_engine_artifact_validation_error_record(
+                    index=len(errors),
+                    location=f"stage {normalized_name!r}",
+                    path=_engine_artifact_stage_path(normalized_name),
+                    stage=normalized_name,
+                    kind=None,
+                    normalized_kind=None,
+                    code="invalid_pair",
+                    message=f"Engine artifact for stage {original_name!r} must be a (kind, artifact) pair",
+                )
+            )
+        return errors
+    if (
+        isinstance(artifacts, (str, bytes, Mapping, Set))
+        or not isinstance(artifacts, Sequence)
+        or not artifacts
+    ):
+        return errors
+    for index, item in enumerate(artifacts):
+        if _is_engine_artifact_pair(item):
+            continue
+        errors.append(
+            _build_engine_artifact_validation_error_record(
+                index=index,
+                location=f"index {index}",
+                path=f"$[{index}]",
+                stage=None,
+                kind=None,
+                normalized_kind=None,
+                code="invalid_pair",
+                message=f"Engine artifact at index {index} must be a (kind, artifact) pair",
+            )
+        )
+    return errors
+
+
+def _collect_engine_artifact_sequence_validation_error_records(
+    artifacts: Mapping[str, Sequence[Any]] | Sequence[Sequence[Any]],
+) -> list[dict[str, Any]]:
+    if (
+        isinstance(artifacts, (str, bytes, Mapping, Set))
+        or not isinstance(artifacts, Sequence)
+        or not artifacts
+    ):
+        return []
+    errors: list[dict[str, Any]] = []
+    for index, item in enumerate(artifacts):
+        if not _is_engine_artifact_pair(item):
+            continue
+        kind, artifact = item
+        location = f"index {index}"
+        try:
+            _validate_engine_artifact_kind(kind, location)
+            _validate_engine_artifact_payload(kind, artifact, location)
+        except ValueError as exc:
+            errors.append(
+                _build_engine_artifact_validation_error_record(
+                    index=index,
+                    location=location,
+                    path=f"$[{index}]",
+                    stage=None,
+                    kind=kind if isinstance(kind, str) else None,
+                    normalized_kind=_normalize_engine_artifact_record_kind(kind),
+                    code=_engine_artifact_validation_error_code(kind, exc),
+                    message=str(exc),
+                )
+            )
+    return errors
+
+
+def _is_engine_artifact_pair(item: Any) -> bool:
+    return not isinstance(item, (str, bytes)) and isinstance(item, Sequence) and len(item) == 2
+
+
+def _collect_engine_artifact_stage_validation_error_records(
+    artifacts: Mapping[str, Sequence[Any]],
+) -> list[dict[str, Any]]:
+    errors: list[dict[str, Any]] = []
+    normalized_names: set[str] = set()
+    for index, name in enumerate(artifacts):
+        try:
+            normalized_name = _normalize_terminal_artifact_cli_fallback_payload_artifact_name(name)
+        except ValueError as exc:
+            errors.append(
+                _build_engine_artifact_validation_error_record(
+                    index=index,
+                    location=f"stage {name!r}",
+                    path=_engine_artifact_stage_path(name),
+                    stage=None,
+                    kind=None,
+                    normalized_kind=None,
+                    code="invalid_stage",
+                    message=f"Engine artifact stage name {name!r} is invalid: {exc}",
+                )
+            )
+            continue
+        normalized_unique_key = normalized_name.casefold()
+        if normalized_unique_key in normalized_names:
+            errors.append(
+                _build_engine_artifact_validation_error_record(
+                    index=index,
+                    location=f"stage {normalized_name!r}",
+                    path=_engine_artifact_stage_path(normalized_name),
+                    stage=normalized_name,
+                    kind=None,
+                    normalized_kind=None,
+                    code="invalid_stage",
+                    message="Engine artifact stage names must be unique after normalization",
+                )
+            )
+        normalized_names.add(normalized_unique_key)
+    return errors
+
+
+def _build_engine_artifact_validation_error_record(
+    *,
+    index: int,
+    location: str,
+    path: str,
+    stage: str | None,
+    kind: str | None,
+    normalized_kind: str | None,
+    code: str,
+    message: str,
+) -> dict[str, Any]:
+    return {
+        "schema_version": A2UI_ENGINE_ARTIFACTS_SCHEMA_VERSION,
+        "index": index,
+        "location": location,
+        "path": path,
+        "stage": stage,
+        "kind": kind,
+        "normalized_kind": normalized_kind,
+        "code": code,
+        "message": message,
+    }
+
+
+def _engine_artifact_validation_record_path(location: str) -> str:
+    if location.startswith("stage "):
+        stage_name = _parse_engine_artifact_validation_location_stage(location)
+        if stage_name is not None:
+            return _engine_artifact_stage_path(stage_name)
+    if location.startswith("index "):
+        index = location.removeprefix("index ")
+        if index.isdigit():
+            return f"$[{index}]"
+    return "$"
+
+
+def _engine_artifact_validation_record_stage(location: str) -> str | None:
+    if not location.startswith("stage "):
+        return None
+    return _parse_engine_artifact_validation_location_stage(location)
+
+
+def _parse_engine_artifact_validation_location_stage(location: str) -> str | None:
+    stage_repr = location.removeprefix("stage ")
+    try:
+        parsed_stage = ast.literal_eval(stage_repr)
+    except (SyntaxError, ValueError):
+        return None
+    if isinstance(parsed_stage, str):
+        return parsed_stage
+    return None
+
+
+def _engine_artifact_stage_path(stage_name: Any) -> str:
+    rendered_stage_name = _render_terminal_inline_text(stage_name)
+    return "$[" + json.dumps(rendered_stage_name, sort_keys=True) + "]"
+
+
+def _engine_artifact_validation_error_code(kind: Any, exc: ValueError) -> str:
+    if not isinstance(kind, str) or "unsupported kind" in str(exc):
+        return "invalid_kind"
+    if "kind does not match TerminalArtifact envelope" in str(exc):
+        return "invalid_envelope_kind"
+    return "invalid_payload"
+
+
+def _normalize_engine_artifact_record_kind(kind: Any) -> str | None:
+    if not isinstance(kind, str) or not kind.strip():
+        return None
+    return kind.strip().lower()
+
+
+def _collect_engine_artifact_pairs(
+    artifacts: Mapping[str, Sequence[Any]] | Sequence[Sequence[Any]],
+) -> list[tuple[str, Any, Any]]:
+    pairs: list[tuple[str, Any, Any]] = []
 
     if isinstance(artifacts, Mapping):
         if not artifacts:
             raise ValueError("Engine artifacts must contain at least one artifact")
         normalized_names: set[str] = set()
+        named_pairs: list[tuple[str, str, Any, Any]] = []
         for name, item in artifacts.items():
             try:
                 normalized_name = _normalize_terminal_artifact_cli_fallback_payload_artifact_name(name)
@@ -4016,7 +4881,14 @@ def validate_engine_artifacts(
                     f"Engine artifact for stage {name!r} must be a (kind, artifact) pair"
                 )
             kind, artifact = item
-            pairs.append((f"stage {normalized_name!r}", kind, artifact))
+            named_pairs.append((normalized_name, f"stage {normalized_name!r}", kind, artifact))
+        pairs.extend(
+            (location, kind, artifact)
+            for _, location, kind, artifact in sorted(
+                named_pairs,
+                key=lambda pair: _engine_a2ui_cli_fallback_stage_sort_key(pair[0]),
+            )
+        )
     elif (
         isinstance(artifacts, (str, bytes, Mapping, Set))
         or not isinstance(artifacts, Sequence)
@@ -4030,10 +4902,7 @@ def validate_engine_artifacts(
                 raise ValueError(f"Engine artifact at index {index} must be a (kind, artifact) pair")
             kind, artifact = item
             pairs.append((f"index {index}", kind, artifact))
-
-    for location, kind, artifact in pairs:
-        _validate_engine_artifact_kind(kind, location)
-        _validate_engine_artifact_payload(kind, artifact, location)
+    return pairs
 
 
 def _validate_engine_artifact_kind(kind: Any, location: str) -> None:
@@ -4674,6 +5543,11 @@ def _build_a2ui_contract_manifest(
             terminal_artifact_cli_fallback_contract["contract_fingerprint"]
         )
     if include_terminal_artifact_cli_fallback_entrypoint:
+        engine_artifacts_contract = describe_engine_artifacts_contract()
+        manifest["engine_artifacts_contract"] = _snapshot_contract_section(engine_artifacts_contract)
+        manifest["engine_artifacts_contract_fingerprint"] = engine_artifacts_contract[
+            "contract_fingerprint"
+        ]
         terminal_artifact_cli_fallback_entrypoint_contract = _snapshot_terminal_artifact_cli_fallback_entrypoint_contract()
         terminal_artifact_renderer_entrypoints_contract = describe_terminal_artifact_renderer_entrypoints_contract()
         manifest["terminal_artifact_cli_fallback_entrypoint"] = terminal_artifact_cli_fallback_entrypoint_contract[
@@ -5966,6 +6840,7 @@ def _build_a2ui_contract_fingerprint_manifest(
         manifest["terminal_artifact_cli_fallback_entrypoint"] = (
             terminal_artifact_cli_fallback_entrypoint_contract_fingerprint()
         )
+        manifest["engine_artifacts_contract"] = engine_artifacts_contract_fingerprint()
     if include_terminal_artifact_cli_fallback_card_hint_recovery_policy:
         manifest["card_hint_recovery_policy"] = (
             terminal_artifact_cli_fallback_card_hint_recovery_policy_contract_fingerprint()
@@ -5993,13 +6868,14 @@ def _build_a2ui_engine_contract_manifest(
     engine loop needs while leaving the shell UI snapshot opt-in.
     """
 
-    return describe_a2ui_contract(
+    manifest = describe_a2ui_contract(
         include_terminal_artifact_cli_fallback_route=True,
         include_terminal_artifact_cli_fallback_entrypoint=True,
         include_terminal_artifact_cli_fallback_card_hint_recovery_policy=include_terminal_artifact_cli_fallback_card_hint_recovery_policy,
         include_shell_ui_contract=include_shell_ui_contract,
         include_contract_aliases=include_contract_aliases,
     )
+    return manifest
 
 
 def describe_a2ui_engine_contract(
@@ -6038,6 +6914,30 @@ def a2ui_engine_contract_fingerprint(
         include_terminal_artifact_cli_fallback_card_hint_recovery_policy=include_terminal_artifact_cli_fallback_card_hint_recovery_policy,
         include_shell_ui_contract=include_shell_ui_contract,
     )
+
+
+def describe_engine_artifacts_contract() -> dict[str, Any]:
+    """Return the engine artifact input contract shared by engine and CLI fallback."""
+
+    manifest = _build_engine_artifacts_contract_manifest()
+    manifest["contract_fingerprint"] = engine_artifacts_contract_fingerprint()
+    manifest["engine_artifacts_contract_fingerprint"] = manifest["contract_fingerprint"]
+    manifest["contract_manifest"] = _snapshot_contract_section(manifest)
+    manifest["contract_manifest_fingerprint"] = manifest["contract_fingerprint"]
+    return _snapshot_contract_section(manifest)
+
+
+def describe_engine_artifacts_contract_manifest() -> dict[str, Any]:
+    """Return the stable engine artifacts contract manifest alias."""
+
+    return describe_engine_artifacts_contract()
+
+
+@lru_cache(maxsize=None)
+def engine_artifacts_contract_fingerprint() -> str:
+    """Return a stable fingerprint for engine artifact input validation."""
+
+    return _fingerprint_manifest_section(_build_engine_artifacts_contract_manifest())
 
 
 def selection_contract_fingerprint() -> str:
