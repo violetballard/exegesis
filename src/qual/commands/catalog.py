@@ -5927,7 +5927,12 @@ def command_demo_readiness_contract(
             for step in script_contract.steps
         )
     )
-    _validate_command_demo_readiness_contract(contract, script_contract, action_argv_by_action)
+    _validate_command_demo_readiness_contract(
+        contract,
+        script_contract,
+        action_argv_by_action,
+        specs,
+    )
     return contract
 
 
@@ -5935,6 +5940,7 @@ def _validate_command_demo_readiness_contract(
     contract: CommandDemoReadinessContract,
     script_contract: CommandDemoSmokeCliScriptContract,
     action_argv_by_action: dict[str, tuple[str, ...]],
+    specs: tuple[CommandSpec, ...],
 ) -> None:
     if tuple(entry.ordinal for entry in contract.entries) != tuple(step.ordinal for step in script_contract.steps):
         raise ValueError("Command demo readiness ordinals are inconsistent")
@@ -5957,6 +5963,13 @@ def _validate_command_demo_readiness_contract(
     ):
         raise ValueError("Command demo readiness engine actions are inconsistent")
 
+    action_entry_by_action = {
+        action_entry.engine_action: action_entry
+        for action_entry in command_demo_action_contract(specs).entries
+    }
+    if tuple(action_argv_by_action) != tuple(action_entry_by_action):
+        raise ValueError("Command demo readiness action route keys are inconsistent")
+
     for entry in contract.entries:
         expected_action_argv = tuple(
             (engine_action, action_argv_by_action[engine_action])
@@ -5969,6 +5982,16 @@ def _validate_command_demo_readiness_contract(
             raise ValueError(f"Command demo readiness action coverage is incomplete: {entry.flow_step}")
         if any(not argv for _, argv in entry.action_command_argv):
             raise ValueError(f"Command demo readiness action argv must not be empty: {entry.flow_step}")
+        for engine_action, _argv in entry.action_command_argv:
+            action_entry = action_entry_by_action.get(engine_action)
+            if action_entry is None:
+                raise ValueError(f"Command demo readiness action route is unknown: {engine_action}")
+            if action_entry.flow_step != entry.flow_step:
+                raise ValueError(f"Command demo readiness action flow step drifted: {engine_action}")
+            if action_entry.name != entry.name:
+                raise ValueError(f"Command demo readiness action command drifted: {engine_action}")
+            if action_entry.demo_path_step != entry.demo_path_step:
+                raise ValueError(f"Command demo readiness action path step drifted: {engine_action}")
 
 
 def command_demo_readiness_summary(
