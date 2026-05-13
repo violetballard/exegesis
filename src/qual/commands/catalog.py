@@ -2381,6 +2381,27 @@ def _validate_demo_smoke_argv_parser_surface(
             )
 
 
+def _validate_demo_path_command_surface(specs: tuple[CommandSpec, ...]) -> None:
+    spec_flow_steps = tuple(_normalize_token(spec.flow_step) for spec in specs)
+    demo_flow_steps = _normalize_flow_steps(DEMO_COMMAND_FLOW_STEPS)
+    if set(spec_flow_steps) != set(demo_flow_steps):
+        raise ValueError("Command specs must cover the canonical demo flow steps")
+
+    path_flow_steps = tuple(
+        _normalize_token(flow_step)
+        for flow_step, _demo_path_step, _engine_actions in _DEMO_PATH_STEP_BY_FLOW_STEP
+    )
+    if path_flow_steps != demo_flow_steps:
+        raise ValueError("Command demo path steps must match the canonical demo flow order")
+
+    smoke_flow_steps = tuple(
+        _normalize_token(flow_step)
+        for flow_step, _argv in _DEMO_SMOKE_ARGV_BY_FLOW_STEP
+    )
+    if smoke_flow_steps != demo_flow_steps:
+        raise ValueError("Command demo smoke argv must match the canonical demo flow order")
+
+
 def _validate_smoke_matching_policy(specs: tuple[CommandSpec, ...]) -> None:
     command_names = {_normalize_token(spec.name) for spec in specs}
     option_commands = set(
@@ -2494,6 +2515,7 @@ def validate_command_catalog(specs: tuple[CommandSpec, ...] = COMMAND_SPECS) -> 
             seen_lookup_tokens[normalized_alias] = spec.name
 
     if specs == COMMAND_SPECS:
+        _validate_demo_path_command_surface(specs)
         _validate_smoke_matching_policy(specs)
         _validate_cli_compatibility_exact_actions(specs)
 
