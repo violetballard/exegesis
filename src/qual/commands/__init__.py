@@ -141,11 +141,20 @@ def build_mvp_demo_smoke_gate_payload(
     loop = demo_loop or canonical_command_demo_loop_payload()
     expected_command_lines = tuple(loop["command_lines"])
     validation = command_demo_readiness_validate_script(tuple(loop["smoke_argvs"]))
+    handler_gate = canonical_command_handler_trust_gate_payload()
+    command_lines_match = validation.command_lines == expected_command_lines
     return {
-        "is_complete": validation.is_complete,
-        "command_lines_match": validation.command_lines == expected_command_lines,
+        "is_complete": (
+            validation.is_complete
+            and command_lines_match
+            and bool(handler_gate["is_complete"])
+        ),
+        "command_lines_match": command_lines_match,
         "command_lines": validation.command_lines,
         "expected_command_lines": expected_command_lines,
+        "handler_trust_gate_complete": handler_gate["is_complete"],
+        "handler_engine_delegations": handler_gate["engine_delegations"],
+        "thin_handler_violations": handler_gate["thin_handler_violations"],
         "covered_flow_steps": validation.covered_flow_steps,
         "missing_flow_steps": validation.missing_flow_steps,
         "covered_engine_actions": validation.covered_engine_actions,
