@@ -114,6 +114,7 @@ def build_mvp_demo_command_surface_payload(
     engine_action_route_lookup = build_mvp_demo_engine_action_route_lookup_payload()
     command_completion = build_mvp_demo_cli_completion_payload(smoke_argvs)
     demo_driver = canonical_command_readiness_demo_driver_payload(smoke_argvs)
+    script_validation = build_mvp_demo_cli_script_validation_payload(smoke_argvs)
     readiness_gate = build_mvp_demo_command_surface_readiness_gate_payload(
         demo_loop_ready=bool(demo_loop["is_ready"]),
         smoke_gate=smoke_gate,
@@ -174,6 +175,7 @@ def build_mvp_demo_command_surface_payload(
         "readiness_snapshot": canonical_command_readiness_snapshot_payload(smoke_argvs),
         "demo_driver": demo_driver,
         "runtime_checkpoint": runtime_checkpoint,
+        "script_validation": script_validation,
         "command_completion": command_completion,
         "readiness_checkpoint": build_mvp_demo_readiness_checkpoint_payload(
             smoke_argvs
@@ -969,6 +971,59 @@ def run_mvp_demo_cli_runtime_checkpoint_json() -> str:
     )
 
 
+def build_mvp_demo_cli_script_validation_payload(
+    smoke_argvs: Sequence[Sequence[str] | str] = (),
+) -> dict[str, object]:
+    """Return deterministic validation for an operator-provided MVP CLI script."""
+
+    validation = command_demo_readiness_validate_script(smoke_argvs)
+    ordered_validation = command_demo_readiness_validate_ordered_script(smoke_argvs)
+    runtime_checkpoint = build_mvp_demo_cli_runtime_checkpoint_payload(smoke_argvs)
+    next_step = build_mvp_demo_next_step_payload(smoke_argvs)
+    issues = (
+        *(f"missing flow step: {step}" for step in validation.missing_flow_steps),
+        *(f"missing engine action: {action}" for action in validation.missing_engine_actions),
+        *(f"invalid argv: {argv}" for argv in validation.invalid_argv),
+        *(f"order violation: {violation}" for violation in ordered_validation.order_violations),
+    )
+    return {
+        "is_ready": validation.is_complete and ordered_validation.is_ordered,
+        "is_complete": validation.is_complete,
+        "is_ordered": ordered_validation.is_ordered,
+        "issues": issues,
+        "requested_argv": validation.requested_argv,
+        "canonical_argv": validation.canonical_argv,
+        "command_lines": validation.command_lines,
+        "covered_flow_steps": validation.covered_flow_steps,
+        "missing_flow_steps": validation.missing_flow_steps,
+        "covered_engine_actions": validation.covered_engine_actions,
+        "missing_engine_actions": validation.missing_engine_actions,
+        "invalid_argv": validation.invalid_argv,
+        "expected_flow_steps": ordered_validation.expected_flow_steps,
+        "observed_flow_steps": ordered_validation.observed_flow_steps,
+        "order_violations": ordered_validation.order_violations,
+        "next_command_line": runtime_checkpoint["next_command_line"],
+        "next_exact_action_line": runtime_checkpoint["next_exact_action_line"],
+        "remaining_command_lines": runtime_checkpoint["remaining_command_lines"],
+        "remaining_exact_action_lines": runtime_checkpoint["remaining_exact_action_lines"],
+        "runtime_checkpoint_ready": bool(runtime_checkpoint["is_ready"]),
+        "runtime_checkpoint_issues": tuple(runtime_checkpoint["issues"]),
+        "next_step": next_step,
+        "canonical_demo_path_step_advanced": runtime_checkpoint[
+            "canonical_demo_path_step_advanced"
+        ],
+    }
+
+
+def run_mvp_demo_cli_script_validation_json() -> str:
+    """Return stable JSON for validating an MVP demo CLI script."""
+    return json.dumps(
+        build_mvp_demo_cli_script_validation_payload(),
+        sort_keys=True,
+        separators=(",", ":"),
+    )
+
+
 def build_mvp_demo_cli_smoke_route_payload(
     smoke_argvs: Sequence[Sequence[str] | str] = (),
 ) -> dict[str, object]:
@@ -1380,6 +1435,7 @@ def build_mvp_demo_command_surface_audit_payload() -> dict[str, object]:
         "next_step": build_mvp_demo_next_step_payload(),
         "resume_packet": build_mvp_demo_resume_packet_payload(),
         "runtime_checkpoint": build_mvp_demo_cli_runtime_checkpoint_payload(),
+        "script_validation": build_mvp_demo_cli_script_validation_payload(),
         "smoke_route": build_mvp_demo_cli_smoke_route_payload(),
         "smoke_route_lookup": build_mvp_demo_cli_smoke_route_lookup_payload(),
         "engine_action_route_lookup": build_mvp_demo_engine_action_route_lookup_payload(),
