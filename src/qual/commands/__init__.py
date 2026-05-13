@@ -706,6 +706,8 @@ def build_mvp_demo_cli_runtime_checkpoint_payload(
     trusted_contract = build_mvp_demo_trusted_command_contract_payload()
     smoke_gate = build_mvp_demo_smoke_gate_payload()
     route_validation = build_patch_review_route_validation_payload()
+    patch_review_readiness_smoke = build_patch_review_readiness_smoke_payload()
+    patch_review_action_resolution_smoke = build_patch_review_action_resolution_smoke_payload()
     remaining_command_lines = tuple(
         entry["command_line"] for entry in progress["entries"] if not bool(entry["is_covered"])
     )
@@ -714,6 +716,8 @@ def build_mvp_demo_cli_runtime_checkpoint_payload(
             bool(trusted_contract["is_trusted"])
             and bool(smoke_gate["is_complete"])
             and bool(route_validation["is_valid"])
+            and bool(patch_review_readiness_smoke["ready"])
+            and bool(patch_review_action_resolution_smoke["ready"])
             and not tuple(progress["invalid_argv"])
             and not tuple(next_action["invalid_argv"])
         ),
@@ -735,6 +739,10 @@ def build_mvp_demo_cli_runtime_checkpoint_payload(
         "thin_handler_violations": tuple(trusted_contract["thin_handler_violations"]),
         "smoke_gate_complete": bool(smoke_gate["is_complete"]),
         "patch_review_routes_valid": bool(route_validation["is_valid"]),
+        "patch_review_readiness_smoke_ready": bool(patch_review_readiness_smoke["ready"]),
+        "patch_review_action_resolution_smoke_ready": bool(
+            patch_review_action_resolution_smoke["ready"]
+        ),
         "canonical_demo_path_step_advanced": (
             "open project/document -> retrieve relevant material -> "
             "preview and apply or reject a patch -> persist and continue"
