@@ -2939,6 +2939,43 @@ def _command_handler_engine_delegation_target(command_name: str) -> str:
     return target
 
 
+def command_handler_engine_delegation_lookup_table() -> tuple[tuple[str, str], ...]:
+    return tuple(
+        (name, _command_handler_engine_delegation_target(name))
+        for name in command_mvp_flow_names()
+    )
+
+
+def command_handler_engine_delegation_summary() -> tuple[tuple[str, str, str, str, str], ...]:
+    return tuple(
+        (
+            entry.name,
+            entry.flow_step,
+            entry.handler,
+            entry.delegated_to,
+            _command_handler_engine_delegation_target(entry.name),
+        )
+        for entry in command_handler_delegation_contract().entries
+    )
+
+
+def command_handler_engine_delegation_for(command_name: str) -> str | None:
+    canonical_name = canonical_command(command_name)
+    return dict(command_handler_engine_delegation_lookup_table()).get(canonical_name)
+
+
+def command_mvp_handler_engine_delegation_lookup_table() -> tuple[tuple[str, str], ...]:
+    return command_handler_engine_delegation_lookup_table()
+
+
+def command_mvp_handler_engine_delegation_summary() -> tuple[tuple[str, str, str, str, str], ...]:
+    return command_handler_engine_delegation_summary()
+
+
+def command_mvp_handler_engine_delegation_for(command_name: str) -> str | None:
+    return command_handler_engine_delegation_for(command_name)
+
+
 def command_handler_delegation_summary() -> tuple[tuple[str, str, str, str], ...]:
     return tuple(
         (entry.name, entry.flow_step, entry.handler, entry.delegated_to)

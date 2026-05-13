@@ -588,6 +588,9 @@ from src.qual.commands.catalog import (
     command_mvp_handler_action_route_lookup_table as _handler_action_route_lookup_table,
     command_mvp_handler_action_route_summary as _handler_action_route_summary,
     command_mvp_handler_delegation_for_argv as _handler_delegation_for_argv,
+    command_mvp_handler_engine_delegation_for as _handler_engine_delegation_for,
+    command_mvp_handler_engine_delegation_lookup_table as _handler_engine_delegation_lookup_table,
+    command_mvp_handler_engine_delegation_summary as _handler_engine_delegation_summary,
     command_mvp_handler_demo_path_contract as _handler_demo_path_contract,
     command_mvp_handler_demo_path_entry_for_argv as _handler_demo_path_entry_for_argv,
     command_mvp_handler_demo_path_entry_for_command as _handler_demo_path_entry_for_command,
@@ -1204,6 +1207,9 @@ __all__ = [
     "canonical_command_handler_action_route_lookup_table",
     "canonical_command_handler_action_route_summary",
     "canonical_command_handler_delegation_for_argv",
+    "canonical_command_handler_engine_delegation_for",
+    "canonical_command_handler_engine_delegation_lookup_table",
+    "canonical_command_handler_engine_delegation_summary",
     "canonical_command_handler_demo_path_contract",
     "canonical_command_handler_demo_path_entry_for_argv",
     "canonical_command_handler_demo_path_entry_for_command",
@@ -1340,6 +1346,18 @@ def canonical_command_handler_delegation_for_argv(
     argv: Sequence[str] | str,
 ) -> CommandHandlerDelegationEntry | None:
     return _handler_delegation_for_argv(argv)
+
+
+def canonical_command_handler_engine_delegation_lookup_table() -> tuple[tuple[str, str], ...]:
+    return _handler_engine_delegation_lookup_table()
+
+
+def canonical_command_handler_engine_delegation_summary() -> tuple[tuple[str, str, str, str, str], ...]:
+    return _handler_engine_delegation_summary()
+
+
+def canonical_command_handler_engine_delegation_for(command_name: str) -> str | None:
+    return _handler_engine_delegation_for(command_name)
 
 
 def canonical_command_handler_thin_action_contract() -> CommandHandlerThinActionContract:
