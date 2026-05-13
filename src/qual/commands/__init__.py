@@ -27,6 +27,7 @@ from src.qual.commands.canonical import (
     canonical_command_readiness_command_progress_payload,
     canonical_command_readiness_cli_entrypoint_seal_payload,
     canonical_command_readiness_fingerprint,
+    canonical_command_readiness_checkpoint_payload,
     canonical_command_readiness_handoff_command_progress_payload,
     canonical_command_readiness_handoff_next_action_payload,
     canonical_command_readiness_next_status_payload,
@@ -106,12 +107,16 @@ def build_mvp_demo_command_surface_payload(
     trusted_command_contract = build_mvp_demo_trusted_command_contract_payload(demo_loop)
     handler_trusted_demo_path = canonical_command_handler_trusted_demo_path_payload()
     supported_launcher_gate = build_mvp_demo_supported_launcher_gate_payload()
+    canonical_readiness_checkpoint = canonical_command_readiness_checkpoint_payload()
     readiness_gate = build_mvp_demo_command_surface_readiness_gate_payload(
         demo_loop_ready=bool(demo_loop["is_ready"]),
         smoke_gate=smoke_gate,
         trusted_command_contract=trusted_command_contract,
         handler_trusted_demo_path=handler_trusted_demo_path,
         supported_launcher_gate_ready=bool(supported_launcher_gate["is_ready"]),
+        canonical_readiness_checkpoint_ready=bool(
+            canonical_readiness_checkpoint["is_ready"]
+        ),
         command_readiness_audit_complete=bool(command_readiness_audit["is_complete"]),
         patch_review_contract_ready=patch_review_contract.ready,
         patch_review_route_validation_ready=bool(patch_review_route_validation["is_valid"]),
@@ -124,6 +129,7 @@ def build_mvp_demo_command_surface_payload(
         "is_ready": readiness_gate["is_ready"],
         "issues": readiness_gate["issues"],
         "readiness_gate": readiness_gate,
+        "canonical_readiness_checkpoint": canonical_readiness_checkpoint,
         "readiness_seal": asdict(readiness_seal),
         "readiness_fingerprint": asdict(readiness_fingerprint),
         "readiness_step_seals": canonical_command_readiness_step_seal_payload(),
@@ -188,6 +194,7 @@ def build_mvp_demo_command_surface_readiness_gate_payload(
     trusted_command_contract: dict[str, object],
     handler_trusted_demo_path: dict[str, object],
     supported_launcher_gate_ready: bool,
+    canonical_readiness_checkpoint_ready: bool,
     command_readiness_audit_complete: bool,
     patch_review_contract_ready: bool,
     patch_review_route_validation_ready: bool,
@@ -201,6 +208,7 @@ def build_mvp_demo_command_surface_readiness_gate_payload(
         "trusted_command_contract": bool(trusted_command_contract["is_trusted"]),
         "handler_trusted_demo_path": bool(handler_trusted_demo_path["is_complete"]),
         "supported_launcher_gate": supported_launcher_gate_ready,
+        "canonical_readiness_checkpoint": canonical_readiness_checkpoint_ready,
         "command_readiness_audit": command_readiness_audit_complete,
         "patch_review_contract": patch_review_contract_ready,
         "patch_review_route_validation": patch_review_route_validation_ready,
@@ -417,10 +425,14 @@ def build_mvp_demo_readiness_checkpoint_payload(
     progress = canonical_command_readiness_handoff_command_progress_payload(smoke_argvs)
     next_action = canonical_command_readiness_handoff_next_action_payload(smoke_argvs)
     remaining_actions = canonical_command_readiness_remaining_action_payload(smoke_argvs)
+    canonical_checkpoint = canonical_command_readiness_checkpoint_payload()
     return {
+        "is_ready": bool(canonical_checkpoint["is_ready"]),
         "is_complete": bool(progress["is_complete"])
         and bool(next_action["is_complete"])
         and bool(remaining_actions["is_complete"]),
+        "canonical_checkpoint": canonical_checkpoint,
+        "readiness_issues": tuple(canonical_checkpoint["issues"]),
         "progress": progress,
         "next_action": next_action,
         "remaining_actions": remaining_actions,
