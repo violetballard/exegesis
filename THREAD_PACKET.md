@@ -12,8 +12,8 @@
 - Authoritative reviewed implementation base: `378cf9a74a3658058079a32f186fcd254c4a4034`.
 - Reviewed source-bearing implementation head: this source-bearing fixer commit; final branch tip SHA is reported in the fixer final response.
 - Reviewed source-bearing implementation range: `378cf9a74a3658058079a32f186fcd254c4a4034..HEAD` on branch `codex/feat-retrieval-fts`.
-- Packet update note: this commit refreshes sparse basket-promotion normalization so rehydrated promotion items always recompute their `promotion_item_fingerprint` after query constraints, policy, strategy labels, or identity fields are normalized; the final branch tip SHA is reported in the fixer final response.
-- Current pass role: source-bearing sparse basket-promotion fingerprint finalization for context-basket evidence.
+- Packet update note: this commit refreshes basket-promotion rank provenance so direct, sparse-rehydrated, and sparse bundle-normalized promotion items carry the same `doc_rank` and `fts_rank` audit fields as canonical basket-promotion items, excerpt-hit snapshots expose top-level `fts_rank` for audit, sparse excerpt-hit payloads can still recover rank fallback from doc-hit, excerpt, basket, retrieval-evidence, and retrieval-provenance snapshots, and sparse bundle payloads recover rank provenance from matching basket refs; the final branch tip SHA is reported in the fixer final response.
+- Current pass role: source-bearing sparse basket-promotion rank provenance finalization for context-basket evidence, sparse excerpt fallback, and sparse bundle normalization.
 
 ## Traceability Correction
 
@@ -139,7 +139,9 @@ This source-bearing fixer pass modifies `src/qual/retrieval/service.py`, `tests/
 
 This source-bearing fixer pass modifies `src/qual/engine/retrieval/payload.py`, `tests/unit/test_unified_retrieval.py`, and `THREAD_PACKET.md` so sparse basket-promotion bundle normalization recomputes stale `promotion_item_fingerprint` values after item payload normalization. Context-basket consumers can no longer receive a stale promotion fingerprint when query constraints are canonicalized during rehydration.
 
-Packet-only commits after `5c87b08a9f7ca5a4dabc23fc1a80214276a882e9` refresh traceability and gate evidence only through `f9bdab5ded16e44476d773a24249c64442df2f3a`. The source-bearing passes after that packet-only refresh change `src/qual/retrieval/service.py`, `src/qual/engine/retrieval/payload.py`, `src/qual/engine/retrieval/__init__.py`, `engine/src/exegesis_engine/retrieval/__init__.py`, `engine/src/exegesis_engine/retrieval/search_service.py`, and `tests/unit/test_unified_retrieval.py`; reviewers should include those source-bearing commits, including this final sparse basket-promotion fingerprint pass, when re-reviewing the merge candidate.
+This source-bearing fixer pass modifies `src/qual/retrieval/service.py`, `src/qual/engine/retrieval/payload.py`, `tests/unit/test_unified_retrieval.py`, and `THREAD_PACKET.md` so direct basket-promotion bundle `promotion_items`, sparse excerpt-hit rehydration, and sparse bundle normalization preserve `doc_rank` and `fts_rank` alongside the existing match and basket identity evidence. Excerpt-hit snapshots now expose top-level `fts_rank` for direct audit. Sparse payload rehydration uses canonical rank snapshot helpers, including FTS-rank recovery from sparse excerpt, basket-promotion, retrieval-evidence, and retrieval-provenance snapshots when compact excerpt-hit payloads have lost both top-level and provenance rank fields. Sparse bundle normalization backfills missing promotion-item rank fields from matching basket refs before recomputing promotion fingerprints. Regression coverage removes populated top-level excerpt, excerpt-provenance, sparse promotion-item, evidence, source, and citation-bundle rank fields to prove rank provenance can still be recovered from doc-hit, provenance, and basket-ref snapshots. Context-basket consumers can audit promoted FTS excerpts back to both their document ranking and SQLite FTS ranking without reconstructing those fields or widening beyond FTS-first retrieval.
+
+Packet-only commits after `5c87b08a9f7ca5a4dabc23fc1a80214276a882e9` refresh traceability and gate evidence only through `f9bdab5ded16e44476d773a24249c64442df2f3a`. The source-bearing passes after that packet-only refresh change `src/qual/retrieval/service.py`, `src/qual/engine/retrieval/payload.py`, `src/qual/engine/retrieval/__init__.py`, `engine/src/exegesis_engine/retrieval/__init__.py`, `engine/src/exegesis_engine/retrieval/search_service.py`, and `tests/unit/test_unified_retrieval.py`; reviewers should include those source-bearing commits, including this final sparse basket-promotion rank provenance pass, when re-reviewing the merge candidate.
 
 Tracked packet note for this fixer pass: `.codex/kickoff_packets/feat-retrieval-fts.md` and `.codex/lane_meta/feat-retrieval-fts.json` are ignored local automation metadata in this branch worktree and are not tracked at `HEAD`. Treat this tracked `THREAD_PACKET.md` file as the authoritative corrected handoff packet for re-review.
 
@@ -186,7 +188,7 @@ SQLite FTS remains the required MVP retrieval path. PageIndex and embeddings rem
 
 The branch makes FTS retrieval deterministic and auditable across query construction, cache keys, fresh-run cache snapshots, query snapshots, result payloads, excerpt lookup, citation/provenance bundles, sparse source/context bundle rehydration, date-range propagation, shortlist query fingerprints, matched-term provenance, result fingerprints, doc identity, doc rank, doc type, strategy aliases, query constraints, retrieval manifest fingerprints, and basket-promotion evidence. The final source-bearing passes additionally normalize rehydrated basket-promotion item date ranges and matched-term lists before item fingerprinting, add deterministic basket item IDs for direct context-basket promotion, keep those IDs FTS-only so compatibility/deferred retrieval shapes fail closed, carry query-constraint fingerprints on basket-ready item snapshots, canonicalize valid padded or case-varied FTS excerpt-citation basket IDs before sparse excerpt-bundle rehydration, and place canonical FTS basket identity lists on direct excerpt-hit snapshots and nested provenance.
 
-This final source-bearing pass also recomputes sparse basket-promotion `promotion_item_fingerprint` values after item payload normalization, so stale fingerprints cannot survive when older or compact snapshots require query-constraint canonicalization before context-basket promotion.
+This final source-bearing pass also preserves basket-promotion rank provenance across direct payloads and compact sparse rehydration, including recovery of FTS rank from retained retrieval-evidence snapshots when excerpt-hit snapshots have lost rank fields. Sparse basket-promotion `promotion_item_fingerprint` values are recomputed after item payload normalization, so stale fingerprints cannot survive when older or compact snapshots require rank or query-constraint canonicalization before context-basket promotion.
 
 The corrected branch-tip implementation also tightens the canonical engine and service query normalization paths so malformed, unordered, or scalar-shaped `date_range` inputs fail closed before FTS execution.
 
@@ -282,7 +284,7 @@ Task accounting: this high-risk handoff is summarized as the 4 meaningful task g
 
 - Task budget: `4` high-risk task groups; this handoff folds the cumulative retrieval work into 4 meaningful and testable task groups.
 - File count: the corrected source-bearing range before this pass changes `7` source/test files plus `3` packet/artifact files; this pass changes `src/qual/engine/retrieval/payload.py`, `tests/unit/test_unified_retrieval.py`, and `THREAD_PACKET.md`.
-- Size accounting before this packet refresh: the corrected source-bearing range `378cf9a74a3658058079a32f186fcd254c4a4034..HEAD` already exceeds the high-risk `<=300 net LOC` limit; this pass adds a small sparse basket-promotion fingerprint finalization, keeping the range above the limit.
+- Size accounting before this packet refresh: the corrected source-bearing range `378cf9a74a3658058079a32f186fcd254c4a4034..HEAD` already exceeds the high-risk `<=300 net LOC` limit; this pass adds a small sparse basket-promotion rank provenance finalization, keeping the range above the limit.
 - Size limit status: exceeds the high-risk `<=8 files` and `<=300 net LOC` limits.
 - Explicit exception status: no integrator-approved size or task-budget exception is recorded in this worktree. Because the full source-bearing range remains together, this is a known blocker for approval until the integrator grants an exception or requests a branch split.
 - Shared-file exception status: `tests/unit/test_unified_retrieval.py` is the sole approved shared regression surface; no integrator-locked files changed.
@@ -342,8 +344,28 @@ Task accounting: this high-risk handoff is summarized as the 4 meaningful task g
 
 ## Commands Run
 
-Required gates for this corrected merge candidate were re-run on 2026-05-13 against branch `codex/feat-retrieval-fts` after this source-bearing sparse basket-promotion fingerprint finalization.
+Required gates for this corrected merge candidate were re-run on 2026-05-13 against branch `codex/feat-retrieval-fts` after this source-bearing sparse basket-promotion rank provenance finalization.
 
+- `python -m compileall -q src/qual/engine/retrieval/payload.py tests/unit/test_unified_retrieval.py` - passed after adding sparse FTS-rank snapshot fallback.
+- `python -m pytest tests/unit/test_unified_retrieval.py::UnifiedRetrievalTests::test_basket_promotion_items_backfill_query_context_from_bundle -q` - passed after the regression stripped both top-level and provenance `fts_rank` from sparse excerpt-hit snapshots.
+- `python -m pytest tests/unit/test_unified_retrieval.py -q` - passed 104 unified retrieval tests and 96 subtests after the sparse FTS-rank fallback edit.
+- `./quality-format.sh --check` - passed after the sparse FTS-rank fallback packet update.
+- `./quality-lint.sh` - passed shell syntax and trailing whitespace checks after the sparse FTS-rank fallback packet update.
+- `./quality-test.sh` - passed smoke tests and 487 unit tests, including all unified retrieval tests, after the sparse FTS-rank fallback edit.
+- `./typecheck-test.sh` - passed Python source compilation under `src/` after the sparse FTS-rank fallback edit.
+- `make ci` - blocked at scope-check because `tests/unit/test_unified_retrieval.py` is the approved shared regression path; rerun with `SCOPE_ALLOW_SHARED=1`.
+- `SCOPE_ALLOW_SHARED=1 make ci` - passed scope-check, format, lint, compile/typecheck, smoke tests, and all unified retrieval tests, then failed with 6 unrelated sandbox/control-plane `PermissionError` errors when inherited shared-scope test execution attempted to write `.codex/packet_router/logs/fixer__feat-commands__20260513T034042Z.log`, write `.codex/feature_runner/state.json`, invoke `ps`, write `.codex/packet_planner/state.json` in two planner tests, or move recovery artifacts under `.codex/worktree_recovery/feat-a__git-local__20260513T034047Z`.
+- `./quality-format.sh --check` - passed after this handoff packet evidence update.
+- `./quality-lint.sh` - passed shell syntax and trailing whitespace checks after this handoff packet evidence update.
+- `python -m compileall -q src/qual/engine/retrieval/payload.py tests/unit/test_unified_retrieval.py` - passed after adding retrieval-provenance FTS-rank fallback coverage.
+- `python -m pytest tests/unit/test_unified_retrieval.py::UnifiedRetrievalTests::test_basket_promotion_items_backfill_query_context_from_bundle -q` - passed after the regression stripped top-level excerpt, excerpt-provenance, evidence, source, and citation bundle rank sources to prove retrieval-provenance fallback.
+- `python -m pytest tests/unit/test_unified_retrieval.py -q` - passed 104 unified retrieval tests and 96 subtests after retrieval-provenance FTS-rank fallback coverage.
+- `./quality-format.sh --check` - passed after the retrieval-provenance fallback edit.
+- `./quality-lint.sh` - passed shell syntax and trailing whitespace checks after the retrieval-provenance fallback edit.
+- `./typecheck-test.sh` - passed Python source compilation under `src/` after the retrieval-provenance fallback edit.
+- `./quality-test.sh` - passed smoke tests and 487 unit tests, including all unified retrieval tests, after the retrieval-provenance fallback edit.
+- `make ci` - blocked at scope-check because `tests/unit/test_unified_retrieval.py` is the approved shared regression path; rerun with `SCOPE_ALLOW_SHARED=1`.
+- `SCOPE_ALLOW_SHARED=1 make ci` - passed scope-check, format, lint, compile/typecheck, smoke tests, and all unified retrieval tests, then failed with 6 unrelated sandbox/control-plane `PermissionError` errors when inherited shared-scope test execution attempted to write `.codex/packet_router/logs/fixer__feat-commands__20260513T034544Z.log`, write `.codex/feature_runner/state.json`, invoke `ps`, write `.codex/packet_planner/state.json` in two planner tests, or move recovery artifacts under `.codex/worktree_recovery/feat-a__git-local__20260513T034549Z`.
 - `python -m pytest tests/unit/test_unified_retrieval.py -k basket_promotion_bundle_normalizes_query_constraints_snapshot` - passed 1 focused retrieval regression with 103 deselected after stale sparse promotion-item fingerprints were covered.
 - `./quality-format.sh --check` - passed after the sparse basket-promotion fingerprint finalization.
 - `./quality-lint.sh` - passed shell syntax and trailing whitespace checks after the sparse basket-promotion fingerprint finalization.
@@ -553,6 +575,47 @@ Earlier gate run for the previous source-bearing raw excerpt-only sparse basket 
 - `SCOPE_ALLOW_SHARED=1 make ci` - passed scope-check, format, lint, compile/typecheck, smoke tests, and all unified retrieval tests, then failed with 6 unrelated sandbox/control-plane `PermissionError` errors inside the broader 482-test unit run when inherited shared-scope test execution attempted to write `.codex/packet_router/logs/fixer__feat-commands__20260513T002336Z.log`, write `.codex/feature_runner/state.json`, invoke `ps`, write `.codex/packet_planner/state.json`, or move recovery artifacts under `.codex/worktree_recovery`.
 - `./quality-format.sh --check` - passed after the handoff packet update.
 - `./quality-lint.sh` - passed shell syntax and trailing whitespace checks after the handoff packet update.
+- `python -m pytest tests/unit/test_unified_retrieval.py::UnifiedRetrievalTests::test_basket_promotion_items_backfill_query_context_from_bundle -q` - initially failed because direct promotion items lacked `doc_rank`, then failed because sparse rehydration could not recover `doc_rank` from doc-hit provenance; both focused failures were resolved in this pass.
+- `python -m compileall -q src/qual/retrieval/service.py src/qual/engine/retrieval/payload.py tests/unit/test_unified_retrieval.py` - passed after the basket-promotion rank provenance edit.
+- `python -m pytest tests/unit/test_unified_retrieval.py::UnifiedRetrievalTests::test_basket_promotion_items_backfill_query_context_from_bundle -q` - passed after the basket-promotion rank provenance edit.
+- `python -m pytest tests/unit/test_unified_retrieval.py -q` - passed 104 unified retrieval tests and 96 subtests after the basket-promotion rank provenance edit.
+- `./quality-format.sh --check` - passed after the basket-promotion rank provenance edit.
+- `./quality-lint.sh` - passed shell syntax and trailing whitespace checks after the basket-promotion rank provenance edit.
+- `./quality-test.sh` - passed smoke tests and 487 unit tests, including all unified retrieval tests, after the basket-promotion rank provenance edit.
+- `./typecheck-test.sh` - passed Python source compilation under `src/` after the basket-promotion rank provenance edit.
+- `make ci` - blocked at scope-check because `tests/unit/test_unified_retrieval.py` is an approved shared regression path; rerun with `SCOPE_ALLOW_SHARED=1`.
+- `SCOPE_ALLOW_SHARED=1 make ci` - passed scope-check, format, lint, compile/typecheck, smoke tests, and all unified retrieval tests, then failed with 6 unrelated sandbox/control-plane `PermissionError` errors when inherited shared-scope test execution attempted to write `.codex/packet_router/logs/fixer__feat-commands__20260513T032138Z.log`, write `.codex/feature_runner/state.json`, invoke `ps`, write `.codex/packet_planner/state.json`, or move recovery artifacts under `.codex/worktree_recovery`.
+- `python -m pytest tests/unit/test_unified_retrieval.py::UnifiedRetrievalTests::test_basket_promotion_items_backfill_query_context_from_bundle -q` - passed after sparse rank fallback was tightened to use the canonical doc-rank snapshot helper and the regression removed top-level excerpt `doc_rank`/`fts_rank` fields.
+- `python -m compileall -q src/qual/retrieval/service.py src/qual/engine/retrieval/payload.py tests/unit/test_unified_retrieval.py` - passed after the sparse rank fallback edit.
+- `python -m pytest tests/unit/test_unified_retrieval.py -q` - passed 104 unified retrieval tests and 96 subtests after the sparse rank fallback edit.
+- `./quality-format.sh --check` - passed after the sparse rank fallback edit.
+- `./quality-lint.sh` - passed shell syntax and trailing whitespace checks after the sparse rank fallback edit.
+- `./typecheck-test.sh` - passed Python source compilation under `src/` after the sparse rank fallback edit.
+- `./quality-test.sh` - passed smoke tests and 487 unit tests, including all unified retrieval tests, after the sparse rank fallback edit.
+- `make ci` - blocked at scope-check because `tests/unit/test_unified_retrieval.py` is an approved shared regression path; rerun with `SCOPE_ALLOW_SHARED=1`.
+- `SCOPE_ALLOW_SHARED=1 make ci` - passed scope-check, format, lint, compile/typecheck, smoke tests, and all unified retrieval tests, then failed with 6 unrelated sandbox/control-plane `PermissionError` errors when inherited shared-scope test execution attempted to write `.codex/packet_router/logs/fixer__feat-commands__20260513T032631Z.log`, write `.codex/feature_runner/state.json`, invoke `ps`, write `.codex/packet_planner/state.json`, or move recovery artifacts under `.codex/worktree_recovery`.
+- `python -m compileall -q src/qual/engine/retrieval/payload.py tests/unit/test_unified_retrieval.py` - passed after sparse bundle normalization started backfilling missing `doc_rank`/`fts_rank` from matching basket refs.
+- `python -m pytest tests/unit/test_unified_retrieval.py::UnifiedRetrievalTests::test_basket_promotion_items_backfill_query_context_from_bundle -q` - passed after the sparse bundle rank backfill regression removed rank fields from the sparse promotion item.
+- `python -m pytest tests/unit/test_unified_retrieval.py -q` - passed 104 unified retrieval tests and 96 subtests after the sparse bundle rank backfill edit.
+- `./quality-format.sh --check` - passed after the sparse bundle rank backfill edit.
+- `./quality-lint.sh` - passed shell syntax and trailing whitespace checks after the sparse bundle rank backfill edit.
+- `./quality-test.sh` - passed smoke tests and 487 unit tests, including all unified retrieval tests, after the sparse bundle rank backfill edit.
+- `./typecheck-test.sh` - passed Python source compilation under `src/` after the sparse bundle rank backfill edit.
+- `make ci` - blocked at scope-check because `tests/unit/test_unified_retrieval.py` is an approved shared regression path; rerun with `SCOPE_ALLOW_SHARED=1`.
+- `SCOPE_ALLOW_SHARED=1 make ci` - passed scope-check, format, lint, compile/typecheck, smoke tests, and all unified retrieval tests, then failed with 6 unrelated sandbox/control-plane `PermissionError` errors when inherited shared-scope test execution attempted to write `.codex/packet_router/logs/fixer__feat-commands__20260513T033054Z.log`, write `.codex/feature_runner/state.json`, invoke `ps`, write `.codex/packet_planner/state.json`, or move recovery artifacts under `.codex/worktree_recovery`.
+- `./quality-format.sh --check` - passed after this handoff packet update.
+- `./quality-lint.sh` - passed shell syntax and trailing whitespace checks after this handoff packet update.
+- `python -m compileall -q src/qual/retrieval/service.py src/qual/engine/retrieval/payload.py tests/unit/test_unified_retrieval.py` - passed after excerpt-hit snapshots started surfacing top-level `fts_rank`.
+- `python -m pytest tests/unit/test_unified_retrieval.py::UnifiedRetrievalTests::test_basket_promotion_items_backfill_query_context_from_bundle -q` - passed after the regression asserted top-level excerpt-hit `fts_rank` before sparse fallback removal.
+- `python -m pytest tests/unit/test_unified_retrieval.py -q` - passed 104 unified retrieval tests and 96 subtests after the top-level excerpt-hit `fts_rank` edit.
+- `./quality-format.sh --check` - passed after the top-level excerpt-hit `fts_rank` edit.
+- `./quality-lint.sh` - passed shell syntax and trailing whitespace checks after the top-level excerpt-hit `fts_rank` edit.
+- `./quality-test.sh` - passed smoke tests and 487 unit tests, including all unified retrieval tests, after the top-level excerpt-hit `fts_rank` edit.
+- `./typecheck-test.sh` - passed Python source compilation under `src/` after the top-level excerpt-hit `fts_rank` edit.
+- `make ci` - blocked at scope-check because `tests/unit/test_unified_retrieval.py` is an approved shared regression path; rerun with `SCOPE_ALLOW_SHARED=1`.
+- `SCOPE_ALLOW_SHARED=1 make ci` - passed scope-check, format, lint, compile/typecheck, smoke tests, and all unified retrieval tests, then failed with 6 unrelated sandbox/control-plane `PermissionError` errors when inherited shared-scope test execution attempted to write `.codex/packet_router/logs/fixer__feat-commands__20260513T033509Z.log`, write `.codex/feature_runner/state.json`, invoke `ps`, write `.codex/packet_planner/state.json` in two planner tests, or move recovery artifacts under `.codex/worktree_recovery/feat-a__git-local__20260513T033514Z`.
+- `./quality-format.sh --check` - passed after this handoff packet update.
+- `./quality-lint.sh` - passed shell syntax and trailing whitespace checks after this handoff packet update.
 
 Older gate history for this corrected merge candidate:
 
@@ -660,7 +723,7 @@ Additional focused retrieval checks run earlier in this lane:
 ## Remaining Risks Or Blockers
 
 - The corrected cumulative source-bearing range exceeds the high-risk task, size, and file limits. No explicit integrator-approved exception is present in the worktree, so this remains a required integration decision: grant an exception or request a branch split/reduced handoff.
-- Required retrieval and local format/lint/typecheck/test gates are green for this pass. Full `make ci` cannot complete in this sandbox with the approved shared regression edit: plain `make ci` stops at scope-check, and `SCOPE_ALLOW_SHARED=1 make ci` reaches the broader unit suite but fails in unrelated control-plane tests on sandbox-denied `.codex` writes and `ps` execution.
+- Required retrieval and local format/lint/typecheck/test gates are green for this pass. Full `make ci` cannot complete in this sandbox with the approved shared regression edit: plain `make ci` stops at scope-check, and `SCOPE_ALLOW_SHARED=1 make ci` passes scope-check, format, lint, compile/typecheck, smoke, and unified retrieval coverage before failing in unrelated control-plane tests on sandbox-denied `.codex` writes, `ps` execution, and `.codex/worktree_recovery` artifact moves.
 - All source-bearing work is now included in the reviewed implementation range; there is no longer a metadata-only branch-tip claim hiding source/test changes after `adfa8cdadd43747ffbcb612e4151e262b13e52ca`.
 
 ## Roadmap/Vision

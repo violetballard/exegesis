@@ -614,6 +614,7 @@ def _basket_promotion_items_from_excerpt_hits(
         )
     )
     doc_rank_by_id = _doc_rank_by_id_from_snapshot(snapshot)
+    fts_rank_by_excerpt_id = _fts_rank_by_excerpt_id_from_snapshot(snapshot)
 
     items: list[object] = []
     seen: set[str] = set()
@@ -677,7 +678,10 @@ def _basket_promotion_items_from_excerpt_hits(
                     provenance.get("doc_rank", doc_rank_by_id.get(doc_id)),
                 ),
                 "rank": hit.get("rank", provenance.get("rank")),
-                "fts_rank": hit.get("fts_rank", provenance.get("fts_rank")),
+                "fts_rank": hit.get(
+                    "fts_rank",
+                    provenance.get("fts_rank", fts_rank_by_excerpt_id.get(excerpt_id)),
+                ),
                 "matched_terms": copy.deepcopy(
                     hit.get("matched_terms", provenance.get("matched_terms"))
                 ),
@@ -763,6 +767,50 @@ def _doc_rank_by_id_from_snapshot(snapshot: dict[str, object]) -> dict[str, obje
             doc_rank_by_id.setdefault(doc_id, doc_rank)
 
     return doc_rank_by_id
+
+
+def _fts_rank_by_excerpt_id_from_snapshot(snapshot: dict[str, object]) -> dict[str, object]:
+    """Return FTS-rank hints from sparse excerpt and basket-promotion snapshots."""
+
+    fts_rank_by_excerpt_id: dict[str, object] = {}
+
+    def record_fts_rank(item: object) -> None:
+        if not isinstance(item, dict):
+            return
+        excerpt_id = _first_text_value(item.get("excerpt_id"))
+        if excerpt_id is None or excerpt_id in fts_rank_by_excerpt_id:
+            return
+        provenance = item.get("provenance")
+        if not isinstance(provenance, dict):
+            provenance = {}
+        fts_rank = item.get("fts_rank", provenance.get("fts_rank"))
+        if isinstance(fts_rank, (int, float)):
+            fts_rank_by_excerpt_id[excerpt_id] = fts_rank
+
+    for list_key in ("excerpt_hits", "excerpt_citations", "basket_promotion_items", "promotion_items"):
+        for item in _normalize_list_like(snapshot.get(list_key, [])):
+            record_fts_rank(item)
+
+    for bundle_key in (
+        "retrieval_excerpt_bundle",
+        "retrieval_citation_bundle",
+        "retrieval_provenance",
+        "retrieval_evidence",
+        "retrieval_basket_promotion_bundle",
+        "retrieval_source_bundle",
+        "source_bundle",
+        "retrieval_downstream_payload",
+    ):
+        bundle = snapshot.get(bundle_key)
+        if not isinstance(bundle, dict):
+            continue
+        for list_key in ("excerpt_hits", "excerpt_citations", "basket_promotion_items", "promotion_items"):
+            for item in _normalize_list_like(bundle.get(list_key, [])):
+                record_fts_rank(item)
+        for excerpt_id, fts_rank in _fts_rank_by_excerpt_id_from_snapshot(bundle).items():
+            fts_rank_by_excerpt_id.setdefault(excerpt_id, fts_rank)
+
+    return fts_rank_by_excerpt_id
 
 
 def _basket_item_ids_from_snapshot(
@@ -1587,8 +1635,16 @@ def _normalize_basket_promotion_bundle_snapshot(bundle: dict[str, object]) -> di
             basket_item_fingerprint
         ):
             item["basket_item_fingerprint"] = copy.deepcopy(basket_item_fingerprint)
-        if not _is_missing_snapshot_value(item.get("excerpt_lookup_fingerprint")) or not _is_missing_snapshot_value(
-            item.get("basket_item_fingerprint")
+        rank_provenance_backfilled = False
+        for rank_key in ("doc_rank", "fts_rank"):
+            rank_value = basket_item.get(rank_key)
+            if _is_missing_snapshot_value(item.get(rank_key)) and not _is_missing_snapshot_value(rank_value):
+                item[rank_key] = copy.deepcopy(rank_value)
+                rank_provenance_backfilled = True
+        if (
+            rank_provenance_backfilled
+            or not _is_missing_snapshot_value(item.get("excerpt_lookup_fingerprint"))
+            or not _is_missing_snapshot_value(item.get("basket_item_fingerprint"))
         ):
             item["promotion_item_fingerprint"] = _stable_fingerprint(
                 {
@@ -2340,6 +2396,8 @@ def _build_retrieval_basket_promotion_bundle_from_payload(payload: dict[str, obj
         return _normalize_basket_promotion_bundle_snapshot(basket_bundle)
     bundle_context = _build_retrieval_bundle_context_from_payload(payload)
     promotion_items: list[dict[str, object]] = []
+    doc_rank_by_id = _doc_rank_by_id_from_snapshot(payload)
+    fts_rank_by_excerpt_id = _fts_rank_by_excerpt_id_from_snapshot(payload)
     for hit in _normalize_list_like(payload.get("excerpt_hits", [])):
         if not isinstance(hit, dict):
             continue
@@ -2369,7 +2427,15 @@ def _build_retrieval_basket_promotion_bundle_from_payload(payload: dict[str, obj
             "excerpt_text": hit.get("excerpt_text"),
             "span": copy.deepcopy(hit.get("span", provenance.get("span", {}))),
             "score": hit.get("score"),
+            "doc_rank": hit.get(
+                "doc_rank",
+                provenance.get("doc_rank", doc_rank_by_id.get(str(hit.get("doc_id")))),
+            ),
             "rank": provenance.get("rank", hit.get("rank")),
+            "fts_rank": hit.get(
+                "fts_rank",
+                provenance.get("fts_rank", fts_rank_by_excerpt_id.get(str(excerpt_id))),
+            ),
             "source_strategy": source_strategy,
             "retrieval_source_strategy": source_strategy,
             "result_fingerprint": hit.get(

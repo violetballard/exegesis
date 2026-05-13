@@ -271,6 +271,12 @@ class RetrievalHit:
         result_fingerprint = self.provenance.get("result_fingerprint")
         if isinstance(result_fingerprint, str) and result_fingerprint:
             payload["result_fingerprint"] = result_fingerprint
+        doc_rank = self.provenance.get("doc_rank")
+        if isinstance(doc_rank, int):
+            payload["doc_rank"] = doc_rank
+        fts_rank = self.provenance.get("fts_rank")
+        if isinstance(fts_rank, (int, float)):
+            payload["fts_rank"] = fts_rank
         fts_shortlist_doc_ids = self.provenance.get("fts_shortlist_doc_ids")
         if isinstance(fts_shortlist_doc_ids, list):
             payload["fts_shortlist_doc_ids"] = copy.deepcopy(fts_shortlist_doc_ids)
@@ -746,6 +752,10 @@ class RetrievalResult:
             if isinstance(item.get("item_id"), str)
             and isinstance(item.get("basket_item_fingerprint"), str)
         }
+        doc_rank_by_id = {
+            doc_hit.doc_id: doc_hit.provenance.get("doc_rank")
+            for doc_hit in self.doc_hits
+        }
         for hit in self.hits:
             if hit.excerpt_id is None:
                 continue
@@ -762,7 +772,9 @@ class RetrievalResult:
                 "excerpt_text": hit.excerpt_text,
                 "span": copy.deepcopy(hit.span),
                 "score": hit.score,
+                "doc_rank": doc_rank_by_id.get(hit.doc_id),
                 "rank": hit.provenance.get("rank"),
+                "fts_rank": hit.provenance.get("fts_rank"),
                 "source_strategy": hit.source_strategy,
                 "result_fingerprint": self.result_fingerprint,
                 "query_fingerprint": hit.provenance.get(
