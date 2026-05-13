@@ -499,6 +499,34 @@ def build_patch_review_action_compatibility_aliases() -> tuple[tuple[str, str], 
     return PATCH_REVIEW_ACTION_COMPATIBILITY_ALIASES
 
 
+def _patch_review_action_aliases_ready(
+    action_routes: tuple[tuple[str, str], ...],
+) -> bool:
+    expected_actions = {action for action, _engine_action in action_routes}
+    normalized_aliases = tuple(
+        re.sub(r"\s+", "-", alias.strip().lower().replace("_", "-"))
+        for alias, _target in PATCH_REVIEW_ACTION_COMPATIBILITY_ALIASES
+    )
+    alias_targets = tuple(
+        target for _alias, target in PATCH_REVIEW_ACTION_COMPATIBILITY_ALIASES
+    )
+    return (
+        bool(PATCH_REVIEW_ACTION_COMPATIBILITY_ALIASES)
+        and all(normalized_aliases)
+        and all(target in expected_actions for target in alias_targets)
+        and all(
+            alias != target
+            for alias, target in zip(normalized_aliases, alias_targets, strict=True)
+        )
+        and len(set(normalized_aliases)) == len(normalized_aliases)
+        and not set(normalized_aliases).intersection(expected_actions)
+        and all(
+            _normalize_patch_review_action(alias) == target
+            for alias, target in PATCH_REVIEW_ACTION_COMPATIBILITY_ALIASES
+        )
+    )
+
+
 def _patch_review_smoke_contract_ready(
     changed_routes: tuple[tuple[str, str], ...],
     no_change_routes: tuple[tuple[str, str], ...],
@@ -641,6 +669,7 @@ def build_patch_review_command_contract() -> PatchReviewCommandContract:
         engine_action
         for _, engine_action in change_action_routes + no_change_action_routes
     )
+    all_action_routes = change_action_routes + no_change_action_routes
     return PatchReviewCommandContract(
         command=PATCH_REVIEW_COMMAND_NAME,
         flow_step=PATCH_REVIEW_FLOW_STEP,
@@ -651,8 +680,9 @@ def build_patch_review_command_contract() -> PatchReviewCommandContract:
         engine_actions=engine_actions,
         ready=all(
             action and engine_action
-            for action, engine_action in change_action_routes + no_change_action_routes
-        ),
+            for action, engine_action in all_action_routes
+        )
+        and _patch_review_action_aliases_ready(all_action_routes),
     )
 
 
