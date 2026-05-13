@@ -28,6 +28,7 @@ from src.qual.commands.diff_preview import (
     PatchReviewActionRoute,
     PatchReviewActionRouteValidation,
     PatchReviewActionResolution,
+    PatchReviewActionResolutionSmokeContract,
     PatchReviewCommandStatus,
     PatchReviewCommandStatusPayload,
     PatchReviewCommandContract,
@@ -36,6 +37,7 @@ from src.qual.commands.diff_preview import (
     PatchReviewReadinessContract,
     build_patch_review_command_contract,
     build_patch_review_command_smoke_contract,
+    build_patch_review_action_resolution_smoke_contract,
     build_patch_review_action_route_lookup,
     build_patch_review_action_routes,
     build_patch_review_action_compatibility_aliases,
@@ -49,6 +51,7 @@ from src.qual.commands.diff_preview import (
     run_patch_review_action_routes_json,
     run_patch_review_action_resolution,
     run_patch_review_action_resolution_json,
+    run_patch_review_action_resolution_smoke_json,
     run_patch_review_command_status,
     run_patch_review_command_status_json,
     run_patch_review_command_contract,
@@ -79,6 +82,7 @@ def build_mvp_demo_command_surface_payload() -> dict[str, object]:
         "retrieval_context": canonical_command_retrieval_context_payload(),
         "patch_review": asdict(patch_review_contract),
         "patch_review_readiness_smoke": build_patch_review_readiness_smoke_payload(),
+        "patch_review_action_resolution_smoke": build_patch_review_action_resolution_smoke_payload(),
         "persist_continue": canonical_command_persist_continue_payload(),
         "demo_path_commands": build_mvp_demo_path_command_payload(demo_loop),
         "smoke_gate": build_mvp_demo_smoke_gate_payload(demo_loop),
@@ -200,6 +204,20 @@ def run_patch_review_readiness_smoke_json() -> str:
     )
 
 
+def build_patch_review_action_resolution_smoke_payload() -> dict[str, object]:
+    """Return deterministic patch-review action resolution data for smoke checks."""
+    return asdict(build_patch_review_action_resolution_smoke_contract())
+
+
+def run_patch_review_action_resolution_smoke_payload_json() -> str:
+    """Return package-level patch-review action resolution smoke data as JSON."""
+    return json.dumps(
+        build_patch_review_action_resolution_smoke_payload(),
+        sort_keys=True,
+        separators=(",", ":"),
+    )
+
+
 def build_mvp_demo_command_surface_audit_payload() -> dict[str, object]:
     """Return a deterministic audit bundle for command-surface handoff checks."""
     return {
@@ -211,6 +229,7 @@ def build_mvp_demo_command_surface_audit_payload() -> dict[str, object]:
         "demo_path_commands": build_mvp_demo_path_command_payload(),
         "smoke_gate": build_mvp_demo_smoke_gate_payload(),
         "patch_review_readiness_smoke": build_patch_review_readiness_smoke_payload(),
+        "patch_review_action_resolution_smoke": build_patch_review_action_resolution_smoke_payload(),
     }
 
 

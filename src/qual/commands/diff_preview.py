@@ -170,6 +170,18 @@ class PatchReviewReadinessContract:
     ready: bool
 
 
+@dataclass(frozen=True)
+class PatchReviewActionResolutionSmokeContract:
+    command: str
+    flow_step: str
+    demo_path_step: str
+    changed_decision: str
+    changed_action_resolutions: tuple[PatchReviewActionResolution, ...]
+    no_change_decision: str
+    no_change_action_resolutions: tuple[PatchReviewActionResolution, ...]
+    ready: bool
+
+
 def _normalize_text(value: str) -> str:
     # Normalize newlines so diff output is stable across platforms.
     return value.replace("\r\n", "\n").replace("\r", "\n")
@@ -775,20 +787,26 @@ def run_patch_review_action_resolution(payload: DiffPreviewInput, action: str) -
 def run_patch_review_action_resolution_json(payload: DiffPreviewInput, action: str) -> str:
     resolution = resolve_patch_review_action(payload, action)
     return json.dumps(
-        {
-            "action": resolution.action,
-            "engine_action": resolution.engine_action,
-            "command": resolution.command,
-            "flow_step": resolution.flow_step,
-            "demo_path_step": resolution.demo_path_step,
-            "decision_status": resolution.decision_status,
-            "allowed": resolution.allowed,
-            "ready": resolution.ready,
-            "reason": resolution.reason,
-        },
+        _patch_review_action_resolution_payload(resolution),
         sort_keys=True,
         separators=(",", ":"),
     )
+
+
+def _patch_review_action_resolution_payload(
+    resolution: PatchReviewActionResolution,
+) -> dict[str, object]:
+    return {
+        "action": resolution.action,
+        "engine_action": resolution.engine_action,
+        "command": resolution.command,
+        "flow_step": resolution.flow_step,
+        "demo_path_step": resolution.demo_path_step,
+        "decision_status": resolution.decision_status,
+        "allowed": resolution.allowed,
+        "ready": resolution.ready,
+        "reason": resolution.reason,
+    }
 
 
 def run_patch_review_command_contract() -> str:
@@ -850,6 +868,74 @@ def run_patch_review_command_smoke_contract_json() -> str:
             "no_change_action_routes": contract.no_change_action_routes,
             "ready": contract.ready,
         },
+        sort_keys=True,
+        separators=(",", ":"),
+    )
+
+
+def build_patch_review_action_resolution_smoke_contract() -> PatchReviewActionResolutionSmokeContract:
+    """Return deterministic action-resolution checks for patch-review smoke gates."""
+
+    changed_payload = DiffPreviewInput(
+        "draft text before review\n",
+        "revised draft text\n",
+    )
+    no_change_payload = DiffPreviewInput(
+        "unchanged draft text\n",
+        "unchanged draft text\n",
+    )
+    changed = build_patch_review_decision(changed_payload)
+    no_change = build_patch_review_decision(no_change_payload)
+    changed_resolutions = tuple(
+        resolve_patch_review_action(changed_payload, action)
+        for action in ("revise", "apply", "reject")
+    )
+    no_change_resolutions = (
+        resolve_patch_review_action(no_change_payload, "continue"),
+    )
+    return PatchReviewActionResolutionSmokeContract(
+        command=PATCH_REVIEW_COMMAND_NAME,
+        flow_step=PATCH_REVIEW_FLOW_STEP,
+        demo_path_step=PATCH_REVIEW_DEMO_PATH_STEP,
+        changed_decision=changed.status,
+        changed_action_resolutions=changed_resolutions,
+        no_change_decision=no_change.status,
+        no_change_action_resolutions=no_change_resolutions,
+        ready=all(
+            resolution.allowed and resolution.ready
+            for resolution in changed_resolutions + no_change_resolutions
+        ),
+    )
+
+
+def _patch_review_action_resolution_smoke_payload(
+    contract: PatchReviewActionResolutionSmokeContract,
+) -> dict[str, object]:
+    return {
+        "command": contract.command,
+        "flow_step": contract.flow_step,
+        "demo_path_step": contract.demo_path_step,
+        "changed_decision": contract.changed_decision,
+        "changed_action_resolutions": tuple(
+            _patch_review_action_resolution_payload(resolution)
+            for resolution in contract.changed_action_resolutions
+        ),
+        "no_change_decision": contract.no_change_decision,
+        "no_change_action_resolutions": tuple(
+            _patch_review_action_resolution_payload(resolution)
+            for resolution in contract.no_change_action_resolutions
+        ),
+        "ready": contract.ready,
+    }
+
+
+def run_patch_review_action_resolution_smoke_json() -> str:
+    """Return stable JSON proving patch-review actions resolve to engine routes."""
+
+    return json.dumps(
+        _patch_review_action_resolution_smoke_payload(
+            build_patch_review_action_resolution_smoke_contract()
+        ),
         sort_keys=True,
         separators=(",", ":"),
     )
