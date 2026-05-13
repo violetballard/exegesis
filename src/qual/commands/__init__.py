@@ -69,13 +69,15 @@ def build_mvp_demo_command_surface_payload() -> dict[str, object]:
     """Return the deterministic package-level contract for the MVP demo loop."""
     demo_loop = canonical_command_demo_loop_payload()
     smoke_contract = canonical_command_demo_loop_smoke_payload()
+    patch_review_contract = build_patch_review_command_contract()
     return {
         "is_ready": demo_loop["is_ready"],
         "issues": demo_loop["issues"],
         "demo_loop": demo_loop,
         "execution_plan": canonical_command_execution_plan_payload(),
         "retrieval_context": canonical_command_retrieval_context_payload(),
-        "patch_review": asdict(build_patch_review_command_contract()),
+        "patch_review": asdict(patch_review_contract),
+        "patch_review_readiness_smoke": build_patch_review_readiness_smoke_payload(),
         "persist_continue": canonical_command_persist_continue_payload(),
         "readiness_snapshot": canonical_command_readiness_snapshot_payload(()),
         "next_command": canonical_command_readiness_next_status_payload(),
@@ -93,6 +95,34 @@ def run_mvp_demo_command_surface_json() -> str:
     )
 
 
+def build_patch_review_readiness_smoke_payload() -> dict[str, object]:
+    """Return changed/no-change patch-review readiness payloads for smoke checks."""
+    changed_payload = DiffPreviewInput(
+        "draft text before review\n",
+        "revised draft text\n",
+    )
+    no_change_payload = DiffPreviewInput(
+        "unchanged draft text\n",
+        "unchanged draft text\n",
+    )
+    changed = build_patch_review_readiness_contract(changed_payload)
+    no_change = build_patch_review_readiness_contract(no_change_payload)
+    return {
+        "ready": changed.ready and no_change.ready,
+        "changed": asdict(changed),
+        "no_change": asdict(no_change),
+    }
+
+
+def run_patch_review_readiness_smoke_json() -> str:
+    """Return deterministic patch-review readiness smoke data as stable JSON."""
+    return json.dumps(
+        build_patch_review_readiness_smoke_payload(),
+        sort_keys=True,
+        separators=(",", ":"),
+    )
+
+
 def build_mvp_demo_command_surface_audit_payload() -> dict[str, object]:
     """Return a deterministic audit bundle for command-surface handoff checks."""
     return {
@@ -101,6 +131,7 @@ def build_mvp_demo_command_surface_audit_payload() -> dict[str, object]:
         "handler_trust_gate": canonical_command_handler_trust_gate_payload(),
         "command_readiness_audit": canonical_command_readiness_command_audit_payload(),
         "exact_action_routes": canonical_command_exact_action_route_payload(),
+        "patch_review_readiness_smoke": build_patch_review_readiness_smoke_payload(),
     }
 
 
