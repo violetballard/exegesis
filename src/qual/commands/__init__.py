@@ -90,6 +90,7 @@ def build_mvp_demo_command_surface_payload(
         "persist_continue": canonical_command_persist_continue_payload(),
         "demo_path_commands": build_mvp_demo_path_command_payload(demo_loop),
         "demo_path_command_sequence": build_mvp_demo_command_sequence_payload(demo_loop, smoke_contract),
+        "trusted_command_contract": build_mvp_demo_trusted_command_contract_payload(demo_loop),
         "handler_trusted_demo_path": canonical_command_handler_trusted_demo_path_payload(),
         "smoke_gate": build_mvp_demo_smoke_gate_payload(demo_loop),
         "readiness_snapshot": canonical_command_readiness_snapshot_payload(smoke_argvs),
@@ -239,6 +240,61 @@ def run_mvp_demo_smoke_gate_json() -> str:
     )
 
 
+def build_mvp_demo_trusted_command_contract_payload(
+    demo_loop: dict[str, object] | None = None,
+) -> dict[str, object]:
+    """Return a deterministic trust contract for the command sequence."""
+    loop = demo_loop or canonical_command_demo_loop_payload()
+    sequence = build_mvp_demo_command_sequence_payload(loop)
+    smoke_gate = build_mvp_demo_smoke_gate_payload(loop)
+    handler_gate = canonical_command_handler_trust_gate_payload()
+    command_readiness = tuple(
+        {
+            "ordinal": entry["ordinal"],
+            "flow_step": entry["flow_step"],
+            "demo_path_step": entry["demo_path_step"],
+            "command": entry["command"],
+            "command_line": entry["command_line"],
+            "engine_actions": entry["engine_actions"],
+            "handler": entry["handler"],
+            "delegated_to": entry["delegated_to"],
+            "engine_delegated_to": entry["engine_delegated_to"],
+            "is_trusted": entry["is_trusted"],
+            "smoke_ready": entry["smoke_ready"],
+        }
+        for entry in sequence
+    )
+    untrusted_commands = tuple(
+        str(entry["command"])
+        for entry in command_readiness
+        if not bool(entry["is_trusted"]) or not bool(entry["smoke_ready"])
+    )
+    return {
+        "is_trusted": (
+            bool(smoke_gate["is_complete"])
+            and bool(handler_gate["is_complete"])
+            and not untrusted_commands
+        ),
+        "demo_path_steps": loop["demo_path_steps"],
+        "command_lines": loop["command_lines"],
+        "commands": tuple(entry["command"] for entry in command_readiness),
+        "untrusted_commands": untrusted_commands,
+        "command_readiness": command_readiness,
+        "smoke_gate_complete": smoke_gate["is_complete"],
+        "handler_trust_gate_complete": handler_gate["is_complete"],
+        "thin_handler_violations": handler_gate["thin_handler_violations"],
+    }
+
+
+def run_mvp_demo_trusted_command_contract_json() -> str:
+    """Return stable JSON for the trusted MVP demo command contract."""
+    return json.dumps(
+        build_mvp_demo_trusted_command_contract_payload(),
+        sort_keys=True,
+        separators=(",", ":"),
+    )
+
+
 def build_patch_review_readiness_smoke_payload() -> dict[str, object]:
     """Return changed/no-change patch-review readiness payloads for smoke checks."""
     changed_payload = DiffPreviewInput(
@@ -292,6 +348,7 @@ def build_mvp_demo_command_surface_audit_payload() -> dict[str, object]:
         "exact_action_routes": canonical_command_exact_action_route_payload(),
         "demo_path_commands": build_mvp_demo_path_command_payload(),
         "demo_path_command_sequence": build_mvp_demo_command_sequence_payload(),
+        "trusted_command_contract": build_mvp_demo_trusted_command_contract_payload(),
         "smoke_gate": build_mvp_demo_smoke_gate_payload(),
         "patch_review_readiness_smoke": build_patch_review_readiness_smoke_payload(),
         "patch_review_action_resolution_smoke": build_patch_review_action_resolution_smoke_payload(),
