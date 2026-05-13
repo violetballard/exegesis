@@ -421,9 +421,29 @@ def _normalize_basket_promotion_items(items: list[object]) -> list[object]:
             )
             item_snapshot["retrieval_source_strategy"] = item_snapshot["source_strategy"]
             item_snapshot["canonical_demo_path_steps"] = list(_RETRIEVAL_DEMO_PATH_STEPS)
-            normalized.append(_with_basket_item_fingerprint(item_snapshot))
-        else:
-            normalized.append(copy.deepcopy(item))
+            query_constraints = item_snapshot.get("query_constraints")
+            if isinstance(query_constraints, dict):
+                item_snapshot["query_constraints"] = _normalize_query_constraints_snapshot(query_constraints)
+                item_snapshot["query_constraints_fingerprint"] = _stable_fingerprint(
+                    item_snapshot["query_constraints"]
+                )
+            retrieval_policy = item_snapshot.get("retrieval_policy")
+            if isinstance(retrieval_policy, dict):
+                item_snapshot["retrieval_policy"] = _normalize_policy_snapshot(retrieval_policy)
+            if isinstance(item_snapshot.get("citation_status"), dict):
+                item_snapshot["citation_status"] = _normalize_citation_status_snapshot(
+                    item_snapshot.get("citation_status")
+                )
+            item_snapshot["basket_item_fingerprint"] = _basket_item_fingerprint(item_snapshot)
+            if not _is_missing_snapshot_value(item_snapshot.get("promotion_item_fingerprint")):
+                item_snapshot["promotion_item_fingerprint"] = _stable_fingerprint(
+                    {
+                        key: value
+                        for key, value in item_snapshot.items()
+                        if key != "promotion_item_fingerprint"
+                    }
+                )
+            normalized.append(item_snapshot)
     return normalized
 
 

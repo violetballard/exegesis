@@ -24,6 +24,7 @@ from src.qual.engine.retrieval.payload import build_retrieval_citation_bundle_fr
 from src.qual.engine.retrieval.payload import build_retrieval_downstream_payload_from_result
 from src.qual.engine.retrieval.payload import build_retrieval_provenance_from_result
 from src.qual.engine.retrieval.payload import _build_retrieval_basket_promotion_bundle_from_payload
+from src.qual.engine.retrieval.payload import _build_retrieval_context_bundle_from_payload
 from src.qual.engine.retrieval.payload import _build_retrieval_context_bundle_from_source_bundle
 from src.qual.engine.retrieval.payload import _build_retrieval_doc_bundle_from_payload
 from src.qual.engine.retrieval.payload import _build_retrieval_excerpt_bundle_from_payload
@@ -4437,6 +4438,21 @@ class UnifiedRetrievalTests(unittest.TestCase):
         }
         promotion_item["query_constraints_fingerprint"] = "stale-fingerprint"
         promotion_item.pop("promotion_item_fingerprint", None)
+        basket_promotion_items = cast(dict[str, object], basket_bundle)["basket_promotion_items"]
+        self.assertIsInstance(basket_promotion_items, list)
+        basket_promotion_item = cast(list[dict[str, object]], basket_promotion_items)[0]
+        basket_promotion_item["query_constraints"] = {
+            "max_results": "4",
+            "doc_types": (),
+            "date_range": ("2026-01-01", "2026-12-31"),
+            "require_citations": "false",
+            "section_hint": "  ",
+            "prefer_exact_matches": "false",
+        }
+        basket_promotion_item["query_constraints_fingerprint"] = "stale-fingerprint"
+        basket_promotion_item["basket_item_fingerprint"] = "stale-basket-fingerprint"
+        basket_promotion_item["promotion_item_fingerprint"] = "stale-promotion-fingerprint"
+        basket_promotion_items.append("stale-non-object-promotion-item")
         cast(dict[str, object], basket_bundle)["query_constraints_fingerprint"] = "stale-fingerprint"
 
         normalized_bundle = _build_retrieval_basket_promotion_bundle_from_payload(payload)
@@ -4483,6 +4499,51 @@ class UnifiedRetrievalTests(unittest.TestCase):
         self.assertEqual(normalized_item["basket_item_id"], result.basket_promotion_items()[0]["basket_item_id"])
         self.assertEqual(normalized_item["item_id"], result.basket_promotion_items()[0]["item_id"])
         self.assertNotEqual(normalized_item["promotion_item_fingerprint"], "stale-fingerprint")
+        normalized_basket_item = normalized_bundle["basket_promotion_items"][0]
+        self.assertEqual(normalized_basket_item["query_constraints"], expected_constraints)
+        self.assertEqual(
+            normalized_basket_item["query_constraints_fingerprint"],
+            expected_constraints_fingerprint,
+        )
+        self.assertNotEqual(normalized_basket_item["basket_item_fingerprint"], "stale-basket-fingerprint")
+        self.assertNotEqual(
+            normalized_basket_item["promotion_item_fingerprint"],
+            "stale-promotion-fingerprint",
+        )
+        self.assertEqual(len(normalized_bundle["basket_promotion_items"]), 1)
+
+        sparse_context_bundle = result.retrieval_context_bundle()
+        for snapshot in (
+            sparse_context_bundle,
+            sparse_context_bundle["retrieval_source_bundle"],
+            sparse_context_bundle["retrieval_downstream_payload"],
+        ):
+            snapshot["basket_promotion_items"].append("stale-non-object-promotion-item")
+            basket_item = snapshot["basket_promotion_items"][0]
+            basket_item["query_constraints"] = {
+                "max_results": "4",
+                "doc_types": (),
+                "date_range": ("2026-01-01", "2026-12-31"),
+                "require_citations": "false",
+                "section_hint": "  ",
+                "prefer_exact_matches": "false",
+            }
+            basket_item["query_constraints_fingerprint"] = "stale-fingerprint"
+            basket_item["basket_item_fingerprint"] = "stale-basket-fingerprint"
+            basket_item["promotion_item_fingerprint"] = "stale-promotion-fingerprint"
+
+        context_bundle = _build_retrieval_context_bundle_from_payload(
+            sparse_context_bundle["retrieval_downstream_payload"]
+        )
+        context_item = context_bundle["basket_promotion_items"][0]
+        self.assertEqual(context_item["query_constraints"], expected_constraints)
+        self.assertEqual(
+            context_item["query_constraints_fingerprint"],
+            expected_constraints_fingerprint,
+        )
+        self.assertNotEqual(context_item["basket_item_fingerprint"], "stale-basket-fingerprint")
+        self.assertNotEqual(context_item["promotion_item_fingerprint"], "stale-promotion-fingerprint")
+        self.assertEqual(len(context_bundle["basket_promotion_items"]), 1)
 
     def test_basket_promotion_bundle_backfills_item_policy_and_rejects_non_fts_identity(self) -> None:
         result = self.service.retrieve_auto(
