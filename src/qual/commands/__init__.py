@@ -9,6 +9,8 @@ from dataclasses import asdict
 from src.qual.commands.catalog import *  # noqa: F401,F403
 from src.qual.commands.catalog import (
     command_demo_readiness_validate_ordered_script,
+    command_demo_readiness_validate_cli_exact_action_shell_script_lines,
+    command_demo_readiness_validate_cli_shell_script_lines,
     command_demo_readiness_validate_script,
 )
 from src.qual.commands.canonical import *  # noqa: F401,F403
@@ -116,6 +118,7 @@ def build_mvp_demo_command_surface_payload(
     smoke_replay = build_mvp_demo_cli_smoke_replay_payload(smoke_argvs)
     demo_driver = canonical_command_readiness_demo_driver_payload(smoke_argvs)
     script_validation = build_mvp_demo_cli_script_validation_payload(smoke_argvs)
+    cli_contract_snapshot = build_mvp_demo_cli_contract_snapshot_payload(smoke_argvs)
     readiness_gate = build_mvp_demo_command_surface_readiness_gate_payload(
         demo_loop_ready=bool(demo_loop["is_ready"]),
         smoke_gate=smoke_gate,
@@ -178,6 +181,7 @@ def build_mvp_demo_command_surface_payload(
         "demo_driver": demo_driver,
         "runtime_checkpoint": runtime_checkpoint,
         "script_validation": script_validation,
+        "cli_contract_snapshot": cli_contract_snapshot,
         "command_completion": command_completion,
         "readiness_checkpoint": build_mvp_demo_readiness_checkpoint_payload(
             smoke_argvs
@@ -1030,6 +1034,100 @@ def run_mvp_demo_cli_script_validation_json() -> str:
     )
 
 
+def _mvp_demo_cli_contract_snapshot_issues(
+    *,
+    runtime_checkpoint: dict[str, object],
+    smoke_route: dict[str, object],
+    smoke_route_lookup: dict[str, object],
+    smoke_replay: dict[str, object],
+    trusted_contract: dict[str, object],
+) -> tuple[str, ...]:
+    issues: list[str] = []
+    if not bool(runtime_checkpoint["is_ready"]):
+        issues.extend(str(issue) for issue in tuple(runtime_checkpoint["issues"]))
+    if not bool(smoke_route["is_ready"]):
+        issues.append("CLI smoke route is not ready")
+    if not bool(smoke_route_lookup["is_ready"]):
+        issues.append("CLI smoke route lookup is not ready")
+    if not bool(smoke_replay["is_ready"]):
+        issues.append("CLI smoke replay is not ready")
+    if not bool(trusted_contract["is_trusted"]):
+        untrusted = ", ".join(tuple(trusted_contract["untrusted_commands"])) or "unknown"
+        issues.append(f"untrusted commands: {untrusted}")
+    return tuple(issues)
+
+
+def build_mvp_demo_cli_contract_snapshot_payload(
+    smoke_argvs: Sequence[Sequence[str] | str] = (),
+) -> dict[str, object]:
+    """Return a compact, deterministic CLI contract snapshot for the demo loop."""
+
+    runtime_checkpoint = build_mvp_demo_cli_runtime_checkpoint_payload(smoke_argvs)
+    script_validation = build_mvp_demo_cli_script_validation_payload(smoke_argvs)
+    smoke_route = build_mvp_demo_cli_smoke_route_payload(smoke_argvs)
+    smoke_route_lookup = build_mvp_demo_cli_smoke_route_lookup_payload(smoke_argvs)
+    smoke_replay = build_mvp_demo_cli_smoke_replay_payload(smoke_argvs)
+    trusted_contract = build_mvp_demo_trusted_command_contract_payload()
+    command_lines = tuple(smoke_replay["command_lines"])
+    exact_action_lines = tuple(smoke_replay["exact_action_lines"])
+    command_line_validation = command_demo_readiness_validate_cli_shell_script_lines(
+        command_lines
+    )
+    exact_action_validation = (
+        command_demo_readiness_validate_cli_exact_action_shell_script_lines(
+            exact_action_lines
+        )
+    )
+    issues = _mvp_demo_cli_contract_snapshot_issues(
+        runtime_checkpoint=runtime_checkpoint,
+        smoke_route=smoke_route,
+        smoke_route_lookup=smoke_route_lookup,
+        smoke_replay=smoke_replay,
+        trusted_contract=trusted_contract,
+    )
+    return {
+        "is_ready": not issues,
+        "is_complete": bool(script_validation["is_complete"])
+        and command_line_validation.is_complete
+        and exact_action_validation.is_complete,
+        "issues": issues,
+        "completion_issues": tuple(script_validation["issues"]),
+        "runtime_checkpoint": runtime_checkpoint,
+        "script_validation": script_validation,
+        "smoke_route_ready": bool(smoke_route["is_ready"]),
+        "smoke_route_lookup_ready": bool(smoke_route_lookup["is_ready"]),
+        "smoke_replay_ready": bool(smoke_replay["is_ready"]),
+        "trusted_command_contract_ready": bool(trusted_contract["is_trusted"]),
+        "command_lines": command_lines,
+        "exact_action_lines": exact_action_lines,
+        "command_line_validation_complete": command_line_validation.is_complete,
+        "exact_action_validation_complete": exact_action_validation.is_complete,
+        "covered_flow_steps": command_line_validation.covered_flow_steps,
+        "covered_engine_actions": exact_action_validation.covered_engine_actions,
+        "missing_flow_steps": command_line_validation.missing_flow_steps,
+        "missing_engine_actions": exact_action_validation.missing_engine_actions,
+        "invalid_command_argv": command_line_validation.invalid_argv,
+        "invalid_exact_action_argv": exact_action_validation.invalid_argv,
+        "next_command_line": runtime_checkpoint["next_command_line"],
+        "next_exact_action_line": runtime_checkpoint["next_exact_action_line"],
+        "remaining_command_lines": runtime_checkpoint["remaining_command_lines"],
+        "remaining_exact_action_lines": runtime_checkpoint["remaining_exact_action_lines"],
+        "remaining_engine_actions": runtime_checkpoint["remaining_engine_actions"],
+        "canonical_demo_path_step_advanced": runtime_checkpoint[
+            "canonical_demo_path_step_advanced"
+        ],
+    }
+
+
+def run_mvp_demo_cli_contract_snapshot_json() -> str:
+    """Return stable JSON for the compact MVP demo CLI contract snapshot."""
+    return json.dumps(
+        build_mvp_demo_cli_contract_snapshot_payload(),
+        sort_keys=True,
+        separators=(",", ":"),
+    )
+
+
 def build_mvp_demo_cli_smoke_route_payload(
     smoke_argvs: Sequence[Sequence[str] | str] = (),
 ) -> dict[str, object]:
@@ -1529,6 +1627,7 @@ def build_mvp_demo_command_surface_audit_payload() -> dict[str, object]:
         "resume_packet": build_mvp_demo_resume_packet_payload(),
         "runtime_checkpoint": build_mvp_demo_cli_runtime_checkpoint_payload(),
         "script_validation": build_mvp_demo_cli_script_validation_payload(),
+        "cli_contract_snapshot": build_mvp_demo_cli_contract_snapshot_payload(),
         "smoke_route": build_mvp_demo_cli_smoke_route_payload(),
         "smoke_route_lookup": build_mvp_demo_cli_smoke_route_lookup_payload(),
         "smoke_replay": build_mvp_demo_cli_smoke_replay_payload(),
