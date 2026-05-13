@@ -2386,6 +2386,23 @@ class UnifiedRetrievalTests(unittest.TestCase):
         self.assertFalse(hasattr(canonical_engine_retrieval, "PageIndexStrategy"))
         self.assertFalse(hasattr(canonical_engine_retrieval, "EmbeddingsStrategy"))
 
+    def test_canonical_search_service_exports_fts_facade(self) -> None:
+        canonical_engine_retrieval = importlib.import_module("exegesis_engine.retrieval")
+        canonical_search_service = importlib.import_module("exegesis_engine.retrieval.search_service")
+
+        self.assertEqual(canonical_search_service.__all__, canonical_engine_retrieval.__all__)
+        for export_name in canonical_engine_retrieval.__all__:
+            with self.subTest(export_name=export_name):
+                self.assertIs(
+                    getattr(canonical_search_service, export_name),
+                    getattr(canonical_engine_retrieval, export_name),
+                )
+        self.assertIs(canonical_search_service.build_retrieval_query, engine_retrieval.build_retrieval_query)
+        self.assertIs(canonical_search_service.retrieve_fts, engine_retrieval.retrieve_fts)
+        self.assertIs(canonical_search_service.retrieve_auto_payload, engine_retrieval.retrieve_auto_payload)
+        self.assertFalse(hasattr(canonical_search_service, "PageIndexStrategy"))
+        self.assertFalse(hasattr(canonical_search_service, "EmbeddingsStrategy"))
+
     def test_retrieval_query_constructor_is_shared_by_both_facades(self) -> None:
         constraints = {
             "max_results": 7,
