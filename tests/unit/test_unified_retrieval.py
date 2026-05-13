@@ -698,6 +698,22 @@ class UnifiedRetrievalTests(unittest.TestCase):
             result.hits[0].as_dict()["basket_item_id"] if result.hits else None,
         )
         self.assertEqual(
+            payload["excerpt_hits"][0]["basket_item_id"],
+            payload["retrieval_summary"]["primary_basket_item_id"],
+        )
+        self.assertEqual(
+            payload["excerpt_hits"][0]["basket_item_ids"],
+            [payload["retrieval_summary"]["primary_basket_item_id"]],
+        )
+        self.assertEqual(
+            payload["excerpt_hits"][0]["provenance"]["basket_item_id"],
+            payload["retrieval_summary"]["primary_basket_item_id"],
+        )
+        self.assertEqual(
+            payload["excerpt_hits"][0]["provenance"]["basket_item_ids"],
+            [payload["retrieval_summary"]["primary_basket_item_id"]],
+        )
+        self.assertEqual(
             payload["retrieval_summary"]["top_basket_item_ids"],
             [item.provenance["top_basket_item_id"] for item in result.doc_hits],
         )
@@ -739,8 +755,28 @@ class UnifiedRetrievalTests(unittest.TestCase):
             payload["excerpt_hits"][0]["basket_item_fingerprint"],
         )
         self.assertEqual(
+            payload["excerpt_hits"][0]["basket_item_fingerprints"],
+            [payload["excerpt_hits"][0]["basket_item_fingerprint"]],
+        )
+        self.assertEqual(
+            payload["excerpt_hits"][0]["provenance"]["basket_item_fingerprints"],
+            [payload["excerpt_hits"][0]["basket_item_fingerprint"]],
+        )
+        self.assertEqual(
             payload["retrieval_excerpt_bundle"]["excerpt_hits"][0]["basket_item_fingerprint"],
             payload["excerpt_hits"][0]["basket_item_fingerprint"],
+        )
+        self.assertEqual(
+            payload["retrieval_excerpt_bundle"]["excerpt_hits"][0]["provenance"]["basket_item_id"],
+            payload["excerpt_hits"][0]["basket_item_id"],
+        )
+        self.assertEqual(
+            payload["retrieval_excerpt_bundle"]["excerpt_hits"][0]["basket_item_ids"],
+            payload["excerpt_hits"][0]["basket_item_ids"],
+        )
+        self.assertEqual(
+            payload["retrieval_excerpt_bundle"]["excerpt_hits"][0]["basket_item_fingerprints"],
+            payload["excerpt_hits"][0]["basket_item_fingerprints"],
         )
         evidence_for_fingerprint = dict(payload["retrieval_evidence"])
         retrieval_evidence_fingerprint = evidence_for_fingerprint.pop("retrieval_evidence_fingerprint")

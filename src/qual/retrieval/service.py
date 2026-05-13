@@ -236,6 +236,11 @@ class RetrievalHit:
         )
         if basket_item_id is not None:
             payload["basket_item_id"] = basket_item_id
+            payload["basket_item_ids"] = [basket_item_id]
+            provenance = payload.get("provenance")
+            if isinstance(provenance, dict):
+                provenance["basket_item_id"] = basket_item_id
+                provenance["basket_item_ids"] = [basket_item_id]
         query_fingerprint = self.provenance.get("query_fingerprint")
         if isinstance(query_fingerprint, str) and query_fingerprint:
             payload["query_fingerprint"] = query_fingerprint
@@ -707,10 +712,19 @@ class RetrievalResult:
             if hit.excerpt_id is not None:
                 basket_item = basket_items_by_excerpt_id.get(hit.excerpt_id)
                 if basket_item is not None and isinstance(basket_item.get("basket_item_fingerprint"), str):
+                    basket_item_id = basket_item.get("basket_item_id")
+                    if isinstance(basket_item_id, str) and basket_item_id:
+                        snapshot["basket_item_id"] = basket_item_id
+                        snapshot["basket_item_ids"] = [basket_item_id]
                     snapshot["basket_item_fingerprint"] = basket_item["basket_item_fingerprint"]
+                    snapshot["basket_item_fingerprints"] = [basket_item["basket_item_fingerprint"]]
                     provenance = snapshot.get("provenance")
                     if isinstance(provenance, dict):
+                        if isinstance(basket_item_id, str) and basket_item_id:
+                            provenance["basket_item_id"] = basket_item_id
+                            provenance["basket_item_ids"] = [basket_item_id]
                         provenance["basket_item_fingerprint"] = basket_item["basket_item_fingerprint"]
+                        provenance["basket_item_fingerprints"] = [basket_item["basket_item_fingerprint"]]
             snapshots.append(snapshot)
         return snapshots
 
