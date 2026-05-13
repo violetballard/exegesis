@@ -792,6 +792,8 @@ __all__ = [
     "canonical_command_require_readiness_checkpoint",
     "canonical_command_demo_loop_contract",
     "canonical_command_demo_loop_summary",
+    "canonical_command_demo_loop_command_line_lookup_table",
+    "canonical_command_demo_loop_action_lookup_table",
     "canonical_command_demo_loop_payload",
     "canonical_command_demo_loop_json",
     "canonical_command_require_demo_loop_ready",
@@ -2923,6 +2925,26 @@ def canonical_command_demo_loop_summary() -> tuple[
     )
 
 
+def canonical_command_demo_loop_command_line_lookup_table() -> tuple[tuple[str, str], ...]:
+    """Return demo-path steps mapped to their stable smoke command lines."""
+
+    contract = canonical_command_demo_loop_contract()
+    return tuple(
+        (step, line)
+        for step, line in zip(contract.demo_path_steps, contract.command_lines, strict=True)
+    )
+
+
+def canonical_command_demo_loop_action_lookup_table() -> tuple[tuple[str, tuple[str, ...]], ...]:
+    """Return demo-path steps mapped to the exact engine actions they exercise."""
+
+    contract = canonical_command_demo_loop_contract()
+    return tuple(
+        (step.demo_path_step, step.engine_actions)
+        for step in contract.execution_plan.steps
+    )
+
+
 def canonical_command_demo_loop_payload() -> dict[str, object]:
     contract = canonical_command_demo_loop_contract()
     return {
@@ -2930,9 +2952,11 @@ def canonical_command_demo_loop_payload() -> dict[str, object]:
         "issues": contract.issues,
         "demo_path_steps": contract.demo_path_steps,
         "command_lines": contract.command_lines,
+        "command_line_lookup_table": canonical_command_demo_loop_command_line_lookup_table(),
         "smoke_argvs": contract.smoke_argvs,
         "exact_action_argvs": contract.exact_action_argvs,
         "engine_actions": contract.engine_actions,
+        "action_lookup_table": canonical_command_demo_loop_action_lookup_table(),
         "readiness_checkpoint": canonical_command_readiness_checkpoint_payload(),
         "execution_plan": canonical_command_execution_plan_payload(),
         "retrieval_context": canonical_command_retrieval_context_payload(),
