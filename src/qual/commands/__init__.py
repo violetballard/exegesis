@@ -6,6 +6,7 @@ import json
 from dataclasses import asdict
 
 from src.qual.commands.catalog import *  # noqa: F401,F403
+from src.qual.commands.catalog import command_demo_readiness_validate_script
 from src.qual.commands.canonical import *  # noqa: F401,F403
 from src.qual.commands.canonical import (
     canonical_command_command_surface_payload,
@@ -80,6 +81,7 @@ def build_mvp_demo_command_surface_payload() -> dict[str, object]:
         "patch_review_readiness_smoke": build_patch_review_readiness_smoke_payload(),
         "persist_continue": canonical_command_persist_continue_payload(),
         "demo_path_commands": build_mvp_demo_path_command_payload(demo_loop),
+        "smoke_gate": build_mvp_demo_smoke_gate_payload(demo_loop),
         "readiness_snapshot": canonical_command_readiness_snapshot_payload(()),
         "next_command": canonical_command_readiness_next_status_payload(),
         "smoke_contract": smoke_contract,
@@ -132,6 +134,35 @@ def run_mvp_demo_path_command_json() -> str:
     )
 
 
+def build_mvp_demo_smoke_gate_payload(
+    demo_loop: dict[str, object] | None = None,
+) -> dict[str, object]:
+    """Return the smoke-test gate for the exact MVP demo command sequence."""
+    loop = demo_loop or canonical_command_demo_loop_payload()
+    expected_command_lines = tuple(loop["command_lines"])
+    validation = command_demo_readiness_validate_script(tuple(loop["smoke_argvs"]))
+    return {
+        "is_complete": validation.is_complete,
+        "command_lines_match": validation.command_lines == expected_command_lines,
+        "command_lines": validation.command_lines,
+        "expected_command_lines": expected_command_lines,
+        "covered_flow_steps": validation.covered_flow_steps,
+        "missing_flow_steps": validation.missing_flow_steps,
+        "covered_engine_actions": validation.covered_engine_actions,
+        "missing_engine_actions": validation.missing_engine_actions,
+        "invalid_argv": validation.invalid_argv,
+    }
+
+
+def run_mvp_demo_smoke_gate_json() -> str:
+    """Return stable JSON for the exact MVP demo command smoke gate."""
+    return json.dumps(
+        build_mvp_demo_smoke_gate_payload(),
+        sort_keys=True,
+        separators=(",", ":"),
+    )
+
+
 def build_patch_review_readiness_smoke_payload() -> dict[str, object]:
     """Return changed/no-change patch-review readiness payloads for smoke checks."""
     changed_payload = DiffPreviewInput(
@@ -169,6 +200,7 @@ def build_mvp_demo_command_surface_audit_payload() -> dict[str, object]:
         "command_readiness_audit": canonical_command_readiness_command_audit_payload(),
         "exact_action_routes": canonical_command_exact_action_route_payload(),
         "demo_path_commands": build_mvp_demo_path_command_payload(),
+        "smoke_gate": build_mvp_demo_smoke_gate_payload(),
         "patch_review_readiness_smoke": build_patch_review_readiness_smoke_payload(),
     }
 
