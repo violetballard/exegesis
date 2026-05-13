@@ -1636,6 +1636,12 @@ _CLI_ENTRYPOINTS: tuple[str, ...] = _CANONICAL_CLI_ENTRYPOINTS
 _COMMAND_CLI_ENTRYPOINT_COMPATIBILITY_TOKENS: tuple[tuple[str, str], ...] = (
     ("retrieve", "context-basket"),
     ("search", "context-basket"),
+    ("revise", "diff-preview"),
+    ("revise-selection", "diff-preview"),
+    ("apply", "diff-preview"),
+    ("apply-patch", "diff-preview"),
+    ("reject", "diff-preview"),
+    ("reject-patch", "diff-preview"),
     ("save", "terminal"),
     ("persist", "terminal"),
     ("persist-and-continue", "terminal"),
