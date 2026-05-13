@@ -8,10 +8,14 @@ from dataclasses import asdict
 from src.qual.commands.catalog import *  # noqa: F401,F403
 from src.qual.commands.canonical import *  # noqa: F401,F403
 from src.qual.commands.canonical import (
+    canonical_command_command_surface_payload,
     canonical_command_demo_loop_payload,
     canonical_command_demo_loop_smoke_payload,
+    canonical_command_exact_action_route_payload,
     canonical_command_execution_plan_payload,
+    canonical_command_handler_trust_gate_payload,
     canonical_command_persist_continue_payload,
+    canonical_command_readiness_command_audit_payload,
     canonical_command_readiness_cli_smoke_lines,
     canonical_command_retrieval_context_payload,
 )
@@ -80,6 +84,26 @@ def run_mvp_demo_command_surface_json() -> str:
     """Return the package-level MVP demo command contract as stable JSON."""
     return json.dumps(
         build_mvp_demo_command_surface_payload(),
+        sort_keys=True,
+        separators=(",", ":"),
+    )
+
+
+def build_mvp_demo_command_surface_audit_payload() -> dict[str, object]:
+    """Return a deterministic audit bundle for command-surface handoff checks."""
+    return {
+        "surface": build_mvp_demo_command_surface_payload(),
+        "command_surface": canonical_command_command_surface_payload(),
+        "handler_trust_gate": canonical_command_handler_trust_gate_payload(),
+        "command_readiness_audit": canonical_command_readiness_command_audit_payload(),
+        "exact_action_routes": canonical_command_exact_action_route_payload(),
+    }
+
+
+def run_mvp_demo_command_surface_audit_json() -> str:
+    """Return the MVP demo command-surface audit bundle as stable JSON."""
+    return json.dumps(
+        build_mvp_demo_command_surface_audit_payload(),
         sort_keys=True,
         separators=(",", ":"),
     )
