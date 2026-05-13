@@ -14453,6 +14453,15 @@ def _validate_command_demo_readiness_exact_action_contract(
             launcher_argv,
         ) != entry.engine_action:
             raise ValueError(f"Command demo exact action argv does not round trip: {entry.engine_action}")
+        cli_validation = command_demo_readiness_validate_cli_argv(
+            entry.command_argv,
+            specs,
+            launcher_argv,
+        )
+        if not cli_validation.is_cli_entrypoint:
+            raise ValueError(f"Command demo exact action is not a CLI entrypoint: {entry.engine_action}")
+        if cli_validation.exact_engine_action != entry.engine_action:
+            raise ValueError(f"Command demo exact action CLI route is inconsistent: {entry.engine_action}")
 
 
 def command_demo_readiness_exact_action_summary(
