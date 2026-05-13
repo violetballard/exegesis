@@ -23,7 +23,10 @@ from src.qual.commands.canonical import (
     canonical_command_persist_continue_payload,
     canonical_command_readiness_command_audit_payload,
     canonical_command_readiness_cli_smoke_lines,
+    canonical_command_readiness_handoff_command_progress_payload,
+    canonical_command_readiness_handoff_next_action_payload,
     canonical_command_readiness_next_status_payload,
+    canonical_command_readiness_remaining_action_payload,
     canonical_command_readiness_snapshot_payload,
     canonical_command_retrieval_context_payload,
 )
@@ -124,6 +127,9 @@ def build_mvp_demo_command_surface_payload(
         "handler_trusted_demo_path": handler_trusted_demo_path,
         "smoke_gate": smoke_gate,
         "readiness_snapshot": canonical_command_readiness_snapshot_payload(smoke_argvs),
+        "readiness_checkpoint": build_mvp_demo_readiness_checkpoint_payload(
+            smoke_argvs
+        ),
         "next_command": canonical_command_readiness_next_status_payload(smoke_argvs),
         "smoke_contract": smoke_contract,
         "smoke_command_lines": canonical_command_readiness_cli_smoke_lines(),
@@ -303,6 +309,33 @@ def run_mvp_demo_path_command_json() -> str:
     )
 
 
+def build_mvp_demo_readiness_checkpoint_payload(
+    smoke_argvs: Sequence[Sequence[str] | str] = (),
+) -> dict[str, object]:
+    """Return deterministic progress data for resuming the MVP demo command loop."""
+
+    progress = canonical_command_readiness_handoff_command_progress_payload(smoke_argvs)
+    next_action = canonical_command_readiness_handoff_next_action_payload(smoke_argvs)
+    remaining_actions = canonical_command_readiness_remaining_action_payload(smoke_argvs)
+    return {
+        "is_complete": bool(progress["is_complete"])
+        and bool(next_action["is_complete"])
+        and bool(remaining_actions["is_complete"]),
+        "progress": progress,
+        "next_action": next_action,
+        "remaining_actions": remaining_actions,
+    }
+
+
+def run_mvp_demo_readiness_checkpoint_json() -> str:
+    """Return stable JSON for the resumable MVP demo readiness checkpoint."""
+    return json.dumps(
+        build_mvp_demo_readiness_checkpoint_payload(),
+        sort_keys=True,
+        separators=(",", ":"),
+    )
+
+
 def build_mvp_demo_smoke_gate_payload(
     demo_loop: dict[str, object] | None = None,
 ) -> dict[str, object]:
@@ -463,6 +496,7 @@ def build_mvp_demo_command_surface_audit_payload() -> dict[str, object]:
         "demo_path_step_surface": command_mvp_demo_step_surface_payload(),
         "trusted_command_contract": build_mvp_demo_trusted_command_contract_payload(),
         "smoke_gate": build_mvp_demo_smoke_gate_payload(),
+        "readiness_checkpoint": build_mvp_demo_readiness_checkpoint_payload(),
         "patch_review_readiness_smoke": build_patch_review_readiness_smoke_payload(),
         "patch_review_action_resolution_smoke": build_patch_review_action_resolution_smoke_payload(),
     }
