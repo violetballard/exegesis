@@ -1391,6 +1391,7 @@ def canonical_command_handler_trust_gate_summary() -> tuple[
     bool,
     bool,
     tuple[str, ...],
+    tuple[str, ...],
     tuple[tuple[str, str], ...],
     tuple[str, ...],
     tuple[str, ...],

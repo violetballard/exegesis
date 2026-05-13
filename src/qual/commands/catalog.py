@@ -383,6 +383,7 @@ class CommandHandlerTrustGateContract:
     is_complete: bool
     readiness_gate_complete: bool
     trusted_demo_path_complete: bool
+    demo_path_steps: tuple[str, ...]
     command_lines: tuple[str, ...]
     engine_delegations: tuple[tuple[str, str], ...]
     missing_engine_actions: tuple[str, ...]
@@ -1784,8 +1785,8 @@ _COMMAND_HANDLER_DELEGATION_TARGET_PREFIXES: tuple[str, ...] = (
 )
 _COMMAND_HANDLER_ENGINE_DELEGATION_TARGETS: tuple[tuple[str, str], ...] = (
     ("bootstrap", "exegesis_engine.api.runtime_commands.run_bootstrap"),
-    ("diff-preview", "exegesis_engine.api.runtime_commands.run_diff_preview_command"),
     ("context-basket", "exegesis_engine.api.runtime_commands.run_context_basket_command"),
+    ("diff-preview", "exegesis_engine.api.runtime_commands.run_diff_preview_command"),
     ("terminal", "exegesis_engine.api.runtime_commands.run_terminal_command"),
 )
 COMMAND_SMOKE_CLI_LAUNCHER_ARGV: tuple[str, ...] = ("python", "-m", "src.main")
@@ -3848,6 +3849,7 @@ def command_handler_trust_gate_contract(
         is_complete=readiness_gate.is_complete and trusted_path.is_complete,
         readiness_gate_complete=readiness_gate.is_complete,
         trusted_demo_path_complete=trusted_path.is_complete,
+        demo_path_steps=tuple(entry.demo_path_step for entry in trusted_path.entries),
         command_lines=readiness_gate.command_lines,
         engine_delegations=tuple(
             (entry.name, entry.engine_delegated_to)
@@ -3876,6 +3878,11 @@ def _validate_command_handler_trust_gate_contract(
         raise ValueError("Command handler trust gate readiness status drifted")
     if contract.trusted_demo_path_complete != trusted_path.is_complete:
         raise ValueError("Command handler trust gate trusted path status drifted")
+    expected_demo_path_steps = tuple(entry.demo_path_step for entry in trusted_path.entries)
+    if contract.demo_path_steps != expected_demo_path_steps:
+        raise ValueError("Command handler trust gate demo path steps drifted")
+    if contract.demo_path_steps != command_demo_path_steps(specs):
+        raise ValueError("Command handler trust gate demo path order drifted")
     if contract.command_lines != readiness_gate.command_lines:
         raise ValueError("Command handler trust gate command lines drifted")
     expected_engine_delegations = tuple(
@@ -3905,6 +3912,7 @@ def command_handler_trust_gate_summary(
     bool,
     bool,
     tuple[str, ...],
+    tuple[str, ...],
     tuple[tuple[str, str], ...],
     tuple[str, ...],
     tuple[str, ...],
@@ -3914,6 +3922,7 @@ def command_handler_trust_gate_summary(
         contract.is_complete,
         contract.readiness_gate_complete,
         contract.trusted_demo_path_complete,
+        contract.demo_path_steps,
         contract.command_lines,
         contract.engine_delegations,
         contract.missing_engine_actions,
@@ -3930,6 +3939,7 @@ def command_handler_trust_gate_payload(
         "is_complete": contract.is_complete,
         "readiness_gate_complete": contract.readiness_gate_complete,
         "trusted_demo_path_complete": contract.trusted_demo_path_complete,
+        "demo_path_steps": contract.demo_path_steps,
         "command_lines": contract.command_lines,
         "engine_delegations": [
             {"command": command_name, "engine_delegated_to": delegated_to}

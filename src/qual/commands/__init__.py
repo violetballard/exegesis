@@ -509,18 +509,23 @@ def build_mvp_demo_smoke_gate_payload(
     validation = command_demo_readiness_validate_script(smoke_argvs)
     ordered_validation = command_demo_readiness_validate_ordered_script(smoke_argvs)
     handler_gate = canonical_command_handler_trust_gate_payload()
+    handler_demo_path_steps = tuple(handler_gate["demo_path_steps"])
     command_lines_match = validation.command_lines == expected_command_lines
+    demo_path_steps_match = handler_demo_path_steps == tuple(loop["demo_path_steps"])
     return {
         "is_complete": (
             validation.is_complete
             and ordered_validation.is_ordered
             and command_lines_match
+            and demo_path_steps_match
             and bool(handler_gate["is_complete"])
         ),
         "is_ordered": ordered_validation.is_ordered,
         "command_lines_match": command_lines_match,
+        "demo_path_steps_match": demo_path_steps_match,
         "command_lines": validation.command_lines,
         "expected_command_lines": expected_command_lines,
+        "handler_demo_path_steps": handler_demo_path_steps,
         "expected_flow_steps": ordered_validation.expected_flow_steps,
         "observed_flow_steps": ordered_validation.observed_flow_steps,
         "order_violations": ordered_validation.order_violations,
