@@ -4183,6 +4183,11 @@ class UnifiedRetrievalTests(unittest.TestCase):
         )
         self.assertEqual(direct_item["retrieval_policy"], result.diagnostics["retrieval_policy"])
         self.assertEqual(direct_item["doc_type"], "memo")
+        self.assertEqual(
+            direct_item["matched_terms"],
+            result.basket_promotion_items()[0]["matched_terms"],
+        )
+        self.assertEqual(direct_item["match_count"], result.basket_promotion_items()[0]["match_count"])
         self.assertEqual(direct_item["basket_item_id"], result.basket_promotion_items()[0]["basket_item_id"])
         self.assertEqual(direct_item["item_id"], result.basket_promotion_items()[0]["item_id"])
         self.assertEqual(
@@ -4292,6 +4297,11 @@ class UnifiedRetrievalTests(unittest.TestCase):
             rehydrated_item["excerpt_lookup_fingerprint"],
             result.basket_promotion_items()[0]["excerpt_lookup_fingerprint"],
         )
+        self.assertEqual(
+            rehydrated_item["matched_terms"],
+            result.basket_promotion_items()[0]["matched_terms"],
+        )
+        self.assertEqual(rehydrated_item["match_count"], result.basket_promotion_items()[0]["match_count"])
 
         sparse_bundle_payload = result.to_downstream_payload()
         sparse_bundle = sparse_bundle_payload["retrieval_basket_promotion_bundle"]

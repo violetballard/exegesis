@@ -658,6 +658,10 @@ def _basket_promotion_items_from_excerpt_hits(
                 ),
                 "rank": hit.get("rank", provenance.get("rank")),
                 "fts_rank": hit.get("fts_rank", provenance.get("fts_rank")),
+                "matched_terms": copy.deepcopy(
+                    hit.get("matched_terms", provenance.get("matched_terms"))
+                ),
+                "match_count": hit.get("match_count", provenance.get("match_count")),
                 "source_strategy": source_strategy,
                 "retrieval_source_strategy": source_strategy,
                 "retrieval_backend": _first_text_value(
