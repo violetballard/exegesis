@@ -1,0 +1,1 @@
+invalid_request_error: missing_required_parameter: text.format is required for this response shape

@@ -1,85 +1,55 @@
 # Product Vision
 
-This file is the non-negotiable product anchor for all lanes.
+This file is the non-negotiable product anchor for the staged Exegesis MVP migration.
 
-## Product Names
+## Product surfaces
 
-- `Exegesis Engine`: CLI-first agent runtime (this repository)
-- `Exegesis Console`: future Textual-based operator surface for Engine
-- `Exegesis Studio`: commercial writing/research workstation package (future separate project)
+- `Exegesis Engine`
+  - the engine/runtime and CLI compatibility surface in this repository
+- `Exegesis Textual Client`
+  - the primary MVP interface for real writing and dogfooding
+  - scaffolded now, not yet activated
+- `Exegesis Studio`
+  - future commercial workstation package built after the MVP client teaches us the durable workflow
 
-## End Goal
+## End goal
 
-Build a local-first workstation agent that helps users run repeatable thinking and drafting workflows with:
-- reliable state
-- retrieval-backed context (FTS-first for the current MVP)
-- auditable outputs
-- deterministic operator controls
+Build a writing environment, not a chatbot and not a dev console.
 
-This is not only a chat interface. It is an agent runtime + workflow system.
+The user should always understand:
+- Project = where I am
+- Document = what I am writing
+- Workflow = what the system is doing
+- Context Basket = what is in play
+- Inspector = what the selected thing means
 
-## Required Product Capabilities
+## Required capabilities
 
-1. Local-first state and identity
-- Project-scoped vault and context basket with safe recovery behavior.
-- Encrypted by default at rest for persisted local state and context artifacts.
+1. Writing-centered workflow
+- Opening a document, working in it, and continuing after plan/revise/apply loops is the trust surface.
 
 2. Retrieval-first context handling
-- Source documents are stored in vault/context.
-- Generation consumes retrieved chunks, not entire raw document piles.
-- SQLite FTS is the current MVP retrieval path.
-- PageIndex and embeddings are deferred until after the demo push.
+- Retrieval stays FTS-first for the current MVP.
+- Search results must be structured enough to promote into the basket and later into workflow cards.
 
-3. Auditable generation
-- Draft/diff outputs are traceable to retrieved sources.
-- Metrics/audit paths support repeatable analysis.
+3. Canonical engine contract
+- The future Textual client must be able to consume one clean engine-facing state/action surface.
+- CLI compatibility is required while Textual remains disabled.
 
-4. Operator-first control surface
-- CLI remains a first-class surface for development and reliability.
-- Engine emits structured outputs that can be consumed by CLI now and `Exegesis Console` next.
-- `Exegesis Console` is the intended first interactive operator client, but the engine contracts come first.
-- UI can evolve on top without changing core contracts.
-- Model routing is automatic by default; user-facing model selection is not the primary control path.
+4. Shared UI contract (`A2UI`)
+- Cards/actions/selection types must live in a client-agnostic shared layer.
+- Rendering adapters stay outside shared.
 
-5. Agent-to-UI protocol (`A2UI`)
-- Agent emits structured presentation artifacts (cards, sections, actions, metadata).
-- Artifacts must be consumable by CLI first, then `Exegesis Console`, then future Studio UI.
-- CLI remains able to render a text fallback of the same underlying artifacts.
+5. Keyboard-first client behavior
+- The Textual MVP must eventually support pane focus, command palette, basket promotion, patch apply/reject, and inspector-follow-selection from the keyboard.
 
-6. Expansion lanes
-- Architecture must support future quantitative analysis and coding workflows in addition to writing/research.
-- New domains should reuse shared agent/runtime contracts instead of bespoke pipelines.
-- Qualitative coding support is a required follow-on once the base writing engine is stable.
+6. Auditable state and workflow
+- Project/document/basket/session state must be persistent enough for real dogfooding.
+- Workflow actions must be explicit and traceable.
 
-7. Power-user provider control (gated)
-- Advanced users may bind role-specific models through OpenAI-compatible local endpoints.
-- Endpoint policy is localhost-only in confidential mode to avoid accidental remote provider drift.
-- Overrides must preserve routing invariants and audit provenance.
-- Advanced config editing should remain in engine/operator tooling, not Studio model-pickers.
-- Provider compatibility probing (`exegesis doctor`) is required so fallback modes are explicit to operators.
+## Near-term product truth
 
-## Current Capability Alignments
-
-- Current MVP emphasis is on Engine output contracts, FTS-backed retrieval, and A2UI cards/actions that can be rendered in CLI now and `Exegesis Console` next.
-- Dedicated web console work has been retired; the future interactive surface is `Exegesis Console`, built later on top of the same engine/A2UI contracts.
-
-## Product Packaging Strategy
-
-- Build and stabilize `Exegesis Engine` first as the base qualitative research/writing agent.
-- Use Engine outputs and contracts to drive UI generation and interaction patterns.
-- Create `Exegesis Studio` as a separate project once Engine contracts are stable enough for client consumption.
-
-## Non-Goals
-
-- No hidden cross-module coupling.
-- No silent output contract drift.
-- No lane work without roadmap/vision mapping.
-- No plaintext-by-default storage mode for persistent workstation data.
-
-## Handoff Alignment Rule
-
-Every review/integration handoff must include:
-- roadmap item(s) affected (`ROADMAP.md`)
-- vision capability affected (one of the required capabilities above)
-
-If a change cannot map to these, it should not be promoted.
+- The Textual client is the MVP target.
+- Textual is not yet incorporated as a dependency.
+- Current work remains engine-first so the future UI lanes can activate against a real contract rather than a speculative one.
+- The CLI remains the active operator surface until those UI lanes are enabled.
