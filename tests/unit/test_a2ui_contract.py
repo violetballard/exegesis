@@ -3,17 +3,17 @@ from __future__ import annotations
 import unittest
 from dataclasses import dataclass
 
-from src.qual.ui.a2ui import (
+from src.qual.shared.contracts.a2ui import (
     A2UICapabilities,
     A2UISessionStore,
     ActionRef,
-    build_unknown_card,
-    engine_prepare_card,
     execute_action_with_policy_gate,
-    render_terminal_card,
-    studio_materialize_card,
     validate_capabilities,
 )
+from src.qual.ui.a2ui import build_unknown_card
+from src.qual.ui.a2ui import engine_prepare_card
+from src.qual.ui.a2ui import render_terminal_card
+from src.qual.ui.a2ui import studio_materialize_card
 
 
 def _capabilities(
