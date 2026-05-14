@@ -72,6 +72,7 @@ BAD_LOCAL_MCP_CONTENT_RE = (
 FEATURE_LOG_KEEP_RECENT = 24
 FEATURE_LOG_MAX_TOTAL_BYTES = 12 * 1024 * 1024
 FEATURE_LOG_MIN_AGE_SECONDS = 1800
+MAX_INLINE_KICKOFF_CHARS = 6000
 
 
 def load_json(path: Path, default: Any) -> Any:
@@ -269,8 +270,21 @@ def runtime_launch_config(lane: str | None = None, *, provider: str = "auto") ->
     }
 
 
+def _bounded_kickoff_text(lane: str) -> str:
+    kickoff_path = KICKOFF_DIR / f"{lane}.md"
+    kickoff = kickoff_path.read_text()
+    if len(kickoff) <= MAX_INLINE_KICKOFF_CHARS:
+        return kickoff
+    head = kickoff[:MAX_INLINE_KICKOFF_CHARS]
+    return (
+        f"{head}\n\n"
+        "[KICKOFF PACKET TRUNCATED FOR CONTEXT SAFETY]\n"
+        f"The full packet is available at `{kickoff_path}`. Read only targeted sections from it if needed.\n"
+    )
+
+
 def build_prompt(lane: str, workdir: str) -> str:
-    kickoff = (KICKOFF_DIR / f"{lane}.md").read_text()
+    kickoff = _bounded_kickoff_text(lane)
     engine_priority = "\n".join(f"- {line}" for line in engine_priority_lines())
     return (
         f"You are the feature lane agent for {lane}.\n\n"
@@ -298,6 +312,8 @@ def build_prompt(lane: str, workdir: str) -> str:
         "- Keep source reads to the smallest relevant section, normally <=80 lines at a time and never more than 120 lines.\n"
         "- Prefer symbol/name searches over opening whole modules; inspect tests by exact test names or nearby assertions only.\n"
         "- Do not recursively search `.codex`, `.agents`, archives, or logs unless a named file is required.\n"
+        "- Do not run broad historical `git diff` commands across old implementation ranges; use current `git status`, focused `git show --stat`, and path-scoped diffs only.\n"
+        "- If a test failure prints a huge diff, rerun the single failing test with narrower assertions or inspect the expected/actual shape directly instead of expanding the full diff.\n"
         "- If any tool reports `Context size has been exceeded`, stop immediately, report that blocker in the lane log, and wait for a fresh launch instead of continuing.\n\n"
         "Use this kickoff packet as the operating brief:\n\n"
         f"{kickoff}\n\n"
