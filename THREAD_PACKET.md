@@ -24,6 +24,7 @@ Per-task canonical demo-path mapping:
 5. Bound `exegesis_engine.api.cli.parse_args()` to the catalog-owned CLI contract for top-level parser tokens, then added regression coverage that compares the actual argparse choices to `command_cli_contract().tokens` and parses every catalog-exposed CLI token. Canonical demo-path steps supported: `open project/document`, `retrieve relevant material and gather context into the basket`, `preview and apply or reject a patch`, and `persist and continue`.
 6. Fixed reviewer packet `fixer__feat-commands__20260514T020302Z` by adding explicit regression coverage that `command_cli_contract()` rejects token-level `diff` parser drift when the `diff-preview` canonical command remains unchanged. Canonical demo-path step supported: `preview and apply or reject a patch`; concrete blocker removed: silent loss or renaming of the CLI fallback token used to preview a patch while Textual remains disabled.
 7. Fixed reviewer packet `fixer__feat-commands__20260514T020454Z` by isolating scope-check migration tests from any caller-provided `QUAL_ROOT_DIR`, then reran the full required gate set at branch tip. Canonical demo-path step supported: `persist and continue`; concrete blocker removed: `make ci` now validates the lane worktree instead of an inherited external root during reviewer reruns.
+8. Fixed reviewer packet `fixer__feat-commands__20260514T020806Z` by rerunning the complete required gate set at branch tip and recording passing results for live reviewer re-review. Canonical demo-path step supported: `persist and continue`; concrete blocker removed: missing current branch-tip gate evidence after offline fallback could not approve integration.
 
 ## Files Changed For This Scope
 
@@ -64,6 +65,7 @@ Per-task canonical demo-path mapping:
 - `python -m pytest tests/unit/test_commands_catalog.py::CommandCatalogTests::test_command_cli_contract_rejects_diff_parser_token_drift -q`: passed; 1 passed, 2 subtests passed.
 - Fixer rerun for reviewer packet `fixer__feat-commands__20260514T020302Z`: `make scope-check` passed; `./quality-format.sh --check` passed; `./quality-lint.sh` passed; `./quality-test.sh` passed with 481 tests, 1 skipped; `./typecheck-test.sh` passed; `make ci` passed with 481 tests, 1 skipped.
 - Fixer rerun for reviewer packet `fixer__feat-commands__20260514T020454Z`: `make scope-check` passed; `./quality-format.sh --check` passed; `./quality-lint.sh` passed; `./quality-test.sh` passed with 481 tests, 1 skipped; `./typecheck-test.sh` passed; first `make ci` attempt exposed stale branch-tip scope evidence from the prior shared catalog-test commit, then branch tip advanced with scope-check env isolation and `make ci` passed with 481 tests, 1 skipped.
+- Fixer rerun for reviewer packet `fixer__feat-commands__20260514T020806Z`: `make scope-check` passed; `./quality-format.sh --check` passed; `./quality-lint.sh` passed; `./quality-test.sh` passed with 481 tests, 1 skipped; `./typecheck-test.sh` passed; `make ci` passed with 481 tests, 1 skipped. Branch advanced for live reviewer re-review because offline fallback cannot approve integration.
 
 ## Risks And Blockers
 
@@ -77,6 +79,8 @@ This lane makes the canonical demo-path steps `open project/document`, `retrieve
 Reviewer packet `fixer__feat-commands__20260514T020302Z` specifically advances `preview and apply or reject a patch`: `diff` remains an approved parser token for the `diff-preview` command, and runtime validation now has explicit regression coverage for removing or renaming that token. This removes the blocker where parser-token drift could silently break the patch-preview CLI fallback even though the canonical command name stayed stable.
 
 Reviewer packet `fixer__feat-commands__20260514T020454Z` specifically advances `persist and continue`: scope-check migration coverage now runs against its temporary lane worktree instead of an inherited `QUAL_ROOT_DIR`, so CI gate evidence reflects the actual branch tip submitted for live reviewer re-review.
+
+Reviewer packet `fixer__feat-commands__20260514T020806Z` specifically advances `persist and continue`: current branch-tip evidence now includes a fresh complete required gate run and a new commit for live reviewer re-review, replacing the rejected offline fallback approval path.
 
 This supports the Milestone 3 CLI demo loop while Textual remains disabled:
 
