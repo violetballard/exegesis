@@ -192,4 +192,49 @@ Current MVP work should target:
 - FTS-first retrieval
 - A2UI contracts with CLI fallback
 
-Do not start `feat-console` until it is explicitly enabled.
+Current execution order for active engine lanes:
+1. `feat-context-storage`
+   - persistence floor for document, basket, vault, and session state
+2. `feat-commands`
+   - stable CLI control surface for the engine-first MVP loop
+3. `feat-retrieval-fts`
+   - authoritative FTS-first retrieval feeding the engine loop
+4. `feat-engine-runs`
+   - close the plan/revise/patch/apply loop in the engine
+5. `feat-a2ui-contract`
+   - support the engine loop with stable shared contracts, not UI ambition
+
+Definition of progress right now:
+- We are closing the engine-side Milestone 3 loop before activating Textual lanes.
+- Work should bias toward proving one engine-side path for:
+  - open document
+  - retrieve relevant material
+  - gather context
+  - plan or revise
+  - apply or reject a patch
+  - save and continue
+
+Canonical demo path right now:
+- open project/document
+- retrieve relevant material
+- promote or gather context into the basket
+- produce a plan or revision
+- preview and apply or reject a patch
+- persist the updated document/session state
+- continue working without losing context
+
+Operational narrowing rules:
+- Every active lane task must name which step of the canonical demo path it advances.
+- If a change does not directly unblock or strengthen that path, it is second-order work and should wait.
+- Prefer one believable end-to-end path over broad partial improvements across multiple alternate flows.
+- Contracts, docs, and infra changes count only when they remove a concrete blocker on the canonical demo path.
+- Do not expand lane scope to speculative product surfaces, alternate workflows, or UI ambition outside the current demo path.
+- Before handoff, state explicitly which canonical demo-path step the work now makes more real.
+
+Do not spend milestone time on:
+- Textual implementation work
+- UI polish
+- full A2UI ambition beyond what the engine loop needs
+- speculative sync, collaboration, or workstation features
+
+Do not start `feat-console-shell` or `feat-console-workflow` until they are explicitly enabled.
