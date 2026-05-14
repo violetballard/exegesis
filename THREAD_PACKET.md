@@ -36,12 +36,12 @@ The isolated runtime change reviewed at `b929fe6c7a1159c7882acedd247aca31a93cd12
 
 Required gates for this corrected merge candidate:
 
-- `make scope-check`: pending rerun.
-- `./quality-format.sh --check`: pending rerun.
-- `./quality-lint.sh`: pending rerun.
-- `./quality-test.sh`: pending rerun.
-- `./typecheck-test.sh`: pending rerun.
-- `make ci`: pending rerun.
+- `make scope-check`: passed.
+- `./quality-format.sh --check`: passed.
+- `./quality-lint.sh`: passed.
+- `./quality-test.sh`: passed; 511 tests passed.
+- `./typecheck-test.sh`: passed.
+- `make ci`: passed; 511 tests passed inside CI.
 
 ## Risks / Blockers
 
