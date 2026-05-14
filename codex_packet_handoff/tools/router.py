@@ -74,6 +74,10 @@ SUCCESSFUL_INTEGRATOR_SUMMARY_RE = re.compile(
     r"(?:\*\*)?Integration Result(?:\*\*)?.*Post-merge checks all passed:.*Blockers:\s*none",
     re.IGNORECASE | re.DOTALL,
 )
+BLOCKED_INTEGRATOR_OUTPUT_RE = re.compile(
+    r"blocked before merge|no integration was performed|no integration performed",
+    re.IGNORECASE,
+)
 RETRY_LIMIT_WRAPPER_RE = re.compile(
     r"exceeded retry limit|retry limit reached",
     re.IGNORECASE,
@@ -504,15 +508,20 @@ def _local_cli_output_rejection_reason(text: str, *, require_verdict: bool) -> O
     t = (text or "").strip()
     if not t:
         return "empty output"
-    if INVALID_REVIEWER_RE.search(t):
+    reviewable = _extract_final_verdict_packet(t) if require_verdict else t
+    has_final_verdict = _extract_reviewer_verdict(reviewable) is not None
+    if INVALID_REVIEWER_RE.search(t) and not has_final_verdict:
         return "stale or missing thread reference"
+    if not require_verdict and BLOCKED_INTEGRATOR_OUTPUT_RE.search(t):
+        return "integrator reported blocked/no integration performed"
     if not require_verdict and SUCCESSFUL_INTEGRATOR_SUMMARY_RE.search(t):
         return None
-    lower = t.lower()
+    marker_text = reviewable if require_verdict and has_final_verdict else t
+    lower = marker_text.lower()
     for marker in BAD_LOCAL_CLI_CONTENT_MARKERS:
         if marker in lower:
             return f"bad local cli marker: {marker}"
-    if require_verdict and _extract_reviewer_verdict(t) is None:
+    if require_verdict and not has_final_verdict:
         return "missing reviewer verdict"
     return None
 
@@ -1928,6 +1937,94 @@ def archive_reviewer_notes(lane_dir: Path, keep: Optional[Path] = None) -> int:
         moved += 1
     return moved
 
+
+def _feature_packet_for_job(lane_dir: Path, packet_name: str) -> Optional[Path]:
+    for rel in ("inbox/feature", "archive"):
+        pkt = lane_dir / rel / packet_name
+        if pkt.exists():
+            return pkt
+    return None
+
+
+def _archive_consumed_feature_packet(lane_dir: Path, pkt_path: Path) -> None:
+    """Archive an inbox feature packet once a detached reviewer result is materialized."""
+
+    try:
+        if pkt_path.exists() and pkt_path.parent == lane_dir / "inbox" / "feature":
+            archive(pkt_path, lane_dir)
+    except Exception:
+        # Best-effort cleanup only; review materialization should still win.
+        pass
+
+
+def _harvest_completed_reviewer_jobs(
+    cfg: RouterConfig,
+    state: Dict[str, Any],
+    *,
+    local: bool,
+) -> Tuple[int, Dict[str, Any]]:
+    """Materialize completed detached reviewer jobs even after packet archival.
+
+    Detached reviewer launch can archive or otherwise move the feature packet
+    before the next router tick gets to poll the result. Without this harvest
+    pass, a completed job can sit forever in router state and an older reviewer
+    note can keep queue truth pinned to the wrong SHA.
+    """
+
+    jobs_key = "local_reviewer_jobs" if local else "cloud_reviewer_jobs"
+    mode_label = "local" if local else "cloud"
+    jobs = _local_job_map(state, jobs_key)
+    harvested = 0
+    for lane, job in list(jobs.items()):
+        if lane not in cfg.lanes or not isinstance(job, dict):
+            continue
+        polled = _poll_detached_local_cli_job(job)
+        if not polled["done"]:
+            continue
+
+        packet_name = str(job.get("packet_name") or "")
+        lane_dir = ensure_lane_dirs(lane)
+        pkt_path = _feature_packet_for_job(lane_dir, packet_name)
+        if pkt_path is None:
+            jobs.pop(lane, None)
+            print(f"[router] dropped completed {mode_label} reviewer job for {lane}: packet {packet_name or '-'} missing")
+            continue
+
+        text = str(polled.get("output") or "").strip()
+        rejection = _local_cli_output_rejection_reason(text, require_verdict=True)
+        if polled.get("status") != "ok" or rejection:
+            jobs.pop(lane, None)
+            reason = str(polled.get("error") or rejection or f"{mode_label} reviewer job failed")
+            print(f"[router] dropped completed {mode_label} reviewer job for {lane}: {reason}")
+            continue
+
+        reviewer_text = _extract_final_verdict_packet(text) or text
+        if not reviewer_text.strip():
+            reviewer_text = (
+                "Verdict: `CHANGES_REQUESTED`\n\n"
+                "Reviewer output was empty; router inserted recovery packet.\n"
+                "Required fixes: derive issues from the feature packet and resubmit.\n"
+            )
+        verdict = parse_verdict(reviewer_text)
+        if verdict == "APPROVED":
+            archive_reviewer_notes(lane_dir)
+            outp = lane_dir / "outbox/integrator" / packet_name.replace("F__", "R__APPROVED__")
+            write_text(outp, reviewer_text)
+        else:
+            outp = lane_dir / "inbox/reviewer" / packet_name.replace("F__", "R__CHANGES__")
+            archive_reviewer_notes(lane_dir)
+            clear_stale_integrator_handoffs(lane_dir, packet_name)
+            write_text(outp, reviewer_text)
+
+        _archive_consumed_feature_packet(lane_dir, pkt_path)
+        jobs.pop(lane, None)
+        harvested += 1
+        print(f"[router] harvested completed {mode_label} reviewer job for {lane}: {packet_name}")
+
+    state[jobs_key] = jobs
+    return harvested, state
+
+
 def _materialize_reviewer_packet(lane_dir: Path, reviewer_note: Optional[Path], fallback_feature_pkt: Optional[str] = None) -> str:
     note_text = ""
     if reviewer_note is not None:
@@ -2031,6 +2128,13 @@ def process_once(
     reviewer_quota_retry_ts = state.get("reviewer_quota_retry_ts") or {}
     global_quota_retry_ts = float(state.get("reviewer_quota_global_retry_ts", 0) or 0)
     processed = 0
+    for local in (False, True):
+        harvested, state = _harvest_completed_reviewer_jobs(cfg, state, local=local)
+        processed += harvested
+        if processed >= cfg.max_packets_per_run:
+            state["reviewer_quota_retry_ts"] = reviewer_quota_retry_ts
+            state["reviewer_quota_global_retry_ts"] = global_quota_retry_ts
+            return processed, state, reviewer_thread_ids, integrator_tid
     for lane in cfg.lanes.keys():
         lane_dir = ensure_lane_dirs(lane)
         for pkt_path in list_new(lane_dir, cursor.get(lane)):
@@ -2404,6 +2508,19 @@ def process_integrator_backlog(
         approved_text = pkt.read_text()
         archive_hint = list((lane_dir / "archive").glob(f"INTEGRATOR__*{_packet_sha(pkt.name)}*.md"))
         if archive_hint:
+            archive_hint.sort(key=lambda p: p.stat().st_mtime)
+            hint_text = archive_hint[-1].read_text(errors="ignore")
+            rejection = _local_cli_output_rejection_reason(hint_text, require_verdict=False)
+            if rejection:
+                _write_integrator_failure_handback(
+                    lane_dir,
+                    _lane,
+                    pkt,
+                    reason=rejection,
+                    output=hint_text,
+                )
+                processed += 1
+                continue
             archive(pkt, lane_dir)
             processed += 1
             continue

@@ -333,6 +333,83 @@ class LocalFallbackDetachedJobTests(unittest.TestCase):
         self.assertFalse(spawn_mock.call_args.kwargs["local"])
         archive_mock.assert_not_called()
 
+    def test_completed_cloud_reviewer_job_is_harvested_after_packet_archival(self) -> None:
+        with tempfile.TemporaryDirectory() as tmp:
+            lane_dir = Path(tmp)
+            packet_name = "F__codex-feat-commands__988c80eb__20260514T022109Z.md"
+            archived = lane_dir / "archive" / packet_name
+            archived.parent.mkdir(parents=True, exist_ok=True)
+            archived.write_text("Feature packet body\n", encoding="utf-8")
+            old_note = lane_dir / "inbox" / "reviewer" / "R__CHANGES__codex-feat-commands__0d3554f2__20260514T022223Z.md"
+            old_note.parent.mkdir(parents=True, exist_ok=True)
+            old_note.write_text("Verdict: `CHANGES_REQUESTED`\nold note\n", encoding="utf-8")
+            result_path = lane_dir / "reviewer.result.json"
+            output_path = lane_dir / "reviewer.out.log"
+            result_path.write_text('{"status": "ok", "rc": 0, "error": ""}', encoding="utf-8")
+            output_path.write_text(
+                "invalid_request_error: old harness marker before final answer\n\n"
+                "Verdict: `CHANGES_REQUESTED`\n\nnew note\n",
+                encoding="utf-8",
+            )
+
+            cfg = SimpleNamespace(lanes={"feat-commands": {}}, max_packets_per_run=5)
+            state = {
+                "cloud_reviewer_jobs": {
+                    "feat-commands": {
+                        "packet_name": packet_name,
+                        "pid": 999999,
+                        "result_path": str(result_path),
+                        "output_path": str(output_path),
+                    }
+                }
+            }
+
+            with patch.object(router, "ensure_lane_dirs", return_value=lane_dir):
+                harvested, new_state = router._harvest_completed_reviewer_jobs(cfg, state, local=False)
+
+            new_note = lane_dir / "inbox" / "reviewer" / packet_name.replace("F__", "R__CHANGES__")
+            compacted = lane_dir / "archive" / "reviewer_compacted" / old_note.name
+            self.assertEqual(harvested, 1)
+            self.assertTrue(new_note.exists())
+            self.assertIn("new note", new_note.read_text(encoding="utf-8"))
+            self.assertTrue(compacted.exists())
+            self.assertFalse(new_state["cloud_reviewer_jobs"])
+
+    def test_completed_cloud_reviewer_harvest_archives_live_feature_packet(self) -> None:
+        with tempfile.TemporaryDirectory() as tmp:
+            lane_dir = Path(tmp)
+            packet_name = "F__codex-feat-commands__988c80eb__20260514T022109Z.md"
+            pkt = lane_dir / "inbox" / "feature" / packet_name
+            pkt.parent.mkdir(parents=True, exist_ok=True)
+            pkt.write_text("Feature packet body\n", encoding="utf-8")
+            result_path = lane_dir / "reviewer.result.json"
+            output_path = lane_dir / "reviewer.out.log"
+            result_path.write_text('{"status": "ok", "rc": 0, "error": ""}', encoding="utf-8")
+            output_path.write_text("Verdict: `APPROVED`\n\nNo findings.\n", encoding="utf-8")
+
+            cfg = SimpleNamespace(lanes={"feat-commands": {}}, max_packets_per_run=5)
+            state = {
+                "cloud_reviewer_jobs": {
+                    "feat-commands": {
+                        "packet_name": packet_name,
+                        "pid": 999999,
+                        "result_path": str(result_path),
+                        "output_path": str(output_path),
+                    }
+                }
+            }
+
+            with patch.object(router, "ensure_lane_dirs", return_value=lane_dir):
+                harvested, new_state = router._harvest_completed_reviewer_jobs(cfg, state, local=False)
+
+            approved = lane_dir / "outbox" / "integrator" / packet_name.replace("F__", "R__APPROVED__")
+            archived = lane_dir / "archive" / packet_name
+            self.assertEqual(harvested, 1)
+            self.assertTrue(approved.exists())
+            self.assertTrue(archived.exists())
+            self.assertFalse(pkt.exists())
+            self.assertFalse(new_state["cloud_reviewer_jobs"])
+
     def test_process_once_defers_local_reviewer_when_global_lms_cap_reached(self) -> None:
         with tempfile.TemporaryDirectory() as tmp:
             root = Path(tmp)
@@ -705,6 +782,67 @@ class LocalFallbackDetachedJobTests(unittest.TestCase):
             self.assertIn("Verdict: `CHANGES_REQUESTED`", note)
             self.assertIn("failed during integrator merge/check execution", note)
             self.assertIn("test_scope_check_blocks_engine_work_on_console_shell_lane", note)
+
+    def test_process_integrator_backlog_hands_blocked_ok_output_back_to_fixer(self) -> None:
+        with tempfile.TemporaryDirectory() as tmp:
+            lane_dir = Path(tmp)
+            pkt = lane_dir / "outbox" / "integrator" / "R__APPROVED__codex-feat-commands__abc1234__20260328T000000Z.md"
+            pkt.parent.mkdir(parents=True, exist_ok=True)
+            pkt.write_text("Verdict: `APPROVED`\n", encoding="utf-8")
+
+            cfg = SimpleNamespace(
+                lanes={"feat-commands": {}},
+                max_packets_per_run=1,
+                integrator_timeout=30,
+                prefer_cli_integrator=True,
+            )
+            job_key = f"feat-commands:{pkt.name}"
+            state = {
+                "runtime_mode": "local_fallback",
+                "local_integrator_jobs": {
+                    job_key: {
+                        "packet_name": pkt.name,
+                        "pid": 0,
+                        "result_path": str(lane_dir / "integrator.result.json"),
+                        "output_path": str(lane_dir / "integrator.out.log"),
+                    }
+                },
+                "local_integrator_retry_ts": {},
+            }
+
+            with (
+                patch.object(router, "ensure_lane_dirs", return_value=lane_dir),
+                patch.object(router, "_maybe_restore_cloud", side_effect=lambda cfg, state, cwd: state),
+                patch.object(router, "_runtime_mode", return_value="local_fallback"),
+                patch.object(
+                    router,
+                    "_poll_detached_local_cli_job",
+                    return_value={
+                        "done": True,
+                        "status": "ok",
+                        "rc": 0,
+                        "error": "",
+                        "output": "Blocked before merge. No integration was performed.\n",
+                    },
+                ),
+            ):
+                processed, new_state, _integrator_tid = router.process_integrator_backlog(
+                    SimpleNamespace(),
+                    cfg,
+                    state,
+                    "/repo",
+                    "",
+                )
+
+            reviewer_notes = list((lane_dir / "inbox" / "reviewer").glob("R__CHANGES__codex-feat-commands__abc1234__*.md"))
+            failed_approvals = list((lane_dir / "archive" / "integrator_failed").glob(pkt.name))
+            self.assertEqual(processed, 0)
+            self.assertEqual(new_state["local_integrator_jobs"], {})
+            self.assertFalse(pkt.exists())
+            self.assertEqual(len(failed_approvals), 1)
+            self.assertEqual(len(reviewer_notes), 1)
+            note = reviewer_notes[0].read_text(encoding="utf-8")
+            self.assertIn("integrator reported blocked/no integration performed", note)
 
     def test_process_integrator_backlog_completes_detached_cloud_job_on_later_tick(self) -> None:
         with tempfile.TemporaryDirectory() as tmp:
