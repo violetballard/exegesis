@@ -26,10 +26,10 @@ No Textual implementation work, engine work, packet tooling, `.agents`, `.codex`
 
 Required-fix disposition:
 
-- Required fix 1: unsubmitted planner/tooling claims are removed from the submitted review scope.
-- Required fix 2: the intended review target is the single runtime commit `b929fe6c7a1159c7882acedd247aca31a93cd123`; the only review-target files are `src/qual/ui/a2ui.py` and `tests/unit/test_a2ui_contract.py`.
-- Required fix 3: shared/integrator-locked impact is `None` for the runtime review target; no approval basis is required for the two lane-owned files in scope.
-- Required fix 4: planner behavior is not intended scope for this packet and is not submitted for re-review.
+- Required fix 1: the submitted review scope is the single runtime commit `b929fe6c7a1159c7882acedd247aca31a93cd123`; the only review-target files are `src/qual/ui/a2ui.py` and `tests/unit/test_a2ui_contract.py`.
+- Required fix 2: unsupported planner and packet-planner claims are removed. `codex_packet_handoff/tools/planner.py` and `tests/unit/test_packet_planner.py` are not submitted for this runtime review.
+- Required fix 3: the canonical demo-path step advanced is explicitly stated below as `preview and apply or reject a patch`.
+- Required fix 4: required gate outcomes are reported in this packet after the corrected handoff is produced.
 
 ## Canonical Demo-Path Mapping
 
