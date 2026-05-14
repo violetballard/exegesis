@@ -1,0 +1,11 @@
+{
+  "host": "127.0.0.1",
+  "port": 8765,
+  "token_file": ".codex/remote_monitor/token",
+  "token_env": "QUAL_MONITOR_TOKEN",
+  "allowed_remote_cidrs": [
+    "100.64.0.0/10"
+  ],
+  "operator_label": "codex-remote",
+  "snapshot_ttl_seconds": 10
+}
