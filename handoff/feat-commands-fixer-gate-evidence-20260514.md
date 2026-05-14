@@ -1,7 +1,7 @@
 ## feat-commands Fixer Gate Evidence
 
-- Reviewer packet: `fixer__feat-commands__20260514T015619Z.prompt.txt`
-- Required fix 1: branch HEAD advanced so planner/router can re-emit the packet for live reviewer handling.
+- Reviewer packet: `fixer__feat-commands__20260514T015828Z.prompt.txt`
+- Required fix 1: branch HEAD will advance with this evidence-only commit so planner/router can re-emit the handoff for live reviewer handling; offline fallback is not treated as approval.
 - Required fix 2: failing gate output was not reproduced; all required gates passed on this worktree.
 
 ## Gate Results
