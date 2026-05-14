@@ -2,8 +2,8 @@
 
 - Branch name: `codex/feat-a2ui-contract`
 - Lane: `feat-a2ui-contract`
-- Merge target: current `main` (`9abf31c55f420be74389af72b7e4707bb5132790`)
-- Authoritative review target: branch tip `HEAD` against `main`.
+- Merge target: current `main` (`004285b8b7f046156ea0d391bee6ac629df84e56`)
+- Authoritative review target: branch tip `HEAD` against current `main` using `main..HEAD`.
 - Merge surface: review the branch-tip diff only; do not use prior mixed-scope packets as the review surface.
 - Fixer re-review note: this packet supersedes the rejected packet and is the only handoff surface for this re-review.
 - Scope goal: correct the A2UI handoff metadata so the submitted review surface is auditable and aligned with the canonical demo path.
@@ -25,7 +25,7 @@
 
 ## Files Changed In Review Target
 
-Authoritative branch-tip review target, `main...HEAD`:
+Authoritative branch-tip review target, `main..HEAD`:
 
 - `.codex/kickoff_packets/feat-a2ui-contract.md`
 - `THREAD_PACKET.md`
@@ -42,7 +42,7 @@ No `client-textual/`, retrieval runtime, daemon source, shared-contract source, 
 
 ## Review Surface Note
 
-The corrected review target is branch tip `HEAD` against `main`. The merge surface is metadata-only and consists of `.codex/kickoff_packets/feat-a2ui-contract.md` and `THREAD_PACKET.md`. Prior packets that described a separate runtime commit or unsupported packet-planner changes are stale and superseded by this handoff.
+The corrected review target is branch tip `HEAD` against current `main` using `main..HEAD`. The merge surface is metadata-only and consists of `.codex/kickoff_packets/feat-a2ui-contract.md` and `THREAD_PACKET.md`. Prior packets that described a separate runtime commit or unsupported packet-planner changes are stale and superseded by this handoff.
 
 ## Demo-Path Mapping
 
