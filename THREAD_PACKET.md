@@ -28,8 +28,9 @@ Required-fix disposition:
 
 - Required fix 1: the submitted review scope is the single runtime commit `b929fe6c7a1159c7882acedd247aca31a93cd123`; the only review-target files are `src/qual/ui/a2ui.py` and `tests/unit/test_a2ui_contract.py`.
 - Required fix 2: unsupported planner and packet-planner claims are removed. `codex_packet_handoff/tools/planner.py` and `tests/unit/test_packet_planner.py` are not submitted for this runtime review.
-- Required fix 3: the canonical demo-path step advanced is explicitly stated below as `preview and apply or reject a patch`.
-- Required fix 4: required gate outcomes are reported in this packet after the corrected handoff is produced.
+- Required fix 3: not applicable to this runtime-only packet because shared/integrator-locked impact is `None`; no high-risk/shared exception is claimed.
+- Required fix 4: the canonical demo-path step advanced is explicitly stated below as `preview and apply or reject a patch`.
+- Required fix 5: required handoff fields are aligned below with branch, scope completed, files changed, commands run, risks/blockers, roadmap item, vision capability, and routing/provider impact.
 
 ## Canonical Demo-Path Mapping
 
@@ -48,6 +49,12 @@ Roadmap/product mapping:
 3. Preserved CLI rendering fallback behavior and covered deterministic filtered action ordering in `tests/unit/test_a2ui_contract.py`.
 4. Removed unsubmitted planner/handoff-tooling claims from the packet scope; `codex_packet_handoff/tools/planner.py`, `tests/unit/test_packet_planner.py`, and broad `THREAD_PACKET.md` maintenance are not runtime review-target files.
 
+Each runtime task above advances the canonical demo-path step `preview and apply or reject a patch` by making apply/reject/copy action payloads deterministic for CLI fallback rendering. The packet-maintenance task advances re-review readiness only and is not submitted as runtime product work.
+
+## Scope Completed
+
+Runtime-only A2UI contract review for deterministic materialized action ordering in commit `b929fe6c7a1159c7882acedd247aca31a93cd123`. Shared, planner, packet-tooling, Textual, engine, routing, provider, and broader branch-tip changes are outside this handoff.
+
 ## Files Changed
 
 Review-target files changed in `b929fe6c7a1159c7882acedd247aca31a93cd123^..b929fe6c7a1159c7882acedd247aca31a93cd123`:
@@ -62,6 +69,10 @@ No planner or packet-planner test files are in scope. In particular, this packet
 ## Shared/Integrator-Locked Impact
 
 None for the runtime review target. Commit `b929fe6c7a1159c7882acedd247aca31a93cd123` changes only lane-owned `src/qual/ui/a2ui.py` and `tests/unit/test_a2ui_contract.py`; it does not edit shared-by-approval or integrator-locked files.
+
+## Routing/Provider Impact
+
+None. This runtime-only A2UI contract change does not touch model routing, provider configuration, or provider selection behavior.
 
 ## Commands Run And Outcomes
 
