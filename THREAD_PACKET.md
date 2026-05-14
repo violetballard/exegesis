@@ -3,9 +3,10 @@
 - Branch name: `codex/feat-a2ui-contract`
 - Lane: `feat-a2ui-contract`
 - Merge target: current `main`
-- Handoff type: corrected runtime-only re-review packet; non-runtime maintenance is excluded from runtime review.
-- Reviewed runtime scope: `b929fe6c7a1159c7882acedd247aca31a93cd123` (`fix(a2ui): canonicalize materialized action order`).
-- Review packet source scope: this packet claims only the runtime commit and runtime files listed here.
+- Handoff type: retargeted single-commit runtime review packet.
+- Review target: exact commit `b929fe6c7a1159c7882acedd247aca31a93cd123` (`fix(a2ui): canonicalize materialized action order`).
+- Review range: `b929fe6c7a1159c7882acedd247aca31a93cd123^..b929fe6c7a1159c7882acedd247aca31a93cd123`.
+- Branch-tip note: later commits after `b929fe6c7a1159c7882acedd247aca31a93cd123`, including this packet correction, are not submitted as runtime/source changes and must not be reviewed as part of the A2UI runtime delta.
 - Runtime files in scope:
   - `src/qual/ui/a2ui.py`
   - `tests/unit/test_a2ui_contract.py`
@@ -13,18 +14,24 @@
 
 ## Scope Correction
 
-This corrected handoff withdraws the earlier out-of-scope non-runtime claims from the `feat-a2ui-contract` review.
+This corrected handoff withdraws the earlier branch-wide submission and retargets review to the exact narrow runtime commit. The branch-wide range after `b929fe6c7a1159c7882acedd247aca31a93cd123` is explicitly not the requested review scope.
 
-Runtime review scope is only commit `b929fe6c7a1159c7882acedd247aca31a93cd123` and only these files:
+Runtime review scope is only range `b929fe6c7a1159c7882acedd247aca31a93cd123^..b929fe6c7a1159c7882acedd247aca31a93cd123` and only these files:
 
 - `src/qual/ui/a2ui.py`
 - `tests/unit/test_a2ui_contract.py`
 
-No non-runtime behavior changes are claimed here. This packet asks the reviewer to evaluate only the runtime A2UI commit and the two runtime files above. Any future non-runtime source work requires a separate high-risk review packet with lane ownership, approval basis, and a concrete Milestone 3 engine-loop blocker.
+No Textual implementation work, engine work, packet tooling, `.agents`, `.codex`, docs, or shared-contract changes are submitted by this packet. Those branch-wide changes are withdrawn from the `feat-a2ui-contract` runtime review scope and require a separate high-risk packet with lane ownership, approval basis, all changed files, tasks, roadmap/vision mapping, and risks before review.
 
 ## Canonical Demo-Path Mapping
 
 The runtime A2UI change strengthens `preview and apply or reject a patch` by keeping apply/reject/copy action materialization stable for CLI fallback consumers. Deterministic action ordering makes patch-preview action payloads predictable while preserving typed and allowlisted action filtering.
+
+Roadmap/product mapping:
+
+- `ROADMAP.md`: Milestone A2UI contract work for shared card/action contracts and selection models.
+- `PRODUCT_VISION.md`: shared UI contract (`A2UI`) that keeps renderer behavior declarative and predictable.
+- `ARCHITECTURE.md`: A2UI card/action contracts with typed action handling and CLI fallback preserved.
 
 ## Tasks Completed
 
@@ -34,8 +41,12 @@ The runtime A2UI change strengthens `preview and apply or reject a patch` by kee
 
 ## Files Changed
 
+Review-target files changed in `b929fe6c7a1159c7882acedd247aca31a93cd123^..b929fe6c7a1159c7882acedd247aca31a93cd123`:
+
 - `src/qual/ui/a2ui.py`
 - `tests/unit/test_a2ui_contract.py`
+
+Textual implementation files are not in scope for this retargeted review.
 
 ## Commands Run And Outcomes
 
@@ -50,6 +61,6 @@ Required gates for the corrected handoff:
 
 ## Risks Or Blockers
 
-- Runtime A2UI claims are limited to commit `b929fe6c7a1159c7882acedd247aca31a93cd123`.
-- Non-runtime source work is not presented as A2UI runtime work.
-- Any future non-runtime source work should be split into a separately owned high-risk review packet.
+- Runtime A2UI claims are limited to exact commit `b929fe6c7a1159c7882acedd247aca31a93cd123`.
+- The branch-wide range after that commit includes out-of-scope work and is withdrawn from this review packet.
+- Any future non-runtime source work must be split into a separately owned high-risk review packet.
