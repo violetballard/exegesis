@@ -225,7 +225,7 @@ Own later:
 - Developer and Lite desktop distribution profiles
 - pywebview native shell around the locally served Textual UI
 - bundled Python runtime, Engine, Textual local server, and SQLite local storage
-- Briefcase packaging for macOS `.dmg`, Windows `.msi`, and Linux Flatpak, with PyInstaller allowed only as a per-platform fallback if Briefcase blocks a release target
+- Briefcase packaging for macOS `.dmg`, Windows `.msi`, and Linux Flatpak
 - packaged Developer/Lite executables that do not depend on system Python
 - platform app-data directory handling for database, project files, cache, and logs
 - loopback-only local server startup, port collision handling, and shutdown coordination

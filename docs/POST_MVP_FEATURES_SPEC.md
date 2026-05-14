@@ -661,7 +661,7 @@ Developer:
 Lite:
 - Python/Textual Lite does not use the native XPC sidecar.
 - Python/Textual Lite calls the same Python service layer in-process because Python is the app runtime.
-- Python/Textual Lite is still packaged as a bundled executable/runtime through Milestone 17, using Briefcase by default or PyInstaller only as a per-platform fallback. It must not depend on system Python.
+- Python/Textual Lite is still packaged as a bundled executable/runtime through Milestone 17 using Briefcase. It must not depend on system Python.
 - Lite gateway-mediated provider access remains server-side; managed provider keys never ship in Python/Textual Lite or the native sidecar.
 
 Common:

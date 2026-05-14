@@ -308,7 +308,7 @@ Outcome:
 Deliverables:
 - pywebview desktop shell around the local Textual server
 - bundled Python runtime, SQLite app data, local server startup/shutdown, and GitHub Release artifacts
-- Briefcase-first cross-platform packaging, with PyInstaller only as a per-platform fallback if Briefcase blocks a target
+- Briefcase cross-platform packaging
 - packaged Developer/Lite executables that do not depend on system Python
 - Cloudflare R2-backed update checks, unobtrusive update button, and `Check for Updates` menu command
 - required-update gate that blocks confidential project creation/open until the app is fully updated

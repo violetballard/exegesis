@@ -1215,7 +1215,7 @@ Intent:
 - Support both Developer and Lite distributions.
 - Keep end users away from Python, terminals, and localhost.
 - Bundle the local app runtime around the Engine, Textual local server, pywebview shell, SQLite storage, Python executable/runtime, and app dependencies.
-- Prefer Briefcase for cross-platform packaging, with PyInstaller as a fallback only if a target platform blocks Briefcase.
+- Use Briefcase for cross-platform packaging.
 - Do not depend on system Python in packaged Developer or Lite builds.
 - Publish downloadable binary releases through GitHub Releases.
 
@@ -1306,10 +1306,9 @@ Briefcase owns:
 - Linux Flatpak
 - application icon/resource packaging
 
-Packaging fallback:
-- Briefcase is the preferred packager because it gives a normal desktop app shape around the bundled Python runtime.
-- PyInstaller may be used only as a pragmatic fallback for a specific platform if Briefcase blocks the release target.
-- Whether Briefcase or PyInstaller is used, the result must bundle the Python executable/runtime and not rely on a user-installed system Python.
+Packaging decision:
+- Briefcase is the packager because it gives a normal desktop app shape around the bundled Python runtime.
+- The result must bundle the Python executable/runtime and not rely on a user-installed system Python.
 
 Build profiles:
 - `developer-macos`
@@ -1418,7 +1417,6 @@ Runtime status:
 3. Briefcase project configuration
    - Add macOS, Windows, and Linux packaging metadata.
    - Configure Developer and Lite build profiles.
-   - Document any per-platform PyInstaller fallback only if Briefcase cannot satisfy a release target.
 4. Local Textual server packaging
    - Start local server on loopback, handle port collisions, and open pywebview window.
 5. Variant/provider integration
