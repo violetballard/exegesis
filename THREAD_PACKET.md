@@ -15,6 +15,7 @@
 - The previous packet was rejected because it mixed a cherry-pick intent with a branch-tip submission. This packet names one integration target only.
 - Any later packet-only fixer commit that updates this handoff text is also a non-target and must not change the selected integration target.
 - No commit that changes executable source or tests is classified as metadata-only in this packet. The final branch-tip fixer commit is this packet correction only and is not a selected integration target. Prior non-target branch commits include runtime, test, planner, packet, and generated metadata work outside this packet.
+- Conflict-resolution verification: fixer pass on 2026-05-14 confirmed `src/qual/ui/a2ui.py` has no conflict marker tokens and no unmerged index entries.
 
 ## Scope Completed
 
@@ -75,6 +76,7 @@ Generated packet/router metadata:
 ## Commands Run And Outcomes
 
 - Fixer verification pass completed on 2026-05-14 for the cherry-pick-only review target.
+- Conflict check for `src/qual/ui/a2ui.py`: PASS on 2026-05-14 (no conflict markers; `git ls-files -u -- src/qual/ui/a2ui.py` returned no entries).
 - `make scope-check`: PASS on 2026-05-14 (`[devex] scope-check: passed for branch 'codex/feat-a2ui-contract'`).
 - `./quality-format.sh --check`: PASS on 2026-05-14 (`[format] check passed`).
 - `./quality-lint.sh`: PASS on 2026-05-14 (`[lint] passed`).
