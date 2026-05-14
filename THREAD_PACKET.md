@@ -55,9 +55,9 @@ Generated packet/router metadata:
 ## Tasks Completed
 
 1. Updated `src/qual/ui/a2ui.py` to sort filtered materialized actions by canonical JSON identity before returning card actions.
+   - Canonical demo-path step advanced: CLI fallback rendering of engine-authored materialized actions is stable when equivalent supported action payloads arrive in different input orders.
 2. Updated `tests/unit/test_a2ui_contract.py` to cover canonical action ordering for supported filtered actions.
-3. Reproduced the required lane gates locally in this worktree.
-4. Regenerated this handoff packet so `Traceability`, `Scope Completed`, `Files Changed`, `Tasks Completed`, commit classification, and `Commands Run` describe only the cherry-pick review target.
+   - Canonical demo-path step advanced: the A2UI contract test now proves the CLI fallback action list remains deterministic for engine-authored supported actions.
 
 ## Required Handoff Fields
 
