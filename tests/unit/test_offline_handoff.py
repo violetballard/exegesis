@@ -182,6 +182,23 @@ class OfflineIntegratorGuardTests(unittest.TestCase):
 
         self.assertEqual(result, "Integrated successfully.")
 
+    def test_local_integrator_accepts_successful_summary_with_prior_bad_marker(self) -> None:
+        output = (
+            "Integration result: approved implementation commit is already consumed on main.\n"
+            "Failure reason: bad local cli marker: invalid_request_error\n"
+            "Post-merge checks all passed on main.\n"
+        )
+        cfg = SimpleNamespace(use_cli_integrator_fallback=True, integrator_timeout=30)
+
+        with (
+            patch.object(router, "isolated_codex_env", return_value={"CODEX_HOME": "/tmp/codex"}),
+            patch.object(router, "_profile_for_role", return_value=self.profile),
+            patch.object(router, "_run_cli_codex", return_value=(0, output)),
+        ):
+            result = router._run_cli_integrator(cfg, "/repo", "approved", local=True)
+
+        self.assertEqual(result, output.strip())
+
 
 class LocalFallbackDetachedJobTests(unittest.TestCase):
     def test_process_once_queues_detached_local_reviewer_job(self) -> None:

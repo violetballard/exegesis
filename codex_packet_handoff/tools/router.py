@@ -484,13 +484,22 @@ def _local_cli_output_rejection_reason(text: str, *, require_verdict: bool) -> O
         return "empty output"
     if INVALID_REVIEWER_RE.search(t):
         return "stale or missing thread reference"
-    lower = t.lower()
+    lines = t.splitlines() or [t]
     for marker in BAD_LOCAL_CLI_CONTENT_MARKERS:
-        if marker in lower:
+        if any(_line_has_bad_local_cli_marker(line, marker) for line in lines):
             return f"bad local cli marker: {marker}"
     if require_verdict and _extract_reviewer_verdict(t) is None:
         return "missing reviewer verdict"
     return None
+
+
+def _line_has_bad_local_cli_marker(line: str, marker: str) -> bool:
+    lower = line.lower()
+    if marker not in lower:
+        return False
+    if "bad local cli marker:" in lower:
+        return False
+    return True
 
 
 def _is_reviewer_quota_output(text: str) -> bool:
