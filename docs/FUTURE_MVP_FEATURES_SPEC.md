@@ -1214,13 +1214,16 @@ Intent:
 - Package Exegesis as a normal desktop app for macOS, Windows, and Linux.
 - Support both Developer and Lite distributions.
 - Keep end users away from Python, terminals, and localhost.
-- Bundle the local app runtime around the Engine, Textual local server, pywebview shell, and SQLite storage.
+- Bundle the local app runtime around the Engine, Textual local server, pywebview shell, SQLite storage, Python executable/runtime, and app dependencies.
+- Prefer Briefcase for cross-platform packaging, with PyInstaller as a fallback only if a target platform blocks Briefcase.
+- Do not depend on system Python in packaged Developer or Lite builds.
 - Publish downloadable binary releases through GitHub Releases.
 
 Boundary:
 - This milestone is the cross-platform Python/Textual desktop packaging path.
 - It is not the macOS-only native Studio Workstation.
 - The pywebview shell gives users a desktop-window experience, but Python remains the app runtime and Textual can call shared Python services directly.
+- Textual Lite calls local Python services directly inside the packaged app; the hosted License Gateway is only for managed remote provider credentials, license refresh, Paddle, and Nanonets page accounting.
 - Native Studio remains macOS-only and uses the Milestone 20 XPC sidecar bridge instead of this local Textual server architecture.
 
 Target artifacts:
@@ -1303,6 +1306,11 @@ Briefcase owns:
 - Linux Flatpak
 - application icon/resource packaging
 
+Packaging fallback:
+- Briefcase is the preferred packager because it gives a normal desktop app shape around the bundled Python runtime.
+- PyInstaller may be used only as a pragmatic fallback for a specific platform if Briefcase blocks the release target.
+- Whether Briefcase or PyInstaller is used, the result must bundle the Python executable/runtime and not rely on a user-installed system Python.
+
 Build profiles:
 - `developer-macos`
 - `developer-windows`
@@ -1319,6 +1327,7 @@ Profile differences:
 - Lite public profile disables `dynamic_a2ui_generation`.
 - Lite CoP/beta profile may enable `dynamic_a2ui_generation` only when explicitly configured for a trusted beta cohort and constrained to declarative A2UI drafts plus promotion rules.
 - Lite includes app-managed remote endpoint references but no hardcoded user-visible secrets.
+- Lite uses the local packaged Python service layer directly for local app behavior; only managed remote model/OCR calls, license refresh, Paddle top-ups, and page ledger state go through the hosted License Gateway.
 - Both profiles share engine/client code wherever possible.
 
 GitHub Releases:
@@ -1409,6 +1418,7 @@ Runtime status:
 3. Briefcase project configuration
    - Add macOS, Windows, and Linux packaging metadata.
    - Configure Developer and Lite build profiles.
+   - Document any per-platform PyInstaller fallback only if Briefcase cannot satisfy a release target.
 4. Local Textual server packaging
    - Start local server on loopback, handle port collisions, and open pywebview window.
 5. Variant/provider integration

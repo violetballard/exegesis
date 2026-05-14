@@ -661,6 +661,7 @@ Developer:
 Lite:
 - Python/Textual Lite does not use the native XPC sidecar.
 - Python/Textual Lite calls the same Python service layer in-process because Python is the app runtime.
+- Python/Textual Lite is still packaged as a bundled executable/runtime through Milestone 17, using Briefcase by default or PyInstaller only as a per-platform fallback. It must not depend on system Python.
 - Lite gateway-mediated provider access remains server-side; managed provider keys never ship in Python/Textual Lite or the native sidecar.
 
 Common:
@@ -3274,7 +3275,7 @@ The architectural constraint is the point of the milestone:
 - macOS Studio can supervise a packaged Python sidecar.
 - iPadOS Lite cannot rely on that same Python sidecar runtime model.
 - Therefore, any iPad-native Lite feature must either be Swift-native, call a safe hosted Lite Gateway endpoint, or use shared portable data/contracts that do not require local Python execution.
-- The milestone should inventory which existing sidecar-backed behaviors must be rewritten, deferred, or reduced for iPad Lite.
+- The milestone should inventory which existing Python-backed or macOS-sidecar-dependent behaviors must be rewritten, deferred, or reduced for iPad Lite.
 - iPad Lite should assume promoted/preapproved declarative A2UI only. It must not depend on dynamic generated UI unless Apple policy and the native Swift renderer explicitly support that behavior.
 - If future Apple rules allow agent-generated miniature app surfaces, iPad Lite should still render them through a fixed Swift-native A2UI renderer with known actions, not by executing generated code.
 
@@ -3304,14 +3305,14 @@ iPad Lite should reuse mature native components rather than invent a second prod
 - reuse native editor decisions from Milestone 21 where possible, adapted for iPadOS
 - reuse project-transfer archive contracts from Milestone 16
 - reuse collaboration client-capability rules from Milestone 25
-- reuse import/literature/citation data contracts where they can run without sidecar-only behavior
+- reuse import/literature/citation data contracts where they can run without Python-backed or macOS-sidecar-only behavior
 
 Activation prerequisites:
 - native Studio Workstation has settled the Swift data model and editor direction.
 - License Gateway can provide device/account entitlement refresh for Lite.
 - collaboration client-capability rules distinguish Lite participation from Studio management.
 - project transfer/archive format is stable.
-- enough sidecar-backed behavior has been factored into shared contracts or Swift-native components.
+- enough Python-backed or macOS-sidecar-dependent behavior has been factored into shared contracts or Swift-native components.
 
 ### Client Capability Model
 
@@ -3388,7 +3389,7 @@ Future acceptance tests, once split into implementation lanes:
 - iPad Lite can refresh account-based Lite access.
 - Studio/Pro subscribers can use inherited Lite access on iPad without buying separate Lite.
 - iPad Lite does not attempt to launch or package the Python sidecar.
-- iPad Lite blocks or hides sidecar-only features unless a Swift-native or hosted-gateway equivalent exists.
+- iPad Lite blocks or hides Python-backed or macOS-sidecar-dependent features unless a Swift-native or hosted-gateway equivalent exists.
 - iPad Lite renders promoted A2UI components through Swift-native declarative views.
 - iPad Lite rejects dynamic A2UI payloads unless the build profile and current platform policy explicitly allow them.
 - iPad Lite project archive import does not carry credentials or license tokens.
@@ -3398,6 +3399,6 @@ Future acceptance tests, once split into implementation lanes:
 Acceptance criteria for this disabled spec:
 - Milestone 26 is documented as Native iPad Lite after confidential collaboration.
 - The lane is registered and disabled everywhere the router and planner expect.
-- The spec clearly states that iPad Lite is long-term because sidecar-dependent behavior must become Swift-native or gateway-backed.
+- The spec clearly states that iPad Lite is long-term because Python-backed or macOS-sidecar-dependent behavior must become Swift-native or gateway-backed.
 - The spec ties iPad Lite to reuse of mature Studio/Pro Swift-native infrastructure.
 - No runtime iPad Lite behavior is active.

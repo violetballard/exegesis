@@ -325,9 +325,12 @@ Status: planned, disabled
 Scope:
 - package Developer and Lite as normal local desktop apps around the locally served Textual UI
 - use pywebview, bundled Python runtime, SQLite app data, local server startup/shutdown, and GitHub Release artifacts
+- use Briefcase as the preferred cross-platform packager, with PyInstaller only as a fallback if a target platform blocks Briefcase
+- bundle the Python executable/runtime and app dependencies; packaged Developer/Lite builds must not depend on system Python
 - add Cloudflare R2-backed update checks with an unobtrusive update button and a `Check for Updates` menu command
 - block confidential project creation/open when the app is not fully updated and the release manifest marks an update required
 - keep Lite managed-provider secrets outside the bundle and routed through the hosted License Gateway
+- keep Lite local Python services direct inside the packaged app; the License Gateway is for managed remote credentials, license refresh, Paddle, and Nanonets accounting, not for local Python execution
 - keep Developer builds wired to Milestone 15 BYOK/BYOM provider configuration
 - gate dynamic A2UI generation by distribution profile: Developer and trusted CoP/beta builds may enable it, while public Lite/App Store-oriented builds default to promoted/preapproved A2UI components
 - keep cross-platform Developer/Lite packaging separate from the later macOS-only Studio Workstation

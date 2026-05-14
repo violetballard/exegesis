@@ -120,12 +120,15 @@ Shared integration target:
 - Project export/import creates portable zip archives for moving projects between machines.
 - Project archives never include credentials, provider keys, local endpoints, license tokens, or managed Lite secrets.
 - Packaged Python/Textual app launches as a desktop app without terminal or localhost exposure.
+- Briefcase is preferred for bundled executable/runtime packaging, with PyInstaller only as a per-platform fallback; neither Developer nor Lite depends on system Python.
+- Textual Lite calls local Python services directly in the packaged app. The License Gateway remains for managed remote credentials, license refresh, Paddle, and Nanonets accounting.
 - This is the cross-platform Python runtime path; macOS-only native Studio is handled later through the XPC sidecar bridge specs.
 
 Exit criteria:
 - Developer and Lite provider modes are separated and testable.
 - Project transfer is license-safe: licenses are per user/account, not per machine or archive.
 - Python/Textual macOS packaging path works first, with Windows/Linux specs ready for follow-up.
+- Packaged Developer/Lite apps bundle Python and run without system Python.
 - SQLite app data, local server startup, pywebview shell, and shutdown are packaged-runtime safe.
 - A user can install and launch the app without developer tooling.
 
@@ -193,4 +196,4 @@ Milestone 22 lives in the same post-MVP spec and specifies local-first multi-age
 Milestone 23 lives in the same post-MVP spec and specifies Pro-only first-class CSV dataset import, lean dataset preparation, quantitative analysis, basic charts, and saveable analysis sequences through native `StatsCore`/`StatsBridge`/IMSL rather than the Python sidecar by default.
 Milestone 24 lives in the same post-MVP spec and specifies Pro-only advanced qualitative coding visualizations, matrices, distribution tables, comparisons, and codebook generation.
 Milestone 25 lives in the same post-MVP spec and specifies the later company-wide confidential collaboration design sprint for Studio/SwiftUI shared project work.
-Milestone 26 lives in the same post-MVP spec and specifies long-term native iPad Lite after collaboration, once Studio/Pro Swift-native components can replace sidecar-dependent behavior.
+Milestone 26 lives in the same post-MVP spec and specifies long-term native iPad Lite after collaboration, once Studio/Pro Swift-native components can replace Python-backed or macOS-sidecar-dependent behavior.

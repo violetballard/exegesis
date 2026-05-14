@@ -225,7 +225,8 @@ Own later:
 - Developer and Lite desktop distribution profiles
 - pywebview native shell around the locally served Textual UI
 - bundled Python runtime, Engine, Textual local server, and SQLite local storage
-- Briefcase packaging for macOS `.dmg`, Windows `.msi`, and Linux Flatpak
+- Briefcase packaging for macOS `.dmg`, Windows `.msi`, and Linux Flatpak, with PyInstaller allowed only as a per-platform fallback if Briefcase blocks a release target
+- packaged Developer/Lite executables that do not depend on system Python
 - platform app-data directory handling for database, project files, cache, and logs
 - loopback-only local server startup, port collision handling, and shutdown coordination
 - GitHub Release artifact collection and checksum generation
@@ -233,6 +234,7 @@ Own later:
 - required-update gate that blocks confidential project creation/open until the app is fully updated
 - Developer profile integration with Milestone 15 BYOK/BYOM provider commands
 - Lite profile integration with remote Mistral Small 4 and managed Nanonets OCR-3
+- Lite local Python services called directly inside the packaged app, with the hosted License Gateway reserved for managed remote credentials, license refresh, Paddle, and Nanonets accounting
 
 Activation rule:
 - disabled until desktop packaging work is intentionally activated
@@ -286,14 +288,14 @@ Implementation batches:
 
 ### `feat-python-sidecar-api`
 Own later:
-- localhost-only FastAPI sidecar app for Python-backed features
-- PyInstaller sidecar binary packaging for macOS Studio builds
-- baseline `/healthz`, `/readyz`, `/version`, `/features`, and `/shutdown` endpoint contracts
-- local per-launch auth token, loopback-only binding, origin restrictions, request size limits, and log redaction
-- macOS Studio Workstation launch, health polling, bounded restart, compatibility check, and graceful shutdown contract
-- sidecar route manifest and schema/version negotiation for feature groups
-- requirement that later Workstation/SwiftUI-facing Python features expose their behavior through sidecar routes
-- Developer/Lite build boundary for sidecar provider and gateway access
+- signed, sandboxed macOS XPC Python sidecar bridge for Python-backed Studio features
+- bundled Python worker/XPC service packaging inside the signed Studio `.app`
+- baseline `healthz`, `readyz`, `version`, `features`, and `shutdown` RPC handler contracts
+- signed-app-only sidecar channel, sandbox inheritance, request size limits, file-access validation, and log redaction
+- macOS Studio Workstation launch, health polling, bounded restart, compatibility/signature/entitlement checks, and graceful shutdown contract
+- sidecar handler manifest and schema/version negotiation for feature groups
+- requirement that later Workstation/SwiftUI-facing Python features expose their behavior through sidecar handlers
+- boundary that Python/Textual Lite reuses the shared Python service layer directly and does not adopt the native XPC sidecar
 
 Activation rule:
 - disabled until explicitly enabled after the MVP launch gate and real CoP usage feedback
@@ -336,7 +338,7 @@ Own later:
 - DOI, canonical URL, title/author/year, provider ID, and future content-hash dedupe
 - explainable candidate ranking and import readiness labels
 - native Studio Workstation SwiftUI source batch cards/lists that hand selected candidates to the standard import protocol
-- sidecar routes for research job creation, status, cancellation, candidate batch retrieval, and import-batch handoff
+- sidecar handlers for research job creation, status, cancellation, candidate batch retrieval, and import-batch handoff
 - native Studio Workstation/SwiftUI only; no Textual shell implementation
 - privacy/project-mode/credential controls so confidential project content is not sent to open web providers without explicit permission
 - audit trail for search plan, providers, queries, candidates, dedupe decisions, selections, and import request IDs
@@ -387,7 +389,7 @@ Own later:
 - visual comparisons across selected documents, document types, participants, folders, groups, and codes
 - codebook generation from code metadata, definitions, frequencies, representative excerpts, and audit history
 - native Studio Workstation SwiftUI graph, matrix, comparison, and codebook surfaces
-- sidecar route contracts for aggregation and artifact generation where Python-backed processing is needed
+- sidecar handler contracts for aggregation and artifact generation where Python-backed processing is needed
 - explicit Textual shell exclusion
 
 Activation rule:
@@ -421,7 +423,7 @@ Implementation batches:
 ### `feat-ipad-native-lite`
 Own later:
 - native iPadOS Lite product boundary after confidential collaboration
-- inventory of sidecar-backed Lite workflows that must become Swift-native, gateway-backed, deferred, or unavailable on iPad
+- inventory of Python-backed or macOS-sidecar-dependent workflows that must become Swift-native, gateway-backed, deferred, or unavailable on iPad
 - reuse plan for mature Studio/Pro Swift-native editor, project, import, license, and collaboration components
 - account-based Lite entitlement refresh on iPad, including inherited Lite access for Studio/Pro subscribers
 - project archive import/export, offline cache, file provider, document picker, and share sheet boundaries

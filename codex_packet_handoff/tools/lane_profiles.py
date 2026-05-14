@@ -489,9 +489,11 @@ LANE_PROFILES: Dict[str, Json] = {
         "priority_summary": "Disabled desktop packaging lane.",
         "priority_outcomes": [
             "Specify pywebview desktop shell around the locally served Textual UI.",
-            "Specify Briefcase packaging for macOS .dmg, Windows .msi, and Linux Flatpak artifacts.",
+            "Specify Briefcase-first packaging for macOS .dmg, Windows .msi, and Linux Flatpak artifacts, with PyInstaller only as a per-platform fallback.",
+            "Specify bundled Python executable/runtime packaging so Developer and Lite do not depend on system Python.",
             "Specify platform app-data, SQLite, local server, and shutdown coordination behavior.",
             "Specify Developer and Lite distribution profile differences.",
+            "Specify that Textual Lite calls local Python services directly while using the hosted License Gateway only for managed remote credentials, license refresh, Paddle, and Nanonets accounting.",
             "Specify GitHub Release artifact and checksum flow.",
         ],
         "definition_of_done": [
@@ -797,7 +799,7 @@ LANE_PROFILES: Dict[str, Json] = {
         ],
         "definition_of_done": [
             "Native iPad Lite product boundary, prerequisites, and activation conditions are documented.",
-            "Swift-native replacement needs for sidecar-backed behavior are identified at a planning level.",
+            "Swift-native replacement needs for Python-backed or macOS-sidecar-dependent behavior are identified at a planning level.",
             "Reuse boundaries for Studio/Pro Swift-native components are specified.",
             "Owned paths and scope policy are registered.",
             "No runtime iPad app, Swift-native Lite client, App Store packaging, or sidecar replacement behavior is active.",

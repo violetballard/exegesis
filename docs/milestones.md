@@ -308,10 +308,13 @@ Outcome:
 Deliverables:
 - pywebview desktop shell around the local Textual server
 - bundled Python runtime, SQLite app data, local server startup/shutdown, and GitHub Release artifacts
+- Briefcase-first cross-platform packaging, with PyInstaller only as a per-platform fallback if Briefcase blocks a target
+- packaged Developer/Lite executables that do not depend on system Python
 - Cloudflare R2-backed update checks, unobtrusive update button, and `Check for Updates` menu command
 - required-update gate that blocks confidential project creation/open until the app is fully updated
 - Developer profile wired to BYOK/BYOM provider commands
 - Lite profile wired to hosted License Gateway and managed provider access
+- Lite local Python services called directly inside the packaged app, with the hosted License Gateway reserved for managed remote credentials, license refresh, Paddle, and Nanonets accounting
 - cross-platform Developer/Lite packaging plan independent from Studio
 
 Status:
@@ -358,17 +361,18 @@ Status:
 - Post-MVP planned and disabled
 - Lane state: disabled (`feat-browser-pdf-capture`)
 
-## Milestone 20: Python Backend Sidecar API
+## Milestone 20: Python Backend Sidecar Bridge
 
 Outcome:
-- Studio can eventually supervise a localhost-only FastAPI sidecar for Python-backed features.
+- Studio can eventually supervise a signed, sandboxed macOS XPC sidecar bridge for Python-backed features.
 
 Deliverables:
-- localhost-only FastAPI sidecar endpoint contracts
-- health, readiness, version, feature manifest, shutdown, and local auth
-- macOS PyInstaller sidecar binary packaging for Studio
-- Workstation launch, monitor, restart, compatibility, shutdown, and log-redaction rules
-- requirement that future Studio Python features expose behavior through sidecar routes when applicable
+- signed-app-only XPC/RPC handler contracts
+- health, readiness, version, feature manifest, and shutdown handlers
+- signed bundled Python worker/XPC service packaging inside the Studio `.app`
+- Workstation launch, monitor, restart, compatibility, signature, entitlement, shutdown, and log-redaction rules
+- requirement that future Studio Python features expose behavior through sidecar handlers when applicable
+- boundary that Python/Textual Lite is packaged separately and calls the shared Python service layer directly
 
 Status:
 - Post-MVP planned and disabled
@@ -481,7 +485,7 @@ Outcome:
 
 Deliverables:
 - iPadOS Lite product boundary and secondary-machine entitlement model
-- sidecar dependency inventory for Lite workflows that must become Swift-native, gateway-backed, deferred, or unavailable on iPad
+- Python-backed or macOS-sidecar-dependent workflow inventory for Lite behavior that must become Swift-native, gateway-backed, deferred, or unavailable on iPad
 - reuse plan for mature Studio/Pro Swift-native editor, project, import, license, and collaboration components
 - project archive import/export, offline cache, license refresh, and file provider/share sheet boundaries
 - constrained iPad Lite collaboration participation without Studio-only management or Pro-only feature surfaces
