@@ -1,63 +1,48 @@
 ## Thread Handoff Packet
 
 - Branch name: `codex/feat-a2ui-contract`
-- Scope goal: Make materialized A2UI patch actions deterministic for CLI fallback rendering without changing routing, provider behavior, or non-A2UI planner automation.
-- Reviewed runtime commit: `b929fe6c7a1159c7882acedd247aca31a93cd123`.
-- Review scope: Review only the runtime implementation in `b929fe6c7a1159c7882acedd247aca31a93cd123`. Later branch-tip commits are handoff packet corrections only and are not submitted as source/runtime implementation work for this review.
-- Scope completed: `b929fe6c7a1159c7882acedd247aca31a93cd123` updates A2UI materialized action filtering so supported actions are normalized, deduplicated, and emitted in deterministic canonical JSON order while preserving invalid-action filtering and CLI fallback compatibility.
-- Canonical demo-path step advanced: `preview and apply or reject a patch`. This work makes that step more real by ensuring materialized A2UI patch actions render deterministically for CLI fallback previews and action selection.
-- Shared/integrator-locked edits: `NO` for the reviewed runtime implementation commit. The reviewed files stay in `src/qual/ui/a2ui.py` and `tests/unit/test_a2ui_contract.py`; no shared-by-approval or integrator-locked files are included in this handoff scope.
+- Lane: `feat-a2ui-contract`
+- Merge target: current `main`
+- Handoff type: corrected packet requesting full branch-tip review.
+- Authoritative reviewed runtime commit: `b929fe6c7a1159c7882acedd247aca31a93cd123` (`fix(a2ui): canonicalize materialized action order`).
+- Review scope correction: prior packets claimed the submitted branch tip was a narrow A2UI runtime slice plus metadata-only follow-up commits. That is not accurate. Because this fixer is not allowed to detach or update refs, this packet explicitly requests review of the full final branch-tip merge range instead of claiming a metadata-only or two-file runtime slice.
 
-### Tasks Completed
+## Tasks Completed
 
-1. Canonicalized supported materialized A2UI action output by normalizing, deduplicating, and sorting actions with stable JSON semantics.
-2. Added/updated unit coverage for deterministic canonical action ordering while preserving invalid-action filtering behavior.
+1. Preserved the intended A2UI runtime change from `b929fe6c7a1159c7882acedd247aca31a93cd123`: supported actions filtered by the allowlist are sorted by canonical JSON before materialization.
+2. Preserved focused unit coverage for deterministic canonical action ordering in `tests/unit/test_a2ui_contract.py`.
+3. Replaced the stale/inaccurate handoff packet so the review request no longer claims that later branch-tip commits are metadata-only.
 
-### Files Changed
+## Files Changed / Review Surface
 
-Reviewed runtime implementation commit `b929fe6c7a1159c7882acedd247aca31a93cd123`:
+The intended A2UI runtime slice is:
 
 - `src/qual/ui/a2ui.py`
 - `tests/unit/test_a2ui_contract.py`
 
-Packet-only correction files after the reviewed runtime commit:
+Packet-only handoff correction:
 
 - `THREAD_PACKET.md`
 
-Planner, packet-planner test, and broad packet-maintenance changes are not part of this handoff scope. They are intentionally excluded from `Scope completed`, `Tasks completed`, and `Files changed` for this re-review.
+The full branch-tip merge range also contains off-scope `client-textual/`, retrieval, daemon/tooling, broad docs, packet metadata, and shared-contract files from earlier commits. This packet does not claim those are metadata-only; it requests full branch-tip review if the branch is not split or rewritten by the integrator.
 
-### Budget/Limit Compliance
+## Shared / Locked Status
 
-- Risk mode: standard lane-owned runtime slice.
-- Task budget: `2` of `8` used.
-- Time budget: within `45m`.
-- Size limits: `2` reviewed runtime files, within `<=12 files`; runtime change is within `<=500 net LOC`.
-- High-risk/shared cap: not applicable because the reviewed runtime implementation does not claim shared or integrator-locked edits.
+- Integrator-locked files: full branch-tip review required; not limited to the intended A2UI runtime slice.
+- Shared-by-approval files: full branch-tip review required; not limited to the intended A2UI runtime slice.
+- Runtime files intentionally in the A2UI scope: `src/qual/ui/a2ui.py`.
+- Tests intentionally in the A2UI scope: `tests/unit/test_a2ui_contract.py`.
 
-### Commands Run
+## Commands Run
 
-- `make scope-check` -> passed.
-- `./quality-format.sh --check` -> passed.
-- `./quality-lint.sh` -> passed.
-- `./quality-test.sh` -> passed.
-- `./typecheck-test.sh` -> passed.
-- `make ci` -> passed.
+- `make scope-check`: passed.
+- `./quality-format.sh --check`: passed.
+- `./quality-lint.sh`: passed.
+- `./quality-test.sh`: passed; 123 tests passed.
+- `./typecheck-test.sh`: passed.
+- `make ci`: passed.
 
-### Risks/Blockers
+## Risks / Blockers
 
-- None known for the reviewed runtime slice.
-- This packet intentionally makes no planner, packet-planner, retrieval, provider-routing, shared-package, or branch-tip runtime claims beyond `b929fe6c7a1159c7882acedd247aca31a93cd123`.
-
-### Roadmap/Vision Mapping
-
-- Roadmap item affected: active MVP work item `A2UI contracts with CLI fallback`.
-- Vision capability affected: deterministic, engine-authoritative A2UI action contracts that can be rendered by CLI fallback clients.
-- Canonical demo-path step advanced: `preview and apply or reject a patch`.
-
-### Routing/Provider Impact
-
-None. No model routing, provider configuration, or core entrypoint behavior is included in the reviewed runtime scope.
-
-### Proposed `README.md` Patch Text
-
-None.
+- Branch history still contains stale off-scope commits because the packet explicitly forbids detaching or updating refs. This packet corrects the review request by asking for full branch-tip review rather than a narrowed metadata-only review.
+- Merge risk remains high unless the integrator splits or rewrites the branch down to the intended A2UI runtime slice.
