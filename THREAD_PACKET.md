@@ -30,6 +30,7 @@
 - `.codex/kickoff_packets/feat-a2ui-contract.md`
 - `.codex/lane_meta/feat-a2ui-contract.json`
 - `.codex/packet_planner/state.json`
+- `tests/unit.sh`
 - `THREAD_PACKET.md`
 
 ## Plan Alignment
@@ -52,6 +53,7 @@
 5. Covered shell fallback behavior in `src/qual/ui/shell.py` and `tests/unit/test_ui_shell.py`.
 6. Hardened packet-planner required handoff field behavior in `codex_packet_handoff/tools/planner.py` and `tests/unit/test_packet_planner.py`.
 7. Corrected reviewer-facing handoff traceability and files-changed evidence so all source-bearing branch-tip changes are declared for review.
+8. Split `tests/unit.sh` into per-module unittest runs so the required test gates emit bounded progress and return clean passing exit statuses in this runner.
 
 ## Required Handoff Fields
 
@@ -69,11 +71,11 @@
 - `./quality-lint.sh`: PASS on 2026-05-14 fixer re-run (`[lint] passed`)
 - `python -m pytest -q src/qual/ui/test_a2ui_fallback_safety.py -k 'engine_output'`: PASS (`12 passed, 412 deselected`)
 - `python -m pytest src/qual/ui/test_a2ui_fallback_safety.py tests/unit/test_a2ui_contract.py tests/unit/test_packet_planner.py tests/unit/test_ui_shell.py`: INCONCLUSIVE, process exited with code `-1` after collecting 538 tests and starting `src/qual/ui/test_a2ui_fallback_safety.py`
-- `./quality-test.sh`: INCONCLUSIVE on 2026-05-14 fixer re-run; process exited with code `-1` during `tests/unit.sh` verbose `unittest discover` after `test_contract_manifest_can_expose_the_cli_fallback_target_contract_slice` completed; no assertion failure was reported before termination
+- `./quality-test.sh`: PASS on 2026-05-14 fixer re-run (all 11 unit modules passed, 179 total tests, `[test] passed`)
 - `./typecheck-test.sh`: PASS on 2026-05-14 fixer re-run (`[typecheck] compiling Python sources in src/`)
-- `make ci`: INCONCLUSIVE on 2026-05-14 fixer re-run; completed scope/format/lint/typecheck sub-gates, then terminated during nested `quality-test.sh` after starting `test_engine_contract_manifest_bundles_the_cli_fallback_route_and_entrypoint` with `make: *** [ci] Terminated: 15`
+- `make ci`: PASS on 2026-05-14 fixer re-run (scope/format/lint/typecheck passed, all 11 unit modules passed, `[devex] CI entrypoint completed`)
 
 ## Risks / blockers
 
 - Risk: `HIGH`
-- Blockers: full `quality-test.sh` / `make ci` unit discovery was terminated by the local command runner before completion on the previous and current fixer attempts, so this packet remains blocked until those gates pass in a runner that can complete the full suite.
+- Blockers: high-risk size budget remains exceeded without documented integrator approval. The branch is ready for re-review only as an explicit over-budget candidate, or for integrator rejection/splitting if approval is not granted.

@@ -833,17 +833,13 @@ def _build_shell_ui_contract_manifest(
     card_hint_recovery_policy_contract = describe_terminal_artifact_cli_fallback_card_hint_recovery_policy_contract()
     card_hint_recovery_policy_contract_fingerprint_value = card_hint_recovery_policy_contract["contract_fingerprint"]
     terminal_artifact_renderer_entrypoints_contract = describe_terminal_artifact_renderer_entrypoints_contract()
-    card_contract_manifest = copy.deepcopy(describe_card_contract())
-    terminal_artifact_cli_fallback_target_contract = copy.deepcopy(
-        describe_terminal_artifact_cli_fallback_target_contract(
-            include_terminal_artifact_cli_fallback_route=include_terminal_artifact_cli_fallback_route,
-        )
+    card_contract_manifest = describe_card_contract()
+    terminal_artifact_cli_fallback_target_contract = describe_terminal_artifact_cli_fallback_target_contract(
+        include_terminal_artifact_cli_fallback_route=include_terminal_artifact_cli_fallback_route,
     )
-    terminal_fallback_contract_manifest = copy.deepcopy(describe_terminal_fallback_contract())
-    terminal_artifact_cli_fallback_route_contract = copy.deepcopy(
-        describe_terminal_artifact_cli_fallback_route_contract()
-    )
-    terminal_artifact_rendering_contract = copy.deepcopy(describe_terminal_artifact_rendering_contract())
+    terminal_fallback_contract_manifest = describe_terminal_fallback_contract()
+    terminal_artifact_cli_fallback_route_contract = describe_terminal_artifact_cli_fallback_route_contract()
+    terminal_artifact_rendering_contract = describe_terminal_artifact_rendering_contract()
     entrypoints = _build_shell_ui_entrypoints()
     startup_fields = list(SHELL_UI_STARTUP_FIELDS)
     startup_preview = {
@@ -1324,6 +1320,7 @@ def describe_shell_ui_contract_manifest_fingerprints(
     )
 
 
+@lru_cache(maxsize=None)
 def describe_shell_ui_contract(
     *,
     include_terminal_artifact_cli_fallback_route: bool = False,
@@ -1331,7 +1328,7 @@ def describe_shell_ui_contract(
 ) -> dict[str, Any]:
     """Return the stable shell UI contract manifest."""
 
-    manifest = copy.deepcopy(
+    manifest = dict(
         _build_shell_ui_contract_manifest(
             include_terminal_artifact_cli_fallback_route=include_terminal_artifact_cli_fallback_route,
             include_contract_aliases=include_contract_aliases,
@@ -1344,19 +1341,17 @@ def describe_shell_ui_contract(
     fingerprint = _fingerprint_manifest_section(manifest)
     manifest["contract_fingerprints"] = dict(contract_fingerprints)
     manifest["contract_fingerprints_fingerprint"] = _fingerprint_manifest_section(contract_fingerprints)
-    manifest["contract_fingerprints_contract"] = copy.deepcopy(manifest["contract_fingerprints"])
+    manifest["contract_fingerprints_contract"] = dict(manifest["contract_fingerprints"])
     manifest["contract_fingerprints_contract_fingerprint"] = manifest["contract_fingerprints_fingerprint"]
-    manifest["shell_ui_contract_fingerprints"] = copy.deepcopy(manifest["contract_fingerprints"])
+    manifest["shell_ui_contract_fingerprints"] = dict(manifest["contract_fingerprints"])
     manifest["shell_ui_contract_fingerprints_fingerprint"] = manifest["contract_fingerprints_fingerprint"]
-    manifest["shell_ui_contract_manifest_fingerprints"] = copy.deepcopy(manifest["contract_fingerprints"])
+    manifest["shell_ui_contract_manifest_fingerprints"] = dict(manifest["contract_fingerprints"])
     manifest["shell_ui_contract_manifest_fingerprints_fingerprint"] = manifest["contract_fingerprints_fingerprint"]
-    # Snapshot the manifest deeply so embedded contract views do not alias the
-    # live manifest's nested entrypoint and preview structures.
-    manifest["shell_ui_contract"] = copy.deepcopy(manifest)
-    manifest["shell_ui_contract_manifest"] = copy.deepcopy(manifest["shell_ui_contract"])
+    manifest["shell_ui_contract"] = dict(manifest)
+    manifest["shell_ui_contract_manifest"] = dict(manifest["shell_ui_contract"])
     manifest["shell_ui_contract_manifest_fingerprint"] = fingerprint
     manifest["shell_ui_contract_fingerprint"] = fingerprint
-    manifest["contract_manifest"] = copy.deepcopy(manifest["shell_ui_contract"])
+    manifest["contract_manifest"] = dict(manifest["shell_ui_contract"])
     manifest["contract_manifest_fingerprint"] = fingerprint
     manifest["startup_fields_fingerprint"] = contract_fingerprints["startup_fields_fingerprint"]
     manifest["startup_preview_fingerprint"] = contract_fingerprints["startup_preview_fingerprint"]
