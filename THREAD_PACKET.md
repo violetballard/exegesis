@@ -3,8 +3,9 @@
 - Branch name: `codex/feat-a2ui-contract`
 - Lane: `feat-a2ui-contract`
 - Merge target: current `main`
-- Handoff type: corrected runtime-only re-review packet; control-plane maintenance is excluded from runtime review.
+- Handoff type: corrected runtime-only re-review packet; non-runtime maintenance is excluded from runtime review.
 - Reviewed runtime scope: `b929fe6c7a1159c7882acedd247aca31a93cd123` (`fix(a2ui): canonicalize materialized action order`).
+- Review packet source scope: this packet claims only the runtime commit and runtime files listed here.
 - Runtime files in scope:
   - `src/qual/ui/a2ui.py`
   - `tests/unit/test_a2ui_contract.py`
@@ -12,14 +13,14 @@
 
 ## Scope Correction
 
-This corrected handoff withdraws the earlier out-of-scope control-plane claims from the `feat-a2ui-contract` review.
+This corrected handoff withdraws the earlier out-of-scope non-runtime claims from the `feat-a2ui-contract` review.
 
 Runtime review scope is only commit `b929fe6c7a1159c7882acedd247aca31a93cd123` and only these files:
 
 - `src/qual/ui/a2ui.py`
 - `tests/unit/test_a2ui_contract.py`
 
-No synthetic handback or packet-control behavior changes are claimed here. This packet asks the reviewer to evaluate only the runtime A2UI commit and the two runtime files above. Any future control-plane source work requires a separate high-risk review packet with lane ownership, approval basis, and a concrete Milestone 3 engine-loop blocker.
+No non-runtime behavior changes are claimed here. This packet asks the reviewer to evaluate only the runtime A2UI commit and the two runtime files above. Any future non-runtime source work requires a separate high-risk review packet with lane ownership, approval basis, and a concrete Milestone 3 engine-loop blocker.
 
 ## Canonical Demo-Path Mapping
 
@@ -50,5 +51,5 @@ Required gates for the corrected handoff:
 ## Risks Or Blockers
 
 - Runtime A2UI claims are limited to commit `b929fe6c7a1159c7882acedd247aca31a93cd123`.
-- Control-plane source work is not presented as A2UI runtime work.
-- Any future control-plane source work should be split into a separately owned high-risk review packet.
+- Non-runtime source work is not presented as A2UI runtime work.
+- Any future non-runtime source work should be split into a separately owned high-risk review packet.
