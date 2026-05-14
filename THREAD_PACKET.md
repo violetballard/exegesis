@@ -11,7 +11,7 @@
 ## High-Risk / Off-Lane Framing
 
 - Risk reason: this fixer pass keeps `codex_packet_handoff/tools/planner.py` and `tests/unit/test_lane_profiles.py` in scope to satisfy reviewer-required fixes for packet-planner behavior, outside the normal A2UI lane-owned runtime paths.
-- Budget used for the corrected fixer scope: high-risk cap of `4` meaningful tasks for source/test changes; packet-only corrections are included only to resubmit the handoff coherently.
+- Budget used for the corrected fixer scope: high-risk cap of `4` meaningful tasks, including the packet-only corrections needed to resubmit the handoff coherently.
 - Approval/scope basis: the reviewer packet explicitly required either removing planner changes from scope or providing explicit approval/scope justification; this packet chooses the full `main..HEAD` review target and includes the planner source/test changes only for that required correction.
 
 ## Tasks Completed
@@ -20,12 +20,10 @@
    Canonical demo-path step advanced: `preview and apply or reject a patch`; removes off-lane runtime contamination so the A2UI contract handoff can be reviewed against the patch-preview/apply support surface only.
 2. Verified the intended A2UI action canonicalization behavior is already present in the corrected `main` target baseline.
    Canonical demo-path step advanced: `preview and apply or reject a patch`; confirms the deterministic A2UI action payload behavior needed by CLI fallback rendering is already available to the demo path.
-3. Removed the synthetic `tasks_completed` fallback from `codex_packet_handoff/tools/planner.py` and updated this handoff packet so the files changed, shared/locked status, tasks, risks, and command outcomes describe the exact corrected merge candidate.
+3. Removed the synthetic `tasks_completed` fallback from `codex_packet_handoff/tools/planner.py` and clarified generated feature packets so the active engine execution order cannot be read as a hard merge prerequisite unless a packet explicitly lists one.
    Canonical demo-path step advanced: `preview and apply or reject a patch`; prevents generated handoff packets and stale packet claims from inventing completed work or misleading review of the patch-preview/apply support surface.
-4. Added packet-planner regression coverage in `tests/unit/test_lane_profiles.py`.
-   Canonical demo-path step advanced: `preview and apply or reject a patch`; keeps the corrected handoff behavior testable without adding the absent `tests/unit/test_packet_planner.py` file.
-5. Reproduced the integrator blocker locally and clarified generated feature packets so the active engine execution order cannot be read as a hard merge prerequisite unless a packet explicitly lists one.
-   Canonical demo-path step advanced: `preview and apply or reject a patch`; lets the A2UI contract packet be re-reviewed on its actual diff instead of being blocked by an undeclared `feat-engine-runs` predecessor.
+4. Added packet-planner regression coverage in `tests/unit/test_lane_profiles.py` and reissued this packet with an accurate files-changed list, shared/locked status, runtime scope note, risks, and command outcomes.
+   Canonical demo-path step advanced: `preview and apply or reject a patch`; keeps the corrected handoff behavior testable without adding the absent `tests/unit/test_packet_planner.py` file and lets the A2UI contract packet be re-reviewed on its actual diff instead of stale packet claims.
 
 ## Files Changed In Corrected Merge Diff
 
@@ -50,7 +48,7 @@ No `client-textual/`, retrieval runtime, daemon source, broad docs, shared-contr
 
 ## Runtime Scope Note
 
-The isolated runtime change at `b929fe6c7a1159c7882acedd247aca31a93cd123` canonicalized materialized A2UI action order and added focused test coverage in `src/qual/ui/a2ui.py` and `tests/unit/test_a2ui_contract.py`. Current `main` already contains that behavior, so the authoritative review target is the corrected handoff/planner diff in `main..HEAD`, not the historical runtime commit and not the historical `b929fe6c7..HEAD` range. `codex_packet_handoff/tools/planner.py` is changed only to remove the synthetic `tasks_completed` fallback. Packet-planner regression coverage lives in `tests/unit/test_lane_profiles.py`; `tests/unit/test_packet_planner.py` is not present in this tree and is not claimed as coverage.
+The isolated runtime change at `b929fe6c7a1159c7882acedd247aca31a93cd123` canonicalized materialized A2UI action order and added focused test coverage in `src/qual/ui/a2ui.py` and `tests/unit/test_a2ui_contract.py`. Current `main` already contains that behavior, so the authoritative review target is the corrected handoff/planner diff in `main..HEAD`, not the historical runtime commit and not the historical `b929fe6c7..HEAD` range. `codex_packet_handoff/tools/planner.py` is changed only to remove the synthetic `tasks_completed` fallback and clarify that engine execution order is planning guidance, not an implicit merge prerequisite. Packet-planner regression coverage lives in `tests/unit/test_lane_profiles.py`; `tests/unit/test_packet_planner.py` is not present in this tree and is not claimed as coverage.
 
 ## Demo-Path Mapping
 
