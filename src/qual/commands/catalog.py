@@ -1495,6 +1495,9 @@ class CommandDemoRetrievalContextContract:
     search_action_line: str
     basket_engine_action: str
     basket_action_line: str
+    required_prior_flow_steps: tuple[str, ...]
+    required_prior_demo_path_steps: tuple[str, ...]
+    required_prior_command_lines: tuple[str, ...]
     is_cli_entrypoint: bool
     search_is_exact_action: bool
     basket_is_exact_action: bool
@@ -7820,18 +7823,26 @@ def command_demo_retrieval_context_contract(
         search_action_line=search_coverage.action_line,
         basket_engine_action=basket_coverage.engine_action,
         basket_action_line=basket_coverage.action_line,
+        required_prior_flow_steps=command_demo_retrieval_context_prerequisite_flow_steps(),
+        required_prior_demo_path_steps=command_demo_retrieval_context_prerequisite_demo_path_steps(),
+        required_prior_command_lines=command_demo_retrieval_context_prerequisite_command_lines(
+            specs,
+            launcher_argv,
+        ),
         is_cli_entrypoint=cli_validation.is_cli_entrypoint,
         search_is_exact_action=resolved_search_action == search_coverage.engine_action,
         basket_is_exact_action=resolved_basket_action == basket_coverage.engine_action,
         action_order=(search_coverage.engine_action, basket_coverage.engine_action),
     )
-    _validate_command_demo_retrieval_context_contract(contract, step)
+    _validate_command_demo_retrieval_context_contract(contract, step, specs, launcher_argv)
     return contract
 
 
 def _validate_command_demo_retrieval_context_contract(
     contract: CommandDemoRetrievalContextContract,
     step: CommandDemoExecutionPlanStep,
+    specs: tuple[CommandSpec, ...],
+    launcher_argv: tuple[str, ...],
 ) -> None:
     if contract.demo_path_step != "retrieve relevant material and gather context":
         raise ValueError("Command demo retrieval contract path step is inconsistent")
@@ -7852,12 +7863,64 @@ def _validate_command_demo_retrieval_context_contract(
         raise ValueError("Command demo retrieval action order is inconsistent")
     if contract.action_order != step.engine_actions:
         raise ValueError("Command demo retrieval actions are not in the execution plan")
+    if contract.required_prior_flow_steps != command_demo_retrieval_context_prerequisite_flow_steps():
+        raise ValueError("Command demo retrieval prerequisites are inconsistent")
+    if (
+        contract.required_prior_demo_path_steps
+        != command_demo_retrieval_context_prerequisite_demo_path_steps()
+    ):
+        raise ValueError("Command demo retrieval path prerequisites are inconsistent")
+    if (
+        contract.required_prior_command_lines
+        != command_demo_retrieval_context_prerequisite_command_lines(specs, launcher_argv)
+    ):
+        raise ValueError("Command demo retrieval command-line prerequisites are inconsistent")
     if not contract.is_cli_entrypoint:
         raise ValueError("Command demo retrieval command is not a CLI entrypoint")
     if not contract.search_is_exact_action or not contract.basket_is_exact_action:
         raise ValueError("Command demo retrieval actions are not exact")
     if contract.search_action_line == contract.basket_action_line:
         raise ValueError("Command demo retrieval action lines must be distinct")
+
+
+def command_demo_retrieval_context_prerequisite_flow_steps() -> tuple[str, ...]:
+    flow_steps = command_demo_flow_steps()
+    retrieval_index = flow_steps.index("retrieval")
+    return flow_steps[:retrieval_index]
+
+
+def command_demo_retrieval_context_prerequisite_demo_path_steps() -> tuple[str, ...]:
+    demo_path_by_flow_step = {
+        flow_step: demo_path_step
+        for flow_step, demo_path_step, _engine_actions in _DEMO_PATH_STEP_BY_FLOW_STEP
+    }
+    return tuple(
+        demo_path_by_flow_step[flow_step]
+        for flow_step in command_demo_retrieval_context_prerequisite_flow_steps()
+    )
+
+
+def command_demo_retrieval_context_prerequisite_command_lines(
+    specs: tuple[CommandSpec, ...] = COMMAND_SPECS,
+    launcher_argv: tuple[str, ...] = COMMAND_SMOKE_CLI_LAUNCHER_ARGV,
+) -> tuple[str, ...]:
+    lines: list[str] = []
+    missing_flow_steps: list[str] = []
+    for flow_step in command_demo_retrieval_context_prerequisite_flow_steps():
+        step = command_demo_execution_plan_step_for_flow_step(
+            flow_step,
+            specs,
+            launcher_argv,
+        )
+        if step is None:
+            missing_flow_steps.append(flow_step)
+            continue
+        lines.append(step.command_line)
+
+    if missing_flow_steps:
+        missing = ", ".join(missing_flow_steps)
+        raise ValueError(f"Command demo retrieval prerequisites are missing: {missing}")
+    return tuple(lines)
 
 
 def command_demo_retrieval_context_lookup_table(
@@ -7935,6 +7998,9 @@ def command_demo_retrieval_context_payload(
         "search_action_line": contract.search_action_line,
         "basket_engine_action": contract.basket_engine_action,
         "basket_action_line": contract.basket_action_line,
+        "required_prior_flow_steps": contract.required_prior_flow_steps,
+        "required_prior_demo_path_steps": contract.required_prior_demo_path_steps,
+        "required_prior_command_lines": contract.required_prior_command_lines,
         "is_cli_entrypoint": contract.is_cli_entrypoint,
         "search_is_exact_action": contract.search_is_exact_action,
         "basket_is_exact_action": contract.basket_is_exact_action,
@@ -8392,6 +8458,21 @@ def command_mvp_demo_retrieval_context_lookup_table(
     launcher_argv: tuple[str, ...] = COMMAND_SMOKE_CLI_LAUNCHER_ARGV,
 ) -> tuple[tuple[str, str], ...]:
     return command_demo_retrieval_context_lookup_table(specs, launcher_argv)
+
+
+def command_mvp_demo_retrieval_context_prerequisite_flow_steps() -> tuple[str, ...]:
+    return command_demo_retrieval_context_prerequisite_flow_steps()
+
+
+def command_mvp_demo_retrieval_context_prerequisite_demo_path_steps() -> tuple[str, ...]:
+    return command_demo_retrieval_context_prerequisite_demo_path_steps()
+
+
+def command_mvp_demo_retrieval_context_prerequisite_command_lines(
+    specs: tuple[CommandSpec, ...] = COMMAND_SPECS,
+    launcher_argv: tuple[str, ...] = COMMAND_SMOKE_CLI_LAUNCHER_ARGV,
+) -> tuple[str, ...]:
+    return command_demo_retrieval_context_prerequisite_command_lines(specs, launcher_argv)
 
 
 def command_mvp_demo_retrieval_context_payload(

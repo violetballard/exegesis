@@ -261,6 +261,12 @@ from src.qual.commands.catalog import (
     command_mvp_demo_retrieval_context_json as _retrieval_context_json,
     command_mvp_demo_retrieval_context_lookup_table as _retrieval_context_lookup_table,
     command_mvp_demo_retrieval_context_payload as _retrieval_context_payload,
+    command_mvp_demo_retrieval_context_prerequisite_command_lines
+    as _retrieval_context_prerequisite_command_lines,
+    command_mvp_demo_retrieval_context_prerequisite_demo_path_steps
+    as _retrieval_context_prerequisite_demo_path_steps,
+    command_mvp_demo_retrieval_context_prerequisite_flow_steps
+    as _retrieval_context_prerequisite_flow_steps,
     command_mvp_demo_retrieval_context_summary as _retrieval_context_summary,
     command_mvp_demo_persist_continue_contract as _persist_continue_contract,
     command_mvp_demo_persist_continue_json as _persist_continue_json,
@@ -940,6 +946,9 @@ __all__ = [
     "canonical_command_retrieval_context_json",
     "canonical_command_retrieval_context_lookup_table",
     "canonical_command_retrieval_context_payload",
+    "canonical_command_retrieval_context_prerequisite_command_lines",
+    "canonical_command_retrieval_context_prerequisite_demo_path_steps",
+    "canonical_command_retrieval_context_prerequisite_flow_steps",
     "canonical_command_retrieval_context_summary",
     "canonical_command_persist_continue_contract",
     "canonical_command_persist_continue_json",
@@ -3609,6 +3618,18 @@ def canonical_command_retrieval_context_payload() -> dict[str, object]:
 
 def canonical_command_retrieval_context_json() -> str:
     return _retrieval_context_json()
+
+
+def canonical_command_retrieval_context_prerequisite_flow_steps() -> tuple[str, ...]:
+    return _retrieval_context_prerequisite_flow_steps()
+
+
+def canonical_command_retrieval_context_prerequisite_demo_path_steps() -> tuple[str, ...]:
+    return _retrieval_context_prerequisite_demo_path_steps()
+
+
+def canonical_command_retrieval_context_prerequisite_command_lines() -> tuple[str, ...]:
+    return _retrieval_context_prerequisite_command_lines()
 
 
 def canonical_command_persist_continue_contract() -> CommandDemoPersistContinueContract:
