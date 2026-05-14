@@ -34,13 +34,13 @@
 
 ## Plan Alignment
 
-- Roadmap item(s) affected: `ROADMAP.md` Milestone 5: A2UI Presentation Layer (In Progress)
-  - Scope bullets: define A2UI output contract for agent-produced presentation artifacts, add deterministic card/section/action payload generation, and provide CLI rendering fallback for the same structured payloads.
-  - Task anchor: `ROADMAP.md` `MVP Focus Through 2026-05-04` lists `feat-a2ui-contract` as a current active implementation emphasis under Milestone 5.
-- Vision capability affected: `PRODUCT_VISION.md` Capability 5: Agent-to-UI protocol (`A2UI`)
-  - Agents emit structured presentation artifacts consumable by CLI first, then Exegesis Console, then future Studio UI.
-  - CLI fallback remains able to render the same underlying artifacts.
-- Canonical demo-path step advanced: `AGENTS.md` active MVP note item `A2UI contracts with CLI fallback`. This work makes that step more real by keeping structured A2UI cards/actions deterministic while preserving CLI fallback rendering of the same artifacts.
+- Roadmap item(s) affected: `ROADMAP.md` Milestone 3: Real workflow loop.
+  - Scope bullets: lock user-facing output contracts, expand end-to-end verification scenarios, and keep contract changes documented and intentional.
+  - Task anchor: current MVP narrowing in `AGENTS.md` names `A2UI contracts with CLI fallback` as one of the active canonical paths.
+- Vision capability affected: `PRODUCT_VISION.md` Capability 4: Shared UI contract / operator-first control surface.
+  - Engine emits structured outputs that can be consumed by CLI now and `Exegesis Console` next.
+  - Renderers remain outside shared contract scope; this candidate preserves CLI fallback as the first renderer without starting console renderer work.
+- Canonical demo-path step advanced: `AGENTS.md` active MVP note item `A2UI contracts with CLI fallback`. This work makes that path more real by removing a concrete blocker where equivalent action payloads could render in nondeterministic order, which made CLI snapshots and later contract consumers disagree about the same engine-authored artifact.
 - Explicitly deferred from this candidate: Exegesis Console renderer work, Studio renderer work, provider routing changes, and core engine policy changes.
 
 ## Tasks completed
@@ -55,24 +55,24 @@
 
 ## Required Handoff Fields
 
-- Roadmap item(s) affected: `ROADMAP.md` Milestone 5: A2UI Presentation Layer (In Progress); `ROADMAP.md` `MVP Focus Through 2026-05-04` task anchor for `feat-a2ui-contract`
-- Vision capability affected: `PRODUCT_VISION.md` Capability 5: Agent-to-UI protocol (`A2UI`)
-- Canonical demo-path step advanced: `AGENTS.md` active MVP note item `A2UI contracts with CLI fallback`
+- Roadmap item(s) affected: `ROADMAP.md` Milestone 3: Real workflow loop; current MVP `A2UI contracts with CLI fallback` canonical path
+- Vision capability affected: `PRODUCT_VISION.md` Capability 4: Shared UI contract / operator-first control surface
+- Canonical demo-path step advanced: `AGENTS.md` active MVP note item `A2UI contracts with CLI fallback`; deterministic A2UI action ordering removes the concrete CLI fallback snapshot/consumer mismatch blocker for that path
 - Routing/provider impact note: None
-- Scope / approval note: Lane-owned edits are under `src/qual/ui/**`. Test coverage files under `tests/unit/**` support those changes. `codex_packet_handoff/tools/planner.py`, `tests/unit/test_packet_planner.py`, and `.codex/**` packet state are outside the UI lane and are submitted as explicit high-risk review scope because they only correct handoff metadata behavior needed for this resubmission; they do not change runtime provider routing or core engine entrypoints.
+- Scope / approval note: Lane-owned edits are under `src/qual/ui/**`. Test coverage files under `tests/unit/**` support those changes. `codex_packet_handoff/tools/planner.py`, `tests/unit/test_packet_planner.py`, and `.codex/**` packet state are outside the UI lane and are submitted as explicit high-risk review scope because they only correct handoff metadata behavior needed for this resubmission; they do not change runtime provider routing or core engine entrypoints. This candidate intentionally exceeds the high-risk 4-task, 8-file, and 300-net-LOC limits and requires integrator approval for that full source-bearing range before merge.
 
 ## Commands Run And Outcomes
 
-- `make scope-check`: PASS on fixer re-run (`no policy for branch 'codex/feat-a2ui-contract'; skipping`, then passed)
-- `./quality-format.sh --check`: PASS on fixer re-run
-- `./quality-lint.sh`: PASS on fixer re-run
+- `make scope-check`: PASS on fixer re-run (`[devex] scope-check: passed for branch 'codex/feat-a2ui-contract'`)
+- `./quality-format.sh --check`: PASS on fixer re-run (`[format] check passed`)
+- `./quality-lint.sh`: PASS on fixer re-run (`[lint] passed`)
 - `python -m pytest -q src/qual/ui/test_a2ui_fallback_safety.py -k 'engine_output'`: PASS (`12 passed, 412 deselected`)
 - `python -m pytest src/qual/ui/test_a2ui_fallback_safety.py tests/unit/test_a2ui_contract.py tests/unit/test_packet_planner.py tests/unit/test_ui_shell.py`: INCONCLUSIVE, process exited with code `-1` after collecting 538 tests and starting `src/qual/ui/test_a2ui_fallback_safety.py`
 - `./quality-test.sh`: INCONCLUSIVE on fixer re-run; process exited with code `-1` during `tests/unit.sh` verbose `unittest discover` after `test_engine_contract_manifest_bundles_the_cli_fallback_route_and_entrypoint` started; no assertion failure was reported before termination
-- `./typecheck-test.sh`: PASS on fixer re-run
+- `./typecheck-test.sh`: PASS on fixer re-run (`[typecheck] compiling Python sources in src/`)
 - `make ci`: INCONCLUSIVE on fixer re-run; completed scope/format/lint/typecheck sub-gates, then terminated during nested `quality-test.sh` with `make: *** [ci] Terminated: 15`
 
 ## Risks / blockers
 
-- Risk: `MEDIUM`
-- Blockers: full `quality-test.sh` / `make ci` unit discovery was terminated by the local command runner before completion; focused new `engine_output` coverage passed.
+- Risk: `HIGH`
+- Blockers: full `quality-test.sh` / `make ci` unit discovery was terminated by the local command runner before completion, so this packet remains blocked until those gates pass. `.codex/**` metadata files still contain stale Milestone 5 / capability 5 strings, but this sandbox cannot update them because temp-file creation under `.codex` fails with `Operation not permitted`; the reviewer-facing `THREAD_PACKET.md` has been aligned to Milestone 3 / capability 4.
