@@ -28,6 +28,7 @@
 Authoritative branch-tip review target, `main..HEAD`:
 
 - `.codex/kickoff_packets/feat-a2ui-contract.md`
+- `.codex/lane_meta/feat-a2ui-contract.json`
 - `THREAD_PACKET.md`
 
 No `client-textual/`, retrieval runtime, daemon source, shared-contract source, `.codex/packet_planner/state.json`, `codex_packet_handoff/tools/planner.py`, `tests/unit/test_lane_profiles.py`, or `tests/unit/test_packet_planner.py` are part of the branch-tip merge surface.
@@ -38,11 +39,11 @@ No `client-textual/`, retrieval runtime, daemon source, shared-contract source, 
 - Shared-by-approval files changed in branch-tip review target: none.
 - A2UI runtime/source files changed in branch-tip review target: none.
 - Packet-planner source/test/state files changed in branch-tip review target: none.
-- Packet-only files changed in branch-tip review target: `.codex/kickoff_packets/feat-a2ui-contract.md`, `THREAD_PACKET.md`.
+- Packet/lane metadata files changed in branch-tip review target: `.codex/kickoff_packets/feat-a2ui-contract.md`, `.codex/lane_meta/feat-a2ui-contract.json`, `THREAD_PACKET.md`.
 
 ## Review Surface Note
 
-The corrected review target is branch tip `HEAD` against current `main` using `main..HEAD`. The merge surface is metadata-only and consists of `.codex/kickoff_packets/feat-a2ui-contract.md` and `THREAD_PACKET.md`. Prior packets that described a separate runtime commit or unsupported packet-planner changes are stale and superseded by this handoff.
+The corrected review target is branch tip `HEAD` against current `main` using `main..HEAD`. The merge surface is metadata-only and consists of `.codex/kickoff_packets/feat-a2ui-contract.md`, `.codex/lane_meta/feat-a2ui-contract.json`, and `THREAD_PACKET.md`. Prior packets that described a separate runtime commit or unsupported packet-planner changes are stale and superseded by this handoff.
 
 ## Demo-Path Mapping
 
@@ -62,7 +63,7 @@ Required gates for the corrected branch-tip packet:
 
 ## Risks / Blockers
 
-- Merge risk is limited to packet metadata because the branch-tip merge surface is packet-only.
+- Merge risk is limited to packet and lane metadata because the branch-tip merge surface is metadata-only.
 - No router source, shared contract source, packet-planner state/source/test, Textual file, or runtime A2UI file is in the branch-tip merge surface.
 - Fresh required gates are green on the corrected branch-tip packet.
 - Control-plane lane metadata has been corrected so regenerated review packets use this narrowed branch-tip surface.
