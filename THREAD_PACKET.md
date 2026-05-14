@@ -3,7 +3,7 @@
 - Branch name: `codex/feat-a2ui-contract`
 - Lane: `feat-a2ui-contract`
 - Merge target: current `main`
-- Handoff type: retargeted single-commit runtime review packet.
+- Handoff type: runtime-only A2UI re-review packet.
 - Review target: exact commit `b929fe6c7a1159c7882acedd247aca31a93cd123` (`fix(a2ui): canonicalize materialized action order`).
 - Review range: `b929fe6c7a1159c7882acedd247aca31a93cd123^..b929fe6c7a1159c7882acedd247aca31a93cd123`.
 - Final review scope: exactly `b929fe6c7a1159c7882acedd247aca31a93cd123^..b929fe6c7a1159c7882acedd247aca31a93cd123`; no branch-tip commits after that runtime commit are submitted for runtime review.
@@ -30,7 +30,8 @@ Required-fix disposition:
 - Required fix 1: the submitted review scope is the single runtime commit `b929fe6c7a1159c7882acedd247aca31a93cd123`; the only review-target files are `src/qual/ui/a2ui.py` and `tests/unit/test_a2ui_contract.py`.
 - Required fix 2: each numbered runtime task below explicitly maps to the canonical demo-path step `preview and apply or reject a patch`; the final demo-path statement is included after the task list.
 - Required fix 3: shared/integrator-locked impact is `None` for this runtime-only packet; no high-risk/shared exception or approval basis is claimed.
-- Required fix 4: required gates are restated below for the corrected runtime-only scope.
+- Required fix 4: no shared/integrator-locked or shared-by-approval paths are part of this runtime-only review scope, so high-risk framing and the four-task cap are not invoked.
+- Required fix 5: the canonical demo-path step advanced by this lane is explicitly restated as `preview and apply or reject a patch`.
 
 ## Canonical Demo-Path Mapping
 
@@ -77,7 +78,7 @@ None. This runtime-only A2UI contract change does not touch model routing, provi
 
 ## Commands Run And Outcomes
 
-Required gates for the corrected handoff:
+Required gates for this fixer handoff:
 
 - `make scope-check` - passed for branch `codex/feat-a2ui-contract`.
 - `./quality-format.sh --check` - passed.
