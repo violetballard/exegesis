@@ -8,7 +8,6 @@
 *.log
 
 # Packet/automation runtime state (local only)
-# Live state under .codex stays untracked; only force-add stable config/example files when needed.
 .codex/
 
 # Python caches

@@ -29,8 +29,8 @@ The runtime A2UI change strengthens `preview and apply or reject a patch` by kee
 
 Roadmap/product mapping:
 
-- `ROADMAP.md`: Milestone A2UI contract work for shared card/action contracts and selection models.
-- `PRODUCT_VISION.md`: shared UI contract (`A2UI`) that keeps renderer behavior declarative and predictable.
+- `ROADMAP.md`: Milestone 3 real workflow loop, narrowed to CLI fallback determinism for already-materialized A2UI actions while preserving CLI compatibility.
+- `PRODUCT_VISION.md`: Canonical engine contract and shared UI contract (`A2UI`), narrowed to deterministic action identity in client-agnostic runtime payloads. This packet does not claim new shared card/action/selection types or planner canonicalization, and renderers remain outside shared.
 - `ARCHITECTURE.md`: A2UI card/action contracts with typed action handling and CLI fallback preserved.
 
 ## Tasks Completed
@@ -38,6 +38,7 @@ Roadmap/product mapping:
 1. Canonicalized materialized A2UI action ordering so filtered action payloads are stable for engine-facing CLI fallback consumers.
 2. Preserved typed and allowlisted action filtering, including exclusion of unsupported action shapes from the A2UI contract surface.
 3. Preserved CLI rendering fallback behavior and covered deterministic filtered action ordering in `tests/unit/test_a2ui_contract.py`.
+4. Removed unsubmitted planner/handoff-tooling claims from the packet scope; `codex_packet_handoff/tools/planner.py`, `tests/unit/test_packet_planner.py`, and broad `THREAD_PACKET.md` maintenance are not runtime review-target files.
 
 ## Files Changed
 
@@ -48,6 +49,12 @@ Review-target files changed in `b929fe6c7a1159c7882acedd247aca31a93cd123^..b929f
 
 Textual implementation files are not in scope for this retargeted review.
 
+No planner or packet-planner test files are in scope. In particular, this packet makes no review claim for `codex_packet_handoff/tools/planner.py` or `tests/unit/test_packet_planner.py`.
+
+## Shared/Integrator-Locked Impact
+
+None for the runtime review target. Commit `b929fe6c7a1159c7882acedd247aca31a93cd123` changes only lane-owned `src/qual/ui/a2ui.py` and `tests/unit/test_a2ui_contract.py`; it does not edit shared-by-approval or integrator-locked files.
+
 ## Commands Run And Outcomes
 
 Required gates for the corrected handoff:
@@ -55,9 +62,9 @@ Required gates for the corrected handoff:
 - `make scope-check` - passed for branch `codex/feat-a2ui-contract`.
 - `./quality-format.sh --check` - passed.
 - `./quality-lint.sh` - passed shell syntax and trailing whitespace checks.
-- `./quality-test.sh` - passed smoke tests and 511 unit tests, including `tests/unit/test_a2ui_contract.py`.
+- `./quality-test.sh` - passed smoke tests and 515 unit tests, including `tests/unit/test_a2ui_contract.py`.
 - `./typecheck-test.sh` - passed Python source compilation.
-- `make ci` - passed scope-check, format, lint, compile/typecheck, smoke tests, and 511 unit tests.
+- `make ci` - passed scope-check, format, lint, compile/typecheck, smoke tests, and 515 unit tests.
 
 ## Risks Or Blockers
 

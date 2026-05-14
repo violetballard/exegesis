@@ -3,41 +3,27 @@ from __future__ import annotations
 import json
 from pathlib import Path
 
-try:
-    from lane_profiles import default_lane_meta
-except ImportError:  # pragma: no cover - package execution fallback
-    from .lane_profiles import default_lane_meta
-
 LANES = [
     'feat-context-storage',
+    'feat-ux-flow',
     'feat-commands',
     'feat-retrieval-fts',
     'feat-a2ui-contract',
     'feat-engine-runs',
-    'feat-console-shell',
-    'feat-console-workflow',
-    'feat-ocr-import',
-    'feat-literature-import',
-    'feat-rag-index',
-    'feat-qual-coding',
-    'feat-editor-basics',
-    'feat-citations',
-    'feat-export',
-    'feat-zotero-import',
-    'feat-formatting-bar',
-    'feat-developer-provider-config',
-    'feat-project-transfer',
-    'feat-desktop-packaging',
-    'feat-cop-lite-licensing',
-    'feat-browser-pdf-capture',
-    'feat-python-sidecar-api',
-    'feat-native-workstation',
-    'feat-open-access-deep-research',
-    'feat-quant-analysis',
-    'feat-advanced-qual-visuals',
-    'feat-confidential-collaboration',
-    'feat-ipad-native-lite',
+    'feat-console',
 ]
+TEMPLATE = {
+  "scope_goal": "",
+  "tasks_completed": [],
+  "risk": "LOW",
+  "roadmap_items": [],
+  "vision_capabilities": [],
+  "routing_provider_impact": "None",
+  "proposed_readme_patch": "",
+  "shared_file_exception": False,
+  "kickoff_budget_note": "",
+  "approved_exception_note": ""
+}
 
 if __name__ == "__main__":
     base = Path(".codex/lane_meta")
@@ -45,5 +31,5 @@ if __name__ == "__main__":
     for lane in LANES:
         p = base / f"{lane}.json"
         if not p.exists():
-            p.write_text(json.dumps(default_lane_meta(lane), indent=2))
+            p.write_text(json.dumps(TEMPLATE, indent=2))
             print(p)

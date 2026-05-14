@@ -1,0 +1,35 @@
+@@ -0,0 +1,33 @@
++{
++  "cloud_retry_at": 1773814001.373374,
++  "fixer_fallback_jobs": {
++    "feat-commands": {
++      "log": ".codex/packet_router/logs/fixer__feat-commands__20260315T203819Z.log",
++      "ts": "20260315T203819Z"
++    },
++    "feat-context-storage": {
++      "log": ".codex/packet_router/logs/fixer__feat-context-storage__20260317T034728Z.log",
++      "ts": "20260317T034728Z"
++    }
++  },
++  "fixer_quota_retry_ts": {
++    "feat-commands": 1773610780.654793,
++    "feat-context-storage": 1774040760.0
++  },
++  "fixer_thread_ids": {},
++  "last_mode_switch_at": 1773812201.3733802,
++  "last_quota_reason": "cloud probe exited 1",
++  "reviewer_fixer_cursor": {},
++  "reviewer_fixer_retry_ts": {},
++  "reviewer_quota_global_retry_ts": 1773720474.800697,
++  "reviewer_quota_retry_ts": {
++    "feat-commands": 1773504901.978508,
++    "feat-context-storage": 1773720474.800697
++  },
++  "reviewer_thread_ids": {
++    "feat-commands": "019cf336-7811-71a3-85ed-9a88471dc9b2",
++    "feat-context-storage": "019cf375-c198-7152-a5ee-38c0823061c1"
++  },
++  "reviewer_thread_missing_lanes": [],
++  "runtime_mode": "local_fallback"
++}
+\ No newline at end of line
