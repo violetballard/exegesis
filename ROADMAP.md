@@ -385,23 +385,25 @@ Exit criteria:
 - browser detection, handoff contract, packaging, and import handoff are specified
 - no runtime browser extension, local capture endpoint, native bridge, or import behavior is active until the lane is enabled
 
-## Milestone 20: Python Backend Sidecar API
+## Milestone 20: Python Backend Sidecar Bridge
 
 Status: post-MVP planned, disabled
 
 Scope:
-- add a localhost-only FastAPI sidecar for Python-backed features
-- package the sidecar as a macOS PyInstaller binary for Studio Workstation supervision
-- include health, readiness, version, feature manifest, shutdown, local auth, request limits, log redaction, and sidecar lifecycle contracts
+- add a macOS-native XPC bridge for Python-backed features used by Studio Workstation
+- package the sidecar as a signed, sandboxed, bundled Python worker/XPC service inside the Studio `.app`
+- follow stricter App Store-compatible sidecar rules even for direct distribution: bundled code only, signed dependencies, inherited sandbox, no downloaded executable Python packages, no arbitrary generated-code execution, no localhost API for native Studio
+- include health, readiness, version, feature manifest, shutdown, request limits, log redaction, code-signature, entitlement, and sidecar lifecycle contracts
 - require future Studio Python features to expose Workstation-facing behavior through the sidecar when applicable
+- keep Python/Textual Lite separate: it remains the cross-platform Python app path and may call the shared Python service layer directly instead of using the native XPC sidecar
 
 Lane mapping:
 - `feat-python-sidecar-api`: disabled until explicitly activated after the MVP launch gate
 
 Exit criteria:
-- sidecar endpoint, schema, security, lifecycle, packaging, and supervision contracts are specified
-- macOS Studio sidecar packaging expectations are specified
-- no runtime sidecar API or binary packaging behavior is active until the lane is enabled
+- sidecar XPC/RPC schema, security, lifecycle, packaging, and supervision contracts are specified
+- macOS Studio sidecar signing, sandboxing, entitlement, and packaging expectations are specified
+- no runtime sidecar bridge or signed service/helper packaging behavior is active until the lane is enabled
 
 ## Milestone 21: Native Workstation and Signed Distribution
 

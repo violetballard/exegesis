@@ -1217,6 +1217,12 @@ Intent:
 - Bundle the local app runtime around the Engine, Textual local server, pywebview shell, and SQLite storage.
 - Publish downloadable binary releases through GitHub Releases.
 
+Boundary:
+- This milestone is the cross-platform Python/Textual desktop packaging path.
+- It is not the macOS-only native Studio Workstation.
+- The pywebview shell gives users a desktop-window experience, but Python remains the app runtime and Textual can call shared Python services directly.
+- Native Studio remains macOS-only and uses the Milestone 20 XPC sidecar bridge instead of this local Textual server architecture.
+
 Target artifacts:
 - macOS: `.dmg`
 - Windows: `.msi`

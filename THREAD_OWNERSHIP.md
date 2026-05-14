@@ -214,7 +214,7 @@ Detailed task breakdown lives in `/Users/doctor-violet/Library/CloudStorage/Box-
     - `scripts/sidecar/**`
     - `docs/sidecar/**`
   - Current status:
-    - disabled until post-MVP Python backend sidecar API work is intentionally activated
+    - disabled until post-MVP Python backend sidecar bridge work is intentionally activated
 
 - `codex/feat-native-workstation*`
   - Owned paths:

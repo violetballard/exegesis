@@ -15,7 +15,7 @@ Current post-MVP lanes:
 Activation rule:
 - These lanes remain disabled in router config.
 - Do not schedule, implement, or polish these features until explicitly enabled after the MVP launch gate.
-- Runtime browser extension, native bridge, import handoff, packaging behavior, Python sidecar API behavior, PyInstaller sidecar packaging, Studio Workstation supervision, native Workstation packaging/signing/distribution, open web search, multi-agent research orchestration, source ranking, import-batch behavior, CSV dataset analysis, statistical testing, plot generation, advanced qualitative coding visualizations, codebook generation, confidential collaboration/sync behavior, and native iPad Lite behavior must remain inactive until the relevant lane is intentionally activated.
+- Runtime browser extension, native bridge, import handoff, packaging behavior, Python sidecar bridge behavior, signed bundled sidecar packaging, Studio Workstation supervision, native Workstation packaging/signing/distribution, open web search, multi-agent research orchestration, source ranking, import-batch behavior, CSV dataset analysis, statistical testing, plot generation, advanced qualitative coding visualizations, codebook generation, confidential collaboration/sync behavior, and native iPad Lite behavior must remain inactive until the relevant lane is intentionally activated.
 
 ## Milestone 19: Browser PDF Capture Extension
 
@@ -440,41 +440,43 @@ Acceptance criteria:
 - Extension remains small enough that future browser changes are easy to maintain.
 
 
-## Milestone 20: Python Backend Sidecar API
+## Milestone 20: Python Backend Sidecar Bridge
 
 Lane: `feat-python-sidecar-api` (disabled)
 
 Intent:
-- Add a localhost-only FastAPI sidecar for Python-backed Exegesis features so the native Workstation can run, monitor, and talk to the Python backend without embedding Python directly.
-- Package the sidecar as a standalone binary with PyInstaller for Developer and Lite desktop distributions.
-- Make the sidecar the required HTTP boundary for Python features added after this milestone.
+- Add a macOS-native XPC Python sidecar bridge for Python-backed Exegesis features so Studio Workstation can run, monitor, and call the Python backend without embedding Python into the SwiftUI app process.
+- Package the sidecar as a signed, sandboxed, bundled Python worker/XPC service inside the Studio `.app`.
+- Make the sidecar the required native Workstation boundary for Python features added after this milestone.
+- Reuse the same Python service layer in Python/Textual Lite, but treat Lite as a different runtime: Python/Textual Lite can import and call Python services directly because Python is the app runtime there.
+- Follow stricter App Store-compatible constraints for the native sidecar even when Studio is distributed outside the Mac App Store.
 - Keep the sidecar small, local, observable, and boring: it should be easy for Workstation to start, health-check, stop, and restart.
 
 Non-activation rule:
 - This milestone is post-MVP specification and lane scaffolding only.
-- Do not implement runtime FastAPI endpoints, PyInstaller builds, Workstation process management, or feature endpoint migration until this lane is explicitly enabled.
+- Do not implement runtime XPC services, bundled Python worker builds, Workstation process management, or feature handler migration until this lane is explicitly enabled.
 
 ### Product Boundary
 
 The sidecar owns:
-- localhost-only FastAPI application startup
-- stable health and readiness endpoints
-- local feature endpoint routing for Python-backed features
+- signed bundled Python worker/XPC service startup
+- stable health and readiness RPC handlers
+- local feature handler routing for Python-backed features
 - request/response schemas for Python feature calls
 - lightweight process metadata for Workstation monitoring
 - graceful shutdown behavior for the desktop app
 - sanitized structured logging suitable for local diagnostics
 
 The native Studio Workstation owns:
-- launching the packaged sidecar binary
-- selecting an ephemeral or configured localhost port
-- passing startup configuration and secrets through the approved secure channel
+- launching and supervising the bundled sidecar service/helper
+- verifying the sidecar bundle identity, code signature, entitlements, version, and schema compatibility before use
+- passing startup configuration through the approved XPC/bootstrap channel
 - monitoring sidecar health
 - restarting the sidecar when it fails within configured limits
 - presenting user-facing local backend status when needed
 
 The engine owns:
-- actual feature implementation behind sidecar routes
+- actual feature implementation behind sidecar handlers
 - SQLite/project storage access rules
 - confidential-mode enforcement
 - provider/key resolution through Developer or Lite configuration boundaries
@@ -484,56 +486,62 @@ Non-goals:
 - no remote server exposure
 - no public network binding
 - no browser-accessible unauthenticated broad API surface
+- no native Studio localhost API server
 - no cloud hosting
 - no replacement for the Lite License Gateway
 - no general plugin marketplace runtime
-- no attempt to make every old internal engine function an endpoint in the first batch
-- no WebSocket requirement unless a later feature explicitly needs streaming progress
+- no attempt to make every old internal engine function a sidecar handler in the first batch
+- no WebSocket requirement unless a later feature explicitly needs streaming progress through XPC-safe progress events
 
-### Localhost Security Model
+### XPC And Sandbox Security Model
 
-Binding:
-- The sidecar binds only to `127.0.0.1` by default.
-- `0.0.0.0`, LAN addresses, and public interfaces are rejected in packaged builds.
-- Developer debug builds may allow explicit loopback aliases only through a documented flag.
+Transport:
+- Native Studio uses XPC or an equivalent Apple-native signed helper/service boundary.
+- Native Studio must not expose a localhost HTTP API for the sidecar.
+- No CORS, browser-origin, or local-port access is needed for the native sidecar path.
+- Developer diagnostics may include a separate debug-only local transport only if it is explicitly compiled out of production Studio builds.
 
-Authentication:
-- Workstation generates a per-launch random bearer token or equivalent local session secret.
-- All non-health endpoints require the token.
-- The token is passed to the sidecar through process environment, stdin, or another local-only secure startup channel.
-- The token must not be written to logs, project files, transcripts, or crash reports.
+Sandbox and signing:
+- Main app and sidecar are signed together as one app bundle.
+- The main app uses App Sandbox.
+- The sidecar uses App Sandbox and sandbox inheritance where applicable.
+- Every Mach-O binary, framework, dynamic library, native Python extension, and helper component in the sidecar bundle is signed.
+- Sidecar startup verifies bundle location, code signature, schema version, and expected entitlement profile before accepting work.
 
-Origin and CORS:
-- CORS is disabled by default.
-- If a local UI bridge or webview needs browser-origin access, allow only the exact local origin selected by Workstation.
-- Reject unknown origins for browser-reachable endpoints.
+Bundled-code rule:
+- All executable Python code, native extensions, schemas, and handlers used by the native sidecar ship inside the reviewed/signed app bundle.
+- The sidecar must not download Python packages, wheels, plugins, scripts, executable model runtimes, or code-bearing updates after review/install.
+- The sidecar must not execute user-provided Python, model-generated code, shell commands, JavaScript, or arbitrary plugins.
+- Data/model assets may be downloaded only when they are non-executable resources governed by licensing/update policy and checksum verification.
 
 Request boundaries:
-- Enforce request size limits per endpoint.
+- Enforce request size limits per handler.
 - Enforce path normalization for any file/path inputs.
-- Do not accept arbitrary filesystem paths from the UI bridge without Workstation/engine validation.
+- Do not accept arbitrary filesystem paths from SwiftUI without Workstation/engine validation.
+- User-selected files enter through native file pickers, security-scoped bookmarks, or copied sandbox-container inputs.
+- Sidecar output stays in the app/project sandbox container unless the main app explicitly exports it through a user-approved destination.
 - Redact API keys, license tokens, local bearer tokens, and file paths where logs could become user-shareable.
 
-### Required Endpoints
+### Required RPC Handlers
 
-Health endpoints:
-- `GET /healthz`
-  - unauthenticated liveness check
+Health handlers:
+- `healthz`
+  - liveness check over the trusted XPC channel
   - returns process is alive and event loop can answer
-- `GET /readyz`
-  - authenticated readiness check
+- `readyz`
+  - readiness check
   - verifies engine initialization, project storage availability when configured, and provider configuration sanity without making paid model calls
-- `GET /version`
-  - authenticated version/build metadata
-  - includes app version, sidecar schema version, build flavor, and feature route versions
+- `version`
+  - version/build metadata
+  - includes app version, sidecar schema version, build flavor, and feature handler versions
 
-Process endpoints:
-- `POST /shutdown`
-  - authenticated graceful shutdown requested by Workstation
-  - refuses requests without local token
-- `GET /features`
-  - authenticated route capability manifest
-  - lists available feature groups and route schema versions
+Process handlers:
+- `shutdown`
+  - graceful shutdown requested by Workstation
+  - refuses requests from anything except the owning signed app/session
+- `features`
+  - route capability manifest
+  - lists available feature groups and handler schema versions
 
 Minimum response contracts:
 
@@ -551,7 +559,7 @@ Minimum response contracts:
   "engine_initialized": true,
   "storage_ready": true,
   "build_flavor": "developer",
-  "feature_routes": {
+  "feature_handlers": {
     "imports": "1",
     "rag": "1",
     "research": "1"
@@ -561,66 +569,71 @@ Minimum response contracts:
 
 ### Feature Endpoint Rule After This Milestone
 
-All Python-backed feature additions or behavior changes after Milestone 20 must include sidecar exposure when the feature is reachable from Studio Workstation or the native SwiftUI client.
+All Python-backed feature additions or behavior changes after Milestone 20 must include sidecar handler exposure when the feature is reachable from Studio Workstation or the native SwiftUI client.
 
 Required for each later Python feature:
-- route group under `/features/{feature_name}/...` or another documented stable prefix
+- handler group under `features.{feature_name}.*` or another documented stable namespace
 - request and response schema in shared contracts
 - authentication and request size policy
 - confidential-mode/provider boundary checks
 - local audit event or status entry when the feature mutates project state
 - unit tests for schemas and handlers
-- integration test showing Workstation or SwiftUI-facing client code can call the sidecar route
-- version entry in `GET /features`
+- integration test showing Workstation or SwiftUI-facing client code can call the sidecar handler
+- version entry in `features`
 
 Applies immediately to later post-MVP specs:
 - Milestone 22 Deep Research must expose job creation, status, cancellation, candidate batch retrieval, and import-batch handoff through the sidecar.
 - Milestone 23 Quantitative Analysis is native Swift/IMSL by default, not Python-backed by default. It must use the Python sidecar only if a later implementation adds Python-backed preprocessing or artifact generation.
 - Milestone 24 Advanced Qualitative Coding Visualizations must expose aggregation, matrix, graph, comparison, and codebook-generation data through the sidecar when those features need Python-backed processing.
 - Milestone 25 Confidential Collaboration must expose only local Studio Workstation coordination, health, audit, and sync-status hooks through the sidecar; any networked collaboration service contracts must be designed separately in that lane before implementation.
-- Any later OCR, RAG, import, export, citation, or provider-backed Python feature touched after this point must either expose its Workstation-facing behavior through the sidecar or explicitly document why it remains internal-only.
+- Any later OCR, RAG, import, export, citation, or provider-backed Python feature touched after this point must either expose its Workstation-facing behavior through the sidecar handler layer or explicitly document why it remains internal-only.
 
-### PyInstaller Packaging
+### Signed Bundled Sidecar Packaging
 
 Packaging target:
-- build a standalone macOS sidecar binary for Studio Workstation
-- include it in the macOS Studio app bundle
-- Studio Workstation starts the binary directly rather than requiring users to run Python
+- build a signed macOS Python worker/XPC service for Studio Workstation
+- include it inside the macOS Studio app bundle
+- Studio Workstation starts/supervises the bundled service rather than requiring users to run Python
+- prefer a controlled embedded-Python/XPC-service bundle for Mac App Store compatibility
+- avoid packagers that unpack executable code at runtime, install dependencies dynamically, or make code-signing/sandbox review opaque
 
 Build inputs:
-- FastAPI app entrypoint
-- engine package modules required by sidecar routes
+- XPC bridge entrypoint
+- engine package modules required by sidecar handlers
 - pydantic/shared schema modules
 - runtime assets required for local feature execution
-- PyInstaller spec files per platform if needed
+- embedded Python runtime assets and native extensions, all signed when required
+- no Windows/Linux sidecar packaging target for native Studio
 
 Build outputs:
-- macOS sidecar binary bundled inside the Studio `.app`
+- macOS sidecar service/helper bundled inside the Studio `.app`
 
 Packaging rules:
-- sidecar binary version must match the desktop app version or pass a compatibility matrix check
+- sidecar service/helper version must match the desktop app version or pass a compatibility matrix check
 - Workstation refuses to start incompatible sidecar schema versions with a clear error
+- Workstation refuses unsigned, mismatched, quarantined, or entitlement-invalid sidecar bundles
 - crash logs are local and sanitized
 - packaged sidecar must not contain Developer user API keys, Lite managed provider keys, local bearer tokens, or project data
+- packaged sidecar must not contain downloaded executable code or runtime-installable plugin/package mechanisms
 
 ### Workstation Supervision Contract
 
 Startup flow:
-1. Workstation selects a free loopback port.
-2. Workstation generates local auth token.
-3. Workstation launches the sidecar binary with port, token, build flavor, app data directory, and log directory.
-4. Workstation polls `/healthz` until live or timeout.
-5. Workstation polls `/readyz` until ready or shows a local backend error.
-6. Workstation provides sidecar URL and token only to trusted in-process UI/client code.
+1. Workstation verifies bundled sidecar code signature, entitlements, schema compatibility, and bundle location.
+2. Workstation launches the sidecar service/helper through the native macOS process/XPC mechanism.
+3. Workstation passes build flavor, app data directory, log directory, and session metadata through the approved XPC/bootstrap channel.
+4. Workstation calls `healthz` until live or timeout.
+5. Workstation calls `readyz` until ready or shows a local backend error.
+6. Workstation provides the sidecar client only to trusted in-process SwiftUI/workstation code.
 
 Monitoring:
-- poll `/healthz` on a short interval while active
-- poll `/readyz` less frequently or when project/provider state changes
+- poll `healthz` on a short interval while active
+- poll `readyz` less frequently or when project/provider state changes
 - restart on unexpected exit with exponential backoff and a maximum restart count
 - surface clear status: starting, ready, unhealthy, restarting, stopped, incompatible, failed
 
 Shutdown:
-- use `POST /shutdown` first
+- use `shutdown` first
 - after timeout, terminate the sidecar process
 - avoid orphaned sidecar processes after Workstation exits
 
@@ -634,9 +647,9 @@ Log requirements:
 - optional debug logging only in Developer mode and still redacted
 
 Diagnostics:
-- `GET /version` reports sidecar and engine build metadata
+- `version` reports sidecar and engine build metadata
 - Workstation can include sidecar health/version in a support bundle
-- support bundles must redact local auth token, provider keys, and project content
+- native Studio support bundles must redact sidecar session metadata, provider keys, and project content
 
 ### Developer/Lite Boundary
 
@@ -646,34 +659,35 @@ Developer:
 - sidecar never calls Lite License Gateway managed-provider proxy endpoints
 
 Lite:
-- sidecar uses Lite gateway-mediated provider access where Lite features require managed remote services
-- managed provider keys remain server-side in the License Gateway and never ship in the sidecar
-- sidecar can call the Lite Gateway only through authenticated Lite app flows
+- Python/Textual Lite does not use the native XPC sidecar.
+- Python/Textual Lite calls the same Python service layer in-process because Python is the app runtime.
+- Lite gateway-mediated provider access remains server-side; managed provider keys never ship in Python/Textual Lite or the native sidecar.
 
 Common:
-- both builds use the same health, ready, version, shutdown, and feature manifest contracts
-- feature-specific route availability may differ by build flavor and license state
+- shared Python service handlers and schemas should be reusable from Python/Textual Lite and from the native sidecar bridge
+- feature-specific handler availability may differ by build flavor and license state
 
 ### Implementation Batches
 
 1. Spec and lane scaffolding
    - Add docs, disabled lane registration, ownership, lane profile, and scope policy.
-2. Shared sidecar contracts
-   - Add health, readiness, version, feature manifest, error, and route metadata schemas.
-3. FastAPI skeleton
-   - Add app factory, local binding validation, auth middleware, request IDs, and health endpoints.
+2. Shared sidecar contracts and Python service handlers
+   - Add health, readiness, version, feature manifest, error, and handler metadata schemas.
+   - Keep feature logic in importable Python service handlers so Python/Textual Lite and native Studio can share it.
+3. XPC bridge skeleton
+   - Add native bridge contract, request IDs, schema validation, health handlers, and lifecycle hooks.
 4. Engine startup adapter
    - Initialize engine config, storage handles, provider config checks, and graceful shutdown hooks.
 5. Workstation supervision contract
-   - Add process launch, port selection, token generation, health polling, shutdown, and restart contracts.
-6. PyInstaller packaging
-   - Add sidecar build specs/scripts and packaging integration checks for macOS Studio builds.
-7. Feature manifest and route versioning
-   - Add `/features` route and compatibility/version negotiation.
+   - Add signed service launch, signature/entitlement validation, health polling, shutdown, and restart contracts.
+6. Signed sidecar packaging
+   - Add sidecar build specs/scripts and signing/sandbox integration checks for macOS Studio builds.
+7. Feature manifest and handler versioning
+   - Add `features` handler and compatibility/version negotiation.
 8. Security and diagnostics hardening
-   - Add CORS/origin rules, log redaction, size limits, support-bundle fields, and failure copy.
+   - Add App Sandbox checks, no-dynamic-code checks, log redaction, size limits, support-bundle fields, and failure copy.
 9. Acceptance tests
-   - Validate local-only binding, auth, health/readiness, shutdown, packaging metadata, and Workstation supervision.
+   - Validate XPC/RPC contracts, sandbox/signing expectations, health/readiness, shutdown, packaging metadata, and Workstation supervision.
 
 ### Lane Wiring Plan
 
@@ -705,38 +719,43 @@ Scaffolding tests:
 - `status.py` shows the lane disabled.
 - Docs clearly state this is post-MVP and not part of Sprint 0-5.
 
-Endpoint tests:
-- `/healthz` answers without auth and never exposes secrets.
-- `/readyz` requires auth and reports readiness without paid provider calls.
-- `/version` requires auth and reports schema/build metadata.
-- `/features` requires auth and reports feature route versions.
-- `/shutdown` requires auth and initiates graceful shutdown.
-- non-health endpoints reject missing/invalid tokens.
-- unknown origins are rejected when browser-origin access is configured.
+RPC/handler tests:
+- `healthz` answers over the trusted sidecar channel and never exposes secrets.
+- `readyz` reports readiness without paid provider calls.
+- `version` reports schema/build metadata.
+- `features` reports feature handler versions.
+- `shutdown` initiates graceful shutdown.
+- handler calls from anything except the owning signed app/session are rejected in native builds.
 
 Security tests:
-- packaged builds reject non-loopback host binding.
+- packaged native Studio builds expose no localhost sidecar listener.
 - request size limits are enforced.
-- logs redact local auth tokens, provider keys, and document text.
-- malformed JSON returns stable error payloads without stack traces.
+- logs redact sidecar session metadata, provider keys, and document text.
+- malformed payloads return stable error payloads without stack traces.
+- sidecar bundle signing, schema, and entitlement checks reject mismatched helpers.
+- sidecar cannot download/install executable Python packages or plugins.
+- sidecar cannot execute model-generated/user-provided code or shell commands.
 
 Workstation supervision tests:
-- Workstation can launch the sidecar binary with port and token.
+- Workstation can launch the sidecar service/helper.
 - health polling transitions starting to ready.
 - incompatible schema version blocks startup with clear error.
 - unexpected exit triggers bounded restart.
 - shutdown does not leave orphaned sidecar processes.
 
 Packaging tests:
-- PyInstaller build includes the sidecar app entrypoint and required engine/shared modules.
-- macOS Studio package contains the sidecar binary.
+- macOS Studio package contains the signed sidecar service/helper and required engine/shared modules.
+- every bundled native library/extension/helper is signed.
+- app sandbox and sidecar sandbox/inheritance entitlements are present.
 - packaged sidecar does not include user credentials or managed Lite provider keys.
+- packaged sidecar does not include runtime package installers, writable executable plugin directories, or downloaded executable code.
 
 Acceptance criteria:
 - Workstation can start, health-check, ready-check, and stop the sidecar locally.
-- The sidecar binds only to localhost in packaged builds.
-- The sidecar exposes stable health/version/feature contracts.
-- Later Python features have a clear required path for sidecar route exposure.
+- The native sidecar uses XPC/native helper communication rather than a localhost HTTP API.
+- The sidecar exposes stable health/version/feature handler contracts.
+- Later Python features have a clear required path for sidecar handler exposure.
+- Python/Textual Lite can reuse shared Python service handlers without adopting the native XPC sidecar.
 - No runtime sidecar behavior is active until this lane is explicitly enabled.
 
 
@@ -762,7 +781,7 @@ The native Studio Workstation owns:
 - native SwiftUI interface hosting and app-shell strategy
 - native settings for appearance and local runtime management
 - native document editor strategy, with STTextView as the preferred AppKit-backed editor candidate inside SwiftUI
-- launch and supervision of the Milestone 20 Python sidecar binary
+- launch and supervision of the Milestone 20 signed XPC Python sidecar service/helper
 - app data directory selection and migration handling
 - native menus, file-open hooks, and app-level command routing where needed
 - packaging, signing, notarization, installer, and updater behavior
@@ -770,10 +789,10 @@ The native Studio Workstation owns:
 - local backend status surfaces when the sidecar is unhealthy or incompatible
 
 The sidecar owns:
-- Python-backed feature endpoints
-- local health/readiness/version/feature manifest
+- Python-backed feature handlers exposed through XPC/native helper communication
+- local health/readiness/version/feature manifest handlers
 - engine initialization and provider/storage checks
-- Python feature execution behind authenticated loopback routes
+- Python feature execution behind signed-app-only native sidecar calls
 
 The engine owns:
 - project state, SQLite storage, imports, providers, retrieval/indexing, and workflow behavior
@@ -785,6 +804,7 @@ Non-goals:
 - no collaboration/sync architecture
 - no hosted Lite License Gateway changes beyond consuming existing Lite contracts
 - no replacing the sidecar with embedded Python
+- no localhost HTTP sidecar for native Studio
 
 ### Native Editor Foundation
 
@@ -822,7 +842,7 @@ Platform target:
 
 Release artifacts should include:
 - native Workstation app
-- bundled Milestone 20 sidecar binary
+- bundled Milestone 20 XPC Python sidecar service/helper
 - SwiftUI/native UI assets
 - engine/shared/client assets needed at runtime
 - license notices
@@ -843,7 +863,7 @@ Out of scope:
 macOS release:
 - publish SHA256 checksums
 - release manifest is tamper-evident or signed
-- sidecar binary compatibility is checked at app startup
+- sidecar service/helper compatibility is checked at app startup
 - app refuses to run a mismatched or untrusted sidecar bundle
 
 ### Packaging Architecture
@@ -851,16 +871,16 @@ macOS release:
 Milestone 17 establishes the basic desktop packaging plan. This milestone is the post-sidecar production distribution sprint:
 - integrate sidecar bundle into the native app package
 - verify signing survives bundled sidecar binaries
-- verify sidecar can start from inside the signed app bundle/install path
+- verify sidecar can start as a signed sandboxed XPC service/helper from inside the signed app bundle/install path
 - verify updater/install flows preserve app data and do not orphan sidecars
-- verify app can recover from missing, quarantined, or incompatible sidecar binary
+- verify app can recover from missing, quarantined, or incompatible sidecar service/helper
 
 Preferred architecture:
 1. Workstation launches.
-2. Workstation locates bundled sidecar binary.
-3. Workstation verifies version/signature/compatibility.
-4. Workstation starts sidecar on loopback with per-launch auth token.
-5. Workstation opens the local UI surface.
+2. Workstation locates bundled sidecar service/helper.
+3. Workstation verifies version, signature, entitlements, sandbox profile, and compatibility.
+4. Workstation starts sidecar through native macOS process/XPC supervision.
+5. Workstation opens the native SwiftUI surface.
 6. Workstation monitors sidecar and UI lifecycle.
 7. Workstation shuts down sidecar on app exit.
 
@@ -939,7 +959,7 @@ Native settings:
 Failure handling:
 - if sidecar fails to start, show clear local backend error with retry and reveal logs
 - if sidecar version is incompatible, instruct update/reinstall
-- if port binding fails, retry with another loopback port
+- if sidecar XPC/bootstrap startup fails, retry within bounded restart policy before surfacing local backend failure
 - if bundled sidecar is missing/quarantined, provide reinstall guidance
 - if app data migration fails, do not destroy existing user projects
 - if update manifest is unavailable, use the last known update-required state for confidential project gates and show offline update-check copy
@@ -1124,7 +1144,7 @@ Lane profile:
 2. Workstation app lifecycle prototype
    - Launch native shell, locate sidecar, start/stop sidecar, show status.
 3. Sidecar bundle integration
-   - Package the Milestone 20 binary inside Workstation and verify compatibility checks.
+   - Package the Milestone 20 signed XPC Python sidecar service/helper inside Workstation and verify compatibility checks.
 4. macOS signed distribution
    - Sign, notarize, build dmg, verify clean install and launch.
 5. Release manifest and download workflow
@@ -1149,7 +1169,7 @@ Packaging tests:
 - macOS artifact is signed and notarized.
 - Non-macOS Studio signing and packaging are out of scope.
 - bundled sidecar exists and matches the expected sidecar schema version.
-- app refuses incompatible sidecar binary with clear error.
+- app refuses incompatible sidecar service/helper with clear error.
 - app starts sidecar from the signed/bundled install location.
 - app shuts down sidecar on quit.
 - update/install flow preserves project data.
@@ -1164,7 +1184,7 @@ Packaging tests:
 Workstation tests:
 - clean launch reaches sidecar ready and UI ready states.
 - sidecar startup failure shows retry/reveal logs actions.
-- port conflict retries with another loopback port.
+- sidecar XPC/bootstrap startup failure follows bounded restart and then surfaces clear failure.
 - missing/quarantined sidecar surfaces reinstall guidance.
 - app data migration failure preserves existing data.
 - Appearance setting supports Light, Dark, and Auto modes.
@@ -1210,7 +1230,7 @@ Acceptance criteria:
 Lane: `feat-open-access-deep-research` (disabled)
 
 Sidecar rule:
-- Because this milestone comes after Milestones 19 and 20, all Workstation/SwiftUI-facing Python behavior for research jobs, provider fan-out, candidate batches, and import-batch handoff must be exposed through the Python Backend Sidecar API.
+- Because this milestone comes after Milestones 19 and 20, all Workstation/SwiftUI-facing Python behavior for research jobs, provider fan-out, candidate batches, and import-batch handoff must be exposed through the Python Backend Sidecar Bridge handler layer.
 
 Intent:
 - Add a post-MVP source-discovery workflow that helps users find possible literature and web sources for review, import, summary, and synthesis inside Exegesis.
@@ -2628,8 +2648,8 @@ Internal service contracts:
 - `IMSLStatsEngineBackend`
 
 Sidecar contract:
-- no default Python sidecar route is required for Milestone 23.
-- if a future implementation adds Python-backed preprocessing or artifact generation, that part must expose Workstation-facing behavior through the Milestone 20 sidecar and document why it cannot stay in native `StatsCore`.
+- no default Python sidecar handler is required for Milestone 23.
+- if a future implementation adds Python-backed preprocessing or artifact generation, that part must expose Workstation-facing behavior through the Milestone 20 sidecar handler layer and document why it cannot stay in native `StatsCore`.
 
 ### Error Handling
 
@@ -2970,7 +2990,7 @@ Lane profile:
 6. Studio SwiftUI surfaces
    - Define graph browser, matrix browser, comparison builder, codebook preview, and save flows.
 7. Sidecar exposure
-   - Add sidecar route contracts for aggregation and artifact generation if Python-backed execution is needed.
+   - Add sidecar handler contracts for aggregation and artifact generation if Python-backed execution is needed.
 8. Acceptance tests
    - Validate aggregates, filters, representative excerpts, codebook save, and no Textual shell scope.
 
@@ -3133,7 +3153,7 @@ Future Workstation surfaces may include:
 
 Boundaries:
 - use `desktop-shell/workstation/collaboration/**` for native Studio Workstation/SwiftUI collaboration management surfaces.
-- use sidecar or engine routes only for local coordination, sync status, audit queries, and safe handoff to any future collaboration service.
+- use sidecar handlers or engine services only for local coordination, sync status, audit queries, and safe handoff to any future collaboration service.
 - if Lite participation requires a non-Studio surface, define it as a constrained client capability during the collaboration design sprint rather than as part of current shell mockup work.
 
 ### Lane Wiring Plan
@@ -3172,7 +3192,7 @@ This milestone should be handled as a design-first sprint before normal feature 
 5. Workstation UX architecture
    - Define the native SwiftUI surfaces for invites, members, activity, review, comments, conflicts, sync health, and Studio-only management.
 6. Sidecar and service boundaries
-   - Define local sidecar coordination routes, license refresh checks, client capability checks, and any future hosted service API contracts.
+   - Define local sidecar coordination handlers, license refresh checks, client capability checks, and any future hosted service API contracts.
 7. Security and abuse review
    - Validate encryption, access control, auditability, credential isolation, and project-mode preservation.
 8. Implementation lane split

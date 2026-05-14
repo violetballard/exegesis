@@ -103,7 +103,7 @@ Exit criteria:
 - APA PDF/DOCX exports include references from cited literature.
 - Raw Markdown export remains available for transparent portability.
 
-## Sprint 4: Distribution
+## Sprint 4: Python/Textual Distribution
 
 Activate together:
 - `feat-developer-provider-config`
@@ -111,7 +111,7 @@ Activate together:
 - `feat-desktop-packaging`
 
 Goal:
-- Make Exegesis installable and usable outside the development repo.
+- Make the Python/Textual Developer and Lite builds installable and usable outside the development repo.
 
 Shared integration target:
 - Developer build supports BYOK/BYOM provider setup through command-palette flows.
@@ -119,12 +119,13 @@ Shared integration target:
 - API keys and local endpoint credentials use OS credential storage.
 - Project export/import creates portable zip archives for moving projects between machines.
 - Project archives never include credentials, provider keys, local endpoints, license tokens, or managed Lite secrets.
-- Packaged app launches as a desktop app without terminal or localhost exposure.
+- Packaged Python/Textual app launches as a desktop app without terminal or localhost exposure.
+- This is the cross-platform Python runtime path; macOS-only native Studio is handled later through the XPC sidecar bridge specs.
 
 Exit criteria:
 - Developer and Lite provider modes are separated and testable.
 - Project transfer is license-safe: licenses are per user/account, not per machine or archive.
-- macOS packaging path works first, with Windows/Linux specs ready for follow-up.
+- Python/Textual macOS packaging path works first, with Windows/Linux specs ready for follow-up.
 - SQLite app data, local server startup, pywebview shell, and shutdown are packaged-runtime safe.
 - A user can install and launch the app without developer tooling.
 
@@ -186,7 +187,7 @@ These lanes are deliberately outside Sprint 0-5 and should not be activated unti
 - `feat-ipad-native-lite`
 
 Milestone 19 lives in `docs/POST_MVP_FEATURES_SPEC.md` and specifies a tiny browser PDF capture extension for Chrome, Firefox, and Safari.
-Milestone 20 lives in the same post-MVP spec and specifies a localhost-only FastAPI sidecar packaged by PyInstaller and supervised by macOS Studio Workstation.
+Milestone 20 lives in the same post-MVP spec and specifies a signed, sandboxed macOS XPC Python sidecar bridge for Studio Workstation. It reuses the same Python service layer as Python/Textual Lite, but native Studio talks to it through XPC rather than a localhost FastAPI server.
 Milestone 21 lives in the same post-MVP spec and specifies the macOS-only native Workstation/Studio distribution sprint for signed web-distributed builds that bundle the sidecar, enforce Workstation memory tiers, provide native Light/Dark/Auto appearance settings, manage Pro local confidential models, and route OCR locally or through managed cloud fallback based on available memory and policy.
 Milestone 22 lives in the same post-MVP spec and specifies local-first multi-agent open access source discovery that hands deduped candidates to the standard import protocol through the sidecar.
 Milestone 23 lives in the same post-MVP spec and specifies Pro-only first-class CSV dataset import, lean dataset preparation, quantitative analysis, basic charts, and saveable analysis sequences through native `StatsCore`/`StatsBridge`/IMSL rather than the Python sidecar by default.
