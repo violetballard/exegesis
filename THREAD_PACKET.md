@@ -3,9 +3,9 @@
 - Branch name: `codex/feat-a2ui-contract`
 - Lane: `feat-a2ui-contract`
 - Merge target: current `main` (`9abf31c55f420be74389af72b7e4707bb5132790`)
-- Authoritative review target: final branch tip after this fixer commit, reviewed only as `main..HEAD`.
+- Authoritative review target: final branch tip after this fixer commit, reviewed only as the current `main..HEAD` merge diff.
 - Do not review `b929fe6c7a1159c7882acedd247aca31a93cd123..HEAD`; that historical range includes superseded branch cleanup and is not the integration candidate.
-- Scope goal: remove off-scope branch-tip contamination and resubmit a traceable A2UI contract handoff.
+- Scope goal: resubmit a clean A2UI contract handoff whose integration diff is limited to packet metadata and whose runtime behavior is already present in the merge target.
 - Canonical demo-path step advanced: `preview and apply or reject a patch`.
 
 ## Tasks Completed
@@ -37,7 +37,7 @@ No `client-textual/`, retrieval runtime, daemon/tooling source, broad docs, pack
 
 ## Runtime Scope Note
 
-The isolated runtime change at `b929fe6c7a1159c7882acedd247aca31a93cd123` canonicalized materialized A2UI action order and added focused test coverage in `src/qual/ui/a2ui.py` and `tests/unit/test_a2ui_contract.py`. Current `main` already contains that behavior, so the authoritative review target is the corrected metadata-only handoff diff in `main..HEAD`, not the historical runtime commit and not the historical `b929fe6c7..HEAD` range. `codex_packet_handoff/tools/planner.py` is not changed in this corrected candidate. `tests/unit/test_packet_planner.py` is not present in this tree and is not claimed as coverage.
+The isolated runtime change at `b929fe6c7a1159c7882acedd247aca31a93cd123` canonicalized materialized A2UI action order and added focused test coverage in `src/qual/ui/a2ui.py` and `tests/unit/test_a2ui_contract.py`. Current `main` already contains that behavior, so the authoritative review target is the corrected packet-metadata handoff diff in `main..HEAD`, not the historical runtime commit and not the historical `b929fe6c7..HEAD` range. `codex_packet_handoff/tools/planner.py` is not changed in this corrected candidate. `tests/unit/test_packet_planner.py` is not present in this tree and is not claimed as coverage.
 
 ## Demo-Path Mapping
 
@@ -56,5 +56,5 @@ Required gates for the authoritative `main..HEAD` corrected merge candidate:
 
 ## Risks / Blockers
 
-- `.codex/kickoff_packets/feat-a2ui-contract.md` and `.codex/packet_planner/state.json` remain packet/planner metadata changes in the corrected final diff because this sandbox rejects direct writes to `.codex` paths.
-- Merge risk is otherwise low for the corrected final diff because all broad source/runtime contamination has been removed from the branch tip.
+- `.codex/kickoff_packets/feat-a2ui-contract.md` and `.codex/packet_planner/state.json` are packet/planner metadata changes only; no packet planner source, router source, runtime source, shared contract, or Textual file is in the corrected final diff.
+- Merge risk is low for the corrected final diff because all broad source/runtime contamination has been removed from the branch tip.
