@@ -22,6 +22,7 @@ Per-task canonical demo-path mapping:
 3. Tightened the catalog handoff packet validator so every task completed entry names the canonical demo-path step it advances. Canonical demo-path steps supported: `open project/document`, `retrieve relevant material and gather context into the basket`, `preview and apply or reject a patch`, and `persist and continue`.
 4. Reproduced the integrator failure locally and made local CLI marker rejection line-aware, preserving raw API error rejection while allowing successful integrator summaries that mention the prior router diagnostic. Canonical demo-path steps supported: `persist and continue`.
 5. Bound `exegesis_engine.api.cli.parse_args()` to the catalog-owned CLI contract for top-level parser tokens, then added regression coverage that compares the actual argparse choices to `command_cli_contract().tokens` and parses every catalog-exposed CLI token. Canonical demo-path steps supported: `open project/document`, `retrieve relevant material and gather context into the basket`, `preview and apply or reject a patch`, and `persist and continue`.
+6. Fixed reviewer packet `fixer__feat-commands__20260514T020302Z` by adding explicit regression coverage that `command_cli_contract()` rejects token-level `diff` parser drift when the `diff-preview` canonical command remains unchanged. Canonical demo-path step supported: `preview and apply or reject a patch`; concrete blocker removed: silent loss or renaming of the CLI fallback token used to preview a patch while Textual remains disabled.
 
 ## Files Changed For This Scope
 
@@ -59,6 +60,8 @@ Per-task canonical demo-path mapping:
 - `./typecheck-test.sh`: passed.
 - `make ci`: passed; includes scope-check, format, lint, compile/typecheck, and 480 tests with 1 skipped.
 - Fixer rerun for reviewer packet `fixer__feat-commands__20260514T014821Z`: passed all required gates above; branch advanced for live reviewer re-review rather than offline fallback approval.
+- `python -m pytest tests/unit/test_commands_catalog.py::CommandCatalogTests::test_command_cli_contract_rejects_diff_parser_token_drift -q`: passed; 1 passed, 2 subtests passed.
+- Fixer rerun for reviewer packet `fixer__feat-commands__20260514T020302Z`: `make scope-check` passed; `./quality-format.sh --check` passed; `./quality-lint.sh` passed; `./quality-test.sh` passed with 481 tests, 1 skipped; `./typecheck-test.sh` passed; `make ci` passed with 481 tests, 1 skipped.
 
 ## Risks And Blockers
 
@@ -68,6 +71,8 @@ Per-task canonical demo-path mapping:
 ## Canonical Demo-Path Step Advanced
 
 This lane makes the canonical demo-path steps `open project/document`, `retrieve relevant material and gather context into the basket`, `preview and apply or reject a patch`, and `persist and continue` more real by making the reviewer-facing CLI handoff replay self-contained and internally complete, and by ensuring the real parser accepts exactly the catalog-declared command tokens for those steps. The concrete blockers removed are false missing coverage in the default handoff payload when no observed argv list is supplied and parser/catalog drift in the CLI fallback surface while Textual remains disabled.
+
+Reviewer packet `fixer__feat-commands__20260514T020302Z` specifically advances `preview and apply or reject a patch`: `diff` remains an approved parser token for the `diff-preview` command, and runtime validation now has explicit regression coverage for removing or renaming that token. This removes the blocker where parser-token drift could silently break the patch-preview CLI fallback even though the canonical command name stayed stable.
 
 This supports the Milestone 3 CLI demo loop while Textual remains disabled:
 

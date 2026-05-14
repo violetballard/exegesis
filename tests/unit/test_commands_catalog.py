@@ -168,6 +168,23 @@ class CommandCatalogTests(unittest.TestCase):
             with self.assertRaisesRegex(ValueError, "Command CLI parser surface is inconsistent"):
                 command_catalog.command_cli_contract()
 
+    def test_command_cli_contract_rejects_diff_parser_token_drift(self) -> None:
+        self.addCleanup(command_catalog.command_cli_contract.cache_clear)
+        self.addCleanup(command_catalog.command_cli_lookup_table.cache_clear)
+        self.addCleanup(command_catalog.command_cli_tokens.cache_clear)
+        drifted_entrypoints = (
+            ("bootstrap", "diff-preview", "context-basket", "terminal"),
+            ("bootstrap", "diff-preview", "diff_preview", "context-basket", "terminal"),
+        )
+        for entrypoints in drifted_entrypoints:
+            command_catalog.command_cli_contract.cache_clear()
+            command_catalog.command_cli_lookup_table.cache_clear()
+            command_catalog.command_cli_tokens.cache_clear()
+            with self.subTest(entrypoints=entrypoints):
+                with patch.object(command_catalog, "_CLI_ENTRYPOINTS", entrypoints):
+                    with self.assertRaises(ValueError):
+                        command_catalog.command_cli_contract()
+
     def test_command_cli_contract_rejects_unapproved_alias_to_existing_command(self) -> None:
         self.addCleanup(command_catalog.command_cli_contract.cache_clear)
         self.addCleanup(command_catalog.command_cli_lookup_table.cache_clear)
