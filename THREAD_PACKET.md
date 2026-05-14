@@ -25,12 +25,11 @@ Runtime review scope is only range `b929fe6c7a1159c7882acedd247aca31a93cd123^..b
 
 No Textual implementation work, engine work, automation/tooling, `.agents`, `.codex`, docs, or shared-contract changes are submitted by this packet. Those branch-wide changes are withdrawn from the `feat-a2ui-contract` runtime review scope and require a separate high-risk packet with lane ownership, approval basis, all changed files, tasks, roadmap/vision mapping, and risks before review.
 
-Required-fix disposition:
+Current reviewer required-fix disposition:
 
-- Required fix 1: review scope is runtime-only; the implementation target is commit `b929fe6c7a1159c7882acedd247aca31a93cd123`, and the only implementation files in scope are `src/qual/ui/a2ui.py` and `tests/unit/test_a2ui_contract.py`.
-- Required fix 2: the canonical demo-path step advanced by this lane is explicitly restated as `preview and apply or reject a patch`.
-- Required fix 3: no shared/integrator-locked or shared-by-approval paths are part of this runtime-only review scope, so the impact note is `None`.
-- Required fix 4: no planner/tooling or packet-planner regression-test changes are claimed. Broader planner/tooling changes, if needed later, must be submitted in a separate high-risk review packet with an explicit exception or approval basis.
+- Required fix 1: the exact AGENTS.md canonical demo-path step advanced is `preview and apply or reject a patch`.
+- Required fix 2: packet-planner/tooling claims and files are removed from this A2UI runtime review scope. No changes to `codex_packet_handoff/tools/planner.py`, `tests/unit/test_packet_planner.py`, or other automation/tooling files are submitted for this review packet. Broader planner/tooling changes, if needed later, must be submitted in a separate high-risk review packet with an explicit ownership and approval basis.
+- Required fix 3: the runtime A2UI claim is limited to deterministic, typed/allowlisted action materialization for CLI fallback consumers. This packet does not add UI rendering assumptions to shared contracts.
 
 ## Canonical Demo-Path Mapping
 
