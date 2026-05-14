@@ -3,12 +3,9 @@
 - Branch name: `codex/feat-a2ui-contract`
 - Lane: `feat-a2ui-contract`
 - Merge target: current `main`
-- Handoff type: runtime-only A2UI re-review packet.
-- Runtime implementation target: exact commit `b929fe6c7a1159c7882acedd247aca31a93cd123` (`fix(a2ui): canonicalize materialized action order`).
-- Runtime implementation range: `b929fe6c7a1159c7882acedd247aca31a93cd123^..b929fe6c7a1159c7882acedd247aca31a93cd123`.
-- Final runtime review scope: exactly `b929fe6c7a1159c7882acedd247aca31a93cd123^..b929fe6c7a1159c7882acedd247aca31a93cd123`.
-- Branch-tip note: packet correction commits after `b929fe6c7a1159c7882acedd247aca31a93cd123` are handoff metadata only; they are included only to provide this corrected AGENTS.md handoff packet.
-- Packet correction scope: documentation-only handoff metadata for re-review.
+- Handoff type: runtime-only A2UI fixer re-review packet.
+- Intended merge candidate: branch tip after this fixer commit.
+- Authoritative intended merge scope against `main`: runtime A2UI scope only, plus this handoff packet.
 - Runtime files in scope:
   - `src/qual/ui/a2ui.py`
   - `tests/unit/test_a2ui_contract.py`
@@ -16,22 +13,15 @@
 
 ## Scope Correction
 
-This corrected handoff withdraws the earlier branch-wide runtime submission and retargets implementation review to the exact narrow runtime commit. Packet correction commits after `b929fe6c7a1159c7882acedd247aca31a93cd123` exist only to make the handoff packet accurate.
-
-Runtime review scope is only range `b929fe6c7a1159c7882acedd247aca31a93cd123^..b929fe6c7a1159c7882acedd247aca31a93cd123` and only these files:
-
-- `src/qual/ui/a2ui.py`
-- `tests/unit/test_a2ui_contract.py`
-
-No Textual implementation work, engine work, automation/tooling, `.agents`, `.codex`, docs, or shared-contract changes are submitted by this packet. Those branch-wide changes are withdrawn from the `feat-a2ui-contract` runtime review scope and require a separate high-risk packet with lane ownership, approval basis, all changed files, tasks, roadmap/vision mapping, and risks before review.
+This packet replaces the earlier inconsistent handoff. The intended review candidate is runtime-only A2UI contract work for deterministic materialized action ordering. Out-of-scope planning, docs, `.codex`, and lane-profile changes are not part of the intended runtime merge. The visible docs, planning, and lane-profile files have been reverted in this fixer working tree; the two hidden `.codex` files remain a filesystem-permission blocker noted below.
 
 Current reviewer required-fix disposition:
 
-- Required fix 1: the reviewable runtime implementation range is exactly `b929fe6c7a1159c7882acedd247aca31a93cd123^..b929fe6c7a1159c7882acedd247aca31a93cd123`, plus this corrected `THREAD_PACKET.md` metadata. No branch-wide `.agents`, `.codex`, Textual, engine, shared, tooling, or unrelated doc changes are submitted for runtime review.
-- Required fix 2: broad branch-tip changes are not intended for this merge. They remain withdrawn and would require separate high-risk packets with lane ownership, approval basis, changed files, tasks completed, roadmap/product mapping, risks, and required gates before review.
-- Required fix 3: earlier packet-planner/tooling completion claims and files are corrected as out-of-scope metadata and removed from this A2UI runtime review scope. No changes to `codex_packet_handoff/tools/planner.py`, `tests/unit/test_packet_planner.py`, or other automation/tooling files are submitted for this review packet.
-- Required fix 4: the required gates are rerun for this corrected handoff and reported below.
-- Required fix 5: the exact AGENTS.md canonical demo-path step advanced is `preview and apply or reject a patch`.
+- Required fix 1: the authoritative intended candidate is this branch tip against current `main`; the packet text and file list now describe the runtime-only candidate and the remaining `.codex` filesystem blocker.
+- Required fix 2: runtime A2UI scope is limited to `src/qual/ui/a2ui.py` and `tests/unit/test_a2ui_contract.py`.
+- Required fix 3: docs/planner/lane-profile changes are not intended to merge in this packet. If needed later, they require a separate high-risk packet with ownership, approval basis, file list, tasks completed, roadmap/product mapping, risks, and passing gates.
+- Required fix 4: this packet uses one runtime-only scope statement for files changed, shared/integrator impact, tasks completed, and runtime scope.
+- Required fix 5: required gates are rerun and reported below.
 
 ## Canonical Demo-Path Mapping
 
@@ -40,7 +30,7 @@ The runtime A2UI change strengthens `preview and apply or reject a patch` by kee
 Roadmap/product mapping:
 
 - `ROADMAP.md`: Milestone 3 real workflow loop, narrowed to CLI fallback determinism for already-materialized A2UI actions while preserving CLI compatibility.
-- `PRODUCT_VISION.md`: Canonical engine contract and shared UI contract (`A2UI`), narrowed to deterministic action identity in client-agnostic runtime payloads. This packet does not claim new shared card/action/selection types, and renderers remain outside shared.
+- `PRODUCT_VISION.md`: Canonical engine contract and shared UI contract (`A2UI`), narrowed to deterministic action identity in client-agnostic runtime payloads.
 - `ARCHITECTURE.md`: A2UI card/action contracts with typed action handling and CLI fallback preserved.
 
 ## Tasks Completed
@@ -49,28 +39,33 @@ Roadmap/product mapping:
 2. Preserved typed and allowlisted action filtering, including exclusion of unsupported action shapes from the A2UI contract surface. Canonical demo-path step advanced: `preview and apply or reject a patch`.
 3. Preserved CLI rendering fallback behavior and covered deterministic filtered action ordering in `tests/unit/test_a2ui_contract.py`. Canonical demo-path step advanced: `preview and apply or reject a patch`.
 
-Each runtime task above advances the AGENTS.md canonical demo-path step `preview and apply or reject a patch` by making apply/reject/copy action payloads deterministic for CLI fallback rendering.
-
 ## Scope Completed
 
-Runtime-only A2UI contract review for deterministic materialized action ordering in commit `b929fe6c7a1159c7882acedd247aca31a93cd123`. Shared, automation/tooling, Textual, engine, routing, provider, and broader branch-tip changes are outside this handoff.
+Runtime-only A2UI contract review for deterministic materialized action ordering. Shared, automation/tooling, Textual, engine, routing, provider, and broader plan/doc changes are outside this handoff.
 
 ## Files Changed
 
-Review-target files changed in `b929fe6c7a1159c7882acedd247aca31a93cd123^..b929fe6c7a1159c7882acedd247aca31a93cd123`:
+Runtime review files:
 
 - `src/qual/ui/a2ui.py`
 - `tests/unit/test_a2ui_contract.py`
 
-Textual implementation files are not in scope for this retargeted review.
+Handoff metadata:
 
-No automation/tooling source or test files are in scope; any earlier packet-planner file references are withdrawn as out-of-scope metadata for this runtime A2UI review.
+- `THREAD_PACKET.md`
+
+No Textual implementation files are in scope. No automation/tooling source or test files are in scope. No docs or lane-profile changes are in scope for this runtime A2UI review.
+
+Filesystem-blocked out-of-scope metadata still visible in `main..HEAD` until the sandbox permits writes under `.codex`:
+
+- `.codex/kickoff_packets/feat-a2ui-contract.md`
+- `.codex/packet_planner/state.json`
 
 ## Shared/Integrator-Locked Impact
 
-Shared/integrator-locked edits: None.
+Shared/integrator-locked edits: None for the runtime A2UI candidate.
 
-None for the runtime review target. Commit `b929fe6c7a1159c7882acedd247aca31a93cd123` changes only lane-owned `src/qual/ui/a2ui.py` and `tests/unit/test_a2ui_contract.py`; it does not edit shared-by-approval or integrator-locked files.
+The runtime files are lane-owned or test coverage for the A2UI contract behavior under review. This packet does not submit shared-by-approval or integrator-locked file edits.
 
 ## Routing/Provider Impact
 
@@ -78,7 +73,7 @@ None. This runtime-only A2UI contract change does not touch model routing, provi
 
 ## Commands Run And Outcomes
 
-Required gates for this fixer handoff:
+Required gates for this corrected fixer handoff:
 
 - `make scope-check` - passed for branch `codex/feat-a2ui-contract`.
 - `./quality-format.sh --check` - passed.
@@ -87,10 +82,8 @@ Required gates for this fixer handoff:
 - `./typecheck-test.sh` - passed Python source compilation.
 - `make ci` - passed scope-check, format, lint, compile/typecheck, smoke tests, and 511 unit tests.
 
-Fresh fixer verification on 2026-05-14 repeated all required gates above with the same passing outcomes.
-
 ## Risks Or Blockers
 
-- Runtime A2UI claims are limited to exact commit `b929fe6c7a1159c7882acedd247aca31a93cd123`.
-- The branch-wide range after that commit includes out-of-scope work and is withdrawn from this review packet.
-- Any future non-runtime source work must be split into a separately owned high-risk review packet.
+- Runtime A2UI claims are limited to deterministic materialized action ordering for `preview and apply or reject a patch`.
+- Any future non-runtime source, docs, planner, or lane-profile work must be split into a separate high-risk review packet.
+- Blocker: this sandbox cannot write the two `.codex` files listed above, so they could not be reverted here despite being out of scope.
