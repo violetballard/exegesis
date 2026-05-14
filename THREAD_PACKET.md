@@ -66,3 +66,4 @@ Required gates for the authoritative `main..HEAD` corrected merge candidate:
 - `.codex/kickoff_packets/feat-a2ui-contract.md` and `.codex/packet_planner/state.json` are packet/planner metadata changes only.
 - `codex_packet_handoff/tools/planner.py` and `tests/unit/test_lane_profiles.py` are off-lane packet tooling changes required by reviewer fixes; no router source, runtime source, shared contract, or Textual file is in the corrected final diff.
 - Merge risk is low to medium for the corrected final diff because broad source/runtime contamination has been removed from the branch tip, while the remaining packet-planner source change is narrow and regression-tested.
+- Final packet reissue commit is handoff-only; reviewer-required packet-planner source/test changes are in the immediately preceding fixer commit and remain listed in the full `main..HEAD` review surface above.
