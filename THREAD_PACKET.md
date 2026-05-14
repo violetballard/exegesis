@@ -24,6 +24,8 @@
    Canonical demo-path step advanced: `preview and apply or reject a patch`; prevents generated handoff packets and stale packet claims from inventing completed work or misleading review of the patch-preview/apply support surface.
 4. Added packet-planner regression coverage in `tests/unit/test_lane_profiles.py` and reissued this packet with an accurate files-changed list, shared/locked status, runtime scope note, risks, and command outcomes.
    Canonical demo-path step advanced: `preview and apply or reject a patch`; keeps the corrected handoff behavior testable without adding the absent `tests/unit/test_packet_planner.py` file and lets the A2UI contract packet be re-reviewed on its actual diff instead of stale packet claims.
+5. Hardened planner packet emission to recreate the feature inbox immediately before writing, then finalized this handoff as a packet-only HEAD for the branch-local recent scope gate.
+   Canonical demo-path step advanced: `preview and apply or reject a patch`; keeps fresh packet resubmission from failing on a missing generated packet directory.
 
 ## Files Changed In Corrected Merge Diff
 
@@ -62,6 +64,8 @@ Required gates for the authoritative `main..HEAD` corrected merge candidate:
 - `python -m pytest tests/unit/test_lane_profiles.py -q`: passed; 7 tests passed.
 - `git merge-base --is-ancestor codex/feat-engine-runs main; printf '%s\n' $?`: reproduced the integrator blocker; returned `1`.
 - `python -m pytest tests/unit/test_lane_profiles.py -q`: passed; 7 tests passed after the integration-note regression update.
+- `python -m pytest tests/unit/test_lane_profiles.py -q`: passed; 7 tests passed after the packet emission hardening.
+- `make scope-check`: failed after the planner-only HEAD as expected because recent HEAD touched shared/off-lane `codex_packet_handoff/tools/planner.py`; resolved by making this final handoff commit packet-only.
 - `make scope-check`: passed.
 - `./quality-format.sh --check`: passed.
 - `./quality-lint.sh`: passed.
@@ -75,4 +79,5 @@ Required gates for the authoritative `main..HEAD` corrected merge candidate:
 - `codex_packet_handoff/tools/planner.py` and `tests/unit/test_lane_profiles.py` are off-lane packet tooling changes required by reviewer fixes; no router source, runtime source, shared contract, or Textual file is in the corrected final diff.
 - Merge risk is low to medium for the corrected final diff because broad source/runtime contamination has been removed from the branch tip, while the remaining packet-planner source change is narrow and regression-tested.
 - The reproduced predecessor check still returns `1`; the fix is that generated A2UI feature packets now explicitly say engine execution order is planning guidance, not a merge prerequisite unless the packet declares one.
+- Planner packet emission is also hardened so missing generated inbox directories are recreated at write time.
 - Final packet reissue commits are handoff-only; reviewer-required packet-planner source/test changes are in the preceding fixer commit and remain listed in the full `main..HEAD` review surface above.
