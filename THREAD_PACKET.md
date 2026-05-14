@@ -5,7 +5,8 @@
 - Merge candidate: branch tip after this handoff.
 - Reviewed implementation commit: `f8d860ed9f6299f0169c4f21321ac5f37c949fd3` (`feat(commands): lock CLI contract to command catalog`).
 - Scope completed: command-catalog contract hardening that keeps `command_cli_contract().canonical_names` aligned with `command_names()` and rejects drift from the approved parser entrypoint order.
-- Canonical demo-path step advanced: `retrieve relevant material and gather context into the basket` by preserving a stable CLI command catalog for the retrieval command surface while the engine-side MVP loop is exercised.
+- Canonical demo-path step advanced: `retrieve relevant material and gather context into the basket` by preserving a stable CLI command catalog for the retrieval/context command surface while the engine-side MVP loop is exercised.
+- Deterministic CLI contract mapping: the active operator command surface stays stable while Textual remains disabled, so the engine-first MVP loop can reliably reach the retrieval/context demo step through approved parser entrypoints.
 - Roadmap item affected: Milestone 3 (Real workflow loop) - CLI compatibility and migration-safe entrypoints for the `retrieve relevant material and gather context into the basket` demo-path step, aligned with `ROADMAP.md:51-75`.
 - Vision capability affected: canonical engine contract and CLI compatibility for the retrieval/context command surface while Textual remains disabled, aligned with `PRODUCT_VISION.md:35-55`.
 - Active lane order alignment: `feat-commands` provides the stable CLI control surface for the engine-first MVP loop, aligned with `AGENTS.md:195-205`.
@@ -50,7 +51,7 @@
 
 ## Canonical Demo-Path Step Advanced
 
-This lane makes the canonical demo-path step `retrieve relevant material and gather context into the basket` more real by preserving a deterministic CLI command catalog for the retrieval/context command surface. The concrete blocker removed is silent drift between the operator-facing command catalog and the approved parser entrypoints used to exercise retrieval and basket-context commands in the engine-first MVP loop.
+This lane makes the canonical demo-path step `retrieve relevant material and gather context into the basket` more real by preserving a deterministic CLI command catalog for the retrieval/context command surface. The concrete blocker removed is silent drift between the operator-facing command catalog and the approved parser entrypoints used to exercise retrieval and basket-context commands in the engine-first MVP loop while Textual remains disabled.
 
 This supports the Milestone 3 CLI demo loop while Textual remains disabled:
 
