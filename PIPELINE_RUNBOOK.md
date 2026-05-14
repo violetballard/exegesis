@@ -4,6 +4,11 @@ This file is the operator-facing reference for the packet pipeline, daemon dashb
 
 ## Canonical Commands
 
+- Full operator dashboard: `./codex_packet_handoff/tools/status_report.sh`
+- Git hygiene sweep: `python codex_packet_handoff/tools/git_hygiene.py`
+- LaunchAgent install/start: `python codex_packet_handoff/tools/launchd_ctl.py install`
+- LaunchAgent status: `python codex_packet_handoff/tools/launchd_ctl.py status`
+- Isolated control-plane commit: `python codex_packet_handoff/tools/control_repo_commit.py --message "..." <paths...>`
 - Filesystem truth: `python codex_packet_handoff/tools/status.py`
 - Rich dashboard: `python codex_packet_handoff/tools/daemon_monitor.py`
 - Start daemon: `python codex_packet_handoff/tools/daemon_ctl.py start`
@@ -72,27 +77,33 @@ Preferred setup uses named launcher profiles:
   - `fixer_cloud` / `fixer_local`
 
 Recommended local fallback:
-- prefer a local CLI profile via `fallback_codex_args`, for example `["-p", "gpt-oss-120b-lms"]`
-- this is the most reliable option when your machine already has a working local provider profile in `~/.codex/config.toml`
-- if you prefer `--oss`, leave `fallback_model` empty unless you know your CLI/provider expects a specific local model id
+- prefer the explicit LM Studio provider form via `fallback_codex_args`, for example `["-c", "model_provider=lms"]` with `fallback_model` set to `gpt-oss-120b`
+- keep the fallback provider explicit so Codex stays on the LM Studio provider and does not drift into the ChatGPT/OpenAI path
+
+Cloud-first launch note:
+- set `disable_local_fallback_on_cloud_timeout=true` when you want feature lanes to stay in cloud mode instead of auto-dropping to local fallback after startup timeouts
+- raise `feature_launch_timeout_seconds` when managed cloud lane startup is slower than the default
 
 Recommended role split:
 - `orchestrator`: smaller local profile for supervision
-- `worker_cloud`: cloud coding/review/integration model
+- `worker_cloud`: cloud coding/review/fixer model
+- `integrator_cloud`: cloud integration model
 - `worker_local`: larger local coding/review/integration model for quota windows
 
 Current project config uses:
-- `profiles.orchestrator` -> `codex -p gpt-oss-20b-lms`
-- `profiles.worker_cloud` -> `codex exec -m gpt-5.4`
-- `profiles.worker_local` -> `codex -p gpt-oss-120b-lms`
+- `profiles.orchestrator` -> `codex -c model_provider=lms -m gpt-oss-20b`
+- `profiles.worker_cloud` -> `codex exec -m gpt-5.4-mini`
+- `profiles.integrator_cloud` -> `codex exec -m gpt-5.4`
+- `profiles.worker_local` -> `codex -c model_provider=lms -m gpt-oss-120b`
 
 Note:
 - the coordinator itself is deterministic Python, not an LLM thread
 - the role profiles control the Codex sessions it launches for feature/reviewer/fixer/integrator work
 
-Why leave `fallback_model` empty:
-- when `--oss` is active, the CLI/provider can select its configured local model
-- forcing a model id here can break fallback on accounts that do not accept that id
+Why keep `fallback_model` explicit for LM Studio:
+- the explicit provider form is `codex -c model_provider=lms -m gpt-oss-120b`
+- keeping the model explicit avoids drifting back into a ChatGPT/OpenAI path
+- leave `fallback_model` empty only when the selected local profile already hard-codes a safe model choice elsewhere
 
 Useful commands:
 - inspect runtime mode: `python codex_packet_handoff/tools/runtime_mode_ctl.py status`
@@ -103,7 +114,7 @@ Useful commands:
 ## CLI Runbook
 
 Launch your operator session from Codex CLI on the local orchestrator profile:
-- `codex -p gpt-oss-20b-lms -C /Users/doctor-violet/Library/CloudStorage/Box-Box/projects/qual`
+- `codex -p gpt-oss-20b-lms -c model_provider="lms" -C /Users/doctor-violet/Library/CloudStorage/Box-Box/projects/qual`
 
 ### Normal Day
 
@@ -116,7 +127,9 @@ Use this when cloud quota is available and you want workers to use cloud by defa
 
 Behavior:
 - your interactive Codex CLI stays on local `gpt-oss-20b`
-- cloud worker launches use `gpt-5.4`
+- cloud worker launches use `gpt-5.4-mini`
+- integrator cloud launches use `gpt-5.4`
+- reviewer/router throughput is capped by `max_packets_per_run`; current default is `5` so the active reviewer width matches the five enabled core lanes without loosening integrator policy
 - if quota text or rate-limit text appears, router flips to `local_fallback`
 
 ### Quota Exhausted
@@ -130,7 +143,7 @@ Use this when cloud quota is gone and you want to keep feeding the pipeline loca
 
 Behavior:
 - orchestrator remains local `gpt-oss-20b`
-- local worker launches use `gpt-oss-120b`
+- local worker launches use `-c model_provider="lms" -m gpt-oss-120b` so the Codex CLI stays on the LM Studio provider with an explicit local model id
 - router will keep probing cloud after cooldown and can switch back automatically
 
 ### Quick Checks
@@ -166,10 +179,11 @@ As of `2026-03-13`:
 Current lane posture:
 - `feat-commands`: restart from current main
 - `feat-context-storage`: restart from current main
-- `feat-ux-flow`: restart from current main
 - `feat-retrieval-fts`: start from current main
 - `feat-a2ui-contract`: start from current main
 - `feat-engine-runs`: start from current main
+- `feat-console-shell`: defined but disabled
+- `feat-console-workflow`: defined but disabled
 
 ## Managed Sessions
 

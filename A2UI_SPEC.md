@@ -20,6 +20,44 @@ Reference clients:
 - Future `Exegesis Console` renderer
 - Future Exegesis Studio renderer
 
+## Dynamic A2UI Generation Policy
+
+Baseline A2UI is declarative and reviewable. The engine may emit cards, blocks,
+and typed actions that the client already knows how to validate and render.
+
+Future dynamic A2UI generation is a privileged build capability, not a universal
+runtime behavior:
+- Developer builds may enable dynamic generated task surfaces for internal
+  workflow and renderer development.
+- Initial CoP/beta builds may enable dynamic generated task surfaces for
+  trusted workflow discovery when the build profile explicitly allows it.
+- Direct-distribution Studio/Pro builds may enable dynamic generated task
+  surfaces when the renderer sandbox and promotion rules are implemented.
+- Lite/App Store-oriented builds should default to promoted/preapproved A2UI
+  components unless Apple App Store policy explicitly permits broader
+  agent-generated interface behavior.
+- iPad Lite should assume promoted declarative A2UI only until the same behavior
+  is Swift-native, gateway-backed, and App Store-compliant.
+
+Dynamic generated task surfaces must be treated as untrusted interface drafts:
+- they render through the fixed Exegesis A2UI renderer shipped with the app
+- they cannot execute arbitrary Swift, Python, JavaScript, shell, or downloaded
+  code
+- they cannot access files, network, credentials, project mutation, or OS
+  dialogs directly
+- every mutation must map to a known, typed, allowlisted Exegesis action
+- every policy-sensitive action still requires explicit user confirmation and
+  engine-side `PolicyGate` approval
+
+Promotion rules:
+- generated surfaces start as temporary/project-local drafts
+- useful generated patterns can be reviewed and promoted into a named,
+  versioned A2UI component catalog
+- promoted components become eligible for stable clients and stricter
+  distribution channels
+- App Store/iPad builds may ship only the promoted/preapproved catalog unless
+  current Apple policy allows dynamic generation for that build profile
+
 ## Card Model
 
 Required default:
