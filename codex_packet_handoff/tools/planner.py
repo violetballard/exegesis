@@ -832,6 +832,7 @@ def main()->None:
                 print(f"[planner] {lane}: archived {moved} stale reviewer note(s) on re-emit")
         fn=f"F__{branch.replace('/','-')}__{sha}__{ts}.md"
         outp=PACKETS_ROOT/lane/"inbox/feature"/fn
+        outp.parent.mkdir(parents=True, exist_ok=True)
         outp.write_text(build_packet(lane,branch,sha,meta,files,results))
         print(f"[planner] emitted {outp}")
         lane_state[lane]={
