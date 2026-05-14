@@ -8,7 +8,11 @@ from codex_packet_handoff.tools.lane_profiles import (
     engine_priority_lines,
 )
 from codex_packet_handoff.tools.launch_feature_lanes import build_prompt
-from codex_packet_handoff.tools.planner import build_packet, merge_lane_meta_defaults
+from codex_packet_handoff.tools.planner import (
+    apply_meta_defaults,
+    build_packet,
+    merge_lane_meta_defaults,
+)
 
 
 class LaneProfileDefaultsTests(unittest.TestCase):
@@ -38,6 +42,11 @@ class LaneProfileDefaultsTests(unittest.TestCase):
         self.assertTrue(merged["vision_capabilities"])
         self.assertTrue(merged["definition_of_done"])
         self.assertTrue(merged["do_not_spend_time_on"])
+
+    def test_planner_does_not_synthesize_tasks_completed(self) -> None:
+        meta = apply_meta_defaults({}, ["tasks_completed"], "unknown-lane")
+
+        self.assertNotIn("tasks_completed", meta)
 
     def test_planner_packet_includes_program_brief_and_lane_guardrails(self) -> None:
         meta = merge_lane_meta_defaults(

@@ -450,8 +450,6 @@ def apply_meta_defaults(meta: Json, missing: List[str], lane: str) -> Json:
         default_value = lane_defaults.get(key)
         if not _is_missing(default_value):
             out[key] = default_value
-    if "tasks_completed" in missing:
-        out["tasks_completed"] = ["(auto) reviewer handback update; see lane commits for concrete changes"]
     if "roadmap_items" in missing and _is_missing(out.get("roadmap_items")):
         out["roadmap_items"] = ["(auto) roadmap mapping pending reviewer/integrator confirmation"]
     if "vision_capabilities" in missing and _is_missing(out.get("vision_capabilities")):
