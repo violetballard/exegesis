@@ -58,6 +58,7 @@ Deterministic A2UI action ordering makes the `preview and apply or reject a patc
 
 Required gates for the authoritative `main..HEAD` corrected merge candidate:
 
+- Revalidated during the `20260514T175633Z` fixer pass after confirming the packet-planner fallback removal and existing regression coverage.
 - `python -m pytest tests/unit/test_lane_profiles.py -q`: passed; 7 tests passed.
 - `make scope-check`: passed.
 - `./quality-format.sh --check`: passed.
