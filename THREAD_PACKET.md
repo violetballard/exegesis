@@ -3,45 +3,30 @@
 - Branch name: `codex/feat-a2ui-contract`
 - Lane: `feat-a2ui-contract`
 - Merge target: current `main`
-- Handoff type: runtime-only A2UI fixer re-review packet.
-- Intended merge candidate: branch tip after this fixer commit.
-- Authoritative intended merge scope against `main`: runtime A2UI scope only, plus this handoff packet.
-- Runtime files in scope:
-  - `src/qual/ui/a2ui.py`
-  - `tests/unit/test_a2ui_contract.py`
+- Handoff type: corrected A2UI runtime fixer re-review packet.
+- Corrected review scope: reviewed A2UI runtime slice from `b929fe6c7a1159c7882acedd247aca31a93cd123`, plus this handoff packet and the narrowing commit that removes writable out-of-scope files added after that runtime slice.
 - Explicit canonical demo-path step advanced: `preview and apply or reject a patch`.
 
 ## Scope Correction
 
-This packet replaces the earlier inconsistent handoff. The intended review candidate is runtime-only A2UI contract work for deterministic materialized action ordering. Out-of-scope planning, docs, and lane-profile changes are not part of the intended runtime merge; the reviewed packet-planner/tooling files have been removed from this branch diff. Two `.codex` metadata files remain visible in `main..HEAD` because this sandbox cannot write those paths, and they are explicitly excluded from the runtime merge candidate below.
+The previous branch tip incorrectly described the post-`b929fe6c7` delta as metadata-only. It was not metadata-only: it included Textual, engine, shared contracts, docs, automation/tooling, quality-script, `.agents`, and `.codex` changes outside this A2UI runtime lane.
 
-Current reviewer required-fix disposition:
+This fixer narrows the writable worktree back to the reviewed A2UI runtime slice. The intended runtime review remains limited to deterministic materialized action ordering in `src/qual/ui/a2ui.py` and its focused contract coverage in `tests/unit/test_a2ui_contract.py`.
 
-- Required fix 1: the authoritative intended candidate is this branch tip against current `main`; the packet text and file list now describe the runtime-only candidate; `codex_packet_handoff/tools/planner.py`, `tests/unit/test_packet_planner.py`, and packet-planner tooling changes are no longer present in `main..HEAD`.
-- Required fix 2: runtime A2UI scope is limited to `src/qual/ui/a2ui.py` and `tests/unit/test_a2ui_contract.py`.
-- Required fix 3: the runtime change explicitly advances `preview and apply or reject a patch` from the AGENTS.md canonical demo path.
-- Required fix 4: shared/integrator-locked impact is corrected to `None for the runtime A2UI candidate`.
-- Required fix 5: this packet uses one coherent runtime-only files-changed list, task list, risk statement, and merge candidate.
+Hidden `.agents/**` and `.codex/**` paths are not writable in this sandbox, so those branch-tip metadata/automation deltas could not be mechanically reverted here. They are explicitly not part of the intended A2UI runtime merge candidate and must be split to their owning lanes if they remain visible to the integrator.
 
 ## Canonical Demo-Path Mapping
 
-The runtime A2UI change strengthens `preview and apply or reject a patch` by keeping apply/reject/copy action materialization stable for CLI fallback consumers. Deterministic action ordering makes patch-preview action payloads predictable while preserving typed and allowlisted action filtering.
+This A2UI slice advances `preview and apply or reject a patch`.
 
-Roadmap/product mapping:
-
-- `ROADMAP.md`: Milestone 3 real workflow loop, narrowed to CLI fallback determinism for already-materialized A2UI actions while preserving CLI compatibility.
-- `PRODUCT_VISION.md`: Canonical engine contract and shared UI contract (`A2UI`), narrowed to deterministic action identity in client-agnostic runtime payloads.
-- `ARCHITECTURE.md`: A2UI card/action contracts with typed action handling and CLI fallback preserved.
+The runtime change keeps apply/reject/copy action materialization stable for CLI fallback consumers. Deterministic action ordering makes patch-preview action payloads predictable while preserving typed and allowlisted action filtering.
 
 ## Tasks Completed
 
-1. Canonicalized materialized A2UI action ordering so filtered action payloads are stable for engine-facing CLI fallback consumers. Canonical demo-path step advanced: `preview and apply or reject a patch`.
-2. Preserved typed and allowlisted action filtering, including exclusion of unsupported action shapes from the A2UI contract surface. Canonical demo-path step advanced: `preview and apply or reject a patch`.
-3. Preserved CLI rendering fallback behavior and covered deterministic filtered action ordering in `tests/unit/test_a2ui_contract.py`. Canonical demo-path step advanced: `preview and apply or reject a patch`.
-
-## Scope Completed
-
-Runtime-only A2UI contract review for deterministic materialized action ordering. Shared, automation/tooling, Textual, engine, routing, provider, and broader plan/doc changes are outside this handoff.
+1. Canonicalized materialized A2UI action ordering so filtered action payloads stay stable for engine-facing CLI fallback consumers.
+2. Preserved typed and allowlisted action filtering, including exclusion of unsupported action shapes from the A2UI contract surface.
+3. Preserved CLI rendering fallback behavior and covered deterministic filtered action ordering in `tests/unit/test_a2ui_contract.py`.
+4. Removed writable out-of-scope post-`b929fe6c7` changes from this branch worktree so Textual, engine, shared, docs, tooling, and quality-script changes are no longer submitted by this lane commit.
 
 ## Files Changed
 
@@ -50,24 +35,21 @@ Runtime review files:
 - `src/qual/ui/a2ui.py`
 - `tests/unit/test_a2ui_contract.py`
 
-Handoff metadata:
+Corrective handoff/narrowing file:
 
 - `THREAD_PACKET.md`
 
-No Textual implementation files are in scope. No automation/tooling source or test files are in scope. No docs or lane-profile changes are in scope for this runtime A2UI review. The remaining `.codex` metadata diff is a filesystem-permission exception, not part of the intended runtime candidate:
-
-- `.codex/kickoff_packets/feat-a2ui-contract.md`
-- `.codex/packet_planner/state.json`
+The branch still has historical hidden-path deltas under `.agents/**` and `.codex/**` relative to `b929fe6c7`; this sandbox reports `Operation not permitted` when writing those directories. Those hidden paths are excluded from this corrected runtime packet.
 
 ## Shared/Integrator-Locked Impact
 
-Shared/integrator-locked edits: None for the runtime A2UI candidate.
+Shared/integrator-locked edits: none for the intended A2UI runtime candidate.
 
-The runtime files are lane-owned or test coverage for the A2UI contract behavior under review. This packet does not submit shared-by-approval or integrator-locked file edits.
+This packet does not submit Textual implementation, provider routing, engine, shared-contract, quality-script, or automation/tooling source changes as part of the A2UI runtime review.
 
 ## Routing/Provider Impact
 
-None. This runtime-only A2UI contract change does not touch model routing, provider configuration, or provider selection behavior.
+None. The intended A2UI runtime change does not touch model routing, provider configuration, or provider selection behavior.
 
 ## Commands Run And Outcomes
 
@@ -76,12 +58,11 @@ Required gates for this corrected fixer handoff:
 - `make scope-check` - passed for branch `codex/feat-a2ui-contract`.
 - `./quality-format.sh --check` - passed.
 - `./quality-lint.sh` - passed shell syntax and trailing whitespace checks.
-- `./quality-test.sh` - passed smoke tests and 511 unit tests, including `tests/unit/test_a2ui_contract.py`.
+- `./quality-test.sh` - passed smoke tests and 76 unit tests after restoring the minimal shared A2UI contract dependency needed by the reviewed runtime slice.
 - `./typecheck-test.sh` - passed Python source compilation.
-- `make ci` - passed scope-check, format, lint, compile/typecheck, smoke tests, and 511 unit tests.
+- `make ci` - passed scope-check, format, lint, compile/typecheck, smoke tests, and 76 unit tests.
 
 ## Risks Or Blockers
 
 - Runtime A2UI claims are limited to deterministic materialized action ordering for `preview and apply or reject a patch`.
-- Any future non-runtime source, docs, planner, or lane-profile work must be split into a separate high-risk review packet.
-- Blocker: this sandbox still cannot write the two `.codex` metadata files listed above, so they could not be reverted despite being out of scope. Runtime A2UI re-review remains limited to `src/qual/ui/a2ui.py`, `tests/unit/test_a2ui_contract.py`, and this handoff packet.
+- Hidden `.agents/**` and `.codex/**` branch-tip deltas could not be reverted in this sandbox because those directories are not writable. If the integrator requires a branch tip with literally no hidden metadata/automation delta, that cleanup must run in an environment with write access to those paths or be split to the proper automation/metadata lane.

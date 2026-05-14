@@ -140,42 +140,18 @@ If any condition is missing, integrator response must be `REJECT FOR INTEGRATION
 
 ## Deferred Lanes
 
-- `codex/feat-console-shell`
-- `codex/feat-console-workflow`
-
-These lanes are defined but disabled right now. Do not promote new work from them unless they are explicitly re-enabled in the router config, roadmap, and package/dependency plan.
-
-## Retired Planning Targets
-
 - `codex/feat-console`
 - `codex/feat-ux-flow`
 
-These legacy lanes are superseded by the staged `engine / client-textual / shared` split and should not be restarted.
+These lanes are not part of the active MVP pipeline right now. Do not promote new work from them unless they are explicitly re-enabled in the router config and roadmap.
 
-## Lane-Specific Review Gate: `codex/feat-console-shell*`
-
-Reject handoff unless ALL conditions are met:
-
-- Includes a completed AGENTS.md handoff packet.
-- The lane was explicitly enabled before work started.
-- Keeps Textual shell work inside lane-owned `client-textual` paths.
-- Reports passing results for:
-  - `./quality-format.sh --check`
-  - `./quality-lint.sh`
-  - `./quality-test.sh`
-  - `./typecheck-test.sh`
-  - `make ci`
-- Maps change to roadmap + product vision items per required handoff fields above.
-
-If any condition is missing, integrator response must be `REJECT FOR INTEGRATION` with missing items listed.
-
-## Lane-Specific Review Gate: `codex/feat-console-workflow*`
+## Lane-Specific Review Gate: `codex/feat-ux-flow*`
 
 Reject handoff unless ALL conditions are met:
 
 - Includes a completed AGENTS.md handoff packet.
-- The lane was explicitly enabled before work started.
-- Keeps Textual workflow/card work inside lane-owned `client-textual` paths.
+- Stays within kickoff budget/limits (or documents approved exception).
+- Preserves architecture dependency direction per `ARCHITECTURE.md`.
 - Reports passing results for:
   - `./quality-format.sh --check`
   - `./quality-lint.sh`

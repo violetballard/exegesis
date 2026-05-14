@@ -1,4 +1,15 @@
-from exegesis_engine.api.bootstrap import build_runtime
-from exegesis_engine.api.app_service import EngineRuntime
+from __future__ import annotations
 
-__all__ = ["EngineRuntime", "build_runtime"]
+from src.qual.config import default_config
+from src.qual.engine.service import EngineService, EngineRuntime
+
+
+def build_runtime(*, project_name: str | None = None) -> EngineRuntime:
+    config = default_config()
+    config.app_data_dir.mkdir(parents=True, exist_ok=True)
+    engine = EngineService()
+    selected_project = project_name if project_name else config.default_project_name
+    return engine.bootstrap(
+        app_data_dir=config.app_data_dir,
+        project_name=selected_project,
+    )
