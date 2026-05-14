@@ -9,12 +9,12 @@
 - Review range for reviewer: `b929fe6c7a1159c7882acedd247aca31a93cd123^..b929fe6c7a1159c7882acedd247aca31a93cd123`.
 - Selected integration target: cherry-pick `b929fe6c7a1159c7882acedd247aca31a93cd123`.
 - Explicit non-targets: do not review or merge the branch tip for this packet, and do not review the full branch range from `b929fe6c7a1159c7882acedd247aca31a93cd123` through branch tip.
-- Merge instruction: integrator must cherry-pick `b929fe6c7a1159c7882acedd247aca31a93cd123` and must not merge branch `codex/feat-a2ui-contract` or its tip. Later branch commits contain additional runtime, test, planner, packet, and generated metadata changes that are outside this packet.
+- Merge instruction: integrator must cherry-pick `b929fe6c7a1159c7882acedd247aca31a93cd123` and must not merge branch `codex/feat-a2ui-contract` or its tip.
 - Merge-base baseline for branch context only: `06cdebc2d5d53533b73f264a4bbf5a4b4daacb27`.
 - This is a fixer packet for the reviewer-required integration-block response, not a new feature expansion.
 - The previous packet was rejected because it mixed a cherry-pick intent with a branch-tip submission. This packet names one integration target only.
 - Any later packet-only fixer commit that updates this handoff text is also a non-target and must not change the selected integration target.
-- No commit that changes executable source or tests is classified as metadata-only in this packet. The final branch-tip fixer commit is this packet correction only and is not a selected integration target. Prior non-target branch commits include runtime, test, planner, packet, and generated metadata work outside this packet.
+- No commit that changes executable source or tests is classified as metadata-only in this packet. The final branch-tip fixer commit is this packet correction only and is not a selected integration target.
 - Conflict-resolution verification: fixer pass on 2026-05-14 confirmed `src/qual/ui/a2ui.py` has no conflict marker tokens and no unmerged index entries.
 
 ## Scope Completed
@@ -38,13 +38,11 @@ Packet/planner maintenance:
 Generated packet/router metadata:
 - None in selected review target.
 
-## Branch Context Not In Selected Review Target
+## Excluded From This Packet
 
-- Runtime implementation outside this packet: `src/qual/ui/__init__.py`, `src/qual/ui/a2ui.py`, `src/qual/ui/shell.py`.
-- Tests outside this packet: `src/qual/ui/test_a2ui_fallback_safety.py`, `tests/unit.sh`, `tests/unit/test_a2ui_contract.py`, `tests/unit/test_packet_planner.py`, `tests/unit/test_ui_shell.py`.
-- Packet/planner maintenance outside this packet: `THREAD_PACKET.md`, `codex_packet_handoff/tools/planner.py`.
-- Generated packet/router metadata outside this packet: `.codex/kickoff_packets/feat-a2ui-contract.md`, `.codex/lane_meta/feat-a2ui-contract.json`, `.codex/packet_planner/state.json`, `.codex/packets/lanes/feat-a2ui-contract/inbox/feature/F__codex-feat-a2ui-contract__aa875cd03ea2a8e092f527610640827baa7b7b5a__20260320T210541Z.md`.
-- Branch-tip relationship: final branch tip is the packet-correction fixer commit named in the final fixer response; it is not a selected integration target. The only selected integration target remains `b929fe6c7a1159c7882acedd247aca31a93cd123`; prior non-target branch commits include runtime plus test work and require separate review packets.
+- The branch tip is not the selected integration target.
+- The full branch range after `b929fe6c7a1159c7882acedd247aca31a93cd123` is not submitted for review by this packet.
+- Non-target branch work requires its own packet with its own branch or range, owned paths, scope goal, commands, and plan-alignment rationale before review.
 
 ## Plan Alignment
 
@@ -69,7 +67,7 @@ Generated packet/router metadata:
 - Canonical demo-path step advanced: deterministic A2UI action ordering for the CLI fallback demo path, preserving stable action rendering for equivalent engine-authored payloads.
 - Routing/provider impact note: None.
 - Size-budget status: Within fixer scope. The selected review range changes 2 source/test files with 5 insertions and 3 deletions.
-- Scope / approval note: This packet requests re-review of the cherry-pick target only. The branch tip and the full range after `b929fe6c7a1159c7882acedd247aca31a93cd123` are not merge targets for this packet because they include additional runtime, test, planner, packet, and generated metadata work outside the narrow deterministic action-order fix.
+- Scope / approval note: This packet requests re-review of the cherry-pick target only. The branch tip and the full range after `b929fe6c7a1159c7882acedd247aca31a93cd123` are not merge targets for this packet.
 - Selected integration target: cherry-pick `b929fe6c7a1159c7882acedd247aca31a93cd123`; do not merge `codex/feat-a2ui-contract`.
 - Shared/integrator-locked impact: None for the selected review target; `src/qual/ui/a2ui.py` and `tests/unit/test_a2ui_contract.py` are lane-owned A2UI contract/runtime test paths for this packet.
 
