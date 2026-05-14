@@ -7,9 +7,11 @@
 
 - Authoritative review target: single commit `b929fe6c7a1159c7882acedd247aca31a93cd123` (`fix(a2ui): canonicalize materialized action order`).
 - Review range: `b929fe6c7a1159c7882acedd247aca31a93cd123^..b929fe6c7a1159c7882acedd247aca31a93cd123`.
+- Merge instruction: cherry-pick `b929fe6c7a1159c7882acedd247aca31a93cd123` only; do not merge the current branch tip for this handoff.
 - Merge-base baseline for branch context only: `06cdebc2d5d53533b73f264a4bbf5a4b4daacb27`.
 - This is a narrow source review packet, not a full `06cdebc2..HEAD` branch-tip review and not an over-budget full-branch candidate.
-- Source-bearing branch changes outside the single commit above are explicitly excluded from this re-review packet and must not be treated as part of this handoff.
+- Source/test changes after `b929fe6c7a1159c7882acedd247aca31a93cd123` are explicitly excluded from this re-review packet and must not be treated as part of this handoff.
+- Packet-only commits after `b929fe6c7a1159c7882acedd247aca31a93cd123` exist only to correct review metadata and gate evidence; they are not part of the selected merge target.
 
 ## Scope Completed
 
@@ -22,7 +24,6 @@
 
 - `src/qual/ui/a2ui.py`
 - `tests/unit/test_a2ui_contract.py`
-- `THREAD_PACKET.md`
 
 ## Plan Alignment
 
@@ -36,7 +37,7 @@
 
 1. Updated `src/qual/ui/a2ui.py` to sort filtered materialized actions by canonical JSON identity before returning card actions.
 2. Updated `tests/unit/test_a2ui_contract.py` to cover canonical action ordering for supported filtered actions.
-3. Regenerated this handoff packet so `Scope Completed`, `Files Changed`, `Tasks Completed`, and `Commands Run` match the selected narrow review target.
+3. Regenerated this handoff packet so `Scope Completed`, `Files Changed`, `Tasks Completed`, and `Commands Run` describe the selected narrow review target and separately identify packet-only metadata updates.
 
 ## Required Handoff Fields
 
@@ -46,10 +47,11 @@
 - Routing/provider impact note: None.
 - Size-budget status: Within narrow review scope. The authoritative source target is one commit with 2 source/test files and 5 insertions / 3 deletions. The packet metadata update adds `THREAD_PACKET.md` only.
 - Scope / approval note: No integrator approval for an over-budget full-branch candidate is requested in this packet because this handoff selects the narrow review target. The full `06cdebc2..HEAD` branch range is not the review target for this packet.
+- Selected merge target: cherry-pick `b929fe6c7a1159c7882acedd247aca31a93cd123` only. The current branch tip contains packet correction commits for re-review traceability and is not the requested integration target.
 
 ## Commands Run And Outcomes
 
-- Fixer verification pass completed on 2026-05-14 after correcting the review target and packet traceability.
+- Fixer verification pass completed on 2026-05-14 after adding the explicit cherry-pick-only merge target and removing packet metadata from the selected source file list.
 - `make scope-check`: PASS on 2026-05-14 (`[devex] scope-check: passed for branch 'codex/feat-a2ui-contract'`).
 - `./quality-format.sh --check`: PASS on 2026-05-14 (`[format] check passed`).
 - `./quality-lint.sh`: PASS on 2026-05-14 (`[lint] passed`).
