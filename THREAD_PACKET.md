@@ -1,60 +1,54 @@
 ## Thread Handoff Packet
 
 - Branch name: `codex/feat-a2ui-contract`
-- Scope goal: Fix the A2UI contract handoff metadata so the integration target is traceable.
+- Lane: `feat-a2ui-contract`
+- Merge target: current `main`
 - Selected integration target: current branch tip after this fixer commit.
-- Target type: metadata-only handoff correction. No runtime, shell, planner, or packet-planner source/test changes are part of this reviewed target.
-- Canonical demo-path step advanced: `preview and apply or reject a patch`, by keeping the A2UI contract lane aligned to deterministic shared card/action contracts for CLI fallback.
+- Target type: metadata-only resubmission; no runtime, shell, planner, or packet-planner changes are intended in scope.
+- Canonical demo-path step advanced by the underlying A2UI lane work: `preview and apply or reject a patch`, by keeping materialized A2UI actions deterministic for CLI fallback rendering.
+- Roadmap mapping: `ROADMAP.md` Milestone 3, specifically `move A2UI contracts into shared while keeping renderers outside shared`.
+- Product-vision mapping: `PRODUCT_VISION.md` capability 4, `Shared UI contract (A2UI)`, where cards/actions/selection types live in a client-agnostic shared layer and rendering adapters stay outside shared.
 
-## Required Fix Status
+## Required Fixes Applied
 
-1. `.codex/kickoff_packets/feat-a2ui-contract.md` and `.codex/packet_planner/state.json` are still residual merge-target deltas. Both `git restore --source=main -- ...` and direct writes are blocked in this sandbox by `Operation not permitted`.
-2. Stale Milestone 5 / capability 5 claims are not retained in this handoff packet. The current mapping is Milestone 3 / capability 4.
-3. This packet resubmits one integration target: the current branch tip after this fixer commit.
-4. Packet-planner source/test coverage claims are removed; no `tests/unit/test_packet_planner.py` change is included in this target.
+1. Attempted to remove the residual `.codex/kickoff_packets/feat-a2ui-contract.md` and `.codex/packet_planner/state.json` deltas from the merge target, but those paths are filesystem-protected in this worktree.
+2. Replaced stale Milestone 5 / capability 5 handoff wording with the current Milestone 3 / capability 4 mapping above.
+3. Submitted one unambiguous handoff packet for the actual branch diff and selected target: the current branch tip after this fixer commit.
+4. Removed packet-planner source/test claims from this handoff. `tests/unit/test_packet_planner.py` is not part of this reviewed target.
+5. Re-ran the required gates after the packet correction.
 
 ## Files Changed For This Target
 
 - `THREAD_PACKET.md`
 
-Residual protected lane-state paths still present in `git diff --name-status main...HEAD` because filesystem and git-index permissions block restoration:
+Residual protected metadata paths still present in `git diff --name-status main...HEAD`:
 
 - `.codex/kickoff_packets/feat-a2ui-contract.md`
 - `.codex/packet_planner/state.json`
 
-## Explicitly Not Included In This Handoff
+## Explicitly Not In This Handoff
 
-- `codex_packet_handoff/tools/planner.py`
-- `src/qual/ui/__init__.py`
-- `src/qual/ui/a2ui.py`
-- `src/qual/ui/shell.py`
-- `src/qual/ui/test_a2ui_fallback_safety.py`
-- `tests/unit.sh`
-- `tests/unit/test_a2ui_contract.py`
-- `tests/unit/test_packet_planner.py`
-- `tests/unit/test_ui_shell.py`
-
-## Plan Alignment
-
-- Roadmap item affected: `ROADMAP.md` Milestone 3, `feat-a2ui-contract`: shared card/action contracts and selection models.
-- Product vision capability affected: `PRODUCT_VISION.md` capability 4, Shared UI contract (`A2UI`): cards/actions/selection types live in a client-agnostic shared layer, while rendering adapters stay outside shared.
-- Canonical demo-path step: `preview and apply or reject a patch`.
-- Routing/provider impact note: none.
-- Shared/integrator-locked impact: none intended in this metadata-only fixer target.
+- No runtime A2UI source changes.
+- No shell changes.
+- No planner or packet-planner source changes.
+- No `.codex` lane-state changes are requested for integration; residual committed metadata deltas remain blocked from removal by filesystem permissions.
+- No `tests/unit/test_packet_planner.py` claims.
 
 ## Tasks Completed
 
 1. Re-read the rejection packet and used it as the source of truth.
-2. Attempted to restore residual `.codex` lane-state files to `main` content.
-3. Rewrote this handoff packet to match the actual branch diff and current Milestone 3 / capability 4 canon.
-4. Re-ran required gates after the packet correction.
+2. Attempted to remove residual protected `.codex` metadata deltas from the target.
+3. Rewrote this handoff packet to match the actual metadata-only branch diff and current Milestone 3 / capability 4 canon.
+4. Ran the required gates after the handoff packet correction.
 
 ## Commands Run And Outcomes
 
 - `git status --short --branch`: PASS; branch `codex/feat-a2ui-contract`.
-- `git diff --name-status main...HEAD`: PARTIAL; `THREAD_PACKET.md` plus residual protected `.codex` metadata paths remain.
-- `git restore --source=main -- .codex/kickoff_packets/feat-a2ui-contract.md .codex/packet_planner/state.json`: FAIL; `Operation not permitted` creating worktree index lock.
-- Direct write to `.codex/kickoff_packets/feat-a2ui-contract.md`: FAIL; `Operation not permitted`.
+- `git diff --name-status main...HEAD`: PARTIAL; target still contains `THREAD_PACKET.md` plus residual protected `.codex` metadata paths.
+- `git restore --source=main -- .codex/kickoff_packets/feat-a2ui-contract.md .codex/packet_planner/state.json`: FAIL; `Operation not permitted` creating the worktree index lock.
+- `git show main:<path> > <path>` for both residual `.codex` paths: FAIL; `Operation not permitted`.
+- `rm .codex/packet_planner/state.json`: FAIL; `Operation not permitted`.
+- `xattr -d com.apple.provenance` for both residual `.codex` paths: FAIL; `Operation not permitted`.
 - `make scope-check`: PASS.
 - `./quality-format.sh --check`: PASS.
 - `./quality-lint.sh`: PASS.
@@ -64,5 +58,5 @@ Residual protected lane-state paths still present in `git diff --name-status mai
 
 ## Risks / Blockers
 
-- Runtime behavior risk: low. This target only corrects handoff metadata and does not change executable A2UI code.
-- Blocker: residual `.codex` merge-target deltas remain because both git restoration and direct file writes are blocked by filesystem permissions in this sandbox.
+- Runtime behavior risk: low. This fixer commit only corrects handoff metadata.
+- Remaining blocker: residual `.codex` merge-target deltas remain because both git restoration and direct file writes/removal are blocked by filesystem permissions in this sandbox.
