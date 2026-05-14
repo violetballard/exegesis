@@ -60,7 +60,7 @@ Deterministic A2UI action ordering makes the `preview and apply or reject a patc
 
 Required gates for the corrected runtime-only A2UI packet and administrative packet reissue:
 
-- Fresh fixer gate run: `2026-05-14`.
+- Fresh fixer gate run: `2026-05-14` after reviewer-required scope correction; all required gates below passed on the current packet-only HEAD before this handoff refresh commit.
 - `git merge-base --is-ancestor codex/feat-engine-runs main; printf '%s\n' $?`: reproduced the integrator blocker; returned `1`.
 - `make scope-check`: passed; scope-check accepted the packet-only branch diff.
 - Final HEAD scope note: the runtime review target is `b929fe6c7a1159c7882acedd247aca31a93cd123`; later packet-only commits correct handoff metadata, and packet-planner source/test maintenance is split out of the A2UI review target.
