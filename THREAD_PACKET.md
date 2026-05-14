@@ -6,7 +6,7 @@
 - Handoff type: retargeted single-commit runtime review packet.
 - Review target: exact commit `b929fe6c7a1159c7882acedd247aca31a93cd123` (`fix(a2ui): canonicalize materialized action order`).
 - Review range: `b929fe6c7a1159c7882acedd247aca31a93cd123^..b929fe6c7a1159c7882acedd247aca31a93cd123`.
-- Branch-tip note: later commits after `b929fe6c7a1159c7882acedd247aca31a93cd123`, including this packet correction, are not submitted as runtime/source changes and must not be reviewed as part of the A2UI runtime delta.
+- Branch-tip note: later commits after `b929fe6c7a1159c7882acedd247aca31a93cd123`, including packet correction commits, are handoff metadata only and must not be reviewed as part of the A2UI runtime delta.
 - Packet correction scope: documentation-only handoff metadata for re-review.
 - Runtime files in scope:
   - `src/qual/ui/a2ui.py`
@@ -70,9 +70,9 @@ Required gates for the corrected handoff:
 - `make scope-check` - passed for branch `codex/feat-a2ui-contract`.
 - `./quality-format.sh --check` - passed.
 - `./quality-lint.sh` - passed shell syntax and trailing whitespace checks.
-- `./quality-test.sh` - passed smoke tests and 515 unit tests, including `tests/unit/test_a2ui_contract.py`.
+- `./quality-test.sh` - passed smoke tests and 511 unit tests, including `tests/unit/test_a2ui_contract.py`.
 - `./typecheck-test.sh` - passed Python source compilation.
-- `make ci` - passed scope-check, format, lint, compile/typecheck, smoke tests, and 515 unit tests.
+- `make ci` - passed scope-check, format, lint, compile/typecheck, smoke tests, and 511 unit tests.
 
 ## Risks Or Blockers
 
