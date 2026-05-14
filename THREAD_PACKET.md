@@ -3,7 +3,7 @@
 - Branch name: `codex/feat-a2ui-contract`
 - Lane: `feat-a2ui-contract`
 - Merge target: current `main`
-- Handoff type: corrected runtime-only re-review packet.
+- Handoff type: corrected runtime-only re-review packet; control-plane packet maintenance is excluded from runtime review.
 - Reviewed runtime scope: `b929fe6c7a1159c7882acedd247aca31a93cd123` (`fix(a2ui): canonicalize materialized action order`).
 - Runtime files in scope:
   - `src/qual/ui/a2ui.py`
@@ -24,7 +24,7 @@ The following files are not part of this A2UI runtime handoff and should not be 
 - `codex_packet_handoff/tools/planner.py`
 - `tests/unit/test_packet_planner.py`
 
-No planner source behavior changes and no packet-planner regression coverage are claimed here. If planner/control-plane source changes are still needed, they require a separate high-risk control-plane review packet with lane ownership, approval basis, and a concrete Milestone 3 engine-loop blocker.
+No planner source behavior changes and no packet-planner regression coverage are claimed here. The branch diff currently contains packet-control metadata outside the reviewed runtime commit, but this packet asks the reviewer to evaluate only the runtime A2UI commit and the two runtime files above. If planner/control-plane source changes are still needed, they require a separate high-risk control-plane review packet with lane ownership, approval basis, and a concrete Milestone 3 engine-loop blocker.
 
 ## Canonical Demo-Path Mapping
 
@@ -63,4 +63,5 @@ Required gates for the corrected handoff:
 
 - Runtime A2UI claims are limited to commit `b929fe6c7a1159c7882acedd247aca31a93cd123`.
 - Planner source files and packet-planner tests are explicitly out of scope for this handoff.
+- Packet-control metadata is not presented as A2UI runtime work.
 - Any future planner/control-plane source work should be split into a separately owned high-risk review packet.
