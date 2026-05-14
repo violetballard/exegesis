@@ -1,59 +1,62 @@
 ## Thread Handoff Packet
 
 - Branch name: `codex/feat-a2ui-contract`
-- Scope goal: Move A2UI card/action/selection-adjacent contracts into the client-agnostic shared package while preserving compatibility imports and CLI fallback behavior.
-- Authoritative source-bearing review range: `7e117a068bd0b9597c085eda8f96a9706aad477b..c45d0139664c5afc9f3940567ef122c2e99cdfbe`.
-- Review scope: This is the only submitted source/runtime review range for this re-review packet. Later commits through branch tip are packet-only corrections and do not change the source/runtime review scope.
-- Scope completed: Review candidate `c45d0139664c5afc9f3940567ef122c2e99cdfbe` moves A2UI capabilities, action refs, policy-gated action execution, primitive block validation, and generic-card validation into `shared/src/exegesis_shared/contracts/a2ui.py`; keeps `src/qual/shared/contracts/a2ui.py` as a forwarding compatibility module; and updates tests to import canonical shared contract definitions while continuing to validate UI adapter behavior.
-- Canonical demo-path step advanced: AGENTS.md active MVP item `A2UI contracts with CLI fallback`.
-- High-risk/shared-path approval request: `shared/src/exegesis_shared/**` and `src/qual/shared/**` are outside the lane-owned `src/qual/ui/**` path for this lane and are included here for explicit reviewer/integrator approval. No integrator-locked files from `THREAD_OWNERSHIP.md` were edited in the source-bearing review range.
+- Scope goal: Make materialized A2UI patch actions deterministic for CLI fallback rendering without changing routing, provider behavior, or non-A2UI planner automation.
+- Reviewed runtime commit: `b929fe6c7a1159c7882acedd247aca31a93cd123`.
+- Review scope: Review only the runtime implementation in `b929fe6c7a1159c7882acedd247aca31a93cd123`. Later branch-tip commits are handoff packet corrections only and are not submitted as source/runtime implementation work for this review.
+- Scope completed: `b929fe6c7a1159c7882acedd247aca31a93cd123` updates A2UI materialized action filtering so supported actions are normalized, deduplicated, and emitted in deterministic canonical JSON order while preserving invalid-action filtering and CLI fallback compatibility.
+- Canonical demo-path step advanced: `preview and apply or reject a patch`. This work makes that step more real by ensuring materialized A2UI patch actions render deterministically for CLI fallback previews and action selection.
+- Shared/integrator-locked edits: `NO` for the reviewed runtime implementation commit. The reviewed files stay in `src/qual/ui/a2ui.py` and `tests/unit/test_a2ui_contract.py`; no shared-by-approval or integrator-locked files are included in this handoff scope.
 
 ### Tasks Completed
 
-1. Moved canonical A2UI contract ownership to `shared/src/exegesis_shared/contracts/a2ui.py`.
-2. Kept `src/qual/shared/contracts/a2ui.py` as a forwarding compatibility surface for existing imports.
-3. Updated `tests/unit/test_a2ui_contract.py` imports to exercise shared contract definitions and UI adapter behavior.
-4. Rewrote this handoff packet to match the actual source/runtime review candidate, high-risk budget, changed files, risks, and roadmap/product mapping.
+1. Canonicalized supported materialized A2UI action output by normalizing, deduplicating, and sorting actions with stable JSON semantics.
+2. Added/updated unit coverage for deterministic canonical action ordering while preserving invalid-action filtering behavior.
 
 ### Files Changed
 
-Changed-files list for source/runtime review candidate `7e117a068bd0b9597c085eda8f96a9706aad477b..c45d0139664c5afc9f3940567ef122c2e99cdfbe`:
+Reviewed runtime implementation commit `b929fe6c7a1159c7882acedd247aca31a93cd123`:
 
-- `M THREAD_PACKET.md`
-- `A shared/src/exegesis_shared/__init__.py`
-- `A shared/src/exegesis_shared/contracts/__init__.py`
-- `A shared/src/exegesis_shared/contracts/a2ui.py`
-- `M src/qual/shared/contracts/a2ui.py`
-- `M tests/unit/test_a2ui_contract.py`
+- `src/qual/ui/a2ui.py`
+- `tests/unit/test_a2ui_contract.py`
 
-Branch-tip-only packet correction files after `c45d0139664c5afc9f3940567ef122c2e99cdfbe`:
+Packet-only correction files after the reviewed runtime commit:
 
 - `THREAD_PACKET.md`
 
+Planner, packet-planner test, and broad packet-maintenance changes are not part of this handoff scope. They are intentionally excluded from `Scope completed`, `Tasks completed`, and `Files changed` for this re-review.
+
+### Budget/Limit Compliance
+
+- Risk mode: standard lane-owned runtime slice.
+- Task budget: `2` of `8` used.
+- Time budget: within `45m`.
+- Size limits: `2` reviewed runtime files, within `<=12 files`; runtime change is within `<=500 net LOC`.
+- High-risk/shared cap: not applicable because the reviewed runtime implementation does not claim shared or integrator-locked edits.
+
 ### Commands Run
 
-- `make scope-check` -> passed for branch `codex/feat-a2ui-contract`.
+- `make scope-check` -> passed.
 - `./quality-format.sh --check` -> passed.
-- `./quality-lint.sh` -> passed shell syntax and trailing-whitespace checks.
-- `./quality-test.sh` -> passed smoke tests and 123 unit tests.
-- `./typecheck-test.sh` -> passed Python source compilation under `src/`.
-- `make ci` -> passed setup, scope-check, format, lint, typecheck, smoke tests, and 123 unit tests.
+- `./quality-lint.sh` -> passed.
+- `./quality-test.sh` -> passed.
+- `./typecheck-test.sh` -> passed.
+- `make ci` -> passed.
 
 ### Risks/Blockers
 
-- Shared-path approval is required because `shared/src/exegesis_shared/**` and `src/qual/shared/**` are outside the lane-owned `src/qual/ui/**` path. The intended approval path is explicit reviewer/integrator acceptance of this high-risk handoff.
-- `src/qual/shared/**` remains only as a compatibility forwarding surface for existing `src.qual` imports; canonical A2UI contract ownership is under `shared/src/exegesis_shared/**`.
-- This packet intentionally makes no packet-planner, retrieval, provider-routing, or broad branch-tip runtime claims. Those changes are outside the authoritative source-bearing review range named above.
+- None known for the reviewed runtime slice.
+- This packet intentionally makes no planner, packet-planner, retrieval, provider-routing, shared-package, or branch-tip runtime claims beyond `b929fe6c7a1159c7882acedd247aca31a93cd123`.
 
 ### Roadmap/Vision Mapping
 
-- Roadmap item affected: Milestone 5 A2UI Presentation Layer contract extraction into shared while keeping renderers outside shared.
-- Vision capability affected: client-agnostic cards/actions contract shared by engine and clients, with rendering adapters outside shared.
-- Canonical demo-path step advanced: AGENTS.md active MVP work item `A2UI contracts with CLI fallback`.
+- Roadmap item affected: active MVP work item `A2UI contracts with CLI fallback`.
+- Vision capability affected: deterministic, engine-authoritative A2UI action contracts that can be rendered by CLI fallback clients.
+- Canonical demo-path step advanced: `preview and apply or reject a patch`.
 
 ### Routing/Provider Impact
 
-None. No model routing or provider configuration was touched in the source-bearing review range.
+None. No model routing, provider configuration, or core entrypoint behavior is included in the reviewed runtime scope.
 
 ### Proposed `README.md` Patch Text
 
