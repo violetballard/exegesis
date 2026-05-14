@@ -1,22 +1,21 @@
 ## Thread Handoff Packet
 
 - Branch name: `codex/feat-a2ui-contract`
-- Scope goal: Narrow re-review of the deterministic A2UI materialized action-order fix only.
+- Scope goal: Fresh re-review after integrator-blocked handoff for the deterministic A2UI materialized action-order fix.
 
 ## Traceability
 
-- Authoritative review target: single commit `b929fe6c7a1159c7882acedd247aca31a93cd123` (`fix(a2ui): canonicalize materialized action order`).
-- Review range: `b929fe6c7a1159c7882acedd247aca31a93cd123^..b929fe6c7a1159c7882acedd247aca31a93cd123`.
-- Merge instruction: cherry-pick `b929fe6c7a1159c7882acedd247aca31a93cd123` only; do not merge the current branch tip for this handoff.
+- Authoritative review target: current branch tip `2329b4a04c52535ae60226262750a4872a40ead6` (`fix(a2ui): verify canonical action contract`).
+- Review range: `452fbca7184933577aabd7e297ad842dbfb1b11c..2329b4a04c52535ae60226262750a4872a40ead6`.
+- Merge instruction: review and integrate the current branch tip. This packet supersedes the previous cherry-pick-only packet because the integrator reported that selected-target integration was blocked.
 - Merge-base baseline for branch context only: `06cdebc2d5d53533b73f264a4bbf5a4b4daacb27`.
-- This is a narrow source review packet, not a full `06cdebc2..HEAD` branch-tip review and not an over-budget full-branch candidate.
-- Source/test changes after `b929fe6c7a1159c7882acedd247aca31a93cd123` are explicitly excluded from this re-review packet and must not be treated as part of this handoff.
-- Packet-only commits after `b929fe6c7a1159c7882acedd247aca31a93cd123` exist only to correct review metadata and gate evidence; they are not part of the selected merge target.
+- This is a fixer packet for the reviewer-required integration-block response, not a new feature expansion.
+- The previous approved packet failed at integration with `blocked/no integration performed`; this pass reproduced the lane gates locally and refreshed the review target.
 
 ## Scope Completed
 
 - Canonicalized materialized A2UI action order in `src/qual/ui/a2ui.py` so equivalent supported action payloads render deterministically in CLI fallback output.
-- Updated unit coverage in `tests/unit/test_a2ui_contract.py` to assert canonical action identity ordering instead of input-order preservation.
+- Updated unit coverage in `tests/unit/test_a2ui_contract.py` to assert the full canonicalized action list instead of only action ids.
 - Preserved CLI fallback behavior as the active renderer path while keeping action handling typed, allowlisted, and engine-authored.
 - Did not add Textual, Exegesis Console, Studio renderer, provider routing, or core engine entrypoint work.
 
@@ -37,7 +36,8 @@
 
 1. Updated `src/qual/ui/a2ui.py` to sort filtered materialized actions by canonical JSON identity before returning card actions.
 2. Updated `tests/unit/test_a2ui_contract.py` to cover canonical action ordering for supported filtered actions.
-3. Regenerated this handoff packet so `Scope Completed`, `Files Changed`, `Tasks Completed`, and `Commands Run` describe the selected narrow review target and separately identify packet-only metadata updates.
+3. Reproduced the integration-blocked packet locally by rerunning the required lane gates in this worktree.
+4. Regenerated this handoff packet so `Traceability`, `Scope Completed`, `Files Changed`, `Tasks Completed`, and `Commands Run` describe the current branch-tip review target.
 
 ## Required Handoff Fields
 
@@ -45,13 +45,13 @@
 - Vision capability affected: `PRODUCT_VISION.md` Capability 4: Shared UI contract / operator-first control surface.
 - Canonical demo-path step advanced: deterministic A2UI action ordering for CLI fallback.
 - Routing/provider impact note: None.
-- Size-budget status: Within narrow review scope. The authoritative source target is one commit with 2 source/test files and 5 insertions / 3 deletions. The packet metadata update adds `THREAD_PACKET.md` only.
-- Scope / approval note: No integrator approval for an over-budget full-branch candidate is requested in this packet because this handoff selects the narrow review target. The full `06cdebc2..HEAD` branch range is not the review target for this packet.
-- Selected merge target: cherry-pick `b929fe6c7a1159c7882acedd247aca31a93cd123` only. The current branch tip contains packet correction commits for re-review traceability and is not the requested integration target.
+- Size-budget status: Within fixer scope. The fresh source/test delta after the blocked approval packet is one test file with 6 insertions / 2 deletions; this packet metadata update adds `THREAD_PACKET.md`.
+- Scope / approval note: This packet requests re-review after the integrator-blocked approval attempt and makes the current branch tip the selected target.
+- Selected merge target: current branch tip `2329b4a04c52535ae60226262750a4872a40ead6`.
 
 ## Commands Run And Outcomes
 
-- Fixer verification pass completed on 2026-05-14 after adding the explicit cherry-pick-only merge target and removing packet metadata from the selected source file list.
+- Fixer verification pass completed on 2026-05-14 after the integrator reported `blocked/no integration performed`.
 - `make scope-check`: PASS on 2026-05-14 (`[devex] scope-check: passed for branch 'codex/feat-a2ui-contract'`).
 - `./quality-format.sh --check`: PASS on 2026-05-14 (`[format] check passed`).
 - `./quality-lint.sh`: PASS on 2026-05-14 (`[lint] passed`).
