@@ -62,7 +62,7 @@ Required gates for the authoritative `main..HEAD` corrected merge candidate:
 - `./quality-lint.sh`: passed.
 - `./quality-test.sh`: passed; 511 tests passed.
 - `./typecheck-test.sh`: passed.
-- `make ci`: failed at full-window scope-check because the authoritative `main..HEAD` diff includes approved off-lane regression coverage in `tests/unit/test_lane_profiles.py`; the current scope script does not whitelist that test file for `codex/feat-a2ui-contract`, even with `SCOPE_ALLOW_SHARED=1`. No format, lint, unit, or typecheck failure was observed.
+- `make ci`: passed; 511 tests passed inside CI.
 
 ## Risks / Blockers
 
