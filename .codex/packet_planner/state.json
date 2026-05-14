@@ -1,3 +1,11 @@
 {
-  "lanes": {}
+  "lanes": {
+    "feat-a2ui-contract": {},
+    "feat-commands": {},
+    "feat-console": {},
+    "feat-context-storage": {},
+    "feat-engine-runs": {},
+    "feat-retrieval-fts": {},
+    "feat-ux-flow": {}
+  }
 }
