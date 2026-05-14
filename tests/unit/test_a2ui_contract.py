@@ -2,8 +2,14 @@ from __future__ import annotations
 
 import unittest
 from dataclasses import dataclass
+from pathlib import Path
+import sys
 
-from src.qual.shared.contracts.a2ui import (
+SHARED_SRC = Path(__file__).resolve().parents[2] / "shared" / "src"
+if str(SHARED_SRC) not in sys.path:
+    sys.path.insert(0, str(SHARED_SRC))
+
+from exegesis_shared.contracts.a2ui import (
     A2UICapabilities,
     A2UISessionStore,
     ActionRef,
