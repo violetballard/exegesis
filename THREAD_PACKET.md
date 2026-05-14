@@ -65,3 +65,4 @@ Required gates for the corrected branch-tip packet:
 - Merge risk is limited to packet metadata because the branch-tip merge surface is packet-only.
 - No router source, shared contract source, packet-planner state/source/test, Textual file, or runtime A2UI file is in the branch-tip merge surface.
 - Fresh required gates are green on the corrected branch-tip packet.
+- Control-plane lane metadata has been corrected so regenerated review packets use this narrowed branch-tip surface.
