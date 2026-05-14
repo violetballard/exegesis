@@ -27,11 +27,10 @@ No Textual implementation work, engine work, automation/tooling, `.agents`, `.co
 
 Required-fix disposition:
 
-- Required fix 1: `THREAD_PACKET.md` is now a `feat-a2ui-contract` handoff packet, not a stale `feat-retrieval-fts` packet.
-- Required fix 2: review scope is runtime-only; the implementation target is commit `b929fe6c7a1159c7882acedd247aca31a93cd123`, and the only implementation files in scope are `src/qual/ui/a2ui.py` and `tests/unit/test_a2ui_contract.py`.
-- Required fix 3: no planner/tooling or packet-planner regression-test changes are claimed. `tests/unit/test_packet_planner.py` is not listed because it is not part of this branch evidence.
-- Required fix 4: no shared/integrator-locked or shared-by-approval paths are part of this runtime-only review scope, so high-risk framing and the four-task cap are not invoked.
-- Required fix 5: the canonical demo-path step advanced by this lane is explicitly restated as `preview and apply or reject a patch`.
+- Required fix 1: review scope is runtime-only; the implementation target is commit `b929fe6c7a1159c7882acedd247aca31a93cd123`, and the only implementation files in scope are `src/qual/ui/a2ui.py` and `tests/unit/test_a2ui_contract.py`.
+- Required fix 2: the canonical demo-path step advanced by this lane is explicitly restated as `preview and apply or reject a patch`.
+- Required fix 3: no shared/integrator-locked or shared-by-approval paths are part of this runtime-only review scope, so the impact note is `None`.
+- Required fix 4: no planner/tooling or packet-planner regression-test changes are claimed. Broader planner/tooling changes, if needed later, must be submitted in a separate high-risk review packet with an explicit exception or approval basis.
 
 ## Canonical Demo-Path Mapping
 
