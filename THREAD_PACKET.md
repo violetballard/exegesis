@@ -8,6 +8,7 @@
 - Canonical demo-path step advanced by the underlying A2UI lane work: `preview and apply or reject a patch`, by keeping materialized A2UI actions deterministic for CLI fallback rendering.
 - Roadmap mapping: `ROADMAP.md` Milestone 3, specifically `move A2UI contracts into shared while keeping renderers outside shared`.
 - Product-vision mapping: `PRODUCT_VISION.md` capability 4, `Shared UI contract (A2UI)`, where cards/actions/selection types live in a client-agnostic shared layer and rendering adapters stay outside shared.
+- Budget accounting: high-risk packet, capped at `4` completed tasks because residual `.codex` metadata is present in the reviewed branch diff.
 
 ## Required Fixes Applied
 
@@ -19,6 +20,12 @@
 
 ## Files Changed For This Target
 
+- `THREAD_PACKET.md`
+
+Reviewed branch diff scope for this resubmission is limited to:
+
+- `.codex/kickoff_packets/feat-a2ui-contract.md`
+- `.codex/packet_planner/state.json`
 - `THREAD_PACKET.md`
 
 Residual protected metadata paths still present in `git diff --name-status main...HEAD`:
@@ -36,10 +43,12 @@ Residual protected metadata paths still present in `git diff --name-status main.
 
 ## Tasks Completed
 
-1. Re-read the rejection packet and used it as the source of truth.
-2. Attempted to remove residual protected `.codex` metadata deltas from the target.
-3. Rewrote this handoff packet to match the actual metadata-only branch diff and current Milestone 3 / capability 4 canon.
-4. Ran the required gates after the handoff packet correction.
+1. Re-read the rejection packet and used it as the source of truth. Canonical demo-path step: `preview and apply or reject a patch`.
+2. Attempted to remove residual protected `.codex` metadata deltas from the target. Canonical demo-path step: `preview and apply or reject a patch`.
+3. Rewrote this handoff packet to match the actual metadata-only branch diff and current Milestone 3 / capability 4 canon. Canonical demo-path step: `preview and apply or reject a patch`.
+4. Ran the required gates after the handoff packet correction. Canonical demo-path step: `preview and apply or reject a patch`.
+
+This work now makes the canonical demo-path step `preview and apply or reject a patch` more real by keeping the A2UI contract handoff focused on deterministic CLI fallback rendering and by removing conflicting planner/runtime scope claims from the review packet.
 
 ## Commands Run And Outcomes
 
