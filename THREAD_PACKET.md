@@ -5,9 +5,10 @@
 
 ## Traceability
 
-- Reviewed source-bearing baseline: `b929fe6c7a1159c7882acedd247aca31a93cd123` was the narrow deterministic action-order commit.
-- Current merge candidate includes additional source-bearing commits after that baseline through this fixer commit. Those commits are not metadata-only and are intentionally included in the review scope.
-- Source-bearing range to review: `b929fe6c7a1159c7882acedd247aca31a93cd123..HEAD`. This range includes source-bearing A2UI runtime, UI shell tests, packet-planner behavior, typed engine output support, and handoff metadata. It is not a metadata-only resubmission.
+- Merge-base baseline: `06cdebc2d5d53533b73f264a4bbf5a4b4daacb27` (`main` merge base at fixer start).
+- Prior narrow source marker: `b929fe6c7a1159c7882acedd247aca31a93cd123` was only the deterministic action-order commit, not the full review target.
+- Source-bearing range to review: `06cdebc2d5d53533b73f264a4bbf5a4b4daacb27..HEAD`. This full branch-tip range includes source-bearing A2UI runtime, UI shell tests, packet-planner behavior, typed engine output support, and handoff metadata. It is not a metadata-only resubmission.
+- Branch delta at fixer start: 12 files changed, 32,199 insertions(+), 242 deletions(-). The branch is at the AGENTS.md 12-file ceiling and far above the high-risk 300-net-LOC size limit.
 
 ## Scope completed
 
@@ -29,7 +30,6 @@
 - `.codex/kickoff_packets/feat-a2ui-contract.md`
 - `.codex/lane_meta/feat-a2ui-contract.json`
 - `.codex/packet_planner/state.json`
-- `.codex/packets/lanes/feat-a2ui-contract/inbox/feature/F__codex-feat-a2ui-contract__aa875cd03ea2a8e092f527610640827baa7b7b5a__20260320T210541Z.md` (removed stale packet)
 - `THREAD_PACKET.md`
 
 ## Plan Alignment
@@ -51,7 +51,7 @@
 4. Updated public UI exports in `src/qual/ui/__init__.py` for the typed engine output API.
 5. Covered shell fallback behavior in `src/qual/ui/shell.py` and `tests/unit/test_ui_shell.py`.
 6. Hardened packet-planner required handoff field behavior in `codex_packet_handoff/tools/planner.py` and `tests/unit/test_packet_planner.py`.
-7. Corrected handoff traceability and files-changed metadata so all source-bearing branch changes are declared for review.
+7. Corrected reviewer-facing handoff traceability and files-changed evidence so all source-bearing branch-tip changes are declared for review.
 
 ## Required Handoff Fields
 
@@ -59,20 +59,21 @@
 - Vision capability affected: `PRODUCT_VISION.md` Capability 4: Shared UI contract / operator-first control surface
 - Canonical demo-path step advanced: `AGENTS.md` active MVP note item `A2UI contracts with CLI fallback`; deterministic A2UI action ordering removes the concrete CLI fallback snapshot/consumer mismatch blocker for that path
 - Routing/provider impact note: None
-- Scope / approval note: Lane-owned edits are under `src/qual/ui/**`. Test coverage files under `tests/unit/**` support those changes. `codex_packet_handoff/tools/planner.py`, `tests/unit/test_packet_planner.py`, and `.codex/**` packet state are outside the UI lane and are submitted as explicit high-risk review scope because they only correct handoff metadata behavior needed for this resubmission; they do not change runtime provider routing or core engine entrypoints. This candidate intentionally exceeds the high-risk 4-task, 8-file, and 300-net-LOC limits and requires integrator approval for that full source-bearing range before merge.
+- Size-budget status: Stop trigger fired. The submitted full branch-tip delta is 12 files and 32,199 insertions(+)/242 deletions(-) against merge base, exceeding the high-risk 4-task, 8-file, and 300-net-LOC limits even though it remains within the default 12-file ceiling. This resubmission does not claim normal budget compliance; it explicitly asks reviewer/integrator to evaluate the full over-budget high-risk candidate or reject it for splitting.
+- Scope / approval note: Lane-owned edits are under `src/qual/ui/**`. Test coverage files under `tests/unit/**` support those changes. `codex_packet_handoff/tools/planner.py`, `tests/unit/test_packet_planner.py`, and `.codex/**` packet state are outside the UI lane and are submitted as explicit high-risk review scope because they correct handoff metadata behavior needed for this resubmission; they do not change runtime provider routing or core engine entrypoints. The broad `src/qual/ui/**` runtime/test changes are in scope for this full-branch review, not deferred as metadata-only changes.
 
 ## Commands Run And Outcomes
 
-- `make scope-check`: PASS on fixer re-run (`[devex] scope-check: passed for branch 'codex/feat-a2ui-contract'`)
-- `./quality-format.sh --check`: PASS on fixer re-run (`[format] check passed`)
-- `./quality-lint.sh`: PASS on fixer re-run (`[lint] passed`)
+- `make scope-check`: PASS on 2026-05-14 fixer re-run (`[devex] scope-check: passed for branch 'codex/feat-a2ui-contract'`)
+- `./quality-format.sh --check`: PASS on 2026-05-14 fixer re-run (`[format] check passed`)
+- `./quality-lint.sh`: PASS on 2026-05-14 fixer re-run (`[lint] passed`)
 - `python -m pytest -q src/qual/ui/test_a2ui_fallback_safety.py -k 'engine_output'`: PASS (`12 passed, 412 deselected`)
 - `python -m pytest src/qual/ui/test_a2ui_fallback_safety.py tests/unit/test_a2ui_contract.py tests/unit/test_packet_planner.py tests/unit/test_ui_shell.py`: INCONCLUSIVE, process exited with code `-1` after collecting 538 tests and starting `src/qual/ui/test_a2ui_fallback_safety.py`
-- `./quality-test.sh`: INCONCLUSIVE on fixer re-run; process exited with code `-1` during `tests/unit.sh` verbose `unittest discover` after `test_engine_contract_manifest_bundles_the_cli_fallback_route_and_entrypoint` started; no assertion failure was reported before termination
-- `./typecheck-test.sh`: PASS on fixer re-run (`[typecheck] compiling Python sources in src/`)
-- `make ci`: INCONCLUSIVE on fixer re-run; completed scope/format/lint/typecheck sub-gates, then terminated during nested `quality-test.sh` with `make: *** [ci] Terminated: 15`
+- `./quality-test.sh`: INCONCLUSIVE on 2026-05-14 fixer re-run; process exited with code `-1` during `tests/unit.sh` verbose `unittest discover` after `test_contract_manifest_can_expose_the_cli_fallback_target_contract_slice` completed; no assertion failure was reported before termination
+- `./typecheck-test.sh`: PASS on 2026-05-14 fixer re-run (`[typecheck] compiling Python sources in src/`)
+- `make ci`: INCONCLUSIVE on 2026-05-14 fixer re-run; completed scope/format/lint/typecheck sub-gates, then terminated during nested `quality-test.sh` after starting `test_engine_contract_manifest_bundles_the_cli_fallback_route_and_entrypoint` with `make: *** [ci] Terminated: 15`
 
 ## Risks / blockers
 
 - Risk: `HIGH`
-- Blockers: full `quality-test.sh` / `make ci` unit discovery was terminated by the local command runner before completion, so this packet remains blocked until those gates pass. `.codex/**` metadata files still contain stale Milestone 5 / capability 5 strings, but this sandbox cannot update them because temp-file creation under `.codex` fails with `Operation not permitted`; the reviewer-facing `THREAD_PACKET.md` has been aligned to Milestone 3 / capability 4.
+- Blockers: full `quality-test.sh` / `make ci` unit discovery was terminated by the local command runner before completion on the previous and current fixer attempts, so this packet remains blocked until those gates pass in a runner that can complete the full suite.
