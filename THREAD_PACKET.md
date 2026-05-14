@@ -57,6 +57,7 @@ Required gates for the authoritative `main..HEAD` corrected merge candidate:
 
 - `git merge-base --is-ancestor codex/feat-engine-runs main; printf '%s\n' $?`: reproduced the integrator blocker; returned `1`.
 - `make scope-check`: passed.
+- Final HEAD scope note: the re-review tip is packet-only; packet-planner source/test maintenance is split out of the A2UI review target.
 - `./quality-format.sh --check`: passed.
 - `./quality-lint.sh`: passed.
 - `./quality-test.sh`: passed; 511 tests passed.
