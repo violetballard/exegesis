@@ -993,9 +993,20 @@ def _pid_alive(pid: int) -> bool:
         return False
     try:
         os.kill(pid, 0)
-        return True
     except OSError:
         return False
+    try:
+        stat = subprocess.run(
+            ["ps", "-p", str(pid), "-o", "stat="],
+            text=True,
+            capture_output=True,
+            timeout=2,
+        )
+        if stat.returncode == 0 and stat.stdout.strip().startswith("Z"):
+            return False
+    except Exception:
+        pass
+    return True
 
 
 def _safe_job_token(raw: str) -> str:

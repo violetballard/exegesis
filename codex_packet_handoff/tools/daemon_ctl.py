@@ -59,12 +59,23 @@ def _ensure_dirs() -> None:
 def _pid_alive(pid: int) -> bool:
     try:
         os.kill(pid, 0)
-        return True
     except OSError as exc:
         # In sandboxed environments, EPERM can mean "process exists but cannot be signaled".
         if getattr(exc, "errno", None) == errno.EPERM:
             return True
         return False
+    try:
+        stat = subprocess.run(
+            ["ps", "-p", str(pid), "-o", "stat="],
+            text=True,
+            capture_output=True,
+            timeout=2,
+        )
+        if stat.returncode == 0 and stat.stdout.strip().startswith("Z"):
+            return False
+    except Exception:
+        pass
+    return True
 
 
 def _pid_matches_daemon(pid: int) -> bool:
