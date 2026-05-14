@@ -13,11 +13,11 @@
 
 ## Scope Correction
 
-This packet replaces the earlier inconsistent handoff. The intended review candidate is runtime-only A2UI contract work for deterministic materialized action ordering. Out-of-scope planning, docs, `.codex`, and lane-profile changes are not part of the intended runtime merge. The visible docs, planning, and lane-profile files have been reverted in this fixer working tree; the two hidden `.codex` files remain a filesystem-permission blocker noted below.
+This packet replaces the earlier inconsistent handoff. The intended review candidate is runtime-only A2UI contract work for deterministic materialized action ordering. Out-of-scope planning, docs, and lane-profile changes are not part of the intended runtime merge; the reviewed packet-planner/tooling files have been removed from this branch diff. Two `.codex` metadata files remain visible in `main..HEAD` because this sandbox cannot write those paths, and they are explicitly excluded from the runtime merge candidate below.
 
 Current reviewer required-fix disposition:
 
-- Required fix 1: the authoritative intended candidate is this branch tip against current `main`; the packet text and file list now describe the runtime-only candidate and the remaining `.codex` filesystem blocker.
+- Required fix 1: the authoritative intended candidate is this branch tip against current `main`; the packet text and file list now describe the runtime-only candidate; `codex_packet_handoff/tools/planner.py`, `tests/unit/test_packet_planner.py`, and packet-planner tooling changes are no longer present in `main..HEAD`.
 - Required fix 2: runtime A2UI scope is limited to `src/qual/ui/a2ui.py` and `tests/unit/test_a2ui_contract.py`.
 - Required fix 3: docs/planner/lane-profile changes are not intended to merge in this packet. If needed later, they require a separate high-risk packet with ownership, approval basis, file list, tasks completed, roadmap/product mapping, risks, and passing gates.
 - Required fix 4: this packet uses one runtime-only scope statement for files changed, shared/integrator impact, tasks completed, and runtime scope.
@@ -54,9 +54,7 @@ Handoff metadata:
 
 - `THREAD_PACKET.md`
 
-No Textual implementation files are in scope. No automation/tooling source or test files are in scope. No docs or lane-profile changes are in scope for this runtime A2UI review.
-
-Filesystem-blocked out-of-scope metadata still visible in `main..HEAD` until the sandbox permits writes under `.codex`:
+No Textual implementation files are in scope. No automation/tooling source or test files are in scope. No docs or lane-profile changes are in scope for this runtime A2UI review. The remaining `.codex` metadata diff is a filesystem-permission exception, not part of the intended runtime candidate:
 
 - `.codex/kickoff_packets/feat-a2ui-contract.md`
 - `.codex/packet_planner/state.json`
@@ -86,4 +84,4 @@ Required gates for this corrected fixer handoff:
 
 - Runtime A2UI claims are limited to deterministic materialized action ordering for `preview and apply or reject a patch`.
 - Any future non-runtime source, docs, planner, or lane-profile work must be split into a separate high-risk review packet.
-- Blocker: this sandbox cannot write the two `.codex` files listed above, so they could not be reverted here despite being out of scope.
+- Blocker: this sandbox still cannot write the two `.codex` metadata files listed above, so they could not be reverted despite being out of scope. Runtime A2UI re-review remains limited to `src/qual/ui/a2ui.py`, `tests/unit/test_a2ui_contract.py`, and this handoff packet.
