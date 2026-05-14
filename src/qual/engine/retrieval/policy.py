@@ -39,6 +39,8 @@ def primary_strategy_id() -> str:
 
 
 def fts_first_policy_snapshot() -> dict[str, object]:
+    """Return a fresh FTS-first policy snapshot for downstream handoff payloads."""
+
     return FTS_FIRST_POLICY.as_snapshot()
 
 

@@ -2,24 +2,18 @@ from __future__ import annotations
 
 import unittest
 from dataclasses import dataclass
-from pathlib import Path
-import sys
 
-SHARED_SRC = Path(__file__).resolve().parents[2] / "shared" / "src"
-if str(SHARED_SRC) not in sys.path:
-    sys.path.insert(0, str(SHARED_SRC))
-
-from exegesis_shared.contracts.a2ui import (
+from src.qual.ui.a2ui import (
     A2UICapabilities,
     A2UISessionStore,
     ActionRef,
+    build_unknown_card,
+    engine_prepare_card,
     execute_action_with_policy_gate,
+    render_terminal_card,
+    studio_materialize_card,
     validate_capabilities,
 )
-from src.qual.ui.a2ui import build_unknown_card
-from src.qual.ui.a2ui import engine_prepare_card
-from src.qual.ui.a2ui import render_terminal_card
-from src.qual.ui.a2ui import studio_materialize_card
 
 
 def _capabilities(
@@ -103,6 +97,27 @@ class A2UIContractTests(unittest.TestCase):
         filtered = studio_materialize_card(card, caps)
         self.assertEqual(len(filtered["actions"]), 1)
         self.assertEqual(filtered["actions"][0]["id"], "apply_patch")
+
+    def test_filtered_actions_are_canonicalized_by_identity(self) -> None:
+        caps = _capabilities(actions_supported=("reject_patch", "copy_to_clipboard", "apply_patch"))
+        card = {
+            "type": "GenericCard",
+            "title": "Patch",
+            "blocks": [{"type": "MarkdownBlock", "markdown": "x"}],
+            "actions": [
+                {"id": "reject_patch", "label": "Reject", "payload": {"patch_id": "p2"}},
+                {"id": "copy_to_clipboard", "label": "Copy", "payload": {"text": "payload"}},
+                {"id": "copy_to_clipboard", "label": "Copy", "payload": {"text": "payload"}},
+                {"id": "apply_patch", "label": "Apply", "payload": {"patch_id": "p1"}},
+            ],
+        }
+
+        filtered = studio_materialize_card(card, caps)
+
+        self.assertEqual(
+            [action["id"] for action in filtered["actions"]],
+            ["apply_patch", "copy_to_clipboard", "reject_patch"],
+        )
 
     def test_engine_policy_gate_is_authoritative(self) -> None:
         executed: list[str] = []

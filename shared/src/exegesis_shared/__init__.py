@@ -1,2 +1,1 @@
-"""Canonical shared contracts for Exegesis clients and runtime surfaces."""
-
+"""Canonical shared contracts/models package for staged Exegesis migration."""

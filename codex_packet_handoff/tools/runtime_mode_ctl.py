@@ -26,7 +26,7 @@ def save_json(path: Path, data) -> None:
 
 def parse_args() -> argparse.Namespace:
     ap = argparse.ArgumentParser(description="Inspect or set router runtime mode.")
-    ap.add_argument("mode", nargs="?", choices=["cloud_primary", "local_fallback", "status"], default="status")
+    ap.add_argument("mode", nargs="?", choices=["hybrid", "cloud_primary", "local_fallback", "status"], default="status")
     ap.add_argument("--retry-seconds", type=int, default=None, help="Cloud retry cooldown seconds when entering local_fallback")
     ap.add_argument("--reason", default="", help="Reason to record in router state")
     return ap.parse_args()
@@ -41,6 +41,7 @@ def main() -> int:
             json.dumps(
                 {
                     "runtime_mode": state.get("runtime_mode") or cfg.get("runtime_mode_default") or "cloud_primary",
+                    "cloud_available": state.get("cloud_available", True),
                     "cloud_retry_at": state.get("cloud_retry_at", 0),
                     "last_quota_reason": state.get("last_quota_reason", ""),
                     "last_mode_switch_at": state.get("last_mode_switch_at", 0),
@@ -56,15 +57,18 @@ def main() -> int:
     if args.mode == "local_fallback":
         retry_seconds = args.retry_seconds
         if retry_seconds is None:
-            retry_seconds = int(cfg.get("cloud_probe_cooldown_seconds", 1800))
+            retry_seconds = int(cfg.get("cloud_probe_cooldown_seconds", 300))
         state["cloud_retry_at"] = time.time() + retry_seconds
+        state["cloud_available"] = False
     else:
         state["cloud_retry_at"] = 0
+        state["cloud_available"] = True
     save_json(STATE_FILE, state)
     print(
         json.dumps(
             {
                 "runtime_mode": state["runtime_mode"],
+                "cloud_available": state.get("cloud_available", True),
                 "cloud_retry_at": state.get("cloud_retry_at", 0),
                 "last_quota_reason": state.get("last_quota_reason", ""),
                 "updated_at": datetime.now(timezone.utc).isoformat(),
