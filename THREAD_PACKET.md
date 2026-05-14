@@ -30,18 +30,11 @@ The runtime A2UI change strengthens `preview and apply or reject a patch` by kee
 1. Canonicalized materialized A2UI action ordering so filtered action payloads are stable for engine-facing CLI fallback consumers.
 2. Preserved typed and allowlisted action filtering, including exclusion of unsupported action shapes from the A2UI contract surface.
 3. Preserved CLI rendering fallback behavior and covered deterministic filtered action ordering in `tests/unit/test_a2ui_contract.py`.
-4. Corrected this handoff packet to keep the A2UI runtime review scope limited to runtime action materialization.
 
 ## Files Changed
 
-Runtime review scope:
-
 - `src/qual/ui/a2ui.py`
 - `tests/unit/test_a2ui_contract.py`
-
-Packet-only correction after review:
-
-- `THREAD_PACKET.md`
 
 ## Commands Run And Outcomes
 
