@@ -1,16 +1,16 @@
 ## Thread Handoff Packet
 
 - Branch name: `codex/feat-a2ui-contract`
-- Scope goal: Fresh re-review after integrator-blocked handoff for the deterministic A2UI materialized action-order fix.
+- Scope goal: Cherry-pick-only re-review for the deterministic A2UI materialized action-order fix.
 
 ## Traceability
 
-- Authoritative review target: current branch tip `2329b4a04c52535ae60226262750a4872a40ead6` (`fix(a2ui): verify canonical action contract`).
-- Review range: `452fbca7184933577aabd7e297ad842dbfb1b11c..2329b4a04c52535ae60226262750a4872a40ead6`.
-- Merge instruction: review and integrate the current branch tip. This packet supersedes the previous cherry-pick-only packet because the integrator reported that selected-target integration was blocked.
+- Authoritative review target: cherry-pick commit `b929fe6c7a1159c7882acedd247aca31a93cd123` (`fix(a2ui): stabilize materialized action order`).
+- Review range: `b929fe6c7a1159c7882acedd247aca31a93cd123^..b929fe6c7a1159c7882acedd247aca31a93cd123`.
+- Merge instruction: integrator must cherry-pick `b929fe6c7a1159c7882acedd247aca31a93cd123` and must not merge branch `codex/feat-a2ui-contract` or its current tip. Later branch commits contain additional source/test changes that are outside this packet.
 - Merge-base baseline for branch context only: `06cdebc2d5d53533b73f264a4bbf5a4b4daacb27`.
 - This is a fixer packet for the reviewer-required integration-block response, not a new feature expansion.
-- The previous approved packet failed at integration with `blocked/no integration performed`; this pass reproduced the lane gates locally and refreshed the review target.
+- The previous packet was rejected because it mixed a cherry-pick intent with a branch-tip submission. This packet names one integration target only.
 
 ## Scope Completed
 
@@ -36,8 +36,8 @@
 
 1. Updated `src/qual/ui/a2ui.py` to sort filtered materialized actions by canonical JSON identity before returning card actions.
 2. Updated `tests/unit/test_a2ui_contract.py` to cover canonical action ordering for supported filtered actions.
-3. Reproduced the integration-blocked packet locally by rerunning the required lane gates in this worktree.
-4. Regenerated this handoff packet so `Traceability`, `Scope Completed`, `Files Changed`, `Tasks Completed`, and `Commands Run` describe the current branch-tip review target.
+3. Reproduced the required lane gates locally in this worktree.
+4. Regenerated this handoff packet so `Traceability`, `Scope Completed`, `Files Changed`, `Tasks Completed`, and `Commands Run` describe only the cherry-pick review target.
 
 ## Required Handoff Fields
 
@@ -45,13 +45,13 @@
 - Vision capability affected: `PRODUCT_VISION.md` Capability 4: Shared UI contract / operator-first control surface.
 - Canonical demo-path step advanced: deterministic A2UI action ordering for CLI fallback.
 - Routing/provider impact note: None.
-- Size-budget status: Within fixer scope. The fresh source/test delta after the blocked approval packet is one test file with 6 insertions / 2 deletions; this packet metadata update adds `THREAD_PACKET.md`.
-- Scope / approval note: This packet requests re-review after the integrator-blocked approval attempt and makes the current branch tip the selected target.
-- Selected merge target: current branch tip `2329b4a04c52535ae60226262750a4872a40ead6`.
+- Size-budget status: Within fixer scope. The selected review range changes 2 source/test files with 5 insertions and 3 deletions.
+- Scope / approval note: This packet requests re-review of the cherry-pick target only. The current branch tip is not a merge target for this packet.
+- Selected integration target: cherry-pick `b929fe6c7a1159c7882acedd247aca31a93cd123`; do not merge `codex/feat-a2ui-contract`.
 
 ## Commands Run And Outcomes
 
-- Fixer verification pass completed on 2026-05-14 after the integrator reported `blocked/no integration performed`.
+- Fixer verification pass completed on 2026-05-14 for the cherry-pick-only review target.
 - `make scope-check`: PASS on 2026-05-14 (`[devex] scope-check: passed for branch 'codex/feat-a2ui-contract'`).
 - `./quality-format.sh --check`: PASS on 2026-05-14 (`[format] check passed`).
 - `./quality-lint.sh`: PASS on 2026-05-14 (`[lint] passed`).
@@ -61,5 +61,5 @@
 
 ## Risks / Blockers
 
-- Risk: `LOW` for the selected narrow review target.
-- Blockers: none for narrow re-review. The larger branch history remains outside this packet and still requires a separate split or explicit integrator approval before any full-branch review.
+- Risk: `LOW` for the selected narrow cherry-pick target.
+- Blockers: none for narrow re-review. The larger branch history remains outside this packet and requires a separate split or explicit integrator approval before any full-branch review.
