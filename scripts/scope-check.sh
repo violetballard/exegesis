@@ -63,6 +63,7 @@ is_approved_shared_path() {
       case "$f" in
         tests/unit/test_commands_catalog.py|tests/unit/test_diff_preview.py) return 0 ;;
         codex_packet_handoff/tools/router.py|tests/unit/test_offline_handoff.py) return 0 ;;
+        engine/src/exegesis_engine/api/cli.py|tests/unit/test_mvp_migration.py) return 0 ;;
       esac
       ;;
     codex/feat-context-storage*)
@@ -108,6 +109,7 @@ is_allowed() {
       case "$f" in
         src/qual/commands/*|src/qual/commands/*/*) return 0 ;;
         codex_packet_handoff/tools/router.py|tests/unit/test_offline_handoff.py) return 0 ;;
+        engine/src/exegesis_engine/api/cli.py|tests/unit/test_mvp_migration.py) return 0 ;;
         src/qual/cli.py) shared_file_allowed && return 0 ;;
       esac
       return 1

@@ -15,6 +15,7 @@ from unittest.mock import patch
 
 from exegesis_engine.api.app_service import ExegesisAppService
 from exegesis_engine.api.bootstrap import build_runtime as canonical_build_runtime
+from exegesis_engine.api import cli as canonical_cli_module
 from exegesis_engine.api.cli import CLIArgs as CanonicalCLIArgs, parse_args as canonical_parse_args
 from exegesis_engine.api.runtime_commands import run_bootstrap as canonical_run_bootstrap
 from exegesis_engine.audit import AuditLog as CanonicalAuditLog
@@ -38,6 +39,7 @@ from src.qual.metrics import MetricsExporter as CompatMetricsExporter
 from src.qual.retrieval.service import RetrievalService as CompatRetrievalService
 from src.qual.storage import VaultService as CompatVaultService
 from src.qual.ui.a2ui import A2UICapabilities as CompatA2UICapabilities
+from src.qual.commands.catalog import CommandCliContract, command_cli_contract
 
 REPO_ROOT = Path(__file__).resolve().parents[2]
 
@@ -100,6 +102,59 @@ class ExegesisAppServiceTests(unittest.TestCase):
 
 
 class CliCompatibilityTests(unittest.TestCase):
+    def test_canonical_parser_surface_matches_command_catalog_contract(self) -> None:
+        parser = canonical_cli_module._build_parser()
+        subparsers = next(
+            action for action in parser._actions if isinstance(action, argparse._SubParsersAction)
+        )
+        self.assertEqual(tuple(subparsers.choices), command_cli_contract().tokens)
+
+        cases = {
+            "bootstrap": ["bootstrap"],
+            "diff-preview": ["diff-preview"],
+            "diff": ["diff"],
+            "context-basket": ["context-basket", "list"],
+            "terminal": ["terminal"],
+        }
+        for token, argv in cases.items():
+            with self.subTest(token=token):
+                parsed = canonical_parse_args(argv)
+                self.assertEqual(parsed.command, dict(command_cli_contract().lookup_table)[token])
+
+    def test_canonical_parser_rejects_catalog_command_drift(self) -> None:
+        drifted = CommandCliContract(
+            tokens=("bootstrap", "diff-preview", "diff", "context-basket", "terminal", "extra"),
+            canonical_names=("bootstrap", "diff-preview", "context-basket", "terminal", "extra"),
+            lookup_table=(
+                ("bootstrap", "bootstrap"),
+                ("diff-preview", "diff-preview"),
+                ("diff", "diff-preview"),
+                ("context-basket", "context-basket"),
+                ("terminal", "terminal"),
+                ("extra", "extra"),
+            ),
+        )
+        with patch.object(canonical_cli_module, "command_cli_contract", return_value=drifted):
+            with self.assertRaisesRegex(RuntimeError, "CLI parser handlers are inconsistent"):
+                canonical_parse_args(["extra"])
+
+    def test_canonical_parser_accepts_catalog_cli_token_aliases(self) -> None:
+        aliased = CommandCliContract(
+            tokens=("bootstrap", "open-project", "diff-preview", "diff", "context-basket", "terminal"),
+            canonical_names=("bootstrap", "diff-preview", "context-basket", "terminal"),
+            lookup_table=(
+                ("bootstrap", "bootstrap"),
+                ("open-project", "bootstrap"),
+                ("diff-preview", "diff-preview"),
+                ("diff", "diff-preview"),
+                ("context-basket", "context-basket"),
+                ("terminal", "terminal"),
+            ),
+        )
+        with patch.object(canonical_cli_module, "command_cli_contract", return_value=aliased):
+            parsed = canonical_parse_args(["open-project"])
+        self.assertEqual(parsed.command, "bootstrap")
+
     def test_src_main_entrypoint_still_runs_diff_preview(self) -> None:
         proc = subprocess.run(
             [
