@@ -6,6 +6,7 @@
 - Selected integration target: current branch tip after this fixer commit.
 - Target type: metadata-only resubmission; no runtime, shell, planner, or packet-planner changes are intended in scope.
 - Canonical demo-path step advanced by the underlying A2UI lane work: `preview and apply or reject a patch`, by keeping materialized A2UI actions deterministic for CLI fallback rendering.
+- Required-fix mapping: this packet explicitly maps both the underlying A2UI deterministic action-order work and the metadata-only re-review tasks to the same canonical demo-path step, `preview and apply or reject a patch`.
 - Roadmap mapping: `ROADMAP.md` Milestone 3, specifically `move A2UI contracts into shared while keeping renderers outside shared`.
 - Product-vision mapping: `PRODUCT_VISION.md` capability 4, `Shared UI contract (A2UI)`, where cards/actions/selection types live in a client-agnostic shared layer and rendering adapters stay outside shared.
 - Budget accounting: high-risk packet, capped at `4` completed tasks because residual `.codex` metadata is present in the reviewed branch diff.
