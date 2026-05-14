@@ -58,9 +58,9 @@ Required gates for this corrected fixer handoff:
 - `make scope-check` - passed for branch `codex/feat-a2ui-contract`.
 - `./quality-format.sh --check` - passed.
 - `./quality-lint.sh` - passed shell syntax and trailing whitespace checks.
-- `./quality-test.sh` - passed smoke tests and 76 unit tests after restoring the minimal shared A2UI contract dependency needed by the reviewed runtime slice.
+- `./quality-test.sh` - passed smoke tests and 156 unit tests after restoring the exact reviewed A2UI runtime files from `b929fe6c7`.
 - `./typecheck-test.sh` - passed Python source compilation.
-- `make ci` - passed scope-check, format, lint, compile/typecheck, smoke tests, and 76 unit tests.
+- `make ci` - passed scope-check, format, lint, compile/typecheck, smoke tests, and 156 unit tests.
 
 ## Risks Or Blockers
 
