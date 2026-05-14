@@ -3,7 +3,8 @@
 - Branch name: `codex/feat-a2ui-contract`
 - Lane: `feat-a2ui-contract`
 - Merge target: current `main` (`9abf31c55f420be74389af72b7e4707bb5132790`)
-- Corrected candidate: final branch tip after this fixer commit.
+- Authoritative review target: final branch tip after this fixer commit, reviewed only as `main..HEAD`.
+- Do not review `b929fe6c7a1159c7882acedd247aca31a93cd123..HEAD`; that historical range includes superseded branch cleanup and is not the integration candidate.
 - Scope goal: remove off-scope branch-tip contamination and resubmit a traceable A2UI contract handoff.
 - Canonical demo-path step advanced: `preview and apply or reject a patch`.
 
@@ -18,13 +19,13 @@
 
 ## Files Changed In Corrected Merge Diff
 
-Expected final diff against current `main`:
+Authoritative final diff against current `main` (`main..HEAD`):
 
 - `.codex/kickoff_packets/feat-a2ui-contract.md`
 - `.codex/packet_planner/state.json`
 - `THREAD_PACKET.md`
 
-No `client-textual/`, retrieval runtime, daemon/tooling source, broad docs, packet planner source, or shared-contract files are intentionally included in the corrected final merge diff.
+No `client-textual/`, retrieval runtime, daemon/tooling source, broad docs, packet planner source, shared-contract files, `codex_packet_handoff/tools/planner.py`, or `tests/unit/test_packet_planner.py` are part of the authoritative review target.
 
 ## Shared / Locked Status
 
@@ -36,11 +37,15 @@ No `client-textual/`, retrieval runtime, daemon/tooling source, broad docs, pack
 
 ## Runtime Scope Note
 
-The isolated runtime change reviewed at `b929fe6c7a1159c7882acedd247aca31a93cd123` canonicalized materialized A2UI action order and added focused test coverage. Current `main` already contains that behavior in the A2UI contract implementation and tests, so the corrected merge candidate does not reintroduce additional runtime/source changes. `codex_packet_handoff/tools/planner.py` is not changed in this corrected candidate; its `tasks_completed` fallback behavior remains exactly as it exists on the branch and no removal is claimed here. `tests/unit/test_packet_planner.py` is not present in this tree and is not claimed as coverage.
+The isolated runtime change at `b929fe6c7a1159c7882acedd247aca31a93cd123` canonicalized materialized A2UI action order and added focused test coverage in `src/qual/ui/a2ui.py` and `tests/unit/test_a2ui_contract.py`. Current `main` already contains that behavior, so the authoritative review target is the corrected metadata-only handoff diff in `main..HEAD`, not the historical runtime commit and not the historical `b929fe6c7..HEAD` range. `codex_packet_handoff/tools/planner.py` is not changed in this corrected candidate. `tests/unit/test_packet_planner.py` is not present in this tree and is not claimed as coverage.
+
+## Demo-Path Mapping
+
+Deterministic A2UI action ordering makes the `preview and apply or reject a patch` step more real by giving the CLI fallback a stable action list for patch preview, apply, and reject affordances. This keeps the engine loop consumable without depending on Textual implementation work.
 
 ## Commands Run
 
-Required gates for this corrected merge candidate:
+Required gates for the authoritative `main..HEAD` corrected merge candidate:
 
 - `make scope-check`: passed.
 - `./quality-format.sh --check`: passed.
