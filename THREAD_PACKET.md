@@ -3,60 +3,59 @@
 - Branch name: `codex/feat-a2ui-contract`
 - Lane: `feat-a2ui-contract`
 - Merge target: current `main`
-- Handoff type: split re-review packet: A2UI runtime slice plus corrective handoff metadata refresh.
-- Canonical demo-path step advanced before handoff: `produce a plan or revision` and `preview and apply or reject a patch` are strengthened by deterministic, typed A2UI action ordering for engine-facing command surfaces.
-- Lane-owned paths: `src/qual/ui/**`, `tests/unit/test_a2ui_contract.py`.
-- Shared/integrator-locked edits: NO. The reviewed runtime commit touched only lane-owned `src/qual/ui/a2ui.py` plus the approved lane test exception `tests/unit/test_a2ui_contract.py`; branch-tip `.codex` deltas are control metadata accounted for below, not source/runtime edits.
-- Budget framing: normal lane runtime scope with three meaningful completed tasks. The corrective metadata-only refresh is split out in its own review range and is not counted as an additional runtime task.
+- Handoff type: corrected re-review packet for branch-tip metadata/control-plane refresh.
+- Branch-tip review range: `main..HEAD`
+- Canonical demo-path step advanced by the underlying runtime A2UI work: `produce a plan or revision` and `preview and apply or reject a patch`.
 
-## Authoritative Review Ranges
+## Review Range Traceability
 
-Source-bearing implementation range:
+Current branch diff against `main` is metadata/control-plane only:
 
-- `b929fe6c7a1159c7882acedd247aca31a93cd123` (`fix(a2ui): canonicalize materialized action order`)
+- `.codex/kickoff_packets/feat-a2ui-contract.md`
+- `.codex/packet_planner/state.json`
+- `THREAD_PACKET.md`
 
-Corrective packet-refresh range for this re-review:
+This branch-tip review range does not include source changes to `src/qual/ui/a2ui.py`, `tests/unit/test_a2ui_contract.py`, `codex_packet_handoff/tools/planner.py`, or `tests/unit/test_packet_planner.py`.
 
-- `ad06526fd4ba8fdb982f3886b03b1d2a49093f14..HEAD`
+The earlier runtime-only A2UI implementation evidence remains:
 
-This packet is authoritative for the branch-tip merge candidate. The implementation range contains the runtime A2UI source and unit-test change. The corrective packet-refresh range changes only `THREAD_PACKET.md`. Earlier branch history includes other lane/control-plane commits and is not part of this A2UI implementation review. This handoff does not claim planner source behavior changes or packet-planner regression coverage.
+- Runtime commit: `b929fe6c7a1159c7882acedd247aca31a93cd123` (`fix(a2ui): canonicalize materialized action order`)
+- Runtime files changed in that commit only:
+  - `src/qual/ui/a2ui.py`
+  - `tests/unit/test_a2ui_contract.py`
 
-## Scope Completed
+No planner source behavior changes and no packet-planner regression coverage are claimed in this handoff.
 
-1. Canonicalized materialized A2UI action ordering so filtered action payloads are stable for engine-facing consumers.
-2. Preserved typed and allowlisted action filtering, including exclusion of unsupported action shapes from the A2UI contract surface.
-3. Preserved CLI rendering fallback behavior and covered deterministic filtered action ordering in `tests/unit/test_a2ui_contract.py`.
+## Tasks Completed In Current Review Range
 
-No planner behavior changes are included in the reviewed implementation range. No packet-planner regression coverage is claimed by this handoff.
+1. Corrected the `feat-a2ui-contract` handoff packet so branch-tip files changed, task count, review range, and gate evidence match the actual `main..HEAD` metadata/control-plane diff.
+2. Kept the runtime A2UI implementation evidence separate from the metadata refresh by naming its exact standalone commit and files.
+3. Removed planner implementation and packet-planner test claims from the handoff.
 
-Corrective metadata refresh, split for re-review:
+## Files Changed In Current Review Range
 
-1. Corrected handoff metadata so the reviewed branch, implementation commit, control-metadata range, files changed, commands, risks, budget framing, and canonical demo-path step are traceable for `feat-a2ui-contract`.
+- `.codex/kickoff_packets/feat-a2ui-contract.md` - lane kickoff/control metadata.
+- `.codex/packet_planner/state.json` - packet-planner control metadata.
+- `THREAD_PACKET.md` - corrected authoritative handoff packet for re-review.
 
-## Tasks Completed
+## Runtime-Only Review Option
 
-1. Implemented deterministic canonical ordering for materialized filtered A2UI actions in `src/qual/ui/a2ui.py`.
-2. Verified the A2UI contract with focused unit coverage in `tests/unit/test_a2ui_contract.py`.
-3. Refreshed handoff/control metadata for re-review without expanding runtime scope.
+If the integrator reviews only the runtime A2UI change, use exactly this review target:
 
-## Files Changed
+- Commit: `b929fe6c7a1159c7882acedd247aca31a93cd123`
+- Files changed:
+  - `src/qual/ui/a2ui.py`
+  - `tests/unit/test_a2ui_contract.py`
+- Tasks completed:
+  1. Canonicalized materialized A2UI action ordering so filtered action payloads are stable for engine-facing consumers.
+  2. Preserved typed and allowlisted action filtering, including exclusion of unsupported action shapes from the A2UI contract surface.
+  3. Preserved CLI rendering fallback behavior and covered deterministic filtered action ordering in `tests/unit/test_a2ui_contract.py`.
 
-Implementation range `b929fe6c7a1159c7882acedd247aca31a93cd123`:
+## High-Risk And Shared Scope Note
 
-- `src/qual/ui/a2ui.py` - canonicalizes materialized filtered action order while preserving typed/allowlisted filtering and CLI fallback compatibility.
-- `tests/unit/test_a2ui_contract.py` - covers canonical filtered action ordering and existing A2UI contract behavior.
+The current `main..HEAD` review range includes `.codex` control metadata. It does not include planner source files, runtime implementation files, provider routing, model routing, retrieval routing, storage, core engine entrypoints, or Textual/UI implementation.
 
-Current branch metadata delta includes:
-
-- `.codex/kickoff_packets/feat-a2ui-contract.md` - lane kickoff/control metadata, not runtime source.
-- `.codex/packet_planner/state.json` - packet-planner control metadata, not runtime source.
-- `THREAD_PACKET.md` - authoritative handoff packet and traceability record for re-review.
-
-The `.codex` files above are explicitly accounted for as control metadata in the merge candidate. They do not represent planner source changes.
-
-Corrective packet-refresh range `ad06526fd4ba8fdb982f3886b03b1d2a49093f14..HEAD`:
-
-- `THREAD_PACKET.md` - narrows the handoff text to the reviewed A2UI implementation commit, removes planner-behavior claims, and explicitly accounts for branch-tip `.codex` metadata.
+Because no planner/control-plane source changes are part of this handoff, no high-risk planner-source approval is claimed. If the integrator treats `.codex/packet_planner/state.json` as shared control-plane metadata requiring high-risk framing, this corrected packet caps the current review range at three tasks and requests review of only the exact metadata files listed above.
 
 ## Commands Run And Outcomes
 
@@ -69,23 +68,8 @@ Required final gates for this fixer pass:
 - `./typecheck-test.sh` - passed Python source compilation.
 - `make ci` - passed scope-check, format, lint, compile/typecheck, smoke tests, and 511 unit tests.
 
-Prior A2UI-focused evidence from the reviewed runtime target:
-
-- Runtime change reviewed as `b929fe6c7a1159c7882acedd247aca31a93cd123`.
-- Reviewer confirmed the runtime delta is narrow and plan-aligned, changing only `src/qual/ui/a2ui.py` and `tests/unit/test_a2ui_contract.py`.
-
 ## Risks Or Blockers
 
-- No provider routing, model routing, storage, retrieval, or core engine entrypoints are touched by the A2UI runtime commit.
-- Shared/integrator-locked edits are not present in the reviewed runtime change, so the handoff is submitted under the normal lane budget with three completed tasks rather than the high-risk budget.
-- Branch-tip metadata includes `.codex/kickoff_packets/feat-a2ui-contract.md` and `.codex/packet_planner/state.json`; they are accounted for above as control metadata, not source-bearing planner changes, and are split from the A2UI runtime task count.
-
-## Roadmap And Vision Mapping
-
-- Roadmap items affected: `ROADMAP.md` Milestone 3 real workflow loop dependency on stable A2UI contract/CLI fallback surfaces for engine-side plan/revise and apply/reject interactions.
-- Vision capability affected: `PRODUCT_VISION.md` shared UI contract boundaries for engine-authoritative actions with CLI fallback, without expanding into Textual implementation or UI polish.
-- Canonical demo-path step made more real: the engine loop can expose deterministic A2UI actions for plan/revise and patch apply/reject decisions while keeping the CLI fallback path stable.
-
-## Routing And Provider Impact
-
-None. This handoff does not touch provider configuration, model routing, retrieval routing, or core app entrypoints.
+- The current branch-tip review range is metadata/control-plane only and should not be reviewed as a runtime A2UI implementation diff.
+- Runtime A2UI claims are limited to commit `b929fe6c7a1159c7882acedd247aca31a93cd123`.
+- Planner source files and packet-planner tests are explicitly out of scope for this handoff.
