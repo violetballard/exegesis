@@ -1819,8 +1819,12 @@ class A2UIContractTests(unittest.TestCase):
         filtered = studio_materialize_card(card, caps)
 
         self.assertEqual(
-            [action["id"] for action in filtered["actions"]],
-            ["apply_patch", "copy_to_clipboard", "reject_patch"],
+            filtered["actions"],
+            [
+                {"id": "apply_patch", "label": "Apply", "payload": {"patch_id": "p1"}},
+                {"id": "copy_to_clipboard", "label": "Copy", "payload": {"text": "payload"}},
+                {"id": "reject_patch", "label": "Reject", "payload": {"patch_id": "p2"}},
+            ],
         )
 
     def test_action_payload_schema_rejects_extra_fields(self) -> None:
