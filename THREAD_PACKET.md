@@ -2,47 +2,48 @@
 
 - Branch name: `codex/feat-a2ui-contract`
 - Lane: `feat-a2ui-contract`
-- Merge target: current `main`
-- Handoff type: corrected packet requesting full branch-tip review.
-- Authoritative reviewed runtime commit: `b929fe6c7a1159c7882acedd247aca31a93cd123` (`fix(a2ui): canonicalize materialized action order`).
-- Review scope correction: prior packets claimed the submitted branch tip was a narrow A2UI runtime slice plus metadata-only follow-up commits. That is not accurate. Because this fixer is not allowed to detach or update refs, this packet explicitly requests review of the full final branch-tip merge range instead of claiming a metadata-only or two-file runtime slice.
+- Merge target: current `main` (`9abf31c55f420be74389af72b7e4707bb5132790`)
+- Corrected candidate: final branch tip after this fixer commit.
+- Scope goal: remove off-scope branch-tip contamination and resubmit a traceable A2UI contract handoff.
+- Canonical demo-path step advanced: `preview and apply or reject a patch`.
 
 ## Tasks Completed
 
-1. Preserved the intended A2UI runtime change from `b929fe6c7a1159c7882acedd247aca31a93cd123`: supported actions filtered by the allowlist are sorted by canonical JSON before materialization.
-2. Preserved focused unit coverage for deterministic canonical action ordering in `tests/unit/test_a2ui_contract.py`.
-3. Replaced the stale/inaccurate handoff packet so the review request no longer claims that later branch-tip commits are metadata-only.
+1. Restored the corrected candidate content to match `main` for unrelated Textual, retrieval, daemon/tooling, docs, shared-contract, planner, and broad source paths.
+2. Verified the intended A2UI action canonicalization behavior is already present in the corrected `main` target baseline.
+3. Updated this handoff packet so the files changed, shared/locked status, tasks, risks, and command outcomes describe the exact corrected merge candidate.
 
-## Files Changed / Review Surface
+## Files Changed In Corrected Merge Diff
 
-The intended A2UI runtime slice is:
-
-- `src/qual/ui/a2ui.py`
-- `tests/unit/test_a2ui_contract.py`
-
-Packet-only handoff correction:
+Expected final diff against current `main`:
 
 - `THREAD_PACKET.md`
 
-The full branch-tip merge range also contains off-scope `client-textual/`, retrieval, daemon/tooling, broad docs, packet metadata, and shared-contract files from earlier commits. This packet does not claim those are metadata-only; it requests full branch-tip review if the branch is not split or rewritten by the integrator.
+No `client-textual/`, retrieval, daemon/tooling, broad docs, planner metadata, or shared-contract files are intentionally included in the corrected final merge diff.
 
 ## Shared / Locked Status
 
-- Integrator-locked files: full branch-tip review required; not limited to the intended A2UI runtime slice.
-- Shared-by-approval files: full branch-tip review required; not limited to the intended A2UI runtime slice.
-- Runtime files intentionally in the A2UI scope: `src/qual/ui/a2ui.py`.
-- Tests intentionally in the A2UI scope: `tests/unit/test_a2ui_contract.py`.
+- Integrator-locked files changed in corrected final diff: none.
+- Shared-by-approval files changed in corrected final diff: none.
+- Runtime/source files changed in corrected final diff: none.
+- Packet-only files changed in corrected final diff: `THREAD_PACKET.md`.
+
+## Runtime Scope Note
+
+The isolated runtime change reviewed at `b929fe6c7a1159c7882acedd247aca31a93cd123` canonicalized materialized A2UI action order and added focused test coverage. Current `main` already contains that behavior in the A2UI contract implementation and tests, so the corrected merge candidate does not reintroduce additional runtime/source changes. The branch-tip correction is packet-only relative to current `main`.
 
 ## Commands Run
+
+Required gates for this corrected merge candidate:
 
 - `make scope-check`: passed.
 - `./quality-format.sh --check`: passed.
 - `./quality-lint.sh`: passed.
-- `./quality-test.sh`: passed; 123 tests passed.
+- `./quality-test.sh`: passed.
 - `./typecheck-test.sh`: passed.
 - `make ci`: passed.
 
 ## Risks / Blockers
 
-- Branch history still contains stale off-scope commits because the packet explicitly forbids detaching or updating refs. This packet corrects the review request by asking for full branch-tip review rather than a narrowed metadata-only review.
-- Merge risk remains high unless the integrator splits or rewrites the branch down to the intended A2UI runtime slice.
+- Branch history still contains stale off-scope commits, but the corrected review candidate is the final branch-tip diff against current `main`.
+- Merge risk is low for the corrected final diff because it is packet-only and documents that no shared, Textual, retrieval, daemon/tooling, docs, planner metadata, or runtime files are included in the merge candidate.
