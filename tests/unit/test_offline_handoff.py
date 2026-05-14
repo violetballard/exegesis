@@ -201,6 +201,31 @@ class OfflineIntegratorGuardTests(unittest.TestCase):
 
         self.assertIsNone(result)
 
+    def test_local_integrator_accepts_success_summary_with_quoted_bad_marker(self) -> None:
+        output = (
+            "invalid_request_error: missing_required_parameter for text.format\n"
+            "codex\n"
+            "**Integration Result**\n\n"
+            "Post-merge checks all passed:\n\n"
+            "- `make scope-check`: passed\n"
+            "- `./quality-format.sh --check`: passed\n"
+            "- `./quality-lint.sh`: passed\n"
+            "- `./quality-test.sh`: passed, 506 tests\n"
+            "- `./typecheck-test.sh`: passed\n"
+            "- `make ci`: passed, 506 tests\n\n"
+            "Blockers: none for this approved retrieval packet.\n"
+        )
+        cfg = SimpleNamespace(use_cli_integrator_fallback=True, integrator_timeout=30)
+
+        with (
+            patch.object(router, "isolated_codex_env", return_value={"CODEX_HOME": "/tmp/codex"}),
+            patch.object(router, "_profile_for_role", return_value=self.profile),
+            patch.object(router, "_run_cli_codex", return_value=(0, output)),
+        ):
+            result = router._run_cli_integrator(cfg, "/repo", "approved", local=True)
+
+        self.assertEqual(result, output.strip())
+
     def test_local_integrator_accepts_nonempty_output(self) -> None:
         cfg = SimpleNamespace(use_cli_integrator_fallback=True, integrator_timeout=30)
 
