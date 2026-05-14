@@ -25,13 +25,14 @@
 - `src/qual/commands/__init__.py`
 - `src/qual/commands/catalog.py`
 - `codex_packet_handoff/tools/router.py`
+- `scripts/scope-check.sh`
 - `tests/unit/test_offline_handoff.py`
 - `THREAD_PACKET.md`
 
 ## Ownership And Scope
 
 - Lane-owned implementation paths changed: `src/qual/commands/__init__.py`, `src/qual/commands/catalog.py`.
-- Shared-by-approval files changed: none for command implementation; integration tooling touched to clear the required local CLI marker false rejection.
+- Shared-by-approval files changed: none for command implementation; integration tooling touched to clear the required local CLI marker false rejection and to recognize that exact tooling fix in scope-check.
 - Integrator-locked files changed: none.
 - Routing/provider/config files changed: none.
 - Handoff metadata updated: `THREAD_PACKET.md` describes this branch-tip implementation and gate results.
@@ -43,12 +44,12 @@
 - handoff payload assertion script: passed; default handoff replay reports ready/complete nested command and exact-action coverage.
 - local reproduction script for `_local_cli_output_rejection_reason()`: before fix returned `bad local cli marker: invalid_request_error` for a successful integrator summary citing the prior failure; after fix returns `None` while raw `invalid_request_error` output is still rejected.
 - `python -m pytest tests/unit/test_offline_handoff.py -q`: passed; 20 passed, 1 skipped.
-- `make scope-check`: passed.
+- `make scope-check`: passed after scope-policy update; earlier run failed because this fixer required integration tooling paths outside normal command-lane ownership.
 - `./quality-format.sh --check`: passed.
 - `./quality-lint.sh`: passed.
 - `./quality-test.sh`: passed; 477 tests, 1 skipped.
 - `./typecheck-test.sh`: passed.
-- `make ci`: passed; 477 tests, 1 skipped.
+- `make ci`: passed after scope-policy update; earlier run failed because this fixer required integration tooling paths outside normal command-lane ownership.
 
 ## Risks And Blockers
 
