@@ -5,7 +5,7 @@
 - Merge candidate: branch tip after this handoff.
 - Reviewed implementation commit: branch tip after this handoff (`fix(commands): bind CLI parser to command catalog`).
 - Scope completed: reviewer-facing CLI handoff replay now defaults to the canonical MVP smoke command argv sequence and validates the exact demo action argv sequence, local integrator result filtering no longer rejects a successful integration summary merely because it cites the prior `bad local cli marker: invalid_request_error` diagnostic, and the real argparse command surface is now built from the command catalog CLI contract.
-- Canonical demo-path steps advanced: `open project/document`, `retrieve relevant material and gather context into the basket`, `preview and apply or reject a patch`, and `persist and continue`.
+- Command-catalog slice canonical demo-path step advanced: this slice makes the CLI fallback path for `open project/document`, `retrieve relevant material and gather context into the basket`, `preview and apply or reject a patch`, and `persist and continue` more real.
 - Deterministic CLI contract mapping: the active operator command surface now exposes a self-contained handoff replay proving both command-level smoke coverage and exact action coverage while Textual remains disabled.
 - Roadmap item affected: Milestone 3 (Real workflow loop) - CLI compatibility and migration-safe entrypoints for open, retrieve/basket, patch review, and persist/continue, aligned with `ROADMAP.md:51-75`.
 - Vision capability affected: canonical engine contract and CLI compatibility for the engine-first command surface while Textual remains disabled, aligned with `PRODUCT_VISION.md:35-55`.
@@ -14,6 +14,8 @@
 - Proposed `README.md` patch text: none.
 
 ## Tasks Completed
+
+Per-task canonical demo-path mapping:
 
 1. Made `build_mvp_demo_cli_handoff_payload()` default to the canonical MVP command smoke argv sequence when no observed argv list is supplied. Canonical demo-path steps supported: `open project/document`, `retrieve relevant material and gather context into the basket`, `preview and apply or reject a patch`, and `persist and continue`.
 2. Added handoff-only exact-action argv replay derived from the smoke matrix, so nested checkpoint, completion, transcript, route, resume, and replay payloads validate exact engine actions instead of reporting false missing action coverage. Canonical demo-path steps supported: `open project/document`, `retrieve relevant material and gather context into the basket`, `preview and apply or reject a patch`, and `persist and continue`.
