@@ -9,7 +9,7 @@
 1. Reviewed the rejected approval context for `R__APPROVED__codex-feat-a2ui-contract__3e8b7be73d7f77d804c69fd9e2b409337db3e565__20260514T115741Z.md`.
 2. Confirmed the stale selected integration target in this packet was `b929fe6c7a1159c7882acedd247aca31a93cd123`.
 3. Confirmed the integrator failure mode: `main` already contains the deterministic A2UI action-order behavior, so cherry-picking only `b929fe6c7a1159c7882acedd247aca31a93cd123` becomes empty after conflict resolution and performs no integration.
-4. Attempted a non-mutating `git merge-tree main b929fe6c7a1159c7882acedd247aca31a93cd123` reproduction in this sandbox; Git could not create its temporary merge file here (`Operation not permitted`). The captured integrator output remains the source of truth for the empty cherry-pick failure.
+4. Attempted a non-mutating `git merge-tree main b929fe6c7a1159c7882acedd247aca31a93cd123` reproduction in this sandbox with a writable temp root; Git could not create its temporary merge file here (`Operation not permitted`). The captured integrator output remains the source of truth for the empty cherry-pick failure.
 
 ## Required Fix Applied
 
@@ -71,7 +71,7 @@ Prior A2UI implementation/test work already present on the lane branch:
 - `git merge-base main HEAD`: PASS; merge base is `06cdebc2d5d53533b73f264a4bbf5a4b4daacb27`.
 - `git diff --stat main...HEAD`: PASS; inspected branch range size.
 - `git diff --name-only main...HEAD`: PASS; inspected changed paths.
-- `TMPDIR=/tmp git merge-tree main b929fe6c7a1159c7882acedd247aca31a93cd123 | rg -n "<<<<<<<|>>>>>>>|changed in both|src/qual/ui/a2ui.py|tests/unit/test_a2ui_contract.py|Auto-merging|CONFLICT"`: BLOCKED by sandbox temp-file creation (`Operation not permitted`); captured integrator output remains authoritative for this reproduction.
+- `TMPDIR=/private/tmp git merge-tree main b929fe6c7a1159c7882acedd247aca31a93cd123 | rg -n "<<<<<<<|>>>>>>>|changed in both|src/qual/ui/a2ui.py|tests/unit/test_a2ui_contract.py|Auto-merging|CONFLICT|_filter_supported_actions|_render_terminal_block"`: BLOCKED by sandbox temp-file creation (`Operation not permitted`); captured integrator output remains authoritative for this reproduction.
 - `make scope-check`: PASS (`[devex] scope-check: passed for branch 'codex/feat-a2ui-contract'`).
 - `./quality-format.sh --check`: PASS (`[format] check passed`).
 - `./quality-lint.sh`: PASS (`[lint] passed`).
