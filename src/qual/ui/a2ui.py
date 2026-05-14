@@ -6009,6 +6009,7 @@ def _build_selection_contract_manifest() -> dict[str, Any]:
         "type": "SelectionRef",
         "required_fields": ["id", "label", "payload"],
         "optional_fields": ["selected", "disabled"],
+        "version_fields": ["schema_version", "a2ui_version"],
         "normalization": {
             "id": "trimmed non-empty string without control characters",
             "label": "trimmed non-empty string",
@@ -6030,9 +6031,16 @@ def _build_action_contract_manifest() -> dict[str, Any]:
         "type": "ActionRef",
         "required_fields": ["id", "label", "payload"],
         "optional_fields": ["confirm", "policy_sensitive"],
+        "version_fields": ["schema_version", "a2ui_version"],
         "allowed_actions": sorted(ALLOWED_ACTION_IDS),
         "payload_schemas": _build_action_payload_schema_manifest(include_string_policy_fields=True),
         "payload_string_policy": _build_action_payload_string_policy_manifest(),
+        "execution_policy": {
+            "authority": "engine_policy_gate",
+            "client_role": "render_and_return_action_ref",
+            "allowlist": sorted(ALLOWED_ACTION_IDS),
+            "policy_sensitive_field": "policy_sensitive",
+        },
     }
 
 

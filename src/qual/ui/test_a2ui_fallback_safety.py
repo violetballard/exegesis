@@ -546,6 +546,25 @@ class A2UIFallbackSafetyTests(unittest.TestCase):
             selection_manifest["contract_fingerprint"],
         )
 
+    def test_action_and_selection_contracts_expose_version_fields(self) -> None:
+        action_manifest = describe_action_contract()
+        selection_manifest = describe_selection_contract()
+
+        self.assertEqual(action_manifest["version_fields"], ["schema_version", "a2ui_version"])
+        self.assertEqual(selection_manifest["version_fields"], ["schema_version", "a2ui_version"])
+        self.assertEqual(action_manifest["optional_fields"], ["confirm", "policy_sensitive"])
+        self.assertEqual(selection_manifest["optional_fields"], ["selected", "disabled"])
+
+    def test_action_contract_documents_engine_policy_gate_authority(self) -> None:
+        action_manifest = describe_action_contract()
+        a2ui_manifest = describe_a2ui_contract()
+
+        self.assertEqual(action_manifest["execution_policy"]["authority"], "engine_policy_gate")
+        self.assertEqual(action_manifest["execution_policy"]["client_role"], "render_and_return_action_ref")
+        self.assertEqual(action_manifest["execution_policy"]["policy_sensitive_field"], "policy_sensitive")
+        self.assertEqual(action_manifest["execution_policy"]["allowlist"], sorted(ALLOWED_ACTION_IDS))
+        self.assertEqual(a2ui_manifest["action"]["execution_policy"], action_manifest["execution_policy"])
+
     def test_leaf_contract_helpers_return_fresh_snapshots(self) -> None:
         action_manifest = describe_action_contract()
         selection_manifest = describe_selection_contract()
