@@ -7,14 +7,14 @@ import shlex
 from collections.abc import Sequence
 from dataclasses import asdict
 
-COMMAND_FIXER_GATE_RERUN_ID = "feat-commands-20260514T003557Z"
+COMMAND_FIXER_GATE_RERUN_ID = "feat-commands-20260514T015148Z"
 COMMAND_FIXER_GATE_RESULTS = (
     ("make scope-check", "passed"),
     ("./quality-format.sh --check", "passed"),
     ("./quality-lint.sh", "passed"),
-    ("./quality-test.sh", "passed: 476 tests, 1 skipped"),
+    ("./quality-test.sh", "passed: 480 tests, 1 skipped"),
     ("./typecheck-test.sh", "passed"),
-    ("make ci", "passed: 476 tests, 1 skipped"),
+    ("make ci", "passed: 480 tests, 1 skipped"),
 )
 
 from src.qual.commands.catalog import *  # noqa: F401,F403
