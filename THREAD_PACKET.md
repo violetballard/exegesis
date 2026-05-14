@@ -5,6 +5,7 @@
 - Merge target: current `main` (`9abf31c55f420be74389af72b7e4707bb5132790`)
 - Authoritative review target: the branch tip submitted for re-review, reviewed only as the current `main..HEAD` merge diff.
 - Do not review `b929fe6c7a1159c7882acedd247aca31a93cd123..HEAD`; that historical range includes superseded branch cleanup and is not the integration candidate.
+- Fixer re-review note: this packet supersedes the rejected six-task mixed-scope packet and is the only handoff surface for this re-review.
 - Scope goal: resubmit a clean A2UI contract handoff whose integration diff is limited to packet metadata for the already-baselined A2UI contract behavior, with packet-planner maintenance split out of this review surface.
 - Canonical demo-path step advanced: `preview and apply or reject a patch`.
 
@@ -13,6 +14,7 @@
 - Risk reason: the rejected packet mixed A2UI runtime claims with off-lane packet-planner maintenance; this fixer pass splits that maintenance out of the authoritative A2UI review surface.
 - Budget used for the corrected fixer scope: high-risk cap of `4` meaningful tasks, including the packet-only corrections needed to resubmit the handoff coherently.
 - Approval/scope basis: the reviewer packet explicitly required either removing planner changes from scope or providing explicit approval/scope justification; this packet removes the planner source/test files from the corrected A2UI review target.
+- No explicit approval is claimed for `codex_packet_handoff/tools/planner.py`, `tests/unit/test_packet_planner.py`, or other packet-planner/control-plane maintenance in this A2UI handoff.
 
 ## Tasks Completed
 
@@ -20,7 +22,7 @@
    Canonical demo-path step advanced: `preview and apply or reject a patch`; removes off-lane runtime contamination so the A2UI contract handoff can be reviewed against the patch-preview/apply support surface only.
 2. Verified the intended A2UI action canonicalization behavior is already present in the corrected `main` target baseline.
    Canonical demo-path step advanced: `preview and apply or reject a patch`; confirms the deterministic A2UI action payload behavior needed by CLI fallback rendering is already available to the demo path.
-3. Split packet-planner maintenance out of this A2UI runtime review by removing `codex_packet_handoff/tools/planner.py` and `tests/unit/test_lane_profiles.py` from the corrected review target.
+3. Split packet-planner maintenance out of this A2UI runtime review by removing `codex_packet_handoff/tools/planner.py` and `tests/unit/test_packet_planner.py` from the corrected review target.
    Canonical demo-path step advanced: `preview and apply or reject a patch`; prevents generated handoff packets and stale packet claims from misleading review of the patch-preview/apply support surface.
 4. Reissued this packet with an accurate files-changed list, shared/locked status, runtime scope note, demo-path mapping, risks, and command outcomes.
    Canonical demo-path step advanced: `preview and apply or reject a patch`; lets the A2UI contract packet be re-reviewed on its actual diff instead of stale packet claims.
@@ -55,8 +57,9 @@ Deterministic A2UI action ordering makes the `preview and apply or reject a patc
 
 Required gates for the authoritative `main..HEAD` corrected merge candidate:
 
+- Fresh fixer gate run: `2026-05-14`.
 - `git merge-base --is-ancestor codex/feat-engine-runs main; printf '%s\n' $?`: reproduced the integrator blocker; returned `1`.
-- `make scope-check`: passed.
+- `make scope-check`: passed; scope-check accepted the packet-only branch diff.
 - Final HEAD scope note: the re-review tip is packet-only; packet-planner source/test maintenance is split out of the A2UI review target.
 - `./quality-format.sh --check`: passed.
 - `./quality-lint.sh`: passed.
