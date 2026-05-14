@@ -205,6 +205,7 @@ class ScopeCheckMigrationTests(unittest.TestCase):
         return subprocess.run(
             ["bash", "scripts/scope-check.sh"],
             cwd=self.root,
+            env={k: v for k, v in os.environ.items() if k != "QUAL_ROOT_DIR"},
             stdout=subprocess.PIPE,
             stderr=subprocess.STDOUT,
             text=True,
