@@ -8,12 +8,12 @@
 - Authoritative review target: only commit `b929fe6c7a1159c7882acedd247aca31a93cd123` (`fix(a2ui): stabilize materialized action order`).
 - Review range for reviewer: `b929fe6c7a1159c7882acedd247aca31a93cd123^..b929fe6c7a1159c7882acedd247aca31a93cd123`.
 - Selected integration target: cherry-pick `b929fe6c7a1159c7882acedd247aca31a93cd123`.
-- Explicit non-targets: do not review or merge branch tip `022fbfa1d8aec9be6af6359ba29b9bb64541446b` for this packet, and do not review the full branch range from `b929fe6c7a1159c7882acedd247aca31a93cd123` through branch tip.
+- Explicit non-targets: do not review or merge current branch tip `9f513026aba5293f35dbbaf742b232195f7c2541` for this packet, and do not review the full branch range from `b929fe6c7a1159c7882acedd247aca31a93cd123` through branch tip.
 - Merge instruction: integrator must cherry-pick `b929fe6c7a1159c7882acedd247aca31a93cd123` and must not merge branch `codex/feat-a2ui-contract` or its current tip. Later branch commits contain additional runtime, test, planner, packet, and generated metadata changes that are outside this packet.
 - Merge-base baseline for branch context only: `06cdebc2d5d53533b73f264a4bbf5a4b4daacb27`.
 - This is a fixer packet for the reviewer-required integration-block response, not a new feature expansion.
 - The previous packet was rejected because it mixed a cherry-pick intent with a branch-tip submission. This packet names one integration target only.
-- No commit that changes executable source or tests is classified as metadata-only in this packet. Branch tip commit `022fbfa1d8aec9be6af6359ba29b9bb64541446b` is classified as runtime plus test work because it changes `src/qual/ui/a2ui.py` and `src/qual/ui/test_a2ui_fallback_safety.py`.
+- No commit that changes executable source or tests is classified as metadata-only in this packet. Current branch tip commit `9f513026aba5293f35dbbaf742b232195f7c2541` is a packet-only fixer commit and is not a selected integration target. Prior non-target branch commits include runtime, test, planner, packet, and generated metadata work outside this packet.
 
 ## Scope Completed
 
@@ -42,7 +42,7 @@ Generated packet/router metadata:
 - Tests outside this packet: `src/qual/ui/test_a2ui_fallback_safety.py`, `tests/unit.sh`, `tests/unit/test_a2ui_contract.py`, `tests/unit/test_packet_planner.py`, `tests/unit/test_ui_shell.py`.
 - Packet/planner maintenance outside this packet: `THREAD_PACKET.md`, `codex_packet_handoff/tools/planner.py`.
 - Generated packet/router metadata outside this packet: `.codex/kickoff_packets/feat-a2ui-contract.md`, `.codex/lane_meta/feat-a2ui-contract.json`, `.codex/packet_planner/state.json`, `.codex/packets/lanes/feat-a2ui-contract/inbox/feature/F__codex-feat-a2ui-contract__aa875cd03ea2a8e092f527610640827baa7b7b5a__20260320T210541Z.md`.
-- Branch-tip classification: `022fbfa1d8aec9be6af6359ba29b9bb64541446b` (`Stabilize A2UI leaf contract metadata`) is runtime plus test work, not metadata-only.
+- Branch-tip classification: current branch tip `9f513026aba5293f35dbbaf742b232195f7c2541` (`fix(a2ui): narrow contract handoff tasks`) is packet-only fixer work and is not merge-ready; prior non-target branch commits include runtime plus test work and require separate review packets.
 
 ## Plan Alignment
 
@@ -50,6 +50,7 @@ Generated packet/router metadata:
 - MVP task anchor: `AGENTS.md` active MVP item `A2UI contracts with CLI fallback`.
 - Vision capability affected: `PRODUCT_VISION.md` Capability 4: Shared UI contract / operator-first control surface.
 - Canonical demo-path step advanced: deterministic A2UI action ordering keeps the CLI fallback demo path stable when equivalent engine-authored action payloads arrive in different input orders, so the operator-facing action list and unit snapshot agree.
+- Budget classification for selected target: high-risk-compatible narrow packet with `2` completed tasks, under the `4` task cap even if reviewer treats A2UI contract/runtime paths as shared.
 - Explicitly deferred: Textual implementation, Exegesis Console renderer work, Studio renderer work, provider routing changes, and core engine policy changes.
 
 ## Tasks Completed
@@ -66,7 +67,7 @@ Generated packet/router metadata:
 - Canonical demo-path step advanced: deterministic A2UI action ordering for the CLI fallback demo path, preserving stable action rendering for equivalent engine-authored payloads.
 - Routing/provider impact note: None.
 - Size-budget status: Within fixer scope. The selected review range changes 2 source/test files with 5 insertions and 3 deletions.
-- Scope / approval note: This packet requests re-review of the cherry-pick target only. The current branch tip and the full `b929fe6c7a1159c7882acedd247aca31a93cd123..022fbfa1d8aec9be6af6359ba29b9bb64541446b` range are not merge targets for this packet because they include additional runtime, test, planner, packet, and generated metadata work outside the narrow deterministic action-order fix.
+- Scope / approval note: This packet requests re-review of the cherry-pick target only. The current branch tip and the full `b929fe6c7a1159c7882acedd247aca31a93cd123..9f513026aba5293f35dbbaf742b232195f7c2541` range are not merge targets for this packet because they include additional runtime, test, planner, packet, and generated metadata work outside the narrow deterministic action-order fix.
 - Selected integration target: cherry-pick `b929fe6c7a1159c7882acedd247aca31a93cd123`; do not merge `codex/feat-a2ui-contract`.
 - Shared/integrator-locked impact: None for the selected review target; `src/qual/ui/a2ui.py` and `tests/unit/test_a2ui_contract.py` are lane-owned A2UI contract/runtime test paths for this packet.
 
