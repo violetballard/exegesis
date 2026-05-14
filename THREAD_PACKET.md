@@ -3,10 +3,11 @@
 - Branch name: `codex/feat-a2ui-contract`
 - Lane: `feat-a2ui-contract`
 - Merge target: current `main`
-- Handoff type: A2UI contract/CLI fallback handoff.
-- Canonical demo-path step advanced before handoff: `plan or revise` and `apply or reject a patch` are strengthened by deterministic, typed A2UI action ordering for engine-facing command surfaces.
+- Handoff type: split re-review packet: A2UI runtime slice plus corrective handoff metadata refresh.
+- Canonical demo-path step advanced before handoff: `produce a plan or revision` and `preview and apply or reject a patch` are strengthened by deterministic, typed A2UI action ordering for engine-facing command surfaces.
 - Lane-owned paths: `src/qual/ui/**`, `tests/unit/test_a2ui_contract.py`.
 - Shared/integrator-locked edits: NO. The reviewed runtime commit touched only lane-owned `src/qual/ui/a2ui.py` plus the approved lane test exception `tests/unit/test_a2ui_contract.py`; branch-tip `.codex` deltas are control metadata accounted for below, not source/runtime edits.
+- Budget framing: normal lane runtime scope with three meaningful completed tasks. The corrective metadata-only refresh is split out in its own review range and is not counted as an additional runtime task.
 
 ## Authoritative Review Ranges
 
@@ -25,9 +26,12 @@ This packet is authoritative for the branch-tip merge candidate. The implementat
 1. Canonicalized materialized A2UI action ordering so filtered action payloads are stable for engine-facing consumers.
 2. Preserved typed and allowlisted action filtering, including exclusion of unsupported action shapes from the A2UI contract surface.
 3. Preserved CLI rendering fallback behavior and covered deterministic filtered action ordering in `tests/unit/test_a2ui_contract.py`.
-4. Corrected handoff metadata so the reviewed branch, implementation commit, control-metadata range, files changed, commands, risks, and canonical demo-path step are traceable for `feat-a2ui-contract`.
 
 No planner behavior changes are included in the reviewed implementation range. No packet-planner regression coverage is claimed by this handoff.
+
+Corrective metadata refresh, split for re-review:
+
+1. Corrected handoff metadata so the reviewed branch, implementation commit, control-metadata range, files changed, commands, risks, budget framing, and canonical demo-path step are traceable for `feat-a2ui-contract`.
 
 ## Tasks Completed
 
@@ -74,7 +78,7 @@ Prior A2UI-focused evidence from the reviewed runtime target:
 
 - No provider routing, model routing, storage, retrieval, or core engine entrypoints are touched by the A2UI runtime commit.
 - Shared/integrator-locked edits are not present in the reviewed runtime change, so the handoff is submitted under the normal lane budget with three completed tasks rather than the high-risk budget.
-- Branch-tip metadata includes `.codex/kickoff_packets/feat-a2ui-contract.md` and `.codex/packet_planner/state.json`; they are accounted for above as control metadata, not source-bearing planner changes.
+- Branch-tip metadata includes `.codex/kickoff_packets/feat-a2ui-contract.md` and `.codex/packet_planner/state.json`; they are accounted for above as control metadata, not source-bearing planner changes, and are split from the A2UI runtime task count.
 
 ## Roadmap And Vision Mapping
 
