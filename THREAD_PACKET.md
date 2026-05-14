@@ -56,6 +56,7 @@
 - `./quality-test.sh`: passed on rerun; 480 tests, 1 skipped. First run exposed a contract alias canonicalization regression in `test_canonical_parser_accepts_catalog_cli_token_aliases`; fixed within 1 focused attempt.
 - `./typecheck-test.sh`: passed.
 - `make ci`: passed; includes scope-check, format, lint, compile/typecheck, and 480 tests with 1 skipped.
+- Fixer rerun for reviewer packet `fixer__feat-commands__20260514T014821Z`: passed all required gates above; branch advanced for live reviewer re-review rather than offline fallback approval.
 
 ## Risks And Blockers
 
