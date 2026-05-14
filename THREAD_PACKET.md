@@ -22,12 +22,12 @@ Runtime review scope is only range `b929fe6c7a1159c7882acedd247aca31a93cd123^..b
 - `src/qual/ui/a2ui.py`
 - `tests/unit/test_a2ui_contract.py`
 
-No Textual implementation work, engine work, packet tooling, `.agents`, `.codex`, docs, or shared-contract changes are submitted by this packet. Those branch-wide changes are withdrawn from the `feat-a2ui-contract` runtime review scope and require a separate high-risk packet with lane ownership, approval basis, all changed files, tasks, roadmap/vision mapping, and risks before review.
+No Textual implementation work, engine work, automation/tooling, `.agents`, `.codex`, docs, or shared-contract changes are submitted by this packet. Those branch-wide changes are withdrawn from the `feat-a2ui-contract` runtime review scope and require a separate high-risk packet with lane ownership, approval basis, all changed files, tasks, roadmap/vision mapping, and risks before review.
 
 Required-fix disposition:
 
 - Required fix 1: the submitted review scope is the single runtime commit `b929fe6c7a1159c7882acedd247aca31a93cd123`; the only review-target files are `src/qual/ui/a2ui.py` and `tests/unit/test_a2ui_contract.py`.
-- Required fix 2: unsupported planner and packet-planner claims are removed. `codex_packet_handoff/tools/planner.py` and `tests/unit/test_packet_planner.py` are not submitted for this runtime review.
+- Required fix 2: unsupported automation/tooling claims are removed; no tooling source or tooling test work is submitted for this runtime review.
 - Required fix 3: not applicable to this runtime-only packet because shared/integrator-locked impact is `None`; no high-risk/shared exception is claimed.
 - Required fix 4: the canonical demo-path step advanced is explicitly stated below as `preview and apply or reject a patch`.
 - Required fix 5: required handoff fields are aligned below with branch, scope completed, files changed, commands run, risks/blockers, roadmap item, vision capability, and routing/provider impact.
@@ -39,7 +39,7 @@ The runtime A2UI change strengthens `preview and apply or reject a patch` by kee
 Roadmap/product mapping:
 
 - `ROADMAP.md`: Milestone 3 real workflow loop, narrowed to CLI fallback determinism for already-materialized A2UI actions while preserving CLI compatibility.
-- `PRODUCT_VISION.md`: Canonical engine contract and shared UI contract (`A2UI`), narrowed to deterministic action identity in client-agnostic runtime payloads. This packet does not claim new shared card/action/selection types or planner canonicalization, and renderers remain outside shared.
+- `PRODUCT_VISION.md`: Canonical engine contract and shared UI contract (`A2UI`), narrowed to deterministic action identity in client-agnostic runtime payloads. This packet does not claim new shared card/action/selection types, and renderers remain outside shared.
 - `ARCHITECTURE.md`: A2UI card/action contracts with typed action handling and CLI fallback preserved.
 
 ## Tasks Completed
@@ -47,13 +47,12 @@ Roadmap/product mapping:
 1. Canonicalized materialized A2UI action ordering so filtered action payloads are stable for engine-facing CLI fallback consumers.
 2. Preserved typed and allowlisted action filtering, including exclusion of unsupported action shapes from the A2UI contract surface.
 3. Preserved CLI rendering fallback behavior and covered deterministic filtered action ordering in `tests/unit/test_a2ui_contract.py`.
-4. Removed unsubmitted planner/handoff-tooling claims from the packet scope; `codex_packet_handoff/tools/planner.py`, `tests/unit/test_packet_planner.py`, and broad `THREAD_PACKET.md` maintenance are not runtime review-target files.
 
-Each runtime task above advances the canonical demo-path step `preview and apply or reject a patch` by making apply/reject/copy action payloads deterministic for CLI fallback rendering. The packet-maintenance task advances re-review readiness only and is not submitted as runtime product work.
+Each runtime task above advances the canonical demo-path step `preview and apply or reject a patch` by making apply/reject/copy action payloads deterministic for CLI fallback rendering.
 
 ## Scope Completed
 
-Runtime-only A2UI contract review for deterministic materialized action ordering in commit `b929fe6c7a1159c7882acedd247aca31a93cd123`. Shared, planner, packet-tooling, Textual, engine, routing, provider, and broader branch-tip changes are outside this handoff.
+Runtime-only A2UI contract review for deterministic materialized action ordering in commit `b929fe6c7a1159c7882acedd247aca31a93cd123`. Shared, automation/tooling, Textual, engine, routing, provider, and broader branch-tip changes are outside this handoff.
 
 ## Files Changed
 
@@ -64,7 +63,7 @@ Review-target files changed in `b929fe6c7a1159c7882acedd247aca31a93cd123^..b929f
 
 Textual implementation files are not in scope for this retargeted review.
 
-No planner or packet-planner test files are in scope. In particular, this packet makes no review claim for `codex_packet_handoff/tools/planner.py` or `tests/unit/test_packet_planner.py`.
+No automation/tooling source or test files are in scope.
 
 ## Shared/Integrator-Locked Impact
 
