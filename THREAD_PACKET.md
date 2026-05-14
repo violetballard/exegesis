@@ -8,7 +8,7 @@
 - Merge-base baseline: `06cdebc2d5d53533b73f264a4bbf5a4b4daacb27` (`main` merge base at fixer start).
 - Prior narrow source marker: `b929fe6c7a1159c7882acedd247aca31a93cd123` was only the deterministic action-order commit, not the full review target.
 - Source-bearing range to review: `06cdebc2d5d53533b73f264a4bbf5a4b4daacb27..HEAD`. This full branch-tip range includes source-bearing A2UI runtime, UI shell tests, packet-planner behavior, typed engine output support, and handoff metadata. It is not a metadata-only resubmission.
-- Branch delta at fixer start: 12 files changed, 32,199 insertions(+), 242 deletions(-). The branch is at the AGENTS.md 12-file ceiling and far above the high-risk 300-net-LOC size limit.
+- Branch delta at fixer start: 13 files changed, 32,273 insertions(+), 242 deletions(-). The branch exceeds both the AGENTS.md default 12-file ceiling and the high-risk 8-file/300-net-LOC size limit.
 
 ## Scope completed
 
@@ -61,7 +61,7 @@
 - Vision capability affected: `PRODUCT_VISION.md` Capability 4: Shared UI contract / operator-first control surface
 - Canonical demo-path step advanced: `AGENTS.md` active MVP note item `A2UI contracts with CLI fallback`; deterministic A2UI action ordering removes the concrete CLI fallback snapshot/consumer mismatch blocker for that path
 - Routing/provider impact note: None
-- Size-budget status: Stop trigger fired. The submitted full branch-tip delta is 12 files and 32,199 insertions(+)/242 deletions(-) against merge base, exceeding the high-risk 4-task, 8-file, and 300-net-LOC limits even though it remains within the default 12-file ceiling. This resubmission does not claim normal budget compliance; it explicitly asks reviewer/integrator to evaluate the full over-budget high-risk candidate or reject it for splitting.
+- Size-budget status: Stop trigger fired. The submitted full branch-tip delta is 13 files and 32,273 insertions(+)/242 deletions(-) against merge base, exceeding the default 12-file ceiling and the high-risk 4-task, 8-file, and 300-net-LOC limits. This resubmission does not claim normal budget compliance; it explicitly asks reviewer/integrator to evaluate the full over-budget high-risk candidate or reject it for splitting.
 - Scope / approval note: Lane-owned edits are under `src/qual/ui/**`. Test coverage files under `tests/unit/**` support those changes. `codex_packet_handoff/tools/planner.py`, `tests/unit/test_packet_planner.py`, and `.codex/**` packet state are outside the UI lane and are submitted as explicit high-risk review scope because they correct handoff metadata behavior needed for this resubmission; they do not change runtime provider routing or core engine entrypoints. The broad `src/qual/ui/**` runtime/test changes are in scope for this full-branch review, not deferred as metadata-only changes.
 
 ## Commands Run And Outcomes
