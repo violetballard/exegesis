@@ -16,6 +16,7 @@ A2UI_CONTRACT_VERSION = 2
 A2UI_ACTION_SCHEMA_VERSION = 1
 A2UI_CAPABILITIES_SCHEMA_VERSION = 1
 A2UI_ENGINE_ARTIFACTS_SCHEMA_VERSION = 1
+ENGINE_OUTPUT_SCHEMA_VERSION = 1
 SELECTION_SCHEMA_VERSION = 1
 A2UI_LEAF_CONTRACTS_SCHEMA_VERSION = 1
 CARD_CONTRACT_VERSION = 1
@@ -285,6 +286,19 @@ class SelectionRef:
     disabled: bool = False
     schema_version: int = SELECTION_SCHEMA_VERSION
     a2ui_version: int = A2UI_VERSION
+
+
+@dataclass(frozen=True)
+class EngineOutput:
+    schema_version: int
+    contract_version: int
+    a2ui_version: int
+    artifacts: tuple[tuple[str, Any], ...]
+    valid: bool
+    error_count: int
+    errors: tuple[str, ...]
+    stage_coverage: dict[str, Any]
+    fingerprint: str
 
 
 class PolicyGate(Protocol):
@@ -4185,6 +4199,46 @@ def build_engine_a2ui_cli_fallback_payload(
     if isinstance(artifacts, Mapping):
         return build_named_terminal_artifact_cli_fallback_payload(artifacts)
     return build_terminal_artifact_cli_fallback_payload(artifacts)
+
+
+def build_engine_output(
+    artifacts: Mapping[str, Sequence[Any]] | Sequence[Sequence[Any]],
+) -> EngineOutput:
+    """Build a typed, versionable engine output from validated artifacts.
+
+    Accepts the same input shapes as ``build_engine_a2ui_cli_fallback_payload``
+    and returns a frozen ``EngineOutput`` dataclass suitable for direct engine
+    consumption, serialization, and future A2UI client handoff.
+    """
+
+    pairs = _collect_engine_artifact_pairs(artifacts)
+    _, artifact_order_records = _collect_engine_artifact_validation_report_order(artifacts)
+    stage_coverage = _collect_engine_artifact_validation_report_stage_coverage(artifact_order_records)
+    error_records = _collect_engine_artifact_validation_error_records(
+        artifacts, include_payload_after_pair_errors=True
+    )
+    error_messages = tuple(record["message"] for record in error_records)
+    ordered_artifacts = tuple((kind, artifact) for _, kind, artifact in pairs)
+    fingerprint = _fingerprint_manifest_section({
+        "schema_version": ENGINE_OUTPUT_SCHEMA_VERSION,
+        "contract_version": A2UI_CONTRACT_VERSION,
+        "a2ui_version": A2UI_VERSION,
+        "artifacts": ordered_artifacts,
+        "valid": not error_records,
+        "error_count": len(error_records),
+        "stage_coverage": stage_coverage,
+    })
+    return EngineOutput(
+        schema_version=ENGINE_OUTPUT_SCHEMA_VERSION,
+        contract_version=A2UI_CONTRACT_VERSION,
+        a2ui_version=A2UI_VERSION,
+        artifacts=ordered_artifacts,
+        valid=not error_records,
+        error_count=len(error_records),
+        errors=error_messages,
+        stage_coverage=stage_coverage,
+        fingerprint=fingerprint,
+    )
 
 
 def validate_engine_artifacts(

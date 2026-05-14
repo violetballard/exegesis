@@ -14,6 +14,8 @@ from src.qual.ui.a2ui import (
     A2UI_ENGINE_ARTIFACTS_SCHEMA_VERSION,
     A2UI_LEAF_CONTRACTS_SCHEMA_VERSION,
     A2UI_VERSION,
+    ENGINE_OUTPUT_SCHEMA_VERSION,
+    EngineOutput,
     TERMINAL_ARTIFACT_CLI_FALLBACK_PAYLOAD_SCHEMA_VERSION,
     TERMINAL_ARTIFACT_CLI_FALLBACK_PAYLOAD_ARTIFACT_ID_FINGERPRINT_PREFIX_CHARS,
     TERMINAL_ARTIFACT_CLI_FALLBACK_PAYLOAD_RENDER_SEPARATOR,
@@ -99,6 +101,7 @@ from src.qual.ui.a2ui import (
     describe_terminal_fallback_contract,
     build_terminal_artifact_envelope,
     build_engine_a2ui_cli_fallback_payload,
+    build_engine_output,
     build_terminal_artifact_cli_fallback_payload,
     build_named_terminal_artifact_cli_fallback_payload,
     normalize_capabilities,
@@ -16687,6 +16690,185 @@ class A2UIFallbackSafetyTests(unittest.TestCase):
             public_ui.A2UI_ENGINE_ARTIFACTS_SCHEMA_VERSION,
             A2UI_ENGINE_ARTIFACTS_SCHEMA_VERSION,
         )
+
+
+    def test_engine_output_schema_version_is_set(self) -> None:
+        self.assertEqual(ENGINE_OUTPUT_SCHEMA_VERSION, 1)
+
+    def test_build_engine_output_returns_engine_output_instance(self) -> None:
+        output = build_engine_output({
+            "plan": (
+                "card",
+                {
+                    "type": "RunLogCard",
+                    "title": "Plan",
+                    "blocks": [{"type": "MarkdownBlock", "markdown": "Plan output"}],
+                    "actions": [],
+                },
+            )
+        })
+
+        self.assertIsInstance(output, EngineOutput)
+
+    def test_build_engine_output_sets_schema_and_contract_versions(self) -> None:
+        output = build_engine_output({
+            "plan": (
+                "card",
+                {
+                    "type": "RunLogCard",
+                    "title": "Plan",
+                    "blocks": [{"type": "MarkdownBlock", "markdown": "Plan output"}],
+                    "actions": [],
+                },
+            )
+        })
+
+        self.assertEqual(output.schema_version, ENGINE_OUTPUT_SCHEMA_VERSION)
+        self.assertEqual(output.contract_version, A2UI_CONTRACT_VERSION)
+        self.assertEqual(output.a2ui_version, A2UI_VERSION)
+
+    def test_build_engine_output_marks_valid_artifacts(self) -> None:
+        output = build_engine_output({
+            "plan": (
+                "card",
+                {
+                    "type": "RunLogCard",
+                    "title": "Plan",
+                    "blocks": [{"type": "MarkdownBlock", "markdown": "Plan output"}],
+                    "actions": [],
+                },
+            )
+        })
+
+        self.assertTrue(output.valid)
+        self.assertEqual(output.error_count, 0)
+        self.assertEqual(output.errors, ())
+
+    def test_build_engine_output_marks_invalid_artifacts(self) -> None:
+        output = build_engine_output({
+            "plan": ("selection", {"id": "choice-1", "label": "", "payload": {}})
+        })
+
+        self.assertFalse(output.valid)
+        self.assertGreater(output.error_count, 0)
+        self.assertGreater(len(output.errors), 0)
+
+    def test_build_engine_output_includes_ordered_artifacts(self) -> None:
+        output = build_engine_output({
+            "plan": (
+                "card",
+                {
+                    "type": "RunLogCard",
+                    "title": "Plan",
+                    "blocks": [{"type": "MarkdownBlock", "markdown": "Plan output"}],
+                    "actions": [],
+                },
+            ),
+            "apply": (
+                "action",
+                {
+                    "id": "apply_change",
+                    "label": "Apply",
+                    "payload": {"target": "main"},
+                },
+            ),
+        })
+
+        self.assertEqual(len(output.artifacts), 2)
+        self.assertEqual(output.artifacts[0][0], "card")
+        self.assertEqual(output.artifacts[1][0], "action")
+
+    def test_build_engine_output_includes_stage_coverage(self) -> None:
+        output = build_engine_output({
+            "plan": (
+                "card",
+                {
+                    "type": "RunLogCard",
+                    "title": "Plan",
+                    "blocks": [{"type": "MarkdownBlock", "markdown": "Plan output"}],
+                    "actions": [],
+                },
+            )
+        })
+
+        self.assertIsInstance(output.stage_coverage, dict)
+        self.assertIn("plan", output.stage_coverage["present"])
+        self.assertIn("revise", output.stage_coverage["missing"])
+
+    def test_build_engine_output_produces_deterministic_fingerprint(self) -> None:
+        artifacts = {
+            "plan": (
+                "card",
+                {
+                    "type": "RunLogCard",
+                    "title": "Plan",
+                    "blocks": [{"type": "MarkdownBlock", "markdown": "Plan output"}],
+                    "actions": [],
+                },
+            )
+        }
+
+        output_a = build_engine_output(artifacts)
+        output_b = build_engine_output(artifacts)
+
+        self.assertEqual(output_a.fingerprint, output_b.fingerprint)
+        self.assertGreater(len(output_a.fingerprint), 0)
+
+    def test_build_engine_output_is_frozen_dataclass(self) -> None:
+        output = build_engine_output({
+            "plan": (
+                "card",
+                {
+                    "type": "RunLogCard",
+                    "title": "Plan",
+                    "blocks": [{"type": "MarkdownBlock", "markdown": "Plan output"}],
+                    "actions": [],
+                },
+            )
+        })
+
+        with self.assertRaises(Exception):
+            output.valid = False  # type: ignore[attr-defined]
+
+    def test_build_engine_output_accepts_sequence_input(self) -> None:
+        output = build_engine_output([
+            (
+                "card",
+                {
+                    "type": "RunLogCard",
+                    "title": "Plan",
+                    "blocks": [{"type": "MarkdownBlock", "markdown": "Plan output"}],
+                    "actions": [],
+                },
+            )
+        ])
+
+        self.assertIsInstance(output, EngineOutput)
+        self.assertEqual(len(output.artifacts), 1)
+        self.assertEqual(output.artifacts[0][0], "card")
+
+    def test_build_engine_output_artifacts_are_tuples(self) -> None:
+        output = build_engine_output({
+            "plan": (
+                "card",
+                {
+                    "type": "RunLogCard",
+                    "title": "Plan",
+                    "blocks": [{"type": "MarkdownBlock", "markdown": "Plan output"}],
+                    "actions": [],
+                },
+            )
+        })
+
+        self.assertIsInstance(output.artifacts, tuple)
+        for item in output.artifacts:
+            self.assertIsInstance(item, tuple)
+            self.assertEqual(len(item), 2)
+
+    def test_engine_output_public_export_matches_internal(self) -> None:
+        self.assertIs(public_ui.EngineOutput, EngineOutput)
+        self.assertIs(public_ui.build_engine_output, build_engine_output)
+        self.assertEqual(public_ui.ENGINE_OUTPUT_SCHEMA_VERSION, ENGINE_OUTPUT_SCHEMA_VERSION)
 
 
 if __name__ == "__main__":
