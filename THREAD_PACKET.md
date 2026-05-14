@@ -19,9 +19,9 @@ Current reviewer required-fix disposition:
 
 - Required fix 1: the authoritative intended candidate is this branch tip against current `main`; the packet text and file list now describe the runtime-only candidate; `codex_packet_handoff/tools/planner.py`, `tests/unit/test_packet_planner.py`, and packet-planner tooling changes are no longer present in `main..HEAD`.
 - Required fix 2: runtime A2UI scope is limited to `src/qual/ui/a2ui.py` and `tests/unit/test_a2ui_contract.py`.
-- Required fix 3: docs/planner/lane-profile changes are not intended to merge in this packet. If needed later, they require a separate high-risk packet with ownership, approval basis, file list, tasks completed, roadmap/product mapping, risks, and passing gates.
-- Required fix 4: this packet uses one runtime-only scope statement for files changed, shared/integrator impact, tasks completed, and runtime scope.
-- Required fix 5: required gates are rerun and reported below.
+- Required fix 3: the runtime change explicitly advances `preview and apply or reject a patch` from the AGENTS.md canonical demo path.
+- Required fix 4: shared/integrator-locked impact is corrected to `None for the runtime A2UI candidate`.
+- Required fix 5: this packet uses one coherent runtime-only files-changed list, task list, risk statement, and merge candidate.
 
 ## Canonical Demo-Path Mapping
 
