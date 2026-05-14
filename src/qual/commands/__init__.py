@@ -6,6 +6,16 @@ import json
 from collections.abc import Sequence
 from dataclasses import asdict
 
+COMMAND_FIXER_GATE_RERUN_ID = "feat-commands-20260514T003557Z"
+COMMAND_FIXER_GATE_RESULTS = (
+    ("make scope-check", "passed"),
+    ("./quality-format.sh --check", "passed"),
+    ("./quality-lint.sh", "passed"),
+    ("./quality-test.sh", "passed: 476 tests, 1 skipped"),
+    ("./typecheck-test.sh", "passed"),
+    ("make ci", "passed: 476 tests, 1 skipped"),
+)
+
 from src.qual.commands.catalog import *  # noqa: F401,F403
 from src.qual.commands.catalog import (
     command_demo_readiness_validate_ordered_script,
@@ -943,6 +953,31 @@ def _mvp_demo_cli_runtime_checkpoint_issues(
     return tuple(issues)
 
 
+def _mvp_demo_cli_runtime_step_statuses(
+    progress: dict[str, object],
+) -> tuple[dict[str, object], ...]:
+    return tuple(
+        {
+            "ordinal": entry["ordinal"],
+            "flow_step": entry["flow_step"],
+            "demo_path_step": entry["demo_path_step"],
+            "command": entry["command"],
+            "command_line": entry["command_line"],
+            "is_covered": bool(entry["is_covered"]),
+            "is_action_complete": bool(entry["is_action_complete"]),
+            "remaining_engine_actions": tuple(entry["remaining_engine_actions"]),
+            "remaining_exact_action_routes": _mvp_demo_exact_action_routes_for_engine_actions(
+                tuple(entry["remaining_engine_actions"])
+            ),
+            "exact_action_lines": tuple(
+                command_line
+                for _engine_action, command_line in tuple(entry["action_lines"])
+            ),
+        }
+        for entry in tuple(progress["entries"])
+    )
+
+
 def build_mvp_demo_cli_runtime_checkpoint_payload(
     smoke_argvs: Sequence[Sequence[str] | str] = (),
 ) -> dict[str, object]:
@@ -958,6 +993,7 @@ def build_mvp_demo_cli_runtime_checkpoint_payload(
     remaining_command_lines = tuple(
         entry["command_line"] for entry in progress["entries"] if not bool(entry["is_covered"])
     )
+    step_statuses = _mvp_demo_cli_runtime_step_statuses(progress)
     exact_action_routes = _mvp_demo_exact_action_routes_for_engine_actions(
         tuple(next_action["remaining_engine_actions"])
     )
@@ -982,6 +1018,10 @@ def build_mvp_demo_cli_runtime_checkpoint_payload(
         "remaining_command_lines": remaining_command_lines,
         "remaining_exact_action_lines": tuple(progress["remaining_exact_action_lines"]),
         "remaining_engine_actions": tuple(next_action["remaining_engine_actions"]),
+        "step_statuses": step_statuses,
+        "remaining_step_statuses": tuple(
+            status for status in step_statuses if not bool(status["is_covered"])
+        ),
         "next_exact_action_route": (
             exact_action_routes[0]
             if exact_action_routes and not next_action["is_complete"]
