@@ -450,6 +450,8 @@ def apply_meta_defaults(meta: Json, missing: List[str], lane: str) -> Json:
         default_value = lane_defaults.get(key)
         if not _is_missing(default_value):
             out[key] = default_value
+    if "tasks_completed" in missing:
+        out["tasks_completed"] = ["(auto) reviewer handback update; see lane commits for concrete changes"]
     if "roadmap_items" in missing and _is_missing(out.get("roadmap_items")):
         out["roadmap_items"] = ["(auto) roadmap mapping pending reviewer/integrator confirmation"]
     if "vision_capabilities" in missing and _is_missing(out.get("vision_capabilities")):
@@ -639,11 +641,7 @@ def build_packet(lane: str, branch: str, sha: str, meta: Json, files: List[str],
     if metadata_only_note:
         lines += ["## Packet traceability note", f"- {metadata_only_note}", ""]
     lines += ["## Current program focus", f"- {ENGINE_MILESTONE_FOCUS}", ""]
-    lines += ["## Current engine execution order"] + [f"- {line}" for line in engine_priority_lines()]
-    lines += [
-        "- Integration note: this planning order is not a merge prerequisite unless this packet explicitly lists one.",
-        "",
-    ]
+    lines += ["## Current engine execution order"] + [f"- {line}" for line in engine_priority_lines()] + [""]
     lines += ["## Scope goal", f"- {str(meta.get('scope_goal','')).strip() or '(missing)'}", ""]
     priority_outcomes = [str(item).strip() for item in (meta.get("priority_outcomes") or []) if str(item).strip()]
     if priority_outcomes:
@@ -832,7 +830,6 @@ def main()->None:
                 print(f"[planner] {lane}: archived {moved} stale reviewer note(s) on re-emit")
         fn=f"F__{branch.replace('/','-')}__{sha}__{ts}.md"
         outp=PACKETS_ROOT/lane/"inbox/feature"/fn
-        outp.parent.mkdir(parents=True, exist_ok=True)
         outp.write_text(build_packet(lane,branch,sha,meta,files,results))
         print(f"[planner] emitted {outp}")
         lane_state[lane]={
