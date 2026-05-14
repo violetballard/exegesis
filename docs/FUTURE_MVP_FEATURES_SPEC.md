@@ -790,7 +790,9 @@ Intent:
 
 Product boundary:
 - Developer version: enabled only behind an explicit developer build/profile capability flag.
+- Developer version may enable dynamic A2UI task-surface generation for internal workflow and renderer development, provided generated surfaces remain declarative, sandboxed, and constrained by `A2UI_SPEC.md`.
 - Lite version: uses built-in remote Mistral Small 4 and managed Nanonets OCR-3 profiles by default, with no user API-key setup, no model/provider selection, and no local endpoint configuration.
+- Lite version defaults to promoted/preapproved A2UI components only. Dynamic A2UI generation is disabled unless a specific CoP/beta build profile enables it and current platform policy allows it.
 - Other packaged distro versions: developer commands are hidden, API-key prompts are unavailable, and no developer credential setup UI is exposed.
 - There is no dedicated settings window.
 - There is no user-editable config file for these settings.
@@ -938,6 +940,7 @@ Command availability:
 - Lite builds may show only `Test current connection`.
 - Packaged non-developer/non-Lite builds must not show these commands in the palette.
 - Backend command handlers should reject unavailable commands for the active distribution mode; hiding commands in UI is not enough.
+- Dynamic A2UI generation capability must be read from the active build/profile capability matrix, not inferred from provider availability. Having a model key or Lite managed model access does not by itself allow generated UI.
 
 ### Command Palette UX
 
@@ -1224,10 +1227,12 @@ Distribution variants:
   - Includes Milestone 15 developer provider configuration commands.
   - Requires users to bring their own online keys and local model endpoints.
   - Uses OS credential storage for keys/defaults.
+  - May enable dynamic A2UI generation for development and internal workflow exploration.
 - Lite
   - Uses fixed remote Mistral Small 4 and managed Nanonets OCR-3 paths.
   - Does not expose BYOK/BYOM provider mutation commands.
   - Does not require user keychain setup for provider credentials.
+  - Uses promoted/preapproved A2UI components only unless a CoP/beta profile explicitly enables dynamic A2UI under the rules in `A2UI_SPEC.md`.
 
 ### Runtime Architecture
 
@@ -1303,7 +1308,10 @@ Build profiles:
 Profile differences:
 - App name or channel clearly distinguishes Developer and Lite where both are installed.
 - Developer profile enables `developer_byok` provider mode.
+- Developer profile may enable `dynamic_a2ui_generation`.
 - Lite profile enables `lite_mistral_small_4` provider mode.
+- Lite public profile disables `dynamic_a2ui_generation`.
+- Lite CoP/beta profile may enable `dynamic_a2ui_generation` only when explicitly configured for a trusted beta cohort and constrained to declarative A2UI drafts plus promotion rules.
 - Lite includes app-managed remote endpoint references but no hardcoded user-visible secrets.
 - Both profiles share engine/client code wherever possible.
 

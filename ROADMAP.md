@@ -329,6 +329,7 @@ Scope:
 - block confidential project creation/open when the app is not fully updated and the release manifest marks an update required
 - keep Lite managed-provider secrets outside the bundle and routed through the hosted License Gateway
 - keep Developer builds wired to Milestone 15 BYOK/BYOM provider configuration
+- gate dynamic A2UI generation by distribution profile: Developer and trusted CoP/beta builds may enable it, while public Lite/App Store-oriented builds default to promoted/preapproved A2UI components
 - keep cross-platform Developer/Lite packaging separate from the later macOS-only Studio Workstation
 
 Lane mapping:
@@ -418,6 +419,7 @@ Scope:
 - define R2-backed licensed multipart model downloads and first-confidential-project just-in-time model acquisition
 - define R2-backed app update checks with an unobtrusive update button and `Check for Updates` menu command
 - require the latest required update before creating or opening confidential projects
+- allow direct-distribution Studio/Pro builds to enable dynamic A2UI only through the fixed declarative renderer and promotion rules; App Store-oriented builds stay on promoted/preapproved A2UI unless current Apple policy explicitly allows more
 - lock project confidentiality at creation and restrict confidential-project imports to confidential sources except literature
 - ship through web distribution with checksums, release manifest, clean install, update/manual upgrade, crash/diagnostic, and data preservation guidance
 - remove Windows and Linux signing from this milestone; those are not Studio targets
@@ -525,6 +527,7 @@ Scope:
 - define a native iPadOS Lite client after confidential collaboration and after enough Studio/Pro Swift-native infrastructure exists to reuse
 - account for the fact that iPad Lite cannot depend on the macOS Python sidecar packaging/supervision model
 - identify which Lite workflows must become Swift-native, gateway-backed, deferred, or unavailable on iPad
+- assume promoted/preapproved declarative A2UI only on iPad until Apple policy and a Swift-native renderer explicitly support dynamic generated task surfaces
 - preserve account-based Lite access, including inherited Lite access for Studio/Pro subscribers on secondary devices
 - scope iPad Lite as a constrained secondary-machine client, not a Studio/Pro feature replacement
 

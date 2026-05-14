@@ -1193,6 +1193,8 @@ Acceptance criteria:
 - A user can download, install, and launch a native macOS Studio Workstation build without terminal use.
 - The signed Workstation can start and monitor the bundled sidecar.
 - The app can pass a basic local project smoke path through the sidecar-backed runtime.
+- Direct-distribution Studio/Pro builds may enable dynamic A2UI generation only through the declarative renderer, typed action allowlist, and promotion rules defined in `A2UI_SPEC.md`.
+- Mac App Store-oriented builds default to promoted/preapproved A2UI components unless current Apple policy explicitly permits broader agent-generated task surfaces for that distribution channel.
 - Studio/Pro subscription entitlement checks align with the Milestone 18 License Gateway spec and include Lite secondary-machine access.
 - Studio can run on 8 GB with managed online OCR, while Pro requires 16 GB.
 - Local confidential mode is MLX Swift-backed and unavailable below 128 GB.
@@ -3253,6 +3255,8 @@ The architectural constraint is the point of the milestone:
 - iPadOS Lite cannot rely on that same Python sidecar runtime model.
 - Therefore, any iPad-native Lite feature must either be Swift-native, call a safe hosted Lite Gateway endpoint, or use shared portable data/contracts that do not require local Python execution.
 - The milestone should inventory which existing sidecar-backed behaviors must be rewritten, deferred, or reduced for iPad Lite.
+- iPad Lite should assume promoted/preapproved declarative A2UI only. It must not depend on dynamic generated UI unless Apple policy and the native Swift renderer explicitly support that behavior.
+- If future Apple rules allow agent-generated miniature app surfaces, iPad Lite should still render them through a fixed Swift-native A2UI renderer with known actions, not by executing generated code.
 
 Likely Swift-native candidates over time:
 - project navigation and local document cache
@@ -3296,6 +3300,8 @@ iPad Lite should be specified through client capabilities, not product vibes:
 - `can_open_project_archive`
 - `can_refresh_license`
 - `can_edit_markdown_document`
+- `can_render_promoted_a2ui`
+- `can_render_dynamic_a2ui`: expected false until explicitly allowed by platform policy and native renderer capability
 - `can_view_literature_metadata`
 - `can_add_annotation`
 - `can_participate_in_collaboration`
@@ -3363,6 +3369,8 @@ Future acceptance tests, once split into implementation lanes:
 - Studio/Pro subscribers can use inherited Lite access on iPad without buying separate Lite.
 - iPad Lite does not attempt to launch or package the Python sidecar.
 - iPad Lite blocks or hides sidecar-only features unless a Swift-native or hosted-gateway equivalent exists.
+- iPad Lite renders promoted A2UI components through Swift-native declarative views.
+- iPad Lite rejects dynamic A2UI payloads unless the build profile and current platform policy explicitly allow them.
 - iPad Lite project archive import does not carry credentials or license tokens.
 - offline behavior respects signed license cache and project-mode policy.
 - iPad Lite collaboration participation does not unlock Studio-only management or Pro-only features.
