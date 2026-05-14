@@ -70,6 +70,10 @@ BAD_LOCAL_CLI_CONTENT_MARKERS = (
     "missing_required_parameter",
     "text.format",
 )
+SUCCESSFUL_INTEGRATOR_SUMMARY_RE = re.compile(
+    r"(?:\*\*)?Integration Result(?:\*\*)?.*Post-merge checks all passed:.*Blockers:\s*none",
+    re.IGNORECASE | re.DOTALL,
+)
 RETRY_LIMIT_WRAPPER_RE = re.compile(
     r"exceeded retry limit|retry limit reached",
     re.IGNORECASE,
@@ -502,6 +506,8 @@ def _local_cli_output_rejection_reason(text: str, *, require_verdict: bool) -> O
         return "empty output"
     if INVALID_REVIEWER_RE.search(t):
         return "stale or missing thread reference"
+    if not require_verdict and SUCCESSFUL_INTEGRATOR_SUMMARY_RE.search(t):
+        return None
     lower = t.lower()
     for marker in BAD_LOCAL_CLI_CONTENT_MARKERS:
         if marker in lower:
