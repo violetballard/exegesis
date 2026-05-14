@@ -24,6 +24,13 @@ Runtime review scope is only range `b929fe6c7a1159c7882acedd247aca31a93cd123^..b
 
 No Textual implementation work, engine work, packet tooling, `.agents`, `.codex`, docs, or shared-contract changes are submitted by this packet. Those branch-wide changes are withdrawn from the `feat-a2ui-contract` runtime review scope and require a separate high-risk packet with lane ownership, approval basis, all changed files, tasks, roadmap/vision mapping, and risks before review.
 
+Required-fix disposition:
+
+- Required fix 1: unsubmitted planner/tooling claims are removed from the submitted review scope.
+- Required fix 2: the intended review target is the single runtime commit `b929fe6c7a1159c7882acedd247aca31a93cd123`; the only review-target files are `src/qual/ui/a2ui.py` and `tests/unit/test_a2ui_contract.py`.
+- Required fix 3: shared/integrator-locked impact is `None` for the runtime review target; no approval basis is required for the two lane-owned files in scope.
+- Required fix 4: planner behavior is not intended scope for this packet and is not submitted for re-review.
+
 ## Canonical Demo-Path Mapping
 
 The runtime A2UI change strengthens `preview and apply or reject a patch` by keeping apply/reject/copy action materialization stable for CLI fallback consumers. Deterministic action ordering makes patch-preview action payloads predictable while preserving typed and allowlisted action filtering.
