@@ -50,9 +50,10 @@ This corrected A2UI handoff supports the canonical demo-path step `preview and a
 
 ## Commands Run
 
-Required gates for the corrected branch-tip packet were carried forward from the fresh green fixer gate run already recorded on this branch after the reviewer-required scope correction:
+Required gates for the corrected branch-tip packet:
 
-- `make scope-check`: passed.
+- Fresh fixer gate run: `2026-05-14` after correcting the branch-tip review surface.
+- `make scope-check`: passed; scope-check accepted branch `codex/feat-a2ui-contract`.
 - `./quality-format.sh --check`: passed.
 - `./quality-lint.sh`: passed.
 - `./quality-test.sh`: passed; 511 tests passed.
@@ -63,4 +64,4 @@ Required gates for the corrected branch-tip packet were carried forward from the
 
 - Merge risk is limited to packet metadata because the branch-tip merge surface is packet-only.
 - No router source, shared contract source, packet-planner state/source/test, Textual file, or runtime A2UI file is in the branch-tip merge surface.
-- Gate outcomes are recorded above; the remaining risk is limited to packet metadata.
+- Fresh required gates are green on the corrected branch-tip packet.
