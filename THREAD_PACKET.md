@@ -5,6 +5,7 @@
 - Merge target: current `main`
 - Selected integration target: current branch tip after this fixer commit, reviewed as a metadata-only correction.
 - Target type: metadata-only resubmission; no runtime, shell, planner, packet-planner, or unit-test changes are requested for this target.
+- Scope completed: high-risk-compliant metadata handoff correction only, limited to the current `main...HEAD` packet/planner metadata diff and capped at 4 tasks.
 - Fixer verification: gates re-run on 2026-05-14 after confirming the selected target remains metadata-only.
 - Canonical demo-path step protected by this correction: `preview and apply or reject a patch`, by making the handoff packet accurately describe the reviewed branch diff.
 - Required-fix mapping: this packet removes planner/test claims and limits `Tasks completed`, `Files changed`, and gate reporting to the selected metadata-only target.
@@ -19,20 +20,13 @@
 3. Stated that runtime A2UI work from `b929fe6c7a1159c7882acedd247aca31a93cd123` is not the selected integration target for this re-review.
 4. Re-ran and reported the required handoff gates for the corrected metadata-only target.
 
-## Files Changed For This Target
-
-- `THREAD_PACKET.md`
-
-Reviewed branch diff scope for this resubmission is:
+## Files Changed
 
 - `.codex/kickoff_packets/feat-a2ui-contract.md`
 - `.codex/packet_planner/state.json`
 - `THREAD_PACKET.md`
 
-The `.codex` paths are committed metadata deltas already present in `main...HEAD`; this packet does not request planner/runtime/test review:
-
-- `.codex/kickoff_packets/feat-a2ui-contract.md`
-- `.codex/packet_planner/state.json`
+The `.codex` paths are metadata deltas already present in the reviewed `main...HEAD` diff. This target does not request planner/runtime/test review.
 
 ## Explicitly Not In This Handoff
 
