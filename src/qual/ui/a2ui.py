@@ -3798,6 +3798,47 @@ def _build_engine_artifacts_contract_manifest() -> dict[str, Any]:
     }
 
 
+def _build_engine_output_contract_manifest() -> dict[str, Any]:
+    return {
+        "type": "A2UIEngineOutputContract",
+        "schema_version": ENGINE_OUTPUT_SCHEMA_VERSION,
+        "contract_version": A2UI_CONTRACT_VERSION,
+        "a2ui_version": A2UI_VERSION,
+        "builder_entrypoint": "build_engine_output",
+        "input_contract": "A2UIEngineArtifactsContract",
+        "input_contract_fingerprint": engine_artifacts_contract_fingerprint(),
+        "output_type": "EngineOutput",
+        "output_fields": [
+            "schema_version",
+            "contract_version",
+            "a2ui_version",
+            "artifacts",
+            "valid",
+            "error_count",
+            "errors",
+            "stage_coverage",
+            "fingerprint",
+        ],
+        "artifact_policy": (
+            "artifacts are stored as an ordered tuple of explicit kind, artifact pairs using the same "
+            "normalization and stage ordering as build_engine_a2ui_cli_fallback_payload"
+        ),
+        "validation_policy": (
+            "valid is true only when collect_engine_artifact_validation_error_records returns no records; "
+            "error_count and errors mirror those records without forcing callers to parse CLI text"
+        ),
+        "stage_coverage_policy": (
+            "stage_coverage is copied from the engine artifact validation report shape so engine callers can "
+            "gate plan, revise, patch, apply completion without rendering fallback text"
+        ),
+        "fingerprint_policy": (
+            "fingerprint covers schema_version, contract_version, a2ui_version, ordered artifacts, valid, "
+            "error_count, and stage_coverage"
+        ),
+        "ui_assumption_policy": "EngineOutput is client-neutral and does not require Textual, web, or Studio renderers",
+    }
+
+
 def _build_terminal_artifact_renderer_entrypoints() -> dict[str, str]:
     """Return the canonical renderer-entrypoint map shared by A2UI manifests."""
 
@@ -7153,11 +7194,35 @@ def describe_engine_artifacts_contract_manifest() -> dict[str, Any]:
     return describe_engine_artifacts_contract()
 
 
+def describe_engine_output_contract() -> dict[str, Any]:
+    """Return the typed engine output contract shared by engine and A2UI clients."""
+
+    manifest = _build_engine_output_contract_manifest()
+    manifest["contract_fingerprint"] = engine_output_contract_fingerprint()
+    manifest["engine_output_contract_fingerprint"] = manifest["contract_fingerprint"]
+    manifest["contract_manifest"] = _snapshot_contract_section(manifest)
+    manifest["contract_manifest_fingerprint"] = manifest["contract_fingerprint"]
+    return _snapshot_contract_section(manifest)
+
+
+def describe_engine_output_contract_manifest() -> dict[str, Any]:
+    """Return the stable typed engine output contract manifest alias."""
+
+    return describe_engine_output_contract()
+
+
 @lru_cache(maxsize=None)
 def engine_artifacts_contract_fingerprint() -> str:
     """Return a stable fingerprint for engine artifact input validation."""
 
     return _fingerprint_manifest_section(_build_engine_artifacts_contract_manifest())
+
+
+@lru_cache(maxsize=None)
+def engine_output_contract_fingerprint() -> str:
+    """Return a stable fingerprint for the typed EngineOutput contract."""
+
+    return _fingerprint_manifest_section(_build_engine_output_contract_manifest())
 
 
 def selection_contract_fingerprint() -> str:

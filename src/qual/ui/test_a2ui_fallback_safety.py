@@ -37,6 +37,7 @@ from src.qual.ui.a2ui import (
     a2ui_dispatch_contract_fingerprint,
     a2ui_engine_contract_fingerprint,
     engine_artifacts_contract_fingerprint,
+    engine_output_contract_fingerprint,
     a2ui_leaf_contracts_fingerprint,
     build_unknown_card,
     build_engine_artifact_validation_report,
@@ -51,6 +52,8 @@ from src.qual.ui.a2ui import (
     describe_a2ui_engine_contract,
     describe_engine_artifacts_contract,
     describe_engine_artifacts_contract_manifest,
+    describe_engine_output_contract,
+    describe_engine_output_contract_manifest,
     describe_a2ui_leaf_contracts,
     describe_action_contract,
     describe_action_contract_manifest,
@@ -16865,9 +16868,54 @@ class A2UIFallbackSafetyTests(unittest.TestCase):
             self.assertIsInstance(item, tuple)
             self.assertEqual(len(item), 2)
 
+    def test_engine_output_contract_describes_typed_engine_payload(self) -> None:
+        contract = describe_engine_output_contract()
+
+        self.assertEqual(contract["type"], "A2UIEngineOutputContract")
+        self.assertEqual(contract["schema_version"], ENGINE_OUTPUT_SCHEMA_VERSION)
+        self.assertEqual(contract["contract_version"], A2UI_CONTRACT_VERSION)
+        self.assertEqual(contract["a2ui_version"], A2UI_VERSION)
+        self.assertEqual(contract["builder_entrypoint"], "build_engine_output")
+        self.assertEqual(contract["input_contract"], "A2UIEngineArtifactsContract")
+        self.assertEqual(
+            contract["input_contract_fingerprint"],
+            engine_artifacts_contract_fingerprint(),
+        )
+        self.assertEqual(contract["output_type"], "EngineOutput")
+        self.assertEqual(
+            contract["output_fields"],
+            [
+                "schema_version",
+                "contract_version",
+                "a2ui_version",
+                "artifacts",
+                "valid",
+                "error_count",
+                "errors",
+                "stage_coverage",
+                "fingerprint",
+            ],
+        )
+        self.assertIn("client-neutral", contract["ui_assumption_policy"])
+        self.assertEqual(contract["contract_fingerprint"], engine_output_contract_fingerprint())
+        self.assertEqual(
+            contract["engine_output_contract_fingerprint"],
+            engine_output_contract_fingerprint(),
+        )
+        self.assertEqual(contract["contract_manifest_fingerprint"], contract["contract_fingerprint"])
+
+    def test_engine_output_contract_manifest_alias_matches_contract(self) -> None:
+        self.assertEqual(describe_engine_output_contract_manifest(), describe_engine_output_contract())
+
     def test_engine_output_public_export_matches_internal(self) -> None:
         self.assertIs(public_ui.EngineOutput, EngineOutput)
         self.assertIs(public_ui.build_engine_output, build_engine_output)
+        self.assertIs(public_ui.describe_engine_output_contract, describe_engine_output_contract)
+        self.assertIs(
+            public_ui.describe_engine_output_contract_manifest,
+            describe_engine_output_contract_manifest,
+        )
+        self.assertIs(public_ui.engine_output_contract_fingerprint, engine_output_contract_fingerprint)
         self.assertEqual(public_ui.ENGINE_OUTPUT_SCHEMA_VERSION, ENGINE_OUTPUT_SCHEMA_VERSION)
 
 
