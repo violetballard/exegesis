@@ -13312,6 +13312,35 @@ class A2UIFallbackSafetyTests(unittest.TestCase):
 
         self.assertEqual(action.payload, {"patch_id": "patch-1"})
 
+    def test_selection_ref_id_uses_stable_identifier_policy(self) -> None:
+        selection = normalize_selection_ref(
+            {
+                "id": " choice-1 ",
+                "label": "Choice",
+                "payload": {"nested": {"items": [1, 2]}},
+            }
+        )
+
+        self.assertEqual(selection.id, "choice-1")
+        self.assertEqual(
+            describe_selection_contract()["normalization"]["id"],
+            "trimmed non-empty string without control characters",
+        )
+
+    def test_selection_ref_rejects_blank_or_control_identifiers(self) -> None:
+        invalid_ids = ("   ", "choice\n1")
+
+        for selection_id in invalid_ids:
+            with self.subTest(selection_id=selection_id):
+                with self.assertRaises(ValueError):
+                    normalize_selection_ref(
+                        {
+                            "id": selection_id,
+                            "label": "Choice",
+                            "payload": {"nested": {"items": [1, 2]}},
+                        }
+                    )
+
     def test_action_payload_contract_rejects_blank_or_control_engine_identifiers(self) -> None:
         invalid_payloads = (
             {"patch_id": "   "},

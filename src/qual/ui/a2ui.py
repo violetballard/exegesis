@@ -6010,7 +6010,7 @@ def _build_selection_contract_manifest() -> dict[str, Any]:
         "required_fields": ["id", "label", "payload"],
         "optional_fields": ["selected", "disabled"],
         "normalization": {
-            "id": "trimmed non-empty string",
+            "id": "trimmed non-empty string without control characters",
             "label": "trimmed non-empty string",
             "payload": "object copy",
             "selected": "bool default false",
@@ -9575,9 +9575,7 @@ def _normalize_selection(selection: Any) -> dict[str, Any]:
     selection_id = selection.get("id")
     if not isinstance(selection_id, str):
         raise ValueError("Selection id is required")
-    selection_id = selection_id.strip()
-    if not selection_id:
-        raise ValueError("Selection id is required")
+    selection_id = _normalize_selection_identifier(selection_id)
     label = selection.get("label")
     if not isinstance(label, str) or not label.strip():
         raise ValueError("Selection label is required")
@@ -9868,6 +9866,15 @@ def _normalize_action_payload_identifier(action_id: str, key: str, value: str) -
         raise ValueError(f"Action payload field for {action_id}:{key} must be non-empty")
     if any(unicodedata.category(char).startswith("C") for char in normalized_value):
         raise ValueError(f"Action payload field for {action_id}:{key} must not contain control characters")
+    return normalized_value
+
+
+def _normalize_selection_identifier(value: str) -> str:
+    normalized_value = value.strip()
+    if not normalized_value:
+        raise ValueError("Selection id is required")
+    if any(unicodedata.category(char).startswith("C") for char in normalized_value):
+        raise ValueError("Selection id must not contain control characters")
     return normalized_value
 
 
