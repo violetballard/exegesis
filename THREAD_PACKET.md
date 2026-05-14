@@ -4,6 +4,7 @@
 - Scope goal: Metadata-only resubmission for the A2UI contract integration-block response.
 - Selected integration target: current branch tip after this fixer pass.
 - Target type: metadata-only; no runtime, shell, planner, packet-planner, or `.codex` lane-state changes are intended in scope.
+- Canonical demo-path step advanced: this A2UI contract handoff advances `preview and apply or reject a patch` by making materialized A2UI actions deterministic for CLI fallback rendering.
 
 ## Required Fix Applied
 
@@ -37,6 +38,7 @@ Residual protected lane-state paths still present in `git diff --name-status mai
 ## Plan Alignment
 
 - Roadmap item(s) affected: `ROADMAP.md` Milestone 3 review/integration flow for the current MVP item, `A2UI contracts with CLI fallback`.
+- Canonical demo-path step: `preview and apply or reject a patch`.
 - Vision capability affected: none in this metadata-only fixer target.
 - Routing/provider impact note: none.
 - Shared/integrator-locked impact: none intended.
