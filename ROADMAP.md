@@ -325,7 +325,7 @@ Status: planned, disabled
 Scope:
 - package Developer and Lite as normal local desktop apps around the locally served Textual UI
 - use pywebview, bundled Python runtime, SQLite app data, local server startup/shutdown, and GitHub Release artifacts
-- use Briefcase as the preferred cross-platform packager, with PyInstaller only as a fallback if a target platform blocks Briefcase
+- use Briefcase as the cross-platform packager
 - bundle the Python executable/runtime and app dependencies; packaged Developer/Lite builds must not depend on system Python
 - add Cloudflare R2-backed update checks with an unobtrusive update button and a `Check for Updates` menu command
 - block confidential project creation/open when the app is not fully updated and the release manifest marks an update required

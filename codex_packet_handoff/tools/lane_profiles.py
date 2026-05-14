@@ -489,7 +489,7 @@ LANE_PROFILES: Dict[str, Json] = {
         "priority_summary": "Disabled desktop packaging lane.",
         "priority_outcomes": [
             "Specify pywebview desktop shell around the locally served Textual UI.",
-            "Specify Briefcase-first packaging for macOS .dmg, Windows .msi, and Linux Flatpak artifacts, with PyInstaller only as a per-platform fallback.",
+            "Specify Briefcase packaging for macOS .dmg, Windows .msi, and Linux Flatpak artifacts.",
             "Specify bundled Python executable/runtime packaging so Developer and Lite do not depend on system Python.",
             "Specify platform app-data, SQLite, local server, and shutdown coordination behavior.",
             "Specify Developer and Lite distribution profile differences.",

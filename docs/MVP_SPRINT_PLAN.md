@@ -120,7 +120,7 @@ Shared integration target:
 - Project export/import creates portable zip archives for moving projects between machines.
 - Project archives never include credentials, provider keys, local endpoints, license tokens, or managed Lite secrets.
 - Packaged Python/Textual app launches as a desktop app without terminal or localhost exposure.
-- Briefcase is preferred for bundled executable/runtime packaging, with PyInstaller only as a per-platform fallback; neither Developer nor Lite depends on system Python.
+- Briefcase is the bundled executable/runtime packaging path; neither Developer nor Lite depends on system Python.
 - Textual Lite calls local Python services directly in the packaged app. The License Gateway remains for managed remote credentials, license refresh, Paddle, and Nanonets accounting.
 - This is the cross-platform Python runtime path; macOS-only native Studio is handled later through the XPC sidecar bridge specs.
 
