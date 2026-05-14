@@ -27,9 +27,11 @@ No Textual implementation work, engine work, automation/tooling, `.agents`, `.co
 
 Current reviewer required-fix disposition:
 
-- Required fix 1: the exact AGENTS.md canonical demo-path step advanced is `preview and apply or reject a patch`.
-- Required fix 2: earlier packet-planner/tooling claims and files are corrected as out-of-scope metadata and removed from this A2UI runtime review scope. No changes to `codex_packet_handoff/tools/planner.py`, `tests/unit/test_packet_planner.py`, or other automation/tooling files are submitted for this review packet. Broader planner/tooling changes, if needed later, must be submitted in a separate high-risk review packet with an explicit ownership and approval basis.
-- Required fix 3: the runtime A2UI claim is limited to deterministic, typed/allowlisted action materialization for CLI fallback consumers. This packet does not add UI rendering assumptions to shared contracts.
+- Required fix 1: the reviewable runtime implementation range is exactly `b929fe6c7a1159c7882acedd247aca31a93cd123^..b929fe6c7a1159c7882acedd247aca31a93cd123`, plus this corrected `THREAD_PACKET.md` metadata. No branch-wide `.agents`, `.codex`, Textual, engine, shared, tooling, or unrelated doc changes are submitted for runtime review.
+- Required fix 2: broad branch-tip changes are not intended for this merge. They remain withdrawn and would require separate high-risk packets with lane ownership, approval basis, changed files, tasks completed, roadmap/product mapping, risks, and required gates before review.
+- Required fix 3: earlier packet-planner/tooling completion claims and files are corrected as out-of-scope metadata and removed from this A2UI runtime review scope. No changes to `codex_packet_handoff/tools/planner.py`, `tests/unit/test_packet_planner.py`, or other automation/tooling files are submitted for this review packet.
+- Required fix 4: the required gates are rerun for this corrected handoff and reported below.
+- Required fix 5: the exact AGENTS.md canonical demo-path step advanced is `preview and apply or reject a patch`.
 
 ## Canonical Demo-Path Mapping
 
@@ -84,6 +86,8 @@ Required gates for this fixer handoff:
 - `./quality-test.sh` - passed smoke tests and 511 unit tests, including `tests/unit/test_a2ui_contract.py`.
 - `./typecheck-test.sh` - passed Python source compilation.
 - `make ci` - passed scope-check, format, lint, compile/typecheck, smoke tests, and 511 unit tests.
+
+Fresh fixer verification on 2026-05-14 repeated all required gates above with the same passing outcomes.
 
 ## Risks Or Blockers
 
