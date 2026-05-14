@@ -9020,11 +9020,17 @@ def command_demo_readiness_handoff_packet(
             "trusted-loop payload for handoff smoke checks."
         ),
         tasks_completed=(
-            "1. Kept project/document open reachable through the bootstrap command.",
-            "2. Kept retrieval and basket promotion reachable through the context-basket command.",
-            "3. Kept revision, apply, and reject review reachable through the diff-preview command.",
-            "4. Kept persist-and-continue handoff reachable through the terminal command.",
-            "5. Exposed the trusted command loop as deterministic payload and JSON surfaces.",
+            "1. [demo-path step: open project/document] Kept project/document open reachable "
+            "through the bootstrap command.",
+            "2. [demo-path step: retrieve relevant material and gather context] Kept retrieval "
+            "and basket promotion reachable through the context-basket command.",
+            "3. [demo-path step: preview and apply or reject a patch] Kept revision, apply, "
+            "and reject review reachable through the diff-preview command.",
+            "4. [demo-path step: persist and continue] Kept persist-and-continue handoff "
+            "reachable through the terminal command.",
+            "5. [demo-path step: open project/document; retrieve relevant material and gather "
+            "context; preview and apply or reject a patch; persist and continue] Exposed the "
+            "trusted command loop as deterministic payload and JSON surfaces.",
         ),
         files_changed=("src/qual/commands/**",),
         commands_run=tuple(
@@ -9135,6 +9141,11 @@ def _validate_command_demo_readiness_handoff_packet(
     )
     if packet.canonical_demo_path_steps != expected_demo_steps:
         raise ValueError("Command demo readiness handoff packet demo path steps are inconsistent")
+    if any("[demo-path step:" not in task for task in packet.tasks_completed):
+        raise ValueError("Command demo readiness handoff packet tasks must name demo path steps")
+    for task in packet.tasks_completed:
+        if not any(step in task for step in expected_demo_steps):
+            raise ValueError("Command demo readiness handoff packet task demo path step is inconsistent")
     if packet.command_lines != seal.command_lines:
         raise ValueError("Command demo readiness handoff packet command lines are inconsistent")
     if packet.exact_action_lines != seal.exact_action_lines:

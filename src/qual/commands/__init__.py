@@ -3,6 +3,7 @@
 from __future__ import annotations
 
 import json
+import shlex
 from collections.abc import Sequence
 from dataclasses import asdict
 
@@ -136,6 +137,108 @@ from src.qual.commands.context_basket import (
     run_context_basket_readiness_contract_json,
     validate_context_basket_command_contract,
 )
+
+
+def _mvp_demo_effective_smoke_argvs(
+    smoke_argvs: Sequence[Sequence[str] | str],
+    demo_loop: dict[str, object],
+) -> tuple[Sequence[str] | str, ...]:
+    if smoke_argvs:
+        return tuple(smoke_argvs)
+    return tuple(demo_loop["smoke_argvs"])
+
+
+def _mvp_demo_strip_launcher(argv: tuple[str, ...]) -> tuple[str, ...]:
+    launcher_argv = tuple(COMMAND_SMOKE_CLI_LAUNCHER_ARGV)
+    if argv[: len(launcher_argv)] == launcher_argv:
+        return argv[len(launcher_argv) :]
+    return argv
+
+
+def _mvp_demo_handoff_exact_action_argvs(
+    smoke_matrix: Sequence[dict[str, object]],
+) -> tuple[tuple[str, ...], ...]:
+    return tuple(
+        _mvp_demo_strip_launcher(tuple(shlex.split(str(command_line))))
+        for entry in smoke_matrix
+        for _, command_line in tuple(entry["exact_action_lines"])
+    )
+
+
+def _mvp_demo_handoff_checkpoint_payload(
+    command_argvs: Sequence[Sequence[str] | str],
+    exact_action_argvs: Sequence[Sequence[str] | str],
+) -> dict[str, object]:
+    progress = canonical_command_readiness_command_progress_payload(command_argvs)
+    next_action = canonical_command_readiness_handoff_next_action_payload(
+        exact_action_argvs
+    )
+    remaining_actions = canonical_command_readiness_remaining_action_payload(
+        exact_action_argvs
+    )
+    canonical_checkpoint = canonical_command_readiness_checkpoint_payload()
+    exact_action_routes = _mvp_demo_exact_action_routes_for_engine_actions(
+        tuple(next_action["remaining_engine_actions"])
+    )
+    return {
+        "is_ready": bool(canonical_checkpoint["is_ready"]),
+        "is_complete": bool(progress["is_complete"])
+        and bool(next_action["is_complete"])
+        and bool(remaining_actions["is_complete"]),
+        "canonical_checkpoint": canonical_checkpoint,
+        "readiness_issues": tuple(canonical_checkpoint["issues"]),
+        "progress": progress,
+        "next_action": next_action,
+        "remaining_actions": remaining_actions,
+        "next_exact_action_route": (
+            exact_action_routes[0]
+            if exact_action_routes and not next_action["is_complete"]
+            else None
+        ),
+        "remaining_exact_action_routes": exact_action_routes,
+    }
+
+
+def _mvp_demo_handoff_completion_payload(
+    command_argvs: Sequence[Sequence[str] | str],
+    exact_action_argvs: Sequence[Sequence[str] | str],
+    checkpoint: dict[str, object],
+) -> dict[str, object]:
+    resume_script = build_mvp_demo_resume_script_payload(command_argvs)
+    next_command = canonical_command_readiness_next_status_payload(command_argvs)
+    next_action = canonical_command_readiness_handoff_next_action_payload(
+        exact_action_argvs
+    )
+    remaining_command_lines = tuple(resume_script["remaining_command_lines"])
+    remaining_exact_action_lines = tuple(next_action["remaining_exact_action_lines"])
+    invalid_argv = tuple(resume_script["invalid_argv"])
+    exact_action_invalid_argv = tuple(next_action["invalid_argv"])
+    return {
+        "is_ready": (
+            bool(checkpoint["is_ready"])
+            and not invalid_argv
+            and not exact_action_invalid_argv
+        ),
+        "is_complete": bool(checkpoint["is_complete"]),
+        "completed_command_lines": tuple(resume_script["completed_command_lines"]),
+        "remaining_command_lines": remaining_command_lines,
+        "remaining_exact_action_lines": remaining_exact_action_lines,
+        "current_command_line": (
+            "" if not remaining_command_lines else str(next_command["command_line"])
+        ),
+        "current_demo_path_step": next_command["demo_path_step"],
+        "current_flow_step": next_command["flow_step"],
+        "current_engine_actions": next_command["engine_actions"],
+        "next_exact_action_line": (
+            ""
+            if not remaining_exact_action_lines
+            else str(next_action["next_exact_action_line"])
+        ),
+        "next_exact_engine_action": next_action["next_engine_action"],
+        "invalid_argv": invalid_argv,
+        "exact_action_invalid_argv": exact_action_invalid_argv,
+    }
+
 
 def build_mvp_demo_command_surface_payload(
     smoke_argvs: Sequence[Sequence[str] | str] = (),
@@ -799,6 +902,7 @@ def build_mvp_demo_cli_handoff_payload(
 ) -> dict[str, object]:
     """Return the reviewer-facing CLI smoke handoff for the MVP demo path."""
     demo_loop = canonical_command_demo_loop_payload()
+    effective_smoke_argvs = _mvp_demo_effective_smoke_argvs(smoke_argvs, demo_loop)
     handoff_packet = canonical_command_readiness_handoff_packet_payload()
     required_gate_commands = tuple(
         asdict(command) for command in canonical_command_readiness_required_gate_commands()
@@ -807,9 +911,17 @@ def build_mvp_demo_cli_handoff_payload(
     readiness_fingerprint = canonical_command_readiness_fingerprint()
     smoke_gate = build_mvp_demo_smoke_gate_payload(demo_loop)
     smoke_matrix = build_mvp_demo_command_smoke_matrix_payload(demo_loop)
-    checkpoint = build_mvp_demo_readiness_checkpoint_payload(smoke_argvs)
-    runtime_checkpoint = build_mvp_demo_cli_runtime_checkpoint_payload(smoke_argvs)
-    command_completion = build_mvp_demo_cli_completion_payload(smoke_argvs)
+    exact_action_argvs = _mvp_demo_handoff_exact_action_argvs(smoke_matrix)
+    checkpoint = _mvp_demo_handoff_checkpoint_payload(
+        effective_smoke_argvs,
+        exact_action_argvs,
+    )
+    runtime_checkpoint = build_mvp_demo_cli_runtime_checkpoint_payload(exact_action_argvs)
+    command_completion = _mvp_demo_handoff_completion_payload(
+        effective_smoke_argvs,
+        exact_action_argvs,
+        checkpoint,
+    )
     trusted_steps = tuple(
         entry
         for entry in smoke_matrix
@@ -844,6 +956,8 @@ def build_mvp_demo_cli_handoff_payload(
         "command_lines": tuple(entry["command_line"] for entry in smoke_matrix),
         "compatibility_invocations": command_cli_compatibility_invocation_payloads(),
         "smoke_argvs": tuple(entry["smoke_argv"] for entry in smoke_matrix),
+        "command_smoke_argvs": effective_smoke_argvs,
+        "exact_action_argvs": exact_action_argvs,
         "engine_actions_by_step": tuple(
             (entry["demo_path_step"], entry["engine_actions"])
             for entry in smoke_matrix
@@ -854,7 +968,7 @@ def build_mvp_demo_cli_handoff_payload(
         ),
         "smoke_gate": smoke_gate,
         "smoke_transcript": build_mvp_demo_cli_smoke_transcript_payload(
-            smoke_argvs,
+            exact_action_argvs,
             demo_loop,
             smoke_matrix,
             smoke_gate,
@@ -862,12 +976,14 @@ def build_mvp_demo_cli_handoff_payload(
         "runtime_checkpoint": runtime_checkpoint,
         "command_completion": command_completion,
         "checkpoint": checkpoint,
-        "next_step": build_mvp_demo_next_step_payload(smoke_argvs),
-        "resume_packet": build_mvp_demo_resume_packet_payload(smoke_argvs),
-        "resume_script": build_mvp_demo_resume_script_payload(smoke_argvs),
-        "handoff_progress": build_mvp_demo_cli_handoff_progress_payload(smoke_argvs),
-        "smoke_route": build_mvp_demo_cli_smoke_route_payload(smoke_argvs),
-        "smoke_replay": build_mvp_demo_cli_smoke_replay_payload(smoke_argvs),
+        "next_step": build_mvp_demo_next_step_payload(exact_action_argvs),
+        "resume_packet": build_mvp_demo_resume_packet_payload(exact_action_argvs),
+        "resume_script": build_mvp_demo_resume_script_payload(exact_action_argvs),
+        "handoff_progress": build_mvp_demo_cli_handoff_progress_payload(
+            exact_action_argvs
+        ),
+        "smoke_route": build_mvp_demo_cli_smoke_route_payload(exact_action_argvs),
+        "smoke_replay": build_mvp_demo_cli_smoke_replay_payload(exact_action_argvs),
     }
 
 
