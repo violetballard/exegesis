@@ -6,6 +6,7 @@
 - Handoff type: retargeted single-commit runtime review packet.
 - Review target: exact commit `b929fe6c7a1159c7882acedd247aca31a93cd123` (`fix(a2ui): canonicalize materialized action order`).
 - Review range: `b929fe6c7a1159c7882acedd247aca31a93cd123^..b929fe6c7a1159c7882acedd247aca31a93cd123`.
+- Final review scope: exactly `b929fe6c7a1159c7882acedd247aca31a93cd123^..b929fe6c7a1159c7882acedd247aca31a93cd123`; no branch-tip commits after that runtime commit are submitted for runtime review.
 - Branch-tip note: later commits after `b929fe6c7a1159c7882acedd247aca31a93cd123`, including packet correction commits, are handoff metadata only and must not be reviewed as part of the A2UI runtime delta.
 - Packet correction scope: documentation-only handoff metadata for re-review.
 - Runtime files in scope:
@@ -66,6 +67,8 @@ Textual implementation files are not in scope for this retargeted review.
 No automation/tooling source or test files are in scope.
 
 ## Shared/Integrator-Locked Impact
+
+Shared/integrator-locked edits: None.
 
 None for the runtime review target. Commit `b929fe6c7a1159c7882acedd247aca31a93cd123` changes only lane-owned `src/qual/ui/a2ui.py` and `tests/unit/test_a2ui_contract.py`; it does not edit shared-by-approval or integrator-locked files.
 
