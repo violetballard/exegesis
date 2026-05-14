@@ -5,6 +5,7 @@
 - Merge target: current `main`
 - Selected integration target: current branch tip after this fixer commit, reviewed as a metadata-only correction.
 - Target type: metadata-only resubmission; no runtime, shell, planner, packet-planner, or unit-test changes are requested for this target.
+- Fixer verification: gates re-run on 2026-05-14 after confirming the selected target remains metadata-only.
 - Canonical demo-path step protected by this correction: `preview and apply or reject a patch`, by making the handoff packet accurately describe the reviewed branch diff.
 - Required-fix mapping: this packet removes planner/test claims and limits `Tasks completed`, `Files changed`, and gate reporting to the selected metadata-only target.
 - Roadmap mapping: `ROADMAP.md` Milestone 3, specifically `move A2UI contracts into shared while keeping renderers outside shared`.
@@ -61,7 +62,7 @@ This work now makes the canonical demo-path step `preview and apply or reject a 
 - `./quality-lint.sh`: PASS.
 - `./quality-test.sh`: PASS; smoke passed and 511 unit tests passed.
 - `./typecheck-test.sh`: PASS.
-- `make ci`: PASS.
+- `make ci`: PASS; scope, format, lint, typecheck, smoke, and 511 unit tests passed.
 
 ## Risks / Blockers
 
