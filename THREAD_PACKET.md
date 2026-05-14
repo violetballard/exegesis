@@ -28,10 +28,9 @@ No Textual implementation work, engine work, automation/tooling, `.agents`, `.co
 Required-fix disposition:
 
 - Required fix 1: the submitted review scope is the single runtime commit `b929fe6c7a1159c7882acedd247aca31a93cd123`; the only review-target files are `src/qual/ui/a2ui.py` and `tests/unit/test_a2ui_contract.py`.
-- Required fix 2: unsupported automation/tooling claims are removed; no tooling source or tooling test work is submitted for this runtime review.
-- Required fix 3: not applicable to this runtime-only packet because shared/integrator-locked impact is `None`; no high-risk/shared exception is claimed.
-- Required fix 4: the canonical demo-path step advanced is explicitly stated below as `preview and apply or reject a patch`.
-- Required fix 5: required handoff fields are aligned below with branch, scope completed, files changed, commands run, risks/blockers, roadmap item, vision capability, and routing/provider impact.
+- Required fix 2: each numbered runtime task below explicitly maps to the canonical demo-path step `preview and apply or reject a patch`; the final demo-path statement is included after the task list.
+- Required fix 3: shared/integrator-locked impact is `None` for this runtime-only packet; no high-risk/shared exception or approval basis is claimed.
+- Required fix 4: required gates are restated below for the corrected runtime-only scope.
 
 ## Canonical Demo-Path Mapping
 
@@ -45,9 +44,9 @@ Roadmap/product mapping:
 
 ## Tasks Completed
 
-1. Canonicalized materialized A2UI action ordering so filtered action payloads are stable for engine-facing CLI fallback consumers.
-2. Preserved typed and allowlisted action filtering, including exclusion of unsupported action shapes from the A2UI contract surface.
-3. Preserved CLI rendering fallback behavior and covered deterministic filtered action ordering in `tests/unit/test_a2ui_contract.py`.
+1. Canonicalized materialized A2UI action ordering so filtered action payloads are stable for engine-facing CLI fallback consumers. Canonical demo-path step advanced: `preview and apply or reject a patch`.
+2. Preserved typed and allowlisted action filtering, including exclusion of unsupported action shapes from the A2UI contract surface. Canonical demo-path step advanced: `preview and apply or reject a patch`.
+3. Preserved CLI rendering fallback behavior and covered deterministic filtered action ordering in `tests/unit/test_a2ui_contract.py`. Canonical demo-path step advanced: `preview and apply or reject a patch`.
 
 Each runtime task above advances the canonical demo-path step `preview and apply or reject a patch` by making apply/reject/copy action payloads deterministic for CLI fallback rendering.
 
