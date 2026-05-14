@@ -24,6 +24,8 @@
    Canonical demo-path step advanced: `preview and apply or reject a patch`; prevents generated handoff packets and stale packet claims from inventing completed work or misleading review of the patch-preview/apply support surface.
 4. Added packet-planner regression coverage in `tests/unit/test_lane_profiles.py`.
    Canonical demo-path step advanced: `preview and apply or reject a patch`; keeps the corrected handoff behavior testable without adding the absent `tests/unit/test_packet_planner.py` file.
+5. Reproduced the integrator blocker locally and clarified generated feature packets so the active engine execution order cannot be read as a hard merge prerequisite unless a packet explicitly lists one.
+   Canonical demo-path step advanced: `preview and apply or reject a patch`; lets the A2UI contract packet be re-reviewed on its actual diff instead of being blocked by an undeclared `feat-engine-runs` predecessor.
 
 ## Files Changed In Corrected Merge Diff
 
@@ -60,6 +62,8 @@ Required gates for the authoritative `main..HEAD` corrected merge candidate:
 
 - Revalidated during the `20260514T175633Z` fixer pass after confirming the packet-planner fallback removal and existing regression coverage.
 - `python -m pytest tests/unit/test_lane_profiles.py -q`: passed; 7 tests passed.
+- `git merge-base --is-ancestor codex/feat-engine-runs main; printf '%s\n' $?`: reproduced the integrator blocker; returned `1`.
+- `python -m pytest tests/unit/test_lane_profiles.py -q`: passed; 7 tests passed after the integration-note regression update.
 - `make scope-check`: passed.
 - `./quality-format.sh --check`: passed.
 - `./quality-lint.sh`: passed.
@@ -72,4 +76,5 @@ Required gates for the authoritative `main..HEAD` corrected merge candidate:
 - `.codex/kickoff_packets/feat-a2ui-contract.md` and `.codex/packet_planner/state.json` are packet/planner metadata changes only.
 - `codex_packet_handoff/tools/planner.py` and `tests/unit/test_lane_profiles.py` are off-lane packet tooling changes required by reviewer fixes; no router source, runtime source, shared contract, or Textual file is in the corrected final diff.
 - Merge risk is low to medium for the corrected final diff because broad source/runtime contamination has been removed from the branch tip, while the remaining packet-planner source change is narrow and regression-tested.
+- The reproduced predecessor check still returns `1`; the fix is that generated A2UI feature packets now explicitly say engine execution order is planning guidance, not a merge prerequisite unless the packet declares one.
 - Final packet reissue commits are handoff-only; reviewer-required packet-planner source/test changes are in the preceding fixer commit and remain listed in the full `main..HEAD` review surface above.

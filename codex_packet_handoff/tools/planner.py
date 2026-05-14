@@ -639,7 +639,11 @@ def build_packet(lane: str, branch: str, sha: str, meta: Json, files: List[str],
     if metadata_only_note:
         lines += ["## Packet traceability note", f"- {metadata_only_note}", ""]
     lines += ["## Current program focus", f"- {ENGINE_MILESTONE_FOCUS}", ""]
-    lines += ["## Current engine execution order"] + [f"- {line}" for line in engine_priority_lines()] + [""]
+    lines += ["## Current engine execution order"] + [f"- {line}" for line in engine_priority_lines()]
+    lines += [
+        "- Integration note: this planning order is not a merge prerequisite unless this packet explicitly lists one.",
+        "",
+    ]
     lines += ["## Scope goal", f"- {str(meta.get('scope_goal','')).strip() or '(missing)'}", ""]
     priority_outcomes = [str(item).strip() for item in (meta.get("priority_outcomes") or []) if str(item).strip()]
     if priority_outcomes:

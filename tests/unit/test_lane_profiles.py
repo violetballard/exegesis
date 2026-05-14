@@ -70,6 +70,7 @@ class LaneProfileDefaultsTests(unittest.TestCase):
         self.assertIn("## Definition of done for this lane", packet)
         self.assertIn("## Do not spend time on", packet)
         self.assertIn(engine_priority_lines()[0], packet)
+        self.assertIn("this planning order is not a merge prerequisite", packet)
 
     def test_planner_packet_supports_metadata_only_refresh_traceability(self) -> None:
         packet = build_packet(
