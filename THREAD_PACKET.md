@@ -28,7 +28,7 @@ No Textual implementation work, engine work, automation/tooling, `.agents`, `.co
 Current reviewer required-fix disposition:
 
 - Required fix 1: the exact AGENTS.md canonical demo-path step advanced is `preview and apply or reject a patch`.
-- Required fix 2: packet-planner/tooling claims and files are removed from this A2UI runtime review scope. No changes to `codex_packet_handoff/tools/planner.py`, `tests/unit/test_packet_planner.py`, or other automation/tooling files are submitted for this review packet. Broader planner/tooling changes, if needed later, must be submitted in a separate high-risk review packet with an explicit ownership and approval basis.
+- Required fix 2: earlier packet-planner/tooling claims and files are corrected as out-of-scope metadata and removed from this A2UI runtime review scope. No changes to `codex_packet_handoff/tools/planner.py`, `tests/unit/test_packet_planner.py`, or other automation/tooling files are submitted for this review packet. Broader planner/tooling changes, if needed later, must be submitted in a separate high-risk review packet with an explicit ownership and approval basis.
 - Required fix 3: the runtime A2UI claim is limited to deterministic, typed/allowlisted action materialization for CLI fallback consumers. This packet does not add UI rendering assumptions to shared contracts.
 
 ## Canonical Demo-Path Mapping
@@ -47,7 +47,7 @@ Roadmap/product mapping:
 2. Preserved typed and allowlisted action filtering, including exclusion of unsupported action shapes from the A2UI contract surface. Canonical demo-path step advanced: `preview and apply or reject a patch`.
 3. Preserved CLI rendering fallback behavior and covered deterministic filtered action ordering in `tests/unit/test_a2ui_contract.py`. Canonical demo-path step advanced: `preview and apply or reject a patch`.
 
-Each runtime task above advances the canonical demo-path step `preview and apply or reject a patch` by making apply/reject/copy action payloads deterministic for CLI fallback rendering.
+Each runtime task above advances the AGENTS.md canonical demo-path step `preview and apply or reject a patch` by making apply/reject/copy action payloads deterministic for CLI fallback rendering.
 
 ## Scope Completed
 
@@ -62,7 +62,7 @@ Review-target files changed in `b929fe6c7a1159c7882acedd247aca31a93cd123^..b929f
 
 Textual implementation files are not in scope for this retargeted review.
 
-No automation/tooling source or test files are in scope.
+No automation/tooling source or test files are in scope; any earlier packet-planner file references are withdrawn as out-of-scope metadata for this runtime A2UI review.
 
 ## Shared/Integrator-Locked Impact
 
