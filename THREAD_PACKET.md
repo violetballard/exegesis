@@ -7,6 +7,7 @@
 - Review target: exact commit `b929fe6c7a1159c7882acedd247aca31a93cd123` (`fix(a2ui): canonicalize materialized action order`).
 - Review range: `b929fe6c7a1159c7882acedd247aca31a93cd123^..b929fe6c7a1159c7882acedd247aca31a93cd123`.
 - Branch-tip note: later commits after `b929fe6c7a1159c7882acedd247aca31a93cd123`, including this packet correction, are not submitted as runtime/source changes and must not be reviewed as part of the A2UI runtime delta.
+- Packet correction scope: documentation-only handoff metadata for re-review.
 - Runtime files in scope:
   - `src/qual/ui/a2ui.py`
   - `tests/unit/test_a2ui_contract.py`
