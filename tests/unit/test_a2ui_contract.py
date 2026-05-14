@@ -98,6 +98,26 @@ class A2UIContractTests(unittest.TestCase):
         self.assertEqual(len(filtered["actions"]), 1)
         self.assertEqual(filtered["actions"][0]["id"], "apply_patch")
 
+    def test_filtered_actions_are_canonicalized_by_identity(self) -> None:
+        caps = _capabilities(actions_supported=("reject_patch", "copy_to_clipboard", "apply_patch"))
+        card = {
+            "type": "GenericCard",
+            "title": "Patch",
+            "blocks": [{"type": "MarkdownBlock", "markdown": "x"}],
+            "actions": [
+                {"id": "reject_patch", "label": "Reject", "payload": {"patch_id": "p2"}},
+                {"id": "copy_to_clipboard", "label": "Copy", "payload": {"text": "payload"}},
+                {"id": "apply_patch", "label": "Apply", "payload": {"patch_id": "p1"}},
+            ],
+        }
+
+        filtered = studio_materialize_card(card, caps)
+
+        self.assertEqual(
+            [action["id"] for action in filtered["actions"]],
+            ["apply_patch", "copy_to_clipboard", "reject_patch"],
+        )
+
     def test_engine_policy_gate_is_authoritative(self) -> None:
         executed: list[str] = []
         action = ActionRef(

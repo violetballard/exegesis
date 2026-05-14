@@ -165,5 +165,8 @@ def _studio_filter_actions(card: dict[str, Any], capabilities: A2UICapabilities)
         if action.get("id") not in set(capabilities.actions_supported):
             continue
         actions.append(action)
-    filtered["actions"] = actions
+    filtered["actions"] = sorted(
+        actions,
+        key=lambda action: json.dumps(action, sort_keys=True, separators=(",", ":"), ensure_ascii=True),
+    )
     return filtered
