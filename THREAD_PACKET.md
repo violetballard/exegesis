@@ -4,10 +4,10 @@
 - Lane: `feat-a2ui-contract`
 - Merge target: current `main`
 - Handoff type: runtime-only A2UI re-review packet.
-- Review target: exact commit `b929fe6c7a1159c7882acedd247aca31a93cd123` (`fix(a2ui): canonicalize materialized action order`).
-- Review range: `b929fe6c7a1159c7882acedd247aca31a93cd123^..b929fe6c7a1159c7882acedd247aca31a93cd123`.
-- Final review scope: exactly `b929fe6c7a1159c7882acedd247aca31a93cd123^..b929fe6c7a1159c7882acedd247aca31a93cd123`; no branch-tip commits after that runtime commit are submitted for runtime review.
-- Branch-tip note: later commits after `b929fe6c7a1159c7882acedd247aca31a93cd123`, including packet correction commits, are handoff metadata only and must not be reviewed as part of the A2UI runtime delta.
+- Runtime implementation target: exact commit `b929fe6c7a1159c7882acedd247aca31a93cd123` (`fix(a2ui): canonicalize materialized action order`).
+- Runtime implementation range: `b929fe6c7a1159c7882acedd247aca31a93cd123^..b929fe6c7a1159c7882acedd247aca31a93cd123`.
+- Final runtime review scope: exactly `b929fe6c7a1159c7882acedd247aca31a93cd123^..b929fe6c7a1159c7882acedd247aca31a93cd123`.
+- Branch-tip note: packet correction commits after `b929fe6c7a1159c7882acedd247aca31a93cd123` are handoff metadata only; they are included only to provide this corrected AGENTS.md handoff packet.
 - Packet correction scope: documentation-only handoff metadata for re-review.
 - Runtime files in scope:
   - `src/qual/ui/a2ui.py`
@@ -16,7 +16,7 @@
 
 ## Scope Correction
 
-This corrected handoff withdraws the earlier branch-wide submission and retargets review to the exact narrow runtime commit. The branch-wide range after `b929fe6c7a1159c7882acedd247aca31a93cd123` is explicitly not the requested review scope.
+This corrected handoff withdraws the earlier branch-wide runtime submission and retargets implementation review to the exact narrow runtime commit. Packet correction commits after `b929fe6c7a1159c7882acedd247aca31a93cd123` exist only to make the handoff packet accurate.
 
 Runtime review scope is only range `b929fe6c7a1159c7882acedd247aca31a93cd123^..b929fe6c7a1159c7882acedd247aca31a93cd123` and only these files:
 
@@ -27,9 +27,9 @@ No Textual implementation work, engine work, automation/tooling, `.agents`, `.co
 
 Required-fix disposition:
 
-- Required fix 1: the submitted review scope is the single runtime commit `b929fe6c7a1159c7882acedd247aca31a93cd123`; the only review-target files are `src/qual/ui/a2ui.py` and `tests/unit/test_a2ui_contract.py`.
-- Required fix 2: each numbered runtime task below explicitly maps to the canonical demo-path step `preview and apply or reject a patch`; the final demo-path statement is included after the task list.
-- Required fix 3: shared/integrator-locked impact is `None` for this runtime-only packet; no high-risk/shared exception or approval basis is claimed.
+- Required fix 1: `THREAD_PACKET.md` is now a `feat-a2ui-contract` handoff packet, not a stale `feat-retrieval-fts` packet.
+- Required fix 2: review scope is runtime-only; the implementation target is commit `b929fe6c7a1159c7882acedd247aca31a93cd123`, and the only implementation files in scope are `src/qual/ui/a2ui.py` and `tests/unit/test_a2ui_contract.py`.
+- Required fix 3: no planner/tooling or packet-planner regression-test changes are claimed. `tests/unit/test_packet_planner.py` is not listed because it is not part of this branch evidence.
 - Required fix 4: no shared/integrator-locked or shared-by-approval paths are part of this runtime-only review scope, so high-risk framing and the four-task cap are not invoked.
 - Required fix 5: the canonical demo-path step advanced by this lane is explicitly restated as `preview and apply or reject a patch`.
 
