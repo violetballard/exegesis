@@ -67,7 +67,7 @@ None. The intended A2UI runtime change does not touch model routing, provider co
 
 Required gates for this corrected fixer handoff:
 
-- `make scope-check` - passed; reported no tracked changed files before staging restored shared files.
+- `make scope-check` - passed for branch `codex/feat-a2ui-contract`.
 - `./quality-format.sh --check` - passed.
 - `./quality-lint.sh` - passed shell syntax and trailing whitespace checks.
 - `./quality-test.sh` - passed smoke tests and 156 unit tests.
