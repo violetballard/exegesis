@@ -4,6 +4,8 @@ description: "Safely resume automation after a pause by starting daemon, verifyi
 ---
 
 Run from repo root:
+- `python codex_packet_handoff/tools/remote_monitor_ctl.py start`
+- `python codex_packet_handoff/tools/remote_monitor_ctl.py status`
 - `python codex_packet_handoff/tools/daemon_resume_check.py`
 - `python codex_packet_handoff/tools/daemon_ctl.py status`
 - `python codex_packet_handoff/tools/status.py`
@@ -23,12 +25,15 @@ CLI-first note:
 - use only the Python scripts above for resume/status control
 
 This performs:
-1. `daemon_ctl.py start`
-2. `daemon_ctl.py status` (must show running)
-3. `daemon_monitor.py`
-4. `status.py`
+1. `remote_monitor_ctl.py start`
+2. `remote_monitor_ctl.py status` (must show running for phone/VPN status access)
+3. `daemon_ctl.py start`
+4. `daemon_ctl.py status` (must show running)
+5. `daemon_monitor.py`
+6. `status.py`
 
 After running, report:
+- whether the remote monitor is running, including PID and log path
 - whether daemon resumed successfully
 - the full queue truth from `status.py`
 - whether the queue is idle or has work
@@ -39,3 +44,6 @@ After running, report:
 
 Reference:
 - `PIPELINE_RUNBOOK.md`
+
+Restart note:
+- The remote monitor is intentionally not launchd-managed while the repo lives under Box. Starting/resuming the daemon should also start/check the monitor so phone access is restored after reboot.

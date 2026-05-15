@@ -4,6 +4,8 @@ description: "Start the event-driven coordinator daemon and immediately verify t
 ---
 
 Run from repo root:
+- `python codex_packet_handoff/tools/remote_monitor_ctl.py start`
+- `python codex_packet_handoff/tools/remote_monitor_ctl.py status`
 - `python codex_packet_handoff/tools/daemon_ctl.py start`
 - `python codex_packet_handoff/tools/daemon_ctl.py status`
 - `python codex_packet_handoff/tools/status.py`
@@ -23,6 +25,7 @@ CLI-first note:
 - do not rely on app automations; use the Python scripts above as the source of control
 
 Then print:
+- whether the remote monitor started or was already running, with PID and log path
 - whether it started or was already running
 - daemon PID
 - daemon log path
@@ -31,3 +34,6 @@ Then print:
 - whether the queue is idle, active, or blocked
 - whether reviewer and integrator sessions are present
 - any important live-log lines that explain the current state
+
+Restart note:
+- After a full machine restart, the remote monitor is not launchd-managed because the repo currently lives under Box. Always start/check `remote_monitor_ctl.py` as part of daemon startup so phone/VPN status access comes back with the daemon.

@@ -4,6 +4,7 @@ description: "Show the real full status report for daemon, reviewer lanes, integ
 ---
 
 Run from repo root:
+- `python codex_packet_handoff/tools/remote_monitor_ctl.py status`
 - `./codex_packet_handoff/tools/status_report.sh`
 
 Access path selection:
@@ -14,6 +15,7 @@ Access path selection:
 - Remote monitor output is sanitized and narrower than local script output, so say when a report is remote-derived.
 
 Manual breakdown if you need to inspect each step:
+- `python codex_packet_handoff/tools/remote_monitor_ctl.py status`
 - `python codex_packet_handoff/tools/daemon_ctl.py status`
 - `python codex_packet_handoff/tools/status.py`
 - `python codex_packet_handoff/tools/daemon_monitor.py`
@@ -28,6 +30,7 @@ CLI-first note:
 - when the controller itself is local `gpt-oss-20b`, prefer showing the full script outputs first and then summarize them; do not rely on memory or prior chat context for status
 
 Then summarize:
+- remote monitor running/stopped state, PID, and whether phone/VPN status access should be available
 - daemon running/stopped state from `daemon_ctl.py status`
 - filesystem truth per lane (`status.py`)
 - daemon state, reviewer/integrator queues, `active_blocker`, and latest lane discussion (`daemon_monitor.py`)
@@ -37,7 +40,7 @@ Then summarize:
 - whether any stale fixer/log noise should be ignored because the queue is clean
 
 Reading order:
-1. Start with `daemon_ctl.py status`, then `status.py` totals and lane states.
+1. Start with `remote_monitor_ctl.py status`, then `daemon_ctl.py status`, then `status.py` totals and lane states.
 2. Use `daemon_monitor.py` to read `bottleneck`, `active_blocker`, heartbeat, and live lane discussion.
 3. Only then read process list, feature-runner logs, packet-router logs, and daemon-log tail.
 4. If logs conflict with queue truth, say so explicitly and prefer `status.py` for queue state.

@@ -4,6 +4,7 @@ description: "Show the full live pipeline dashboard: daemon state, queue truth, 
 ---
 
 Run from repo root:
+- `python codex_packet_handoff/tools/remote_monitor_ctl.py status`
 - `python codex_packet_handoff/tools/daemon_ctl.py status`
 - `python codex_packet_handoff/tools/status.py`
 - `python codex_packet_handoff/tools/daemon_monitor.py`
@@ -27,6 +28,7 @@ If daemon is not running, also run:
 - `python codex_packet_handoff/tools/daemon_ctl.py status`
 
 Then summarize all of these together:
+- remote monitor running/stopped state, PID, and phone/VPN availability
 - daemon running/stopped state from `daemon_ctl.py status`
 - filesystem truth per lane from `status.py`
 - daemon running/stopped state
@@ -39,11 +41,12 @@ Then summarize all of these together:
 - whether the system is actively progressing, idle, or blocked
 
 Reading order:
-1. Treat `daemon_ctl.py status` + `status.py` as authoritative control-plane truth.
-2. In `daemon_monitor.py`, read `BACKLOG.active_blocker` and heartbeat before reading any log tail.
-3. Treat packet-router logs and daemon-log tail as secondary diagnostic evidence only.
-4. If daemon-log tail mentions `scope-check` but queue truth shows no pending scope-related blocker, label it as stale historical noise and do not escalate it as the live cause.
-5. When reporting status, include both the full script status and the live-log highlights the way an operator would want to see them in a local CLI session.
+1. Check `remote_monitor_ctl.py status` first so phone/VPN access is part of the operator readout.
+2. Treat `daemon_ctl.py status` + `status.py` as authoritative control-plane truth.
+3. In `daemon_monitor.py`, read `BACKLOG.active_blocker` and heartbeat before reading any log tail.
+4. Treat packet-router logs and daemon-log tail as secondary diagnostic evidence only.
+5. If daemon-log tail mentions `scope-check` but queue truth shows no pending scope-related blocker, label it as stale historical noise and do not escalate it as the live cause.
+6. When reporting status, include both the full script status and the live-log highlights the way an operator would want to see them in a local CLI session.
 
 Reference:
 - `PIPELINE_RUNBOOK.md`
