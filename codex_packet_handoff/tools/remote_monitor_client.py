@@ -27,6 +27,17 @@ def _request(method: str, path: str, *, body: Dict[str, Any] | None = None) -> D
         return json.loads(response.read().decode("utf-8"))
 
 
+def _request_text(method: str, path: str) -> str:
+    base = os.environ.get("QUAL_MONITOR_URL", DEFAULT_URL).rstrip("/")
+    token = os.environ.get("QUAL_MONITOR_TOKEN", "")
+    headers = {"Accept": "text/plain"}
+    if token:
+        headers["Authorization"] = f"Bearer {token}"
+    req = urllib.request.Request(f"{base}{path}", method=method, headers=headers)
+    with urllib.request.urlopen(req, timeout=15) as response:  # noqa: S310 - operator-configured URL
+        return response.read().decode("utf-8")
+
+
 def _print_summary(payload: Dict[str, Any]) -> None:
     pause = payload.get("pause") if isinstance(payload.get("pause"), dict) else {}
     git = payload.get("git") if isinstance(payload.get("git"), dict) else {}
@@ -55,7 +66,12 @@ def _print_summary(payload: Dict[str, Any]) -> None:
 
 def main() -> int:
     parser = argparse.ArgumentParser(description="Remote client for qual daemon monitor/control.")
-    parser.add_argument("action", choices=["status", "full", "start", "stop", "pause", "resume", "kick"], nargs="?", default="status")
+    parser.add_argument(
+        "action",
+        choices=["status", "text", "full", "health", "start", "stop", "pause", "resume", "kick"],
+        nargs="?",
+        default="status",
+    )
     parser.add_argument("--operator", default=os.environ.get("QUAL_MONITOR_OPERATOR", "codex-remote"))
     parser.add_argument("--reason", default="")
     args = parser.parse_args()
@@ -63,6 +79,10 @@ def main() -> int:
     try:
         if args.action == "status":
             _print_summary(_request("GET", "/api/status/summary"))
+        elif args.action == "text":
+            print(_request_text("GET", "/api/status/text"), end="")
+        elif args.action == "health":
+            print(json.dumps(_request("GET", "/healthz"), indent=2, sort_keys=True))
         elif args.action == "full":
             print(json.dumps(_request("GET", "/api/status"), indent=2, sort_keys=True))
         else:
