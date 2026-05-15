@@ -43,3 +43,23 @@
 ### Canonical Demo-Path Step Advanced
 
 This work makes **"open project/document"** more real. The command-catalog drift guard removes a concrete blocker for that step because the engine's "open project/document" flow depends on the CLI surface resolving `bootstrap`, `open-project`, `open-document`, and `document-open` tokens to a single canonical command with a stable engine-action route. Without the catalog validation (`command_cli_contract()` against `command_names()`), legacy token aliases could silently diverge from the canonical names, causing the engine to fail to dispatch `ExegesisAppService.open_project`/`open_document`. The drift guard ensures the CLI entrypoint surface and the engine dispatch table stay in lockstep, so the first step of the canonical demo path executes reliably. Additionally, the exact-action routes for `retrieve`/`search`/`basket-add` tokens unblock the downstream "retrieve relevant material" and "promote/gather context into the basket" steps by guaranteeing those tokens resolve to their canonical `context-basket` command and the corresponding `ExegesisAppService.search_project`/`add_basket_item` engine actions.
+
+## 2026-05-15 Reissued Packet (fixer__feat-commands__20260515T213255Z)
+
+- Reviewer packet: `fixer__feat-commands__20260515T213255Z.prompt.txt`
+- Verdict received: `CHANGES_REQUESTED`
+- Required fix 1 (scope-check/ownership note): already corrected above — lane is `feat-commands`, owned path is `src/qual/commands/**`, approved shared-test exception for `tests/unit/test_commands_catalog.py`.
+- Required fix 2 (canonical demo-path step): already stated above — advances "open project/document" and downstream retrieval/patch-review steps.
+- Required fix 3 (reissue metadata-only packet): this section serves as the reissued packet. No implementation change required.
+
+### Corrected Scope-check / Ownership Note
+
+- Lane: `feat-commands`
+- Owned path: `src/qual/commands/**`
+- Implementation files changed: `src/qual/commands/catalog.py`, `src/qual/commands/__init__.py`, `src/qual/commands/diff_preview.py`
+- Approved shared-test exception: `tests/unit/test_commands_catalog.py`
+- No files outside `src/qual/commands/**` were modified (excluding the approved test exception).
+
+### Canonical Demo-Path Step Advanced
+
+Stable CLI command contract for the engine-first path steps covered by `bootstrap`/project-open, `context-basket`/retrieval, and `diff-preview`/patch review. The catalog drift guard ensures the CLI surface and engine dispatch table remain in lockstep so the "open project/document" step executes reliably, with downstream retrieval and patch-review tokens resolving to their canonical engine actions.
