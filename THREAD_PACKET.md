@@ -6,7 +6,7 @@
 - Authoritative review target: branch tip `HEAD` against current `main` using `main...HEAD` after merging current `main` into this branch.
 - Merge surface: review the corrected branch-tip diff only; do not use prior mixed-scope packets as the review surface.
 - Fixer re-review note: this packet supersedes the rejected packet and is the only handoff surface for this re-review.
-- Scope goal: correct the A2UI handoff metadata so the submitted review surface is auditable and aligned with the canonical demo path.
+- Scope completed: corrected the A2UI handoff metadata so the submitted review surface is auditable and aligned with the canonical demo path.
 - Canonical demo-path step advanced: `preview and apply or reject a patch`.
 
 ## High-Risk / Off-Lane Framing
@@ -25,10 +25,10 @@
 
 ## Files Changed In Review Target
 
-Authoritative branch-tip review target, `main...HEAD` after merging current `main`:
+Authoritative branch-tip review target, exactly matching `git diff --name-status main...HEAD`:
 
-- `.codex/kickoff_packets/feat-a2ui-contract.md`
-- `THREAD_PACKET.md`
+- `M	.codex/kickoff_packets/feat-a2ui-contract.md`
+- `M	THREAD_PACKET.md`
 
 No `REMOTE_MONITORING_SPEC.md`, `docs/remote_monitoring/iphone_shortcuts.md`, `codex_packet_handoff/tools/*`, `tests/unit/test_remote_monitor.py`, `client-textual/`, retrieval runtime, daemon source, shared-contract source, `.codex/packet_planner/state.json`, packet-planner source/test, runtime A2UI file, or lane metadata file is part of the corrected branch-tip merge surface.
 
@@ -50,9 +50,9 @@ This corrected A2UI handoff supports the canonical demo-path step `preview and a
 
 ## Commands Run
 
-Required gates for the corrected branch-tip packet:
+Required gates for the corrected branch-tip packet, re-run after finalizing the corrected review surface:
 
-- Fresh fixer gate run: `2026-05-15` after removing off-lane remote-monitoring and router/tooling paths from the active review surface.
+- Fresh fixer gate run: `2026-05-15` after confirming off-lane remote-monitoring and router/tooling paths are absent from `main...HEAD`.
 - `make scope-check`: passed; scope-check accepted branch `codex/feat-a2ui-contract`.
 - `./quality-format.sh --check`: passed.
 - `./quality-lint.sh`: passed.
